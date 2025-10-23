@@ -11,6 +11,8 @@
 // @grant        GM_deleteValue
 // @grant        GM_xmlhttpRequest
 // @connect      thefixers.mymanager.gr
+// @connect      localhost
+//require           c:/Users/User/Documents/GitHub/MANAGER/modules/myman_allinone.js
 // ==/UserScript==
 
 (function() {
@@ -20,26 +22,29 @@
 
     // An array of local script paths to load in order.
     const scriptsToLoad = [
-        'file://c:/Users/User/Desktop/Scripts_Into_Development/myman_themes.js',
-        'file://c:/Users/User/Desktop/Scripts_Into_Development/myman_login.js',
-        'file://c:/Users/User/Desktop/Scripts_Into_Development/myman_mascot.js',
-        'file://c:/Users/User/Desktop/Scripts_Into_Development/myman_gamification.js',
-        'file://c:/Users/User/Desktop/Scripts_Into_Development/myman_allinone.js'
+        'http://localhost:8080/modules/myman_allinone.js'
     ];
 
     async function loadScripts() {
         for (const scriptUrl of scriptsToLoad) {
             try {
-                // Add cache-busting parameter
-                const cacheBuster = `?t=${Date.now()}`;
-                const response = await fetch(scriptUrl + cacheBuster);
-                const scriptText = await response.text();
-                const scriptElement = document.createElement('script');
-                scriptElement.textContent = scriptText;
-                document.head.appendChild(scriptElement);
-                console.log(`[MMS Loader] Successfully loaded and injected: ${scriptUrl}`);
+                // Use GM_xmlhttpRequest to fetch the local script content.
+                // This can bypass the browser's restriction on fetching file:// resources.
+                GM_xmlhttpRequest({
+                    method: "GET",
+                    url: scriptUrl,
+                    onload: function(response) {
+                        const scriptElement = document.createElement('script');
+                        scriptElement.textContent = response.responseText;
+                        document.head.appendChild(scriptElement);
+                        console.log(`[MMS Loader] Successfully loaded and injected: ${scriptUrl}`);
+                    },
+                    onerror: function(error) {
+                        console.error(`[MMS Loader] GM_xmlhttpRequest failed for script: ${scriptUrl}`, error);
+                    }
+                });
             } catch (error) {
-                console.error(`[MMS Loader] Failed to load script: ${scriptUrl}`, error);
+                console.error(`[MMS Loader] Caught an unexpected error for script: ${scriptUrl}`, error);
             }
         }
     }

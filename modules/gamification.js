@@ -1,3 +1,156 @@
+
+// ===================================================================
+// === FUN FEATURE: LEVEL UP SYSTEM
+// ===================================================================
+const STORAGE_KEYS = {
+    SCRIPT_ENABLED: 'tm_script_enabled', // Master toggle
+    USER_XP: 'tm_user_xp',
+    USER_LEVEL: 'tm_user_level',
+    ACHIEVEMENTS: 'tm_achievements_unlocked',
+    USER_COINS: 'tm_user_coins',
+    USER_TITLE: 'tm_user_title', // New: For cosmetic titles
+    PURCHASED_ITEMS: 'tm_purchased_items',
+    EQUIPPED_ITEMS: 'tm_equipped_items', // Changed from singular to plural
+    EQUIPPED_THEME: 'tm_equipped_theme',
+    PET_STATS: 'tm_pet_stats',
+    DAILY_STATS: 'tm_daily_stats_v2',
+    DAILY_QUESTS: 'tm_daily_quests',
+    USER_REROLL_TOKENS: 'tm_user_reroll_tokens',
+    // New Scratchpad Keys
+    SCRATCHPAD_NOTES: 'tm_scratchpad_notes_v2',
+    SCRATCHPAD_ACTIVE_NOTE_ID: 'tm_scratchpad_active_note_id',
+    SCRATCHPAD_TEMPLATES: 'tm_scratchpad_templates',
+    // New Talent System Keys
+    USER_TALENT_POINTS: 'tm_user_talent_points',
+    UNLOCKED_TALENTS: 'tm_unlocked_talents',
+    USER_NOTIFICATIONS: 'tm_user_notifications_v1',
+    ENERGIZED_BUFF_EXPIRES: 'tm_energized_buff_expires',
+    DOUBLE_COINS_BUFF_EXPIRES: 'tm_double_coins_buff_expires',
+    // Advanced Search Keys
+    SEARCH_HISTORY_KEY: 'tm_search_history',
+    FAVORITE_SEARCHES_KEY: 'tm_favorite_searches',
+    
+    // Random Events Keys
+    ACTIVE_EVENT: 'tm_active_event',
+    LAST_EVENT_CHECK: 'tm_last_event_check',
+    EVENT_HISTORY: 'tm_event_history',
+    EVENT_NOTIFICATION_MINIMIZED: 'tm_event_notification_minimized',
+    
+    // Smart Templates Keys
+    REPAIR_TEMPLATES: 'tm_repair_templates',
+    
+    // Factions Keys
+    USER_FACTION: 'tm_user_faction',
+    FACTION_CONTRIBUTION: 'tm_faction_contribution',
+    FACTION_CHALLENGES: 'tm_faction_challenges',
+    
+    // Dashboard Keys
+    DASHBOARD_STATS_HISTORY: 'tm_dashboard_stats_history',
+    REPAIR_TIME_HISTORY: 'tm_repair_time_history',
+    
+    // Boss Battles Keys
+    ACTIVE_BOSS: 'tm_active_boss',
+    BOSS_HISTORY: 'tm_boss_history',
+    BOSS_DEFEATS: 'tm_boss_defeats',
+    BOSS_NOTIFICATION_MINIMIZED: 'tm_boss_notification_minimized',
+    
+    // Menu Visibility Keys
+    HIDDEN_MENU_ITEMS: 'tm_hidden_menu_items',
+    
+    // Status Transfer Tracking
+    STATUS_40_TRANSFERS: 'tm_status_40_transfers', // Count of repairs moved to status 40
+    STATUS_100_TRANSFERS: 'tm_status_100_transfers', // Count of repairs moved to status 100
+
+    // Recent Repairs History
+    RECENT_REPAIRS: 'tm_recent_repairs', // Track recently accessed repairs
+
+    // Add other keys here as needed
+};
+
+// Make STORAGE_KEYS globally accessible for external scripts
+window.STORAGE_KEYS = STORAGE_KEYS;
+
+const SHOP_ITEMS = {
+    BOUNTY_COMPLETE_TOKEN: 'bounty_complete_token',
+    // Add other item IDs here for easy reference
+};
+
+// Make SHOP_ITEMS globally accessible for external scripts
+window.SHOP_ITEMS = SHOP_ITEMS;
+
+const XP_CONFIG = {
+    searches: 5,
+    repairsCompleted: 50,
+    ordersCreated: 20,
+    achievement: 100, // Bonus for unlocking any achievement
+    statusChange: 15, // For any repair status change
+    printOrder: 25, // For printing an order/repair ticket
+    viewTechStats: 10, // For opening the technician stats modal
+    viewCustomerHistory: 10, // For opening the customer history modal
+    setScratchpadReminder: 20, // For setting a reminder in the scratchpad
+    feedMascot: 5, // For feeding the interactive mascot
+    petMascot: 5, // For petting the interactive mascot
+    memoryGame: 15, // Base XP for playing the memory mini-game
+    bugSquishGame: 30, // Base XP for playing the bug squish mini-game
+};
+
+const QUEST_POOL = [
+    { id: 'complete_3_repairs', description: 'Complete 3 repairs', targetStat: 'repairsCompleted', targetCount: 3, rewardXp: 150, rewardCoins: 50 },
+    { id: 'create_5_orders', description: 'Create 5 new orders', targetStat: 'ordersCreated', targetCount: 5, rewardXp: 100, rewardCoins: 30 },
+    { id: 'search_10_times', description: 'Use Advanced Search 10 times', targetStat: 'searches', targetCount: 10, rewardXp: 75, rewardCoins: 15 },
+    { id: 'pet_mascot_5_times', description: 'Pet the mascot 5 times', targetStat: 'petMascot', targetCount: 5, rewardXp: 50, rewardCoins: 10 },
+    { id: 'feed_mascot_3_times', description: 'Feed the mascot 3 times', targetStat: 'feedMascot', targetCount: 3, rewardXp: 40, rewardCoins: 10 },
+    { id: 'change_5_statuses', description: 'Change the status of 5 repairs', targetStat: 'statusChanges', targetCount: 5, rewardXp: 80, rewardCoins: 20 },
+    { id: 'print_2_orders', description: 'Print 2 order tickets', targetStat: 'printOrder', targetCount: 2, rewardXp: 50, rewardCoins: 15 },
+    { id: 'view_5_histories', description: 'View customer history 5 times', targetStat: 'viewCustomerHistory', targetCount: 5, rewardXp: 60, rewardCoins: 15 },
+    { id: 'play_2_games', description: 'Play any mini-game 2 times', targetStat: 'anyGamePlayed', targetCount: 2, rewardXp: 70, rewardCoins: 25 },
+    { id: 'earn_100_xp', description: 'Earn 100 XP from any source', targetStat: 'xpEarned', targetCount: 100, rewardXp: 100, rewardCoins: 30 },
+    { id: 'earn_20_coins', description: 'Earn 20 Fixer-Coins', targetStat: 'coinsEarned', targetCount: 20, rewardXp: 50, rewardCoins: 50 },
+];
+
+// Unified constant for all ranks and titles.
+const RANKS = [
+    { level: 1,   title: 'Novice Tech',             color: '#d1d1d1' },
+    { level: 5,   title: 'Component Handler',       color: '#d1d1d1' },
+    { level: 10,  title: 'Adept Troubleshooter',    color: '#1eff00' },
+    { level: 15,  title: 'Screen Specialist',       color: '#1eff00' },
+    { level: 20,  title: 'Microsoldering Master',   color: '#0070dd' },
+    { level: 25,  title: 'Data Recovery Agent',     color: '#0070dd' },
+    { level: 30,  title: 'Firmware Wizard',         color: '#0070dd' },
+    { level: 40,  title: 'Board-Level Expert',      color: '#a335ee' },
+    { level: 50,  title: 'Silicon Prophet',         color: '#a335ee' },
+    { level: 75,  title: 'Kernel Commander',        color: '#a335ee' },
+    { level: 100, title: 'Master of the Mainboard', color: '#ff8000', glow: true },
+    { level: 250, title: 'Digital Archon',          color: '#e5cc80', glow: true }
+];
+
+const TALENT_TREE = [
+    {
+        id: 'repair_xp_boost_1', name: 'Repair Specialist I', cost: 1,
+        description: 'Gain +10% bonus XP from completing repairs.',
+        bonus: { type: 'xp_modifier', stat: 'repairsCompleted', multiplier: 0.10 }
+    },
+    {
+        id: 'order_xp_boost_1', name: 'Logistics Expert I', cost: 1,
+        description: 'Gain +10% bonus XP from creating new orders.',
+        bonus: { type: 'xp_modifier', stat: 'ordersCreated', multiplier: 0.10 }
+    },
+    {
+        id: 'search_xp_boost_1', name: 'Data Miner I', cost: 1,
+        description: 'Gain +20% bonus XP from using Advanced Search.',
+        bonus: { type: 'xp_modifier', stat: 'searches', multiplier: 0.20 }
+    },
+    {
+        id: 'coin_finder_1', name: 'Coin Scavenger', cost: 2,
+        description: 'Gain +10% more Fixer-Coins from all sources.',
+        bonus: { type: 'coin_modifier', multiplier: 0.10 }
+    },
+    {
+        id: 'game_master_1', name: 'Game Enthusiast', cost: 2,
+        description: 'Gain +25% bonus XP from playing mini-games.',
+        bonus: { type: 'xp_modifier', stat: 'anyGamePlayed', multiplier: 0.25 }
+    },
+];
 // This script is intended to be used as a library via the @require directive
 // in the main "MyManager All-in-One Suite" script. It does not do anything on its own.
 
