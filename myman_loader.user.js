@@ -11,8 +11,7 @@
 // @grant        GM_deleteValue
 // @grant        GM_xmlhttpRequest
 // @connect      thefixers.mymanager.gr
-// @connect      localhost
-//require           c:/Users/User/Documents/GitHub/MANAGER/modules/myman_allinone.js
+
 // ==/UserScript==
 
 (function() {
@@ -22,7 +21,7 @@
 
     // An array of local script paths to load in order.
     const scriptsToLoad = [
-        'http://localhost:8080/modules/myman_allinone.js'
+        'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/modules/myman_allinone.js'
     ];
 
     async function loadScripts() {
