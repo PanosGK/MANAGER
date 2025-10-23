@@ -10,8 +10,7 @@
 // @grant        GM_setValue
 // @grant        GM_deleteValue
 // @grant        GM_xmlhttpRequest
-// @connect      thefixers.mymanager.gr
-
+// @connect      raw.githubusercontent.com
 // ==/UserScript==
 
 (function() {

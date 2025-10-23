@@ -1,4 +1,5 @@
-
+(function() {
+    'use strict';
 // ===================================================================
 // === 0. CONFIGURATION & SETTINGS
 // ===================================================================
@@ -2153,6 +2154,7 @@ function showLoginSettingsModal(onModalClose) {
 // Make initLoginPage globally accessible for external scripts
 window.initLoginPage = initLoginPage;// This script is intended to be used as a library via the @require directive
 // in the main "MyManager All-in-One Suite" script. It does not do anything on its own.
+})();
 
 let mascotStateTimeout = null;
 let idleTimer = null;
