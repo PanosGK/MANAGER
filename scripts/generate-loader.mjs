@@ -13,11 +13,10 @@ const root = path.join(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'myman_manifest.json'), 'utf8'));
 const { version, updateBase, modules } = manifest;
 const loaderUrl = `${updateBase}/myman_loader.user.js`;
-const cacheBust = `v=${version}`;
 
 const requireLines = modules
-    .map((file) => `// @require      ${updateBase}/${file}?${cacheBust}`)
-    .concat(`// @require      ${updateBase}/myman_allinone.js?${cacheBust}`)
+    .map((file) => `// @require      ${updateBase}/${file}`)
+    .concat(`// @require      ${updateBase}/myman_allinone.js`)
     .join('\n');
 
 const loader = `// ==UserScript==

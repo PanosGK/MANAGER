@@ -1,8 +1,8 @@
 {
-  "version": "122",
+  "version": "123",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix in-app update check (correct GitHub manifest URL + fallbacks).",
+  "releaseNotes": "Use clean raw GitHub URLs for @require (no query strings).",
   "modules": [
     "myman_themes.js",
     "myman_config.js",
