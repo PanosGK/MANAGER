@@ -10,6 +10,102 @@ const SHOP_ITEMS = {
     // Add other item IDs here for easy reference
 };
 
+const MASCOT_SHOP_CONSUMABLE_IDS = new Set([
+    'happiness_snack', 'hunger_meal', 'super_meal', 'pizza_slice', 'burger_combo',
+    'ice_cream', 'donut', 'cookie', 'chocolate_bar', 'sushi_platter',
+    'smoothie', 'health_potion', 'mana_potion', 'rainbow_juice', 'golden_elixir',
+    'fireworks', 'rainbow_trail', 'heart_explosion', 'disco_ball', 'shield_buff',
+]);
+
+function getShopAccessoryItems() {
+    return [
+        { id: 'top_hat', name: 'Top Hat', icon: '🎩', cost: 250, type: 'accessory' },
+        { id: 'cowboy_hat', name: 'Cowboy Hat', icon: '🤠', cost: 300, type: 'accessory' },
+        { id: 'party_hat', name: 'Party Hat', icon: '🎊', cost: 200, type: 'accessory' },
+        { id: 'wizard_hat', name: 'Wizard Hat', icon: '🧙', cost: 500, type: 'accessory' },
+        { id: 'chef_hat', name: 'Chef Hat', icon: '👨‍🍳', cost: 350, type: 'accessory' },
+        { id: 'halo', name: 'Angel Halo', icon: '😇', cost: 800, type: 'accessory' },
+        { id: 'cool_shades', name: 'Cool Shades', icon: '😎', cost: 350, type: 'accessory' },
+        { id: 'nerd_glasses', name: 'Nerd Glasses', icon: '🤓', cost: 300, type: 'accessory' },
+        { id: 'monocle', name: 'Fancy Monocle', icon: '🧐', cost: 400, type: 'accessory' },
+        { id: 'rainy_day_umbrella', name: 'Rainy Day Umbrella', icon: '☂️', cost: 350, type: 'accessory' },
+        { id: 'beach_umbrella', name: 'Beach Umbrella', icon: '🏖️', cost: 400, type: 'accessory' },
+        { id: 'bookworm_kit', name: 'Bookworm Kit', icon: '📚', cost: 300, type: 'accessory' },
+        { id: 'stunt_bike', name: 'Stunt Bike', icon: '🚲', cost: 750, type: 'accessory' },
+        { id: 'juggling_balls', name: 'Juggling Balls', icon: '🤹', cost: 400, type: 'accessory' },
+        { id: 'jetpack', name: 'Jetpack', icon: '🚀', cost: 1200, type: 'accessory' },
+        { id: 'skateboard', name: 'Skateboard', icon: '🛹', cost: 600, type: 'accessory' },
+        { id: 'magic_wand', name: 'Magic Wand', icon: '🪄', cost: 550, type: 'accessory' },
+        { id: 'camera', name: 'Camera', icon: '📸', cost: 450, type: 'accessory' },
+        { id: 'microphone', name: 'Microphone', icon: '🎤', cost: 500, type: 'accessory' },
+        { id: 'guitar', name: 'Guitar', icon: '🎸', cost: 700, type: 'accessory' },
+        { id: 'santa_hat', name: 'Santa Hat', icon: '🎅', cost: 600, type: 'accessory' },
+        { id: 'flower_crown', name: 'Flower Crown', icon: '🌸', cost: 400, type: 'accessory' },
+        { id: 'laurel_wreath', name: 'Laurel Wreath', icon: '🏆', cost: 900, type: 'accessory' },
+        { id: 'devil_horns', name: 'Devil Horns', icon: '😈', cost: 666, type: 'accessory' },
+        { id: 'ninja_mask', name: 'Ninja Mask', icon: '🥷', cost: 750, type: 'accessory' },
+        { id: 'master_crown', name: 'Master\'s Crown', icon: '👑', cost: 10000, type: 'accessory' },
+        { id: 'diamond_ring', name: 'Diamond Ring', icon: '💎', cost: 5000, type: 'accessory' },
+        { id: 'golden_trophy', name: 'Golden Trophy', icon: '🥇', cost: 3000, type: 'accessory' },
+        { id: 'rainbow_wings', name: 'Rainbow Wings', icon: '🌈', cost: 2500, type: 'accessory' },
+        { id: 'power_glove', name: 'Power Glove', icon: '🔥', cost: 1500, type: 'accessory' },
+        { id: 'vip_pass', name: 'VIP Pass', icon: '🎫', cost: 2000, type: 'accessory' },
+    ];
+}
+
+function getShopConsumableItems(config) {
+    const items = [
+        { id: 'eod_checklist', name: 'End of Day Checklist', icon: '📋', cost: 800, type: 'feature',
+          desc: 'Adds a 📋 button to the footer. Shows all repairs you visited today so you can review and check them off before leaving.' },
+        { id: 'reroll_token', name: 'Bounty Reroll Token', icon: '🔄', cost: 100, type: 'consumable', desc: 'Reroll daily bounty' },
+        { id: SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, name: 'Bounty Completion Token', icon: '🎯', cost: 300, type: 'consumable', desc: 'Instantly complete bounty' },
+        { id: 'confetti_bomb', name: 'Confetti Bomb', icon: '🎉', cost: 25, type: 'consumable', desc: 'Party celebration!' },
+        { id: 'happiness_snack', name: 'Happiness Snack', icon: '💖', cost: 50, type: 'consumable', desc: 'Max happiness' },
+        { id: 'hunger_meal', name: 'Hunger Meal', icon: '🍱', cost: 50, type: 'consumable', desc: 'Max hunger' },
+        { id: 'super_meal', name: 'Super Meal', icon: '🍜', cost: 100, type: 'consumable', desc: 'Max hunger + happiness' },
+        { id: 'pizza_slice', name: 'Pizza Slice', icon: '🍕', cost: 60, type: 'consumable', desc: '+40 hunger, +20 happiness' },
+        { id: 'burger_combo', name: 'Burger Combo', icon: '🍔', cost: 70, type: 'consumable', desc: '+40 hunger, +20 happiness' },
+        { id: 'ice_cream', name: 'Ice Cream', icon: '🍦', cost: 40, type: 'consumable', desc: '+15 hunger, +30 happiness' },
+        { id: 'donut', name: 'Donut', icon: '🍩', cost: 35, type: 'consumable', desc: '+15 hunger, +30 happiness' },
+        { id: 'cookie', name: 'Cookie', icon: '🍪', cost: 30, type: 'consumable', desc: '+15 hunger, +30 happiness' },
+        { id: 'chocolate_bar', name: 'Chocolate Bar', icon: '🍫', cost: 45, type: 'consumable', desc: '+15 hunger, +30 happiness' },
+        { id: 'sushi_platter', name: 'Sushi Platter', icon: '🍣', cost: 120, type: 'consumable', desc: '+60 hunger, +40 happiness' },
+        { id: 'energized_drink', name: 'Energized Drink', icon: '⚡️', cost: 150, type: 'consumable', desc: '15 min energized buff' },
+        { id: 'coffee', name: 'Coffee', icon: '☕', cost: 50, type: 'consumable', desc: '5 min energized buff' },
+        { id: 'smoothie', name: 'Smoothie', icon: '🥤', cost: 75, type: 'consumable', desc: '+20 hunger, +30 happiness' },
+        { id: 'health_potion', name: 'Health Potion', icon: '🧪', cost: 100, type: 'consumable', desc: '+50 to both stats' },
+        { id: 'mana_potion', name: 'Mana Potion', icon: '🔮', cost: 120, type: 'consumable', desc: '+50 to both stats' },
+        { id: 'speed_potion', name: 'Speed Potion', icon: '💨', cost: 130, type: 'consumable', desc: '8 min energized buff' },
+        { id: 'lucky_potion', name: 'Lucky Potion', icon: '🍀', cost: 180, type: 'consumable', desc: '5 min double coins' },
+        { id: 'rainbow_juice', name: 'Rainbow Juice', icon: '🌈', cost: 200, type: 'consumable', desc: 'Max stats + confetti' },
+        { id: 'golden_elixir', name: 'Golden Elixir', icon: '✨', cost: 250, type: 'consumable', desc: 'Max stats + 20 min buff' },
+        { id: 'double_coins_voucher', name: 'Double Coins Voucher', icon: '💰', cost: 200, type: 'consumable', desc: '10 min double coins' },
+        { id: 'xp_boost_small', name: 'Small XP Boost', icon: '📈', cost: 150, type: 'consumable', desc: 'Instant +100 XP' },
+        { id: 'xp_boost_medium', name: 'Medium XP Boost', icon: '📊', cost: 250, type: 'consumable', desc: 'Instant +250 XP' },
+        { id: 'xp_boost_large', name: 'Large XP Boost', icon: '💹', cost: 400, type: 'consumable', desc: 'Instant +500 XP' },
+        { id: 'coin_magnet', name: 'Coin Magnet', icon: '🧲', cost: 180, type: 'consumable', desc: '7 min double coins' },
+        { id: 'lucky_coin', name: 'Lucky Coin', icon: '🪙', cost: 170, type: 'consumable', desc: '7 min double coins' },
+        { id: 'fireworks', name: 'Fireworks', icon: '🎆', cost: 100, type: 'consumable', desc: 'Huge celebration!' },
+        { id: 'sparkles', name: 'Sparkles', icon: '✨', cost: 80, type: 'consumable', desc: 'Sparkly effect' },
+        { id: 'rainbow_trail', name: 'Rainbow Trail', icon: '🌈', cost: 150, type: 'consumable', desc: 'Rainbow + 50 happiness' },
+        { id: 'snow_globe', name: 'Snow Globe', icon: '❄️', cost: 120, type: 'consumable', desc: 'Snow celebration' },
+        { id: 'bubble_blast', name: 'Bubble Blast', icon: '🫧', cost: 90, type: 'consumable', desc: 'Bubble party' },
+        { id: 'star_shower', name: 'Star Shower', icon: '🌟', cost: 130, type: 'consumable', desc: 'Starry effect' },
+        { id: 'heart_explosion', name: 'Heart Explosion', icon: '💕', cost: 110, type: 'consumable', desc: 'Hearts + 80 happiness' },
+        { id: 'disco_ball', name: 'Disco Ball', icon: '🪩', cost: 200, type: 'consumable', desc: 'Ultimate party!' },
+        { id: 'time_warp', name: 'Time Warp', icon: '⏰', cost: 300, type: 'consumable', desc: '30 min buff + 200 XP' },
+        { id: 'shield_buff', name: 'Shield Buff', icon: '🛡️', cost: 250, type: 'consumable', desc: 'Max both stats' },
+        { id: 'magnet_buff', name: 'Magnet Buff', icon: '🧲', cost: 220, type: 'consumable', desc: '15 min double coins' },
+        { id: 'focus_boost', name: 'Focus Boost', icon: '🎯', cost: 280, type: 'consumable', desc: '25 min buff + 150 XP' },
+        { id: 'productivity_pill', name: 'Productivity Pill', icon: '💊', cost: 350, type: 'consumable', desc: '25 min buff + 150 XP' },
+        { id: 'inspiration_spark', name: 'Inspiration Spark', icon: '💡', cost: 320, type: 'consumable', desc: '300 XP + confetti' },
+        { id: 'turbo_mode', name: 'Turbo Mode', icon: '🚀', cost: 400, type: 'consumable', desc: '20 min double buff' },
+        { id: 'mega_boost', name: 'Mega Boost', icon: '⚡', cost: 500, type: 'consumable', desc: '30 min full buff + 500 XP' },
+    ];
+    if (config?.interactiveMascotEnabled) return items;
+    return items.filter(item => !MASCOT_SHOP_CONSUMABLE_IDS.has(item.id));
+}
+
 const XP_CONFIG = {
     searches: 5,
     repairsCompleted: 50,
@@ -2273,110 +2369,9 @@ function populateShop(config, STORAGE_KEYS) {
 
     // Only expose accessories when mascot is enabled
     if (config.interactiveMascotEnabled) {
-        categories.accessories.push(
-        // Hats & Headwear (250-800 coins)
-        { id: 'top_hat', name: 'Top Hat', icon: '🎩', cost: 250, type: 'accessory' },
-        { id: 'cowboy_hat', name: 'Cowboy Hat', icon: '🤠', cost: 300, type: 'accessory' },
-        { id: 'party_hat', name: 'Party Hat', icon: '🎊', cost: 200, type: 'accessory' },
-        { id: 'wizard_hat', name: 'Wizard Hat', icon: '🧙', cost: 500, type: 'accessory' },
-        { id: 'chef_hat', name: 'Chef Hat', icon: '👨‍🍳', cost: 350, type: 'accessory' },
-        { id: 'halo', name: 'Angel Halo', icon: '😇', cost: 800, type: 'accessory' },
-        
-        // Eyewear (200-400 coins)
-        { id: 'cool_shades', name: 'Cool Shades', icon: '😎', cost: 350, type: 'accessory' },
-        { id: 'nerd_glasses', name: 'Nerd Glasses', icon: '🤓', cost: 300, type: 'accessory' },
-        { id: 'monocle', name: 'Fancy Monocle', icon: '🧐', cost: 400, type: 'accessory' },
-        
-        // Tools & Items (300-1200 coins)
-        { id: 'rainy_day_umbrella', name: 'Rainy Day Umbrella', icon: '☂️', cost: 350, type: 'accessory' },
-        { id: 'beach_umbrella', name: 'Beach Umbrella', icon: '🏖️', cost: 400, type: 'accessory' },
-        { id: 'bookworm_kit', name: 'Bookworm Kit', icon: '📚', cost: 300, type: 'accessory' },
-        { id: 'stunt_bike', name: 'Stunt Bike', icon: '🚲', cost: 750, type: 'accessory' },
-        { id: 'juggling_balls', name: 'Juggling Balls', icon: '🤹', cost: 400, type: 'accessory' },
-        { id: 'jetpack', name: 'Jetpack', icon: '🚀', cost: 1200, type: 'accessory' },
-        { id: 'skateboard', name: 'Skateboard', icon: '🛹', cost: 600, type: 'accessory' },
-        { id: 'magic_wand', name: 'Magic Wand', icon: '🪄', cost: 550, type: 'accessory' },
-        { id: 'camera', name: 'Camera', icon: '📸', cost: 450, type: 'accessory' },
-        { id: 'microphone', name: 'Microphone', icon: '🎤', cost: 500, type: 'accessory' },
-        { id: 'guitar', name: 'Guitar', icon: '🎸', cost: 700, type: 'accessory' },
-        
-        // Festive & Special (400-2000 coins)
-        { id: 'santa_hat', name: 'Santa Hat', icon: '🎅', cost: 600, type: 'accessory' },
-        { id: 'flower_crown', name: 'Flower Crown', icon: '🌸', cost: 400, type: 'accessory' },
-        { id: 'laurel_wreath', name: 'Laurel Wreath', icon: '🏆', cost: 900, type: 'accessory' },
-        { id: 'devil_horns', name: 'Devil Horns', icon: '😈', cost: 666, type: 'accessory' },
-        { id: 'ninja_mask', name: 'Ninja Mask', icon: '🥷', cost: 750, type: 'accessory' },
-        
-        // Premium Items (1000-10000 coins)
-        { id: 'master_crown', name: 'Master\'s Crown', icon: '👑', cost: 10000, type: 'accessory' },
-        { id: 'diamond_ring', name: 'Diamond Ring', icon: '💎', cost: 5000, type: 'accessory' },
-        { id: 'golden_trophy', name: 'Golden Trophy', icon: '🥇', cost: 3000, type: 'accessory' },
-        { id: 'rainbow_wings', name: 'Rainbow Wings', icon: '🌈', cost: 2500, type: 'accessory' },
-        { id: 'power_glove', name: 'Power Glove', icon: '🔥', cost: 1500, type: 'accessory' },
-        { id: 'vip_pass', name: 'VIP Pass', icon: '🎫', cost: 2000, type: 'accessory' },
-    );
+        categories.accessories.push(...getShopAccessoryItems());
     }
-    categories.consumables.push(
-        // ── Unlockable Features (permanent, one-time purchase) ──
-        { id: 'eod_checklist', name: 'End of Day Checklist', icon: '📋', cost: 800, type: 'feature',
-          desc: 'Adds a 📋 button to the footer. Shows all repairs you visited today so you can review and check them off before leaving.' },
-
-        // Utility Items (25-300 coins)
-        { id: 'reroll_token', name: 'Bounty Reroll Token', icon: '🔄', cost: 100, type: 'consumable', desc: 'Reroll daily bounty' },
-        { id: SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, name: 'Bounty Completion Token', icon: '🎯', cost: 300, type: 'consumable', desc: 'Instantly complete bounty' },
-        { id: 'confetti_bomb', name: 'Confetti Bomb', icon: '🎉', cost: 25, type: 'consumable', desc: 'Party celebration!' },
-        
-        // Food & Snacks (30-120 coins)
-        { id: 'happiness_snack', name: 'Happiness Snack', icon: '💖', cost: 50, type: 'consumable', desc: 'Max happiness' },
-        { id: 'hunger_meal', name: 'Hunger Meal', icon: '🍱', cost: 50, type: 'consumable', desc: 'Max hunger' },
-        { id: 'super_meal', name: 'Super Meal', icon: '🍜', cost: 100, type: 'consumable', desc: 'Max hunger + happiness' },
-        { id: 'pizza_slice', name: 'Pizza Slice', icon: '🍕', cost: 60, type: 'consumable', desc: '+40 hunger, +20 happiness' },
-        { id: 'burger_combo', name: 'Burger Combo', icon: '🍔', cost: 70, type: 'consumable', desc: '+40 hunger, +20 happiness' },
-        { id: 'ice_cream', name: 'Ice Cream', icon: '🍦', cost: 40, type: 'consumable', desc: '+15 hunger, +30 happiness' },
-        { id: 'donut', name: 'Donut', icon: '🍩', cost: 35, type: 'consumable', desc: '+15 hunger, +30 happiness' },
-        { id: 'cookie', name: 'Cookie', icon: '🍪', cost: 30, type: 'consumable', desc: '+15 hunger, +30 happiness' },
-        { id: 'chocolate_bar', name: 'Chocolate Bar', icon: '🍫', cost: 45, type: 'consumable', desc: '+15 hunger, +30 happiness' },
-        { id: 'sushi_platter', name: 'Sushi Platter', icon: '🍣', cost: 120, type: 'consumable', desc: '+60 hunger, +40 happiness' },
-        
-        // Drinks & Potions (50-250 coins)
-        { id: 'energized_drink', name: 'Energized Drink', icon: '⚡️', cost: 150, type: 'consumable', desc: '15 min energized buff' },
-        { id: 'coffee', name: 'Coffee', icon: '☕', cost: 50, type: 'consumable', desc: '5 min energized buff' },
-        { id: 'smoothie', name: 'Smoothie', icon: '🥤', cost: 75, type: 'consumable', desc: '+20 hunger, +30 happiness' },
-        { id: 'health_potion', name: 'Health Potion', icon: '🧪', cost: 100, type: 'consumable', desc: '+50 to both stats' },
-        { id: 'mana_potion', name: 'Mana Potion', icon: '🔮', cost: 120, type: 'consumable', desc: '+50 to both stats' },
-        { id: 'speed_potion', name: 'Speed Potion', icon: '💨', cost: 130, type: 'consumable', desc: '8 min energized buff' },
-        { id: 'lucky_potion', name: 'Lucky Potion', icon: '🍀', cost: 180, type: 'consumable', desc: '5 min double coins' },
-        { id: 'rainbow_juice', name: 'Rainbow Juice', icon: '🌈', cost: 200, type: 'consumable', desc: 'Max stats + confetti' },
-        { id: 'golden_elixir', name: 'Golden Elixir', icon: '✨', cost: 250, type: 'consumable', desc: 'Max stats + 20 min buff' },
-        
-        // XP & Coins (150-400 coins)
-        { id: 'double_coins_voucher', name: 'Double Coins Voucher', icon: '💰', cost: 200, type: 'consumable', desc: '10 min double coins' },
-        { id: 'xp_boost_small', name: 'Small XP Boost', icon: '📈', cost: 150, type: 'consumable', desc: 'Instant +100 XP' },
-        { id: 'xp_boost_medium', name: 'Medium XP Boost', icon: '📊', cost: 250, type: 'consumable', desc: 'Instant +250 XP' },
-        { id: 'xp_boost_large', name: 'Large XP Boost', icon: '💹', cost: 400, type: 'consumable', desc: 'Instant +500 XP' },
-        { id: 'coin_magnet', name: 'Coin Magnet', icon: '🧲', cost: 180, type: 'consumable', desc: '7 min double coins' },
-        { id: 'lucky_coin', name: 'Lucky Coin', icon: '🪙', cost: 170, type: 'consumable', desc: '7 min double coins' },
-        
-        // Special Effects (100-350 coins)
-        { id: 'fireworks', name: 'Fireworks', icon: '🎆', cost: 100, type: 'consumable', desc: 'Huge celebration!' },
-        { id: 'sparkles', name: 'Sparkles', icon: '✨', cost: 80, type: 'consumable', desc: 'Sparkly effect' },
-        { id: 'rainbow_trail', name: 'Rainbow Trail', icon: '🌈', cost: 150, type: 'consumable', desc: 'Rainbow + 50 happiness' },
-        { id: 'snow_globe', name: 'Snow Globe', icon: '❄️', cost: 120, type: 'consumable', desc: 'Snow celebration' },
-        { id: 'bubble_blast', name: 'Bubble Blast', icon: '🫧', cost: 90, type: 'consumable', desc: 'Bubble party' },
-        { id: 'star_shower', name: 'Star Shower', icon: '🌟', cost: 130, type: 'consumable', desc: 'Starry effect' },
-        { id: 'heart_explosion', name: 'Heart Explosion', icon: '💕', cost: 110, type: 'consumable', desc: 'Hearts + 80 happiness' },
-        { id: 'disco_ball', name: 'Disco Ball', icon: '🪩', cost: 200, type: 'consumable', desc: 'Ultimate party!' },
-        
-        // Power-ups (200-500 coins)
-        { id: 'time_warp', name: 'Time Warp', icon: '⏰', cost: 300, type: 'consumable', desc: '30 min buff + 200 XP' },
-        { id: 'shield_buff', name: 'Shield Buff', icon: '🛡️', cost: 250, type: 'consumable', desc: 'Max both stats' },
-        { id: 'magnet_buff', name: 'Magnet Buff', icon: '🧲', cost: 220, type: 'consumable', desc: '15 min double coins' },
-        { id: 'focus_boost', name: 'Focus Boost', icon: '🎯', cost: 280, type: 'consumable', desc: '25 min buff + 150 XP' },
-        { id: 'productivity_pill', name: 'Productivity Pill', icon: '💊', cost: 350, type: 'consumable', desc: '25 min buff + 150 XP' },
-        { id: 'inspiration_spark', name: 'Inspiration Spark', icon: '💡', cost: 320, type: 'consumable', desc: '300 XP + confetti' },
-        { id: 'turbo_mode', name: 'Turbo Mode', icon: '🚀', cost: 400, type: 'consumable', desc: '20 min double buff' },
-        { id: 'mega_boost', name: 'Mega Boost', icon: '⚡', cost: 500, type: 'consumable', desc: '30 min full buff + 500 XP' },
-    );
+    categories.consumables.push(...getShopConsumableItems(config));
 
     // Evolutions are automatically unlocked by leveling up, not purchasable
     // They are removed from the shop to prevent buying/equipping
@@ -2389,6 +2384,7 @@ function populateShop(config, STORAGE_KEYS) {
 
     // Create content for each category
     for (const category in categories) {
+        if (category === 'accessories' && !config.interactiveMascotEnabled) continue;
         const categoryContent = document.createElement('div');
         categoryContent.id = `tm-shop-category-${category}`;
         categoryContent.className = 'tm-shop-category-content';
@@ -2726,6 +2722,9 @@ function handleShopPurchase(button, config, STORAGE_KEYS) {
         window.showPositiveMessage('Αγορά επιτυχής!');
     }
     populateShop(config, STORAGE_KEYS); // Re-render the shop
+    if (document.getElementById('tm-shop-dashboard-wrapper')) {
+        populateShopDashboard(config, STORAGE_KEYS);
+    }
 }
 
 // Called whenever a 'feature' type item is purchased or equipped in debug mode.
@@ -4385,6 +4384,18 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
         }
         
         // Shop Tab Content
+        const dashboardAccessoriesTabHtml = config.interactiveMascotEnabled
+            ? `<button class="tm-shop-tab" data-category="accessories" style="
+                    padding: 10px 20px;
+                    background: none;
+                    border: none;
+                    border-bottom: 3px solid transparent;
+                    cursor: pointer;
+                    font-weight: 600;
+                    color: var(--tm-secondary-hover);
+                    transition: all 0.2s;
+                ">🎩 Accessories</button>`
+            : '';
         container.innerHTML = `
             <div class="tm-shop-tabs" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0;">
                 <button class="tm-shop-tab active" data-category="themes" style="
@@ -4397,16 +4408,7 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                     color: #4facfe;
                     transition: all 0.2s;
                 ">🎨 Themes</button>
-                <button class="tm-shop-tab" data-category="accessories" style="
-                    padding: 10px 20px;
-                    background: none;
-                    border: none;
-                    border-bottom: 3px solid transparent;
-                    cursor: pointer;
-                    font-weight: 600;
-                    color: var(--tm-secondary-hover);
-                    transition: all 0.2s;
-                ">🎩 Accessories</button>
+                ${dashboardAccessoriesTabHtml}
                 <button class="tm-shop-tab" data-category="consumables" style="
                     padding: 10px 20px;
                     background: none;
@@ -4707,59 +4709,59 @@ function populateShopDashboard(config, STORAGE_KEYS) {
     const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
     
     // Create category containers
+    const accessoriesCategoryHtml = config.interactiveMascotEnabled
+        ? '<div id="tm-shop-category-accessories" class="tm-shop-category-content" style="display: none; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;"></div>'
+        : '';
     wrapper.innerHTML = `
         <div id="tm-shop-category-themes" class="tm-shop-category-content active" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;"></div>
-        <div id="tm-shop-category-accessories" class="tm-shop-category-content" style="display: none; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;"></div>
+        ${accessoriesCategoryHtml}
         <div id="tm-shop-category-consumables" class="tm-shop-category-content" style="display: none; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;"></div>
     `;
     
     // Populate themes
     const themesContainer = wrapper.querySelector('#tm-shop-category-themes');
-    if (config.mascotEnabled && window.MASCOT_THEMES) {
-        themesContainer.innerHTML = window.MASCOT_THEMES.map(theme => {
-            const isPurchased = purchasedItems.includes(theme.id) || theme.price === 0;
-            return `
-                <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 12px;">${theme.icon}</div>
-                    <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${theme.name}</div>
-                    <div style="font-size: 12px; color: var(--tm-secondary-hover); min-height: 36px; margin-bottom: 12px;">${theme.description}</div>
-                    <button class="tm-shop-item-btn ${isPurchased ? 'purchased' : 'buy'}" 
-                            data-item-id="${theme.id}" 
-                            data-item-type="theme"
-                            data-item-price="${theme.price}"
-                            style="
-                                width: 100%;
-                                padding: 10px;
-                                border: none;
-                                border-radius: 8px;
-                                font-weight: 600;
-                                cursor: ${isPurchased ? 'not-allowed' : 'pointer'};
-                                background: ${isPurchased ? '#e2e8f0' : 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)'};
-                                color: ${isPurchased ? '#94a3b8' : 'white'};
-                            "
-                            ${isPurchased ? 'disabled' : ''}>
-                        ${isPurchased ? '✓ Owned' : `Buy ${theme.price} 🪙`}
-                    </button>
-                </div>
-            `;
-        }).join('');
-    }
+    themesContainer.innerHTML = Object.keys(UI_THEMES).map(id => {
+        const theme = { id, ...UI_THEMES[id] };
+        const isPurchased = purchasedItems.includes(theme.id) || theme.cost === 0;
+        return `
+            <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 12px;">${theme.icon}</div>
+                <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${theme.name}</div>
+                <button class="tm-shop-item-btn ${isPurchased ? 'purchased' : 'buy'}" 
+                        data-item-id="${theme.id}" 
+                        data-item-type="theme"
+                        data-item-cost="${theme.cost}"
+                        style="
+                            width: 100%;
+                            padding: 10px;
+                            border: none;
+                            border-radius: 8px;
+                            font-weight: 600;
+                            cursor: ${isPurchased ? 'not-allowed' : 'pointer'};
+                            background: ${isPurchased ? '#e2e8f0' : 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)'};
+                            color: ${isPurchased ? '#94a3b8' : 'white'};
+                        "
+                        ${isPurchased ? 'disabled' : ''}>
+                    ${isPurchased ? '✓ Owned' : `Buy ${theme.cost} 🪙`}
+                </button>
+            </div>
+        `;
+    }).join('');
     
     // Populate accessories (only when mascot is enabled)
-    const accessoriesContainer = wrapper.querySelector('#tm-shop-category-accessories');
-    if (config.mascotEnabled && window.MASCOT_ACCESSORIES) {
-        accessoriesContainer.innerHTML = window.MASCOT_ACCESSORIES.map(accessory => {
+    if (config.interactiveMascotEnabled) {
+        const accessoriesContainer = wrapper.querySelector('#tm-shop-category-accessories');
+        accessoriesContainer.innerHTML = getShopAccessoryItems().map(accessory => {
             const isPurchased = purchasedItems.includes(accessory.id);
             const isEquipped = equippedItems.includes(accessory.id);
             return `
                 <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
                     <div style="font-size: 48px; margin-bottom: 12px;">${accessory.icon}</div>
                     <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${accessory.name}</div>
-                    <div style="font-size: 12px; color: var(--tm-secondary-hover); min-height: 36px; margin-bottom: 12px;">${accessory.description}</div>
                     <button class="tm-shop-item-btn ${!isPurchased ? 'buy' : isEquipped ? 'equipped' : 'equip'}" 
                             data-item-id="${accessory.id}" 
                             data-item-type="accessory"
-                            data-item-price="${accessory.price}"
+                            data-item-cost="${accessory.cost}"
                             style="
                                 width: 100%;
                                 padding: 10px;
@@ -4770,45 +4772,43 @@ function populateShopDashboard(config, STORAGE_KEYS) {
                                 background: ${!isPurchased ? 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)' : isEquipped ? 'linear-gradient(135deg, #66bb6a 0%, #4caf50 100%)' : 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'};
                                 color: white;
                             ">
-                        ${!isPurchased ? `Buy ${accessory.price} 🪙` : isEquipped ? '✓ Equipped' : 'Equip'}
+                        ${!isPurchased ? `Buy ${accessory.cost} 🪙` : isEquipped ? '✓ Equipped' : 'Equip'}
                     </button>
                 </div>
             `;
         }).join('');
     }
     
-    // Populate consumables
+    // Populate consumables (mascot-only items hidden when mascot is disabled)
     const consumablesContainer = wrapper.querySelector('#tm-shop-category-consumables');
-    if (config.mascotEnabled && window.MASCOT_CONSUMABLES) {
-        consumablesContainer.innerHTML = window.MASCOT_CONSUMABLES.map(consumable => {
-            return `
-                <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 12px;">${consumable.icon}</div>
-                    <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${consumable.name}</div>
-                    <div style="font-size: 12px; color: var(--tm-secondary-hover); min-height: 36px; margin-bottom: 8px;">${consumable.description}</div>
-                    <div style="font-size: 11px; color: #4facfe; background: rgba(79, 172, 254, 0.1); padding: 6px; border-radius: 6px; margin-bottom: 12px;">
-                        ℹ️ ${consumable.info || 'Use to boost your performance!'}
-                    </div>
-                    <button class="tm-shop-item-btn use" 
-                            data-item-id="${consumable.id}" 
-                            data-item-type="consumable"
-                            data-item-price="${consumable.price}"
-                            style="
-                                width: 100%;
-                                padding: 10px;
-                                border: none;
-                                border-radius: 8px;
-                                font-weight: 600;
-                                cursor: pointer;
-                                background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
-                                color: white;
-                            ">
-                        Use ${consumable.price} 🪙
-                    </button>
-                </div>
-            `;
-        }).join('');
-    }
+    consumablesContainer.innerHTML = getShopConsumableItems(config).map(consumable => {
+        const isFeature = consumable.type === 'feature';
+        const isOwned = isFeature && purchasedItems.includes(consumable.id);
+        return `
+            <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 12px;">${consumable.icon}</div>
+                <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${consumable.name}</div>
+                ${consumable.desc ? `<div style="font-size: 12px; color: var(--tm-secondary-hover); min-height: 36px; margin-bottom: 12px;">${consumable.desc}</div>` : ''}
+                <button class="tm-shop-item-btn ${isOwned ? 'equipped' : 'buy'}" 
+                        data-item-id="${consumable.id}" 
+                        data-item-type="${consumable.type}"
+                        data-item-cost="${consumable.cost}"
+                        style="
+                            width: 100%;
+                            padding: 10px;
+                            border: none;
+                            border-radius: 8px;
+                            font-weight: 600;
+                            cursor: ${isOwned ? 'not-allowed' : 'pointer'};
+                            background: ${isOwned ? '#e2e8f0' : 'linear-gradient(135deg, #ff9800 0%, #ff5722 100%)'};
+                            color: ${isOwned ? '#94a3b8' : 'white'};
+                        "
+                        ${isOwned ? 'disabled' : ''}>
+                    ${isOwned ? '✓ Owned' : `Buy ${consumable.cost} 🪙`}
+                </button>
+            </div>
+        `;
+    }).join('');
     
     // Add event listeners for shop buttons
     wrapper.addEventListener('click', (e) => {
