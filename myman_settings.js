@@ -890,37 +890,53 @@
         }
 
         function handleExportData() {
-            let backupData = window.MMS_PROFILES?.exportCurrentProfileData
-                ? window.MMS_PROFILES.exportCurrentProfileData()
-                : null;
+            try {
+                let backupData = window.MMS_PROFILES?.exportCurrentProfileData
+                    ? window.MMS_PROFILES.exportCurrentProfileData()
+                    : null;
 
-            if (!backupData) {
-                backupData = {};
-                const keysToBackup = [
-                    ...Object.keys(window.DEFAULTS || {}),
-                    ...Object.values(STORAGE_KEYS)
-                ];
-                keysToBackup.forEach((key) => {
-                    const value = GM_getValue(key);
-                    if (value !== undefined) backupData[key] = value;
-                });
+                if (!backupData) {
+                    backupData = {};
+                    const keysToBackup = [
+                        ...Object.keys(window.DEFAULTS || {}).filter((k) => k !== 'defaultThemeColors'),
+                        ...Object.values(STORAGE_KEYS)
+                    ];
+                    keysToBackup.forEach((key) => {
+                        const value = GM_getValue(key);
+                        if (value !== undefined) backupData[key] = value;
+                    });
+                    backupData._mms_export = {
+                        version: 1,
+                        profileId: window.MMS_PROFILES?.getActiveProfileId?.() || null,
+                        profileLabel: window.MMS_PROFILES?.getActiveProfileLabel?.() || null,
+                        exportedAt: new Date().toISOString()
+                    };
+                }
+
+                const jsonString = window.MMS_PROFILES?.safeBackupStringify
+                    ? window.MMS_PROFILES.safeBackupStringify(backupData)
+                    : JSON.stringify(backupData, null, 2);
+
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                const today = new Date().toISOString().slice(0, 10);
+                const profileSlug = window.MMS_PROFILES?.getActiveProfileId?.() || 'user';
+                a.download = `MyManagerSuite_${profileSlug}_${today}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                if (typeof window.showPositiveMessage === 'function') {
+                    window.showPositiveMessage('Τα δεδομένα εξήχθησαν με επιτυχία!');
+                }
+            } catch (error) {
+                console.error('[MMS] Export failed:', error);
+                alert(`Σφάλμα κατά την εξαγωγή δεδομένων: ${error.message}`);
             }
-
-            const jsonString = JSON.stringify(backupData, null, 2);
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-
-            const a = document.createElement('a');
-            a.href = url;
-            const today = new Date().toISOString().slice(0, 10);
-            const profileSlug = window.MMS_PROFILES?.getActiveProfileId?.() || 'user';
-            a.download = `MyManagerSuite_${profileSlug}_${today}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-
-            showPositiveMessage('Τα δεδομένα εξήχθησαν με επιτυχία!');
         }
 
         function handleImportData() {
@@ -937,8 +953,14 @@
                     try {
                         const importedData = JSON.parse(readerEvent.target.result);
 
-                        // Basic validation
-                        if (typeof importedData.USER_XP === 'undefined' && typeof importedData.autoRefreshEnabled === 'undefined') {
+                        const isValid = window.MMS_PROFILES?.isValidBackupPayload
+                            ? window.MMS_PROFILES.isValidBackupPayload(importedData)
+                            : (
+                                importedData._mms_export
+                                || importedData.tm_user_xp !== undefined
+                                || importedData.autoRefreshEnabled !== undefined
+                            );
+                        if (!isValid) {
                             throw new Error('Μη έγκυρη μορφή αρχείου backup.');
                         }
 

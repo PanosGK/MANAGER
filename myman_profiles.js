@@ -214,7 +214,50 @@
         }
         keys.delete(getMappingKey());
         keys.delete('tm_script_enabled');
+        keys.delete('defaultThemeColors');
         return [...keys];
+    }
+
+    function isValidBackupPayload(data) {
+        if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
+        if (data._mms_export && typeof data._mms_export === 'object') return true;
+
+        const keys = Object.keys(data).filter((k) => k !== '_mms_export');
+        if (!keys.length) return false;
+
+        const knownMarkers = new Set([
+            'tm_user_xp', 'tm_user_level', 'tm_user_coins', 'tm_scratchpad_notes_v2',
+            'autoRefreshEnabled', 'levelUpSystemEnabled', 'quickSearchButtons',
+            'userXp', 'userLevel', 'USER_XP', 'USER_LEVEL'
+        ]);
+
+        return keys.some((key) => knownMarkers.has(key) || key.startsWith('tm_'));
+    }
+
+    function normalizeImportedBackup(importedData) {
+        const normalized = { ...importedData };
+        const sk = window.STORAGE_KEYS || {};
+
+        const aliasToStorage = {
+            USER_XP: sk.USER_XP || 'tm_user_xp',
+            USER_LEVEL: sk.USER_LEVEL || 'tm_user_level',
+            USER_COINS: sk.USER_COINS || 'tm_user_coins',
+            userXp: sk.USER_XP || 'tm_user_xp',
+            userLevel: sk.USER_LEVEL || 'tm_user_level',
+            userCoins: sk.USER_COINS || 'tm_user_coins'
+        };
+
+        Object.entries(aliasToStorage).forEach(([alias, storageKey]) => {
+            if (normalized[alias] !== undefined && normalized[storageKey] === undefined) {
+                normalized[storageKey] = normalized[alias];
+            }
+        });
+
+        return normalized;
+    }
+
+    function safeBackupStringify(data) {
+        return JSON.stringify(data, (_key, value) => (typeof value === 'function' ? undefined : value), 2);
     }
 
     function exportCurrentProfileData() {
@@ -250,14 +293,19 @@
 
     function importProfileData(importedData) {
         if (!importedData || typeof importedData !== 'object') {
-            throw new Error('Invalid import data');
+            throw new Error('Μη έγκυρα δεδομένα εισαγωγής');
+        }
+        if (!isValidBackupPayload(importedData)) {
+            throw new Error('Μη έγκυρη μορφή αρχείου backup.');
         }
 
-        const meta = importedData._mms_export;
-        Object.keys(importedData).forEach((key) => {
+        const normalized = normalizeImportedBackup(importedData);
+        const meta = normalized._mms_export;
+
+        Object.keys(normalized).forEach((key) => {
             if (key === '_mms_export') return;
             if (isGlobalKey(key)) return;
-            wrappedSetValue(key, importedData[key]);
+            wrappedSetValue(key, normalized[key]);
         });
 
         return meta || null;
@@ -270,6 +318,9 @@
         activateProfileForCurrentUser,
         exportCurrentProfileData,
         importProfileData,
+        isValidBackupPayload,
+        normalizeImportedBackup,
+        safeBackupStringify,
         isGlobalKey,
         listExportKeys
     };

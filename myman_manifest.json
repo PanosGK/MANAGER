@@ -1,8 +1,8 @@
 {
-  "version": "125",
+  "version": "126",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Auto update check every 5 min with notification; dedicated Updates settings page.",
+  "releaseNotes": "Fix backup export/import validation for per-profile storage keys.",
   "modules": [
     "myman_themes.js",
     "myman_config.js",
