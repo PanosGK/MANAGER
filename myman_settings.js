@@ -262,6 +262,7 @@
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             saveCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             saveCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
+            saveCheckbox('tm-setting-auto-update-check-enabled', 'autoUpdateCheckEnabled');
 
             // --- Save Auto-Refresh settings ---
             saveCheckbox('tm-setting-autorefresh-enabled', 'autoRefreshEnabled');
@@ -393,6 +394,9 @@
             console.log('[MMS] Settings saved:', config);
             // Reload the page so settings apply immediately
             showPositiveMessage('Οι ρυθμίσεις αποθηκεύτηκαν επιτυχώς!');
+            if (typeof window.initScriptUpdateChecker === 'function') {
+                window.initScriptUpdateChecker();
+            }
             try { window.location.reload(); } catch (_) {}
         }
 
@@ -756,25 +760,125 @@
                         <button id="tm-export-data-btn" class="tm-data-btn export">💾 Εξαγωγή Δεδομένων</button>
                         <button id="tm-import-data-btn" class="tm-data-btn import">📂 Εισαγωγή Δεδομένων</button>
                     </div>
-                    <div class="tm-setting-row" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
-                        <div class="tm-setting-label">
-                            <label>🔄 Ενημέρωση Script</label>
-                            <p class="tm-setting-description">Τρέχουσα έκδοση: <strong id="tm-settings-current-version">—</strong></p>
-                            <p class="tm-setting-description" id="tm-settings-update-status">Εγκαταστήστε το <code>myman_loader.user.js</code> από το GitHub για αυτόματες ενημερώσεις μέσω Tampermonkey.</p>
-                        </div>
-                        <div class="tm-setting-control">
-                            <button id="tm-settings-check-update-btn" class="tm-data-btn export" type="button">Έλεγχος Ενημερώσεων</button>
-                        </div>
-                    </div>
                     <p class="tm-setting-description" style="text-align: center; margin-top: 20px;">Επαναφέρετε όλες τις ρυθμίσεις και την πρόοδο στις αρχικές τους τιμές. <strong>Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</strong></p>
                     <div class="tm-data-actions"><button id="tm-settings-reset" class="tm-data-btn reset">⚠️ Επαναφορά Όλων</button></div>
                 </div>`;
         }
 
-        function initScriptUpdateControls() {
+        function getUpdatesSettingsHTML() {
+            const loaderUrl = window.SCRIPT_META?.loaderUrl || 'myman_loader.user.js';
+            return `
+                <div class="tm-settings-section">
+                    <h3>🔄 Ενημερώσεις Script</h3>
+                    <p class="tm-setting-description">Έλεγχος για νέες εκδόσεις από το GitHub. Το Tampermonkey εγκαθιστά την ενημέρωση — αυτό το script σας ειδοποιεί όταν υπάρχει νέα έκδοση.</p>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-auto-update-check-enabled">Αυτόματος έλεγχος κάθε 5 λεπτά</label>
+                            <p class="tm-setting-description">Ελέγχει στο παρασκήνιο και εμφανίζει ειδοποίηση αν υπάρχει νέα έκδοση.</p>
+                        </div>
+                        <div class="tm-setting-control">
+                            <input type="checkbox" id="tm-setting-auto-update-check-enabled">
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label>Τρέχουσα έκδοση</label>
+                            <p class="tm-setting-description"><strong id="tm-settings-current-version">—</strong></p>
+                            <p class="tm-setting-description" id="tm-settings-update-status">—</p>
+                            <p class="tm-setting-description" id="tm-settings-skipped-version" style="display: none;"></p>
+                        </div>
+                        <div class="tm-setting-control" style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                            <button id="tm-settings-check-update-btn" class="tm-data-btn export" type="button">Έλεγχος τώρα</button>
+                            <button id="tm-settings-clear-skip-update-btn" class="tm-data-btn import" type="button" style="display: none;">Ξεχάστε παράλειψη έκδοσης</button>
+                        </div>
+                    </div>
+                    <div class="tm-setting-row" style="border-top: 1px solid #e0e0e0; padding-top: 15px;">
+                        <div class="tm-setting-label">
+                            <label>Εγκατάσταση / Ενημέρωση</label>
+                            <p class="tm-setting-description">Εγκαταστήστε μία φορά το loader από το GitHub. Μετά, οι ενημερώσεις γίνονται από το Tampermonkey Dashboard.</p>
+                            <p class="tm-setting-description" style="word-break: break-all; font-size: 11px; opacity: 0.85;"><code>${loaderUrl}</code></p>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function refreshUpdatesSettingsUI(result) {
             const versionEl = document.getElementById('tm-settings-current-version');
             const statusEl = document.getElementById('tm-settings-update-status');
+            const skippedEl = document.getElementById('tm-settings-skipped-version');
+            const clearSkipBtn = document.getElementById('tm-settings-clear-skip-update-btn');
+
+            if (versionEl) {
+                versionEl.textContent = window.SCRIPT_META?.version || '—';
+            }
+            if (statusEl && result) {
+                statusEl.innerHTML = typeof window.formatUpdateStatusMessage === 'function'
+                    ? window.formatUpdateStatusMessage(result)
+                    : '—';
+            }
+            const skipped = typeof window.getSkippedUpdateVersion === 'function'
+                ? window.getSkippedUpdateVersion()
+                : '';
+            if (skippedEl && clearSkipBtn) {
+                if (skipped) {
+                    skippedEl.style.display = 'block';
+                    skippedEl.textContent = `Παραλείφθηκε η ειδοποίηση για την έκδοση v${skipped}.`;
+                    clearSkipBtn.style.display = 'inline-block';
+                } else {
+                    skippedEl.style.display = 'none';
+                    skippedEl.textContent = '';
+                    clearSkipBtn.style.display = 'none';
+                }
+            }
+        }
+
+        function initUpdatesSettingsPage() {
             const checkBtn = document.getElementById('tm-settings-check-update-btn');
+            const clearSkipBtn = document.getElementById('tm-settings-clear-skip-update-btn');
+            const autoCheck = document.getElementById('tm-setting-auto-update-check-enabled');
+            const statusEl = document.getElementById('tm-settings-update-status');
+
+            if (autoCheck) {
+                autoCheck.checked = GM_getValue('autoUpdateCheckEnabled', true) !== false;
+            }
+
+            refreshUpdatesSettingsUI(window.getLastScriptUpdateResult?.() || null);
+            if (statusEl && !window.getLastScriptUpdateResult?.()) {
+                statusEl.textContent = 'Πατήστε «Έλεγχος τώρα» ή περιμένετε τον αυτόματο έλεγχο (κάθε 5 λεπτά).';
+            }
+
+            checkBtn?.addEventListener('click', () => {
+                if (typeof window.runScriptUpdateCheck !== 'function') {
+                    if (statusEl) statusEl.textContent = '❌ Η λειτουργία ελέγχου ενημερώσεων δεν είναι διαθέσιμη.';
+                    return;
+                }
+                checkBtn.disabled = true;
+                if (statusEl) statusEl.textContent = '⏳ Έλεγχος για νέα έκδοση...';
+
+                window.runScriptUpdateCheck({ silent: false, showBanner: true }).then((result) => {
+                    checkBtn.disabled = false;
+                    refreshUpdatesSettingsUI(result);
+                });
+            });
+
+            clearSkipBtn?.addEventListener('click', () => {
+                if (typeof window.clearSkippedUpdateVersion === 'function') {
+                    window.clearSkippedUpdateVersion();
+                }
+                refreshUpdatesSettingsUI(window.getLastScriptUpdateResult?.() || null);
+                if (typeof showPositiveMessage === 'function') {
+                    showPositiveMessage('Η παράλειψη έκδοσης ακυρώθηκε.');
+                }
+            });
+
+            window.addEventListener('mms-update-check', (e) => {
+                if (document.getElementById('sec-updates')?.classList.contains('active')) {
+                    refreshUpdatesSettingsUI(e.detail);
+                }
+            });
+        }
+
+        function initDataManagementControls() {
             const profileEl = document.getElementById('tm-settings-active-profile');
             if (profileEl) {
                 const label = window.MMS_PROFILES?.getActiveProfileLabel?.()
@@ -783,48 +887,6 @@
                     || '—';
                 profileEl.textContent = label;
             }
-            if (!versionEl || !statusEl || !checkBtn) return;
-
-            versionEl.textContent = window.SCRIPT_META?.version || '—';
-
-            checkBtn.addEventListener('click', () => {
-                if (typeof window.checkForScriptUpdate !== 'function') {
-                    statusEl.textContent = '❌ Η λειτουργία ελέγχου ενημερώσεων δεν είναι διαθέσιμη.';
-                    return;
-                }
-
-                checkBtn.disabled = true;
-                statusEl.textContent = '⏳ Έλεγχος για νέα έκδοση...';
-
-                window.checkForScriptUpdate((result) => {
-                    checkBtn.disabled = false;
-
-                    if (result.error === 'network') {
-                        statusEl.textContent = `❌ Αποτυχία σύνδεσης με το GitHub (${result.url || 'manifest'}).`;
-                        return;
-                    }
-                    if (result.error === 'no_xhr') {
-                        statusEl.textContent = '❌ Το Tampermonkey δεν επιτρέπει αίτημα προς GitHub. Ελέγξτε ότι το script έχει @grant GM_xmlhttpRequest.';
-                        return;
-                    }
-                    if (result.error) {
-                        statusEl.textContent = `❌ Δεν ήταν δυνατός ο έλεγχος ενημέρωσης (HTTP ${result.status || '?'}).`;
-                        return;
-                    }
-
-                    if (result.updateAvailable) {
-                        statusEl.innerHTML = `✨ Διαθέσιμη νέα έκδοση <strong>v${result.remote}</strong> (έχετε v${result.current}).<br>Πηγαίνετε στο Tampermonkey → Dashboard → Έλεγχος για ενημερώσεις.`;
-                        if (result.releaseNotes) {
-                            statusEl.innerHTML += `<br><span style="opacity:0.85;">${result.releaseNotes}</span>`;
-                        }
-                        if (typeof showPositiveMessage === 'function') {
-                            showPositiveMessage(`Νέα έκδοση v${result.remote} διαθέσιμη!`);
-                        }
-                    } else {
-                        statusEl.textContent = `✅ Έχετε την τελευταία έκδοση (v${result.current}).`;
-                    }
-                });
-            });
         }
 
         function handleExportData() {
@@ -926,6 +988,7 @@
                                 <li><a href="#sec-autorefresh">🔄 Αυτόματη Ανανέωση</a></li>
                                 <li><a href="#sec-scratchpad">📝 Σημειωματάριο</a></li>                            
                                 <li><a href="#sec-gamification">🎮 Παιχνιδοποίηση & Mascot</a></li>
+                                <li><a href="#sec-updates">🔄 Ενημερώσεις</a></li>
                                 <li><a href="#sec-data">💾 Δεδομένα & Backup</a></li>
                                 <li style="display: none;" data-debug-only="true"><a href="#sec-debug">🔧 Ανάπτυξη</a></li>
                             </ul>
@@ -937,6 +1000,7 @@
                             <section id="sec-scratchpad">${getScratchpadSettingsHTML()}</section>
                             <section id="sec-gamification">${window.getGamificationSettingsHTML(STORAGE_KEYS)}</section>
                             <section id="sec-debug">${getDebugSettingsHTML()}</section>
+                            <section id="sec-updates">${getUpdatesSettingsHTML()}</section>
                             <section id="sec-data">${getDataManagementHTML()}</section>
                         </main>
                     </div>
@@ -987,7 +1051,8 @@
             overlay.querySelector('#tm-settings-reset')?.addEventListener('click', resetSettings);
             overlay.querySelector('#tm-export-data-btn')?.addEventListener('click', handleExportData);
             overlay.querySelector('#tm-import-data-btn')?.addEventListener('click', handleImportData);
-            initScriptUpdateControls();
+            initUpdatesSettingsPage();
+            initDataManagementControls();
 
             // --- Populate Checkboxes ---
             const populateCheckbox = (id, key) => {

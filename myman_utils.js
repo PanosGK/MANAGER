@@ -494,4 +494,197 @@
 
     window.checkForScriptUpdate = checkForScriptUpdate;
 
+    const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000;
+    let updateCheckTimer = null;
+    let lastUpdateResult = null;
+
+    function getSkippedUpdateKey() {
+        return window.STORAGE_KEYS?.SKIPPED_UPDATE_VERSION || 'tm_skipped_update_version';
+    }
+
+    function isAutoUpdateCheckEnabled() {
+        return GM_getValue('autoUpdateCheckEnabled', true) !== false;
+    }
+
+    function getSkippedUpdateVersion() {
+        return String(GM_getValue(getSkippedUpdateKey(), '') || '');
+    }
+
+    function skipUpdateVersion(version) {
+        if (version == null || version === '') return;
+        GM_setValue(getSkippedUpdateKey(), String(version));
+        hideScriptUpdateNotification();
+    }
+
+    function clearSkippedUpdateVersion() {
+        GM_deleteValue(getSkippedUpdateKey());
+    }
+
+    function isUpdateVersionSkipped(remoteVersion) {
+        const skipped = getSkippedUpdateVersion();
+        if (!skipped || remoteVersion == null) return false;
+        return parseScriptVersion(remoteVersion) <= parseScriptVersion(skipped);
+    }
+
+    function escapeHtml(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function formatUpdateStatusMessage(result) {
+        if (!result) return '—';
+        if (result.error === 'network') {
+            return `❌ Αποτυχία σύνδεσης με το GitHub (${result.url || 'manifest'}).`;
+        }
+        if (result.error === 'no_xhr') {
+            return '❌ Το Tampermonkey δεν επιτρέπει αίτημα προς GitHub. Ελέγξτε ότι το script έχει @grant GM_xmlhttpRequest.';
+        }
+        if (result.error) {
+            return `❌ Δεν ήταν δυνατός ο έλεγχος ενημέρωσης (HTTP ${result.status || '?'}).`;
+        }
+        if (result.updateAvailable) {
+            let msg = `✨ Διαθέσιμη νέα έκδοση <strong>v${escapeHtml(result.remote)}</strong> (έχετε v${escapeHtml(result.current)}).<br>Πηγαίνετε στο Tampermonkey → Dashboard → Έλεγχος για ενημερώσεων.`;
+            if (result.releaseNotes) {
+                msg += `<br><span style="opacity:0.85;">${escapeHtml(result.releaseNotes)}</span>`;
+            }
+            return msg;
+        }
+        return `✅ Έχετε την τελευταία έκδοση (v${escapeHtml(result.current)}).`;
+    }
+
+    function hideScriptUpdateNotification() {
+        document.getElementById('tm-script-update-notification')?.remove();
+    }
+
+    function showScriptUpdateNotification(result) {
+        if (!result?.updateAvailable || isUpdateVersionSkipped(result.remote)) {
+            hideScriptUpdateNotification();
+            return;
+        }
+
+        hideScriptUpdateNotification();
+
+        const container = document.createElement('div');
+        container.id = 'tm-script-update-notification';
+        container.setAttribute('role', 'alert');
+        container.style.cssText = `
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 2147483646;
+            max-width: 380px;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d1b4e 100%);
+            color: #f1f5f9;
+            border: 1px solid rgba(96, 165, 250, 0.45);
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+            font-size: 13px;
+            line-height: 1.45;
+        `;
+
+        const notes = result.releaseNotes
+            ? `<div style="margin-top: 6px; font-size: 12px; opacity: 0.88;">${escapeHtml(result.releaseNotes)}</div>`
+            : '';
+
+        container.innerHTML = `
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <span style="font-size: 22px; line-height: 1;">🔄</span>
+                <div style="flex: 1;">
+                    <strong style="display: block; margin-bottom: 4px;">Νέα έκδοση script διαθέσιμη</strong>
+                    <span>v${escapeHtml(result.current)} → <strong>v${escapeHtml(result.remote)}</strong></span>
+                    ${notes}
+                    <div style="margin-top: 6px; font-size: 12px; opacity: 0.8;">Tampermonkey → Dashboard → Έλεγχος για ενημερώσεων</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+                <button type="button" id="tm-update-hide-btn" style="flex: 1; min-width: 100px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); color: #e2e8f0; cursor: pointer;">Απόκρυψη</button>
+                <button type="button" id="tm-update-skip-btn" style="flex: 1; min-width: 100px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(248, 113, 113, 0.5); background: rgba(248, 113, 113, 0.15); color: #fecaca; cursor: pointer;">Παράλειψη v${escapeHtml(result.remote)}</button>
+            </div>
+        `;
+
+        container.querySelector('#tm-update-hide-btn')?.addEventListener('click', () => {
+            hideScriptUpdateNotification();
+        });
+        container.querySelector('#tm-update-skip-btn')?.addEventListener('click', () => {
+            skipUpdateVersion(result.remote);
+        });
+
+        document.body.appendChild(container);
+
+        if (typeof window.createNotification === 'function') {
+            window.createNotification(`Νέα έκδοση script v${result.remote} διαθέσιμη`, '🔄');
+        }
+    }
+
+    function handleUpdateCheckResult(result, options = {}) {
+        const { silent = false, showBanner = true } = options;
+        lastUpdateResult = result;
+
+        try {
+            window.dispatchEvent(new CustomEvent('mms-update-check', { detail: result }));
+        } catch (_) { /* ignore */ }
+
+        if (result?.error) return result;
+
+        if (result.updateAvailable && !isUpdateVersionSkipped(result.remote)) {
+            if (showBanner) showScriptUpdateNotification(result);
+            if (!silent && typeof showPositiveMessage === 'function') {
+                showPositiveMessage(`Νέα έκδοση v${result.remote} διαθέσιμη!`);
+            }
+        } else if (!result.updateAvailable) {
+            hideScriptUpdateNotification();
+        }
+
+        return result;
+    }
+
+    function runScriptUpdateCheck(options = {}) {
+        return new Promise((resolve) => {
+            if (typeof checkForScriptUpdate !== 'function') {
+                const err = { error: 'no_checker' };
+                resolve(handleUpdateCheckResult(err, options));
+                return;
+            }
+            checkForScriptUpdate((result) => {
+                resolve(handleUpdateCheckResult(result, options));
+            });
+        });
+    }
+
+    function stopScriptUpdateChecker() {
+        if (updateCheckTimer) {
+            clearInterval(updateCheckTimer);
+            updateCheckTimer = null;
+        }
+    }
+
+    function initScriptUpdateChecker() {
+        stopScriptUpdateChecker();
+        if (!isAutoUpdateCheckEnabled()) return;
+
+        setTimeout(() => {
+            runScriptUpdateCheck({ silent: true, showBanner: true });
+        }, 30000);
+
+        updateCheckTimer = setInterval(() => {
+            runScriptUpdateCheck({ silent: true, showBanner: true });
+        }, UPDATE_CHECK_INTERVAL_MS);
+    }
+
+    window.runScriptUpdateCheck = runScriptUpdateCheck;
+    window.initScriptUpdateChecker = initScriptUpdateChecker;
+    window.stopScriptUpdateChecker = stopScriptUpdateChecker;
+    window.showScriptUpdateNotification = showScriptUpdateNotification;
+    window.hideScriptUpdateNotification = hideScriptUpdateNotification;
+    window.skipUpdateVersion = skipUpdateVersion;
+    window.clearSkippedUpdateVersion = clearSkippedUpdateVersion;
+    window.getSkippedUpdateVersion = getSkippedUpdateVersion;
+    window.formatUpdateStatusMessage = formatUpdateStatusMessage;
+    window.getLastScriptUpdateResult = () => lastUpdateResult;
+
 })();

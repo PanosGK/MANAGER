@@ -151,6 +151,7 @@
         phoneCatalogEnabled: true,
         orderHistoryEnabled: true,
         eodChecklistEnabled: true,
+        autoUpdateCheckEnabled: true,
         // Price dropdown options for repair page
         priceOptions: [
             { label: 'Καθαρισμός', value: 35, action: 'add', condition: 'default' },
@@ -6222,6 +6223,10 @@
         }, 1000);
 
         console.log('[MMS] MyManager All-in-One Suite Loaded!');
+
+        if (typeof window.initScriptUpdateChecker === 'function') {
+            window.initScriptUpdateChecker();
+        }
 
         // Update shop button visibility on page load
         if (typeof window.updateShopButtonVisibility === 'function') {

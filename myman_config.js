@@ -16,7 +16,7 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '124',
+        version: '125',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -109,6 +109,9 @@
 
         // Scheduled reminders for repairs (service_edit)
         REPAIR_REMINDERS: 'tm_repair_reminders_v1',
+
+        // Script update preferences (per profile)
+        SKIPPED_UPDATE_VERSION: 'tm_skipped_update_version',
 
         // Add other keys here as needed
     };

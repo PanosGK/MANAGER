@@ -1,8 +1,8 @@
 {
-  "version": "124",
+  "version": "125",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Per–MyManager-login profiles: separate XP, settings, and progress per user on the same PC.",
+  "releaseNotes": "Auto update check every 5 min with notification; dedicated Updates settings page.",
   "modules": [
     "myman_themes.js",
     "myman_config.js",
