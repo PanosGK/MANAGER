@@ -218,20 +218,27 @@
         return [...keys];
     }
 
+    function coerceValueForGmStorage(value) {
+        if (value === undefined) {
+            return { action: 'skip' };
+        }
+        if (value === null) {
+            return { action: 'delete' };
+        }
+        const valueType = typeof value;
+        if (valueType === 'string' || valueType === 'boolean' || valueType === 'number') {
+            return { action: 'set', value };
+        }
+        if (valueType === 'object') {
+            return { action: 'set', value: JSON.stringify(value) };
+        }
+        return { action: 'skip' };
+    }
+
     function isValidBackupPayload(data) {
         if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
-        if (data._mms_export && typeof data._mms_export === 'object') return true;
-
         const keys = Object.keys(data).filter((k) => k !== '_mms_export');
-        if (!keys.length) return false;
-
-        const knownMarkers = new Set([
-            'tm_user_xp', 'tm_user_level', 'tm_user_coins', 'tm_scratchpad_notes_v2',
-            'autoRefreshEnabled', 'levelUpSystemEnabled', 'quickSearchButtons',
-            'userXp', 'userLevel', 'USER_XP', 'USER_LEVEL'
-        ]);
-
-        return keys.some((key) => knownMarkers.has(key) || key.startsWith('tm_'));
+        return keys.length > 0;
     }
 
     function normalizeImportedBackup(importedData) {
@@ -257,7 +264,23 @@
     }
 
     function safeBackupStringify(data) {
-        return JSON.stringify(data, (_key, value) => (typeof value === 'function' ? undefined : value), 2);
+        return JSON.stringify(data, (_key, value) => {
+            if (typeof value === 'function' || typeof value === 'symbol') return undefined;
+            if (typeof value === 'bigint') return value.toString();
+            return value;
+        }, 2);
+    }
+
+    function exportStorageValue(value) {
+        if (value === undefined) return undefined;
+        if (typeof value === 'object' && value !== null) {
+            try {
+                return JSON.parse(JSON.stringify(value));
+            } catch (_) {
+                return String(value);
+            }
+        }
+        return value;
     }
 
     function exportCurrentProfileData() {
@@ -275,7 +298,7 @@
         listExportKeys().forEach((key) => {
             const value = wrappedGetValue(key, undefined);
             if (value !== undefined) {
-                data[key] = value;
+                data[key] = exportStorageValue(value);
             }
         });
 
@@ -292,21 +315,43 @@
     }
 
     function importProfileData(importedData) {
-        if (!importedData || typeof importedData !== 'object') {
+        if (!importedData || typeof importedData !== 'object' || Array.isArray(importedData)) {
             throw new Error('Μη έγκυρα δεδομένα εισαγωγής');
         }
         if (!isValidBackupPayload(importedData)) {
             throw new Error('Μη έγκυρη μορφή αρχείου backup.');
         }
 
+        if (!activeProfileId && typeof activateProfileForCurrentUser === 'function') {
+            activateProfileForCurrentUser();
+        }
+
         const normalized = normalizeImportedBackup(importedData);
         const meta = normalized._mms_export;
+        const importErrors = [];
 
         Object.keys(normalized).forEach((key) => {
             if (key === '_mms_export') return;
             if (isGlobalKey(key)) return;
-            wrappedSetValue(key, normalized[key]);
+
+            const coerced = coerceValueForGmStorage(normalized[key]);
+            if (coerced.action === 'skip') return;
+
+            try {
+                if (coerced.action === 'delete') {
+                    wrappedDeleteValue(key);
+                    return;
+                }
+                wrappedSetValue(key, coerced.value);
+            } catch (error) {
+                importErrors.push(`${key}: ${error.message || error}`);
+                console.error('[MMS Profiles] Import key failed:', key, error);
+            }
         });
+
+        if (importErrors.length) {
+            throw new Error(`Αποτυχία αποθήκευσης ${importErrors.length} τιμών (π.χ. ${importErrors[0]})`);
+        }
 
         return meta || null;
     }
@@ -321,6 +366,8 @@
         isValidBackupPayload,
         normalizeImportedBackup,
         safeBackupStringify,
+        exportStorageValue,
+        coerceValueForGmStorage,
         isGlobalKey,
         listExportKeys
     };

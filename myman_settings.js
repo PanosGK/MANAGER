@@ -902,8 +902,12 @@
                         ...Object.values(STORAGE_KEYS)
                     ];
                     keysToBackup.forEach((key) => {
-                        const value = GM_getValue(key);
-                        if (value !== undefined) backupData[key] = value;
+                        const value = GM_getValue(key, undefined);
+                        if (value !== undefined) {
+                            backupData[key] = window.MMS_PROFILES?.exportStorageValue
+                                ? window.MMS_PROFILES.exportStorageValue(value)
+                                : value;
+                        }
                     });
                     backupData._mms_export = {
                         version: 1,
@@ -951,32 +955,26 @@
                 const reader = new FileReader();
                 reader.onload = readerEvent => {
                     try {
-                        const importedData = JSON.parse(readerEvent.target.result);
+                        let raw = readerEvent.target.result;
+                        if (typeof raw !== 'string') {
+                            throw new Error('Το αρχείο δεν είναι έγκυρο κείμενο JSON.');
+                        }
+                        raw = raw.replace(/^\uFEFF/, '').trim();
+                        const importedData = JSON.parse(raw);
 
-                        const isValid = window.MMS_PROFILES?.isValidBackupPayload
-                            ? window.MMS_PROFILES.isValidBackupPayload(importedData)
-                            : (
-                                importedData._mms_export
-                                || importedData.tm_user_xp !== undefined
-                                || importedData.autoRefreshEnabled !== undefined
-                            );
-                        if (!isValid) {
+                        if (!importedData || typeof importedData !== 'object' || Array.isArray(importedData)) {
                             throw new Error('Μη έγκυρη μορφή αρχείου backup.');
+                        }
+
+                        if (!window.MMS_PROFILES?.importProfileData) {
+                            throw new Error('Το σύστημα προφίλ δεν είναι διαθέσιμο. Κάντε επαναφόρτωση της σελίδας.');
                         }
 
                         if (!confirm('Είστε σίγουροι ότι θέλετε να εισάγετε αυτά τα δεδομένα; Όλη η τρέχουσα πρόοδος και οι ρυθμίσεις του ενεργού προφίλ θα αντικατασταθούν.')) {
                             return;
                         }
 
-                        if (window.MMS_PROFILES?.importProfileData) {
-                            window.MMS_PROFILES.importProfileData(importedData);
-                        } else {
-                            Object.keys(importedData).forEach(key => {
-                                if (key !== '_mms_export') {
-                                    GM_setValue(key, importedData[key]);
-                                }
-                            });
-                        }
+                        window.MMS_PROFILES.importProfileData(importedData);
 
                         alert('Τα δεδομένα εισήχθησαν με επιτυχία! Η σελίδα θα ανανεωθεί για να εφαρμοστούν οι αλλαγές.');
                         window.location.reload();
