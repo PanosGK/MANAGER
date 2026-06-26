@@ -1,8 +1,8 @@
 {
-  "version": "128",
+  "version": "129",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Hide mascot shop items (accessories, food, pet consumables) when interactive mascot is disabled.",
+  "releaseNotes": "Hide all mascot consumables (hunger/happiness/pet stats) from shop when mascot is disabled.",
   "modules": [
     "myman_themes.js",
     "myman_config.js",

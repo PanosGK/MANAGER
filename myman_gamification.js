@@ -10,12 +10,17 @@ const SHOP_ITEMS = {
     // Add other item IDs here for easy reference
 };
 
-const MASCOT_SHOP_CONSUMABLE_IDS = new Set([
-    'happiness_snack', 'hunger_meal', 'super_meal', 'pizza_slice', 'burger_combo',
-    'ice_cream', 'donut', 'cookie', 'chocolate_bar', 'sushi_platter',
-    'smoothie', 'health_potion', 'mana_potion', 'rainbow_juice', 'golden_elixir',
-    'fireworks', 'rainbow_trail', 'heart_explosion', 'disco_ball', 'shield_buff',
-]);
+const MASCOT_CONSUMABLE_DESC_PATTERN = /\b(hunger|happiness)\b|both stats|max stats|max hunger|max happiness/i;
+
+function isMascotShopConsumable(item) {
+    if (item.mascotOnly) return true;
+    const desc = item.desc || '';
+    return MASCOT_CONSUMABLE_DESC_PATTERN.test(desc);
+}
+
+function isInteractiveMascotShopEnabled(config) {
+    return config?.interactiveMascotEnabled !== false;
+}
 
 function getShopAccessoryItems() {
     return [
@@ -85,14 +90,14 @@ function getShopConsumableItems(config) {
         { id: 'xp_boost_large', name: 'Large XP Boost', icon: '💹', cost: 400, type: 'consumable', desc: 'Instant +500 XP' },
         { id: 'coin_magnet', name: 'Coin Magnet', icon: '🧲', cost: 180, type: 'consumable', desc: '7 min double coins' },
         { id: 'lucky_coin', name: 'Lucky Coin', icon: '🪙', cost: 170, type: 'consumable', desc: '7 min double coins' },
-        { id: 'fireworks', name: 'Fireworks', icon: '🎆', cost: 100, type: 'consumable', desc: 'Huge celebration!' },
+        { id: 'fireworks', name: 'Fireworks', icon: '🎆', cost: 100, type: 'consumable', desc: 'Huge celebration!', mascotOnly: true },
         { id: 'sparkles', name: 'Sparkles', icon: '✨', cost: 80, type: 'consumable', desc: 'Sparkly effect' },
         { id: 'rainbow_trail', name: 'Rainbow Trail', icon: '🌈', cost: 150, type: 'consumable', desc: 'Rainbow + 50 happiness' },
         { id: 'snow_globe', name: 'Snow Globe', icon: '❄️', cost: 120, type: 'consumable', desc: 'Snow celebration' },
         { id: 'bubble_blast', name: 'Bubble Blast', icon: '🫧', cost: 90, type: 'consumable', desc: 'Bubble party' },
         { id: 'star_shower', name: 'Star Shower', icon: '🌟', cost: 130, type: 'consumable', desc: 'Starry effect' },
         { id: 'heart_explosion', name: 'Heart Explosion', icon: '💕', cost: 110, type: 'consumable', desc: 'Hearts + 80 happiness' },
-        { id: 'disco_ball', name: 'Disco Ball', icon: '🪩', cost: 200, type: 'consumable', desc: 'Ultimate party!' },
+        { id: 'disco_ball', name: 'Disco Ball', icon: '🪩', cost: 200, type: 'consumable', desc: 'Ultimate party!', mascotOnly: true },
         { id: 'time_warp', name: 'Time Warp', icon: '⏰', cost: 300, type: 'consumable', desc: '30 min buff + 200 XP' },
         { id: 'shield_buff', name: 'Shield Buff', icon: '🛡️', cost: 250, type: 'consumable', desc: 'Max both stats' },
         { id: 'magnet_buff', name: 'Magnet Buff', icon: '🧲', cost: 220, type: 'consumable', desc: '15 min double coins' },
@@ -102,8 +107,8 @@ function getShopConsumableItems(config) {
         { id: 'turbo_mode', name: 'Turbo Mode', icon: '🚀', cost: 400, type: 'consumable', desc: '20 min double buff' },
         { id: 'mega_boost', name: 'Mega Boost', icon: '⚡', cost: 500, type: 'consumable', desc: '30 min full buff + 500 XP' },
     ];
-    if (config?.interactiveMascotEnabled) return items;
-    return items.filter(item => !MASCOT_SHOP_CONSUMABLE_IDS.has(item.id));
+    if (isInteractiveMascotShopEnabled(config)) return items;
+    return items.filter(item => !isMascotShopConsumable(item));
 }
 
 const XP_CONFIG = {
