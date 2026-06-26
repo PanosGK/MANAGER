@@ -791,11 +791,15 @@
                     checkBtn.disabled = false;
 
                     if (result.error === 'network') {
-                        statusEl.textContent = '❌ Αποτυχία σύνδεσης. Ελέγξτε το internet ή το GitHub repo.';
+                        statusEl.textContent = `❌ Αποτυχία σύνδεσης με το GitHub (${result.url || 'manifest'}).`;
+                        return;
+                    }
+                    if (result.error === 'no_xhr') {
+                        statusEl.textContent = '❌ Το Tampermonkey δεν επιτρέπει αίτημα προς GitHub. Ελέγξτε ότι το script έχει @grant GM_xmlhttpRequest.';
                         return;
                     }
                     if (result.error) {
-                        statusEl.textContent = '❌ Δεν ήταν δυνατός ο έλεγχος ενημέρωσης.';
+                        statusEl.textContent = `❌ Δεν ήταν δυνατός ο έλεγχος ενημέρωσης (HTTP ${result.status || '?'}).`;
                         return;
                     }
 

@@ -5,7 +5,7 @@ Tampermonkey userscript suite that enhances [MyManager](https://thefixers.mymana
 ## Install (recommended — auto-updates)
 
 1. Install [Tampermonkey](https://www.tampermonkey.net/) in your browser.
-2. Push this repo to GitHub (or use an existing repo). Update `updateBase` in `myman_manifest.json` if your repo URL differs from `Gkorogias/MANAGER`.
+2. Push this repo to GitHub. The `updateBase` in `myman_manifest.json` must match your raw URL, e.g. `https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main`.
 3. Install the loader once:
    - Open `myman_loader.user.js` on GitHub → **Raw**
    - Tampermonkey should offer to install it  

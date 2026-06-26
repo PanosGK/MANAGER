@@ -412,39 +412,84 @@
         return Number.isFinite(n) ? n : 0;
     }
 
+    function resolveManifestUrls() {
+        const meta = window.SCRIPT_META || {};
+        const fromBase = meta.updateBase
+            ? `${String(meta.updateBase).replace(/\/$/, '')}/myman_manifest.json`
+            : null;
+        return [...new Set([
+            meta.manifestUrl,
+            fromBase,
+            'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json'
+        ].filter(Boolean))];
+    }
+
+    function getScriptXhr() {
+        if (typeof GM_xmlhttpRequest === 'function') return GM_xmlhttpRequest;
+        if (typeof GM !== 'undefined' && typeof GM.xmlHttpRequest === 'function') {
+            return GM.xmlHttpRequest.bind(GM);
+        }
+        return null;
+    }
+
     /**
      * Compare installed script version with myman_manifest.json on GitHub.
-     * @param {Function} callback ({ current, remote, updateAvailable, releaseNotes, error })
+     * @param {Function} callback ({ current, remote, updateAvailable, releaseNotes, error, status, url })
      */
     function checkForScriptUpdate(callback) {
-        const meta = window.SCRIPT_META;
-        if (!meta?.manifestUrl) {
+        const meta = window.SCRIPT_META || {};
+        const urls = resolveManifestUrls();
+        const xhr = getScriptXhr();
+
+        if (!urls.length) {
             callback({ error: 'no_manifest' });
             return;
         }
+        if (!xhr) {
+            callback({ error: 'no_xhr' });
+            return;
+        }
 
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url: `${meta.manifestUrl}?t=${Date.now()}`,
-            onload(response) {
-                try {
-                    const remoteManifest = JSON.parse(response.responseText);
-                    const current = meta.version;
-                    const remote = remoteManifest.version;
-                    callback({
-                        current,
-                        remote,
-                        updateAvailable: parseScriptVersion(remote) > parseScriptVersion(current),
-                        releaseNotes: remoteManifest.releaseNotes || ''
-                    });
-                } catch (e) {
-                    callback({ error: 'parse' });
-                }
-            },
-            onerror() {
-                callback({ error: 'network' });
+        const current = meta.version || '?';
+
+        const tryUrl = (index) => {
+            if (index >= urls.length) {
+                callback({ error: 'network', url: urls[0], current });
+                return;
             }
-        });
+
+            const baseUrl = urls[index];
+            const url = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
+
+            xhr({
+                method: 'GET',
+                url,
+                onload(response) {
+                    if (response.status !== 200) {
+                        tryUrl(index + 1);
+                        return;
+                    }
+                    try {
+                        const remoteManifest = JSON.parse(response.responseText);
+                        const remote = remoteManifest.version;
+                        callback({
+                            current,
+                            remote,
+                            updateAvailable: parseScriptVersion(remote) > parseScriptVersion(current),
+                            releaseNotes: remoteManifest.releaseNotes || '',
+                            manifestUrl: baseUrl
+                        });
+                    } catch (e) {
+                        callback({ error: 'parse', status: response.status, url: baseUrl, current });
+                    }
+                },
+                onerror() {
+                    tryUrl(index + 1);
+                }
+            });
+        };
+
+        tryUrl(0);
     }
 
     window.checkForScriptUpdate = checkForScriptUpdate;

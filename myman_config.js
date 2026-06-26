@@ -16,10 +16,10 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '121',
-        updateBase: 'https://raw.githubusercontent.com/Gkorogias/MANAGER/main',
-        manifestUrl: 'https://raw.githubusercontent.com/Gkorogias/MANAGER/main/myman_manifest.json',
-        loaderUrl: 'https://raw.githubusercontent.com/Gkorogias/MANAGER/main/myman_loader.user.js'
+        version: '122',
+        updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
+        manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
+        loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
     };
 
     const STORAGE_KEYS = {

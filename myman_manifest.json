@@ -1,8 +1,8 @@
 {
-  "version": "121",
+  "version": "122",
   "name": "MyManager All-in-One Suite",
-  "updateBase": "https://raw.githubusercontent.com/Gkorogias/MANAGER/main",
-  "releaseNotes": "Auto-update loader: install myman_loader.user.js once; Tampermonkey checks GitHub for updates.",
+  "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
+  "releaseNotes": "Fix in-app update check (correct GitHub manifest URL + fallbacks).",
   "modules": [
     "myman_themes.js",
     "myman_config.js",
