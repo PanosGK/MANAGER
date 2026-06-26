@@ -1,0 +1,5716 @@
+// ===================================================================
+// === PHONE LIST FEATURE: SEARCHABLE PHONE CATALOG
+// ===================================================================
+
+// Cache constants
+const PHONE_LIST_CACHE_KEY = 'tm_phone_list_cache';
+const PHONE_LIST_CACHE_TIMESTAMP_KEY = 'tm_phone_list_cache_timestamp';
+const CACHE_EXPIRATION_DAYS = 3; // Notify user if cache is older than 3 days
+// v2: price parsing (div/input IDs) + UI shows retailPrice on other-store cards
+const OTHER_STORE_CACHE_KEY = 'tm_phone_other_store_cache_v2';
+const OTHER_STORE_CACHE_TIMESTAMP_KEY = 'tm_phone_other_store_cache_timestamp';
+const OTHER_STORE_CACHE_EXPIRATION_DAYS = 1;
+
+// Greek translations (using Unicode escape sequences to avoid encoding issues)
+const PHONE_CATALOG_TRANSLATIONS = {
+    'Phone Catalog': '\u039A\u03B1\u03C4\u03AC\u03BB\u03BF\u03B3\u03BF\u03C2 \u03A4\u03B7\u03BB\u03B5\u03C6\u03CE\u03BD\u03C9\u03BD',
+    'Refresh (Ctrl+R)': '\u0391\u03BD\u03B1\u03BD\u03AD\u03C9\u03C3\u03B7 (Ctrl+R)',
+    'Toggle View': '\u0391\u03BB\u03BB\u03B1\u03B3\u03AE \u03A0\u03C1\u03BF\u03B2\u03BF\u03BB\u03AE\u03C2',
+    'Search...': '\u0391\u03BD\u03B1\u03B6\u03AE\u03C4\u03B7\u03C3\u03B7...',
+    'Regex': 'Regex',
+    'Show Favorites': '\u0395\u03BC\u03C6\u03AC\u03BD\u03B9\u03C3\u03B7 \u0391\u03B3\u03B1\u03C0\u03B7\u03BC\u03AD\u03BD\u03C9\u03BD',
+    'Fav': '\u0391\u03B3\u03B1\u03C0',
+    'All Grades': '\u0392\u03B1\u03B8\u03BC\u03AF\u03B4\u03B5\u03C2',
+    'All Models': '\u039C\u03BF\u03BD\u03C4\u03AD\u03BB\u03B1',
+    'All Storage': '\u03A7\u03C9\u03C1\u03B7\u03C4\u03B9\u03BA\u03CC\u03C4\u03B7\u03C4\u03B1',
+    'All Colors': '\u03A7\u03C1\u03CE\u03BC\u03B1\u03C4\u03B1',
+    'All Tags': '\u0395\u03C4\u03B9\u03BA\u03AD\u03C4\u03B5\u03C2',
+    'Sort by Model': '\u03A4\u03B1\u03BE\u03B9\u03BD\u03CC\u03BC\u03B7\u03C3\u03B7 \u03BA\u03B1\u03C4\u03AC \u039C\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF',
+    'Sort by Grade': '\u03A4\u03B1\u03BE\u03B9\u03BD\u03CC\u03BC\u03B7\u03C3\u03B7 \u03BA\u03B1\u03C4\u03AC \u0392\u03B1\u03B8\u03BC\u03AF\u03B4\u03B1',
+    'Sort by Storage': '\u03A4\u03B1\u03BE\u03B9\u03BD\u03CC\u03BC\u03B7\u03C3\u03B7 \u03BA\u03B1\u03C4\u03AC \u03A7\u03C9\u03C1\u03B7\u03C4\u03B9\u03BA\u03CC\u03C4\u03B7\u03C4\u03B1',
+    'Sort by Color': '\u03A4\u03B1\u03BE\u03B9\u03BD\u03CC\u03BC\u03B7\u03C3\u03B7 \u03BA\u03B1\u03C4\u03AC \u03A7\u03C1\u03CE\u03BC\u03B1',
+    'Sort by IMEI': '\u03A4\u03B1\u03BE\u03B9\u03BD\u03CC\u03BC\u03B7\u03C3\u03B7 \u03BA\u03B1\u03C4\u03AC IMEI',
+    'Clear All Filters': '\u039A\u03B1\u03B8\u03B1\u03C1\u03B9\u03C3\u03BC\u03CC\u03C2 \u03A6\u03AF\u03BB\u03C4\u03C1\u03C9\u03BD',
+    'Clear': '\u039A\u03B1\u03B8\u03B1\u03C1\u03B9\u03C3\u03BC\u03CC\u03C2',
+    'Toggle Sort Direction': '\u0391\u03BB\u03BB\u03B1\u03B3\u03AE \u039A\u03B1\u03C4\u03B5\u03CD\u03B8\u03C5\u03BD\u03C3\u03B7\u03C2 \u03A4\u03B1\u03BE\u03B9\u03BD\u03CC\u03BC\u03B7\u03C3\u03B7\u03C2',
+    'Copy to Clipboard': '\u0391\u03BD\u03C4\u03B9\u03B3\u03C1\u03B1\u03C6\u03AE \u03C3\u03C4\u03BF \u03A0\u03C1\u03CC\u03C7\u03B5\u03B9\u03C1\u03BF',
+    'Export to CSV': '\u0395\u03BE\u03B1\u03B3\u03C9\u03B3\u03AE \u03C3\u03B5 CSV',
+    'Include Original Title': '\u03A3\u03C5\u03BC\u03C0\u03B5\u03C1\u03AF\u03BB\u03B7\u03C8\u03B7 \u0391\u03C1\u03C7\u03B9\u03BA\u03BF\u03CD \u03A4\u03AF\u03C4\u03BB\u03BF\u03C5',
+    'Export Selected': '\u0395\u03BE\u03B1\u03B3\u03C9\u03B3\u03AE \u0395\u03C0\u03B9\u03BB\u03B5\u03B3\u03BC\u03AD\u03BD\u03C9\u03BD',
+    'Selected': '\u0395\u03C0\u03B9\u03BB\u03B5\u03B3\u03BC\u03AD\u03BD\u03B1',
+    'Select All': '\u0395\u03C0\u03B9\u03BB\u03BF\u03B3\u03AE \u038F\u03BB\u03C9\u03BD',
+    'Deselect All': '\u0391\u03C0\u03BF\u03B5\u03C0\u03B9\u03BB\u03BF\u03B3\u03AE \u038F\u03BB\u03C9\u03BD',
+    'Search barcode in system': '\u0391\u03BD\u03B1\u03B6\u03AE\u03C4\u03B7\u03C3\u03B7 barcode \u03C3\u03C4\u03BF \u03C3\u03CD\u03C3\u03C4\u03B7\u03BC\u03B1',
+    'Copy IMEI': '\u0391\u03BD\u03C4\u03B9\u03B3\u03C1\u03B1\u03C6\u03AE IMEI',
+    'Add to favorites': '\u03A0\u03C1\u03BF\u03C3\u03B8\u03AE\u03BA\u03B7 \u03C3\u03C4\u03B1 \u03B1\u03B3\u03B1\u03C0\u03B7\u03BC\u03AD\u03BD\u03B1',
+    'Remove from favorites': '\u0391\u03C6\u03B1\u03AF\u03C1\u03B5\u03C3\u03B7 \u03B1\u03C0\u03CC \u03C4\u03B1 \u03B1\u03B3\u03B1\u03C0\u03B7\u03BC\u03AD\u03BD\u03B1',
+    'Copy Barcode': '\u0391\u03BD\u03C4\u03B9\u03B3\u03C1\u03B1\u03C6\u03AE Barcode',
+    'Toggle Favorite': '\u0395\u03BD\u03B1\u03BB\u03BB\u03B1\u03B3\u03AE \u0391\u03B3\u03B1\u03C0\u03B7\u03BC\u03AD\u03BD\u03BF\u03C5',
+    'Select': '\u0395\u03C0\u03B9\u03BB\u03BF\u03B3\u03AE',
+    'Barcode': 'Barcode',
+    'Model': '\u039C\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF',
+    'Original Title': '\u0391\u03C1\u03C7\u03B9\u03BA\u03CC\u03C2 \u03A4\u03AF\u03C4\u03BB\u03BF\u03C2',
+    'Grade': '\u0392\u03B1\u03B8\u03BC\u03AF\u03B4\u03B1',
+    'IMEI': 'IMEI',
+    'Storage': '\u03A7\u03C9\u03C1\u03B7\u03C4\u03B9\u03BA\u03CC\u03C4\u03B7\u03C4\u03B1',
+    'Color': '\u03A7\u03C1\u03CE\u03BC\u03B1',
+    'Export Options': '\u0395\u03C0\u03B9\u03BB\u03BF\u03B3\u03AD\u03C2 \u0395\u03BE\u03B1\u03B3\u03C9\u03B3\u03AE\u03C2',
+    'Export': '\u0395\u03BE\u03B1\u03B3\u03C9\u03B3\u03AE',
+    'Tags': '\u0395\u03C4\u03B9\u03BA\u03AD\u03C4\u03B5\u03C2',
+    'Add Tag': '\u03A0\u03C1\u03BF\u03C3\u03B8\u03AE\u03BA\u03B7 \u0395\u03C4\u03B9\u03BA\u03AD\u03C4\u03B1\u03C2',
+    'Remove Tag': '\u0391\u03C6\u03B1\u03AF\u03C1\u03B5\u03C3\u03B7 \u0395\u03C4\u03B9\u03BA\u03AD\u03C4\u03B1\u03C2',
+    'Filter by Tag': '\u03A6\u03AF\u03BB\u03C4\u03C1\u03BF \u03BA\u03B1\u03C4\u03AC \u0395\u03C4\u03B9\u03BA\u03AD\u03C4\u03B1',
+    'All Tags': '\u038C\u03BB\u03B5\u03C2 \u03BF\u03B9 \u0395\u03C4\u03B9\u03BA\u03AD\u03C4\u03B5\u03C2',
+    'Statistics': '\u03A3\u03C4\u03B1\u03C4\u03B9\u03C3\u03C4\u03B9\u03BA\u03AC',
+    'Total': '\u03A3\u03CD\u03BD\u03BF\u03BB\u03BF',
+    'By Grade': '\u0391\u03BD\u03AC \u0392\u03B1\u03B8\u03BC\u03AF\u03B4\u03B1',
+    'By Model': '\u0391\u03BD\u03AC \u039C\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF',
+    'Manage Colors': '\u0394\u03B9\u03B1\u03C7\u03B5\u03AF\u03C1\u03B9\u03C3\u03B7 \u03A7\u03C1\u03C9\u03BC\u03AC\u03C4\u03C9\u03BD',
+    'Color Name': '\u038C\u03BD\u03BF\u03BC\u03B1 \u03A7\u03C1\u03CE\u03BC\u03B1\u03C4\u03BF\u03C2',
+    'Add Color': '\u03A0\u03C1\u03BF\u03C3\u03B8\u03AE\u03BA\u03B7 \u03A7\u03C1\u03CE\u03BC\u03B1\u03C4\u03BF\u03C2',
+    'Custom Colors': '\u03A7\u03C1\u03CE\u03BC\u03B1\u03C4\u03B1',
+    'No custom colors yet': '\u0394\u03B5\u03BD \u03C5\u03C0\u03AC\u03C1\u03C7\u03BF\u03C5\u03BD \u03C7\u03C1\u03CE\u03BC\u03B1\u03C4\u03B1',
+    'Color updated': '\u03A4\u03BF \u03C7\u03C1\u03CE\u03BC\u03B1 \u03B5\u03BD\u03B7\u03BC\u03B5\u03C1\u03CE\u03B8\u03B7\u03BA\u03B5',
+    'Delete': '\u0394\u03B9\u03B1\u03B3\u03C1\u03B1\u03C6\u03AE',
+    'Close': '\u039A\u03BB\u03B5\u03AF\u03C3\u03B9\u03BC\u03BF',
+    'e.g. MINT GREEN': '\u03C0.\u03C7. MINT GREEN',
+    'Color added': '\u03A4\u03BF \u03C7\u03C1\u03CE\u03BC\u03B1 \u03C0\u03C1\u03BF\u03C3\u03C4\u03AD\u03B8\u03B7\u03BA\u03B5',
+    'Color removed': '\u03A4\u03BF \u03C7\u03C1\u03CE\u03BC\u03B1 \u03B1\u03C6\u03B1\u03B9\u03C1\u03AD\u03B8\u03B7\u03BA\u03B5',
+    'Color already exists': '\u03A4\u03BF \u03C7\u03C1\u03CE\u03BC\u03B1 \u03C5\u03C0\u03AC\u03C1\u03C7\u03B5\u03B9 \u03AE\u03B4\u03B7',
+    'Invalid color name or hex': '\u039C\u03B7 \u03AD\u03B3\u03BA\u03C5\u03C1\u03BF \u03CC\u03BD\u03BF\u03BC\u03B1 \u03AE hex',
+    'Suggested hex': '\u03A0\u03C1\u03BF\u03C4\u03B5\u03B9\u03BD\u03CC\u03BC\u03B5\u03BD\u03BF hex',
+    'Catalog title color': '\u03A7\u03C1\u03CE\u03BC\u03B1 \u03C4\u03AF\u03C4\u03BB\u03BF\u03C5 \u03C3\u03C4\u03BF\u03BD \u03BA\u03B1\u03C4\u03AC\u03BB\u03BF\u03B3\u03BF',
+    'Also for labels': '\u0395\u03C0\u03AF\u03C3\u03B7\u03C2 \u03B3\u03B9\u03B1 \u03BF\u03BD\u03BF\u03BC\u03B1\u03C3\u03AF\u03B5\u03C2',
+    'Aliases hint': '\u03C0.\u03C7. SILVER, TITANIUM',
+    'Manage Stores': '\u0394\u03B9\u03B1\u03C7\u03B5\u03AF\u03C1\u03B9\u03C3\u03B7 \u039A\u03B1\u03C4\u03B1\u03C3\u03C4\u03B7\u03BC\u03AC\u03C4\u03C9\u03BD',
+    'Buyback store patterns': '\u03A0\u03C1\u03CC\u03C4\u03C5\u03C0\u03B1 \u03BF\u03BD\u03CC\u03BC\u03B1\u03C4\u03BF\u03C2 \u03B3\u03B9\u03B1 BB',
+    'Buyback patterns hint': '\u03C0.\u03C7. IKE, \u0399\u039A\u0395 (\u03B1\u03BD \u03C4\u03BF \u03CC\u03BD\u03BF\u03BC\u03B1 \u03C0\u03B5\u03C1\u03B9\u03AD\u03C7\u03B5\u03B9 \u03B1\u03C5\u03C4\u03CC)',
+    'Regular store patterns': '\u03A0\u03C1\u03CC\u03C4\u03C5\u03C0\u03B1 \u03BF\u03BD\u03CC\u03BC\u03B1\u03C4\u03BF\u03C2 \u03B3\u03B9\u03B1 \u03BA\u03B1\u03BD\u03BF\u03BD\u03B9\u03BA\u03AC',
+    'Regular patterns hint': '\u039A\u03B5\u03BD\u03CC = \u03CC\u03BB\u03B1 \u03C4\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1',
+    'Known stores': '\u0393\u03BD\u03C9\u03C3\u03C4\u03AC \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1',
+    'Allow buyback': '\u0395\u03C0\u03B9\u03C4\u03C1\u03AD\u03C0\u03B5\u03C4\u03B1\u03B9 BB',
+    'Allow regular': '\u0395\u03C0\u03B9\u03C4\u03C1\u03AD\u03C0\u03B5\u03C4\u03B1\u03B9 \u03BA\u03B1\u03BD\u03BF\u03BD\u03B9\u03BA\u03CC',
+    'No known stores yet': '\u0394\u03B5\u03BD \u03B2\u03C1\u03AD\u03B8\u03B7\u03BA\u03B1\u03BD \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03B1\u03BA\u03CC\u03BC\u03B1',
+    'Store rules saved': '\u039F\u03B9 \u03BA\u03B1\u03BD\u03CC\u03BD\u03B5\u03C2 \u03B1\u03C0\u03BF\u03B8\u03B7\u03BA\u03B5\u03BA\u03B5\u03C5\u03C3\u03B1\u03BD',
+    'No buyback store': '\u0394\u03B5\u03BD \u03C5\u03C0\u03AC\u03C1\u03C7\u03B5\u03B9 \u03B5\u03C0\u03B9\u03C4\u03C1\u03B5\u03C0\u03CC\u03BC\u03B5\u03BD\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1 \u03B3\u03B9\u03B1 BB',
+    'Reset store overrides': '\u0395\u03C0\u03B1\u03BD\u03B1\u03C6\u03BF\u03C1\u03AC \u03B5\u03BE\u03B1\u03B9\u03C1\u03AD\u03C3\u03B5\u03C9\u03BD \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03B7\u03BC\u03AC\u03C4\u03C9\u03BD',
+    'Save': '\u0391\u03C0\u03BF\u03B8\u03AE\u03BA\u03B5\u03C5\u03C3\u03B7'
+};
+
+const PHONE_COLORS_STORAGE_KEY = 'tm_phone_colors_v2';
+const PHONE_COLOR_ALIASES_KEY = 'tm_phone_color_display_aliases';
+const LEGACY_CUSTOM_COLORS_STORAGE_KEY = 'tm_phone_custom_colors';
+const PHONE_STORE_RULES_KEY = 'tm_phone_store_rules_v1';
+
+const DEFAULT_TITANIUM_LIST_HEX = '#8E8E93';
+
+function normalizeColorEntry(value, colorName = '') {
+    if (!value) return { hex: null, listHex: null };
+    const defaults = colorName ? getDefaultPhoneColors()[normalizePhoneColorName(colorName)] : null;
+    if (typeof value === 'string') {
+        const hex = normalizePhoneColorHex(value);
+        const listHex = defaults?.listHex || hex;
+        return { hex, listHex };
+    }
+    if (typeof value === 'object') {
+        const hex = normalizePhoneColorHex(value.hex || value.listHex);
+        const listHex = normalizePhoneColorHex(value.listHex || value.hex || defaults?.listHex) || hex;
+        return { hex, listHex };
+    }
+    return { hex: null, listHex: null };
+}
+
+function normalizeStoredPhoneColors(parsed) {
+    const result = {};
+    if (!parsed || typeof parsed !== 'object') return result;
+    Object.entries(parsed).forEach(([name, val]) => {
+        const key = normalizePhoneColorName(name) || name;
+        result[key] = normalizeColorEntry(val, key);
+    });
+    return result;
+}
+
+function getDefaultPhoneColors() {
+    const ti = DEFAULT_TITANIUM_LIST_HEX;
+    return {
+        'BLACK': { hex: '#000000', listHex: '#000000' },
+        'BLUE': { hex: '#007AFF', listHex: '#007AFF' },
+        'DESERT': { hex: '#EDC9AF', listHex: '#EDC9AF' },
+        'DESSERT': { hex: '#EDC9AF', listHex: '#EDC9AF' },
+        'GOLD': { hex: '#FFD700', listHex: '#FFD700' },
+        'NATURAL': { hex: '#D2B48C', listHex: '#D2B48C' },
+        'TITANIUM': { hex: ti, listHex: ti },
+        'NATURAL TITANIUM': { hex: '#D2B48C', listHex: ti },
+        'BLACK TITANIUM': { hex: '#2C2C2C', listHex: '#3A3A3C' },
+        'DESERT TITANIUM': { hex: '#E3C9A8', listHex: '#C9B89A' },
+        'DESSERT TITANIUM': { hex: '#E3C9A8', listHex: '#C9B89A' },
+        'WHITE TITANIUM': { hex: '#F5F5F0', listHex: '#E8E8E3' },
+        'BLUE TITANIUM': { hex: '#4A90E2', listHex: '#5B9BD5' },
+        'MIDNIGHT GREEN': { hex: '#4E5851', listHex: '#4E5851' },
+        'JET BLACK': { hex: '#0A0A0A', listHex: '#0A0A0A' },
+        'DEEP BLUE': { hex: '#003D5B', listHex: '#003D5B' },
+        'STEEL GRAY': { hex: '#8B8D8F', listHex: '#8B8D8F' },
+        'COSMIC ORANGE': { hex: '#FF6B35', listHex: '#FF6B35' },
+        'PURPLE': { hex: '#AF52DE', listHex: '#AF52DE' },
+        'RED': { hex: '#FF0000', listHex: '#FF0000' },
+        'SILVER': { hex: '#C0C0C0', listHex: '#C0C0C0' },
+        'WHITE': { hex: '#FFFFFF', listHex: '#FFFFFF' },
+        'YELLOW': { hex: '#FFD700', listHex: '#FFD700' },
+        'PACIFIC BLUE': { hex: '#1E90FF', listHex: '#1E90FF' },
+        'SIERRA BLUE': { hex: '#5AC8FA', listHex: '#5AC8FA' },
+        'DEEP PURPLE': { hex: '#9370DB', listHex: '#9370DB' },
+        'GREEN': { hex: '#34C759', listHex: '#34C759' },
+        'GRAPHITE': { hex: '#3A3A3A', listHex: '#3A3A3A' },
+        'SPACE GRAY': { hex: '#4A4A4A', listHex: '#4A4A4A' },
+        'SPACE GREY': { hex: '#4A4A4A', listHex: '#4A4A4A' },
+        'SPACE BLACK': { hex: '#000000', listHex: '#000000' },
+        'ROSE GOLD': { hex: '#B76E79', listHex: '#B76E79' },
+        'MIDNIGHT': { hex: '#1D1D1F', listHex: '#1D1D1F' },
+        'ULTRAMARINE': { hex: '#4169E1', listHex: '#4169E1' },
+        'TEAL': { hex: '#008080', listHex: '#008080' },
+        'CORAL': { hex: '#FF7F50', listHex: '#FF7F50' },
+        'SLATE': { hex: '#708090', listHex: '#708090' },
+        'PINK': { hex: '#FF69B4', listHex: '#FF69B4' },
+        'STARLIGHT': { hex: '#FAF0E6', listHex: '#FAF0E6' },
+        'LAVENDER': { hex: '#E6E6FA', listHex: '#E6E6FA' }
+    };
+}
+
+function getDefaultColorDisplayAliases() {
+    return {
+        'TITANIUM': 'NATURAL TITANIUM'
+    };
+}
+
+function loadColorDisplayAliases() {
+    try {
+        const stored = GM_getValue(PHONE_COLOR_ALIASES_KEY, null);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && typeof parsed === 'object') return parsed;
+        }
+        const defaults = getDefaultColorDisplayAliases();
+        saveColorDisplayAliases(defaults);
+        return { ...defaults };
+    } catch (e) {
+        return { ...getDefaultColorDisplayAliases() };
+    }
+}
+
+function saveColorDisplayAliases(aliases) {
+    GM_setValue(PHONE_COLOR_ALIASES_KEY, JSON.stringify(aliases));
+}
+
+function resolveDisplayColorName(colorName) {
+    if (!colorName) return '';
+    const normalized = normalizePhoneColorName(colorName);
+    const aliases = loadColorDisplayAliases();
+    return aliases[normalized] || normalized;
+}
+
+function getColorEntry(colorName) {
+    if (!colorName) return { hex: null, listHex: null };
+    const colors = loadPhoneColors();
+    const resolved = resolveDisplayColorName(colorName);
+    return normalizeColorEntry(colors[resolved] || colors[normalizePhoneColorName(colorName)]);
+}
+
+function getListColorHex(colorName) {
+    const entry = getColorEntry(colorName);
+    return entry.listHex || entry.hex || null;
+}
+
+function getPhoneColorDropdownStyle(colorName) {
+    if (!colorName) {
+        return 'background:var(--tm-shop-item-bg);color:var(--tm-dark-color);padding:10px;';
+    }
+    const hex = getListColorHex(colorName) || '#808080';
+    const isWhite = colorName.toUpperCase().includes('WHITE');
+    const outline = isWhite
+        ? '-webkit-text-stroke:0.65px rgba(0,0,0,0.7);text-shadow:0 0 1px rgba(0,0,0,0.85),0 1px 2px rgba(0,0,0,0.35);'
+        : '';
+    return `background:var(--tm-shop-item-bg);color:${hex};font-weight:700;padding:10px;${outline}`;
+}
+
+function stylePhoneColorSelectOption(option, colorName) {
+    if (!option) return;
+    option.style.cssText = getPhoneColorDropdownStyle(colorName);
+}
+
+function syncPhoneColorSelectDisplay(selectEl) {
+    if (!selectEl) return;
+    if (!selectEl.value) {
+        selectEl.style.color = '';
+        selectEl.style.fontWeight = '';
+        selectEl.style.webkitTextStroke = '';
+        selectEl.style.textShadow = '';
+        return;
+    }
+    const hex = getListColorHex(selectEl.value);
+    if (!hex) return;
+    selectEl.style.color = hex;
+    selectEl.style.fontWeight = '700';
+    if (selectEl.value.toUpperCase().includes('WHITE')) {
+        selectEl.style.webkitTextStroke = '0.65px rgba(0,0,0,0.7)';
+        selectEl.style.textShadow = '0 0 1px rgba(0,0,0,0.85), 0 1px 2px rgba(0,0,0,0.35)';
+    } else {
+        selectEl.style.webkitTextStroke = '';
+        selectEl.style.textShadow = '';
+    }
+}
+
+function getSwatchColorHex(colorName) {
+    const entry = getColorEntry(colorName);
+    return entry.hex || entry.listHex || null;
+}
+
+function getAliasesForColor(colorName) {
+    const target = normalizePhoneColorName(colorName);
+    return Object.entries(loadColorDisplayAliases())
+        .filter(([, mapped]) => mapped === target)
+        .map(([alias]) => alias)
+        .sort();
+}
+
+function setColorDisplayAliasesForColor(colorName, aliasCsv) {
+    const target = normalizePhoneColorName(colorName);
+    if (!target) return false;
+    const aliases = loadColorDisplayAliases();
+    Object.keys(aliases).forEach(alias => {
+        if (aliases[alias] === target) delete aliases[alias];
+    });
+    String(aliasCsv || '')
+        .split(',')
+        .map(part => normalizePhoneColorName(part))
+        .filter(alias => alias && alias !== target)
+        .forEach(alias => {
+            aliases[alias] = target;
+        });
+    saveColorDisplayAliases(aliases);
+    syncPhoneColorCatalog();
+    return true;
+}
+
+function normalizePhoneColorName(name) {
+    return String(name || '').trim().replace(/\s+/g, ' ').toUpperCase();
+}
+
+function normalizePhoneColorHex(hex) {
+    const value = String(hex || '').trim();
+    if (/^#[0-9A-Fa-f]{3}$/.test(value)) {
+        const r = value[1], g = value[2], b = value[3];
+        return `#${r}${r}${g}${g}${b}${b}`.toUpperCase();
+    }
+    if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
+        return value.toUpperCase();
+    }
+    return null;
+}
+
+function loadPhoneColors() {
+    try {
+        const stored = GM_getValue(PHONE_COLORS_STORAGE_KEY, null);
+        if (stored) {
+            let parsed = normalizeStoredPhoneColors(JSON.parse(stored));
+            if (parsed && Object.keys(parsed).length > 0) {
+                const defaults = getDefaultPhoneColors();
+                let needsSave = false;
+                Object.entries(defaults).forEach(([name, entry]) => {
+                    if (!parsed[name]) {
+                        parsed[name] = { ...normalizeColorEntry(entry, name) };
+                        needsSave = true;
+                    } else {
+                        const normalized = normalizeColorEntry(parsed[name], name);
+                        const defaultEntry = normalizeColorEntry(entry, name);
+                        if (defaultEntry.listHex && normalized.listHex === normalized.hex && defaultEntry.listHex !== normalized.listHex) {
+                            normalized.listHex = defaultEntry.listHex;
+                            needsSave = true;
+                        }
+                        if (JSON.stringify(parsed[name]) !== JSON.stringify(normalized)) {
+                            parsed[name] = normalized;
+                            needsSave = true;
+                        }
+                    }
+                });
+                if (needsSave) savePhoneColors(parsed);
+                return parsed;
+            }
+        }
+
+        const defaults = getDefaultPhoneColors();
+        let merged = { ...defaults };
+
+        const legacyCustom = GM_getValue(LEGACY_CUSTOM_COLORS_STORAGE_KEY, null);
+        if (legacyCustom) {
+            try {
+                const custom = normalizeStoredPhoneColors(JSON.parse(legacyCustom));
+                merged = { ...defaults, ...custom };
+            } catch (e) { /* ignore */ }
+        }
+
+        savePhoneColors(merged);
+        return { ...merged };
+    } catch (e) {
+        return { ...getDefaultPhoneColors() };
+    }
+}
+
+function savePhoneColors(colors) {
+    GM_setValue(PHONE_COLORS_STORAGE_KEY, JSON.stringify(colors));
+}
+
+function normalizeTextForColorMatch(text) {
+    let modelUpper = String(text || '').toUpperCase();
+    modelUpper = modelUpper.replace(/DESSERT TITANIUM/g, 'DESERT TITANIUM');
+    modelUpper = modelUpper.replace(/\bDESERT\b(?!\s+TITANIUM)/g, 'DESERT TITANIUM');
+    modelUpper = modelUpper.replace(/SPACE GREY/g, 'SPACE GRAY');
+    return modelUpper;
+}
+
+function getAllPhoneColorNamesForMatching() {
+    const defaults = getDefaultPhoneColors();
+    let saved = {};
+    try {
+        const raw = GM_getValue(PHONE_COLORS_STORAGE_KEY, null);
+        if (raw) saved = normalizeStoredPhoneColors(JSON.parse(raw));
+    } catch (e) { /* ignore */ }
+    return [...new Set([...Object.keys(defaults), ...Object.keys(saved)])];
+}
+
+function matchPhoneColorInText(text) {
+    const modelUpper = normalizeTextForColorMatch(text);
+    const multiWordColors = getAllPhoneColorNamesForMatching()
+        .filter(name => name.includes(' '))
+        .sort((a, b) => b.length - a.length);
+    for (const color of multiWordColors) {
+        if (modelUpper.includes(color)) {
+            return color === 'SPACE GREY' ? 'SPACE GRAY' : color;
+        }
+    }
+    const singleColors = getAllPhoneColorNamesForMatching().filter(name => !name.includes(' '));
+    for (const color of singleColors) {
+        if (modelUpper.includes(' ' + color) || modelUpper.endsWith(color) || modelUpper.includes(color + ' ')) {
+            return color;
+        }
+    }
+    return '';
+}
+
+function syncPhoneColorCatalog(phones) {
+    const defaults = getDefaultPhoneColors();
+    const colors = loadPhoneColors();
+    let changed = false;
+
+    Object.entries(defaults).forEach(([name, entry]) => {
+        if (!colors[name]) {
+            colors[name] = { ...normalizeColorEntry(entry, name) };
+            changed = true;
+        }
+    });
+
+    const aliases = loadColorDisplayAliases();
+    Object.entries(aliases).forEach(([alias, target]) => {
+        if (colors[alias]) return;
+        const targetEntry = normalizeColorEntry(colors[target] || defaults[target], target);
+        if (targetEntry.hex || targetEntry.listHex) {
+            colors[alias] = { hex: targetEntry.hex, listHex: targetEntry.listHex };
+            changed = true;
+        }
+    });
+
+    if (phones && phones.length) {
+        const discovered = new Set();
+        phones.forEach(phone => {
+            const title = phone.name || phone.model || '';
+            const found = matchPhoneColorInText(title);
+            if (found) discovered.add(found);
+        });
+        discovered.forEach(name => {
+            if (colors[name]) return;
+            const def = defaults[name];
+            const suggestion = suggestPhoneColorHex(name);
+            const hex = def?.hex || suggestion?.hex || '#808080';
+            const listHex = def?.listHex || suggestion?.hex || hex;
+            colors[name] = normalizeColorEntry({ hex, listHex }, name);
+            changed = true;
+        });
+    }
+
+    if (changed) savePhoneColors(colors);
+    return changed;
+}
+
+function getPhoneColorNames() {
+    return Object.keys(loadPhoneColors());
+}
+
+function getMultiWordPhoneColors() {
+    return getPhoneColorNames()
+        .filter(name => name.includes(' '))
+        .sort((a, b) => b.length - a.length);
+}
+
+function getSingleWordPhoneColors() {
+    return getPhoneColorNames().filter(name => !name.includes(' '));
+}
+
+function getAllKnownColorsForModelFix() {
+    return getPhoneColorNames();
+}
+
+function getAllColorHexMap() {
+    const map = {};
+    Object.entries(loadPhoneColors()).forEach(([name, entry]) => {
+        const normalized = normalizeColorEntry(entry);
+        const hex = normalized.listHex || normalized.hex;
+        if (hex) map[name.toUpperCase()] = hex;
+    });
+    return map;
+}
+
+function addPhoneColor(name, hex, listHex = null) {
+    const normalizedName = normalizePhoneColorName(name);
+    const normalizedHex = normalizePhoneColorHex(hex);
+    const normalizedListHex = normalizePhoneColorHex(listHex) || normalizedHex;
+    if (!normalizedName || !normalizedHex) return { ok: false, error: 'invalid' };
+    const colors = loadPhoneColors();
+    if (colors[normalizedName]) return { ok: false, error: 'exists' };
+    colors[normalizedName] = { hex: normalizedHex, listHex: normalizedListHex };
+    savePhoneColors(colors);
+    return { ok: true, name: normalizedName, hex: normalizedHex, listHex: normalizedListHex };
+}
+
+function updatePhoneColor(name, hex) {
+    const normalizedName = normalizePhoneColorName(name);
+    const normalizedHex = normalizePhoneColorHex(hex);
+    if (!normalizedName || !normalizedHex) return false;
+    const colors = loadPhoneColors();
+    if (!colors[normalizedName]) return false;
+    const entry = normalizeColorEntry(colors[normalizedName]);
+    entry.hex = normalizedHex;
+    colors[normalizedName] = entry;
+    savePhoneColors(colors);
+    return true;
+}
+
+function updatePhoneListColor(name, listHex) {
+    const normalizedName = normalizePhoneColorName(name);
+    const normalizedListHex = normalizePhoneColorHex(listHex);
+    if (!normalizedName || !normalizedListHex) return false;
+    const colors = loadPhoneColors();
+    if (!colors[normalizedName]) return false;
+    const entry = normalizeColorEntry(colors[normalizedName]);
+    entry.listHex = normalizedListHex;
+    colors[normalizedName] = entry;
+    savePhoneColors(colors);
+    return true;
+}
+
+function removePhoneColor(name) {
+    const normalizedName = normalizePhoneColorName(name);
+    const colors = loadPhoneColors();
+    if (!colors[normalizedName]) return false;
+    delete colors[normalizedName];
+    savePhoneColors(colors);
+    const aliases = loadColorDisplayAliases();
+    Object.keys(aliases).forEach(alias => {
+        if (aliases[alias] === normalizedName) delete aliases[alias];
+    });
+    saveColorDisplayAliases(aliases);
+    return true;
+}
+
+function renamePhoneColor(oldName, newName) {
+    const oldKey = normalizePhoneColorName(oldName);
+    const newKey = normalizePhoneColorName(newName);
+    if (!oldKey || !newKey) return { ok: false, error: 'invalid' };
+    if (oldKey === newKey) return { ok: true, name: oldKey };
+    const colors = loadPhoneColors();
+    if (!colors[oldKey]) return { ok: false, error: 'missing' };
+    if (colors[newKey]) return { ok: false, error: 'exists' };
+
+    colors[newKey] = { ...normalizeColorEntry(colors[oldKey], oldKey) };
+    delete colors[oldKey];
+    savePhoneColors(colors);
+
+    const aliases = loadColorDisplayAliases();
+    Object.keys(aliases).forEach(alias => {
+        if (aliases[alias] === oldKey) aliases[alias] = newKey;
+    });
+    if (aliases[oldKey]) {
+        if (!aliases[newKey]) aliases[newKey] = aliases[oldKey];
+        delete aliases[oldKey];
+    }
+    saveColorDisplayAliases(aliases);
+    syncPhoneColorCatalog();
+    return { ok: true, name: newKey };
+}
+
+const PHONE_COLOR_WORD_HINTS = {
+    BLACK: '#000000', WHITE: '#FFFFFF', SILVER: '#C0C0C0', GOLD: '#FFD700',
+    BLUE: '#007AFF', RED: '#FF0000', GREEN: '#34C759', PURPLE: '#AF52DE',
+    PINK: '#FF69B4', ORANGE: '#FF6B35', YELLOW: '#FFD700', GRAY: '#8B8D8F',
+    GREY: '#8B8D8F', TITANIUM: '#D2B48C', MIDNIGHT: '#1D1D1F', STARLIGHT: '#FAF0E6',
+    GRAPHITE: '#3A3A3A', ULTRAMARINE: '#4169E1', TEAL: '#008080', CORAL: '#FF7F50',
+    SLATE: '#708090', LAVENDER: '#E6E6FA', NATURAL: '#D2B48C', DESERT: '#EDC9AF',
+    DESSERT: '#EDC9AF', COSMIC: '#FF6B35', PACIFIC: '#1E90FF', SIERRA: '#5AC8FA',
+    JET: '#0A0A0A', STEEL: '#8B8D8F', ROSE: '#B76E79', MINT: '#98FF98',
+    SKY: '#87CEEB', SAGE: '#9DC183', NAVY: '#000080', BRONZE: '#CD7F32',
+    COPPER: '#B87333', CREAM: '#FFFDD0', SAND: '#C2B280', LIME: '#32CD32'
+};
+
+let _cssColorProbeEl = null;
+
+function cssColorNameToHex(colorName) {
+    if (!colorName || typeof document === 'undefined') return null;
+    if (!_cssColorProbeEl) {
+        _cssColorProbeEl = document.createElement('div');
+        _cssColorProbeEl.style.display = 'none';
+        document.documentElement.appendChild(_cssColorProbeEl);
+    }
+    _cssColorProbeEl.style.color = 'rgb(1, 2, 3)';
+    _cssColorProbeEl.style.color = colorName;
+    const computed = getComputedStyle(_cssColorProbeEl).color;
+    if (!computed || computed === 'rgb(1, 2, 3)') return null;
+    const match = computed.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+    if (!match) return null;
+    const hex = '#' + [match[1], match[2], match[3]]
+        .map(n => parseInt(n, 10).toString(16).padStart(2, '0'))
+        .join('')
+        .toUpperCase();
+    return normalizePhoneColorHex(hex);
+}
+
+function findBestMatchingSavedColor(name, saved) {
+    const keys = Object.keys(saved);
+    const words = name.split(' ').filter(Boolean);
+    let bestKey = null;
+    let bestScore = 0;
+    keys.forEach(key => {
+        if (key.includes(name) || name.includes(key)) {
+            const score = key.length + 1000;
+            if (score > bestScore) {
+                bestScore = score;
+                bestKey = key;
+            }
+            return;
+        }
+        const matchedWords = words.filter(word => key.includes(word)).length;
+        if (matchedWords > bestScore) {
+            bestScore = matchedWords;
+            bestKey = key;
+        }
+    });
+    return bestScore > 0 ? bestKey : null;
+}
+
+function guessHexFromPhoneColorKeywords(name) {
+    const words = name.split(' ').filter(Boolean);
+    for (let i = words.length - 1; i >= 0; i--) {
+        const hint = PHONE_COLOR_WORD_HINTS[words[i]];
+        if (hint) return hint;
+    }
+    return null;
+}
+
+function suggestPhoneColorHex(colorName) {
+    const normalized = normalizePhoneColorName(colorName);
+    if (!normalized) return null;
+
+    const saved = loadPhoneColors();
+    const savedEntry = normalizeColorEntry(saved[normalized]);
+    if (savedEntry.hex || savedEntry.listHex) {
+        return { hex: savedEntry.listHex || savedEntry.hex, source: normalized };
+    }
+
+    const fuzzyKey = findBestMatchingSavedColor(normalized, saved);
+    if (fuzzyKey) {
+        const fuzzyEntry = normalizeColorEntry(saved[fuzzyKey]);
+        return { hex: fuzzyEntry.listHex || fuzzyEntry.hex, source: fuzzyKey };
+    }
+
+    const words = normalized.toLowerCase().split(' ');
+    const cssCandidates = [
+        normalized.toLowerCase().replace(/\s+/g, ''),
+        ...words.slice().reverse()
+    ];
+    for (const candidate of cssCandidates) {
+        const hex = cssColorNameToHex(candidate);
+        if (hex) return { hex, source: candidate };
+    }
+
+    const hintHex = guessHexFromPhoneColorKeywords(normalized);
+    if (hintHex) {
+        return { hex: hintHex, source: words[words.length - 1].toUpperCase() };
+    }
+
+    return null;
+}
+
+// Backward-compatible aliases used elsewhere in this file
+function getAllMultiWordColors() { return getMultiWordPhoneColors(); }
+function getAllSingleColors() { return getSingleWordPhoneColors(); }
+function normalizeCustomColorName(name) { return normalizePhoneColorName(name); }
+function normalizeCustomColorHex(hex) { return normalizePhoneColorHex(hex); }
+function addCustomPhoneColor(name, hex) { return addPhoneColor(name, hex); }
+function removeCustomPhoneColor(name) { return removePhoneColor(name); }
+function getCustomColorNames() { return getPhoneColorNames(); }
+function loadCustomColors() { return loadPhoneColors(); }
+
+// Grade token in product titles: A+ (premium), A (standard); legacy B/C still parsed when present
+const PHONE_GRADE_ALT = 'A\\+|Α\\+|A|Α|B|Β|C|Γ';
+const PHONE_GRADE_CAPTURE = `(${PHONE_GRADE_ALT})`;
+const PHONE_GRADE_MATCH = `(?:${PHONE_GRADE_ALT})`;
+const PHONE_GRADE_OPTIONAL = `(?:${PHONE_GRADE_ALT})?`;
+const PHONE_GRADE_OPTIONAL_CAPTURE = `(${PHONE_GRADE_ALT})?`;
+
+function normalizePhoneGrade(raw) {
+    if (!raw) return '';
+    const g = String(raw).toUpperCase();
+    if (g === 'Α+') return 'A+';
+    if (g === 'Α') return 'A';
+    if (g === 'Β') return 'B';
+    if (g === 'Γ') return 'C';
+    return g;
+}
+
+function getPhoneGradeColor(grade) {
+    switch (normalizePhoneGrade(grade)) {
+        case 'A+': return '#2e7d32';
+        case 'A': return '#4caf50';
+        case 'B': return '#ff9800';
+        case 'C': return '#f44336';
+        default: return '#607d8b';
+    }
+}
+
+function comparePhoneGrades(a, b) {
+    const order = { 'A+': 0, 'A': 1, 'B': 2, 'C': 3 };
+    return (order[normalizePhoneGrade(a)] ?? 99) - (order[normalizePhoneGrade(b)] ?? 99);
+}
+
+// Helper function to safely get translations
+function t(key) {
+    return PHONE_CATALOG_TRANSLATIONS[key] || key;
+}
+
+function isIphoneTitlePhone(phone) {
+    return String(phone?.name || '').toUpperCase().includes('IPHONE');
+}
+
+function filterIphoneTitlePhones(phones) {
+    if (!Array.isArray(phones)) return [];
+    return phones.filter(isIphoneTitlePhone);
+}
+
+function isBuybackTitle(name) {
+    const upper = String(name || '').toUpperCase();
+    return /(?:BB|ΒΒ)[\-:]/.test(upper) || /\(BB[-:]/i.test(upper) || /\(ΒΒ[-:]/i.test(upper);
+}
+
+function getDefaultPhoneStoreRules() {
+    return {
+        buybackPatterns: ['IKE', 'ΙΚΕ'],
+        regularPatterns: [],
+        overrides: {}
+    };
+}
+
+function parseStorePatternCsv(csv) {
+    return String(csv || '')
+        .split(',')
+        .map(part => part.trim())
+        .filter(Boolean);
+}
+
+function loadPhoneStoreRules() {
+    try {
+        const raw = GM_getValue(PHONE_STORE_RULES_KEY, null);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            const defaults = getDefaultPhoneStoreRules();
+            return {
+                buybackPatterns: Array.isArray(parsed.buybackPatterns) ? parsed.buybackPatterns : defaults.buybackPatterns,
+                regularPatterns: Array.isArray(parsed.regularPatterns) ? parsed.regularPatterns : defaults.regularPatterns,
+                overrides: parsed.overrides && typeof parsed.overrides === 'object' ? parsed.overrides : {}
+            };
+        }
+    } catch (e) { /* ignore */ }
+    const defaults = getDefaultPhoneStoreRules();
+    savePhoneStoreRules(defaults);
+    return { ...defaults, overrides: { ...defaults.overrides } };
+}
+
+function savePhoneStoreRules(rules) {
+    GM_setValue(PHONE_STORE_RULES_KEY, JSON.stringify(rules));
+}
+
+function normalizeStoreDisplayName(name) {
+    return String(name || '').replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
+}
+
+function storeNameMatchesPatterns(storeName, patterns) {
+    if (!patterns || patterns.length === 0) return true;
+    const clean = normalizeStoreDisplayName(storeName).toUpperCase();
+    return patterns.some(pattern => {
+        const token = String(pattern || '').trim().toUpperCase();
+        return token && clean.includes(token);
+    });
+}
+
+function isStoreAllowedForBuybackPhone(storeName) {
+    const rules = loadPhoneStoreRules();
+    const key = normalizeStoreDisplayName(storeName);
+    if (rules.overrides[key] && typeof rules.overrides[key].buyback === 'boolean') {
+        return rules.overrides[key].buyback;
+    }
+    return storeNameMatchesPatterns(storeName, rules.buybackPatterns);
+}
+
+function isStoreAllowedForRegularPhone(storeName) {
+    const rules = loadPhoneStoreRules();
+    const key = normalizeStoreDisplayName(storeName);
+    if (rules.overrides[key] && typeof rules.overrides[key].regular === 'boolean') {
+        return rules.overrides[key].regular;
+    }
+    return storeNameMatchesPatterns(storeName, rules.regularPatterns);
+}
+
+function isStoreAllowedForPhone(storeName, isBuyback) {
+    return isBuyback ? isStoreAllowedForBuybackPhone(storeName) : isStoreAllowedForRegularPhone(storeName);
+}
+
+function filterOneUnitStores(stores) {
+    return (stores || []).filter(s => parseInt(s.qty, 10) === 1);
+}
+
+function phoneHasAllowedBuybackStore(stores) {
+    return filterOneUnitStores(stores).some(s => isStoreAllowedForBuybackPhone(s.name));
+}
+
+function collectKnownStoreNames(...phoneLists) {
+    const names = new Set();
+    phoneLists.flat().forEach(phone => {
+        [phone.stores, phone.otherStores].forEach(storeList => {
+            (storeList || []).forEach(store => {
+                const name = normalizeStoreDisplayName(store.name);
+                if (name) names.add(name);
+            });
+        });
+    });
+    return [...names].sort((a, b) => a.localeCompare(b, 'el'));
+}
+
+function renderPhoneStoreChipHtml(storeName, isBuyback) {
+    const cleanName = normalizeStoreDisplayName(storeName);
+    const allowed = isStoreAllowedForPhone(storeName, isBuyback);
+    if (isBuyback) {
+        return allowed
+            ? `<span style="display:inline-flex;align-items:center;gap:3px;background:#4caf5022;border:1px solid #4caf5066;color:#4caf50;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;white-space:nowrap;">✓ ${cleanName}</span>`
+            : `<span style="display:inline-flex;align-items:center;gap:3px;background:#f4433618;border:1px solid #f4433644;color:#f44336;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:600;white-space:nowrap;">✕ ${cleanName}</span>`;
+    }
+    if (!allowed) {
+        return `<span style="display:inline-flex;align-items:center;gap:3px;background:#f4433618;border:1px solid #f4433644;color:#f44336;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:600;white-space:nowrap;">✕ ${cleanName}</span>`;
+    }
+    return `<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(128,128,128,0.08);border:1px solid rgba(128,128,128,0.2);color:var(--tm-dark-color);opacity:0.6;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:500;white-space:nowrap;">${cleanName}</span>`;
+}
+
+function renderPhoneStoreChipsHtml(stores, isBuyback) {
+    const filtered = filterOneUnitStores(stores);
+    if (!filtered.length) return '';
+    return filtered.map(store => renderPhoneStoreChipHtml(store.name, isBuyback)).join('');
+}
+
+/**
+ * Parses product name to extract model, grade, and IMEI
+ * Format: "ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ [MODEL] ([GRADE]-[IMEI])"
+ * Grades: A+ (premium), A (standard); legacy B/C still supported when present
+ * Also handles truncated names like "IPHONE 11 PRO 256GB GOLD (A+-353235105991942" (missing closing paren)
+ * Note: This function is called during initial parsing, so memoization is handled at the caller level
+ * @param {string} fullName - The full product name
+ * @returns {{model: string, grade: string, imei: string, fullName: string}}
+ */
+function parsePhoneName(fullName) {
+    const greekPrefix = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ';
+    const englishPrefix = 'USED';
+    let model = fullName;
+    let grade = '';
+    let imei = '';
+    
+    // Remove prefix if present (Greek or English)
+    // Handle both pure Greek and mixed Greek/Latin variants (e.g., "METAXEIΡΙΣΜΕΝΟ")
+    const modelUpper = model.toUpperCase();
+    if (modelUpper.startsWith(greekPrefix)) {
+        model = model.substring(greekPrefix.length).trim();
+    } else if (modelUpper.startsWith(englishPrefix + ' ')) {
+        model = model.substring(englishPrefix.length).trim();
+    } else if (modelUpper.includes('ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ') || modelUpper.includes('METAXEI')) {
+        // Handle mixed variants like "METAXEIΡΙΣΜΕΝΟ"
+        const match = model.match(/^[A-ZΑ-Ω]+\s+[A-ZΑ-Ω]+\s+[A-ZΑ-Ω]+\s+(.+)$/i);
+        if (match) {
+            model = match[1].trim();
+        }
+    }
+    
+    // Normalize vendor prefix and BB markers
+    model = model.replace(/^APPLE\s+/i, '').trim();
+    
+    // Try to extract grade and IMEI - handle multiple BB format variations:
+    // 1. Standard: (A-123), (BB:A-123), (BB:A - 123)
+    // 2. No parens: BB:A-123, BB:A-123 at end
+    // 3. BB before paren: BB(A-123), BB:(A-123)
+    // 4. No space: BLUE(BB:A-123)
+    // 5. Text after: (BB:A+ 123) NO FACE ID
+    
+    let gradeImeiMatch = null;
+    let matchType = '';
+    
+    // Pattern 0b: BB-A+ 359... with space before IMEI (no colon), no parentheses
+    // Examples: "WHITE BB-A+ 359367300161635"
+    if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\s+(BB|ΒΒ)-${PHONE_GRADE_CAPTURE}\\s+(\\d+)\\s*$`, 'i'));
+        if (gradeImeiMatch) matchType = 'bb-dash-space';
+    }
+    
+    // Pattern 0: BB-A: with dash after BB and colon after grade
+    // Examples: "SILVER BB-A+: 358034164395441"
+    if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\s+(BB|ΒΒ)-${PHONE_GRADE_CAPTURE}:\\s*(\\d+)\\s*$`, 'i'));
+        if (gradeImeiMatch) matchType = 'bb-dash-colon';
+    }
+    
+    // Pattern 0a: BB-A+-123456 with dash after BB and dash after grade (no colon)
+    // Examples: "DESERT TITANIUM BB-A+-351817727087944"
+    if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\s+(BB|ΒΒ)-${PHONE_GRADE_CAPTURE}-(\\d+)\\s*$`, 'i'));
+        if (gradeImeiMatch) matchType = 'bb-dash-dash';
+    }
+    
+    // Pattern 1: BB: or ΒΒ: WITHOUT parentheses at the end
+    // Examples: "BLACK BB:A+-355772536000685", "BLACK BB:A-350347647768036"
+    if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\s+(BB|ΒΒ):${PHONE_GRADE_CAPTURE}\\s*-\\s*(\\d+)\\s*$`, 'i'));
+        if (gradeImeiMatch) matchType = 'no-parens-end';
+    }
+    
+    // Pattern 2: BB or ΒΒ followed directly by parentheses (no colon between)
+    // Examples: "PURPLE BB(A+-350056590140263)"
+        if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\s+(BB|ΒΒ)\\s*\\(${PHONE_GRADE_CAPTURE}\\s*-\\s*(\\d+)\\)?`, 'i'));
+        if (gradeImeiMatch) matchType = 'bb-paren-no-colon';
+        }
+    
+    // Pattern 2a: BB followed by parentheses with grade:IMEI (no dash)
+    // Examples: "GOLD BB(A+:356703859876616)"
+        if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\s+(BB|ΒΒ)\\s*\\(${PHONE_GRADE_CAPTURE}:\\s*(\\d+)\\)?`, 'i'));
+        if (gradeImeiMatch) matchType = 'bb-paren-colon-no-dash';
+        }
+    
+    // Pattern 2b: BB followed by parentheses with grade+IMEI or just IMEI (no dash, no colon)
+    // Examples: "PACIFIC BLUE BB(A+353324654996823)" - A+ is grade, rest is IMEI
+    //           "PACIFIC BLUE BB(353324654996823)" - no grade, all is IMEI
+    // Note: Must NOT have colon (that's pattern 2a)
+        if (!gradeImeiMatch) {
+        // Match BB(grade?digits) but NOT BB(grade:digits)
+        const testMatch = model.match(new RegExp(`\\s+(BB|ΒΒ)\\s*\\(${PHONE_GRADE_OPTIONAL_CAPTURE}(\\d+)\\)`, 'i'));
+        if (testMatch && !model.match(new RegExp(`\\s+(BB|ΒΒ)\\s*\\(${PHONE_GRADE_CAPTURE}:`, 'i'))) {
+            // Group 2 is optional grade letter, group 3 is IMEI digits
+            const gradeChar = testMatch[2] || '';
+            const imeiStr = testMatch[3] || '';
+            // Verify group 3 is all digits and no colon in the match
+            if (/^\d+$/.test(imeiStr)) {
+                gradeImeiMatch = testMatch;
+                matchType = 'bb-paren-imei-only';
+            }
+        }
+        }
+    
+    // Pattern 3: BB: followed by parentheses (dash before IMEI)
+    // Examples: "BLACK BB:(A+-353235100802433)"
+        if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\s+(BB|ΒΒ):\\s*\\(${PHONE_GRADE_CAPTURE}\\s*-\\s*(\\d+)\\)?`, 'i'));
+        if (gradeImeiMatch) matchType = 'bb-colon-paren';
+        }
+
+    // Pattern 3a: BB: followed by parentheses (space before IMEI, no dash)
+    // Examples: "BLUE BB: (Α+ 356523762057108)", "BLUE BB:(Α+ 358883228005606)"
+        if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\s+(BB|ΒΒ):\\s*\\(\\s*${PHONE_GRADE_CAPTURE}\\s+(\\d+)\\s*\\)?`, 'i'));
+        if (gradeImeiMatch) matchType = 'bb-colon-paren-space';
+        }
+
+    // Pattern 3b: BB(grade IMEI) with space, no colon
+    // Examples: "BLUE BB(Α+ 358883228005606)"
+        if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\s+(BB|ΒΒ)\\s*\\(\\s*${PHONE_GRADE_CAPTURE}\\s+(\\d+)\\s*\\)?`, 'i'));
+        if (gradeImeiMatch) matchType = 'bb-paren-space';
+        }
+
+    // Pattern 3c: (BB: A+ 357...) — BB: inside parentheses, space before grade and IMEI
+    // Examples: "BLACK (BB: A+ 357220650397022)"
+        if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\(\\s*(BB|ΒΒ):\\s*${PHONE_GRADE_CAPTURE}\\s*-?\\s*(\\d+)\\s*\\)?`, 'i'));
+        if (gradeImeiMatch) matchType = 'paren-bb-colon-space';
+        }
+
+    // Pattern 3d: (BB-A+ 359...) — BB- inside parentheses, space before IMEI
+    // Examples: "WHITE (BB-A+ 359367300161635)", "WHITE (BB-A+ 359367300161635"
+        if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\(\\s*(BB|ΒΒ)-${PHONE_GRADE_CAPTURE}\\s+(\\d+)\\s*\\)?`, 'i'));
+        if (gradeImeiMatch) matchType = 'paren-bb-dash-space';
+        }
+        
+    // Pattern 4: Standard with parentheses (with or without BB:)
+    // Examples: "(BB:A+-123)", "(BB:A - 123)", "BLUE(BB:A+-354408279194226)"
+    // Handle both space-dash-space and no-space patterns
+        if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\s*\\(?\\s*(BB|ΒΒ):${PHONE_GRADE_CAPTURE}\\s*-?\\s*(\\d+)\\)?`, 'i'));
+        if (gradeImeiMatch) matchType = 'standard-bb';
+        }
+        
+    // Pattern 5: Simple pattern without BB prefix
+    // Examples: "(A+-123)", "(A-353235105991942", "(Α+ 358883228005606)"
+        if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\(${PHONE_GRADE_CAPTURE}\\s*-\\s*(\\d+)\\)?`, 'i'));
+        if (gradeImeiMatch) matchType = 'simple';
+        }
+        if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`\\(\\s*${PHONE_GRADE_CAPTURE}\\s+(\\d+)\\s*\\)?`, 'i'));
+        if (gradeImeiMatch) matchType = 'simple-space';
+        }
+    
+    // Pattern 6: Incomplete/truncated patterns
+    if (!gradeImeiMatch) {
+        gradeImeiMatch = model.match(new RegExp(`[\\(]?\\s*(BB|ΒΒ)?:?${PHONE_GRADE_CAPTURE}\\s*-?\\s*(\\d+)`, 'i'));
+        if (gradeImeiMatch) matchType = 'fallback';
+    }
+    
+    if (gradeImeiMatch) {
+        // Extract grade and IMEI based on match type
+        if (matchType === 'simple' || matchType === 'simple-space') {
+            // Simple pattern: (A+-123) or (Α+ 358883228005606)
+            grade = normalizePhoneGrade(gradeImeiMatch[1]);
+            imei = gradeImeiMatch[2];
+        } else if (matchType === 'bb-paren-imei-only') {
+            // Pattern: BB(A+123456) or BB(123456) - optional grade in group 2, IMEI in group 3
+            const gradeChar = gradeImeiMatch[2] || '';
+            const imeiStr = gradeImeiMatch[3] || '';
+            if (gradeChar && new RegExp(`^${PHONE_GRADE_CAPTURE}$`, 'i').test(gradeChar)) {
+                grade = normalizePhoneGrade(gradeChar);
+                imei = imeiStr;
+            } else {
+                // No grade, just IMEI
+                grade = '';
+                imei = gradeChar + imeiStr; // Combine in case gradeChar was part of IMEI
+            }
+        } else {
+            // All other patterns have: [full, BB/ΒΒ, grade, imei]
+            grade = normalizePhoneGrade(gradeImeiMatch[2] || '');
+            imei = gradeImeiMatch[3] || '';
+        }
+        
+        // First, extract any text that appears AFTER the grade/IMEI pattern (like "NO FACE ID")
+        let suffixText = '';
+        const fullMatch = gradeImeiMatch[0];
+        const matchIndex = model.indexOf(fullMatch);
+        if (matchIndex !== -1) {
+            const afterMatch = model.substring(matchIndex + fullMatch.length);
+            // Extract text after closing paren if present
+            const afterParenMatch = afterMatch.match(/\)\s*(.+)$/);
+            if (afterParenMatch) {
+                suffixText = ' ' + afterParenMatch[1].trim();
+            }
+        }
+        
+        // Remove the grade/IMEI part from model
+        const endAnchoredTypes = new Set([
+            'bb-dash-space', 'bb-dash-colon', 'bb-dash-dash', 'no-parens-end',
+            'bb-paren-no-colon', 'bb-paren-colon-no-dash', 'bb-paren-imei-only',
+            'bb-colon-paren', 'bb-colon-paren-space', 'bb-paren-space',
+            'paren-bb-colon-space', 'paren-bb-dash-space',
+            'simple', 'simple-space'
+        ]);
+
+        if (endAnchoredTypes.has(matchType) && matchIndex !== -1) {
+            model = model.substring(0, matchIndex).trim();
+        } else if (matchType === 'fallback') {
+            if (matchIndex !== -1) {
+                model = model.substring(0, matchIndex).trim();
+            }
+            model = model.replace(/\s+(BB|ΒΒ):\s*$/i, '').trim();
+        } else if (matchType === 'standard-bb') {
+            // Remove "(BB:A+-123)" or "BLUE(BB:A+-123)" but keep text after closing paren
+            model = model.replace(new RegExp(`\\(?\\s*(BB|ΒΒ):${PHONE_GRADE_MATCH}\\s*-?\\s*\\d+\\)?`, 'i'), '').trim();
+        } else {
+            // Generic fallback: remove parenthesized content and trailing patterns
+            model = model.replace(/\s*\([^)]*$/, '').trim(); // incomplete
+            model = model.replace(/\s*\([^)]+\)\s*/, '').trim(); // complete with content after
+            model = model.replace(new RegExp(`\\s+(BB|ΒΒ):?${PHONE_GRADE_OPTIONAL}\\s*-?\\s*\\d+\\s*$`, 'i'), '').trim(); // trailing
+        }
+
+        // Safety net: strip any leftover buyback marker at end of model
+        model = model.replace(/\s+(BB|ΒΒ):\s*$/i, '').trim();
+        model = model.replace(/\s*\(BB[^)]*\)?\s*$/i, '').trim();
+        
+        // Add back any suffix text (like "NO FACE ID")
+        model = (model + suffixText).trim();
+        
+        // Normalize multiple spaces to single space
+        model = model.replace(/\s+/g, ' ').trim();
+        
+        // Fix colors with text attached (like "SILVERNO" → "SILVER")
+        // Check all known colors and remove any trailing text attached to them
+        const allKnownColors = getAllKnownColorsForModelFix();
+        for (const color of allKnownColors) {
+            // Match color followed by any letters at the end (e.g., "SILVERNO", "BLACKYES")
+            const regex = new RegExp('\\b' + color + '[A-ZΑ-Ω]+$', 'i');
+            if (regex.test(model)) {
+                model = model.replace(regex, color).trim();
+                break; // Only fix one color per model
+            }
+        }
+        
+        // Remove trailing single letters or short meaningless text (like "N", "A", etc.)
+        // Keep meaningful suffixes like "NO FACE ID" but remove single letter notes
+        model = model.replace(/\s+[A-ZΑ-Ω]$/i, '').trim();
+    } else {
+        // If no grade/IMEI pattern found, try to extract model by finding text before any opening parenthesis
+        const beforeParen = model.split('(')[0].trim();
+        if (beforeParen && beforeParen !== model) {
+            model = beforeParen;
+        }
+    }
+    
+    // Final fallback: if model is still empty or same as fullName, use the original name
+    // but try to clean it up
+    if (!model || model === fullName) {
+        // Try one more time: split by opening parenthesis and take first part
+        const parts = fullName.split('(');
+        if (parts.length > 1) {
+            model = parts[0].trim();
+            // Remove prefix if still present
+            if (model.toUpperCase().startsWith(greekPrefix)) {
+                model = model.substring(greekPrefix.length).trim();
+            } else if (model.toUpperCase().startsWith(englishPrefix + ' ')) {
+                model = model.substring(englishPrefix.length).trim();
+            }
+        } else {
+            model = fullName;
+        }
+    }
+    
+    // Normalize iPhone model names - add "IPHONE" prefix if missing
+    // Handle cases like "14 PRO" -> "IPHONE 14 PRO"
+    if (model && /^\d+\s+(PRO|MINI|PLUS|MAX)?/i.test(model)) {
+        const modelUpper = model.toUpperCase();
+        // Only add IPHONE if it's not already there
+        if (!modelUpper.includes('IPHONE') && !modelUpper.includes('SAMSUNG') && !modelUpper.includes('GALAXY')) {
+            model = 'IPHONE ' + model;
+        }
+    }
+    
+    return {
+        model: model || fullName,
+        grade: grade,
+        imei: imei,
+        fullName: fullName
+    };
+}
+
+/**
+ * Saves phone list to cache
+ * @param {Array} phones - The phone list to cache
+ */
+function savePhoneListCache(phones) {
+    GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(phones));
+    GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, Date.now());
+    console.log('[MMS Phone List] Cache saved');
+}
+
+function saveOtherStoreCache(phones) {
+    GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(phones));
+    GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, Date.now());
+    console.log('[MMS Phone List] Other-store cache saved');
+}
+
+/**
+ * Loads phone list from cache
+ * @returns {Array|null} Cached phone list or null if not found/expired
+ */
+function loadPhoneListCache() {
+    const cached = GM_getValue(PHONE_LIST_CACHE_KEY, null);
+    const timestamp = GM_getValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0);
+    
+    if (!cached || !timestamp) {
+        return null;
+    }
+    
+    try {
+        return JSON.parse(cached);
+    } catch (e) {
+        console.error('[MMS Phone List] Error parsing cache:', e);
+        return null;
+    }
+}
+
+/**
+ * Gets cache age in days
+ * @returns {number|null} Age in days, or null if no cache
+ */
+function getCacheAgeDays() {
+    const timestamp = GM_getValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0);
+    if (!timestamp) return null;
+    const ageMs = Date.now() - timestamp;
+    return Math.floor(ageMs / (1000 * 60 * 60 * 24));
+}
+
+function getOtherStoreCache() {
+    try {
+        const cached = GM_getValue(OTHER_STORE_CACHE_KEY, null);
+        const ts = GM_getValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0);
+        if (!cached || !ts) return null;
+        const ageDays = Math.floor((Date.now() - ts) / (1000 * 60 * 60 * 24));
+        if (ageDays > OTHER_STORE_CACHE_EXPIRATION_DAYS) return null;
+        return JSON.parse(cached);
+    } catch (e) {
+        return null;
+    }
+}
+
+function parseOtherStorehouses(cell) {
+    if (!cell) return [];
+    const stores = [];
+    
+    // Collect candidate HTML snippets from the element and its descendants
+    const candidateAttrs = [
+        'data-content',
+        'data-storehouses',
+        'data-stores',
+        'data-html',
+        'data-jc',
+        'data-original-title',
+        'data-bs-content',
+        'data-bs-original-title',
+        'title'
+    ];
+    
+    const snippets = new Set();
+    
+    const collect = (el) => {
+        if (!el || !el.getAttribute) return;
+        candidateAttrs.forEach(attr => {
+            const val = el.getAttribute(attr);
+            if (val) snippets.add(val);
+        });
+    };
+    
+    collect(cell);
+    // Check descendants as the popover data is often on a child <a> or <span>
+    cell.querySelectorAll('*').forEach(collect);
+    
+    // Fallback to raw innerHTML/text
+    if (snippets.size === 0) {
+        if (cell.innerHTML) snippets.add(cell.innerHTML);
+        else if (cell.textContent) snippets.add(cell.textContent);
+    }
+    
+    // Try to parse each snippet until we find store rows
+    for (const rawSnippet of snippets) {
+        if (!rawSnippet) continue;
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(`<div>${rawSnippet}</div>`, 'text/html');
+        
+        // Parse table rows if present
+        const rows = doc.querySelectorAll('tr');
+        rows.forEach(r => {
+            const cols = r.querySelectorAll('td,th');
+            if (cols.length >= 2) {
+                const name = (cols[0].textContent || '').trim();
+                const qty = (cols[1].textContent || '').trim();
+                if (name) stores.push({ name, qty });
+            }
+        });
+        
+        // If we already extracted stores, no need to parse further
+        if (stores.length > 0) break;
+        
+        // Fallback: parse plain text lines like "STORE 1"
+        const lines = rawSnippet.split('\n').map(l => l.trim()).filter(Boolean);
+        lines.forEach(line => {
+            const match = line.match(/(.+?)\s+(\d+)$/);
+            if (match) {
+                stores.push({ name: match[1].trim(), qty: match[2].trim() });
+            }
+        });
+        
+        if (stores.length > 0) break;
+    }
+    
+    return stores;
+}
+
+/** Read retail price text from a grid cell (Runner redesign may use div or input). */
+function readProductPriceFromElement(el) {
+    if (!el) return '';
+    const tag = (el.tagName || '').toUpperCase();
+    if (tag === 'INPUT' || tag === 'TEXTAREA') {
+        return (el.value || '').trim();
+    }
+    return (el.textContent || '').trim();
+}
+
+/**
+ * Locate retail / cur price cell in a grid row (tag names and IDs vary by MyManager theme).
+ */
+function findProductPriceElement(row) {
+    if (!row) return null;
+    const selectors = [
+        'span[id*="curPrice"]', 'span[id*="CurPrice"]',
+        'div[id*="curPrice"]', 'div[id*="CurPrice"]',
+        'td[id*="curPrice"]', 'td[id*="CurPrice"]',
+        'span[id*="RetailPrice"]', 'div[id*="RetailPrice"]',
+        'input[id*="curPrice"]', 'input[id*="CurPrice"]',
+        'span[id*="fPrice"]', 'div[id*="fPrice"]'
+    ];
+    for (let i = 0; i < selectors.length; i++) {
+        const el = row.querySelector(selectors[i]);
+        if (el) return el;
+    }
+    const nodes = row.querySelectorAll('[id]');
+    for (let i = 0; i < nodes.length; i++) {
+        const id = (nodes[i].id || '').toLowerCase();
+        if (id.includes('curprice') || id.includes('retailprice') || id.includes('sellprice') || id.includes('sellingprice')) {
+            return nodes[i];
+        }
+    }
+    return null;
+}
+
+function extractProductRetailPrice(row) {
+    return readProductPriceFromElement(findProductPriceElement(row));
+}
+
+// Try to fetch storehouse availability using the page's own helper (getCheckOtherInventories)
+function fetchStorehousesFromPage(productCode) {
+    return new Promise((resolve, reject) => {
+        const fn = (typeof unsafeWindow !== 'undefined' ? unsafeWindow.getCheckOtherInventories : window.getCheckOtherInventories);
+        if (typeof fn !== 'function') {
+            reject(new Error('getCheckOtherInventories not available'));
+            return;
+        }
+        try {
+            fn(productCode, false, {
+                content_type: 'json',
+                onFinish: (response) => {
+                    if (!response) {
+                        resolve([]);
+                        return;
+                    }
+                    const stores = response.map(r => ({ name: r.storehouse, qty: String(r.units) }));
+                    resolve(stores);
+                }
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
+}
+
+/**
+ * Fetches and parses the phone list from the products page
+ * First loads the initial page, then loads with pagesize parameter, then parses
+ * @returns {Promise<Array<{barcode: string, name: string, model: string, grade: string, imei: string, unitsRemaining: number}>>}
+ */
+async function fetchPhoneList() {
+    return new Promise((resolve, reject) => {
+        // Step 1: Load initial page with qs=55.&recordspp=-1
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&recordspp=-1',
+            onload: function(firstResponse) {
+                console.log('[MMS Phone List] First page loaded, now loading with pagesize=500');
+                
+                // Step 2: Load with pagesize=500
+                GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|',
+                    onload: function(response) {
+                try {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(response.responseText, 'text/html');
+                    
+                    // Try multiple table selectors - be more flexible
+                    let table = doc.querySelector('table.rnr-c.rnr-cont.rnr-c-grid.rnr-b-grid.rnr-gridtable.hoverable');
+                    if (!table) {
+                        // Try with fewer classes
+                        table = doc.querySelector('table.rnr-b-grid.rnr-gridtable');
+                    }
+                    if (!table) {
+                        // Try even more flexible
+                        table = doc.querySelector('table.rnr-b-grid');
+                    }
+                    if (!table) {
+                        // Last resort - any table with grid classes
+                        table = doc.querySelector('.rnr-c-grid table, table.rnr-gridtable');
+                    }
+                    
+                    if (!table) {
+                        console.error('[MMS Phone List] Table not found. Available tables:', doc.querySelectorAll('table').length);
+                        // Log available table classes for debugging
+                        const allTables = doc.querySelectorAll('table');
+                        allTables.forEach((t, i) => {
+                            console.log(`[MMS Phone List] Table ${i}: classes =`, t.className);
+                        });
+                        resolve([]);
+                        return;
+                    }
+                    
+                    console.log('[MMS Phone List] Table found with classes:', table.className);
+                    
+                    const phones = [];
+                    // Try both tbody tr and direct tr
+                    let rows = table.querySelectorAll('tbody tr');
+                    if (rows.length === 0) {
+                        rows = table.querySelectorAll('tr');
+                    }
+                    // Also try rows with gridRow ID pattern
+                    if (rows.length === 0) {
+                        rows = table.querySelectorAll('tr[id^="gridRow"]');
+                    }
+                    
+                    console.log(`[MMS Phone List] Found ${rows.length} rows`);
+                    
+                    rows.forEach((row, rowIndex) => {
+                        // Skip header row
+                        if (rowIndex === 0 && row.querySelector('th')) {
+                            return;
+                        }
+                        
+                        // The barcode and name are in <span> elements, not <input> elements!
+                        // IDs follow pattern: edit5_strProductID, edit6_strProductID, etc.
+                        // Strategy 1: Try to find span elements with ID pattern
+                    let barcodeEl = row.querySelector('span[id*="strProductID"]');
+                    let nameEl = row.querySelector('span[id*="strProductName"]');
+                    let unitsRemainingEl = row.querySelector('span[id*="iUnitsRemaining"]');
+                    let otherStoreEl = row.querySelector('span[id*="iUnitsRemainingOtherStoreHouses"]');
+                    let priceEl = findProductPriceElement(row);
+                        
+                        // Strategy 2: If not found, search all elements with id (new grid may use div, not span)
+                    if (!barcodeEl || !nameEl || !unitsRemainingEl || !priceEl || !otherStoreEl) {
+                            row.querySelectorAll('[id]').forEach(node => {
+                                const id = (node.id || '').toLowerCase();
+                                
+                                if (!barcodeEl && id.includes('strproductid')) {
+                                    barcodeEl = node;
+                                }
+                                if (!nameEl && id.includes('strproductname')) {
+                                    nameEl = node;
+                                }
+                                if (!otherStoreEl && id.includes('iunitsremainingotherstorehouses')) {
+                                    otherStoreEl = node;
+                                }
+                                if (!unitsRemainingEl && id.includes('iunitsremaining') && !id.includes('otherstorehouses')) {
+                                    unitsRemainingEl = node;
+                                }
+                                if (!priceEl && (id.includes('curprice') || id.includes('retailprice') || id.includes('sellprice') || id.includes('sellingprice'))) {
+                                    priceEl = node;
+                                }
+                            });
+                        }
+                        
+                        // Check if product has units remaining (must be > 0)
+                        let unitsRemaining = 0;
+                        if (unitsRemainingEl) {
+                            const unitsText = (unitsRemainingEl.textContent || '').trim();
+                            unitsRemaining = parseInt(unitsText, 10) || 0;
+                        }
+                    
+                    let otherStoreCount = 0;
+                    let otherStores = [];
+                    if (otherStoreEl) {
+                        otherStoreCount = parseInt((otherStoreEl.textContent || '').trim(), 10) || 0;
+                        if (otherStoreCount > 0) {
+                            otherStores = parseOtherStorehouses(otherStoreEl);
+                        }
+                    }
+                        
+                        // Extract retail price (re-scan row so div/input themes still work)
+                        const retailPrice = extractProductRetailPrice(row);
+                        
+                    // Only include products with units remaining > 0
+                    if (unitsRemaining <= 0) {
+                        return; // Skip this product for the main list (other-store items handled separately)
+                        }
+                        
+                        if (barcodeEl && nameEl) {
+                            // Get text content from span (may contain nested spans, so use textContent)
+                            let barcode = (barcodeEl.textContent || '').trim();
+                            let name = (nameEl.textContent || '').trim();
+                            
+                            // Clean up barcode - remove any HTML entities or extra whitespace
+                            barcode = barcode.replace(/\s+/g, ' ').trim();
+                            name = name.replace(/\s+/g, ' ').trim();
+                            
+                            // Remove "Περισσότερα..." link text if present
+                            name = name.replace(/\s*Περισσότερα\s*\.\.\.\s*/i, '').trim();
+                            
+                            // Skip laptops - don't display them
+                            if (name.toUpperCase().includes('ΜΕΤΑΧΕΙΡΙΣΜΕΝΟΣ ΦΟΡΗΤΟΣ ΥΠΟΛΟΓΙΣΤΗΣ')) {
+                                return; // Skip this product
+                            }
+                            
+                            if (barcode && name) {
+                                // Parse the phone name to extract model, grade, and IMEI
+                                const parsed = parsePhoneName(name);
+                                
+                                // Debug: Log phones with BB: pattern that might have IMEI issues
+                                if (isBuybackTitle(name) && !parsed.imei) {
+                                    console.log('[MMS Phone List] Phone with BB: but no IMEI:', {
+                                        barcode: barcode,
+                                        name: name,
+                                        parsed: parsed
+                                    });
+                                }
+                                
+                                const isBuyback = isBuybackTitle(name);
+                                
+                                // Only include items with "ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ" in the title
+                                const nameUpper = name.toUpperCase();
+                                const greekPhonePrefix = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ';
+                                if (!nameUpper.includes(greekPhonePrefix)) {
+                                    return; // Skip this item
+                                }
+                                
+                                phones.push({
+                                    barcode: barcode,
+                                    name: parsed.fullName,
+                                    model: parsed.model,
+                                    grade: parsed.grade,
+                                    imei: parsed.imei,
+                                    unitsRemaining: unitsRemaining,
+                                    isBuyback: isBuyback,
+                                    retailPrice: retailPrice,
+                                    otherStoreCount: otherStoreCount,
+                                    otherStores: otherStores
+                                });
+                            } else {
+                                // Debug: log when elements found but values empty
+                                if (rowIndex < 3) { // Only log first few for debugging
+                                    console.log(`[MMS Phone List] Row ${rowIndex}: Found elements but empty values. Barcode: "${barcode}", Name: "${name}"`);
+                                }
+                            }
+                        } else {
+                            // Debug: log when elements not found
+                            if (rowIndex < 3) { // Only log first few for debugging
+                                const spans = row.querySelectorAll('span[id]');
+                                console.log(`[MMS Phone List] Row ${rowIndex}: Elements not found. Spans with IDs in row:`, spans.length);
+                                spans.forEach((span, i) => {
+                                    if (i < 5) { // Only log first 5
+                                        console.log(`  Span ${i}: id="${span.id}", text="${(span.textContent || '').substring(0, 50)}"`);
+                                    }
+                                });
+                            }
+                        }
+                    });
+                    
+                        console.log(`[MMS Phone List] Successfully parsed ${phones.length} phones`);
+                        // Save to cache
+                        savePhoneListCache(phones);
+                        resolve(phones);
+                    } catch (error) {
+                        console.error('[MMS Phone List] Error parsing phone list:', error);
+                        reject(error);
+                    }
+                },
+                onerror: function(error) {
+                    console.error('[MMS Phone List] Failed to fetch phone list (second request):', error);
+                    reject(error);
+                }
+            });
+            },
+            onerror: function(error) {
+                console.error('[MMS Phone List] Failed to fetch phone list (first request):', error);
+                reject(error);
+            }
+        });
+    });
+}
+
+/**
+ * Fetch and parse phones that are available in other storehouses (iUnitsRemainingOtherStoreHouses > 0)
+ */
+async function fetchOtherStorePhones() {
+    const cached = getOtherStoreCache();
+    if (cached) {
+        return cached;
+    }
+    
+    return new Promise((resolve, reject) => {
+        const fetchWithUrl = (url, fallbackUrl) => {
+            GM_xmlhttpRequest({
+                method: 'GET',
+                url,
+                onload: function(response) {
+                    try {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(response.responseText, 'text/html');
+                        
+                        let table = doc.querySelector('table.rnr-c.rnr-cont.rnr-b-grid.rnr-gridtable.hoverable');
+                        if (!table) table = doc.querySelector('table.rnr-b-grid.rnr-gridtable');
+                        if (!table) table = doc.querySelector('table.rnr-b-grid');
+                        if (!table) table = doc.querySelector('.rnr-c-grid table, table.rnr-gridtable');
+                        
+                        if (!table) {
+                            if (fallbackUrl) {
+                                fetchWithUrl(fallbackUrl, null);
+                            } else {
+                                console.error('[MMS Other Stores] Table not found');
+                                resolve([]);
+                            }
+                            return;
+                        }
+                        
+                        let rows = table.querySelectorAll('tbody tr');
+                        if (rows.length === 0) rows = table.querySelectorAll('tr');
+                        if (rows.length === 0) rows = table.querySelectorAll('tr[id^="gridRow"]');
+                        
+                        const result = [];
+                        
+                        rows.forEach((row, idx) => {
+                            if (idx === 0 && row.querySelector('th')) return;
+                            
+                            let barcodeEl = row.querySelector('span[id*="strProductID"]');
+                            let nameEl = row.querySelector('span[id*="strProductName"]');
+                            let otherStoreEl = row.querySelector('span[id*="iUnitsRemainingOtherStoreHouses"]');
+                            let unitsRemainingEl = row.querySelector('span[id*="iUnitsRemaining"]');
+                            let priceEl = findProductPriceElement(row);
+                            
+                            if (!barcodeEl || !nameEl || !otherStoreEl || !unitsRemainingEl || !priceEl) {
+                                row.querySelectorAll('[id]').forEach(node => {
+                                    const id = (node.id || '').toLowerCase();
+                                    if (!barcodeEl && id.includes('strproductid')) barcodeEl = node;
+                                    if (!nameEl && id.includes('strproductname')) nameEl = node;
+                                    if (!otherStoreEl && id.includes('iunitsremainingotherstorehouses')) otherStoreEl = node;
+                                    if (!unitsRemainingEl && id.includes('iunitsremaining') && !id.includes('otherstorehouses')) {
+                                        unitsRemainingEl = node;
+                                    }
+                                    if (!priceEl && (id.includes('curprice') || id.includes('retailprice') || id.includes('sellprice') || id.includes('sellingprice'))) {
+                                        priceEl = node;
+                                    }
+                                });
+                            }
+                            
+                            if (!otherStoreEl) return;
+                            const otherCount = parseInt((otherStoreEl.textContent || '').trim(), 10) || 0;
+                            if (otherCount <= 0) return;
+                            let localUnits = 0;
+                            if (unitsRemainingEl) {
+                                localUnits = parseInt((unitsRemainingEl.textContent || '').trim(), 10) || 0;
+                            }
+                            const retailPrice = extractProductRetailPrice(row);
+                            
+                            const barcode = (barcodeEl?.textContent || '').trim();
+                            let name = (nameEl?.textContent || '').trim();
+                            if (!barcode || !name) return;
+                            name = name.replace(/\s+Περισσότερα\s*\.\.\.\s*/i, '').trim();
+                            
+                            const parsed = parsePhoneName(name);
+                            const stores = parseOtherStorehouses(otherStoreEl);
+                            const isBuyback = isBuybackTitle(name);
+                            
+                            // Only include items with "ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ" in the title
+                            const nameUpper = name.toUpperCase();
+                            const greekPhonePrefix = 'ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ';
+                            if (!nameUpper.includes(greekPhonePrefix)) {
+                                return; // Skip this item
+                            }
+                            
+                            result.push({
+                                barcode,
+                                name: parsed.fullName,
+                                model: parsed.model,
+                                grade: parsed.grade,
+                                imei: parsed.imei,
+                                otherStoreCount: otherCount,
+                                stores,
+                                localUnits,
+                                retailPrice,
+                                isBuyback
+                            });
+                        });
+                        
+                        saveOtherStoreCache(result);
+                        resolve(result);
+                    } catch (err) {
+                        if (fallbackUrl) {
+                            fetchWithUrl(fallbackUrl, null);
+                        } else {
+                            console.error('[MMS Other Stores] Parse error:', err);
+                            reject(err);
+                        }
+                    }
+                },
+                onerror: function(error) {
+                    if (fallbackUrl) {
+                        fetchWithUrl(fallbackUrl, null);
+                    } else {
+                        console.error('[MMS Other Stores] Request failed:', error);
+                        reject(error);
+                    }
+                }
+            });
+        };
+        
+        // First try with the query string that surfaces other-store availability (qs=55.)
+        const primaryUrl = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&pagesize=1000000|';
+        const fallbackUrl = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|';
+        fetchWithUrl(primaryUrl, fallbackUrl);
+    });
+}
+
+/**
+ * Shows a modal with a searchable list of phones
+ */
+async function showPhoneListModal() {
+    // Prevent multiple modals
+    if (document.querySelector('.tm-modal-overlay')) return;
+
+    syncPhoneColorCatalog();
+    
+    // Load favorites from storage
+    const FAVORITES_KEY = 'tm_phone_favorites';
+    let favorites = JSON.parse(GM_getValue(FAVORITES_KEY, '[]'));
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'tm-modal-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--tm-shop-item-bg);
+        opacity: 1;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 100000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+    `;
+    
+    overlay.innerHTML = `
+        <style>
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+            @keyframes slideUp {
+                from { transform: translateY(20px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.6; }
+            }
+            .tm-phone-modal-content {
+                animation: slideUp 0.3s ease;
+            }
+            #tm-phone-search-input:focus {
+                border-color: var(--tm-primary-color);
+                background: var(--tm-shop-item-hover-bg);
+                box-shadow: 0 0 0 3px var(--tm-primary-color);
+            }
+            #tm-phone-filter-grade:focus,
+            #tm-phone-filter-model:focus,
+            #tm-phone-filter-gb:focus,
+            #tm-phone-filter-color:focus,
+            #tm-phone-sort-by:focus,
+            #tm-phone-search-input:focus {
+                border-color: var(--tm-primary-color);
+                background: var(--tm-shop-item-hover-bg);
+                outline: none;
+                box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+            }
+            #tm-phone-filter-grade:hover,
+            #tm-phone-filter-model:hover,
+            #tm-phone-filter-gb:hover,
+            #tm-phone-filter-color:hover,
+            #tm-phone-sort-by:hover {
+                background: var(--tm-shop-item-hover-bg);
+                border-color: var(--tm-primary-color);
+            }
+            #tm-phone-search-input:hover {
+                border-color: var(--tm-primary-color);
+            }
+            #tm-phone-clear-filters:hover,
+            #tm-phone-export-clipboard:hover,
+            #tm-phone-export-csv:hover,
+            #tm-phone-export-selected:hover,
+            #tm-phone-select-all:hover,
+            #tm-phone-favorites-btn:hover,
+            #tm-phone-sort-dir:hover,
+            #tm-phone-export-btn:hover {
+                background: var(--tm-shop-item-hover-bg);
+                border-color: var(--tm-primary-color);
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            #tm-phone-export-menu button:hover {
+                background: var(--tm-shop-item-hover-bg);
+                border-color: var(--tm-primary-color);
+            }
+            #tm-phone-filter-grade option,
+            #tm-phone-filter-model option,
+            #tm-phone-filter-gb option,
+            #tm-phone-filter-color option,
+            #tm-phone-sort-by option {
+                background: var(--tm-shop-item-bg);
+                color: var(--tm-dark-color);
+                padding: 10px;
+            }
+            .tm-phone-item:hover {
+                background: var(--tm-shop-item-hover-bg) !important;
+                border-color: var(--tm-shop-item-border) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+            }
+            .tm-phone-copy-imei-btn:hover,
+            .tm-phone-favorite-btn:hover,
+            .tm-phone-search-btn:hover {
+                background: var(--tm-shop-item-hover-bg) !important;
+                border-color: var(--tm-shop-item-border) !important;
+                color: var(--tm-dark-color) !important;
+                transform: scale(1.1);
+            }
+            .tm-phone-favorite-btn:hover {
+                color: var(--tm-warning-color) !important;
+            }
+            .tm-phone-item.selected {
+                background: var(--tm-shop-item-hover-bg) !important;
+                border-color: var(--tm-primary-color) !important;
+            }
+            .tm-phone-item.favorite {
+                border-left: 3px solid var(--tm-warning-color) !important;
+            }
+            .tm-phone-item.grid-view {
+                display: inline-block;
+                width: calc(50% - 6px);
+                margin-right: 12px;
+                margin-bottom: 12px;
+                vertical-align: top;
+            }
+            .tm-phone-item.grid-view:nth-child(2n) {
+                margin-right: 0;
+            }
+            #tm-phone-list-container.grid-view {
+                display: flex;
+                flex-wrap: wrap;
+            }
+            #tm-phone-list-container::-webkit-scrollbar {
+                width: 8px;
+            }
+            #tm-phone-list-container::-webkit-scrollbar-track {
+                background: var(--tm-shop-item-bg);
+                border-radius: 4px;
+            }
+            #tm-phone-list-container::-webkit-scrollbar-thumb {
+                background: var(--tm-shop-item-border);
+                border-radius: 4px;
+            }
+            #tm-phone-list-container::-webkit-scrollbar-thumb:hover {
+                background: var(--tm-primary-color);
+            }
+            .tm-phone-context-menu {
+                position: fixed;
+                background: var(--tm-shop-item-bg);
+                border: 1px solid var(--tm-shop-item-border);
+                border-radius: 8px;
+                padding: 8px 0;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+                z-index: 100001;
+                min-width: 180px;
+                display: none;
+            }
+            .tm-phone-context-menu-item {
+                padding: 10px 16px;
+                color: var(--tm-primary-color);
+                cursor: pointer;
+                transition: background 0.2s;
+                font-size: 13px;
+            }
+            .tm-phone-context-menu-item:hover {
+                background: var(--tm-shop-item-hover-bg);
+            }
+            .tm-phone-tag-submenu {
+                position: absolute;
+                left: 100%;
+                top: 0;
+                margin-left: 4px;
+                background: var(--tm-shop-item-bg);
+                border: 1px solid var(--tm-shop-item-border);
+                border-radius: 8px;
+                padding: 4px 0;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+                z-index: 100002;
+                min-width: 160px;
+                max-height: 300px;
+                overflow-y: auto;
+                display: none;
+            }
+            .tm-phone-tag-submenu-item {
+                padding: 8px 16px;
+                color: var(--tm-primary-color);
+                cursor: pointer;
+                transition: background 0.2s;
+                font-size: 12px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .tm-phone-tag-submenu-item:hover {
+                background: var(--tm-shop-item-hover-bg);
+            }
+            .tm-phone-tag-submenu-item .tag-color {
+                width: 12px;
+                height: 12px;
+                border-radius: 3px;
+                flex-shrink: 0;
+            }
+        </style>
+        <div class="tm-phone-modal-content" style="
+            max-width: 1200px; 
+            max-height: 90vh; 
+            display: flex; 
+            flex-direction: column;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--tm-shop-item-border);
+            overflow: hidden;
+        ">
+            <div class="tm-modal-header" style="
+                padding: 16px 20px;
+                border-bottom: 1px solid var(--tm-shop-item-border);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            ">
+                <h2 class="tm-modal-title" style="
+                    margin: 0;
+                    font-size: 18px;
+                    font-weight: 600;
+                    color: var(--tm-dark-color);
+                    letter-spacing: 0.3px;
+                ">${PHONE_CATALOG_TRANSLATIONS['Phone Catalog']}</h2>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button id="tm-phone-refresh-btn" title="${PHONE_CATALOG_TRANSLATIONS['Refresh (Ctrl+R)']}" style="
+                        background: var(--tm-shop-item-bg);
+                        border: 1px solid var(--tm-shop-item-border);
+                        color: var(--tm-dark-color);
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        transition: all 0.2s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">🔄</button>
+                    <button id="tm-phone-view-toggle" title="${PHONE_CATALOG_TRANSLATIONS['Toggle View']}" style="
+                        background: var(--tm-shop-item-bg);
+                        border: 1px solid var(--tm-shop-item-border);
+                        color: var(--tm-dark-color);
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        transition: all 0.2s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">📋</button>
+                    <button id="tm-phone-colors-btn" title="${PHONE_CATALOG_TRANSLATIONS['Manage Colors']}" style="
+                        background: var(--tm-shop-item-bg);
+                        border: 1px solid var(--tm-shop-item-border);
+                        color: var(--tm-dark-color);
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        transition: all 0.2s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">🎨</button>
+                    <button id="tm-phone-stores-btn" title="${PHONE_CATALOG_TRANSLATIONS['Manage Stores']}" style="
+                        background: var(--tm-shop-item-bg);
+                        border: 1px solid var(--tm-shop-item-border);
+                        color: var(--tm-dark-color);
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        transition: all 0.2s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">🏪</button>
+                    <button id="tm-phone-other-store-toggle" title="Άλλα καταστήματα" style="
+                        background: var(--tm-shop-item-bg);
+                        border: 1px solid var(--tm-shop-item-border);
+                        color: var(--tm-dark-color);
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        transition: all 0.2s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">🏬</button>
+                    <button class="tm-modal-close" style="
+                        background: transparent;
+                        border: none;
+                        color: var(--tm-dark-color);
+                        width: 28px;
+                        height: 28px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 24px;
+                        line-height: 1;
+                        transition: all 0.2s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 0;
+                    ">&times;</button>
+                </div>
+            </div>
+            <div style="
+                padding: 12px 16px;
+                background: var(--tm-shop-item-bg);
+                border-bottom: 1px solid var(--tm-shop-item-border);
+            ">
+                <!-- Search Row -->
+                <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;">
+                    <input 
+                        type="text" 
+                        id="tm-phone-search-input" 
+                        placeholder="🔍 ${PHONE_CATALOG_TRANSLATIONS['Search...']}" 
+                        style="
+                            flex: 1;
+                            min-width: 200px;
+                            padding: 8px 12px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 12px;
+                            outline: none;
+                            transition: all 0.2s ease;
+                        "
+                    />
+                    <label style="
+                        display: flex;
+                        align-items: center;
+                        gap: 5px;
+                        color: var(--tm-dark-color);
+                        font-size: 11px;
+                        cursor: pointer;
+                        white-space: nowrap;
+                    ">
+                        <input type="checkbox" id="tm-phone-regex-toggle" style="cursor: pointer; width: 13px; height: 13px;">
+                        ${PHONE_CATALOG_TRANSLATIONS['Regex']}
+                    </label>
+                    <button id="tm-phone-favorites-btn" title="${PHONE_CATALOG_TRANSLATIONS['Show Favorites']}" style="
+                        background: var(--tm-shop-item-bg);
+                        border: 1px solid var(--tm-shop-item-border);
+                        color: var(--tm-dark-color);
+                        padding: 8px 12px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 12px;
+                        transition: all 0.2s ease;
+                        white-space: nowrap;
+                    ">⭐</button>
+                </div>
+                
+                <!-- Filters Row -->
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                    <select 
+                        id="tm-phone-filter-grade" 
+                        style="
+                            min-width: 90px;
+                            padding: 7px 10px;
+                            padding-right: 26px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 11px;
+                            outline: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            appearance: none;
+                            background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 10 10\'><path fill=\'rgba(0,0,0,0.5)\' d=\'M5 7L2 4h6z\'/></svg>');
+                            background-repeat: no-repeat;
+                            background-position: right 7px center;
+                            background-size: 10px;
+                        "
+                    >
+                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-dark-color);">${PHONE_CATALOG_TRANSLATIONS['All Grades']}</option>
+                    </select>
+                    <select 
+                        id="tm-phone-filter-model" 
+                        style="
+                            flex: 1;
+                            min-width: 120px;
+                            padding: 7px 10px;
+                            padding-right: 26px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 11px;
+                            outline: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            appearance: none;
+                            background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 10 10\'><path fill=\'rgba(0,0,0,0.5)\' d=\'M5 7L2 4h6z\'/></svg>');
+                            background-repeat: no-repeat;
+                            background-position: right 7px center;
+                            background-size: 10px;
+                        "
+                    >
+                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-dark-color);">${PHONE_CATALOG_TRANSLATIONS['All Models']}</option>
+                    </select>
+                    <select 
+                        id="tm-phone-filter-gb" 
+                        style="
+                            min-width: 90px;
+                            padding: 7px 10px;
+                            padding-right: 26px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 11px;
+                            outline: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            appearance: none;
+                            background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 10 10\'><path fill=\'rgba(0,0,0,0.5)\' d=\'M5 7L2 4h6z\'/></svg>');
+                            background-repeat: no-repeat;
+                            background-position: right 7px center;
+                            background-size: 10px;
+                        "
+                    >
+                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-dark-color);">${PHONE_CATALOG_TRANSLATIONS['All Storage']}</option>
+                    </select>
+                    <select 
+                        id="tm-phone-filter-color" 
+                        style="
+                            min-width: 90px;
+                            padding: 7px 10px;
+                            padding-right: 26px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 11px;
+                            outline: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            appearance: none;
+                            background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 10 10\'><path fill=\'rgba(0,0,0,0.5)\' d=\'M5 7L2 4h6z\'/></svg>');
+                            background-repeat: no-repeat;
+                            background-position: right 7px center;
+                            background-size: 10px;
+                        "
+                    >
+                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-dark-color);">${PHONE_CATALOG_TRANSLATIONS['All Colors']}</option>
+                    </select>
+                    <select 
+                        id="tm-phone-filter-tag" 
+                        style="
+                            min-width: 100px;
+                            padding: 7px 10px;
+                            padding-right: 26px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 11px;
+                            outline: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            appearance: none;
+                            background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 10 10\'><path fill=\'rgba(0,0,0,0.5)\' d=\'M5 7L2 4h6z\'/></svg>');
+                            background-repeat: no-repeat;
+                            background-position: right 7px center;
+                            background-size: 10px;
+                        "
+                    >
+                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-dark-color);">${PHONE_CATALOG_TRANSLATIONS['All Tags']}</option>
+                    </select>
+                    <select 
+                        id="tm-phone-sort-by" 
+                        style="
+                            min-width: 110px;
+                            padding: 7px 10px;
+                            padding-right: 26px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 11px;
+                            outline: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            appearance: none;
+                            background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 10 10\'><path fill=\'rgba(0,0,0,0.5)\' d=\'M5 7L2 4h6z\'/></svg>');
+                            background-repeat: no-repeat;
+                            background-position: right 7px center;
+                            background-size: 10px;
+                        "
+                    >
+                        <option value="model">${PHONE_CATALOG_TRANSLATIONS['Sort by Model']}</option>
+                        <option value="grade">${PHONE_CATALOG_TRANSLATIONS['Sort by Grade']}</option>
+                        <option value="gb">${PHONE_CATALOG_TRANSLATIONS['Sort by Storage']}</option>
+                        <option value="color">${PHONE_CATALOG_TRANSLATIONS['Sort by Color']}</option>
+                        <option value="imei">${PHONE_CATALOG_TRANSLATIONS['Sort by IMEI']}</option>
+                    </select>
+                    <button id="tm-phone-sort-dir" title="${PHONE_CATALOG_TRANSLATIONS['Toggle Sort Direction']}" style="
+                        background: var(--tm-shop-item-bg);
+                        border: 1px solid var(--tm-shop-item-border);
+                        color: var(--tm-primary-color);
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        transition: all 0.2s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        flex-shrink: 0;
+                        font-weight: 600;
+                    ">↑</button>
+                    <button id="tm-phone-clear-filters" title="${PHONE_CATALOG_TRANSLATIONS['Clear All Filters']}" style="
+                        padding: 7px 12px;
+                        border: 1px solid var(--tm-shop-item-border);
+                        border-radius: 6px;
+                        background: var(--tm-shop-item-bg);
+                        color: var(--tm-dark-color);
+                        font-size: 11px;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        white-space: nowrap;
+                    ">🗑️</button>
+                    <div style="
+                        position: relative;
+                        display: inline-block;
+                    ">
+                        <button id="tm-phone-export-btn" title="${PHONE_CATALOG_TRANSLATIONS['Export Options']}" style="
+                            background: var(--tm-shop-item-bg);
+                            border: 1px solid var(--tm-shop-item-border);
+                            color: var(--tm-primary-color);
+                            padding: 7px 12px;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 11px;
+                            transition: all 0.2s ease;
+                            white-space: nowrap;
+                            display: flex;
+                            align-items: center;
+                            gap: 5px;
+                        ">📤 ${PHONE_CATALOG_TRANSLATIONS['Export']}</button>
+                        <div id="tm-phone-export-menu" style="
+                            position: absolute;
+                            top: 100%;
+                            right: 0;
+                            margin-top: 6px;
+                            background: var(--tm-shop-item-bg);
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                            padding: 8px;
+                            min-width: 200px;
+                            display: none;
+                            z-index: 1000;
+                        ">
+                            <div style="
+                                font-size: 10px;
+                                color: var(--tm-dark-color);
+                                opacity: 0.7;
+                                margin-bottom: 8px;
+                                font-weight: 600;
+                                text-transform: uppercase;
+                                letter-spacing: 0.5px;
+                                padding: 0 4px;
+                            ">${PHONE_CATALOG_TRANSLATIONS['Export Options']}</div>
+                            <button id="tm-phone-export-clipboard" title="${PHONE_CATALOG_TRANSLATIONS['Copy to Clipboard']}" style="
+                                width: 100%;
+                                background: var(--tm-shop-item-bg);
+                                border: 1px solid var(--tm-shop-item-border);
+                                color: var(--tm-primary-color);
+                                padding: 8px 12px;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-size: 12px;
+                                transition: all 0.2s ease;
+                                text-align: left;
+                                margin-bottom: 6px;
+                            ">📋 ${PHONE_CATALOG_TRANSLATIONS['Copy to Clipboard']}</button>
+                            <button id="tm-phone-export-csv" title="${PHONE_CATALOG_TRANSLATIONS['Export to CSV']}" style="
+                                width: 100%;
+                                background: var(--tm-shop-item-bg);
+                                border: 1px solid var(--tm-shop-item-border);
+                                color: var(--tm-primary-color);
+                                padding: 8px 12px;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-size: 12px;
+                                transition: all 0.2s ease;
+                                text-align: left;
+                                margin-bottom: 6px;
+                            ">📊 ${PHONE_CATALOG_TRANSLATIONS['Export to CSV']}</button>
+                            <button id="tm-phone-export-selected" title="${PHONE_CATALOG_TRANSLATIONS['Export Selected']}" style="
+                                width: 100%;
+                                background: var(--tm-shop-item-bg);
+                                border: 1px solid var(--tm-shop-item-border);
+                                color: var(--tm-primary-color);
+                                padding: 8px 12px;
+                                border-radius: 6px;
+                                cursor: pointer;
+                                font-size: 12px;
+                                transition: all 0.2s ease;
+                                text-align: left;
+                                margin-bottom: 8px;
+                                display: none;
+                            ">📋 ${PHONE_CATALOG_TRANSLATIONS['Export Selected']}</button>
+                            <div style="
+                                border-top: 1px solid var(--tm-shop-item-border);
+                                padding-top: 8px;
+                                margin-top: 8px;
+                            ">
+                                <label style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 8px;
+                                    font-size: 11px;
+                                    color: var(--tm-dark-color);
+                                    cursor: pointer;
+                                    padding: 6px 4px;
+                                ">
+                                    <input type="checkbox" id="tm-phone-export-original-title" style="cursor: pointer; width: 14px; height: 14px;">
+                                    ${PHONE_CATALOG_TRANSLATIONS['Include Original Title']}
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="tm-phone-select-all" title="${PHONE_CATALOG_TRANSLATIONS['Select All']}" style="
+                        background: var(--tm-shop-item-bg);
+                        border: 1px solid var(--tm-shop-item-border);
+                        color: var(--tm-primary-color);
+                        padding: 7px 12px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 11px;
+                        transition: all 0.2s ease;
+                        display: none;
+                        white-space: nowrap;
+                    ">☑ All</button>
+                </div>
+            </div>
+            <div id="tm-phone-list-container" style="
+                flex: 1; 
+                overflow-y: auto; 
+                padding: 20px;
+                background: var(--tm-shop-item-bg);
+            ">
+                <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-dark-color);">
+                    <div style="text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px; animation: pulse 2s ease-in-out infinite;">⏳</div>
+                        <div>Loading phones...</div>
+                    </div>
+                </div>
+            </div>
+            <div id="tm-other-store-container" style="
+                flex: 1;
+                overflow-y: auto;
+                padding: 20px;
+                background: var(--tm-shop-item-bg);
+                display: none;
+            ">
+                <div id="tm-other-store-content" style="display: flex; justify-content: center; align-items: center; min-height: 200px; color: var(--tm-dark-color);">
+                    <div style="text-align: center;">
+                        <div style="font-size: 36px; margin-bottom: 12px; animation: pulse 2s ease-in-out infinite;">🏬</div>
+                        <div>Loading other-store availability...</div>
+                    </div>
+                </div>
+            </div>
+            <div id="tm-phone-count" style="
+                padding: 14px 20px; 
+                border-top: 1px solid var(--tm-shop-item-border); 
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                color: var(--tm-dark-color); 
+                font-size: 13px;
+                background: var(--tm-shop-item-bg);
+                font-weight: 500;
+            ">
+                <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+                    <span id="tm-phone-count-text">0 phones found</span>
+                    <div id="tm-phone-statistics" style="
+                        display: flex;
+                        gap: 12px;
+                        font-size: 11px;
+                        opacity: 0.8;
+                        flex-wrap: wrap;
+                    "></div>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span id="tm-phone-last-updated" style="font-size: 11px; opacity: 0.7;"></span>
+                    <span id="tm-phone-cache-warning" style="
+                        font-size: 11px; 
+                        color: var(--tm-warning-color); 
+                        margin-left: 8px;
+                        display: none;
+                        font-weight: 600;
+                    "></span>
+                </div>
+            </div>
+        </div>
+        <div class="tm-phone-context-menu">
+            <div class="tm-phone-context-menu-item" data-action="add-tag">🏷️ ${PHONE_CATALOG_TRANSLATIONS['Add Tag']}</div>
+            <div class="tm-phone-context-menu-item" data-action="remove-tag">🗑️ ${PHONE_CATALOG_TRANSLATIONS['Remove Tag']}</div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    // State variables
+    let allPhones = [];
+    let filteredPhones = [];
+    let selectedPhones = new Set();
+    let sortBy = 'model';
+    let sortAscending = true;
+    let isGridView = true;
+    let showFavoritesOnly = false;
+    let lastUpdated = null;
+    let contextMenu = overlay.querySelector('.tm-phone-context-menu');
+    let contextMenuPhone = null;
+    let showingOtherStores = false;
+    let otherStorePhones = [];
+    let otherStoreLoaded = false;
+    
+    // Tag system - store tags in localStorage
+    const TAGS_STORAGE_KEY = 'tm_phone_tags';
+    const AVAILABLE_TAGS = ['defective', 'warranty', 'sold', 'reserved', 'repair', 'new', 'doa', 'for repair', 'pending', 'tested', 'untested', 'damaged', 'working', 'parts only', 'MPOUTALAKIS'];
+    
+    // Load tags from storage
+    function loadPhoneTags() {
+        try {
+            const stored = GM_getValue(TAGS_STORAGE_KEY, '{}');
+            return JSON.parse(stored);
+        } catch (e) {
+            return {};
+        }
+    }
+    
+    // Save tags to storage
+    function savePhoneTags(tags) {
+        GM_setValue(TAGS_STORAGE_KEY, JSON.stringify(tags));
+    }
+    
+    // Get tags for a phone
+    function getPhoneTags(barcode) {
+        const allTags = loadPhoneTags();
+        return allTags[barcode] || [];
+    }
+    
+    // Add tag to phone
+    function addPhoneTag(barcode, tag) {
+        const allTags = loadPhoneTags();
+        if (!allTags[barcode]) {
+            allTags[barcode] = [];
+        }
+        if (!allTags[barcode].includes(tag)) {
+            allTags[barcode].push(tag);
+            savePhoneTags(allTags);
+            return true;
+        }
+        return false;
+    }
+    
+    // Remove tag from phone
+    function removePhoneTag(barcode, tag) {
+        const allTags = loadPhoneTags();
+        if (allTags[barcode]) {
+            allTags[barcode] = allTags[barcode].filter(t => t !== tag);
+            if (allTags[barcode].length === 0) {
+                delete allTags[barcode];
+            }
+            savePhoneTags(allTags);
+            return true;
+        }
+        return false;
+    }
+    
+    // Get all unique tags from all phones
+    function getAllUsedTags() {
+        const allTags = loadPhoneTags();
+        const usedTags = new Set();
+        Object.values(allTags).forEach(tags => {
+            tags.forEach(tag => usedTags.add(tag));
+        });
+        return Array.from(usedTags).sort();
+    }
+    
+    // Show tag selection menu
+    function showTagSelectionMenu(barcode, mode, existingTags = []) {
+        // Remove any existing tag menu
+        const existingMenu = document.querySelector('.tm-phone-tag-submenu');
+        if (existingMenu) {
+            existingMenu.remove();
+        }
+        
+        const tagMenu = document.createElement('div');
+        tagMenu.className = 'tm-phone-tag-submenu';
+        
+        const tagColors = {
+            'defective': '#f44336',
+            'warranty': '#4caf50',
+            'sold': '#9e9e9e',
+            'reserved': '#ff9800',
+            'repair': '#9c27b0',
+            'new': '#2196f3',
+            'doa': '#d32f2f',
+            'for repair': '#ff5722',
+            'pending': '#ffc107',
+            'tested': '#4caf50',
+            'untested': '#ff9800',
+            'damaged': '#f44336',
+            'working': '#4caf50',
+            'parts only': '#757575',
+            'MPOUTALAKIS': '#00bcd4'
+        };
+        
+        const tagsToShow = mode === 'add' 
+            ? AVAILABLE_TAGS.filter(tag => !existingTags.includes(tag))
+            : existingTags;
+        
+        if (tagsToShow.length === 0) {
+            tagMenu.innerHTML = `<div style="padding: 12px; text-align: center; color: var(--tm-dark-color); opacity: 0.7; font-size: 12px;">
+                ${mode === 'add' ? 'All tags already added' : 'No tags to remove'}
+            </div>`;
+        } else {
+            tagsToShow.forEach(tag => {
+                const menuItem = document.createElement('div');
+                menuItem.className = 'tm-phone-tag-submenu-item';
+                const color = tagColors[tag] || '#9e9e9e';
+                menuItem.innerHTML = `
+                    <span class="tag-color" style="background: ${color};"></span>
+                    <span>${tag.charAt(0).toUpperCase() + tag.slice(1).replace(/\b\w/g, l => l.toUpperCase())}</span>
+                `;
+                menuItem.addEventListener('click', () => {
+                    if (mode === 'add') {
+                        if (addPhoneTag(barcode, tag)) {
+                            applyFilters();
+                            if (window.showPositiveMessage) {
+                                window.showPositiveMessage(`Tag "${tag}" added`);
+                            }
+                        }
+                    } else {
+                        if (removePhoneTag(barcode, tag)) {
+                            applyFilters();
+                            if (window.showPositiveMessage) {
+                                window.showPositiveMessage(`Tag "${tag}" removed`);
+                            }
+                        }
+                    }
+                    tagMenu.remove();
+                    contextMenu.style.display = 'none';
+                });
+                tagMenu.appendChild(menuItem);
+            });
+        }
+        
+        // Position the menu next to the context menu
+        const addTagItem = contextMenu.querySelector('[data-action="add-tag"]') || contextMenu.querySelector('[data-action="remove-tag"]');
+        if (addTagItem) {
+            const rect = addTagItem.getBoundingClientRect();
+            tagMenu.style.position = 'fixed';
+            
+            // Temporarily append to measure dimensions
+            tagMenu.style.visibility = 'hidden';
+            tagMenu.style.display = 'block';
+            document.body.appendChild(tagMenu);
+            
+            const menuWidth = tagMenu.offsetWidth;
+            const menuHeight = tagMenu.offsetHeight;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            // Calculate horizontal position
+            let left = rect.right + 4;
+            // If menu would go off right edge, position it to the left instead
+            if (left + menuWidth > viewportWidth) {
+                left = rect.left - menuWidth - 4;
+                // If that would go off left edge, just position from right edge
+                if (left < 0) {
+                    left = viewportWidth - menuWidth - 10;
+                }
+            }
+            
+            // Calculate vertical position
+            let top = rect.top;
+            // If menu would go off bottom edge, adjust upward
+            if (top + menuHeight > viewportHeight) {
+                top = viewportHeight - menuHeight - 10;
+                // If that would go off top edge, just position from top
+                if (top < 10) {
+                    top = 10;
+                }
+            }
+            
+            tagMenu.style.left = `${left}px`;
+            tagMenu.style.top = `${top}px`;
+            tagMenu.style.visibility = 'visible';
+        } else {
+            // Make submenu visible
+            tagMenu.style.display = 'block';
+            document.body.appendChild(tagMenu);
+        }
+        
+        // Close menu when clicking outside
+        setTimeout(() => {
+            const closeHandler = (e) => {
+                if (!tagMenu.contains(e.target) && !contextMenu.contains(e.target)) {
+                    tagMenu.remove();
+                    document.removeEventListener('click', closeHandler);
+                }
+            };
+            document.addEventListener('click', closeHandler);
+        }, 100);
+    }
+    
+    // Performance optimization: Caches for expensive operations
+    const extractGBCache = new Map();
+    const extractColorCache = new Map();
+    const extractBaseModelCache = new Map();
+    const parsePhoneNameCache = new Map();
+    
+    // Function to clear caches (useful when memory is a concern)
+    function clearCaches() {
+        extractGBCache.clear();
+        extractColorCache.clear();
+        extractBaseModelCache.clear();
+        parsePhoneNameCache.clear();
+    }
+    
+    // Clear caches periodically to prevent memory bloat (every 10 minutes)
+    setInterval(() => {
+        if (extractGBCache.size > 10000 || extractColorCache.size > 10000 || extractBaseModelCache.size > 10000) {
+            clearCaches();
+            console.log('[MMS Phone List] Caches cleared to free memory');
+        }
+    }, 600000); // 10 minutes
+    
+    // Debounce function for search input
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    // Helper function to extract GB or TB from model name (with memoization)
+    function extractGB(model) {
+        if (!model) return '';
+        if (extractGBCache.has(model)) {
+            return extractGBCache.get(model);
+        }
+        
+        // Try TB first (larger storage) - with or without space
+        const tbMatch = model.match(/(\d+)\s*TB/i);
+        if (tbMatch) {
+            const result = tbMatch[1] + 'TB';
+            extractGBCache.set(model, result);
+            return result;
+        }
+        
+        // Try GB - with or without space
+        const gbMatch = model.match(/(\d+)\s*GB/i);
+        if (gbMatch) {
+            const result = gbMatch[1] + 'GB';
+        extractGBCache.set(model, result);
+        return result;
+        }
+        
+        // Try with just "G" (e.g., "128G", "256G")
+        const gMatch = model.match(/(\d+)\s*G(?!\w)/i);
+        if (gMatch) {
+            const result = gMatch[1] + 'GB';
+            extractGBCache.set(model, result);
+            return result;
+        }
+        
+        // Try common storage sizes without suffix (64GB and up only)
+        // Must be surrounded by spaces or at start/end to avoid matching random numbers
+        const commonSizes = [64, 128, 256, 512, 1024, 2048];
+        for (const size of commonSizes) {
+            const regex = new RegExp('\\b' + size + '\\b', 'i');
+            if (regex.test(model)) {
+                const result = size >= 1024 ? (size / 1024) + 'TB' : size + 'GB';
+                extractGBCache.set(model, result);
+                return result;
+            }
+        }
+        
+        extractGBCache.set(model, '');
+        return '';
+    }
+    
+    // Helper function to extract color from model name (with memoization)
+    function extractColor(model) {
+        if (!model) return '';
+        if (extractColorCache.has(model)) {
+            return extractColorCache.get(model);
+        }
+        const color = matchPhoneColorInText(model);
+        extractColorCache.set(model, color);
+        return color;
+    }
+    
+    // Function to get hex color for catalog title display
+    function getColorHex(colorName) {
+        return getListColorHex(colorName);
+    }
+
+    function isWhitePhoneColor(colorName) {
+        if (!colorName) return false;
+        return colorName.toUpperCase().includes('WHITE');
+    }
+
+    function getWhitePhoneTitleOutlineStyle() {
+        return '-webkit-text-stroke:0.65px rgba(0,0,0,0.7);text-shadow:0 0 1px rgba(0,0,0,0.85),0 1px 3px rgba(0,0,0,0.4);paint-order:stroke fill;';
+    }
+
+    function showColorManagerModal() {
+        const existing = document.getElementById('tm-phone-colors-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'tm-phone-colors-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
+
+        const panel = document.createElement('div');
+        panel.style.cssText = 'width:min(520px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
+
+        panel.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h3 style="margin:0;font-size:16px;font-weight:600;">${t('Manage Colors')}</h3>
+                <button id="tm-colors-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-dark-color);line-height:1;">&times;</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
+                <input id="tm-new-color-name" type="text" placeholder="${t('Color Name')} (${t('e.g. MINT GREEN')})" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:13px;box-sizing:border-box;">
+                <div id="tm-color-suggest-hint" style="font-size:11px;opacity:0.8;min-height:14px;"></div>
+                <div style="font-size:11px;opacity:0.7;margin-bottom:2px;">${t('Catalog title color')}</div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="color" id="tm-new-color-picker" value="#808080" title="${t('Catalog title color')}" style="width:42px;height:34px;padding:2px;border:1px solid var(--tm-shop-item-border);border-radius:6px;cursor:pointer;background:var(--tm-shop-item-bg);">
+                    <input id="tm-new-color-hex" type="text" placeholder="#RRGGBB" style="flex:1;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:13px;font-family:monospace;box-sizing:border-box;">
+                    <button id="tm-add-color-btn" type="button" style="padding:8px 12px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">${t('Add Color')}</button>
+                </div>
+            </div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:8px;opacity:0.75;">${t('Custom Colors')}</div>
+            <div id="tm-phone-colors-list"></div>
+        `;
+
+        modal.appendChild(panel);
+        document.body.appendChild(modal);
+
+        const nameInput = panel.querySelector('#tm-new-color-name');
+        const picker = panel.querySelector('#tm-new-color-picker');
+        const hexInput = panel.querySelector('#tm-new-color-hex');
+        const hintEl = panel.querySelector('#tm-color-suggest-hint');
+        const listEl = panel.querySelector('#tm-phone-colors-list');
+        let hexFieldDirty = false;
+
+        const applySuggestedHex = (suggestion) => {
+            if (!suggestion?.hex) return;
+            hexInput.value = suggestion.hex;
+            picker.value = suggestion.hex;
+        };
+
+        const updateColorSuggestion = () => {
+            const suggestion = suggestPhoneColorHex(nameInput.value);
+            if (!suggestion) {
+                hintEl.textContent = '';
+                return;
+            }
+            hintEl.innerHTML = `${t('Suggested hex')}: <button type="button" class="tm-apply-suggest-hex" style="border:none;background:transparent;color:var(--tm-primary-color);font-family:monospace;font-size:11px;font-weight:700;cursor:pointer;padding:0;text-decoration:underline;">${suggestion.hex}</button> <span style="opacity:0.65;">(${suggestion.source})</span>`;
+            hintEl.querySelector('.tm-apply-suggest-hex').addEventListener('click', () => {
+                applySuggestedHex(suggestion);
+                hexFieldDirty = true;
+            });
+            if (!hexFieldDirty) applySuggestedHex(suggestion);
+        };
+
+        const syncHexFromPicker = () => {
+            hexInput.value = picker.value.toUpperCase();
+        };
+        picker.addEventListener('input', () => {
+            hexFieldDirty = true;
+            syncHexFromPicker();
+        });
+        hexInput.addEventListener('input', () => {
+            hexFieldDirty = true;
+            const hex = normalizePhoneColorHex(hexInput.value);
+            if (hex) picker.value = hex;
+        });
+        nameInput.addEventListener('input', updateColorSuggestion);
+        syncHexFromPicker();
+
+        const refreshAfterChange = () => {
+            extractColorCache.clear();
+            extractBaseModelCache.clear();
+            populateFilters(allPhones, ['color']);
+            applyFilters();
+            renderPhoneColorList();
+        };
+
+        const renderPhoneColorList = () => {
+            const colors = loadPhoneColors();
+            const names = Object.keys(colors).sort((a, b) => {
+                const aMulti = a.includes(' ') ? 0 : 1;
+                const bMulti = b.includes(' ') ? 0 : 1;
+                if (aMulti !== bMulti) return aMulti - bMulti;
+                return b.length - a.length || a.localeCompare(b);
+            });
+            if (!names.length) {
+                listEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:8px 0;">${t('No custom colors yet')}</div>`;
+                return;
+            }
+            listEl.innerHTML = names.map(name => {
+                const entry = normalizeColorEntry(colors[name], name);
+                const listHex = entry.listHex || entry.hex || '#808080';
+                const aliases = getAliasesForColor(name).join(', ');
+                const titleOutline = isWhitePhoneColor(name) ? getWhitePhoneTitleOutlineStyle() : '';
+                const nameInputStyle = `flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);font-size:13px;font-weight:700;min-width:0;box-sizing:border-box;color:${listHex};${titleOutline}`;
+                return `
+                <div class="tm-phone-color-row" data-color="${name}" style="padding:10px 0;border-bottom:1px solid var(--tm-shop-item-border);">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Color Name')}</span>
+                        <input type="text" class="tm-phone-color-name-input" data-color="${name}" value="${name}" style="${nameInputStyle}">
+                        <button type="button" data-color="${name}" class="tm-delete-phone-color" style="padding:4px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-dark-color);font-size:11px;cursor:pointer;flex-shrink:0;">${t('Delete')}</button>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Catalog title color')}</span>
+                        <input type="color" class="tm-phone-list-color-picker" data-color="${name}" value="${listHex}" style="width:32px;height:28px;padding:1px;border:1px solid var(--tm-shop-item-border);border-radius:5px;cursor:pointer;background:var(--tm-shop-item-bg);flex-shrink:0;">
+                        <span class="tm-phone-list-color-label" style="font-size:11px;opacity:0.65;font-family:monospace;">${listHex}</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Also for labels')}</span>
+                        <input type="text" class="tm-phone-color-alias-input" data-color="${name}" value="${aliases}" placeholder="${t('Aliases hint')}" style="flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:11px;box-sizing:border-box;">
+                    </div>
+                </div>`;
+            }).join('');
+
+            const applyNameInputStyle = (input, colorName, hex) => {
+                const outline = isWhitePhoneColor(colorName) ? getWhitePhoneTitleOutlineStyle() : '';
+                input.setAttribute('style', `flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);font-size:13px;font-weight:700;min-width:0;box-sizing:border-box;color:${hex};${outline}`);
+            };
+
+            listEl.querySelectorAll('.tm-phone-list-color-picker').forEach(input => {
+                input.addEventListener('change', () => {
+                    const hex = normalizePhoneColorHex(input.value);
+                    if (!hex || !updatePhoneListColor(input.dataset.color, hex)) return;
+                    const row = input.closest('.tm-phone-color-row');
+                    const label = row?.querySelector('.tm-phone-list-color-label');
+                    const nameInput = row?.querySelector('.tm-phone-color-name-input');
+                    if (label) label.textContent = hex;
+                    if (nameInput) applyNameInputStyle(nameInput, input.dataset.color, hex);
+                    extractColorCache.clear();
+                    extractBaseModelCache.clear();
+                    applyFilters();
+                    if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
+                });
+            });
+
+            listEl.querySelectorAll('.tm-phone-color-name-input').forEach(input => {
+                const commitRename = () => {
+                    const oldName = input.dataset.color;
+                    const newName = normalizePhoneColorName(input.value);
+                    if (!newName) {
+                        input.value = oldName;
+                        if (window.showNegativeMessage) window.showNegativeMessage(t('Invalid color name or hex'));
+                        return;
+                    }
+                    if (newName === oldName) return;
+                    const result = renamePhoneColor(oldName, newName);
+                    if (!result.ok) {
+                        input.value = oldName;
+                        const msg = result.error === 'exists' ? t('Color already exists') : t('Invalid color name or hex');
+                        if (window.showNegativeMessage) window.showNegativeMessage(msg);
+                        else if (window.showPositiveMessage) window.showPositiveMessage(msg);
+                        return;
+                    }
+                    extractColorCache.clear();
+                    extractBaseModelCache.clear();
+                    if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
+                    refreshAfterChange();
+                };
+                input.addEventListener('change', commitRename);
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        input.blur();
+                    }
+                });
+            });
+
+            listEl.querySelectorAll('.tm-phone-color-alias-input').forEach(input => {
+                input.addEventListener('change', () => {
+                    setColorDisplayAliasesForColor(input.dataset.color, input.value);
+                    extractColorCache.clear();
+                    applyFilters();
+                    if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
+                });
+            });
+
+            listEl.querySelectorAll('.tm-delete-phone-color').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    removePhoneColor(btn.dataset.color);
+                    if (window.showPositiveMessage) window.showPositiveMessage(t('Color removed'));
+                    refreshAfterChange();
+                });
+            });
+        };
+
+        panel.querySelector('#tm-add-color-btn').addEventListener('click', () => {
+            const result = addPhoneColor(nameInput.value, hexInput.value || picker.value, hexInput.value || picker.value);
+            if (!result.ok) {
+                const msg = result.error === 'exists' ? t('Color already exists') : t('Invalid color name or hex');
+                if (window.showNegativeMessage) window.showNegativeMessage(msg);
+                else if (window.showPositiveMessage) window.showPositiveMessage(msg);
+                return;
+            }
+            nameInput.value = '';
+            hexInput.value = '';
+            picker.value = '#808080';
+            hexFieldDirty = false;
+            hintEl.textContent = '';
+            if (window.showPositiveMessage) window.showPositiveMessage(t('Color added'));
+            refreshAfterChange();
+        });
+
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') panel.querySelector('#tm-add-color-btn').click();
+        });
+
+        panel.querySelector('#tm-colors-close').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+
+        syncPhoneColorCatalog(allPhones);
+        renderPhoneColorList();
+    }
+
+    function showStoreRulesModal() {
+        const existing = document.getElementById('tm-phone-stores-modal');
+        if (existing) existing.remove();
+
+        const rules = loadPhoneStoreRules();
+        const modal = document.createElement('div');
+        modal.id = 'tm-phone-stores-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
+
+        const panel = document.createElement('div');
+        panel.style.cssText = 'width:min(560px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
+
+        panel.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h3 style="margin:0;font-size:16px;font-weight:600;">${t('Manage Stores')}</h3>
+                <button id="tm-stores-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-dark-color);line-height:1;">&times;</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
+                <label style="font-size:12px;font-weight:600;">${t('Buyback store patterns')}</label>
+                <input id="tm-buyback-store-patterns" type="text" value="${rules.buybackPatterns.join(', ')}" placeholder="${t('Buyback patterns hint')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:12px;box-sizing:border-box;">
+                <div style="font-size:11px;opacity:0.7;">${t('Buyback patterns hint')}</div>
+                <label style="font-size:12px;font-weight:600;">${t('Regular store patterns')}</label>
+                <input id="tm-regular-store-patterns" type="text" value="${rules.regularPatterns.join(', ')}" placeholder="${t('Regular patterns hint')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:12px;box-sizing:border-box;">
+                <div style="font-size:11px;opacity:0.7;">${t('Regular patterns hint')}</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button id="tm-save-store-rules" type="button" style="padding:8px 12px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;">${t('Save')}</button>
+                    <button id="tm-reset-store-overrides" type="button" style="padding:8px 12px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:transparent;color:var(--tm-dark-color);font-size:12px;cursor:pointer;">${t('Reset store overrides')}</button>
+                </div>
+            </div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:8px;opacity:0.75;">${t('Known stores')}</div>
+            <div id="tm-phone-stores-list"></div>
+        `;
+
+        modal.appendChild(panel);
+        document.body.appendChild(modal);
+
+        const buybackPatternsInput = panel.querySelector('#tm-buyback-store-patterns');
+        const regularPatternsInput = panel.querySelector('#tm-regular-store-patterns');
+        const listEl = panel.querySelector('#tm-phone-stores-list');
+        let draftOverrides = { ...rules.overrides };
+
+        const getDraftRules = () => ({
+            buybackPatterns: parseStorePatternCsv(buybackPatternsInput.value),
+            regularPatterns: parseStorePatternCsv(regularPatternsInput.value),
+            overrides: { ...draftOverrides }
+        });
+
+        const renderStoreRulesList = () => {
+            const draft = getDraftRules();
+            const knownStores = collectKnownStoreNames(allPhones, otherStorePhones);
+            if (!knownStores.length) {
+                listEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:8px 0;">${t('No known stores yet')}</div>`;
+                return;
+            }
+            listEl.innerHTML = knownStores.map(storeName => {
+                const override = draft.overrides[storeName] || {};
+                const bbAllowed = typeof override.buyback === 'boolean'
+                    ? override.buyback
+                    : storeNameMatchesPatterns(storeName, draft.buybackPatterns);
+                const regularAllowed = typeof override.regular === 'boolean'
+                    ? override.regular
+                    : storeNameMatchesPatterns(storeName, draft.regularPatterns);
+                const bbChecked = bbAllowed ? 'checked' : '';
+                const regularChecked = regularAllowed ? 'checked' : '';
+                return `
+                <div class="tm-store-rule-row" data-store="${storeName.replace(/"/g, '&quot;')}" style="padding:10px 0;border-bottom:1px solid var(--tm-shop-item-border);">
+                    <div style="font-size:13px;font-weight:700;margin-bottom:8px;word-break:break-word;">${storeName}</div>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;">
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                            <input type="checkbox" class="tm-store-bb-allowed" data-store="${storeName.replace(/"/g, '&quot;')}" ${bbChecked}>
+                            <span>${t('Allow buyback')}</span>
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                            <input type="checkbox" class="tm-store-regular-allowed" data-store="${storeName.replace(/"/g, '&quot;')}" ${regularChecked}>
+                            <span>${t('Allow regular')}</span>
+                        </label>
+                    </div>
+                </div>`;
+            }).join('');
+
+            listEl.querySelectorAll('.tm-store-bb-allowed, .tm-store-regular-allowed').forEach(input => {
+                input.addEventListener('change', () => {
+                    const storeName = input.dataset.store;
+                    if (!draftOverrides[storeName]) draftOverrides[storeName] = {};
+                    if (input.classList.contains('tm-store-bb-allowed')) {
+                        draftOverrides[storeName].buyback = input.checked;
+                    } else {
+                        draftOverrides[storeName].regular = input.checked;
+                    }
+                });
+            });
+        };
+
+        const persistStoreRules = () => {
+            const next = getDraftRules();
+            if (!next.buybackPatterns.length) {
+                next.buybackPatterns = getDefaultPhoneStoreRules().buybackPatterns;
+                buybackPatternsInput.value = next.buybackPatterns.join(', ');
+            }
+            savePhoneStoreRules(next);
+            draftOverrides = { ...next.overrides };
+            if (window.showPositiveMessage) window.showPositiveMessage(t('Store rules saved'));
+            applyFilters();
+            renderStoreRulesList();
+        };
+
+        panel.querySelector('#tm-save-store-rules').addEventListener('click', persistStoreRules);
+        panel.querySelector('#tm-reset-store-overrides').addEventListener('click', () => {
+            draftOverrides = {};
+            renderStoreRulesList();
+        });
+        buybackPatternsInput.addEventListener('change', renderStoreRulesList);
+        regularPatternsInput.addEventListener('change', renderStoreRulesList);
+        panel.querySelector('#tm-stores-close').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+
+        renderStoreRulesList();
+    }
+    
+    // ── Canonical model list ───────────────────────────────────────────────────
+    // Ordered most-specific → least-specific within each family.
+    // Used to normalise typo variants (e.g. "PROMAX", "PRO  MAX", Greek chars)
+    // back to a single display name.
+    const CANONICAL_MODELS = [
+        // iPhone SE
+        'iPhone SE (3rd gen)', 'iPhone SE (2nd gen)', 'iPhone SE',
+        // iPhone 6
+        'iPhone 6s Plus', 'iPhone 6s', 'iPhone 6 Plus', 'iPhone 6',
+        // iPhone 7
+        'iPhone 7 Plus', 'iPhone 7',
+        // iPhone 8
+        'iPhone 8 Plus', 'iPhone 8',
+        // iPhone X
+        'iPhone XS Max', 'iPhone XS', 'iPhone XR', 'iPhone X',
+        // iPhone 11
+        'iPhone 11 Pro Max', 'iPhone 11 Pro', 'iPhone 11',
+        // iPhone 12
+        'iPhone 12 Pro Max', 'iPhone 12 Pro', 'iPhone 12 Mini', 'iPhone 12',
+        // iPhone 13
+        'iPhone 13 Pro Max', 'iPhone 13 Pro', 'iPhone 13 Mini', 'iPhone 13',
+        // iPhone 14
+        'iPhone 14 Pro Max', 'iPhone 14 Pro', 'iPhone 14 Plus', 'iPhone 14',
+        // iPhone 15
+        'iPhone 15 Pro Max', 'iPhone 15 Pro', 'iPhone 15 Plus', 'iPhone 15',
+        // iPhone 16
+        'iPhone 16 Pro Max', 'iPhone 16 Pro', 'iPhone 16 Plus', 'iPhone 16',
+        // iPhone 17 / Air
+        'iPhone 17 Pro Max', 'iPhone 17 Pro', 'iPhone 17 Plus', 'iPhone 17',
+        'iPhone Air',
+        // Samsung Galaxy S (newest first so more-specific entries match first)
+        'Samsung Galaxy S25 Ultra', 'Samsung Galaxy S25 Plus', 'Samsung Galaxy S25',
+        'Samsung Galaxy S24 Ultra', 'Samsung Galaxy S24 Plus', 'Samsung Galaxy S24 FE', 'Samsung Galaxy S24',
+        'Samsung Galaxy S23 Ultra', 'Samsung Galaxy S23 Plus', 'Samsung Galaxy S23 FE', 'Samsung Galaxy S23',
+        'Samsung Galaxy S22 Ultra', 'Samsung Galaxy S22 Plus', 'Samsung Galaxy S22',
+        'Samsung Galaxy S21 Ultra', 'Samsung Galaxy S21 Plus', 'Samsung Galaxy S21 FE', 'Samsung Galaxy S21',
+        'Samsung Galaxy S20 Ultra', 'Samsung Galaxy S20 Plus', 'Samsung Galaxy S20 FE', 'Samsung Galaxy S20',
+        'Samsung Galaxy S10 Plus', 'Samsung Galaxy S10e', 'Samsung Galaxy S10',
+        'Samsung Galaxy S9 Plus', 'Samsung Galaxy S9',
+        'Samsung Galaxy S8 Plus', 'Samsung Galaxy S8',
+        'Samsung Galaxy S7 Edge', 'Samsung Galaxy S7',
+        'Samsung Galaxy S6 Edge Plus', 'Samsung Galaxy S6 Edge', 'Samsung Galaxy S6',
+        // Samsung Galaxy Note
+        'Samsung Galaxy Note 20 Ultra', 'Samsung Galaxy Note 20',
+        'Samsung Galaxy Note 10 Plus', 'Samsung Galaxy Note 10',
+        'Samsung Galaxy Note 9', 'Samsung Galaxy Note 8',
+        // Samsung Galaxy Z
+        'Samsung Galaxy Z Fold 6', 'Samsung Galaxy Z Fold 5', 'Samsung Galaxy Z Fold 4',
+        'Samsung Galaxy Z Fold 3', 'Samsung Galaxy Z Fold 2',
+        'Samsung Galaxy Z Flip 6', 'Samsung Galaxy Z Flip 5', 'Samsung Galaxy Z Flip 4',
+        'Samsung Galaxy Z Flip 3',
+        // Samsung Galaxy A (most popular first within each number tier)
+        'Samsung Galaxy A73', 'Samsung Galaxy A72', 'Samsung Galaxy A71',
+        'Samsung Galaxy A55', 'Samsung Galaxy A54', 'Samsung Galaxy A53', 'Samsung Galaxy A52s', 'Samsung Galaxy A52', 'Samsung Galaxy A51',
+        'Samsung Galaxy A35', 'Samsung Galaxy A34', 'Samsung Galaxy A33',
+        'Samsung Galaxy A25', 'Samsung Galaxy A24', 'Samsung Galaxy A23',
+        'Samsung Galaxy A16', 'Samsung Galaxy A15', 'Samsung Galaxy A14', 'Samsung Galaxy A13',
+        'Samsung Galaxy A06', 'Samsung Galaxy A05', 'Samsung Galaxy A04', 'Samsung Galaxy A03',
+    ];
+
+    // Normalise a string for canonical matching:
+    // collapse typos, convert + to PLUS, strip non-alphanumeric
+    function _normForCanonical(str) {
+        return str.toUpperCase()
+            .replace(/\bPROMAX\b/g, 'PRO MAX')
+            .replace(/\bXSMAX\b/g,  'XS MAX')
+            .replace(/\+/g, ' PLUS ')
+            .replace(/[^A-Z0-9\s]/g, ' ')
+            .replace(/\s+/g, ' ').trim();
+    }
+
+    // Pre-compute normalised token arrays once
+    const _canonTokens = CANONICAL_MODELS.map(name => ({
+        name,
+        tokens: _normForCanonical(name).split(' '),
+    }));
+
+    // Return the canonical display name if base matches one, otherwise return base as-is
+    function matchCanonical(base) {
+        if (!base) return base;
+        const norm = _normForCanonical(base);
+        for (const { name, tokens } of _canonTokens) {
+            // All tokens of the canonical must appear as whole words in norm
+            const allMatch = tokens.every(t =>
+                new RegExp('(?:^|\\s)' + t + '(?:\\s|$)').test(norm)
+            );
+            if (allMatch) return name;
+        }
+        return base;
+    }
+
+    // Helper function to extract base model (without GB/TB and color)
+    function extractBaseModel(model) {
+        if (!model) return '';
+        if (extractBaseModelCache.has(model)) {
+            return extractBaseModelCache.get(model);
+        }
+        // Remove GB/TB and color info, keep main model name
+        // e.g., "IPHONE 11 PRO MAX 64GB SILVER" -> "IPHONE 11 PRO MAX"
+        let base = model;
+        
+        // Strip Greek "used phone" prefix e.g. "ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ"
+        base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '');
+
+        // Strip BB buyback codes in parentheses e.g. (BB-B:…), (BB: A+ …), (BB-A+ …)
+        base = base.replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ');
+        base = base.replace(/\s*\(BB[^)]*\)?\s*/gi, ' ');
+
+        // Strip trailing buyback marker if parsing left it behind
+        base = base.replace(/\s+(BB|ΒΒ):\s*$/gi, ' ');
+
+        // Normalise eSIM variants — handles Latin E, Greek Ε (U+0395), with or without dash/space/hyphen
+        // Matches: eSIM, E-SIM, Ε-SIM (Greek), e sim only, E SIM ONLY, etc.
+        base = base.replace(/\s*[–\-]?\s*[\u0045\u0395][\s\-]?SIM(\s+ONLY)?\s*/gi, ' ');
+
+        // Remove storage (GB/TB) - handle various formats
+        base = base.replace(/\s*\d+\s*TB\s*/gi, ' ');
+        base = base.replace(/\s*\d+\s*GB\s*/gi, ' ');
+        
+        // Remove storage with just "G" (e.g., "128G", "256G")
+        base = base.replace(/\s*\d+\s*G(?!\w)/gi, ' ');
+        
+        // Remove common storage sizes WITHOUT suffix (64GB and up only), but ONLY if they appear after a color or at the end
+        // This prevents removing model numbers like "16" in "IPHONE 16"
+        // Only remove if: number is followed by a space and then a color, or is at the end of the string
+        const commonSizes = [64, 128, 256, 512, 1024, 2048];
+        const allColors = getAllKnownColorsForModelFix();
+        
+        for (const size of commonSizes) {
+            // Only remove storage number if it's followed by a color or BB pattern
+            for (const color of allColors) {
+                const regex = new RegExp('\\b' + size + '\\s+' + color + '\\b', 'gi');
+                base = base.replace(regex, color);
+            }
+            // Also remove if followed by BB pattern
+            const bbRegex = new RegExp('\\b' + size + '\\s+(BB|ΒΒ)', 'gi');
+            base = base.replace(bbRegex, '$1');
+        }
+        
+        const multiWordColors = getMultiWordPhoneColors();
+        for (const color of multiWordColors) {
+            const colorRegex = new RegExp(color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            base = base.replace(colorRegex, ' ');
+        }
+        
+        const singleColors = getSingleWordPhoneColors();
+        for (const color of singleColors) {
+            const colorRegex = new RegExp('\\b' + color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+            base = base.replace(colorRegex, ' ');
+        }
+        
+        // Clean up multiple spaces and trim
+        base = base.replace(/\s+/g, ' ').trim();
+
+        // Map to canonical display name (fixes typos, joins variants like eSIM / non-eSIM)
+        base = matchCanonical(base);
+
+        extractBaseModelCache.set(model, base);
+        return base;
+    }
+    
+    // Function to copy text to clipboard
+    function copyToClipboard(text) {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+                if (window.showPositiveMessage) {
+                    window.showPositiveMessage(`✓ Copied to clipboard`);
+                }
+            });
+        } else {
+            // Fallback for older browsers
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            if (window.showPositiveMessage) {
+                window.showPositiveMessage(`✓ Copied to clipboard`);
+            }
+        }
+    }
+    
+    
+    // Function to sort phones
+    function sortPhones(phones) {
+        return [...phones].sort((a, b) => {
+            let aVal, bVal;
+            
+            switch(sortBy) {
+                case 'model':
+                    aVal = extractBaseModel(a.model || '');
+                    bVal = extractBaseModel(b.model || '');
+                    break;
+                case 'grade':
+                    return sortAscending
+                        ? comparePhoneGrades(a.grade, b.grade)
+                        : comparePhoneGrades(b.grade, a.grade);
+                case 'gb':
+                    aVal = extractGB(a.model || '');
+                    bVal = extractGB(b.model || '');
+                    // Convert to numeric for proper sorting
+                    const aIsTB = aVal.toUpperCase().includes('TB');
+                    const bIsTB = bVal.toUpperCase().includes('TB');
+                    const aNum = parseInt(aVal) * (aIsTB ? 1024 : 1);
+                    const bNum = parseInt(bVal) * (bIsTB ? 1024 : 1);
+                    return sortAscending ? aNum - bNum : bNum - aNum;
+                case 'color':
+                    aVal = extractColor(a.model || '');
+                    bVal = extractColor(b.model || '');
+                    break;
+                case 'imei':
+                    aVal = a.imei || '';
+                    bVal = b.imei || '';
+                    break;
+                default:
+                    aVal = a.model || '';
+                    bVal = b.model || '';
+            }
+            
+            if (sortBy === 'gb') return 0; // Already handled above
+            
+            const comparison = aVal.localeCompare(bVal, undefined, { numeric: true, sensitivity: 'base' });
+            return sortAscending ? comparison : -comparison;
+        });
+    }
+    
+    // Function to populate filter dropdowns
+    function populateFilters(phones, updateFilters = ['grade', 'model', 'gb', 'color', 'tag']) {
+        // Save current selections
+        const currentGrade = gradeFilter.value;
+        const currentModel = modelFilter.value;
+        const currentGB = gbFilter.value;
+        const currentColor = colorFilter.value;
+        const currentTag = (tagFilter && tagFilter.value) || '';
+        
+        // Extract unique values
+        const grades = new Set();
+        const models = new Set();
+        const gbs = new Set();
+        const colors = new Set();
+        
+        phones.forEach(phone => {
+            if (phone.grade) grades.add(phone.grade);
+            const baseModel = extractBaseModel(phone.model);
+            if (baseModel) models.add(baseModel);
+            // Extract GB and color from the full name (phone.name) not the parsed model
+            const gb = extractGB(phone.name || phone.model);
+            if (gb) gbs.add(gb);
+            const color = extractColor(phone.name || phone.model);
+            if (color) colors.add(color);
+        });
+        
+        // Populate grade filter
+        if (updateFilters.includes('grade')) {
+            // Clear existing options except "All"
+            while (gradeFilter.children.length > 1) {
+                gradeFilter.removeChild(gradeFilter.lastChild);
+            }
+            const sortedGrades = Array.from(grades).sort(comparePhoneGrades);
+            sortedGrades.forEach(grade => {
+                const option = document.createElement('option');
+                option.value = grade;
+                option.textContent = `Grade ${grade}`;
+                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-dark-color); padding: 10px;';
+                gradeFilter.appendChild(option);
+            });
+            // Restore selection if still valid
+            if (currentGrade && Array.from(grades).includes(currentGrade)) {
+                gradeFilter.value = currentGrade;
+            } else if (currentGrade) {
+                gradeFilter.value = '';
+            }
+        }
+        
+        // Populate model filter
+        if (updateFilters.includes('model')) {
+            // Clear existing options except "All"
+            while (modelFilter.children.length > 1) {
+                modelFilter.removeChild(modelFilter.lastChild);
+            }
+            const sortedModels = Array.from(models).sort((a, b) => {
+                // Sort iPhone models naturally (iPhone SE before iPhone 11, etc.)
+                return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+            });
+            sortedModels.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-dark-color); padding: 10px;';
+                modelFilter.appendChild(option);
+            });
+            // Restore selection if still valid
+            if (currentModel && Array.from(models).includes(currentModel)) {
+                modelFilter.value = currentModel;
+            } else if (currentModel) {
+                modelFilter.value = '';
+            }
+        }
+        
+        // Populate GB filter - handle both GB and TB
+        if (updateFilters.includes('gb')) {
+            // Clear existing options except "All"
+            while (gbFilter.children.length > 1) {
+                gbFilter.removeChild(gbFilter.lastChild);
+            }
+            const sortedGBs = Array.from(gbs).sort((a, b) => {
+                // Convert to GB equivalent for comparison (1TB = 1024GB)
+                const aIsTB = a.toUpperCase().includes('TB');
+                const bIsTB = b.toUpperCase().includes('TB');
+                const aNum = parseInt(a) * (aIsTB ? 1024 : 1);
+                const bNum = parseInt(b) * (bIsTB ? 1024 : 1);
+                return aNum - bNum;
+            });
+            sortedGBs.forEach(gb => {
+                const option = document.createElement('option');
+                option.value = gb;
+                option.textContent = gb;
+                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-dark-color); padding: 10px;';
+                gbFilter.appendChild(option);
+            });
+            // Restore selection if still valid
+            if (currentGB && Array.from(gbs).includes(currentGB)) {
+                gbFilter.value = currentGB;
+            } else if (currentGB) {
+                gbFilter.value = '';
+            }
+        }
+        
+        // Populate color filter
+        if (updateFilters.includes('color')) {
+            // Clear existing options except "All"
+            while (colorFilter.children.length > 1) {
+                colorFilter.removeChild(colorFilter.lastChild);
+            }
+            const sortedColors = Array.from(colors).sort();
+            sortedColors.forEach(color => {
+                const option = document.createElement('option');
+                option.value = color;
+                option.textContent = color;
+                stylePhoneColorSelectOption(option, color);
+                colorFilter.appendChild(option);
+            });
+            // Restore selection if still valid
+            if (currentColor && Array.from(colors).includes(currentColor)) {
+                colorFilter.value = currentColor;
+            } else if (currentColor) {
+                colorFilter.value = '';
+            }
+            syncPhoneColorSelectDisplay(colorFilter);
+        }
+        
+        // Populate tag filter
+        if (updateFilters.includes('tag') && tagFilter) {
+            // Clear existing options except "All"
+            while (tagFilter.children.length > 1) {
+                tagFilter.removeChild(tagFilter.lastChild);
+            }
+            const usedTags = getAllUsedTags();
+            usedTags.forEach(tag => {
+                const option = document.createElement('option');
+                option.value = tag;
+                option.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-dark-color); padding: 10px;';
+                tagFilter.appendChild(option);
+            });
+            // Restore selection if still valid
+            if (currentTag && usedTags.includes(currentTag)) {
+                tagFilter.value = currentTag;
+            } else if (currentTag) {
+                tagFilter.value = '';
+            }
+        }
+    }
+    
+    // Function to update statistics display
+    function updateStatistics(phones) {
+        if (!statisticsDisplay) return;
+        
+        const stats = {
+            total: phones.length,
+            byGrade: {},
+            byModel: {}
+        };
+        
+        phones.forEach(phone => {
+            if (phone.grade) {
+                const g = normalizePhoneGrade(phone.grade);
+                stats.byGrade[g] = (stats.byGrade[g] || 0) + 1;
+            }
+            const baseModel = extractBaseModel(phone.model);
+            if (baseModel) {
+                stats.byModel[baseModel] = (stats.byModel[baseModel] || 0) + 1;
+            }
+        });
+        
+        if (stats.total === 0) {
+            statisticsDisplay.innerHTML = '';
+            return;
+        }
+        
+        // Build statistics with better formatting
+        const statsParts = [];
+        
+        // Total count
+        statsParts.push(`<span style="font-weight: 600; color: var(--tm-primary-color);">${stats.total}</span>`);
+        
+        // Grade breakdown
+        const gradeEntries = Object.entries(stats.byGrade).sort((a, b) => comparePhoneGrades(a[0], b[0]));
+        if (gradeEntries.length > 0) {
+            const gradeParts = gradeEntries.map(([g, count]) => {
+                const color = getPhoneGradeColor(g);
+                return `<span style="color: ${color};">${g}:${count}</span>`;
+            });
+            statsParts.push(gradeParts.join(' '));
+        }
+        
+        // Top models (max 3)
+        const topModels = Object.entries(stats.byModel)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3);
+        
+        if (topModels.length > 0) {
+            const modelParts = topModels.map(([model, count]) => {
+                // Shorten model names if too long
+                const shortModel = model.length > 20 ? model.substring(0, 17) + '...' : model;
+                return `<span style="opacity: 0.9;">${shortModel}:<strong style="color: var(--tm-primary-color);">${count}</strong></span>`;
+            });
+            statsParts.push(modelParts.join(' '));
+        }
+        
+        statisticsDisplay.innerHTML = statsParts.join(' <span style="opacity: 0.3; margin: 0 8px;">|</span> ');
+    }
+    
+    // Helper function to get filtered phones based on current filters, excluding one filter
+    function getFilteredPhonesForFilterUpdate(excludeFilter = null) {
+        const query = searchInput.value.trim();
+        const selectedGrade = excludeFilter !== 'grade' ? gradeFilter.value : '';
+        const selectedModel = excludeFilter !== 'model' ? modelFilter.value : '';
+        const selectedGB = excludeFilter !== 'gb' ? gbFilter.value : '';
+        const selectedColor = excludeFilter !== 'color' ? colorFilter.value : '';
+        const selectedTag = (excludeFilter !== 'tag' && tagFilter) ? tagFilter.value : '';
+        const useRegex = overlay.querySelector('#tm-phone-regex-toggle').checked;
+        
+        const baseDataset = showingOtherStores
+            ? otherStorePhones.filter(p => (p.otherStoreCount === 1) && ((p.localUnits || 0) <= 0))
+            : (showFavoritesOnly ? allPhones.filter(p => favorites.includes(p.barcode)) : allPhones);
+        
+        let phonesToFilter = baseDataset;
+        phonesToFilter = filterIphoneTitlePhones(phonesToFilter);
+        
+        return phonesToFilter.filter(phone => {
+            // Text search filter
+            if (query) {
+                let matchesSearch = false;
+                if (useRegex) {
+                    try {
+                        const regex = new RegExp(query, 'i');
+                        matchesSearch = 
+                            regex.test(phone.name) ||
+                            regex.test(phone.barcode) ||
+                            regex.test(phone.model || '') ||
+                            regex.test(phone.grade || '') ||
+                            regex.test(phone.imei || '');
+                    } catch (e) {
+                        // Invalid regex, fall back to simple search
+                        matchesSearch = 
+                            phone.name.toLowerCase().includes(query.toLowerCase()) ||
+                            phone.barcode.toLowerCase().includes(query.toLowerCase()) ||
+                            (phone.model && phone.model.toLowerCase().includes(query.toLowerCase())) ||
+                            (phone.grade && phone.grade.toLowerCase().includes(query.toLowerCase())) ||
+                            (phone.imei && phone.imei.toLowerCase().includes(query.toLowerCase()));
+                    }
+                } else {
+                    const queryLower = query.toLowerCase();
+                    matchesSearch = 
+                        phone.name.toLowerCase().includes(queryLower) ||
+                        phone.barcode.toLowerCase().includes(queryLower) ||
+                        (phone.model && phone.model.toLowerCase().includes(queryLower)) ||
+                        (phone.grade && phone.grade.toLowerCase().includes(queryLower)) ||
+                        (phone.imei && phone.imei.toLowerCase().includes(queryLower));
+                }
+                if (!matchesSearch) return false;
+            }
+            
+            // Grade filter
+            if (selectedGrade && phone.grade !== selectedGrade) {
+                return false;
+            }
+            
+            // Model filter
+            if (selectedModel) {
+                const baseModel = extractBaseModel(phone.model);
+                if (baseModel !== selectedModel) {
+                    return false;
+                }
+            }
+            
+            // GB filter
+            if (selectedGB) {
+                const gb = extractGB(phone.name || phone.model);
+                if (gb !== selectedGB) {
+                    return false;
+                }
+            }
+            
+            // Color filter
+            if (selectedColor) {
+                const color = extractColor(phone.name || phone.model);
+                if (color !== selectedColor) {
+                    return false;
+                }
+            }
+            
+            // Tag filter
+            if (selectedTag) {
+                const phoneTags = getPhoneTags(phone.barcode);
+                if (!phoneTags.includes(selectedTag)) {
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+    }
+    
+    // Function to apply all filters
+    function applyFilters() {
+        const query = searchInput.value.trim();
+        const selectedGrade = gradeFilter.value;
+        const selectedModel = modelFilter.value;
+        const selectedGB = gbFilter.value;
+        const selectedColor = colorFilter.value;
+        const selectedTag = tagFilter ? tagFilter.value : '';
+        const useRegex = overlay.querySelector('#tm-phone-regex-toggle').checked;
+        
+        let phonesToFilter = showFavoritesOnly 
+            ? allPhones.filter(p => favorites.includes(p.barcode))
+            : allPhones;
+        phonesToFilter = filterIphoneTitlePhones(phonesToFilter);
+        
+        // Pre-compute query lowercase once for performance
+        const queryLower = query ? query.toLowerCase() : null;
+        let searchRegex = null;
+        if (query && useRegex) {
+            try {
+                searchRegex = new RegExp(query, 'i');
+            } catch (e) {
+                // Invalid regex, will fall back to simple search
+                searchRegex = null;
+            }
+        }
+        
+        filteredPhones = phonesToFilter.filter(phone => {
+            // Text search filter - optimized with pre-computed values
+            if (query) {
+                let matchesSearch = false;
+                if (searchRegex) {
+                    // Use regex if valid
+                    matchesSearch = 
+                        searchRegex.test(phone.name) ||
+                        searchRegex.test(phone.barcode) ||
+                        searchRegex.test(phone.model || '') ||
+                        searchRegex.test(phone.grade || '') ||
+                        searchRegex.test(phone.imei || '');
+                } else {
+                    // Simple search - use pre-computed lowercase
+                    matchesSearch = 
+                        phone.name.toLowerCase().includes(queryLower) ||
+                        phone.barcode.toLowerCase().includes(queryLower) ||
+                        (phone.model && phone.model.toLowerCase().includes(queryLower)) ||
+                        (phone.grade && phone.grade.toLowerCase().includes(queryLower)) ||
+                        (phone.imei && phone.imei.toLowerCase().includes(queryLower));
+                }
+                if (!matchesSearch) return false;
+            }
+            
+            // Grade filter (fastest check first)
+            if (selectedGrade && phone.grade !== selectedGrade) {
+                return false;
+            }
+            
+            // Model filter (cached via extractBaseModel)
+            if (selectedModel) {
+                const baseModel = extractBaseModel(phone.model);
+                if (baseModel !== selectedModel) {
+                    return false;
+                }
+            }
+            
+            // GB filter (cached via extractGB)
+            if (selectedGB) {
+                const gb = extractGB(phone.name || phone.model);
+                if (gb !== selectedGB) {
+                    return false;
+                }
+            }
+            
+            // Color filter (cached via extractColor)
+            if (selectedColor) {
+                const color = extractColor(phone.name || phone.model);
+                if (color !== selectedColor) {
+                    return false;
+                }
+            }
+            
+            // Tag filter
+            if (selectedTag) {
+                const phoneTags = getPhoneTags(phone.barcode);
+                if (!phoneTags.includes(selectedTag)) {
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+        
+        // Sort phones
+        filteredPhones = sortPhones(filteredPhones);
+        
+        // Update statistics
+        updateStatistics(filteredPhones);
+        
+        if (showingOtherStores) {
+            renderOtherStorePhones(filteredPhones);
+            return;
+        }
+        
+        // Update statistics - reset pagination when filters change
+        renderPhones(filteredPhones, true);
+    }
+    
+    // Virtual scrolling state
+    const ITEMS_PER_PAGE = 100; // Render 100 phones at a time
+    let currentPage = 0;
+    let renderedPhones = [];
+    
+    // Function to render phones (with virtual scrolling for performance)
+    function renderPhones(phones, resetPagination = false) {
+        const container = overlay.querySelector('#tm-phone-list-container');
+        const countDisplay = overlay.querySelector('#tm-phone-count-text');
+        
+        if (phones.length === 0) {
+            container.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-dark-color);">
+                    <div style="text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+                        <div>No phones found matching your search.</div>
+                    </div>
+                </div>
+            `;
+            countDisplay.textContent = '0 phones found';
+            return;
+        }
+        
+        // Reset pagination if requested
+        if (resetPagination) {
+            currentPage = 0;
+        }
+        
+        // Apply view mode classes
+        if (isGridView) {
+            container.classList.add('grid-view');
+        } else {
+            container.classList.remove('grid-view');
+        }
+        
+        // Virtual scrolling: only render visible phones + buffer
+        const startIndex = currentPage * ITEMS_PER_PAGE;
+        const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, phones.length);
+        const phonesToRender = phones.slice(startIndex, endIndex);
+        renderedPhones = phones; // Store full list for pagination
+        
+        const phonesHTML = phonesToRender.map(phone => {
+            const isSelected = selectedPhones.has(phone.barcode);
+            const isFavorite = favorites.includes(phone.barcode);
+            const itemClass = `tm-phone-item ${isGridView ? 'grid-view' : ''} ${isSelected ? 'selected' : ''} ${isFavorite ? 'favorite' : ''}`;
+            
+            return `
+            <div 
+                class="${itemClass}"
+                style="
+                    padding: 10px 14px;
+                    margin-bottom: 8px;
+                    background: var(--tm-shop-item-bg);
+                    border: 1px solid var(--tm-shop-item-border);
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+                    position: relative;
+                "
+                data-barcode="${phone.barcode}"
+                data-name="${phone.name}"
+                data-imei="${phone.imei || ''}"
+            >
+                ${isSelected ? '<div style="position: absolute; top: 4px; right: 4px; font-size: 16px;">☑</div>' : ''}
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
+                            ${(() => {
+                                // Extract color from the full name (phone.name contains original title with color)
+                                const phoneColor = extractColor(phone.name || phone.model);
+                                const colorHex = getColorHex(phoneColor);
+                                const titleColor = colorHex || 'var(--tm-dark-color)';
+                                const outlineStyle = isWhitePhoneColor(phoneColor) ? getWhitePhoneTitleOutlineStyle() : '';
+                                // Remove color from display - use base model without color
+                                const displayModel = extractBaseModel(phone.model) || phone.model || phone.name;
+                                return `<span style="
+                                    font-weight: 600; 
+                                    color: ${titleColor}; 
+                                    font-size: 14px;
+                                    ${outlineStyle}
+                                ">${displayModel}</span>`;
+                            })()}
+                            <span style="
+                                font-family: 'Courier New', monospace;
+                                font-weight: 500;
+                                color: var(--tm-dark-color);
+                                opacity: 0.6;
+                                font-size: 11px;
+                            ">${phone.barcode}</span>
+                            ${phone.retailPrice ? `<span style="
+                                margin-left: auto;
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                flex-shrink: 0;
+                                white-space: nowrap;
+                                padding: 3px 10px;
+                                border-radius: 999px;
+                                font-size: 12px;
+                                font-weight: 700;
+                                font-variant-numeric: tabular-nums;
+                                color: #15803d;
+                                background: rgba(34, 197, 94, 0.12);
+                                border: 1px solid rgba(34, 197, 94, 0.35);
+                            ">${phone.retailPrice}<span style="opacity: 0.9; margin-left: 1px;">€</span></span>` : ''}
+                        </div>
+                            <div style="
+                                font-size: 11px;
+                                color: var(--tm-dark-color);
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 10px;
+                            align-items: center;
+                            opacity: 0.8;
+                        ">
+                            ${phone.grade ? (() => {
+                                const gradeColor = getPhoneGradeColor(phone.grade);
+                                return `<span style="color: ${gradeColor}; font-weight: 600; font-size: 11px;">Grade ${phone.grade}</span>`;
+                            })() : ''}
+                            ${(() => {
+                                const storage = extractGB(phone.name || phone.model);
+                                return storage ? `<span style="font-weight: 500;">${storage}</span>` : '';
+                            })()}
+                            ${(() => {
+                                const phoneColor = extractColor(phone.name || phone.model);
+                                return phoneColor ? `<span style="font-weight: 500;">${phoneColor}</span>` : '';
+                            })()}
+                            ${phone.isBuyback ? `<span style="color: #00bcd4; font-weight: 600; font-size: 11px;">Buyback</span>` : ''}
+                            ${(() => {
+                                const phoneTags = getPhoneTags(phone.barcode);
+                                if (phoneTags.length > 0) {
+                                    const tagColors = {
+                                        'defective': '#f44336',
+                                        'warranty': '#4caf50',
+                                        'sold': '#9e9e9e',
+                                        'reserved': '#ff9800',
+                                        'repair': '#9c27b0',
+                                        'new': '#2196f3',
+                                        'doa': '#d32f2f',
+                                        'for repair': '#ff5722',
+                                        'pending': '#ffc107',
+                                        'tested': '#4caf50',
+                                        'untested': '#ff9800',
+                                        'damaged': '#f44336',
+                                        'working': '#4caf50',
+                                        'parts only': '#757575'
+                                    };
+                                    return phoneTags.map(tag => {
+                                        const color = tagColors[tag] || '#9e9e9e';
+                                        return `<span style="color: ${color}; font-size: 10px; font-weight: 500; text-transform: capitalize;">#${tag}</span>`;
+                                    }).join(' ');
+                                }
+                                return '';
+                            })()}
+                        </div>
+                    </div>
+                    <div style="
+                        margin-left: 12px;
+                        display: flex;
+                        gap: 6px;
+                        align-items: center;
+                    ">
+                        <button class="tm-phone-search-btn" data-barcode="${phone.barcode}" title="${PHONE_CATALOG_TRANSLATIONS['Search barcode in system']}" style="
+                            background: var(--tm-shop-item-bg);
+                            border: 1px solid var(--tm-shop-item-border);
+                            color: var(--tm-dark-color);
+                            cursor: pointer;
+                            font-size: 14px;
+                            padding: 6px 8px;
+                            border-radius: 4px;
+                            transition: all 0.2s;
+                            opacity: 1;
+                        ">🔍</button>
+                        ${phone.imei ? `<button class="tm-phone-copy-imei-btn" data-imei="${phone.imei}" title="${PHONE_CATALOG_TRANSLATIONS['Copy IMEI']}" style="
+                            background: var(--tm-shop-item-bg);
+                            border: 1px solid var(--tm-shop-item-border);
+                            color: var(--tm-dark-color);
+                            cursor: pointer;
+                            font-size: 14px;
+                            padding: 6px 8px;
+                            border-radius: 4px;
+                            transition: all 0.2s;
+                            opacity: 1;
+                        ">🔢</button>` : ''}
+                        <button class="tm-phone-favorite-btn" data-barcode="${phone.barcode}" title="${isFavorite ? PHONE_CATALOG_TRANSLATIONS['Remove from favorites'] : PHONE_CATALOG_TRANSLATIONS['Add to favorites']}" style="
+                            background: var(--tm-shop-item-bg);
+                            border: 1px solid var(--tm-shop-item-border);
+                            color: ${isFavorite ? 'var(--tm-warning-color)' : 'var(--tm-dark-color)'};
+                            cursor: pointer;
+                            font-size: 16px;
+                            padding: 6px 8px;
+                            border-radius: 4px;
+                            transition: all 0.2s;
+                            opacity: 1;
+                        ">⭐</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        }).join('');
+        
+        // Use DocumentFragment for better performance
+        const fragment = document.createDocumentFragment();
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = phonesHTML;
+        while (tempDiv.firstChild) {
+            fragment.appendChild(tempDiv.firstChild);
+        }
+        container.innerHTML = '';
+        container.appendChild(fragment);
+        
+        // Show pagination info if there are more phones
+        const totalPhones = phones.length;
+        const showingPhones = phonesToRender.length;
+        if (totalPhones > ITEMS_PER_PAGE) {
+            const pageInfo = ` (Showing ${startIndex + 1}-${endIndex} of ${totalPhones})`;
+            countDisplay.textContent = `${totalPhones} phone${totalPhones !== 1 ? 's' : ''} found${pageInfo}`;
+            
+            // Add "Load More" button if there are more phones
+            let loadMoreBtn = container.parentElement.querySelector('.tm-phone-load-more');
+            if (!loadMoreBtn) {
+                loadMoreBtn = document.createElement('button');
+                loadMoreBtn.className = 'tm-phone-load-more';
+                loadMoreBtn.textContent = 'Load More';
+                loadMoreBtn.style.cssText = `
+                    width: 100%;
+                    padding: 12px;
+                    margin-top: 16px;
+                    background: var(--tm-shop-item-bg);
+                    border: 1px solid var(--tm-shop-item-border);
+                    border-radius: 8px;
+                    color: var(--tm-dark-color);
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
+                    transition: all 0.2s;
+                `;
+                loadMoreBtn.addEventListener('click', () => {
+                    currentPage++;
+                    renderPhones(renderedPhones, false);
+                });
+                loadMoreBtn.addEventListener('mouseenter', () => {
+                    loadMoreBtn.style.background = 'var(--tm-shop-item-hover-bg)';
+                });
+                loadMoreBtn.addEventListener('mouseleave', () => {
+                    loadMoreBtn.style.background = 'var(--tm-shop-item-bg)';
+                });
+                container.parentElement.appendChild(loadMoreBtn);
+            }
+            // Show/hide load more button
+            if (endIndex >= totalPhones) {
+                loadMoreBtn.style.display = 'none';
+            } else {
+                loadMoreBtn.style.display = 'block';
+                loadMoreBtn.textContent = `Load More (${totalPhones - endIndex} remaining)`;
+            }
+        } else {
+            countDisplay.textContent = `${totalPhones} phone${totalPhones !== 1 ? 's' : ''} found`;
+            // Remove load more button if it exists
+            const loadMoreBtn = container.parentElement.querySelector('.tm-phone-load-more');
+            if (loadMoreBtn) {
+                loadMoreBtn.remove();
+            }
+        }
+        
+        // Use event delegation instead of individual listeners (much more efficient)
+        // Remove old listeners if they exist
+        if (container._phoneClickHandler) {
+            container.removeEventListener('click', container._phoneClickHandler);
+            container.removeEventListener('contextmenu', container._phoneContextMenuHandler);
+        }
+        
+        // Click handler (event delegation)
+        container._phoneClickHandler = (e) => {
+            // Check for buttons first (regardless of whether inside item or not)
+            const searchBtn = e.target.closest('.tm-phone-search-btn');
+            if (searchBtn) {
+                e.stopPropagation();
+                const barcode = searchBtn.dataset.barcode;
+                if (barcode) {
+                    const searchUrl = `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(barcode)}`;
+                    window.open(searchUrl, '_blank');
+                }
+                return;
+            }
+            
+            const copyImeiBtn = e.target.closest('.tm-phone-copy-imei-btn');
+            if (copyImeiBtn) {
+                e.stopPropagation();
+                const imei = copyImeiBtn.dataset.imei;
+                if (imei) {
+                    copyToClipboard(imei);
+                }
+                return;
+            }
+            
+            const favoriteBtn = e.target.closest('.tm-phone-favorite-btn');
+            if (favoriteBtn) {
+                e.stopPropagation();
+                const barcode = favoriteBtn.dataset.barcode;
+                if (barcode) {
+                    toggleFavorite(barcode);
+                }
+                return;
+            }
+            
+            // If not a button, check if clicking on phone item
+            const item = e.target.closest('.tm-phone-item');
+            if (!item) return;
+            
+            // Don't trigger if clicking buttons (double check)
+            if (e.target.closest('button')) return;
+            
+            const barcode = item.dataset.barcode;
+            
+            // Toggle selection if Ctrl/Cmd is held
+            if (e.ctrlKey || e.metaKey) {
+                if (selectedPhones.has(barcode)) {
+                    selectedPhones.delete(barcode);
+                } else {
+                    selectedPhones.add(barcode);
+                }
+                item.classList.toggle('selected');
+                updateSelectionUI();
+            } else {
+                // Single click - copy barcode
+                copyToClipboard(barcode);
+            }
+        };
+        
+        // Right-click handler for context menu (event delegation)
+        container._phoneContextMenuHandler = (e) => {
+            const item = e.target.closest('.tm-phone-item');
+            if (!item) return;
+            e.preventDefault();
+            contextMenuPhone = item;
+            
+            // Show menu temporarily to measure dimensions
+            contextMenu.style.display = 'block';
+            contextMenu.style.visibility = 'hidden';
+            
+            const menuWidth = contextMenu.offsetWidth;
+            const menuHeight = contextMenu.offsetHeight;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            // Calculate horizontal position
+            let left = e.pageX;
+            // If menu would go off right edge, position to the left of cursor
+            if (left + menuWidth > viewportWidth) {
+                left = e.pageX - menuWidth;
+                // If that would go off left edge, just position from right edge
+                if (left < 0) {
+                    left = viewportWidth - menuWidth - 10;
+                }
+            }
+            
+            // Calculate vertical position
+            let top = e.pageY;
+            // If menu would go off bottom edge, position above cursor
+            if (top + menuHeight > viewportHeight) {
+                top = e.pageY - menuHeight;
+                // If that would go off top edge, just position from bottom edge
+                if (top < 0) {
+                    top = viewportHeight - menuHeight - 10;
+                }
+            }
+            
+            contextMenu.style.left = left + 'px';
+            contextMenu.style.top = top + 'px';
+            contextMenu.style.visibility = 'visible';
+        };
+        
+        container.addEventListener('click', container._phoneClickHandler);
+        container.addEventListener('contextmenu', container._phoneContextMenuHandler);
+        
+        // Favorite buttons
+        container.querySelectorAll('.tm-phone-favorite-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const barcode = btn.dataset.barcode;
+                toggleFavorite(barcode);
+            });
+        });
+    }
+    
+    // Function to toggle favorite
+    function toggleFavorite(barcode) {
+        const index = favorites.indexOf(barcode);
+        if (index > -1) {
+            favorites.splice(index, 1);
+        } else {
+            favorites.push(barcode);
+        }
+        GM_setValue(FAVORITES_KEY, JSON.stringify(favorites));
+        applyFilters();
+    }
+    
+    // Function to update selection UI
+    function updateSelectionUI() {
+        const exportSelectedBtn = overlay.querySelector('#tm-phone-export-selected');
+        const selectAllBtn = overlay.querySelector('#tm-phone-select-all');
+        
+        if (selectedPhones.size > 0) {
+            exportSelectedBtn.style.display = 'block';
+            selectAllBtn.style.display = 'inline-block';
+            selectAllBtn.textContent = selectedPhones.size === filteredPhones.length 
+                ? `☐ ${PHONE_CATALOG_TRANSLATIONS['Deselect All']}` 
+                : `☑ ${PHONE_CATALOG_TRANSLATIONS['Select All']}`;
+        } else {
+            exportSelectedBtn.style.display = 'none';
+            selectAllBtn.style.display = 'none';
+        }
+    }
+    
+    // Function to export to clipboard
+    function exportToClipboard(phones) {
+        const lines = phones.map(p => {
+            const modelWithoutColor = extractBaseModel(p.model) || p.model || p.name;
+            return `${p.barcode}\t${modelWithoutColor}\t${p.grade || ''}\t${p.imei || ''}\t${extractGB(p.model) || ''}\t${extractColor(p.model) || ''}`;
+        });
+        copyToClipboard(lines.join('\n'));
+    }
+    
+    // Function to export to CSV
+    function exportToCSV(phones) {
+        // Check if "Include Original Title" checkbox is checked
+        const includeOriginalTitle = document.getElementById('tm-phone-export-original-title')?.checked || false;
+        
+        // Build headers based on option (with Greek translations)
+        const headers = includeOriginalTitle 
+            ? [
+                PHONE_CATALOG_TRANSLATIONS['Barcode'], 
+                PHONE_CATALOG_TRANSLATIONS['Model'], 
+                PHONE_CATALOG_TRANSLATIONS['Original Title'], 
+                PHONE_CATALOG_TRANSLATIONS['Grade'], 
+                PHONE_CATALOG_TRANSLATIONS['IMEI'], 
+                PHONE_CATALOG_TRANSLATIONS['Storage'], 
+                PHONE_CATALOG_TRANSLATIONS['Color']
+              ]
+            : [
+                PHONE_CATALOG_TRANSLATIONS['Barcode'], 
+                PHONE_CATALOG_TRANSLATIONS['Model'], 
+                PHONE_CATALOG_TRANSLATIONS['Grade'], 
+                PHONE_CATALOG_TRANSLATIONS['IMEI'], 
+                PHONE_CATALOG_TRANSLATIONS['Storage'], 
+                PHONE_CATALOG_TRANSLATIONS['Color']
+              ];
+        
+        // Build rows based on option
+        const rows = phones.map(p => {
+            const modelWithoutColor = extractBaseModel(p.model) || p.model || p.name;
+            const baseRow = [
+                p.barcode,
+                modelWithoutColor,
+                p.grade || '',
+                p.imei || '',
+                extractGB(p.model) || '',
+                extractColor(p.model) || ''
+            ];
+            
+            // Insert original title after Model if option is enabled
+            if (includeOriginalTitle) {
+                baseRow.splice(2, 0, p.name || ''); // Insert at index 2 (after Model)
+            }
+            
+            return baseRow;
+        });
+        
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        ].join('\n');
+        
+        // Add UTF-8 BOM (Byte Order Mark) so Excel can properly read Greek characters
+        const BOM = '\uFEFF';
+        const csvWithBOM = BOM + csvContent;
+        
+        // Use UTF-8 encoding explicitly
+        const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `phone-catalog-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        if (window.showPositiveMessage) {
+            window.showPositiveMessage('✓ CSV exported successfully');
+        }
+    }
+    
+    // Get DOM elements
+    const searchInput = overlay.querySelector('#tm-phone-search-input');
+    const gradeFilter = overlay.querySelector('#tm-phone-filter-grade');
+    const modelFilter = overlay.querySelector('#tm-phone-filter-model');
+    const gbFilter = overlay.querySelector('#tm-phone-filter-gb');
+    const colorFilter = overlay.querySelector('#tm-phone-filter-color');
+    const tagFilter = overlay.querySelector('#tm-phone-filter-tag');
+    const sortBySelect = overlay.querySelector('#tm-phone-sort-by');
+    const clearFiltersBtn = overlay.querySelector('#tm-phone-clear-filters');
+    const sortDirBtn = overlay.querySelector('#tm-phone-sort-dir');
+    const container = overlay.querySelector('#tm-phone-list-container');
+    const otherStoreContainer = overlay.querySelector('#tm-other-store-container');
+    const otherStoreContent = overlay.querySelector('#tm-other-store-content');
+    const countDisplay = overlay.querySelector('#tm-phone-count-text');
+    const statisticsDisplay = overlay.querySelector('#tm-phone-statistics');
+    const lastUpdatedDisplay = overlay.querySelector('#tm-phone-last-updated');
+    const cacheWarning = overlay.querySelector('#tm-phone-cache-warning');
+    const refreshBtn = overlay.querySelector('#tm-phone-refresh-btn');
+    const viewToggleBtn = overlay.querySelector('#tm-phone-view-toggle');
+    const colorsBtn = overlay.querySelector('#tm-phone-colors-btn');
+    const storesBtn = overlay.querySelector('#tm-phone-stores-btn');
+    const otherStoreToggleBtn = overlay.querySelector('#tm-phone-other-store-toggle');
+    const favoritesBtn = overlay.querySelector('#tm-phone-favorites-btn');
+    const exportBtn = overlay.querySelector('#tm-phone-export-btn');
+    const exportMenu = overlay.querySelector('#tm-phone-export-menu');
+    const exportClipboardBtn = overlay.querySelector('#tm-phone-export-clipboard');
+    const exportCSVBtn = overlay.querySelector('#tm-phone-export-csv');
+    const exportSelectedBtn = overlay.querySelector('#tm-phone-export-selected');
+    const selectAllBtn = overlay.querySelector('#tm-phone-select-all');
+    const closeBtn = overlay.querySelector('.tm-modal-close');
+    
+    function showOtherStoreView() {
+        showingOtherStores = true;
+        if (container) container.style.display = 'none';
+        if (otherStoreContainer) otherStoreContainer.style.display = 'block';
+        if (otherStoreToggleBtn) {
+            otherStoreToggleBtn.style.borderColor = 'var(--tm-primary-color)';
+            otherStoreToggleBtn.style.color = 'var(--tm-primary-color)';
+        }
+        if (countDisplay) {
+            countDisplay.textContent = otherStorePhones.length > 0
+                ? `${otherStorePhones.length} phones available in other stores`
+                : 'No phones available in other stores';
+        }
+        if (statisticsDisplay) statisticsDisplay.innerHTML = '';
+    }
+    
+    function showMainView() {
+        showingOtherStores = false;
+        if (container) container.style.display = 'block';
+        if (otherStoreContainer) otherStoreContainer.style.display = 'none';
+        if (otherStoreToggleBtn) {
+            otherStoreToggleBtn.style.borderColor = 'var(--tm-shop-item-border)';
+            otherStoreToggleBtn.style.color = 'var(--tm-dark-color)';
+        }
+        updateSelectionUI();
+    }
+    
+    function filterOtherStoresWithCurrentFilters(dataset) {
+        const query = searchInput.value.trim();
+        const selectedGrade = gradeFilter.value;
+        const selectedModel = modelFilter.value;
+        const selectedGB = gbFilter.value;
+        const selectedColor = colorFilter.value;
+        const selectedTag = tagFilter ? tagFilter.value : '';
+        const useRegex = overlay.querySelector('#tm-phone-regex-toggle').checked;
+        
+        let searchRegex = null;
+        const queryLower = query ? query.toLowerCase() : '';
+        if (query && useRegex) {
+            try {
+                searchRegex = new RegExp(query, 'i');
+            } catch (e) {
+                searchRegex = null;
+            }
+        }
+        
+        const filtered = dataset.filter(phone => {
+            if (query) {
+                let matchesSearch = false;
+                if (searchRegex) {
+                    matchesSearch =
+                        searchRegex.test(phone.name) ||
+                        searchRegex.test(phone.barcode) ||
+                        searchRegex.test(phone.model || '') ||
+                        searchRegex.test(phone.grade || '') ||
+                        searchRegex.test(phone.imei || '');
+                } else {
+                    matchesSearch =
+                        phone.name.toLowerCase().includes(queryLower) ||
+                        phone.barcode.toLowerCase().includes(queryLower) ||
+                        (phone.model && phone.model.toLowerCase().includes(queryLower)) ||
+                        (phone.grade && phone.grade.toLowerCase().includes(queryLower)) ||
+                        (phone.imei && phone.imei.toLowerCase().includes(queryLower));
+                }
+                if (!matchesSearch) return false;
+            }
+            
+            if (selectedGrade && phone.grade !== selectedGrade) return false;
+            if (selectedModel) {
+                const baseModel = extractBaseModel(phone.model);
+                if (baseModel !== selectedModel) return false;
+            }
+            if (selectedGB) {
+                const gb = extractGB(phone.model);
+                if (gb !== selectedGB) return false;
+            }
+            if (selectedColor) {
+                const color = extractColor(phone.model);
+                if (color !== selectedColor) return false;
+            }
+            if (selectedTag) {
+                const phoneTags = getPhoneTags(phone.barcode);
+                if (!phoneTags.includes(selectedTag)) return false;
+            }
+            return true;
+        });
+        
+        return sortPhones(filtered);
+    }
+    
+    function renderOtherStorePhones(list, targetEl = otherStoreContent, countEl = countDisplay, statsEl = statisticsDisplay) {
+        if (!targetEl) return;
+        if (!list || list.length === 0) {
+            targetEl.style.display = 'flex';
+            targetEl.style.flexDirection = 'column';
+            targetEl.style.alignItems = 'center';
+            targetEl.style.justifyContent = 'center';
+            targetEl.innerHTML = `
+                <div style="text-align:center; color: var(--tm-dark-color);">
+                    <div style="font-size:32px; margin-bottom:8px;">ℹ️</div>
+                    <div>No phones available in other stores.</div>
+                </div>
+            `;
+            if (countEl) countEl.textContent = '0 phones available in other stores';
+            return;
+        }
+
+        // Playful card-row layout
+        targetEl.style.display = 'flex';
+        targetEl.style.flexDirection = 'column';
+        targetEl.style.gap = '5px';
+        targetEl.style.alignItems = 'stretch';
+
+        // Inject styles once
+        if (!document.getElementById('tm-os-table-style')) {
+            const s = document.createElement('style');
+            s.id = 'tm-os-table-style';
+            s.textContent = `
+                @keyframes tm-os-spin { to { transform: rotate(360deg); } }
+                @keyframes tm-os-pop {
+                    from { opacity:0; transform:translateY(5px) scale(0.985); }
+                    to   { opacity:1; transform:none; }
+                }
+                .tm-other-store-card {
+                    display:flex; align-items:center; gap:12px;
+                    padding:9px 12px; border-radius:13px;
+                    background:var(--tm-shop-item-bg);
+                    border:1.5px solid var(--tm-shop-item-border);
+                    transition:transform 0.14s ease, box-shadow 0.14s ease;
+                    animation:tm-os-pop 0.16s ease both;
+                    cursor:default;
+                }
+                .tm-other-store-card:hover {
+                    transform:translateY(-2px);
+                    box-shadow:0 6px 18px rgba(0,0,0,0.2);
+                }
+                .tm-os-grade-circle {
+                    width:34px; height:34px; border-radius:50%; flex-shrink:0;
+                    display:flex; align-items:center; justify-content:center;
+                    font-size:13px; font-weight:900; letter-spacing:-0.5px;
+                }
+                .tm-os-action-btn {
+                    background:none; border:none; cursor:pointer; font-size:15px;
+                    padding:4px 5px; border-radius:8px; line-height:1;
+                    transition:background 0.12s, transform 0.1s; opacity:0.5;
+                }
+                .tm-os-action-btn:hover { background:rgba(128,128,128,0.15); opacity:1; transform:scale(1.25); }
+                .tm-os-price-pill { transition: background 0.15s ease, border-color 0.15s ease; }
+                .tm-other-store-card:hover .tm-os-price-pill {
+                    background: rgba(34, 197, 94, 0.18);
+                    border-color: rgba(34, 197, 94, 0.45);
+                }
+            `;
+            document.head.appendChild(s);
+        }
+
+        const rows = list.map((item, idx) => {
+            const oneUnitStores = filterOneUnitStores(item.stores);
+            const storesHtml = oneUnitStores.length > 0
+                ? renderPhoneStoreChipsHtml(item.stores, item.isBuyback)
+                : `<span class="tm-store-loading" style="display:inline-flex;align-items:center;gap:4px;
+                    font-size:10px;color:var(--tm-dark-color);opacity:0.4;font-style:italic;"
+                  ><span style="width:8px;height:8px;border:1.5px solid currentColor;border-top-color:transparent;
+                    border-radius:50%;display:inline-block;animation:tm-os-spin 0.7s linear infinite;"></span>Loading…</span>`;
+
+            const itemColor    = extractColor(item.name || item.model);
+            const itemColorHex = getColorHex(itemColor);
+            const displayModel = extractBaseModel(item.model) || item.model || item.name;
+            const storage      = extractGB(item.name || item.model);
+            const isFavorite   = favorites.includes(item.barcode);
+            const isWhiteItem  = isWhitePhoneColor(itemColor);
+            const titleGlow    = (!isWhiteItem && itemColorHex) ? `text-shadow:0 0 12px ${itemColorHex}55;` : '';
+            const titleOutline = isWhiteItem ? getWhitePhoneTitleOutlineStyle() : '';
+
+            const gradeColor = getPhoneGradeColor(item.grade);
+
+            const colorDot = itemColorHex
+                ? `<span style="width:9px;height:9px;border-radius:50%;background:${itemColorHex};
+                    display:inline-block;flex-shrink:0;border:1px solid rgba(0,0,0,0.2);"></span>`
+                : '';
+
+            const noBuybackStore = item.isBuyback && oneUnitStores.length > 0 && !phoneHasAllowedBuybackStore(item.stores);
+            const noBuybackTitle = t('No buyback store');
+
+            return `
+                <div class="tm-other-store-card" style="border-color:${gradeColor}40;animation-delay:${idx * 18}ms;">
+
+                    <!-- Grade circle -->
+                    <div class="tm-os-grade-circle" style="background:${gradeColor}20;color:${gradeColor};border:2px solid ${gradeColor}50;">
+                        ${item.grade || '?'}
+                    </div>
+
+                    <!-- Model + meta -->
+                    <div style="flex:1;min-width:0;">
+                        <div class="tm-os-model-row" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;">
+                            ${noBuybackStore ? `<span title="${noBuybackTitle}" style="font-size:12px;line-height:1;">🚫</span>` : ''}
+                            <span style="font-weight:800;font-size:13px;
+                                color:${itemColorHex || 'var(--tm-dark-color)'};
+                                ${titleGlow}${titleOutline}
+                                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;"
+                                title="${displayModel}">${displayModel}</span>
+                            ${storage ? `<span style="background:rgba(128,128,128,0.13);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:600;opacity:0.65;flex-shrink:0;">${storage}</span>` : ''}
+                            ${item.isBuyback ? `<span style="background:#06b6d420;border:1px solid #06b6d450;color:#06b6d4;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;flex-shrink:0;">Buyback</span>` : ''}
+                            ${item.retailPrice ? `<span class="tm-os-price-pill" style="
+                                margin-left:auto;
+                                display:inline-flex;align-items:center;justify-content:center;
+                                flex-shrink:0;white-space:nowrap;
+                                padding:3px 10px;border-radius:999px;
+                                font-size:12px;font-weight:700;
+                                font-variant-numeric:tabular-nums;
+                                color:#15803d;
+                                background:rgba(34,197,94,0.12);
+                                border:1px solid rgba(34,197,94,0.35);
+                            ">${item.retailPrice}<span style="opacity:0.9;margin-left:1px;">€</span></span>` : ''}
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            ${colorDot ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;opacity:0.5;">${colorDot}<span>${itemColor}</span></span>` : ''}
+                            <span style="font-family:'Courier New',monospace;font-size:9px;opacity:0.25;letter-spacing:0.04em;">${item.barcode}</span>
+                        </div>
+                    </div>
+
+                    <!-- Store chips -->
+                    <div class="tm-other-store-stores" data-product="${item.barcode}"
+                        style="display:flex;flex-wrap:wrap;gap:4px;min-height:20px;max-width:240px;flex-shrink:0;">
+                        ${storesHtml}
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div style="display:flex;align-items:center;gap:1px;flex-shrink:0;">
+                        <button class="tm-phone-search-btn tm-os-action-btn" data-barcode="${item.barcode}"
+                            title="${PHONE_CATALOG_TRANSLATIONS['Search barcode in system']}">🔍</button>
+                        ${item.imei ? `<button class="tm-phone-copy-imei-btn tm-os-action-btn" data-imei="${item.imei}"
+                            title="${PHONE_CATALOG_TRANSLATIONS['Copy IMEI']}">🔢</button>` : ''}
+                        <button class="tm-phone-favorite-btn tm-os-action-btn" data-barcode="${item.barcode}"
+                            title="${isFavorite ? PHONE_CATALOG_TRANSLATIONS['Remove from favorites'] : PHONE_CATALOG_TRANSLATIONS['Add to favorites']}">${isFavorite ? '⭐' : '☆'}</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        targetEl.innerHTML = rows;
+        if (countEl) countEl.textContent = `${list.length} phones available in other stores`;
+        if (statsEl) statsEl.innerHTML = '';
+        
+        // Add event listeners for buttons (event delegation)
+        if (!targetEl._buttonHandlersAdded) {
+            targetEl.addEventListener('click', (e) => {
+                // Search button
+                const searchBtn = e.target.closest('.tm-phone-search-btn');
+                if (searchBtn) {
+                    e.stopPropagation();
+                    const barcode = searchBtn.dataset.barcode;
+                    if (barcode) {
+                        const searchUrl = `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(barcode)}`;
+                        window.open(searchUrl, '_blank');
+                    }
+                    return;
+                }
+                
+                // Copy IMEI button
+                const copyImeiBtn = e.target.closest('.tm-phone-copy-imei-btn');
+                if (copyImeiBtn) {
+                    e.stopPropagation();
+                    const imei = copyImeiBtn.dataset.imei;
+                    if (imei) {
+                        GM_setClipboard(imei);
+                        const originalText = copyImeiBtn.innerHTML;
+                        copyImeiBtn.innerHTML = '✓';
+                        setTimeout(() => {
+                            copyImeiBtn.innerHTML = originalText;
+                        }, 1000);
+                    }
+                    return;
+                }
+                
+                // Favorite button
+                const favoriteBtn = e.target.closest('.tm-phone-favorite-btn');
+                if (favoriteBtn) {
+                    e.stopPropagation();
+                    const barcode = favoriteBtn.dataset.barcode;
+                    if (barcode) {
+                        const index = favorites.indexOf(barcode);
+                        if (index > -1) {
+                            favorites.splice(index, 1);
+                        } else {
+                            favorites.push(barcode);
+                        }
+                        GM_setValue('phone_favorites', favorites);
+                        // Re-render to update the favorite button state
+                        renderOtherStorePhones(list, targetEl, countEl, statsEl);
+                    }
+                    return;
+                }
+            });
+            targetEl._buttonHandlersAdded = true;
+        }
+        
+        // Auto-load stores for cards that didn't have inline data.
+        // Uses a concurrency-limited queue (max 4 parallel requests) + IntersectionObserver
+        // so visible cards are prioritised and the page never lags from a flood of requests.
+        const CONCURRENCY = 4;
+        const storeContainers = Array.from(targetEl.querySelectorAll('.tm-other-store-stores'))
+            .filter(sc => sc.querySelector('.tm-store-loading'));
+
+        if (storeContainers.length === 0) return;
+
+        // Resolve a single store container, update the DOM, and cache the result
+        function resolveStoreContainer(sc) {
+            const productCode = sc.getAttribute('data-product');
+            return fetchStorehousesFromPage(productCode)
+                .then(stores => {
+                    const phoneItem = list.find(p => p.barcode === productCode);
+                    if (phoneItem && stores) {
+                        phoneItem.stores = stores;
+                        const globalItem = otherStorePhones.find(p => p.barcode === productCode);
+                        if (globalItem) globalItem.stores = stores;
+                    }
+                    const filtered = filterOneUnitStores(stores);
+                    if (filtered.length === 0) {
+                        sc.innerHTML = `<span style="opacity:0.35;font-size:10px;font-style:italic;">No stores</span>`;
+                        return;
+                    }
+                    const itemIsBuyback = phoneItem ? phoneItem.isBuyback : false;
+                    sc.innerHTML = renderPhoneStoreChipsHtml(stores, itemIsBuyback);
+                    if (itemIsBuyback && !phoneHasAllowedBuybackStore(stores)) {
+                        const card = sc.closest('.tm-other-store-card');
+                        if (card) {
+                            const modelRow = card.querySelector('.tm-os-model-row');
+                            const noBuybackTitle = t('No buyback store');
+                            if (modelRow && !modelRow.querySelector(`span[title="${noBuybackTitle}"]`)) {
+                                const ind = document.createElement('span');
+                                ind.style.cssText = 'font-size:12px;line-height:1;';
+                                ind.title = noBuybackTitle;
+                                ind.textContent = '🚫';
+                                modelRow.insertBefore(ind, modelRow.firstChild);
+                            }
+                        }
+                    }
+                })
+                .catch(() => {
+                    sc.innerHTML = `<span style="opacity:0.6;font-size:10px;color:#f44336;font-style:italic;">⚠️ Error</span>`;
+                });
+        }
+
+        // Concurrency queue
+        let active = 0;
+        const queue = [];
+        const allPromises = [];
+
+        function runNext() {
+            while (active < CONCURRENCY && queue.length > 0) {
+                const sc = queue.shift();
+                active++;
+                const p = resolveStoreContainer(sc).finally(() => {
+                    active--;
+                    runNext();
+                });
+                allPromises.push(p);
+            }
+        }
+
+        // IntersectionObserver: visible cards go to the FRONT of the queue
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                const sc = entry.target;
+                observer.unobserve(sc);
+                // Move to front so visible cards load first
+                const idx = queue.indexOf(sc);
+                if (idx > 0) { queue.splice(idx, 1); queue.unshift(sc); }
+                runNext();
+            });
+        }, { root: targetEl.closest('.tm-other-store-overlay') || null, rootMargin: '200px' });
+
+        storeContainers.forEach(sc => {
+            queue.push(sc);
+            observer.observe(sc);
+        });
+
+        // Kick off initial batch
+        runNext();
+
+        // After all stores are loaded, update the store filter
+        const isInModal = targetEl.closest('.tm-other-store-overlay');
+        if (isInModal) {
+            Promise.all(allPromises).then(() => {
+                const base = otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
+                const storeSet = new Set();
+                base.forEach(p => {
+                    (p.stores || []).forEach(store => {
+                        if (store.name) storeSet.add(store.name.replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim());
+                    });
+                });
+                const stores = [...storeSet].sort();
+                const storeFilterOS = document.querySelector('#tm-other-store-filter-store');
+                if (storeFilterOS && stores.length > 0) {
+                    const currentStore = storeFilterOS.value;
+                    storeFilterOS.innerHTML = `<option value="">All Stores</option>` +
+                        stores.map(s => `<option value="${s}">${s}</option>`).join('');
+                    if (stores.includes(currentStore)) storeFilterOS.value = currentStore;
+                }
+            });
+        }
+    }
+    
+    // Export menu toggle
+    exportBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isVisible = exportMenu.style.display === 'block';
+        exportMenu.style.display = isVisible ? 'none' : 'block';
+    });
+    
+    // Close export menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (exportMenu && !exportMenu.contains(e.target) && !exportBtn.contains(e.target)) {
+            exportMenu.style.display = 'none';
+        }
+    });
+    
+    // Function to refresh phone list
+    async function refreshPhoneList() {
+        refreshBtn.style.opacity = '0.5';
+        refreshBtn.style.transform = 'rotate(360deg)';
+        container.innerHTML = `
+            <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-dark-color);">
+                <div style="text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 16px; animation: pulse 2s ease-in-out infinite;">⏳</div>
+                    <div>Refreshing phones...</div>
+                </div>
+            </div>
+        `;
+        
+        try {
+            allPhones = filterIphoneTitlePhones(await fetchPhoneList());
+            syncPhoneColorCatalog(allPhones);
+            populateFilters(allPhones);
+            lastUpdated = new Date();
+            lastUpdatedDisplay.textContent = `Last updated: ${lastUpdated.toLocaleDateString()} ${lastUpdated.toLocaleTimeString()}`;
+            // Hide cache warning after refresh
+            if (cacheWarning) {
+                cacheWarning.style.display = 'none';
+            }
+            applyFilters();
+        } catch (error) {
+            container.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-danger-color, #ff5252);">
+                    <div style="text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                        <div>Failed to refresh phones. Please try again.</div>
+                        <div style="font-size: 12px; margin-top: 8px; opacity: 0.7;">${error.message || 'Unknown error'}</div>
+                    </div>
+                </div>
+            `;
+        } finally {
+            refreshBtn.style.opacity = '1';
+            refreshBtn.style.transform = 'rotate(0deg)';
+        }
+    }
+    
+    // Close handlers
+    closeBtn.addEventListener('mouseenter', () => {
+        closeBtn.style.background = 'var(--tm-shop-item-hover-bg)';
+        closeBtn.style.color = 'var(--tm-dark-color)';
+    });
+    closeBtn.addEventListener('mouseleave', () => {
+        closeBtn.style.background = 'transparent';
+        closeBtn.style.color = 'var(--tm-dark-color)';
+    });
+    closeBtn.addEventListener('click', () => {
+        overlay.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => overlay.remove(), 200);
+    });
+    overlay.addEventListener('click', (e) => { 
+        if (e.target === overlay) {
+            overlay.style.animation = 'fadeOut 0.2s ease';
+            setTimeout(() => overlay.remove(), 200);
+        }
+    });
+    
+    // Close context menu when clicking outside
+    document.addEventListener('click', () => {
+        if (contextMenu) contextMenu.style.display = 'none';
+    });
+    
+    // Context menu handlers
+    contextMenu.querySelectorAll('.tm-phone-context-menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+            if (!contextMenuPhone) return;
+            const action = item.dataset.action;
+            const barcode = contextMenuPhone.dataset.barcode;
+            const imei = contextMenuPhone.dataset.imei;
+            
+            switch(action) {
+                case 'add-tag':
+                    const currentTags = getPhoneTags(barcode);
+                    showTagSelectionMenu(barcode, 'add', currentTags);
+                    // Don't close context menu yet - let user select tag
+                    return;
+                case 'remove-tag':
+                    const phoneTags = getPhoneTags(barcode);
+                    if (phoneTags.length === 0) {
+                        if (window.showNegativeMessage) {
+                            window.showNegativeMessage('No tags to remove');
+                        }
+                    } else {
+                        showTagSelectionMenu(barcode, 'remove', phoneTags);
+                        // Don't close context menu yet - let user select tag
+                        return;
+                    }
+                    break;
+            }
+            contextMenu.style.display = 'none';
+        });
+    });
+    
+    // Filter handlers - debounce search input for performance
+    const debouncedApplyFilters = debounce(applyFilters, 300);
+    searchInput.addEventListener('input', debouncedApplyFilters);
+    
+    gradeFilter.addEventListener('change', () => {
+        // Get phones filtered by all other filters (excluding grade)
+        const filteredPhonesForUpdate = getFilteredPhonesForFilterUpdate('grade');
+        // Update other filters based on current filtered results
+        populateFilters(filteredPhonesForUpdate, ['model', 'gb', 'color', 'tag']);
+        applyFilters();
+    });
+    
+    modelFilter.addEventListener('change', () => {
+        // Get phones filtered by all other filters (excluding model)
+        const filteredPhonesForUpdate = getFilteredPhonesForFilterUpdate('model');
+        // Update other filters based on current filtered results
+        populateFilters(filteredPhonesForUpdate, ['grade', 'gb', 'color', 'tag']);
+        applyFilters();
+    });
+    
+    gbFilter.addEventListener('change', () => {
+        // Get phones filtered by all other filters (excluding gb)
+        const filteredPhonesForUpdate = getFilteredPhonesForFilterUpdate('gb');
+        // Update other filters based on current filtered results
+        populateFilters(filteredPhonesForUpdate, ['grade', 'model', 'color', 'tag']);
+        applyFilters();
+    });
+    
+    colorFilter.addEventListener('change', () => {
+        syncPhoneColorSelectDisplay(colorFilter);
+        // Get phones filtered by all other filters (excluding color)
+        const filteredPhonesForUpdate = getFilteredPhonesForFilterUpdate('color');
+        // Update other filters based on current filtered results
+        populateFilters(filteredPhonesForUpdate, ['grade', 'model', 'gb', 'tag']);
+        applyFilters();
+    });
+    
+    if (tagFilter) {
+        tagFilter.addEventListener('change', () => {
+            // Get phones filtered by all other filters (excluding tag)
+            const filteredPhonesForUpdate = getFilteredPhonesForFilterUpdate('tag');
+            // Update other filters based on current filtered results
+            populateFilters(filteredPhonesForUpdate, ['grade', 'model', 'gb', 'color']);
+            applyFilters();
+        });
+    }
+    
+    sortBySelect.addEventListener('change', () => {
+        sortBy = sortBySelect.value;
+        applyFilters();
+    });
+    sortDirBtn.addEventListener('click', () => {
+        sortAscending = !sortAscending;
+        sortDirBtn.textContent = sortAscending ? '↑' : '↓';
+        applyFilters();
+    });
+    
+    // Clear filters button
+    clearFiltersBtn.addEventListener('click', () => {
+        // Clear all filter dropdowns
+        gradeFilter.value = '';
+        modelFilter.value = '';
+        gbFilter.value = '';
+        colorFilter.value = '';
+        syncPhoneColorSelectDisplay(colorFilter);
+        if (tagFilter) tagFilter.value = '';
+        
+        // Clear search input
+        searchInput.value = '';
+        
+        // Clear regex toggle
+        overlay.querySelector('#tm-phone-regex-toggle').checked = false;
+        
+        // Clear favorites filter
+        showFavoritesOnly = false;
+        const favoritesBtn = overlay.querySelector('#tm-phone-favorites-btn');
+        if (favoritesBtn) {
+            favoritesBtn.style.background = 'var(--tm-shop-item-bg)';
+            favoritesBtn.style.color = 'var(--tm-dark-color)';
+        }
+        
+        // Reset sort to default
+        sortBy = 'model';
+        sortAscending = true;
+        sortBySelect.value = 'model';
+        sortDirBtn.textContent = '↑';
+        
+        // Repopulate all filters with all phones
+        populateFilters(allPhones, ['grade', 'model', 'gb', 'color', 'tag']);
+        
+        // Apply filters (which will show all phones)
+        applyFilters();
+    });
+    
+    // Button handlers
+    colorsBtn.addEventListener('click', showColorManagerModal);
+    colorsBtn.addEventListener('mouseenter', () => {
+        colorsBtn.style.background = 'rgba(255,255,255,0.15)';
+    });
+    colorsBtn.addEventListener('mouseleave', () => {
+        colorsBtn.style.background = 'var(--tm-shop-item-bg)';
+    });
+    storesBtn.addEventListener('click', showStoreRulesModal);
+    storesBtn.addEventListener('mouseenter', () => {
+        storesBtn.style.background = 'rgba(255,255,255,0.15)';
+    });
+    storesBtn.addEventListener('mouseleave', () => {
+        storesBtn.style.background = 'var(--tm-shop-item-bg)';
+    });
+
+    refreshBtn.addEventListener('click', refreshPhoneList);
+    refreshBtn.addEventListener('mouseenter', () => {
+        refreshBtn.style.background = 'rgba(255,255,255,0.15)';
+    });
+    refreshBtn.addEventListener('mouseleave', () => {
+        refreshBtn.style.background = 'rgba(255,255,255,0.1)';
+    });
+    
+    viewToggleBtn.addEventListener('click', () => {
+        isGridView = !isGridView;
+        viewToggleBtn.textContent = isGridView ? '📋' : '⊞';
+        applyFilters();
+    });
+    viewToggleBtn.addEventListener('mouseenter', () => {
+        viewToggleBtn.style.background = 'rgba(255,255,255,0.15)';
+    });
+    viewToggleBtn.addEventListener('mouseleave', () => {
+        viewToggleBtn.style.background = 'rgba(255,255,255,0.1)';
+    });
+    
+    async function ensureOtherStoreData() {
+        if (otherStoreLoaded) return;
+        otherStorePhones = filterIphoneTitlePhones(await fetchOtherStorePhones());
+        otherStoreLoaded = true;
+    }
+    
+    function showOtherStoresModal() {
+        if (document.querySelector('.tm-other-store-overlay')) return;
+        
+        const overlayEl = document.createElement('div');
+        overlayEl.className = 'tm-other-store-overlay';
+        overlayEl.style.cssText = `
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 100002;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        `;
+        
+        overlayEl.innerHTML = `
+            <style>
+                #tm-other-store-filter-grade:focus,
+                #tm-other-store-filter-model:focus,
+                #tm-other-store-filter-gb:focus,
+                #tm-other-store-filter-color:focus,
+                #tm-other-store-filter-store:focus,
+                #tm-other-store-sort:focus {
+                    border-color: var(--tm-primary-color);
+                    background: var(--tm-shop-item-hover-bg);
+                    outline: none;
+                    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+                }
+                #tm-other-store-filter-grade:hover,
+                #tm-other-store-filter-model:hover,
+                #tm-other-store-filter-gb:hover,
+                #tm-other-store-filter-color:hover,
+                #tm-other-store-filter-store:hover,
+                #tm-other-store-sort:hover {
+                    background: var(--tm-shop-item-hover-bg);
+                    border-color: var(--tm-primary-color);
+                }
+                #tm-other-store-clear-filters:hover {
+                    background: var(--tm-shop-item-hover-bg);
+                    border-color: var(--tm-primary-color);
+                    transform: translateY(-1px);
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+            </style>
+            <div style="
+                width: min(1200px, 95vw);
+                max-height: 90vh;
+                background: var(--tm-shop-item-bg);
+                border: 1px solid var(--tm-shop-item-border);
+                border-radius: 14px;
+                box-shadow: 0 24px 64px rgba(0,0,0,0.35);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            ">
+                <div style="padding: 14px 16px; border-bottom: 1px solid var(--tm-shop-item-border); display:flex; align-items:center; justify-content: space-between;">
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <span style="font-size:18px;">🏬</span>
+                        <span style="font-weight:700; font-size:15px; color: var(--tm-dark-color);">Other Stores</span>
+                        <button id="tm-os-back-btn" style="display:none;background:none;border:none;cursor:pointer;
+                            color:var(--tm-primary-color,#4facfe);font-size:12px;font-weight:600;
+                            padding:3px 8px;border-radius:6px;border:1px solid var(--tm-primary-color,#4facfe);
+                            transition:background 0.12s;">← Models</button>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <span id="tm-other-store-count" style="font-size:12px; opacity:0.8;"></span>
+                        <button id="tm-other-store-refresh-btn" title="Refresh other stores data" style="
+                            background: rgba(255,255,255,0.1);
+                            border: 1px solid var(--tm-shop-item-border);
+                            color: var(--tm-dark-color);
+                            border-radius: 6px;
+                            width: 32px;
+                            height: 32px;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            font-size: 16px;
+                            transition: all 0.2s ease;
+                        ">🔄</button>
+                        <button id="tm-other-store-close" style="
+                            background: transparent;
+                            border: none;
+                            color: var(--tm-dark-color);
+                            font-size: 22px;
+                            cursor: pointer;
+                            padding: 4px 8px;
+                        ">&times;</button>
+                    </div>
+                </div>
+                
+                <!-- Filters for Other Stores -->
+                <div id="tm-os-filter-bar" style="display:none;padding: 12px 16px; border-bottom: 1px solid var(--tm-shop-item-border); background: var(--tm-shop-item-bg);">
+                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                        <select id="tm-other-store-filter-grade" style="
+                            min-width: 90px;
+                            padding: 7px 10px;
+                            padding-right: 26px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 11px;
+                            outline: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            appearance: none;
+                            background-image: url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'10\\' height=\\'10\\' viewBox=\\'0 0 10 10\\'><path fill=\\'rgba(0,0,0,0.5)\\' d=\\'M5 7L2 4h6z\\'/></svg>');
+                            background-repeat: no-repeat;
+                            background-position: right 7px center;
+                            background-size: 10px;
+                        ">
+                            <option value="">${PHONE_CATALOG_TRANSLATIONS['All Grades']}</option>
+                        </select>
+                        
+                        <select id="tm-other-store-filter-model" style="
+                            flex: 1;
+                            min-width: 120px;
+                            padding: 7px 10px;
+                            padding-right: 26px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 11px;
+                            outline: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            appearance: none;
+                            background-image: url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'10\\' height=\\'10\\' viewBox=\\'0 0 10 10\\'><path fill=\\'rgba(0,0,0,0.5)\\' d=\\'M5 7L2 4h6z\\'/></svg>');
+                            background-repeat: no-repeat;
+                            background-position: right 7px center;
+                            background-size: 10px;
+                        ">
+                            <option value="">${PHONE_CATALOG_TRANSLATIONS['All Models']}</option>
+                        </select>
+                        
+                        <select id="tm-other-store-filter-gb" style="
+                            min-width: 90px;
+                            padding: 7px 10px;
+                            padding-right: 26px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 11px;
+                            outline: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            appearance: none;
+                            background-image: url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'10\\' height=\\'10\\' viewBox=\\'0 0 10 10\\'><path fill=\\'rgba(0,0,0,0.5)\\' d=\\'M5 7L2 4h6z\\'/></svg>');
+                            background-repeat: no-repeat;
+                            background-position: right 7px center;
+                            background-size: 10px;
+                        ">
+                            <option value="">${PHONE_CATALOG_TRANSLATIONS['All Storage']}</option>
+                        </select>
+                        
+                        <select id="tm-other-store-filter-color" style="
+                            min-width: 90px;
+                            padding: 7px 10px;
+                            padding-right: 26px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 11px;
+                            outline: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            appearance: none;
+                            background-image: url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'10\\' height=\\'10\\' viewBox=\\'0 0 10 10\\'><path fill=\\'rgba(0,0,0,0.5)\\' d=\\'M5 7L2 4h6z\\'/></svg>');
+                            background-repeat: no-repeat;
+                            background-position: right 7px center;
+                            background-size: 10px;
+                        ">
+                            <option value="">All Colors</option>
+                        </select>
+                        
+                        <select id="tm-other-store-filter-store" style="
+                            min-width: 120px;
+                            padding: 7px 10px;
+                            padding-right: 26px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 11px;
+                            outline: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            appearance: none;
+                            background-image: url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'10\\' height=\\'10\\' viewBox=\\'0 0 10 10\\'><path fill=\\'rgba(0,0,0,0.5)\\' d=\\'M5 7L2 4h6z\\'/></svg>');
+                            background-repeat: no-repeat;
+                            background-position: right 7px center;
+                            background-size: 10px;
+                        ">
+                            <option value="">All Stores</option>
+                        </select>
+                        
+                        <select id="tm-other-store-sort" style="
+                            min-width: 140px;
+                            padding: 7px 10px;
+                            padding-right: 26px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 11px;
+                            outline: none;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                            appearance: none;
+                            background-image: url('data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'10\\' height=\\'10\\' viewBox=\\'0 0 10 10\\'><path fill=\\'rgba(0,0,0,0.5)\\' d=\\'M5 7L2 4h6z\\'/></svg>');
+                            background-repeat: no-repeat;
+                            background-position: right 7px center;
+                            background-size: 10px;
+                        ">
+                            <option value="model-asc">📱 Model (A-Z)</option>
+                            <option value="model-desc">📱 Model (Z-A)</option>
+                            <option value="price-asc">💰 Price (Low-High)</option>
+                            <option value="price-desc">💰 Price (High-Low)</option>
+                            <option value="grade-asc">⭐ Grade (A+-A)</option>
+                            <option value="grade-desc">⭐ Grade (A-A+)</option>
+                            <option value="storage-asc">💾 Storage (Low-High)</option>
+                            <option value="storage-desc">💾 Storage (High-Low)</option>
+                        </select>
+                        
+                        <button id="tm-other-store-clear-filters" style="
+                            padding: 7px 12px;
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            background: var(--tm-shop-item-bg);
+                            color: var(--tm-dark-color);
+                            font-size: 11px;
+                            cursor: pointer;
+                            transition: all 0.2s ease;
+                        ">🔄 Clear</button>
+                    </div>
+                </div>
+                
+                <div id="tm-other-store-modal-body" style="
+                    padding: 16px;
+                    overflow-y: auto;
+                    flex: 1;
+                    background: var(--tm-shop-item-bg);
+                ">
+                    <div style="text-align:center; color: var(--tm-dark-color);">
+                        <div style="font-size:36px; margin-bottom:10px; animation: pulse 2s ease-in-out infinite;">⏳</div>
+                        <div>Loading other-store availability...</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(overlayEl);
+        
+        const bodyEl = overlayEl.querySelector('#tm-other-store-modal-body');
+        const countEl = overlayEl.querySelector('#tm-other-store-count');
+        const closeBtn = overlayEl.querySelector('#tm-other-store-close');
+        const refreshBtn = overlayEl.querySelector('#tm-other-store-refresh-btn');
+        const gradeFilterOS = overlayEl.querySelector('#tm-other-store-filter-grade');
+        const modelFilterOS = overlayEl.querySelector('#tm-other-store-filter-model');
+        const gbFilterOS = overlayEl.querySelector('#tm-other-store-filter-gb');
+        const colorFilterOS = overlayEl.querySelector('#tm-other-store-filter-color');
+        const storeFilterOS = overlayEl.querySelector('#tm-other-store-filter-store');
+        const sortOS = overlayEl.querySelector('#tm-other-store-sort');
+        const clearFiltersOS = overlayEl.querySelector('#tm-other-store-clear-filters');
+        const filterBarOS    = overlayEl.querySelector('#tm-os-filter-bar');
+        const backBtnOS      = overlayEl.querySelector('#tm-os-back-btn');
+
+        let osSelectedModel = null;
+
+        // --- Model picker ---
+        function renderModelPicker() {
+            osSelectedModel = null;
+            modelFilterOS.value = '';
+            filterBarOS.style.display = 'none';
+            backBtnOS.style.display = 'none';
+
+            const base = otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
+
+            // Group phones by base model
+            const modelMap = new Map();
+            base.forEach(p => {
+                const model = extractBaseModel(p.model) || p.model || 'Unknown';
+                if (!modelMap.has(model)) modelMap.set(model, { count: 0, buybackCount: 0 });
+                const entry = modelMap.get(model);
+                entry.count++;
+                if (p.isBuyback) entry.buybackCount++;
+            });
+
+            const models = [...modelMap.entries()].sort(([a], [b]) => a.localeCompare(b));
+
+            if (countEl) countEl.textContent = `${models.length} models · ${base.length} phones`;
+
+            bodyEl.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
+                    min-height:260px;gap:16px;padding:24px;">
+                    <span style="font-size:36px;">📱</span>
+                    <div style="font-weight:700;font-size:15px;color:var(--tm-dark-color);">Επιλέξτε μοντέλο</div>
+                    <div style="position:relative;width:100%;max-width:340px;">
+                        <select id="tm-os-model-picker-select" style="
+                            width:100%; padding:12px 40px 12px 16px;
+                            font-size:14px; font-weight:600;
+                            border-radius:10px;
+                            border:1.5px solid var(--tm-shop-item-border);
+                            background:var(--tm-shop-item-bg);
+                            color:var(--tm-dark-color);
+                            cursor:pointer; outline:none;
+                            appearance:none;
+                            -webkit-appearance:none;
+                            transition:border-color 0.15s, box-shadow 0.15s;
+                        ">
+                            <option value="">— Select model —</option>
+                            ${models.map(([model, data]) =>
+                                `<option value="${model}">${model} (${data.count}${data.buybackCount > 0 ? ` · ${data.buybackCount} buyback` : ''})</option>`
+                            ).join('')}
+                        </select>
+                        <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);
+                            pointer-events:none;font-size:12px;opacity:0.5;">▼</span>
+                    </div>
+                    <div style="font-size:11px;opacity:0.4;">${base.length} phones across ${models.length} models</div>
+                </div>
+            `;
+
+            const sel = bodyEl.querySelector('#tm-os-model-picker-select');
+            sel.addEventListener('focus', () => { sel.style.borderColor = 'var(--tm-primary-color,#4facfe)'; sel.style.boxShadow = '0 0 0 3px rgba(79,172,254,0.15)'; });
+            sel.addEventListener('blur',  () => { sel.style.borderColor = 'var(--tm-shop-item-border)'; sel.style.boxShadow = 'none'; });
+            sel.addEventListener('change', () => {
+                if (!sel.value) return;
+                osSelectedModel = sel.value;
+                modelFilterOS.value = osSelectedModel;
+                showPhoneList();
+            });
+        }
+
+        function showPhoneList() {
+            filterBarOS.style.display = 'block';
+            backBtnOS.style.display = 'inline-block';
+            populateFilters();
+            // populateFilters() rebuilds the <select> options and may not restore the
+            // value reliably — force it again before filtering
+            if (osSelectedModel) modelFilterOS.value = osSelectedModel;
+            applyOtherStoreFilters();
+        }
+
+        backBtnOS.addEventListener('click', renderModelPicker);
+        backBtnOS.addEventListener('mouseenter', () => { backBtnOS.style.background = 'rgba(79,172,254,0.12)'; });
+        backBtnOS.addEventListener('mouseleave', () => { backBtnOS.style.background = 'none'; });
+
+        closeBtn.addEventListener('click', () => overlayEl.remove());
+        
+        // Populate filters with unique values from the given dataset
+        const populateFilters = (dataset = null, filtersToUpdate = ['grade', 'model', 'gb', 'color', 'store']) => {
+            const base = dataset || otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
+            
+            // Save current selections
+            const currentGrade = gradeFilterOS.value;
+            const currentModel = modelFilterOS.value;
+            const currentGB = gbFilterOS.value;
+            const currentColor = colorFilterOS.value;
+            const currentStore = storeFilterOS.value;
+            
+            // Extract unique values
+            if (filtersToUpdate.includes('grade')) {
+                const grades = [...new Set(base.map(p => p.grade).filter(g => g))].sort(comparePhoneGrades);
+                gradeFilterOS.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Grades']}</option>` +
+                    grades.map(g => `<option value="${g}">${g}</option>`).join('');
+                if (grades.includes(currentGrade)) gradeFilterOS.value = currentGrade;
+            }
+            
+            if (filtersToUpdate.includes('model')) {
+                const models = [...new Set(base.map(p => {
+                    return extractBaseModel(p.model);
+                }).filter(m => m))].sort();
+                modelFilterOS.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Models']}</option>` +
+                    models.map(m => `<option value="${m}">${m}</option>`).join('');
+                if (models.includes(currentModel)) modelFilterOS.value = currentModel;
+            }
+            
+            if (filtersToUpdate.includes('gb')) {
+                const storages = [...new Set(base.map(p => {
+                    const gb = extractGB(p.name || p.model);
+                    return gb;
+                }).filter(s => s))].sort((a, b) => {
+                    const aNum = parseInt(a);
+                    const bNum = parseInt(b);
+                    return aNum - bNum;
+                });
+                gbFilterOS.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Storage']}</option>` +
+                    storages.map(s => `<option value="${s}">${s}</option>`).join('');
+                if (storages.includes(currentGB)) gbFilterOS.value = currentGB;
+            }
+            
+            if (filtersToUpdate.includes('color')) {
+                const colors = [...new Set(base.map(p => {
+                    const color = extractColor(p.name || p.model);
+                    return color;
+                }).filter(c => c))].sort();
+                colorFilterOS.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Colors']}</option>` +
+                    colors.map(c => `<option value="${c}" style="${getPhoneColorDropdownStyle(c)}">${c}</option>`).join('');
+                if (colors.includes(currentColor)) colorFilterOS.value = currentColor;
+                syncPhoneColorSelectDisplay(colorFilterOS);
+            }
+            
+            if (filtersToUpdate.includes('store')) {
+                const storeSet = new Set();
+                base.forEach(p => {
+                    if (p.stores && Array.isArray(p.stores)) {
+                        p.stores.forEach(store => {
+                            if (store.name) {
+                                const cleanName = store.name.replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
+                                storeSet.add(cleanName);
+                            }
+                        });
+                    }
+                });
+                const stores = [...storeSet].sort();
+                storeFilterOS.innerHTML = `<option value="">All Stores</option>` +
+                    stores.map(s => `<option value="${s}">${s}</option>`).join('');
+                if (stores.includes(currentStore)) storeFilterOS.value = currentStore;
+            }
+        };
+        
+        // Helper function to check if a phone has a specific store with qty === 1
+        const phoneHasStore = (phone, storeName) => {
+            if (!storeName) return true; // No filter applied
+            const phoneStores = phone.stores || [];
+            if (phoneStores.length === 0) return false; // No store data loaded yet
+            return phoneStores.some(store => {
+                if (!store.name) return false;
+                const cleanName = store.name.replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
+                const qty = parseInt(store.qty, 10) || 0;
+                return cleanName === storeName && qty === 1;
+            });
+        };
+        
+        // Get filtered dataset excluding specific filters
+        const getFilteredDataExcluding = (excludeFilters = []) => {
+            const base = otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
+            
+            return base.filter(phone => {
+                if (!excludeFilters.includes('grade') && gradeFilterOS.value && phone.grade !== gradeFilterOS.value) {
+                    return false;
+                }
+                if (!excludeFilters.includes('model') && modelFilterOS.value) {
+                    const phoneModel = extractBaseModel(phone.model);
+                    if (phoneModel !== modelFilterOS.value) {
+                        return false;
+                    }
+                }
+                if (!excludeFilters.includes('gb') && gbFilterOS.value) {
+                    const phoneStorage = extractGB(phone.name || phone.model);
+                    if (phoneStorage !== gbFilterOS.value) {
+                        return false;
+                    }
+                }
+                if (!excludeFilters.includes('color') && colorFilterOS.value) {
+                    const phoneColor = extractColor(phone.name || phone.model);
+                    if (phoneColor !== colorFilterOS.value) {
+                        return false;
+                    }
+                }
+                if (!excludeFilters.includes('store') && !phoneHasStore(phone, storeFilterOS.value)) {
+                    return false;
+                }
+                return true;
+            });
+        };
+        
+        const applyOtherStoreFilters = () => {
+            const base = otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
+            
+            // Apply filters
+            const filtered = base.filter(phone => {
+                // Grade filter
+                if (gradeFilterOS.value && phone.grade !== gradeFilterOS.value) {
+                    return false;
+                }
+                
+                // Model filter
+                if (modelFilterOS.value) {
+                    const phoneModel = extractBaseModel(phone.model);
+                    if (phoneModel !== modelFilterOS.value) {
+                        return false;
+                    }
+                }
+                
+                // Storage filter
+                if (gbFilterOS.value) {
+                    const phoneStorage = extractGB(phone.name || phone.model);
+                    if (phoneStorage !== gbFilterOS.value) {
+                        return false;
+                    }
+                }
+                
+                // Color filter
+                if (colorFilterOS.value) {
+                    const phoneColor = extractColor(phone.name || phone.model);
+                    if (phoneColor !== colorFilterOS.value) {
+                        return false;
+                    }
+                }
+                
+                // Store filter
+                if (!phoneHasStore(phone, storeFilterOS.value)) {
+                    return false;
+                }
+                
+                return true;
+            });
+            
+            // Apply sorting
+            const sortValue = sortOS.value || 'model-asc';
+            const [sortBy, sortDir] = sortValue.split('-');
+            
+            filtered.sort((a, b) => {
+                let valA, valB;
+                
+                switch(sortBy) {
+                    case 'model':
+                        valA = extractBaseModel(a.model) || a.model || '';
+                        valB = extractBaseModel(b.model) || b.model || '';
+                        break;
+                    case 'price':
+                        valA = parseFloat((a.retailPrice || '0').replace(/[^0-9.]/g, '')) || 0;
+                        valB = parseFloat((b.retailPrice || '0').replace(/[^0-9.]/g, '')) || 0;
+                        break;
+                    case 'grade':
+                        return sortDir === 'desc'
+                            ? comparePhoneGrades(b.grade, a.grade)
+                            : comparePhoneGrades(a.grade, b.grade);
+                    case 'storage':
+                        const gbA = extractGB(a.name || a.model);
+                        const gbB = extractGB(b.name || b.model);
+                        valA = parseInt((gbA || '0').replace(/[^0-9]/g, '')) || 0;
+                        valB = parseInt((gbB || '0').replace(/[^0-9]/g, '')) || 0;
+                        break;
+                    default:
+                        valA = a.model || '';
+                        valB = b.model || '';
+                }
+                
+                let comparison = 0;
+                if (sortBy === 'price' || sortBy === 'storage') {
+                    comparison = valA - valB;
+                } else {
+                    comparison = String(valA).localeCompare(String(valB));
+                }
+                
+                return sortDir === 'desc' ? -comparison : comparison;
+            });
+            
+            renderOtherStorePhones(filtered, bodyEl, countEl, null);
+        };
+        
+        const renderModal = () => {
+            renderModelPicker();
+        };
+        
+        // Reload all filters based on current selections
+        const reloadAllFilters = () => {
+            // Get the current filtered data based on ALL current filter selections
+            const base = otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
+            
+            // Apply current filters to get available options
+            const currentlyFiltered = base.filter(phone => {
+                if (gradeFilterOS.value && phone.grade !== gradeFilterOS.value) return false;
+                if (modelFilterOS.value && extractBaseModel(phone.model) !== modelFilterOS.value) return false;
+                if (gbFilterOS.value && extractGB(phone.name || phone.model) !== gbFilterOS.value) return false;
+                if (colorFilterOS.value && extractColor(phone.name || phone.model) !== colorFilterOS.value) return false;
+                if (!phoneHasStore(phone, storeFilterOS.value)) return false;
+                return true;
+            });
+            
+            // For each filter, show options available based on OTHER filters
+            // Grade options (based on model, gb, color, store selections)
+            const gradeData = base.filter(phone => {
+                if (modelFilterOS.value && extractBaseModel(phone.model) !== modelFilterOS.value) return false;
+                if (gbFilterOS.value && extractGB(phone.name || phone.model) !== gbFilterOS.value) return false;
+                if (colorFilterOS.value && extractColor(phone.name || phone.model) !== colorFilterOS.value) return false;
+                if (!phoneHasStore(phone, storeFilterOS.value)) return false;
+                return true;
+            });
+            
+            // Model options (based on grade, gb, color, store selections)
+            const modelData = base.filter(phone => {
+                if (gradeFilterOS.value && phone.grade !== gradeFilterOS.value) return false;
+                if (gbFilterOS.value && extractGB(phone.name || phone.model) !== gbFilterOS.value) return false;
+                if (colorFilterOS.value && extractColor(phone.name || phone.model) !== colorFilterOS.value) return false;
+                if (!phoneHasStore(phone, storeFilterOS.value)) return false;
+                return true;
+            });
+            
+            // GB options (based on grade, model, color, store selections)
+            const gbData = base.filter(phone => {
+                if (gradeFilterOS.value && phone.grade !== gradeFilterOS.value) return false;
+                if (modelFilterOS.value && extractBaseModel(phone.model) !== modelFilterOS.value) return false;
+                if (colorFilterOS.value && extractColor(phone.name || phone.model) !== colorFilterOS.value) return false;
+                if (!phoneHasStore(phone, storeFilterOS.value)) return false;
+                return true;
+            });
+            
+            // Color options (based on grade, model, gb, store selections)
+            const colorData = base.filter(phone => {
+                if (gradeFilterOS.value && phone.grade !== gradeFilterOS.value) return false;
+                if (modelFilterOS.value && extractBaseModel(phone.model) !== modelFilterOS.value) return false;
+                if (gbFilterOS.value && extractGB(phone.name || phone.model) !== gbFilterOS.value) return false;
+                if (!phoneHasStore(phone, storeFilterOS.value)) return false;
+                return true;
+            });
+            
+            // Store options (based on grade, model, gb, color selections)
+            const storeData = base.filter(phone => {
+                if (gradeFilterOS.value && phone.grade !== gradeFilterOS.value) return false;
+                if (modelFilterOS.value && extractBaseModel(phone.model) !== modelFilterOS.value) return false;
+                if (gbFilterOS.value && extractGB(phone.name || phone.model) !== gbFilterOS.value) return false;
+                if (colorFilterOS.value && extractColor(phone.name || phone.model) !== colorFilterOS.value) return false;
+                return true;
+            });
+            
+            // Update each filter with its specific dataset
+            populateFilters(gradeData, ['grade']);
+            populateFilters(modelData, ['model']);
+            populateFilters(gbData, ['gb']);
+            populateFilters(colorData, ['color']);
+            populateFilters(storeData, ['store']);
+            
+            // Apply the filters to update the display
+            applyOtherStoreFilters();
+        };
+        
+        // Add filter event listeners - reload all filters on any change
+        gradeFilterOS.addEventListener('change', reloadAllFilters);
+        modelFilterOS.addEventListener('change', reloadAllFilters);
+        gbFilterOS.addEventListener('change', reloadAllFilters);
+        colorFilterOS.addEventListener('change', () => {
+            syncPhoneColorSelectDisplay(colorFilterOS);
+            reloadAllFilters();
+        });
+        storeFilterOS.addEventListener('change', reloadAllFilters);
+        
+        // Also reload on focus (when user clicks on a filter)
+        gradeFilterOS.addEventListener('focus', reloadAllFilters);
+        modelFilterOS.addEventListener('focus', reloadAllFilters);
+        gbFilterOS.addEventListener('focus', reloadAllFilters);
+        colorFilterOS.addEventListener('focus', reloadAllFilters);
+        storeFilterOS.addEventListener('focus', reloadAllFilters);
+        
+        sortOS.addEventListener('change', applyOtherStoreFilters);
+        
+        clearFiltersOS.addEventListener('click', () => {
+            gradeFilterOS.value = '';
+            modelFilterOS.value = '';
+            gbFilterOS.value = '';
+            colorFilterOS.value = '';
+            storeFilterOS.value = '';
+            sortOS.value = 'model-asc';
+            renderModelPicker(); // Go back to model picker on clear
+        });
+        
+        // Hover effects for clear filters button
+        clearFiltersOS.addEventListener('mouseenter', () => {
+            clearFiltersOS.style.background = 'rgba(255,255,255,0.15)';
+        });
+        clearFiltersOS.addEventListener('mouseleave', () => {
+            clearFiltersOS.style.background = 'var(--tm-shop-item-bg)';
+        });
+        
+        // Refresh button handler
+        refreshBtn.addEventListener('click', async () => {
+            // Disable button and show loading state
+            refreshBtn.style.opacity = '0.5';
+            refreshBtn.style.transform = 'rotate(360deg)';
+            refreshBtn.style.pointerEvents = 'none';
+            
+            bodyEl.innerHTML = `
+                <div style="text-align:center; color: var(--tm-dark-color);">
+                    <div style="font-size:36px; margin-bottom:10px; animation: pulse 2s ease-in-out infinite;">⏳</div>
+                    <div>Refreshing other stores...</div>
+                </div>
+            `;
+            
+            try {
+                // Clear cache and force reload
+                otherStoreLoaded = false;
+                GM_setValue(OTHER_STORE_CACHE_KEY, null);
+                GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0);
+                
+                // Fetch fresh data
+                otherStorePhones = filterIphoneTitlePhones(await fetchOtherStorePhones());
+                otherStoreLoaded = true;
+                
+                // Reset filters and render updated data
+                gradeFilterOS.value = '';
+                modelFilterOS.value = '';
+                gbFilterOS.value = '';
+                colorFilterOS.value = '';
+                storeFilterOS.value = '';
+                sortOS.value = 'model-asc';
+                renderModal();
+            } catch (error) {
+                bodyEl.innerHTML = `
+                    <div style="text-align:center; color: var(--tm-dark-color);">
+                        <div style="font-size:32px; margin-bottom:8px;">⚠️</div>
+                        <div>Failed to refresh. Please try again.</div>
+                    </div>
+                `;
+            } finally {
+                // Re-enable button
+                refreshBtn.style.opacity = '1';
+                refreshBtn.style.transform = 'rotate(0deg)';
+                refreshBtn.style.pointerEvents = 'auto';
+            }
+        });
+        
+        // Hover effects for refresh button
+        refreshBtn.addEventListener('mouseenter', () => {
+            if (refreshBtn.style.pointerEvents !== 'none') {
+                refreshBtn.style.background = 'rgba(255,255,255,0.15)';
+            }
+        });
+        refreshBtn.addEventListener('mouseleave', () => {
+            refreshBtn.style.background = 'rgba(255,255,255,0.1)';
+        });
+        
+        ensureOtherStoreData()
+            .then(renderModal)
+            .catch(() => {
+                bodyEl.innerHTML = `
+                    <div style="text-align:center; color: var(--tm-dark-color);">
+                        <div style="font-size:32px; margin-bottom:8px;">⚠️</div>
+                        <div>Could not load other-store availability.</div>
+                    </div>
+                `;
+            });
+    }
+    
+    otherStoreToggleBtn.addEventListener('click', () => {
+        showOtherStoresModal();
+    });
+    
+    favoritesBtn.addEventListener('click', () => {
+        showFavoritesOnly = !showFavoritesOnly;
+        favoritesBtn.style.background = showFavoritesOnly ? 'rgba(255,215,0,0.3)' : 'rgba(255,255,255,0.1)';
+        applyFilters();
+    });
+    
+    exportClipboardBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        exportMenu.style.display = 'none';
+        exportToClipboard(filteredPhones);
+    });
+    
+    exportCSVBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        exportMenu.style.display = 'none';
+        exportToCSV(filteredPhones);
+    });
+    
+    exportSelectedBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        exportMenu.style.display = 'none';
+        const selected = filteredPhones.filter(p => selectedPhones.has(p.barcode));
+        exportToCSV(selected);
+    });
+    
+    selectAllBtn.addEventListener('click', () => {
+        if (selectedPhones.size === filteredPhones.length) {
+            selectedPhones.clear();
+            container.querySelectorAll('.tm-phone-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+        } else {
+            filteredPhones.forEach(p => selectedPhones.add(p.barcode));
+            container.querySelectorAll('.tm-phone-item').forEach(item => {
+                item.classList.add('selected');
+            });
+        }
+        updateSelectionUI();
+    });
+    
+    // Keyboard shortcuts
+    overlay.addEventListener('keydown', (e) => {
+        // ESC to close
+        if (e.key === 'Escape') {
+            overlay.style.animation = 'fadeOut 0.2s ease';
+            setTimeout(() => overlay.remove(), 200);
+        }
+        // Ctrl+F or Cmd+F to focus search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+            e.preventDefault();
+            searchInput.focus();
+        }
+        // Ctrl+R to refresh
+        if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+            e.preventDefault();
+            refreshPhoneList();
+        }
+    });
+    
+    // Try to load from cache first (only load from cache, don't auto-fetch)
+    const cachedPhones = loadPhoneListCache();
+    const cacheAgeDays = getCacheAgeDays();
+    
+    if (cachedPhones && cachedPhones.length > 0) {
+        console.log('[MMS Phone List] Loading from cache');
+        allPhones = filterIphoneTitlePhones(cachedPhones);
+        syncPhoneColorCatalog(allPhones);
+        populateFilters(allPhones);
+        
+        // Get cache timestamp
+        const cacheTimestamp = GM_getValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, Date.now());
+        lastUpdated = new Date(cacheTimestamp);
+        lastUpdatedDisplay.textContent = `Last updated: ${lastUpdated.toLocaleDateString()} ${lastUpdated.toLocaleTimeString()}`;
+        
+        // Show warning if cache is stale
+        if (cacheAgeDays !== null && cacheAgeDays >= CACHE_EXPIRATION_DAYS) {
+            cacheWarning.style.display = 'inline';
+            cacheWarning.textContent = `⚠️ Cache is ${cacheAgeDays} day${cacheAgeDays !== 1 ? 's' : ''} old - click refresh to update`;
+            cacheWarning.title = `Data was last refreshed ${cacheAgeDays} day${cacheAgeDays !== 1 ? 's' : ''} ago. Click refresh to update.`;
+        }
+        
+        filteredPhones = allPhones;
+        applyFilters();
+    } else {
+        // No cache, show message to user to click refresh
+        console.log('[MMS Phone List] No cache found');
+        container.innerHTML = `
+            <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-dark-color);">
+                <div style="text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📱</div>
+                    <div style="margin-bottom: 16px; font-size: 16px; font-weight: 600;">No cached data found</div>
+                    <div style="font-size: 13px; opacity: 0.7; margin-bottom: 20px;">Click the refresh button (🔄) to load phones</div>
+                </div>
+            </div>
+        `;
+        countDisplay.textContent = 'No data - click refresh to load';
+        lastUpdatedDisplay.textContent = 'Never updated';
+    }
+}
+
+// Make function globally accessible
+window.showPhoneListModal = showPhoneListModal;

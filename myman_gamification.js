@@ -1,75 +1,3 @@
-
-// ===================================================================
-// === FUN FEATURE: LEVEL UP SYSTEM
-// ===================================================================
-const STORAGE_KEYS = {
-    SCRIPT_ENABLED: 'tm_script_enabled', // Master toggle
-    USER_XP: 'tm_user_xp',
-    USER_LEVEL: 'tm_user_level',
-    ACHIEVEMENTS: 'tm_achievements_unlocked',
-    USER_COINS: 'tm_user_coins',
-    USER_TITLE: 'tm_user_title', // New: For cosmetic titles
-    PURCHASED_ITEMS: 'tm_purchased_items',
-    EQUIPPED_ITEMS: 'tm_equipped_items', // Changed from singular to plural
-    EQUIPPED_THEME: 'tm_equipped_theme',
-    PET_STATS: 'tm_pet_stats',
-    DAILY_STATS: 'tm_daily_stats_v2',
-    DAILY_QUESTS: 'tm_daily_quests',
-    USER_REROLL_TOKENS: 'tm_user_reroll_tokens',
-    // New Scratchpad Keys
-    SCRATCHPAD_NOTES: 'tm_scratchpad_notes_v2',
-    SCRATCHPAD_ACTIVE_NOTE_ID: 'tm_scratchpad_active_note_id',
-    SCRATCHPAD_TEMPLATES: 'tm_scratchpad_templates',
-    // New Talent System Keys
-    USER_TALENT_POINTS: 'tm_user_talent_points',
-    UNLOCKED_TALENTS: 'tm_unlocked_talents',
-    USER_NOTIFICATIONS: 'tm_user_notifications_v1',
-    ENERGIZED_BUFF_EXPIRES: 'tm_energized_buff_expires',
-    DOUBLE_COINS_BUFF_EXPIRES: 'tm_double_coins_buff_expires',
-    // Advanced Search Keys
-    SEARCH_HISTORY_KEY: 'tm_search_history',
-    FAVORITE_SEARCHES_KEY: 'tm_favorite_searches',
-    
-    // Random Events Keys
-    ACTIVE_EVENT: 'tm_active_event',
-    LAST_EVENT_CHECK: 'tm_last_event_check',
-    EVENT_HISTORY: 'tm_event_history',
-    EVENT_NOTIFICATION_MINIMIZED: 'tm_event_notification_minimized',
-    
-    // Smart Templates Keys
-    REPAIR_TEMPLATES: 'tm_repair_templates',
-    
-    // Factions Keys
-    USER_FACTION: 'tm_user_faction',
-    FACTION_CONTRIBUTION: 'tm_faction_contribution',
-    FACTION_CHALLENGES: 'tm_faction_challenges',
-    
-    // Dashboard Keys
-    DASHBOARD_STATS_HISTORY: 'tm_dashboard_stats_history',
-    REPAIR_TIME_HISTORY: 'tm_repair_time_history',
-    
-    // Boss Battles Keys
-    ACTIVE_BOSS: 'tm_active_boss',
-    BOSS_HISTORY: 'tm_boss_history',
-    BOSS_DEFEATS: 'tm_boss_defeats',
-    BOSS_NOTIFICATION_MINIMIZED: 'tm_boss_notification_minimized',
-    
-    // Menu Visibility Keys
-    HIDDEN_MENU_ITEMS: 'tm_hidden_menu_items',
-    
-    // Status Transfer Tracking
-    STATUS_40_TRANSFERS: 'tm_status_40_transfers', // Count of repairs moved to status 40
-    STATUS_100_TRANSFERS: 'tm_status_100_transfers', // Count of repairs moved to status 100
-
-    // Recent Repairs History
-    RECENT_REPAIRS: 'tm_recent_repairs', // Track recently accessed repairs
-
-    // Add other keys here as needed
-};
-
-// Make STORAGE_KEYS globally accessible for external scripts
-window.STORAGE_KEYS = STORAGE_KEYS;
-
 // This script is intended to be used as a library via the @require directive
 // in the main "MyManager All-in-One Suite" script. It does not do anything on its own.
 
@@ -127,6 +55,114 @@ const RANKS = [
     { level: 100, title: 'Master of the Mainboard', color: '#ff8000', glow: true },
     { level: 250, title: 'Digital Archon',          color: '#e5cc80', glow: true }
 ];
+
+// Comprehensive Level Rewards System
+const LEVEL_REWARDS = {
+    // EVERY level gets base rewards
+    base: {
+        coins: 100,
+        talentPoints: 1
+    },
+    
+    // Special rewards at specific levels
+    special: {
+        2: { coins: 50, message: '💰 Bonus Coins!' },
+        3: { xpBoost: 0.02, message: '✨ +2% Permanent XP Boost!' },
+        4: { mascotFood: 5, message: '🍖 +5 Mascot Food!' },
+        5: { rerollToken: 1, xpBoost: 0.01, message: '🔄 +1 Reroll Token | ✨ +1% XP Boost!' },
+        6: { coins: 150, message: '💰 Bonus Coins!' },
+        7: { mascotTreat: 3, message: '🍰 +3 Special Treats!' },
+        8: { shopDiscount: 0.05, message: '🏪 Unlocked: 5% Shop Discount!' },
+        9: { coins: 200, message: '💰 Bonus Coins!' },
+        10: { rerollToken: 1, searchHistory: 1, xpBoost: 0.01, message: '🔄 +1 Reroll | 📜 +1 Search Slot | ✨ +1% XP!' },
+        
+        11: { mascotFood: 10, message: '🍖 +10 Mascot Food!' },
+        12: { coinMultiplier: 0.05, message: '💎 +5% Coin Earnings!' },
+        13: { coins: 250, message: '💰 Bonus Coins!' },
+        14: { energizedBuff: 1, message: '⚡ +1 Energized Buff (10% XP for 1 hour)!' },
+        15: { rerollToken: 1, xpBoost: 0.01, freeTheme: 'oceanic', message: '🌊 Free Theme: Oceanic | 🔄 +1 Reroll | ✨ +1% XP!' },
+        16: { mascotTreat: 5, message: '🍰 +5 Special Treats!' },
+        17: { coins: 300, message: '💰 Bonus Coins!' },
+        18: { shopDiscount: 0.05, message: '🏪 Shop Discount Increased to 10%!' },
+        19: { doubleCoins: 1, message: '💰 +1 Double Coins Buff (2x coins for 1 hour)!' },
+        20: { rerollToken: 2, xpBoost: 0.01, mascotFood: 15, message: '🔄 +2 Rerolls | ✨ +1% XP | 🍖 +15 Food!' },
+        
+        22: { coins: 400, message: '💰 Bonus Coins!' },
+        24: { coinMultiplier: 0.05, message: '💎 +10% Coin Earnings Total!' },
+        25: { rerollToken: 2, xpBoost: 0.02, searchHistory: 1, message: '🔄 +2 Rerolls | ✨ +2% XP | 📜 +1 Search Slot!' },
+        27: { energizedBuff: 2, message: '⚡ +2 Energized Buffs!' },
+        28: { coins: 500, message: '💰 Bonus Coins!' },
+        30: { rerollToken: 3, xpBoost: 0.02, mascotFood: 20, freeAccessory: 'tech_goggles', message: '🥽 Free Accessory: Tech Goggles | 🔄 +3 Rerolls | ✨ +2% XP!' },
+        
+        32: { shopDiscount: 0.05, message: '🏪 Shop Discount: 15%!' },
+        35: { rerollToken: 2, searchHistory: 1, coins: 600, message: '🔄 +2 Rerolls | 📜 +1 Search Slot | 💰 Bonus!' },
+        37: { doubleCoins: 2, message: '💰 +2 Double Coins Buffs!' },
+        40: { rerollToken: 3, xpBoost: 0.03, mascotTreat: 10, coinMultiplier: 0.05, message: '🔄 +3 Rerolls | ✨ +3% XP | 🍰 +10 Treats | 💎 +15% Coins!' },
+        
+        42: { coins: 700, message: '💰 Bonus Coins!' },
+        45: { rerollToken: 2, searchHistory: 1, energizedBuff: 3, message: '🔄 +2 Rerolls | 📜 +1 Search Slot | ⚡ +3 Buffs!' },
+        48: { shopDiscount: 0.05, message: '🏪 Shop Discount: 20%!' },
+        50: { rerollToken: 4, xpBoost: 0.05, coins: 1000, freeTheme: 'midnight', mascotFood: 30, message: '🎉 MILESTONE! 🌙 Theme: Midnight | 🔄 +4 Rerolls | ✨ +5% XP | 💰 1000 Coins!' },
+        
+        55: { coinMultiplier: 0.10, message: '💎 +25% Coin Earnings Total!' },
+        60: { rerollToken: 3, searchHistory: 2, energizedBuff: 4, message: '🔄 +3 Rerolls | 📜 +2 Search Slots | ⚡ +4 Buffs!' },
+        65: { doubleCoins: 3, coins: 1200, message: '💰 +3 Double Coins | 1200 Bonus Coins!' },
+        70: { rerollToken: 4, xpBoost: 0.05, shopDiscount: 0.05, message: '🔄 +4 Rerolls | ✨ +5% XP | 🏪 Discount: 25%!' },
+        75: { rerollToken: 5, xpBoost: 0.05, coins: 1500, mascotTreat: 20, freeAccessory: 'legend_badge', message: '⚡ EPIC! 🏅 Legend Badge | 🔄 +5 Rerolls | ✨ +5% XP | 💰 1500 Coins!' },
+        
+        80: { coinMultiplier: 0.10, searchHistory: 2, message: '💎 +35% Coin Earnings | 📜 +2 Search Slots!' },
+        85: { rerollToken: 4, energizedBuff: 5, doubleCoins: 4, message: '🔄 +4 Rerolls | ⚡ +5 Buffs | 💰 +4 Double Coins!' },
+        90: { xpBoost: 0.10, coins: 2000, mascotFood: 50, message: '✨ +10% XP Boost | 💰 2000 Coins | 🍖 +50 Food!' },
+        95: { rerollToken: 5, shopDiscount: 0.10, coinMultiplier: 0.15, message: '🔄 +5 Rerolls | 🏪 Discount: 35% | 💎 +50% Coins!' },
+        100: { 
+            rerollToken: 10, 
+            xpBoost: 0.20, 
+            coins: 5000, 
+            masterCrown: true, 
+            mascotTreat: 50, 
+            coinMultiplier: 0.25,
+            searchHistory: 5,
+            shopDiscount: 0.15,
+            message: '👑 LEGENDARY! Master\'s Crown | 🔄 +10 Rerolls | ✨ +20% XP | 💰 5000 Coins | 💎 +75% Coin Earnings | 🏪 50% Shop Discount | 📜 +5 Search Slots!'
+        },
+        
+        // Post-100 rewards for dedicated players
+        110: { rerollToken: 6, xpBoost: 0.10, coins: 3000, message: '🔄 +6 Rerolls | ✨ +10% XP | 💰 3000 Coins!' },
+        120: { coinMultiplier: 0.20, searchHistory: 3, message: '💎 +95% Coin Earnings | 📜 +3 Search Slots!' },
+        130: { rerollToken: 7, energizedBuff: 10, doubleCoins: 10, message: '🔄 +7 Rerolls | ⚡ +10 Buffs | 💰 +10 Double Coins!' },
+        140: { xpBoost: 0.15, coins: 4000, message: '✨ +15% XP | 💰 4000 Coins!' },
+        150: { 
+            rerollToken: 15, 
+            xpBoost: 0.25, 
+            coins: 10000, 
+            coinMultiplier: 0.50, 
+            shopDiscount: 0.25, 
+            freeTheme: 'transcendent',
+            message: '✨ TRANSCENDENT! 🌌 Ultimate Theme | 🔄 +15 Rerolls | ✨ +25% XP | 💰 10000 Coins | 💎 +145% Coin Earnings | 🏪 75% Shop Discount!'
+        },
+        
+        175: { rerollToken: 10, xpBoost: 0.20, coins: 6000, message: '🔄 +10 Rerolls | ✨ +20% XP | 💰 6000 Coins!' },
+        200: { 
+            rerollToken: 20, 
+            xpBoost: 0.30, 
+            coins: 15000, 
+            coinMultiplier: 1.00, 
+            searchHistory: 10,
+            ascendedStatus: true,
+            message: '🌟 ASCENDED! Divine Status Unlocked | 🔄 +20 Rerolls | ✨ +30% XP | 💰 15000 Coins | 💎 +245% Coin Earnings | 📜 +10 Search Slots!'
+        },
+        
+        250: { 
+            rerollToken: 50, 
+            xpBoost: 0.50, 
+            coins: 25000, 
+            coinMultiplier: 2.00, 
+            shopDiscount: 0.50, 
+            digitalArchon: true,
+            message: '⚡ DIGITAL ARCHON! The Ultimate Power | 🔄 +50 Rerolls | ✨ +50% XP | 💰 25000 Coins | 💎 +445% Coin Earnings | 🏪 125% Shop Discount (FREE + Refunds)!'
+        }
+    }
+};
 
 const TALENT_TREE = [
     // === TIER 1: Novice Talents (Level 1+) ===
@@ -305,11 +341,6 @@ const TALENT_TREE = [
         id: 'boss_slayer', name: 'Boss Slayer', cost: 6, levelRequired: 75,
         description: 'Boss battles grant +50% more rewards.',
         bonus: { type: 'boss_modifier', multiplier: 0.50 }
-    },
-    {
-        id: 'faction_champion', name: 'Faction Champion', cost: 6, levelRequired: 75,
-        description: 'Faction contribution points earned 2x faster.',
-        bonus: { type: 'faction_contribution', multiplier: 2.0 }
     },
     
     // === TIER 10: Legendary Talents (Level 100+) ===
@@ -527,8 +558,7 @@ function triggerLevelUpAnimationImmediate(newLevel, oldLevel, STORAGE_KEYS, rewa
     `;
     document.body.appendChild(overlay);
 
-    // Minimal fireworks (fewer bursts, shorter duration)
-    triggerFireworks(isLegendary ? 5 : 3, 2000);
+    triggerFireworks(isLegendary, 2200);
 
     // Fade out after duration
     setTimeout(() => {
@@ -538,62 +568,250 @@ function triggerLevelUpAnimationImmediate(newLevel, oldLevel, STORAGE_KEYS, rewa
 }
 
 /**
- * Creates a spectacular fireworks display
- * @param {number} burstCount Number of firework bursts
- * @param {number} duration Duration of the fireworks display in milliseconds
+ * Emits soft glowing orbs and expanding rings from the center of the screen.
+ * @param {boolean} isLegendary Use gold palette if true
+ * @param {number} duration Total emission window in milliseconds
  */
-function triggerFireworks(burstCount = 8, duration = 4000) {
-    const colors = ['#ff0000', '#ff6600', '#ffff00', '#00ff00', '#00ffff', '#0066ff', '#9900ff', '#ff00ff', '#ffd700', '#ff1493'];
-    
-    for (let i = 0; i < burstCount; i++) {
+function triggerFireworks(isLegendary = false, duration = 2200) {
+    const cx = window.innerWidth  / 2;
+    const cy = window.innerHeight / 2;
+
+    const palette = isLegendary
+        ? ['rgba(255,215,0,0.85)', 'rgba(255,165,0,0.75)', 'rgba(255,255,200,0.70)', 'rgba(255,193,7,0.80)']
+        : ['rgba(120,180,255,0.80)', 'rgba(160,220,255,0.70)', 'rgba(200,240,255,0.65)', 'rgba(255,255,255,0.60)'];
+
+    const orbCount   = isLegendary ? 28 : 20;
+    const ringCount  = isLegendary ? 5  : 3;
+    const spread     = Math.min(window.innerWidth, window.innerHeight) * 0.38;
+
+    // Expanding rings from card center
+    for (let i = 0; i < ringCount; i++) {
         setTimeout(() => {
-            // Random position for each firework burst (avoid edges)
-            const x = 15 + Math.random() * 70; // 15-85% of viewport width
-            const y = 20 + Math.random() * 40; // 20-60% of viewport height
-            
-            // Create a burst of particles
-            const particlesPerBurst = 30 + Math.floor(Math.random() * 20);
-            for (let j = 0; j < particlesPerBurst; j++) {
-                const particle = document.createElement('div');
-                particle.className = 'tm-firework-particle';
-                
-                // Random angle and velocity
-                const angle = (Math.PI * 2 * j) / particlesPerBurst + (Math.random() - 0.5) * 0.5;
-                const velocity = 100 + Math.random() * 150; // pixels
-                const tx = Math.cos(angle) * velocity;
-                const ty = Math.sin(angle) * velocity;
-                
-                // Random color for each particle
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                particle.style.backgroundColor = color;
-                particle.style.boxShadow = `0 0 10px ${color}`;
-                
-                // Set initial position
-                particle.style.left = `${x}vw`;
-                particle.style.top = `${y}vh`;
-                
-                // Animation properties
-                const duration = 1 + Math.random() * 0.5; // 1-1.5 seconds
-                particle.style.setProperty('--tx', `${tx}px`);
-                particle.style.setProperty('--ty', `${ty}px`);
-                particle.style.animationDuration = `${duration}s`;
-                
-                document.body.appendChild(particle);
-                
-                // Remove particle after animation
-                setTimeout(() => particle.remove(), duration * 1000 + 100);
-            }
-            
-            // Add a flash effect at the burst origin
-            const flash = document.createElement('div');
-            flash.className = 'tm-firework-flash';
-            flash.style.left = `${x}vw`;
-            flash.style.top = `${y}vh`;
-            document.body.appendChild(flash);
-            setTimeout(() => flash.remove(), 300);
-            
-        }, (duration / burstCount) * i); // Stagger the bursts
+            const ring = document.createElement('div');
+            ring.className = 'tm-level-up-ring';
+            const size = 140 + i * 80;
+            ring.style.cssText = `
+                left: ${cx}px; top: ${cy}px;
+                width: ${size}px; height: ${size}px;
+                --ring-color: ${palette[i % palette.length]};
+                --ring-dur: ${0.7 + i * 0.15}s;
+            `;
+            document.body.appendChild(ring);
+            setTimeout(() => ring.remove(), 900);
+        }, i * 160);
     }
+
+    // Floating orbs drifting outward and upward
+    for (let i = 0; i < orbCount; i++) {
+        setTimeout(() => {
+            const orb = document.createElement('div');
+            orb.className = 'tm-level-up-orb';
+
+            const angle  = Math.random() * Math.PI * 2;
+            const dist   = spread * (0.4 + Math.random() * 0.6);
+            const ox     = Math.cos(angle) * dist;
+            const oy     = Math.sin(angle) * dist - spread * 0.3; // bias upward
+            const size   = 5 + Math.random() * 10;
+            const dur    = 1.4 + Math.random() * 0.8;
+            const color  = palette[Math.floor(Math.random() * palette.length)];
+
+            orb.style.cssText = `
+                left: ${cx}px; top: ${cy}px;
+                width: ${size}px; height: ${size}px;
+                background: ${color};
+                box-shadow: 0 0 ${size * 2}px ${color};
+                --ox: ${ox}px; --oy: ${oy}px;
+                --orb-dur: ${dur}s;
+            `;
+            document.body.appendChild(orb);
+            setTimeout(() => orb.remove(), dur * 1000 + 100);
+        }, Math.random() * (duration * 0.6));
+    }
+}
+
+// Get all current bonuses from leveling
+function getCurrentLevelBonuses(STORAGE_KEYS) {
+    const bonuses = {
+        permanentXpBoost: GM_getValue(STORAGE_KEYS.PERMANENT_XP_BOOST, 0),
+        coinMultiplier: GM_getValue(STORAGE_KEYS.COIN_MULTIPLIER, 0),
+        shopDiscount: GM_getValue(STORAGE_KEYS.SHOP_DISCOUNT, 0),
+        mascotFood: GM_getValue(STORAGE_KEYS.MASCOT_FOOD_ITEMS, 0),
+        mascotTreats: GM_getValue(STORAGE_KEYS.MASCOT_TREAT_ITEMS, 0),
+        energizedBuffs: GM_getValue(STORAGE_KEYS.ENERGIZED_BUFF_COUNT, 0),
+        doubleCoinsBuffs: GM_getValue(STORAGE_KEYS.DOUBLE_COINS_BUFF_COUNT, 0),
+        searchHistorySlots: 0, // Will be calculated
+        isAscended: GM_getValue(STORAGE_KEYS.ASCENDED_STATUS, false),
+        isDigitalArchon: GM_getValue(STORAGE_KEYS.DIGITAL_ARCHON_STATUS, false)
+    };
+    
+    return bonuses;
+}
+
+// Format bonuses for display
+function formatLevelBonusesHTML(STORAGE_KEYS) {
+    const bonuses = getCurrentLevelBonuses(STORAGE_KEYS);
+    let html = '<div style="margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 8px;">';
+    html += '<h3 style="margin: 0 0 10px 0; color: #ffd700;">🎯 Επιπλέον Μπόνους από Επίπεδα</h3>';
+    
+    if (bonuses.permanentXpBoost > 0) {
+        html += `<div style="margin: 5px 0;">✨ <b>+${(bonuses.permanentXpBoost * 100).toFixed(1)}%</b> Μόνιμο XP</div>`;
+    }
+    
+    if (bonuses.coinMultiplier > 0) {
+        html += `<div style="margin: 5px 0;">💎 <b>+${(bonuses.coinMultiplier * 100).toFixed(1)}%</b> Νομίσματα</div>`;
+    }
+    
+    if (bonuses.shopDiscount > 0) {
+        html += `<div style="margin: 5px 0;">🏪 <b>${(bonuses.shopDiscount * 100).toFixed(1)}%</b> Έκπτωση Καταστήματος</div>`;
+    }
+    
+    if (bonuses.mascotFood > 0) {
+        html += `<div style="margin: 5px 0;">🍖 <b>${bonuses.mascotFood}</b> Φαγητό Mascot</div>`;
+    }
+    
+    if (bonuses.mascotTreats > 0) {
+        html += `<div style="margin: 5px 0;">🍰 <b>${bonuses.mascotTreats}</b> Ειδικά Λιχουδιά</div>`;
+    }
+    
+    if (bonuses.energizedBuffs > 0) {
+        html += `<div style="margin: 5px 0;">⚡ <b>${bonuses.energizedBuffs}</b> Energized Buffs (10% XP για 1 ώρα)</div>`;
+    }
+    
+    if (bonuses.doubleCoinsBuffs > 0) {
+        html += `<div style="margin: 5px 0;">💰 <b>${bonuses.doubleCoinsBuffs}</b> Double Coins Buffs (2x νομίσματα για 1 ώρα)</div>`;
+    }
+    
+    if (bonuses.isAscended) {
+        html += `<div style="margin: 5px 0; color: #ffd700;">🌟 <b>Ascended Status</b> - Ξεκλειδώθηκε!</div>`;
+    }
+    
+    if (bonuses.isDigitalArchon) {
+        html += `<div style="margin: 5px 0; color: #ff8000;">⚡ <b>Digital Archon</b> - Η Απόλυτη Δύναμη!</div>`;
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+// Process level rewards and return reward messages
+function processLevelRewards(config, STORAGE_KEYS, level) {
+    const rewards = [];
+    const levelReward = LEVEL_REWARDS.special[level];
+    
+    if (!levelReward) return rewards;
+    
+    // Bonus Coins
+    if (levelReward.coins) {
+        grantCoins(config, STORAGE_KEYS, levelReward.coins, 'level_up_bonus');
+    }
+    
+    // XP Boost (cumulative permanent boost)
+    if (levelReward.xpBoost) {
+        const currentBoost = GM_getValue(STORAGE_KEYS.PERMANENT_XP_BOOST, 0);
+        GM_setValue(STORAGE_KEYS.PERMANENT_XP_BOOST, currentBoost + levelReward.xpBoost);
+    }
+    
+    // Reroll Tokens
+    if (levelReward.rerollToken) {
+        const currentTokens = GM_getValue(STORAGE_KEYS.USER_REROLL_TOKENS, 0);
+        GM_setValue(STORAGE_KEYS.USER_REROLL_TOKENS, currentTokens + levelReward.rerollToken);
+    }
+    
+    // Search History Slots
+    if (levelReward.searchHistory) {
+        config.searchMaxHistory += levelReward.searchHistory;
+        GM_setValue('searchMaxHistory', config.searchMaxHistory);
+    }
+    
+    // Coin Multiplier (cumulative)
+    if (levelReward.coinMultiplier) {
+        const currentMultiplier = GM_getValue(STORAGE_KEYS.COIN_MULTIPLIER, 0);
+        GM_setValue(STORAGE_KEYS.COIN_MULTIPLIER, currentMultiplier + levelReward.coinMultiplier);
+    }
+    
+    // Shop Discount (cumulative)
+    if (levelReward.shopDiscount) {
+        const currentDiscount = GM_getValue(STORAGE_KEYS.SHOP_DISCOUNT, 0);
+        GM_setValue(STORAGE_KEYS.SHOP_DISCOUNT, currentDiscount + levelReward.shopDiscount);
+    }
+    
+    // Mascot Food — skip entirely if the mascot is disabled
+    if (levelReward.mascotFood && config?.interactiveMascotEnabled !== false) {
+        const currentFood = GM_getValue(STORAGE_KEYS.MASCOT_FOOD_ITEMS, 0);
+        GM_setValue(STORAGE_KEYS.MASCOT_FOOD_ITEMS, currentFood + levelReward.mascotFood);
+    }
+    
+    // Mascot Treats — skip entirely if the mascot is disabled
+    if (levelReward.mascotTreat && config?.interactiveMascotEnabled !== false) {
+        const currentTreats = GM_getValue(STORAGE_KEYS.MASCOT_TREAT_ITEMS, 0);
+        GM_setValue(STORAGE_KEYS.MASCOT_TREAT_ITEMS, currentTreats + levelReward.mascotTreat);
+    }
+    
+    // Energized Buff (10% XP for 1 hour)
+    if (levelReward.energizedBuff) {
+        const currentBuffs = GM_getValue(STORAGE_KEYS.ENERGIZED_BUFF_COUNT, 0);
+        GM_setValue(STORAGE_KEYS.ENERGIZED_BUFF_COUNT, currentBuffs + levelReward.energizedBuff);
+    }
+    
+    // Double Coins Buff (2x coins for 1 hour)
+    if (levelReward.doubleCoins) {
+        const currentBuffs = GM_getValue(STORAGE_KEYS.DOUBLE_COINS_BUFF_COUNT, 0);
+        GM_setValue(STORAGE_KEYS.DOUBLE_COINS_BUFF_COUNT, currentBuffs + levelReward.doubleCoins);
+    }
+    
+    // Free Theme
+    if (levelReward.freeTheme) {
+        let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
+        if (!purchased.includes(levelReward.freeTheme)) {
+            purchased.push(levelReward.freeTheme);
+            GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
+        }
+    }
+    
+    // Free Accessory
+    if (levelReward.freeAccessory) {
+        let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
+        if (!purchased.includes(levelReward.freeAccessory)) {
+            purchased.push(levelReward.freeAccessory);
+            GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
+        }
+    }
+    
+    // Master Crown (Level 100)
+    if (levelReward.masterCrown) {
+        let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
+        if (!purchased.includes('master_crown')) {
+            purchased.push('master_crown');
+            GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
+            
+            // Auto-equip the crown
+            if (typeof window.getAccessoryElement === 'function') {
+                let equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
+                if (!equippedItems.includes('master_crown')) {
+                    equippedItems.push('master_crown');
+                    GM_setValue(STORAGE_KEYS.EQUIPPED_ITEMS, JSON.stringify(equippedItems));
+                    const crownAccessory = window.getAccessoryElement('master_crown');
+                    if (crownAccessory) crownAccessory.style.display = 'block';
+                }
+            }
+        }
+    }
+    
+    // Special Status Unlocks
+    if (levelReward.ascendedStatus) {
+        GM_setValue(STORAGE_KEYS.ASCENDED_STATUS, true);
+    }
+    
+    if (levelReward.digitalArchon) {
+        GM_setValue(STORAGE_KEYS.DIGITAL_ARCHON_STATUS, true);
+    }
+    
+    // Add the main reward message
+    if (levelReward.message) {
+        rewards.push(levelReward.message);
+    }
+    
+    return rewards;
 }
 
 function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
@@ -610,8 +828,8 @@ function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
         talentMultiplier += relevantTalent.bonus.multiplier; // Add the bonus from the talent
     }
 
-    // Apply XP Boost based on level
-    const xpBoost = Math.floor(currentLevel / 5) * 0.01; // +1% boost every 5 levels
+    // Apply permanent XP Boost from level rewards
+    const permanentXpBoost = GM_getValue(STORAGE_KEYS.PERMANENT_XP_BOOST, 0);
     if (typeof updateQuestProgress === 'function') {
         updateQuestProgress(STORAGE_KEYS, 'xpEarned', points);
     }
@@ -623,9 +841,8 @@ function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
         talentMultiplier += 0.10; // Add 10% boost
     }
 
-
-    // Coins are only granted on level-up, not from XP gains
-    const finalPoints = Math.ceil(points * (1 + xpBoost) * talentMultiplier);
+    // Calculate final XP (talents + buffs)
+    const finalPoints = Math.ceil(points * (1 + permanentXpBoost) * talentMultiplier);
     currentXp += finalPoints;
 
     let xpForNextLevel = getXpForLevel(currentLevel);
@@ -636,42 +853,29 @@ function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
 
         // --- Grant Level-Up Rewards ---
         const rewards = [];
+        let isLegendaryLevelUp = false;
         
-        // 1. Grant bonus coins (check if double coins buff is active for accurate display)
+        // 1. Base rewards - ALWAYS given
         const doubleCoinsExpires = GM_getValue(STORAGE_KEYS.DOUBLE_COINS_BUFF_EXPIRES, 0);
         const hasDoubleCoinsBuff = Date.now() < doubleCoinsExpires;
-        const baseCoins = 100;
-        const actualCoins = hasDoubleCoinsBuff ? 200 : 100; // Will be calculated properly in grantCoins
         
-        grantCoins(config, STORAGE_KEYS, baseCoins);
+        grantCoins(config, STORAGE_KEYS, LEVEL_REWARDS.base.coins, 'level_up');
         
-        // New: Grant 1 Talent Point per level up
         const currentTalentPoints = GM_getValue(STORAGE_KEYS.USER_TALENT_POINTS, 0);
-        GM_setValue(STORAGE_KEYS.USER_TALENT_POINTS, currentTalentPoints + 1);
+        GM_setValue(STORAGE_KEYS.USER_TALENT_POINTS, currentTalentPoints + LEVEL_REWARDS.base.talentPoints);
+        
         rewards.push('🌟 +1 Talent Point!');
-
-        // Show actual coins received (with buff if active)
         if (hasDoubleCoinsBuff) {
-            rewards.push('🪙 +100 Fixer-Coins! 💰 (+100 DOUBLE COINS BONUS!)');
+            rewards.push(`🪙 +${LEVEL_REWARDS.base.coins} Fixer-Coins! 💰 (+${LEVEL_REWARDS.base.coins} DOUBLE COINS BONUS!)`);
         } else {
-        rewards.push('🪙 +100 Fixer-Coins!');
+            rewards.push(`🪙 +${LEVEL_REWARDS.base.coins} Fixer-Coins!`);
         }
-        // 2. Grant XP Boost every 5 levels
-        // 2. Grant XP Boost & Reroll Token every 5 levels
-        let isLegendaryLevelUp = false;
-        if (currentLevel % 5 === 0) {
-            rewards.push('✨ +1% Permanent XP Gain!');
-            const currentTokens = GM_getValue(STORAGE_KEYS.USER_REROLL_TOKENS, 0);
-            GM_setValue(STORAGE_KEYS.USER_REROLL_TOKENS, currentTokens + 1);
-            rewards.push('🔄 +1 Bounty Reroll Token!');
-        }
-        // 3. Increase search history every 10 levels
-        if (currentLevel % 10 === 0) {
-            config.searchMaxHistory += 1;
-            GM_setValue('searchMaxHistory', config.searchMaxHistory);
-            rewards.push('📜 +1 Search History Slot!');
-        }
-        // 4. Grant a new cosmetic title at certain levels
+        
+        // 2. Special level rewards
+        const specialRewards = processLevelRewards(config, STORAGE_KEYS, currentLevel);
+        rewards.push(...specialRewards);
+        
+        // 3. Title unlock
         const newRank = RANKS.find(r => r.level === currentLevel);
         if (newRank) {
             GM_setValue(STORAGE_KEYS.USER_TITLE, newRank.title);
@@ -679,36 +883,12 @@ function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
                 isLegendaryLevelUp = true;
             }
             const glowStyle = newRank.glow ? 'text-shadow: 0 0 5px #fff;' : '';
-            rewards.push(`🏆 New Title Unlocked: <span style="color:${newRank.color}; font-weight:bold; ${glowStyle}">${newRank.title}</span>!`);
+            rewards.push(`🏆 New Title: <span style="color:${newRank.color}; font-weight:bold; ${glowStyle}">${newRank.title}</span>!`);
         }
-        // 5. Unlock a free theme at a specific level
-        if (currentLevel === 15) {
-            let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
-            if (!purchased.includes('oceanic')) {
-                purchased.push('oceanic');
-                GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
-                rewards.push('🌊 Free Theme Unlocked: Oceanic!');
-            }
-        }
-        // 6. Grant special reward at level 100
-        if (currentLevel === 100) {
-            let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
-            if (!purchased.includes('master_crown')) {
-                purchased.push('master_crown');
-                GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
-                rewards.push('👑 Legendary Reward: The Master\'s Crown!');
-
-                // Auto-equip the crown. This now adds it to the list of equipped items.
-                if (typeof window.getAccessoryElement === 'function') {
-                    let equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
-                    if (!equippedItems.includes('master_crown')) {
-                        equippedItems.push('master_crown');
-                        GM_setValue(STORAGE_KEYS.EQUIPPED_ITEMS, JSON.stringify(equippedItems));
-                        const crownAccessory = window.getAccessoryElement('master_crown');
-                        if (crownAccessory) crownAccessory.style.display = 'block';
-                    }
-                }
-            }
+        
+        // 4. Check for legendary level-ups (special milestones)
+        if ([10, 25, 50, 75, 100, 150, 200, 250].includes(currentLevel)) {
+            isLegendaryLevelUp = true;
         }
 
         triggerLevelUpAnimation(currentLevel, oldLevel, STORAGE_KEYS, rewards, isLegendaryLevelUp);
@@ -771,7 +951,7 @@ function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
     }
 }
 
-function grantCoins(config, STORAGE_KEYS, amount) {
+function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
     if (!config.levelUpSystemEnabled) return;
     let currentCoins = GM_getValue(STORAGE_KEYS.USER_COINS, 0);
 
@@ -782,6 +962,10 @@ function grantCoins(config, STORAGE_KEYS, amount) {
     if (coinTalent) {
         coinMultiplier += coinTalent.bonus.multiplier;
     }
+    
+    // Apply permanent coin multiplier from level rewards
+    const permanentCoinMultiplier = GM_getValue(STORAGE_KEYS.COIN_MULTIPLIER, 0);
+    coinMultiplier += permanentCoinMultiplier;
 
     // Apply "Double Coins" buff if active
     const doubleCoinsExpires = GM_getValue(STORAGE_KEYS.DOUBLE_COINS_BUFF_EXPIRES, 0);
@@ -793,6 +977,20 @@ function grantCoins(config, STORAGE_KEYS, amount) {
     const finalAmount = Math.ceil(amount * coinMultiplier);
     currentCoins += finalAmount;
     GM_setValue(STORAGE_KEYS.USER_COINS, currentCoins);
+    
+    // Track coin history
+    const coinHistory = JSON.parse(GM_getValue(STORAGE_KEYS.COIN_HISTORY, '[]'));
+    coinHistory.unshift({
+        amount: finalAmount,
+        baseAmount: amount,
+        timestamp: Date.now(),
+        source: source
+    });
+    // Keep only last 50 entries
+    if (coinHistory.length > 50) {
+        coinHistory.length = 50;
+    }
+    GM_setValue(STORAGE_KEYS.COIN_HISTORY, JSON.stringify(coinHistory));
     
     // Show visual feedback for double coins bonus
     if (hasDoubleCoinsBuff && coinMultiplier >= 2.0 && amount >= 50) {
@@ -849,13 +1047,22 @@ function grantCoins(config, STORAGE_KEYS, amount) {
     if (typeof updateQuestProgress === 'function') {
         updateQuestProgress(STORAGE_KEYS, 'coinsEarned', amount);
     }
-    updateCoinBalanceUI(STORAGE_KEYS, currentCoins);
+    updateCoinBalanceUI(STORAGE_KEYS, currentCoins, config);
 }
 
-function updateCoinBalanceUI(STORAGE_KEYS, balance) {
+function updateCoinBalanceUI(STORAGE_KEYS, balance, config) {
     const coinDisplay = document.getElementById('tm-coin-balance');
     if (!coinDisplay) return;
+    
+    // Only update if shop is enabled (the element should only exist if shop is enabled)
+    const shopEnabled = config?.shopEnabled !== false; // Default to true if config not provided
+    if (!shopEnabled) {
+        coinDisplay.style.display = 'none';
+        return;
+    }
+    
     coinDisplay.innerHTML = `🪙 ${balance}`;
+    coinDisplay.style.display = '';
 }
 
 /**
@@ -890,7 +1097,7 @@ function trackDailyStat(config, STORAGE_KEYS, statName, value = 1) {
             stats = savedStats;
         } else {
             // New day, so generate new quests
-            generateDailyQuests(STORAGE_KEYS);
+            generateDailyQuests(STORAGE_KEYS, config);
         }
     } catch (e) {
         console.error('[MMS] Could not parse daily stats, resetting.', e);
@@ -1001,7 +1208,12 @@ function showAchievementNotificationImmediate(message, xp = 0) {
  * @param {number} currentCount The new count for the stat.
  */
 function checkAchievements(config, STORAGE_KEYS, statName, currentCount) {
-    let unlockedAchievements = config.levelUpSystemEnabled ? JSON.parse(GM_getValue(STORAGE_KEYS.ACHIEVEMENTS, '{}')) : {};
+    // Early exit if achievements are disabled
+    if (!config.achievementsEnabled || !config.levelUpSystemEnabled) {
+        return;
+    }
+    
+    let unlockedAchievements = JSON.parse(GM_getValue(STORAGE_KEYS.ACHIEVEMENTS, '{}'));
 
     const achievements = {
         'searches': [
@@ -1058,8 +1270,12 @@ function checkAchievements(config, STORAGE_KEYS, statName, currentCount) {
 // ===================================================================
 // === DAILY BOUNTIES / QUESTS SYSTEM
 // ===================================================================
-function generateDailyQuests(STORAGE_KEYS) {
-    const shuffled = QUEST_POOL.sort(() => 0.5 - Math.random());
+function generateDailyQuests(STORAGE_KEYS, config) {
+    const mascotEnabled = config?.interactiveMascotEnabled !== false;
+    const pool = mascotEnabled
+        ? QUEST_POOL
+        : QUEST_POOL.filter(q => q.targetStat !== 'petMascot' && q.targetStat !== 'feedMascot');
+    const shuffled = pool.sort(() => 0.5 - Math.random());
     const dailyQuests = shuffled.slice(0, 3).map(quest => ({
         ...quest,
         progress: 0,
@@ -1189,7 +1405,7 @@ function populateQuestsModal(config, STORAGE_KEYS) {
             const quest = quests.find(q => q.id === questId);
             if (quest && !quest.claimed && quest.progress >= quest.targetCount) {
                 grantXp(config, STORAGE_KEYS, quest.rewardXp);
-                grantCoins(config, STORAGE_KEYS, quest.rewardCoins);
+                grantCoins(config, STORAGE_KEYS, quest.rewardCoins, 'quest');
                 quest.claimed = true;
                 // New: Chance to trigger Energized state on bounty completion
                 if (Math.random() < 0.33) { // 33% chance
@@ -1197,6 +1413,11 @@ function populateQuestsModal(config, STORAGE_KEYS) {
                 }
                 GM_setValue(STORAGE_KEYS.DAILY_QUESTS, JSON.stringify(quests));
                 populateQuestsModal(config, STORAGE_KEYS); // Re-render the modal to update state
+                
+                // Refresh the page after claiming quest rewards
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             }
         });
     });
@@ -1220,7 +1441,11 @@ function populateQuestsModal(config, STORAGE_KEYS) {
             // Find a new quest
             let quests = JSON.parse(GM_getValue(STORAGE_KEYS.DAILY_QUESTS, '[]'));
             const currentQuestIds = quests.map(q => q.id);
-            const availableNewQuests = QUEST_POOL.filter(p => !currentQuestIds.includes(p.id));
+            const mascotEnabled = config?.interactiveMascotEnabled !== false;
+            const availableNewQuests = QUEST_POOL.filter(p =>
+                !currentQuestIds.includes(p.id) &&
+                (mascotEnabled || (p.targetStat !== 'petMascot' && p.targetStat !== 'feedMascot'))
+            );
 
             if (availableNewQuests.length > 0) {
                 const newQuestTemplate = availableNewQuests[Math.floor(Math.random() * availableNewQuests.length)];
@@ -1260,6 +1485,11 @@ function populateQuestsModal(config, STORAGE_KEYS) {
                 quest.progress = quest.targetCount; // Instantly complete
                 GM_setValue(STORAGE_KEYS.DAILY_QUESTS, JSON.stringify(quests));
                 populateQuestsModal(config, STORAGE_KEYS); // Re-render
+                
+                // Refresh the page after using completion token
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             }
         });
     });
@@ -1272,63 +1502,368 @@ function showTitlesModal(STORAGE_KEYS) {
     if (document.querySelector('#tm-titles-modal')) return; // Prevent multiple modals
 
     const currentLevel = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
+    const currentXp = GM_getValue(STORAGE_KEYS.USER_XP, 0);
+    const xpForNextLevel = getXpForLevel(currentLevel);
+    const xpProgress = (currentXp / xpForNextLevel * 100).toFixed(1);
 
     const overlay = document.createElement('div');
     overlay.className = 'tm-modal-overlay';
     overlay.id = 'tm-titles-modal';
+    
+    // Get current bonuses
+    const bonuses = getCurrentLevelBonuses(STORAGE_KEYS);
+    
+    // Get current and next rank
+    const currentRank = RANKS.slice().reverse().find(r => currentLevel >= r.level) || RANKS[0];
+    const nextRank = RANKS.find(r => r.level > currentLevel);
+    
+    // Current Bonuses Section
+    let currentBonusesHTML = '';
+    if (bonuses) {
+        currentBonusesHTML = `
+            <div style="margin-bottom: 25px; padding: 20px; background: #ffffff; border-radius: 8px; border: 1px solid #dee2e6;">
+                <h3 style="margin: 0 0 15px 0; color: #212529; font-size: 20px; text-align: center; font-weight: 600;">🎯 Τα Τρέχοντα Μπόνους Σου</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+                    ${bonuses.permanentXpBoost > 0 ? `
+                        <div style="padding: 12px; background: #e7f3ff; border: 1px solid #007bff; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 5px;">✨</div>
+                            <div style="font-size: 16px; font-weight: bold; color: #0056b3;">+${(bonuses.permanentXpBoost * 100).toFixed(1)}%</div>
+                            <div style="font-size: 11px; color: #495057;">Μόνιμο XP</div>
+                        </div>
+                    ` : ''}
+                    ${bonuses.coinMultiplier > 0 ? `
+                        <div style="padding: 12px; background: #d4edda; border: 1px solid #28a745; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 5px;">💎</div>
+                            <div style="font-size: 16px; font-weight: bold; color: #155724;">+${(bonuses.coinMultiplier * 100).toFixed(1)}%</div>
+                            <div style="font-size: 11px; color: #495057;">Νομίσματα</div>
+                        </div>
+                    ` : ''}
+                    ${bonuses.shopDiscount > 0 ? `
+                        <div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 5px;">🏪</div>
+                            <div style="font-size: 16px; font-weight: bold; color: #856404;">${(bonuses.shopDiscount * 100).toFixed(1)}%</div>
+                            <div style="font-size: 11px; color: #495057;">Έκπτωση</div>
+                        </div>
+                    ` : ''}
+                    ${bonuses.mascotFood > 0 ? `
+                        <div style="padding: 12px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 5px;">🍖</div>
+                            <div style="font-size: 16px; font-weight: bold; color: #212529;">${bonuses.mascotFood}</div>
+                            <div style="font-size: 11px; color: #495057;">Φαγητό</div>
+                        </div>
+                    ` : ''}
+                    ${bonuses.mascotTreats > 0 ? `
+                        <div style="padding: 12px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 5px;">🍰</div>
+                            <div style="font-size: 16px; font-weight: bold; color: #212529;">${bonuses.mascotTreats}</div>
+                            <div style="font-size: 11px; color: #495057;">Λιχουδιά</div>
+                        </div>
+                    ` : ''}
+                    ${bonuses.energizedBuffs > 0 ? `
+                        <div style="padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 5px;">⚡</div>
+                            <div style="font-size: 16px; font-weight: bold; color: #856404;">${bonuses.energizedBuffs}</div>
+                            <div style="font-size: 11px; color: #495057;">XP Buffs</div>
+                        </div>
+                    ` : ''}
+                    ${bonuses.doubleCoinsBuffs > 0 ? `
+                        <div style="padding: 12px; background: #d4edda; border: 1px solid #28a745; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 20px; margin-bottom: 5px;">💰</div>
+                            <div style="font-size: 16px; font-weight: bold; color: #155724;">${bonuses.doubleCoinsBuffs}</div>
+                            <div style="font-size: 11px; color: #495057;">Coin Buffs</div>
+                        </div>
+                    ` : ''}
+                </div>
+                ${bonuses.isAscended || bonuses.isDigitalArchon ? `
+                    <div style="margin-top: 15px; text-align: center; padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px;">
+                        ${bonuses.isDigitalArchon ? `
+                            <div style="font-size: 16px; font-weight: bold; color: #856404;">⚡ DIGITAL ARCHON - Η Απόλυτη Δύναμη!</div>
+                        ` : bonuses.isAscended ? `
+                            <div style="font-size: 16px; font-weight: bold; color: #856404;">🌟 ASCENDED - Divine Status!</div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
 
-    // Get the base SVG for the mascot to display its evolutions
-    const mascotSVGTemplate = `
-        <svg class="tm-mascot-robot" viewBox="0 0 100 100" style="overflow: visible; width: 60px; height: 60px;">
-            <g class="tm-mascot-flipper" transform-origin="50 50">
-                <g id="tm-mascot-base" style="display: none;">
-                    <g class="tm-mascot-antenna"><line x1="50" y1="15" x2="50" y2="5" stroke="#333" stroke-width="2"/><circle cx="50" cy="5" r="3" fill="#ffc107"/></g>
-                    <g class="tm-mascot-main-body"><rect x="25" y="15" width="50" height="40" rx="10" fill="#e0e0e0" stroke="#333" stroke-width="3"/><g class="tm-mascot-eye-open"><circle cx="40" cy="35" r="5" fill="white"/><circle cx="40" cy="35" r="2" fill="black"/><circle cx="60" cy="35" r="5" fill="white"/><circle cx="60" cy="35" r="2" fill="black"/></g><path class="tm-mascot-mouth-happy" d="M 40 45 Q 50 55 60 45" stroke="black" stroke-width="2" fill="none"/><rect x="20" y="55" width="60" height="30" rx="5" fill="#d0d0d0" stroke="#333" stroke-width="3"/></g>
-                    <g class="tm-mascot-thrusters"><rect class="tm-mascot-thruster-left" x="30" y="85" width="15" height="10" fill="#6c757d"/><rect class="tm-mascot-thruster-right" x="55" y="85" width="15" height="10" fill="#6c757d"/></g>
-                </g>
-                <g id="tm-mascot-evo1" style="display: none;">
-                    <g class="tm-mascot-antenna"><line x1="50" y1="15" x2="50" y2="5" stroke="#555" stroke-width="2"/><circle cx="50" cy="5" r="3" fill="#17a2b8"/></g>
-                    <g class="tm-mascot-main-body"><rect x="25" y="15" width="50" height="40" rx="5" fill="#d4e6f1" stroke="#34495e" stroke-width="3"/><g class="tm-mascot-eye-open"><rect x="35" y="32" width="10" height="6" fill="white" rx="1"/><rect x="55" y="32" width="10" height="6" fill="white" rx="1"/></g><path class="tm-mascot-mouth-happy" d="M 40 45 Q 50 50 60 45" stroke="black" stroke-width="2" fill="none"/><rect x="20" y="55" width="60" height="30" rx="3" fill="#b9d7ea" stroke="#34495e" stroke-width="3"/></g>
-                    <g class="tm-mascot-thrusters"><rect class="tm-mascot-thruster-left" x="30" y="85" width="15" height="10" fill="#5d6d7e" rx="2"/><rect class="tm-mascot-thruster-right" x="55" y="85" width="15" height="10" fill="#5d6d7e" rx="2"/></g>
-                </g>
-                <g id="tm-mascot-evo2" style="display: none;">
-                    <g class="tm-mascot-antenna"><line x1="50" y1="15" x2="50" y2="5" stroke="#333" stroke-width="2"/><circle cx="50" cy="5" r="3" fill="#ffc107" stroke="#fff" stroke-width="0.5"/></g>
-                    <g class="tm-mascot-main-body"><rect x="25" y="15" width="50" height="40" rx="8" fill="#f1f1f1" stroke="#ffc107" stroke-width="3"/><g class="tm-mascot-eye-open"><path d="M 35 32 L 45 32 L 40 40 Z" fill="#17a2b8"/><path d="M 55 32 L 65 32 L 60 40 Z" fill="#17a2b8"/></g><path class="tm-mascot-mouth-happy" d="M 40 48 L 60 48" stroke="black" stroke-width="2" fill="none"/><rect x="20" y="55" width="60" height="30" rx="5" fill="#e0e0e0" stroke="#ffc107" stroke-width="3"/></g>
-                    <g class="tm-mascot-thrusters"><rect class="tm-mascot-thruster-left" x="30" y="85" width="15" height="12" fill="#333" rx="3"/><rect class="tm-mascot-thruster-right" x="55" y="85" width="15" height="12" fill="#333" rx="3"/></g>
-                </g>
-                <g id="tm-mascot-evo3" style="display: none;">
-                    <g class="tm-mascot-antenna"><line x1="50" y1="15" x2="50" y2="5" stroke="#a335ee" stroke-width="2.5"/><circle cx="50" cy="5" r="3.5" fill="#f0f" stroke="#fff" stroke-width="1"/></g>
-                    <g class="tm-mascot-main-body"><rect x="25" y="15" width="50" height="40" rx="12" fill="#2c2c2c" stroke="#a335ee" stroke-width="3"/><g class="tm-mascot-eye-open"><path d="M 35 30 L 45 40 M 45 30 L 35 40" stroke="#f0f" stroke-width="2"/><path d="M 55 30 L 65 40 M 65 30 L 55 40" stroke="#f0f" stroke-width="2"/></g><path class="tm-mascot-mouth-happy" d="M 40 48 L 60 48" stroke="#f0f" stroke-width="2" fill="none"/><rect x="20" y="55" width="60" height="30" rx="8" fill="#3c3c3c" stroke="#a335ee" stroke-width="3"/></g>
-                    <g class="tm-mascot-thrusters"><rect class="tm-mascot-thruster-left" x="30" y="85" width="15" height="15" fill="#a335ee" rx="4"/><rect class="tm-mascot-thruster-right" x="55" y="85" width="15" height="15" fill="#a335ee" rx="4"/></g>
-                </g>
-                <g id="tm-mascot-evo4" style="display: none;">
-                    <g class="tm-mascot-antenna"><line x1="50" y1="15" x2="50" y2="5" stroke="#ff8000" stroke-width="3"/><circle cx="50" cy="5" r="4" fill="#ffc107" stroke="#fff" stroke-width="1"><animate attributeName="r" values="4;5;4" dur="1.5s" repeatCount="indefinite"/></circle></g>
-                    <g class="tm-mascot-main-body"><rect x="25" y="15" width="50" height="40" rx="15" fill="#fff" stroke="#ff8000" stroke-width="4"/><g class="tm-mascot-eye-open"><circle cx="40" cy="35" r="6" fill="#ff8000"/><circle cx="60" cy="35" r="6" fill="#ff8000"/></g><path class="tm-mascot-mouth-happy" d="M 40 45 Q 50 55 60 45" stroke="#ff8000" stroke-width="3" fill="none"/><rect x="20" y="55" width="60" height="30" rx="10" fill="#eee" stroke="#ff8000" stroke-width="4"/></g>
-                    <g class="tm-mascot-thrusters"><rect class="tm-mascot-thruster-left" x="30" y="85" width="15" height="15" fill="#ff8000" rx="5"/><rect class="tm-mascot-thruster-right" x="55" y="85" width="15" height="15" fill="#ff8000" rx="5"/></g>
-                </g>
-            </g>
-        </svg>
-    `;
-
-    const titlesHTML = RANKS.map(rank => {
+    // Titles Section - Grouped by rarity
+    const titlesHTML = RANKS.map((rank, index) => {
         const isUnlocked = currentLevel >= rank.level;
-        const glowStyle = rank.glow ? `text-shadow: 0 0 5px ${rank.color};` : '';
+        const isCurrent = rank.level === currentRank.level;
+        const isNext = nextRank && rank.level === nextRank.level;
+        
+        let borderColor = '#dee2e6';
+        let bgColor = isUnlocked ? '#ffffff' : '#f8f9fa';
+        let badge = '';
+        
+        if (isCurrent) {
+            borderColor = '#007bff';
+            bgColor = '#e7f3ff';
+            badge = '<span style="background: #007bff; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; margin-left: 8px;">ΤΡΕΧΩΝ</span>';
+        } else if (isNext) {
+            borderColor = '#28a745';
+            bgColor = '#d4edda';
+            badge = '<span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; margin-left: 8px;">ΕΠΟΜΕΝΟΣ</span>';
+        }
+        
+        const lockIcon = isUnlocked ? '✅' : '🔒';
+        const opacity = isUnlocked ? '1' : '0.5';
 
         return `
-            <div class="tm-title-item ${isUnlocked ? 'unlocked' : 'locked'}">
-                <div class="tm-title-level">Lv. ${rank.level}</div>
-                <div class="tm-title-name" style="color: ${rank.color}; ${glowStyle}">${rank.title}</div>
+            <div class="tm-title-item" style="display: flex; align-items: center; gap: 15px; padding: 15px; background: ${bgColor}; border: 2px solid ${borderColor}; border-radius: 8px; margin-bottom: 10px; opacity: ${opacity}; transition: all 0.2s;">
+                <div style="flex-shrink: 0; font-size: 36px; line-height: 1;">${lockIcon}</div>
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                        <span style="font-size: 12px; color: #6c757d; font-weight: 600; background: #f8f9fa; padding: 2px 8px; border-radius: 12px;">ΕΠΙΠΕΔΟ ${rank.level}</span>
+                        ${badge}
+                    </div>
+                    <div style="color: ${rank.color}; font-size: 18px; font-weight: 700; ${rank.glow ? 'text-shadow: 0 0 10px ' + rank.color + ';' : ''}">${rank.title}</div>
+                    ${!isUnlocked ? `<div style="font-size: 11px; color: #6c757d; margin-top: 4px;">Ξεκλειδώνει σε ${rank.level - currentLevel} επίπεδα</div>` : ''}
+                </div>
+                <div style="flex-shrink: 0; font-size: 48px; opacity: 0.3;">🏆</div>
             </div>
         `;
     }).join('');
-
-    overlay.innerHTML = `
-        <div class="tm-modal-content" style="max-width: 600px; height: auto;">
-            <div class="tm-modal-header"><h2 class="tm-modal-title">🏆 Titles & Ranks</h2><button class="tm-modal-close">&times;</button></div>
-            <div id="tm-titles-container">${titlesHTML}</div>
+    
+    // Level Rewards Section - More organized
+    const levelRewardsHTML = `
+        <div style="margin-bottom: 20px; padding: 15px; background: #ffffff; border-radius: 8px; border: 1px solid #dee2e6;">
+            <h4 style="margin: 0 0 8px 0; color: #212529; font-size: 15px; font-weight: 600;">📖 Σχετικά με τις Επιβραβεύσεις</h4>
+            <p style="margin: 0; font-size: 13px; color: #6c757d; line-height: 1.6;">
+                Κάθε επίπεδο φέρνει νέες επιβραβεύσεις! Βασικές επιβραβεύσεις σε κάθε επίπεδο, και ειδικά μπόνους σε συγκεκριμένα ορόσημα.
+            </p>
+        </div>
+        
+        <div style="padding: 20px; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border-radius: 8px; border: 2px solid #28a745; margin-bottom: 20px;">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <h4 style="margin: 0; color: #155724; font-size: 18px; font-weight: 700;">📦 Βασικές Επιβραβεύσεις</h4>
+                <div style="font-size: 12px; color: #155724; margin-top: 5px; opacity: 0.8;">Σε κάθε επίπεδο παίρνεις:</div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; border: 1px solid #c3e6cb;">
+                    <div style="font-size: 36px; margin-bottom: 8px;">💰</div>
+                    <div style="font-weight: 700; color: #155724; font-size: 18px;">+100</div>
+                    <div style="font-size: 12px; color: #6c757d;">Fixer-Coins</div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: white; border-radius: 8px; border: 1px solid #c3e6cb;">
+                    <div style="font-size: 36px; margin-bottom: 8px;">🌟</div>
+                    <div style="font-weight: 700; color: #0056b3; font-size: 18px;">+1</div>
+                    <div style="font-size: 12px; color: #6c757d;">Talent Point</div>
+                </div>
+            </div>
+        </div>
+        
+        <h4 style="margin: 0 0 15px 0; color: #212529; font-size: 16px; font-weight: 600; text-align: center;">🎯 Ειδικές Επιβραβεύσεις ανά Ορόσημο</h4>
+            
+            <details style="margin-bottom: 12px; padding: 0; background: #ffffff; border: 2px solid #e3f2fd; border-radius: 8px; cursor: pointer; overflow: hidden;">
+                <summary style="padding: 15px; font-weight: 600; color: #0d47a1; font-size: 15px; cursor: pointer; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 50%); list-style: none; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">🌟</span>
+                    <span style="flex: 1;">Πρώιμα Επίπεδα (1-10)</span>
+                    <span style="font-size: 20px; opacity: 0.5;">▼</span>
+                </summary>
+                <div style="padding: 15px; font-size: 13px; line-height: 2; color: #495057; background: #f8f9fa;">
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #007bff; min-width: 50px;">Lv.2</span> 💰 +50 bonus coins</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #007bff; min-width: 50px;">Lv.3</span> ✨ +2% μόνιμο XP boost</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #007bff; min-width: 50px;">Lv.4</span> 🍖 +5 φαγητό mascot</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #007bff; min-width: 50px;">Lv.5</span> 🔄 +1 reroll, ✨ +1% XP</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #007bff; min-width: 50px;">Lv.6</span> 💰 +150 bonus coins</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #007bff; min-width: 50px;">Lv.7</span> 🍰 +3 ειδικά λιχουδιά</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #007bff; min-width: 50px;">Lv.8</span> 🏪 5% έκπτωση καταστήματος</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #007bff; min-width: 50px;">Lv.9</span> 💰 +200 bonus coins</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;"><span style="font-weight: 700; color: #007bff; min-width: 50px;">Lv.10</span> 🔄 +1 reroll, 📜 +1 search slot, ✨ +1% XP</div>
+                </div>
+            </details>
+            
+            <details style="margin-bottom: 12px; padding: 0; background: #ffffff; border: 2px solid #c3e6cb; border-radius: 8px; cursor: pointer; overflow: hidden;">
+                <summary style="padding: 15px; font-weight: 600; color: #155724; font-size: 15px; cursor: pointer; background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 50%); list-style: none; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">⚡</span>
+                    <span style="flex: 1;">Μεσαία Επίπεδα (11-30)</span>
+                    <span style="font-size: 20px; opacity: 0.5;">▼</span>
+                </summary>
+                <div style="padding: 15px; font-size: 13px; line-height: 2; color: #495057; background: #f8f9fa;">
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #28a745; min-width: 50px;">Lv.15</span> 🌊 Δωρεάν Oceanic Theme + bonuses</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #28a745; min-width: 50px;">Lv.18</span> 🏪 10% έκπτωση καταστήματος</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #28a745; min-width: 50px;">Lv.20</span> 🔄 +2 rerolls, ✨ +1% XP, 🍖 +15 food</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #28a745; min-width: 50px;">Lv.25</span> 🔄 +2 rerolls, ✨ +2% XP, 📜 +1 search slot</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;"><span style="font-weight: 700; color: #28a745; min-width: 50px;">Lv.30</span> 🥽 Δωρεάν Tech Goggles + major bonuses</div>
+                </div>
+            </details>
+            
+            <details style="margin-bottom: 12px; padding: 0; background: #ffffff; border: 2px solid #b3d7ff; border-radius: 8px; cursor: pointer; overflow: hidden;">
+                <summary style="padding: 15px; font-weight: 600; color: #004085; font-size: 15px; cursor: pointer; background: linear-gradient(135deg, #cce5ff 0%, #b3d7ff 50%); list-style: none; display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">💎</span>
+                    <span style="flex: 1;">Υψηλά Επίπεδα (31-75)</span>
+                    <span style="font-size: 20px; opacity: 0.5;">▼</span>
+                </summary>
+                <div style="padding: 15px; font-size: 13px; line-height: 2; color: #495057; background: #f8f9fa;">
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #0056b3; min-width: 50px;">Lv.40</span> 🔄 +3 rerolls, ✨ +3% XP, 🍰 +10 treats, 💎 +15% coin earnings</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px;"><span style="font-weight: 700; color: #0056b3; min-width: 50px;">Lv.50</span> 🎉 MILESTONE! 🌙 Midnight Theme, 🔄 +4 rerolls, ✨ +5% XP, 💰 +1000 coins</div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: white; border-radius: 6px;"><span style="font-weight: 700; color: #0056b3; min-width: 50px;">Lv.75</span> ⚡ EPIC! 🏅 Legend Badge, 🔄 +5 rerolls, ✨ +5% XP, 💰 +1500 coins</div>
+                </div>
+            </details>
+            
+            <details style="margin-bottom: 12px; padding: 12px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; cursor: pointer;">
+                <summary style="font-weight: 600; color: #856404; font-size: 14px; cursor: pointer;">👑 Elite Επίπεδα (76-100)</summary>
+                <div style="margin-top: 10px; padding: 10px; font-size: 12px; line-height: 1.8; color: #856404;">
+                    <div><b>Lv.80:</b> +35% coin earnings, +2 search slots</div>
+                    <div><b>Lv.90:</b> +10% XP boost, +2000 coins, +50 food</div>
+                    <div style="margin-top: 10px; padding: 10px; background: #ffffff; border: 1px solid #ffc107; border-radius: 6px;">
+                        <b style="color: #856404;">Lv.100: 👑 LEGENDARY!</b><br>
+                        • Master's Crown (auto-equipped)<br>
+                        • +10 rerolls<br>
+                        • +20% XP boost<br>
+                        • +5000 coins<br>
+                        • +75% coin earnings<br>
+                        • 50% shop discount<br>
+                        • +5 search slots
+                    </div>
+                </div>
+            </details>
+            
+            <details style="margin-bottom: 12px; padding: 12px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px; cursor: pointer;">
+                <summary style="font-weight: 600; color: #721c24; font-size: 14px; cursor: pointer;">🌟 Post-100 (Αφοσιωμένοι Παίκτες)</summary>
+                <div style="margin-top: 10px; padding: 10px; font-size: 12px; line-height: 1.8; color: #721c24;">
+                    <div style="margin-bottom: 10px; padding: 10px; background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 6px;">
+                        <b style="color: #0c5460;">Lv.150: ✨ TRANSCENDENT!</b><br>
+                        🌌 Ultimate Theme, +15 rerolls, +25% XP, +10000 coins, +145% coins, 75% shop discount
+                    </div>
+                    <div style="margin-bottom: 10px; padding: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px;">
+                        <b style="color: #856404;">Lv.200: 🌟 ASCENDED!</b><br>
+                        Divine Status, +20 rerolls, +30% XP, +15000 coins, +245% coins, +10 search slots
+                    </div>
+                    <div style="padding: 10px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px;">
+                        <b style="color: #721c24;">Lv.250: ⚡ DIGITAL ARCHON!</b><br>
+                        Ultimate Power, +50 rerolls, +50% XP, +25000 coins, +445% coins, 125% shop discount (FREE + REFUNDS!)
+                    </div>
+                </div>
+            </details>
+            
+            <div style="margin-top: 15px; padding: 12px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; text-align: center; font-size: 12px; color: #155724;">
+                💡 <i>Όλα τα μπόνους είναι μόνιμα και αθροιστικά!</i>
+            </div>
         </div>
     `;
+
+    overlay.innerHTML = `
+        <div class="tm-modal-content" style="max-width: 1000px; height: auto; max-height: 90vh; display: flex; flex-direction: column; background: #f8f9fa !important;">
+            <!-- Header with Progress -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 8px 8px 0 0;">
+                <button class="tm-modal-close" style="color: white !important; position: absolute; top: 15px; right: 20px; font-size: 28px; opacity: 0.9;">&times;</button>
+                <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
+                    <div style="font-size: 64px;">🏆</div>
+                    <div style="flex: 1;">
+                        <h2 style="margin: 0 0 5px 0; font-size: 28px; font-weight: 700;">Επίπεδο ${currentLevel}</h2>
+                        <div style="font-size: 18px; opacity: 0.9; margin-bottom: 10px;">${currentRank.title}</div>
+                        ${nextRank ? `
+                            <div style="font-size: 13px; opacity: 0.8; margin-bottom: 8px;">Επόμενος τίτλος σε ${nextRank.level - currentLevel} επίπεδα: ${nextRank.title}</div>
+                        ` : '<div style="font-size: 13px; opacity: 0.8;">Έφτασες το μέγιστο επίπεδο τίτλου!</div>'}
+                        <div style="background: rgba(255,255,255,0.2); border-radius: 20px; height: 24px; overflow: hidden; position: relative;">
+                            <div style="background: linear-gradient(90deg, #4caf50 0%, #8bc34a 100%); height: 100%; width: ${xpProgress}%; transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; border-radius: 20px;">
+                                <span style="font-size: 11px; font-weight: 600; position: absolute; left: 50%; transform: translateX(-50%); text-shadow: 0 1px 2px rgba(0,0,0,0.3);">${currentXp.toLocaleString()} / ${xpForNextLevel.toLocaleString()} XP (${xpProgress}%)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div style="display: flex; background: #ffffff; border-bottom: 2px solid #dee2e6;">
+                <button class="tm-rank-tab active" data-tab="overview" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; font-weight: 600; font-size: 14px; color: #6c757d; border-bottom: 3px solid transparent; transition: all 0.2s;">
+                    📊 Επισκόπηση
+                </button>
+                <button class="tm-rank-tab" data-tab="titles" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; font-weight: 600; font-size: 14px; color: #6c757d; border-bottom: 3px solid transparent; transition: all 0.2s;">
+                    🏅 Τίτλοι
+                </button>
+                <button class="tm-rank-tab" data-tab="rewards" style="flex: 1; padding: 15px; border: none; background: transparent; cursor: pointer; font-weight: 600; font-size: 14px; color: #6c757d; border-bottom: 3px solid transparent; transition: all 0.2s;">
+                    🎁 Επιβραβεύσεις
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div style="flex: 1; overflow-y: auto; padding: 20px; background: #f8f9fa !important;">
+                <!-- Overview Tab -->
+                <div class="tm-rank-tab-content" data-tab="overview" style="display: block;">
+                    ${currentBonusesHTML}
+                    
+                    <!-- Quick Stats -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                        <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; text-align: center;">
+                            <div style="font-size: 32px; margin-bottom: 8px;">📈</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #007bff;">${currentLevel}</div>
+                            <div style="font-size: 12px; color: #6c757d;">Τρέχον Επίπεδο</div>
+                        </div>
+                        <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; text-align: center;">
+                            <div style="font-size: 32px; margin-bottom: 8px;">🎯</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #28a745;">${RANKS.filter(r => currentLevel >= r.level).length}</div>
+                            <div style="font-size: 12px; color: #6c757d;">Ξεκλειδωμένοι Τίτλοι</div>
+                        </div>
+                        <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; text-align: center;">
+                            <div style="font-size: 32px; margin-bottom: 8px;">🔓</div>
+                            <div style="font-size: 24px; font-weight: bold; color: #ffc107;">${RANKS.filter(r => currentLevel < r.level).length}</div>
+                            <div style="font-size: 12px; color: #6c757d;">Κλειδωμένοι Τίτλοι</div>
+                        </div>
+                    </div>
+
+                    ${nextRank ? `
+                        <div style="margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); border-radius: 8px; border: 1px solid #2196f3;">
+                            <h4 style="margin: 0 0 10px 0; color: #0d47a1; font-size: 16px; font-weight: 600;">🎯 Επόμενος Στόχος</h4>
+                            <div style="font-size: 14px; color: #1565c0; margin-bottom: 8px;">
+                                <b>Επίπεδο ${nextRank.level}:</b> <span style="color: ${nextRank.color};">${nextRank.title}</span>
+                            </div>
+                            <div style="font-size: 13px; color: #1976d2;">
+                                Απομένουν <b>${nextRank.level - currentLevel}</b> επίπεδα
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Titles Tab -->
+                <div class="tm-rank-tab-content" data-tab="titles" style="display: none;">
+                    <div style="margin-bottom: 15px; padding: 15px; background: #ffffff; border-radius: 8px; border: 1px solid #dee2e6;">
+                        <h4 style="margin: 0 0 8px 0; color: #212529; font-size: 15px; font-weight: 600;">📖 Σχετικά με τους Τίτλους</h4>
+                        <p style="margin: 0; font-size: 13px; color: #6c757d; line-height: 1.6;">
+                            Οι τίτλοι ξεκλειδώνονται καθώς ανεβαίνεις επίπεδο. Κάθε τίτλος αντιπροσωπεύει την πρόοδό σου και την εμπειρία σου!
+                        </p>
+                    </div>
+                    ${titlesHTML}
+                </div>
+
+                <!-- Rewards Tab -->
+                <div class="tm-rank-tab-content" data-tab="rewards" style="display: none;">
+                    ${levelRewardsHTML}
+                </div>
+            </div>
+        </div>
+    `;
+    
     document.body.appendChild(overlay);
+    
+    // Tab switching logic
+    const tabs = overlay.querySelectorAll('.tm-rank-tab');
+    const tabContents = overlay.querySelectorAll('.tm-rank-tab-content');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetTab = tab.dataset.tab;
+            
+            // Update active tab
+            tabs.forEach(t => {
+                t.style.color = '#6c757d';
+                t.style.borderBottomColor = 'transparent';
+                t.classList.remove('active');
+            });
+            tab.style.color = '#007bff';
+            tab.style.borderBottomColor = '#007bff';
+            tab.classList.add('active');
+            
+            // Show target content
+            tabContents.forEach(content => {
+                content.style.display = content.dataset.tab === targetTab ? 'block' : 'none';
+            });
+        });
+    });
+    
     overlay.querySelector('.tm-modal-close').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 }
@@ -1338,10 +1873,13 @@ function showTalentsModal(config, STORAGE_KEYS) {
     const talentPoints = GM_getValue(STORAGE_KEYS.USER_TALENT_POINTS, 0);
     const unlockedTalents = JSON.parse(GM_getValue(STORAGE_KEYS.UNLOCKED_TALENTS, '[]'));
     const currentLevel = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
+    const visibleTalentTree = config?.interactiveMascotEnabled !== false
+        ? TALENT_TREE
+        : TALENT_TREE.filter(t => t.id !== 'mascot_lover');
     
     // Count available talents
-    const availableTalents = TALENT_TREE.filter(t => currentLevel >= t.levelRequired).length;
-    const totalTalents = TALENT_TREE.length;
+    const availableTalents = visibleTalentTree.filter(t => currentLevel >= t.levelRequired).length;
+    const totalTalents = visibleTalentTree.length;
     
     const overlay = document.createElement('div');
     overlay.className = 'tm-modal-overlay';
@@ -1368,14 +1906,14 @@ function showTalentsModal(config, STORAGE_KEYS) {
                     </div>
                     
                     <div style="
-                        background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%);
+                        background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border);
                         padding: 16px;
                         border-radius: 12px;
                         text-align: center;
                         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                         min-width: 180px;
                     ">
-                        <div style="font-size: 13px; color: #64748b; margin-bottom: 4px;">Progress</div>
+                        <div style="font-size: 13px; color: var(--tm-secondary-hover); margin-bottom: 4px;">Progress</div>
                         <div style="font-size: 24px; font-weight: bold; color: #4facfe;">${unlockedTalents.length}/${availableTalents}</div>
                         <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">${totalTalents - availableTalents} locked by level</div>
                     </div>
@@ -1391,10 +1929,10 @@ function showTalentsModal(config, STORAGE_KEYS) {
     overlay.querySelector('.tm-modal-close').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
     
-    populateTalentsModal(STORAGE_KEYS);
+    populateTalentsModal(STORAGE_KEYS, config);
 }
 
-function populateTalentsModal(STORAGE_KEYS) {
+function populateTalentsModal(STORAGE_KEYS, config) {
     const talentPoints = GM_getValue(STORAGE_KEYS.USER_TALENT_POINTS, 0);
     const unlockedTalents = JSON.parse(GM_getValue(STORAGE_KEYS.UNLOCKED_TALENTS, '[]'));
     const currentLevel = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
@@ -1402,7 +1940,11 @@ function populateTalentsModal(STORAGE_KEYS) {
     
     if (!grid) return;
     
-    grid.innerHTML = TALENT_TREE.map(talent => {
+    const visibleTalentTree = config?.interactiveMascotEnabled !== false
+        ? TALENT_TREE
+        : TALENT_TREE.filter(t => t.id !== 'mascot_lover');
+
+    grid.innerHTML = visibleTalentTree.map(talent => {
         const isUnlocked = unlockedTalents.includes(talent.id);
         const canAfford = talentPoints >= talent.cost;
         const levelMet = currentLevel >= talent.levelRequired;
@@ -1426,7 +1968,7 @@ function populateTalentsModal(STORAGE_KEYS) {
 
         return `
             <div style="
-                background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%);
+                background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border);
                 border-radius: 10px;
                 padding: 14px;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -1459,7 +2001,7 @@ function populateTalentsModal(STORAGE_KEYS) {
                     ${levelMet ? '✓' : '🔒'} Requires Level ${talent.levelRequired}
                 </div>
                 
-                <div style="font-size: 12px; color: #64748b; min-height: 36px; margin-bottom: 12px; line-height: 1.4;">
+                <div style="font-size: 12px; color: var(--tm-secondary-hover); min-height: 36px; margin-bottom: 12px; line-height: 1.4;">
                     ${talent.description}
                 </div>
                 ${isUnlocked ? `
@@ -1557,9 +2099,9 @@ function getTalentsHTML(STORAGE_KEYS) {
     return `
         <div class="tm-settings-section">
             <h3>🌟 Talents</h3>
-            <p class="tm-setting-description">Το Talent Tree έχει μετακινηθεί! Κάντε κλικ στο κουμπί 🌟 στο footer για να δείτε τα talents σας.</p>
+            <p class="tm-setting-description">Το Talent Tree βρίσκεται στο <strong>Personal Dashboard</strong> → καρτέλα <strong>🌟 Talents</strong> (κλικ στο ημερήσιο widget στατιστικών ή ανοίξτε το dashboard από το μενού).</p>
             <div style="text-align: center; padding: 20px;">
-                <button onclick="window.showTalentsModal?.(window.config, window.STORAGE_KEYS)" style="
+                <button onclick="(function(){ try { window.showDashboardModal?.(window.config, window.STORAGE_KEYS); setTimeout(function(){ document.querySelector('.tm-dashboard-tab[data-tab=talents]')?.click(); }, 120); } catch(e) {} })()" style="
                     padding: 12px 24px;
                     background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
                     color: white;
@@ -1568,18 +2110,30 @@ function getTalentsHTML(STORAGE_KEYS) {
                     font-weight: 600;
                     cursor: pointer;
                     font-size: 14px;
-                ">🌟 Open Talent Tree</button>
+                ">🌟 Άνοιγμα Talents (Dashboard)</button>
             </div>
         </div>
     `;
 }
 
 function showShopModal(config, STORAGE_KEYS) {
+    // Check if shop is enabled
+    if (!config.shopEnabled) {
+        if (window.showPositiveMessage) {
+            window.showPositiveMessage('Shop is disabled in settings');
+        }
+        return;
+    }
+    
     if (document.querySelector('#tm-shop-modal')) return; // Prevent multiple modals
 
     const overlay = document.createElement('div');
     overlay.className = 'tm-modal-overlay';
     overlay.id = 'tm-shop-modal';
+    const accessoriesTabHtml = config.interactiveMascotEnabled
+        ? `<button class="tm-shop-tab" data-category="accessories">🎩 Accessories</button>`
+        : '';
+
     overlay.innerHTML = `
         <div class="tm-modal-content" style="max-width: 700px; height: 85vh; display: flex; flex-direction: column;">
             <div class="tm-modal-header">
@@ -1589,7 +2143,7 @@ function showShopModal(config, STORAGE_KEYS) {
             <div id="tm-shop-content-container" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 10px; padding-right: 10px;">
                 <div class="tm-shop-tabs">
                     <button class="tm-shop-tab active" data-category="themes">🎨 Themes</button>
-                    <button class="tm-shop-tab" data-category="accessories">🎩 Accessories</button>
+                    ${accessoriesTabHtml}
                     <button class="tm-shop-tab" data-category="consumables">⚡ Consumables</button>
                 </div>
                 <div id="tm-shop-items-wrapper">
@@ -1675,7 +2229,13 @@ function showShopModal(config, STORAGE_KEYS) {
                 } else if (itemType === 'theme') {
                     if (typeof window.applyTheme === 'function') {
                         window.applyTheme(itemId);
-                }
+                    }
+                } else if (itemType === 'feature') {
+                    // Debug mode "Equip" click — add to purchased and activate immediately
+                    let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
+                    if (!purchased.includes(itemId)) purchased.push(itemId);
+                    GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
+                    activateFeature(itemId, config, STORAGE_KEYS);
                 }
                 populateShop(config, STORAGE_KEYS); // Re-render shop to update buttons
             }
@@ -1697,16 +2257,23 @@ function populateShop(config, STORAGE_KEYS) {
         }
     }
 
+    // If mascot is disabled, force away from accessories category
+    if (!config.interactiveMascotEnabled && activeCategory === 'accessories') {
+        activeCategory = 'themes';
+    }
+
     const categories = {
         themes: [],
         accessories: [],
         consumables: []
-        // Note: Customization/Evolutions category removed - mascot evolutions unlock automatically by level
     };
 
     // Sort all items into categories
     Object.keys(UI_THEMES).forEach(id => categories.themes.push({ id, ...UI_THEMES[id], type: 'theme' }));
-    categories.accessories.push(
+
+    // Only expose accessories when mascot is enabled
+    if (config.interactiveMascotEnabled) {
+        categories.accessories.push(
         // Hats & Headwear (250-800 coins)
         { id: 'top_hat', name: 'Top Hat', icon: '🎩', cost: 250, type: 'accessory' },
         { id: 'cowboy_hat', name: 'Cowboy Hat', icon: '🤠', cost: 300, type: 'accessory' },
@@ -1748,7 +2315,12 @@ function populateShop(config, STORAGE_KEYS) {
         { id: 'power_glove', name: 'Power Glove', icon: '🔥', cost: 1500, type: 'accessory' },
         { id: 'vip_pass', name: 'VIP Pass', icon: '🎫', cost: 2000, type: 'accessory' },
     );
+    }
     categories.consumables.push(
+        // ── Unlockable Features (permanent, one-time purchase) ──
+        { id: 'eod_checklist', name: 'End of Day Checklist', icon: '📋', cost: 800, type: 'feature',
+          desc: 'Adds a 📋 button to the footer. Shows all repairs you visited today so you can review and check them off before leaving.' },
+
         // Utility Items (25-300 coins)
         { id: 'reroll_token', name: 'Bounty Reroll Token', icon: '🔄', cost: 100, type: 'consumable', desc: 'Reroll daily bounty' },
         { id: SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, name: 'Bounty Completion Token', icon: '🎯', cost: 300, type: 'consumable', desc: 'Instantly complete bounty' },
@@ -1827,7 +2399,9 @@ function populateShop(config, STORAGE_KEYS) {
 
         categories[category].forEach(item => {
             const isOwned = purchasedItems.includes(item.id);
-            const isEquipped = (item.type === 'accessory' && equippedItems.includes(item.id)) || (item.type === 'theme' && config && config.equippedTheme === item.id);
+            const isEquipped = (item.type === 'accessory' && equippedItems.includes(item.id))
+                || (item.type === 'theme' && config && config.equippedTheme === item.id)
+                || (item.type === 'feature' && isOwned);
 
             const itemDiv = document.createElement('div');
             itemDiv.className = `tm-shop-item ${isOwned || (config && config.debugEnabled && item.type !== 'consumable') ? 'owned' : ''}`;
@@ -1841,7 +2415,9 @@ function populateShop(config, STORAGE_KEYS) {
 
             const button = itemDiv.querySelector('.tm-shop-item-btn');
             if (isOwned || (config && config.debugEnabled && item.type !== 'consumable')) {
-                button.textContent = isEquipped ? (item.type === 'accessory' ? 'Unequip' : 'Equipped') : 'Equip';
+                button.textContent = isEquipped
+                    ? (item.type === 'accessory' ? 'Unequip' : item.type === 'feature' ? '✓ Ενεργό' : 'Equipped')
+                    : 'Equip';
                 button.className += isEquipped ? ' equipped' : ' equip';
                 // For accessories, the button is never disabled if owned, as it toggles equip/unequip.
                 if (isEquipped && item.type !== 'accessory') {
@@ -1876,7 +2452,7 @@ function handleShopPurchase(button, config, STORAGE_KEYS) {
 
     currentCoins -= finalCost;
     GM_setValue(STORAGE_KEYS.USER_COINS, currentCoins);
-    updateCoinBalanceUI(STORAGE_KEYS, currentCoins);
+    updateCoinBalanceUI(STORAGE_KEYS, currentCoins, config);
 
     if (itemType === 'consumable' && itemId === 'reroll_token') {
         const currentTokens = GM_getValue(STORAGE_KEYS.USER_REROLL_TOKENS, 0);
@@ -2141,12 +2717,24 @@ function handleShopPurchase(button, config, STORAGE_KEYS) {
         let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
         if (!purchased.includes(itemId)) purchased.push(itemId);
         GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
+
+        // Immediately activate the feature without requiring a page reload
+        activateFeature(itemId, config, STORAGE_KEYS);
     }
 
     if (typeof window.showPositiveMessage === 'function') {
         window.showPositiveMessage('Αγορά επιτυχής!');
     }
     populateShop(config, STORAGE_KEYS); // Re-render the shop
+}
+
+// Called whenever a 'feature' type item is purchased or equipped in debug mode.
+function activateFeature(itemId, config, STORAGE_KEYS) {
+    // Generic hook: each feature module can expose window.activate_<id>
+    const hookFn = window[`activate_${itemId}`];
+    if (typeof hookFn === 'function') {
+        hookFn(config, STORAGE_KEYS);
+    }
 }
 
 /**
@@ -2422,46 +3010,66 @@ function initFunFeatures(config, STORAGE_KEYS) {
 function getLevelUpSettingsHTML() {
     return `
         <div class="tm-settings-section">
-            <h3>Gamification</h3>
+            <h3>🎮 Παιχνιδοποίηση (Gamification)</h3>
             <div class="tm-setting-row">
-                <div class="tm-setting-label"><label for="tm-setting-levelup-enabled">Ενεργοποίηση Συστήματος Level-Up</label><p class="tm-setting-description">Κερδίστε XP και ανεβείτε level ολοκληρώνοντας εργασίες.</p></div>
+                <div class="tm-setting-label">
+                    <label for="tm-setting-levelup-enabled">⭐ Σύστημα Επιπέδων</label>
+                    <p class="tm-setting-description">Κερδίστε XP και ανεβείτε επίπεδο ολοκληρώνοντας επισκευές και εργασίες.</p>
+                </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-levelup-enabled"></div>
             </div>
             <div class="tm-setting-row">
-                <div class="tm-setting-label"><label for="tm-setting-confetti-enabled">Ενεργοποίηση Εφέ Confetti</label></div>
+                <div class="tm-setting-label">
+                    <label for="tm-setting-confetti-enabled">🎉 Εφέ Κομφετί</label>
+                    <p class="tm-setting-description">Οπτικά εφέ κομφετί σε επιτυχίες και milestone events.</p>
+                </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-confetti-enabled"></div>
+            </div>
+            <div class="tm-setting-row">
+                <div class="tm-setting-label">
+                    <label for="tm-setting-achievements-enabled">🏆 Επιτεύγματα</label>
+                    <p class="tm-setting-description">Ξεκλειδώστε επιτεύγματα για ειδικές ενέργειες και στόχους.</p>
+                </div>
+                <div class="tm-setting-control"><input type="checkbox" id="tm-setting-achievements-enabled"></div>
             </div>
         </div>
         
         <div class="tm-settings-section">
-            <h3>🚀 Advanced Features</h3>
+            <h3>🚀 Προχωρημένα Χαρακτηριστικά</h3>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-random-events-enabled">⚡ Random Events</label>
-                    <p class="tm-setting-description">Τυχαία events που εμφανίζονται και δίνουν bonuses (2x coins, 2x XP, κλπ).</p>
+                    <label for="tm-setting-random-events-enabled">⚡ Τυχαία Γεγονότα</label>
+                    <p class="tm-setting-description">Τυχαία events που εμφανίζονται και παρέχουν μπόνους (2x νομίσματα, 2x XP, κ.λπ.).</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-random-events-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-factions-enabled">🏰 Factions</label>
-                    <p class="tm-setting-description">Μπείτε σε faction για να ξεκλειδώσετε ειδικά perks και bonuses.</p>
-                </div>
-                <div class="tm-setting-control"><input type="checkbox" id="tm-setting-factions-enabled"></div>
-            </div>
-            <div class="tm-setting-row">
-                <div class="tm-setting-label">
-                    <label for="tm-setting-personal-dashboard-enabled">📊 Personal Dashboard</label>
-                    <p class="tm-setting-description">Δείτε analytics, charts και performance statistics.</p>
+                    <label for="tm-setting-personal-dashboard-enabled">📊 Προσωπικός Πίνακας</label>
+                    <p class="tm-setting-description">Προβολή αναλυτικών στοιχείων, γραφημάτων και στατιστικών απόδοσης.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-personal-dashboard-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-boss-battles-enabled">⚔️ Boss Battles</label>
-                    <p class="tm-setting-description">Αποδεχτείτε epic challenges με legendary rewards!</p>
+                    <label for="tm-setting-boss-battles-enabled">⚔️ Μάχες με Αφεντικά</label>
+                    <p class="tm-setting-description">Αποδεχτείτε επικές προκλήσεις με θρυλικές ανταμοιβές!</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-boss-battles-enabled"></div>
+            </div>
+            <div class="tm-setting-row">
+                <div class="tm-setting-label">
+                    <label for="tm-setting-shop-enabled">🪙 Κατάστημα</label>
+                    <p class="tm-setting-description">Αγοράστε θέματα, αξεσουάρ και αναλώσιμα με τα νομίσματά σας.</p>
+                </div>
+                <div class="tm-setting-control"><input type="checkbox" id="tm-setting-shop-enabled"></div>
+            </div>
+            <div class="tm-setting-row">
+                <div class="tm-setting-label">
+                    <label for="tm-setting-eod-checklist-enabled">📋 Checklist Τέλους Ημέρας</label>
+                    <p class="tm-setting-description">Εμφανίζει το κουμπί 📋 στο footer για γρήγορο έλεγχο των επισκευών της ημέρας. Απαιτεί αγορά από το κατάστημα.</p>
+                </div>
+                <div class="tm-setting-control"><input type="checkbox" id="tm-setting-eod-checklist-enabled"></div>
             </div>
         </div>`;
 }
@@ -2487,7 +3095,7 @@ function getMascotSettingsHTML() {
 }
 
 function getGamificationSettingsHTML(STORAGE_KEYS) {
-    return getLevelUpSettingsHTML() + getMascotSettingsHTML() + getTalentsHTML(STORAGE_KEYS);
+    return getLevelUpSettingsHTML() + getMascotSettingsHTML();
 }
 
 function initGamificationSettings(config, STORAGE_KEYS) {
@@ -2498,17 +3106,69 @@ function initGamificationSettings(config, STORAGE_KEYS) {
     };
     populateCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
     populateCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
+    populateCheckbox('tm-setting-achievements-enabled', 'achievementsEnabled');
     populateCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
 
     // Populate new feature checkboxes
     populateCheckbox('tm-setting-random-events-enabled', 'randomEventsEnabled');
-    populateCheckbox('tm-setting-factions-enabled', 'factionsEnabled');
     populateCheckbox('tm-setting-personal-dashboard-enabled', 'personalDashboardEnabled');
     populateCheckbox('tm-setting-boss-battles-enabled', 'bossBattlesEnabled');
+    populateCheckbox('tm-setting-shop-enabled', 'shopEnabled');
+    populateCheckbox('tm-setting-eod-checklist-enabled', 'eodChecklistEnabled');
 
     document.getElementById('tm-setting-mascot-speed').value = config.mascotRoamingSpeed;
 
+    // Add event listener to shop checkbox to update UI immediately
+    const shopCheckbox = document.getElementById('tm-setting-shop-enabled');
+    if (shopCheckbox) {
+        shopCheckbox.addEventListener('change', () => {
+            // Save immediately
+            const value = shopCheckbox.checked;
+            GM_setValue('shopEnabled', value);
+            config.shopEnabled = value;
+            
+            // Update shop button visibility
+            updateShopButtonVisibility(config);
+        });
+    }
+
     // Talent unlock now handled in dedicated modal (showTalentsModal)
+}
+
+// Function to update shop button visibility based on config
+function updateShopButtonVisibility(config) {
+    // Shop visibility depends ONLY on shopEnabled, not mascot
+    const shopOn = !!config.shopEnabled;
+
+    // Update shop tab in dashboard if it exists
+    const shopTab = document.querySelector('.tm-dashboard-tab[data-tab="shop"]');
+    if (shopTab) {
+        shopTab.style.display = shopOn ? '' : 'none';
+    }
+    
+    // Update coin balance clickability in dashboard
+    const coinBalance = document.getElementById('tm-dashboard-coin-balance');
+    if (coinBalance) {
+        if (shopOn) {
+            coinBalance.style.cursor = 'pointer';
+            coinBalance.title = 'Click to open Shop';
+        } else {
+            coinBalance.style.cursor = 'default';
+            coinBalance.title = '';
+        }
+    }
+    
+    // Update coin balance in XP bar widget
+    const coinBalanceWidget = document.getElementById('tm-coin-balance');
+    if (coinBalanceWidget) {
+        if (shopOn) {
+            coinBalanceWidget.style.display = '';
+            coinBalanceWidget.style.cursor = 'pointer';
+            coinBalanceWidget.title = 'Click to open Shop';
+        } else {
+            coinBalanceWidget.style.display = 'none';
+        }
+    }
 }
 
 function saveGamificationSettings() {
@@ -2536,7 +3196,25 @@ function saveGamificationSettings() {
     saveCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
     saveCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
     saveCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
+    saveCheckbox('tm-setting-random-events-enabled', 'randomEventsEnabled');
+    saveCheckbox('tm-setting-personal-dashboard-enabled', 'personalDashboardEnabled');
+    saveCheckbox('tm-setting-boss-battles-enabled', 'bossBattlesEnabled');
+    saveCheckbox('tm-setting-shop-enabled', 'shopEnabled');
+    saveCheckbox('tm-setting-eod-checklist-enabled', 'eodChecklistEnabled');
     saveNumber('tm-setting-mascot-speed', 'mascotRoamingSpeed');
+
+    // Update shop button visibility after saving
+    if (typeof updateShopButtonVisibility === 'function') {
+        updateShopButtonVisibility(config);
+    }
+
+    // Apply EOD checklist visibility immediately
+    const eodBtn = document.getElementById('tm-eod-btn');
+    if (config.eodChecklistEnabled === false) {
+        eodBtn?.remove();
+    } else if (!eodBtn && typeof window.initEODChecklist === 'function') {
+        window.initEODChecklist(config, STORAGE_KEYS);
+    }
 
     // Weather location is now hardcoded to Athens
 }
@@ -2600,6 +3278,232 @@ const RANDOM_EVENTS = {
         duration: 1 * 60 * 60 * 1000, // 1 hour
         effect: { nextRepairItem: true },
         weight: 10
+    },
+    SUPPLY_SHORTAGE: {
+        id: 'supply_shortage',
+        name: 'Supply Shortage',
+        description: 'Limited parts available - earn 1.5x coins for efficiency!',
+        icon: '📦',
+        duration: 2 * 60 * 60 * 1000, // 2 hours
+        effect: { coinMultiplier: 1.5, efficiencyBonus: true },
+        weight: 15
+    },
+    EXPERT_MODE: {
+        id: 'expert_mode',
+        name: 'Expert Mode Activated',
+        description: 'Advanced repairs grant 3x XP for 45 minutes!',
+        icon: '🔧',
+        duration: 45 * 60 * 1000, // 45 minutes
+        effect: { xpMultiplier: 3 },
+        weight: 12
+    },
+    SPEED_DEMON: {
+        id: 'speed_demon',
+        name: 'Speed Demon Challenge',
+        description: 'Complete repairs in record time for bonus rewards!',
+        icon: '🏃',
+        duration: 1.5 * 60 * 60 * 1000, // 1.5 hours
+        effect: { speedBonus: true, timeLimit: 30 },
+        weight: 18
+    },
+    QUALITY_CONTROL: {
+        id: 'quality_control',
+        name: 'Quality Control Inspection',
+        description: 'Perfect repairs grant extra coins for the next hour!',
+        icon: '✅',
+        duration: 60 * 60 * 1000, // 1 hour
+        effect: { perfectRepairBonus: 200 },
+        weight: 14
+    },
+    NIGHT_SHIFT: {
+        id: 'night_shift',
+        name: 'Night Shift Bonus',
+        description: 'Working after hours grants 2.5x coins!',
+        icon: '🌙',
+        duration: 3 * 60 * 60 * 1000, // 3 hours
+        effect: { coinMultiplier: 2.5 },
+        weight: 8
+    },
+    REPAIR_MARATHON: {
+        id: 'repair_marathon',
+        name: 'Repair Marathon',
+        description: 'Complete 8 repairs in 2 hours for massive rewards!',
+        icon: '🏁',
+        duration: 2 * 60 * 60 * 1000, // 2 hours
+        effect: { marathonRepairs: 8, marathonReward: 1000 },
+        weight: 6
+    },
+    GOLDEN_HOUR: {
+        id: 'golden_hour',
+        name: 'Golden Hour',
+        description: 'Everything you do grants 50% more rewards!',
+        icon: '⭐',
+        duration: 60 * 60 * 1000, // 1 hour
+        effect: { universalMultiplier: 1.5 },
+        weight: 5
+    },
+    TECHNICAL_DIFFICULTIES: {
+        id: 'technical_difficulties',
+        name: 'Technical Difficulties',
+        description: 'System issues - earn 3x XP for troubleshooting!',
+        icon: '⚠️',
+        duration: 90 * 60 * 1000, // 1.5 hours
+        effect: { xpMultiplier: 3, troubleshootingBonus: true },
+        weight: 10
+    },
+    CUSTOMER_SATISFACTION: {
+        id: 'customer_satisfaction',
+        name: 'Customer Satisfaction Survey',
+        description: 'Happy customers grant bonus coins for perfect service!',
+        icon: '😊',
+        duration: 2.5 * 60 * 60 * 1000, // 2.5 hours
+        effect: { customerSatisfactionBonus: 150 },
+        weight: 16
+    },
+    // NEW DIVERSE RANDOM EVENTS
+    COMPONENT_CACHE: {
+        id: 'component_cache',
+        name: 'Component Cache Discovery',
+        description: 'Found a stash of rare components! Instant bonus coins!',
+        icon: '💎',
+        duration: 0, // Instant
+        effect: { instantCoins: () => Math.floor(Math.random() * 500) + 200 },
+        weight: 12
+    },
+    TIME_WARP: {
+        id: 'time_warp',
+        name: 'Time Warp',
+        description: 'Time moves faster - all timers reduced by 30%!',
+        icon: '⏰',
+        duration: 45 * 60 * 1000, // 45 minutes
+        effect: { timeSpeedBonus: 0.3 },
+        weight: 8
+    },
+    SKILL_BOOST: {
+        id: 'skill_boost',
+        name: 'Skill Boost',
+        description: 'Your expertise shines - earn 2.5x XP for expert-level work!',
+        icon: '🌟',
+        duration: 60 * 60 * 1000, // 1 hour
+        effect: { expertXpMultiplier: 2.5 },
+        weight: 10
+    },
+    LUCKY_STREAK: {
+        id: 'lucky_streak',
+        name: 'Lucky Streak',
+        description: 'Every action has a 25% chance to grant bonus rewards!',
+        icon: '🍀',
+        duration: 90 * 60 * 1000, // 1.5 hours
+        effect: { luckyChance: 0.25, luckyBonus: 1.5 },
+        weight: 14
+    },
+    EFFICIENCY_EXPERT: {
+        id: 'efficiency_expert',
+        name: 'Efficiency Expert Mode',
+        description: 'Complete tasks 20% faster and earn efficiency bonuses!',
+        icon: '⚡',
+        duration: 2 * 60 * 60 * 1000, // 2 hours
+        effect: { speedBoost: 0.2, efficiencyBonus: 300 },
+        weight: 15
+    },
+    INSPIRATION_WAVE: {
+        id: 'inspiration_wave',
+        name: 'Inspiration Wave',
+        description: 'Creative problem-solving grants 3x XP on complex repairs!',
+        icon: '💡',
+        duration: 75 * 60 * 1000, // 1.25 hours
+        effect: { complexRepairXpMultiplier: 3 },
+        weight: 11
+    },
+    TEAM_SYNERGY: {
+        id: 'team_synergy',
+        name: 'Team Synergy',
+        description: 'Collaborative energy - orders and repairs grant team bonuses!',
+        icon: '🤝',
+        duration: 3 * 60 * 60 * 1000, // 3 hours
+        effect: { teamBonusMultiplier: 1.5 },
+        weight: 9
+    },
+    PRECISION_MODE: {
+        id: 'precision_mode',
+        name: 'Precision Mode',
+        description: 'Perfect repairs grant triple rewards!',
+        icon: '🎯',
+        duration: 50 * 60 * 1000, // 50 minutes
+        effect: { perfectRepairReward: 3 },
+        weight: 13
+    },
+    QUANTUM_LEAP: {
+        id: 'quantum_leap',
+        name: 'Quantum Leap',
+        description: 'Breakthrough moment - next 3 repairs are worth 4x rewards!',
+        icon: '🚀',
+        duration: 2.5 * 60 * 60 * 1000, // 2.5 hours
+        effect: { nextRepairsMultiplier: 4, nextRepairsCount: 3 },
+        weight: 6
+    },
+    MENTOR_MOMENT: {
+        id: 'mentor_moment',
+        name: 'Mentor Moment',
+        description: 'Teaching others boosts your own XP by 150%!',
+        icon: '👨‍🏫',
+        duration: 1.5 * 60 * 60 * 1000, // 1.5 hours
+        effect: { mentorXpBonus: 1.5 },
+        weight: 10
+    },
+    ENERGY_SURGE: {
+        id: 'energy_surge',
+        name: 'Energy Surge',
+        description: 'Unlimited energy - no fatigue penalties for 1 hour!',
+        icon: '⚡',
+        duration: 60 * 60 * 1000, // 1 hour
+        effect: { noFatigue: true },
+        weight: 12
+    },
+    FORTUNE_WHEEL: {
+        id: 'fortune_wheel',
+        name: 'Fortune Wheel',
+        description: 'Spin the wheel - random bonus rewards on every action!',
+        icon: '🎰',
+        duration: 80 * 60 * 1000, // 80 minutes
+        effect: { randomRewardChance: 0.3 },
+        weight: 11
+    },
+    FOCUS_MODE: {
+        id: 'focus_mode',
+        name: 'Focus Mode',
+        description: 'Deep concentration - searches reveal more information!',
+        icon: '🔍',
+        duration: 65 * 60 * 1000, // 65 minutes
+        effect: { searchBonus: 2, searchXpMultiplier: 2 },
+        weight: 14
+    },
+    INNOVATION_SPARK: {
+        id: 'innovation_spark',
+        name: 'Innovation Spark',
+        description: 'Creative solutions unlock - new repair methods grant extra XP!',
+        icon: '✨',
+        duration: 55 * 60 * 1000, // 55 minutes
+        effect: { innovationXpBonus: 400 },
+        weight: 10
+    },
+    RESOURCE_RUSH: {
+        id: 'resource_rush',
+        name: 'Resource Rush',
+        description: 'Temporary resource surplus - orders cost less!',
+        icon: '📦',
+        duration: 70 * 60 * 1000, // 70 minutes
+        effect: { orderCostReduction: 0.25 },
+        weight: 13
+    },
+    MASTERY_MOMENT: {
+        id: 'mastery_moment',
+        name: 'Mastery Moment',
+        description: 'Demonstrate your mastery - level 25+ tasks grant 4x rewards!',
+        icon: '👑',
+        duration: 40 * 60 * 1000, // 40 minutes
+        effect: { masteryRewardMultiplier: 4 },
+        weight: 7
     }
 };
 
@@ -2611,22 +3515,32 @@ function checkRandomEvent(config, STORAGE_KEYS) {
     // Check if active event expired
     if (activeEvent && now > activeEvent.expiresAt) {
         GM_setValue(STORAGE_KEYS.ACTIVE_EVENT, 'null');
+        GM_setValue(STORAGE_KEYS.LAST_EVENT_END_TIME, now); // Track when event ended for cooldown
         if (window.showPositiveMessage) {
             window.showPositiveMessage(`Event "${activeEvent.name}" has ended!`);
         }
         updateEventNotification(null);
     }
     
-    // Check for new event every 30 minutes
-    if (now - lastCheck < 30 * 60 * 1000) return;
+    // Check for new event every 2.5 hours (150 minutes) - REDUCED FREQUENCY
+    if (now - lastCheck < 2.5 * 60 * 60 * 1000) return;
     
     GM_setValue(STORAGE_KEYS.LAST_EVENT_CHECK, now);
     
     // Don't spawn if event already active
     if (activeEvent && now < activeEvent.expiresAt) return;
     
-    // 15% chance to spawn event
-    if (Math.random() > 0.15) return;
+    // Cooldown check - prevent spawning too soon after last event ended
+    const lastEventEnd = GM_getValue(STORAGE_KEYS.LAST_EVENT_END_TIME, 0);
+    const cooldownPeriod = 3 * 60 * 60 * 1000; // 3 hour cooldown after event ends
+    if (lastEventEnd > 0 && (now - lastEventEnd) < cooldownPeriod) return;
+    
+    // Only spawn during working hours (9 AM to 8 PM)
+    const currentHour = new Date().getHours();
+    if (currentHour < 9 || currentHour >= 20) return;
+    
+    // 4% chance to spawn event (REDUCED from 8%) - less frequent
+    if (Math.random() > 0.04) return;
     
     // Select random event weighted by spawn chance
     const events = Object.values(RANDOM_EVENTS);
@@ -2656,16 +3570,17 @@ function checkRandomEvent(config, STORAGE_KEYS) {
     if (selectedEvent.duration === 0) {
         if (selectedEvent.effect.instantCoins) {
             const coins = selectedEvent.effect.instantCoins();
-            grantCoins(config, STORAGE_KEYS, coins);
+            grantCoins(config, STORAGE_KEYS, coins, 'random_event');
             if (window.showPositiveMessage) {
                 window.showPositiveMessage(`${selectedEvent.icon} ${selectedEvent.name}! +${coins} coins!`);
             }
         }
         
-        // Log to history
+        // Log to history and track end time for cooldown
         const history = JSON.parse(GM_getValue(STORAGE_KEYS.EVENT_HISTORY, '[]'));
         history.push({ ...eventData, completedAt: now });
         GM_setValue(STORAGE_KEYS.EVENT_HISTORY, JSON.stringify(history.slice(-50)));
+        GM_setValue(STORAGE_KEYS.LAST_EVENT_END_TIME, now); // Track when event ended for cooldown
         return;
     }
     
@@ -2703,76 +3618,67 @@ function updateEventNotification(eventData) {
         container = document.createElement('div');
         container.id = 'tm-event-notification';
         container.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: 2px solid #9c89ff;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            z-index: 9998;
-            width: 550px;
-            min-height: 52px;
-            animation: bossSlideDown 0.5s ease-out;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
+            background: transparent;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 20px;
+            color: #cbd5e1;
+            padding: 3px 10px;
+            width: fit-content;
+            max-width: 380px;
+            min-height: 26px;
+            transition: all 0.15s ease;
             box-sizing: border-box;
             display: flex;
             align-items: center;
+            margin: auto;
+            font-size: 12px;
+            cursor: pointer;
         `;
         container.setAttribute('data-minimized', wasMinimized ? 'true' : 'false');
+        // Insert into rnr-hfiller element if it exists, otherwise fallback to body
+        const hfiller = document.querySelector('.rnr-hfiller');
+        if (hfiller) {
+            hfiller.appendChild(container);
+        } else {
+            // Fallback: insert at the beginning of body
+            if (document.body.firstChild) {
+                document.body.insertBefore(container, document.body.firstChild);
+            } else {
         document.body.appendChild(container);
     }
-    
-    // Check if boss notification exists and adjust position
-    const bossNotification = document.getElementById('tm-boss-notification');
-    if (bossNotification && bossNotification.style.display !== 'none') {
-        container.style.top = '80px'; // Position below boss notification
-    } else {
-        container.style.top = '20px'; // Use same position as boss
+        }
     }
+    
+    // Notifications are integrated in page flow, no special positioning needed
     
     const timeLeft = Math.max(0, eventData.expiresAt - Date.now());
     const formattedTime = formatTimeRemaining(timeLeft);
     
     container.innerHTML = `
-        <div style="font-size: 36px; line-height: 1; flex-shrink: 0;">${eventData.icon}</div>
-        <div style="flex: 1; min-width: 0; margin: 0 12px;">
-            <div style="font-weight: bold; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🎲 ${eventData.name}</div>
-            <div style="font-size: 12px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${eventData.description}</div>
-        </div>
-        <span style="font-size: 13px; font-weight: bold; background: rgba(0,0,0,0.3); padding: 5px 12px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; margin-right: 12px;">
-            ⏱️ ${formattedTime}
-        </span>
+        <span style="font-size: 14px; line-height: 1; margin-right: 6px; flex-shrink: 0; opacity: 0.8;">${eventData.icon}</span>
+        <span style="flex: 1; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px;">${eventData.name}</span>
+        <span style="font-size: 10px; color: #64748b; margin-left: 8px; white-space: nowrap; flex-shrink: 0;">${formattedTime}</span>
         <button id="tm-hide-event-btn" style="
-            background: rgba(0,0,0,0.3);
-            color: white;
+            background: transparent;
+            color: #64748b;
             border: none;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
             cursor: pointer;
             font-size: 14px;
             line-height: 1;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
-            flex-shrink: 0;
+            padding: 2px 6px;
             margin-left: 8px;
-        " title="Hide notification">×</button>
+            transition: color 0.15s;
+            flex-shrink: 0;
+        " title="Dismiss" onmouseover="this.style.color='#cbd5e1'" onmouseout="this.style.color='#64748b'">×</button>
     `;
     
     // Restore minimized state if it was minimized before update
     if (wasMinimized) {
-        container.style.top = '-40px';
+        container.style.maxHeight = '24px';
+        container.style.overflow = 'hidden';
         container.style.cursor = 'pointer';
-        container.style.padding = '4px 16px';
-        container.style.minHeight = '40px';
+        container.style.padding = '2px 10px';
+        container.style.minHeight = '24px';
         container.setAttribute('data-minimized', 'true');
     }
     
@@ -2780,54 +3686,78 @@ function updateEventNotification(eventData) {
     const hideBtn = container.querySelector('#tm-hide-event-btn');
     
     const minimizeNotification = () => {
-        container.style.top = '-40px';
+        container.style.maxHeight = '24px';
+        container.style.overflow = 'hidden';
         container.style.cursor = 'pointer';
-        container.style.padding = '4px 16px';
-        container.style.minHeight = '40px';
+        container.style.padding = '2px 10px';
+        container.style.minHeight = '24px';
         container.setAttribute('data-minimized', 'true');
         // Save minimized state to storage
         GM_setValue(window.STORAGE_KEYS.EVENT_NOTIFICATION_MINIMIZED, true);
     };
     
     const expandNotification = () => {
-        // Check if boss notification exists to determine correct position
-        const bossNotification = document.getElementById('tm-boss-notification');
-        const correctTop = (bossNotification && bossNotification.style.display !== 'none') ? '80px' : '20px';
-        
-        container.style.top = correctTop;
+        container.style.maxHeight = 'none';
+        container.style.overflow = 'visible';
         container.style.cursor = 'default';
-        container.style.padding = '8px 16px';
-        container.style.minHeight = '52px';
+        container.style.padding = '3px 10px';
+        container.style.minHeight = '26px';
         container.setAttribute('data-minimized', 'false');
         // Save expanded state to storage
         GM_setValue(window.STORAGE_KEYS.EVENT_NOTIFICATION_MINIMIZED, false);
     };
     
-    if (hideBtn) {
-        hideBtn.addEventListener('mouseenter', () => {
-            hideBtn.style.background = 'rgba(0,0,0,0.6)';
-        });
-        hideBtn.addEventListener('mouseleave', () => {
-            hideBtn.style.background = 'rgba(0,0,0,0.3)';
-        });
+    // Only add event listeners if container is new or listeners haven't been added yet
+    if (isNewContainer || !container.hasAttribute('data-listeners-added')) {
+        container.setAttribute('data-listeners-added', 'true');
+        
+        if (hideBtn && !hideBtn.hasAttribute('data-listener-added')) {
+            hideBtn.setAttribute('data-listener-added', 'true');
         hideBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             minimizeNotification();
         });
     }
     
-    // Expand on hover or click when minimized
-    container.addEventListener('mouseenter', () => {
+        // Main click handler for showing event details
+        container.addEventListener('click', (e) => {
+            // Don't trigger if clicking on dismiss button
+            if (e.target.closest('#tm-hide-event-btn')) {
+                return;
+            }
+            
+            // If minimized, expand it
         if (container.getAttribute('data-minimized') === 'true') {
             expandNotification();
-        }
-    });
-    
-    container.addEventListener('click', (e) => {
-        if (container.getAttribute('data-minimized') === 'true') {
-            expandNotification();
-        }
-    });
+                return;
+            }
+            
+            // Otherwise, show event details - prevent multiple opens
+            if (document.querySelector('.tm-modal-overlay')) {
+                return; // Modal already open
+            }
+            
+            const freshEventData = JSON.parse(GM_getValue(window.STORAGE_KEYS.ACTIVE_EVENT, 'null'));
+            if (freshEventData) {
+                showEventDetailsModal(freshEventData);
+            }
+        });
+        
+        // Hover effects
+        container.addEventListener('mouseenter', () => {
+            if (container.getAttribute('data-minimized') !== 'true') {
+                container.style.background = 'rgba(102, 126, 234, 0.1)';
+                container.style.borderBottomColor = 'rgba(102, 126, 234, 0.5)';
+            }
+        });
+        container.addEventListener('mouseleave', () => {
+            container.style.background = 'transparent';
+            container.style.borderBottomColor = 'rgba(102, 126, 234, 0.3)';
+        });
+        
+        // Make container look clickable
+        container.style.cursor = 'pointer';
+    }
     
     // Update every second
     setTimeout(() => {
@@ -2841,6 +3771,7 @@ function updateEventNotification(eventData) {
             container.remove();
             GM_setValue(window.STORAGE_KEYS.ACTIVE_EVENT, 'null');
             GM_setValue(window.STORAGE_KEYS.EVENT_NOTIFICATION_MINIMIZED, false);
+            GM_setValue(window.STORAGE_KEYS.LAST_EVENT_END_TIME, Date.now());
             
             if (window.showPositiveMessage) {
                 window.showPositiveMessage('⏰ Random event expired!');
@@ -2849,149 +3780,160 @@ function updateEventNotification(eventData) {
     }, 1000);
 }
 
+function showEventDetailsModal(eventData) {
+    const timeLeft = Math.max(0, eventData.expiresAt - Date.now());
+    const formattedTime = formatTimeRemaining(timeLeft);
+    
+    // Find the event definition to get full details
+    const eventDef = Object.values(RANDOM_EVENTS).find(e => e.id === eventData.id);
+    if (!eventDef) return;
+    
+    // Build effect description
+    let effectDescription = '';
+    const effect = eventDef.effect;
+    if (effect.coinMultiplier) {
+        effectDescription = `💰 Earn ${effect.coinMultiplier}x coins`;
+    } else if (effect.xpMultiplier) {
+        effectDescription = `📚 Earn ${effect.xpMultiplier}x XP`;
+    } else if (effect.instantCoins) {
+        effectDescription = `💰 Instant coin bonus`;
+    } else if (effect.timeSpeedBonus) {
+        effectDescription = `⏰ ${(effect.timeSpeedBonus * 100).toFixed(0)}% faster timers`;
+    } else if (effect.expertXpMultiplier) {
+        effectDescription = `🌟 ${effect.expertXpMultiplier}x XP for expert work`;
+    } else if (effect.luckyChance) {
+        effectDescription = `🍀 ${(effect.luckyChance * 100).toFixed(0)}% chance for bonus rewards`;
+    } else if (effect.speedBoost) {
+        effectDescription = `⚡ ${(effect.speedBoost * 100).toFixed(0)}% faster tasks`;
+    } else if (effect.complexRepairXpMultiplier) {
+        effectDescription = `💡 ${effect.complexRepairXpMultiplier}x XP on complex repairs`;
+    } else if (effect.teamBonusMultiplier) {
+        effectDescription = `🤝 ${effect.teamBonusMultiplier}x team bonuses`;
+    } else if (effect.perfectRepairReward) {
+        effectDescription = `🎯 ${effect.perfectRepairReward}x rewards for perfect repairs`;
+    } else if (effect.nextRepairsMultiplier) {
+        effectDescription = `🚀 Next ${effect.nextRepairsCount} repairs: ${effect.nextRepairsMultiplier}x rewards`;
+    } else if (effect.mentorXpBonus) {
+        effectDescription = `👨‍🏫 ${((effect.mentorXpBonus - 1) * 100).toFixed(0)}% bonus XP`;
+    } else if (effect.noFatigue) {
+        effectDescription = `⚡ No fatigue penalties`;
+    } else if (effect.randomRewardChance) {
+        effectDescription = `🎰 ${(effect.randomRewardChance * 100).toFixed(0)}% random bonus chance`;
+    } else if (effect.searchBonus) {
+        effectDescription = `🔍 ${effect.searchBonus}x search bonuses`;
+    } else if (effect.innovationXpBonus) {
+        effectDescription = `✨ +${effect.innovationXpBonus} XP for innovations`;
+    } else if (effect.orderCostReduction) {
+        effectDescription = `📦 ${(effect.orderCostReduction * 100).toFixed(0)}% cheaper orders`;
+    } else if (effect.masteryRewardMultiplier) {
+        effectDescription = `👑 ${effect.masteryRewardMultiplier}x rewards for mastery tasks`;
+    } else if (effect.customerSatisfactionBonus) {
+        effectDescription = `😊 +${effect.customerSatisfactionBonus} bonus coins for perfect service`;
+    } else {
+        effectDescription = '✨ Special bonus active';
+    }
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'tm-modal-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    overlay.innerHTML = `
+        <div class="tm-modal-content" style="
+            max-width: 450px;
+            max-height: 85vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 2px solid #9c89ff;
+            box-shadow: 0 0 30px rgba(156, 137, 255, 0.6);
+            color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+        ">
+            <div class="tm-modal-header" style="
+                background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+                padding: 20px;
+                border-bottom: 2px solid #9c89ff;
+                text-align: center;
+            ">
+                <div style="font-size: 48px; margin-bottom: 10px;">${eventData.icon}</div>
+                <h3 style="margin: 0; font-size: 22px; font-weight: bold;">${eventData.name}</h3>
+            </div>
+            <div class="tm-modal-body" style="padding: 24px; overflow-y: auto; max-height: calc(85vh - 150px);">
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 14px; opacity: 0.9; margin-bottom: 12px; line-height: 1.6;">
+                        ${eventDef.description}
+                    </div>
+                    <div style="
+                        background: rgba(255, 255, 255, 0.15);
+                        padding: 12px;
+                        border-radius: 8px;
+                        margin-top: 16px;
+                        border-left: 3px solid #9c89ff;
+                    ">
+                        <div style="font-size: 13px; font-weight: 600; margin-bottom: 6px;">Active Effect:</div>
+                        <div style="font-size: 14px;">${effectDescription}</div>
+                    </div>
+                </div>
+                <div style="
+                    background: rgba(0, 0, 0, 0.2);
+                    padding: 12px;
+                    border-radius: 8px;
+                    text-align: center;
+                    margin-top: 16px;
+                ">
+                    <div style="font-size: 12px; opacity: 0.8; margin-bottom: 6px;">Time Remaining</div>
+                    <div style="font-size: 20px; font-weight: bold;">⏱️ ${formattedTime}</div>
+                </div>
+            </div>
+            <div class="tm-modal-footer" style="
+                padding: 16px 24px;
+                border-top: 1px solid rgba(255, 255, 255, 0.2);
+                text-align: center;
+            ">
+                <button onclick="this.closest('.tm-modal-overlay').remove()" style="
+                    background: rgba(255, 255, 255, 0.2);
+                    color: white;
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    padding: 10px 24px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
+                    transition: all 0.2s;
+                " onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'" 
+                   onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'">Close</button>
+            </div>
+        </div>
+    `;
+    
+    // Close on overlay click
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            overlay.remove();
+        }
+    });
+    
+    document.body.appendChild(overlay);
+}
+
 // ===================================================================
 // === (REMOVED: SMART TEMPLATES)
 // ===================================================================
 
 // ===================================================================
-// === FEATURE: FACTIONS/HOUSES SYSTEM
+// === (REMOVED: FACTIONS/HOUSES SYSTEM)
 // ===================================================================
-
-const FACTIONS = {
-    IOS_SQUAD: {
-        id: 'ios_squad',
-        name: 'iOS Squadron',
-        icon: '🍎',
-        color: '#007aff',
-        description: 'Masters of Apple device repairs',
-        perks: { iosRepairBonus: 1.2, applePartDiscount: 0.9 }
-    },
-    ANDROID_ALLIANCE: {
-        id: 'android_alliance',
-        name: 'Android Alliance',
-        icon: '🤖',
-        color: '#3ddc84',
-        description: 'Experts in Android ecosystem',
-        perks: { androidRepairBonus: 1.2, samsungExpertise: true }
-    },
-    SCREEN_WIZARDS: {
-        id: 'screen_wizards',
-        name: 'Screen Wizards',
-        icon: '🪄',
-        color: '#9c27b0',
-        description: 'Screen replacement specialists',
-        perks: { screenRepairSpeed: 1.3, glassHandling: true }
-    },
-    WATER_WARRIORS: {
-        id: 'water_warriors',
-        name: 'Water Warriors',
-        icon: '💧',
-        color: '#00bcd4',
-        description: 'Water damage recovery experts',
-        perks: { waterDamageBonus: 1.5, diagnosticSpeed: 1.2 }
-    },
-    SPEED_DEMONS: {
-        id: 'speed_demons',
-        name: 'Speed Demons',
-        icon: '⚡',
-        color: '#ff5722',
-        description: 'Fast turnaround specialists',
-        perks: { speedBonus: 1.3, rushOrderExpert: true }
-    }
-};
-
-function showFactionsModal(config, STORAGE_KEYS) {
-    const currentFaction = GM_getValue(STORAGE_KEYS.USER_FACTION, null);
-    
-    const overlay = document.createElement('div');
-    overlay.className = 'tm-modal-overlay';
-    overlay.innerHTML = `
-        <div class="tm-modal-content" style="max-width: 700px; height: 85vh; display: flex; flex-direction: column;">
-            <div class="tm-modal-header">
-                <h3>🏰 Choose Your Faction</h3>
-                <button class="tm-modal-close">&times;</button>
-            </div>
-            <div class="tm-modal-body" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
-                ${currentFaction ? `
-                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                        <strong>Current Faction:</strong> ${FACTIONS[currentFaction.toUpperCase().replace(/ /g, '_')]?.icon} ${FACTIONS[currentFaction.toUpperCase().replace(/ /g, '_')]?.name}
-                        <div style="font-size: 12px; margin-top: 4px;">Contribution: ${GM_getValue(STORAGE_KEYS.FACTION_CONTRIBUTION, 0)} points</div>
-                    </div>
-                ` : '<div style="text-align: center; margin-bottom: 15px; color: #666;">Choose a faction to unlock special perks!</div>'}
-                <div id="tm-factions-grid" style="display: grid; grid-template-columns: 1fr; gap: 12px;"></div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-    
-    overlay.querySelector('.tm-modal-close').addEventListener('click', () => overlay.remove());
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-    
-    populateFactions(STORAGE_KEYS, currentFaction);
-}
-
-function populateFactions(STORAGE_KEYS, currentFaction) {
-    const grid = document.getElementById('tm-factions-grid');
-    if (!grid) return;
-    
-    grid.innerHTML = Object.values(FACTIONS).map(faction => {
-        const isActive = currentFaction === faction.id;
-        return `
-            <div class="tm-faction-card" data-faction="${faction.id}" style="
-                background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%);
-                padding: 16px;
-                border-radius: 12px;
-                border-left: 4px solid ${faction.color};
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                cursor: pointer;
-                transition: all 0.3s;
-                ${isActive ? `border: 2px solid ${faction.color}; box-shadow: 0 0 0 3px ${faction.color}33;` : ''}
-            ">
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-                    <div style="font-size: 32px;">${faction.icon}</div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 700; font-size: 16px; color: ${faction.color};">
-                            ${faction.name} ${isActive ? '✓' : ''}
-                        </div>
-                        <div style="font-size: 12px; color: #64748b;">${faction.description}</div>
-                    </div>
-                </div>
-                <div style="font-size: 11px; color: #94a3b8; margin-top: 8px;">
-                    ${Object.entries(faction.perks).map(([key, value]) => 
-                        `• ${key.replace(/([A-Z])/g, ' $1').trim()}: ${typeof value === 'number' ? `+${Math.round((value - 1) * 100)}%` : '✓'}`
-                    ).join('<br>')}
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    // Add click handlers
-    grid.querySelectorAll('.tm-faction-card').forEach(card => {
-        card.addEventListener('click', () => {
-            const factionId = card.dataset.faction;
-            if (currentFaction && currentFaction !== factionId) {
-                if (!confirm('Switch factions? Your contribution will reset!')) return;
-                GM_setValue(STORAGE_KEYS.FACTION_CONTRIBUTION, 0);
-            }
-            GM_setValue(STORAGE_KEYS.USER_FACTION, factionId);
-            if (window.showPositiveMessage) {
-                const faction = FACTIONS[factionId.toUpperCase().replace(/ /g, '_')];
-                window.showPositiveMessage(`${faction.icon} Joined ${faction.name}!`);
-            }
-            document.querySelector('.tm-modal-overlay').remove();
-        });
-        
-        card.addEventListener('mouseenter', () => {
-            card.style.transform = 'translateY(-2px)';
-            card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-        });
-        
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = 'translateY(0)';
-            card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-        });
-    });
-}
 
 // ===================================================================
 // === FEATURE: PERSONAL DASHBOARD WITH ANALYTICS
@@ -3000,45 +3942,28 @@ function populateFactions(STORAGE_KEYS, currentFaction) {
 function showDashboardModal(config, STORAGE_KEYS) {
     const overlay = document.createElement('div');
     overlay.className = 'tm-modal-overlay';
+    const tabBaseStyle = `
+                        padding: 10px 20px;
+                        background: none;
+                        border: none;
+                        border-bottom: 3px solid transparent;
+                        cursor: pointer;
+                        font-weight: 600;
+                        color: var(--tm-secondary-hover);
+                        transition: all 0.2s;`;
+    const talentTabButton = config.levelUpSystemEnabled ? `
+                    <button class="tm-dashboard-tab" data-tab="talents" style="${tabBaseStyle}">🌟 Talents</button>` : '';
     overlay.innerHTML = `
-        <div class="tm-modal-content" style="max-width: 700px; height: 85vh; display: flex; flex-direction: column;">
+        <div class="tm-modal-content" style="max-width: min(920px, 96vw); height: 85vh; display: flex; flex-direction: column;">
             <div class="tm-modal-header">
                 <h3>📊 Personal Dashboard</h3>
                 <button class="tm-modal-close">&times;</button>
             </div>
             <div class="tm-modal-body" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
                 <!-- Dashboard Tabs -->
-                <div class="tm-dashboard-tabs" style="display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0;">
-                    <button class="tm-dashboard-tab active" data-tab="overview" style="
-                        padding: 10px 20px;
-                        background: none;
-                        border: none;
-                        border-bottom: 3px solid transparent;
-                        cursor: pointer;
-                        font-weight: 600;
-                        color: #64748b;
-                        transition: all 0.2s;
-                    ">📈 Overview</button>
-                    <button class="tm-dashboard-tab" data-tab="performance" style="
-                        padding: 10px 20px;
-                        background: none;
-                        border: none;
-                        border-bottom: 3px solid transparent;
-                        cursor: pointer;
-                        font-weight: 600;
-                        color: #64748b;
-                        transition: all 0.2s;
-                    ">📊 Performance</button>
-                    <button class="tm-dashboard-tab" data-tab="faction" style="
-                        padding: 10px 20px;
-                        background: none;
-                        border: none;
-                        border-bottom: 3px solid transparent;
-                        cursor: pointer;
-                        font-weight: 600;
-                        color: #64748b;
-                        transition: all 0.2s;
-                    ">🏰 Faction</button>
+                <div class="tm-dashboard-tabs" style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0;">
+                    <button class="tm-dashboard-tab active" data-tab="overview" style="${tabBaseStyle}">📈 Overview</button>
+                    <button class="tm-dashboard-tab" data-tab="performance" style="${tabBaseStyle}">📊 Performance</button>${talentTabButton}
                 </div>
                 
                 <!-- Tab Content -->
@@ -3068,6 +3993,11 @@ function showDashboardModal(config, STORAGE_KEYS) {
     });
     
     populateDashboard(config, STORAGE_KEYS, 'overview');
+    
+    // Update shop button visibility when dashboard opens
+    if (typeof updateShopButtonVisibility === 'function') {
+        updateShopButtonVisibility(config);
+    }
 }
 
 function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay = null) {
@@ -3092,8 +4022,6 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
         achievements = {};
     }
     
-    const faction = GM_getValue(STORAGE_KEYS.USER_FACTION, null);
-    
     const today = new Date().toISOString().slice(0, 10);
     // Fix: dailyStats is stored flat with a 'date' property, not nested by date
     const stats = (dailyStats.date === today) ? dailyStats : {};
@@ -3103,9 +4031,16 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
     const totalSearches = stats.searches || 0;
     const totalOrders = stats.ordersCreated || 0;
     
-    // Get lifetime status transfer counts
-    const status40Count = GM_getValue(STORAGE_KEYS.STATUS_40_TRANSFERS, 0);
-    const status100Count = GM_getValue(STORAGE_KEYS.STATUS_100_TRANSFERS, 0);
+    // Get lifetime status transfer counts for all tracked statuses
+    const trackedStatuses = ['30', '40', '55', '65', '70', '75', '90', '100', '105'];
+    const statusCounts = {};
+    trackedStatuses.forEach(status => {
+        statusCounts[status] = GM_getValue(`tm_status_${status}_transfers`, 0);
+    });
+    
+    // Keep old keys for backward compatibility
+    const status40Count = statusCounts['40'] || GM_getValue(STORAGE_KEYS.STATUS_40_TRANSFERS, 0);
+    const status100Count = statusCounts['100'] || GM_getValue(STORAGE_KEYS.STATUS_100_TRANSFERS, 0);
     
     if (activeTab === 'overview') {
         container.innerHTML = `
@@ -3117,7 +4052,7 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                     <div style="font-size: 13px; margin-top: 6px; opacity: 0.9;">${xp} XP</div>
                 </div>
                 
-                <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center;">
+                <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; ${config.shopEnabled ? 'cursor: pointer;' : ''}" ${config.shopEnabled ? 'id="tm-dashboard-coin-balance"' : ''} ${config.shopEnabled ? 'title="Click to open Shop"' : ''}>
                     <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Balance</div>
                     <div style="font-size: 42px; font-weight: bold;">🪙</div>
                     <div style="font-size: 20px; margin-top: 6px; font-weight: 600;">${coins}</div>
@@ -3125,48 +4060,61 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
             </div>
             
             <!-- Today's Summary -->
-            <div style="background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                <h4 style="margin: 0 0 16px 0; color: #2c3e50; text-align: center;">📅 Today's Summary</h4>
+            <div style="background: var(--tm-shop-item-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid var(--tm-shop-item-border);">
+                <h4 style="margin: 0 0 16px 0; color: var(--tm-primary-color); text-align: center;">📅 Today's Summary</h4>
                 <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
                     <div style="text-align: center; padding: 12px; background: rgba(79, 172, 254, 0.1); border-radius: 8px;">
                         <div style="font-size: 32px; font-weight: bold; color: #4facfe;">${totalRepairs}</div>
-                        <div style="font-size: 13px; color: #64748b; margin-top: 4px;">Repairs</div>
+                        <div style="font-size: 13px; color: var(--tm-secondary-hover); margin-top: 4px;">Repairs</div>
                     </div>
                     <div style="text-align: center; padding: 12px; background: rgba(102, 187, 106, 0.1); border-radius: 8px;">
                         <div style="font-size: 32px; font-weight: bold; color: #66bb6a;">${totalSearches}</div>
-                        <div style="font-size: 13px; color: #64748b; margin-top: 4px;">Searches</div>
+                        <div style="font-size: 13px; color: var(--tm-secondary-hover); margin-top: 4px;">Searches</div>
                     </div>
                     <div style="text-align: center; padding: 12px; background: rgba(255, 152, 0, 0.1); border-radius: 8px;">
                         <div style="font-size: 32px; font-weight: bold; color: #ff9800;">${totalOrders}</div>
-                        <div style="font-size: 13px; color: #64748b; margin-top: 4px;">Orders</div>
+                        <div style="font-size: 13px; color: var(--tm-secondary-hover); margin-top: 4px;">Orders</div>
                     </div>
                     <div style="text-align: center; padding: 12px; background: rgba(233, 30, 99, 0.1); border-radius: 8px;">
                         <div style="font-size: 32px; font-weight: bold; color: #e91e63;">${Object.keys(achievements).length}</div>
-                        <div style="font-size: 13px; color: #64748b; margin-top: 4px;">Achievements</div>
+                        <div style="font-size: 13px; color: var(--tm-secondary-hover); margin-top: 4px;">Achievements</div>
                     </div>
                 </div>
             </div>
             
             <!-- Lifetime Status Transfers -->
-            <div style="background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 16px;">
-                <h4 style="margin: 0 0 16px 0; color: #2c3e50; text-align: center;">📊 Lifetime Status Transfers</h4>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
-                    <div style="text-align: center; padding: 16px; background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%); border-radius: 8px; border-left: 4px solid #4CAF50;">
-                        <div style="font-size: 14px; color: #388E3C; font-weight: 600; margin-bottom: 8px;">↗️ Status 40</div>
-                        <div style="font-size: 36px; font-weight: bold; color: #4CAF50;">${status40Count}</div>
-                        <div style="font-size: 12px; color: #64748b; margin-top: 6px;">Repairs moved to Status 40</div>
-                    </div>
-                    <div style="text-align: center; padding: 16px; background: linear-gradient(135deg, rgba(33, 150, 243, 0.1) 0%, rgba(33, 150, 243, 0.05) 100%); border-radius: 8px; border-left: 4px solid #2196F3;">
-                        <div style="font-size: 14px; color: #1976D2; font-weight: 600; margin-bottom: 8px;">✅ Status 100</div>
-                        <div style="font-size: 36px; font-weight: bold; color: #2196F3;">${status100Count}</div>
-                        <div style="font-size: 12px; color: #64748b; margin-top: 6px;">Repairs moved to Status 100</div>
-                    </div>
+            <div id="tm-status-transfers-section" style="background: var(--tm-shop-item-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 16px; border: 1px solid var(--tm-shop-item-border); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='var(--tm-shop-item-hover-bg)'" onmouseout="this.style.background='var(--tm-shop-item-bg)'">
+                <h4 style="margin: 0 0 16px 0; color: var(--tm-primary-color); text-align: center;">📊 Lifetime Status Transfers <span style="font-size: 12px; opacity: 0.7;">(Click to view history)</span></h4>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                    ${(function() {
+                        const statusMap = {
+                            '30': { icon: '📋', bgColor: '#9E9E9E' },
+                            '40': { icon: '↗️', bgColor: '#4CAF50' },
+                            '55': { icon: '⏸️', bgColor: '#FF9800' },
+                            '65': { icon: '⏳', bgColor: '#ffc107' },
+                            '70': { icon: '🔧', bgColor: '#9C27B0' },
+                            '75': { icon: '📦', bgColor: '#795548' },
+                            '90': { icon: '📝', bgColor: '#607D8B' },
+                            '100': { icon: '✅', bgColor: '#2196F3' },
+                            '105': { icon: '🎉', bgColor: '#E91E63' }
+                        };
+                        let html = '';
+                        trackedStatuses.forEach(status => {
+                            const count = statusCounts[status] || 0;
+                            const statusInfo = statusMap[status] || { icon: '📋', bgColor: '#888' };
+                            html += '<div style="text-align: center; padding: 12px; background: linear-gradient(135deg, ' + statusInfo.bgColor + '20 0%, ' + statusInfo.bgColor + '10 100%); border-radius: 8px; border-left: 3px solid ' + statusInfo.bgColor + ';">';
+                            html += '<div style="font-size: 12px; color: ' + statusInfo.bgColor + '; font-weight: 600; margin-bottom: 6px;">' + statusInfo.icon + ' Status ' + status + '</div>';
+                            html += '<div style="font-size: 28px; font-weight: bold; color: ' + statusInfo.bgColor + ';">' + count + '</div>';
+                            html += '</div>';
+                        });
+                        return html;
+                    })()}
                 </div>
             </div>
             
             <!-- Unlocked Achievements List -->
-            <div style="background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 16px;">
-                <h4 style="margin: 0 0 16px 0; color: #2c3e50; text-align: center;">🏆 Unlocked Achievements (${Object.keys(achievements).length})</h4>
+            <div style="background: var(--tm-shop-item-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 16px; border: 1px solid var(--tm-shop-item-border);">
+                <h4 style="margin: 0 0 16px 0; color: var(--tm-primary-color); text-align: center;">🏆 Unlocked Achievements (${Object.keys(achievements).length})</h4>
                 ${Object.keys(achievements).length > 0 ? `
                     <div style="display: grid; gap: 8px; max-height: 300px; overflow-y: auto;">
                         ${Object.keys(achievements).map(key => {
@@ -3177,8 +4125,8 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                                 <div style="padding: 10px 12px; background: rgba(233, 30, 99, 0.05); border-left: 3px solid #e91e63; border-radius: 6px; display: flex; align-items: center; gap: 10px;">
                                     <span style="font-size: 20px;">${icons[stat] || '✨'}</span>
                                     <div style="flex: 1;">
-                                        <div style="font-weight: 600; color: #2c3e50; font-size: 13px;">${labels[stat] || stat}: ${count}</div>
-                                        <div style="font-size: 11px; color: #64748b;">${key}</div>
+                                        <div style="font-weight: 600; color: var(--tm-primary-color); font-size: 13px;">${labels[stat] || stat}: ${count}</div>
+                                        <div style="font-size: 11px; color: var(--tm-secondary-hover);">${key}</div>
                                     </div>
                                     <span style="color: #e91e63; font-weight: bold;">✓</span>
                                 </div>
@@ -3186,7 +4134,7 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                         }).join('')}
                     </div>
                 ` : `
-                    <div style="text-align: center; padding: 40px 20px; color: #64748b;">
+                    <div style="text-align: center; padding: 40px 20px; color: var(--tm-secondary-hover);">
                         <div style="font-size: 48px; margin-bottom: 12px;">🏆</div>
                         <div>No achievements unlocked yet!</div>
                         <div style="font-size: 12px; margin-top: 8px; opacity: 0.8;">Start completing searches, repairs, and orders to unlock achievements!</div>
@@ -3194,111 +4142,199 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                 `}
             </div>
         `;
+        
+        // Add click handler for status transfers section
+        setTimeout(() => {
+            const statusSection = document.getElementById('tm-status-transfers-section');
+            if (statusSection) {
+                statusSection.addEventListener('click', () => {
+                    showStatusTransferHistory(STORAGE_KEYS);
+                });
+            }
+            
+            // Add click handler for coin balance to open shop (if enabled)
+            if (config.shopEnabled) {
+                const coinBalance = document.getElementById('tm-dashboard-coin-balance');
+                if (coinBalance) {
+                    coinBalance.addEventListener('click', () => {
+                        // Switch to shop tab
+                        const shopTab = overlay.querySelector('.tm-dashboard-tab[data-tab="shop"]');
+                        if (shopTab) {
+                            shopTab.click();
+                        } else {
+                            // If shop tab doesn't exist, open shop modal directly
+                            if (typeof window.showShopModal === 'function') {
+                                window.showShopModal(config, STORAGE_KEYS);
+                            }
+                        }
+                    });
+                }
+            }
+        }, 100);
     } else if (activeTab === 'performance') {
+        // Get additional performance data
+        const status65Count = GM_getValue(STORAGE_KEYS.STATUS_65_TRANSFERS, 0);
+        const bossDefeats = GM_getValue(STORAGE_KEYS.BOSS_DEFEATS, 0);
+        const bossHistory = JSON.parse(GM_getValue(STORAGE_KEYS.BOSS_HISTORY, '[]'));
+        const eventHistory = JSON.parse(GM_getValue(STORAGE_KEYS.EVENT_HISTORY, '[]'));
+        const dailyStatsHistory = JSON.parse(GM_getValue('tm_daily_stats_history', '{}'));
+        
+        // Calculate weekly averages
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toISOString().slice(0, 10);
+            last7Days.push(dailyStatsHistory[dateStr] || {});
+        }
+        
+        const weeklyRepairs = last7Days.reduce((sum, day) => sum + (day.repairsCompleted || 0), 0);
+        const weeklySearches = last7Days.reduce((sum, day) => sum + (day.searches || 0), 0);
+        const weeklyOrders = last7Days.reduce((sum, day) => sum + (day.ordersCreated || 0), 0);
+        const weeklyStatus40 = last7Days.reduce((sum, day) => sum + (day.status40Transfers || 0), 0);
+        const weeklyStatus65 = last7Days.reduce((sum, day) => sum + (day.status65Transfers || 0), 0);
+        const weeklyStatus100 = last7Days.reduce((sum, day) => sum + (day.status100Transfers || 0), 0);
+        
+        const avgDailyRepairs = Math.round(weeklyRepairs / 7 * 10) / 10;
+        const avgDailySearches = Math.round(weeklySearches / 7 * 10) / 10;
+        
+        // Calculate efficiency metrics
+        const efficiencyScore = totalRepairs > 0 ? Math.round((totalRepairs / Math.max(totalSearches, 1)) * 100) : 0;
+        const statusCompletionRate = (status40Count + status65Count + status100Count) > 0 ? 
+            Math.round((status100Count / (status40Count + status65Count + status100Count)) * 100) : 0;
+        
         container.innerHTML = `
+            <!-- Performance Overview Cards -->
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;">
+                <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 16px; border-radius: 12px; text-align: center;">
+                    <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Daily Average</div>
+                    <div style="font-size: 24px; font-weight: bold;">${avgDailyRepairs}</div>
+                    <div style="font-size: 11px; opacity: 0.8;">Repairs/Day</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%); color: white; padding: 16px; border-radius: 12px; text-align: center;">
+                    <div style="font-size: 12px; opacity: 0.9; margin-bottom: 4px;">Efficiency Score</div>
+                    <div style="font-size: 24px; font-weight: bold;">${efficiencyScore}%</div>
+                    <div style="font-size: 11px; opacity: 0.8;">Repair/Search Ratio</div>
+                </div>
+            </div>
+            
             <!-- Performance Chart -->
-            <div style="background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 16px;">
-                <h4 style="margin: 0 0 16px 0; color: #2c3e50; text-align: center;">📈 7-Day Repair Trend</h4>
+            <div style="background: var(--tm-shop-item-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 16px; border: 1px solid var(--tm-shop-item-border);">
+                <h4 style="margin: 0 0 16px 0; color: var(--tm-primary-color); text-align: center;">📈 7-Day Repair Trend</h4>
                 <div id="tm-performance-chart" style="height: 180px;"></div>
             </div>
             
+            <!-- Weekly Statistics -->
+            <div style="background: var(--tm-shop-item-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 16px; border: 1px solid var(--tm-shop-item-border);">
+                <h4 style="margin: 0 0 16px 0; color: var(--tm-primary-color); text-align: center;">📊 Weekly Statistics</h4>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                    <div style="text-align: center; padding: 12px; background: rgba(79, 172, 254, 0.1); border-radius: 8px;">
+                        <div style="font-size: 20px; font-weight: bold; color: #4facfe;">${weeklyRepairs}</div>
+                        <div style="font-size: 11px; color: var(--tm-secondary-hover);">Total Repairs</div>
+                    </div>
+                    <div style="text-align: center; padding: 12px; background: rgba(102, 187, 106, 0.1); border-radius: 8px;">
+                        <div style="font-size: 20px; font-weight: bold; color: #66bb6a;">${weeklySearches}</div>
+                        <div style="font-size: 11px; color: var(--tm-secondary-hover);">Total Searches</div>
+                    </div>
+                    <div style="text-align: center; padding: 12px; background: rgba(255, 152, 0, 0.1); border-radius: 8px;">
+                        <div style="font-size: 20px; font-weight: bold; color: #ff9800;">${weeklyOrders}</div>
+                        <div style="font-size: 11px; color: var(--tm-secondary-hover);">Orders Created</div>
+                    </div>
+                    <div style="text-align: center; padding: 12px; background: rgba(233, 30, 99, 0.1); border-radius: 8px;">
+                        <div style="font-size: 20px; font-weight: bold; color: #e91e63;">${statusCompletionRate}%</div>
+                        <div style="font-size: 11px; color: var(--tm-secondary-hover);">Completion Rate</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Status Transfer Breakdown -->
+            <div style="background: var(--tm-shop-item-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 16px; border: 1px solid var(--tm-shop-item-border);">
+                <h4 style="margin: 0 0 16px 0; color: var(--tm-primary-color); text-align: center;">🔄 Status Transfer Analysis</h4>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                    <div style="text-align: center; padding: 12px; background: rgba(33, 150, 243, 0.1); border-radius: 8px;">
+                        <div style="font-size: 18px; font-weight: bold; color: #2196f3;">${status40Count}</div>
+                        <div style="font-size: 11px; color: var(--tm-secondary-hover);">📞 Status 40</div>
+                        <div style="font-size: 10px; color: var(--tm-secondary-hover); opacity: 0.8;">Notifications</div>
+                    </div>
+                    <div style="text-align: center; padding: 12px; background: rgba(255, 193, 7, 0.1); border-radius: 8px;">
+                        <div style="font-size: 18px; font-weight: bold; color: #ffc107;">${status65Count}</div>
+                        <div style="font-size: 11px; color: var(--tm-secondary-hover);">⏳ Status 65</div>
+                        <div style="font-size: 10px; color: var(--tm-secondary-hover); opacity: 0.8;">Waiting for Parts</div>
+                    </div>
+                    <div style="text-align: center; padding: 12px; background: rgba(76, 175, 80, 0.1); border-radius: 8px;">
+                        <div style="font-size: 18px; font-weight: bold; color: #4caf50;">${status100Count}</div>
+                        <div style="font-size: 11px; color: var(--tm-secondary-hover);">✅ Status 100</div>
+                        <div style="font-size: 10px; color: var(--tm-secondary-hover); opacity: 0.8;">Delivered</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Boss Battle & Event History -->
+            <div style="background: var(--tm-shop-item-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 16px; border: 1px solid var(--tm-shop-item-border);">
+                <h4 style="margin: 0 0 16px 0; color: var(--tm-primary-color); text-align: center;">⚔️ Boss Battles & Events</h4>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                    <div style="text-align: center; padding: 16px; background: rgba(255, 82, 82, 0.1); border-radius: 8px;">
+                        <div style="font-size: 24px; font-weight: bold; color: #ff5252;">${bossDefeats}</div>
+                        <div style="font-size: 12px; color: var(--tm-secondary-hover);">Bosses Defeated</div>
+                        <div style="font-size: 10px; color: var(--tm-secondary-hover); opacity: 0.8;">All Time</div>
+                    </div>
+                    <div style="text-align: center; padding: 16px; background: rgba(156, 39, 176, 0.1); border-radius: 8px;">
+                        <div style="font-size: 24px; font-weight: bold; color: #9c27b0;">${eventHistory.length}</div>
+                        <div style="font-size: 12px; color: var(--tm-secondary-hover);">Events Completed</div>
+                        <div style="font-size: 10px; color: var(--tm-secondary-hover); opacity: 0.8;">All Time</div>
+                    </div>
+                </div>
+                ${bossHistory.length > 0 ? `
+                    <div style="margin-top: 16px;">
+                        <div style="font-size: 12px; color: var(--tm-secondary-hover); margin-bottom: 8px;">Recent Boss Victories:</div>
+                        <div style="max-height: 120px; overflow-y: auto;">
+                            ${bossHistory.slice(-5).reverse().map(boss => `
+                                <div style="padding: 8px; background: rgba(255, 82, 82, 0.05); border-radius: 6px; margin-bottom: 4px; font-size: 11px;">
+                                    <div style="font-weight: bold; color: #ff5252;">${BOSS_BATTLES[boss.bossId.toUpperCase()]?.icon || '⚔️'} ${BOSS_BATTLES[boss.bossId.toUpperCase()]?.name || boss.bossId}</div>
+                                    <div style="color: var(--tm-secondary-hover);">Completed in ${Math.round(boss.completedIn / 60000)}m - +${boss.rewards.coins} coins</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+            
             <!-- Performance Insights -->
-            <div style="background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                <h4 style="margin: 0 0 12px 0; color: #2c3e50;">💡 Insights</h4>
-                <div style="font-size: 14px; color: #64748b; line-height: 1.8;">
+            <div style="background: var(--tm-shop-item-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid var(--tm-shop-item-border);">
+                <h4 style="margin: 0 0 12px 0; color: var(--tm-primary-color);">💡 Performance Insights</h4>
+                <div style="font-size: 14px; color: var(--tm-secondary-hover); line-height: 1.8;">
                     ${totalRepairs > 0 ? `✅ Great job today! You've completed <strong style="color: #4facfe;">${totalRepairs}</strong> repairs.` : '📊 Start completing repairs to see insights!'}
                     <br>
-                    ${totalSearches > 5 ? `🔍 You're very active with <strong style="color: #66bb6a;">${totalSearches}</strong> searches today!` : ''}
+                    ${avgDailyRepairs > 5 ? `🚀 You're above average with <strong style="color: #66bb6a;">${avgDailyRepairs}</strong> repairs per day!` : ''}
                     <br>
-                    ${Object.keys(achievements).length > 10 ? `🏆 Impressive! <strong style="color: #ffc107;">${Object.keys(achievements).length}</strong> achievements unlocked!` : ''}
+                    ${efficiencyScore > 50 ? `🎯 Excellent efficiency! <strong style="color: #ffc107;">${efficiencyScore}%</strong> repair-to-search ratio!` : ''}
+                    <br>
+                    ${statusCompletionRate > 80 ? `🏆 Outstanding! <strong style="color: #e91e63;">${statusCompletionRate}%</strong> completion rate!` : ''}
+                    <br>
+                    ${bossDefeats > 5 ? `⚔️ Impressive! <strong style="color: #ff5252;">${bossDefeats}</strong> bosses defeated!` : ''}
+                    <br>
+                    ${Object.keys(achievements).length > 10 ? `🏆 Amazing! <strong style="color: #ffc107;">${Object.keys(achievements).length}</strong> achievements unlocked!` : ''}
                 </div>
             </div>
         `;
         drawPerformanceChart();
-    } else if (activeTab === 'faction') {
-        const factionData = faction ? FACTIONS[faction.toUpperCase().replace(/ /g, '_')] : null;
-        const contribution = GM_getValue(STORAGE_KEYS.FACTION_CONTRIBUTION, 0);
-        
-        container.innerHTML = factionData ? `
-            <!-- Faction Info -->
-            <div style="background: linear-gradient(135deg, ${factionData.color}dd 0%, ${factionData.color}99 100%); color: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 16px; text-align: center;">
-                <div style="font-size: 64px; margin-bottom: 12px;">${factionData.icon}</div>
-                <h2 style="margin: 0 0 8px 0; font-size: 24px;">${factionData.name}</h2>
-                <p style="font-size: 14px; opacity: 0.9; margin: 0 0 16px 0;">${factionData.description}</p>
-                <div style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;">
-                    <div style="font-size: 13px; opacity: 0.9; margin-bottom: 4px;">Your Contribution</div>
-                    <div style="font-size: 28px; font-weight: bold;">${contribution}</div>
-                    <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">points</div>
-                </div>
-            </div>
-            
-            <!-- Faction Perks -->
-            <div style="background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                <h4 style="margin: 0 0 12px 0; color: #2c3e50;">🎁 Active Perks</h4>
-                <div style="display: grid; gap: 8px;">
-                    ${Object.entries(factionData.perks).map(([key, value]) => `
-                        <div style="padding: 10px; background: rgba(${parseInt(factionData.color.slice(1,3), 16)}, ${parseInt(factionData.color.slice(3,5), 16)}, ${parseInt(factionData.color.slice(5,7), 16)}, 0.1); border-left: 3px solid ${factionData.color}; border-radius: 6px;">
-                            <strong style="color: ${factionData.color};">✓ ${key.replace(/([A-Z])/g, ' $1').trim()}</strong>
-                            <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
-                                ${typeof value === 'number' ? `+${Math.round((value - 1) * 100)}% bonus` : 'Unlocked'}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-                
-                <button id="tm-switch-faction-btn" style="
-                    width: 100%;
-                    margin-top: 16px;
-                    padding: 10px;
-                    background: linear-gradient(135deg, ${factionData.color} 0%, ${factionData.color}cc 100%);
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    cursor: pointer;
-                ">Switch Faction</button>
-            </div>
-        ` : `
-            <div style="text-align: center; padding: 60px 20px;">
-                <div style="font-size: 64px; margin-bottom: 16px;">🏰</div>
-                <h3 style="color: #2c3e50; margin-bottom: 12px;">No Faction Selected</h3>
-                <p style="color: #64748b; margin-bottom: 24px;">Join a faction to unlock special perks and bonuses!</p>
-                <button id="tm-choose-faction-btn" style="
-                    padding: 12px 24px;
-                    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-                    color: white;
-                    border: none;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    font-size: 16px;
-                ">Choose Your Faction</button>
-            </div>
-        `;
-        
-        // Add event listeners after HTML is set
-        setTimeout(() => {
-            const switchBtn = document.getElementById('tm-switch-faction-btn');
-            const chooseBtn = document.getElementById('tm-choose-faction-btn');
-            
-            if (switchBtn) {
-                switchBtn.addEventListener('click', () => {
-                    showFactionsModal(config, STORAGE_KEYS);
-                });
-            }
-            
-            if (chooseBtn) {
-                chooseBtn.addEventListener('click', () => {
-                    showFactionsModal(config, STORAGE_KEYS);
-                });
-            }
-        }, 0);
     } else if (activeTab === 'talents') {
+        if (!config.levelUpSystemEnabled) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 48px 20px; color: var(--tm-secondary-hover);">
+                    <div style="font-size: 48px; margin-bottom: 12px;">🌟</div>
+                    <p style="margin: 0;">Το Talent Tree είναι απενεργοποιημένο στις ρυθμίσεις.</p>
+                </div>`;
+            return;
+        }
         // Talents Tab Content
         const talentPoints = GM_getValue(STORAGE_KEYS.USER_TALENT_POINTS, 0);
         const unlockedTalents = JSON.parse(GM_getValue(STORAGE_KEYS.UNLOCKED_TALENTS, '[]'));
-        const availableTalents = TALENT_TREE.filter(t => level >= t.levelRequired).length;
-        const totalTalents = TALENT_TREE.length;
+        const visibleTalentTree = config?.interactiveMascotEnabled !== false
+            ? TALENT_TREE
+            : TALENT_TREE.filter(t => t.id !== 'mascot_lover');
+        const availableTalents = visibleTalentTree.filter(t => level >= t.levelRequired).length;
+        const totalTalents = visibleTalentTree.length;
         
         container.innerHTML = `
             <!-- Talent Points Display -->
@@ -3317,14 +4353,14 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                 </div>
                 
                 <div style="
-                    background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%);
+                    background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border);
                     padding: 16px;
                     border-radius: 12px;
                     text-align: center;
                     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                     min-width: 180px;
                 ">
-                    <div style="font-size: 13px; color: #64748b; margin-bottom: 4px;">Progress</div>
+                    <div style="font-size: 13px; color: var(--tm-secondary-hover); margin-bottom: 4px;">Progress</div>
                     <div style="font-size: 24px; font-weight: bold; color: #4facfe;">${unlockedTalents.length}/${availableTalents}</div>
                     <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">${totalTalents - availableTalents} locked by level</div>
                 </div>
@@ -3334,8 +4370,20 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
             <div id="tm-talents-dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;"></div>
         `;
         
-        populateTalentsDashboard(STORAGE_KEYS, level);
+        populateTalentsDashboard(STORAGE_KEYS, level, config);
     } else if (activeTab === 'shop') {
+        // Check if shop is enabled
+        if (!config.shopEnabled) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px; color: var(--tm-secondary-hover);">
+                    <div style="font-size: 64px; margin-bottom: 16px;">🪙</div>
+                    <h3 style="color: var(--tm-primary-color); margin-bottom: 12px;">Shop is Disabled</h3>
+                    <p style="color: var(--tm-secondary-hover);">Enable the shop in Settings to access the shop.</p>
+                </div>
+            `;
+            return;
+        }
+        
         // Shop Tab Content
         container.innerHTML = `
             <div class="tm-shop-tabs" style="display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0;">
@@ -3356,7 +4404,7 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                     border-bottom: 3px solid transparent;
                     cursor: pointer;
                     font-weight: 600;
-                    color: #64748b;
+                    color: var(--tm-secondary-hover);
                     transition: all 0.2s;
                 ">🎩 Accessories</button>
                 <button class="tm-shop-tab" data-category="consumables" style="
@@ -3366,7 +4414,7 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                     border-bottom: 3px solid transparent;
                     cursor: pointer;
                     font-weight: 600;
-                    color: #64748b;
+                    color: var(--tm-secondary-hover);
                     transition: all 0.2s;
                 ">⚡ Consumables</button>
             </div>
@@ -3402,8 +4450,8 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
         
         container.innerHTML = `
             <!-- Active Quests -->
-            <div style="background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 16px;">
-                <h4 style="margin: 0 0 16px 0; color: #2c3e50;">⚔️ Active Quests</h4>
+            <div style="background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 16px;">
+                <h4 style="margin: 0 0 16px 0; color: var(--tm-primary-color);">⚔️ Active Quests</h4>
                 ${activeBoss && !activeBoss.abandoned ? `
                     <div style="padding: 16px; background: linear-gradient(135deg, #ff5252 0%, #e53935 100%); color: white; border-radius: 8px; margin-bottom: 12px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -3426,7 +4474,7 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                     </div>
                 ` : ''}
                 ${!activeBoss && !activeEvent ? `
-                    <div style="text-align: center; padding: 40px 20px; color: #64748b;">
+                    <div style="text-align: center; padding: 40px 20px; color: var(--tm-secondary-hover);">
                         <div style="font-size: 48px; margin-bottom: 12px;">📜</div>
                         <div>No active quests at the moment.</div>
                         <div style="font-size: 13px; margin-top: 8px; opacity: 0.8;">Keep working to trigger new quests!</div>
@@ -3435,20 +4483,20 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
             </div>
             
             <!-- Daily Bounties -->
-            <div style="background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                <h4 style="margin: 0 0 16px 0; color: #2c3e50;">🎯 Daily Bounties</h4>
+            <div style="background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h4 style="margin: 0 0 16px 0; color: var(--tm-primary-color);">🎯 Daily Bounties</h4>
                 ${dailyBounties.length > 0 ? dailyBounties.map(bounty => `
                     <div style="padding: 12px; background: ${bounty.completed ? 'rgba(102, 187, 106, 0.1)' : 'rgba(79, 172, 254, 0.1)'}; border-left: 3px solid ${bounty.completed ? '#66bb6a' : '#4facfe'}; border-radius: 6px; margin-bottom: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <div style="font-weight: 600; color: #2c3e50; margin-bottom: 4px;">${bounty.task}</div>
-                                <div style="font-size: 12px; color: #64748b;">Reward: ${bounty.xpReward} XP, ${bounty.coinReward} 🪙</div>
+                                <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 4px;">${bounty.task}</div>
+                                <div style="font-size: 12px; color: var(--tm-secondary-hover);">Reward: ${bounty.xpReward} XP, ${bounty.coinReward} 🪙</div>
                             </div>
                             <div style="font-size: 24px;">${bounty.completed ? '✅' : '⏳'}</div>
                         </div>
                     </div>
                 `).join('') : `
-                    <div style="text-align: center; padding: 40px 20px; color: #64748b;">
+                    <div style="text-align: center; padding: 40px 20px; color: var(--tm-secondary-hover);">
                         <div style="font-size: 48px; margin-bottom: 12px;">🎯</div>
                         <div>No daily bounties available.</div>
                     </div>
@@ -3492,7 +4540,7 @@ function drawPerformanceChart() {
                             min-height: ${value > 0 ? '10px' : '2px'};
                             transition: height 0.3s ease;
                         "></div>
-                        <div style="font-size: 10px; color: #64748b; margin-top: 4px;">${dayLabel}</div>
+                        <div style="font-size: 10px; color: var(--tm-secondary-hover); margin-top: 4px;">${dayLabel}</div>
                     </div>
                 `;
             }).join('')}
@@ -3501,14 +4549,18 @@ function drawPerformanceChart() {
 }
 
 // Helper function to populate talents in dashboard
-function populateTalentsDashboard(STORAGE_KEYS, currentLevel) {
+function populateTalentsDashboard(STORAGE_KEYS, currentLevel, config) {
     const talentPoints = GM_getValue(STORAGE_KEYS.USER_TALENT_POINTS, 0);
     const unlockedTalents = JSON.parse(GM_getValue(STORAGE_KEYS.UNLOCKED_TALENTS, '[]'));
     const grid = document.getElementById('tm-talents-dashboard-grid');
     
     if (!grid) return;
-    
-    grid.innerHTML = TALENT_TREE.map(talent => {
+
+    const visibleTalentTree = config?.interactiveMascotEnabled !== false
+        ? TALENT_TREE
+        : TALENT_TREE.filter(t => t.id !== 'mascot_lover');
+
+    grid.innerHTML = visibleTalentTree.map(talent => {
         const isUnlocked = unlockedTalents.includes(talent.id);
         const canAfford = talentPoints >= talent.cost;
         const levelMet = currentLevel >= talent.levelRequired;
@@ -3537,7 +4589,7 @@ function populateTalentsDashboard(STORAGE_KEYS, currentLevel) {
                      transition: all 0.3s;
                  ">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                    <div style="font-size: 32px;">${talent.icon}</div>
+                    <div style="font-size: 32px;">${talent.icon || '⭐'}</div>
                     <div style="
                         background: ${tierColor};
                         color: white;
@@ -3549,8 +4601,8 @@ function populateTalentsDashboard(STORAGE_KEYS, currentLevel) {
                     ">${tierLabel}</div>
                 </div>
                 
-                <div style="font-weight: 700; font-size: 15px; color: #2c3e50; margin-bottom: 4px;">${talent.name}</div>
-                <div style="font-size: 12px; color: #64748b; min-height: 40px; margin-bottom: 12px; line-height: 1.4;">${talent.description}</div>
+                <div style="font-weight: 700; font-size: 15px; color: var(--tm-primary-color); margin-bottom: 4px;">${talent.name}</div>
+                <div style="font-size: 12px; color: var(--tm-secondary-hover); min-height: 40px; margin-bottom: 12px; line-height: 1.4;">${talent.description}</div>
                 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <div style="font-size: 11px; color: #94a3b8;">
@@ -3598,14 +4650,15 @@ function populateTalentsDashboard(STORAGE_KEYS, currentLevel) {
             GM_setValue(STORAGE_KEYS.UNLOCKED_TALENTS, JSON.stringify(unlockedTalents));
             
             // Refresh the talents display
-            populateTalentsDashboard(STORAGE_KEYS, currentLevel);
+            populateTalentsDashboard(STORAGE_KEYS, currentLevel, config);
             
-            // Update the points display
-            const pointsDisplay = document.querySelector('#tm-talents-dashboard-grid').parentElement.previousElementSibling;
+            // Update the points display (row above the talent grid)
+            const talentsGridEl = document.getElementById('tm-talents-dashboard-grid');
+            const pointsDisplay = talentsGridEl ? talentsGridEl.previousElementSibling : null;
             if (pointsDisplay) {
                 const newPoints = GM_getValue(STORAGE_KEYS.USER_TALENT_POINTS, 0);
                 const newUnlocked = JSON.parse(GM_getValue(STORAGE_KEYS.UNLOCKED_TALENTS, '[]'));
-                const availableTalents = TALENT_TREE.filter(t => currentLevel >= t.levelRequired).length;
+                const availableTalents = visibleTalentTree.filter(t => currentLevel >= t.levelRequired).length;
                 pointsDisplay.innerHTML = `
                     <div style="
                         background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
@@ -3621,23 +4674,24 @@ function populateTalentsDashboard(STORAGE_KEYS, currentLevel) {
                     </div>
                     
                     <div style="
-                        background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%);
+                        background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border);
                         padding: 16px;
                         border-radius: 12px;
                         text-align: center;
                         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
                         min-width: 180px;
                     ">
-                        <div style="font-size: 13px; color: #64748b; margin-bottom: 4px;">Progress</div>
+                        <div style="font-size: 13px; color: var(--tm-secondary-hover); margin-bottom: 4px;">Progress</div>
                         <div style="font-size: 24px; font-weight: bold; color: #4facfe;">${newUnlocked.length}/${availableTalents}</div>
-                        <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">${TALENT_TREE.length - availableTalents} locked by level</div>
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">${visibleTalentTree.length - availableTalents} locked by level</div>
                     </div>
                 `;
             }
             
             // Show success notification
             if (typeof window.showNotification === 'function') {
-                window.showNotification('success', `${talent.icon} ${talent.name} unlocked!`);
+                const icon = talent.icon || '⭐';
+                window.showNotification(`${icon} Talent unlocked`, talent.name || 'Talent');
             }
         });
     });
@@ -3665,10 +4719,10 @@ function populateShopDashboard(config, STORAGE_KEYS) {
         themesContainer.innerHTML = window.MASCOT_THEMES.map(theme => {
             const isPurchased = purchasedItems.includes(theme.id) || theme.price === 0;
             return `
-                <div style="padding: 16px; background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
                     <div style="font-size: 48px; margin-bottom: 12px;">${theme.icon}</div>
-                    <div style="font-weight: 600; color: #2c3e50; margin-bottom: 6px;">${theme.name}</div>
-                    <div style="font-size: 12px; color: #64748b; min-height: 36px; margin-bottom: 12px;">${theme.description}</div>
+                    <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${theme.name}</div>
+                    <div style="font-size: 12px; color: var(--tm-secondary-hover); min-height: 36px; margin-bottom: 12px;">${theme.description}</div>
                     <button class="tm-shop-item-btn ${isPurchased ? 'purchased' : 'buy'}" 
                             data-item-id="${theme.id}" 
                             data-item-type="theme"
@@ -3691,17 +4745,17 @@ function populateShopDashboard(config, STORAGE_KEYS) {
         }).join('');
     }
     
-    // Populate accessories
+    // Populate accessories (only when mascot is enabled)
     const accessoriesContainer = wrapper.querySelector('#tm-shop-category-accessories');
     if (config.mascotEnabled && window.MASCOT_ACCESSORIES) {
         accessoriesContainer.innerHTML = window.MASCOT_ACCESSORIES.map(accessory => {
             const isPurchased = purchasedItems.includes(accessory.id);
             const isEquipped = equippedItems.includes(accessory.id);
             return `
-                <div style="padding: 16px; background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
                     <div style="font-size: 48px; margin-bottom: 12px;">${accessory.icon}</div>
-                    <div style="font-weight: 600; color: #2c3e50; margin-bottom: 6px;">${accessory.name}</div>
-                    <div style="font-size: 12px; color: #64748b; min-height: 36px; margin-bottom: 12px;">${accessory.description}</div>
+                    <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${accessory.name}</div>
+                    <div style="font-size: 12px; color: var(--tm-secondary-hover); min-height: 36px; margin-bottom: 12px;">${accessory.description}</div>
                     <button class="tm-shop-item-btn ${!isPurchased ? 'buy' : isEquipped ? 'equipped' : 'equip'}" 
                             data-item-id="${accessory.id}" 
                             data-item-type="accessory"
@@ -3728,10 +4782,10 @@ function populateShopDashboard(config, STORAGE_KEYS) {
     if (config.mascotEnabled && window.MASCOT_CONSUMABLES) {
         consumablesContainer.innerHTML = window.MASCOT_CONSUMABLES.map(consumable => {
             return `
-                <div style="padding: 16px; background: linear-gradient(145deg, #ffffff 0%, #f0f4f8 100%); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
                     <div style="font-size: 48px; margin-bottom: 12px;">${consumable.icon}</div>
-                    <div style="font-weight: 600; color: #2c3e50; margin-bottom: 6px;">${consumable.name}</div>
-                    <div style="font-size: 12px; color: #64748b; min-height: 36px; margin-bottom: 8px;">${consumable.description}</div>
+                    <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${consumable.name}</div>
+                    <div style="font-size: 12px; color: var(--tm-secondary-hover); min-height: 36px; margin-bottom: 8px;">${consumable.description}</div>
                     <div style="font-size: 11px; color: #4facfe; background: rgba(79, 172, 254, 0.1); padding: 6px; border-radius: 6px; margin-bottom: 12px;">
                         ℹ️ ${consumable.info || 'Use to boost your performance!'}
                     </div>
@@ -3841,9 +4895,9 @@ const BOSS_BATTLES = {
         difficulty: 3,
         timeLimit: 30 * 60 * 1000, // 30 minutes
         rewards: { coins: 1000, xp: 500, item: 'legendary_repair_kit' },
-        requiredAction: 'repairsCompleted',
-        requiredCount: 3,
-        taskDescription: 'Complete 3 repairs to defeat this boss'
+        requiredAction: 'statusChanges',
+        requiredCount: 4,
+        taskDescription: 'Move 4 repairs to any status to defeat this boss'
     },
     BOARD_BEAST: {
         id: 'board_beast',
@@ -3853,9 +4907,9 @@ const BOSS_BATTLES = {
         difficulty: 5,
         timeLimit: 45 * 60 * 1000, // 45 minutes
         rewards: { coins: 2000, xp: 1000, item: 'master_soldering_iron' },
-        requiredAction: 'repairsCompleted',
-        requiredCount: 5,
-        taskDescription: 'Complete 5 repairs to defeat this boss'
+        requiredAction: 'statusChanges',
+        requiredCount: 6,
+        taskDescription: 'Move 6 repairs to any status to defeat this boss'
     },
     SCREEN_DEMON: {
         id: 'screen_demon',
@@ -3865,9 +4919,9 @@ const BOSS_BATTLES = {
         difficulty: 2,
         timeLimit: 20 * 60 * 1000, // 20 minutes
         rewards: { coins: 750, xp: 350, item: 'precision_toolkit' },
-        requiredAction: 'repairsCompleted',
-        requiredCount: 2,
-        taskDescription: 'Complete 2 repairs to defeat this boss'
+        requiredAction: 'statusChanges',
+        requiredCount: 3,
+        taskDescription: 'Move 3 repairs to any status to defeat this boss'
     },
     DATA_DRAGON: {
         id: 'data_dragon',
@@ -3892,21 +4946,417 @@ const BOSS_BATTLES = {
         requiredAction: 'ordersCreated',
         requiredCount: 4,
         taskDescription: 'Create 4 orders to defeat this boss'
+    },
+    BATTERY_BEHEMOTH: {
+        id: 'battery_behemoth',
+        name: 'Battery Behemoth',
+        icon: '🔋',
+        description: 'Massive battery replacement challenge',
+        difficulty: 4,
+        timeLimit: 35 * 60 * 1000, // 35 minutes
+        rewards: { coins: 1800, xp: 900, item: 'battery_master_kit' },
+        requiredAction: 'statusChanges',
+        requiredCount: 7,
+        taskDescription: 'Move 7 repairs to any status to defeat this boss'
+    },
+    CAMERA_CRUSHER: {
+        id: 'camera_crusher',
+        name: 'Camera Crusher',
+        icon: '📷',
+        description: 'Complex camera module replacement',
+        difficulty: 2,
+        timeLimit: 25 * 60 * 1000, // 25 minutes
+        rewards: { coins: 900, xp: 450, item: 'precision_camera_tool' },
+        requiredAction: 'statusChanges',
+        requiredCount: 4,
+        taskDescription: 'Move 4 repairs to any status to defeat this boss'
+    },
+    SPEAKER_STORM: {
+        id: 'speaker_storm',
+        name: 'Speaker Storm',
+        icon: '🔊',
+        description: 'Multiple audio system failures',
+        difficulty: 3,
+        timeLimit: 30 * 60 * 1000, // 30 minutes
+        rewards: { coins: 1100, xp: 550, item: 'audio_expert_kit' },
+        requiredAction: 'statusChanges',
+        requiredCount: 5,
+        taskDescription: 'Move 5 repairs to any status to defeat this boss'
+    },
+    CHARGING_CHAOS: {
+        id: 'charging_chaos',
+        name: 'Charging Chaos',
+        icon: '⚡',
+        description: 'Charging port repair nightmare',
+        difficulty: 5,
+        timeLimit: 50 * 60 * 1000, // 50 minutes
+        rewards: { coins: 2200, xp: 1100, item: 'charging_port_master' },
+        requiredAction: 'repairsCompleted',
+        requiredCount: 7,
+        taskDescription: 'Complete 7 repairs to defeat this boss'
+    },
+    SOFTWARE_SPECTER: {
+        id: 'software_specter',
+        name: 'Software Specter',
+        icon: '👻',
+        description: 'Complex software troubleshooting challenge',
+        difficulty: 4,
+        timeLimit: 45 * 60 * 1000, // 45 minutes
+        rewards: { coins: 1600, xp: 800, item: 'software_master_guide' },
+        requiredAction: 'searches',
+        requiredCount: 15,
+        taskDescription: 'Perform 15 searches to defeat this boss'
+    },
+    TOUCH_TITAN: {
+        id: 'touch_titan',
+        name: 'Touch Titan',
+        icon: '👆',
+        description: 'Touch screen calibration crisis',
+        difficulty: 3,
+        timeLimit: 35 * 60 * 1000, // 35 minutes
+        rewards: { coins: 1300, xp: 650, item: 'touch_calibration_pro' },
+        requiredAction: 'statusChanges',
+        requiredCount: 6,
+        taskDescription: 'Move 6 repairs to any status to defeat this boss'
+    },
+    VIBRATION_VILLAIN: {
+        id: 'vibration_villain',
+        name: 'Vibration Villain',
+        icon: '📳',
+        description: 'Haptic feedback system malfunction',
+        difficulty: 2,
+        timeLimit: 20 * 60 * 1000, // 20 minutes
+        rewards: { coins: 800, xp: 400, item: 'haptic_repair_kit' },
+        requiredAction: 'statusChanges',
+        requiredCount: 3,
+        taskDescription: 'Move 3 repairs to any status to defeat this boss'
+    },
+    NOTIFICATION_NEMESIS: {
+        id: 'notification_nemesis',
+        name: 'Notification Nemesis',
+        icon: '📞',
+        description: 'Massive customer notification backlog',
+        difficulty: 3,
+        timeLimit: 35 * 60 * 1000, // 35 minutes
+        rewards: { coins: 1300, xp: 650, item: 'notification_master' },
+        requiredAction: 'status40Transfers',
+        requiredCount: 5,
+        taskDescription: 'Move 5 repairs to status 40 (notification) to defeat this boss'
+    },
+    PARTS_SHORTAGE: {
+        id: 'parts_shortage',
+        name: 'Parts Shortage',
+        icon: '📦',
+        description: 'Repairs waiting for parts to arrive',
+        difficulty: 2,
+        timeLimit: 25 * 60 * 1000, // 25 minutes
+        rewards: { coins: 900, xp: 450, item: 'parts_tracker' },
+        requiredAction: 'status65Transfers',
+        requiredCount: 4,
+        taskDescription: 'Move 4 repairs to status 65 (waiting for parts) to defeat this boss'
+    },
+    DELIVERY_DESTROYER: {
+        id: 'delivery_destroyer',
+        name: 'Delivery Destroyer',
+        icon: '📦',
+        description: 'Final delivery completion crisis',
+        difficulty: 4,
+        timeLimit: 40 * 60 * 1000, // 40 minutes
+        rewards: { coins: 1600, xp: 800, item: 'delivery_master_kit' },
+        requiredAction: 'status100Transfers',
+        requiredCount: 6,
+        taskDescription: 'Move 6 repairs to status 100 (delivery) to defeat this boss'
+    },
+    WORKFLOW_WARLORD: {
+        id: 'workflow_warlord',
+        name: 'Workflow Warlord',
+        icon: '⚙️',
+        description: 'Complete workflow management challenge',
+        difficulty: 5,
+        timeLimit: 50 * 60 * 1000, // 50 minutes
+        rewards: { coins: 2200, xp: 1100, item: 'workflow_master' },
+        requiredAction: 'statusChanges',
+        requiredCount: 8,
+        taskDescription: 'Move 8 repairs to any status to defeat this boss'
+    },
+    // NEW DIVERSE BOSSES
+    BLUETOOTH_BARBARIAN: {
+        id: 'bluetooth_barbarian',
+        name: 'Bluetooth Barbarian',
+        icon: '📡',
+        description: 'Wireless connectivity chaos across multiple devices',
+        difficulty: 3,
+        timeLimit: 40 * 60 * 1000,
+        rewards: { coins: 1400, xp: 700, item: 'wireless_expert' },
+        requiredAction: 'statusChanges',
+        requiredCount: 6,
+        taskDescription: 'Complete 6 status transfers to restore connectivity'
+    },
+    NETWORK_NIGHTMARE: {
+        id: 'network_nightmare',
+        name: 'Network Nightmare',
+        icon: '🌐',
+        description: 'Massive network infrastructure breakdown',
+        difficulty: 4,
+        timeLimit: 55 * 60 * 1000,
+        rewards: { coins: 1900, xp: 950, item: 'network_master' },
+        requiredAction: 'searches',
+        requiredCount: 20,
+        taskDescription: 'Perform 20 searches to restore network stability'
+    },
+    POWER_PHANTOM: {
+        id: 'power_phantom',
+        name: 'Power Phantom',
+        icon: '🔌',
+        description: 'Critical power management system failures',
+        difficulty: 2,
+        timeLimit: 25 * 60 * 1000,
+        rewards: { coins: 850, xp: 425, item: 'power_management_kit' },
+        requiredAction: 'statusChanges',
+        requiredCount: 4,
+        taskDescription: 'Fix 4 power-related repair issues'
+    },
+    STORAGE_SERPENT: {
+        id: 'storage_serpent',
+        name: 'Storage Serpent',
+        icon: '💾',
+        description: 'Devices running out of storage causing system crashes',
+        difficulty: 3,
+        timeLimit: 35 * 60 * 1000,
+        rewards: { coins: 1250, xp: 625, item: 'storage_optimizer' },
+        requiredAction: 'repairsCompleted',
+        requiredCount: 5,
+        taskDescription: 'Complete 5 storage-related repairs'
+    },
+    WIFI_WRAITH: {
+        id: 'wifi_wraith',
+        name: 'WiFi Wraith',
+        icon: '📶',
+        description: 'WiFi module failures causing connection drops',
+        difficulty: 2,
+        timeLimit: 30 * 60 * 1000,
+        rewards: { coins: 950, xp: 475, item: 'wifi_repair_specialist' },
+        requiredAction: 'statusChanges',
+        requiredCount: 4,
+        taskDescription: 'Restore WiFi connectivity on 4 devices'
+    },
+    GPS_GARGOYLE: {
+        id: 'gps_gargoyle',
+        name: 'GPS Gargoyle',
+        icon: '🧭',
+        description: 'Navigation system failures across device fleet',
+        difficulty: 3,
+        timeLimit: 40 * 60 * 1000,
+        rewards: { coins: 1350, xp: 675, item: 'gps_fix_master' },
+        requiredAction: 'statusChanges',
+        requiredCount: 5,
+        taskDescription: 'Fix GPS issues on 5 devices'
+    },
+    HEAT_HORROR: {
+        id: 'heat_horror',
+        name: 'Heat Horror',
+        icon: '🔥',
+        description: 'Overheating devices causing shutdowns and damage',
+        difficulty: 4,
+        timeLimit: 45 * 60 * 1000,
+        rewards: { coins: 1700, xp: 850, item: 'thermal_management_pro' },
+        requiredAction: 'repairsCompleted',
+        requiredCount: 6,
+        taskDescription: 'Complete 6 overheating device repairs'
+    },
+    SENSOR_SPECTER: {
+        id: 'sensor_specter',
+        name: 'Sensor Specter',
+        icon: '📐',
+        description: 'Proximity, light, and motion sensor malfunctions',
+        difficulty: 2,
+        timeLimit: 28 * 60 * 1000,
+        rewards: { coins: 880, xp: 440, item: 'sensor_calibration_tool' },
+        requiredAction: 'statusChanges',
+        requiredCount: 3,
+        taskDescription: 'Calibrate sensors on 3 devices'
+    },
+    MICROPHONE_MALICE: {
+        id: 'microphone_malice',
+        name: 'Microphone Malice',
+        icon: '🎤',
+        description: 'Audio input failures preventing voice communication',
+        difficulty: 3,
+        timeLimit: 35 * 60 * 1000,
+        rewards: { coins: 1200, xp: 600, item: 'audio_input_master' },
+        requiredAction: 'statusChanges',
+        requiredCount: 5,
+        taskDescription: 'Fix microphone issues on 5 devices'
+    },
+    FINGERPRINT_FIEND: {
+        id: 'fingerprint_fiend',
+        name: 'Fingerprint Fiend',
+        icon: '👆',
+        description: 'Biometric scanner failures causing security issues',
+        difficulty: 4,
+        timeLimit: 50 * 60 * 1000,
+        rewards: { coins: 1800, xp: 900, item: 'biometric_repair_expert' },
+        requiredAction: 'repairsCompleted',
+        requiredCount: 7,
+        taskDescription: 'Repair biometric scanners on 7 devices'
+    },
+    ANTENNA_AVALANCHE: {
+        id: 'antenna_avalanche',
+        name: 'Antenna Avalanche',
+        icon: '📡',
+        description: 'Signal reception failures across all cellular bands',
+        difficulty: 5,
+        timeLimit: 60 * 60 * 1000,
+        rewards: { coins: 2500, xp: 1250, item: 'antenna_master_kit' },
+        requiredAction: 'statusChanges',
+        requiredCount: 10,
+        taskDescription: 'Restore cellular reception on 10 devices'
+    },
+    LED_LICH: {
+        id: 'led_lich',
+        name: 'LED Lich',
+        icon: '💡',
+        description: 'LED notification and screen backlight failures',
+        difficulty: 2,
+        timeLimit: 22 * 60 * 1000,
+        rewards: { coins: 800, xp: 400, item: 'led_repair_kit' },
+        requiredAction: 'statusChanges',
+        requiredCount: 3,
+        taskDescription: 'Fix LED issues on 3 devices'
+    },
+    BUTTON_BANDIT: {
+        id: 'button_bandit',
+        name: 'Button Bandit',
+        icon: '🔘',
+        description: 'Physical button failures preventing device control',
+        difficulty: 3,
+        timeLimit: 38 * 60 * 1000,
+        rewards: { coins: 1300, xp: 650, item: 'button_repair_specialist' },
+        requiredAction: 'statusChanges',
+        requiredCount: 5,
+        taskDescription: 'Replace or repair buttons on 5 devices'
+    },
+    SIM_SORCERER: {
+        id: 'sim_sorcerer',
+        name: 'SIM Sorcerer',
+        icon: '📱',
+        description: 'SIM card detection and connectivity problems',
+        difficulty: 2,
+        timeLimit: 26 * 60 * 1000,
+        rewards: { coins: 900, xp: 450, item: 'sim_reader_master' },
+        requiredAction: 'statusChanges',
+        requiredCount: 4,
+        taskDescription: 'Fix SIM card issues on 4 devices'
+    },
+    QUICK_CHARGE_QUEEN: {
+        id: 'quick_charge_queen',
+        name: 'Quick Charge Queen',
+        icon: '⚡',
+        description: 'Fast charging technology failures',
+        difficulty: 4,
+        timeLimit: 48 * 60 * 1000,
+        rewards: { coins: 2000, xp: 1000, item: 'quick_charge_expert' },
+        requiredAction: 'repairsCompleted',
+        requiredCount: 8,
+        taskDescription: 'Restore fast charging on 8 devices'
+    },
+    WARRANTY_WARRIOR: {
+        id: 'warranty_warrior',
+        name: 'Warranty Warrior',
+        icon: '🛡️',
+        description: 'Complex warranty claim processing backlog',
+        difficulty: 3,
+        timeLimit: 42 * 60 * 1000,
+        rewards: { coins: 1450, xp: 725, item: 'warranty_processor' },
+        requiredAction: 'ordersCreated',
+        requiredCount: 6,
+        taskDescription: 'Process 6 warranty-related orders'
+    },
+    CUSTOMER_CRISIS: {
+        id: 'customer_crisis',
+        name: 'Customer Crisis',
+        icon: '😤',
+        description: 'Urgent customer satisfaction emergency',
+        difficulty: 4,
+        timeLimit: 45 * 60 * 1000,
+        rewards: { coins: 1750, xp: 875, item: 'customer_satisfaction_master' },
+        requiredAction: 'status100Transfers',
+        requiredCount: 8,
+        taskDescription: 'Deliver 8 completed repairs to satisfy customers'
+    },
+    PACKAGING_PHANTOM: {
+        id: 'packaging_phantom',
+        name: 'Packaging Phantom',
+        icon: '📦',
+        description: 'Critical packaging and shipping delays',
+        difficulty: 2,
+        timeLimit: 30 * 60 * 1000,
+        rewards: { coins: 920, xp: 460, item: 'packaging_pro' },
+        requiredAction: 'status100Transfers',
+        requiredCount: 5,
+        taskDescription: 'Package and ship 5 completed repairs'
+    },
+    QUALITY_QUARREL: {
+        id: 'quality_quarrel',
+        name: 'Quality Quarrel',
+        icon: '✅',
+        description: 'Quality control inspection backlog',
+        difficulty: 3,
+        timeLimit: 36 * 60 * 1000,
+        rewards: { coins: 1280, xp: 640, item: 'quality_inspector_pro' },
+        requiredAction: 'repairsCompleted',
+        requiredCount: 6,
+        taskDescription: 'Pass quality control on 6 repairs'
+    },
+    RUSH_RECON: {
+        id: 'rush_recon',
+        name: 'Rush Recon',
+        icon: '⚡',
+        description: 'Time-sensitive rush order emergency',
+        difficulty: 5,
+        timeLimit: 25 * 60 * 1000, // Short time limit for urgency
+        rewards: { coins: 2800, xp: 1400, item: 'rush_order_master' },
+        requiredAction: 'repairsCompleted',
+        requiredCount: 5,
+        taskDescription: 'Complete 5 rush repairs in record time!'
     }
 };
 
 function checkBossSpawn(config, STORAGE_KEYS) {
+    const now = Date.now();
     const activeBoss = JSON.parse(GM_getValue(STORAGE_KEYS.ACTIVE_BOSS, 'null'));
     
     // Don't spawn if boss already active
-    if (activeBoss && Date.now() < activeBoss.expiresAt) return;
+    if (activeBoss && now < activeBoss.expiresAt) return;
     
-    // 5% chance to spawn boss per hour
-    if (Math.random() > 0.05) return;
+    // Cooldown check - prevent spawning too soon after last boss ended
+    const lastBossEnd = GM_getValue(STORAGE_KEYS.LAST_BOSS_END_TIME, 0);
+    const cooldownPeriod = 4 * 60 * 60 * 1000; // 4 hour cooldown after boss ends
+    if (lastBossEnd > 0 && (now - lastBossEnd) < cooldownPeriod) return;
     
-    // Select random boss
-    const bosses = Object.values(BOSS_BATTLES);
-    const selectedBoss = bosses[Math.floor(Math.random() * bosses.length)];
+    // Only spawn during working hours (9 AM to 8 PM)
+    const currentHour = new Date().getHours();
+    if (currentHour < 9 || currentHour >= 20) return;
+    
+    // 3% chance to spawn boss per check (REDUCED from 15%) - much less frequent
+    if (Math.random() > 0.03) return;
+    
+    // Categorize bosses by difficulty
+    const allBosses = Object.values(BOSS_BATTLES);
+    const peakHoursBosses = allBosses.filter(boss => boss.difficulty >= 4); // Difficulty 4-5
+    const regularHoursBosses = allBosses.filter(boss => boss.difficulty <= 3); // Difficulty 2-3
+    
+    // Select boss based on time of day
+    let selectedBoss;
+    const isPeakHours = currentHour >= 11 && currentHour < 17; // 11 AM to 5 PM
+    
+    if (isPeakHours) {
+        // During peak hours (11 AM - 5 PM), spawn best bosses (difficulty 4-5)
+        selectedBoss = peakHoursBosses[Math.floor(Math.random() * peakHoursBosses.length)];
+    } else {
+        // During regular hours (9-11 AM, 5-8 PM), spawn regular bosses (difficulty 2-3)
+        selectedBoss = regularHoursBosses[Math.floor(Math.random() * regularHoursBosses.length)];
+    }
     
     const bossData = {
         ...selectedBoss,
@@ -3917,6 +5367,9 @@ function checkBossSpawn(config, STORAGE_KEYS) {
     };
     
     GM_setValue(STORAGE_KEYS.ACTIVE_BOSS, JSON.stringify(bossData));
+    
+    // Reset dismissed state when new boss spawns
+    GM_setValue(STORAGE_KEYS.BOSS_NOTIFICATION_DISMISSED, false);
     
     // Show notification
     if (window.showPositiveMessage) {
@@ -3933,7 +5386,38 @@ function updateBossProgress(STORAGE_KEYS, actionType) {
     if (!activeBoss || !activeBoss.accepted) return;
     if (activeBoss.abandoned) return; // Don't track progress for abandoned bosses
     if (Date.now() > activeBoss.expiresAt) return;
-    if (activeBoss.requiredAction !== actionType) return;
+    
+    // Check if this action type matches the boss requirement
+    let shouldUpdateProgress = false;
+    
+    if (activeBoss.requiredAction === actionType) {
+        shouldUpdateProgress = true;
+    } else if (activeBoss.requiredAction === 'statusChanges' && actionType === 'statusChanges') {
+        shouldUpdateProgress = true;
+    } else if (activeBoss.requiredAction === 'status40Transfers' && actionType === 'statusChanges') {
+        // Check if this was specifically a status 40 transfer
+        const count40 = GM_getValue(STORAGE_KEYS.STATUS_40_TRANSFERS, 0);
+        if (count40 > (activeBoss.lastStatus40Count || 0)) {
+            shouldUpdateProgress = true;
+            activeBoss.lastStatus40Count = count40;
+        }
+    } else if (activeBoss.requiredAction === 'status65Transfers' && actionType === 'statusChanges') {
+        // Check if this was specifically a status 65 transfer
+        const count65 = GM_getValue(STORAGE_KEYS.STATUS_65_TRANSFERS, 0);
+        if (count65 > (activeBoss.lastStatus65Count || 0)) {
+            shouldUpdateProgress = true;
+            activeBoss.lastStatus65Count = count65;
+        }
+    } else if (activeBoss.requiredAction === 'status100Transfers' && actionType === 'statusChanges') {
+        // Check if this was specifically a status 100 transfer
+        const count100 = GM_getValue(STORAGE_KEYS.STATUS_100_TRANSFERS, 0);
+        if (count100 > (activeBoss.lastStatus100Count || 0)) {
+            shouldUpdateProgress = true;
+            activeBoss.lastStatus100Count = count100;
+        }
+    }
+    
+    if (!shouldUpdateProgress) return;
     
     // Increment progress
     activeBoss.progress = (activeBoss.progress || 0) + 1;
@@ -3955,16 +5439,108 @@ function updateBossProgress(STORAGE_KEYS, actionType) {
     showBossBattleNotification(activeBoss);
 }
 
+function showBossMinimalButton(bossData) {
+    // Remove full notification if exists
+    const existingNotification = document.getElementById('tm-boss-notification');
+    if (existingNotification) existingNotification.remove();
+    
+    // Check if minimal button already exists
+    let minimalBtn = document.getElementById('tm-boss-minimal-btn');
+    
+    if (!minimalBtn) {
+        minimalBtn = document.createElement('button');
+        minimalBtn.id = 'tm-boss-minimal-btn';
+        
+        minimalBtn.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(251, 146, 60, 0.9));
+            border: 2px solid rgba(251, 191, 36, 0.8);
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6), 0 0 25px rgba(251, 146, 60, 0.4);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: bossButtonPulse 2s ease-in-out infinite;
+        `;
+        
+        // Add pulse animation
+        if (!document.getElementById('boss-button-pulse-animation')) {
+            const style = document.createElement('style');
+            style.id = 'boss-button-pulse-animation';
+            style.textContent = `
+                @keyframes bossButtonPulse {
+                    0%, 100% { 
+                        box-shadow: 0 0 15px rgba(239, 68, 68, 0.6), 0 0 25px rgba(251, 146, 60, 0.4);
+                        transform: scale(1);
+                    }
+                    50% { 
+                        box-shadow: 0 0 25px rgba(239, 68, 68, 0.9), 0 0 35px rgba(251, 146, 60, 0.6);
+                        transform: scale(1.05);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        document.body.appendChild(minimalBtn);
+    }
+    
+    // Update button icon
+    minimalBtn.innerHTML = bossData.icon || '⚔️';
+    minimalBtn.title = `Boss Battle: ${bossData.name || 'Active'}`;
+    
+    // Update button click handler
+    minimalBtn.onclick = (e) => {
+        e.stopPropagation();
+        // Restore full notification
+        GM_setValue(window.STORAGE_KEYS.BOSS_NOTIFICATION_DISMISSED, false);
+        minimalBtn.remove();
+        showBossBattleNotification(bossData);
+    };
+    
+    // Hover effects
+    minimalBtn.onmouseenter = () => {
+        minimalBtn.style.transform = 'scale(1.15)';
+        minimalBtn.style.boxShadow = '0 0 30px rgba(239, 68, 68, 0.9), 0 0 40px rgba(251, 146, 60, 0.7)';
+    };
+    minimalBtn.onmouseleave = () => {
+        minimalBtn.style.transform = 'scale(1)';
+        minimalBtn.style.boxShadow = '0 0 15px rgba(239, 68, 68, 0.6), 0 0 25px rgba(251, 146, 60, 0.4)';
+    };
+}
+
 function showBossBattleNotification(bossData) {
+    // console.log('[MMS] showBossBattleNotification called with:', bossData); // Disabled spam
+    
+    // Remove minimal button if exists (in case we're restoring)
+    const minimalBtn = document.getElementById('tm-boss-minimal-btn');
+    if (minimalBtn) minimalBtn.remove();
+    
     let container = document.getElementById('tm-boss-notification');
     
-    if (!bossData) {
+    if (!bossData || bossData === 'null') {
+        console.log('[MMS] No boss data provided, removing notification');
         if (container) container.remove();
-        // Reposition event notification if it exists
-        const eventNotification = document.getElementById('tm-event-notification');
-        if (eventNotification && eventNotification.getAttribute('data-minimized') !== 'true') {
-            eventNotification.style.top = '20px'; // Move to primary position
-        }
+        return;
+    }
+    
+    // Check if notification was dismissed - MUST check before creating/updating container
+    const isDismissed = GM_getValue(window.STORAGE_KEYS.BOSS_NOTIFICATION_DISMISSED, false);
+    
+    // If dismissed, show minimal button instead and exit early
+    if (isDismissed) {
+        showBossMinimalButton(bossData);
+        // Also remove any existing full notification
+        if (container) container.remove();
         return;
     }
     
@@ -3980,6 +5556,7 @@ function showBossBattleNotification(bossData) {
     const isNewContainer = !container;
     
     if (!container) {
+        console.log('[MMS] Creating new boss notification container');
         container = document.createElement('div');
         container.id = 'tm-boss-notification';
         
@@ -3989,42 +5566,192 @@ function showBossBattleNotification(bossData) {
             : 'linear-gradient(135deg, #ff5252 0%, #b71c1c 100%)';
         const initialBorder = bossData.abandoned ? '2px solid #666' : '2px solid #ff8a80';
         
+        const borderColor = bossData.abandoned ? '#64748b' : '#ef4444';
+        const epicBg = bossData.abandoned 
+            ? 'transparent' 
+            : 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(251, 146, 60, 0.08) 50%, rgba(239, 68, 68, 0.12) 100%)';
+        const epicBorder = bossData.abandoned 
+            ? `1px solid ${borderColor}33` 
+            : '2px solid';
+        const epicBorderGradient = bossData.abandoned
+            ? `linear-gradient(to right, ${borderColor}33, ${borderColor}33)`
+            : 'linear-gradient(to right, #ef4444, #fb923c, #fbbf24, #fb923c, #ef4444)';
+        
         container.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: ${initialBackground};
-            color: white;
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: ${initialBorder};
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            z-index: 9998;
-            width: 550px;
-            min-height: 52px;
-            animation: bossSlideDown 0.5s ease-out;
-            backdrop-filter: blur(10px);
-            transition: background 0.3s ease, border-color 0.3s ease;
+            background: ${epicBg};
+            border: ${epicBorder};
+            border-image: ${epicBorderGradient} 1;
+            color: ${bossData.abandoned ? '#64748b' : '#ffebee'};
+            padding: 6px 12px;
+            width: 100%;
+            max-width: 100%;
+            min-height: 32px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             box-sizing: border-box;
             display: flex;
             align-items: center;
+            margin: 0;
+            font-size: 12px;
+            cursor: ${bossData.abandoned ? 'default' : 'pointer'};
+            box-shadow: ${bossData.abandoned ? 'none' : '0 0 8px rgba(239, 68, 68, 0.25), inset 0 0 8px rgba(239, 68, 68, 0.08)'};
+            position: relative;
+            overflow: hidden;
         `;
+        
+            // Add subtle glow animation and button shimmer for active bosses
+        if (!bossData.abandoned) {
+            const glowKeyframes = `
+                @keyframes bossGlow {
+                    0%, 100% { 
+                        box-shadow: 0 0 8px rgba(239, 68, 68, 0.25), 0 0 12px rgba(251, 146, 60, 0.15), inset 0 0 8px rgba(239, 68, 68, 0.08);
+                        border-image-source: linear-gradient(to right, #ef4444, #fb923c, #fbbf24, #fb923c, #ef4444);
+                    }
+                    50% { 
+                        box-shadow: 0 0 12px rgba(239, 68, 68, 0.35), 0 0 18px rgba(251, 146, 60, 0.2), inset 0 0 10px rgba(239, 68, 68, 0.12);
+                        border-image-source: linear-gradient(to right, #fb923c, #fbbf24, #fb923c, #fbbf24, #fb923c);
+                    }
+                }
+                @keyframes buttonShimmer {
+                    0% { background-position: 200% 0; }
+                    50% { background-position: -200% 0; }
+                    100% { background-position: 200% 0; }
+                }
+            `;
+            if (!document.getElementById('boss-glow-animation')) {
+                const style = document.createElement('style');
+                style.id = 'boss-glow-animation';
+                style.textContent = glowKeyframes;
+                document.head.appendChild(style);
+            }
+            container.style.animation = 'bossGlow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite';
+            
+            // Add subtle gradient trim effect with pseudo-element
+            if (!document.getElementById('boss-trim-style')) {
+                const trimStyle = document.createElement('style');
+                trimStyle.id = 'boss-trim-style';
+                trimStyle.textContent = `
+                    #tm-boss-notification:not([data-abandoned="true"])::before {
+                        content: '';
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        border-radius: 0;
+                        padding: 1px;
+                        background: linear-gradient(135deg, 
+                            rgba(239, 68, 68, 0.6) 0%, 
+                            rgba(251, 146, 60, 0.5) 25%,
+                            rgba(251, 191, 36, 0.4) 50%,
+                            rgba(251, 146, 60, 0.5) 75%,
+                            rgba(239, 68, 68, 0.6) 100%);
+                        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                        -webkit-mask-composite: xor;
+                        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+                        mask-composite: exclude;
+                        pointer-events: none;
+                        opacity: 0.8;
+                        animation: trimGlow 3s ease-in-out infinite;
+                    }
+                    @keyframes trimGlow {
+                        0%, 100% { opacity: 0.8; }
+                        50% { opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(trimStyle);
+            }
+        }
         container.setAttribute('data-minimized', wasMinimized ? 'true' : 'false');
         container.setAttribute('data-abandoned', bossData.abandoned ? 'true' : 'false');
+        console.log('[MMS] Appending boss notification container');
+        // Insert into rnr-hfiller element if it exists, otherwise fallback to body
+        const hfiller = document.querySelector('.rnr-hfiller');
+        if (hfiller) {
+            hfiller.appendChild(container);
+        } else {
+            // Fallback: insert at the beginning of body
+            if (document.body.firstChild) {
+                document.body.insertBefore(container, document.body.firstChild);
+            } else {
         document.body.appendChild(container);
+            }
+        }
+        console.log('[MMS] Boss notification container appended successfully');
+        
+        // Add event listeners ONLY when container is first created
+        if (!bossData.abandoned) {
+            container.addEventListener('click', (e) => {
+                // Don't trigger if clicking on buttons or dismiss
+                if (e.target.closest('button')) {
+                    return;
+                }
+                
+                // If minimized, expand it
+                if (container.getAttribute('data-minimized') === 'true') {
+                    container.style.maxHeight = 'none';
+                    container.style.overflow = 'visible';
+                    container.style.cursor = 'default';
+                    container.style.padding = '4px 8px';
+                    container.style.minHeight = '28px';
+                    container.setAttribute('data-minimized', 'false');
+                    GM_setValue(window.STORAGE_KEYS.BOSS_NOTIFICATION_MINIMIZED, false);
+                    return;
+                }
+                
+                // Otherwise, show boss details - prevent multiple opens
+                if (document.querySelector('.tm-modal-overlay')) {
+                    return; // Modal already open
+                }
+                
+                const freshBossData = JSON.parse(GM_getValue(window.STORAGE_KEYS.ACTIVE_BOSS, 'null'));
+                if (freshBossData) {
+                    if (!freshBossData.accepted) {
+                        // Not accepted - show in view-only mode
+                        showBossBattleModal(freshBossData, true);
+                    } else {
+                        // Accepted - show full modal
+                        showBossBattleModal(freshBossData);
+                    }
+                }
+            });
+            
+            // Add subtle smooth hover effects
+            container.addEventListener('mouseenter', () => {
+                if (container.getAttribute('data-minimized') !== 'true') {
+                    container.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.18) 0%, rgba(251, 146, 60, 0.14) 50%, rgba(239, 68, 68, 0.18) 100%)';
+                    container.style.boxShadow = '0 0 12px rgba(239, 68, 68, 0.35), 0 0 18px rgba(251, 146, 60, 0.2), inset 0 0 10px rgba(239, 68, 68, 0.12)';
+                    container.style.borderImage = 'linear-gradient(to right, #fb923c, #fbbf24, #fb923c, #fbbf24, #fb923c) 1';
+                }
+            });
+            container.addEventListener('mouseleave', () => {
+                container.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(251, 146, 60, 0.08) 50%, rgba(239, 68, 68, 0.12) 100%)';
+                container.style.boxShadow = '0 0 8px rgba(239, 68, 68, 0.25), inset 0 0 8px rgba(239, 68, 68, 0.08)';
+                container.style.borderImage = 'linear-gradient(to right, #ef4444, #fb923c, #fbbf24, #fb923c, #ef4444) 1';
+            });
+        }
     }
     
-    // Update background and border ONLY if abandoned state changed
+    // Update border and styling if abandoned state changed
     const wasAbandoned = container.getAttribute('data-abandoned') === 'true';
     if (wasAbandoned !== !!bossData.abandoned) {
-        const backgroundGradient = bossData.abandoned 
-            ? 'linear-gradient(135deg, #424242 0%, #1a1a1a 100%)' 
-            : 'linear-gradient(135deg, #ff5252 0%, #b71c1c 100%)';
-        const borderColor = bossData.abandoned ? '#666' : '#ff8a80';
-        
-        container.style.background = backgroundGradient;
-        container.style.border = `2px solid ${borderColor}`;
+        const borderColor = bossData.abandoned ? '#64748b' : '#ef4444';
+        if (bossData.abandoned) {
+            container.style.background = 'transparent';
+            container.style.border = `1px solid ${borderColor}33`;
+            container.style.borderImage = `linear-gradient(to right, ${borderColor}33, ${borderColor}33) 1`;
+            container.style.boxShadow = 'none';
+            container.style.animation = 'none';
+            container.style.color = '#64748b';
+            container.style.transition = 'all 0.3s ease';
+        } else {
+            container.style.background = 'linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(251, 146, 60, 0.08) 50%, rgba(239, 68, 68, 0.12) 100%)';
+            container.style.border = '2px solid';
+            container.style.borderImage = 'linear-gradient(to right, #ef4444, #fb923c, #fbbf24, #fb923c, #ef4444) 1';
+            container.style.boxShadow = '0 0 8px rgba(239, 68, 68, 0.25), inset 0 0 8px rgba(239, 68, 68, 0.08)';
+            container.style.animation = 'bossGlow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite';
+            container.style.color = '#ffebee';
+            container.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        }
         container.setAttribute('data-abandoned', bossData.abandoned ? 'true' : 'false');
     }
     
@@ -4032,123 +5759,229 @@ function showBossBattleNotification(bossData) {
     const formattedTime = formatTimeRemaining(timeLeft);
     
     const progress = bossData.progress || 0;
-    const progressPercent = Math.min(100, (progress / bossData.requiredCount) * 100);
     const isCompleted = progress >= bossData.requiredCount;
     
-    // Show progress info if boss is accepted
-    const progressText = bossData.accepted ? `<span style="font-size: 11px; opacity: 0.9; margin-left: 8px;">(${progress}/${bossData.requiredCount})</span>` : '';
-    
-    // Different button layouts depending on boss state
-    let actionButtonsHTML;
-    let abandonMessage = '';
+    // Minimal design - only essential info
+    let actionButtonHTML = '';
     
     if (bossData.abandoned) {
-        // Quest was abandoned - show stored taunting message, no buttons
-        const tauntMessage = bossData.tauntMessage || 'You are not worthy...';
-        abandonMessage = `
-            <div style="
-                font-size: 12px;
-                color: #999;
-                font-style: italic;
-                opacity: 0.8;
-                text-align: center;
-            ">💀 ${tauntMessage}</div>
+        // Abandoned - minimal faded display
+        container.innerHTML = `
+            <span style="font-size: 14px; line-height: 1; margin-right: 6px; flex-shrink: 0; opacity: 0.4;">${bossData.icon}</span>
+            <span style="flex: 1; color: #64748b; text-decoration: line-through; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px;">${bossData.name}</span>
         `;
-        actionButtonsHTML = '';
     } else if (!bossData.accepted) {
-        // Not accepted yet - show View Details and Accept buttons
-        actionButtonsHTML = `
-            <button id="tm-view-boss-btn" style="
-                padding: 8px 14px;
-                background: linear-gradient(135deg, #424242 0%, #212121 100%);
-                color: white;
-                border: none;
-                border-radius: 6px;
-                font-weight: bold;
-                cursor: pointer;
-                font-size: 13px;
-                white-space: nowrap;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-                transition: transform 0.2s, box-shadow 0.2s;
-                flex-shrink: 0;
-                margin-right: 8px;
-            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.4)';" 
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.3)';">👁️ View</button>
-            <button id="tm-accept-boss-btn" style="
-                padding: 8px 14px;
-                background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
-                color: #000;
-                border: none;
-                border-radius: 6px;
-                font-weight: bold;
-                cursor: pointer;
-                font-size: 13px;
-                white-space: nowrap;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-                transition: transform 0.2s, box-shadow 0.2s;
-                flex-shrink: 0;
-            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.4)';" 
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.3)';">⚔️ Accept</button>
-        `;
-    } else {
-        // Already accepted - show single button (View or Claim)
-        const buttonText = isCompleted ? '🎉 Claim' : '📊 View';
-        const buttonColor = isCompleted ? 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)' : 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)';
-        actionButtonsHTML = `
-            <button id="tm-accept-boss-btn" style="
-                padding: 8px 16px;
-                background: ${buttonColor};
-                color: ${isCompleted ? 'white' : '#000'};
-                border: none;
-                border-radius: 6px;
-                font-weight: bold;
-                cursor: pointer;
-                font-size: 13px;
-                white-space: nowrap;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-                transition: transform 0.2s, box-shadow 0.2s;
-                flex-shrink: 0;
-            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.4)';" 
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.3)';">${buttonText}</button>
-        `;
-    }
-    
-    container.innerHTML = `
-        <div style="font-size: 36px; line-height: 1; flex-shrink: 0;">${bossData.icon}</div>
-        <div style="flex: 1; min-width: 0; margin: 0 12px;">
-            <div style="font-weight: bold; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚔️ ${bossData.name}${progressText}</div>
-            ${abandonMessage}
-        </div>
-        <span style="font-size: 13px; font-weight: bold; background: rgba(0,0,0,0.3); padding: 5px 12px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; margin-right: 12px;">
-            ⏱️ ${formattedTime}
-        </span>
-        ${actionButtonsHTML}
-        <button id="tm-hide-boss-btn" style="
-            background: rgba(0,0,0,0.3);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
+        // Not accepted - show name, time, and epic accept button
+        actionButtonHTML = `<button id="tm-accept-boss-btn" style="
+            padding: 5px 14px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%);
+            background-size: 200% 100%;
+            color: #1a1a1a;
+            border: 1px solid rgba(251, 191, 36, 0.8);
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
-            line-height: 1;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             flex-shrink: 0;
             margin-left: 8px;
-        " title="Hide notification">×</button>
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.5), 
+                        0 0 20px rgba(245, 158, 11, 0.3),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            animation: buttonShimmer 3s ease-in-out infinite;
+        " onmouseover="this.style.background='linear-gradient(135deg, #fcd34d 0%, #fbbf24 50%, #fcd34d 100%)'; this.style.backgroundSize='200% 100%'; this.style.boxShadow='0 0 15px rgba(251, 191, 36, 0.7), 0 0 30px rgba(245, 158, 11, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4)'; this.style.transform='scale(1.05)'; this.style.borderColor='rgba(252, 211, 77, 1)'" 
+           onmouseout="this.style.background='linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%)'; this.style.backgroundSize='200% 100%'; this.style.boxShadow='0 0 10px rgba(251, 191, 36, 0.5), 0 0 20px rgba(245, 158, 11, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2)'; this.style.transform='scale(1)'; this.style.borderColor='rgba(251, 191, 36, 0.8)'">⚔️ Accept</button>`;
+        container.innerHTML = `
+            <span style="
+                font-size: 20px; 
+                line-height: 1; 
+                margin-right: 10px; 
+                flex-shrink: 0; 
+                filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.7)) drop-shadow(0 0 10px rgba(251, 191, 36, 0.5));
+                transition: all 0.3s ease;
+                animation: iconPulse 2s ease-in-out infinite;
+                display: inline-block;
+            ">${bossData.icon}</span>
+            <span style="
+                flex: 1; 
+                background: linear-gradient(135deg, #ffebee 0%, #fecaca 30%, #fbbf24 60%, #fecaca 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                font-weight: 700; 
+                text-shadow: 0 0 10px rgba(239, 68, 68, 0.6), 0 0 5px rgba(251, 146, 60, 0.5), 0 2px 4px rgba(0, 0, 0, 0.4);
+                white-space: nowrap; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+                font-size: 14px; 
+                transition: all 0.3s ease;
+                position: relative;
+            ">${bossData.name}</span>
+            <span style="
+                font-size: 11px; 
+                background: linear-gradient(135deg, #fca5a5, #fb923c, #fbbf24, #fb923c, #fca5a5);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin-left: 8px; 
+                white-space: nowrap; 
+                flex-shrink: 0; 
+                font-weight: 600; 
+                text-shadow: 0 0 5px rgba(239, 68, 68, 0.6);
+                transition: all 0.3s ease;
+                filter: drop-shadow(0 0 4px rgba(251, 146, 60, 0.5));
+            ">⏱️ ${formattedTime}</span>
+            ${actionButtonHTML}
+            <button id="tm-hide-boss-btn" style="
+                background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(251, 146, 60, 0.2));
+                color: #fca5a5;
+                border: 1px solid rgba(239, 68, 68, 0.5);
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 18px;
+                line-height: 1;
+                padding: 3px 8px;
+                margin-left: 8px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                flex-shrink: 0;
+                box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+                font-weight: 700;
+            " title="Dismiss" onmouseover="this.style.background='linear-gradient(135deg, rgba(239, 68, 68, 0.45), rgba(251, 146, 60, 0.35))'; this.style.color='#ffebee'; this.style.textShadow='0 0 10px rgba(239, 68, 68, 0.8)'; this.style.boxShadow='0 0 12px rgba(239, 68, 68, 0.6)'; this.style.transform='scale(1.2)'; this.style.borderColor='rgba(251, 146, 60, 0.7)'" 
+               onmouseout="this.style.background='linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(251, 146, 60, 0.2))'; this.style.color='#fca5a5'; this.style.textShadow='none'; this.style.boxShadow='0 0 8px rgba(239, 68, 68, 0.4)'; this.style.transform='scale(1)'; this.style.borderColor='rgba(239, 68, 68, 0.5)'">×</button>
+        `;
+        
+        // Ensure icon pulse animation exists
+        if (!document.getElementById('boss-icon-animation')) {
+            const iconStyle = document.createElement('style');
+            iconStyle.id = 'boss-icon-animation';
+            iconStyle.textContent = `
+                @keyframes iconPulse {
+                    0%, 100% { 
+                        filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.7)) drop-shadow(0 0 10px rgba(251, 191, 36, 0.5));
+                        transform: scale(1);
+                    }
+                    50% { 
+                        filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.9)) drop-shadow(0 0 15px rgba(251, 191, 36, 0.7));
+                        transform: scale(1.08);
+                    }
+                }
+            `;
+            document.head.appendChild(iconStyle);
+        }
+    } else {
+        // Accepted - show name, progress, time, and epic action button
+        const buttonText = isCompleted ? '🏆 Claim' : `⚔️ ${progress}/${bossData.requiredCount}`;
+        const buttonColor = isCompleted ? '#10b981' : '#ef4444';
+        const buttonGradient = isCompleted 
+            ? 'linear-gradient(135deg, #10b981, #059669)'
+            : 'linear-gradient(135deg, #ef4444, #dc2626)';
+        const progressGradient = isCompleted 
+            ? 'linear-gradient(135deg, #10b981 0%, #059669 50%, #10b981 100%)'
+            : 'linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #ef4444 100%)';
+        const progressBorder = isCompleted 
+            ? 'rgba(16, 185, 129, 0.9)'
+            : 'rgba(239, 68, 68, 0.9)';
+        const progressGlow = isCompleted
+            ? '0 0 10px rgba(16, 185, 129, 0.5), 0 0 20px rgba(5, 150, 105, 0.3)'
+            : '0 0 10px rgba(239, 68, 68, 0.5), 0 0 20px rgba(220, 38, 38, 0.3)';
+        
+        actionButtonHTML = `<button id="tm-accept-boss-btn" style="
+            padding: 5px 14px;
+            background: ${progressGradient};
+            background-size: 200% 100%;
+            color: #ffffff;
+            border: 1px solid ${progressBorder};
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            flex-shrink: 0;
+            margin-left: 8px;
+            box-shadow: ${progressGlow}, 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.25),
+                        inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 6px ${isCompleted ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'};
+            position: relative;
+            overflow: hidden;
+            animation: buttonShimmer 3s ease-in-out infinite;
+        " onmouseover="this.style.backgroundSize='200% 100%'; this.style.boxShadow='${isCompleted ? '0 0 15px rgba(16, 185, 129, 0.7), 0 0 30px rgba(5, 150, 105, 0.4)' : '0 0 15px rgba(239, 68, 68, 0.7), 0 0 30px rgba(220, 38, 38, 0.4)'}, inset 0 1px 0 rgba(255, 255, 255, 0.35)'; this.style.transform='scale(1.05)'; this.style.textShadow='0 1px 4px rgba(0, 0, 0, 0.6), 0 0 10px ${isCompleted ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)'}'" 
+           onmouseout="this.style.backgroundSize='200% 100%'; this.style.boxShadow='${progressGlow}, inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.3)'; this.style.transform='scale(1)'; this.style.textShadow='0 1px 3px rgba(0, 0, 0, 0.5), 0 0 6px ${isCompleted ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'}'">${buttonText}</button>`;
+    container.innerHTML = `
+            <span style="
+                font-size: 18px; 
+                line-height: 1; 
+                margin-right: 10px; 
+                flex-shrink: 0; 
+                background: linear-gradient(135deg, #ef4444, #fb923c, #fbbf24);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.6)) drop-shadow(0 0 8px rgba(251, 191, 36, 0.4));
+                transition: all 0.3s ease;
+                animation: iconPulse 2s ease-in-out infinite;
+            ">${bossData.icon}</span>
+            <span style="
+                flex: 1; 
+                background: linear-gradient(135deg, #ffebee 0%, #fecaca 50%, #fbbf24 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                font-weight: 700; 
+                text-shadow: 0 0 8px rgba(239, 68, 68, 0.5), 0 0 4px rgba(251, 146, 60, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
+                white-space: nowrap; 
+                overflow: hidden; 
+                text-overflow: ellipsis; 
+                font-size: 13px; 
+                transition: all 0.3s ease;
+                position: relative;
+            ">${bossData.name}</span>
+            <span style="
+                font-size: 10px; 
+                background: linear-gradient(135deg, #fca5a5, #fb923c, #fca5a5);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin-left: 8px; 
+                white-space: nowrap; 
+                flex-shrink: 0; 
+                font-weight: 600; 
+                text-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+                transition: all 0.3s ease;
+                filter: drop-shadow(0 0 3px rgba(251, 146, 60, 0.4));
+            ">⏱️ ${formattedTime}</span>
+            ${actionButtonHTML}
+        <button id="tm-hide-boss-btn" style="
+                background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(251, 146, 60, 0.15));
+                color: #fca5a5;
+                border: 1px solid rgba(239, 68, 68, 0.4);
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 16px;
+                line-height: 1;
+                padding: 2px 6px;
+                margin-left: 8px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                flex-shrink: 0;
+                box-shadow: 0 0 6px rgba(239, 68, 68, 0.3);
+            " title="Dismiss" onmouseover="this.style.background='linear-gradient(135deg, rgba(239, 68, 68, 0.4), rgba(251, 146, 60, 0.3))'; this.style.color='#ffebee'; this.style.textShadow='0 0 8px rgba(239, 68, 68, 0.7)'; this.style.boxShadow='0 0 10px rgba(239, 68, 68, 0.5)'; this.style.transform='scale(1.15)'; this.style.borderColor='rgba(251, 146, 60, 0.6)'" 
+               onmouseout="this.style.background='linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(251, 146, 60, 0.15))'; this.style.color='#fca5a5'; this.style.textShadow='none'; this.style.boxShadow='0 0 6px rgba(239, 68, 68, 0.3)'; this.style.transform='scale(1)'; this.style.borderColor='rgba(239, 68, 68, 0.4)'">×</button>
     `;
+    }
     
     // Restore minimized state if it was minimized before update
     if (wasMinimized) {
-        container.style.top = '-40px';
+        container.style.maxHeight = '24px';
+        container.style.overflow = 'hidden';
         container.style.cursor = 'pointer';
-        container.style.padding = '4px 16px';
-        container.style.minHeight = '40px';
+        container.style.padding = '2px 8px';
+        container.style.minHeight = '24px';
         container.setAttribute('data-minimized', 'true');
     }
     
@@ -4156,50 +5989,85 @@ function showBossBattleNotification(bossData) {
     const hideBtn = container.querySelector('#tm-hide-boss-btn');
     
     const minimizeNotification = () => {
-        container.style.top = '-40px';
+        container.style.maxHeight = '24px';
+        container.style.overflow = 'hidden';
         container.style.cursor = 'pointer';
-        container.style.padding = '4px 16px';
-        container.style.minHeight = '40px';
+        container.style.padding = '2px 8px';
+        container.style.minHeight = '24px';
         container.setAttribute('data-minimized', 'true');
         // Save minimized state to storage
         GM_setValue(window.STORAGE_KEYS.BOSS_NOTIFICATION_MINIMIZED, true);
     };
     
     const expandNotification = () => {
-        container.style.top = '20px';
+        container.style.maxHeight = 'none';
+        container.style.overflow = 'visible';
         container.style.cursor = 'default';
-        container.style.padding = '8px 16px';
-        container.style.minHeight = '52px';
+        container.style.padding = '4px 8px';
+        container.style.minHeight = '28px';
         container.setAttribute('data-minimized', 'false');
         // Save expanded state to storage
         GM_setValue(window.STORAGE_KEYS.BOSS_NOTIFICATION_MINIMIZED, false);
     };
     
-    if (hideBtn) {
-        hideBtn.addEventListener('mouseenter', () => {
-            hideBtn.style.background = 'rgba(0,0,0,0.6)';
+    // Only add container listeners if they haven't been added yet
+    if (!container.hasAttribute('data-container-listeners-added')) {
+        container.setAttribute('data-container-listeners-added', 'true');
+        
+        // Expand on hover when minimized
+        container.addEventListener('mouseenter', () => {
+            if (container.getAttribute('data-minimized') === 'true') {
+                expandNotification();
+            }
         });
-        hideBtn.addEventListener('mouseleave', () => {
-            hideBtn.style.background = 'rgba(0,0,0,0.3)';
-        });
-        hideBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            minimizeNotification();
-        });
+        
+        // Main click handler - only if not abandoned
+        if (!bossData.abandoned) {
+            container.addEventListener('click', (e) => {
+                // Check if clicking on hide button first
+                if (e.target && (e.target.id === 'tm-hide-boss-btn' || e.target.closest('#tm-hide-boss-btn'))) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    // Hide the notification and show minimal button
+                    container.style.display = 'none';
+                    GM_setValue(window.STORAGE_KEYS.BOSS_NOTIFICATION_DISMISSED, true);
+                    GM_setValue(window.STORAGE_KEYS.BOSS_NOTIFICATION_MINIMIZED, false);
+                    // Show minimal button
+                    showBossMinimalButton(bossData);
+                    return;
+                }
+                
+                // Don't trigger if clicking on other buttons
+                if (e.target.closest('button')) {
+                    return;
+                }
+                
+                // If minimized, expand it
+                if (container.getAttribute('data-minimized') === 'true') {
+                    expandNotification();
+                    return;
+                }
+                
+                // Otherwise, show boss details - prevent multiple opens
+                if (document.querySelector('.tm-modal-overlay')) {
+                    return; // Modal already open
+                }
+                
+                const freshBossData = JSON.parse(GM_getValue(window.STORAGE_KEYS.ACTIVE_BOSS, 'null'));
+                if (freshBossData) {
+                    if (!freshBossData.accepted) {
+                        // Not accepted - show in view-only mode
+                        showBossBattleModal(freshBossData, true);
+                    } else {
+                        // Accepted - show full modal
+                        showBossBattleModal(freshBossData);
+                    }
+                }
+            });
+            
+            container.style.cursor = 'pointer';
+        }
     }
-    
-    // Expand on hover or click when minimized
-    container.addEventListener('mouseenter', () => {
-        if (container.getAttribute('data-minimized') === 'true') {
-            expandNotification();
-        }
-    });
-    
-    container.addEventListener('click', () => {
-        if (container.getAttribute('data-minimized') === 'true') {
-            expandNotification();
-        }
-    });
     
     // View button (only exists when boss is not accepted)
     const viewBtn = container.querySelector('#tm-view-boss-btn');
@@ -4215,11 +6083,16 @@ function showBossBattleNotification(bossData) {
         });
     }
     
-    // Accept/View button
+    // Accept/View button - only add listener if not already added
     const acceptBtn = container.querySelector('#tm-accept-boss-btn');
-    if (acceptBtn) {
+    if (acceptBtn && !acceptBtn.hasAttribute('data-listener-added')) {
+        acceptBtn.setAttribute('data-listener-added', 'true');
         acceptBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            // Prevent multiple opens
+            if (document.querySelector('.tm-modal-overlay')) {
+                return; // Modal already open
+            }
             // Get fresh boss data from storage to ensure all properties are present
             const freshBossData = JSON.parse(GM_getValue(window.STORAGE_KEYS.ACTIVE_BOSS, 'null'));
             if (freshBossData) {
@@ -4228,11 +6101,7 @@ function showBossBattleNotification(bossData) {
         });
     }
     
-    // Reposition event notification if it exists (since boss is now visible)
-    const eventNotification = document.getElementById('tm-event-notification');
-    if (eventNotification && eventNotification.getAttribute('data-minimized') !== 'true') {
-        eventNotification.style.top = '80px'; // Position below boss
-    }
+    // Notifications are integrated in page flow, no repositioning needed
     
     // Update every second
     setTimeout(() => {
@@ -4242,16 +6111,16 @@ function showBossBattleNotification(bossData) {
                 showBossBattleNotification(bossData);
             }
         } else {
-            // Boss expired - clear everything
+            // Boss expired - clear everything, track end time for cooldown
             container.remove();
+            const minimalBtn = document.getElementById('tm-boss-minimal-btn');
+            if (minimalBtn) minimalBtn.remove();
             GM_setValue(window.STORAGE_KEYS.ACTIVE_BOSS, 'null');
             GM_setValue(window.STORAGE_KEYS.BOSS_NOTIFICATION_MINIMIZED, false);
+            GM_setValue(window.STORAGE_KEYS.BOSS_NOTIFICATION_DISMISSED, false);
+            GM_setValue(window.STORAGE_KEYS.LAST_BOSS_END_TIME, Date.now()); // Track when boss ended for cooldown
             
-            // Reposition event notification to primary position
-            const eventNotification = document.getElementById('tm-event-notification');
-            if (eventNotification && eventNotification.getAttribute('data-minimized') !== 'true') {
-                eventNotification.style.top = '20px';
-            }
+            // Notifications are integrated in page flow, no repositioning needed
             
             // Show expiration message if boss was accepted but not completed
             if (bossData.accepted && !bossData.abandoned) {
@@ -4304,9 +6173,10 @@ function showBossBattleModal(bossData, viewOnly = false) {
         <div class="tm-modal-content" style="
             max-width: 500px; 
             max-height: 85vh;
-            background: linear-gradient(145deg, #1a1a1a 0%, #0d0d0d 100%);
+            background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%);
             border: 3px solid #ff5252;
-            box-shadow: 0 0 40px rgba(255, 82, 82, 0.6);
+            box-shadow: 0 0 40px rgba(255, 82, 82, 0.8);
+            color: #ffffff;
         ">
             <!-- Header -->
             <div class="tm-modal-header" style="
@@ -4326,7 +6196,7 @@ function showBossBattleModal(bossData, viewOnly = false) {
             </div>
             
             <!-- Body -->
-            <div class="tm-modal-body" style="padding: 20px;">
+            <div class="tm-modal-body" style="padding: 20px; background: transparent; color: #ffffff;">
                 <!-- Info Grid -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
                     <!-- Time Limit -->
@@ -4371,7 +6241,7 @@ function showBossBattleModal(bossData, viewOnly = false) {
                         <span style="font-size: 14px; font-weight: bold; color: #ff8a80; text-transform: uppercase;">🎯 Objective</span>
                         <span style="font-size: 12px; font-weight: bold; color: ${isCompleted ? '#4caf50' : '#ffd700'};">${progress}/${requiredCount}</span>
                     </div>
-                    <div style="font-size: 13px; color: #ccc; margin-bottom: 12px;">${taskDescription}</div>
+                    <div style="font-size: 13px; color: #e0e0e0; margin-bottom: 12px;">${taskDescription}</div>
                     <div style="
                         background: rgba(0,0,0,0.5);
                         height: 20px;
@@ -4404,12 +6274,12 @@ function showBossBattleModal(bossData, viewOnly = false) {
                         <div>
                             <div style="font-size: 24px; margin-bottom: 4px;">💰</div>
                             <div style="font-size: 18px; font-weight: bold; color: #fff;">${bossData.rewards.coins}</div>
-                            <div style="font-size: 11px; color: #999;">Coins</div>
+                            <div style="font-size: 11px; color: #e0e0e0;">Coins</div>
                         </div>
                         <div>
                             <div style="font-size: 24px; margin-bottom: 4px;">⭐</div>
                             <div style="font-size: 18px; font-weight: bold; color: #fff;">${bossData.rewards.xp}</div>
-                            <div style="font-size: 11px; color: #999;">XP</div>
+                            <div style="font-size: 11px; color: #e0e0e0;">XP</div>
                         </div>
                     </div>
                 </div>
@@ -4491,6 +6361,8 @@ function showBossBattleModal(bossData, viewOnly = false) {
         bossData.abandoned = true;
         bossData.tauntMessage = taunts[Math.floor(Math.random() * taunts.length)];
         GM_setValue(window.STORAGE_KEYS.ACTIVE_BOSS, JSON.stringify(bossData));
+        // Track end time even for abandoned bosses for cooldown
+        GM_setValue(window.STORAGE_KEYS.LAST_BOSS_END_TIME, Date.now());
         overlay.remove();
         
         // Refresh the page after abandoning
@@ -4514,7 +6386,7 @@ function completeBossBattle(bossData) {
     }
     
     // Grant rewards
-    if (window.grantCoins) window.grantCoins(config, STORAGE_KEYS, bossData.rewards.coins);
+    if (window.grantCoins) window.grantCoins(config, STORAGE_KEYS, bossData.rewards.coins, 'boss_battle');
     if (window.grantXp) window.grantXp(config, STORAGE_KEYS, bossData.rewards.xp);
     
     // Record victory
@@ -4532,9 +6404,13 @@ function completeBossBattle(bossData) {
     const defeats = GM_getValue(STORAGE_KEYS.BOSS_DEFEATS, 0);
     GM_setValue(STORAGE_KEYS.BOSS_DEFEATS, defeats + 1);
     
-    // Clear active boss and minimized state
+    // Clear active boss and minimized state, track end time for cooldown
+    const minimalBtn = document.getElementById('tm-boss-minimal-btn');
+    if (minimalBtn) minimalBtn.remove();
     GM_setValue(STORAGE_KEYS.ACTIVE_BOSS, 'null');
     GM_setValue(STORAGE_KEYS.BOSS_NOTIFICATION_MINIMIZED, false);
+    GM_setValue(STORAGE_KEYS.BOSS_NOTIFICATION_DISMISSED, false);
+    GM_setValue(STORAGE_KEYS.LAST_BOSS_END_TIME, Date.now()); // Track when boss ended for cooldown
     showBossBattleNotification(null);
     
     // Show victory message with confetti
@@ -4544,11 +6420,25 @@ function completeBossBattle(bossData) {
     if (window.triggerConfetti) {
         window.triggerConfetti(300);
     }
+    
+    // Refresh the page after claiming boss rewards
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
 }
 
 // Debug functions to force spawn events and bosses (bypass probability checks)
 function forceRandomEvent(config, STORAGE_KEYS) {
     const now = Date.now();
+    
+    // Check if it's working hours (9 AM to 8 PM)
+    const currentHour = new Date().getHours();
+    if (currentHour < 9 || currentHour >= 20) {
+        if (window.showPositiveMessage) {
+            window.showPositiveMessage('⏰ Random events only spawn during working hours (9 AM - 8 PM)');
+        }
+        return;
+    }
     
     // Clear any existing event
     GM_setValue(STORAGE_KEYS.ACTIVE_EVENT, 'null');
@@ -4583,16 +6473,17 @@ function forceRandomEvent(config, STORAGE_KEYS) {
     if (selectedEvent.duration === 0) {
         if (selectedEvent.effect.instantCoins) {
             const coins = selectedEvent.effect.instantCoins();
-            grantCoins(config, STORAGE_KEYS, coins);
+            grantCoins(config, STORAGE_KEYS, coins, 'random_event');
             if (window.showPositiveMessage) {
                 window.showPositiveMessage(`${selectedEvent.icon} ${selectedEvent.name}! +${coins} coins!`);
             }
         }
         
-        // Log to history
+        // Log to history and track end time for cooldown
         const history = JSON.parse(GM_getValue(STORAGE_KEYS.EVENT_HISTORY, '[]'));
         history.push({ ...eventData, completedAt: now });
         GM_setValue(STORAGE_KEYS.EVENT_HISTORY, JSON.stringify(history.slice(-50)));
+        GM_setValue(STORAGE_KEYS.LAST_EVENT_END_TIME, now); // Track when event ended for cooldown
         return;
     }
     
@@ -4608,12 +6499,52 @@ function forceRandomEvent(config, STORAGE_KEYS) {
 }
 
 function forceBossSpawn(config, STORAGE_KEYS) {
+    console.log('[MMS] forceBossSpawn called');
+    
+    // Check if boss battles are enabled
+    if (!config.bossBattlesEnabled) {
+        console.log('[MMS] Boss battles are disabled in config');
+        if (window.showPositiveMessage) {
+            window.showPositiveMessage('❌ Boss battles are disabled in settings');
+        }
+        return;
+    }
+    
+    // Check current hour for logging (but don't restrict force spawn)
+    const currentHour = new Date().getHours();
+    console.log(`[MMS] Current hour: ${currentHour} (force spawn bypasses working hours)`);
+    
     // Clear any existing boss
     GM_setValue(STORAGE_KEYS.ACTIVE_BOSS, 'null');
+    console.log('[MMS] Cleared existing boss');
     
-    // Select random boss
-    const bosses = Object.values(BOSS_BATTLES);
-    const selectedBoss = bosses[Math.floor(Math.random() * bosses.length)];
+    // Categorize bosses by difficulty
+    const allBosses = Object.values(BOSS_BATTLES);
+    console.log(`[MMS] Total bosses available: ${allBosses.length}`);
+    const peakHoursBosses = allBosses.filter(boss => boss.difficulty >= 4); // Difficulty 4-5
+    const regularHoursBosses = allBosses.filter(boss => boss.difficulty <= 3); // Difficulty 2-3
+    
+    // Select boss based on time of day
+    let selectedBoss;
+    const isPeakHours = currentHour >= 11 && currentHour < 17; // 11 AM to 5 PM
+    
+    if (isPeakHours) {
+        // During peak hours (11 AM - 5 PM), spawn best bosses (difficulty 4-5)
+        selectedBoss = peakHoursBosses[Math.floor(Math.random() * peakHoursBosses.length)];
+        console.log('[MMS] Selected peak hours boss:', selectedBoss?.name);
+    } else {
+        // During regular hours (9-11 AM, 5-8 PM), spawn regular bosses (difficulty 2-3)
+        selectedBoss = regularHoursBosses[Math.floor(Math.random() * regularHoursBosses.length)];
+        console.log('[MMS] Selected regular hours boss:', selectedBoss?.name);
+    }
+    
+    if (!selectedBoss) {
+        console.error('[MMS] No boss selected!');
+        if (window.showPositiveMessage) {
+            window.showPositiveMessage('❌ No boss available to spawn');
+        }
+        return;
+    }
     
     const bossData = {
         ...selectedBoss,
@@ -4623,24 +6554,62 @@ function forceBossSpawn(config, STORAGE_KEYS) {
         accepted: false
     };
     
+    console.log('[MMS] Created boss data:', bossData);
     GM_setValue(STORAGE_KEYS.ACTIVE_BOSS, JSON.stringify(bossData));
+    console.log('[MMS] Saved boss to storage');
     
     // Show notification
     if (window.showPositiveMessage) {
         window.showPositiveMessage(`⚔️ BOSS BATTLE! ${selectedBoss.icon} ${selectedBoss.name} has appeared!`);
     }
     
+    // console.log('[MMS] Calling showBossBattleNotification'); // Disabled spam
     showBossBattleNotification(bossData);
+    // console.log('[MMS] Boss spawn complete'); // Disabled spam
 }
 
 // Debug function to stop/clear any active boss battle
 function stopBossBattle(STORAGE_KEYS) {
-    // Clear active boss
+    // Clear active boss, track end time for cooldown
     GM_setValue(STORAGE_KEYS.ACTIVE_BOSS, 'null');
     GM_setValue(STORAGE_KEYS.BOSS_NOTIFICATION_MINIMIZED, false);
+    GM_setValue(STORAGE_KEYS.BOSS_NOTIFICATION_DISMISSED, false);
+    GM_setValue(STORAGE_KEYS.LAST_BOSS_END_TIME, Date.now());
     
-    // Remove notification
+    // Remove notification and minimal button
+    const minimalBtn = document.getElementById('tm-boss-minimal-btn');
+    if (minimalBtn) minimalBtn.remove();
     showBossBattleNotification(null);
+}
+
+// Helper function to check if it's currently working hours
+function isWorkingHours() {
+    const currentHour = new Date().getHours();
+    return currentHour >= 9 && currentHour < 20;
+}
+
+// Debug function to show working hours status
+function checkWorkingHours() {
+    const currentHour = new Date().getHours();
+    const isWorking = isWorkingHours();
+    const isPeakHours = currentHour >= 11 && currentHour < 17;
+    
+    let status, message;
+    if (!isWorking) {
+        status = '🔴 NON-WORKING HOURS';
+        message = `${status} (${currentHour}:00)\nBoss battles and events only spawn during 9 AM - 8 PM`;
+    } else if (isPeakHours) {
+        status = '🔥 PEAK HOURS';
+        message = `${status} (${currentHour}:00)\nBest bosses (difficulty 4-5) spawn during 11 AM - 5 PM`;
+    } else {
+        status = '🟢 REGULAR HOURS';
+        message = `${status} (${currentHour}:00)\nRegular bosses (difficulty 2-3) spawn during 9-11 AM & 5-8 PM`;
+    }
+    
+    if (window.showPositiveMessage) {
+        window.showPositiveMessage(message);
+    }
+    console.log(`[MMS] Working Hours Status: ${message}`);
 }
 
 // Debug function to stop/clear any active random event
@@ -4676,14 +6645,228 @@ function formatTimeRemaining(milliseconds) {
     }
 }
 
-// Export new feature functions
+// ===================================================================
+
+// Export feature functions
 window.checkRandomEvent = checkRandomEvent;
 window.updateEventNotification = updateEventNotification;
-window.showFactionsModal = showFactionsModal;
+window.getCurrentLevelBonuses = getCurrentLevelBonuses;
+window.formatLevelBonusesHTML = formatLevelBonusesHTML;
+window.LEVEL_REWARDS = LEVEL_REWARDS;
+window.showTitlesModal = showTitlesModal;
+
+function showStatusTransferHistory(STORAGE_KEYS) {
+    const history = JSON.parse(GM_getValue(STORAGE_KEYS.STATUS_TRANSFER_HISTORY, '[]'));
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'tm-modal-overlay';
+    overlay.innerHTML = `
+        <div class="tm-modal-content" style="max-width: 800px; height: 85vh; display: flex; flex-direction: column;">
+            <div class="tm-modal-header">
+                <h3>📊 Status Transfer History</h3>
+                <button class="tm-modal-close">&times;</button>
+            </div>
+            <div class="tm-modal-body" style="flex: 1; overflow-y: auto; padding: 15px;">
+                ${history.length === 0 ? `
+                    <div style="text-align: center; padding: 60px 20px; color: var(--tm-secondary-hover);">
+                        <div style="font-size: 64px; margin-bottom: 20px;">📊</div>
+                        <div style="font-size: 18px; margin-bottom: 10px;">No status transfer history yet</div>
+                        <div style="font-size: 14px; opacity: 0.8;">Start moving repairs to different statuses to see them here!</div>
+                    </div>
+                ` : `
+                    <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
+                        <button class="tm-status-filter-btn active" data-filter="all" style="
+                            padding: 8px 16px;
+                            background: var(--tm-primary-color);
+                            color: #000;
+                            border: none;
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            font-weight: 600;
+                        ">All (${history.length})</button>
+                        ${['30', '40', '55', '65', '70', '75', '90', '100', '105'].map(status => {
+                            const count = history.filter(h => h.status === status).length;
+                            if (count === 0) return '';
+                            return `
+                                <button class="tm-status-filter-btn" data-filter="${status}" style="
+                                    padding: 8px 16px;
+                                    background: var(--tm-dark-color);
+                                    color: var(--tm-primary-color);
+                                    border: 1px solid var(--tm-shop-item-border);
+                                    border-radius: 6px;
+                                    cursor: pointer;
+                                    font-size: 12px;
+                                    font-weight: 600;
+                                ">Status ${status} (${count})</button>
+                            `;
+                        }).join('')}
+                        ${history.filter(h => h.status && !['30', '40', '55', '65', '70', '75', '90', '100', '105'].includes(h.status)).length > 0 ? `
+                        <button class="tm-status-filter-btn" data-filter="other" style="
+                            padding: 8px 16px;
+                            background: var(--tm-dark-color);
+                            color: var(--tm-primary-color);
+                            border: 1px solid var(--tm-shop-item-border);
+                            border-radius: 6px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            font-weight: 600;
+                        ">Other (${history.filter(h => h.status && !['30', '40', '55', '65', '70', '75', '90', '100', '105'].includes(h.status)).length})</button>
+                        ` : ''}
+                    </div>
+                    <div id="tm-status-history-list" style="display: flex; flex-direction: column; gap: 8px;">
+                        ${renderStatusHistory(history, 'all')}
+                    </div>
+                `}
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    overlay.querySelector('.tm-modal-close').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    
+    // Filter buttons
+    overlay.querySelectorAll('.tm-status-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            overlay.querySelectorAll('.tm-status-filter-btn').forEach(b => {
+                b.classList.remove('active');
+                b.style.background = 'var(--tm-dark-color)';
+                b.style.color = 'var(--tm-primary-color)';
+                b.style.border = '1px solid var(--tm-shop-item-border)';
+            });
+            btn.classList.add('active');
+            btn.style.background = 'var(--tm-primary-color)';
+            btn.style.color = '#000';
+            btn.style.border = 'none';
+            
+            const filter = btn.dataset.filter;
+            const listContainer = document.getElementById('tm-status-history-list');
+            if (listContainer) {
+                listContainer.innerHTML = renderStatusHistory(history, filter);
+            }
+        });
+    });
+}
+
+function renderStatusHistory(history, filter = 'all') {
+    let filtered;
+    const trackedStatuses = ['30', '40', '55', '65', '70', '75', '90', '100', '105'];
+    if (filter === 'all') {
+        filtered = history;
+    } else if (filter === 'other') {
+        filtered = history.filter(h => h.status && !trackedStatuses.includes(h.status));
+    } else {
+        filtered = history.filter(h => h.status === filter);
+    }
+    
+    if (filtered.length === 0) {
+        return `<div style="text-align: center; padding: 40px; color: var(--tm-secondary-hover);">No repairs found for this filter.</div>`;
+    }
+    
+    const formatTime = (timestamp) => {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diff = now - date;
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+        
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days < 7) return `${days}d ago`;
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    };
+    
+    const getStatusInfo = (status) => {
+        const statusMap = {
+            '30': { icon: '📋', color: '#9E9E9E', label: 'Status 30' },
+            '40': { icon: '↗️', color: '#4CAF50', label: 'Status 40' },
+            '55': { icon: '⏸️', color: '#FF9800', label: 'Status 55' },
+            '65': { icon: '⏳', color: '#ffc107', label: 'Status 65' },
+            '70': { icon: '🔧', color: '#9C27B0', label: 'Status 70' },
+            '75': { icon: '📦', color: '#795548', label: 'Status 75' },
+            '90': { icon: '📝', color: '#607D8B', label: 'Status 90' },
+            '100': { icon: '✅', color: '#2196F3', label: 'Status 100' },
+            '105': { icon: '🎉', color: '#E91E63', label: 'Status 105' },
+            'unknown': { icon: '❓', color: '#888', label: 'Unknown Status' }
+        };
+        return statusMap[status] || { icon: '📋', color: '#888', label: `Status ${status}` };
+    };
+    
+    return filtered.map(entry => {
+        const statusInfo = getStatusInfo(entry.status);
+        const repairId = entry.repairId ? `#${entry.repairId}` : (entry.url ? 'From URL' : 'Unknown ID');
+        const customerName = entry.customerName || (entry.buttonText ? `Button: ${entry.buttonText.substring(0, 30)}` : 'Unknown Customer');
+        const deviceInfo = entry.deviceInfo || 'Unknown Device';
+        
+        return `
+            <div style="
+                background: var(--tm-shop-item-bg);
+                border: 1px solid var(--tm-shop-item-border);
+                border-radius: 8px;
+                padding: 12px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                transition: all 0.2s;
+            " onmouseover="this.style.background='var(--tm-shop-item-hover-bg)'" onmouseout="this.style.background='var(--tm-shop-item-bg)'">
+                <div style="
+                    font-size: 24px;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: ${statusInfo.color}20;
+                    border-radius: 8px;
+                ">${statusInfo.icon}</div>
+                <div style="flex: 1; min-width: 0;">
+                    <div style="
+                        font-weight: 600;
+                        color: var(--tm-primary-color);
+                        font-size: 14px;
+                        margin-bottom: 4px;
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                    ">
+                        <span style="color: ${statusInfo.color};">${statusInfo.label}</span>
+                        <span style="opacity: 0.6; font-size: 12px;">${repairId}</span>
+                    </div>
+                    <div style="
+                        font-size: 12px;
+                        color: var(--tm-secondary-hover);
+                        margin-bottom: 2px;
+                    ">${customerName}</div>
+                    <div style="
+                        font-size: 11px;
+                        color: var(--tm-secondary-hover);
+                        opacity: 0.8;
+                    ">${deviceInfo}</div>
+                </div>
+                <div style="
+                    font-size: 11px;
+                    color: var(--tm-secondary-hover);
+                    text-align: right;
+                    white-space: nowrap;
+                ">
+                    ${formatTime(entry.timestamp)}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
 window.showDashboardModal = showDashboardModal;
+window.showStatusTransferHistory = showStatusTransferHistory;
 window.showTalentsModal = showTalentsModal;
 window.checkBossSpawn = checkBossSpawn;
 window.showBossBattleNotification = showBossBattleNotification;
+window.showBossBattleModal = showBossBattleModal;
+window.showEventDetailsModal = showEventDetailsModal;
 window.completeBossBattle = completeBossBattle;
 window.updateBossProgress = updateBossProgress;
 window.forceRandomEvent = forceRandomEvent; // Debug function
@@ -4693,6 +6876,9 @@ window.stopRandomEvent = stopRandomEvent; // Debug function
 window.formatTimeRemaining = formatTimeRemaining; // Helper function
 
 window.getGamificationSettingsHTML = getGamificationSettingsHTML;
+window.initGamificationSettings = initGamificationSettings;
+window.saveGamificationSettings = saveGamificationSettings;
+window.updateShopButtonVisibility = updateShopButtonVisibility;
 window.populateShop = populateShop;
 window.showShopModal = showShopModal;
 window.handleShopPurchase = handleShopPurchase;
@@ -4716,3 +6902,5 @@ window.processNotificationQueue = processNotificationQueue;
 window.initOrderTracking = initOrderTracking;
 window.initFunFeatures = initFunFeatures;
 window.initFunFeatures = initFunFeatures;
+window.initFunFeatures = initFunFeatures;
+window.initOrderTracking = initOrderTracking;

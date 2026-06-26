@@ -1,0 +1,28 @@
+{
+  "version": "121",
+  "name": "MyManager All-in-One Suite",
+  "updateBase": "https://raw.githubusercontent.com/Gkorogias/MANAGER/main",
+  "releaseNotes": "Auto-update loader: install myman_loader.user.js once; Tampermonkey checks GitHub for updates.",
+  "modules": [
+    "myman_themes.js",
+    "myman_config.js",
+    "myman_utils.js",
+    "myman_print.js",
+    "myman_styles.js",
+    "myman_settings.js",
+    "myman_search.js",
+    "myman_scratchpad.js",
+    "myman_mascot.js",
+    "myman_gamification.js",
+    "myman_phonelist.js",
+    "myman_technicianstats.js",
+    "myman_orderhistory.js",
+    "myman_status40.js",
+    "myman_pricetransfer.js",
+    "myman_statushover.js",
+    "myman_orderlink.js",
+    "myman_weather.js",
+    "myman_eod.js",
+    "myman_repair_reminders.js"
+  ]
+}

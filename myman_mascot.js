@@ -1,0 +1,7551 @@
+// This script is intended to be used as a library via the @require directive
+// in the main "MyManager All-in-One Suite" script. It does not do anything on its own.
+
+let mascotStateTimeout = null;
+let idleTimer = null;
+let isRoaming = false;
+let roamingTimeout = null;
+let playfulTimeout = null;
+let petStats = { happiness: 100, hunger: 100, lastUpdate: Date.now() };
+// Tamagotchi state variables
+let tamagotchiAge = 0;
+let tamagotchiStage = 'egg'; // egg, baby, kid, teen, adult, middleage, old
+let tamagotchiCharacterType = 'none'; // none (egg), dragon, robot, slime, plant, ghost, cat, phoenix, crystal
+let tamagotchiHealth = 100;
+
+// Epic Character Data with lore and traits
+const MASCOT_CHARACTERS = {
+    dragon: {
+        name: 'Dragon',
+        emoji: '🐉',
+        color: '#1de9b6',
+        rarity: 'Legendary',
+        element: 'Fire & Scale',
+        description: 'Ancient guardian of mystical realms',
+        lore: 'Born from volcanic energy, this dragon carries the wisdom of ages and the power of flame.',
+        traits: ['🔥 Fire Breath', '🛡️ Armored Scales', '✨ Ancient Magic']
+    },
+    robot: {
+        name: 'Robot',
+        emoji: '🤖',
+        color: '#00b7ff',
+        rarity: 'Epic',
+        element: 'Tech & Code',
+        description: 'Advanced AI from the digital frontier',
+        lore: 'Forged in silicon and lightning, this mechanical marvel evolves through code and creativity.',
+        traits: ['⚡ Electric Core', '🔧 Self-Repair', '💾 Data Mind']
+    },
+    slime: {
+        name: 'Slime',
+        emoji: '🟢',
+        color: '#76ff03',
+        rarity: 'Rare',
+        element: 'Liquid & Bounce',
+        description: 'Adorable gelatinous life form',
+        lore: 'Created from pure joy and laughter, this bouncy friend absorbs happiness from its surroundings.',
+        traits: ['💧 Shape-Shift', '🎈 Bounce Back', '😊 Joy Aura']
+    },
+    plant: {
+        name: 'Plant Spirit',
+        emoji: '🌱',
+        color: '#4caf50',
+        rarity: 'Rare',
+        element: 'Nature & Growth',
+        description: 'Guardian of forests and life',
+        lore: 'Sprouted from the World Tree, this spirit nurtures all living things with ancient earth magic.',
+        traits: ['🌿 Photosynthesis', '🌸 Bloom Power', '🌳 Nature Bond']
+    },
+    ghost: {
+        name: 'Ghost',
+        emoji: '👻',
+        color: '#b39ddb',
+        rarity: 'Epic',
+        element: 'Spirit & Shadow',
+        description: 'Ethereal being from beyond',
+        lore: 'Neither living nor dead, this playful spirit phases between dimensions, seeking friendship.',
+        traits: ['👁️ Invisibility', '✨ Phase Through', '🌙 Night Vision']
+    },
+    cat: {
+        name: 'Mystic Cat',
+        emoji: '🐱',
+        color: '#ff6090',
+        rarity: 'Rare',
+        element: 'Luck & Mischief',
+        description: 'Feline of nine lives and infinite curiosity',
+        lore: 'Blessed by moon goddesses, this cat walks between worlds, bringing fortune and mystery.',
+        traits: ['🍀 Lucky Charm', '🌙 Night Hunter', '😼 Nine Lives']
+    },
+    phoenix: {
+        name: 'Phoenix',
+        emoji: '🔥',
+        color: '#ff6d00',
+        rarity: 'Legendary',
+        element: 'Flame & Rebirth',
+        description: 'Immortal firebird of legends',
+        lore: 'Born from sacred flames, this majestic bird rises eternal, symbolizing hope and renewal.',
+        traits: ['🔥 Eternal Flame', '✨ Rebirth', '☀️ Solar Power']
+    },
+    crystal: {
+        name: 'Crystal Golem',
+        emoji: '💎',
+        color: '#4dd0e1',
+        rarity: 'Epic',
+        element: 'Gem & Light',
+        description: 'Living gemstone from deep caverns',
+        lore: 'Formed over millennia in crystal caves, this sentient gem refracts light and magic.',
+        traits: ['💎 Diamond Hard', '🌈 Light Prism', '✨ Mana Storage']
+    }
+};
+
+function playEpicSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // Create a dramatic reveal sound
+        const playTone = (freq, startTime, duration, volume = 0.1) => {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = freq;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0, startTime);
+            gainNode.gain.linearRampToValueAtTime(volume, startTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+            
+            oscillator.start(startTime);
+            oscillator.stop(startTime + duration);
+        };
+        
+        const now = audioContext.currentTime;
+        // Epic dramatic reveal sound
+        playTone(200, now, 0.15, 0.15);
+        playTone(300, now + 0.15, 0.15, 0.15);
+        playTone(400, now + 0.3, 0.15, 0.15);
+        playTone(600, now + 0.45, 0.3, 0.2);
+    } catch (e) {
+        console.log('[Mascot] Audio not available:', e);
+    }
+}
+
+function screenShake(duration = 500) {
+    const body = document.body;
+    const originalTransform = body.style.transform;
+    const startTime = Date.now();
+    
+    const shake = () => {
+        const elapsed = Date.now() - startTime;
+        if (elapsed < duration) {
+            const intensity = (1 - elapsed / duration) * 5;
+            const x = (Math.random() - 0.5) * intensity;
+            const y = (Math.random() - 0.5) * intensity;
+            body.style.transform = `translate(${x}px, ${y}px)`;
+            requestAnimationFrame(shake);
+        } else {
+            body.style.transform = originalTransform;
+        }
+    };
+    shake();
+}
+
+function showEpicCharacterReveal(characterType) {
+    const character = MASCOT_CHARACTERS[characterType];
+    if (!character) return;
+    
+    // Play epic sound
+    playEpicSound();
+    
+    // Create dramatic overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'tm-character-reveal-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(20,20,40,0.98) 100%);
+        z-index: 100000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.5s ease-out;
+    `;
+    
+    // Create roulette container
+    const rouletteContainer = document.createElement('div');
+    rouletteContainer.style.cssText = `
+        text-align: center;
+        animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    `;
+    
+    // Create roulette strip
+    const rouletteStrip = document.createElement('div');
+    rouletteStrip.style.cssText = `
+        display: flex;
+        gap: 20px;
+        margin-bottom: 40px;
+        overflow: hidden;
+        width: 400px;
+        height: 120px;
+        position: relative;
+        border: 3px solid ${character.color};
+        border-radius: 12px;
+        box-shadow: 0 0 30px ${character.color}80, inset 0 0 20px rgba(0,0,0,0.5);
+    `;
+    
+    // Calculate which character index was selected
+    const allChars = Object.values(MASCOT_CHARACTERS);
+    const characterKeys = Object.keys(MASCOT_CHARACTERS);
+    const selectedIndex = characterKeys.indexOf(characterType);
+    
+    // Create scrolling characters
+    const charWidth = 120; // 80px width + 40px gap
+    const totalRepeats = 5;
+    const targetIndex = (totalRepeats - 2) * allChars.length + selectedIndex; // Land on 4th repetition
+    const targetOffset = targetIndex * charWidth;
+    const centerOffset = 200 - 60; // Center of roulette (400px / 2) - half char width
+    const finalTranslate = -(targetOffset - centerOffset);
+    
+    const scrollContainer = document.createElement('div');
+    scrollContainer.style.cssText = `
+        display: flex;
+        gap: 40px;
+        animation: rouletteScroll 3s cubic-bezier(0.22, 1, 0.36, 1);
+        padding: 20px;
+    `;
+    
+    // Add CSS animation with calculated end position
+    const animationName = `rouletteScroll_${characterType}`;
+    const animStyle = document.createElement('style');
+    animStyle.textContent = `
+        @keyframes ${animationName} {
+            0% { transform: translateX(0); }
+            70% { transform: translateX(${finalTranslate - 200}px); }
+            85% { transform: translateX(${finalTranslate + 50}px); }
+            100% { transform: translateX(${finalTranslate}px); }
+        }
+    `;
+    document.head.appendChild(animStyle);
+    scrollContainer.style.animation = `${animationName} 3s cubic-bezier(0.22, 1, 0.36, 1) forwards`;
+    
+    // Add all characters multiple times for roulette effect
+    for (let i = 0; i < totalRepeats; i++) {
+        allChars.forEach((char, idx) => {
+            const isSelected = (i === totalRepeats - 2) && (characterKeys[idx] === characterType);
+            const charDiv = document.createElement('div');
+            charDiv.style.cssText = `
+                min-width: 80px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                opacity: ${isSelected ? '1' : '0.4'};
+                transition: all 0.3s;
+            `;
+            charDiv.innerHTML = `
+                <div style="font-size: 50px;">${char.emoji}</div>
+                <div style="color: ${char.color}; font-weight: bold; font-size: 12px;">${char.name}</div>
+            `;
+            scrollContainer.appendChild(charDiv);
+        });
+    }
+    
+    rouletteStrip.appendChild(scrollContainer);
+    
+    // Selection indicator
+    const indicator = document.createElement('div');
+    indicator.style.cssText = `
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 100px;
+        height: 100px;
+        border: 4px solid ${character.color};
+        border-radius: 12px;
+        box-shadow: 0 0 40px ${character.color}, inset 0 0 20px ${character.color}40;
+        pointer-events: none;
+        animation: pulse 1s ease-in-out infinite;
+    `;
+    rouletteStrip.appendChild(indicator);
+    
+    rouletteContainer.appendChild(rouletteStrip);
+    
+    // Character info (hidden initially)
+    const infoContainer = document.createElement('div');
+    infoContainer.style.cssText = `
+        opacity: 0;
+        animation: revealInfo 1s ease-out 3.5s forwards;
+    `;
+    infoContainer.innerHTML = `
+        <div style="text-align: center; color: white; position: relative;">
+            <div style="position: absolute; top: -20px; right: calc(50% - 200px); background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color: #000; padding: 8px 20px; font-weight: bold; font-size: 16px; border-radius: 4px; transform: rotate(15deg); box-shadow: 0 4px 15px rgba(255,215,0,0.6); animation: ribbonBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 3.5s; z-index: 10;">
+                ⭐ NEW! ⭐
+            </div>
+            <div style="font-size: 80px; margin-bottom: 20px; text-shadow: 0 0 30px ${character.color}; animation: bounce 1s ease-out 3.5s;">${character.emoji}</div>
+            <div style="font-size: 32px; font-weight: bold; color: ${character.color}; margin-bottom: 10px; text-shadow: 0 0 20px ${character.color};">${character.name}</div>
+            <div style="display: inline-block; background: ${character.color}40; color: ${character.color}; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; margin-bottom: 20px; border: 2px solid ${character.color};">${character.rarity} • ${character.element}</div>
+            <div style="font-size: 18px; color: #ccc; margin-bottom: 15px; font-style: italic;">"${character.description}"</div>
+            <div style="font-size: 14px; color: #aaa; max-width: 500px; margin: 0 auto 25px; line-height: 1.6;">${character.lore}</div>
+            <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;">
+                ${character.traits.map(trait => `
+                    <div style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 8px; font-size: 13px; color: white; border: 1px solid rgba(255,255,255,0.2);">${trait}</div>
+                `).join('')}
+            </div>
+            <button id="tm-reveal-close-btn" style="
+                background: linear-gradient(135deg, ${character.color} 0%, ${character.color}dd 100%);
+                color: white;
+                border: none;
+                padding: 15px 40px;
+                border-radius: 8px;
+                font-size: 18px;
+                font-weight: bold;
+                cursor: pointer;
+                box-shadow: 0 4px 20px ${character.color}80;
+                transition: all 0.3s;
+            " onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 30px ${character.color}';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 20px ${character.color}80';">
+                ✨ Begin Journey
+            </button>
+        </div>
+    `;
+    
+    rouletteContainer.appendChild(infoContainer);
+    overlay.appendChild(rouletteContainer);
+    
+    // Add CSS animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.8; }
+        }
+        @keyframes revealInfo {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        @keyframes ribbonBounce {
+            0% { transform: rotate(15deg) scale(0); opacity: 0; }
+            60% { transform: rotate(15deg) scale(1.2); opacity: 1; }
+            100% { transform: rotate(15deg) scale(1); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Spawn particles
+    for (let i = 0; i < 50; i++) {
+        setTimeout(() => {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position: absolute;
+                width: 4px;
+                height: 4px;
+                background: ${character.color};
+                border-radius: 50%;
+                top: ${Math.random() * 100}%;
+                left: ${Math.random() * 100}%;
+                animation: sparkle ${2 + Math.random() * 3}s ease-out infinite;
+                box-shadow: 0 0 10px ${character.color};
+            `;
+            overlay.appendChild(particle);
+        }, i * 30);
+    }
+    
+    const sparkleStyle = document.createElement('style');
+    sparkleStyle.textContent = `
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+    `;
+    document.head.appendChild(sparkleStyle);
+    
+    // Add to page
+    document.body.appendChild(overlay);
+    
+    // Highlight selected character when roulette stops at 3 seconds
+    setTimeout(() => {
+        const allCharDivs = scrollContainer.querySelectorAll('div[style*="min-width: 80px"]');
+        allCharDivs[targetIndex]?.style.setProperty('opacity', '1');
+        allCharDivs[targetIndex]?.style.setProperty('transform', 'scale(1.1)');
+    }, 3000);
+    
+    // Epic reveal moment at 3.5 seconds
+    setTimeout(() => {
+        // Screen shake!
+        screenShake(600);
+        
+        // Flash effect
+        const flash = document.createElement('div');
+        flash.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: ${character.color};
+            z-index: 100001;
+            animation: flash 0.5s ease-out;
+            pointer-events: none;
+        `;
+        document.body.appendChild(flash);
+        setTimeout(() => flash.remove(), 500);
+        
+        const flashStyle = document.createElement('style');
+        flashStyle.textContent = `
+            @keyframes flash {
+                0% { opacity: 0; }
+                50% { opacity: 0.8; }
+                100% { opacity: 0; }
+            }
+        `;
+        document.head.appendChild(flashStyle);
+        
+        // Epic reveal sound
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const playChord = (freqs, startTime, duration) => {
+                freqs.forEach(freq => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = freq;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0, startTime);
+                    gainNode.gain.linearRampToValueAtTime(0.15, startTime + 0.05);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+                    
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + duration);
+                });
+            };
+            
+            const now = audioContext.currentTime;
+            playChord([523.25, 659.25, 783.99], now, 1.5); // C major chord (epic!)
+        } catch (e) {
+            console.log('[Mascot] Audio not available:', e);
+        }
+        
+        // Trigger confetti!
+        if (typeof window.triggerConfetti === 'function') {
+            window.triggerConfetti(200);
+        }
+    }, 3500);
+    
+    // Close button handler
+    setTimeout(() => {
+        const closeBtn = document.getElementById('tm-reveal-close-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                overlay.style.animation = 'fadeIn 0.3s ease-out reverse';
+                setTimeout(() => overlay.remove(), 300);
+                
+                // More confetti on close!
+                if (typeof window.triggerConfetti === 'function') {
+                    window.triggerConfetti(100);
+                }
+            });
+        }
+    }, 3500);
+}
+
+window.playEpicSound = playEpicSound;
+window.screenShake = screenShake;
+
+window.showEpicCharacterReveal = showEpicCharacterReveal;
+let tamagotchiDiscipline = 0;
+let tamagotchiLightsOn = true;
+let tamagotchiLastUpdate = Date.now();
+// Enhanced Tamagotchi variables
+let tamagotchiWeight = 30; // Base weight (affects health)
+let tamagotchiPoopCount = 0; // Number of poops on screen
+let tamagotchiIsSick = false;
+let tamagotchiSickType = 'none'; // none, cold, fever, upset_stomach
+let tamagotchiCareMistakes = 0; // Affects evolution and personality
+let tamagotchiPersonality = 'normal'; // normal, lazy, active, spoiled, well_cared
+let tamagotchiBirthday = Date.now();
+let tamagotchiLastFed = Date.now();
+let tamagotchiLastPlayed = Date.now();
+let tamagotchiLastCleaned = Date.now();
+let tamagotchiToiletTrained = false;
+let tamagotchiMealCount = 0; // Meals eaten today
+let tamagotchiSnackCount = 0; // Snacks eaten today
+let tamagotchiIsDead = false;
+let tamagotchiReviveCount = 0; // How many times revived
+let tamagotchiLastPoopTime = 0; // When last poop was created
+let tamagotchiSleepStartTime = 0; // When sleep period starts
+let tamagotchiSleepEndTime = 0; // When sleep period ends
+let tamagotchiIsSleeping = false;
+let tamagotchiLightsManualOverride = false; // User manually toggled lights (prevents auto sleep/wake)
+let tamagotchiLastPraise = 0; // Last time praised
+let tamagotchiLastScold = 0; // Last time scolded
+
+/**
+ * Helper function to get the correct accessory element from the DOM, handling special cases.
+ * @param {string} itemId The ID of the accessory.
+ * @returns {HTMLElement|null} The DOM element for the accessory.
+ */
+function getAccessoryElement(itemId) {
+    // Direct ID lookup for all new accessories
+    return document.getElementById(itemId);
+}
+
+function stopRoaming(config) {
+    if (roamingTimeout) clearTimeout(roamingTimeout);
+    if (playfulTimeout) clearTimeout(playfulTimeout);
+    
+    // Stop physics animation
+    stopPhysicsAnimation();
+
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    if (mascotContainer) {
+        // Commit the current animated position before canceling
+        const animations = mascotContainer.getAnimations();
+        if (animations.length > 0) {
+            // Get the current computed position during animation
+        const computedStyle = window.getComputedStyle(mascotContainer);
+            const matrix = new DOMMatrix(computedStyle.transform);
+            const currentX = matrix.m41;
+            const currentY = matrix.m42;
+            
+            // Cancel all animations
+            animations.forEach(anim => anim.cancel());
+            
+            // Set the final position explicitly
+            mascotContainer.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        }
+    }
+
+    roamingTimeout = null;
+    isRoaming = false;
+}
+
+// Physics-based limb animation variables
+let lastMascotX = 0;
+let lastMascotY = 0;
+let mascotVelocityX = 0;
+let mascotVelocityY = 0;
+let physicsAnimationFrame = null;
+
+function updateLimbPhysics() {
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    if (!mascotContainer) return;
+
+    // Get current position
+    const transformMatrix = new DOMMatrix(window.getComputedStyle(mascotContainer).transform);
+    const currentX = transformMatrix.m41;
+    const currentY = transformMatrix.m42;
+
+    // Calculate velocity (smoothed)
+    const newVelocityX = (currentX - lastMascotX) * 0.3 + mascotVelocityX * 0.7;
+    const newVelocityY = (currentY - lastMascotY) * 0.3 + mascotVelocityY * 0.7;
+    
+    mascotVelocityX = newVelocityX;
+    mascotVelocityY = newVelocityY;
+    
+    lastMascotX = currentX;
+    lastMascotY = currentY;
+
+    // Apply physics to limbs based on velocity
+    const leftArm = mascotContainer.querySelector('.tm-animate-arm-left');
+    const rightArm = mascotContainer.querySelector('.tm-animate-arm-right');
+    const leftLeg = mascotContainer.querySelector('.tm-animate-leg-left');
+    const rightLeg = mascotContainer.querySelector('.tm-animate-leg-right');
+    const tail = mascotContainer.querySelector('.tm-animate-tail');
+    const leftWing = mascotContainer.querySelector('.tm-animate-wing-left');
+    const rightWing = mascotContainer.querySelector('.tm-animate-wing-right');
+
+    // Calculate speed
+    const speed = Math.sqrt(mascotVelocityX * mascotVelocityX + mascotVelocityY * mascotVelocityY);
+    const isMoving = speed > 0.3;
+
+    if (isMoving) {
+        // Calculate rotation based on horizontal velocity (momentum effect)
+        const armSwing = Math.max(-25, Math.min(25, mascotVelocityX * 0.5));
+        const legKick = Math.abs(mascotVelocityX) > 0.5 ? Math.sin(Date.now() * 0.01) * 15 : 0;
+        const tailSwing = Math.max(-30, Math.min(30, -mascotVelocityX * 0.8));
+        const wingFlap = speed > 1 ? Math.sin(Date.now() * 0.008) * 20 : 0;
+
+        // Apply physics transformations
+        if (leftArm) {
+            leftArm.style.transform = `rotate(${-armSwing}deg)`;
+        }
+        if (rightArm) {
+            rightArm.style.transform = `rotate(${armSwing}deg)`;
+        }
+        if (leftLeg) {
+            const legOffset = Math.sin(Date.now() * 0.012) * Math.abs(mascotVelocityX) * 3;
+            leftLeg.style.transform = `translateY(${legKick + legOffset}px)`;
+        }
+        if (rightLeg) {
+            const legOffset = Math.sin(Date.now() * 0.012 + Math.PI) * Math.abs(mascotVelocityX) * 3;
+            rightLeg.style.transform = `translateY(${legKick - legOffset}px)`;
+        }
+        if (tail) {
+            tail.style.transform = `rotate(${tailSwing}deg)`;
+        }
+        if (leftWing) {
+            leftWing.style.transform = `rotate(${-wingFlap}deg)`;
+        }
+        if (rightWing) {
+            rightWing.style.transform = `rotate(${wingFlap}deg)`;
+        }
+    } else {
+        // Reset to neutral when not moving (let CSS animations take over)
+        if (leftArm) leftArm.style.transform = '';
+        if (rightArm) rightArm.style.transform = '';
+        if (leftLeg) leftLeg.style.transform = '';
+        if (rightLeg) rightLeg.style.transform = '';
+        if (tail) tail.style.transform = '';
+        if (leftWing) leftWing.style.transform = '';
+        if (rightWing) rightWing.style.transform = '';
+    }
+
+    // Continue animation loop
+    physicsAnimationFrame = requestAnimationFrame(updateLimbPhysics);
+}
+
+function startPhysicsAnimation() {
+    if (!physicsAnimationFrame) {
+        physicsAnimationFrame = requestAnimationFrame(updateLimbPhysics);
+    }
+}
+
+function stopPhysicsAnimation() {
+    if (physicsAnimationFrame) {
+        cancelAnimationFrame(physicsAnimationFrame);
+        physicsAnimationFrame = null;
+    }
+}
+
+function startRoaming(config) {
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    if (!mascotContainer) return;
+    if (isRoaming) return;
+    // Don't start roaming if lights are off (sleeping)
+    if (!tamagotchiLightsOn || tamagotchiIsSleeping) {
+        return;
+    }
+    isRoaming = true;
+    
+    // Start physics-based limb animation
+    startPhysicsAnimation();
+
+    // Set initial position before starting to move
+    if (!mascotContainer.style.transform) {
+        // New: Randomize starting position to one of four corners
+        const mascotWidth = mascotContainer.offsetWidth || 100;
+        const mascotHeight = mascotContainer.offsetHeight || 100;
+        const padding = 50; // Px from the edge
+
+        const positions = [
+            { x: padding, y: padding + 100 }, // Top-left (with extra top padding)
+            { x: window.innerWidth - mascotWidth - padding, y: padding + 100 }, // Top-right
+            { x: padding, y: window.innerHeight - mascotHeight - padding }, // Bottom-left
+            { x: window.innerWidth - mascotWidth - padding, y: window.innerHeight - mascotHeight - padding } // Bottom-right
+        ];
+
+        const startPosition = positions[Math.floor(Math.random() * positions.length)];
+
+        // Ensure the position is not off-screen if the window is very small
+        const initialX = Math.max(0, Math.min(startPosition.x, window.innerWidth - mascotWidth));
+        const initialY = Math.max(0, Math.min(startPosition.y, window.innerHeight - mascotHeight));
+
+        mascotContainer.style.transform = `translate(${initialX}px, ${initialY}px)`;
+    }
+
+    // Set a timer for a random playful action
+    function schedulePlayfulAction() {
+        if (playfulTimeout) clearTimeout(playfulTimeout);
+        const randomDelay = 30000 + Math.random() * 30000; // 30-60 seconds
+        playfulTimeout = setTimeout(() => {
+            const actions = ['reading', 'biking', 'juggling', 'thinking', 'glitching'];
+            const randomAction = actions[Math.floor(Math.random() * actions.length)];
+            // Set state with a duration, after which it will revert to idle (and thus roaming)
+            setMascotState(config, randomAction, 10000); // Action lasts 10 seconds
+        }, randomDelay);
+    }
+
+    // Initial schedule
+    schedulePlayfulAction();
+
+    async function moveToNewPosition() {
+        // Triple-check: Only move if the mascot is truly in an idle/roaming state.
+        // This prevents a new move from starting if a temporary state (like 'happy') was just triggered.
+        const currentMascotState = mascotContainer.className;
+        if (!isRoaming || !currentMascotState.includes('mascot-idle')) {
+            return; // Exit if not in a valid roaming state.
+        }
+
+        if (!isRoaming) return; // Stop if roaming has been cancelled
+        
+        // Don't move if lights are off (sleeping)
+        if (!tamagotchiLightsOn || tamagotchiIsSleeping) {
+            stopRoaming(config);
+            return;
+        }
+
+        const body = mascotContainer.querySelector('.tm-mascot-main-body');
+        const flipper = mascotContainer.querySelector('.tm-mascot-flipper');
+
+        // Get current translation from the transform property
+        const transformMatrix = new DOMMatrix(window.getComputedStyle(mascotContainer).transform);
+        const [currentX, currentY] = [transformMatrix.m41, transformMatrix.m42];
+
+        // Calculate new random position within viewport bounds
+        const mascotWidth = mascotContainer.offsetWidth;
+        const mascotHeight = mascotContainer.offsetHeight;
+        let newX = Math.random() * (window.innerWidth - mascotWidth);
+        let newY = Math.random() * (window.innerHeight - mascotHeight);
+
+        // Refined "collision" check: if moving to the top of the screen, the panel might go off.
+        // Let's re-roll the position quickly instead of just stopping.
+        if (newY < 150) { // 150px is a safe buffer for the panel
+            roamingTimeout = setTimeout(moveToNewPosition, 100); // Try again quickly
+            return;
+        }
+
+        // Flip the pet's SVG based on horizontal direction (smooth transition)
+        if (flipper) {
+            flipper.style.transition = 'transform 0.3s ease-out';
+            flipper.style.transform = (newX < currentX) ? 'scaleX(-1)' : 'scaleX(1)';
+        }
+
+        // Tilt the body into the turn (smoother)
+        const tilt = Math.max(-10, Math.min(10, (newX - currentX) * 0.03)); // Reduced tilt for smoother look
+        if (body) {
+            body.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)'; // Smoother easing
+            body.style.transform = `rotate(${tilt}deg)`;
+        }
+
+        // Calculate distance to keep speed constant
+        const speed = (config && config.mascotRoamingSpeed) || 100; // pixels per second
+        const distance = Math.sqrt(Math.pow(newX - currentX, 2) + Math.pow(newY - currentY, 2));
+        const duration = Math.max(2, distance / speed); // Minimum 2s duration
+
+        // --- Optimized Web Animations API Implementation ---
+
+        // 1. Calculate a control point for a smoother Bezier curve
+        const midX = (currentX + newX) / 2;
+        const midY = (currentY + newY) / 2;
+        const dx = newX - currentX;
+        const dy = newY - currentY;
+        const bulge = (Math.random() - 0.5) * 0.3; // Reduced bulge for smoother arcs
+        const controlX = midX - dy * bulge;
+        const controlY = midY + dx * bulge;
+
+        // 2. Define the animation keyframes for a curved path
+        // Use current computed position as start to avoid jumps
+        const keyframes = [
+            { transform: `translate(${currentX}px, ${currentY}px)` }, // Start from current position
+            { transform: `translate(${controlX}px, ${controlY}px)`, offset: 0.5 }, // Mid-point (curve)
+            { transform: `translate(${newX}px, ${newY}px)` }  // End
+        ];
+
+        // 3. Create and play the animation with optimized settings
+        const animation = mascotContainer.animate(keyframes, {
+            duration: duration * 1000, // duration in milliseconds
+            easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)', // Material Design Standard easing for smooth motion
+            fill: 'forwards', // Keep the final state
+            composite: 'replace' // Replace previous animations cleanly
+        });
+
+        try {
+            // 4. Wait for the animation to finish. The 'finished' promise is a key part of the API.
+            await animation.finished;
+            
+            // Commit the final position to avoid drift
+            requestAnimationFrame(() => {
+                mascotContainer.style.transform = `translate(${newX}px, ${newY}px)`;
+            });
+        } catch (error) {
+            // The animation might be cancelled (e.g., by another state change).
+            // In that case, we just stop this movement sequence.
+            return;
+        }
+
+        if (!isRoaming) return; // Check again if roaming was cancelled during the move
+
+        // Reset body tilt after settling (smoother)
+        if (body) {
+            await new Promise(resolve => setTimeout(resolve, 150));
+            body.style.transform = 'rotate(0deg)';
+        }
+
+        if (!isRoaming) return; // Final check before scheduling next move
+
+        // Occasionally say something while roaming
+        if (Math.random() < 0.25) { // 25% chance
+            const idleRepairMessages = [
+                'Πάμε για δουλίτσα!', 'Τι θα σπάσει σήμερα;', 'Έτοιμος!',
+                'Ας δούμε τι έχουμε...', 'Μπαταρία μια χαρά!', 'Χμμ...',
+                'Πού πήγε το κατσαβίδι μου;', 'Micro-solder time!', 'Reflow?',
+                'Καλή φάση!', 'Περιμένουμε;', 'Έχει δουλειά;',
+                'Σα νέο θα το κάνω!', 'Καμένο το IC...', 'Ας δω το schematic...',
+                'Power on ρε!', 'Reballing θέλει;', 'Board-level ε;',
+                'Τάσεις μέτρα!', 'Flux και θερμό!', 'Ρεζίνες που είσαι;',
+                'Τι θα μου φέρουν τώρα;', 'Καφεδάκι;', 'Screen γρήγορα!',
+                'Battery άλλαξε!', 'Charging port πάλι;', 'Κάμερα έπαθε;',
+                'Audio πάει;', 'WiFi τσέκαρε!', 'Baseband γαμήθηκε;',
+                'Λογική ταμπλέτα;', 'Short που είσαι;', 'Καλώδια μπέρδεψα!',
+                'Ποια θύρα τώρα;', 'Flux παντού!', 'Solder θέλει!'
+            ];
+            showMascotBubble(idleRepairMessages[Math.floor(Math.random() * idleRepairMessages.length)], 2500);
+        }
+
+        // Set a timeout to move again after the transition ends
+        schedulePlayfulAction(); // Reschedule playful action
+        roamingTimeout = setTimeout(moveToNewPosition, 2000 + Math.random() * 3000); // Wait 2-5 seconds before next move
+    }
+
+    moveToNewPosition();
+}
+
+function showMascotBubble(text, duration = 2000) {
+    const bubble = document.getElementById('tm-mascot-speech-bubble');
+    if (!bubble) return;
+
+    // Casual Greek slang messages
+    const messages = [
+        "Ωπα!", "Έι!", "Άκου!", "Ουφ!", "Τι έγινε ρε;",
+        "Ναι ρε;", "Ας δούμε τι έχουμε...", "Ωραίος!", "Πάμε καλά!", 
+        "Φοβερά!", "Τέλεια!", "Μια χαρά!", "Όλα μια χαρά!",
+        "Ας το δούμε!", "Σιγά ρε!", "Ωραία φάση!", "Γαμάτο!"
+    ];
+    // If no text is provided, pick a random one.
+    const messageToShow = text || messages[Math.floor(Math.random() * messages.length)];
+
+    bubble.textContent = messageToShow;
+    bubble.style.display = 'block';
+    // Use a timeout to allow the display property to apply before adding the class for transition
+    setTimeout(() => {
+        bubble.classList.add('show');
+    }, 10);
+
+    // Hide it after the duration
+    setTimeout(() => {
+        bubble.classList.remove('show');
+        // Set display to none after the transition ends
+        setTimeout(() => { bubble.style.display = 'none'; }, 300);
+    }, duration);
+}
+
+function triggerDodgeAnimation(config, moveX, moveY) {
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    if (!mascotContainer || mascotContainer.classList.contains('mascot-dodging')) {
+        return; // Don't dodge if already dodging
+    }
+
+    // Stop roaming and set the dodging state. `setMascotState` will call `stopRoaming(config)`.
+    setMascotState(config, 'dodging', 1000); // State lasts for 1s
+    showMascotBubble(null, 1000); // Show a random bubble for 1s
+
+    // The dodge movement logic
+    // The dodge direction should be opposite to the mouse movement
+    const dodgeDistance = 75; // Make the dodge shorter
+    const magnitude = Math.sqrt(moveX * moveX + moveY * moveY) || 1;
+    const dodgeX = -(moveX / magnitude) * dodgeDistance;
+    const dodgeY = -(moveY / magnitude) * dodgeDistance;
+
+    // Apply an immediate, short-lived transform
+    const currentTransform = new DOMMatrix(window.getComputedStyle(mascotContainer).transform);
+    let newX = currentTransform.m41 + dodgeX;
+    let newY = currentTransform.m42 + dodgeY;
+
+    // Boundary checks to keep the mascot on screen
+    const mascotWidth = mascotContainer.offsetWidth;
+    const mascotHeight = mascotContainer.offsetHeight;
+    newX = Math.max(0, Math.min(newX, window.innerWidth - mascotWidth));
+    newY = Math.max(0, Math.min(newY, window.innerHeight - mascotHeight));
+
+    mascotContainer.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)'; // Use CSS transition for this short, sharp movement
+    mascotContainer.style.transform = `translate(${newX}px, ${newY}px)`;
+
+    // The state will automatically revert via the timeout in setMascotState.
+    // When it reverts, it will call updatePetStateByStats(), which can restart roaming if appropriate.
+    setTimeout(() => {
+        mascotContainer.style.transition = 'transform 0.5s cubic-bezier(0.65, 0, 0.35, 1)'; // Restore default transition
+    }, 400); // Match the dodge transition duration
+}
+
+function setMascotState(config, state, duration = 0) {
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    if (!mascotContainer) return;
+    if (!config) config = {}; // Safety fallback to prevent errors
+
+    // CRITICAL: If lights are off (sleeping), only allow powersave state
+    if ((!tamagotchiLightsOn || tamagotchiIsSleeping) && state !== 'powersave') {
+        // Don't change state - keep it in powersave
+        if (!mascotContainer.classList.contains('mascot-powersave')) {
+            mascotContainer.className = 'tm-mascot-container mascot-powersave';
+        }
+        return; // Exit early - don't proceed with state change
+    }
+
+    // Clear any previous temporary state timeout
+    if (mascotStateTimeout) {
+        clearTimeout(mascotStateTimeout);
+        mascotStateTimeout = null;
+    }
+
+    // Get previous state before changing
+    const previousState = mascotContainer.className.replace('tm-mascot-container mascot-', '');
+
+    mascotContainer.className = 'tm-mascot-container mascot-' + state;
+    
+    // Reset robot element transform when exiting juggling state to prevent shaking
+    if (previousState === 'juggling' && state !== 'juggling') {
+        const robot = mascotContainer.querySelector('.tm-mascot-robot');
+        if (robot) {
+            robot.style.animation = 'none';
+            robot.style.transform = '';
+            // Force reflow to apply the reset
+            void robot.offsetWidth;
+        }
+    }
+
+    // If a duration is set, revert to the correct base state after the time is up
+    if (duration > 0) {
+        mascotStateTimeout = setTimeout(() => { // Revert based on current needs, passing 'true' to indicate the temp state is over.
+            // Need to get STORAGE_KEYS from window scope
+            if (typeof window.STORAGE_KEYS !== 'undefined') {
+                updatePetStateByStats(config, window.STORAGE_KEYS, true);
+            }
+        }, duration);
+    }
+
+    // Handle roaming based on the new state, AFTER the class has been set.
+    // BUT don't start roaming if the interaction panel is visible
+    const interactionPanel = document.getElementById('tm-mascot-interaction-panel');
+    const isPanelVisible = interactionPanel && interactionPanel.style.display === 'flex';
+    
+    // States that allow roaming (mascot can move around while in these states)
+    const roamingStates = ['idle', 'biking', 'juggling', 'reading', 'happy', 'sad', 'energized'];
+    
+    if (roamingStates.includes(state) && !isRoaming && !isPanelVisible && tamagotchiLightsOn && !tamagotchiIsSleeping) {
+        // Add small delay when transitioning from juggling to prevent jerky motion
+        if (previousState === 'juggling' && state !== 'juggling') {
+            setTimeout(() => startRoaming(config), 300);
+        } else {
+            startRoaming(config);
+        }
+    } else if (!roamingStates.includes(state) && isRoaming) {
+        stopRoaming(config);
+    }
+}
+
+// Track last time a low-stat message was shown (cooldown mechanism)
+let lastLowStatMessageTime = 0;
+
+function updatePetStateByStats(config, STORAGE_KEYS, isExitingTempState = false) {
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    if (!config) config = {}; // Safety fallback
+    
+    // Don't change state if the interaction panel is open (user is interacting)
+    const interactionPanel = document.getElementById('tm-mascot-interaction-panel');
+    if (interactionPanel && interactionPanel.style.display === 'flex') {
+        console.log('[MMS Mascot] Interaction panel open, not updating state.');
+        return;
+    }
+    
+    // CRITICAL: If lights are off (sleeping), keep mascot in powersave state
+    if (!tamagotchiLightsOn || tamagotchiIsSleeping) {
+        if (mascotContainer && !mascotContainer.classList.contains('mascot-powersave')) {
+            setMascotState(config, 'powersave');
+        }
+        return; // Don't update state further when sleeping
+    }
+    
+    // Check if mascot has equipped accessories that should persist their animation states
+    const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
+    
+    // This function is called periodically AND at the end of temporary states (like 'dodging').
+    // We only want to interrupt a temporary state if we are explicitly being told to do so by its timeout finishing. Also, don't interrupt the energized state.
+    const temporaryStates = ['mascot-happy', 'mascot-eating', 'mascot-dodging', 'mascot-thinking', 'mascot-glitching', 'mascot-eureka', 'mascot-sunny', 'mascot-rainy', 'mascot-energized'];
+    const persistentAccessoryStates = [];
+    
+    if (!isExitingTempState && mascotContainer) {
+        // Don't override temporary states
+        if (temporaryStates.some(c => mascotContainer.classList.contains(c))) {
+            return;
+        }
+        // Don't override persistent accessory states UNLESS stats are critically low
+        if (persistentAccessoryStates.some(c => mascotContainer.classList.contains(c)) && petStats.hunger >= 30 && petStats.happiness >= 30) {
+            return;
+        }
+        // Don't override powersave state (sleeping)
+        if (mascotContainer.classList.contains('mascot-powersave')) {
+            return;
+        }
+    }
+
+    // Don't change state if sleeping (double-check before any state changes)
+    if (!tamagotchiLightsOn || tamagotchiIsSleeping) {
+        return;
+    }
+
+    if (petStats.hunger < 30 || petStats.happiness < 30) {
+        setMascotState(config, 'sad');
+        // Show occasional reminder about low stats with cooldown
+        const now = Date.now();
+        const cooldownPeriod = 45000; // 45 seconds cooldown between messages
+        
+        if (now - lastLowStatMessageTime > cooldownPeriod && Math.random() < 0.3) {
+            const lowStatMessages = [
+                'Πεινάω ρε...', 'Λυπάμαι...', 'Φαγητό θέλω!', 
+                'Δεν είμαι καλά...', 'Χάδι παρακαλώ!', 'Τάισέ με ρε!',
+                'Πότε θα φάω ρε;', 'Μοναξιά έχω...', 'Προσοχή μου λίγο!',
+                'Ignored...', 'Sad boy...', 'Hungry...'
+            ];
+            showMascotBubble(lowStatMessages[Math.floor(Math.random() * lowStatMessages.length)], 2500);
+            lastLowStatMessageTime = now; // Update the timestamp
+        }
+    } else {
+        // When stats are good, default to idle
+        setMascotState(config, 'idle');
+    }
+}
+
+function loadPetStats(config, STORAGE_KEYS) {
+    const savedStats = JSON.parse(GM_getValue(STORAGE_KEYS.PET_STATS, 'null'));
+    if (savedStats) {
+        petStats = savedStats;
+    }
+    // Apply decay for the time the script was inactive
+    const timeDiffHours = (Date.now() - petStats.lastUpdate) / (1000 * 60 * 60);
+    const decayAmount = Math.floor(timeDiffHours * 5); // Decay 5 points per hour
+    if (decayAmount > 0) {
+        console.log(`[MMS Pet] Applying ${decayAmount} decay for offline time.`);
+        petStats.happiness = Math.max(0, petStats.happiness - decayAmount);
+        petStats.hunger = Math.max(0, petStats.hunger - decayAmount);
+    }
+    updatePetStats(config, STORAGE_KEYS, 0, 0); // This will save the potentially decayed stats
+}
+
+function updatePetStats(config, STORAGE_KEYS, happinessChange, hungerChange) {
+    petStats.happiness = Math.max(0, Math.min(100, petStats.happiness + happinessChange));
+    petStats.hunger = Math.max(0, Math.min(100, petStats.hunger + hungerChange));
+    petStats.lastUpdate = Date.now();
+
+    GM_setValue(STORAGE_KEYS.PET_STATS, JSON.stringify(petStats));
+    updatePetInteractionPanel();
+    updateTamagotchiStats(document.getElementById('tm-mascot-container'));
+    updatePetStateByStats(config, STORAGE_KEYS);
+}
+
+function updatePetInteractionPanel() {
+    const happinessFill = document.getElementById('tm-pet-happiness-fill');
+    const hungerFill = document.getElementById('tm-pet-hunger-fill');
+    const healthFill = document.getElementById('tm-pet-health-fill');
+    const disciplineFill = document.getElementById('tm-pet-discipline-fill');
+    if (!happinessFill || !hungerFill) return;
+
+    happinessFill.style.width = `${petStats.happiness}%`;
+    hungerFill.style.width = `${petStats.hunger}%`;
+    if (healthFill) healthFill.style.width = `${petStats.health || 100}%`;
+    if (disciplineFill) disciplineFill.style.width = `${Math.min(100, petStats.discipline || 0)}%`;
+}
+
+// ===================================================================
+// === TAMAGOTCHI SYSTEM ===
+// ===================================================================
+
+function loadTamagotchiData(STORAGE_KEYS) {
+    const savedData = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
+    if (savedData) {
+        tamagotchiAge = savedData.age || 0;
+        tamagotchiStage = savedData.stage || 'egg';
+        tamagotchiCharacterType = savedData.characterType || 'none';
+        tamagotchiHealth = savedData.health || 100;
+        tamagotchiDiscipline = savedData.discipline || 0;
+        tamagotchiLightsOn = savedData.lightsOn !== false;
+        tamagotchiLastUpdate = savedData.lastUpdate || Date.now();
+        // Enhanced variables
+        tamagotchiWeight = savedData.weight || 30;
+        tamagotchiPoopCount = savedData.poopCount || 0;
+        tamagotchiIsSick = savedData.isSick || false;
+        tamagotchiSickType = savedData.sickType || 'none';
+        tamagotchiCareMistakes = savedData.careMistakes || 0;
+        tamagotchiPersonality = savedData.personality || 'normal';
+        tamagotchiBirthday = savedData.birthday || Date.now();
+        tamagotchiLastFed = savedData.lastFed || Date.now();
+        tamagotchiLastPlayed = savedData.lastPlayed || Date.now();
+        tamagotchiLastCleaned = savedData.lastCleaned || Date.now();
+        tamagotchiToiletTrained = savedData.toiletTrained || false;
+        tamagotchiMealCount = savedData.mealCount || 0;
+        tamagotchiSnackCount = savedData.snackCount || 0;
+        tamagotchiIsDead = savedData.isDead || false;
+        tamagotchiReviveCount = savedData.reviveCount || 0;
+        tamagotchiLastPoopTime = savedData.lastPoopTime || 0;
+        tamagotchiSleepStartTime = savedData.sleepStartTime || 0;
+        tamagotchiSleepEndTime = savedData.sleepEndTime || 0;
+        tamagotchiIsSleeping = savedData.isSleeping || false;
+        tamagotchiLightsManualOverride = savedData.lightsManualOverride || false;
+        tamagotchiLightsManualOverride = savedData.lightsManualOverride || false;
+        tamagotchiLastPraise = savedData.lastPraise || 0;
+        tamagotchiLastScold = savedData.lastScold || 0;
+    }
+}
+
+function saveTamagotchiData(STORAGE_KEYS) {
+    const data = {
+        age: tamagotchiAge,
+        stage: tamagotchiStage,
+        characterType: tamagotchiCharacterType,
+        health: tamagotchiHealth,
+        discipline: tamagotchiDiscipline,
+        lightsOn: tamagotchiLightsOn,
+        lastUpdate: tamagotchiLastUpdate,
+        // Enhanced data
+        weight: tamagotchiWeight,
+        poopCount: tamagotchiPoopCount,
+        isSick: tamagotchiIsSick,
+        sickType: tamagotchiSickType,
+        careMistakes: tamagotchiCareMistakes,
+        personality: tamagotchiPersonality,
+        birthday: tamagotchiBirthday,
+        lastFed: tamagotchiLastFed,
+        lastPlayed: tamagotchiLastPlayed,
+        lastCleaned: tamagotchiLastCleaned,
+        toiletTrained: tamagotchiToiletTrained,
+        mealCount: tamagotchiMealCount,
+        snackCount: tamagotchiSnackCount,
+        isDead: tamagotchiIsDead,
+        reviveCount: tamagotchiReviveCount,
+        lastPoopTime: tamagotchiLastPoopTime,
+        sleepStartTime: tamagotchiSleepStartTime,
+        sleepEndTime: tamagotchiSleepEndTime,
+        isSleeping: tamagotchiIsSleeping,
+        lightsManualOverride: tamagotchiLightsManualOverride,
+        lastPraise: tamagotchiLastPraise,
+        lastScold: tamagotchiLastScold
+    };
+    GM_setValue(STORAGE_KEYS.TAMAGOTCHI_DATA, JSON.stringify(data));
+}
+
+function initTamagotchiSystem(config, STORAGE_KEYS, container) {
+    // Initialize displays
+    updateWeightDisplay();
+    updatePoopIndicator();
+    updateSickIndicator();
+    updateToiletNeedIndicator();
+    
+    // Update death options button visibility
+    updateDeathOptionsButton();
+    
+    // Check if mascot is already dead and show death screen
+    if (tamagotchiIsDead) {
+        // Small delay to ensure DOM is ready
+        setTimeout(() => {
+            showTamagotchiDeathScreen(STORAGE_KEYS);
+        }, 500);
+    }
+    
+    // Update display initially
+    updateTamagotchiStats(container);
+    checkTamagotchiEvolution(container);
+    
+    // Periodic updates every minute
+    setInterval(() => {
+        updateTamagotchiStats(container);
+        checkTamagotchiEvolution(container);
+        saveTamagotchiData(STORAGE_KEYS);
+    }, 60000);
+}
+
+function updateTamagotchiStats(container) {
+    // Container parameter kept for backward compatibility but not required
+    
+    const now = Date.now();
+    const timeDiff = (now - tamagotchiLastUpdate) / 1000 / 60; // minutes
+    
+    // Update stats based on time
+    if (timeDiff > 0 && !tamagotchiIsDead) {
+        // Hunger decreases over time (unless sleeping)
+        if (!tamagotchiIsSleeping) {
+            petStats.hunger = Math.max(0, petStats.hunger - (timeDiff * 0.5));
+        }
+        
+        // Happiness decreases if hungry, unhealthy, or has poops
+        if (petStats.hunger < 30 || tamagotchiHealth < 30 || tamagotchiPoopCount > 0) {
+            petStats.happiness = Math.max(0, petStats.happiness - (timeDiff * 0.3));
+        }
+        
+        // Health decreases if very hungry, sick, or overweight
+        if (petStats.hunger < 10) {
+            tamagotchiHealth = Math.max(0, tamagotchiHealth - (timeDiff * 0.2));
+        }
+        if (tamagotchiIsSick) {
+            tamagotchiHealth = Math.max(0, tamagotchiHealth - (timeDiff * 0.3));
+        }
+        if (tamagotchiWeight > 80) {
+            tamagotchiHealth = Math.max(0, tamagotchiHealth - (timeDiff * 0.1));
+        }
+        
+        // Age increases (1 year per 24 hours of real time)
+        tamagotchiAge += timeDiff / (24 * 60);
+        
+        // Generate poops periodically (not for egg or baby stage)
+        if (!tamagotchiIsSleeping && tamagotchiStage !== 'egg' && tamagotchiStage !== 'baby') {
+            generateTamagotchiPoop();
+        }
+        
+        // Update toilet need indicator
+        updateToiletNeedIndicator();
+        
+        // Update sleep schedule (need config - check if available)
+        if (typeof window !== 'undefined' && typeof window.config !== 'undefined' && window.config) {
+            updateTamagotchiSleepSchedule(window.config);
+        }
+        
+        // Slowly decrease discipline if not maintained
+        if (tamagotchiDiscipline > 0) {
+            tamagotchiDiscipline = Math.max(0, tamagotchiDiscipline - (timeDiff * 0.05));
+        }
+        
+        tamagotchiLastUpdate = now;
+    }
+    
+    // Update stat bars
+    const healthFill = document.getElementById('tm-pet-health-fill');
+    const disciplineFill = document.getElementById('tm-pet-discipline-fill');
+    const ageDisplay = document.getElementById('tm-tamagotchi-age-display');
+    const stageDisplay = document.getElementById('tm-tamagotchi-stage-display');
+    
+    if (healthFill) healthFill.style.width = `${tamagotchiHealth}%`;
+    if (disciplineFill) disciplineFill.style.width = `${Math.min(100, tamagotchiDiscipline)}%`;
+    if (ageDisplay) ageDisplay.textContent = `AGE: ${Math.floor(tamagotchiAge)}`;
+    
+    // Update stage display
+    const stageNames = {
+        'egg': 'EGG',
+        'baby': 'BABY',
+        'kid': 'KID',
+        'teen': 'TEEN',
+        'adult': 'ADULT',
+        'middleage': 'MIDDLE AGE',
+        'old': 'OLD'
+    };
+    if (stageDisplay) stageDisplay.textContent = stageNames[tamagotchiStage] || 'EGG';
+    
+    // Update health bar color based on health
+    if (healthFill) {
+        if (tamagotchiHealth < 30) {
+            healthFill.style.backgroundColor = '#dc3545'; // Red
+        } else if (tamagotchiHealth < 70) {
+            healthFill.style.backgroundColor = '#ffc107'; // Yellow
+        } else {
+            healthFill.style.backgroundColor = '#28a745'; // Green
+        }
+    }
+    
+    // Update discipline bar color
+    if (disciplineFill) {
+        disciplineFill.style.backgroundColor = '#17a2b8'; // Cyan
+    }
+    
+    // Update all indicators
+    updatePoopIndicator();
+    updateSickIndicator();
+    updateWeightDisplay();
+    
+    // Check for death (need STORAGE_KEYS - check if available)
+    if (typeof window.STORAGE_KEYS !== 'undefined') {
+        checkTamagotchiDeath(window.STORAGE_KEYS);
+    }
+}
+
+function checkTamagotchiEvolution(container) {
+    if (!container) return;
+    
+    const oldStage = tamagotchiStage;
+    const oldCharacterType = tamagotchiCharacterType;
+    
+    // Check for death from old age first
+    if (tamagotchiAge >= 80 && !tamagotchiIsDead) {
+        tamagotchiIsDead = true;
+        tamagotchiHealth = 0;
+        saveTamagotchiData(typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : {});
+        const oldAgeMessages = [
+            'Ήρθε η ώρα...', 'Καλό ταξίδι...', 'Αντίο κόσμε...', 'Ευχαριστώ για όλα...',
+            'Έζησα όμορφα...', 'Τέλος καλό...', 'Πάω στο φως...', 'Ήταν υπέροχα...'
+        ];
+        showMascotBubble(oldAgeMessages[Math.floor(Math.random() * oldAgeMessages.length)], 5000);
+        setMascotState(null, 'dead', 10000);
+        console.log('[Mascot] 💀 Died from old age at', tamagotchiAge, 'years');
+        
+        // Show death screen after a delay
+        setTimeout(() => {
+            if (typeof showTamagotchiDeathScreen === 'function') {
+                showTamagotchiDeathScreen(typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : {});
+            }
+        }, 3000);
+        
+        return; // Exit early, don't update stage
+    }
+    
+    // Determine stage based on age (Tamagotchi-style evolution)
+    if (tamagotchiAge < 1) {
+        tamagotchiStage = 'egg';
+        tamagotchiCharacterType = 'none';
+    } else if (tamagotchiAge < 3) {
+        tamagotchiStage = 'baby';
+        // Randomly select character type on first hatch with EPIC REVEAL!
+        if (oldStage === 'egg' && tamagotchiCharacterType === 'none') {
+            const characterTypes = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal'];
+            tamagotchiCharacterType = characterTypes[Math.floor(Math.random() * characterTypes.length)];
+            console.log(`[Mascot] 🎉 EPIC HATCH: ${tamagotchiCharacterType}!`);
+            
+            // Show epic character reveal!
+            if (typeof showEpicCharacterReveal === 'function') {
+                setTimeout(() => showEpicCharacterReveal(tamagotchiCharacterType), 500);
+            }
+        }
+    } else if (tamagotchiAge < 8) {
+        tamagotchiStage = 'kid';
+    } else if (tamagotchiAge < 18) {
+        tamagotchiStage = 'teen';
+    } else if (tamagotchiAge < 40) {
+        tamagotchiStage = 'adult';
+    } else if (tamagotchiAge < 60) {
+        tamagotchiStage = 'middleage';
+    } else {
+        tamagotchiStage = 'old';
+    }
+    
+    // If evolved or hatched, show message, update personality, and update appearance
+    if (oldStage !== tamagotchiStage || oldCharacterType !== tamagotchiCharacterType) {
+        updateTamagotchiPersonality();
+        updateMascotAppearanceByStage(tamagotchiStage);
+        const evolutionMessages = [
+            'Εξελίχθηκα!', 'Μεγάλωσα!', 'Evolved!', 'Νέα μορφή!',
+            'Growth!', 'Αλλαγή!', 'Προχώρησα!', 'Changed!'
+        ];
+        if (oldStage === 'egg' && tamagotchiStage === 'baby') {
+            // Special hatch message
+            showMascotBubble(`🥚💫 I'm a ${tamagotchiCharacterType}!`, 4000);
+        } else if (tamagotchiStage === 'old' && oldStage !== 'old') {
+            // Special old age message
+            const oldMessages = ['Γέρασα...', 'Νιώθω μεγάλος...', 'Τα χρόνια περνούν...', 'Είμαι γέρος...'];
+            showMascotBubble(oldMessages[Math.floor(Math.random() * oldMessages.length)], 3000);
+        } else {
+            showMascotBubble(evolutionMessages[Math.floor(Math.random() * evolutionMessages.length)], 3000);
+        }
+        updateTamagotchiStats(container);
+        saveTamagotchiData(typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : {});
+    }
+    
+    // Show warning messages when approaching death from old age
+    if (tamagotchiAge >= 70 && tamagotchiAge < 80 && Math.random() < 0.1) {
+        const oldAgeWarnings = [
+            'Κουράζομαι εύκολα...', 'Νιώθω αδύναμος...', 'Τα κόκαλα πονάνε...',
+            'Πόσα χρόνια πέρασαν...', 'Είμαι γέρος...', 'Ο χρόνος τελειώνει...'
+        ];
+        showMascotBubble(oldAgeWarnings[Math.floor(Math.random() * oldAgeWarnings.length)], 3000);
+    }
+}
+
+// ===================================================================
+// === ENHANCED TAMAGOTCHI SYSTEMS ===
+// ===================================================================
+
+// Poop generation system
+function generateTamagotchiPoop() {
+    if (tamagotchiIsDead || tamagotchiIsSleeping || tamagotchiStage === 'egg') return;
+    
+    const now = Date.now();
+    const timeSinceLastPoop = (now - tamagotchiLastPoopTime) / 1000 / 60; // minutes
+    
+    // Poop frequency based on stage and toilet training
+    let poopInterval = 15; // Default: every 15 minutes
+    if (tamagotchiToiletTrained && tamagotchiDiscipline > 70) {
+        poopInterval = 60; // Well-trained pets poop less often (use toilet more)
+    } else if (tamagotchiStage === 'baby') {
+        poopInterval = 10; // Babies poop more often
+    }
+    
+    // If toilet trained and high discipline, sometimes use toilet instead
+    if (tamagotchiToiletTrained && tamagotchiDiscipline > 50 && Math.random() < 0.3) {
+        // Uses toilet - no poop generated
+        tamagotchiLastPoopTime = now;
+        return;
+    }
+    
+    if (timeSinceLastPoop >= poopInterval) {
+        tamagotchiPoopCount++;
+        tamagotchiLastPoopTime = now;
+        updatePoopIndicator();
+        
+        // If too many poops, health decreases and care mistake
+        if (tamagotchiPoopCount >= 3) {
+            tamagotchiHealth = Math.max(0, tamagotchiHealth - 5);
+            tamagotchiCareMistakes++;
+            if (tamagotchiPoopCount >= 5) {
+                // High chance of getting sick from unsanitary conditions
+                if (Math.random() < 0.4) {
+                    makeTamagotchiSick('upset_stomach');
+                }
+            }
+        }
+    }
+}
+
+// Update poop indicator display and visual effects
+function updatePoopIndicator() {
+    const poopIndicator = document.getElementById('tm-poop-indicator');
+    const poopCountSpan = document.getElementById('tm-poop-count');
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    
+    if (poopIndicator) {
+        poopIndicator.style.display = tamagotchiPoopCount > 0 ? 'block' : 'none';
+    }
+    if (poopCountSpan) {
+        poopCountSpan.textContent = tamagotchiPoopCount;
+    }
+    
+    // Add visual effects to mascot when it needs cleaning
+    if (mascotContainer) {
+        if (tamagotchiPoopCount > 0) {
+            mascotContainer.classList.add('mascot-needs-cleaning');
+            // Add poop particles
+            createPoopParticles(mascotContainer, tamagotchiPoopCount);
+        } else {
+            mascotContainer.classList.remove('mascot-needs-cleaning');
+            // Remove poop particles
+            removePoopParticles(mascotContainer);
+        }
+    }
+}
+
+// Check if mascot needs to use toilet (based on time since last poop)
+function checkNeedsToilet() {
+    if (tamagotchiIsDead || tamagotchiIsSleeping || tamagotchiPoopCount > 0) return false;
+    
+    const now = Date.now();
+    const timeSinceLastPoop = (now - tamagotchiLastPoopTime) / 1000 / 60; // minutes
+    const poopInterval = tamagotchiToiletTrained ? 60 : 15;
+    
+    // Needs toilet if it's been 80% of the interval since last poop
+    return timeSinceLastPoop >= (poopInterval * 0.8);
+}
+
+// Update toilet need visual indicator
+function updateToiletNeedIndicator() {
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    if (!mascotContainer) return;
+    
+    const needsToilet = checkNeedsToilet();
+    
+    if (needsToilet) {
+        mascotContainer.classList.add('mascot-needs-toilet');
+        // Add urgency animation
+        if (!mascotContainer.querySelector('.tm-toilet-urgency-indicator')) {
+            createToiletUrgencyIndicator(mascotContainer);
+        }
+    } else {
+        mascotContainer.classList.remove('mascot-needs-toilet');
+        // Remove urgency indicator
+        const indicator = mascotContainer.querySelector('.tm-toilet-urgency-indicator');
+        if (indicator) {
+            indicator.remove();
+        }
+    }
+}
+
+// Create poop particle effects around mascot
+function createPoopParticles(container, count) {
+    // Remove existing particles first
+    removePoopParticles(container);
+    
+    // Limit particle count for performance
+    const particleCount = Math.min(count, 5);
+    
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'tm-poop-particle';
+        particle.textContent = '💩';
+        particle.style.cssText = `
+            position: absolute;
+            font-size: ${12 + Math.random() * 8}px;
+            pointer-events: none;
+            z-index: 9998;
+            animation: tm-poop-float ${3 + Math.random() * 2}s ease-in-out infinite;
+            animation-delay: ${Math.random() * 2}s;
+            opacity: 0.8;
+        `;
+        
+        // Position particles around the mascot
+        const angle = (360 / particleCount) * i;
+        const radius = 30 + Math.random() * 20;
+        const x = Math.cos(angle * Math.PI / 180) * radius;
+        const y = Math.sin(angle * Math.PI / 180) * radius;
+        
+        particle.style.left = `calc(50% + ${x}px)`;
+        particle.style.top = `calc(50% + ${y}px)`;
+        particle.style.transform = `translate(-50%, -50%)`;
+        
+        container.appendChild(particle);
+    }
+}
+
+// Remove poop particles
+function removePoopParticles(container) {
+    const particles = container.querySelectorAll('.tm-poop-particle');
+    particles.forEach(particle => particle.remove());
+}
+
+// Create toilet urgency indicator (small badge style)
+function createToiletUrgencyIndicator(container) {
+    const indicator = document.createElement('div');
+    indicator.className = 'tm-toilet-urgency-indicator';
+    indicator.innerHTML = '<span style="font-size: 10px;">🚽</span>';
+    indicator.style.cssText = `
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        background: rgba(139, 69, 19, 0.85);
+        border: 1px solid rgba(205, 133, 63, 0.6);
+        border-radius: 8px;
+        padding: 2px 6px;
+        font-size: 10px;
+        pointer-events: none;
+        z-index: 9999;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        animation: tm-toilet-urgency-subtle 2s ease-in-out infinite;
+    `;
+    container.appendChild(indicator);
+}
+
+// Sickness system
+function makeTamagotchiSick(sickType = 'cold') {
+    if (tamagotchiIsDead) return;
+    
+    tamagotchiIsSick = true;
+    tamagotchiSickType = sickType;
+    updateSickIndicator();
+    
+    // Sickness affects stats
+    if (sickType === 'cold' || sickType === 'fever') {
+        tamagotchiHealth = Math.max(0, tamagotchiHealth - 10);
+        petStats.happiness = Math.max(0, petStats.happiness - 15);
+    } else if (sickType === 'upset_stomach') {
+        tamagotchiHealth = Math.max(0, tamagotchiHealth - 15);
+        petStats.hunger = Math.max(0, petStats.hunger - 20); // Loses appetite
+    }
+    
+    const sickMessages = {
+        'cold': ['Αχού...', 'Κρύωσα...', 'Sniff...', 'Feeling bad...'],
+        'fever': ['Καμμένος...', 'Fever...', 'Hot...', 'Ζεστός...'],
+        'upset_stomach': ['Πονάει η κοιλιά...', 'Stomach ache...', 'Άρρωστος...', 'Sick...']
+    };
+    
+    const messages = sickMessages[sickType] || sickMessages['cold'];
+    showMascotBubble(messages[Math.floor(Math.random() * messages.length)], 3000);
+}
+
+// Update sick indicator
+function updateSickIndicator() {
+    const sickIndicator = document.getElementById('tm-sick-indicator');
+    const sickTypeSpan = document.getElementById('tm-sick-type');
+    
+    if (sickIndicator) {
+        sickIndicator.style.display = tamagotchiIsSick ? 'block' : 'none';
+    }
+    
+    if (sickTypeSpan && tamagotchiIsSick) {
+        const sickTypeNames = {
+            'cold': 'Cold',
+            'fever': 'Fever',
+            'upset_stomach': 'Upset Stomach'
+        };
+        sickTypeSpan.textContent = sickTypeNames[tamagotchiSickType] || 'Sick';
+    }
+}
+
+// Personality system based on care quality
+function updateTamagotchiPersonality() {
+    // Calculate care quality based on mistakes and stats
+    let careScore = 100 - (tamagotchiCareMistakes * 5);
+    careScore += (tamagotchiDiscipline / 5);
+    careScore += (petStats.happiness > 70 ? 10 : 0);
+    careScore += (tamagotchiHealth > 70 ? 10 : 0);
+    
+    if (careScore >= 90) {
+        tamagotchiPersonality = 'well_cared';
+    } else if (careScore >= 70) {
+        tamagotchiPersonality = 'normal';
+    } else if (careScore >= 50) {
+        tamagotchiPersonality = 'lazy';
+    } else if (careScore >= 30) {
+        tamagotchiPersonality = 'spoiled';
+    } else {
+        tamagotchiPersonality = 'neglected';
+    }
+}
+
+// Weight management system
+function updateTamagotchiWeight(foodType = 'meal') {
+    if (foodType === 'meal') {
+        // Meals: slight weight gain, but necessary
+        tamagotchiWeight = Math.min(99, tamagotchiWeight + 1);
+        tamagotchiMealCount++;
+    } else if (foodType === 'snack') {
+        // Snacks: more weight gain, but boosts happiness
+        tamagotchiWeight = Math.min(99, tamagotchiWeight + 2);
+        tamagotchiSnackCount++;
+    }
+    
+    // Reset daily counts at midnight
+    const now = new Date();
+    const lastFedDate = new Date(tamagotchiLastFed);
+    if (now.getDate() !== lastFedDate.getDate()) {
+        tamagotchiMealCount = 0;
+        tamagotchiSnackCount = 0;
+    }
+    
+    // Weight affects health
+    if (tamagotchiWeight > 80) {
+        // Overweight: health decreases slowly
+        tamagotchiHealth = Math.max(0, tamagotchiHealth - 0.5);
+    } else if (tamagotchiWeight < 20) {
+        // Underweight: also unhealthy
+        tamagotchiHealth = Math.max(0, tamagotchiHealth - 0.3);
+    }
+    
+    updateWeightDisplay();
+}
+
+// Update weight display
+function updateWeightDisplay() {
+    const weightValue = document.getElementById('tm-weight-value');
+    if (weightValue) {
+        weightValue.textContent = Math.round(tamagotchiWeight);
+    }
+}
+
+// Death system
+function checkTamagotchiDeath(STORAGE_KEYS) {
+    if (tamagotchiIsDead) return;
+    
+    // Die if health reaches 0 or hunger stays at 0 for too long
+    if (tamagotchiHealth <= 0 || (petStats.hunger <= 0 && (Date.now() - tamagotchiLastFed) > 4 * 60 * 60 * 1000)) {
+        tamagotchiIsDead = true;
+        saveTamagotchiData(STORAGE_KEYS);
+        
+        const deathMessages = [
+            '...', 'Bye...', 'Αντίο...', 'Gone...',
+            'Returning to digital realm...', 'Resting...'
+        ];
+        showMascotBubble(deathMessages[Math.floor(Math.random() * deathMessages.length)], 5000);
+        
+        // Update death options button visibility
+        updateDeathOptionsButton();
+        
+        // Show death overlay
+        showTamagotchiDeathScreen(STORAGE_KEYS);
+    }
+}
+
+// Update death options button visibility
+function updateDeathOptionsButton() {
+    const reviveContainer = document.getElementById('tm-pet-revive-btn-container');
+    if (reviveContainer) {
+        reviveContainer.style.display = tamagotchiIsDead ? 'block' : 'none';
+    }
+}
+
+// Show death screen with revival option
+function showTamagotchiDeathScreen(STORAGE_KEYS) {
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) {
+        console.error('[MMS] Mascot container not found for death screen');
+        return;
+    }
+    
+    // Get config from window scope if available
+    const config = typeof window.config !== 'undefined' ? window.config : null;
+    
+    // Check if overlay already exists - prevent duplicates
+    const existingOverlay = document.getElementById('tm-tamagotchi-death-overlay');
+    if (existingOverlay) {
+        return; // Already showing
+    }
+    
+    // Create death overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'tm-tamagotchi-death-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: white;
+        font-family: Arial, sans-serif;
+    `;
+    
+    overlay.innerHTML = `
+        <div style="background: #1a1a1a; padding: 30px; border-radius: 10px; text-align: center; border: 2px solid #666;">
+            <h2 style="margin: 0 0 20px 0; color: #dc3545;">Your Tamagotchi Has Died</h2>
+            <p style="margin: 0 0 20px 0;">Age: ${Math.floor(tamagotchiAge)} years</p>
+            <p style="margin: 0 0 20px 0;">Personality: ${tamagotchiPersonality}</p>
+            <p style="margin: 0 0 30px 0; color: #888;">Care Mistakes: ${tamagotchiCareMistakes}</p>
+            <button id="tm-revive-btn" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px;">
+                Revive (${tamagotchiReviveCount + 1}x)
+            </button>
+            <button id="tm-restart-btn" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                Start New
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    // Revive button
+    document.getElementById('tm-revive-btn')?.addEventListener('click', () => {
+        tamagotchiIsDead = false;
+        tamagotchiHealth = 50;
+        petStats.hunger = 50;
+        petStats.happiness = 50;
+        tamagotchiReviveCount++;
+        tamagotchiAge = Math.max(1, tamagotchiAge - 1); // Age back by 1 year
+        
+        // Save both tamagotchi data and pet stats
+        saveTamagotchiData(STORAGE_KEYS);
+        GM_setValue(STORAGE_KEYS.PET_STATS, JSON.stringify(petStats));
+        
+        document.body.removeChild(overlay);
+        updateDeathOptionsButton(); // Hide the death button
+        
+        // Update displays
+        if (container) {
+            updateTamagotchiStats(container);
+            updatePetInteractionPanel();
+            if (config) {
+                setMascotState(config, 'idle');
+            }
+        }
+        
+        showMascotBubble('Revived!', 2000);
+    });
+    
+    // Restart button
+    document.getElementById('tm-restart-btn')?.addEventListener('click', () => {
+        // Reset all stats
+        tamagotchiAge = 0;
+        tamagotchiStage = 'egg';
+        tamagotchiHealth = 100;
+        tamagotchiDiscipline = 0;
+        tamagotchiWeight = 30;
+        tamagotchiPoopCount = 0;
+        tamagotchiIsSick = false;
+        tamagotchiSickType = 'none';
+        tamagotchiCareMistakes = 0;
+        tamagotchiPersonality = 'normal';
+        tamagotchiBirthday = Date.now();
+        tamagotchiIsDead = false;
+        tamagotchiReviveCount = 0;
+        tamagotchiLastFed = Date.now();
+        tamagotchiLastPlayed = Date.now();
+        tamagotchiLastCleaned = Date.now();
+        tamagotchiLastPoopTime = 0;
+        tamagotchiSleepStartTime = 0;
+        tamagotchiSleepEndTime = 0;
+        tamagotchiIsSleeping = false;
+        tamagotchiLastPraise = 0;
+        tamagotchiLastScold = 0;
+        tamagotchiToiletTrained = false;
+        tamagotchiMealCount = 0;
+        tamagotchiSnackCount = 0;
+        tamagotchiLightsOn = true;
+        tamagotchiLastUpdate = Date.now();
+        
+        petStats.hunger = 100;
+        petStats.happiness = 100;
+        petStats.health = 100;
+        petStats.discipline = 0;
+        petStats.lastUpdate = Date.now();
+        
+        // Save both tamagotchi data and pet stats BEFORE reload
+        saveTamagotchiData(STORAGE_KEYS);
+        GM_setValue(STORAGE_KEYS.PET_STATS, JSON.stringify(petStats));
+        
+        // Small delay to ensure data is saved before reload
+        setTimeout(() => {
+            location.reload();
+        }, 100);
+    });
+}
+
+// Sleep schedule system - respects manual lights override
+function updateTamagotchiSleepSchedule(config) {
+    if (!config) return;
+    
+    // Don't override if user manually set lights
+    if (tamagotchiLightsManualOverride) {
+        return;
+    }
+    
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    // Sleep between 9 PM and 7 AM (21:00 - 07:00)
+    const shouldSleep = currentHour >= 21 || currentHour < 7;
+    
+    if (shouldSleep && !tamagotchiIsSleeping) {
+        tamagotchiIsSleeping = true;
+        tamagotchiLightsOn = false; // Auto-turn off lights for sleep
+        tamagotchiSleepStartTime = now.getTime();
+        stopRoaming(config);
+        setMascotState(config, 'powersave');
+        
+        // Update button appearance if available (use direct querySelector since getButton might not be in scope)
+        const lightsBtn = document.querySelector('#tm-pet-lights-btn');
+        if (lightsBtn) {
+            lightsBtn.innerHTML = '🌙 Lights OFF';
+            lightsBtn.style.opacity = '0.6';
+            lightsBtn.style.filter = 'brightness(0.7)';
+        }
+    } else if (!shouldSleep && tamagotchiIsSleeping && !tamagotchiLightsManualOverride) {
+        // Auto-wake if not manually overridden
+        tamagotchiIsSleeping = false;
+        tamagotchiLightsOn = true; // Auto-turn on lights
+        tamagotchiSleepEndTime = now.getTime();
+        setMascotState(config, 'idle');
+        
+        // Update button appearance if available (use direct querySelector since getButton might not be in scope)
+        const lightsBtn = document.querySelector('#tm-pet-lights-btn');
+        if (lightsBtn) {
+            lightsBtn.innerHTML = '💡 Lights ON';
+            lightsBtn.style.opacity = '1';
+            lightsBtn.style.filter = 'brightness(1.2)';
+        }
+        
+        // Resume roaming after waking up
+        setTimeout(() => {
+            if (tamagotchiLightsOn && !isRoaming && !tamagotchiIsSleeping) {
+                startRoaming(config);
+            }
+        }, 1000);
+    }
+}
+
+function resetIdleTimer(config) {
+    if (idleTimer) { clearTimeout(idleTimer); }
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    
+    // If lights are off, don't wake up - keep sleeping
+    if (!tamagotchiLightsOn || tamagotchiIsSleeping) {
+        if (mascotContainer && !mascotContainer.classList.contains('mascot-powersave')) {
+            setMascotState(config, 'powersave');
+        }
+        return; // Don't set idle timer when sleeping
+    }
+    
+    // If waking up from power-save, do a little jolt
+    if (mascotContainer && mascotContainer.classList.contains('mascot-powersave')) {
+        const robot = mascotContainer.querySelector('.tm-mascot-robot');
+        if (robot) {
+            robot.style.animation = 'tm-mascot-startled 0.4s ease-out';
+            setTimeout(() => { robot.style.animation = ''; }, 400);
+        }
+    }
+
+    // Wake up and set to idle/sad (need STORAGE_KEYS from window scope)
+    if (typeof window.STORAGE_KEYS !== 'undefined') {
+        updatePetStateByStats(config, window.STORAGE_KEYS);
+    }
+
+    // Set mascot to sleep after 3 minutes of inactivity (but only if lights are on)
+    idleTimer = setTimeout(() => {
+        if (tamagotchiLightsOn && !tamagotchiIsSleeping) {
+            setMascotState(config, 'powersave');
+        }
+    }, 3 * 60 * 1000);
+}
+
+function initInteractiveMascot(config, STORAGE_KEYS) {
+    if (!config || !config.interactiveMascotEnabled) return;
+
+    // Add mascot animation styles to document
+    if (!document.getElementById('tm-mascot-animations')) {
+        const animStyle = document.createElement('style');
+        animStyle.id = 'tm-mascot-animations';
+        animStyle.textContent = `
+            @keyframes tm-arm-sway-left {
+                0%, 100% { transform: rotate(0deg); }
+                50% { transform: rotate(-8deg); }
+            }
+            @keyframes tm-arm-sway-right {
+                0%, 100% { transform: rotate(0deg); }
+                50% { transform: rotate(8deg); }
+            }
+            @keyframes tm-leg-walk-left {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(-2px); }
+            }
+            @keyframes tm-leg-walk-right {
+                0%, 100% { transform: translateY(0px); }
+                50% { transform: translateY(2px); }
+            }
+            @keyframes tm-tail-wag {
+                0%, 100% { transform: rotate(0deg); }
+                25% { transform: rotate(-5deg); }
+                75% { transform: rotate(5deg); }
+            }
+            @keyframes tm-wing-flap {
+                0%, 100% { transform: rotate(0deg); }
+                50% { transform: rotate(-10deg); }
+            }
+            @keyframes tm-wing-flap-right {
+                0%, 100% { transform: rotate(0deg); }
+                50% { transform: rotate(10deg); }
+            }
+            @keyframes tm-body-breathe {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.02); }
+            }
+            
+            .tm-animate-arm-left {
+                transform-origin: center center;
+                transform-box: fill-box;
+                transition: transform 0.3s ease-out;
+            }
+            .tm-animate-arm-right {
+                transform-origin: center center;
+                transform-box: fill-box;
+                transition: transform 0.3s ease-out;
+            }
+            .tm-animate-leg-left {
+                transform-box: fill-box;
+                transition: transform 0.2s ease-out;
+            }
+            .tm-animate-leg-right {
+                transform-box: fill-box;
+                transition: transform 0.2s ease-out;
+            }
+            .tm-animate-tail {
+                transform-origin: left center;
+                transform-box: fill-box;
+                transition: transform 0.4s ease-out;
+            }
+            .tm-animate-wing-left {
+                transform-origin: right center;
+                transform-box: fill-box;
+                transition: transform 0.3s ease-out;
+            }
+            .tm-animate-wing-right {
+                transform-origin: left center;
+                transform-box: fill-box;
+                transition: transform 0.3s ease-out;
+            }
+            .tm-animate-body {
+                animation: tm-body-breathe 3s ease-in-out infinite;
+                transform-origin: center center;
+                transform-box: fill-box;
+            }
+            
+            /* Idle animations when not moving */
+            .mascot-idle .tm-animate-arm-left {
+                animation: tm-arm-sway-left 2s ease-in-out infinite;
+            }
+            .mascot-idle .tm-animate-arm-right {
+                animation: tm-arm-sway-right 2s ease-in-out infinite 1s;
+            }
+            .mascot-idle .tm-animate-leg-left {
+                animation: tm-leg-walk-left 1.5s ease-in-out infinite;
+            }
+            .mascot-idle .tm-animate-leg-right {
+                animation: tm-leg-walk-right 1.5s ease-in-out infinite 0.75s;
+            }
+            .mascot-idle .tm-animate-tail {
+                animation: tm-tail-wag 2.5s ease-in-out infinite;
+            }
+            .mascot-idle .tm-animate-wing-left {
+                animation: tm-wing-flap 1.8s ease-in-out infinite;
+            }
+            .mascot-idle .tm-animate-wing-right {
+                animation: tm-wing-flap-right 1.8s ease-in-out infinite;
+            }
+        `;
+        document.head.appendChild(animStyle);
+    }
+
+    const container = document.createElement('div');
+    container.id = 'tm-mascot-container';
+    container.classList.add('tm-mascot-container');
+    container.title = "Click me!";
+    // Simple robot SVG
+    container.innerHTML = `
+        <div id="tm-mascot-speech-bubble" class="tm-mascot-speech-bubble" style="display: none;"></div>
+        <div id="tm-mascot-interaction-panel" style="display: none !important;">
+            <!-- Header Section -->
+            <div class="tm-panel-header">
+                <div class="tm-panel-title">
+                    <span id="tm-tamagotchi-stage-display" class="tm-stage-badge">EGG</span>
+                    <div class="tm-panel-info">
+                        <span id="tm-tamagotchi-age-display" class="tm-age-text">Age: 0</span>
+                        <span id="tm-tamagotchi-weight-display" class="tm-weight-text">⚖️ <span id="tm-weight-value">30</span>kg</span>
+                    </div>
+                </div>
+                <button class="tm-panel-close" id="tm-panel-close-btn" title="Close panel">✕</button>
+            </div>
+
+            <!-- Status Alerts -->
+            <div id="tm-status-alerts">
+                <div id="tm-poop-indicator" class="tm-alert tm-alert-poop" style="display: none;">
+                    <span class="tm-alert-icon">💩</span>
+                    <span class="tm-alert-text">Needs cleaning (<span id="tm-poop-count">0</span>)</span>
+                </div>
+                <div id="tm-sick-indicator" class="tm-alert tm-alert-sick" style="display: none;">
+                    <span class="tm-alert-icon">🤒</span>
+                    <span class="tm-alert-text" id="tm-sick-type">Sick</span>
+                </div>
+            </div>
+
+            <!-- Stats Section -->
+            <div class="tm-panel-section">
+                <div class="tm-section-title">Stats</div>
+                <div class="tm-stats-grid">
+                    <div class="tm-stat-item" id="tm-pet-happiness-bar" title="Η ευτυχία μειώνεται με τον χρόνο και αυξάνεται όταν τον χαϊδεύετε ή κάνετε εργασίες.">
+                        <div class="tm-stat-icon">😊</div>
+                        <div class="tm-stat-content">
+                            <div class="tm-stat-name">Happiness</div>
+                            <div class="tm-pet-stat-bar tm-stat-bar-modern"><div id="tm-pet-happiness-fill" class="tm-pet-stat-bar-fill"></div></div>
+                        </div>
+                    </div>
+                    <div class="tm-stat-item" id="tm-pet-hunger-bar" title="Η πείνα αυξάνεται με τον χρόνο. Τάισε το mascot για να την μειώσεις!">
+                        <div class="tm-stat-icon">🍔</div>
+                        <div class="tm-stat-content">
+                            <div class="tm-stat-name">Hunger</div>
+                            <div class="tm-pet-stat-bar tm-stat-bar-modern"><div id="tm-pet-hunger-fill" class="tm-pet-stat-bar-fill"></div></div>
+                        </div>
+                    </div>
+                    <div class="tm-stat-item" id="tm-pet-health-bar" title="Η υγεία μειώνεται αν είναι πολύ πεινασμένο.">
+                        <div class="tm-stat-icon">❤️</div>
+                        <div class="tm-stat-content">
+                            <div class="tm-stat-name">Health</div>
+                            <div class="tm-pet-stat-bar tm-stat-bar-modern"><div id="tm-pet-health-fill" class="tm-pet-stat-bar-fill"></div></div>
+                        </div>
+                    </div>
+                    <div class="tm-stat-item" id="tm-pet-discipline-bar" title="Η πειθαρχία αυξάνεται όταν παίζεις μαζί του.">
+                        <div class="tm-stat-icon">⭐</div>
+                        <div class="tm-stat-content">
+                            <div class="tm-stat-name">Discipline</div>
+                            <div class="tm-pet-stat-bar tm-stat-bar-modern"><div id="tm-pet-discipline-fill" class="tm-pet-stat-bar-fill"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="tm-panel-section">
+                <div class="tm-section-title">Care</div>
+                <div class="tm-actions-grid">
+                    <button id="tm-pet-meal-btn" class="tm-action-btn tm-btn-primary" title="Give a proper meal">
+                        <span class="tm-btn-icon">🍽️</span>
+                        <span class="tm-btn-label">Meal</span>
+                    </button>
+                    <button id="tm-pet-snack-btn" class="tm-action-btn tm-btn-secondary" title="Give a snack">
+                        <span class="tm-btn-icon">🍰</span>
+                        <span class="tm-btn-label">Snack</span>
+                    </button>
+                    <button id="tm-pet-pet-btn" class="tm-action-btn tm-btn-love" title="Pet/Play">
+                        <span class="tm-btn-icon">💕</span>
+                        <span class="tm-btn-label">Pet</span>
+                    </button>
+                    <button id="tm-pet-clean-btn" class="tm-action-btn tm-btn-clean" title="Clean up poop">
+                        <span class="tm-btn-icon">🧹</span>
+                        <span class="tm-btn-label">Clean</span>
+                    </button>
+                    <button id="tm-pet-medicine-btn" class="tm-action-btn tm-btn-medicine" title="Give medicine">
+                        <span class="tm-btn-icon">💊</span>
+                        <span class="tm-btn-label">Medicine</span>
+                    </button>
+                    <button id="tm-pet-toilet-btn" class="tm-action-btn tm-btn-toilet" title="Train to use toilet">
+                        <span class="tm-btn-icon">🚽</span>
+                        <span class="tm-btn-label">Toilet</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Training Section -->
+            <div class="tm-panel-section">
+                <div class="tm-section-title">Training</div>
+                <div class="tm-actions-grid">
+                    <button id="tm-pet-praise-btn" class="tm-action-btn tm-btn-praise" title="Praise">
+                        <span class="tm-btn-icon">👍</span>
+                        <span class="tm-btn-label">Praise</span>
+                    </button>
+                    <button id="tm-pet-scold-btn" class="tm-action-btn tm-btn-scold" title="Scold">
+                        <span class="tm-btn-icon">👎</span>
+                        <span class="tm-btn-label">Scold</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Games & Settings Section -->
+            <div class="tm-panel-section">
+                <div class="tm-section-title">Activities</div>
+                <div class="tm-actions-grid">
+                    <button id="tm-play-bug-game-btn" class="tm-action-btn tm-btn-game" title="Play Bug Squish">
+                        <span class="tm-btn-icon">🐞</span>
+                        <span class="tm-btn-label">Bugs</span>
+                    </button>
+                    <button id="tm-play-memory-game-btn" class="tm-action-btn tm-btn-game" title="Play Memory">
+                        <span class="tm-btn-icon">🧠</span>
+                        <span class="tm-btn-label">Memory</span>
+                    </button>
+                    <button id="tm-pet-lights-btn" class="tm-action-btn tm-btn-lights" title="Toggle lights">
+                        <span class="tm-btn-icon">💡</span>
+                        <span class="tm-btn-label">Lights</span>
+                    </button>
+                    <button id="tm-pet-stats-btn" class="tm-action-btn tm-btn-info" title="View detailed stats">
+                        <span class="tm-btn-icon">📊</span>
+                        <span class="tm-btn-label">Stats</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Death Options (Hidden by default) -->
+            <div id="tm-pet-revive-btn-container" style="display: none;">
+                <button id="tm-pet-revive-btn" class="tm-action-btn tm-btn-death" title="Revive or restart">
+                    <span class="tm-btn-icon">💀</span>
+                    <span class="tm-btn-label">Death Options</span>
+                </button>
+            </div>
+        </div>
+        <svg class="tm-mascot-robot" viewBox="0 0 100 100" style="overflow: visible;">
+            <!-- Global Defs -->
+                    <defs>
+                <!-- Jetpack Gradients -->
+                        <linearGradient id="jetpack-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#d5d8dc;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#95a5a6;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#7f8c8d;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="flame-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#f39c12;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#e67e22;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#d35400;stop-opacity:0.5" />
+                        </linearGradient>
+                <!-- Glow filters for magical effects -->
+                <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+                <filter id="strong-glow">
+                    <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+                    </defs>
+            
+            <!-- Flipper group for horizontal flipping -->
+            <g class="tm-mascot-flipper" transform-origin="50 50">
+                <!-- Jetpack (shared across stages, shown conditionally) -->
+                <g id="jetpack" style="display: none;">
+                    <!-- Left tank -->
+                    <rect x="8" y="0" width="18" height="30" rx="5" fill="url(#jetpack-gradient)" stroke="#5d6d7e" stroke-width="1.5"/>
+                    <circle cx="17" cy="10" r="3" fill="#34495e" stroke="#2c3e50" stroke-width="0.5"/>
+                    <rect x="11" y="6" width="4" height="8" fill="#3498db" rx="1" opacity="0.4"/>
+                    <ellipse class="tm-mascot-thruster-left" cx="17" cy="32" rx="6" ry="9" fill="url(#flame-gradient)"/>
+                    <!-- Right tank -->
+                    <rect x="74" y="0" width="18" height="30" rx="5" fill="url(#jetpack-gradient)" stroke="#5d6d7e" stroke-width="1.5"/>
+                    <circle cx="83" cy="10" r="3" fill="#34495e" stroke="#2c3e50" stroke-width="0.5"/>
+                    <rect x="77" y="6" width="4" height="8" fill="#3498db" rx="1" opacity="0.4"/>
+                    <ellipse class="tm-mascot-thruster-right" cx="83" cy="32" rx="6" ry="9" fill="url(#flame-gradient)"/>
+                </g>
+                
+                <!-- ═══════════════════════════════════════ -->
+                <!-- EGG STAGE - Mysterious Cosmic Egg -->
+                <!-- ═══════════════════════════════════════ -->
+                <g id="tm-mascot-base" style="display: block; opacity: 1;">
+                    <defs>
+                        <radialGradient id="egg-glow">
+                            <stop offset="0%" style="stop-color:#fff;stop-opacity:0.8" />
+                            <stop offset="50%" style="stop-color:#a8e6cf;stop-opacity:0.4" />
+                            <stop offset="100%" style="stop-color:#4ecdc4;stop-opacity:0" />
+                        </radialGradient>
+                        <linearGradient id="egg-shell" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#b2ebf2;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#80deea;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Cosmic glow aura -->
+                    <ellipse cx="50" cy="52" rx="42" ry="48" fill="url(#egg-glow)" class="tm-cosmic-aura"/>
+                    <!-- Main egg body -->
+                    <ellipse cx="50" cy="52" rx="33" ry="38" fill="url(#egg-shell)" stroke="#4ecdc4" stroke-width="2.5" filter="url(#glow)"/>
+                    <!-- Magical crack patterns (animated) -->
+                    <path d="M 50 20 L 48 28 L 52 35 L 49 42" stroke="#26a69a" stroke-width="1.5" fill="none" opacity="0.6" stroke-linecap="round" class="tm-egg-crack"/>
+                    <path d="M 30 40 L 35 45 L 32 52" stroke="#26a69a" stroke-width="1.5" fill="none" opacity="0.5" stroke-linecap="round" class="tm-egg-crack"/>
+                    <path d="M 70 38 L 65 43 L 68 50" stroke="#26a69a" stroke-width="1.5" fill="none" opacity="0.5" stroke-linecap="round" class="tm-egg-crack"/>
+                    <!-- Mystical symbols -->
+                    <circle cx="50" cy="50" r="18" fill="none" stroke="#4dd0e1" stroke-width="1" opacity="0.3" stroke-dasharray="3,3"/>
+                    <circle cx="50" cy="50" r="12" fill="none" stroke="#4dd0e1" stroke-width="0.8" opacity="0.4" stroke-dasharray="2,2"/>
+                    <!-- Energy sparkles -->
+                    <circle cx="38" cy="35" r="2" fill="#fff" opacity="0.9" class="tm-sparkle"/>
+                    <circle cx="62" cy="40" r="1.5" fill="#fff" opacity="0.8" class="tm-sparkle"/>
+                    <circle cx="55" cy="65" r="2.5" fill="#fff" opacity="0.9" class="tm-sparkle"/>
+                    <circle cx="42" cy="62" r="1.8" fill="#fff" opacity="0.7" class="tm-sparkle"/>
+                    <!-- Pulsing core -->
+                    <ellipse cx="50" cy="52" rx="8" ry="10" fill="#fff" opacity="0.3" class="tm-egg-core"/>
+                    <!-- Eyes (closed/sleeping) -->
+                    <g class="tm-mascot-eye-open" style="display:none;">
+                        <circle cx="44" cy="50" r="4" fill="#26a69a" opacity="0.6"/>
+                        <circle cx="56" cy="50" r="4" fill="#26a69a" opacity="0.6"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed">
+                        <path d="M 40 48 Q 44 46 48 48" stroke="#26a69a" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+                        <path d="M 52 48 Q 56 46 60 48" stroke="#26a69a" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
+                    </g>
+                    <!-- No mouth -->
+                    <path class="tm-mascot-mouth-happy" style="display:none;" d="M 40 56 Q 50 62 60 56" stroke="#26a69a" stroke-width="2" fill="none"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 40 58 Q 50 52 60 58" stroke="#26a69a" stroke-width="2" fill="none"/>
+                </g>
+                
+                <!-- ═══════════════════════════════════════ -->
+                <!-- DRAGON CHARACTER - All Life Stages -->
+                <!-- ═══════════════════════════════════════ -->
+                
+                <!-- DRAGON BABY -->
+                <g id="tm-mascot-baby-dragon" style="display: none;">
+                    <defs>
+                        <linearGradient id="baby-dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#b2fab4;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#76ff03;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#64dd17;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="baby-dragon-belly">
+                            <stop offset="0%" style="stop-color:#fff9c4;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#fff59d;stop-opacity:1" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="88" rx="28" ry="6" fill="#333" opacity="0.2"/>
+                    <!-- Tiny tail (curved) -->
+                    <path class="tm-animate-tail" d="M 68 72 Q 78 75 80 70 Q 82 65 78 63" 
+                          fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.8"/>
+                    <!-- Body (round and chubby) -->
+                    <ellipse class="tm-animate-body" cx="50" cy="65" rx="24" ry="20" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="2"/>
+                    <!-- Belly patch -->
+                    <ellipse cx="50" cy="70" rx="14" ry="12" fill="url(#baby-dragon-belly)" opacity="0.8"/>
+                    <!-- Head (large compared to body) -->
+                    <ellipse cx="50" cy="38" rx="18" ry="16" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="2"/>
+                    <!-- Tiny snout -->
+                    <ellipse cx="50" cy="44" rx="8" ry="5" fill="url(#baby-dragon-belly)"/>
+                    <!-- Nostrils (tiny dots) -->
+                    <circle cx="47" cy="45" r="1.2" fill="#558b2f"/>
+                    <circle cx="53" cy="45" r="1.2" fill="#558b2f"/>
+                    <!-- Tiny horns (nubs) -->
+                    <ellipse cx="38" cy="28" rx="3" ry="5" fill="#ff6090" stroke="#e91e63" stroke-width="1" transform="rotate(-20 38 28)"/>
+                    <ellipse cx="62" cy="28" rx="3" ry="5" fill="#ff6090" stroke="#e91e63" stroke-width="1" transform="rotate(20 62 28)"/>
+                    <!-- Baby spikes on back (tiny) -->
+                    <circle cx="48" cy="52" r="2.5" fill="#ff80ab"/>
+                    <circle cx="52" cy="52" r="2.5" fill="#ff80ab"/>
+                    <circle cx="46" cy="60" r="2" fill="#ff6090"/>
+                    <circle cx="54" cy="60" r="2" fill="#ff6090"/>
+                    <!-- Huge cute eyes -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="36" rx="7" ry="9" fill="#fff" stroke="#558b2f" stroke-width="1.5"/>
+                        <ellipse cx="58" cy="36" rx="7" ry="9" fill="#fff" stroke="#558b2f" stroke-width="1.5"/>
+                        <ellipse cx="43" cy="37" rx="4" ry="5" fill="#2c3e50"/>
+                        <ellipse cx="59" cy="37" rx="4" ry="5" fill="#2c3e50"/>
+                        <circle cx="44" cy="35" r="2.5" fill="#fff" opacity="0.9"/>
+                        <circle cx="60" cy="35" r="2.5" fill="#fff" opacity="0.9"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 35 36 Q 42 33 49 36" stroke="#558b2f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 51 36 Q 58 33 65 36" stroke="#558b2f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Cute mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 44 48 Q 50 52 56 48" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 50 Q 50 46 56 50" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <!-- Tiny stubby arms -->
+                    <ellipse class="tm-animate-arm-left" cx="28" cy="60" rx="6" ry="8" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.5"/>
+                    <ellipse class="tm-animate-arm-right" cx="72" cy="60" rx="6" ry="8" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.5"/>
+                    <!-- Tiny feet -->
+                    <ellipse class="tm-animate-leg-left" cx="40" cy="84" rx="6" ry="4" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.5"/>
+                    <ellipse class="tm-animate-leg-right" cx="60" cy="84" rx="6" ry="4" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.5"/>
+                    <!-- Tiny wing nubs -->
+                    <ellipse class="tm-animate-wing-left" cx="30" cy="58" rx="5" ry="8" fill="#80deea" opacity="0.5" stroke="#558b2f" stroke-width="1" transform="rotate(-15 30 58)"/>
+                    <ellipse class="tm-animate-wing-right" cx="70" cy="58" rx="5" ry="8" fill="#80deea" opacity="0.5" stroke="#558b2f" stroke-width="1" transform="rotate(15 70 58)"/>
+                </g>
+
+                <!-- DRAGON KID -->
+                <g id="tm-mascot-evo1-dragon" style="display: none;">
+                    <defs>
+                        <linearGradient id="dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#a7ffeb;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#64ffda;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1de9b6;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="dragon-belly" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#e1f5fe;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b3e5fc;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="90" rx="32" ry="8" fill="#333" opacity="0.2"/>
+                    <!-- Tail (curled) -->
+                    <g class="tm-animate-tail">
+                        <path d="M 70 70 Q 85 75 88 68 Q 90 62 85 58 Q 82 56 78 58" 
+                              fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="86" cy="59" r="4" fill="#ff6090" opacity="0.8"/>
+                        <circle cx="84" cy="60" r="2" fill="#ff6090" opacity="0.6"/>
+                    </g>
+                    <!-- Body (chubby) -->
+                    <ellipse class="tm-animate-body" cx="50" cy="65" rx="28" ry="24" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="2.5"/>
+                    <!-- Belly scales pattern -->
+                    <ellipse cx="50" cy="68" rx="18" ry="16" fill="url(#dragon-belly)" opacity="0.8"/>
+                    <path d="M 40 62 Q 50 64 60 62" stroke="#80deea" stroke-width="1" opacity="0.6" fill="none"/>
+                    <path d="M 38 68 Q 50 70 62 68" stroke="#80deea" stroke-width="1" opacity="0.6" fill="none"/>
+                    <path d="M 40 74 Q 50 76 60 74" stroke="#80deea" stroke-width="1" opacity="0.6" fill="none"/>
+                    <!-- Head (cute dragon face) -->
+                    <ellipse cx="50" cy="35" rx="22" ry="20" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="2.5"/>
+                    <!-- Snout -->
+                    <ellipse cx="50" cy="42" rx="12" ry="8" fill="url(#dragon-belly)"/>
+                    <!-- Nostrils -->
+                    <ellipse cx="46" cy="44" rx="2" ry="1.5" fill="#00897b"/>
+                    <ellipse cx="54" cy="44" rx="2" ry="1.5" fill="#00897b"/>
+                    <!-- Horns (small and cute) -->
+                    <path d="M 35 28 Q 32 22 30 20 Q 28 18 32 20 L 35 26" fill="#ff6090" stroke="#e91e63" stroke-width="1.5"/>
+                    <path d="M 65 28 Q 68 22 70 20 Q 72 18 68 20 L 65 26" fill="#ff6090" stroke="#e91e63" stroke-width="1.5"/>
+                    <!-- Spikes on back -->
+                    <path d="M 50 48 L 48 53 L 52 53 Z" fill="#ff6090"/>
+                    <path d="M 45 58 L 43 62 L 47 62 Z" fill="#ff80ab"/>
+                    <path d="M 55 58 L 53 62 L 57 62 Z" fill="#ff80ab"/>
+                    <!-- Eyes (big and curious) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="32" rx="7" ry="8" fill="#fff" stroke="#00bfa5" stroke-width="1.5"/>
+                        <ellipse cx="58" cy="32" rx="7" ry="8" fill="#fff" stroke="#00bfa5" stroke-width="1.5"/>
+                        <ellipse cx="43" cy="33" rx="4" ry="5" fill="#2c3e50"/>
+                        <ellipse cx="59" cy="33" rx="4" ry="5" fill="#2c3e50"/>
+                        <circle cx="44" cy="31" r="2" fill="#fff"/>
+                        <circle cx="60" cy="31" r="2" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 35 32 Q 42 29 49 32" stroke="#00897b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 51 32 Q 58 29 65 32" stroke="#00897b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 43 48 Q 50 52 57 48" stroke="#00897b" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 50 Q 50 46 57 50" stroke="#00897b" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <!-- Arms (claws) -->
+                    <g class="tm-animate-arm-left">
+                        <ellipse cx="26" cy="62" rx="7" ry="9" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.8"/>
+                        <path d="M 22 68 L 20 72 M 25 69 L 24 73 M 28 68 L 28 72" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-animate-arm-right">
+                        <ellipse cx="74" cy="62" rx="7" ry="9" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.8"/>
+                        <path d="M 72 68 L 72 72 M 75 69 L 76 73 M 78 68 L 80 72" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
+                    </g>
+                    <!-- Feet (dino claws) -->
+                    <g class="tm-animate-leg-left">
+                        <ellipse cx="40" cy="86" rx="7" ry="5" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.8"/>
+                        <path d="M 36 88 L 34 91 M 40 89 L 40 92 M 44 88 L 46 91" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-animate-leg-right">
+                        <ellipse cx="60" cy="86" rx="7" ry="5" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.8"/>
+                        <path d="M 54 88 L 52 91 M 60 89 L 60 92 M 64 88 L 66 91" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
+                    </g>
+                    <!-- Wings (tiny baby wings) -->
+                    <ellipse class="tm-animate-wing-left" cx="28" cy="58" rx="8" ry="12" fill="#80deea" opacity="0.6" stroke="#00bfa5" stroke-width="1.5" transform="rotate(-20 28 58)"/>
+                    <ellipse class="tm-animate-wing-right" cx="72" cy="58" rx="8" ry="12" fill="#80deea" opacity="0.6" stroke="#00bfa5" stroke-width="1.5" transform="rotate(20 72 58)"/>
+                </g>
+
+                <!-- DRAGON TEEN -->
+                <g id="tm-mascot-evo2-dragon" style="display: none;">
+                    <defs>
+                        <linearGradient id="teen-dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4dd0e1;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#26c6da;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#00bcd4;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="teen-dragon-wing" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#80deea;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0.6" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="92" rx="36" ry="7" fill="#333" opacity="0.3"/>
+                    <!-- Tail (longer, spiky) -->
+                    <g class="tm-animate-tail">
+                        <path d="M 72 75 Q 88 78 92 72 Q 94 66 90 62 Q 87 60 83 62" 
+                              fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="2"/>
+                        <path d="M 88 62 L 92 60 L 90 65 Z" fill="#ff6090"/>
+                        <path d="M 84 67 L 88 66 L 86 70 Z" fill="#ff6090"/>
+                    </g>
+                    <!-- Larger wings (can flap now) -->
+                    <g class="tm-animate-wing-left">
+                        <ellipse cx="25" cy="55" rx="12" ry="20" fill="url(#teen-dragon-wing)" stroke="#0097a7" stroke-width="2" transform="rotate(-25 25 55)"/>
+                        <path d="M 20 50 Q 18 55 20 60" stroke="#0097a7" stroke-width="1" opacity="0.6"/>
+                        <path d="M 25 48 Q 23 55 25 62" stroke="#0097a7" stroke-width="1" opacity="0.6"/>
+                    </g>
+                    <g class="tm-animate-wing-right">
+                        <ellipse cx="75" cy="55" rx="12" ry="20" fill="url(#teen-dragon-wing)" stroke="#0097a7" stroke-width="2" transform="rotate(25 75 55)"/>
+                        <path d="M 80 50 Q 82 55 80 60" stroke="#0097a7" stroke-width="1" opacity="0.6"/>
+                        <path d="M 75 48 Q 77 55 75 62" stroke="#0097a7" stroke-width="1" opacity="0.6"/>
+                    </g>
+                    <!-- Body (getting longer) -->
+                    <ellipse class="tm-animate-body" cx="50" cy="68" rx="26" ry="22" fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="2.5"/>
+                    <!-- Belly pattern -->
+                    <ellipse cx="50" cy="70" rx="16" ry="14" fill="#e0f7fa" opacity="0.7"/>
+                    <!-- Spikes on back (developing) -->
+                    <path d="M 48 50 L 46 58 L 50 58 Z" fill="#ff6090" stroke="#e91e63" stroke-width="1"/>
+                    <path d="M 52 50 L 50 58 L 54 58 Z" fill="#ff6090" stroke="#e91e63" stroke-width="1"/>
+                    <path d="M 44 60 L 42 66 L 46 66 Z" fill="#ff80ab" stroke="#e91e63" stroke-width="1"/>
+                    <path d="M 56 60 L 54 66 L 58 66 Z" fill="#ff80ab" stroke="#e91e63" stroke-width="1"/>
+                    <!-- Head (more defined snout) -->
+                    <ellipse cx="50" cy="32" rx="20" ry="18" fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="2.5"/>
+                    <!-- Snout (more pronounced) -->
+                    <ellipse cx="50" cy="40" rx="11" ry="7" fill="#e0f7fa"/>
+                    <!-- Nostrils -->
+                    <ellipse cx="46" cy="42" rx="2" ry="1.5" fill="#00838f"/>
+                    <ellipse cx="54" cy="42" rx="2" ry="1.5" fill="#00838f"/>
+                    <!-- Horns (longer) -->
+                    <path d="M 36 24 Q 32 18 28 16 Q 26 14 30 16 L 35 22" fill="#ff6090" stroke="#e91e63" stroke-width="1.5"/>
+                    <path d="M 64 24 Q 68 18 72 16 Q 74 14 70 16 L 65 22" fill="#ff6090" stroke="#e91e63" stroke-width="1.5"/>
+                    <!-- Eyes (more focused) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="30" rx="6" ry="7" fill="#fff" stroke="#0097a7" stroke-width="1.5"/>
+                        <ellipse cx="58" cy="30" rx="6" ry="7" fill="#fff" stroke="#0097a7" stroke-width="1.5"/>
+                        <ellipse cx="43" cy="31" rx="3.5" ry="4.5" fill="#2c3e50"/>
+                        <ellipse cx="59" cy="31" rx="3.5" ry="4.5" fill="#2c3e50"/>
+                        <circle cx="44" cy="29" r="1.8" fill="#4dd0e1"/>
+                        <circle cx="60" cy="29" r="1.8" fill="#4dd0e1"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 36 30 Q 42 27 48 30" stroke="#00838f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 30 Q 58 27 64 30" stroke="#00838f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 42 46 Q 50 50 58 46" stroke="#00838f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 48 Q 50 44 58 48" stroke="#00838f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <!-- Arms (clawed) -->
+                    <g class="tm-animate-arm-left">
+                        <ellipse cx="28" cy="64" rx="7" ry="10" fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="1.8"/>
+                        <path d="M 24 70 L 22 74 M 27 71 L 26 75 M 30 70 L 30 74" stroke="#00838f" stroke-width="1.5" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-animate-arm-right">
+                        <ellipse cx="72" cy="64" rx="7" ry="10" fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="1.8"/>
+                        <path d="M 70 70 L 70 74 M 73 71 L 74 75 M 76 70 L 78 74" stroke="#00838f" stroke-width="1.5" stroke-linecap="round"/>
+                    </g>
+                    <!-- Feet -->
+                    <g class="tm-animate-leg-left">
+                        <ellipse cx="40" cy="88" rx="7" ry="5" fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="1.8"/>
+                        <path d="M 36 90 L 34 93 M 40 91 L 40 94 M 44 90 L 46 93" stroke="#00838f" stroke-width="1.5" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-animate-leg-right">
+                        <ellipse cx="60" cy="88" rx="7" ry="5" fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="1.8"/>
+                        <path d="M 54 90 L 52 93 M 60 91 L 60 94 M 64 90 L 66 93" stroke="#00838f" stroke-width="1.5" stroke-linecap="round"/>
+                    </g>
+                </g>
+
+                <!-- ADULT Stage - Full Grown Tamagotchi -->
+                <!-- DRAGON ADULT -->
+                <g id="tm-mascot-evo3-dragon" style="display: none;">
+                    <defs>
+                        <linearGradient id="adult-dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#26a69a;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#00897b;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#00695c;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="adult-dragon-wing" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4db6ac;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#26a69a;stop-opacity:0.7" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="40" ry="6" fill="#333" opacity="0.35"/>
+                    <!-- Majestic wings (large and detailed) -->
+                    <g class="tm-animate-wing-left">
+                        <path d="M 15 50 Q 8 40 10 30 Q 12 20 18 18 Q 22 50 25 55 Z" 
+                              fill="url(#adult-dragon-wing)" stroke="#00695c" stroke-width="2.5" filter="url(#glow)"/>
+                        <path d="M 12 35 Q 15 35 18 40" stroke="#00695c" stroke-width="1.2" opacity="0.6"/>
+                        <path d="M 14 42 Q 17 42 20 47" stroke="#00695c" stroke-width="1.2" opacity="0.6"/>
+                        <path d="M 16 48 Q 19 48 22 53" stroke="#00695c" stroke-width="1.2" opacity="0.6"/>
+                    </g>
+                    <g class="tm-animate-wing-right">
+                        <path d="M 85 50 Q 92 40 90 30 Q 88 20 82 18 Q 78 50 75 55 Z" 
+                              fill="url(#adult-dragon-wing)" stroke="#00695c" stroke-width="2.5" filter="url(#glow)"/>
+                        <path d="M 88 35 Q 85 35 82 40" stroke="#00695c" stroke-width="1.2" opacity="0.6"/>
+                        <path d="M 86 42 Q 83 42 80 47" stroke="#00695c" stroke-width="1.2" opacity="0.6"/>
+                        <path d="M 84 48 Q 81 48 78 53" stroke="#00695c" stroke-width="1.2" opacity="0.6"/>
+                    </g>
+                    <!-- Long powerful tail -->
+                    <g class="tm-animate-tail">
+                        <path d="M 75 72 Q 90 75 96 68 Q 100 60 96 54 Q 94 50 88 52" 
+                              fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="2.5"/>
+                        <!-- Tail spikes -->
+                        <path d="M 92 52 L 96 50 L 94 55 Z" fill="#e91e63"/>
+                        <path d="M 88 58 L 92 57 L 90 61 Z" fill="#ec407a"/>
+                        <path d="M 84 64 L 88 63 L 86 67 Z" fill="#f06292"/>
+                    </g>
+                    <!-- Muscular body -->
+                    <ellipse class="tm-animate-body" cx="50" cy="65" rx="28" ry="24" fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="3"/>
+                    <!-- Armored belly scales -->
+                    <ellipse cx="50" cy="68" rx="18" ry="16" fill="#80cbc4" opacity="0.7"/>
+                    <path d="M 38 60 Q 50 62 62 60" stroke="#4db6ac" stroke-width="1.5" opacity="0.7"/>
+                    <path d="M 36 66 Q 50 68 64 66" stroke="#4db6ac" stroke-width="1.5" opacity="0.7"/>
+                    <path d="M 38 72 Q 50 74 62 72" stroke="#4db6ac" stroke-width="1.5" opacity="0.7"/>
+                    <path d="M 40 78 Q 50 80 60 78" stroke="#4db6ac" stroke-width="1.5" opacity="0.7"/>
+                    <!-- Prominent back spikes -->
+                    <path d="M 46 48 L 44 56 L 48 56 Z" fill="#d81b60" stroke="#ad1457" stroke-width="1.5"/>
+                    <path d="M 50 46 L 48 54 L 52 54 Z" fill="#d81b60" stroke="#ad1457" stroke-width="1.5"/>
+                    <path d="M 54 48 L 52 56 L 56 56 Z" fill="#d81b60" stroke="#ad1457" stroke-width="1.5"/>
+                    <path d="M 42 60 L 40 66 L 44 66 Z" fill="#ec407a" stroke="#c2185b" stroke-width="1.5"/>
+                    <path d="M 58 60 L 56 66 L 60 66 Z" fill="#ec407a" stroke="#c2185b" stroke-width="1.5"/>
+                    <!-- Majestic head (elongated) -->
+                    <ellipse cx="50" cy="28" rx="22" ry="20" fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="2.5"/>
+                    <!-- Pronounced snout -->
+                    <ellipse cx="50" cy="36" rx="13" ry="9" fill="#80cbc4"/>
+                    <path d="M 42 34 Q 50 36 58 34" stroke="#4db6ac" stroke-width="1" opacity="0.6"/>
+                    <!-- Flared nostrils -->
+                    <ellipse cx="45" cy="38" rx="2.5" ry="2" fill="#004d40"/>
+                    <ellipse cx="55" cy="38" rx="2.5" ry="2" fill="#004d40"/>
+                    <!-- Large swept-back horns -->
+                    <path d="M 34 20 Q 28 12 24 8 Q 22 6 26 8 L 32 16 L 36 22" fill="#e91e63" stroke="#ad1457" stroke-width="2"/>
+                    <path d="M 66 20 Q 72 12 76 8 Q 78 6 74 8 L 68 16 L 64 22" fill="#e91e63" stroke="#ad1457" stroke-width="2"/>
+                    <!-- Piercing eyes -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="41" cy="26" rx="6" ry="7" fill="#ffd700" stroke="#004d40" stroke-width="1.5"/>
+                        <ellipse cx="59" cy="26" rx="6" ry="7" fill="#ffd700" stroke="#004d40" stroke-width="1.5"/>
+                        <ellipse cx="41" cy="26" rx="2.5" ry="4" fill="#000"/>
+                        <ellipse cx="59" cy="26" rx="2.5" ry="4" fill="#000"/>
+                        <circle cx="42" cy="24" r="1.5" fill="#ffeb3b"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 35 26 Q 41 23 47 26" stroke="#004d40" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 26 Q 59 23 65 26" stroke="#004d40" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Fierce mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 40 42 Q 50 46 60 42" stroke="#004d40" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 40 44 Q 50 40 60 44" stroke="#004d40" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <!-- Fangs -->
+                    <path d="M 47 43 L 46 46" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M 53 43 L 54 46" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Powerful arms/claws -->
+                    <g class="tm-animate-arm-left">
+                        <ellipse cx="26" cy="62" rx="8" ry="12" fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="2"/>
+                        <path d="M 22 70 L 20 75 M 25 71 L 24 76 M 28 71 L 28 76 M 31 70 L 32 75" stroke="#004d40" stroke-width="2" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-animate-arm-right">
+                        <ellipse cx="74" cy="62" rx="8" ry="12" fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="2"/>
+                        <path d="M 72 70 L 72 75 M 75 71 L 76 76 M 78 71 L 78 76 M 81 70 L 82 75" stroke="#004d40" stroke-width="2" stroke-linecap="round"/>
+                    </g>
+                    <!-- Strong legs/claws -->
+                    <g class="tm-animate-leg-left">
+                        <ellipse cx="39" cy="88" rx="8" ry="6" fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="2"/>
+                        <path d="M 34 90 L 32 94 M 38 91 L 38 95 M 42 91 L 42 95 M 46 90 L 48 94" stroke="#004d40" stroke-width="2" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-animate-leg-right">
+                        <ellipse cx="61" cy="88" rx="8" ry="6" fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="2"/>
+                        <path d="M 54 90 L 52 94 M 60 91 L 60 95 M 64 91 L 64 95 M 68 90 L 70 94" stroke="#004d40" stroke-width="2" stroke-linecap="round"/>
+                    </g>
+                </g>
+
+                <!-- DRAGON MIDDLE AGE -->
+                <g id="tm-mascot-evo4-dragon" style="display: none;">
+                    <defs>
+                        <linearGradient id="wizard-robe" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#7e57c2;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#5e35b1;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="magic-orb">
+                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#ba68c8;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#9c27b0;stop-opacity:0.4" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="98" rx="30" ry="5" fill="#333" opacity="0.3"/>
+                    <!-- Robe (long flowing) -->
+                    <path d="M 35 55 L 30 92 Q 32 96 38 95 L 42 60 Z" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="1.5"/>
+                    <path d="M 65 55 L 70 92 Q 68 96 62 95 L 58 60 Z" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="1.5"/>
+                    <ellipse cx="50" cy="68" rx="22" ry="28" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="2"/>
+                    <!-- Robe details (stars and moons) -->
+                    <circle cx="45" cy="65" r="2" fill="#ffd54f" opacity="0.8"/>
+                    <circle cx="55" cy="72" r="1.5" fill="#ffd54f" opacity="0.7"/>
+                    <circle cx="52" cy="80" r="2" fill="#ffd54f" opacity="0.8"/>
+                    <path d="M 41 75 L 43 77 L 41 79 L 39 77 Z" fill="#fff" opacity="0.6"/>
+                    <path d="M 59 68 L 61 70 L 59 72 L 57 70 Z" fill="#fff" opacity="0.6"/>
+                    <!-- Belt with pouches -->
+                    <rect x="35" y="62" width="30" height="3" fill="#8d6e63" stroke="#5d4037" stroke-width="1"/>
+                    <circle cx="42" cy="65" r="2.5" fill="#6d4c41"/>
+                    <circle cx="50" cy="65" r="3" fill="#8d6e63"/>
+                    <circle cx="58" cy="65" r="2.5" fill="#6d4c41"/>
+                    <!-- Magic staff (left hand) -->
+                    <line x1="22" y1="58" x2="18" y2="25" stroke="#8d6e63" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="18" cy="22" r="5" fill="url(#magic-orb)" filter="url(#strong-glow)"/>
+                    <circle cx="18" cy="22" r="3" fill="#e1bee7" opacity="0.8"/>
+                    <circle cx="19" cy="21" r="1.5" fill="#fff"/>
+                    <!-- Magic sparkles around staff -->
+                    <circle cx="15" cy="28" r="1" fill="#e1bee7" opacity="0.9" class="tm-sparkle"/>
+                    <circle cx="21" cy="26" r="0.8" fill="#ce93d8" opacity="0.8" class="tm-sparkle"/>
+                    <circle cx="17" cy="31" r="1.2" fill="#ba68c8" opacity="0.9" class="tm-sparkle"/>
+                    <!-- Arms -->
+                    <ellipse cx="24" cy="60" rx="6" ry="11" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="1.5"/>
+                    <ellipse cx="76" cy="60" rx="6" ry="11" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="1.5"/>
+                    <!-- Hands -->
+                    <ellipse cx="22" cy="68" rx="4" ry="5" fill="#ffccbc" stroke="#ff8a65" stroke-width="1"/>
+                    <ellipse cx="78" cy="68" rx="4" ry="5" fill="#ffccbc" stroke="#ff8a65" stroke-width="1"/>
+                    <!-- Head -->
+                    <circle cx="50" cy="35" r="17" fill="#ffccbc" stroke="#ff8a65" stroke-width="1.5"/>
+                    <!-- Wizard hat (tall and pointed) -->
+                    <path d="M 35 30 L 50 5 L 65 30 Z" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="2"/>
+                    <ellipse cx="50" cy="30" rx="18" ry="5" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="2"/>
+                    <!-- Hat band with stars -->
+                    <rect x="35" y="29" width="30" height="3" fill="#ffd54f" stroke="#f9a825" stroke-width="1"/>
+                    <circle cx="42" cy="30.5" r="1" fill="#9c27b0"/>
+                    <circle cx="50" cy="30.5" r="1" fill="#9c27b0"/>
+                    <circle cx="58" cy="30.5" r="1" fill="#9c27b0"/>
+                    <!-- Wise eyes (glasses optional) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="44" cy="35" rx="5" ry="5" fill="#fff" stroke="#ff8a65" stroke-width="1"/>
+                        <ellipse cx="44" cy="36" rx="3" ry="3" fill="#5d4037"/>
+                        <circle cx="45" cy="34.5" r="1" fill="#fff"/>
+                        <ellipse cx="56" cy="35" rx="5" ry="5" fill="#fff" stroke="#ff8a65" stroke-width="1"/>
+                        <ellipse cx="56" cy="36" rx="3" ry="3" fill="#5d4037"/>
+                        <circle cx="57" cy="34.5" r="1" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 39 35 Q 44 33 49 35" stroke="#d84315" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 51 35 Q 56 33 61 35" stroke="#d84315" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Wise smile/mustache -->
+                    <path class="tm-mascot-mouth-happy" d="M 44 42 Q 50 45 56 42" stroke="#d84315" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 44 Q 50 40 56 44" stroke="#d84315" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <!-- Mustache -->
+                    <path d="M 44 42 Q 38 44 35 42" stroke="#8d6e63" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="M 56 42 Q 62 44 65 42" stroke="#8d6e63" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <!-- Beard (small, neat) -->
+                    <path d="M 46 46 Q 50 48 54 46 L 53 50 Q 50 52 47 50 Z" fill="#8d6e63" stroke="#6d4c41" stroke-width="1"/>
+                </g>
+
+                <!-- OLD Stage - Elderly Tamagotchi -->
+                <!-- DRAGON OLD -->
+                <g id="tm-mascot-evo5-dragon" style="display: none;">
+                    <defs>
+                        <linearGradient id="sage-robe" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#eceff1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b0bec5;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="wisdom-aura">
+                            <stop offset="0%" style="stop-color:#fff;stop-opacity:0.6" />
+                            <stop offset="50%" style="stop-color:#80deea;stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#26c6da;stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Wisdom aura -->
+                    <ellipse cx="50" cy="55" rx="48" ry="55" fill="url(#wisdom-aura)" class="tm-wisdom-aura"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="100" rx="28" ry="4" fill="#333" opacity="0.25"/>
+                    <!-- Ancient staff (walking stick) -->
+                    <line x1="72" y1="72" x2="75" y2="96" stroke="#795548" stroke-width="3" stroke-linecap="round"/>
+                    <circle cx="72" cy="70" r="4" fill="#9e9e9e" stroke="#616161" stroke-width="1"/>
+                    <path d="M 70 68 Q 68 66 70 64 L 74 66 Z" fill="#90a4ae"/>
+                    <!-- Robe (flowing,ancient) -->
+                    <ellipse cx="50" cy="72" rx="24" ry="28" fill="url(#sage-robe)" stroke="#78909c" stroke-width="2"/>
+                    <path d="M 32 55 L 28 94 Q 30 98 35 96 L 38 62 Z" fill="url(#sage-robe)" stroke="#78909c" stroke-width="1.5"/>
+                    <path d="M 68 55 L 72 94 Q 70 98 65 96 L 62 62 Z" fill="url(#sage-robe)" stroke="#78909c" stroke-width="1.5"/>
+                    <!-- Robe trim (gold, ancient) -->
+                    <path d="M 30 56 Q 50 58 70 56" stroke="#ffd54f" stroke-width="2" fill="none"/>
+                    <path d="M 32 70 Q 50 72 68 70" stroke="#ffd54f" stroke-width="1.5" fill="none" opacity="0.7"/>
+                    <!-- Ancient symbols on robe -->
+                    <text x="44" y="68" font-family="serif" font-size="8" fill="#90a4ae" opacity="0.6">☯</text>
+                    <text x="50" y="80" font-family="serif" font-size="7" fill="#90a4ae" opacity="0.5">✦</text>
+                    <!-- Arms (holding scroll) -->
+                    <ellipse cx="30" cy="64" rx="6" ry="10" fill="url(#sage-robe)" stroke="#78909c" stroke-width="1.5"/>
+                    <ellipse cx="70" cy="64" rx="6" ry="10" fill="url(#sage-robe)" stroke="#78909c" stroke-width="1.5"/>
+                    <!-- Hands (aged) -->
+                    <ellipse cx="28" cy="72" rx="4" ry="5" fill="#d7ccc8" stroke="#a1887f" stroke-width="1"/>
+                    <ellipse cx="72" cy="72" rx="4" ry="5" fill="#d7ccc8" stroke="#a1887f" stroke-width="1"/>
+                    <!-- Ancient scroll -->
+                    <rect x="22" y="70" width="14" height="8" fill="#f3e5d0" rx="1" stroke="#bcaaa4" stroke-width="1"/>
+                    <line x1="24" y1="72" x2="34" y2="72" stroke="#8d6e63" stroke-width="0.5"/>
+                    <line x1="24" y1="74" x2="34" y2="74" stroke="#8d6e63" stroke-width="0.5"/>
+                    <line x1="24" y1="76" x2="32" y2="76" stroke="#8d6e63" stroke-width="0.5"/>
+                    <!-- Head (wise and aged) -->
+                    <circle cx="50" cy="30" r="18" fill="#d7ccc8" stroke="#a1887f" stroke-width="1.5"/>
+                    <!-- Wise wrinkles -->
+                    <path d="M 38 32 Q 45 30 52 32" stroke="#8d6e63" stroke-width="0.8" fill="none" opacity="0.5"/>
+                    <path d="M 48 32 Q 55 30 62 32" stroke="#8d6e63" stroke-width="0.8" fill="none" opacity="0.5"/>
+                    <path d="M 36 36 Q 42 34 48 36" stroke="#8d6e63" stroke-width="0.7" fill="none" opacity="0.4"/>
+                    <path d="M 52 36 Q 58 34 64 36" stroke="#8d6e63" stroke-width="0.7" fill="none" opacity="0.4"/>
+                    <!-- Ancient wizard hat (conical, weathered) -->
+                    <path d="M 36 24 L 50 2 L 64 24 Z" fill="url(#sage-robe)" stroke="#78909c" stroke-width="2"/>
+                    <ellipse cx="50" cy="24" rx="17" ry="4" fill="url(#sage-robe)" stroke="#78909c" stroke-width="2"/>
+                    <path d="M 36 24 Q 50 20 64 24" stroke="#ffd54f" stroke-width="1.5" fill="none"/>
+                    <!-- Wise eyes (small, knowing) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="43" cy="30" rx="4" ry="4" fill="#fff" stroke="#a1887f" stroke-width="1"/>
+                        <ellipse cx="43" cy="31" rx="2" ry="2" fill="#5d4037"/>
+                        <circle cx="44" cy="30" r="0.8" fill="#fff" opacity="0.8"/>
+                        <ellipse cx="57" cy="30" rx="4" ry="4" fill="#fff" stroke="#a1887f" stroke-width="1"/>
+                        <ellipse cx="57" cy="31" rx="2" ry="2" fill="#5d4037"/>
+                        <circle cx="58" cy="30" r="0.8" fill="#fff" opacity="0.8"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 39 30 Q 43 28 47 30" stroke="#8d6e63" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 30 Q 57 28 61 30" stroke="#8d6e63" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Serene smile -->
+                    <path class="tm-mascot-mouth-happy" d="M 44 38 Q 50 40 56 38" stroke="#8d6e63" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 40 Q 50 36 56 40" stroke="#8d6e63" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <!-- Epic long beard (flowing) -->
+                    <path d="M 42 40 Q 35 48 38 55 L 42 52 Q 40 46 42 42 Z" fill="#e0e0e0" stroke="#bdbdbd" stroke-width="1"/>
+                    <path d="M 50 42 Q 46 52 48 60 L 52 58 Q 50 50 50 44 Z" fill="#e0e0e0" stroke="#bdbdbd" stroke-width="1"/>
+                    <path d="M 58 40 Q 65 48 62 55 L 58 52 Q 60 46 58 42 Z" fill="#e0e0e0" stroke="#bdbdbd" stroke-width="1"/>
+                    <!-- Beard details (strands) -->
+                    <line x1="40" y1="45" x2="38" y2="52" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
+                    <line x1="50" y1="47" x2="49" y2="56" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
+                    <line x1="60" y1="45" x2="62" y2="52" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
+                    <!-- Mystical third eye (optional, subtle) -->
+                    <circle cx="50" cy="25" r="2" fill="#80deea" opacity="0.4" filter="url(#glow)"/>
+                    <circle cx="50" cy="25" r="1" fill="#4dd0e1" opacity="0.6"/>
+                </g>
+
+                <!-- ═══════════════════════════════════════ -->
+                <!-- ROBOT CHARACTER - All Life Stages -->
+                <!-- Tech & Code • Epic Rarity -->
+                <!-- ═══════════════════════════════════════ -->
+                
+                <!-- ROBOT BABY - Simple bot baby -->
+                <g id="tm-mascot-baby-robot" style="display: none;">
+                    <defs>
+                        <linearGradient id="robot-baby-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#e3f2fd;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#90caf9;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="85" rx="22" ry="6" fill="#333" opacity="0.15"/>
+                    <!-- Simple cube body -->
+                    <rect x="35" y="48" width="30" height="30" rx="4" fill="url(#robot-baby-body)" stroke="#1e88e5" stroke-width="2"/>
+                    <!-- Panel lights -->
+                    <circle cx="44" cy="62" r="2" fill="#4fc3f7" opacity="0.8"/>
+                    <circle cx="50" cy="62" r="2" fill="#4fc3f7" opacity="0.8"/>
+                    <circle cx="56" cy="62" r="2" fill="#4fc3f7" opacity="0.8"/>
+                    <!-- Head (rounded cube) -->
+                    <rect x="40" y="25" width="20" height="20" rx="3" fill="url(#robot-baby-body)" stroke="#1e88e5" stroke-width="2"/>
+                    <!-- Antenna -->
+                    <line x1="50" y1="25" x2="50" y2="20" stroke="#1e88e5" stroke-width="1.5"/>
+                    <circle cx="50" cy="18" r="2" fill="#ff5722" opacity="0.8"/>
+                    <!-- Eyes (LED screens) -->
+                    <g class="tm-mascot-eye-open">
+                        <rect x="43" y="32" width="3" height="4" fill="#4fc3f7"/>
+                        <rect x="54" y="32" width="3" height="4" fill="#4fc3f7"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <line x1="43" y1="34" x2="46" y2="34" stroke="#1e88e5" stroke-width="1.5"/>
+                        <line x1="54" y1="34" x2="57" y2="34" stroke="#1e88e5" stroke-width="1.5"/>
+                    </g>
+                    <!-- Mouth (LED line) -->
+                    <path class="tm-mascot-mouth-happy" d="M 45 40 L 55 40" stroke="#4fc3f7" stroke-width="1.5"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 40 L 55 40" stroke="#ff5722" stroke-width="1.5"/>
+                    <!-- Little arms -->
+                    <rect x="30" y="54" width="5" height="12" rx="1" fill="url(#robot-baby-body)" stroke="#1e88e5" stroke-width="1.5"/>
+                    <rect x="65" y="54" width="5" height="12" rx="1" fill="url(#robot-baby-body)" stroke="#1e88e5" stroke-width="1.5"/>
+                    <!-- Little legs -->
+                    <rect x="40" y="78" width="6" height="8" rx="1" fill="url(#robot-baby-body)" stroke="#1e88e5" stroke-width="1.5"/>
+                    <rect x="54" y="78" width="6" height="8" rx="1" fill="url(#robot-baby-body)" stroke="#1e88e5" stroke-width="1.5"/>
+                </g>
+
+                <!-- ROBOT KID - Playful bot with wheels -->
+                <g id="tm-mascot-evo1-robot" style="display: none;">
+                    <defs>
+                        <linearGradient id="robot-kid-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#bbdefb;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#42a5f5;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="92" rx="25" ry="5" fill="#333" opacity="0.2"/>
+                    <!-- Wheels -->
+                    <circle cx="42" cy="88" r="6" fill="#37474f" stroke="#263238" stroke-width="2"/>
+                    <circle cx="42" cy="88" r="3" fill="#546e7a"/>
+                    <circle cx="58" cy="88" r="6" fill="#37474f" stroke="#263238" stroke-width="2"/>
+                    <circle cx="58" cy="88" r="3" fill="#546e7a"/>
+                    <!-- Body (rectangular) -->
+                    <rect x="32" y="52" width="36" height="32" rx="4" fill="url(#robot-kid-body)" stroke="#1976d2" stroke-width="2.5"/>
+                    <!-- Control panel -->
+                    <rect x="40" y="60" width="20" height="15" rx="2" fill="#263238" opacity="0.3"/>
+                    <circle cx="46" cy="68" r="2" fill="#76ff03"/>
+                    <circle cx="54" cy="68" r="2" fill="#ffeb3b"/>
+                    <!-- Head (monitor style) -->
+                    <rect x="38" y="24" width="24" height="24" rx="3" fill="url(#robot-kid-body)" stroke="#1976d2" stroke-width="2.5"/>
+                    <!-- Antenna with spring -->
+                    <path d="M 50 24 L 50 22 Q 48 20 50 18 Q 52 20 50 16" stroke="#1976d2" stroke-width="1.5" fill="none"/>
+                    <circle cx="50" cy="14" r="2.5" fill="#ff9800"/>
+                    <!-- Eyes (digital displays) -->
+                    <g class="tm-mascot-eye-open">
+                        <rect x="42" y="32" width="5" height="6" rx="1" fill="#4fc3f7"/>
+                        <rect x="53" y="32" width="5" height="6" rx="1" fill="#4fc3f7"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <line x1="42" y1="35" x2="47" y2="35" stroke="#1976d2" stroke-width="2"/>
+                        <line x1="53" y1="35" x2="58" y2="35" stroke="#1976d2" stroke-width="2"/>
+                    </g>
+                    <!-- Mouth (LED smile) -->
+                    <path class="tm-mascot-mouth-happy" d="M 43 42 L 47 44 L 53 44 L 57 42" stroke="#4fc3f7" stroke-width="2" fill="none"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 44 L 47 42 L 53 42 L 57 44" stroke="#ff5722" stroke-width="2" fill="none"/>
+                    <!-- Arms (articulated) -->
+                    <rect x="26" y="56" width="6" height="16" rx="2" fill="url(#robot-kid-body)" stroke="#1976d2" stroke-width="2"/>
+                    <circle cx="29" cy="72" r="3" fill="#546e7a"/>
+                    <rect x="68" y="56" width="6" height="16" rx="2" fill="url(#robot-kid-body)" stroke="#1976d2" stroke-width="2"/>
+                    <circle cx="71" cy="72" r="3" fill="#546e7a"/>
+                </g>
+
+                <!-- ROBOT TEEN - Sleek teen bot with gadgets -->
+                <g id="tm-mascot-evo2-robot" style="display: none;">
+                    <defs>
+                        <linearGradient id="robot-teen-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#64b5f6;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1976d2;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="26" ry="4" fill="#333" opacity="0.25"/>
+                    <!-- Legs (streamlined) -->
+                    <rect x="39" y="76" width="8" height="18" rx="2" fill="url(#robot-teen-body)" stroke="#0d47a1" stroke-width="2"/>
+                    <rect x="53" y="76" width="8" height="18" rx="2" fill="url(#robot-teen-body)" stroke="#0d47a1" stroke-width="2"/>
+                    <rect x="40" y="90" width="6" height="4" rx="1" fill="#37474f"/>
+                    <rect x="54" y="90" width="6" height="4" rx="1" fill="#37474f"/>
+                    <!-- Torso (armored) -->
+                    <rect x="34" y="48" width="32" height="28" rx="4" fill="url(#robot-teen-body)" stroke="#0d47a1" stroke-width="2.5"/>
+                    <!-- Chest core (glowing) -->
+                    <circle cx="50" cy="62" r="6" fill="#4fc3f7" opacity="0.6" filter="url(#glow)"/>
+                    <circle cx="50" cy="62" r="3" fill="#00e5ff"/>
+                    <!-- Tech patterns -->
+                    <path d="M 40 54 L 44 58 L 40 62" stroke="#00e5ff" stroke-width="1" fill="none" opacity="0.5"/>
+                    <path d="M 60 54 L 56 58 L 60 62" stroke="#00e5ff" stroke-width="1" fill="none" opacity="0.5"/>
+                    <!-- Head (visor style) -->
+                    <rect x="37" y="22" width="26" height="22" rx="4" fill="url(#robot-teen-body)" stroke="#0d47a1" stroke-width="2.5"/>
+                    <!-- Visor (one piece) -->
+                    <rect x="40" y="28" width="20" height="10" rx="2" fill="#00e5ff" opacity="0.8"/>
+                    <!-- Eyes visible through visor -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="45" cy="33" rx="3" ry="2" fill="#fff"/>
+                        <ellipse cx="55" cy="33" rx="3" ry="2" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <line x1="42" y1="33" x2="48" y2="33" stroke="#1976d2" stroke-width="2"/>
+                        <line x1="52" y1="33" x2="58" y2="33" stroke="#1976d2" stroke-width="2"/>
+                    </g>
+                    <!-- Communication speaker -->
+                    <rect x="42" y="38" width="16" height="3" rx="1" fill="#263238" opacity="0.4"/>
+                    <!-- Arms (robotic joints) -->
+                    <rect x="28" y="50" width="6" height="18" rx="2" fill="url(#robot-teen-body)" stroke="#0d47a1" stroke-width="2"/>
+                    <circle cx="31" cy="60" r="2" fill="#37474f"/>
+                    <circle cx="31" cy="68" r="3" fill="#546e7a"/>
+                    <rect x="66" y="50" width="6" height="18" rx="2" fill="url(#robot-teen-body)" stroke="#0d47a1" stroke-width="2"/>
+                    <circle cx="69" cy="60" r="2" fill="#37474f"/>
+                    <circle cx="69" cy="68" r="3" fill="#546e7a"/>
+                </g>
+
+                <!-- ROBOT ADULT - Advanced humanoid robot -->
+                <g id="tm-mascot-evo3-robot" style="display: none;">
+                    <defs>
+                        <linearGradient id="robot-adult-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#2196f3;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#0d47a1;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="robot-core-glow">
+                            <stop offset="0%" style="stop-color:#00e5ff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#00b0ff;stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="96" rx="28" ry="4" fill="#333" opacity="0.3"/>
+                    <!-- Legs (powerful) -->
+                    <rect x="38" y="72" width="9" height="24" rx="3" fill="url(#robot-adult-body)" stroke="#01579b" stroke-width="2.5"/>
+                    <rect x="53" y="72" width="9" height="24" rx="3" fill="url(#robot-adult-body)" stroke="#01579b" stroke-width="2.5"/>
+                    <!-- Knee joints -->
+                    <circle cx="42.5" cy="84" r="3" fill="#37474f" stroke="#263238" stroke-width="1"/>
+                    <circle cx="57.5" cy="84" r="3" fill="#37474f" stroke="#263238" stroke-width="1"/>
+                    <!-- Boots (heavy) -->
+                    <rect x="36" y="92" width="13" height="4" rx="1" fill="#263238"/>
+                    <rect x="51" y="92" width="13" height="4" rx="1" fill="#263238"/>
+                    <!-- Torso (armored hero) -->
+                    <rect x="32" y="44" width="36" height="28" rx="4" fill="url(#robot-adult-body)" stroke="#01579b" stroke-width="3"/>
+                    <!-- Power core (glowing center) -->
+                    <circle cx="50" cy="58" r="10" fill="url(#robot-core-glow)" opacity="0.6"/>
+                    <circle cx="50" cy="58" r="6" fill="#00e5ff" filter="url(#strong-glow)"/>
+                    <circle cx="50" cy="58" r="3" fill="#fff" opacity="0.8"/>
+                    <!-- Armor plates -->
+                    <path d="M 36 48 L 40 52 L 36 56" stroke="#00e5ff" stroke-width="1.5" fill="none" opacity="0.6"/>
+                    <path d="M 64 48 L 60 52 L 64 56" stroke="#00e5ff" stroke-width="1.5" fill="none" opacity="0.6"/>
+                    <rect x="40" y="64" width="20" height="2" fill="#37474f" opacity="0.3"/>
+                    <rect x="40" y="68" width="20" height="2" fill="#37474f" opacity="0.3"/>
+                    <!-- Head (heroic helmet) -->
+                    <rect x="38" y="18" width="24" height="24" rx="4" fill="url(#robot-adult-body)" stroke="#01579b" stroke-width="3"/>
+                    <!-- Helmet crest -->
+                    <path d="M 44 18 L 50 14 L 56 18" stroke="#00e5ff" stroke-width="2" fill="none"/>
+                    <!-- Visor (advanced) -->
+                    <path d="M 40 26 L 60 26 L 58 34 L 42 34 Z" fill="#00e5ff" opacity="0.9"/>
+                    <!-- Eyes through visor -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="45" cy="30" rx="3" ry="2.5" fill="#fff" opacity="0.9"/>
+                        <ellipse cx="45" cy="31" rx="1.5" ry="1.5" fill="#01579b"/>
+                        <ellipse cx="55" cy="30" rx="3" ry="2.5" fill="#fff" opacity="0.9"/>
+                        <ellipse cx="55" cy="31" rx="1.5" ry="1.5" fill="#01579b"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <line x1="42" y1="30" x2="48" y2="30" stroke="#01579b" stroke-width="2.5"/>
+                        <line x1="52" y1="30" x2="58" y2="30" stroke="#01579b" stroke-width="2.5"/>
+                    </g>
+                    <!-- Mouth grille -->
+                    <rect x="44" y="36" width="12" height="4" rx="1" fill="#263238" opacity="0.5"/>
+                    <line x1="45" y1="36" x2="45" y2="40" stroke="#00e5ff" stroke-width="0.5" opacity="0.3"/>
+                    <line x1="48" y1="36" x2="48" y2="40" stroke="#00e5ff" stroke-width="0.5" opacity="0.3"/>
+                    <line x1="52" y1="36" x2="52" y2="40" stroke="#00e5ff" stroke-width="0.5" opacity="0.3"/>
+                    <line x1="55" y1="36" x2="55" y2="40" stroke="#00e5ff" stroke-width="0.5" opacity="0.3"/>
+                    <!-- Arms (powerful joints) -->
+                    <rect x="24" y="46" width="8" height="20" rx="3" fill="url(#robot-adult-body)" stroke="#01579b" stroke-width="2.5"/>
+                    <circle cx="28" cy="56" r="3" fill="#37474f" stroke="#263238" stroke-width="1"/>
+                    <circle cx="28" cy="66" r="4" fill="#546e7a"/>
+                    <rect x="68" y="46" width="8" height="20" rx="3" fill="url(#robot-adult-body)" stroke="#01579b" stroke-width="2.5"/>
+                    <circle cx="72" cy="56" r="3" fill="#37474f" stroke="#263238" stroke-width="1"/>
+                    <circle cx="72" cy="66" r="4" fill="#546e7a"/>
+                </g>
+
+                <!-- ROBOT MIDDLE AGE - Experienced engineer bot -->
+                <g id="tm-mascot-evo4-robot" style="display: none;">
+                    <defs>
+                        <linearGradient id="robot-middle-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#1e88e5;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#0d47a1;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="96" rx="28" ry="4" fill="#333" opacity="0.3"/>
+                    <!-- Legs (sturdy) -->
+                    <rect x="38" y="72" width="9" height="24" rx="3" fill="url(#robot-middle-body)" stroke="#01579b" stroke-width="2.5"/>
+                    <rect x="53" y="72" width="9" height="24" rx="3" fill="url(#robot-middle-body)" stroke="#01579b" stroke-width="2.5"/>
+                    <circle cx="42.5" cy="84" r="3" fill="#37474f"/>
+                    <circle cx="57.5" cy="84" r="3" fill="#37474f"/>
+                    <rect x="36" y="92" width="13" height="4" rx="1" fill="#263238"/>
+                    <rect x="51" y="92" width="13" height="4" rx="1" fill="#263238"/>
+                    <!-- Torso (tool belt) -->
+                    <rect x="32" y="44" width="36" height="28" rx="4" fill="url(#robot-middle-body)" stroke="#01579b" stroke-width="3"/>
+                    <!-- Power core (dimmer, stable) -->
+                    <circle cx="50" cy="58" r="6" fill="#42a5f5" opacity="0.8"/>
+                    <circle cx="50" cy="58" r="3" fill="#90caf9"/>
+                    <!-- Tool belt -->
+                    <rect x="34" y="68" width="32" height="4" fill="#795548"/>
+                    <rect x="40" y="69" width="3" height="2" fill="#ff9800"/>
+                    <rect x="48" y="69" width="4" height="2" fill="#37474f"/>
+                    <rect x="57" y="69" width="3" height="2" fill="#4caf50"/>
+                    <!-- Maintenance panel -->
+                    <rect x="38" y="50" width="24" height="14" rx="2" fill="#263238" opacity="0.3"/>
+                    <circle cx="44" cy="57" r="1.5" fill="#76ff03"/>
+                    <circle cx="50" cy="57" r="1.5" fill="#ffeb3b"/>
+                    <circle cx="56" cy="57" r="1.5" fill="#ff5722"/>
+                    <!-- Head (engineer helmet) -->
+                    <rect x="38" y="18" width="24" height="24" rx="4" fill="url(#robot-middle-body)" stroke="#01579b" stroke-width="3"/>
+                    <!-- Headlamp -->
+                    <circle cx="50" cy="18" r="3" fill="#ffeb3b" opacity="0.8"/>
+                    <circle cx="50" cy="18" r="1.5" fill="#fff"/>
+                    <!-- Visor (engineer goggles style) -->
+                    <ellipse cx="45" cy="28" rx="5" ry="4" fill="#263238" opacity="0.6" stroke="#01579b" stroke-width="1.5"/>
+                    <ellipse cx="55" cy="28" rx="5" ry="4" fill="#263238" opacity="0.6" stroke="#01579b" stroke-width="1.5"/>
+                    <!-- Eyes -->
+                    <g class="tm-mascot-eye-open">
+                        <circle cx="45" cy="28" r="2.5" fill="#4fc3f7"/>
+                        <circle cx="55" cy="28" r="2.5" fill="#4fc3f7"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <line x1="42" y1="28" x2="48" y2="28" stroke="#01579b" stroke-width="2"/>
+                        <line x1="52" y1="28" x2="58" y2="28" stroke="#01579b" stroke-width="2"/>
+                    </g>
+                    <!-- Mouth (speaker grille) -->
+                    <rect x="44" y="34" width="12" height="4" rx="1" fill="#263238" opacity="0.5"/>
+                    <!-- Arms (tool arms) -->
+                    <rect x="24" y="46" width="8" height="20" rx="3" fill="url(#robot-middle-body)" stroke="#01579b" stroke-width="2.5"/>
+                    <circle cx="28" cy="56" r="3" fill="#37474f"/>
+                    <circle cx="28" cy="66" r="4" fill="#546e7a"/>
+                    <rect x="68" y="46" width="8" height="20" rx="3" fill="url(#robot-middle-body)" stroke="#01579b" stroke-width="2.5"/>
+                    <circle cx="72" cy="56" r="3" fill="#37474f"/>
+                    <circle cx="72" cy="66" r="4" fill="#546e7a"/>
+                    <!-- Wrench in hand -->
+                    <rect x="22" y="64" width="3" height="8" fill="#9e9e9e"/>
+                    <path d="M 20 64 L 24 60 L 26 62 L 22 66 Z" fill="#9e9e9e"/>
+                </g>
+
+                <!-- ROBOT OLD - Ancient wise bot -->
+                <g id="tm-mascot-evo5-robot" style="display: none;">
+                    <defs>
+                        <linearGradient id="robot-old-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#78909c;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="96" rx="28" ry="4" fill="#333" opacity="0.3"/>
+                    <!-- Walking staff/cane (robotic) -->
+                    <line x1="70" y1="72" x2="72" y2="94" stroke="#78909c" stroke-width="3"/>
+                    <circle cx="70" cy="70" r="3" fill="#90a4ae"/>
+                    <!-- Legs (worn, slower) -->
+                    <rect x="38" y="72" width="9" height="24" rx="3" fill="url(#robot-old-body)" stroke="#37474f" stroke-width="2.5"/>
+                    <rect x="53" y="72" width="9" height="24" rx="3" fill="url(#robot-old-body)" stroke="#37474f" stroke-width="2.5"/>
+                    <!-- Rust/wear marks -->
+                    <circle cx="42" cy="78" r="1.5" fill="#8d6e63" opacity="0.4"/>
+                    <circle cx="56" cy="80" r="1.2" fill="#8d6e63" opacity="0.4"/>
+                    <circle cx="42.5" cy="84" r="3" fill="#37474f"/>
+                    <circle cx="57.5" cy="84" r="3" fill="#37474f"/>
+                    <rect x="36" y="92" width="13" height="4" rx="1" fill="#263238"/>
+                    <rect x="51" y="92" width="13" height="4" rx="1" fill="#263238"/>
+                    <!-- Torso (aged, patched) -->
+                    <rect x="32" y="44" width="36" height="28" rx="4" fill="url(#robot-old-body)" stroke="#37474f" stroke-width="3"/>
+                    <!-- Power core (flickering) -->
+                    <circle cx="50" cy="58" r="6" fill="#607d8b" opacity="0.6"/>
+                    <circle cx="50" cy="58" r="3" fill="#90a4ae" opacity="0.5"/>
+                    <!-- Wear patches -->
+                    <rect x="38" y="48" width="6" height="4" fill="#8d6e63" opacity="0.3" rx="1"/>
+                    <rect x="56" y="52" width="5" height="3" fill="#8d6e63" opacity="0.3" rx="1"/>
+                    <circle cx="44" cy="65" r="2" fill="#8d6e63" opacity="0.3"/>
+                    <!-- Serial number plate (old) -->
+                    <rect x="40" y="64" width="20" height="4" rx="1" fill="#263238" opacity="0.4"/>
+                    <text x="44" y="67" font-family="monospace" font-size="3" fill="#90a4ae" opacity="0.6">UNIT-001</text>
+                    <!-- Head (ancient design) -->
+                    <rect x="38" y="18" width="24" height="24" rx="4" fill="url(#robot-old-body)" stroke="#37474f" stroke-width="3"/>
+                    <!-- Antenna (bent) -->
+                    <path d="M 50 18 Q 54 12 52 8" stroke="#607d8b" stroke-width="1.5" fill="none"/>
+                    <circle cx="52" cy="6" r="1.5" fill="#8d6e63"/>
+                    <!-- Visor (cracked/old) -->
+                    <rect x="40" y="24" width="20" height="12" rx="2" fill="#263238" opacity="0.6"/>
+                    <path d="M 42 26 L 58 34" stroke="#78909c" stroke-width="0.5" opacity="0.3"/>
+                    <!-- Eyes (dimmer) -->
+                    <g class="tm-mascot-eye-open">
+                        <circle cx="45" cy="30" r="2.5" fill="#607d8b" opacity="0.7"/>
+                        <circle cx="55" cy="30" r="2.5" fill="#607d8b" opacity="0.7"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <line x1="42" y1="30" x2="48" y2="30" stroke="#37474f" stroke-width="2"/>
+                        <line x1="52" y1="30" x2="58" y2="30" stroke="#37474f" stroke-width="2"/>
+                    </g>
+                    <!-- Mouth (static) -->
+                    <rect x="44" y="36" width="12" height="3" rx="1" fill="#263238" opacity="0.4"/>
+                    <!-- Arms (slower joints) -->
+                    <rect x="24" y="46" width="8" height="20" rx="3" fill="url(#robot-old-body)" stroke="#37474f" stroke-width="2.5"/>
+                    <circle cx="28" cy="56" r="3" fill="#37474f"/>
+                    <circle cx="28" cy="66" r="4" fill="#546e7a"/>
+                    <rect x="68" y="46" width="8" height="20" rx="3" fill="url(#robot-old-body)" stroke="#37474f" stroke-width="2.5"/>
+                    <circle cx="72" cy="56" r="3" fill="#37474f"/>
+                    <circle cx="72" cy="66" r="4" fill="#546e7a"/>
+                    <!-- Data port (unused) -->
+                    <rect x="58" y="48" width="4" height="2" fill="#455a64" opacity="0.5"/>
+                </g>
+
+                <!-- ═══════════════════════════════════════ -->
+                <!-- SLIME CHARACTER - All Life Stages -->
+                <!-- Liquid & Bounce • Rare Rarity -->
+                <!-- ═══════════════════════════════════════ -->
+                
+                <!-- SLIME BABY - Tiny bouncy blob -->
+                <g id="tm-mascot-baby-slime" style="display: none;">
+                    <defs>
+                        <radialGradient id="slime-baby-body">
+                            <stop offset="0%" style="stop-color:#e0f8e0;stop-opacity:0.9" />
+                            <stop offset="70%" style="stop-color:#a5d6a7;stop-opacity:0.95" />
+                            <stop offset="100%" style="stop-color:#81c784;stop-opacity:1" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="84" rx="24" ry="6" fill="#333" opacity="0.15"/>
+                    <!-- Main slime blob (wobbly) -->
+                    <ellipse cx="50" cy="58" rx="22" ry="24" fill="url(#slime-baby-body)" opacity="0.9"/>
+                    <!-- Glossy highlight -->
+                    <ellipse cx="42" cy="48" rx="10" ry="12" fill="#fff" opacity="0.5"/>
+                    <ellipse cx="54" cy="52" rx="6" ry="8" fill="#fff" opacity="0.3"/>
+                    <!-- Inner goo -->
+                    <ellipse cx="50" cy="60" rx="14" ry="16" fill="#81c784" opacity="0.4"/>
+                    <!-- Cute big eyes -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="43" cy="54" rx="5" ry="6" fill="#fff" stroke="#66bb6a" stroke-width="1.5"/>
+                        <ellipse cx="43" cy="56" rx="3" ry="4" fill="#2e7d32"/>
+                        <circle cx="44" cy="54" r="1.5" fill="#fff" opacity="0.9"/>
+                        <ellipse cx="57" cy="54" rx="5" ry="6" fill="#fff" stroke="#66bb6a" stroke-width="1.5"/>
+                        <ellipse cx="57" cy="56" rx="3" ry="4" fill="#2e7d32"/>
+                        <circle cx="58" cy="54" r="1.5" fill="#fff" opacity="0.9"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 38 54 Q 43 52 48 54" stroke="#66bb6a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 54 Q 57 52 62 54" stroke="#66bb6a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth (simple) -->
+                    <path class="tm-mascot-mouth-happy" d="M 42 64 Q 50 68 58 64" stroke="#66bb6a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 66 Q 50 62 58 66" stroke="#66bb6a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <!-- Bouncy bottom -->
+                    <ellipse cx="50" cy="78" rx="20" ry="8" fill="url(#slime-baby-body)" opacity="0.7"/>
+                </g>
+
+                <!-- SLIME KID - Growing slime blob -->
+                <g id="tm-mascot-evo1-slime" style="display: none;">
+                    <defs>
+                        <radialGradient id="slime-kid-body">
+                            <stop offset="0%" style="stop-color:#d4f1d4;stop-opacity:0.9" />
+                            <stop offset="70%" style="stop-color:#81c784;stop-opacity:0.95" />
+                            <stop offset="100%" style="stop-color:#66bb6a;stop-opacity:1" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="88" rx="26" ry="6" fill="#333" opacity="0.2"/>
+                    <!-- Main blob -->
+                    <path d="M 28 62 Q 28 38 38 32 Q 50 26 62 32 Q 72 38 72 62 Q 68 78 58 84 Q 50 88 42 84 Q 32 78 28 62 Z" 
+                          fill="url(#slime-kid-body)" opacity="0.95"/>
+                    <!-- Glossy highlights -->
+                    <ellipse cx="40" cy="44" rx="12" ry="14" fill="#fff" opacity="0.5"/>
+                    <ellipse cx="58" cy="48" rx="8" ry="10" fill="#fff" opacity="0.3"/>
+                    <!-- Gooey interior -->
+                    <ellipse cx="50" cy="58" rx="16" ry="18" fill="#66bb6a" opacity="0.4"/>
+                    <circle cx="45" cy="54" r="2" fill="#81c784" opacity="0.6"/>
+                    <circle cx="54" cy="60" r="1.5" fill="#81c784" opacity="0.6"/>
+                    <!-- Eyes -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="52" rx="5.5" ry="7" fill="#fff" stroke="#4caf50" stroke-width="1.5"/>
+                        <ellipse cx="42" cy="54" rx="3.5" ry="4.5" fill="#1b5e20"/>
+                        <circle cx="43.5" cy="52" r="1.5" fill="#fff" opacity="0.9"/>
+                        <ellipse cx="58" cy="52" rx="5.5" ry="7" fill="#fff" stroke="#4caf50" stroke-width="1.5"/>
+                        <ellipse cx="58" cy="54" rx="3.5" ry="4.5" fill="#1b5e20"/>
+                        <circle cx="59.5" cy="52" r="1.5" fill="#fff" opacity="0.9"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 36 52 Q 42 50 48 52" stroke="#4caf50" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 52 Q 58 50 64 52" stroke="#4caf50" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 40 64 Q 50 70 60 64" stroke="#4caf50" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 40 66 Q 50 60 60 66" stroke="#4caf50" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <!-- Drip effects -->
+                    <ellipse cx="36" cy="76" rx="4" ry="6" fill="url(#slime-kid-body)" opacity="0.8"/>
+                    <ellipse cx="64" cy="78" rx="3.5" ry="5" fill="url(#slime-kid-body)" opacity="0.8"/>
+                </g>
+
+                <!-- SLIME TEEN - Shapeshifting slime -->
+                <g id="tm-mascot-evo2-slime" style="display: none;">
+                    <defs>
+                        <radialGradient id="slime-teen-body">
+                            <stop offset="0%" style="stop-color:#c8e6c9;stop-opacity:0.95" />
+                            <stop offset="70%" style="stop-color:#66bb6a;stop-opacity:0.98" />
+                            <stop offset="100%" style="stop-color:#4caf50;stop-opacity:1" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="92" rx="28" ry="5" fill="#333" opacity="0.25"/>
+                    <!-- Main blob (more defined shape) -->
+                    <path d="M 26 64 Q 26 42 34 34 Q 44 28 50 26 Q 56 28 66 34 Q 74 42 74 64 Q 72 80 64 86 Q 50 94 36 86 Q 28 80 26 64 Z" 
+                          fill="url(#slime-teen-body)"/>
+                    <!-- Glossy highlights -->
+                    <ellipse cx="38" cy="46" rx="14" ry="16" fill="#fff" opacity="0.5"/>
+                    <ellipse cx="58" cy="50" rx="10" ry="12" fill="#fff" opacity="0.35"/>
+                    <!-- Shape-shift tendrils (emerging) -->
+                    <path d="M 30 56 Q 24 58 20 54" stroke="#66bb6a" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8"/>
+                    <circle cx="18" cy="52" r="3" fill="#66bb6a" opacity="0.8"/>
+                    <path d="M 70 58 Q 76 60 80 56" stroke="#66bb6a" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8"/>
+                    <circle cx="82" cy="54" r="3" fill="#66bb6a" opacity="0.8"/>
+                    <!-- Interior goo (more complex) -->
+                    <ellipse cx="50" cy="60" rx="18" ry="20" fill="#4caf50" opacity="0.4"/>
+                    <circle cx="44" cy="56" r="2.5" fill="#66bb6a" opacity="0.7"/>
+                    <circle cx="54" cy="62" r="2" fill="#66bb6a" opacity="0.7"/>
+                    <circle cx="50" cy="72" r="1.8" fill="#66bb6a" opacity="0.6"/>
+                    <!-- Eyes (more expressive) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="52" rx="6" ry="8" fill="#fff" stroke="#388e3c" stroke-width="2"/>
+                        <ellipse cx="42" cy="54" rx="4" ry="5" fill="#1b5e20"/>
+                        <circle cx="44" cy="52" r="1.8" fill="#fff" opacity="0.9"/>
+                        <ellipse cx="58" cy="52" rx="6" ry="8" fill="#fff" stroke="#388e3c" stroke-width="2"/>
+                        <ellipse cx="58" cy="54" rx="4" ry="5" fill="#1b5e20"/>
+                        <circle cx="60" cy="52" r="1.8" fill="#fff" opacity="0.9"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 36 52 Q 42 50 48 52" stroke="#388e3c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 52 Q 58 50 64 52" stroke="#388e3c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 38 66 Q 50 72 62 66" stroke="#388e3c" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 38 68 Q 50 62 62 68" stroke="#388e3c" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    <!-- Drips -->
+                    <ellipse cx="34" cy="82" rx="4" ry="8" fill="url(#slime-teen-body)" opacity="0.9"/>
+                    <ellipse cx="50" cy="88" rx="5" ry="6" fill="url(#slime-teen-body)" opacity="0.9"/>
+                    <ellipse cx="66" cy="84" rx="3.5" ry="7" fill="url(#slime-teen-body)" opacity="0.9"/>
+                </g>
+
+                <!-- SLIME ADULT - Mastered shapeshifter -->
+                <g id="tm-mascot-evo3-slime" style="display: none;">
+                    <defs>
+                        <radialGradient id="slime-adult-body">
+                            <stop offset="0%" style="stop-color:#aed581;stop-opacity:0.98" />
+                            <stop offset="70%" style="stop-color:#4caf50;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#388e3c;stop-opacity:1" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="30" ry="4" fill="#333" opacity="0.3"/>
+                    <!-- Main humanoid-ish blob form -->
+                    <ellipse cx="50" cy="66" rx="22" ry="28" fill="url(#slime-adult-body)"/>
+                    <!-- Arms (formed tendrils) -->
+                    <ellipse cx="30" cy="58" rx="6" ry="16" fill="url(#slime-adult-body)" transform="rotate(-15 30 58)"/>
+                    <ellipse cx="28" cy="72" rx="4" ry="6" fill="url(#slime-adult-body)"/>
+                    <ellipse cx="70" cy="58" rx="6" ry="16" fill="url(#slime-adult-body)" transform="rotate(15 70 58)"/>
+                    <ellipse cx="72" cy="72" rx="4" ry="6" fill="url(#slime-adult-body)"/>
+                    <!-- Legs (blob columns) -->
+                    <ellipse cx="42" cy="86" rx="6" ry="10" fill="url(#slime-adult-body)"/>
+                    <ellipse cx="58" cy="86" rx="6" ry="10" fill="url(#slime-adult-body)"/>
+                    <!-- Glossy highlights -->
+                    <ellipse cx="40" cy="52" rx="12" ry="16" fill="#fff" opacity="0.5"/>
+                    <ellipse cx="58" cy="56" rx="9" ry="12" fill="#fff" opacity="0.35"/>
+                    <!-- Core (visible) -->
+                    <circle cx="50" cy="66" r="8" fill="#66bb6a" opacity="0.6" filter="url(#glow)"/>
+                    <circle cx="50" cy="66" r="4" fill="#81c784"/>
+                    <!-- Head area -->
+                    <ellipse cx="50" cy="46" rx="16" ry="18" fill="url(#slime-adult-body)" opacity="0.95"/>
+                    <!-- Eyes (confident) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="43" cy="46" rx="5" ry="7" fill="#fff" stroke="#2e7d32" stroke-width="2"/>
+                        <ellipse cx="43" cy="48" rx="3.5" ry="4.5" fill="#1b5e20"/>
+                        <circle cx="44.5" cy="46" r="1.5" fill="#fff"/>
+                        <ellipse cx="57" cy="46" rx="5" ry="7" fill="#fff" stroke="#2e7d32" stroke-width="2"/>
+                        <ellipse cx="57" cy="48" rx="3.5" ry="4.5" fill="#1b5e20"/>
+                        <circle cx="58.5" cy="46" r="1.5" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 38 46 Q 43 44 48 46" stroke="#2e7d32" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 46 Q 57 44 62 46" stroke="#2e7d32" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 40 54 Q 50 60 60 54" stroke="#2e7d32" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 40 56 Q 50 50 60 56" stroke="#2e7d32" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                </g>
+
+                <!-- SLIME MIDDLE AGE - Stable slime form -->
+                <g id="tm-mascot-evo4-slime" style="display: none;">
+                    <defs>
+                        <radialGradient id="slime-middle-body">
+                            <stop offset="0%" style="stop-color:#9ccc65;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#43a047;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#2e7d32;stop-opacity:1" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="28" ry="4" fill="#333" opacity="0.3"/>
+                    <!-- Main body (more solid, less wobbly) -->
+                    <ellipse cx="50" cy="68" rx="20" ry="26" fill="url(#slime-middle-body)"/>
+                    <!-- Arms -->
+                    <ellipse cx="32" cy="60" rx="5" ry="14" fill="url(#slime-middle-body)" transform="rotate(-10 32 60)"/>
+                    <ellipse cx="30" cy="72" rx="4" ry="5" fill="url(#slime-middle-body)"/>
+                    <ellipse cx="68" cy="60" rx="5" ry="14" fill="url(#slime-middle-body)" transform="rotate(10 68 60)"/>
+                    <ellipse cx="70" cy="72" rx="4" ry="5" fill="url(#slime-middle-body)"/>
+                    <!-- Legs -->
+                    <ellipse cx="42" cy="88" rx="6" ry="10" fill="url(#slime-middle-body)"/>
+                    <ellipse cx="58" cy="88" rx="6" ry="10" fill="url(#slime-middle-body)"/>
+                    <!-- Glossy highlights (less bright) -->
+                    <ellipse cx="42" cy="56" rx="10" ry="14" fill="#fff" opacity="0.4"/>
+                    <ellipse cx="56" cy="60" rx="7" ry="10" fill="#fff" opacity="0.3"/>
+                    <!-- Core (darker) -->
+                    <circle cx="50" cy="68" r="6" fill="#558b2f" opacity="0.6"/>
+                    <!-- Head -->
+                    <ellipse cx="50" cy="48" rx="15" ry="17" fill="url(#slime-middle-body)"/>
+                    <!-- Eyes (wise) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="43" cy="48" rx="4.5" ry="6" fill="#fff" stroke="#1b5e20" stroke-width="1.5"/>
+                        <ellipse cx="43" cy="50" rx="3" ry="4" fill="#1b5e20"/>
+                        <circle cx="44" cy="48" r="1.2" fill="#fff"/>
+                        <ellipse cx="57" cy="48" rx="4.5" ry="6" fill="#fff" stroke="#1b5e20" stroke-width="1.5"/>
+                        <ellipse cx="57" cy="50" rx="3" ry="4" fill="#1b5e20"/>
+                        <circle cx="58" cy="48" r="1.2" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 38 48 Q 43 46 48 48" stroke="#1b5e20" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 48 Q 57 46 62 48" stroke="#1b5e20" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth (content) -->
+                    <path class="tm-mascot-mouth-happy" d="M 42 56 Q 50 60 58 56" stroke="#1b5e20" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 58 Q 50 54 58 58" stroke="#1b5e20" stroke-width="2" fill="none" stroke-linecap="round"/>
+                </g>
+
+                <!-- SLIME OLD - Ancient primordial ooze -->
+                <g id="tm-mascot-evo5-slime" style="display: none;">
+                    <defs>
+                        <radialGradient id="slime-old-body">
+                            <stop offset="0%" style="stop-color:#7cb342;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#33691e;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1b5e20;stop-opacity:1" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Shadow (larger) -->
+                    <ellipse cx="50" cy="92" rx="32" ry="5" fill="#333" opacity="0.35"/>
+                    <!-- Main body (spreading, ancient) -->
+                    <ellipse cx="50" cy="70" rx="28" ry="24" fill="url(#slime-old-body)" opacity="0.95"/>
+                    <!-- Ancient tendrils -->
+                    <path d="M 24 64 Q 18 66 14 62 Q 12 58 14 54" stroke="#33691e" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.8"/>
+                    <circle cx="12" cy="52" r="4" fill="#33691e" opacity="0.8"/>
+                    <path d="M 76 66 Q 82 68 86 64 Q 88 60 86 56" stroke="#33691e" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.8"/>
+                    <circle cx="88" cy="54" r="4" fill="#33691e" opacity="0.8"/>
+                    <!-- Legs (thick, old) -->
+                    <ellipse cx="42" cy="88" rx="7" ry="8" fill="url(#slime-old-body)"/>
+                    <ellipse cx="58" cy="88" rx="7" ry="8" fill="url(#slime-old-body)"/>
+                    <!-- Ancient sediment layers -->
+                    <ellipse cx="50" cy="74" rx="22" ry="4" fill="#1b5e20" opacity="0.4"/>
+                    <ellipse cx="50" cy="78" rx="20" ry="3" fill="#1b5e20" opacity="0.3"/>
+                    <!-- Glossy (dimmer) -->
+                    <ellipse cx="42" cy="60" rx="10" ry="12" fill="#fff" opacity="0.25"/>
+                    <!-- Ancient core -->
+                    <circle cx="50" cy="70" r="8" fill="#1b5e20" opacity="0.7"/>
+                    <circle cx="50" cy="70" r="4" fill="#33691e" opacity="0.6"/>
+                    <!-- Head/face area -->
+                    <ellipse cx="50" cy="52" rx="18" ry="16" fill="url(#slime-old-body)" opacity="0.9"/>
+                    <!-- Eyes (ancient, knowing) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="52" rx="5" ry="6" fill="#558b2f" opacity="0.8"/>
+                        <ellipse cx="42" cy="53" rx="3" ry="3.5" fill="#1b5e20"/>
+                        <circle cx="43" cy="51" r="1" fill="#7cb342" opacity="0.6"/>
+                        <ellipse cx="58" cy="52" rx="5" ry="6" fill="#558b2f" opacity="0.8"/>
+                        <ellipse cx="58" cy="53" rx="3" ry="3.5" fill="#1b5e20"/>
+                        <circle cx="59" cy="51" r="1" fill="#7cb342" opacity="0.6"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 37 52 Q 42 50 47 52" stroke="#1b5e20" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 52 Q 58 50 63 52" stroke="#1b5e20" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth (wise, serene) -->
+                    <path class="tm-mascot-mouth-happy" d="M 40 60 Q 50 64 60 60" stroke="#1b5e20" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 40 62 Q 50 58 60 62" stroke="#1b5e20" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <!-- Primordial bubbles -->
+                    <circle cx="36" cy="66" r="2" fill="#558b2f" opacity="0.4"/>
+                    <circle cx="64" cy="68" r="1.5" fill="#558b2f" opacity="0.4"/>
+                    <circle cx="50" cy="80" r="2.5" fill="#558b2f" opacity="0.3"/>
+                </g>
+
+                <!-- ═══════════════════════════════════════ -->
+                <!-- PLANT CHARACTER - All Life Stages -->
+                <!-- Nature & Growth • Rare Rarity -->
+                <!-- ═══════════════════════════════════════ -->
+                
+                <!-- PLANT BABY - Tiny sprout -->
+                <g id="tm-mascot-baby-plant" style="display: none;">
+                    <defs>
+                        <linearGradient id="plant-baby-stem" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#a5d6a7;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#66bb6a;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="86" rx="20" ry="4" fill="#333" opacity="0.15"/>
+                    <!-- Soil/pot -->
+                    <ellipse cx="50" cy="82" rx="18" ry="6" fill="#8d6e63"/>
+                    <ellipse cx="50" cy="78" rx="16" ry="4" fill="#6d4c41"/>
+                    <!-- Simple stem -->
+                    <rect x="48" y="58" width="4" height="22" rx="2" fill="url(#plant-baby-stem)"/>
+                    <!-- Two leaves -->
+                    <ellipse cx="42" cy="66" rx="8" ry="6" fill="#81c784" transform="rotate(-30 42 66)"/>
+                    <path d="M 42 66 L 48 68" stroke="#66bb6a" stroke-width="1"/>
+                    <ellipse cx="58" cy="66" rx="8" ry="6" fill="#81c784" transform="rotate(30 58 66)"/>
+                    <path d="M 58 66 L 52 68" stroke="#66bb6a" stroke-width="1"/>
+                    <!-- Cute bulb head -->
+                    <circle cx="50" cy="52" r="14" fill="#c5e1a5"/>
+                    <circle cx="50" cy="52" r="11" fill="#aed581"/>
+                    <!-- Cute face -->
+                    <g class="tm-mascot-eye-open">
+                        <circle cx="44" cy="50" r="3" fill="#fff"/>
+                        <circle cx="44" cy="51" r="2" fill="#33691e"/>
+                        <circle cx="45" cy="50" r="0.8" fill="#fff"/>
+                        <circle cx="56" cy="50" r="3" fill="#fff"/>
+                        <circle cx="56" cy="51" r="2" fill="#33691e"/>
+                        <circle cx="57" cy="50" r="0.8" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 41 50 Q 44 48 47 50" stroke="#66bb6a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 50 Q 56 48 59 50" stroke="#66bb6a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 44 56 Q 50 60 56 56" stroke="#66bb6a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 58 Q 50 54 56 58" stroke="#66bb6a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <!-- Little petal on top -->
+                    <ellipse cx="50" cy="42" rx="4" ry="6" fill="#aed581"/>
+                </g>
+
+                <!-- PLANT KID - Growing sapling -->
+                <g id="tm-mascot-evo1-plant" style="display: none;">
+                    <defs>
+                        <linearGradient id="plant-kid-stem" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#9ccc65;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#7cb342;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="90" rx="22" ry="5" fill="#333" opacity="0.2"/>
+                    <!-- Roots visible -->
+                    <path d="M 48 88 Q 42 92 38 90" stroke="#8d6e63" stroke-width="2" fill="none"/>
+                    <path d="M 52 88 Q 58 92 62 90" stroke="#8d6e63" stroke-width="2" fill="none"/>
+                    <!-- Main stem (thicker) -->
+                    <rect x="46" y="50" width="8" height="40" rx="3" fill="url(#plant-kid-stem)"/>
+                    <!-- Multiple leaves -->
+                    <ellipse cx="38" cy="70" rx="10" ry="7" fill="#8bc34a" transform="rotate(-35 38 70)"/>
+                    <path d="M 38 70 L 46 72" stroke="#7cb342" stroke-width="1.5"/>
+                    <ellipse cx="62" cy="70" rx="10" ry="7" fill="#8bc34a" transform="rotate(35 62 70)"/>
+                    <path d="M 62 70 L 54 72" stroke="#7cb342" stroke-width="1.5"/>
+                    <ellipse cx="36" cy="58" rx="9" ry="6" fill="#8bc34a" transform="rotate(-40 36 58)"/>
+                    <path d="M 36 58 L 46 60" stroke="#7cb342" stroke-width="1.5"/>
+                    <ellipse cx="64" cy="58" rx="9" ry="6" fill="#8bc34a" transform="rotate(40 64 58)"/>
+                    <path d="M 64 58 L 54 60" stroke="#7cb342" stroke-width="1.5"/>
+                    <!-- Head (bulb blooming) -->
+                    <circle cx="50" cy="38" r="16" fill="#c5e1a5"/>
+                    <circle cx="50" cy="38" r="13" fill="#aed581"/>
+                    <!-- Starting to bloom -->
+                    <ellipse cx="38" cy="32" rx="6" ry="8" fill="#ffcc80" transform="rotate(-25 38 32)" opacity="0.8"/>
+                    <ellipse cx="62" cy="32" rx="6" ry="8" fill="#ffcc80" transform="rotate(25 62 32)" opacity="0.8"/>
+                    <!-- Face -->
+                    <g class="tm-mascot-eye-open">
+                        <circle cx="44" cy="36" r="3.5" fill="#fff"/>
+                        <circle cx="44" cy="37" r="2.2" fill="#2e7d32"/>
+                        <circle cx="45" cy="36" r="1" fill="#fff"/>
+                        <circle cx="56" cy="36" r="3.5" fill="#fff"/>
+                        <circle cx="56" cy="37" r="2.2" fill="#2e7d32"/>
+                        <circle cx="57" cy="36" r="1" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 40 36 Q 44 34 48 36" stroke="#7cb342" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 36 Q 56 34 60 36" stroke="#7cb342" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 42 44 Q 50 48 58 44" stroke="#7cb342" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 46 Q 50 42 58 46" stroke="#7cb342" stroke-width="2" fill="none" stroke-linecap="round"/>
+                </g>
+
+                <!-- PLANT TEEN - Flowering youth -->
+                <g id="tm-mascot-evo2-plant" style="display: none;">
+                    <defs>
+                        <linearGradient id="plant-teen-stem" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#8bc34a;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#689f38;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="24" ry="5" fill="#333" opacity="0.25"/>
+                    <!-- Root system -->
+                    <path d="M 46 92 Q 38 96 32 92" stroke="#8d6e63" stroke-width="2.5" fill="none"/>
+                    <path d="M 54 92 Q 62 96 68 92" stroke="#8d6e63" stroke-width="2.5" fill="none"/>
+                    <path d="M 50 92 Q 50 96 48 98" stroke="#8d6e63" stroke-width="2" fill="none"/>
+                    <!-- Main trunk -->
+                    <rect x="44" y="42" width="12" height="52" rx="4" fill="url(#plant-teen-stem)"/>
+                    <path d="M 48 50 L 48 88" stroke="#7cb342" stroke-width="1" opacity="0.4"/>
+                    <path d="M 52 50 L 52 88" stroke="#7cb342" stroke-width="1" opacity="0.4"/>
+                    <!-- Branch arms -->
+                    <path d="M 44 56 Q 36 58 32 56" stroke="#7cb342" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="28" cy="56" rx="6" ry="8" fill="#9ccc65"/>
+                    <path d="M 56 56 Q 64 58 68 56" stroke="#7cb342" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="72" cy="56" rx="6" ry="8" fill="#9ccc65"/>
+                    <!-- Leaves on branches -->
+                    <ellipse cx="36" cy="52" rx="8" ry="6" fill="#8bc34a" transform="rotate(-30 36 52)"/>
+                    <ellipse cx="64" cy="52" rx="8" ry="6" fill="#8bc34a" transform="rotate(30 64 52)"/>
+                    <ellipse cx="34" cy="62" rx="7" ry="5" fill="#8bc34a" transform="rotate(-40 34 62)"/>
+                    <ellipse cx="66" cy="62" rx="7" ry="5" fill="#8bc34a" transform="rotate(40 66 62)"/>
+                    <!-- Head (blooming flower) -->
+                    <circle cx="50" cy="32" r="16" fill="#aed581"/>
+                    <!-- Flower petals -->
+                    <ellipse cx="50" cy="20" rx="6" ry="10" fill="#ffb74d" opacity="0.9"/>
+                    <ellipse cx="38" cy="26" rx="8" ry="10" fill="#ffb74d" transform="rotate(-45 38 26)" opacity="0.9"/>
+                    <ellipse cx="62" cy="26" rx="8" ry="10" fill="#ffb74d" transform="rotate(45 62 26)" opacity="0.9"/>
+                    <ellipse cx="36" cy="38" rx="7" ry="9" fill="#ffb74d" transform="rotate(-65 36 38)" opacity="0.9"/>
+                    <ellipse cx="64" cy="38" rx="7" ry="9" fill="#ffb74d" transform="rotate(65 64 38)" opacity="0.9"/>
+                    <!-- Center face -->
+                    <circle cx="50" cy="32" r="10" fill="#ffeb3b"/>
+                    <!-- Face -->
+                    <g class="tm-mascot-eye-open">
+                        <circle cx="45" cy="30" r="2.5" fill="#f57c00"/>
+                        <circle cx="55" cy="30" r="2.5" fill="#f57c00"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <line x1="43" y1="30" x2="47" y2="30" stroke="#f57c00" stroke-width="2"/>
+                        <line x1="53" y1="30" x2="57" y2="30" stroke="#f57c00" stroke-width="2"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 45 36 Q 50 38 55 36" stroke="#f57c00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 36 Q 50 34 55 36" stroke="#f57c00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                </g>
+
+                <!-- PLANT ADULT - Mature tree guardian -->
+                <g id="tm-mascot-evo3-plant" style="display: none;">
+                    <defs>
+                        <linearGradient id="plant-adult-trunk" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#7cb342;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#558b2f;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="nature-aura">
+                            <stop offset="0%" style="stop-color:#c5e1a5;stop-opacity:0.4" />
+                            <stop offset="100%" style="stop-color:#8bc34a;stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Nature aura -->
+                    <ellipse cx="50" cy="60" rx="40" ry="45" fill="url(#nature-aura)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="96" rx="26" ry="4" fill="#333" opacity="0.3"/>
+                    <!-- Root system (strong) -->
+                    <path d="M 44 94 Q 34 98 28 94" stroke="#6d4c41" stroke-width="3" fill="none"/>
+                    <path d="M 56 94 Q 66 98 72 94" stroke="#6d4c41" stroke-width="3" fill="none"/>
+                    <path d="M 50 94 Q 48 98 46 100" stroke="#6d4c41" stroke-width="2.5" fill="none"/>
+                    <path d="M 50 94 Q 52 98 54 100" stroke="#6d4c41" stroke-width="2.5" fill="none"/>
+                    <!-- Main trunk (legs) -->
+                    <rect x="41" y="68" width="9" height="28" rx="3" fill="url(#plant-adult-trunk)"/>
+                    <rect x="50" y="68" width="9" height="28" rx="3" fill="url(#plant-adult-trunk)"/>
+                    <path d="M 44 70 L 44 92" stroke="#689f38" stroke-width="1" opacity="0.3"/>
+                    <path d="M 56 70 L 56 92" stroke="#689f38" stroke-width="1" opacity="0.3"/>
+                    <!-- Torso (trunk) -->
+                    <rect x="38" y="42" width="24" height="28" rx="5" fill="url(#plant-adult-trunk)"/>
+                    <!-- Bark texture -->
+                    <path d="M 42 48 L 44 52 L 42 56" stroke="#558b2f" stroke-width="1" fill="none" opacity="0.4"/>
+                    <path d="M 58 50 L 56 54 L 58 58" stroke="#558b2f" stroke-width="1" fill="none" opacity="0.4"/>
+                    <!-- Branch arms (strong) -->
+                    <path d="M 38 50 Q 30 52 26 50" stroke="#7cb342" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="22" cy="50" rx="7" ry="10" fill="#8bc34a"/>
+                    <path d="M 62 50 Q 70 52 74 50" stroke="#7cb342" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="78" cy="50" rx="7" ry="10" fill="#8bc34a"/>
+                    <!-- Foliage on arms -->
+                    <ellipse cx="28" cy="46" rx="9" ry="7" fill="#9ccc65" transform="rotate(-25 28 46)"/>
+                    <ellipse cx="72" cy="46" rx="9" ry="7" fill="#9ccc65" transform="rotate(25 72 46)"/>
+                    <ellipse cx="24" cy="56" rx="8" ry="6" fill="#9ccc65" transform="rotate(-35 24 56)"/>
+                    <ellipse cx="76" cy="56" rx="8" ry="6" fill="#9ccc65" transform="rotate(35 76 56)"/>
+                    <!-- Head (crown of leaves) -->
+                    <circle cx="50" cy="28" r="16" fill="#8bc34a"/>
+                    <ellipse cx="50" cy="18" rx="10" ry="12" fill="#9ccc65" opacity="0.9"/>
+                    <ellipse cx="36" cy="22" rx="10" ry="12" fill="#9ccc65" transform="rotate(-30 36 22)" opacity="0.9"/>
+                    <ellipse cx="64" cy="22" rx="10" ry="12" fill="#9ccc65" transform="rotate(30 64 22)" opacity="0.9"/>
+                    <ellipse cx="34" cy="32" rx="9" ry="10" fill="#9ccc65" transform="rotate(-50 34 32)" opacity="0.9"/>
+                    <ellipse cx="66" cy="32" rx="9" ry="10" fill="#9ccc65" transform="rotate(50 66 32)" opacity="0.9"/>
+                    <!-- Face -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="44" cy="26" rx="3" ry="4" fill="#fff"/>
+                        <ellipse cx="44" cy="27" rx="2" ry="2.5" fill="#33691e"/>
+                        <circle cx="45" cy="26" r="0.8" fill="#fff"/>
+                        <ellipse cx="56" cy="26" rx="3" ry="4" fill="#fff"/>
+                        <ellipse cx="56" cy="27" rx="2" ry="2.5" fill="#33691e"/>
+                        <circle cx="57" cy="26" r="0.8" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 41 26 Q 44 24 47 26" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 26 Q 56 24 59 26" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 42 32 Q 50 36 58 32" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 34 Q 50 30 58 34" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                </g>
+
+                <!-- PLANT MIDDLE AGE - Ancient oak -->
+                <g id="tm-mascot-evo4-plant" style="display: none;">
+                    <defs>
+                        <linearGradient id="plant-middle-trunk" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#8d6e63;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#6d4c41;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="96" rx="28" ry="4" fill="#333" opacity="0.3"/>
+                    <!-- Deep roots -->
+                    <path d="M 42 94 Q 32 98 26 94 Q 22 90 24 86" stroke="#5d4037" stroke-width="3" fill="none"/>
+                    <path d="M 58 94 Q 68 98 74 94 Q 78 90 76 86" stroke="#5d4037" stroke-width="3" fill="none"/>
+                    <!-- Thick trunk (legs) -->
+                    <rect x="40" y="64" width="10" height="32" rx="4" fill="url(#plant-middle-trunk)"/>
+                    <rect x="50" y="64" width="10" height="32" rx="4" fill="url(#plant-middle-trunk)"/>
+                    <!-- Knots in wood -->
+                    <ellipse cx="44" cy="76" rx="2" ry="3" fill="#4e342e" opacity="0.5"/>
+                    <ellipse cx="55" cy="82" rx="2.5" ry="3.5" fill="#4e342e" opacity="0.5"/>
+                    <!-- Torso -->
+                    <rect x="36" y="40" width="28" height="26" rx="6" fill="url(#plant-middle-trunk)"/>
+                    <!-- Bark texture (rough) -->
+                    <path d="M 40 44 L 42 48 L 40 52" stroke="#5d4037" stroke-width="1.5" fill="none" opacity="0.5"/>
+                    <path d="M 60 46 L 58 50 L 60 54" stroke="#5d4037" stroke-width="1.5" fill="none" opacity="0.5"/>
+                    <ellipse cx="50" cy="52" rx="2" ry="3" fill="#4e342e" opacity="0.4"/>
+                    <!-- Branch arms -->
+                    <path d="M 36 48 Q 28 50 24 48" stroke="#7cb342" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="20" cy="48" rx="7" ry="9" fill="#8bc34a"/>
+                    <path d="M 64 48 Q 72 50 76 48" stroke="#7cb342" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="80" cy="48" rx="7" ry="9" fill="#8bc34a"/>
+                    <!-- Leaves (autumn colors) -->
+                    <ellipse cx="26" cy="44" rx="8" ry="6" fill="#ffa726" transform="rotate(-25 26 44)" opacity="0.8"/>
+                    <ellipse cx="74" cy="44" rx="8" ry="6" fill="#ffa726" transform="rotate(25 74 44)" opacity="0.8"/>
+                    <ellipse cx="22" cy="54" rx="7" ry="5" fill="#ffb74d" transform="rotate(-35 22 54)" opacity="0.8"/>
+                    <ellipse cx="78" cy="54" rx="7" ry="5" fill="#ffb74d" transform="rotate(35 78 54)" opacity="0.8"/>
+                    <!-- Head (dense canopy) -->
+                    <circle cx="50" cy="26" r="17" fill="#7cb342"/>
+                    <ellipse cx="50" cy="16" rx="11" ry="12" fill="#8bc34a" opacity="0.9"/>
+                    <ellipse cx="36" cy="20" rx="10" ry="11" fill="#8bc34a" transform="rotate(-30 36 20)" opacity="0.9"/>
+                    <ellipse cx="64" cy="20" rx="10" ry="11" fill="#8bc34a" transform="rotate(30 64 20)" opacity="0.9"/>
+                    <ellipse cx="33" cy="30" rx="9" ry="10" fill="#aed581" transform="rotate(-50 33 30)" opacity="0.8"/>
+                    <ellipse cx="67" cy="30" rx="9" ry="10" fill="#aed581" transform="rotate(50 67 30)" opacity="0.8"/>
+                    <!-- Autumn leaves on head -->
+                    <circle cx="42" cy="18" r="3" fill="#ff9800" opacity="0.7"/>
+                    <circle cx="58" cy="22" r="2.5" fill="#ffb74d" opacity="0.7"/>
+                    <!-- Face (wise) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="44" cy="24" rx="3" ry="3.5" fill="#e8f5e9"/>
+                        <ellipse cx="44" cy="25" rx="2" ry="2" fill="#1b5e20"/>
+                        <circle cx="45" cy="24" r="0.7" fill="#e8f5e9"/>
+                        <ellipse cx="56" cy="24" rx="3" ry="3.5" fill="#e8f5e9"/>
+                        <ellipse cx="56" cy="25" rx="2" ry="2" fill="#1b5e20"/>
+                        <circle cx="57" cy="24" r="0.7" fill="#e8f5e9"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 41 24 Q 44 22 47 24" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 24 Q 56 22 59 24" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 42 32 Q 50 34 58 32" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 32 Q 50 30 58 32" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                </g>
+
+                <!-- PLANT OLD - Ancient World Tree -->
+                <g id="tm-mascot-evo5-plant" style="display: none;">
+                    <defs>
+                        <linearGradient id="plant-old-trunk" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#a1887f;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#6d4c41;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="ancient-aura">
+                            <stop offset="0%" style="stop-color:#dcedc8;stop-opacity:0.5" />
+                            <stop offset="70%" style="stop-color:#aed581;stop-opacity:0.2" />
+                            <stop offset="100%" style="stop-color:#8bc34a;stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Ancient aura -->
+                    <ellipse cx="50" cy="60" rx="45" ry="50" fill="url(#ancient-aura)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="96" rx="32" ry="4" fill="#333" opacity="0.35"/>
+                    <!-- Massive root system -->
+                    <path d="M 40 94 Q 28 98 22 94 Q 18 88 20 82 L 24 84" stroke="#3e2723" stroke-width="4" fill="none"/>
+                    <path d="M 60 94 Q 72 98 78 94 Q 82 88 80 82 L 76 84" stroke="#3e2723" stroke-width="4" fill="none"/>
+                    <path d="M 50 94 Q 46 98 42 100" stroke="#3e2723" stroke-width="3" fill="none"/>
+                    <path d="M 50 94 Q 54 98 58 100" stroke="#3e2723" stroke-width="3" fill="none"/>
+                    <!-- Gnarled trunk (legs) -->
+                    <path d="M 40 64 Q 38 78 40 94 L 50 94 L 48 64 Z" fill="url(#plant-old-trunk)"/>
+                    <path d="M 60 64 Q 62 78 60 94 L 50 94 L 52 64 Z" fill="url(#plant-old-trunk)"/>
+                    <!-- Old knots and burls -->
+                    <ellipse cx="42" cy="74" rx="3" ry="4" fill="#5d4037" opacity="0.6"/>
+                    <ellipse cx="57" cy="80" rx="3.5" ry="4.5" fill="#5d4037" opacity="0.6"/>
+                    <ellipse cx="45" cy="88" rx="2.5" ry="3.5" fill="#5d4037" opacity="0.5"/>
+                    <!-- Torso (massive trunk) -->
+                    <rect x="34" y="38" width="32" height="28" rx="8" fill="url(#plant-old-trunk)"/>
+                    <!-- Ancient bark texture -->
+                    <path d="M 38 42 L 40 48 L 38 54 L 40 60" stroke="#5d4037" stroke-width="2" fill="none" opacity="0.6"/>
+                    <path d="M 62 44 L 60 50 L 62 56 L 60 62" stroke="#5d4037" stroke-width="2" fill="none" opacity="0.6"/>
+                    <ellipse cx="50" cy="48" rx="3" ry="4" fill="#4e342e" opacity="0.5"/>
+                    <ellipse cx="46" cy="58" rx="2.5" ry="3" fill="#4e342e" opacity="0.4"/>
+                    <!-- Ancient branch arms -->
+                    <path d="M 34 46 Q 26 48 22 46 Q 18 44 18 40" stroke="#7cb342" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="18" cy="38" rx="8" ry="10" fill="#8bc34a"/>
+                    <path d="M 66 46 Q 74 48 78 46 Q 82 44 82 40" stroke="#7cb342" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="82" cy="38" rx="8" ry="10" fill="#8bc34a"/>
+                    <!-- Mystical leaves -->
+                    <ellipse cx="24" cy="42" rx="9" ry="7" fill="#9ccc65" transform="rotate(-25 24 42)" opacity="0.7"/>
+                    <ellipse cx="76" cy="42" rx="9" ry="7" fill="#9ccc65" transform="rotate(25 76 42)" opacity="0.7"/>
+                    <ellipse cx="18" cy="48" rx="7" ry="5" fill="#aed581" transform="rotate(-35 18 48)" opacity="0.6"/>
+                    <ellipse cx="82" cy="48" rx="7" ry="5" fill="#aed581" transform="rotate(35 82 48)" opacity="0.6"/>
+                    <!-- Head (ancient canopy) -->
+                    <circle cx="50" cy="24" r="18" fill="#689f38"/>
+                    <ellipse cx="50" cy="14" rx="12" ry="14" fill="#7cb342" opacity="0.9"/>
+                    <ellipse cx="34" cy="18" rx="11" ry="13" fill="#7cb342" transform="rotate(-30 34 18)" opacity="0.9"/>
+                    <ellipse cx="66" cy="18" rx="11" ry="13" fill="#7cb342" transform="rotate(30 66 18)" opacity="0.9"/>
+                    <ellipse cx="30" cy="28" rx="10" ry="11" fill="#8bc34a" transform="rotate(-50 30 28)" opacity="0.8"/>
+                    <ellipse cx="70" cy="28" rx="10" ry="11" fill="#8bc34a" transform="rotate(50 70 28)" opacity="0.8"/>
+                    <!-- Mystical glow spots -->
+                    <circle cx="38" cy="16" r="2" fill="#ffeb3b" opacity="0.6" filter="url(#glow)"/>
+                    <circle cx="62" cy="20" r="1.5" fill="#ffeb3b" opacity="0.6" filter="url(#glow)"/>
+                    <circle cx="50" cy="12" r="2.5" fill="#ffeb3b" opacity="0.6" filter="url(#glow)"/>
+                    <!-- Ancient wise face -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="43" cy="22" rx="3.5" ry="4" fill="#f1f8e9"/>
+                        <ellipse cx="43" cy="23" rx="2" ry="2.5" fill="#1b5e20"/>
+                        <circle cx="44" cy="22" r="0.6" fill="#f1f8e9"/>
+                        <ellipse cx="57" cy="22" rx="3.5" ry="4" fill="#f1f8e9"/>
+                        <ellipse cx="57" cy="23" rx="2" ry="2.5" fill="#1b5e20"/>
+                        <circle cx="58" cy="22" r="0.6" fill="#f1f8e9"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 39 22 Q 43 20 47 22" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 22 Q 57 20 61 22" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth (serene) -->
+                    <path class="tm-mascot-mouth-happy" d="M 42 30 Q 50 32 58 30" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 30 Q 50 28 58 30" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                </g>
+
+                <!-- ═══════════════════════════════════════ -->
+                <!-- GHOST CHARACTER - All Life Stages -->
+                <!-- Spirit & Shadow • Epic Rarity -->
+                <!-- ═══════════════════════════════════════ -->
+                
+                <!-- GHOST BABY - Tiny wisp -->
+                <g id="tm-mascot-baby-ghost" style="display: none;">
+                    <defs>
+                        <radialGradient id="ghost-baby-body">
+                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:0.95" />
+                            <stop offset="70%" style="stop-color:#e1bee7;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:0.85" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Ethereal glow -->
+                    <ellipse cx="50" cy="58" rx="26" ry="30" fill="#e1bee7" opacity="0.2" filter="url(#glow)"/>
+                    <!-- Main blob body (floating) -->
+                    <path d="M 32 58 Q 32 44 40 38 Q 50 34 60 38 Q 68 44 68 58 L 64 68 Q 62 74 58 72 L 56 68 Q 54 70 50 70 Q 46 70 44 68 L 42 72 Q 38 74 36 68 Z" 
+                          fill="url(#ghost-baby-body)" opacity="0.9"/>
+                    <!-- Cute big eyes -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="52" rx="6" ry="8" fill="#fff" opacity="0.9"/>
+                        <ellipse cx="42" cy="54" rx="4" ry="5" fill="#512da8"/>
+                        <circle cx="43" cy="52" r="2" fill="#fff" opacity="0.8"/>
+                        <ellipse cx="58" cy="52" rx="6" ry="8" fill="#fff" opacity="0.9"/>
+                        <ellipse cx="58" cy="54" rx="4" ry="5" fill="#512da8"/>
+                        <circle cx="59" cy="52" r="2" fill="#fff" opacity="0.8"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 36 52 Q 42 50 48 52" stroke="#9575cd" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 52 Q 58 50 64 52" stroke="#9575cd" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <ellipse class="tm-mascot-mouth-happy" cx="50" cy="62" rx="4" ry="6" fill="#512da8" opacity="0.5"/>
+                    <ellipse class="tm-mascot-mouth-sad" style="display:none;" cx="50" cy="62" rx="3" ry="4" fill="#512da8" opacity="0.5"/>
+                    <!-- Floating sparkles -->
+                    <circle cx="36" cy="46" r="1.5" fill="#fff" opacity="0.7"/>
+                    <circle cx="64" cy="48" r="1.2" fill="#fff" opacity="0.6"/>
+                    <circle cx="50" cy="40" r="1" fill="#fff" opacity="0.8"/>
+                </g>
+
+                <!-- GHOST KID - Growing specter -->
+                <g id="tm-mascot-evo1-ghost" style="display: none;">
+                    <defs>
+                        <radialGradient id="ghost-kid-body">
+                            <stop offset="0%" style="stop-color:#ede7f6;stop-opacity:0.95" />
+                            <stop offset="70%" style="stop-color:#d1c4e9;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#b39ddb;stop-opacity:0.85" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Ethereal aura -->
+                    <ellipse cx="50" cy="62" rx="30" ry="34" fill="#d1c4e9" opacity="0.25" filter="url(#glow)"/>
+                    <!-- Main body (more defined) -->
+                    <path d="M 28 62 Q 28 46 36 38 Q 44 32 50 30 Q 56 32 64 38 Q 72 46 72 62 L 70 74 Q 68 80 64 78 L 62 72 Q 60 76 56 76 L 54 72 Q 52 74 50 74 Q 48 74 46 72 L 44 76 Q 40 76 38 72 L 36 78 Q 32 80 30 74 Z" 
+                          fill="url(#ghost-kid-body)" opacity="0.9"/>
+                    <!-- Phase trail (ghostly) -->
+                    <path d="M 30 62 Q 24 64 20 60" stroke="#b39ddb" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.4"/>
+                    <circle cx="18" cy="58" r="2.5" fill="#b39ddb" opacity="0.3"/>
+                    <path d="M 70 62 Q 76 64 80 60" stroke="#b39ddb" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.4"/>
+                    <circle cx="82" cy="58" r="2.5" fill="#b39ddb" opacity="0.3"/>
+                    <!-- Eyes -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="50" rx="6" ry="9" fill="#fff" opacity="0.9"/>
+                        <ellipse cx="42" cy="52" rx="4" ry="6" fill="#5e35b1"/>
+                        <circle cx="43.5" cy="50" r="2" fill="#fff" opacity="0.8"/>
+                        <ellipse cx="58" cy="50" rx="6" ry="9" fill="#fff" opacity="0.9"/>
+                        <ellipse cx="58" cy="52" rx="4" ry="6" fill="#5e35b1"/>
+                        <circle cx="59.5" cy="50" r="2" fill="#fff" opacity="0.8"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 36 50 Q 42 48 48 50" stroke="#9575cd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 50 Q 58 48 64 50" stroke="#9575cd" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <ellipse class="tm-mascot-mouth-happy" cx="50" cy="62" rx="5" ry="7" fill="#5e35b1" opacity="0.5"/>
+                    <ellipse class="tm-mascot-mouth-sad" style="display:none;" cx="50" cy="62" rx="4" ry="5" fill="#5e35b1" opacity="0.5"/>
+                    <!-- Sparkles -->
+                    <circle cx="34" cy="42" r="1.8" fill="#fff" opacity="0.7"/>
+                    <circle cx="66" cy="44" r="1.5" fill="#fff" opacity="0.6"/>
+                    <circle cx="50" cy="36" r="1.3" fill="#fff" opacity="0.8"/>
+                    <circle cx="40" cy="68" r="1.2" fill="#fff" opacity="0.5"/>
+                    <circle cx="60" cy="70" r="1.4" fill="#fff" opacity="0.5"/>
+                </g>
+
+                <!-- GHOST TEEN - Phasing phantom -->
+                <g id="tm-mascot-evo2-ghost" style="display: none;">
+                    <defs>
+                        <radialGradient id="ghost-teen-body">
+                            <stop offset="0%" style="stop-color:#e8eaf6;stop-opacity:0.95" />
+                            <stop offset="70%" style="stop-color:#c5cae9;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#9fa8da;stop-opacity:0.85" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Phasing aura -->
+                    <ellipse cx="50" cy="64" rx="34" ry="38" fill="#c5cae9" opacity="0.3" filter="url(#strong-glow)"/>
+                    <!-- Main body (humanoid shape) -->
+                    <path d="M 26 66 Q 26 48 32 40 Q 40 32 50 28 Q 60 32 68 40 Q 74 48 74 66 L 72 80 Q 70 86 66 84 L 64 78 Q 62 82 58 82 L 56 76 Q 54 80 50 80 Q 46 80 44 76 L 42 82 Q 38 82 36 78 L 34 84 Q 30 86 28 80 Z" 
+                          fill="url(#ghost-teen-body)" opacity="0.9"/>
+                    <!-- Shadowy arms -->
+                    <ellipse cx="28" cy="58" rx="6" ry="16" fill="url(#ghost-teen-body)" transform="rotate(-15 28 58)" opacity="0.8"/>
+                    <ellipse cx="26" cy="72" rx="4" ry="6" fill="url(#ghost-teen-body)" opacity="0.7"/>
+                    <ellipse cx="72" cy="58" rx="6" ry="16" fill="url(#ghost-teen-body)" transform="rotate(15 72 58)" opacity="0.8"/>
+                    <ellipse cx="74" cy="72" rx="4" ry="6" fill="url(#ghost-teen-body)" opacity="0.7"/>
+                    <!-- Phase trail (stronger) -->
+                    <path d="M 26 64 Q 18 66 12 62" stroke="#9fa8da" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.5"/>
+                    <ellipse cx="10" cy="60" rx="3" ry="4" fill="#9fa8da" opacity="0.4"/>
+                    <path d="M 74 64 Q 82 66 88 62" stroke="#9fa8da" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.5"/>
+                    <ellipse cx="90" cy="60" rx="3" ry="4" fill="#9fa8da" opacity="0.4"/>
+                    <!-- Hood/head shape -->
+                    <ellipse cx="50" cy="42" rx="18" ry="20" fill="url(#ghost-teen-body)" opacity="0.95"/>
+                    <!-- Eyes (glowing) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="42" rx="6" ry="8" fill="#fff" opacity="0.9" filter="url(#glow)"/>
+                        <ellipse cx="42" cy="44" rx="4" ry="5" fill="#673ab7"/>
+                        <circle cx="43.5" cy="42" r="1.8" fill="#fff"/>
+                        <ellipse cx="58" cy="42" rx="6" ry="8" fill="#fff" opacity="0.9" filter="url(#glow)"/>
+                        <ellipse cx="58" cy="44" rx="4" ry="5" fill="#673ab7"/>
+                        <circle cx="59.5" cy="42" r="1.8" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 36 42 Q 42 40 48 42" stroke="#7e57c2" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 42 Q 58 40 64 42" stroke="#7e57c2" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <ellipse class="tm-mascot-mouth-happy" cx="50" cy="52" rx="6" ry="8" fill="#673ab7" opacity="0.5"/>
+                    <ellipse class="tm-mascot-mouth-sad" style="display:none;" cx="50" cy="52" rx="5" ry="6" fill="#673ab7" opacity="0.5"/>
+                    <!-- Sparkles -->
+                    <circle cx="32" cy="36" r="2" fill="#fff" opacity="0.8" filter="url(#glow)"/>
+                    <circle cx="68" cy="38" r="1.8" fill="#fff" opacity="0.7" filter="url(#glow)"/>
+                    <circle cx="50" cy="28" r="1.5" fill="#fff" opacity="0.9" filter="url(#glow)"/>
+                </g>
+
+                <!-- GHOST ADULT - Dimensional specter -->
+                <g id="tm-mascot-evo3-ghost" style="display: none;">
+                    <defs>
+                        <radialGradient id="ghost-adult-body">
+                            <stop offset="0%" style="stop-color:#e3f2fd;stop-opacity:0.95" />
+                            <stop offset="70%" style="stop-color:#bbdefb;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#90caf9;stop-opacity:0.85" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Dimensional aura -->
+                    <ellipse cx="50" cy="66" rx="38" ry="42" fill="#bbdefb" opacity="0.35" filter="url(#strong-glow)"/>
+                    <!-- Main body (cloaked figure) -->
+                    <path d="M 24 68 Q 24 48 30 38 Q 38 30 50 26 Q 62 30 70 38 Q 76 48 76 68 L 74 84 Q 72 92 68 90 L 66 82 Q 64 88 60 88 L 58 80 Q 56 84 50 84 Q 44 84 42 80 L 40 88 Q 36 88 34 82 L 32 90 Q 28 92 26 84 Z" 
+                          fill="url(#ghost-adult-body)" opacity="0.9"/>
+                    <!-- Floating arms (spectral) -->
+                    <ellipse cx="26" cy="58" rx="7" ry="18" fill="url(#ghost-adult-body)" transform="rotate(-12 26 58)" opacity="0.85"/>
+                    <ellipse cx="24" cy="74" rx="5" ry="7" fill="url(#ghost-adult-body)" opacity="0.8"/>
+                    <ellipse cx="74" cy="58" rx="7" ry="18" fill="url(#ghost-adult-body)" transform="rotate(12 74 58)" opacity="0.85"/>
+                    <ellipse cx="76" cy="74" rx="5" ry="7" fill="url(#ghost-adult-body)" opacity="0.8"/>
+                    <!-- Phase dimensions -->
+                    <path d="M 24 66 Q 16 68 10 64 Q 6 60 8 54" stroke="#90caf9" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.6"/>
+                    <ellipse cx="6" cy="52" rx="4" ry="5" fill="#90caf9" opacity="0.5"/>
+                    <path d="M 76 66 Q 84 68 90 64 Q 94 60 92 54" stroke="#90caf9" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.6"/>
+                    <ellipse cx="94" cy="52" rx="4" ry="5" fill="#90caf9" opacity="0.5"/>
+                    <!-- Head/hood -->
+                    <ellipse cx="50" cy="40" rx="20" ry="22" fill="url(#ghost-adult-body)" opacity="0.95"/>
+                    <!-- Spectral energy lines -->
+                    <path d="M 36 32 Q 50 28 64 32" stroke="#64b5f6" stroke-width="1" opacity="0.5" fill="none"/>
+                    <path d="M 38 38 Q 50 36 62 38" stroke="#64b5f6" stroke-width="1" opacity="0.4" fill="none"/>
+                    <!-- Eyes (piercing) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="38" rx="5" ry="8" fill="#fff" opacity="0.95" filter="url(#strong-glow)"/>
+                        <ellipse cx="42" cy="40" rx="3.5" ry="5" fill="#1e88e5"/>
+                        <circle cx="43.5" cy="38" r="1.5" fill="#fff"/>
+                        <ellipse cx="58" cy="38" rx="5" ry="8" fill="#fff" opacity="0.95" filter="url(#strong-glow)"/>
+                        <ellipse cx="58" cy="40" rx="3.5" ry="5" fill="#1e88e5"/>
+                        <circle cx="59.5" cy="38" r="1.5" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 37 38 Q 42 36 47 38" stroke="#42a5f5" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 38 Q 58 36 63 38" stroke="#42a5f5" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 42 48 Q 50 52 58 48" stroke="#1e88e5" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 50 Q 50 46 58 50" stroke="#1e88e5" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+                    <!-- Energy particles -->
+                    <circle cx="32" cy="32" r="2.5" fill="#fff" opacity="0.9" filter="url(#glow)"/>
+                    <circle cx="68" cy="34" r="2.2" fill="#fff" opacity="0.8" filter="url(#glow)"/>
+                    <circle cx="50" cy="24" r="2" fill="#fff" opacity="0.95" filter="url(#glow)"/>
+                    <circle cx="40" cy="50" r="1.5" fill="#64b5f6" opacity="0.6"/>
+                    <circle cx="60" cy="52" r="1.3" fill="#64b5f6" opacity="0.6"/>
+                </g>
+
+                <!-- GHOST MIDDLE AGE - Ancient spirit -->
+                <g id="tm-mascot-evo4-ghost" style="display: none;">
+                    <defs>
+                        <radialGradient id="ghost-middle-body">
+                            <stop offset="0%" style="stop-color:#e1f5fe;stop-opacity:0.95" />
+                            <stop offset="70%" style="stop-color:#b3e5fc;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#81d4fa;stop-opacity:0.85" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Ancient aura -->
+                    <ellipse cx="50" cy="66" rx="40" ry="42" fill="#b3e5fc" opacity="0.4" filter="url(#strong-glow)"/>
+                    <!-- Main body -->
+                    <path d="M 24 68 Q 24 48 30 38 Q 38 30 50 26 Q 62 30 70 38 Q 76 48 76 68 L 74 84 Q 72 92 68 90 L 66 82 Q 64 88 60 88 L 58 80 Q 56 84 50 84 Q 44 84 42 80 L 40 88 Q 36 88 34 82 L 32 90 Q 28 92 26 84 Z" 
+                          fill="url(#ghost-middle-body)" opacity="0.9"/>
+                    <!-- Wispy arms -->
+                    <path d="M 24 58 Q 18 60 14 58 Q 10 54 12 48" stroke="#81d4fa" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.7"/>
+                    <ellipse cx="10" cy="46" rx="4" ry="6" fill="#81d4fa" opacity="0.6"/>
+                    <path d="M 76 58 Q 82 60 86 58 Q 90 54 88 48" stroke="#81d4fa" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.7"/>
+                    <ellipse cx="90" cy="46" rx="4" ry="6" fill="#81d4fa" opacity="0.6"/>
+                    <!-- Phase trails (multiple) -->
+                    <ellipse cx="18" cy="64" rx="3" ry="4" fill="#81d4fa" opacity="0.4"/>
+                    <ellipse cx="12" cy="58" rx="2.5" ry="3.5" fill="#81d4fa" opacity="0.3"/>
+                    <ellipse cx="82" cy="64" rx="3" ry="4" fill="#81d4fa" opacity="0.4"/>
+                    <ellipse cx="88" cy="58" rx="2.5" ry="3.5" fill="#81d4fa" opacity="0.3"/>
+                    <!-- Head -->
+                    <ellipse cx="50" cy="40" rx="20" ry="22" fill="url(#ghost-middle-body)" opacity="0.95"/>
+                    <!-- Spectral bands -->
+                    <path d="M 34 32 Q 50 28 66 32" stroke="#4fc3f7" stroke-width="1.5" opacity="0.5" fill="none"/>
+                    <path d="M 36 38 Q 50 36 64 38" stroke="#4fc3f7" stroke-width="1.5" opacity="0.4" fill="none"/>
+                    <path d="M 38 44" stroke="#4fc3f7" stroke-width="1.5" opacity="0.3" fill="none"/>
+                    <!-- Eyes (knowing) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="38" rx="5" ry="7" fill="#e0f7fa" opacity="0.95" filter="url(#glow)"/>
+                        <ellipse cx="42" cy="40" rx="3.5" ry="4.5" fill="#0277bd"/>
+                        <circle cx="43.5" cy="38" r="1.3" fill="#e0f7fa"/>
+                        <ellipse cx="58" cy="38" rx="5" ry="7" fill="#e0f7fa" opacity="0.95" filter="url(#glow)"/>
+                        <ellipse cx="58" cy="40" rx="3.5" ry="4.5" fill="#0277bd"/>
+                        <circle cx="59.5" cy="38" r="1.3" fill="#e0f7fa"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 37 38 Q 42 36 47 38" stroke="#29b6f6" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 38 Q 58 36 63 38" stroke="#29b6f6" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 42 48 Q 50 50 58 48" stroke="#0277bd" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 48 Q 50 46 58 48" stroke="#0277bd" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/>
+                    <!-- Ancient runes (faint) -->
+                    <text x="32" y="56" font-family="serif" font-size="5" fill="#4fc3f7" opacity="0.4">⌘</text>
+                    <text x="62" y="58" font-family="serif" font-size="5" fill="#4fc3f7" opacity="0.4">◎</text>
+                </g>
+
+                <!-- GHOST OLD - Eternal phantom -->
+                <g id="tm-mascot-evo5-ghost" style="display: none;">
+                    <defs>
+                        <radialGradient id="ghost-old-body">
+                            <stop offset="0%" style="stop-color:#f1f8e9;stop-opacity:0.95" />
+                            <stop offset="70%" style="stop-color:#dcedc8;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#c5e1a5;stop-opacity:0.85" />
+                        </radialGradient>
+                        <radialGradient id="eternal-aura">
+                            <stop offset="0%" style="stop-color:#fff;stop-opacity:0.6" />
+                            <stop offset="50%" style="stop-color:#e0f2f1;stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#b2dfdb;stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Eternal aura (massive) -->
+                    <ellipse cx="50" cy="66" rx="48" ry="48" fill="url(#eternal-aura)"/>
+                    <!-- Main body (ancient, fading) -->
+                    <path d="M 22 68 Q 22 46 28 36 Q 36 28 50 24 Q 64 28 72 36 Q 78 46 78 68 L 76 86 Q 74 94 70 92 L 68 82 Q 66 90 62 90 L 60 80 Q 58 86 50 86 Q 42 86 40 80 L 38 90 Q 34 90 32 82 L 30 92 Q 26 94 24 86 Z" 
+                          fill="url(#ghost-old-body)" opacity="0.85"/>
+                    <!-- Ethereal arms (barely visible) -->
+                    <path d="M 22 58 Q 14 60 8 58 Q 4 54 6 46 Q 8 40 10 38" stroke="#c5e1a5" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.6"/>
+                    <ellipse cx="8" cy="36" rx="5" ry="7" fill="#c5e1a5" opacity="0.5"/>
+                    <path d="M 78 58 Q 86 60 92 58 Q 96 54 94 46 Q 92 40 90 38" stroke="#c5e1a5" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.6"/>
+                    <ellipse cx="92" cy="36" rx="5" ry="7" fill="#c5e1a5" opacity="0.5"/>
+                    <!-- Phase echoes (multiple dimensions) -->
+                    <ellipse cx="14" cy="64" rx="4" ry="5" fill="#c5e1a5" opacity="0.35"/>
+                    <ellipse cx="8" cy="56" rx="3" ry="4" fill="#c5e1a5" opacity="0.25"/>
+                    <ellipse cx="4" cy="48" rx="2.5" ry="3.5" fill="#c5e1a5" opacity="0.2"/>
+                    <ellipse cx="86" cy="64" rx="4" ry="5" fill="#c5e1a5" opacity="0.35"/>
+                    <ellipse cx="92" cy="56" rx="3" ry="4" fill="#c5e1a5" opacity="0.25"/>
+                    <ellipse cx="96" cy="48" rx="2.5" ry="3.5" fill="#c5e1a5" opacity="0.2"/>
+                    <!-- Head (wise, ancient) -->
+                    <ellipse cx="50" cy="38" rx="22" ry="24" fill="url(#ghost-old-body)" opacity="0.95"/>
+                    <!-- Ancient spectral lines -->
+                    <path d="M 32 30 Q 50 26 68 30" stroke="#aed581" stroke-width="2" opacity="0.4" fill="none"/>
+                    <path d="M 34 36 Q 50 34 66 36" stroke="#aed581" stroke-width="2" opacity="0.35" fill="none"/>
+                    <path d="M 36 42 Q 50 40 64 42" stroke="#aed581" stroke-width="2" opacity="0.3" fill="none"/>
+                    <!-- Eyes (timeless) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="36" rx="6" ry="8" fill="#fff" opacity="0.9" filter="url(#strong-glow)"/>
+                        <ellipse cx="42" cy="38" rx="4" ry="5" fill="#558b2f"/>
+                        <circle cx="43.5" cy="36" r="1.5" fill="#fff" opacity="0.8"/>
+                        <ellipse cx="58" cy="36" rx="6" ry="8" fill="#fff" opacity="0.9" filter="url(#strong-glow)"/>
+                        <ellipse cx="58" cy="38" rx="4" ry="5" fill="#558b2f"/>
+                        <circle cx="59.5" cy="36" r="1.5" fill="#fff" opacity="0.8"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 36 36 Q 42 34 48 36" stroke="#7cb342" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 36 Q 58 34 64 36" stroke="#7cb342" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Mouth (serene, knowing) -->
+                    <path class="tm-mascot-mouth-happy" d="M 40 46 Q 50 48 60 46" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 40 46 Q 50 44 60 46" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
+                    <!-- Ancient symbols -->
+                    <text x="30" y="52" font-family="serif" font-size="6" fill="#7cb342" opacity="0.3">⚛</text>
+                    <text x="64" y="54" font-family="serif" font-size="6" fill="#7cb342" opacity="0.3">☯</text>
+                    <text x="46" y="24" font-family="serif" font-size="7" fill="#7cb342" opacity="0.4">✧</text>
+                    <!-- Eternal light particles -->
+                    <circle cx="32" cy="28" r="2" fill="#fff" opacity="0.7" filter="url(#glow)"/>
+                    <circle cx="68" cy="30" r="1.8" fill="#fff" opacity="0.6" filter="url(#glow)"/>
+                    <circle cx="50" cy="20" r="2.5" fill="#fff" opacity="0.8" filter="url(#glow)"/>
+                </g>
+
+                <!-- ═══════════════════════════════════════ -->
+                <!-- CAT CHARACTER - All Life Stages -->
+                <!-- Luck & Mischief • Rare Rarity -->
+                <!-- ═══════════════════════════════════════ -->
+                
+                <!-- CAT BABY - Tiny kitten -->
+                <g id="tm-mascot-baby-cat" style="display: none;">
+                    <defs>
+                        <linearGradient id="cat-baby-fur" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffccbc;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ffab91;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="84" rx="20" ry="5" fill="#333" opacity="0.15"/>
+                    <!-- Tiny tail -->
+                    <path d="M 62 74 Q 68 70 70 66 Q 72 62 70 58" stroke="#ff8a65" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <circle cx="70" cy="56" r="2.5" fill="#ff8a65"/>
+                    <!-- Hind legs (sitting) -->
+                    <ellipse cx="42" cy="78" rx="6" ry="8" fill="url(#cat-baby-fur)"/>
+                    <ellipse cx="58" cy="78" rx="6" ry="8" fill="url(#cat-baby-fur)"/>
+                    <!-- Body (round kitten) -->
+                    <ellipse cx="50" cy="64" rx="16" ry="18" fill="url(#cat-baby-fur)"/>
+                    <!-- Paws (front) -->
+                    <ellipse cx="44" cy="76" rx="3.5" ry="5" fill="url(#cat-baby-fur)"/>
+                    <ellipse cx="56" cy="76" rx="3.5" ry="5" fill="url(#cat-baby-fur)"/>
+                    <!-- Toe beans -->
+                    <circle cx="44" cy="78" r="1" fill="#f48fb1" opacity="0.8"/>
+                    <circle cx="56" cy="78" r="1" fill="#f48fb1" opacity="0.8"/>
+                    <!-- Head (big for kitten) -->
+                    <circle cx="50" cy="48" r="14" fill="url(#cat-baby-fur)"/>
+                    <!-- Ears (triangular) -->
+                    <path d="M 38 42 L 40 32 L 46 38 Z" fill="url(#cat-baby-fur)"/>
+                    <path d="M 41 36 L 42 34 L 44 36 Z" fill="#f48fb1" opacity="0.6"/>
+                    <path d="M 62 42 L 60 32 L 54 38 Z" fill="url(#cat-baby-fur)"/>
+                    <path d="M 59 36 L 58 34 L 56 36 Z" fill="#f48fb1" opacity="0.6"/>
+                    <!-- Eyes (big, cute) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="43" cy="46" rx="4" ry="5" fill="#fff"/>
+                        <ellipse cx="43" cy="48" rx="2.5" ry="3.5" fill="#4e342e"/>
+                        <circle cx="44" cy="46" r="1.2" fill="#fff" opacity="0.9"/>
+                        <ellipse cx="57" cy="46" rx="4" ry="5" fill="#fff"/>
+                        <ellipse cx="57" cy="48" rx="2.5" ry="3.5" fill="#4e342e"/>
+                        <circle cx="58" cy="46" r="1.2" fill="#fff" opacity="0.9"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 39 46 Q 43 44 47 46" stroke="#ff8a65" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 46 Q 57 44 61 46" stroke="#ff8a65" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Nose -->
+                    <circle cx="50" cy="52" r="1.5" fill="#f48fb1"/>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 50 53 L 50 54 M 46 54 Q 50 56 54 54" stroke="#ff8a65" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 50 53 L 50 54 M 46 56 Q 50 54 54 56" stroke="#ff8a65" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+                    <!-- Whiskers (tiny) -->
+                    <line x1="40" y1="50" x2="32" y2="49" stroke="#8d6e63" stroke-width="0.8" opacity="0.5"/>
+                    <line x1="40" y1="52" x2="32" y2="53" stroke="#8d6e63" stroke-width="0.8" opacity="0.5"/>
+                    <line x1="60" y1="50" x2="68" y2="49" stroke="#8d6e63" stroke-width="0.8" opacity="0.5"/>
+                    <line x1="60" y1="52" x2="68" y2="53" stroke="#8d6e63" stroke-width="0.8" opacity="0.5"/>
+                </g>
+
+                <!-- CAT KID - Playful young cat -->
+                <g id="tm-mascot-evo1-cat" style="display: none;">
+                    <defs>
+                        <linearGradient id="cat-kid-fur" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffb74d;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ff9800;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="88" rx="22" ry="5" fill="#333" opacity="0.2"/>
+                    <!-- Playful tail (curved up) -->
+                    <path d="M 64 78 Q 72 72 76 64 Q 78 56 76 48" stroke="#fb8c00" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <circle cx="76" cy="46" r="3" fill="#fb8c00"/>
+                    <!-- Hind legs -->
+                    <ellipse cx="42" cy="82" rx="6" ry="10" fill="url(#cat-kid-fur)"/>
+                    <ellipse cx="58" cy="82" rx="6" ry="10" fill="url(#cat-kid-fur)"/>
+                    <!-- Body -->
+                    <ellipse cx="50" cy="68" rx="18" ry="20" fill="url(#cat-kid-fur)"/>
+                    <!-- Stripes (tabby pattern) -->
+                    <path d="M 38 62 Q 50 60 62 62" stroke="#e65100" stroke-width="1.5" fill="none" opacity="0.4"/>
+                    <path d="M 40 70 Q 50 68 60 70" stroke="#e65100" stroke-width="1.5" fill="none" opacity="0.4"/>
+                    <!-- Front paws -->
+                    <ellipse cx="44" cy="82" rx="4" ry="6" fill="url(#cat-kid-fur)"/>
+                    <ellipse cx="56" cy="82" rx="4" ry="6" fill="url(#cat-kid-fur)"/>
+                    <!-- Toe beans -->
+                    <circle cx="44" cy="85" r="1.2" fill="#f48fb1" opacity="0.8"/>
+                    <circle cx="56" cy="85" r="1.2" fill="#f48fb1" opacity="0.8"/>
+                    <!-- Head -->
+                    <circle cx="50" cy="50" r="15" fill="url(#cat-kid-fur)"/>
+                    <!-- Ears -->
+                    <path d="M 36 46 L 38 34 L 46 42 Z" fill="url(#cat-kid-fur)"/>
+                    <path d="M 40 40 L 41 36 L 44 40 Z" fill="#f48fb1" opacity="0.6"/>
+                    <path d="M 64 46 L 62 34 L 54 42 Z" fill="url(#cat-kid-fur)"/>
+                    <path d="M 60 40 L 59 36 L 56 40 Z" fill="#f48fb1" opacity="0.6"/>
+                    <!-- Eyes (playful) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="43" cy="48" rx="4.5" ry="6" fill="#fff"/>
+                        <ellipse cx="43" cy="50" rx="2.8" ry="4" fill="#6d4c41"/>
+                        <circle cx="44" cy="48" r="1.3" fill="#fff"/>
+                        <ellipse cx="57" cy="48" rx="4.5" ry="6" fill="#fff"/>
+                        <ellipse cx="57" cy="50" rx="2.8" ry="4" fill="#6d4c41"/>
+                        <circle cx="58" cy="48" r="1.3" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 38 48 Q 43 46 48 48" stroke="#fb8c00" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 48 Q 57 46 62 48" stroke="#fb8c00" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Nose -->
+                    <path d="M 48 54 L 50 56 L 52 54" fill="#f48fb1"/>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 50 56 L 50 58 M 46 58 Q 50 60 54 58" stroke="#fb8c00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 50 56 L 50 58 M 46 60 Q 50 58 54 60" stroke="#fb8c00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <!-- Whiskers -->
+                    <line x1="38" y1="52" x2="28" y2="50" stroke="#6d4c41" stroke-width="1" opacity="0.6"/>
+                    <line x1="38" y1="54" x2="28" y2="55" stroke="#6d4c41" stroke-width="1" opacity="0.6"/>
+                    <line x1="62" y1="52" x2="72" y2="50" stroke="#6d4c41" stroke-width="1" opacity="0.6"/>
+                    <line x1="62" y1="54" x2="72" y2="55" stroke="#6d4c41" stroke-width="1" opacity="0.6"/>
+                </g>
+
+                <!-- CAT TEEN - Agile adolescent -->
+                <g id="tm-mascot-evo2-cat" style="display: none;">
+                    <defs>
+                        <linearGradient id="cat-teen-fur" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ff9800;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#f57c00;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="92" rx="24" ry="4" fill="#333" opacity="0.25"/>
+                    <!-- Tail (stylish) -->
+                    <path d="M 66 82 Q 76 76 82 68 Q 86 58 84 48 Q 82 42 80 40" stroke="#f57c00" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M 82 46 L 80 42 L 78 46" fill="#f57c00"/>
+                    <!-- Hind legs (standing) -->
+                    <ellipse cx="42" cy="86" rx="6" ry="12" fill="url(#cat-teen-fur)"/>
+                    <ellipse cx="58" cy="86" rx="6" ry="12" fill="url(#cat-teen-fur)"/>
+                    <ellipse cx="42" cy="92" rx="4" ry="3" fill="url(#cat-teen-fur)"/>
+                    <ellipse cx="58" cy="92" rx="4" ry="3" fill="url(#cat-teen-fur)"/>
+                    <!-- Body (sleek) -->
+                    <ellipse cx="50" cy="70" rx="18" ry="22" fill="url(#cat-teen-fur)"/>
+                    <!-- Tabby stripes (more defined) -->
+                    <path d="M 38 64 Q 50 62 62 64" stroke="#e65100" stroke-width="2" fill="none" opacity="0.5"/>
+                    <path d="M 40 72 Q 50 70 60 72" stroke="#e65100" stroke-width="2" fill="none" opacity="0.5"/>
+                    <path d="M 42 80 Q 50 78 58 80" stroke="#e65100" stroke-width="2" fill="none" opacity="0.5"/>
+                    <!-- Front legs -->
+                    <ellipse cx="44" cy="86" rx="4.5" ry="10" fill="url(#cat-teen-fur)"/>
+                    <ellipse cx="56" cy="86" rx="4.5" ry="10" fill="url(#cat-teen-fur)"/>
+                    <ellipse cx="44" cy="92" rx="3.5" ry="2.5" fill="url(#cat-teen-fur)"/>
+                    <ellipse cx="56" cy="92" rx="3.5" ry="2.5" fill="url(#cat-teen-fur)"/>
+                    <!-- Head -->
+                    <ellipse cx="50" cy="48" rx="16" ry="18" fill="url(#cat-teen-fur)"/>
+                    <!-- Ears (alert) -->
+                    <path d="M 34 44 L 36 30 L 46 40 Z" fill="url(#cat-teen-fur)"/>
+                    <path d="M 38 36 L 40 32 L 43 38 Z" fill="#f48fb1" opacity="0.6"/>
+                    <path d="M 66 44 L 64 30 L 54 40 Z" fill="url(#cat-teen-fur)"/>
+                    <path d="M 62 36 L 60 32 L 57 38 Z" fill="#f48fb1" opacity="0.6"/>
+                    <!-- Eyes (mischievous) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="46" rx="5" ry="7" fill="#fff"/>
+                        <ellipse cx="42" cy="48" rx="2" ry="5" fill="#6d4c41"/>
+                        <circle cx="43.5" cy="46" r="1.2" fill="#fff"/>
+                        <ellipse cx="58" cy="46" rx="5" ry="7" fill="#fff"/>
+                        <ellipse cx="58" cy="48" rx="2" ry="5" fill="#6d4c41"/>
+                        <circle cx="59.5" cy="46" r="1.2" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 37 46 Q 42 44 47 46" stroke="#f57c00" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 46 Q 58 44 63 46" stroke="#f57c00" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Nose -->
+                    <path d="M 48 54 L 50 56 L 52 54 Z" fill="#f48fb1"/>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 50 56 L 50 58 M 45 58 Q 50 62 55 58" stroke="#f57c00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 50 56 L 50 58 M 45 60 Q 50 58 55 60" stroke="#f57c00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <!-- Whiskers (longer) -->
+                    <line x1="36" y1="50" x2="24" y2="48" stroke="#5d4037" stroke-width="1.2" opacity="0.7"/>
+                    <line x1="36" y1="53" x2="24" y2="53" stroke="#5d4037" stroke-width="1.2" opacity="0.7"/>
+                    <line x1="36" y1="56" x2="24" y2="58" stroke="#5d4037" stroke-width="1.2" opacity="0.7"/>
+                    <line x1="64" y1="50" x2="76" y2="48" stroke="#5d4037" stroke-width="1.2" opacity="0.7"/>
+                    <line x1="64" y1="53" x2="76" y2="53" stroke="#5d4037" stroke-width="1.2" opacity="0.7"/>
+                    <line x1="64" y1="56" x2="76" y2="58" stroke="#5d4037" stroke-width="1.2" opacity="0.7"/>
+                </g>
+
+                <!-- CAT ADULT - Graceful mystic cat -->
+                <g id="tm-mascot-evo3-cat" style="display: none;">
+                    <defs>
+                        <linearGradient id="cat-adult-fur" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#f57c00;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#e64a19;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="luck-aura">
+                            <stop offset="0%" style="stop-color:#ffd54f;stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#ffb300;stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Lucky aura -->
+                    <ellipse cx="50" cy="68" rx="32" ry="36" fill="url(#luck-aura)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="26" ry="4" fill="#333" opacity="0.3"/>
+                    <!-- Elegant tail (curved) -->
+                    <path d="M 68 84 Q 80 78 88 68 Q 92 56 90 44 Q 88 36 84 32" stroke="#e64a19" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <path d="M 88 46 L 86 40 L 83 44" fill="#e64a19"/>
+                    <!-- Hind legs -->
+                    <ellipse cx="42" cy="88" rx="6" ry="14" fill="url(#cat-adult-fur)"/>
+                    <ellipse cx="58" cy="88" rx="6" ry="14" fill="url(#cat-adult-fur)"/>
+                    <ellipse cx="42" cy="94" rx="4.5" ry="3" fill="url(#cat-adult-fur)"/>
+                    <ellipse cx="58" cy="94" rx="4.5" ry="3" fill="url(#cat-adult-fur)"/>
+                    <!-- Body (elegant) -->
+                    <ellipse cx="50" cy="72" rx="20" ry="24" fill="url(#cat-adult-fur)"/>
+                    <!-- Mystical markings -->
+                    <path d="M 36 66 Q 50 64 64 66" stroke="#bf360c" stroke-width="2" fill="none" opacity="0.5"/>
+                    <path d="M 38 74 Q 50 72 62 74" stroke="#bf360c" stroke-width="2" fill="none" opacity="0.5"/>
+                    <path d="M 40 82 Q 50 80 60 82" stroke="#bf360c" stroke-width="2" fill="none" opacity="0.5"/>
+                    <circle cx="50" cy="72" r="3" fill="#ffd54f" opacity="0.4"/>
+                    <!-- Front legs -->
+                    <ellipse cx="44" cy="88" rx="5" ry="12" fill="url(#cat-adult-fur)"/>
+                    <ellipse cx="56" cy="88" rx="5" ry="12" fill="url(#cat-adult-fur)"/>
+                    <ellipse cx="44" cy="94" rx="4" ry="2.5" fill="url(#cat-adult-fur)"/>
+                    <ellipse cx="56" cy="94" rx="4" ry="2.5" fill="url(#cat-adult-fur)"/>
+                    <!-- Head (regal) -->
+                    <ellipse cx="50" cy="46" rx="18" ry="20" fill="url(#cat-adult-fur)"/>
+                    <!-- Ears (pointed, mystical) -->
+                    <path d="M 32 42 L 34 26 L 46 38 Z" fill="url(#cat-adult-fur)"/>
+                    <path d="M 36 34 L 38 28 L 43 36 Z" fill="#f48fb1" opacity="0.6"/>
+                    <path d="M 68 42 L 66 26 L 54 38 Z" fill="url(#cat-adult-fur)"/>
+                    <path d="M 64 34 L 62 28 L 57 36 Z" fill="#f48fb1" opacity="0.6"/>
+                    <!-- Mystical eye marking -->
+                    <path d="M 48 38 Q 50 36 52 38" stroke="#ffd54f" stroke-width="1" fill="none" opacity="0.6"/>
+                    <!-- Eyes (mystical, glowing) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="44" rx="5" ry="7" fill="#fff" filter="url(#glow)"/>
+                        <ellipse cx="42" cy="46" rx="1.8" ry="5" fill="#6d4c41"/>
+                        <circle cx="43.5" cy="43" r="1.5" fill="#ffd54f" opacity="0.8"/>
+                        <ellipse cx="58" cy="44" rx="5" ry="7" fill="#fff" filter="url(#glow)"/>
+                        <ellipse cx="58" cy="46" rx="1.8" ry="5" fill="#6d4c41"/>
+                        <circle cx="59.5" cy="43" r="1.5" fill="#ffd54f" opacity="0.8"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 37 44 Q 42 42 47 44" stroke="#e64a19" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 44 Q 58 42 63 44" stroke="#e64a19" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Nose -->
+                    <path d="M 48 52 L 50 54 L 52 52 Z" fill="#f48fb1"/>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 50 54 L 50 56 M 44 56 Q 50 60 56 56" stroke="#e64a19" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 50 54 L 50 56 M 44 58 Q 50 56 56 58" stroke="#e64a19" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <!-- Whiskers (magical shimmer) -->
+                    <line x1="34" y1="48" x2="20" y2="46" stroke="#ffd54f" stroke-width="1.2" opacity="0.6"/>
+                    <line x1="34" y1="51" x2="20" y2="51" stroke="#ffd54f" stroke-width="1.2" opacity="0.6"/>
+                    <line x1="34" y1="54" x2="20" y2="56" stroke="#ffd54f" stroke-width="1.2" opacity="0.6"/>
+                    <line x1="66" y1="48" x2="80" y2="46" stroke="#ffd54f" stroke-width="1.2" opacity="0.6"/>
+                    <line x1="66" y1="51" x2="80" y2="51" stroke="#ffd54f" stroke-width="1.2" opacity="0.6"/>
+                    <line x1="66" y1="54" x2="80" y2="56" stroke="#ffd54f" stroke-width="1.2" opacity="0.6"/>
+                </g>
+
+                <!-- CAT MIDDLE AGE - Wise mouser -->
+                <g id="tm-mascot-evo4-cat" style="display: none;">
+                    <defs>
+                        <linearGradient id="cat-middle-fur" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#e65100;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="26" ry="4" fill="#333" opacity="0.3"/>
+                    <!-- Tail (thicker) -->
+                    <path d="M 68 84 Q 80 78 86 68 Q 90 58 88 48 Q 86 40 82 36" stroke="#bf360c" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <!-- Hind legs (stockier) -->
+                    <ellipse cx="42" cy="88" rx="7" ry="14" fill="url(#cat-middle-fur)"/>
+                    <ellipse cx="58" cy="88" rx="7" ry="14" fill="url(#cat-middle-fur)"/>
+                    <ellipse cx="42" cy="94" rx="5" ry="3" fill="url(#cat-middle-fur)"/>
+                    <ellipse cx="58" cy="94" rx="5" ry="3" fill="url(#cat-middle-fur)"/>
+                    <!-- Body (slightly rounder) -->
+                    <ellipse cx="50" cy="72" rx="21" ry="24" fill="url(#cat-middle-fur)"/>
+                    <!-- Stripes/markings (faded) -->
+                    <path d="M 36 66 Q 50 64 64 66" stroke="#8d6e63" stroke-width="2" fill="none" opacity="0.4"/>
+                    <path d="M 38 74 Q 50 72 62 74" stroke="#8d6e63" stroke-width="2" fill="none" opacity="0.4"/>
+                    <path d="M 40 82 Q 50 80 60 82" stroke="#8d6e63" stroke-width="2" fill="none" opacity="0.4"/>
+                    <!-- Front legs -->
+                    <ellipse cx="44" cy="88" rx="5.5" ry="12" fill="url(#cat-middle-fur)"/>
+                    <ellipse cx="56" cy="88" rx="5.5" ry="12" fill="url(#cat-middle-fur)"/>
+                    <ellipse cx="44" cy="94" rx="4.5" ry="2.5" fill="url(#cat-middle-fur)"/>
+                    <ellipse cx="56" cy="94" rx="4.5" ry="2.5" fill="url(#cat-middle-fur)"/>
+                    <!-- Head -->
+                    <ellipse cx="50" cy="46" rx="18" ry="20" fill="url(#cat-middle-fur)"/>
+                    <!-- Ears -->
+                    <path d="M 32 42 L 34 26 L 46 38 Z" fill="url(#cat-middle-fur)"/>
+                    <path d="M 36 34 L 38 28 L 43 36 Z" fill="#d7ccc8" opacity="0.5"/>
+                    <path d="M 68 42 L 66 26 L 54 38 Z" fill="url(#cat-middle-fur)"/>
+                    <path d="M 64 34 L 62 28 L 57 36 Z" fill="#d7ccc8" opacity="0.5"/>
+                    <!-- Eyes (experienced) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="44" rx="4.5" ry="6.5" fill="#fff"/>
+                        <ellipse cx="42" cy="46" rx="1.8" ry="4.5" fill="#6d4c41"/>
+                        <circle cx="43" cy="44" r="1.2" fill="#fff"/>
+                        <ellipse cx="58" cy="44" rx="4.5" ry="6.5" fill="#fff"/>
+                        <ellipse cx="58" cy="46" rx="1.8" ry="4.5" fill="#6d4c41"/>
+                        <circle cx="59" cy="44" r="1.2" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 37 44 Q 42 42 47 44" stroke="#bf360c" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 44 Q 58 42 63 44" stroke="#bf360c" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Nose -->
+                    <path d="M 48 52 L 50 54 L 52 52 Z" fill="#f48fb1"/>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 50 54 L 50 56 M 44 56 Q 50 58 56 56" stroke="#bf360c" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 50 54 L 50 56 M 44 56 Q 50 54 56 56" stroke="#bf360c" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <!-- Whiskers -->
+                    <line x1="34" y1="48" x2="22" y2="46" stroke="#5d4037" stroke-width="1.2" opacity="0.7"/>
+                    <line x1="34" y1="51" x2="22" y2="51" stroke="#5d4037" stroke-width="1.2" opacity="0.7"/>
+                    <line x1="34" y1="54" x2="22" y2="56" stroke="#5d4037" stroke-width="1.2" opacity="0.7"/>
+                    <line x1="66" y1="48" x2="78" y2="46" stroke="#5d4037" stroke-width="1.2" opacity="0.7"/>
+                    <line x1="66" y1="51" x2="78" y2="51" stroke="#5d4037" stroke-width="1.2" opacity="0.7"/>
+                    <line x1="66" y1="54" x2="78" y2="56" stroke="#5d4037" stroke-width="1.2" opacity="0.7"/>
+                </g>
+
+                <!-- CAT OLD - Ancient guardian cat -->
+                <g id="tm-mascot-evo5-cat" style="display: none;">
+                    <defs>
+                        <linearGradient id="cat-old-fur" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#bcaaa4;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#8d6e63;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="28" ry="4" fill="#333" opacity="0.35"/>
+                    <!-- Tail (resting) -->
+                    <path d="M 68 86 Q 76 82 80 76 Q 82 70 80 64" stroke="#8d6e63" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <circle cx="80" cy="62" r="3.5" fill="#8d6e63"/>
+                    <!-- Hind legs (resting) -->
+                    <ellipse cx="42" cy="88" rx="8" ry="14" fill="url(#cat-old-fur)"/>
+                    <ellipse cx="58" cy="88" rx="8" ry="14" fill="url(#cat-old-fur)"/>
+                    <ellipse cx="42" cy="94" rx="6" ry="3" fill="url(#cat-old-fur)"/>
+                    <ellipse cx="58" cy="94" rx="6" ry="3" fill="url(#cat-old-fur)"/>
+                    <!-- Body (elderly, resting) -->
+                    <ellipse cx="50" cy="74" rx="22" ry="22" fill="url(#cat-old-fur)"/>
+                    <!-- Old fur markings (faded) -->
+                    <path d="M 36 68 Q 50 66 64 68" stroke="#5d4037" stroke-width="2" fill="none" opacity="0.3"/>
+                    <path d="M 38 76 Q 50 74 62 76" stroke="#5d4037" stroke-width="2" fill="none" opacity="0.3"/>
+                    <path d="M 40 84 Q 50 82 60 84" stroke="#5d4037" stroke-width="2" fill="none" opacity="0.3"/>
+                    <!-- Front legs (tucked) -->
+                    <ellipse cx="44" cy="88" rx="6" ry="10" fill="url(#cat-old-fur)"/>
+                    <ellipse cx="56" cy="88" rx="6" ry="10" fill="url(#cat-old-fur)"/>
+                    <ellipse cx="44" cy="94" rx="5" ry="2.5" fill="url(#cat-old-fur)"/>
+                    <ellipse cx="56" cy="94" rx="5" ry="2.5" fill="url(#cat-old-fur)"/>
+                    <!-- Head (wise) -->
+                    <ellipse cx="50" cy="48" rx="19" ry="20" fill="url(#cat-old-fur)"/>
+                    <!-- Grey patches -->
+                    <ellipse cx="40" cy="44" rx="4" ry="5" fill="#d7ccc8" opacity="0.6"/>
+                    <ellipse cx="60" cy="44" rx="4" ry="5" fill="#d7ccc8" opacity="0.6"/>
+                    <!-- Ears (drooping slightly) -->
+                    <path d="M 32 44 L 34 30 L 46 40 Z" fill="url(#cat-old-fur)"/>
+                    <path d="M 36 36 L 38 32 L 43 38 Z" fill="#d7ccc8" opacity="0.4"/>
+                    <path d="M 68 44 L 66 30 L 54 40 Z" fill="url(#cat-old-fur)"/>
+                    <path d="M 64 36 L 62 32 L 57 38 Z" fill="#d7ccc8" opacity="0.4"/>
+                    <!-- Eyes (wise, knowing) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="46" rx="4" ry="6" fill="#e0e0e0"/>
+                        <ellipse cx="42" cy="48" rx="1.5" ry="4" fill="#5d4037"/>
+                        <circle cx="43" cy="46" r="0.8" fill="#e0e0e0"/>
+                        <ellipse cx="58" cy="46" rx="4" ry="6" fill="#e0e0e0"/>
+                        <ellipse cx="58" cy="48" rx="1.5" ry="4" fill="#5d4037"/>
+                        <circle cx="59" cy="46" r="0.8" fill="#e0e0e0"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 38 46 Q 42 44 46 46" stroke="#8d6e63" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 54 46 Q 58 44 62 46" stroke="#8d6e63" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Nose -->
+                    <path d="M 48 54 L 50 56 L 52 54 Z" fill="#d7ccc8"/>
+                    <!-- Mouth (content) -->
+                    <path class="tm-mascot-mouth-happy" d="M 50 56 L 50 58 M 44 58 Q 50 60 56 58" stroke="#8d6e63" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 50 56 L 50 58 M 44 58 Q 50 56 56 58" stroke="#8d6e63" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <!-- Whiskers (grey, wise) -->
+                    <line x1="34" y1="50" x2="22" y2="48" stroke="#9e9e9e" stroke-width="1.2" opacity="0.6"/>
+                    <line x1="34" y1="53" x2="22" y2="53" stroke="#9e9e9e" stroke-width="1.2" opacity="0.6"/>
+                    <line x1="34" y1="56" x2="22" y2="58" stroke="#9e9e9e" stroke-width="1.2" opacity="0.6"/>
+                    <line x1="66" y1="50" x2="78" y2="48" stroke="#9e9e9e" stroke-width="1.2" opacity="0.6"/>
+                    <line x1="66" y1="53" x2="78" y2="53" stroke="#9e9e9e" stroke-width="1.2" opacity="0.6"/>
+                    <line x1="66" y1="56" x2="78" y2="58" stroke="#9e9e9e" stroke-width="1.2" opacity="0.6"/>
+                </g>
+
+                <!-- ═══════════════════════════════════════ -->
+                <!-- PHOENIX CHARACTER - All Life Stages -->
+                <!-- Flame & Rebirth • Legendary Rarity -->
+                <!-- ═══════════════════════════════════════ -->
+                
+                <!-- PHOENIX BABY - Tiny ember chick -->
+                <g id="tm-mascot-baby-phoenix" style="display: none;">
+                    <defs>
+                        <radialGradient id="phoenix-baby-body">
+                            <stop offset="0%" style="stop-color:#fff9c4;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#ffe082;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ffca28;stop-opacity:1" />
+                        </radialGradient>
+                        <radialGradient id="ember-glow">
+                            <stop offset="0%" style="stop-color:#ffeb3b;stop-opacity:0.6" />
+                            <stop offset="100%" style="stop-color:#ff9800;stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Ember glow -->
+                    <ellipse cx="50" cy="62" rx="26" ry="28" fill="url(#ember-glow)" filter="url(#glow)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="82" rx="18" ry="4" fill="#333" opacity="0.15"/>
+                    <!-- Body (fluffy chick) -->
+                    <ellipse cx="50" cy="60" rx="18" ry="22" fill="url(#phoenix-baby-body)"/>
+                    <!-- Fluffy down feathers -->
+                    <circle cx="42" cy="56" r="5" fill="#ffe082" opacity="0.8"/>
+                    <circle cx="58" cy="56" r="5" fill="#ffe082" opacity="0.8"/>
+                    <circle cx="46" cy="72" r="6" fill="#ffe082" opacity="0.8"/>
+                    <circle cx="54" cy="72" r="6" fill="#ffe082" opacity="0.8"/>
+                    <!-- Tiny wings (nubs) -->
+                    <ellipse cx="36" cy="60" rx="6" ry="8" fill="#ffc107" opacity="0.9" transform="rotate(-20 36 60)"/>
+                    <ellipse cx="64" cy="60" rx="6" ry="8" fill="#ffc107" opacity="0.9" transform="rotate(20 64 60)"/>
+                    <!-- Feet -->
+                    <line x1="46" y1="78" x2="44" y2="82" stroke="#ff9800" stroke-width="2"/>
+                    <line x1="46" y1="78" x2="48" y2="82" stroke="#ff9800" stroke-width="2"/>
+                    <line x1="54" y1="78" x2="52" y2="82" stroke="#ff9800" stroke-width="2"/>
+                    <line x1="54" y1="78" x2="56" y2="82" stroke="#ff9800" stroke-width="2"/>
+                    <!-- Head -->
+                    <circle cx="50" cy="46" r="12" fill="url(#phoenix-baby-body)"/>
+                    <!-- Tiny crest -->
+                    <path d="M 46 38 L 50 32 L 54 38" fill="#ff9800" opacity="0.8"/>
+                    <!-- Eyes (bright) -->
+                    <g class="tm-mascot-eye-open">
+                        <circle cx="45" cy="46" r="3.5" fill="#fff"/>
+                        <circle cx="45" cy="47" r="2" fill="#f57c00"/>
+                        <circle cx="46" cy="45" r="1" fill="#fff"/>
+                        <circle cx="55" cy="46" r="3.5" fill="#fff"/>
+                        <circle cx="55" cy="47" r="2" fill="#f57c00"/>
+                        <circle cx="56" cy="45" r="1" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 41 46 Q 45 44 49 46" stroke="#ffa726" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 51 46 Q 55 44 59 46" stroke="#ffa726" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Beak -->
+                    <path d="M 48 50 L 50 52 L 52 50" fill="#ff9800"/>
+                    <!-- Ember sparkles -->
+                    <circle cx="38" cy="50" r="1.5" fill="#ffeb3b" opacity="0.8"/>
+                    <circle cx="62" cy="52" r="1.2" fill="#ffeb3b" opacity="0.7"/>
+                    <circle cx="50" cy="36" r="1" fill="#ffeb3b" opacity="0.9"/>
+                </g>
+
+                <!-- PHOENIX KID - Young firebird -->
+                <g id="tm-mascot-evo1-phoenix" style="display: none;">
+                    <defs>
+                        <linearGradient id="phoenix-kid-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffeb3b;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ffa726;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Flame aura -->
+                    <ellipse cx="50" cy="64" rx="28" ry="32" fill="#ffeb3b" opacity="0.25" filter="url(#glow)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="86" rx="20" ry="5" fill="#333" opacity="0.2"/>
+                    <!-- Tail feathers (short, fiery) -->
+                    <path d="M 54 78 Q 58 82 60 86" stroke="#ff6f00" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <path d="M 50 78 Q 52 84 54 88" stroke="#ff8f00" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <path d="M 46 78 Q 44 82 42 86" stroke="#ff6f00" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    <!-- Legs -->
+                    <line x1="46" y1="78" x2="44" y2="86" stroke="#f57c00" stroke-width="2.5"/>
+                    <line x1="46" y1="78" x2="42" y2="87" stroke="#f57c00" stroke-width="1.5"/>
+                    <line x1="46" y1="78" x2="48" y2="87" stroke="#f57c00" stroke-width="1.5"/>
+                    <line x1="54" y1="78" x2="56" y2="86" stroke="#f57c00" stroke-width="2.5"/>
+                    <line x1="54" y1="78" x2="52" y2="87" stroke="#f57c00" stroke-width="1.5"/>
+                    <line x1="54" y1="78" x2="58" y2="87" stroke="#f57c00" stroke-width="1.5"/>
+                    <!-- Body -->
+                    <ellipse cx="50" cy="62" rx="16" ry="20" fill="url(#phoenix-kid-body)"/>
+                    <!-- Wing feathers (developing) -->
+                    <ellipse cx="34" cy="60" rx="8" ry="14" fill="#ff9800" opacity="0.9" transform="rotate(-25 34 60)"/>
+                    <path d="M 32 56 L 28 54 M 32 62 L 28 64 M 32 68 L 28 72" stroke="#ff6f00" stroke-width="1.5" opacity="0.7"/>
+                    <ellipse cx="66" cy="60" rx="8" ry="14" fill="#ff9800" opacity="0.9" transform="rotate(25 66 60)"/>
+                    <path d="M 68 56 L 72 54 M 68 62 L 72 64 M 68 68 L 72 72" stroke="#ff6f00" stroke-width="1.5" opacity="0.7"/>
+                    <!-- Head -->
+                    <circle cx="50" cy="44" r="13" fill="url(#phoenix-kid-body)"/>
+                    <!-- Crest (growing) -->
+                    <path d="M 44 36 L 48 28 L 50 30 L 52 28 L 56 36" fill="#ff6f00" opacity="0.9"/>
+                    <!-- Eyes (fiery) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="44" cy="44" rx="3.5" ry="4.5" fill="#fff"/>
+                        <ellipse cx="44" cy="45" rx="2" ry="3" fill="#e65100"/>
+                        <circle cx="45" cy="43" r="1" fill="#fff"/>
+                        <ellipse cx="56" cy="44" rx="3.5" ry="4.5" fill="#fff"/>
+                        <ellipse cx="56" cy="45" rx="2" ry="3" fill="#e65100"/>
+                        <circle cx="57" cy="43" r="1" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 40 44 Q 44 42 48 44" stroke="#ffa726" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 44 Q 56 42 60 44" stroke="#ffa726" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Beak -->
+                    <path d="M 48 50 L 50 52 L 52 50 Z" fill="#ff9800"/>
+                    <!-- Fire sparks -->
+                    <circle cx="36" cy="48" r="1.8" fill="#ffeb3b" opacity="0.8" filter="url(#glow)"/>
+                    <circle cx="64" cy="50" r="1.5" fill="#ffeb3b" opacity="0.7" filter="url(#glow)"/>
+                    <circle cx="50" cy="28" r="1.3" fill="#ffeb3b" opacity="0.9" filter="url(#glow)"/>
+                </g>
+
+                <!-- PHOENIX TEEN - Blazing adolescent -->
+                <g id="tm-mascot-evo2-phoenix" style="display: none;">
+                    <defs>
+                        <linearGradient id="phoenix-teen-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffa726;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ff6f00;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Fire aura -->
+                    <ellipse cx="50" cy="66" rx="34" ry="36" fill="#ff9800" opacity="0.3" filter="url(#strong-glow)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="90" rx="22" ry="5" fill="#333" opacity="0.25"/>
+                    <!-- Tail feathers (longer, flame-like) -->
+                    <path d="M 56 80 Q 62 86 66 92" stroke="#ff3d00" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <path d="M 50 80 Q 54 88 56 94" stroke="#ff6f00" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <path d="M 44 80 Q 40 86 36 92" stroke="#ff3d00" stroke-width="5" fill="none" stroke-linecap="round"/>
+                    <circle cx="66" cy="93" r="2.5" fill="#ff6f00" opacity="0.8"/>
+                    <circle cx="56" cy="95" r="2" fill="#ff6f00" opacity="0.8"/>
+                    <circle cx="36" cy="93" r="2.5" fill="#ff6f00" opacity="0.8"/>
+                    <!-- Legs -->
+                    <line x1="46" y1="80" x2="44" y2="90" stroke="#f57c00" stroke-width="3"/>
+                    <path d="M 44 90 L 40 92 M 44 90 L 44 93 M 44 90 L 48 92" stroke="#f57c00" stroke-width="2"/>
+                    <line x1="54" y1="80" x2="56" y2="90" stroke="#f57c00" stroke-width="3"/>
+                    <path d="M 56 90 L 52 92 M 56 90 L 56 93 M 56 90 L 60 92" stroke="#f57c00" stroke-width="2"/>
+                    <!-- Body -->
+                    <ellipse cx="50" cy="64" rx="18" ry="22" fill="url(#phoenix-teen-body)"/>
+                    <!-- Wings (spread slightly) -->
+                    <ellipse cx="30" cy="62" rx="10" ry="18" fill="#ff6f00" transform="rotate(-30 30 62)"/>
+                    <path d="M 28 54 L 22 50 M 28 60 L 22 60 M 28 66 L 22 68 M 28 72 L 22 76" stroke="#ff3d00" stroke-width="2" opacity="0.8"/>
+                    <ellipse cx="70" cy="62" rx="10" ry="18" fill="#ff6f00" transform="rotate(30 70 62)"/>
+                    <path d="M 72 54 L 78 50 M 72 60 L 78 60 M 72 66 L 78 68 M 72 72 L 78 76" stroke="#ff3d00" stroke-width="2" opacity="0.8"/>
+                    <!-- Head -->
+                    <ellipse cx="50" cy="42" rx="14" ry="16" fill="url(#phoenix-teen-body)"/>
+                    <!-- Crest (fiery) -->
+                    <path d="M 42 34 L 46 24 L 48 28 L 50 22 L 52 28 L 54 24 L 58 34" fill="#ff3d00"/>
+                    <path d="M 46 26 L 50 20 L 54 26" fill="#ffeb3b" opacity="0.6"/>
+                    <!-- Eyes (intense) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="43" cy="42" rx="4" ry="5" fill="#fff" filter="url(#glow)"/>
+                        <ellipse cx="43" cy="44" rx="2" ry="3" fill="#bf360c"/>
+                        <circle cx="44" cy="41" r="1.2" fill="#fff"/>
+                        <ellipse cx="57" cy="42" rx="4" ry="5" fill="#fff" filter="url(#glow)"/>
+                        <ellipse cx="57" cy="44" rx="2" ry="3" fill="#bf360c"/>
+                        <circle cx="58" cy="41" r="1.2" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 39 42 Q 43 40 47 42" stroke="#ff6f00" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 42 Q 57 40 61 42" stroke="#ff6f00" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Beak -->
+                    <path d="M 48 48 L 50 52 L 52 48 Z" fill="#ff6f00"/>
+                    <!-- Fire particles -->
+                    <circle cx="32" cy="44" r="2" fill="#ffeb3b" opacity="0.9" filter="url(#glow)"/>
+                    <circle cx="68" cy="46" r="1.8" fill="#ffeb3b" opacity="0.8" filter="url(#glow)"/>
+                    <circle cx="50" cy="20" r="1.5" fill="#ffeb3b" opacity="1" filter="url(#strong-glow)"/>
+                </g>
+
+                <!-- PHOENIX ADULT - Majestic firebird -->
+                <g id="tm-mascot-evo3-phoenix" style="display: none;">
+                    <defs>
+                        <linearGradient id="phoenix-adult-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ff6f00;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="solar-aura">
+                            <stop offset="0%" style="stop-color:#ffeb3b;stop-opacity:0.6" />
+                            <stop offset="70%" style="stop-color:#ff9800;stop-opacity:0.3" />
+                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Solar aura -->
+                    <ellipse cx="50" cy="66" rx="42" ry="44" fill="url(#solar-aura)" filter="url(#strong-glow)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="26" ry="4" fill="#333" opacity="0.3"/>
+                    <!-- Tail feathers (magnificent) -->
+                    <path d="M 58 82 Q 68 88 76 94" stroke="#ff3d00" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M 54 82 Q 62 90 68 96" stroke="#ff6f00" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M 50 82 Q 54 92 56 98" stroke="#ffa726" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M 46 82 Q 40 90 34 96" stroke="#ff6f00" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M 42 82 Q 32 88 24 94" stroke="#ff3d00" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <circle cx="76" cy="95" r="3" fill="#ffeb3b" filter="url(#glow)"/>
+                    <circle cx="56" cy="99" r="2.5" fill="#ffeb3b" filter="url(#glow)"/>
+                    <circle cx="24" cy="95" r="3" fill="#ffeb3b" filter="url(#glow)"/>
+                    <!-- Legs -->
+                    <line x1="46" y1="82" x2="44" y2="92" stroke="#bf360c" stroke-width="3.5"/>
+                    <path d="M 44 92 L 38 94 M 44 92 L 44 96 M 44 92 L 50 94" stroke="#bf360c" stroke-width="2.5"/>
+                    <line x1="54" y1="82" x2="56" y2="92" stroke="#bf360c" stroke-width="3.5"/>
+                    <path d="M 56 92 L 50 94 M 56 92 L 56 96 M 56 92 L 62 94" stroke="#bf360c" stroke-width="2.5"/>
+                    <!-- Body -->
+                    <ellipse cx="50" cy="66" rx="20" ry="24" fill="url(#phoenix-adult-body)"/>
+                    <!-- Wings (majestic, spread) -->
+                    <ellipse cx="24" cy="62" rx="14" ry="24" fill="#e65100" transform="rotate(-35 24 62)"/>
+                    <path d="M 22 48 L 14 42 M 22 54 L 14 52 M 22 60 L 14 62 M 22 66 L 14 72 M 22 72 L 14 80" stroke="#ff3d00" stroke-width="2.5" opacity="0.9"/>
+                    <path d="M 16 44 L 12 42 M 16 54 L 12 54 M 16 64 L 12 66 M 16 74 L 12 78" stroke="#ffeb3b" stroke-width="2" opacity="0.6"/>
+                    <ellipse cx="76" cy="62" rx="14" ry="24" fill="#e65100" transform="rotate(35 76 62)"/>
+                    <path d="M 78 48 L 86 42 M 78 54 L 86 52 M 78 60 L 86 62 M 78 66 L 86 72 M 78 72 L 86 80" stroke="#ff3d00" stroke-width="2.5" opacity="0.9"/>
+                    <path d="M 84 44 L 88 42 M 84 54 L 88 54 M 84 64 L 88 66 M 84 74 L 88 78" stroke="#ffeb3b" stroke-width="2" opacity="0.6"/>
+                    <!-- Head -->
+                    <ellipse cx="50" cy="38" rx="16" ry="18" fill="url(#phoenix-adult-body)"/>
+                    <!-- Crown crest (solar) -->
+                    <path d="M 38 30 L 42 18 L 46 26 L 50 16 L 54 26 L 58 18 L 62 30" fill="#ff3d00"/>
+                    <path d="M 42 20 L 46 22 L 50 14 L 54 22 L 58 20" fill="#ffeb3b" opacity="0.7" filter="url(#glow)"/>
+                    <!-- Eyes (burning) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="38" rx="4.5" ry="6" fill="#fff" filter="url(#strong-glow)"/>
+                        <ellipse cx="42" cy="40" rx="2.5" ry="4" fill="#bf360c"/>
+                        <circle cx="43.5" cy="37" r="1.5" fill="#fff"/>
+                        <ellipse cx="58" cy="38" rx="4.5" ry="6" fill="#fff" filter="url(#strong-glow)"/>
+                        <ellipse cx="58" cy="40" rx="2.5" ry="4" fill="#bf360c"/>
+                        <circle cx="59.5" cy="37" r="1.5" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 37 38 Q 42 36 47 38" stroke="#e65100" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 38 Q 58 36 63 38" stroke="#e65100" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Beak (sharp) -->
+                    <path d="M 48 46 L 50 50 L 52 46 Z" fill="#bf360c"/>
+                    <!-- Solar flares -->
+                    <circle cx="28" cy="38" r="2.5" fill="#ffeb3b" filter="url(#strong-glow)"/>
+                    <circle cx="72" cy="40" r="2.3" fill="#ffeb3b" filter="url(#strong-glow)"/>
+                    <circle cx="50" cy="14" r="2.8" fill="#fff" filter="url(#strong-glow)"/>
+                </g>
+
+                <!-- PHOENIX MIDDLE AGE - Eternal flame keeper -->
+                <g id="tm-mascot-evo4-phoenix" style="display: none;">
+                    <defs>
+                        <linearGradient id="phoenix-middle-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ff5722;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#d84315;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Fire aura (intense) -->
+                    <ellipse cx="50" cy="66" rx="40" ry="42" fill="#ff6f00" opacity="0.35" filter="url(#strong-glow)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="26" ry="4" fill="#333" opacity="0.3"/>
+                    <!-- Tail feathers (long, burning) -->
+                    <path d="M 58 82 Q 70 88 80 94" stroke="#d32f2f" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M 54 82 Q 64 90 72 96" stroke="#f4511e" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M 50 82 Q 56 92 60 98" stroke="#ff6f00" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M 46 82 Q 38 90 30 96" stroke="#f4511e" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <path d="M 42 82 Q 30 88 20 94" stroke="#d32f2f" stroke-width="6" fill="none" stroke-linecap="round"/>
+                    <circle cx="80" cy="95" r="3" fill="#ff9800" filter="url(#glow)"/>
+                    <circle cx="60" cy="99" r="2.5" fill="#ff9800" filter="url(#glow)"/>
+                    <circle cx="20" cy="95" r="3" fill="#ff9800" filter="url(#glow)"/>
+                    <!-- Legs -->
+                    <line x1="46" y1="82" x2="44" y2="92" stroke="#bf360c" stroke-width="3.5"/>
+                    <path d="M 44 92 L 38 94 M 44 92 L 44 96 M 44 92 L 50 94" stroke="#bf360c" stroke-width="2.5"/>
+                    <line x1="54" y1="82" x2="56" y2="92" stroke="#bf360c" stroke-width="3.5"/>
+                    <path d="M 56 92 L 50 94 M 56 92 L 56 96 M 56 92 L 62 94" stroke="#bf360c" stroke-width="2.5"/>
+                    <!-- Body -->
+                    <ellipse cx="50" cy="66" rx="20" ry="24" fill="url(#phoenix-middle-body)"/>
+                    <!-- Battle-scarred markings -->
+                    <path d="M 38 60 Q 50 58 62 60" stroke="#8d6e63" stroke-width="1.5" opacity="0.3"/>
+                    <path d="M 40 68 Q 50 66 60 68" stroke="#8d6e63" stroke-width="1.5" opacity="0.3"/>
+                    <!-- Wings (powerful) -->
+                    <ellipse cx="24" cy="62" rx="14" ry="24" fill="#d84315" transform="rotate(-35 24 62)"/>
+                    <path d="M 22 48 L 14 42 M 22 54 L 14 52 M 22 60 L 14 62 M 22 66 L 14 72 M 22 72 L 14 80" stroke="#d32f2f" stroke-width="2.5" opacity="0.9"/>
+                    <path d="M 16 44 L 12 42 M 16 54 L 12 54 M 16 64 L 12 66" stroke="#ff9800" stroke-width="2" opacity="0.5"/>
+                    <ellipse cx="76" cy="62" rx="14" ry="24" fill="#d84315" transform="rotate(35 76 62)"/>
+                    <path d="M 78 48 L 86 42 M 78 54 L 86 52 M 78 60 L 86 62 M 78 66 L 86 72 M 78 72 L 86 80" stroke="#d32f2f" stroke-width="2.5" opacity="0.9"/>
+                    <path d="M 84 44 L 88 42 M 84 54 L 88 54 M 84 64 L 88 66" stroke="#ff9800" stroke-width="2" opacity="0.5"/>
+                    <!-- Head -->
+                    <ellipse cx="50" cy="38" rx="16" ry="18" fill="url(#phoenix-middle-body)"/>
+                    <!-- Crown (burning steady) -->
+                    <path d="M 38 30 L 42 18 L 46 26 L 50 16 L 54 26 L 58 18 L 62 30" fill="#d32f2f"/>
+                    <path d="M 44 22 L 48 20 L 50 16 L 52 20 L 56 22" fill="#ff9800" opacity="0.6"/>
+                    <!-- Eyes (eternal) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="38" rx="4.5" ry="6" fill="#ffccbc" filter="url(#glow)"/>
+                        <ellipse cx="42" cy="40" rx="2.5" ry="4" fill="#bf360c"/>
+                        <circle cx="43.5" cy="37" r="1.3" fill="#ffccbc"/>
+                        <ellipse cx="58" cy="38" rx="4.5" ry="6" fill="#ffccbc" filter="url(#glow)"/>
+                        <ellipse cx="58" cy="40" rx="2.5" ry="4" fill="#bf360c"/>
+                        <circle cx="59.5" cy="37" r="1.3" fill="#ffccbc"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 37 38 Q 42 36 47 38" stroke="#d84315" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 38 Q 58 36 63 38" stroke="#d84315" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Beak -->
+                    <path d="M 48 46 L 50 50 L 52 46 Z" fill="#bf360c"/>
+                </g>
+
+                <!-- PHOENIX OLD - Immortal ancient phoenix -->
+                <g id="tm-mascot-evo5-phoenix" style="display: none;">
+                    <defs>
+                        <linearGradient id="phoenix-old-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffeb3b;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#ffa726;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ff6f00;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="immortal-aura">
+                            <stop offset="0%" style="stop-color:#fff;stop-opacity:0.8" />
+                            <stop offset="40%" style="stop-color:#ffeb3b;stop-opacity:0.5" />
+                            <stop offset="80%" style="stop-color:#ff9800;stop-opacity:0.2" />
+                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Immortal divine aura -->
+                    <ellipse cx="50" cy="66" rx="48" ry="48" fill="url(#immortal-aura)" filter="url(#strong-glow)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="28" ry="4" fill="#333" opacity="0.35"/>
+                    <!-- Tail feathers (divine, endless) -->
+                    <path d="M 60 82 Q 74 88 86 94 Q 92 96 94 92" stroke="#ff3d00" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <path d="M 56 82 Q 68 90 78 96 Q 82 98 84 94" stroke="#ff6f00" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <path d="M 52 82 Q 60 92 66 98 Q 68 100 70 98" stroke="#ffa726" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <path d="M 48 82 Q 42 92 36 98 Q 34 100 32 98" stroke="#ffa726" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <path d="M 44 82 Q 32 90 22 96 Q 18 98 16 94" stroke="#ff6f00" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <path d="M 40 82 Q 26 88 14 94 Q 8 96 6 92" stroke="#ff3d00" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <circle cx="94" cy="91" r="3.5" fill="#fff" filter="url(#strong-glow)"/>
+                    <circle cx="70" cy="99" r="3" fill="#fff" filter="url(#strong-glow)"/>
+                    <circle cx="32" cy="99" r="3" fill="#fff" filter="url(#strong-glow)"/>
+                    <circle cx="6" cy="91" r="3.5" fill="#fff" filter="url(#strong-glow)"/>
+                    <!-- Legs (ancient, golden) -->
+                    <line x1="46" y1="82" x2="44" y2="92" stroke="#f57c00" stroke-width="3.5"/>
+                    <path d="M 44 92 L 38 94 M 44 92 L 44 96 M 44 92 L 50 94" stroke="#f57c00" stroke-width="2.5"/>
+                    <line x1="54" y1="82" x2="56" y2="92" stroke="#f57c00" stroke-width="3.5"/>
+                    <path d="M 56 92 L 50 94 M 56 92 L 56 96 M 56 92 L 62 94" stroke="#f57c00" stroke-width="2.5"/>
+                    <!-- Body (radiant) -->
+                    <ellipse cx="50" cy="66" rx="22" ry="24" fill="url(#phoenix-old-body)" filter="url(#glow)"/>
+                    <!-- Ancient divine markings -->
+                    <path d="M 36 60 Q 50 58 64 60" stroke="#fff" stroke-width="1.5" opacity="0.5" filter="url(#glow)"/>
+                    <path d="M 38 68 Q 50 66 62 68" stroke="#fff" stroke-width="1.5" opacity="0.5" filter="url(#glow)"/>
+                    <circle cx="50" cy="66" r="4" fill="#fff" opacity="0.4" filter="url(#glow)"/>
+                    <!-- Wings (eternal, magnificent) -->
+                    <ellipse cx="22" cy="62" rx="16" ry="26" fill="#ff9800" transform="rotate(-38 22 62)" filter="url(#glow)"/>
+                    <path d="M 20 46 L 10 38 M 20 52 L 10 48 M 20 58 L 10 58 M 20 64 L 10 68 M 20 70 L 10 78 M 20 76 L 10 86" stroke="#ff3d00" stroke-width="3" opacity="0.9"/>
+                    <path d="M 12 40 L 6 36 M 12 50 L 6 50 M 12 60 L 6 62 M 12 70 L 6 74 M 12 80 L 6 84" stroke="#ffeb3b" stroke-width="2.5" opacity="0.7" filter="url(#glow)"/>
+                    <ellipse cx="78" cy="62" rx="16" ry="26" fill="#ff9800" transform="rotate(38 78 62)" filter="url(#glow)"/>
+                    <path d="M 80 46 L 90 38 M 80 52 L 90 48 M 80 58 L 90 58 M 80 64 L 90 68 M 80 70 L 90 78 M 80 76 L 90 86" stroke="#ff3d00" stroke-width="3" opacity="0.9"/>
+                    <path d="M 88 40 L 94 36 M 88 50 L 94 50 M 88 60 L 94 62 M 88 70 L 94 74 M 88 80 L 94 84" stroke="#ffeb3b" stroke-width="2.5" opacity="0.7" filter="url(#glow)"/>
+                    <!-- Head (divine wisdom) -->
+                    <ellipse cx="50" cy="36" rx="18" ry="20" fill="url(#phoenix-old-body)" filter="url(#glow)"/>
+                    <!-- Divine crown (blazing halo) -->
+                    <path d="M 36 28 L 40 14 L 44 24 L 48 12 L 50 10 L 52 12 L 56 24 L 60 14 L 64 28" fill="#ff6f00" filter="url(#strong-glow)"/>
+                    <path d="M 40 16 L 44 18 L 48 10 L 50 8 L 52 10 L 56 18 L 60 16" fill="#ffeb3b" opacity="0.8" filter="url(#strong-glow)"/>
+                    <circle cx="50" cy="8" r="3" fill="#fff" filter="url(#strong-glow)"/>
+                    <!-- Eyes (immortal knowledge) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="36" rx="5" ry="7" fill="#fff" filter="url(#strong-glow)"/>
+                        <ellipse cx="42" cy="38" rx="2.5" ry="4.5" fill="#e65100"/>
+                        <circle cx="43.5" cy="35" r="1.8" fill="#fff"/>
+                        <ellipse cx="58" cy="36" rx="5" ry="7" fill="#fff" filter="url(#strong-glow)"/>
+                        <ellipse cx="58" cy="38" rx="2.5" ry="4.5" fill="#e65100"/>
+                        <circle cx="59.5" cy="35" r="1.8" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 37 36 Q 42 34 47 36" stroke="#ff9800" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 36 Q 58 34 63 36" stroke="#ff9800" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <!-- Beak (golden) -->
+                    <path d="M 48 44 L 50 48 L 52 44 Z" fill="#ffa726"/>
+                    <!-- Eternal light -->
+                    <circle cx="26" cy="36" r="3" fill="#fff" filter="url(#strong-glow)"/>
+                    <circle cx="74" cy="38" r="2.8" fill="#fff" filter="url(#strong-glow)"/>
+                    <circle cx="50" cy="26" r="2" fill="#fff" opacity="0.8" filter="url(#glow)"/>
+                </g>
+
+                <!-- ═══════════════════════════════════════ -->
+                <!-- CRYSTAL CHARACTER - All Life Stages -->
+                <!-- Gem & Light • Epic Rarity -->
+                <!-- ═══════════════════════════════════════ -->
+                
+                <!-- CRYSTAL BABY - Tiny gemstone -->
+                <g id="tm-mascot-baby-crystal" style="display: none;">
+                    <defs>
+                        <linearGradient id="crystal-baby-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#e1f5fe;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#81d4fa;stop-opacity:0.95" />
+                        </linearGradient>
+                        <radialGradient id="crystal-glow">
+                            <stop offset="0%" style="stop-color:#80deea;stop-opacity:0.6" />
+                            <stop offset="100%" style="stop-color:#00bcd4;stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Crystal glow -->
+                    <ellipse cx="50" cy="58" rx="24" ry="26" fill="url(#crystal-glow)" filter="url(#glow)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="80" rx="18" ry="4" fill="#333" opacity="0.15"/>
+                    <!-- Main crystal body (geometric) -->
+                    <path d="M 50 40 L 64 54 L 62 72 L 50 78 L 38 72 L 36 54 Z" fill="url(#crystal-baby-body)" stroke="#4dd0e1" stroke-width="2" opacity="0.9"/>
+                    <!-- Facets -->
+                    <path d="M 50 40 L 50 78" stroke="#e0f7fa" stroke-width="1" opacity="0.6"/>
+                    <path d="M 36 54 L 64 54" stroke="#e0f7fa" stroke-width="1" opacity="0.6"/>
+                    <path d="M 38 72 L 62 72" stroke="#e0f7fa" stroke-width="1" opacity="0.6"/>
+                    <path d="M 50 40 L 38 72" stroke="#80deea" stroke-width="0.8" opacity="0.4"/>
+                    <path d="M 50 40 L 62 72" stroke="#80deea" stroke-width="0.8" opacity="0.4"/>
+                    <!-- Light reflection -->
+                    <ellipse cx="46" cy="50" rx="6" ry="8" fill="#fff" opacity="0.6"/>
+                    <ellipse cx="54" cy="54" rx="4" ry="6" fill="#fff" opacity="0.4"/>
+                    <!-- Eyes (glowing) -->
+                    <g class="tm-mascot-eye-open">
+                        <circle cx="45" cy="58" r="3" fill="#fff" opacity="0.9"/>
+                        <circle cx="45" cy="59" r="1.8" fill="#00acc1"/>
+                        <circle cx="46" cy="57" r="0.8" fill="#fff"/>
+                        <circle cx="55" cy="58" r="3" fill="#fff" opacity="0.9"/>
+                        <circle cx="55" cy="59" r="1.8" fill="#00acc1"/>
+                        <circle cx="56" cy="57" r="0.8" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <line x1="42" y1="58" x2="48" y2="58" stroke="#4dd0e1" stroke-width="1.5"/>
+                        <line x1="52" y1="58" x2="58" y2="58" stroke="#4dd0e1" stroke-width="1.5"/>
+                    </g>
+                    <!-- Mouth (crystal seam) -->
+                    <path class="tm-mascot-mouth-happy" d="M 44 64 L 50 66 L 56 64" stroke="#4dd0e1" stroke-width="1.5" fill="none"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 66 L 50 64 L 56 66" stroke="#4dd0e1" stroke-width="1.5" fill="none"/>
+                    <!-- Sparkles -->
+                    <circle cx="40" cy="52" r="1.5" fill="#fff" opacity="0.9"/>
+                    <circle cx="60" cy="56" r="1.2" fill="#fff" opacity="0.8"/>
+                    <circle cx="50" cy="42" r="1" fill="#fff" opacity="1"/>
+                </g>
+
+                <!-- CRYSTAL KID - Growing prism -->
+                <g id="tm-mascot-evo1-crystal" style="display: none;">
+                    <defs>
+                        <linearGradient id="crystal-kid-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#b3e5fc;stop-opacity:0.95" />
+                            <stop offset="100%" style="stop-color:#4fc3f7;stop-opacity:0.98" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Prism glow -->
+                    <ellipse cx="50" cy="62" rx="28" ry="32" fill="#80deea" opacity="0.25" filter="url(#glow)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="86" rx="22" ry="5" fill="#333" opacity="0.2"/>
+                    <!-- Main body (larger crystal) -->
+                    <path d="M 50 36 L 68 56 L 66 76 L 50 84 L 34 76 L 32 56 Z" fill="url(#crystal-kid-body)" stroke="#29b6f6" stroke-width="2.5" opacity="0.95"/>
+                    <!-- Facets -->
+                    <path d="M 50 36 L 50 84" stroke="#e1f5fe" stroke-width="1.5" opacity="0.7"/>
+                    <path d="M 32 56 L 68 56" stroke="#e1f5fe" stroke-width="1.5" opacity="0.7"/>
+                    <path d="M 34 76 L 66 76" stroke="#e1f5fe" stroke-width="1.5" opacity="0.7"/>
+                    <path d="M 50 36 L 34 76" stroke="#80deea" stroke-width="1" opacity="0.5"/>
+                    <path d="M 50 36 L 66 76" stroke="#80deea" stroke-width="1" opacity="0.5"/>
+                    <path d="M 32 56 L 50 84" stroke="#80deea" stroke-width="1" opacity="0.5"/>
+                    <path d="M 68 56 L 50 84" stroke="#80deea" stroke-width="1" opacity="0.5"/>
+                    <!-- Light reflections -->
+                    <ellipse cx="44" cy="48" rx="8" ry="12" fill="#fff" opacity="0.6"/>
+                    <ellipse cx="56" cy="52" rx="6" ry="9" fill="#fff" opacity="0.4"/>
+                    <!-- Crystal arms (forming) -->
+                    <path d="M 32 56 L 24 58" stroke="#29b6f6" stroke-width="4" opacity="0.8"/>
+                    <path d="M 22 58 L 26 54 L 26 62 Z" fill="url(#crystal-kid-body)" opacity="0.8"/>
+                    <path d="M 68 56 L 76 58" stroke="#29b6f6" stroke-width="4" opacity="0.8"/>
+                    <path d="M 78 58 L 74 54 L 74 62 Z" fill="url(#crystal-kid-body)" opacity="0.8"/>
+                    <!-- Eyes -->
+                    <g class="tm-mascot-eye-open">
+                        <circle cx="44" cy="60" r="3.5" fill="#fff" opacity="0.9" filter="url(#glow)"/>
+                        <circle cx="44" cy="61" r="2" fill="#0097a7"/>
+                        <circle cx="45" cy="59" r="1" fill="#fff"/>
+                        <circle cx="56" cy="60" r="3.5" fill="#fff" opacity="0.9" filter="url(#glow)"/>
+                        <circle cx="56" cy="61" r="2" fill="#0097a7"/>
+                        <circle cx="57" cy="59" r="1" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <line x1="40" y1="60" x2="48" y2="60" stroke="#29b6f6" stroke-width="2"/>
+                        <line x1="52" y1="60" x2="60" y2="60" stroke="#29b6f6" stroke-width="2"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 42 68 L 50 70 L 58 68" stroke="#29b6f6" stroke-width="2" fill="none"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 70 L 50 68 L 58 70" stroke="#29b6f6" stroke-width="2" fill="none"/>
+                    <!-- Sparkles -->
+                    <circle cx="36" cy="46" r="1.8" fill="#fff" opacity="0.9"/>
+                    <circle cx="64" cy="50" r="1.5" fill="#fff" opacity="0.8"/>
+                    <circle cx="50" cy="38" r="1.3" fill="#fff" opacity="1"/>
+                </g>
+
+                <!-- CRYSTAL TEEN - Prismatic form -->
+                <g id="tm-mascot-evo2-crystal" style="display: none;">
+                    <defs>
+                        <linearGradient id="crystal-teen-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#80deea;stop-opacity:0.95" />
+                            <stop offset="100%" style="stop-color:#26c6da;stop-opacity:0.98" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Rainbow prism glow -->
+                    <ellipse cx="50" cy="66" rx="32" ry="36" fill="#4dd0e1" opacity="0.3" filter="url(#strong-glow)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="92" rx="24" ry="5" fill="#333" opacity="0.25"/>
+                    <!-- Main body -->
+                    <path d="M 50 32 L 72 58 L 70 80 L 50 90 L 30 80 L 28 58 Z" fill="url(#crystal-teen-body)" stroke="#00bcd4" stroke-width="3" opacity="0.95"/>
+                    <!-- Facets (more complex) -->
+                    <path d="M 50 32 L 50 90" stroke="#e0f7fa" stroke-width="2" opacity="0.8"/>
+                    <path d="M 28 58 L 72 58" stroke="#e0f7fa" stroke-width="2" opacity="0.8"/>
+                    <path d="M 30 80 L 70 80" stroke="#e0f7fa" stroke-width="2" opacity="0.8"/>
+                    <path d="M 50 32 L 30 80" stroke="#80deea" stroke-width="1.5" opacity="0.6"/>
+                    <path d="M 50 32 L 70 80" stroke="#80deea" stroke-width="1.5" opacity="0.6"/>
+                    <path d="M 28 58 L 50 90" stroke="#80deea" stroke-width="1.5" opacity="0.6"/>
+                    <path d="M 72 58 L 50 90" stroke="#80deea" stroke-width="1.5" opacity="0.6"/>
+                    <path d="M 40 45 L 60 75" stroke="#b2ebf2" stroke-width="1" opacity="0.4"/>
+                    <path d="M 60 45 L 40 75" stroke="#b2ebf2" stroke-width="1" opacity="0.4"/>
+                    <!-- Reflections (rainbow) -->
+                    <ellipse cx="42" cy="48" rx="10" ry="14" fill="#fff" opacity="0.5"/>
+                    <ellipse cx="58" cy="52" rx="7" ry="11" fill="#fff" opacity="0.35"/>
+                    <!-- Arms (crystal spikes) -->
+                    <path d="M 28 58 L 18 60 L 16 56 L 22 54 Z" fill="url(#crystal-teen-body)" stroke="#00bcd4" stroke-width="2" opacity="0.9"/>
+                    <path d="M 72 58 L 82 60 L 84 56 L 78 54 Z" fill="url(#crystal-teen-body)" stroke="#00bcd4" stroke-width="2" opacity="0.9"/>
+                    <!-- Legs (crystal base) -->
+                    <path d="M 40 86 L 38 92 L 42 92 Z" fill="url(#crystal-teen-body)" opacity="0.9"/>
+                    <path d="M 60 86 L 58 92 L 62 92 Z" fill="url(#crystal-teen-body)" opacity="0.9"/>
+                    <!-- Eyes (glowing bright) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="43" cy="60" rx="4" ry="5.5" fill="#fff" filter="url(#glow)"/>
+                        <ellipse cx="43" cy="62" rx="2" ry="3.5" fill="#00838f"/>
+                        <circle cx="44" cy="59" r="1.2" fill="#fff"/>
+                        <ellipse cx="57" cy="60" rx="4" ry="5.5" fill="#fff" filter="url(#glow)"/>
+                        <ellipse cx="57" cy="62" rx="2" ry="3.5" fill="#00838f"/>
+                        <circle cx="58" cy="59" r="1.2" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <line x1="39" y1="60" x2="47" y2="60" stroke="#00bcd4" stroke-width="2"/>
+                        <line x1="53" y1="60" x2="61" y2="60" stroke="#00bcd4" stroke-width="2"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 40 70 L 50 72 L 60 70" stroke="#00bcd4" stroke-width="2" fill="none"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 40 72 L 50 70 L 60 72" stroke="#00bcd4" stroke-width="2" fill="none"/>
+                    <!-- Rainbow sparkles -->
+                    <circle cx="32" cy="44" r="2" fill="#e91e63" opacity="0.6"/>
+                    <circle cx="68" cy="48" r="1.8" fill="#9c27b0" opacity="0.6"/>
+                    <circle cx="50" cy="34" r="1.5" fill="#fff" opacity="0.9" filter="url(#glow)"/>
+                </g>
+
+                <!-- CRYSTAL ADULT - Radiant crystal guardian -->
+                <g id="tm-mascot-evo3-crystal" style="display: none;">
+                    <defs>
+                        <linearGradient id="crystal-adult-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#4dd0e1;stop-opacity:0.98" />
+                            <stop offset="100%" style="stop-color:#00acc1;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Radiant aura -->
+                    <ellipse cx="50" cy="68" rx="38" ry="42" fill="#26c6da" opacity="0.35" filter="url(#strong-glow)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="26" ry="4" fill="#333" opacity="0.3"/>
+                    <!-- Main body (complex crystal) -->
+                    <path d="M 50 28 L 76 60 L 74 84 L 50 94 L 26 84 L 24 60 Z" fill="url(#crystal-adult-body)" stroke="#0097a7" stroke-width="3.5" filter="url(#glow)"/>
+                    <!-- Facets (detailed) -->
+                    <path d="M 50 28 L 50 94" stroke="#e0f7fa" stroke-width="2.5" opacity="0.9"/>
+                    <path d="M 24 60 L 76 60" stroke="#e0f7fa" stroke-width="2.5" opacity="0.9"/>
+                    <path d="M 26 84 L 74 84" stroke="#e0f7fa" stroke-width="2.5" opacity="0.9"/>
+                    <path d="M 50 28 L 26 84" stroke="#80deea" stroke-width="2" opacity="0.7"/>
+                    <path d="M 50 28 L 74 84" stroke="#80deea" stroke-width="2" opacity="0.7"/>
+                    <path d="M 24 60 L 50 94" stroke="#80deea" stroke-width="2" opacity="0.7"/>
+                    <path d="M 76 60 L 50 94" stroke="#80deea" stroke-width="2" opacity="0.7"/>
+                    <path d="M 38 44 L 62 76" stroke="#b2ebf2" stroke-width="1.5" opacity="0.5"/>
+                    <path d="M 62 44 L 38 76" stroke="#b2ebf2" stroke-width="1.5" opacity="0.5"/>
+                    <path d="M 32 72 L 68 72" stroke="#b2ebf2" stroke-width="1.5" opacity="0.5"/>
+                    <!-- Reflections -->
+                    <ellipse cx="40" cy="46" rx="12" ry="16" fill="#fff" opacity="0.5"/>
+                    <ellipse cx="58" cy="50" rx="9" ry="13" fill="#fff" opacity="0.35"/>
+                    <!-- Crystal arms (powerful) -->
+                    <path d="M 24 60 L 12 62 L 10 56 L 18 52 Z" fill="url(#crystal-adult-body)" stroke="#0097a7" stroke-width="2.5" opacity="0.95"/>
+                    <path d="M 12 62 L 8 64 L 10 60 Z" fill="#26c6da" opacity="0.8"/>
+                    <path d="M 76 60 L 88 62 L 90 56 L 82 52 Z" fill="url(#crystal-adult-body)" stroke="#0097a7" stroke-width="2.5" opacity="0.95"/>
+                    <path d="M 88 62 L 92 64 L 90 60 Z" fill="#26c6da" opacity="0.8"/>
+                    <!-- Legs (crystal pillars) -->
+                    <path d="M 38 88 L 36 94 L 42 94 L 40 88 Z" fill="url(#crystal-adult-body)" stroke="#0097a7" stroke-width="2"/>
+                    <path d="M 62 88 L 60 94 L 66 94 L 64 88 Z" fill="url(#crystal-adult-body)" stroke="#0097a7" stroke-width="2"/>
+                    <!-- Core (mana) -->
+                    <circle cx="50" cy="68" r="8" fill="#4dd0e1" opacity="0.6" filter="url(#strong-glow)"/>
+                    <circle cx="50" cy="68" r="4" fill="#fff" opacity="0.8" filter="url(#glow)"/>
+                    <!-- Eyes (radiant) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="58" rx="5" ry="7" fill="#fff" filter="url(#strong-glow)"/>
+                        <ellipse cx="42" cy="60" rx="2.5" ry="4.5" fill="#006064"/>
+                        <circle cx="43.5" cy="57" r="1.5" fill="#fff"/>
+                        <ellipse cx="58" cy="58" rx="5" ry="7" fill="#fff" filter="url(#strong-glow)"/>
+                        <ellipse cx="58" cy="60" rx="2.5" ry="4.5" fill="#006064"/>
+                        <circle cx="59.5" cy="57" r="1.5" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <line x1="37" y1="58" x2="47" y2="58" stroke="#0097a7" stroke-width="2.5"/>
+                        <line x1="53" y1="58" x2="63" y2="58" stroke="#0097a7" stroke-width="2.5"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 38 76 L 50 78 L 62 76" stroke="#0097a7" stroke-width="2.5" fill="none"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 38 78 L 50 76 L 62 78" stroke="#0097a7" stroke-width="2.5" fill="none"/>
+                    <!-- Light prisms -->
+                    <circle cx="30" cy="40" r="2.5" fill="#e91e63" opacity="0.7" filter="url(#glow)"/>
+                    <circle cx="70" cy="44" r="2.2" fill="#9c27b0" opacity="0.7" filter="url(#glow)"/>
+                    <circle cx="50" cy="30" r="2" fill="#fff" filter="url(#strong-glow)"/>
+                </g>
+
+                <!-- CRYSTAL MIDDLE AGE - Ancient gem -->
+                <g id="tm-mascot-evo4-crystal" style="display: none;">
+                    <defs>
+                        <linearGradient id="crystal-middle-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#26c6da;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#0097a7;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Ancient aura -->
+                    <ellipse cx="50" cy="68" rx="40" ry="42" fill="#00acc1" opacity="0.4" filter="url(#strong-glow)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="28" ry="4" fill="#333" opacity="0.3"/>
+                    <!-- Main body (larger, weathered) -->
+                    <path d="M 50 28 L 76 60 L 74 84 L 50 94 L 26 84 L 24 60 Z" fill="url(#crystal-middle-body)" stroke="#00838f" stroke-width="3.5" filter="url(#glow)"/>
+                    <!-- Weathering cracks -->
+                    <path d="M 36 48 L 34 56" stroke="#006064" stroke-width="1" opacity="0.3"/>
+                    <path d="M 64 50 L 66 58" stroke="#006064" stroke-width="1" opacity="0.3"/>
+                    <path d="M 42 78 L 44 86" stroke="#006064" stroke-width="1" opacity="0.3"/>
+                    <!-- Facets -->
+                    <path d="M 50 28 L 50 94" stroke="#e0f7fa" stroke-width="2.5" opacity="0.8"/>
+                    <path d="M 24 60 L 76 60" stroke="#e0f7fa" stroke-width="2.5" opacity="0.8"/>
+                    <path d="M 26 84 L 74 84" stroke="#e0f7fa" stroke-width="2.5" opacity="0.8"/>
+                    <path d="M 50 28 L 26 84" stroke="#80deea" stroke-width="2" opacity="0.6"/>
+                    <path d="M 50 28 L 74 84" stroke="#80deea" stroke-width="2" opacity="0.6"/>
+                    <path d="M 24 60 L 50 94" stroke="#80deea" stroke-width="2" opacity="0.6"/>
+                    <path d="M 76 60 L 50 94" stroke="#80deea" stroke-width="2" opacity="0.6"/>
+                    <!-- Reflections (dimmer) -->
+                    <ellipse cx="40" cy="46" rx="10" ry="14" fill="#fff" opacity="0.35"/>
+                    <ellipse cx="58" cy="50" rx="7" ry="11" fill="#fff" opacity="0.25"/>
+                    <!-- Arms -->
+                    <path d="M 24 60 L 14 62 L 12 56 L 20 52 Z" fill="url(#crystal-middle-body)" stroke="#00838f" stroke-width="2.5"/>
+                    <path d="M 14 62 L 10 64 L 12 60 Z" fill="#00acc1" opacity="0.7"/>
+                    <path d="M 76 60 L 86 62 L 88 56 L 80 52 Z" fill="url(#crystal-middle-body)" stroke="#00838f" stroke-width="2.5"/>
+                    <path d="M 86 62 L 90 64 L 88 60 Z" fill="#00acc1" opacity="0.7"/>
+                    <!-- Legs -->
+                    <path d="M 38 88 L 36 94 L 42 94 L 40 88 Z" fill="url(#crystal-middle-body)" stroke="#00838f" stroke-width="2"/>
+                    <path d="M 62 88 L 60 94 L 66 94 L 64 88 Z" fill="url(#crystal-middle-body)" stroke="#00838f" stroke-width="2"/>
+                    <!-- Core (stable) -->
+                    <circle cx="50" cy="68" r="7" fill="#26c6da" opacity="0.7" filter="url(#glow)"/>
+                    <circle cx="50" cy="68" r="3.5" fill="#b2ebf2" opacity="0.8"/>
+                    <!-- Eyes (ancient) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="58" rx="4.5" ry="6.5" fill="#e0f7fa" filter="url(#glow)"/>
+                        <ellipse cx="42" cy="60" rx="2.2" ry="4" fill="#004d40"/>
+                        <circle cx="43.5" cy="57" r="1.2" fill="#e0f7fa"/>
+                        <ellipse cx="58" cy="58" rx="4.5" ry="6.5" fill="#e0f7fa" filter="url(#glow)"/>
+                        <ellipse cx="58" cy="60" rx="2.2" ry="4" fill="#004d40"/>
+                        <circle cx="59.5" cy="57" r="1.2" fill="#e0f7fa"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <line x1="37" y1="58" x2="47" y2="58" stroke="#00838f" stroke-width="2.5"/>
+                        <line x1="53" y1="58" x2="63" y2="58" stroke="#00838f" stroke-width="2.5"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 38 76 L 50 78 L 62 76" stroke="#00838f" stroke-width="2.5" fill="none"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 38 78 L 50 76 L 62 78" stroke="#00838f" stroke-width="2.5" fill="none"/>
+                    <!-- Ancient runes (faint) -->
+                    <text x="44" y="72" font-family="serif" font-size="6" fill="#80deea" opacity="0.4">◊</text>
+                    <text x="54" y="72" font-family="serif" font-size="6" fill="#80deea" opacity="0.4">◊</text>
+                </g>
+
+                <!-- CRYSTAL OLD - Eternal crystal sage -->
+                <g id="tm-mascot-evo5-crystal" style="display: none;">
+                    <defs>
+                        <linearGradient id="crystal-old-body" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#b3e5fc;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#4fc3f7;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#00acc1;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="eternal-crystal-aura">
+                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:0.8" />
+                            <stop offset="50%" style="stop-color:#80deea;stop-opacity:0.5" />
+                            <stop offset="100%" style="stop-color="#26c6da;stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <!-- Eternal aura -->
+                    <ellipse cx="50" cy="68" rx="48" ry="48" fill="url(#eternal-crystal-aura)" filter="url(#strong-glow)"/>
+                    <!-- Shadow -->
+                    <ellipse cx="50" cy="94" rx="30" ry="4" fill="#333" opacity="0.35"/>
+                    <!-- Main body (massive, ancient) -->
+                    <path d="M 50 26 L 78 60 L 76 84 L 50 96 L 24 84 L 22 60 Z" fill="url(#crystal-old-body)" stroke="#00bcd4" stroke-width="4" filter="url(#strong-glow)"/>
+                    <!-- Ancient cracks (wisdom lines) -->
+                    <path d="M 34 46 L 32 56 L 30 66" stroke="#006064" stroke-width="1.5" opacity="0.4"/>
+                    <path d="M 66 48 L 68 58 L 70 68" stroke="#006064" stroke-width="1.5" opacity="0.4"/>
+                    <path d="M 38 76 L 40 86" stroke="#006064" stroke-width="1.5" opacity="0.4"/>
+                    <path d="M 62 78 L 60 88" stroke="#006064" stroke-width="1.5" opacity="0.4"/>
+                    <!-- Facets (complex, ancient) -->
+                    <path d="M 50 26 L 50 96" stroke="#fff" stroke-width="3" opacity="0.9" filter="url(#glow)"/>
+                    <path d="M 22 60 L 78 60" stroke="#fff" stroke-width="3" opacity="0.9" filter="url(#glow)"/>
+                    <path d="M 24 84 L 76 84" stroke="#fff" stroke-width="3" opacity="0.9" filter="url(#glow)"/>
+                    <path d="M 50 26 L 24 84" stroke="#b2ebf2" stroke-width="2" opacity="0.7"/>
+                    <path d="M 50 26 L 76 84" stroke="#b2ebf2" stroke-width="2" opacity="0.7"/>
+                    <path d="M 22 60 L 50 96" stroke="#b2ebf2" stroke-width="2" opacity="0.7"/>
+                    <path d="M 78 60 L 50 96" stroke="#b2ebf2" stroke-width="2" opacity="0.7"/>
+                    <path d="M 36 43 L 64 77" stroke="#e1f5fe" stroke-width="1.5" opacity="0.6"/>
+                    <path d="M 64 43 L 36 77" stroke="#e1f5fe" stroke-width="1.5" opacity="0.6"/>
+                    <path d="M 28 72 L 72 72" stroke="#e1f5fe" stroke-width="1.5" opacity="0.6"/>
+                    <!-- Eternal light reflections -->
+                    <ellipse cx="38" cy="44" rx="14" ry="18" fill="#fff" opacity="0.6" filter="url(#glow)"/>
+                    <ellipse cx="60" cy="48" rx="11" ry="15" fill="#fff" opacity="0.5" filter="url(#glow)"/>
+                    <!-- Arms (ancient crystal spikes) -->
+                    <path d="M 22 60 L 10 62 L 8 56 L 16 50 Z" fill="url(#crystal-old-body)" stroke="#00bcd4" stroke-width="3" filter="url(#glow)"/>
+                    <path d="M 10 62 L 4 64 L 8 60 Z" fill="#4fc3f7" opacity="0.8"/>
+                    <path d="M 78 60 L 90 62 L 92 56 L 84 50 Z" fill="url(#crystal-old-body)" stroke="#00bcd4" stroke-width="3" filter="url(#glow)"/>
+                    <path d="M 90 62 L 96 64 L 92 60 Z" fill="#4fc3f7" opacity="0.8"/>
+                    <!-- Legs (massive pillars) -->
+                    <path d="M 36 88 L 34 96 L 42 96 L 40 88 Z" fill="url(#crystal-old-body)" stroke="#00bcd4" stroke-width="2.5"/>
+                    <path d="M 64 88 L 62 96 L 70 96 L 68 88 Z" fill="url(#crystal-old-body)" stroke="#00bcd4" stroke-width="2.5"/>
+                    <!-- Core (infinite mana) -->
+                    <circle cx="50" cy="68" r="10" fill="#fff" opacity="0.7" filter="url(#strong-glow)"/>
+                    <circle cx="50" cy="68" r="6" fill="#4fc3f7" opacity="0.9" filter="url(#strong-glow)"/>
+                    <circle cx="50" cy="68" r="3" fill="#fff" filter="url(#glow)"/>
+                    <!-- Eyes (eternal wisdom) -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="42" cy="56" rx="5.5" ry="8" fill="#fff" filter="url(#strong-glow)"/>
+                        <ellipse cx="42" cy="58" rx="2.5" ry="5" fill="#00838f"/>
+                        <circle cx="43.5" cy="55" r="1.8" fill="#fff"/>
+                        <ellipse cx="58" cy="56" rx="5.5" ry="8" fill="#fff" filter="url(#strong-glow)"/>
+                        <ellipse cx="58" cy="58" rx="2.5" ry="5" fill="#00838f"/>
+                        <circle cx="59.5" cy="55" r="1.8" fill="#fff"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <line x1="36" y1="56" x2="48" y2="56" stroke="#00bcd4" stroke-width="3"/>
+                        <line x1="52" y1="56" x2="64" y2="56" stroke="#00bcd4" stroke-width="3"/>
+                    </g>
+                    <!-- Mouth -->
+                    <path class="tm-mascot-mouth-happy" d="M 36 78 L 50 80 L 64 78" stroke="#00bcd4" stroke-width="3" fill="none"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 36 80 L 50 78 L 64 80" stroke="#00bcd4" stroke-width="3" fill="none"/>
+                    <!-- Ancient runes (glowing) -->
+                    <text x="40" y="72" font-family="serif" font-size="7" fill="#4fc3f7" opacity="0.7" filter="url(#glow)">◊</text>
+                    <text x="54" y="72" font-family="serif" font-size="7" fill="#4fc3f7" opacity="0.7" filter="url(#glow)">◊</text>
+                    <text x="46" y="34" font-family="serif" font-size="8" fill="#fff" opacity="0.8" filter="url(#strong-glow)">✧</text>
+                    <!-- Eternal light particles -->
+                    <circle cx="28" cy="36" r="2.5" fill="#fff" filter="url(#strong-glow)"/>
+                    <circle cx="72" cy="40" r="2.3" fill="#fff" filter="url(#strong-glow)"/>
+                    <circle cx="50" cy="24" r="3" fill="#fff" filter="url(#strong-glow)"/>
+                    <circle cx="36" cy="86" r="1.8" fill="#4fc3f7" opacity="0.8" filter="url(#glow)"/>
+                    <circle cx="64" cy="88" r="1.8" fill="#4fc3f7" opacity="0.8" filter="url(#glow)"/>
+                </g>
+
+                <!-- New Accessories Collection -->
+                
+                <!-- 1. Digital Headphones - Gaming vibe -->
+                <g id="digital_headphones" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                    <defs>
+                        <linearGradient id="headphone-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00b7ff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#0099cc;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Left earcup -->
+                    <circle cx="35" cy="32" r="10" fill="url(#headphone-gradient)" stroke="#006699" stroke-width="1.5"/>
+                    <circle cx="35" cy="32" r="6" fill="#1a1a1a"/>
+                    <rect x="28" y="28" width="3" height="8" fill="#00b7ff"/>
+                    <!-- Right earcup -->
+                    <circle cx="65" cy="32" r="10" fill="url(#headphone-gradient)" stroke="#006699" stroke-width="1.5"/>
+                    <circle cx="65" cy="32" r="6" fill="#1a1a1a"/>
+                    <rect x="69" y="28" width="3" height="8" fill="#00b7ff"/>
+                    <!-- Headband -->
+                    <rect x="35" y="22" width="30" height="4" rx="2" fill="url(#headphone-gradient)" stroke="#006699" stroke-width="1"/>
+                </g>
+                
+                <!-- 2. Pixel Sunglasses - Retro style -->
+                <g id="pixel_sunglasses" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                    <rect x="32" y="28" width="16" height="10" rx="2" fill="#1a1a1a" stroke="#000" stroke-width="1.5"/>
+                    <rect x="52" y="28" width="16" height="10" rx="2" fill="#1a1a1a" stroke="#000" stroke-width="1.5"/>
+                    <rect x="34" y="30" width="12" height="6" fill="#00b7ff" opacity="0.6"/>
+                    <rect x="54" y="30" width="12" height="6" fill="#00b7ff" opacity="0.6"/>
+                    <line x1="48" y1="33" x2="52" y2="33" stroke="#333" stroke-width="2"/>
+                </g>
+                
+                <!-- 3. Star Crown - Magical -->
+                <g id="star_crown" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                    <defs>
+                        <linearGradient id="star-gold">
+                            <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ffed4e;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M 38 8 L 42 0 L 46 8 L 54 8 L 46 12 L 50 20 L 42 16 L 34 20 L 38 12 L 30 8 Z" fill="url(#star-gold)" stroke="#ffc107" stroke-width="1"/>
+                    <path d="M 50 8 L 54 0 L 58 8 L 66 8 L 58 12 L 62 20 L 54 16 L 46 20 L 50 12 L 42 8 Z" fill="url(#star-gold)" stroke="#ffc107" stroke-width="1"/>
+                    <path d="M 62 8 L 66 0 L 70 8 L 78 8 L 70 12 L 74 20 L 66 16 L 58 20 L 62 12 L 54 8 Z" fill="url(#star-gold)" stroke="#ffc107" stroke-width="1"/>
+                    <ellipse cx="50" cy="10" rx="22" ry="3" fill="url(#star-gold)" opacity="0.3"/>
+                </g>
+                
+                <!-- 4. Magic Wand - Sparkly -->
+                <g id="magic_wand_new" class="tm-mascot-accessory" style="display: none;" transform="translate(75, 55) rotate(30)">
+                    <defs>
+                        <radialGradient id="wand-sparkle">
+                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#00b7ff;stop-opacity:0" />
+                        </radialGradient>
+                    </defs>
+                    <rect x="-1.5" y="-20" width="3" height="20" rx="1.5" fill="#ffd700" stroke="#ffc107" stroke-width="0.8"/>
+                    <circle cx="0" cy="-22" r="4" fill="url(#wand-sparkle)"/>
+                    <circle cx="0" cy="-22" r="2" fill="#fff"/>
+                    <circle cx="-3" cy="-20" r="1" fill="#fff" opacity="0.8"/>
+                    <circle cx="3" cy="-18" r="1.5" fill="#fff" opacity="0.6"/>
+                </g>
+                
+                <!-- 5. Rainbow Scarf - Colorful -->
+                <g id="rainbow_scarf" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                    <rect x="25" y="68" width="50" height="6" fill="#ff0000" opacity="0.8"/>
+                    <rect x="25" y="74" width="50" height="6" fill="#ff7f00" opacity="0.8"/>
+                    <rect x="25" y="80" width="50" height="6" fill="#ffff00" opacity="0.8"/>
+                    <rect x="25" y="86" width="50" height="6" fill="#00ff00" opacity="0.8"/>
+                    <rect x="25" y="92" width="50" height="6" fill="#0000ff" opacity="0.8"/>
+                    <rect x="25" y="98" width="50" height="6" fill="#4b0082" opacity="0.8"/>
+                    <ellipse cx="75" cy="83" rx="8" ry="20" fill="#4b0082" opacity="0.6"/>
+                </g>
+                
+                <!-- 6. Backpack - Adventure -->
+                <g id="backpack" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                    <rect x="25" y="55" width="50" height="40" rx="4" fill="#1a1a1a" stroke="#333" stroke-width="2"/>
+                    <rect x="30" y="60" width="40" height="30" rx="2" fill="#2c3e50"/>
+                    <rect x="35" y="65" width="30" height="20" fill="#34495e"/>
+                    <rect x="42" y="70" width="16" height="12" rx="1" fill="#00b7ff" opacity="0.5"/>
+                    <circle cx="30" cy="75" r="3" fill="#95a5a6"/>
+                    <circle cx="70" cy="75" r="3" fill="#95a5a6"/>
+                    <line x1="25" y1="80" x2="20" y2="85" stroke="#555" stroke-width="2"/>
+                    <line x1="75" y1="80" x2="80" y2="85" stroke="#555" stroke-width="2"/>
+                </g>
+                
+                <!-- 7. Party Hat - Celebration -->
+                <g id="party_hat_new" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                    <path d="M 35 15 L 50 -8 L 65 15 Z" fill="#ff4081" stroke="#e91e63" stroke-width="2"/>
+                    <ellipse cx="50" cy="15" rx="18" ry="4" fill="#ff1493"/>
+                    <circle cx="50" cy="-6" r="5" fill="#ffd700"/>
+                    <circle cx="45" cy="-4" r="2" fill="#00ff00"/>
+                    <circle cx="55" cy="-4" r="2" fill="#00b7ff"/>
+                </g>
+                
+                <!-- 8. Shield - Protection -->
+                <g id="shield" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                    <defs>
+                        <linearGradient id="shield-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00b7ff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#006699;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M 70 45 Q 85 40 85 60 Q 85 80 70 85 Q 70 65 70 45" fill="url(#shield-gradient)" stroke="#006699" stroke-width="2"/>
+                    <path d="M 72 50 Q 80 48 82 60 Q 80 72 72 75 Q 72 62 72 50" fill="#fff" opacity="0.3"/>
+                    <circle cx="77" cy="62" r="4" fill="#ffd700"/>
+                </g>
+                
+                <!-- 9. Bubble Wand - Playful -->
+                <g id="bubble_wand" class="tm-mascot-accessory" style="display: none;" transform="translate(10, 55) rotate(-20)">
+                    <rect x="0" y="0" width="3" height="25" rx="1.5" fill="#8b4513" stroke="#654321" stroke-width="0.8"/>
+                    <circle cx="1.5" cy="-5" r="8" fill="none" stroke="#00b7ff" stroke-width="1.5" stroke-dasharray="2,2" opacity="0.6"/>
+                    <circle cx="5" cy="-2" r="6" fill="none" stroke="#ff4081" stroke-width="1" stroke-dasharray="2,2" opacity="0.5"/>
+                    <circle cx="-3" cy="-8" r="5" fill="none" stroke="#ffd700" stroke-width="1" stroke-dasharray="2,2" opacity="0.5"/>
+                </g>
+                
+                <!-- 10. Digital Watch - Tech -->
+                <g id="digital_watch" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                    <rect x="75" y="58" width="14" height="18" rx="3" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/>
+                    <rect x="77" y="60" width="10" height="14" fill="#00ff00"/>
+                    <rect x="78" y="63" width="8" height="2" fill="#000"/>
+                    <rect x="78" y="68" width="8" height="2" fill="#000"/>
+                    <rect x="78" y="71" width="6" height="2" fill="#000"/>
+                    <rect x="72" y="64" width="3" height="8" rx="1" fill="#666"/>
+                    <rect x="89" y="64" width="3" height="8" rx="1" fill="#666"/>
+                </g>
+                
+                <!-- 11. Flower Crown - Nature -->
+                <g id="flower_crown_new" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                    <ellipse cx="50" cy="10" rx="22" ry="4" fill="#90ee90" stroke="#228b22" stroke-width="1.5"/>
+                    <!-- Flowers -->
+                    <circle cx="38" cy="8" r="4" fill="#ff69b4"/>
+                    <circle cx="38" cy="8" r="2" fill="#ff1493"/>
+                    <circle cx="50" cy="6" r="5" fill="#ffb6c1"/>
+                    <circle cx="50" cy="6" r="2.5" fill="#ff4081"/>
+                    <circle cx="62" cy="8" r="4" fill="#ff1493"/>
+                    <circle cx="62" cy="8" r="2" fill="#ff69b4"/>
+                    <circle cx="32" cy="10" r="3" fill="#ffd700"/>
+                    <circle cx="68" cy="10" r="3" fill="#00b7ff"/>
+                </g>
+                
+                <!-- 12. Power Ring - Energy -->
+                <g id="power_ring" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                    <defs>
+                        <radialGradient id="ring-power">
+                            <stop offset="0%" style="stop-color:#00b7ff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#006699;stop-opacity:0.6" />
+                        </radialGradient>
+                    </defs>
+                    <ellipse cx="50" cy="95" rx="30" ry="8" fill="url(#ring-power)" stroke="#00b7ff" stroke-width="2" opacity="0.8"/>
+                    <circle cx="50" cy="95" r="25" fill="none" stroke="#00b7ff" stroke-width="2" stroke-dasharray="4,4" opacity="0.6"/>
+                    <circle cx="35" cy="93" r="3" fill="#00b7ff"/>
+                    <circle cx="50" cy="91" r="3" fill="#00b7ff"/>
+                    <circle cx="65" cy="93" r="3" fill="#00b7ff"/>
+                </g>
+            </g>
+        </svg>
+    `;
+    document.body.appendChild(container);
+
+    // Move interaction panel out of container to make it fixed
+    const interactionPanel = container.querySelector('#tm-mascot-interaction-panel');
+    if (!interactionPanel) {
+        console.error('[MMS Mascot] Interaction panel not found!');
+        return; // Exit early if panel doesn't exist
+    }
+    
+    container.removeChild(interactionPanel);
+    document.body.appendChild(interactionPanel);
+    
+    // Helper function to get buttons (now that panel is moved)
+    const getButton = (id) => interactionPanel.querySelector(id) || document.querySelector(id);
+
+    // --- Dodge on fast hover logic ---
+    let lastMousePos = { x: 0, y: 0, time: 0 };
+    container.addEventListener('mouseenter', () => {
+        lastMousePos = { x: 0, y: 0, time: 0 }; // Reset on enter
+    });
+    container.addEventListener('mousemove', (e) => {
+        if (lastMousePos.time === 0) {
+            lastMousePos = { x: e.clientX, y: e.clientY, time: Date.now() };
+            return;
+        }
+
+        const now = Date.now();
+        const timeDiff = now - lastMousePos.time;
+
+        if (timeDiff < 25) return; // Sample every 25ms
+
+        const deltaX = e.clientX - lastMousePos.x;
+        const deltaY = e.clientY - lastMousePos.y;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        const speed = distance / timeDiff; // pixels per millisecond
+
+        lastMousePos = { x: e.clientX, y: e.clientY, time: now };
+
+        const speedThreshold = 1.5; // 1500 pixels/second
+        if (speed > speedThreshold) {
+            triggerDodgeAnimation(config, deltaX, deltaY);
+        }
+    });
+
+
+    // Function to show mascot stats in a modal window
+    function showMascotStatsModal(config, STORAGE_KEYS) {
+        // Can't interact with an egg!
+        if (tamagotchiStage === 'egg') {
+            const eggMessages = [
+                'Περίμενε να βγει!', 'Ακόμα δεν έχει βγει...', 'Κάνε υπομονή!', 
+                '🥚 Κοιμάται μέσα...', 'Θα βγει σύντομα!', 'Shhh... Κοιμάται!',
+                'Περίμενε λίγο ακόμα!'
+            ];
+            showMascotBubble(eggMessages[Math.floor(Math.random() * eggMessages.length)], 2000);
+            return;
+        }
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('tm-mascot-stats-modal');
+        if (existingModal) existingModal.remove();
+
+        // Get character info
+        const characterName = tamagotchiCharacterType 
+            ? MASCOT_CHARACTERS[tamagotchiCharacterType]?.name || 'Mascot'
+            : 'Ωό';
+        
+        const stageEmoji = {
+            'egg': '🥚',
+            'baby': '👶',
+            'kid': '🧒',
+            'teen': '🎮',
+            'adult': '💼',
+            'middleage': '👔',
+            'old': '👴'
+        };
+
+        // Create modal overlay
+        const modal = document.createElement('div');
+        modal.id = 'tm-mascot-stats-modal';
+        modal.innerHTML = `
+            <div class="tm-mascot-modal-backdrop"></div>
+            <div class="tm-mascot-modal-container">
+                <!-- Header -->
+                <div class="tm-mascot-modal-header">
+                    <div class="tm-mascot-header-left">
+                        <div class="tm-mascot-avatar">${stageEmoji[tamagotchiStage] || '🥚'}</div>
+                        <div class="tm-mascot-header-info">
+                            <h2 class="tm-mascot-name">${characterName}</h2>
+                            <p class="tm-mascot-meta">
+                                <span>Στάδιο: ${tamagotchiStage}</span>
+                                <span>•</span>
+                                <span>Ηλικία: ${Math.floor(tamagotchiAge)} έτη</span>
+                                <span>•</span>
+                                <span>Βάρος: ${Math.round(tamagotchiWeight * 10) / 10}g</span>
+                            </p>
+                            <div class="tm-mascot-quick-stats">
+                                <span class="tm-quick-stat" title="Πειθαρχία">🎓 ${Math.round(tamagotchiDiscipline * 10) / 10}%</span>
+                                <span class="tm-quick-stat" title="Καθαρότητα">${tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό'}</span>
+                                <span class="tm-quick-stat" title="Φώτα">${tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="tm-mascot-close-btn" id="tm-modal-close">✕</button>
+                </div>
+
+                <!-- Alerts Section -->
+                <div class="tm-mascot-alerts" id="tm-mascot-alerts">
+                    ${tamagotchiAge >= 70 && tamagotchiAge < 80 ? `
+                        <div class="tm-mascot-alert tm-alert-warning">
+                            <span class="tm-alert-icon">⏳</span>
+                            <span>Πολύ μεγάλος σε ηλικία! (Θάνατος στα 80 έτη)</span>
+                        </div>
+                    ` : ''}
+                    ${tamagotchiPoopCount > 0 ? `
+                        <div class="tm-mascot-alert tm-alert-warning">
+                            <span class="tm-alert-icon">💩</span>
+                            <span>Χρειάζεται καθάρισμα! (${tamagotchiPoopCount})</span>
+                        </div>
+                    ` : ''}
+                    ${tamagotchiHealth < 50 ? `
+                        <div class="tm-mascot-alert tm-alert-danger">
+                            <span class="tm-alert-icon">🤒</span>
+                            <span>Άρρωστος! Χρειάζεται φάρμακο!</span>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="tm-mascot-stats-grid">
+                    <div class="tm-stat-card">
+                        <div class="tm-stat-icon" style="background: linear-gradient(135deg, #FFD700, #FFA500);">😊</div>
+                        <div class="tm-stat-info">
+                            <div class="tm-stat-label">Ευτυχία</div>
+                            <div class="tm-stat-bar">
+                                <div class="tm-stat-fill" style="width: ${petStats.happiness}%; background: linear-gradient(90deg, #FFD700, #FFA500);"></div>
+                            </div>
+                            <div class="tm-stat-value">${Math.round(petStats.happiness * 10) / 10}%</div>
+                        </div>
+                    </div>
+
+                    <div class="tm-stat-card">
+                        <div class="tm-stat-icon" style="background: linear-gradient(135deg, #32CD32, #228B22);">🍔</div>
+                        <div class="tm-stat-info">
+                            <div class="tm-stat-label">Πείνα</div>
+                            <div class="tm-stat-bar">
+                                <div class="tm-stat-fill" style="width: ${100 - petStats.hunger}%; background: linear-gradient(90deg, #32CD32, #228B22);"></div>
+                            </div>
+                            <div class="tm-stat-value">${Math.round((100 - petStats.hunger) * 10) / 10}%</div>
+                        </div>
+                    </div>
+
+                    <div class="tm-stat-card">
+                        <div class="tm-stat-icon" style="background: linear-gradient(135deg, #00CED1, #008B8B);">❤️</div>
+                        <div class="tm-stat-info">
+                            <div class="tm-stat-label">Υγεία</div>
+                            <div class="tm-stat-bar">
+                                <div class="tm-stat-fill" style="width: ${tamagotchiHealth}%; background: linear-gradient(90deg, #00CED1, #008B8B);"></div>
+                            </div>
+                            <div class="tm-stat-value">${Math.round(tamagotchiHealth * 10) / 10}%</div>
+                        </div>
+                    </div>
+
+                    <div class="tm-stat-card">
+                        <div class="tm-stat-icon" style="background: linear-gradient(135deg, #9370DB, #6A5ACD);">🎓</div>
+                        <div class="tm-stat-info">
+                            <div class="tm-stat-label">Πειθαρχία</div>
+                            <div class="tm-stat-bar">
+                                <div class="tm-stat-fill" style="width: ${tamagotchiDiscipline}%; background: linear-gradient(90deg, #9370DB, #6A5ACD);"></div>
+                            </div>
+                            <div class="tm-stat-value">${Math.round(tamagotchiDiscipline * 10) / 10}%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions Section -->
+                <div class="tm-mascot-actions-section">
+                    <h3 class="tm-actions-title">Φροντίδα</h3>
+                    <div class="tm-mascot-actions">
+                        <button class="tm-action-btn tm-action-meal" id="tm-action-meal" title="Γεύμα (+30 πείνα)">
+                            <span class="tm-action-icon">🍖</span>
+                            <span class="tm-action-label">Γεύμα</span>
+                        </button>
+                        <button class="tm-action-btn tm-action-snack" id="tm-action-snack" title="Σνακ (+10 πείνα, +20 ευτυχία)">
+                            <span class="tm-action-icon">🍪</span>
+                            <span class="tm-action-label">Σνακ</span>
+                        </button>
+                        <button class="tm-action-btn tm-action-pet" id="tm-action-pet" title="Χάδι (+15 ευτυχία)">
+                            <span class="tm-action-icon">💕</span>
+                            <span class="tm-action-label">Χάδι</span>
+                        </button>
+                        <button class="tm-action-btn tm-action-clean" id="tm-action-clean" title="Καθάρισμα">
+                            <span class="tm-action-icon">🧹</span>
+                            <span class="tm-action-label">Καθάρισμα</span>
+                        </button>
+                        <button class="tm-action-btn tm-action-medicine" id="tm-action-medicine" title="Φάρμακο (+20 υγεία)">
+                            <span class="tm-action-icon">💊</span>
+                            <span class="tm-action-label">Φάρμακο</span>
+                        </button>
+                        <button class="tm-action-btn tm-action-toilet" id="tm-action-toilet" title="Τουαλέτα (+3 πειθαρχία)">
+                            <span class="tm-action-icon">🚽</span>
+                            <span class="tm-action-label">Τουαλέτα</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Training Section -->
+                <div class="tm-mascot-actions-section">
+                    <h3 class="tm-actions-title">Εκπαίδευση</h3>
+                    <div class="tm-mascot-actions tm-actions-training">
+                        <button class="tm-action-btn tm-action-praise" id="tm-action-praise" title="Επαίνεσε (+5 πειθαρχία, +5 ευτυχία)">
+                            <span class="tm-action-icon">👍</span>
+                            <span class="tm-action-label">Έπαινος</span>
+                        </button>
+                        <button class="tm-action-btn tm-action-scold" id="tm-action-scold" title="Επίπληξη (+10 πειθαρχία, -10 ευτυχία)">
+                            <span class="tm-action-icon">👎</span>
+                            <span class="tm-action-label">Επίπληξη</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Fun & Activities Section -->
+                <div class="tm-mascot-actions-section">
+                    <h3 class="tm-actions-title">Διασκέδαση</h3>
+                    <div class="tm-mascot-actions tm-actions-fun">
+                        <button class="tm-action-btn tm-action-play" id="tm-action-play" title="Παίξε μαζί του (+20 ευτυχία)">
+                            <span class="tm-action-icon">🎮</span>
+                            <span class="tm-action-label">Παιχνίδι</span>
+                        </button>
+                        <button class="tm-action-btn tm-action-lights" id="tm-action-lights" title="Άνοιγμα/Κλείσιμο φώτων">
+                            <span class="tm-action-icon">💡</span>
+                            <span class="tm-action-label">Φώτα</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Add styles
+        if (!document.getElementById('tm-mascot-modal-styles')) {
+            const style = document.createElement('style');
+            style.id = 'tm-mascot-modal-styles';
+            style.textContent = `
+                .tm-mascot-modal-backdrop {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.75);
+                    backdrop-filter: blur(8px);
+                    z-index: 100000;
+                    animation: tmFadeIn 0.3s ease-out;
+                }
+
+                .tm-mascot-modal-container {
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    z-index: 100001;
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                    border-radius: 24px;
+                    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
+                    width: 90%;
+                    max-width: 600px;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    animation: tmSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                }
+
+                .tm-mascot-modal-container::-webkit-scrollbar {
+                    width: 8px;
+                }
+
+                .tm-mascot-modal-container::-webkit-scrollbar-track {
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 4px;
+                }
+
+                .tm-mascot-modal-container::-webkit-scrollbar-thumb {
+                    background: rgba(0, 255, 255, 0.3);
+                    border-radius: 4px;
+                }
+
+                .tm-mascot-modal-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 28px;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    background: rgba(0, 0, 0, 0.2);
+                }
+
+                .tm-mascot-header-left {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                }
+
+                .tm-mascot-avatar {
+                    width: 64px;
+                    height: 64px;
+                    background: linear-gradient(135deg, #00CED1, #1E90FF);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 32px;
+                    box-shadow: 0 8px 16px rgba(0, 206, 209, 0.3);
+                }
+
+                .tm-mascot-header-info {
+                    flex: 1;
+                }
+
+                .tm-mascot-name {
+                    margin: 0 0 6px 0;
+                    font-size: 24px;
+                    font-weight: 700;
+                    color: #fff;
+                    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+                }
+
+                .tm-mascot-meta {
+                    margin: 0 0 8px 0;
+                    font-size: 13px;
+                    color: rgba(255, 255, 255, 0.6);
+                    display: flex;
+                    gap: 8px;
+                    align-items: center;
+                }
+
+                .tm-mascot-quick-stats {
+                    display: flex;
+                    gap: 12px;
+                    flex-wrap: wrap;
+                }
+
+                .tm-quick-stat {
+                    font-size: 12px;
+                    padding: 4px 10px;
+                    background: rgba(0, 255, 255, 0.1);
+                    border: 1px solid rgba(0, 255, 255, 0.2);
+                    border-radius: 12px;
+                    color: rgba(255, 255, 255, 0.9);
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                    font-weight: 500;
+                }
+
+                .tm-mascot-close-btn {
+                    width: 36px;
+                    height: 36px;
+                    border: none;
+                    background: rgba(255, 255, 255, 0.1);
+                    color: #fff;
+                    border-radius: 50%;
+                    font-size: 20px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .tm-mascot-close-btn:hover {
+                    background: rgba(255, 70, 70, 0.8);
+                    transform: rotate(90deg);
+                }
+
+                .tm-mascot-alerts {
+                    padding: 0 28px;
+                    margin-top: 16px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                }
+
+                .tm-mascot-alert {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 14px 18px;
+                    border-radius: 12px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    animation: tmPulse 2s infinite;
+                }
+
+                .tm-alert-warning {
+                    background: rgba(255, 193, 7, 0.2);
+                    border: 1px solid rgba(255, 193, 7, 0.4);
+                    color: #FFD700;
+                }
+
+                .tm-alert-danger {
+                    background: rgba(255, 87, 87, 0.2);
+                    border: 1px solid rgba(255, 87, 87, 0.4);
+                    color: #FF6B6B;
+                }
+
+                .tm-alert-icon {
+                    font-size: 20px;
+                }
+
+                .tm-mascot-stats-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr;
+                    gap: 16px;
+                    padding: 28px;
+                }
+
+                .tm-stat-card {
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 16px;
+                    padding: 18px;
+                    display: flex;
+                    gap: 14px;
+                    align-items: center;
+                    transition: all 0.3s;
+                }
+
+                .tm-stat-card:hover {
+                    background: rgba(255, 255, 255, 0.08);
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+                }
+
+                .tm-stat-icon {
+                    width: 48px;
+                    height: 48px;
+                    border-radius: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 24px;
+                    flex-shrink: 0;
+                }
+
+                .tm-stat-info {
+                    flex: 1;
+                    min-width: 0;
+                }
+
+                .tm-stat-label {
+                    font-size: 13px;
+                    color: rgba(255, 255, 255, 0.7);
+                    margin-bottom: 6px;
+                    font-weight: 500;
+                }
+
+                .tm-stat-bar {
+                    height: 8px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 4px;
+                    overflow: hidden;
+                    margin-bottom: 4px;
+                }
+
+                .tm-stat-fill {
+                    height: 100%;
+                    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    border-radius: 4px;
+                }
+
+                .tm-stat-value {
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.5);
+                    text-align: right;
+                    font-weight: 600;
+                }
+
+                .tm-mascot-actions-section {
+                    padding: 0 28px 28px 28px;
+                }
+
+                .tm-actions-title {
+                    margin: 0 0 16px 0;
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: rgba(255, 255, 255, 0.9);
+                    text-align: center;
+                }
+
+                .tm-mascot-actions {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 12px;
+                }
+
+                .tm-actions-training,
+                .tm-actions-fun {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .tm-action-btn {
+                    background: rgba(255, 255, 255, 0.08);
+                    border: 1px solid rgba(255, 255, 255, 0.15);
+                    border-radius: 14px;
+                    padding: 16px 12px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 8px;
+                    cursor: pointer;
+                    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    color: #fff;
+                    font-weight: 500;
+                }
+
+                .tm-action-btn:hover {
+                    background: rgba(0, 255, 255, 0.15);
+                    border-color: rgba(0, 255, 255, 0.4);
+                    transform: translateY(-4px) scale(1.05);
+                    box-shadow: 0 12px 24px rgba(0, 255, 255, 0.2);
+                }
+
+                .tm-action-btn:active {
+                    transform: translateY(-2px) scale(1.02);
+                }
+
+                .tm-action-icon {
+                    font-size: 32px;
+                    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+                }
+
+                .tm-action-label {
+                    font-size: 13px;
+                }
+
+                @keyframes tmFadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+
+                @keyframes tmSlideUp {
+                    from {
+                        opacity: 0;
+                        transform: translate(-50%, -45%) scale(0.9);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translate(-50%, -50%) scale(1);
+                    }
+                }
+
+                @keyframes tmPulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.7; }
+                }
+
+                @media (max-width: 640px) {
+                    .tm-mascot-stats-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .tm-mascot-actions {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Helper function to update stats in modal
+        function updateModalStats() {
+            const statCards = modal.querySelectorAll('.tm-stat-card');
+            if (statCards[0]) {
+                const fill = statCards[0].querySelector('.tm-stat-fill');
+                const value = statCards[0].querySelector('.tm-stat-value');
+                if (fill) fill.style.width = petStats.happiness + '%';
+                if (value) value.textContent = (Math.round(petStats.happiness * 10) / 10) + '%';
+            }
+            if (statCards[1]) {
+                const fill = statCards[1].querySelector('.tm-stat-fill');
+                const value = statCards[1].querySelector('.tm-stat-value');
+                const hungerDisplay = 100 - petStats.hunger;
+                if (fill) fill.style.width = hungerDisplay + '%';
+                if (value) value.textContent = (Math.round(hungerDisplay * 10) / 10) + '%';
+            }
+            if (statCards[2]) {
+                const fill = statCards[2].querySelector('.tm-stat-fill');
+                const value = statCards[2].querySelector('.tm-stat-value');
+                if (fill) fill.style.width = tamagotchiHealth + '%';
+                if (value) value.textContent = (Math.round(tamagotchiHealth * 10) / 10) + '%';
+            }
+            if (statCards[3]) {
+                const fill = statCards[3].querySelector('.tm-stat-fill');
+                const value = statCards[3].querySelector('.tm-stat-value');
+                if (fill) fill.style.width = tamagotchiDiscipline + '%';
+                if (value) value.textContent = (Math.round(tamagotchiDiscipline * 10) / 10) + '%';
+            }
+
+            // Update alerts
+            const alertsContainer = modal.querySelector('#tm-mascot-alerts');
+            if (alertsContainer) {
+                alertsContainer.innerHTML = '';
+                if (tamagotchiAge >= 70 && tamagotchiAge < 80) {
+                    alertsContainer.innerHTML += `
+                        <div class="tm-mascot-alert tm-alert-warning">
+                            <span class="tm-alert-icon">⏳</span>
+                            <span>Πολύ μεγάλος σε ηλικία! (Θάνατος στα 80 έτη)</span>
+                        </div>
+                    `;
+                }
+                if (tamagotchiPoopCount > 0) {
+                    alertsContainer.innerHTML += `
+                        <div class="tm-mascot-alert tm-alert-warning">
+                            <span class="tm-alert-icon">💩</span>
+                            <span>Χρειάζεται καθάρισμα! (${tamagotchiPoopCount})</span>
+                        </div>
+                    `;
+                }
+                if (tamagotchiHealth < 50) {
+                    alertsContainer.innerHTML += `
+                        <div class="tm-mascot-alert tm-alert-danger">
+                            <span class="tm-alert-icon">🤒</span>
+                            <span>Άρρωστος! Χρειάζεται φάρμακο!</span>
+                        </div>
+                    `;
+                }
+            }
+
+            // Update quick stats in header
+            const quickStatsContainer = modal.querySelector('.tm-mascot-quick-stats');
+            if (quickStatsContainer) {
+                quickStatsContainer.innerHTML = `
+                    <span class="tm-quick-stat" title="Πειθαρχία">🎓 ${Math.round(tamagotchiDiscipline * 10) / 10}%</span>
+                    <span class="tm-quick-stat" title="Καθαρότητα">${tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό'}</span>
+                    <span class="tm-quick-stat" title="Φώτα">${tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά'}</span>
+                `;
+            }
+        }
+
+        // Event listeners
+        const closeBtn = modal.querySelector('#tm-modal-close');
+        closeBtn?.addEventListener('click', () => {
+            modal.querySelector('.tm-mascot-modal-backdrop').style.animation = 'tmFadeIn 0.2s ease-out reverse';
+            modal.querySelector('.tm-mascot-modal-container').style.animation = 'tmSlideUp 0.2s ease-out reverse';
+            setTimeout(() => modal.remove(), 200);
+            
+            const byeMessages = ['Τα λέμε!', 'Γεια σου!', 'Αντίο!', 'Θα τα πούμε!', 'Φιλάκια!', 'Τα ξαναλέμε!', 'Πάω!', 'Καλά να περνάς!'];
+            if (Math.random() < 0.5) {
+                showMascotBubble(byeMessages[Math.floor(Math.random() * byeMessages.length)], 1500);
+            }
+        });
+
+        // Click backdrop to close
+        modal.querySelector('.tm-mascot-modal-backdrop')?.addEventListener('click', () => {
+            closeBtn?.click();
+        });
+
+        // Meal button
+        modal.querySelector('#tm-action-meal')?.addEventListener('click', () => {
+            if (tamagotchiIsDead) {
+                showMascotBubble('Νεκρός...', 2000);
+                return;
+            }
+            if (petStats.hunger < 100) {
+                const feedMessages = [
+                    'Μμμ νόστιμο!', 'Πεινούσα!', 'Ωραίο!', 'Τέλειο φαγητό!', 
+                    'Νάμ νάμ!', 'Ευχαριστώ!', 'Θέλω κι άλλο!', 'Πεντανόστιμο!',
+                    'Υπέροχο!', 'Λατρεύω φαΐ!', 'Τι γεύση!', 'Άψογο!'
+                ];
+                updatePetStats(config, STORAGE_KEYS, 0, 30);
+                updateTamagotchiWeight('meal');
+                tamagotchiLastFed = Date.now();
+                trackDailyStat(config, STORAGE_KEYS, 'feedMascot');
+                setMascotState(config, 'eating', 2000);
+                showMascotBubble(feedMessages[Math.floor(Math.random() * feedMessages.length)], 2000);
+                saveTamagotchiData(STORAGE_KEYS);
+                updateModalStats();
+            } else {
+                showMascotBubble('Χόρτασα!', 1500);
+            }
+        });
+
+        // Snack button
+        modal.querySelector('#tm-action-snack')?.addEventListener('click', () => {
+            if (tamagotchiIsDead) {
+                showMascotBubble('Νεκρός...', 2000);
+                return;
+            }
+            if (petStats.hunger < 95 && petStats.happiness < 95) {
+                updatePetStats(config, STORAGE_KEYS, 20, 10);
+                updateTamagotchiWeight('snack');
+                tamagotchiLastFed = Date.now();
+                setMascotState(config, 'eating', 2000);
+                showMascotBubble('Γλυκό!', 2000);
+                saveTamagotchiData(STORAGE_KEYS);
+                updateModalStats();
+            } else {
+                showMascotBubble('Χόρτασα!', 1500);
+            }
+        });
+
+        // Pet button
+        modal.querySelector('#tm-action-pet')?.addEventListener('click', () => {
+            if (tamagotchiIsDead) {
+                showMascotBubble('Νεκρός...', 2000);
+                return;
+            }
+            updatePetStats(config, STORAGE_KEYS, 15, 0);
+            setMascotState(config, 'happy', 2000);
+            const petMessages = ['Μ\' αρέσει!', '💕', 'Ωραία!', 'Ακόμα!', 'Τέλειο!', 'Ναι!', 'Πάλι πάλι!'];
+            showMascotBubble(petMessages[Math.floor(Math.random() * petMessages.length)], 1500);
+            saveTamagotchiData(STORAGE_KEYS);
+            updateModalStats();
+        });
+
+        // Clean button
+        modal.querySelector('#tm-action-clean')?.addEventListener('click', () => {
+            if (tamagotchiPoopCount > 0) {
+                tamagotchiPoopCount = 0;
+                updatePetStats(config, STORAGE_KEYS, 10, 0);
+                const cleanMessages = ['Καθαρό!', 'Ευχαριστώ!', 'Πολύ καλύτερα!', 'Τέλεια!', 'Φρεσκάδα!'];
+                showMascotBubble(cleanMessages[Math.floor(Math.random() * cleanMessages.length)], 1500);
+                updatePoopIndicator();
+                saveTamagotchiData(STORAGE_KEYS);
+                updateModalStats();
+            } else {
+                showMascotBubble('Είναι καθαρά!', 1500);
+            }
+        });
+
+        // Medicine button
+        modal.querySelector('#tm-action-medicine')?.addEventListener('click', () => {
+            if (tamagotchiHealth < 100) {
+                tamagotchiHealth = Math.min(100, tamagotchiHealth + 20);
+                const medicineMessages = ['Καλύτερα!', 'Αισθάνομαι πολύ καλά!', 'Πέρασε το πόνο!', 'Έγινα καλά!', 'Ευχαριστώ!'];
+                showMascotBubble(medicineMessages[Math.floor(Math.random() * medicineMessages.length)], 2000);
+                updateTamagotchiStats(container);
+                saveTamagotchiData(STORAGE_KEYS);
+                updateModalStats();
+            } else {
+                showMascotBubble('Είμαι υγιής!', 1500);
+            }
+        });
+
+        // Toilet button
+        modal.querySelector('#tm-action-toilet')?.addEventListener('click', () => {
+            if (tamagotchiIsDead) {
+                showMascotBubble('Νεκρός...', 2000);
+                return;
+            }
+            if (tamagotchiPoopCount > 0) {
+                tamagotchiPoopCount = 0;
+                tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 3);
+                if (tamagotchiDiscipline > 40 && !tamagotchiToiletTrained) {
+                    tamagotchiToiletTrained = true;
+                    showMascotBubble('Έμαθα τουαλέτα! 🎉', 2500);
+                } else {
+                    showMascotBubble('Ανακούφιση! 🚽', 2000);
+                }
+                updatePoopIndicator();
+                updateToiletNeedIndicator();
+                updateTamagotchiStats(container);
+                saveTamagotchiData(STORAGE_KEYS);
+                updateModalStats();
+            } else {
+                tamagotchiLastPoopTime = Date.now();
+                showMascotBubble('Εντάξει! 🚽', 2000);
+                updateToiletNeedIndicator();
+                saveTamagotchiData(STORAGE_KEYS);
+            }
+        });
+
+        // Praise button
+        modal.querySelector('#tm-action-praise')?.addEventListener('click', () => {
+            if (tamagotchiIsDead) {
+                showMascotBubble('Νεκρός...', 2000);
+                return;
+            }
+            if (tamagotchiNeedsPraise) {
+                tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 5);
+                updatePetStats(config, STORAGE_KEYS, 5, 0);
+                tamagotchiNeedsPraise = false;
+                showMascotBubble('Ευχαριστώ! 😊', 2000);
+                setMascotState(config, 'happy', 2000);
+                updateTamagotchiStats(container);
+                saveTamagotchiData(STORAGE_KEYS);
+                updateModalStats();
+            } else {
+                const randomPraise = [
+                    'Ευχαριστώ!', 'Μπράβο μου!', 'Ωραίος!', 'Τέλειος!', 
+                    'Είμαι καλός!', 'Σ\' αρέσω;', 'Χαίρομαι!', 'Ναι ναι!'
+                ];
+                showMascotBubble(randomPraise[Math.floor(Math.random() * randomPraise.length)], 1500);
+            }
+        });
+
+        // Scold button
+        modal.querySelector('#tm-action-scold')?.addEventListener('click', () => {
+            if (tamagotchiIsDead) {
+                showMascotBubble('Νεκρός...', 2000);
+                return;
+            }
+            if (tamagotchiNeedsScold) {
+                tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 10);
+                updatePetStats(config, STORAGE_KEYS, -10, 0);
+                tamagotchiNeedsScold = false;
+                showMascotBubble('Συγγνώμη... 😢', 2500);
+                setMascotState(config, 'sad', 2500);
+                updateTamagotchiStats(container);
+                saveTamagotchiData(STORAGE_KEYS);
+                updateModalStats();
+            } else {
+                const scoldMessages = ['Εντάξει...', 'Συγγνώμη!', 'Δεν θα το ξανακάνω!', 'Λάθος μου!', 'Κατάλαβα!', 'Συγχώρεσέ με!'];
+                updatePetStats(config, STORAGE_KEYS, -5, 0);
+                showMascotBubble(scoldMessages[Math.floor(Math.random() * scoldMessages.length)], 2000);
+                setMascotState(config, 'sad', 2000);
+                updateModalStats();
+            }
+        });
+
+        // Play button - Launch mini-game
+        modal.querySelector('#tm-action-play')?.addEventListener('click', () => {
+            if (tamagotchiIsDead) {
+                showMascotBubble('Νεκρός...', 2000);
+                return;
+            }
+            if (petStats.happiness < 100) {
+                // Close stats modal and launch game
+                modal.remove();
+                showMascotMiniGame(config, STORAGE_KEYS);
+            } else {
+                showMascotBubble('Κουράστηκα!', 1500);
+            }
+        });
+
+        // Lights button
+        modal.querySelector('#tm-action-lights')?.addEventListener('click', () => {
+            if (tamagotchiIsDead) {
+                showMascotBubble('Νεκρός...', 2000);
+                return;
+            }
+            
+            tamagotchiLightsOn = !tamagotchiLightsOn;
+            saveTamagotchiData(STORAGE_KEYS);
+            
+            // Update button appearance
+            const lightsBtn = modal.querySelector('#tm-action-lights');
+            if (lightsBtn) {
+                if (tamagotchiLightsOn) {
+                    lightsBtn.querySelector('.tm-action-icon').textContent = '💡';
+                    lightsBtn.querySelector('.tm-action-label').textContent = 'Φώτα';
+                    showMascotBubble('Φώτα ανοιχτά!', 1500);
+                } else {
+                    lightsBtn.querySelector('.tm-action-icon').textContent = '🌙';
+                    lightsBtn.querySelector('.tm-action-label').textContent = 'Σκοτάδι';
+                    showMascotBubble('Καληνύχτα! 😴', 1500);
+                    setMascotState(config, 'sleeping', 3000);
+                }
+            }
+            
+            // If lights are off and it's appropriate time, mascot should sleep
+            if (!tamagotchiLightsOn) {
+                setMascotState(config, 'sleeping', 5000);
+            }
+        });
+    }
+    
+    // Mascot Mini-Game Function
+    function showMascotMiniGame(config, STORAGE_KEYS) {
+        const gameOverlay = document.createElement('div');
+        gameOverlay.id = 'tm-mascot-game-overlay';
+        gameOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 100000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        `;
+
+        let score = 0;
+        let missed = 0;
+        let gameActive = true;
+        const maxMissed = 5;
+        const gameDuration = 30000; // 30 seconds
+        const startTime = Date.now();
+
+        gameOverlay.innerHTML = `
+            <div style="text-align: center; color: white; margin-bottom: 20px;">
+                <h2 style="font-size: 32px; margin: 0 0 10px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">🎮 Πιάσε τα!</h2>
+                <div style="display: flex; gap: 30px; justify-content: center; font-size: 20px;">
+                    <div>Πόντοι: <span id="tm-game-score" style="color: #4caf50; font-weight: bold;">0</span></div>
+                    <div>Χαμένα: <span id="tm-game-missed" style="color: #f44336; font-weight: bold;">0</span>/${maxMissed}</div>
+                    <div>Χρόνος: <span id="tm-game-time" style="color: #2196f3; font-weight: bold;">30</span>s</div>
+                </div>
+            </div>
+            <div id="tm-game-area" style="
+                position: relative;
+                width: 600px;
+                height: 400px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-radius: 20px;
+                border: 3px solid #fff;
+                overflow: hidden;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            "></div>
+            <button id="tm-game-close" style="
+                margin-top: 20px;
+                padding: 12px 30px;
+                background: #f44336;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(244,67,54,0.4);
+            ">❌ Κλείσιμο</button>
+        `;
+
+        document.body.appendChild(gameOverlay);
+
+        const gameArea = document.getElementById('tm-game-area');
+        const scoreDisplay = document.getElementById('tm-game-score');
+        const missedDisplay = document.getElementById('tm-game-missed');
+        const timeDisplay = document.getElementById('tm-game-time');
+
+        // Falling items
+        const items = ['🍎', '🍊', '🍋', '🍌', '🍇', '🍓', '🍒', '🍑', '🥝', '🍍'];
+
+        function spawnItem() {
+            if (!gameActive) return;
+
+            const item = document.createElement('div');
+            const emoji = items[Math.floor(Math.random() * items.length)];
+            item.textContent = emoji;
+            item.style.cssText = `
+                position: absolute;
+                font-size: 40px;
+                cursor: pointer;
+                top: -50px;
+                left: ${Math.random() * 560}px;
+                transition: top 3s linear;
+                user-select: none;
+                filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            `;
+
+            let caught = false;
+
+            item.addEventListener('click', () => {
+                if (!caught && gameActive) {
+                    caught = true;
+                    score++;
+                    scoreDisplay.textContent = score;
+                    
+                    // Explosion effect
+                    item.style.transform = 'scale(2) rotate(360deg)';
+                    item.style.opacity = '0';
+                    item.style.transition = 'all 0.3s ease-out';
+                    
+                    setTimeout(() => item.remove(), 300);
+                    
+                    // Sound effect (simple)
+                    playClickSound();
+                }
+            });
+
+            gameArea.appendChild(item);
+
+            // Animate falling
+            setTimeout(() => {
+                item.style.top = '450px';
+            }, 10);
+
+            // Check if missed
+            setTimeout(() => {
+                if (!caught && gameActive) {
+                    missed++;
+                    missedDisplay.textContent = missed;
+                    item.remove();
+                    
+                    if (missed >= maxMissed) {
+                        endGame(false);
+                    }
+                }
+            }, 3000);
+        }
+
+        function playClickSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch (e) {
+                // Silent fail
+            }
+        }
+
+        function updateTimer() {
+            if (!gameActive) return;
+            
+            const elapsed = Date.now() - startTime;
+            const remaining = Math.max(0, Math.ceil((gameDuration - elapsed) / 1000));
+            timeDisplay.textContent = remaining;
+            
+            if (remaining <= 0) {
+                endGame(true);
+            } else {
+                setTimeout(updateTimer, 100);
+            }
+        }
+
+        function endGame(timeUp) {
+            gameActive = false;
+            
+            // Calculate rewards
+            const happinessGain = Math.min(30, score * 2);
+            updatePetStats(config, STORAGE_KEYS, happinessGain, 0);
+            
+            gameArea.innerHTML = `
+                <div style="
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100%;
+                    color: white;
+                    text-align: center;
+                ">
+                    <div style="font-size: 80px; margin-bottom: 20px;">${timeUp ? '🎉' : '😅'}</div>
+                    <h2 style="font-size: 36px; margin: 0 0 20px 0;">${timeUp ? 'Τέλος Παιχνιδιού!' : 'Τέλειωσαν οι ευκαιρίες!'}</h2>
+                    <div style="font-size: 24px; margin-bottom: 10px;">Πόντοι: <span style="color: #4caf50; font-weight: bold;">${score}</span></div>
+                    <div style="font-size: 20px; color: #ffeb3b;">Ευτυχία: +${happinessGain}!</div>
+                </div>
+            `;
+            
+            const playMessages = ['Ωραίο παιχνίδι!', 'Διασκέδασα!', 'Πάλι!', 'Τέλεια!', 'Γουάου!'];
+            showMascotBubble(playMessages[Math.floor(Math.random() * playMessages.length)], 2000);
+            setMascotState(config, 'happy', 3000);
+            saveTamagotchiData(STORAGE_KEYS);
+            
+            // Confetti
+            if (typeof window.showConfetti === 'function' && score >= 10) {
+                setTimeout(() => window.showConfetti(), 500);
+            }
+        }
+
+        // Close button
+        document.getElementById('tm-game-close').addEventListener('click', () => {
+            gameActive = false;
+            gameOverlay.remove();
+        });
+
+        // Start game
+        updateTimer();
+        setInterval(() => {
+            if (gameActive) spawnItem();
+        }, 800);
+    }
+
+    // Make modal function globally accessible
+    window.showMascotStatsModal = showMascotStatsModal;
+    window.showMascotMiniGame = showMascotMiniGame;
+
+    // --- Pet Interaction Logic ---
+    container.addEventListener('click', (e) => {
+        // Ignore clicks on buttons
+        if (e.target.closest('button')) return;
+
+        // Open stats modal instead of showing panel
+        showMascotStatsModal(config, STORAGE_KEYS);
+        
+        // Greeting messages when clicked
+        const greetingMessages = [
+            'Ναι ρε;', 'Τι κάνουμε;', 'Έλα!', 'Λέγε!', 
+            'Με φώναξες;', 'Sup?', 'Τι θες ρε;', 'Εδώ είμαι φίλε!',
+            'Φτιάχνουμε;', 'Βοήθεια θες;', 'Πάμε για δουλίτσα!', 'Λέγε φίλε!'
+        ];
+        showMascotBubble(greetingMessages[Math.floor(Math.random() * greetingMessages.length)], 2000);
+        
+        e.stopPropagation();
+    });
+
+    // Meal button (proper meal)
+    getButton('#tm-pet-meal-btn')?.addEventListener('click', () => {
+        if (tamagotchiIsDead) {
+            showMascotBubble('Dead...', 2000);
+            return;
+        }
+        if (petStats.hunger < 100) {
+            const feedMessages = [
+                'Νόστιμο ρε!', 'Ωραίος!', 'Μμμμ!', 'Γαμάτο!', 
+                'Πεινάω ρε!', 'Νάμ νάμ!', 'Ευχαριστώ φίλε!', 'Άλλο λίγο;',
+                'Σουβλακάκι!', 'Γύρος παίζει;', 'Καφέδακι!', 'Τυρόπιτα ε;',
+                'Burger time!', 'Pizza ρε!', 'Ενέργεια!', 'Φαγάκι!',
+                'Yummy!', 'Κόλλησα!', 'Θα φάω!', 'Ωραία φάση!'
+            ];
+            updatePetStats(config, STORAGE_KEYS, 0, 30);
+            updateTamagotchiWeight('meal');
+            tamagotchiLastFed = Date.now();
+            trackDailyStat(config, STORAGE_KEYS, 'feedMascot');
+            setMascotState(config, 'eating', 2000);
+            showMascotBubble(feedMessages[Math.floor(Math.random() * feedMessages.length)], 2000);
+            saveTamagotchiData(STORAGE_KEYS);
+        } else {
+            const fullMessages = ['Χόρτασα ρε!', 'Γεμάτος!', 'Όχι άλλο!', 'Μπας και σκάσω;', 'Αρκετά φίλε!'];
+            showMascotBubble(fullMessages[Math.floor(Math.random() * fullMessages.length)], 1500);
+        }
+    });
+
+    // Snack button (snacks boost happiness but increase weight)
+    getButton('#tm-pet-snack-btn')?.addEventListener('click', () => {
+        if (tamagotchiIsDead) {
+            showMascotBubble('Dead...', 2000);
+            return;
+        }
+        if (petStats.hunger < 95 && petStats.happiness < 95) {
+            const snackMessages = [
+                'Treat!', 'Yummy!', 'Γλυκό!', 'Ωραίο!',
+                'Σνακ!', 'Nice!', 'Thanks!', 'Sweet!'
+            ];
+            updatePetStats(config, STORAGE_KEYS, 20, 10); // Happiness +20, Hunger +10
+            updateTamagotchiWeight('snack');
+            tamagotchiLastFed = Date.now();
+            setMascotState(config, 'eating', 2000);
+            showMascotBubble(snackMessages[Math.floor(Math.random() * snackMessages.length)], 2000);
+            saveTamagotchiData(STORAGE_KEYS);
+        } else {
+            showMascotBubble('Not hungry for snack!', 1500);
+        }
+    });
+
+    getButton('#tm-pet-pet-btn')?.addEventListener('click', () => {
+        if (petStats.happiness < 100) {
+            const petMessages = [
+                'Ω ναι ρε!', 'Αγάπη!', 'Ωραίος!', 'Γαμάτο!', 
+                'Ακόμα ρε!', 'Χαίρομαι!', 'Ευχαριστώ φίλε!', 'Καλύτερα έτσι!',
+                'Ωραία φάση!', 'Love it!', 'Ναι ρε!', 'Χίχι!',
+                'Γαργαλάει!', 'Ωχού!', 'Πάλι πάλι!', 'Nice!',
+                'Τέλεια!', 'Μου αρέσει!', 'Ωωω!', 'Γλυκά μου!'
+            ];
+            trackDailyStat(config, STORAGE_KEYS, 'petMascot'); // Grant XP
+            updatePetStats(config, STORAGE_KEYS, 15, 0);
+            // Increase discipline when playing
+            tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 5);
+            const container = document.getElementById('tm-mascot-container');
+            if (container) {
+                updateTamagotchiStats(container);
+                saveTamagotchiData(STORAGE_KEYS);
+            }
+            setMascotState(config, 'happy', 2000);
+            showMascotBubble(petMessages[Math.floor(Math.random() * petMessages.length)], 2000);
+        } else {
+            const maxHappyMessages = ['Μια χαρά είμαι!', 'Τέλειος!', 'All good!', 'Ήδη χαρούμενος!', 'Κομπλέ!'];
+            showMascotBubble(maxHappyMessages[Math.floor(Math.random() * maxHappyMessages.length)], 1500);
+        }
+    });
+
+    getButton('#tm-play-bug-game-btn')?.addEventListener('click', () => {
+        startBugSquishGame();
+        interactionPanel.style.display = 'none';
+    });
+
+    getButton('#tm-play-memory-game-btn')?.addEventListener('click', () => {
+        startMemoryGame();
+        interactionPanel.style.display = 'none'; // Close panel after starting game
+    });
+    
+    // Tamagotchi actions
+    getButton('#tm-pet-clean-btn')?.addEventListener('click', () => {
+        if (tamagotchiIsDead) {
+            showMascotBubble('Dead...', 2000);
+            return;
+        }
+        if (tamagotchiPoopCount > 0) {
+            // Clean up poops
+            tamagotchiPoopCount = 0;
+            tamagotchiLastCleaned = Date.now();
+            petStats.happiness = Math.min(100, petStats.happiness + 5); // Happy when cleaned
+            const cleanMessages = ['Καθαρός!', 'Ωραία!', 'Φρέσκο!', 'Καθάρισα!', 'Clean!', 'Thanks!'];
+            showMascotBubble(cleanMessages[Math.floor(Math.random() * cleanMessages.length)], 2000);
+            updatePoopIndicator();
+            updateTamagotchiStats(container);
+            saveTamagotchiData(STORAGE_KEYS);
+        } else if (tamagotchiHealth < 100) {
+            // General cleaning still helps health
+            tamagotchiHealth = Math.min(100, tamagotchiHealth + 5);
+            showMascotBubble('Clean!', 1500);
+            updateTamagotchiStats(container);
+            saveTamagotchiData(STORAGE_KEYS);
+        } else {
+            showMascotBubble('Already clean!', 1500);
+        }
+    });
+    
+    getButton('#tm-pet-medicine-btn')?.addEventListener('click', () => {
+        if (tamagotchiIsDead) {
+            showMascotBubble('Dead...', 2000);
+            return;
+        }
+        if (tamagotchiIsSick) {
+            // Medicine cures sickness
+            tamagotchiIsSick = false;
+            tamagotchiSickType = 'none';
+            tamagotchiHealth = Math.min(100, tamagotchiHealth + 30);
+            const medMessages = ['Καλύτερα!', 'Ευχαριστώ!', 'Γιατρός!', 'Better!', 'Θα γίνω καλά!', 'Cured!'];
+            showMascotBubble(medMessages[Math.floor(Math.random() * medMessages.length)], 2000);
+            updateSickIndicator();
+            updateTamagotchiStats(container);
+            saveTamagotchiData(STORAGE_KEYS);
+        } else if (tamagotchiHealth < 70) {
+            // Can still use medicine for general health
+            tamagotchiHealth = Math.min(100, tamagotchiHealth + 20);
+            showMascotBubble('Feeling better!', 2000);
+            updateTamagotchiStats(container);
+            saveTamagotchiData(STORAGE_KEYS);
+        } else {
+            showMascotBubble('Υγιής είμαι!', 1500);
+        }
+    });
+    
+    // Toilet training button
+    getButton('#tm-pet-toilet-btn')?.addEventListener('click', () => {
+        if (tamagotchiIsDead) {
+            showMascotBubble('Dead...', 2000);
+            return;
+        }
+        if (tamagotchiPoopCount > 0) {
+            // If there are poops, clean them and train
+            tamagotchiPoopCount = 0;
+            tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 3);
+            if (tamagotchiDiscipline > 40 && !tamagotchiToiletTrained) {
+                tamagotchiToiletTrained = true;
+                showMascotBubble('Toilet trained! 🎉', 2500);
+            } else {
+                showMascotBubble('Good! 🚽', 2000);
+            }
+            updatePoopIndicator();
+            updateToiletNeedIndicator();
+            updateTamagotchiStats(container);
+            saveTamagotchiData(STORAGE_KEYS);
+        } else if (!tamagotchiToiletTrained) {
+            // Training even without poops increases discipline
+            tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 2);
+            if (tamagotchiDiscipline > 40) {
+                tamagotchiToiletTrained = true;
+                showMascotBubble('Toilet trained! 🎉', 2500);
+            } else {
+                showMascotBubble('Training... 🚽', 2000);
+            }
+            updateToiletNeedIndicator();
+            updateTamagotchiStats(container);
+            saveTamagotchiData(STORAGE_KEYS);
+        } else {
+            // Already toilet trained - using toilet prevents poops
+            tamagotchiLastPoopTime = Date.now(); // Reset timer since using toilet
+            showMascotBubble('Good! 🚽', 2000);
+            updateToiletNeedIndicator();
+            updateTamagotchiStats(container);
+            saveTamagotchiData(STORAGE_KEYS);
+        }
+    });
+    
+    // Praise button
+    getButton('#tm-pet-praise-btn')?.addEventListener('click', () => {
+        if (tamagotchiIsDead) {
+            showMascotBubble('Dead...', 2000);
+            return;
+        }
+        const now = Date.now();
+        if (now - tamagotchiLastPraise > 5000) { // Cooldown
+            tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 5);
+            petStats.happiness = Math.min(100, petStats.happiness + 3);
+            tamagotchiLastPraise = now;
+            const praiseMessages = ['Thanks!', 'Happy!', 'Nice!', 'Ευχαριστώ!', '😊'];
+            showMascotBubble(praiseMessages[Math.floor(Math.random() * praiseMessages.length)], 2000);
+            updateTamagotchiStats(container);
+            saveTamagotchiData(STORAGE_KEYS);
+        } else {
+            showMascotBubble('Too soon!', 1500);
+        }
+    });
+    
+    // Scold button
+    getButton('#tm-pet-scold-btn')?.addEventListener('click', () => {
+        if (tamagotchiIsDead) {
+            showMascotBubble('Dead...', 2000);
+            return;
+        }
+        const now = Date.now();
+        if (now - tamagotchiLastScold > 5000) { // Cooldown
+            // Scolding decreases happiness but increases discipline if done right
+            petStats.happiness = Math.max(0, petStats.happiness - 5);
+            if (tamagotchiPoopCount > 0 || tamagotchiIsSick) {
+                // Scolding when there's a problem = good training
+                tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 4);
+                showMascotBubble('Sorry...', 2000);
+            } else {
+                // Scolding without reason = bad
+                tamagotchiDiscipline = Math.max(0, tamagotchiDiscipline - 2);
+                tamagotchiCareMistakes++;
+                showMascotBubble('Why? 😢', 2000);
+            }
+            tamagotchiLastScold = now;
+            updateTamagotchiStats(container);
+            saveTamagotchiData(STORAGE_KEYS);
+        } else {
+            showMascotBubble('Too soon!', 1500);
+        }
+    });
+    
+    // Helper function to update lights button appearance
+    function updateLightsButtonAppearance() {
+        const lightsBtn = getButton('#tm-pet-lights-btn');
+        if (!lightsBtn) return;
+        
+        const iconSpan = lightsBtn.querySelector('.tm-btn-icon');
+        const labelSpan = lightsBtn.querySelector('.tm-btn-label');
+        
+        if (tamagotchiLightsOn) {
+            if (iconSpan) iconSpan.textContent = '💡';
+            if (labelSpan) labelSpan.textContent = 'Lights';
+            lightsBtn.style.opacity = '1';
+            lightsBtn.style.filter = 'brightness(1.1)';
+            lightsBtn.title = 'Turn lights off (mascot will sleep)';
+        } else {
+            if (iconSpan) iconSpan.textContent = '🌙';
+            if (labelSpan) labelSpan.textContent = 'Lights';
+            lightsBtn.style.opacity = '0.7';
+            lightsBtn.style.filter = 'brightness(0.8)';
+            lightsBtn.title = 'Turn lights on (mascot will wake up)';
+        }
+    }
+
+    getButton('#tm-pet-lights-btn')?.addEventListener('click', () => {
+        if (tamagotchiIsDead) {
+            showMascotBubble('Dead...', 2000);
+            return;
+        }
+        
+        // Toggle lights state
+        tamagotchiLightsOn = !tamagotchiLightsOn;
+        tamagotchiLightsManualOverride = true; // Mark as manual override
+        
+        if (tamagotchiLightsOn) {
+            // Lights ON: Wake up mascot
+            tamagotchiIsSleeping = false;
+            stopRoaming(config);
+            setMascotState(config, 'idle');
+            
+            // Start roaming after a brief delay
+            setTimeout(() => {
+                if (tamagotchiLightsOn && !tamagotchiIsSleeping && !isRoaming) {
+                    startRoaming(config);
+                }
+            }, 800);
+            
+            const wakeMessages = ['Ξύπνησα!', 'Έγειρα!', 'Awake!', 'Έτοιμος!', 'Good morning!'];
+            showMascotBubble(wakeMessages[Math.floor(Math.random() * wakeMessages.length)], 2000);
+        } else {
+            // Lights OFF: Put mascot to sleep
+            tamagotchiIsSleeping = true;
+            stopRoaming(config);
+            setMascotState(config, 'powersave');
+            
+            const sleepMessages = ['Κοιμάμαι...', 'Sleep...', 'Zzz...', 'Good night!', '💤'];
+            showMascotBubble(sleepMessages[Math.floor(Math.random() * sleepMessages.length)], 2000);
+        }
+        
+        // Update button appearance
+        updateLightsButtonAppearance();
+        
+        // Save state
+        saveTamagotchiData(STORAGE_KEYS);
+        updateTamagotchiStats(container);
+    });
+    
+    // Initialize button appearance on load
+    updateLightsButtonAppearance();
+    
+    getButton('#tm-pet-stats-btn')?.addEventListener('click', () => {
+        if (tamagotchiIsDead) {
+            showMascotBubble('Dead...', 2000);
+            return;
+        }
+        const daysOld = Math.floor((Date.now() - tamagotchiBirthday) / (1000 * 60 * 60 * 24));
+        const statsMsg = `📊 Stats:
+Age: ${Math.floor(tamagotchiAge)}y (${daysOld}d)
+Weight: ${Math.round(tamagotchiWeight)}kg
+Hunger: ${Math.round(petStats.hunger)}%
+Happiness: ${Math.round(petStats.happiness)}%
+Health: ${Math.round(tamagotchiHealth)}%
+Discipline: ${Math.round(tamagotchiDiscipline)}%
+Stage: ${tamagotchiStage.toUpperCase()}
+Personality: ${tamagotchiPersonality}
+Care Mistakes: ${tamagotchiCareMistakes}
+Poops: ${tamagotchiPoopCount}
+${tamagotchiIsSick ? '🤒 SICK: ' + tamagotchiSickType : '✅ Healthy'}
+${tamagotchiToiletTrained ? '🚽 Toilet Trained' : '❌ Not Trained'}`;
+        
+        // Show in a modal or longer bubble
+        showMascotBubble(statsMsg, 8000);
+    });
+    
+    // Death options button - show death screen
+    // Close panel button
+    getButton('#tm-panel-close-btn')?.addEventListener('click', () => {
+        interactionPanel.style.display = 'none';
+    });
+
+    getButton('#tm-pet-revive-btn')?.addEventListener('click', () => {
+        if (typeof window.STORAGE_KEYS !== 'undefined') {
+            showTamagotchiDeathScreen(window.STORAGE_KEYS);
+        }
+    });
+    
+    // --- Initialization ---
+    loadPetStats(config, STORAGE_KEYS);
+    loadTamagotchiData(STORAGE_KEYS);
+    
+    // Restore lights state based on loaded data
+    if (!tamagotchiLightsOn || tamagotchiIsSleeping) {
+        setMascotState(config, 'powersave');
+        stopRoaming(config);
+    } else {
+        // Ensure state is correct if lights are on
+        if (tamagotchiLightsOn && !tamagotchiIsSleeping) {
+            setMascotState(config, 'idle');
+        }
+    }
+    
+    // Update lights button appearance on initialization (delayed to ensure DOM is ready)
+    setTimeout(() => {
+        const lightsBtn = getButton('#tm-pet-lights-btn');
+        if (lightsBtn) {
+            if (tamagotchiLightsOn) {
+                lightsBtn.innerHTML = '💡 Lights ON';
+                lightsBtn.style.opacity = '1';
+                lightsBtn.style.filter = 'brightness(1.2)';
+                lightsBtn.title = 'Turn lights off (mascot will sleep)';
+            } else {
+                lightsBtn.innerHTML = '🌙 Lights OFF';
+                lightsBtn.style.opacity = '0.6';
+                lightsBtn.style.filter = 'brightness(0.7)';
+                lightsBtn.title = 'Turn lights on (mascot will wake up)';
+            }
+        }
+    }, 200);
+    
+    initTamagotchiSystem(config, STORAGE_KEYS, container);
+    resetIdleTimer(config);
+    
+    // --- Load equipped items (deferred to avoid blocking initialization) ---
+    setTimeout(() => {
+        try {
+            const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
+            if (equippedItems.length > 0) {
+                console.log(`[MMS Mascot] Equipping items:`, equippedItems);
+                equippedItems.forEach(itemId => {
+                    try {
+                        const accessory = getAccessoryElement(itemId);
+                        if (accessory) {
+                            accessory.style.display = 'block';
+                        }
+                        
+                        // Restore animation state for special accessories (except juggling - it's periodic)
+                        // Only set state if lights are on and mascot is not sleeping
+                        if (tamagotchiLightsOn && !tamagotchiIsSleeping) {
+                            if (itemId === 'stunt_bike') {
+                                setMascotState(config, 'biking', 0);
+                            } else if (itemId === 'bookworm_kit') {
+                                setMascotState(config, 'reading', 0);
+                            }
+                        }
+                    } catch (err) {
+                        console.error(`[MMS Mascot] Error equipping item ${itemId}:`, err);
+                    }
+                });
+            }
+        } catch (err) {
+            console.error('[MMS Mascot] Error loading equipped items:', err);
+        }
+    }, 500); // Defer by 500ms to ensure DOM and state are fully ready
+    
+    // Check and restore active buffs on page load
+    const energizedExpires = GM_getValue(STORAGE_KEYS.ENERGIZED_BUFF_EXPIRES, 0);
+    const energizedDuration = GM_getValue(`${STORAGE_KEYS.ENERGIZED_BUFF_EXPIRES}_duration`, 0);
+    const energizedTimeLeft = energizedExpires - Date.now();
+    
+    if (energizedTimeLeft > 0 && energizedDuration > 0) {
+        console.log(`[MMS] ⚡ Restoring energized buff: ${Math.ceil(energizedTimeLeft/1000)}s remaining`);
+        
+        // Restore energized state with remaining time (no popup on page load)
+        setMascotState(config, 'energized', energizedTimeLeft);
+        
+        // Recreate particle effects
+        const mascotContainer = document.getElementById('tm-mascot-container');
+        if (mascotContainer) {
+            // Remove any existing particles
+            const oldParticles = mascotContainer.querySelector('.tm-electric-particles');
+            if (oldParticles) oldParticles.remove();
+            
+            // Create particle container
+            const particlesContainer = document.createElement('div');
+            particlesContainer.className = 'tm-electric-particles';
+            particlesContainer.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 140px;
+                height: 140px;
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+                z-index: 100;
+            `;
+            
+            // Create 8 electric particles
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                const angle = (360 / 8) * i;
+                const color = i % 2 === 0 ? '#00bfff' : '#ffd700';
+                
+                particle.style.cssText = `
+                    position: absolute;
+                    width: 6px;
+                    height: 6px;
+                    background: ${color};
+                    border-radius: 50%;
+                    box-shadow: 0 0 8px ${color}, 0 0 12px ${color};
+                    top: 50%;
+                    left: 50%;
+                    transform-origin: 0 0;
+                    animation: tm-particle-orbit-${i} 2s ease-in-out infinite;
+                    opacity: 0.9;
+                `;
+                
+                // Create unique animation for each particle
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes tm-particle-orbit-${i} {
+                        0% { 
+                            transform: 
+                                rotate(${angle}deg) 
+                                translateX(50px) 
+                                translateY(-3px)
+                                scale(1);
+                        }
+                        50% { 
+                            transform: 
+                                rotate(${angle + 180}deg) 
+                                translateX(60px) 
+                                translateY(-3px)
+                                scale(1.3);
+                        }
+                        100% { 
+                            transform: 
+                                rotate(${angle + 360}deg) 
+                                translateX(50px) 
+                                translateY(-3px)
+                                scale(1);
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+                particlesContainer.appendChild(particle);
+            }
+            
+            mascotContainer.appendChild(particlesContainer);
+            console.log('[MMS] ⚡ Restored electric particles on page load');
+            
+            // Remove particles when buff expires
+            setTimeout(() => {
+                if (particlesContainer && particlesContainer.parentNode) {
+                    console.log('[MMS] ⚡ Removing electric particles (buff expired)');
+                    particlesContainer.remove();
+                }
+            }, energizedTimeLeft);
+        }
+    } else {
+        // No active energized buff, proceed with normal state
+        updatePetStateByStats(config, STORAGE_KEYS); // Initial state check to start roaming
+    }
+    
+    // Check for double coins buff and add visual effects
+    const doubleCoinsExpires = GM_getValue(STORAGE_KEYS.DOUBLE_COINS_BUFF_EXPIRES, 0);
+    const doubleCoinsTimeLeft = doubleCoinsExpires - Date.now();
+    if (doubleCoinsTimeLeft > 0) {
+        const minutesLeft = Math.ceil(doubleCoinsTimeLeft / 60000);
+        console.log(`[MMS] 💰 Double coins buff active: ${minutesLeft} min remaining (restored on page load)`);
+        
+        // Create golden coin particles (no popup on page load)
+        const mascotContainer = document.getElementById('tm-mascot-container');
+        if (mascotContainer) {
+            // Remove any existing coin particles
+            const oldCoins = mascotContainer.querySelector('.tm-coin-particles');
+            if (oldCoins) oldCoins.remove();
+            
+            // Create coin particle container
+            const coinsContainer = document.createElement('div');
+            coinsContainer.className = 'tm-coin-particles';
+            coinsContainer.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 150px;
+                height: 150px;
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+                z-index: 99;
+            `;
+            
+            // Create 6 golden coin particles
+            for (let i = 0; i < 6; i++) {
+                const coin = document.createElement('div');
+                const delay = i * 0.3;
+                
+                coin.style.cssText = `
+                    position: absolute;
+                    width: 10px;
+                    height: 10px;
+                    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffc107 100%);
+                    border-radius: 50%;
+                    box-shadow: 0 0 8px #ffc107, 0 0 15px rgba(255, 215, 0, 0.6);
+                    top: 50%;
+                    left: 50%;
+                    animation: tm-coin-float-${i} 3s ease-in-out infinite;
+                    animation-delay: ${delay}s;
+                    opacity: 0.85;
+                `;
+                
+                // Create unique floating animation for each coin
+                const style = document.createElement('style');
+                const startX = -30 + (i * 12);
+                const endY = -60 - (Math.random() * 40);
+                
+                style.textContent = `
+                    @keyframes tm-coin-float-${i} {
+                        0% { 
+                            transform: translate(${startX}px, 0px) scale(0.5);
+                            opacity: 0;
+                        }
+                        20% { 
+                            transform: translate(${startX}px, ${endY * 0.4}px) scale(1);
+                            opacity: 0.85;
+                        }
+                        50% { 
+                            transform: translate(${startX}px, ${endY}px) scale(1.2);
+                            opacity: 1;
+                        }
+                        70% { 
+                            transform: translate(${startX}px, ${endY * 0.4}px) scale(1);
+                            opacity: 0.85;
+                        }
+                        100% { 
+                            transform: translate(${startX}px, 0px) scale(0.5);
+                            opacity: 0;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+                coinsContainer.appendChild(coin);
+            }
+            
+            mascotContainer.appendChild(coinsContainer);
+            console.log('[MMS] 💰 Restored coin particles on page load');
+            
+            // Remove coins when buff expires
+            setTimeout(() => {
+                if (coinsContainer && coinsContainer.parentNode) {
+                    console.log('[MMS] 💰 Removing coin particles (buff expired)');
+                    coinsContainer.remove();
+                }
+            }, doubleCoinsTimeLeft);
+        }
+    }
+
+    // Listen for user activity to reset idle timer
+    ['mousemove', 'keydown', 'click'].forEach(eventType => { // Pass config to resetIdleTimer
+        document.addEventListener(eventType, () => resetIdleTimer(config));
+    });
+
+    // Periodic decay of stats
+    setInterval(() => {
+        // Only decay if user is active
+        if (document.getElementById('tm-mascot-container').className.includes('sleeping')) return;
+        updatePetStats(config, STORAGE_KEYS, -1, -2); // Happiness decays slower than hunger
+    }, 60 * 1000); // Decay every minute
+
+    // Periodic juggling animation (if balls are equipped)
+    function checkPeriodicJuggling() {
+        // Old accessory system removed - this function is kept for potential future use
+        const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
+        if (false) { // Disabled for now
+            const mascotContainer = document.getElementById('tm-mascot-container');
+            const interactionPanel = document.getElementById('tm-mascot-interaction-panel');
+            
+            // Only juggle if mascot is in idle/happy state, interaction panel is closed, and not energized
+            if (mascotContainer && 
+                (mascotContainer.classList.contains('mascot-idle') || mascotContainer.classList.contains('mascot-happy')) &&
+                !mascotContainer.classList.contains('mascot-energized') &&
+                (!interactionPanel || interactionPanel.style.display !== 'flex')) {
+                
+                // Duration synced to animation cycle (1.2s) to avoid mid-animation cutoff
+                const jugglingDuration = 2400; // 2.4 seconds = 2 complete cycles
+                setMascotState(config, 'juggling', jugglingDuration);
+                
+                // Optional: Show a message occasionally
+                if (Math.random() < 0.3) { // 30% chance
+                    const jugglingMessages = ['Κοίτα!', 'Ορίστε!', 'Check this!', 'Παρακολούθα!', 'Το κόλπο!'];
+                    showMascotBubble(jugglingMessages[Math.floor(Math.random() * jugglingMessages.length)], 1500);
+                }
+            }
+        }
+        
+        // Schedule next check at a random interval (20-40 seconds)
+        const nextCheck = 20000 + Math.random() * 20000;
+        setTimeout(checkPeriodicJuggling, nextCheck);
+    }
+    
+    // Start periodic juggling checks after a random initial delay
+    setTimeout(checkPeriodicJuggling, 15000 + Math.random() * 10000);
+
+    // Update mascot appearance based on current level on page load
+    const currentLevel = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
+    // Update appearance based on Tamagotchi stage (not level)
+    updateMascotAppearanceByStage(tamagotchiStage);
+    console.log(`[MMS Fun] Interactive Mascot initialized at stage: ${tamagotchiStage}, age: ${Math.floor(tamagotchiAge)} years.`);
+    
+    // Set initial state and start roaming
+    // Note: This must come AFTER buff restoration and accessory loading
+    // If no state was set by buffs/accessories, set idle/sad based on stats
+    const finalMascotContainer = document.getElementById('tm-mascot-container');
+    const currentState = finalMascotContainer?.className || '';
+    console.log(`[MMS Mascot] Final state check: "${currentState}"`);
+    console.log(`[MMS Mascot] Lights on: ${tamagotchiLightsOn}, Sleeping: ${tamagotchiIsSleeping}`);
+    
+    // Ensure mascot can move if lights are on and not sleeping
+    if (tamagotchiLightsOn && !tamagotchiIsSleeping) {
+        // If still no mascot- class (no energized, no biking, no reading), set based on stats
+        if (!currentState.includes('mascot-energized') && 
+            !currentState.includes('mascot-biking') && 
+            !currentState.includes('mascot-reading')) {
+            console.log('[MMS Mascot] Setting initial state based on stats...');
+            updatePetStateByStats(config, STORAGE_KEYS); // This will set idle/sad and start roaming
+        } else {
+            console.log('[MMS Mascot] Special state already active, ensuring roaming starts...');
+            // Even with special state, ensure roaming starts if lights are on
+            setTimeout(() => {
+                if (tamagotchiLightsOn && !tamagotchiIsSleeping) {
+                    startRoaming(config);
+                }
+            }, 500);
+        }
+    } else {
+        console.log('[MMS Mascot] Lights are off or sleeping, mascot will not move.');
+        setMascotState(config, 'powersave');
+    }
+}
+
+/** Triggers the "Eureka!" animation for the mascot. */
+function triggerEurekaAnimation(config) {
+    setMascotState(config, 'eureka', 1500); // Animation lasts 1.5 seconds
+    const eurekaMessages = [
+        'Το βρήκα ρε!', 'Α! Αυτό ήταν!', 'Εδώ είναι το πρόβλημα!', 
+        'Φυσικά ρε!', 'Μα ναι!', 'Eureka!', 'Το έπιασα!',
+        'Α! Κατάλαβα!', 'Αυτό ψάχνω!', 'Got it!', 'Εννοείται ρε!'
+    ];
+    const msg = eurekaMessages[Math.floor(Math.random() * eurekaMessages.length)];
+    showMascotBubble(msg, 1500);
+}
+
+/** Triggers the "Double Coins" visual effect for the mascot. */
+function triggerDoubleCoinsEffect(config, STORAGE_KEYS, duration) {
+    console.log(`[MMS] 💰 Triggering Double Coins Effect for ${duration/1000}s`);
+    
+    const expires = Date.now() + duration;
+    GM_setValue(STORAGE_KEYS.DOUBLE_COINS_BUFF_EXPIRES, expires);
+    GM_setValue(`${STORAGE_KEYS.DOUBLE_COINS_BUFF_EXPIRES}_duration`, duration);
+    
+    console.log(`[MMS] Double coins buff stored: expires at ${new Date(expires).toLocaleTimeString()}`);
+    
+    // Create golden coin particles
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    if (mascotContainer) {
+        console.log('[MMS] 💰 Creating coin particles...');
+        
+        // Remove any existing coin particles
+        const oldCoins = mascotContainer.querySelector('.tm-coin-particles');
+        if (oldCoins) oldCoins.remove();
+        
+        // Create coin particle container
+        const coinsContainer = document.createElement('div');
+        coinsContainer.className = 'tm-coin-particles';
+        coinsContainer.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 150px;
+            height: 150px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 99;
+        `;
+        
+        // Create 6 golden coin particles
+        for (let i = 0; i < 6; i++) {
+            const coin = document.createElement('div');
+            const delay = i * 0.3;
+            
+            coin.style.cssText = `
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffc107 100%);
+                border-radius: 50%;
+                box-shadow: 0 0 8px #ffc107, 0 0 15px rgba(255, 215, 0, 0.6);
+                top: 50%;
+                left: 50%;
+                animation: tm-coin-float-${i} 3s ease-in-out infinite;
+                animation-delay: ${delay}s;
+                opacity: 0.85;
+            `;
+            
+            // Create unique floating animation for each coin
+            const style = document.createElement('style');
+            const startX = -30 + (i * 12);
+            const endY = -60 - (Math.random() * 40);
+            
+            style.textContent = `
+                @keyframes tm-coin-float-${i} {
+                    0% { 
+                        transform: translate(${startX}px, 0px) scale(0.5);
+                        opacity: 0;
+                    }
+                    20% { 
+                        transform: translate(${startX}px, ${endY * 0.4}px) scale(1);
+                        opacity: 0.85;
+                    }
+                    50% { 
+                        transform: translate(${startX}px, ${endY}px) scale(1.2);
+                        opacity: 1;
+                    }
+                    70% { 
+                        transform: translate(${startX}px, ${endY * 0.4}px) scale(1);
+                        opacity: 0.85;
+                    }
+                    100% { 
+                        transform: translate(${startX}px, 0px) scale(0.5);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            coinsContainer.appendChild(coin);
+        }
+        
+        mascotContainer.appendChild(coinsContainer);
+        console.log(`[MMS] 💰 Created ${coinsContainer.children.length} coin particles`);
+        
+        // Remove coins when buff expires
+        setTimeout(() => {
+            if (coinsContainer && coinsContainer.parentNode) {
+                console.log('[MMS] 💰 Removing coin particles (buff expired)');
+                coinsContainer.remove();
+            }
+        }, duration);
+    }
+    
+    if (typeof window.showPositiveMessage === 'function') {
+        window.showPositiveMessage('💰 Double Coins active for 10 minutes!');
+    }
+    if (typeof window.createNotification === 'function') {
+        window.createNotification('💰 Double Coins active for 10 minutes!', '💰');
+    }
+    
+    // Update buff timers UI - try now and retry if container not ready
+    updateBuffTimersUI(config, STORAGE_KEYS);
+    setTimeout(() => updateBuffTimersUI(config, STORAGE_KEYS), 500);
+    setTimeout(() => updateBuffTimersUI(config, STORAGE_KEYS), 1000);
+    
+    console.log('[MMS] 💰 Double Coins effect activated successfully!');
+}
+
+/** Triggers the "Energized" state for the mascot, providing a temporary XP boost. */
+function triggerEnergizedState(config, STORAGE_KEYS, duration) {
+    console.log(`[MMS] 🔋 Triggering Energized State for ${duration/1000}s`);
+    
+    const expires = Date.now() + duration;
+    GM_setValue(STORAGE_KEYS.ENERGIZED_BUFF_EXPIRES, expires);
+    GM_setValue(`${STORAGE_KEYS.ENERGIZED_BUFF_EXPIRES}_duration`, duration); // Store total duration
+    
+    console.log(`[MMS] Energized buff stored: expires at ${new Date(expires).toLocaleTimeString()}`);
+
+    setMascotState(config, 'energized', duration);
+    
+    // Create electric particle effects
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    if (mascotContainer) {
+        console.log('[MMS] ⚡ Creating electric particles...');
+        
+        // Remove any existing particles
+        const oldParticles = mascotContainer.querySelector('.tm-electric-particles');
+        if (oldParticles) {
+            console.log('[MMS] Removing old particles');
+            oldParticles.remove();
+        }
+        
+        // Create particle container
+        const particlesContainer = document.createElement('div');
+        particlesContainer.className = 'tm-electric-particles';
+        particlesContainer.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 140px;
+            height: 140px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 100;
+        `;
+        
+        // Create 8 electric particles
+        for (let i = 0; i < 8; i++) {
+            const particle = document.createElement('div');
+            const angle = (360 / 8) * i;
+            const color = i % 2 === 0 ? '#00bfff' : '#ffd700';
+            
+            particle.style.cssText = `
+                position: absolute;
+                width: 6px;
+                height: 6px;
+                background: ${color};
+                border-radius: 50%;
+                box-shadow: 0 0 8px ${color}, 0 0 12px ${color};
+                top: 50%;
+                left: 50%;
+                transform-origin: 0 0;
+                animation: tm-particle-orbit-${i} 2s ease-in-out infinite;
+                opacity: 0.9;
+            `;
+            
+            // Create unique animation for each particle
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes tm-particle-orbit-${i} {
+                    0% { 
+                        transform: 
+                            rotate(${angle}deg) 
+                            translateX(50px) 
+                            translateY(-3px)
+                            scale(1);
+                    }
+                    50% { 
+                        transform: 
+                            rotate(${angle + 180}deg) 
+                            translateX(60px) 
+                            translateY(-3px)
+                            scale(1.3);
+                    }
+                    100% { 
+                        transform: 
+                            rotate(${angle + 360}deg) 
+                            translateX(50px) 
+                            translateY(-3px)
+                            scale(1);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            particlesContainer.appendChild(particle);
+        }
+        
+        mascotContainer.appendChild(particlesContainer);
+        console.log(`[MMS] ⚡ Created ${particlesContainer.children.length} electric particles`);
+        
+        // Remove particles when buff expires
+        setTimeout(() => {
+            if (particlesContainer && particlesContainer.parentNode) {
+                console.log('[MMS] ⚡ Removing electric particles (buff expired)');
+                particlesContainer.remove();
+            }
+        }, duration);
+    } else {
+        console.warn('[MMS] Mascot container not found, cannot create particles');
+    }
+    
+    if (typeof window.showPositiveMessage === 'function') {
+        window.showPositiveMessage('Mascot is ENERGIZED! +10% XP Boost!');
+    }
+    if (typeof window.createNotification === 'function') {
+        window.createNotification('Mascot is ENERGIZED! +10% XP Boost for 15 minutes!', '⚡');
+    }
+
+    // Update buff timers UI - try now and retry if container not ready
+    updateBuffTimersUI(config, STORAGE_KEYS);
+    setTimeout(() => updateBuffTimersUI(config, STORAGE_KEYS), 500);
+    setTimeout(() => updateBuffTimersUI(config, STORAGE_KEYS), 1000);
+    
+    console.log('[MMS] ⚡ Energized state activated successfully!');
+}
+
+/** Updates the UI element for the energized buff timer. */
+function updateBuffTimersUI(config, STORAGE_KEYS) {
+    const container = document.getElementById('tm-buff-timers-container');
+    if (!container) {
+        console.warn('[MMS Buff] Buff timers container not found in DOM.');
+        return;
+    }
+
+    const buffs = [
+        {
+            id: 'energized',
+            key: STORAGE_KEYS.ENERGIZED_BUFF_EXPIRES,
+            icon: '⚡',
+            title: 'Energized! +10% XP Boost active.',
+            color: '#00bfff' // DeepSkyBlue
+        },
+        {
+            id: 'double_coins',
+            key: STORAGE_KEYS.DOUBLE_COINS_BUFF_EXPIRES,
+            icon: '💰',
+            title: 'Double Coins active!',
+            color: '#ffc107' // Gold
+        }
+    ];
+
+    buffs.forEach(buff => {
+        const expires = GM_getValue(buff.key, 0);
+        const totalDuration = GM_getValue(`${buff.key}_duration`, 0);
+        const timeLeft = expires - Date.now();
+        let timerEl = document.getElementById(`tm-buff-timer-${buff.id}`);
+
+        if (timeLeft > 0 && totalDuration > 0) {
+            // Use smart time formatting if available
+            const formattedTime = (typeof window.formatTimeRemaining === 'function') 
+                ? window.formatTimeRemaining(timeLeft)
+                : `${Math.ceil(timeLeft/1000)}s`;
+            
+            console.log(`[MMS Buff] ${buff.id} active: ${formattedTime} remaining`);
+            
+            if (!timerEl) {
+                console.log(`[MMS Buff] Creating timer element for ${buff.id}`);
+                timerEl = document.createElement('div');
+                timerEl.id = `tm-buff-timer-${buff.id}`;
+                timerEl.className = 'tm-buff-timer';
+                timerEl.innerHTML = `
+                    <svg viewBox="0 0 36 36">
+                        <path class="tm-buff-timer-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="tm-buff-timer-circle" stroke="${buff.color}" stroke-dasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <span class="tm-buff-timer-icon">${buff.icon}</span>
+                `;
+                container.appendChild(timerEl);
+            }
+
+            // Update tooltip with smart formatting
+            timerEl.title = `${buff.title} (${formattedTime} remaining)`;
+
+            const progress = (timeLeft / totalDuration) * 100;
+            const circle = timerEl.querySelector('.tm-buff-timer-circle');
+            if (circle) {
+            circle.style.strokeDasharray = `${progress}, 100`;
+            }
+
+        } else {
+            if (timerEl) {
+                timerEl.remove();
+            }
+            // If the buff just expired, check if the mascot state needs updating
+            if (buff.id === 'energized') {
+                const mascotContainer = document.getElementById('tm-mascot-container');
+                if (mascotContainer && mascotContainer.classList.contains('mascot-energized')) {
+                    // Need STORAGE_KEYS from window scope
+                    if (typeof window.STORAGE_KEYS !== 'undefined') {
+                        updatePetStateByStats(config, window.STORAGE_KEYS, true); // Force revert from temp state
+                    }
+                }
+            }
+        }
+    });
+}
+
+
+/** Fetches weather and updates the mascot's appearance. Runs once per session. */
+function fetchWeatherAndReact(config) {
+    if (!config || !config.interactiveMascotEnabled) return;
+
+    // Use a session flag to prevent multiple fetches
+    if (sessionStorage.getItem('tm_weather_fetched')) return;
+
+    // Athens coordinates (hardcoded)
+    const lat = 37.9838;
+    const lon = 23.7278;
+    
+    console.log(`[MMS Weather] Fetching weather for Athens (${lat}, ${lon})...`);
+
+    // Fetch weather using Athens coordinates
+                GM_xmlhttpRequest({
+                    method: 'GET',
+        url: `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=weather_code&timezone=auto`,
+                    onload: function(weatherResponse) {
+            console.log('[MMS Weather] Mascot weather response received');
+                        try {
+                            const weatherData = JSON.parse(weatherResponse.responseText);
+                            const weatherCode = weatherData.current.weather_code;
+                console.log(`[MMS Weather] Mascot weather code: ${weatherCode}`);
+                            sessionStorage.setItem('tm_weather_fetched', 'true');
+
+                            // Weather codes: 0-3 are generally clear/sunny. 51-99 are rainy/snowy.
+                            if (weatherCode >= 0 && weatherCode <= 3) {
+                    const sunnyMessages = [
+                        'Τι μέρα ρε!', 'Ήλιος έχει!', 'Ωραίος καιρός!', 
+                        'Καλός!', 'Λάμπει!', 'Τέλεια μέρα!',
+                        'Ζέστη!', 'Καλοκαιράκι!', 'Sunny day!', 'Nice!'
+                    ];
+                                setMascotState(config, 'sunny', 120000); // Show for 2 minutes
+                    showMascotBubble(sunnyMessages[Math.floor(Math.random() * sunnyMessages.length)], 3000);
+                            } else if (weatherCode >= 51 && weatherCode <= 99) {
+                    const rainyMessages = [
+                        'Βροχή ρε...', 'Στάλα στάλα...', 'Μούσκεμα!', 
+                        'Ουφ βρέχει...', 'Που είναι η ομπρέλα μου;', 'Βροχερό!',
+                        'Τι μαύρα;', 'Έχει νερά!', 'Rainy day...', 'Άσχημα...'
+                    ];
+                                setMascotState(config, 'rainy', 120000); // Show for 2 minutes
+                    showMascotBubble(rainyMessages[Math.floor(Math.random() * rainyMessages.length)], 3000);
+                            }
+                        } catch (e) {
+                console.error('[MMS Weather] Failed to parse mascot weather data:', e);
+                        }
+                    },
+                    onerror: function(error) {
+            console.error('[MMS Weather] Failed to fetch mascot weather:', error);
+        }
+    });
+}
+
+function initMascotPageReactions(config) {
+    if (!config || !config.interactiveMascotEnabled) return;
+
+    // Check for a success message
+    const successMessage = document.querySelector('.rnr-message');
+    if (successMessage && successMessage.offsetParent !== null) { // Check if it's visible
+        const successMessages = [
+            'Ωραία ρε!', 'Μπράβο!', 'Τέλεια!', 'Έγινε!', 'Success!', 
+            'Γαμάτο!', 'Άψογα!', 'Εξαιρετικά!', 'Επισκευή OK!',
+            'Perfect!', 'Κομπλέ!', 'Done!', 'Φοβερά!'
+        ];
+        setMascotState(config, 'happy', 3000);
+        showMascotBubble(successMessages[Math.floor(Math.random() * successMessages.length)], 2000);
+    }
+
+    // Check for an error message
+    const errorMessage = document.querySelector('.rnr-error');
+    if (errorMessage && errorMessage.offsetParent !== null) {
+        const errorMessages = [
+            'Ουπς...', 'Τι έπαθε ρε;', 'Ωχ...', 'Πρόβλημα!', 
+            'Δεν πάει καλά...', 'Μμμ...', 'Τι γίνεται;',
+            'Error ρε!', 'Άσχημα...', 'Fuck...', 'Τι έγινε;'
+        ];
+        setMascotState(config, 'sad', 3000);
+        showMascotBubble(errorMessages[Math.floor(Math.random() * errorMessages.length)], 2000);
+    }
+}
+
+// Update mascot appearance based on Tamagotchi stage (replaces level-based evolution)
+function updateMascotAppearanceByStage(stage) {
+    console.log(`[MMS Mascot] 🔄 Updating mascot appearance for stage: ${stage}, character: ${tamagotchiCharacterType}...`);
+    
+    // Hide ALL character variations first
+    const allCharacterTypes = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal'];
+    const allStages = ['base', 'baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
+    
+    // Hide everything
+    allStages.forEach(stageId => {
+        allCharacterTypes.forEach(charType => {
+            const elementId = `tm-mascot-${stageId}-${charType}`;
+            const element = document.getElementById(elementId);
+            if (element) element.style.display = 'none';
+        });
+        // Also hide legacy non-character-specific elements
+        const legacyElement = document.getElementById(`tm-mascot-${stageId}`);
+        if (legacyElement) legacyElement.style.display = 'none';
+    });
+    
+    // Egg stage is universal (no character type yet)
+    if (stage === 'egg') {
+        const eggElement = document.getElementById('tm-mascot-base');
+        if (eggElement) {
+            eggElement.style.display = 'block';
+            eggElement.style.opacity = '1';
+        }
+        console.log(`[MMS Mascot] ✅ Updated to EGG stage`);
+        return;
+    }
+
+    // For all other stages, show character-specific design
+    const characterType = tamagotchiCharacterType || 'dragon'; // Fallback to dragon if somehow undefined
+    let stageId = '';
+    
+    switch(stage) {
+        case 'baby': stageId = 'baby'; break;
+        case 'kid': stageId = 'evo1'; break;
+        case 'teen': stageId = 'evo2'; break;
+        case 'adult': stageId = 'evo3'; break;
+        case 'middleage': stageId = 'evo4'; break;
+        case 'old': stageId = 'evo5'; break;
+        default: stageId = 'baby';
+    }
+    
+    // Show the correct character at the correct stage
+    const elementId = `tm-mascot-${stageId}-${characterType}`;
+    const element = document.getElementById(elementId);
+    
+    if (element) {
+        element.style.display = 'block';
+        console.log(`[MMS Mascot] ✅ Updated to ${stage.toUpperCase()} stage as ${characterType.toUpperCase()}`);
+            } else {
+        console.warn(`[MMS Mascot] ⚠️ Character element not found: ${elementId}. Using fallback.`);
+        // Fallback to legacy design if character-specific not found
+        const fallbackElement = document.getElementById(`tm-mascot-${stageId}`);
+        if (fallbackElement) fallbackElement.style.display = 'block';
+    }
+    
+    // Update robot class to reflect stage and character
+    const robot = document.querySelector('.tm-mascot-robot');
+    if (robot) {
+        // Remove old classes
+        robot.classList.remove('mascot-baby', 'mascot-child', 'mascot-adult', 'mascot-egg', 'mascot-teen', 'mascot-middleage', 'mascot-old');
+        allCharacterTypes.forEach(charType => {
+            robot.classList.remove(`mascot-char-${charType}`);
+        });
+        
+        // Add new classes
+        robot.classList.add(`mascot-${stage}`);
+        robot.classList.add(`mascot-char-${characterType}`);
+    }
+}
+
+// Legacy function - now does nothing (level-based evolution disabled)
+function updateMascotAppearanceByLevel(level) {
+    // Level-based evolution is disabled - mascot now evolves by age/stage only
+    console.log(`[MMS Mascot] ⚠️ Level-based evolution disabled. Mascot evolves by age/stage only.`);
+}
+
+// Make functions globally accessible for external scripts
+window.getAccessoryElement = getAccessoryElement;
+window.updateMascotAppearanceByLevel = updateMascotAppearanceByLevel; // Legacy - disabled
+window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
+window.setMascotState = setMascotState;
+window.showMascotBubble = showMascotBubble;
+window.updatePetStats = updatePetStats;
+window.triggerEurekaAnimation = triggerEurekaAnimation;
+window.triggerEnergizedState = triggerEnergizedState;
+window.triggerDoubleCoinsEffect = triggerDoubleCoinsEffect;
+window.updateBuffTimersUI = updateBuffTimersUI;
+// Note: showMascotStatsModal is exported inside initInteractiveMascot function
