@@ -13,6 +13,7 @@
 // @grant        GM_xmlhttpRequest
 // @require      file://C:\Users\User\Documents\GitHub\MANAGER\myman_themes.js
 // @require      file://C:\Users\User\Documents\GitHub\MANAGER\myman_config.js
+// @require      file://C:\Users\User\Documents\GitHub\MANAGER\myman_profiles.js
 // @require      file://C:\Users\User\Documents\GitHub\MANAGER\myman_utils.js
 // @require      file://C:\Users\User\Documents\GitHub\MANAGER\myman_print.js
 // @require      file://C:\Users\User\Documents\GitHub\MANAGER\myman_styles.js

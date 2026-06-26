@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite
 // @namespace    http://tampermonkey.net/
-// @version      123
+// @version      124
 // @description  An all-in-one suite for mymanager.gr. Auto-updates from GitHub — install this file once.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -15,6 +15,7 @@
 // @downloadURL  https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js
 // @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_themes.js
 // @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_config.js
+// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_profiles.js
 // @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_utils.js
 // @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_print.js
 // @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_styles.js

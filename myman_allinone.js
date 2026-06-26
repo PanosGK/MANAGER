@@ -161,6 +161,7 @@
     };
     // Default theme colors are now derived from the UI_THEMES object from the @require'd script
     DEFAULTS.defaultThemeColors = UI_THEMES.default.colors;
+    window.DEFAULTS = DEFAULTS;
 
     // Helper function to convert hex color to RGB values
     function hexToRgb(hex) {
@@ -5990,49 +5991,18 @@
             return;
         }
 
+        // Activate per-user storage profile before loading settings.
+        if (typeof window.MMS_PROFILES?.activateProfileForCurrentUser === 'function') {
+            window.MMS_PROFILES.activateProfileForCurrentUser();
+        }
+
         // Load settings first, as they determine which features to run.
         loadSettings();
 
-        // Detect and store the currently logged-in user from #login_block1
-        // window.tmCurrentUser     = display name shown on screen (e.g. "Αντωνίου")
-        // window.tmCurrentUsername = actual login username resolved via the user mapping (e.g. "aantoniou")
-        // window.tmCurrentPassword = password stored in the user mapping for this user
-        (function detectLoggedInUser() {
-            const bold = document.querySelector('#login_block1 span b');
-            const displayName = bold ? bold.textContent.trim() : null;
-
-            // Resolve display name → login username + password via the saved mapping
-            // Also auto-register the display name if not yet in the list
-            let loginUsername = null;
-            let loginPassword = null;
-            try {
-                const mapping = JSON.parse(GM_getValue(STORAGE_KEYS.USER_NAME_MAPPING, '[]'));
-                const entry = mapping.find(e => e.display === displayName);
-                if (entry) {
-                    loginUsername = entry.username || null;
-                    loginPassword = entry.password || null;
-                } else if (displayName) {
-                    mapping.push({ display: displayName, username: '', password: '' });
-                    GM_setValue(STORAGE_KEYS.USER_NAME_MAPPING, JSON.stringify(mapping));
-                    console.log('[MMS] Auto-registered new user in mapping:', displayName);
-                }
-            } catch (_) {}
-
-            window.tmCurrentUser     = displayName;
-            window.tmCurrentUsername = loginUsername;
-            window.tmCurrentPassword = loginPassword;
-            if (config) {
-                config.currentUser     = displayName;
-                config.currentUsername = loginUsername;
-                config.currentPassword = loginPassword;
-            }
-
-            if (displayName) {
-                console.log('[MMS] Logged in as:', displayName, loginUsername ? `(username: ${loginUsername})` : '(username not mapped)');
-            } else {
-                console.warn('[MMS] Could not detect logged-in user from #login_block1');
-            }
-        })();
+        // User info is set by MMS_PROFILES.activateProfileForCurrentUser (above).
+        if (config?.debugEnabled && window.tmCurrentUser) {
+            console.log('[MMS] Logged in as:', window.tmCurrentUser, window.tmCurrentUsername ? `(username: ${window.tmCurrentUsername})` : '(username not mapped)');
+        }
 
         // Debug: Log new feature config status
         if (config?.debugEnabled) {

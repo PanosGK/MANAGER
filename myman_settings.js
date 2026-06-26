@@ -751,6 +751,7 @@
                 <div class="tm-settings-section">
                     <h3>💾 Διαχείριση Δεδομένων</h3>
                     <p class="tm-setting-description">Δημιουργήστε αντίγραφα ασφαλείας των ρυθμίσεων και της προόδου σας, ή μεταφέρετέ τα σε άλλη συσκευή.</p>
+                    <p class="tm-setting-description" style="margin-bottom: 12px;">Ενεργό προφίλ: <strong id="tm-settings-active-profile">—</strong> <span style="opacity:0.8;">(ξεχωριστά δεδομένα ανά χρήστη σύνδεσης στο ίδιο PC)</span></p>
                     <div class="tm-data-actions">
                         <button id="tm-export-data-btn" class="tm-data-btn export">💾 Εξαγωγή Δεδομένων</button>
                         <button id="tm-import-data-btn" class="tm-data-btn import">📂 Εισαγωγή Δεδομένων</button>
@@ -774,6 +775,14 @@
             const versionEl = document.getElementById('tm-settings-current-version');
             const statusEl = document.getElementById('tm-settings-update-status');
             const checkBtn = document.getElementById('tm-settings-check-update-btn');
+            const profileEl = document.getElementById('tm-settings-active-profile');
+            if (profileEl) {
+                const label = window.MMS_PROFILES?.getActiveProfileLabel?.()
+                    || window.tmCurrentUser
+                    || window.tmCurrentUsername
+                    || '—';
+                profileEl.textContent = label;
+            }
             if (!versionEl || !statusEl || !checkBtn) return;
 
             versionEl.textContent = window.SCRIPT_META?.version || '—';
@@ -819,18 +828,21 @@
         }
 
         function handleExportData() {
-            const backupData = {};
-            const keysToBackup = [
-                ...Object.keys(window.DEFAULTS || {}), // All config keys
-                ...Object.values(STORAGE_KEYS) // All dynamic data keys
-            ];
+            let backupData = window.MMS_PROFILES?.exportCurrentProfileData
+                ? window.MMS_PROFILES.exportCurrentProfileData()
+                : null;
 
-            keysToBackup.forEach(key => {
-                const value = GM_getValue(key);
-                if (value !== undefined) {
-                    backupData[key] = value;
-                }
-            });
+            if (!backupData) {
+                backupData = {};
+                const keysToBackup = [
+                    ...Object.keys(window.DEFAULTS || {}),
+                    ...Object.values(STORAGE_KEYS)
+                ];
+                keysToBackup.forEach((key) => {
+                    const value = GM_getValue(key);
+                    if (value !== undefined) backupData[key] = value;
+                });
+            }
 
             const jsonString = JSON.stringify(backupData, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
@@ -839,7 +851,8 @@
             const a = document.createElement('a');
             a.href = url;
             const today = new Date().toISOString().slice(0, 10);
-            a.download = `MyManagerSuite_Backup_${today}.json`;
+            const profileSlug = window.MMS_PROFILES?.getActiveProfileId?.() || 'user';
+            a.download = `MyManagerSuite_${profileSlug}_${today}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -867,13 +880,19 @@
                             throw new Error('Μη έγκυρη μορφή αρχείου backup.');
                         }
 
-                        if (!confirm('Είστε σίγουροι ότι θέλετε να εισάγετε αυτά τα δεδομένα; Όλη η τρέχουσα πρόοδος και οι ρυθμίσεις θα αντικατασταθούν.')) {
+                        if (!confirm('Είστε σίγουροι ότι θέλετε να εισάγετε αυτά τα δεδομένα; Όλη η τρέχουσα πρόοδος και οι ρυθμίσεις του ενεργού προφίλ θα αντικατασταθούν.')) {
                             return;
                         }
 
-                        Object.keys(importedData).forEach(key => {
-                            GM_setValue(key, importedData[key]);
-                        });
+                        if (window.MMS_PROFILES?.importProfileData) {
+                            window.MMS_PROFILES.importProfileData(importedData);
+                        } else {
+                            Object.keys(importedData).forEach(key => {
+                                if (key !== '_mms_export') {
+                                    GM_setValue(key, importedData[key]);
+                                }
+                            });
+                        }
 
                         alert('Τα δεδομένα εισήχθησαν με επιτυχία! Η σελίδα θα ανανεωθεί για να εφαρμοστούν οι αλλαγές.');
                         window.location.reload();

@@ -1,11 +1,12 @@
 {
-  "version": "123",
+  "version": "124",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Use clean raw GitHub URLs for @require (no query strings).",
+  "releaseNotes": "Per–MyManager-login profiles: separate XP, settings, and progress per user on the same PC.",
   "modules": [
     "myman_themes.js",
     "myman_config.js",
+    "myman_profiles.js",
     "myman_utils.js",
     "myman_print.js",
     "myman_styles.js",
