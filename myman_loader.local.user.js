@@ -10,6 +10,7 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
+// @grant        GM_listValues
 // @grant        GM_xmlhttpRequest
 // @require      file://C:\Users\User\Documents\GitHub\MANAGER\myman_themes.js
 // @require      file://C:\Users\User\Documents\GitHub\MANAGER\myman_config.js

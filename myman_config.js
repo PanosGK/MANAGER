@@ -16,7 +16,7 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '129',
+        version: '130',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -86,6 +86,15 @@
 
         // Recent Repairs History
         RECENT_REPAIRS: 'tm_recent_repairs', // Track recently accessed repairs
+
+        // Daily bounties / quests (legacy alias DAILY_BOUNTIES points here)
+        DAILY_BOUNTIES: 'tm_daily_quests',
+
+        // Order history (service + parts order pages)
+        ORDER_HISTORY_SERVICE: 'tm_srvorders_page_history',
+        ORDER_HISTORY_PARTS: 'tm_partsorders_page_history',
+        ORDER_HISTORY_STATUS_CHECK: 'orderHistoryStatusCheckEnabled',
+        ORDER_HISTORY_BACKGROUND: 'orderHistoryBackgroundEnabled',
 
         // Coin History
         COIN_HISTORY: 'tm_coin_history', // Track coin earning history

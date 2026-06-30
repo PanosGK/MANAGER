@@ -8,6 +8,7 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
+// @grant        GM_listValues
 // ==/UserScript==
 
 (function () {
@@ -144,6 +145,9 @@
             'tm_phone_list_cache', 'tm_phone_list_cache_timestamp', 'tm_phone_other_store_cache_v2',
             'tm_phone_other_store_cache_timestamp', 'tm_phone_store_rules_v1', 'tm_phone_tags',
             'tm_phone_favorites', 'phone_favorites',
+            'tm_srvorders_page_history', 'tm_partsorders_page_history',
+            'orderHistoryStatusCheckEnabled', 'orderHistoryBackgroundEnabled',
+            'tm_quick_search_hidden',
         ].forEach((key) => keys.add(key));
 
         return [...keys];
@@ -207,6 +211,35 @@
         return profileId;
     }
 
+    function listNativeStorageKeys() {
+        if (typeof GM_listValues === 'function') {
+            return GM_listValues();
+        }
+        return [];
+    }
+
+    function isExcludedExportKey(key) {
+        if (!key || key === '_mms_export') return true;
+        if (isGlobalKey(key)) return true;
+        if (key.endsWith(MIGRATED_SUFFIX)) return true;
+        if (key === 'defaultThemeColors') return true;
+        return false;
+    }
+
+    function collectAllExportKeys(profileId) {
+        const keys = new Set(listExportKeys());
+
+        if (profileId) {
+            const prefix = `${PROFILE_PREFIX}${profileId}:`;
+            listNativeStorageKeys().forEach((rawKey) => {
+                if (!rawKey.startsWith(prefix)) return;
+                keys.add(rawKey.slice(prefix.length));
+            });
+        }
+
+        return [...keys].filter((key) => !isExcludedExportKey(key));
+    }
+
     function listExportKeys() {
         const keys = new Set(collectLegacyMigrationKeys());
         if (window.SHOP_ITEMS) {
@@ -251,7 +284,11 @@
             USER_COINS: sk.USER_COINS || 'tm_user_coins',
             userXp: sk.USER_XP || 'tm_user_xp',
             userLevel: sk.USER_LEVEL || 'tm_user_level',
-            userCoins: sk.USER_COINS || 'tm_user_coins'
+            userCoins: sk.USER_COINS || 'tm_user_coins',
+            DAILY_BOUNTIES: sk.DAILY_QUESTS || sk.DAILY_BOUNTIES || 'tm_daily_quests',
+            tm_daily_bounties: sk.DAILY_QUESTS || sk.DAILY_BOUNTIES || 'tm_daily_quests',
+            dailyBounties: sk.DAILY_QUESTS || sk.DAILY_BOUNTIES || 'tm_daily_quests',
+            equippedTheme: sk.EQUIPPED_THEME || 'tm_equipped_theme',
         };
 
         Object.entries(aliasToStorage).forEach(([alias, storageKey]) => {
@@ -284,33 +321,50 @@
     }
 
     function exportCurrentProfileData() {
+        const profileId = activeProfileId || activateProfileForCurrentUser();
         const data = {
             _mms_export: {
-                version: 1,
-                profileId: activeProfileId,
+                version: 2,
+                profileId,
                 profileLabel: activeProfileLabel,
                 displayName: window.tmCurrentUser || null,
                 username: window.tmCurrentUsername || null,
-                exportedAt: new Date().toISOString()
+                exportedAt: new Date().toISOString(),
+                keyCount: 0
             }
         };
 
-        listExportKeys().forEach((key) => {
+        collectAllExportKeys(profileId).forEach((key) => {
             const value = wrappedGetValue(key, undefined);
             if (value !== undefined) {
                 data[key] = exportStorageValue(value);
             }
         });
 
-        const energizedDuration = wrappedGetValue(`${window.STORAGE_KEYS?.ENERGIZED_BUFF_EXPIRES || 'tm_energized_buff_expires'}_duration`, undefined);
-        const doubleCoinsDuration = wrappedGetValue(`${window.STORAGE_KEYS?.DOUBLE_COINS_BUFF_EXPIRES || 'tm_double_coins_buff_expires'}_duration`, undefined);
-        if (energizedDuration !== undefined) {
-            data[`${window.STORAGE_KEYS?.ENERGIZED_BUFF_EXPIRES || 'tm_energized_buff_expires'}_duration`] = energizedDuration;
-        }
-        if (doubleCoinsDuration !== undefined) {
-            data[`${window.STORAGE_KEYS?.DOUBLE_COINS_BUFF_EXPIRES || 'tm_double_coins_buff_expires'}_duration`] = doubleCoinsDuration;
+        // Include any profile-scoped keys listValues found that wrappedGetValue missed
+        if (profileId) {
+            const prefix = `${PROFILE_PREFIX}${profileId}:`;
+            listNativeStorageKeys().forEach((rawKey) => {
+                if (!rawKey.startsWith(prefix)) return;
+                const logicalKey = rawKey.slice(prefix.length);
+                if (isExcludedExportKey(logicalKey) || data[logicalKey] !== undefined) return;
+                const value = NATIVE.get(rawKey, undefined);
+                if (value !== undefined) {
+                    data[logicalKey] = exportStorageValue(value);
+                }
+            });
         }
 
+        const buffExpires = window.STORAGE_KEYS?.ENERGIZED_BUFF_EXPIRES || 'tm_energized_buff_expires';
+        const doubleExpires = window.STORAGE_KEYS?.DOUBLE_COINS_BUFF_EXPIRES || 'tm_double_coins_buff_expires';
+        [`${buffExpires}_duration`, `${doubleExpires}_duration`].forEach((key) => {
+            const value = wrappedGetValue(key, undefined);
+            if (value !== undefined) {
+                data[key] = exportStorageValue(value);
+            }
+        });
+
+        data._mms_export.keyCount = Object.keys(data).filter((k) => k !== '_mms_export').length;
         return data;
     }
 
@@ -369,7 +423,9 @@
         exportStorageValue,
         coerceValueForGmStorage,
         isGlobalKey,
-        listExportKeys
+        listExportKeys,
+        collectAllExportKeys,
+        listNativeStorageKeys
     };
 
 })();

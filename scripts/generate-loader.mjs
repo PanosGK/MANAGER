@@ -31,6 +31,7 @@ const loader = `// ==UserScript==
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
+// @grant        GM_listValues
 // @grant        GM_xmlhttpRequest
 // @updateURL    ${loaderUrl}
 // @downloadURL  ${loaderUrl}
