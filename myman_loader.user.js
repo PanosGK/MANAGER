@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite
 // @namespace    http://tampermonkey.net/
-// @version      130
+// @version      131
 // @description  An all-in-one suite for mymanager.gr. Auto-updates from GitHub — install this file once.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*

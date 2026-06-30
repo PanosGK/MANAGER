@@ -1,8 +1,8 @@
 {
-  "version": "130",
+  "version": "131",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Backup export/import now includes all profile storage keys (settings, gamification, order history, notifications, dynamic keys).",
+  "releaseNotes": "Recognise logged-in user from #login_block1 bold name (e.g. Γκορόγιας) as profile identity.",
   "modules": [
     "myman_themes.js",
     "myman_config.js",

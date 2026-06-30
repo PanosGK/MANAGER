@@ -45,8 +45,9 @@
         return cleaned || null;
     }
 
-    function resolveProfileId(username, displayName) {
-        return sanitizeProfileId(username) || sanitizeProfileId(displayName) || '_unknown';
+    function resolveProfileId(displayName, loginUsername) {
+        // Profile identity follows the name shown in #login_block1 (e.g. "Γκορόγιας")
+        return sanitizeProfileId(displayName) || sanitizeProfileId(loginUsername) || '_unknown';
     }
 
     function scopedStorageKey(key) {
@@ -98,15 +99,43 @@
         return window.STORAGE_KEYS?.USER_NAME_MAPPING || 'tm_user_name_mapping';
     }
 
+    function normalizeLoginBlockText(text) {
+        return String(text).replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+
+    /** Name from #login_block1 → span → b (e.g. "Είσοδος ως Γκορόγιας" → "Γκορόγιας") */
+    function parseLoginBlockDisplayName() {
+        const loginBlock = document.getElementById('login_block1');
+        if (!loginBlock) return null;
+
+        const bold = loginBlock.querySelector('b');
+        if (bold) {
+            const name = normalizeLoginBlockText(bold.textContent);
+            if (name) return name;
+        }
+
+        const span = loginBlock.querySelector('span');
+        if (span) {
+            const text = normalizeLoginBlockText(span.textContent);
+            const match = text.match(/(?:είσοδος|εισοδος)\s+ως\s+(.+)/i);
+            if (match && match[1]) {
+                return normalizeLoginBlockText(match[1]);
+            }
+        }
+
+        return null;
+    }
+
     function detectLoggedInUser() {
-        const bold = document.querySelector('#login_block1 span b');
-        const displayName = bold ? bold.textContent.trim() : null;
+        const displayName = parseLoginBlockDisplayName();
         let loginUsername = null;
         let loginPassword = null;
 
         try {
             const mapping = JSON.parse(NATIVE.get(getMappingKey(), '[]'));
-            const entry = mapping.find((e) => e.display === displayName);
+            const entry = displayName
+                ? mapping.find((e) => normalizeLoginBlockText(e.display) === displayName)
+                : null;
             if (entry) {
                 loginUsername = entry.username || null;
                 loginPassword = entry.password || null;
@@ -189,10 +218,17 @@
         window.tmCurrentUsername = user.loginUsername;
         window.tmCurrentPassword = user.loginPassword;
 
-        const profileId = resolveProfileId(user.loginUsername, user.displayName);
+        const profileId = resolveProfileId(user.displayName, user.loginUsername);
         const label = user.displayName || user.loginUsername || profileId;
+        const previousProfileId = activeProfileId;
         setActiveProfile(profileId, label);
         migrateLegacyForProfile(profileId);
+
+        if (previousProfileId && previousProfileId !== profileId) {
+            window.dispatchEvent(new CustomEvent('mms-profile-changed', {
+                detail: { profileId, profileLabel: label, previousProfileId }
+            }));
+        }
 
         if (window.config) {
             window.config.currentUser = user.displayName;
@@ -414,6 +450,7 @@
         getActiveProfileId: () => activeProfileId,
         getActiveProfileLabel: () => activeProfileLabel,
         detectLoggedInUser,
+        parseLoginBlockDisplayName,
         activateProfileForCurrentUser,
         exportCurrentProfileData,
         importProfileData,
@@ -427,5 +464,47 @@
         collectAllExportKeys,
         listNativeStorageKeys
     };
+
+    let loginBlockWatchStarted = false;
+
+    function watchLoginBlock() {
+        if (loginBlockWatchStarted) return;
+        loginBlockWatchStarted = true;
+
+        const tryActivate = () => {
+            const name = parseLoginBlockDisplayName();
+            if (!name) return;
+            activateProfileForCurrentUser();
+        };
+
+        const attachToBlock = (block) => {
+            if (!block || block.dataset.mmsProfileWatch) return;
+            block.dataset.mmsProfileWatch = '1';
+            tryActivate();
+            const observer = new MutationObserver(tryActivate);
+            observer.observe(block, { childList: true, subtree: true, characterData: true });
+        };
+
+        const scan = () => {
+            attachToBlock(document.getElementById('login_block1'));
+        };
+
+        if (document.body) {
+            scan();
+            if (!document.getElementById('login_block1')) {
+                const bodyObserver = new MutationObserver(() => {
+                    scan();
+                    if (document.getElementById('login_block1')) {
+                        bodyObserver.disconnect();
+                    }
+                });
+                bodyObserver.observe(document.body, { childList: true, subtree: true });
+            }
+        } else {
+            document.addEventListener('DOMContentLoaded', scan, { once: true });
+        }
+    }
+
+    watchLoginBlock();
 
 })();

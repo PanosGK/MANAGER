@@ -5997,6 +5997,13 @@
             window.MMS_PROFILES.activateProfileForCurrentUser();
         }
 
+        window.addEventListener('mms-profile-changed', () => {
+            loadSettings();
+            if (config?.debugEnabled) {
+                console.log('[MMS] Profile changed — settings reloaded for', window.tmCurrentUser);
+            }
+        });
+
         // Load settings first, as they determine which features to run.
         loadSettings();
 
