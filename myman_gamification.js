@@ -630,6 +630,8 @@ function isMmsNotificationActive() {
         if (opacity > 0.05) return true;
     }
 
+    if (document.getElementById('tm-repair-reminder-banner-root')) return true;
+
     return false;
 }
 

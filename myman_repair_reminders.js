@@ -99,17 +99,7 @@
                 continue;
             }
 
-            const title = `🔧 Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`;
-            const body =
-                (r.message && String(r.message).trim()) ||
-                `Υπενθύμιση για την επισκευή #${r.invoiceNumber || r.invoiceLinesId}.`;
-
-            if (typeof window.showNotification === 'function') {
-                window.showNotification(title, body);
-            }
-            if (typeof window.createNotification === 'function') {
-                window.createNotification(`${escapeHtml(title)} — ${escapeHtml(body)}`, '🔧');
-            }
+            activateBannerForReminder(r, STORAGE_KEYS);
 
             const rec = r.recurrence || 'none';
             changed = true;
@@ -131,6 +121,7 @@
         if (changed || next.length !== list.length) {
             saveReminders(STORAGE_KEYS, next);
         }
+        renderActiveReminderBanners(STORAGE_KEYS);
         if (typeof window.updateNotificationBadge === 'function') {
             window.updateNotificationBadge();
         }
@@ -146,6 +137,152 @@
 
     function remindersStorageKey(STORAGE_KEYS) {
         return (STORAGE_KEYS && STORAGE_KEYS.REPAIR_REMINDERS) || 'tm_repair_reminders_v1';
+    }
+
+    function bannersStorageKey(STORAGE_KEYS) {
+        return (STORAGE_KEYS && STORAGE_KEYS.REPAIR_REMINDER_BANNERS) || 'tm_repair_reminder_active_banners_v1';
+    }
+
+    function loadActiveBanners(STORAGE_KEYS) {
+        try {
+            return JSON.parse(GM_getValue(bannersStorageKey(STORAGE_KEYS), '[]'));
+        } catch (_) {
+            return [];
+        }
+    }
+
+    function saveActiveBanners(STORAGE_KEYS, arr) {
+        GM_setValue(bannersStorageKey(STORAGE_KEYS), JSON.stringify(arr));
+    }
+
+    function repairEditUrl(invoiceLinesId) {
+        return `https://thefixers.mymanager.gr/mymanagerservice/service_edit.php?editid1=${encodeURIComponent(invoiceLinesId)}`;
+    }
+
+    function activateBannerForReminder(r, STORAGE_KEYS) {
+        const banners = loadActiveBanners(STORAGE_KEYS);
+        if (banners.some((b) => b.reminderId === r.id)) return;
+
+        banners.push({
+            id: `banner_${r.id}`,
+            reminderId: r.id,
+            invoiceLinesId: r.invoiceLinesId,
+            invoiceNumber: r.invoiceNumber,
+            message: r.message || '',
+            firedAt: Date.now(),
+        });
+        saveActiveBanners(STORAGE_KEYS, banners);
+    }
+
+    function dismissReminderBanner(STORAGE_KEYS, bannerId) {
+        saveActiveBanners(
+            STORAGE_KEYS,
+            loadActiveBanners(STORAGE_KEYS).filter((b) => b.id !== bannerId)
+        );
+        renderActiveReminderBanners(STORAGE_KEYS);
+    }
+
+    function renderActiveReminderBanners(STORAGE_KEYS) {
+        const banners = loadActiveBanners(STORAGE_KEYS);
+        document.getElementById('tm-repair-reminder-banner-root')?.remove();
+
+        if (!banners.length) return;
+
+        const root = document.createElement('div');
+        root.id = 'tm-repair-reminder-banner-root';
+        root.setAttribute('role', 'alertdialog');
+        root.setAttribute('aria-modal', 'true');
+        root.style.cssText = [
+            'position:fixed',
+            'inset:0',
+            'z-index:2147483646',
+            'display:flex',
+            'align-items:center',
+            'justify-content:center',
+            'padding:24px',
+            'box-sizing:border-box',
+            'background:linear-gradient(160deg,rgba(8,12,28,0.97),rgba(20,8,8,0.97))',
+            'backdrop-filter:blur(8px)',
+            '-webkit-backdrop-filter:blur(8px)',
+        ].join(';');
+
+        const panel = document.createElement('div');
+        panel.style.cssText = [
+            'width:min(560px,calc(100vw - 32px))',
+            'max-height:calc(100vh - 48px)',
+            'overflow-y:auto',
+            'box-sizing:border-box',
+            'border-radius:20px',
+            'border:2px solid rgba(251,191,36,0.55)',
+            'box-shadow:0 0 80px rgba(251,191,36,0.25),0 24px 60px rgba(0,0,0,0.55)',
+            'padding:28px 24px',
+            'background:var(--tm-bg-color,rgba(18,18,32,0.98))',
+        ].join(';');
+
+        panel.innerHTML = `
+            <div style="text-align:center;margin-bottom:20px;">
+                <div style="font-size:48px;line-height:1;margin-bottom:8px;">🔔</div>
+                <h2 style="margin:0;color:#fbbf24;font-size:1.35rem;font-weight:800;letter-spacing:0.02em;">
+                    ΥΠΕΝΘΥΜΙΣΗ ΕΠΙΣΚΕΥΗΣ
+                </h2>
+                <p style="margin:8px 0 0;color:rgba(255,255,255,0.55);font-size:13px;">
+                    Η υπενθύμιση παραμένει μέχρι να την αποκρύψετε
+                </p>
+            </div>
+            <div id="tm-repair-reminder-banner-list"></div>
+        `;
+
+        const list = panel.querySelector('#tm-repair-reminder-banner-list');
+        banners.forEach((b) => {
+            const card = document.createElement('div');
+            card.style.cssText = [
+                'margin-bottom:14px',
+                'padding:16px',
+                'border-radius:14px',
+                'background:rgba(255,255,255,0.05)',
+                'border:1px solid rgba(255,255,255,0.12)',
+            ].join(';');
+
+            const body =
+                (b.message && String(b.message).trim()) ||
+                `Υπενθύμιση για την επισκευή #${b.invoiceNumber || b.invoiceLinesId}.`;
+            const fired = b.firedAt
+                ? new Date(b.firedAt).toLocaleString('el-GR')
+                : '';
+
+            card.innerHTML = `
+                <div style="font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:6px;">
+                    🔧 Επισκευή #${escapeHtml(b.invoiceNumber || b.invoiceLinesId)}
+                </div>
+                <div style="font-size:14px;color:rgba(255,255,255,0.88);line-height:1.45;margin-bottom:10px;">
+                    ${escapeHtml(body)}
+                </div>
+                ${fired ? `<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:12px;">⏰ ${escapeHtml(fired)}</div>` : ''}
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    <a href="${escapeHtml(repairEditUrl(b.invoiceLinesId))}" target="_blank" rel="noopener"
+                       style="flex:1;min-width:140px;text-align:center;padding:10px 14px;border-radius:10px;
+                       background:linear-gradient(135deg,#4facfe,#00f2fe);color:#0a0a12;font-weight:700;
+                       text-decoration:none;font-size:13px;">
+                        Άνοιγμα επισκευής
+                    </a>
+                    <button type="button" class="tm-repair-reminder-banner-hide" data-banner-id="${escapeHtml(b.id)}"
+                       style="flex:1;min-width:140px;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.2);
+                       background:rgba(255,255,255,0.08);color:#fff;font-weight:700;cursor:pointer;font-size:13px;">
+                        Απόκρυψη
+                    </button>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+
+        root.appendChild(panel);
+        document.body.appendChild(root);
+
+        list.querySelectorAll('.tm-repair-reminder-banner-hide').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                dismissReminderBanner(STORAGE_KEYS, btn.getAttribute('data-banner-id'));
+            });
+        });
     }
 
     function remindersForRepair(STORAGE_KEYS, invoiceLinesId) {
@@ -306,6 +443,11 @@
                     const id = b.getAttribute('data-id');
                     const all = loadReminders(STORAGE_KEYS).filter((x) => x.id !== id);
                     saveReminders(STORAGE_KEYS, all);
+                    saveActiveBanners(
+                        STORAGE_KEYS,
+                        loadActiveBanners(STORAGE_KEYS).filter((x) => x.reminderId !== id)
+                    );
+                    renderActiveReminderBanners(STORAGE_KEYS);
                     renderList();
                 });
             });
@@ -411,6 +553,15 @@
     window.initRepairReminderFeature = function (config, STORAGE_KEYS) {
         if (!config) return;
 
+        function bootBanners() {
+            renderActiveReminderBanners(STORAGE_KEYS);
+        }
+        if (document.body) {
+            bootBanners();
+        } else {
+            document.addEventListener('DOMContentLoaded', bootBanners, { once: true });
+        }
+
         setInterval(() => checkRepairReminders(STORAGE_KEYS), 30 * 1000);
         checkRepairReminders(STORAGE_KEYS);
 
@@ -424,4 +575,7 @@
     };
 
     window.checkRepairReminders = checkRepairReminders;
+    window.isRepairReminderBannerActive = function () {
+        return !!document.getElementById('tm-repair-reminder-banner-root');
+    };
 })();
