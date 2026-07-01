@@ -7,9 +7,21 @@
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    function isUnlocked(STORAGE_KEYS) {
-        const purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
-        return purchased.includes(FEATURE_ID);
+    function isUnlocked(STORAGE_KEYS, config) {
+        if (config && config.eodChecklistEnabled === false) return false;
+        if (config?.debugEnabled) return true;
+
+        let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
+        if (purchased.includes(FEATURE_ID)) return true;
+
+        // Setting enabled (default): feature is available — keep purchase flag in sync for backup/export
+        if (config?.eodChecklistEnabled !== false) {
+            purchased.push(FEATURE_ID);
+            GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
+            return true;
+        }
+
+        return false;
     }
 
     function getTodayKey() {
@@ -425,9 +437,7 @@
     // ── Init ─────────────────────────────────────────────────────────────────
 
     function initEODChecklist(config, STORAGE_KEYS) {
-        if (!isUnlocked(STORAGE_KEYS)) return;
-        if (config && config.eodChecklistEnabled === false) {
-            // Setting is off — remove button if it exists and bail out
+        if (!isUnlocked(STORAGE_KEYS, config)) {
             document.getElementById('tm-eod-btn')?.remove();
             return;
         }

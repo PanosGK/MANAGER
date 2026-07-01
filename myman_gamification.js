@@ -572,35 +572,65 @@ function processNotificationQueue() {
     switch (notification.type) {
         case 'levelup':
             triggerLevelUpAnimationImmediate(notification.data.newLevel, notification.data.oldLevel, notification.data.STORAGE_KEYS, notification.data.rewards, notification.data.isLegendary);
-            // Wait for level-up animation to finish
-            setTimeout(() => {
+            (function waitForLevelUpOverlay() {
+                if (document.getElementById('tm-level-up-overlay')) {
+                    setTimeout(waitForLevelUpOverlay, 250);
+                    return;
+                }
                 isShowingNotification = false;
                 processNotificationQueue();
-            }, 3500); // Level-up animation duration
+            })();
             break;
-            
+
         case 'achievement':
             showAchievementNotificationImmediate(notification.data.title, notification.data.xp);
-            // Wait for achievement notification
-            setTimeout(() => {
+            (function waitForAchievementToast() {
+                const el = document.getElementById('tm-achievement-notification');
+                if (el && el.classList.contains('show')) {
+                    setTimeout(waitForAchievementToast, 250);
+                    return;
+                }
                 isShowingNotification = false;
                 processNotificationQueue();
-            }, 4000);
+            })();
             break;
-            
+
         case 'bounty':
             showPositiveMessage(notification.data.message);
-            // Wait for message
-            setTimeout(() => {
+            (function waitForBountyToast() {
+                const positive = document.getElementById('tm-positive-message');
+                const visible = positive && positive.textContent
+                    && parseFloat(window.getComputedStyle(positive).opacity || '0') > 0.05;
+                if (visible) {
+                    setTimeout(waitForBountyToast, 250);
+                    return;
+                }
                 isShowingNotification = false;
                 processNotificationQueue();
-            }, 2500);
+            })();
             break;
             
         default:
             isShowingNotification = false;
             processNotificationQueue();
     }
+}
+
+function isMmsNotificationActive() {
+    if (isDialogOpen) return true;
+    if (isShowingNotification || notificationQueue.length > 0) return true;
+    if (document.getElementById('tm-level-up-overlay')) return true;
+
+    const achievement = document.getElementById('tm-achievement-notification');
+    if (achievement && achievement.classList.contains('show')) return true;
+
+    const positive = document.getElementById('tm-positive-message');
+    if (positive && positive.textContent) {
+        const opacity = parseFloat(window.getComputedStyle(positive).opacity || '0');
+        if (opacity > 0.05) return true;
+    }
+
+    return false;
 }
 
 // ===================================================================
@@ -6904,6 +6934,7 @@ window.updateCoinBalanceUI = updateCoinBalanceUI;
 window.showAchievementNotification = showAchievementNotification;
 window.queueNotification = queueNotification;
 window.processNotificationQueue = processNotificationQueue;
+window.isMmsNotificationActive = isMmsNotificationActive;
 window.initOrderTracking = initOrderTracking;
 window.initFunFeatures = initFunFeatures;
 window.initFunFeatures = initFunFeatures;

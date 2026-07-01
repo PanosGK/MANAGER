@@ -353,7 +353,10 @@
         const REFRESH_INTERVAL_MS = REFRESH_INTERVAL_MINUTES * 60 * 1000;
 
         let countdownInterval = null;
-        let refreshTimeout = null;
+
+        function isRefreshBlocked() {
+            return typeof window.isMmsNotificationActive === 'function' && window.isMmsNotificationActive();
+        }
 
         // --- UI Creation - Circular Countdown Design ---
         function createTimerUI() {
@@ -376,8 +379,8 @@
             // Cancel on click
             container.addEventListener('click', (e) => {
                 if (confirm('Cancel auto-refresh?')) {
-                    clearTimeout(refreshTimeout);
                     if (countdownInterval) clearInterval(countdownInterval);
+                    countdownInterval = null;
                     container.style.opacity = '0.5';
                     container.querySelector('#tm-refresh-countdown-text').textContent = '✓';
                     container.title = 'Auto-refresh cancelled';
@@ -397,12 +400,27 @@
                 const totalTime = REFRESH_INTERVAL_MS;
                 
                 countdownInterval = setInterval(() => {
+                    const blocked = isRefreshBlocked();
+
+                    if (!blocked) {
+                        timeLeft -= 1000;
+                        if (timeLeft <= 0) {
+                            clearInterval(countdownInterval);
+                            countdownInterval = null;
+                            console.log('Refreshing page now...');
+                            window.location.reload();
+                            return;
+                        }
+                    } else {
+                        container.title = 'Auto-refresh paused (notification showing)';
+                    }
+
                     // Use smart time formatting if available
                     const formattedTime = (typeof window.formatTimeRemaining === 'function') 
                         ? window.formatTimeRemaining(timeLeft)
                         : `${Math.floor((timeLeft / 1000 / 60) % 60)}:${Math.floor((timeLeft / 1000) % 60).toString().padStart(2, '0')}`;
                     
-                    textSpan.textContent = formattedTime;
+                    textSpan.textContent = blocked ? '⏸' : formattedTime;
                     
                     // Update circle progress
                     const progress = 1 - (timeLeft / totalTime);
@@ -410,14 +428,19 @@
                     progressCircle.style.strokeDashoffset = offset;
                     
                     // Change color as time runs out
-                    if (timeLeft < 60000) { // Last minute
+                    if (!blocked && timeLeft < 60000) { // Last minute
                         progressCircle.style.stroke = '#ef4444';
                         container.style.animation = 'tmPulse 1s ease infinite';
-                    } else if (timeLeft < 180000) { // Last 3 minutes
+                    } else if (!blocked && timeLeft < 180000) { // Last 3 minutes
                         progressCircle.style.stroke = '#f59e0b';
+                        container.style.animation = '';
+                    } else if (blocked) {
+                        container.style.animation = '';
                     }
                     
-                    timeLeft -= 1000;
+                    if (!blocked) {
+                        container.title = 'Click to cancel auto-refresh';
+                    }
                 }, 1000);
                 
                 container.title = 'Click to cancel auto-refresh';
@@ -430,21 +453,7 @@
 
         // --- Logic ---
         createTimerUI();
-        console.log(`Page will auto-refresh in ${REFRESH_INTERVAL_MINUTES} minutes.`);
-        if (isWorkingHours()) { refreshTimeout = setTimeout(() => {
-            // Check again right before refreshing to handle cases where the page was left open.
-            if (isWorkingHours()) {
-                console.log('Refreshing page now...');
-                window.location.reload();
-            } else {
-                console.log('Working hours ended. Auto-refresh will not occur.');
-                const timerContainer = document.getElementById('tm-refresh-timer-container');
-                if (timerContainer) {
-                    timerContainer.querySelector('#tm-refresh-countdown-text').textContent = '⏸';
-                    timerContainer.title = 'Auto-refresh paused';
-                }
-            }
-        }, REFRESH_INTERVAL_MS); }
+        console.log(`Page will auto-refresh in ${REFRESH_INTERVAL_MINUTES} minutes (pauses during script notifications).`);
     }
 
     
@@ -6107,10 +6116,16 @@
             
             if (config.autoRefreshEnabled) initRefreshFeature(footerControlsRight);     // Refresh timer on the right
             initSettingsPanel(footerControlsRight, config, STORAGE_KEYS); // Settings button always visible
+
+            // End of Day Checklist — 📋 button in footer (needs tm-footer-controls-right)
+            if (typeof window.initEODChecklist === 'function') {
+                window.initEODChecklist(config, STORAGE_KEYS);
+            }
         }
 
-        // End of Day Checklist (myman_eod.js) — injects 📋 button if feature is purchased
-        if (typeof window.initEODChecklist === 'function') {
+        // End of Day Checklist fallback if footer layout is missing
+        if (!document.getElementById('tm-footer-controls-right')
+            && typeof window.initEODChecklist === 'function') {
             window.initEODChecklist(config, STORAGE_KEYS);
         }
 

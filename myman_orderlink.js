@@ -2,10 +2,11 @@
 // @name         MyManager Order Link Module
 // @namespace    http://tampermonkey.net/
 // @version      1.0
-// @description  Quick access to orders for repairs with status 65
+// @description  Order ↔ repair links (status 65 orders + repair from order page)
 // @author       Assistant
-// @match        https://thefixers.mymanager.gr/mymanagerservice/service_edit.php*
+// @match        https://thefixers.mymanager.gr/mymanagerservice/*
 // @grant        GM_addStyle
+// @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
 (function() {
@@ -114,6 +115,212 @@
 
         console.log('[MMS Order Link] ✗ Repair ID not found anywhere');
         return null;
+    }
+
+    // ── Order page → repair link (sparepartstoorder_edit / srvorders_edit) ─────
+
+    function isOrderEditPage() {
+        const path = window.location.pathname || '';
+        return (path.includes('sparepartstoorder_edit.php') || path.includes('srvorders_edit.php'))
+            && !path.includes('service_edit.php');
+    }
+
+    function normalizeRepairIdForCompare(id) {
+        return String(id).trim().toUpperCase().replace(/\s/g, '');
+    }
+
+    /**
+     * Repair ID from order edit header, e.g. "ΠΑΡΑΓΓΕΛΙΑ #ΙΗ-6647 [...]" → "ΙΗ-6647"
+     */
+    function getRepairIdFromOrderPage() {
+        const h1 = document.querySelector('.rnr-b-editheader h1');
+        if (h1) {
+            const text = h1.textContent || '';
+            const hashMatch = text.match(/#\s*([Α-ΩA-ZΙΗ]{2}-\d+)/i);
+            if (hashMatch) return hashMatch[1].trim();
+            const looseMatch = text.match(/([ΙΗ]{2}-\d+|IH-\d+)/i);
+            if (looseMatch) return looseMatch[1].trim();
+        }
+        const titleMatch = document.title.match(/([ΙΗ]{2}-\d+|IH-\d+|[Α-Ω]{2}-\d+)/i);
+        return titleMatch ? titleMatch[1].trim() : null;
+    }
+
+    function findRepairRowInDoc(doc, repairId, pageUrl) {
+        const target = normalizeRepairIdForCompare(repairId);
+        const rows = doc.querySelectorAll('tbody tr[id^="gridRow"]');
+        const gridTable = doc.querySelector('table.rnr-b-grid, table.rnr-gridtable, table.hoverable');
+
+        let repairColIndex = -1;
+        if (gridTable) {
+            const headers = Array.from(gridTable.querySelectorAll('thead th')).map(th => th.innerText.trim());
+            repairColIndex = headers.findIndex(h => /^Αρ\.?/i.test(h) || h.includes('Αρ.'));
+        }
+
+        const findLink = (row) => {
+            if (typeof window.findOrderLink === 'function') {
+                return window.findOrderLink(row, pageUrl);
+            }
+            const href = row.dataset.href || row.querySelector('td[data-href]')?.dataset.href;
+            if (href) return new URL(href, pageUrl).href;
+            const a = row.querySelector('a[href*="service_edit"]');
+            return a ? a.href : null;
+        };
+
+        let best = null;
+        for (const row of rows) {
+            let matches = normalizeRepairIdForCompare(row.innerText).includes(target);
+            if (repairColIndex >= 0 && row.cells[repairColIndex]) {
+                matches = normalizeRepairIdForCompare(row.cells[repairColIndex].innerText).includes(target);
+            }
+            if (!matches) continue;
+
+            const link = findLink(row);
+            if (link && link.includes('service_edit')) {
+                return { row, link };
+            }
+            if (!best) best = { row, link };
+        }
+
+        if (rows.length === 1) {
+            const link = findLink(rows[0]);
+            if (link) return { row: rows[0], link };
+        }
+
+        return best;
+    }
+
+    function fetchRepairLinkForOrder(repairId) {
+        const searchUrl = `https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=${encodeURIComponent(repairId)}&statusid=all&menuItemId=1`;
+
+        return new Promise((resolve, reject) => {
+            const handleHtml = (html, finalUrl) => {
+                try {
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const found = findRepairRowInDoc(doc, repairId, finalUrl || searchUrl);
+                    if (found?.link) {
+                        resolve(found.link);
+                        return;
+                    }
+                    reject(new Error('Repair not found in service list'));
+                } catch (err) {
+                    reject(err);
+                }
+            };
+
+            if (typeof GM_xmlhttpRequest === 'function') {
+                GM_xmlhttpRequest({
+                    method: 'GET',
+                    url: searchUrl,
+                    onload(response) {
+                        handleHtml(response.responseText, response.finalUrl);
+                    },
+                    onerror() { reject(new Error('Search request failed')); },
+                    ontimeout() { reject(new Error('Search request timed out')); },
+                });
+            } else {
+                fetch(searchUrl)
+                    .then(r => r.text())
+                    .then(html => handleHtml(html, searchUrl))
+                    .catch(reject);
+            }
+        });
+    }
+
+    function getOrderEditButtonHost() {
+        return document.querySelector('.rnr-b-editbuttons')
+            || document.querySelector('.rnr-b-editheader')
+            || document.querySelector('.rnr-top');
+    }
+
+    function setRepairFromOrderButtonState(repairId, state, href) {
+        let btn = document.getElementById('tm-repair-from-order-btn');
+        const host = getOrderEditButtonHost();
+
+        if (!btn) {
+            btn = document.createElement(state === 'link' ? 'a' : 'span');
+            btn.id = 'tm-repair-from-order-btn';
+            btn.className = 'rnr-button main tm-repair-from-order-btn';
+            if (host) {
+                host.prepend(btn);
+            } else {
+                document.body.prepend(btn);
+            }
+        }
+
+        if (state === 'loading') {
+            btn.textContent = `🔍 Επισκευή ${repairId}…`;
+            btn.title = 'Αναζήτηση επισκευής…';
+            btn.removeAttribute('href');
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.75';
+            return;
+        }
+
+        if (state === 'link' && href) {
+            if (btn.tagName !== 'A') {
+                const anchor = document.createElement('a');
+                anchor.id = 'tm-repair-from-order-btn';
+                anchor.className = btn.className;
+                btn.replaceWith(anchor);
+                btn = anchor;
+                host?.prepend(btn);
+            }
+            btn.href = href;
+            btn.target = '_blank';
+            btn.rel = 'noopener';
+            btn.textContent = `🔧 Επισκευή ${repairId}`;
+            btn.title = 'Άνοιγμα επισκευής σε νέα καρτέλα';
+            btn.style.pointerEvents = '';
+            btn.style.opacity = '';
+            return;
+        }
+
+        if (state === 'search-fallback' && href) {
+            if (btn.tagName !== 'A') {
+                const anchor = document.createElement('a');
+                anchor.id = 'tm-repair-from-order-btn';
+                anchor.className = btn.className;
+                btn.replaceWith(anchor);
+                btn = anchor;
+                host?.prepend(btn);
+            }
+            btn.href = href;
+            btn.target = '_blank';
+            btn.rel = 'noopener';
+            btn.textContent = `🔍 Αναζήτηση ${repairId}`;
+            btn.title = 'Άνοιγμα λίστας επισκευών';
+            btn.style.pointerEvents = '';
+            btn.style.opacity = '';
+        }
+    }
+
+    async function createRepairLinkFromOrderPage() {
+        if (!isOrderEditPage()) return;
+
+        const repairId = getRepairIdFromOrderPage();
+        if (!repairId) {
+            console.log('[MMS Order Link] No repair ID in order page header');
+            return;
+        }
+
+        const existing = document.getElementById('tm-repair-from-order-btn');
+        if (existing?.tagName === 'A' && existing.href && !existing.classList.contains('tm-repair-from-order-loading')) {
+            return;
+        }
+
+        console.log('[MMS Order Link] Order page repair ID:', repairId);
+        setRepairFromOrderButtonState(repairId, 'loading');
+
+        const searchListUrl = `https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=${encodeURIComponent(repairId)}&statusid=all&menuItemId=1`;
+
+        try {
+            const repairUrl = await fetchRepairLinkForOrder(repairId);
+            console.log('[MMS Order Link] Resolved repair URL:', repairUrl);
+            setRepairFromOrderButtonState(repairId, 'link', repairUrl);
+        } catch (err) {
+            console.warn('[MMS Order Link] Could not resolve repair link:', err);
+            setRepairFromOrderButtonState(repairId, 'search-fallback', searchListUrl);
+        }
     }
 
     /**
@@ -824,6 +1031,12 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
             color: white;
         }
+
+        .tm-repair-from-order-btn {
+            margin-right: 8px !important;
+            font-weight: 600 !important;
+            white-space: nowrap;
+        }
     `);
 
     /**
@@ -839,70 +1052,50 @@
         // Check for auto-search on orders page
         checkAutoSearch();
         
-        // On repair edit page, wait for page to be ready
+        // Repair edit page — link to related orders (status 65)
         if (window.location.href.includes('service_edit.php')) {
             console.log('[MMS Order Link] ✓ Detected repair edit page');
             
-            // Try multiple times with different delays to catch dynamically loaded content
             const tryCreate = () => {
                 console.log('[MMS Order Link] Attempting to create button...');
                 createOrderLinkButton();
             };
             
-            // Immediate attempt
             tryCreate();
-            
-            // Multiple delayed attempts
             setTimeout(tryCreate, 500);
             setTimeout(tryCreate, 1000);
             setTimeout(tryCreate, 2000);
             setTimeout(tryCreate, 3000);
             
-            // Wait for DOM to be ready
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', () => {
-                    console.log('[MMS Order Link] DOM Content Loaded event fired');
-                    tryCreate();
-                });
+                document.addEventListener('DOMContentLoaded', tryCreate);
             }
             
-            // Wait for full page load
-            window.addEventListener('load', () => {
-                console.log('[MMS Order Link] Window load event fired');
-                setTimeout(tryCreate, 500);
-            });
+            window.addEventListener('load', () => setTimeout(tryCreate, 500));
 
-            // Watch for status changes
             setTimeout(() => {
-                // Watch the status badge for changes
                 const statusBadge = document.querySelector('.statusbadge.statusbadge-large, .statusbadge-large, .statusbadge');
                 if (statusBadge) {
-                    console.log('[MMS Order Link] ✓ Setting up MutationObserver for status badge changes');
-                    
                     const observer = new MutationObserver(() => {
-                        console.log('[MMS Order Link] Status badge changed, recreating button...');
-                        // Remove existing button if any
                         const existingButton = document.getElementById('tm-order-link-button');
-                        if (existingButton && existingButton.parentElement) {
-                            existingButton.parentElement.remove();
-                        }
-                        // Try to create button again
+                        if (existingButton?.parentElement) existingButton.parentElement.remove();
                         setTimeout(createOrderLinkButton, 100);
                     });
-                    
-                    observer.observe(statusBadge, {
-                        childList: true,
-                        characterData: true,
-                        subtree: true
-                    });
-                    
-                    console.log('[MMS Order Link] ✓ MutationObserver active on status badge');
-                } else {
-                    console.log('[MMS Order Link] ✗ Could not find status badge for observer');
+                    observer.observe(statusBadge, { childList: true, characterData: true, subtree: true });
                 }
             }, 1000);
+        } else if (isOrderEditPage()) {
+            console.log('[MMS Order Link] ✓ Detected order edit page — resolving repair link');
+            const tryRepairLink = () => createRepairLinkFromOrderPage();
+            tryRepairLink();
+            setTimeout(tryRepairLink, 600);
+            setTimeout(tryRepairLink, 1500);
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', tryRepairLink);
+            }
+            window.addEventListener('load', () => setTimeout(tryRepairLink, 500));
         } else {
-            console.log('[MMS Order Link] Not a repair edit page, skipping button creation');
+            console.log('[MMS Order Link] Not a repair/order edit page, skipping link buttons');
         }
     }
 
@@ -911,6 +1104,8 @@
 
     // Export functions for external use if needed
     window.initOrderLinkModule = init;
+    window.getRepairIdFromOrderPage = getRepairIdFromOrderPage;
+    window.createRepairLinkFromOrderPage = createRepairLinkFromOrderPage;
 
 })();
 

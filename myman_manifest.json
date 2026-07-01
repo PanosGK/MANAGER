@@ -1,8 +1,8 @@
 {
-  "version": "131",
+  "version": "134",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Recognise logged-in user from #login_block1 bold name (e.g. Γκορόγιας) as profile identity.",
+  "releaseNotes": "Order edit pages: button to open linked repair (ΙΗ-XXXX) from service list search.",
   "modules": [
     "myman_themes.js",
     "myman_config.js",
