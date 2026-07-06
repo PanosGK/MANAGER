@@ -22,10 +22,11 @@
         else if (local.startsWith('30') && local.length >= 12) local = local.slice(2);
 
         if (local.length === 10) {
-            return `${local.slice(0, 2)} ${local.slice(2, 5)} ${local.slice(5, 8)} ${local.slice(8)}`;
+            return `${local.slice(0, 3)} ${local.slice(3, 7)} ${local.slice(7)}`;
         }
         if (local.length === 9 && local.startsWith('6')) {
-            return `${local.slice(0, 2)} ${local.slice(2, 5)} ${local.slice(5)}`;
+            const padded = `0${local}`;
+            return `${padded.slice(0, 3)} ${padded.slice(3, 7)} ${padded.slice(7)}`;
         }
         return trimmed;
     }
@@ -79,7 +80,11 @@
             : 'Δεν υπάρχει κινητό τηλέφωνο';
 
         btn.style.cssText = [
-            'display:block',
+            'display:flex',
+            'align-items:center',
+            'justify-content:center',
+            'flex-wrap:nowrap',
+            'white-space:nowrap',
             'width:100%',
             'max-width:100%',
             'box-sizing:border-box',
@@ -91,13 +96,14 @@
             'color:#0369a1',
             'font-size:clamp(1.25rem,4vw,1.65rem)',
             'font-weight:800',
-            'letter-spacing:0.06em',
+            'letter-spacing:0.04em',
             'text-align:center',
             'cursor:pointer',
             'font-family:inherit',
-            'line-height:1.25',
+            'line-height:1',
             'box-shadow:0 4px 14px rgba(14,165,233,0.12)',
             'transition:transform 0.12s ease, box-shadow 0.12s ease',
+            'overflow:hidden',
         ].join(';');
 
         if (!raw) {
@@ -106,7 +112,7 @@
             btn.style.cursor = 'default';
             btn.textContent = '— Χωρίς κινητό —';
         } else {
-            btn.innerHTML = `<span style="font-size:0.95em;margin-right:8px;opacity:0.85;">📞</span>${display}`;
+            btn.innerHTML = `<span style="font-size:0.95em;margin-right:8px;opacity:0.85;flex-shrink:0;">📞</span><span style="white-space:nowrap;">${display}</span>`;
         }
 
         btn.addEventListener('mouseenter', () => {

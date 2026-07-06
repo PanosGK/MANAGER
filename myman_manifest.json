@@ -1,8 +1,8 @@
 {
-  "version": "137",
+  "version": "138",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Repair phone button: double-click searches phone in products list.",
+  "releaseNotes": "Repair phone display: single-line 690 0000 000 format.",
   "modules": [
     "myman_themes.js",
     "myman_config.js",
