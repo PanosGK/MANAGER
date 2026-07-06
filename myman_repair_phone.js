@@ -33,7 +33,7 @@
     function productsListSearchUrl(raw) {
         const q = String(raw || '').trim();
         if (!q) return '';
-        return `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(q)}`;
+        return `https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=${encodeURIComponent(q)}`;
     }
 
     function copyPhoneNumber(raw) {
