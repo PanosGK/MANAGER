@@ -1,8 +1,8 @@
 {
-  "version": "136",
+  "version": "137",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Repair edit page: mobile phone field shown as large tap-to-copy/call button.",
+  "releaseNotes": "Repair phone button: double-click searches phone in products list.",
   "modules": [
     "myman_themes.js",
     "myman_config.js",

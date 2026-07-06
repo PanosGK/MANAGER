@@ -30,12 +30,10 @@
         return trimmed;
     }
 
-    function phoneTelHref(raw) {
-        const digits = String(raw || '').replace(/\D/g, '');
-        if (!digits) return '';
-        if (digits.startsWith('30')) return `tel:+${digits}`;
-        if (digits.startsWith('00')) return `tel:+${digits.slice(2)}`;
-        return `tel:+30${digits}`;
+    function productsListSearchUrl(raw) {
+        const q = String(raw || '').trim();
+        if (!q) return '';
+        return `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(q)}`;
     }
 
     function copyPhoneNumber(raw) {
@@ -77,7 +75,7 @@
         btn.dataset.tmPhoneButton = '1';
         btn.dataset.phoneRaw = raw;
         btn.title = raw
-            ? `📞 ${display}\nΚλικ: αντιγραφή · Διπλό κλικ: κλήση`
+            ? `📞 ${display}\nΚλικ: αντιγραφή · Διπλό κλικ: αναζήτηση`
             : 'Δεν υπάρχει κινητό τηλέφωνο';
 
         btn.style.cssText = [
@@ -128,8 +126,8 @@
                 if (clickTimer) {
                     clearTimeout(clickTimer);
                     clickTimer = null;
-                    const href = phoneTelHref(raw);
-                    if (href) window.location.href = href;
+                    const href = productsListSearchUrl(raw);
+                    if (href) window.open(href, '_blank', 'noopener');
                     return;
                 }
                 clickTimer = setTimeout(() => {
