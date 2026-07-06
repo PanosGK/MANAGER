@@ -6230,6 +6230,9 @@
         
         // Initialize suggested price transfer button on repair edit pages
         initSuggestedPriceTransfer();
+        if (typeof window.initRepairPhoneButton === 'function') {
+            window.initRepairPhoneButton();
+        }
         
         // Initialize status hover preview for menu items
         initStatusHoverPreview();
