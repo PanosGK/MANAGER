@@ -260,6 +260,7 @@
             saveCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
             saveNumber('tm-setting-recent-repairs-max', 'recentRepairsMaxItems');
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
+            saveCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
             saveCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             saveCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             saveCheckbox('tm-setting-auto-update-check-enabled', 'autoUpdateCheckEnabled');
@@ -637,9 +638,16 @@
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <label for="tm-setting-weather-widget-enabled">🌤️ Widget Καιρού</label>
-                            <p class="tm-setting-description">Εμφανίζει την τοπική πρόγνωση καιρού στο dashboard.</p>
+                            <p class="tm-setting-description">Εμφανίζει την τοπική πρόγνωση καιρού στο κέντρο του footer. Απενεργοποιήστε το αν προτιμάτε μόνο την γρήγορη αναζήτηση.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-weather-widget-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-footer-quick-search-enabled">🔍 Γρήγορη Αναζήτηση Footer</label>
+                            <p class="tm-setting-description">Δύο πεδία στο κέντρο του footer: αναζήτηση επισκευών και ανταλλακτικών. Enter ή → για μετάβαση στα αποτελέσματα.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-footer-quick-search-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -1121,6 +1129,7 @@
             populateCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
             populateCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
+            populateCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             populateCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             populateCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
@@ -1159,14 +1168,29 @@
             const weatherWidgetCheckbox = document.getElementById('tm-setting-weather-widget-enabled');
             if (weatherWidgetCheckbox) {
                 weatherWidgetCheckbox.addEventListener('change', () => {
-                    // Save immediately
                     const value = weatherWidgetCheckbox.checked;
                     GM_setValue('weatherWidgetEnabled', value);
                     config.weatherWidgetEnabled = value;
-                    
-                    // Update weather widget visibility
+
                     if (typeof window.updateWeatherWidgetVisibility === 'function') {
                         window.updateWeatherWidgetVisibility(config);
+                    }
+                });
+            }
+
+            const footerQuickSearchCheckbox = document.getElementById('tm-setting-footer-quick-search-enabled');
+            if (footerQuickSearchCheckbox) {
+                footerQuickSearchCheckbox.addEventListener('change', () => {
+                    const value = footerQuickSearchCheckbox.checked;
+                    GM_setValue('footerQuickSearchEnabled', value);
+                    config.footerQuickSearchEnabled = value;
+
+                    const middle = document.getElementById('tm-footer-controls-middle');
+                    if (value && middle && !document.getElementById('tm-footer-quick-search')
+                        && typeof window.initFooterQuickSearch === 'function') {
+                        window.initFooterQuickSearch(middle, config);
+                    } else if (typeof window.updateFooterQuickSearchVisibility === 'function') {
+                        window.updateFooterQuickSearchVisibility(config);
                     }
                 });
             }

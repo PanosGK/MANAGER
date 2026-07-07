@@ -931,14 +931,13 @@
             /* --- Footer Controls Container --- */
             #tm-footer-controls-container {
                 display: flex;
-                flex-direction: column;
-                align-items: stretch;
+                align-items: center;
                 justify-content: center;
                 width: 100%;
                 max-width: 1400px;
                 margin: 0 auto;
-                gap: 6px;
-                padding: 4px 8px 6px;
+                gap: 8px;
+                padding: 2px 8px 4px;
                 box-sizing: border-box;
             }
             #tm-footer-controls-row {
@@ -952,99 +951,87 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 10px;
-                width: 100%;
-                flex-wrap: wrap;
+                gap: 8px;
+                flex: 1 1 360px;
+                min-width: 0;
+                max-width: 100%;
             }
             .tm-footer-search-group {
                 display: flex;
                 align-items: center;
-                gap: 6px;
-                flex: 1 1 280px;
-                max-width: 460px;
+                gap: 5px;
+                flex: 1 1 170px;
                 min-width: 0;
+                max-width: 360px;
+                background: linear-gradient(145deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 100%);
+                border: 1px solid rgba(255,255,255,0.18);
+                border-radius: 12px;
+                padding: 4px 6px 4px 8px;
+                height: 40px;
+                box-sizing: border-box;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.12);
             }
             .tm-footer-search-label {
                 display: inline-flex;
                 align-items: center;
-                gap: 4px;
-                font-size: 11px;
+                gap: 3px;
+                font-size: 10px;
                 font-weight: 700;
                 color: var(--tm-primary-color);
                 white-space: nowrap;
                 flex-shrink: 0;
                 cursor: pointer;
+                line-height: 1;
             }
-            .tm-footer-search-icon { font-size: 13px; line-height: 1; }
+            .tm-footer-search-label-text { display: none; }
+            @media (min-width: 1100px) {
+                .tm-footer-search-label-text { display: inline; }
+            }
+            .tm-footer-search-icon { font-size: 14px; line-height: 1; }
+            .tm-footer-search-input-wrap {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                flex: 1;
+                min-width: 0;
+            }
             .tm-footer-search-input {
                 flex: 1;
                 min-width: 0;
                 width: 100%;
                 box-sizing: border-box;
-                padding: 7px 10px;
-                border-radius: 9px;
-                border: 1px solid rgba(255,255,255,0.14);
-                background: rgba(255,255,255,0.06);
+                padding: 5px 8px;
+                border-radius: 8px;
+                border: 1px solid rgba(255,255,255,0.12);
+                background: rgba(0,0,0,0.12);
                 color: var(--tm-primary-color);
-                font-size: 12px;
-                transition: border-color 0.15s, box-shadow 0.15s;
+                font-size: 11px;
+                height: 28px;
             }
             .tm-footer-search-input::placeholder {
-                color: var(--tm-secondary-hover, rgba(255,255,255,0.4));
-                opacity: 0.85;
+                color: var(--tm-secondary-hover, rgba(255,255,255,0.45));
             }
             .tm-footer-search-input:focus {
                 outline: none;
                 border-color: rgba(79,172,254,0.55);
-                box-shadow: 0 0 0 3px rgba(79,172,254,0.12);
+                box-shadow: 0 0 0 2px rgba(79,172,254,0.12);
             }
             .tm-footer-search-btn {
                 flex-shrink: 0;
-                width: 34px;
-                height: 34px;
+                width: 28px;
+                height: 28px;
                 padding: 0;
-                border-radius: 9px;
+                border-radius: 8px;
                 border: 1px solid rgba(255,255,255,0.14);
-                background: linear-gradient(135deg, rgba(79,172,254,0.35), rgba(0,242,254,0.2));
+                background: linear-gradient(135deg, rgba(79,172,254,0.4), rgba(0,242,254,0.22));
                 color: var(--tm-primary-color);
-                font-size: 16px;
+                font-size: 14px;
                 font-weight: 700;
                 cursor: pointer;
-                transition: transform 0.12s, box-shadow 0.12s;
+                line-height: 1;
             }
             .tm-footer-search-btn:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(79,172,254,0.2);
-            }
-            .tm-footer-quick-search--fixed,
-            .tm-footer-quick-search--floating {
-                position: fixed;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                z-index: 2147483000;
-                padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
-                background: rgba(12, 12, 24, 0.96);
-                border-top: 2px solid rgba(79, 172, 254, 0.35);
-                box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-            }
-            body.tm-has-footer-quick-search {
-                padding-bottom: 58px !important;
-            }
-            body.tm-has-footer-quick-search #footer-outterwrap,
-            body.tm-has-footer-quick-search #footer-outter {
-                margin-bottom: 52px;
-            }
-            .tm-footer-quick-search-inner {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 10px;
-                flex-wrap: wrap;
-                max-width: 1400px;
-                margin: 0 auto;
+                filter: brightness(1.08);
             }
             #tm-footer-controls-left {
                 display: flex;
@@ -1057,8 +1044,11 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                flex: 0 0 auto;
+                flex: 1 1 420px;
+                max-width: 920px;
                 gap: 8px;
+                flex-wrap: wrap;
+                min-width: 0;
             }
             #tm-footer-controls-right {
                 display: flex;

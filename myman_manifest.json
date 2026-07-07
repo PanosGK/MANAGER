@@ -1,8 +1,8 @@
 {
-  "version": "141",
+  "version": "142",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Footer search: fixed bar always visible at bottom of screen on every page.",
+  "releaseNotes": "Footer quick search integrated in footer center; settings toggle vs weather widget.",
   "modules": [
     "myman_themes.js",
     "myman_config.js",

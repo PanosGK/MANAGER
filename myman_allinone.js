@@ -148,6 +148,7 @@
         recentRepairsMaxItems: 5,
         // Weather Widget
         weatherWidgetEnabled: true,
+        footerQuickSearchEnabled: true,
         phoneCatalogEnabled: true,
         orderHistoryEnabled: true,
         eodChecklistEnabled: true,
@@ -5986,6 +5987,82 @@
         initializeScript();
     });
     
+    function setupFooterControls(config, STORAGE_KEYS) {
+        if (document.getElementById('tm-footer-controls-container')) {
+            return true;
+        }
+
+        const footerCenterCell = document.querySelector('#footer-outterwrap table td[width="60%"]');
+        if (!footerCenterCell) {
+            return false;
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.id = 'tm-footer-controls-container';
+
+        const footerControlsRow = document.createElement('div');
+        footerControlsRow.id = 'tm-footer-controls-row';
+
+        const footerControlsLeft = document.createElement('div');
+        footerControlsLeft.id = 'tm-footer-controls-left';
+
+        const footerControlsMiddle = document.createElement('div');
+        footerControlsMiddle.id = 'tm-footer-controls-middle';
+
+        const footerControlsRight = document.createElement('div');
+        footerControlsRight.id = 'tm-footer-controls-right';
+
+        const buffTimersContainer = document.createElement('div');
+        buffTimersContainer.id = 'tm-buff-timers-container';
+        footerControlsLeft.appendChild(buffTimersContainer);
+
+        setTimeout(() => {
+            if (typeof window.updateBuffTimersUI === 'function') {
+                window.updateBuffTimersUI(config, STORAGE_KEYS);
+                console.log('[MMS] Buff timers UI initialized.');
+            } else {
+                console.warn('[MMS] updateBuffTimersUI not available yet.');
+            }
+
+            setInterval(() => {
+                if (typeof window.updateBuffTimersUI === 'function') {
+                    window.updateBuffTimersUI(config, STORAGE_KEYS);
+                }
+            }, 1000);
+        }, 500);
+
+        while (footerCenterCell.firstChild) {
+            footerCenterCell.removeChild(footerCenterCell.firstChild);
+        }
+
+        footerCenterCell.appendChild(wrapper);
+        footerControlsRow.appendChild(footerControlsLeft);
+        footerControlsRow.appendChild(footerControlsMiddle);
+        footerControlsRow.appendChild(footerControlsRight);
+        wrapper.appendChild(footerControlsRow);
+
+        if (config.footerQuickSearchEnabled !== false && typeof window.initFooterQuickSearch === 'function') {
+            window.initFooterQuickSearch(footerControlsMiddle, config);
+        }
+        if (typeof window.initWeatherWidget === 'function') {
+            window.initWeatherWidget(footerControlsMiddle, config);
+        }
+
+        initDailyDashboardWidget(footerControlsLeft, STORAGE_KEYS);
+        initXpBarWidget(footerControlsLeft, STORAGE_KEYS);
+        addNewFeatureButtons(footerControlsLeft, config, STORAGE_KEYS);
+        initRecentRepairsDropdown(footerControlsRight, config, STORAGE_KEYS);
+
+        if (config.autoRefreshEnabled) initRefreshFeature(footerControlsRight);
+        initSettingsPanel(footerControlsRight, config, STORAGE_KEYS);
+
+        if (typeof window.initEODChecklist === 'function') {
+            window.initEODChecklist(config, STORAGE_KEYS);
+        }
+
+        return true;
+    }
+
     function initializeScript() {
         // Do nothing on the login page — no buttons, no UI, no features
         if (window.location.pathname.includes('login.php')) {
@@ -6044,96 +6121,20 @@
         // const bottomControlsContainer = document.createElement('div');
         // bottomControlsContainer.id = 'tm-bottom-center-container';
         // document.body.appendChild(bottomControlsContainer);
-        const footerCenterCell = document.querySelector('#footer-outterwrap table td[width="60%"]');
-        // Initialize floating/other features that don't depend on the footer // Pass config
-        initInteractiveMascot(config, STORAGE_KEYS); // Handles the mascot
+        initInteractiveMascot(config, STORAGE_KEYS);
 
-
-        if (footerCenterCell) {
-            // Create a wrapper to hold both existing content and our new controls
-            const wrapper = document.createElement('div');
-            wrapper.id = 'tm-footer-controls-container';
-
-            const footerControlsRow = document.createElement('div');
-            footerControlsRow.id = 'tm-footer-controls-row';
-
-            // Create our controls containers
-            const footerControlsLeft = document.createElement('div');
-            footerControlsLeft.id = 'tm-footer-controls-left';
-
-            const footerControlsMiddle = document.createElement('div');
-            footerControlsMiddle.id = 'tm-footer-controls-middle';
-
-            const footerControlsRight = document.createElement('div');
-            footerControlsRight.id = 'tm-footer-controls-right';
-
-            // Create a container for buff timers and add it to the left controls
-            const buffTimersContainer = document.createElement('div');
-            buffTimersContainer.id = 'tm-buff-timers-container';
-            footerControlsLeft.appendChild(buffTimersContainer);
-
-            // Initialize buff timers display after a short delay to ensure functions are loaded
-            setTimeout(() => {
-                if (typeof window.updateBuffTimersUI === 'function') {
-                    window.updateBuffTimersUI(config, STORAGE_KEYS);
-                    console.log('[MMS] Buff timers UI initialized.');
-                } else {
-                    console.warn('[MMS] updateBuffTimersUI not available yet.');
-                }
-                
-                // Update buff timers every second
-                setInterval(() => {
-                    if (typeof window.updateBuffTimersUI === 'function') {
-                        window.updateBuffTimersUI(config, STORAGE_KEYS);
-                    }
-                }, 1000);
-            }, 500);
-
-            // Hide or remove the original ΒΡΙΛΗΣΣΙΑ button and other native content
-            while (footerCenterCell.firstChild) {
-                footerCenterCell.removeChild(footerCenterCell.firstChild);
+        const trySetupFooter = (attempt = 0) => {
+            if (setupFooterControls(config, STORAGE_KEYS)) return;
+            if (attempt < 50) {
+                setTimeout(() => trySetupFooter(attempt + 1), 300);
             }
-            
-            // Add our wrapper instead
-            footerCenterCell.appendChild(wrapper);
-
-            footerControlsRow.appendChild(footerControlsLeft);
-            footerControlsRow.appendChild(footerControlsMiddle);
-            footerControlsRow.appendChild(footerControlsRight);
-            wrapper.appendChild(footerControlsRow);
-            
-            // Initialize weather widget in middle
-            if (typeof window.initWeatherWidget === 'function') {
-                window.initWeatherWidget(footerControlsMiddle, config);
-            }
-
-            // Initialize features and place them in the correct containers
-            initDailyDashboardWidget(footerControlsLeft, STORAGE_KEYS); // Stats widget on the left
-            initXpBarWidget(footerControlsLeft, STORAGE_KEYS); // XP bar widget on the left
-            
-            // Add new feature buttons
-            addNewFeatureButtons(footerControlsLeft, config, STORAGE_KEYS);
-            
-            // Initialize Recent Repairs dropdown
-            initRecentRepairsDropdown(footerControlsRight, config, STORAGE_KEYS); // Recent repairs on the right
-            
-            if (config.autoRefreshEnabled) initRefreshFeature(footerControlsRight);     // Refresh timer on the right
-            initSettingsPanel(footerControlsRight, config, STORAGE_KEYS); // Settings button always visible
-
-            // End of Day Checklist — 📋 button in footer (needs tm-footer-controls-right)
-            if (typeof window.initEODChecklist === 'function') {
-                window.initEODChecklist(config, STORAGE_KEYS);
-            }
-        }
+        };
+        trySetupFooter();
 
         // End of Day Checklist fallback if footer layout is missing
         if (!document.getElementById('tm-footer-controls-right')
             && typeof window.initEODChecklist === 'function') {
             window.initEODChecklist(config, STORAGE_KEYS);
-        }
-
-        if (typeof window.initFooterQuickSearch === 'function') {
-            window.initFooterQuickSearch();
         }
 
         // Initialize remaining features

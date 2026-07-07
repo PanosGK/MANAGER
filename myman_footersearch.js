@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         MyMANAGER Footer Quick Search (module)
 // @namespace    http://tampermonkey.net/
-// @version      1.1
-// @description  Always-visible repair and parts search boxes fixed at bottom of screen
+// @version      1.2
+// @description  Repair and parts search boxes in the footer center
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // ==/UserScript==
@@ -12,12 +12,6 @@
 
     const REPAIR_SEARCH_URL = 'https://thefixers.mymanager.gr/mymanagerservice/service_list.php?qs=';
     const PARTS_SEARCH_URL = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=';
-
-    function shouldSkipPage() {
-        if (window.location.pathname.includes('login.php')) return true;
-        if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return true;
-        return false;
-    }
 
     function buildSearchUrl(base, query) {
         const q = String(query || '').trim();
@@ -37,7 +31,10 @@
         const labelEl = document.createElement('label');
         labelEl.className = 'tm-footer-search-label';
         labelEl.setAttribute('for', id);
-        labelEl.innerHTML = `<span class="tm-footer-search-icon" aria-hidden="true">${icon}</span>${label}`;
+        labelEl.innerHTML = `<span class="tm-footer-search-icon" aria-hidden="true">${icon}</span><span class="tm-footer-search-label-text">${label}</span>`;
+
+        const inputWrap = document.createElement('div');
+        inputWrap.className = 'tm-footer-search-input-wrap';
 
         const input = document.createElement('input');
         input.type = 'text';
@@ -63,59 +60,57 @@
             }
         });
 
+        inputWrap.appendChild(input);
+        inputWrap.appendChild(btn);
         group.appendChild(labelEl);
-        group.appendChild(input);
-        group.appendChild(btn);
+        group.appendChild(inputWrap);
         return group;
     }
 
-    function mountFixedQuickSearch() {
-        if (shouldSkipPage()) return true;
-        if (document.getElementById('tm-footer-quick-search')) return true;
-        if (!document.body) return false;
+    function mountFooterQuickSearch(parentContainer, config) {
+        if (!parentContainer) return;
 
-        const bar = document.createElement('div');
-        bar.id = 'tm-footer-quick-search';
-        bar.className = 'tm-footer-quick-search--fixed';
-        bar.setAttribute('role', 'search');
-        bar.setAttribute('aria-label', 'Γρήγορη αναζήτηση');
+        let bar = document.getElementById('tm-footer-quick-search');
+        if (!bar) {
+            bar = document.createElement('div');
+            bar.id = 'tm-footer-quick-search';
+            bar.setAttribute('role', 'search');
+            bar.setAttribute('aria-label', 'Γρήγορη αναζήτηση');
 
-        const inner = document.createElement('div');
-        inner.className = 'tm-footer-quick-search-inner';
-        inner.appendChild(createSearchGroup({
-            id: 'tm-footer-repair-search',
-            label: 'Επισκευές',
-            icon: '🔧',
-            placeholder: 'Αρ. επισκευής, τηλέφωνο, πελάτης…',
-            baseUrl: REPAIR_SEARCH_URL,
-        }));
-        inner.appendChild(createSearchGroup({
-            id: 'tm-footer-parts-search',
-            label: 'Ανταλλακτικά',
-            icon: '📦',
-            placeholder: 'Κωδικός, περιγραφή, barcode…',
-            baseUrl: PARTS_SEARCH_URL,
-        }));
+            bar.appendChild(createSearchGroup({
+                id: 'tm-footer-repair-search',
+                label: 'Επισκευές',
+                icon: '🔧',
+                placeholder: 'Αρ., τηλέφωνο, πελάτης…',
+                baseUrl: REPAIR_SEARCH_URL,
+            }));
+            bar.appendChild(createSearchGroup({
+                id: 'tm-footer-parts-search',
+                label: 'Ανταλλακτικά',
+                icon: '📦',
+                placeholder: 'Κωδικός, barcode…',
+                baseUrl: PARTS_SEARCH_URL,
+            }));
 
-        bar.appendChild(inner);
-        document.body.appendChild(bar);
-        document.body.classList.add('tm-has-footer-quick-search');
-        return true;
+            parentContainer.appendChild(bar);
+        } else if (bar.parentElement !== parentContainer) {
+            parentContainer.appendChild(bar);
+        }
+
+        updateFooterQuickSearchVisibility(config);
     }
 
-    function initFooterQuickSearch() {
-        const tryMount = () => mountFixedQuickSearch();
+    function updateFooterQuickSearchVisibility(config) {
+        const bar = document.getElementById('tm-footer-quick-search');
+        if (!bar) return;
+        const enabled = config?.footerQuickSearchEnabled !== false;
+        bar.style.display = enabled ? 'flex' : 'none';
+    }
 
-        if (tryMount()) return;
-
-        let attempts = 0;
-        const timer = setInterval(() => {
-            attempts += 1;
-            if (tryMount() || attempts >= 50) {
-                clearInterval(timer);
-            }
-        }, 200);
+    function initFooterQuickSearch(parentContainer, config) {
+        mountFooterQuickSearch(parentContainer, config);
     }
 
     window.initFooterQuickSearch = initFooterQuickSearch;
+    window.updateFooterQuickSearchVisibility = updateFooterQuickSearchVisibility;
 })();
