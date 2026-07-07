@@ -1637,7 +1637,7 @@
                     <div class="tm-oh-hero-top">
                         <div class="tm-oh-title-wrap">
                             <h2 class="tm-oh-title">
-                                📋 Ιστορικό Παραγγελιών
+                                📦 Ιστορικό Παραγγελιών
                                 <span class="tm-oh-page-badge">${pageBadge}</span>
                             </h2>
                             <p class="tm-oh-subtitle">${pageName} · Κλικ σε γραμμή για άνοιγμα παραγγελίας</p>

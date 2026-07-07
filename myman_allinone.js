@@ -4440,7 +4440,7 @@
         
         if (isOrderListPage && config.orderHistoryEnabled && typeof window.showOrderHistoryModal === 'function') {
             const orderHistoryBtn = createFeatureButton(
-                '📋', 'Order History', '#2196f3 0%, #1976d2 100%',
+                '📦', 'Order History', '#2196f3 0%, #1976d2 100%',
                 () => {
                     if (typeof window.showOrderHistoryModal === 'function') {
                         window.showOrderHistoryModal();

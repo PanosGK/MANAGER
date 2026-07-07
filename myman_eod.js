@@ -326,7 +326,7 @@
                 <!-- Header -->
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                     <h2 style="margin:0;color:#fff;font-size:1.2rem;font-weight:700;">
-                        📋 Checklist Τέλους Ημέρας${doneBadgeHTML}
+                        🌙 Checklist Τέλους Ημέρας${doneBadgeHTML}
                     </h2>
                     <div style="display:flex;align-items:center;gap:6px;">
                         <button id="tm-eod-refresh" title="Ανανέωση κατάστασης επισκευών" style="
@@ -467,7 +467,7 @@
                 transition:background 0.2s,transform 0.15s;
                 display:flex;align-items:center;
             `;
-            btn.textContent = '📋';
+            btn.textContent = '🌙';
 
             btn.addEventListener('mouseenter', () => {
                 btn.style.background = 'rgba(79,172,254,0.2)';

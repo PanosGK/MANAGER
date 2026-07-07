@@ -60,7 +60,7 @@ function getShopAccessoryItems() {
 
 function getShopConsumableItems(config) {
     const items = [
-        { id: 'eod_checklist', name: 'End of Day Checklist', icon: '📋', cost: 800, type: 'feature',
+        { id: 'eod_checklist', name: 'End of Day Checklist', icon: '🌙', cost: 800, type: 'feature',
           desc: 'Adds a 📋 button to the footer. Shows all repairs you visited today so you can review and check them off before leaving.' },
         { id: 'reroll_token', name: 'Bounty Reroll Token', icon: '🔄', cost: 100, type: 'consumable', desc: 'Reroll daily bounty' },
         { id: SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, name: 'Bounty Completion Token', icon: '🎯', cost: 300, type: 'consumable', desc: 'Instantly complete bounty' },
@@ -3102,7 +3102,7 @@ function getLevelUpSettingsHTML() {
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-eod-checklist-enabled">📋 Checklist Τέλους Ημέρας</label>
+                    <label for="tm-setting-eod-checklist-enabled">🌙 Checklist Τέλους Ημέρας</label>
                     <p class="tm-setting-description">Εμφανίζει το κουμπί 📋 στο footer για γρήγορο έλεγχο των επισκευών της ημέρας. Απαιτεί αγορά από το κατάστημα.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-eod-checklist-enabled"></div>
