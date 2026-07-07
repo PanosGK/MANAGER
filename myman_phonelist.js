@@ -4715,6 +4715,24 @@ async function showPhoneListModal() {
                     background: rgba(34, 197, 94, 0.18);
                     border-color: rgba(34, 197, 94, 0.45);
                 }
+                .tm-os-barcode {
+                    font-family: 'Courier New', Consolas, monospace;
+                    font-size: 11px;
+                    font-weight: 600;
+                    font-variant-numeric: tabular-nums;
+                    letter-spacing: 0.04em;
+                    color: var(--tm-dark-color);
+                    opacity: 0.78;
+                    background: rgba(128, 128, 128, 0.14);
+                    border: 1px solid rgba(128, 128, 128, 0.22);
+                    border-radius: 5px;
+                    padding: 1px 7px;
+                    line-height: 1.35;
+                }
+                .tm-other-store-card:hover .tm-os-barcode {
+                    opacity: 0.92;
+                    background: rgba(128, 128, 128, 0.18);
+                }
             `;
             document.head.appendChild(s);
         }
@@ -4778,9 +4796,9 @@ async function showPhoneListModal() {
                                 border:1px solid rgba(34,197,94,0.35);
                             ">${item.retailPrice}<span style="opacity:0.9;margin-left:1px;">€</span></span>` : ''}
                         </div>
-                        <div style="display:flex;align-items:center;gap:6px;">
+                        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:1px;">
                             ${colorDot ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;opacity:0.5;">${colorDot}<span>${itemColor}</span></span>` : ''}
-                            <span style="font-family:'Courier New',monospace;font-size:9px;opacity:0.25;letter-spacing:0.04em;">${item.barcode}</span>
+                            <span class="tm-os-barcode" title="${item.barcode}">${item.barcode}</span>
                         </div>
                     </div>
 
