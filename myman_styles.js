@@ -1083,7 +1083,7 @@
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                flex: 1;
+               
                 justify-content: flex-end;
             }
             #tm-footer-controls-middle {
@@ -1100,7 +1100,7 @@
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                flex: 1;
+                
                 justify-content: flex-start;
             }
             
