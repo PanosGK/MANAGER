@@ -1438,7 +1438,7 @@
             .tm-oh-input, .tm-oh-select {
                 width: 100%;
                 box-sizing: border-box;
-                padding: 10px 12px 10px 36px;
+                padding: 10px 12px 10px 36px !important;
                 border-radius: 10px;
                 border: 1px solid rgba(255,255,255,0.1);
                 background: rgba(255,255,255,0.04);
@@ -1446,10 +1446,10 @@
                 font-size: 13px;
                 transition: border-color 0.15s, box-shadow 0.15s;
             }
-            .tm-oh-select { padding-left: 12px; cursor: pointer; min-width: 130px; width: auto; flex: 0 0 auto; }
-            .tm-oh-input:not(.tm-oh-search-wrap .tm-oh-input) { padding-left: 12px; }
+            .tm-oh-select { padding-left: 12px !important; cursor: pointer; min-width: 130px; width: auto; flex: 0 0 auto; }
+            .tm-oh-input:not(.tm-oh-search-wrap .tm-oh-input) { padding-left: 12px !important; }
             .tm-oh-date-input {
-                padding: 9px 10px;
+                padding: 9px 10px !important;
                 width: 132px;
                 flex: 0 0 auto;
             }
@@ -1593,7 +1593,7 @@
             .tm-order-filter-input {
                 width: 100%;
                 margin-top: 6px;
-                padding: 6px 8px;
+                padding: 6px 8px !important;
                 font-size: 11px;
                 border-radius: 8px;
                 border: 1px solid rgba(255,255,255,0.1);

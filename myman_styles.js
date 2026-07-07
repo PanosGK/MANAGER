@@ -53,6 +53,18 @@
                 --tm-shop-item-hover-bg: #e9ecef;
                 --tm-shop-item-owned-bg: #e7f1ff;
             }
+
+            /* Native MyManager form fields — remove default 2px padding */
+            input[type=text],
+            input[type=search],
+            input[type=password],
+            input[type="number"],
+            input[type="tel"],
+            select,
+            textarea {
+                padding: 0 !important;
+            }
+
             /* --- Feature: Advanced Search --- */
             /* --- Notification Center Styles --- */
             #tm-notification-bell-wrapper { position: relative; }
@@ -467,7 +479,7 @@
 
             /* Search Input Area */
             #tm-search-input-area { display: flex; margin-bottom: 20px; pointer-events: auto; position: relative; z-index: 1; }
-            #tm-search-input { flex-grow: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; text-align: center; pointer-events: auto; }
+            #tm-search-input { flex-grow: 1; padding: 10px !important; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; text-align: center; pointer-events: auto; }
             #tm-search-submit { padding: 10px 20px; font-size: 16px; background-color: var(--tm-success-color); color: white; border: none; cursor: pointer; pointer-events: auto; }
             #tm-search-submit:disabled { background-color: var(--tm-secondary-color); cursor: not-allowed; }
             /* Default focus style for search input */
@@ -794,7 +806,7 @@
             }
             .tm-setting-control input[type="number"] {
                 width: 70px;
-                padding: 8px;
+                padding: 8px !important;
                 border: 1px solid #ccc;
                 border-radius: 4px;
                 text-align: center;
@@ -851,7 +863,7 @@
                 align-items: center;
             }
             #tm-quick-search-editor input[type="text"] {
-                padding: 8px;
+                padding: 8px !important;
                 border: 1px solid #ccc; text-align: center;
                 border-radius: 4px;
                 flex: 1;
@@ -1018,7 +1030,7 @@
             }
             .tm-qs-input {
                 width: 100%;
-                padding: 4px 8px;
+                padding: 4px 8px !important;
                 border: 1px solid var(--tm-qs-input-border, var(--tm-shop-item-border, #cbd5e1));
                 border-radius: 6px;
                 font-size: 12px;
