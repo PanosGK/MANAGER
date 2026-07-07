@@ -137,7 +137,6 @@
         smartTemplatesEnabled: true,
         personalDashboardEnabled: true,
         statusTrackingEnabled: true,
-        bossBattlesEnabled: true,
         shopEnabled: true,
         achievementsEnabled: true,
         // Menu item visibility
@@ -6155,16 +6154,8 @@
             }
         }
         
-        // Initialize boss battles check (checks every 2.5 hours for new bosses - REDUCED FREQUENCY)
-        if (config.bossBattlesEnabled && typeof window.checkBossSpawn === 'function') {
-            window.checkBossSpawn(config, STORAGE_KEYS);
-            setInterval(() => window.checkBossSpawn(config, STORAGE_KEYS), 2.5 * 60 * 60 * 1000);
-            
-            // Restore active boss notification on page load
-            const activeBoss = JSON.parse(GM_getValue(STORAGE_KEYS.ACTIVE_BOSS, 'null'));
-            if (activeBoss && Date.now() < activeBoss.expiresAt) {
-                window.showBossBattleNotification(activeBoss);
-            }
+        if (typeof window.teardownBossBattlesUI === 'function') {
+            window.teardownBossBattlesUI(STORAGE_KEYS);
         }
         
         if (config?.searchFeatureEnabled) {

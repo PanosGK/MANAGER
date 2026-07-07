@@ -314,7 +314,6 @@
             saveCheckbox('tm-setting-random-events-enabled', 'randomEventsEnabled');
             saveCheckbox('tm-setting-smart-templates-enabled', 'smartTemplatesEnabled');
             saveCheckbox('tm-setting-personal-dashboard-enabled', 'personalDashboardEnabled');
-            saveCheckbox('tm-setting-boss-battles-enabled', 'bossBattlesEnabled');
             saveCheckbox('tm-setting-eod-checklist-enabled', 'eodChecklistEnabled');
 
             // Apply EOD checklist visibility immediately (no reload needed)
@@ -474,14 +473,6 @@
                     <div class="tm-setting-row">
                         <div class="tm-setting-label"><label>Stop Random Event</label></div>
                         <div class="tm-setting-control"><button id="tm-debug-stop-event-btn" style="background: linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🛑 Stop Event</button></div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label"><label>Spawn Boss Battle</label></div>
-                        <div class="tm-setting-control"><button id="tm-debug-spawn-boss-btn" style="background: linear-gradient(135deg, #ff5252 0%, #b71c1c 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">⚔️ Spawn Boss</button></div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label"><label>Stop Boss Battle</label></div>
-                        <div class="tm-setting-control"><button id="tm-debug-stop-boss-btn" style="background: linear-gradient(135deg, #e53935 0%, #c62828 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🛑 Stop Boss</button></div>
                     </div>
                     <div class="tm-setting-row" style="border-top: 2px solid #26c6da; margin-top: 20px; padding-top: 20px;">
                         <div class="tm-setting-label">
@@ -1153,7 +1144,6 @@
             populateCheckbox('tm-setting-random-events-enabled', 'randomEventsEnabled');
             populateCheckbox('tm-setting-smart-templates-enabled', 'smartTemplatesEnabled');
             populateCheckbox('tm-setting-personal-dashboard-enabled', 'personalDashboardEnabled');
-            populateCheckbox('tm-setting-boss-battles-enabled', 'bossBattlesEnabled');
             
             document.getElementById('tm-setting-search-history-max').value = config.searchMaxHistory;
             document.getElementById('tm-setting-recent-repairs-max').value = config.recentRepairsMaxItems || 5;
@@ -1417,26 +1407,6 @@
                     showPositiveMessage('🛑 Random event stopped!');
                 } else {
                     showPositiveMessage('❌ Random events not available');
-                }
-            });
-            
-            // Spawn Boss Battle button
-            document.getElementById('tm-debug-spawn-boss-btn')?.addEventListener('click', () => {
-                if (typeof window.forceBossSpawn === 'function') {
-                    window.forceBossSpawn(config, STORAGE_KEYS);
-                    showPositiveMessage('⚔️ Boss battle spawned!');
-                } else {
-                    showPositiveMessage('❌ Boss battles not available');
-                }
-            });
-            
-            // Stop Boss Battle button
-            document.getElementById('tm-debug-stop-boss-btn')?.addEventListener('click', () => {
-                if (typeof window.stopBossBattle === 'function') {
-                    window.stopBossBattle(STORAGE_KEYS);
-                    showPositiveMessage('🛑 Boss battle stopped!');
-                } else {
-                    showPositiveMessage('❌ Boss battles not available');
                 }
             });
             
