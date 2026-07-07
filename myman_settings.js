@@ -644,8 +644,8 @@
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-footer-quick-search-enabled">🔍 Γρήγορη Αναζήτηση Footer</label>
-                            <p class="tm-setting-description">Δύο πεδία στο κέντρο του footer: αναζήτηση επισκευών και ανταλλακτικών. Enter ή → για μετάβαση στα αποτελέσματα.</p>
+                            <label for="tm-setting-footer-quick-search-enabled">🔍 Γρήγορη Αναζήτηση Header</label>
+                            <p class="tm-setting-description">Δύο πεδία στην κορυφή (rnr-hfiller): επισκευές και ανταλλακτικά. Κουμπί ✕ για απόκρυψη της native αναζήτησης (.rnr-b-search).</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-footer-quick-search-enabled"></div>
                     </div>
@@ -1185,10 +1185,11 @@
                     GM_setValue('footerQuickSearchEnabled', value);
                     config.footerQuickSearchEnabled = value;
 
-                    const middle = document.getElementById('tm-footer-controls-middle');
-                    if (value && middle && !document.getElementById('tm-footer-quick-search')
+                    const middle = document.getElementById('tm-header-quick-search-host')
+                        || document.querySelector('.rnr-hfiller');
+                    if (value && !document.getElementById('tm-footer-quick-search')
                         && typeof window.initFooterQuickSearch === 'function') {
-                        window.initFooterQuickSearch(middle, config);
+                        window.initFooterQuickSearch(config);
                     } else if (typeof window.updateFooterQuickSearchVisibility === 'function') {
                         window.updateFooterQuickSearchVisibility(config);
                     }

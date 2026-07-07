@@ -6041,9 +6041,6 @@
         footerControlsRow.appendChild(footerControlsRight);
         wrapper.appendChild(footerControlsRow);
 
-        if (config.footerQuickSearchEnabled !== false && typeof window.initFooterQuickSearch === 'function') {
-            window.initFooterQuickSearch(footerControlsMiddle, config);
-        }
         if (typeof window.initWeatherWidget === 'function') {
             window.initWeatherWidget(footerControlsMiddle, config);
         }
@@ -6130,6 +6127,10 @@
             }
         };
         trySetupFooter();
+
+        if (typeof window.initFooterQuickSearch === 'function') {
+            window.initFooterQuickSearch(config);
+        }
 
         // End of Day Checklist fallback if footer layout is missing
         if (!document.getElementById('tm-footer-controls-right')

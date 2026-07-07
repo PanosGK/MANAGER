@@ -1,8 +1,8 @@
 {
-  "version": "143",
+  "version": "144",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Footer search: minimal 2-field + 1-button compact UI.",
+  "releaseNotes": "Quick search moved to header rnr-hfiller; button to hide native .rnr-b-search.",
   "modules": [
     "myman_themes.js",
     "myman_config.js",
