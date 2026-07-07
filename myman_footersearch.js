@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         MyMANAGER Footer Quick Search (module)
 // @namespace    http://tampermonkey.net/
-// @version      1.2
-// @description  Repair and parts search boxes in the footer center
+// @version      1.3
+// @description  Minimal footer search — two fields, one search button
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // ==/UserScript==
@@ -24,47 +24,10 @@
         window.location.href = url;
     }
 
-    function createSearchGroup({ id, label, icon, placeholder, baseUrl }) {
-        const group = document.createElement('div');
-        group.className = 'tm-footer-search-group';
-
-        const labelEl = document.createElement('label');
-        labelEl.className = 'tm-footer-search-label';
-        labelEl.setAttribute('for', id);
-        labelEl.innerHTML = `<span class="tm-footer-search-icon" aria-hidden="true">${icon}</span><span class="tm-footer-search-label-text">${label}</span>`;
-
-        const inputWrap = document.createElement('div');
-        inputWrap.className = 'tm-footer-search-input-wrap';
-
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.id = id;
-        input.className = 'tm-footer-search-input';
-        input.placeholder = placeholder;
-        input.autocomplete = 'off';
-        input.spellcheck = false;
-
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'tm-footer-search-btn';
-        btn.title = 'Αναζήτηση';
-        btn.textContent = '→';
-
-        const submit = () => goToSearch(buildSearchUrl(baseUrl, input.value));
-
-        btn.addEventListener('click', submit);
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                submit();
-            }
-        });
-
-        inputWrap.appendChild(input);
-        inputWrap.appendChild(btn);
-        group.appendChild(labelEl);
-        group.appendChild(inputWrap);
-        return group;
+    function submitFromInput(input, baseUrl) {
+        const url = buildSearchUrl(baseUrl, input.value);
+        if (url) goToSearch(url);
+        else input.focus();
     }
 
     function mountFooterQuickSearch(parentContainer, config) {
@@ -74,24 +37,73 @@
         if (!bar) {
             bar = document.createElement('div');
             bar.id = 'tm-footer-quick-search';
+            bar.className = 'tm-footer-search-compact';
             bar.setAttribute('role', 'search');
             bar.setAttribute('aria-label', 'Γρήγορη αναζήτηση');
 
-            bar.appendChild(createSearchGroup({
-                id: 'tm-footer-repair-search',
-                label: 'Επισκευές',
-                icon: '🔧',
-                placeholder: 'Αρ., τηλέφωνο, πελάτης…',
-                baseUrl: REPAIR_SEARCH_URL,
-            }));
-            bar.appendChild(createSearchGroup({
-                id: 'tm-footer-parts-search',
-                label: 'Ανταλλακτικά',
-                icon: '📦',
-                placeholder: 'Κωδικός, barcode…',
-                baseUrl: PARTS_SEARCH_URL,
-            }));
+            const repairWrap = document.createElement('div');
+            repairWrap.className = 'tm-footer-search-field';
+            repairWrap.innerHTML = '<span class="tm-footer-search-field-icon" aria-hidden="true">🔧</span>';
 
+            const repairInput = document.createElement('input');
+            repairInput.type = 'text';
+            repairInput.id = 'tm-footer-repair-search';
+            repairInput.className = 'tm-footer-search-input';
+            repairInput.placeholder = 'Επισκευές';
+            repairInput.autocomplete = 'off';
+            repairInput.spellcheck = false;
+            repairInput.dataset.searchBase = REPAIR_SEARCH_URL;
+            repairWrap.appendChild(repairInput);
+
+            const partsWrap = document.createElement('div');
+            partsWrap.className = 'tm-footer-search-field';
+            partsWrap.innerHTML = '<span class="tm-footer-search-field-icon" aria-hidden="true">📦</span>';
+
+            const partsInput = document.createElement('input');
+            partsInput.type = 'text';
+            partsInput.id = 'tm-footer-parts-search';
+            partsInput.className = 'tm-footer-search-input';
+            partsInput.placeholder = 'Ανταλλακτικά';
+            partsInput.autocomplete = 'off';
+            partsInput.spellcheck = false;
+            partsInput.dataset.searchBase = PARTS_SEARCH_URL;
+            partsWrap.appendChild(partsInput);
+
+            const searchBtn = document.createElement('button');
+            searchBtn.type = 'button';
+            searchBtn.id = 'tm-footer-search-submit';
+            searchBtn.className = 'tm-footer-search-submit';
+            searchBtn.title = 'Αναζήτηση (επιλεγμένο πεδίο)';
+            searchBtn.setAttribute('aria-label', 'Αναζήτηση');
+            searchBtn.textContent = '→';
+
+            const getActiveInput = () => {
+                const active = document.activeElement;
+                if (active === repairInput || active === partsInput) return active;
+                if (repairInput.value.trim()) return repairInput;
+                if (partsInput.value.trim()) return partsInput;
+                return repairInput;
+            };
+
+            const submitActive = () => {
+                const input = getActiveInput();
+                submitFromInput(input, input.dataset.searchBase);
+            };
+
+            searchBtn.addEventListener('click', submitActive);
+
+            [repairInput, partsInput].forEach((input) => {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        submitFromInput(input, input.dataset.searchBase);
+                    }
+                });
+            });
+
+            bar.appendChild(repairWrap);
+            bar.appendChild(partsWrap);
+            bar.appendChild(searchBtn);
             parentContainer.appendChild(bar);
         } else if (bar.parentElement !== parentContainer) {
             parentContainer.appendChild(bar);
@@ -104,7 +116,7 @@
         const bar = document.getElementById('tm-footer-quick-search');
         if (!bar) return;
         const enabled = config?.footerQuickSearchEnabled !== false;
-        bar.style.display = enabled ? 'flex' : 'none';
+        bar.style.display = enabled ? 'inline-flex' : 'none';
     }
 
     function initFooterQuickSearch(parentContainer, config) {
