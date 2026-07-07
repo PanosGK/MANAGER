@@ -958,8 +958,8 @@
                 margin-right: 10px;
             }
             .tm-qs-host--repair {
-                margin-left: 10px;
-                margin-right: 0;
+                margin: 0;
+                padding: 0;
                 max-width: min(560px, 100%);
             }
             .rnr-hfiller:has(.tm-qs-host--header) {
@@ -971,15 +971,26 @@
                 min-width: 0;
             }
             .tm-repair-edit-header-with-search {
-                display: flex !important;
-                align-items: center !important;
-                justify-content: flex-start !important;
-                flex-wrap: wrap;
-                gap: 6px 10px;
+                display: block !important;
             }
-            .tm-repair-edit-header-with-search h1 {
+            .tm-repair-edit-title-row {
+                display: inline-flex !important;
+                flex-direction: row !important;
+                align-items: center !important;
+                flex-wrap: nowrap;
+                gap: 10px;
+                width: auto !important;
+                max-width: 100%;
+                vertical-align: middle;
+            }
+            .tm-repair-edit-title-row h1 {
                 flex: 0 1 auto;
                 margin: 0 !important;
+                width: auto !important;
+                white-space: nowrap;
+            }
+            .tm-repair-edit-title-row .tm-qs-host--repair {
+                flex: 0 0 auto;
             }
             .tm-qs-panel {
                 display: flex;

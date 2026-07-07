@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyMANAGER Footer Quick Search (module)
 // @namespace    http://tampermonkey.net/
-// @version      1.9
+// @version      2.0
 // @description  Quick search in header or repair edit header
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -214,17 +214,36 @@
 
         header.classList.add('tm-repair-edit-header-with-search');
 
+        const title = header.querySelector('h1');
+        if (!title) {
+            if (!host) {
+                host = document.createElement('div');
+                host.id = 'tm-repair-edit-quick-search-host';
+                host.className = 'tm-qs-host tm-qs-host--repair';
+                header.append(host);
+            }
+            return host;
+        }
+
+        let row = document.getElementById('tm-repair-edit-title-row');
+        if (!row) {
+            row = document.createElement('div');
+            row.id = 'tm-repair-edit-title-row';
+            row.className = 'tm-repair-edit-title-row';
+            title.parentNode.insertBefore(row, title);
+            row.appendChild(title);
+        } else if (!row.contains(title)) {
+            row.insertBefore(title, row.firstChild);
+        }
+
         if (!host) {
             host = document.createElement('div');
             host.id = 'tm-repair-edit-quick-search-host';
             host.className = 'tm-qs-host tm-qs-host--repair';
         }
 
-        const title = header.querySelector('h1');
-        if (title) {
-            title.after(host);
-        } else if (!host.parentElement) {
-            header.append(host);
+        if (!row.contains(host)) {
+            row.appendChild(host);
         }
 
         return host;
