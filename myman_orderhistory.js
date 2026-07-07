@@ -1232,12 +1232,390 @@
         return Promise.all(statusPromises);
     }
 
+    function escapeHtml(str) {
+        return String(str ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function formatPhoneDisplay(raw) {
+        const trimmed = String(raw || '').trim();
+        if (!trimmed) return '';
+        const digits = trimmed.replace(/\D/g, '');
+        if (!digits) return trimmed;
+        let local = digits;
+        if (local.startsWith('0030')) local = local.slice(4);
+        else if (local.startsWith('30') && local.length >= 12) local = local.slice(2);
+        if (local.length === 10) {
+            return `${local.slice(0, 3)} ${local.slice(3, 7)} ${local.slice(7)}`;
+        }
+        if (local.length === 9 && local.startsWith('6')) {
+            const padded = `0${local}`;
+            return `${padded.slice(0, 3)} ${padded.slice(3, 7)} ${padded.slice(7)}`;
+        }
+        return trimmed;
+    }
+
+    function ensureOrderHistoryStyles() {
+        if (document.getElementById('tm-order-history-ui-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'tm-order-history-ui-styles';
+        style.textContent = `
+            .tm-oh-overlay {
+                background: rgba(6, 10, 24, 0.72) !important;
+                backdrop-filter: blur(6px);
+                -webkit-backdrop-filter: blur(6px);
+                z-index: 10050 !important;
+            }
+            .tm-oh-shell {
+                width: min(96vw, 1480px) !important;
+                max-width: 1480px !important;
+                height: 94vh !important;
+                padding: 0 !important;
+                border-radius: 18px !important;
+                overflow: hidden !important;
+                border: 1px solid rgba(255,255,255,0.08) !important;
+                box-shadow: 0 28px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04) !important;
+                background: var(--tm-bg-color, #12121f) !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            .tm-oh-hero {
+                padding: 20px 24px 16px;
+                background: linear-gradient(135deg, rgba(33,150,243,0.22) 0%, rgba(25,118,210,0.08) 45%, transparent 100%);
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+                flex-shrink: 0;
+            }
+            .tm-oh-hero-top {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 16px;
+                margin-bottom: 16px;
+            }
+            .tm-oh-title-wrap { min-width: 0; }
+            .tm-oh-title {
+                margin: 0;
+                font-size: 1.35rem;
+                font-weight: 800;
+                color: var(--tm-primary-color, #fff);
+                letter-spacing: 0.01em;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .tm-oh-page-badge {
+                display: inline-flex;
+                align-items: center;
+                padding: 4px 10px;
+                border-radius: 999px;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                background: rgba(33,150,243,0.18);
+                color: #64b5f6;
+                border: 1px solid rgba(100,181,246,0.35);
+            }
+            .tm-oh-subtitle {
+                margin: 6px 0 0;
+                font-size: 12px;
+                color: var(--tm-secondary-hover, rgba(255,255,255,0.5));
+            }
+            .tm-oh-hero-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-shrink: 0;
+            }
+            .tm-oh-close {
+                width: 38px;
+                height: 38px;
+                border-radius: 10px;
+                border: 1px solid rgba(255,255,255,0.12);
+                background: rgba(255,255,255,0.05);
+                color: var(--tm-primary-color, #fff);
+                font-size: 22px;
+                line-height: 1;
+                cursor: pointer;
+                transition: background 0.15s, transform 0.15s;
+            }
+            .tm-oh-close:hover {
+                background: rgba(239,68,68,0.18);
+                transform: scale(1.04);
+            }
+            .tm-oh-stats-row {
+                display: flex;
+                align-items: stretch;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .tm-oh-stat {
+                min-width: 88px;
+                padding: 10px 14px;
+                border-radius: 12px;
+                background: rgba(255,255,255,0.04);
+                border: 1px solid rgba(255,255,255,0.08);
+            }
+            .tm-oh-stat-value {
+                display: block;
+                font-size: 1.35rem;
+                font-weight: 800;
+                color: var(--tm-accent-color, #4facfe);
+                line-height: 1.1;
+            }
+            .tm-oh-stat-label {
+                display: block;
+                margin-top: 2px;
+                font-size: 10px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+                color: var(--tm-secondary-hover, rgba(255,255,255,0.45));
+            }
+            .tm-oh-toolbar {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-left: auto;
+                flex-wrap: wrap;
+            }
+            .tm-oh-tool-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 12px;
+                border-radius: 10px;
+                border: 1px solid rgba(255,255,255,0.1);
+                background: rgba(255,255,255,0.05);
+                color: var(--tm-primary-color, #fff);
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.15s, border-color 0.15s, transform 0.12s;
+                white-space: nowrap;
+            }
+            .tm-oh-tool-btn:hover:not(:disabled) {
+                background: rgba(255,255,255,0.1);
+                border-color: rgba(79,172,254,0.45);
+                transform: translateY(-1px);
+            }
+            .tm-oh-tool-btn:disabled { opacity: 0.55; cursor: wait; }
+            .tm-oh-tool-btn--danger:hover:not(:disabled) {
+                background: rgba(239,68,68,0.15);
+                border-color: rgba(239,68,68,0.4);
+            }
+            .tm-oh-filters {
+                padding: 14px 24px;
+                border-bottom: 1px solid rgba(255,255,255,0.06);
+                background: rgba(0,0,0,0.12);
+                flex-shrink: 0;
+            }
+            .tm-oh-filters-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                align-items: center;
+            }
+            .tm-oh-search-wrap {
+                position: relative;
+                flex: 1 1 220px;
+                min-width: 180px;
+            }
+            .tm-oh-search-wrap::before {
+                content: '🔍';
+                position: absolute;
+                left: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 13px;
+                opacity: 0.55;
+                pointer-events: none;
+            }
+            .tm-oh-input, .tm-oh-select {
+                width: 100%;
+                box-sizing: border-box;
+                padding: 10px 12px 10px 36px;
+                border-radius: 10px;
+                border: 1px solid rgba(255,255,255,0.1);
+                background: rgba(255,255,255,0.04);
+                color: var(--tm-primary-color, #fff);
+                font-size: 13px;
+                transition: border-color 0.15s, box-shadow 0.15s;
+            }
+            .tm-oh-select { padding-left: 12px; cursor: pointer; min-width: 130px; width: auto; flex: 0 0 auto; }
+            .tm-oh-input:not(.tm-oh-search-wrap .tm-oh-input) { padding-left: 12px; }
+            .tm-oh-date-input {
+                padding: 9px 10px;
+                width: 132px;
+                flex: 0 0 auto;
+            }
+            .tm-oh-input:focus, .tm-oh-select:focus {
+                outline: none;
+                border-color: rgba(79,172,254,0.55);
+                box-shadow: 0 0 0 3px rgba(79,172,254,0.12);
+            }
+            .tm-oh-preset-group { display: flex; gap: 6px; flex-wrap: wrap; }
+            .tm-oh-preset {
+                padding: 8px 12px;
+                border-radius: 999px;
+                border: 1px solid rgba(255,255,255,0.1);
+                background: rgba(255,255,255,0.04);
+                color: var(--tm-primary-color, #fff);
+                font-size: 11px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.15s;
+            }
+            .tm-oh-preset:hover { background: rgba(255,255,255,0.09); }
+            .tm-oh-preset.is-active {
+                background: var(--tm-accent-color, #2196f3);
+                border-color: transparent;
+                color: #fff;
+            }
+            .tm-oh-body {
+                flex: 1;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                min-height: 0;
+                background: rgba(0,0,0,0.08);
+            }
+            #tm-order-history-container {
+                flex: 1;
+                overflow: auto;
+                padding: 16px 20px 20px;
+            }
+            .tm-oh-empty {
+                text-align: center;
+                padding: 72px 24px;
+                color: var(--tm-secondary-hover, rgba(255,255,255,0.5));
+            }
+            .tm-oh-empty-icon { font-size: 56px; margin-bottom: 14px; opacity: 0.45; }
+            .tm-oh-empty-title {
+                font-size: 1.15rem;
+                font-weight: 700;
+                color: var(--tm-primary-color, #fff);
+                margin-bottom: 6px;
+            }
+            .tm-oh-table-wrap {
+                overflow: auto;
+                width: 100%;
+                max-height: 100%;
+                border-radius: 14px;
+                border: 1px solid rgba(255,255,255,0.08);
+                background: rgba(255,255,255,0.02);
+            }
+            .tm-order-history-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 13px;
+            }
+            .tm-order-history-table thead th {
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                padding: 12px 14px;
+                text-align: left;
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: var(--tm-secondary-hover, rgba(255,255,255,0.55));
+                background: rgba(18,18,32,0.98);
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+                cursor: pointer;
+                user-select: none;
+                white-space: nowrap;
+            }
+            .tm-order-history-table thead th:hover { color: var(--tm-primary-color, #fff); }
+            .tm-order-history-table thead th.sort-asc::after { content: ' ▲'; font-size: 9px; opacity: 0.7; }
+            .tm-order-history-table thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.7; }
+            .tm-order-history-table tbody tr.tm-order-history-row {
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+                transition: background 0.12s ease;
+                cursor: pointer;
+            }
+            .tm-order-history-table tbody tr.tm-order-history-row:hover {
+                background: rgba(79,172,254,0.08);
+            }
+            .tm-order-history-table tbody tr.tm-order-history-row--service {
+                box-shadow: inset 3px 0 0 var(--tm-success-color, #22c55e);
+            }
+            .tm-order-history-table tbody tr.tm-order-history-row--parts {
+                box-shadow: inset 3px 0 0 var(--tm-info-color, #38bdf8);
+            }
+            .tm-order-history-table td {
+                padding: 12px 14px;
+                color: var(--tm-primary-color, #fff);
+                vertical-align: middle;
+                max-width: 220px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .tm-oh-phone {
+                font-weight: 700;
+                font-size: 14px;
+                letter-spacing: 0.04em;
+                white-space: nowrap;
+            }
+            .tm-oh-icon-btn {
+                margin-left: 6px;
+                padding: 3px 8px;
+                border-radius: 6px;
+                border: 1px solid rgba(255,255,255,0.12);
+                background: rgba(255,255,255,0.06);
+                color: var(--tm-primary-color, #fff);
+                font-size: 11px;
+                cursor: pointer;
+                vertical-align: middle;
+            }
+            .tm-oh-icon-btn:hover { background: rgba(79,172,254,0.2); }
+            .tm-oh-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 10px;
+                border-radius: 999px;
+                font-size: 11px;
+                font-weight: 700;
+                white-space: nowrap;
+            }
+            .tm-oh-badge--checking { background: rgba(255,255,255,0.08); color: var(--tm-secondary-hover, #aaa); }
+            .tm-oh-badge--active { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+            .tm-oh-badge--removed { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+            .tm-oh-badge--unknown { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+            .tm-oh-cell-muted { color: var(--tm-secondary-hover, rgba(255,255,255,0.5)); font-size: 12px; }
+            .tm-oh-cell-customer { font-weight: 600; max-width: 240px; white-space: normal; line-height: 1.35; }
+            .tm-order-filter-input {
+                width: 100%;
+                margin-top: 6px;
+                padding: 6px 8px;
+                font-size: 11px;
+                border-radius: 8px;
+                border: 1px solid rgba(255,255,255,0.1);
+                background: rgba(0,0,0,0.2);
+                color: var(--tm-primary-color, #fff);
+            }
+            .tm-order-filter-input:focus {
+                outline: none;
+                border-color: rgba(79,172,254,0.5);
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     // Function to show order history modal
     function showOrderHistoryModal() {
         // Check if modal already exists
         if (document.querySelector('.tm-modal-overlay[data-order-history-modal]')) {
             return;
         }
+
+        ensureOrderHistoryStyles();
         
         // Load history from current page only
         const pageHistory = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]'));
@@ -1246,158 +1624,77 @@
         const sortedPageHistory = pageHistory.sort((a, b) => b.timestamp - a.timestamp);
         
         // Determine page name for display
-        const pageName = isServiceOrdersPage ? 'Service Orders' : 'Parts Orders';
+        const pageName = isServiceOrdersPage ? 'Παραγγελίες Υπηρεσιών' : 'Παραγγελίες Ανταλλακτικών';
+        const pageBadge = isServiceOrdersPage ? 'Υπηρεσίες' : 'Ανταλλακτικά';
         const totalCount = sortedPageHistory.length;
         
         const overlay = document.createElement('div');
-        overlay.className = 'tm-modal-overlay';
+        overlay.className = 'tm-modal-overlay tm-oh-overlay';
         overlay.setAttribute('data-order-history-modal', 'true');
         overlay.innerHTML = `
-            <div class="tm-modal-content" style="max-width: 1400px; height: 95vh; display: flex; flex-direction: column;">
-                <div class="tm-modal-header" style="padding: 16px 20px; border-bottom: 1px solid var(--tm-shop-item-border);">
-                    <!-- Title & Actions Row -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-                        <div style="display: flex; align-items: center; gap: 20px;">
-                            <h2 class="tm-modal-title" style="margin: 0; font-size: 18px; font-weight: 600;">📋 ${pageName}</h2>
-                            <div style="display: flex; gap: 14px; font-size: 11px; color: var(--tm-secondary-hover);">
-                                <span id="tm-order-history-stats">Total: ${totalCount}</span>
-                                <span style="color: var(--tm-dark-color);">Shown: <span id="tm-order-history-visible-count" style="color: var(--tm-accent-color); font-weight: 600;">0</span></span>
-                            </div>
+            <div class="tm-modal-content tm-oh-shell">
+                <div class="tm-oh-hero">
+                    <div class="tm-oh-hero-top">
+                        <div class="tm-oh-title-wrap">
+                            <h2 class="tm-oh-title">
+                                📋 Ιστορικό Παραγγελιών
+                                <span class="tm-oh-page-badge">${pageBadge}</span>
+                            </h2>
+                            <p class="tm-oh-subtitle">${pageName} · Κλικ σε γραμμή για άνοιγμα παραγγελίας</p>
                         </div>
-                        <div style="display: flex; gap: 6px; align-items: center;">
-                            <button id="tm-order-rescan-btn" title="Rescan current page" style="
-                                background: var(--tm-shop-item-bg);
-                                color: var(--tm-primary-color);
-                                border: 1px solid var(--tm-shop-item-border);
-                                padding: 6px 12px;
-                                border-radius: 6px;
-                                cursor: pointer;
-                                font-size: 12px;
-                            ">🔄</button>
-                            <button id="tm-order-columns-toggle" title="Toggle Columns" style="
-                                background: var(--tm-shop-item-bg);
-                                color: var(--tm-primary-color);
-                                border: 1px solid var(--tm-shop-item-border);
-                                padding: 6px 12px;
-                                border-radius: 6px;
-                                cursor: pointer;
-                                font-size: 12px;
-                            ">👁️</button>
-                            <button id="tm-order-export-btn" title="Export to CSV" style="
-                                background: var(--tm-shop-item-bg);
-                                color: var(--tm-primary-color);
-                                border: 1px solid var(--tm-shop-item-border);
-                                padding: 6px 12px;
-                                border-radius: 6px;
-                                cursor: pointer;
-                                font-size: 12px;
-                            ">📥</button>
-                            <button id="tm-order-history-clear" title="Clear history" style="
-                                background: var(--tm-shop-item-bg);
-                                color: var(--tm-danger-color);
-                                border: 1px solid var(--tm-shop-item-border);
-                                padding: 6px 12px;
-                                border-radius: 6px;
-                                cursor: pointer;
-                                font-size: 12px;
-                            ">🗑️</button>
-                            <button class="tm-modal-close">&times;</button>
+                        <div class="tm-oh-hero-actions">
+                            <button type="button" class="tm-oh-close tm-modal-close" title="Κλείσιμο" aria-label="Κλείσιμο">&times;</button>
                         </div>
                     </div>
-
-                    <!-- Search & Filters Row -->
-                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 10px;">
-                        <input type="text" id="tm-order-history-search" placeholder="🔍 Search..." style="
-                            background: var(--tm-shop-item-bg);
-                            border: 1px solid var(--tm-shop-item-border);
-                            color: var(--tm-primary-color);
-                            padding: 7px 12px;
-                            border-radius: 6px;
-                            font-size: 12px;
-                            flex: 1;
-                            max-width: 300px;
-                        ">
-                        <select id="tm-order-status-filter" style="
-                            background: var(--tm-shop-item-bg);
-                            border: 1px solid var(--tm-shop-item-border);
-                            color: var(--tm-primary-color);
-                            padding: 7px 12px;
-                            border-radius: 6px;
-                            font-size: 12px;
-                            cursor: pointer;
-                        ">
-                            <option value="">All Status</option>
-                            <option value="active">✅ Active</option>
-                            <option value="removed">❌ Removed</option>
-                        </select>
-                        <input type="date" id="tm-order-date-from" style="
-                                background: var(--tm-shop-item-bg);
-                                border: 1px solid var(--tm-shop-item-border);
-                                color: var(--tm-primary-color);
-                                padding: 6px 10px;
-                                border-radius: 6px;
-                                font-size: 11px;
-                                width: 120px;
-                            ">
-                            <span style="color: var(--tm-secondary-hover); font-size: 12px;">→</span>
-                        <input type="date" id="tm-order-date-to" style="
-                            background: var(--tm-shop-item-bg);
-                            border: 1px solid var(--tm-shop-item-border);
-                            color: var(--tm-primary-color);
-                            padding: 6px 10px;
-                            border-radius: 6px;
-                            font-size: 11px;
-                            width: 120px;
-                        ">
-                        <button class="tm-order-date-preset" data-preset="today" style="
-                            background: var(--tm-shop-item-bg);
-                            color: var(--tm-primary-color);
-                            border: 1px solid var(--tm-shop-item-border);
-                            padding: 5px 10px;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            font-size: 11px;
-                        ">Today</button>
-                        <button class="tm-order-date-preset" data-preset="last7" style="
-                            background: var(--tm-shop-item-bg);
-                            color: var(--tm-primary-color);
-                            border: 1px solid var(--tm-shop-item-border);
-                            padding: 5px 10px;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            font-size: 11px;
-                        ">7d</button>
-                        <button class="tm-order-date-preset" data-preset="last30" style="
-                            background: var(--tm-shop-item-bg);
-                            color: var(--tm-primary-color);
-                            border: 1px solid var(--tm-shop-item-border);
-                            padding: 5px 10px;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            font-size: 11px;
-                        ">30d</button>
-                        <button class="tm-order-date-preset" data-preset="thisMonth" style="
-                            background: var(--tm-shop-item-bg);
-                            color: var(--tm-primary-color);
-                            border: 1px solid var(--tm-shop-item-border);
-                            padding: 5px 10px;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            font-size: 11px;
-                        ">Month</button>
-                        <button id="tm-order-date-clear" title="Clear dates" style="
-                            background: var(--tm-shop-item-bg);
-                            color: var(--tm-danger-color);
-                            border: 1px solid var(--tm-shop-item-border);
-                            padding: 5px 10px;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            font-size: 11px;
-                        ">✕</button>
+                    <div class="tm-oh-stats-row">
+                        <div class="tm-oh-stat">
+                            <span class="tm-oh-stat-value" id="tm-order-history-stats">${totalCount}</span>
+                            <span class="tm-oh-stat-label">Σύνολο</span>
+                        </div>
+                        <div class="tm-oh-stat">
+                            <span class="tm-oh-stat-value" id="tm-order-history-visible-count">0</span>
+                            <span class="tm-oh-stat-label">Εμφανίζονται</span>
+                        </div>
+                        <div class="tm-oh-toolbar">
+                            <button type="button" id="tm-order-rescan-btn" class="tm-oh-tool-btn" title="Ανασάρωση τρέχουσας σελίδας">
+                                <span>🔄</span><span>Ανασάρωση</span>
+                            </button>
+                            <button type="button" id="tm-order-columns-toggle" class="tm-oh-tool-btn" title="Φίλτρα στηλών">
+                                <span>👁️</span><span>Στήλες</span>
+                            </button>
+                            <button type="button" id="tm-order-export-btn" class="tm-oh-tool-btn" title="Εξαγωγή CSV">
+                                <span>📥</span><span>Εξαγωγή</span>
+                            </button>
+                            <button type="button" id="tm-order-history-clear" class="tm-oh-tool-btn tm-oh-tool-btn--danger" title="Εκκαθάριση ιστορικού">
+                                <span>🗑️</span><span>Εκκαθάριση</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div id="tm-order-history-container" style="flex: 1; overflow-y: auto; padding: 16px; background: var(--tm-shop-item-bg);">
-                    <!-- Content will be rendered by renderOrders() -->
+                <div class="tm-oh-filters">
+                    <div class="tm-oh-filters-row">
+                        <div class="tm-oh-search-wrap">
+                            <input type="text" id="tm-order-history-search" class="tm-oh-input" placeholder="Αναζήτηση πελάτη, τηλεφώνου, κωδικού…">
+                        </div>
+                        <select id="tm-order-status-filter" class="tm-oh-select">
+                            <option value="">Όλες οι καταστάσεις</option>
+                            <option value="active">✅ Ενεργές</option>
+                            <option value="removed">❌ Αφαιρεμένες</option>
+                        </select>
+                        <input type="date" id="tm-order-date-from" class="tm-oh-input tm-oh-date-input" title="Από">
+                        <span class="tm-oh-cell-muted">→</span>
+                        <input type="date" id="tm-order-date-to" class="tm-oh-input tm-oh-date-input" title="Έως">
+                        <div class="tm-oh-preset-group">
+                            <button type="button" class="tm-order-date-preset tm-oh-preset" data-preset="today">Σήμερα</button>
+                            <button type="button" class="tm-order-date-preset tm-oh-preset" data-preset="last7">7 ημέρες</button>
+                            <button type="button" class="tm-order-date-preset tm-oh-preset" data-preset="last30">30 ημέρες</button>
+                            <button type="button" class="tm-order-date-preset tm-oh-preset" data-preset="thisMonth">Μήνας</button>
+                            <button type="button" id="tm-order-date-clear" class="tm-oh-preset" title="Καθαρισμός ημερομηνιών">✕</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="tm-oh-body">
+                    <div id="tm-order-history-container"></div>
                 </div>
             </div>
         `;
@@ -1517,10 +1814,10 @@
             
             if (filtered.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align: center; padding: 60px 20px; color: var(--tm-secondary-hover);">
-                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🔍</div>
-                        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: var(--tm-primary-color);">No Orders Found</div>
-                        <div style="font-size: 13px;">Try adjusting your search or filter</div>
+                    <div class="tm-oh-empty">
+                        <div class="tm-oh-empty-icon">🔍</div>
+                        <div class="tm-oh-empty-title">Δεν βρέθηκαν παραγγελίες</div>
+                        <div>Δοκιμάστε άλλη αναζήτηση ή φίλτρο ημερομηνίας</div>
                     </div>
                 `;
                 updateVisibleCounter();
@@ -1563,139 +1860,9 @@
                 })
             ];
             
-            // Build table HTML with modern styling
+            // Build table HTML
             let html = `
-                <style>
-                    .tm-order-history-table-wrapper {
-                        overflow-x: auto;
-                        overflow-y: scroll;
-                        width: 100%;
-                        max-height: calc(95vh - 200px);
-                        padding: 8px;
-                        scrollbar-width: thin;
-                        scrollbar-color: var(--tm-shop-item-border) var(--tm-shop-item-bg);
-                    }
-                    .tm-order-history-table-wrapper::-webkit-scrollbar {
-                        width: 14px;
-                        height: 14px;
-                        -webkit-appearance: none;
-                    }
-                    .tm-order-history-table-wrapper::-webkit-scrollbar-track {
-                        background: var(--tm-shop-item-bg);
-                        border-radius: 7px;
-                        border: 1px solid var(--tm-shop-item-border);
-                    }
-                    .tm-order-history-table-wrapper::-webkit-scrollbar-thumb {
-                        background: var(--tm-shop-item-border);
-                        border-radius: 7px;
-                        border: 2px solid var(--tm-shop-item-bg);
-                        min-height: 30px;
-                    }
-                    .tm-order-history-table-wrapper::-webkit-scrollbar-thumb:hover {
-                        background: var(--tm-primary-color);
-                    }
-                    .tm-order-history-table-wrapper::-webkit-scrollbar-corner {
-                        background: var(--tm-shop-item-bg);
-                    }
-                    .tm-order-history-table {
-                        width: 100%;
-                        border-collapse: separate;
-                        border-spacing: 0 8px;
-                        font-size: 13px;
-                        background: transparent;
-                    }
-                    .tm-order-history-table thead {
-                        position: sticky;
-                        top: 0;
-                        z-index: 100;
-                    }
-                    .tm-order-history-table thead th {
-                        background: var(--tm-shop-item-bg) !important;
-                        padding: 16px 14px;
-                        text-align: left;
-                        color: var(--tm-primary-color);
-                        font-weight: 600;
-                        white-space: nowrap;
-                        cursor: pointer;
-                        user-select: none;
-                        border: none;
-                        border-bottom: 2px solid var(--tm-primary-color);
-                        transition: all 0.2s ease;
-                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                        position: sticky;
-                        top: 0;
-                    }
-                    .tm-order-history-table thead th:first-child {
-                        border-top-left-radius: 8px;
-                        padding-left: 20px;
-                    }
-                    .tm-order-history-table thead th:last-child {
-                        border-top-right-radius: 8px;
-                    }
-                    .tm-order-history-table thead th:hover {
-                        background: var(--tm-shop-item-hover-bg);
-                    }
-                    .tm-order-history-table thead th.sort-asc::after {
-                        content: ' ▲';
-                        font-size: 10px;
-                        opacity: 0.7;
-                    }
-                    .tm-order-history-table thead th.sort-desc::after {
-                        content: ' ▼';
-                        font-size: 10px;
-                        opacity: 0.7;
-                    }
-                    .tm-order-history-table tbody tr {
-                        background: var(--tm-shop-item-bg);
-                        transition: all 0.2s ease;
-                        border-radius: 8px;
-                        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                    }
-                    .tm-order-history-table tbody tr:nth-child(even) {
-                        background: var(--tm-shop-item-bg);
-                    }
-                    .tm-order-history-table tbody tr:hover {
-                        background: var(--tm-shop-item-hover-bg);
-                        transform: translateX(4px);
-                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                    }
-                    .tm-order-history-table td {
-                        padding: 14px;
-                        color: var(--tm-primary-color);
-                        white-space: nowrap;
-                        max-width: 200px;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        border: none;
-                    }
-                    .tm-order-history-table tbody tr td:first-child {
-                        padding-left: 20px;
-                        border-top-left-radius: 8px;
-                        border-bottom-left-radius: 8px;
-                    }
-                    .tm-order-history-table tbody tr td:last-child {
-                        border-top-right-radius: 8px;
-                        border-bottom-right-radius: 8px;
-                    }
-                    .tm-order-filter-input {
-                        width: 100%;
-                        padding: 6px 8px;
-                        font-size: 11px;
-                        background: var(--tm-shop-item-bg);
-                        border: 1px solid var(--tm-shop-item-border);
-                        color: var(--tm-primary-color);
-                        border-radius: 6px;
-                        margin-top: 6px;
-                        transition: all 0.2s ease;
-                    }
-                    .tm-order-filter-input:focus {
-                        outline: none;
-                        border-color: var(--tm-primary-color);
-                        box-shadow: 0 0 0 2px var(--tm-primary-color);
-                        opacity: 0.3;
-                    }
-                </style>
-                <div class="tm-order-history-table-wrapper">
+                <div class="tm-oh-table-wrap">
                     <table class="tm-order-history-table">
                         <thead>
                             <tr>
@@ -1703,101 +1870,66 @@
                                     const isSorted = col === sortColumn;
                                     const sortClass = isSorted ? (sortDirection === 'asc' ? 'sort-asc' : 'sort-desc') : '';
                                     return `
-                                        <th class="${sortClass}" data-column="${col}" style="position: relative;">
-                                            <div>${col}</div>
-                                            <input type="text" class="tm-order-filter-input" data-filter-col="${col}" placeholder="Filter ${col}..." style="display: none;">
+                                        <th class="${sortClass}" data-column="${escapeHtml(col)}">
+                                            <div>${escapeHtml(col)}</div>
+                                            <input type="text" class="tm-order-filter-input" data-filter-col="${escapeHtml(col)}" placeholder="Φίλτρο…" style="display: none;">
                                         </th>
                                     `;
                                 }).join('')}
                             </tr>
                         </thead>
                         <tbody>
-                            ${filtered.map((order, index) => {
-                                const phoneDisplay = order.phone || 'No phone';
-                                // 'Product Order' is the old (backwards) label for service orders — treat both as service
+                            ${filtered.map((order) => {
+                                const phoneDisplay = formatPhoneDisplay(order.phone) || order.phone || '';
                                 const isServiceOrderEntry = order.type === 'Service Order' || order.type === 'Product Order';
-                                const orderTypeColor = isServiceOrderEntry ? 'var(--tm-success-color)' : 'var(--tm-info-color)';
+                                const rowTypeClass = isServiceOrderEntry ? 'tm-order-history-row--service' : 'tm-order-history-row--parts';
                                 const dateTimeText = formatDateTime(order.timestamp);
                                 const orderDate = order.date || new Date(order.timestamp).toLocaleDateString('el-GR');
-                                
-                                // Status will be checked asynchronously - use stable ID based on order.id and type
                                 const statusId = `order-status-${String(order.id || '').replace(/[^a-zA-Z0-9]/g, '-')}-${String(order.type || '').replace(/\s+/g, '-')}`;
-                                
-                                // Helper function to get cell value for a column
+
                                 const getCellValue = (colName) => {
                                     if (colName === 'Phone') {
-                                        if (!order.phone) return 'No phone';
-                                        return `${phoneDisplay} <button class="tm-copy-phone-btn" data-phone="${order.phone}" style="
-                                            background: var(--tm-shop-item-bg);
-                                            border: 1px solid var(--tm-shop-item-border);
-                                            color: var(--tm-primary-color);
-                                            padding: 2px 6px;
-                                            border-radius: 4px;
-                                            font-size: 9px;
-                                            cursor: pointer;
-                                            margin-left: 4px;
-                                        " title="Copy">📋</button>`;
+                                        if (!order.phone) return '<span class="tm-oh-cell-muted">—</span>';
+                                        return `<span class="tm-oh-phone">${escapeHtml(phoneDisplay)}</span><button type="button" class="tm-oh-icon-btn tm-copy-phone-btn" data-phone="${escapeHtml(order.phone)}" title="Αντιγραφή">📋</button>`;
                                     }
-                                    if (colName === 'Customer') return order.customer || 'Unknown';
-                                    if (colName === 'Date') return orderDate;
-                                    if (colName === 'Added') return dateTimeText;
-                                    if (colName === 'Status') return `<span id="${statusId}">⏳ Checking...</span>`;
-                                    if (colName === 'Repair Number') return order.repairNumber || '';
-                                    
-                                    // Check in allColumns
+                                    if (colName === 'Customer') {
+                                        return `<span class="tm-oh-cell-customer">${escapeHtml(order.customer || '—')}</span>`;
+                                    }
+                                    if (colName === 'Date') return `<span>${escapeHtml(orderDate)}</span>`;
+                                    if (colName === 'Added') return `<span class="tm-oh-cell-muted">${escapeHtml(dateTimeText)}</span>`;
+                                    if (colName === 'Status') return `<span id="${statusId}" class="tm-oh-badge tm-oh-badge--checking">⏳ Έλεγχος…</span>`;
+                                    if (colName === 'Repair Number') return escapeHtml(order.repairNumber || '');
                                     if (order.allColumns && order.allColumns[colName]) {
-                                        const val = order.allColumns[colName];
-                                        return val ? String(val) : '';
+                                        return escapeHtml(String(order.allColumns[colName]));
                                     }
-                                    
                                     return '';
                                 };
-                                
-                                // Get plain text for title attribute
+
                                 const getCellTitle = (colName) => {
-                                    if (colName === 'Phone') return phoneDisplay;
-                                    if (colName === 'Customer') return order.customer || 'Unknown';
+                                    if (colName === 'Phone') return phoneDisplay || order.phone || '';
+                                    if (colName === 'Customer') return order.customer || '';
                                     if (colName === 'Date') return orderDate;
                                     if (colName === 'Added') return dateTimeText;
-                                    if (colName === 'Status') return 'Checking...';
+                                    if (colName === 'Status') return 'Έλεγχος…';
                                     if (colName === 'Repair Number') return order.repairNumber || '';
-                                    
                                     if (order.allColumns && order.allColumns[colName]) {
-                                        const val = order.allColumns[colName];
-                                        return val ? String(val) : '';
+                                        return String(order.allColumns[colName]);
                                     }
-                                    
                                     return '';
                                 };
-                                
-                                const rowIndex = index;
-                                const isEven = rowIndex % 2 === 0;
-                                
+
                                 return `
-                                    <tr class="tm-order-history-row" data-order-id="${order.id}" data-order-type="${order.type}" style="
-                                        border-left: 4px solid ${isServiceOrderEntry ? 'var(--tm-success-color)' : 'var(--tm-info-color)'};
-                                    ">
-                                        ${columnOrder.map((col, colIndex) => {
+                                    <tr class="tm-order-history-row ${rowTypeClass}" data-order-id="${escapeHtml(order.id)}" data-order-type="${escapeHtml(order.type)}">
+                                        ${columnOrder.map((col) => {
                                             const cellValue = getCellValue(col);
                                             const cellTitle = getCellTitle(col);
-                                            
-                                            // Determine text alignment based on column type
                                             let textAlign = 'left';
                                             if (col === 'Date' || col === 'Added' || col.includes('Date') || col.includes('Ημ')) {
                                                 textAlign = 'center';
                                             } else if (col.includes('Price') || col.includes('Cost') || col.includes('Amount') || col.includes('Quantity')) {
                                                 textAlign = 'right';
                                             }
-                                            
-                                            return `
-                                                <td style="
-                                                    text-align: ${textAlign};
-                                                    white-space: ${col === 'Customer' || col === 'Phone' ? 'normal' : 'nowrap'};
-                                                    max-width: ${col === 'Customer' ? '250px' : col === 'Phone' ? '150px' : '200px'};
-                                                " title="${cellTitle.replace(/"/g, '&quot;')}">
-                                                    ${cellValue}
-                                                </td>
-                                            `;
+                                            return `<td style="text-align:${textAlign};" title="${escapeHtml(cellTitle)}">${cellValue}</td>`;
                                         }).join('')}
                                     </tr>
                                 `;
@@ -1808,9 +1940,6 @@
             `;
             
             container.innerHTML = html;
-            
-            // Attach hover effects to table rows
-            attachTableRowHoverEffects();
             
             // Attach sortable column headers
             const headers = container.querySelectorAll('.tm-order-history-table thead th[data-column]');
@@ -1856,20 +1985,20 @@
                     if (!statusEl) return;
                     
                     if (status.checking) {
-                        statusEl.innerHTML = '⏳ Checking...';
-                        statusEl.style.color = 'var(--tm-secondary-hover)';
+                        statusEl.className = 'tm-oh-badge tm-oh-badge--checking';
+                        statusEl.innerHTML = '⏳ Έλεγχος…';
                     } else if (status.error) {
-                        statusEl.innerHTML = '❓ Unknown';
-                        statusEl.style.color = 'var(--tm-warning-color)';
-                        statusEl.title = 'Could not check order status';
+                        statusEl.className = 'tm-oh-badge tm-oh-badge--unknown';
+                        statusEl.innerHTML = '❓ Άγνωστο';
+                        statusEl.title = 'Δεν ήταν δυνατός ο έλεγχος κατάστασης';
                     } else if (status.exists) {
-                        statusEl.innerHTML = '✅ Active';
-                        statusEl.style.color = 'var(--tm-success-color)';
-                        statusEl.title = 'Order is still in the system';
+                        statusEl.className = 'tm-oh-badge tm-oh-badge--active';
+                        statusEl.innerHTML = '✅ Ενεργή';
+                        statusEl.title = 'Η παραγγελία υπάρχει ακόμα στο σύστημα';
                     } else {
-                        statusEl.innerHTML = '❌ Removed';
-                        statusEl.style.color = 'var(--tm-danger-color)';
-                        statusEl.title = 'Order has been removed from the system';
+                        statusEl.className = 'tm-oh-badge tm-oh-badge--removed';
+                        statusEl.innerHTML = '❌ Αφαιρέθηκε';
+                        statusEl.title = 'Η παραγγελία αφαιρέθηκε από το σύστημα';
                     }
                 };
                 
@@ -1891,8 +2020,8 @@
                                 if (statusEl) {
                                     const statusText = statusEl.textContent || '';
                                     const shouldShow = 
-                                        (currentStatusFilter === 'active' && (statusText.includes('✅') || statusText.includes('Active'))) ||
-                                        (currentStatusFilter === 'removed' && (statusText.includes('❌') || statusText.includes('Removed')));
+                                        (currentStatusFilter === 'active' && (statusText.includes('✅') || statusText.includes('Ενεργ'))) ||
+                                        (currentStatusFilter === 'removed' && (statusText.includes('❌') || statusText.includes('Αφαιρ')));
                                     row.style.display = shouldShow ? '' : 'none';
                                 } else if (currentStatusFilter !== '') {
                                     row.style.display = 'none';
@@ -1919,8 +2048,8 @@
                             if (statusEl) {
                                 const statusText = statusEl.textContent || '';
                                 const shouldShow = 
-                                    (currentStatusFilter === 'active' && (statusText.includes('✅') || statusText.includes('Active'))) ||
-                                    (currentStatusFilter === 'removed' && (statusText.includes('❌') || statusText.includes('Removed')));
+                                    (currentStatusFilter === 'active' && (statusText.includes('✅') || statusText.includes('Ενεργ') || statusText.includes('Active'))) ||
+                                    (currentStatusFilter === 'removed' && (statusText.includes('❌') || statusText.includes('Αφαιρ') || statusText.includes('Removed')));
                                 row.style.display = shouldShow ? '' : 'none';
                             } else if (currentStatusFilter !== '') {
                                 row.style.display = 'none';
@@ -1995,8 +2124,8 @@
                         const statusText = statusEl.textContent || '';
                         const shouldShow = 
                             currentStatusFilter === '' ||
-                            (currentStatusFilter === 'active' && (statusText.includes('✅') || statusText.includes('Active'))) ||
-                            (currentStatusFilter === 'removed' && (statusText.includes('❌') || statusText.includes('Removed')));
+                            (currentStatusFilter === 'active' && (statusText.includes('✅') || statusText.includes('Ενεργ'))) ||
+                            (currentStatusFilter === 'removed' && (statusText.includes('❌') || statusText.includes('Αφαιρ')));
                         row.style.display = shouldShow ? '' : 'none';
                     } else if (currentStatusFilter !== '') {
                         // Hide if status not checked yet and filter is active
@@ -2036,20 +2165,6 @@
         // Date preset buttons
         const datePresetButtons = overlay.querySelectorAll('.tm-order-date-preset');
         datePresetButtons.forEach(btn => {
-            // Add hover effects
-            btn.addEventListener('mouseenter', () => {
-                if (btn.style.background !== 'var(--tm-accent-color)') {
-                    btn.style.background = 'var(--tm-shop-item-hover-bg)';
-                    btn.style.transform = 'scale(1.05)';
-                }
-            });
-            btn.addEventListener('mouseleave', () => {
-                if (btn.style.background !== 'var(--tm-accent-color)') {
-                    btn.style.background = 'var(--tm-shop-item-bg)';
-                    btn.style.transform = 'scale(1)';
-                }
-            });
-            
             btn.addEventListener('click', () => {
                 const preset = btn.dataset.preset;
                 const today = new Date();
@@ -2089,13 +2204,8 @@
                     currentDateFrom = dateFrom.value;
                     currentDateTo = dateTo.value;
                     
-                    // Highlight active preset
-                    datePresetButtons.forEach(b => {
-                        b.style.background = 'var(--tm-shop-item-bg)';
-                        b.style.borderColor = 'var(--tm-shop-item-border)';
-                    });
-                    btn.style.background = 'var(--tm-accent-color)';
-                    btn.style.borderColor = 'var(--tm-accent-color)';
+                    datePresetButtons.forEach(b => b.classList.remove('is-active'));
+                    btn.classList.add('is-active');
                     
                     renderOrders();
                 }
@@ -2111,11 +2221,7 @@
                 currentDateFrom = '';
                 currentDateTo = '';
                 
-                // Reset preset button styles
-                datePresetButtons.forEach(b => {
-                    b.style.background = 'var(--tm-shop-item-bg)';
-                    b.style.borderColor = 'var(--tm-shop-item-border)';
-                });
+                datePresetButtons.forEach(b => b.classList.remove('is-active'));
                 
                 renderOrders();
             });
@@ -2127,7 +2233,7 @@
             rescanBtn.addEventListener('click', () => {
                 try {
                     rescanBtn.disabled = true;
-                    rescanBtn.textContent = '⏳ Rescanning...';
+                    rescanBtn.innerHTML = '<span>⏳</span><span>Ανασάρωση…</span>';
                     
                     const beforeCount = JSON.parse(GM_getValue(CURRENT_PAGE_HISTORY_KEY, '[]')).length;
                     
@@ -2147,7 +2253,7 @@
                         // Update stats
                         const statsEl = overlay.querySelector('#tm-order-history-stats');
                         if (statsEl) {
-                            statsEl.textContent = `Total: ${newPageHistory.length} orders`;
+                            statsEl.textContent = String(newPageHistory.length);
                         }
                         
                         // Reset status cache so checks can re-run if needed
@@ -2177,7 +2283,7 @@
                     }
                 } finally {
                     rescanBtn.disabled = false;
-                    rescanBtn.textContent = '🔄 Rescan';
+                    rescanBtn.innerHTML = '<span>🔄</span><span>Ανασάρωση</span>';
                 }
             });
         }
@@ -2290,42 +2396,10 @@
             });
         }
         
-        // Function to attach hover effects to table rows
-        function attachTableRowHoverEffects() {
-            const rows = container.querySelectorAll('.tm-order-history-row');
-            rows.forEach((row, index) => {
-                const isEven = index % 2 === 0;
-                const originalBg = isEven ? 'var(--tm-shop-item-bg)' : 'var(--tm-shop-item-bg)';
-                
-                row.addEventListener('mouseenter', () => {
-                    row.style.background = 'var(--tm-shop-item-hover-bg)';
-                    row.style.transform = 'scale(1.01)';
-                    row.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-                    // Highlight all cells in the row
-                    row.querySelectorAll('td').forEach(td => {
-                        td.style.borderColor = 'var(--tm-primary-color)';
-                    });
-                });
-                
-                row.addEventListener('mouseleave', () => {
-                    row.style.background = originalBg;
-                    row.style.transform = 'scale(1)';
-                    row.style.boxShadow = 'none';
-                    // Reset cell borders
-                    row.querySelectorAll('td').forEach(td => {
-                        td.style.borderColor = 'var(--tm-shop-item-border)';
-                    });
-                });
-            });
-        }
-        
-        // Initial render with hover effects
-        attachTableRowHoverEffects();
-        
         // Clear history button
         const clearBtn = overlay.querySelector('#tm-order-history-clear');
         clearBtn.addEventListener('click', (e) => {
-            const clearMessage = `Clear all ${pageName} history?\n\nThis will delete all saved orders for this page.`;
+            const clearMessage = `Εκκαθάριση όλου του ιστορικού (${pageName})?\n\nΘα διαγραφούν όλες οι αποθηκευμένες παραγγελίες για αυτή τη σελίδα.`;
             
             if (confirm(clearMessage)) {
                 // Clear current page's history
@@ -2334,7 +2408,7 @@
                 // Update stats display
                 const statsEl = overlay.querySelector('#tm-order-history-stats');
                 if (statsEl) {
-                    statsEl.textContent = 'Total: 0 orders';
+                    statsEl.textContent = '0';
                 }
                 
                 // Clear local array
@@ -2344,7 +2418,7 @@
                 renderOrders();
                 
                 if (window.showPositiveMessage) {
-                    window.showPositiveMessage(`${pageName} history cleared`);
+                    window.showPositiveMessage(`Το ιστορικό εκκαθαρίστηκε (${pageName})`);
                 }
             }
         });

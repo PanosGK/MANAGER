@@ -1,8 +1,8 @@
 {
-  "version": "138",
+  "version": "139",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Repair phone display: single-line 690 0000 000 format.",
+  "releaseNotes": "Order history panel: full UI overhaul with modern layout, stats, filters, and table styling.",
   "modules": [
     "myman_themes.js",
     "myman_config.js",
