@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyMANAGER Footer Quick Search (module)
 // @namespace    http://tampermonkey.net/
-// @version      1.8
+// @version      1.9
 // @description  Quick search in header or repair edit header
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -110,39 +110,31 @@
             const repairGroup = document.createElement('div');
             repairGroup.className = 'tm-qs-input-group';
 
-            const repairLabel = document.createElement('label');
-            repairLabel.setAttribute('for', 'tm-footer-repair-search');
-            repairLabel.textContent = 'Επισκευές';
-
             const repairInput = document.createElement('input');
             repairInput.type = 'text';
             repairInput.id = 'tm-footer-repair-search';
             repairInput.className = 'tm-qs-input';
             repairInput.placeholder = 'Αρ., τηλέφωνο, πελάτης…';
+            repairInput.setAttribute('aria-label', 'Αναζήτηση επισκευών');
             repairInput.autocomplete = 'off';
             repairInput.spellcheck = false;
             repairInput.dataset.searchBase = REPAIR_SEARCH_URL;
 
-            repairGroup.appendChild(repairLabel);
             repairGroup.appendChild(repairInput);
 
             const partsGroup = document.createElement('div');
             partsGroup.className = 'tm-qs-input-group';
-
-            const partsLabel = document.createElement('label');
-            partsLabel.setAttribute('for', 'tm-footer-parts-search');
-            partsLabel.textContent = 'Ανταλλακτικά';
 
             const partsInput = document.createElement('input');
             partsInput.type = 'text';
             partsInput.id = 'tm-footer-parts-search';
             partsInput.className = 'tm-qs-input';
             partsInput.placeholder = 'Κωδικός, barcode…';
+            partsInput.setAttribute('aria-label', 'Αναζήτηση ανταλλακτικών');
             partsInput.autocomplete = 'off';
             partsInput.spellcheck = false;
             partsInput.dataset.searchBase = PARTS_SEARCH_URL;
 
-            partsGroup.appendChild(partsLabel);
             partsGroup.appendChild(partsInput);
 
             const searchBtn = document.createElement('button');
@@ -210,27 +202,31 @@
             }
         }
 
+        bar.querySelectorAll('.tm-qs-input-group label').forEach((label) => label.remove());
+
         updateFooterQuickSearchVisibility(config);
     }
 
     function ensureRepairEditHeaderHost() {
         let host = document.getElementById('tm-repair-edit-quick-search-host');
-        if (host) return host;
-
         const header = findRepairEditHeader();
         if (!header) return null;
 
         header.classList.add('tm-repair-edit-header-with-search');
 
-        host = document.createElement('div');
-        host.id = 'tm-repair-edit-quick-search-host';
-        host.className = 'tm-qs-host tm-qs-host--repair';
-        const title = header.querySelector('h1');
-        if (title && title.parentNode) {
-            title.parentNode.insertBefore(host, title);
-        } else {
-            header.prepend(host);
+        if (!host) {
+            host = document.createElement('div');
+            host.id = 'tm-repair-edit-quick-search-host';
+            host.className = 'tm-qs-host tm-qs-host--repair';
         }
+
+        const title = header.querySelector('h1');
+        if (title) {
+            title.after(host);
+        } else if (!host.parentElement) {
+            header.append(host);
+        }
+
         return host;
     }
 

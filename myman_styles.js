@@ -952,12 +952,14 @@
                 align-items: center;
                 flex-shrink: 0;
                 margin: 0;
+                padding: 10px;
             }
             .tm-qs-host--header {
                 margin-right: 10px;
             }
             .tm-qs-host--repair {
-                margin-right: 8px;
+                margin-left: 10px;
+                margin-right: 0;
                 max-width: min(560px, 100%);
             }
             .rnr-hfiller:has(.tm-qs-host--header) {
@@ -982,7 +984,7 @@
             .tm-qs-panel {
                 display: flex;
                 flex-direction: row;
-                align-items: flex-end;
+                align-items: center;
                 gap: 8px;
                 padding: 6px 10px;
                 background: var(--tm-qs-panel-bg, var(--tm-shop-item-bg, #ffffff));
@@ -1002,14 +1004,6 @@
             .tm-qs-input-group {
                 flex: 1;
                 min-width: 88px;
-            }
-            .tm-qs-input-group label {
-                display: block;
-                margin-bottom: 3px;
-                font-size: 11px;
-                font-weight: 600;
-                line-height: 1.2;
-                color: var(--tm-qs-label-color, var(--tm-primary-color, #4a5568));
             }
             .tm-qs-input {
                 width: 100%;
@@ -1053,7 +1047,7 @@
             }
             .tm-qs-hide-native {
                 flex-shrink: 0;
-                align-self: flex-end;
+                align-self: center;
                 height: 24px;
                 min-width: 24px;
                 padding: 0 5px;
