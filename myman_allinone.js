@@ -6101,10 +6101,6 @@
             footerControlsRow.appendChild(footerControlsMiddle);
             footerControlsRow.appendChild(footerControlsRight);
             wrapper.appendChild(footerControlsRow);
-
-            if (typeof window.initFooterQuickSearch === 'function') {
-                window.initFooterQuickSearch(wrapper);
-            }
             
             // Initialize weather widget in middle
             if (typeof window.initWeatherWidget === 'function') {
@@ -6136,9 +6132,8 @@
             window.initEODChecklist(config, STORAGE_KEYS);
         }
 
-        if (!document.getElementById('tm-footer-quick-search')
-            && typeof window.initFooterQuickSearch === 'function') {
-            window.initFooterQuickSearch(null);
+        if (typeof window.initFooterQuickSearch === 'function') {
+            window.initFooterQuickSearch();
         }
 
         // Initialize remaining features
