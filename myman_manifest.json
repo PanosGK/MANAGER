@@ -1,8 +1,8 @@
 {
-  "version": "139",
+  "version": "140",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Order history panel: full UI overhaul with modern layout, stats, filters, and table styling.",
+  "releaseNotes": "Footer quick search: always-visible repair and parts search boxes on every page.",
   "modules": [
     "myman_themes.js",
     "myman_config.js",
@@ -25,6 +25,7 @@
     "myman_weather.js",
     "myman_eod.js",
     "myman_repair_reminders.js",
-    "myman_repair_phone.js"
+    "myman_repair_phone.js",
+    "myman_footersearch.js"
   ]
 }

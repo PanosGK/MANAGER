@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite
 // @namespace    http://tampermonkey.net/
-// @version      139
+// @version      140
 // @description  An all-in-one suite for mymanager.gr. Auto-updates from GitHub — install this file once.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -36,6 +36,7 @@
 // @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_eod.js
 // @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_repair_reminders.js
 // @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_repair_phone.js
+// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_footersearch.js
 // @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_allinone.js
 // @connect      thefixers.mymanager.gr
 // @connect      geocoding-api.open-meteo.com

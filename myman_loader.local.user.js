@@ -34,6 +34,7 @@
 // @require      file://C:\Users\User\Documents\GitHub\MANAGER\myman_eod.js
 // @require      file://C:\Users\User\Documents\GitHub\MANAGER\myman_repair_reminders.js
 // @require      file://C:\Users\User\Documents\GitHub\MANAGER\myman_repair_phone.js
+// @require      file://C:\Users\User\Documents\GitHub\MANAGER\myman_footersearch.js
 // @require      file://C:\Users\User\Documents\GitHub\MANAGER\myman_allinone.js
 // @connect      thefixers.mymanager.gr
 // @connect      geocoding-api.open-meteo.com

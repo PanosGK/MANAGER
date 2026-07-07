@@ -6054,6 +6054,9 @@
             const wrapper = document.createElement('div');
             wrapper.id = 'tm-footer-controls-container';
 
+            const footerControlsRow = document.createElement('div');
+            footerControlsRow.id = 'tm-footer-controls-row';
+
             // Create our controls containers
             const footerControlsLeft = document.createElement('div');
             footerControlsLeft.id = 'tm-footer-controls-left';
@@ -6094,10 +6097,14 @@
             // Add our wrapper instead
             footerCenterCell.appendChild(wrapper);
 
-            // Add all three sections to the wrapper
-            wrapper.appendChild(footerControlsLeft);
-            wrapper.appendChild(footerControlsMiddle);
-            wrapper.appendChild(footerControlsRight);
+            footerControlsRow.appendChild(footerControlsLeft);
+            footerControlsRow.appendChild(footerControlsMiddle);
+            footerControlsRow.appendChild(footerControlsRight);
+            wrapper.appendChild(footerControlsRow);
+
+            if (typeof window.initFooterQuickSearch === 'function') {
+                window.initFooterQuickSearch(wrapper);
+            }
             
             // Initialize weather widget in middle
             if (typeof window.initWeatherWidget === 'function') {
@@ -6127,6 +6134,11 @@
         if (!document.getElementById('tm-footer-controls-right')
             && typeof window.initEODChecklist === 'function') {
             window.initEODChecklist(config, STORAGE_KEYS);
+        }
+
+        if (!document.getElementById('tm-footer-quick-search')
+            && typeof window.initFooterQuickSearch === 'function') {
+            window.initFooterQuickSearch(null);
         }
 
         // Initialize remaining features

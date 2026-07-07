@@ -931,12 +931,111 @@
             /* --- Footer Controls Container --- */
             #tm-footer-controls-container {
                 display: flex;
-                align-items: center;
+                flex-direction: column;
+                align-items: stretch;
                 justify-content: center;
                 width: 100%;
                 max-width: 1400px;
                 margin: 0 auto;
+                gap: 6px;
+                padding: 4px 8px 6px;
+                box-sizing: border-box;
+            }
+            #tm-footer-controls-row {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%;
                 gap: 8px;
+            }
+            #tm-footer-quick-search {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                width: 100%;
+                flex-wrap: wrap;
+            }
+            .tm-footer-search-group {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                flex: 1 1 280px;
+                max-width: 460px;
+                min-width: 0;
+            }
+            .tm-footer-search-label {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 11px;
+                font-weight: 700;
+                color: var(--tm-primary-color);
+                white-space: nowrap;
+                flex-shrink: 0;
+                cursor: pointer;
+            }
+            .tm-footer-search-icon { font-size: 13px; line-height: 1; }
+            .tm-footer-search-input {
+                flex: 1;
+                min-width: 0;
+                width: 100%;
+                box-sizing: border-box;
+                padding: 7px 10px;
+                border-radius: 9px;
+                border: 1px solid rgba(255,255,255,0.14);
+                background: rgba(255,255,255,0.06);
+                color: var(--tm-primary-color);
+                font-size: 12px;
+                transition: border-color 0.15s, box-shadow 0.15s;
+            }
+            .tm-footer-search-input::placeholder {
+                color: var(--tm-secondary-hover, rgba(255,255,255,0.4));
+                opacity: 0.85;
+            }
+            .tm-footer-search-input:focus {
+                outline: none;
+                border-color: rgba(79,172,254,0.55);
+                box-shadow: 0 0 0 3px rgba(79,172,254,0.12);
+            }
+            .tm-footer-search-btn {
+                flex-shrink: 0;
+                width: 34px;
+                height: 34px;
+                padding: 0;
+                border-radius: 9px;
+                border: 1px solid rgba(255,255,255,0.14);
+                background: linear-gradient(135deg, rgba(79,172,254,0.35), rgba(0,242,254,0.2));
+                color: var(--tm-primary-color);
+                font-size: 16px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: transform 0.12s, box-shadow 0.12s;
+            }
+            .tm-footer-search-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(79,172,254,0.2);
+            }
+            .tm-footer-quick-search--floating {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 9998;
+                padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+                background: rgba(12,12,24,0.92);
+                border-top: 1px solid rgba(255,255,255,0.1);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+            .tm-footer-quick-search-inner {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                flex-wrap: wrap;
+                max-width: 1400px;
+                margin: 0 auto;
             }
             #tm-footer-controls-left {
                 display: flex;
