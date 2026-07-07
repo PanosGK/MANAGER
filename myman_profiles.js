@@ -149,6 +149,7 @@
             'tm_phone_colors_v2', 'tm_phone_color_display_aliases', 'tm_phone_custom_colors',
             'tm_phone_list_cache', 'tm_phone_list_cache_timestamp', 'tm_phone_other_store_cache_v2',
             'tm_phone_other_store_cache_timestamp', 'tm_phone_store_rules_v1', 'tm_phone_tags',
+            'tm_phone_tag_definitions',
             'tm_phone_favorites', 'phone_favorites',
             'tm_srvorders_page_history', 'tm_partsorders_page_history',
             'orderHistoryStatusCheckEnabled', 'orderHistoryBackgroundEnabled',

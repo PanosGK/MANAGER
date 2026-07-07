@@ -94,13 +94,116 @@ const PHONE_CATALOG_TRANSLATIONS = {
     'Store rules saved': '\u039F\u03B9 \u03BA\u03B1\u03BD\u03CC\u03BD\u03B5\u03C2 \u03B1\u03C0\u03BF\u03B8\u03B7\u03BA\u03B5\u03BA\u03B5\u03C5\u03C3\u03B1\u03BD',
     'No buyback store': '\u0394\u03B5\u03BD \u03C5\u03C0\u03AC\u03C1\u03C7\u03B5\u03B9 \u03B5\u03C0\u03B9\u03C4\u03C1\u03B5\u03C0\u03CC\u03BC\u03B5\u03BD\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1 \u03B3\u03B9\u03B1 BB',
     'Reset store overrides': '\u0395\u03C0\u03B1\u03BD\u03B1\u03C6\u03BF\u03C1\u03AC \u03B5\u03BE\u03B1\u03B9\u03C1\u03AD\u03C3\u03B5\u03C9\u03BD \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03B7\u03BC\u03AC\u03C4\u03C9\u03BD',
-    'Save': '\u0391\u03C0\u03BF\u03B8\u03AE\u03BA\u03B5\u03C5\u03C3\u03B7'
+    'Save': '\u0391\u03C0\u03BF\u03B8\u03AE\u03BA\u03B5\u03C5\u03C3\u03B7',
+    'Manage Tags': '\u0394\u03B9\u03B1\u03C7\u03B5\u03AF\u03C1\u03B9\u03C3\u03B7 \u0395\u03C4\u03B9\u03BA\u03B5\u03C4\u03CE\u03BD',
+    'Tag Name': '\u038C\u03BD\u03BF\u03BC\u03B1 \u0395\u03C4\u03B9\u03BA\u03AD\u03C4\u03B1\u03C2',
+    'Tag Color': '\u03A7\u03C1\u03CE\u03BC\u03B1 \u0395\u03C4\u03B9\u03BA\u03AD\u03C4\u03B1\u03C2',
+    'Custom Tags': '\u0395\u03C4\u03B9\u03BA\u03AD\u03C4\u03B5\u03C2',
+    'No custom tags yet': '\u0394\u03B5\u03BD \u03C5\u03C0\u03AC\u03C1\u03C7\u03BF\u03C5\u03BD \u03B5\u03C4\u03B9\u03BA\u03AD\u03C4\u03B5\u03C2',
+    'Tag added': '\u0397 \u03B5\u03C4\u03B9\u03BA\u03AD\u03C4\u03B1 \u03C0\u03C1\u03BF\u03C3\u03C4\u03AD\u03B8\u03B7\u03BA\u03B5',
+    'Tag removed': '\u0397 \u03B5\u03C4\u03B9\u03BA\u03AD\u03C4\u03B1 \u03B1\u03C6\u03B1\u03B9\u03C1\u03AD\u03B8\u03B7\u03BA\u03B5',
+    'Tag already exists': '\u0397 \u03B5\u03C4\u03B9\u03BA\u03AD\u03C4\u03B1 \u03C5\u03C0\u03AC\u03C1\u03C7\u03B5\u03B9 \u03AE\u03B4\u03B7',
+    'Invalid tag name': '\u039C\u03B7 \u03AD\u03B3\u03BA\u03C5\u03C1\u03BF \u03CC\u03BD\u03BF\u03BC\u03B1 \u03B5\u03C4\u03B9\u03BA\u03AD\u03C4\u03B1\u03C2',
+    'Create tags first': '\u0394\u03B7\u03BC\u03B9\u03BF\u03C5\u03C1\u03B3\u03AE\u03C3\u03C4\u03B5 \u03B5\u03C4\u03B9\u03BA\u03AD\u03C4\u03B5\u03C2 \u03B1\u03C0\u03CC \u0394\u03B9\u03B1\u03C7\u03B5\u03AF\u03C1\u03B9\u03C3\u03B7 \u0395\u03C4\u03B9\u03BA\u03B5\u03C4\u03CE\u03BD',
+    'e.g. Reserved': '\u03C0.\u03C7. Reserved'
 };
 
 const PHONE_COLORS_STORAGE_KEY = 'tm_phone_colors_v2';
 const PHONE_COLOR_ALIASES_KEY = 'tm_phone_color_display_aliases';
 const LEGACY_CUSTOM_COLORS_STORAGE_KEY = 'tm_phone_custom_colors';
 const PHONE_STORE_RULES_KEY = 'tm_phone_store_rules_v1';
+const PHONE_TAG_DEFINITIONS_KEY = 'tm_phone_tag_definitions';
+
+function normalizeTagKey(name) {
+    return String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function formatTagNameFromKey(key) {
+    return String(key || '').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function loadTagDefinitions() {
+    try {
+        const stored = GM_getValue(PHONE_TAG_DEFINITIONS_KEY, '{}');
+        const parsed = JSON.parse(stored);
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function saveTagDefinitions(defs) {
+    GM_setValue(PHONE_TAG_DEFINITIONS_KEY, JSON.stringify(defs));
+}
+
+function normalizeTagDefinitionEntry(value, key) {
+    if (!value || typeof value !== 'object') {
+        return { name: formatTagNameFromKey(key), color: '#9e9e9e' };
+    }
+    return {
+        name: String(value.name || formatTagNameFromKey(key)).trim(),
+        color: normalizePhoneColorHex(value.color) || '#9e9e9e'
+    };
+}
+
+function getTagDefinition(key) {
+    const defs = loadTagDefinitions();
+    const nk = normalizeTagKey(key);
+    return normalizeTagDefinitionEntry(defs[nk], nk);
+}
+
+function getTagColor(key) {
+    return getTagDefinition(key).color;
+}
+
+function getTagDisplayName(key) {
+    return getTagDefinition(key).name;
+}
+
+function getDefinedTagKeys() {
+    return Object.keys(loadTagDefinitions()).sort((a, b) =>
+        getTagDisplayName(a).localeCompare(getTagDisplayName(b), undefined, { sensitivity: 'base' })
+    );
+}
+
+function addTagDefinition(name, color) {
+    const key = normalizeTagKey(name);
+    if (!key) return { ok: false, error: 'invalid' };
+    const defs = loadTagDefinitions();
+    if (defs[key]) return { ok: false, error: 'exists' };
+    defs[key] = {
+        name: String(name).trim(),
+        color: normalizePhoneColorHex(color) || '#9e9e9e'
+    };
+    saveTagDefinitions(defs);
+    return { ok: true, key };
+}
+
+function updateTagDefinition(key, name, color) {
+    const oldKey = normalizeTagKey(key);
+    const newKey = normalizeTagKey(name);
+    if (!oldKey || !newKey) return { ok: false, error: 'invalid' };
+    const defs = loadTagDefinitions();
+    if (!defs[oldKey]) return { ok: false, error: 'missing' };
+    if (newKey !== oldKey && defs[newKey]) return { ok: false, error: 'exists' };
+    const entry = {
+        name: String(name).trim(),
+        color: normalizePhoneColorHex(color) || '#9e9e9e'
+    };
+    if (newKey !== oldKey) delete defs[oldKey];
+    defs[newKey] = entry;
+    saveTagDefinitions(defs);
+    return { ok: true, key: newKey, renamed: newKey !== oldKey, oldKey };
+}
+
+function deleteTagDefinition(key) {
+    const nk = normalizeTagKey(key);
+    const defs = loadTagDefinitions();
+    if (!defs[nk]) return false;
+    delete defs[nk];
+    saveTagDefinitions(defs);
+    return true;
+}
 
 const DEFAULT_TITANIUM_LIST_HEX = '#8E8E93';
 
@@ -1949,6 +2052,20 @@ async function showPhoneListModal() {
                         align-items: center;
                         justify-content: center;
                     ">🎨</button>
+                    <button id="tm-phone-tags-btn" title="${PHONE_CATALOG_TRANSLATIONS['Manage Tags']}" style="
+                        background: var(--tm-shop-item-bg);
+                        border: 1px solid var(--tm-shop-item-border);
+                        color: var(--tm-dark-color);
+                        width: 32px;
+                        height: 32px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-size: 16px;
+                        transition: all 0.2s ease;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">🏷️</button>
                     <button id="tm-phone-stores-btn" title="${PHONE_CATALOG_TRANSLATIONS['Manage Stores']}" style="
                         background: var(--tm-shop-item-bg);
                         border: 1px solid var(--tm-shop-item-border);
@@ -2415,11 +2532,9 @@ async function showPhoneListModal() {
     let otherStorePhones = [];
     let otherStoreLoaded = false;
     
-    // Tag system - store tags in localStorage
+    // Tag system — phone assignments + user-defined tag catalog
     const TAGS_STORAGE_KEY = 'tm_phone_tags';
-    const AVAILABLE_TAGS = ['defective', 'warranty', 'sold', 'reserved', 'repair', 'new', 'doa', 'for repair', 'pending', 'tested', 'untested', 'damaged', 'working', 'parts only', 'MPOUTALAKIS'];
     
-    // Load tags from storage
     function loadPhoneTags() {
         try {
             const stored = GM_getValue(TAGS_STORAGE_KEY, '{}');
@@ -2429,36 +2544,35 @@ async function showPhoneListModal() {
         }
     }
     
-    // Save tags to storage
     function savePhoneTags(tags) {
         GM_setValue(TAGS_STORAGE_KEY, JSON.stringify(tags));
     }
     
-    // Get tags for a phone
     function getPhoneTags(barcode) {
         const allTags = loadPhoneTags();
         return allTags[barcode] || [];
     }
     
-    // Add tag to phone
     function addPhoneTag(barcode, tag) {
+        const tagKey = normalizeTagKey(tag);
+        if (!tagKey) return false;
         const allTags = loadPhoneTags();
         if (!allTags[barcode]) {
             allTags[barcode] = [];
         }
-        if (!allTags[barcode].includes(tag)) {
-            allTags[barcode].push(tag);
+        if (!allTags[barcode].includes(tagKey)) {
+            allTags[barcode].push(tagKey);
             savePhoneTags(allTags);
             return true;
         }
         return false;
     }
     
-    // Remove tag from phone
     function removePhoneTag(barcode, tag) {
+        const tagKey = normalizeTagKey(tag);
         const allTags = loadPhoneTags();
         if (allTags[barcode]) {
-            allTags[barcode] = allTags[barcode].filter(t => t !== tag);
+            allTags[barcode] = allTags[barcode].filter(t => t !== tagKey);
             if (allTags[barcode].length === 0) {
                 delete allTags[barcode];
             }
@@ -2467,20 +2581,88 @@ async function showPhoneListModal() {
         }
         return false;
     }
+
+    function renamePhoneTagKeyOnAllPhones(oldKey, newKey) {
+        const oldK = normalizeTagKey(oldKey);
+        const newK = normalizeTagKey(newKey);
+        if (!oldK || !newK || oldK === newK) return;
+        const allTags = loadPhoneTags();
+        let changed = false;
+        Object.keys(allTags).forEach(barcode => {
+            const idx = allTags[barcode].indexOf(oldK);
+            if (idx === -1) return;
+            allTags[barcode].splice(idx, 1);
+            if (!allTags[barcode].includes(newK)) {
+                allTags[barcode].push(newK);
+            }
+            if (allTags[barcode].length === 0) delete allTags[barcode];
+            changed = true;
+        });
+        if (changed) savePhoneTags(allTags);
+    }
+
+    function removePhoneTagFromAllPhones(tagKey) {
+        const key = normalizeTagKey(tagKey);
+        const allTags = loadPhoneTags();
+        let changed = false;
+        Object.keys(allTags).forEach(barcode => {
+            const before = allTags[barcode].length;
+            allTags[barcode] = allTags[barcode].filter(t => t !== key);
+            if (allTags[barcode].length === 0) delete allTags[barcode];
+            if (before !== (allTags[barcode]?.length || 0)) changed = true;
+        });
+        if (changed) savePhoneTags(allTags);
+    }
     
-    // Get all unique tags from all phones
     function getAllUsedTags() {
         const allTags = loadPhoneTags();
         const usedTags = new Set();
         Object.values(allTags).forEach(tags => {
-            tags.forEach(tag => usedTags.add(tag));
+            tags.forEach(tag => usedTags.add(normalizeTagKey(tag)));
         });
-        return Array.from(usedTags).sort();
+        return Array.from(usedTags).filter(Boolean).sort((a, b) =>
+            getTagDisplayName(a).localeCompare(getTagDisplayName(b), undefined, { sensitivity: 'base' })
+        );
     }
+
+    function getSelectableTagKeys() {
+        const keys = new Set(getDefinedTagKeys());
+        getAllUsedTags().forEach(k => keys.add(k));
+        return Array.from(keys).sort((a, b) =>
+            getTagDisplayName(a).localeCompare(getTagDisplayName(b), undefined, { sensitivity: 'base' })
+        );
+    }
+
+    function ensureTagDefinitionsForUsedTags() {
+        const defs = loadTagDefinitions();
+        let changed = false;
+        getAllUsedTags().forEach(key => {
+            if (!defs[key]) {
+                defs[key] = { name: formatTagNameFromKey(key), color: '#9e9e9e' };
+                changed = true;
+            }
+        });
+        if (changed) saveTagDefinitions(defs);
+    }
+
+    function normalizeStoredPhoneTagKeys() {
+        const allTags = loadPhoneTags();
+        let changed = false;
+        Object.keys(allTags).forEach(barcode => {
+            const normalized = [...new Set(allTags[barcode].map(normalizeTagKey).filter(Boolean))];
+            if (JSON.stringify(normalized) !== JSON.stringify(allTags[barcode])) {
+                if (normalized.length) allTags[barcode] = normalized;
+                else delete allTags[barcode];
+                changed = true;
+            }
+        });
+        if (changed) savePhoneTags(allTags);
+    }
+
+    normalizeStoredPhoneTagKeys();
+    ensureTagDefinitionsForUsedTags();
     
-    // Show tag selection menu
     function showTagSelectionMenu(barcode, mode, existingTags = []) {
-        // Remove any existing tag menu
         const existingMenu = document.querySelector('.tm-phone-tag-submenu');
         if (existingMenu) {
             existingMenu.remove();
@@ -2489,54 +2671,37 @@ async function showPhoneListModal() {
         const tagMenu = document.createElement('div');
         tagMenu.className = 'tm-phone-tag-submenu';
         
-        const tagColors = {
-            'defective': '#f44336',
-            'warranty': '#4caf50',
-            'sold': '#9e9e9e',
-            'reserved': '#ff9800',
-            'repair': '#9c27b0',
-            'new': '#2196f3',
-            'doa': '#d32f2f',
-            'for repair': '#ff5722',
-            'pending': '#ffc107',
-            'tested': '#4caf50',
-            'untested': '#ff9800',
-            'damaged': '#f44336',
-            'working': '#4caf50',
-            'parts only': '#757575',
-            'MPOUTALAKIS': '#00bcd4'
-        };
-        
-        const tagsToShow = mode === 'add' 
-            ? AVAILABLE_TAGS.filter(tag => !existingTags.includes(tag))
-            : existingTags;
-        
+        const normalizedExisting = existingTags.map(normalizeTagKey);
+        const tagsToShow = mode === 'add'
+            ? getDefinedTagKeys().filter(tag => !normalizedExisting.includes(tag))
+            : normalizedExisting;
+
         if (tagsToShow.length === 0) {
-            tagMenu.innerHTML = `<div style="padding: 12px; text-align: center; color: var(--tm-dark-color); opacity: 0.7; font-size: 12px;">
-                ${mode === 'add' ? 'All tags already added' : 'No tags to remove'}
+            tagMenu.innerHTML = `<div style="padding: 12px; text-align: center; color: var(--tm-dark-color); opacity: 0.7; font-size: 12px; max-width: 220px;">
+                ${mode === 'add' ? t('Create tags first') : 'No tags to remove'}
             </div>`;
         } else {
             tagsToShow.forEach(tag => {
                 const menuItem = document.createElement('div');
                 menuItem.className = 'tm-phone-tag-submenu-item';
-                const color = tagColors[tag] || '#9e9e9e';
+                const color = getTagColor(tag);
                 menuItem.innerHTML = `
                     <span class="tag-color" style="background: ${color};"></span>
-                    <span>${tag.charAt(0).toUpperCase() + tag.slice(1).replace(/\b\w/g, l => l.toUpperCase())}</span>
+                    <span>${getTagDisplayName(tag)}</span>
                 `;
                 menuItem.addEventListener('click', () => {
                     if (mode === 'add') {
                         if (addPhoneTag(barcode, tag)) {
                             applyFilters();
                             if (window.showPositiveMessage) {
-                                window.showPositiveMessage(`Tag "${tag}" added`);
+                                window.showPositiveMessage(`${t('Tag added')}: ${getTagDisplayName(tag)}`);
                             }
                         }
                     } else {
                         if (removePhoneTag(barcode, tag)) {
                             applyFilters();
                             if (window.showPositiveMessage) {
-                                window.showPositiveMessage(`Tag "${tag}" removed`);
+                                window.showPositiveMessage(`${t('Tag removed')}: ${getTagDisplayName(tag)}`);
                             }
                         }
                     }
@@ -2546,7 +2711,21 @@ async function showPhoneListModal() {
                 tagMenu.appendChild(menuItem);
             });
         }
-        
+
+        if (mode === 'add') {
+            const manageItem = document.createElement('div');
+            manageItem.className = 'tm-phone-tag-submenu-item';
+            manageItem.style.borderTop = '1px solid var(--tm-shop-item-border)';
+            manageItem.style.marginTop = '4px';
+            manageItem.style.paddingTop = '10px';
+            manageItem.innerHTML = `<span style="opacity:0.85;">⚙️ ${t('Manage Tags')}</span>`;
+            manageItem.addEventListener('click', () => {
+                tagMenu.remove();
+                contextMenu.style.display = 'none';
+                showTagManagerModal();
+            });
+            tagMenu.appendChild(manageItem);
+        }
         // Position the menu next to the context menu
         const addTagItem = contextMenu.querySelector('[data-action="add-tag"]') || contextMenu.querySelector('[data-action="remove-tag"]');
         if (addTagItem) {
@@ -2934,6 +3113,165 @@ async function showPhoneListModal() {
         renderPhoneColorList();
     }
 
+    function showTagManagerModal() {
+        const existing = document.getElementById('tm-phone-tags-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'tm-phone-tags-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
+
+        const panel = document.createElement('div');
+        panel.style.cssText = 'width:min(480px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
+
+        panel.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h3 style="margin:0;font-size:16px;font-weight:600;">${t('Manage Tags')}</h3>
+                <button id="tm-tags-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-dark-color);line-height:1;">&times;</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
+                <input id="tm-new-tag-name" type="text" placeholder="${t('Tag Name')} (${t('e.g. Reserved')})" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:13px;box-sizing:border-box;">
+                <div style="font-size:11px;opacity:0.7;margin-bottom:2px;">${t('Tag Color')}</div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="color" id="tm-new-tag-picker" value="#2196f3" title="${t('Tag Color')}" style="width:42px;height:34px;padding:2px;border:1px solid var(--tm-shop-item-border);border-radius:6px;cursor:pointer;background:var(--tm-shop-item-bg);">
+                    <input id="tm-new-tag-hex" type="text" placeholder="#RRGGBB" style="flex:1;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:13px;font-family:monospace;box-sizing:border-box;">
+                    <button id="tm-add-tag-btn" type="button" style="padding:8px 12px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">${t('Add Tag')}</button>
+                </div>
+            </div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:8px;opacity:0.75;">${t('Custom Tags')}</div>
+            <div id="tm-phone-tags-list"></div>
+        `;
+
+        modal.appendChild(panel);
+        document.body.appendChild(modal);
+
+        const nameInput = panel.querySelector('#tm-new-tag-name');
+        const picker = panel.querySelector('#tm-new-tag-picker');
+        const hexInput = panel.querySelector('#tm-new-tag-hex');
+        const listEl = panel.querySelector('#tm-phone-tags-list');
+
+        const syncHexFromPicker = () => {
+            hexInput.value = picker.value.toUpperCase();
+        };
+        picker.addEventListener('input', syncHexFromPicker);
+        hexInput.addEventListener('input', () => {
+            const hex = normalizePhoneColorHex(hexInput.value);
+            if (hex) picker.value = hex;
+        });
+        syncHexFromPicker();
+
+        const refreshAfterChange = () => {
+            populateFilters(allPhones, ['tag']);
+            applyFilters();
+            renderTagList();
+        };
+
+        const renderTagList = () => {
+            const keys = getDefinedTagKeys();
+            if (!keys.length) {
+                listEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:8px 0;">${t('No custom tags yet')}</div>`;
+                return;
+            }
+            listEl.innerHTML = keys.map(key => {
+                const def = getTagDefinition(key);
+                return `
+                <div class="tm-phone-tag-row" data-tag="${key}" style="padding:10px 0;border-bottom:1px solid var(--tm-shop-item-border);">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Tag Name')}</span>
+                        <input type="text" class="tm-phone-tag-name-input" data-tag="${key}" value="${def.name.replace(/"/g, '&quot;')}" style="flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);font-size:13px;font-weight:600;min-width:0;box-sizing:border-box;color:${def.color};">
+                        <button type="button" data-tag="${key}" class="tm-delete-phone-tag" style="padding:4px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-dark-color);font-size:11px;cursor:pointer;flex-shrink:0;">${t('Delete')}</button>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Tag Color')}</span>
+                        <input type="color" class="tm-phone-tag-color-picker" data-tag="${key}" value="${def.color}" style="width:32px;height:28px;padding:1px;border:1px solid var(--tm-shop-item-border);border-radius:5px;cursor:pointer;background:var(--tm-shop-item-bg);flex-shrink:0;">
+                        <span class="tm-phone-tag-color-label" style="font-size:11px;opacity:0.65;font-family:monospace;">${def.color}</span>
+                    </div>
+                </div>`;
+            }).join('');
+
+            listEl.querySelectorAll('.tm-phone-tag-color-picker').forEach(input => {
+                input.addEventListener('change', () => {
+                    const hex = normalizePhoneColorHex(input.value);
+                    const key = input.dataset.tag;
+                    const def = getTagDefinition(key);
+                    if (!hex || !updateTagDefinition(key, def.name, hex).ok) return;
+                    const row = input.closest('.tm-phone-tag-row');
+                    const label = row?.querySelector('.tm-phone-tag-color-label');
+                    const nameInputEl = row?.querySelector('.tm-phone-tag-name-input');
+                    if (label) label.textContent = hex;
+                    if (nameInputEl) nameInputEl.style.color = hex;
+                    refreshAfterChange();
+                });
+            });
+
+            listEl.querySelectorAll('.tm-phone-tag-name-input').forEach(input => {
+                const commitRename = () => {
+                    const oldKey = input.dataset.tag;
+                    const newName = input.value.trim();
+                    if (!newName) {
+                        input.value = getTagDisplayName(oldKey);
+                        if (window.showNegativeMessage) window.showNegativeMessage(t('Invalid tag name'));
+                        return;
+                    }
+                    if (normalizeTagKey(newName) === oldKey && newName === getTagDefinition(oldKey).name) return;
+                    const def = getTagDefinition(oldKey);
+                    const result = updateTagDefinition(oldKey, newName, def.color);
+                    if (!result.ok) {
+                        input.value = getTagDisplayName(oldKey);
+                        const msg = result.error === 'exists' ? t('Tag already exists') : t('Invalid tag name');
+                        if (window.showNegativeMessage) window.showNegativeMessage(msg);
+                        return;
+                    }
+                    if (result.renamed) renamePhoneTagKeyOnAllPhones(result.oldKey, result.key);
+                    refreshAfterChange();
+                };
+                input.addEventListener('change', commitRename);
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        input.blur();
+                    }
+                });
+            });
+
+            listEl.querySelectorAll('.tm-delete-phone-tag').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const key = btn.dataset.tag;
+                    deleteTagDefinition(key);
+                    removePhoneTagFromAllPhones(key);
+                    if (window.showPositiveMessage) window.showPositiveMessage(t('Tag removed'));
+                    refreshAfterChange();
+                });
+            });
+        };
+
+        panel.querySelector('#tm-add-tag-btn').addEventListener('click', () => {
+            const result = addTagDefinition(nameInput.value, hexInput.value || picker.value);
+            if (!result.ok) {
+                const msg = result.error === 'exists' ? t('Tag already exists') : t('Invalid tag name');
+                if (window.showNegativeMessage) window.showNegativeMessage(msg);
+                return;
+            }
+            nameInput.value = '';
+            hexInput.value = '';
+            picker.value = '#2196F3';
+            syncHexFromPicker();
+            if (window.showPositiveMessage) window.showPositiveMessage(t('Tag added'));
+            refreshAfterChange();
+        });
+
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') panel.querySelector('#tm-add-tag-btn').click();
+        });
+
+        panel.querySelector('#tm-tags-close').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+
+        renderTagList();
+    }
+
     function showStoreRulesModal() {
         const existing = document.getElementById('tm-phone-stores-modal');
         if (existing) existing.remove();
@@ -3060,7 +3398,8 @@ async function showPhoneListModal() {
     // Used to normalise typo variants (e.g. "PROMAX", "PRO  MAX", Greek chars)
     // back to a single display name.
     const CANONICAL_MODELS = [
-        // iPhone SE
+        // iPhone SE — year/generation variants before generic SE
+        'iPhone SE 2022', 'iPhone SE 2020',
         'iPhone SE (3rd gen)', 'iPhone SE (2nd gen)', 'iPhone SE',
         // iPhone 6
         'iPhone 6s Plus', 'iPhone 6s', 'iPhone 6 Plus', 'iPhone 6',
@@ -3133,6 +3472,22 @@ async function showPhoneListModal() {
     }));
 
     // Return the canonical display name if base matches one, otherwise return base as-is
+    function normalizeIphoneSeGeneration(base) {
+        const norm = _normForCanonical(base);
+        if (!/\bIPHONE\b/.test(norm) || !/\bSE\b/.test(norm)) return base;
+
+        if (/\b2022\b/.test(norm) || /\b3RD\b/.test(norm)) {
+            return 'iPhone SE 2022';
+        }
+        if (/\b2020\b/.test(norm) || /\b2ND\b/.test(norm)) {
+            return 'iPhone SE 2020';
+        }
+        if (/\b2016\b/.test(norm) || /\b1ST\b/.test(norm)) {
+            return 'iPhone SE';
+        }
+        return base;
+    }
+
     function matchCanonical(base) {
         if (!base) return base;
         const norm = _normForCanonical(base);
@@ -3141,7 +3496,13 @@ async function showPhoneListModal() {
             const allMatch = tokens.every(t =>
                 new RegExp('(?:^|\\s)' + t + '(?:\\s|$)').test(norm)
             );
-            if (allMatch) return name;
+            if (allMatch) {
+                // Year/generation SE models must not collapse to generic "iPhone SE"
+                if (name === 'iPhone SE' && /\b(2020|2022|2016|2ND|3RD|1ST)\b/.test(norm)) {
+                    continue;
+                }
+                return name;
+            }
         }
         return base;
     }
@@ -3208,6 +3569,8 @@ async function showPhoneListModal() {
         
         // Clean up multiple spaces and trim
         base = base.replace(/\s+/g, ' ').trim();
+
+        base = normalizeIphoneSeGeneration(base);
 
         // Map to canonical display name (fixes typos, joins variants like eSIM / non-eSIM)
         base = matchCanonical(base);
@@ -3415,12 +3778,12 @@ async function showPhoneListModal() {
             while (tagFilter.children.length > 1) {
                 tagFilter.removeChild(tagFilter.lastChild);
             }
-            const usedTags = getAllUsedTags();
+            const usedTags = getSelectableTagKeys();
             usedTags.forEach(tag => {
                 const option = document.createElement('option');
                 option.value = tag;
-                option.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
-                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-dark-color); padding: 10px;';
+                option.textContent = getTagDisplayName(tag);
+                option.style.cssText = `background: var(--tm-shop-item-bg); color: ${getTagColor(tag)}; padding: 10px; font-weight: 600;`;
                 tagFilter.appendChild(option);
             });
             // Restore selection if still valid
@@ -3821,25 +4184,9 @@ async function showPhoneListModal() {
                             ${(() => {
                                 const phoneTags = getPhoneTags(phone.barcode);
                                 if (phoneTags.length > 0) {
-                                    const tagColors = {
-                                        'defective': '#f44336',
-                                        'warranty': '#4caf50',
-                                        'sold': '#9e9e9e',
-                                        'reserved': '#ff9800',
-                                        'repair': '#9c27b0',
-                                        'new': '#2196f3',
-                                        'doa': '#d32f2f',
-                                        'for repair': '#ff5722',
-                                        'pending': '#ffc107',
-                                        'tested': '#4caf50',
-                                        'untested': '#ff9800',
-                                        'damaged': '#f44336',
-                                        'working': '#4caf50',
-                                        'parts only': '#757575'
-                                    };
                                     return phoneTags.map(tag => {
-                                        const color = tagColors[tag] || '#9e9e9e';
-                                        return `<span style="color: ${color}; font-size: 10px; font-weight: 500; text-transform: capitalize;">#${tag}</span>`;
+                                        const color = getTagColor(tag);
+                                        return `<span style="color: ${color}; font-size: 10px; font-weight: 600;">#${getTagDisplayName(tag)}</span>`;
                                     }).join(' ');
                                 }
                                 return '';
@@ -4204,6 +4551,7 @@ async function showPhoneListModal() {
     const refreshBtn = overlay.querySelector('#tm-phone-refresh-btn');
     const viewToggleBtn = overlay.querySelector('#tm-phone-view-toggle');
     const colorsBtn = overlay.querySelector('#tm-phone-colors-btn');
+    const tagsBtn = overlay.querySelector('#tm-phone-tags-btn');
     const storesBtn = overlay.querySelector('#tm-phone-stores-btn');
     const otherStoreToggleBtn = overlay.querySelector('#tm-phone-other-store-toggle');
     const favoritesBtn = overlay.querySelector('#tm-phone-favorites-btn');
@@ -4831,6 +5179,13 @@ async function showPhoneListModal() {
     });
     colorsBtn.addEventListener('mouseleave', () => {
         colorsBtn.style.background = 'var(--tm-shop-item-bg)';
+    });
+    tagsBtn.addEventListener('click', showTagManagerModal);
+    tagsBtn.addEventListener('mouseenter', () => {
+        tagsBtn.style.background = 'rgba(255,255,255,0.15)';
+    });
+    tagsBtn.addEventListener('mouseleave', () => {
+        tagsBtn.style.background = 'var(--tm-shop-item-bg)';
     });
     storesBtn.addEventListener('click', showStoreRulesModal);
     storesBtn.addEventListener('mouseenter', () => {
