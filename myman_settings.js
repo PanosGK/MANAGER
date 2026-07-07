@@ -306,6 +306,8 @@
             saveCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
             saveCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
             saveCheckbox('tm-setting-achievements-enabled', 'achievementsEnabled');
+
+            saveCheckbox('tm-setting-status40-native-test-enabled', 'status40NativeTestButtonEnabled');
             saveNumber('tm-setting-mascot-speed', 'mascotRoamingSpeed');
 
             // --- Save New Feature Settings ---
@@ -464,6 +466,13 @@
                     <div class="tm-setting-row">
                         <div class="tm-setting-label"><label for="tm-debug-coins-input">Προσθήκη Coins</label></div>
                         <div class="tm-setting-control"><input type="number" id="tm-debug-coins-input" value="1000"><button id="tm-debug-add-coins-btn">Add</button></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-status40-native-test-enabled">🔴 Test κουμπί Status 40</label>
+                            <p class="tm-setting-description">Εμφανίζει αντίγραφο του native κουμπιού «40» στο service_edit (65/100). Κάνει κλικ στο κρυφό <code>assignButton1</code> ή fallback dropdown+save — χωρίς admin login — για έλεγχο δικαιωμάτων.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-status40-native-test-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label"><label>Trigger Random Event</label></div>
@@ -1137,6 +1146,7 @@
             populateCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
             populateCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
             populateCheckbox('tm-setting-achievements-enabled', 'achievementsEnabled');
+            populateCheckbox('tm-setting-status40-native-test-enabled', 'status40NativeTestButtonEnabled');
             populateCheckbox('tm-setting-customer-history-enabled', 'customerHistoryEnabled');
             
             // Populate new feature checkboxes

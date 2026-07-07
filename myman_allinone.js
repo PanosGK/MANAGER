@@ -153,6 +153,7 @@
         orderHistoryEnabled: true,
         returnTo40ButtonEnabled: true,
         eodChecklistEnabled: true,
+        status40NativeTestButtonEnabled: false,
         autoUpdateCheckEnabled: true,
         // Price dropdown options for repair page
         priceOptions: [
@@ -6219,6 +6220,9 @@
         }
         if (config?.returnTo40ButtonEnabled !== false) {
             injectReturnTo40Button(); // Red "40" shortcut button on status-65 and status-100 repairs
+        }
+        if (typeof window.initStatus40NativeTestButton === 'function') {
+            window.initStatus40NativeTestButton();
         }
         initFunFeatures(config); // Handles confetti and other event-based interactions
         initMascotPageReactions(config); // Mascot reactions to page events.

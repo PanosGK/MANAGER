@@ -459,5 +459,133 @@
     // Make function globally accessible
     window.initStatus40Button = initStatus40Button;
 
+    function getPageRepairStatusForTest() {
+        const allBadges = document.querySelectorAll('.statusbadge');
+        for (const badge of allBadges) {
+            if (badge.closest('.rnr-buttons-left') || badge.closest('.rnr-b-editbuttons')) continue;
+            const m = (badge.textContent || badge.innerText || '').match(/^\s*(\d+)/);
+            if (m) return m[1];
+        }
+        const sel = getStatusSelectOnPage();
+        return sel && sel.value ? sel.value : null;
+    }
+
+    function attemptNativeStatus40PermissionTest() {
+        const results = [];
+
+        const native = document.getElementById('assignButton1');
+        if (native) {
+            const cs = window.getComputedStyle(native);
+            const hidden = cs.display === 'none' || cs.visibility === 'hidden' || native.offsetParent === null;
+            results.push(`assignButton1: ΒΡΕΘΗΚΕ στο DOM (κρυφό=${hidden})`);
+            console.log('[MMS Status40 Test] assignButton1 onclick:', native.getAttribute('onclick'));
+            console.log('[MMS Status40 Test] assignButton1 href:', native.getAttribute('href'));
+
+            const prevDisplay = native.style.display;
+            const prevVis = native.style.visibility;
+            native.style.removeProperty('display');
+            native.style.visibility = 'visible';
+
+            try {
+                native.click();
+                results.push('assignButton1: click() εκτελέστηκε');
+            } catch (err) {
+                results.push(`assignButton1: click() απέτυχε — ${err.message}`);
+            }
+
+            if (prevDisplay) native.style.display = prevDisplay;
+            if (prevVis) native.style.visibility = prevVis;
+        } else {
+            results.push('assignButton1: ΔΕΝ υπάρχει στο DOM (κρυμμένο από ρόλο χρήστη)');
+        }
+
+        let other40Btn = null;
+        document.querySelectorAll('.rnr-button, a[href="#"]').forEach(b => {
+            if (b.id === 'tm-test-assignButton40' || b.id === 'tm-back-to-40-btn') return;
+            const badge = b.querySelector('.statusbadge');
+            if (badge && badge.textContent.trim() === '40') other40Btn = b;
+        });
+
+        if (other40Btn && other40Btn !== native) {
+            results.push(`Άλλο κουμπί «40»: ΒΡΕΘΗΚΕ (id=${other40Btn.id || '—'})`);
+            try {
+                other40Btn.click();
+                results.push('Άλλο κουμπί «40»: click() εκτελέστηκε');
+            } catch (err) {
+                results.push(`Άλλο κουμπί «40»: click() απέτυχε — ${err.message}`);
+            }
+        } else if (!native) {
+            results.push('Άλλο κουμπί «40»: ΔΕΝ βρέθηκε');
+        }
+
+        if (!native && !other40Btn) {
+            const applied = applyStatus40OnCurrentPage();
+            results.push(applied
+                ? 'Fallback: dropdown → 40 + κλικ Save'
+                : 'Fallback: δεν βρέθηκε dropdown ή Save');
+        }
+
+        const summary = results.join('\n');
+        console.log('[MMS Status40 Test]\n' + summary);
+        alert(
+            'Έλεγχος δικαιωμάτων Status 40 (χωρίς admin login):\n\n' +
+            summary +
+            '\n\nΑνανέωσε τη σελίδα για να δεις αν άλλαξε το status. Λεπτομέρειες στο console (F12).'
+        );
+        return results;
+    }
+
+    /**
+     * Debug: injects a visual clone of native assignButton1 to test permission checks
+     * with the current (non-admin) account.
+     */
+    function initStatus40NativeTestButton() {
+        const cfg = window.config || {};
+        if (!cfg.status40NativeTestButtonEnabled) return;
+        if (!window.location.pathname.includes('service_edit.php')) return;
+
+        const tryInject = (retries = 12) => {
+            if (document.getElementById('tm-test-assignButton40')) return;
+
+            const buttonContainer = document.querySelector('.rnr-buttons-left');
+            if (!buttonContainer) {
+                if (retries > 0) setTimeout(() => tryInject(retries - 1), 500);
+                return;
+            }
+
+            const currentStatus = getPageRepairStatusForTest();
+            if (currentStatus !== '65' && currentStatus !== '100') {
+                console.log('[MMS Status40 Test] Skipped — repair status is', currentStatus, '(needs 65 or 100)');
+                return;
+            }
+
+            const btn = document.createElement('a');
+            btn.id = 'tm-test-assignButton40';
+            btn.className = 'rnr-button';
+            btn.href = '#';
+            btn.title = 'MMS TEST — native permission check (no admin login)';
+            btn.innerHTML = '<span class="statusbadge blink" style="background-color:#FF0000">40</span><br><span style="font-size:13px">ΠΡΟΣ ΕΛΕΓΧΟ</span>';
+
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!confirm(
+                    'Permission test: δοκιμή native status 40 με τον ΤΡΕΧΟΝΤΑ λογαριασμό σου (χωρίς admin login).\n\nΣυνέχεια;'
+                )) {
+                    return;
+                }
+                attemptNativeStatus40PermissionTest();
+            }, { passive: false });
+
+            buttonContainer.prepend(btn);
+            console.log('[MMS Status40 Test] ✅ Injected native-clone test button (status', currentStatus + ')');
+        };
+
+        setTimeout(() => tryInject(), 650);
+    }
+
+    window.attemptNativeStatus40PermissionTest = attemptNativeStatus40PermissionTest;
+    window.initStatus40NativeTestButton = initStatus40NativeTestButton;
+
 })();
 
