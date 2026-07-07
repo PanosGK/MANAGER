@@ -502,6 +502,14 @@
         return window.STORAGE_KEYS?.SKIPPED_UPDATE_VERSION || 'tm_skipped_update_version';
     }
 
+    function getUpdateBannerDismissedKey() {
+        return 'tm_update_banner_dismissed_version';
+    }
+
+    function getScriptUpdateNotificationId(remoteVersion) {
+        return `script_update_v${String(remoteVersion)}`;
+    }
+
     function isAutoUpdateCheckEnabled() {
         return GM_getValue('autoUpdateCheckEnabled', true) !== false;
     }
@@ -560,16 +568,46 @@
         document.getElementById('tm-script-update-notification')?.remove();
     }
 
+    function isUpdateBannerDismissed(remoteVersion) {
+        const dismissed = String(GM_getValue(getUpdateBannerDismissedKey(), '') || '');
+        if (!dismissed || remoteVersion == null) return false;
+        return parseScriptVersion(remoteVersion) <= parseScriptVersion(dismissed);
+    }
+
+    function dismissScriptUpdateBanner(remoteVersion) {
+        if (remoteVersion != null && remoteVersion !== '') {
+            GM_setValue(getUpdateBannerDismissedKey(), String(remoteVersion));
+        }
+        hideScriptUpdateNotification();
+    }
+
+    function ensureScriptUpdateCenterNotification(result) {
+        if (!result?.remote || typeof window.createNotification !== 'function') return;
+        window.createNotification(
+            `Νέα έκδοση script v${result.remote} διαθέσιμη`,
+            '🔄',
+            { id: getScriptUpdateNotificationId(result.remote) }
+        );
+    }
+
     function showScriptUpdateNotification(result) {
         if (!result?.updateAvailable || isUpdateVersionSkipped(result.remote)) {
             hideScriptUpdateNotification();
             return;
         }
 
+        ensureScriptUpdateCenterNotification(result);
+
+        if (isUpdateBannerDismissed(result.remote)) return;
+
+        const existingBanner = document.getElementById('tm-script-update-notification');
+        if (existingBanner?.dataset.remoteVersion === String(result.remote)) return;
+
         hideScriptUpdateNotification();
 
         const container = document.createElement('div');
         container.id = 'tm-script-update-notification';
+        container.dataset.remoteVersion = String(result.remote);
         container.setAttribute('role', 'alert');
         container.style.cssText = `
             position: fixed;
@@ -608,17 +646,13 @@
         `;
 
         container.querySelector('#tm-update-hide-btn')?.addEventListener('click', () => {
-            hideScriptUpdateNotification();
+            dismissScriptUpdateBanner(result.remote);
         });
         container.querySelector('#tm-update-skip-btn')?.addEventListener('click', () => {
             skipUpdateVersion(result.remote);
         });
 
         document.body.appendChild(container);
-
-        if (typeof window.createNotification === 'function') {
-            window.createNotification(`Νέα έκδοση script v${result.remote} διαθέσιμη`, '🔄');
-        }
     }
 
     function handleUpdateCheckResult(result, options = {}) {
@@ -638,6 +672,7 @@
             }
         } else if (!result.updateAvailable) {
             hideScriptUpdateNotification();
+            GM_deleteValue(getUpdateBannerDismissedKey());
         }
 
         return result;

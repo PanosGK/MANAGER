@@ -462,11 +462,17 @@
     // ===================================================================
     // === 4a. FEATURE: NOTIFICATION CENTER
     // ===================================================================
-    function createNotification(message, icon = '🔔') {
+    function createNotification(message, icon = '🔔', options = {}) {
         let notifications = JSON.parse(GM_getValue(STORAGE_KEYS.USER_NOTIFICATIONS, '[]'));
 
+        const dedupeId = options.id;
+        if (dedupeId) {
+            const existing = notifications.find((n) => n.id === dedupeId);
+            if (existing) return existing;
+        }
+
         const newNotification = {
-            id: `notif_${Date.now()}`,
+            id: dedupeId || `notif_${Date.now()}`,
             message: message,
             icon: icon,
             timestamp: Date.now(),
