@@ -947,45 +947,31 @@
                 width: 100%;
                 gap: 8px;
             }
-            .tm-header-quick-search-host {
+            .tm-qs-host {
                 display: inline-flex;
                 align-items: center;
-                gap: 6px;
-                margin-left: auto;
+                gap: 4px;
                 flex-shrink: 0;
+                margin: 0;
             }
-            .rnr-hfiller:has(.tm-header-quick-search-host) {
+            .tm-qs-host--header {
+                margin-right: 10px;
+            }
+            .tm-qs-host--repair {
+                margin-right: 12px;
+            }
+            .rnr-hfiller:has(.tm-qs-host--header) {
                 display: flex !important;
                 align-items: center;
-                justify-content: flex-end;
-                gap: 8px;
+                justify-content: flex-start !important;
+                gap: 6px;
                 flex-wrap: nowrap;
                 min-width: 0;
-            }
-            .tm-toggle-native-search-btn {
-                flex-shrink: 0;
-                width: 28px;
-                height: 28px;
-                padding: 0;
-                border-radius: 8px;
-                border: 1px solid rgba(255,255,255,0.14);
-                background: rgba(255,255,255,0.06);
-                color: var(--tm-primary-color);
-                font-size: 13px;
-                line-height: 1;
-                cursor: pointer;
-            }
-            .tm-toggle-native-search-btn:hover {
-                background: rgba(255,255,255,0.12);
-            }
-            body.tm-native-search-hidden .style1.rnr-bl.rnr-b-search,
-            body.tm-native-search-hidden .rnr-b-search.style1.rnr-bl {
-                display: none !important;
             }
             .tm-repair-edit-header-with-search {
                 display: flex !important;
                 align-items: center !important;
-                justify-content: space-between !important;
+                justify-content: flex-start !important;
                 flex-wrap: wrap;
                 gap: 8px 12px;
             }
@@ -993,79 +979,58 @@
                 flex: 0 1 auto;
                 margin: 0 !important;
             }
-            .tm-repair-edit-quick-search-host {
+            .tm-qs-bar {
                 display: inline-flex;
                 align-items: center;
-                gap: 6px;
-                margin-left: auto;
-                flex: 0 1 auto;
+                gap: 3px;
+                height: 24px;
+                padding: 0 2px;
+                border-bottom: 1px solid rgba(255,255,255,0.2);
+                background: transparent;
+            }
+            .tm-qs-input {
+                width: 72px;
                 min-width: 0;
-            }
-            .tm-footer-search-compact {
-                display: inline-flex;
-                align-items: stretch;
-                gap: 0;
-                height: 32px;
-                max-width: 100%;
-                border-radius: 10px;
-              
-                background: rgba(0,0,0,0.14);
-                overflow: hidden;
-                box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-            }
-            .tm-footer-search-field {
-                display: inline-flex;
-                align-items: center;
-                gap: 2px;
-                min-width: 0;
-                flex: 1 1 0;
-                padding: 0 2px 0 6px;
-                border-right: 1px solid rgba(255,255,255,0.08);
-            }
-            .tm-footer-search-field-icon {
-                font-size: 11px;
-                line-height: 1;
-                opacity: 0.75;
-                flex-shrink: 0;
-                user-select: none;
-            }
-            .tm-footer-search-input {
-                width: 100%;
-                min-width: 0;
-                flex: 1;
+                height: 22px;
+                padding: 0 4px;
                 border: none;
+                border-radius: 0;
                 background: transparent;
                 color: var(--tm-primary-color);
                 font-size: 11px;
-                padding: 0 6px 0 0;
-                height: 30px;
                 box-sizing: border-box;
             }
-            .tm-footer-search-input::placeholder {
-                color: var(--tm-secondary-hover, rgba(255,255,255,0.38));
-                font-size: 10px;
+            .tm-qs-input::placeholder {
+                opacity: 0.55;
+                font-size: 11px;
             }
-            .tm-footer-search-input:focus {
+            .tm-qs-input:focus {
                 outline: none;
+                background: rgba(79,172,254,0.08);
             }
-            .tm-footer-search-field:focus-within {
-                background: rgba(79,172,254,0.1);
-            }
-            .tm-footer-search-submit {
+            .tm-qs-go,
+            .tm-qs-hide-native {
                 flex-shrink: 0;
-                width: 30px;
+                height: 22px;
+                min-width: 22px;
+                padding: 0 4px;
                 border: none;
-                border-left: 1px solid rgba(255,255,255,0.1);
-                background: rgba(79,172,254,0.22);
+                border-radius: 3px;
+                background: transparent;
                 color: var(--tm-primary-color);
-                font-size: 15px;
-                font-weight: 700;
-                cursor: pointer;
+                font-size: 12px;
                 line-height: 1;
-                padding: 0;
+                cursor: pointer;
+                opacity: 0.7;
             }
-            .tm-footer-search-submit:hover {
-                background: rgba(79,172,254,0.38);
+            .tm-qs-go:hover,
+            .tm-qs-hide-native:hover {
+                opacity: 1;
+                background: rgba(255,255,255,0.08);
+            }
+            body.tm-native-search-hidden .style1.rnr-bl.rnr-b-search,
+            body.tm-native-search-hidden .rnr-b-search.style1.rnr-bl {
+                display: none !important;
             }
             #tm-footer-controls-left {
                 display: flex;

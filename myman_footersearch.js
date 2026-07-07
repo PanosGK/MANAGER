@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyMANAGER Footer Quick Search (module)
 // @namespace    http://tampermonkey.net/
-// @version      1.5
+// @version      1.6
 // @description  Quick search in header or repair edit header
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -87,7 +87,7 @@
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.id = 'tm-toggle-native-search';
-        btn.className = 'tm-toggle-native-search-btn';
+        btn.className = 'tm-qs-hide-native';
         btn.addEventListener('click', () => {
             setNativeSearchHidden(!isNativeSearchHidden());
         });
@@ -103,43 +103,35 @@
         if (!bar) {
             bar = document.createElement('div');
             bar.id = 'tm-footer-quick-search';
-            bar.className = 'tm-footer-search-compact';
+            bar.className = 'tm-qs-bar';
             bar.setAttribute('role', 'search');
             bar.setAttribute('aria-label', 'Γρήγορη αναζήτηση');
-
-            const repairWrap = document.createElement('div');
-            repairWrap.className = 'tm-footer-search-field';
-            repairWrap.innerHTML = '<span class="tm-footer-search-field-icon" aria-hidden="true">🔧</span>';
 
             const repairInput = document.createElement('input');
             repairInput.type = 'text';
             repairInput.id = 'tm-footer-repair-search';
-            repairInput.className = 'tm-footer-search-input';
-            repairInput.placeholder = 'Επισκευές';
+            repairInput.className = 'tm-qs-input';
+            repairInput.placeholder = '🔧';
+            repairInput.title = 'Αναζήτηση επισκευών';
             repairInput.autocomplete = 'off';
             repairInput.spellcheck = false;
             repairInput.dataset.searchBase = REPAIR_SEARCH_URL;
-            repairWrap.appendChild(repairInput);
-
-            const partsWrap = document.createElement('div');
-            partsWrap.className = 'tm-footer-search-field';
-            partsWrap.innerHTML = '<span class="tm-footer-search-field-icon" aria-hidden="true">📦</span>';
 
             const partsInput = document.createElement('input');
             partsInput.type = 'text';
             partsInput.id = 'tm-footer-parts-search';
-            partsInput.className = 'tm-footer-search-input';
-            partsInput.placeholder = 'Ανταλλακτικά';
+            partsInput.className = 'tm-qs-input';
+            partsInput.placeholder = '📦';
+            partsInput.title = 'Αναζήτηση ανταλλακτικών';
             partsInput.autocomplete = 'off';
             partsInput.spellcheck = false;
             partsInput.dataset.searchBase = PARTS_SEARCH_URL;
-            partsWrap.appendChild(partsInput);
 
             const searchBtn = document.createElement('button');
             searchBtn.type = 'button';
             searchBtn.id = 'tm-footer-search-submit';
-            searchBtn.className = 'tm-footer-search-submit';
-            searchBtn.title = 'Αναζήτηση (επιλεγμένο πεδίο)';
+            searchBtn.className = 'tm-qs-go';
+            searchBtn.title = 'Αναζήτηση';
             searchBtn.setAttribute('aria-label', 'Αναζήτηση');
             searchBtn.textContent = '→';
 
@@ -165,8 +157,8 @@
                 });
             });
 
-            bar.appendChild(repairWrap);
-            bar.appendChild(partsWrap);
+            bar.appendChild(repairInput);
+            bar.appendChild(partsInput);
             bar.appendChild(searchBtn);
             parentContainer.appendChild(bar);
         } else if (bar.parentElement !== parentContainer) {
@@ -187,8 +179,13 @@
 
         host = document.createElement('div');
         host.id = 'tm-repair-edit-quick-search-host';
-        host.className = 'tm-repair-edit-quick-search-host';
-        header.appendChild(host);
+        host.className = 'tm-qs-host tm-qs-host--repair';
+        const title = header.querySelector('h1');
+        if (title) {
+            header.insertBefore(host, title);
+        } else {
+            header.prepend(host);
+        }
         return host;
     }
 
@@ -201,8 +198,8 @@
 
         host = document.createElement('div');
         host.id = 'tm-header-quick-search-host';
-        host.className = 'tm-header-quick-search-host';
-        hfiller.appendChild(host);
+        host.className = 'tm-qs-host tm-qs-host--header';
+        hfiller.prepend(host);
         return host;
     }
 
@@ -246,12 +243,14 @@
         const enabled = config?.footerQuickSearchEnabled !== false;
         const display = enabled ? 'inline-flex' : 'none';
         if (bar) bar.style.display = display;
+        [headerHost, repairHost].forEach((el) => {
+            if (el) el.style.display = 'none';
+        });
+        if (!enabled) return;
         if (isRepairEditPage()) {
-            if (repairHost) repairHost.style.display = display;
-            if (headerHost) headerHost.style.display = 'none';
-        } else {
-            if (headerHost) headerHost.style.display = display;
-            if (repairHost) repairHost.style.display = 'none';
+            if (repairHost) repairHost.style.display = 'inline-flex';
+        } else if (headerHost) {
+            headerHost.style.display = 'inline-flex';
         }
     }
 
