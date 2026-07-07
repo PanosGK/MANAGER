@@ -1,8 +1,8 @@
 {
-  "version": "144",
+  "version": "145",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Quick search moved to header rnr-hfiller; button to hide native .rnr-b-search.",
+  "releaseNotes": "Guard when @require modules fail to load from GitHub (fixes addGlobalStyles crash).",
   "modules": [
     "myman_themes.js",
     "myman_config.js",

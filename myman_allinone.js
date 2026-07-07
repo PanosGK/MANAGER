@@ -6112,7 +6112,11 @@
 
         // Apply theme first, so all subsequent UI elements get the right colors
         applyTheme(GM_getValue(STORAGE_KEYS.EQUIPPED_THEME, 'default'));
-        addGlobalStyles();
+        if (typeof window.addGlobalStyles === 'function') {
+            window.addGlobalStyles();
+        } else {
+            console.warn('[MMS] myman_styles.js did not load — styles skipped. Use the local loader or check @require URLs.');
+        }
 
         // Create a shared container for bottom controls
         // const bottomControlsContainer = document.createElement('div');
