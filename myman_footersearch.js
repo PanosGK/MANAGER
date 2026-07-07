@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyMANAGER Footer Quick Search (module)
 // @namespace    http://tampermonkey.net/
-// @version      1.6
+// @version      1.7
 // @description  Quick search in header or repair edit header
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -103,66 +103,111 @@
         if (!bar) {
             bar = document.createElement('div');
             bar.id = 'tm-footer-quick-search';
-            bar.className = 'tm-qs-bar';
+            bar.className = 'tm-qs-panel';
             bar.setAttribute('role', 'search');
             bar.setAttribute('aria-label', 'Γρήγορη αναζήτηση');
+
+            const repairGroup = document.createElement('div');
+            repairGroup.className = 'tm-qs-input-group';
+
+            const repairLabel = document.createElement('label');
+            repairLabel.setAttribute('for', 'tm-footer-repair-search');
+            repairLabel.textContent = 'Επισκευές';
 
             const repairInput = document.createElement('input');
             repairInput.type = 'text';
             repairInput.id = 'tm-footer-repair-search';
             repairInput.className = 'tm-qs-input';
-            repairInput.placeholder = '🔧';
-            repairInput.title = 'Αναζήτηση επισκευών';
+            repairInput.placeholder = 'Αρ., τηλέφωνο, πελάτης…';
             repairInput.autocomplete = 'off';
             repairInput.spellcheck = false;
             repairInput.dataset.searchBase = REPAIR_SEARCH_URL;
+
+            repairGroup.appendChild(repairLabel);
+            repairGroup.appendChild(repairInput);
+
+            const partsGroup = document.createElement('div');
+            partsGroup.className = 'tm-qs-input-group';
+
+            const partsLabel = document.createElement('label');
+            partsLabel.setAttribute('for', 'tm-footer-parts-search');
+            partsLabel.textContent = 'Ανταλλακτικά';
 
             const partsInput = document.createElement('input');
             partsInput.type = 'text';
             partsInput.id = 'tm-footer-parts-search';
             partsInput.className = 'tm-qs-input';
-            partsInput.placeholder = '📦';
-            partsInput.title = 'Αναζήτηση ανταλλακτικών';
+            partsInput.placeholder = 'Κωδικός, barcode…';
             partsInput.autocomplete = 'off';
             partsInput.spellcheck = false;
             partsInput.dataset.searchBase = PARTS_SEARCH_URL;
 
+            partsGroup.appendChild(partsLabel);
+            partsGroup.appendChild(partsInput);
+
             const searchBtn = document.createElement('button');
             searchBtn.type = 'button';
             searchBtn.id = 'tm-footer-search-submit';
-            searchBtn.className = 'tm-qs-go';
-            searchBtn.title = 'Αναζήτηση';
-            searchBtn.setAttribute('aria-label', 'Αναζήτηση');
-            searchBtn.textContent = '→';
+            searchBtn.className = 'tm-qs-search-btn';
+            searchBtn.textContent = 'Αναζήτηση';
 
-            const getActiveInput = () => {
+            const resolveSearchInput = () => {
+                const qRepair = repairInput.value.trim();
+                const qParts = partsInput.value.trim();
+                if (!qRepair && !qParts) return null;
+
                 const active = document.activeElement;
-                if (active === repairInput || active === partsInput) return active;
-                if (repairInput.value.trim()) return repairInput;
-                if (partsInput.value.trim()) return partsInput;
-                return repairInput;
+                if (active === partsInput && qParts) return partsInput;
+                if (active === repairInput && qRepair) return repairInput;
+                if (qRepair) return repairInput;
+                if (qParts) return partsInput;
+                return null;
             };
 
-            searchBtn.addEventListener('click', () => {
-                const input = getActiveInput();
+            const handleSearch = () => {
+                const input = resolveSearchInput();
+                if (!input) {
+                    repairInput.focus();
+                    return;
+                }
                 submitFromInput(input, input.dataset.searchBase);
-            });
+            };
 
-            [repairInput, partsInput].forEach((input) => {
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        submitFromInput(input, input.dataset.searchBase);
+            searchBtn.addEventListener('click', handleSearch);
+
+            repairInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (repairInput.value.trim()) {
+                        submitFromInput(repairInput, repairInput.dataset.searchBase);
+                    } else {
+                        handleSearch();
                     }
-                });
+                }
             });
 
-            bar.appendChild(repairInput);
-            bar.appendChild(partsInput);
+            partsInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (partsInput.value.trim()) {
+                        submitFromInput(partsInput, partsInput.dataset.searchBase);
+                    } else {
+                        handleSearch();
+                    }
+                }
+            });
+
+            bar.appendChild(repairGroup);
+            bar.appendChild(partsGroup);
             bar.appendChild(searchBtn);
             parentContainer.appendChild(bar);
+
+            mountNativeSearchToggle(bar);
         } else if (bar.parentElement !== parentContainer) {
             parentContainer.appendChild(bar);
+            if (!document.getElementById('tm-toggle-native-search')) {
+                mountNativeSearchToggle(bar);
+            }
         }
 
         updateFooterQuickSearchVisibility(config);
@@ -211,7 +256,6 @@
         if (headerHost) headerHost.style.display = 'none';
 
         mountQuickSearchBar(host, config);
-        mountNativeSearchToggle(host);
         applyNativeSearchHidden(isNativeSearchHidden());
         return true;
     }
@@ -224,7 +268,6 @@
         if (!host) return false;
 
         mountQuickSearchBar(host, config);
-        mountNativeSearchToggle(host);
         applyNativeSearchHidden(isNativeSearchHidden());
         return true;
     }
@@ -241,16 +284,16 @@
         const headerHost = document.getElementById('tm-header-quick-search-host');
         const repairHost = document.getElementById('tm-repair-edit-quick-search-host');
         const enabled = config?.footerQuickSearchEnabled !== false;
-        const display = enabled ? 'inline-flex' : 'none';
+        const display = enabled ? 'flex' : 'none';
         if (bar) bar.style.display = display;
         [headerHost, repairHost].forEach((el) => {
             if (el) el.style.display = 'none';
         });
         if (!enabled) return;
         if (isRepairEditPage()) {
-            if (repairHost) repairHost.style.display = 'inline-flex';
+            if (repairHost) repairHost.style.display = 'flex';
         } else if (headerHost) {
-            headerHost.style.display = 'inline-flex';
+            headerHost.style.display = 'flex';
         }
     }
 
