@@ -382,15 +382,15 @@
             saveCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
             saveCheckbox('tm-setting-achievements-enabled', 'achievementsEnabled');
 
-            // --- Save User Name Mapping ---
-            const newUserMapping = [];
-            document.querySelectorAll('#tm-user-mapping-editor .tm-user-mapping-row').forEach(row => {
-                const display  = row.querySelector('input[data-type="display"]')?.value.trim();
-                const username = row.querySelector('input[data-type="username"]')?.value.trim();
-                const password = row.querySelector('input[data-type="password"]')?.value.trim();
-                if (display && username) newUserMapping.push({ display, username, password: password || '' });
-            });
-            GM_setValue(STORAGE_KEYS.USER_NAME_MAPPING, JSON.stringify(newUserMapping));
+            // --- Save Status 40 admin account (global) ---
+            const status40UserEl = document.getElementById('tm-setting-status40-admin-username');
+            const status40PassEl = document.getElementById('tm-setting-status40-admin-password');
+            if (status40UserEl) {
+                GM_setValue(STORAGE_KEYS.STATUS40_ADMIN_USERNAME, status40UserEl.value.trim());
+            }
+            if (status40PassEl) {
+                GM_setValue(STORAGE_KEYS.STATUS40_ADMIN_PASSWORD, status40PassEl.value);
+            }
 
             console.log('[MMS] Settings saved:', config);
             // Reload the page so settings apply immediately
@@ -449,39 +449,7 @@
         }
 
         function getDebugSettingsHTML() {
-            const savedMapping = JSON.parse(GM_getValue(STORAGE_KEYS.USER_NAME_MAPPING, '[]'));
-            const mappingRows = savedMapping.map(entry => `
-                <div class="tm-user-mapping-row" style="display:flex;gap:10px;margin-bottom:10px;align-items:center;flex-wrap:wrap;">
-                    <input type="text" placeholder="Εμφανιζόμενο Όνομα (π.χ. Αντωνίου)" data-type="display"
-                        value="${entry.display || ''}"
-                        style="flex:1;min-width:120px;padding:8px;border:1px solid var(--tm-input-border,#ccc);border-radius:4px;background:var(--tm-input-bg,#fff);color:var(--tm-text-color,#333);">
-                    <span style="opacity:0.5;flex-shrink:0;">→</span>
-                    <input type="text" placeholder="Username (π.χ. aantoniou)" data-type="username"
-                        value="${entry.username || ''}"
-                        style="flex:1;min-width:120px;padding:8px;border:1px solid var(--tm-input-border,#ccc);border-radius:4px;background:var(--tm-input-bg,#fff);color:var(--tm-text-color,#333);">
-                    <input type="password" placeholder="Κωδικός" data-type="password"
-                        value="${entry.password || ''}"
-                        style="flex:1;min-width:100px;padding:8px;border:1px solid var(--tm-input-border,#ccc);border-radius:4px;background:var(--tm-input-bg,#fff);color:var(--tm-text-color,#333);">
-                    <button class="tm-user-mapping-remove-btn" title="Αφαίρεση"
-                        style="background:#dc3545;color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;flex-shrink:0;">&times;</button>
-                </div>
-            `).join('');
-
             return `
-                <div class="tm-settings-section">
-                    <h3>👤 Αντιστοίχιση Χρηστών</h3>
-                    <p class="tm-setting-description">
-                        Συνδέστε το εμφανιζόμενο όνομα (π.χ. <b>Αντωνίου</b>) με το πραγματικό username εισόδου.
-                        Διατίθεται ως <code>window.tmCurrentUsername</code> σε όλες τις σελίδες.
-                    </p>
-                    <div id="tm-user-mapping-editor">${mappingRows}</div>
-                    <button id="tm-user-mapping-add-btn" style="
-                        margin-top:8px;padding:8px 16px;background:var(--tm-accent-color,#4facfe);
-                        color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">
-                        + Προσθήκη
-                    </button>
-                </div>
-
                 <div class="tm-settings-section">
                     <h3>🔧 Εργαλεία Debug</h3>
                     <div class="tm-setting-row">
@@ -588,6 +556,8 @@
         }
 
         function getSearchSettingsHTML() {
+            const status40AdminUser = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_USERNAME, '');
+            const status40AdminPass = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_PASSWORD, '');
             return `
                 <div class="tm-settings-section">
                     <h3>🔍 Αναζήτηση & Εργαλεία</h3>
@@ -669,6 +639,29 @@
                             <p class="tm-setting-description">Εμφάνιση γρήγορης προβολής του ιστορικού πελάτη στη λίστα επισκευών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-customer-history-enabled"></div>
+                    </div>
+                </div>
+                <div class="tm-settings-section" style="margin-top: 20px; border-top: 1px solid #dee2e6; padding-top: 16px;">
+                    <h3>🔑 Λογαριασμός Admin (Status 40)</h3>
+                    <p class="tm-setting-description">
+                        Διαπιστευτήρια για το κλικ στο logo στο <code>service_edit</code> (logout → login ως admin → επιστροφή στην ίδια επισκευή).
+                        Αποθηκεύονται τοπικά στο Tampermonkey (όχι ανά προφίλ χρήστη).
+                    </p>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-status40-admin-username">Username</label>
+                        </div>
+                        <div class="tm-setting-control">
+                            <input type="text" id="tm-setting-status40-admin-username" value="${String(status40AdminUser).replace(/"/g, '&quot;')}" autocomplete="off" spellcheck="false" style="min-width: 200px; padding: 8px;">
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-status40-admin-password">Κωδικός</label>
+                        </div>
+                        <div class="tm-setting-control">
+                            <input type="password" id="tm-setting-status40-admin-password" value="${String(status40AdminPass).replace(/"/g, '&quot;')}" autocomplete="new-password" style="min-width: 200px; padding: 8px;">
+                        </div>
                     </div>
                 </div>`;
         }
@@ -891,7 +884,6 @@
             if (profileEl) {
                 const label = window.MMS_PROFILES?.getActiveProfileLabel?.()
                     || window.tmCurrentUser
-                    || window.tmCurrentUsername
                     || '—';
                 profileEl.textContent = label;
             }
@@ -1624,39 +1616,6 @@
                 }
             });
 
-            // --- User Name Mapping editor (debug-protected) ---
-            const userMappingEditor = document.querySelector('#tm-user-mapping-editor');
-
-            function addUserMappingRow(entry = { display: '', username: '', password: '' }) {
-                const row = document.createElement('div');
-                row.className = 'tm-user-mapping-row';
-                row.style.cssText = 'display:flex;gap:10px;margin-bottom:10px;align-items:center;flex-wrap:wrap;';
-                row.innerHTML = `
-                    <input type="text" placeholder="Εμφανιζόμενο Όνομα (π.χ. Αντωνίου)" data-type="display"
-                        value="${entry.display}"
-                        style="flex:1;min-width:120px;padding:8px;border:1px solid var(--tm-input-border,#ccc);border-radius:4px;background:var(--tm-input-bg,#fff);color:var(--tm-text-color,#333);">
-                    <span style="opacity:0.5;flex-shrink:0;">→</span>
-                    <input type="text" placeholder="Username (π.χ. aantoniou)" data-type="username"
-                        value="${entry.username}"
-                        style="flex:1;min-width:120px;padding:8px;border:1px solid var(--tm-input-border,#ccc);border-radius:4px;background:var(--tm-input-bg,#fff);color:var(--tm-text-color,#333);">
-                    <input type="password" placeholder="Κωδικός" data-type="password"
-                        value="${entry.password}"
-                        style="flex:1;min-width:100px;padding:8px;border:1px solid var(--tm-input-border,#ccc);border-radius:4px;background:var(--tm-input-bg,#fff);color:var(--tm-text-color,#333);">
-                    <button class="tm-user-mapping-remove-btn" title="Αφαίρεση"
-                        style="background:#dc3545;color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;flex-shrink:0;">&times;</button>
-                `;
-                row.querySelector('.tm-user-mapping-remove-btn').addEventListener('click', () => row.remove());
-                userMappingEditor?.appendChild(row);
-            }
-
-            document.querySelector('#tm-user-mapping-add-btn')?.addEventListener('click', (e) => {
-                e.preventDefault();
-                addUserMappingRow();
-            });
-
-            userMappingEditor?.querySelectorAll('.tm-user-mapping-remove-btn').forEach(btn => {
-                btn.addEventListener('click', () => btn.closest('.tm-user-mapping-row').remove());
-            });
         }
         function handleTalentUnlock(e, STORAGE_KEYS) {
             if (!e.target.matches('.tm-talent-btn.unlockable')) return;

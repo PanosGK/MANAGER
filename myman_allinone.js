@@ -6111,7 +6111,7 @@
 
         // User info is set by MMS_PROFILES.activateProfileForCurrentUser (above).
         if (config?.debugEnabled && window.tmCurrentUser) {
-            console.log('[MMS] Logged in as:', window.tmCurrentUser, window.tmCurrentUsername ? `(username: ${window.tmCurrentUsername})` : '(username not mapped)');
+            console.log('[MMS] Logged in as:', window.tmCurrentUser || '(unknown)');
         }
 
         // Debug: Log new feature config status

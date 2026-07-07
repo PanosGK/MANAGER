@@ -1,9 +1,11 @@
 // ==UserScript==
 // @name         MyManager Status 40 Feature
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Status 40 button feature for repair edit pages
-// @author       You
+// @author       Gkorogias
+// @match        *://thefixers.mymanager.gr/*
+// @grant        GM_getValue
 // ==/UserScript==
 
 /**
@@ -14,6 +16,79 @@
 
 (function() {
     'use strict';
+
+    function getStatus40AdminCredentials() {
+        const SK = window.STORAGE_KEYS || {};
+        return {
+            username: String(GM_getValue(SK.STATUS40_ADMIN_USERNAME || 'tm_status40_admin_username', '') || '').trim(),
+            password: String(GM_getValue(SK.STATUS40_ADMIN_PASSWORD || 'tm_status40_admin_password', '') || '')
+        };
+    }
+
+    function beginStatus40LoginFlow() {
+        const { username, password } = getStatus40AdminCredentials();
+        if (!username || !password) {
+            alert('Ορίστε username και κωδικό admin στις Ρυθμίσεις → Αναζήτηση & Εργαλεία → Λογαριασμός Admin (Status 40).');
+            return false;
+        }
+
+        sessionStorage.setItem('tm_status40_return_url', window.location.href);
+        sessionStorage.setItem('tm_status40_username', username);
+        sessionStorage.setItem('tm_status40_password', password);
+        sessionStorage.setItem('tm_status40_active', 'true');
+        return true;
+    }
+
+    function performLogoutAndRedirectToLogin() {
+        const logoutButton = document.getElementById('logoutButton1');
+        if (logoutButton) {
+            const logoutHref = logoutButton.getAttribute('href');
+            if (logoutHref && logoutHref !== '#' && !logoutHref.startsWith('javascript:')) {
+                window.location.href = logoutHref;
+                return;
+            }
+
+            const logoutOnclick = logoutButton.getAttribute('onclick');
+            if (logoutOnclick) {
+                try {
+                    eval(logoutOnclick);
+                    return;
+                } catch (e) {
+                    console.error('[MMS] Error executing onclick:', e);
+                }
+            }
+
+            logoutButton.click();
+            return;
+        }
+
+        const logoutLink = document.querySelector('a[href*="logout"], a[id*="logout"], button[id*="logout"], a[onclick*="logout"]');
+        if (logoutLink) {
+            const href = logoutLink.getAttribute('href');
+            if (href && href !== '#' && !href.startsWith('javascript:')) {
+                window.location.href = href;
+                return;
+            }
+
+            const onclick = logoutLink.getAttribute('onclick');
+            if (onclick) {
+                try {
+                    eval(onclick);
+                    return;
+                } catch (e) {
+                    logoutLink.click();
+                    return;
+                }
+            }
+
+            logoutLink.click();
+            return;
+        }
+
+        window.location.href = 'https://thefixers.mymanager.gr/mymanagerservice/login.php';
+    }
+
+    window.getStatus40AdminCredentials = getStatus40AdminCredentials;
 
     /**
      * Handles auto-login on the login page if we're switching accounts
@@ -155,10 +230,7 @@
             console.log('[MMS] Could not find repair ID for Status 40 button');
             return;
         }
-        
-        const specialAccountUsername = 'aantoniou';
-        const specialAccountPassword = '19931996Kka';
-        
+
         const tryIntegrate = (retries = 10) => {
             // Avoid duplicate initialization
             if (document.getElementById('tm-status40-integrated')) {
@@ -220,68 +292,14 @@
                 logoContainer.style.pointerEvents = 'none';
                 
                 try {
-                    // Get current page URL to return to the same page after login
-                    const currentPageUrl = window.location.href;
-                    
-                    console.log('[MMS] Starting logout/login sequence. Will return to:', currentPageUrl);
-                    
-                    // Store the current page URL in sessionStorage before logout
-                    // Set a flag to indicate Status 40 button was clicked
-                    sessionStorage.setItem('tm_status40_return_url', currentPageUrl);
-                    sessionStorage.setItem('tm_status40_username', specialAccountUsername);
-                    sessionStorage.setItem('tm_status40_password', specialAccountPassword);
-                    sessionStorage.setItem('tm_status40_active', 'true');
-                    
-                    // Step 1: Try to find and use the logout button
-                    const logoutButton = document.getElementById('logoutButton1');
-                    if (logoutButton) {
-                        // Check if button has an href attribute
-                        const logoutHref = logoutButton.getAttribute('href');
-                        if (logoutHref && logoutHref !== '#' && !logoutHref.startsWith('javascript:')) {
-                            window.location.href = logoutHref;
-                            return;
-                        }
-                        
-                        // Check if button has onclick attribute
-                        const logoutOnclick = logoutButton.getAttribute('onclick');
-                        if (logoutOnclick) {
-                            try {
-                                eval(logoutOnclick);
-                                return;
-                            } catch (e) {
-                                console.error('[MMS] Error executing onclick:', e);
-                            }
-                        }
-                        
-                        // Try clicking the button
-                        logoutButton.click();
-                    } else {
-                        // Fallback: try to find any logout link
-                        const logoutLink = document.querySelector('a[href*="logout"], a[id*="logout"], button[id*="logout"], a[onclick*="logout"]');
-                        if (logoutLink) {
-                            const href = logoutLink.getAttribute('href');
-                            if (href && href !== '#' && !href.startsWith('javascript:')) {
-                                window.location.href = href;
-                            } else {
-                                const onclick = logoutLink.getAttribute('onclick');
-                                if (onclick) {
-                                    try {
-                                        eval(onclick);
-                                    } catch (e) {
-                                        logoutLink.click();
-                                    }
-                                } else {
-                                    logoutLink.click();
-                                }
-                            }
-                        } else {
-                            // Last resort: navigate directly to login page
-                            // The login page will handle the logout automatically
-                            window.location.href = 'https://thefixers.mymanager.gr/mymanagerservice/login.php';
-                        }
+                    if (!beginStatus40LoginFlow()) {
+                        logoContainer.style.pointerEvents = 'auto';
+                        logoContainer.style.opacity = '1';
+                        return;
                     }
-                    
-                    
+
+                    console.log('[MMS] Starting logout/login sequence. Will return to:', window.location.href);
+                    performLogoutAndRedirectToLogin();
                 } catch (error) {
                     console.error('[MMS] Status 40 button error:', error);
                     alert('Error: ' + error.message);
@@ -330,12 +348,8 @@
                     logoContainer.click();
                     return;
                 }
-                // Minimal fallback flow: set session flags and navigate to login (logout handled there)
-                sessionStorage.setItem('tm_status40_return_url', window.location.href);
-                sessionStorage.setItem('tm_status40_username', specialAccountUsername);
-                sessionStorage.setItem('tm_status40_password', specialAccountPassword);
-                sessionStorage.setItem('tm_status40_active', 'true');
-                window.location.href = 'https://thefixers.mymanager.gr/mymanagerservice/login.php';
+                if (!beginStatus40LoginFlow()) return;
+                performLogoutAndRedirectToLogin();
             }, { passive: false });
             
             document.body.appendChild(btn);

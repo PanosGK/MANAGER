@@ -22,7 +22,8 @@
 
     const GLOBAL_KEYS = new Set([
         'tm_script_enabled',
-        'tm_user_name_mapping',
+        'tm_status40_admin_username',
+        'tm_status40_admin_password',
         'tm_mms_last_profile_id'
     ]);
 
@@ -45,9 +46,8 @@
         return cleaned || null;
     }
 
-    function resolveProfileId(displayName, loginUsername) {
-        // Profile identity follows the name shown in #login_block1 (e.g. "Γκορόγιας")
-        return sanitizeProfileId(displayName) || sanitizeProfileId(loginUsername) || '_unknown';
+    function resolveProfileId(displayName) {
+        return sanitizeProfileId(displayName) || '_unknown';
     }
 
     function scopedStorageKey(key) {
@@ -95,10 +95,6 @@
 
     installStorageWrappers();
 
-    function getMappingKey() {
-        return window.STORAGE_KEYS?.USER_NAME_MAPPING || 'tm_user_name_mapping';
-    }
-
     function normalizeLoginBlockText(text) {
         return String(text).replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
     }
@@ -128,27 +124,7 @@
 
     function detectLoggedInUser() {
         const displayName = parseLoginBlockDisplayName();
-        let loginUsername = null;
-        let loginPassword = null;
-
-        try {
-            const mapping = JSON.parse(NATIVE.get(getMappingKey(), '[]'));
-            const entry = displayName
-                ? mapping.find((e) => normalizeLoginBlockText(e.display) === displayName)
-                : null;
-            if (entry) {
-                loginUsername = entry.username || null;
-                loginPassword = entry.password || null;
-            } else if (displayName) {
-                mapping.push({ display: displayName, username: '', password: '' });
-                NATIVE.set(getMappingKey(), JSON.stringify(mapping));
-                console.log('[MMS Profiles] Auto-registered new user in mapping:', displayName);
-            }
-        } catch (e) {
-            console.warn('[MMS Profiles] Failed to read user mapping:', e);
-        }
-
-        return { displayName, loginUsername, loginPassword };
+        return { displayName };
     }
 
     function collectLegacyMigrationKeys() {
@@ -215,11 +191,11 @@
         const user = detectLoggedInUser();
 
         window.tmCurrentUser = user.displayName;
-        window.tmCurrentUsername = user.loginUsername;
-        window.tmCurrentPassword = user.loginPassword;
+        window.tmCurrentUsername = null;
+        window.tmCurrentPassword = null;
 
-        const profileId = resolveProfileId(user.displayName, user.loginUsername);
-        const label = user.displayName || user.loginUsername || profileId;
+        const profileId = resolveProfileId(user.displayName);
+        const label = user.displayName || profileId;
         const previousProfileId = activeProfileId;
         setActiveProfile(profileId, label);
         migrateLegacyForProfile(profileId);
@@ -232,14 +208,14 @@
 
         if (window.config) {
             window.config.currentUser = user.displayName;
-            window.config.currentUsername = user.loginUsername;
-            window.config.currentPassword = user.loginPassword;
+            window.config.currentUsername = null;
+            window.config.currentPassword = null;
             window.config.profileId = profileId;
             window.config.profileLabel = label;
         }
 
         if (user.displayName) {
-            console.log('[MMS Profiles] Active profile:', profileId, user.loginUsername ? `(username: ${user.loginUsername})` : '');
+            console.log('[MMS Profiles] Active profile:', profileId, `(${user.displayName})`);
         } else {
             console.warn('[MMS Profiles] Could not detect logged-in user — using profile:', profileId);
         }

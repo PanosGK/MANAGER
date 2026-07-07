@@ -16,7 +16,7 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '154',
+        version: '155',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -110,10 +110,11 @@
         ASCENDED_STATUS: 'tm_ascended_status', // Level 200 status unlock
         DIGITAL_ARCHON_STATUS: 'tm_digital_archon_status', // Level 250 status unlock
 
-        // User name→username mapping
-        USER_NAME_MAPPING: 'tm_user_name_mapping',
+        // Admin account for Status 40 (footer logo login on service_edit)
+        STATUS40_ADMIN_USERNAME: 'tm_status40_admin_username',
+        STATUS40_ADMIN_PASSWORD: 'tm_status40_admin_password',
 
-        // End of Day Checklist
+        // Add other keys here as needed
         EOD_CHECKLIST_DISMISSED: 'tm_eod_checklist_dismissed',
 
         // Scheduled reminders for repairs (service_edit)
