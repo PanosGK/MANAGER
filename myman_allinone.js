@@ -471,12 +471,25 @@
             if (existing) return existing;
         }
 
+        if (options.type === 'script_update' && options.version != null) {
+            const version = String(options.version);
+            const existing = notifications.find((n) => {
+                if (n.id === `script_update_v${version}`) return true;
+                if (n.type === 'script_update' && String(n.version) === version) return true;
+                const msg = String(n.message || '');
+                return /Νέα έκδοση script\s+v/i.test(msg) && msg.includes(`v${version}`);
+            });
+            if (existing) return existing;
+        }
+
         const newNotification = {
             id: dedupeId || `notif_${Date.now()}`,
             message: message,
             icon: icon,
             timestamp: Date.now(),
-            read: false
+            read: false,
+            ...(options.type ? { type: options.type } : {}),
+            ...(options.version != null ? { version: String(options.version) } : {})
         };
 
         notifications.unshift(newNotification);

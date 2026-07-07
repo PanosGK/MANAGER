@@ -16,7 +16,7 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '153',
+        version: '154',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -122,6 +122,7 @@
 
         // Script update preferences (per profile)
         SKIPPED_UPDATE_VERSION: 'tm_skipped_update_version',
+        SCRIPT_UPDATE_NOTIFIED_VERSION: 'tm_script_update_notified_version',
 
         // Add other keys here as needed
     };

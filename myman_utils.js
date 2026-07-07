@@ -6,6 +6,9 @@
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @grant        GM_xmlhttpRequest
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        GM_deleteValue
 // ==/UserScript==
 
 (function() {
@@ -510,6 +513,40 @@
         return `script_update_v${String(remoteVersion)}`;
     }
 
+    function getUpdateNotifiedVersionKey() {
+        return window.STORAGE_KEYS?.SCRIPT_UPDATE_NOTIFIED_VERSION || 'tm_script_update_notified_version';
+    }
+
+    function getStoredNotificationsForUpdateCheck() {
+        const key = window.STORAGE_KEYS?.USER_NOTIFICATIONS || 'tm_user_notifications_v1';
+        try {
+            return JSON.parse(GM_getValue(key, '[]')) || [];
+        } catch {
+            return [];
+        }
+    }
+
+    function hasScriptUpdateNotification(remoteVersion) {
+        const version = String(remoteVersion);
+        const notified = String(GM_getValue(getUpdateNotifiedVersionKey(), '') || '');
+        if (notified && parseScriptVersion(version) <= parseScriptVersion(notified)) {
+            return true;
+        }
+
+        const stableId = getScriptUpdateNotificationId(version);
+        return getStoredNotificationsForUpdateCheck().some((n) => {
+            if (n.id === stableId) return true;
+            if (n.type === 'script_update' && String(n.version) === version) return true;
+            const msg = String(n.message || '');
+            return /Νέα έκδοση script\s+v/i.test(msg) && msg.includes(`v${version}`);
+        });
+    }
+
+    function markScriptUpdateNotified(remoteVersion) {
+        if (remoteVersion == null || remoteVersion === '') return;
+        GM_setValue(getUpdateNotifiedVersionKey(), String(remoteVersion));
+    }
+
     function isAutoUpdateCheckEnabled() {
         return GM_getValue('autoUpdateCheckEnabled', true) !== false;
     }
@@ -521,6 +558,7 @@
     function skipUpdateVersion(version) {
         if (version == null || version === '') return;
         GM_setValue(getSkippedUpdateKey(), String(version));
+        markScriptUpdateNotified(version);
         hideScriptUpdateNotification();
     }
 
@@ -582,12 +620,21 @@
     }
 
     function ensureScriptUpdateCenterNotification(result) {
-        if (!result?.remote || typeof window.createNotification !== 'function') return;
-        window.createNotification(
-            `Νέα έκδοση script v${result.remote} διαθέσιμη`,
-            '🔄',
-            { id: getScriptUpdateNotificationId(result.remote) }
-        );
+        if (!result?.remote || hasScriptUpdateNotification(result.remote)) return;
+
+        if (typeof window.createNotification === 'function') {
+            window.createNotification(
+                `Νέα έκδοση script v${result.remote} διαθέσιμη`,
+                '🔄',
+                {
+                    id: getScriptUpdateNotificationId(result.remote),
+                    type: 'script_update',
+                    version: String(result.remote)
+                }
+            );
+        }
+
+        markScriptUpdateNotified(result.remote);
     }
 
     function showScriptUpdateNotification(result) {
@@ -673,6 +720,7 @@
         } else if (!result.updateAvailable) {
             hideScriptUpdateNotification();
             GM_deleteValue(getUpdateBannerDismissedKey());
+            GM_deleteValue(getUpdateNotifiedVersionKey());
         }
 
         return result;
