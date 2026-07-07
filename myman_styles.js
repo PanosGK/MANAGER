@@ -982,6 +982,25 @@
             body.tm-native-search-hidden .rnr-b-search.style1.rnr-bl {
                 display: none !important;
             }
+            .tm-repair-edit-header-with-search {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                flex-wrap: wrap;
+                gap: 8px 12px;
+            }
+            .tm-repair-edit-header-with-search h1 {
+                flex: 0 1 auto;
+                margin: 0 !important;
+            }
+            .tm-repair-edit-quick-search-host {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                margin-left: auto;
+                flex: 0 1 auto;
+                min-width: 0;
+            }
             .tm-footer-search-compact {
                 display: inline-flex;
                 align-items: stretch;

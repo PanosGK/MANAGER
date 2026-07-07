@@ -645,7 +645,7 @@
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <label for="tm-setting-footer-quick-search-enabled">🔍 Γρήγορη Αναζήτηση Header</label>
-                            <p class="tm-setting-description">Δύο πεδία στην κορυφή (rnr-hfiller): επισκευές και ανταλλακτικά. Κουμπί ✕ για απόκρυψη της native αναζήτησης (.rnr-b-search).</p>
+                            <p class="tm-setting-description">Γρήγορη αναζήτηση: στο header (rnr-hfiller) σε όλες τις σελίδες, ή δίπλα στον τίτλο επισκευής στο service_edit. Κουμπί ✕ για απόκρυψη native .rnr-b-search.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-footer-quick-search-enabled"></div>
                     </div>
@@ -1185,7 +1185,8 @@
                     GM_setValue('footerQuickSearchEnabled', value);
                     config.footerQuickSearchEnabled = value;
 
-                    const middle = document.getElementById('tm-header-quick-search-host')
+                    const mountTarget = document.getElementById('tm-repair-edit-quick-search-host')
+                        || document.getElementById('tm-header-quick-search-host')
                         || document.querySelector('.rnr-hfiller');
                     if (value && !document.getElementById('tm-footer-quick-search')
                         && typeof window.initFooterQuickSearch === 'function') {

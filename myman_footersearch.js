@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         MyMANAGER Footer Quick Search (module)
 // @namespace    http://tampermonkey.net/
-// @version      1.4
-// @description  Header quick search in rnr-hfiller + toggle for native search block
+// @version      1.5
+// @description  Quick search in header or repair edit header
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @grant        GM_getValue
@@ -32,6 +32,16 @@
         const url = buildSearchUrl(baseUrl, input.value);
         if (url) goToSearch(url);
         else input.focus();
+    }
+
+    function isRepairEditPage() {
+        return window.location.pathname.includes('service_edit.php');
+    }
+
+    function findRepairEditHeader() {
+        return document.querySelector('.rnr-brickcontents.style2.rnr-b-editheader')
+            || document.querySelector('.rnr-brickcontents.rnr-b-editheader')
+            || document.querySelector('.rnr-b-editheader');
     }
 
     function findHeaderFiller() {
@@ -166,6 +176,22 @@
         updateFooterQuickSearchVisibility(config);
     }
 
+    function ensureRepairEditHeaderHost() {
+        let host = document.getElementById('tm-repair-edit-quick-search-host');
+        if (host) return host;
+
+        const header = findRepairEditHeader();
+        if (!header) return null;
+
+        header.classList.add('tm-repair-edit-header-with-search');
+
+        host = document.createElement('div');
+        host.id = 'tm-repair-edit-quick-search-host';
+        host.className = 'tm-repair-edit-quick-search-host';
+        header.appendChild(host);
+        return host;
+    }
+
     function ensureHeaderSearchHost() {
         let host = document.getElementById('tm-header-quick-search-host');
         if (host) return host;
@@ -180,7 +206,23 @@
         return host;
     }
 
+    function mountRepairEditHeaderQuickSearch(config) {
+        const host = ensureRepairEditHeaderHost();
+        if (!host) return false;
+
+        const headerHost = document.getElementById('tm-header-quick-search-host');
+        if (headerHost) headerHost.style.display = 'none';
+
+        mountQuickSearchBar(host, config);
+        mountNativeSearchToggle(host);
+        applyNativeSearchHidden(isNativeSearchHidden());
+        return true;
+    }
+
     function mountHeaderQuickSearch(config) {
+        const repairHost = document.getElementById('tm-repair-edit-quick-search-host');
+        if (repairHost) repairHost.style.display = 'none';
+
         const host = ensureHeaderSearchHost();
         if (!host) return false;
 
@@ -190,13 +232,27 @@
         return true;
     }
 
+    function mountQuickSearch(config) {
+        if (isRepairEditPage()) {
+            return mountRepairEditHeaderQuickSearch(config);
+        }
+        return mountHeaderQuickSearch(config);
+    }
+
     function updateFooterQuickSearchVisibility(config) {
         const bar = document.getElementById('tm-footer-quick-search');
-        const host = document.getElementById('tm-header-quick-search-host');
+        const headerHost = document.getElementById('tm-header-quick-search-host');
+        const repairHost = document.getElementById('tm-repair-edit-quick-search-host');
         const enabled = config?.footerQuickSearchEnabled !== false;
         const display = enabled ? 'inline-flex' : 'none';
         if (bar) bar.style.display = display;
-        if (host) host.style.display = enabled ? 'inline-flex' : 'none';
+        if (isRepairEditPage()) {
+            if (repairHost) repairHost.style.display = display;
+            if (headerHost) headerHost.style.display = 'none';
+        } else {
+            if (headerHost) headerHost.style.display = display;
+            if (repairHost) repairHost.style.display = 'none';
+        }
     }
 
     function initFooterQuickSearch(config) {
@@ -205,7 +261,7 @@
                 updateFooterQuickSearchVisibility(config);
                 return;
             }
-            if (mountHeaderQuickSearch(config)) return;
+            if (mountQuickSearch(config)) return;
             if (attempt < 50) {
                 setTimeout(() => tryMount(attempt + 1), 300);
             }
