@@ -180,6 +180,35 @@
             loadActiveBanners(STORAGE_KEYS).filter((b) => b.id !== bannerId)
         );
         renderActiveReminderBanners(STORAGE_KEYS);
+        if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
+            window.refreshActiveAlertsPanelIfOpen();
+        }
+    }
+
+    function cancelRepairReminder(STORAGE_KEYS, reminderId) {
+        saveReminders(
+            STORAGE_KEYS,
+            loadReminders(STORAGE_KEYS).filter((r) => r.id !== reminderId)
+        );
+        saveActiveBanners(
+            STORAGE_KEYS,
+            loadActiveBanners(STORAGE_KEYS).filter((b) => b.reminderId !== reminderId)
+        );
+        renderActiveReminderBanners(STORAGE_KEYS);
+        if (typeof window.updateNotificationBadge === 'function') {
+            window.updateNotificationBadge();
+        }
+        if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
+            window.refreshActiveAlertsPanelIfOpen();
+        }
+    }
+
+    function getScheduledRepairReminders(STORAGE_KEYS) {
+        return loadReminders(STORAGE_KEYS).sort((a, b) => (a.dueTime || 0) - (b.dueTime || 0));
+    }
+
+    function getActiveRepairReminderBanners(STORAGE_KEYS) {
+        return loadActiveBanners(STORAGE_KEYS);
     }
 
     function renderActiveReminderBanners(STORAGE_KEYS) {
@@ -449,6 +478,9 @@
                     );
                     renderActiveReminderBanners(STORAGE_KEYS);
                     renderList();
+                    if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
+                        window.refreshActiveAlertsPanelIfOpen();
+                    }
                 });
             });
         }
@@ -523,6 +555,9 @@
             saveReminders(STORAGE_KEYS, all);
             renderList();
             hideReminderModal();
+            if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
+                window.refreshActiveAlertsPanelIfOpen();
+            }
             if (typeof window.createNotification === 'function') {
                 window.createNotification(`Υπενθύμιση ορίστηκε για #${ids.invoiceNumber}`, '✅');
             }
@@ -575,6 +610,11 @@
     };
 
     window.checkRepairReminders = checkRepairReminders;
+    window.cancelRepairReminder = cancelRepairReminder;
+    window.dismissRepairReminderBanner = dismissReminderBanner;
+    window.getScheduledRepairReminders = getScheduledRepairReminders;
+    window.getActiveRepairReminderBanners = getActiveRepairReminderBanners;
+    window.renderActiveReminderBanners = renderActiveReminderBanners;
     window.isRepairReminderBannerActive = function () {
         return !!document.getElementById('tm-repair-reminder-banner-root');
     };

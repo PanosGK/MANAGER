@@ -560,6 +560,166 @@
         }).join('');
     }
 
+    function formatAlertRecurrence(recurrence) {
+        if (recurrence === 'daily') return 'Καθημερινά';
+        if (recurrence === 'weekly') return 'Εβδομαδιαία';
+        return 'Μία φορά';
+    }
+
+    function getScratchpadAlerts() {
+        if (!config.scratchpadEnabled) return [];
+        try {
+            const notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
+            return notes
+                .filter((n) => n && n.reminder && n.reminder.dueTime)
+                .map((n) => ({
+                    type: 'scratchpad',
+                    id: n.id,
+                    title: n.title || 'Σημείωση',
+                    message: n.reminder.text || '',
+                    dueTime: n.reminder.dueTime,
+                    recurrence: n.reminder.recurrence || 'none',
+                }));
+        } catch {
+            return [];
+        }
+    }
+
+    function cancelScratchpadAlert(noteId) {
+        let notes;
+        try {
+            notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
+        } catch {
+            return;
+        }
+        const note = notes.find((n) => n.id === noteId);
+        if (!note) return;
+        note.reminder = null;
+        GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
+        const reminderBtn = document.getElementById('tm-scratchpad-reminder-btn');
+        if (reminderBtn) {
+            reminderBtn.click();
+            reminderBtn.click();
+        }
+    }
+
+    function collectActiveAlerts() {
+        const alerts = [];
+        const now = Date.now();
+
+        if (typeof window.getScheduledRepairReminders === 'function') {
+            window.getScheduledRepairReminders(STORAGE_KEYS).forEach((r) => {
+                if (!r || !r.id) return;
+                alerts.push({
+                    kind: 'repair_scheduled',
+                    id: r.id,
+                    icon: '🔧',
+                    title: `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`,
+                    dueTime: r.dueTime,
+                    message: r.message || '',
+                    recurrence: r.recurrence || 'none',
+                    invoiceLinesId: r.invoiceLinesId,
+                    overdue: r.dueTime && r.dueTime <= now,
+                });
+            });
+        }
+
+        if (typeof window.getActiveRepairReminderBanners === 'function') {
+            window.getActiveRepairReminderBanners(STORAGE_KEYS).forEach((b) => {
+                if (!b || !b.id) return;
+                alerts.push({
+                    kind: 'repair_banner',
+                    id: b.id,
+                    reminderId: b.reminderId,
+                    icon: '🔔',
+                    title: `Ενεργή υπενθύμιση · #${b.invoiceNumber || b.invoiceLinesId}`,
+                    dueTime: b.firedAt,
+                    message: b.message || '',
+                    recurrence: 'none',
+                    invoiceLinesId: b.invoiceLinesId,
+                    overdue: true,
+                });
+            });
+        }
+
+        getScratchpadAlerts().forEach((a) => {
+            alerts.push({
+                kind: 'scratchpad',
+                id: a.id,
+                icon: '📝',
+                title: a.title,
+                dueTime: a.dueTime,
+                message: a.message,
+                recurrence: a.recurrence,
+                overdue: a.dueTime && a.dueTime <= now,
+            });
+        });
+
+        alerts.sort((a, b) => (a.dueTime || 0) - (b.dueTime || 0));
+        return alerts;
+    }
+
+    function buildActiveAlertsHTML() {
+        const alerts = collectActiveAlerts();
+        if (alerts.length === 0) {
+            return '<div id="tm-notification-empty-state">Δεν έχετε ενεργές υπενθυμίσεις.</div>';
+        }
+
+        return alerts.map((a) => {
+            const when = a.dueTime ? new Date(a.dueTime).toLocaleString('el-GR') : '';
+            const rec = formatAlertRecurrence(a.recurrence);
+            const status = a.kind === 'repair_banner'
+                ? 'Εμφανίζεται τώρα στην οθόνη'
+                : (a.overdue ? 'Ληξιπρόθεσμη' : 'Προγραμματισμένη');
+            const msg = escapeNotificationText(a.message);
+            const title = escapeNotificationText(a.title);
+            const openLink = a.invoiceLinesId
+                ? `<a class="tm-alert-open-link" href="https://thefixers.mymanager.gr/mymanagerservice/service_edit.php?editid1=${encodeURIComponent(a.invoiceLinesId)}" target="_blank" rel="noopener">Άνοιγμα</a>`
+                : '';
+            const cancelLabel = a.kind === 'repair_banner' ? 'Απόκρυψη' : 'Ακύρωση';
+            return `
+                <div class="tm-alert-item" data-alert-kind="${escapeNotificationText(a.kind)}" data-alert-id="${escapeNotificationText(a.id)}">
+                    <div class="tm-alert-item-icon">${a.icon}</div>
+                    <div class="tm-alert-item-body">
+                        <div class="tm-alert-item-title">${title}</div>
+                        <div class="tm-alert-item-meta">${escapeNotificationText(status)} · ${escapeNotificationText(rec)}${when ? ` · ${escapeNotificationText(when)}` : ''}</div>
+                        ${msg ? `<div class="tm-alert-item-message">${msg}</div>` : ''}
+                    </div>
+                    <div class="tm-alert-item-actions">
+                        ${openLink}
+                        <button type="button" class="tm-alert-cancel-btn" data-alert-kind="${escapeNotificationText(a.kind)}" data-alert-id="${escapeNotificationText(a.id)}">${cancelLabel}</button>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function refreshAlertsTabCount() {
+        const countEl = document.getElementById('tm-alerts-tab-count');
+        if (!countEl) return;
+        const count = collectActiveAlerts().length;
+        countEl.textContent = count > 0 ? String(count) : '';
+    }
+
+    function handleAlertCancel(kind, id) {
+        if (kind === 'repair_scheduled' && typeof window.cancelRepairReminder === 'function') {
+            window.cancelRepairReminder(STORAGE_KEYS, id);
+        } else if (kind === 'repair_banner' && typeof window.dismissRepairReminderBanner === 'function') {
+            window.dismissRepairReminderBanner(STORAGE_KEYS, id);
+        } else if (kind === 'scratchpad') {
+            cancelScratchpadAlert(id);
+        }
+        refreshActiveAlertsPanelIfOpen();
+    }
+
+    function refreshActiveAlertsPanelIfOpen() {
+        const listEl = document.getElementById('tm-active-alerts-list');
+        if (!listEl) return;
+        listEl.innerHTML = buildActiveAlertsHTML();
+        refreshAlertsTabCount();
+    }
+
+    window.refreshActiveAlertsPanelIfOpen = refreshActiveAlertsPanelIfOpen;
+
     function closeNotificationPanel() {
         document.getElementById('tm-notification-backdrop')?.remove();
         document.getElementById('tm-notification-panel')?.remove();
@@ -596,17 +756,59 @@
                     <button type="button" id="tm-notification-panel-close" title="Κλείσιμο" aria-label="Κλείσιμο">&times;</button>
                 </div>
             </div>
-            <div id="tm-notification-list">${buildNotificationListHTML()}</div>
+            <div class="tm-notification-tabs">
+                <button type="button" class="tm-notif-tab active" data-tab="history">Ιστορικό</button>
+                <button type="button" class="tm-notif-tab" data-tab="alerts">Υπενθυμίσεις <span id="tm-alerts-tab-count"></span></button>
+            </div>
+            <div id="tm-notification-tab-history" class="tm-notification-tab-panel active">
+                <div id="tm-notification-list">${buildNotificationListHTML()}</div>
+            </div>
+            <div id="tm-notification-tab-alerts" class="tm-notification-tab-panel">
+                <div id="tm-active-alerts-list">${buildActiveAlertsHTML()}</div>
+            </div>
         `;
 
         document.body.appendChild(backdrop);
         document.body.appendChild(panel);
 
         const listEl = panel.querySelector('#tm-notification-list');
+        const alertsListEl = panel.querySelector('#tm-active-alerts-list');
+        const historyTab = panel.querySelector('#tm-notification-tab-history');
+        const alertsTab = panel.querySelector('#tm-notification-tab-alerts');
+        const tabButtons = panel.querySelectorAll('.tm-notif-tab');
+
+        function switchNotificationTab(tabName) {
+            tabButtons.forEach((btn) => {
+                btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
+            });
+            historyTab.classList.toggle('active', tabName === 'history');
+            alertsTab.classList.toggle('active', tabName === 'alerts');
+            panel.querySelector('#tm-mark-all-read-btn').style.display = tabName === 'history' ? '' : 'none';
+            panel.querySelector('#tm-clear-all-notif-btn').style.display = tabName === 'history' ? '' : 'none';
+        }
+
+        tabButtons.forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                switchNotificationTab(btn.getAttribute('data-tab'));
+            });
+        });
+
+        refreshAlertsTabCount();
+        if (collectActiveAlerts().length > 0 && getStoredNotifications().filter((n) => !n.read).length === 0) {
+            switchNotificationTab('alerts');
+        }
 
         function refreshNotificationList() {
             if (listEl) listEl.innerHTML = buildNotificationListHTML();
         }
+
+        alertsListEl?.addEventListener('click', (e) => {
+            const btn = e.target.closest('.tm-alert-cancel-btn');
+            if (!btn) return;
+            e.stopPropagation();
+            handleAlertCancel(btn.getAttribute('data-alert-kind'), btn.getAttribute('data-alert-id'));
+        });
 
         listEl.addEventListener('click', (e) => {
             const row = e.target.closest('.tm-notification-item');
@@ -1517,12 +1719,18 @@
             trackDailyStat(config, STORAGE_KEYS, 'setScratchpadReminder'); // Grant XP for setting a reminder
             updateReminderDisplay();
             reminderPopover.style.display = 'none';
+            if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
+                window.refreshActiveAlertsPanelIfOpen();
+            }
         }
 
         function clearReminder() {
             updateActiveNote({ reminder: null });
             console.log('[MMS] Reminder cleared.');
             updateReminderDisplay();
+            if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
+                window.refreshActiveAlertsPanelIfOpen();
+            }
         }
 
         reminderBtn.addEventListener('click', () => {

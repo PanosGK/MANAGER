@@ -160,6 +160,103 @@
             .tm-notification-message { font-size: 14px; color: var(--tm-primary-color) !important; }
             .tm-notification-timestamp { font-size: 11px; color: var(--tm-secondary-hover) !important; margin-top: 4px; }
             #tm-notification-empty-state { text-align: center; color: var(--tm-secondary-hover) !important; padding: 40px 20px; }
+            .tm-notification-tabs {
+                display: flex;
+                border-bottom: 1px solid var(--tm-shop-item-border) !important;
+                background: var(--tm-dark-hover) !important;
+            }
+            .tm-notif-tab {
+                flex: 1;
+                padding: 10px 12px;
+                border: none;
+                background: transparent;
+                color: var(--tm-secondary-hover) !important;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 600;
+                border-bottom: 2px solid transparent;
+                transition: color 0.15s, border-color 0.15s;
+            }
+            .tm-notif-tab:hover { color: var(--tm-primary-color) !important; }
+            .tm-notif-tab.active {
+                color: var(--tm-primary-color) !important;
+                border-bottom-color: var(--tm-info-color);
+            }
+            .tm-notification-tab-panel {
+                flex-grow: 1;
+                overflow-y: auto;
+                display: none;
+                background: var(--tm-dark-color) !important;
+            }
+            .tm-notification-tab-panel.active { display: block; }
+            #tm-notification-list, #tm-active-alerts-list { padding: 8px; }
+            .tm-alert-item {
+                display: flex;
+                gap: 10px;
+                padding: 12px 10px;
+                border-bottom: 1px solid var(--tm-shop-item-border) !important;
+                align-items: flex-start;
+            }
+            .tm-alert-item:last-child { border-bottom: none; }
+            .tm-alert-item-icon { font-size: 20px; flex-shrink: 0; line-height: 1.2; }
+            .tm-alert-item-body { flex-grow: 1; min-width: 0; }
+            .tm-alert-item-title {
+                font-size: 14px;
+                font-weight: 700;
+                color: var(--tm-primary-color) !important;
+                margin-bottom: 4px;
+            }
+            .tm-alert-item-meta {
+                font-size: 11px;
+                color: var(--tm-secondary-hover) !important;
+                margin-bottom: 4px;
+            }
+            .tm-alert-item-message {
+                font-size: 12px;
+                color: var(--tm-primary-color) !important;
+                opacity: 0.9;
+                line-height: 1.35;
+                word-break: break-word;
+            }
+            .tm-alert-item-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                flex-shrink: 0;
+            }
+            .tm-alert-cancel-btn {
+                padding: 5px 10px;
+                border-radius: 8px;
+                border: 1px solid rgba(239, 68, 68, 0.45);
+                background: rgba(239, 68, 68, 0.12);
+                color: #f87171 !important;
+                font-size: 11px;
+                font-weight: 700;
+                cursor: pointer;
+                white-space: nowrap;
+            }
+            .tm-alert-cancel-btn:hover { background: rgba(239, 68, 68, 0.22); }
+            .tm-alert-open-link {
+                font-size: 11px;
+                color: var(--tm-info-color) !important;
+                text-decoration: none;
+                white-space: nowrap;
+            }
+            .tm-alert-open-link:hover { text-decoration: underline; }
+            #tm-alerts-tab-count {
+                display: inline-block;
+                min-width: 18px;
+                padding: 0 5px;
+                margin-left: 4px;
+                border-radius: 10px;
+                background: var(--tm-danger-color);
+                color: white;
+                font-size: 10px;
+                font-weight: 700;
+                line-height: 16px;
+                text-align: center;
+            }
+            #tm-alerts-tab-count:empty { display: none; }
 
             /* Recent Repairs popup only: theme-aware (button appearance unchanged). No black text, no purple. */
             #tm-recent-repairs-menu {
