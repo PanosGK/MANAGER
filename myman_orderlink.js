@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager Order Link Module
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Order ↔ repair links (status 65 orders + repair from order page)
 // @author       Assistant
 // @match        https://thefixers.mymanager.gr/mymanagerservice/*
@@ -296,6 +296,7 @@
 
     async function createRepairLinkFromOrderPage() {
         if (!isOrderEditPage()) return;
+        if (!isOrderLinkFeatureEnabled()) return;
 
         const repairId = getRepairIdFromOrderPage();
         if (!repairId) {
@@ -327,6 +328,8 @@
      * Creates and inserts the order link button
      */
     function createOrderLinkButton() {
+        if (!isOrderLinkFeatureEnabled()) return;
+
         console.log('[MMS Order Link] ----------------------------------------');
         console.log('[MMS Order Link] createOrderLinkButton() called');
         
@@ -1039,10 +1042,50 @@
         }
     `);
 
+    let statusBadgeObserver = null;
+    const initTimeoutIds = [];
+
+    function isOrderLinkFeatureEnabled() {
+        const cfg = window.config || {};
+        if (cfg.scriptEnabled === false) return false;
+        if (cfg.orderLinkEnabled === false) return false;
+        return true;
+    }
+
+    function clearInitTimers() {
+        while (initTimeoutIds.length) {
+            clearTimeout(initTimeoutIds.pop());
+        }
+    }
+
+    function scheduleInitTask(fn, delay) {
+        initTimeoutIds.push(setTimeout(fn, delay));
+    }
+
+    function teardownOrderLinkUI() {
+        clearInitTimers();
+        if (statusBadgeObserver) {
+            statusBadgeObserver.disconnect();
+            statusBadgeObserver = null;
+        }
+        document.querySelectorAll('.statusbadge.tm-order-link-active').forEach(badge => {
+            const clone = badge.cloneNode(true);
+            badge.parentNode?.replaceChild(clone, badge);
+        });
+        document.getElementById('tm-repair-from-order-btn')?.remove();
+    }
+
     /**
      * Initialize the module
      */
     function init() {
+        teardownOrderLinkUI();
+
+        if (!isOrderLinkFeatureEnabled()) {
+            console.log('[MMS Order Link] Disabled — skipping init');
+            return;
+        }
+
         console.log('[MMS Order Link] ========================================');
         console.log('[MMS Order Link] Module Initializing...');
         console.log('[MMS Order Link] Current URL:', window.location.href);
@@ -1057,53 +1100,56 @@
             console.log('[MMS Order Link] ✓ Detected repair edit page');
             
             const tryCreate = () => {
+                if (!isOrderLinkFeatureEnabled()) return;
                 console.log('[MMS Order Link] Attempting to create button...');
                 createOrderLinkButton();
             };
             
             tryCreate();
-            setTimeout(tryCreate, 500);
-            setTimeout(tryCreate, 1000);
-            setTimeout(tryCreate, 2000);
-            setTimeout(tryCreate, 3000);
+            scheduleInitTask(tryCreate, 500);
+            scheduleInitTask(tryCreate, 1000);
+            scheduleInitTask(tryCreate, 2000);
+            scheduleInitTask(tryCreate, 3000);
             
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', tryCreate);
+                document.addEventListener('DOMContentLoaded', tryCreate, { once: true });
             }
             
-            window.addEventListener('load', () => setTimeout(tryCreate, 500));
+            window.addEventListener('load', () => scheduleInitTask(tryCreate, 500), { once: true });
 
-            setTimeout(() => {
+            scheduleInitTask(() => {
+                if (!isOrderLinkFeatureEnabled()) return;
                 const statusBadge = document.querySelector('.statusbadge.statusbadge-large, .statusbadge-large, .statusbadge');
-                if (statusBadge) {
-                    const observer = new MutationObserver(() => {
+                if (statusBadge && !statusBadgeObserver) {
+                    statusBadgeObserver = new MutationObserver(() => {
+                        if (!isOrderLinkFeatureEnabled()) return;
                         const existingButton = document.getElementById('tm-order-link-button');
                         if (existingButton?.parentElement) existingButton.parentElement.remove();
-                        setTimeout(createOrderLinkButton, 100);
+                        scheduleInitTask(createOrderLinkButton, 100);
                     });
-                    observer.observe(statusBadge, { childList: true, characterData: true, subtree: true });
+                    statusBadgeObserver.observe(statusBadge, { childList: true, characterData: true, subtree: true });
                 }
             }, 1000);
         } else if (isOrderEditPage()) {
             console.log('[MMS Order Link] ✓ Detected order edit page — resolving repair link');
-            const tryRepairLink = () => createRepairLinkFromOrderPage();
+            const tryRepairLink = () => {
+                if (!isOrderLinkFeatureEnabled()) return;
+                createRepairLinkFromOrderPage();
+            };
             tryRepairLink();
-            setTimeout(tryRepairLink, 600);
-            setTimeout(tryRepairLink, 1500);
+            scheduleInitTask(tryRepairLink, 600);
+            scheduleInitTask(tryRepairLink, 1500);
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', tryRepairLink);
+                document.addEventListener('DOMContentLoaded', tryRepairLink, { once: true });
             }
-            window.addEventListener('load', () => setTimeout(tryRepairLink, 500));
+            window.addEventListener('load', () => scheduleInitTask(tryRepairLink, 500), { once: true });
         } else {
             console.log('[MMS Order Link] Not a repair/order edit page, skipping link buttons');
         }
     }
 
-    // Start the module
-    init();
-
-    // Export functions for external use if needed
     window.initOrderLinkModule = init;
+    window.teardownOrderLinkModule = teardownOrderLinkUI;
     window.getRepairIdFromOrderPage = getRepairIdFromOrderPage;
     window.createRepairLinkFromOrderPage = createRepairLinkFromOrderPage;
 

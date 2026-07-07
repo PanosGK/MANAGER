@@ -263,6 +263,7 @@
             saveCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
             saveCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             saveCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
+            saveCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
             saveCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
             saveCheckbox('tm-setting-auto-update-check-enabled', 'autoUpdateCheckEnabled');
 
@@ -634,6 +635,13 @@
                             <p class="tm-setting-description">Εμφανίζει το ιστορικό παραγγελιών ανταλλακτικών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-history-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-order-link-enabled">🔗 Σύνδεση Status 65 → Παραγγελίες</label>
+                            <p class="tm-setting-description">Στις επισκευές status 65, κάνει το badge κλικ για αναζήτηση παραγγελιών ανταλλακτικών. Στη σελίδα παραγγελίας εμφανίζει σύνδεσμο προς την επισκευή.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-link-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -1133,6 +1141,7 @@
             populateCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
             populateCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
+            populateCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
             populateCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
             populateCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
             populateCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');

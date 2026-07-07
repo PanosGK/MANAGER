@@ -151,6 +151,7 @@
         footerQuickSearchEnabled: true,
         phoneCatalogEnabled: true,
         orderHistoryEnabled: true,
+        orderLinkEnabled: true,
         returnTo40ButtonEnabled: true,
         eodChecklistEnabled: true,
         autoUpdateCheckEnabled: true,
@@ -6251,8 +6252,10 @@
         initStatusHoverPreview();
         
         // Initialize order link button for status 65 repairs
-        if (typeof window.initOrderLinkModule === 'function') {
+        if (config?.orderLinkEnabled !== false && typeof window.initOrderLinkModule === 'function') {
             window.initOrderLinkModule();
+        } else if (typeof window.teardownOrderLinkModule === 'function') {
+            window.teardownOrderLinkModule();
         }
         
         // Track repair access with a delay to ensure DOM is loaded

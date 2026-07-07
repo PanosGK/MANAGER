@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite (Local Dev)
 // @namespace    http://tampermonkey.net/
-// @version      162
+// @version      163
 // @description  Local development entry — loads modules from disk. For production, use myman_loader.user.js instead.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
