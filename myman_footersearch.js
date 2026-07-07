@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyMANAGER Footer Quick Search (module)
 // @namespace    http://tampermonkey.net/
-// @version      1.7
+// @version      1.8
 // @description  Quick search in header or repair edit header
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -226,8 +226,8 @@
         host.id = 'tm-repair-edit-quick-search-host';
         host.className = 'tm-qs-host tm-qs-host--repair';
         const title = header.querySelector('h1');
-        if (title) {
-            header.insertBefore(host, title);
+        if (title && title.parentNode) {
+            title.parentNode.insertBefore(host, title);
         } else {
             header.prepend(host);
         }

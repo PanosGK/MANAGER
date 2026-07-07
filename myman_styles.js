@@ -949,7 +949,7 @@
             }
             .tm-qs-host {
                 display: flex;
-                align-items: flex-end;
+                align-items: center;
                 flex-shrink: 0;
                 margin: 0;
             }
@@ -957,23 +957,23 @@
                 margin-right: 10px;
             }
             .tm-qs-host--repair {
-                margin-right: 12px;
-                max-width: min(900px, 100%);
+                margin-right: 8px;
+                max-width: min(560px, 100%);
             }
             .rnr-hfiller:has(.tm-qs-host--header) {
                 display: flex !important;
-                align-items: flex-end;
+                align-items: center;
                 justify-content: flex-start !important;
-                gap: 10px;
+                gap: 8px;
                 flex-wrap: wrap;
                 min-width: 0;
             }
             .tm-repair-edit-header-with-search {
                 display: flex !important;
-                align-items: flex-end !important;
+                align-items: center !important;
                 justify-content: flex-start !important;
                 flex-wrap: wrap;
-                gap: 8px 12px;
+                gap: 6px 10px;
             }
             .tm-repair-edit-header-with-search h1 {
                 flex: 0 1 auto;
@@ -983,39 +983,41 @@
                 display: flex;
                 flex-direction: row;
                 align-items: flex-end;
-                gap: 16px;
-                padding: 12px 18px;
+                gap: 8px;
+                padding: 6px 10px;
                 background: var(--tm-qs-panel-bg, var(--tm-shop-item-bg, #ffffff));
                 border: 1px solid var(--tm-qs-panel-border, var(--tm-shop-item-border, #e2e8f0));
-                border-radius: 12px;
-                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                border-radius: 8px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
                 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
                 flex-wrap: wrap;
-                max-width: 900px;
+                max-width: 560px;
                 box-sizing: border-box;
             }
             .tm-qs-host--header .tm-qs-panel {
-                padding: 10px 14px;
-                gap: 12px;
-                max-width: min(720px, 100%);
+                padding: 5px 8px;
+                gap: 6px;
+                max-width: min(480px, 100%);
             }
             .tm-qs-input-group {
                 flex: 1;
-                min-width: 140px;
+                min-width: 88px;
             }
             .tm-qs-input-group label {
                 display: block;
-                margin-bottom: 6px;
-                font-size: 13px;
+                margin-bottom: 3px;
+                font-size: 11px;
                 font-weight: 600;
+                line-height: 1.2;
                 color: var(--tm-qs-label-color, var(--tm-primary-color, #4a5568));
             }
             .tm-qs-input {
                 width: 100%;
-                padding: 10px 14px;
+                padding: 4px 8px;
                 border: 1px solid var(--tm-qs-input-border, var(--tm-shop-item-border, #cbd5e1));
-                border-radius: 8px;
-                font-size: 14px;
+                border-radius: 6px;
+                font-size: 12px;
+                line-height: 1.3;
                 outline: none;
                 transition: border-color 0.2s;
                 box-sizing: border-box;
@@ -1024,22 +1026,23 @@
             }
             .tm-qs-input::placeholder {
                 color: var(--tm-qs-placeholder, #a0aec0);
+                font-size: 11px;
             }
             .tm-qs-input:focus {
                 border-color: var(--tm-qs-focus, var(--tm-primary-color, #2563eb));
             }
             .tm-qs-search-btn {
-                padding: 10px 24px;
-                height: 42px;
+                padding: 4px 12px;
+                height: 28px;
                 background-color: var(--tm-qs-btn-bg, var(--tm-primary-color, #2563eb));
                 color: #ffffff;
                 border: none;
-                border-radius: 8px;
+                border-radius: 6px;
                 cursor: pointer;
-                font-size: 14px;
+                font-size: 12px;
                 font-weight: 600;
                 transition: background-color 0.2s, transform 0.1s;
-                box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+                box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
                 flex-shrink: 0;
             }
             .tm-qs-search-btn:hover {
@@ -1050,15 +1053,15 @@
             }
             .tm-qs-hide-native {
                 flex-shrink: 0;
-                align-self: center;
-                height: 32px;
-                min-width: 32px;
-                padding: 0 8px;
+                align-self: flex-end;
+                height: 24px;
+                min-width: 24px;
+                padding: 0 5px;
                 border: 1px solid var(--tm-qs-panel-border, var(--tm-shop-item-border, #e2e8f0));
-                border-radius: 8px;
+                border-radius: 6px;
                 background: var(--tm-qs-panel-bg, var(--tm-shop-item-bg, #ffffff));
                 color: var(--tm-qs-label-color, var(--tm-primary-color, #4a5568));
-                font-size: 14px;
+                font-size: 12px;
                 line-height: 1;
                 cursor: pointer;
                 transition: background-color 0.2s, border-color 0.2s;
