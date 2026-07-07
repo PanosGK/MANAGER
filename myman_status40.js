@@ -25,7 +25,8 @@
         };
     }
 
-    function beginStatus40LoginFlow() {
+    function beginStatus40LoginFlow(options = {}) {
+        const { applyStatus40 = false } = options;
         const { username, password } = getStatus40AdminCredentials();
         if (!username || !password) {
             alert('Ορίστε username και κωδικό admin στις Ρυθμίσεις → Αναζήτηση & Εργαλεία → Λογαριασμός Admin (Status 40).');
@@ -36,7 +37,105 @@
         sessionStorage.setItem('tm_status40_username', username);
         sessionStorage.setItem('tm_status40_password', password);
         sessionStorage.setItem('tm_status40_active', 'true');
+        if (applyStatus40) {
+            sessionStorage.setItem('tm_status40_apply_after_return', 'true');
+        } else {
+            sessionStorage.removeItem('tm_status40_apply_after_return');
+        }
         return true;
+    }
+
+    function clearStatus40Session() {
+        sessionStorage.removeItem('tm_status40_return_url');
+        sessionStorage.removeItem('tm_status40_username');
+        sessionStorage.removeItem('tm_status40_password');
+        sessionStorage.removeItem('tm_status40_active');
+        sessionStorage.removeItem('tm_status40_apply_after_return');
+    }
+
+    /**
+     * Shared entry: logout → admin login → return to current page.
+     * When applyStatus40 is true (red «40» button), status 40 is applied after return.
+     */
+    function triggerStatus40AdminLoginFlow(options = {}) {
+        const { applyStatus40 = false, skipConfirm = false } = options;
+        const confirmMessage = applyStatus40
+            ? 'Θα γίνει logout, login ως admin και επιστροφή για μεταφορά σε status 40 (ΠΡΟΣ ΕΛΕΓΧΟ). Συνέχεια;'
+            : 'Θα γίνει logout, login ως admin και επιστροφή στην ίδια σελίδα. Συνέχεια;';
+
+        if (!skipConfirm && !confirm(confirmMessage)) {
+            return false;
+        }
+
+        if (!beginStatus40LoginFlow({ applyStatus40 })) {
+            return false;
+        }
+
+        console.log('[MMS] Starting Status 40 admin login flow. applyStatus40:', applyStatus40);
+        performLogoutAndRedirectToLogin();
+        return true;
+    }
+
+    function getStatusSelectOnPage() {
+        const selectSelectors = [
+            'select[name="value_ccc_iStatusID_1"]',
+            'select[id="value_ccc_iStatusID_1"]',
+            'select[name="iStatusID"]',
+            'select[name*="StatusID"]',
+            'select[id*="StatusID"]'
+        ];
+        for (const sel of selectSelectors) {
+            const el = document.querySelector(sel);
+            if (el) return el;
+        }
+        return null;
+    }
+
+    function applyStatus40OnCurrentPage() {
+        let nativeBtn40 = null;
+        document.querySelectorAll('.rnr-button, a[href="#"]').forEach(b => {
+            const badge = b.querySelector('.statusbadge');
+            if (badge && badge.textContent.trim() === '40') nativeBtn40 = b;
+        });
+        if (nativeBtn40) {
+            nativeBtn40.click();
+            return true;
+        }
+
+        const sel = getStatusSelectOnPage();
+        if (sel) {
+            sel.value = '40';
+            sel.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const saveBtn = document.getElementById('saveButton1') ||
+                        document.querySelector('a.rnr-button.main') ||
+                        document.querySelector('a[id*="save"]');
+        if (saveBtn) {
+            saveBtn.style.removeProperty('display');
+            saveBtn.click();
+            return true;
+        }
+        return false;
+    }
+
+    function tryApplyStatus40AfterReturn(retries = 15) {
+        if (sessionStorage.getItem('tm_status40_apply_after_return') !== 'true') return;
+        if (!window.location.pathname.includes('service_edit.php')) return;
+
+        const applied = applyStatus40OnCurrentPage();
+        if (applied) {
+            console.log('[MMS] ✅ Applied status 40 after admin login return');
+            clearStatus40Session();
+            return;
+        }
+
+        if (retries > 0) {
+            setTimeout(() => tryApplyStatus40AfterReturn(retries - 1), 500);
+            return;
+        }
+
+        console.warn('[MMS] Could not apply status 40 after admin login return');
+        clearStatus40Session();
     }
 
     function performLogoutAndRedirectToLogin() {
@@ -89,6 +188,7 @@
     }
 
     window.getStatus40AdminCredentials = getStatus40AdminCredentials;
+    window.triggerStatus40AdminLoginFlow = triggerStatus40AdminLoginFlow;
 
     /**
      * Handles auto-login on the login page if we're switching accounts
@@ -163,12 +263,9 @@
                 // Start trying to login
                 setTimeout(tryLogin, 500);
             } else {
-                // Clear any leftover sessionStorage if flag is not set
+                // Clear leftover session data if flag is not set
                 if (returnUrl || username || password) {
-                    sessionStorage.removeItem('tm_status40_return_url');
-                    sessionStorage.removeItem('tm_status40_username');
-                    sessionStorage.removeItem('tm_status40_password');
-                    sessionStorage.removeItem('tm_status40_active');
+                    clearStatus40Session();
                 }
             }
         }
@@ -184,13 +281,21 @@
             const returnUrl = sessionStorage.getItem('tm_status40_return_url');
             if (returnUrl && window.location.href !== returnUrl) {
                 console.log('[MMS] Login successful, redirecting to return URL:', returnUrl);
-                // Clear sessionStorage before redirect
+                const applyAfterReturn = sessionStorage.getItem('tm_status40_apply_after_return');
                 sessionStorage.removeItem('tm_status40_return_url');
                 sessionStorage.removeItem('tm_status40_username');
                 sessionStorage.removeItem('tm_status40_password');
                 sessionStorage.removeItem('tm_status40_active');
-                // Redirect to the return URL
+                if (applyAfterReturn === 'true') {
+                    sessionStorage.setItem('tm_status40_apply_after_return', 'true');
+                }
                 window.location.href = returnUrl;
+            } else if (returnUrl && window.location.href === returnUrl) {
+                sessionStorage.removeItem('tm_status40_return_url');
+                sessionStorage.removeItem('tm_status40_username');
+                sessionStorage.removeItem('tm_status40_password');
+                sessionStorage.removeItem('tm_status40_active');
+                setTimeout(() => tryApplyStatus40AfterReturn(), 800);
             }
         }
     }
@@ -199,17 +304,19 @@
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             handleAutoLogin();
-            // Also check for return URL after a delay
             setTimeout(checkForReturnUrl, 1000);
+            setTimeout(() => tryApplyStatus40AfterReturn(), 1200);
         });
     } else {
         handleAutoLogin();
         setTimeout(checkForReturnUrl, 1000);
+        setTimeout(() => tryApplyStatus40AfterReturn(), 1200);
     }
     
     // Also check on window load
     window.addEventListener('load', () => {
         setTimeout(checkForReturnUrl, 1500);
+        setTimeout(() => tryApplyStatus40AfterReturn(), 1800);
     });
 
     /**
@@ -281,25 +388,16 @@
             logoContainer.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
-                // Confirm action
-                if (!confirm('This will logout, login as admin, and return to this page. Continue?')) {
-                    return;
-                }
-                
-                // Show loading state (change logo opacity)
+
                 logoContainer.style.opacity = '0.5';
                 logoContainer.style.pointerEvents = 'none';
-                
+
                 try {
-                    if (!beginStatus40LoginFlow()) {
+                    const started = triggerStatus40AdminLoginFlow({ applyStatus40: false });
+                    if (!started) {
                         logoContainer.style.pointerEvents = 'auto';
                         logoContainer.style.opacity = '1';
-                        return;
                     }
-
-                    console.log('[MMS] Starting logout/login sequence. Will return to:', window.location.href);
-                    performLogoutAndRedirectToLogin();
                 } catch (error) {
                     console.error('[MMS] Status 40 button error:', error);
                     alert('Error: ' + error.message);
@@ -348,8 +446,7 @@
                     logoContainer.click();
                     return;
                 }
-                if (!beginStatus40LoginFlow()) return;
-                performLogoutAndRedirectToLogin();
+                triggerStatus40AdminLoginFlow({ applyStatus40: false });
             }, { passive: false });
             
             document.body.appendChild(btn);

@@ -151,6 +151,7 @@
         footerQuickSearchEnabled: true,
         phoneCatalogEnabled: true,
         orderHistoryEnabled: true,
+        returnTo40ButtonEnabled: true,
         eodChecklistEnabled: true,
         autoUpdateCheckEnabled: true,
         // Price dropdown options for repair page
@@ -2801,10 +2802,11 @@
     }
 
     /**
-     * Injects a red "40" button into .rnr-buttons-left when the repair is in status 65 or 100,
-     * giving a quick shortcut to move the repair back to status 40 (ΠΡΟΣ ΕΛΕΓΧΟ).
+     * Injects a red "40" button into .rnr-buttons-left when the repair is in status 65 or 100.
+     * Click triggers the shared admin login flow and auto-applies status 40 after return.
      */
     function injectReturnTo40Button() {
+        if (config?.returnTo40ButtonEnabled === false) return;
         if (!window.location.pathname.includes('service_edit.php')) return;
 
         function getPageRepairStatus() {
@@ -2830,21 +2832,6 @@
             return null;
         }
 
-        function getStatusSelect() {
-            const selectSelectors = [
-                'select[name="value_ccc_iStatusID_1"]',
-                'select[id="value_ccc_iStatusID_1"]',
-                'select[name="iStatusID"]',
-                'select[name*="StatusID"]',
-                'select[id*="StatusID"]'
-            ];
-            for (const sel of selectSelectors) {
-                const el = document.querySelector(sel);
-                if (el) return el;
-            }
-            return null;
-        }
-
         const tryInject = (retries = 12) => {
             if (document.getElementById('tm-back-to-40-btn')) return;
 
@@ -2862,8 +2849,6 @@
 
             if (currentStatus !== '65' && currentStatus !== '100') return;
 
-            const statusSelect = getStatusSelect();
-
             const btn = document.createElement('a');
             btn.id = 'tm-back-to-40-btn';
             btn.className = 'rnr-button';
@@ -2876,29 +2861,23 @@
 
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
 
-                // Prefer clicking a native hidden button with badge "40"
-                let nativeBtn40 = null;
-                document.querySelectorAll('.rnr-button, a[href="#"]').forEach(b => {
-                    if (b === btn) return;
-                    const badge = b.querySelector('.statusbadge');
-                    if (badge && badge.textContent.trim() === '40') nativeBtn40 = b;
-                });
-                if (nativeBtn40) { nativeBtn40.click(); return; }
+                btn.style.pointerEvents = 'none';
+                btn.style.opacity = '0.5';
 
-                // Fallback: set dropdown + click save
-                const sel = getStatusSelect();
-                if (sel) {
-                    sel.value = '40';
-                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                if (typeof window.triggerStatus40AdminLoginFlow === 'function') {
+                    const started = window.triggerStatus40AdminLoginFlow({ applyStatus40: true });
+                    if (!started) {
+                        btn.style.pointerEvents = 'auto';
+                        btn.style.opacity = '1';
+                    }
+                    return;
                 }
-                const saveBtn = document.getElementById('saveButton1') ||
-                                document.querySelector('a.rnr-button.main') ||
-                                document.querySelector('a[id*="save"]');
-                if (saveBtn) {
-                    saveBtn.style.removeProperty('display');
-                    saveBtn.click();
-                }
+
+                alert('Η λειτουργία Status 40 admin δεν είναι διαθέσιμη. Ελέγξτε ότι φορτώθηκε το myman_status40.js.');
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = '1';
             });
 
             buttonContainer.prepend(btn);
@@ -6238,7 +6217,9 @@
         if (config?.statusTrackingEnabled !== false) {
             initStatusCounterTracking(); // Status transfer counters
         }
-        injectReturnTo40Button(); // Red "40" shortcut button on status-65 and status-100 repairs
+        if (config?.returnTo40ButtonEnabled !== false) {
+            injectReturnTo40Button(); // Red "40" shortcut button on status-65 and status-100 repairs
+        }
         initFunFeatures(config); // Handles confetti and other event-based interactions
         initMascotPageReactions(config); // Mascot reactions to page events.
         initScratchpadIntegration();
