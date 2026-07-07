@@ -4891,6 +4891,77 @@ function checkWorkingHours() {
     console.log(`[MMS] Working Hours Status: ${message}`);
 }
 
+// Debug function to force spawn a random event (bypasses cooldown/chance checks)
+function forceRandomEvent(config, STORAGE_KEYS) {
+    const now = Date.now();
+
+    if (!config.randomEventsEnabled) {
+        if (window.showPositiveMessage) {
+            window.showPositiveMessage('❌ Random events are disabled in settings');
+        }
+        return;
+    }
+
+    const currentHour = new Date().getHours();
+    if (currentHour < 9 || currentHour >= 20) {
+        if (window.showPositiveMessage) {
+            window.showPositiveMessage('⏰ Random events only spawn during working hours (9 AM - 8 PM)');
+        }
+        return;
+    }
+
+    GM_setValue(STORAGE_KEYS.ACTIVE_EVENT, 'null');
+
+    const events = Object.values(RANDOM_EVENTS);
+    const totalWeight = events.reduce((sum, e) => sum + e.weight, 0);
+    let random = Math.random() * totalWeight;
+
+    let selectedEvent = null;
+    for (const event of events) {
+        random -= event.weight;
+        if (random <= 0) {
+            selectedEvent = event;
+            break;
+        }
+    }
+
+    if (!selectedEvent) {
+        selectedEvent = events[0];
+    }
+
+    const eventData = {
+        ...selectedEvent,
+        startedAt: now,
+        expiresAt: now + selectedEvent.duration,
+        progress: 0,
+    };
+
+    if (selectedEvent.duration === 0) {
+        if (selectedEvent.effect?.instantCoins) {
+            const coins = selectedEvent.effect.instantCoins();
+            grantCoins(config, STORAGE_KEYS, coins, 'random_event');
+            if (window.showPositiveMessage) {
+                window.showPositiveMessage(`${selectedEvent.icon} ${selectedEvent.name}! +${coins} coins!`);
+            }
+        }
+
+        const history = JSON.parse(GM_getValue(STORAGE_KEYS.EVENT_HISTORY, '[]'));
+        history.push({ ...eventData, completedAt: now });
+        GM_setValue(STORAGE_KEYS.EVENT_HISTORY, JSON.stringify(history.slice(-50)));
+        GM_setValue(STORAGE_KEYS.LAST_EVENT_END_TIME, now);
+        return;
+    }
+
+    GM_setValue(STORAGE_KEYS.ACTIVE_EVENT, JSON.stringify(eventData));
+
+    if (window.showPositiveMessage) {
+        const duration = Math.floor(selectedEvent.duration / 60000);
+        window.showPositiveMessage(`${selectedEvent.icon} ${selectedEvent.name}! ${selectedEvent.description} (${duration}m)`);
+    }
+
+    updateEventNotification(eventData);
+}
+
 // Debug function to stop/clear any active random event
 function stopRandomEvent(STORAGE_KEYS) {
     // Clear active event
