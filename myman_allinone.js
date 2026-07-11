@@ -6144,7 +6144,13 @@
     // ===================================================================
     
     function revealMmsBody() {
+        if (typeof window.tmRevealThemedPageIfReady === 'function') {
+            window.tmRevealThemedPageIfReady();
+            return;
+        }
         document.documentElement.classList.add('tm-mms-theme-ready');
+        document.documentElement.style.removeProperty('visibility');
+        document.documentElement.style.removeProperty('opacity');
         if (document.body) {
             document.body.style.visibility = 'visible';
             document.body.style.opacity = '1';

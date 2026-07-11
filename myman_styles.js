@@ -16,6 +16,8 @@
     // === 1. STYLING (ALL FEATURES)
     // ===================================================================
     function addGlobalStyles() {
+        if (window.__tmGlobalStylesApplied) return;
+        window.__tmGlobalStylesApplied = true;
         GM_addStyle(`
             /* --- Footer Height and Positioning Adjustment --- */
             #footer-outterwrap {
@@ -3409,4 +3411,26 @@
     }
     // Make the function globally accessible
     window.addGlobalStyles = addGlobalStyles;
+
+    function bootstrapStylesAndReveal() {
+        const pathname = window.location.pathname || '';
+        if (pathname.includes('login.php')) return;
+        if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
+
+        try {
+            if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return;
+        } catch (_) { /* ignore */ }
+
+        if (typeof window.tmApplyThemeColors === 'function' && typeof window.tmReadEquippedThemeId === 'function') {
+            window.tmApplyThemeColors(window.tmReadEquippedThemeId());
+        }
+
+        addGlobalStyles();
+
+        if (typeof window.tmRevealThemedPageIfReady === 'function') {
+            window.tmRevealThemedPageIfReady();
+        }
+    }
+
+    bootstrapStylesAndReveal();
 })();

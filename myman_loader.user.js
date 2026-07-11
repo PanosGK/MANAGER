@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite
 // @namespace    http://tampermonkey.net/
-// @version      167
+// @version      168
 // @description  An all-in-one suite for mymanager.gr. Auto-updates from GitHub — install this file once.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -14,31 +14,7 @@
 // @grant        GM_xmlhttpRequest
 // @updateURL    https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js
 // @downloadURL  https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_theme_early.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_themes.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_config.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_profiles.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_utils.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_print.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_styles.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_settings.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_search.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_scratchpad.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_mascot.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_gamification.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_phonelist.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_technicianstats.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_orderhistory.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_status40.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_pricetransfer.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_statushover.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_orderlink.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_weather.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_eod.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_repair_reminders.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_repair_phone.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_footersearch.js
-// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_allinone.js
+// @require      https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_suite.bundle.js
 // @connect      thefixers.mymanager.gr
 // @connect      geocoding-api.open-meteo.com
 // @connect      api.open-meteo.com

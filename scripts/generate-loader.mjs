@@ -1,5 +1,5 @@
 /**
- * Regenerates myman_loader.user.js and syncs SCRIPT_META.version in myman_config.js
+ * Regenerates myman_loader.user.js, myman_suite.bundle.js, and syncs SCRIPT_META.version
  * from myman_manifest.json. Run after bumping the manifest version:
  *
  *   node scripts/generate-loader.mjs
@@ -13,11 +13,58 @@ const root = path.join(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'myman_manifest.json'), 'utf8'));
 const { version, updateBase, modules } = manifest;
 const loaderUrl = `${updateBase}/myman_loader.user.js`;
+const bundleFileName = 'myman_suite.bundle.js';
 
-const requireLines = modules
-    .map((file) => `// @require      ${updateBase}/${file}`)
-    .concat(`// @require      ${updateBase}/myman_allinone.js`)
-    .join('\n');
+function stripUserScriptHeader(content) {
+    return content.replace(/^\/\/ ==UserScript==[\s\S]*?^\/\/ ==\/UserScript==\r?\n?/m, '');
+}
+
+/** Runs synchronously the moment the bundle is parsed — before any module body. */
+const INSTANT_FOUC_GUARD = `
+(function tmMmsInstantFoucGuard() {
+    try {
+        var path = (window.location && window.location.pathname) || '';
+        if (path.indexOf('login.php') !== -1) return;
+        if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
+        var root = document.documentElement;
+        root.style.setProperty('visibility', 'hidden', 'important');
+        root.style.setProperty('opacity', '0', 'important');
+        root.style.backgroundColor = '#121212';
+        var style = document.createElement('style');
+        style.id = 'tm-mms-instant-guard';
+        style.textContent = [
+            'html:not(.tm-mms-theme-ready){',
+            'visibility:hidden!important;',
+            'opacity:0!important;',
+            'background:#121212!important;',
+            '}',
+            'html:not(.tm-mms-theme-ready) body{',
+            'visibility:hidden!important;',
+            'opacity:0!important;',
+            '}',
+        ].join('');
+        var parent = document.head || document.getElementsByTagName('head')[0] || root;
+        parent.appendChild(style);
+    } catch (e) { /* ignore */ }
+})();
+`;
+
+const bundleFiles = [...modules, 'myman_allinone.js'];
+let bundle = `/* MyManager Suite bundle v${version} — generated, do not edit */\n`;
+bundle += INSTANT_FOUC_GUARD.trim() + '\n';
+
+for (const file of bundleFiles) {
+    const filePath = path.join(root, file);
+    if (!fs.existsSync(filePath)) {
+        console.error(`Missing bundle module: ${file}`);
+        process.exit(1);
+    }
+    let content = fs.readFileSync(filePath, 'utf8');
+    content = stripUserScriptHeader(content);
+    bundle += `\n\n// ----- ${file} -----\n${content}`;
+}
+
+fs.writeFileSync(path.join(root, bundleFileName), bundle);
 
 const loader = `// ==UserScript==
 // @name         ${manifest.name}
@@ -35,7 +82,7 @@ const loader = `// ==UserScript==
 // @grant        GM_xmlhttpRequest
 // @updateURL    ${loaderUrl}
 // @downloadURL  ${loaderUrl}
-${requireLines}
+// @require      ${updateBase}/${bundleFileName}
 // @connect      thefixers.mymanager.gr
 // @connect      geocoding-api.open-meteo.com
 // @connect      api.open-meteo.com
@@ -66,4 +113,4 @@ if (config.includes('const SCRIPT_META = {')) {
 }
 
 fs.writeFileSync(configPath, config);
-console.log(`Generated myman_loader.user.js and synced SCRIPT_META.version = ${version}`);
+console.log(`Generated ${bundleFileName}, myman_loader.user.js (single @require), version = ${version}`);
