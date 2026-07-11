@@ -16,7 +16,7 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '163',
+        version: '167',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -32,6 +32,7 @@
         PURCHASED_ITEMS: 'tm_purchased_items',
         EQUIPPED_ITEMS: 'tm_equipped_items', // Changed from singular to plural
         EQUIPPED_THEME: 'tm_equipped_theme',
+        THEME_COLORS_CACHE: 'tm_theme_colors_cache',
         PET_STATS: 'tm_pet_stats',
         TAMAGOTCHI_DATA: 'tm_tamagotchi_data',
         DAILY_STATS: 'tm_daily_stats_v2',

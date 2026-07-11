@@ -1859,10 +1859,86 @@ const UI_THEMES = {
     },
 };
 
+function tmReadEquippedThemeId() {
+    const themeKey = 'tm_equipped_theme';
+    if (typeof GM_getValue === 'function') {
+        try {
+            const profileId = GM_getValue('tm_mms_last_profile_id', '');
+            if (profileId) {
+                const scoped = GM_getValue(`tm:p:${profileId}:${themeKey}`, undefined);
+                if (scoped !== undefined && scoped !== null && scoped !== '') {
+                    return String(scoped);
+                }
+            }
+            const legacy = GM_getValue(themeKey, undefined);
+            if (legacy !== undefined && legacy !== null && legacy !== '') {
+                return String(legacy);
+            }
+        } catch (_) { /* ignore */ }
+    }
+    if (window.__tmEarlyThemeId) return String(window.__tmEarlyThemeId);
+    return 'default';
+}
 
+function tmHexToRgb(hex) {
+    const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(String(hex || ''));
+    if (!match) return null;
+    return {
+        r: parseInt(match[1], 16),
+        g: parseInt(match[2], 16),
+        b: parseInt(match[3], 16),
+    };
+}
 
+function tmApplyThemeColors(themeId, options = {}) {
+    const theme = UI_THEMES[themeId] || UI_THEMES.default;
+    const root = document.documentElement;
 
+    for (const [variable, color] of Object.entries(theme.colors)) {
+        root.style.setProperty(variable, color);
+        if (variable === '--tm-primary-color') {
+            const rgb = tmHexToRgb(color);
+            if (rgb) {
+                root.style.setProperty('--tm-primary-color-rgb', `${rgb.r},${rgb.g},${rgb.b}`);
+            }
+        }
+    }
 
+    const bg = theme.colors['--tm-dark-color'] || theme.colors['--tm-shop-item-bg'];
+    if (bg) {
+        root.style.backgroundColor = bg;
+    }
 
+    if (options.pageStyles !== false) {
+        document.getElementById('tm-page-theme-styles')?.remove();
+        if (theme.pageStyles) {
+            const styleEl = document.createElement('style');
+            styleEl.id = 'tm-page-theme-styles';
+            styleEl.innerHTML = theme.pageStyles;
+            document.head.appendChild(styleEl);
+        }
+    }
+
+    return theme;
+}
+
+window.UI_THEMES = UI_THEMES;
+window.tmApplyThemeColors = tmApplyThemeColors;
+window.tmReadEquippedThemeId = tmReadEquippedThemeId;
+
+(function tmBootstrapThemeOnLoad() {
+    const pathname = window.location.pathname || '';
+    if (pathname.includes('login.php')) return;
+    if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
+    if (typeof GM_getValue === 'function') {
+        try {
+            if (GM_getValue('tm_script_enabled', true) === false) return;
+        } catch (_) { /* ignore */ }
+    }
+
+    const themeId = tmReadEquippedThemeId();
+    tmApplyThemeColors(themeId);
+    window.__tmEarlyThemeApplied = true;
+})();
 
 

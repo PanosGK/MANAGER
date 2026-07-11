@@ -1,13 +1,7 @@
 (function() {
     'use strict';
 
-    // Hide the body initially to prevent Flash of Unstyled Content (FOUC).
-    // It will be made visible at the end of the 'load' event listener.
-    // Skip on the login page so the native form is immediately visible.
-    if (!window.location.pathname.includes('login.php')) {
-        GM_addStyle('body { visibility: hidden; opacity: 0; transition: opacity 0.3s ease-in; }');
-    }
-    
+    // FOUC prevention runs in myman_theme_early.js (first @require).
     // IMMEDIATE: Hide print buttons on service_edit.php pages
     // This runs immediately, before any other code
     (function hidePrintButtonsImmediate() {
@@ -177,35 +171,24 @@
     }
 
     function applyTheme(themeId) {
-        // Remove any existing style attribute stylesheet
-        const existingStyle = document.getElementById('tm-page-theme-styles');
-        if (existingStyle) existingStyle.remove();
+        const theme = typeof window.tmApplyThemeColors === 'function'
+            ? window.tmApplyThemeColors(themeId)
+            : (UI_THEMES[themeId] || UI_THEMES['default']);
 
-        const theme = UI_THEMES[themeId] || UI_THEMES['default'];
         if (config?.debugEnabled) {
-        console.log(`[MMS] Applying theme: ${theme.name}`);
+            console.log(`[MMS] Applying theme: ${theme.name}`);
         }
-        for (const [variable, color] of Object.entries(theme.colors)) {
-            document.documentElement.style.setProperty(variable, color);
-            
-            // If this is the primary color, also set the RGB version for scrollbars
-            if (variable === '--tm-primary-color') {
-                const rgb = hexToRgb(color);
-                if (rgb) {
-                    document.documentElement.style.setProperty('--tm-primary-color-rgb', `${rgb.r},${rgb.g},${rgb.b}`);
-                }
-            }
-        }
+
         GM_setValue(STORAGE_KEYS.EQUIPPED_THEME, themeId);
         config.equippedTheme = themeId;
 
-        // Inject page-specific styles if they exist for the theme
-        if (theme.pageStyles) {
-            const styleEl = document.createElement('style');
-            styleEl.id = 'tm-page-theme-styles';
-            styleEl.innerHTML = theme.pageStyles;
-            document.head.appendChild(styleEl);
-        }
+        try {
+            GM_setValue(STORAGE_KEYS.THEME_COLORS_CACHE, JSON.stringify({
+                themeId,
+                colors: theme.colors,
+                updatedAt: Date.now(),
+            }));
+        } catch (_) { /* ignore */ }
     }
     
     // Make applyTheme globally accessible for external scripts
@@ -6160,38 +6143,53 @@
     // === MAIN SCRIPT INITIALIZATION
     // ===================================================================
     
-    window.addEventListener('load', () => {
-        // CRITICAL: Check if we should delay initialization due to comment form creation
-        if (COMMENT_FORM_MANAGER.shouldDelayInitialization()) {
-            if (COMMENT_FORM_MANAGER.debugMode) {
-                console.log('[MMS Debug] Delaying script initialization - comment form creation in progress');
-            }
-            
+    function revealMmsBody() {
+        document.documentElement.classList.add('tm-mms-theme-ready');
+        if (document.body) {
             document.body.style.visibility = 'visible';
             document.body.style.opacity = '1';
-            
-            // Monitor for comment form completion
-            const checkAndInit = () => {
-                const hasCommentForm = document.querySelector('textarea[id*="value_strNotes_"]');
-                if (hasCommentForm || !GM_getValue('TM_FORM_CREATING', false)) {
-                    if (COMMENT_FORM_MANAGER.debugMode) {
-                        console.log('[MMS Debug] Comment form detected or timeout, proceeding with initialization');
-                    }
-                    COMMENT_FORM_MANAGER.clearFormCreating();
-                    // Restart initialization after form is ready
-                    setTimeout(initializeScript, 1000);
-                } else {
-                    // Keep checking
-                    setTimeout(checkAndInit, 200);
-                }
-            };
-            
-            checkAndInit();
-            return; // Exit early, will reinitialize later
         }
-        
-        initializeScript();
-    });
+    }
+
+    function scheduleScriptInitialization() {
+        const run = () => {
+            // CRITICAL: Check if we should delay initialization due to comment form creation
+            if (COMMENT_FORM_MANAGER.shouldDelayInitialization()) {
+                if (COMMENT_FORM_MANAGER.debugMode) {
+                    console.log('[MMS Debug] Delaying script initialization - comment form creation in progress');
+                }
+
+                revealMmsBody();
+
+                // Monitor for comment form completion
+                const checkAndInit = () => {
+                    const hasCommentForm = document.querySelector('textarea[id*="value_strNotes_"]');
+                    if (hasCommentForm || !GM_getValue('TM_FORM_CREATING', false)) {
+                        if (COMMENT_FORM_MANAGER.debugMode) {
+                            console.log('[MMS Debug] Comment form detected or timeout, proceeding with initialization');
+                        }
+                        COMMENT_FORM_MANAGER.clearFormCreating();
+                        setTimeout(initializeScript, 1000);
+                    } else {
+                        setTimeout(checkAndInit, 200);
+                    }
+                };
+
+                checkAndInit();
+                return;
+            }
+
+            initializeScript();
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', run, { once: true });
+        } else {
+            run();
+        }
+    }
+
+    scheduleScriptInitialization();
     
     function setupFooterControls(config, STORAGE_KEYS) {
         if (document.getElementById('tm-footer-controls-container')) {
@@ -6269,15 +6267,13 @@
     function initializeScript() {
         // Do nothing on the login page — no buttons, no UI, no features
         if (window.location.pathname.includes('login.php')) {
-            document.body.style.visibility = 'visible';
-            document.body.style.opacity = '1';
+            revealMmsBody();
             return;
         }
 
         // Quick View iframe — show the native page cleanly, no script UI
         if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') {
-            document.body.style.visibility = 'visible';
-            document.body.style.opacity = '1';
+            revealMmsBody();
             return;
         }
 
@@ -6311,8 +6307,7 @@
         if (!config.scriptEnabled) {
             // Stealth mode - completely silent, no UI elements, no messages
             // Only the key combination Ctrl+Shift+E can re-enable (handler is set up above)
-            document.body.style.visibility = 'visible';
-            document.body.style.opacity = '1';
+            revealMmsBody();
             return; // Exit early - don't initialize any features
         }
 
@@ -6494,8 +6489,7 @@
         }
 
         // Make the body visible now that all styles and themes are applied.
-        document.body.style.visibility = 'visible';
-        document.body.style.opacity = '1';
+        revealMmsBody();
     }
 
 })(); // End of MyManager All-in-One Suite

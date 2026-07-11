@@ -1,9 +1,10 @@
 {
-  "version": "163",
+  "version": "167",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
   "releaseNotes": "Quick search UI: minimal left-aligned inline inputs.",
   "modules": [
+    "myman_theme_early.js",
     "myman_themes.js",
     "myman_config.js",
     "myman_profiles.js",
