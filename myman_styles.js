@@ -59,9 +59,7 @@
             /* --- Notification Center Styles --- */
             #tm-notification-bell-wrapper { position: relative; }
             #tm-notification-bell-btn {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
+                background: var(--tm-shop-item-bg) !important;
                 color: white !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 width: 40px;
@@ -77,8 +75,6 @@
             }
             #tm-notification-bell-btn:hover {
                 background: linear-gradient(135deg, rgba(255, 193, 7, 0.4) 0%, rgba(255, 152, 0, 0.4) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
                 transform: translateY(-3px) scale(1.05);
                 box-shadow: 0 6px 16px rgba(0,0,0,0.3);
                 border-color: rgba(255,255,255,0.4) !important;
@@ -732,9 +728,7 @@
                 height: 40px;
                 cursor: pointer;
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
+                background: var(--tm-shop-item-bg) !important;
                 color: var(--tm-primary-color) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 border-radius: 12px;
@@ -751,9 +745,7 @@
             
             /* --- Weather Widget Glass Theme --- */
             #tm-weather-widget {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
+                background: var(--tm-shop-item-bg) !important;
                 color: var(--tm-primary-color) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
             }
@@ -805,9 +797,7 @@
 
             /* --- Feature: Settings Panel --- */
             #tm-settings-btn {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
+                background: var(--tm-shop-item-bg) !important;
                 color: white !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 width: 40px;
@@ -822,9 +812,7 @@
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
             #tm-settings-btn:hover { 
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
+                background: var(--tm-shop-item-bg) !important;
                 transform: translateY(-3px) scale(1.05);
                 box-shadow: 0 6px 16px rgba(0,0,0,0.3);
                 border-color: rgba(255,255,255,0.4) !important;
@@ -832,16 +820,12 @@
             
             /* --- Daily Dashboard Widget Glass Theme --- */
             #tm-daily-dashboard-widget {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
+                background: var(--tm-shop-item-bg) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 color: var(--tm-primary-color) !important;
             }
             #tm-daily-dashboard-widget:hover {
-                background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
+                background: var(--tm-shop-item-hover-bg, var(--tm-shop-item-bg)) !important;
                 transform: translateY(-3px) scale(1.05);
                 box-shadow: 0 6px 16px rgba(0,0,0,0.3);
                 border-color: rgba(255,255,255,0.4) !important;
@@ -1205,9 +1189,7 @@
             
             /* --- Unified Footer Widget Styling --- */
             .tm-footer-widget {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
+                background: var(--tm-shop-item-bg);
                 color: var(--tm-primary-color);
                 border: 1px solid rgba(255,255,255,0.2);
                 border-radius: 12px;
@@ -1531,8 +1513,6 @@
             #tm-level-up-overlay {
                 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                 background: rgba(0, 0, 0, 0.50);
-                backdrop-filter: blur(10px) saturate(140%);
-                -webkit-backdrop-filter: blur(10px) saturate(140%);
                 z-index: 20000;
                 display: flex; align-items: center; justify-content: center;
                 transition: opacity 0.6s ease-out;
@@ -1552,8 +1532,6 @@
 
             .tm-level-up-content {
                 background: rgba(14, 14, 20, 0.82);
-                backdrop-filter: blur(28px) saturate(180%);
-                -webkit-backdrop-filter: blur(28px) saturate(180%);
                 border: 1px solid rgba(255, 255, 255, 0.10);
                 border-radius: 28px;
                 padding: 48px 52px 40px;
@@ -2729,9 +2707,7 @@
             }
             /* XP Bar in Footer - Redesigned with integrated title */
             #tm-xp-bar-container {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
+                background: var(--tm-shop-item-bg) !important;
                 color: var(--tm-primary-color) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 border-radius: 12px;
@@ -2748,9 +2724,7 @@
                 justify-content: center;
             }
             #tm-xp-bar-container:hover {
-                background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
+                background: var(--tm-shop-item-hover-bg, var(--tm-shop-item-bg)) !important;
                 transform: translateY(-2px);
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             }
@@ -2778,7 +2752,6 @@
                 top: 3px;
                 right: 6px;
                 background: linear-gradient(135deg, rgba(255,215,0,0.3) 0%, rgba(255,170,0,0.3) 100%);
-                backdrop-filter: blur(4px);
                 padding: 2px 6px;
                 border-radius: 10px;
                 font-size: 8px;
@@ -2794,7 +2767,6 @@
                 top: 3px;
                 left: 6px;
                 background: linear-gradient(135deg, rgba(0,191,255,0.3) 0%, rgba(0,242,254,0.3) 100%);
-                backdrop-filter: blur(4px);
                 padding: 2px 6px;
                 border-radius: 10px;
                 font-size: 8px;
@@ -2858,9 +2830,7 @@
                 position: relative;
                 width: 40px;
                 height: 40px;
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
+                background: var(--tm-shop-item-bg) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 border-radius: 50%;
                 cursor: pointer;
@@ -2934,9 +2904,7 @@
 
             /* Coin Balance in Footer */
             #tm-coin-balance {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
+                background: var(--tm-shop-item-bg) !important;
                 color: var(--tm-primary-color) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 font-size: 14px;
@@ -2953,9 +2921,7 @@
                 gap: 6px;
             }
             #tm-coin-balance:hover {
-                background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%) !important;
-                backdrop-filter: blur(10px) !important;
-                -webkit-backdrop-filter: blur(10px) !important;
+                background: var(--tm-shop-item-hover-bg, var(--tm-shop-item-bg)) !important;
                 transform: translateY(-3px) scale(1.05);
                 box-shadow: 0 6px 16px rgba(0,0,0,0.3);
                 border-color: rgba(255,255,255,0.4) !important;

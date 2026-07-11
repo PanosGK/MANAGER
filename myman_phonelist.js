@@ -1795,8 +1795,6 @@ async function showPhoneListModal() {
         bottom: 0;
         background: var(--tm-shop-item-bg);
         opacity: 1;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
         z-index: 100000;
         display: flex;
         align-items: center;
