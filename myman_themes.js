@@ -134,7 +134,7 @@ const THEME_STYLES = `/* Universal Theme Styles */
             /* Settings modal - use theme background */
             .tm-modal-content:has(.tm-settings-layout) {
                 background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
-                color: var(--tm-text-on-light) !important;
+                color: var(--tm-text-on-dark, var(--tm-primary-color)) !important;
                 border-color: var(--tm-shop-item-border) !important;
             }
             .tm-modal-content:has(.tm-settings-layout) .tm-modal-header,
@@ -144,7 +144,7 @@ const THEME_STYLES = `/* Universal Theme Styles */
             }
             .tm-modal-content:has(.tm-settings-layout) .tm-modal-title,
             .tm-modal-content:has(.tm-settings-layout) .tm-modal-close {
-                color: var(--tm-text-on-light) !important;
+                color: var(--tm-text-on-dark, var(--tm-primary-color)) !important;
             }
            
             .tm-modal-content:has(.tm-settings-layout) .tm-setting-description {
@@ -508,6 +508,136 @@ const THEME_STYLES = `/* Universal Theme Styles */
             .rnr-cw-grid.rnr-s-grid > table > tbody > tr[data-record-id] td { color: var(--tm-primary-color) !important; }
             .rnr-cw-grid.rnr-s-grid > table > tbody > tr[data-record-id]:hover { background: var(--tm-secondary-hover) !important; }
             .rnr-cw-grid.rnr-s-grid > table > tbody > tr[data-record-id]:hover td { color: var(--tm-info-color) !important; }
+
+            /* --- Dark Theme Text Contrast (override base styles hardcoded grays/blacks) --- */
+            .tm-modal-title,
+            .tm-integrated-panel-title,
+            .tm-settings-section h3,
+            .tm-setting-label label,
+            .tm-settings-main,
+            .tm-settings-main label,
+            .tm-settings-main p,
+            .tm-settings-main span,
+            .tm-settings-main li,
+            .tm-settings-main td,
+            .tm-settings-main th,
+            #tm-status-message,
+            .tm-search-list-section h4,
+            .tm-search-list-item,
+            .tm-search-list-item a,
+            #tm-search-favorite-btn,
+            .tm-search-list-action-btn,
+            .tm-talent-name,
+            .tm-talent-description,
+            .tm-talent-points-display,
+            .tm-talent-item,
+            .tm-notification-message,
+            .tm-panel-info,
+            .tm-age-text,
+            .tm-weight-text,
+            .tm-panel-close,
+            .tm-stat-name,
+            .tm-section-title,
+            .tm-quest-description,
+            .tm-title-name,
+            #tm-scratchpad-last-edited,
+            .tm-sortable-header {
+                color: var(--tm-text-on-dark, var(--tm-primary-color)) !important;
+            }
+            .tm-notification-timestamp,
+            .tm-setting-description,
+            .tm-talent-description,
+            #tm-notification-empty-state,
+            .tm-details-loading,
+            .tm-search-list-section h4 {
+                color: var(--tm-secondary-hover, var(--tm-secondary-color)) !important;
+            }
+            .tm-settings-sidebar .tm-nav a {
+                color: var(--tm-primary-color) !important;
+                background: var(--tm-dark-color) !important;
+            }
+            .tm-settings-sidebar .tm-nav a.active {
+                color: var(--tm-info-color, var(--tm-primary-color)) !important;
+            }
+            .tm-settings-section {
+                border-bottom-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-settings-section h3 {
+                border-bottom-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-modal-footer {
+                border-top-color: var(--tm-shop-item-border) !important;
+            }
+            #tm-search-history-favorites-container {
+                border-top-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-search-list-section h4 {
+                border-bottom-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-result-details-container {
+                background-color: var(--tm-shop-item-bg) !important;
+                border-top-color: var(--tm-shop-item-border) !important;
+                color: var(--tm-primary-color) !important;
+            }
+            .tm-details-table td {
+                border-color: var(--tm-shop-item-border) !important;
+                color: var(--tm-primary-color) !important;
+            }
+            .tm-details-label {
+                background-color: var(--tm-dark-hover) !important;
+                color: var(--tm-secondary-hover, var(--tm-secondary-color)) !important;
+            }
+            .tm-details-value {
+                color: var(--tm-primary-color) !important;
+            }
+            .tm-talent-btn.unlocked {
+                color: var(--tm-secondary-hover, var(--tm-secondary-color)) !important;
+            }
+            .tm-talent-btn:disabled:not(.unlocked) {
+                color: var(--tm-secondary-color) !important;
+            }
+            .login-user-item button {
+                color: var(--tm-secondary-hover, var(--tm-secondary-color)) !important;
+            }
+            /* Inline grays/blacks from dynamically generated HTML */
+            [style*="color: #333"],
+            [style*="color:#333"],
+            [style*="color: #666"],
+            [style*="color:#666"],
+            [style*="color: #888"],
+            [style*="color:#888"],
+            [style*="color: #999"],
+            [style*="color:#999"],
+            [style*="color: #495057"],
+            [style*="color:#495057"],
+            [style*="color: #343a40"],
+            [style*="color:#343a40"],
+            [style*="color: #2c3e50"],
+            [style*="color:#2c3e50"],
+            [style*="color: #64748b"],
+            [style*="color:#64748b"],
+            [style*="color: #94a3b8"],
+            [style*="color:#94a3b8"],
+            [style*="color: #6c757d"],
+            [style*="color:#6c757d"] {
+                color: var(--tm-text-on-dark, var(--tm-primary-color)) !important;
+            }
+            /* Runner field values / labels that stay black */
+            .fieldGrid .rnr-value,
+            .fieldGrid .rnr-readonly,
+            .fieldGrid span,
+            .fieldGrid div,
+            .rnr-b-editfields2_atop td,
+            .rnr-b-editfields2_atop span,
+            .rnr-b-editfields2_atop label,
+            .rnr-s-undermenu span,
+            .rnr-s-undermenu div,
+            .rnr-b-loggedas,
+            .rnr-b-loggedas div,
+            .pagetitle,
+            .pagetitle span {
+                color: var(--tm-primary-color) !important;
+            }
         `;
 
 const UI_THEMES = {
