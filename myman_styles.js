@@ -2774,6 +2774,7 @@
                 top: 3px;
                 right: 6px;
                 background: linear-gradient(135deg, rgba(255,215,0,0.3) 0%, rgba(255,170,0,0.3) 100%);
+                backdrop-filter: blur(4px);
                 padding: 2px 6px;
                 border-radius: 10px;
                 font-size: 8px;
@@ -2789,6 +2790,7 @@
                 top: 3px;
                 left: 6px;
                 background: linear-gradient(135deg, rgba(0,191,255,0.3) 0%, rgba(0,242,254,0.3) 100%);
+                backdrop-filter: blur(4px);
                 padding: 2px 6px;
                 border-radius: 10px;
                 font-size: 8px;
@@ -2852,7 +2854,9 @@
                 position: relative;
                 width: 40px;
                 height: 40px;
-                background: var(--tm-shop-item-bg) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 border-radius: 50%;
                 cursor: pointer;
@@ -2926,7 +2930,9 @@
 
             /* Coin Balance in Footer */
             #tm-coin-balance {
-                background: var(--tm-shop-item-bg) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 color: var(--tm-primary-color) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 font-size: 14px;
@@ -2943,7 +2949,9 @@
                 gap: 6px;
             }
             #tm-coin-balance:hover {
-                background: var(--tm-shop-item-hover-bg, var(--tm-shop-item-bg)) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 transform: translateY(-3px) scale(1.05);
                 box-shadow: 0 6px 16px rgba(0,0,0,0.3);
                 border-color: rgba(255,255,255,0.4) !important;
