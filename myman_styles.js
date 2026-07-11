@@ -306,7 +306,6 @@
 
             /* Price transfer button: theme-aware */
             #tm-price-transfer-btn {
-                background: var(--tm-shop-item-bg) !important;
                 color: var(--tm-primary-color) !important;
                 border: 1px solid var(--tm-primary-color) !important;
                 border-radius: 3px;
