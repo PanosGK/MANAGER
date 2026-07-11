@@ -3386,27 +3386,6 @@
                 pointer-events: none;
             }
 
-            /* --- Feature: Automated Parts Search Sidebar --- */
-            #tm-auto-parts-sidebar {
-                position: fixed; top: 80px; left: 10px; width: 280px;
-                max-height: calc(100vh - 100px); background: #f9f9f9;
-                border: 1px solid #ccc; border-radius: 8px; z-index: 9995;
-                box-shadow: 0 3px 10px rgba(0,0,0,0.15); display: flex;
-                flex-direction: column; font-size: 13px;
-            }
-            #tm-auto-parts-header {
-                display: flex; justify-content: space-between; align-items: center;
-                padding: 8px 12px; background: #e9ecef; border-bottom: 1px solid #ccc;
-            }
-            #tm-auto-parts-title { font-weight: bold; color: #333; }
-            #tm-auto-parts-close { background: none; border: none; font-size: 20px; cursor: pointer; }
-            #tm-auto-parts-content { padding: 10px; overflow-y: auto; }
-            .tm-parts-category { margin-bottom: 15px; }
-            .tm-parts-category-title { font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 8px; }
-            .tm-parts-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; }
-            .tm-parts-list-item a { display: block; padding: 4px 6px; border-radius: 4px; text-decoration: none; color: var(--tm-primary-color); background: #fff; border: 1px solid #eee; }
-            .tm-parts-list-item a:hover { background: #e7f1ff; }
-            .tm-parts-loading, .tm-parts-not-found { color: #888; font-style: italic; }
         `);
     }
     // Make the function globally accessible

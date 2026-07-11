@@ -125,7 +125,6 @@
         interactiveMascotEnabled: true,
         confettiEnabled: true,
         mascotRoamingSpeed: 100,
-        automatedPartsSearchEnabled: true,
         // New supercharged features
         randomEventsEnabled: true,
         smartTemplatesEnabled: true,
@@ -4376,98 +4375,6 @@
     }
 
     // ===================================================================
-    // === 8a. FEATURE: AUTOMATED PARTS SEARCH SIDEBAR
-    // ===================================================================
-    /**
-     * On repair pages, automatically searches for common parts for the detected
-     * device model and displays them in a non-intrusive sidebar.
-     */
-    function initAutomatedPartsSearch() {
-        // Only run on service edit pages and if the feature is enabled // Pass config
-        if (!config.automatedPartsSearchEnabled || !window.location.pathname.includes('/mymanagerservice/service_edit.php')) {
-            return;
-        }
-
-        const deviceModel = getPhoneModelFromPage();
-        if (!deviceModel) {
-            console.log('[MMS Parts Search] No device model detected on this page. Aborting.');
-            return;
-        }
-
-        console.log(`[MMS Parts Search] Detected model: "${deviceModel}". Initializing sidebar.`);
-
-        // 1. Create the Sidebar UI
-        const sidebar = document.createElement('div');
-        sidebar.id = 'tm-auto-parts-sidebar';
-        sidebar.innerHTML = `
-            <div id="tm-auto-parts-header">
-                <span id="tm-auto-parts-title">Suggested Parts</span>
-                <button id="tm-auto-parts-close">&times;</button>
-            </div>
-            <div id="tm-auto-parts-content"></div>
-        `;
-        document.body.appendChild(sidebar);
-
-        sidebar.querySelector('#tm-auto-parts-close').addEventListener('click', () => sidebar.remove());
-
-        const contentContainer = sidebar.querySelector('#tm-auto-parts-content');
-
-        // 2. Perform searches for each common part
-        config.quickSearchButtons.forEach(part => {
-            const searchTerm = `${deviceModel} ${part.term}`;
-            const categoryDiv = document.createElement('div');
-            categoryDiv.className = 'tm-parts-category';
-            categoryDiv.innerHTML = `
-                <div class="tm-parts-category-title">${part.label}</div>
-                <div class="tm-parts-loading">Searching...</div>
-                <ul class="tm-parts-list"></ul>
-            `;
-            contentContainer.appendChild(categoryDiv);
-
-            const searchUrl = `/mymanagerservice/products_list.php?qs=${encodeURIComponent(searchTerm)}`;
-
-            GM_xmlhttpRequest({
-                method: 'GET',
-                url: searchUrl,
-                onload: function(response) {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(response.responseText, 'text/html');
-                    // The results table can be inside different containers. Let's make the selector more robust.
-                    // It's usually the first major grid table on the page.
-                    const gridTable = doc.querySelector('.rnr-c-grid table.rnr-b-grid, table.rnr-b-grid');
-                    const list = categoryDiv.querySelector('.tm-parts-list');
-
-                    categoryDiv.querySelector('.tm-parts-loading').style.display = 'none';
-
-                    if (!gridTable) {
-                        categoryDiv.innerHTML += '<div class="tm-parts-not-found">Error: Could not find data table.</div>';
-                        return;
-                    }
-
-                    // Dynamically find the description column index
-                    const headers = Array.from(gridTable.querySelectorAll('thead th')).map(th => th.innerText.trim());
-                    const descriptionIndex = headers.findIndex(h => h.includes('Περιγραφή') || h.includes('Description'));
-
-                    
-
-                    const rows = gridTable.querySelectorAll('tbody tr[id^="gridRow"]');
-                    if (rows.length === 0 || descriptionIndex === -1) {
-                        categoryDiv.innerHTML += '<div class="tm-parts-not-found">No results found.</div>';
-                    } else {
-                        rows.forEach(row => {
-                            const link = row.querySelector('a[href*="products_edit.php"]');
-                            const description = row.cells[descriptionIndex]?.innerText.trim();
-                            if (link && description) {
-                                list.innerHTML += `<li class="tm-parts-list-item"><a href="${link.href}" target="_blank">${description}</a></li>`;
-                            }
-                        });
-                    }
-                }
-            });
-        });
-    }
-
-    // ===================================================================
     // === WEATHER WIDGET
     // ===================================================================
     // Weather widget functions have been moved to myman_weather.js
@@ -6414,7 +6321,6 @@
         if (config?.scratchpadEnabled) {
         initReminderSystem(STORAGE_KEYS);
         }
-        initAutomatedPartsSearch();
         if (config?.statusTrackingEnabled !== false) {
             initStatusCounterTracking(); // Status transfer counters
         }

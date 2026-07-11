@@ -256,7 +256,6 @@
             saveCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             saveCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
             saveCheckbox('tm-setting-customer-history-enabled', 'customerHistoryEnabled');
-            saveCheckbox('tm-setting-automated-parts-search-enabled', 'automatedPartsSearchEnabled');
             saveCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
             saveNumber('tm-setting-recent-repairs-max', 'recentRepairsMaxItems');
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
@@ -1124,7 +1123,6 @@
             populateCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             populateCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
             populateCheckbox('tm-setting-search-enabled', 'searchFeatureEnabled');
-            populateCheckbox('tm-setting-automated-parts-search-enabled', 'automatedPartsSearchEnabled');
             populateCheckbox('tm-setting-quick-search-enabled', 'quickSearchEnabled');
             populateCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
             populateCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');

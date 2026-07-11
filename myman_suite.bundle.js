@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v170 — generated, do not edit */
+/* MyManager Suite bundle v171 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -2118,7 +2118,7 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '169',
+        version: '170',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -7302,27 +7302,6 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
                 pointer-events: none;
             }
 
-            /* --- Feature: Automated Parts Search Sidebar --- */
-            #tm-auto-parts-sidebar {
-                position: fixed; top: 80px; left: 10px; width: 280px;
-                max-height: calc(100vh - 100px); background: #f9f9f9;
-                border: 1px solid #ccc; border-radius: 8px; z-index: 9995;
-                box-shadow: 0 3px 10px rgba(0,0,0,0.15); display: flex;
-                flex-direction: column; font-size: 13px;
-            }
-            #tm-auto-parts-header {
-                display: flex; justify-content: space-between; align-items: center;
-                padding: 8px 12px; background: #e9ecef; border-bottom: 1px solid #ccc;
-            }
-            #tm-auto-parts-title { font-weight: bold; color: #333; }
-            #tm-auto-parts-close { background: none; border: none; font-size: 20px; cursor: pointer; }
-            #tm-auto-parts-content { padding: 10px; overflow-y: auto; }
-            .tm-parts-category { margin-bottom: 15px; }
-            .tm-parts-category-title { font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 8px; }
-            .tm-parts-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; }
-            .tm-parts-list-item a { display: block; padding: 4px 6px; border-radius: 4px; text-decoration: none; color: var(--tm-primary-color); background: #fff; border: 1px solid #eee; }
-            .tm-parts-list-item a:hover { background: #e7f1ff; }
-            .tm-parts-loading, .tm-parts-not-found { color: #888; font-style: italic; }
         `);
     }
     // Make the function globally accessible
@@ -7599,7 +7578,6 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
             saveCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             saveCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
             saveCheckbox('tm-setting-customer-history-enabled', 'customerHistoryEnabled');
-            saveCheckbox('tm-setting-automated-parts-search-enabled', 'automatedPartsSearchEnabled');
             saveCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
             saveNumber('tm-setting-recent-repairs-max', 'recentRepairsMaxItems');
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
@@ -8467,7 +8445,6 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
             populateCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             populateCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
             populateCheckbox('tm-setting-search-enabled', 'searchFeatureEnabled');
-            populateCheckbox('tm-setting-automated-parts-search-enabled', 'automatedPartsSearchEnabled');
             populateCheckbox('tm-setting-quick-search-enabled', 'quickSearchEnabled');
             populateCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
             populateCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
@@ -37512,7 +37489,6 @@ if (typeof window !== 'undefined') {
         interactiveMascotEnabled: true,
         confettiEnabled: true,
         mascotRoamingSpeed: 100,
-        automatedPartsSearchEnabled: true,
         // New supercharged features
         randomEventsEnabled: true,
         smartTemplatesEnabled: true,
@@ -41763,98 +41739,6 @@ if (typeof window !== 'undefined') {
     }
 
     // ===================================================================
-    // === 8a. FEATURE: AUTOMATED PARTS SEARCH SIDEBAR
-    // ===================================================================
-    /**
-     * On repair pages, automatically searches for common parts for the detected
-     * device model and displays them in a non-intrusive sidebar.
-     */
-    function initAutomatedPartsSearch() {
-        // Only run on service edit pages and if the feature is enabled // Pass config
-        if (!config.automatedPartsSearchEnabled || !window.location.pathname.includes('/mymanagerservice/service_edit.php')) {
-            return;
-        }
-
-        const deviceModel = getPhoneModelFromPage();
-        if (!deviceModel) {
-            console.log('[MMS Parts Search] No device model detected on this page. Aborting.');
-            return;
-        }
-
-        console.log(`[MMS Parts Search] Detected model: "${deviceModel}". Initializing sidebar.`);
-
-        // 1. Create the Sidebar UI
-        const sidebar = document.createElement('div');
-        sidebar.id = 'tm-auto-parts-sidebar';
-        sidebar.innerHTML = `
-            <div id="tm-auto-parts-header">
-                <span id="tm-auto-parts-title">Suggested Parts</span>
-                <button id="tm-auto-parts-close">&times;</button>
-            </div>
-            <div id="tm-auto-parts-content"></div>
-        `;
-        document.body.appendChild(sidebar);
-
-        sidebar.querySelector('#tm-auto-parts-close').addEventListener('click', () => sidebar.remove());
-
-        const contentContainer = sidebar.querySelector('#tm-auto-parts-content');
-
-        // 2. Perform searches for each common part
-        config.quickSearchButtons.forEach(part => {
-            const searchTerm = `${deviceModel} ${part.term}`;
-            const categoryDiv = document.createElement('div');
-            categoryDiv.className = 'tm-parts-category';
-            categoryDiv.innerHTML = `
-                <div class="tm-parts-category-title">${part.label}</div>
-                <div class="tm-parts-loading">Searching...</div>
-                <ul class="tm-parts-list"></ul>
-            `;
-            contentContainer.appendChild(categoryDiv);
-
-            const searchUrl = `/mymanagerservice/products_list.php?qs=${encodeURIComponent(searchTerm)}`;
-
-            GM_xmlhttpRequest({
-                method: 'GET',
-                url: searchUrl,
-                onload: function(response) {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(response.responseText, 'text/html');
-                    // The results table can be inside different containers. Let's make the selector more robust.
-                    // It's usually the first major grid table on the page.
-                    const gridTable = doc.querySelector('.rnr-c-grid table.rnr-b-grid, table.rnr-b-grid');
-                    const list = categoryDiv.querySelector('.tm-parts-list');
-
-                    categoryDiv.querySelector('.tm-parts-loading').style.display = 'none';
-
-                    if (!gridTable) {
-                        categoryDiv.innerHTML += '<div class="tm-parts-not-found">Error: Could not find data table.</div>';
-                        return;
-                    }
-
-                    // Dynamically find the description column index
-                    const headers = Array.from(gridTable.querySelectorAll('thead th')).map(th => th.innerText.trim());
-                    const descriptionIndex = headers.findIndex(h => h.includes('Περιγραφή') || h.includes('Description'));
-
-                    
-
-                    const rows = gridTable.querySelectorAll('tbody tr[id^="gridRow"]');
-                    if (rows.length === 0 || descriptionIndex === -1) {
-                        categoryDiv.innerHTML += '<div class="tm-parts-not-found">No results found.</div>';
-                    } else {
-                        rows.forEach(row => {
-                            const link = row.querySelector('a[href*="products_edit.php"]');
-                            const description = row.cells[descriptionIndex]?.innerText.trim();
-                            if (link && description) {
-                                list.innerHTML += `<li class="tm-parts-list-item"><a href="${link.href}" target="_blank">${description}</a></li>`;
-                            }
-                        });
-                    }
-                }
-            });
-        });
-    }
-
-    // ===================================================================
     // === WEATHER WIDGET
     // ===================================================================
     // Weather widget functions have been moved to myman_weather.js
@@ -43801,7 +43685,6 @@ if (typeof window !== 'undefined') {
         if (config?.scratchpadEnabled) {
         initReminderSystem(STORAGE_KEYS);
         }
-        initAutomatedPartsSearch();
         if (config?.statusTrackingEnabled !== false) {
             initStatusCounterTracking(); // Status transfer counters
         }
