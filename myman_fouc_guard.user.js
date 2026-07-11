@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         MyManager FOUC Guard (instant hide)
+// @name         MyManager FOUC Guard
 // @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Hides MyManager until the main suite applies your theme. Install alongside MyManager All-in-One Suite.
+// @version      1.1
+// @description  Optional extra hide layer (no downloads). Enable if you still see a flash before the main suite loads.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @run-at       document-start
@@ -22,18 +22,6 @@
 
     var style = document.createElement('style');
     style.id = 'tm-mms-fouc-guard';
-    style.textContent = [
-        'html:not(.tm-mms-theme-ready){',
-        'visibility:hidden!important;',
-        'opacity:0!important;',
-        'background:#121212!important;',
-        '}',
-        'html:not(.tm-mms-theme-ready) body{',
-        'visibility:hidden!important;',
-        'opacity:0!important;',
-        '}',
-    ].join('');
-
-    var parent = document.head || document.getElementsByTagName('head')[0] || root;
-    parent.appendChild(style);
+    style.textContent = 'html:not(.tm-mms-theme-ready),html:not(.tm-mms-theme-ready) body{visibility:hidden!important;opacity:0!important;background:#121212!important}';
+    (document.head || root).appendChild(style);
 })();
