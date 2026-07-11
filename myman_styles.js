@@ -59,7 +59,6 @@
             /* --- Notification Center Styles --- */
             #tm-notification-bell-wrapper { position: relative; }
             #tm-notification-bell-btn {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
                 backdrop-filter: blur(10px) !important;
                 -webkit-backdrop-filter: blur(10px) !important;
                 color: white !important;
@@ -732,7 +731,6 @@
                 height: 40px;
                 cursor: pointer;
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
                 backdrop-filter: blur(10px) !important;
                 -webkit-backdrop-filter: blur(10px) !important;
                 color: var(--tm-primary-color) !important;
@@ -805,7 +803,6 @@
 
             /* --- Feature: Settings Panel --- */
             #tm-settings-btn {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
                 backdrop-filter: blur(10px) !important;
                 -webkit-backdrop-filter: blur(10px) !important;
                 color: white !important;
@@ -832,14 +829,12 @@
             
             /* --- Daily Dashboard Widget Glass Theme --- */
             #tm-daily-dashboard-widget {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
                 backdrop-filter: blur(10px) !important;
                 -webkit-backdrop-filter: blur(10px) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 color: var(--tm-primary-color) !important;
             }
             #tm-daily-dashboard-widget:hover {
-                background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%) !important;
                 backdrop-filter: blur(10px) !important;
                 -webkit-backdrop-filter: blur(10px) !important;
                 transform: translateY(-3px) scale(1.05);
@@ -2930,7 +2925,6 @@
 
             /* Coin Balance in Footer */
             #tm-coin-balance {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
                 backdrop-filter: blur(10px) !important;
                 -webkit-backdrop-filter: blur(10px) !important;
                 color: var(--tm-primary-color) !important;
