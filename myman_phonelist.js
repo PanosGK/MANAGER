@@ -398,6 +398,45 @@ function getPhoneGradeDisplayStyle(grade) {
     return `color:${gradeColor};font-weight:600;font-size:11px;${outline}`;
 }
 
+function getPhoneGradeCircleStyle(grade) {
+    const gradeColor = getPhoneGradeColor(grade);
+    const outline = (isCatalogDarkTheme() && isDarkPhoneColorHex(gradeColor))
+        ? getDarkPhoneTitleOutlineStyle()
+        : '';
+    return `background:${gradeColor}20;color:${gradeColor};border:2px solid ${gradeColor}50;${outline}`;
+}
+
+function getPhoneModelTitleStyle(colorName, colorHex) {
+    const titleColor = colorHex || 'var(--tm-shop-item-text)';
+    const outline = getPhoneCatalogOutlineStyle(colorName, colorHex);
+    const glow = (!isCatalogDarkTheme() && !isWhitePhoneColor(colorName) && colorHex)
+        ? `text-shadow:0 0 12px ${colorHex}55;`
+        : '';
+    return `font-weight:800;font-size:13px;color:${titleColor};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;${outline}${glow}`;
+}
+
+function getPhoneColorLabelStyle(colorName, colorHex) {
+    const outline = getPhoneCatalogOutlineStyle(colorName, colorHex);
+    const color = colorHex || 'var(--tm-shop-item-text)';
+    return `display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;opacity:0.85;color:${color};${outline}`;
+}
+
+function getPhonePricePillStyle() {
+    const base = 'margin-left:auto;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;white-space:nowrap;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;';
+    if (isCatalogDarkTheme()) {
+        return `${base}color:#86efac;background:rgba(34,197,94,0.18);border:1px solid rgba(34,197,94,0.45);`;
+    }
+    return `${base}color:#15803d;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);`;
+}
+
+function getPhoneBarcodeStyle() {
+    const base = "font-family:'Courier New',Consolas,monospace;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:0.04em;color:var(--tm-shop-item-text);border-radius:5px;padding:1px 7px;line-height:1.35;";
+    if (isCatalogDarkTheme()) {
+        return `${base}opacity:0.92;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);`;
+    }
+    return `${base}opacity:0.78;background:rgba(128,128,128,0.14);border:1px solid rgba(128,128,128,0.22);`;
+}
+
 function applyPhoneCatalogTextOutline(el, colorName, colorHex) {
     if (!el) return;
     el.style.webkitTextStroke = '';
@@ -997,7 +1036,10 @@ function renderPhoneStoreChipHtml(storeName, isBuyback) {
     if (!allowed) {
         return `<span style="display:inline-flex;align-items:center;gap:3px;background:#f4433618;border:1px solid #f4433644;color:#f44336;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:600;white-space:nowrap;">✕ ${cleanName}</span>`;
     }
-    return `<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(128,128,128,0.08);border:1px solid rgba(128,128,128,0.2);color:var(--tm-shop-item-text);opacity:0.6;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:500;white-space:nowrap;">${cleanName}</span>`;
+    const neutralBg = isCatalogDarkTheme() ? 'rgba(255,255,255,0.08)' : 'rgba(128,128,128,0.08)';
+    const neutralBorder = isCatalogDarkTheme() ? 'rgba(255,255,255,0.18)' : 'rgba(128,128,128,0.2)';
+    const neutralOpacity = isCatalogDarkTheme() ? '0.92' : '0.6';
+    return `<span style="display:inline-flex;align-items:center;gap:3px;background:${neutralBg};border:1px solid ${neutralBorder};color:var(--tm-shop-item-text);opacity:${neutralOpacity};border-radius:20px;padding:2px 8px;font-size:10px;font-weight:500;white-space:nowrap;">${cleanName}</span>`;
 }
 
 function renderPhoneStoreChipsHtml(stores, isBuyback) {
@@ -4843,15 +4885,15 @@ async function showPhoneListModal() {
             const displayModel = extractBaseModel(item.model) || item.model || item.name;
             const storage      = extractGB(item.name || item.model);
             const isFavorite   = favorites.includes(item.barcode);
-            const isWhiteItem  = isWhitePhoneColor(itemColor);
-            const titleOutline = getPhoneCatalogOutlineStyle(itemColor, itemColorHex);
-            const titleGlow    = (!isCatalogDarkTheme() && !isWhiteItem && itemColorHex) ? `text-shadow:0 0 12px ${itemColorHex}55;` : '';
 
             const gradeColor = getPhoneGradeColor(item.grade);
+            const colorDotBorder = (isCatalogDarkTheme() && itemColorHex && isDarkPhoneColorHex(itemColorHex))
+                ? 'border:1px solid rgba(255,255,255,0.35);'
+                : 'border:1px solid rgba(0,0,0,0.2);';
 
             const colorDot = itemColorHex
                 ? `<span style="width:9px;height:9px;border-radius:50%;background:${itemColorHex};
-                    display:inline-block;flex-shrink:0;border:1px solid rgba(0,0,0,0.2);"></span>`
+                    display:inline-block;flex-shrink:0;${colorDotBorder}"></span>`
                 : '';
 
             const noBuybackStore = item.isBuyback && oneUnitStores.length > 0 && !phoneHasAllowedBuybackStore(item.stores);
@@ -4861,7 +4903,7 @@ async function showPhoneListModal() {
                 <div class="tm-other-store-card" style="border-color:${gradeColor}40;animation-delay:${idx * 18}ms;">
 
                     <!-- Grade circle -->
-                    <div class="tm-os-grade-circle" style="background:${gradeColor}20;color:${gradeColor};border:2px solid ${gradeColor}50;">
+                    <div class="tm-os-grade-circle" style="${getPhoneGradeCircleStyle(item.grade)}">
                         ${item.grade || '?'}
                     </div>
 
@@ -4869,28 +4911,15 @@ async function showPhoneListModal() {
                     <div style="flex:1;min-width:0;">
                         <div class="tm-os-model-row" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;">
                             ${noBuybackStore ? `<span title="${noBuybackTitle}" style="font-size:12px;line-height:1;">🚫</span>` : ''}
-                            <span style="font-weight:800;font-size:13px;
-                                color:${itemColorHex || 'var(--tm-shop-item-text)'};
-                                ${titleGlow}${titleOutline}
-                                white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;"
+                            <span style="${getPhoneModelTitleStyle(itemColor, itemColorHex)}"
                                 title="${displayModel}">${displayModel}</span>
                             ${storage ? `<span style="${getPhoneStorageChipStyle()}">${storage}</span>` : ''}
                             ${item.isBuyback ? `<span style="background:#06b6d420;border:1px solid #06b6d450;color:#06b6d4;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;flex-shrink:0;">Buyback</span>` : ''}
-                            ${item.retailPrice ? `<span class="tm-os-price-pill" style="
-                                margin-left:auto;
-                                display:inline-flex;align-items:center;justify-content:center;
-                                flex-shrink:0;white-space:nowrap;
-                                padding:3px 10px;border-radius:999px;
-                                font-size:12px;font-weight:700;
-                                font-variant-numeric:tabular-nums;
-                                color:#15803d;
-                                background:rgba(34,197,94,0.12);
-                                border:1px solid rgba(34,197,94,0.35);
-                            ">${item.retailPrice}<span style="opacity:0.9;margin-left:1px;">€</span></span>` : ''}
+                            ${item.retailPrice ? `<span class="tm-os-price-pill" style="${getPhonePricePillStyle()}">${item.retailPrice}<span style="opacity:0.9;margin-left:1px;">€</span></span>` : ''}
                         </div>
                         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:1px;">
-                            ${colorDot ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;opacity:0.5;">${colorDot}<span>${itemColor}</span></span>` : ''}
-                            <span class="tm-os-barcode" title="${item.barcode}">${item.barcode}</span>
+                            ${colorDot ? `<span style="${getPhoneColorLabelStyle(itemColor, itemColorHex)}">${colorDot}<span>${itemColor}</span></span>` : ''}
+                            <span class="tm-os-barcode" style="${getPhoneBarcodeStyle()}" title="${item.barcode}">${item.barcode}</span>
                         </div>
                     </div>
 
@@ -5702,7 +5731,7 @@ async function showPhoneListModal() {
             if (filtersToUpdate.includes('grade')) {
                 const grades = [...new Set(base.map(p => p.grade).filter(g => g))].sort(comparePhoneGrades);
                 gradeFilterOS.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Grades']}</option>` +
-                    grades.map(g => `<option value="${g}">${g}</option>`).join('');
+                    grades.map(g => `<option value="${g}" style="${getPhoneGradeDisplayStyle(g)}">${g}</option>`).join('');
                 if (grades.includes(currentGrade)) gradeFilterOS.value = currentGrade;
             }
             
@@ -5711,7 +5740,7 @@ async function showPhoneListModal() {
                     return extractBaseModel(p.model);
                 }).filter(m => m))].sort();
                 modelFilterOS.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Models']}</option>` +
-                    models.map(m => `<option value="${m}">${m}</option>`).join('');
+                    models.map(m => `<option value="${m}" style="${getPhoneCatalogMetaTextStyle()}">${m}</option>`).join('');
                 if (models.includes(currentModel)) modelFilterOS.value = currentModel;
             }
             
@@ -5725,7 +5754,7 @@ async function showPhoneListModal() {
                     return aNum - bNum;
                 });
                 gbFilterOS.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Storage']}</option>` +
-                    storages.map(s => `<option value="${s}">${s}</option>`).join('');
+                    storages.map(s => `<option value="${s}" style="${getPhoneCatalogMetaTextStyle()}">${s}</option>`).join('');
                 if (storages.includes(currentGB)) gbFilterOS.value = currentGB;
             }
             
