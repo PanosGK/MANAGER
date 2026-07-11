@@ -22,7 +22,6 @@ h1, h2, h3, h4, h5, h6, .pagetitle {
 .rnr-top, #head-outter, #footer-outter, #footer-outterwrap,
 .rnr-cw-hmenu, .rnr-cw-pagination, .rnr-cw-pagination_bottom,
 .rnr-s-menu, .rnr-s-grid, .rnr-c-hmenu, .rnr-c-pagination, .rnr-c-pagination_bottom,
-#tm-level-text, #tm-energized-buff-indicator,
 .jconfirm, #tm-memory-game-overlay, #tm-game-overlay,
 .tm-modal-overlay,
 #tm-mascot-interaction-panel,

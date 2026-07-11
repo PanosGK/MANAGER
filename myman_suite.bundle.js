@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v179 — generated, do not edit */
+/* MyManager Suite bundle v180 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -601,7 +601,7 @@ window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
 
 // ----- myman_performance_styles.js -----
 /** Global GPU/compositor savings — injected after theme styles. */
-const PERFORMANCE_STYLES = `
+const PERFORMANCE_STYLES_BASE = `
 /* ===== Theme performance (GPU) ===== */
 
 /* Full-screen infinite animations repaint every frame */
@@ -620,38 +620,16 @@ h1, h2, h3, h4, h5, h6, .pagetitle {
     text-shadow: none !important;
 }
 
-/* backdrop-filter is the #1 GPU cost — use solid panels instead */
+/* backdrop-filter is the #1 GPU cost — use solid panels instead (not default-theme footer) */
 .rnr-top, #head-outter, #footer-outter, #footer-outterwrap,
 .rnr-cw-hmenu, .rnr-cw-pagination, .rnr-cw-pagination_bottom,
 .rnr-s-menu, .rnr-s-grid, .rnr-c-hmenu, .rnr-c-pagination, .rnr-c-pagination_bottom,
-#tm-notification-bell-btn, #tm-notification-bell-btn:hover,
-#tm-refresh-timer-container, #tm-weather-widget,
-#tm-settings-btn, #tm-settings-btn:hover,
-#tm-daily-dashboard-widget, #tm-daily-dashboard-widget:hover,
-#tm-xp-bar-container, #tm-xp-bar-container:hover,
-#tm-coin-balance, #tm-coin-balance:hover,
-.tm-footer-widget, .tm-buff-timer,
-#tm-level-text, #tm-energized-buff-indicator,
 .jconfirm, #tm-memory-game-overlay, #tm-game-overlay,
 .tm-modal-overlay,
 #tm-mascot-interaction-panel,
 #tm-notification-backdrop {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-}
-
-/* Footer / suite widgets: solid theme surfaces (no glass blur) */
-#tm-notification-bell-btn,
-#tm-refresh-timer-container,
-#tm-weather-widget,
-#tm-settings-btn,
-#tm-daily-dashboard-widget,
-#tm-xp-bar-container,
-#tm-coin-balance,
-.tm-footer-widget,
-.tm-buff-timer {
-    background: var(--tm-shop-item-bg) !important;
-    border-color: var(--tm-shop-item-border, rgba(255,255,255,0.2)) !important;
 }
 
 /* Drop expensive glow text on scroll/hover */
@@ -694,12 +672,6 @@ a:hover, .rnr-orderlink:hover,
     animation: none !important;
 }
 
-/* Cheaper transitions (avoid compositing "all") */
-.rnr-button, .btn, .tm-footer-widget, #tm-xp-bar-container,
-#tm-settings-btn, #tm-refresh-timer-container {
-    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease !important;
-}
-
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation: none !important;
@@ -708,11 +680,40 @@ a:hover, .rnr-orderlink:hover,
 }
 `;
 
+const PERFORMANCE_STYLES_NON_DEFAULT_FOOTER = `
+/* Non-default themes: solid footer widgets (no glass blur) */
+#tm-notification-bell-btn,
+#tm-refresh-timer-container,
+#tm-weather-widget,
+#tm-settings-btn,
+#tm-daily-dashboard-widget,
+#tm-xp-bar-container,
+#tm-coin-balance,
+.tm-footer-widget,
+.tm-buff-timer {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--tm-shop-item-bg) !important;
+    border-color: var(--tm-shop-item-border, rgba(255,255,255,0.2)) !important;
+}
+
+/* Cheaper transitions (avoid compositing "all") */
+.rnr-button, .btn, .tm-footer-widget, #tm-xp-bar-container,
+#tm-settings-btn, #tm-refresh-timer-container {
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease !important;
+}
+`;
+
 function tmInjectPerformanceStyles() {
+    const themeId = typeof window.tmReadEquippedThemeId === 'function'
+        ? window.tmReadEquippedThemeId()
+        : String(window.__tmEarlyThemeId || 'default');
+    const isDefaultTheme = themeId === 'default';
+
     document.getElementById('tm-performance-styles')?.remove();
     const el = document.createElement('style');
     el.id = 'tm-performance-styles';
-    el.textContent = PERFORMANCE_STYLES;
+    el.textContent = PERFORMANCE_STYLES_BASE + (isDefaultTheme ? '' : PERFORMANCE_STYLES_NON_DEFAULT_FOOTER);
     document.head.appendChild(el);
 }
 
@@ -2302,6 +2303,7 @@ function tmApplyThemeColors(themeId, options = {}) {
         root.style.backgroundColor = bg;
     }
     root.style.setProperty('--tm-shop-item-text', tmResolveShopItemText(theme.colors));
+    document.documentElement.dataset.tmTheme = themeId;
 
     if (options.pageStyles !== false) {
         document.getElementById('tm-page-theme-styles')?.remove();
@@ -2352,7 +2354,7 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '178',
+        version: '179',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -4209,7 +4211,9 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
             /* --- Notification Center Styles --- */
             #tm-notification-bell-wrapper { position: relative; }
             #tm-notification-bell-btn {
-                background: var(--tm-shop-item-bg) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 color: white !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 width: 40px;
@@ -4225,6 +4229,8 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
             }
             #tm-notification-bell-btn:hover {
                 background: linear-gradient(135deg, rgba(255, 193, 7, 0.4) 0%, rgba(255, 152, 0, 0.4) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 transform: translateY(-3px) scale(1.05);
                 box-shadow: 0 6px 16px rgba(0,0,0,0.3);
                 border-color: rgba(255,255,255,0.4) !important;
@@ -4878,7 +4884,9 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
                 height: 40px;
                 cursor: pointer;
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                background: var(--tm-shop-item-bg) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 color: var(--tm-primary-color) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 border-radius: 12px;
@@ -4895,7 +4903,9 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
             
             /* --- Weather Widget Glass Theme --- */
             #tm-weather-widget {
-                background: var(--tm-shop-item-bg) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 color: var(--tm-primary-color) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
             }
@@ -4947,7 +4957,9 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
 
             /* --- Feature: Settings Panel --- */
             #tm-settings-btn {
-                background: var(--tm-shop-item-bg) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 color: white !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 width: 40px;
@@ -4962,7 +4974,9 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
             #tm-settings-btn:hover { 
-                background: var(--tm-shop-item-bg) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 transform: translateY(-3px) scale(1.05);
                 box-shadow: 0 6px 16px rgba(0,0,0,0.3);
                 border-color: rgba(255,255,255,0.4) !important;
@@ -4970,12 +4984,16 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
             
             /* --- Daily Dashboard Widget Glass Theme --- */
             #tm-daily-dashboard-widget {
-                background: var(--tm-shop-item-bg) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 color: var(--tm-primary-color) !important;
             }
             #tm-daily-dashboard-widget:hover {
-                background: var(--tm-shop-item-hover-bg, var(--tm-shop-item-bg)) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 transform: translateY(-3px) scale(1.05);
                 box-shadow: 0 6px 16px rgba(0,0,0,0.3);
                 border-color: rgba(255,255,255,0.4) !important;
@@ -5339,7 +5357,9 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
             
             /* --- Unified Footer Widget Styling --- */
             .tm-footer-widget {
-                background: var(--tm-shop-item-bg);
+                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
                 color: var(--tm-primary-color);
                 border: 1px solid rgba(255,255,255,0.2);
                 border-radius: 12px;
@@ -6857,7 +6877,9 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
             }
             /* XP Bar in Footer - Redesigned with integrated title */
             #tm-xp-bar-container {
-                background: var(--tm-shop-item-bg) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 color: var(--tm-primary-color) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 border-radius: 12px;
@@ -6874,7 +6896,9 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
                 justify-content: center;
             }
             #tm-xp-bar-container:hover {
-                background: var(--tm-shop-item-hover-bg, var(--tm-shop-item-bg)) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 transform: translateY(-2px);
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             }
@@ -6902,6 +6926,7 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
                 top: 3px;
                 right: 6px;
                 background: linear-gradient(135deg, rgba(255,215,0,0.3) 0%, rgba(255,170,0,0.3) 100%);
+                backdrop-filter: blur(4px);
                 padding: 2px 6px;
                 border-radius: 10px;
                 font-size: 8px;
@@ -6917,6 +6942,7 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
                 top: 3px;
                 left: 6px;
                 background: linear-gradient(135deg, rgba(0,191,255,0.3) 0%, rgba(0,242,254,0.3) 100%);
+                backdrop-filter: blur(4px);
                 padding: 2px 6px;
                 border-radius: 10px;
                 font-size: 8px;
@@ -6980,7 +7006,9 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
                 position: relative;
                 width: 40px;
                 height: 40px;
-                background: var(--tm-shop-item-bg) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 border-radius: 50%;
                 cursor: pointer;
@@ -7054,7 +7082,9 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
 
             /* Coin Balance in Footer */
             #tm-coin-balance {
-                background: var(--tm-shop-item-bg) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 color: var(--tm-primary-color) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 font-size: 14px;
@@ -7071,7 +7101,9 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
                 gap: 6px;
             }
             #tm-coin-balance:hover {
-                background: var(--tm-shop-item-hover-bg, var(--tm-shop-item-bg)) !important;
+                background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
                 transform: translateY(-3px) scale(1.05);
                 box-shadow: 0 6px 16px rgba(0,0,0,0.3);
                 border-color: rgba(255,255,255,0.4) !important;
