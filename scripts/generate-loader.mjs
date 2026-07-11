@@ -136,6 +136,22 @@ function buildInlineBootstrap(bundleLoadUrl) {
         }
     }
 
+    function exposeTampermonkeyApisForBundle() {
+        var g = typeof globalThis !== 'undefined' ? globalThis : window;
+        if (typeof GM_getValue === 'function') g.GM_getValue = GM_getValue;
+        if (typeof GM_setValue === 'function') g.GM_setValue = GM_setValue;
+        if (typeof GM_deleteValue === 'function') g.GM_deleteValue = GM_deleteValue;
+        if (typeof GM_listValues === 'function') g.GM_listValues = GM_listValues;
+        if (typeof GM_addStyle === 'function') g.GM_addStyle = GM_addStyle;
+        if (typeof GM_xmlhttpRequest === 'function') g.GM_xmlhttpRequest = GM_xmlhttpRequest;
+    }
+
+    function runBundle(code) {
+        exposeTampermonkeyApisForBundle();
+        // Direct eval keeps execution in the Tampermonkey sandbox (indirect eval uses page scope).
+        eval(code);
+    }
+
     function loadBundle() {
         if (typeof GM_xmlhttpRequest !== 'function') {
             console.error('[MMS] GM_xmlhttpRequest unavailable');
@@ -149,7 +165,7 @@ function buildInlineBootstrap(bundleLoadUrl) {
             onload: function (response) {
                 if (response.status >= 200 && response.status < 300 && response.responseText) {
                     try {
-                        (0, eval)(response.responseText);
+                        runBundle(response.responseText);
                     } catch (err) {
                         console.error('[MMS] Bundle eval failed:', err);
                         revealOnFailure();
