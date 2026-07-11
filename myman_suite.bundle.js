@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v176 — generated, do not edit */
+/* MyManager Suite bundle v178 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -2352,7 +2352,7 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '176',
+        version: '177',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -24225,15 +24225,103 @@ function getListColorHex(colorName) {
     return entry.listHex || entry.hex || null;
 }
 
+function parseCssColorRgb(color) {
+    const s = String(color || '').trim();
+    const rgba = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+    if (rgba) return { r: +rgba[1], g: +rgba[2], b: +rgba[3] };
+    const hex = s.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+    if (hex) {
+        return {
+            r: parseInt(hex[1], 16),
+            g: parseInt(hex[2], 16),
+            b: parseInt(hex[3], 16),
+        };
+    }
+    return null;
+}
+
+function colorRgbLuminance(rgb) {
+    return (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+}
+
+function isCatalogDarkTheme() {
+    const themeId = typeof window.tmReadEquippedThemeId === 'function'
+        ? window.tmReadEquippedThemeId()
+        : String(window.__tmEarlyThemeId || 'default');
+    return themeId !== 'solarized_light';
+}
+
+function isDarkPhoneColorHex(hex) {
+    const rgb = parseCssColorRgb(hex);
+    if (!rgb) return false;
+    return colorRgbLuminance(rgb) < 0.45;
+}
+
+function isWhitePhoneColor(colorName) {
+    if (!colorName) return false;
+    return colorName.toUpperCase().includes('WHITE');
+}
+
+function getWhitePhoneTitleOutlineStyle() {
+    return '-webkit-text-stroke:0.65px rgba(0,0,0,0.7);text-shadow:0 0 1px rgba(0,0,0,0.85),0 1px 3px rgba(0,0,0,0.4);paint-order:stroke fill;';
+}
+
+function getDarkPhoneTitleOutlineStyle() {
+    return '-webkit-text-stroke:0.65px rgba(255,255,255,0.88);text-shadow:0 0 1px rgba(255,255,255,0.95),0 1px 3px rgba(0,0,0,0.5);paint-order:stroke fill;';
+}
+
+function getPhoneCatalogOutlineStyle(colorName, colorHex) {
+    if (isWhitePhoneColor(colorName)) {
+        return getWhitePhoneTitleOutlineStyle();
+    }
+    if (isCatalogDarkTheme() && colorHex && isDarkPhoneColorHex(colorHex)) {
+        return getDarkPhoneTitleOutlineStyle();
+    }
+    return '';
+}
+
+function getPhoneCatalogMetaTextStyle(extra = '') {
+    return `color:var(--tm-shop-item-text);font-weight:500;${extra}`;
+}
+
+function getPhoneStorageChipStyle() {
+    const base = 'border-radius:20px;padding:1px 7px;font-size:10px;font-weight:600;flex-shrink:0;color:var(--tm-shop-item-text);';
+    if (isCatalogDarkTheme()) {
+        return `background:rgba(255,255,255,0.10);${base}`;
+    }
+    return `background:rgba(128,128,128,0.13);opacity:0.85;${base}`;
+}
+
+function getPhoneGradeDisplayStyle(grade) {
+    const gradeColor = getPhoneGradeColor(grade);
+    const outline = (isCatalogDarkTheme() && isDarkPhoneColorHex(gradeColor))
+        ? getDarkPhoneTitleOutlineStyle()
+        : '';
+    return `color:${gradeColor};font-weight:600;font-size:11px;${outline}`;
+}
+
+function applyPhoneCatalogTextOutline(el, colorName, colorHex) {
+    if (!el) return;
+    el.style.webkitTextStroke = '';
+    el.style.textShadow = '';
+    el.style.paintOrder = '';
+    if (isWhitePhoneColor(colorName)) {
+        el.style.webkitTextStroke = '0.65px rgba(0,0,0,0.7)';
+        el.style.textShadow = '0 0 1px rgba(0,0,0,0.85), 0 1px 3px rgba(0,0,0,0.4)';
+        el.style.paintOrder = 'stroke fill';
+    } else if (isCatalogDarkTheme() && colorHex && isDarkPhoneColorHex(colorHex)) {
+        el.style.webkitTextStroke = '0.65px rgba(255,255,255,0.88)';
+        el.style.textShadow = '0 0 1px rgba(255,255,255,0.95), 0 1px 3px rgba(0,0,0,0.5)';
+        el.style.paintOrder = 'stroke fill';
+    }
+}
+
 function getPhoneColorDropdownStyle(colorName) {
     if (!colorName) {
         return 'background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);padding:10px;';
     }
     const hex = getListColorHex(colorName) || '#808080';
-    const isWhite = colorName.toUpperCase().includes('WHITE');
-    const outline = isWhite
-        ? '-webkit-text-stroke:0.65px rgba(0,0,0,0.7);text-shadow:0 0 1px rgba(0,0,0,0.85),0 1px 2px rgba(0,0,0,0.35);'
-        : '';
+    const outline = getPhoneCatalogOutlineStyle(colorName, hex);
     return `background:var(--tm-shop-item-bg);color:${hex};font-weight:700;padding:10px;${outline}`;
 }
 
@@ -24255,13 +24343,7 @@ function syncPhoneColorSelectDisplay(selectEl) {
     if (!hex) return;
     selectEl.style.color = hex;
     selectEl.style.fontWeight = '700';
-    if (selectEl.value.toUpperCase().includes('WHITE')) {
-        selectEl.style.webkitTextStroke = '0.65px rgba(0,0,0,0.7)';
-        selectEl.style.textShadow = '0 0 1px rgba(0,0,0,0.85), 0 1px 2px rgba(0,0,0,0.35)';
-    } else {
-        selectEl.style.webkitTextStroke = '';
-        selectEl.style.textShadow = '';
-    }
+    applyPhoneCatalogTextOutline(selectEl, selectEl.value, hex);
 }
 
 function getSwatchColorHex(colorName) {
@@ -26803,15 +26885,6 @@ async function showPhoneListModal() {
         return getListColorHex(colorName);
     }
 
-    function isWhitePhoneColor(colorName) {
-        if (!colorName) return false;
-        return colorName.toUpperCase().includes('WHITE');
-    }
-
-    function getWhitePhoneTitleOutlineStyle() {
-        return '-webkit-text-stroke:0.65px rgba(0,0,0,0.7);text-shadow:0 0 1px rgba(0,0,0,0.85),0 1px 3px rgba(0,0,0,0.4);paint-order:stroke fill;';
-    }
-
     function showColorManagerModal() {
         const existing = document.getElementById('tm-phone-colors-modal');
         if (existing) existing.remove();
@@ -26911,7 +26984,7 @@ async function showPhoneListModal() {
                 const entry = normalizeColorEntry(colors[name], name);
                 const listHex = entry.listHex || entry.hex || '#808080';
                 const aliases = getAliasesForColor(name).join(', ');
-                const titleOutline = isWhitePhoneColor(name) ? getWhitePhoneTitleOutlineStyle() : '';
+                const titleOutline = getPhoneCatalogOutlineStyle(name, listHex);
                 const nameInputStyle = `flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);font-size:13px;font-weight:700;min-width:0;box-sizing:border-box;color:${listHex};${titleOutline}`;
                 return `
                 <div class="tm-phone-color-row" data-color="${name}" style="padding:10px 0;border-bottom:1px solid var(--tm-shop-item-border);">
@@ -26933,7 +27006,7 @@ async function showPhoneListModal() {
             }).join('');
 
             const applyNameInputStyle = (input, colorName, hex) => {
-                const outline = isWhitePhoneColor(colorName) ? getWhitePhoneTitleOutlineStyle() : '';
+                const outline = getPhoneCatalogOutlineStyle(colorName, hex);
                 input.setAttribute('style', `flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);font-size:13px;font-weight:700;min-width:0;box-sizing:border-box;color:${hex};${outline}`);
             };
 
@@ -28045,7 +28118,7 @@ async function showPhoneListModal() {
                                 const phoneColor = extractColor(phone.name || phone.model);
                                 const colorHex = getColorHex(phoneColor);
                                 const titleColor = colorHex || 'var(--tm-shop-item-text)';
-                                const outlineStyle = isWhitePhoneColor(phoneColor) ? getWhitePhoneTitleOutlineStyle() : '';
+                                const outlineStyle = getPhoneCatalogOutlineStyle(phoneColor, colorHex);
                                 // Remove color from display - use base model without color
                                 const displayModel = extractBaseModel(phone.model) || phone.model || phone.name;
                                 return `<span style="
@@ -28089,16 +28162,17 @@ async function showPhoneListModal() {
                             opacity: 0.8;
                         ">
                             ${phone.grade ? (() => {
-                                const gradeColor = getPhoneGradeColor(phone.grade);
-                                return `<span style="color: ${gradeColor}; font-weight: 600; font-size: 11px;">Grade ${phone.grade}</span>`;
+                                return `<span style="${getPhoneGradeDisplayStyle(phone.grade)}">Grade ${phone.grade}</span>`;
                             })() : ''}
                             ${(() => {
                                 const storage = extractGB(phone.name || phone.model);
-                                return storage ? `<span style="font-weight: 500;">${storage}</span>` : '';
+                                return storage ? `<span style="${getPhoneCatalogMetaTextStyle()}">${storage}</span>` : '';
                             })()}
                             ${(() => {
                                 const phoneColor = extractColor(phone.name || phone.model);
-                                return phoneColor ? `<span style="font-weight: 500;">${phoneColor}</span>` : '';
+                                const colorHex = getColorHex(phoneColor);
+                                const outline = getPhoneCatalogOutlineStyle(phoneColor, colorHex);
+                                return phoneColor ? `<span style="${getPhoneCatalogMetaTextStyle(outline)}">${phoneColor}</span>` : '';
                             })()}
                             ${phone.isBuyback ? `<span style="color: #00bcd4; font-weight: 600; font-size: 11px;">Buyback</span>` : ''}
                             ${(() => {
@@ -28672,8 +28746,8 @@ async function showPhoneListModal() {
             const storage      = extractGB(item.name || item.model);
             const isFavorite   = favorites.includes(item.barcode);
             const isWhiteItem  = isWhitePhoneColor(itemColor);
-            const titleGlow    = (!isWhiteItem && itemColorHex) ? `text-shadow:0 0 12px ${itemColorHex}55;` : '';
-            const titleOutline = isWhiteItem ? getWhitePhoneTitleOutlineStyle() : '';
+            const titleOutline = getPhoneCatalogOutlineStyle(itemColor, itemColorHex);
+            const titleGlow    = (!isCatalogDarkTheme() && !isWhiteItem && itemColorHex) ? `text-shadow:0 0 12px ${itemColorHex}55;` : '';
 
             const gradeColor = getPhoneGradeColor(item.grade);
 
@@ -28702,7 +28776,7 @@ async function showPhoneListModal() {
                                 ${titleGlow}${titleOutline}
                                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;"
                                 title="${displayModel}">${displayModel}</span>
-                            ${storage ? `<span style="background:rgba(128,128,128,0.13);border-radius:20px;padding:1px 7px;font-size:10px;font-weight:600;opacity:0.65;flex-shrink:0;">${storage}</span>` : ''}
+                            ${storage ? `<span style="${getPhoneStorageChipStyle()}">${storage}</span>` : ''}
                             ${item.isBuyback ? `<span style="background:#06b6d420;border:1px solid #06b6d450;color:#06b6d4;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;flex-shrink:0;">Buyback</span>` : ''}
                             ${item.retailPrice ? `<span class="tm-os-price-pill" style="
                                 margin-left:auto;
