@@ -1580,6 +1580,7 @@ function tmApplyThemeColors(themeId, options = {}) {
         root.style.backgroundColor = bg;
     }
     root.style.setProperty('--tm-shop-item-text', tmResolveShopItemText(theme.colors));
+    document.documentElement.dataset.tmTheme = themeId;
 
     if (options.pageStyles !== false) {
         document.getElementById('tm-page-theme-styles')?.remove();

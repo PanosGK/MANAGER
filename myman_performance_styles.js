@@ -1,5 +1,5 @@
 /** Global GPU/compositor savings — injected after theme styles. */
-const PERFORMANCE_STYLES = `
+const PERFORMANCE_STYLES_BASE = `
 /* ===== Theme performance (GPU) ===== */
 
 /* Full-screen infinite animations repaint every frame */
@@ -18,17 +18,10 @@ h1, h2, h3, h4, h5, h6, .pagetitle {
     text-shadow: none !important;
 }
 
-/* backdrop-filter is the #1 GPU cost — use solid panels instead */
+/* backdrop-filter is the #1 GPU cost — use solid panels instead (not default-theme footer) */
 .rnr-top, #head-outter, #footer-outter, #footer-outterwrap,
 .rnr-cw-hmenu, .rnr-cw-pagination, .rnr-cw-pagination_bottom,
 .rnr-s-menu, .rnr-s-grid, .rnr-c-hmenu, .rnr-c-pagination, .rnr-c-pagination_bottom,
-#tm-notification-bell-btn, #tm-notification-bell-btn:hover,
-#tm-refresh-timer-container, #tm-weather-widget,
-#tm-settings-btn, #tm-settings-btn:hover,
-#tm-daily-dashboard-widget, #tm-daily-dashboard-widget:hover,
-#tm-xp-bar-container, #tm-xp-bar-container:hover,
-#tm-coin-balance, #tm-coin-balance:hover,
-.tm-footer-widget, .tm-buff-timer,
 #tm-level-text, #tm-energized-buff-indicator,
 .jconfirm, #tm-memory-game-overlay, #tm-game-overlay,
 .tm-modal-overlay,
@@ -36,20 +29,6 @@ h1, h2, h3, h4, h5, h6, .pagetitle {
 #tm-notification-backdrop {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-}
-
-/* Footer / suite widgets: solid theme surfaces (no glass blur) */
-#tm-notification-bell-btn,
-#tm-refresh-timer-container,
-#tm-weather-widget,
-#tm-settings-btn,
-#tm-daily-dashboard-widget,
-#tm-xp-bar-container,
-#tm-coin-balance,
-.tm-footer-widget,
-.tm-buff-timer {
-    background: var(--tm-shop-item-bg) !important;
-    border-color: var(--tm-shop-item-border, rgba(255,255,255,0.2)) !important;
 }
 
 /* Drop expensive glow text on scroll/hover */
@@ -92,12 +71,6 @@ a:hover, .rnr-orderlink:hover,
     animation: none !important;
 }
 
-/* Cheaper transitions (avoid compositing "all") */
-.rnr-button, .btn, .tm-footer-widget, #tm-xp-bar-container,
-#tm-settings-btn, #tm-refresh-timer-container {
-    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease !important;
-}
-
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation: none !important;
@@ -106,11 +79,40 @@ a:hover, .rnr-orderlink:hover,
 }
 `;
 
+const PERFORMANCE_STYLES_NON_DEFAULT_FOOTER = `
+/* Non-default themes: solid footer widgets (no glass blur) */
+#tm-notification-bell-btn,
+#tm-refresh-timer-container,
+#tm-weather-widget,
+#tm-settings-btn,
+#tm-daily-dashboard-widget,
+#tm-xp-bar-container,
+#tm-coin-balance,
+.tm-footer-widget,
+.tm-buff-timer {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--tm-shop-item-bg) !important;
+    border-color: var(--tm-shop-item-border, rgba(255,255,255,0.2)) !important;
+}
+
+/* Cheaper transitions (avoid compositing "all") */
+.rnr-button, .btn, .tm-footer-widget, #tm-xp-bar-container,
+#tm-settings-btn, #tm-refresh-timer-container {
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease !important;
+}
+`;
+
 function tmInjectPerformanceStyles() {
+    const themeId = typeof window.tmReadEquippedThemeId === 'function'
+        ? window.tmReadEquippedThemeId()
+        : String(window.__tmEarlyThemeId || 'default');
+    const isDefaultTheme = themeId === 'default';
+
     document.getElementById('tm-performance-styles')?.remove();
     const el = document.createElement('style');
     el.id = 'tm-performance-styles';
-    el.textContent = PERFORMANCE_STYLES;
+    el.textContent = PERFORMANCE_STYLES_BASE + (isDefaultTheme ? '' : PERFORMANCE_STYLES_NON_DEFAULT_FOOTER);
     document.head.appendChild(el);
 }
 
