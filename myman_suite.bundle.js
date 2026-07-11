@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v174 — generated, do not edit */
+/* MyManager Suite bundle v175 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -540,6 +540,21 @@ img[src='images/smsdelivered.png'] {
                 }
             }
         }
+        const shopBg = colors['--tm-shop-item-bg'];
+        const shopRgb = (() => {
+            const s = String(shopBg || '').trim();
+            const rgba = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+            if (rgba) return { r: +rgba[1], g: +rgba[2], b: +rgba[3] };
+            return hexToRgb(s);
+        })();
+        const lightShop = shopRgb
+            ? (0.299 * shopRgb.r + 0.587 * shopRgb.g + 0.114 * shopRgb.b) / 255 > 0.52
+            : true;
+        const shopText = colors['--tm-shop-item-text']
+            || (lightShop
+                ? (colors['--tm-text-on-light'] || '#343a40')
+                : (colors['--tm-text-on-dark'] || colors['--tm-primary-color'] || '#e8e8e8'));
+        root.style.setProperty('--tm-shop-item-text', shopText);
         const bg = colors['--tm-dark-color'] || colors['--tm-shop-item-bg'];
         if (bg) {
             root.style.backgroundColor = bg;
@@ -2126,6 +2141,33 @@ function tmHexToRgb(hex) {
     };
 }
 
+function tmParseRgbColor(color) {
+    const s = String(color || '').trim();
+    const rgba = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+    if (rgba) {
+        return { r: +rgba[1], g: +rgba[2], b: +rgba[3] };
+    }
+    return tmHexToRgb(s);
+}
+
+function tmIsLightShopItemBg(bg) {
+    const rgb = tmParseRgbColor(bg);
+    if (!rgb) return true;
+    const lum = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+    return lum > 0.52;
+}
+
+function tmResolveShopItemText(themeColors) {
+    if (themeColors['--tm-shop-item-text']) {
+        return themeColors['--tm-shop-item-text'];
+    }
+    const shopBg = themeColors['--tm-shop-item-bg'];
+    if (tmIsLightShopItemBg(shopBg)) {
+        return themeColors['--tm-text-on-light'] || '#343a40';
+    }
+    return themeColors['--tm-text-on-dark'] || themeColors['--tm-primary-color'] || '#e8e8e8';
+}
+
 function tmApplyThemeColors(themeId, options = {}) {
     const theme = UI_THEMES[themeId] || UI_THEMES.default;
     const root = document.documentElement;
@@ -2144,6 +2186,7 @@ function tmApplyThemeColors(themeId, options = {}) {
     if (bg) {
         root.style.backgroundColor = bg;
     }
+    root.style.setProperty('--tm-shop-item-text', tmResolveShopItemText(theme.colors));
 
     if (options.pageStyles !== false) {
         document.getElementById('tm-page-theme-styles')?.remove();
@@ -2190,7 +2233,7 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '173',
+        version: '174',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -24099,7 +24142,7 @@ function getListColorHex(colorName) {
 
 function getPhoneColorDropdownStyle(colorName) {
     if (!colorName) {
-        return 'background:var(--tm-shop-item-bg);color:var(--tm-dark-color);padding:10px;';
+        return 'background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);padding:10px;';
     }
     const hex = getListColorHex(colorName) || '#808080';
     const isWhite = colorName.toUpperCase().includes('WHITE');
@@ -24117,7 +24160,7 @@ function stylePhoneColorSelectOption(option, colorName) {
 function syncPhoneColorSelectDisplay(selectEl) {
     if (!selectEl) return;
     if (!selectEl.value) {
-        selectEl.style.color = '';
+        selectEl.style.color = 'var(--tm-shop-item-text, var(--tm-primary-color))';
         selectEl.style.fontWeight = '';
         selectEl.style.webkitTextStroke = '';
         selectEl.style.textShadow = '';
@@ -24689,7 +24732,7 @@ function renderPhoneStoreChipHtml(storeName, isBuyback) {
     if (!allowed) {
         return `<span style="display:inline-flex;align-items:center;gap:3px;background:#f4433618;border:1px solid #f4433644;color:#f44336;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:600;white-space:nowrap;">✕ ${cleanName}</span>`;
     }
-    return `<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(128,128,128,0.08);border:1px solid rgba(128,128,128,0.2);color:var(--tm-dark-color);opacity:0.6;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:500;white-space:nowrap;">${cleanName}</span>`;
+    return `<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(128,128,128,0.08);border:1px solid rgba(128,128,128,0.2);color:var(--tm-shop-item-text);opacity:0.6;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:500;white-space:nowrap;">${cleanName}</span>`;
 }
 
 function renderPhoneStoreChipsHtml(stores, isBuyback) {
@@ -25647,10 +25690,30 @@ async function showPhoneListModal() {
             #tm-phone-filter-model option,
             #tm-phone-filter-gb option,
             #tm-phone-filter-color option,
+            #tm-phone-filter-tag option,
             #tm-phone-sort-by option {
                 background: var(--tm-shop-item-bg);
-                color: var(--tm-dark-color);
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
                 padding: 10px;
+            }
+            #tm-phone-search-input,
+            #tm-phone-filter-grade,
+            #tm-phone-filter-model,
+            #tm-phone-filter-gb,
+            #tm-phone-filter-color,
+            #tm-phone-filter-tag,
+            #tm-phone-sort-by,
+            .tm-phone-modal-content,
+            .tm-phone-modal-content .tm-modal-title {
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+            }
+            #tm-phone-filter-grade,
+            #tm-phone-filter-model,
+            #tm-phone-filter-gb,
+            #tm-phone-filter-color,
+            #tm-phone-filter-tag,
+            #tm-phone-sort-by {
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%23aaa' d='M5 7L2 4h6z'/%3E%3C/svg%3E") !important;
             }
             .tm-phone-item:hover {
                 background: var(--tm-shop-item-hover-bg) !important;
@@ -25662,7 +25725,7 @@ async function showPhoneListModal() {
             .tm-phone-search-btn:hover {
                 background: var(--tm-shop-item-hover-bg) !important;
                 border-color: var(--tm-shop-item-border) !important;
-                color: var(--tm-dark-color) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
                 transform: scale(1.1);
             }
             .tm-phone-favorite-btn:hover {
@@ -25780,14 +25843,14 @@ async function showPhoneListModal() {
                     margin: 0;
                     font-size: 18px;
                     font-weight: 600;
-                    color: var(--tm-dark-color);
+                    color: var(--tm-shop-item-text);
                     letter-spacing: 0.3px;
                 ">${PHONE_CATALOG_TRANSLATIONS['Phone Catalog']}</h2>
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <button id="tm-phone-refresh-btn" title="${PHONE_CATALOG_TRANSLATIONS['Refresh (Ctrl+R)']}" style="
                         background: var(--tm-shop-item-bg);
                         border: 1px solid var(--tm-shop-item-border);
-                        color: var(--tm-dark-color);
+                        color: var(--tm-shop-item-text);
                         width: 32px;
                         height: 32px;
                         border-radius: 6px;
@@ -25801,7 +25864,7 @@ async function showPhoneListModal() {
                     <button id="tm-phone-view-toggle" title="${PHONE_CATALOG_TRANSLATIONS['Toggle View']}" style="
                         background: var(--tm-shop-item-bg);
                         border: 1px solid var(--tm-shop-item-border);
-                        color: var(--tm-dark-color);
+                        color: var(--tm-shop-item-text);
                         width: 32px;
                         height: 32px;
                         border-radius: 6px;
@@ -25815,7 +25878,7 @@ async function showPhoneListModal() {
                     <button id="tm-phone-colors-btn" title="${PHONE_CATALOG_TRANSLATIONS['Manage Colors']}" style="
                         background: var(--tm-shop-item-bg);
                         border: 1px solid var(--tm-shop-item-border);
-                        color: var(--tm-dark-color);
+                        color: var(--tm-shop-item-text);
                         width: 32px;
                         height: 32px;
                         border-radius: 6px;
@@ -25829,7 +25892,7 @@ async function showPhoneListModal() {
                     <button id="tm-phone-tags-btn" title="${PHONE_CATALOG_TRANSLATIONS['Manage Tags']}" style="
                         background: var(--tm-shop-item-bg);
                         border: 1px solid var(--tm-shop-item-border);
-                        color: var(--tm-dark-color);
+                        color: var(--tm-shop-item-text);
                         width: 32px;
                         height: 32px;
                         border-radius: 6px;
@@ -25843,7 +25906,7 @@ async function showPhoneListModal() {
                     <button id="tm-phone-stores-btn" title="${PHONE_CATALOG_TRANSLATIONS['Manage Stores']}" style="
                         background: var(--tm-shop-item-bg);
                         border: 1px solid var(--tm-shop-item-border);
-                        color: var(--tm-dark-color);
+                        color: var(--tm-shop-item-text);
                         width: 32px;
                         height: 32px;
                         border-radius: 6px;
@@ -25857,7 +25920,7 @@ async function showPhoneListModal() {
                     <button id="tm-phone-other-store-toggle" title="Άλλα καταστήματα" style="
                         background: var(--tm-shop-item-bg);
                         border: 1px solid var(--tm-shop-item-border);
-                        color: var(--tm-dark-color);
+                        color: var(--tm-shop-item-text);
                         width: 32px;
                         height: 32px;
                         border-radius: 6px;
@@ -25871,7 +25934,7 @@ async function showPhoneListModal() {
                     <button class="tm-modal-close" style="
                         background: transparent;
                         border: none;
-                        color: var(--tm-dark-color);
+                        color: var(--tm-shop-item-text);
                         width: 28px;
                         height: 28px;
                         border-radius: 6px;
@@ -25904,7 +25967,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 12px;
                             outline: none;
                             transition: all 0.2s ease;
@@ -25914,7 +25977,7 @@ async function showPhoneListModal() {
                         display: flex;
                         align-items: center;
                         gap: 5px;
-                        color: var(--tm-dark-color);
+                        color: var(--tm-shop-item-text);
                         font-size: 11px;
                         cursor: pointer;
                         white-space: nowrap;
@@ -25925,7 +25988,7 @@ async function showPhoneListModal() {
                     <button id="tm-phone-favorites-btn" title="${PHONE_CATALOG_TRANSLATIONS['Show Favorites']}" style="
                         background: var(--tm-shop-item-bg);
                         border: 1px solid var(--tm-shop-item-border);
-                        color: var(--tm-dark-color);
+                        color: var(--tm-shop-item-text);
                         padding: 8px 12px;
                         border-radius: 6px;
                         cursor: pointer;
@@ -25946,7 +26009,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 11px;
                             outline: none;
                             cursor: pointer;
@@ -25958,7 +26021,7 @@ async function showPhoneListModal() {
                             background-size: 10px;
                         "
                     >
-                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-dark-color);">${PHONE_CATALOG_TRANSLATIONS['All Grades']}</option>
+                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-shop-item-text);">${PHONE_CATALOG_TRANSLATIONS['All Grades']}</option>
                     </select>
                     <select 
                         id="tm-phone-filter-model" 
@@ -25970,7 +26033,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 11px;
                             outline: none;
                             cursor: pointer;
@@ -25982,7 +26045,7 @@ async function showPhoneListModal() {
                             background-size: 10px;
                         "
                     >
-                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-dark-color);">${PHONE_CATALOG_TRANSLATIONS['All Models']}</option>
+                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-shop-item-text);">${PHONE_CATALOG_TRANSLATIONS['All Models']}</option>
                     </select>
                     <select 
                         id="tm-phone-filter-gb" 
@@ -25993,7 +26056,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 11px;
                             outline: none;
                             cursor: pointer;
@@ -26005,7 +26068,7 @@ async function showPhoneListModal() {
                             background-size: 10px;
                         "
                     >
-                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-dark-color);">${PHONE_CATALOG_TRANSLATIONS['All Storage']}</option>
+                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-shop-item-text);">${PHONE_CATALOG_TRANSLATIONS['All Storage']}</option>
                     </select>
                     <select 
                         id="tm-phone-filter-color" 
@@ -26016,7 +26079,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 11px;
                             outline: none;
                             cursor: pointer;
@@ -26028,7 +26091,7 @@ async function showPhoneListModal() {
                             background-size: 10px;
                         "
                     >
-                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-dark-color);">${PHONE_CATALOG_TRANSLATIONS['All Colors']}</option>
+                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-shop-item-text);">${PHONE_CATALOG_TRANSLATIONS['All Colors']}</option>
                     </select>
                     <select 
                         id="tm-phone-filter-tag" 
@@ -26039,7 +26102,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 11px;
                             outline: none;
                             cursor: pointer;
@@ -26051,7 +26114,7 @@ async function showPhoneListModal() {
                             background-size: 10px;
                         "
                     >
-                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-dark-color);">${PHONE_CATALOG_TRANSLATIONS['All Tags']}</option>
+                        <option value="" style="background: var(--tm-shop-item-bg); color: var(--tm-shop-item-text);">${PHONE_CATALOG_TRANSLATIONS['All Tags']}</option>
                     </select>
                     <select 
                         id="tm-phone-sort-by" 
@@ -26062,7 +26125,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 11px;
                             outline: none;
                             cursor: pointer;
@@ -26101,7 +26164,7 @@ async function showPhoneListModal() {
                         border: 1px solid var(--tm-shop-item-border);
                         border-radius: 6px;
                         background: var(--tm-shop-item-bg);
-                        color: var(--tm-dark-color);
+                        color: var(--tm-shop-item-text);
                         font-size: 11px;
                         cursor: pointer;
                         transition: all 0.2s ease;
@@ -26141,7 +26204,7 @@ async function showPhoneListModal() {
                         ">
                             <div style="
                                 font-size: 10px;
-                                color: var(--tm-dark-color);
+                                color: var(--tm-shop-item-text);
                                 opacity: 0.7;
                                 margin-bottom: 8px;
                                 font-weight: 600;
@@ -26199,7 +26262,7 @@ async function showPhoneListModal() {
                                     align-items: center;
                                     gap: 8px;
                                     font-size: 11px;
-                                    color: var(--tm-dark-color);
+                                    color: var(--tm-shop-item-text);
                                     cursor: pointer;
                                     padding: 6px 4px;
                                 ">
@@ -26229,7 +26292,7 @@ async function showPhoneListModal() {
                 padding: 20px;
                 background: var(--tm-shop-item-bg);
             ">
-                <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-dark-color);">
+                <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-shop-item-text);">
                     <div style="text-align: center;">
                         <div style="font-size: 48px; margin-bottom: 16px; animation: pulse 2s ease-in-out infinite;">⏳</div>
                         <div>Loading phones...</div>
@@ -26243,7 +26306,7 @@ async function showPhoneListModal() {
                 background: var(--tm-shop-item-bg);
                 display: none;
             ">
-                <div id="tm-other-store-content" style="display: flex; justify-content: center; align-items: center; min-height: 200px; color: var(--tm-dark-color);">
+                <div id="tm-other-store-content" style="display: flex; justify-content: center; align-items: center; min-height: 200px; color: var(--tm-shop-item-text);">
                     <div style="text-align: center;">
                         <div style="font-size: 36px; margin-bottom: 12px; animation: pulse 2s ease-in-out infinite;">🏬</div>
                         <div>Loading other-store availability...</div>
@@ -26256,7 +26319,7 @@ async function showPhoneListModal() {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                color: var(--tm-dark-color); 
+                color: var(--tm-shop-item-text); 
                 font-size: 13px;
                 background: var(--tm-shop-item-bg);
                 font-weight: 500;
@@ -26451,7 +26514,7 @@ async function showPhoneListModal() {
             : normalizedExisting;
 
         if (tagsToShow.length === 0) {
-            tagMenu.innerHTML = `<div style="padding: 12px; text-align: center; color: var(--tm-dark-color); opacity: 0.7; font-size: 12px; max-width: 220px;">
+            tagMenu.innerHTML = `<div style="padding: 12px; text-align: center; color: var(--tm-shop-item-text); opacity: 0.7; font-size: 12px; max-width: 220px;">
                 ${mode === 'add' ? t('Create tags first') : 'No tags to remove'}
             </div>`;
         } else {
@@ -26675,20 +26738,20 @@ async function showPhoneListModal() {
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
 
         const panel = document.createElement('div');
-        panel.style.cssText = 'width:min(520px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
+        panel.style.cssText = 'width:min(520px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
 
         panel.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <h3 style="margin:0;font-size:16px;font-weight:600;">${t('Manage Colors')}</h3>
-                <button id="tm-colors-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-dark-color);line-height:1;">&times;</button>
+                <button id="tm-colors-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
-                <input id="tm-new-color-name" type="text" placeholder="${t('Color Name')} (${t('e.g. MINT GREEN')})" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:13px;box-sizing:border-box;">
+                <input id="tm-new-color-name" type="text" placeholder="${t('Color Name')} (${t('e.g. MINT GREEN')})" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;box-sizing:border-box;">
                 <div id="tm-color-suggest-hint" style="font-size:11px;opacity:0.8;min-height:14px;"></div>
                 <div style="font-size:11px;opacity:0.7;margin-bottom:2px;">${t('Catalog title color')}</div>
                 <div style="display:flex;gap:8px;align-items:center;">
                     <input type="color" id="tm-new-color-picker" value="#808080" title="${t('Catalog title color')}" style="width:42px;height:34px;padding:2px;border:1px solid var(--tm-shop-item-border);border-radius:6px;cursor:pointer;background:var(--tm-shop-item-bg);">
-                    <input id="tm-new-color-hex" type="text" placeholder="#RRGGBB" style="flex:1;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:13px;font-family:monospace;box-sizing:border-box;">
+                    <input id="tm-new-color-hex" type="text" placeholder="#RRGGBB" style="flex:1;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;font-family:monospace;box-sizing:border-box;">
                     <button id="tm-add-color-btn" type="button" style="padding:8px 12px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">${t('Add Color')}</button>
                 </div>
             </div>
@@ -26772,7 +26835,7 @@ async function showPhoneListModal() {
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
                         <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Color Name')}</span>
                         <input type="text" class="tm-phone-color-name-input" data-color="${name}" value="${name}" style="${nameInputStyle}">
-                        <button type="button" data-color="${name}" class="tm-delete-phone-color" style="padding:4px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-dark-color);font-size:11px;cursor:pointer;flex-shrink:0;">${t('Delete')}</button>
+                        <button type="button" data-color="${name}" class="tm-delete-phone-color" style="padding:4px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-shop-item-text);font-size:11px;cursor:pointer;flex-shrink:0;">${t('Delete')}</button>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
                         <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Catalog title color')}</span>
@@ -26781,7 +26844,7 @@ async function showPhoneListModal() {
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
                         <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Also for labels')}</span>
-                        <input type="text" class="tm-phone-color-alias-input" data-color="${name}" value="${aliases}" placeholder="${t('Aliases hint')}" style="flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:11px;box-sizing:border-box;">
+                        <input type="text" class="tm-phone-color-alias-input" data-color="${name}" value="${aliases}" placeholder="${t('Aliases hint')}" style="flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:11px;box-sizing:border-box;">
                     </div>
                 </div>`;
             }).join('');
@@ -26896,19 +26959,19 @@ async function showPhoneListModal() {
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
 
         const panel = document.createElement('div');
-        panel.style.cssText = 'width:min(480px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
+        panel.style.cssText = 'width:min(480px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
 
         panel.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <h3 style="margin:0;font-size:16px;font-weight:600;">${t('Manage Tags')}</h3>
-                <button id="tm-tags-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-dark-color);line-height:1;">&times;</button>
+                <button id="tm-tags-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
-                <input id="tm-new-tag-name" type="text" placeholder="${t('Tag Name')} (${t('e.g. Reserved')})" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:13px;box-sizing:border-box;">
+                <input id="tm-new-tag-name" type="text" placeholder="${t('Tag Name')} (${t('e.g. Reserved')})" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;box-sizing:border-box;">
                 <div style="font-size:11px;opacity:0.7;margin-bottom:2px;">${t('Tag Color')}</div>
                 <div style="display:flex;gap:8px;align-items:center;">
                     <input type="color" id="tm-new-tag-picker" value="#2196f3" title="${t('Tag Color')}" style="width:42px;height:34px;padding:2px;border:1px solid var(--tm-shop-item-border);border-radius:6px;cursor:pointer;background:var(--tm-shop-item-bg);">
-                    <input id="tm-new-tag-hex" type="text" placeholder="#RRGGBB" style="flex:1;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:13px;font-family:monospace;box-sizing:border-box;">
+                    <input id="tm-new-tag-hex" type="text" placeholder="#RRGGBB" style="flex:1;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;font-family:monospace;box-sizing:border-box;">
                     <button id="tm-add-tag-btn" type="button" style="padding:8px 12px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">${t('Add Tag')}</button>
                 </div>
             </div>
@@ -26953,7 +27016,7 @@ async function showPhoneListModal() {
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
                         <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Tag Name')}</span>
                         <input type="text" class="tm-phone-tag-name-input" data-tag="${key}" value="${def.name.replace(/"/g, '&quot;')}" style="flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);font-size:13px;font-weight:600;min-width:0;box-sizing:border-box;color:${def.color};">
-                        <button type="button" data-tag="${key}" class="tm-delete-phone-tag" style="padding:4px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-dark-color);font-size:11px;cursor:pointer;flex-shrink:0;">${t('Delete')}</button>
+                        <button type="button" data-tag="${key}" class="tm-delete-phone-tag" style="padding:4px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-shop-item-text);font-size:11px;cursor:pointer;flex-shrink:0;">${t('Delete')}</button>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
                         <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Tag Color')}</span>
@@ -27056,23 +27119,23 @@ async function showPhoneListModal() {
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
 
         const panel = document.createElement('div');
-        panel.style.cssText = 'width:min(560px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
+        panel.style.cssText = 'width:min(560px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
 
         panel.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <h3 style="margin:0;font-size:16px;font-weight:600;">${t('Manage Stores')}</h3>
-                <button id="tm-stores-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-dark-color);line-height:1;">&times;</button>
+                <button id="tm-stores-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
             </div>
             <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
                 <label style="font-size:12px;font-weight:600;">${t('Buyback store patterns')}</label>
-                <input id="tm-buyback-store-patterns" type="text" value="${rules.buybackPatterns.join(', ')}" placeholder="${t('Buyback patterns hint')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:12px;box-sizing:border-box;">
+                <input id="tm-buyback-store-patterns" type="text" value="${rules.buybackPatterns.join(', ')}" placeholder="${t('Buyback patterns hint')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;">
                 <div style="font-size:11px;opacity:0.7;">${t('Buyback patterns hint')}</div>
                 <label style="font-size:12px;font-weight:600;">${t('Regular store patterns')}</label>
-                <input id="tm-regular-store-patterns" type="text" value="${rules.regularPatterns.join(', ')}" placeholder="${t('Regular patterns hint')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-dark-color);font-size:12px;box-sizing:border-box;">
+                <input id="tm-regular-store-patterns" type="text" value="${rules.regularPatterns.join(', ')}" placeholder="${t('Regular patterns hint')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;">
                 <div style="font-size:11px;opacity:0.7;">${t('Regular patterns hint')}</div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;">
                     <button id="tm-save-store-rules" type="button" style="padding:8px 12px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;">${t('Save')}</button>
-                    <button id="tm-reset-store-overrides" type="button" style="padding:8px 12px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:transparent;color:var(--tm-dark-color);font-size:12px;cursor:pointer;">${t('Reset store overrides')}</button>
+                    <button id="tm-reset-store-overrides" type="button" style="padding:8px 12px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:transparent;color:var(--tm-shop-item-text);font-size:12px;cursor:pointer;">${t('Reset store overrides')}</button>
                 </div>
             </div>
             <div style="font-size:12px;font-weight:600;margin-bottom:8px;opacity:0.75;">${t('Known stores')}</div>
@@ -27458,7 +27521,7 @@ async function showPhoneListModal() {
                 const option = document.createElement('option');
                 option.value = grade;
                 option.textContent = `Grade ${grade}`;
-                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-dark-color); padding: 10px;';
+                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-shop-item-text); padding: 10px;';
                 gradeFilter.appendChild(option);
             });
             // Restore selection if still valid
@@ -27483,7 +27546,7 @@ async function showPhoneListModal() {
                 const option = document.createElement('option');
                 option.value = model;
                 option.textContent = model;
-                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-dark-color); padding: 10px;';
+                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-shop-item-text); padding: 10px;';
                 modelFilter.appendChild(option);
             });
             // Restore selection if still valid
@@ -27512,7 +27575,7 @@ async function showPhoneListModal() {
                 const option = document.createElement('option');
                 option.value = gb;
                 option.textContent = gb;
-                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-dark-color); padding: 10px;';
+                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-shop-item-text); padding: 10px;';
                 gbFilter.appendChild(option);
             });
             // Restore selection if still valid
@@ -27838,7 +27901,7 @@ async function showPhoneListModal() {
         
         if (phones.length === 0) {
             container.innerHTML = `
-                <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-dark-color);">
+                <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-shop-item-text);">
                     <div style="text-align: center;">
                         <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
                         <div>No phones found matching your search.</div>
@@ -27898,7 +27961,7 @@ async function showPhoneListModal() {
                                 // Extract color from the full name (phone.name contains original title with color)
                                 const phoneColor = extractColor(phone.name || phone.model);
                                 const colorHex = getColorHex(phoneColor);
-                                const titleColor = colorHex || 'var(--tm-dark-color)';
+                                const titleColor = colorHex || 'var(--tm-shop-item-text)';
                                 const outlineStyle = isWhitePhoneColor(phoneColor) ? getWhitePhoneTitleOutlineStyle() : '';
                                 // Remove color from display - use base model without color
                                 const displayModel = extractBaseModel(phone.model) || phone.model || phone.name;
@@ -27912,7 +27975,7 @@ async function showPhoneListModal() {
                             <span style="
                                 font-family: 'Courier New', monospace;
                                 font-weight: 500;
-                                color: var(--tm-dark-color);
+                                color: var(--tm-shop-item-text);
                                 opacity: 0.6;
                                 font-size: 11px;
                             ">${phone.barcode}</span>
@@ -27935,7 +27998,7 @@ async function showPhoneListModal() {
                         </div>
                             <div style="
                                 font-size: 11px;
-                                color: var(--tm-dark-color);
+                                color: var(--tm-shop-item-text);
                             display: flex;
                             flex-wrap: wrap;
                             gap: 10px;
@@ -27976,7 +28039,7 @@ async function showPhoneListModal() {
                         <button class="tm-phone-search-btn" data-barcode="${phone.barcode}" title="${PHONE_CATALOG_TRANSLATIONS['Search barcode in system']}" style="
                             background: var(--tm-shop-item-bg);
                             border: 1px solid var(--tm-shop-item-border);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             cursor: pointer;
                             font-size: 14px;
                             padding: 6px 8px;
@@ -27987,7 +28050,7 @@ async function showPhoneListModal() {
                         ${phone.imei ? `<button class="tm-phone-copy-imei-btn" data-imei="${phone.imei}" title="${PHONE_CATALOG_TRANSLATIONS['Copy IMEI']}" style="
                             background: var(--tm-shop-item-bg);
                             border: 1px solid var(--tm-shop-item-border);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             cursor: pointer;
                             font-size: 14px;
                             padding: 6px 8px;
@@ -27998,7 +28061,7 @@ async function showPhoneListModal() {
                         <button class="tm-phone-favorite-btn" data-barcode="${phone.barcode}" title="${isFavorite ? PHONE_CATALOG_TRANSLATIONS['Remove from favorites'] : PHONE_CATALOG_TRANSLATIONS['Add to favorites']}" style="
                             background: var(--tm-shop-item-bg);
                             border: 1px solid var(--tm-shop-item-border);
-                            color: ${isFavorite ? 'var(--tm-warning-color)' : 'var(--tm-dark-color)'};
+                            color: ${isFavorite ? 'var(--tm-warning-color)' : 'var(--tm-shop-item-text)'};
                             cursor: pointer;
                             font-size: 16px;
                             padding: 6px 8px;
@@ -28042,7 +28105,7 @@ async function showPhoneListModal() {
                     background: var(--tm-shop-item-bg);
                     border: 1px solid var(--tm-shop-item-border);
                     border-radius: 8px;
-                    color: var(--tm-dark-color);
+                    color: var(--tm-shop-item-text);
                     cursor: pointer;
                     font-size: 14px;
                     font-weight: 600;
@@ -28359,7 +28422,7 @@ async function showPhoneListModal() {
         if (otherStoreContainer) otherStoreContainer.style.display = 'none';
         if (otherStoreToggleBtn) {
             otherStoreToggleBtn.style.borderColor = 'var(--tm-shop-item-border)';
-            otherStoreToggleBtn.style.color = 'var(--tm-dark-color)';
+            otherStoreToggleBtn.style.color = 'var(--tm-shop-item-text)';
         }
         updateSelectionUI();
     }
@@ -28435,7 +28498,7 @@ async function showPhoneListModal() {
             targetEl.style.alignItems = 'center';
             targetEl.style.justifyContent = 'center';
             targetEl.innerHTML = `
-                <div style="text-align:center; color: var(--tm-dark-color);">
+                <div style="text-align:center; color: var(--tm-shop-item-text);">
                     <div style="font-size:32px; margin-bottom:8px;">ℹ️</div>
                     <div>No phones available in other stores.</div>
                 </div>
@@ -28495,7 +28558,7 @@ async function showPhoneListModal() {
                     font-weight: 600;
                     font-variant-numeric: tabular-nums;
                     letter-spacing: 0.04em;
-                    color: var(--tm-dark-color);
+                    color: var(--tm-shop-item-text);
                     opacity: 0.78;
                     background: rgba(128, 128, 128, 0.14);
                     border: 1px solid rgba(128, 128, 128, 0.22);
@@ -28516,7 +28579,7 @@ async function showPhoneListModal() {
             const storesHtml = oneUnitStores.length > 0
                 ? renderPhoneStoreChipsHtml(item.stores, item.isBuyback)
                 : `<span class="tm-store-loading" style="display:inline-flex;align-items:center;gap:4px;
-                    font-size:10px;color:var(--tm-dark-color);opacity:0.4;font-style:italic;"
+                    font-size:10px;color:var(--tm-shop-item-text);opacity:0.4;font-style:italic;"
                   ><span style="width:8px;height:8px;border:1.5px solid currentColor;border-top-color:transparent;
                     border-radius:50%;display:inline-block;animation:tm-os-spin 0.7s linear infinite;"></span>Loading…</span>`;
 
@@ -28552,7 +28615,7 @@ async function showPhoneListModal() {
                         <div class="tm-os-model-row" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px;">
                             ${noBuybackStore ? `<span title="${noBuybackTitle}" style="font-size:12px;line-height:1;">🚫</span>` : ''}
                             <span style="font-weight:800;font-size:13px;
-                                color:${itemColorHex || 'var(--tm-dark-color)'};
+                                color:${itemColorHex || 'var(--tm-shop-item-text)'};
                                 ${titleGlow}${titleOutline}
                                 white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;"
                                 title="${displayModel}">${displayModel}</span>
@@ -28779,7 +28842,7 @@ async function showPhoneListModal() {
         refreshBtn.style.opacity = '0.5';
         refreshBtn.style.transform = 'rotate(360deg)';
         container.innerHTML = `
-            <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-dark-color);">
+            <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-shop-item-text);">
                 <div style="text-align: center;">
                     <div style="font-size: 48px; margin-bottom: 16px; animation: pulse 2s ease-in-out infinite;">⏳</div>
                     <div>Refreshing phones...</div>
@@ -28817,11 +28880,11 @@ async function showPhoneListModal() {
     // Close handlers
     closeBtn.addEventListener('mouseenter', () => {
         closeBtn.style.background = 'var(--tm-shop-item-hover-bg)';
-        closeBtn.style.color = 'var(--tm-dark-color)';
+        closeBtn.style.color = 'var(--tm-shop-item-text)';
     });
     closeBtn.addEventListener('mouseleave', () => {
         closeBtn.style.background = 'transparent';
-        closeBtn.style.color = 'var(--tm-dark-color)';
+        closeBtn.style.color = 'var(--tm-shop-item-text)';
     });
     closeBtn.addEventListener('click', () => {
         overlay.style.animation = 'fadeOut 0.2s ease';
@@ -28948,7 +29011,7 @@ async function showPhoneListModal() {
         const favoritesBtn = overlay.querySelector('#tm-phone-favorites-btn');
         if (favoritesBtn) {
             favoritesBtn.style.background = 'var(--tm-shop-item-bg)';
-            favoritesBtn.style.color = 'var(--tm-dark-color)';
+            favoritesBtn.style.color = 'var(--tm-shop-item-text)';
         }
         
         // Reset sort to default
@@ -29074,7 +29137,7 @@ async function showPhoneListModal() {
                 <div style="padding: 14px 16px; border-bottom: 1px solid var(--tm-shop-item-border); display:flex; align-items:center; justify-content: space-between;">
                     <div style="display:flex; gap:8px; align-items:center;">
                         <span style="font-size:18px;">🏬</span>
-                        <span style="font-weight:700; font-size:15px; color: var(--tm-dark-color);">Other Stores</span>
+                        <span style="font-weight:700; font-size:15px; color: var(--tm-shop-item-text);">Other Stores</span>
                         <button id="tm-os-back-btn" style="display:none;background:none;border:none;cursor:pointer;
                             color:var(--tm-primary-color,#4facfe);font-size:12px;font-weight:600;
                             padding:3px 8px;border-radius:6px;border:1px solid var(--tm-primary-color,#4facfe);
@@ -29085,7 +29148,7 @@ async function showPhoneListModal() {
                         <button id="tm-other-store-refresh-btn" title="Refresh other stores data" style="
                             background: rgba(255,255,255,0.1);
                             border: 1px solid var(--tm-shop-item-border);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             border-radius: 6px;
                             width: 32px;
                             height: 32px;
@@ -29099,7 +29162,7 @@ async function showPhoneListModal() {
                         <button id="tm-other-store-close" style="
                             background: transparent;
                             border: none;
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 22px;
                             cursor: pointer;
                             padding: 4px 8px;
@@ -29117,7 +29180,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 11px;
                             outline: none;
                             cursor: pointer;
@@ -29139,7 +29202,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 11px;
                             outline: none;
                             cursor: pointer;
@@ -29160,7 +29223,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 11px;
                             outline: none;
                             cursor: pointer;
@@ -29181,7 +29244,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 11px;
                             outline: none;
                             cursor: pointer;
@@ -29202,7 +29265,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 11px;
                             outline: none;
                             cursor: pointer;
@@ -29223,7 +29286,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 11px;
                             outline: none;
                             cursor: pointer;
@@ -29249,7 +29312,7 @@ async function showPhoneListModal() {
                             border: 1px solid var(--tm-shop-item-border);
                             border-radius: 6px;
                             background: var(--tm-shop-item-bg);
-                            color: var(--tm-dark-color);
+                            color: var(--tm-shop-item-text);
                             font-size: 11px;
                             cursor: pointer;
                             transition: all 0.2s ease;
@@ -29263,7 +29326,7 @@ async function showPhoneListModal() {
                     flex: 1;
                     background: var(--tm-shop-item-bg);
                 ">
-                    <div style="text-align:center; color: var(--tm-dark-color);">
+                    <div style="text-align:center; color: var(--tm-shop-item-text);">
                         <div style="font-size:36px; margin-bottom:10px; animation: pulse 2s ease-in-out infinite;">⏳</div>
                         <div>Loading other-store availability...</div>
                     </div>
@@ -29316,7 +29379,7 @@ async function showPhoneListModal() {
                 <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;
                     min-height:260px;gap:16px;padding:24px;">
                     <span style="font-size:36px;">📱</span>
-                    <div style="font-weight:700;font-size:15px;color:var(--tm-dark-color);">Επιλέξτε μοντέλο</div>
+                    <div style="font-weight:700;font-size:15px;color:var(--tm-shop-item-text);">Επιλέξτε μοντέλο</div>
                     <div style="position:relative;width:100%;max-width:340px;">
                         <select id="tm-os-model-picker-select" style="
                             width:100%; padding:12px 40px 12px 16px;
@@ -29324,7 +29387,7 @@ async function showPhoneListModal() {
                             border-radius:10px;
                             border:1.5px solid var(--tm-shop-item-border);
                             background:var(--tm-shop-item-bg);
-                            color:var(--tm-dark-color);
+                            color:var(--tm-shop-item-text);
                             cursor:pointer; outline:none;
                             appearance:none;
                             -webkit-appearance:none;
@@ -29694,7 +29757,7 @@ async function showPhoneListModal() {
             refreshBtn.style.pointerEvents = 'none';
             
             bodyEl.innerHTML = `
-                <div style="text-align:center; color: var(--tm-dark-color);">
+                <div style="text-align:center; color: var(--tm-shop-item-text);">
                     <div style="font-size:36px; margin-bottom:10px; animation: pulse 2s ease-in-out infinite;">⏳</div>
                     <div>Refreshing other stores...</div>
                 </div>
@@ -29720,7 +29783,7 @@ async function showPhoneListModal() {
                 renderModal();
             } catch (error) {
                 bodyEl.innerHTML = `
-                    <div style="text-align:center; color: var(--tm-dark-color);">
+                    <div style="text-align:center; color: var(--tm-shop-item-text);">
                         <div style="font-size:32px; margin-bottom:8px;">⚠️</div>
                         <div>Failed to refresh. Please try again.</div>
                     </div>
@@ -29747,7 +29810,7 @@ async function showPhoneListModal() {
             .then(renderModal)
             .catch(() => {
                 bodyEl.innerHTML = `
-                    <div style="text-align:center; color: var(--tm-dark-color);">
+                    <div style="text-align:center; color: var(--tm-shop-item-text);">
                         <div style="font-size:32px; margin-bottom:8px;">⚠️</div>
                         <div>Could not load other-store availability.</div>
                     </div>
@@ -29846,7 +29909,7 @@ async function showPhoneListModal() {
         // No cache, show message to user to click refresh
         console.log('[MMS Phone List] No cache found');
         container.innerHTML = `
-            <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-dark-color);">
+            <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-shop-item-text);">
                 <div style="text-align: center;">
                     <div style="font-size: 48px; margin-bottom: 16px;">📱</div>
                     <div style="margin-bottom: 16px; font-size: 16px; font-weight: 600;">No cached data found</div>

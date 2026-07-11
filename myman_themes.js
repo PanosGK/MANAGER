@@ -1539,6 +1539,33 @@ function tmHexToRgb(hex) {
     };
 }
 
+function tmParseRgbColor(color) {
+    const s = String(color || '').trim();
+    const rgba = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+    if (rgba) {
+        return { r: +rgba[1], g: +rgba[2], b: +rgba[3] };
+    }
+    return tmHexToRgb(s);
+}
+
+function tmIsLightShopItemBg(bg) {
+    const rgb = tmParseRgbColor(bg);
+    if (!rgb) return true;
+    const lum = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+    return lum > 0.52;
+}
+
+function tmResolveShopItemText(themeColors) {
+    if (themeColors['--tm-shop-item-text']) {
+        return themeColors['--tm-shop-item-text'];
+    }
+    const shopBg = themeColors['--tm-shop-item-bg'];
+    if (tmIsLightShopItemBg(shopBg)) {
+        return themeColors['--tm-text-on-light'] || '#343a40';
+    }
+    return themeColors['--tm-text-on-dark'] || themeColors['--tm-primary-color'] || '#e8e8e8';
+}
+
 function tmApplyThemeColors(themeId, options = {}) {
     const theme = UI_THEMES[themeId] || UI_THEMES.default;
     const root = document.documentElement;
@@ -1557,6 +1584,7 @@ function tmApplyThemeColors(themeId, options = {}) {
     if (bg) {
         root.style.backgroundColor = bg;
     }
+    root.style.setProperty('--tm-shop-item-text', tmResolveShopItemText(theme.colors));
 
     if (options.pageStyles !== false) {
         document.getElementById('tm-page-theme-styles')?.remove();

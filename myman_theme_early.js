@@ -97,6 +97,21 @@
                 }
             }
         }
+        const shopBg = colors['--tm-shop-item-bg'];
+        const shopRgb = (() => {
+            const s = String(shopBg || '').trim();
+            const rgba = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+            if (rgba) return { r: +rgba[1], g: +rgba[2], b: +rgba[3] };
+            return hexToRgb(s);
+        })();
+        const lightShop = shopRgb
+            ? (0.299 * shopRgb.r + 0.587 * shopRgb.g + 0.114 * shopRgb.b) / 255 > 0.52
+            : true;
+        const shopText = colors['--tm-shop-item-text']
+            || (lightShop
+                ? (colors['--tm-text-on-light'] || '#343a40')
+                : (colors['--tm-text-on-dark'] || colors['--tm-primary-color'] || '#e8e8e8'));
+        root.style.setProperty('--tm-shop-item-text', shopText);
         const bg = colors['--tm-dark-color'] || colors['--tm-shop-item-bg'];
         if (bg) {
             root.style.backgroundColor = bg;
