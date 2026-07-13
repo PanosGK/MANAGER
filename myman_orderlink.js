@@ -117,6 +117,412 @@
         return null;
     }
 
+    function escapeHtml(str) {
+        return String(str ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function getPageRepairId() {
+        try {
+            if (typeof iInvoiceNumber !== 'undefined' && iInvoiceNumber) {
+                return String(iInvoiceNumber).trim();
+            }
+        } catch (_) { /* ignore */ }
+        return getRepairId();
+    }
+
+    function getPageRepairStatus() {
+        try {
+            if (typeof iStatusID !== 'undefined' && iStatusID != null) {
+                return String(iStatusID);
+            }
+        } catch (_) { /* ignore */ }
+        return getCurrentRepairStatus();
+    }
+
+    const ORDER_INFO_FIELDS = [
+        { key: 'Τεμάχια', label: 'Ποσότητα', icon: '📦' },
+        { key: 'Παραγγελία', label: 'Ημερ. Παραγγελίας', icon: '📅' },
+        { key: 'Αναμ.Παραλαβή', label: 'Αναμ. Παραλαβή', icon: '⏰' },
+        { key: 'Παραγγελία σε Κεντρικό', label: 'Σε Κεντρικό', icon: '🏢', isBool: true },
+        { key: 'Διαθέσιμο\nTHE FIXERS', label: 'Διαθέσιμο', icon: '✅', isBool: true },
+    ];
+
+    function parseOrdersFromDocument(doc, repairId) {
+        const table = doc.querySelector('.rnr-c-grid.rnr-b-grid.rnr-gridtable.hoverable, table.rnr-gridtable');
+        if (!table) {
+            throw new Error('Orders table not found');
+        }
+
+        const headers = [];
+        table.querySelectorAll('thead th').forEach((th) => {
+            let headerText = th.textContent.trim();
+            const orderSpan = th.querySelector('[id*="order_"], [data-order]');
+            let columnKey = null;
+
+            if (orderSpan) {
+                const id = orderSpan.id || '';
+                const dataOrder = orderSpan.getAttribute('data-order') || '';
+                if (id.includes('iAverageBuy') || dataOrder.includes('iAverageBuy')) {
+                    columnKey = 'Μέσο Κόστος';
+                }
+            }
+
+            if (columnKey) {
+                headers.push(columnKey);
+            } else if (headerText && headerText !== ' ') {
+                const lines = headerText.split('\n').map(l => l.trim()).filter(Boolean);
+                headers.push(lines[0] || headerText);
+            } else {
+                headers.push('');
+            }
+        });
+
+        const matchingOrders = [];
+        table.querySelectorAll('tbody tr').forEach((row) => {
+            const cells = row.querySelectorAll('td');
+            if (!cells.length) return;
+
+            let foundMatch = false;
+            const rowData = {};
+            const orderLink = row.getAttribute('data-href') || '';
+
+            if (orderLink) {
+                rowData._orderLink = orderLink.startsWith('http')
+                    ? orderLink
+                    : 'https://thefixers.mymanager.gr/mymanagerservice/' + orderLink;
+            }
+
+            cells.forEach((cell, index) => {
+                if (index >= headers.length) return;
+
+                const checkImg = cell.querySelector('img[src*="check_"]');
+                let cellValue;
+
+                if (checkImg) {
+                    const imgSrc = checkImg.getAttribute('src') || '';
+                    if (imgSrc.includes('check_yes')) cellValue = 'YES';
+                    else if (imgSrc.includes('check_no')) cellValue = 'NO';
+                    else cellValue = cell.textContent.trim();
+                } else {
+                    const span = cell.querySelector('span[id*="edit"]');
+                    cellValue = span ? span.textContent.trim() : cell.textContent.trim();
+                    cellValue = cellValue.replace(/\s+/g, ' ').trim();
+                }
+
+                rowData[headers[index]] = cellValue;
+                if (cellValue.includes(repairId)) foundMatch = true;
+            });
+
+            if (foundMatch) matchingOrders.push(rowData);
+        });
+
+        return matchingOrders;
+    }
+
+    async function fetchOrdersForRepair(repairId) {
+        const ordersUrl = 'https://thefixers.mymanager.gr/mymanagerservice/sparepartstoorder_list.php';
+        const response = await fetch(ordersUrl);
+        const html = await response.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        return parseOrdersFromDocument(doc, repairId);
+    }
+
+    function buildOrderCardElement(order, options = {}) {
+        const { compact = false, matchedPart = null } = options;
+        const orderCard = document.createElement('div');
+        orderCard.className = 'tm-order-card-new' + (compact ? ' tm-order-card-compact' : '');
+
+        const cardHeader = document.createElement('div');
+        cardHeader.className = 'tm-order-header';
+
+        const productName = document.createElement('div');
+        productName.className = 'tm-order-product-name';
+        productName.textContent = order['Περιγραφή'] || 'Στοιχεία Παραγγελίας';
+
+        const productCode = document.createElement('div');
+        productCode.className = 'tm-order-product-code';
+        productCode.textContent = order['Κωδικός'] || '';
+
+        cardHeader.appendChild(productName);
+        cardHeader.appendChild(productCode);
+
+        if (matchedPart) {
+            const matchBadge = document.createElement('div');
+            matchBadge.className = 'tm-order-match-badge';
+            matchBadge.textContent = '✓ Στην επισκευή';
+            cardHeader.appendChild(matchBadge);
+        }
+
+        const costBadge = document.createElement('div');
+        costBadge.className = 'tm-order-cost-badge';
+        const cost = order['Μέσο Κόστος'];
+        const retail = order['Τιμή Λιανικής'] || matchedPart?.retailPrice || '';
+        const costDisplay = cost && cost !== '0,00' && cost !== '-' ? `${escapeHtml(cost)} €` : '—';
+        const retailBlock = retail && retail !== '-'
+            ? `<div class="tm-cost-group"><span class="tm-cost-label">Λιανική</span><span class="tm-cost-value">${escapeHtml(retail)} €</span></div>`
+            : '';
+        costBadge.innerHTML = `
+            <div class="tm-cost-group">
+                <span class="tm-cost-label">Μέσο Κόστος</span>
+                <span class="tm-cost-value">${costDisplay}</span>
+            </div>
+            ${retailBlock}
+        `;
+
+        const infoGrid = document.createElement('div');
+        infoGrid.className = 'tm-order-info-grid';
+
+        ORDER_INFO_FIELDS.forEach((field) => {
+            const value = order[field.key];
+            if (!value || value === '-') return;
+
+            const infoItem = document.createElement('div');
+            infoItem.className = 'tm-order-info-item';
+            let displayValue = value;
+            if (field.isBool) {
+                displayValue = value === 'YES' ? '✅ Ναι' : '❌ Όχι';
+            }
+
+            infoItem.innerHTML = `
+                <div class="tm-info-icon">${field.icon}</div>
+                <div class="tm-info-content">
+                    <div class="tm-info-label">${escapeHtml(field.label)}</div>
+                    <div class="tm-info-value">${escapeHtml(displayValue)}</div>
+                </div>
+            `;
+            infoGrid.appendChild(infoItem);
+        });
+
+        if (matchedPart) {
+            const repairInfo = document.createElement('div');
+            repairInfo.className = 'tm-order-repair-part-info';
+            repairInfo.innerHTML = `
+                <div class="tm-info-label">Στην καρτέλα επισκευής</div>
+                <div class="tm-info-value">
+                    ${escapeHtml(matchedPart.code)} · ${escapeHtml(matchedPart.name || '')}
+                    ${matchedPart.units ? ` · ${escapeHtml(matchedPart.units)} τεμ.` : ''}
+                    ${matchedPart.avgBuy ? ` · μέσο ${escapeHtml(matchedPart.avgBuy)} €` : ''}
+                </div>
+            `;
+            infoGrid.appendChild(repairInfo);
+        }
+
+        const notesSection = document.createElement('div');
+        const storeNotes = order['Σημειώσεις Καταστήματος'];
+        const centralNotes = order['Σημειώσεις Κεντρικής Αποθήκης'];
+
+        if ((storeNotes && storeNotes !== '-') || (centralNotes && centralNotes !== '-')) {
+            notesSection.className = 'tm-order-notes';
+            if (storeNotes && storeNotes !== '-') {
+                const storeNote = document.createElement('div');
+                storeNote.className = 'tm-note-item store';
+                storeNote.innerHTML = `<strong>📝 Κατάστημα:</strong> ${escapeHtml(storeNotes)}`;
+                notesSection.appendChild(storeNote);
+            }
+            if (centralNotes && centralNotes !== '-') {
+                const centralNote = document.createElement('div');
+                centralNote.className = 'tm-note-item central';
+                centralNote.innerHTML = `<strong>📋 Κεντρική:</strong> ${escapeHtml(centralNotes)}`;
+                notesSection.appendChild(centralNote);
+            }
+        }
+
+        const actionBtn = document.createElement('a');
+        actionBtn.className = 'tm-order-action-btn';
+        actionBtn.href = order._orderLink || '#';
+        actionBtn.target = '_blank';
+        actionBtn.rel = 'noopener';
+        actionBtn.textContent = compact ? 'Παραγγελία →' : 'Προβολή Πλήρους Παραγγελίας →';
+
+        orderCard.appendChild(cardHeader);
+        orderCard.appendChild(costBadge);
+        if (infoGrid.children.length) orderCard.appendChild(infoGrid);
+        if (notesSection.children.length) orderCard.appendChild(notesSection);
+        orderCard.appendChild(actionBtn);
+
+        return orderCard;
+    }
+
+    function getRepairPartsFromTab() {
+        const root = document.getElementById('detailPreview3');
+        if (!root) return [];
+
+        const parts = [];
+        const seen = new Set();
+
+        root.querySelectorAll('tbody:not(.gridRowAdd)').forEach((tbody) => {
+            const codeEl = tbody.querySelector('[data-fieldname="strProductID"]');
+            if (!codeEl) return;
+
+            const code = (codeEl.getAttribute('value') || codeEl.textContent || '').trim();
+            if (!code || seen.has(code)) return;
+            seen.add(code);
+
+            const unitsInput = tbody.querySelector('[data-fieldname="iUnits"]');
+            parts.push({
+                code,
+                name: tbody.querySelector('[id*="strProductName"]')?.textContent?.trim() || '',
+                units: unitsInput?.value || unitsInput?.textContent?.trim() || '',
+                avgBuy: tbody.querySelector('[id*="iAverageBuy"]')?.textContent?.trim() || '',
+                retailPrice: tbody.querySelector('[id*="iProductRetailPrice"]')?.textContent?.trim() || '',
+            });
+        });
+
+        return parts;
+    }
+
+    function findMatchingRepairPart(order, parts) {
+        const code = String(order['Κωδικός'] || '').trim();
+        if (!code) return null;
+        return parts.find(p => p.code === code) || null;
+    }
+
+    let partsTabObserver = null;
+    let partsTabOrdersLoaded = false;
+
+    function getPartsTabMountPoint() {
+        const preview = document.getElementById('detailPreview3');
+        if (!preview) return null;
+        return preview.querySelector('.rnr-center') || preview;
+    }
+
+    function ensurePartsTabOrderPanel() {
+        const mount = getPartsTabMountPoint();
+        if (!mount) return null;
+
+        let panel = document.getElementById('tm-parts-orders-panel');
+        if (panel) return panel;
+
+        panel = document.createElement('div');
+        panel.id = 'tm-parts-orders-panel';
+        panel.className = 'tm-parts-orders-panel';
+        panel.innerHTML = `
+            <div class="tm-parts-orders-header">
+                <div class="tm-parts-orders-heading">
+                    <span class="tm-parts-orders-title">📦 Ενεργές Παραγγελίες Ανταλλακτικών</span>
+                    <span class="tm-parts-orders-subtitle">Κατάσταση 65 · ίδια δεδομένα με το κλικ στο badge</span>
+                </div>
+                <div class="tm-parts-orders-actions">
+                    <button type="button" id="tm-parts-orders-popup-btn" class="tm-parts-orders-btn" title="Άνοιγμα σε popup">↗ Popup</button>
+                    <button type="button" id="tm-parts-orders-refresh-btn" class="tm-parts-orders-btn" title="Ανανέωση">🔄</button>
+                </div>
+            </div>
+            <div id="tm-parts-orders-body" class="tm-parts-orders-body">
+                <div class="tm-parts-orders-loading">Φόρτωση παραγγελιών…</div>
+            </div>
+        `;
+
+        const gridWrap = mount.querySelector('.rnr-scrollgrid-wrap');
+        if (gridWrap) {
+            mount.insertBefore(panel, gridWrap);
+        } else {
+            mount.prepend(panel);
+        }
+
+        panel.querySelector('#tm-parts-orders-refresh-btn')?.addEventListener('click', () => {
+            loadPartsTabOrders(true);
+        });
+        panel.querySelector('#tm-parts-orders-popup-btn')?.addEventListener('click', async () => {
+            const repairId = getPageRepairId();
+            if (!repairId) return;
+            try {
+                const orders = await fetchOrdersForRepair(repairId);
+                showOrderPopup(repairId, orders, orders.length ? null : 'Δεν βρέθηκαν παραγγελίες για αυτή την επισκευή.');
+            } catch (err) {
+                showOrderPopup(repairId, null, 'Σφάλμα φόρτωσης παραγγελιών: ' + err.message);
+            }
+        });
+
+        return panel;
+    }
+
+    async function loadPartsTabOrders(forceRefresh = false) {
+        if (!isOrderLinkFeatureEnabled()) return;
+        if (getPageRepairStatus() !== '65') {
+            document.getElementById('tm-parts-orders-panel')?.remove();
+            return;
+        }
+
+        const panel = ensurePartsTabOrderPanel();
+        if (!panel) return;
+
+        const body = panel.querySelector('#tm-parts-orders-body');
+        const repairId = getPageRepairId();
+        if (!repairId) {
+            body.innerHTML = '<div class="tm-parts-orders-empty">Δεν βρέθηκε αριθμός επισκευής.</div>';
+            return;
+        }
+
+        if (!forceRefresh && partsTabOrdersLoaded && body.querySelector('.tm-order-card-new')) {
+            return;
+        }
+
+        body.innerHTML = '<div class="tm-parts-orders-loading">Φόρτωση παραγγελιών…</div>';
+
+        try {
+            const orders = await fetchOrdersForRepair(repairId);
+            partsTabOrdersLoaded = true;
+            const parts = getRepairPartsFromTab();
+
+            body.innerHTML = '';
+            if (!orders.length) {
+                body.innerHTML = `<div class="tm-parts-orders-empty">Δεν βρέθηκαν ενεργές παραγγελίες για την <b>${escapeHtml(repairId)}</b>.</div>`;
+                return;
+            }
+
+            const list = document.createElement('div');
+            list.className = 'tm-parts-orders-list';
+
+            orders.forEach((order) => {
+                const matched = findMatchingRepairPart(order, parts);
+                list.appendChild(buildOrderCardElement(order, { compact: true, matchedPart: matched }));
+            });
+
+            body.appendChild(list);
+
+            const footer = document.createElement('div');
+            footer.className = 'tm-parts-orders-footer';
+            footer.innerHTML = `<a href="https://thefixers.mymanager.gr/mymanagerservice/sparepartstoorder_list.php" target="_blank" rel="noopener" class="tm-order-view-full-btn">🔗 Λίστα Παραγγελιών</a>`;
+            body.appendChild(footer);
+        } catch (err) {
+            body.innerHTML = `<div class="tm-parts-orders-error">❌ ${escapeHtml(err.message)}</div>`;
+        }
+    }
+
+    function setupPartsTabOrderPanel() {
+        if (getPageRepairStatus() !== '65') return;
+
+        const tryLoad = () => {
+            if (document.getElementById('detailPreview3')) {
+                loadPartsTabOrders(false);
+            }
+        };
+
+        tryLoad();
+        scheduleInitTask(tryLoad, 800);
+        scheduleInitTask(tryLoad, 2000);
+        scheduleInitTask(tryLoad, 4000);
+
+        if (partsTabObserver) {
+            partsTabObserver.disconnect();
+        }
+
+        partsTabObserver = new MutationObserver(() => {
+            if (document.getElementById('detailPreview3') && getPageRepairStatus() === '65') {
+                scheduleInitTask(() => loadPartsTabOrders(false), 300);
+            }
+        });
+        partsTabObserver.observe(document.body, { childList: true, subtree: true });
+
+        document.querySelectorAll('.yui-nav a, .rnr-tab a').forEach((tab) => {
+            tab.addEventListener('click', () => scheduleInitTask(tryLoad, 500));
+        });
+    }
+
     // ── Order page → repair link (sparepartstoorder_edit / srvorders_edit) ─────
 
     function isOrderEditPage() {
@@ -333,8 +739,8 @@
         console.log('[MMS Order Link] ----------------------------------------');
         console.log('[MMS Order Link] createOrderLinkButton() called');
         
-        const status = getCurrentRepairStatus();
-        const repairId = getRepairId();
+        const status = getPageRepairStatus();
+        const repairId = getPageRepairId();
 
         console.log('[MMS Order Link] Results - Status:', status, 'Repair ID:', repairId);
 
@@ -381,146 +787,20 @@
         statusBadge.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
-            
-            console.log('[MMS Order Link] Status badge clicked, fetching orders for repair:', repairId);
-            
-            // Show loading state
+
             const originalText = statusBadge.innerHTML;
             statusBadge.innerHTML = '⏳ Loading...';
             statusBadge.style.pointerEvents = 'none';
-            
+
             try {
-                // Fetch the orders page
-                const ordersUrl = 'https://thefixers.mymanager.gr/mymanagerservice/sparepartstoorder_list.php';
-                const response = await fetch(ordersUrl);
-                const html = await response.text();
-                
-                console.log('[MMS Order Link] Orders page fetched, parsing...');
-                
-                // Parse the HTML
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                // Find the orders table
-                const table = doc.querySelector('.rnr-c-grid.rnr-b-grid.rnr-gridtable.hoverable, table.rnr-gridtable');
-                if (!table) {
-                    throw new Error('Orders table not found');
-                }
-                
-                // Get all headers with better identification
-                const headers = [];
-                const headerCells = table.querySelectorAll('thead th');
-                headerCells.forEach(th => {
-                    let headerText = th.textContent.trim();
-                    
-                    // Check for specific column identifiers
-                    const orderSpan = th.querySelector('[id*="order_"], [data-order]');
-                    let columnKey = null;
-                    
-                    if (orderSpan) {
-                        const id = orderSpan.id || '';
-                        const dataOrder = orderSpan.getAttribute('data-order') || '';
-                        
-                        // Map known column IDs to friendly names
-                        if (id.includes('iAverageBuy') || dataOrder.includes('iAverageBuy')) {
-                            columnKey = 'Μέσο Κόστος';
-                        }
-                    }
-                    
-                    // If we identified a specific column, use that key
-                    if (columnKey) {
-                        headers.push(columnKey);
-                    } else if (headerText && headerText !== ' ') {
-                        // Clean up multi-line headers - take only the first line
-                        const lines = headerText.split('\n').map(l => l.trim()).filter(l => l);
-                        if (lines.length > 0) {
-                            headerText = lines[0];
-                        }
-                        headers.push(headerText);
-                    } else {
-                        headers.push(''); // Placeholder for empty headers
-                    }
-                });
-                
-                console.log('[MMS Order Link] Found headers:', headers);
-                
-                // Find the row(s) matching our repair ID
-                const rows = table.querySelectorAll('tbody tr');
-                const matchingOrders = [];
-                
-                rows.forEach(row => {
-                    const cells = row.querySelectorAll('td');
-                    if (cells.length === 0) return;
-                    
-                    // Check if any cell contains our repair ID
-                    let foundMatch = false;
-                    const rowData = {};
-                    
-                    // Get the link to this order's edit page
-                    const orderLink = row.getAttribute('data-href') || '';
-                    if (orderLink) {
-                        // Make it a full URL if it's relative
-                        if (orderLink.startsWith('http')) {
-                            rowData['_orderLink'] = orderLink;
-                        } else {
-                            rowData['_orderLink'] = 'https://thefixers.mymanager.gr/mymanagerservice/' + orderLink;
-                        }
-                    }
-                    
-                    cells.forEach((cell, index) => {
-                        if (index >= headers.length) return; // Skip extra cells
-                        
-                        // Check if cell contains a checkbox image
-                        const checkImg = cell.querySelector('img[src*="check_"]');
-                        let cellValue;
-                        
-                        if (checkImg) {
-                            // It's a checkbox field
-                            const imgSrc = checkImg.getAttribute('src') || '';
-                            if (imgSrc.includes('check_yes')) {
-                                cellValue = 'YES';
-                            } else if (imgSrc.includes('check_no')) {
-                                cellValue = 'NO';
-                            } else {
-                                cellValue = cell.textContent.trim();
-                            }
-                        } else {
-                            // Try to get value from span elements first (for formatted numbers)
-                            const span = cell.querySelector('span[id*="edit"]');
-                            if (span) {
-                                cellValue = span.textContent.trim();
-                            } else {
-                                cellValue = cell.textContent.trim();
-                            }
-                            
-                            // Clean up the value - remove extra whitespace and normalize
-                            cellValue = cellValue.replace(/\s+/g, ' ').trim();
-                        }
-                        
-                        rowData[headers[index]] = cellValue;
-                        
-                        // Check if this cell contains the repair ID
-                        if (cellValue.includes(repairId)) {
-                            foundMatch = true;
-                        }
-                    });
-                    
-                    if (foundMatch) {
-                        matchingOrders.push(rowData);
-                        console.log('[MMS Order Link] Found matching order:', rowData);
-                    }
-                });
-                
-                // Reset badge
+                const orders = await fetchOrdersForRepair(repairId);
                 statusBadge.innerHTML = originalText;
                 statusBadge.style.pointerEvents = '';
-                
-                if (matchingOrders.length === 0) {
+                if (!orders.length) {
                     showOrderPopup(repairId, null, 'Δεν βρέθηκαν παραγγελίες για αυτή την επισκευή.');
                 } else {
-                    showOrderPopup(repairId, matchingOrders, null);
+                    showOrderPopup(repairId, orders, null);
                 }
-                
             } catch (error) {
                 console.error('[MMS Order Link] Error fetching orders:', error);
                 statusBadge.innerHTML = originalText;
@@ -566,119 +846,18 @@
         body.className = 'tm-order-popup-body';
         
         if (errorMessage) {
-            body.innerHTML = `<p class="tm-order-popup-error">❌ ${errorMessage}</p>`;
+            body.innerHTML = `<p class="tm-order-popup-error">❌ ${escapeHtml(errorMessage)}</p>`;
         } else if (orders && orders.length > 0) {
-            // Display each order with a fresh, modern design
-            orders.forEach((order, index) => {
-                const orderCard = document.createElement('div');
-                orderCard.className = 'tm-order-card-new';
-                
-                // Header with product name and action button
-                const header = document.createElement('div');
-                header.className = 'tm-order-header';
-                
-                const productName = document.createElement('div');
-                productName.className = 'tm-order-product-name';
-                productName.textContent = order['Περιγραφή'] || 'Στοιχεία Παραγγελίας';
-                
-                const productCode = document.createElement('div');
-                productCode.className = 'tm-order-product-code';
-                productCode.textContent = order['Κωδικός'] || '';
-                
-                header.appendChild(productName);
-                header.appendChild(productCode);
-                
-                // Cost badge
-                const costBadge = document.createElement('div');
-                costBadge.className = 'tm-order-cost-badge';
-                const cost = order['Μέσο Κόστος'];
-                if (cost && cost !== '0,00' && cost !== '-') {
-                    costBadge.innerHTML = `<span class="tm-cost-label">Κόστος</span><span class="tm-cost-value">${cost} €</span>`;
-                } else {
-                    costBadge.innerHTML = `<span class="tm-cost-label">Κόστος</span><span class="tm-cost-value">—</span>`;
-                }
-                
-                // Info grid for key details
-                const infoGrid = document.createElement('div');
-                infoGrid.className = 'tm-order-info-grid';
-                
-                const keyFields = [
-                    { key: 'Τεμάχια', label: 'Ποσότητα', icon: '📦' },
-                    { key: 'Παραγγελία', label: 'Ημερ. Παραγγελίας', icon: '📅' },
-                    { key: 'Αναμ.Παραλαβή', label: 'Αναμ. Παραλαβή', icon: '⏰' },
-                    { key: 'Παραγγελία σε Κεντρικό', label: 'Σε Κεντρικό', icon: '🏢', isBool: true },
-                    { key: 'Διαθέσιμο\nTHE FIXERS', label: 'Διαθέσιμο', icon: '✅', isBool: true }
-                ];
-                
-                keyFields.forEach(field => {
-                    const value = order[field.key];
-                    if (!value || value === '-') return;
-                    
-                    const infoItem = document.createElement('div');
-                    infoItem.className = 'tm-order-info-item';
-                    
-                    let displayValue = value;
-                    if (field.isBool) {
-                        displayValue = value === 'YES' ? '✅ Ναι' : '❌ Όχι';
-                    }
-                    
-                    infoItem.innerHTML = `
-                        <div class="tm-info-icon">${field.icon}</div>
-                        <div class="tm-info-content">
-                            <div class="tm-info-label">${field.label}</div>
-                            <div class="tm-info-value">${displayValue}</div>
-                        </div>
-                    `;
-                    
-                    infoGrid.appendChild(infoItem);
-                });
-                
-                // Notes section (only if there are notes)
-                const notesSection = document.createElement('div');
-                const storeNotes = order['Σημειώσεις Καταστήματος'];
-                const centralNotes = order['Σημειώσεις Κεντρικής Αποθήκης'];
-                
-                if ((storeNotes && storeNotes !== '-') || (centralNotes && centralNotes !== '-')) {
-                    notesSection.className = 'tm-order-notes';
-                    
-                    if (storeNotes && storeNotes !== '-') {
-                        const storeNote = document.createElement('div');
-                        storeNote.className = 'tm-note-item store';
-                        storeNote.innerHTML = `<strong>📝 Κατάστημα:</strong> ${storeNotes}`;
-                        notesSection.appendChild(storeNote);
-                    }
-                    
-                    if (centralNotes && centralNotes !== '-') {
-                        const centralNote = document.createElement('div');
-                        centralNote.className = 'tm-note-item central';
-                        centralNote.innerHTML = `<strong>📋 Κεντρική:</strong> ${centralNotes}`;
-                        notesSection.appendChild(centralNote);
-                    }
-                }
-                
-                // Action button
-                const actionBtn = document.createElement('a');
-                actionBtn.className = 'tm-order-action-btn';
-                actionBtn.href = order['_orderLink'] || '#';
-                actionBtn.target = '_blank';
-                actionBtn.innerHTML = 'Προβολή Πλήρους Παραγγελίας →';
-                
-                // Assemble the card
-                orderCard.appendChild(header);
-                orderCard.appendChild(costBadge);
-                orderCard.appendChild(infoGrid);
-                if (notesSection.children.length > 0) {
-                    orderCard.appendChild(notesSection);
-                }
-                orderCard.appendChild(actionBtn);
-                
-                body.appendChild(orderCard);
+            const parts = getRepairPartsFromTab();
+            orders.forEach((order) => {
+                const matched = findMatchingRepairPart(order, parts);
+                body.appendChild(buildOrderCardElement(order, { compact: false, matchedPart: matched }));
             });
-            
-            // Add button to view full page
+
             const viewFullBtn = document.createElement('a');
             viewFullBtn.href = 'https://thefixers.mymanager.gr/mymanagerservice/sparepartstoorder_list.php';
             viewFullBtn.target = '_blank';
+            viewFullBtn.rel = 'noopener';
             viewFullBtn.className = 'tm-order-view-full-btn';
             viewFullBtn.innerHTML = '🔗 Προβολή Σελίδας Παραγγελιών';
             body.appendChild(viewFullBtn);
@@ -776,6 +955,117 @@
             font-weight: 600 !important;
             white-space: nowrap;
         }
+
+        /* Parts tab inline order panel (status 65) */
+        .tm-parts-orders-panel {
+            margin: 0 0 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--tm-shop-item-border, #dee2e6);
+            background: var(--tm-shop-item-owned-bg, #e7f1ff);
+            box-shadow: 0 2px 10px var(--tm-shadow-color, rgba(0,0,0,0.08));
+        }
+        .tm-parts-orders-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .tm-parts-orders-title {
+            display: block;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--tm-primary-color, #343a40);
+        }
+        .tm-parts-orders-subtitle {
+            display: block;
+            font-size: 11px;
+            color: var(--tm-muted-text, #6c757d);
+            margin-top: 2px;
+        }
+        .tm-parts-orders-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .tm-parts-orders-btn {
+            border: 1px solid var(--tm-shop-item-border, #dee2e6);
+            background: var(--tm-modal-bg, #fff);
+            color: var(--tm-primary-color, #343a40);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .tm-parts-orders-btn:hover {
+            border-color: var(--tm-primary-color);
+            color: var(--tm-primary-color);
+        }
+        .tm-parts-orders-list {
+            display: grid;
+            gap: 10px;
+        }
+        .tm-order-card-compact {
+            margin-bottom: 0 !important;
+        }
+        .tm-order-card-compact .tm-order-header {
+            padding: 12px 14px;
+        }
+        .tm-order-card-compact .tm-order-product-name {
+            font-size: 14px;
+        }
+        .tm-order-card-compact .tm-order-info-grid {
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            padding: 12px 14px;
+            gap: 10px;
+        }
+        .tm-order-card-compact .tm-order-action-btn {
+            padding: 10px 12px;
+            font-size: 12px;
+        }
+        .tm-order-match-badge {
+            margin-top: 6px;
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--tm-success-color, #28a745) 16%, transparent);
+            color: var(--tm-success-color, #28a745);
+            border: 1px solid color-mix(in srgb, var(--tm-success-color, #28a745) 35%, transparent);
+        }
+        .tm-order-repair-part-info {
+            grid-column: 1 / -1;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: color-mix(in srgb, var(--tm-info-color, #17a2b8) 10%, transparent);
+            border: 1px solid color-mix(in srgb, var(--tm-info-color, #17a2b8) 25%, transparent);
+        }
+        .tm-order-cost-badge {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: center;
+        }
+        .tm-cost-group {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+        .tm-parts-orders-loading,
+        .tm-parts-orders-empty,
+        .tm-parts-orders-error {
+            font-size: 13px;
+            color: var(--tm-muted-text, #6c757d);
+            padding: 8px 0;
+        }
+        .tm-parts-orders-error {
+            color: var(--tm-danger-color, #dc3545);
+        }
+        .tm-parts-orders-footer {
+            margin-top: 10px;
+        }
     `);
 
     let statusBadgeObserver = null;
@@ -800,6 +1090,11 @@
 
     function teardownOrderLinkUI() {
         clearInitTimers();
+        partsTabOrdersLoaded = false;
+        if (partsTabObserver) {
+            partsTabObserver.disconnect();
+            partsTabObserver = null;
+        }
         if (statusBadgeObserver) {
             statusBadgeObserver.disconnect();
             statusBadgeObserver = null;
@@ -809,6 +1104,7 @@
             badge.parentNode?.replaceChild(clone, badge);
         });
         document.getElementById('tm-repair-from-order-btn')?.remove();
+        document.getElementById('tm-parts-orders-panel')?.remove();
     }
 
     /**
@@ -866,6 +1162,8 @@
                     statusBadgeObserver.observe(statusBadge, { childList: true, characterData: true, subtree: true });
                 }
             }, 1000);
+
+            setupPartsTabOrderPanel();
         } else if (isOrderEditPage()) {
             console.log('[MMS Order Link] ✓ Detected order edit page — resolving repair link');
             const tryRepairLink = () => {
@@ -888,6 +1186,8 @@
     window.teardownOrderLinkModule = teardownOrderLinkUI;
     window.getRepairIdFromOrderPage = getRepairIdFromOrderPage;
     window.createRepairLinkFromOrderPage = createRepairLinkFromOrderPage;
+    window.fetchOrdersForRepair = fetchOrdersForRepair;
+    window.loadPartsTabOrders = loadPartsTabOrders;
 
 })();
 
