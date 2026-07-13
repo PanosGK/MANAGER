@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v204 — generated, do not edit */
+/* MyManager Suite bundle v205 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -3031,7 +3031,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '203',
+        version: '204',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -36437,6 +36437,21 @@ if (typeof window !== 'undefined') {
         return td;
     }
 
+    function nativeGridOrderButton(orderLink) {
+        const td = document.createElement('td');
+        td.className = 'rnr-edge';
+        if (orderLink) {
+            const link = document.createElement('a');
+            link.className = 'rnr-button';
+            link.href = orderLink;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.textContent = 'Παραγγελία';
+            td.appendChild(link);
+        }
+        return td;
+    }
+
     function injectOrderInfoRow(tbody, order) {
         tbody.querySelectorAll('.tm-parts-order-row').forEach((row) => row.remove());
 
@@ -36452,7 +36467,7 @@ if (typeof window !== 'undefined') {
             nativeGridLabel('Σε Κεντρικό'),
             nativeGridBool(toCentral),
             nativeGridLabel(''),
-            nativeGridValue(''),
+            order._orderLink ? nativeGridOrderButton(order._orderLink) : nativeGridValue(''),
         ]);
         mainRow.classList.add('tm-parts-order-row');
         tbody.appendChild(mainRow);

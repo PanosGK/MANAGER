@@ -458,6 +458,21 @@
         return td;
     }
 
+    function nativeGridOrderButton(orderLink) {
+        const td = document.createElement('td');
+        td.className = 'rnr-edge';
+        if (orderLink) {
+            const link = document.createElement('a');
+            link.className = 'rnr-button';
+            link.href = orderLink;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.textContent = 'Παραγγελία';
+            td.appendChild(link);
+        }
+        return td;
+    }
+
     function injectOrderInfoRow(tbody, order) {
         tbody.querySelectorAll('.tm-parts-order-row').forEach((row) => row.remove());
 
@@ -473,7 +488,7 @@
             nativeGridLabel('Σε Κεντρικό'),
             nativeGridBool(toCentral),
             nativeGridLabel(''),
-            nativeGridValue(''),
+            order._orderLink ? nativeGridOrderButton(order._orderLink) : nativeGridValue(''),
         ]);
         mainRow.classList.add('tm-parts-order-row');
         tbody.appendChild(mainRow);
