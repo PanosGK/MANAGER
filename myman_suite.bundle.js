@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v195 — generated, do not edit */
+/* MyManager Suite bundle v196 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -1996,6 +1996,38 @@ const THEME_SUITE_EOD_STYLES = `
 const THEME_SUITE_EXTENDED_STYLES = THEME_SUITE_WIDGET_STYLES + THEME_SUITE_EOD_STYLES;
 const THEME_EXTENDED_STYLES = THEME_SUITE_EXTENDED_STYLES + THEME_NATIVE_PAGE_EXTENDED_STYLES;
 
+/** Shared native-page tweaks for light / white-based themes. */
+const THEME_LIGHT_PAGE_OVERRIDES = `
+            body::after { opacity: 0 !important; }
+            #tm-notification-unread-count { color: #ffffff !important; }
+            .minimal-store-btn:hover, .rnr-button:hover, #tm-settings-save:hover, #tm-settings-reset:hover,
+            .tm-quick-search-add-btn:hover, .tm-scratchpad-template-add-btn:hover, #tm-price-options-add-btn:hover,
+            #tm-mascot-interaction-buttons button:hover, .tm-shop-item-btn:hover:not(:disabled),
+            .tm-talent-unlock-btn:hover:not(:disabled), .tm-talent-unlock-btn-dashboard:hover:not(:disabled),
+            #tm-dashboard-content button[style*="linear-gradient"]:hover {
+                color: #ffffff !important;
+            }
+            #tm-xp-bar-container, #tm-coin-balance, #tm-daily-dashboard-widget { text-shadow: none !important; }
+            #footer-outterwrap td, #footer-outterwrap span { text-shadow: none !important; }
+            #minimal-username-input { text-shadow: none !important; }
+            .tm-level-up-title { color: var(--tm-primary-color) !important; text-shadow: none !important; }
+            h1, h2, h3, h4, h5, h6, .pagetitle { text-shadow: none !important; }
+            .rnr-b-editheader h1 { color: var(--tm-primary-color) !important; text-shadow: none !important; }
+            .tm-mascot-speech-bubble { text-shadow: none !important; }
+            b, strong,
+            .rnr-s-grid b, .rnr-s-grid strong,
+            .rnr-s-undermenu b, .rnr-s-undermenu strong,
+            .rnr-s-2 b, .rnr-s-2 strong,
+            .tm-modal-content b, .tm-modal-content strong,
+            .rnr-b-page_of b, .rnr-b-details_found b,
+            #login_block1 b, .rnr-b-loggedas b,
+            .fieldGrid .rnr-label b, .tm-eod-subtitle b {
+                color: var(--tm-primary-hover) !important;
+                text-shadow: none !important;
+            }
+            .rnr-s-fields > .rnr-c, .rnr-s-1 > .rnr-c { background: rgba(0, 0, 0, 0.03) !important; }
+        `;
+
 /** Documented specialist UI palette sources (design systems & community themes). */
 const UI_PALETTE_SOURCES = {
     default: 'Original MyMANAGER page (no native overrides)',
@@ -2015,6 +2047,9 @@ const UI_PALETTE_SOURCES = {
     retro_amber: 'Gruvbox — morhetz/gruvbox',
     matrix: 'Classic VT220 phosphor terminal green',
     liquid_glass: 'Apple HIG system colors — developer.apple.com/design/human-interface-guidelines',
+    paper_white: 'IBM Carbon Gray 10 — carbon-design-system.com',
+    blush_cream: 'Radix Colors Pink Light — radix-ui.com/colors',
+    daylight_sky: 'Tailwind CSS Slate + Sky — tailwindcss.com/docs/customizing-colors',
 };
 
 function tmMapPaletteToThemeColors(p) {
@@ -2253,6 +2288,42 @@ const UI_SPECIALIST_PALETTES = {
         textOnPrimary: '#FFFFFF', textOnLight: '#1D1D1F', textOnDark: '#636366',
         modalBg: 'rgba(255, 255, 255, 0.68)',
     }),
+    paper_white: tmMapPaletteToThemeColors({
+        primary: '#0f62fe', primaryHover: '#0043ce',
+        secondary: '#6f6f6f', secondaryHover: '#525252',
+        success: '#198038', successHover: '#0e6027',
+        danger: '#da1e28', dangerHover: '#a2191f',
+        warning: '#f1c21b', warningHover: '#d2a106',
+        info: '#1192e8', infoHover: '#0072c3',
+        dark: '#ffffff', darkHover: '#f4f4f4',
+        surface: '#ffffff', border: '#e0e0e0', surfaceHover: '#f4f4f4', surfaceOwned: '#edf5ff',
+        textOnPrimary: '#ffffff', textOnLight: '#161616', textOnDark: '#525252',
+        modalBg: '#ffffff',
+    }),
+    blush_cream: tmMapPaletteToThemeColors({
+        primary: '#db2777', primaryHover: '#be185d',
+        secondary: '#9f1239', secondaryHover: '#881337',
+        success: '#059669', successHover: '#047857',
+        danger: '#e11d48', dangerHover: '#be123c',
+        warning: '#d97706', warningHover: '#b45309',
+        info: '#ec4899', infoHover: '#db2777',
+        dark: '#fffbf7', darkHover: '#fff7ed',
+        surface: '#fffbf7', border: '#fecdd3', surfaceHover: '#fff1f2', surfaceOwned: '#ffe4e6',
+        textOnPrimary: '#ffffff', textOnLight: '#4c0519', textOnDark: '#9f1239',
+        modalBg: '#fffbf7',
+    }),
+    daylight_sky: tmMapPaletteToThemeColors({
+        primary: '#0284c7', primaryHover: '#0369a1',
+        secondary: '#64748b', secondaryHover: '#475569',
+        success: '#16a34a', successHover: '#15803d',
+        danger: '#dc2626', dangerHover: '#b91c1c',
+        warning: '#ca8a04', warningHover: '#a16207',
+        info: '#0ea5e9', infoHover: '#0284c7',
+        dark: '#f8fafc', darkHover: '#f1f5f9',
+        surface: '#ffffff', border: '#cbd5e1', surfaceHover: '#f1f5f9', surfaceOwned: '#e0f2fe',
+        textOnPrimary: '#ffffff', textOnLight: '#0f172a', textOnDark: '#475569',
+        modalBg: '#ffffff',
+    }),
 };
 
 const UI_THEMES = {
@@ -2444,6 +2515,49 @@ const UI_THEMES = {
         name: 'Liquid Glass', icon: '🫧', cost: 1500, type: 'theme',
         colors: UI_SPECIALIST_PALETTES.liquid_glass,
         pageStyles: LIQUID_GLASS_STYLES,
+    },
+    'paper_white': {
+        name: 'Paper White', icon: '📄', cost: 500, type: 'theme',
+        colors: UI_SPECIALIST_PALETTES.paper_white,
+        pageStyles: THEME_STYLES + `/* Paper White (IBM Carbon) */
+            body { background: linear-gradient(180deg, #ffffff 0%, #f4f4f4 100%) !important; }
+            body::before {
+                background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%230f62fe' fill-opacity='0.04' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='1'/%3E%3C/g%3E%3C/svg%3E") !important;
+                opacity: 1 !important; animation: none !important;
+            }
+            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox {
+                filter: brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2800%) hue-rotate(211deg) brightness(93%) contrast(101%) !important;
+            }
+            ${THEME_LIGHT_PAGE_OVERRIDES}`
+    },
+    'blush_cream': {
+        name: 'Blush Cream', icon: '🌸', cost: 600, type: 'theme',
+        colors: UI_SPECIALIST_PALETTES.blush_cream,
+        pageStyles: THEME_STYLES + `/* Blush Cream (Radix Pink Light) */
+            body { background: linear-gradient(135deg, #fffbf7 0%, #fff1f2 55%, #ffe4e6 100%) !important; }
+            body::before {
+                background-image: radial-gradient(circle at 12% 18%, rgba(219, 39, 119, 0.08) 0%, transparent 42%),
+                    radial-gradient(circle at 88% 82%, rgba(251, 113, 133, 0.07) 0%, transparent 45%) !important;
+                opacity: 1 !important; animation: none !important;
+            }
+            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox {
+                filter: brightness(0) saturate(100%) invert(30%) sepia(72%) saturate(2200%) hue-rotate(305deg) brightness(92%) contrast(95%) !important;
+            }
+            ${THEME_LIGHT_PAGE_OVERRIDES}`
+    },
+    'daylight_sky': {
+        name: 'Daylight Sky', icon: '☁️', cost: 600, type: 'theme',
+        colors: UI_SPECIALIST_PALETTES.daylight_sky,
+        pageStyles: THEME_STYLES + `/* Daylight Sky (Tailwind Slate + Sky) */
+            body { background: linear-gradient(180deg, #f8fafc 0%, #e0f2fe 100%) !important; }
+            body::before {
+                background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%230284c7' stroke-opacity='0.07'%3E%3Cpath d='M0 40h80M40 0v80'/%3E%3C/g%3E%3C/svg%3E") !important;
+                opacity: 1 !important; animation: none !important;
+            }
+            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox {
+                filter: brightness(0) saturate(100%) invert(41%) sepia(86%) saturate(1200%) hue-rotate(182deg) brightness(92%) contrast(96%) !important;
+            }
+            ${THEME_LIGHT_PAGE_OVERRIDES}`
     },
 };
 
@@ -2764,7 +2878,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '194',
+        version: '195',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -25022,7 +25136,8 @@ function isCatalogDarkTheme() {
     const themeId = typeof window.tmReadEquippedThemeId === 'function'
         ? window.tmReadEquippedThemeId()
         : String(window.__tmEarlyThemeId || 'default');
-    return themeId !== 'default' && themeId !== 'solarized_light' && themeId !== 'liquid_glass';
+    return themeId !== 'default' && themeId !== 'solarized_light' && themeId !== 'liquid_glass'
+        && themeId !== 'paper_white' && themeId !== 'blush_cream' && themeId !== 'daylight_sky';
 }
 
 function isDarkPhoneColorHex(hex) {

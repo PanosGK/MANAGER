@@ -349,7 +349,8 @@ function isCatalogDarkTheme() {
     const themeId = typeof window.tmReadEquippedThemeId === 'function'
         ? window.tmReadEquippedThemeId()
         : String(window.__tmEarlyThemeId || 'default');
-    return themeId !== 'default' && themeId !== 'solarized_light' && themeId !== 'liquid_glass';
+    return themeId !== 'default' && themeId !== 'solarized_light' && themeId !== 'liquid_glass'
+        && themeId !== 'paper_white' && themeId !== 'blush_cream' && themeId !== 'daylight_sky';
 }
 
 function isDarkPhoneColorHex(hex) {
