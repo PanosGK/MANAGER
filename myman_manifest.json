@@ -1,11 +1,11 @@
 {
-  "version": "214",
+  "version": "215",
   "loaderVersion": "5",
-  "silentVersion": "4",
-  "displayVersion": "5.4",
+  "silentVersion": "5",
+  "displayVersion": "5.5",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Reminder history in notification alerts tab",
+  "releaseNotes": "Auto version bump workflow; page layout; snooze; scratchpad fixes",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

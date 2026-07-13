@@ -490,3 +490,4 @@ if (config.includes('const SCRIPT_META = {')) {
 
 fs.writeFileSync(configPath, config);
 console.log(`Generated ${bundleFileName}, async loader (no @require), local loader, fouc guard — bundle v${version}, Custom Ver. ${displayVersion}, loader v${loaderVersion}`);
+console.log('Note: Custom Ver. only changes when you run: node scripts/release.mjs "what changed"');
