@@ -329,6 +329,27 @@
                 border: none !important;
             }
 
+            /* Recent Repairs footer button — theme tokens (no inline glass) */
+            #tm-recent-repairs-btn {
+                background: var(--tm-glass-bg, var(--tm-shop-item-bg)) !important;
+                border: 1px solid var(--tm-glass-border, var(--tm-shop-item-border)) !important;
+                color: var(--tm-widget-text, var(--tm-primary-color)) !important;
+                padding: 8px 14px !important;
+                border-radius: 10px !important;
+                font-size: 12px !important;
+                font-weight: 600 !important;
+                cursor: pointer !important;
+                transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease !important;
+                box-shadow: 0 2px 8px var(--tm-shadow-color, rgba(0,0,0,0.15)) !important;
+            }
+            #tm-recent-repairs-btn:hover {
+                background: var(--tm-glass-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+                border-color: var(--tm-primary-color) !important;
+                color: var(--tm-primary-color) !important;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px var(--tm-shadow-color, rgba(0,0,0,0.2)) !important;
+            }
+
             /* Price transfer button: theme-aware */
             #tm-price-transfer-btn {
                 color: var(--tm-primary-color) !important;

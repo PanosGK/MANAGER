@@ -113,7 +113,8 @@ const PERFORMANCE_STYLES_NON_DEFAULT_FOOTER = `
 #tm-xp-bar-container,
 #tm-coin-balance,
 .tm-footer-widget,
-.tm-buff-timer {
+.tm-buff-timer,
+#tm-recent-repairs-btn {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     background: var(--tm-shop-item-bg) !important;
@@ -128,7 +129,7 @@ const PERFORMANCE_STYLES_NON_DEFAULT_FOOTER = `
 
 /* Cheaper transitions (avoid compositing "all") */
 .rnr-button, .btn, .tm-footer-widget, #tm-xp-bar-container,
-#tm-settings-btn, #tm-refresh-timer-container {
+#tm-settings-btn, #tm-refresh-timer-container, #tm-recent-repairs-btn, #tm-eod-btn {
     transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease !important;
 }
 `;
@@ -142,7 +143,7 @@ function tmInjectPerformanceStyles() {
     document.getElementById('tm-performance-styles')?.remove();
     const el = document.createElement('style');
     el.id = 'tm-performance-styles';
-    el.textContent = PERFORMANCE_STYLES_BASE
+    el.textContent = (isDefaultTheme ? '' : PERFORMANCE_STYLES_BASE)
         + (isDefaultTheme ? PERFORMANCE_STYLES_DEFAULT_FOOTER : PERFORMANCE_STYLES_NON_DEFAULT_FOOTER);
     document.head.appendChild(el);
 }

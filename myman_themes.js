@@ -640,12 +640,7 @@ const THEME_STYLES = `/* Universal Theme Styles */
             }
         `;
 
-const THEME_EXTENDED_STYLES = `/* --- Extended theme tokens (derived per theme in tmApplyThemeColors) --- */
-            h1, h2, h3, h4, h5, h6 { color: var(--tm-heading-color, var(--tm-info-color, var(--tm-primary-color))) !important; }
-            .pagetitle, .pagetitle span { color: var(--tm-heading-color, var(--tm-info-color, var(--tm-primary-color))) !important; }
-            .fieldGrid .rnr-label label, .fieldGrid .rnr-label b { color: var(--tm-label-color, var(--tm-secondary-hover, var(--tm-secondary-color))) !important; }
-
-            /* Footer suite widgets */
+const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
             #tm-notification-bell-btn,
             #tm-settings-btn,
             #tm-refresh-timer-container,
@@ -683,6 +678,7 @@ const THEME_EXTENDED_STYLES = `/* --- Extended theme tokens (derived per theme i
             }
             #tm-notification-bell-btn,
             #tm-settings-btn,
+            #tm-recent-repairs-btn,
             .tm-refresh-time-text,
             #tm-weather-temp,
             #tm-user-title-text,
@@ -712,8 +708,8 @@ const THEME_EXTENDED_STYLES = `/* --- Extended theme tokens (derived per theme i
             .tm-xp-gain-indicator { color: var(--tm-warning-color) !important; }
             .tm-level-pop { animation: tm-level-text-pop 0.5s ease-out; }
 
-            /* Overlays & popups */
-            .jconfirm, #tm-notification-backdrop { background: var(--tm-overlay-dim, rgba(0,0,0,0.82)) !important; }
+            /* Overlays & popups (suite) */
+            #tm-notification-backdrop { background: var(--tm-overlay-dim, rgba(0,0,0,0.82)) !important; }
             #tm-recent-repairs-menu,
             .tm-recent-repairs-header,
             .tm-recent-repair-item {
@@ -729,12 +725,6 @@ const THEME_EXTENDED_STYLES = `/* --- Extended theme tokens (derived per theme i
             #tm-quests-btn:hover { background-color: var(--tm-secondary-color) !important; }
             #tm-scratchpad-toggle-btn { background-color: var(--tm-secondary-color) !important; color: var(--tm-text-on-primary, #fff) !important; }
             #tm-scratchpad-toggle-btn:hover { background-color: var(--tm-secondary-hover) !important; }
-
-            /* Repair edit sections */
-            .rnr-s-fields > .rnr-c, .rnr-s-1 > .rnr-c {
-                background: var(--tm-section-bg, var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg))) !important;
-                border-color: var(--tm-surface-border, var(--tm-shop-item-border)) !important;
-            }
 
             /* Chips / metadata */
             .tm-os-price-pill, .tm-phone-price-pill {
@@ -755,6 +745,17 @@ const THEME_EXTENDED_STYLES = `/* --- Extended theme tokens (derived per theme i
                 color: var(--tm-danger-color) !important;
             }
             .tm-alert-cancel-btn:hover { background: rgba(var(--tm-danger-color-rgb, 220,53,69), 0.22) !important; }
+        `;
+
+const THEME_NATIVE_PAGE_EXTENDED_STYLES = `/* --- Native MyMANAGER page (non-default themes only) --- */
+            h1, h2, h3, h4, h5, h6 { color: var(--tm-heading-color, var(--tm-info-color, var(--tm-primary-color))) !important; }
+            .pagetitle, .pagetitle span { color: var(--tm-heading-color, var(--tm-info-color, var(--tm-primary-color))) !important; }
+            .fieldGrid .rnr-label label, .fieldGrid .rnr-label b { color: var(--tm-label-color, var(--tm-secondary-hover, var(--tm-secondary-color))) !important; }
+            .rnr-s-fields > .rnr-c, .rnr-s-1 > .rnr-c {
+                background: var(--tm-section-bg, var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg))) !important;
+                border-color: var(--tm-surface-border, var(--tm-shop-item-border)) !important;
+            }
+            .jconfirm { background: var(--tm-overlay-dim, rgba(0,0,0,0.82)) !important; }
 
             /* Pagination & tabs */
             .rnr-cw-pagination, .rnr-cw-pagination_bottom, .rnr-c-pagination, .rnr-c-pagination_bottom {
@@ -898,8 +899,9 @@ const THEME_EXTENDED_STYLES = `/* --- Extended theme tokens (derived per theme i
 
             /* Page shell */
             .rnr-page, .rnr-middle, .rnr-center, .rnr-left, .rnr-right { color: var(--tm-primary-color) !important; }
+        `;
 
-            /* ===== EOD Checklist (tm-eod-btn + panel) ===== */
+const THEME_SUITE_EOD_STYLES = `
             #tm-eod-btn {
                 position: relative !important;
                 background: var(--tm-glass-bg, var(--tm-shop-item-bg)) !important;
@@ -1073,9 +1075,12 @@ const THEME_EXTENDED_STYLES = `/* --- Extended theme tokens (derived per theme i
             }
         `;
 
+const THEME_SUITE_EXTENDED_STYLES = THEME_SUITE_WIDGET_STYLES + THEME_SUITE_EOD_STYLES;
+const THEME_EXTENDED_STYLES = THEME_SUITE_EXTENDED_STYLES + THEME_NATIVE_PAGE_EXTENDED_STYLES;
+
 /** Documented specialist UI palette sources (design systems & community themes). */
 const UI_PALETTE_SOURCES = {
-    default: 'IBM Carbon Design System — carbondesignsystem.com',
+    default: 'Original MyMANAGER page (no native overrides)',
     solarized_dark: 'Solarized — Ethan Schoonover — ethanschoonover.com/solarized',
     solarized_light: 'Solarized — Ethan Schoonover',
     dracula: 'Dracula Theme — draculatheme.com/spec',
@@ -1125,15 +1130,15 @@ function tmMapPaletteToThemeColors(p) {
 
 const UI_SPECIALIST_PALETTES = {
     default: tmMapPaletteToThemeColors({
-        primary: '#0f62fe', primaryHover: '#0353e9',
-        secondary: '#6f6f6f', secondaryHover: '#525252',
-        success: '#24a148', successHover: '#198038',
-        danger: '#da1e28', dangerHover: '#a2191f',
-        warning: '#f1c21b', warningHover: '#d2a106',
-        info: '#1192e8', infoHover: '#0072c3',
-        dark: '#393939', darkHover: '#262626',
-        surface: '#f4f4f4', border: '#e0e0e0', surfaceHover: '#e8e8e8', surfaceOwned: '#d0e2ff',
-        textOnPrimary: '#ffffff', textOnLight: '#161616', textOnDark: '#f4f4f4',
+        primary: '#007bff', primaryHover: '#0056b3',
+        secondary: '#6c757d', secondaryHover: '#5a6268',
+        success: '#28a745', successHover: '#218838',
+        danger: '#dc3545', dangerHover: '#c82333',
+        warning: '#ffc107', warningHover: '#e0a800',
+        info: '#17a2b8', infoHover: '#138496',
+        dark: '#343a40', darkHover: '#23272b',
+        surface: '#f8f9fa', border: '#dee2e6', surfaceHover: '#e9ecef', surfaceOwned: '#e7f1ff',
+        textOnPrimary: '#ffffff', textOnLight: '#343a40', textOnDark: '#cccccc',
         modalBg: '#ffffff',
     }),
     solarized_dark: tmMapPaletteToThemeColors({
@@ -1338,7 +1343,7 @@ const UI_THEMES = {
         colors: UI_SPECIALIST_PALETTES.default,
         pageStyles: `/* Default Theme - Light Background Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; background-color: var(--tm-danger-color) !important; }
-            .minimal-store-btn:hover, .rnr-button:hover, #tm-settings-save:hover, #tm-settings-reset:hover, 
+            .minimal-store-btn:hover, #tm-settings-save:hover, #tm-settings-reset:hover, 
             #tm-mascot-interaction-buttons button:hover, .tm-shop-item-btn:hover:not(:disabled),
             .tm-talent-unlock-btn:hover:not(:disabled), .tm-talent-unlock-btn-dashboard:hover:not(:disabled),
             #tm-dashboard-content button[style*="linear-gradient"]:hover { 
@@ -1641,9 +1646,22 @@ const UI_THEMES = {
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(58%) sepia(99%) saturate(1455%) hue-rotate(168deg) brightness(102%) contrast(102%) !important; }
             
             /* Cyberpunk Contrast Fixes */
-            #tm-notification-unread-count { color: var(--tm-dark-hover) !important; }
-            .tm-modal-content { background: rgba(10, 5, 20, 0.98) !important; }
-            .rnr-s-fields > .rnr-c, .rnr-s-1 > .rnr-c { background: rgba(0, 51, 102, 0.25) !important; }`
+            #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; }
+            .tm-modal-content { background: var(--tm-modal-bg) !important; }
+            .rnr-s-fields > .rnr-c, .rnr-s-1 > .rnr-c { background: rgba(119, 0, 166, 0.18) !important; }
+            /* Bold text: info magenta is too dark on purple-black — use neon yellow/cyan */
+            b, strong,
+            .rnr-s-grid b, .rnr-s-grid strong,
+            .rnr-s-undermenu b, .rnr-s-undermenu strong,
+            .rnr-s-2 b, .rnr-s-2 strong,
+            .tm-modal-content b, .tm-modal-content strong,
+            .rnr-b-page_of b, .rnr-b-details_found b,
+            #login_block1 b, .rnr-b-loggedas b,
+            .fieldGrid .rnr-label b, .tm-eod-subtitle b {
+                color: var(--tm-success-color) !important;
+                text-shadow: 0 0 6px rgba(252, 238, 10, 0.45) !important;
+            }
+            .rnr-details_found_count { color: var(--tm-primary-color) !important; }`
     },
     'solarized_dark': {
         name: 'Solarized Dark', icon: '☀️', cost: 750, type: 'theme',
@@ -1990,38 +2008,66 @@ function tmBuildDerivedThemeTokens(colors) {
     return merged;
 }
 
-function tmInjectExtendedThemeStyles() {
+function tmClearInlineThemeProperties(root) {
+    const toRemove = [];
+    for (let i = 0; i < root.style.length; i++) {
+        const prop = root.style[i];
+        if (prop.startsWith('--tm-')) toRemove.push(prop);
+    }
+    toRemove.forEach((prop) => root.style.removeProperty(prop));
+    root.style.removeProperty('background-color');
+}
+
+function tmInjectExtendedThemeStyles(themeId) {
     document.getElementById('tm-extended-theme-styles')?.remove();
     const el = document.createElement('style');
     el.id = 'tm-extended-theme-styles';
-    el.textContent = THEME_EXTENDED_STYLES;
+    const isDefault = themeId === 'default';
+    el.textContent = isDefault ? THEME_SUITE_EXTENDED_STYLES : THEME_EXTENDED_STYLES;
     document.head.appendChild(el);
 }
 
 function tmApplyThemeColors(themeId, options = {}) {
     const theme = UI_THEMES[themeId] || UI_THEMES.default;
     const root = document.documentElement;
-    const appliedColors = tmBuildDerivedThemeTokens(theme.colors);
+    const isDefault = themeId === 'default';
 
-    for (const [variable, color] of Object.entries(appliedColors)) {
-        root.style.setProperty(variable, color);
+    document.getElementById('tm-extended-theme-styles')?.remove();
+    document.getElementById('tm-page-theme-styles')?.remove();
+
+    if (isDefault) {
+        tmClearInlineThemeProperties(root);
+        root.dataset.tmTheme = 'default';
+
+        const baseColors = { ...theme.colors };
+        for (const [variable, color] of Object.entries(baseColors)) {
+            root.style.setProperty(variable, color);
+        }
+        const shopText = tmResolveShopItemText(baseColors);
+        root.style.setProperty('--tm-shop-item-text', shopText);
+        theme.appliedColors = { ...baseColors, '--tm-shop-item-text': shopText };
+    } else {
+        const appliedColors = tmBuildDerivedThemeTokens(theme.colors);
+
+        for (const [variable, color] of Object.entries(appliedColors)) {
+            root.style.setProperty(variable, color);
+        }
+
+        const shopText = tmResolveShopItemText(appliedColors);
+        root.style.setProperty('--tm-shop-item-text', shopText);
+        appliedColors['--tm-shop-item-text'] = shopText;
+
+        const bg = appliedColors['--tm-dark-color'] || appliedColors['--tm-shop-item-bg'];
+        if (bg) {
+            root.style.backgroundColor = bg;
+        }
+        root.dataset.tmTheme = themeId;
+        theme.appliedColors = appliedColors;
     }
 
-    const shopText = tmResolveShopItemText(appliedColors);
-    root.style.setProperty('--tm-shop-item-text', shopText);
-    appliedColors['--tm-shop-item-text'] = shopText;
-
-    const bg = appliedColors['--tm-dark-color'] || appliedColors['--tm-shop-item-bg'];
-    if (bg) {
-        root.style.backgroundColor = bg;
-    }
-    document.documentElement.dataset.tmTheme = themeId;
-    theme.appliedColors = appliedColors;
-
-    tmInjectExtendedThemeStyles();
+    tmInjectExtendedThemeStyles(themeId);
 
     if (options.pageStyles !== false) {
-        document.getElementById('tm-page-theme-styles')?.remove();
         if (theme.pageStyles) {
             const styleEl = document.createElement('style');
             styleEl.id = 'tm-page-theme-styles';

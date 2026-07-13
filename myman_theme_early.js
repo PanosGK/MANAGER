@@ -110,7 +110,7 @@
                 : (expanded['--tm-text-on-dark'] || colors['--tm-text-on-dark'] || expanded['--tm-primary-color'] || colors['--tm-primary-color'] || '#e8e8e8'));
         root.style.setProperty('--tm-shop-item-text', shopText);
         const bg = expanded['--tm-dark-color'] || colors['--tm-dark-color'] || shopBg;
-        if (bg) {
+        if (bg && String(window.__tmEarlyThemeId || readProfileScoped(THEME_KEY, 'default')) !== 'default') {
             root.style.backgroundColor = bg;
         }
     }
@@ -125,7 +125,7 @@
         }
     } catch (_) { /* ignore */ }
 
-    if (cache && cache.colors) {
+    if (themeId !== 'default' && cache && cache.colors) {
         applyColors(cache.colors);
     }
 

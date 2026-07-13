@@ -5129,40 +5129,9 @@
         
         const dropdownButton = document.createElement('button');
         dropdownButton.id = 'tm-recent-repairs-btn';
+        dropdownButton.type = 'button';
+        dropdownButton.className = 'tm-footer-widget';
         dropdownButton.innerHTML = `📋 Πρόσφατες (${recentRepairs.length})`;
-        dropdownButton.style.cssText = `
-            background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: var(--tm-primary-color);
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 8px 14px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        `;
-        
-        dropdownButton.addEventListener('mouseenter', () => {
-            dropdownButton.style.background = 'linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%)';
-            dropdownButton.style.backdropFilter = 'blur(10px)';
-            dropdownButton.style.webkitBackdropFilter = 'blur(10px)';
-            dropdownButton.style.transform = 'translateY(-3px) scale(1.05)';
-            dropdownButton.style.boxShadow = '0 6px 16px rgba(0,0,0,0.3)';
-            dropdownButton.style.borderColor = 'rgba(255,255,255,0.4)';
-        });
-        
-        dropdownButton.addEventListener('mouseleave', () => {
-            dropdownButton.style.background = 'linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)';
-            dropdownButton.style.backdropFilter = 'blur(10px)';
-            dropdownButton.style.webkitBackdropFilter = 'blur(10px)';
-            dropdownButton.style.transform = 'translateY(0) scale(1)';
-            dropdownButton.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-            dropdownButton.style.borderColor = 'rgba(255,255,255,0.2)';
-        });
-        
         // Create dropdown menu
         const dropdownMenu = document.createElement('div');
         dropdownMenu.id = 'tm-recent-repairs-menu';
