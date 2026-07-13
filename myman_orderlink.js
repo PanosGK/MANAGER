@@ -449,24 +449,55 @@
         });
     }
 
+    function nativeGridValueColspan(text, colspan) {
+        const td = document.createElement('td');
+        td.colSpan = colspan;
+        const span = document.createElement('span');
+        span.textContent = text || '';
+        td.appendChild(span);
+        return td;
+    }
+
     function injectOrderInfoRow(tbody, order) {
-        tbody.querySelector('.tm-parts-order-row')?.remove();
+        tbody.querySelectorAll('.tm-parts-order-row').forEach((row) => row.remove());
 
         const orderDate = order['Παραγγελία'] || '';
-        const eta = order['Αναμ.Παραλαβή'] || '';
         const toCentral = order['Παραγγελία σε Κεντρικό'] || '';
+        const storeNotes = order['Σημειώσεις Καταστήματος'];
+        const centralNotes = order['Σημειώσεις Κεντρικής Αποθήκης'];
 
-        const row = nativeGridRow([
+        const mainRow = nativeGridRow([
             nativeGridSpacer(),
             nativeGridLabel('Παραγγελία'),
             nativeGridValue(orderDate),
-            nativeGridLabel('Αναμ. Παραλαβή'),
-            nativeGridValue(eta),
             nativeGridLabel('Σε Κεντρικό'),
             nativeGridBool(toCentral),
+            nativeGridLabel(''),
+            nativeGridValue(''),
         ]);
-        row.classList.add('tm-parts-order-row');
-        tbody.appendChild(row);
+        mainRow.classList.add('tm-parts-order-row');
+        tbody.appendChild(mainRow);
+
+        if (storeNotes && storeNotes !== '-') {
+            const storeRow = nativeGridRow([
+                nativeGridSpacer(),
+                nativeGridLabel('Σημ. Καταστήματος'),
+                nativeGridValueColspan(storeNotes, 5),
+            ]);
+            storeRow.classList.add('tm-parts-order-row');
+            tbody.appendChild(storeRow);
+        }
+
+        if (centralNotes && centralNotes !== '-') {
+            const centralRow = nativeGridRow([
+                nativeGridSpacer(),
+                nativeGridLabel('Σημ. Κεντρικής'),
+                nativeGridValueColspan(centralNotes, 5),
+            ]);
+            centralRow.classList.add('tm-parts-order-row');
+            tbody.appendChild(centralRow);
+        }
+
         tbody.dataset.tmOrderInjected = '1';
     }
 
