@@ -775,14 +775,16 @@
 
         function getUpdatesSettingsHTML() {
             const loaderUrl = window.SCRIPT_META?.loaderUrl || 'myman_loader.user.js';
+            const displayVer = window.getSuiteDisplayVersion?.() || window.SCRIPT_META?.displayVersion || '—';
+            const loaderVer = window.getInstalledLoaderVersion?.() || window.SCRIPT_META?.loaderVersion || '—';
             return `
                 <div class="tm-settings-section">
                     <h3>🔄 Ενημερώσεις Script</h3>
-                    <p class="tm-setting-description">Έλεγχος για νέες εκδόσεις από το GitHub. Το Tampermonkey εγκαθιστά την ενημέρωση — αυτό το script σας ειδοποιεί όταν υπάρχει νέα έκδοση.</p>
+                    <p class="tm-setting-description">Οι μικρές αλλαγές φορτώνονται αυτόματα χωρίς ειδοποίηση. Ειδοποίηση εμφανίζεται μόνο όταν χρειάζεται ενημέρωση του Tampermonkey loader.</p>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <label for="tm-setting-auto-update-check-enabled">Αυτόματος έλεγχος κάθε 5 λεπτά</label>
-                            <p class="tm-setting-description">Ελέγχει στο παρασκήνιο και εμφανίζει ειδοποίηση αν υπάρχει νέα έκδοση.</p>
+                            <p class="tm-setting-description">Ελέγχει στο παρασκήνιο αν απαιτείται νέο loader (εικονίδιο ↻ στο footer).</p>
                         </div>
                         <div class="tm-setting-control">
                             <input type="checkbox" id="tm-setting-auto-update-check-enabled">
@@ -790,8 +792,9 @@
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label>Τρέχουσα έκδοση</label>
-                            <p class="tm-setting-description"><strong id="tm-settings-current-version">—</strong></p>
+                            <label>Έκδοση suite</label>
+                            <p class="tm-setting-description"><strong id="tm-settings-current-version">Custom Ver. ${displayVer}</strong></p>
+                            <p class="tm-setting-description">Loader: <strong id="tm-settings-loader-version">v${loaderVer}</strong> · Bundle: <strong id="tm-settings-bundle-version">v${window.SCRIPT_META?.version || '—'}</strong></p>
                             <p class="tm-setting-description" id="tm-settings-update-status">—</p>
                             <p class="tm-setting-description" id="tm-settings-skipped-version" style="display: none;"></p>
                         </div>
@@ -802,8 +805,8 @@
                     </div>
                     <div class="tm-setting-row" style="border-top: 1px solid #e0e0e0; padding-top: 15px;">
                         <div class="tm-setting-label">
-                            <label>Εγκατάσταση / Ενημέρωση</label>
-                            <p class="tm-setting-description">Εγκαταστήστε μία φορά το loader από το GitHub. Μετά, οι ενημερώσεις γίνονται από το Tampermonkey Dashboard.</p>
+                            <label>Εγκατάσταση / Ενημέρωση loader</label>
+                            <p class="tm-setting-description">Εγκαταστήστε μία φορά το loader από το GitHub. Μετά, οι αλλαγές στο bundle φορτώνονται αυτόματα· μόνο αλλαγές στο loader απαιτούν ενημέρωση από το Tampermonkey Dashboard.</p>
                             <p class="tm-setting-description" style="word-break: break-all; font-size: 11px; opacity: 0.85;"><code>${loaderUrl}</code></p>
                         </div>
                     </div>
@@ -812,12 +815,26 @@
 
         function refreshUpdatesSettingsUI(result) {
             const versionEl = document.getElementById('tm-settings-current-version');
+            const loaderEl = document.getElementById('tm-settings-loader-version');
+            const bundleEl = document.getElementById('tm-settings-bundle-version');
             const statusEl = document.getElementById('tm-settings-update-status');
             const skippedEl = document.getElementById('tm-settings-skipped-version');
             const clearSkipBtn = document.getElementById('tm-settings-clear-skip-update-btn');
+            const displayVer = result?.displayVersion
+                || window.getSuiteDisplayVersion?.()
+                || window.SCRIPT_META?.displayVersion
+                || '—';
 
             if (versionEl) {
-                versionEl.textContent = window.SCRIPT_META?.version || '—';
+                versionEl.textContent = `Custom Ver. ${displayVer}`;
+            }
+            if (loaderEl) {
+                const loader = result?.current || window.getInstalledLoaderVersion?.() || window.SCRIPT_META?.loaderVersion || '—';
+                loaderEl.textContent = `v${loader}`;
+            }
+            if (bundleEl) {
+                const bundle = result?.bundleCurrent || window.SCRIPT_META?.version || '—';
+                bundleEl.textContent = `v${bundle}`;
             }
             if (statusEl && result) {
                 statusEl.innerHTML = typeof window.formatUpdateStatusMessage === 'function'
@@ -830,7 +847,7 @@
             if (skippedEl && clearSkipBtn) {
                 if (skipped) {
                     skippedEl.style.display = 'block';
-                    skippedEl.textContent = `Παραλείφθηκε η ειδοποίηση για την έκδοση v${skipped}.`;
+                    skippedEl.textContent = `Παραλείφθηκε η ειδοποίηση για loader v${skipped}.`;
                     clearSkipBtn.style.display = 'inline-block';
                 } else {
                     skippedEl.style.display = 'none';
@@ -863,7 +880,7 @@
                 checkBtn.disabled = true;
                 if (statusEl) statusEl.textContent = '⏳ Έλεγχος για νέα έκδοση...';
 
-                window.runScriptUpdateCheck({ silent: false, showBanner: true }).then((result) => {
+                window.runScriptUpdateCheck({ silent: false }).then((result) => {
                     checkBtn.disabled = false;
                     refreshUpdatesSettingsUI(result);
                 });

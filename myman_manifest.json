@@ -1,8 +1,10 @@
 {
-  "version": "207",
+  "version": "208",
+  "loaderVersion": "4",
+  "displayVersion": "2.3.2.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Repair phone field styled like native page input instead of standalone button.",
+  "releaseNotes": "Split bundle vs loader updates; footer shows Custom Ver.; loader update icon only.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

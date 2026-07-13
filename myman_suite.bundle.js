@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v207 — generated, do not edit */
+/* MyManager Suite bundle v208 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -3032,7 +3032,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '207',
+        version: '208',
+        loaderVersion: '4',
+        displayVersion: '2.3.2.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -4138,9 +4140,28 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return null;
     }
 
+    function getInstalledLoaderVersion() {
+        if (window.TMMS_LOADER_VERSION != null && window.TMMS_LOADER_VERSION !== '') {
+            return String(window.TMMS_LOADER_VERSION);
+        }
+        try {
+            const stored = GM_getValue('tm_installed_loader_version', '');
+            if (stored) return String(stored);
+        } catch (_) { /* ignore */ }
+        const meta = window.SCRIPT_META || {};
+        if (meta.loaderVersion) return String(meta.loaderVersion);
+        return '0';
+    }
+
+    function getSuiteDisplayVersion() {
+        const meta = window.SCRIPT_META || {};
+        return meta.displayVersion || meta.version || '?';
+    }
+
     /**
-     * Compare installed script version with myman_manifest.json on GitHub.
-     * @param {Function} callback ({ current, remote, updateAvailable, releaseNotes, error, status, url })
+     * Compare installed loader version with myman_manifest.json on GitHub.
+     * Bundle updates reload silently via the loader — only loader mismatches prompt the user.
+     * @param {Function} callback ({ current, remote, updateAvailable, bundleCurrent, bundleRemote, displayVersion, releaseNotes, error, status, url })
      */
     function checkForScriptUpdate(callback) {
         const meta = window.SCRIPT_META || {};
@@ -4156,11 +4177,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             return;
         }
 
-        const current = meta.version || '?';
+        const current = getInstalledLoaderVersion();
+        const bundleCurrent = meta.version || '?';
 
         const tryUrl = (index) => {
             if (index >= urls.length) {
-                callback({ error: 'network', url: urls[0], current });
+                callback({ error: 'network', url: urls[0], current, bundleCurrent });
                 return;
             }
 
@@ -4177,16 +4199,22 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     }
                     try {
                         const remoteManifest = JSON.parse(response.responseText);
-                        const remote = remoteManifest.version;
+                        const remote = String(remoteManifest.loaderVersion || remoteManifest.version || '?');
+                        const bundleRemote = String(remoteManifest.version || '?');
+                        const displayVersion = remoteManifest.displayVersion || bundleRemote;
                         callback({
                             current,
                             remote,
+                            bundleCurrent,
+                            bundleRemote,
+                            displayVersion,
                             updateAvailable: parseScriptVersion(remote) > parseScriptVersion(current),
+                            bundleUpdateAvailable: parseScriptVersion(bundleRemote) > parseScriptVersion(bundleCurrent),
                             releaseNotes: remoteManifest.releaseNotes || '',
                             manifestUrl: baseUrl
                         });
                     } catch (e) {
-                        callback({ error: 'parse', status: response.status, url: baseUrl, current });
+                        callback({ error: 'parse', status: response.status, url: baseUrl, current, bundleCurrent });
                     }
                 },
                 onerror() {
@@ -4263,6 +4291,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         GM_setValue(getSkippedUpdateKey(), String(version));
         markScriptUpdateNotified(version);
         hideScriptUpdateNotification();
+        updateLoaderUpdateIndicator(lastUpdateResult);
     }
 
     function clearSkippedUpdateVersion() {
@@ -4295,14 +4324,18 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (result.error) {
             return `❌ Δεν ήταν δυνατός ο έλεγχος ενημέρωσης (HTTP ${result.status || '?'}).`;
         }
+        const displayVer = result.displayVersion || getSuiteDisplayVersion();
         if (result.updateAvailable) {
-            let msg = `✨ Διαθέσιμη νέα έκδοση <strong>v${escapeHtml(result.remote)}</strong> (έχετε v${escapeHtml(result.current)}).<br>Πηγαίνετε στο Tampermonkey → Dashboard → Έλεγχος για ενημερώσεων.`;
+            let msg = `⟳ Απαιτείται ενημέρωση loader <strong>v${escapeHtml(result.remote)}</strong> (έχετε v${escapeHtml(result.current)}).<br>Tampermonkey → Dashboard → Έλεγχος για ενημερώσεων.`;
             if (result.releaseNotes) {
                 msg += `<br><span style="opacity:0.85;">${escapeHtml(result.releaseNotes)}</span>`;
             }
             return msg;
         }
-        return `✅ Έχετε την τελευταία έκδοση (v${escapeHtml(result.current)}).`;
+        const bundleNote = result.bundleUpdateAvailable
+            ? ' Το bundle ενημερώνεται αυτόματα.'
+            : '';
+        return `✅ Ενημερωμένο — <strong>Custom Ver. ${escapeHtml(displayVer)}</strong> (loader v${escapeHtml(result.current)}).${bundleNote}`;
     }
 
     function hideScriptUpdateNotification() {
@@ -4320,108 +4353,104 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             GM_setValue(getUpdateBannerDismissedKey(), String(remoteVersion));
         }
         hideScriptUpdateNotification();
+        updateLoaderUpdateIndicator(getLastScriptUpdateResult());
     }
 
-    function ensureScriptUpdateCenterNotification(result) {
-        if (!result?.remote || hasScriptUpdateNotification(result.remote)) return;
-
-        if (typeof window.createNotification === 'function') {
-            window.createNotification(
-                `Νέα έκδοση script v${result.remote} διαθέσιμη`,
-                '🔄',
-                {
-                    id: getScriptUpdateNotificationId(result.remote),
-                    type: 'script_update',
-                    version: String(result.remote)
-                }
-            );
+    function showLoaderUpdateHelp() {
+        const settingsBtn = document.getElementById('tm-settings-btn');
+        if (settingsBtn) {
+            settingsBtn.click();
+            setTimeout(() => {
+                const overlay = document.querySelector('.tm-modal-overlay');
+                overlay?.querySelector('.tm-settings-sidebar .tm-nav a[href="#sec-updates"]')?.click();
+            }, 150);
+            return;
         }
+        const result = lastUpdateResult;
+        const loaderUrl = window.SCRIPT_META?.loaderUrl || 'myman_loader.user.js';
+        const remote = result?.remote || '?';
+        const current = result?.current || getInstalledLoaderVersion();
+        const msg = `Απαιτείται ενημέρωση loader (v${current} → v${remote}). Tampermonkey → Dashboard → Έλεγχος για ενημερώσεων. ${loaderUrl}`;
+        if (typeof showPositiveMessage === 'function') {
+            showPositiveMessage(msg);
+        } else {
+            console.info('[MMS]', msg);
+        }
+    }
 
-        markScriptUpdateNotified(result.remote);
+    function updateLoaderUpdateIndicator(result) {
+        const btn = document.getElementById('tm-loader-update-icon');
+        if (!btn) return;
+
+        const needsUpdate = result?.updateAvailable && !isUpdateVersionSkipped(result.remote);
+        btn.hidden = !needsUpdate;
+        btn.title = needsUpdate
+            ? `Ενημέρωση loader v${result.current} → v${result.remote} — κλικ για οδηγίες`
+            : '';
+    }
+
+    function findFooterRightCell() {
+        const table = document.querySelector('#footer-outterwrap table');
+        if (!table) return null;
+        let cell = table.querySelector('td[width="40%"]');
+        if (!cell) {
+            const cells = table.querySelectorAll('td');
+            if (cells.length) cell = cells[cells.length - 1];
+        }
+        return cell;
+    }
+
+    function setupFooterSuiteBranding() {
+        if (document.getElementById('tm-footer-suite-brand')) return true;
+
+        const cell = findFooterRightCell();
+        if (!cell) return false;
+
+        const displayVer = getSuiteDisplayVersion();
+        const brand = document.createElement('div');
+        brand.id = 'tm-footer-suite-brand';
+        brand.innerHTML = `
+            <span class="tm-footer-version-label">Custom Ver. ${escapeHtml(displayVer)}</span>
+            <button type="button" id="tm-loader-update-icon" class="tm-footer-loader-update-btn" title="" hidden aria-label="Ενημέρωση loader">
+                <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
+                    <path fill="currentColor" d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
+                </svg>
+            </button>
+        `;
+
+        cell.innerHTML = '';
+        cell.appendChild(brand);
+
+        brand.querySelector('#tm-loader-update-icon')?.addEventListener('click', showLoaderUpdateHelp);
+
+        window.addEventListener('mms-update-check', (e) => {
+            updateLoaderUpdateIndicator(e.detail);
+        });
+        updateLoaderUpdateIndicator(lastUpdateResult);
+
+        return true;
     }
 
     function showScriptUpdateNotification(result) {
-        if (!result?.updateAvailable || isUpdateVersionSkipped(result.remote)) {
-            hideScriptUpdateNotification();
-            return;
-        }
-
-        ensureScriptUpdateCenterNotification(result);
-
-        if (isUpdateBannerDismissed(result.remote)) return;
-
-        const existingBanner = document.getElementById('tm-script-update-notification');
-        if (existingBanner?.dataset.remoteVersion === String(result.remote)) return;
-
         hideScriptUpdateNotification();
-
-        const container = document.createElement('div');
-        container.id = 'tm-script-update-notification';
-        container.dataset.remoteVersion = String(result.remote);
-        container.setAttribute('role', 'alert');
-        container.style.cssText = `
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            z-index: 2147483646;
-            max-width: 380px;
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d1b4e 100%);
-            color: #f1f5f9;
-            border: 1px solid rgba(96, 165, 250, 0.45);
-            border-radius: 12px;
-            padding: 14px 16px;
-            box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
-            font-size: 13px;
-            line-height: 1.45;
-        `;
-
-        const notes = result.releaseNotes
-            ? `<div style="margin-top: 6px; font-size: 12px; opacity: 0.88;">${escapeHtml(result.releaseNotes)}</div>`
-            : '';
-
-        container.innerHTML = `
-            <div style="display: flex; align-items: flex-start; gap: 10px;">
-                <span style="font-size: 22px; line-height: 1;">🔄</span>
-                <div style="flex: 1;">
-                    <strong style="display: block; margin-bottom: 4px;">Νέα έκδοση script διαθέσιμη</strong>
-                    <span>v${escapeHtml(result.current)} → <strong>v${escapeHtml(result.remote)}</strong></span>
-                    ${notes}
-                    <div style="margin-top: 6px; font-size: 12px; opacity: 0.8;">Tampermonkey → Dashboard → Έλεγχος για ενημερώσεων</div>
-                </div>
-            </div>
-            <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
-                <button type="button" id="tm-update-hide-btn" style="flex: 1; min-width: 100px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); color: #e2e8f0; cursor: pointer;">Απόκρυψη</button>
-                <button type="button" id="tm-update-skip-btn" style="flex: 1; min-width: 100px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(248, 113, 113, 0.5); background: rgba(248, 113, 113, 0.15); color: #fecaca; cursor: pointer;">Παράλειψη v${escapeHtml(result.remote)}</button>
-            </div>
-        `;
-
-        container.querySelector('#tm-update-hide-btn')?.addEventListener('click', () => {
-            dismissScriptUpdateBanner(result.remote);
-        });
-        container.querySelector('#tm-update-skip-btn')?.addEventListener('click', () => {
-            skipUpdateVersion(result.remote);
-        });
-
-        document.body.appendChild(container);
+        updateLoaderUpdateIndicator(result);
     }
 
     function handleUpdateCheckResult(result, options = {}) {
-        const { silent = false, showBanner = true } = options;
+        const { silent = false } = options;
         lastUpdateResult = result;
 
         try {
             window.dispatchEvent(new CustomEvent('mms-update-check', { detail: result }));
         } catch (_) { /* ignore */ }
 
+        hideScriptUpdateNotification();
+
         if (result?.error) return result;
 
-        if (result.updateAvailable && !isUpdateVersionSkipped(result.remote)) {
-            if (showBanner) showScriptUpdateNotification(result);
-            if (!silent && typeof showPositiveMessage === 'function') {
-                showPositiveMessage(`Νέα έκδοση v${result.remote} διαθέσιμη!`);
-            }
-        } else if (!result.updateAvailable) {
-            hideScriptUpdateNotification();
+        updateLoaderUpdateIndicator(result);
+
+        if (!result.updateAvailable) {
             GM_deleteValue(getUpdateBannerDismissedKey());
             GM_deleteValue(getUpdateNotifiedVersionKey());
         }
@@ -4454,11 +4483,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (!isAutoUpdateCheckEnabled()) return;
 
         setTimeout(() => {
-            runScriptUpdateCheck({ silent: true, showBanner: true });
+            runScriptUpdateCheck({ silent: true });
         }, 30000);
 
         updateCheckTimer = setInterval(() => {
-            runScriptUpdateCheck({ silent: true, showBanner: true });
+            runScriptUpdateCheck({ silent: true });
         }, UPDATE_CHECK_INTERVAL_MS);
     }
 
@@ -4472,6 +4501,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     window.getSkippedUpdateVersion = getSkippedUpdateVersion;
     window.formatUpdateStatusMessage = formatUpdateStatusMessage;
     window.getLastScriptUpdateResult = () => lastUpdateResult;
+    window.getSuiteDisplayVersion = getSuiteDisplayVersion;
+    window.setupFooterSuiteBranding = setupFooterSuiteBranding;
+    window.updateLoaderUpdateIndicator = updateLoaderUpdateIndicator;
+    window.showLoaderUpdateHelp = showLoaderUpdateHelp;
+    window.getInstalledLoaderVersion = getInstalledLoaderVersion;
 
 })();
 
@@ -4859,6 +4893,48 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             #footer-outterwrap table td[width="60%"] {
                 text-align: center;
+            }
+            #tm-footer-suite-brand {
+                display: inline-flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 6px;
+                width: 100%;
+                padding: 0 8px;
+                box-sizing: border-box;
+            }
+            .tm-footer-version-label {
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 0.02em;
+                opacity: 0.9;
+                white-space: nowrap;
+            }
+            .tm-footer-loader-update-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 22px;
+                height: 22px;
+                padding: 0;
+                border: 1px solid rgba(96, 165, 250, 0.55);
+                border-radius: 50%;
+                background: rgba(59, 130, 246, 0.18);
+                color: #93c5fd;
+                cursor: pointer;
+                flex-shrink: 0;
+                animation: tm-loader-update-pulse 2s ease-in-out infinite;
+            }
+            .tm-footer-loader-update-btn:hover {
+                background: rgba(59, 130, 246, 0.35);
+                color: #dbeafe;
+            }
+            .tm-footer-loader-update-btn[hidden] {
+                display: none !important;
+            }
+            @keyframes tm-loader-update-pulse {
+                0%, 100% { box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.35); }
+                50% { box-shadow: 0 0 0 4px rgba(96, 165, 250, 0); }
             }
             
             /* --- Global CSS Variables for Theming --- */
@@ -9848,14 +9924,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
         function getUpdatesSettingsHTML() {
             const loaderUrl = window.SCRIPT_META?.loaderUrl || 'myman_loader.user.js';
+            const displayVer = window.getSuiteDisplayVersion?.() || window.SCRIPT_META?.displayVersion || '—';
+            const loaderVer = window.getInstalledLoaderVersion?.() || window.SCRIPT_META?.loaderVersion || '—';
             return `
                 <div class="tm-settings-section">
                     <h3>🔄 Ενημερώσεις Script</h3>
-                    <p class="tm-setting-description">Έλεγχος για νέες εκδόσεις από το GitHub. Το Tampermonkey εγκαθιστά την ενημέρωση — αυτό το script σας ειδοποιεί όταν υπάρχει νέα έκδοση.</p>
+                    <p class="tm-setting-description">Οι μικρές αλλαγές φορτώνονται αυτόματα χωρίς ειδοποίηση. Ειδοποίηση εμφανίζεται μόνο όταν χρειάζεται ενημέρωση του Tampermonkey loader.</p>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <label for="tm-setting-auto-update-check-enabled">Αυτόματος έλεγχος κάθε 5 λεπτά</label>
-                            <p class="tm-setting-description">Ελέγχει στο παρασκήνιο και εμφανίζει ειδοποίηση αν υπάρχει νέα έκδοση.</p>
+                            <p class="tm-setting-description">Ελέγχει στο παρασκήνιο αν απαιτείται νέο loader (εικονίδιο ↻ στο footer).</p>
                         </div>
                         <div class="tm-setting-control">
                             <input type="checkbox" id="tm-setting-auto-update-check-enabled">
@@ -9863,8 +9941,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label>Τρέχουσα έκδοση</label>
-                            <p class="tm-setting-description"><strong id="tm-settings-current-version">—</strong></p>
+                            <label>Έκδοση suite</label>
+                            <p class="tm-setting-description"><strong id="tm-settings-current-version">Custom Ver. ${displayVer}</strong></p>
+                            <p class="tm-setting-description">Loader: <strong id="tm-settings-loader-version">v${loaderVer}</strong> · Bundle: <strong id="tm-settings-bundle-version">v${window.SCRIPT_META?.version || '—'}</strong></p>
                             <p class="tm-setting-description" id="tm-settings-update-status">—</p>
                             <p class="tm-setting-description" id="tm-settings-skipped-version" style="display: none;"></p>
                         </div>
@@ -9875,8 +9954,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
                     <div class="tm-setting-row" style="border-top: 1px solid #e0e0e0; padding-top: 15px;">
                         <div class="tm-setting-label">
-                            <label>Εγκατάσταση / Ενημέρωση</label>
-                            <p class="tm-setting-description">Εγκαταστήστε μία φορά το loader από το GitHub. Μετά, οι ενημερώσεις γίνονται από το Tampermonkey Dashboard.</p>
+                            <label>Εγκατάσταση / Ενημέρωση loader</label>
+                            <p class="tm-setting-description">Εγκαταστήστε μία φορά το loader από το GitHub. Μετά, οι αλλαγές στο bundle φορτώνονται αυτόματα· μόνο αλλαγές στο loader απαιτούν ενημέρωση από το Tampermonkey Dashboard.</p>
                             <p class="tm-setting-description" style="word-break: break-all; font-size: 11px; opacity: 0.85;"><code>${loaderUrl}</code></p>
                         </div>
                     </div>
@@ -9885,12 +9964,26 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
         function refreshUpdatesSettingsUI(result) {
             const versionEl = document.getElementById('tm-settings-current-version');
+            const loaderEl = document.getElementById('tm-settings-loader-version');
+            const bundleEl = document.getElementById('tm-settings-bundle-version');
             const statusEl = document.getElementById('tm-settings-update-status');
             const skippedEl = document.getElementById('tm-settings-skipped-version');
             const clearSkipBtn = document.getElementById('tm-settings-clear-skip-update-btn');
+            const displayVer = result?.displayVersion
+                || window.getSuiteDisplayVersion?.()
+                || window.SCRIPT_META?.displayVersion
+                || '—';
 
             if (versionEl) {
-                versionEl.textContent = window.SCRIPT_META?.version || '—';
+                versionEl.textContent = `Custom Ver. ${displayVer}`;
+            }
+            if (loaderEl) {
+                const loader = result?.current || window.getInstalledLoaderVersion?.() || window.SCRIPT_META?.loaderVersion || '—';
+                loaderEl.textContent = `v${loader}`;
+            }
+            if (bundleEl) {
+                const bundle = result?.bundleCurrent || window.SCRIPT_META?.version || '—';
+                bundleEl.textContent = `v${bundle}`;
             }
             if (statusEl && result) {
                 statusEl.innerHTML = typeof window.formatUpdateStatusMessage === 'function'
@@ -9903,7 +9996,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             if (skippedEl && clearSkipBtn) {
                 if (skipped) {
                     skippedEl.style.display = 'block';
-                    skippedEl.textContent = `Παραλείφθηκε η ειδοποίηση για την έκδοση v${skipped}.`;
+                    skippedEl.textContent = `Παραλείφθηκε η ειδοποίηση για loader v${skipped}.`;
                     clearSkipBtn.style.display = 'inline-block';
                 } else {
                     skippedEl.style.display = 'none';
@@ -9936,7 +10029,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 checkBtn.disabled = true;
                 if (statusEl) statusEl.textContent = '⏳ Έλεγχος για νέα έκδοση...';
 
-                window.runScriptUpdateCheck({ silent: false, showBanner: true }).then((result) => {
+                window.runScriptUpdateCheck({ silent: false }).then((result) => {
                     checkBtn.disabled = false;
                     refreshUpdatesSettingsUI(result);
                 });
@@ -44911,6 +45004,14 @@ if (typeof window !== 'undefined') {
             }
         };
         trySetupFooter();
+
+        const trySetupFooterBranding = (attempt = 0) => {
+            if (typeof window.setupFooterSuiteBranding === 'function' && window.setupFooterSuiteBranding()) return;
+            if (attempt < 50) {
+                setTimeout(() => trySetupFooterBranding(attempt + 1), 300);
+            }
+        };
+        trySetupFooterBranding();
 
         if (typeof window.initFooterQuickSearch === 'function') {
             window.initFooterQuickSearch(config);

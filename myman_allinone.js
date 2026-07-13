@@ -6157,6 +6157,14 @@
         };
         trySetupFooter();
 
+        const trySetupFooterBranding = (attempt = 0) => {
+            if (typeof window.setupFooterSuiteBranding === 'function' && window.setupFooterSuiteBranding()) return;
+            if (attempt < 50) {
+                setTimeout(() => trySetupFooterBranding(attempt + 1), 300);
+            }
+        };
+        trySetupFooterBranding();
+
         if (typeof window.initFooterQuickSearch === 'function') {
             window.initFooterQuickSearch(config);
         }

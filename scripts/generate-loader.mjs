@@ -11,7 +11,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'myman_manifest.json'), 'utf8'));
-const { version, updateBase, modules } = manifest;
+const { version, loaderVersion = version, displayVersion = version, updateBase, modules } = manifest;
 const loaderUrl = `${updateBase}/myman_loader.user.js`;
 const bundleFileName = 'myman_suite.bundle.js';
 const bundleUrl = `${updateBase}/${bundleFileName}?v=${version}`;
@@ -54,7 +54,15 @@ function buildInlineBootstrap(bundleLoadUrl) {
     return `(function tmMmsLoaderBootstrap() {
     'use strict';
 
-    var BUNDLE_URL = ${JSON.stringify(bundleLoadUrl)};
+    var LOADER_VERSION = ${JSON.stringify(String(loaderVersion))};
+    var BUNDLE_URL = ${JSON.stringify(bundleUrl)};
+
+    try {
+        if (typeof GM_setValue === 'function') {
+            GM_setValue('tm_installed_loader_version', LOADER_VERSION);
+        }
+    } catch (e) { /* ignore */ }
+    window.TMMS_LOADER_VERSION = LOADER_VERSION;
 
     function isStatus40LoginPending() {
         try {
@@ -329,7 +337,7 @@ fs.writeFileSync(path.join(root, bundleFileName), bundle);
 const productionLoader = `// ==UserScript==
 // @name         ${manifest.name}
 // @namespace    http://tampermonkey.net/
-// @version      ${version}
+// @version      ${loaderVersion}
 // @description  An all-in-one suite for mymanager.gr. Auto-updates from GitHub — install this file once.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -357,7 +365,7 @@ const localBundlePath = path.join(root, bundleFileName).replace(/\\/g, '/');
 const localLoader = `// ==UserScript==
 // @name         ${manifest.name} (Local Dev)
 // @namespace    http://tampermonkey.net/
-// @version      ${version}
+// @version      ${loaderVersion}
 // @description  Local development — bundled modules from disk. Run: node scripts/generate-loader.mjs after edits.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -415,6 +423,8 @@ const configPath = path.join(root, 'myman_config.js');
 let config = fs.readFileSync(configPath, 'utf8');
 const metaBlock = `const SCRIPT_META = {
         version: '${version}',
+        loaderVersion: '${loaderVersion}',
+        displayVersion: '${displayVersion}',
         updateBase: '${updateBase}',
         manifestUrl: '${updateBase}/myman_manifest.json',
         loaderUrl: '${loaderUrl}'
@@ -430,4 +440,4 @@ if (config.includes('const SCRIPT_META = {')) {
 }
 
 fs.writeFileSync(configPath, config);
-console.log(`Generated ${bundleFileName}, async loader (no @require), local loader, fouc guard — v${version}`);
+console.log(`Generated ${bundleFileName}, async loader (no @require), local loader, fouc guard — bundle v${version}, loader v${loaderVersion}`);

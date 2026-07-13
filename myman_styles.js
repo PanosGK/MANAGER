@@ -30,6 +30,48 @@
             #footer-outterwrap table td[width="60%"] {
                 text-align: center;
             }
+            #tm-footer-suite-brand {
+                display: inline-flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 6px;
+                width: 100%;
+                padding: 0 8px;
+                box-sizing: border-box;
+            }
+            .tm-footer-version-label {
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 0.02em;
+                opacity: 0.9;
+                white-space: nowrap;
+            }
+            .tm-footer-loader-update-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 22px;
+                height: 22px;
+                padding: 0;
+                border: 1px solid rgba(96, 165, 250, 0.55);
+                border-radius: 50%;
+                background: rgba(59, 130, 246, 0.18);
+                color: #93c5fd;
+                cursor: pointer;
+                flex-shrink: 0;
+                animation: tm-loader-update-pulse 2s ease-in-out infinite;
+            }
+            .tm-footer-loader-update-btn:hover {
+                background: rgba(59, 130, 246, 0.35);
+                color: #dbeafe;
+            }
+            .tm-footer-loader-update-btn[hidden] {
+                display: none !important;
+            }
+            @keyframes tm-loader-update-pulse {
+                0%, 100% { box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.35); }
+                50% { box-shadow: 0 0 0 4px rgba(96, 165, 250, 0); }
+            }
             
             /* --- Global CSS Variables for Theming --- */
             :root {
