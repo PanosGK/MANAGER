@@ -1,7 +1,11 @@
 /**
- * Regenerates myman_loader.user.js, myman_suite.bundle.js, and syncs SCRIPT_META.version
- * from myman_manifest.json. Run after bumping the manifest version:
+ * Regenerates myman_loader.user.js, myman_suite.bundle.js, and syncs SCRIPT_META
+ * from myman_manifest.json.
  *
+ * Silent release (bumps bundle + Custom Ver.):
+ *   node scripts/release.mjs "Short release note"
+ *
+ * Regenerate only (no version bump):
  *   node scripts/generate-loader.mjs
  */
 import fs from 'fs';
@@ -55,7 +59,10 @@ function buildInlineBootstrap(bundleLoadUrl) {
     'use strict';
 
     var LOADER_VERSION = ${JSON.stringify(String(loaderVersion))};
-    var BUNDLE_URL = ${JSON.stringify(bundleUrl)};
+    var UPDATE_BASE = ${JSON.stringify(updateBase)};
+    var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
+    var BUNDLE_FILE = ${JSON.stringify(bundleFileName)};
+    var FALLBACK_BUNDLE_VERSION = ${JSON.stringify(String(version))};
 
     try {
         if (typeof GM_setValue === 'function') {
@@ -266,16 +273,19 @@ function buildInlineBootstrap(bundleLoadUrl) {
         eval(code);
     }
 
-    function loadBundle() {
+    function loadBundle(bundleVersion) {
         if (typeof GM_xmlhttpRequest !== 'function') {
             console.error('[MMS] GM_xmlhttpRequest unavailable');
             revealOnFailure();
             return;
         }
 
+        var versionTag = String(bundleVersion || FALLBACK_BUNDLE_VERSION);
+        var bundleUrl = UPDATE_BASE + '/' + BUNDLE_FILE + '?v=' + encodeURIComponent(versionTag) + '&t=' + Date.now();
+
         GM_xmlhttpRequest({
             method: 'GET',
-            url: BUNDLE_URL,
+            url: bundleUrl,
             onload: function (response) {
                 if (response.status >= 200 && response.status < 300 && response.responseText) {
                     try {
@@ -296,6 +306,41 @@ function buildInlineBootstrap(bundleLoadUrl) {
         });
     }
 
+    function fetchManifestThenLoadBundle() {
+        if (typeof GM_xmlhttpRequest !== 'function') {
+            loadBundle(FALLBACK_BUNDLE_VERSION);
+            return;
+        }
+
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: MANIFEST_URL + '?t=' + Date.now(),
+            onload: function (response) {
+                var bundleVersion = FALLBACK_BUNDLE_VERSION;
+                if (response.status >= 200 && response.status < 300 && response.responseText) {
+                    try {
+                        var manifest = JSON.parse(response.responseText);
+                        if (manifest && manifest.version != null) {
+                            bundleVersion = String(manifest.version);
+                        }
+                        if (manifest && manifest.displayVersion) {
+                            window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.displayVersion);
+                        }
+                    } catch (e) {
+                        console.warn('[MMS] Manifest parse failed, using fallback bundle version');
+                    }
+                } else {
+                    console.warn('[MMS] Manifest HTTP', response.status, '— using fallback bundle version');
+                }
+                loadBundle(bundleVersion);
+            },
+            onerror: function () {
+                console.warn('[MMS] Manifest fetch failed — using fallback bundle version');
+                loadBundle(FALLBACK_BUNDLE_VERSION);
+            },
+        });
+    }
+
     if (shouldSkip()) return;
 
     var loginPath = (window.location && window.location.pathname) || '';
@@ -306,7 +351,7 @@ function buildInlineBootstrap(bundleLoadUrl) {
 
     hidePageNow();
     applyCachedThemeColors();
-    loadBundle();
+    fetchManifestThenLoadBundle();
 
     setTimeout(function () {
         if (!document.documentElement.classList.contains('tm-mms-theme-ready')) {
@@ -318,7 +363,7 @@ function buildInlineBootstrap(bundleLoadUrl) {
 }
 
 const bundleFiles = [...modules, 'myman_allinone.js'];
-let bundle = `/* MyManager Suite bundle v${version} — generated, do not edit */\n`;
+let bundle = `/* MyManager Suite bundle v${version} / Custom Ver. ${displayVersion} — generated, do not edit */\n`;
 bundle += INSTANT_FOUC_GUARD.trim() + '\n';
 
 for (const file of bundleFiles) {
@@ -440,4 +485,4 @@ if (config.includes('const SCRIPT_META = {')) {
 }
 
 fs.writeFileSync(configPath, config);
-console.log(`Generated ${bundleFileName}, async loader (no @require), local loader, fouc guard — bundle v${version}, loader v${loaderVersion}`);
+console.log(`Generated ${bundleFileName}, async loader (no @require), local loader, fouc guard — bundle v${version}, Custom Ver. ${displayVersion}, loader v${loaderVersion}`);

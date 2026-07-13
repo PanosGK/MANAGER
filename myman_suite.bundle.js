@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v209 — generated, do not edit */
+/* MyManager Suite bundle v210 / Custom Ver. 2.3.2.2 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -3032,7 +3032,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '208',
+        version: '209',
         loaderVersion: '4',
         displayVersion: '2.3.2.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
@@ -4155,7 +4155,67 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function getSuiteDisplayVersion() {
         const meta = window.SCRIPT_META || {};
-        return meta.displayVersion || meta.version || '?';
+        const local = meta.displayVersion || meta.version || '?';
+        const remote = window.TMMS_REMOTE_DISPLAY_VERSION;
+        if (remote && compareDisplayVersion(remote, local) > 0) return String(remote);
+        return String(local);
+    }
+
+    function compareDisplayVersion(a, b) {
+        const pa = String(a || '0').split('.').map((n) => parseInt(n, 10) || 0);
+        const pb = String(b || '0').split('.').map((n) => parseInt(n, 10) || 0);
+        const len = Math.max(pa.length, pb.length);
+        for (let i = 0; i < len; i++) {
+            const da = pa[i] || 0;
+            const db = pb[i] || 0;
+            if (da > db) return 1;
+            if (da < db) return -1;
+        }
+        return 0;
+    }
+
+    function updateFooterDisplayVersion(displayVersion) {
+        if (!displayVersion) return;
+        const label = document.querySelector('#tm-footer-suite-brand .tm-footer-version-label');
+        if (label) {
+            label.textContent = `Custom Ver. ${displayVersion}`;
+        }
+        if (window.SCRIPT_META && compareDisplayVersion(displayVersion, window.SCRIPT_META.displayVersion || '0') > 0) {
+            window.SCRIPT_META.displayVersion = String(displayVersion);
+        }
+    }
+
+    const SILENT_BUNDLE_RELOAD_KEY = 'tm_silent_bundle_reload_for';
+
+    function handleSilentBundleUpdate(result) {
+        if (!result?.bundleUpdateAvailable || result.error) return;
+        if (result.updateAvailable) return;
+
+        if (result.displayVersion) {
+            updateFooterDisplayVersion(result.displayVersion);
+        }
+
+        const target = String(result.bundleRemote);
+        if (sessionStorage.getItem(SILENT_BUNDLE_RELOAD_KEY) === target) return;
+
+        const attemptReload = () => {
+            if (sessionStorage.getItem(SILENT_BUNDLE_RELOAD_KEY) === target) return;
+            sessionStorage.setItem(SILENT_BUNDLE_RELOAD_KEY, target);
+            location.reload();
+        };
+
+        if (document.hidden) {
+            attemptReload();
+            return;
+        }
+
+        const onHide = () => {
+            if (!document.hidden) return;
+            document.removeEventListener('visibilitychange', onHide);
+            attemptReload();
+        };
+        document.addEventListener('visibilitychange', onHide);
+        setTimeout(attemptReload, 2 * 60 * 1000);
     }
 
     /**
@@ -4425,6 +4485,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
         window.addEventListener('mms-update-check', (e) => {
             updateLoaderUpdateIndicator(e.detail);
+            if (e.detail?.displayVersion) {
+                updateFooterDisplayVersion(e.detail.displayVersion);
+            }
         });
         updateLoaderUpdateIndicator(lastUpdateResult);
 
@@ -4454,6 +4517,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             GM_deleteValue(getUpdateBannerDismissedKey());
             GM_deleteValue(getUpdateNotifiedVersionKey());
         }
+
+        handleSilentBundleUpdate(result);
 
         return result;
     }
@@ -4502,6 +4567,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     window.formatUpdateStatusMessage = formatUpdateStatusMessage;
     window.getLastScriptUpdateResult = () => lastUpdateResult;
     window.getSuiteDisplayVersion = getSuiteDisplayVersion;
+    window.updateFooterDisplayVersion = updateFooterDisplayVersion;
+    window.compareDisplayVersion = compareDisplayVersion;
     window.setupFooterSuiteBranding = setupFooterSuiteBranding;
     window.updateLoaderUpdateIndicator = updateLoaderUpdateIndicator;
     window.showLoaderUpdateHelp = showLoaderUpdateHelp;

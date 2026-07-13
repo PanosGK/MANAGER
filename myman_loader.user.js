@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite
 // @namespace    http://tampermonkey.net/
-// @version      4
+// @version      5
 // @description  An all-in-one suite for mymanager.gr. Auto-updates from GitHub — install this file once.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -23,8 +23,11 @@
 (function tmMmsLoaderBootstrap() {
     'use strict';
 
-    var LOADER_VERSION = "4";
-    var BUNDLE_URL = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_suite.bundle.js?v=209";
+    var LOADER_VERSION = "5";
+    var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
+    var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
+    var BUNDLE_FILE = "myman_suite.bundle.js";
+    var FALLBACK_BUNDLE_VERSION = "210";
 
     try {
         if (typeof GM_setValue === 'function') {
@@ -235,16 +238,19 @@
         eval(code);
     }
 
-    function loadBundle() {
+    function loadBundle(bundleVersion) {
         if (typeof GM_xmlhttpRequest !== 'function') {
             console.error('[MMS] GM_xmlhttpRequest unavailable');
             revealOnFailure();
             return;
         }
 
+        var versionTag = String(bundleVersion || FALLBACK_BUNDLE_VERSION);
+        var bundleUrl = UPDATE_BASE + '/' + BUNDLE_FILE + '?v=' + encodeURIComponent(versionTag) + '&t=' + Date.now();
+
         GM_xmlhttpRequest({
             method: 'GET',
-            url: BUNDLE_URL,
+            url: bundleUrl,
             onload: function (response) {
                 if (response.status >= 200 && response.status < 300 && response.responseText) {
                     try {
@@ -265,6 +271,41 @@
         });
     }
 
+    function fetchManifestThenLoadBundle() {
+        if (typeof GM_xmlhttpRequest !== 'function') {
+            loadBundle(FALLBACK_BUNDLE_VERSION);
+            return;
+        }
+
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: MANIFEST_URL + '?t=' + Date.now(),
+            onload: function (response) {
+                var bundleVersion = FALLBACK_BUNDLE_VERSION;
+                if (response.status >= 200 && response.status < 300 && response.responseText) {
+                    try {
+                        var manifest = JSON.parse(response.responseText);
+                        if (manifest && manifest.version != null) {
+                            bundleVersion = String(manifest.version);
+                        }
+                        if (manifest && manifest.displayVersion) {
+                            window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.displayVersion);
+                        }
+                    } catch (e) {
+                        console.warn('[MMS] Manifest parse failed, using fallback bundle version');
+                    }
+                } else {
+                    console.warn('[MMS] Manifest HTTP', response.status, '— using fallback bundle version');
+                }
+                loadBundle(bundleVersion);
+            },
+            onerror: function () {
+                console.warn('[MMS] Manifest fetch failed — using fallback bundle version');
+                loadBundle(FALLBACK_BUNDLE_VERSION);
+            },
+        });
+    }
+
     if (shouldSkip()) return;
 
     var loginPath = (window.location && window.location.pathname) || '';
@@ -275,7 +316,7 @@
 
     hidePageNow();
     applyCachedThemeColors();
-    loadBundle();
+    fetchManifestThenLoadBundle();
 
     setTimeout(function () {
         if (!document.documentElement.classList.contains('tm-mms-theme-ready')) {
