@@ -5019,13 +5019,57 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (window.__tmGlobalStylesApplied) return;
         window.__tmGlobalStylesApplied = true;
         GM_addStyle(`
+            /* --- Full-height page shell (rnr-page fills to footer) --- */
+            html {
+                height: 100%;
+            }
+            body {
+                min-height: 100vh;
+                min-height: 100dvh;
+            }
+            .rnr-pagewrapper {
+                min-height: 100vh;
+                min-height: 100dvh;
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .rnr-top {
+                flex-shrink: 0;
+            }
+            .rnr-page {
+                flex: 1 1 auto;
+                display: flex;
+                flex-direction: column;
+                min-height: 0;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .rnr-middle {
+                flex: 1 1 auto;
+                display: flex;
+                flex-direction: column;
+                min-height: 0;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            body[class*="page-centered_vert"] .rnr-middle {
+                justify-content: center;
+            }
+            #footer-outter,
+            #footer-outterwrap,
+            .rnr-bottom {
+                flex-shrink: 0;
+            }
+
             /* --- Footer Height and Positioning Adjustment --- */
             #footer-outterwrap {
-                height: calc(100% + 20px) !important;
-                min-height: calc(100% + 20px) !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
             }
             #footer-outterwrap table {
-                height: 100% !important;
+                width: 100% !important;
             }
             #footer-outterwrap table td[width="60%"] {
                 text-align: center;
