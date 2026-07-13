@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v210 / Custom Ver. 2.3.2.2 — generated, do not edit */
+/* MyManager Suite bundle v212 / Custom Ver. 5.2 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -3032,9 +3032,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '209',
-        loaderVersion: '4',
-        displayVersion: '2.3.2.1',
+        version: '211',
+        loaderVersion: '5',
+        displayVersion: '2.3.2.3',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -4153,24 +4153,38 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return '0';
     }
 
+    function formatCustomVer(loaderVersion, silentVersion) {
+        return `${loaderVersion}.${silentVersion}`;
+    }
+
+    function parseCustomVer(ver) {
+        const s = String(ver || '0.0');
+        const dot = s.indexOf('.');
+        if (dot === -1) {
+            return { loader: parseInt(s, 10) || 0, silent: 0 };
+        }
+        return {
+            loader: parseInt(s.slice(0, dot), 10) || 0,
+            silent: parseInt(s.slice(dot + 1), 10) || 0
+        };
+    }
+
     function getSuiteDisplayVersion() {
         const meta = window.SCRIPT_META || {};
-        const local = meta.displayVersion || meta.version || '?';
+        const local = meta.displayVersion
+            || (meta.loaderVersion != null && meta.silentVersion != null
+                ? formatCustomVer(meta.loaderVersion, meta.silentVersion)
+                : meta.version || '?');
         const remote = window.TMMS_REMOTE_DISPLAY_VERSION;
         if (remote && compareDisplayVersion(remote, local) > 0) return String(remote);
         return String(local);
     }
 
     function compareDisplayVersion(a, b) {
-        const pa = String(a || '0').split('.').map((n) => parseInt(n, 10) || 0);
-        const pb = String(b || '0').split('.').map((n) => parseInt(n, 10) || 0);
-        const len = Math.max(pa.length, pb.length);
-        for (let i = 0; i < len; i++) {
-            const da = pa[i] || 0;
-            const db = pb[i] || 0;
-            if (da > db) return 1;
-            if (da < db) return -1;
-        }
+        const pa = parseCustomVer(a);
+        const pb = parseCustomVer(b);
+        if (pa.loader !== pb.loader) return pa.loader > pb.loader ? 1 : -1;
+        if (pa.silent !== pb.silent) return pa.silent > pb.silent ? 1 : -1;
         return 0;
     }
 
@@ -4261,7 +4275,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         const remoteManifest = JSON.parse(response.responseText);
                         const remote = String(remoteManifest.loaderVersion || remoteManifest.version || '?');
                         const bundleRemote = String(remoteManifest.version || '?');
-                        const displayVersion = remoteManifest.displayVersion || bundleRemote;
+                        const displayVersion = remoteManifest.displayVersion
+                            || (remoteManifest.loaderVersion != null && remoteManifest.silentVersion != null
+                                ? formatCustomVer(remoteManifest.loaderVersion, remoteManifest.silentVersion)
+                                : bundleRemote);
                         callback({
                             current,
                             remote,
@@ -4395,7 +4412,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         const bundleNote = result.bundleUpdateAvailable
             ? ' Το bundle ενημερώνεται αυτόματα.'
             : '';
-        return `✅ Ενημερωμένο — <strong>Custom Ver. ${escapeHtml(displayVer)}</strong> (loader v${escapeHtml(result.current)}).${bundleNote}`;
+        return `✅ Ενημερωμένο — <strong>Custom Ver. ${escapeHtml(displayVer)}</strong>.${bundleNote}`;
     }
 
     function hideScriptUpdateNotification() {
@@ -9995,7 +10012,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         function getUpdatesSettingsHTML() {
             const loaderUrl = window.SCRIPT_META?.loaderUrl || 'myman_loader.user.js';
             const displayVer = window.getSuiteDisplayVersion?.() || window.SCRIPT_META?.displayVersion || '—';
-            const loaderVer = window.getInstalledLoaderVersion?.() || window.SCRIPT_META?.loaderVersion || '—';
             return `
                 <div class="tm-settings-section">
                     <h3>🔄 Ενημερώσεις Script</h3>
@@ -10011,9 +10027,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label>Έκδοση suite</label>
+                            <label>Έκδοση</label>
                             <p class="tm-setting-description"><strong id="tm-settings-current-version">Custom Ver. ${displayVer}</strong></p>
-                            <p class="tm-setting-description">Loader: <strong id="tm-settings-loader-version">v${loaderVer}</strong> · Bundle: <strong id="tm-settings-bundle-version">v${window.SCRIPT_META?.version || '—'}</strong></p>
                             <p class="tm-setting-description" id="tm-settings-update-status">—</p>
                             <p class="tm-setting-description" id="tm-settings-skipped-version" style="display: none;"></p>
                         </div>
@@ -10034,8 +10049,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
         function refreshUpdatesSettingsUI(result) {
             const versionEl = document.getElementById('tm-settings-current-version');
-            const loaderEl = document.getElementById('tm-settings-loader-version');
-            const bundleEl = document.getElementById('tm-settings-bundle-version');
             const statusEl = document.getElementById('tm-settings-update-status');
             const skippedEl = document.getElementById('tm-settings-skipped-version');
             const clearSkipBtn = document.getElementById('tm-settings-clear-skip-update-btn');
@@ -10046,14 +10059,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
             if (versionEl) {
                 versionEl.textContent = `Custom Ver. ${displayVer}`;
-            }
-            if (loaderEl) {
-                const loader = result?.current || window.getInstalledLoaderVersion?.() || window.SCRIPT_META?.loaderVersion || '—';
-                loaderEl.textContent = `v${loader}`;
-            }
-            if (bundleEl) {
-                const bundle = result?.bundleCurrent || window.SCRIPT_META?.version || '—';
-                bundleEl.textContent = `v${bundle}`;
             }
             if (statusEl && result) {
                 statusEl.innerHTML = typeof window.formatUpdateStatusMessage === 'function'

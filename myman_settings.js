@@ -776,7 +776,6 @@
         function getUpdatesSettingsHTML() {
             const loaderUrl = window.SCRIPT_META?.loaderUrl || 'myman_loader.user.js';
             const displayVer = window.getSuiteDisplayVersion?.() || window.SCRIPT_META?.displayVersion || '—';
-            const loaderVer = window.getInstalledLoaderVersion?.() || window.SCRIPT_META?.loaderVersion || '—';
             return `
                 <div class="tm-settings-section">
                     <h3>🔄 Ενημερώσεις Script</h3>
@@ -792,9 +791,8 @@
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label>Έκδοση suite</label>
+                            <label>Έκδοση</label>
                             <p class="tm-setting-description"><strong id="tm-settings-current-version">Custom Ver. ${displayVer}</strong></p>
-                            <p class="tm-setting-description">Loader: <strong id="tm-settings-loader-version">v${loaderVer}</strong> · Bundle: <strong id="tm-settings-bundle-version">v${window.SCRIPT_META?.version || '—'}</strong></p>
                             <p class="tm-setting-description" id="tm-settings-update-status">—</p>
                             <p class="tm-setting-description" id="tm-settings-skipped-version" style="display: none;"></p>
                         </div>
@@ -815,8 +813,6 @@
 
         function refreshUpdatesSettingsUI(result) {
             const versionEl = document.getElementById('tm-settings-current-version');
-            const loaderEl = document.getElementById('tm-settings-loader-version');
-            const bundleEl = document.getElementById('tm-settings-bundle-version');
             const statusEl = document.getElementById('tm-settings-update-status');
             const skippedEl = document.getElementById('tm-settings-skipped-version');
             const clearSkipBtn = document.getElementById('tm-settings-clear-skip-update-btn');
@@ -827,14 +823,6 @@
 
             if (versionEl) {
                 versionEl.textContent = `Custom Ver. ${displayVer}`;
-            }
-            if (loaderEl) {
-                const loader = result?.current || window.getInstalledLoaderVersion?.() || window.SCRIPT_META?.loaderVersion || '—';
-                loaderEl.textContent = `v${loader}`;
-            }
-            if (bundleEl) {
-                const bundle = result?.bundleCurrent || window.SCRIPT_META?.version || '—';
-                bundleEl.textContent = `v${bundle}`;
             }
             if (statusEl && result) {
                 statusEl.innerHTML = typeof window.formatUpdateStatusMessage === 'function'

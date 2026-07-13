@@ -1,10 +1,11 @@
 {
-  "version": "210",
+  "version": "212",
   "loaderVersion": "5",
-  "displayVersion": "2.3.2.2",
+  "silentVersion": "2",
+  "displayVersion": "5.2",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Manifest-first silent bundle loading; release script auto-bumps Custom Ver.",
+  "releaseNotes": "Custom Ver format: loader.silent (e.g. 5.11)",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

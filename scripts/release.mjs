@@ -1,9 +1,10 @@
 /**
- * Bumps bundle version + Custom Ver. (displayVersion), writes releaseNotes, regenerates artifacts.
+ * Silent release: bumps silentVersion → Custom Ver. {loader}.{silent} (e.g. 5.11)
  *
- *   node scripts/release.mjs "What changed in this release"
+ *   node scripts/release.mjs "What changed"
  *
- * Only bumps loaderVersion when you pass --loader (or edit myman_manifest.json manually).
+ * Loader release (resets silent to 1, bumps loader digit):
+ *   node scripts/release.mjs --loader "Loader change"
  */
 import fs from 'fs';
 import path from 'path';
@@ -19,14 +20,8 @@ function bumpNumericVersion(value) {
     return String(Number.isFinite(n) ? n + 1 : 1);
 }
 
-function bumpDisplayVersion(displayVersion) {
-    const parts = String(displayVersion || '0.0.0.0').split('.').map((p) => {
-        const n = parseInt(p, 10);
-        return Number.isFinite(n) ? n : 0;
-    });
-    while (parts.length < 4) parts.push(0);
-    parts[parts.length - 1] += 1;
-    return parts.join('.');
+function formatCustomVer(loaderVersion, silentVersion) {
+    return `${loaderVersion}.${silentVersion}`;
 }
 
 const args = process.argv.slice(2);
@@ -35,14 +30,19 @@ const notes = args.filter((a) => a !== '--loader').join(' ').trim();
 
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 const prevBundle = manifest.version;
-const prevDisplay = manifest.displayVersion;
+const prevDisplay = manifest.displayVersion || formatCustomVer(manifest.loaderVersion, manifest.silentVersion || '1');
 
 manifest.version = bumpNumericVersion(manifest.version);
-manifest.displayVersion = bumpDisplayVersion(manifest.displayVersion);
-if (notes) manifest.releaseNotes = notes;
+
 if (bumpLoader) {
-    manifest.loaderVersion = bumpNumericVersion(manifest.loaderVersion || manifest.version);
+    manifest.loaderVersion = bumpNumericVersion(manifest.loaderVersion || '1');
+    manifest.silentVersion = '1';
+} else {
+    manifest.silentVersion = bumpNumericVersion(manifest.silentVersion || '0');
 }
+
+manifest.displayVersion = formatCustomVer(manifest.loaderVersion, manifest.silentVersion);
+if (notes) manifest.releaseNotes = notes;
 
 fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 
@@ -55,4 +55,4 @@ if (gen.status !== 0) {
     process.exit(gen.status || 1);
 }
 
-console.log(`Released: bundle v${prevBundle} → v${manifest.version}, Custom Ver. ${prevDisplay} → ${manifest.displayVersion}${bumpLoader ? `, loader v${manifest.loaderVersion}` : ''}`);
+console.log(`Released: Custom Ver. ${prevDisplay} → ${manifest.displayVersion} (bundle v${prevBundle} → v${manifest.version}${bumpLoader ? `, loader v${manifest.loaderVersion}` : ''})`);

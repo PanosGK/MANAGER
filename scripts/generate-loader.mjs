@@ -15,7 +15,8 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'myman_manifest.json'), 'utf8'));
-const { version, loaderVersion = version, displayVersion = version, updateBase, modules } = manifest;
+const { version, loaderVersion = '1', silentVersion = '1', updateBase, modules } = manifest;
+const displayVersion = manifest.displayVersion || `${loaderVersion}.${silentVersion}`;
 const loaderUrl = `${updateBase}/myman_loader.user.js`;
 const bundleFileName = 'myman_suite.bundle.js';
 const bundleUrl = `${updateBase}/${bundleFileName}?v=${version}`;
@@ -325,6 +326,8 @@ function buildInlineBootstrap(bundleLoadUrl) {
                         }
                         if (manifest && manifest.displayVersion) {
                             window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.displayVersion);
+                        } else if (manifest && manifest.loaderVersion != null && manifest.silentVersion != null) {
+                            window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.loaderVersion) + '.' + String(manifest.silentVersion);
                         }
                     } catch (e) {
                         console.warn('[MMS] Manifest parse failed, using fallback bundle version');
@@ -469,6 +472,7 @@ let config = fs.readFileSync(configPath, 'utf8');
 const metaBlock = `const SCRIPT_META = {
         version: '${version}',
         loaderVersion: '${loaderVersion}',
+        silentVersion: '${silentVersion}',
         displayVersion: '${displayVersion}',
         updateBase: '${updateBase}',
         manifestUrl: '${updateBase}/myman_manifest.json',

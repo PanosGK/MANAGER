@@ -27,7 +27,7 @@
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "210";
+    var FALLBACK_BUNDLE_VERSION = "212";
 
     try {
         if (typeof GM_setValue === 'function') {
@@ -290,6 +290,8 @@
                         }
                         if (manifest && manifest.displayVersion) {
                             window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.displayVersion);
+                        } else if (manifest && manifest.loaderVersion != null && manifest.silentVersion != null) {
+                            window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.loaderVersion) + '.' + String(manifest.silentVersion);
                         }
                     } catch (e) {
                         console.warn('[MMS] Manifest parse failed, using fallback bundle version');

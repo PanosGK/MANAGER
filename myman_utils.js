@@ -448,24 +448,38 @@
         return '0';
     }
 
+    function formatCustomVer(loaderVersion, silentVersion) {
+        return `${loaderVersion}.${silentVersion}`;
+    }
+
+    function parseCustomVer(ver) {
+        const s = String(ver || '0.0');
+        const dot = s.indexOf('.');
+        if (dot === -1) {
+            return { loader: parseInt(s, 10) || 0, silent: 0 };
+        }
+        return {
+            loader: parseInt(s.slice(0, dot), 10) || 0,
+            silent: parseInt(s.slice(dot + 1), 10) || 0
+        };
+    }
+
     function getSuiteDisplayVersion() {
         const meta = window.SCRIPT_META || {};
-        const local = meta.displayVersion || meta.version || '?';
+        const local = meta.displayVersion
+            || (meta.loaderVersion != null && meta.silentVersion != null
+                ? formatCustomVer(meta.loaderVersion, meta.silentVersion)
+                : meta.version || '?');
         const remote = window.TMMS_REMOTE_DISPLAY_VERSION;
         if (remote && compareDisplayVersion(remote, local) > 0) return String(remote);
         return String(local);
     }
 
     function compareDisplayVersion(a, b) {
-        const pa = String(a || '0').split('.').map((n) => parseInt(n, 10) || 0);
-        const pb = String(b || '0').split('.').map((n) => parseInt(n, 10) || 0);
-        const len = Math.max(pa.length, pb.length);
-        for (let i = 0; i < len; i++) {
-            const da = pa[i] || 0;
-            const db = pb[i] || 0;
-            if (da > db) return 1;
-            if (da < db) return -1;
-        }
+        const pa = parseCustomVer(a);
+        const pb = parseCustomVer(b);
+        if (pa.loader !== pb.loader) return pa.loader > pb.loader ? 1 : -1;
+        if (pa.silent !== pb.silent) return pa.silent > pb.silent ? 1 : -1;
         return 0;
     }
 
@@ -556,7 +570,10 @@
                         const remoteManifest = JSON.parse(response.responseText);
                         const remote = String(remoteManifest.loaderVersion || remoteManifest.version || '?');
                         const bundleRemote = String(remoteManifest.version || '?');
-                        const displayVersion = remoteManifest.displayVersion || bundleRemote;
+                        const displayVersion = remoteManifest.displayVersion
+                            || (remoteManifest.loaderVersion != null && remoteManifest.silentVersion != null
+                                ? formatCustomVer(remoteManifest.loaderVersion, remoteManifest.silentVersion)
+                                : bundleRemote);
                         callback({
                             current,
                             remote,
@@ -690,7 +707,7 @@
         const bundleNote = result.bundleUpdateAvailable
             ? ' Το bundle ενημερώνεται αυτόματα.'
             : '';
-        return `✅ Ενημερωμένο — <strong>Custom Ver. ${escapeHtml(displayVer)}</strong> (loader v${escapeHtml(result.current)}).${bundleNote}`;
+        return `✅ Ενημερωμένο — <strong>Custom Ver. ${escapeHtml(displayVer)}</strong>.${bundleNote}`;
     }
 
     function hideScriptUpdateNotification() {
