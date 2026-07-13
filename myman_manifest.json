@@ -1,5 +1,5 @@
 {
-  "version": "194",
+  "version": "195",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
   "releaseNotes": "Recent repairs button follows active theme tokens.",

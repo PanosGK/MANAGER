@@ -855,6 +855,53 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
                 background: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg)) !important;
             }
             .tm-order-history-table td { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
+            /* Customer history modal */
+            #tm-customer-history-modal.tm-modal-overlay,
+            .tm-customer-history-overlay {
+                background: var(--tm-overlay-dim, rgba(0,0,0,0.72)) !important;
+            }
+            .tm-customer-history-content {
+                background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg))) !important;
+                color: var(--tm-primary-color) !important;
+                border-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-customer-history-content .tm-modal-header {
+                border-bottom-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-customer-history-content .tm-modal-title,
+            .tm-customer-history-content .tm-modal-close,
+            #tm-customer-history-modal #tm-status-message {
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+            }
+            .tm-customer-history-table thead th,
+            .tm-customer-history-table .tm-sortable-header {
+                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg)) !important;
+                color: var(--tm-grid-header-text, var(--tm-primary-color)) !important;
+                border-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-customer-history-table tbody td {
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-customer-history-table tbody tr:nth-child(odd) {
+                background: var(--tm-grid-row-alt-bg, var(--tm-shop-item-owned-bg)) !important;
+            }
+            .tm-customer-history-table tbody tr:hover,
+            .tm-customer-history-table .tm-sortable-header:hover {
+                background: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+            }
+            .tm-customer-history-table a {
+                color: var(--tm-link-color, var(--tm-primary-hover)) !important;
+            }
+            .tm-customer-history-table a:hover {
+                color: var(--tm-link-hover-color, var(--tm-info-color)) !important;
+            }
+            .tm-customer-history-link {
+                color: var(--tm-link-color, var(--tm-info-color)) !important;
+            }
+            .tm-customer-history-link:hover {
+                color: var(--tm-link-hover-color, var(--tm-info-color)) !important;
+            }
             #tm-phone-catalog-btn {
                 background: var(--tm-dark-color) !important;
                 border: 1px solid var(--tm-secondary-hover) !important;

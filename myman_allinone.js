@@ -3164,13 +3164,13 @@
 
         // 1. Create and show a loading modal immediately
         const overlay = document.createElement('div');
-        overlay.className = 'tm-modal-overlay';
+        overlay.className = 'tm-modal-overlay tm-customer-history-overlay';
         overlay.id = 'tm-customer-history-modal'; // Assign a unique ID
         overlay.innerHTML = `
-            <div class="tm-modal-content">
+            <div class="tm-modal-content tm-customer-history-content">
                 <div class="tm-modal-header">
                     <h2 class="tm-modal-title">Ιστορικό Επισκευών: ${searchTerm}</h2>
-                    <button class="tm-modal-close">&times;</button>
+                    <button type="button" class="tm-modal-close" aria-label="Κλείσιμο">&times;</button>
                 </div>
                 <div id="tm-customer-history-container">
                     <div id="tm-status-message">Αναζήτηση ιστορικού...</div>
@@ -3208,8 +3208,8 @@
 
                 // 3. Build the results table
                 let tableHTML = `
-                    <table class="table table-bordered table-striped" style="width: 100%; text-align: center; margin-top: 10px;">
-                        <thead><tr style="text-align: center;">
+                    <table class="tm-customer-history-table">
+                        <thead><tr>
                             <th class="tm-sortable-header" data-column="0" data-sort-type="date">Ημ/νία Εισαγωγής</th>
                             <th class="tm-sortable-header" data-column="1" data-sort-type="string">Παλαιότητα</th>
                             <th class="tm-sortable-header" data-column="2" data-sort-type="string">Αρ.</th>

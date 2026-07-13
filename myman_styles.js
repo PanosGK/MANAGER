@@ -587,20 +587,100 @@
 
             /* Customer History Link Style */
             .tm-customer-history-link {
-                cursor: pointer; text-decoration: underline; color: var(--tm-info-color);
+                cursor: pointer;
+                text-decoration: underline;
+                color: var(--tm-link-color, var(--tm-info-color));
                 font-weight: bold;
             }
-
-            /* Customer History Modal Content */
-            #tm-customer-history-container {
-                overflow-y: auto; /* Make the history list scrollable */
+            .tm-customer-history-link:hover {
+                color: var(--tm-link-hover-color, var(--tm-info-hover, var(--tm-info-color)));
             }
 
-            /* Sortable headers in history modal */
+            /* Customer History Modal */
+            #tm-customer-history-modal.tm-modal-overlay {
+                background: var(--tm-overlay-dim, rgba(0, 0, 0, 0.65));
+            }
+            .tm-customer-history-content {
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border: 1px solid var(--tm-shop-item-border) !important;
+                box-shadow: 0 20px 60px var(--tm-shadow-color, rgba(0, 0, 0, 0.25)) !important;
+            }
+            .tm-customer-history-content .tm-modal-header {
+                border-bottom-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-customer-history-content .tm-modal-title,
+            .tm-customer-history-content .tm-modal-close {
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+            }
+            .tm-customer-history-content .tm-modal-close {
+                background: transparent;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                line-height: 1;
+            }
+            .tm-customer-history-content .tm-modal-close:hover {
+                color: var(--tm-danger-color) !important;
+            }
+            #tm-customer-history-container {
+                overflow-y: auto;
+                flex: 1;
+                min-height: 0;
+            }
+            #tm-customer-history-modal #tm-status-message {
+                text-align: center;
+                padding: 20px;
+                font-size: 16px;
+                color: var(--tm-muted-text, var(--tm-secondary-color));
+            }
+            #tm-customer-history-modal .tm-details-error {
+                color: var(--tm-danger-color) !important;
+            }
+            .tm-customer-history-table {
+                width: 100%;
+                border-collapse: collapse;
+                text-align: center;
+                margin-top: 10px;
+                font-size: 13px;
+            }
+            .tm-customer-history-table thead th,
+            .tm-customer-history-table .tm-sortable-header {
+                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg));
+                color: var(--tm-grid-header-text, var(--tm-primary-color));
+                border: 1px solid var(--tm-shop-item-border);
+                padding: 10px 12px;
+                font-weight: 700;
+            }
+            .tm-customer-history-table tbody td {
+                border: 1px solid var(--tm-shop-item-border);
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+                padding: 10px 12px;
+                vertical-align: middle;
+            }
+            .tm-customer-history-table tbody tr:nth-child(odd) {
+                background: var(--tm-grid-row-alt-bg, var(--tm-shop-item-owned-bg));
+            }
+            .tm-customer-history-table tbody tr:hover {
+                background: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg));
+            }
+            .tm-customer-history-table a {
+                color: var(--tm-link-color, var(--tm-primary-hover));
+                text-decoration: none;
+                font-weight: 600;
+            }
+            .tm-customer-history-table a:hover {
+                color: var(--tm-link-hover-color, var(--tm-info-color));
+                text-decoration: underline;
+            }
             .tm-sortable-header {
                 cursor: pointer;
+                transition: background-color 0.15s ease, color 0.15s ease;
             }
-            .tm-sortable-header:hover { background-color: #e9ecef; }
+            .tm-sortable-header:hover {
+                background-color: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+                color: var(--tm-link-hover-color, var(--tm-info-color)) !important;
+            }
             /* Hover effect on container to show buttons */
             #tm-search-container:hover .tm-slide-out-btn {
                 transform: translateX(0);

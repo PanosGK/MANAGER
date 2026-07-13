@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v194 — generated, do not edit */
+/* MyManager Suite bundle v195 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -1610,6 +1610,53 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
                 background: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg)) !important;
             }
             .tm-order-history-table td { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
+            /* Customer history modal */
+            #tm-customer-history-modal.tm-modal-overlay,
+            .tm-customer-history-overlay {
+                background: var(--tm-overlay-dim, rgba(0,0,0,0.72)) !important;
+            }
+            .tm-customer-history-content {
+                background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg))) !important;
+                color: var(--tm-primary-color) !important;
+                border-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-customer-history-content .tm-modal-header {
+                border-bottom-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-customer-history-content .tm-modal-title,
+            .tm-customer-history-content .tm-modal-close,
+            #tm-customer-history-modal #tm-status-message {
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+            }
+            .tm-customer-history-table thead th,
+            .tm-customer-history-table .tm-sortable-header {
+                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg)) !important;
+                color: var(--tm-grid-header-text, var(--tm-primary-color)) !important;
+                border-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-customer-history-table tbody td {
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-customer-history-table tbody tr:nth-child(odd) {
+                background: var(--tm-grid-row-alt-bg, var(--tm-shop-item-owned-bg)) !important;
+            }
+            .tm-customer-history-table tbody tr:hover,
+            .tm-customer-history-table .tm-sortable-header:hover {
+                background: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+            }
+            .tm-customer-history-table a {
+                color: var(--tm-link-color, var(--tm-primary-hover)) !important;
+            }
+            .tm-customer-history-table a:hover {
+                color: var(--tm-link-hover-color, var(--tm-info-color)) !important;
+            }
+            .tm-customer-history-link {
+                color: var(--tm-link-color, var(--tm-info-color)) !important;
+            }
+            .tm-customer-history-link:hover {
+                color: var(--tm-link-hover-color, var(--tm-info-color)) !important;
+            }
             #tm-phone-catalog-btn {
                 background: var(--tm-dark-color) !important;
                 border: 1px solid var(--tm-secondary-hover) !important;
@@ -2717,7 +2764,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '193',
+        version: '194',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -5102,20 +5149,100 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
             /* Customer History Link Style */
             .tm-customer-history-link {
-                cursor: pointer; text-decoration: underline; color: var(--tm-info-color);
+                cursor: pointer;
+                text-decoration: underline;
+                color: var(--tm-link-color, var(--tm-info-color));
                 font-weight: bold;
             }
-
-            /* Customer History Modal Content */
-            #tm-customer-history-container {
-                overflow-y: auto; /* Make the history list scrollable */
+            .tm-customer-history-link:hover {
+                color: var(--tm-link-hover-color, var(--tm-info-hover, var(--tm-info-color)));
             }
 
-            /* Sortable headers in history modal */
+            /* Customer History Modal */
+            #tm-customer-history-modal.tm-modal-overlay {
+                background: var(--tm-overlay-dim, rgba(0, 0, 0, 0.65));
+            }
+            .tm-customer-history-content {
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border: 1px solid var(--tm-shop-item-border) !important;
+                box-shadow: 0 20px 60px var(--tm-shadow-color, rgba(0, 0, 0, 0.25)) !important;
+            }
+            .tm-customer-history-content .tm-modal-header {
+                border-bottom-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-customer-history-content .tm-modal-title,
+            .tm-customer-history-content .tm-modal-close {
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+            }
+            .tm-customer-history-content .tm-modal-close {
+                background: transparent;
+                border: none;
+                font-size: 24px;
+                cursor: pointer;
+                line-height: 1;
+            }
+            .tm-customer-history-content .tm-modal-close:hover {
+                color: var(--tm-danger-color) !important;
+            }
+            #tm-customer-history-container {
+                overflow-y: auto;
+                flex: 1;
+                min-height: 0;
+            }
+            #tm-customer-history-modal #tm-status-message {
+                text-align: center;
+                padding: 20px;
+                font-size: 16px;
+                color: var(--tm-muted-text, var(--tm-secondary-color));
+            }
+            #tm-customer-history-modal .tm-details-error {
+                color: var(--tm-danger-color) !important;
+            }
+            .tm-customer-history-table {
+                width: 100%;
+                border-collapse: collapse;
+                text-align: center;
+                margin-top: 10px;
+                font-size: 13px;
+            }
+            .tm-customer-history-table thead th,
+            .tm-customer-history-table .tm-sortable-header {
+                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg));
+                color: var(--tm-grid-header-text, var(--tm-primary-color));
+                border: 1px solid var(--tm-shop-item-border);
+                padding: 10px 12px;
+                font-weight: 700;
+            }
+            .tm-customer-history-table tbody td {
+                border: 1px solid var(--tm-shop-item-border);
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+                padding: 10px 12px;
+                vertical-align: middle;
+            }
+            .tm-customer-history-table tbody tr:nth-child(odd) {
+                background: var(--tm-grid-row-alt-bg, var(--tm-shop-item-owned-bg));
+            }
+            .tm-customer-history-table tbody tr:hover {
+                background: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg));
+            }
+            .tm-customer-history-table a {
+                color: var(--tm-link-color, var(--tm-primary-hover));
+                text-decoration: none;
+                font-weight: 600;
+            }
+            .tm-customer-history-table a:hover {
+                color: var(--tm-link-hover-color, var(--tm-info-color));
+                text-decoration: underline;
+            }
             .tm-sortable-header {
                 cursor: pointer;
+                transition: background-color 0.15s ease, color 0.15s ease;
             }
-            .tm-sortable-header:hover { background-color: #e9ecef; }
+            .tm-sortable-header:hover {
+                background-color: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+                color: var(--tm-link-hover-color, var(--tm-info-color)) !important;
+            }
             /* Hover effect on container to show buttons */
             #tm-search-container:hover .tm-slide-out-btn {
                 transform: translateX(0);
@@ -41360,13 +41487,13 @@ if (typeof window !== 'undefined') {
 
         // 1. Create and show a loading modal immediately
         const overlay = document.createElement('div');
-        overlay.className = 'tm-modal-overlay';
+        overlay.className = 'tm-modal-overlay tm-customer-history-overlay';
         overlay.id = 'tm-customer-history-modal'; // Assign a unique ID
         overlay.innerHTML = `
-            <div class="tm-modal-content">
+            <div class="tm-modal-content tm-customer-history-content">
                 <div class="tm-modal-header">
                     <h2 class="tm-modal-title">Ιστορικό Επισκευών: ${searchTerm}</h2>
-                    <button class="tm-modal-close">&times;</button>
+                    <button type="button" class="tm-modal-close" aria-label="Κλείσιμο">&times;</button>
                 </div>
                 <div id="tm-customer-history-container">
                     <div id="tm-status-message">Αναζήτηση ιστορικού...</div>
@@ -41404,8 +41531,8 @@ if (typeof window !== 'undefined') {
 
                 // 3. Build the results table
                 let tableHTML = `
-                    <table class="table table-bordered table-striped" style="width: 100%; text-align: center; margin-top: 10px;">
-                        <thead><tr style="text-align: center;">
+                    <table class="tm-customer-history-table">
+                        <thead><tr>
                             <th class="tm-sortable-header" data-column="0" data-sort-type="date">Ημ/νία Εισαγωγής</th>
                             <th class="tm-sortable-header" data-column="1" data-sort-type="string">Παλαιότητα</th>
                             <th class="tm-sortable-header" data-column="2" data-sort-type="string">Αρ.</th>
