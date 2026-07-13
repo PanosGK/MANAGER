@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v216 / Custom Ver. 5.6 — generated, do not edit */
+/* MyManager Suite bundle v217 / Custom Ver. 5.7 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
