@@ -549,6 +549,105 @@
         return 'Μία φορά';
     }
 
+    function formatReminderHistoryAction(action) {
+        if (action === 'fired') return 'Ενεργοποιήθηκε';
+        if (action === 'dismissed') return 'Αποκρύφτηκε';
+        if (action === 'cancelled') return 'Ακυρώθηκε';
+        return 'Κλείστηκε';
+    }
+
+    function getReminderHistoryIcon(source) {
+        if (source === 'repair' || source === 'repair_banner') return '🔧';
+        if (source === 'scratchpad') return '📝';
+        return '🔔';
+    }
+
+    function loadReminderHistory() {
+        try {
+            return JSON.parse(GM_getValue(STORAGE_KEYS.REMINDER_HISTORY, '[]')) || [];
+        } catch {
+            return [];
+        }
+    }
+
+    function appendReminderHistory(entry) {
+        const history = loadReminderHistory();
+        const item = {
+            id: entry.id || `rh_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            closedAt: entry.closedAt || Date.now(),
+            source: entry.source || 'unknown',
+            action: entry.action || 'closed',
+            title: entry.title || '',
+            message: entry.message || '',
+            dueTime: entry.dueTime || null,
+            invoiceLinesId: entry.invoiceLinesId || null,
+            invoiceNumber: entry.invoiceNumber || null,
+            noteId: entry.noteId || null,
+            recurrence: entry.recurrence || 'none',
+            reminderId: entry.reminderId || null,
+        };
+        history.unshift(item);
+        if (history.length > 120) history.length = 120;
+        GM_setValue(STORAGE_KEYS.REMINDER_HISTORY, JSON.stringify(history));
+        refreshReminderHistoryPanelIfOpen();
+    }
+
+    window.appendReminderHistory = appendReminderHistory;
+
+    function buildReminderHistoryHTML(filterQuery = '') {
+        const q = String(filterQuery || '').trim().toLowerCase();
+        let history = loadReminderHistory();
+        if (q) {
+            history = history.filter((h) => {
+                const blob = [
+                    h.title, h.message, h.invoiceNumber, h.invoiceLinesId,
+                    formatReminderHistoryAction(h.action),
+                ].join(' ').toLowerCase();
+                return blob.includes(q);
+            });
+        }
+        if (history.length === 0) {
+            return `<div id="tm-notification-empty-state">${q ? 'Δεν βρέθηκαν υπενθυμίσεις.' : 'Δεν υπάρχει ιστορικό υπενθυμίσεων ακόμα.'}</div>`;
+        }
+        return history.map((h) => {
+            const icon = getReminderHistoryIcon(h.source);
+            const title = escapeNotificationText(h.title || 'Υπενθύμιση');
+            const action = escapeNotificationText(formatReminderHistoryAction(h.action));
+            const closed = h.closedAt ? new Date(h.closedAt).toLocaleString('el-GR') : '';
+            const due = h.dueTime ? new Date(h.dueTime).toLocaleString('el-GR') : '';
+            const rec = formatAlertRecurrence(h.recurrence);
+            const msg = escapeNotificationText(h.message || '');
+            const openLink = h.invoiceLinesId
+                ? `<a class="tm-alert-open-link" href="https://thefixers.mymanager.gr/mymanagerservice/service_edit.php?editid1=${encodeURIComponent(h.invoiceLinesId)}" target="_blank" rel="noopener">Άνοιγμα</a>`
+                : '';
+            const metaParts = [action];
+            if (due) metaParts.push(`Προγραμματισμένη: ${due}`);
+            if (closed) metaParts.push(`Κλείστηκε: ${closed}`);
+            metaParts.push(rec);
+            return `
+                <div class="tm-alert-item tm-alert-item--history" data-history-id="${escapeNotificationText(h.id)}">
+                    <div class="tm-alert-item-icon">${icon}</div>
+                    <div class="tm-alert-item-body">
+                        <div class="tm-alert-item-title">${title}</div>
+                        <div class="tm-alert-item-meta">${escapeNotificationText(metaParts.join(' · '))}</div>
+                        ${msg ? `<div class="tm-alert-item-message">${msg}</div>` : ''}
+                    </div>
+                    <div class="tm-alert-item-actions">
+                        ${openLink}
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function refreshReminderHistoryPanelIfOpen() {
+        const listEl = document.getElementById('tm-reminders-history-list');
+        if (!listEl) return;
+        const searchEl = document.getElementById('tm-reminder-history-search');
+        listEl.innerHTML = buildReminderHistoryHTML(searchEl?.value || '');
+    }
+
+    window.refreshReminderHistoryPanelIfOpen = refreshReminderHistoryPanelIfOpen;
+
     function getScratchpadAlerts() {
         if (!config.scratchpadEnabled) return [];
         try {
@@ -558,8 +657,8 @@
                 .map((n) => ({
                     type: 'scratchpad',
                     id: n.id,
-                    title: n.title || 'Σημείωση',
-                    message: n.reminder.text || '',
+                    title: n.reminder.title || n.reminder.text || n.title || 'Σημείωση',
+                    message: n.reminder.notes || '',
                     dueTime: n.reminder.dueTime,
                     recurrence: n.reminder.recurrence || 'none',
                 }));
@@ -577,6 +676,17 @@
         }
         const note = notes.find((n) => n.id === noteId);
         if (!note) return;
+        if (note.reminder) {
+            appendReminderHistory({
+                source: 'scratchpad',
+                action: 'cancelled',
+                title: note.reminder.title || note.reminder.text || note.title || 'Σημείωση',
+                message: note.reminder.notes || '',
+                dueTime: note.reminder.dueTime,
+                noteId: note.id,
+                recurrence: note.reminder.recurrence || 'none',
+            });
+        }
         note.reminder = null;
         GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
         const reminderBtn = document.getElementById('tm-scratchpad-reminder-btn');
@@ -597,7 +707,7 @@
                     kind: 'repair_scheduled',
                     id: r.id,
                     icon: '🔧',
-                    title: `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`,
+                    title: r.title || `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`,
                     dueTime: r.dueTime,
                     message: r.message || '',
                     recurrence: r.recurrence || 'none',
@@ -615,7 +725,7 @@
                     id: b.id,
                     reminderId: b.reminderId,
                     icon: '🔔',
-                    title: `Ενεργή υπενθύμιση · #${b.invoiceNumber || b.invoiceLinesId}`,
+                    title: b.title || `Ενεργή υπενθύμιση · #${b.invoiceNumber || b.invoiceLinesId}`,
                     dueTime: b.firedAt,
                     message: b.message || '',
                     recurrence: 'none',
@@ -696,9 +806,9 @@
 
     function refreshActiveAlertsPanelIfOpen() {
         const listEl = document.getElementById('tm-active-alerts-list');
-        if (!listEl) return;
-        listEl.innerHTML = buildActiveAlertsHTML();
+        if (listEl) listEl.innerHTML = buildActiveAlertsHTML();
         refreshAlertsTabCount();
+        refreshReminderHistoryPanelIfOpen();
     }
 
     window.refreshActiveAlertsPanelIfOpen = refreshActiveAlertsPanelIfOpen;
@@ -747,7 +857,18 @@
                 <div id="tm-notification-list">${buildNotificationListHTML()}</div>
             </div>
             <div id="tm-notification-tab-alerts" class="tm-notification-tab-panel">
-                <div id="tm-active-alerts-list">${buildActiveAlertsHTML()}</div>
+                <div class="tm-alerts-active-section">
+                    <div class="tm-alerts-section-label">Ενεργές υπενθυμίσεις</div>
+                    <div id="tm-active-alerts-list">${buildActiveAlertsHTML()}</div>
+                </div>
+                <div class="tm-alerts-history-section">
+                    <div class="tm-alerts-history-header">
+                        <div class="tm-alerts-section-label">Ιστορικό υπενθυμίσεων</div>
+                        <button type="button" id="tm-clear-reminder-history-btn" title="Διαγραφή ιστορικού">Καθαρισμός</button>
+                    </div>
+                    <input type="search" id="tm-reminder-history-search" class="tm-reminder-history-search" placeholder="Αναζήτηση υπενθύμισης…" autocomplete="off">
+                    <div id="tm-reminders-history-list">${buildReminderHistoryHTML()}</div>
+                </div>
             </div>
         `;
 
@@ -791,6 +912,18 @@
             if (!btn) return;
             e.stopPropagation();
             handleAlertCancel(btn.getAttribute('data-alert-kind'), btn.getAttribute('data-alert-id'));
+        });
+
+        const historySearchEl = panel.querySelector('#tm-reminder-history-search');
+        historySearchEl?.addEventListener('input', () => {
+            refreshReminderHistoryPanelIfOpen();
+        });
+
+        panel.querySelector('#tm-clear-reminder-history-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!confirm('Διαγραφή όλου του ιστορικού υπενθυμίσεων;')) return;
+            GM_setValue(STORAGE_KEYS.REMINDER_HISTORY, '[]');
+            refreshReminderHistoryPanelIfOpen();
         });
 
         listEl.addEventListener('click', (e) => {
@@ -918,7 +1051,10 @@
             <div id="tm-scratchpad-editor" contenteditable="true" spellcheck="false" placeholder="Προσωρινές σημειώσεις..."></div>
             <div id="tm-scratchpad-reminder-popover">
                 <h5>Ορισμός Υπενθύμισης</h5>
-                <input type="text" id="tm-scratchpad-reminder-text" placeholder="Τι να σας θυμίσω;">
+                <label class="tm-sp-reminder-label" for="tm-scratchpad-reminder-title">Τίτλος</label>
+                <input type="text" id="tm-scratchpad-reminder-title" placeholder="Σύντομος τίτλος">
+                <label class="tm-sp-reminder-label" for="tm-scratchpad-reminder-notes">Σημειώσεις</label>
+                <textarea id="tm-scratchpad-reminder-notes" rows="3" placeholder="Περισσότερες λεπτομέρειες…"></textarea>
                 <input type="datetime-local" id="tm-scratchpad-reminder-datetime">
                 <select id="tm-scratchpad-reminder-recurrence">
                     <option value="none">Χωρίς επανάληψη</option>
@@ -984,7 +1120,8 @@
         const closeBtn = container.querySelector('#tm-scratchpad-close-btn');
         const lastEditedSpan = container.querySelector('#tm-scratchpad-last-edited');
         const reminderBtn = container.querySelector('#tm-scratchpad-reminder-btn');
-        const reminderTextInput = container.querySelector('#tm-scratchpad-reminder-text');
+        const reminderTitleInput = container.querySelector('#tm-scratchpad-reminder-title');
+        const reminderNotesInput = container.querySelector('#tm-scratchpad-reminder-notes');
         const reminderPopover = container.querySelector('#tm-scratchpad-reminder-popover');
         const reminderDateTimeInput = container.querySelector('#tm-scratchpad-reminder-datetime');
         const reminderRecurrenceSelect = container.querySelector('#tm-scratchpad-reminder-recurrence');
@@ -1665,9 +1802,12 @@
                 let recurrenceText = '';
                 if (reminder.recurrence === 'daily') recurrenceText = ' (Καθημερινά)';
                 if (reminder.recurrence === 'weekly') recurrenceText = ' (Εβδομαδιαία)';
+                const title = reminder.title || reminder.text || note.title || 'Υπενθύμιση';
+                const notes = reminder.notes || '';
 
                 activeReminderDiv.innerHTML = `
-                    <span style="font-weight:normal; display:block; margin-bottom: 3px;">${reminder.text}</span>
+                    <span style="font-weight:bold; display:block; margin-bottom: 3px;">${title}</span>
+                    ${notes ? `<span style="font-weight:normal; display:block; margin-bottom: 3px; opacity:0.9;">${notes}</span>` : ''}
                     ${dueDate.toLocaleString('el-GR')}${recurrenceText}
                     <button id="tm-scratchpad-clear-reminder-btn">Καθαρισμός</button>
                 `;
@@ -1679,9 +1819,9 @@
             }
         }
 
-        function saveReminder(dueTime, recurrence, text) {
-            if (!text) {
-                alert('Παρακαλώ εισάγετε το κείμενο της υπενθύμισης.');
+        function saveReminder(dueTime, recurrence, title, notes) {
+            if (!title) {
+                alert('Παρακαλώ εισάγετε τίτλο για την υπενθύμιση.');
                 return;
             }
 
@@ -1691,8 +1831,9 @@
             }
 
             const newReminder = {
-                id: `scratchpad_${Date.now()}`,
-                text: text,
+                title,
+                notes: notes || '',
+                text: title,
                 dueTime: dueTime,
                 recurrence: recurrence,
                 createdAt: Date.now()
@@ -1708,6 +1849,18 @@
         }
 
         function clearReminder() {
+            const note = getActiveNote();
+            if (note?.reminder) {
+                appendReminderHistory({
+                    source: 'scratchpad',
+                    action: 'cancelled',
+                    title: note.reminder.title || note.reminder.text || note.title || 'Σημείωση',
+                    message: note.reminder.notes || '',
+                    dueTime: note.reminder.dueTime,
+                    noteId: note.id,
+                    recurrence: note.reminder.recurrence || 'none',
+                });
+            }
             updateActiveNote({ reminder: null });
             console.log('[MMS] Reminder cleared.');
             updateReminderDisplay();
@@ -1722,7 +1875,8 @@
                 // Pre-fill with existing reminder text if available
                 const note = getActiveNote();
                 const reminder = note?.reminder;
-                reminderTextInput.value = reminder?.text || '';
+                reminderTitleInput.value = reminder?.title || reminder?.text || note?.title || '';
+                reminderNotesInput.value = reminder?.notes || '';
                 if (reminder?.dueTime) {
                     const d = new Date(reminder.dueTime);
                     reminderDateTimeInput.value = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}T${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
@@ -1740,12 +1894,12 @@
                 alert('Παρακαλώ επιλέξτε μια μελλοντική ημερομηνία και ώρα.');
                 return;
             }
-            saveReminder(dueTime, reminderRecurrenceSelect.value, reminderTextInput.value.trim());
+            saveReminder(dueTime, reminderRecurrenceSelect.value, reminderTitleInput.value.trim(), reminderNotesInput.value.trim());
         });
 
         setReminder1hrBtn.addEventListener('click', () => {
             const dueTime = Date.now() + 60 * 60 * 1000;
-            saveReminder(dueTime, reminderRecurrenceSelect.value, reminderTextInput.value.trim());
+            saveReminder(dueTime, reminderRecurrenceSelect.value, reminderTitleInput.value.trim(), reminderNotesInput.value.trim());
         });
 
         // --- Dragging and Sizing Logic ---
@@ -1872,7 +2026,16 @@
 
                 // --- Reminder is due ---
                 console.log(`[MMS] Reminder is due for note "${note.title}":`, reminder);
-                showNotification(`Υπενθύμιση: ${note.title}`, reminder.text);
+                appendReminderHistory({
+                    source: 'scratchpad',
+                    action: 'fired',
+                    title: reminder.title || reminder.text || note.title || 'Σημείωση',
+                    message: reminder.notes || '',
+                    dueTime: reminder.dueTime,
+                    noteId: note.id,
+                    recurrence: reminder.recurrence || 'none',
+                });
+                showNotification(`Υπενθύμιση: ${reminder.title || reminder.text || note.title}`, reminder.notes || '');
                 notesUpdated = true;
 
                 if (reminder.recurrence === 'none') {

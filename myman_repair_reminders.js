@@ -159,15 +159,34 @@
         return `https://thefixers.mymanager.gr/mymanagerservice/service_edit.php?editid1=${encodeURIComponent(invoiceLinesId)}`;
     }
 
+    function logRepairReminderHistory(r, action, extra = {}) {
+        if (!r || typeof window.appendReminderHistory !== 'function') return;
+        window.appendReminderHistory({
+            source: extra.source || 'repair',
+            action,
+            title: r.title || `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`,
+            message: r.message || extra.message || '',
+            dueTime: r.dueTime || extra.dueTime || null,
+            invoiceLinesId: r.invoiceLinesId,
+            invoiceNumber: r.invoiceNumber,
+            recurrence: r.recurrence || 'none',
+            reminderId: r.id || r.reminderId || null,
+            closedAt: extra.closedAt,
+        });
+    }
+
     function activateBannerForReminder(r, STORAGE_KEYS) {
         const banners = loadActiveBanners(STORAGE_KEYS);
         if (banners.some((b) => b.reminderId === r.id)) return;
+
+        logRepairReminderHistory(r, 'fired', { source: 'repair' });
 
         banners.push({
             id: `banner_${r.id}`,
             reminderId: r.id,
             invoiceLinesId: r.invoiceLinesId,
             invoiceNumber: r.invoiceNumber,
+            title: r.title || `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`,
             message: r.message || '',
             firedAt: Date.now(),
         });
@@ -175,6 +194,13 @@
     }
 
     function dismissReminderBanner(STORAGE_KEYS, bannerId) {
+        const banner = loadActiveBanners(STORAGE_KEYS).find((b) => b.id === bannerId);
+        if (banner) {
+            logRepairReminderHistory(banner, 'dismissed', {
+                source: 'repair_banner',
+                dueTime: banner.firedAt,
+            });
+        }
         saveActiveBanners(
             STORAGE_KEYS,
             loadActiveBanners(STORAGE_KEYS).filter((b) => b.id !== bannerId)
@@ -186,6 +212,10 @@
     }
 
     function cancelRepairReminder(STORAGE_KEYS, reminderId) {
+        const reminder = loadReminders(STORAGE_KEYS).find((r) => r.id === reminderId);
+        if (reminder) {
+            logRepairReminderHistory(reminder, 'cancelled');
+        }
         saveReminders(
             STORAGE_KEYS,
             loadReminders(STORAGE_KEYS).filter((r) => r.id !== reminderId)
@@ -272,16 +302,20 @@
                 'border:1px solid rgba(255,255,255,0.12)',
             ].join(';');
 
-            const body =
-                (b.message && String(b.message).trim()) ||
-                `Υπενθύμιση για την επισκευή #${b.invoiceNumber || b.invoiceLinesId}.`;
+            const body = (b.message && String(b.message).trim())
+                ? String(b.message).trim()
+                : `Υπενθύμιση για την επισκευή #${b.invoiceNumber || b.invoiceLinesId}.`;
+            const bannerTitle = b.title || `Επισκευή #${b.invoiceNumber || b.invoiceLinesId}`;
             const fired = b.firedAt
                 ? new Date(b.firedAt).toLocaleString('el-GR')
                 : '';
 
             card.innerHTML = `
                 <div style="font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:6px;">
-                    🔧 Επισκευή #${escapeHtml(b.invoiceNumber || b.invoiceLinesId)}
+                    🔧 ${escapeHtml(bannerTitle)}
+                </div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.55);margin-bottom:8px;">
+                    #${escapeHtml(b.invoiceNumber || b.invoiceLinesId)}
                 </div>
                 <div style="font-size:14px;color:rgba(255,255,255,0.88);line-height:1.45;margin-bottom:10px;">
                     ${escapeHtml(body)}
@@ -362,8 +396,10 @@
                     Υπενθύμιση · #${escapeHtml(ids.invoiceNumber)}
                 </div>
                 <button type="button" id="tm-repair-reminder-close" class="tm-rr-close" aria-label="Κλείσιμο">&times;</button>
-                <label class="tm-rr-label" for="tm-repair-reminder-msg">Μήνυμα (προαιρετικό)</label>
-                <input type="text" id="tm-repair-reminder-msg" class="tm-rr-input" placeholder="π.χ. Κάλεσε πελάτη για έγκριση">
+                <label class="tm-rr-label" for="tm-repair-reminder-title">Τίτλος</label>
+                <input type="text" id="tm-repair-reminder-title" class="tm-rr-input" placeholder="π.χ. Κάλεσε πελάτη για έγκριση">
+                <label class="tm-rr-label" for="tm-repair-reminder-notes">Σημειώσεις</label>
+                <textarea id="tm-repair-reminder-notes" class="tm-rr-textarea" rows="3" placeholder="Λεπτομέρειες, σχόλια, context…"></textarea>
                 <label class="tm-rr-label" for="tm-repair-reminder-when">Ημερομηνία & ώρα</label>
                 <input type="datetime-local" id="tm-repair-reminder-when" class="tm-rr-input">
                 <label class="tm-rr-label" for="tm-repair-reminder-recur">Επανάληψη</label>
@@ -390,7 +426,8 @@
         document.body.appendChild(pop);
 
         const btn = wrap.querySelector('#tm-repair-reminder-btn');
-        const msgInput = pop.querySelector('#tm-repair-reminder-msg');
+        const titleInput = pop.querySelector('#tm-repair-reminder-title');
+        const notesInput = pop.querySelector('#tm-repair-reminder-notes');
         const whenInput = pop.querySelector('#tm-repair-reminder-when');
         const recurSel = pop.querySelector('#tm-repair-reminder-recur');
         const listEl = pop.querySelector('#tm-repair-reminder-list');
@@ -431,9 +468,10 @@
             listEl.innerHTML = mine
                 .map((r) => {
                     const when = new Date(r.dueTime).toLocaleString('el-GR');
-                    const short = (r.message || '').slice(0, 40) + ((r.message || '').length > 40 ? '…' : '');
+                    const title = (r.title || `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`).slice(0, 36);
+                    const notes = (r.message || '').slice(0, 50) + ((r.message || '').length > 50 ? '…' : '');
                     return `<div class="tm-rr-list-row">
-                        <span>${escapeHtml(when)}${short ? ` — ${escapeHtml(short)}` : ''}</span>
+                        <span><strong>${escapeHtml(title)}</strong>${notes ? `<br><span style="opacity:0.85;">${escapeHtml(notes)}</span>` : ''}<br>${escapeHtml(when)}</span>
                         <button type="button" class="tm-rr-del" data-id="${escapeHtml(r.id)}">Διαγραφή</button>
                     </div>`;
                 })
@@ -442,6 +480,10 @@
                 b.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const id = b.getAttribute('data-id');
+                    const removed = loadReminders(STORAGE_KEYS).find((x) => x.id === id);
+                    if (removed) {
+                        logRepairReminderHistory(removed, 'cancelled');
+                    }
                     const all = loadReminders(STORAGE_KEYS).filter((x) => x.id !== id);
                     saveReminders(STORAGE_KEYS, all);
                     saveActiveBanners(
@@ -468,7 +510,8 @@
             if (hidden) {
                 showReminderModal();
                 setDefaultWhen();
-                msgInput.value = customer ? `Σχετικά με: ${customer.split(',')[0]}` : '';
+                titleInput.value = customer ? `Σχετικά με: ${customer.split(',')[0]}` : `Επισκευή #${ids.invoiceNumber}`;
+                notesInput.value = '';
                 renderList();
             } else {
                 hideReminderModal();
@@ -509,12 +552,18 @@
                 alert('Ορίστε μελλοντική ημερομηνία και ώρα.');
                 return;
             }
+            const title = titleInput.value.trim();
+            if (!title) {
+                alert('Ορίστε τίτλο για την υπενθύμιση.');
+                return;
+            }
             const entry = {
                 id: `rr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                 invoiceLinesId: ids.invoiceLinesId,
                 invoiceNumber: ids.invoiceNumber,
                 statusId: ids.statusId || '',
-                message: msgInput.value.trim(),
+                title,
+                message: notesInput.value.trim(),
                 dueTime: due,
                 recurrence: recurSel.value || 'none',
                 createdAt: Date.now(),

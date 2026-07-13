@@ -501,7 +501,8 @@
                 margin-bottom: 4px;
             }
             .tm-rr-input,
-            .tm-rr-select {
+            .tm-rr-select,
+            .tm-rr-textarea {
                 width: 100%;
                 box-sizing: border-box;
                 padding: 8px 10px;
@@ -511,6 +512,12 @@
                 color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color)));
                 font-size: 13px;
                 margin-bottom: 10px;
+            }
+            .tm-rr-textarea {
+                min-height: 72px;
+                resize: vertical;
+                font-family: inherit;
+                line-height: 1.4;
             }
             .tm-rr-quick-row {
                 display: flex;
@@ -774,6 +781,62 @@
                 white-space: nowrap;
             }
             .tm-alert-open-link:hover { text-decoration: underline; }
+            .tm-alerts-section-label {
+                padding: 10px 12px 6px;
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: var(--tm-secondary-hover) !important;
+            }
+            .tm-alerts-history-section {
+                border-top: 1px solid var(--tm-shop-item-border) !important;
+            }
+            .tm-alerts-history-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                padding-right: 8px;
+            }
+            .tm-alerts-history-header .tm-alerts-section-label {
+                padding-bottom: 0;
+            }
+            #tm-clear-reminder-history-btn {
+                padding: 4px 10px;
+                border-radius: 8px;
+                border: 1px solid var(--tm-shop-item-border) !important;
+                background: transparent;
+                color: var(--tm-secondary-hover) !important;
+                font-size: 11px;
+                font-weight: 600;
+                cursor: pointer;
+            }
+            #tm-clear-reminder-history-btn:hover {
+                color: var(--tm-primary-color) !important;
+                border-color: var(--tm-primary-color) !important;
+            }
+            .tm-reminder-history-search {
+                display: block;
+                width: calc(100% - 16px);
+                margin: 0 8px 8px;
+                padding: 8px 10px;
+                box-sizing: border-box;
+                border: 1px solid var(--tm-shop-item-border) !important;
+                border-radius: 8px;
+                background: var(--tm-shop-item-bg) !important;
+                color: var(--tm-primary-color) !important;
+                font-size: 12px;
+            }
+            .tm-reminder-history-search::placeholder {
+                color: var(--tm-secondary-hover) !important;
+                opacity: 0.85;
+            }
+            #tm-reminders-history-list { padding: 0 8px 8px; }
+            .tm-alert-item--history { opacity: 0.92; }
+            .tm-alert-item--history .tm-alert-item-title {
+                font-weight: 600;
+            }
             #tm-alerts-tab-count {
                 display: inline-block;
                 min-width: 18px;
@@ -2191,18 +2254,32 @@
                 box-shadow: 0 2px 10px rgba(0,0,0,0.2);
                 z-index: 10000;
                 padding: 15px;
-                width: 280px;
+                width: 300px;
                 display: none; /* Hidden by default */
                 flex-direction: column;
-                gap: 10px;
+                gap: 8px;
             }
-            #tm-scratchpad-reminder-popover h5 { margin: 0 0 10px 0; font-size: 14px; text-align: center; }
-            #tm-scratchpad-reminder-popover input, #tm-scratchpad-reminder-popover select {
+            #tm-scratchpad-reminder-popover h5 { margin: 0 0 6px 0; font-size: 14px; text-align: center; }
+            .tm-sp-reminder-label {
+                font-size: 11px;
+                font-weight: 600;
+                color: #6c757d;
+                margin: 0;
+            }
+            #tm-scratchpad-reminder-popover input,
+            #tm-scratchpad-reminder-popover select,
+            #tm-scratchpad-reminder-popover textarea {
                 width: 100%;
                 padding: 8px;
                 box-sizing: border-box;
                 border: 1px solid #ccc;
                 border-radius: 4px;
+                font: inherit;
+            }
+            #tm-scratchpad-reminder-notes {
+                min-height: 72px;
+                resize: vertical;
+                line-height: 1.4;
             }
             #tm-scratchpad-reminder-controls { display: flex; gap: 10px; justify-content: space-between; }
             #tm-scratchpad-reminder-controls button {

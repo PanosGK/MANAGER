@@ -16,10 +16,10 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '213',
+        version: '214',
         loaderVersion: '5',
-        silentVersion: '3',
-        displayVersion: '5.3',
+        silentVersion: '4',
+        displayVersion: '5.4',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -124,6 +124,7 @@
         // Scheduled reminders for repairs (service_edit)
         REPAIR_REMINDERS: 'tm_repair_reminders_v1',
         REPAIR_REMINDER_BANNERS: 'tm_repair_reminder_active_banners_v1',
+        REMINDER_HISTORY: 'tm_reminder_history_v1',
 
         // Script update preferences (per profile)
         SKIPPED_UPDATE_VERSION: 'tm_skipped_update_version',

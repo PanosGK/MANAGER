@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v213 / Custom Ver. 5.3 — generated, do not edit */
+/* MyManager Suite bundle v214 / Custom Ver. 5.4 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -3032,10 +3032,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '212',
+        version: '214',
         loaderVersion: '5',
-        silentVersion: '2',
-        displayVersion: '5.2',
+        silentVersion: '4',
+        displayVersion: '5.4',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -3140,6 +3140,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         // Scheduled reminders for repairs (service_edit)
         REPAIR_REMINDERS: 'tm_repair_reminders_v1',
         REPAIR_REMINDER_BANNERS: 'tm_repair_reminder_active_banners_v1',
+        REMINDER_HISTORY: 'tm_reminder_history_v1',
 
         // Script update preferences (per profile)
         SKIPPED_UPDATE_VERSION: 'tm_skipped_update_version',
@@ -5456,7 +5457,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 margin-bottom: 4px;
             }
             .tm-rr-input,
-            .tm-rr-select {
+            .tm-rr-select,
+            .tm-rr-textarea {
                 width: 100%;
                 box-sizing: border-box;
                 padding: 8px 10px;
@@ -5466,6 +5468,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color)));
                 font-size: 13px;
                 margin-bottom: 10px;
+            }
+            .tm-rr-textarea {
+                min-height: 72px;
+                resize: vertical;
+                font-family: inherit;
+                line-height: 1.4;
             }
             .tm-rr-quick-row {
                 display: flex;
@@ -5729,6 +5737,62 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 white-space: nowrap;
             }
             .tm-alert-open-link:hover { text-decoration: underline; }
+            .tm-alerts-section-label {
+                padding: 10px 12px 6px;
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: var(--tm-secondary-hover) !important;
+            }
+            .tm-alerts-history-section {
+                border-top: 1px solid var(--tm-shop-item-border) !important;
+            }
+            .tm-alerts-history-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 8px;
+                padding-right: 8px;
+            }
+            .tm-alerts-history-header .tm-alerts-section-label {
+                padding-bottom: 0;
+            }
+            #tm-clear-reminder-history-btn {
+                padding: 4px 10px;
+                border-radius: 8px;
+                border: 1px solid var(--tm-shop-item-border) !important;
+                background: transparent;
+                color: var(--tm-secondary-hover) !important;
+                font-size: 11px;
+                font-weight: 600;
+                cursor: pointer;
+            }
+            #tm-clear-reminder-history-btn:hover {
+                color: var(--tm-primary-color) !important;
+                border-color: var(--tm-primary-color) !important;
+            }
+            .tm-reminder-history-search {
+                display: block;
+                width: calc(100% - 16px);
+                margin: 0 8px 8px;
+                padding: 8px 10px;
+                box-sizing: border-box;
+                border: 1px solid var(--tm-shop-item-border) !important;
+                border-radius: 8px;
+                background: var(--tm-shop-item-bg) !important;
+                color: var(--tm-primary-color) !important;
+                font-size: 12px;
+            }
+            .tm-reminder-history-search::placeholder {
+                color: var(--tm-secondary-hover) !important;
+                opacity: 0.85;
+            }
+            #tm-reminders-history-list { padding: 0 8px 8px; }
+            .tm-alert-item--history { opacity: 0.92; }
+            .tm-alert-item--history .tm-alert-item-title {
+                font-weight: 600;
+            }
             #tm-alerts-tab-count {
                 display: inline-block;
                 min-width: 18px;
@@ -7146,18 +7210,32 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.2);
                 z-index: 10000;
                 padding: 15px;
-                width: 280px;
+                width: 300px;
                 display: none; /* Hidden by default */
                 flex-direction: column;
-                gap: 10px;
+                gap: 8px;
             }
-            #tm-scratchpad-reminder-popover h5 { margin: 0 0 10px 0; font-size: 14px; text-align: center; }
-            #tm-scratchpad-reminder-popover input, #tm-scratchpad-reminder-popover select {
+            #tm-scratchpad-reminder-popover h5 { margin: 0 0 6px 0; font-size: 14px; text-align: center; }
+            .tm-sp-reminder-label {
+                font-size: 11px;
+                font-weight: 600;
+                color: #6c757d;
+                margin: 0;
+            }
+            #tm-scratchpad-reminder-popover input,
+            #tm-scratchpad-reminder-popover select,
+            #tm-scratchpad-reminder-popover textarea {
                 width: 100%;
                 padding: 8px;
                 box-sizing: border-box;
                 border: 1px solid #ccc;
                 border-radius: 4px;
+                font: inherit;
+            }
+            #tm-scratchpad-reminder-notes {
+                min-height: 72px;
+                resize: vertical;
+                line-height: 1.4;
             }
             #tm-scratchpad-reminder-controls { display: flex; gap: 10px; justify-content: space-between; }
             #tm-scratchpad-reminder-controls button {
@@ -37979,15 +38057,34 @@ if (typeof window !== 'undefined') {
         return `https://thefixers.mymanager.gr/mymanagerservice/service_edit.php?editid1=${encodeURIComponent(invoiceLinesId)}`;
     }
 
+    function logRepairReminderHistory(r, action, extra = {}) {
+        if (!r || typeof window.appendReminderHistory !== 'function') return;
+        window.appendReminderHistory({
+            source: extra.source || 'repair',
+            action,
+            title: r.title || `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`,
+            message: r.message || extra.message || '',
+            dueTime: r.dueTime || extra.dueTime || null,
+            invoiceLinesId: r.invoiceLinesId,
+            invoiceNumber: r.invoiceNumber,
+            recurrence: r.recurrence || 'none',
+            reminderId: r.id || r.reminderId || null,
+            closedAt: extra.closedAt,
+        });
+    }
+
     function activateBannerForReminder(r, STORAGE_KEYS) {
         const banners = loadActiveBanners(STORAGE_KEYS);
         if (banners.some((b) => b.reminderId === r.id)) return;
+
+        logRepairReminderHistory(r, 'fired', { source: 'repair' });
 
         banners.push({
             id: `banner_${r.id}`,
             reminderId: r.id,
             invoiceLinesId: r.invoiceLinesId,
             invoiceNumber: r.invoiceNumber,
+            title: r.title || `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`,
             message: r.message || '',
             firedAt: Date.now(),
         });
@@ -37995,6 +38092,13 @@ if (typeof window !== 'undefined') {
     }
 
     function dismissReminderBanner(STORAGE_KEYS, bannerId) {
+        const banner = loadActiveBanners(STORAGE_KEYS).find((b) => b.id === bannerId);
+        if (banner) {
+            logRepairReminderHistory(banner, 'dismissed', {
+                source: 'repair_banner',
+                dueTime: banner.firedAt,
+            });
+        }
         saveActiveBanners(
             STORAGE_KEYS,
             loadActiveBanners(STORAGE_KEYS).filter((b) => b.id !== bannerId)
@@ -38006,6 +38110,10 @@ if (typeof window !== 'undefined') {
     }
 
     function cancelRepairReminder(STORAGE_KEYS, reminderId) {
+        const reminder = loadReminders(STORAGE_KEYS).find((r) => r.id === reminderId);
+        if (reminder) {
+            logRepairReminderHistory(reminder, 'cancelled');
+        }
         saveReminders(
             STORAGE_KEYS,
             loadReminders(STORAGE_KEYS).filter((r) => r.id !== reminderId)
@@ -38092,16 +38200,20 @@ if (typeof window !== 'undefined') {
                 'border:1px solid rgba(255,255,255,0.12)',
             ].join(';');
 
-            const body =
-                (b.message && String(b.message).trim()) ||
-                `Υπενθύμιση για την επισκευή #${b.invoiceNumber || b.invoiceLinesId}.`;
+            const body = (b.message && String(b.message).trim())
+                ? String(b.message).trim()
+                : `Υπενθύμιση για την επισκευή #${b.invoiceNumber || b.invoiceLinesId}.`;
+            const bannerTitle = b.title || `Επισκευή #${b.invoiceNumber || b.invoiceLinesId}`;
             const fired = b.firedAt
                 ? new Date(b.firedAt).toLocaleString('el-GR')
                 : '';
 
             card.innerHTML = `
                 <div style="font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:6px;">
-                    🔧 Επισκευή #${escapeHtml(b.invoiceNumber || b.invoiceLinesId)}
+                    🔧 ${escapeHtml(bannerTitle)}
+                </div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.55);margin-bottom:8px;">
+                    #${escapeHtml(b.invoiceNumber || b.invoiceLinesId)}
                 </div>
                 <div style="font-size:14px;color:rgba(255,255,255,0.88);line-height:1.45;margin-bottom:10px;">
                     ${escapeHtml(body)}
@@ -38182,8 +38294,10 @@ if (typeof window !== 'undefined') {
                     Υπενθύμιση · #${escapeHtml(ids.invoiceNumber)}
                 </div>
                 <button type="button" id="tm-repair-reminder-close" class="tm-rr-close" aria-label="Κλείσιμο">&times;</button>
-                <label class="tm-rr-label" for="tm-repair-reminder-msg">Μήνυμα (προαιρετικό)</label>
-                <input type="text" id="tm-repair-reminder-msg" class="tm-rr-input" placeholder="π.χ. Κάλεσε πελάτη για έγκριση">
+                <label class="tm-rr-label" for="tm-repair-reminder-title">Τίτλος</label>
+                <input type="text" id="tm-repair-reminder-title" class="tm-rr-input" placeholder="π.χ. Κάλεσε πελάτη για έγκριση">
+                <label class="tm-rr-label" for="tm-repair-reminder-notes">Σημειώσεις</label>
+                <textarea id="tm-repair-reminder-notes" class="tm-rr-textarea" rows="3" placeholder="Λεπτομέρειες, σχόλια, context…"></textarea>
                 <label class="tm-rr-label" for="tm-repair-reminder-when">Ημερομηνία & ώρα</label>
                 <input type="datetime-local" id="tm-repair-reminder-when" class="tm-rr-input">
                 <label class="tm-rr-label" for="tm-repair-reminder-recur">Επανάληψη</label>
@@ -38210,7 +38324,8 @@ if (typeof window !== 'undefined') {
         document.body.appendChild(pop);
 
         const btn = wrap.querySelector('#tm-repair-reminder-btn');
-        const msgInput = pop.querySelector('#tm-repair-reminder-msg');
+        const titleInput = pop.querySelector('#tm-repair-reminder-title');
+        const notesInput = pop.querySelector('#tm-repair-reminder-notes');
         const whenInput = pop.querySelector('#tm-repair-reminder-when');
         const recurSel = pop.querySelector('#tm-repair-reminder-recur');
         const listEl = pop.querySelector('#tm-repair-reminder-list');
@@ -38251,9 +38366,10 @@ if (typeof window !== 'undefined') {
             listEl.innerHTML = mine
                 .map((r) => {
                     const when = new Date(r.dueTime).toLocaleString('el-GR');
-                    const short = (r.message || '').slice(0, 40) + ((r.message || '').length > 40 ? '…' : '');
+                    const title = (r.title || `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`).slice(0, 36);
+                    const notes = (r.message || '').slice(0, 50) + ((r.message || '').length > 50 ? '…' : '');
                     return `<div class="tm-rr-list-row">
-                        <span>${escapeHtml(when)}${short ? ` — ${escapeHtml(short)}` : ''}</span>
+                        <span><strong>${escapeHtml(title)}</strong>${notes ? `<br><span style="opacity:0.85;">${escapeHtml(notes)}</span>` : ''}<br>${escapeHtml(when)}</span>
                         <button type="button" class="tm-rr-del" data-id="${escapeHtml(r.id)}">Διαγραφή</button>
                     </div>`;
                 })
@@ -38262,6 +38378,10 @@ if (typeof window !== 'undefined') {
                 b.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const id = b.getAttribute('data-id');
+                    const removed = loadReminders(STORAGE_KEYS).find((x) => x.id === id);
+                    if (removed) {
+                        logRepairReminderHistory(removed, 'cancelled');
+                    }
                     const all = loadReminders(STORAGE_KEYS).filter((x) => x.id !== id);
                     saveReminders(STORAGE_KEYS, all);
                     saveActiveBanners(
@@ -38288,7 +38408,8 @@ if (typeof window !== 'undefined') {
             if (hidden) {
                 showReminderModal();
                 setDefaultWhen();
-                msgInput.value = customer ? `Σχετικά με: ${customer.split(',')[0]}` : '';
+                titleInput.value = customer ? `Σχετικά με: ${customer.split(',')[0]}` : `Επισκευή #${ids.invoiceNumber}`;
+                notesInput.value = '';
                 renderList();
             } else {
                 hideReminderModal();
@@ -38329,12 +38450,18 @@ if (typeof window !== 'undefined') {
                 alert('Ορίστε μελλοντική ημερομηνία και ώρα.');
                 return;
             }
+            const title = titleInput.value.trim();
+            if (!title) {
+                alert('Ορίστε τίτλο για την υπενθύμιση.');
+                return;
+            }
             const entry = {
                 id: `rr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                 invoiceLinesId: ids.invoiceLinesId,
                 invoiceNumber: ids.invoiceNumber,
                 statusId: ids.statusId || '',
-                message: msgInput.value.trim(),
+                title,
+                message: notesInput.value.trim(),
                 dueTime: due,
                 recurrence: recurSel.value || 'none',
                 createdAt: Date.now(),
@@ -39533,6 +39660,105 @@ if (typeof window !== 'undefined') {
         return 'Μία φορά';
     }
 
+    function formatReminderHistoryAction(action) {
+        if (action === 'fired') return 'Ενεργοποιήθηκε';
+        if (action === 'dismissed') return 'Αποκρύφτηκε';
+        if (action === 'cancelled') return 'Ακυρώθηκε';
+        return 'Κλείστηκε';
+    }
+
+    function getReminderHistoryIcon(source) {
+        if (source === 'repair' || source === 'repair_banner') return '🔧';
+        if (source === 'scratchpad') return '📝';
+        return '🔔';
+    }
+
+    function loadReminderHistory() {
+        try {
+            return JSON.parse(GM_getValue(STORAGE_KEYS.REMINDER_HISTORY, '[]')) || [];
+        } catch {
+            return [];
+        }
+    }
+
+    function appendReminderHistory(entry) {
+        const history = loadReminderHistory();
+        const item = {
+            id: entry.id || `rh_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+            closedAt: entry.closedAt || Date.now(),
+            source: entry.source || 'unknown',
+            action: entry.action || 'closed',
+            title: entry.title || '',
+            message: entry.message || '',
+            dueTime: entry.dueTime || null,
+            invoiceLinesId: entry.invoiceLinesId || null,
+            invoiceNumber: entry.invoiceNumber || null,
+            noteId: entry.noteId || null,
+            recurrence: entry.recurrence || 'none',
+            reminderId: entry.reminderId || null,
+        };
+        history.unshift(item);
+        if (history.length > 120) history.length = 120;
+        GM_setValue(STORAGE_KEYS.REMINDER_HISTORY, JSON.stringify(history));
+        refreshReminderHistoryPanelIfOpen();
+    }
+
+    window.appendReminderHistory = appendReminderHistory;
+
+    function buildReminderHistoryHTML(filterQuery = '') {
+        const q = String(filterQuery || '').trim().toLowerCase();
+        let history = loadReminderHistory();
+        if (q) {
+            history = history.filter((h) => {
+                const blob = [
+                    h.title, h.message, h.invoiceNumber, h.invoiceLinesId,
+                    formatReminderHistoryAction(h.action),
+                ].join(' ').toLowerCase();
+                return blob.includes(q);
+            });
+        }
+        if (history.length === 0) {
+            return `<div id="tm-notification-empty-state">${q ? 'Δεν βρέθηκαν υπενθυμίσεις.' : 'Δεν υπάρχει ιστορικό υπενθυμίσεων ακόμα.'}</div>`;
+        }
+        return history.map((h) => {
+            const icon = getReminderHistoryIcon(h.source);
+            const title = escapeNotificationText(h.title || 'Υπενθύμιση');
+            const action = escapeNotificationText(formatReminderHistoryAction(h.action));
+            const closed = h.closedAt ? new Date(h.closedAt).toLocaleString('el-GR') : '';
+            const due = h.dueTime ? new Date(h.dueTime).toLocaleString('el-GR') : '';
+            const rec = formatAlertRecurrence(h.recurrence);
+            const msg = escapeNotificationText(h.message || '');
+            const openLink = h.invoiceLinesId
+                ? `<a class="tm-alert-open-link" href="https://thefixers.mymanager.gr/mymanagerservice/service_edit.php?editid1=${encodeURIComponent(h.invoiceLinesId)}" target="_blank" rel="noopener">Άνοιγμα</a>`
+                : '';
+            const metaParts = [action];
+            if (due) metaParts.push(`Προγραμματισμένη: ${due}`);
+            if (closed) metaParts.push(`Κλείστηκε: ${closed}`);
+            metaParts.push(rec);
+            return `
+                <div class="tm-alert-item tm-alert-item--history" data-history-id="${escapeNotificationText(h.id)}">
+                    <div class="tm-alert-item-icon">${icon}</div>
+                    <div class="tm-alert-item-body">
+                        <div class="tm-alert-item-title">${title}</div>
+                        <div class="tm-alert-item-meta">${escapeNotificationText(metaParts.join(' · '))}</div>
+                        ${msg ? `<div class="tm-alert-item-message">${msg}</div>` : ''}
+                    </div>
+                    <div class="tm-alert-item-actions">
+                        ${openLink}
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function refreshReminderHistoryPanelIfOpen() {
+        const listEl = document.getElementById('tm-reminders-history-list');
+        if (!listEl) return;
+        const searchEl = document.getElementById('tm-reminder-history-search');
+        listEl.innerHTML = buildReminderHistoryHTML(searchEl?.value || '');
+    }
+
+    window.refreshReminderHistoryPanelIfOpen = refreshReminderHistoryPanelIfOpen;
+
     function getScratchpadAlerts() {
         if (!config.scratchpadEnabled) return [];
         try {
@@ -39542,8 +39768,8 @@ if (typeof window !== 'undefined') {
                 .map((n) => ({
                     type: 'scratchpad',
                     id: n.id,
-                    title: n.title || 'Σημείωση',
-                    message: n.reminder.text || '',
+                    title: n.reminder.title || n.reminder.text || n.title || 'Σημείωση',
+                    message: n.reminder.notes || '',
                     dueTime: n.reminder.dueTime,
                     recurrence: n.reminder.recurrence || 'none',
                 }));
@@ -39561,6 +39787,17 @@ if (typeof window !== 'undefined') {
         }
         const note = notes.find((n) => n.id === noteId);
         if (!note) return;
+        if (note.reminder) {
+            appendReminderHistory({
+                source: 'scratchpad',
+                action: 'cancelled',
+                title: note.reminder.title || note.reminder.text || note.title || 'Σημείωση',
+                message: note.reminder.notes || '',
+                dueTime: note.reminder.dueTime,
+                noteId: note.id,
+                recurrence: note.reminder.recurrence || 'none',
+            });
+        }
         note.reminder = null;
         GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
         const reminderBtn = document.getElementById('tm-scratchpad-reminder-btn');
@@ -39581,7 +39818,7 @@ if (typeof window !== 'undefined') {
                     kind: 'repair_scheduled',
                     id: r.id,
                     icon: '🔧',
-                    title: `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`,
+                    title: r.title || `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`,
                     dueTime: r.dueTime,
                     message: r.message || '',
                     recurrence: r.recurrence || 'none',
@@ -39599,7 +39836,7 @@ if (typeof window !== 'undefined') {
                     id: b.id,
                     reminderId: b.reminderId,
                     icon: '🔔',
-                    title: `Ενεργή υπενθύμιση · #${b.invoiceNumber || b.invoiceLinesId}`,
+                    title: b.title || `Ενεργή υπενθύμιση · #${b.invoiceNumber || b.invoiceLinesId}`,
                     dueTime: b.firedAt,
                     message: b.message || '',
                     recurrence: 'none',
@@ -39680,9 +39917,9 @@ if (typeof window !== 'undefined') {
 
     function refreshActiveAlertsPanelIfOpen() {
         const listEl = document.getElementById('tm-active-alerts-list');
-        if (!listEl) return;
-        listEl.innerHTML = buildActiveAlertsHTML();
+        if (listEl) listEl.innerHTML = buildActiveAlertsHTML();
         refreshAlertsTabCount();
+        refreshReminderHistoryPanelIfOpen();
     }
 
     window.refreshActiveAlertsPanelIfOpen = refreshActiveAlertsPanelIfOpen;
@@ -39731,7 +39968,18 @@ if (typeof window !== 'undefined') {
                 <div id="tm-notification-list">${buildNotificationListHTML()}</div>
             </div>
             <div id="tm-notification-tab-alerts" class="tm-notification-tab-panel">
-                <div id="tm-active-alerts-list">${buildActiveAlertsHTML()}</div>
+                <div class="tm-alerts-active-section">
+                    <div class="tm-alerts-section-label">Ενεργές υπενθυμίσεις</div>
+                    <div id="tm-active-alerts-list">${buildActiveAlertsHTML()}</div>
+                </div>
+                <div class="tm-alerts-history-section">
+                    <div class="tm-alerts-history-header">
+                        <div class="tm-alerts-section-label">Ιστορικό υπενθυμίσεων</div>
+                        <button type="button" id="tm-clear-reminder-history-btn" title="Διαγραφή ιστορικού">Καθαρισμός</button>
+                    </div>
+                    <input type="search" id="tm-reminder-history-search" class="tm-reminder-history-search" placeholder="Αναζήτηση υπενθύμισης…" autocomplete="off">
+                    <div id="tm-reminders-history-list">${buildReminderHistoryHTML()}</div>
+                </div>
             </div>
         `;
 
@@ -39775,6 +40023,18 @@ if (typeof window !== 'undefined') {
             if (!btn) return;
             e.stopPropagation();
             handleAlertCancel(btn.getAttribute('data-alert-kind'), btn.getAttribute('data-alert-id'));
+        });
+
+        const historySearchEl = panel.querySelector('#tm-reminder-history-search');
+        historySearchEl?.addEventListener('input', () => {
+            refreshReminderHistoryPanelIfOpen();
+        });
+
+        panel.querySelector('#tm-clear-reminder-history-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!confirm('Διαγραφή όλου του ιστορικού υπενθυμίσεων;')) return;
+            GM_setValue(STORAGE_KEYS.REMINDER_HISTORY, '[]');
+            refreshReminderHistoryPanelIfOpen();
         });
 
         listEl.addEventListener('click', (e) => {
@@ -39902,7 +40162,10 @@ if (typeof window !== 'undefined') {
             <div id="tm-scratchpad-editor" contenteditable="true" spellcheck="false" placeholder="Προσωρινές σημειώσεις..."></div>
             <div id="tm-scratchpad-reminder-popover">
                 <h5>Ορισμός Υπενθύμισης</h5>
-                <input type="text" id="tm-scratchpad-reminder-text" placeholder="Τι να σας θυμίσω;">
+                <label class="tm-sp-reminder-label" for="tm-scratchpad-reminder-title">Τίτλος</label>
+                <input type="text" id="tm-scratchpad-reminder-title" placeholder="Σύντομος τίτλος">
+                <label class="tm-sp-reminder-label" for="tm-scratchpad-reminder-notes">Σημειώσεις</label>
+                <textarea id="tm-scratchpad-reminder-notes" rows="3" placeholder="Περισσότερες λεπτομέρειες…"></textarea>
                 <input type="datetime-local" id="tm-scratchpad-reminder-datetime">
                 <select id="tm-scratchpad-reminder-recurrence">
                     <option value="none">Χωρίς επανάληψη</option>
@@ -39968,7 +40231,8 @@ if (typeof window !== 'undefined') {
         const closeBtn = container.querySelector('#tm-scratchpad-close-btn');
         const lastEditedSpan = container.querySelector('#tm-scratchpad-last-edited');
         const reminderBtn = container.querySelector('#tm-scratchpad-reminder-btn');
-        const reminderTextInput = container.querySelector('#tm-scratchpad-reminder-text');
+        const reminderTitleInput = container.querySelector('#tm-scratchpad-reminder-title');
+        const reminderNotesInput = container.querySelector('#tm-scratchpad-reminder-notes');
         const reminderPopover = container.querySelector('#tm-scratchpad-reminder-popover');
         const reminderDateTimeInput = container.querySelector('#tm-scratchpad-reminder-datetime');
         const reminderRecurrenceSelect = container.querySelector('#tm-scratchpad-reminder-recurrence');
@@ -40649,9 +40913,12 @@ if (typeof window !== 'undefined') {
                 let recurrenceText = '';
                 if (reminder.recurrence === 'daily') recurrenceText = ' (Καθημερινά)';
                 if (reminder.recurrence === 'weekly') recurrenceText = ' (Εβδομαδιαία)';
+                const title = reminder.title || reminder.text || note.title || 'Υπενθύμιση';
+                const notes = reminder.notes || '';
 
                 activeReminderDiv.innerHTML = `
-                    <span style="font-weight:normal; display:block; margin-bottom: 3px;">${reminder.text}</span>
+                    <span style="font-weight:bold; display:block; margin-bottom: 3px;">${title}</span>
+                    ${notes ? `<span style="font-weight:normal; display:block; margin-bottom: 3px; opacity:0.9;">${notes}</span>` : ''}
                     ${dueDate.toLocaleString('el-GR')}${recurrenceText}
                     <button id="tm-scratchpad-clear-reminder-btn">Καθαρισμός</button>
                 `;
@@ -40663,9 +40930,9 @@ if (typeof window !== 'undefined') {
             }
         }
 
-        function saveReminder(dueTime, recurrence, text) {
-            if (!text) {
-                alert('Παρακαλώ εισάγετε το κείμενο της υπενθύμισης.');
+        function saveReminder(dueTime, recurrence, title, notes) {
+            if (!title) {
+                alert('Παρακαλώ εισάγετε τίτλο για την υπενθύμιση.');
                 return;
             }
 
@@ -40675,8 +40942,9 @@ if (typeof window !== 'undefined') {
             }
 
             const newReminder = {
-                id: `scratchpad_${Date.now()}`,
-                text: text,
+                title,
+                notes: notes || '',
+                text: title,
                 dueTime: dueTime,
                 recurrence: recurrence,
                 createdAt: Date.now()
@@ -40692,6 +40960,18 @@ if (typeof window !== 'undefined') {
         }
 
         function clearReminder() {
+            const note = getActiveNote();
+            if (note?.reminder) {
+                appendReminderHistory({
+                    source: 'scratchpad',
+                    action: 'cancelled',
+                    title: note.reminder.title || note.reminder.text || note.title || 'Σημείωση',
+                    message: note.reminder.notes || '',
+                    dueTime: note.reminder.dueTime,
+                    noteId: note.id,
+                    recurrence: note.reminder.recurrence || 'none',
+                });
+            }
             updateActiveNote({ reminder: null });
             console.log('[MMS] Reminder cleared.');
             updateReminderDisplay();
@@ -40706,7 +40986,8 @@ if (typeof window !== 'undefined') {
                 // Pre-fill with existing reminder text if available
                 const note = getActiveNote();
                 const reminder = note?.reminder;
-                reminderTextInput.value = reminder?.text || '';
+                reminderTitleInput.value = reminder?.title || reminder?.text || note?.title || '';
+                reminderNotesInput.value = reminder?.notes || '';
                 if (reminder?.dueTime) {
                     const d = new Date(reminder.dueTime);
                     reminderDateTimeInput.value = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}T${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
@@ -40724,12 +41005,12 @@ if (typeof window !== 'undefined') {
                 alert('Παρακαλώ επιλέξτε μια μελλοντική ημερομηνία και ώρα.');
                 return;
             }
-            saveReminder(dueTime, reminderRecurrenceSelect.value, reminderTextInput.value.trim());
+            saveReminder(dueTime, reminderRecurrenceSelect.value, reminderTitleInput.value.trim(), reminderNotesInput.value.trim());
         });
 
         setReminder1hrBtn.addEventListener('click', () => {
             const dueTime = Date.now() + 60 * 60 * 1000;
-            saveReminder(dueTime, reminderRecurrenceSelect.value, reminderTextInput.value.trim());
+            saveReminder(dueTime, reminderRecurrenceSelect.value, reminderTitleInput.value.trim(), reminderNotesInput.value.trim());
         });
 
         // --- Dragging and Sizing Logic ---
@@ -40856,7 +41137,16 @@ if (typeof window !== 'undefined') {
 
                 // --- Reminder is due ---
                 console.log(`[MMS] Reminder is due for note "${note.title}":`, reminder);
-                showNotification(`Υπενθύμιση: ${note.title}`, reminder.text);
+                appendReminderHistory({
+                    source: 'scratchpad',
+                    action: 'fired',
+                    title: reminder.title || reminder.text || note.title || 'Σημείωση',
+                    message: reminder.notes || '',
+                    dueTime: reminder.dueTime,
+                    noteId: note.id,
+                    recurrence: reminder.recurrence || 'none',
+                });
+                showNotification(`Υπενθύμιση: ${reminder.title || reminder.text || note.title}`, reminder.notes || '');
                 notesUpdated = true;
 
                 if (reminder.recurrence === 'none') {
