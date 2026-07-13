@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v205 — generated, do not edit */
+/* MyManager Suite bundle v206 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -3031,7 +3031,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '204',
+        version: '205',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -36122,14 +36122,6 @@ if (typeof window !== 'undefined') {
         return getCurrentRepairStatus();
     }
 
-    const ORDER_INFO_FIELDS = [
-        { key: 'Τεμάχια', label: 'Ποσότητα', icon: '📦' },
-        { key: 'Παραγγελία', label: 'Ημερ. Παραγγελίας', icon: '📅' },
-        { key: 'Αναμ.Παραλαβή', label: 'Αναμ. Παραλαβή', icon: '⏰' },
-        { key: 'Παραγγελία σε Κεντρικό', label: 'Σε Κεντρικό', icon: '🏢', isBool: true },
-        { key: 'Διαθέσιμο\nTHE FIXERS', label: 'Διαθέσιμο', icon: '✅', isBool: true },
-    ];
-
     function parseOrdersFromDocument(doc, repairId) {
         const table = doc.querySelector('.rnr-c-grid.rnr-b-grid.rnr-gridtable.hoverable, table.rnr-gridtable');
         if (!table) {
@@ -36210,122 +36202,6 @@ if (typeof window !== 'undefined') {
         return parseOrdersFromDocument(doc, repairId);
     }
 
-    function buildOrderCardElement(order, options = {}) {
-        const { compact = false, matchedPart = null } = options;
-        const orderCard = document.createElement('div');
-        orderCard.className = 'tm-order-card-new' + (compact ? ' tm-order-card-compact' : '');
-
-        const cardHeader = document.createElement('div');
-        cardHeader.className = 'tm-order-header';
-
-        const productName = document.createElement('div');
-        productName.className = 'tm-order-product-name';
-        productName.textContent = order['Περιγραφή'] || 'Στοιχεία Παραγγελίας';
-
-        const productCode = document.createElement('div');
-        productCode.className = 'tm-order-product-code';
-        productCode.textContent = order['Κωδικός'] || '';
-
-        cardHeader.appendChild(productName);
-        cardHeader.appendChild(productCode);
-
-        if (matchedPart) {
-            const matchBadge = document.createElement('div');
-            matchBadge.className = 'tm-order-match-badge';
-            matchBadge.textContent = '✓ Στην επισκευή';
-            cardHeader.appendChild(matchBadge);
-        }
-
-        const costBadge = document.createElement('div');
-        costBadge.className = 'tm-order-cost-badge';
-        const cost = order['Μέσο Κόστος'];
-        const retail = order['Τιμή Λιανικής'] || matchedPart?.retailPrice || '';
-        const costDisplay = cost && cost !== '0,00' && cost !== '-' ? `${escapeHtml(cost)} €` : '—';
-        const retailBlock = retail && retail !== '-'
-            ? `<div class="tm-cost-group"><span class="tm-cost-label">Λιανική</span><span class="tm-cost-value">${escapeHtml(retail)} €</span></div>`
-            : '';
-        costBadge.innerHTML = `
-            <div class="tm-cost-group">
-                <span class="tm-cost-label">Μέσο Κόστος</span>
-                <span class="tm-cost-value">${costDisplay}</span>
-            </div>
-            ${retailBlock}
-        `;
-
-        const infoGrid = document.createElement('div');
-        infoGrid.className = 'tm-order-info-grid';
-
-        ORDER_INFO_FIELDS.forEach((field) => {
-            const value = order[field.key];
-            if (!value || value === '-') return;
-
-            const infoItem = document.createElement('div');
-            infoItem.className = 'tm-order-info-item';
-            let displayValue = value;
-            if (field.isBool) {
-                displayValue = value === 'YES' ? '✅ Ναι' : '❌ Όχι';
-            }
-
-            infoItem.innerHTML = `
-                <div class="tm-info-icon">${field.icon}</div>
-                <div class="tm-info-content">
-                    <div class="tm-info-label">${escapeHtml(field.label)}</div>
-                    <div class="tm-info-value">${escapeHtml(displayValue)}</div>
-                </div>
-            `;
-            infoGrid.appendChild(infoItem);
-        });
-
-        if (matchedPart) {
-            const repairInfo = document.createElement('div');
-            repairInfo.className = 'tm-order-repair-part-info';
-            repairInfo.innerHTML = `
-                <div class="tm-info-label">Στην καρτέλα επισκευής</div>
-                <div class="tm-info-value">
-                    ${escapeHtml(matchedPart.code)} · ${escapeHtml(matchedPart.name || '')}
-                    ${matchedPart.units ? ` · ${escapeHtml(matchedPart.units)} τεμ.` : ''}
-                    ${matchedPart.avgBuy ? ` · μέσο ${escapeHtml(matchedPart.avgBuy)} €` : ''}
-                </div>
-            `;
-            infoGrid.appendChild(repairInfo);
-        }
-
-        const notesSection = document.createElement('div');
-        const storeNotes = order['Σημειώσεις Καταστήματος'];
-        const centralNotes = order['Σημειώσεις Κεντρικής Αποθήκης'];
-
-        if ((storeNotes && storeNotes !== '-') || (centralNotes && centralNotes !== '-')) {
-            notesSection.className = 'tm-order-notes';
-            if (storeNotes && storeNotes !== '-') {
-                const storeNote = document.createElement('div');
-                storeNote.className = 'tm-note-item store';
-                storeNote.innerHTML = `<strong>📝 Κατάστημα:</strong> ${escapeHtml(storeNotes)}`;
-                notesSection.appendChild(storeNote);
-            }
-            if (centralNotes && centralNotes !== '-') {
-                const centralNote = document.createElement('div');
-                centralNote.className = 'tm-note-item central';
-                centralNote.innerHTML = `<strong>📋 Κεντρική:</strong> ${escapeHtml(centralNotes)}`;
-                notesSection.appendChild(centralNote);
-            }
-        }
-
-        const actionBtn = document.createElement('a');
-        actionBtn.className = 'tm-order-action-btn';
-        actionBtn.href = order._orderLink || '#';
-        actionBtn.target = '_blank';
-        actionBtn.rel = 'noopener';
-        actionBtn.textContent = compact ? 'Παραγγελία →' : 'Προβολή Πλήρους Παραγγελίας →';
-
-        orderCard.appendChild(cardHeader);
-        orderCard.appendChild(costBadge);
-        if (infoGrid.children.length) orderCard.appendChild(infoGrid);
-        if (notesSection.children.length) orderCard.appendChild(notesSection);
-        orderCard.appendChild(actionBtn);
-
-        return orderCard;
-    }
-
     function nativeGridLabel(text, extraHtml = '') {
         const td = document.createElement('td');
         td.className = 'rnr-gridfieldlabel';
@@ -36368,12 +36244,6 @@ if (typeof window !== 'undefined') {
         td.className = 'rnr-gridfieldlabel';
         td.innerHTML = '&nbsp;';
         return td;
-    }
-
-    function findMatchingRepairPart(order, parts) {
-        const code = String(order['Κωδικός'] || '').trim();
-        if (!code) return null;
-        return parts.find(p => p.code === code) || null;
     }
 
     function getRepairPartsFromTab() {
@@ -36775,163 +36645,6 @@ if (typeof window !== 'undefined') {
     }
 
     /**
-     * Creates and inserts the order link button
-     */
-    function createOrderLinkButton() {
-        if (!isOrderLinkFeatureEnabled()) return;
-
-        console.log('[MMS Order Link] ----------------------------------------');
-        console.log('[MMS Order Link] createOrderLinkButton() called');
-        
-        const status = getPageRepairStatus();
-        const repairId = getPageRepairId();
-
-        console.log('[MMS Order Link] Results - Status:', status, 'Repair ID:', repairId);
-
-        // Check if button already exists first
-        if (document.getElementById('tm-order-link-button')) {
-            console.log('[MMS Order Link] ⚠ Button already exists, skipping');
-            return;
-        }
-
-        // Only show button if status is 65 and we have a repair ID
-        if (status !== '65') {
-            console.log('[MMS Order Link] ⚠ Status is not 65 (current:', status, '), button not needed');
-            return;
-        }
-        
-        if (!repairId) {
-            console.log('[MMS Order Link] ⚠ No repair ID found, cannot create button');
-            return;
-        }
-        
-        console.log('[MMS Order Link] ✓ All conditions met, making status badge clickable...');
-
-        // Find the status badge
-        const statusBadge = document.querySelector('.statusbadge.statusbadge-large, .statusbadge-large, .statusbadge');
-        if (!statusBadge) {
-            console.log('[MMS Order Link] ✗ Status badge not found, cannot make clickable');
-            return;
-        }
-
-        // Mark as already processed
-        if (statusBadge.classList.contains('tm-order-link-active')) {
-            console.log('[MMS Order Link] Status badge already clickable');
-            return;
-        }
-        
-        statusBadge.classList.add('tm-order-link-active');
-        statusBadge.style.cursor = 'pointer';
-        statusBadge.title = 'Κλικ για προβολή παραγγελιών ανταλλακτικών';
-        
-        // Store original background for hover effects
-        const originalBg = window.getComputedStyle(statusBadge).backgroundColor;
-        
-        // Add click handler to fetch and display order details
-        statusBadge.addEventListener('click', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const originalText = statusBadge.innerHTML;
-            statusBadge.innerHTML = '⏳ Loading...';
-            statusBadge.style.pointerEvents = 'none';
-
-            try {
-                const orders = await fetchOrdersForRepair(repairId);
-                statusBadge.innerHTML = originalText;
-                statusBadge.style.pointerEvents = '';
-                if (!orders.length) {
-                    showOrderPopup(repairId, null, 'Δεν βρέθηκαν παραγγελίες για αυτή την επισκευή.');
-                } else {
-                    showOrderPopup(repairId, orders, null);
-                }
-            } catch (error) {
-                console.error('[MMS Order Link] Error fetching orders:', error);
-                statusBadge.innerHTML = originalText;
-                statusBadge.style.pointerEvents = '';
-                showOrderPopup(repairId, null, 'Σφάλμα φόρτωσης παραγγελιών: ' + error.message);
-            }
-        });
-        
-        console.log('[MMS Order Link] ✓✓✓ Status badge is now clickable');
-    }
-
-    /**
-     * Shows a popup with order details
-     */
-    function showOrderPopup(repairId, orders, errorMessage) {
-        console.log('[MMS Order Link] Showing order popup');
-        
-        // Remove existing popup if any
-        const existingPopup = document.getElementById('tm-order-popup');
-        if (existingPopup) {
-            existingPopup.remove();
-        }
-        
-        // Create popup overlay
-        const overlay = document.createElement('div');
-        overlay.id = 'tm-order-popup';
-        overlay.className = 'tm-modal-overlay tm-order-popup-overlay';
-        
-        // Create popup content
-        const popup = document.createElement('div');
-        popup.className = 'tm-order-popup-content';
-        
-        // Create header
-        const header = document.createElement('div');
-        header.className = 'tm-order-popup-header';
-        header.innerHTML = `
-            <h3>📦 Παραγγελίες για Επισκευή ${repairId}</h3>
-            <button class="tm-order-popup-close" title="Κλείσιμο">✕</button>
-        `;
-        
-        // Create body
-        const body = document.createElement('div');
-        body.className = 'tm-order-popup-body';
-        
-        if (errorMessage) {
-            body.innerHTML = `<p class="tm-order-popup-error">❌ ${escapeHtml(errorMessage)}</p>`;
-        } else if (orders && orders.length > 0) {
-            const parts = getRepairPartsFromTab();
-            orders.forEach((order) => {
-                const matched = findMatchingRepairPart(order, parts);
-                body.appendChild(buildOrderCardElement(order, { compact: false, matchedPart: matched }));
-            });
-
-            const viewFullBtn = document.createElement('a');
-            viewFullBtn.href = 'https://thefixers.mymanager.gr/mymanagerservice/sparepartstoorder_list.php';
-            viewFullBtn.target = '_blank';
-            viewFullBtn.rel = 'noopener';
-            viewFullBtn.className = 'tm-order-view-full-btn';
-            viewFullBtn.innerHTML = '🔗 Προβολή Σελίδας Παραγγελιών';
-            body.appendChild(viewFullBtn);
-        }
-        
-        popup.appendChild(header);
-        popup.appendChild(body);
-        overlay.appendChild(popup);
-        document.body.appendChild(overlay);
-        
-        // Close handlers
-        const closeBtn = header.querySelector('.tm-order-popup-close');
-        closeBtn.addEventListener('click', () => overlay.remove());
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) {
-                overlay.remove();
-            }
-        });
-        
-        // ESC key to close
-        const escHandler = (e) => {
-            if (e.key === 'Escape') {
-                overlay.remove();
-                document.removeEventListener('keydown', escHandler);
-            }
-        };
-        document.addEventListener('keydown', escHandler);
-    }
-
-    /**
      * Checks if we're on the orders page and should auto-search
      */
     function checkAutoSearch() {
@@ -36969,31 +36682,6 @@ if (typeof window !== 'undefined') {
 
     // Add styles
     GM_addStyle(`
-        /* Clickable Status Badge */
-        .statusbadge.tm-order-link-active {
-            cursor: pointer !important;
-            transition: all 0.2s ease;
-            position: relative;
-        }
-
-        .statusbadge.tm-order-link-active::after {
-            content: '🔗';
-            font-size: 0.85em;
-            margin-left: 5px;
-            opacity: 0.7;
-        }
-
-        .statusbadge.tm-order-link-active:hover {
-            filter: brightness(1.15);
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .statusbadge.tm-order-link-active:active {
-            transform: translateY(0);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-        }
-
         .tm-repair-from-order-btn {
             margin-right: 8px !important;
             font-weight: 600 !important;
@@ -37006,7 +36694,6 @@ if (typeof window !== 'undefined') {
         }
     `);
 
-    let statusBadgeObserver = null;
     const initTimeoutIds = [];
 
     function isOrderLinkFeatureEnabled() {
@@ -37034,14 +36721,11 @@ if (typeof window !== 'undefined') {
             partsTabObserver.disconnect();
             partsTabObserver = null;
         }
-        if (statusBadgeObserver) {
-            statusBadgeObserver.disconnect();
-            statusBadgeObserver = null;
-        }
         document.querySelectorAll('.statusbadge.tm-order-link-active').forEach(badge => {
             const clone = badge.cloneNode(true);
             badge.parentNode?.replaceChild(clone, badge);
         });
+        document.getElementById('tm-order-popup')?.remove();
         document.getElementById('tm-repair-from-order-btn')?.remove();
         document.getElementById('tm-parts-orders-panel')?.remove();
     }
@@ -37066,42 +36750,9 @@ if (typeof window !== 'undefined') {
         // Check for auto-search on orders page
         checkAutoSearch();
         
-        // Repair edit page — link to related orders (status 65)
+        // Repair edit page — inject order info into parts tab (status 65)
         if (window.location.href.includes('service_edit.php')) {
             console.log('[MMS Order Link] ✓ Detected repair edit page');
-            
-            const tryCreate = () => {
-                if (!isOrderLinkFeatureEnabled()) return;
-                console.log('[MMS Order Link] Attempting to create button...');
-                createOrderLinkButton();
-            };
-            
-            tryCreate();
-            scheduleInitTask(tryCreate, 500);
-            scheduleInitTask(tryCreate, 1000);
-            scheduleInitTask(tryCreate, 2000);
-            scheduleInitTask(tryCreate, 3000);
-            
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', tryCreate, { once: true });
-            }
-            
-            window.addEventListener('load', () => scheduleInitTask(tryCreate, 500), { once: true });
-
-            scheduleInitTask(() => {
-                if (!isOrderLinkFeatureEnabled()) return;
-                const statusBadge = document.querySelector('.statusbadge.statusbadge-large, .statusbadge-large, .statusbadge');
-                if (statusBadge && !statusBadgeObserver) {
-                    statusBadgeObserver = new MutationObserver(() => {
-                        if (!isOrderLinkFeatureEnabled()) return;
-                        const existingButton = document.getElementById('tm-order-link-button');
-                        if (existingButton?.parentElement) existingButton.parentElement.remove();
-                        scheduleInitTask(createOrderLinkButton, 100);
-                    });
-                    statusBadgeObserver.observe(statusBadge, { childList: true, characterData: true, subtree: true });
-                }
-            }, 1000);
-
             setupPartsTabOrderPanel();
         } else if (isOrderEditPage()) {
             console.log('[MMS Order Link] ✓ Detected order edit page — resolving repair link');
