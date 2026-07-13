@@ -16,6 +16,39 @@
     const PARTS_SEARCH_URL = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=';
     const NATIVE_SEARCH_SELECTOR = '.style1.rnr-bl.rnr-b-search';
     const NATIVE_SEARCH_HIDDEN_KEY = 'tm_native_search_hidden';
+    const STORAGE_REPAIR_QUERY_KEY = 'tm_footer_qs_repair';
+    const STORAGE_PARTS_QUERY_KEY = 'tm_footer_qs_parts';
+
+    function saveQuickSearchValue(key, value) {
+        GM_setValue(key, String(value ?? ''));
+    }
+
+    function getQuickSearchValue(key) {
+        return String(GM_getValue(key, '') || '');
+    }
+
+    function restoreQuickSearchInputs(bar) {
+        if (!bar) return;
+        const repairInput = bar.querySelector('#tm-footer-repair-search');
+        const partsInput = bar.querySelector('#tm-footer-parts-search');
+        if (repairInput && !repairInput.dataset.tmQsRestored) {
+            repairInput.value = getQuickSearchValue(STORAGE_REPAIR_QUERY_KEY);
+            repairInput.dataset.tmQsRestored = '1';
+        }
+        if (partsInput && !partsInput.dataset.tmQsRestored) {
+            partsInput.value = getQuickSearchValue(STORAGE_PARTS_QUERY_KEY);
+            partsInput.dataset.tmQsRestored = '1';
+        }
+    }
+
+    function bindQuickSearchPersistence(repairInput, partsInput) {
+        const persistRepair = () => saveQuickSearchValue(STORAGE_REPAIR_QUERY_KEY, repairInput.value);
+        const persistParts = () => saveQuickSearchValue(STORAGE_PARTS_QUERY_KEY, partsInput.value);
+        repairInput.addEventListener('input', persistRepair);
+        repairInput.addEventListener('change', persistRepair);
+        partsInput.addEventListener('input', persistParts);
+        partsInput.addEventListener('change', persistParts);
+    }
 
     function buildSearchUrl(base, query) {
         const q = String(query || '').trim();
@@ -29,6 +62,11 @@
     }
 
     function submitFromInput(input, baseUrl) {
+        if (input?.id === 'tm-footer-repair-search') {
+            saveQuickSearchValue(STORAGE_REPAIR_QUERY_KEY, input.value);
+        } else if (input?.id === 'tm-footer-parts-search') {
+            saveQuickSearchValue(STORAGE_PARTS_QUERY_KEY, input.value);
+        }
         const url = buildSearchUrl(baseUrl, input.value);
         if (url) goToSearch(url);
         else input.focus();
@@ -140,7 +178,7 @@
             const searchBtn = document.createElement('button');
             searchBtn.type = 'button';
             searchBtn.id = 'tm-footer-search-submit';
-            searchBtn.className = 'tm-qs-search-btn';
+            searchBtn.className = 'rnr-button tm-qs-search-btn';
             searchBtn.textContent = 'Αναζήτηση';
 
             const resolveSearchInput = () => {
@@ -194,12 +232,16 @@
             bar.appendChild(searchBtn);
             parentContainer.appendChild(bar);
 
+            bindQuickSearchPersistence(repairInput, partsInput);
+            restoreQuickSearchInputs(bar);
+
             mountNativeSearchToggle(bar);
         } else if (bar.parentElement !== parentContainer) {
             parentContainer.appendChild(bar);
             if (!document.getElementById('tm-toggle-native-search')) {
                 mountNativeSearchToggle(bar);
             }
+            restoreQuickSearchInputs(bar);
         }
 
         bar.querySelectorAll('.tm-qs-input-group label').forEach((label) => label.remove());

@@ -24,7 +24,7 @@
     'use strict';
 
     var LOADER_VERSION = "4";
-    var BUNDLE_URL = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_suite.bundle.js?v=208";
+    var BUNDLE_URL = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_suite.bundle.js?v=209";
 
     try {
         if (typeof GM_setValue === 'function') {

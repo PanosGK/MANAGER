@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v208 — generated, do not edit */
+/* MyManager Suite bundle v209 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -6798,10 +6798,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 align-items: center;
                 flex-shrink: 0;
                 margin: 0;
-                padding: 10px;
+                padding: 0;
             }
             .tm-qs-host--header {
-                margin-right: 10px;
+                margin-right: 6px;
             }
             .tm-qs-host--repair {
                 margin: 0;
@@ -6839,87 +6839,90 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 flex: 0 0 auto;
             }
             .tm-qs-panel {
-                display: flex;
+                display: inline-flex;
                 flex-direction: row;
                 align-items: center;
-                gap: 8px;
-                padding: 6px 10px;
-                background: var(--tm-qs-panel-bg, var(--tm-shop-item-bg, #ffffff));
-                border: 1px solid var(--tm-qs-panel-border, var(--tm-shop-item-border, #e2e8f0));
-                border-radius: 8px;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                flex-wrap: wrap;
-                max-width: 560px;
+                gap: 4px;
+                padding: 0;
+                margin: 0;
+                background: transparent;
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+                font: inherit;
+                flex-wrap: nowrap;
+                max-width: min(520px, 100%);
                 box-sizing: border-box;
+                vertical-align: middle;
             }
             .tm-qs-host--header .tm-qs-panel {
-                padding: 5px 8px;
-                gap: 6px;
-                max-width: min(480px, 100%);
+                gap: 4px;
+                max-width: min(460px, 100%);
             }
             .tm-qs-input-group {
-                flex: 1;
-                min-width: 88px;
+                flex: 1 1 88px;
+                min-width: 72px;
             }
             .tm-qs-input {
                 width: 100%;
-                padding: 4px 8px;
-                border: 1px solid var(--tm-qs-input-border, var(--tm-shop-item-border, #cbd5e1));
-                border-radius: 6px;
-                font-size: 12px;
-                line-height: 1.3;
+                margin: 0;
+                padding: 5px;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                font: inherit;
+                font-size: inherit;
+                line-height: normal;
                 outline: none;
-                transition: border-color 0.2s;
                 box-sizing: border-box;
-                background: var(--tm-qs-input-bg, var(--tm-shop-item-bg, #ffffff));
-                color: var(--tm-qs-input-color, var(--tm-primary-color, #1a202c));
+                background: #fff;
+                color: inherit;
+                box-shadow: none;
+                vertical-align: middle;
             }
             .tm-qs-input::placeholder {
-                color: var(--tm-qs-placeholder, #a0aec0);
-                font-size: 11px;
+                color: #6c757d;
+                opacity: 0.85;
+                font-size: inherit;
             }
             .tm-qs-input:focus {
-                border-color: var(--tm-qs-focus, var(--tm-primary-color, #2563eb));
+                border-color: #adb5bd;
+                outline: 1px dotted #333;
+                outline-offset: 1px;
             }
             .tm-qs-search-btn {
-                padding: 4px 12px;
-                height: 28px;
-                background-color: var(--tm-qs-btn-bg, var(--tm-primary-color, #2563eb));
-                color: #ffffff;
-                border: none;
-                border-radius: 6px;
-                cursor: pointer;
-                font-size: 12px;
-                font-weight: 600;
-                transition: background-color 0.2s, transform 0.1s;
-                box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
                 flex-shrink: 0;
-            }
-            .tm-qs-search-btn:hover {
-                background-color: var(--tm-qs-btn-hover, #1d4ed8);
-            }
-            .tm-qs-search-btn:active {
-                transform: scale(0.98);
+                margin: 0 !important;
+                padding: 4px 10px !important;
+                height: auto !important;
+                min-height: 0 !important;
+                font: inherit !important;
+                font-weight: normal !important;
+                line-height: normal !important;
+                box-shadow: none !important;
+                white-space: nowrap;
+                vertical-align: middle;
             }
             .tm-qs-hide-native {
                 flex-shrink: 0;
                 align-self: center;
-                height: 24px;
-                min-width: 24px;
-                padding: 0 5px;
-                border: 1px solid var(--tm-qs-panel-border, var(--tm-shop-item-border, #e2e8f0));
-                border-radius: 6px;
-                background: var(--tm-qs-panel-bg, var(--tm-shop-item-bg, #ffffff));
-                color: var(--tm-qs-label-color, var(--tm-primary-color, #4a5568));
+                margin: 0;
+                padding: 4px 6px;
+                min-width: 22px;
+                height: auto;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                background: #fff;
+                color: inherit;
+                font: inherit;
                 font-size: 12px;
                 line-height: 1;
                 cursor: pointer;
-                transition: background-color 0.2s, border-color 0.2s;
+                box-shadow: none;
+                vertical-align: middle;
             }
             .tm-qs-hide-native:hover {
-                background: var(--tm-qs-input-bg, #f8fafc);
-                border-color: var(--tm-qs-input-border, #cbd5e1);
+                border-color: #adb5bd;
+                background: #f8f9fa;
             }
             body.tm-native-search-hidden .style1.rnr-bl.rnr-b-search,
             body.tm-native-search-hidden .rnr-b-search.style1.rnr-bl {
@@ -38529,6 +38532,39 @@ if (typeof window !== 'undefined') {
     const PARTS_SEARCH_URL = 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=';
     const NATIVE_SEARCH_SELECTOR = '.style1.rnr-bl.rnr-b-search';
     const NATIVE_SEARCH_HIDDEN_KEY = 'tm_native_search_hidden';
+    const STORAGE_REPAIR_QUERY_KEY = 'tm_footer_qs_repair';
+    const STORAGE_PARTS_QUERY_KEY = 'tm_footer_qs_parts';
+
+    function saveQuickSearchValue(key, value) {
+        GM_setValue(key, String(value ?? ''));
+    }
+
+    function getQuickSearchValue(key) {
+        return String(GM_getValue(key, '') || '');
+    }
+
+    function restoreQuickSearchInputs(bar) {
+        if (!bar) return;
+        const repairInput = bar.querySelector('#tm-footer-repair-search');
+        const partsInput = bar.querySelector('#tm-footer-parts-search');
+        if (repairInput && !repairInput.dataset.tmQsRestored) {
+            repairInput.value = getQuickSearchValue(STORAGE_REPAIR_QUERY_KEY);
+            repairInput.dataset.tmQsRestored = '1';
+        }
+        if (partsInput && !partsInput.dataset.tmQsRestored) {
+            partsInput.value = getQuickSearchValue(STORAGE_PARTS_QUERY_KEY);
+            partsInput.dataset.tmQsRestored = '1';
+        }
+    }
+
+    function bindQuickSearchPersistence(repairInput, partsInput) {
+        const persistRepair = () => saveQuickSearchValue(STORAGE_REPAIR_QUERY_KEY, repairInput.value);
+        const persistParts = () => saveQuickSearchValue(STORAGE_PARTS_QUERY_KEY, partsInput.value);
+        repairInput.addEventListener('input', persistRepair);
+        repairInput.addEventListener('change', persistRepair);
+        partsInput.addEventListener('input', persistParts);
+        partsInput.addEventListener('change', persistParts);
+    }
 
     function buildSearchUrl(base, query) {
         const q = String(query || '').trim();
@@ -38542,6 +38578,11 @@ if (typeof window !== 'undefined') {
     }
 
     function submitFromInput(input, baseUrl) {
+        if (input?.id === 'tm-footer-repair-search') {
+            saveQuickSearchValue(STORAGE_REPAIR_QUERY_KEY, input.value);
+        } else if (input?.id === 'tm-footer-parts-search') {
+            saveQuickSearchValue(STORAGE_PARTS_QUERY_KEY, input.value);
+        }
         const url = buildSearchUrl(baseUrl, input.value);
         if (url) goToSearch(url);
         else input.focus();
@@ -38653,7 +38694,7 @@ if (typeof window !== 'undefined') {
             const searchBtn = document.createElement('button');
             searchBtn.type = 'button';
             searchBtn.id = 'tm-footer-search-submit';
-            searchBtn.className = 'tm-qs-search-btn';
+            searchBtn.className = 'rnr-button tm-qs-search-btn';
             searchBtn.textContent = 'Αναζήτηση';
 
             const resolveSearchInput = () => {
@@ -38707,12 +38748,16 @@ if (typeof window !== 'undefined') {
             bar.appendChild(searchBtn);
             parentContainer.appendChild(bar);
 
+            bindQuickSearchPersistence(repairInput, partsInput);
+            restoreQuickSearchInputs(bar);
+
             mountNativeSearchToggle(bar);
         } else if (bar.parentElement !== parentContainer) {
             parentContainer.appendChild(bar);
             if (!document.getElementById('tm-toggle-native-search')) {
                 mountNativeSearchToggle(bar);
             }
+            restoreQuickSearchInputs(bar);
         }
 
         bar.querySelectorAll('.tm-qs-input-group label').forEach((label) => label.remove());
