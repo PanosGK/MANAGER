@@ -95,6 +95,12 @@ const PERFORMANCE_STYLES_DEFAULT_FOOTER = `
     -webkit-backdrop-filter: blur(10px) !important;
     border-color: var(--tm-glass-border, rgba(255,255,255,0.2)) !important;
 }
+#tm-eod-btn {
+    background: var(--tm-glass-bg, linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border-color: var(--tm-glass-border, rgba(255,255,255,0.2)) !important;
+}
 `;
 
 const PERFORMANCE_STYLES_NON_DEFAULT_FOOTER = `
@@ -108,6 +114,12 @@ const PERFORMANCE_STYLES_NON_DEFAULT_FOOTER = `
 #tm-coin-balance,
 .tm-footer-widget,
 .tm-buff-timer {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--tm-shop-item-bg) !important;
+    border-color: var(--tm-shop-item-border, rgba(255,255,255,0.2)) !important;
+}
+#tm-eod-btn {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     background: var(--tm-shop-item-bg) !important;

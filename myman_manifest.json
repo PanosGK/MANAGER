@@ -1,8 +1,8 @@
 {
-  "version": "187",
+  "version": "188",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Themes: native page chrome (header, footer, grid, menu, badges) uses per-theme tokens.",
+  "releaseNotes": "EOD checklist button and panel follow active theme tokens.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite
 // @namespace    http://tampermonkey.net/
-// @version      187
+// @version      188
 // @description  An all-in-one suite for mymanager.gr. Auto-updates from GitHub — install this file once.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -23,7 +23,7 @@
 (function tmMmsLoaderBootstrap() {
     'use strict';
 
-    var BUNDLE_URL = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_suite.bundle.js?v=187";
+    var BUNDLE_URL = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_suite.bundle.js?v=188";
 
     function isStatus40LoginPending() {
         try {

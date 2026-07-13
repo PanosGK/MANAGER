@@ -661,6 +661,12 @@ const THEME_EXTENDED_STYLES = `/* --- Extended theme tokens (derived per theme i
                 color: var(--tm-widget-text, var(--tm-footer-text, var(--tm-primary-color))) !important;
                 box-shadow: 0 2px 8px var(--tm-shadow-color, rgba(0,0,0,0.15)) !important;
             }
+            #tm-eod-btn {
+                background: var(--tm-glass-bg, var(--tm-surface-bg, var(--tm-shop-item-bg))) !important;
+                border-color: var(--tm-glass-border, var(--tm-surface-border, var(--tm-shop-item-border))) !important;
+                color: var(--tm-widget-text, var(--tm-footer-text, var(--tm-primary-color))) !important;
+                box-shadow: 0 2px 8px var(--tm-shadow-color, rgba(0,0,0,0.15)) !important;
+            }
             #tm-notification-bell-btn:hover,
             #tm-settings-btn:hover,
             #tm-refresh-timer-container:hover,
@@ -670,7 +676,8 @@ const THEME_EXTENDED_STYLES = `/* --- Extended theme tokens (derived per theme i
             #tm-coin-balance:hover,
             .tm-footer-widget:hover,
             .tm-buff-timer:hover,
-            #tm-recent-repairs-btn:hover {
+            #tm-recent-repairs-btn:hover,
+            #tm-eod-btn:hover {
                 background: var(--tm-glass-hover-bg, var(--tm-surface-hover-bg, var(--tm-shop-item-hover-bg))) !important;
                 border-color: var(--tm-glass-border, var(--tm-surface-border, var(--tm-shop-item-border))) !important;
             }
@@ -891,6 +898,179 @@ const THEME_EXTENDED_STYLES = `/* --- Extended theme tokens (derived per theme i
 
             /* Page shell */
             .rnr-page, .rnr-middle, .rnr-center, .rnr-left, .rnr-right { color: var(--tm-primary-color) !important; }
+
+            /* ===== EOD Checklist (tm-eod-btn + panel) ===== */
+            #tm-eod-btn {
+                position: relative !important;
+                background: var(--tm-glass-bg, var(--tm-shop-item-bg)) !important;
+                border: 1px solid var(--tm-glass-border, var(--tm-shop-item-border)) !important;
+                color: var(--tm-widget-text, var(--tm-footer-text, var(--tm-primary-color))) !important;
+                border-radius: 10px !important;
+                padding: 6px 10px !important;
+                cursor: pointer !important;
+                font-size: 16px !important;
+                line-height: 1 !important;
+                transition: background-color 0.2s, transform 0.15s, border-color 0.2s !important;
+                display: flex !important;
+                align-items: center !important;
+                box-shadow: 0 2px 8px var(--tm-shadow-color, rgba(0,0,0,0.15)) !important;
+            }
+            #tm-eod-btn:hover {
+                background: var(--tm-glass-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+                border-color: var(--tm-primary-color) !important;
+                color: var(--tm-primary-color) !important;
+                transform: scale(1.08);
+            }
+            .tm-eod-badge {
+                position: absolute !important;
+                top: -5px !important;
+                right: -5px !important;
+                background: var(--tm-danger-color) !important;
+                color: var(--tm-text-on-primary, #fff) !important;
+                border-radius: 50% !important;
+                min-width: 16px !important;
+                height: 16px !important;
+                font-size: 10px !important;
+                font-weight: 700 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                pointer-events: none !important;
+                padding: 0 3px !important;
+                box-sizing: border-box !important;
+                border: 2px solid var(--tm-footer-bar-bg, var(--tm-shop-item-bg)) !important;
+            }
+            #tm-eod-modal {
+                position: fixed !important;
+                inset: 0 !important;
+                background: var(--tm-overlay-dim, rgba(0,0,0,0.82)) !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                z-index: 99999 !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+            }
+            .tm-eod-panel {
+                background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg))) !important;
+                border: 1px solid var(--tm-surface-border, var(--tm-shop-item-border)) !important;
+                border-radius: 24px !important;
+                padding: 28px !important;
+                width: 90% !important;
+                max-width: 560px !important;
+                max-height: 82vh !important;
+                display: flex !important;
+                flex-direction: column !important;
+                box-shadow: 0 28px 70px var(--tm-shadow-color, rgba(0,0,0,0.45)) !important;
+                color: var(--tm-primary-color) !important;
+            }
+            .tm-eod-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+            .tm-eod-title { margin: 0 !important; color: var(--tm-heading-color, var(--tm-primary-color)) !important; font-size: 1.2rem !important; font-weight: 700 !important; }
+            .tm-eod-done-badge {
+                background: color-mix(in srgb, var(--tm-success-color) 18%, transparent) !important;
+                border: 1px solid color-mix(in srgb, var(--tm-success-color) 35%, transparent) !important;
+                color: var(--tm-success-color) !important;
+                border-radius: 20px !important;
+                padding: 2px 9px !important;
+                font-size: 11px !important;
+                font-weight: 700 !important;
+                margin-left: 8px !important;
+                vertical-align: middle !important;
+            }
+            .tm-eod-header-actions { display: flex; align-items: center; gap: 6px; }
+            #tm-eod-refresh {
+                background: var(--tm-chip-bg, var(--tm-shop-item-hover-bg)) !important;
+                border: 1px solid var(--tm-chip-border, var(--tm-shop-item-border)) !important;
+                color: var(--tm-muted-text, var(--tm-secondary-color)) !important;
+                border-radius: 8px !important;
+                padding: 5px 10px !important;
+                font-size: 13px !important;
+                cursor: pointer !important;
+                display: flex !important;
+                align-items: center !important;
+                gap: 5px !important;
+                transition: background-color 0.15s, color 0.15s, border-color 0.15s !important;
+                white-space: nowrap !important;
+            }
+            #tm-eod-refresh:hover:not(:disabled) {
+                background: var(--tm-surface-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+                border-color: var(--tm-primary-color) !important;
+                color: var(--tm-primary-color) !important;
+            }
+            #tm-eod-refresh:disabled { opacity: 0.6 !important; cursor: wait !important; }
+            #tm-eod-close {
+                background: none !important;
+                border: none !important;
+                color: var(--tm-muted-text, var(--tm-secondary-color)) !important;
+                font-size: 22px !important;
+                cursor: pointer !important;
+                padding: 0 4px !important;
+                line-height: 1 !important;
+            }
+            #tm-eod-close:hover { color: var(--tm-danger-color) !important; }
+            .tm-eod-subtitle { margin: 0 0 18px !important; color: var(--tm-muted-text, var(--tm-secondary-color)) !important; font-size: 13px !important; }
+            .tm-eod-subtitle b { color: var(--tm-primary-color) !important; }
+            .tm-eod-subtitle .tm-eod-pending { color: var(--tm-warning-color) !important; }
+            .tm-eod-subtitle .tm-eod-complete { color: var(--tm-success-color) !important; }
+            #tm-eod-list { overflow-y: auto; flex: 1; padding-right: 4px; }
+            .tm-eod-item {
+                display: flex; align-items: flex-start; gap: 12px;
+                padding: 12px 14px; border-radius: 12px; margin-bottom: 8px;
+                background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg)) !important;
+                border: 1px solid var(--tm-surface-border, var(--tm-shop-item-border)) !important;
+                transition: opacity 0.2s, background-color 0.2s;
+            }
+            .tm-eod-item.is-done {
+                opacity: 0.5 !important;
+                background: var(--tm-surface-bg, var(--tm-shop-item-bg)) !important;
+            }
+            .tm-eod-check {
+                width: 18px !important; height: 18px !important;
+                cursor: pointer !important;
+                accent-color: var(--tm-primary-color) !important;
+                flex-shrink: 0 !important; margin-top: 2px !important;
+            }
+            .tm-eod-check:disabled { cursor: not-allowed !important; opacity: 0.85 !important; }
+            .tm-eod-item-body { flex: 1; min-width: 0; }
+            .tm-eod-item-row1 { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 4px; }
+            .tm-eod-item-id { font-weight: 700; font-size: 14px; color: var(--tm-primary-color) !important; }
+            .tm-eod-item-customer { font-size: 13px; color: var(--tm-primary-color) !important; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
+            .tm-eod-item.is-done .tm-eod-item-id,
+            .tm-eod-item.is-done .tm-eod-item-customer { text-decoration: line-through; color: var(--tm-muted-text, var(--tm-secondary-color)) !important; }
+            .tm-eod-item-device, .tm-eod-item-time { font-size: 11px; color: var(--tm-muted-text, var(--tm-secondary-color)) !important; }
+            .tm-eod-item-device { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+            .tm-eod-open-link {
+                padding: 5px 10px !important; border-radius: 8px !important; font-size: 12px !important; font-weight: 600 !important;
+                background: color-mix(in srgb, var(--tm-primary-color) 12%, transparent) !important;
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color) 25%, transparent) !important;
+                color: var(--tm-link-color, var(--tm-primary-hover)) !important;
+                text-decoration: none !important; flex-shrink: 0 !important; margin-top: 1px !important;
+                transition: background-color 0.15s, border-color 0.15s !important;
+            }
+            .tm-eod-open-link:hover {
+                background: var(--tm-primary-color) !important;
+                color: var(--tm-text-on-primary, #fff) !important;
+                border-color: var(--tm-primary-color) !important;
+            }
+            .tm-eod-empty { text-align: center; padding: 44px 0; color: var(--tm-muted-text, var(--tm-secondary-color)) !important; }
+            .tm-eod-empty-icon { font-size: 44px; margin-bottom: 12px; }
+            .tm-eod-done-separator {
+                font-size: 11px; color: var(--tm-muted-text, var(--tm-secondary-color)) !important;
+                text-align: center; padding: 8px 0 4px; margin-top: 6px; letter-spacing: 0.05em;
+            }
+            #tm-eod-mark-all {
+                width: 100% !important; margin-top: 16px !important; padding: 12px !important;
+                background: color-mix(in srgb, var(--tm-primary-color) 14%, transparent) !important;
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color) 35%, transparent) !important;
+                color: var(--tm-primary-color) !important;
+                border-radius: 12px !important; cursor: pointer !important;
+                font-size: 14px !important; font-weight: 700 !important;
+                transition: background-color 0.15s, color 0.15s !important;
+            }
+            #tm-eod-mark-all:hover {
+                background: var(--tm-primary-color) !important;
+                color: var(--tm-text-on-primary, #fff) !important;
+            }
         `;
 
 /** Documented specialist UI palette sources (design systems & community themes). */

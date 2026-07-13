@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite (Local Dev)
 // @namespace    http://tampermonkey.net/
-// @version      187
+// @version      188
 // @description  Local development — bundled modules from disk. Run: node scripts/generate-loader.mjs after edits.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
