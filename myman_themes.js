@@ -26,7 +26,8 @@ const THEME_STYLES = `/* Universal Theme Styles */
             h1, h2, h3, h4, h5, h6, .pagetitle { text-shadow: none; }
             a, a:visited, .rnr-orderlink { color: var(--tm-primary-hover) !important; text-decoration: none !important; transition: all 0.2s; }
             a:hover, .rnr-orderlink:hover { text-decoration: none !important; color: var(--tm-info-color) !important; }
-            input, select, textarea, .form-control { background: var(--tm-shop-item-bg) !important; color: var(--tm-primary-color) !important; border: 1px solid var(--tm-secondary-hover) !important; border-radius: 4px !important; padding: 5px; text-shadow: none !important; }
+            input, select, textarea, .form-control, .tm-repair-phone-btn { background: var(--tm-shop-item-bg) !important; color: var(--tm-primary-color) !important; border: 1px solid var(--tm-secondary-hover) !important; border-radius: 4px !important; padding: 5px; text-shadow: none !important; }
+            .tm-repair-phone-btn:hover:not(:disabled) { background: var(--tm-shop-item-hover-bg) !important; border-color: var(--tm-primary-color) !important; }
             input:focus, select:focus, textarea:focus { box-shadow: 0 0 8px var(--tm-primary-color); outline: none; border-color: var(--tm-primary-color) !important; }
             
             /* Buttons - Minimal & Rounded */

@@ -1,8 +1,8 @@
 {
-  "version": "206",
+  "version": "207",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Remove status-65 badge popup; order info stays in Parts tab only.",
+  "releaseNotes": "Repair phone field styled like native page input instead of standalone button.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

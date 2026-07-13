@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v206 — generated, do not edit */
+/* MyManager Suite bundle v207 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -781,7 +781,8 @@ const THEME_STYLES = `/* Universal Theme Styles */
             h1, h2, h3, h4, h5, h6, .pagetitle { text-shadow: none; }
             a, a:visited, .rnr-orderlink { color: var(--tm-primary-hover) !important; text-decoration: none !important; transition: all 0.2s; }
             a:hover, .rnr-orderlink:hover { text-decoration: none !important; color: var(--tm-info-color) !important; }
-            input, select, textarea, .form-control { background: var(--tm-shop-item-bg) !important; color: var(--tm-primary-color) !important; border: 1px solid var(--tm-secondary-hover) !important; border-radius: 4px !important; padding: 5px; text-shadow: none !important; }
+            input, select, textarea, .form-control, .tm-repair-phone-btn { background: var(--tm-shop-item-bg) !important; color: var(--tm-primary-color) !important; border: 1px solid var(--tm-secondary-hover) !important; border-radius: 4px !important; padding: 5px; text-shadow: none !important; }
+            .tm-repair-phone-btn:hover:not(:disabled) { background: var(--tm-shop-item-hover-bg) !important; border-color: var(--tm-primary-color) !important; }
             input:focus, select:focus, textarea:focus { box-shadow: 0 0 8px var(--tm-primary-color); outline: none; border-color: var(--tm-primary-color) !important; }
             
             /* Buttons - Minimal & Rounded */
@@ -3031,7 +3032,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '205',
+        version: '207',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -38227,6 +38228,55 @@ if (typeof window !== 'undefined') {
 (function () {
     'use strict';
 
+    GM_addStyle(`
+        .tm-repair-phone-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-sizing: border-box;
+            max-width: 100%;
+            margin: 0;
+            padding: 5px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            background: #fff;
+            color: inherit;
+            font: inherit;
+            font-weight: normal;
+            letter-spacing: normal;
+            text-align: left;
+            line-height: normal;
+            white-space: nowrap;
+            cursor: pointer;
+            box-shadow: none;
+            vertical-align: middle;
+        }
+        .tm-repair-phone-btn:hover:not(:disabled) {
+            border-color: #adb5bd;
+            background: #f8f9fa;
+        }
+        .tm-repair-phone-btn:focus-visible {
+            outline: 1px dotted #333;
+            outline-offset: 1px;
+        }
+        .tm-repair-phone-btn:disabled {
+            color: #6c757d;
+            background: #f5f5f5;
+            cursor: default;
+        }
+        .tm-repair-phone-icon {
+            flex-shrink: 0;
+            opacity: 0.75;
+            font-size: 0.95em;
+            line-height: 1;
+        }
+        .tm-repair-phone-number {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    `);
+
     function formatPhoneDisplay(raw) {
         const trimmed = String(raw || '').trim();
         if (!trimmed) return '';
@@ -38278,69 +38328,41 @@ if (typeof window !== 'undefined') {
         });
     }
 
+    function getFieldWidth(input) {
+        if (input.style.width) return input.style.width;
+        const computed = window.getComputedStyle(input).width;
+        if (computed && computed !== 'auto' && computed !== '0px') return computed;
+        return '';
+    }
+
     function transformPhoneField(input) {
         if (!input || input.dataset.tmPhoneButton === '1') return false;
 
         const raw = (input.value || input.getAttribute('value') || '').trim();
         const display = formatPhoneDisplay(raw) || raw;
         const fieldName = input.getAttribute('name') || '';
+        const fieldWidth = getFieldWidth(input);
         const parent = input.parentNode;
         if (!parent) return false;
 
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.id = input.id || 'value_strPhoneMobile_1';
+        btn.className = 'tm-repair-phone-btn';
         btn.dataset.tmPhoneButton = '1';
         btn.dataset.phoneRaw = raw;
         btn.title = raw
-            ? `📞 ${display}\nΚλικ: αντιγραφή · Διπλό κλικ: αναζήτηση`
+            ? `${display} — κλικ: αντιγραφή · διπλό κλικ: αναζήτηση`
             : 'Δεν υπάρχει κινητό τηλέφωνο';
 
-        btn.style.cssText = [
-            'display:flex',
-            'align-items:center',
-            'justify-content:center',
-            'flex-wrap:nowrap',
-            'white-space:nowrap',
-            'width:100%',
-            'max-width:100%',
-            'box-sizing:border-box',
-            'padding:14px 16px',
-            'margin:2px 0',
-            'border-radius:12px',
-            'border:2px solid rgba(14,165,233,0.45)',
-            'background:linear-gradient(135deg,rgba(14,165,233,0.14),rgba(6,182,212,0.1))',
-            'color:#0369a1',
-            'font-size:clamp(1.25rem,4vw,1.65rem)',
-            'font-weight:800',
-            'letter-spacing:0.04em',
-            'text-align:center',
-            'cursor:pointer',
-            'font-family:inherit',
-            'line-height:1',
-            'box-shadow:0 4px 14px rgba(14,165,233,0.12)',
-            'transition:transform 0.12s ease, box-shadow 0.12s ease',
-            'overflow:hidden',
-        ].join(';');
+        if (fieldWidth) btn.style.width = fieldWidth;
 
         if (!raw) {
             btn.disabled = true;
-            btn.style.opacity = '0.55';
-            btn.style.cursor = 'default';
-            btn.textContent = '— Χωρίς κινητό —';
+            btn.textContent = '—';
         } else {
-            btn.innerHTML = `<span style="font-size:0.95em;margin-right:8px;opacity:0.85;flex-shrink:0;">📞</span><span style="white-space:nowrap;">${display}</span>`;
+            btn.innerHTML = `<span class="tm-repair-phone-icon" aria-hidden="true">📞</span><span class="tm-repair-phone-number">${display}</span>`;
         }
-
-        btn.addEventListener('mouseenter', () => {
-            if (btn.disabled) return;
-            btn.style.transform = 'translateY(-1px)';
-            btn.style.boxShadow = '0 6px 18px rgba(14,165,233,0.22)';
-        });
-        btn.addEventListener('mouseleave', () => {
-            btn.style.transform = '';
-            btn.style.boxShadow = '0 4px 14px rgba(14,165,233,0.12)';
-        });
 
         if (raw) {
             let clickTimer = null;
@@ -38358,7 +38380,7 @@ if (typeof window !== 'undefined') {
                     copyPhoneNumber(raw)
                         .then(() => {
                             if (typeof window.showPositiveMessage === 'function') {
-                                window.showPositiveMessage(`📋 Αντιγράφηκε: ${display}`);
+                                window.showPositiveMessage(`Αντιγράφηκε: ${display}`);
                             } else if (typeof window.createNotification === 'function') {
                                 window.createNotification(`Αντιγράφηκε: ${display}`, '📋');
                             }

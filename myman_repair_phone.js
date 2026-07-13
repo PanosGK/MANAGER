@@ -1,14 +1,63 @@
 // ==UserScript==
 // @name         MyMANAGER Repair Phone Display (module)
 // @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Prominent phone button on repair edit page — loaded via @require
+// @version      1.1
+// @description  Clickable phone field on repair edit page — loaded via @require
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // ==/UserScript==
 
 (function () {
     'use strict';
+
+    GM_addStyle(`
+        .tm-repair-phone-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-sizing: border-box;
+            max-width: 100%;
+            margin: 0;
+            padding: 5px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            background: #fff;
+            color: inherit;
+            font: inherit;
+            font-weight: normal;
+            letter-spacing: normal;
+            text-align: left;
+            line-height: normal;
+            white-space: nowrap;
+            cursor: pointer;
+            box-shadow: none;
+            vertical-align: middle;
+        }
+        .tm-repair-phone-btn:hover:not(:disabled) {
+            border-color: #adb5bd;
+            background: #f8f9fa;
+        }
+        .tm-repair-phone-btn:focus-visible {
+            outline: 1px dotted #333;
+            outline-offset: 1px;
+        }
+        .tm-repair-phone-btn:disabled {
+            color: #6c757d;
+            background: #f5f5f5;
+            cursor: default;
+        }
+        .tm-repair-phone-icon {
+            flex-shrink: 0;
+            opacity: 0.75;
+            font-size: 0.95em;
+            line-height: 1;
+        }
+        .tm-repair-phone-number {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    `);
 
     function formatPhoneDisplay(raw) {
         const trimmed = String(raw || '').trim();
@@ -61,69 +110,41 @@
         });
     }
 
+    function getFieldWidth(input) {
+        if (input.style.width) return input.style.width;
+        const computed = window.getComputedStyle(input).width;
+        if (computed && computed !== 'auto' && computed !== '0px') return computed;
+        return '';
+    }
+
     function transformPhoneField(input) {
         if (!input || input.dataset.tmPhoneButton === '1') return false;
 
         const raw = (input.value || input.getAttribute('value') || '').trim();
         const display = formatPhoneDisplay(raw) || raw;
         const fieldName = input.getAttribute('name') || '';
+        const fieldWidth = getFieldWidth(input);
         const parent = input.parentNode;
         if (!parent) return false;
 
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.id = input.id || 'value_strPhoneMobile_1';
+        btn.className = 'tm-repair-phone-btn';
         btn.dataset.tmPhoneButton = '1';
         btn.dataset.phoneRaw = raw;
         btn.title = raw
-            ? `📞 ${display}\nΚλικ: αντιγραφή · Διπλό κλικ: αναζήτηση`
+            ? `${display} — κλικ: αντιγραφή · διπλό κλικ: αναζήτηση`
             : 'Δεν υπάρχει κινητό τηλέφωνο';
 
-        btn.style.cssText = [
-            'display:flex',
-            'align-items:center',
-            'justify-content:center',
-            'flex-wrap:nowrap',
-            'white-space:nowrap',
-            'width:100%',
-            'max-width:100%',
-            'box-sizing:border-box',
-            'padding:14px 16px',
-            'margin:2px 0',
-            'border-radius:12px',
-            'border:2px solid rgba(14,165,233,0.45)',
-            'background:linear-gradient(135deg,rgba(14,165,233,0.14),rgba(6,182,212,0.1))',
-            'color:#0369a1',
-            'font-size:clamp(1.25rem,4vw,1.65rem)',
-            'font-weight:800',
-            'letter-spacing:0.04em',
-            'text-align:center',
-            'cursor:pointer',
-            'font-family:inherit',
-            'line-height:1',
-            'box-shadow:0 4px 14px rgba(14,165,233,0.12)',
-            'transition:transform 0.12s ease, box-shadow 0.12s ease',
-            'overflow:hidden',
-        ].join(';');
+        if (fieldWidth) btn.style.width = fieldWidth;
 
         if (!raw) {
             btn.disabled = true;
-            btn.style.opacity = '0.55';
-            btn.style.cursor = 'default';
-            btn.textContent = '— Χωρίς κινητό —';
+            btn.textContent = '—';
         } else {
-            btn.innerHTML = `<span style="font-size:0.95em;margin-right:8px;opacity:0.85;flex-shrink:0;">📞</span><span style="white-space:nowrap;">${display}</span>`;
+            btn.innerHTML = `<span class="tm-repair-phone-icon" aria-hidden="true">📞</span><span class="tm-repair-phone-number">${display}</span>`;
         }
-
-        btn.addEventListener('mouseenter', () => {
-            if (btn.disabled) return;
-            btn.style.transform = 'translateY(-1px)';
-            btn.style.boxShadow = '0 6px 18px rgba(14,165,233,0.22)';
-        });
-        btn.addEventListener('mouseleave', () => {
-            btn.style.transform = '';
-            btn.style.boxShadow = '0 4px 14px rgba(14,165,233,0.12)';
-        });
 
         if (raw) {
             let clickTimer = null;
@@ -141,7 +162,7 @@
                     copyPhoneNumber(raw)
                         .then(() => {
                             if (typeof window.showPositiveMessage === 'function') {
-                                window.showPositiveMessage(`📋 Αντιγράφηκε: ${display}`);
+                                window.showPositiveMessage(`Αντιγράφηκε: ${display}`);
                             } else if (typeof window.createNotification === 'function') {
                                 window.createNotification(`Αντιγράφηκε: ${display}`, '📋');
                             }
