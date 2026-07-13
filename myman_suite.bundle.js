@@ -3970,9 +3970,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
      * Full-screen dimmed overlay with title/body until the user dismisses it.
      * @param {string} title
      * @param {string} body
+     * @param {object} [options]
+     * @param {number[]} [options.snoozeMinutes]
+     * @param {(minutes: number) => void} [options.onSnooze]
+     * @param {() => void} [options.onDismiss]
      */
-    function showFullScreenNotificationOverlay(title, body) {
+    function showFullScreenNotificationOverlay(title, body, options = {}) {
         closeFullScreenNotificationOverlay();
+
+        const snoozeMinutes = options.snoozeMinutes || [1, 3, 5, 10];
+        const hasSnooze = typeof options.onSnooze === 'function';
 
         const overlay = document.createElement('div');
         overlay.id = 'tm-notification-fullscreen-overlay';
@@ -3996,22 +4003,57 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         const safeTitle = escapeHtml(title);
         const safeBody = escapeHtml(body).replace(/\n/g, '<br>');
 
+        const snoozeHtml = hasSnooze ? `
+            <div class="tm-fullscreen-notif-snooze" style="margin-bottom:16px;">
+                <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.55);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;">
+                    Αναβολή
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                    ${snoozeMinutes.map((m) => `
+                        <button type="button" class="tm-fullscreen-notif-snooze-btn" data-snooze-minutes="${m}"
+                            style="flex:1;min-width:64px;padding:10px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.22);
+                            background:rgba(255,255,255,0.08);color:#fff;font-weight:700;cursor:pointer;font-size:13px;">
+                            ${m} λεπ
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        ` : '';
+
         overlay.innerHTML = `
             <div class="tm-fullscreen-notif-card" style="background:var(--tm-bg-color,#1a1a2e);color:#fff;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:24px 28px;max-width:min(520px,calc(100vw - 32px));max-height:min(75vh,calc(100vh - 32px));overflow:auto;box-shadow:0 12px 48px rgba(0,0,0,0.55);box-sizing:border-box;">
                 <h2 id="tm-fullscreen-notif-title" style="margin:0 0 12px;font-size:18px;line-height:1.35;font-weight:700;">${safeTitle}</h2>
-                <div style="font-size:15px;line-height:1.55;color:rgba(255,255,255,0.9);margin-bottom:20px;">${safeBody}</div>
+                <div style="font-size:15px;line-height:1.55;color:rgba(255,255,255,0.9);margin-bottom:20px;">${safeBody || '&nbsp;'}</div>
+                ${snoozeHtml}
                 <button type="button" id="tm-fullscreen-notif-dismiss" style="width:100%;padding:12px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,#4facfe,#00f2fe);color:#0a0a12;font-weight:700;cursor:pointer;font-size:15px;">
                     Κατάλαβα / Κλείσιμο
                 </button>
             </div>
         `;
 
-        const dismiss = () => closeFullScreenNotificationOverlay();
+        const dismiss = () => {
+            if (typeof options.onDismiss === 'function') {
+                options.onDismiss();
+            }
+            closeFullScreenNotificationOverlay();
+        };
 
         overlay.querySelector('#tm-fullscreen-notif-dismiss').addEventListener('click', (e) => {
             e.stopPropagation();
             dismiss();
         });
+
+        if (hasSnooze) {
+            overlay.querySelectorAll('.tm-fullscreen-notif-snooze-btn').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const mins = parseInt(btn.getAttribute('data-snooze-minutes'), 10);
+                    if (!Number.isFinite(mins) || mins <= 0) return;
+                    options.onSnooze(mins);
+                    closeFullScreenNotificationOverlay();
+                });
+            });
+        }
 
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) dismiss();
@@ -4036,9 +4078,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
      * Requests permission for and shows a desktop notification, plus a blocking full-screen in-page alert until dismissed.
      * @param {string} title The title of the notification.
      * @param {string} body The body text of the notification.
+     * @param {object} [options] Optional snooze/dismiss handlers (see showFullScreenNotificationOverlay).
      */
-    function showNotification(title, body) {
-        showFullScreenNotificationOverlay(title, body);
+    function showNotification(title, body, options) {
+        showFullScreenNotificationOverlay(title, body, options);
 
         if (!("Notification" in window)) {
             return;
@@ -38193,6 +38236,7 @@ if (typeof window !== 'undefined') {
             invoiceNumber: r.invoiceNumber,
             title: r.title || `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`,
             message: r.message || '',
+            recurrence: r.recurrence || 'none',
             firedAt: Date.now(),
         });
         saveActiveBanners(STORAGE_KEYS, banners);
@@ -38244,6 +38288,48 @@ if (typeof window !== 'undefined') {
 
     function getActiveRepairReminderBanners(STORAGE_KEYS) {
         return loadActiveBanners(STORAGE_KEYS);
+    }
+
+    function snoozeRepairReminderBanner(STORAGE_KEYS, bannerId, minutes) {
+        const banner = loadActiveBanners(STORAGE_KEYS).find((b) => b.id === bannerId);
+        if (!banner || !Number.isFinite(minutes) || minutes <= 0) return;
+
+        const newDue = Date.now() + minutes * 60 * 1000;
+        const reminders = loadReminders(STORAGE_KEYS);
+        let reminder = reminders.find((r) => r.id === banner.reminderId);
+
+        if (reminder) {
+            reminder.dueTime = newDue;
+        } else {
+            reminders.push({
+                id: banner.reminderId,
+                invoiceLinesId: banner.invoiceLinesId,
+                invoiceNumber: banner.invoiceNumber,
+                title: banner.title,
+                message: banner.message,
+                dueTime: newDue,
+                recurrence: banner.recurrence || 'none',
+            });
+        }
+        saveReminders(STORAGE_KEYS, reminders);
+
+        logRepairReminderHistory(banner, 'snoozed', {
+            source: 'repair_banner',
+            dueTime: newDue,
+            reminderId: banner.reminderId,
+        });
+
+        saveActiveBanners(
+            STORAGE_KEYS,
+            loadActiveBanners(STORAGE_KEYS).filter((b) => b.id !== bannerId)
+        );
+        renderActiveReminderBanners(STORAGE_KEYS);
+        if (typeof window.updateNotificationBadge === 'function') {
+            window.updateNotificationBadge();
+        }
+        if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
+            window.refreshActiveAlertsPanelIfOpen();
+        }
     }
 
     function renderActiveReminderBanners(STORAGE_KEYS) {
@@ -38326,6 +38412,20 @@ if (typeof window !== 'undefined') {
                     ${escapeHtml(body)}
                 </div>
                 ${fired ? `<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:12px;">⏰ ${escapeHtml(fired)}</div>` : ''}
+                <div style="margin-bottom:12px;">
+                    <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">
+                        Αναβολή
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                        ${[1, 3, 5, 10].map((m) => `
+                            <button type="button" class="tm-repair-reminder-banner-snooze" data-banner-id="${escapeHtml(b.id)}" data-snooze-minutes="${m}"
+                                style="flex:1;min-width:56px;padding:8px 6px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);
+                                background:rgba(255,255,255,0.08);color:#fff;font-weight:700;cursor:pointer;font-size:12px;">
+                                ${m} λεπ
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;">
                     <a href="${escapeHtml(repairEditUrl(b.invoiceLinesId))}" target="_blank" rel="noopener"
                        style="flex:1;min-width:140px;text-align:center;padding:10px 14px;border-radius:10px;
@@ -38349,6 +38449,13 @@ if (typeof window !== 'undefined') {
         list.querySelectorAll('.tm-repair-reminder-banner-hide').forEach((btn) => {
             btn.addEventListener('click', () => {
                 dismissReminderBanner(STORAGE_KEYS, btn.getAttribute('data-banner-id'));
+            });
+        });
+
+        list.querySelectorAll('.tm-repair-reminder-banner-snooze').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const mins = parseInt(btn.getAttribute('data-snooze-minutes'), 10);
+                snoozeRepairReminderBanner(STORAGE_KEYS, btn.getAttribute('data-banner-id'), mins);
             });
         });
     }
@@ -39769,6 +39876,7 @@ if (typeof window !== 'undefined') {
 
     function formatReminderHistoryAction(action) {
         if (action === 'fired') return 'Ενεργοποιήθηκε';
+        if (action === 'snoozed') return 'Αναβλήθηκε';
         if (action === 'dismissed') return 'Αποκρύφτηκε';
         if (action === 'cancelled') return 'Ακυρώθηκε';
         return 'Κλείστηκε';
@@ -39871,7 +39979,7 @@ if (typeof window !== 'undefined') {
         try {
             const notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
             return notes
-                .filter((n) => n && n.reminder && n.reminder.dueTime)
+                .filter((n) => n && n.reminder && n.reminder.dueTime && !n.reminder.awaitingAction)
                 .map((n) => ({
                     type: 'scratchpad',
                     id: n.id,
@@ -40217,62 +40325,116 @@ if (typeof window !== 'undefined') {
     function initReminderSystem() {
         if (!config?.scratchpadEnabled) return;
 
+        function finalizeScratchpadReminder(noteId, firedReminder) {
+            let notes;
+            try {
+                notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
+            } catch {
+                return;
+            }
+            const note = notes.find((n) => n.id === noteId);
+            if (!note || !note.reminder) return;
+
+            const now = Date.now();
+            if (firedReminder.recurrence === 'none') {
+                note.reminder = null;
+            } else {
+                let nextDueTime = new Date(firedReminder.dueTime);
+                if (firedReminder.recurrence === 'daily') {
+                    nextDueTime.setDate(nextDueTime.getDate() + 1);
+                } else if (firedReminder.recurrence === 'weekly') {
+                    nextDueTime.setDate(nextDueTime.getDate() + 7);
+                }
+                while (nextDueTime.getTime() < now) {
+                    if (firedReminder.recurrence === 'daily') nextDueTime.setDate(nextDueTime.getDate() + 1);
+                    if (firedReminder.recurrence === 'weekly') nextDueTime.setDate(nextDueTime.getDate() + 7);
+                }
+                note.reminder = {
+                    ...note.reminder,
+                    dueTime: nextDueTime.getTime(),
+                    awaitingAction: false,
+                };
+            }
+
+            GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
+            if (typeof window.refreshScratchpadReminderUI === 'function') {
+                window.refreshScratchpadReminderUI();
+            }
+            refreshActiveAlertsPanelIfOpen();
+        }
+
+        function snoozeScratchpadReminder(noteId, minutes, meta) {
+            let notes;
+            try {
+                notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
+            } catch {
+                return;
+            }
+            const note = notes.find((n) => n.id === noteId);
+            if (!note || !note.reminder) return;
+
+            const newDue = Date.now() + minutes * 60 * 1000;
+            note.reminder = { ...note.reminder, dueTime: newDue, awaitingAction: false };
+            GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
+
+            appendReminderHistory({
+                source: 'scratchpad',
+                action: 'snoozed',
+                title: meta.title,
+                message: meta.message,
+                dueTime: newDue,
+                noteId,
+                recurrence: meta.recurrence || 'none',
+            });
+
+            if (typeof window.refreshScratchpadReminderUI === 'function') {
+                window.refreshScratchpadReminderUI();
+            }
+            refreshActiveAlertsPanelIfOpen();
+        }
+
         function checkReminders() {
             const now = Date.now();
             let notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]'));
-            let notesUpdated = false;
 
             notes.forEach(note => {
                 const reminder = note.reminder;
-                if (!reminder || !reminder.dueTime || reminder.dueTime > now) {
-                    return; // No reminder or not due yet
+                if (!reminder || !reminder.dueTime || reminder.awaitingAction) {
+                    return;
+                }
+                if (reminder.dueTime > now) {
+                    return;
                 }
 
-                // --- Reminder is due ---
+                const noteId = note.id;
+                const firedReminder = { ...reminder };
+                const title = reminder.title || reminder.text || note.title || 'Σημείωση';
+                const message = reminder.notes || '';
+
+                note.reminder.awaitingAction = true;
+                GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
+
                 console.log(`[MMS] Reminder is due for note "${note.title}":`, reminder);
                 appendReminderHistory({
                     source: 'scratchpad',
                     action: 'fired',
-                    title: reminder.title || reminder.text || note.title || 'Σημείωση',
-                    message: reminder.notes || '',
+                    title,
+                    message,
                     dueTime: reminder.dueTime,
-                    noteId: note.id,
+                    noteId,
                     recurrence: reminder.recurrence || 'none',
                 });
-                showNotification(`Υπενθύμιση: ${reminder.title || reminder.text || note.title}`, reminder.notes || '');
-                notesUpdated = true;
 
-                if (reminder.recurrence === 'none') {
-                    // One-time reminder, so delete it
-                    note.reminder = null;
-                } else {
-                    // Recurring reminder, calculate next due time
-                    let nextDueTime = new Date(reminder.dueTime);
-                    if (reminder.recurrence === 'daily') {
-                        nextDueTime.setDate(nextDueTime.getDate() + 1);
-                    } else if (reminder.recurrence === 'weekly') {
-                        nextDueTime.setDate(nextDueTime.getDate() + 7);
-                    }
-
-                    // Ensure the next due time is in the future
-                    while (nextDueTime.getTime() < now) {
-                        if (reminder.recurrence === 'daily') nextDueTime.setDate(nextDueTime.getDate() + 1);
-                        if (reminder.recurrence === 'weekly') nextDueTime.setDate(nextDueTime.getDate() + 7);
-                    }
-
-                    reminder.dueTime = nextDueTime.getTime();
-                    console.log(`[MMS] Rescheduled recurring reminder for "${note.title}" to:`, new Date(reminder.dueTime));
-                }
+                showNotification(`Υπενθύμιση: ${title}`, message, {
+                    snoozeMinutes: [1, 3, 5, 10],
+                    onSnooze: (mins) => snoozeScratchpadReminder(noteId, mins, {
+                        title,
+                        message,
+                        recurrence: firedReminder.recurrence,
+                    }),
+                    onDismiss: () => finalizeScratchpadReminder(noteId, firedReminder),
+                });
             });
-
-            if (notesUpdated) GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
-
-            if (notesUpdated && typeof window.refreshScratchpadReminderUI === 'function') {
-                window.refreshScratchpadReminderUI();
-            }
-            if (notesUpdated) {
-                refreshActiveAlertsPanelIfOpen();
-            }
         }
 
         // Check for reminders every 30 seconds

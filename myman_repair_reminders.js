@@ -188,6 +188,7 @@
             invoiceNumber: r.invoiceNumber,
             title: r.title || `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`,
             message: r.message || '',
+            recurrence: r.recurrence || 'none',
             firedAt: Date.now(),
         });
         saveActiveBanners(STORAGE_KEYS, banners);
@@ -239,6 +240,48 @@
 
     function getActiveRepairReminderBanners(STORAGE_KEYS) {
         return loadActiveBanners(STORAGE_KEYS);
+    }
+
+    function snoozeRepairReminderBanner(STORAGE_KEYS, bannerId, minutes) {
+        const banner = loadActiveBanners(STORAGE_KEYS).find((b) => b.id === bannerId);
+        if (!banner || !Number.isFinite(minutes) || minutes <= 0) return;
+
+        const newDue = Date.now() + minutes * 60 * 1000;
+        const reminders = loadReminders(STORAGE_KEYS);
+        let reminder = reminders.find((r) => r.id === banner.reminderId);
+
+        if (reminder) {
+            reminder.dueTime = newDue;
+        } else {
+            reminders.push({
+                id: banner.reminderId,
+                invoiceLinesId: banner.invoiceLinesId,
+                invoiceNumber: banner.invoiceNumber,
+                title: banner.title,
+                message: banner.message,
+                dueTime: newDue,
+                recurrence: banner.recurrence || 'none',
+            });
+        }
+        saveReminders(STORAGE_KEYS, reminders);
+
+        logRepairReminderHistory(banner, 'snoozed', {
+            source: 'repair_banner',
+            dueTime: newDue,
+            reminderId: banner.reminderId,
+        });
+
+        saveActiveBanners(
+            STORAGE_KEYS,
+            loadActiveBanners(STORAGE_KEYS).filter((b) => b.id !== bannerId)
+        );
+        renderActiveReminderBanners(STORAGE_KEYS);
+        if (typeof window.updateNotificationBadge === 'function') {
+            window.updateNotificationBadge();
+        }
+        if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
+            window.refreshActiveAlertsPanelIfOpen();
+        }
     }
 
     function renderActiveReminderBanners(STORAGE_KEYS) {
@@ -321,6 +364,20 @@
                     ${escapeHtml(body)}
                 </div>
                 ${fired ? `<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:12px;">⏰ ${escapeHtml(fired)}</div>` : ''}
+                <div style="margin-bottom:12px;">
+                    <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.5);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">
+                        Αναβολή
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                        ${[1, 3, 5, 10].map((m) => `
+                            <button type="button" class="tm-repair-reminder-banner-snooze" data-banner-id="${escapeHtml(b.id)}" data-snooze-minutes="${m}"
+                                style="flex:1;min-width:56px;padding:8px 6px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);
+                                background:rgba(255,255,255,0.08);color:#fff;font-weight:700;cursor:pointer;font-size:12px;">
+                                ${m} λεπ
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;">
                     <a href="${escapeHtml(repairEditUrl(b.invoiceLinesId))}" target="_blank" rel="noopener"
                        style="flex:1;min-width:140px;text-align:center;padding:10px 14px;border-radius:10px;
@@ -344,6 +401,13 @@
         list.querySelectorAll('.tm-repair-reminder-banner-hide').forEach((btn) => {
             btn.addEventListener('click', () => {
                 dismissReminderBanner(STORAGE_KEYS, btn.getAttribute('data-banner-id'));
+            });
+        });
+
+        list.querySelectorAll('.tm-repair-reminder-banner-snooze').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const mins = parseInt(btn.getAttribute('data-snooze-minutes'), 10);
+                snoozeRepairReminderBanner(STORAGE_KEYS, btn.getAttribute('data-banner-id'), mins);
             });
         });
     }

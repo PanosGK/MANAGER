@@ -551,6 +551,7 @@
 
     function formatReminderHistoryAction(action) {
         if (action === 'fired') return 'Ενεργοποιήθηκε';
+        if (action === 'snoozed') return 'Αναβλήθηκε';
         if (action === 'dismissed') return 'Αποκρύφτηκε';
         if (action === 'cancelled') return 'Ακυρώθηκε';
         return 'Κλείστηκε';
@@ -653,7 +654,7 @@
         try {
             const notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
             return notes
-                .filter((n) => n && n.reminder && n.reminder.dueTime)
+                .filter((n) => n && n.reminder && n.reminder.dueTime && !n.reminder.awaitingAction)
                 .map((n) => ({
                     type: 'scratchpad',
                     id: n.id,
@@ -999,62 +1000,116 @@
     function initReminderSystem() {
         if (!config?.scratchpadEnabled) return;
 
+        function finalizeScratchpadReminder(noteId, firedReminder) {
+            let notes;
+            try {
+                notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
+            } catch {
+                return;
+            }
+            const note = notes.find((n) => n.id === noteId);
+            if (!note || !note.reminder) return;
+
+            const now = Date.now();
+            if (firedReminder.recurrence === 'none') {
+                note.reminder = null;
+            } else {
+                let nextDueTime = new Date(firedReminder.dueTime);
+                if (firedReminder.recurrence === 'daily') {
+                    nextDueTime.setDate(nextDueTime.getDate() + 1);
+                } else if (firedReminder.recurrence === 'weekly') {
+                    nextDueTime.setDate(nextDueTime.getDate() + 7);
+                }
+                while (nextDueTime.getTime() < now) {
+                    if (firedReminder.recurrence === 'daily') nextDueTime.setDate(nextDueTime.getDate() + 1);
+                    if (firedReminder.recurrence === 'weekly') nextDueTime.setDate(nextDueTime.getDate() + 7);
+                }
+                note.reminder = {
+                    ...note.reminder,
+                    dueTime: nextDueTime.getTime(),
+                    awaitingAction: false,
+                };
+            }
+
+            GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
+            if (typeof window.refreshScratchpadReminderUI === 'function') {
+                window.refreshScratchpadReminderUI();
+            }
+            refreshActiveAlertsPanelIfOpen();
+        }
+
+        function snoozeScratchpadReminder(noteId, minutes, meta) {
+            let notes;
+            try {
+                notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]')) || [];
+            } catch {
+                return;
+            }
+            const note = notes.find((n) => n.id === noteId);
+            if (!note || !note.reminder) return;
+
+            const newDue = Date.now() + minutes * 60 * 1000;
+            note.reminder = { ...note.reminder, dueTime: newDue, awaitingAction: false };
+            GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
+
+            appendReminderHistory({
+                source: 'scratchpad',
+                action: 'snoozed',
+                title: meta.title,
+                message: meta.message,
+                dueTime: newDue,
+                noteId,
+                recurrence: meta.recurrence || 'none',
+            });
+
+            if (typeof window.refreshScratchpadReminderUI === 'function') {
+                window.refreshScratchpadReminderUI();
+            }
+            refreshActiveAlertsPanelIfOpen();
+        }
+
         function checkReminders() {
             const now = Date.now();
             let notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]'));
-            let notesUpdated = false;
 
             notes.forEach(note => {
                 const reminder = note.reminder;
-                if (!reminder || !reminder.dueTime || reminder.dueTime > now) {
-                    return; // No reminder or not due yet
+                if (!reminder || !reminder.dueTime || reminder.awaitingAction) {
+                    return;
+                }
+                if (reminder.dueTime > now) {
+                    return;
                 }
 
-                // --- Reminder is due ---
+                const noteId = note.id;
+                const firedReminder = { ...reminder };
+                const title = reminder.title || reminder.text || note.title || 'Σημείωση';
+                const message = reminder.notes || '';
+
+                note.reminder.awaitingAction = true;
+                GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
+
                 console.log(`[MMS] Reminder is due for note "${note.title}":`, reminder);
                 appendReminderHistory({
                     source: 'scratchpad',
                     action: 'fired',
-                    title: reminder.title || reminder.text || note.title || 'Σημείωση',
-                    message: reminder.notes || '',
+                    title,
+                    message,
                     dueTime: reminder.dueTime,
-                    noteId: note.id,
+                    noteId,
                     recurrence: reminder.recurrence || 'none',
                 });
-                showNotification(`Υπενθύμιση: ${reminder.title || reminder.text || note.title}`, reminder.notes || '');
-                notesUpdated = true;
 
-                if (reminder.recurrence === 'none') {
-                    // One-time reminder, so delete it
-                    note.reminder = null;
-                } else {
-                    // Recurring reminder, calculate next due time
-                    let nextDueTime = new Date(reminder.dueTime);
-                    if (reminder.recurrence === 'daily') {
-                        nextDueTime.setDate(nextDueTime.getDate() + 1);
-                    } else if (reminder.recurrence === 'weekly') {
-                        nextDueTime.setDate(nextDueTime.getDate() + 7);
-                    }
-
-                    // Ensure the next due time is in the future
-                    while (nextDueTime.getTime() < now) {
-                        if (reminder.recurrence === 'daily') nextDueTime.setDate(nextDueTime.getDate() + 1);
-                        if (reminder.recurrence === 'weekly') nextDueTime.setDate(nextDueTime.getDate() + 7);
-                    }
-
-                    reminder.dueTime = nextDueTime.getTime();
-                    console.log(`[MMS] Rescheduled recurring reminder for "${note.title}" to:`, new Date(reminder.dueTime));
-                }
+                showNotification(`Υπενθύμιση: ${title}`, message, {
+                    snoozeMinutes: [1, 3, 5, 10],
+                    onSnooze: (mins) => snoozeScratchpadReminder(noteId, mins, {
+                        title,
+                        message,
+                        recurrence: firedReminder.recurrence,
+                    }),
+                    onDismiss: () => finalizeScratchpadReminder(noteId, firedReminder),
+                });
             });
-
-            if (notesUpdated) GM_setValue(STORAGE_KEYS.SCRATCHPAD_NOTES, JSON.stringify(notes));
-
-            if (notesUpdated && typeof window.refreshScratchpadReminderUI === 'function') {
-                window.refreshScratchpadReminderUI();
-            }
-            if (notesUpdated) {
-                refreshActiveAlertsPanelIfOpen();
-            }
         }
 
         // Check for reminders every 30 seconds
