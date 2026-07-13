@@ -1,8 +1,8 @@
 {
-  "version": "201",
+  "version": "202",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Show active spare-part orders inline in the repair Parts tab (status 65).",
+  "releaseNotes": "Parts tab order panel uses native MyMANAGER grid styling.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

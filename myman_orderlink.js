@@ -347,6 +347,211 @@
         return orderCard;
     }
 
+    function getNativeLabelClass() {
+        const el = document.querySelector('#detailPreview3 [class*="MyMANAGER"]');
+        if (!el) return 'MyMANAGERWhite_label1';
+        const match = el.className.match(/MyMANAGER\S+/);
+        return match ? match[0] : 'MyMANAGERWhite_label1';
+    }
+
+    function nativeGridLabel(text, extraHtml = '') {
+        const td = document.createElement('td');
+        td.className = 'rnr-gridfieldlabel';
+        td.innerHTML = text + extraHtml;
+        return td;
+    }
+
+    function nativeGridValue(text) {
+        const td = document.createElement('td');
+        const span = document.createElement('span');
+        span.textContent = text || '';
+        td.appendChild(span);
+        return td;
+    }
+
+    function nativeGridBool(value) {
+        const td = document.createElement('td');
+        const span = document.createElement('span');
+        if (value === 'YES' || value === 'NO') {
+            const img = document.createElement('img');
+            img.src = value === 'YES' ? 'images/check_yes.gif' : 'images/check_no.gif';
+            img.alt = value;
+            span.appendChild(img);
+        } else {
+            span.textContent = value || '';
+        }
+        td.appendChild(span);
+        return td;
+    }
+
+    function nativeGridRow(cells) {
+        const tr = document.createElement('tr');
+        tr.className = 'rnr-row';
+        cells.forEach((cell) => tr.appendChild(cell));
+        return tr;
+    }
+
+    function nativeGridSpacer() {
+        const td = document.createElement('td');
+        td.className = 'rnr-gridfieldlabel';
+        td.innerHTML = '&nbsp;';
+        return td;
+    }
+
+    function nativeGridEdge() {
+        const td = document.createElement('td');
+        td.className = 'rnr-edge';
+        return td;
+    }
+
+    function formatOrderCost(value) {
+        if (!value || value === '-' || value === '0,00') return '';
+        return String(value).includes('€') ? String(value) : `${value}`;
+    }
+
+    function buildNativeOrderTbody(order, matchedPart, index) {
+        const tbody = document.createElement('tbody');
+        tbody.className = 'tm-parts-order-tbody';
+        tbody.dataset.tmOrderIndex = String(index);
+
+        const code = order['Κωδικός'] || '';
+        const name = order['Περιγραφή'] || '';
+        const units = order['Τεμάχια'] || '';
+        const avgCost = formatOrderCost(order['Μέσο Κόστος']);
+        const retail = formatOrderCost(order['Τιμή Λιανικής'] || matchedPart?.retailPrice || '');
+        const orderDate = order['Παραγγελία'] || '';
+        const eta = order['Αναμ.Παραλαβή'] || '';
+        const toCentral = order['Παραγγελία σε Κεντρικό'] || '';
+        const available = order['Διαθέσιμο\nTHE FIXERS'] || order['Διαθέσιμο THE FIXERS'] || '';
+
+        tbody.appendChild(nativeGridRow([
+            nativeGridEdge(),
+            nativeGridLabel('Κωδικός'),
+            nativeGridValue(code),
+            nativeGridLabel('Μέσο Κόστος', '<span class="vatexplanation rowitemred"><br>χωρίς ΦΠΑ</span>'),
+            nativeGridValue(avgCost),
+            nativeGridLabel('Τεμάχια'),
+            nativeGridValue(units),
+        ]));
+
+        tbody.appendChild(nativeGridRow([
+            nativeGridSpacer(),
+            nativeGridLabel('Περιγραφή'),
+            nativeGridValue(name),
+            nativeGridLabel('Τιμή Λιανικής'),
+            nativeGridValue(retail),
+            nativeGridLabel('Παραγγελία'),
+            nativeGridValue(orderDate),
+        ]));
+
+        tbody.appendChild(nativeGridRow([
+            nativeGridSpacer(),
+            nativeGridLabel('Αναμ. Παραλαβή'),
+            nativeGridValue(eta),
+            nativeGridLabel('Σε Κεντρικό'),
+            nativeGridBool(toCentral),
+            nativeGridLabel('Διαθέσιμο'),
+            nativeGridBool(available),
+        ]));
+
+        const storeNotes = order['Σημειώσεις Καταστήματος'];
+        const centralNotes = order['Σημειώσεις Κεντρικής Αποθήκης'];
+        if ((storeNotes && storeNotes !== '-') || (centralNotes && centralNotes !== '-')) {
+            const notesParts = [];
+            if (storeNotes && storeNotes !== '-') notesParts.push(`Κατάστημα: ${storeNotes}`);
+            if (centralNotes && centralNotes !== '-') notesParts.push(`Κεντρική: ${centralNotes}`);
+            tbody.appendChild(nativeGridRow([
+                nativeGridSpacer(),
+                nativeGridLabel('Σημειώσεις'),
+                (() => {
+                    const td = document.createElement('td');
+                    td.colSpan = 5;
+                    const span = document.createElement('span');
+                    span.textContent = notesParts.join(' · ');
+                    td.appendChild(span);
+                    return td;
+                })(),
+            ]));
+        }
+
+        if (matchedPart) {
+            const repairText = [
+                matchedPart.code,
+                matchedPart.name,
+                matchedPart.units ? `${matchedPart.units} τεμ.` : '',
+                matchedPart.avgBuy ? `μέσο ${matchedPart.avgBuy}` : '',
+                matchedPart.retailPrice ? `λιανική ${matchedPart.retailPrice}` : '',
+            ].filter(Boolean).join(' · ');
+
+            tbody.appendChild(nativeGridRow([
+                nativeGridSpacer(),
+                nativeGridLabel('Στην επισκευή'),
+                (() => {
+                    const td = document.createElement('td');
+                    td.colSpan = 3;
+                    const span = document.createElement('span');
+                    span.textContent = repairText;
+                    td.appendChild(span);
+                    return td;
+                })(),
+                nativeGridLabel(''),
+                (() => {
+                    const td = document.createElement('td');
+                    td.className = 'rnr-edge';
+                    const link = document.createElement('a');
+                    link.className = 'rnr-button';
+                    link.href = order._orderLink || '#';
+                    link.target = '_blank';
+                    link.rel = 'noopener';
+                    link.textContent = 'Παραγγελία';
+                    td.appendChild(link);
+                    return td;
+                })(),
+            ]));
+        } else if (order._orderLink) {
+            tbody.appendChild(nativeGridRow([
+                nativeGridSpacer(),
+                nativeGridLabel(''),
+                nativeGridValue(''),
+                nativeGridLabel(''),
+                nativeGridValue(''),
+                nativeGridLabel(''),
+                (() => {
+                    const td = document.createElement('td');
+                    td.className = 'rnr-edge';
+                    const link = document.createElement('a');
+                    link.className = 'rnr-button';
+                    link.href = order._orderLink;
+                    link.target = '_blank';
+                    link.rel = 'noopener';
+                    link.textContent = 'Παραγγελία';
+                    td.appendChild(link);
+                    return td;
+                })(),
+            ]));
+        }
+
+        return tbody;
+    }
+
+    function setNativePartsOrdersMessage(container, message, isError = false) {
+        const labelClass = getNativeLabelClass();
+        container.innerHTML = `
+            <div class="rnr-cw-1 rnr-s-empty asbuttons ${labelClass}">
+                <table class="fieldGrid" style="width:100%;">
+                    <tbody>
+                        <tr>
+                            <td class="style1 rnr-label">Ενεργές Παραγγελίες Ανταλλακτικών</td>
+                        </tr>
+                        <tr>
+                            <td class="rnr-control style3${isError ? ' rowitemred' : ''}">${escapeHtml(message)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
     function getRepairPartsFromTab() {
         const root = document.getElementById('detailPreview3');
         if (!root) return [];
@@ -399,20 +604,31 @@
 
         panel = document.createElement('div');
         panel.id = 'tm-parts-orders-panel';
-        panel.className = 'tm-parts-orders-panel';
+        panel.className = 'tm-parts-orders-native';
+
+        const labelClass = getNativeLabelClass();
         panel.innerHTML = `
-            <div class="tm-parts-orders-header">
-                <div class="tm-parts-orders-heading">
-                    <span class="tm-parts-orders-title">📦 Ενεργές Παραγγελίες Ανταλλακτικών</span>
-                    <span class="tm-parts-orders-subtitle">Κατάσταση 65 · ίδια δεδομένα με το κλικ στο badge</span>
-                </div>
-                <div class="tm-parts-orders-actions">
-                    <button type="button" id="tm-parts-orders-popup-btn" class="tm-parts-orders-btn" title="Άνοιγμα σε popup">↗ Popup</button>
-                    <button type="button" id="tm-parts-orders-refresh-btn" class="tm-parts-orders-btn" title="Ανανέωση">🔄</button>
+            <div class="rnr-cw-recordcontrols rnr-s-2 asbuttons ${labelClass}">
+                <div class="rnr-c rnr-ch rnr-c-recordcontrols">
+                    <div class="style1 rnr-bl rnr-b-recordcontrols_new">
+                        <span class="style1 rnr-label" style="margin-right:12px;">Ενεργές Παραγγελίες Ανταλλακτικών</span>
+                        <a href="#" id="tm-parts-orders-refresh-btn" class="rnr-button">Ανανέωση</a>
+                        <a href="#" id="tm-parts-orders-popup-btn" class="rnr-button">Popup</a>
+                        <a href="https://thefixers.mymanager.gr/mymanagerservice/sparepartstoorder_list.php" target="_blank" rel="noopener" class="rnr-button">Λίστα Παραγγελιών</a>
+                    </div>
+                    <div class="rnr-hfiller"></div>
                 </div>
             </div>
             <div id="tm-parts-orders-body" class="tm-parts-orders-body">
-                <div class="tm-parts-orders-loading">Φόρτωση παραγγελιών…</div>
+                <div class="rnr-scrollgrid-wrap" style="padding:0;margin-bottom:5px;position:relative;">
+                    <div class="rnr-scrollgrid-inner" style="width:99%;">
+                        <div class="rnr-cw-1 rnr-s-empty asbuttons ${labelClass}">
+                            <table class="fieldGrid" style="width:100%;">
+                                <tbody><tr><td class="rnr-control style3">Φόρτωση παραγγελιών…</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         `;
 
@@ -423,10 +639,12 @@
             mount.prepend(panel);
         }
 
-        panel.querySelector('#tm-parts-orders-refresh-btn')?.addEventListener('click', () => {
+        panel.querySelector('#tm-parts-orders-refresh-btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
             loadPartsTabOrders(true);
         });
-        panel.querySelector('#tm-parts-orders-popup-btn')?.addEventListener('click', async () => {
+        panel.querySelector('#tm-parts-orders-popup-btn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
             const repairId = getPageRepairId();
             if (!repairId) return;
             try {
@@ -453,15 +671,25 @@
         const body = panel.querySelector('#tm-parts-orders-body');
         const repairId = getPageRepairId();
         if (!repairId) {
-            body.innerHTML = '<div class="tm-parts-orders-empty">Δεν βρέθηκε αριθμός επισκευής.</div>';
+            setNativePartsOrdersMessage(body, 'Δεν βρέθηκε αριθμός επισκευής.');
             return;
         }
 
-        if (!forceRefresh && partsTabOrdersLoaded && body.querySelector('.tm-order-card-new')) {
+        if (!forceRefresh && partsTabOrdersLoaded && body.querySelector('.tm-parts-order-tbody')) {
             return;
         }
 
-        body.innerHTML = '<div class="tm-parts-orders-loading">Φόρτωση παραγγελιών…</div>';
+        body.innerHTML = `
+            <div class="rnr-scrollgrid-wrap" style="padding:0;margin-bottom:5px;position:relative;">
+                <div class="rnr-scrollgrid-inner" style="width:99%;">
+                    <div class="rnr-cw-1 rnr-s-empty asbuttons ${getNativeLabelClass()}">
+                        <table class="fieldGrid" style="width:100%;">
+                            <tbody><tr><td class="rnr-control style3">Φόρτωση παραγγελιών…</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        `;
 
         try {
             const orders = await fetchOrdersForRepair(repairId);
@@ -470,26 +698,38 @@
 
             body.innerHTML = '';
             if (!orders.length) {
-                body.innerHTML = `<div class="tm-parts-orders-empty">Δεν βρέθηκαν ενεργές παραγγελίες για την <b>${escapeHtml(repairId)}</b>.</div>`;
+                setNativePartsOrdersMessage(body, `Δεν βρέθηκαν ενεργές παραγγελίες για την ${repairId}.`);
                 return;
             }
 
-            const list = document.createElement('div');
-            list.className = 'tm-parts-orders-list';
+            const labelClass = getNativeLabelClass();
+            const wrap = document.createElement('div');
+            wrap.className = 'rnr-scrollgrid-wrap';
+            wrap.style.cssText = 'padding:0;margin-bottom:5px;position:relative;';
 
-            orders.forEach((order) => {
+            const inner = document.createElement('div');
+            inner.className = 'rnr-scrollgrid-inner';
+            inner.style.cssText = 'width:99%;';
+
+            const grid = document.createElement('div');
+            grid.className = `rnr-cw-grid rnr-s-grid asbuttons ${labelClass}`;
+
+            const table = document.createElement('table');
+            table.className = 'rnr-c rnr-cont rnr-c-grid rnr-b-grid rnr-gridtable rnr-columns';
+            table.setAttribute('cellpadding', '0');
+            table.setAttribute('s508table', 'true');
+
+            orders.forEach((order, index) => {
                 const matched = findMatchingRepairPart(order, parts);
-                list.appendChild(buildOrderCardElement(order, { compact: true, matchedPart: matched }));
+                table.appendChild(buildNativeOrderTbody(order, matched, index));
             });
 
-            body.appendChild(list);
-
-            const footer = document.createElement('div');
-            footer.className = 'tm-parts-orders-footer';
-            footer.innerHTML = `<a href="https://thefixers.mymanager.gr/mymanagerservice/sparepartstoorder_list.php" target="_blank" rel="noopener" class="tm-order-view-full-btn">🔗 Λίστα Παραγγελιών</a>`;
-            body.appendChild(footer);
+            grid.appendChild(table);
+            inner.appendChild(grid);
+            wrap.appendChild(inner);
+            body.appendChild(wrap);
         } catch (err) {
-            body.innerHTML = `<div class="tm-parts-orders-error">❌ ${escapeHtml(err.message)}</div>`;
+            setNativePartsOrdersMessage(body, `Σφάλμα: ${err.message}`, true);
         }
     }
 
@@ -956,115 +1196,13 @@
             white-space: nowrap;
         }
 
-        /* Parts tab inline order panel (status 65) */
-        .tm-parts-orders-panel {
-            margin: 0 0 12px;
-            padding: 14px 16px;
-            border-radius: 12px;
-            border: 1px solid var(--tm-shop-item-border, #dee2e6);
-            background: var(--tm-shop-item-owned-bg, #e7f1ff);
-            box-shadow: 0 2px 10px var(--tm-shadow-color, rgba(0,0,0,0.08));
+        /* Parts tab orders — native grid spacing only */
+        .tm-parts-orders-native {
+            margin-bottom: 5px;
         }
-        .tm-parts-orders-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        .tm-parts-orders-title {
-            display: block;
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--tm-primary-color, #343a40);
-        }
-        .tm-parts-orders-subtitle {
-            display: block;
-            font-size: 11px;
-            color: var(--tm-muted-text, #6c757d);
-            margin-top: 2px;
-        }
-        .tm-parts-orders-actions {
-            display: flex;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-        .tm-parts-orders-btn {
-            border: 1px solid var(--tm-shop-item-border, #dee2e6);
-            background: var(--tm-modal-bg, #fff);
-            color: var(--tm-primary-color, #343a40);
-            border-radius: 8px;
-            padding: 4px 10px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-        .tm-parts-orders-btn:hover {
-            border-color: var(--tm-primary-color);
-            color: var(--tm-primary-color);
-        }
-        .tm-parts-orders-list {
-            display: grid;
-            gap: 10px;
-        }
-        .tm-order-card-compact {
-            margin-bottom: 0 !important;
-        }
-        .tm-order-card-compact .tm-order-header {
-            padding: 12px 14px;
-        }
-        .tm-order-card-compact .tm-order-product-name {
-            font-size: 14px;
-        }
-        .tm-order-card-compact .tm-order-info-grid {
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            padding: 12px 14px;
-            gap: 10px;
-        }
-        .tm-order-card-compact .tm-order-action-btn {
-            padding: 10px 12px;
-            font-size: 12px;
-        }
-        .tm-order-match-badge {
-            margin-top: 6px;
-            display: inline-block;
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 999px;
-            background: color-mix(in srgb, var(--tm-success-color, #28a745) 16%, transparent);
-            color: var(--tm-success-color, #28a745);
-            border: 1px solid color-mix(in srgb, var(--tm-success-color, #28a745) 35%, transparent);
-        }
-        .tm-order-repair-part-info {
-            grid-column: 1 / -1;
-            padding: 10px 12px;
-            border-radius: 8px;
-            background: color-mix(in srgb, var(--tm-info-color, #17a2b8) 10%, transparent);
-            border: 1px solid color-mix(in srgb, var(--tm-info-color, #17a2b8) 25%, transparent);
-        }
-        .tm-order-cost-badge {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            align-items: center;
-        }
-        .tm-cost-group {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-        }
-        .tm-parts-orders-loading,
-        .tm-parts-orders-empty,
-        .tm-parts-orders-error {
-            font-size: 13px;
-            color: var(--tm-muted-text, #6c757d);
-            padding: 8px 0;
-        }
-        .tm-parts-orders-error {
-            color: var(--tm-danger-color, #dc3545);
-        }
-        .tm-parts-orders-footer {
-            margin-top: 10px;
+        .tm-parts-orders-native .tm-parts-order-tbody + .tm-parts-order-tbody tr:first-child td {
+            border-top: 2px solid #c8c8c8;
+            padding-top: 6px;
         }
     `);
 
