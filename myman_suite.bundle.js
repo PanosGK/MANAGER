@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v196 — generated, do not edit */
+/* MyManager Suite bundle v197 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -2776,9 +2776,10 @@ function tmClearInlineThemeProperties(root) {
 
 function tmInjectExtendedThemeStyles(themeId) {
     document.getElementById('tm-extended-theme-styles')?.remove();
-    if (themeId === 'default') return;
     const el = document.createElement('style');
     el.id = 'tm-extended-theme-styles';
+    // Default skips page/widget theming but EOD modal CSS lives in myman_styles.js always.
+    if (themeId === 'default') return;
     el.textContent = THEME_EXTENDED_STYLES;
     document.head.appendChild(el);
 }
@@ -2878,7 +2879,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '195',
+        version: '196',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -5999,6 +6000,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 font-size: 12px !important;
             }
             #tm-eod-btn {
+                position: relative;
                 width: var(--tm-footer-control-height) !important;
                 min-width: var(--tm-footer-control-height) !important;
                 padding: 0 !important;
@@ -6014,6 +6016,174 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 color: var(--tm-widget-text, white) !important;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
                 transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease !important;
+            }
+            .tm-eod-badge {
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: var(--tm-danger-color);
+                color: var(--tm-text-on-primary, #fff);
+                border-radius: 50%;
+                min-width: 16px;
+                height: 16px;
+                font-size: 10px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                pointer-events: none;
+                padding: 0 3px;
+                box-sizing: border-box;
+                border: 2px solid var(--tm-footer-bar-bg, var(--tm-shop-item-bg));
+            }
+            /* EOD modal — always loaded (default theme skips suite style injection) */
+            #tm-eod-modal {
+                position: fixed;
+                inset: 0;
+                background: var(--tm-overlay-dim, rgba(0, 0, 0, 0.82));
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 99999;
+            }
+            .tm-eod-panel {
+                background: var(--tm-modal-bg, var(--tm-panel-bg, #ffffff));
+                border: 1px solid var(--tm-shop-item-border, #dee2e6);
+                border-radius: 24px;
+                padding: 28px;
+                width: 90%;
+                max-width: 560px;
+                max-height: 82vh;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 0 28px 70px var(--tm-shadow-color, rgba(0, 0, 0, 0.45));
+                color: var(--tm-primary-color, #343a40);
+            }
+            .tm-eod-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+            .tm-eod-title { margin: 0; color: var(--tm-primary-color); font-size: 1.2rem; font-weight: 700; }
+            .tm-eod-done-badge {
+                background: color-mix(in srgb, var(--tm-success-color) 18%, transparent);
+                border: 1px solid color-mix(in srgb, var(--tm-success-color) 35%, transparent);
+                color: var(--tm-success-color);
+                border-radius: 20px;
+                padding: 2px 9px;
+                font-size: 11px;
+                font-weight: 700;
+                margin-left: 8px;
+                vertical-align: middle;
+            }
+            .tm-eod-header-actions { display: flex; align-items: center; gap: 6px; }
+            #tm-eod-refresh {
+                background: var(--tm-chip-bg, var(--tm-shop-item-hover-bg));
+                border: 1px solid var(--tm-chip-border, var(--tm-shop-item-border));
+                color: var(--tm-muted-text, var(--tm-secondary-color));
+                border-radius: 8px;
+                padding: 5px 10px;
+                font-size: 13px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+                white-space: nowrap;
+            }
+            #tm-eod-refresh:hover:not(:disabled) {
+                background: var(--tm-shop-item-hover-bg);
+                border-color: var(--tm-primary-color);
+                color: var(--tm-primary-color);
+            }
+            #tm-eod-refresh:disabled { opacity: 0.6; cursor: wait; }
+            #tm-eod-close {
+                background: none;
+                border: none;
+                color: var(--tm-muted-text, var(--tm-secondary-color));
+                font-size: 22px;
+                cursor: pointer;
+                padding: 0 4px;
+                line-height: 1;
+            }
+            #tm-eod-close:hover { color: var(--tm-danger-color); }
+            .tm-eod-subtitle { margin: 0 0 18px; color: var(--tm-muted-text, var(--tm-secondary-color)); font-size: 13px; }
+            .tm-eod-subtitle b { color: var(--tm-primary-color); }
+            .tm-eod-subtitle .tm-eod-pending { color: var(--tm-warning-color); }
+            .tm-eod-subtitle .tm-eod-complete { color: var(--tm-success-color); }
+            #tm-eod-list { overflow-y: auto; flex: 1; padding-right: 4px; min-height: 0; }
+            .tm-eod-item {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 12px 14px;
+                border-radius: 12px;
+                margin-bottom: 8px;
+                background: var(--tm-shop-item-owned-bg, #e7f1ff);
+                border: 1px solid var(--tm-shop-item-border, #dee2e6);
+                transition: opacity 0.2s, background-color 0.2s;
+            }
+            .tm-eod-item.is-done {
+                opacity: 0.5;
+                background: var(--tm-shop-item-bg, #f8f9fa);
+            }
+            .tm-eod-check {
+                width: 18px;
+                height: 18px;
+                cursor: pointer;
+                accent-color: var(--tm-primary-color);
+                flex-shrink: 0;
+                margin-top: 2px;
+            }
+            .tm-eod-check:disabled { cursor: not-allowed; opacity: 0.85; }
+            .tm-eod-item-body { flex: 1; min-width: 0; }
+            .tm-eod-item-row1 { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 4px; }
+            .tm-eod-item-id { font-weight: 700; font-size: 14px; color: var(--tm-primary-color); }
+            .tm-eod-item-customer { font-size: 13px; color: var(--tm-primary-color); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
+            .tm-eod-item.is-done .tm-eod-item-id,
+            .tm-eod-item.is-done .tm-eod-item-customer { text-decoration: line-through; color: var(--tm-muted-text, var(--tm-secondary-color)); }
+            .tm-eod-item-device, .tm-eod-item-time { font-size: 11px; color: var(--tm-muted-text, var(--tm-secondary-color)); }
+            .tm-eod-item-device { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+            .tm-eod-open-link {
+                padding: 5px 10px;
+                border-radius: 8px;
+                font-size: 12px;
+                font-weight: 600;
+                background: color-mix(in srgb, var(--tm-primary-color) 12%, transparent);
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color) 25%, transparent);
+                color: var(--tm-link-color, var(--tm-primary-hover));
+                text-decoration: none;
+                flex-shrink: 0;
+                margin-top: 1px;
+                transition: background-color 0.15s, border-color 0.15s;
+            }
+            .tm-eod-open-link:hover {
+                background: var(--tm-primary-color);
+                color: var(--tm-text-on-primary, #fff);
+                border-color: var(--tm-primary-color);
+            }
+            .tm-eod-empty { text-align: center; padding: 44px 0; color: var(--tm-muted-text, var(--tm-secondary-color)); }
+            .tm-eod-empty-icon { font-size: 44px; margin-bottom: 12px; }
+            .tm-eod-done-separator {
+                font-size: 11px;
+                color: var(--tm-muted-text, var(--tm-secondary-color));
+                text-align: center;
+                padding: 8px 0 4px;
+                margin-top: 6px;
+                letter-spacing: 0.05em;
+            }
+            #tm-eod-mark-all {
+                width: 100%;
+                margin-top: 16px;
+                padding: 12px;
+                background: color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color) 35%, transparent);
+                color: var(--tm-primary-color);
+                border-radius: 12px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 700;
+                transition: background-color 0.15s, color 0.15s;
+            }
+            #tm-eod-mark-all:hover {
+                background: var(--tm-primary-color);
+                color: var(--tm-text-on-primary, #fff);
             }
             #tm-xp-bar-container {
                 padding: 4px 10px !important;

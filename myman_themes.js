@@ -2021,9 +2021,10 @@ function tmClearInlineThemeProperties(root) {
 
 function tmInjectExtendedThemeStyles(themeId) {
     document.getElementById('tm-extended-theme-styles')?.remove();
-    if (themeId === 'default') return;
     const el = document.createElement('style');
     el.id = 'tm-extended-theme-styles';
+    // Default skips page/widget theming but EOD modal CSS lives in myman_styles.js always.
+    if (themeId === 'default') return;
     el.textContent = THEME_EXTENDED_STYLES;
     document.head.appendChild(el);
 }
