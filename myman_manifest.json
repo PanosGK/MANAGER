@@ -1,8 +1,8 @@
 {
-  "version": "186",
+  "version": "187",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Themes: specialist UI palettes (Dracula, Nord, Solarized, Carbon, Linear, Gruvbox, etc.).",
+  "releaseNotes": "Themes: native page chrome (header, footer, grid, menu, badges) uses per-theme tokens.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

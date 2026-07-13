@@ -100,11 +100,13 @@ const THEME_STYLES = `/* Universal Theme Styles */
             
             /* --- Override Inline & Specific Styles --- */
             /* Table row conditional formatting - text-shadow removal for readability */
-            td.rnr-style5-ccc_dETDDiff, .rnr-style5-ccc_dETDDiff { background: #333300 !important; } /* Was yellow */
-            td.rnr-style6-ccc_dETDDiff, .rnr-style6-ccc_dETDDiff { background: #4d0000 !important; } /* Was red */
-            td.rnr-style5-dTimeDiff, .rnr-style5-dTimeDiff { background: #002b00 !important; } /* Was light green */
-            span[style*='#FFFF66'] { background-color: #333300 !important; } /* Catch inline yellow */
-            span[style*='#ff2244'] { background-color: #4d0000 !important; } /* Catch inline red */
+            td.rnr-style5-ccc_dETDDiff, .rnr-style5-ccc_dETDDiff { background: var(--tm-row-highlight-danger-bg, rgba(220,53,69,0.32)) !important; color: var(--tm-row-highlight-danger-fg, var(--tm-danger-color)) !important; }
+            td.rnr-style6-ccc_dETDDiff, .rnr-style6-ccc_dETDDiff { background: var(--tm-row-highlight-danger-bg, rgba(220,53,69,0.42)) !important; }
+            td.rnr-style5-dTimeDiff, .rnr-style5-dTimeDiff { background: var(--tm-row-highlight-success-bg, rgba(40,167,69,0.26)) !important; color: var(--tm-row-highlight-success-fg, var(--tm-success-color)) !important; }
+            span[style*='#FFFF66'], span[style*='#ffff66'] { background-color: var(--tm-row-highlight-danger-bg) !important; }
+            span[style*='#ff6655'], span[style*='#FF6655'] { background-color: var(--tm-row-highlight-danger-bg) !important; color: var(--tm-row-highlight-danger-fg) !important; }
+            span[style*='#ff2244'], span[style*='#FF2244'] { background-color: var(--tm-row-highlight-danger-bg) !important; }
+            span[style*='#66FF99'], span[style*='#66ff99'] { background-color: var(--tm-row-highlight-success-bg) !important; color: var(--tm-row-highlight-success-fg) !important; }
             
             /* Other elements */
             /* Make bold text white only on dark backgrounds to avoid unreadable text on green/yellow backgrounds */
@@ -757,6 +759,138 @@ const THEME_EXTENDED_STYLES = `/* --- Extended theme tokens (derived per theme i
             /* Scrollbar hints (webkit) */
             ::-webkit-scrollbar-thumb { background: var(--tm-scrollbar-thumb, var(--tm-secondary-hover, var(--tm-secondary-color))) !important; }
             ::-webkit-scrollbar-track { background: var(--tm-scrollbar-track, var(--tm-dark-hover, var(--tm-dark-color))) !important; }
+
+            /* ===== Native MyMANAGER page chrome (service_list, etc.) ===== */
+            #head-outter, #head-outterwrap {
+                background-color: var(--tm-header-bar-bg, var(--tm-shop-item-bg)) !important;
+                border-bottom: 1px solid var(--tm-surface-border, var(--tm-shop-item-border)) !important;
+                opacity: 1 !important;
+            }
+            #footer-outter, #footer-outterwrap, #footer-wrapper + #footer-outter {
+                background-color: var(--tm-footer-bar-bg, var(--tm-shop-item-bg)) !important;
+                border-top: 1px solid var(--tm-surface-border, var(--tm-shop-item-border)) !important;
+                opacity: 1 !important;
+            }
+            h1.logo, h1.logo-text, .header-logo { color: var(--tm-header-bar-text, var(--tm-primary-color)) !important; }
+            #footer-outterwrap td, #footer-outterwrap span, #footer-outterwrap h1 {
+                color: var(--tm-footer-bar-text, var(--tm-footer-text, var(--tm-primary-color))) !important;
+            }
+            #footer-outterwrap a, #footer-outterwrap a span { color: var(--tm-link-color, var(--tm-primary-hover)) !important; }
+            #footer-outterwrap a:hover, #footer-outterwrap a:hover span { color: var(--tm-link-hover-color, var(--tm-info-color)) !important; }
+            #footer-outterwrap .btn, #footer-outterwrap .dropdown .btn {
+                background: var(--tm-footer-native-btn-bg, var(--tm-shop-item-bg)) !important;
+                color: var(--tm-footer-native-btn-text, var(--tm-primary-color)) !important;
+                border: 1px solid var(--tm-footer-native-btn-border, var(--tm-shop-item-border)) !important;
+                border-radius: 8px !important;
+            }
+            #footer-outterwrap .btn:hover { background: var(--tm-surface-hover-bg, var(--tm-shop-item-hover-bg)) !important; }
+
+            /* Top search / session bar */
+            .rnr-s-undermenu, .rnr-cw-hmenu.rnr-s-undermenu { background: var(--tm-header-bar-bg, var(--tm-shop-item-bg)) !important; }
+            #ctlSearchFor1, #ctlSearchFor2, input[name="ctlSearchFor1"], input[name="ctlSearchFor2"] {
+                background: var(--tm-input-bg, var(--tm-shop-item-bg)) !important;
+                color: var(--tm-input-text, var(--tm-primary-color)) !important;
+                border-color: var(--tm-input-border, var(--tm-secondary-hover)) !important;
+            }
+            #ctlSearchFor1::placeholder, #ctlSearchFor2::placeholder { color: var(--tm-muted-text, var(--tm-secondary-color)) !important; opacity: 0.85; }
+            #cbMyRecords, #cbDatePeriod, #recordspp1, select[name="cbMyRecords"], select[name="cbDatePeriod"] {
+                background: var(--tm-input-bg, var(--tm-shop-item-bg)) !important;
+                color: var(--tm-input-text, var(--tm-primary-color)) !important;
+                border-color: var(--tm-input-border, var(--tm-secondary-hover)) !important;
+            }
+            #login_block1, #login_block1 span, .rnr-b-loggedas, .rnr-b-loggedas div { color: var(--tm-primary-color) !important; }
+            #login_block1 b, .rnr-b-loggedas b { color: var(--tm-accent-color, var(--tm-info-color)) !important; }
+            #logoutButton1, #logoutButton2, a#showAll1 { color: var(--tm-link-color, var(--tm-primary-hover)) !important; }
+            .rnr-b-search > span, .rnr-b-search_buttons { color: var(--tm-primary-color) !important; }
+
+            /* Left menu + nested groups */
+            .rnr-b-vmenu.simple.main > li > div,
+            .rnr-b-vmenu.simple.main > li > div > div,
+            .MyMANAGERWhite_label1 .rnr-b-vmenu.simple.main > * {
+                color: var(--tm-primary-color) !important;
+            }
+            .rnr-b-vmenu.simple.main li.menuGroup > ul,
+            .rnr-b-vmenu.simple.main li.menuGroup > ul li > div {
+                background: var(--tm-menu-submenu-bg, var(--tm-shop-item-owned-bg)) !important;
+                border-color: var(--tm-surface-border, var(--tm-shop-item-border)) !important;
+            }
+            .rnr-b-vmenu.simple.main li.menuGroup > div > div > a { color: var(--tm-menu-group-text, var(--tm-secondary-hover)) !important; }
+            .rnr-b-vmenu.simple.main a { color: var(--tm-link-color, var(--tm-primary-hover)) !important; }
+            .rnr-b-vmenu.simple.main li.current a { color: var(--tm-text-on-primary, var(--tm-dark-hover)) !important; }
+
+            /* Count badges in menu (not workflow status colors) */
+            .badge:not(.statusbadge),
+            a .badge:not(.statusbadge),
+            span.badge:not(.statusbadge) {
+                background-color: var(--tm-count-badge-bg, var(--tm-dark-hover)) !important;
+                color: var(--tm-count-badge-text, var(--tm-info-color)) !important;
+                border: 1px solid var(--tm-surface-border, var(--tm-shop-item-border)) !important;
+            }
+            .badge.blink:not(.statusbadge) { box-shadow: 0 0 8px var(--tm-glow-color, var(--tm-danger-color)); }
+
+            /* Pagination strip */
+            .rnr-cw-pagination, .rnr-cw-pagination_bottom,
+            .rnr-c-pagination, .rnr-c-pagination_bottom,
+            .rnr-leftbricks, .rnr-rightbricks, .rnr-multialign {
+                background: var(--tm-surface-bg, var(--tm-shop-item-bg)) !important;
+                color: var(--tm-primary-color) !important;
+                border-color: var(--tm-surface-border, var(--tm-shop-item-border)) !important;
+            }
+            .rnr-details_found_count, .rnr-b-details_found b { color: var(--tm-accent-color, var(--tm-info-color)) !important; }
+            .rnr-b-page_of b, .rnr-b-recsperpage { color: var(--tm-primary-color) !important; }
+            #pageOf1, #recordspp_block1 { color: var(--tm-muted-text, var(--tm-secondary-color)) !important; }
+
+            /* Data grid */
+            .rnr-gridtable, .rnr-c-grid.rnr-b-grid { border-color: var(--tm-surface-border, var(--tm-shop-item-border)) !important; }
+            .rnr-gridtable tr.rnr-toprow, .rnr-toprow.style1, .rnr-c-grid > .rnr-b-grid > .rnr-gridtable > tbody > tr.rnr-toprow > th,
+            .MyMANAGERWhite_label1.rnr-s-grid > table > * > .rnr-toprow > th {
+                background: var(--tm-grid-header-bg, var(--tm-dark-hover)) !important;
+                color: var(--tm-grid-header-text, var(--tm-primary-color)) !important;
+                border-color: var(--tm-surface-border, var(--tm-shop-item-border)) !important;
+            }
+            .rnr-gridfieldlabel, .rnr-gridfieldlabel span, .rnr-orderlink {
+                color: var(--tm-grid-header-text, var(--tm-primary-color)) !important;
+            }
+            .rnr-orderlink:hover { color: var(--tm-sort-active-color, var(--tm-info-color)) !important; }
+            [data-icon="sortasc"], [data-icon="sortdesc"] { color: var(--tm-sort-active-color, var(--tm-info-color)) !important; }
+            .rnr-gridtable tr.rnr-row > td, .rnr-row.style1 > td {
+                color: var(--tm-primary-color) !important;
+                border-color: var(--tm-surface-border, var(--tm-shop-item-border)) !important;
+            }
+            .rnr-gridtable tr.rnr-row:nth-last-child(2n+1) > td {
+                background: var(--tm-grid-row-alt-bg, var(--tm-shop-item-owned-bg)) !important;
+            }
+            .rnr-gridtable tr.rnr-row:hover > td, .rnr-row.style1:hover > td {
+                background: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+                color: var(--tm-link-hover-color, var(--tm-info-color)) !important;
+            }
+            .rnr-nowrap a[data-icon="details"], a[data-icon="details"] {
+                color: var(--tm-details-link-color, var(--tm-info-color)) !important;
+            }
+            .rowitemred, .rowitemred.rowitemsmaller, span.rowitemred {
+                color: var(--tm-accent-time-text, var(--tm-danger-color)) !important;
+            }
+            .rowitemsmaller { color: var(--tm-muted-text, var(--tm-secondary-hover)) !important; }
+            .rnr-edge { border-color: var(--tm-surface-border, var(--tm-shop-item-border)) !important; }
+
+            /* Dynamic conditional-format stylesheet (.rnr-cells-css) */
+            style.rnr-cells-css + table .rnr-style5-ccc_dETDDiff,
+            td.rnr-style5-ccc_dETDDiff, .rnr-style5-ccc_dETDDiff {
+                background: var(--tm-row-highlight-danger-bg) !important;
+                color: var(--tm-row-highlight-danger-fg) !important;
+            }
+            style.rnr-cells-css + table .rnr-style5-dTimeDiff,
+            td.rnr-style5-dTimeDiff, .rnr-style5-dTimeDiff {
+                background: var(--tm-row-highlight-success-bg) !important;
+                color: var(--tm-row-highlight-success-fg) !important;
+            }
+
+            /* Accessibility skip links */
+            a.rnr-s508 { color: var(--tm-skip-link-color, var(--tm-secondary-color)) !important; }
+            a.rnr-s508:hover { color: var(--tm-link-hover-color, var(--tm-info-color)) !important; }
+
+            /* Page shell */
+            .rnr-page, .rnr-middle, .rnr-center, .rnr-left, .rnr-right { color: var(--tm-primary-color) !important; }
         `;
 
 /** Documented specialist UI palette sources (design systems & community themes). */
@@ -1638,6 +1772,29 @@ function tmBuildDerivedThemeTokens(colors) {
         '--tm-buff-badge-border': infoRgb ? `rgba(${infoRgb}, 0.55)` : info,
         '--tm-scrollbar-thumb': secondaryHover,
         '--tm-scrollbar-track': darkHover,
+        '--tm-header-bar-bg': darkHover,
+        '--tm-footer-bar-bg': darkHover,
+        '--tm-header-bar-text': isLight ? textOnLight : textOnDark,
+        '--tm-footer-bar-text': isLight ? textOnLight : textOnDark,
+        '--tm-count-badge-bg': darkHover,
+        '--tm-count-badge-text': isLight ? textOnLight : textOnDark,
+        '--tm-grid-header-bg': darkHover,
+        '--tm-grid-header-text': primary,
+        '--tm-grid-row-alt-bg': shopOwned,
+        '--tm-grid-row-hover-bg': shopHover,
+        '--tm-row-highlight-danger-bg': dangerRgb ? `rgba(${dangerRgb}, 0.32)` : 'rgba(220,53,69,0.32)',
+        '--tm-row-highlight-danger-fg': danger,
+        '--tm-row-highlight-success-bg': successRgb ? `rgba(${successRgb}, 0.26)` : 'rgba(40,167,69,0.26)',
+        '--tm-row-highlight-success-fg': success,
+        '--tm-accent-time-text': danger,
+        '--tm-menu-submenu-bg': shopOwned,
+        '--tm-menu-group-text': secondaryHover,
+        '--tm-skip-link-color': secondary,
+        '--tm-footer-native-btn-bg': shopBg,
+        '--tm-footer-native-btn-text': primary,
+        '--tm-footer-native-btn-border': shopBorder,
+        '--tm-details-link-color': info,
+        '--tm-sort-active-color': info,
     };
 
     if (primaryRgb) derived['--tm-primary-color-rgb'] = primaryRgb;

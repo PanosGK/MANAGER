@@ -68,6 +68,16 @@
                 --tm-xp-fill-start: #ffc107;
                 --tm-xp-fill-end: #e0a800;
                 --tm-coin-color: #ffc107;
+                --tm-header-bar-bg: #23272b;
+                --tm-footer-bar-bg: #23272b;
+                --tm-header-bar-text: #f4f4f4;
+                --tm-footer-bar-text: #f4f4f4;
+                --tm-count-badge-bg: #23272b;
+                --tm-count-badge-text: #17a2b8;
+                --tm-grid-header-bg: #23272b;
+                --tm-grid-header-text: #007bff;
+                --tm-row-highlight-danger-bg: rgba(220, 53, 69, 0.32);
+                --tm-row-highlight-success-bg: rgba(40, 167, 69, 0.26);
             }
             /* --- Feature: Advanced Search --- */
             /* --- Notification Center Styles --- */
