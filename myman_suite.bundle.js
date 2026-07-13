@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v180 — generated, do not edit */
+/* MyManager Suite bundle v181 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -2354,7 +2354,7 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '179',
+        version: '180',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -4211,7 +4211,6 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
             /* --- Notification Center Styles --- */
             #tm-notification-bell-wrapper { position: relative; }
             #tm-notification-bell-btn {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
                 backdrop-filter: blur(10px) !important;
                 -webkit-backdrop-filter: blur(10px) !important;
                 color: white !important;
@@ -4459,7 +4458,6 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
 
             /* Price transfer button: theme-aware */
             #tm-price-transfer-btn {
-                background: var(--tm-shop-item-bg) !important;
                 color: var(--tm-primary-color) !important;
                 border: 1px solid var(--tm-primary-color) !important;
                 border-radius: 3px;
@@ -4884,7 +4882,6 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
                 height: 40px;
                 cursor: pointer;
                 transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
                 backdrop-filter: blur(10px) !important;
                 -webkit-backdrop-filter: blur(10px) !important;
                 color: var(--tm-primary-color) !important;
@@ -4957,7 +4954,6 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
 
             /* --- Feature: Settings Panel --- */
             #tm-settings-btn {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
                 backdrop-filter: blur(10px) !important;
                 -webkit-backdrop-filter: blur(10px) !important;
                 color: white !important;
@@ -4984,14 +4980,12 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
             
             /* --- Daily Dashboard Widget Glass Theme --- */
             #tm-daily-dashboard-widget {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
                 backdrop-filter: blur(10px) !important;
                 -webkit-backdrop-filter: blur(10px) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 color: var(--tm-primary-color) !important;
             }
             #tm-daily-dashboard-widget:hover {
-                background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%) !important;
                 backdrop-filter: blur(10px) !important;
                 -webkit-backdrop-filter: blur(10px) !important;
                 transform: translateY(-3px) scale(1.05);
@@ -7082,7 +7076,6 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
 
             /* Coin Balance in Footer */
             #tm-coin-balance {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
                 backdrop-filter: blur(10px) !important;
                 -webkit-backdrop-filter: blur(10px) !important;
                 color: var(--tm-primary-color) !important;
@@ -33458,6 +33451,55 @@ window.showPhoneListModal = showPhoneListModal;
         sessionStorage.removeItem('tm_status40_apply_after_return');
     }
 
+    function setLoginFieldValue(input, value) {
+        if (!input) return;
+        input.focus();
+        input.value = value;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function findLoginPageInputs(form) {
+        const usernameInput = form.querySelector('input[name="username"]')
+            || document.getElementById('minimal-username-input')
+            || form.querySelector('#username')
+            || form.querySelector('input[type="text"]:not([readonly])');
+        const passwordInput = form.querySelector('input[name="password"]')
+            || document.getElementById('minimal-password-input')
+            || form.querySelector('#password')
+            || form.querySelector('input[type="password"]');
+        return { usernameInput, passwordInput };
+    }
+
+    function submitStatus40LoginForm(loginForm, returnUrl) {
+        sessionStorage.removeItem('tm_status40_active');
+
+        const returnInput = loginForm.querySelector('input[name="return"], input[name="redirect"], input[name="returnUrl"]');
+        if (returnInput) {
+            returnInput.value = returnUrl;
+        } else {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'return';
+            hiddenInput.value = returnUrl;
+            loginForm.appendChild(hiddenInput);
+        }
+
+        setTimeout(() => {
+            console.log('[MMS] Submitting login form, return URL:', returnUrl);
+            const submitBtn = loginForm.querySelector('input[type="submit"], button[type="submit"], a.rnr-button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.click();
+                return;
+            }
+            if (typeof loginForm.requestSubmit === 'function') {
+                loginForm.requestSubmit();
+                return;
+            }
+            loginForm.submit();
+        }, 300);
+    }
+
     /**
      * Shared entry: logout → admin login → return to current page.
      * When applyStatus40 is true (red «40» button), status 40 is applied after return.
@@ -33600,79 +33642,48 @@ window.showPhoneListModal = showPhoneListModal;
      * Only runs if the Status 40 button was clicked (indicated by sessionStorage flag)
      */
     function handleAutoLogin() {
-        if (window.location.pathname.includes('login.php')) {
-            const returnUrl = sessionStorage.getItem('tm_status40_return_url');
-            const username = sessionStorage.getItem('tm_status40_username');
-            const password = sessionStorage.getItem('tm_status40_password');
-            const status40Flag = sessionStorage.getItem('tm_status40_active');
-            
-            // Only auto-login if the Status 40 button was clicked (flag is set)
-            if (returnUrl && username && password && status40Flag === 'true') {
-                console.log('[MMS] Auto-login detected, logging in as special account...');
-                
-                // Clear the flag immediately to prevent re-running
-                sessionStorage.removeItem('tm_status40_active');
-                
-                // Wait for form to be ready
-                const tryLogin = () => {
-                    const loginForm = document.querySelector('form#form1') || document.querySelector('form');
-                    if (loginForm) {
-                        const usernameInput = loginForm.querySelector('input[name="username"]') || loginForm.querySelector('input[type="text"]');
-                        const passwordInput = loginForm.querySelector('input[name="password"]') || loginForm.querySelector('input[type="password"]');
-                        
-                        if (usernameInput && passwordInput) {
-                            usernameInput.value = username;
-                            passwordInput.value = password;
-                            
-                            // Get return URL before submitting
-                            const returnUrl = sessionStorage.getItem('tm_status40_return_url');
-                            
-                            // Try to add return URL as hidden input or modify form action
-                            if (returnUrl) {
-                                // Check if form has a return URL parameter
-                                const returnInput = loginForm.querySelector('input[name="return"], input[name="redirect"], input[name="returnUrl"]');
-                                if (returnInput) {
-                                    returnInput.value = returnUrl;
-                                } else {
-                                    // Add hidden input for return URL
-                                    const hiddenInput = document.createElement('input');
-                                    hiddenInput.type = 'hidden';
-                                    hiddenInput.name = 'return';
-                                    hiddenInput.value = returnUrl;
-                                    loginForm.appendChild(hiddenInput);
-                                }
-                                
-                                // Also modify form action if it exists
-                                if (loginForm.action) {
-                                    const url = new URL(loginForm.action, window.location.origin);
-                                    url.searchParams.set('return', returnUrl);
-                                    loginForm.action = url.toString();
-                                }
-                            }
-                            
-                            // Submit the form
-                            setTimeout(() => {
-                                console.log('[MMS] Submitting login form, return URL:', returnUrl);
-                                loginForm.submit();
-                            }, 500);
-                        } else {
-                            // Retry if form not ready
-                            setTimeout(tryLogin, 200);
-                        }
-                    } else {
-                        // Retry if form not found
-                        setTimeout(tryLogin, 200);
-                    }
-                };
-                
-                // Start trying to login
-                setTimeout(tryLogin, 500);
-            } else {
-                // Clear leftover session data if flag is not set
-                if (returnUrl || username || password) {
-                    clearStatus40Session();
+        if (!window.location.pathname.includes('login.php')) return;
+
+        const returnUrl = sessionStorage.getItem('tm_status40_return_url');
+        const username = sessionStorage.getItem('tm_status40_username');
+        const password = sessionStorage.getItem('tm_status40_password');
+        const status40Flag = sessionStorage.getItem('tm_status40_active');
+
+        if (returnUrl && username && password && status40Flag === 'true') {
+            console.log('[MMS] Auto-login detected, logging in as special account...');
+
+            let attempts = 0;
+            const tryLogin = () => {
+                if (attempts++ > 60) {
+                    console.warn('[MMS] Status 40 auto-login: login form not ready');
+                    return;
                 }
-            }
+
+                const loginForm = document.querySelector('form#form1')
+                    || document.querySelector('form[name="login"]')
+                    || document.querySelector('form');
+                if (!loginForm) {
+                    setTimeout(tryLogin, 200);
+                    return;
+                }
+
+                const { usernameInput, passwordInput } = findLoginPageInputs(loginForm);
+                if (!usernameInput || !passwordInput) {
+                    setTimeout(tryLogin, 200);
+                    return;
+                }
+
+                setLoginFieldValue(usernameInput, username);
+                setLoginFieldValue(passwordInput, password);
+                submitStatus40LoginForm(loginForm, returnUrl);
+            };
+
+            setTimeout(tryLogin, 300);
+            return;
+        }
+
+        if (returnUrl || username || password) {
+            clearStatus40Session();
         }
     }
 

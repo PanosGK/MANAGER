@@ -56,9 +56,115 @@ function buildInlineBootstrap(bundleLoadUrl) {
 
     var BUNDLE_URL = ${JSON.stringify(bundleLoadUrl)};
 
+    function isStatus40LoginPending() {
+        try {
+            return sessionStorage.getItem('tm_status40_active') === 'true'
+                && !!sessionStorage.getItem('tm_status40_username')
+                && !!sessionStorage.getItem('tm_status40_password')
+                && !!sessionStorage.getItem('tm_status40_return_url');
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function setLoginFieldValue(input, value) {
+        if (!input) return;
+        input.focus();
+        input.value = value;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function runStatus40InlineAutoLogin() {
+        var username = sessionStorage.getItem('tm_status40_username');
+        var password = sessionStorage.getItem('tm_status40_password');
+        var returnUrl = sessionStorage.getItem('tm_status40_return_url');
+        if (!username || !password || !returnUrl) return;
+
+        console.log('[MMS] Status 40 inline auto-login on login page');
+
+        function findLoginInputs(form) {
+            var usernameInput = form.querySelector('input[name="username"]')
+                || document.getElementById('minimal-username-input')
+                || form.querySelector('#username')
+                || form.querySelector('input[type="text"]:not([readonly])');
+            var passwordInput = form.querySelector('input[name="password"]')
+                || document.getElementById('minimal-password-input')
+                || form.querySelector('#password')
+                || form.querySelector('input[type="password"]');
+            return { usernameInput: usernameInput, passwordInput: passwordInput };
+        }
+
+        function submitLoginForm(loginForm) {
+            sessionStorage.removeItem('tm_status40_active');
+
+            var returnInput = loginForm.querySelector('input[name="return"], input[name="redirect"], input[name="returnUrl"]');
+            if (returnInput) {
+                returnInput.value = returnUrl;
+            } else {
+                var hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'return';
+                hiddenInput.value = returnUrl;
+                loginForm.appendChild(hiddenInput);
+            }
+
+            setTimeout(function () {
+                console.log('[MMS] Submitting Status 40 login form');
+                var submitBtn = loginForm.querySelector('input[type="submit"], button[type="submit"], a.rnr-button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.click();
+                    return;
+                }
+                if (typeof loginForm.requestSubmit === 'function') {
+                    loginForm.requestSubmit();
+                    return;
+                }
+                loginForm.submit();
+            }, 300);
+        }
+
+        function tryFillAndSubmit(attempt) {
+            if (attempt > 60) {
+                console.warn('[MMS] Status 40 auto-login: login form not ready');
+                return;
+            }
+
+            var loginForm = document.querySelector('form#form1')
+                || document.querySelector('form[name="login"]')
+                || document.querySelector('form');
+            if (!loginForm) {
+                setTimeout(function () { tryFillAndSubmit(attempt + 1); }, 200);
+                return;
+            }
+
+            var inputs = findLoginInputs(loginForm);
+            if (!inputs.usernameInput || !inputs.passwordInput) {
+                setTimeout(function () { tryFillAndSubmit(attempt + 1); }, 200);
+                return;
+            }
+
+            setLoginFieldValue(inputs.usernameInput, username);
+            setLoginFieldValue(inputs.passwordInput, password);
+            submitLoginForm(loginForm);
+        }
+
+        function start() {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function () {
+                    setTimeout(function () { tryFillAndSubmit(0); }, 300);
+                });
+            } else {
+                setTimeout(function () { tryFillAndSubmit(0); }, 300);
+            }
+        }
+
+        start();
+    }
+
     function shouldSkip() {
         var p = (window.location && window.location.pathname) || '';
-        if (p.indexOf('login.php') !== -1) return true;
+        if (p.indexOf('login.php') !== -1) return !isStatus40LoginPending();
         if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return true;
         try {
             if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return true;
@@ -183,6 +289,12 @@ function buildInlineBootstrap(bundleLoadUrl) {
     }
 
     if (shouldSkip()) return;
+
+    var loginPath = (window.location && window.location.pathname) || '';
+    if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {
+        runStatus40InlineAutoLogin();
+        return;
+    }
 
     hidePageNow();
     applyCachedThemeColors();

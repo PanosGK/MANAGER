@@ -53,6 +53,55 @@
         sessionStorage.removeItem('tm_status40_apply_after_return');
     }
 
+    function setLoginFieldValue(input, value) {
+        if (!input) return;
+        input.focus();
+        input.value = value;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function findLoginPageInputs(form) {
+        const usernameInput = form.querySelector('input[name="username"]')
+            || document.getElementById('minimal-username-input')
+            || form.querySelector('#username')
+            || form.querySelector('input[type="text"]:not([readonly])');
+        const passwordInput = form.querySelector('input[name="password"]')
+            || document.getElementById('minimal-password-input')
+            || form.querySelector('#password')
+            || form.querySelector('input[type="password"]');
+        return { usernameInput, passwordInput };
+    }
+
+    function submitStatus40LoginForm(loginForm, returnUrl) {
+        sessionStorage.removeItem('tm_status40_active');
+
+        const returnInput = loginForm.querySelector('input[name="return"], input[name="redirect"], input[name="returnUrl"]');
+        if (returnInput) {
+            returnInput.value = returnUrl;
+        } else {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'return';
+            hiddenInput.value = returnUrl;
+            loginForm.appendChild(hiddenInput);
+        }
+
+        setTimeout(() => {
+            console.log('[MMS] Submitting login form, return URL:', returnUrl);
+            const submitBtn = loginForm.querySelector('input[type="submit"], button[type="submit"], a.rnr-button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.click();
+                return;
+            }
+            if (typeof loginForm.requestSubmit === 'function') {
+                loginForm.requestSubmit();
+                return;
+            }
+            loginForm.submit();
+        }, 300);
+    }
+
     /**
      * Shared entry: logout → admin login → return to current page.
      * When applyStatus40 is true (red «40» button), status 40 is applied after return.
@@ -195,79 +244,48 @@
      * Only runs if the Status 40 button was clicked (indicated by sessionStorage flag)
      */
     function handleAutoLogin() {
-        if (window.location.pathname.includes('login.php')) {
-            const returnUrl = sessionStorage.getItem('tm_status40_return_url');
-            const username = sessionStorage.getItem('tm_status40_username');
-            const password = sessionStorage.getItem('tm_status40_password');
-            const status40Flag = sessionStorage.getItem('tm_status40_active');
-            
-            // Only auto-login if the Status 40 button was clicked (flag is set)
-            if (returnUrl && username && password && status40Flag === 'true') {
-                console.log('[MMS] Auto-login detected, logging in as special account...');
-                
-                // Clear the flag immediately to prevent re-running
-                sessionStorage.removeItem('tm_status40_active');
-                
-                // Wait for form to be ready
-                const tryLogin = () => {
-                    const loginForm = document.querySelector('form#form1') || document.querySelector('form');
-                    if (loginForm) {
-                        const usernameInput = loginForm.querySelector('input[name="username"]') || loginForm.querySelector('input[type="text"]');
-                        const passwordInput = loginForm.querySelector('input[name="password"]') || loginForm.querySelector('input[type="password"]');
-                        
-                        if (usernameInput && passwordInput) {
-                            usernameInput.value = username;
-                            passwordInput.value = password;
-                            
-                            // Get return URL before submitting
-                            const returnUrl = sessionStorage.getItem('tm_status40_return_url');
-                            
-                            // Try to add return URL as hidden input or modify form action
-                            if (returnUrl) {
-                                // Check if form has a return URL parameter
-                                const returnInput = loginForm.querySelector('input[name="return"], input[name="redirect"], input[name="returnUrl"]');
-                                if (returnInput) {
-                                    returnInput.value = returnUrl;
-                                } else {
-                                    // Add hidden input for return URL
-                                    const hiddenInput = document.createElement('input');
-                                    hiddenInput.type = 'hidden';
-                                    hiddenInput.name = 'return';
-                                    hiddenInput.value = returnUrl;
-                                    loginForm.appendChild(hiddenInput);
-                                }
-                                
-                                // Also modify form action if it exists
-                                if (loginForm.action) {
-                                    const url = new URL(loginForm.action, window.location.origin);
-                                    url.searchParams.set('return', returnUrl);
-                                    loginForm.action = url.toString();
-                                }
-                            }
-                            
-                            // Submit the form
-                            setTimeout(() => {
-                                console.log('[MMS] Submitting login form, return URL:', returnUrl);
-                                loginForm.submit();
-                            }, 500);
-                        } else {
-                            // Retry if form not ready
-                            setTimeout(tryLogin, 200);
-                        }
-                    } else {
-                        // Retry if form not found
-                        setTimeout(tryLogin, 200);
-                    }
-                };
-                
-                // Start trying to login
-                setTimeout(tryLogin, 500);
-            } else {
-                // Clear leftover session data if flag is not set
-                if (returnUrl || username || password) {
-                    clearStatus40Session();
+        if (!window.location.pathname.includes('login.php')) return;
+
+        const returnUrl = sessionStorage.getItem('tm_status40_return_url');
+        const username = sessionStorage.getItem('tm_status40_username');
+        const password = sessionStorage.getItem('tm_status40_password');
+        const status40Flag = sessionStorage.getItem('tm_status40_active');
+
+        if (returnUrl && username && password && status40Flag === 'true') {
+            console.log('[MMS] Auto-login detected, logging in as special account...');
+
+            let attempts = 0;
+            const tryLogin = () => {
+                if (attempts++ > 60) {
+                    console.warn('[MMS] Status 40 auto-login: login form not ready');
+                    return;
                 }
-            }
+
+                const loginForm = document.querySelector('form#form1')
+                    || document.querySelector('form[name="login"]')
+                    || document.querySelector('form');
+                if (!loginForm) {
+                    setTimeout(tryLogin, 200);
+                    return;
+                }
+
+                const { usernameInput, passwordInput } = findLoginPageInputs(loginForm);
+                if (!usernameInput || !passwordInput) {
+                    setTimeout(tryLogin, 200);
+                    return;
+                }
+
+                setLoginFieldValue(usernameInput, username);
+                setLoginFieldValue(passwordInput, password);
+                submitStatus40LoginForm(loginForm, returnUrl);
+            };
+
+            setTimeout(tryLogin, 300);
+            return;
+        }
+
+        if (returnUrl || username || password) {
+            clearStatus40Session();
         }
     }
 
