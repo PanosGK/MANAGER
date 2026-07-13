@@ -343,6 +343,7 @@ const THEME_STYLES = `/* Universal Theme Styles */
             .tm-scratchpad-source-link { background: var(--tm-shop-item-bg) !important; color: var(--tm-primary-color) !important; border: 1px solid var(--tm-secondary-hover) !important; }
             .tm-scratchpad-source-link:hover { background: var(--tm-shop-item-hover-bg) !important; }
             #tm-scratchpad-reminder-popover h5, #tm-scratchpad-template-popover h5 { color: var(--tm-primary-color) !important; }
+            .tm-sp-reminder-label { color: var(--tm-secondary-hover) !important; }
 
             /* --- Notification Center - Keep glass theme --- */
             #tm-notification-unread-count { background-color: var(--tm-danger-color) !important; color: white !important; text-shadow: none; }

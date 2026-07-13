@@ -17,9 +17,19 @@
      * resizable text area whose content and geometry are saved.
      */
     function initScratchpadFeature(config, STORAGE_KEYS) {
-        if (!config.scratchpadEnabled) return;
+        if (!config?.scratchpadEnabled) return;
+        if (document.getElementById('tm-scratchpad-container')) return;
 
-        const SCRATCHPAD_STORAGE_KEY_IS_MAXIMIZED = 'tm_user_scratchpad_is_maximized'; // For maximized state
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        const SCRATCHPAD_STORAGE_KEY_IS_MAXIMIZED = 'tm_user_scratchpad_is_maximized';
 
         // --- UI Creation ---
         // 1. Create the Scratchpad Panel
@@ -45,20 +55,27 @@
                 </div>
             </div>
             <div id="tm-scratchpad-toolbar">
-                <!-- Inline Styles -->
+                <button data-command="insertUnorderedList" title="Bulleted List">●</button>
+                <button data-command="insertOrderedList" title="Numbered List">1.</button>
+                <div class="tm-toolbar-separator"></div>
+                <button data-command="formatBlock" data-value="h1" title="Heading 1">H1</button>
+                <button data-command="formatBlock" data-value="p" title="Paragraph">P</button>
+                <div class="tm-toolbar-separator"></div>
                 <button data-command="bold" title="Bold (Ctrl+B)"><b>B</b></button>
                 <button data-command="italic" title="Italic (Ctrl+I)"><i>I</i></button>
                 <button data-command="underline" title="Underline (Ctrl+U)"><u>U</u></button>
                 <button data-command="strikeThrough" title="Strikethrough"><s>S</s></button>
                 <div class="tm-toolbar-separator"></div>
-                <!-- Actions -->
                 <button data-command="createLink" title="Insert Link">🔗</button>
                 <button data-command="removeFormat" title="Clear Formatting">🧹</button>
             </div>
             <div id="tm-scratchpad-editor" contenteditable="true" spellcheck="false" placeholder="Προσωρινές σημειώσεις..."></div>
             <div id="tm-scratchpad-reminder-popover">
                 <h5>Ορισμός Υπενθύμισης</h5>
-                <input type="text" id="tm-scratchpad-reminder-text" placeholder="Τι να σας θυμίσω;">
+                <label class="tm-sp-reminder-label" for="tm-scratchpad-reminder-title">Τίτλος</label>
+                <input type="text" id="tm-scratchpad-reminder-title" placeholder="Σύντομος τίτλος">
+                <label class="tm-sp-reminder-label" for="tm-scratchpad-reminder-notes">Σημειώσεις</label>
+                <textarea id="tm-scratchpad-reminder-notes" rows="3" placeholder="Περισσότερες λεπτομέρειες…"></textarea>
                 <input type="datetime-local" id="tm-scratchpad-reminder-datetime">
                 <select id="tm-scratchpad-reminder-recurrence">
                     <option value="none">Χωρίς επανάληψη</option>
@@ -79,18 +96,22 @@
         `;
         document.body.appendChild(container);
 
-        // 2. Find the main search button container and add the toggle button there.
-        const rightSideContainer = document.getElementById('tm-search-container');
+        // 2. Find or create the main search button container and add the toggle button there.
+        let rightSideContainer = document.getElementById('tm-search-container');
         if (!rightSideContainer) {
-            console.log('[MMS] Right-side container not found, not adding Scratchpad toggle button.');
-            return; // Don't add the button if the main container isn't there
+            rightSideContainer = document.createElement('div');
+            rightSideContainer.id = 'tm-search-container';
+            document.body.appendChild(rightSideContainer);
         }
 
-        const toggleButton = document.createElement('button');
-        toggleButton.id = 'tm-scratchpad-toggle-btn';
-        toggleButton.className = 'tm-slide-out-btn';
-        toggleButton.textContent = '🗒️ Σημειωματάριο';
-        rightSideContainer.appendChild(toggleButton);
+        let toggleButton = document.getElementById('tm-scratchpad-toggle-btn');
+        if (!toggleButton) {
+            toggleButton = document.createElement('button');
+            toggleButton.id = 'tm-scratchpad-toggle-btn';
+            toggleButton.className = 'tm-slide-out-btn';
+            toggleButton.textContent = '🗒️ Σημειωματάριο';
+            rightSideContainer.appendChild(toggleButton);
+        }
 
         const editor = container.querySelector('#tm-scratchpad-editor');
         const header = container.querySelector('#tm-scratchpad-header');
@@ -102,7 +123,8 @@
         const closeBtn = container.querySelector('#tm-scratchpad-close-btn');
         const lastEditedSpan = container.querySelector('#tm-scratchpad-last-edited');
         const reminderBtn = container.querySelector('#tm-scratchpad-reminder-btn');
-        const reminderTextInput = container.querySelector('#tm-scratchpad-reminder-text');
+        const reminderTitleInput = container.querySelector('#tm-scratchpad-reminder-title');
+        const reminderNotesInput = container.querySelector('#tm-scratchpad-reminder-notes');
         const reminderPopover = container.querySelector('#tm-scratchpad-reminder-popover');
         const reminderDateTimeInput = container.querySelector('#tm-scratchpad-reminder-datetime');
         const reminderRecurrenceSelect = container.querySelector('#tm-scratchpad-reminder-recurrence');
@@ -122,7 +144,7 @@
         function getNotes() {
             const notes = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_NOTES, '[]'));
             if (notes.length === 0) {
-                const firstNote = { id: `note_${Date.now()}`, title: 'Note 1', content: '', reminder: null, isPinned: false, lastEdited: null, fontSize: 13 };
+                const firstNote = { id: `note_${Date.now()}`, title: 'Σημείωση 1', content: '', reminder: null, isPinned: false, lastEdited: null, fontSize: 13 };
                 return [firstNote];
             }
             return notes;
@@ -201,7 +223,7 @@
             editor.focus();
 
             if (command === 'createLink') {
-                const url = prompt('Enter the URL:');
+                const url = prompt('Εισάγετε τη διεύθυνση URL:');
                 if (url) {
                     document.execCommand(command, false, url);
                 }
@@ -247,10 +269,21 @@
             if (timestamp) {
                 const date = new Date(timestamp);
                 lastEditedSpan.textContent = `Τελευταία επεξεργασία: ${date.toLocaleDateString('el-GR')} ${date.toLocaleTimeString('el-GR')}`;
+                lastEditedSpan.style.display = 'inline';
             } else {
                 lastEditedSpan.textContent = '';
+                lastEditedSpan.style.display = 'none';
             }
         }
+
+        clearBtn.addEventListener('click', () => {
+            if (!confirm('Καθαρισμός τρέχουσας σημείωσης;')) return;
+            editor.innerHTML = '';
+            const now = new Date().toISOString();
+            updateActiveNote({ content: '', lastEdited: now });
+            updateLastEditedDisplay(now);
+            renderCheckboxesInEditor();
+        });
 
         // Show/Hide Logic
         toggleButton.addEventListener('click', () => {
@@ -259,7 +292,8 @@
             GM_setValue('tm_user_scratchpad_is_open', willBeVisible);
         });
 
-        closeBtn.addEventListener('click', () => {
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             container.style.display = 'none';
             GM_setValue('tm_user_scratchpad_is_open', false);
         });
@@ -405,21 +439,29 @@
 
         // --- Tabs Logic ---
         function renderTabs() {
-            let notes = getNotes();
+            const allNotes = getNotes();
             const activeId = getActiveNoteId();
             const query = searchInput.value.toLowerCase().trim();
+            let notes = allNotes;
 
-            // Filter notes based on the search query
             if (query) {
-                notes = notes.filter(note => {
-                    // To search content, we need to convert the saved HTML to plain text.
+                notes = allNotes.filter(note => {
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = note.content || '';
                     const textContent = tempDiv.innerText.toLowerCase();
-
-                    return note.title.toLowerCase().includes(query) ||
-                           textContent.includes(query);
+                    const reminderBlob = [
+                        note.reminder?.title,
+                        note.reminder?.text,
+                        note.reminder?.notes,
+                    ].filter(Boolean).join(' ').toLowerCase();
+                    return note.title.toLowerCase().includes(query)
+                        || textContent.includes(query)
+                        || reminderBlob.includes(query);
                 });
+                const activeNote = allNotes.find((n) => n.id === activeId);
+                if (activeNote && !notes.some((n) => n.id === activeId)) {
+                    notes = [activeNote, ...notes];
+                }
             }
 
             // Sort notes so pinned ones are first
@@ -430,7 +472,7 @@
 
             tabsContainer.innerHTML = '';
             if (notes.length === 0 && query) {
-                tabsContainer.innerHTML = `<span style="padding: 6px 10px; font-size: 12px; color: #666; font-style: italic;">No matches found.</span>`;
+                tabsContainer.innerHTML = '<span class="tm-scratchpad-tabs-empty">Δεν βρέθηκαν σημειώσεις.</span>';
             }
             notes.forEach(note => {
                 const tab = document.createElement('div');
@@ -441,14 +483,14 @@
                 if (note.isPinned) tab.classList.add('pinned');
 
                 const pinIcon = note.isPinned ? '📌' : '📍';
-                tab.innerHTML = `<button class="tm-scratchpad-tab-pin" title="Pin Note">${pinIcon}</button><span class="tm-scratchpad-tab-title" title="Double-click to rename">${note.title}</span><button class="tm-scratchpad-tab-close" title="Delete Note">&times;</button>`;
+                tab.innerHTML = `<button class="tm-scratchpad-tab-pin" title="Καρφίτσωμα">${pinIcon}</button><span class="tm-scratchpad-tab-title" title="Διπλό κλικ για μετονομασία">${escapeHtml(note.title)}</span><button class="tm-scratchpad-tab-close" title="Διαγραφή">&times;</button>`;
                 tabsContainer.appendChild(tab);
             });
         }
 
         newTabBtn.addEventListener('click', () => {
             let notes = getNotes();
-            const newNote = { id: `note_${Date.now()}`, title: `Note ${notes.length + 1}`, content: '', reminder: null, isPinned: false, lastEdited: null, fontSize: 13 };
+            const newNote = { id: `note_${Date.now()}`, title: `Σημείωση ${notes.length + 1}`, content: '', reminder: null, isPinned: false, lastEdited: null, fontSize: 13 };
             notes.push(newNote);
             saveNotes(notes);
             GM_setValue(STORAGE_KEYS.SCRATCHPAD_ACTIVE_NOTE_ID, newNote.id);
@@ -521,7 +563,7 @@
                 if (titleSpan) {
                     const noteId = titleSpan.parentElement.dataset.noteId;
                     const currentNote = getNotes().find(n => n.id === noteId);
-                    const newTitle = prompt('Enter new note title:', currentNote.title);
+                    const newTitle = prompt('Νέος τίτλος σημείωσης:', currentNote.title);
                     if (newTitle && newTitle.trim()) {
                         let notes = getNotes();
                         const noteToUpdate = notes.find(n => n.id === noteId);
@@ -544,8 +586,8 @@
                         const note = notes.find(n => n.id === noteId);
                         if (note) { note.isPinned = !note.isPinned; saveNotes(notes); renderTabs(); }
                     } else if (e.target.classList.contains('tm-scratchpad-tab-close')) {
-                        if (getNotes().length <= 1) { window.showPositiveMessage('Cannot close the last note.'); return; }
-                        if (confirm(`Are you sure you want to delete "${tab.querySelector('.tm-scratchpad-tab-title').textContent}"?`)) {
+                        if (getNotes().length <= 1) { window.showPositiveMessage('Δεν μπορείτε να διαγράψετε την τελευταία σημείωση.'); return; }
+                        if (confirm(`Διαγραφή της σημείωσης "${tab.querySelector('.tm-scratchpad-tab-title').textContent}";`)) {
                             let notes = getNotes().filter(n => n.id !== noteId);
                             saveNotes(notes);
                             if (getActiveNoteId() === noteId) { GM_setValue(STORAGE_KEYS.SCRATCHPAD_ACTIVE_NOTE_ID, notes[0].id); }
@@ -693,14 +735,20 @@
         });
 
         // --- Template Logic ---
-        templateBtn.addEventListener('click', () => {
+        templateBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
             const templates = JSON.parse(GM_getValue(STORAGE_KEYS.SCRATCHPAD_TEMPLATES, '[]'));
             if (templates.length === 0) {
-                window.showPositiveMessage('No templates saved. Add them in the settings.');
+                window.showPositiveMessage('Δεν υπάρχουν πρότυπα. Προσθέστε από τις ρυθμίσεις.');
                 return;
             }
-            templateList.innerHTML = templates.map(t => `<button data-content="${encodeURIComponent(t.content)}">${t.title}</button>`).join('');
+            templateList.innerHTML = templates.map((t) => {
+                const safeTitle = escapeHtml(t.title);
+                const safeContent = encodeURIComponent(t.content || '');
+                return `<button type="button" data-content="${safeContent}">${safeTitle}</button>`;
+            }).join('');
             templatePopover.style.display = 'block';
+            reminderPopover.style.display = 'none';
         });
 
         templateList.addEventListener('click', (e) => {
@@ -713,6 +761,9 @@
         });
 
         // Hide popovers on outside click
+        reminderPopover.addEventListener('click', (e) => e.stopPropagation());
+        templatePopover.addEventListener('click', (e) => e.stopPropagation());
+
         document.addEventListener('click', (e) => {
             if (!templatePopover.contains(e.target) && e.target !== templateBtn) {
                 templatePopover.style.display = 'none';
@@ -772,7 +823,15 @@
         }
         maximizeBtn.addEventListener('click', toggleMaximize);
 
-        // --- Reminder Logic ---
+        function fmtReminderDateTime(dt) {
+            const y = dt.getFullYear();
+            const m = String(dt.getMonth() + 1).padStart(2, '0');
+            const d = String(dt.getDate()).padStart(2, '0');
+            const h = String(dt.getHours()).padStart(2, '0');
+            const min = String(dt.getMinutes()).padStart(2, '0');
+            return `${y}-${m}-${d}T${h}:${min}`;
+        }
+
         function updateReminderDisplay() {
             const note = getActiveNote();
             const reminder = note?.reminder;
@@ -781,11 +840,14 @@
                 let recurrenceText = '';
                 if (reminder.recurrence === 'daily') recurrenceText = ' (Καθημερινά)';
                 if (reminder.recurrence === 'weekly') recurrenceText = ' (Εβδομαδιαία)';
+                const title = reminder.title || reminder.text || note.title || 'Υπενθύμιση';
+                const notes = reminder.notes || '';
 
                 activeReminderDiv.innerHTML = `
-                    <span style="font-weight:normal; display:block; margin-bottom: 3px;">${reminder.text}</span>
-                    ${dueDate.toLocaleString('el-GR')}${recurrenceText}
-                    <button id="tm-scratchpad-clear-reminder-btn">Καθαρισμός</button>
+                    <span style="font-weight:bold; display:block; margin-bottom: 3px;">${escapeHtml(title)}</span>
+                    ${notes ? `<span style="font-weight:normal; display:block; margin-bottom: 3px; opacity:0.9;">${escapeHtml(notes)}</span>` : ''}
+                    ${escapeHtml(dueDate.toLocaleString('el-GR'))}${escapeHtml(recurrenceText)}
+                    <button type="button" id="tm-scratchpad-clear-reminder-btn">Καθαρισμός</button>
                 `;
                 activeReminderDiv.querySelector('#tm-scratchpad-clear-reminder-btn').addEventListener('click', clearReminder);
                 reminderBtn.classList.add('active');
@@ -795,47 +857,70 @@
             }
         }
 
-        function saveReminder(dueTime, recurrence, text) {
-            if (!text) {
-                alert('Παρακαλώ εισάγετε το κείμενο της υπενθύμισης.');
+        function saveReminder(dueTime, recurrence, title, notes) {
+            if (!title) {
+                alert('Παρακαλώ εισάγετε τίτλο για την υπενθύμιση.');
                 return;
             }
 
-            // Request permission if needed
-            if (window.Notification && Notification.permission !== "granted") {
+            if (window.Notification && Notification.permission !== 'granted') {
                 Notification.requestPermission();
             }
 
             const newReminder = {
-                id: `scratchpad_${Date.now()}`,
-                text: text,
-                dueTime: dueTime,
-                recurrence: recurrence,
+                title,
+                notes: notes || '',
+                text: title,
+                dueTime,
+                recurrence,
                 createdAt: Date.now()
             };
             updateActiveNote({ reminder: newReminder });
-            console.log('[MMS] Reminder set:', newReminder);
-            window.trackDailyStat(config, STORAGE_KEYS, 'setScratchpadReminder'); // Grant XP for setting a reminder
             updateReminderDisplay();
             reminderPopover.style.display = 'none';
+            if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
+                window.refreshActiveAlertsPanelIfOpen();
+            }
+            if (typeof window.trackDailyStat === 'function') {
+                window.trackDailyStat(config, STORAGE_KEYS, 'setScratchpadReminder');
+            }
         }
 
         function clearReminder() {
+            const note = getActiveNote();
+            if (note?.reminder && typeof window.appendReminderHistory === 'function') {
+                window.appendReminderHistory({
+                    source: 'scratchpad',
+                    action: 'cancelled',
+                    title: note.reminder.title || note.reminder.text || note.title || 'Σημείωση',
+                    message: note.reminder.notes || '',
+                    dueTime: note.reminder.dueTime,
+                    noteId: note.id,
+                    recurrence: note.reminder.recurrence || 'none',
+                });
+            }
             updateActiveNote({ reminder: null });
-            console.log('[MMS] Reminder cleared.');
             updateReminderDisplay();
+            if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
+                window.refreshActiveAlertsPanelIfOpen();
+            }
         }
 
-        reminderBtn.addEventListener('click', () => {
-            reminderPopover.style.display = reminderPopover.style.display === 'flex' ? 'none' : 'flex';
-            if (reminderPopover.style.display === 'flex') {
-                // Pre-fill with existing reminder text if available
+        reminderBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const willShow = reminderPopover.style.display !== 'flex';
+            reminderPopover.style.display = willShow ? 'flex' : 'none';
+            templatePopover.style.display = 'none';
+            if (willShow) {
                 const note = getActiveNote();
                 const reminder = note?.reminder;
-                reminderTextInput.value = reminder?.text || '';
+                reminderTitleInput.value = reminder?.title || reminder?.text || note?.title || '';
+                reminderNotesInput.value = reminder?.notes || '';
+                reminderRecurrenceSelect.value = reminder?.recurrence || 'none';
                 if (reminder?.dueTime) {
-                    const d = new Date(reminder.dueTime);
-                    reminderDateTimeInput.value = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}T${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+                    reminderDateTimeInput.value = fmtReminderDateTime(new Date(reminder.dueTime));
+                } else {
+                    reminderDateTimeInput.value = fmtReminderDateTime(new Date(Date.now() + 60 * 60 * 1000));
                 }
             }
         });
@@ -846,17 +931,30 @@
 
         setReminderBtn.addEventListener('click', () => {
             const dueTime = new Date(reminderDateTimeInput.value).getTime();
-            if (isNaN(dueTime) || dueTime < Date.now()) {
+            if (!reminderDateTimeInput.value || Number.isNaN(dueTime) || dueTime <= Date.now()) {
                 alert('Παρακαλώ επιλέξτε μια μελλοντική ημερομηνία και ώρα.');
                 return;
             }
-            saveReminder(dueTime, reminderRecurrenceSelect.value, reminderTextInput.value.trim());
+            saveReminder(
+                dueTime,
+                reminderRecurrenceSelect.value,
+                reminderTitleInput.value.trim(),
+                reminderNotesInput.value.trim()
+            );
         });
 
         setReminder1hrBtn.addEventListener('click', () => {
             const dueTime = Date.now() + 60 * 60 * 1000;
-            saveReminder(dueTime, reminderRecurrenceSelect.value, reminderTextInput.value.trim());
+            reminderDateTimeInput.value = fmtReminderDateTime(new Date(dueTime));
+            saveReminder(
+                dueTime,
+                reminderRecurrenceSelect.value,
+                reminderTitleInput.value.trim(),
+                reminderNotesInput.value.trim()
+            );
         });
+
+        window.refreshScratchpadReminderUI = updateReminderDisplay;
 
         // --- Dragging and Sizing Logic ---
         let isDragging = false;
@@ -875,7 +973,7 @@
         }, 500);
 
         header.addEventListener('mousedown', (e) => {
-            if (e.target.closest('button') || isMaximized) return;
+            if (e.target.closest('button, input, select, textarea') || isMaximized) return;
 
             isDragging = true;
             offsetX = e.clientX - container.getBoundingClientRect().left;
@@ -899,10 +997,9 @@
         document.addEventListener('mouseup', () => {
             if (isDragging) {
                 isDragging = false;
-                container.style.transition = ''; // Re-enable transitions
+                container.style.transition = '';
                 document.body.style.userSelect = '';
                 if (!isMaximized) saveGeometry();
-                saveGeometry();
             }
         });
 
@@ -938,7 +1035,9 @@
             console.log('[MMS] sendToScratchpad called with:', { text, sourceUrl });
             
             // Add source link if provided
-            const sourceLinkHTML = sourceUrl ? `<br><a href="${sourceUrl}" target="_blank" class="tm-scratchpad-source-link">🔗 Go to Source</a>` : '';
+            const sourceLinkHTML = sourceUrl
+                ? `<a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener" class="tm-scratchpad-source-link">🔗 Πηγή</a>`
+                : '';
 
             // Append text to the current note
             // Only add text if it's not empty
@@ -964,7 +1063,7 @@
                 window.debouncedSaveText();
             }
             
-            window.showPositiveMessage('Sent to Scratchpad!');
+            window.showPositiveMessage('Προστέθηκε στο σημειωματάριο!');
         };
 
         // Add a click listener to the editor to handle links inside contenteditable

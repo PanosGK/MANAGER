@@ -1712,6 +1712,13 @@
             .tm-scratchpad-tab-pin { background: none; border: none; cursor: pointer; font-size: 12px; padding: 0 2px; opacity: 0.6; }
             .tm-scratchpad-tab-close { background: none; border: none; cursor: pointer; font-size: 14px; padding: 0 2px; }
             .tm-scratchpad-tab-close:hover { color: var(--tm-danger-color); }
+            .tm-scratchpad-tabs-empty {
+                font-size: 11px;
+                color: #6c757d;
+                font-style: italic;
+                padding: 4px 8px;
+                white-space: nowrap;
+            }
             #tm-scratchpad-new-tab-btn {
                 background: #ccc; border: none; border-radius: 5px 5px 0 0; padding: 0 8px;
                 font-size: 16px; font-weight: bold; cursor: pointer;
