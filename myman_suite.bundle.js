@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v182 — generated, do not edit */
+/* MyManager Suite bundle v184 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -1710,40 +1710,39 @@ const UI_THEMES = {
     'oceanic': {
         name: 'Oceanic', icon: '🌊', cost: 500, type: 'theme',
         colors: {
-            '--tm-primary-color': '#40E0D0',      // Turquoise (Shallow Water)
-            '--tm-primary-hover': '#48D1CC',      // MediumTurquoise
-            '--tm-secondary-color': '#008B8B',    // DarkCyan (Deeper Water)
-            '--tm-secondary-hover': '#00CED1',    // DarkTurquoise
-            '--tm-success-color': '#2E8B57',      // SeaGreen (Kelp)
-            '--tm-success-hover': '#3CB371',      // MediumSeaGreen
-            '--tm-danger-color': '#FF6347',       // Tomato (Warning Coral)
-            '--tm-danger-hover': '#E55337',       //
-            '--tm-warning-color': '#FFD700',      // Gold (Sunken Treasure)
-            '--tm-warning-hover': '#E0BE00',      //
-            '--tm-info-color': '#87CEEB',         // SkyBlue (Sunlight Rays)
-            '--tm-info-hover': '#7AC5E3',         //
-            '--tm-dark-color': '#001f3f',         // Navy (Abyss)
-            '--tm-dark-hover': '#001a33',         // Darker Navy
+            '--tm-primary-color': '#2dd4bf',      // Aquamarine (shallow reef)
+            '--tm-primary-hover': '#5eead4',      // Bright Turquoise
+            '--tm-secondary-color': '#0e7490',    // Deep Teal
+            '--tm-secondary-hover': '#0891b2',    // Ocean Cyan
+            '--tm-success-color': '#059669',      // Kelp Green
+            '--tm-success-hover': '#10b981',      // Sea Green
+            '--tm-danger-color': '#fb7185',       // Coral Pink
+            '--tm-danger-hover': '#f43f5e',       // Warm Coral
+            '--tm-warning-color': '#fbbf24',      // Sunlit Gold
+            '--tm-warning-hover': '#f59e0b',      // Amber
+            '--tm-info-color': '#38bdf8',         // Surface Sky
+            '--tm-info-hover': '#0ea5e9',         // Bright Sky
+            '--tm-dark-color': '#001a2e',         // Abyss Navy (teal undertone)
+            '--tm-dark-hover': '#001220',         // Deep Abyss
 
-            // Shop Item Styles for Oceanic
-            '--tm-shop-item-bg': 'rgba(0, 31, 63, 0.7)',      // A semi-transparent abyss blue
-            '--tm-shop-item-border': 'var(--tm-primary-color)', // Bright turquoise border
-            '--tm-shop-item-hover-bg': 'var(--tm-secondary-color)', // Deeper water color on hover
-            '--tm-shop-item-owned-bg': 'rgba(255, 215, 0, 0.15)', // A faint golden glow for owned items
-            '--tm-text-on-primary': '#001f3f',
-            '--tm-text-on-success': '#001f3f',
+            '--tm-shop-item-bg': 'rgba(0, 30, 48, 0.82)',
+            '--tm-shop-item-border': '#0e7490',
+            '--tm-shop-item-hover-bg': 'rgba(8, 145, 178, 0.35)',
+            '--tm-shop-item-owned-bg': 'rgba(251, 191, 36, 0.12)',
+            '--tm-text-on-primary': '#001a2e',
+            '--tm-text-on-success': '#001a2e',
             '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#87CEEB',
-            '--tm-modal-bg': 'rgba(0, 31, 63, 0.95)',
+            '--tm-text-on-dark': '#5eead4',
+            '--tm-modal-bg': 'rgba(0, 26, 46, 0.96)',
         },
         pageStyles: THEME_STYLES + `/* Oceanic Theme Overrides */
-            body::before { background-image: radial-gradient(ellipse at 30% 20%, rgba(0,191,255,0.08) 0%, transparent 55%), radial-gradient(ellipse at 70% 80%, rgba(0,100,180,0.06) 0%, transparent 50%) !important; opacity: 1 !important; animation: none !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(95%) sepia(9%) saturate(11%) hue-rotate(193deg) brightness(114%) contrast(100%) !important; }
+            body::before { background-image: radial-gradient(ellipse at 25% 15%, rgba(45,212,191,0.12) 0%, transparent 45%), radial-gradient(ellipse at 75% 85%, rgba(14,116,144,0.10) 0%, transparent 50%), radial-gradient(ellipse at 50% 100%, rgba(5,150,105,0.06) 0%, transparent 40%) !important; opacity: 1 !important; animation: none !important; }
+            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(72%) sepia(42%) saturate(650%) hue-rotate(128deg) brightness(95%) contrast(101%) !important; }
             
             /* Oceanic Contrast Fixes */
-            .tm-modal-content { background: rgba(0, 31, 63, 0.95) !important; }
+            .tm-modal-content { background: rgba(0, 26, 46, 0.96) !important; }
             #tm-notification-unread-count { color: var(--tm-dark-hover) !important; }
-            .rnr-s-fields > .rnr-c, .rnr-s-1 > .rnr-c { background: rgba(0, 50, 80, 0.3) !important; }
+            .rnr-s-fields > .rnr-c, .rnr-s-1 > .rnr-c { background: rgba(8, 80, 100, 0.28) !important; }
             `
     },
     'cyberpunk': {
@@ -1869,34 +1868,34 @@ const UI_THEMES = {
     'midnight_purple': {
         name: 'Midnight Purple', icon: '🌙', cost: 500, type: 'theme',
         colors: {
-            '--tm-primary-color': '#9d4edd',      // Vivid Purple
-            '--tm-primary-hover': '#c77dff',      // Light Purple
-            '--tm-secondary-color': '#db00ff',    // Dark Purple
-            '--tm-secondary-hover': '#7209b7',    // Medium Purple
-            '--tm-success-color': '#10b981',      // Emerald
-            '--tm-success-hover': '#059669',      // Dark Emerald
-            '--tm-danger-color': '#ef4444',       // Red
-            '--tm-danger-hover': '#dc2626',       // Dark Red
-            '--tm-warning-color': '#f59e0b',      // Amber
-            '--tm-warning-hover': '#d97706',      // Dark Amber
-            '--tm-info-color': '#e0aaff',         // Light Lavender
-            '--tm-info-hover': '#c77dff',         // Medium Lavender
-            '--tm-dark-color': '#10002b',         // Very Dark Purple
-            '--tm-dark-hover': '#240046',         // Dark Purple
+            '--tm-primary-color': '#7c3aed',      // Cool Violet
+            '--tm-primary-hover': '#a78bfa',      // Soft Lavender
+            '--tm-secondary-color': '#4c1d95',    // Deep Indigo
+            '--tm-secondary-hover': '#6d28d9',    // Medium Violet
+            '--tm-success-color': '#34d399',      // Teal-green
+            '--tm-success-hover': '#10b981',      // Dark Teal
+            '--tm-danger-color': '#f87171',       // Soft Red
+            '--tm-danger-hover': '#ef4444',       // Red
+            '--tm-warning-color': '#fbbf24',      // Amber
+            '--tm-warning-hover': '#f59e0b',      // Dark Amber
+            '--tm-info-color': '#93c5fd',         // Cool Sky Blue
+            '--tm-info-hover': '#60a5fa',         // Blue
+            '--tm-dark-color': '#0c0618',         // Blue-black night
+            '--tm-dark-hover': '#150a28',         // Deep Indigo night
 
-            '--tm-shop-item-bg': '#240046',
-            '--tm-shop-item-border': '#5a189a',
-            '--tm-shop-item-hover-bg': '#3c096c',
-            '--tm-shop-item-owned-bg': '#5a189a',
+            '--tm-shop-item-bg': '#1a1028',
+            '--tm-shop-item-border': '#3b2563',
+            '--tm-shop-item-hover-bg': '#251538',
+            '--tm-shop-item-owned-bg': '#2e1a4a',
             '--tm-text-on-primary': '#ffffff',
             '--tm-text-on-success': '#ffffff',
             '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#e0aaff',
-            '--tm-modal-bg': '#240046',
+            '--tm-text-on-dark': '#c4b5fd',
+            '--tm-modal-bg': '#1a1028',
         },
         pageStyles: THEME_STYLES + `/* Midnight Purple Theme */
-            body::before { background-image: radial-gradient(circle at 50% 50%, rgba(157, 78, 221, 0.1) 0%, transparent 50%) !important; opacity: 0.5 !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(60%) sepia(98%) saturate(4461%) hue-rotate(230deg) brightness(97%) contrast(101%) !important; }
+            body::before { background-image: radial-gradient(circle at 50% 30%, rgba(124, 58, 237, 0.14) 0%, rgba(76, 29, 149, 0.06) 40%, transparent 70%) !important; opacity: 0.7 !important; }
+            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(42%) sepia(85%) saturate(1800%) hue-rotate(243deg) brightness(98%) contrast(101%) !important; }
             
             /* Midnight Purple Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; }`
@@ -1939,35 +1938,35 @@ const UI_THEMES = {
     'neon_pink': {
         name: 'Neon Pink', icon: '💗', cost: 750, type: 'theme',
         colors: {
-            '--tm-primary-color': '#ff10f0',      // Hot Pink
-            '--tm-primary-hover': '#ff6bec',      // Light Pink
-            '--tm-secondary-color': '#b026ff',    // Purple
-            '--tm-secondary-hover': '#d63aff',    // Light Purple
-            '--tm-success-color': '#00ff9f',      // Mint
-            '--tm-success-hover': '#00d984',      // Dark Mint
-            '--tm-danger-color': '#ff2975',       // Pink Red
-            '--tm-danger-hover': '#ff0066',       // Hot Pink Red
-            '--tm-warning-color': '#ffb627',      // Orange
-            '--tm-warning-hover': '#ff9500',      // Dark Orange
-            '--tm-info-color': '#00ffff',         // Cyan
-            '--tm-info-hover': '#00d4d4',         // Dark Cyan
-            '--tm-dark-color': '#1a0033',         // Very Dark Purple
-            '--tm-dark-hover': '#0d001a',         // Black Purple
+            '--tm-primary-color': '#ff2d95',      // Hot Neon Pink
+            '--tm-primary-hover': '#ff6eb4',      // Bright Pink
+            '--tm-secondary-color': '#ff0a78',    // Electric Magenta
+            '--tm-secondary-hover': '#ff4d9e',    // Light Magenta
+            '--tm-success-color': '#00ffcc',      // Electric Mint
+            '--tm-success-hover': '#00e6b8',      // Dark Mint
+            '--tm-danger-color': '#ff3366',       // Neon Red-Pink
+            '--tm-danger-hover': '#ff0044',       // Hot Red
+            '--tm-warning-color': '#ffaa00',      // Neon Orange
+            '--tm-warning-hover': '#ff8800',      // Dark Orange
+            '--tm-info-color': '#00e5ff',         // Electric Cyan
+            '--tm-info-hover': '#00b8d4',         // Dark Cyan
+            '--tm-dark-color': '#140008',         // Pink-black
+            '--tm-dark-hover': '#0a0004',         // Near-black pink
 
-            '--tm-shop-item-bg': '#2d0052',
-            '--tm-shop-item-border': '#5c0099',
-            '--tm-shop-item-hover-bg': '#40006b',
-            '--tm-shop-item-owned-bg': '#5c0099',
+            '--tm-shop-item-bg': '#220012',
+            '--tm-shop-item-border': '#990055',
+            '--tm-shop-item-hover-bg': '#33001a',
+            '--tm-shop-item-owned-bg': '#4d0028',
             '--tm-text-on-primary': '#000000',
             '--tm-text-on-success': '#000000',
             '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#ff10f0',
-            '--tm-modal-bg': '#2d0052',
+            '--tm-text-on-dark': '#ff4da6',
+            '--tm-modal-bg': '#220012',
         },
         pageStyles: THEME_STYLES + `/* Neon Pink Theme */
-            body::before { background-image: repeating-linear-gradient(0deg, rgba(255,16,240,0.03) 0px, transparent 2px, transparent 4px, rgba(255,16,240,0.03) 6px) !important; opacity: 1 !important; }
-            body::after { background: repeating-linear-gradient(90deg, rgba(255,16,240,0.03) 0px, transparent 2px, transparent 4px, rgba(255,16,240,0.03) 6px) !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(56%) sepia(92%) saturate(5679%) hue-rotate(293deg) brightness(104%) contrast(101%) !important; }
+            body::before { background-image: repeating-linear-gradient(0deg, rgba(255,45,149,0.05) 0px, transparent 2px, transparent 4px, rgba(255,45,149,0.05) 6px) !important; opacity: 1 !important; }
+            body::after { background: repeating-linear-gradient(90deg, rgba(255,10,120,0.04) 0px, transparent 2px, transparent 4px, rgba(255,10,120,0.04) 6px) !important; }
+            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(45%) sepia(98%) saturate(5000%) hue-rotate(310deg) brightness(105%) contrast(101%) !important; }
             
             /* Neon Pink Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; }`
@@ -2042,34 +2041,34 @@ const UI_THEMES = {
     'ice': {
         name: 'Ice', icon: '❄️', cost: 500, type: 'theme',
         colors: {
-            '--tm-primary-color': '#74c0fc',      // Ice Blue
-            '--tm-primary-hover': '#a5d8ff',      // Light Ice Blue
-            '--tm-secondary-color': '#339af0',    // Ocean Blue
-            '--tm-secondary-hover': '#4dabf7',    // Medium Blue
-            '--tm-success-color': '#51cf66',      // Mint Green
-            '--tm-success-hover': '#37b24d',      // Dark Mint
-            '--tm-danger-color': '#ff6b6b',       // Warm Red
-            '--tm-danger-hover': '#fa5252',       // Dark Red
-            '--tm-warning-color': '#ffd43b',      // Warm Yellow
-            '--tm-warning-hover': '#fab005',      // Dark Yellow
-            '--tm-info-color': '#e7f5ff',         // Very Light Blue
-            '--tm-info-hover': '#d0ebff',         // Light Blue
-            '--tm-dark-color': '#0c1f2e',         // Dark Blue
-            '--tm-dark-hover': '#05121d',         // Very Dark Blue
+            '--tm-primary-color': '#c8dce8',      // Frost Silver
+            '--tm-primary-hover': '#e2eef6',      // Pale Ice White
+            '--tm-secondary-color': '#6b8494',    // Slate Frost
+            '--tm-secondary-hover': '#8aa3b3',    // Muted Ice Blue
+            '--tm-success-color': '#9ec9b0',      // Pale Mint Frost
+            '--tm-success-hover': '#7eb89a',      // Soft Mint
+            '--tm-danger-color': '#e8a0a8',       // Soft Rose Frost
+            '--tm-danger-hover': '#d47882',       // Dusty Rose
+            '--tm-warning-color': '#e8d4a0',      // Winter Sun
+            '--tm-warning-hover': '#d4bc7a',      // Pale Gold
+            '--tm-info-color': '#f0f7fc',         // Snow White
+            '--tm-info-hover': '#dceaf4',         // Frost White
+            '--tm-dark-color': '#0d1820',         // Arctic Night (blue-gray)
+            '--tm-dark-hover': '#080f14',         // Deep Arctic
 
-            '--tm-shop-item-bg': '#1a2f42',
-            '--tm-shop-item-border': '#2d4a5c',
-            '--tm-shop-item-hover-bg': '#24394d',
-            '--tm-shop-item-owned-bg': '#2d5270',
-            '--tm-text-on-primary': '#0c1f2e',
-            '--tm-text-on-success': '#0c1f2e',
+            '--tm-shop-item-bg': '#152028',
+            '--tm-shop-item-border': '#3d5566',
+            '--tm-shop-item-hover-bg': '#1c2a35',
+            '--tm-shop-item-owned-bg': '#243540',
+            '--tm-text-on-primary': '#0d1820',
+            '--tm-text-on-success': '#0d1820',
             '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#e7f5ff',
-            '--tm-modal-bg': '#1a2f42',
+            '--tm-text-on-dark': '#e8f2f8',
+            '--tm-modal-bg': '#152028',
         },
         pageStyles: THEME_STYLES + `/* Ice Theme */
-            body::before { background-image: radial-gradient(circle at 20% 50%, rgba(116,192,252,0.05) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(165,216,255,0.05) 0%, transparent 50%) !important; opacity: 1 !important; animation: none !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(81%) sepia(10%) saturate(1479%) hue-rotate(179deg) brightness(99%) contrast(98%) !important; }
+            body::before { background-image: radial-gradient(circle at 15% 20%, rgba(232,242,248,0.07) 0%, transparent 45%), radial-gradient(circle at 85% 75%, rgba(200,220,232,0.05) 0%, transparent 50%), radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 60%) !important; opacity: 1 !important; animation: none !important; }
+            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(92%) sepia(8%) saturate(180%) hue-rotate(182deg) brightness(102%) contrast(92%) !important; }
             
             /* Ice Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; }`
@@ -2373,7 +2372,7 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '181',
+        version: '183',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
