@@ -348,70 +348,40 @@
 
         const backdrop = document.createElement('div');
         backdrop.id = 'tm-repair-reminder-backdrop';
+        backdrop.className = 'tm-repair-reminder-backdrop tm-rr-hidden';
         backdrop.setAttribute('aria-hidden', 'true');
-        backdrop.style.cssText = [
-            'display:none',
-            'position:fixed',
-            'inset:0',
-            'background:rgba(0,0,0,0.5)',
-            'z-index:2147482999',
-            'backdrop-filter:blur(2px)',
-            '-webkit-backdrop-filter:blur(2px)',
-        ].join(';');
 
         const pop = document.createElement('div');
         pop.id = 'tm-repair-reminder-popover';
+        pop.className = 'tm-repair-reminder-popover tm-rr-hidden';
         pop.setAttribute('role', 'dialog');
-        pop.style.cssText = [
-            'display:none',
-            'position:fixed',
-            'left:50%',
-            'top:50%',
-            'transform:translate(-50%,-50%)',
-            'width:calc(100vw - 32px)',
-            'max-width:360px',
-            'max-height:calc(100vh - 32px)',
-            'overflow-y:auto',
-            'box-sizing:border-box',
-            'background:var(--tm-bg-color,#1a1a2e)',
-            'border:1px solid rgba(255,255,255,0.15)',
-            'border-radius:14px',
-            'padding:14px',
-            'box-shadow:0 12px 40px rgba(0,0,0,0.55)',
-            'z-index:2147483000',
-        ].join(';');
 
         pop.innerHTML = `
-            <div style="position:relative;">
-                <div style="font-weight:700;color:#fff;margin-bottom:8px;font-size:13px;padding-right:22px;">
+            <div class="tm-rr-inner">
+                <div class="tm-rr-title">
                     Υπενθύμιση · #${escapeHtml(ids.invoiceNumber)}
                 </div>
-                <button type="button" id="tm-repair-reminder-close" style="position:absolute;top:0;right:0;background:none;border:none;color:rgba(255,255,255,0.45);cursor:pointer;font-size:18px;line-height:1;">&times;</button>
-                <label style="display:block;font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Μήνυμα (προαιρετικό)</label>
-                <input type="text" id="tm-repair-reminder-msg" placeholder="π.χ. Κάλεσε πελάτη για έγκριση"
-                    style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);
-                    background:rgba(0,0,0,0.25);color:#fff;font-size:13px;margin-bottom:10px;">
-                <label style="display:block;font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Ημερομηνία & ώρα</label>
-                <input type="datetime-local" id="tm-repair-reminder-when"
-                    style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);
-                    background:rgba(0,0,0,0.25);color:#fff;font-size:13px;margin-bottom:8px;">
-                <label style="display:block;font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Επανάληψη</label>
-                <select id="tm-repair-reminder-recur" style="width:100%;padding:8px;border-radius:8px;margin-bottom:10px;background:#2a2a3e;color:#fff;border:1px solid rgba(255,255,255,0.12);">
+                <button type="button" id="tm-repair-reminder-close" class="tm-rr-close" aria-label="Κλείσιμο">&times;</button>
+                <label class="tm-rr-label" for="tm-repair-reminder-msg">Μήνυμα (προαιρετικό)</label>
+                <input type="text" id="tm-repair-reminder-msg" class="tm-rr-input" placeholder="π.χ. Κάλεσε πελάτη για έγκριση">
+                <label class="tm-rr-label" for="tm-repair-reminder-when">Ημερομηνία & ώρα</label>
+                <input type="datetime-local" id="tm-repair-reminder-when" class="tm-rr-input">
+                <label class="tm-rr-label" for="tm-repair-reminder-recur">Επανάληψη</label>
+                <select id="tm-repair-reminder-recur" class="tm-rr-select">
                     <option value="none">Μία φορά</option>
                     <option value="daily">Καθημερινά</option>
                     <option value="weekly">Εβδομαδιαία</option>
                 </select>
-                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
-                    <button type="button" class="tm-rr-quick" data-min="15" style="flex:1;min-width:72px;padding:6px;font-size:11px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#ccc;cursor:pointer;">+15 λεπτά</button>
-                    <button type="button" class="tm-rr-quick" data-min="60" style="flex:1;min-width:72px;padding:6px;font-size:11px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#ccc;cursor:pointer;">+1 ώρα</button>
-                    <button type="button" class="tm-rr-quick" data-min="180" style="flex:1;min-width:72px;padding:6px;font-size:11px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#ccc;cursor:pointer;">+3 ώρες</button>
-                    <button type="button" id="tm-rr-tomorrow" style="flex:1;min-width:100%;padding:6px;font-size:11px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#ccc;cursor:pointer;">Αύριο 09:00</button>
+                <div class="tm-rr-quick-row">
+                    <button type="button" class="tm-rr-quick" data-min="15">+15 λεπτά</button>
+                    <button type="button" class="tm-rr-quick" data-min="60">+1 ώρα</button>
+                    <button type="button" class="tm-rr-quick" data-min="180">+3 ώρες</button>
+                    <button type="button" id="tm-rr-tomorrow" class="tm-rr-quick tm-rr-quick--wide">Αύριο 09:00</button>
                 </div>
-                <button type="button" id="tm-repair-reminder-save" style="width:100%;padding:10px;border-radius:10px;border:none;
-                    background:linear-gradient(135deg,#4facfe,#00f2fe);color:#0a0a12;font-weight:700;cursor:pointer;font-size:13px;">
+                <button type="button" id="tm-repair-reminder-save" class="tm-rr-save">
                     Αποθήκευση υπενθύμισης
                 </button>
-                <div id="tm-repair-reminder-list" style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);font-size:11px;color:rgba(255,255,255,0.55);max-height:120px;overflow-y:auto;"></div>
+                <div id="tm-repair-reminder-list" class="tm-rr-list"></div>
             </div>
         `;
 
@@ -426,13 +396,15 @@
         const listEl = pop.querySelector('#tm-repair-reminder-list');
 
         function showReminderModal() {
-            backdrop.style.display = 'block';
-            pop.style.display = 'block';
+            backdrop.classList.remove('tm-rr-hidden');
+            pop.classList.remove('tm-rr-hidden');
+            backdrop.setAttribute('aria-hidden', 'false');
         }
 
         function hideReminderModal() {
-            backdrop.style.display = 'none';
-            pop.style.display = 'none';
+            backdrop.classList.add('tm-rr-hidden');
+            pop.classList.add('tm-rr-hidden');
+            backdrop.setAttribute('aria-hidden', 'true');
         }
 
         function fmtLocal(dt) {
@@ -453,16 +425,16 @@
             const mine = remindersForRepair(STORAGE_KEYS, ids.invoiceLinesId)
                 .sort((a, b) => (a.dueTime || 0) - (b.dueTime || 0));
             if (mine.length === 0) {
-                listEl.innerHTML = '<span style="opacity:0.7;">Δεν υπάρχουν ενεργές υπενθυμίσεις για αυτή το δελτίο.</span>';
+                listEl.innerHTML = '<span class="tm-rr-list-empty">Δεν υπάρχουν ενεργές υπενθυμίσεις για αυτή το δελτίο.</span>';
                 return;
             }
             listEl.innerHTML = mine
                 .map((r) => {
                     const when = new Date(r.dueTime).toLocaleString('el-GR');
                     const short = (r.message || '').slice(0, 40) + ((r.message || '').length > 40 ? '…' : '');
-                    return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;color:rgba(255,255,255,0.75);">
+                    return `<div class="tm-rr-list-row">
                         <span>${escapeHtml(when)}${short ? ` — ${escapeHtml(short)}` : ''}</span>
-                        <button type="button" class="tm-rr-del" data-id="${escapeHtml(r.id)}" style="flex-shrink:0;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#f87171;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:10px;">Διαγραφή</button>
+                        <button type="button" class="tm-rr-del" data-id="${escapeHtml(r.id)}">Διαγραφή</button>
                     </div>`;
                 })
                 .join('');
@@ -486,10 +458,7 @@
         }
 
         function isPopoverHidden() {
-            const d = (pop.style.display || '').trim().toLowerCase();
-            if (d === 'none') return true;
-            if (d === 'block' || d === 'flex') return false;
-            return window.getComputedStyle(pop).display === 'none';
+            return pop.classList.contains('tm-rr-hidden');
         }
 
         btn.addEventListener('click', (e) => {

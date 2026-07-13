@@ -1,8 +1,8 @@
 {
-  "version": "198",
+  "version": "200",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix EOD checklist panel on default theme.",
+  "releaseNotes": "Customer history table headers use light surface colors instead of dark grid header.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v198 — generated, do not edit */
+/* MyManager Suite bundle v200 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -1630,8 +1630,8 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
             }
             .tm-customer-history-table thead th,
             .tm-customer-history-table .tm-sortable-header {
-                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg)) !important;
-                color: var(--tm-grid-header-text, var(--tm-primary-color)) !important;
+                background: var(--tm-surface-alt-bg, var(--tm-shop-item-hover-bg)) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
                 border-color: var(--tm-shop-item-border) !important;
             }
             .tm-customer-history-table tbody td {
@@ -1643,7 +1643,7 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
             }
             .tm-customer-history-table tbody tr:hover,
             .tm-customer-history-table .tm-sortable-header:hover {
-                background: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+                background: var(--tm-shop-item-hover-bg) !important;
             }
             .tm-customer-history-table a {
                 color: var(--tm-link-color, var(--tm-primary-hover)) !important;
@@ -1664,6 +1664,145 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
             }
             #tm-phone-catalog-btn:hover { background: var(--tm-dark-hover) !important; }
         `;
+
+const THEME_ORDER_POPUP_STYLES = `
+            .tm-order-popup-overlay,
+            #tm-order-popup {
+                background: var(--tm-overlay-dim, rgba(0,0,0,0.72)) !important;
+                z-index: 1000001 !important;
+            }
+            .tm-order-popup-content {
+                background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg))) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border-color: var(--tm-shop-item-border) !important;
+                box-shadow: 0 10px 40px var(--tm-shadow-color, rgba(0,0,0,0.35)) !important;
+            }
+            .tm-order-popup-header {
+                background: linear-gradient(135deg, color-mix(in srgb, var(--tm-info-color) 24%, var(--tm-modal-bg, var(--tm-shop-item-bg))) 0%, color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-modal-bg, var(--tm-shop-item-bg))) 100%) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border-bottom-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-order-popup-header h3 { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
+            .tm-order-popup-close {
+                background: color-mix(in srgb, var(--tm-shop-item-text, var(--tm-primary-color)) 12%, transparent) !important;
+                border-color: var(--tm-shop-item-border) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+            }
+            .tm-order-popup-close:hover {
+                background: color-mix(in srgb, var(--tm-danger-color) 16%, transparent) !important;
+                border-color: var(--tm-danger-color) !important;
+                color: var(--tm-danger-color) !important;
+            }
+            .tm-order-popup-body { background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg))) !important; }
+            .tm-order-popup-error {
+                color: var(--tm-danger-color) !important;
+                background: color-mix(in srgb, var(--tm-danger-color) 10%, transparent) !important;
+                border-color: color-mix(in srgb, var(--tm-danger-color) 28%, transparent) !important;
+            }
+            .tm-order-card-new {
+                background: var(--tm-shop-item-bg) !important;
+                border-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-order-header {
+                background: linear-gradient(135deg, color-mix(in srgb, var(--tm-info-color) 30%, var(--tm-modal-bg, var(--tm-shop-item-bg))) 0%, color-mix(in srgb, var(--tm-primary-color) 20%, var(--tm-modal-bg, var(--tm-shop-item-bg))) 100%) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+            }
+            .tm-order-product-name { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
+            .tm-order-product-code { color: var(--tm-muted-text, var(--tm-secondary-color)) !important; }
+            .tm-order-cost-badge {
+                background: color-mix(in srgb, var(--tm-info-color) 10%, transparent) !important;
+                border-left-color: var(--tm-info-color) !important;
+            }
+            .tm-cost-label { color: var(--tm-muted-text, var(--tm-secondary-color)) !important; }
+            .tm-cost-value { color: var(--tm-info-color) !important; }
+            .tm-order-info-item {
+                background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg))) !important;
+                border-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-info-label { color: var(--tm-muted-text, var(--tm-secondary-color)) !important; }
+            .tm-info-value { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
+            .tm-order-notes {
+                background: color-mix(in srgb, var(--tm-warning-color) 8%, var(--tm-modal-bg, var(--tm-shop-item-bg))) !important;
+                border-top-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-note-item {
+                background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg))) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border-left-color: var(--tm-warning-color) !important;
+            }
+            .tm-note-item strong { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
+            .tm-order-action-btn,
+            .tm-order-view-full-btn {
+                background: var(--tm-primary-color) !important;
+                border-color: var(--tm-primary-color) !important;
+                color: var(--tm-text-on-primary, #fff) !important;
+            }
+            .tm-order-action-btn:hover,
+            .tm-order-view-full-btn:hover {
+                background: var(--tm-primary-hover) !important;
+                border-color: var(--tm-primary-hover) !important;
+                color: var(--tm-text-on-primary, #fff) !important;
+            }
+        `;
+
+const THEME_REPAIR_REMINDER_POPOVER_STYLES = `
+            .tm-repair-reminder-backdrop,
+            #tm-repair-reminder-backdrop {
+                background: var(--tm-overlay-dim, rgba(0,0,0,0.55)) !important;
+            }
+            .tm-repair-reminder-popover,
+            #tm-repair-reminder-popover {
+                background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg))) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border-color: var(--tm-shop-item-border) !important;
+                box-shadow: 0 12px 40px var(--tm-shadow-color, rgba(0,0,0,0.45)) !important;
+            }
+            .tm-rr-title { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
+            .tm-rr-close { color: var(--tm-muted-text, var(--tm-secondary-color)) !important; }
+            .tm-rr-close:hover { color: var(--tm-danger-color) !important; }
+            .tm-rr-label { color: var(--tm-muted-text, var(--tm-secondary-color)) !important; }
+            .tm-rr-input,
+            .tm-rr-select {
+                background: var(--tm-input-bg, var(--tm-shop-item-bg)) !important;
+                border-color: var(--tm-input-border, var(--tm-shop-item-border)) !important;
+                color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color))) !important;
+            }
+            .tm-rr-quick {
+                background: var(--tm-chip-bg, var(--tm-shop-item-hover-bg)) !important;
+                border-color: var(--tm-chip-border, var(--tm-shop-item-border)) !important;
+                color: var(--tm-chip-text, var(--tm-shop-item-text, var(--tm-primary-color))) !important;
+            }
+            .tm-rr-quick:hover {
+                background: var(--tm-shop-item-hover-bg) !important;
+                border-color: var(--tm-primary-color) !important;
+                color: var(--tm-primary-color) !important;
+            }
+            .tm-rr-save {
+                background: var(--tm-primary-color) !important;
+                border-color: var(--tm-primary-color) !important;
+                color: var(--tm-text-on-primary, #fff) !important;
+            }
+            .tm-rr-save:hover {
+                background: var(--tm-primary-hover) !important;
+                border-color: var(--tm-primary-hover) !important;
+            }
+            .tm-rr-list {
+                border-top-color: var(--tm-shop-item-border) !important;
+                color: var(--tm-muted-text, var(--tm-secondary-color)) !important;
+            }
+            .tm-rr-list-row { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
+            .tm-rr-del {
+                background: color-mix(in srgb, var(--tm-danger-color) 18%, transparent) !important;
+                border-color: color-mix(in srgb, var(--tm-danger-color) 38%, transparent) !important;
+                color: var(--tm-danger-color) !important;
+            }
+            .tm-rr-del:hover {
+                background: var(--tm-danger-color) !important;
+                color: var(--tm-text-on-primary, #fff) !important;
+            }
+        `;
+
+const THEME_SUITE_WIDGET_STYLES_WITH_POPUPS = THEME_SUITE_WIDGET_STYLES + THEME_ORDER_POPUP_STYLES + THEME_REPAIR_REMINDER_POPOVER_STYLES;
 
 const THEME_NATIVE_PAGE_EXTENDED_STYLES = `/* --- Native MyMANAGER page (non-default themes only) --- */
             h1, h2, h3, h4, h5, h6 { color: var(--tm-heading-color, var(--tm-info-color, var(--tm-primary-color))) !important; }
@@ -2002,7 +2141,8 @@ const THEME_EOD_MODAL_STYLES = `
 
 const THEME_SUITE_EOD_STYLES = THEME_SUITE_EOD_BTN_STYLES + THEME_EOD_MODAL_STYLES;
 
-const THEME_SUITE_EXTENDED_STYLES = THEME_SUITE_WIDGET_STYLES + THEME_SUITE_EOD_STYLES;
+const THEME_SUITE_EXTENDED_STYLES = THEME_SUITE_WIDGET_STYLES_WITH_POPUPS + THEME_SUITE_EOD_STYLES;
+const THEME_DEFAULT_SUITE_INJECT_STYLES = THEME_EOD_MODAL_STYLES + THEME_ORDER_POPUP_STYLES + THEME_REPAIR_REMINDER_POPOVER_STYLES;
 const THEME_EXTENDED_STYLES = THEME_SUITE_EXTENDED_STYLES + THEME_NATIVE_PAGE_EXTENDED_STYLES;
 
 /** Shared native-page tweaks for light / white-based themes. */
@@ -2788,7 +2928,7 @@ function tmInjectExtendedThemeStyles(themeId) {
     const el = document.createElement('style');
     el.id = 'tm-extended-theme-styles';
     if (themeId === 'default') {
-        el.textContent = THEME_EOD_MODAL_STYLES;
+        el.textContent = THEME_DEFAULT_SUITE_INJECT_STYLES;
         document.head.appendChild(el);
         return;
     }
@@ -2891,7 +3031,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '197',
+        version: '199',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -4869,6 +5009,356 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 color: var(--tm-warning-color);
                 border: 1px solid color-mix(in srgb, var(--tm-warning-color) 28%, transparent);
             }
+            /* Order link popup (status 65) */
+            .tm-order-popup-overlay,
+            #tm-order-popup {
+                position: fixed;
+                inset: 0;
+                background: var(--tm-overlay-dim, rgba(0, 0, 0, 0.65));
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000001;
+                animation: tm-fade-in 0.2s ease-out;
+            }
+            .tm-order-popup-content {
+                background: var(--tm-modal-bg, var(--tm-panel-bg, #ffffff));
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+                border: 1px solid var(--tm-shop-item-border, #dee2e6);
+                border-radius: 12px;
+                box-shadow: 0 10px 40px var(--tm-shadow-color, rgba(0, 0, 0, 0.3));
+                max-width: 800px;
+                width: 90%;
+                max-height: 80vh;
+                display: flex;
+                flex-direction: column;
+                animation: tm-scale-up 0.3s ease-out;
+            }
+            .tm-order-popup-header {
+                padding: 20px;
+                border-bottom: 1px solid var(--tm-shop-item-border, #dee2e6);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: linear-gradient(135deg, color-mix(in srgb, var(--tm-info-color) 22%, var(--tm-modal-bg, #ffffff)) 0%, color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-modal-bg, #ffffff)) 100%);
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+                border-radius: 12px 12px 0 0;
+            }
+            .tm-order-popup-header h3 {
+                margin: 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+            }
+            .tm-order-popup-close {
+                background: color-mix(in srgb, var(--tm-shop-item-text, #333) 12%, transparent);
+                border: 1px solid var(--tm-shop-item-border, #dee2e6);
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+                font-size: 24px;
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+            }
+            .tm-order-popup-close:hover {
+                background: color-mix(in srgb, var(--tm-danger-color) 16%, transparent);
+                border-color: var(--tm-danger-color);
+                color: var(--tm-danger-color);
+                transform: scale(1.05);
+            }
+            .tm-order-popup-body {
+                padding: 20px;
+                overflow-y: auto;
+                flex: 1;
+                min-height: 0;
+                background: var(--tm-modal-bg, var(--tm-panel-bg, #ffffff));
+            }
+            .tm-order-popup-error {
+                color: var(--tm-danger-color);
+                text-align: center;
+                padding: 30px 20px;
+                font-size: 15px;
+                background: color-mix(in srgb, var(--tm-danger-color) 10%, transparent);
+                border: 1px solid color-mix(in srgb, var(--tm-danger-color) 28%, transparent);
+                border-radius: 8px;
+                margin: 10px;
+            }
+            .tm-order-card-new {
+                background: var(--tm-shop-item-bg, #f8f9fa);
+                border: 1px solid var(--tm-shop-item-border, #dee2e6);
+                border-radius: 12px;
+                padding: 0;
+                box-shadow: 0 4px 12px var(--tm-shadow-color, rgba(0, 0, 0, 0.08));
+                overflow: hidden;
+                margin-bottom: 20px;
+            }
+            .tm-order-header {
+                background: linear-gradient(135deg, color-mix(in srgb, var(--tm-info-color) 28%, var(--tm-modal-bg, #fff)) 0%, color-mix(in srgb, var(--tm-primary-color) 18%, var(--tm-modal-bg, #fff)) 100%);
+                padding: 20px;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+            }
+            .tm-order-product-name {
+                font-size: 18px;
+                font-weight: 700;
+                margin-bottom: 5px;
+                line-height: 1.3;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+            }
+            .tm-order-product-code {
+                font-size: 13px;
+                opacity: 0.85;
+                font-family: monospace;
+                color: var(--tm-muted-text, var(--tm-secondary-color));
+            }
+            .tm-order-cost-badge {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 15px 20px;
+                background: color-mix(in srgb, var(--tm-info-color) 8%, transparent);
+                border-left: 4px solid var(--tm-info-color);
+            }
+            .tm-cost-label {
+                font-size: 12px;
+                color: var(--tm-muted-text, var(--tm-secondary-color));
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                font-weight: 600;
+            }
+            .tm-cost-value {
+                font-size: 22px;
+                font-weight: 700;
+                color: var(--tm-info-color);
+            }
+            .tm-order-info-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+                padding: 20px;
+            }
+            .tm-order-info-item {
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 12px;
+                background: var(--tm-modal-bg, var(--tm-panel-bg, #ffffff));
+                border: 1px solid var(--tm-shop-item-border, #dee2e6);
+                border-radius: 8px;
+                box-shadow: 0 1px 3px var(--tm-shadow-color, rgba(0, 0, 0, 0.06));
+                transition: box-shadow 0.2s ease, transform 0.2s ease;
+            }
+            .tm-order-info-item:hover {
+                box-shadow: 0 2px 6px var(--tm-shadow-color, rgba(0, 0, 0, 0.1));
+                transform: translateY(-1px);
+            }
+            .tm-info-label {
+                font-size: 11px;
+                color: var(--tm-muted-text, var(--tm-secondary-color));
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 4px;
+                font-weight: 600;
+            }
+            .tm-info-value {
+                font-size: 14px;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+                font-weight: 600;
+                word-break: break-word;
+            }
+            .tm-order-notes {
+                padding: 20px;
+                background: color-mix(in srgb, var(--tm-warning-color) 6%, var(--tm-modal-bg, #fff));
+                border-top: 1px solid var(--tm-shop-item-border, #dee2e6);
+            }
+            .tm-note-item {
+                padding: 12px 15px;
+                background: var(--tm-modal-bg, var(--tm-panel-bg, #ffffff));
+                border-radius: 6px;
+                margin-bottom: 10px;
+                font-size: 13px;
+                line-height: 1.5;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+                border-left: 3px solid var(--tm-warning-color);
+            }
+            .tm-note-item strong {
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+                display: block;
+                margin-bottom: 4px;
+            }
+            .tm-order-action-btn,
+            .tm-order-view-full-btn {
+                display: block;
+                text-align: center;
+                padding: 15px;
+                background: var(--tm-primary-color);
+                color: var(--tm-text-on-primary, #ffffff);
+                text-decoration: none;
+                font-weight: 600;
+                font-size: 14px;
+                transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+                border: 1px solid var(--tm-primary-color);
+            }
+            .tm-order-view-full-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 10px 16px;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 500;
+                margin-top: 15px;
+            }
+            .tm-order-action-btn:hover,
+            .tm-order-view-full-btn:hover {
+                background: var(--tm-primary-hover);
+                border-color: var(--tm-primary-hover);
+                color: var(--tm-text-on-primary, #ffffff);
+                transform: translateY(-1px);
+                box-shadow: 0 2px 8px var(--tm-shadow-color, rgba(0, 0, 0, 0.15));
+            }
+            /* Repair reminder popover (service_edit) */
+            .tm-repair-reminder-backdrop,
+            #tm-repair-reminder-backdrop {
+                position: fixed;
+                inset: 0;
+                background: var(--tm-overlay-dim, rgba(0, 0, 0, 0.55));
+                z-index: 2147482999;
+            }
+            .tm-repair-reminder-popover,
+            #tm-repair-reminder-popover {
+                position: fixed;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                width: calc(100vw - 32px);
+                max-width: 360px;
+                max-height: calc(100vh - 32px);
+                overflow-y: auto;
+                box-sizing: border-box;
+                background: var(--tm-modal-bg, var(--tm-panel-bg, #ffffff));
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+                border: 1px solid var(--tm-shop-item-border, #dee2e6);
+                border-radius: 14px;
+                padding: 14px;
+                box-shadow: 0 12px 40px var(--tm-shadow-color, rgba(0, 0, 0, 0.45));
+                z-index: 2147483000;
+            }
+            .tm-rr-hidden { display: none !important; }
+            .tm-rr-inner { position: relative; }
+            .tm-rr-title {
+                font-weight: 700;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+                margin-bottom: 8px;
+                font-size: 13px;
+                padding-right: 22px;
+            }
+            .tm-rr-close {
+                position: absolute;
+                top: 0;
+                right: 0;
+                background: none;
+                border: none;
+                color: var(--tm-muted-text, var(--tm-secondary-color));
+                cursor: pointer;
+                font-size: 18px;
+                line-height: 1;
+                padding: 0;
+            }
+            .tm-rr-close:hover { color: var(--tm-danger-color); }
+            .tm-rr-label {
+                display: block;
+                font-size: 11px;
+                color: var(--tm-muted-text, var(--tm-secondary-color));
+                margin-bottom: 4px;
+            }
+            .tm-rr-input,
+            .tm-rr-select {
+                width: 100%;
+                box-sizing: border-box;
+                padding: 8px 10px;
+                border-radius: 8px;
+                border: 1px solid var(--tm-shop-item-border, #dee2e6);
+                background: var(--tm-input-bg, var(--tm-shop-item-bg, #f8f9fa));
+                color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color)));
+                font-size: 13px;
+                margin-bottom: 10px;
+            }
+            .tm-rr-quick-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-bottom: 12px;
+            }
+            .tm-rr-quick {
+                flex: 1;
+                min-width: 72px;
+                padding: 6px;
+                font-size: 11px;
+                border-radius: 8px;
+                border: 1px solid var(--tm-shop-item-border, #dee2e6);
+                background: var(--tm-chip-bg, var(--tm-shop-item-hover-bg));
+                color: var(--tm-chip-text, var(--tm-shop-item-text, var(--tm-primary-color)));
+                cursor: pointer;
+                transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+            }
+            .tm-rr-quick--wide { min-width: 100%; }
+            .tm-rr-quick:hover {
+                background: var(--tm-shop-item-hover-bg);
+                border-color: var(--tm-primary-color);
+                color: var(--tm-primary-color);
+            }
+            .tm-rr-save {
+                width: 100%;
+                padding: 10px;
+                border-radius: 10px;
+                border: 1px solid var(--tm-primary-color);
+                background: var(--tm-primary-color);
+                color: var(--tm-text-on-primary, #ffffff);
+                font-weight: 700;
+                cursor: pointer;
+                font-size: 13px;
+                transition: background-color 0.15s ease, border-color 0.15s ease;
+            }
+            .tm-rr-save:hover {
+                background: var(--tm-primary-hover);
+                border-color: var(--tm-primary-hover);
+            }
+            .tm-rr-list {
+                margin-top: 12px;
+                padding-top: 10px;
+                border-top: 1px solid var(--tm-shop-item-border, #dee2e6);
+                font-size: 11px;
+                color: var(--tm-muted-text, var(--tm-secondary-color));
+                max-height: 120px;
+                overflow-y: auto;
+            }
+            .tm-rr-list-empty { opacity: 0.75; }
+            .tm-rr-list-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 8px;
+                margin-bottom: 6px;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+            }
+            .tm-rr-del {
+                flex-shrink: 0;
+                background: color-mix(in srgb, var(--tm-danger-color) 18%, transparent);
+                border: 1px solid color-mix(in srgb, var(--tm-danger-color) 38%, transparent);
+                color: var(--tm-danger-color);
+                border-radius: 6px;
+                padding: 2px 8px;
+                cursor: pointer;
+                font-size: 10px;
+            }
+            .tm-rr-del:hover {
+                background: var(--tm-danger-color);
+                color: var(--tm-text-on-primary, #fff);
+            }
             /* --- Feature: Advanced Search --- */
             /* --- Notification Center Styles --- */
             #tm-notification-bell-wrapper { position: relative; }
@@ -5335,8 +5825,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             .tm-customer-history-table thead th,
             .tm-customer-history-table .tm-sortable-header {
-                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg));
-                color: var(--tm-grid-header-text, var(--tm-primary-color));
+                background: var(--tm-shop-item-hover-bg, #e9ecef);
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
                 border: 1px solid var(--tm-shop-item-border);
                 padding: 10px 12px;
                 font-weight: 700;
@@ -5367,7 +5857,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 transition: background-color 0.15s ease, color 0.15s ease;
             }
             .tm-sortable-header:hover {
-                background-color: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+                background-color: var(--tm-shop-item-owned-bg, var(--tm-shop-item-hover-bg)) !important;
                 color: var(--tm-link-hover-color, var(--tm-info-color)) !important;
             }
             /* Hover effect on container to show buttons */
@@ -36036,7 +36526,7 @@ if (typeof window !== 'undefined') {
         // Create popup overlay
         const overlay = document.createElement('div');
         overlay.id = 'tm-order-popup';
-        overlay.className = 'tm-order-popup-overlay';
+        overlay.className = 'tm-modal-overlay tm-order-popup-overlay';
         
         // Create popup content
         const popup = document.createElement('div');
@@ -36258,270 +36748,6 @@ if (typeof window !== 'undefined') {
         .statusbadge.tm-order-link-active:active {
             transform: translateY(0);
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Order Popup Styles */
-        .tm-order-popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            animation: fadeIn 0.2s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .tm-order-popup-content {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-            max-width: 800px;
-            width: 90%;
-            max-height: 80vh;
-            display: flex;
-            flex-direction: column;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .tm-order-popup-header {
-            padding: 20px;
-            border-bottom: 2px solid #e0e0e0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%);
-            color: white;
-            border-radius: 8px 8px 0 0;
-        }
-
-        .tm-order-popup-header h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .tm-order-popup-close {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            font-size: 24px;
-            width: 32px;
-            height: 32px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .tm-order-popup-close:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.1);
-        }
-
-        .tm-order-popup-body {
-            padding: 20px;
-            overflow-y: auto;
-            flex: 1;
-        }
-
-        .tm-order-popup-error {
-            color: #d32f2f;
-            text-align: center;
-            padding: 30px 20px;
-            font-size: 15px;
-            background: #ffebee;
-            border-radius: 8px;
-            margin: 10px;
-        }
-
-        .tm-order-card-new {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            border-radius: 12px;
-            padding: 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .tm-order-header {
-            background: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%);
-            padding: 20px;
-            color: white;
-        }
-
-        .tm-order-product-name {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 5px;
-            line-height: 1.3;
-        }
-
-        .tm-order-product-code {
-            font-size: 13px;
-            opacity: 0.9;
-            font-family: monospace;
-        }
-
-        .tm-order-cost-badge {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            background: rgba(0, 188, 212, 0.05);
-            border-left: 4px solid #00bcd4;
-        }
-
-        .tm-cost-label {
-            font-size: 12px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-        }
-
-        .tm-cost-value {
-            font-size: 22px;
-            font-weight: 700;
-            color: #00bcd4;
-        }
-
-        .tm-order-info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            padding: 20px;
-        }
-
-        .tm-order-info-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 12px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-            transition: all 0.2s ease;
-        }
-
-        .tm-order-info-item:hover {
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            transform: translateY(-1px);
-        }
-
-        .tm-info-icon {
-            font-size: 20px;
-            line-height: 1;
-        }
-
-        .tm-info-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .tm-info-label {
-            font-size: 11px;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-            font-weight: 600;
-        }
-
-        .tm-info-value {
-            font-size: 14px;
-            color: #333;
-            font-weight: 600;
-            word-break: break-word;
-        }
-
-        .tm-order-notes {
-            padding: 20px;
-            background: #fffef7;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        .tm-note-item {
-            padding: 12px 15px;
-            background: white;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            font-size: 13px;
-            line-height: 1.5;
-            color: #555;
-            border-left: 3px solid #ffc107;
-        }
-
-        .tm-note-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .tm-note-item strong {
-            color: #333;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .tm-order-action-btn {
-            display: block;
-            text-align: center;
-            padding: 15px;
-            background: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%);
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .tm-order-action-btn:hover {
-            background: linear-gradient(135deg, #00acc1 0%, #00bcd4 100%);
-            color: white;
-            box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.1);
-        }
-
-        .tm-order-view-full-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 16px;
-            background: linear-gradient(135deg, #00bcd4 0%, #26c6da 100%);
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: 500;
-            font-size: 13px;
-            margin-top: 15px;
-            transition: all 0.2s ease;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .tm-order-view-full-btn:hover {
-            background: linear-gradient(135deg, #00acc1 0%, #00bcd4 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-            color: white;
         }
 
         .tm-repair-from-order-btn {
@@ -37843,70 +38069,40 @@ if (typeof window !== 'undefined') {
 
         const backdrop = document.createElement('div');
         backdrop.id = 'tm-repair-reminder-backdrop';
+        backdrop.className = 'tm-repair-reminder-backdrop tm-rr-hidden';
         backdrop.setAttribute('aria-hidden', 'true');
-        backdrop.style.cssText = [
-            'display:none',
-            'position:fixed',
-            'inset:0',
-            'background:rgba(0,0,0,0.5)',
-            'z-index:2147482999',
-            'backdrop-filter:blur(2px)',
-            '-webkit-backdrop-filter:blur(2px)',
-        ].join(';');
 
         const pop = document.createElement('div');
         pop.id = 'tm-repair-reminder-popover';
+        pop.className = 'tm-repair-reminder-popover tm-rr-hidden';
         pop.setAttribute('role', 'dialog');
-        pop.style.cssText = [
-            'display:none',
-            'position:fixed',
-            'left:50%',
-            'top:50%',
-            'transform:translate(-50%,-50%)',
-            'width:calc(100vw - 32px)',
-            'max-width:360px',
-            'max-height:calc(100vh - 32px)',
-            'overflow-y:auto',
-            'box-sizing:border-box',
-            'background:var(--tm-bg-color,#1a1a2e)',
-            'border:1px solid rgba(255,255,255,0.15)',
-            'border-radius:14px',
-            'padding:14px',
-            'box-shadow:0 12px 40px rgba(0,0,0,0.55)',
-            'z-index:2147483000',
-        ].join(';');
 
         pop.innerHTML = `
-            <div style="position:relative;">
-                <div style="font-weight:700;color:#fff;margin-bottom:8px;font-size:13px;padding-right:22px;">
+            <div class="tm-rr-inner">
+                <div class="tm-rr-title">
                     Υπενθύμιση · #${escapeHtml(ids.invoiceNumber)}
                 </div>
-                <button type="button" id="tm-repair-reminder-close" style="position:absolute;top:0;right:0;background:none;border:none;color:rgba(255,255,255,0.45);cursor:pointer;font-size:18px;line-height:1;">&times;</button>
-                <label style="display:block;font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Μήνυμα (προαιρετικό)</label>
-                <input type="text" id="tm-repair-reminder-msg" placeholder="π.χ. Κάλεσε πελάτη για έγκριση"
-                    style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);
-                    background:rgba(0,0,0,0.25);color:#fff;font-size:13px;margin-bottom:10px;">
-                <label style="display:block;font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Ημερομηνία & ώρα</label>
-                <input type="datetime-local" id="tm-repair-reminder-when"
-                    style="width:100%;box-sizing:border-box;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);
-                    background:rgba(0,0,0,0.25);color:#fff;font-size:13px;margin-bottom:8px;">
-                <label style="display:block;font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:4px;">Επανάληψη</label>
-                <select id="tm-repair-reminder-recur" style="width:100%;padding:8px;border-radius:8px;margin-bottom:10px;background:#2a2a3e;color:#fff;border:1px solid rgba(255,255,255,0.12);">
+                <button type="button" id="tm-repair-reminder-close" class="tm-rr-close" aria-label="Κλείσιμο">&times;</button>
+                <label class="tm-rr-label" for="tm-repair-reminder-msg">Μήνυμα (προαιρετικό)</label>
+                <input type="text" id="tm-repair-reminder-msg" class="tm-rr-input" placeholder="π.χ. Κάλεσε πελάτη για έγκριση">
+                <label class="tm-rr-label" for="tm-repair-reminder-when">Ημερομηνία & ώρα</label>
+                <input type="datetime-local" id="tm-repair-reminder-when" class="tm-rr-input">
+                <label class="tm-rr-label" for="tm-repair-reminder-recur">Επανάληψη</label>
+                <select id="tm-repair-reminder-recur" class="tm-rr-select">
                     <option value="none">Μία φορά</option>
                     <option value="daily">Καθημερινά</option>
                     <option value="weekly">Εβδομαδιαία</option>
                 </select>
-                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">
-                    <button type="button" class="tm-rr-quick" data-min="15" style="flex:1;min-width:72px;padding:6px;font-size:11px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#ccc;cursor:pointer;">+15 λεπτά</button>
-                    <button type="button" class="tm-rr-quick" data-min="60" style="flex:1;min-width:72px;padding:6px;font-size:11px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#ccc;cursor:pointer;">+1 ώρα</button>
-                    <button type="button" class="tm-rr-quick" data-min="180" style="flex:1;min-width:72px;padding:6px;font-size:11px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#ccc;cursor:pointer;">+3 ώρες</button>
-                    <button type="button" id="tm-rr-tomorrow" style="flex:1;min-width:100%;padding:6px;font-size:11px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:#ccc;cursor:pointer;">Αύριο 09:00</button>
+                <div class="tm-rr-quick-row">
+                    <button type="button" class="tm-rr-quick" data-min="15">+15 λεπτά</button>
+                    <button type="button" class="tm-rr-quick" data-min="60">+1 ώρα</button>
+                    <button type="button" class="tm-rr-quick" data-min="180">+3 ώρες</button>
+                    <button type="button" id="tm-rr-tomorrow" class="tm-rr-quick tm-rr-quick--wide">Αύριο 09:00</button>
                 </div>
-                <button type="button" id="tm-repair-reminder-save" style="width:100%;padding:10px;border-radius:10px;border:none;
-                    background:linear-gradient(135deg,#4facfe,#00f2fe);color:#0a0a12;font-weight:700;cursor:pointer;font-size:13px;">
+                <button type="button" id="tm-repair-reminder-save" class="tm-rr-save">
                     Αποθήκευση υπενθύμισης
                 </button>
-                <div id="tm-repair-reminder-list" style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.08);font-size:11px;color:rgba(255,255,255,0.55);max-height:120px;overflow-y:auto;"></div>
+                <div id="tm-repair-reminder-list" class="tm-rr-list"></div>
             </div>
         `;
 
@@ -37921,13 +38117,15 @@ if (typeof window !== 'undefined') {
         const listEl = pop.querySelector('#tm-repair-reminder-list');
 
         function showReminderModal() {
-            backdrop.style.display = 'block';
-            pop.style.display = 'block';
+            backdrop.classList.remove('tm-rr-hidden');
+            pop.classList.remove('tm-rr-hidden');
+            backdrop.setAttribute('aria-hidden', 'false');
         }
 
         function hideReminderModal() {
-            backdrop.style.display = 'none';
-            pop.style.display = 'none';
+            backdrop.classList.add('tm-rr-hidden');
+            pop.classList.add('tm-rr-hidden');
+            backdrop.setAttribute('aria-hidden', 'true');
         }
 
         function fmtLocal(dt) {
@@ -37948,16 +38146,16 @@ if (typeof window !== 'undefined') {
             const mine = remindersForRepair(STORAGE_KEYS, ids.invoiceLinesId)
                 .sort((a, b) => (a.dueTime || 0) - (b.dueTime || 0));
             if (mine.length === 0) {
-                listEl.innerHTML = '<span style="opacity:0.7;">Δεν υπάρχουν ενεργές υπενθυμίσεις για αυτή το δελτίο.</span>';
+                listEl.innerHTML = '<span class="tm-rr-list-empty">Δεν υπάρχουν ενεργές υπενθυμίσεις για αυτή το δελτίο.</span>';
                 return;
             }
             listEl.innerHTML = mine
                 .map((r) => {
                     const when = new Date(r.dueTime).toLocaleString('el-GR');
                     const short = (r.message || '').slice(0, 40) + ((r.message || '').length > 40 ? '…' : '');
-                    return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;color:rgba(255,255,255,0.75);">
+                    return `<div class="tm-rr-list-row">
                         <span>${escapeHtml(when)}${short ? ` — ${escapeHtml(short)}` : ''}</span>
-                        <button type="button" class="tm-rr-del" data-id="${escapeHtml(r.id)}" style="flex-shrink:0;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#f87171;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:10px;">Διαγραφή</button>
+                        <button type="button" class="tm-rr-del" data-id="${escapeHtml(r.id)}">Διαγραφή</button>
                     </div>`;
                 })
                 .join('');
@@ -37981,10 +38179,7 @@ if (typeof window !== 'undefined') {
         }
 
         function isPopoverHidden() {
-            const d = (pop.style.display || '').trim().toLowerCase();
-            if (d === 'none') return true;
-            if (d === 'block' || d === 'flex') return false;
-            return window.getComputedStyle(pop).display === 'none';
+            return pop.classList.contains('tm-rr-hidden');
         }
 
         btn.addEventListener('click', (e) => {
@@ -44237,6 +44432,9 @@ if (typeof window !== 'undefined') {
                         'tm-recent-repairs-menu',
                         'tm-eod-btn',
                         'tm-eod-modal',
+                        'tm-order-popup',
+                        'tm-repair-reminder-popover',
+                        'tm-repair-reminder-backdrop',
                     ];
                     
                     if (element && !element.closest('form') && !neverHideIds.includes(element.id)) {

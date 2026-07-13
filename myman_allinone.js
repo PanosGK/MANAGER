@@ -5610,6 +5610,9 @@
                         'tm-recent-repairs-menu',
                         'tm-eod-btn',
                         'tm-eod-modal',
+                        'tm-order-popup',
+                        'tm-repair-reminder-popover',
+                        'tm-repair-reminder-backdrop',
                     ];
                     
                     if (element && !element.closest('form') && !neverHideIds.includes(element.id)) {
