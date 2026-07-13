@@ -549,6 +549,58 @@
         return 'Μία φορά';
     }
 
+    function getReminderSourceLabel(kindOrSource) {
+        if (kindOrSource === 'scratchpad') return 'Σημειωματάριο';
+        if (kindOrSource === 'repair_scheduled' || kindOrSource === 'repair' || kindOrSource === 'repair_banner') {
+            return 'Επισκευή';
+        }
+        return 'Υπενθύμιση';
+    }
+
+    function buildReminderMetaChip(text, icon = '') {
+        const label = icon ? `${icon} ${text}` : text;
+        return `<span class="tm-reminder-meta-chip">${escapeNotificationText(label)}</span>`;
+    }
+
+    function buildReminderCardHTML({
+        cardClass = '',
+        dataAttrs = '',
+        icon = '🔔',
+        title = '',
+        badges = [],
+        message = '',
+        metaChips = [],
+        actions = '',
+    }) {
+        const badgesHtml = badges.length
+            ? `<div class="tm-reminder-card-badges">${badges.map((b) => (
+                `<span class="tm-reminder-badge ${b.className || ''}">${escapeNotificationText(b.label)}</span>`
+            )).join('')}</div>`
+            : '';
+        const chipsHtml = metaChips.join('');
+        return `
+            <div class="tm-reminder-card ${cardClass}" ${dataAttrs}>
+                <div class="tm-reminder-card-header">
+                    <span class="tm-reminder-card-icon" aria-hidden="true">${icon}</span>
+                    <div class="tm-reminder-card-head-text">
+                        <div class="tm-reminder-card-title">${escapeNotificationText(title)}</div>
+                        ${badgesHtml}
+                    </div>
+                </div>
+                ${message ? `<div class="tm-reminder-card-message">${escapeNotificationText(message)}</div>` : ''}
+                ${chipsHtml ? `<div class="tm-reminder-card-meta">${chipsHtml}</div>` : ''}
+                ${actions ? `<div class="tm-reminder-card-actions">${actions}</div>` : ''}
+            </div>`;
+    }
+
+    function getReminderHistoryActionClass(action) {
+        if (action === 'fired') return 'tm-reminder-badge--fired';
+        if (action === 'snoozed') return 'tm-reminder-badge--snoozed';
+        if (action === 'dismissed') return 'tm-reminder-badge--dismissed';
+        if (action === 'cancelled') return 'tm-reminder-badge--cancelled';
+        return 'tm-reminder-badge--closed';
+    }
+
     function formatReminderHistoryAction(action) {
         if (action === 'fired') return 'Ενεργοποιήθηκε';
         if (action === 'snoozed') return 'Αναβλήθηκε';
@@ -612,31 +664,33 @@
         }
         return history.map((h) => {
             const icon = getReminderHistoryIcon(h.source);
-            const title = escapeNotificationText(h.title || 'Υπενθύμιση');
-            const action = escapeNotificationText(formatReminderHistoryAction(h.action));
+            const title = h.title || 'Υπενθύμιση';
+            const action = formatReminderHistoryAction(h.action);
             const closed = h.closedAt ? new Date(h.closedAt).toLocaleString('el-GR') : '';
             const due = h.dueTime ? new Date(h.dueTime).toLocaleString('el-GR') : '';
             const rec = formatAlertRecurrence(h.recurrence);
-            const msg = escapeNotificationText(h.message || '');
+            const msg = h.message || '';
             const openLink = h.invoiceLinesId
-                ? `<a class="tm-alert-open-link" href="https://thefixers.mymanager.gr/mymanagerservice/service_edit.php?editid1=${encodeURIComponent(h.invoiceLinesId)}" target="_blank" rel="noopener">Άνοιγμα</a>`
+                ? `<a class="tm-reminder-action-link" href="https://thefixers.mymanager.gr/mymanagerservice/service_edit.php?editid1=${encodeURIComponent(h.invoiceLinesId)}" target="_blank" rel="noopener">Άνοιγμα επισκευής</a>`
                 : '';
-            const metaParts = [action];
-            if (due) metaParts.push(`Προγραμματισμένη: ${due}`);
-            if (closed) metaParts.push(`Κλείστηκε: ${closed}`);
-            metaParts.push(rec);
-            return `
-                <div class="tm-alert-item tm-alert-item--history" data-history-id="${escapeNotificationText(h.id)}">
-                    <div class="tm-alert-item-icon">${icon}</div>
-                    <div class="tm-alert-item-body">
-                        <div class="tm-alert-item-title">${title}</div>
-                        <div class="tm-alert-item-meta">${escapeNotificationText(metaParts.join(' · '))}</div>
-                        ${msg ? `<div class="tm-alert-item-message">${msg}</div>` : ''}
-                    </div>
-                    <div class="tm-alert-item-actions">
-                        ${openLink}
-                    </div>
-                </div>`;
+            const metaChips = [];
+            if (due) metaChips.push(buildReminderMetaChip(`Προγραμματισμένη: ${due}`, '📅'));
+            if (closed) metaChips.push(buildReminderMetaChip(`Κλείστηκε: ${closed}`, '🕐'));
+            metaChips.push(buildReminderMetaChip(rec, '🔁'));
+
+            return buildReminderCardHTML({
+                cardClass: `tm-reminder-card--history tm-reminder-card--history-${escapeNotificationText(h.action || 'closed')}`,
+                dataAttrs: `data-history-id="${escapeNotificationText(h.id)}"`,
+                icon,
+                title,
+                badges: [
+                    { label: getReminderSourceLabel(h.source), className: 'tm-reminder-badge--source' },
+                    { label: action, className: getReminderHistoryActionClass(h.action) },
+                ],
+                message: msg,
+                metaChips,
+                actions: openLink,
+            });
         }).join('');
     }
 
@@ -761,28 +815,40 @@
         return alerts.map((a) => {
             const when = a.dueTime ? new Date(a.dueTime).toLocaleString('el-GR') : '';
             const rec = formatAlertRecurrence(a.recurrence);
-            const status = a.kind === 'repair_banner'
-                ? 'Εμφανίζεται τώρα στην οθόνη'
+            const isLiveBanner = a.kind === 'repair_banner';
+            const statusLabel = isLiveBanner
+                ? 'Εμφανίζεται τώρα'
                 : (a.overdue ? 'Ληξιπρόθεσμη' : 'Προγραμματισμένη');
-            const msg = escapeNotificationText(a.message);
-            const title = escapeNotificationText(a.title);
+            const statusClass = isLiveBanner
+                ? 'tm-reminder-badge--live'
+                : (a.overdue ? 'tm-reminder-badge--overdue' : 'tm-reminder-badge--scheduled');
+            const cardClass = isLiveBanner
+                ? 'tm-reminder-card--live'
+                : (a.overdue ? 'tm-reminder-card--overdue' : 'tm-reminder-card--scheduled');
+            const msg = a.message || '';
+            const title = a.title || 'Υπενθύμιση';
             const openLink = a.invoiceLinesId
-                ? `<a class="tm-alert-open-link" href="https://thefixers.mymanager.gr/mymanagerservice/service_edit.php?editid1=${encodeURIComponent(a.invoiceLinesId)}" target="_blank" rel="noopener">Άνοιγμα</a>`
+                ? `<a class="tm-reminder-action-link" href="https://thefixers.mymanager.gr/mymanagerservice/service_edit.php?editid1=${encodeURIComponent(a.invoiceLinesId)}" target="_blank" rel="noopener">Άνοιγμα επισκευής</a>`
                 : '';
-            const cancelLabel = a.kind === 'repair_banner' ? 'Απόκρυψη' : 'Ακύρωση';
-            return `
-                <div class="tm-alert-item" data-alert-kind="${escapeNotificationText(a.kind)}" data-alert-id="${escapeNotificationText(a.id)}">
-                    <div class="tm-alert-item-icon">${a.icon}</div>
-                    <div class="tm-alert-item-body">
-                        <div class="tm-alert-item-title">${title}</div>
-                        <div class="tm-alert-item-meta">${escapeNotificationText(status)} · ${escapeNotificationText(rec)}${when ? ` · ${escapeNotificationText(when)}` : ''}</div>
-                        ${msg ? `<div class="tm-alert-item-message">${msg}</div>` : ''}
-                    </div>
-                    <div class="tm-alert-item-actions">
-                        ${openLink}
-                        <button type="button" class="tm-alert-cancel-btn" data-alert-kind="${escapeNotificationText(a.kind)}" data-alert-id="${escapeNotificationText(a.id)}">${cancelLabel}</button>
-                    </div>
-                </div>`;
+            const cancelLabel = isLiveBanner ? 'Απόκρυψη' : 'Ακύρωση';
+            const cancelBtn = `<button type="button" class="tm-alert-cancel-btn tm-reminder-action-btn tm-reminder-action-btn--danger" data-alert-kind="${escapeNotificationText(a.kind)}" data-alert-id="${escapeNotificationText(a.id)}">${cancelLabel}</button>`;
+            const metaChips = [];
+            if (when) metaChips.push(buildReminderMetaChip(when, '📅'));
+            metaChips.push(buildReminderMetaChip(rec, '🔁'));
+
+            return buildReminderCardHTML({
+                cardClass,
+                dataAttrs: `data-alert-kind="${escapeNotificationText(a.kind)}" data-alert-id="${escapeNotificationText(a.id)}"`,
+                icon: a.icon,
+                title,
+                badges: [
+                    { label: getReminderSourceLabel(a.kind), className: 'tm-reminder-badge--source' },
+                    { label: statusLabel, className: statusClass },
+                ],
+                message: msg,
+                metaChips,
+                actions: `${openLink}${cancelBtn}`,
+            });
         }).join('');
     }
 
