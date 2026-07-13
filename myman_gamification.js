@@ -4698,10 +4698,14 @@ function populateShopDashboard(config, STORAGE_KEYS) {
     themesContainer.innerHTML = Object.keys(UI_THEMES).map(id => {
         const theme = { id, ...UI_THEMES[id] };
         const isPurchased = purchasedItems.includes(theme.id) || theme.cost === 0;
+        const paletteSource = (typeof UI_PALETTE_SOURCES !== 'undefined' && UI_PALETTE_SOURCES[id])
+            ? `<div style="font-size: 10px; color: var(--tm-secondary-color); margin-bottom: 8px; line-height: 1.3; opacity: 0.9;">${UI_PALETTE_SOURCES[id]}</div>`
+            : '';
         return `
             <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
                 <div style="font-size: 48px; margin-bottom: 12px;">${theme.icon}</div>
                 <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${theme.name}</div>
+                ${paletteSource}
                 <button class="tm-shop-item-btn ${isPurchased ? 'purchased' : 'buy'}" 
                         data-item-id="${theme.id}" 
                         data-item-type="theme"

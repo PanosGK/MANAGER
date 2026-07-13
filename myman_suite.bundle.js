@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v185 — generated, do not edit */
+/* MyManager Suite bundle v186 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -1499,23 +1499,269 @@ const THEME_EXTENDED_STYLES = `/* --- Extended theme tokens (derived per theme i
             ::-webkit-scrollbar-track { background: var(--tm-scrollbar-track, var(--tm-dark-hover, var(--tm-dark-color))) !important; }
         `;
 
+/** Documented specialist UI palette sources (design systems & community themes). */
+const UI_PALETTE_SOURCES = {
+    default: 'IBM Carbon Design System — carbondesignsystem.com',
+    solarized_dark: 'Solarized — Ethan Schoonover — ethanschoonover.com/solarized',
+    solarized_light: 'Solarized — Ethan Schoonover',
+    dracula: 'Dracula Theme — draculatheme.com/spec',
+    nord: 'Nord Theme — nordtheme.com',
+    tokyo_night: 'Tokyo Night — enkia/tokyo-night-vscode-theme',
+    midnight_purple: 'Linear app UI — linear.app',
+    neon_pink: 'Radix Colors Pink Dark — radix-ui.com/colors',
+    oceanic: 'Tailwind CSS Teal — tailwindcss.com/docs/customizing-colors',
+    ice: 'Nord Frost + IBM Carbon Gray',
+    cyberpunk: 'Cyberpunk 2077 UI palette (FCEE0A / 00F0FF / FF2A6D)',
+    forest: 'Material Design 3 Green — m3.material.io',
+    sunset: 'Radix Colors Orange Dark — radix-ui.com/colors',
+    crimson: 'Radix Colors Red Dark — radix-ui.com/colors',
+    retro_amber: 'Gruvbox — morhetz/gruvbox',
+    matrix: 'Classic VT220 phosphor terminal green',
+    liquid_glass: 'Apple HIG system colors — developer.apple.com/design/human-interface-guidelines',
+};
+
+function tmMapPaletteToThemeColors(p) {
+    const pick = (key, fallback) => (p[key] != null && p[key] !== '' ? p[key] : fallback);
+    return {
+        '--tm-primary-color': p.primary,
+        '--tm-primary-hover': pick('primaryHover', p.primary),
+        '--tm-secondary-color': p.secondary,
+        '--tm-secondary-hover': pick('secondaryHover', p.secondary),
+        '--tm-success-color': p.success,
+        '--tm-success-hover': pick('successHover', p.success),
+        '--tm-danger-color': p.danger,
+        '--tm-danger-hover': pick('dangerHover', p.danger),
+        '--tm-warning-color': p.warning,
+        '--tm-warning-hover': pick('warningHover', p.warning),
+        '--tm-info-color': p.info,
+        '--tm-info-hover': pick('infoHover', p.info),
+        '--tm-dark-color': p.dark,
+        '--tm-dark-hover': pick('darkHover', p.dark),
+        '--tm-shop-item-bg': p.surface,
+        '--tm-shop-item-border': p.border,
+        '--tm-shop-item-hover-bg': pick('surfaceHover', p.surface),
+        '--tm-shop-item-owned-bg': pick('surfaceOwned', p.surface),
+        '--tm-text-on-primary': pick('textOnPrimary', '#ffffff'),
+        '--tm-text-on-success': pick('textOnSuccess', '#ffffff'),
+        '--tm-text-on-light': pick('textOnLight', '#1a1a1a'),
+        '--tm-text-on-dark': pick('textOnDark', p.info),
+        '--tm-modal-bg': pick('modalBg', p.surface),
+    };
+}
+
+const UI_SPECIALIST_PALETTES = {
+    default: tmMapPaletteToThemeColors({
+        primary: '#0f62fe', primaryHover: '#0353e9',
+        secondary: '#6f6f6f', secondaryHover: '#525252',
+        success: '#24a148', successHover: '#198038',
+        danger: '#da1e28', dangerHover: '#a2191f',
+        warning: '#f1c21b', warningHover: '#d2a106',
+        info: '#1192e8', infoHover: '#0072c3',
+        dark: '#393939', darkHover: '#262626',
+        surface: '#f4f4f4', border: '#e0e0e0', surfaceHover: '#e8e8e8', surfaceOwned: '#d0e2ff',
+        textOnPrimary: '#ffffff', textOnLight: '#161616', textOnDark: '#f4f4f4',
+        modalBg: '#ffffff',
+    }),
+    solarized_dark: tmMapPaletteToThemeColors({
+        primary: '#268bd2', primaryHover: '#2aa198',
+        secondary: '#586e75', secondaryHover: '#657b83',
+        success: '#859900', successHover: '#6c7c00',
+        danger: '#dc322f', dangerHover: '#cb4b16',
+        warning: '#b58900', warningHover: '#93a1a1',
+        info: '#2aa198', infoHover: '#268bd2',
+        dark: '#073642', darkHover: '#002b36',
+        surface: '#073642', border: '#586e75', surfaceHover: '#002b36', surfaceOwned: '#002b36',
+        textOnPrimary: '#fdf6e3', textOnLight: '#839496', textOnDark: '#93a1a1',
+        modalBg: '#073642',
+    }),
+    solarized_light: tmMapPaletteToThemeColors({
+        primary: '#268bd2', primaryHover: '#1a6094',
+        secondary: '#93a1a1', secondaryHover: '#657b83',
+        success: '#859900', successHover: '#6c7c00',
+        danger: '#dc322f', dangerHover: '#cb4b16',
+        warning: '#b58900', warningHover: '#93a1a1',
+        info: '#2aa198', infoHover: '#268bd2',
+        dark: '#fdf6e3', darkHover: '#eee8d5',
+        surface: '#fdf6e3', border: '#93a1a1', surfaceHover: '#eee8d5', surfaceOwned: '#e8f4fc',
+        textOnPrimary: '#fdf6e3', textOnLight: '#657b83', textOnDark: '#586e75',
+        modalBg: '#fdf6e3',
+    }),
+    dracula: tmMapPaletteToThemeColors({
+        primary: '#bd93f9', primaryHover: '#ff79c6',
+        secondary: '#6272a4', secondaryHover: '#44475a',
+        success: '#50fa7b', successHover: '#5af78e',
+        danger: '#ff5555', dangerHover: '#ff6e6e',
+        warning: '#f1fa8c', warningHover: '#ffb86c',
+        info: '#8be9fd', infoHover: '#9feffe',
+        dark: '#282a36', darkHover: '#1e1f29',
+        surface: '#383a59', border: '#6272a4', surfaceHover: '#44475a', surfaceOwned: '#44475a',
+        textOnPrimary: '#282a36', textOnSuccess: '#282a36', textOnDark: '#f8f8f2',
+        modalBg: '#383a59',
+    }),
+    nord: tmMapPaletteToThemeColors({
+        primary: '#88c0d0', primaryHover: '#8fbcbb',
+        secondary: '#5e81ac', secondaryHover: '#81a1c1',
+        success: '#a3be8c', successHover: '#b8d0a0',
+        danger: '#bf616a', dangerHover: '#d08770',
+        warning: '#ebcb8b', warningHover: '#f0d9a0',
+        info: '#b48ead', infoHover: '#c4a0bf',
+        dark: '#2e3440', darkHover: '#3b4252',
+        surface: '#3b4252', border: '#4c566a', surfaceHover: '#434c5e', surfaceOwned: '#4c566a',
+        textOnPrimary: '#2e3440', textOnSuccess: '#2e3440', textOnDark: '#eceff4',
+        modalBg: '#3b4252',
+    }),
+    tokyo_night: tmMapPaletteToThemeColors({
+        primary: '#7aa2f7', primaryHover: '#89b4fa',
+        secondary: '#565f89', secondaryHover: '#414868',
+        success: '#9ece6a', successHover: '#73daca',
+        danger: '#f7768e', dangerHover: '#ff9eaa',
+        warning: '#e0af68', warningHover: '#e9c07a',
+        info: '#7dcfff', infoHover: '#99dbff',
+        dark: '#1a1b26', darkHover: '#16161e',
+        surface: '#24283b', border: '#414868', surfaceHover: '#2f3549', surfaceOwned: '#343b58',
+        textOnPrimary: '#1a1b26', textOnSuccess: '#1a1b26', textOnDark: '#c0caf5',
+        modalBg: '#24283b',
+    }),
+    midnight_purple: tmMapPaletteToThemeColors({
+        primary: '#5e6ad2', primaryHover: '#828fff',
+        secondary: '#3e3f4e', secondaryHover: '#4e4f60',
+        success: '#4cb782', successHover: '#3da86f',
+        danger: '#eb5757', dangerHover: '#f87171',
+        warning: '#f2c94c', warningHover: '#f5d76e',
+        info: '#95a2ff', infoHover: '#b4befe',
+        dark: '#1c1d24', darkHover: '#15161c',
+        surface: '#252630', border: '#32333e', surfaceHover: '#2c2d38', surfaceOwned: '#32334a',
+        textOnPrimary: '#ffffff', textOnDark: '#b4bcd0',
+        modalBg: '#252630',
+    }),
+    neon_pink: tmMapPaletteToThemeColors({
+        primary: '#e93d9d', primaryHover: '#f04fa8',
+        secondary: '#c41e7a', secondaryHover: '#d42d8a',
+        success: '#3dd68c', successHover: '#2ec47a',
+        danger: '#f2555a', dangerHover: '#ff6369',
+        warning: '#ff8c42', warningHover: '#ffa05c',
+        info: '#56d4f5', infoHover: '#7de0f7',
+        dark: '#1f1117', darkHover: '#170d12',
+        surface: '#29151f', border: '#6d2a4d', surfaceHover: '#351a28', surfaceOwned: '#3d1f30',
+        textOnPrimary: '#1f1117', textOnSuccess: '#1f1117', textOnDark: '#f0a8d0',
+        modalBg: '#29151f',
+    }),
+    oceanic: tmMapPaletteToThemeColors({
+        primary: '#2dd4bf', primaryHover: '#5eead4',
+        secondary: '#0e7490', secondaryHover: '#0891b2',
+        success: '#059669', successHover: '#10b981',
+        danger: '#fb7185', dangerHover: '#f43f5e',
+        warning: '#fbbf24', warningHover: '#f59e0b',
+        info: '#38bdf8', infoHover: '#0ea5e9',
+        dark: '#042f2e', darkHover: '#022c22',
+        surface: 'rgba(4, 47, 46, 0.88)', border: '#0e7490',
+        surfaceHover: 'rgba(8, 145, 178, 0.35)', surfaceOwned: 'rgba(251, 191, 36, 0.12)',
+        textOnPrimary: '#042f2e', textOnSuccess: '#042f2e', textOnDark: '#5eead4',
+        modalBg: 'rgba(4, 47, 46, 0.96)',
+    }),
+    ice: tmMapPaletteToThemeColors({
+        primary: '#d8dee9', primaryHover: '#eceff4',
+        secondary: '#4c566a', secondaryHover: '#81a1c1',
+        success: '#a3be8c', successHover: '#8fbcbb',
+        danger: '#bf616a', dangerHover: '#d08770',
+        warning: '#ebcb8b', warningHover: '#d8d8d8',
+        info: '#88c0d0', infoHover: '#8fbcbb',
+        dark: '#2e3440', darkHover: '#3b4252',
+        surface: '#3b4252', border: '#4c566a', surfaceHover: '#434c5e', surfaceOwned: '#4c566a',
+        textOnPrimary: '#2e3440', textOnDark: '#eceff4',
+        modalBg: '#3b4252',
+    }),
+    cyberpunk: tmMapPaletteToThemeColors({
+        primary: '#00f0ff', primaryHover: '#05d9e8',
+        secondary: '#7700a6', secondaryHover: '#4a0072',
+        success: '#fcee0a', successHover: '#fff44f',
+        danger: '#ff2a6d', dangerHover: '#ff5c8d',
+        warning: '#ff9e00', warningHover: '#ffb833',
+        info: '#d300c5', infoHover: '#e833dc',
+        dark: '#0d0221', darkHover: '#050114',
+        surface: '#1a0533', border: '#7700a6', surfaceHover: '#240640', surfaceOwned: '#2e0855',
+        textOnPrimary: '#0d0221', textOnSuccess: '#0d0221', textOnDark: '#00f0ff',
+        modalBg: 'rgba(13, 2, 33, 0.98)',
+    }),
+    forest: tmMapPaletteToThemeColors({
+        primary: '#81c784', primaryHover: '#a5d6a7',
+        secondary: '#388e3c', secondaryHover: '#2e7d32',
+        success: '#66bb6a', successHover: '#4caf50',
+        danger: '#e57373', dangerHover: '#ef5350',
+        warning: '#ffb74d', warningHover: '#ffa726',
+        info: '#4db6ac', infoHover: '#26a69a',
+        dark: '#1b2e1b', darkHover: '#0f1a0f',
+        surface: '#243324', border: '#388e3c', surfaceHover: '#2f4a2f', surfaceOwned: '#2b5a2b',
+        textOnPrimary: '#1b2e1b', textOnSuccess: '#1b2e1b', textOnDark: '#c8e6c9',
+        modalBg: '#243324',
+    }),
+    sunset: tmMapPaletteToThemeColors({
+        primary: '#f76b15', primaryHover: '#ff802b',
+        secondary: '#e54d2e', secondaryHover: '#d4421f',
+        success: '#46a758', successHover: '#3d9a4f',
+        danger: '#e5484d', dangerHover: '#dc3d43',
+        warning: '#ffb224', warningHover: '#f5a623',
+        info: '#ffec99', infoHover: '#ffe066',
+        dark: '#2d1b1b', darkHover: '#1a0f0f',
+        surface: '#3d2424', border: '#5c3333', surfaceHover: '#4a2929', surfaceOwned: '#5c3d3d',
+        textOnPrimary: '#ffffff', textOnDark: '#ffec99',
+        modalBg: '#3d2424',
+    }),
+    crimson: tmMapPaletteToThemeColors({
+        primary: '#e5484d', primaryHover: '#ff6369',
+        secondary: '#aa2429', secondaryHover: '#8b1e22',
+        success: '#46a758', successHover: '#3d9a4f',
+        danger: '#e5484d', dangerHover: '#dc3d43',
+        warning: '#ffb224', warningHover: '#f5a623',
+        info: '#f3aeb5', infoHover: '#ffa8a8',
+        dark: '#2b0a0a', darkHover: '#1a0505',
+        surface: '#3d1414', border: '#5c1f1f', surfaceHover: '#4a1a1a', surfaceOwned: '#5c2929',
+        textOnPrimary: '#ffffff', textOnDark: '#ffc9c9',
+        modalBg: '#3d1414',
+    }),
+    retro_amber: tmMapPaletteToThemeColors({
+        primary: '#fabd2f', primaryHover: '#fe8019',
+        secondary: '#d79921', secondaryHover: '#b57614',
+        success: '#b8bb26', successHover: '#98971a',
+        danger: '#fb4934', dangerHover: '#cc241d',
+        warning: '#fe8019', warningHover: '#d65d0e',
+        info: '#83a598', infoHover: '#689d6a',
+        dark: '#282828', darkHover: '#1d2021',
+        surface: '#32302f', border: '#504945', surfaceHover: '#3c3836', surfaceOwned: '#45403d',
+        textOnPrimary: '#282828', textOnSuccess: '#282828', textOnDark: '#ebdbb2',
+        modalBg: '#32302f',
+    }),
+    matrix: tmMapPaletteToThemeColors({
+        primary: '#00ff41', primaryHover: '#33ff66',
+        secondary: '#00cc33', secondaryHover: '#009922',
+        success: '#00dd00', successHover: '#00aa00',
+        danger: '#ff0040', dangerHover: '#cc0033',
+        warning: '#c0ff00', warningHover: '#99cc00',
+        info: '#00ffcc', infoHover: '#00ccaa',
+        dark: '#0d0d0d', darkHover: '#000000',
+        surface: '#0a0f0a', border: '#003300', surfaceHover: '#001a00', surfaceOwned: '#001400',
+        textOnPrimary: '#000000', textOnSuccess: '#000000', textOnDark: '#00ff41',
+        modalBg: '#0a0f0a',
+    }),
+    liquid_glass: tmMapPaletteToThemeColors({
+        primary: '#007AFF', primaryHover: '#0065D8',
+        secondary: '#8E8E93', secondaryHover: '#636366',
+        success: '#34C759', successHover: '#248A3D',
+        danger: '#FF3B30', dangerHover: '#D70015',
+        warning: '#FF9500', warningHover: '#C77700',
+        info: '#32ADE6', infoHover: '#007AFF',
+        dark: '#EEF0F8', darkHover: '#E5E5EA',
+        surface: 'rgba(255, 255, 255, 0.46)', border: 'rgba(60, 60, 67, 0.18)',
+        surfaceHover: 'rgba(255, 255, 255, 0.62)', surfaceOwned: 'rgba(0, 122, 255, 0.10)',
+        textOnPrimary: '#FFFFFF', textOnLight: '#1D1D1F', textOnDark: '#636366',
+        modalBg: 'rgba(255, 255, 255, 0.68)',
+    }),
+};
+
 const UI_THEMES = {
     'default': {
         name: 'Default', icon: '🎨', cost: 0,
-        colors: {
-            '--tm-primary-color': '#007bff', '--tm-primary-hover': '#0056b3',
-            '--tm-secondary-color': '#6c757d', '--tm-secondary-hover': '#5a6268',
-            '--tm-success-color': '#28a745', '--tm-success-hover': '#218838',
-            '--tm-danger-color': '#dc3545', '--tm-danger-hover': '#c82333',
-            '--tm-warning-color': '#ffc107', '--tm-warning-hover': '#e0a800',
-            '--tm-info-color': '#17a2b8', '--tm-info-hover': '#138496',
-            '--tm-dark-color': '#343a40', '--tm-dark-hover': '#23272b',
-            '--tm-shop-item-bg': '#f8f9fa', '--tm-shop-item-border': '#dee2e6',
-            '--tm-shop-item-hover-bg': '#e9ecef', '--tm-shop-item-owned-bg': '#e7f1ff',
-            '--tm-text-on-primary': '#ffffff', '--tm-text-on-success': '#ffffff',
-            '--tm-text-on-light': '#343a40', '--tm-text-on-dark': '#cccccc',
-            '--tm-modal-bg': '#ffffff',
-        },
+        colors: UI_SPECIALIST_PALETTES.default,
         pageStyles: `/* Default Theme - Light Background Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; background-color: var(--tm-danger-color) !important; }
             .minimal-store-btn:hover, .rnr-button:hover, #tm-settings-save:hover, #tm-settings-reset:hover, 
@@ -1796,64 +2042,13 @@ const UI_THEMES = {
     },
     'matrix': {
         name: 'Matrix', icon: '📟', cost: 500, type: 'theme', // Cost is for the shop
-        colors: {
-            '--tm-primary-color': '#00ff00',      // Main interactive color (bright green)
-            '--tm-primary-hover': '#33ff33',      // Lighter green for hover
-            '--tm-secondary-color': '#00d100',    // A darker green for less important elements
-            '--tm-secondary-hover': '#00aa00',    // Hover for secondary
-            '--tm-success-color': '#00dd00',      // Success actions
-            '--tm-success-hover': '#009900',      //
-            '--tm-danger-color': '#ff0000',       // Red for errors/danger
-            '--tm-danger-hover': '#cc0000',       //
-            '--tm-warning-color': '#ffff00',      // Amber/yellow for warnings
-            '--tm-warning-hover': '#cccc00',      //
-            '--tm-info-color': '#ffffff',         // White for informational elements, a key accent
-            '--tm-info-hover': '#cccccc',         //
-            '--tm-dark-color': '#080808',         // Dark background elements
-            '--tm-dark-hover': '#000000',         //
-
-            // Shop Item Styles for Matrix
-            '--tm-shop-item-bg': '#0a0a0a',
-            '--tm-shop-item-border': '#003300',
-            '--tm-shop-item-hover-bg': '#002200',
-            '--tm-shop-item-owned-bg': '#001a00',
-            '--tm-text-on-primary': '#000000',
-            '--tm-text-on-success': '#000000',
-            '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#00ff00',
-            '--tm-modal-bg': '#0a0a0a',
-        },
+        colors: UI_SPECIALIST_PALETTES.matrix,
         pageStyles: THEME_STYLES + `/* Matrix Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-dark-hover) !important; }`
     },
     'oceanic': {
         name: 'Oceanic', icon: '🌊', cost: 500, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#2dd4bf',      // Aquamarine (shallow reef)
-            '--tm-primary-hover': '#5eead4',      // Bright Turquoise
-            '--tm-secondary-color': '#0e7490',    // Deep Teal
-            '--tm-secondary-hover': '#0891b2',    // Ocean Cyan
-            '--tm-success-color': '#059669',      // Kelp Green
-            '--tm-success-hover': '#10b981',      // Sea Green
-            '--tm-danger-color': '#fb7185',       // Coral Pink
-            '--tm-danger-hover': '#f43f5e',       // Warm Coral
-            '--tm-warning-color': '#fbbf24',      // Sunlit Gold
-            '--tm-warning-hover': '#f59e0b',      // Amber
-            '--tm-info-color': '#38bdf8',         // Surface Sky
-            '--tm-info-hover': '#0ea5e9',         // Bright Sky
-            '--tm-dark-color': '#001a2e',         // Abyss Navy (teal undertone)
-            '--tm-dark-hover': '#001220',         // Deep Abyss
-
-            '--tm-shop-item-bg': 'rgba(0, 30, 48, 0.82)',
-            '--tm-shop-item-border': '#0e7490',
-            '--tm-shop-item-hover-bg': 'rgba(8, 145, 178, 0.35)',
-            '--tm-shop-item-owned-bg': 'rgba(251, 191, 36, 0.12)',
-            '--tm-text-on-primary': '#001a2e',
-            '--tm-text-on-success': '#001a2e',
-            '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#5eead4',
-            '--tm-modal-bg': 'rgba(0, 26, 46, 0.96)',
-        },
+        colors: UI_SPECIALIST_PALETTES.oceanic,
         pageStyles: THEME_STYLES + `/* Oceanic Theme Overrides */
             body::before { background-image: radial-gradient(ellipse at 25% 15%, rgba(45,212,191,0.12) 0%, transparent 45%), radial-gradient(ellipse at 75% 85%, rgba(14,116,144,0.10) 0%, transparent 50%), radial-gradient(ellipse at 50% 100%, rgba(5,150,105,0.06) 0%, transparent 40%) !important; opacity: 1 !important; animation: none !important; }
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(72%) sepia(42%) saturate(650%) hue-rotate(128deg) brightness(95%) contrast(101%) !important; }
@@ -1866,35 +2061,9 @@ const UI_THEMES = {
     },
     'cyberpunk': {
         name: 'Cyberpunk', icon: '🌃', cost: 750, type: 'theme', // Cost is for the shop
-        colors: {
-            '--tm-primary-color': '#00aaff',      // Electric Blue
-            '--tm-primary-hover': '#33bbff',      // Lighter Electric Blue
-            '--tm-secondary-color': '#0064c8',    // Deep, dark blue for borders
-            '--tm-secondary-hover': '#004488',    //
-            '--tm-success-color': '#ffff00',      // Vibrant Yellow (for text)
-            '--tm-success-hover': '#ffff66',      //
-            '--tm-danger-color': '#ff00ff',       // Magenta (as a warning/danger color)
-            '--tm-danger-hover': '#cc00cc',       //
-            '--tm-warning-color': '#ff9900',      // Bright Orange
-            '--tm-warning-hover': '#e68a00',      //
-            '--tm-info-color': '#00ffff',         // Cyan (for accents/links)
-            '--tm-info-hover': '#00cccc',         //
-            '--tm-dark-color': '#0a0514',         // Very dark purplish-blue
-            '--tm-dark-hover': '#05020a',         // Near black
-
-            // Shop Item Styles for Cyberpunk
-            '--tm-shop-item-bg': '#0a0514',
-            '--tm-shop-item-border': '#003366',
-            '--tm-shop-item-hover-bg': '#004488',
-            '--tm-shop-item-owned-bg': '#003366',
-            '--tm-text-on-primary': '#000000',
-            '--tm-text-on-success': '#000000',
-            '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#00ffff',
-            '--tm-modal-bg': 'rgba(10, 5, 20, 0.98)',
-        },
+        colors: UI_SPECIALIST_PALETTES.cyberpunk,
         pageStyles: THEME_STYLES + `/* Cyberpunk Theme Overrides */
-            body::before { background-image: linear-gradient(var(--tm-primary-color, #00aaff) 1px, transparent 1px), linear-gradient(90deg, var(--tm-primary-color, #00aaff) 1px, transparent 1px) !important; background-size: 50px 50px !important; opacity: 0.1 !important; animation: none !important; }
+            body::before { background-image: linear-gradient(var(--tm-primary-color) 1px, transparent 1px), linear-gradient(90deg, var(--tm-primary-color) 1px, transparent 1px) !important; background-size: 50px 50px !important; opacity: 0.1 !important; animation: none !important; }
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(58%) sepia(99%) saturate(1455%) hue-rotate(168deg) brightness(102%) contrast(102%) !important; }
             
             /* Cyberpunk Contrast Fixes */
@@ -1904,26 +2073,7 @@ const UI_THEMES = {
     },
     'solarized_dark': {
         name: 'Solarized Dark', icon: '☀️', cost: 750, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#268bd2', '--tm-primary-hover': '#1a6094',
-            '--tm-secondary-color': '#1c9dc6', '--tm-secondary-hover': '#657b83',
-            '--tm-success-color': '#859900', '--tm-success-hover': '#5d6b00',
-            '--tm-danger-color': '#dc322f', '--tm-danger-hover': '#cb4b16',
-            '--tm-warning-color': '#b58900', '--tm-warning-hover': '#93a1a1',
-            '--tm-info-color': '#2aa198', '--tm-info-hover': '#2aa198',
-            '--tm-dark-color': '#073642', '--tm-dark-hover': '#002b36',
-
-            // Shop Item Styles for Solarized Dark
-            '--tm-shop-item-bg': '#073642',
-            '--tm-shop-item-border': '#586e75',
-            '--tm-shop-item-hover-bg': '#002b36',
-            '--tm-shop-item-owned-bg': '#002b36',
-            '--tm-text-on-primary': '#ffffff',
-            '--tm-text-on-success': '#ffffff',
-            '--tm-text-on-light': '#839496',
-            '--tm-text-on-dark': '#93a1a1',
-            '--tm-modal-bg': '#073642',
-        },
+        colors: UI_SPECIALIST_PALETTES.solarized_dark,
         pageStyles: THEME_STYLES + `/* Solarized Dark Theme Overrides */
             body::before { background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23073642' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 6V5zM6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E") !important; opacity: 1 !important; animation: none !important; }
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(60%) sepia(11%) saturate(334%) hue-rotate(148deg) brightness(91%) contrast(88%) !important; }
@@ -1933,37 +2083,11 @@ const UI_THEMES = {
     },
     'solarized_light': {
         name: 'Solarized Light', icon: '💡', cost: 750, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#5b21b6',      // Deep purple - Main interactive
-            '--tm-primary-hover': '#7c3aed',      // Lighter purple - Hover
-            '--tm-secondary-color': '#78716c',    // Warm stone - Secondary
-            '--tm-secondary-hover': '#57534e',    // Darker stone
-            '--tm-success-color': '#059669',      // Emerald green
-            '--tm-success-hover': '#047857',      // Dark emerald
-            '--tm-danger-color': '#e11d48',       // Rose red
-            '--tm-danger-hover': '#be123c',       // Dark rose
-            '--tm-warning-color': '#d97706',      // Amber
-            '--tm-warning-hover': '#b45309',      // Dark amber
-            '--tm-info-color': '#0284c7',         // Sky blue
-            '--tm-info-hover': '#0369a1',         // Dark sky
-            '--tm-dark-color': '#fafaf9',         // Warm white background
-            '--tm-dark-hover': '#f5f5f4',         // Warm gray
-
-            // Shop Item Styles for Solarized Light
-            '--tm-shop-item-bg': '#ffffff',       // Pure white cards
-            '--tm-shop-item-border': '#e7e5e4',   // Warm border
-            '--tm-shop-item-hover-bg': '#fafaf9', // Warm hover
-            '--tm-shop-item-owned-bg': '#faf5ff', // Light purple tint
-            '--tm-text-on-primary': '#ffffff',
-            '--tm-text-on-success': '#ffffff',
-            '--tm-text-on-light': '#5b21b6',
-            '--tm-text-on-dark': '#fffbfb',
-            '--tm-modal-bg': '#ffffff',
-        },
+        colors: UI_SPECIALIST_PALETTES.solarized_light,
         pageStyles: THEME_STYLES + `/* Solarized Light Theme Overrides */
-            body { background: linear-gradient(135deg, #fafaf9 0%, #f5f5f4 100%) !important; }
-            body::before { background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%235b21b6' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") !important; opacity: 1 !important; animation: none !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(14%) sepia(64%) saturate(5213%) hue-rotate(262deg) brightness(91%) contrast(102%) !important; }
+            body { background: linear-gradient(135deg, #fdf6e3 0%, #eee8d5 100%) !important; }
+            body::before { background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23268bd2' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") !important; opacity: 1 !important; animation: none !important; }
+            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(42%) sepia(52%) saturate(1200%) hue-rotate(182deg) brightness(92%) contrast(92%) !important; }
             
             /* Light Theme Specific Contrast Fixes */
             #tm-notification-unread-count { color: #ffffff !important; }
@@ -1986,34 +2110,9 @@ const UI_THEMES = {
     },
     'midnight_purple': {
         name: 'Midnight Purple', icon: '🌙', cost: 500, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#7c3aed',      // Cool Violet
-            '--tm-primary-hover': '#a78bfa',      // Soft Lavender
-            '--tm-secondary-color': '#4c1d95',    // Deep Indigo
-            '--tm-secondary-hover': '#6d28d9',    // Medium Violet
-            '--tm-success-color': '#34d399',      // Teal-green
-            '--tm-success-hover': '#10b981',      // Dark Teal
-            '--tm-danger-color': '#f87171',       // Soft Red
-            '--tm-danger-hover': '#ef4444',       // Red
-            '--tm-warning-color': '#fbbf24',      // Amber
-            '--tm-warning-hover': '#f59e0b',      // Dark Amber
-            '--tm-info-color': '#93c5fd',         // Cool Sky Blue
-            '--tm-info-hover': '#60a5fa',         // Blue
-            '--tm-dark-color': '#0c0618',         // Blue-black night
-            '--tm-dark-hover': '#150a28',         // Deep Indigo night
-
-            '--tm-shop-item-bg': '#1a1028',
-            '--tm-shop-item-border': '#3b2563',
-            '--tm-shop-item-hover-bg': '#251538',
-            '--tm-shop-item-owned-bg': '#2e1a4a',
-            '--tm-text-on-primary': '#ffffff',
-            '--tm-text-on-success': '#ffffff',
-            '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#c4b5fd',
-            '--tm-modal-bg': '#1a1028',
-        },
-        pageStyles: THEME_STYLES + `/* Midnight Purple Theme */
-            body::before { background-image: radial-gradient(circle at 50% 30%, rgba(124, 58, 237, 0.14) 0%, rgba(76, 29, 149, 0.06) 40%, transparent 70%) !important; opacity: 0.7 !important; }
+        colors: UI_SPECIALIST_PALETTES.midnight_purple,
+        pageStyles: THEME_STYLES + `/* Midnight Purple Theme (Linear) */
+            body::before { background-image: radial-gradient(circle at 50% 30%, rgba(94, 106, 210, 0.14) 0%, rgba(62, 63, 78, 0.06) 40%, transparent 70%) !important; opacity: 0.7 !important; }
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(42%) sepia(85%) saturate(1800%) hue-rotate(243deg) brightness(98%) contrast(101%) !important; }
             
             /* Midnight Purple Contrast Fixes */
@@ -2021,32 +2120,7 @@ const UI_THEMES = {
     },
     'sunset': {
         name: 'Sunset', icon: '🌅', cost: 500, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#ff6b6b',      // Coral Red
-            '--tm-primary-hover': '#ff8787',      // Light Coral
-            '--tm-secondary-color': '#ff922b',    // Orange
-            '--tm-secondary-hover': '#ffa94d',    // Light Orange
-            '--tm-success-color': '#51cf66',      // Green
-            '--tm-success-hover': '#37b24d',      // Dark Green
-            '--tm-danger-color': '#f03e3e',       // Red
-            '--tm-danger-hover': '#c92a2a',       // Dark Red
-            '--tm-warning-color': '#ffd43b',      // Yellow
-            '--tm-warning-hover': '#fab005',      // Gold
-            '--tm-info-color': '#ffec99',         // Cream
-            '--tm-info-hover': '#ffe066',         // Light Yellow
-            '--tm-dark-color': '#2d1b1b',         // Dark Brown
-            '--tm-dark-hover': '#1a0f0f',         // Very Dark Brown
-
-            '--tm-shop-item-bg': '#3d2424',
-            '--tm-shop-item-border': '#5c3333',
-            '--tm-shop-item-hover-bg': '#4a2929',
-            '--tm-shop-item-owned-bg': '#5c3d3d',
-            '--tm-text-on-primary': '#ffffff',
-            '--tm-text-on-success': '#ffffff',
-            '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#ffec99',
-            '--tm-modal-bg': '#3d2424',
-        },
+        colors: UI_SPECIALIST_PALETTES.sunset,
         pageStyles: THEME_STYLES + `/* Sunset Theme */
             body::before { background: linear-gradient(180deg, rgba(255,107,107,0.1) 0%, rgba(255,146,43,0.1) 50%, rgba(240,62,62,0.1) 100%) !important; opacity: 0.4 !important; animation: none !important; }
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(61%) sepia(67%) saturate(581%) hue-rotate(312deg) brightness(102%) contrast(101%) !important; }
@@ -2056,35 +2130,10 @@ const UI_THEMES = {
     },
     'neon_pink': {
         name: 'Neon Pink', icon: '💗', cost: 750, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#ff2d95',      // Hot Neon Pink
-            '--tm-primary-hover': '#ff6eb4',      // Bright Pink
-            '--tm-secondary-color': '#ff0a78',    // Electric Magenta
-            '--tm-secondary-hover': '#ff4d9e',    // Light Magenta
-            '--tm-success-color': '#00ffcc',      // Electric Mint
-            '--tm-success-hover': '#00e6b8',      // Dark Mint
-            '--tm-danger-color': '#ff3366',       // Neon Red-Pink
-            '--tm-danger-hover': '#ff0044',       // Hot Red
-            '--tm-warning-color': '#ffaa00',      // Neon Orange
-            '--tm-warning-hover': '#ff8800',      // Dark Orange
-            '--tm-info-color': '#00e5ff',         // Electric Cyan
-            '--tm-info-hover': '#00b8d4',         // Dark Cyan
-            '--tm-dark-color': '#140008',         // Pink-black
-            '--tm-dark-hover': '#0a0004',         // Near-black pink
-
-            '--tm-shop-item-bg': '#220012',
-            '--tm-shop-item-border': '#990055',
-            '--tm-shop-item-hover-bg': '#33001a',
-            '--tm-shop-item-owned-bg': '#4d0028',
-            '--tm-text-on-primary': '#000000',
-            '--tm-text-on-success': '#000000',
-            '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#ff4da6',
-            '--tm-modal-bg': '#220012',
-        },
+        colors: UI_SPECIALIST_PALETTES.neon_pink,
         pageStyles: THEME_STYLES + `/* Neon Pink Theme */
-            body::before { background-image: repeating-linear-gradient(0deg, rgba(255,45,149,0.05) 0px, transparent 2px, transparent 4px, rgba(255,45,149,0.05) 6px) !important; opacity: 1 !important; }
-            body::after { background: repeating-linear-gradient(90deg, rgba(255,10,120,0.04) 0px, transparent 2px, transparent 4px, rgba(255,10,120,0.04) 6px) !important; }
+            body::before { background-image: repeating-linear-gradient(0deg, rgba(233,61,157,0.05) 0px, transparent 2px, transparent 4px, rgba(233,61,157,0.05) 6px) !important; opacity: 1 !important; }
+            body::after { background: repeating-linear-gradient(90deg, rgba(196,30,122,0.04) 0px, transparent 2px, transparent 4px, rgba(196,30,122,0.04) 6px) !important; }
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(45%) sepia(98%) saturate(5000%) hue-rotate(310deg) brightness(105%) contrast(101%) !important; }
             
             /* Neon Pink Contrast Fixes */
@@ -2092,32 +2141,7 @@ const UI_THEMES = {
     },
     'forest': {
         name: 'Forest', icon: '🌲', cost: 500, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#51cf66',      // Leaf Green
-            '--tm-primary-hover': '#69db7c',      // Light Green
-            '--tm-secondary-color': '#2b8a3e',    // Dark Green
-            '--tm-secondary-hover': '#37b24d',    // Medium Green
-            '--tm-success-color': '#74c0fc',      // Sky Blue
-            '--tm-success-hover': '#4dabf7',      // Dark Blue
-            '--tm-danger-color': '#ff6b6b',       // Berry Red
-            '--tm-danger-hover': '#fa5252',       // Dark Red
-            '--tm-warning-color': '#ffd43b',      // Sunlight Yellow
-            '--tm-warning-hover': '#fab005',      // Amber
-            '--tm-info-color': '#8ce99a',         // Mint
-            '--tm-info-hover': '#69db7c',         // Light Green
-            '--tm-dark-color': '#1a2e1a',         // Dark Forest
-            '--tm-dark-hover': '#0f1a0f',         // Very Dark Forest
-
-            '--tm-shop-item-bg': '#243324',
-            '--tm-shop-item-border': '#2b8a3e',
-            '--tm-shop-item-hover-bg': '#2f4a2f',
-            '--tm-shop-item-owned-bg': '#2b5a2b',
-            '--tm-text-on-primary': '#000000',
-            '--tm-text-on-success': '#000000',
-            '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#8ce99a',
-            '--tm-modal-bg': '#243324',
-        },
+        colors: UI_SPECIALIST_PALETTES.forest,
         pageStyles: THEME_STYLES + `/* Forest Theme */
             body::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cpath d='M50 10 L55 25 L70 25 L58 35 L63 50 L50 40 L37 50 L42 35 L30 25 L45 25 Z' fill='rgba(81,207,102,0.05)' /%3E%3C/svg%3E") !important; opacity: 0.3 !important; }
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(79%) sepia(11%) saturate(1459%) hue-rotate(77deg) brightness(94%) contrast(90%) !important; }
@@ -2127,64 +2151,14 @@ const UI_THEMES = {
     },
     'retro_amber': {
         name: 'Retro Terminal', icon: '📺', cost: 750, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#ffb000',      // Amber
-            '--tm-primary-hover': '#ffc233',      // Light Amber
-            '--tm-secondary-color': '#ffb300',    // Dark Amber
-            '--tm-secondary-hover': '#cc8800',    // Medium Amber
-            '--tm-success-color': '#ffcc00',      // Gold
-            '--tm-success-hover': '#e6b800',      // Dark Gold
-            '--tm-danger-color': '#ff6600',       // Orange Red
-            '--tm-danger-hover': '#e65c00',       // Dark Orange
-            '--tm-warning-color': '#ffd700',      // Yellow
-            '--tm-warning-hover': '#e6c200',      // Dark Yellow
-            '--tm-info-color': '#ffe066',         // Light Yellow
-            '--tm-info-hover': '#ffd633',         // Medium Yellow
-            '--tm-dark-color': '#1a1000',         // Very Dark Brown
-            '--tm-dark-hover': '#0d0800',         // Black Brown
-
-            '--tm-shop-item-bg': '#2d1f00',
-            '--tm-shop-item-border': '#4a3300',
-            '--tm-shop-item-hover-bg': '#3d2900',
-            '--tm-shop-item-owned-bg': '#4a3a00',
-            '--tm-text-on-primary': '#000000',
-            '--tm-text-on-success': '#000000',
-            '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#ffb000',
-            '--tm-modal-bg': '#2d1f00',
-        },
-        pageStyles: THEME_STYLES + `/* Retro Terminal Theme */
-            body::before { background-image: repeating-linear-gradient(0deg, rgba(255,176,0,0.03) 0px, transparent 1px, transparent 2px, rgba(255,176,0,0.03) 3px) !important; opacity: 1 !important; }
+        colors: UI_SPECIALIST_PALETTES.retro_amber,
+        pageStyles: THEME_STYLES + `/* Retro Terminal (Gruvbox) Theme */
+            body::before { background-image: repeating-linear-gradient(0deg, rgba(250,189,47,0.03) 0px, transparent 1px, transparent 2px, rgba(250,189,47,0.03) 3px) !important; opacity: 1 !important; }
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(68%) sepia(54%) saturate(777%) hue-rotate(359deg) brightness(103%) contrast(101%) !important; }`
     },
     'ice': {
         name: 'Ice', icon: '❄️', cost: 500, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#c8dce8',      // Frost Silver
-            '--tm-primary-hover': '#e2eef6',      // Pale Ice White
-            '--tm-secondary-color': '#6b8494',    // Slate Frost
-            '--tm-secondary-hover': '#8aa3b3',    // Muted Ice Blue
-            '--tm-success-color': '#9ec9b0',      // Pale Mint Frost
-            '--tm-success-hover': '#7eb89a',      // Soft Mint
-            '--tm-danger-color': '#e8a0a8',       // Soft Rose Frost
-            '--tm-danger-hover': '#d47882',       // Dusty Rose
-            '--tm-warning-color': '#e8d4a0',      // Winter Sun
-            '--tm-warning-hover': '#d4bc7a',      // Pale Gold
-            '--tm-info-color': '#f0f7fc',         // Snow White
-            '--tm-info-hover': '#dceaf4',         // Frost White
-            '--tm-dark-color': '#0d1820',         // Arctic Night (blue-gray)
-            '--tm-dark-hover': '#080f14',         // Deep Arctic
-
-            '--tm-shop-item-bg': '#152028',
-            '--tm-shop-item-border': '#3d5566',
-            '--tm-shop-item-hover-bg': '#1c2a35',
-            '--tm-shop-item-owned-bg': '#243540',
-            '--tm-text-on-primary': '#0d1820',
-            '--tm-text-on-success': '#0d1820',
-            '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#e8f2f8',
-            '--tm-modal-bg': '#152028',
-        },
+        colors: UI_SPECIALIST_PALETTES.ice,
         pageStyles: THEME_STYLES + `/* Ice Theme */
             body::before { background-image: radial-gradient(circle at 15% 20%, rgba(232,242,248,0.07) 0%, transparent 45%), radial-gradient(circle at 85% 75%, rgba(200,220,232,0.05) 0%, transparent 50%), radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 60%) !important; opacity: 1 !important; animation: none !important; }
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(92%) sepia(8%) saturate(180%) hue-rotate(182deg) brightness(102%) contrast(92%) !important; }
@@ -2194,32 +2168,7 @@ const UI_THEMES = {
     },
     'crimson': {
         name: 'Crimson', icon: '🔴', cost: 750, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#ff6b6b',      // Crimson
-            '--tm-primary-hover': '#ff8787',      // Light Crimson
-            '--tm-secondary-color': '#c92a2a',    // Dark Red
-            '--tm-secondary-hover': '#e03131',    // Medium Red
-            '--tm-success-color': '#51cf66',      // Green (contrast)
-            '--tm-success-hover': '#37b24d',      // Dark Green
-            '--tm-danger-color': '#ff0000',       // Bright Red
-            '--tm-danger-hover': '#cc0000',       // Dark Red
-            '--tm-warning-color': '#ffd43b',      // Yellow
-            '--tm-warning-hover': '#fab005',      // Gold
-            '--tm-info-color': '#ffc9c9',         // Light Pink
-            '--tm-info-hover': '#ffa8a8',         // Pink
-            '--tm-dark-color': '#2b0a0a',         // Very Dark Red
-            '--tm-dark-hover': '#1a0505',         // Black Red
-
-            '--tm-shop-item-bg': '#3d1414',
-            '--tm-shop-item-border': '#5c1f1f',
-            '--tm-shop-item-hover-bg': '#4a1a1a',
-            '--tm-shop-item-owned-bg': '#5c2929',
-            '--tm-text-on-primary': '#ffffff',
-            '--tm-text-on-success': '#ffffff',
-            '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#ffc9c9',
-            '--tm-modal-bg': '#3d1414',
-        },
+        colors: UI_SPECIALIST_PALETTES.crimson,
         pageStyles: THEME_STYLES + `/* Crimson Theme */
             body::before { background-image: radial-gradient(circle at 50% 50%, rgba(255,107,107,0.1) 0%, transparent 70%) !important; opacity: 0.5 !important; animation: none !important; }
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(61%) sepia(67%) saturate(581%) hue-rotate(312deg) brightness(102%) contrast(101%) !important; }
@@ -2229,32 +2178,7 @@ const UI_THEMES = {
     },
     'dracula': {
         name: 'Dracula', icon: '🧛', cost: 1000, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#bd93f9',      // Purple
-            '--tm-primary-hover': '#caa6fe',      // Light Purple
-            '--tm-secondary-color': '#6272a4',    // Blue Grey
-            '--tm-secondary-hover': '#7585b5',    // Light Blue Grey
-            '--tm-success-color': '#50fa7b',      // Green
-            '--tm-success-hover': '#5af78e',      // Light Green
-            '--tm-danger-color': '#ff5555',       // Red
-            '--tm-danger-hover': '#ff6e6e',       // Light Red
-            '--tm-warning-color': '#f1fa8c',      // Yellow
-            '--tm-warning-hover': '#f4fc9d',      // Light Yellow
-            '--tm-info-color': '#8be9fd',         // Cyan
-            '--tm-info-hover': '#9feffe',         // Light Cyan
-            '--tm-dark-color': '#282a36',         // Dark Background
-            '--tm-dark-hover': '#1e1f29',         // Darker Background
-
-            '--tm-shop-item-bg': '#383a4a',
-            '--tm-shop-item-border': '#6272a4',
-            '--tm-shop-item-hover-bg': '#44475a',
-            '--tm-shop-item-owned-bg': '#4a4d66',
-            '--tm-text-on-primary': '#282a36',
-            '--tm-text-on-success': '#282a36',
-            '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#8be9fd',
-            '--tm-modal-bg': '#383a4a',
-        },
+        colors: UI_SPECIALIST_PALETTES.dracula,
         pageStyles: THEME_STYLES + `/* Dracula Theme */
             body::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ctext x='10' y='20' fill='rgba(189,147,249,0.05)' font-size='16' font-family='monospace'%3E🦇🩸🧛%3C/text%3E%3C/svg%3E") !important; opacity: 0.3 !important; }
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(79%) sepia(23%) saturate(1280%) hue-rotate(203deg) brightness(99%) contrast(97%) !important; }
@@ -2264,32 +2188,7 @@ const UI_THEMES = {
     },
     'nord': {
         name: 'Nord', icon: '🏔️', cost: 750, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#88c0d0',      // Frost Blue
-            '--tm-primary-hover': '#8fbcbb',      // Frost Green
-            '--tm-secondary-color': '#5e81ac',    // sunset Blue
-            '--tm-secondary-hover': '#81a1c1',    // Light Blue
-            '--tm-success-color': '#a3be8c',      // sunset Green
-            '--tm-success-hover': '#b8d0a0',      // Light Green
-            '--tm-danger-color': '#bf616a',       // sunset Red
-            '--tm-danger-hover': '#d08770',       // sunset Orange
-            '--tm-warning-color': '#ebcb8b',      // sunset Yellow
-            '--tm-warning-hover': '#f0d9a0',      // Light Yellow
-            '--tm-info-color': '#b48ead',         // sunset Purple
-            '--tm-info-hover': '#c4a0bf',         // Light Purple
-            '--tm-dark-color': '#2e3440',         // Polar Night Dark
-            '--tm-dark-hover': '#3b4252',         // Polar Night Medium
-
-            '--tm-shop-item-bg': '#3b4252',
-            '--tm-shop-item-border': '#4c566a',
-            '--tm-shop-item-hover-bg': '#434c5e',
-            '--tm-shop-item-owned-bg': '#4c566a',
-            '--tm-text-on-primary': '#2e3440',
-            '--tm-text-on-success': '#2e3440',
-            '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#eceff4',
-            '--tm-modal-bg': '#3b4252',
-        },
+        colors: UI_SPECIALIST_PALETTES.nord,
         pageStyles: THEME_STYLES + `/* Nord Theme */
             body::before { background: linear-gradient(135deg, rgba(94,129,172,0.05) 0%, rgba(136,192,208,0.05) 100%) !important; opacity: 0.5 !important; animation: none !important; }
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(74%) sepia(14%) saturate(657%) hue-rotate(152deg) brightness(92%) contrast(87%) !important; }
@@ -2299,32 +2198,7 @@ const UI_THEMES = {
     },
     'tokyo_night': {
         name: 'Tokyo Night', icon: '🗼', cost: 1000, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#7aa2f7',      // Blue
-            '--tm-primary-hover': '#89b4fa',      // Light Blue
-            '--tm-secondary-color': '#565f89',    // Dark Blue Grey
-            '--tm-secondary-hover': '#6272a4',    // Blue Grey
-            '--tm-success-color': '#9ece6a',      // Green
-            '--tm-success-hover': '#b4db7c',      // Light Green
-            '--tm-danger-color': '#f7768e',       // Pink Red
-            '--tm-danger-hover': '#ff9caa',       // Light Pink
-            '--tm-warning-color': '#e0af68',      // Orange
-            '--tm-warning-hover': '#e9c07a',      // Light Orange
-            '--tm-info-color': '#7dcfff',         // Cyan
-            '--tm-info-hover': '#99dbff',         // Light Cyan
-            '--tm-dark-color': '#1a1b26',         // Dark Background
-            '--tm-dark-hover': '#16161e',         // Darker Background
-
-            '--tm-shop-item-bg': '#24283b',
-            '--tm-shop-item-border': '#414868',
-            '--tm-shop-item-hover-bg': '#2f3549',
-            '--tm-shop-item-owned-bg': '#343b58',
-            '--tm-text-on-primary': '#1a1b26',
-            '--tm-text-on-success': '#1a1b26',
-            '--tm-text-on-light': '#1a1a1a',
-            '--tm-text-on-dark': '#c0caf5',
-            '--tm-modal-bg': '#24283b',
-        },
+        colors: UI_SPECIALIST_PALETTES.tokyo_night,
         pageStyles: THEME_STYLES + `/* Tokyo Night Theme */
             body::before { background-image: repeating-linear-gradient(0deg, rgba(122,162,247,0.02) 0px, transparent 1px, transparent 2px), repeating-linear-gradient(90deg, rgba(122,162,247,0.02) 0px, transparent 1px, transparent 2px) !important; opacity: 1 !important; background-size: 30px 30px !important; }
             .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(67%) sepia(27%) saturate(930%) hue-rotate(186deg) brightness(98%) contrast(95%) !important; }
@@ -2334,31 +2208,7 @@ const UI_THEMES = {
     },
     'liquid_glass': {
         name: 'Liquid Glass', icon: '🫧', cost: 1500, type: 'theme',
-        colors: {
-            '--tm-primary-color': '#007AFF',
-            '--tm-primary-hover': '#0065D8',
-            '--tm-secondary-color': '#8E8E93',
-            '--tm-secondary-hover': '#636366',
-            '--tm-success-color': '#34C759',
-            '--tm-success-hover': '#248A3D',
-            '--tm-danger-color': '#FF3B30',
-            '--tm-danger-hover': '#D70015',
-            '--tm-warning-color': '#FF9500',
-            '--tm-warning-hover': '#C77700',
-            '--tm-info-color': '#32ADE6',
-            '--tm-info-hover': '#007AFF',
-            '--tm-dark-color': '#EEF0F8',
-            '--tm-dark-hover': '#E5E5EA',
-            '--tm-shop-item-bg': 'rgba(255, 255, 255, 0.46)',
-            '--tm-shop-item-border': 'rgba(60, 60, 67, 0.18)',
-            '--tm-shop-item-hover-bg': 'rgba(255, 255, 255, 0.62)',
-            '--tm-shop-item-owned-bg': 'rgba(0, 122, 255, 0.10)',
-            '--tm-text-on-primary': '#FFFFFF',
-            '--tm-text-on-success': '#FFFFFF',
-            '--tm-text-on-light': '#1D1D1F',
-            '--tm-text-on-dark': '#636366',
-            '--tm-modal-bg': 'rgba(255, 255, 255, 0.68)',
-        },
+        colors: UI_SPECIALIST_PALETTES.liquid_glass,
         pageStyles: LIQUID_GLASS_STYLES,
     },
 };
@@ -2594,6 +2444,9 @@ window.UI_THEMES = UI_THEMES;
 window.tmApplyThemeColors = tmApplyThemeColors;
 window.tmReadEquippedThemeId = tmReadEquippedThemeId;
 window.tmBuildDerivedThemeTokens = tmBuildDerivedThemeTokens;
+window.UI_PALETTE_SOURCES = UI_PALETTE_SOURCES;
+window.UI_SPECIALIST_PALETTES = UI_SPECIALIST_PALETTES;
+window.tmMapPaletteToThemeColors = tmMapPaletteToThemeColors;
 
 (function tmBootstrapThemeOnLoad() {
     const pathname = window.location.pathname || '';
@@ -2623,7 +2476,7 @@ window.tmBuildDerivedThemeTokens = tmBuildDerivedThemeTokens;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '184',
+        version: '186',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -23658,10 +23511,14 @@ function populateShopDashboard(config, STORAGE_KEYS) {
     themesContainer.innerHTML = Object.keys(UI_THEMES).map(id => {
         const theme = { id, ...UI_THEMES[id] };
         const isPurchased = purchasedItems.includes(theme.id) || theme.cost === 0;
+        const paletteSource = (typeof UI_PALETTE_SOURCES !== 'undefined' && UI_PALETTE_SOURCES[id])
+            ? `<div style="font-size: 10px; color: var(--tm-secondary-color); margin-bottom: 8px; line-height: 1.3; opacity: 0.9;">${UI_PALETTE_SOURCES[id]}</div>`
+            : '';
         return `
             <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
                 <div style="font-size: 48px; margin-bottom: 12px;">${theme.icon}</div>
                 <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${theme.name}</div>
+                ${paletteSource}
                 <button class="tm-shop-item-btn ${isPurchased ? 'purchased' : 'buy'}" 
                         data-item-id="${theme.id}" 
                         data-item-type="theme"
