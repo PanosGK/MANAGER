@@ -1888,6 +1888,78 @@ async function fetchOtherStorePhones() {
     });
 }
 
+const phoneCatalogGbCache = new Map();
+const phoneCatalogColorCache = new Map();
+
+function extractGB(model) {
+    if (!model) return '';
+    if (phoneCatalogGbCache.has(model)) {
+        return phoneCatalogGbCache.get(model);
+    }
+    const tbMatch = model.match(/(\d+)\s*TB/i);
+    if (tbMatch) {
+        const result = tbMatch[1] + 'TB';
+        phoneCatalogGbCache.set(model, result);
+        return result;
+    }
+    const gbMatch = model.match(/(\d+)\s*GB/i);
+    if (gbMatch) {
+        const result = gbMatch[1] + 'GB';
+        phoneCatalogGbCache.set(model, result);
+        return result;
+    }
+    const gMatch = model.match(/(\d+)\s*G(?!\w)/i);
+    if (gMatch) {
+        const result = gMatch[1] + 'GB';
+        phoneCatalogGbCache.set(model, result);
+        return result;
+    }
+    const commonSizes = [64, 128, 256, 512, 1024, 2048];
+    for (const size of commonSizes) {
+        const regex = new RegExp('\\b' + size + '\\b', 'i');
+        if (regex.test(model)) {
+            const result = size >= 1024 ? (size / 1024) + 'TB' : size + 'GB';
+            phoneCatalogGbCache.set(model, result);
+            return result;
+        }
+    }
+    phoneCatalogGbCache.set(model, '');
+    return '';
+}
+
+function extractColor(model) {
+    if (!model) return '';
+    if (phoneCatalogColorCache.has(model)) {
+        return phoneCatalogColorCache.get(model);
+    }
+    const color = matchPhoneColorInText(model);
+    phoneCatalogColorCache.set(model, color);
+    return color;
+}
+
+function getColorHex(colorName) {
+    return getListColorHex(colorName);
+}
+
+function getPhoneCatalogUICtx(modalHelpers = {}) {
+    return {
+        T: PHONE_CATALOG_TRANSLATIONS,
+        extractColor,
+        getColorHex,
+        extractGB,
+        getPhoneGradeColor,
+        getPhoneCatalogOutlineStyle,
+        getPhoneModelTitleStyle,
+        getTagColor,
+        getTagDisplayName,
+        getPhoneGradeCircleStyle,
+        getPhoneGradeDisplayStyle,
+        t,
+        extractBaseModel: modalHelpers.extractBaseModel || ((m) => m || ''),
+        getPhoneTags: modalHelpers.getPhoneTags || (() => []),
+    };
+}
+
 /**
  * Shows a modal with a searchable list of phones
  */
@@ -2191,22 +2263,18 @@ async function showPhoneListModal() {
     }
     
     // Performance optimization: Caches for expensive operations
-    const extractGBCache = new Map();
-    const extractColorCache = new Map();
     const extractBaseModelCache = new Map();
     const parsePhoneNameCache = new Map();
     
-    // Function to clear caches (useful when memory is a concern)
     function clearCaches() {
-        extractGBCache.clear();
-        extractColorCache.clear();
+        phoneCatalogGbCache.clear();
+        phoneCatalogColorCache.clear();
         extractBaseModelCache.clear();
         parsePhoneNameCache.clear();
     }
     
-    // Clear caches periodically to prevent memory bloat (every 10 minutes)
     setInterval(() => {
-        if (extractGBCache.size > 10000 || extractColorCache.size > 10000 || extractBaseModelCache.size > 10000) {
+        if (phoneCatalogGbCache.size > 10000 || phoneCatalogColorCache.size > 10000 || extractBaseModelCache.size > 10000) {
             clearCaches();
             console.log('[MMS Phone List] Caches cleared to free memory');
         }
@@ -2225,69 +2293,6 @@ async function showPhoneListModal() {
         };
     }
     
-    // Helper function to extract GB or TB from model name (with memoization)
-    function extractGB(model) {
-        if (!model) return '';
-        if (extractGBCache.has(model)) {
-            return extractGBCache.get(model);
-        }
-        
-        // Try TB first (larger storage) - with or without space
-        const tbMatch = model.match(/(\d+)\s*TB/i);
-        if (tbMatch) {
-            const result = tbMatch[1] + 'TB';
-            extractGBCache.set(model, result);
-            return result;
-        }
-        
-        // Try GB - with or without space
-        const gbMatch = model.match(/(\d+)\s*GB/i);
-        if (gbMatch) {
-            const result = gbMatch[1] + 'GB';
-        extractGBCache.set(model, result);
-        return result;
-        }
-        
-        // Try with just "G" (e.g., "128G", "256G")
-        const gMatch = model.match(/(\d+)\s*G(?!\w)/i);
-        if (gMatch) {
-            const result = gMatch[1] + 'GB';
-            extractGBCache.set(model, result);
-            return result;
-        }
-        
-        // Try common storage sizes without suffix (64GB and up only)
-        // Must be surrounded by spaces or at start/end to avoid matching random numbers
-        const commonSizes = [64, 128, 256, 512, 1024, 2048];
-        for (const size of commonSizes) {
-            const regex = new RegExp('\\b' + size + '\\b', 'i');
-            if (regex.test(model)) {
-                const result = size >= 1024 ? (size / 1024) + 'TB' : size + 'GB';
-                extractGBCache.set(model, result);
-                return result;
-            }
-        }
-        
-        extractGBCache.set(model, '');
-        return '';
-    }
-    
-    // Helper function to extract color from model name (with memoization)
-    function extractColor(model) {
-        if (!model) return '';
-        if (extractColorCache.has(model)) {
-            return extractColorCache.get(model);
-        }
-        const color = matchPhoneColorInText(model);
-        extractColorCache.set(model, color);
-        return color;
-    }
-    
-    // Function to get hex color for catalog title display
-    function getColorHex(colorName) {
-        return getListColorHex(colorName);
-    }
-
     function showColorManagerModal() {
         const existing = document.getElementById('tm-phone-colors-modal');
         if (existing) existing.remove();
@@ -2364,7 +2369,7 @@ async function showPhoneListModal() {
         syncHexFromPicker();
 
         const refreshAfterChange = () => {
-            extractColorCache.clear();
+            phoneCatalogColorCache.clear();
             extractBaseModelCache.clear();
             populateFilters(allPhones, ['color']);
             applyFilters();
@@ -2422,7 +2427,7 @@ async function showPhoneListModal() {
                     const nameInput = row?.querySelector('.tm-phone-color-name-input');
                     if (label) label.textContent = hex;
                     if (nameInput) applyNameInputStyle(nameInput, input.dataset.color, hex);
-                    extractColorCache.clear();
+                    phoneCatalogColorCache.clear();
                     extractBaseModelCache.clear();
                     applyFilters();
                     if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
@@ -2447,7 +2452,7 @@ async function showPhoneListModal() {
                         else if (window.showPositiveMessage) window.showPositiveMessage(msg);
                         return;
                     }
-                    extractColorCache.clear();
+                    phoneCatalogColorCache.clear();
                     extractBaseModelCache.clear();
                     if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
                     refreshAfterChange();
@@ -2464,7 +2469,7 @@ async function showPhoneListModal() {
             listEl.querySelectorAll('.tm-phone-color-alias-input').forEach(input => {
                 input.addEventListener('change', () => {
                     setColorDisplayAliasesForColor(input.dataset.color, input.value);
-                    extractColorCache.clear();
+                    phoneCatalogColorCache.clear();
                     applyFilters();
                     if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
                 });
@@ -2975,25 +2980,6 @@ async function showPhoneListModal() {
         return base;
     }
 
-    function getPhoneCatalogUICtx() {
-        return {
-            T: PHONE_CATALOG_TRANSLATIONS,
-            extractColor,
-            getColorHex,
-            extractBaseModel,
-            extractGB,
-            getPhoneGradeColor,
-            getPhoneCatalogOutlineStyle,
-            getPhoneModelTitleStyle,
-            getPhoneTags,
-            getTagColor,
-            getTagDisplayName,
-            getPhoneGradeCircleStyle,
-            getPhoneGradeDisplayStyle,
-            t,
-        };
-    }
-    
     // Function to copy text to clipboard
     function copyToClipboard(text) {
         if (navigator.clipboard) {
@@ -3280,7 +3266,7 @@ async function showPhoneListModal() {
         const useRegex = overlay.querySelector('#tm-phone-regex-toggle').checked;
         
         const baseDataset = showingOtherStores
-            ? otherStorePhones.filter(p => (p.otherStoreCount === 1) && ((p.localUnits || 0) <= 0))
+            ? otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0))
             : (showFavoritesOnly ? allPhones.filter(p => favorites.includes(p.barcode)) : allPhones);
         
         let phonesToFilter = baseDataset;
@@ -3494,9 +3480,8 @@ async function showPhoneListModal() {
             currentPage = 0;
         }
         
-        container.classList.toggle('tm-pc-grid', isGridView);
-        container.classList.toggle('tm-pc-list-mode', !isGridView);
-        container.classList.remove('grid-view');
+        container.className = 'tm-pc-list';
+        container.classList.remove('tm-pc-grid', 'tm-pc-list-mode', 'grid-view');
         
         // Virtual scrolling: only render visible phones + buffer
         const startIndex = currentPage * ITEMS_PER_PAGE;
@@ -3504,23 +3489,14 @@ async function showPhoneListModal() {
         const phonesToRender = phones.slice(startIndex, endIndex);
         renderedPhones = phones;
         
-        const ctx = getPhoneCatalogUICtx();
-        const phonesHTML = phonesToRender.map((phone, idx) => PhoneCatalogUI.buildPhoneCard(phone, ctx, {
+        const catalogCtx = getPhoneCatalogUICtx({ extractBaseModel, getPhoneTags });
+        const phonesHTML = phonesToRender.map((phone, idx) => PhoneCatalogUI.buildPhoneRow(phone, catalogCtx, {
             variant: 'mine',
             isSelected: selectedPhones.has(phone.barcode),
             isFavorite: favorites.includes(phone.barcode),
-            animationDelay: idx * 12,
         })).join('');
         
-        // Use DocumentFragment for better performance
-        const fragment = document.createDocumentFragment();
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = phonesHTML;
-        while (tempDiv.firstChild) {
-            fragment.appendChild(tempDiv.firstChild);
-        }
-        container.innerHTML = '';
-        container.appendChild(fragment);
+        container.innerHTML = PhoneCatalogUI.buildListHeader('mine') + phonesHTML;
         
         // Show pagination info if there are more phones
         const totalPhones = phones.length;
@@ -3961,25 +3937,27 @@ async function showPhoneListModal() {
             return;
         }
 
-        targetEl.className = 'tm-pc-os-list';
-        const ctx = getPhoneCatalogUICtx();
+        targetEl.className = 'tm-pc-list tm-pc-os-list';
+        const catalogCtx = getPhoneCatalogUICtx({ extractBaseModel, getPhoneTags });
         const rows = list.map((item, idx) => {
-            const oneUnitStores = filterOneUnitStores(item.stores);
+            const hasStoresData = Array.isArray(item.stores);
+            const oneUnitStores = hasStoresData && item.stores.length > 0
+                ? filterOneUnitStores(item.stores)
+                : [];
             const storesHtml = oneUnitStores.length > 0
                 ? renderPhoneStoreChipsHtml(item.stores, item.isBuyback)
                 : '';
-            const noBuybackStore = item.isBuyback && oneUnitStores.length > 0 && !phoneHasAllowedBuybackStore(item.stores);
-            return PhoneCatalogUI.buildPhoneCard(item, ctx, {
+            const noBuybackStore = item.isBuyback && hasStoresData && oneUnitStores.length > 0 && !phoneHasAllowedBuybackStore(item.stores);
+            return PhoneCatalogUI.buildPhoneRow(item, catalogCtx, {
                 variant: 'other',
                 isFavorite: favorites.includes(item.barcode),
                 storesHtml,
-                storesPending: oneUnitStores.length === 0,
-                animationDelay: idx * 18,
+                storesPending: !storesHtml && (!hasStoresData || item.stores.length === 0),
                 noBuybackStore,
             });
         }).join('');
 
-        targetEl.innerHTML = rows;
+        targetEl.innerHTML = PhoneCatalogUI.buildListHeader('other') + rows;
         if (countEl) countEl.textContent = `${list.length} phones available in other stores`;
         if (statsEl) statsEl.innerHTML = '';
         
@@ -4026,7 +4004,7 @@ async function showPhoneListModal() {
                         } else {
                             favorites.push(barcode);
                         }
-                        GM_setValue('phone_favorites', favorites);
+                        GM_setValue(FAVORITES_KEY, JSON.stringify(favorites));
                         // Re-render to update the favorite button state
                         renderOtherStorePhones(list, targetEl, countEl, statsEl);
                     }
@@ -4064,9 +4042,9 @@ async function showPhoneListModal() {
                     const itemIsBuyback = phoneItem ? phoneItem.isBuyback : false;
                     sc.innerHTML = renderPhoneStoreChipsHtml(stores, itemIsBuyback);
                     if (itemIsBuyback && !phoneHasAllowedBuybackStore(stores)) {
-                        const card = sc.closest('.tm-pc-card--other');
-                        if (card) {
-                            const modelRow = card.querySelector('.tm-pc-card-head');
+                        const row = sc.closest('.tm-pc-row--other');
+                        if (row) {
+                            const modelRow = row.querySelector('.tm-pc-row-line1');
                             const noBuybackTitle = t('No buyback store');
                             if (modelRow && !modelRow.querySelector(`span[title="${noBuybackTitle}"]`)) {
                                 const ind = document.createElement('span');

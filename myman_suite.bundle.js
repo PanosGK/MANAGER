@@ -26255,84 +26255,101 @@ window.initOrderTracking = initOrderTracking;
             transform: translateY(-1px);
         }
 
-        #tm-phone-list-container, #tm-other-store-container {
-            flex: 1; overflow-y: auto; padding: 16px 18px !important;
-            background:
-                radial-gradient(ellipse 80% 50% at 50% 0%, color-mix(in srgb, var(--tm-primary-color) 6%, transparent), transparent 70%),
-                var(--tm-shop-item-bg) !important;
+        #tm-phone-list-container, #tm-other-store-content, #tm-other-store-modal-body {
+            flex: 1; overflow-y: auto; padding: 0 !important;
+            background: var(--tm-shop-item-bg) !important;
         }
-        #tm-phone-list-container.tm-pc-grid {
-            display: grid !important;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 12px;
-            align-content: start;
-        }
-        #tm-phone-list-container.tm-pc-list-mode {
+        .tm-pc-list {
             display: flex !important;
             flex-direction: column;
-            gap: 8px;
+            align-items: stretch;
         }
-        #tm-phone-list-container.tm-pc-list-mode .tm-pc-card {
-            flex-direction: row;
-            flex-wrap: wrap;
+        .tm-pc-list-header {
+            display: grid;
+            grid-template-columns: 36px 1fr 200px 88px;
+            gap: 10px;
+            padding: 8px 14px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            opacity: 0.55;
+            border-bottom: 1px solid var(--tm-shop-item-border);
+            background: color-mix(in srgb, var(--tm-shop-item-border) 18%, var(--tm-shop-item-bg));
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .tm-pc-list-header--other {
+            grid-template-columns: 36px 1fr minmax(160px, 240px) 88px;
+        }
+        #tm-other-store-container {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tm-pc-row {
+            display: grid;
+            grid-template-columns: 36px 1fr 88px;
+            gap: 10px;
             align-items: center;
-        }
-        #tm-other-store-content.tm-pc-os-list {
-            display: flex !important; flex-direction: column; gap: 10px; align-items: stretch;
-        }
-
-        .tm-pc-card {
-            position: relative;
-            display: flex; flex-direction: column; gap: 10px;
-            padding: 14px;
-            border-radius: 16px;
-            border: 1px solid var(--tm-shop-item-border);
-            background: color-mix(in srgb, var(--tm-shop-item-bg) 94%, var(--tm-primary-color) 6%);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            padding: 9px 14px;
+            border-bottom: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 65%, transparent);
             cursor: pointer;
-            transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
-            animation: tm-pc-rise 0.22s ease both;
+            transition: background 0.12s ease;
+            position: relative;
         }
-        .tm-pc-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
-            border-color: color-mix(in srgb, var(--tm-primary-color) 35%, var(--tm-shop-item-border));
+        .tm-pc-row--other {
+            grid-template-columns: 36px 1fr minmax(160px, 240px) 88px;
         }
-        .tm-pc-card.selected {
-            border-color: var(--tm-primary-color) !important;
-            box-shadow: 0 0 0 1px color-mix(in srgb, var(--tm-primary-color) 40%, transparent), 0 8px 24px rgba(0,0,0,0.16) !important;
+        .tm-pc-row:hover {
+            background: color-mix(in srgb, var(--tm-primary-color) 6%, var(--tm-shop-item-bg));
         }
-        .tm-pc-card.favorite::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-            border-radius: 16px 0 0 16px; background: linear-gradient(180deg, #fbbf24, #f59e0b);
+        .tm-pc-row.selected {
+            background: color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-shop-item-bg));
+            box-shadow: inset 3px 0 0 var(--tm-primary-color);
         }
-        .tm-pc-card--other { flex-direction: row; align-items: stretch; gap: 14px; flex-wrap: wrap; }
-        @media (max-width: 720px) { .tm-pc-card--other { flex-direction: column; } }
+        .tm-pc-row.favorite {
+            box-shadow: inset 3px 0 0 var(--tm-warning-color, #fbbf24);
+        }
+        .tm-pc-row.favorite.selected {
+            box-shadow: inset 3px 0 0 var(--tm-primary-color);
+        }
 
-        .tm-pc-card-top { display: flex; align-items: flex-start; gap: 12px; }
-        .tm-pc-grade {
-            width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+        .tm-pc-row-grade {
+            width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
-            font-size: 14px; font-weight: 900; letter-spacing: -0.03em;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
+            font-size: 12px; font-weight: 900; letter-spacing: -0.03em;
         }
-        .tm-pc-card-main { flex: 1; min-width: 0; }
-        .tm-pc-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-        .tm-pc-model {
-            font-size: 15px; font-weight: 800; line-height: 1.25;
-            letter-spacing: -0.02em; word-break: break-word;
+        .tm-pc-row-main { min-width: 0; }
+        .tm-pc-row-line1 {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+            margin-bottom: 3px;
         }
-        .tm-pc-price {
-            flex-shrink: 0; padding: 5px 10px; border-radius: 999px;
-            font-size: 13px; font-weight: 800; letter-spacing: -0.02em;
-            background: color-mix(in srgb, var(--tm-success-color, #22c55e) 16%, transparent);
-            border: 1px solid color-mix(in srgb, var(--tm-success-color, #22c55e) 40%, transparent);
+        .tm-pc-row-line2 {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+            font-size: 11px; opacity: 0.82;
+        }
+        .tm-pc-row-model {
+            font-size: 13px; font-weight: 700; line-height: 1.25;
+            letter-spacing: -0.01em; word-break: break-word;
+        }
+        .tm-pc-row-price {
+            flex-shrink: 0; font-size: 12px; font-weight: 800;
             color: var(--tm-success-color, #4ade80);
         }
-        .tm-pc-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+        .tm-pc-row-stores {
+            display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+            min-height: 22px; align-self: center;
+        }
+        .tm-pc-row-actions {
+            display: flex; gap: 3px; justify-content: flex-end; align-self: center;
+        }
         .tm-pc-meta-chip {
             display: inline-flex; align-items: center; gap: 4px;
-            padding: 3px 9px; border-radius: 999px; font-size: 10px; font-weight: 700;
+            padding: 2px 7px; border-radius: 999px; font-size: 10px; font-weight: 700;
             background: color-mix(in srgb, var(--tm-shop-item-border) 35%, transparent);
             border: 1px solid var(--tm-shop-item-border);
             color: var(--tm-shop-item-text, var(--tm-secondary-hover));
@@ -26345,61 +26362,36 @@ window.initOrderTracking = initOrderTracking;
         }
         .tm-pc-meta-chip--tag { border-color: currentColor; background: transparent; }
         .tm-pc-color-dot {
-            width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0;
+            width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0;
             border: 1px solid rgba(255,255,255,0.35);
         }
         .tm-pc-barcode {
             font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
-            font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
-            padding: 4px 8px; border-radius: 8px;
+            font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
+            padding: 2px 6px; border-radius: 5px;
             background: color-mix(in srgb, var(--tm-shop-item-border) 30%, transparent);
             border: 1px solid var(--tm-shop-item-border);
             color: var(--tm-shop-item-text); opacity: 0.9;
         }
-
-        .tm-pc-stores-block {
-            flex: 1; min-width: 180px; max-width: 280px;
-            padding: 10px 12px; border-radius: 12px;
-            background: color-mix(in srgb, var(--tm-primary-color) 6%, var(--tm-shop-item-bg));
-            border: 1px dashed color-mix(in srgb, var(--tm-primary-color) 22%, var(--tm-shop-item-border));
-        }
-        .tm-pc-stores-label {
-            font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
-            opacity: 0.55; margin-bottom: 6px; color: var(--tm-shop-item-text);
-        }
-        .tm-pc-stores-row { display: flex; flex-wrap: wrap; gap: 5px; min-height: 22px; }
-
-        .tm-pc-card-footer {
-            display: flex; align-items: center; justify-content: space-between; gap: 8px;
-            padding-top: 8px; border-top: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
-        }
-        .tm-pc-actions { display: flex; gap: 4px; margin-left: auto; }
         .tm-pc-action-btn, .tm-phone-search-btn, .tm-phone-copy-imei-btn, .tm-phone-favorite-btn, .tm-os-action-btn {
-            width: 34px; height: 34px; border-radius: 10px;
+            width: 28px; height: 28px; border-radius: 7px;
             border: 1px solid var(--tm-shop-item-border);
             background: color-mix(in srgb, var(--tm-shop-item-bg) 90%, transparent);
             color: var(--tm-shop-item-text, var(--tm-primary-color));
-            cursor: pointer; font-size: 14px;
+            cursor: pointer; font-size: 13px;
             display: inline-flex; align-items: center; justify-content: center;
-            transition: transform 0.12s, border-color 0.12s, background 0.12s;
+            transition: border-color 0.12s, background 0.12s;
         }
         .tm-pc-action-btn:hover, .tm-phone-search-btn:hover, .tm-phone-copy-imei-btn:hover,
         .tm-phone-favorite-btn:hover, .tm-os-action-btn:hover {
             border-color: var(--tm-primary-color);
             background: color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-shop-item-bg));
-            transform: scale(1.06);
         }
         .tm-pc-action-btn.is-fav, .tm-phone-favorite-btn.is-fav { color: var(--tm-warning-color, #fbbf24) !important; }
-        .tm-pc-selected-mark {
-            position: absolute; top: 10px; right: 10px; width: 22px; height: 22px;
-            border-radius: 50%; background: var(--tm-primary-color); color: #fff;
-            font-size: 12px; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-        }
 
         .tm-pc-store-chip {
             display: inline-flex; align-items: center; gap: 4px;
-            padding: 3px 9px; border-radius: 999px; font-size: 10px; font-weight: 700;
+            padding: 2px 7px; border-radius: 999px; font-size: 9px; font-weight: 700;
             white-space: nowrap; line-height: 1.3;
         }
         .tm-pc-store-chip--ok {
@@ -26418,19 +26410,19 @@ window.initOrderTracking = initOrderTracking;
             color: var(--tm-shop-item-text); opacity: 0.82;
         }
         .tm-pc-store-loading {
-            display: inline-flex; align-items: center; gap: 6px;
+            display: inline-flex; align-items: center; gap: 5px;
             font-size: 10px; opacity: 0.5; font-style: italic;
         }
         .tm-pc-store-loading i {
-            width: 10px; height: 10px; border-radius: 50%;
+            width: 9px; height: 9px; border-radius: 50%;
             border: 2px solid currentColor; border-top-color: transparent;
             animation: tm-pc-spin 0.7s linear infinite; display: inline-block;
         }
 
         .tm-pc-empty {
-            grid-column: 1 / -1;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 320px; text-align: center; color: var(--tm-shop-item-text); gap: 8px;
+            min-height: 280px; text-align: center; color: var(--tm-shop-item-text); gap: 8px;
+            padding: 24px;
         }
         .tm-pc-empty-icon { font-size: 48px; opacity: 0.85; }
         .tm-pc-empty-title { font-size: 15px; font-weight: 700; }
@@ -26526,14 +26518,24 @@ window.initOrderTracking = initOrderTracking;
             </div>`;
     }
 
-    function buildPhoneCard(item, ctx, options = {}) {
+    function buildListHeader(variant = 'mine') {
+        if (variant === 'other') {
+            return `<div class="tm-pc-list-header tm-pc-list-header--other">
+                <span></span><span>Συσκευή</span><span>Καταστήματα</span><span></span>
+            </div>`;
+        }
+        return `<div class="tm-pc-list-header">
+            <span></span><span>Συσκευή</span><span></span>
+        </div>`;
+    }
+
+    function buildPhoneRow(item, ctx, options = {}) {
         const {
             variant = 'mine',
             isSelected = false,
             isFavorite = false,
             storesHtml = '',
             storesPending = false,
-            animationDelay = 0,
             noBuybackStore = false,
         } = options;
 
@@ -26543,14 +26545,12 @@ window.initOrderTracking = initOrderTracking;
         const displayModel = ctx.extractBaseModel(item.model) || item.model || item.name;
         const storage = ctx.extractGB(item.name || item.model);
         const grade = item.grade || '';
-        const gradeColor = ctx.getPhoneGradeColor(grade);
-        const outline = ctx.getPhoneCatalogOutlineStyle(phoneColor, colorHex);
         const titleStyle = ctx.getPhoneModelTitleStyle(phoneColor, colorHex);
         const tags = ctx.getPhoneTags(item.barcode);
-        const cardClass = [
-            'tm-pc-card',
+        const rowClass = [
+            'tm-pc-row',
             'tm-phone-item',
-            variant === 'other' ? 'tm-pc-card--other' : '',
+            variant === 'other' ? 'tm-pc-row--other' : '',
             isSelected ? 'selected' : '',
             isFavorite ? 'favorite' : '',
         ].filter(Boolean).join(' ');
@@ -26564,18 +26564,15 @@ window.initOrderTracking = initOrderTracking;
             ? `<span class="tm-pc-color-dot" style="background:${esc(colorHex)};"></span>`
             : '';
 
-        const storesBlock = variant === 'other' ? `
-            <div class="tm-pc-stores-block tm-other-store-stores" data-product="${esc(item.barcode)}">
-                <div class="tm-pc-stores-label">Διαθέσιμο σε</div>
-                <div class="tm-pc-stores-row">
-                    ${storesPending
+        const storesCell = variant === 'other' ? `
+            <div class="tm-pc-row-stores tm-other-store-stores" data-product="${esc(item.barcode)}">
+                ${storesPending
         ? '<span class="tm-pc-store-loading"><i></i> Φόρτωση…</span>'
-        : (storesHtml || '<span style="opacity:0.4;font-size:10px;">—</span>')}
-                </div>
+        : (storesHtml || '<span style="opacity:0.35;font-size:10px;">—</span>')}
             </div>` : '';
 
         const actions = `
-            <div class="tm-pc-actions">
+            <div class="tm-pc-row-actions">
                 <button type="button" class="tm-pc-action-btn tm-phone-search-btn" data-barcode="${esc(item.barcode)}" title="${esc(T['Search barcode in system'])}">🔍</button>
                 ${item.imei ? `<button type="button" class="tm-pc-action-btn tm-phone-copy-imei-btn" data-imei="${esc(item.imei)}" title="${esc(T['Copy IMEI'])}">🔢</button>` : ''}
                 <button type="button" class="tm-pc-action-btn tm-phone-favorite-btn ${isFavorite ? 'is-fav' : ''}" data-barcode="${esc(item.barcode)}"
@@ -26583,38 +26580,31 @@ window.initOrderTracking = initOrderTracking;
             </div>`;
 
         return `
-            <div class="${cardClass}"
-                style="animation-delay:${animationDelay}ms;border-color:${esc(gradeColor)}33;"
+            <div class="${rowClass}"
                 data-barcode="${esc(item.barcode)}"
                 data-name="${esc(item.name)}"
                 data-imei="${esc(item.imei || '')}">
-                ${isSelected ? '<span class="tm-pc-selected-mark" aria-hidden="true">✓</span>' : ''}
-                <div class="tm-pc-card-top">
-                    <div class="tm-pc-grade" style="${ctx.getPhoneGradeCircleStyle(grade)}">${esc(grade || '?')}</div>
-                    <div class="tm-pc-card-main">
-                        <div class="tm-pc-card-head">
-                            <div style="min-width:0;flex:1;">
-                                ${noBuybackStore ? `<span title="${esc(ctx.t('No buyback store'))}" style="margin-right:4px;">🚫</span>` : ''}
-                                <div class="tm-pc-model" style="${titleStyle}" title="${esc(displayModel)}">${esc(displayModel)}</div>
-                            </div>
-                            ${item.retailPrice ? `<span class="tm-pc-price">${esc(item.retailPrice)}€</span>` : ''}
-                        </div>
-                        <div class="tm-pc-meta">
-                            ${grade ? `<span class="tm-pc-meta-chip tm-pc-meta-chip--grade" style="${ctx.getPhoneGradeDisplayStyle(grade)}">Grade ${esc(grade)}</span>` : ''}
-                            ${storage ? `<span class="tm-pc-meta-chip">${esc(storage)}</span>` : ''}
-                            ${phoneColor ? `<span class="tm-pc-meta-chip">${colorDot}${esc(phoneColor)}</span>` : ''}
-                            ${item.isBuyback ? '<span class="tm-pc-meta-chip tm-pc-meta-chip--buyback">Buyback</span>' : ''}
-                            ${tagHtml}
-                        </div>
-                        <div style="margin-top:8px;">
-                            <span class="tm-pc-barcode" title="${esc(item.barcode)}">${esc(item.barcode)}</span>
-                        </div>
+                <div class="tm-pc-row-grade" style="${ctx.getPhoneGradeCircleStyle(grade)}">${esc(grade || '?')}</div>
+                <div class="tm-pc-row-main">
+                    <div class="tm-pc-row-line1">
+                        ${noBuybackStore ? `<span title="${esc(ctx.t('No buyback store'))}">🚫</span>` : ''}
+                        <span class="tm-pc-row-model" style="${titleStyle}" title="${esc(displayModel)}">${esc(displayModel)}</span>
+                        ${storage ? `<span class="tm-pc-meta-chip">${esc(storage)}</span>` : ''}
+                        ${item.isBuyback ? '<span class="tm-pc-meta-chip tm-pc-meta-chip--buyback">Buyback</span>' : ''}
+                        ${tagHtml}
+                        ${item.retailPrice ? `<span class="tm-pc-row-price">${esc(item.retailPrice)}€</span>` : ''}
+                    </div>
+                    <div class="tm-pc-row-line2">
+                        ${phoneColor ? `<span class="tm-pc-meta-chip">${colorDot}${esc(phoneColor)}</span>` : ''}
+                        <span class="tm-pc-barcode" title="${esc(item.barcode)}">${esc(item.barcode)}</span>
                     </div>
                 </div>
-                ${storesBlock}
-                <div class="tm-pc-card-footer">${actions}</div>
+                ${storesCell}
+                ${actions}
             </div>`;
     }
+
+    const buildPhoneCard = buildPhoneRow;
 
     function buildModalHTML(T) {
         return `
@@ -26634,7 +26624,7 @@ window.initOrderTracking = initOrderTracking;
                 </div>
                 <div class="tm-pc-header-actions">
                     <button type="button" id="tm-phone-refresh-btn" class="tm-pc-icon-btn tm-phone-toolbar-btn" title="${esc(T['Refresh (Ctrl+R)'])}">🔄</button>
-                    <button type="button" id="tm-phone-view-toggle" class="tm-pc-icon-btn tm-phone-toolbar-btn" title="${esc(T['Toggle View'])}">▦</button>
+                    <button type="button" id="tm-phone-view-toggle" class="tm-pc-icon-btn tm-phone-toolbar-btn" title="${esc(T['Toggle View'])}" hidden aria-hidden="true">▦</button>
                     <button type="button" id="tm-phone-colors-btn" class="tm-pc-icon-btn tm-phone-toolbar-btn" title="${esc(T['Manage Colors'])}">🎨</button>
                     <button type="button" id="tm-phone-tags-btn" class="tm-pc-icon-btn tm-phone-toolbar-btn" title="${esc(T['Manage Tags'])}">🏷️</button>
                     <button type="button" id="tm-phone-stores-btn" class="tm-pc-icon-btn tm-phone-toolbar-btn" title="${esc(T['Manage Stores'])}">🏪</button>
@@ -26687,11 +26677,11 @@ window.initOrderTracking = initOrderTracking;
                 </div>
             </div>
 
-            <div id="tm-phone-list-container" class="tm-pc-grid">
+            <div id="tm-phone-list-container" class="tm-pc-list">
                 ${buildEmptyState('⏳', 'Φόρτωση συσκευών…', 'Παρακαλώ περιμένετε')}
             </div>
             <div id="tm-other-store-container" style="display:none;flex:1;overflow:hidden;flex-direction:column;">
-                <div id="tm-other-store-content" class="tm-pc-os-list">
+                <div id="tm-other-store-content" class="tm-pc-list tm-pc-os-list">
                     ${buildEmptyState('🏬', 'Φόρτωση άλλων καταστημάτων…')}
                 </div>
             </div>
@@ -26780,7 +26770,9 @@ window.initOrderTracking = initOrderTracking;
         STYLES: PHONE_CATALOG_UI_STYLES,
         esc,
         buildModalHTML,
+        buildPhoneRow,
         buildPhoneCard,
+        buildListHeader,
         buildStoreChipHtml,
         buildStoreChipsHtml,
         buildEmptyState,
@@ -28681,6 +28673,78 @@ async function fetchOtherStorePhones() {
     });
 }
 
+const phoneCatalogGbCache = new Map();
+const phoneCatalogColorCache = new Map();
+
+function extractGB(model) {
+    if (!model) return '';
+    if (phoneCatalogGbCache.has(model)) {
+        return phoneCatalogGbCache.get(model);
+    }
+    const tbMatch = model.match(/(\d+)\s*TB/i);
+    if (tbMatch) {
+        const result = tbMatch[1] + 'TB';
+        phoneCatalogGbCache.set(model, result);
+        return result;
+    }
+    const gbMatch = model.match(/(\d+)\s*GB/i);
+    if (gbMatch) {
+        const result = gbMatch[1] + 'GB';
+        phoneCatalogGbCache.set(model, result);
+        return result;
+    }
+    const gMatch = model.match(/(\d+)\s*G(?!\w)/i);
+    if (gMatch) {
+        const result = gMatch[1] + 'GB';
+        phoneCatalogGbCache.set(model, result);
+        return result;
+    }
+    const commonSizes = [64, 128, 256, 512, 1024, 2048];
+    for (const size of commonSizes) {
+        const regex = new RegExp('\\b' + size + '\\b', 'i');
+        if (regex.test(model)) {
+            const result = size >= 1024 ? (size / 1024) + 'TB' : size + 'GB';
+            phoneCatalogGbCache.set(model, result);
+            return result;
+        }
+    }
+    phoneCatalogGbCache.set(model, '');
+    return '';
+}
+
+function extractColor(model) {
+    if (!model) return '';
+    if (phoneCatalogColorCache.has(model)) {
+        return phoneCatalogColorCache.get(model);
+    }
+    const color = matchPhoneColorInText(model);
+    phoneCatalogColorCache.set(model, color);
+    return color;
+}
+
+function getColorHex(colorName) {
+    return getListColorHex(colorName);
+}
+
+function getPhoneCatalogUICtx(modalHelpers = {}) {
+    return {
+        T: PHONE_CATALOG_TRANSLATIONS,
+        extractColor,
+        getColorHex,
+        extractGB,
+        getPhoneGradeColor,
+        getPhoneCatalogOutlineStyle,
+        getPhoneModelTitleStyle,
+        getTagColor,
+        getTagDisplayName,
+        getPhoneGradeCircleStyle,
+        getPhoneGradeDisplayStyle,
+        t,
+        extractBaseModel: modalHelpers.extractBaseModel || ((m) => m || ''),
+        getPhoneTags: modalHelpers.getPhoneTags || (() => []),
+    };
+}
+
 /**
  * Shows a modal with a searchable list of phones
  */
@@ -28984,22 +29048,18 @@ async function showPhoneListModal() {
     }
     
     // Performance optimization: Caches for expensive operations
-    const extractGBCache = new Map();
-    const extractColorCache = new Map();
     const extractBaseModelCache = new Map();
     const parsePhoneNameCache = new Map();
     
-    // Function to clear caches (useful when memory is a concern)
     function clearCaches() {
-        extractGBCache.clear();
-        extractColorCache.clear();
+        phoneCatalogGbCache.clear();
+        phoneCatalogColorCache.clear();
         extractBaseModelCache.clear();
         parsePhoneNameCache.clear();
     }
     
-    // Clear caches periodically to prevent memory bloat (every 10 minutes)
     setInterval(() => {
-        if (extractGBCache.size > 10000 || extractColorCache.size > 10000 || extractBaseModelCache.size > 10000) {
+        if (phoneCatalogGbCache.size > 10000 || phoneCatalogColorCache.size > 10000 || extractBaseModelCache.size > 10000) {
             clearCaches();
             console.log('[MMS Phone List] Caches cleared to free memory');
         }
@@ -29018,69 +29078,6 @@ async function showPhoneListModal() {
         };
     }
     
-    // Helper function to extract GB or TB from model name (with memoization)
-    function extractGB(model) {
-        if (!model) return '';
-        if (extractGBCache.has(model)) {
-            return extractGBCache.get(model);
-        }
-        
-        // Try TB first (larger storage) - with or without space
-        const tbMatch = model.match(/(\d+)\s*TB/i);
-        if (tbMatch) {
-            const result = tbMatch[1] + 'TB';
-            extractGBCache.set(model, result);
-            return result;
-        }
-        
-        // Try GB - with or without space
-        const gbMatch = model.match(/(\d+)\s*GB/i);
-        if (gbMatch) {
-            const result = gbMatch[1] + 'GB';
-        extractGBCache.set(model, result);
-        return result;
-        }
-        
-        // Try with just "G" (e.g., "128G", "256G")
-        const gMatch = model.match(/(\d+)\s*G(?!\w)/i);
-        if (gMatch) {
-            const result = gMatch[1] + 'GB';
-            extractGBCache.set(model, result);
-            return result;
-        }
-        
-        // Try common storage sizes without suffix (64GB and up only)
-        // Must be surrounded by spaces or at start/end to avoid matching random numbers
-        const commonSizes = [64, 128, 256, 512, 1024, 2048];
-        for (const size of commonSizes) {
-            const regex = new RegExp('\\b' + size + '\\b', 'i');
-            if (regex.test(model)) {
-                const result = size >= 1024 ? (size / 1024) + 'TB' : size + 'GB';
-                extractGBCache.set(model, result);
-                return result;
-            }
-        }
-        
-        extractGBCache.set(model, '');
-        return '';
-    }
-    
-    // Helper function to extract color from model name (with memoization)
-    function extractColor(model) {
-        if (!model) return '';
-        if (extractColorCache.has(model)) {
-            return extractColorCache.get(model);
-        }
-        const color = matchPhoneColorInText(model);
-        extractColorCache.set(model, color);
-        return color;
-    }
-    
-    // Function to get hex color for catalog title display
-    function getColorHex(colorName) {
-        return getListColorHex(colorName);
-    }
-
     function showColorManagerModal() {
         const existing = document.getElementById('tm-phone-colors-modal');
         if (existing) existing.remove();
@@ -29157,7 +29154,7 @@ async function showPhoneListModal() {
         syncHexFromPicker();
 
         const refreshAfterChange = () => {
-            extractColorCache.clear();
+            phoneCatalogColorCache.clear();
             extractBaseModelCache.clear();
             populateFilters(allPhones, ['color']);
             applyFilters();
@@ -29215,7 +29212,7 @@ async function showPhoneListModal() {
                     const nameInput = row?.querySelector('.tm-phone-color-name-input');
                     if (label) label.textContent = hex;
                     if (nameInput) applyNameInputStyle(nameInput, input.dataset.color, hex);
-                    extractColorCache.clear();
+                    phoneCatalogColorCache.clear();
                     extractBaseModelCache.clear();
                     applyFilters();
                     if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
@@ -29240,7 +29237,7 @@ async function showPhoneListModal() {
                         else if (window.showPositiveMessage) window.showPositiveMessage(msg);
                         return;
                     }
-                    extractColorCache.clear();
+                    phoneCatalogColorCache.clear();
                     extractBaseModelCache.clear();
                     if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
                     refreshAfterChange();
@@ -29257,7 +29254,7 @@ async function showPhoneListModal() {
             listEl.querySelectorAll('.tm-phone-color-alias-input').forEach(input => {
                 input.addEventListener('change', () => {
                     setColorDisplayAliasesForColor(input.dataset.color, input.value);
-                    extractColorCache.clear();
+                    phoneCatalogColorCache.clear();
                     applyFilters();
                     if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
                 });
@@ -29768,25 +29765,6 @@ async function showPhoneListModal() {
         return base;
     }
 
-    function getPhoneCatalogUICtx() {
-        return {
-            T: PHONE_CATALOG_TRANSLATIONS,
-            extractColor,
-            getColorHex,
-            extractBaseModel,
-            extractGB,
-            getPhoneGradeColor,
-            getPhoneCatalogOutlineStyle,
-            getPhoneModelTitleStyle,
-            getPhoneTags,
-            getTagColor,
-            getTagDisplayName,
-            getPhoneGradeCircleStyle,
-            getPhoneGradeDisplayStyle,
-            t,
-        };
-    }
-    
     // Function to copy text to clipboard
     function copyToClipboard(text) {
         if (navigator.clipboard) {
@@ -30073,7 +30051,7 @@ async function showPhoneListModal() {
         const useRegex = overlay.querySelector('#tm-phone-regex-toggle').checked;
         
         const baseDataset = showingOtherStores
-            ? otherStorePhones.filter(p => (p.otherStoreCount === 1) && ((p.localUnits || 0) <= 0))
+            ? otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0))
             : (showFavoritesOnly ? allPhones.filter(p => favorites.includes(p.barcode)) : allPhones);
         
         let phonesToFilter = baseDataset;
@@ -30287,9 +30265,8 @@ async function showPhoneListModal() {
             currentPage = 0;
         }
         
-        container.classList.toggle('tm-pc-grid', isGridView);
-        container.classList.toggle('tm-pc-list-mode', !isGridView);
-        container.classList.remove('grid-view');
+        container.className = 'tm-pc-list';
+        container.classList.remove('tm-pc-grid', 'tm-pc-list-mode', 'grid-view');
         
         // Virtual scrolling: only render visible phones + buffer
         const startIndex = currentPage * ITEMS_PER_PAGE;
@@ -30297,23 +30274,14 @@ async function showPhoneListModal() {
         const phonesToRender = phones.slice(startIndex, endIndex);
         renderedPhones = phones;
         
-        const ctx = getPhoneCatalogUICtx();
-        const phonesHTML = phonesToRender.map((phone, idx) => PhoneCatalogUI.buildPhoneCard(phone, ctx, {
+        const catalogCtx = getPhoneCatalogUICtx({ extractBaseModel, getPhoneTags });
+        const phonesHTML = phonesToRender.map((phone, idx) => PhoneCatalogUI.buildPhoneRow(phone, catalogCtx, {
             variant: 'mine',
             isSelected: selectedPhones.has(phone.barcode),
             isFavorite: favorites.includes(phone.barcode),
-            animationDelay: idx * 12,
         })).join('');
         
-        // Use DocumentFragment for better performance
-        const fragment = document.createDocumentFragment();
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = phonesHTML;
-        while (tempDiv.firstChild) {
-            fragment.appendChild(tempDiv.firstChild);
-        }
-        container.innerHTML = '';
-        container.appendChild(fragment);
+        container.innerHTML = PhoneCatalogUI.buildListHeader('mine') + phonesHTML;
         
         // Show pagination info if there are more phones
         const totalPhones = phones.length;
@@ -30754,25 +30722,27 @@ async function showPhoneListModal() {
             return;
         }
 
-        targetEl.className = 'tm-pc-os-list';
-        const ctx = getPhoneCatalogUICtx();
+        targetEl.className = 'tm-pc-list tm-pc-os-list';
+        const catalogCtx = getPhoneCatalogUICtx({ extractBaseModel, getPhoneTags });
         const rows = list.map((item, idx) => {
-            const oneUnitStores = filterOneUnitStores(item.stores);
+            const hasStoresData = Array.isArray(item.stores);
+            const oneUnitStores = hasStoresData && item.stores.length > 0
+                ? filterOneUnitStores(item.stores)
+                : [];
             const storesHtml = oneUnitStores.length > 0
                 ? renderPhoneStoreChipsHtml(item.stores, item.isBuyback)
                 : '';
-            const noBuybackStore = item.isBuyback && oneUnitStores.length > 0 && !phoneHasAllowedBuybackStore(item.stores);
-            return PhoneCatalogUI.buildPhoneCard(item, ctx, {
+            const noBuybackStore = item.isBuyback && hasStoresData && oneUnitStores.length > 0 && !phoneHasAllowedBuybackStore(item.stores);
+            return PhoneCatalogUI.buildPhoneRow(item, catalogCtx, {
                 variant: 'other',
                 isFavorite: favorites.includes(item.barcode),
                 storesHtml,
-                storesPending: oneUnitStores.length === 0,
-                animationDelay: idx * 18,
+                storesPending: !storesHtml && (!hasStoresData || item.stores.length === 0),
                 noBuybackStore,
             });
         }).join('');
 
-        targetEl.innerHTML = rows;
+        targetEl.innerHTML = PhoneCatalogUI.buildListHeader('other') + rows;
         if (countEl) countEl.textContent = `${list.length} phones available in other stores`;
         if (statsEl) statsEl.innerHTML = '';
         
@@ -30819,7 +30789,7 @@ async function showPhoneListModal() {
                         } else {
                             favorites.push(barcode);
                         }
-                        GM_setValue('phone_favorites', favorites);
+                        GM_setValue(FAVORITES_KEY, JSON.stringify(favorites));
                         // Re-render to update the favorite button state
                         renderOtherStorePhones(list, targetEl, countEl, statsEl);
                     }
@@ -30857,9 +30827,9 @@ async function showPhoneListModal() {
                     const itemIsBuyback = phoneItem ? phoneItem.isBuyback : false;
                     sc.innerHTML = renderPhoneStoreChipsHtml(stores, itemIsBuyback);
                     if (itemIsBuyback && !phoneHasAllowedBuybackStore(stores)) {
-                        const card = sc.closest('.tm-pc-card--other');
-                        if (card) {
-                            const modelRow = card.querySelector('.tm-pc-card-head');
+                        const row = sc.closest('.tm-pc-row--other');
+                        if (row) {
+                            const modelRow = row.querySelector('.tm-pc-row-line1');
                             const noBuybackTitle = t('No buyback store');
                             if (modelRow && !modelRow.querySelector(`span[title="${noBuybackTitle}"]`)) {
                                 const ind = document.createElement('span');
