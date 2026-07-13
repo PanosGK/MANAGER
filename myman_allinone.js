@@ -184,7 +184,7 @@
         try {
             GM_setValue(STORAGE_KEYS.THEME_COLORS_CACHE, JSON.stringify({
                 themeId,
-                colors: theme.appliedColors || theme.colors,
+                colors: themeId === 'default' ? null : (theme.appliedColors || theme.colors),
                 updatedAt: Date.now(),
             }));
         } catch (_) { /* ignore */ }
@@ -346,6 +346,7 @@
         function createTimerUI() {
             const container = document.createElement('div');
             container.id = 'tm-refresh-timer-container';
+            container.className = 'tm-footer-widget tm-footer-icon-btn';
             
             // Create SVG circle with countdown inside
             container.innerHTML = `
@@ -3398,22 +3399,13 @@
         // Create the widget's HTML
         const widgetContainer = document.createElement('div');
         widgetContainer.id = 'tm-daily-dashboard-widget';
+        widgetContainer.className = 'tm-footer-widget';
         widgetContainer.style.cssText = `
-            background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: var(--tm-primary-color);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 12px;
-            height: 40px;
-            padding: 0 14px;
             font-size: 11px;
             display: flex;
             align-items: center;
             gap: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
+            padding: 0 14px;
         `;
         widgetContainer.title = `Σημερινά Στατιστικά (Click για Personal Dashboard):\n- ${stats.ordersCreated || 0} Νέες Παραγγελίες\n- ${stats.repairsCompleted || 0} Ολοκληρωμένες Επισκευές\n- ${stats.searches || 0} Αναζητήσεις`;
 
@@ -3442,18 +3434,6 @@
                 alert('Personal Dashboard not available. The gamification script may not be loaded properly.');
             }
         });
-        
-        // Add consistent hover animations
-        widgetContainer.addEventListener('mouseenter', () => {
-            widgetContainer.style.transform = 'translateY(-3px) scale(1.05)';
-            widgetContainer.style.boxShadow = '0 6px 16px rgba(0,0,0,0.3)';
-            widgetContainer.style.borderColor = 'rgba(255,255,255,0.4)';
-        });
-        widgetContainer.addEventListener('mouseleave', () => {
-            widgetContainer.style.transform = 'translateY(0) scale(1)';
-            widgetContainer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-            widgetContainer.style.borderColor = 'rgba(255,255,255,0.2)';
-        });
 
         // Add the widget to the parent container in the footer
         parentContainer.appendChild(widgetContainer);
@@ -3474,6 +3454,7 @@
 
         const xpBarContainer = document.createElement('div');
         xpBarContainer.id = 'tm-xp-bar-container';
+        xpBarContainer.className = 'tm-footer-widget';
         const xpForNextLevel = getXpForLevel(currentLevel);
         const rankInfo = RANKS.slice().reverse().find(r => currentLevel >= r.level) || RANKS[0];
         const defaultRankTitle = (rankInfo && rankInfo.title) || (RANKS[0] && RANKS[0].title) || 'Novice Tech';
@@ -3505,18 +3486,6 @@
         // Make the entire bar clickable to show the titles modal
         xpBarContainer.style.cursor = 'pointer';
         xpBarContainer.addEventListener('click', () => showTitlesModal(STORAGE_KEYS));
-        
-        // Add consistent hover animations
-        xpBarContainer.addEventListener('mouseenter', () => {
-            xpBarContainer.style.transform = 'translateY(-3px) scale(1.05)';
-            xpBarContainer.style.boxShadow = '0 6px 16px rgba(0,0,0,0.3)';
-            xpBarContainer.style.borderColor = 'rgba(255,255,255,0.4)';
-        });
-        xpBarContainer.addEventListener('mouseleave', () => {
-            xpBarContainer.style.transform = 'translateY(0) scale(1)';
-            xpBarContainer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-            xpBarContainer.style.borderColor = 'rgba(255,255,255,0.2)';
-        });
 
         if (config?.debugEnabled) {
         console.log('[MMS] XP Bar widget initialized in footer.');
@@ -4394,45 +4363,17 @@
         // Helper function to create feature button
         function createFeatureButton(icon, title, gradient, onClick) {
             const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'tm-footer-widget tm-footer-icon-btn';
             btn.innerHTML = icon;
             btn.title = title;
-            btn.style.cssText = `
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-                color: white;
-                border: 1px solid rgba(255,255,255,0.2);
-                width: 40px;
-                height: 40px;
-                padding: 0;
-                border-radius: 12px;
-                cursor: pointer;
-                font-size: 16px;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                position: relative;
-                overflow: hidden;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            `;
+            btn.dataset.accentGradient = gradient;
             
-            // Add gradient overlay on hover
             btn.addEventListener('mouseenter', () => {
-                btn.style.background = `linear-gradient(135deg, ${gradient})`;
-                btn.style.backdropFilter = 'blur(10px)';
-                btn.style.webkitBackdropFilter = 'blur(10px)';
-                btn.style.transform = 'translateY(-3px) scale(1.05)';
-                btn.style.boxShadow = '0 6px 16px rgba(0,0,0,0.3)';
-                btn.style.borderColor = 'rgba(255,255,255,0.4)';
+                if (gradient) btn.style.background = `linear-gradient(135deg, ${gradient})`;
             });
             btn.addEventListener('mouseleave', () => {
-                btn.style.background = 'linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)';
-                btn.style.backdropFilter = 'blur(10px)';
-                btn.style.webkitBackdropFilter = 'blur(10px)';
-                btn.style.transform = 'translateY(0) scale(1)';
-                btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-                btn.style.borderColor = 'rgba(255,255,255,0.2)';
+                btn.style.background = '';
             });
             btn.addEventListener('click', onClick);
             return btn;
@@ -5108,8 +5049,8 @@
         dropdownContainer.id = 'tm-recent-repairs-dropdown';
         dropdownContainer.style.cssText = `
             position: relative;
-            display: ${config.recentRepairsEnabled ? 'inline-block' : 'none'};
-            margin: 0 8px;
+            display: ${config.recentRepairsEnabled ? 'inline-flex' : 'none'};
+            align-items: center;
         `;
         
         if (!config.recentRepairsEnabled) {
@@ -5125,7 +5066,7 @@
         console.log('[MMS] Found', recentRepairs.length, 'recent repairs in storage.');
         
         // Update display style since container already exists
-        dropdownContainer.style.display = 'inline-block';
+        dropdownContainer.style.display = 'inline-flex';
         
         const dropdownButton = document.createElement('button');
         dropdownButton.id = 'tm-recent-repairs-btn';
@@ -5140,7 +5081,6 @@
             position: fixed;
             bottom: 55px;
             border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.25);
             min-width: 350px;
             max-width: 450px;
             max-height: 450px;
@@ -5200,9 +5140,6 @@
                             title="Γρήγορη Προβολή"
                             style="
                                 flex-shrink: 0;
-                                background: rgba(79,172,254,0.12);
-                                border: 1px solid rgba(79,172,254,0.3);
-                                color: #4facfe;
                                 border-radius: 7px;
                                 padding: 5px 9px;
                                 font-size: 14px;
@@ -5298,7 +5235,7 @@
     function updateRecentRepairsButtonVisibility(config) {
         const recentRepairsDropdown = document.getElementById('tm-recent-repairs-dropdown');
         if (recentRepairsDropdown) {
-            recentRepairsDropdown.style.display = config.recentRepairsEnabled ? 'inline-block' : 'none';
+            recentRepairsDropdown.style.display = config.recentRepairsEnabled ? 'inline-flex' : 'none';
         }
     }
     

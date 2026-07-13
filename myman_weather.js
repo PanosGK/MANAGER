@@ -134,24 +134,13 @@
     function initWeatherWidget(parentContainer, config) {
         const weatherWidget = document.createElement('div');
         weatherWidget.id = 'tm-weather-widget';
+        weatherWidget.className = 'tm-footer-widget';
         weatherWidget.style.cssText = `
-            background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: var(--tm-primary-color);
-            border: 1px solid rgba(255,255,255,0.2);
-            height: 40px;
-            padding: 0 14px;
-            border-radius: 12px;
             display: ${config.weatherWidgetEnabled ? 'flex' : 'none'};
             align-items: center;
             gap: 8px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            padding: 0 14px;
             font-size: 13px;
-            font-weight: 600;
-            white-space: nowrap;
             position: relative;
         `;
         weatherWidget.innerHTML = `
@@ -159,16 +148,6 @@
             <span id="tm-weather-temp" style="font-size: 13px; font-weight: 700;">Loading...</span>
         `;
 
-        weatherWidget.addEventListener('mouseenter', () => {
-            weatherWidget.style.transform = 'translateY(-3px) scale(1.05)';
-            weatherWidget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.3)';
-            weatherWidget.style.borderColor = 'rgba(255,255,255,0.4)';
-        });
-        weatherWidget.addEventListener('mouseleave', () => {
-            weatherWidget.style.transform = 'translateY(0) scale(1)';
-            weatherWidget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-            weatherWidget.style.borderColor = 'rgba(255,255,255,0.2)';
-        });
         weatherWidget.addEventListener('click', () => showWeatherDetails(config));
 
         parentContainer.appendChild(weatherWidget);

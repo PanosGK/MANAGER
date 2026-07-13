@@ -1631,7 +1631,7 @@
             const bellWrapper = document.createElement('div');
             bellWrapper.id = 'tm-notification-bell-wrapper';
             bellWrapper.innerHTML = `
-                <button id="tm-notification-bell-btn" title="Κέντρο ειδοποιήσεων">🔔</button>
+                <button id="tm-notification-bell-btn" class="tm-footer-widget tm-footer-icon-btn" type="button" title="Κέντρο ειδοποιήσεων">🔔</button>
                 <span id="tm-notification-unread-count">0</span>
             `;
             parentContainer.appendChild(bellWrapper);
@@ -1643,6 +1643,8 @@
 
             const button = document.createElement('button');
             button.id = 'tm-settings-btn';
+            button.type = 'button';
+            button.className = 'tm-footer-widget tm-footer-icon-btn';
             button.innerHTML = '⚙️'; // Settings gear icon
             button.title = 'Ρυθμίσεις MyManager Suite';
             button.addEventListener('click', createSettingsModal);
@@ -1650,6 +1652,7 @@
 
             const coinBalance = document.createElement('div');
             coinBalance.id = 'tm-coin-balance';
+            coinBalance.className = 'tm-footer-widget';
             coinBalance.title = 'Fixer-Coins (Click to open Shop)';
             coinBalance.style.cursor = 'pointer';
             coinBalance.style.position = 'relative';

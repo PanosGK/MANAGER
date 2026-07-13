@@ -72,12 +72,113 @@
                 --tm-footer-bar-bg: #23272b;
                 --tm-header-bar-text: #f4f4f4;
                 --tm-footer-bar-text: #f4f4f4;
+                --tm-footer-text: #f4f4f4;
                 --tm-count-badge-bg: #23272b;
                 --tm-count-badge-text: #17a2b8;
                 --tm-grid-header-bg: #23272b;
                 --tm-grid-header-text: #007bff;
                 --tm-row-highlight-danger-bg: rgba(220, 53, 69, 0.32);
                 --tm-row-highlight-success-bg: rgba(40, 167, 69, 0.26);
+                --tm-overlay-dim: rgba(0, 0, 0, 0.65);
+                --tm-price-color: #28a745;
+                --tm-price-border: #28a745;
+                --tm-price-bg: rgba(40, 167, 69, 0.12);
+                --tm-success-color-rgb: 40, 167, 69;
+                --tm-chip-bg: rgba(128, 128, 128, 0.13);
+                --tm-chip-border: rgba(128, 128, 128, 0.22);
+                --tm-chip-text: #343a40;
+                --tm-subtle-text: #6c757d;
+                --tm-muted-text: #6c757d;
+                --tm-shadow-color: rgba(0, 0, 0, 0.15);
+                --tm-footer-control-height: 40px;
+            }
+            .tm-phone-catalog-overlay { background: var(--tm-overlay-dim) !important; }
+            .tm-phone-modal-content {
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg));
+                color: var(--tm-primary-color);
+            }
+            .tm-phone-price-pill, .tm-os-price-pill {
+                color: var(--tm-price-color, var(--tm-success-color));
+                border: 1px solid var(--tm-price-border, var(--tm-success-color));
+                background: var(--tm-price-bg, rgba(var(--tm-success-color-rgb, 40, 167, 69), 0.12));
+            }
+            .tm-phone-barcode, .tm-os-barcode {
+                color: var(--tm-subtle-text, var(--tm-shop-item-text));
+                background: var(--tm-chip-bg);
+                border: 1px solid var(--tm-chip-border);
+            }
+            .tm-phone-storage-chip {
+                background: var(--tm-chip-bg);
+                border: 1px solid var(--tm-chip-border);
+                color: var(--tm-chip-text, var(--tm-shop-item-text));
+            }
+            .tm-phone-buyback-badge {
+                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent);
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 35%, transparent);
+                color: var(--tm-info-color);
+            }
+            /* Order history panel (default / base tokens) */
+            .tm-oh-overlay { background: var(--tm-overlay-dim) !important; }
+            .tm-oh-shell {
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg));
+                color: var(--tm-primary-color);
+                border: 1px solid var(--tm-shop-item-border);
+            }
+            .tm-oh-hero {
+                background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 14%, transparent) 0%, transparent 70%);
+                border-bottom: 1px solid var(--tm-shop-item-border);
+            }
+            .tm-oh-title { color: var(--tm-shop-item-text, var(--tm-primary-color)); }
+            .tm-oh-subtitle { color: var(--tm-muted-text, var(--tm-secondary-color)); }
+            .tm-oh-page-badge {
+                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent);
+                color: var(--tm-info-color);
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 32%, transparent);
+            }
+            .tm-oh-stat {
+                background: var(--tm-chip-bg);
+                border: 1px solid var(--tm-chip-border);
+            }
+            .tm-oh-stat-value { color: var(--tm-info-color); }
+            .tm-oh-stat-label { color: var(--tm-muted-text); }
+            .tm-oh-tool-btn, .tm-oh-close, .tm-oh-preset, .tm-oh-input, .tm-oh-select, .tm-order-filter-input {
+                background: var(--tm-shop-item-bg);
+                border: 1px solid var(--tm-shop-item-border);
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+            }
+            .tm-oh-preset.is-active {
+                background: var(--tm-primary-color);
+                border-color: var(--tm-primary-color);
+                color: var(--tm-text-on-primary, #fff);
+            }
+            .tm-oh-filters, .tm-oh-body { background: var(--tm-shop-item-owned-bg, var(--tm-shop-item-bg)); }
+            .tm-oh-table-wrap {
+                background: var(--tm-shop-item-bg);
+                border: 1px solid var(--tm-shop-item-border);
+            }
+            .tm-order-history-table thead th {
+                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg));
+                color: var(--tm-grid-header-text, var(--tm-primary-color));
+                border-bottom: 1px solid var(--tm-shop-item-border);
+            }
+            .tm-order-history-table tbody tr.tm-order-history-row:hover {
+                background: var(--tm-shop-item-hover-bg);
+            }
+            .tm-order-history-table td { color: var(--tm-shop-item-text, var(--tm-primary-color)); }
+            .tm-oh-badge--active {
+                background: color-mix(in srgb, var(--tm-success-color) 14%, transparent);
+                color: var(--tm-success-color);
+                border: 1px solid color-mix(in srgb, var(--tm-success-color) 30%, transparent);
+            }
+            .tm-oh-badge--removed {
+                background: color-mix(in srgb, var(--tm-danger-color) 12%, transparent);
+                color: var(--tm-danger-color);
+                border: 1px solid color-mix(in srgb, var(--tm-danger-color) 28%, transparent);
+            }
+            .tm-oh-badge--unknown {
+                background: color-mix(in srgb, var(--tm-warning-color) 12%, transparent);
+                color: var(--tm-warning-color);
+                border: 1px solid color-mix(in srgb, var(--tm-warning-color) 28%, transparent);
             }
             /* --- Feature: Advanced Search --- */
             /* --- Notification Center Styles --- */
@@ -284,70 +385,75 @@
             }
             #tm-alerts-tab-count:empty { display: none; }
 
-            /* Recent Repairs popup only: theme-aware (button appearance unchanged). No black text, no purple. */
+            /* Recent Repairs popup — theme tokens */
             #tm-recent-repairs-menu {
-                background: var(--tm-dark-color) !important;
-                border: 1px solid var(--tm-primary-color) !important;
-                
+                background: var(--tm-panel-bg, var(--tm-modal-bg, var(--tm-shop-item-bg))) !important;
+                border: 1px solid var(--tm-shop-item-border) !important;
+                box-shadow: 0 8px 24px var(--tm-shadow-color, rgba(0,0,0,0.25)) !important;
             }
             #tm-recent-repairs-menu,
             #tm-recent-repairs-menu * {
-                color: var(--tm-primary-color) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
             }
             #tm-recent-repairs-menu .tm-recent-repairs-header {
-                background: var(--tm-dark-color) !important;
-                color: var(--tm-primary-color) !important;
+                background: var(--tm-panel-bg, var(--tm-modal-bg, var(--tm-shop-item-bg))) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
                 border-radius: 8px 8px 0 0;
                 border-bottom: 1px solid var(--tm-shop-item-border) !important;
                 padding: 12px;
                 font-weight: bold;
             }
             #tm-recent-repairs-menu .tm-recent-repairs-empty {
-                color: var(--tm-secondary-hover) !important;
+                color: var(--tm-muted-text, var(--tm-secondary-color)) !important;
             }
             #tm-recent-repairs-menu .tm-recent-repair-item {
                 border-bottom-color: var(--tm-shop-item-border) !important;
-                color: var(--tm-primary-color) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
             }
             #tm-recent-repairs-menu .tm-recent-repair-item:hover {
-                background: var(--tm-shop-item-owned-bg) !important;
+                background: var(--tm-shop-item-hover-bg) !important;
                 transform: translateX(4px);
             }
             #tm-recent-repairs-menu .tm-recent-repair-title {
-                color: var(--tm-primary-color) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
             }
             #tm-recent-repairs-menu .tm-recent-repair-meta {
-                color: var(--tm-secondary-hover) !important;
+                color: var(--tm-muted-text, var(--tm-secondary-color)) !important;
             }
             #tm-recent-repairs-menu .tm-recent-repairs-footer {
                 border-top-color: var(--tm-shop-item-border) !important;
-                background: var(--tm-dark-color) !important;
+                background: var(--tm-panel-bg, var(--tm-modal-bg, var(--tm-shop-item-bg))) !important;
             }
             #tm-recent-repairs-menu #tm-clear-recent-repairs {
                 background: var(--tm-danger-color) !important;
                 color: var(--tm-text-on-primary, white) !important;
                 border: none !important;
             }
+            .tm-repair-quickview-btn {
+                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent) !important;
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 32%, transparent) !important;
+                color: var(--tm-info-color) !important;
+            }
+            .tm-repair-quickview-btn:hover {
+                background: color-mix(in srgb, var(--tm-info-color) 24%, transparent) !important;
+                border-color: var(--tm-info-color) !important;
+            }
 
-            /* Recent Repairs footer button — theme tokens (no inline glass) */
+            /* Recent Repairs footer button */
             #tm-recent-repairs-btn {
-                background: var(--tm-glass-bg, var(--tm-shop-item-bg)) !important;
-                border: 1px solid var(--tm-glass-border, var(--tm-shop-item-border)) !important;
-                color: var(--tm-widget-text, var(--tm-primary-color)) !important;
-                padding: 8px 14px !important;
-                border-radius: 10px !important;
-                font-size: 12px !important;
+                background: var(--tm-glass-bg, var(--tm-surface-bg, var(--tm-shop-item-bg))) !important;
+                border: 1px solid var(--tm-glass-border, var(--tm-surface-border, var(--tm-shop-item-border))) !important;
+                color: var(--tm-footer-text, var(--tm-widget-text, var(--tm-shop-item-text, var(--tm-primary-color)))) !important;
+                border-radius: 12px !important;
                 font-weight: 600 !important;
                 cursor: pointer !important;
-                transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease !important;
+                transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease !important;
                 box-shadow: 0 2px 8px var(--tm-shadow-color, rgba(0,0,0,0.15)) !important;
             }
             #tm-recent-repairs-btn:hover {
-                background: var(--tm-glass-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+                background: var(--tm-glass-hover-bg, var(--tm-surface-hover-bg, var(--tm-shop-item-hover-bg))) !important;
                 border-color: var(--tm-primary-color) !important;
                 color: var(--tm-primary-color) !important;
-                transform: translateY(-2px);
-                box-shadow: 0 6px 12px var(--tm-shadow-color, rgba(0,0,0,0.2)) !important;
             }
 
             /* Price transfer button: theme-aware */
@@ -1080,6 +1186,100 @@
                 gap: 8px;
                 padding: 2px 8px 4px;
                 box-sizing: border-box;
+                --tm-footer-control-height: 40px;
+            }
+            #tm-footer-controls-row,
+            #tm-footer-controls-left,
+            #tm-footer-controls-middle,
+            #tm-footer-controls-right {
+                align-items: center;
+            }
+            #tm-footer-controls-container :is(
+                #tm-notification-bell-btn,
+                #tm-settings-btn,
+                #tm-refresh-timer-container,
+                #tm-recent-repairs-btn,
+                #tm-eod-btn,
+                #tm-daily-dashboard-widget,
+                #tm-xp-bar-container,
+                #tm-coin-balance,
+                #tm-weather-widget,
+                .tm-buff-timer,
+                .tm-footer-widget,
+                .tm-footer-icon-btn,
+                #tm-footer-controls-left button,
+                #tm-footer-controls-right button
+            ) {
+                height: var(--tm-footer-control-height) !important;
+                min-height: var(--tm-footer-control-height) !important;
+                max-height: var(--tm-footer-control-height) !important;
+                box-sizing: border-box !important;
+            }
+            #tm-recent-repairs-dropdown {
+                display: inline-flex !important;
+                align-items: center !important;
+                height: var(--tm-footer-control-height) !important;
+                margin: 0 !important;
+            }
+            #tm-buff-timers-container {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                height: var(--tm-footer-control-height);
+            }
+            .tm-footer-icon-btn {
+                width: var(--tm-footer-control-height) !important;
+                min-width: var(--tm-footer-control-height) !important;
+                padding: 0 !important;
+                justify-content: center !important;
+                font-size: 16px !important;
+                line-height: 1 !important;
+            }
+            #tm-recent-repairs-btn {
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 14px !important;
+                font-size: 12px !important;
+            }
+            #tm-eod-btn {
+                width: var(--tm-footer-control-height) !important;
+                min-width: var(--tm-footer-control-height) !important;
+                padding: 0 !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: 12px !important;
+                font-size: 16px !important;
+                line-height: 1 !important;
+                cursor: pointer !important;
+                border: 1px solid var(--tm-glass-border, rgba(255,255,255,0.2)) !important;
+                background: var(--tm-glass-bg, linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)) !important;
+                color: var(--tm-widget-text, white) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+                transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease !important;
+            }
+            #tm-xp-bar-container {
+                padding: 4px 10px !important;
+                overflow: hidden;
+            }
+            #tm-footer-controls-container :is(
+                #tm-notification-bell-btn,
+                #tm-settings-btn,
+                #tm-refresh-timer-container,
+                #tm-recent-repairs-btn,
+                #tm-eod-btn,
+                #tm-daily-dashboard-widget,
+                #tm-xp-bar-container,
+                #tm-coin-balance,
+                #tm-weather-widget,
+                .tm-buff-timer,
+                .tm-footer-widget,
+                .tm-footer-icon-btn
+            ):hover {
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 12px var(--tm-shadow-color, rgba(0,0,0,0.2)) !important;
+                border-color: var(--tm-glass-border, rgba(255,255,255,0.4)) !important;
             }
             #tm-footer-controls-row {
                 display: flex;
@@ -1247,28 +1447,29 @@
             
             /* --- Unified Footer Widget Styling --- */
             .tm-footer-widget {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
+                background: var(--tm-glass-bg, linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%));
                 backdrop-filter: blur(10px);
                 -webkit-backdrop-filter: blur(10px);
-                color: var(--tm-primary-color);
-                border: 1px solid rgba(255,255,255,0.2);
+                color: var(--tm-footer-text, var(--tm-widget-text, var(--tm-primary-color)));
+                border: 1px solid var(--tm-glass-border, rgba(255,255,255,0.2));
                 border-radius: 12px;
-                height: 40px;
+                height: var(--tm-footer-control-height, 40px);
                 cursor: pointer;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+                box-shadow: 0 2px 8px var(--tm-shadow-color, rgba(0,0,0,0.15));
                 display: flex;
                 align-items: center;
+                justify-content: center;
                 font-weight: 600;
                 font-size: 13px;
                 white-space: nowrap;
+                box-sizing: border-box;
             }
             
             .tm-footer-widget:hover {
-                transform: translateY(-3px) scale(1.05);
-                box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-                border-color: rgba(255,255,255,0.4);
-                background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%);
+                border-color: var(--tm-primary-color);
+                background: var(--tm-glass-hover-bg, linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%));
+                color: var(--tm-primary-color);
             }
 
             /* --- Feature: Persistent Scratchpad --- */

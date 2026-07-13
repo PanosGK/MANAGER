@@ -143,8 +143,10 @@ function tmInjectPerformanceStyles() {
     document.getElementById('tm-performance-styles')?.remove();
     const el = document.createElement('style');
     el.id = 'tm-performance-styles';
-    el.textContent = (isDefaultTheme ? '' : PERFORMANCE_STYLES_BASE)
-        + (isDefaultTheme ? PERFORMANCE_STYLES_DEFAULT_FOOTER : PERFORMANCE_STYLES_NON_DEFAULT_FOOTER);
+    if (isDefaultTheme) {
+        return;
+    }
+    el.textContent = PERFORMANCE_STYLES_BASE + PERFORMANCE_STYLES_NON_DEFAULT_FOOTER;
     document.head.appendChild(el);
 }
 

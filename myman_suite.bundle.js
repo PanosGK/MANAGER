@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v191 — generated, do not edit */
+/* MyManager Suite bundle v194 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -742,8 +742,10 @@ function tmInjectPerformanceStyles() {
     document.getElementById('tm-performance-styles')?.remove();
     const el = document.createElement('style');
     el.id = 'tm-performance-styles';
-    el.textContent = (isDefaultTheme ? '' : PERFORMANCE_STYLES_BASE)
-        + (isDefaultTheme ? PERFORMANCE_STYLES_DEFAULT_FOOTER : PERFORMANCE_STYLES_NON_DEFAULT_FOOTER);
+    if (isDefaultTheme) {
+        return;
+    }
+    el.textContent = PERFORMANCE_STYLES_BASE + PERFORMANCE_STYLES_NON_DEFAULT_FOOTER;
     document.head.appendChild(el);
 }
 
@@ -1229,17 +1231,6 @@ const THEME_STYLES = `/* Universal Theme Styles */
                 padding: 8px !important;
                 margin: 4px !important;
             }
-            /* Footer buttons - consistent styling */
-            #tm-recent-repairs-btn {
-                padding: 8px 16px !important;
-                margin: 4px !important;
-                border-radius: 12px !important;
-                min-height: 36px !important;
-                display: inline-flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                line-height: 1.5 !important;
-            }
             /* Replace the default footer logo with a custom Matrix-themed SVG logo */
             #footer-outterwrap .footer-logo { content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='40' viewBox='0 0 200 40'%3E%3Cdefs%3E%3Cfilter id='matrix-glow'%3E%3CfeGaussianBlur stdDeviation='1.5' result='coloredBlur'/%3E%3CfeMerge%3E%3CfeMergeNode in='coloredBlur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Ctext x='50%25' y='50%25' dy='.3em' fill='var(--tm-primary-color)' font-family='Consolas,Monaco,monospace' font-size='22' font-weight='bold' text-anchor='middle' filter='url(%23matrix-glow)'%3EThe Fixers%3C/text%3E%3C/svg%3E") !important; filter: none !important; }
             
@@ -1428,6 +1419,7 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
             #tm-eod-btn:hover {
                 background: var(--tm-glass-hover-bg, var(--tm-surface-hover-bg, var(--tm-shop-item-hover-bg))) !important;
                 border-color: var(--tm-glass-border, var(--tm-surface-border, var(--tm-shop-item-border))) !important;
+                transform: translateY(-2px) !important;
             }
             #tm-notification-bell-btn,
             #tm-settings-btn,
@@ -1467,11 +1459,31 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
             .tm-recent-repairs-header,
             .tm-recent-repair-item {
                 background: var(--tm-panel-bg, var(--tm-shop-item-bg)) !important;
-                color: var(--tm-primary-color) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
                 border-color: var(--tm-surface-border, var(--tm-shop-item-border)) !important;
             }
             .tm-recent-repair-item:hover { background: var(--tm-surface-hover-bg, var(--tm-shop-item-hover-bg)) !important; }
             .tm-recent-repair-meta { color: var(--tm-muted-text, var(--tm-secondary-color)) !important; }
+            .tm-recent-repairs-footer { background: var(--tm-panel-bg, var(--tm-shop-item-bg)) !important; border-top-color: var(--tm-shop-item-border) !important; }
+            .tm-repair-quickview-btn {
+                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent) !important;
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 32%, transparent) !important;
+                color: var(--tm-info-color) !important;
+            }
+            .tm-repair-quickview-btn:hover {
+                background: color-mix(in srgb, var(--tm-info-color) 24%, transparent) !important;
+                border-color: var(--tm-info-color) !important;
+            }
+            #tm-recent-repairs-btn {
+                background: var(--tm-glass-bg, var(--tm-surface-bg, var(--tm-shop-item-bg))) !important;
+                border: 1px solid var(--tm-glass-border, var(--tm-surface-border, var(--tm-shop-item-border))) !important;
+                color: var(--tm-footer-text, var(--tm-widget-text, var(--tm-shop-item-text, var(--tm-primary-color)))) !important;
+            }
+            #tm-recent-repairs-btn:hover {
+                background: var(--tm-glass-hover-bg, var(--tm-surface-hover-bg, var(--tm-shop-item-hover-bg))) !important;
+                border-color: var(--tm-primary-color) !important;
+                color: var(--tm-primary-color) !important;
+            }
 
             /* Quests & specialty footer buttons */
             #tm-quests-btn { background-color: var(--tm-secondary-hover, var(--tm-secondary-color)) !important; color: var(--tm-text-on-primary, #fff) !important; }
@@ -1498,6 +1510,112 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
                 color: var(--tm-danger-color) !important;
             }
             .tm-alert-cancel-btn:hover { background: rgba(var(--tm-danger-color-rgb, 220,53,69), 0.22) !important; }
+
+            /* Phone catalog panel */
+            .tm-modal-overlay:has(.tm-phone-modal-content),
+            .tm-phone-catalog-overlay {
+                background: var(--tm-overlay-dim, rgba(0,0,0,0.72)) !important;
+            }
+            .tm-phone-modal-content {
+                background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg))) !important;
+                color: var(--tm-primary-color) !important;
+                border: 1px solid var(--tm-shop-item-border) !important;
+            }
+            .tm-phone-modal-content .tm-modal-header,
+            .tm-phone-modal-content [data-tm-phone-toolbar] {
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
+                border-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-phone-modal-content .tm-modal-title,
+            .tm-phone-modal-content .tm-modal-close,
+            .tm-phone-modal-content label,
+            .tm-phone-modal-content #tm-phone-stats {
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+            }
+            .tm-phone-modal-content #tm-phone-search-input,
+            .tm-phone-modal-content #tm-phone-filter-grade,
+            .tm-phone-modal-content #tm-phone-filter-model,
+            .tm-phone-modal-content #tm-phone-filter-gb,
+            .tm-phone-modal-content #tm-phone-filter-color,
+            .tm-phone-modal-content #tm-phone-filter-tag,
+            .tm-phone-modal-content #tm-phone-sort-by,
+            .tm-phone-modal-content .tm-phone-toolbar-btn {
+                background: var(--tm-input-bg, var(--tm-shop-item-bg)) !important;
+                border-color: var(--tm-input-border, var(--tm-shop-item-border)) !important;
+                color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color))) !important;
+            }
+            .tm-phone-modal-content #tm-phone-list-container {
+                background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg, var(--tm-shop-item-bg))) !important;
+            }
+            .tm-phone-item {
+                background: var(--tm-shop-item-bg) !important;
+                border-color: var(--tm-shop-item-border) !important;
+                box-shadow: 0 1px 4px var(--tm-shadow-color, rgba(0,0,0,0.15)) !important;
+            }
+            .tm-phone-price-pill, .tm-os-price-pill {
+                color: var(--tm-price-color, var(--tm-success-color)) !important;
+                border: 1px solid var(--tm-price-border, var(--tm-success-color)) !important;
+                background: var(--tm-price-bg, rgba(var(--tm-success-color-rgb, 40,167,69), 0.14)) !important;
+            }
+            .tm-phone-barcode, .tm-os-barcode {
+                color: var(--tm-subtle-text, var(--tm-shop-item-text, var(--tm-primary-color))) !important;
+                background: var(--tm-chip-bg, var(--tm-surface-hover-bg)) !important;
+                border: 1px solid var(--tm-chip-border, var(--tm-surface-border)) !important;
+            }
+            .tm-phone-storage-chip {
+                background: var(--tm-chip-bg, var(--tm-surface-hover-bg)) !important;
+                border: 1px solid var(--tm-chip-border, var(--tm-surface-border)) !important;
+                color: var(--tm-chip-text, var(--tm-shop-item-text, var(--tm-primary-color))) !important;
+            }
+            .tm-phone-buyback-badge {
+                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent) !important;
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 35%, transparent) !important;
+                color: var(--tm-info-color) !important;
+            }
+            /* Order history panel */
+            .tm-oh-overlay { background: var(--tm-overlay-dim, rgba(0,0,0,0.72)) !important; }
+            .tm-oh-shell {
+                background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg))) !important;
+                color: var(--tm-primary-color) !important;
+                border-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-oh-hero {
+                background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 18%, transparent) 0%, transparent 70%) !important;
+                border-bottom-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-oh-title { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
+            .tm-oh-page-badge {
+                background: color-mix(in srgb, var(--tm-info-color) 16%, transparent) !important;
+                color: var(--tm-info-color) !important;
+                border-color: color-mix(in srgb, var(--tm-info-color) 35%, transparent) !important;
+            }
+            .tm-oh-stat, .tm-oh-tool-btn, .tm-oh-close, .tm-oh-preset, .tm-oh-input, .tm-oh-select, .tm-order-filter-input {
+                background: var(--tm-input-bg, var(--tm-shop-item-bg)) !important;
+                border-color: var(--tm-input-border, var(--tm-shop-item-border)) !important;
+                color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color))) !important;
+            }
+            .tm-oh-preset.is-active {
+                background: var(--tm-primary-color) !important;
+                border-color: var(--tm-primary-color) !important;
+                color: var(--tm-text-on-primary, #fff) !important;
+            }
+            .tm-oh-filters, .tm-oh-body { background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg)) !important; }
+            .tm-oh-table-wrap { background: var(--tm-shop-item-bg) !important; border-color: var(--tm-shop-item-border) !important; }
+            .tm-order-history-table thead th {
+                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg)) !important;
+                color: var(--tm-grid-header-text, var(--tm-primary-color)) !important;
+                border-bottom-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-order-history-table tbody tr.tm-order-history-row:hover {
+                background: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+            }
+            .tm-order-history-table td { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
+            #tm-phone-catalog-btn {
+                background: var(--tm-dark-color) !important;
+                border: 1px solid var(--tm-secondary-hover) !important;
+                color: var(--tm-primary-color) !important;
+            }
+            #tm-phone-catalog-btn:hover { background: var(--tm-dark-hover) !important; }
         `;
 
 const THEME_NATIVE_PAGE_EXTENDED_STYLES = `/* --- Native MyMANAGER page (non-default themes only) --- */
@@ -2094,283 +2212,7 @@ const UI_THEMES = {
     'default': {
         name: 'Default', icon: '🎨', cost: 0,
         colors: UI_SPECIALIST_PALETTES.default,
-        pageStyles: `/* Default Theme - Light Background Contrast Fixes */
-            #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; background-color: var(--tm-danger-color) !important; }
-            .minimal-store-btn:hover, #tm-settings-save:hover, #tm-settings-reset:hover, 
-            #tm-mascot-interaction-buttons button:hover, .tm-shop-item-btn:hover:not(:disabled),
-            .tm-talent-unlock-btn:hover:not(:disabled), .tm-talent-unlock-btn-dashboard:hover:not(:disabled),
-            #tm-dashboard-content button[style*="linear-gradient"]:hover { 
-                color: var(--tm-text-on-primary) !important; 
-            }
-            .tm-modal-content, .tm-modal-header, .tm-modal-footer { 
-                background: var(--tm-modal-bg) !important;
-                color: var(--tm-text-on-light) !important; 
-                border-color: var(--tm-shop-item-border) !important; 
-            }
-            /* Settings modal - use theme background */
-            .tm-modal-content:has(.tm-settings-layout),
-            .tm-modal-content .tm-settings-layout {
-                background: var(--tm-modal-bg) !important;
-            }
-            .tm-modal-content:has(.tm-settings-layout) {
-                background: var(--tm-modal-bg) !important;
-                color: var(--tm-text-on-light) !important;
-            }
-            .tm-modal-content:has(.tm-settings-layout) .tm-modal-header,
-            .tm-modal-content:has(.tm-settings-layout) .tm-modal-footer {
-                background: var(--tm-modal-bg) !important;
-                color: var(--tm-text-on-light) !important;
-                border-color: var(--tm-shop-item-border) !important;
-            }
-            .tm-modal-title, .tm-modal-close { color: var(--tm-primary-color) !important; }
-            .tm-modal-content:has(.tm-settings-layout) .tm-modal-title,
-            .tm-modal-content:has(.tm-settings-layout) .tm-modal-close {
-                color: var(--tm-text-on-light) !important;
-            }
-            .tm-setting-label label { color: var(--tm-primary-color) !important; }
-            .tm-modal-content:has(.tm-settings-layout) .tm-setting-label label {
-                color: var(--tm-text-on-light) !important;
-            }
-            .tm-setting-description { color: var(--tm-secondary-hover) !important; }
-            .tm-modal-content:has(.tm-settings-layout) .tm-setting-description {
-                color: var(--tm-secondary-color) !important;
-            }
-            
-            /* Footer buttons - consistent styling */
-            #tm-footer-controls-left button, #tm-footer-controls-right button,
-            button[title*="Talent"], button[title*="Faction"], button[title*="Boss"],
-            #tm-recent-repairs-btn {
-                padding: 8px 16px !important;
-                margin: 4px !important;
-                border-radius: 12px !important;
-                min-height: 36px !important;
-                display: inline-flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                line-height: 1.5 !important;
-            }
-            #tm-footer-controls-left button:hover, #tm-footer-controls-right button:hover,
-            #tm-recent-repairs-btn:hover {
-                box-shadow: 0 6px 8px rgba(0, 0, 0, 0.12) !important;
-            }
-
-            /* Default-theme styling for Phone Catalog slide-out button */
-            #tm-phone-catalog-btn {
-                background: #ffffff !important;
-                color: var(--tm-primary-color) !important;
-                border-color: var(--tm-shop-item-border) !important;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08) !important;
-            }
-            #tm-phone-catalog-btn:hover {
-                background: var(--tm-primary-color) !important;
-                color: var(--tm-text-on-primary) !important;
-                box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15) !important;
-            }
-   
-            /* Boss Battle & Random Event Modals - Special Grey Gradient Styling */
-            .tm-modal-content[style*="background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%)"] {
-                background: linear-gradient(145deg, #4a4a4a 0%, #2d2d2d 100%) !important;
-                color: #ffffff !important;
-                border: 3px solid #666666 !important;
-                box-shadow: 0 0 40px rgba(102, 102, 102, 0.8), 
-                           0 0 80px rgba(102, 102, 102, 0.4) !important;
-                animation: tm-modal-glow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite, 
-                          tm-modal-float 6s ease-in-out infinite !important;
-                position: relative !important;
-                overflow: hidden !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            }
-            
-            /* Animated background shimmer effect */
-            .tm-modal-content[style*="background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%)"]::before {
-                content: '';
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: linear-gradient(
-                    45deg,
-                    transparent 30%,
-                    rgba(255, 255, 255, 0.1) 50%,
-                    transparent 70%
-                );
-                animation: tm-shimmer 5s ease-in-out infinite;
-                pointer-events: none;
-            }
-            
-            /* Boss Battle Modal Header Styling */
-            .tm-modal-content[style*="background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%)"] .tm-modal-header {
-                background: linear-gradient(135deg, #5a5a5a 0%, #3a3a3a 100%) !important;
-                border-bottom: 2px solid #888888 !important;
-                animation: tm-header-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                color: #ffffff !important;
-            }
-            
-            /* Boss Battle Modal Header Text Styling */
-            .tm-modal-content[style*="background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%)"] .tm-modal-header h3,
-            .tm-modal-content[style*="background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%)"] .tm-modal-header div,
-            .tm-modal-content[style*="background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%)"] .tm-modal-header .tm-modal-close {
-                color: #ffffff !important;
-                text-shadow: 0 0 8px rgba(255, 255, 255, 0.3) !important;
-            }
-            
-            /* Random Event Modal Styling */
-            .tm-modal-content[style*="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)"] {
-                background: linear-gradient(145deg, #6a6a6a 0%, #4a4a4a 100%) !important;
-                color: #ffffff !important;
-                border: 3px solid #888888 !important;
-                box-shadow: 0 0 40px rgba(136, 136, 136, 0.8),
-                           0 0 80px rgba(136, 136, 136, 0.4) !important;
-                animation: tm-modal-glow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite, 
-                          tm-modal-float 6s ease-in-out infinite !important;
-                position: relative !important;
-                overflow: hidden !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            }
-            
-            /* Random Event Modal Header Styling */
-            .tm-modal-content[style*="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)"] .tm-modal-header {
-                background: linear-gradient(135deg, #6a6a6a 0%, #4a4a4a 100%) !important;
-                border-bottom: 2px solid #888888 !important;
-                animation: tm-header-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                color: #ffffff !important;
-            }
-            
-            /* Random Event Modal Header Text Styling */
-            .tm-modal-content[style*="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)"] .tm-modal-header h3,
-            .tm-modal-content[style*="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)"] .tm-modal-header div,
-            .tm-modal-content[style*="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)"] .tm-modal-header .tm-modal-close {
-                color: #ffffff !important;
-                text-shadow: 0 0 8px rgba(255, 255, 255, 0.3) !important;
-            }
-            
-            /* Random Event Modal Shimmer */
-            .tm-modal-content[style*="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)"]::before {
-                content: '';
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: linear-gradient(
-                    45deg,
-                    transparent 30%,
-                    rgba(255, 255, 255, 0.15) 50%,
-                    transparent 70%
-                );
-                animation: tm-shimmer 4s ease-in-out infinite;
-                pointer-events: none;
-            }
-            
-            /* Enhanced Animation Keyframes with Smooth Easing */
-            @keyframes tm-modal-glow {
-                0% { 
-                    box-shadow: 0 0 30px rgba(102, 102, 102, 0.6), 
-                               0 0 60px rgba(102, 102, 102, 0.3),
-                               0 0 90px rgba(102, 102, 102, 0.1),
-                               inset 0 0 15px rgba(255, 255, 255, 0.05);
-                    transform: scale(1);
-                }
-                25% { 
-                    box-shadow: 0 0 45px rgba(102, 102, 102, 0.8), 
-                               0 0 90px rgba(102, 102, 102, 0.5),
-                               0 0 135px rgba(102, 102, 102, 0.2),
-                               inset 0 0 25px rgba(255, 255, 255, 0.15);
-                    transform: scale(1.002);
-                }
-                50% { 
-                    box-shadow: 0 0 60px rgba(102, 102, 102, 1), 
-                               0 0 120px rgba(102, 102, 102, 0.7),
-                               0 0 180px rgba(102, 102, 102, 0.3),
-                               inset 0 0 35px rgba(255, 255, 255, 0.25);
-                    transform: scale(1.005);
-                }
-                75% { 
-                    box-shadow: 0 0 45px rgba(102, 102, 102, 0.8), 
-                               0 0 90px rgba(102, 102, 102, 0.5),
-                               0 0 135px rgba(102, 102, 102, 0.2),
-                               inset 0 0 25px rgba(255, 255, 255, 0.15);
-                    transform: scale(1.002);
-                }
-                100% { 
-                    box-shadow: 0 0 30px rgba(102, 102, 102, 0.6), 
-                               0 0 60px rgba(102, 102, 102, 0.3),
-                               0 0 90px rgba(102, 102, 102, 0.1),
-                               inset 0 0 15px rgba(255, 255, 255, 0.05);
-                    transform: scale(1);
-                }
-            }
-            
-            @keyframes tm-shimmer {
-                0% { 
-                    transform: translateX(-120%) translateY(-120%) rotate(45deg);
-                    opacity: 0;
-                }
-                10% { 
-                    opacity: 1;
-                }
-                90% { 
-                    opacity: 1;
-                }
-                100% { 
-                    transform: translateX(120%) translateY(120%) rotate(45deg);
-                    opacity: 0;
-                }
-            }
-            
-            @keyframes tm-header-pulse {
-                0% { 
-                    background: linear-gradient(135deg, #5a5a5a 0%, #3a3a3a 100%);
-                    border-bottom-color: #888888;
-                    transform: translateY(0px);
-                }
-                25% { 
-                    background: linear-gradient(135deg, #575757 0%, #3d3d3d 100%);
-                    border-bottom-color: #909090;
-                    transform: translateY(-0.5px);
-                }
-                50% { 
-                    background: linear-gradient(135deg, #6a6a6a 0%, #4a4a4a 100%);
-                    border-bottom-color: #aaaaaa;
-                    transform: translateY(-1px);
-                }
-                75% { 
-                    background: linear-gradient(135deg, #575757 0%, #3d3d3d 100%);
-                    border-bottom-color: #909090;
-                    transform: translateY(-0.5px);
-                }
-                100% { 
-                    background: linear-gradient(135deg, #5a5a5a 0%, #3a3a3a 100%);
-                    border-bottom-color: #888888;
-                    transform: translateY(0px);
-                }
-            }
-            
-            /* Additional smooth floating animation */
-            @keyframes tm-modal-float {
-                0%, 100% { 
-                    transform: translateY(0px) rotateX(0deg);
-                }
-                50% { 
-                    transform: translateY(-2px) rotateX(1deg);
-                }
-            }
-            
-            .tm-level-up-title { color: var(--tm-primary-color) !important; }
-            .tm-level-up-content::after { border-color: var(--tm-primary-color) !important; }
-            #tm-mascot-interaction-panel { background: var(--tm-modal-bg) !important; color: var(--tm-primary-color) !important; border-color: var(--tm-shop-item-border) !important; }
-            .tm-pet-stat-label { color: var(--tm-primary-color) !important; }
-            #tm-notification-panel { background: var(--tm-modal-bg) !important; color: var(--tm-primary-color) !important; }
-            .tm-notification-header h4 { color: var(--tm-primary-color) !important; }
-            .tm-notification-message { color: var(--tm-primary-color) !important; }
-            #tm-scratchpad-container { background: var(--tm-modal-bg) !important; color: var(--tm-primary-color) !important; }
-            #tm-scratchpad-title { color: var(--tm-primary-color) !important; }
-            #tm-scratchpad-editor { color: var(--tm-primary-color) !important; }
-            .tm-mascot-speech-bubble { background: var(--tm-modal-bg) !important; color: var(--tm-primary-color) !important; border-color: var(--tm-primary-color) !important; }`
-
+        pageStyles: '',
     },
     'matrix': {
         name: 'Matrix', icon: '📟', cost: 500, type: 'theme', // Cost is for the shop
@@ -2773,11 +2615,18 @@ function tmClearInlineThemeProperties(root) {
 
 function tmInjectExtendedThemeStyles(themeId) {
     document.getElementById('tm-extended-theme-styles')?.remove();
+    if (themeId === 'default') return;
     const el = document.createElement('style');
     el.id = 'tm-extended-theme-styles';
-    const isDefault = themeId === 'default';
-    el.textContent = isDefault ? THEME_SUITE_EXTENDED_STYLES : THEME_EXTENDED_STYLES;
+    el.textContent = THEME_EXTENDED_STYLES;
     document.head.appendChild(el);
+}
+
+function tmIsLightEquippedTheme() {
+    const themeId = tmReadEquippedThemeId();
+    if (themeId === 'default') return true;
+    const bg = getComputedStyle(document.documentElement).getPropertyValue('--tm-shop-item-bg').trim();
+    return tmIsLightShopItemBg(bg);
 }
 
 function tmApplyThemeColors(themeId, options = {}) {
@@ -2791,14 +2640,7 @@ function tmApplyThemeColors(themeId, options = {}) {
     if (isDefault) {
         tmClearInlineThemeProperties(root);
         root.dataset.tmTheme = 'default';
-
-        const baseColors = { ...theme.colors };
-        for (const [variable, color] of Object.entries(baseColors)) {
-            root.style.setProperty(variable, color);
-        }
-        const shopText = tmResolveShopItemText(baseColors);
-        root.style.setProperty('--tm-shop-item-text', shopText);
-        theme.appliedColors = { ...baseColors, '--tm-shop-item-text': shopText };
+        theme.appliedColors = {};
     } else {
         const appliedColors = tmBuildDerivedThemeTokens(theme.colors);
 
@@ -2843,6 +2685,9 @@ window.tmBuildDerivedThemeTokens = tmBuildDerivedThemeTokens;
 window.UI_PALETTE_SOURCES = UI_PALETTE_SOURCES;
 window.UI_SPECIALIST_PALETTES = UI_SPECIALIST_PALETTES;
 window.tmMapPaletteToThemeColors = tmMapPaletteToThemeColors;
+window.tmIsLightEquippedTheme = tmIsLightEquippedTheme;
+window.tmParseRgbColor = tmParseRgbColor;
+window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
 (function tmBootstrapThemeOnLoad() {
     const pathname = window.location.pathname || '';
@@ -2872,7 +2717,7 @@ window.tmMapPaletteToThemeColors = tmMapPaletteToThemeColors;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '190',
+        version: '193',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -4742,12 +4587,113 @@ window.tmMapPaletteToThemeColors = tmMapPaletteToThemeColors;
                 --tm-footer-bar-bg: #23272b;
                 --tm-header-bar-text: #f4f4f4;
                 --tm-footer-bar-text: #f4f4f4;
+                --tm-footer-text: #f4f4f4;
                 --tm-count-badge-bg: #23272b;
                 --tm-count-badge-text: #17a2b8;
                 --tm-grid-header-bg: #23272b;
                 --tm-grid-header-text: #007bff;
                 --tm-row-highlight-danger-bg: rgba(220, 53, 69, 0.32);
                 --tm-row-highlight-success-bg: rgba(40, 167, 69, 0.26);
+                --tm-overlay-dim: rgba(0, 0, 0, 0.65);
+                --tm-price-color: #28a745;
+                --tm-price-border: #28a745;
+                --tm-price-bg: rgba(40, 167, 69, 0.12);
+                --tm-success-color-rgb: 40, 167, 69;
+                --tm-chip-bg: rgba(128, 128, 128, 0.13);
+                --tm-chip-border: rgba(128, 128, 128, 0.22);
+                --tm-chip-text: #343a40;
+                --tm-subtle-text: #6c757d;
+                --tm-muted-text: #6c757d;
+                --tm-shadow-color: rgba(0, 0, 0, 0.15);
+                --tm-footer-control-height: 40px;
+            }
+            .tm-phone-catalog-overlay { background: var(--tm-overlay-dim) !important; }
+            .tm-phone-modal-content {
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg));
+                color: var(--tm-primary-color);
+            }
+            .tm-phone-price-pill, .tm-os-price-pill {
+                color: var(--tm-price-color, var(--tm-success-color));
+                border: 1px solid var(--tm-price-border, var(--tm-success-color));
+                background: var(--tm-price-bg, rgba(var(--tm-success-color-rgb, 40, 167, 69), 0.12));
+            }
+            .tm-phone-barcode, .tm-os-barcode {
+                color: var(--tm-subtle-text, var(--tm-shop-item-text));
+                background: var(--tm-chip-bg);
+                border: 1px solid var(--tm-chip-border);
+            }
+            .tm-phone-storage-chip {
+                background: var(--tm-chip-bg);
+                border: 1px solid var(--tm-chip-border);
+                color: var(--tm-chip-text, var(--tm-shop-item-text));
+            }
+            .tm-phone-buyback-badge {
+                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent);
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 35%, transparent);
+                color: var(--tm-info-color);
+            }
+            /* Order history panel (default / base tokens) */
+            .tm-oh-overlay { background: var(--tm-overlay-dim) !important; }
+            .tm-oh-shell {
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg));
+                color: var(--tm-primary-color);
+                border: 1px solid var(--tm-shop-item-border);
+            }
+            .tm-oh-hero {
+                background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 14%, transparent) 0%, transparent 70%);
+                border-bottom: 1px solid var(--tm-shop-item-border);
+            }
+            .tm-oh-title { color: var(--tm-shop-item-text, var(--tm-primary-color)); }
+            .tm-oh-subtitle { color: var(--tm-muted-text, var(--tm-secondary-color)); }
+            .tm-oh-page-badge {
+                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent);
+                color: var(--tm-info-color);
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 32%, transparent);
+            }
+            .tm-oh-stat {
+                background: var(--tm-chip-bg);
+                border: 1px solid var(--tm-chip-border);
+            }
+            .tm-oh-stat-value { color: var(--tm-info-color); }
+            .tm-oh-stat-label { color: var(--tm-muted-text); }
+            .tm-oh-tool-btn, .tm-oh-close, .tm-oh-preset, .tm-oh-input, .tm-oh-select, .tm-order-filter-input {
+                background: var(--tm-shop-item-bg);
+                border: 1px solid var(--tm-shop-item-border);
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+            }
+            .tm-oh-preset.is-active {
+                background: var(--tm-primary-color);
+                border-color: var(--tm-primary-color);
+                color: var(--tm-text-on-primary, #fff);
+            }
+            .tm-oh-filters, .tm-oh-body { background: var(--tm-shop-item-owned-bg, var(--tm-shop-item-bg)); }
+            .tm-oh-table-wrap {
+                background: var(--tm-shop-item-bg);
+                border: 1px solid var(--tm-shop-item-border);
+            }
+            .tm-order-history-table thead th {
+                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg));
+                color: var(--tm-grid-header-text, var(--tm-primary-color));
+                border-bottom: 1px solid var(--tm-shop-item-border);
+            }
+            .tm-order-history-table tbody tr.tm-order-history-row:hover {
+                background: var(--tm-shop-item-hover-bg);
+            }
+            .tm-order-history-table td { color: var(--tm-shop-item-text, var(--tm-primary-color)); }
+            .tm-oh-badge--active {
+                background: color-mix(in srgb, var(--tm-success-color) 14%, transparent);
+                color: var(--tm-success-color);
+                border: 1px solid color-mix(in srgb, var(--tm-success-color) 30%, transparent);
+            }
+            .tm-oh-badge--removed {
+                background: color-mix(in srgb, var(--tm-danger-color) 12%, transparent);
+                color: var(--tm-danger-color);
+                border: 1px solid color-mix(in srgb, var(--tm-danger-color) 28%, transparent);
+            }
+            .tm-oh-badge--unknown {
+                background: color-mix(in srgb, var(--tm-warning-color) 12%, transparent);
+                color: var(--tm-warning-color);
+                border: 1px solid color-mix(in srgb, var(--tm-warning-color) 28%, transparent);
             }
             /* --- Feature: Advanced Search --- */
             /* --- Notification Center Styles --- */
@@ -4954,70 +4900,75 @@ window.tmMapPaletteToThemeColors = tmMapPaletteToThemeColors;
             }
             #tm-alerts-tab-count:empty { display: none; }
 
-            /* Recent Repairs popup only: theme-aware (button appearance unchanged). No black text, no purple. */
+            /* Recent Repairs popup — theme tokens */
             #tm-recent-repairs-menu {
-                background: var(--tm-dark-color) !important;
-                border: 1px solid var(--tm-primary-color) !important;
-                
+                background: var(--tm-panel-bg, var(--tm-modal-bg, var(--tm-shop-item-bg))) !important;
+                border: 1px solid var(--tm-shop-item-border) !important;
+                box-shadow: 0 8px 24px var(--tm-shadow-color, rgba(0,0,0,0.25)) !important;
             }
             #tm-recent-repairs-menu,
             #tm-recent-repairs-menu * {
-                color: var(--tm-primary-color) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
             }
             #tm-recent-repairs-menu .tm-recent-repairs-header {
-                background: var(--tm-dark-color) !important;
-                color: var(--tm-primary-color) !important;
+                background: var(--tm-panel-bg, var(--tm-modal-bg, var(--tm-shop-item-bg))) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
                 border-radius: 8px 8px 0 0;
                 border-bottom: 1px solid var(--tm-shop-item-border) !important;
                 padding: 12px;
                 font-weight: bold;
             }
             #tm-recent-repairs-menu .tm-recent-repairs-empty {
-                color: var(--tm-secondary-hover) !important;
+                color: var(--tm-muted-text, var(--tm-secondary-color)) !important;
             }
             #tm-recent-repairs-menu .tm-recent-repair-item {
                 border-bottom-color: var(--tm-shop-item-border) !important;
-                color: var(--tm-primary-color) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
             }
             #tm-recent-repairs-menu .tm-recent-repair-item:hover {
-                background: var(--tm-shop-item-owned-bg) !important;
+                background: var(--tm-shop-item-hover-bg) !important;
                 transform: translateX(4px);
             }
             #tm-recent-repairs-menu .tm-recent-repair-title {
-                color: var(--tm-primary-color) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
             }
             #tm-recent-repairs-menu .tm-recent-repair-meta {
-                color: var(--tm-secondary-hover) !important;
+                color: var(--tm-muted-text, var(--tm-secondary-color)) !important;
             }
             #tm-recent-repairs-menu .tm-recent-repairs-footer {
                 border-top-color: var(--tm-shop-item-border) !important;
-                background: var(--tm-dark-color) !important;
+                background: var(--tm-panel-bg, var(--tm-modal-bg, var(--tm-shop-item-bg))) !important;
             }
             #tm-recent-repairs-menu #tm-clear-recent-repairs {
                 background: var(--tm-danger-color) !important;
                 color: var(--tm-text-on-primary, white) !important;
                 border: none !important;
             }
+            .tm-repair-quickview-btn {
+                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent) !important;
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 32%, transparent) !important;
+                color: var(--tm-info-color) !important;
+            }
+            .tm-repair-quickview-btn:hover {
+                background: color-mix(in srgb, var(--tm-info-color) 24%, transparent) !important;
+                border-color: var(--tm-info-color) !important;
+            }
 
-            /* Recent Repairs footer button — theme tokens (no inline glass) */
+            /* Recent Repairs footer button */
             #tm-recent-repairs-btn {
-                background: var(--tm-glass-bg, var(--tm-shop-item-bg)) !important;
-                border: 1px solid var(--tm-glass-border, var(--tm-shop-item-border)) !important;
-                color: var(--tm-widget-text, var(--tm-primary-color)) !important;
-                padding: 8px 14px !important;
-                border-radius: 10px !important;
-                font-size: 12px !important;
+                background: var(--tm-glass-bg, var(--tm-surface-bg, var(--tm-shop-item-bg))) !important;
+                border: 1px solid var(--tm-glass-border, var(--tm-surface-border, var(--tm-shop-item-border))) !important;
+                color: var(--tm-footer-text, var(--tm-widget-text, var(--tm-shop-item-text, var(--tm-primary-color)))) !important;
+                border-radius: 12px !important;
                 font-weight: 600 !important;
                 cursor: pointer !important;
-                transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease !important;
+                transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease !important;
                 box-shadow: 0 2px 8px var(--tm-shadow-color, rgba(0,0,0,0.15)) !important;
             }
             #tm-recent-repairs-btn:hover {
-                background: var(--tm-glass-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+                background: var(--tm-glass-hover-bg, var(--tm-surface-hover-bg, var(--tm-shop-item-hover-bg))) !important;
                 border-color: var(--tm-primary-color) !important;
                 color: var(--tm-primary-color) !important;
-                transform: translateY(-2px);
-                box-shadow: 0 6px 12px var(--tm-shadow-color, rgba(0,0,0,0.2)) !important;
             }
 
             /* Price transfer button: theme-aware */
@@ -5750,6 +5701,100 @@ window.tmMapPaletteToThemeColors = tmMapPaletteToThemeColors;
                 gap: 8px;
                 padding: 2px 8px 4px;
                 box-sizing: border-box;
+                --tm-footer-control-height: 40px;
+            }
+            #tm-footer-controls-row,
+            #tm-footer-controls-left,
+            #tm-footer-controls-middle,
+            #tm-footer-controls-right {
+                align-items: center;
+            }
+            #tm-footer-controls-container :is(
+                #tm-notification-bell-btn,
+                #tm-settings-btn,
+                #tm-refresh-timer-container,
+                #tm-recent-repairs-btn,
+                #tm-eod-btn,
+                #tm-daily-dashboard-widget,
+                #tm-xp-bar-container,
+                #tm-coin-balance,
+                #tm-weather-widget,
+                .tm-buff-timer,
+                .tm-footer-widget,
+                .tm-footer-icon-btn,
+                #tm-footer-controls-left button,
+                #tm-footer-controls-right button
+            ) {
+                height: var(--tm-footer-control-height) !important;
+                min-height: var(--tm-footer-control-height) !important;
+                max-height: var(--tm-footer-control-height) !important;
+                box-sizing: border-box !important;
+            }
+            #tm-recent-repairs-dropdown {
+                display: inline-flex !important;
+                align-items: center !important;
+                height: var(--tm-footer-control-height) !important;
+                margin: 0 !important;
+            }
+            #tm-buff-timers-container {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                height: var(--tm-footer-control-height);
+            }
+            .tm-footer-icon-btn {
+                width: var(--tm-footer-control-height) !important;
+                min-width: var(--tm-footer-control-height) !important;
+                padding: 0 !important;
+                justify-content: center !important;
+                font-size: 16px !important;
+                line-height: 1 !important;
+            }
+            #tm-recent-repairs-btn {
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 14px !important;
+                font-size: 12px !important;
+            }
+            #tm-eod-btn {
+                width: var(--tm-footer-control-height) !important;
+                min-width: var(--tm-footer-control-height) !important;
+                padding: 0 !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: 12px !important;
+                font-size: 16px !important;
+                line-height: 1 !important;
+                cursor: pointer !important;
+                border: 1px solid var(--tm-glass-border, rgba(255,255,255,0.2)) !important;
+                background: var(--tm-glass-bg, linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)) !important;
+                color: var(--tm-widget-text, white) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+                transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease !important;
+            }
+            #tm-xp-bar-container {
+                padding: 4px 10px !important;
+                overflow: hidden;
+            }
+            #tm-footer-controls-container :is(
+                #tm-notification-bell-btn,
+                #tm-settings-btn,
+                #tm-refresh-timer-container,
+                #tm-recent-repairs-btn,
+                #tm-eod-btn,
+                #tm-daily-dashboard-widget,
+                #tm-xp-bar-container,
+                #tm-coin-balance,
+                #tm-weather-widget,
+                .tm-buff-timer,
+                .tm-footer-widget,
+                .tm-footer-icon-btn
+            ):hover {
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 12px var(--tm-shadow-color, rgba(0,0,0,0.2)) !important;
+                border-color: var(--tm-glass-border, rgba(255,255,255,0.4)) !important;
             }
             #tm-footer-controls-row {
                 display: flex;
@@ -5917,28 +5962,29 @@ window.tmMapPaletteToThemeColors = tmMapPaletteToThemeColors;
             
             /* --- Unified Footer Widget Styling --- */
             .tm-footer-widget {
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
+                background: var(--tm-glass-bg, linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%));
                 backdrop-filter: blur(10px);
                 -webkit-backdrop-filter: blur(10px);
-                color: var(--tm-primary-color);
-                border: 1px solid rgba(255,255,255,0.2);
+                color: var(--tm-footer-text, var(--tm-widget-text, var(--tm-primary-color)));
+                border: 1px solid var(--tm-glass-border, rgba(255,255,255,0.2));
                 border-radius: 12px;
-                height: 40px;
+                height: var(--tm-footer-control-height, 40px);
                 cursor: pointer;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+                transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+                box-shadow: 0 2px 8px var(--tm-shadow-color, rgba(0,0,0,0.15));
                 display: flex;
                 align-items: center;
+                justify-content: center;
                 font-weight: 600;
                 font-size: 13px;
                 white-space: nowrap;
+                box-sizing: border-box;
             }
             
             .tm-footer-widget:hover {
-                transform: translateY(-3px) scale(1.05);
-                box-shadow: 0 6px 16px rgba(0,0,0,0.3);
-                border-color: rgba(255,255,255,0.4);
-                background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%);
+                border-color: var(--tm-primary-color);
+                background: var(--tm-glass-hover-bg, linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%));
+                color: var(--tm-primary-color);
             }
 
             /* --- Feature: Persistent Scratchpad --- */
@@ -9744,7 +9790,7 @@ window.tmMapPaletteToThemeColors = tmMapPaletteToThemeColors;
             const bellWrapper = document.createElement('div');
             bellWrapper.id = 'tm-notification-bell-wrapper';
             bellWrapper.innerHTML = `
-                <button id="tm-notification-bell-btn" title="Κέντρο ειδοποιήσεων">🔔</button>
+                <button id="tm-notification-bell-btn" class="tm-footer-widget tm-footer-icon-btn" type="button" title="Κέντρο ειδοποιήσεων">🔔</button>
                 <span id="tm-notification-unread-count">0</span>
             `;
             parentContainer.appendChild(bellWrapper);
@@ -9756,6 +9802,8 @@ window.tmMapPaletteToThemeColors = tmMapPaletteToThemeColors;
 
             const button = document.createElement('button');
             button.id = 'tm-settings-btn';
+            button.type = 'button';
+            button.className = 'tm-footer-widget tm-footer-icon-btn';
             button.innerHTML = '⚙️'; // Settings gear icon
             button.title = 'Ρυθμίσεις MyManager Suite';
             button.addEventListener('click', createSettingsModal);
@@ -9763,6 +9811,7 @@ window.tmMapPaletteToThemeColors = tmMapPaletteToThemeColors;
 
             const coinBalance = document.createElement('div');
             coinBalance.id = 'tm-coin-balance';
+            coinBalance.className = 'tm-footer-widget';
             coinBalance.title = 'Fixer-Coins (Click to open Shop)';
             coinBalance.style.cursor = 'pointer';
             coinBalance.style.position = 'relative';
@@ -24840,10 +24889,13 @@ function colorRgbLuminance(rgb) {
 }
 
 function isCatalogDarkTheme() {
+    if (typeof window.tmIsLightEquippedTheme === 'function') {
+        return !window.tmIsLightEquippedTheme();
+    }
     const themeId = typeof window.tmReadEquippedThemeId === 'function'
         ? window.tmReadEquippedThemeId()
         : String(window.__tmEarlyThemeId || 'default');
-    return themeId !== 'solarized_light';
+    return themeId !== 'default' && themeId !== 'solarized_light' && themeId !== 'liquid_glass';
 }
 
 function isDarkPhoneColorHex(hex) {
@@ -24880,11 +24932,15 @@ function getPhoneCatalogMetaTextStyle(extra = '') {
 }
 
 function getPhoneStorageChipStyle() {
-    const base = 'border-radius:20px;padding:1px 7px;font-size:10px;font-weight:600;flex-shrink:0;color:var(--tm-shop-item-text);';
-    if (isCatalogDarkTheme()) {
-        return `background:rgba(255,255,255,0.10);${base}`;
-    }
-    return `background:rgba(128,128,128,0.13);opacity:0.85;${base}`;
+    return 'border-radius:20px;padding:1px 7px;font-size:10px;font-weight:600;flex-shrink:0;';
+}
+
+function getPhonePricePillStyle() {
+    return 'margin-left:auto;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;white-space:nowrap;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;';
+}
+
+function getPhoneBarcodeStyle() {
+    return "font-family:'Courier New',Consolas,monospace;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:0.04em;border-radius:5px;padding:1px 7px;line-height:1.35;";
 }
 
 function getPhoneGradeDisplayStyle(grade) {
@@ -24916,22 +24972,6 @@ function getPhoneColorLabelStyle(colorName, colorHex) {
     const outline = getPhoneCatalogOutlineStyle(colorName, colorHex);
     const color = colorHex || 'var(--tm-shop-item-text)';
     return `display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;opacity:0.85;color:${color};${outline}`;
-}
-
-function getPhonePricePillStyle() {
-    const base = 'margin-left:auto;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;white-space:nowrap;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;';
-    if (isCatalogDarkTheme()) {
-        return `${base}color:#86efac;background:rgba(34,197,94,0.18);border:1px solid rgba(34,197,94,0.45);`;
-    }
-    return `${base}color:#15803d;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);`;
-}
-
-function getPhoneBarcodeStyle() {
-    const base = "font-family:'Courier New',Consolas,monospace;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:0.04em;color:var(--tm-shop-item-text);border-radius:5px;padding:1px 7px;line-height:1.35;";
-    if (isCatalogDarkTheme()) {
-        return `${base}opacity:0.92;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);`;
-    }
-    return `${base}opacity:0.78;background:rgba(128,128,128,0.14);border:1px solid rgba(128,128,128,0.22);`;
 }
 
 function applyPhoneCatalogTextOutline(el, colorName, colorHex) {
@@ -26407,14 +26447,14 @@ async function showPhoneListModal() {
     let favorites = JSON.parse(GM_getValue(FAVORITES_KEY, '[]'));
     
     const overlay = document.createElement('div');
-    overlay.className = 'tm-modal-overlay';
+    overlay.className = 'tm-modal-overlay tm-phone-catalog-overlay';
     overlay.style.cssText = `
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: var(--tm-shop-item-bg);
+        background: var(--tm-overlay-dim, rgba(0,0,0,0.72));
         opacity: 1;
         z-index: 100000;
         display: flex;
@@ -26443,6 +26483,27 @@ async function showPhoneListModal() {
             }
             .tm-phone-modal-content {
                 animation: slideUp 0.3s ease;
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg));
+                color: var(--tm-primary-color);
+            }
+            .tm-phone-toolbar-btn {
+                background: var(--tm-shop-item-bg);
+                border: 1px solid var(--tm-shop-item-border);
+                color: var(--tm-shop-item-text);
+                width: 32px;
+                height: 32px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .tm-phone-toolbar-btn:hover,
+            .tm-modal-close:hover {
+                background: var(--tm-shop-item-hover-bg);
+                border-color: var(--tm-primary-color);
             }
             #tm-phone-search-input:focus {
                 border-color: var(--tm-primary-color);
@@ -26458,7 +26519,7 @@ async function showPhoneListModal() {
                 border-color: var(--tm-primary-color);
                 background: var(--tm-shop-item-hover-bg);
                 outline: none;
-                box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+                box-shadow: 0 0 0 2px color-mix(in srgb, var(--tm-primary-color) 18%, transparent);
             }
             #tm-phone-filter-grade:hover,
             #tm-phone-filter-model:hover,
@@ -26751,7 +26812,7 @@ async function showPhoneListModal() {
                     ">&times;</button>
                 </div>
             </div>
-            <div style="
+            <div data-tm-phone-toolbar style="
                 padding: 12px 16px;
                 background: var(--tm-shop-item-bg);
                 border-bottom: 1px solid var(--tm-shop-item-border);
@@ -28765,29 +28826,8 @@ async function showPhoneListModal() {
                                     ${outlineStyle}
                                 ">${displayModel}</span>`;
                             })()}
-                            <span style="
-                                font-family: 'Courier New', monospace;
-                                font-weight: 500;
-                                color: var(--tm-shop-item-text);
-                                opacity: 0.6;
-                                font-size: 11px;
-                            ">${phone.barcode}</span>
-                            ${phone.retailPrice ? `<span style="
-                                margin-left: auto;
-                                display: inline-flex;
-                                align-items: center;
-                                justify-content: center;
-                                flex-shrink: 0;
-                                white-space: nowrap;
-                                padding: 3px 10px;
-                                border-radius: 999px;
-                                font-size: 12px;
-                                font-weight: 700;
-                                font-variant-numeric: tabular-nums;
-                                color: #15803d;
-                                background: rgba(34, 197, 94, 0.12);
-                                border: 1px solid rgba(34, 197, 94, 0.35);
-                            ">${phone.retailPrice}<span style="opacity: 0.9; margin-left: 1px;">€</span></span>` : ''}
+                            <span class="tm-phone-barcode" style="${getPhoneBarcodeStyle()}" title="${phone.barcode}">${phone.barcode}</span>
+                            ${phone.retailPrice ? `<span class="tm-phone-price-pill" style="${getPhonePricePillStyle()}">${phone.retailPrice}<span style="opacity: 0.9; margin-left: 1px;">€</span></span>` : ''}
                         </div>
                             <div style="
                                 font-size: 11px;
@@ -28811,7 +28851,7 @@ async function showPhoneListModal() {
                                 const outline = getPhoneCatalogOutlineStyle(phoneColor, colorHex);
                                 return phoneColor ? `<span style="${getPhoneCatalogMetaTextStyle(outline)}">${phoneColor}</span>` : '';
                             })()}
-                            ${phone.isBuyback ? `<span style="color: #00bcd4; font-weight: 600; font-size: 11px;">Buyback</span>` : ''}
+                            ${phone.isBuyback ? `<span class="tm-phone-buyback-badge" style="font-weight: 600; font-size: 11px; border-radius: 20px; padding: 1px 7px;">Buyback</span>` : ''}
                             ${(() => {
                                 const phoneTags = getPhoneTags(phone.barcode);
                                 if (phoneTags.length > 0) {
@@ -29410,13 +29450,13 @@ async function showPhoneListModal() {
                             ${noBuybackStore ? `<span title="${noBuybackTitle}" style="font-size:12px;line-height:1;">🚫</span>` : ''}
                             <span style="${getPhoneModelTitleStyle(itemColor, itemColorHex)}"
                                 title="${displayModel}">${displayModel}</span>
-                            ${storage ? `<span style="${getPhoneStorageChipStyle()}">${storage}</span>` : ''}
-                            ${item.isBuyback ? `<span style="background:#06b6d420;border:1px solid #06b6d450;color:#06b6d4;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;flex-shrink:0;">Buyback</span>` : ''}
-                            ${item.retailPrice ? `<span class="tm-os-price-pill" style="${getPhonePricePillStyle()}">${item.retailPrice}<span style="opacity:0.9;margin-left:1px;">€</span></span>` : ''}
+                            ${storage ? `<span class="tm-phone-storage-chip" style="${getPhoneStorageChipStyle()}">${storage}</span>` : ''}
+                            ${item.isBuyback ? `<span class="tm-phone-buyback-badge" style="border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;flex-shrink:0;">Buyback</span>` : ''}
+                            ${item.retailPrice ? `<span class="tm-phone-price-pill tm-os-price-pill" style="${getPhonePricePillStyle()}">${item.retailPrice}<span style="opacity:0.9;margin-left:1px;">€</span></span>` : ''}
                         </div>
                         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:1px;">
                             ${colorDot ? `<span style="${getPhoneColorLabelStyle(itemColor, itemColorHex)}">${colorDot}<span>${itemColor}</span></span>` : ''}
-                            <span class="tm-os-barcode" style="${getPhoneBarcodeStyle()}" title="${item.barcode}">${item.barcode}</span>
+                            <span class="tm-phone-barcode tm-os-barcode" style="${getPhoneBarcodeStyle()}" title="${item.barcode}">${item.barcode}</span>
                         </div>
                     </div>
 
@@ -29886,7 +29926,7 @@ async function showPhoneListModal() {
                     border-color: var(--tm-primary-color);
                     background: var(--tm-shop-item-hover-bg);
                     outline: none;
-                    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+                    box-shadow: 0 0 0 2px color-mix(in srgb, var(--tm-primary-color) 18%, transparent);
                 }
                 #tm-other-store-filter-grade:hover,
                 #tm-other-store-filter-model:hover,
@@ -32742,7 +32782,7 @@ window.showPhoneListModal = showPhoneListModal;
         style.id = 'tm-order-history-ui-styles';
         style.textContent = `
             .tm-oh-overlay {
-                background: rgba(6, 10, 24, 0.72) !important;
+                background: var(--tm-overlay-dim, rgba(0,0,0,0.72)) !important;
                 backdrop-filter: blur(6px);
                 -webkit-backdrop-filter: blur(6px);
                 z-index: 10050 !important;
@@ -32754,16 +32794,17 @@ window.showPhoneListModal = showPhoneListModal;
                 padding: 0 !important;
                 border-radius: 18px !important;
                 overflow: hidden !important;
-                border: 1px solid rgba(255,255,255,0.08) !important;
-                box-shadow: 0 28px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.04) !important;
-                background: var(--tm-bg-color, #12121f) !important;
+                border: 1px solid var(--tm-shop-item-border) !important;
+                box-shadow: 0 28px 80px var(--tm-shadow-color, rgba(0,0,0,0.45)) !important;
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
+                color: var(--tm-primary-color) !important;
                 display: flex !important;
                 flex-direction: column !important;
             }
             .tm-oh-hero {
                 padding: 20px 24px 16px;
-                background: linear-gradient(135deg, rgba(33,150,243,0.22) 0%, rgba(25,118,210,0.08) 45%, transparent 100%);
-                border-bottom: 1px solid rgba(255,255,255,0.08);
+                background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 18%, transparent) 0%, transparent 70%);
+                border-bottom: 1px solid var(--tm-shop-item-border);
                 flex-shrink: 0;
             }
             .tm-oh-hero-top {
@@ -32778,7 +32819,7 @@ window.showPhoneListModal = showPhoneListModal;
                 margin: 0;
                 font-size: 1.35rem;
                 font-weight: 800;
-                color: var(--tm-primary-color, #fff);
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
                 letter-spacing: 0.01em;
                 display: flex;
                 align-items: center;
@@ -32794,14 +32835,14 @@ window.showPhoneListModal = showPhoneListModal;
                 font-weight: 700;
                 letter-spacing: 0.04em;
                 text-transform: uppercase;
-                background: rgba(33,150,243,0.18);
-                color: #64b5f6;
-                border: 1px solid rgba(100,181,246,0.35);
+                background: color-mix(in srgb, var(--tm-info-color) 16%, transparent);
+                color: var(--tm-info-color);
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 35%, transparent);
             }
             .tm-oh-subtitle {
                 margin: 6px 0 0;
                 font-size: 12px;
-                color: var(--tm-secondary-hover, rgba(255,255,255,0.5));
+                color: var(--tm-muted-text, var(--tm-secondary-color));
             }
             .tm-oh-hero-actions {
                 display: flex;
@@ -32813,16 +32854,17 @@ window.showPhoneListModal = showPhoneListModal;
                 width: 38px;
                 height: 38px;
                 border-radius: 10px;
-                border: 1px solid rgba(255,255,255,0.12);
-                background: rgba(255,255,255,0.05);
-                color: var(--tm-primary-color, #fff);
+                border: 1px solid var(--tm-shop-item-border);
+                background: var(--tm-input-bg, var(--tm-shop-item-bg));
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
                 font-size: 22px;
                 line-height: 1;
                 cursor: pointer;
-                transition: background 0.15s, transform 0.15s;
+                transition: background 0.15s, transform 0.15s, border-color 0.15s;
             }
             .tm-oh-close:hover {
-                background: rgba(239,68,68,0.18);
+                background: color-mix(in srgb, var(--tm-danger-color) 16%, transparent);
+                border-color: color-mix(in srgb, var(--tm-danger-color) 40%, transparent);
                 transform: scale(1.04);
             }
             .tm-oh-stats-row {
@@ -32835,14 +32877,14 @@ window.showPhoneListModal = showPhoneListModal;
                 min-width: 88px;
                 padding: 10px 14px;
                 border-radius: 12px;
-                background: rgba(255,255,255,0.04);
-                border: 1px solid rgba(255,255,255,0.08);
+                background: var(--tm-chip-bg, var(--tm-shop-item-hover-bg));
+                border: 1px solid var(--tm-chip-border, var(--tm-shop-item-border));
             }
             .tm-oh-stat-value {
                 display: block;
                 font-size: 1.35rem;
                 font-weight: 800;
-                color: var(--tm-accent-color, #4facfe);
+                color: var(--tm-accent-color, var(--tm-info-color));
                 line-height: 1.1;
             }
             .tm-oh-stat-label {
@@ -32852,7 +32894,7 @@ window.showPhoneListModal = showPhoneListModal;
                 font-weight: 600;
                 text-transform: uppercase;
                 letter-spacing: 0.06em;
-                color: var(--tm-secondary-hover, rgba(255,255,255,0.45));
+                color: var(--tm-muted-text, var(--tm-secondary-color));
             }
             .tm-oh-toolbar {
                 display: flex;
@@ -32867,9 +32909,9 @@ window.showPhoneListModal = showPhoneListModal;
                 gap: 6px;
                 padding: 8px 12px;
                 border-radius: 10px;
-                border: 1px solid rgba(255,255,255,0.1);
-                background: rgba(255,255,255,0.05);
-                color: var(--tm-primary-color, #fff);
+                border: 1px solid var(--tm-shop-item-border);
+                background: var(--tm-input-bg, var(--tm-shop-item-bg));
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
                 font-size: 12px;
                 font-weight: 600;
                 cursor: pointer;
@@ -32877,19 +32919,19 @@ window.showPhoneListModal = showPhoneListModal;
                 white-space: nowrap;
             }
             .tm-oh-tool-btn:hover:not(:disabled) {
-                background: rgba(255,255,255,0.1);
-                border-color: rgba(79,172,254,0.45);
+                background: var(--tm-shop-item-hover-bg);
+                border-color: var(--tm-primary-color);
                 transform: translateY(-1px);
             }
             .tm-oh-tool-btn:disabled { opacity: 0.55; cursor: wait; }
             .tm-oh-tool-btn--danger:hover:not(:disabled) {
-                background: rgba(239,68,68,0.15);
-                border-color: rgba(239,68,68,0.4);
+                background: color-mix(in srgb, var(--tm-danger-color) 14%, transparent);
+                border-color: color-mix(in srgb, var(--tm-danger-color) 40%, transparent);
             }
             .tm-oh-filters {
                 padding: 14px 24px;
-                border-bottom: 1px solid rgba(255,255,255,0.06);
-                background: rgba(0,0,0,0.12);
+                border-bottom: 1px solid var(--tm-shop-item-border);
+                background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg));
                 flex-shrink: 0;
             }
             .tm-oh-filters-row {
@@ -32917,9 +32959,9 @@ window.showPhoneListModal = showPhoneListModal;
                 width: 100%;
                 box-sizing: border-box;
                 border-radius: 10px;
-                border: 1px solid rgba(255,255,255,0.1);
-                background: rgba(255,255,255,0.04);
-                color: var(--tm-primary-color, #fff);
+                border: 1px solid var(--tm-input-border, var(--tm-shop-item-border));
+                background: var(--tm-input-bg, var(--tm-shop-item-bg));
+                color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color)));
                 font-size: 13px;
                 transition: border-color 0.15s, box-shadow 0.15s;
             }
@@ -32942,26 +32984,26 @@ window.showPhoneListModal = showPhoneListModal;
             }
             .tm-oh-input:focus, .tm-oh-select:focus {
                 outline: none;
-                border-color: rgba(79,172,254,0.55);
-                box-shadow: 0 0 0 3px rgba(79,172,254,0.12);
+                border-color: var(--tm-input-focus-border, var(--tm-primary-color));
+                box-shadow: 0 0 0 3px color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
             }
             .tm-oh-preset-group { display: flex; gap: 6px; flex-wrap: wrap; }
             .tm-oh-preset {
                 padding: 8px 12px;
                 border-radius: 999px;
-                border: 1px solid rgba(255,255,255,0.1);
-                background: rgba(255,255,255,0.04);
-                color: var(--tm-primary-color, #fff);
+                border: 1px solid var(--tm-shop-item-border);
+                background: var(--tm-input-bg, var(--tm-shop-item-bg));
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
                 font-size: 11px;
                 font-weight: 600;
                 cursor: pointer;
                 transition: all 0.15s;
             }
-            .tm-oh-preset:hover { background: rgba(255,255,255,0.09); }
+            .tm-oh-preset:hover { background: var(--tm-shop-item-hover-bg); }
             .tm-oh-preset.is-active {
-                background: var(--tm-accent-color, #2196f3);
-                border-color: transparent;
-                color: #fff;
+                background: var(--tm-primary-color);
+                border-color: var(--tm-primary-color);
+                color: var(--tm-text-on-primary, #fff);
             }
             .tm-oh-body {
                 flex: 1;
@@ -32969,7 +33011,7 @@ window.showPhoneListModal = showPhoneListModal;
                 display: flex;
                 flex-direction: column;
                 min-height: 0;
-                background: rgba(0,0,0,0.08);
+                background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg));
             }
             #tm-order-history-container {
                 flex: 1;
@@ -32979,13 +33021,13 @@ window.showPhoneListModal = showPhoneListModal;
             .tm-oh-empty {
                 text-align: center;
                 padding: 72px 24px;
-                color: var(--tm-secondary-hover, rgba(255,255,255,0.5));
+                color: var(--tm-muted-text, var(--tm-secondary-color));
             }
             .tm-oh-empty-icon { font-size: 56px; margin-bottom: 14px; opacity: 0.45; }
             .tm-oh-empty-title {
                 font-size: 1.15rem;
                 font-weight: 700;
-                color: var(--tm-primary-color, #fff);
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
                 margin-bottom: 6px;
             }
             .tm-oh-table-wrap {
@@ -32993,8 +33035,8 @@ window.showPhoneListModal = showPhoneListModal;
                 width: 100%;
                 max-height: 100%;
                 border-radius: 14px;
-                border: 1px solid rgba(255,255,255,0.08);
-                background: rgba(255,255,255,0.02);
+                border: 1px solid var(--tm-shop-item-border);
+                background: var(--tm-shop-item-bg);
             }
             .tm-order-history-table {
                 width: 100%;
@@ -33011,33 +33053,33 @@ window.showPhoneListModal = showPhoneListModal;
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
-                color: var(--tm-secondary-hover, rgba(255,255,255,0.55));
-                background: rgba(18,18,32,0.98);
-                border-bottom: 1px solid rgba(255,255,255,0.1);
+                color: var(--tm-grid-header-text, var(--tm-primary-color));
+                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg));
+                border-bottom: 1px solid var(--tm-shop-item-border);
                 cursor: pointer;
                 user-select: none;
                 white-space: nowrap;
             }
-            .tm-order-history-table thead th:hover { color: var(--tm-primary-color, #fff); }
+            .tm-order-history-table thead th:hover { color: var(--tm-link-hover-color, var(--tm-info-color)); }
             .tm-order-history-table thead th.sort-asc::after { content: ' ▲'; font-size: 9px; opacity: 0.7; }
             .tm-order-history-table thead th.sort-desc::after { content: ' ▼'; font-size: 9px; opacity: 0.7; }
             .tm-order-history-table tbody tr.tm-order-history-row {
-                border-bottom: 1px solid rgba(255,255,255,0.05);
+                border-bottom: 1px solid var(--tm-shop-item-border);
                 transition: background 0.12s ease;
                 cursor: pointer;
             }
             .tm-order-history-table tbody tr.tm-order-history-row:hover {
-                background: rgba(79,172,254,0.08);
+                background: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg));
             }
             .tm-order-history-table tbody tr.tm-order-history-row--service {
-                box-shadow: inset 3px 0 0 var(--tm-success-color, #22c55e);
+                box-shadow: inset 3px 0 0 var(--tm-success-color);
             }
             .tm-order-history-table tbody tr.tm-order-history-row--parts {
-                box-shadow: inset 3px 0 0 var(--tm-info-color, #38bdf8);
+                box-shadow: inset 3px 0 0 var(--tm-info-color);
             }
             .tm-order-history-table td {
                 padding: 12px 14px;
-                color: var(--tm-primary-color, #fff);
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
                 vertical-align: middle;
                 max-width: 220px;
                 overflow: hidden;
@@ -33053,14 +33095,14 @@ window.showPhoneListModal = showPhoneListModal;
                 margin-left: 6px;
                 padding: 3px 8px;
                 border-radius: 6px;
-                border: 1px solid rgba(255,255,255,0.12);
-                background: rgba(255,255,255,0.06);
-                color: var(--tm-primary-color, #fff);
+                border: 1px solid var(--tm-shop-item-border);
+                background: var(--tm-chip-bg, var(--tm-shop-item-hover-bg));
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
                 font-size: 11px;
                 cursor: pointer;
                 vertical-align: middle;
             }
-            .tm-oh-icon-btn:hover { background: rgba(79,172,254,0.2); }
+            .tm-oh-icon-btn:hover { background: var(--tm-shop-item-hover-bg); border-color: var(--tm-primary-color); }
             .tm-oh-badge {
                 display: inline-flex;
                 align-items: center;
@@ -33071,11 +33113,23 @@ window.showPhoneListModal = showPhoneListModal;
                 font-weight: 700;
                 white-space: nowrap;
             }
-            .tm-oh-badge--checking { background: rgba(255,255,255,0.08); color: var(--tm-secondary-hover, #aaa); }
-            .tm-oh-badge--active { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
-            .tm-oh-badge--removed { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
-            .tm-oh-badge--unknown { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
-            .tm-oh-cell-muted { color: var(--tm-secondary-hover, rgba(255,255,255,0.5)); font-size: 12px; }
+            .tm-oh-badge--checking { background: var(--tm-chip-bg); color: var(--tm-muted-text); border: 1px solid var(--tm-chip-border); }
+            .tm-oh-badge--active {
+                background: color-mix(in srgb, var(--tm-success-color) 15%, transparent);
+                color: var(--tm-success-color);
+                border: 1px solid color-mix(in srgb, var(--tm-success-color) 28%, transparent);
+            }
+            .tm-oh-badge--removed {
+                background: color-mix(in srgb, var(--tm-danger-color) 12%, transparent);
+                color: var(--tm-danger-color);
+                border: 1px solid color-mix(in srgb, var(--tm-danger-color) 28%, transparent);
+            }
+            .tm-oh-badge--unknown {
+                background: color-mix(in srgb, var(--tm-warning-color) 12%, transparent);
+                color: var(--tm-warning-color);
+                border: 1px solid color-mix(in srgb, var(--tm-warning-color) 28%, transparent);
+            }
+            .tm-oh-cell-muted { color: var(--tm-muted-text, var(--tm-secondary-color)); font-size: 12px; }
             .tm-oh-cell-customer { font-weight: 600; max-width: 240px; white-space: normal; line-height: 1.35; }
             .tm-order-filter-input {
                 width: 100%;
@@ -33083,15 +33137,15 @@ window.showPhoneListModal = showPhoneListModal;
                 padding: 6px 8px;
                 font-size: 11px;
                 border-radius: 8px;
-                border: 1px solid rgba(255,255,255,0.1);
-                background: rgba(0,0,0,0.2);
-                color: var(--tm-primary-color, #fff);
+                border: 1px solid var(--tm-input-border, var(--tm-shop-item-border));
+                background: var(--tm-input-bg, var(--tm-shop-item-bg));
+                color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color)));
             }
             .tm-order-filter-input:focus {
                 outline: none;
-                border-color: rgba(79,172,254,0.5);
+                border-color: var(--tm-input-focus-border, var(--tm-primary-color));
             }
-        `;
+`;
         document.head.appendChild(style);
     }
 
@@ -36306,24 +36360,13 @@ if (typeof window !== 'undefined') {
     function initWeatherWidget(parentContainer, config) {
         const weatherWidget = document.createElement('div');
         weatherWidget.id = 'tm-weather-widget';
+        weatherWidget.className = 'tm-footer-widget';
         weatherWidget.style.cssText = `
-            background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: var(--tm-primary-color);
-            border: 1px solid rgba(255,255,255,0.2);
-            height: 40px;
-            padding: 0 14px;
-            border-radius: 12px;
             display: ${config.weatherWidgetEnabled ? 'flex' : 'none'};
             align-items: center;
             gap: 8px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            padding: 0 14px;
             font-size: 13px;
-            font-weight: 600;
-            white-space: nowrap;
             position: relative;
         `;
         weatherWidget.innerHTML = `
@@ -36331,16 +36374,6 @@ if (typeof window !== 'undefined') {
             <span id="tm-weather-temp" style="font-size: 13px; font-weight: 700;">Loading...</span>
         `;
 
-        weatherWidget.addEventListener('mouseenter', () => {
-            weatherWidget.style.transform = 'translateY(-3px) scale(1.05)';
-            weatherWidget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.3)';
-            weatherWidget.style.borderColor = 'rgba(255,255,255,0.4)';
-        });
-        weatherWidget.addEventListener('mouseleave', () => {
-            weatherWidget.style.transform = 'translateY(0) scale(1)';
-            weatherWidget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-            weatherWidget.style.borderColor = 'rgba(255,255,255,0.2)';
-        });
         weatherWidget.addEventListener('click', () => showWeatherDetails(config));
 
         parentContainer.appendChild(weatherWidget);
@@ -37013,6 +37046,7 @@ if (typeof window !== 'undefined') {
             const btn = document.createElement('button');
             btn.id = 'tm-eod-btn';
             btn.type = 'button';
+            btn.className = 'tm-footer-widget tm-footer-icon-btn';
             btn.title = 'Checklist Τέλους Ημέρας';
             btn.textContent = '🌙';
             btn.addEventListener('click', () => showEODModal(STORAGE_KEYS));
@@ -38346,7 +38380,7 @@ if (typeof window !== 'undefined') {
         try {
             GM_setValue(STORAGE_KEYS.THEME_COLORS_CACHE, JSON.stringify({
                 themeId,
-                colors: theme.appliedColors || theme.colors,
+                colors: themeId === 'default' ? null : (theme.appliedColors || theme.colors),
                 updatedAt: Date.now(),
             }));
         } catch (_) { /* ignore */ }
@@ -38508,6 +38542,7 @@ if (typeof window !== 'undefined') {
         function createTimerUI() {
             const container = document.createElement('div');
             container.id = 'tm-refresh-timer-container';
+            container.className = 'tm-footer-widget tm-footer-icon-btn';
             
             // Create SVG circle with countdown inside
             container.innerHTML = `
@@ -41560,22 +41595,13 @@ if (typeof window !== 'undefined') {
         // Create the widget's HTML
         const widgetContainer = document.createElement('div');
         widgetContainer.id = 'tm-daily-dashboard-widget';
+        widgetContainer.className = 'tm-footer-widget';
         widgetContainer.style.cssText = `
-            background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: var(--tm-primary-color);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 12px;
-            height: 40px;
-            padding: 0 14px;
             font-size: 11px;
             display: flex;
             align-items: center;
             gap: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
+            padding: 0 14px;
         `;
         widgetContainer.title = `Σημερινά Στατιστικά (Click για Personal Dashboard):\n- ${stats.ordersCreated || 0} Νέες Παραγγελίες\n- ${stats.repairsCompleted || 0} Ολοκληρωμένες Επισκευές\n- ${stats.searches || 0} Αναζητήσεις`;
 
@@ -41604,18 +41630,6 @@ if (typeof window !== 'undefined') {
                 alert('Personal Dashboard not available. The gamification script may not be loaded properly.');
             }
         });
-        
-        // Add consistent hover animations
-        widgetContainer.addEventListener('mouseenter', () => {
-            widgetContainer.style.transform = 'translateY(-3px) scale(1.05)';
-            widgetContainer.style.boxShadow = '0 6px 16px rgba(0,0,0,0.3)';
-            widgetContainer.style.borderColor = 'rgba(255,255,255,0.4)';
-        });
-        widgetContainer.addEventListener('mouseleave', () => {
-            widgetContainer.style.transform = 'translateY(0) scale(1)';
-            widgetContainer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-            widgetContainer.style.borderColor = 'rgba(255,255,255,0.2)';
-        });
 
         // Add the widget to the parent container in the footer
         parentContainer.appendChild(widgetContainer);
@@ -41636,6 +41650,7 @@ if (typeof window !== 'undefined') {
 
         const xpBarContainer = document.createElement('div');
         xpBarContainer.id = 'tm-xp-bar-container';
+        xpBarContainer.className = 'tm-footer-widget';
         const xpForNextLevel = getXpForLevel(currentLevel);
         const rankInfo = RANKS.slice().reverse().find(r => currentLevel >= r.level) || RANKS[0];
         const defaultRankTitle = (rankInfo && rankInfo.title) || (RANKS[0] && RANKS[0].title) || 'Novice Tech';
@@ -41667,18 +41682,6 @@ if (typeof window !== 'undefined') {
         // Make the entire bar clickable to show the titles modal
         xpBarContainer.style.cursor = 'pointer';
         xpBarContainer.addEventListener('click', () => showTitlesModal(STORAGE_KEYS));
-        
-        // Add consistent hover animations
-        xpBarContainer.addEventListener('mouseenter', () => {
-            xpBarContainer.style.transform = 'translateY(-3px) scale(1.05)';
-            xpBarContainer.style.boxShadow = '0 6px 16px rgba(0,0,0,0.3)';
-            xpBarContainer.style.borderColor = 'rgba(255,255,255,0.4)';
-        });
-        xpBarContainer.addEventListener('mouseleave', () => {
-            xpBarContainer.style.transform = 'translateY(0) scale(1)';
-            xpBarContainer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-            xpBarContainer.style.borderColor = 'rgba(255,255,255,0.2)';
-        });
 
         if (config?.debugEnabled) {
         console.log('[MMS] XP Bar widget initialized in footer.');
@@ -42556,45 +42559,17 @@ if (typeof window !== 'undefined') {
         // Helper function to create feature button
         function createFeatureButton(icon, title, gradient, onClick) {
             const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'tm-footer-widget tm-footer-icon-btn';
             btn.innerHTML = icon;
             btn.title = title;
-            btn.style.cssText = `
-                background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-                color: white;
-                border: 1px solid rgba(255,255,255,0.2);
-                width: 40px;
-                height: 40px;
-                padding: 0;
-                border-radius: 12px;
-                cursor: pointer;
-                font-size: 16px;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                position: relative;
-                overflow: hidden;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            `;
+            btn.dataset.accentGradient = gradient;
             
-            // Add gradient overlay on hover
             btn.addEventListener('mouseenter', () => {
-                btn.style.background = `linear-gradient(135deg, ${gradient})`;
-                btn.style.backdropFilter = 'blur(10px)';
-                btn.style.webkitBackdropFilter = 'blur(10px)';
-                btn.style.transform = 'translateY(-3px) scale(1.05)';
-                btn.style.boxShadow = '0 6px 16px rgba(0,0,0,0.3)';
-                btn.style.borderColor = 'rgba(255,255,255,0.4)';
+                if (gradient) btn.style.background = `linear-gradient(135deg, ${gradient})`;
             });
             btn.addEventListener('mouseleave', () => {
-                btn.style.background = 'linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)';
-                btn.style.backdropFilter = 'blur(10px)';
-                btn.style.webkitBackdropFilter = 'blur(10px)';
-                btn.style.transform = 'translateY(0) scale(1)';
-                btn.style.boxShadow = '0 2px 8px rgba(0,0,0,0.15)';
-                btn.style.borderColor = 'rgba(255,255,255,0.2)';
+                btn.style.background = '';
             });
             btn.addEventListener('click', onClick);
             return btn;
@@ -43270,8 +43245,8 @@ if (typeof window !== 'undefined') {
         dropdownContainer.id = 'tm-recent-repairs-dropdown';
         dropdownContainer.style.cssText = `
             position: relative;
-            display: ${config.recentRepairsEnabled ? 'inline-block' : 'none'};
-            margin: 0 8px;
+            display: ${config.recentRepairsEnabled ? 'inline-flex' : 'none'};
+            align-items: center;
         `;
         
         if (!config.recentRepairsEnabled) {
@@ -43287,7 +43262,7 @@ if (typeof window !== 'undefined') {
         console.log('[MMS] Found', recentRepairs.length, 'recent repairs in storage.');
         
         // Update display style since container already exists
-        dropdownContainer.style.display = 'inline-block';
+        dropdownContainer.style.display = 'inline-flex';
         
         const dropdownButton = document.createElement('button');
         dropdownButton.id = 'tm-recent-repairs-btn';
@@ -43302,7 +43277,6 @@ if (typeof window !== 'undefined') {
             position: fixed;
             bottom: 55px;
             border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.25);
             min-width: 350px;
             max-width: 450px;
             max-height: 450px;
@@ -43362,9 +43336,6 @@ if (typeof window !== 'undefined') {
                             title="Γρήγορη Προβολή"
                             style="
                                 flex-shrink: 0;
-                                background: rgba(79,172,254,0.12);
-                                border: 1px solid rgba(79,172,254,0.3);
-                                color: #4facfe;
                                 border-radius: 7px;
                                 padding: 5px 9px;
                                 font-size: 14px;
@@ -43460,7 +43431,7 @@ if (typeof window !== 'undefined') {
     function updateRecentRepairsButtonVisibility(config) {
         const recentRepairsDropdown = document.getElementById('tm-recent-repairs-dropdown');
         if (recentRepairsDropdown) {
-            recentRepairsDropdown.style.display = config.recentRepairsEnabled ? 'inline-block' : 'none';
+            recentRepairsDropdown.style.display = config.recentRepairsEnabled ? 'inline-flex' : 'none';
         }
     }
     

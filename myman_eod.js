@@ -341,6 +341,7 @@
             const btn = document.createElement('button');
             btn.id = 'tm-eod-btn';
             btn.type = 'button';
+            btn.className = 'tm-footer-widget tm-footer-icon-btn';
             btn.title = 'Checklist Τέλους Ημέρας';
             btn.textContent = '🌙';
             btn.addEventListener('click', () => showEODModal(STORAGE_KEYS));

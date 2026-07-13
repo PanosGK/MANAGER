@@ -476,17 +476,6 @@ const THEME_STYLES = `/* Universal Theme Styles */
                 padding: 8px !important;
                 margin: 4px !important;
             }
-            /* Footer buttons - consistent styling */
-            #tm-recent-repairs-btn {
-                padding: 8px 16px !important;
-                margin: 4px !important;
-                border-radius: 12px !important;
-                min-height: 36px !important;
-                display: inline-flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                line-height: 1.5 !important;
-            }
             /* Replace the default footer logo with a custom Matrix-themed SVG logo */
             #footer-outterwrap .footer-logo { content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='40' viewBox='0 0 200 40'%3E%3Cdefs%3E%3Cfilter id='matrix-glow'%3E%3CfeGaussianBlur stdDeviation='1.5' result='coloredBlur'/%3E%3CfeMerge%3E%3CfeMergeNode in='coloredBlur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Ctext x='50%25' y='50%25' dy='.3em' fill='var(--tm-primary-color)' font-family='Consolas,Monaco,monospace' font-size='22' font-weight='bold' text-anchor='middle' filter='url(%23matrix-glow)'%3EThe Fixers%3C/text%3E%3C/svg%3E") !important; filter: none !important; }
             
@@ -675,6 +664,7 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
             #tm-eod-btn:hover {
                 background: var(--tm-glass-hover-bg, var(--tm-surface-hover-bg, var(--tm-shop-item-hover-bg))) !important;
                 border-color: var(--tm-glass-border, var(--tm-surface-border, var(--tm-shop-item-border))) !important;
+                transform: translateY(-2px) !important;
             }
             #tm-notification-bell-btn,
             #tm-settings-btn,
@@ -714,11 +704,31 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
             .tm-recent-repairs-header,
             .tm-recent-repair-item {
                 background: var(--tm-panel-bg, var(--tm-shop-item-bg)) !important;
-                color: var(--tm-primary-color) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
                 border-color: var(--tm-surface-border, var(--tm-shop-item-border)) !important;
             }
             .tm-recent-repair-item:hover { background: var(--tm-surface-hover-bg, var(--tm-shop-item-hover-bg)) !important; }
             .tm-recent-repair-meta { color: var(--tm-muted-text, var(--tm-secondary-color)) !important; }
+            .tm-recent-repairs-footer { background: var(--tm-panel-bg, var(--tm-shop-item-bg)) !important; border-top-color: var(--tm-shop-item-border) !important; }
+            .tm-repair-quickview-btn {
+                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent) !important;
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 32%, transparent) !important;
+                color: var(--tm-info-color) !important;
+            }
+            .tm-repair-quickview-btn:hover {
+                background: color-mix(in srgb, var(--tm-info-color) 24%, transparent) !important;
+                border-color: var(--tm-info-color) !important;
+            }
+            #tm-recent-repairs-btn {
+                background: var(--tm-glass-bg, var(--tm-surface-bg, var(--tm-shop-item-bg))) !important;
+                border: 1px solid var(--tm-glass-border, var(--tm-surface-border, var(--tm-shop-item-border))) !important;
+                color: var(--tm-footer-text, var(--tm-widget-text, var(--tm-shop-item-text, var(--tm-primary-color)))) !important;
+            }
+            #tm-recent-repairs-btn:hover {
+                background: var(--tm-glass-hover-bg, var(--tm-surface-hover-bg, var(--tm-shop-item-hover-bg))) !important;
+                border-color: var(--tm-primary-color) !important;
+                color: var(--tm-primary-color) !important;
+            }
 
             /* Quests & specialty footer buttons */
             #tm-quests-btn { background-color: var(--tm-secondary-hover, var(--tm-secondary-color)) !important; color: var(--tm-text-on-primary, #fff) !important; }
@@ -745,6 +755,112 @@ const THEME_SUITE_WIDGET_STYLES = `/* --- Suite widget theme tokens --- */
                 color: var(--tm-danger-color) !important;
             }
             .tm-alert-cancel-btn:hover { background: rgba(var(--tm-danger-color-rgb, 220,53,69), 0.22) !important; }
+
+            /* Phone catalog panel */
+            .tm-modal-overlay:has(.tm-phone-modal-content),
+            .tm-phone-catalog-overlay {
+                background: var(--tm-overlay-dim, rgba(0,0,0,0.72)) !important;
+            }
+            .tm-phone-modal-content {
+                background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg))) !important;
+                color: var(--tm-primary-color) !important;
+                border: 1px solid var(--tm-shop-item-border) !important;
+            }
+            .tm-phone-modal-content .tm-modal-header,
+            .tm-phone-modal-content [data-tm-phone-toolbar] {
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
+                border-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-phone-modal-content .tm-modal-title,
+            .tm-phone-modal-content .tm-modal-close,
+            .tm-phone-modal-content label,
+            .tm-phone-modal-content #tm-phone-stats {
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+            }
+            .tm-phone-modal-content #tm-phone-search-input,
+            .tm-phone-modal-content #tm-phone-filter-grade,
+            .tm-phone-modal-content #tm-phone-filter-model,
+            .tm-phone-modal-content #tm-phone-filter-gb,
+            .tm-phone-modal-content #tm-phone-filter-color,
+            .tm-phone-modal-content #tm-phone-filter-tag,
+            .tm-phone-modal-content #tm-phone-sort-by,
+            .tm-phone-modal-content .tm-phone-toolbar-btn {
+                background: var(--tm-input-bg, var(--tm-shop-item-bg)) !important;
+                border-color: var(--tm-input-border, var(--tm-shop-item-border)) !important;
+                color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color))) !important;
+            }
+            .tm-phone-modal-content #tm-phone-list-container {
+                background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg, var(--tm-shop-item-bg))) !important;
+            }
+            .tm-phone-item {
+                background: var(--tm-shop-item-bg) !important;
+                border-color: var(--tm-shop-item-border) !important;
+                box-shadow: 0 1px 4px var(--tm-shadow-color, rgba(0,0,0,0.15)) !important;
+            }
+            .tm-phone-price-pill, .tm-os-price-pill {
+                color: var(--tm-price-color, var(--tm-success-color)) !important;
+                border: 1px solid var(--tm-price-border, var(--tm-success-color)) !important;
+                background: var(--tm-price-bg, rgba(var(--tm-success-color-rgb, 40,167,69), 0.14)) !important;
+            }
+            .tm-phone-barcode, .tm-os-barcode {
+                color: var(--tm-subtle-text, var(--tm-shop-item-text, var(--tm-primary-color))) !important;
+                background: var(--tm-chip-bg, var(--tm-surface-hover-bg)) !important;
+                border: 1px solid var(--tm-chip-border, var(--tm-surface-border)) !important;
+            }
+            .tm-phone-storage-chip {
+                background: var(--tm-chip-bg, var(--tm-surface-hover-bg)) !important;
+                border: 1px solid var(--tm-chip-border, var(--tm-surface-border)) !important;
+                color: var(--tm-chip-text, var(--tm-shop-item-text, var(--tm-primary-color))) !important;
+            }
+            .tm-phone-buyback-badge {
+                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent) !important;
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 35%, transparent) !important;
+                color: var(--tm-info-color) !important;
+            }
+            /* Order history panel */
+            .tm-oh-overlay { background: var(--tm-overlay-dim, rgba(0,0,0,0.72)) !important; }
+            .tm-oh-shell {
+                background: var(--tm-modal-bg, var(--tm-panel-bg, var(--tm-shop-item-bg))) !important;
+                color: var(--tm-primary-color) !important;
+                border-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-oh-hero {
+                background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 18%, transparent) 0%, transparent 70%) !important;
+                border-bottom-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-oh-title { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
+            .tm-oh-page-badge {
+                background: color-mix(in srgb, var(--tm-info-color) 16%, transparent) !important;
+                color: var(--tm-info-color) !important;
+                border-color: color-mix(in srgb, var(--tm-info-color) 35%, transparent) !important;
+            }
+            .tm-oh-stat, .tm-oh-tool-btn, .tm-oh-close, .tm-oh-preset, .tm-oh-input, .tm-oh-select, .tm-order-filter-input {
+                background: var(--tm-input-bg, var(--tm-shop-item-bg)) !important;
+                border-color: var(--tm-input-border, var(--tm-shop-item-border)) !important;
+                color: var(--tm-input-text, var(--tm-shop-item-text, var(--tm-primary-color))) !important;
+            }
+            .tm-oh-preset.is-active {
+                background: var(--tm-primary-color) !important;
+                border-color: var(--tm-primary-color) !important;
+                color: var(--tm-text-on-primary, #fff) !important;
+            }
+            .tm-oh-filters, .tm-oh-body { background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg)) !important; }
+            .tm-oh-table-wrap { background: var(--tm-shop-item-bg) !important; border-color: var(--tm-shop-item-border) !important; }
+            .tm-order-history-table thead th {
+                background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg)) !important;
+                color: var(--tm-grid-header-text, var(--tm-primary-color)) !important;
+                border-bottom-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-order-history-table tbody tr.tm-order-history-row:hover {
+                background: var(--tm-grid-row-hover-bg, var(--tm-shop-item-hover-bg)) !important;
+            }
+            .tm-order-history-table td { color: var(--tm-shop-item-text, var(--tm-primary-color)) !important; }
+            #tm-phone-catalog-btn {
+                background: var(--tm-dark-color) !important;
+                border: 1px solid var(--tm-secondary-hover) !important;
+                color: var(--tm-primary-color) !important;
+            }
+            #tm-phone-catalog-btn:hover { background: var(--tm-dark-hover) !important; }
         `;
 
 const THEME_NATIVE_PAGE_EXTENDED_STYLES = `/* --- Native MyMANAGER page (non-default themes only) --- */
@@ -1341,283 +1457,7 @@ const UI_THEMES = {
     'default': {
         name: 'Default', icon: '🎨', cost: 0,
         colors: UI_SPECIALIST_PALETTES.default,
-        pageStyles: `/* Default Theme - Light Background Contrast Fixes */
-            #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; background-color: var(--tm-danger-color) !important; }
-            .minimal-store-btn:hover, #tm-settings-save:hover, #tm-settings-reset:hover, 
-            #tm-mascot-interaction-buttons button:hover, .tm-shop-item-btn:hover:not(:disabled),
-            .tm-talent-unlock-btn:hover:not(:disabled), .tm-talent-unlock-btn-dashboard:hover:not(:disabled),
-            #tm-dashboard-content button[style*="linear-gradient"]:hover { 
-                color: var(--tm-text-on-primary) !important; 
-            }
-            .tm-modal-content, .tm-modal-header, .tm-modal-footer { 
-                background: var(--tm-modal-bg) !important;
-                color: var(--tm-text-on-light) !important; 
-                border-color: var(--tm-shop-item-border) !important; 
-            }
-            /* Settings modal - use theme background */
-            .tm-modal-content:has(.tm-settings-layout),
-            .tm-modal-content .tm-settings-layout {
-                background: var(--tm-modal-bg) !important;
-            }
-            .tm-modal-content:has(.tm-settings-layout) {
-                background: var(--tm-modal-bg) !important;
-                color: var(--tm-text-on-light) !important;
-            }
-            .tm-modal-content:has(.tm-settings-layout) .tm-modal-header,
-            .tm-modal-content:has(.tm-settings-layout) .tm-modal-footer {
-                background: var(--tm-modal-bg) !important;
-                color: var(--tm-text-on-light) !important;
-                border-color: var(--tm-shop-item-border) !important;
-            }
-            .tm-modal-title, .tm-modal-close { color: var(--tm-primary-color) !important; }
-            .tm-modal-content:has(.tm-settings-layout) .tm-modal-title,
-            .tm-modal-content:has(.tm-settings-layout) .tm-modal-close {
-                color: var(--tm-text-on-light) !important;
-            }
-            .tm-setting-label label { color: var(--tm-primary-color) !important; }
-            .tm-modal-content:has(.tm-settings-layout) .tm-setting-label label {
-                color: var(--tm-text-on-light) !important;
-            }
-            .tm-setting-description { color: var(--tm-secondary-hover) !important; }
-            .tm-modal-content:has(.tm-settings-layout) .tm-setting-description {
-                color: var(--tm-secondary-color) !important;
-            }
-            
-            /* Footer buttons - consistent styling */
-            #tm-footer-controls-left button, #tm-footer-controls-right button,
-            button[title*="Talent"], button[title*="Faction"], button[title*="Boss"],
-            #tm-recent-repairs-btn {
-                padding: 8px 16px !important;
-                margin: 4px !important;
-                border-radius: 12px !important;
-                min-height: 36px !important;
-                display: inline-flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                line-height: 1.5 !important;
-            }
-            #tm-footer-controls-left button:hover, #tm-footer-controls-right button:hover,
-            #tm-recent-repairs-btn:hover {
-                box-shadow: 0 6px 8px rgba(0, 0, 0, 0.12) !important;
-            }
-
-            /* Default-theme styling for Phone Catalog slide-out button */
-            #tm-phone-catalog-btn {
-                background: #ffffff !important;
-                color: var(--tm-primary-color) !important;
-                border-color: var(--tm-shop-item-border) !important;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08) !important;
-            }
-            #tm-phone-catalog-btn:hover {
-                background: var(--tm-primary-color) !important;
-                color: var(--tm-text-on-primary) !important;
-                box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15) !important;
-            }
-   
-            /* Boss Battle & Random Event Modals - Special Grey Gradient Styling */
-            .tm-modal-content[style*="background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%)"] {
-                background: linear-gradient(145deg, #4a4a4a 0%, #2d2d2d 100%) !important;
-                color: #ffffff !important;
-                border: 3px solid #666666 !important;
-                box-shadow: 0 0 40px rgba(102, 102, 102, 0.8), 
-                           0 0 80px rgba(102, 102, 102, 0.4) !important;
-                animation: tm-modal-glow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite, 
-                          tm-modal-float 6s ease-in-out infinite !important;
-                position: relative !important;
-                overflow: hidden !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            }
-            
-            /* Animated background shimmer effect */
-            .tm-modal-content[style*="background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%)"]::before {
-                content: '';
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: linear-gradient(
-                    45deg,
-                    transparent 30%,
-                    rgba(255, 255, 255, 0.1) 50%,
-                    transparent 70%
-                );
-                animation: tm-shimmer 5s ease-in-out infinite;
-                pointer-events: none;
-            }
-            
-            /* Boss Battle Modal Header Styling */
-            .tm-modal-content[style*="background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%)"] .tm-modal-header {
-                background: linear-gradient(135deg, #5a5a5a 0%, #3a3a3a 100%) !important;
-                border-bottom: 2px solid #888888 !important;
-                animation: tm-header-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                color: #ffffff !important;
-            }
-            
-            /* Boss Battle Modal Header Text Styling */
-            .tm-modal-content[style*="background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%)"] .tm-modal-header h3,
-            .tm-modal-content[style*="background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%)"] .tm-modal-header div,
-            .tm-modal-content[style*="background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%)"] .tm-modal-header .tm-modal-close {
-                color: #ffffff !important;
-                text-shadow: 0 0 8px rgba(255, 255, 255, 0.3) !important;
-            }
-            
-            /* Random Event Modal Styling */
-            .tm-modal-content[style*="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)"] {
-                background: linear-gradient(145deg, #6a6a6a 0%, #4a4a4a 100%) !important;
-                color: #ffffff !important;
-                border: 3px solid #888888 !important;
-                box-shadow: 0 0 40px rgba(136, 136, 136, 0.8),
-                           0 0 80px rgba(136, 136, 136, 0.4) !important;
-                animation: tm-modal-glow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite, 
-                          tm-modal-float 6s ease-in-out infinite !important;
-                position: relative !important;
-                overflow: hidden !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            }
-            
-            /* Random Event Modal Header Styling */
-            .tm-modal-content[style*="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)"] .tm-modal-header {
-                background: linear-gradient(135deg, #6a6a6a 0%, #4a4a4a 100%) !important;
-                border-bottom: 2px solid #888888 !important;
-                animation: tm-header-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                color: #ffffff !important;
-            }
-            
-            /* Random Event Modal Header Text Styling */
-            .tm-modal-content[style*="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)"] .tm-modal-header h3,
-            .tm-modal-content[style*="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)"] .tm-modal-header div,
-            .tm-modal-content[style*="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)"] .tm-modal-header .tm-modal-close {
-                color: #ffffff !important;
-                text-shadow: 0 0 8px rgba(255, 255, 255, 0.3) !important;
-            }
-            
-            /* Random Event Modal Shimmer */
-            .tm-modal-content[style*="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%)"]::before {
-                content: '';
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: linear-gradient(
-                    45deg,
-                    transparent 30%,
-                    rgba(255, 255, 255, 0.15) 50%,
-                    transparent 70%
-                );
-                animation: tm-shimmer 4s ease-in-out infinite;
-                pointer-events: none;
-            }
-            
-            /* Enhanced Animation Keyframes with Smooth Easing */
-            @keyframes tm-modal-glow {
-                0% { 
-                    box-shadow: 0 0 30px rgba(102, 102, 102, 0.6), 
-                               0 0 60px rgba(102, 102, 102, 0.3),
-                               0 0 90px rgba(102, 102, 102, 0.1),
-                               inset 0 0 15px rgba(255, 255, 255, 0.05);
-                    transform: scale(1);
-                }
-                25% { 
-                    box-shadow: 0 0 45px rgba(102, 102, 102, 0.8), 
-                               0 0 90px rgba(102, 102, 102, 0.5),
-                               0 0 135px rgba(102, 102, 102, 0.2),
-                               inset 0 0 25px rgba(255, 255, 255, 0.15);
-                    transform: scale(1.002);
-                }
-                50% { 
-                    box-shadow: 0 0 60px rgba(102, 102, 102, 1), 
-                               0 0 120px rgba(102, 102, 102, 0.7),
-                               0 0 180px rgba(102, 102, 102, 0.3),
-                               inset 0 0 35px rgba(255, 255, 255, 0.25);
-                    transform: scale(1.005);
-                }
-                75% { 
-                    box-shadow: 0 0 45px rgba(102, 102, 102, 0.8), 
-                               0 0 90px rgba(102, 102, 102, 0.5),
-                               0 0 135px rgba(102, 102, 102, 0.2),
-                               inset 0 0 25px rgba(255, 255, 255, 0.15);
-                    transform: scale(1.002);
-                }
-                100% { 
-                    box-shadow: 0 0 30px rgba(102, 102, 102, 0.6), 
-                               0 0 60px rgba(102, 102, 102, 0.3),
-                               0 0 90px rgba(102, 102, 102, 0.1),
-                               inset 0 0 15px rgba(255, 255, 255, 0.05);
-                    transform: scale(1);
-                }
-            }
-            
-            @keyframes tm-shimmer {
-                0% { 
-                    transform: translateX(-120%) translateY(-120%) rotate(45deg);
-                    opacity: 0;
-                }
-                10% { 
-                    opacity: 1;
-                }
-                90% { 
-                    opacity: 1;
-                }
-                100% { 
-                    transform: translateX(120%) translateY(120%) rotate(45deg);
-                    opacity: 0;
-                }
-            }
-            
-            @keyframes tm-header-pulse {
-                0% { 
-                    background: linear-gradient(135deg, #5a5a5a 0%, #3a3a3a 100%);
-                    border-bottom-color: #888888;
-                    transform: translateY(0px);
-                }
-                25% { 
-                    background: linear-gradient(135deg, #575757 0%, #3d3d3d 100%);
-                    border-bottom-color: #909090;
-                    transform: translateY(-0.5px);
-                }
-                50% { 
-                    background: linear-gradient(135deg, #6a6a6a 0%, #4a4a4a 100%);
-                    border-bottom-color: #aaaaaa;
-                    transform: translateY(-1px);
-                }
-                75% { 
-                    background: linear-gradient(135deg, #575757 0%, #3d3d3d 100%);
-                    border-bottom-color: #909090;
-                    transform: translateY(-0.5px);
-                }
-                100% { 
-                    background: linear-gradient(135deg, #5a5a5a 0%, #3a3a3a 100%);
-                    border-bottom-color: #888888;
-                    transform: translateY(0px);
-                }
-            }
-            
-            /* Additional smooth floating animation */
-            @keyframes tm-modal-float {
-                0%, 100% { 
-                    transform: translateY(0px) rotateX(0deg);
-                }
-                50% { 
-                    transform: translateY(-2px) rotateX(1deg);
-                }
-            }
-            
-            .tm-level-up-title { color: var(--tm-primary-color) !important; }
-            .tm-level-up-content::after { border-color: var(--tm-primary-color) !important; }
-            #tm-mascot-interaction-panel { background: var(--tm-modal-bg) !important; color: var(--tm-primary-color) !important; border-color: var(--tm-shop-item-border) !important; }
-            .tm-pet-stat-label { color: var(--tm-primary-color) !important; }
-            #tm-notification-panel { background: var(--tm-modal-bg) !important; color: var(--tm-primary-color) !important; }
-            .tm-notification-header h4 { color: var(--tm-primary-color) !important; }
-            .tm-notification-message { color: var(--tm-primary-color) !important; }
-            #tm-scratchpad-container { background: var(--tm-modal-bg) !important; color: var(--tm-primary-color) !important; }
-            #tm-scratchpad-title { color: var(--tm-primary-color) !important; }
-            #tm-scratchpad-editor { color: var(--tm-primary-color) !important; }
-            .tm-mascot-speech-bubble { background: var(--tm-modal-bg) !important; color: var(--tm-primary-color) !important; border-color: var(--tm-primary-color) !important; }`
-
+        pageStyles: '',
     },
     'matrix': {
         name: 'Matrix', icon: '📟', cost: 500, type: 'theme', // Cost is for the shop
@@ -2020,11 +1860,18 @@ function tmClearInlineThemeProperties(root) {
 
 function tmInjectExtendedThemeStyles(themeId) {
     document.getElementById('tm-extended-theme-styles')?.remove();
+    if (themeId === 'default') return;
     const el = document.createElement('style');
     el.id = 'tm-extended-theme-styles';
-    const isDefault = themeId === 'default';
-    el.textContent = isDefault ? THEME_SUITE_EXTENDED_STYLES : THEME_EXTENDED_STYLES;
+    el.textContent = THEME_EXTENDED_STYLES;
     document.head.appendChild(el);
+}
+
+function tmIsLightEquippedTheme() {
+    const themeId = tmReadEquippedThemeId();
+    if (themeId === 'default') return true;
+    const bg = getComputedStyle(document.documentElement).getPropertyValue('--tm-shop-item-bg').trim();
+    return tmIsLightShopItemBg(bg);
 }
 
 function tmApplyThemeColors(themeId, options = {}) {
@@ -2038,14 +1885,7 @@ function tmApplyThemeColors(themeId, options = {}) {
     if (isDefault) {
         tmClearInlineThemeProperties(root);
         root.dataset.tmTheme = 'default';
-
-        const baseColors = { ...theme.colors };
-        for (const [variable, color] of Object.entries(baseColors)) {
-            root.style.setProperty(variable, color);
-        }
-        const shopText = tmResolveShopItemText(baseColors);
-        root.style.setProperty('--tm-shop-item-text', shopText);
-        theme.appliedColors = { ...baseColors, '--tm-shop-item-text': shopText };
+        theme.appliedColors = {};
     } else {
         const appliedColors = tmBuildDerivedThemeTokens(theme.colors);
 
@@ -2090,6 +1930,9 @@ window.tmBuildDerivedThemeTokens = tmBuildDerivedThemeTokens;
 window.UI_PALETTE_SOURCES = UI_PALETTE_SOURCES;
 window.UI_SPECIALIST_PALETTES = UI_SPECIALIST_PALETTES;
 window.tmMapPaletteToThemeColors = tmMapPaletteToThemeColors;
+window.tmIsLightEquippedTheme = tmIsLightEquippedTheme;
+window.tmParseRgbColor = tmParseRgbColor;
+window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
 (function tmBootstrapThemeOnLoad() {
     const pathname = window.location.pathname || '';

@@ -343,10 +343,13 @@ function colorRgbLuminance(rgb) {
 }
 
 function isCatalogDarkTheme() {
+    if (typeof window.tmIsLightEquippedTheme === 'function') {
+        return !window.tmIsLightEquippedTheme();
+    }
     const themeId = typeof window.tmReadEquippedThemeId === 'function'
         ? window.tmReadEquippedThemeId()
         : String(window.__tmEarlyThemeId || 'default');
-    return themeId !== 'solarized_light';
+    return themeId !== 'default' && themeId !== 'solarized_light' && themeId !== 'liquid_glass';
 }
 
 function isDarkPhoneColorHex(hex) {
@@ -383,11 +386,15 @@ function getPhoneCatalogMetaTextStyle(extra = '') {
 }
 
 function getPhoneStorageChipStyle() {
-    const base = 'border-radius:20px;padding:1px 7px;font-size:10px;font-weight:600;flex-shrink:0;color:var(--tm-shop-item-text);';
-    if (isCatalogDarkTheme()) {
-        return `background:rgba(255,255,255,0.10);${base}`;
-    }
-    return `background:rgba(128,128,128,0.13);opacity:0.85;${base}`;
+    return 'border-radius:20px;padding:1px 7px;font-size:10px;font-weight:600;flex-shrink:0;';
+}
+
+function getPhonePricePillStyle() {
+    return 'margin-left:auto;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;white-space:nowrap;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;';
+}
+
+function getPhoneBarcodeStyle() {
+    return "font-family:'Courier New',Consolas,monospace;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:0.04em;border-radius:5px;padding:1px 7px;line-height:1.35;";
 }
 
 function getPhoneGradeDisplayStyle(grade) {
@@ -419,22 +426,6 @@ function getPhoneColorLabelStyle(colorName, colorHex) {
     const outline = getPhoneCatalogOutlineStyle(colorName, colorHex);
     const color = colorHex || 'var(--tm-shop-item-text)';
     return `display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;opacity:0.85;color:${color};${outline}`;
-}
-
-function getPhonePricePillStyle() {
-    const base = 'margin-left:auto;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;white-space:nowrap;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;';
-    if (isCatalogDarkTheme()) {
-        return `${base}color:#86efac;background:rgba(34,197,94,0.18);border:1px solid rgba(34,197,94,0.45);`;
-    }
-    return `${base}color:#15803d;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);`;
-}
-
-function getPhoneBarcodeStyle() {
-    const base = "font-family:'Courier New',Consolas,monospace;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:0.04em;color:var(--tm-shop-item-text);border-radius:5px;padding:1px 7px;line-height:1.35;";
-    if (isCatalogDarkTheme()) {
-        return `${base}opacity:0.92;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);`;
-    }
-    return `${base}opacity:0.78;background:rgba(128,128,128,0.14);border:1px solid rgba(128,128,128,0.22);`;
 }
 
 function applyPhoneCatalogTextOutline(el, colorName, colorHex) {
@@ -1910,14 +1901,14 @@ async function showPhoneListModal() {
     let favorites = JSON.parse(GM_getValue(FAVORITES_KEY, '[]'));
     
     const overlay = document.createElement('div');
-    overlay.className = 'tm-modal-overlay';
+    overlay.className = 'tm-modal-overlay tm-phone-catalog-overlay';
     overlay.style.cssText = `
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: var(--tm-shop-item-bg);
+        background: var(--tm-overlay-dim, rgba(0,0,0,0.72));
         opacity: 1;
         z-index: 100000;
         display: flex;
@@ -1946,6 +1937,27 @@ async function showPhoneListModal() {
             }
             .tm-phone-modal-content {
                 animation: slideUp 0.3s ease;
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg));
+                color: var(--tm-primary-color);
+            }
+            .tm-phone-toolbar-btn {
+                background: var(--tm-shop-item-bg);
+                border: 1px solid var(--tm-shop-item-border);
+                color: var(--tm-shop-item-text);
+                width: 32px;
+                height: 32px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .tm-phone-toolbar-btn:hover,
+            .tm-modal-close:hover {
+                background: var(--tm-shop-item-hover-bg);
+                border-color: var(--tm-primary-color);
             }
             #tm-phone-search-input:focus {
                 border-color: var(--tm-primary-color);
@@ -1961,7 +1973,7 @@ async function showPhoneListModal() {
                 border-color: var(--tm-primary-color);
                 background: var(--tm-shop-item-hover-bg);
                 outline: none;
-                box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+                box-shadow: 0 0 0 2px color-mix(in srgb, var(--tm-primary-color) 18%, transparent);
             }
             #tm-phone-filter-grade:hover,
             #tm-phone-filter-model:hover,
@@ -2254,7 +2266,7 @@ async function showPhoneListModal() {
                     ">&times;</button>
                 </div>
             </div>
-            <div style="
+            <div data-tm-phone-toolbar style="
                 padding: 12px 16px;
                 background: var(--tm-shop-item-bg);
                 border-bottom: 1px solid var(--tm-shop-item-border);
@@ -4268,29 +4280,8 @@ async function showPhoneListModal() {
                                     ${outlineStyle}
                                 ">${displayModel}</span>`;
                             })()}
-                            <span style="
-                                font-family: 'Courier New', monospace;
-                                font-weight: 500;
-                                color: var(--tm-shop-item-text);
-                                opacity: 0.6;
-                                font-size: 11px;
-                            ">${phone.barcode}</span>
-                            ${phone.retailPrice ? `<span style="
-                                margin-left: auto;
-                                display: inline-flex;
-                                align-items: center;
-                                justify-content: center;
-                                flex-shrink: 0;
-                                white-space: nowrap;
-                                padding: 3px 10px;
-                                border-radius: 999px;
-                                font-size: 12px;
-                                font-weight: 700;
-                                font-variant-numeric: tabular-nums;
-                                color: #15803d;
-                                background: rgba(34, 197, 94, 0.12);
-                                border: 1px solid rgba(34, 197, 94, 0.35);
-                            ">${phone.retailPrice}<span style="opacity: 0.9; margin-left: 1px;">€</span></span>` : ''}
+                            <span class="tm-phone-barcode" style="${getPhoneBarcodeStyle()}" title="${phone.barcode}">${phone.barcode}</span>
+                            ${phone.retailPrice ? `<span class="tm-phone-price-pill" style="${getPhonePricePillStyle()}">${phone.retailPrice}<span style="opacity: 0.9; margin-left: 1px;">€</span></span>` : ''}
                         </div>
                             <div style="
                                 font-size: 11px;
@@ -4314,7 +4305,7 @@ async function showPhoneListModal() {
                                 const outline = getPhoneCatalogOutlineStyle(phoneColor, colorHex);
                                 return phoneColor ? `<span style="${getPhoneCatalogMetaTextStyle(outline)}">${phoneColor}</span>` : '';
                             })()}
-                            ${phone.isBuyback ? `<span style="color: #00bcd4; font-weight: 600; font-size: 11px;">Buyback</span>` : ''}
+                            ${phone.isBuyback ? `<span class="tm-phone-buyback-badge" style="font-weight: 600; font-size: 11px; border-radius: 20px; padding: 1px 7px;">Buyback</span>` : ''}
                             ${(() => {
                                 const phoneTags = getPhoneTags(phone.barcode);
                                 if (phoneTags.length > 0) {
@@ -4913,13 +4904,13 @@ async function showPhoneListModal() {
                             ${noBuybackStore ? `<span title="${noBuybackTitle}" style="font-size:12px;line-height:1;">🚫</span>` : ''}
                             <span style="${getPhoneModelTitleStyle(itemColor, itemColorHex)}"
                                 title="${displayModel}">${displayModel}</span>
-                            ${storage ? `<span style="${getPhoneStorageChipStyle()}">${storage}</span>` : ''}
-                            ${item.isBuyback ? `<span style="background:#06b6d420;border:1px solid #06b6d450;color:#06b6d4;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;flex-shrink:0;">Buyback</span>` : ''}
-                            ${item.retailPrice ? `<span class="tm-os-price-pill" style="${getPhonePricePillStyle()}">${item.retailPrice}<span style="opacity:0.9;margin-left:1px;">€</span></span>` : ''}
+                            ${storage ? `<span class="tm-phone-storage-chip" style="${getPhoneStorageChipStyle()}">${storage}</span>` : ''}
+                            ${item.isBuyback ? `<span class="tm-phone-buyback-badge" style="border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700;flex-shrink:0;">Buyback</span>` : ''}
+                            ${item.retailPrice ? `<span class="tm-phone-price-pill tm-os-price-pill" style="${getPhonePricePillStyle()}">${item.retailPrice}<span style="opacity:0.9;margin-left:1px;">€</span></span>` : ''}
                         </div>
                         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:1px;">
                             ${colorDot ? `<span style="${getPhoneColorLabelStyle(itemColor, itemColorHex)}">${colorDot}<span>${itemColor}</span></span>` : ''}
-                            <span class="tm-os-barcode" style="${getPhoneBarcodeStyle()}" title="${item.barcode}">${item.barcode}</span>
+                            <span class="tm-phone-barcode tm-os-barcode" style="${getPhoneBarcodeStyle()}" title="${item.barcode}">${item.barcode}</span>
                         </div>
                     </div>
 
@@ -5389,7 +5380,7 @@ async function showPhoneListModal() {
                     border-color: var(--tm-primary-color);
                     background: var(--tm-shop-item-hover-bg);
                     outline: none;
-                    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+                    box-shadow: 0 0 0 2px color-mix(in srgb, var(--tm-primary-color) 18%, transparent);
                 }
                 #tm-other-store-filter-grade:hover,
                 #tm-other-store-filter-model:hover,
