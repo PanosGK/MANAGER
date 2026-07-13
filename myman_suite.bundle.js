@@ -3033,10 +3033,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '214',
+        version: '215',
         loaderVersion: '5',
-        silentVersion: '4',
-        displayVersion: '5.4',
+        silentVersion: '5',
+        displayVersion: '5.5',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -5019,57 +5019,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (window.__tmGlobalStylesApplied) return;
         window.__tmGlobalStylesApplied = true;
         GM_addStyle(`
-            /* --- Full-height page shell (rnr-page fills to footer) --- */
-            html {
-                height: 100%;
-            }
-            body {
-                min-height: 100vh;
-                min-height: 100dvh;
-            }
-            .rnr-pagewrapper {
-                min-height: 100vh;
-                min-height: 100dvh;
-                display: flex;
-                flex-direction: column;
-                width: 100%;
-                box-sizing: border-box;
-            }
-            .rnr-top {
-                flex-shrink: 0;
-            }
-            .rnr-page {
-                flex: 1 1 auto;
-                display: flex;
-                flex-direction: column;
-                min-height: 0;
-                width: 100%;
-                box-sizing: border-box;
-            }
-            .rnr-middle {
-                flex: 1 1 auto;
-                display: flex;
-                flex-direction: column;
-                min-height: 0;
-                width: 100%;
-                box-sizing: border-box;
-            }
-            body[class*="page-centered_vert"] .rnr-middle {
-                justify-content: center;
-            }
-            #footer-outter,
-            #footer-outterwrap,
-            .rnr-bottom {
-                flex-shrink: 0;
-            }
-
             /* --- Footer Height and Positioning Adjustment --- */
             #footer-outterwrap {
-                width: 100% !important;
-                box-sizing: border-box !important;
+                height: calc(100% + 20px) !important;
+                min-height: calc(100% + 20px) !important;
             }
             #footer-outterwrap table {
-                width: 100% !important;
+                height: 100% !important;
             }
             #footer-outterwrap table td[width="60%"] {
                 text-align: center;
