@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v212 / Custom Ver. 5.2 — generated, do not edit */
+/* MyManager Suite bundle v213 / Custom Ver. 5.3 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -3032,9 +3032,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '211',
+        version: '212',
         loaderVersion: '5',
-        displayVersion: '2.3.2.3',
+        silentVersion: '2',
+        displayVersion: '5.2',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -4433,16 +4434,21 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         updateLoaderUpdateIndicator(getLastScriptUpdateResult());
     }
 
-    function showLoaderUpdateHelp() {
+    function openUpdatesSettings() {
         const settingsBtn = document.getElementById('tm-settings-btn');
-        if (settingsBtn) {
-            settingsBtn.click();
-            setTimeout(() => {
-                const overlay = document.querySelector('.tm-modal-overlay');
-                overlay?.querySelector('.tm-settings-sidebar .tm-nav a[href="#sec-updates"]')?.click();
-            }, 150);
-            return;
-        }
+        if (!settingsBtn) return false;
+
+        settingsBtn.click();
+        setTimeout(() => {
+            const overlay = document.querySelector('.tm-modal-overlay');
+            overlay?.querySelector('.tm-settings-sidebar .tm-nav a[href="#sec-updates"]')?.click();
+        }, 150);
+        return true;
+    }
+
+    function showLoaderUpdateHelp() {
+        if (openUpdatesSettings()) return;
+
         const result = lastUpdateResult;
         const loaderUrl = window.SCRIPT_META?.loaderUrl || 'myman_loader.user.js';
         const remote = result?.remote || '?';
@@ -4487,7 +4493,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         const brand = document.createElement('div');
         brand.id = 'tm-footer-suite-brand';
         brand.innerHTML = `
-            <span class="tm-footer-version-label">Custom Ver. ${escapeHtml(displayVer)}</span>
+            <button type="button" class="tm-footer-version-label" title="Ενημερώσεις">Custom Ver. ${escapeHtml(displayVer)}</button>
             <button type="button" id="tm-loader-update-icon" class="tm-footer-loader-update-btn" title="" hidden aria-label="Ενημέρωση loader">
                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
                     <path fill="currentColor" d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
@@ -4498,6 +4504,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         cell.innerHTML = '';
         cell.appendChild(brand);
 
+        brand.querySelector('.tm-footer-version-label')?.addEventListener('click', openUpdatesSettings);
         brand.querySelector('#tm-loader-update-icon')?.addEventListener('click', showLoaderUpdateHelp);
 
         window.addEventListener('mms-update-check', (e) => {
@@ -4988,11 +4995,23 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 box-sizing: border-box;
             }
             .tm-footer-version-label {
+                margin: 0;
+                padding: 0;
+                border: none;
+                background: none;
+                font: inherit;
                 font-size: 11px;
                 font-weight: 600;
                 letter-spacing: 0.02em;
                 opacity: 0.9;
                 white-space: nowrap;
+                color: inherit;
+                cursor: pointer;
+                text-decoration: none;
+            }
+            .tm-footer-version-label:hover {
+                opacity: 1;
+                text-decoration: underline;
             }
             .tm-footer-loader-update-btn {
                 display: inline-flex;

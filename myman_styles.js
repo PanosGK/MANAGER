@@ -40,11 +40,23 @@
                 box-sizing: border-box;
             }
             .tm-footer-version-label {
+                margin: 0;
+                padding: 0;
+                border: none;
+                background: none;
+                font: inherit;
                 font-size: 11px;
                 font-weight: 600;
                 letter-spacing: 0.02em;
                 opacity: 0.9;
                 white-space: nowrap;
+                color: inherit;
+                cursor: pointer;
+                text-decoration: none;
+            }
+            .tm-footer-version-label:hover {
+                opacity: 1;
+                text-decoration: underline;
             }
             .tm-footer-loader-update-btn {
                 display: inline-flex;
