@@ -184,7 +184,7 @@
         try {
             GM_setValue(STORAGE_KEYS.THEME_COLORS_CACHE, JSON.stringify({
                 themeId,
-                colors: theme.colors,
+                colors: theme.appliedColors || theme.colors,
                 updatedAt: Date.now(),
             }));
         } catch (_) { /* ignore */ }

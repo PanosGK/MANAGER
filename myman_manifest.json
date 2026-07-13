@@ -1,5 +1,5 @@
 {
-  "version": "184",
+  "version": "185",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
   "releaseNotes": "Quick search UI: minimal left-aligned inline inputs.",

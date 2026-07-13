@@ -88,11 +88,12 @@ const PERFORMANCE_STYLES_DEFAULT_FOOTER = `
 #tm-xp-bar-container,
 #tm-coin-balance,
 .tm-footer-widget,
-.tm-buff-timer {
-    background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+.tm-buff-timer,
+#tm-recent-repairs-btn {
+    background: var(--tm-glass-bg, linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)) !important;
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
-    border-color: rgba(255,255,255,0.2) !important;
+    border-color: var(--tm-glass-border, rgba(255,255,255,0.2)) !important;
 }
 `;
 

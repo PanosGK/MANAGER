@@ -1681,26 +1681,157 @@ function tmResolveShopItemText(themeColors) {
     return themeColors['--tm-text-on-dark'] || themeColors['--tm-primary-color'] || '#e8e8e8';
 }
 
+function tmRgbChannelString(color) {
+    const rgb = tmParseRgbColor(color);
+    return rgb ? `${rgb.r},${rgb.g},${rgb.b}` : null;
+}
+
+function tmBuildDerivedThemeTokens(colors) {
+    const c = colors || {};
+    const pick = (key, fallback) => (c[key] != null && c[key] !== '' ? c[key] : fallback);
+
+    const primary = c['--tm-primary-color'] || '#007bff';
+    const primaryHover = c['--tm-primary-hover'] || primary;
+    const secondary = c['--tm-secondary-color'] || '#6c757d';
+    const secondaryHover = c['--tm-secondary-hover'] || secondary;
+    const success = c['--tm-success-color'] || '#28a745';
+    const successHover = c['--tm-success-hover'] || success;
+    const danger = c['--tm-danger-color'] || '#dc3545';
+    const warning = c['--tm-warning-color'] || '#ffc107';
+    const warningHover = c['--tm-warning-hover'] || warning;
+    const info = c['--tm-info-color'] || '#17a2b8';
+    const infoHover = c['--tm-info-hover'] || info;
+    const dark = c['--tm-dark-color'] || '#343a40';
+    const darkHover = c['--tm-dark-hover'] || '#23272b';
+    const shopBg = c['--tm-shop-item-bg'] || '#f8f9fa';
+    const shopBorder = c['--tm-shop-item-border'] || '#dee2e6';
+    const shopHover = c['--tm-shop-item-hover-bg'] || shopBg;
+    const shopOwned = c['--tm-shop-item-owned-bg'] || shopHover;
+    const modalBg = c['--tm-modal-bg'] || shopBg;
+    const textOnDark = c['--tm-text-on-dark'] || primary;
+    const textOnLight = c['--tm-text-on-light'] || '#343a40';
+    const isLight = tmIsLightShopItemBg(shopBg);
+
+    const primaryRgb = tmRgbChannelString(primary);
+    const successRgb = tmRgbChannelString(success);
+    const dangerRgb = tmRgbChannelString(danger);
+    const warningRgb = tmRgbChannelString(warning);
+    const infoRgb = tmRgbChannelString(info);
+
+    const glassBg = isLight
+        ? 'linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)'
+        : (primaryRgb
+            ? `linear-gradient(145deg, rgba(${primaryRgb},0.18) 0%, rgba(${primaryRgb},0.05) 100%)`
+            : String(shopBg));
+    const glassHover = warningRgb
+        ? `linear-gradient(135deg, rgba(${warningRgb},0.35) 0%, rgba(${warningRgb},0.14) 100%)`
+        : String(shopHover);
+    const glassBorder = primaryRgb ? `rgba(${primaryRgb}, 0.28)` : 'rgba(255,255,255,0.2)';
+
+    const derived = {
+        '--tm-body-bg-start': dark,
+        '--tm-body-bg-end': darkHover,
+        '--tm-surface-bg': shopBg,
+        '--tm-surface-hover-bg': shopHover,
+        '--tm-surface-border': shopBorder,
+        '--tm-surface-alt-bg': shopOwned,
+        '--tm-panel-bg': modalBg,
+        '--tm-header-bg': darkHover,
+        '--tm-nav-bg': dark,
+        '--tm-section-bg': shopOwned,
+        '--tm-muted-text': secondary,
+        '--tm-subtle-text': secondaryHover,
+        '--tm-heading-color': info,
+        '--tm-label-color': secondaryHover,
+        '--tm-footer-text': isLight ? textOnLight : textOnDark,
+        '--tm-link-color': primaryHover,
+        '--tm-link-hover-color': info,
+        '--tm-input-bg': shopBg,
+        '--tm-input-border': secondaryHover,
+        '--tm-input-text': primary,
+        '--tm-input-focus-border': primary,
+        '--tm-focus-ring': primary,
+        '--tm-accent-color': info,
+        '--tm-accent-hover': infoHover,
+        '--tm-price-color': success,
+        '--tm-price-border': success,
+        '--tm-price-bg': successRgb ? `rgba(${successRgb}, 0.14)` : 'rgba(40,167,69,0.12)',
+        '--tm-coin-color': warning,
+        '--tm-xp-fill-start': warning,
+        '--tm-xp-fill-end': warningHover,
+        '--tm-xp-track-bg': 'rgba(0,0,0,0.4)',
+        '--tm-xp-track-border': primaryRgb ? `rgba(${primaryRgb}, 0.35)` : `rgba(${warningRgb || '255,215,0'}, 0.35)`,
+        '--tm-progress-bg': darkHover,
+        '--tm-glass-bg': glassBg,
+        '--tm-glass-border': glassBorder,
+        '--tm-glass-hover-bg': glassHover,
+        '--tm-widget-text': isLight ? '#ffffff' : textOnDark,
+        '--tm-overlay-dim': 'rgba(0,0,0,0.82)',
+        '--tm-shadow-color': primaryRgb ? `rgba(${primaryRgb}, 0.22)` : 'rgba(0,0,0,0.15)',
+        '--tm-glow-color': primary,
+        '--tm-chip-bg': shopHover,
+        '--tm-chip-border': shopBorder,
+        '--tm-chip-text': primary,
+        '--tm-tab-bg': dark,
+        '--tm-tab-active-bg': darkHover,
+        '--tm-tab-active-border': primary,
+        '--tm-notification-panel-bg': dark,
+        '--tm-notification-header-bg': darkHover,
+        '--tm-buff-accent': info,
+        '--tm-level-badge-bg': warningRgb
+            ? `linear-gradient(135deg, rgba(${warningRgb},0.35) 0%, rgba(${warningRgb},0.18) 100%)`
+            : warning,
+        '--tm-level-badge-border': warningRgb ? `rgba(${warningRgb}, 0.55)` : warning,
+        '--tm-buff-badge-bg': infoRgb
+            ? `linear-gradient(135deg, rgba(${infoRgb},0.32) 0%, rgba(${infoRgb},0.14) 100%)`
+            : info,
+        '--tm-buff-badge-border': infoRgb ? `rgba(${infoRgb}, 0.55)` : info,
+        '--tm-scrollbar-thumb': secondaryHover,
+        '--tm-scrollbar-track': darkHover,
+    };
+
+    if (primaryRgb) derived['--tm-primary-color-rgb'] = primaryRgb;
+    if (successRgb) derived['--tm-success-color-rgb'] = successRgb;
+    if (dangerRgb) derived['--tm-danger-color-rgb'] = dangerRgb;
+    if (warningRgb) derived['--tm-warning-color-rgb'] = warningRgb;
+    if (infoRgb) derived['--tm-info-color-rgb'] = infoRgb;
+
+    const merged = { ...derived };
+    Object.keys(c).forEach((key) => {
+        if (c[key] != null && c[key] !== '') merged[key] = c[key];
+    });
+    return merged;
+}
+
+function tmInjectExtendedThemeStyles() {
+    document.getElementById('tm-extended-theme-styles')?.remove();
+    const el = document.createElement('style');
+    el.id = 'tm-extended-theme-styles';
+    el.textContent = THEME_EXTENDED_STYLES;
+    document.head.appendChild(el);
+}
+
 function tmApplyThemeColors(themeId, options = {}) {
     const theme = UI_THEMES[themeId] || UI_THEMES.default;
     const root = document.documentElement;
+    const appliedColors = tmBuildDerivedThemeTokens(theme.colors);
 
-    for (const [variable, color] of Object.entries(theme.colors)) {
+    for (const [variable, color] of Object.entries(appliedColors)) {
         root.style.setProperty(variable, color);
-        if (variable === '--tm-primary-color') {
-            const rgb = tmHexToRgb(color);
-            if (rgb) {
-                root.style.setProperty('--tm-primary-color-rgb', `${rgb.r},${rgb.g},${rgb.b}`);
-            }
-        }
     }
 
-    const bg = theme.colors['--tm-dark-color'] || theme.colors['--tm-shop-item-bg'];
+    const shopText = tmResolveShopItemText(appliedColors);
+    root.style.setProperty('--tm-shop-item-text', shopText);
+    appliedColors['--tm-shop-item-text'] = shopText;
+
+    const bg = appliedColors['--tm-dark-color'] || appliedColors['--tm-shop-item-bg'];
     if (bg) {
         root.style.backgroundColor = bg;
     }
-    root.style.setProperty('--tm-shop-item-text', tmResolveShopItemText(theme.colors));
     document.documentElement.dataset.tmTheme = themeId;
+    theme.appliedColors = appliedColors;
+
+    tmInjectExtendedThemeStyles();
 
     if (options.pageStyles !== false) {
         document.getElementById('tm-page-theme-styles')?.remove();
@@ -1722,6 +1853,7 @@ function tmApplyThemeColors(themeId, options = {}) {
 window.UI_THEMES = UI_THEMES;
 window.tmApplyThemeColors = tmApplyThemeColors;
 window.tmReadEquippedThemeId = tmReadEquippedThemeId;
+window.tmBuildDerivedThemeTokens = tmBuildDerivedThemeTokens;
 
 (function tmBootstrapThemeOnLoad() {
     const pathname = window.location.pathname || '';

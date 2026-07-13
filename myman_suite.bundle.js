@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v184 — generated, do not edit */
+/* MyManager Suite bundle v185 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -531,16 +531,13 @@ img[src='images/smsdelivered.png'] {
     function applyColors(colors) {
         if (!colors || typeof colors !== 'object') return;
         const root = document.documentElement;
-        for (const [variable, color] of Object.entries(colors)) {
+        const expanded = typeof window.tmBuildDerivedThemeTokens === 'function'
+            ? window.tmBuildDerivedThemeTokens(colors)
+            : colors;
+        for (const [variable, color] of Object.entries(expanded)) {
             root.style.setProperty(variable, color);
-            if (variable === '--tm-primary-color') {
-                const rgb = hexToRgb(color);
-                if (rgb) {
-                    root.style.setProperty('--tm-primary-color-rgb', `${rgb.r},${rgb.g},${rgb.b}`);
-                }
-            }
         }
-        const shopBg = colors['--tm-shop-item-bg'];
+        const shopBg = expanded['--tm-shop-item-bg'] || colors['--tm-shop-item-bg'];
         const shopRgb = (() => {
             const s = String(shopBg || '').trim();
             const rgba = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
@@ -550,12 +547,12 @@ img[src='images/smsdelivered.png'] {
         const lightShop = shopRgb
             ? (0.299 * shopRgb.r + 0.587 * shopRgb.g + 0.114 * shopRgb.b) / 255 > 0.52
             : true;
-        const shopText = colors['--tm-shop-item-text']
+        const shopText = expanded['--tm-shop-item-text'] || colors['--tm-shop-item-text']
             || (lightShop
-                ? (colors['--tm-text-on-light'] || '#343a40')
-                : (colors['--tm-text-on-dark'] || colors['--tm-primary-color'] || '#e8e8e8'));
+                ? (expanded['--tm-text-on-light'] || colors['--tm-text-on-light'] || '#343a40')
+                : (expanded['--tm-text-on-dark'] || colors['--tm-text-on-dark'] || expanded['--tm-primary-color'] || colors['--tm-primary-color'] || '#e8e8e8'));
         root.style.setProperty('--tm-shop-item-text', shopText);
-        const bg = colors['--tm-dark-color'] || colors['--tm-shop-item-bg'];
+        const bg = expanded['--tm-dark-color'] || colors['--tm-dark-color'] || shopBg;
         if (bg) {
             root.style.backgroundColor = bg;
         }
@@ -690,11 +687,12 @@ const PERFORMANCE_STYLES_DEFAULT_FOOTER = `
 #tm-xp-bar-container,
 #tm-coin-balance,
 .tm-footer-widget,
-.tm-buff-timer {
-    background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+.tm-buff-timer,
+#tm-recent-repairs-btn {
+    background: var(--tm-glass-bg, linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)) !important;
     backdrop-filter: blur(10px) !important;
     -webkit-backdrop-filter: blur(10px) !important;
-    border-color: rgba(255,255,255,0.2) !important;
+    border-color: var(--tm-glass-border, rgba(255,255,255,0.2)) !important;
 }
 `;
 
@@ -1378,6 +1376,127 @@ const THEME_STYLES = `/* Universal Theme Styles */
             .pagetitle span {
                 color: var(--tm-primary-color) !important;
             }
+        `;
+
+const THEME_EXTENDED_STYLES = `/* --- Extended theme tokens (derived per theme in tmApplyThemeColors) --- */
+            h1, h2, h3, h4, h5, h6 { color: var(--tm-heading-color, var(--tm-info-color, var(--tm-primary-color))) !important; }
+            .pagetitle, .pagetitle span { color: var(--tm-heading-color, var(--tm-info-color, var(--tm-primary-color))) !important; }
+            .fieldGrid .rnr-label label, .fieldGrid .rnr-label b { color: var(--tm-label-color, var(--tm-secondary-hover, var(--tm-secondary-color))) !important; }
+
+            /* Footer suite widgets */
+            #tm-notification-bell-btn,
+            #tm-settings-btn,
+            #tm-refresh-timer-container,
+            #tm-weather-widget,
+            #tm-daily-dashboard-widget,
+            #tm-xp-bar-container,
+            #tm-coin-balance,
+            .tm-footer-widget,
+            .tm-buff-timer,
+            #tm-recent-repairs-btn {
+                background: var(--tm-glass-bg, var(--tm-surface-bg, var(--tm-shop-item-bg))) !important;
+                border-color: var(--tm-glass-border, var(--tm-surface-border, var(--tm-shop-item-border))) !important;
+                color: var(--tm-widget-text, var(--tm-footer-text, var(--tm-primary-color))) !important;
+                box-shadow: 0 2px 8px var(--tm-shadow-color, rgba(0,0,0,0.15)) !important;
+            }
+            #tm-notification-bell-btn:hover,
+            #tm-settings-btn:hover,
+            #tm-refresh-timer-container:hover,
+            #tm-weather-widget:hover,
+            #tm-daily-dashboard-widget:hover,
+            #tm-xp-bar-container:hover,
+            #tm-coin-balance:hover,
+            .tm-footer-widget:hover,
+            .tm-buff-timer:hover,
+            #tm-recent-repairs-btn:hover {
+                background: var(--tm-glass-hover-bg, var(--tm-surface-hover-bg, var(--tm-shop-item-hover-bg))) !important;
+                border-color: var(--tm-glass-border, var(--tm-surface-border, var(--tm-shop-item-border))) !important;
+            }
+            #tm-notification-bell-btn,
+            #tm-settings-btn,
+            .tm-refresh-time-text,
+            #tm-weather-temp,
+            #tm-user-title-text,
+            .tm-buff-timer-icon,
+            #tm-xp-bar-container *,
+            #tm-daily-dashboard-widget * {
+                color: var(--tm-widget-text, var(--tm-footer-text, var(--tm-primary-color))) !important;
+            }
+            #tm-coin-balance, #tm-coin-balance * { color: var(--tm-coin-color, var(--tm-warning-color)) !important; text-shadow: none !important; }
+
+            /* XP / level badges */
+            .tm-xp-bar { background: var(--tm-xp-track-bg, rgba(0,0,0,0.4)) !important; border-color: var(--tm-xp-track-border, var(--tm-surface-border)) !important; }
+            #tm-xp-bar-fill {
+                background: linear-gradient(90deg, var(--tm-xp-fill-start, var(--tm-warning-color)), var(--tm-xp-fill-end, var(--tm-warning-hover, var(--tm-warning-color)))) !important;
+                box-shadow: 0 0 10px var(--tm-glow-color, var(--tm-warning-color)) !important;
+            }
+            #tm-level-text {
+                background: var(--tm-level-badge-bg, var(--tm-warning-color)) !important;
+                border-color: var(--tm-level-badge-border, var(--tm-warning-color)) !important;
+                color: var(--tm-widget-text, var(--tm-text-on-primary, #fff)) !important;
+            }
+            #tm-energized-buff-indicator {
+                background: var(--tm-buff-badge-bg, var(--tm-info-color)) !important;
+                border-color: var(--tm-buff-badge-border, var(--tm-info-color)) !important;
+                color: var(--tm-widget-text, var(--tm-text-on-primary, #fff)) !important;
+            }
+            .tm-xp-gain-indicator { color: var(--tm-warning-color) !important; }
+            .tm-level-pop { animation: tm-level-text-pop 0.5s ease-out; }
+
+            /* Overlays & popups */
+            .jconfirm, #tm-notification-backdrop { background: var(--tm-overlay-dim, rgba(0,0,0,0.82)) !important; }
+            #tm-recent-repairs-menu,
+            .tm-recent-repairs-header,
+            .tm-recent-repair-item {
+                background: var(--tm-panel-bg, var(--tm-shop-item-bg)) !important;
+                color: var(--tm-primary-color) !important;
+                border-color: var(--tm-surface-border, var(--tm-shop-item-border)) !important;
+            }
+            .tm-recent-repair-item:hover { background: var(--tm-surface-hover-bg, var(--tm-shop-item-hover-bg)) !important; }
+            .tm-recent-repair-meta { color: var(--tm-muted-text, var(--tm-secondary-color)) !important; }
+
+            /* Quests & specialty footer buttons */
+            #tm-quests-btn { background-color: var(--tm-secondary-hover, var(--tm-secondary-color)) !important; color: var(--tm-text-on-primary, #fff) !important; }
+            #tm-quests-btn:hover { background-color: var(--tm-secondary-color) !important; }
+            #tm-scratchpad-toggle-btn { background-color: var(--tm-secondary-color) !important; color: var(--tm-text-on-primary, #fff) !important; }
+            #tm-scratchpad-toggle-btn:hover { background-color: var(--tm-secondary-hover) !important; }
+
+            /* Repair edit sections */
+            .rnr-s-fields > .rnr-c, .rnr-s-1 > .rnr-c {
+                background: var(--tm-section-bg, var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg))) !important;
+                border-color: var(--tm-surface-border, var(--tm-shop-item-border)) !important;
+            }
+
+            /* Chips / metadata */
+            .tm-os-price-pill, .tm-phone-price-pill {
+                color: var(--tm-price-color, var(--tm-success-color)) !important;
+                border-color: var(--tm-price-border, var(--tm-success-color)) !important;
+                background: var(--tm-price-bg, rgba(var(--tm-success-color-rgb, 40,167,69), 0.12)) !important;
+            }
+            .tm-os-barcode, .tm-phone-barcode {
+                color: var(--tm-subtle-text, var(--tm-shop-item-text, var(--tm-primary-color))) !important;
+                background: var(--tm-chip-bg, var(--tm-surface-hover-bg)) !important;
+                border-color: var(--tm-chip-border, var(--tm-surface-border)) !important;
+            }
+
+            /* Alert / cancel actions */
+            .tm-alert-cancel-btn {
+                border-color: rgba(var(--tm-danger-color-rgb, 220,53,69), 0.45) !important;
+                background: rgba(var(--tm-danger-color-rgb, 220,53,69), 0.12) !important;
+                color: var(--tm-danger-color) !important;
+            }
+            .tm-alert-cancel-btn:hover { background: rgba(var(--tm-danger-color-rgb, 220,53,69), 0.22) !important; }
+
+            /* Pagination & tabs */
+            .rnr-cw-pagination, .rnr-cw-pagination_bottom, .rnr-c-pagination, .rnr-c-pagination_bottom {
+                color: var(--tm-primary-color) !important;
+            }
+            .rnr-tab { background-color: var(--tm-tab-bg, var(--tm-nav-bg, var(--tm-dark-color))) !important; }
+            .rnr-tab.selected { background-color: var(--tm-tab-active-bg, var(--tm-header-bg, var(--tm-dark-hover))) !important; border-color: var(--tm-tab-active-border, var(--tm-primary-color)) !important; }
+
+            /* Scrollbar hints (webkit) */
+            ::-webkit-scrollbar-thumb { background: var(--tm-scrollbar-thumb, var(--tm-secondary-hover, var(--tm-secondary-color))) !important; }
+            ::-webkit-scrollbar-track { background: var(--tm-scrollbar-track, var(--tm-dark-hover, var(--tm-dark-color))) !important; }
         `;
 
 const UI_THEMES = {
@@ -2302,26 +2421,157 @@ function tmResolveShopItemText(themeColors) {
     return themeColors['--tm-text-on-dark'] || themeColors['--tm-primary-color'] || '#e8e8e8';
 }
 
+function tmRgbChannelString(color) {
+    const rgb = tmParseRgbColor(color);
+    return rgb ? `${rgb.r},${rgb.g},${rgb.b}` : null;
+}
+
+function tmBuildDerivedThemeTokens(colors) {
+    const c = colors || {};
+    const pick = (key, fallback) => (c[key] != null && c[key] !== '' ? c[key] : fallback);
+
+    const primary = c['--tm-primary-color'] || '#007bff';
+    const primaryHover = c['--tm-primary-hover'] || primary;
+    const secondary = c['--tm-secondary-color'] || '#6c757d';
+    const secondaryHover = c['--tm-secondary-hover'] || secondary;
+    const success = c['--tm-success-color'] || '#28a745';
+    const successHover = c['--tm-success-hover'] || success;
+    const danger = c['--tm-danger-color'] || '#dc3545';
+    const warning = c['--tm-warning-color'] || '#ffc107';
+    const warningHover = c['--tm-warning-hover'] || warning;
+    const info = c['--tm-info-color'] || '#17a2b8';
+    const infoHover = c['--tm-info-hover'] || info;
+    const dark = c['--tm-dark-color'] || '#343a40';
+    const darkHover = c['--tm-dark-hover'] || '#23272b';
+    const shopBg = c['--tm-shop-item-bg'] || '#f8f9fa';
+    const shopBorder = c['--tm-shop-item-border'] || '#dee2e6';
+    const shopHover = c['--tm-shop-item-hover-bg'] || shopBg;
+    const shopOwned = c['--tm-shop-item-owned-bg'] || shopHover;
+    const modalBg = c['--tm-modal-bg'] || shopBg;
+    const textOnDark = c['--tm-text-on-dark'] || primary;
+    const textOnLight = c['--tm-text-on-light'] || '#343a40';
+    const isLight = tmIsLightShopItemBg(shopBg);
+
+    const primaryRgb = tmRgbChannelString(primary);
+    const successRgb = tmRgbChannelString(success);
+    const dangerRgb = tmRgbChannelString(danger);
+    const warningRgb = tmRgbChannelString(warning);
+    const infoRgb = tmRgbChannelString(info);
+
+    const glassBg = isLight
+        ? 'linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%)'
+        : (primaryRgb
+            ? `linear-gradient(145deg, rgba(${primaryRgb},0.18) 0%, rgba(${primaryRgb},0.05) 100%)`
+            : String(shopBg));
+    const glassHover = warningRgb
+        ? `linear-gradient(135deg, rgba(${warningRgb},0.35) 0%, rgba(${warningRgb},0.14) 100%)`
+        : String(shopHover);
+    const glassBorder = primaryRgb ? `rgba(${primaryRgb}, 0.28)` : 'rgba(255,255,255,0.2)';
+
+    const derived = {
+        '--tm-body-bg-start': dark,
+        '--tm-body-bg-end': darkHover,
+        '--tm-surface-bg': shopBg,
+        '--tm-surface-hover-bg': shopHover,
+        '--tm-surface-border': shopBorder,
+        '--tm-surface-alt-bg': shopOwned,
+        '--tm-panel-bg': modalBg,
+        '--tm-header-bg': darkHover,
+        '--tm-nav-bg': dark,
+        '--tm-section-bg': shopOwned,
+        '--tm-muted-text': secondary,
+        '--tm-subtle-text': secondaryHover,
+        '--tm-heading-color': info,
+        '--tm-label-color': secondaryHover,
+        '--tm-footer-text': isLight ? textOnLight : textOnDark,
+        '--tm-link-color': primaryHover,
+        '--tm-link-hover-color': info,
+        '--tm-input-bg': shopBg,
+        '--tm-input-border': secondaryHover,
+        '--tm-input-text': primary,
+        '--tm-input-focus-border': primary,
+        '--tm-focus-ring': primary,
+        '--tm-accent-color': info,
+        '--tm-accent-hover': infoHover,
+        '--tm-price-color': success,
+        '--tm-price-border': success,
+        '--tm-price-bg': successRgb ? `rgba(${successRgb}, 0.14)` : 'rgba(40,167,69,0.12)',
+        '--tm-coin-color': warning,
+        '--tm-xp-fill-start': warning,
+        '--tm-xp-fill-end': warningHover,
+        '--tm-xp-track-bg': 'rgba(0,0,0,0.4)',
+        '--tm-xp-track-border': primaryRgb ? `rgba(${primaryRgb}, 0.35)` : `rgba(${warningRgb || '255,215,0'}, 0.35)`,
+        '--tm-progress-bg': darkHover,
+        '--tm-glass-bg': glassBg,
+        '--tm-glass-border': glassBorder,
+        '--tm-glass-hover-bg': glassHover,
+        '--tm-widget-text': isLight ? '#ffffff' : textOnDark,
+        '--tm-overlay-dim': 'rgba(0,0,0,0.82)',
+        '--tm-shadow-color': primaryRgb ? `rgba(${primaryRgb}, 0.22)` : 'rgba(0,0,0,0.15)',
+        '--tm-glow-color': primary,
+        '--tm-chip-bg': shopHover,
+        '--tm-chip-border': shopBorder,
+        '--tm-chip-text': primary,
+        '--tm-tab-bg': dark,
+        '--tm-tab-active-bg': darkHover,
+        '--tm-tab-active-border': primary,
+        '--tm-notification-panel-bg': dark,
+        '--tm-notification-header-bg': darkHover,
+        '--tm-buff-accent': info,
+        '--tm-level-badge-bg': warningRgb
+            ? `linear-gradient(135deg, rgba(${warningRgb},0.35) 0%, rgba(${warningRgb},0.18) 100%)`
+            : warning,
+        '--tm-level-badge-border': warningRgb ? `rgba(${warningRgb}, 0.55)` : warning,
+        '--tm-buff-badge-bg': infoRgb
+            ? `linear-gradient(135deg, rgba(${infoRgb},0.32) 0%, rgba(${infoRgb},0.14) 100%)`
+            : info,
+        '--tm-buff-badge-border': infoRgb ? `rgba(${infoRgb}, 0.55)` : info,
+        '--tm-scrollbar-thumb': secondaryHover,
+        '--tm-scrollbar-track': darkHover,
+    };
+
+    if (primaryRgb) derived['--tm-primary-color-rgb'] = primaryRgb;
+    if (successRgb) derived['--tm-success-color-rgb'] = successRgb;
+    if (dangerRgb) derived['--tm-danger-color-rgb'] = dangerRgb;
+    if (warningRgb) derived['--tm-warning-color-rgb'] = warningRgb;
+    if (infoRgb) derived['--tm-info-color-rgb'] = infoRgb;
+
+    const merged = { ...derived };
+    Object.keys(c).forEach((key) => {
+        if (c[key] != null && c[key] !== '') merged[key] = c[key];
+    });
+    return merged;
+}
+
+function tmInjectExtendedThemeStyles() {
+    document.getElementById('tm-extended-theme-styles')?.remove();
+    const el = document.createElement('style');
+    el.id = 'tm-extended-theme-styles';
+    el.textContent = THEME_EXTENDED_STYLES;
+    document.head.appendChild(el);
+}
+
 function tmApplyThemeColors(themeId, options = {}) {
     const theme = UI_THEMES[themeId] || UI_THEMES.default;
     const root = document.documentElement;
+    const appliedColors = tmBuildDerivedThemeTokens(theme.colors);
 
-    for (const [variable, color] of Object.entries(theme.colors)) {
+    for (const [variable, color] of Object.entries(appliedColors)) {
         root.style.setProperty(variable, color);
-        if (variable === '--tm-primary-color') {
-            const rgb = tmHexToRgb(color);
-            if (rgb) {
-                root.style.setProperty('--tm-primary-color-rgb', `${rgb.r},${rgb.g},${rgb.b}`);
-            }
-        }
     }
 
-    const bg = theme.colors['--tm-dark-color'] || theme.colors['--tm-shop-item-bg'];
+    const shopText = tmResolveShopItemText(appliedColors);
+    root.style.setProperty('--tm-shop-item-text', shopText);
+    appliedColors['--tm-shop-item-text'] = shopText;
+
+    const bg = appliedColors['--tm-dark-color'] || appliedColors['--tm-shop-item-bg'];
     if (bg) {
         root.style.backgroundColor = bg;
     }
-    root.style.setProperty('--tm-shop-item-text', tmResolveShopItemText(theme.colors));
     document.documentElement.dataset.tmTheme = themeId;
+    theme.appliedColors = appliedColors;
+
+    tmInjectExtendedThemeStyles();
 
     if (options.pageStyles !== false) {
         document.getElementById('tm-page-theme-styles')?.remove();
@@ -2343,6 +2593,7 @@ function tmApplyThemeColors(themeId, options = {}) {
 window.UI_THEMES = UI_THEMES;
 window.tmApplyThemeColors = tmApplyThemeColors;
 window.tmReadEquippedThemeId = tmReadEquippedThemeId;
+window.tmBuildDerivedThemeTokens = tmBuildDerivedThemeTokens;
 
 (function tmBootstrapThemeOnLoad() {
     const pathname = window.location.pathname || '';
@@ -2372,7 +2623,7 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '183',
+        version: '184',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -4224,6 +4475,20 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
                 --tm-shop-item-border: #dee2e6;
                 --tm-shop-item-hover-bg: #e9ecef;
                 --tm-shop-item-owned-bg: #e7f1ff;
+                --tm-shop-item-text: #343a40;
+                --tm-text-on-primary: #ffffff;
+                --tm-text-on-success: #ffffff;
+                --tm-text-on-light: #343a40;
+                --tm-text-on-dark: #cccccc;
+                --tm-modal-bg: #ffffff;
+                --tm-surface-bg: #f8f9fa;
+                --tm-panel-bg: #ffffff;
+                --tm-glass-bg: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
+                --tm-glass-border: rgba(255,255,255,0.2);
+                --tm-widget-text: #ffffff;
+                --tm-xp-fill-start: #ffc107;
+                --tm-xp-fill-end: #e0a800;
+                --tm-coin-color: #ffc107;
             }
             /* --- Feature: Advanced Search --- */
             /* --- Notification Center Styles --- */
@@ -6980,9 +7245,9 @@ window.tmReadEquippedThemeId = tmReadEquippedThemeId;
             }
             #tm-xp-bar-fill {
                 height: 100%; width: 0%;
-                background: linear-gradient(90deg, #ffd700 0%, #ffaa00 100%);
+                background: linear-gradient(90deg, var(--tm-xp-fill-start, #ffd700) 0%, var(--tm-xp-fill-end, #ffaa00) 100%);
                 transition: width 0.5s ease-out;
-                box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+                box-shadow: 0 0 10px var(--tm-glow-color, rgba(255, 215, 0, 0.5));
                 position: relative;
             }
             #tm-xp-bar-fill::after {
@@ -37933,7 +38198,7 @@ if (typeof window !== 'undefined') {
         try {
             GM_setValue(STORAGE_KEYS.THEME_COLORS_CACHE, JSON.stringify({
                 themeId,
-                colors: theme.colors,
+                colors: theme.appliedColors || theme.colors,
                 updatedAt: Date.now(),
             }));
         } catch (_) { /* ignore */ }

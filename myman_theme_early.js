@@ -88,16 +88,13 @@
     function applyColors(colors) {
         if (!colors || typeof colors !== 'object') return;
         const root = document.documentElement;
-        for (const [variable, color] of Object.entries(colors)) {
+        const expanded = typeof window.tmBuildDerivedThemeTokens === 'function'
+            ? window.tmBuildDerivedThemeTokens(colors)
+            : colors;
+        for (const [variable, color] of Object.entries(expanded)) {
             root.style.setProperty(variable, color);
-            if (variable === '--tm-primary-color') {
-                const rgb = hexToRgb(color);
-                if (rgb) {
-                    root.style.setProperty('--tm-primary-color-rgb', `${rgb.r},${rgb.g},${rgb.b}`);
-                }
-            }
         }
-        const shopBg = colors['--tm-shop-item-bg'];
+        const shopBg = expanded['--tm-shop-item-bg'] || colors['--tm-shop-item-bg'];
         const shopRgb = (() => {
             const s = String(shopBg || '').trim();
             const rgba = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
@@ -107,12 +104,12 @@
         const lightShop = shopRgb
             ? (0.299 * shopRgb.r + 0.587 * shopRgb.g + 0.114 * shopRgb.b) / 255 > 0.52
             : true;
-        const shopText = colors['--tm-shop-item-text']
+        const shopText = expanded['--tm-shop-item-text'] || colors['--tm-shop-item-text']
             || (lightShop
-                ? (colors['--tm-text-on-light'] || '#343a40')
-                : (colors['--tm-text-on-dark'] || colors['--tm-primary-color'] || '#e8e8e8'));
+                ? (expanded['--tm-text-on-light'] || colors['--tm-text-on-light'] || '#343a40')
+                : (expanded['--tm-text-on-dark'] || colors['--tm-text-on-dark'] || expanded['--tm-primary-color'] || colors['--tm-primary-color'] || '#e8e8e8'));
         root.style.setProperty('--tm-shop-item-text', shopText);
-        const bg = colors['--tm-dark-color'] || colors['--tm-shop-item-bg'];
+        const bg = expanded['--tm-dark-color'] || colors['--tm-dark-color'] || shopBg;
         if (bg) {
             root.style.backgroundColor = bg;
         }

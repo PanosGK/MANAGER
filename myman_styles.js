@@ -54,6 +54,20 @@
                 --tm-shop-item-border: #dee2e6;
                 --tm-shop-item-hover-bg: #e9ecef;
                 --tm-shop-item-owned-bg: #e7f1ff;
+                --tm-shop-item-text: #343a40;
+                --tm-text-on-primary: #ffffff;
+                --tm-text-on-success: #ffffff;
+                --tm-text-on-light: #343a40;
+                --tm-text-on-dark: #cccccc;
+                --tm-modal-bg: #ffffff;
+                --tm-surface-bg: #f8f9fa;
+                --tm-panel-bg: #ffffff;
+                --tm-glass-bg: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%);
+                --tm-glass-border: rgba(255,255,255,0.2);
+                --tm-widget-text: #ffffff;
+                --tm-xp-fill-start: #ffc107;
+                --tm-xp-fill-end: #e0a800;
+                --tm-coin-color: #ffc107;
             }
             /* --- Feature: Advanced Search --- */
             /* --- Notification Center Styles --- */
@@ -2810,9 +2824,9 @@
             }
             #tm-xp-bar-fill {
                 height: 100%; width: 0%;
-                background: linear-gradient(90deg, #ffd700 0%, #ffaa00 100%);
+                background: linear-gradient(90deg, var(--tm-xp-fill-start, #ffd700) 0%, var(--tm-xp-fill-end, #ffaa00) 100%);
                 transition: width 0.5s ease-out;
-                box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+                box-shadow: 0 0 10px var(--tm-glow-color, rgba(255, 215, 0, 0.5));
                 position: relative;
             }
             #tm-xp-bar-fill::after {
