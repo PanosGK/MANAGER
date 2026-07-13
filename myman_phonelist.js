@@ -1034,25 +1034,6 @@ function renderPhoneStoreChipHtml(storeName, isBuyback) {
     return `<span class="tm-pc-store-chip tm-pc-store-chip--neutral">${cleanName}</span>`;
 }
 
-function getPhoneCatalogUICtx() {
-    return {
-        T: PHONE_CATALOG_TRANSLATIONS,
-        extractColor,
-        getColorHex,
-        extractBaseModel,
-        extractGB,
-        getPhoneGradeColor,
-        getPhoneCatalogOutlineStyle,
-        getPhoneModelTitleStyle,
-        getPhoneTags,
-        getTagColor,
-        getTagDisplayName,
-        getPhoneGradeCircleStyle,
-        getPhoneGradeDisplayStyle,
-        t,
-    };
-}
-
 function renderPhoneStoreChipsHtml(stores, isBuyback) {
     const filtered = filterOneUnitStores(stores);
     if (!filtered.length) return '';
@@ -2992,6 +2973,25 @@ async function showPhoneListModal() {
 
         extractBaseModelCache.set(model, base);
         return base;
+    }
+
+    function getPhoneCatalogUICtx() {
+        return {
+            T: PHONE_CATALOG_TRANSLATIONS,
+            extractColor,
+            getColorHex,
+            extractBaseModel,
+            extractGB,
+            getPhoneGradeColor,
+            getPhoneCatalogOutlineStyle,
+            getPhoneModelTitleStyle,
+            getPhoneTags,
+            getTagColor,
+            getTagDisplayName,
+            getPhoneGradeCircleStyle,
+            getPhoneGradeDisplayStyle,
+            t,
+        };
     }
     
     // Function to copy text to clipboard

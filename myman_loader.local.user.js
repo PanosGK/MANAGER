@@ -12,7 +12,7 @@
 // @grant        GM_deleteValue
 // @grant        GM_listValues
 // @grant        GM_xmlhttpRequest
-// @require      file:///home/runner/work/MANAGER/MANAGER/myman_suite.bundle.js
+// @require      file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.bundle.js
 // @connect      thefixers.mymanager.gr
 // @connect      geocoding-api.open-meteo.com
 // @connect      api.open-meteo.com

@@ -3033,10 +3033,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '215',
+        version: '216',
         loaderVersion: '5',
-        silentVersion: '5',
-        displayVersion: '5.5',
+        silentVersion: '6',
+        displayVersion: '5.6',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -27827,25 +27827,6 @@ function renderPhoneStoreChipHtml(storeName, isBuyback) {
     return `<span class="tm-pc-store-chip tm-pc-store-chip--neutral">${cleanName}</span>`;
 }
 
-function getPhoneCatalogUICtx() {
-    return {
-        T: PHONE_CATALOG_TRANSLATIONS,
-        extractColor,
-        getColorHex,
-        extractBaseModel,
-        extractGB,
-        getPhoneGradeColor,
-        getPhoneCatalogOutlineStyle,
-        getPhoneModelTitleStyle,
-        getPhoneTags,
-        getTagColor,
-        getTagDisplayName,
-        getPhoneGradeCircleStyle,
-        getPhoneGradeDisplayStyle,
-        t,
-    };
-}
-
 function renderPhoneStoreChipsHtml(stores, isBuyback) {
     const filtered = filterOneUnitStores(stores);
     if (!filtered.length) return '';
@@ -29785,6 +29766,25 @@ async function showPhoneListModal() {
 
         extractBaseModelCache.set(model, base);
         return base;
+    }
+
+    function getPhoneCatalogUICtx() {
+        return {
+            T: PHONE_CATALOG_TRANSLATIONS,
+            extractColor,
+            getColorHex,
+            extractBaseModel,
+            extractGB,
+            getPhoneGradeColor,
+            getPhoneCatalogOutlineStyle,
+            getPhoneModelTitleStyle,
+            getPhoneTags,
+            getTagColor,
+            getTagDisplayName,
+            getPhoneGradeCircleStyle,
+            getPhoneGradeDisplayStyle,
+            t,
+        };
     }
     
     // Function to copy text to clipboard
