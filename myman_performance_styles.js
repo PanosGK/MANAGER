@@ -78,6 +78,24 @@ a:hover, .rnr-orderlink:hover,
 }
 `;
 
+const PERFORMANCE_STYLES_DEFAULT_FOOTER = `
+/* Default theme: glass footer widgets (never solid shop-item-bg) */
+#tm-notification-bell-btn,
+#tm-refresh-timer-container,
+#tm-weather-widget,
+#tm-settings-btn,
+#tm-daily-dashboard-widget,
+#tm-xp-bar-container,
+#tm-coin-balance,
+.tm-footer-widget,
+.tm-buff-timer {
+    background: linear-gradient(145deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.05) 100%) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border-color: rgba(255,255,255,0.2) !important;
+}
+`;
+
 const PERFORMANCE_STYLES_NON_DEFAULT_FOOTER = `
 /* Non-default themes: solid footer widgets (no glass blur) */
 #tm-notification-bell-btn,
@@ -111,7 +129,8 @@ function tmInjectPerformanceStyles() {
     document.getElementById('tm-performance-styles')?.remove();
     const el = document.createElement('style');
     el.id = 'tm-performance-styles';
-    el.textContent = PERFORMANCE_STYLES_BASE + (isDefaultTheme ? '' : PERFORMANCE_STYLES_NON_DEFAULT_FOOTER);
+    el.textContent = PERFORMANCE_STYLES_BASE
+        + (isDefaultTheme ? PERFORMANCE_STYLES_DEFAULT_FOOTER : PERFORMANCE_STYLES_NON_DEFAULT_FOOTER);
     document.head.appendChild(el);
 }
 
