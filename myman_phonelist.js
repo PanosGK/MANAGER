@@ -3480,7 +3480,7 @@ async function showPhoneListModal() {
             currentPage = 0;
         }
         
-        container.className = 'tm-pc-list';
+        container.className = 'tm-cat-table-body tm-pc-list';
         container.classList.remove('tm-pc-grid', 'tm-pc-list-mode', 'grid-view');
         
         // Virtual scrolling: only render visible phones + buffer
@@ -3927,7 +3927,7 @@ async function showPhoneListModal() {
     function renderOtherStorePhones(list, targetEl = otherStoreContent, countEl = countDisplay, statsEl = statisticsDisplay) {
         if (!targetEl) return;
         if (!list || list.length === 0) {
-            targetEl.className = 'tm-pc-os-list';
+            targetEl.className = 'tm-cat-table-body';
             targetEl.innerHTML = PhoneCatalogUI.buildEmptyState(
                 'ℹ️',
                 'Δεν υπάρχουν συσκευές σε άλλα καταστήματα',
@@ -3937,7 +3937,7 @@ async function showPhoneListModal() {
             return;
         }
 
-        targetEl.className = 'tm-pc-list tm-pc-os-list';
+        targetEl.className = 'tm-cat-table-body tm-pc-list';
         const catalogCtx = getPhoneCatalogUICtx({ extractBaseModel, getPhoneTags });
         const rows = list.map((item, idx) => {
             const hasStoresData = Array.isArray(item.stores);
@@ -4019,7 +4019,7 @@ async function showPhoneListModal() {
         // so visible cards are prioritised and the page never lags from a flood of requests.
         const CONCURRENCY = 4;
         const storeContainers = Array.from(targetEl.querySelectorAll('.tm-other-store-stores'))
-            .filter(sc => sc.querySelector('.tm-pc-store-loading'));
+            .filter(sc => sc.querySelector('.tm-cat-store-loading, .tm-pc-store-loading'));
 
         if (storeContainers.length === 0) return;
 
@@ -4042,9 +4042,9 @@ async function showPhoneListModal() {
                     const itemIsBuyback = phoneItem ? phoneItem.isBuyback : false;
                     sc.innerHTML = renderPhoneStoreChipsHtml(stores, itemIsBuyback);
                     if (itemIsBuyback && !phoneHasAllowedBuybackStore(stores)) {
-                        const row = sc.closest('.tm-pc-row--other');
+                        const row = sc.closest('.tm-cat-tr--other') || sc.closest('.tm-pc-row--other');
                         if (row) {
-                            const modelRow = row.querySelector('.tm-pc-row-line1');
+                            const modelRow = row.querySelector('.tm-cat-line-primary') || row.querySelector('.tm-pc-row-line1');
                             const noBuybackTitle = t('No buyback store');
                             if (modelRow && !modelRow.querySelector(`span[title="${noBuybackTitle}"]`)) {
                                 const ind = document.createElement('span');
@@ -4171,12 +4171,12 @@ async function showPhoneListModal() {
         closeBtn.style.color = 'var(--tm-shop-item-text)';
     });
     closeBtn.addEventListener('click', () => {
-        overlay.style.animation = 'tm-pc-fade-out 0.2s ease';
+        overlay.style.animation = 'tm-cat-out 0.18s ease';
         setTimeout(() => overlay.remove(), 200);
     });
     overlay.addEventListener('click', (e) => { 
         if (e.target === overlay) {
-            overlay.style.animation = 'tm-pc-fade-out 0.2s ease';
+            overlay.style.animation = 'tm-cat-out 0.18s ease';
             setTimeout(() => overlay.remove(), 200);
         }
     });
@@ -4881,7 +4881,7 @@ async function showPhoneListModal() {
     overlay.addEventListener('keydown', (e) => {
         // ESC to close
         if (e.key === 'Escape') {
-            overlay.style.animation = 'tm-pc-fade-out 0.2s ease';
+            overlay.style.animation = 'tm-cat-out 0.18s ease';
             setTimeout(() => overlay.remove(), 200);
         }
         // Ctrl+F or Cmd+F to focus search
