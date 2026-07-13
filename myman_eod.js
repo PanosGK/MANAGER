@@ -239,6 +239,7 @@
             : '';
 
         const overlay = document.createElement('div');
+        overlay.className = 'tm-modal-overlay tm-eod-overlay';
         overlay.id = 'tm-eod-modal';
 
         const doneBadgeHTML = done.length > 0
@@ -278,7 +279,9 @@
         document.body.appendChild(overlay);
 
         overlay.querySelector('#tm-eod-close').addEventListener('click', () => overlay.remove());
-        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        setTimeout(() => {
+            overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+        }, 0);
 
         const refreshBtn   = overlay.querySelector('#tm-eod-refresh');
         const refreshLabel = overlay.querySelector('#tm-eod-refresh-label');
@@ -344,7 +347,11 @@
             btn.className = 'tm-footer-widget tm-footer-icon-btn';
             btn.title = 'Checklist Τέλους Ημέρας';
             btn.textContent = '🌙';
-            btn.addEventListener('click', () => showEODModal(STORAGE_KEYS));
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                showEODModal(STORAGE_KEYS);
+            });
 
             footerRight.prepend(btn);
             updateFooterBadge(STORAGE_KEYS);

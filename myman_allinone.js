@@ -5607,7 +5607,9 @@
                     const neverHideIds = [
                         'tm-recent-repairs-dropdown',
                         'tm-recent-repairs-btn',
-                        'tm-recent-repairs-menu'
+                        'tm-recent-repairs-menu',
+                        'tm-eod-btn',
+                        'tm-eod-modal',
                     ];
                     
                     if (element && !element.closest('form') && !neverHideIds.includes(element.id)) {

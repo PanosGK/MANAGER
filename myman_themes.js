@@ -1064,7 +1064,7 @@ const THEME_NATIVE_PAGE_EXTENDED_STYLES = `/* --- Native MyMANAGER page (non-def
             .rnr-page, .rnr-middle, .rnr-center, .rnr-left, .rnr-right { color: var(--tm-primary-color) !important; }
         `;
 
-const THEME_SUITE_EOD_STYLES = `
+const THEME_SUITE_EOD_BTN_STYLES = `
             #tm-eod-btn {
                 position: relative !important;
                 background: var(--tm-glass-bg, var(--tm-shop-item-bg)) !important;
@@ -1105,6 +1105,10 @@ const THEME_SUITE_EOD_STYLES = `
                 box-sizing: border-box !important;
                 border: 2px solid var(--tm-footer-bar-bg, var(--tm-shop-item-bg)) !important;
             }
+        `;
+
+/** EOD panel layout — injected on default (no native page theming) and included in full suite styles. */
+const THEME_EOD_MODAL_STYLES = `
             #tm-eod-modal {
                 position: fixed !important;
                 inset: 0 !important;
@@ -1112,7 +1116,10 @@ const THEME_SUITE_EOD_STYLES = `
                 display: flex !important;
                 align-items: center !important;
                 justify-content: center !important;
-                z-index: 99999 !important;
+                z-index: 1000001 !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
                 backdrop-filter: none !important;
                 -webkit-backdrop-filter: none !important;
             }
@@ -1177,7 +1184,7 @@ const THEME_SUITE_EOD_STYLES = `
             .tm-eod-subtitle b { color: var(--tm-primary-color) !important; }
             .tm-eod-subtitle .tm-eod-pending { color: var(--tm-warning-color) !important; }
             .tm-eod-subtitle .tm-eod-complete { color: var(--tm-success-color) !important; }
-            #tm-eod-list { overflow-y: auto; flex: 1; padding-right: 4px; }
+            #tm-eod-list { overflow-y: auto; flex: 1; padding-right: 4px; min-height: 0; }
             .tm-eod-item {
                 display: flex; align-items: flex-start; gap: 12px;
                 padding: 12px 14px; border-radius: 12px; margin-bottom: 8px;
@@ -1237,6 +1244,8 @@ const THEME_SUITE_EOD_STYLES = `
                 color: var(--tm-text-on-primary, #fff) !important;
             }
         `;
+
+const THEME_SUITE_EOD_STYLES = THEME_SUITE_EOD_BTN_STYLES + THEME_EOD_MODAL_STYLES;
 
 const THEME_SUITE_EXTENDED_STYLES = THEME_SUITE_WIDGET_STYLES + THEME_SUITE_EOD_STYLES;
 const THEME_EXTENDED_STYLES = THEME_SUITE_EXTENDED_STYLES + THEME_NATIVE_PAGE_EXTENDED_STYLES;
@@ -2023,8 +2032,11 @@ function tmInjectExtendedThemeStyles(themeId) {
     document.getElementById('tm-extended-theme-styles')?.remove();
     const el = document.createElement('style');
     el.id = 'tm-extended-theme-styles';
-    // Default skips page/widget theming but EOD modal CSS lives in myman_styles.js always.
-    if (themeId === 'default') return;
+    if (themeId === 'default') {
+        el.textContent = THEME_EOD_MODAL_STYLES;
+        document.head.appendChild(el);
+        return;
+    }
     el.textContent = THEME_EXTENDED_STYLES;
     document.head.appendChild(el);
 }
