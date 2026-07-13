@@ -1,8 +1,8 @@
 {
-  "version": "202",
+  "version": "203",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Parts tab order panel uses native MyMANAGER grid styling.",
+  "releaseNotes": "Inject order date, ETA, and central flag into existing part rows only.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

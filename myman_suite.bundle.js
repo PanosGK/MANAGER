@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v202 — generated, do not edit */
+/* MyManager Suite bundle v203 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -3031,7 +3031,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '202',
+        version: '203',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -36326,13 +36326,6 @@ if (typeof window !== 'undefined') {
         return orderCard;
     }
 
-    function getNativeLabelClass() {
-        const el = document.querySelector('#detailPreview3 [class*="MyMANAGER"]');
-        if (!el) return 'MyMANAGERWhite_label1';
-        const match = el.className.match(/MyMANAGER\S+/);
-        return match ? match[0] : 'MyMANAGERWhite_label1';
-    }
-
     function nativeGridLabel(text, extraHtml = '') {
         const td = document.createElement('td');
         td.className = 'rnr-gridfieldlabel';
@@ -36377,158 +36370,10 @@ if (typeof window !== 'undefined') {
         return td;
     }
 
-    function nativeGridEdge() {
-        const td = document.createElement('td');
-        td.className = 'rnr-edge';
-        return td;
-    }
-
-    function formatOrderCost(value) {
-        if (!value || value === '-' || value === '0,00') return '';
-        return String(value).includes('€') ? String(value) : `${value}`;
-    }
-
-    function buildNativeOrderTbody(order, matchedPart, index) {
-        const tbody = document.createElement('tbody');
-        tbody.className = 'tm-parts-order-tbody';
-        tbody.dataset.tmOrderIndex = String(index);
-
-        const code = order['Κωδικός'] || '';
-        const name = order['Περιγραφή'] || '';
-        const units = order['Τεμάχια'] || '';
-        const avgCost = formatOrderCost(order['Μέσο Κόστος']);
-        const retail = formatOrderCost(order['Τιμή Λιανικής'] || matchedPart?.retailPrice || '');
-        const orderDate = order['Παραγγελία'] || '';
-        const eta = order['Αναμ.Παραλαβή'] || '';
-        const toCentral = order['Παραγγελία σε Κεντρικό'] || '';
-        const available = order['Διαθέσιμο\nTHE FIXERS'] || order['Διαθέσιμο THE FIXERS'] || '';
-
-        tbody.appendChild(nativeGridRow([
-            nativeGridEdge(),
-            nativeGridLabel('Κωδικός'),
-            nativeGridValue(code),
-            nativeGridLabel('Μέσο Κόστος', '<span class="vatexplanation rowitemred"><br>χωρίς ΦΠΑ</span>'),
-            nativeGridValue(avgCost),
-            nativeGridLabel('Τεμάχια'),
-            nativeGridValue(units),
-        ]));
-
-        tbody.appendChild(nativeGridRow([
-            nativeGridSpacer(),
-            nativeGridLabel('Περιγραφή'),
-            nativeGridValue(name),
-            nativeGridLabel('Τιμή Λιανικής'),
-            nativeGridValue(retail),
-            nativeGridLabel('Παραγγελία'),
-            nativeGridValue(orderDate),
-        ]));
-
-        tbody.appendChild(nativeGridRow([
-            nativeGridSpacer(),
-            nativeGridLabel('Αναμ. Παραλαβή'),
-            nativeGridValue(eta),
-            nativeGridLabel('Σε Κεντρικό'),
-            nativeGridBool(toCentral),
-            nativeGridLabel('Διαθέσιμο'),
-            nativeGridBool(available),
-        ]));
-
-        const storeNotes = order['Σημειώσεις Καταστήματος'];
-        const centralNotes = order['Σημειώσεις Κεντρικής Αποθήκης'];
-        if ((storeNotes && storeNotes !== '-') || (centralNotes && centralNotes !== '-')) {
-            const notesParts = [];
-            if (storeNotes && storeNotes !== '-') notesParts.push(`Κατάστημα: ${storeNotes}`);
-            if (centralNotes && centralNotes !== '-') notesParts.push(`Κεντρική: ${centralNotes}`);
-            tbody.appendChild(nativeGridRow([
-                nativeGridSpacer(),
-                nativeGridLabel('Σημειώσεις'),
-                (() => {
-                    const td = document.createElement('td');
-                    td.colSpan = 5;
-                    const span = document.createElement('span');
-                    span.textContent = notesParts.join(' · ');
-                    td.appendChild(span);
-                    return td;
-                })(),
-            ]));
-        }
-
-        if (matchedPart) {
-            const repairText = [
-                matchedPart.code,
-                matchedPart.name,
-                matchedPart.units ? `${matchedPart.units} τεμ.` : '',
-                matchedPart.avgBuy ? `μέσο ${matchedPart.avgBuy}` : '',
-                matchedPart.retailPrice ? `λιανική ${matchedPart.retailPrice}` : '',
-            ].filter(Boolean).join(' · ');
-
-            tbody.appendChild(nativeGridRow([
-                nativeGridSpacer(),
-                nativeGridLabel('Στην επισκευή'),
-                (() => {
-                    const td = document.createElement('td');
-                    td.colSpan = 3;
-                    const span = document.createElement('span');
-                    span.textContent = repairText;
-                    td.appendChild(span);
-                    return td;
-                })(),
-                nativeGridLabel(''),
-                (() => {
-                    const td = document.createElement('td');
-                    td.className = 'rnr-edge';
-                    const link = document.createElement('a');
-                    link.className = 'rnr-button';
-                    link.href = order._orderLink || '#';
-                    link.target = '_blank';
-                    link.rel = 'noopener';
-                    link.textContent = 'Παραγγελία';
-                    td.appendChild(link);
-                    return td;
-                })(),
-            ]));
-        } else if (order._orderLink) {
-            tbody.appendChild(nativeGridRow([
-                nativeGridSpacer(),
-                nativeGridLabel(''),
-                nativeGridValue(''),
-                nativeGridLabel(''),
-                nativeGridValue(''),
-                nativeGridLabel(''),
-                (() => {
-                    const td = document.createElement('td');
-                    td.className = 'rnr-edge';
-                    const link = document.createElement('a');
-                    link.className = 'rnr-button';
-                    link.href = order._orderLink;
-                    link.target = '_blank';
-                    link.rel = 'noopener';
-                    link.textContent = 'Παραγγελία';
-                    td.appendChild(link);
-                    return td;
-                })(),
-            ]));
-        }
-
-        return tbody;
-    }
-
-    function setNativePartsOrdersMessage(container, message, isError = false) {
-        const labelClass = getNativeLabelClass();
-        container.innerHTML = `
-            <div class="rnr-cw-1 rnr-s-empty asbuttons ${labelClass}">
-                <table class="fieldGrid" style="width:100%;">
-                    <tbody>
-                        <tr>
-                            <td class="style1 rnr-label">Ενεργές Παραγγελίες Ανταλλακτικών</td>
-                        </tr>
-                        <tr>
-                            <td class="rnr-control style3${isError ? ' rowitemred' : ''}">${escapeHtml(message)}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        `;
+    function findMatchingRepairPart(order, parts) {
+        const code = String(order['Κωδικός'] || '').trim();
+        if (!code) return null;
+        return parts.find(p => p.code === code) || null;
     }
 
     function getRepairPartsFromTab() {
@@ -36549,6 +36394,7 @@ if (typeof window !== 'undefined') {
             const unitsInput = tbody.querySelector('[data-fieldname="iUnits"]');
             parts.push({
                 code,
+                tbody,
                 name: tbody.querySelector('[id*="strProductName"]')?.textContent?.trim() || '',
                 units: unitsInput?.value || unitsInput?.textContent?.trim() || '',
                 avgBuy: tbody.querySelector('[id*="iAverageBuy"]')?.textContent?.trim() || '',
@@ -36559,156 +36405,89 @@ if (typeof window !== 'undefined') {
         return parts;
     }
 
-    function findMatchingRepairPart(order, parts) {
-        const code = String(order['Κωδικός'] || '').trim();
+    function findMatchingOrderForPart(part, orders) {
+        const code = String(part.code || '').trim();
         if (!code) return null;
-        return parts.find(p => p.code === code) || null;
+        return orders.find(o => String(o['Κωδικός'] || '').trim() === code) || null;
+    }
+
+    function dedupeOrdersByProductCode(orders) {
+        const byCode = new Map();
+        orders.forEach((order) => {
+            const code = String(order['Κωδικός'] || '').trim();
+            if (!code) return;
+            if (!byCode.has(code)) byCode.set(code, order);
+        });
+        return [...byCode.values()];
+    }
+
+    function clearInjectedOrderRows() {
+        document.querySelectorAll('#detailPreview3 .tm-parts-order-row').forEach((row) => row.remove());
+        document.querySelectorAll('#detailPreview3 tbody[data-tm-order-injected]').forEach((tbody) => {
+            delete tbody.dataset.tmOrderInjected;
+        });
+    }
+
+    function injectOrderInfoRow(tbody, order) {
+        tbody.querySelector('.tm-parts-order-row')?.remove();
+
+        const orderDate = order['Παραγγελία'] || '';
+        const eta = order['Αναμ.Παραλαβή'] || '';
+        const toCentral = order['Παραγγελία σε Κεντρικό'] || '';
+
+        const row = nativeGridRow([
+            nativeGridSpacer(),
+            nativeGridLabel('Παραγγελία'),
+            nativeGridValue(orderDate),
+            nativeGridLabel('Αναμ. Παραλαβή'),
+            nativeGridValue(eta),
+            nativeGridLabel('Σε Κεντρικό'),
+            nativeGridBool(toCentral),
+        ]);
+        row.classList.add('tm-parts-order-row');
+        tbody.appendChild(row);
+        tbody.dataset.tmOrderInjected = '1';
     }
 
     let partsTabObserver = null;
     let partsTabOrdersLoaded = false;
 
-    function getPartsTabMountPoint() {
-        const preview = document.getElementById('detailPreview3');
-        if (!preview) return null;
-        return preview.querySelector('.rnr-center') || preview;
-    }
-
-    function ensurePartsTabOrderPanel() {
-        const mount = getPartsTabMountPoint();
-        if (!mount) return null;
-
-        let panel = document.getElementById('tm-parts-orders-panel');
-        if (panel) return panel;
-
-        panel = document.createElement('div');
-        panel.id = 'tm-parts-orders-panel';
-        panel.className = 'tm-parts-orders-native';
-
-        const labelClass = getNativeLabelClass();
-        panel.innerHTML = `
-            <div class="rnr-cw-recordcontrols rnr-s-2 asbuttons ${labelClass}">
-                <div class="rnr-c rnr-ch rnr-c-recordcontrols">
-                    <div class="style1 rnr-bl rnr-b-recordcontrols_new">
-                        <span class="style1 rnr-label" style="margin-right:12px;">Ενεργές Παραγγελίες Ανταλλακτικών</span>
-                        <a href="#" id="tm-parts-orders-refresh-btn" class="rnr-button">Ανανέωση</a>
-                        <a href="#" id="tm-parts-orders-popup-btn" class="rnr-button">Popup</a>
-                        <a href="https://thefixers.mymanager.gr/mymanagerservice/sparepartstoorder_list.php" target="_blank" rel="noopener" class="rnr-button">Λίστα Παραγγελιών</a>
-                    </div>
-                    <div class="rnr-hfiller"></div>
-                </div>
-            </div>
-            <div id="tm-parts-orders-body" class="tm-parts-orders-body">
-                <div class="rnr-scrollgrid-wrap" style="padding:0;margin-bottom:5px;position:relative;">
-                    <div class="rnr-scrollgrid-inner" style="width:99%;">
-                        <div class="rnr-cw-1 rnr-s-empty asbuttons ${labelClass}">
-                            <table class="fieldGrid" style="width:100%;">
-                                <tbody><tr><td class="rnr-control style3">Φόρτωση παραγγελιών…</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        const gridWrap = mount.querySelector('.rnr-scrollgrid-wrap');
-        if (gridWrap) {
-            mount.insertBefore(panel, gridWrap);
-        } else {
-            mount.prepend(panel);
-        }
-
-        panel.querySelector('#tm-parts-orders-refresh-btn')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            loadPartsTabOrders(true);
-        });
-        panel.querySelector('#tm-parts-orders-popup-btn')?.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const repairId = getPageRepairId();
-            if (!repairId) return;
-            try {
-                const orders = await fetchOrdersForRepair(repairId);
-                showOrderPopup(repairId, orders, orders.length ? null : 'Δεν βρέθηκαν παραγγελίες για αυτή την επισκευή.');
-            } catch (err) {
-                showOrderPopup(repairId, null, 'Σφάλμα φόρτωσης παραγγελιών: ' + err.message);
-            }
-        });
-
-        return panel;
-    }
-
     async function loadPartsTabOrders(forceRefresh = false) {
         if (!isOrderLinkFeatureEnabled()) return;
+
+        const root = document.getElementById('detailPreview3');
+
         if (getPageRepairStatus() !== '65') {
+            clearInjectedOrderRows();
             document.getElementById('tm-parts-orders-panel')?.remove();
             return;
         }
 
-        const panel = ensurePartsTabOrderPanel();
-        if (!panel) return;
+        if (!root) return;
 
-        const body = panel.querySelector('#tm-parts-orders-body');
         const repairId = getPageRepairId();
-        if (!repairId) {
-            setNativePartsOrdersMessage(body, 'Δεν βρέθηκε αριθμός επισκευής.');
+        if (!repairId) return;
+
+        if (!forceRefresh && partsTabOrdersLoaded && root.querySelector('.tm-parts-order-row')) {
             return;
         }
-
-        if (!forceRefresh && partsTabOrdersLoaded && body.querySelector('.tm-parts-order-tbody')) {
-            return;
-        }
-
-        body.innerHTML = `
-            <div class="rnr-scrollgrid-wrap" style="padding:0;margin-bottom:5px;position:relative;">
-                <div class="rnr-scrollgrid-inner" style="width:99%;">
-                    <div class="rnr-cw-1 rnr-s-empty asbuttons ${getNativeLabelClass()}">
-                        <table class="fieldGrid" style="width:100%;">
-                            <tbody><tr><td class="rnr-control style3">Φόρτωση παραγγελιών…</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        `;
 
         try {
             const orders = await fetchOrdersForRepair(repairId);
             partsTabOrdersLoaded = true;
+            clearInjectedOrderRows();
+
+            const ordersByCode = dedupeOrdersByProductCode(orders);
             const parts = getRepairPartsFromTab();
 
-            body.innerHTML = '';
-            if (!orders.length) {
-                setNativePartsOrdersMessage(body, `Δεν βρέθηκαν ενεργές παραγγελίες για την ${repairId}.`);
-                return;
-            }
-
-            const labelClass = getNativeLabelClass();
-            const wrap = document.createElement('div');
-            wrap.className = 'rnr-scrollgrid-wrap';
-            wrap.style.cssText = 'padding:0;margin-bottom:5px;position:relative;';
-
-            const inner = document.createElement('div');
-            inner.className = 'rnr-scrollgrid-inner';
-            inner.style.cssText = 'width:99%;';
-
-            const grid = document.createElement('div');
-            grid.className = `rnr-cw-grid rnr-s-grid asbuttons ${labelClass}`;
-
-            const table = document.createElement('table');
-            table.className = 'rnr-c rnr-cont rnr-c-grid rnr-b-grid rnr-gridtable rnr-columns';
-            table.setAttribute('cellpadding', '0');
-            table.setAttribute('s508table', 'true');
-
-            orders.forEach((order, index) => {
-                const matched = findMatchingRepairPart(order, parts);
-                table.appendChild(buildNativeOrderTbody(order, matched, index));
+            parts.forEach((part) => {
+                const order = findMatchingOrderForPart(part, ordersByCode);
+                if (order && part.tbody) {
+                    injectOrderInfoRow(part.tbody, order);
+                }
             });
-
-            grid.appendChild(table);
-            inner.appendChild(grid);
-            wrap.appendChild(inner);
-            body.appendChild(wrap);
         } catch (err) {
-            setNativePartsOrdersMessage(body, `Σφάλμα: ${err.message}`, true);
+            console.error('[MMS Order Link] Parts tab order info:', err);
         }
     }
 
@@ -37175,13 +36954,9 @@ if (typeof window !== 'undefined') {
             white-space: nowrap;
         }
 
-        /* Parts tab orders — native grid spacing only */
-        .tm-parts-orders-native {
-            margin-bottom: 5px;
-        }
-        .tm-parts-orders-native .tm-parts-order-tbody + .tm-parts-order-tbody tr:first-child td {
-            border-top: 2px solid #c8c8c8;
-            padding-top: 6px;
+        /* Injected order row in parts grid (status 65) */
+        #detailPreview3 .tm-parts-order-row td {
+            background: #f5f5eb;
         }
     `);
 
@@ -37208,6 +36983,7 @@ if (typeof window !== 'undefined') {
     function teardownOrderLinkUI() {
         clearInitTimers();
         partsTabOrdersLoaded = false;
+        clearInjectedOrderRows();
         if (partsTabObserver) {
             partsTabObserver.disconnect();
             partsTabObserver = null;
