@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager Store Locator
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      2.0
 // @description  Model-first store availability finder for the phone catalog.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -15,6 +15,8 @@
     'use strict';
 
     const MINE_STORE_KEY = '__mine__';
+    const DENSITY_KEY = 'tm_sl_density_compact';
+    const SORT_KEY = 'tm_sl_model_sort';
 
     function cleanStoreName(name) {
         return String(name || '').replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
@@ -86,6 +88,18 @@
             .filter(([, data]) => data.storeCount > 0 || data.myCount > 0);
     }
 
+    function sortModels(models, sortKey) {
+        const list = [...models];
+        if (sortKey === 'stores') {
+            list.sort((a, b) => (b[1].storeCount - a[1].storeCount) || a[0].localeCompare(b[0], undefined, { numeric: true, sensitivity: 'base' }));
+        } else if (sortKey === 'stock') {
+            list.sort((a, b) => (b[1].totalUnits - a[1].totalUnits) || a[0].localeCompare(b[0], undefined, { numeric: true, sensitivity: 'base' }));
+        } else {
+            list.sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true, sensitivity: 'base' }));
+        }
+        return list;
+    }
+
     function collectFiltersForModel(allPhones, otherStorePhones, model, helpers) {
         const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
         const grades = new Set();
@@ -119,6 +133,42 @@
             gbs: [...gbs].sort(sortGb),
             colors: [...colors].sort((a, b) => a.localeCompare(b, 'el')),
         };
+    }
+
+    function collectFilterCounts(allPhones, otherStorePhones, model, activeFilters, helpers) {
+        const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
+        const counts = { grade: {}, gb: {}, color: {} };
+
+        const phones = [];
+        filterIphoneTitlePhones(allPhones).forEach((p) => {
+            if ((p.unitsRemaining || 0) > 0 && extractBaseModel(p.model) === model) phones.push(p);
+        });
+        filterIphoneTitlePhones(otherStorePhones).forEach((p) => {
+            if (extractBaseModel(p.model) === model) phones.push(p);
+        });
+
+        function matchesExcept(phone, exceptKey) {
+            const filters = { ...activeFilters };
+            filters[exceptKey] = '';
+            return phoneMatchesFilters(phone, model, filters, helpers);
+        }
+
+        phones.forEach((phone) => {
+            if (!matchesExcept(phone, 'grade')) return;
+            if (phone.grade) counts.grade[phone.grade] = (counts.grade[phone.grade] || 0) + 1;
+        });
+        phones.forEach((phone) => {
+            if (!matchesExcept(phone, 'gb')) return;
+            const gb = extractGB(phone.name || phone.model);
+            if (gb) counts.gb[gb] = (counts.gb[gb] || 0) + 1;
+        });
+        phones.forEach((phone) => {
+            if (!matchesExcept(phone, 'color')) return;
+            const color = extractColor(phone.name || phone.model);
+            if (color) counts.color[color] = (counts.color[color] || 0) + 1;
+        });
+
+        return counts;
     }
 
     function phoneMatchesFilters(phone, model, filters, helpers) {
@@ -169,7 +219,7 @@
         });
 
         const rows = [...storeMap.values()]
-            .filter((s) => s.key !== '__pending__' || s.variants.length)
+            .filter((s) => s.variants.length > 0)
             .map(({ name, isMine, variants }) => ({
                 name,
                 isMine,
@@ -189,6 +239,63 @@
         const others = rows.filter((r) => !r.isMine);
 
         return { mine, storeRows: others, allRows: rows };
+    }
+
+    function bindGridKeyboard(container, itemSelector, onActivate) {
+        const items = () => [...container.querySelectorAll(itemSelector)];
+        container.addEventListener('keydown', (e) => {
+            const list = items();
+            if (!list.length) return;
+            const current = document.activeElement;
+            let idx = list.indexOf(current);
+            if (idx < 0 && (e.key === 'ArrowDown' || e.key === 'ArrowRight')) {
+                e.preventDefault();
+                list[0]?.focus();
+                return;
+            }
+            if (idx < 0) return;
+
+            const cols = Math.max(1, Math.floor(container.offsetWidth / 260));
+            let next = idx;
+            if (e.key === 'ArrowRight') next = Math.min(idx + 1, list.length - 1);
+            else if (e.key === 'ArrowLeft') next = Math.max(idx - 1, 0);
+            else if (e.key === 'ArrowDown') next = Math.min(idx + cols, list.length - 1);
+            else if (e.key === 'ArrowUp') next = Math.max(idx - cols, 0);
+            else if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onActivate(current);
+                return;
+            } else return;
+
+            e.preventDefault();
+            list[next]?.focus();
+        });
+    }
+
+    function bindStoreKeyboard(bodyEl) {
+        bodyEl.addEventListener('keydown', (e) => {
+            const heads = [...bodyEl.querySelectorAll('.tm-sl-store-head[tabindex="0"]')];
+            if (!heads.length) return;
+            const current = document.activeElement;
+            let idx = heads.indexOf(current);
+            if (idx < 0 && (e.key === 'ArrowDown')) {
+                e.preventDefault();
+                heads[0]?.focus();
+                return;
+            }
+            if (idx < 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                heads[Math.min(idx + 1, heads.length - 1)]?.focus();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                heads[Math.max(idx - 1, 0)]?.focus();
+            } else if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                current?.click();
+            }
+        });
     }
 
     async function showStoreLocatorModal() {
@@ -215,22 +322,35 @@
         const bodyEl = overlay.querySelector('#tm-sl-body');
         const toolbarEl = overlay.querySelector('#tm-sl-toolbar');
         const statusEl = overlay.querySelector('#tm-sl-status');
-        const updatedEl = overlay.querySelector('#tm-sl-updated');
         const titleEl = overlay.querySelector('#tm-sl-title');
         const subtitleEl = overlay.querySelector('#tm-sl-subtitle');
 
         let step = 'models';
         let selectedModel = null;
         let modelQuery = '';
+        let modelSort = GM_getValue(SORT_KEY, 'name');
+        let densityCompact = GM_getValue(DENSITY_KEY, false);
         let activeFilters = { grade: '', gb: '', color: '' };
         let allPhones = [];
         let otherStorePhones = [];
         let otherStoreLoaded = false;
         let lastUpdated = null;
+        let keyboardBound = false;
 
-        const ctx = {
-            getGradeStyle: (grade) => helpers.getPhoneGradeCircleStyle(grade),
-        };
+        UI.setDensity(overlay, densityCompact);
+
+        function getColorHexMap() {
+            return typeof window.getAllColorHexMap === 'function' ? window.getAllColorHexMap() : {};
+        }
+
+        function buildUiCtx(extra) {
+            return {
+                getGradeStyle: (grade) => helpers.getPhoneGradeCircleStyle(grade),
+                colorHexMap: getColorHexMap(),
+                query: modelQuery,
+                ...extra,
+            };
+        }
 
         function closeModal() {
             overlay.remove();
@@ -240,32 +360,11 @@
             if (statusEl) statusEl.textContent = text;
         }
 
-        function renderModelsStep() {
-            step = 'models';
-            selectedModel = null;
-            titleEl.textContent = 'Πού υπάρχει το μοντέλο';
-            subtitleEl.textContent = 'Επιλέξτε μοντέλο για να δείτε διαθεσιμότητα ανά κατάστημα';
-            toolbarEl.innerHTML = UI.buildModelSearchToolbar();
+        function syncFreshness() {
+            if (lastUpdated) UI.updateFreshness(overlay, lastUpdated);
+        }
 
-            const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
-            if (searchInput) {
-                searchInput.value = modelQuery;
-                searchInput.addEventListener('input', () => {
-                    modelQuery = searchInput.value.trim().toLowerCase();
-                    renderModelsStep();
-                });
-                setTimeout(() => searchInput.focus(), 50);
-            }
-
-            let models = buildModelIndex(allPhones, otherStorePhones, helpers);
-            models = models.sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true, sensitivity: 'base' }));
-            if (modelQuery) {
-                models = models.filter(([name]) => name.toLowerCase().includes(modelQuery));
-            }
-
-            bodyEl.innerHTML = UI.buildModelGrid(models);
-            setStatus(`${models.length} μοντέλα · ${allPhones.length + otherStorePhones.length} συσκευές στο δίκτυο`);
-
+        function wireModelCards() {
             bodyEl.querySelectorAll('.tm-sl-model-card[data-tm-sl-model]').forEach((card) => {
                 const activate = () => {
                     selectedModel = card.getAttribute('data-tm-sl-model');
@@ -279,16 +378,101 @@
                     }
                 });
             });
+            if (!keyboardBound) {
+                bindGridKeyboard(bodyEl, '.tm-sl-model-card[data-tm-sl-model]', (el) => {
+                    selectedModel = el.getAttribute('data-tm-sl-model');
+                    renderStoresStep();
+                });
+                keyboardBound = true;
+            }
+        }
+
+        function wireStoreBoard() {
+            bodyEl.querySelectorAll('[data-tm-sl-toggle-store]').forEach((head) => {
+                const toggle = () => {
+                    const row = head.closest('.tm-sl-store-row');
+                    row?.classList.toggle('is-open');
+                };
+                head.addEventListener('click', toggle);
+                head.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggle();
+                    }
+                });
+            });
+
+            bodyEl.querySelectorAll('[data-tm-sl-copy]').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const code = btn.getAttribute('data-tm-sl-copy');
+                    if (code && typeof GM_setClipboard === 'function') {
+                        GM_setClipboard(code);
+                        UI.showToast(overlay, `Αντιγράφηκε ✓ ${code}`);
+                    }
+                });
+            });
+
+            bodyEl.querySelectorAll('[data-tm-sl-open]').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const code = btn.getAttribute('data-tm-sl-open');
+                    if (code) {
+                        window.open(`https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`, '_blank');
+                    }
+                });
+            });
+
+            bindStoreKeyboard(bodyEl);
+        }
+
+        function renderModelsStep() {
+            step = 'models';
+            selectedModel = null;
+            UI.updateBreadcrumb(overlay, 'models');
+            titleEl.textContent = 'Πού υπάρχει το μοντέλο';
+            subtitleEl.textContent = 'Επιλέξτε μοντέλο για να δείτε διαθεσιμότητα ανά κατάστημα';
+            toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort);
+
+            const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
+            if (searchInput) {
+                searchInput.value = modelQuery;
+                searchInput.addEventListener('input', () => {
+                    modelQuery = searchInput.value.trim().toLowerCase();
+                    renderModelsStep();
+                });
+                setTimeout(() => searchInput.focus(), 50);
+            }
+
+            toolbarEl.querySelectorAll('[data-tm-sl-sort]').forEach((pill) => {
+                pill.addEventListener('click', () => {
+                    modelSort = pill.getAttribute('data-tm-sl-sort') || 'name';
+                    GM_setValue(SORT_KEY, modelSort);
+                    renderModelsStep();
+                });
+            });
+
+            let models = buildModelIndex(allPhones, otherStorePhones, helpers);
+            models = sortModels(models, modelSort);
+            if (modelQuery) {
+                models = models.filter(([name]) => name.toLowerCase().includes(modelQuery));
+            }
+
+            bodyEl.innerHTML = UI.buildModelGrid(models, buildUiCtx());
+            setStatus(`${models.length} μοντέλα · ${allPhones.length + otherStorePhones.length} συσκευές στο δίκτυο`);
+            wireModelCards();
         }
 
         function renderStoresStep() {
             if (!selectedModel) return renderModelsStep();
             step = 'stores';
+            UI.updateBreadcrumb(overlay, 'stores', selectedModel);
             titleEl.textContent = selectedModel;
             subtitleEl.textContent = 'Διαθεσιμότητα ανά κατάστημα';
 
             const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers);
-            const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters);
+            const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers);
+            const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({ counts: filterCounts }));
             toolbarEl.innerHTML = UI.buildStoreToolbar(selectedModel, chipsHtml);
 
             toolbarEl.querySelector('#tm-sl-back')?.addEventListener('click', () => {
@@ -310,35 +494,11 @@
             });
 
             const board = buildStoreBoardData(selectedModel, allPhones, otherStorePhones, activeFilters, helpers);
-            bodyEl.innerHTML = UI.buildStoreBoard(selectedModel, board.mine, board.storeRows, ctx);
+            bodyEl.innerHTML = UI.buildStoreBoard(selectedModel, board.mine, board.storeRows, buildUiCtx());
 
             const storeCount = board.allRows.length;
             setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} με διαθέσιμες εκδόσεις`);
-
-            bodyEl.querySelectorAll('[data-tm-sl-toggle-store]').forEach((head) => {
-                head.addEventListener('click', () => {
-                    const row = head.closest('.tm-sl-store-row');
-                    row?.classList.toggle('is-open');
-                });
-            });
-
-            bodyEl.querySelectorAll('[data-tm-sl-copy]').forEach((btn) => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const code = btn.getAttribute('data-tm-sl-copy');
-                    if (code && typeof GM_setClipboard === 'function') GM_setClipboard(code);
-                });
-            });
-
-            bodyEl.querySelectorAll('[data-tm-sl-open]').forEach((btn) => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const code = btn.getAttribute('data-tm-sl-open');
-                    if (code) {
-                        window.open(`https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`, '_blank');
-                    }
-                });
-            });
+            wireStoreBoard();
         }
 
         async function ensureOtherStores() {
@@ -349,7 +509,7 @@
         }
 
         async function refreshData() {
-            bodyEl.innerHTML = UI.buildEmptyState('⏳', 'Ανανέωση δεδομένων…', '');
+            bodyEl.innerHTML = step === 'stores' ? UI.buildSkeletonStores(6) : UI.buildSkeletonGrid(8);
             try {
                 if (typeof window.fetchPhoneList === 'function') {
                     allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList());
@@ -359,7 +519,7 @@
                     window.syncPhoneColorCatalog(allPhones);
                 }
                 lastUpdated = new Date();
-                updatedEl.textContent = `Ενημέρωση: ${lastUpdated.toLocaleString('el-GR')}`;
+                syncFreshness();
                 if (step === 'stores' && selectedModel) renderStoresStep();
                 else renderModelsStep();
             } catch (err) {
@@ -369,6 +529,11 @@
 
         overlay.querySelector('#tm-sl-close')?.addEventListener('click', closeModal);
         overlay.querySelector('#tm-sl-refresh')?.addEventListener('click', refreshData);
+        overlay.querySelector('#tm-sl-density')?.addEventListener('click', () => {
+            densityCompact = !densityCompact;
+            GM_setValue(DENSITY_KEY, densityCompact);
+            UI.setDensity(overlay, densityCompact);
+        });
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) closeModal();
         });
@@ -379,12 +544,13 @@
             }
         });
 
+        bodyEl.innerHTML = UI.buildSkeletonGrid(8);
         const cached = typeof window.loadPhoneListCache === 'function' ? window.loadPhoneListCache() : null;
         if (cached && cached.length) {
             allPhones = helpers.filterIphoneTitlePhones(cached);
             const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
             lastUpdated = new Date(ts);
-            updatedEl.textContent = `Ενημέρωση: ${lastUpdated.toLocaleString('el-GR')}`;
+            syncFreshness();
             ensureOtherStores().then(() => renderModelsStep());
         } else {
             bodyEl.innerHTML = UI.buildEmptyState('📱', 'Χωρίς δεδομένα', 'Πατήστε Ανανέωση για φόρτωση');

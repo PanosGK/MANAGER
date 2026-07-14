@@ -2084,5 +2084,6 @@ window.filterOneUnitStores = filterOneUnitStores;
 window.normalizePhoneGrade = normalizePhoneGrade;
 window.comparePhoneGrades = comparePhoneGrades;
 window.getPhoneGradeCircleStyle = getPhoneGradeCircleStyle;
+window.getAllColorHexMap = getAllColorHexMap;
 window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
 
