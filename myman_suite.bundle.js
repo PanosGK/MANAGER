@@ -28584,6 +28584,7 @@ async function showPhoneListModal() {
     if (typeof window.showStoreLocatorModal === 'function') {
         return window.showStoreLocatorModal();
     }
+    console.error('[MMS Phone List] Store locator module not loaded');
 }
 
 window.showPhoneListModal = showPhoneListModal;
@@ -28966,6 +28967,12 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
         overlay.querySelector('#tm-sl-refresh')?.addEventListener('click', refreshData);
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) closeModal();
+        });
+        document.addEventListener('keydown', function onSlKeydown(e) {
+            if (e.key === 'Escape') {
+                document.removeEventListener('keydown', onSlKeydown);
+                closeModal();
+            }
         });
 
         const cached = typeof window.loadPhoneListCache === 'function' ? window.loadPhoneListCache() : null;

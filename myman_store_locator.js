@@ -372,6 +372,12 @@
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) closeModal();
         });
+        document.addEventListener('keydown', function onSlKeydown(e) {
+            if (e.key === 'Escape') {
+                document.removeEventListener('keydown', onSlKeydown);
+                closeModal();
+            }
+        });
 
         const cached = typeof window.loadPhoneListCache === 'function' ? window.loadPhoneListCache() : null;
         if (cached && cached.length) {

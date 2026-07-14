@@ -2067,6 +2067,7 @@ async function showPhoneListModal() {
     if (typeof window.showStoreLocatorModal === 'function') {
         return window.showStoreLocatorModal();
     }
+    console.error('[MMS Phone List] Store locator module not loaded');
 }
 
 window.showPhoneListModal = showPhoneListModal;
