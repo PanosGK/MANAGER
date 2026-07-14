@@ -215,8 +215,19 @@
             background: color-mix(in srgb, var(--tm-warning-color, #eab308) 10%, var(--tm-shop-item-bg));
         }
 
-        .tm-pc-filter-row, .tm-cat-filters {
+        .tm-pc-filter-row, .tm-pc-filters-row2, .tm-cat-filters {
             display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+        }
+        .tm-pc-filters-row2 {
+            padding-top: 2px;
+            border-top: 1px dashed color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
+            margin-top: 2px;
+        }
+        .tm-pc-filters-label-inline {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.06em; opacity: 0.55;
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+            margin-right: 2px;
         }
         .tm-pc-select, .tm-cat-select,
         #tm-phone-filter-grade, #tm-phone-filter-model, #tm-phone-filter-gb,
@@ -685,7 +696,7 @@
         }
 
         .tm-pc-advanced-filters { display: none !important; }
-        .tm-pc-filters--network { display: none; }
+        .tm-pc-filters--network { display: none; flex-direction: column; gap: 10px; }
         .tm-pc-filters--network.is-active { display: flex; }
         .tm-pc-filters--mine.is-hidden { display: none !important; }
     `;
@@ -910,6 +921,22 @@
                     <button type="button" id="tm-mine-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
                     <button type="button" id="tm-phone-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
                 </div>
+                <div class="tm-pc-filters-row2">
+                    <span class="tm-pc-filters-label-inline">Φίλτρα</span>
+                    <select id="tm-phone-filter-gb" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Storage'])}</option></select>
+                    <select id="tm-phone-filter-color" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Colors'])}</option></select>
+                    <select id="tm-phone-filter-tag" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Tags'])}</option></select>
+                    <span class="tm-pc-filters-label-inline">Ταξινόμηση</span>
+                    <select id="tm-phone-sort-by" class="tm-pc-select tm-cat-select">
+                        <option value="model">${esc(T['Sort by Model'])}</option>
+                        <option value="grade">${esc(T['Sort by Grade'])}</option>
+                        <option value="gb">${esc(T['Sort by Storage'])}</option>
+                        <option value="color">${esc(T['Sort by Color'])}</option>
+                        <option value="price">Ταξινόμηση κατά Τιμή</option>
+                        <option value="imei">${esc(T['Sort by IMEI'])}</option>
+                    </select>
+                    <button type="button" id="tm-phone-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
+                </div>
             </div>
 
             <div id="tm-phone-filters-network" class="tm-pc-filters tm-cat-controls tm-pc-filters--network">
@@ -920,17 +947,27 @@
                     <button type="button" id="tm-network-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
                     <button type="button" id="tm-network-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
                 </div>
+                <div class="tm-pc-filters-row2">
+                    <span class="tm-pc-filters-label-inline">Φίλτρα</span>
+                    <select id="tm-network-filter-gb" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Storage'])}</option></select>
+                    <select id="tm-network-filter-color" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Colors'])}</option></select>
+                    <span class="tm-pc-filters-label-inline">Ταξινόμηση</span>
+                    <select id="tm-network-sort-by" class="tm-pc-select tm-cat-select">
+                        <option value="model">${esc(T['Sort by Model'])}</option>
+                        <option value="grade">${esc(T['Sort by Grade'])}</option>
+                        <option value="gb">${esc(T['Sort by Storage'])}</option>
+                        <option value="color">${esc(T['Sort by Color'])}</option>
+                        <option value="price">Ταξινόμηση κατά Τιμή</option>
+                        <option value="imei">${esc(T['Sort by IMEI'])}</option>
+                    </select>
+                    <button type="button" id="tm-network-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
+                </div>
             </div>
 
             <div class="tm-pc-advanced-filters" aria-hidden="true">
                 <input type="checkbox" id="tm-phone-regex-toggle" hidden>
                 <button type="button" id="tm-phone-favorites-btn" hidden></button>
                 <select id="tm-phone-filter-model" hidden><option value=""></option></select>
-                <select id="tm-phone-filter-gb" hidden><option value=""></option></select>
-                <select id="tm-phone-filter-color" hidden><option value=""></option></select>
-                <select id="tm-phone-filter-tag" hidden><option value=""></option></select>
-                <select id="tm-phone-sort-by" hidden><option value="model"></option></select>
-                <button type="button" id="tm-phone-sort-dir" hidden></button>
                 <button type="button" id="tm-phone-select-all" hidden></button>
                 <div id="tm-phone-export-menu" hidden>
                     <button type="button" id="tm-phone-export-clipboard"></button>
@@ -991,18 +1028,29 @@
                 </div>
             </header>
             <div id="tm-os-filter-bar" class="tm-pc-filters" style="display:none">
-                <div class="tm-pc-search-row" style="padding:12px 24px">
+                <div class="tm-pc-search-row" style="padding:12px 24px 6px">
                     <select id="tm-other-store-filter-model" class="tm-pc-select tm-cat-select" style="flex:1;min-width:180px"><option value="">— Επιλέξτε μοντέλο —</option></select>
                     <select id="tm-other-store-filter-store" class="tm-pc-select tm-cat-select"><option value="">Όλα τα καταστήματα</option></select>
                     <select id="tm-other-store-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
                     <button type="button" id="tm-os-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
                     <button type="button" id="tm-other-store-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
                 </div>
-            </div>
-            <div class="tm-pc-advanced-filters" aria-hidden="true">
-                <select id="tm-other-store-filter-gb" hidden><option value=""></option></select>
-                <select id="tm-other-store-filter-color" hidden><option value=""></option></select>
-                <select id="tm-other-store-sort" hidden><option value="model-asc"></option></select>
+                <div class="tm-pc-filters-row2" style="padding:0 24px 12px">
+                    <span class="tm-pc-filters-label-inline">Φίλτρα</span>
+                    <select id="tm-other-store-filter-gb" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Storage'])}</option></select>
+                    <select id="tm-other-store-filter-color" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Colors'])}</option></select>
+                    <span class="tm-pc-filters-label-inline">Ταξινόμηση</span>
+                    <select id="tm-other-store-sort" class="tm-pc-select tm-cat-select">
+                        <option value="model-asc">${esc(T['Sort by Model'])} ↑</option>
+                        <option value="model-desc">${esc(T['Sort by Model'])} ↓</option>
+                        <option value="grade-asc">${esc(T['Sort by Grade'])} A+→A</option>
+                        <option value="grade-desc">${esc(T['Sort by Grade'])} A→A+</option>
+                        <option value="storage-asc">${esc(T['Sort by Storage'])} ↑</option>
+                        <option value="storage-desc">${esc(T['Sort by Storage'])} ↓</option>
+                        <option value="price-asc">Τιμή ↑</option>
+                        <option value="price-desc">Τιμή ↓</option>
+                    </select>
+                </div>
             </div>
             <div id="tm-other-store-modal-body" class="tm-pc-list tm-cat-table-body">
                 ${buildEmptyState('…', 'Φόρτωση', 'Λήψη δεδομένων δικτύου')}

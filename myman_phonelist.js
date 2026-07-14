@@ -3081,6 +3081,10 @@ async function showPhoneListModal() {
                     aVal = a.imei || '';
                     bVal = b.imei || '';
                     break;
+                case 'price':
+                    aVal = parseFloat(String(a.retailPrice || '0').replace(/[^0-9.]/g, '')) || 0;
+                    bVal = parseFloat(String(b.retailPrice || '0').replace(/[^0-9.]/g, '')) || 0;
+                    return sortAscending ? aVal - bVal : bVal - aVal;
                 default:
                     aVal = a.model || '';
                     bVal = b.model || '';
@@ -3409,6 +3413,14 @@ async function showPhoneListModal() {
         networkBackBtn?.classList.toggle('is-visible', networkCatalogStep === 'phones');
     }
 
+    function syncSortControls() {
+        const arrow = sortAscending ? '↑' : '↓';
+        if (sortBySelect) sortBySelect.value = sortBy;
+        if (networkSortBySelect) networkSortBySelect.value = sortBy;
+        if (sortDirBtn) sortDirBtn.textContent = arrow;
+        if (networkSortDirBtn) networkSortDirBtn.textContent = arrow;
+    }
+
     function syncFilterPanels() {
         const minePanel = overlay.querySelector('#tm-phone-filters-mine');
         const networkPanel = overlay.querySelector('#tm-phone-filters-network');
@@ -3420,6 +3432,7 @@ async function showPhoneListModal() {
             networkPanel?.classList.remove('is-active');
         }
         updateCatalogBackButtons();
+        syncSortControls();
     }
 
     function selectMineModel(model) {
@@ -3473,6 +3486,12 @@ async function showPhoneListModal() {
         const grades = [...new Set(base.map(p => p.grade).filter(Boolean))].sort(comparePhoneGrades);
         const models = [...new Set(base.map(p => extractBaseModel(p.model)).filter(Boolean))]
             .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+        const gbs = [...new Set(base.map(p => extractGB(p.name || p.model)).filter(Boolean))].sort((a, b) => {
+            const aIsTB = a.toUpperCase().includes('TB');
+            const bIsTB = b.toUpperCase().includes('TB');
+            return parseInt(a) * (aIsTB ? 1024 : 1) - parseInt(b) * (bIsTB ? 1024 : 1);
+        });
+        const colors = [...new Set(base.map(p => extractColor(p.name || p.model)).filter(Boolean))].sort();
 
         if (networkGradeFilter) {
             const cur = networkGradeFilter.value;
@@ -3494,6 +3513,19 @@ async function showPhoneListModal() {
                 networkModelFilter.appendChild(opt);
                 networkModelFilter.value = networkSelectedModel;
             }
+        }
+        if (networkGbFilter) {
+            const cur = networkGbFilter.value;
+            networkGbFilter.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Storage']}</option>` +
+                gbs.map(g => `<option value="${PhoneCatalogUI.esc(g)}">${PhoneCatalogUI.esc(g)}</option>`).join('');
+            if (gbs.includes(cur)) networkGbFilter.value = cur;
+        }
+        if (networkColorFilter) {
+            const cur = networkColorFilter.value;
+            networkColorFilter.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Colors']}</option>` +
+                colors.map(c => `<option value="${PhoneCatalogUI.esc(c)}">${PhoneCatalogUI.esc(c)}</option>`).join('');
+            if (colors.includes(cur)) networkColorFilter.value = cur;
+            syncPhoneColorSelectDisplay(networkColorFilter);
         }
 
         const storeSet = new Set();
@@ -3572,9 +3604,13 @@ async function showPhoneListModal() {
             ? (networkSelectedModel || networkModelFilter?.value || modelFilter.value)
             : (mineSelectedModel || modelFilter.value);
         const selectedStore = showingOtherStores ? (networkStoreFilter?.value || '') : '';
-        const selectedGB = gbFilter.value;
-        const selectedColor = colorFilter.value;
-        const selectedTag = tagFilter ? tagFilter.value : '';
+        const selectedGB = showingOtherStores
+            ? (networkGbFilter?.value || '')
+            : gbFilter.value;
+        const selectedColor = showingOtherStores
+            ? (networkColorFilter?.value || '')
+            : colorFilter.value;
+        const selectedTag = showingOtherStores ? '' : (tagFilter ? tagFilter.value : '');
 
         if (!showingOtherStores && selectedModel) {
             mineCatalogStep = 'phones';
@@ -4049,6 +4085,10 @@ async function showPhoneListModal() {
     const networkModelFilter = overlay.querySelector('#tm-network-filter-model');
     const networkStoreFilter = overlay.querySelector('#tm-network-filter-store');
     const networkGradeFilter = overlay.querySelector('#tm-network-filter-grade');
+    const networkGbFilter = overlay.querySelector('#tm-network-filter-gb');
+    const networkColorFilter = overlay.querySelector('#tm-network-filter-color');
+    const networkSortBySelect = overlay.querySelector('#tm-network-sort-by');
+    const networkSortDirBtn = overlay.querySelector('#tm-network-sort-dir');
     const networkClearBtn = overlay.querySelector('#tm-network-clear-filters');
     const settingsBtn = overlay.querySelector('#tm-phone-settings-btn');
     const settingsMenu = overlay.querySelector('#tm-phone-settings-menu');
@@ -4146,13 +4186,33 @@ async function showPhoneListModal() {
     });
     networkStoreFilter?.addEventListener('change', applyFilters);
     networkGradeFilter?.addEventListener('change', applyFilters);
+    networkGbFilter?.addEventListener('change', applyFilters);
+    networkColorFilter?.addEventListener('change', () => {
+        syncPhoneColorSelectDisplay(networkColorFilter);
+        applyFilters();
+    });
+    networkSortBySelect?.addEventListener('change', () => {
+        sortBy = networkSortBySelect.value;
+        syncSortControls();
+        applyFilters();
+    });
+    networkSortDirBtn?.addEventListener('click', () => {
+        sortAscending = !sortAscending;
+        syncSortControls();
+        applyFilters();
+    });
     networkClearBtn?.addEventListener('click', () => {
         networkCatalogStep = 'models';
         networkSelectedModel = null;
         if (networkModelFilter) networkModelFilter.value = '';
         if (networkStoreFilter) networkStoreFilter.value = '';
         if (networkGradeFilter) networkGradeFilter.value = '';
+        if (networkGbFilter) networkGbFilter.value = '';
+        if (networkColorFilter) networkColorFilter.value = '';
         if (modelFilter) modelFilter.value = '';
+        sortBy = 'model';
+        sortAscending = true;
+        syncSortControls();
         updateCatalogBackButtons();
         renderNetworkModelPicker();
     });
@@ -4622,11 +4682,12 @@ async function showPhoneListModal() {
     
     sortBySelect?.addEventListener('change', () => {
         sortBy = sortBySelect.value;
+        syncSortControls();
         applyFilters();
     });
     sortDirBtn?.addEventListener('click', () => {
         sortAscending = !sortAscending;
-        sortDirBtn.textContent = sortAscending ? '↑' : '↓';
+        syncSortControls();
         applyFilters();
     });
     
@@ -4649,6 +4710,7 @@ async function showPhoneListModal() {
         sortAscending = true;
         if (sortBySelect) sortBySelect.value = 'model';
         if (sortDirBtn) sortDirBtn.textContent = '↑';
+        syncSortControls();
         populateFilters(allPhones, ['grade', 'model', 'gb', 'color', 'tag']);
         updateCatalogBackButtons();
         applyFilters();
@@ -5233,6 +5295,7 @@ async function showPhoneListModal() {
     }
 
     syncFilterPanels();
+    syncSortControls();
     setTimeout(() => searchInput?.focus(), 80);
 }
 

@@ -26281,8 +26281,19 @@ window.initOrderTracking = initOrderTracking;
             background: color-mix(in srgb, var(--tm-warning-color, #eab308) 10%, var(--tm-shop-item-bg));
         }
 
-        .tm-pc-filter-row, .tm-cat-filters {
+        .tm-pc-filter-row, .tm-pc-filters-row2, .tm-cat-filters {
             display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+        }
+        .tm-pc-filters-row2 {
+            padding-top: 2px;
+            border-top: 1px dashed color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
+            margin-top: 2px;
+        }
+        .tm-pc-filters-label-inline {
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.06em; opacity: 0.55;
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+            margin-right: 2px;
         }
         .tm-pc-select, .tm-cat-select,
         #tm-phone-filter-grade, #tm-phone-filter-model, #tm-phone-filter-gb,
@@ -26751,7 +26762,7 @@ window.initOrderTracking = initOrderTracking;
         }
 
         .tm-pc-advanced-filters { display: none !important; }
-        .tm-pc-filters--network { display: none; }
+        .tm-pc-filters--network { display: none; flex-direction: column; gap: 10px; }
         .tm-pc-filters--network.is-active { display: flex; }
         .tm-pc-filters--mine.is-hidden { display: none !important; }
     `;
@@ -26976,6 +26987,22 @@ window.initOrderTracking = initOrderTracking;
                     <button type="button" id="tm-mine-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
                     <button type="button" id="tm-phone-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
                 </div>
+                <div class="tm-pc-filters-row2">
+                    <span class="tm-pc-filters-label-inline">Φίλτρα</span>
+                    <select id="tm-phone-filter-gb" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Storage'])}</option></select>
+                    <select id="tm-phone-filter-color" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Colors'])}</option></select>
+                    <select id="tm-phone-filter-tag" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Tags'])}</option></select>
+                    <span class="tm-pc-filters-label-inline">Ταξινόμηση</span>
+                    <select id="tm-phone-sort-by" class="tm-pc-select tm-cat-select">
+                        <option value="model">${esc(T['Sort by Model'])}</option>
+                        <option value="grade">${esc(T['Sort by Grade'])}</option>
+                        <option value="gb">${esc(T['Sort by Storage'])}</option>
+                        <option value="color">${esc(T['Sort by Color'])}</option>
+                        <option value="price">Ταξινόμηση κατά Τιμή</option>
+                        <option value="imei">${esc(T['Sort by IMEI'])}</option>
+                    </select>
+                    <button type="button" id="tm-phone-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
+                </div>
             </div>
 
             <div id="tm-phone-filters-network" class="tm-pc-filters tm-cat-controls tm-pc-filters--network">
@@ -26986,17 +27013,27 @@ window.initOrderTracking = initOrderTracking;
                     <button type="button" id="tm-network-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
                     <button type="button" id="tm-network-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
                 </div>
+                <div class="tm-pc-filters-row2">
+                    <span class="tm-pc-filters-label-inline">Φίλτρα</span>
+                    <select id="tm-network-filter-gb" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Storage'])}</option></select>
+                    <select id="tm-network-filter-color" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Colors'])}</option></select>
+                    <span class="tm-pc-filters-label-inline">Ταξινόμηση</span>
+                    <select id="tm-network-sort-by" class="tm-pc-select tm-cat-select">
+                        <option value="model">${esc(T['Sort by Model'])}</option>
+                        <option value="grade">${esc(T['Sort by Grade'])}</option>
+                        <option value="gb">${esc(T['Sort by Storage'])}</option>
+                        <option value="color">${esc(T['Sort by Color'])}</option>
+                        <option value="price">Ταξινόμηση κατά Τιμή</option>
+                        <option value="imei">${esc(T['Sort by IMEI'])}</option>
+                    </select>
+                    <button type="button" id="tm-network-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
+                </div>
             </div>
 
             <div class="tm-pc-advanced-filters" aria-hidden="true">
                 <input type="checkbox" id="tm-phone-regex-toggle" hidden>
                 <button type="button" id="tm-phone-favorites-btn" hidden></button>
                 <select id="tm-phone-filter-model" hidden><option value=""></option></select>
-                <select id="tm-phone-filter-gb" hidden><option value=""></option></select>
-                <select id="tm-phone-filter-color" hidden><option value=""></option></select>
-                <select id="tm-phone-filter-tag" hidden><option value=""></option></select>
-                <select id="tm-phone-sort-by" hidden><option value="model"></option></select>
-                <button type="button" id="tm-phone-sort-dir" hidden></button>
                 <button type="button" id="tm-phone-select-all" hidden></button>
                 <div id="tm-phone-export-menu" hidden>
                     <button type="button" id="tm-phone-export-clipboard"></button>
@@ -27057,18 +27094,29 @@ window.initOrderTracking = initOrderTracking;
                 </div>
             </header>
             <div id="tm-os-filter-bar" class="tm-pc-filters" style="display:none">
-                <div class="tm-pc-search-row" style="padding:12px 24px">
+                <div class="tm-pc-search-row" style="padding:12px 24px 6px">
                     <select id="tm-other-store-filter-model" class="tm-pc-select tm-cat-select" style="flex:1;min-width:180px"><option value="">— Επιλέξτε μοντέλο —</option></select>
                     <select id="tm-other-store-filter-store" class="tm-pc-select tm-cat-select"><option value="">Όλα τα καταστήματα</option></select>
                     <select id="tm-other-store-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
                     <button type="button" id="tm-os-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
                     <button type="button" id="tm-other-store-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
                 </div>
-            </div>
-            <div class="tm-pc-advanced-filters" aria-hidden="true">
-                <select id="tm-other-store-filter-gb" hidden><option value=""></option></select>
-                <select id="tm-other-store-filter-color" hidden><option value=""></option></select>
-                <select id="tm-other-store-sort" hidden><option value="model-asc"></option></select>
+                <div class="tm-pc-filters-row2" style="padding:0 24px 12px">
+                    <span class="tm-pc-filters-label-inline">Φίλτρα</span>
+                    <select id="tm-other-store-filter-gb" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Storage'])}</option></select>
+                    <select id="tm-other-store-filter-color" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Colors'])}</option></select>
+                    <span class="tm-pc-filters-label-inline">Ταξινόμηση</span>
+                    <select id="tm-other-store-sort" class="tm-pc-select tm-cat-select">
+                        <option value="model-asc">${esc(T['Sort by Model'])} ↑</option>
+                        <option value="model-desc">${esc(T['Sort by Model'])} ↓</option>
+                        <option value="grade-asc">${esc(T['Sort by Grade'])} A+→A</option>
+                        <option value="grade-desc">${esc(T['Sort by Grade'])} A→A+</option>
+                        <option value="storage-asc">${esc(T['Sort by Storage'])} ↑</option>
+                        <option value="storage-desc">${esc(T['Sort by Storage'])} ↓</option>
+                        <option value="price-asc">Τιμή ↑</option>
+                        <option value="price-desc">Τιμή ↓</option>
+                    </select>
+                </div>
             </div>
             <div id="tm-other-store-modal-body" class="tm-pc-list tm-cat-table-body">
                 ${buildEmptyState('…', 'Φόρτωση', 'Λήψη δεδομένων δικτύου')}
@@ -30181,6 +30229,10 @@ async function showPhoneListModal() {
                     aVal = a.imei || '';
                     bVal = b.imei || '';
                     break;
+                case 'price':
+                    aVal = parseFloat(String(a.retailPrice || '0').replace(/[^0-9.]/g, '')) || 0;
+                    bVal = parseFloat(String(b.retailPrice || '0').replace(/[^0-9.]/g, '')) || 0;
+                    return sortAscending ? aVal - bVal : bVal - aVal;
                 default:
                     aVal = a.model || '';
                     bVal = b.model || '';
@@ -30509,6 +30561,14 @@ async function showPhoneListModal() {
         networkBackBtn?.classList.toggle('is-visible', networkCatalogStep === 'phones');
     }
 
+    function syncSortControls() {
+        const arrow = sortAscending ? '↑' : '↓';
+        if (sortBySelect) sortBySelect.value = sortBy;
+        if (networkSortBySelect) networkSortBySelect.value = sortBy;
+        if (sortDirBtn) sortDirBtn.textContent = arrow;
+        if (networkSortDirBtn) networkSortDirBtn.textContent = arrow;
+    }
+
     function syncFilterPanels() {
         const minePanel = overlay.querySelector('#tm-phone-filters-mine');
         const networkPanel = overlay.querySelector('#tm-phone-filters-network');
@@ -30520,6 +30580,7 @@ async function showPhoneListModal() {
             networkPanel?.classList.remove('is-active');
         }
         updateCatalogBackButtons();
+        syncSortControls();
     }
 
     function selectMineModel(model) {
@@ -30573,6 +30634,12 @@ async function showPhoneListModal() {
         const grades = [...new Set(base.map(p => p.grade).filter(Boolean))].sort(comparePhoneGrades);
         const models = [...new Set(base.map(p => extractBaseModel(p.model)).filter(Boolean))]
             .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+        const gbs = [...new Set(base.map(p => extractGB(p.name || p.model)).filter(Boolean))].sort((a, b) => {
+            const aIsTB = a.toUpperCase().includes('TB');
+            const bIsTB = b.toUpperCase().includes('TB');
+            return parseInt(a) * (aIsTB ? 1024 : 1) - parseInt(b) * (bIsTB ? 1024 : 1);
+        });
+        const colors = [...new Set(base.map(p => extractColor(p.name || p.model)).filter(Boolean))].sort();
 
         if (networkGradeFilter) {
             const cur = networkGradeFilter.value;
@@ -30594,6 +30661,19 @@ async function showPhoneListModal() {
                 networkModelFilter.appendChild(opt);
                 networkModelFilter.value = networkSelectedModel;
             }
+        }
+        if (networkGbFilter) {
+            const cur = networkGbFilter.value;
+            networkGbFilter.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Storage']}</option>` +
+                gbs.map(g => `<option value="${PhoneCatalogUI.esc(g)}">${PhoneCatalogUI.esc(g)}</option>`).join('');
+            if (gbs.includes(cur)) networkGbFilter.value = cur;
+        }
+        if (networkColorFilter) {
+            const cur = networkColorFilter.value;
+            networkColorFilter.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Colors']}</option>` +
+                colors.map(c => `<option value="${PhoneCatalogUI.esc(c)}">${PhoneCatalogUI.esc(c)}</option>`).join('');
+            if (colors.includes(cur)) networkColorFilter.value = cur;
+            syncPhoneColorSelectDisplay(networkColorFilter);
         }
 
         const storeSet = new Set();
@@ -30672,9 +30752,13 @@ async function showPhoneListModal() {
             ? (networkSelectedModel || networkModelFilter?.value || modelFilter.value)
             : (mineSelectedModel || modelFilter.value);
         const selectedStore = showingOtherStores ? (networkStoreFilter?.value || '') : '';
-        const selectedGB = gbFilter.value;
-        const selectedColor = colorFilter.value;
-        const selectedTag = tagFilter ? tagFilter.value : '';
+        const selectedGB = showingOtherStores
+            ? (networkGbFilter?.value || '')
+            : gbFilter.value;
+        const selectedColor = showingOtherStores
+            ? (networkColorFilter?.value || '')
+            : colorFilter.value;
+        const selectedTag = showingOtherStores ? '' : (tagFilter ? tagFilter.value : '');
 
         if (!showingOtherStores && selectedModel) {
             mineCatalogStep = 'phones';
@@ -31149,6 +31233,10 @@ async function showPhoneListModal() {
     const networkModelFilter = overlay.querySelector('#tm-network-filter-model');
     const networkStoreFilter = overlay.querySelector('#tm-network-filter-store');
     const networkGradeFilter = overlay.querySelector('#tm-network-filter-grade');
+    const networkGbFilter = overlay.querySelector('#tm-network-filter-gb');
+    const networkColorFilter = overlay.querySelector('#tm-network-filter-color');
+    const networkSortBySelect = overlay.querySelector('#tm-network-sort-by');
+    const networkSortDirBtn = overlay.querySelector('#tm-network-sort-dir');
     const networkClearBtn = overlay.querySelector('#tm-network-clear-filters');
     const settingsBtn = overlay.querySelector('#tm-phone-settings-btn');
     const settingsMenu = overlay.querySelector('#tm-phone-settings-menu');
@@ -31246,13 +31334,33 @@ async function showPhoneListModal() {
     });
     networkStoreFilter?.addEventListener('change', applyFilters);
     networkGradeFilter?.addEventListener('change', applyFilters);
+    networkGbFilter?.addEventListener('change', applyFilters);
+    networkColorFilter?.addEventListener('change', () => {
+        syncPhoneColorSelectDisplay(networkColorFilter);
+        applyFilters();
+    });
+    networkSortBySelect?.addEventListener('change', () => {
+        sortBy = networkSortBySelect.value;
+        syncSortControls();
+        applyFilters();
+    });
+    networkSortDirBtn?.addEventListener('click', () => {
+        sortAscending = !sortAscending;
+        syncSortControls();
+        applyFilters();
+    });
     networkClearBtn?.addEventListener('click', () => {
         networkCatalogStep = 'models';
         networkSelectedModel = null;
         if (networkModelFilter) networkModelFilter.value = '';
         if (networkStoreFilter) networkStoreFilter.value = '';
         if (networkGradeFilter) networkGradeFilter.value = '';
+        if (networkGbFilter) networkGbFilter.value = '';
+        if (networkColorFilter) networkColorFilter.value = '';
         if (modelFilter) modelFilter.value = '';
+        sortBy = 'model';
+        sortAscending = true;
+        syncSortControls();
         updateCatalogBackButtons();
         renderNetworkModelPicker();
     });
@@ -31722,11 +31830,12 @@ async function showPhoneListModal() {
     
     sortBySelect?.addEventListener('change', () => {
         sortBy = sortBySelect.value;
+        syncSortControls();
         applyFilters();
     });
     sortDirBtn?.addEventListener('click', () => {
         sortAscending = !sortAscending;
-        sortDirBtn.textContent = sortAscending ? '↑' : '↓';
+        syncSortControls();
         applyFilters();
     });
     
@@ -31749,6 +31858,7 @@ async function showPhoneListModal() {
         sortAscending = true;
         if (sortBySelect) sortBySelect.value = 'model';
         if (sortDirBtn) sortDirBtn.textContent = '↑';
+        syncSortControls();
         populateFilters(allPhones, ['grade', 'model', 'gb', 'color', 'tag']);
         updateCatalogBackButtons();
         applyFilters();
@@ -32333,6 +32443,7 @@ async function showPhoneListModal() {
     }
 
     syncFilterPanels();
+    syncSortControls();
     setTimeout(() => searchInput?.focus(), 80);
 }
 
