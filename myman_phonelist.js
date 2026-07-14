@@ -2618,6 +2618,7 @@ window.filterOneUnitStores = filterOneUnitStores;
 window.normalizePhoneGrade = normalizePhoneGrade;
 window.comparePhoneGrades = comparePhoneGrades;
 window.getPhoneGradeCircleStyle = getPhoneGradeCircleStyle;
+window.getPhoneGradeColor = getPhoneGradeColor;
 window.getAllColorHexMap = getAllColorHexMap;
 window.fetchStorehousesFromPage = fetchStorehousesFromPage;
 window.getEffectivePhoneStores = getEffectivePhoneStores;

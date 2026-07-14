@@ -320,7 +320,8 @@
         .tm-sl-shell.tm-sl-density--compact .tm-sl-body { padding: 10px 14px; }
         .tm-sl-shell.tm-sl-density--compact .tm-sl-model-card { padding: 10px 12px; }
         .tm-sl-shell.tm-sl-density--compact .tm-sl-store-head { padding: 8px 10px; }
-        .tm-sl-shell.tm-sl-density--compact .tm-sl-unit { padding: 5px 8px; font-size: 11px; }
+        .tm-sl-shell.tm-sl-density--compact .tm-sl-phone-card { padding: 9px 11px; }
+        .tm-sl-shell.tm-sl-density--compact .tm-sl-spec-pill { font-size: 10px; padding: 3px 7px; }
 
         .tm-sl-model-grid {
             display: grid;
@@ -481,8 +482,119 @@
         .tm-sl-store-row.is-open .tm-sl-store-units {
             max-height: 1200px; opacity: 1;
             border-top-color: var(--tm-shop-item-border);
-            padding: 8px 10px 10px;
+            padding: 10px 10px 12px;
+            display: flex; flex-direction: column; gap: 8px;
         }
+
+        .tm-sl-phone-card {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px 12px;
+            align-items: stretch;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-shop-item-bg);
+            box-shadow: 0 1px 0 color-mix(in srgb, var(--tm-shop-item-border) 40%, transparent);
+            border-left: 4px solid var(--tm-sl-grade-accent, var(--tm-shop-item-border));
+            transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+        }
+        .tm-sl-phone-card:hover {
+            border-color: color-mix(in srgb, var(--tm-primary-color) 35%, var(--tm-shop-item-border));
+            box-shadow: 0 4px 14px color-mix(in srgb, var(--tm-primary-color) 8%, transparent);
+        }
+        .tm-sl-phone-card--bb {
+            background: linear-gradient(135deg,
+                color-mix(in srgb, var(--tm-warning-color, #f59e0b) 6%, var(--tm-shop-item-bg)),
+                var(--tm-shop-item-bg) 55%);
+        }
+        .tm-sl-phone-card--blocked {
+            border-left-color: #dc2626;
+            background: linear-gradient(135deg,
+                color-mix(in srgb, #dc2626 5%, var(--tm-shop-item-bg)),
+                var(--tm-shop-item-bg) 50%);
+        }
+        .tm-sl-phone-card__body { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+        .tm-sl-phone-card__specs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .tm-sl-phone-card__meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .tm-sl-phone-card__footer {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+        }
+        .tm-sl-phone-card__aside {
+            display: flex; flex-direction: column; align-items: flex-end;
+            justify-content: space-between; gap: 8px; min-width: 88px;
+        }
+        .tm-sl-spec-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 9px; border-radius: 999px;
+            font-size: 11px; font-weight: 700; line-height: 1.2;
+            border: 1px solid transparent;
+        }
+        .tm-sl-spec-pill--grade {
+            min-width: 34px; justify-content: center;
+            color: #fff; text-shadow: 0 1px 0 rgba(0,0,0,0.15);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .tm-sl-spec-pill--storage {
+            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 12%, var(--tm-shop-item-bg));
+            color: var(--tm-info-color, #0284c7);
+            border-color: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 28%, transparent);
+        }
+        .tm-sl-spec-pill--color {
+            background: color-mix(in srgb, var(--tm-shop-item-border) 18%, var(--tm-shop-item-bg));
+            color: var(--tm-shop-item-text);
+            border-color: var(--tm-shop-item-border);
+        }
+        .tm-sl-spec-pill--color .tm-sl-color-swatch {
+            width: 12px; height: 12px; border-radius: 50%;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
+        }
+        .tm-sl-spec-pill--bb {
+            background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 18%, transparent);
+            color: var(--tm-warning-color, #d97706);
+            border-color: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 35%, transparent);
+        }
+        .tm-sl-barcode-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 10px; border-radius: 8px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+            background: color-mix(in srgb, var(--tm-shop-item-border) 22%, var(--tm-shop-item-bg));
+            color: var(--tm-shop-item-text);
+            border: 1px dashed color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
+        }
+        .tm-sl-barcode-pill__icon { opacity: 0.45; font-size: 10px; }
+        .tm-sl-phone-card__price {
+            font-size: 15px; font-weight: 800; color: var(--tm-success-color, #16a34a);
+            white-space: nowrap; line-height: 1.1;
+        }
+        .tm-sl-phone-card__price:empty { display: none; }
+        .tm-sl-phone-card__actions { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+        .tm-sl-unit-btn--primary {
+            background: color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-shop-item-bg));
+            border-color: color-mix(in srgb, var(--tm-primary-color) 35%, var(--tm-shop-item-border));
+            color: var(--tm-primary-color);
+        }
+        .tm-sl-store-tag {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 8px; border-radius: 999px;
+            font-size: 10px; font-weight: 700;
+            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 12%, transparent);
+            color: var(--tm-info-color, #0284c7);
+            border: 1px solid color-mix(in srgb, var(--tm-info-color, #0ea5e9) 25%, transparent);
+        }
+        .tm-sl-store-tag--mine {
+            background: color-mix(in srgb, var(--tm-success-color, #22c55e) 12%, transparent);
+            color: var(--tm-success-color, #16a34a);
+            border-color: color-mix(in srgb, var(--tm-success-color, #22c55e) 28%, transparent);
+        }
+        .tm-sl-store-preview-chips { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 14px 10px 40px; }
+        .tm-sl-preview-pill {
+            font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
+            background: color-mix(in srgb, var(--tm-shop-item-border) 20%, var(--tm-shop-item-bg));
+            opacity: 0.85;
+        }
+
         .tm-sl-unit {
             display: grid;
             grid-template-columns: 36px 1fr auto;
@@ -514,29 +626,9 @@
             letter-spacing: 0.05em; opacity: 0.6; margin: 0 0 10px 2px;
         }
         .tm-sl-phone-list {
-            display: flex; flex-direction: column; gap: 6px;
-            border: 1px solid var(--tm-shop-item-border);
-            border-radius: 12px; overflow: hidden;
+            display: flex; flex-direction: column; gap: 8px;
         }
-        .tm-sl-phone-list-item {
-            display: grid;
-            grid-template-columns: 36px 1fr auto;
-            gap: 8px; align-items: center;
-            padding: 10px 12px;
-            background: var(--tm-shop-item-bg);
-            border-bottom: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 50%, transparent);
-            font-size: 12px;
-        }
-        .tm-sl-phone-list-item:last-child { border-bottom: none; }
-        .tm-sl-phone-list-item:hover { background: var(--tm-shop-item-hover-bg); }
-        .tm-sl-phone-list-store {
-            display: inline-flex; align-items: center; gap: 4px;
-            font-size: 10px; font-weight: 800; margin-bottom: 2px;
-            color: var(--tm-info-color, #0ea5e9);
-        }
-        .tm-sl-phone-list-store--mine { color: var(--tm-success-color, #22c55e); }
-        .tm-sl-unit-price { font-size: 12px; font-weight: 700; white-space: nowrap; }
-        .tm-sl-unit-actions { display: flex; gap: 4px; align-items: center; }
+        .tm-sl-phone-list--mine { padding: 0; border: none; background: transparent; }
         .tm-sl-unit-btn {
             padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700;
             border: 1px solid var(--tm-shop-item-border);
@@ -894,55 +986,87 @@
         };
     }
 
-    function formatVariantLine(v, ctx) {
+    function getGradeAccentColor(grade, ctx) {
+        if (typeof ctx?.getGradeColor === 'function') return ctx.getGradeColor(grade);
+        if (typeof window.getPhoneGradeColor === 'function') return window.getPhoneGradeColor(grade);
+        return '#607d8b';
+    }
+
+    function buildSpecPillsHTML(v, ctx) {
         const hexMap = ctx?.colorHexMap || {};
+        const getGradeStyle = ctx?.getGradeStyle || (() => '');
+        const pills = [];
+        if (v.grade) {
+            pills.push(`<span class="tm-sl-spec-pill tm-sl-spec-pill--grade" style="${getGradeStyle(v.grade)}">${esc(v.grade)}</span>`);
+        }
+        if (v.gb) {
+            pills.push(`<span class="tm-sl-spec-pill tm-sl-spec-pill--storage">${esc(v.gb)}</span>`);
+        }
+        if (v.color) {
+            pills.push(`<span class="tm-sl-spec-pill tm-sl-spec-pill--color">${colorSwatchHTML(v.color, hexMap)} ${esc(v.color)}</span>`);
+        }
+        if (v.isBuyback) {
+            pills.push('<span class="tm-sl-spec-pill tm-sl-spec-pill--bb">BB</span>');
+        }
+        return pills.join('');
+    }
+
+    function buildVariantPreviewHTML(v, ctx) {
+        const hexMap = ctx?.colorHexMap || {};
+        const parts = [];
+        if (v.grade) parts.push(`<span class="tm-sl-preview-pill">${esc(v.grade)}</span>`);
+        if (v.gb) parts.push(`<span class="tm-sl-preview-pill">${esc(v.gb)}</span>`);
+        if (v.color) parts.push(`<span class="tm-sl-preview-pill">${colorSwatchHTML(v.color, hexMap)} ${esc(v.color)}</span>`);
+        if (v.isBuyback) parts.push('<span class="tm-sl-preview-pill">BB</span>');
+        return parts.join('');
+    }
+
+    function formatVariantLine(v, ctx) {
         const bits = [];
         if (v.grade) bits.push(v.grade);
         if (v.gb) bits.push(v.gb);
         if (v.color) bits.push(v.color);
+        if (v.isBuyback) bits.push('BB');
         return bits.join(' · ') || '—';
     }
 
-    function buildUnitSpecHTML(v, ctx) {
-        const hexMap = ctx?.colorHexMap || {};
-        const parts = [];
-        if (v.grade) parts.push(`<span>${esc(v.grade)}</span>`);
-        if (v.gb) parts.push(`<span>${esc(v.gb)}</span>`);
-        if (v.color) {
-            parts.push(`<span class="tm-sl-unit-spec-color">${colorSwatchHTML(v.color, hexMap)} ${esc(v.color)}</span>`);
-        }
-        const spec = parts.length ? parts.join('<span class="tm-sl-spec-sep"> · </span>') : '—';
-        const bb = v.isBuyback ? ' <span class="tm-sl-bb-badge">BB</span>' : '';
-        return `${spec}${bb}`;
-    }
-
     function buildUnitStoreHTML(storeName, isMine) {
-        const cls = isMine ? 'tm-sl-unit-store tm-sl-unit-store--mine' : 'tm-sl-unit-store';
-        return `<div class="${cls}">${ICON.store.replace('width="16"', 'width="11"').replace('height="16"', 'height="11"')} ${esc(storeName)}</div>`;
+        const cls = isMine ? 'tm-sl-store-tag tm-sl-store-tag--mine' : 'tm-sl-store-tag';
+        return `<span class="${cls}">${ICON.store.replace('width="16"', 'width="11"').replace('height="16"', 'height="11"')} ${esc(storeName)}</span>`;
     }
 
     function buildUnitRowHTML(v, ctx) {
-        const getGradeStyle = ctx?.getGradeStyle || (() => '');
-        const gradeStyle = getGradeStyle(v.grade);
-        const storeName = v.storeName || '—';
-        const storeHtml = ctx?.hideStoreInUnits ? '' : buildUnitStoreHTML(storeName, v.isMine);
-        const purchaseBadge = ctx?.showPurchaseStatus && v.storeName
-            ? buildPurchaseBadgeHtml(!!v.isBuyback, isStorePurchaseAllowed(v.storeName, !!v.isBuyback))
+        const gradeAccent = getGradeAccentColor(v.grade, ctx);
+        const storeName = v.storeName || '';
+        const storeHtml = ctx?.hideStoreInUnits || !storeName ? '' : buildUnitStoreHTML(storeName, v.isMine);
+        const purchaseAllowed = !ctx?.showPurchaseStatus || !storeName
+            || isStorePurchaseAllowed(storeName, !!v.isBuyback);
+        const purchaseBadge = ctx?.showPurchaseStatus && storeName
+            ? buildPurchaseBadgeHtml(!!v.isBuyback, purchaseAllowed)
             : '';
-        return `<div class="tm-sl-unit" data-barcode="${esc(v.barcode)}">
-            <div class="tm-sl-unit-grade" style="${gradeStyle}">${esc(v.grade || '—')}</div>
-            <div>
-                ${storeHtml}
-                <div class="tm-sl-unit-spec">${buildUnitSpecHTML(v, ctx)}</div>
-                <div class="tm-sl-unit-barcode">${esc(v.barcode)}</div>
+        const cardClasses = [
+            'tm-sl-phone-card',
+            v.isBuyback ? 'tm-sl-phone-card--bb' : '',
+            ctx?.showPurchaseStatus && !purchaseAllowed ? 'tm-sl-phone-card--blocked' : '',
+        ].filter(Boolean).join(' ');
+        const priceHtml = v.price ? `<div class="tm-sl-phone-card__price">${esc(v.price)}</div>` : '';
+
+        return `<article class="${cardClasses}" data-barcode="${esc(v.barcode)}" style="--tm-sl-grade-accent:${esc(gradeAccent)}">
+            <div class="tm-sl-phone-card__body">
+                <div class="tm-sl-phone-card__specs">${buildSpecPillsHTML(v, ctx) || '<span class="tm-sl-preview-pill">—</span>'}</div>
+                ${storeHtml || purchaseBadge ? `<div class="tm-sl-phone-card__meta">${storeHtml}${purchaseBadge}</div>` : ''}
+                <div class="tm-sl-phone-card__footer">
+                    <span class="tm-sl-barcode-pill"><span class="tm-sl-barcode-pill__icon">#</span>${esc(v.barcode)}</span>
+                </div>
             </div>
-            <div class="tm-sl-unit-actions">
-                ${purchaseBadge}
-                ${v.price ? `<span class="tm-sl-unit-price">${esc(v.price)}</span>` : ''}
-                <button type="button" class="tm-sl-unit-btn" data-tm-sl-copy="${esc(v.barcode)}">Copy</button>
-                <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}">Open</button>
+            <div class="tm-sl-phone-card__aside">
+                ${priceHtml}
+                <div class="tm-sl-phone-card__actions">
+                    <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
+                    <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
+                </div>
             </div>
-        </div>`;
+        </article>`;
     }
 
     function buildPhoneListSection(allRows, ctx) {
@@ -959,24 +1083,7 @@
             return (a.grade || '').localeCompare(b.grade || '');
         });
 
-        const items = units.map((v) => {
-            const getGradeStyle = ctx?.getGradeStyle || (() => '');
-            const gradeStyle = getGradeStyle(v.grade);
-            const storeCls = v.isMine ? 'tm-sl-phone-list-store tm-sl-phone-list-store--mine' : 'tm-sl-phone-list-store';
-            return `<div class="tm-sl-phone-list-item" data-barcode="${esc(v.barcode)}">
-                <div class="tm-sl-unit-grade" style="${gradeStyle}">${esc(v.grade || '—')}</div>
-                <div>
-                    <div class="${storeCls}">${ICON.store.replace('width="16"', 'width="11"').replace('height="16"', 'height="11"')} ${esc(v.storeName || '—')}</div>
-                    <div class="tm-sl-unit-spec">${buildUnitSpecHTML(v, ctx)}</div>
-                    <div class="tm-sl-unit-barcode">${esc(v.barcode)}</div>
-                </div>
-                <div class="tm-sl-unit-actions">
-                    ${v.price ? `<span class="tm-sl-unit-price">${esc(v.price)}</span>` : ''}
-                    <button type="button" class="tm-sl-unit-btn" data-tm-sl-copy="${esc(v.barcode)}">Copy</button>
-                    <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}">Open</button>
-                </div>
-            </div>`;
-        }).join('');
+        const items = units.map((v) => buildUnitRowHTML(v, ctx)).join('');
 
         return `<section class="tm-sl-phone-list-section">
             <h3 class="tm-sl-phone-list-title">Λίστα συσκευών · ${units.length}</h3>
@@ -986,7 +1093,8 @@
 
     function buildStoreRowHTML(store, idx, ctx) {
         const signal = getStoreSignalClass(store.variants.length);
-        const preview = store.variants.slice(0, 3).map((v) => formatVariantLine(v, ctx)).join(' · ');
+        const previewChips = store.variants.slice(0, 4).map((v) => buildVariantPreviewHTML(v, ctx)).join('');
+        const previewMore = store.variants.length > 4 ? `<span class="tm-sl-preview-pill">+${store.variants.length - 4}</span>` : '';
         const units = store.variants.map((v) => buildUnitRowHTML(v, ctx)).join('');
         const purchase = ctx?.showPurchaseStatus && !store.isMine
             ? buildStorePurchaseSummary(store)
@@ -1000,7 +1108,7 @@
                 <span class="tm-sl-store-qty">${store.variants.length} τεμ.</span>
                 <span class="tm-sl-store-chevron">${ICON.chevron}</span>
             </div>
-            ${preview ? `<div class="tm-sl-store-preview">${esc(preview)}${store.variants.length > 3 ? '…' : ''}</div>` : ''}
+            ${previewChips ? `<div class="tm-sl-store-preview-chips">${previewChips}${previewMore}</div>` : ''}
             <div class="tm-sl-store-units">${units}</div>
         </div>`;
     }

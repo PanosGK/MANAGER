@@ -472,6 +472,9 @@
         function buildUiCtx(extra) {
             return {
                 getGradeStyle: (grade) => helpers.getPhoneGradeCircleStyle(grade),
+                getGradeColor: (grade) => (typeof window.getPhoneGradeColor === 'function'
+                    ? window.getPhoneGradeColor(grade)
+                    : '#607d8b'),
                 colorHexMap: getColorHexMap(),
                 query: modelQuery,
                 catalogView,
