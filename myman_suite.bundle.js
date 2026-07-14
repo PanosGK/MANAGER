@@ -26098,6 +26098,7 @@ window.initOrderTracking = initOrderTracking;
         settings: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
         palette: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22a10 10 0 0 0 10-10c0-2-1-4-2.5-5.5"/></svg>',
         tag: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
+        phone: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
         export: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
     };
 
@@ -26712,6 +26713,7 @@ window.initOrderTracking = initOrderTracking;
                         <div class="tm-sl-settings-wrap">
                             <button type="button" id="tm-sl-settings" class="tm-sl-btn tm-sl-btn--icon" title="Ρυθμίσεις" aria-haspopup="true">${ICON.settings}</button>
                             <div id="tm-sl-settings-menu" class="tm-sl-settings-menu" hidden>
+                                <button type="button" id="tm-sl-models-btn">${ICON.phone} Διαχείριση Μοντέλων</button>
                                 <button type="button" id="tm-sl-colors-btn">${ICON.palette} Διαχείριση Χρωμάτων</button>
                                 <button type="button" id="tm-sl-tags-btn">${ICON.tag} Διαχείριση Ετικετών</button>
                                 <button type="button" id="tm-sl-stores-btn">${ICON.store} Διαχείριση Καταστημάτων</button>
@@ -27180,7 +27182,23 @@ const PHONE_CATALOG_TRANSLATIONS = {
     'Tag already exists': '\u0397 \u03B5\u03C4\u03B9\u03BA\u03AD\u03C4\u03B1 \u03C5\u03C0\u03AC\u03C1\u03C7\u03B5\u03B9 \u03AE\u03B4\u03B7',
     'Invalid tag name': '\u039C\u03B7 \u03AD\u03B3\u03BA\u03C5\u03C1\u03BF \u03CC\u03BD\u03BF\u03BC\u03B1 \u03B5\u03C4\u03B9\u03BA\u03AD\u03C4\u03B1\u03C2',
     'Create tags first': '\u0394\u03B7\u03BC\u03B9\u03BF\u03C5\u03C1\u03B3\u03AE\u03C3\u03C4\u03B5 \u03B5\u03C4\u03B9\u03BA\u03AD\u03C4\u03B5\u03C2 \u03B1\u03C0\u03CC \u0394\u03B9\u03B1\u03C7\u03B5\u03AF\u03C1\u03B9\u03C3\u03B7 \u0395\u03C4\u03B9\u03BA\u03B5\u03C4\u03CE\u03BD',
-    'e.g. Reserved': '\u03C0.\u03C7. Reserved'
+    'e.g. Reserved': '\u03C0.\u03C7. Reserved',
+    'Manage Models': '\u0394\u03B9\u03B1\u03C7\u03B5\u03AF\u03C1\u03B9\u03C3\u03B7 \u039C\u03BF\u03BD\u03C4\u03AD\u03BB\u03C9\u03BD',
+    'Canonical Models': '\u039A\u03B1\u03BD\u03BF\u03BD\u03B9\u03BA\u03AC \u039C\u03BF\u03BD\u03C4\u03AD\u03BB\u03B1',
+    'Models list hint': '\u0397 \u03C3\u03B5\u03B9\u03C1\u03AC \u03C4\u03B1\u03BE\u03B9\u03BD\u03BF\u03BC\u03AE\u03C3\u03B7\u03C2 \u03B5\u03AF\u03BD\u03B1\u03B9 \u03C3\u03B7\u03BC\u03B1\u03BD\u03C4\u03B9\u03BA\u03AE \u2014 \u03C4\u03B1 \u03C0\u03B9\u03BF \u03B1\u03BD\u03B1\u03BB\u03C5\u03C4\u03B9\u03BA\u03AC \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03B1 \u03C0\u03B1\u03BD\u03C9 \u03C0\u03C1\u03CE\u03C4\u03B1 (\u03C0.\u03C7. iPhone 13 Pro Max \u03C0\u03C1\u03B9\u03BD \u03C4\u03BF iPhone 13 Pro).',
+    'Add Model': '\u03A0\u03C1\u03BF\u03C3\u03B8\u03AE\u03BA\u03B7 \u039C\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF\u03C5',
+    'Model Name': '\u038C\u03BD\u03BF\u03BC\u03B1 \u039C\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF\u03C5',
+    'No models in list': '\u0394\u03B5\u03BD \u03C5\u03C0\u03AC\u03C1\u03C7\u03BF\u03C5\u03BD \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03B1 \u03C3\u03C4\u03B7 \u03BB\u03AF\u03C3\u03C4\u03B1',
+    'Model added': '\u03A4\u03BF \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF \u03C0\u03C1\u03BF\u03C3\u03C4\u03AD\u03B8\u03B7\u03BA\u03B5',
+    'Model removed': '\u03A4\u03BF \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF \u03B1\u03C6\u03B1\u03B9\u03C1\u03AD\u03B8\u03B7\u03BA\u03B5',
+    'Model updated': '\u03A4\u03BF \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF \u03B5\u03BD\u03B7\u03BC\u03B5\u03C1\u03CE\u03B8\u03B7\u03BA\u03B5',
+    'Model already exists': '\u0397 \u03B5\u03B3\u03B3\u03C1\u03B1\u03C6\u03AE \u03C5\u03C0\u03AC\u03C1\u03C7\u03B5\u03B9 \u03AE\u03B4\u03B7 \u03C3\u03C4\u03B7 \u03BB\u03AF\u03C3\u03C4\u03B1',
+    'Invalid model name': '\u039C\u03B7 \u03AD\u03B3\u03BA\u03C5\u03C1\u03BF \u03CC\u03BD\u03BF\u03BC\u03B1 \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF\u03C5',
+    'Reset models list': '\u0395\u03C0\u03B1\u03BD\u03B1\u03C6\u03BF\u03C1\u03AC \u03C0\u03C1\u03BF\u03B5\u03C0\u03B9\u03BB\u03BF\u03B3\u03AE\u03C2 \u03BB\u03AF\u03C3\u03C4\u03B1\u03C2',
+    'Models list saved': '\u0397 \u03BB\u03AF\u03C3\u03C4\u03B1 \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03C9\u03BD \u03B1\u03C0\u03BF\u03B8\u03B7\u03BA\u03B5\u03C5\u03C3\u03B5',
+    'Suggested models': '\u03A0\u03C1\u03BF\u03C4\u03B5\u03B9\u03BD\u03CC\u03BC\u03B5\u03BD\u03B1 \u03B1\u03C0\u03CC \u03BA\u03B1\u03C4\u03AC\u03BB\u03BF\u03B3\u03BF',
+    'No suggestions': '\u0394\u03B5\u03BD \u03B2\u03C1\u03AD\u03B8\u03B7\u03BA\u03B1\u03BD \u03B1\u03B3\u03BD\u03CE\u03C1\u03B9\u03C3\u03C4\u03B1 \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03B1',
+    'e.g. iPhone 13 Pro Max': '\u03C0.\u03C7. iPhone 13 Pro Max'
 };
 
 const PHONE_COLORS_STORAGE_KEY = 'tm_phone_colors_v2';
@@ -27188,6 +27206,7 @@ const PHONE_COLOR_ALIASES_KEY = 'tm_phone_color_display_aliases';
 const LEGACY_CUSTOM_COLORS_STORAGE_KEY = 'tm_phone_custom_colors';
 const PHONE_STORE_RULES_KEY = 'tm_phone_store_rules_v1';
 const PHONE_TAG_DEFINITIONS_KEY = 'tm_phone_tag_definitions';
+const PHONE_CANONICAL_MODELS_KEY = 'tm_phone_canonical_models_v1';
 
 function normalizeTagKey(name) {
     return String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -29408,29 +29427,243 @@ function formatStoreSummaryText(item, loadedStoreCount = null) {
     return n === 1 ? 'Σε 1 κατ.' : `Σε ${n} κατ.`;
 }
 
+const DEFAULT_PHONE_CANONICAL_MODELS = [
+    'iPhone SE 2022', 'iPhone SE 2020',
+    'iPhone SE (3rd gen)', 'iPhone SE (2nd gen)', 'iPhone SE',
+    'iPhone 6s Plus', 'iPhone 6s', 'iPhone 6 Plus', 'iPhone 6',
+    'iPhone 7 Plus', 'iPhone 7',
+    'iPhone 8 Plus', 'iPhone 8',
+    'iPhone XS Max', 'iPhone XS', 'iPhone XR', 'iPhone X',
+    'iPhone 11 Pro Max', 'iPhone 11 Pro', 'iPhone 11',
+    'iPhone 12 Pro Max', 'iPhone 12 Pro', 'iPhone 12 Mini', 'iPhone 12',
+    'iPhone 13 Pro Max', 'iPhone 13 Pro', 'iPhone 13 Mini', 'iPhone 13',
+    'iPhone 14 Pro Max', 'iPhone 14 Pro', 'iPhone 14 Plus', 'iPhone 14',
+    'iPhone 15 Pro Max', 'iPhone 15 Pro', 'iPhone 15 Plus', 'iPhone 15',
+    'iPhone 16 Pro Max', 'iPhone 16 Pro', 'iPhone 16 Plus', 'iPhone 16',
+    'iPhone 17 Pro Max', 'iPhone 17 Pro', 'iPhone 17 Plus', 'iPhone 17',
+    'iPhone Air',
+    'Samsung Galaxy S25 Ultra', 'Samsung Galaxy S25 Plus', 'Samsung Galaxy S25',
+    'Samsung Galaxy S24 Ultra', 'Samsung Galaxy S24 Plus', 'Samsung Galaxy S24 FE', 'Samsung Galaxy S24',
+    'Samsung Galaxy S23 Ultra', 'Samsung Galaxy S23 Plus', 'Samsung Galaxy S23 FE', 'Samsung Galaxy S23',
+    'Samsung Galaxy S22 Ultra', 'Samsung Galaxy S22 Plus', 'Samsung Galaxy S22',
+    'Samsung Galaxy S21 Ultra', 'Samsung Galaxy S21 Plus', 'Samsung Galaxy S21 FE', 'Samsung Galaxy S21',
+    'Samsung Galaxy S20 Ultra', 'Samsung Galaxy S20 Plus', 'Samsung Galaxy S20 FE', 'Samsung Galaxy S20',
+    'Samsung Galaxy S10 Plus', 'Samsung Galaxy S10e', 'Samsung Galaxy S10',
+    'Samsung Galaxy S9 Plus', 'Samsung Galaxy S9',
+    'Samsung Galaxy S8 Plus', 'Samsung Galaxy S8',
+    'Samsung Galaxy S7 Edge', 'Samsung Galaxy S7',
+    'Samsung Galaxy S6 Edge Plus', 'Samsung Galaxy S6 Edge', 'Samsung Galaxy S6',
+    'Samsung Galaxy Note 20 Ultra', 'Samsung Galaxy Note 20',
+    'Samsung Galaxy Note 10 Plus', 'Samsung Galaxy Note 10',
+    'Samsung Galaxy Note 9', 'Samsung Galaxy Note 8',
+    'Samsung Galaxy Z Fold 6', 'Samsung Galaxy Z Fold 5', 'Samsung Galaxy Z Fold 4',
+    'Samsung Galaxy Z Fold 3', 'Samsung Galaxy Z Fold 2',
+    'Samsung Galaxy Z Flip 6', 'Samsung Galaxy Z Flip 5', 'Samsung Galaxy Z Flip 4',
+    'Samsung Galaxy Z Flip 3',
+    'Samsung Galaxy A73', 'Samsung Galaxy A72', 'Samsung Galaxy A71',
+    'Samsung Galaxy A55', 'Samsung Galaxy A54', 'Samsung Galaxy A53', 'Samsung Galaxy A52s', 'Samsung Galaxy A52', 'Samsung Galaxy A51',
+    'Samsung Galaxy A35', 'Samsung Galaxy A34', 'Samsung Galaxy A33',
+    'Samsung Galaxy A25', 'Samsung Galaxy A24', 'Samsung Galaxy A23',
+    'Samsung Galaxy A16', 'Samsung Galaxy A15', 'Samsung Galaxy A14', 'Samsung Galaxy A13',
+    'Samsung Galaxy A06', 'Samsung Galaxy A05', 'Samsung Galaxy A04', 'Samsung Galaxy A03',
+];
+
+function normalizeCanonicalModelName(name) {
+    return String(name || '').replace(/\s+/g, ' ').trim();
+}
+
+function getDefaultPhoneCanonicalModels() {
+    return [...DEFAULT_PHONE_CANONICAL_MODELS];
+}
+
+function loadPhoneCanonicalModels() {
+    try {
+        const stored = GM_getValue(PHONE_CANONICAL_MODELS_KEY, null);
+        if (!stored) return getDefaultPhoneCanonicalModels();
+        const parsed = JSON.parse(stored);
+        if (!Array.isArray(parsed)) return getDefaultPhoneCanonicalModels();
+        const models = parsed.map(normalizeCanonicalModelName).filter(Boolean);
+        return models.length ? models : getDefaultPhoneCanonicalModels();
+    } catch (e) {
+        return getDefaultPhoneCanonicalModels();
+    }
+}
+
+function savePhoneCanonicalModels(models) {
+    const cleaned = (models || []).map(normalizeCanonicalModelName).filter(Boolean);
+    GM_setValue(PHONE_CANONICAL_MODELS_KEY, JSON.stringify(cleaned));
+    rebuildCanonModelTokens(cleaned);
+    extractBaseModelCacheGlobal.clear();
+    return cleaned;
+}
+
+function setPhoneCanonicalModels(models) {
+    return savePhoneCanonicalModels(models);
+}
+
+function resetPhoneCanonicalModels() {
+    GM_setValue(PHONE_CANONICAL_MODELS_KEY, null);
+    rebuildCanonModelTokens(getDefaultPhoneCanonicalModels());
+    extractBaseModelCacheGlobal.clear();
+    return getDefaultPhoneCanonicalModels();
+}
+
+function addPhoneCanonicalModel(name, index = 0) {
+    const model = normalizeCanonicalModelName(name);
+    if (!model) return { ok: false, error: 'invalid' };
+    const models = loadPhoneCanonicalModels();
+    const key = model.toLowerCase();
+    if (models.some((m) => m.toLowerCase() === key)) return { ok: false, error: 'exists' };
+    const at = Math.max(0, Math.min(index, models.length));
+    models.splice(at, 0, model);
+    savePhoneCanonicalModels(models);
+    return { ok: true, models };
+}
+
+function removePhoneCanonicalModel(name) {
+    const target = normalizeCanonicalModelName(name).toLowerCase();
+    const models = loadPhoneCanonicalModels().filter((m) => m.toLowerCase() !== target);
+    savePhoneCanonicalModels(models);
+    return models;
+}
+
+function renamePhoneCanonicalModel(oldName, newName) {
+    const oldKey = normalizeCanonicalModelName(oldName).toLowerCase();
+    const next = normalizeCanonicalModelName(newName);
+    if (!next) return { ok: false, error: 'invalid' };
+    const models = loadPhoneCanonicalModels();
+    const idx = models.findIndex((m) => m.toLowerCase() === oldKey);
+    if (idx === -1) return { ok: false, error: 'missing' };
+    if (models.some((m, i) => i !== idx && m.toLowerCase() === next.toLowerCase())) {
+        return { ok: false, error: 'exists' };
+    }
+    models[idx] = next;
+    savePhoneCanonicalModels(models);
+    return { ok: true, models };
+}
+
+function movePhoneCanonicalModel(name, direction) {
+    const target = normalizeCanonicalModelName(name).toLowerCase();
+    const models = loadPhoneCanonicalModels();
+    const idx = models.findIndex((m) => m.toLowerCase() === target);
+    if (idx === -1) return models;
+    const nextIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (nextIdx < 0 || nextIdx >= models.length) return models;
+    [models[idx], models[nextIdx]] = [models[nextIdx], models[idx]];
+    savePhoneCanonicalModels(models);
+    return models;
+}
+
+function normForCanonical(str) {
+    return String(str || '').toUpperCase()
+        .replace(/\bPROMAX\b/g, 'PRO MAX')
+        .replace(/\bXSMAX\b/g, 'XS MAX')
+        .replace(/\+/g, ' PLUS ')
+        .replace(/[^A-Z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ').trim();
+}
+
+let canonModelTokens = [];
+
+function rebuildCanonModelTokens(models = loadPhoneCanonicalModels()) {
+    canonModelTokens = (models || []).map((name) => ({
+        name,
+        tokens: normForCanonical(name).split(' ').filter(Boolean),
+    }));
+}
+
+rebuildCanonModelTokens();
+
+function normalizeIphoneSeGeneration(base) {
+    const norm = normForCanonical(base);
+    if (!/\bIPHONE\b/.test(norm) || !/\bSE\b/.test(norm)) return base;
+    if (/\b2022\b/.test(norm) || /\b3RD\b/.test(norm)) return 'iPhone SE 2022';
+    if (/\b2020\b/.test(norm) || /\b2ND\b/.test(norm)) return 'iPhone SE 2020';
+    if (/\b2016\b/.test(norm) || /\b1ST\b/.test(norm)) return 'iPhone SE';
+    return base;
+}
+
+function matchCanonicalModel(base) {
+    if (!base) return base;
+    const norm = normForCanonical(base);
+    for (const { name, tokens } of canonModelTokens) {
+        const allMatch = tokens.every((token) =>
+            new RegExp('(?:^|\\s)' + token + '(?:\\s|$)').test(norm)
+        );
+        if (allMatch) {
+            if (name === 'iPhone SE' && /\b(2020|2022|2016|2ND|3RD|1ST)\b/.test(norm)) {
+                continue;
+            }
+            return name;
+        }
+    }
+    return base;
+}
+
 const extractBaseModelCacheGlobal = new Map();
+
+function stripModelToBaseRaw(model) {
+    if (!model) return '';
+    let base = model;
+
+    base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '');
+    base = base.replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ');
+    base = base.replace(/\s*\(BB[^)]*\)?\s*/gi, ' ');
+    base = base.replace(/\s+(BB|ΒΒ):\s*$/gi, ' ');
+    base = base.replace(/\b(BB|ΒΒ)\b/gi, ' ');
+    base = base.replace(/\s*[–\-]?\s*[\u0045\u0395][\s\-]?SIM(\s+ONLY)?\s*/gi, ' ');
+    base = base.replace(/\s*\d+\s*TB\s*/gi, ' ');
+    base = base.replace(/\s*\d+\s*GB\s*/gi, ' ');
+    base = base.replace(/\s*\d+\s*G(?!\w)/gi, ' ');
+
+    const commonSizes = [64, 128, 256, 512, 1024, 2048];
+    const allColors = getAllKnownColorsForModelFix();
+    for (const size of commonSizes) {
+        for (const color of allColors) {
+            const regex = new RegExp('\\b' + size + '\\s+' + color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+            base = base.replace(regex, color);
+        }
+        base = base.replace(new RegExp('\\b' + size + '\\s+(BB|ΒΒ)\\b', 'gi'), '$1');
+    }
+
+    for (const color of getMultiWordPhoneColors()) {
+        base = base.replace(new RegExp(color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), ' ');
+    }
+    for (const color of getSingleWordPhoneColors()) {
+        base = base.replace(new RegExp('\\b' + color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi'), ' ');
+    }
+
+    base = base.replace(/\b(64|128|256|512|1024|2048)\s*$/i, '');
+    return base.replace(/\s+/g, ' ').trim();
+}
+
+function collectSuggestedCanonicalModels(...phoneLists) {
+    const suggestions = new Set();
+    const known = new Set(loadPhoneCanonicalModels().map((m) => m.toLowerCase()));
+    phoneLists.flat().forEach((phone) => {
+        const raw = phone?.model || phone?.name || '';
+        if (!raw) return;
+        const stripped = stripModelToBaseRaw(raw);
+        const normalized = normalizeIphoneSeGeneration(stripped);
+        const matched = matchCanonicalModel(normalized);
+        const candidate = normalizeCanonicalModelName(matched);
+        if (!candidate || candidate.length < 4) return;
+        if (known.has(candidate.toLowerCase())) return;
+        if (matched === normalized && /iphone|samsung|galaxy|pixel|xiaomi|huawei|oneplus|oppo|redmi|poco/i.test(candidate)) {
+            suggestions.add(candidate);
+        }
+    });
+    return [...suggestions].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+}
 
 function extractBaseModel(model) {
     if (!model) return '';
     if (extractBaseModelCacheGlobal.has(model)) return extractBaseModelCacheGlobal.get(model);
-    let base = model
-        .replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '')
-        .replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ')
-        .replace(/\s*\(BB[^)]*\)?\s*/gi, ' ')
-        .replace(/\s+(BB|ΒΒ):\s*$/gi, ' ')
-        .replace(/\s*[–\-]?\s*[\u0045\u0395][\s\-]?SIM(\s+ONLY)?\s*/gi, ' ')
-        .replace(/\s*\d+\s*TB\s*/gi, ' ')
-        .replace(/\s*\d+\s*GB\s*/gi, ' ')
-        .replace(/\s*\d+\s*G(?!\w)/gi, ' ');
-    const color = extractColor(model);
-    if (color) {
-        base = base.replace(new RegExp(color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), ' ');
-    }
-    const gb = extractGB(model);
-    if (gb) {
-        base = base.replace(new RegExp(gb.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), ' ');
-    }
-    base = base.replace(/\s+/g, ' ').trim();
+
+    let base = stripModelToBaseRaw(model);
+    base = normalizeIphoneSeGeneration(base);
+    base = matchCanonicalModel(base);
+
     extractBaseModelCacheGlobal.set(model, base);
     return base;
 }
@@ -29500,6 +29733,17 @@ window.getDefaultPhoneStoreRules = getDefaultPhoneStoreRules;
 window.parseStorePatternCsv = parseStorePatternCsv;
 window.storeNameMatchesPatterns = storeNameMatchesPatterns;
 window.collectKnownStoreNames = collectKnownStoreNames;
+window.getDefaultPhoneCanonicalModels = getDefaultPhoneCanonicalModels;
+window.loadPhoneCanonicalModels = loadPhoneCanonicalModels;
+window.savePhoneCanonicalModels = savePhoneCanonicalModels;
+window.setPhoneCanonicalModels = setPhoneCanonicalModels;
+window.resetPhoneCanonicalModels = resetPhoneCanonicalModels;
+window.addPhoneCanonicalModel = addPhoneCanonicalModel;
+window.removePhoneCanonicalModel = removePhoneCanonicalModel;
+window.renamePhoneCanonicalModel = renamePhoneCanonicalModel;
+window.movePhoneCanonicalModel = movePhoneCanonicalModel;
+window.collectSuggestedCanonicalModels = collectSuggestedCanonicalModels;
+window.rebuildCanonModelTokens = rebuildCanonModelTokens;
 
 
 
@@ -30023,6 +30267,173 @@ window.collectKnownStoreNames = collectKnownStoreNames;
         renderStoreRulesList();
     }
 
+    function showModelsManagerModal(ctx = {}) {
+        const { allPhones = [], otherStorePhones = [], onChange = () => {} } = ctx;
+        const existing = document.getElementById('tm-phone-models-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'tm-phone-models-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
+
+        const panel = document.createElement('div');
+        panel.style.cssText = 'width:min(620px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
+
+        panel.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h3 style="margin:0;font-size:16px;font-weight:600;">${t('Manage Models')}</h3>
+                <button id="tm-models-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
+            </div>
+            <div style="font-size:11px;opacity:0.75;margin-bottom:12px;line-height:1.45;">${t('Models list hint')}</div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <input id="tm-new-model-name" type="text" placeholder="${t('Model Name')} (${t('e.g. iPhone 13 Pro Max')})" style="flex:1;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;box-sizing:border-box;">
+                <button id="tm-add-model-btn" type="button" style="padding:8px 12px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">${t('Add Model')}</button>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                <button id="tm-reset-models-btn" type="button" style="padding:7px 12px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:transparent;color:var(--tm-shop-item-text);font-size:12px;cursor:pointer;">${t('Reset models list')}</button>
+            </div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:8px;opacity:0.75;">${t('Canonical Models')}</div>
+            <div id="tm-phone-models-list"></div>
+            <div style="font-size:12px;font-weight:600;margin:16px 0 8px;opacity:0.75;">${t('Suggested models')}</div>
+            <div id="tm-phone-models-suggestions"></div>
+        `;
+
+        modal.appendChild(panel);
+        document.body.appendChild(modal);
+
+        const nameInput = panel.querySelector('#tm-new-model-name');
+        const listEl = panel.querySelector('#tm-phone-models-list');
+        const suggestionsEl = panel.querySelector('#tm-phone-models-suggestions');
+
+        const refreshAfterChange = () => {
+            onChange();
+            renderModelList();
+            renderSuggestions();
+        };
+
+        const renderModelList = () => {
+            const models = window.loadPhoneCanonicalModels?.() || [];
+            if (!models.length) {
+                listEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:8px 0;">${t('No models in list')}</div>`;
+                return;
+            }
+            listEl.innerHTML = models.map((name, index) => `
+                <div class="tm-phone-model-row" data-model="${name.replace(/"/g, '&quot;')}" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--tm-shop-item-border);">
+                    <span style="font-size:10px;opacity:0.45;width:22px;text-align:right;flex-shrink:0;">${index + 1}</span>
+                    <input type="text" class="tm-phone-model-name-input" data-model="${name.replace(/"/g, '&quot;')}" value="${name.replace(/"/g, '&quot;')}" style="flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;font-weight:600;min-width:0;box-sizing:border-box;">
+                    <button type="button" class="tm-phone-model-up" data-model="${name.replace(/"/g, '&quot;')}" title="Up" style="padding:4px 7px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-shop-item-text);font-size:11px;cursor:pointer;">↑</button>
+                    <button type="button" class="tm-phone-model-down" data-model="${name.replace(/"/g, '&quot;')}" title="Down" style="padding:4px 7px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-shop-item-text);font-size:11px;cursor:pointer;">↓</button>
+                    <button type="button" class="tm-delete-phone-model" data-model="${name.replace(/"/g, '&quot;')}" style="padding:4px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-shop-item-text);font-size:11px;cursor:pointer;flex-shrink:0;">${t('Delete')}</button>
+                </div>
+            `).join('');
+
+            listEl.querySelectorAll('.tm-phone-model-name-input').forEach((input) => {
+                const commitRename = () => {
+                    const oldName = input.dataset.model;
+                    const newName = input.value.trim();
+                    if (!newName) {
+                        input.value = oldName;
+                        if (window.showNegativeMessage) window.showNegativeMessage(t('Invalid model name'));
+                        return;
+                    }
+                    if (newName === oldName) return;
+                    const result = window.renamePhoneCanonicalModel?.(oldName, newName);
+                    if (!result?.ok) {
+                        input.value = oldName;
+                        const msg = result?.error === 'exists' ? t('Model already exists') : t('Invalid model name');
+                        if (window.showNegativeMessage) window.showNegativeMessage(msg);
+                        return;
+                    }
+                    if (window.showPositiveMessage) window.showPositiveMessage(t('Model updated'));
+                    refreshAfterChange();
+                };
+                input.addEventListener('change', commitRename);
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        input.blur();
+                    }
+                });
+            });
+
+            listEl.querySelectorAll('.tm-phone-model-up').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    window.movePhoneCanonicalModel?.(btn.dataset.model, 'up');
+                    refreshAfterChange();
+                });
+            });
+            listEl.querySelectorAll('.tm-phone-model-down').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    window.movePhoneCanonicalModel?.(btn.dataset.model, 'down');
+                    refreshAfterChange();
+                });
+            });
+            listEl.querySelectorAll('.tm-delete-phone-model').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    window.removePhoneCanonicalModel?.(btn.dataset.model);
+                    if (window.showPositiveMessage) window.showPositiveMessage(t('Model removed'));
+                    refreshAfterChange();
+                });
+            });
+        };
+
+        const renderSuggestions = () => {
+            const suggestions = window.collectSuggestedCanonicalModels?.(allPhones, otherStorePhones) || [];
+            if (!suggestions.length) {
+                suggestionsEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:4px 0;">${t('No suggestions')}</div>`;
+                return;
+            }
+            suggestionsEl.innerHTML = suggestions.map((name) => `
+                <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--tm-shop-item-border);">
+                    <span style="flex:1;font-size:12px;">${name}</span>
+                    <button type="button" class="tm-add-suggested-model" data-model="${name.replace(/"/g, '&quot;')}" style="padding:4px 10px;border:none;border-radius:5px;background:var(--tm-primary-color);color:#fff;font-size:11px;font-weight:600;cursor:pointer;">${t('Add Model')}</button>
+                </div>
+            `).join('');
+            suggestionsEl.querySelectorAll('.tm-add-suggested-model').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const result = window.addPhoneCanonicalModel?.(btn.dataset.model, 0);
+                    if (!result?.ok) {
+                        const msg = result?.error === 'exists' ? t('Model already exists') : t('Invalid model name');
+                        if (window.showNegativeMessage) window.showNegativeMessage(msg);
+                        return;
+                    }
+                    if (window.showPositiveMessage) window.showPositiveMessage(t('Model added'));
+                    refreshAfterChange();
+                });
+            });
+        };
+
+        panel.querySelector('#tm-add-model-btn').addEventListener('click', () => {
+            const result = window.addPhoneCanonicalModel?.(nameInput.value, 0);
+            if (!result?.ok) {
+                const msg = result?.error === 'exists' ? t('Model already exists') : t('Invalid model name');
+                if (window.showNegativeMessage) window.showNegativeMessage(msg);
+                return;
+            }
+            nameInput.value = '';
+            if (window.showPositiveMessage) window.showPositiveMessage(t('Model added'));
+            refreshAfterChange();
+        });
+
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') panel.querySelector('#tm-add-model-btn').click();
+        });
+
+        panel.querySelector('#tm-reset-models-btn').addEventListener('click', () => {
+            window.resetPhoneCanonicalModels?.();
+            if (window.showPositiveMessage) window.showPositiveMessage(t('Models list saved'));
+            refreshAfterChange();
+        });
+
+        panel.querySelector('#tm-models-close').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+
+        renderModelList();
+        renderSuggestions();
+    }
+
     function exportToClipboard(phones) {
         const extractBaseModel = window.extractBaseModel || ((m) => m || '');
         const extractGB = window.extractGB || (() => '');
@@ -30100,6 +30511,10 @@ window.collectKnownStoreNames = collectKnownStoreNames;
             hideMenus();
         });
 
+        overlay.querySelector('#tm-sl-models-btn')?.addEventListener('click', () => {
+            hideMenus();
+            showModelsManagerModal(getCtx());
+        });
         overlay.querySelector('#tm-sl-colors-btn')?.addEventListener('click', () => {
             hideMenus();
             showColorManagerModal(getCtx());
@@ -30135,6 +30550,7 @@ window.collectKnownStoreNames = collectKnownStoreNames;
         showColorManagerModal,
         showTagManagerModal,
         showStoreRulesModal,
+        showModelsManagerModal,
         wireSettingsMenu,
         exportToClipboard,
         exportToCSV,

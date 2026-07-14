@@ -526,6 +526,173 @@
         renderStoreRulesList();
     }
 
+    function showModelsManagerModal(ctx = {}) {
+        const { allPhones = [], otherStorePhones = [], onChange = () => {} } = ctx;
+        const existing = document.getElementById('tm-phone-models-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'tm-phone-models-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
+
+        const panel = document.createElement('div');
+        panel.style.cssText = 'width:min(620px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
+
+        panel.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h3 style="margin:0;font-size:16px;font-weight:600;">${t('Manage Models')}</h3>
+                <button id="tm-models-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
+            </div>
+            <div style="font-size:11px;opacity:0.75;margin-bottom:12px;line-height:1.45;">${t('Models list hint')}</div>
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <input id="tm-new-model-name" type="text" placeholder="${t('Model Name')} (${t('e.g. iPhone 13 Pro Max')})" style="flex:1;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;box-sizing:border-box;">
+                <button id="tm-add-model-btn" type="button" style="padding:8px 12px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">${t('Add Model')}</button>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                <button id="tm-reset-models-btn" type="button" style="padding:7px 12px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:transparent;color:var(--tm-shop-item-text);font-size:12px;cursor:pointer;">${t('Reset models list')}</button>
+            </div>
+            <div style="font-size:12px;font-weight:600;margin-bottom:8px;opacity:0.75;">${t('Canonical Models')}</div>
+            <div id="tm-phone-models-list"></div>
+            <div style="font-size:12px;font-weight:600;margin:16px 0 8px;opacity:0.75;">${t('Suggested models')}</div>
+            <div id="tm-phone-models-suggestions"></div>
+        `;
+
+        modal.appendChild(panel);
+        document.body.appendChild(modal);
+
+        const nameInput = panel.querySelector('#tm-new-model-name');
+        const listEl = panel.querySelector('#tm-phone-models-list');
+        const suggestionsEl = panel.querySelector('#tm-phone-models-suggestions');
+
+        const refreshAfterChange = () => {
+            onChange();
+            renderModelList();
+            renderSuggestions();
+        };
+
+        const renderModelList = () => {
+            const models = window.loadPhoneCanonicalModels?.() || [];
+            if (!models.length) {
+                listEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:8px 0;">${t('No models in list')}</div>`;
+                return;
+            }
+            listEl.innerHTML = models.map((name, index) => `
+                <div class="tm-phone-model-row" data-model="${name.replace(/"/g, '&quot;')}" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--tm-shop-item-border);">
+                    <span style="font-size:10px;opacity:0.45;width:22px;text-align:right;flex-shrink:0;">${index + 1}</span>
+                    <input type="text" class="tm-phone-model-name-input" data-model="${name.replace(/"/g, '&quot;')}" value="${name.replace(/"/g, '&quot;')}" style="flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;font-weight:600;min-width:0;box-sizing:border-box;">
+                    <button type="button" class="tm-phone-model-up" data-model="${name.replace(/"/g, '&quot;')}" title="Up" style="padding:4px 7px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-shop-item-text);font-size:11px;cursor:pointer;">↑</button>
+                    <button type="button" class="tm-phone-model-down" data-model="${name.replace(/"/g, '&quot;')}" title="Down" style="padding:4px 7px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-shop-item-text);font-size:11px;cursor:pointer;">↓</button>
+                    <button type="button" class="tm-delete-phone-model" data-model="${name.replace(/"/g, '&quot;')}" style="padding:4px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-shop-item-text);font-size:11px;cursor:pointer;flex-shrink:0;">${t('Delete')}</button>
+                </div>
+            `).join('');
+
+            listEl.querySelectorAll('.tm-phone-model-name-input').forEach((input) => {
+                const commitRename = () => {
+                    const oldName = input.dataset.model;
+                    const newName = input.value.trim();
+                    if (!newName) {
+                        input.value = oldName;
+                        if (window.showNegativeMessage) window.showNegativeMessage(t('Invalid model name'));
+                        return;
+                    }
+                    if (newName === oldName) return;
+                    const result = window.renamePhoneCanonicalModel?.(oldName, newName);
+                    if (!result?.ok) {
+                        input.value = oldName;
+                        const msg = result?.error === 'exists' ? t('Model already exists') : t('Invalid model name');
+                        if (window.showNegativeMessage) window.showNegativeMessage(msg);
+                        return;
+                    }
+                    if (window.showPositiveMessage) window.showPositiveMessage(t('Model updated'));
+                    refreshAfterChange();
+                };
+                input.addEventListener('change', commitRename);
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        input.blur();
+                    }
+                });
+            });
+
+            listEl.querySelectorAll('.tm-phone-model-up').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    window.movePhoneCanonicalModel?.(btn.dataset.model, 'up');
+                    refreshAfterChange();
+                });
+            });
+            listEl.querySelectorAll('.tm-phone-model-down').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    window.movePhoneCanonicalModel?.(btn.dataset.model, 'down');
+                    refreshAfterChange();
+                });
+            });
+            listEl.querySelectorAll('.tm-delete-phone-model').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    window.removePhoneCanonicalModel?.(btn.dataset.model);
+                    if (window.showPositiveMessage) window.showPositiveMessage(t('Model removed'));
+                    refreshAfterChange();
+                });
+            });
+        };
+
+        const renderSuggestions = () => {
+            const suggestions = window.collectSuggestedCanonicalModels?.(allPhones, otherStorePhones) || [];
+            if (!suggestions.length) {
+                suggestionsEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:4px 0;">${t('No suggestions')}</div>`;
+                return;
+            }
+            suggestionsEl.innerHTML = suggestions.map((name) => `
+                <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--tm-shop-item-border);">
+                    <span style="flex:1;font-size:12px;">${name}</span>
+                    <button type="button" class="tm-add-suggested-model" data-model="${name.replace(/"/g, '&quot;')}" style="padding:4px 10px;border:none;border-radius:5px;background:var(--tm-primary-color);color:#fff;font-size:11px;font-weight:600;cursor:pointer;">${t('Add Model')}</button>
+                </div>
+            `).join('');
+            suggestionsEl.querySelectorAll('.tm-add-suggested-model').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const result = window.addPhoneCanonicalModel?.(btn.dataset.model, 0);
+                    if (!result?.ok) {
+                        const msg = result?.error === 'exists' ? t('Model already exists') : t('Invalid model name');
+                        if (window.showNegativeMessage) window.showNegativeMessage(msg);
+                        return;
+                    }
+                    if (window.showPositiveMessage) window.showPositiveMessage(t('Model added'));
+                    refreshAfterChange();
+                });
+            });
+        };
+
+        panel.querySelector('#tm-add-model-btn').addEventListener('click', () => {
+            const result = window.addPhoneCanonicalModel?.(nameInput.value, 0);
+            if (!result?.ok) {
+                const msg = result?.error === 'exists' ? t('Model already exists') : t('Invalid model name');
+                if (window.showNegativeMessage) window.showNegativeMessage(msg);
+                return;
+            }
+            nameInput.value = '';
+            if (window.showPositiveMessage) window.showPositiveMessage(t('Model added'));
+            refreshAfterChange();
+        });
+
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') panel.querySelector('#tm-add-model-btn').click();
+        });
+
+        panel.querySelector('#tm-reset-models-btn').addEventListener('click', () => {
+            window.resetPhoneCanonicalModels?.();
+            if (window.showPositiveMessage) window.showPositiveMessage(t('Models list saved'));
+            refreshAfterChange();
+        });
+
+        panel.querySelector('#tm-models-close').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+
+        renderModelList();
+        renderSuggestions();
+    }
+
     function exportToClipboard(phones) {
         const extractBaseModel = window.extractBaseModel || ((m) => m || '');
         const extractGB = window.extractGB || (() => '');
@@ -603,6 +770,10 @@
             hideMenus();
         });
 
+        overlay.querySelector('#tm-sl-models-btn')?.addEventListener('click', () => {
+            hideMenus();
+            showModelsManagerModal(getCtx());
+        });
         overlay.querySelector('#tm-sl-colors-btn')?.addEventListener('click', () => {
             hideMenus();
             showColorManagerModal(getCtx());
@@ -638,6 +809,7 @@
         showColorManagerModal,
         showTagManagerModal,
         showStoreRulesModal,
+        showModelsManagerModal,
         wireSettingsMenu,
         exportToClipboard,
         exportToCSV,

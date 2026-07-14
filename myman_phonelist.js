@@ -107,7 +107,23 @@ const PHONE_CATALOG_TRANSLATIONS = {
     'Tag already exists': '\u0397 \u03B5\u03C4\u03B9\u03BA\u03AD\u03C4\u03B1 \u03C5\u03C0\u03AC\u03C1\u03C7\u03B5\u03B9 \u03AE\u03B4\u03B7',
     'Invalid tag name': '\u039C\u03B7 \u03AD\u03B3\u03BA\u03C5\u03C1\u03BF \u03CC\u03BD\u03BF\u03BC\u03B1 \u03B5\u03C4\u03B9\u03BA\u03AD\u03C4\u03B1\u03C2',
     'Create tags first': '\u0394\u03B7\u03BC\u03B9\u03BF\u03C5\u03C1\u03B3\u03AE\u03C3\u03C4\u03B5 \u03B5\u03C4\u03B9\u03BA\u03AD\u03C4\u03B5\u03C2 \u03B1\u03C0\u03CC \u0394\u03B9\u03B1\u03C7\u03B5\u03AF\u03C1\u03B9\u03C3\u03B7 \u0395\u03C4\u03B9\u03BA\u03B5\u03C4\u03CE\u03BD',
-    'e.g. Reserved': '\u03C0.\u03C7. Reserved'
+    'e.g. Reserved': '\u03C0.\u03C7. Reserved',
+    'Manage Models': '\u0394\u03B9\u03B1\u03C7\u03B5\u03AF\u03C1\u03B9\u03C3\u03B7 \u039C\u03BF\u03BD\u03C4\u03AD\u03BB\u03C9\u03BD',
+    'Canonical Models': '\u039A\u03B1\u03BD\u03BF\u03BD\u03B9\u03BA\u03AC \u039C\u03BF\u03BD\u03C4\u03AD\u03BB\u03B1',
+    'Models list hint': '\u0397 \u03C3\u03B5\u03B9\u03C1\u03AC \u03C4\u03B1\u03BE\u03B9\u03BD\u03BF\u03BC\u03AE\u03C3\u03B7\u03C2 \u03B5\u03AF\u03BD\u03B1\u03B9 \u03C3\u03B7\u03BC\u03B1\u03BD\u03C4\u03B9\u03BA\u03AE \u2014 \u03C4\u03B1 \u03C0\u03B9\u03BF \u03B1\u03BD\u03B1\u03BB\u03C5\u03C4\u03B9\u03BA\u03AC \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03B1 \u03C0\u03B1\u03BD\u03C9 \u03C0\u03C1\u03CE\u03C4\u03B1 (\u03C0.\u03C7. iPhone 13 Pro Max \u03C0\u03C1\u03B9\u03BD \u03C4\u03BF iPhone 13 Pro).',
+    'Add Model': '\u03A0\u03C1\u03BF\u03C3\u03B8\u03AE\u03BA\u03B7 \u039C\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF\u03C5',
+    'Model Name': '\u038C\u03BD\u03BF\u03BC\u03B1 \u039C\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF\u03C5',
+    'No models in list': '\u0394\u03B5\u03BD \u03C5\u03C0\u03AC\u03C1\u03C7\u03BF\u03C5\u03BD \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03B1 \u03C3\u03C4\u03B7 \u03BB\u03AF\u03C3\u03C4\u03B1',
+    'Model added': '\u03A4\u03BF \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF \u03C0\u03C1\u03BF\u03C3\u03C4\u03AD\u03B8\u03B7\u03BA\u03B5',
+    'Model removed': '\u03A4\u03BF \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF \u03B1\u03C6\u03B1\u03B9\u03C1\u03AD\u03B8\u03B7\u03BA\u03B5',
+    'Model updated': '\u03A4\u03BF \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF \u03B5\u03BD\u03B7\u03BC\u03B5\u03C1\u03CE\u03B8\u03B7\u03BA\u03B5',
+    'Model already exists': '\u0397 \u03B5\u03B3\u03B3\u03C1\u03B1\u03C6\u03AE \u03C5\u03C0\u03AC\u03C1\u03C7\u03B5\u03B9 \u03AE\u03B4\u03B7 \u03C3\u03C4\u03B7 \u03BB\u03AF\u03C3\u03C4\u03B1',
+    'Invalid model name': '\u039C\u03B7 \u03AD\u03B3\u03BA\u03C5\u03C1\u03BF \u03CC\u03BD\u03BF\u03BC\u03B1 \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03BF\u03C5',
+    'Reset models list': '\u0395\u03C0\u03B1\u03BD\u03B1\u03C6\u03BF\u03C1\u03AC \u03C0\u03C1\u03BF\u03B5\u03C0\u03B9\u03BB\u03BF\u03B3\u03AE\u03C2 \u03BB\u03AF\u03C3\u03C4\u03B1\u03C2',
+    'Models list saved': '\u0397 \u03BB\u03AF\u03C3\u03C4\u03B1 \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03C9\u03BD \u03B1\u03C0\u03BF\u03B8\u03B7\u03BA\u03B5\u03C5\u03C3\u03B5',
+    'Suggested models': '\u03A0\u03C1\u03BF\u03C4\u03B5\u03B9\u03BD\u03CC\u03BC\u03B5\u03BD\u03B1 \u03B1\u03C0\u03CC \u03BA\u03B1\u03C4\u03AC\u03BB\u03BF\u03B3\u03BF',
+    'No suggestions': '\u0394\u03B5\u03BD \u03B2\u03C1\u03AD\u03B8\u03B7\u03BA\u03B1\u03BD \u03B1\u03B3\u03BD\u03CE\u03C1\u03B9\u03C3\u03C4\u03B1 \u03BC\u03BF\u03BD\u03C4\u03AD\u03BB\u03B1',
+    'e.g. iPhone 13 Pro Max': '\u03C0.\u03C7. iPhone 13 Pro Max'
 };
 
 const PHONE_COLORS_STORAGE_KEY = 'tm_phone_colors_v2';
@@ -115,6 +131,7 @@ const PHONE_COLOR_ALIASES_KEY = 'tm_phone_color_display_aliases';
 const LEGACY_CUSTOM_COLORS_STORAGE_KEY = 'tm_phone_custom_colors';
 const PHONE_STORE_RULES_KEY = 'tm_phone_store_rules_v1';
 const PHONE_TAG_DEFINITIONS_KEY = 'tm_phone_tag_definitions';
+const PHONE_CANONICAL_MODELS_KEY = 'tm_phone_canonical_models_v1';
 
 function normalizeTagKey(name) {
     return String(name || '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -2335,29 +2352,243 @@ function formatStoreSummaryText(item, loadedStoreCount = null) {
     return n === 1 ? 'Σε 1 κατ.' : `Σε ${n} κατ.`;
 }
 
+const DEFAULT_PHONE_CANONICAL_MODELS = [
+    'iPhone SE 2022', 'iPhone SE 2020',
+    'iPhone SE (3rd gen)', 'iPhone SE (2nd gen)', 'iPhone SE',
+    'iPhone 6s Plus', 'iPhone 6s', 'iPhone 6 Plus', 'iPhone 6',
+    'iPhone 7 Plus', 'iPhone 7',
+    'iPhone 8 Plus', 'iPhone 8',
+    'iPhone XS Max', 'iPhone XS', 'iPhone XR', 'iPhone X',
+    'iPhone 11 Pro Max', 'iPhone 11 Pro', 'iPhone 11',
+    'iPhone 12 Pro Max', 'iPhone 12 Pro', 'iPhone 12 Mini', 'iPhone 12',
+    'iPhone 13 Pro Max', 'iPhone 13 Pro', 'iPhone 13 Mini', 'iPhone 13',
+    'iPhone 14 Pro Max', 'iPhone 14 Pro', 'iPhone 14 Plus', 'iPhone 14',
+    'iPhone 15 Pro Max', 'iPhone 15 Pro', 'iPhone 15 Plus', 'iPhone 15',
+    'iPhone 16 Pro Max', 'iPhone 16 Pro', 'iPhone 16 Plus', 'iPhone 16',
+    'iPhone 17 Pro Max', 'iPhone 17 Pro', 'iPhone 17 Plus', 'iPhone 17',
+    'iPhone Air',
+    'Samsung Galaxy S25 Ultra', 'Samsung Galaxy S25 Plus', 'Samsung Galaxy S25',
+    'Samsung Galaxy S24 Ultra', 'Samsung Galaxy S24 Plus', 'Samsung Galaxy S24 FE', 'Samsung Galaxy S24',
+    'Samsung Galaxy S23 Ultra', 'Samsung Galaxy S23 Plus', 'Samsung Galaxy S23 FE', 'Samsung Galaxy S23',
+    'Samsung Galaxy S22 Ultra', 'Samsung Galaxy S22 Plus', 'Samsung Galaxy S22',
+    'Samsung Galaxy S21 Ultra', 'Samsung Galaxy S21 Plus', 'Samsung Galaxy S21 FE', 'Samsung Galaxy S21',
+    'Samsung Galaxy S20 Ultra', 'Samsung Galaxy S20 Plus', 'Samsung Galaxy S20 FE', 'Samsung Galaxy S20',
+    'Samsung Galaxy S10 Plus', 'Samsung Galaxy S10e', 'Samsung Galaxy S10',
+    'Samsung Galaxy S9 Plus', 'Samsung Galaxy S9',
+    'Samsung Galaxy S8 Plus', 'Samsung Galaxy S8',
+    'Samsung Galaxy S7 Edge', 'Samsung Galaxy S7',
+    'Samsung Galaxy S6 Edge Plus', 'Samsung Galaxy S6 Edge', 'Samsung Galaxy S6',
+    'Samsung Galaxy Note 20 Ultra', 'Samsung Galaxy Note 20',
+    'Samsung Galaxy Note 10 Plus', 'Samsung Galaxy Note 10',
+    'Samsung Galaxy Note 9', 'Samsung Galaxy Note 8',
+    'Samsung Galaxy Z Fold 6', 'Samsung Galaxy Z Fold 5', 'Samsung Galaxy Z Fold 4',
+    'Samsung Galaxy Z Fold 3', 'Samsung Galaxy Z Fold 2',
+    'Samsung Galaxy Z Flip 6', 'Samsung Galaxy Z Flip 5', 'Samsung Galaxy Z Flip 4',
+    'Samsung Galaxy Z Flip 3',
+    'Samsung Galaxy A73', 'Samsung Galaxy A72', 'Samsung Galaxy A71',
+    'Samsung Galaxy A55', 'Samsung Galaxy A54', 'Samsung Galaxy A53', 'Samsung Galaxy A52s', 'Samsung Galaxy A52', 'Samsung Galaxy A51',
+    'Samsung Galaxy A35', 'Samsung Galaxy A34', 'Samsung Galaxy A33',
+    'Samsung Galaxy A25', 'Samsung Galaxy A24', 'Samsung Galaxy A23',
+    'Samsung Galaxy A16', 'Samsung Galaxy A15', 'Samsung Galaxy A14', 'Samsung Galaxy A13',
+    'Samsung Galaxy A06', 'Samsung Galaxy A05', 'Samsung Galaxy A04', 'Samsung Galaxy A03',
+];
+
+function normalizeCanonicalModelName(name) {
+    return String(name || '').replace(/\s+/g, ' ').trim();
+}
+
+function getDefaultPhoneCanonicalModels() {
+    return [...DEFAULT_PHONE_CANONICAL_MODELS];
+}
+
+function loadPhoneCanonicalModels() {
+    try {
+        const stored = GM_getValue(PHONE_CANONICAL_MODELS_KEY, null);
+        if (!stored) return getDefaultPhoneCanonicalModels();
+        const parsed = JSON.parse(stored);
+        if (!Array.isArray(parsed)) return getDefaultPhoneCanonicalModels();
+        const models = parsed.map(normalizeCanonicalModelName).filter(Boolean);
+        return models.length ? models : getDefaultPhoneCanonicalModels();
+    } catch (e) {
+        return getDefaultPhoneCanonicalModels();
+    }
+}
+
+function savePhoneCanonicalModels(models) {
+    const cleaned = (models || []).map(normalizeCanonicalModelName).filter(Boolean);
+    GM_setValue(PHONE_CANONICAL_MODELS_KEY, JSON.stringify(cleaned));
+    rebuildCanonModelTokens(cleaned);
+    extractBaseModelCacheGlobal.clear();
+    return cleaned;
+}
+
+function setPhoneCanonicalModels(models) {
+    return savePhoneCanonicalModels(models);
+}
+
+function resetPhoneCanonicalModels() {
+    GM_setValue(PHONE_CANONICAL_MODELS_KEY, null);
+    rebuildCanonModelTokens(getDefaultPhoneCanonicalModels());
+    extractBaseModelCacheGlobal.clear();
+    return getDefaultPhoneCanonicalModels();
+}
+
+function addPhoneCanonicalModel(name, index = 0) {
+    const model = normalizeCanonicalModelName(name);
+    if (!model) return { ok: false, error: 'invalid' };
+    const models = loadPhoneCanonicalModels();
+    const key = model.toLowerCase();
+    if (models.some((m) => m.toLowerCase() === key)) return { ok: false, error: 'exists' };
+    const at = Math.max(0, Math.min(index, models.length));
+    models.splice(at, 0, model);
+    savePhoneCanonicalModels(models);
+    return { ok: true, models };
+}
+
+function removePhoneCanonicalModel(name) {
+    const target = normalizeCanonicalModelName(name).toLowerCase();
+    const models = loadPhoneCanonicalModels().filter((m) => m.toLowerCase() !== target);
+    savePhoneCanonicalModels(models);
+    return models;
+}
+
+function renamePhoneCanonicalModel(oldName, newName) {
+    const oldKey = normalizeCanonicalModelName(oldName).toLowerCase();
+    const next = normalizeCanonicalModelName(newName);
+    if (!next) return { ok: false, error: 'invalid' };
+    const models = loadPhoneCanonicalModels();
+    const idx = models.findIndex((m) => m.toLowerCase() === oldKey);
+    if (idx === -1) return { ok: false, error: 'missing' };
+    if (models.some((m, i) => i !== idx && m.toLowerCase() === next.toLowerCase())) {
+        return { ok: false, error: 'exists' };
+    }
+    models[idx] = next;
+    savePhoneCanonicalModels(models);
+    return { ok: true, models };
+}
+
+function movePhoneCanonicalModel(name, direction) {
+    const target = normalizeCanonicalModelName(name).toLowerCase();
+    const models = loadPhoneCanonicalModels();
+    const idx = models.findIndex((m) => m.toLowerCase() === target);
+    if (idx === -1) return models;
+    const nextIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (nextIdx < 0 || nextIdx >= models.length) return models;
+    [models[idx], models[nextIdx]] = [models[nextIdx], models[idx]];
+    savePhoneCanonicalModels(models);
+    return models;
+}
+
+function normForCanonical(str) {
+    return String(str || '').toUpperCase()
+        .replace(/\bPROMAX\b/g, 'PRO MAX')
+        .replace(/\bXSMAX\b/g, 'XS MAX')
+        .replace(/\+/g, ' PLUS ')
+        .replace(/[^A-Z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ').trim();
+}
+
+let canonModelTokens = [];
+
+function rebuildCanonModelTokens(models = loadPhoneCanonicalModels()) {
+    canonModelTokens = (models || []).map((name) => ({
+        name,
+        tokens: normForCanonical(name).split(' ').filter(Boolean),
+    }));
+}
+
+rebuildCanonModelTokens();
+
+function normalizeIphoneSeGeneration(base) {
+    const norm = normForCanonical(base);
+    if (!/\bIPHONE\b/.test(norm) || !/\bSE\b/.test(norm)) return base;
+    if (/\b2022\b/.test(norm) || /\b3RD\b/.test(norm)) return 'iPhone SE 2022';
+    if (/\b2020\b/.test(norm) || /\b2ND\b/.test(norm)) return 'iPhone SE 2020';
+    if (/\b2016\b/.test(norm) || /\b1ST\b/.test(norm)) return 'iPhone SE';
+    return base;
+}
+
+function matchCanonicalModel(base) {
+    if (!base) return base;
+    const norm = normForCanonical(base);
+    for (const { name, tokens } of canonModelTokens) {
+        const allMatch = tokens.every((token) =>
+            new RegExp('(?:^|\\s)' + token + '(?:\\s|$)').test(norm)
+        );
+        if (allMatch) {
+            if (name === 'iPhone SE' && /\b(2020|2022|2016|2ND|3RD|1ST)\b/.test(norm)) {
+                continue;
+            }
+            return name;
+        }
+    }
+    return base;
+}
+
 const extractBaseModelCacheGlobal = new Map();
+
+function stripModelToBaseRaw(model) {
+    if (!model) return '';
+    let base = model;
+
+    base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '');
+    base = base.replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ');
+    base = base.replace(/\s*\(BB[^)]*\)?\s*/gi, ' ');
+    base = base.replace(/\s+(BB|ΒΒ):\s*$/gi, ' ');
+    base = base.replace(/\b(BB|ΒΒ)\b/gi, ' ');
+    base = base.replace(/\s*[–\-]?\s*[\u0045\u0395][\s\-]?SIM(\s+ONLY)?\s*/gi, ' ');
+    base = base.replace(/\s*\d+\s*TB\s*/gi, ' ');
+    base = base.replace(/\s*\d+\s*GB\s*/gi, ' ');
+    base = base.replace(/\s*\d+\s*G(?!\w)/gi, ' ');
+
+    const commonSizes = [64, 128, 256, 512, 1024, 2048];
+    const allColors = getAllKnownColorsForModelFix();
+    for (const size of commonSizes) {
+        for (const color of allColors) {
+            const regex = new RegExp('\\b' + size + '\\s+' + color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
+            base = base.replace(regex, color);
+        }
+        base = base.replace(new RegExp('\\b' + size + '\\s+(BB|ΒΒ)\\b', 'gi'), '$1');
+    }
+
+    for (const color of getMultiWordPhoneColors()) {
+        base = base.replace(new RegExp(color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), ' ');
+    }
+    for (const color of getSingleWordPhoneColors()) {
+        base = base.replace(new RegExp('\\b' + color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi'), ' ');
+    }
+
+    base = base.replace(/\b(64|128|256|512|1024|2048)\s*$/i, '');
+    return base.replace(/\s+/g, ' ').trim();
+}
+
+function collectSuggestedCanonicalModels(...phoneLists) {
+    const suggestions = new Set();
+    const known = new Set(loadPhoneCanonicalModels().map((m) => m.toLowerCase()));
+    phoneLists.flat().forEach((phone) => {
+        const raw = phone?.model || phone?.name || '';
+        if (!raw) return;
+        const stripped = stripModelToBaseRaw(raw);
+        const normalized = normalizeIphoneSeGeneration(stripped);
+        const matched = matchCanonicalModel(normalized);
+        const candidate = normalizeCanonicalModelName(matched);
+        if (!candidate || candidate.length < 4) return;
+        if (known.has(candidate.toLowerCase())) return;
+        if (matched === normalized && /iphone|samsung|galaxy|pixel|xiaomi|huawei|oneplus|oppo|redmi|poco/i.test(candidate)) {
+            suggestions.add(candidate);
+        }
+    });
+    return [...suggestions].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+}
 
 function extractBaseModel(model) {
     if (!model) return '';
     if (extractBaseModelCacheGlobal.has(model)) return extractBaseModelCacheGlobal.get(model);
-    let base = model
-        .replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '')
-        .replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ')
-        .replace(/\s*\(BB[^)]*\)?\s*/gi, ' ')
-        .replace(/\s+(BB|ΒΒ):\s*$/gi, ' ')
-        .replace(/\s*[–\-]?\s*[\u0045\u0395][\s\-]?SIM(\s+ONLY)?\s*/gi, ' ')
-        .replace(/\s*\d+\s*TB\s*/gi, ' ')
-        .replace(/\s*\d+\s*GB\s*/gi, ' ')
-        .replace(/\s*\d+\s*G(?!\w)/gi, ' ');
-    const color = extractColor(model);
-    if (color) {
-        base = base.replace(new RegExp(color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), ' ');
-    }
-    const gb = extractGB(model);
-    if (gb) {
-        base = base.replace(new RegExp(gb.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), ' ');
-    }
-    base = base.replace(/\s+/g, ' ').trim();
+
+    let base = stripModelToBaseRaw(model);
+    base = normalizeIphoneSeGeneration(base);
+    base = matchCanonicalModel(base);
+
     extractBaseModelCacheGlobal.set(model, base);
     return base;
 }
@@ -2427,4 +2658,15 @@ window.getDefaultPhoneStoreRules = getDefaultPhoneStoreRules;
 window.parseStorePatternCsv = parseStorePatternCsv;
 window.storeNameMatchesPatterns = storeNameMatchesPatterns;
 window.collectKnownStoreNames = collectKnownStoreNames;
+window.getDefaultPhoneCanonicalModels = getDefaultPhoneCanonicalModels;
+window.loadPhoneCanonicalModels = loadPhoneCanonicalModels;
+window.savePhoneCanonicalModels = savePhoneCanonicalModels;
+window.setPhoneCanonicalModels = setPhoneCanonicalModels;
+window.resetPhoneCanonicalModels = resetPhoneCanonicalModels;
+window.addPhoneCanonicalModel = addPhoneCanonicalModel;
+window.removePhoneCanonicalModel = removePhoneCanonicalModel;
+window.renamePhoneCanonicalModel = renamePhoneCanonicalModel;
+window.movePhoneCanonicalModel = movePhoneCanonicalModel;
+window.collectSuggestedCanonicalModels = collectSuggestedCanonicalModels;
+window.rebuildCanonModelTokens = rebuildCanonModelTokens;
 
