@@ -26220,6 +26220,103 @@ window.initOrderTracking = initOrderTracking;
             position: relative;
         }
 
+        .tm-sl-shell.tm-sl-view--network {
+            width: min(1180px, 98vw) !important;
+            max-width: 98vw !important;
+            height: min(94vh, 940px) !important;
+            max-height: 94vh !important;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-header {
+            padding: 10px 14px 8px;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 8%, transparent), transparent 70%);
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-title { font-size: 1.05rem; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-subtitle { font-size: 11px; margin-top: 2px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-view-tabs { margin-top: 8px; padding: 3px; border-radius: 10px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-view-tab { font-size: 11px; padding: 7px 10px; border-radius: 7px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-toolbar { padding: 8px 14px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-body { padding: 8px 12px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-search { height: 36px; font-size: 13px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-chips { gap: 4px; margin-top: 8px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-chip { padding: 4px 9px; font-size: 10px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-grid {
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-card { padding: 10px 11px; border-radius: 10px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-name { font-size: 13px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-list { gap: 5px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-row { border-radius: 8px; border-left-width: 2px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline {
+            display: flex; align-items: center; gap: 8px;
+            padding: 7px 10px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-name {
+            font-size: 12px; font-weight: 700;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-icon svg {
+            width: 13px; height: 13px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-head__meta {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 0; margin-left: auto; flex-shrink: 0;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-qty {
+            font-size: 10px; padding: 2px 7px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-bb-status {
+            font-size: 9px; padding: 2px 6px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-chevron svg { width: 12px; height: 12px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-summary {
+            gap: 4px; margin: 0 8px; padding: 6px 8px 8px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-summary-line {
+            padding: 4px 8px; border-radius: 7px; font-size: 10px; gap: 4px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-grade {
+            min-width: 22px; padding: 1px 5px; font-size: 9px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-gb { padding: 1px 5px; font-size: 9px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-color { font-size: 9px; gap: 4px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-color .tm-sl-color-swatch { width: 9px; height: 9px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-row.is-open .tm-sl-store-units {
+            padding: 6px 6px 8px; gap: 4px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact {
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 6px 8px;
+            padding: 5px 8px;
+            border-radius: 7px;
+            border-left-width: 3px;
+            align-items: center;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__body {
+            flex-direction: row; flex-wrap: wrap; align-items: center; gap: 5px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__meta,
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__footer { display: none; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill {
+            padding: 2px 6px; font-size: 9px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill--grade { min-width: 24px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill--color .tm-sl-color-swatch {
+            width: 9px; height: 9px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-barcode-pill {
+            padding: 2px 6px; font-size: 9px; border-radius: 6px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__aside {
+            flex-direction: row; align-items: center; gap: 6px; min-width: 0;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__price {
+            font-size: 12px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-unit-btn {
+            padding: 2px 6px; font-size: 9px; border-radius: 5px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__actions { gap: 3px; }
+
         .tm-sl-breadcrumb {
             display: flex; align-items: center; gap: 6px;
             font-size: 11px; font-weight: 600; margin-bottom: 6px;
@@ -26630,7 +26727,7 @@ window.initOrderTracking = initOrderTracking;
             transition: max-height 0.28s ease, opacity 0.2s ease, padding 0.2s ease, border-color 0.2s;
         }
         .tm-sl-store-row.is-open .tm-sl-store-units {
-            max-height: 1200px; opacity: 1;
+            max-height: 2400px; opacity: 1;
             border-top-color: var(--tm-shop-item-border);
             padding: 10px 10px 12px;
             display: flex; flex-direction: column; gap: 8px;
@@ -27157,10 +27254,16 @@ window.initOrderTracking = initOrderTracking;
         return pills.join('');
     }
 
-    function buildStoreHeadPurchaseBadge(store) {
+    function buildStoreHeadPurchaseBadge(store, compact) {
         const hasBuyback = store.variants.some((v) => v.isBuyback);
         if (!hasBuyback) return '';
         const allowed = isStorePurchaseAllowed(store.name, true);
+        if (compact) {
+            if (allowed) {
+                return '<span class="tm-sl-store-bb-status tm-sl-store-bb-status--ok" title="Επιτρέπεται αγορά BB">BB ✓</span>';
+            }
+            return '<span class="tm-sl-store-bb-status tm-sl-store-bb-status--no" title="Δεν επιτρέπεται αγορά BB">BB ✕</span>';
+        }
         if (allowed) {
             return '<span class="tm-sl-store-bb-status tm-sl-store-bb-status--ok" title="Επιτρέπεται αγορά BB από αυτό το κατάστημα">✓ Αγορά BB</span>';
         }
@@ -27228,27 +27331,46 @@ window.initOrderTracking = initOrderTracking;
     }
 
     function buildUnitRowHTML(v, ctx) {
+        const compact = !!ctx?.networkCompact;
         const gradeAccent = getGradeAccentColor(v.grade, ctx);
         const storeName = v.storeName || '';
-        const storeHtml = ctx?.hideStoreInUnits || !storeName ? '' : buildUnitStoreHTML(storeName, v.isMine);
+        const storeHtml = !compact && !ctx?.hideStoreInUnits && storeName ? buildUnitStoreHTML(storeName, v.isMine) : '';
         const purchaseAllowed = !ctx?.showPurchaseStatus || !storeName
             || isStorePurchaseAllowed(storeName, !!v.isBuyback);
-        const purchaseBadge = ctx?.showPurchaseStatus && storeName
+        const purchaseBadge = !compact && ctx?.showPurchaseStatus && storeName
             ? buildPurchaseBadgeHtml(!!v.isBuyback, purchaseAllowed)
             : '';
         const cardClasses = [
             'tm-sl-phone-card',
             v.isBuyback ? 'tm-sl-phone-card--bb' : '',
             ctx?.showPurchaseStatus && !purchaseAllowed ? 'tm-sl-phone-card--blocked' : '',
+            compact ? 'tm-sl-phone-card--compact' : '',
         ].filter(Boolean).join(' ');
         const priceHtml = v.price ? `<div class="tm-sl-phone-card__price">${esc(v.price)}</div>` : '';
+        const barcodeHtml = `<span class="tm-sl-barcode-pill"><span class="tm-sl-barcode-pill__icon">#</span>${esc(v.barcode)}</span>`;
+
+        if (compact) {
+            return `<article class="${cardClasses}" data-barcode="${esc(v.barcode)}" style="--tm-sl-grade-accent:${esc(gradeAccent)}">
+                <div class="tm-sl-phone-card__body">
+                    <div class="tm-sl-phone-card__specs">${buildSpecPillsHTML(v, ctx) || '<span class="tm-sl-preview-pill">—</span>'}</div>
+                    ${barcodeHtml}
+                </div>
+                <div class="tm-sl-phone-card__aside">
+                    ${priceHtml}
+                    <div class="tm-sl-phone-card__actions">
+                        <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
+                        <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
+                    </div>
+                </div>
+            </article>`;
+        }
 
         return `<article class="${cardClasses}" data-barcode="${esc(v.barcode)}" style="--tm-sl-grade-accent:${esc(gradeAccent)}">
             <div class="tm-sl-phone-card__body">
                 <div class="tm-sl-phone-card__specs">${buildSpecPillsHTML(v, ctx) || '<span class="tm-sl-preview-pill">—</span>'}</div>
                 ${storeHtml || purchaseBadge ? `<div class="tm-sl-phone-card__meta">${storeHtml}${purchaseBadge}</div>` : ''}
                 <div class="tm-sl-phone-card__footer">
-                    <span class="tm-sl-barcode-pill"><span class="tm-sl-barcode-pill__icon">#</span>${esc(v.barcode)}</span>
+                    ${barcodeHtml}
                 </div>
             </div>
             <div class="tm-sl-phone-card__aside">
@@ -27284,6 +27406,7 @@ window.initOrderTracking = initOrderTracking;
     }
 
     function buildStoreRowHTML(store, idx, ctx) {
+        const compact = !!ctx?.networkCompact;
         const signal = getStoreSignalClass(store.variants.length);
         const summary = buildStoreInventorySummary(store.variants, ctx);
         const units = store.variants.map((v) => buildUnitRowHTML(v, ctx)).join('');
@@ -27292,11 +27415,20 @@ window.initOrderTracking = initOrderTracking;
             : { html: '', noPurchase: false };
         const noPurchaseClass = purchase.noPurchase ? ' tm-sl-store-row--no-purchase' : '';
         const bbBadge = ctx?.showPurchaseStatus && !store.isMine
-            ? buildStoreHeadPurchaseBadge(store)
+            ? buildStoreHeadPurchaseBadge(store, compact)
             : '';
-        const qtyLabel = store.variants.length === 1 ? '1 τεμάχιο' : `${store.variants.length} τεμ.`;
-        return `<div class="tm-sl-store-row ${signal}${store.isMine ? ' is-mine' : ''}${noPurchaseClass}" data-store-idx="${idx}">
-            <div class="tm-sl-store-head" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button" aria-expanded="false">
+        const qtyLabel = compact
+            ? String(store.variants.length)
+            : (store.variants.length === 1 ? '1 τεμάχιο' : `${store.variants.length} τεμ.`);
+
+        const headHtml = compact
+            ? `<div class="tm-sl-store-head tm-sl-store-head--inline" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button" aria-expanded="false">
+                <span class="tm-sl-store-icon">${ICON.store.replace('width="16"', 'width="13"').replace('height="16"', 'height="13"')}</span>
+                <span class="tm-sl-store-name">${esc(store.name)}</span>
+                <div class="tm-sl-store-head__meta">${bbBadge}<span class="tm-sl-store-qty">${qtyLabel}</span></div>
+                <span class="tm-sl-store-chevron">${ICON.chevron.replace('width="16"', 'width="12"').replace('height="16"', 'height="12"')}</span>
+            </div>`
+            : `<div class="tm-sl-store-head" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button" aria-expanded="false">
                 <div class="tm-sl-store-head__top">
                     <span class="tm-sl-store-icon">${ICON.store}</span>
                     <span class="tm-sl-store-name">${esc(store.name)}</span>
@@ -27306,7 +27438,10 @@ window.initOrderTracking = initOrderTracking;
                     ${bbBadge}
                     <span class="tm-sl-store-qty">${qtyLabel}</span>
                 </div>
-            </div>
+            </div>`;
+
+        return `<div class="tm-sl-store-row ${signal}${store.isMine ? ' is-mine' : ''}${noPurchaseClass}" data-store-idx="${idx}">
+            ${headHtml}
             ${summary}
             <div class="tm-sl-store-units">${units}</div>
         </div>`;
@@ -27420,12 +27555,14 @@ window.initOrderTracking = initOrderTracking;
     function updateViewTabs(overlay, view) {
         const mineTab = overlay?.querySelector('#tm-sl-view-mine');
         const networkTab = overlay?.querySelector('#tm-sl-view-network');
+        const shell = overlay?.querySelector('#tm-sl-shell');
         if (!mineTab || !networkTab) return;
         const isMine = view === 'mine';
         mineTab.classList.toggle('is-active', isMine);
         networkTab.classList.toggle('is-active', !isMine);
         mineTab.setAttribute('aria-selected', isMine ? 'true' : 'false');
         networkTab.setAttribute('aria-selected', !isMine ? 'true' : 'false');
+        shell?.classList.toggle('tm-sl-view--network', !isMine);
     }
 
     function setDensity(overlay, compact) {
@@ -31991,7 +32128,11 @@ if (document.body) {
             await resolveNetworkStoreDetails(modelFilter);
 
             const storeRows = buildNetworkStoreBoardData(selectedModel, otherStorePhones, activeFilters, helpers);
-            bodyEl.innerHTML = UI.buildNetworkStoreBoard(selectedModel, storeRows, buildUiCtx({ showPurchaseStatus: true }));
+            bodyEl.innerHTML = UI.buildNetworkStoreBoard(selectedModel, storeRows, buildUiCtx({
+                showPurchaseStatus: true,
+                hideStoreInUnits: true,
+                networkCompact: true,
+            }));
 
             const storeCount = storeRows.length;
             setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} στο δίκτυο`);
