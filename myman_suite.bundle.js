@@ -3033,10 +3033,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '220',
+        version: '221',
         loaderVersion: '5',
-        silentVersion: '10',
-        displayVersion: '5.10',
+        silentVersion: '11',
+        displayVersion: '5.11',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -30763,9 +30763,9 @@ async function showPhoneListModal() {
 
     function populateNetworkFilters(dataset = null) {
         const base = dataset || getFilteredPhonesForNetworkFilters();
-        const grades = [...new Set(base.map(p => p.grade).filter(Boolean))].sort(comparePhoneGrades);
-        const models = [...new Set(base.map(p => extractBaseModel(p.model)).filter(Boolean))]
+        const allModels = [...new Set(getNetworkBasePhones().map(p => extractBaseModel(p.model)).filter(Boolean))]
             .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+        const grades = [...new Set(base.map(p => p.grade).filter(Boolean))].sort(comparePhoneGrades);
         const gbs = [...new Set(base.map(p => extractGB(p.name || p.model)).filter(Boolean))].sort((a, b) => {
             const aIsTB = a.toUpperCase().includes('TB');
             const bIsTB = b.toUpperCase().includes('TB');
@@ -30784,11 +30784,11 @@ async function showPhoneListModal() {
             try {
                 const cur = networkModelFilter.value || networkSelectedModel || '';
                 networkModelFilter.innerHTML = '<option value="">— Επιλέξτε μοντέλο —</option>' +
-                    models.map(m => `<option value="${PhoneCatalogUI.esc(m)}">${PhoneCatalogUI.esc(m)}</option>`).join('');
-                if (cur && models.includes(cur)) networkModelFilter.value = cur;
-                else if (networkSelectedModel && models.includes(networkSelectedModel)) {
+                    allModels.map(m => `<option value="${PhoneCatalogUI.esc(m)}">${PhoneCatalogUI.esc(m)}</option>`).join('');
+                if (cur && allModels.includes(cur)) networkModelFilter.value = cur;
+                else if (networkSelectedModel && allModels.includes(networkSelectedModel)) {
                     networkModelFilter.value = networkSelectedModel;
-                } else if (networkSelectedModel && !models.includes(networkSelectedModel)) {
+                } else if (networkSelectedModel && !allModels.includes(networkSelectedModel)) {
                     const opt = document.createElement('option');
                     opt.value = networkSelectedModel;
                     opt.textContent = networkSelectedModel;
@@ -31494,29 +31494,9 @@ async function showPhoneListModal() {
         renderNetworkModelPicker();
     });
 
-    // Model card clicks — delegated on content nodes so re-renders never lose handlers
-    function handleNetworkModelCardPick(e) {
-        if (!showingOtherStores) return;
-        const card = e.target.closest('.tm-pc-model-card[data-tm-pc-model]');
-        if (!card || card.closest('.tm-phone-item')) return;
-        e.preventDefault();
-        e.stopPropagation();
-        const model = readModelFromCard(card);
-        if (model) selectNetworkModel(model);
-    }
-    function handleMineModelCardPick(e) {
-        if (showingOtherStores) return;
-        const card = e.target.closest('.tm-pc-model-card[data-tm-pc-model]');
-        if (!card || card.closest('.tm-phone-item')) return;
-        e.preventDefault();
-        e.stopPropagation();
-        const model = readModelFromCard(card);
-        if (model) selectMineModel(model);
-    }
-    otherStoreContent?.addEventListener('click', handleNetworkModelCardPick);
-    listTableWrap?.addEventListener('click', handleMineModelCardPick);
+    // Model card clicks — direct bind on render; capture fallback on overlay only
     overlay.addEventListener('click', (e) => {
-        if (!showingOtherStores) return;
+        if (!showingOtherStores || networkCatalogStep !== 'models') return;
         const card = e.target.closest('#tm-other-store-content .tm-pc-model-card[data-tm-pc-model]');
         if (!card || card.closest('.tm-phone-item')) return;
         e.preventDefault();
@@ -31524,14 +31504,6 @@ async function showPhoneListModal() {
         const model = readModelFromCard(card);
         if (model) selectNetworkModel(model);
     }, true);
-    otherStoreContent?.addEventListener('keydown', (e) => {
-        if (e.key !== 'Enter' && e.key !== ' ') return;
-        handleNetworkModelCardPick(e);
-    });
-    listTableWrap?.addEventListener('keydown', (e) => {
-        if (e.key !== 'Enter' && e.key !== ' ') return;
-        handleMineModelCardPick(e);
-    });
 
     settingsBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -31635,11 +31607,12 @@ async function showPhoneListModal() {
                 ? renderPhoneStoreChipsHtml(item.stores, item.isBuyback)
                 : '';
             const noBuybackStore = item.isBuyback && hasStoresData && oneUnitStores.length > 0 && !phoneHasAllowedBuybackStore(item.stores);
+            const storesPending = !storesHtml && (!hasStoresData || item.stores.length === 0);
             return PhoneCatalogUI.buildPhoneRow(item, catalogCtx, {
                 variant: 'other',
                 isFavorite: favorites.includes(item.barcode),
                 storesHtml,
-                storesPending: !storesHtml && (!hasStoresData || item.stores.length === 0),
+                storesPending,
                 noBuybackStore,
                 storeSummary: formatStoreSummaryText(
                     item,
