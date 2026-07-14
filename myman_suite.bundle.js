@@ -26238,7 +26238,7 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-shell.tm-sl-view--network .tm-sl-body { padding: 8px 12px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-search { height: 36px; font-size: 13px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-chips { gap: 4px; margin-top: 8px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-chip { padding: 4px 9px; font-size: 10px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-chip { padding: 5px 10px; font-size: 11px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-model-grid {
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 8px;
@@ -26248,74 +26248,89 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-list { gap: 5px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-row { border-radius: 8px; border-left-width: 2px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline {
-            display: flex; align-items: center; gap: 8px;
-            padding: 7px 10px;
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 12px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-name {
-            font-size: 12px; font-weight: 700;
+            flex: 0 1 auto; font-size: 14px; font-weight: 700;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-icon svg {
-            width: 13px; height: 13px;
+            width: 15px; height: 15px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-head__meta {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 0; margin-left: auto; flex-shrink: 0;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 0; margin-left: 0; flex-shrink: 0;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-chevron {
+            margin-left: auto;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-qty {
-            font-size: 10px; padding: 2px 7px;
+            font-size: 11px; padding: 3px 8px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-bb-status {
-            font-size: 9px; padding: 2px 6px;
+            font-size: 11px; padding: 3px 8px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-chevron svg { width: 12px; height: 12px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-dist {
+            font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+            background: color-mix(in srgb, var(--tm-primary-color) 12%, transparent);
+            color: var(--tm-primary-color);
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 24%, transparent);
+            white-space: nowrap;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-chevron svg { width: 14px; height: 14px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-summary {
-            gap: 4px; margin: 0 8px; padding: 6px 8px 8px;
+            gap: 5px; margin: 0 8px; padding: 8px 10px 10px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-summary-line {
-            padding: 4px 8px; border-radius: 7px; font-size: 10px; gap: 4px;
+            padding: 6px 10px; border-radius: 8px; font-size: 12px; gap: 6px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-summary-grade {
-            min-width: 22px; padding: 1px 5px; font-size: 9px;
+            min-width: 26px; padding: 2px 7px; font-size: 11px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-gb { padding: 1px 5px; font-size: 9px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-color { font-size: 9px; gap: 4px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-color .tm-sl-color-swatch { width: 9px; height: 9px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-gb { padding: 2px 7px; font-size: 11px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-color { font-size: 11px; gap: 5px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-color .tm-sl-color-swatch { width: 11px; height: 11px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-row.is-open .tm-sl-store-units {
-            padding: 6px 6px 8px; gap: 4px;
+            padding: 8px 8px 10px; gap: 6px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact {
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 6px 8px;
-            padding: 5px 8px;
-            border-radius: 7px;
-            border-left-width: 3px;
+            display: flex;
+            flex-wrap: wrap;
             align-items: center;
+            gap: 8px 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border-left-width: 3px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__body {
-            flex-direction: row; flex-wrap: wrap; align-items: center; gap: 5px;
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__specs {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__meta,
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__footer { display: none; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill {
-            padding: 2px 6px; font-size: 9px;
+            padding: 4px 8px; font-size: 11px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill--grade { min-width: 24px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill--grade { min-width: 28px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill--color .tm-sl-color-swatch {
-            width: 9px; height: 9px;
+            width: 11px; height: 11px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-barcode-pill {
-            padding: 2px 6px; font-size: 9px; border-radius: 6px;
-        }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__aside {
-            flex-direction: row; align-items: center; gap: 6px; min-width: 0;
+            padding: 4px 8px; font-size: 11px; border-radius: 6px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__price {
-            font-size: 12px;
+            font-size: 14px; font-weight: 800; white-space: nowrap;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__actions {
+            display: flex; align-items: center; gap: 5px; margin-left: auto;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-unit-btn {
-            padding: 2px 6px; font-size: 9px; border-radius: 5px;
+            padding: 4px 8px; font-size: 11px; border-radius: 6px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__actions { gap: 3px; }
+
+        .tm-sl-phone-card--compact {
+            display: flex;
+            grid-template-columns: unset;
+        }
+        .tm-sl-phone-card--compact .tm-sl-phone-card__body,
+        .tm-sl-phone-card--compact .tm-sl-phone-card__aside { display: contents; }
 
         .tm-sl-breadcrumb {
             display: flex; align-items: center; gap: 6px;
@@ -27351,16 +27366,12 @@ window.initOrderTracking = initOrderTracking;
 
         if (compact) {
             return `<article class="${cardClasses}" data-barcode="${esc(v.barcode)}" style="--tm-sl-grade-accent:${esc(gradeAccent)}">
-                <div class="tm-sl-phone-card__body">
-                    <div class="tm-sl-phone-card__specs">${buildSpecPillsHTML(v, ctx) || '<span class="tm-sl-preview-pill">—</span>'}</div>
-                    ${barcodeHtml}
-                </div>
-                <div class="tm-sl-phone-card__aside">
-                    ${priceHtml}
-                    <div class="tm-sl-phone-card__actions">
-                        <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
-                        <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
-                    </div>
+                <div class="tm-sl-phone-card__specs">${buildSpecPillsHTML(v, ctx) || '<span class="tm-sl-preview-pill">—</span>'}</div>
+                ${barcodeHtml}
+                ${priceHtml}
+                <div class="tm-sl-phone-card__actions">
+                    <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
+                    <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
                 </div>
             </article>`;
         }
@@ -27417,16 +27428,23 @@ window.initOrderTracking = initOrderTracking;
         const bbBadge = ctx?.showPurchaseStatus && !store.isMine
             ? buildStoreHeadPurchaseBadge(store, compact)
             : '';
+        const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
+        const distLabel = ctx?.showDistance && myStore && !store.isMine
+            ? window.getStoreDistanceLabel?.(myStore, store.name)
+            : '';
+        const distChip = distLabel
+            ? `<span class="tm-sl-store-dist" title="Απόσταση από το κατάστημά σας">${esc(distLabel)}</span>`
+            : '';
         const qtyLabel = compact
             ? String(store.variants.length)
             : (store.variants.length === 1 ? '1 τεμάχιο' : `${store.variants.length} τεμ.`);
 
         const headHtml = compact
             ? `<div class="tm-sl-store-head tm-sl-store-head--inline" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button" aria-expanded="false">
-                <span class="tm-sl-store-icon">${ICON.store.replace('width="16"', 'width="13"').replace('height="16"', 'height="13"')}</span>
+                <span class="tm-sl-store-icon">${ICON.store.replace('width="16"', 'width="15"').replace('height="16"', 'height="15"')}</span>
                 <span class="tm-sl-store-name">${esc(store.name)}</span>
-                <div class="tm-sl-store-head__meta">${bbBadge}<span class="tm-sl-store-qty">${qtyLabel}</span></div>
-                <span class="tm-sl-store-chevron">${ICON.chevron.replace('width="16"', 'width="12"').replace('height="16"', 'height="12"')}</span>
+                <div class="tm-sl-store-head__meta">${bbBadge}${distChip}<span class="tm-sl-store-qty">${qtyLabel}</span></div>
+                <span class="tm-sl-store-chevron">${ICON.chevron.replace('width="16"', 'width="14"').replace('height="16"', 'height="14"')}</span>
             </div>`
             : `<div class="tm-sl-store-head" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button" aria-expanded="false">
                 <div class="tm-sl-store-head__top">
@@ -27707,12 +27725,22 @@ const PHONE_CATALOG_TRANSLATIONS = {
     'Regular patterns hint': '\u039A\u03B5\u03BD\u03CC = \u03CC\u03BB\u03B1 \u03C4\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1',
     'Known stores': '\u0393\u03BD\u03C9\u03C3\u03C4\u03AC \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1',
     'My store location': '\u03A4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03AC \u03BC\u03BF\u03C5',
-    'My store location hint': '\u0391\u03C5\u03C4\u03CC \u03C7\u03C1\u03B7\u03C3\u03B9\u03BC\u03BF\u03C0\u03BF\u03B9\u03B5\u03AF\u03C4\u03B1\u03B9 \u03B3\u03B9\u03B1 \u03BD\u03B1 \u03B5\u03BC\u03C6\u03B1\u03BD\u03AF\u03B6\u03BF\u03BD\u03C4\u03B1\u03B9 \u03C0\u03C1\u03CE\u03C4\u03B1 \u03C4\u03B1 \u03BA\u03BF\u03BD\u03C4\u03B9\u03BD\u03AC \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03C3\u03C4\u03B7 \u03BB\u03AF\u03C3\u03C4\u03B1 \u0386\u03BB\u03BB\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1.',
+    'My store location hint': '\u0395\u03C0\u03B9\u03BB\u03AD\u03BE\u03C4\u03B5 \u03C4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03AC \u03C3\u03B1\u03C2 \u03BA\u03B1\u03B9 \u03C3\u03C5\u03BC\u03C0\u03BB\u03B7\u03C1\u03CE\u03C3\u03C4\u03B5 \u03C4\u03B9\u03C2 \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2 \u03C0\u03B1\u03C1\u03B1\u03BA\u03AC\u03C4\u03C9 \u03B3\u03B9\u03B1 \u03B1\u03BA\u03C1\u03B9\u03B2\u03AD\u03C3\u03C4\u03B5\u03C1\u03B7 \u03C4\u03B1\u03BE\u03B9\u03BD\u03CC\u03BC\u03B7\u03C3\u03B7 \u03B1\u03C0\u03CC\u03C3\u03C4\u03B1\u03C3\u03B7\u03C2.',
     'Auto-detect store': '\u0391\u03C5\u03C4\u03CC\u03BC\u03B1\u03C4\u03B7 \u03B1\u03BD\u03AF\u03C7\u03BD\u03B5\u03C5\u03C3\u03B7',
     'Auto-detected store': '\u0391\u03BD\u03B9\u03C7\u03BD\u03B5\u03CD\u03B8\u03B7\u03BA\u03B5 \u03B1\u03C5\u03C4\u03CC\u03BC\u03B1\u03C4\u03B1',
     'No store detected': '\u0394\u03B5\u03BD \u03B1\u03BD\u03B9\u03C7\u03BD\u03B5\u03CD\u03B8\u03B7\u03BA\u03B5 \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1',
     'My store saved': '\u0391\u03C0\u03BF\u03B8\u03B7\u03BA\u03B5\u03C8\u03B5 \u03C4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03AC \u03C3\u03B1\u03C2',
     'Select store': '\u0395\u03C0\u03B9\u03BB\u03AD\u03BE\u03C4\u03B5 \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1',
+    'Store addresses': '\u0394\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03B7\u03BC\u03AC\u03C4\u03C9\u03BD',
+    'Store addresses hint': '\u0392\u03AC\u03BB\u03C4\u03B5 \u03C4\u03B7 \u03C4\u03B1\u03C7\u03C5\u03B4\u03C1\u03BF\u03BC\u03B7\u03C3\u03AF\u03B1 \u03BA\u03AC\u03B8\u03B5 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2 \u03B3\u03B9\u03B1 \u03BD\u03B1 \u03C4\u03B1\u03BE\u03B9\u03BD\u03BF\u03BC\u03BF\u03CD\u03BD\u03C4\u03B1\u03B9 \u03C3\u03C4\u03B7 \u03BB\u03AF\u03C3\u03C4\u03B1 \u0386\u03BB\u03BB\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03B1\u03C0\u03CC \u03C4\u03B7 \u03BC\u03B9\u03BA\u03C1\u03CC\u03C4\u03B5\u03C1\u03B7 \u03C3\u03C4\u03B7 \u03BC\u03B5\u03B3\u03B1\u03BB\u03CD\u03C4\u03B5\u03C1\u03B7 \u03B1\u03C0\u03CC\u03C3\u03C4\u03B1\u03C3\u03B7.',
+    'Store address placeholder': '\u03A0.\u03C7. \u039A\u03B1\u03C3\u03C3\u03B1\u03BD\u03B4\u03C1\u03BF\u03CD 45, \u0392\u03C1\u03B9\u03BB\u03AE\u03C3\u03C3\u03B9\u03B1',
+    'Geocode addresses': '\u0395\u03C5\u03B8\u03B5\u03C4\u03B7\u03C3\u03AF\u03B1 \u03C3\u03C5\u03BD\u03C4\u03B5\u03C4\u03B1\u03B3\u03BC\u03AD\u03BD\u03C9\u03BD',
+    'Geocoding stores': '\u0395\u03C5\u03B8\u03B5\u03C4\u03B7\u03C3\u03AF\u03B1 \u03C4\u03C9\u03BD \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03C9\u03BD\u2026',
+    'Geocode done': '\u039F\u03B9 \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2 \u03B5\u03BD\u03B7\u03BC\u03B5\u03C1\u03CE\u03B8\u03B7\u03BA\u03B1\u03BD',
+    'Geocode failed': '\u0394\u03B5\u03BD \u03B2\u03C1\u03AD\u03B8\u03B7\u03BA\u03B1\u03BD \u03CC\u03BB\u03B5\u03C2 \u03BF\u03B9 \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2',
+    'Address geocoded': '\u0395\u03C5\u03C1\u03AD\u03B8\u03B7\u03BA\u03B5 \u03C3\u03C4\u03B7 \u03C7\u03AC\u03C1\u03C4\u03B7',
+    'Address not found': '\u0394\u03B5\u03BD \u03B2\u03C1\u03AD\u03B8\u03B7\u03BA\u03B5 \u03C3\u03C4\u03B7 \u03C7\u03AC\u03C1\u03C4\u03B7',
+    'No address set': '\u0394\u03B5\u03BD \u03AD\u03C7\u03B5\u03B9 \u03BF\u03C1\u03B9\u03C3\u03C3\u03C4\u03B5\u03AF',
     'Allow buyback': '\u0395\u03C0\u03B9\u03C4\u03C1\u03AD\u03C0\u03B5\u03C4\u03B1\u03B9 BB',
     'Allow regular': '\u0395\u03C0\u03B9\u03C4\u03C1\u03AD\u03C0\u03B5\u03C4\u03B1\u03B9 \u03BA\u03B1\u03BD\u03BF\u03BD\u03B9\u03BA\u03CC',
     'No known stores yet': '\u0394\u03B5\u03BD \u03B2\u03C1\u03AD\u03B8\u03B7\u03BA\u03B1\u03BD \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03B1\u03BA\u03CC\u03BC\u03B1',
@@ -28657,6 +28685,7 @@ function normalizeStoreDisplayName(name) {
 
 const MY_STORE_NAME_KEY = 'tm_phone_my_store_name_v1';
 const MY_STORE_PICK_KEY = 'tm_phone_my_store_pick_v1';
+const STORE_ADDRESSES_KEY = 'tm_phone_store_addresses_v1';
 
 const DEFAULT_PROFILE_STORES = [
     'ΕΡΥΘΡΑΙΑ (ΕΕ)',
@@ -28816,6 +28845,170 @@ function getCurrentStoreName() {
     return getAutoDetectedStoreName(document);
 }
 
+function loadStoreAddresses() {
+    try {
+        const parsed = JSON.parse(GM_getValue(STORE_ADDRESSES_KEY, '{}'));
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function saveStoreAddresses(map) {
+    GM_setValue(STORE_ADDRESSES_KEY, JSON.stringify(map || {}));
+}
+
+function resolveStoreAddressKey(storeName, map) {
+    const mapObj = map || loadStoreAddresses();
+    const target = normalizeStoreLookupKey(storeName);
+    const exact = normalizeStoreDisplayName(storeName);
+    if (mapObj[exact]) return exact;
+    for (const key of Object.keys(mapObj)) {
+        if (normalizeStoreLookupKey(key) === target) return key;
+    }
+    return exact;
+}
+
+function getStoreAddressEntry(storeName) {
+    const map = loadStoreAddresses();
+    const key = resolveStoreAddressKey(storeName, map);
+    return map[key] || null;
+}
+
+function setStoreAddressEntry(storeName, data) {
+    const map = loadStoreAddresses();
+    const key = resolveStoreAddressKey(storeName, map) || normalizeStoreDisplayName(storeName);
+    const address = String(data?.address || '').trim();
+    if (!address) {
+        delete map[key];
+        saveStoreAddresses(map);
+        return null;
+    }
+    map[key] = {
+        ...(map[key] || {}),
+        address,
+        lat: data?.lat ?? map[key]?.lat,
+        lng: data?.lng ?? map[key]?.lng,
+        geocodedAt: data?.geocodedAt ?? map[key]?.geocodedAt,
+    };
+    saveStoreAddresses(map);
+    return map[key];
+}
+
+function getStoreCoordinates(storeName) {
+    const entry = getStoreAddressEntry(storeName);
+    const lat = parseFloat(entry?.lat);
+    const lng = parseFloat(entry?.lng);
+    if (!entry || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return { lat, lng };
+}
+
+function haversineDistanceKm(lat1, lng1, lat2, lng2) {
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a = Math.sin(dLat / 2) ** 2
+        + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDistanceKm(km) {
+    if (km == null || !Number.isFinite(km)) return '';
+    if (km < 1) return `${Math.round(km * 1000)} m`;
+    if (km < 10) return `${km.toFixed(1)} km`;
+    return `${Math.round(km)} km`;
+}
+
+function getStoreDistanceKm(fromStore, toStore) {
+    const a = getStoreCoordinates(fromStore);
+    const b = getStoreCoordinates(toStore);
+    if (!a || !b) return null;
+    return haversineDistanceKm(a.lat, a.lng, b.lat, b.lng);
+}
+
+function getStoreDistanceLabel(fromStore, toStore) {
+    return formatDistanceKm(getStoreDistanceKm(fromStore, toStore));
+}
+
+function geocodeAddressQuery(query) {
+    return new Promise((resolve) => {
+        const q = String(query || '').trim();
+        if (!q) {
+            resolve(null);
+            return;
+        }
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(`${q}, Greece`)}`,
+            headers: {
+                Accept: 'application/json',
+                'User-Agent': 'MyManagerPhoneCatalog/1.0 (store proximity)',
+            },
+            onload(response) {
+                try {
+                    const data = JSON.parse(response.responseText || '[]');
+                    const hit = data?.[0];
+                    if (!hit) {
+                        resolve(null);
+                        return;
+                    }
+                    const lat = parseFloat(hit.lat);
+                    const lng = parseFloat(hit.lon);
+                    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+                        resolve(null);
+                        return;
+                    }
+                    resolve({ lat, lng });
+                } catch (e) {
+                    resolve(null);
+                }
+            },
+            onerror() {
+                resolve(null);
+            },
+        });
+    });
+}
+
+function sleepMs(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function geocodeStoreAddress(storeName, address) {
+    const cleanAddress = String(address || '').trim();
+    if (!cleanAddress) return { ok: false, reason: 'empty' };
+    const coords = await geocodeAddressQuery(cleanAddress);
+    if (!coords) {
+        setStoreAddressEntry(storeName, { address: cleanAddress });
+        return { ok: false, reason: 'not_found' };
+    }
+    setStoreAddressEntry(storeName, {
+        address: cleanAddress,
+        lat: coords.lat,
+        lng: coords.lng,
+        geocodedAt: Date.now(),
+    });
+    return { ok: true, ...coords };
+}
+
+async function geocodeAllStoreAddresses(storeNames, options = {}) {
+    const onProgress = options.onProgress || (() => {});
+    let geocoded = 0;
+    let failed = 0;
+    for (let i = 0; i < storeNames.length; i += 1) {
+        const name = storeNames[i];
+        const entry = getStoreAddressEntry(name);
+        const address = entry?.address?.trim();
+        if (!address) continue;
+        onProgress(i + 1, storeNames.length, name);
+        const result = await geocodeStoreAddress(name, address);
+        if (result.ok) geocoded += 1;
+        else failed += 1;
+        if (i < storeNames.length - 1) await sleepMs(1100);
+    }
+    return { geocoded, failed };
+}
+
 function guessStoreLocality(name) {
     const n = String(name || '').toUpperCase();
     for (const cluster of STORE_LOCALITY_CLUSTERS) {
@@ -28851,8 +29044,15 @@ function getStoreProximityTier(storeName, myStoreName) {
 }
 
 function compareStoresByProximity(aName, bName, myStoreName) {
-    const tierA = getStoreProximityTier(aName, myStoreName);
-    const tierB = getStoreProximityTier(bName, myStoreName);
+    const mine = myStoreName || getCurrentStoreName();
+    const distA = getStoreDistanceKm(mine, aName);
+    const distB = getStoreDistanceKm(mine, bName);
+    if (distA != null && distB != null && distA !== distB) return distA - distB;
+    if (distA != null && distB == null) return -1;
+    if (distA == null && distB != null) return 1;
+
+    const tierA = getStoreProximityTier(aName, mine);
+    const tierB = getStoreProximityTier(bName, mine);
     if (tierA !== tierB) return tierA - tierB;
     if (isDeprecatedStoreName(aName) !== isDeprecatedStoreName(bName)) {
         return isDeprecatedStoreName(aName) ? 1 : -1;
@@ -30503,6 +30703,16 @@ window.getAutoDetectedStoreName = getAutoDetectedStoreName;
 window.getUserStorePick = getUserStorePick;
 window.setUserStorePick = setUserStorePick;
 window.getStorePickerOptions = getStorePickerOptions;
+window.loadStoreAddresses = loadStoreAddresses;
+window.saveStoreAddresses = saveStoreAddresses;
+window.getStoreAddressEntry = getStoreAddressEntry;
+window.setStoreAddressEntry = setStoreAddressEntry;
+window.getStoreCoordinates = getStoreCoordinates;
+window.getStoreDistanceKm = getStoreDistanceKm;
+window.getStoreDistanceLabel = getStoreDistanceLabel;
+window.formatDistanceKm = formatDistanceKm;
+window.geocodeStoreAddress = geocodeStoreAddress;
+window.geocodeAllStoreAddresses = geocodeAllStoreAddresses;
 window.detectAndCacheCurrentStoreName = detectAndCacheCurrentStoreName;
 window.guessStoreRegion = guessStoreRegion;
 window.guessStoreLocality = guessStoreLocality;
@@ -31003,7 +31213,7 @@ if (document.body) {
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
 
         const panel = document.createElement('div');
-        panel.style.cssText = 'width:min(560px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
+        panel.style.cssText = 'width:min(680px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
 
         panel.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -31017,6 +31227,14 @@ if (document.body) {
                     ${storeOptions.map((name) => `<option value="${name.replace(/"/g, '&quot;')}"${currentPick === name ? ' selected' : ''}>${name}</option>`).join('')}
                 </select>
                 <div style="font-size:11px;opacity:0.7;line-height:1.4;">${t('My store location hint')}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <label style="font-size:12px;font-weight:600;">${t('Store addresses')}</label>
+                    <button id="tm-geocode-store-addresses" type="button" style="padding:6px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:transparent;color:var(--tm-shop-item-text);font-size:11px;font-weight:600;cursor:pointer;">${t('Geocode addresses')}</button>
+                </div>
+                <div style="font-size:11px;opacity:0.7;line-height:1.4;">${t('Store addresses hint')}</div>
+                <div id="tm-store-address-list"></div>
             </div>
             <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
                 <label style="font-size:12px;font-weight:600;">${t('Buyback store patterns')}</label>
@@ -31040,8 +31258,93 @@ if (document.body) {
         const buybackPatternsInput = panel.querySelector('#tm-buyback-store-patterns');
         const regularPatternsInput = panel.querySelector('#tm-regular-store-patterns');
         const myStorePickInput = panel.querySelector('#tm-my-store-pick-inline');
+        const addressListEl = panel.querySelector('#tm-store-address-list');
+        const geocodeBtn = panel.querySelector('#tm-geocode-store-addresses');
         const listEl = panel.querySelector('#tm-phone-stores-list');
         let draftOverrides = { ...rules.overrides };
+
+        const persistAddressesFromForm = () => {
+            panel.querySelectorAll('.tm-store-address-input').forEach((input) => {
+                const storeName = input.dataset.store;
+                const address = input.value.trim();
+                const prev = window.getStoreAddressEntry?.(storeName);
+                if (!address) {
+                    window.setStoreAddressEntry?.(storeName, { address: '' });
+                    return;
+                }
+                if (prev?.address === address && prev?.lat != null && prev?.lng != null) {
+                    return;
+                }
+                window.setStoreAddressEntry?.(storeName, {
+                    address,
+                    lat: prev?.address === address ? prev?.lat : undefined,
+                    lng: prev?.address === address ? prev?.lng : undefined,
+                    geocodedAt: prev?.address === address ? prev?.geocodedAt : undefined,
+                });
+            });
+        };
+
+        const renderStoreAddressList = () => {
+            const stores = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
+            const myStore = window.getCurrentStoreName?.() || '';
+            if (!stores.length) {
+                addressListEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:8px 0;">${t('No known stores yet')}</div>`;
+                return;
+            }
+            addressListEl.innerHTML = stores.map((storeName) => {
+                const entry = window.getStoreAddressEntry?.(storeName) || {};
+                const address = entry.address || '';
+                const distFromMe = myStore && myStore !== storeName
+                    ? window.getStoreDistanceLabel?.(myStore, storeName)
+                    : '';
+                let status = t('No address set');
+                if (entry.lat != null && entry.lng != null) {
+                    status = distFromMe ? `${t('Address geocoded')} · ${distFromMe}` : t('Address geocoded');
+                } else if (address) {
+                    status = t('Geocoding stores');
+                }
+                return `
+                <div class="tm-store-address-row" style="padding:8px 0;border-bottom:1px solid var(--tm-shop-item-border);">
+                    <div style="font-size:12px;font-weight:700;margin-bottom:6px;word-break:break-word;">${storeName}</div>
+                    <input type="text" class="tm-store-address-input" data-store="${storeName.replace(/"/g, '&quot;')}" value="${address.replace(/"/g, '&quot;')}" placeholder="${t('Store address placeholder')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;">
+                    <div class="tm-store-address-status" style="font-size:10px;opacity:0.65;margin-top:4px;">${status}</div>
+                </div>`;
+            }).join('');
+        };
+
+        const geocodeAddresses = async () => {
+            persistAddressesFromForm();
+            const stores = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
+            const pending = stores.filter((name) => {
+                const entry = window.getStoreAddressEntry?.(name);
+                return entry?.address?.trim();
+            });
+            if (!pending.length) {
+                if (window.showNegativeMessage) window.showNegativeMessage(t('No address set'));
+                return;
+            }
+            geocodeBtn.disabled = true;
+            geocodeBtn.textContent = t('Geocoding stores');
+            let geocoded = 0;
+            let failed = 0;
+            for (let i = 0; i < pending.length; i += 1) {
+                const name = pending[i];
+                const entry = window.getStoreAddressEntry?.(name);
+                const result = await window.geocodeStoreAddress?.(name, entry.address);
+                if (result?.ok) geocoded += 1;
+                else failed += 1;
+                renderStoreAddressList();
+                if (i < pending.length - 1) await new Promise((r) => setTimeout(r, 1100));
+            }
+            geocodeBtn.disabled = false;
+            geocodeBtn.textContent = t('Geocode addresses');
+            if (geocoded > 0 && window.showPositiveMessage) {
+                window.showPositiveMessage(t('Geocode done'));
+            } else if (!geocoded && window.showNegativeMessage) {
+                window.showNegativeMessage(t('Geocode failed'));
+            }
+            onChange();
+        };
 
         const getDraftRules = () => ({
             buybackPatterns: window.parseStorePatternCsv?.(buybackPatternsInput.value) || [],
@@ -31095,7 +31398,7 @@ if (document.body) {
             });
         };
 
-        const persistStoreRules = () => {
+        const persistStoreRules = async () => {
             const next = getDraftRules();
             if (!next.buybackPatterns.length) {
                 next.buybackPatterns = window.getDefaultPhoneStoreRules?.().buybackPatterns || [];
@@ -31103,13 +31406,18 @@ if (document.body) {
             }
             window.savePhoneStoreRules?.(next);
             window.setUserStorePick?.(myStorePickInput?.value || '');
+            persistAddressesFromForm();
             draftOverrides = { ...next.overrides };
             if (window.showPositiveMessage) window.showPositiveMessage(t('Store rules saved'));
-            onChange();
+            renderStoreAddressList();
             renderStoreRulesList();
+            onChange();
         };
 
-        panel.querySelector('#tm-save-store-rules').addEventListener('click', persistStoreRules);
+        panel.querySelector('#tm-save-store-rules').addEventListener('click', () => {
+            persistStoreRules();
+        });
+        geocodeBtn?.addEventListener('click', geocodeAddresses);
         panel.querySelector('#tm-reset-store-overrides').addEventListener('click', () => {
             draftOverrides = {};
             renderStoreRulesList();
@@ -31121,6 +31429,7 @@ if (document.body) {
             if (e.target === modal) modal.remove();
         });
 
+        renderStoreAddressList();
         renderStoreRulesList();
     }
 
@@ -32132,6 +32441,7 @@ if (document.body) {
                 showPurchaseStatus: true,
                 hideStoreInUnits: true,
                 networkCompact: true,
+                showDistance: true,
             }));
 
             const storeCount = storeRows.length;

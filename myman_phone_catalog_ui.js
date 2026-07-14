@@ -161,7 +161,7 @@
         .tm-sl-shell.tm-sl-view--network .tm-sl-body { padding: 8px 12px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-search { height: 36px; font-size: 13px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-chips { gap: 4px; margin-top: 8px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-chip { padding: 4px 9px; font-size: 10px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-chip { padding: 5px 10px; font-size: 11px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-model-grid {
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 8px;
@@ -171,74 +171,89 @@
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-list { gap: 5px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-row { border-radius: 8px; border-left-width: 2px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline {
-            display: flex; align-items: center; gap: 8px;
-            padding: 7px 10px;
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 12px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-name {
-            font-size: 12px; font-weight: 700;
+            flex: 0 1 auto; font-size: 14px; font-weight: 700;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-icon svg {
-            width: 13px; height: 13px;
+            width: 15px; height: 15px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-head__meta {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 0; margin-left: auto; flex-shrink: 0;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 0; margin-left: 0; flex-shrink: 0;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-chevron {
+            margin-left: auto;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-qty {
-            font-size: 10px; padding: 2px 7px;
+            font-size: 11px; padding: 3px 8px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-bb-status {
-            font-size: 9px; padding: 2px 6px;
+            font-size: 11px; padding: 3px 8px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-chevron svg { width: 12px; height: 12px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-dist {
+            font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+            background: color-mix(in srgb, var(--tm-primary-color) 12%, transparent);
+            color: var(--tm-primary-color);
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 24%, transparent);
+            white-space: nowrap;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-store-chevron svg { width: 14px; height: 14px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-summary {
-            gap: 4px; margin: 0 8px; padding: 6px 8px 8px;
+            gap: 5px; margin: 0 8px; padding: 8px 10px 10px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-summary-line {
-            padding: 4px 8px; border-radius: 7px; font-size: 10px; gap: 4px;
+            padding: 6px 10px; border-radius: 8px; font-size: 12px; gap: 6px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-summary-grade {
-            min-width: 22px; padding: 1px 5px; font-size: 9px;
+            min-width: 26px; padding: 2px 7px; font-size: 11px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-gb { padding: 1px 5px; font-size: 9px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-color { font-size: 9px; gap: 4px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-color .tm-sl-color-swatch { width: 9px; height: 9px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-gb { padding: 2px 7px; font-size: 11px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-color { font-size: 11px; gap: 5px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-color .tm-sl-color-swatch { width: 11px; height: 11px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-store-row.is-open .tm-sl-store-units {
-            padding: 6px 6px 8px; gap: 4px;
+            padding: 8px 8px 10px; gap: 6px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact {
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 6px 8px;
-            padding: 5px 8px;
-            border-radius: 7px;
-            border-left-width: 3px;
+            display: flex;
+            flex-wrap: wrap;
             align-items: center;
+            gap: 8px 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border-left-width: 3px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__body {
-            flex-direction: row; flex-wrap: wrap; align-items: center; gap: 5px;
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__specs {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__meta,
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__footer { display: none; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill {
-            padding: 2px 6px; font-size: 9px;
+            padding: 4px 8px; font-size: 11px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill--grade { min-width: 24px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill--grade { min-width: 28px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill--color .tm-sl-color-swatch {
-            width: 9px; height: 9px;
+            width: 11px; height: 11px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-barcode-pill {
-            padding: 2px 6px; font-size: 9px; border-radius: 6px;
-        }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__aside {
-            flex-direction: row; align-items: center; gap: 6px; min-width: 0;
+            padding: 4px 8px; font-size: 11px; border-radius: 6px;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__price {
-            font-size: 12px;
+            font-size: 14px; font-weight: 800; white-space: nowrap;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__actions {
+            display: flex; align-items: center; gap: 5px; margin-left: auto;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-unit-btn {
-            padding: 2px 6px; font-size: 9px; border-radius: 5px;
+            padding: 4px 8px; font-size: 11px; border-radius: 6px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__actions { gap: 3px; }
+
+        .tm-sl-phone-card--compact {
+            display: flex;
+            grid-template-columns: unset;
+        }
+        .tm-sl-phone-card--compact .tm-sl-phone-card__body,
+        .tm-sl-phone-card--compact .tm-sl-phone-card__aside { display: contents; }
 
         .tm-sl-breadcrumb {
             display: flex; align-items: center; gap: 6px;
@@ -1274,16 +1289,12 @@
 
         if (compact) {
             return `<article class="${cardClasses}" data-barcode="${esc(v.barcode)}" style="--tm-sl-grade-accent:${esc(gradeAccent)}">
-                <div class="tm-sl-phone-card__body">
-                    <div class="tm-sl-phone-card__specs">${buildSpecPillsHTML(v, ctx) || '<span class="tm-sl-preview-pill">—</span>'}</div>
-                    ${barcodeHtml}
-                </div>
-                <div class="tm-sl-phone-card__aside">
-                    ${priceHtml}
-                    <div class="tm-sl-phone-card__actions">
-                        <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
-                        <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
-                    </div>
+                <div class="tm-sl-phone-card__specs">${buildSpecPillsHTML(v, ctx) || '<span class="tm-sl-preview-pill">—</span>'}</div>
+                ${barcodeHtml}
+                ${priceHtml}
+                <div class="tm-sl-phone-card__actions">
+                    <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
+                    <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
                 </div>
             </article>`;
         }
@@ -1340,16 +1351,23 @@
         const bbBadge = ctx?.showPurchaseStatus && !store.isMine
             ? buildStoreHeadPurchaseBadge(store, compact)
             : '';
+        const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
+        const distLabel = ctx?.showDistance && myStore && !store.isMine
+            ? window.getStoreDistanceLabel?.(myStore, store.name)
+            : '';
+        const distChip = distLabel
+            ? `<span class="tm-sl-store-dist" title="Απόσταση από το κατάστημά σας">${esc(distLabel)}</span>`
+            : '';
         const qtyLabel = compact
             ? String(store.variants.length)
             : (store.variants.length === 1 ? '1 τεμάχιο' : `${store.variants.length} τεμ.`);
 
         const headHtml = compact
             ? `<div class="tm-sl-store-head tm-sl-store-head--inline" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button" aria-expanded="false">
-                <span class="tm-sl-store-icon">${ICON.store.replace('width="16"', 'width="13"').replace('height="16"', 'height="13"')}</span>
+                <span class="tm-sl-store-icon">${ICON.store.replace('width="16"', 'width="15"').replace('height="16"', 'height="15"')}</span>
                 <span class="tm-sl-store-name">${esc(store.name)}</span>
-                <div class="tm-sl-store-head__meta">${bbBadge}<span class="tm-sl-store-qty">${qtyLabel}</span></div>
-                <span class="tm-sl-store-chevron">${ICON.chevron.replace('width="16"', 'width="12"').replace('height="16"', 'height="12"')}</span>
+                <div class="tm-sl-store-head__meta">${bbBadge}${distChip}<span class="tm-sl-store-qty">${qtyLabel}</span></div>
+                <span class="tm-sl-store-chevron">${ICON.chevron.replace('width="16"', 'width="14"').replace('height="16"', 'height="14"')}</span>
             </div>`
             : `<div class="tm-sl-store-head" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button" aria-expanded="false">
                 <div class="tm-sl-store-head__top">
