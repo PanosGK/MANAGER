@@ -231,9 +231,19 @@
             color: var(--tm-muted-text, var(--tm-shop-item-text));
             margin-right: 2px;
         }
-        #tm-phone-filter-grade, #tm-phone-filter-gb, #tm-phone-filter-color, #tm-phone-filter-tag,
-        #tm-network-filter-grade, #tm-network-filter-store, #tm-network-filter-gb, #tm-network-filter-color {
-            display: none;
+        #tm-phone-filter-grade:not(.tm-pc-filter-visible),
+        #tm-phone-filter-gb:not(.tm-pc-filter-visible),
+        #tm-phone-filter-color:not(.tm-pc-filter-visible),
+        #tm-phone-filter-tag:not(.tm-pc-filter-visible),
+        #tm-network-filter-grade:not(.tm-pc-filter-visible),
+        #tm-network-filter-store:not(.tm-pc-filter-visible),
+        #tm-network-filter-gb:not(.tm-pc-filter-visible),
+        #tm-network-filter-color:not(.tm-pc-filter-visible),
+        #tm-other-store-filter-grade:not(.tm-pc-filter-visible),
+        #tm-other-store-filter-store:not(.tm-pc-filter-visible),
+        #tm-other-store-filter-gb:not(.tm-pc-filter-visible),
+        #tm-other-store-filter-color:not(.tm-pc-filter-visible) {
+            display: none !important;
         }
         .tm-pc-select, .tm-cat-select,
         #tm-phone-filter-grade, #tm-phone-filter-model, #tm-phone-filter-gb,

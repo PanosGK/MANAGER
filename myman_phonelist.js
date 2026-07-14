@@ -3136,12 +3136,8 @@ async function showPhoneListModal() {
 
     function syncSelectFilterVisibility(selectEl, optionCount) {
         if (!selectEl) return;
-        if (optionCount > 0) {
-            selectEl.style.display = '';
-        } else {
-            selectEl.style.display = 'none';
-            if (selectEl.value) selectEl.value = '';
-        }
+        selectEl.classList.toggle('tm-pc-filter-visible', optionCount > 0);
+        if (optionCount <= 0 && selectEl.value) selectEl.value = '';
     }
 
     function syncFiltersLabelVisibility(rowEl, filterSelects) {
@@ -3149,7 +3145,7 @@ async function showPhoneListModal() {
         const labels = rowEl.querySelectorAll('.tm-pc-filters-label-inline');
         labels.forEach((label) => {
             if (label.textContent.trim() !== 'Φίλτρα') return;
-            const anyVisible = filterSelects.some((el) => el && el.style.display !== 'none');
+            const anyVisible = filterSelects.some((el) => el && el.classList.contains('tm-pc-filter-visible'));
             label.style.display = anyVisible ? '' : 'none';
         });
     }
@@ -3208,6 +3204,8 @@ async function showPhoneListModal() {
         syncSelectFilterVisibility(networkColorFilter, getFilterOptionCount(networkColorFilter));
         const networkRow2 = overlay.querySelector('#tm-phone-filters-network .tm-pc-filters-row2');
         syncFiltersLabelVisibility(networkRow2, [networkGbFilter, networkColorFilter]);
+        const networkRow1 = overlay.querySelector('#tm-phone-filters-network .tm-pc-search-row');
+        syncFiltersLabelVisibility(networkRow1, [networkGradeFilter, networkStoreFilter]);
         syncNetworkFilterPanelVisibility();
         syncClearButtonsVisibility();
     }
@@ -5038,24 +5036,17 @@ async function showPhoneListModal() {
             const count = (el) => Math.max(0, (el?.options.length || 0) - 1);
             const show = (el, n) => {
                 if (!el) return;
-                if (n > 1) el.style.display = '';
-                else {
-                    el.style.display = 'none';
-                    if (el.value) el.value = '';
-                }
+                el.classList.toggle('tm-pc-filter-visible', n > 0);
+                if (n <= 0 && el.value) el.value = '';
             };
             show(gradeFilterOS, count(gradeFilterOS));
             show(storeFilterOS, count(storeFilterOS));
             show(gbFilterOS, count(gbFilterOS));
             show(colorFilterOS, count(colorFilterOS));
+            const row1 = filterBarOS?.querySelector('.tm-pc-search-row');
             const row2 = filterBarOS?.querySelector('.tm-pc-filters-row2');
-            if (row2) {
-                const label = row2.querySelector('.tm-pc-filters-label-inline');
-                if (label && label.textContent.trim() === 'Φίλτρα') {
-                    const any = [gbFilterOS, colorFilterOS].some((el) => el && el.style.display !== 'none');
-                    label.style.display = any ? '' : 'none';
-                }
-            }
+            syncFiltersLabelVisibility(row1, [gradeFilterOS, storeFilterOS]);
+            syncFiltersLabelVisibility(row2, [gbFilterOS, colorFilterOS]);
             clearFiltersOS?.classList.toggle('is-visible', osFiltersActive());
         }
 
