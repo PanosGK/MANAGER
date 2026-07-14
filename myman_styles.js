@@ -2618,6 +2618,101 @@
                 }
             }
 
+            .tm-star-particle,
+            .tm-heart-particle,
+            .tm-rainbow-particle {
+                position: fixed;
+                top: 0;
+                left: 0;
+                pointer-events: none;
+                z-index: 99999;
+                line-height: 1;
+            }
+            .tm-star-particle {
+                animation: tm-star-fall 3s ease-in forwards;
+            }
+            .tm-heart-particle {
+                animation: tm-heart-float 2.5s ease-out forwards;
+            }
+            .tm-rainbow-particle {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                animation: tm-rainbow-fall 3s ease-out forwards;
+            }
+            .tm-sparkle-particle {
+                position: fixed;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 99999;
+                background: radial-gradient(circle, #fff 0%, #ffe066 45%, transparent 70%);
+                box-shadow: 0 0 8px #ffe066;
+                animation: tm-sparkle-burst 1.6s ease-out forwards;
+            }
+            .tm-snow-particle {
+                position: fixed;
+                top: 0;
+                left: 0;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 99999;
+                background: rgba(255, 255, 255, 0.95);
+                box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+                animation: tm-snow-fall 4.5s linear forwards;
+            }
+            .tm-bubble-particle {
+                position: fixed;
+                bottom: -8vh;
+                left: 0;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 99999;
+                border: 2px solid rgba(255, 255, 255, 0.75);
+                background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.85), rgba(120,200,255,0.25));
+                animation: tm-bubble-rise 3.5s ease-out forwards;
+            }
+            .tm-disco-overlay {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 99998;
+                background: linear-gradient(120deg, rgba(255,0,128,0.08), rgba(0,255,255,0.08), rgba(255,255,0,0.08));
+                animation: tm-disco-flash 0.6s ease-in-out 4 alternate;
+            }
+            @keyframes tm-star-fall {
+                0% { transform: translateY(-10vh) rotate(0deg) scale(0.6); opacity: 0; }
+                10% { opacity: 1; }
+                100% { transform: translateY(110vh) rotate(540deg) scale(1.1); opacity: 0; }
+            }
+            @keyframes tm-heart-float {
+                0% { transform: translateY(20vh) scale(0.5); opacity: 0; }
+                15% { opacity: 1; }
+                100% { transform: translateY(-20vh) scale(1.2); opacity: 0; }
+            }
+            @keyframes tm-rainbow-fall {
+                0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+            }
+            @keyframes tm-sparkle-burst {
+                0% { transform: translate(0, 0) scale(0.2); opacity: 0; }
+                20% { opacity: 1; }
+                100% { transform: translate(var(--sx), var(--sy)) scale(1); opacity: 0; }
+            }
+            @keyframes tm-snow-fall {
+                0% { transform: translateY(-10vh) translateX(0); opacity: 0.9; }
+                100% { transform: translateY(110vh) translateX(var(--sway)); opacity: 0.2; }
+            }
+            @keyframes tm-bubble-rise {
+                0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0.7; }
+                100% { transform: translateY(-115vh) translateX(var(--drift)) scale(1); opacity: 0; }
+            }
+            @keyframes tm-disco-flash {
+                0% { opacity: 0.15; filter: hue-rotate(0deg); }
+                100% { opacity: 0.35; filter: hue-rotate(90deg); }
+            }
+
             /* --- Fun Feature: Fireworks --- */
             /* Floating orb particles replacing fireworks */
             .tm-level-up-orb {

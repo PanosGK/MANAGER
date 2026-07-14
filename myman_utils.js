@@ -80,6 +80,126 @@
         }
     }
 
+    function appendTimedParticle(particle, durationMs, delayMs = 0) {
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), durationMs + delayMs);
+    }
+
+    function triggerStarShower(count = 100) {
+        const symbols = ['★', '✦', '⭐'];
+        const colors = ['#ffd700', '#ffec8b', '#ffa500', '#fff8dc', '#ffe066'];
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'tm-star-particle';
+            particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            const delay = Math.random() * 0.8;
+            const duration = 2.5 + Math.random() * 2;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.fontSize = `${12 + Math.random() * 16}px`;
+            particle.style.animationDelay = `${delay}s`;
+            particle.style.animationDuration = `${duration}s`;
+            appendTimedParticle(particle, duration * 1000, delay * 1000);
+        }
+    }
+
+    function triggerSparkles(count = 60) {
+        const cx = window.innerWidth / 2;
+        const cy = window.innerHeight / 2;
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'tm-sparkle-particle';
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 40 + Math.random() * Math.min(window.innerWidth, window.innerHeight) * 0.35;
+            const delay = Math.random() * 0.4;
+            const duration = 1.2 + Math.random() * 0.8;
+            particle.style.left = `${cx}px`;
+            particle.style.top = `${cy}px`;
+            particle.style.setProperty('--sx', `${Math.cos(angle) * dist}px`);
+            particle.style.setProperty('--sy', `${Math.sin(angle) * dist}px`);
+            particle.style.animationDelay = `${delay}s`;
+            particle.style.animationDuration = `${duration}s`;
+            appendTimedParticle(particle, duration * 1000, delay * 1000);
+        }
+    }
+
+    function triggerSnowFall(count = 120) {
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'tm-snow-particle';
+            const delay = Math.random() * 1.2;
+            const duration = 3.5 + Math.random() * 2.5;
+            const size = 4 + Math.random() * 8;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.setProperty('--sway', `${-30 + Math.random() * 60}px`);
+            particle.style.animationDelay = `${delay}s`;
+            particle.style.animationDuration = `${duration}s`;
+            appendTimedParticle(particle, duration * 1000, delay * 1000);
+        }
+    }
+
+    function triggerBubbleBlast(count = 90) {
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'tm-bubble-particle';
+            const delay = Math.random() * 0.6;
+            const duration = 2.5 + Math.random() * 2;
+            const size = 10 + Math.random() * 24;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.setProperty('--drift', `${-20 + Math.random() * 40}px`);
+            particle.style.animationDelay = `${delay}s`;
+            particle.style.animationDuration = `${duration}s`;
+            appendTimedParticle(particle, duration * 1000, delay * 1000);
+        }
+    }
+
+    function triggerHeartExplosion(count = 80) {
+        const colors = ['#ff4d6d', '#ff758f', '#ff8fa3', '#c9184a', '#ff006e'];
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'tm-heart-particle';
+            particle.textContent = '♥';
+            const delay = Math.random() * 0.5;
+            const duration = 2 + Math.random() * 1.5;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.fontSize = `${14 + Math.random() * 18}px`;
+            particle.style.animationDelay = `${delay}s`;
+            particle.style.animationDuration = `${duration}s`;
+            appendTimedParticle(particle, duration * 1000, delay * 1000);
+        }
+    }
+
+    function triggerRainbowTrail(count = 180) {
+        const colors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'];
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'tm-rainbow-particle';
+            const delay = Math.random() * 0.6;
+            const duration = 2 + Math.random() * 2;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.animationDelay = `${delay}s`;
+            particle.style.animationDuration = `${duration}s`;
+            appendTimedParticle(particle, duration * 1000, delay * 1000);
+        }
+    }
+
+    function triggerDiscoBall() {
+        if (typeof window.triggerConfetti === 'function') {
+            window.triggerConfetti(120);
+        }
+        triggerSparkles(80);
+        const overlay = document.createElement('div');
+        overlay.className = 'tm-disco-overlay';
+        document.body.appendChild(overlay);
+        setTimeout(() => overlay.remove(), 2500);
+    }
+
     /**
      * Checks if the current time is within the configured working hours and days.
      * @returns {boolean} True if it's currently working time, false otherwise.
@@ -394,6 +514,13 @@
     window.debounce = debounce;
     window.showPositiveMessage = showPositiveMessage;
     window.triggerConfetti = triggerConfetti;
+    window.triggerStarShower = triggerStarShower;
+    window.triggerSparkles = triggerSparkles;
+    window.triggerSnowFall = triggerSnowFall;
+    window.triggerBubbleBlast = triggerBubbleBlast;
+    window.triggerHeartExplosion = triggerHeartExplosion;
+    window.triggerRainbowTrail = triggerRainbowTrail;
+    window.triggerDiscoBall = triggerDiscoBall;
     window.isWorkingHours = isWorkingHours;
     window.cleanModelName = cleanModelName;
     window.getPhoneModelFromPage = getPhoneModelFromPage;

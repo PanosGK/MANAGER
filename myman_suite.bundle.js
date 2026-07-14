@@ -3864,6 +3864,126 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
     }
 
+    function appendTimedParticle(particle, durationMs, delayMs = 0) {
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), durationMs + delayMs);
+    }
+
+    function triggerStarShower(count = 100) {
+        const symbols = ['★', '✦', '⭐'];
+        const colors = ['#ffd700', '#ffec8b', '#ffa500', '#fff8dc', '#ffe066'];
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'tm-star-particle';
+            particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            const delay = Math.random() * 0.8;
+            const duration = 2.5 + Math.random() * 2;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.fontSize = `${12 + Math.random() * 16}px`;
+            particle.style.animationDelay = `${delay}s`;
+            particle.style.animationDuration = `${duration}s`;
+            appendTimedParticle(particle, duration * 1000, delay * 1000);
+        }
+    }
+
+    function triggerSparkles(count = 60) {
+        const cx = window.innerWidth / 2;
+        const cy = window.innerHeight / 2;
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'tm-sparkle-particle';
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 40 + Math.random() * Math.min(window.innerWidth, window.innerHeight) * 0.35;
+            const delay = Math.random() * 0.4;
+            const duration = 1.2 + Math.random() * 0.8;
+            particle.style.left = `${cx}px`;
+            particle.style.top = `${cy}px`;
+            particle.style.setProperty('--sx', `${Math.cos(angle) * dist}px`);
+            particle.style.setProperty('--sy', `${Math.sin(angle) * dist}px`);
+            particle.style.animationDelay = `${delay}s`;
+            particle.style.animationDuration = `${duration}s`;
+            appendTimedParticle(particle, duration * 1000, delay * 1000);
+        }
+    }
+
+    function triggerSnowFall(count = 120) {
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'tm-snow-particle';
+            const delay = Math.random() * 1.2;
+            const duration = 3.5 + Math.random() * 2.5;
+            const size = 4 + Math.random() * 8;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.setProperty('--sway', `${-30 + Math.random() * 60}px`);
+            particle.style.animationDelay = `${delay}s`;
+            particle.style.animationDuration = `${duration}s`;
+            appendTimedParticle(particle, duration * 1000, delay * 1000);
+        }
+    }
+
+    function triggerBubbleBlast(count = 90) {
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'tm-bubble-particle';
+            const delay = Math.random() * 0.6;
+            const duration = 2.5 + Math.random() * 2;
+            const size = 10 + Math.random() * 24;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.setProperty('--drift', `${-20 + Math.random() * 40}px`);
+            particle.style.animationDelay = `${delay}s`;
+            particle.style.animationDuration = `${duration}s`;
+            appendTimedParticle(particle, duration * 1000, delay * 1000);
+        }
+    }
+
+    function triggerHeartExplosion(count = 80) {
+        const colors = ['#ff4d6d', '#ff758f', '#ff8fa3', '#c9184a', '#ff006e'];
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'tm-heart-particle';
+            particle.textContent = '♥';
+            const delay = Math.random() * 0.5;
+            const duration = 2 + Math.random() * 1.5;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.fontSize = `${14 + Math.random() * 18}px`;
+            particle.style.animationDelay = `${delay}s`;
+            particle.style.animationDuration = `${duration}s`;
+            appendTimedParticle(particle, duration * 1000, delay * 1000);
+        }
+    }
+
+    function triggerRainbowTrail(count = 180) {
+        const colors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'];
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'tm-rainbow-particle';
+            const delay = Math.random() * 0.6;
+            const duration = 2 + Math.random() * 2;
+            particle.style.left = `${Math.random() * 100}vw`;
+            particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.animationDelay = `${delay}s`;
+            particle.style.animationDuration = `${duration}s`;
+            appendTimedParticle(particle, duration * 1000, delay * 1000);
+        }
+    }
+
+    function triggerDiscoBall() {
+        if (typeof window.triggerConfetti === 'function') {
+            window.triggerConfetti(120);
+        }
+        triggerSparkles(80);
+        const overlay = document.createElement('div');
+        overlay.className = 'tm-disco-overlay';
+        document.body.appendChild(overlay);
+        setTimeout(() => overlay.remove(), 2500);
+    }
+
     /**
      * Checks if the current time is within the configured working hours and days.
      * @returns {boolean} True if it's currently working time, false otherwise.
@@ -4178,6 +4298,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     window.debounce = debounce;
     window.showPositiveMessage = showPositiveMessage;
     window.triggerConfetti = triggerConfetti;
+    window.triggerStarShower = triggerStarShower;
+    window.triggerSparkles = triggerSparkles;
+    window.triggerSnowFall = triggerSnowFall;
+    window.triggerBubbleBlast = triggerBubbleBlast;
+    window.triggerHeartExplosion = triggerHeartExplosion;
+    window.triggerRainbowTrail = triggerRainbowTrail;
+    window.triggerDiscoBall = triggerDiscoBall;
     window.isWorkingHours = isWorkingHours;
     window.cleanModelName = cleanModelName;
     window.getPhoneModelFromPage = getPhoneModelFromPage;
@@ -7692,6 +7819,101 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     transform: translateY(110vh) rotateZ(720deg);
                     opacity: 0;
                 }
+            }
+
+            .tm-star-particle,
+            .tm-heart-particle,
+            .tm-rainbow-particle {
+                position: fixed;
+                top: 0;
+                left: 0;
+                pointer-events: none;
+                z-index: 99999;
+                line-height: 1;
+            }
+            .tm-star-particle {
+                animation: tm-star-fall 3s ease-in forwards;
+            }
+            .tm-heart-particle {
+                animation: tm-heart-float 2.5s ease-out forwards;
+            }
+            .tm-rainbow-particle {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                animation: tm-rainbow-fall 3s ease-out forwards;
+            }
+            .tm-sparkle-particle {
+                position: fixed;
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 99999;
+                background: radial-gradient(circle, #fff 0%, #ffe066 45%, transparent 70%);
+                box-shadow: 0 0 8px #ffe066;
+                animation: tm-sparkle-burst 1.6s ease-out forwards;
+            }
+            .tm-snow-particle {
+                position: fixed;
+                top: 0;
+                left: 0;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 99999;
+                background: rgba(255, 255, 255, 0.95);
+                box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+                animation: tm-snow-fall 4.5s linear forwards;
+            }
+            .tm-bubble-particle {
+                position: fixed;
+                bottom: -8vh;
+                left: 0;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 99999;
+                border: 2px solid rgba(255, 255, 255, 0.75);
+                background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.85), rgba(120,200,255,0.25));
+                animation: tm-bubble-rise 3.5s ease-out forwards;
+            }
+            .tm-disco-overlay {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 99998;
+                background: linear-gradient(120deg, rgba(255,0,128,0.08), rgba(0,255,255,0.08), rgba(255,255,0,0.08));
+                animation: tm-disco-flash 0.6s ease-in-out 4 alternate;
+            }
+            @keyframes tm-star-fall {
+                0% { transform: translateY(-10vh) rotate(0deg) scale(0.6); opacity: 0; }
+                10% { opacity: 1; }
+                100% { transform: translateY(110vh) rotate(540deg) scale(1.1); opacity: 0; }
+            }
+            @keyframes tm-heart-float {
+                0% { transform: translateY(20vh) scale(0.5); opacity: 0; }
+                15% { opacity: 1; }
+                100% { transform: translateY(-20vh) scale(1.2); opacity: 0; }
+            }
+            @keyframes tm-rainbow-fall {
+                0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+            }
+            @keyframes tm-sparkle-burst {
+                0% { transform: translate(0, 0) scale(0.2); opacity: 0; }
+                20% { opacity: 1; }
+                100% { transform: translate(var(--sx), var(--sy)) scale(1); opacity: 0; }
+            }
+            @keyframes tm-snow-fall {
+                0% { transform: translateY(-10vh) translateX(0); opacity: 0.9; }
+                100% { transform: translateY(110vh) translateX(var(--sway)); opacity: 0.2; }
+            }
+            @keyframes tm-bubble-rise {
+                0% { transform: translateY(0) translateX(0) scale(0.6); opacity: 0.7; }
+                100% { transform: translateY(-115vh) translateX(var(--drift)) scale(1); opacity: 0; }
+            }
+            @keyframes tm-disco-flash {
+                0% { opacity: 0.15; filter: hue-rotate(0deg); }
+                100% { opacity: 0.35; filter: hue-rotate(90deg); }
             }
 
             /* --- Fun Feature: Fireworks --- */
@@ -24304,6 +24526,273 @@ function populateShop(config, STORAGE_KEYS) {
     }
 }
 
+function applyConsumableEffect(itemId, config, STORAGE_KEYS) {
+    switch (itemId) {
+        // === DRINKS & ENERGY ===
+        case 'energized_drink':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 15 * 60 * 1000);
+            }
+            break;
+        case 'coffee':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 5 * 60 * 1000);
+            }
+            break;
+        case 'smoothie':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 30, 20);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'happy', 2000);
+            }
+            break;
+        case 'health_potion':
+        case 'mana_potion':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 50, 50);
+            }
+            if (typeof window.triggerSparkles === 'function') {
+                window.triggerSparkles(40);
+            }
+            break;
+        case 'speed_potion':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 8 * 60 * 1000);
+            }
+            break;
+        case 'lucky_potion':
+            if (typeof window.triggerDoubleCoinsEffect === 'function') {
+                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 5 * 60 * 1000);
+            }
+            break;
+        case 'rainbow_juice':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 100, 100);
+            }
+            if (typeof window.triggerConfetti === 'function') {
+                window.triggerConfetti(150);
+            }
+            break;
+        case 'golden_elixir':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 100, 100);
+            }
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 20 * 60 * 1000);
+            }
+            if (typeof window.triggerStarShower === 'function') {
+                window.triggerStarShower(80);
+            }
+            break;
+
+        // === FOOD & SNACKS ===
+        case 'happiness_snack':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 100, 0);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'happy', 3000);
+            }
+            break;
+        case 'hunger_meal':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 0, 100);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'eating', 2000);
+            }
+            break;
+        case 'super_meal':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 50, 100);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'eating', 3000);
+            }
+            break;
+        case 'pizza_slice':
+        case 'burger_combo':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 20, 40);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'eating', 2000);
+            }
+            break;
+        case 'ice_cream':
+        case 'donut':
+        case 'cookie':
+        case 'chocolate_bar':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 30, 15);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'happy', 2000);
+            }
+            break;
+        case 'sushi_platter':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 40, 60);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'eating', 3000);
+            }
+            break;
+
+        // === XP & COINS ===
+        case 'double_coins_voucher':
+            if (typeof window.triggerDoubleCoinsEffect === 'function') {
+                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 10 * 60 * 1000);
+            }
+            break;
+        case 'xp_boost_small':
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 100, 'XP Boost Small');
+            }
+            break;
+        case 'xp_boost_medium':
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 250, 'XP Boost Medium');
+            }
+            break;
+        case 'xp_boost_large':
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 500, 'XP Boost Large');
+            }
+            break;
+        case 'coin_magnet':
+        case 'lucky_coin':
+            if (typeof window.triggerDoubleCoinsEffect === 'function') {
+                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 7 * 60 * 1000);
+            }
+            break;
+
+        // === SPECIAL EFFECTS ===
+        case 'confetti_bomb':
+            if (typeof window.triggerConfetti === 'function') {
+                window.triggerConfetti(200);
+            }
+            break;
+        case 'fireworks':
+            triggerFireworks(true, 2800);
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'happy', 3000);
+            }
+            break;
+        case 'sparkles':
+            if (typeof window.triggerSparkles === 'function') {
+                window.triggerSparkles(70);
+            }
+            break;
+        case 'star_shower':
+            if (typeof window.triggerStarShower === 'function') {
+                window.triggerStarShower(100);
+            }
+            break;
+        case 'rainbow_trail':
+            if (typeof window.triggerRainbowTrail === 'function') {
+                window.triggerRainbowTrail(220);
+            }
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 50, 0);
+            }
+            break;
+        case 'snow_globe':
+            if (typeof window.triggerSnowFall === 'function') {
+                window.triggerSnowFall(140);
+            }
+            break;
+        case 'bubble_blast':
+            if (typeof window.triggerBubbleBlast === 'function') {
+                window.triggerBubbleBlast(100);
+            }
+            break;
+        case 'heart_explosion':
+            if (typeof window.triggerHeartExplosion === 'function') {
+                window.triggerHeartExplosion(90);
+            }
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 80, 0);
+            }
+            break;
+        case 'disco_ball':
+            if (typeof window.triggerDiscoBall === 'function') {
+                window.triggerDiscoBall();
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'happy', 5000);
+            }
+            break;
+
+        // === POWER-UPS ===
+        case 'time_warp':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 30 * 60 * 1000);
+            }
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 200, 'Time Warp');
+            }
+            break;
+        case 'shield_buff':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 100, 100);
+            }
+            break;
+        case 'magnet_buff':
+            if (typeof window.triggerDoubleCoinsEffect === 'function') {
+                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 15 * 60 * 1000);
+            }
+            break;
+        case 'focus_boost':
+        case 'productivity_pill':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 25 * 60 * 1000);
+            }
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 150, itemId === 'productivity_pill' ? 'Productivity Pill' : 'Focus Boost');
+            }
+            break;
+        case 'inspiration_spark':
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 300, 'Inspiration Spark');
+            }
+            if (typeof window.triggerSparkles === 'function') {
+                window.triggerSparkles(100);
+            }
+            break;
+        case 'turbo_mode':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 20 * 60 * 1000);
+            }
+            if (typeof window.triggerDoubleCoinsEffect === 'function') {
+                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 10 * 60 * 1000);
+            }
+            break;
+        case 'mega_boost':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 30 * 60 * 1000);
+            }
+            if (typeof window.triggerDoubleCoinsEffect === 'function') {
+                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 15 * 60 * 1000);
+            }
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 500, 'Mega Boost');
+            }
+            if (typeof window.triggerConfetti === 'function') {
+                window.triggerConfetti(200);
+            }
+            if (typeof window.triggerStarShower === 'function') {
+                window.triggerStarShower(60);
+            }
+            break;
+        default:
+            console.warn('[MMS Shop] Unknown consumable effect:', itemId);
+            break;
+    }
+}
+window.applyConsumableEffect = applyConsumableEffect;
+
 function handleShopPurchase(button, config, STORAGE_KEYS) {
     const itemId = button.dataset.itemId;
     const itemCost = parseInt(button.dataset.itemCost, 10);
@@ -24328,258 +24817,7 @@ function handleShopPurchase(button, config, STORAGE_KEYS) {
         const currentTokens = GM_getValue(SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, 0) || 0;
         GM_setValue(SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, currentTokens + 1);
     } else if (itemType === 'consumable') {
-        // Handle immediate use of other consumables
-        switch (itemId) {
-            // === DRINKS & ENERGY ===
-            case 'energized_drink':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 15 * 60 * 1000); // 15 minutes
-                }
-                break;
-            case 'coffee':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 5 * 60 * 1000); // 5 minutes
-                }
-                break;
-            case 'smoothie':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 30, 20);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'happy', 2000);
-                }
-                break;
-            case 'health_potion':
-            case 'mana_potion':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 50, 50);
-                }
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(50);
-                }
-                break;
-            case 'speed_potion':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 8 * 60 * 1000); // 8 minutes
-                }
-                break;
-            case 'lucky_potion':
-                if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                    window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 5 * 60 * 1000); // 5 minutes
-                }
-                break;
-            case 'rainbow_juice':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 100, 100); // Max both stats
-                }
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(150);
-                }
-                break;
-            case 'golden_elixir':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 100, 100);
-                }
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 20 * 60 * 1000); // 20 minutes
-                }
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(300);
-                }
-                break;
-                
-            // === FOOD & SNACKS ===
-            case 'happiness_snack':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 100, 0); // Max out happiness
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'happy', 3000);
-                }
-                break;
-            case 'hunger_meal':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 0, 100); // Max out hunger
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'eating', 2000);
-                }
-                break;
-            case 'super_meal':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 50, 100);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'eating', 3000);
-                }
-                break;
-            case 'pizza_slice':
-            case 'burger_combo':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 20, 40);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'eating', 2000);
-                }
-                break;
-            case 'ice_cream':
-            case 'donut':
-            case 'cookie':
-            case 'chocolate_bar':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 30, 15);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'happy', 2000);
-                }
-                break;
-            case 'sushi_platter':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 40, 60);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'eating', 3000);
-                }
-                break;
-                
-            // === XP & COINS ===
-            case 'double_coins_voucher':
-                if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                    window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 10 * 60 * 1000); // 10 minutes
-                }
-                break;
-            case 'xp_boost_small':
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 100, 'XP Boost Small');
-                }
-                break;
-            case 'xp_boost_medium':
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 250, 'XP Boost Medium');
-                }
-                break;
-            case 'xp_boost_large':
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 500, 'XP Boost Large');
-                }
-                break;
-            case 'coin_magnet':
-            case 'lucky_coin':
-                if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                    window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 7 * 60 * 1000); // 7 minutes
-                }
-                break;
-                
-            // === SPECIAL EFFECTS ===
-            case 'confetti_bomb':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(200);
-                }
-                break;
-            case 'fireworks':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(300);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'happy', 3000);
-                }
-                break;
-            case 'sparkles':
-            case 'star_shower':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(100);
-                }
-                break;
-            case 'rainbow_trail':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(250);
-                }
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 50, 0);
-                }
-                break;
-            case 'snow_globe':
-            case 'bubble_blast':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(150);
-                }
-                break;
-            case 'heart_explosion':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(180);
-                }
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 80, 0);
-                }
-                break;
-            case 'disco_ball':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(400);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'happy', 5000);
-                }
-                break;
-                
-            // === POWER-UPS ===
-            case 'time_warp':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 30 * 60 * 1000); // 30 minutes
-                }
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 200, 'Time Warp');
-                }
-                break;
-            case 'shield_buff':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 100, 100);
-                }
-                break;
-            case 'magnet_buff':
-                if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                    window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 15 * 60 * 1000); // 15 minutes
-                }
-                break;
-            case 'focus_boost':
-            case 'productivity_pill':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 25 * 60 * 1000); // 25 minutes
-                }
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 150, itemId === 'productivity_pill' ? 'Productivity Pill' : 'Focus Boost');
-                }
-                break;
-            case 'inspiration_spark':
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 300, 'Inspiration Spark');
-                }
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(200);
-                }
-                break;
-            case 'turbo_mode':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 20 * 60 * 1000); // 20 minutes
-                }
-                if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                    window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 10 * 60 * 1000); // 10 minutes
-                }
-                break;
-            case 'mega_boost':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 30 * 60 * 1000); // 30 minutes
-                }
-                if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                    window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 15 * 60 * 1000); // 15 minutes
-                }
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 500, 'Mega Boost');
-                }
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(500);
-                }
-                break;
-        }
+        applyConsumableEffect(itemId, config, STORAGE_KEYS);
     } else {
         let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
         if (!purchased.includes(itemId)) purchased.push(itemId);

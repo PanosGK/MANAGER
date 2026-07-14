@@ -2743,6 +2743,273 @@ function populateShop(config, STORAGE_KEYS) {
     }
 }
 
+function applyConsumableEffect(itemId, config, STORAGE_KEYS) {
+    switch (itemId) {
+        // === DRINKS & ENERGY ===
+        case 'energized_drink':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 15 * 60 * 1000);
+            }
+            break;
+        case 'coffee':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 5 * 60 * 1000);
+            }
+            break;
+        case 'smoothie':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 30, 20);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'happy', 2000);
+            }
+            break;
+        case 'health_potion':
+        case 'mana_potion':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 50, 50);
+            }
+            if (typeof window.triggerSparkles === 'function') {
+                window.triggerSparkles(40);
+            }
+            break;
+        case 'speed_potion':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 8 * 60 * 1000);
+            }
+            break;
+        case 'lucky_potion':
+            if (typeof window.triggerDoubleCoinsEffect === 'function') {
+                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 5 * 60 * 1000);
+            }
+            break;
+        case 'rainbow_juice':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 100, 100);
+            }
+            if (typeof window.triggerConfetti === 'function') {
+                window.triggerConfetti(150);
+            }
+            break;
+        case 'golden_elixir':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 100, 100);
+            }
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 20 * 60 * 1000);
+            }
+            if (typeof window.triggerStarShower === 'function') {
+                window.triggerStarShower(80);
+            }
+            break;
+
+        // === FOOD & SNACKS ===
+        case 'happiness_snack':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 100, 0);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'happy', 3000);
+            }
+            break;
+        case 'hunger_meal':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 0, 100);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'eating', 2000);
+            }
+            break;
+        case 'super_meal':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 50, 100);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'eating', 3000);
+            }
+            break;
+        case 'pizza_slice':
+        case 'burger_combo':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 20, 40);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'eating', 2000);
+            }
+            break;
+        case 'ice_cream':
+        case 'donut':
+        case 'cookie':
+        case 'chocolate_bar':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 30, 15);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'happy', 2000);
+            }
+            break;
+        case 'sushi_platter':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 40, 60);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'eating', 3000);
+            }
+            break;
+
+        // === XP & COINS ===
+        case 'double_coins_voucher':
+            if (typeof window.triggerDoubleCoinsEffect === 'function') {
+                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 10 * 60 * 1000);
+            }
+            break;
+        case 'xp_boost_small':
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 100, 'XP Boost Small');
+            }
+            break;
+        case 'xp_boost_medium':
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 250, 'XP Boost Medium');
+            }
+            break;
+        case 'xp_boost_large':
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 500, 'XP Boost Large');
+            }
+            break;
+        case 'coin_magnet':
+        case 'lucky_coin':
+            if (typeof window.triggerDoubleCoinsEffect === 'function') {
+                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 7 * 60 * 1000);
+            }
+            break;
+
+        // === SPECIAL EFFECTS ===
+        case 'confetti_bomb':
+            if (typeof window.triggerConfetti === 'function') {
+                window.triggerConfetti(200);
+            }
+            break;
+        case 'fireworks':
+            triggerFireworks(true, 2800);
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'happy', 3000);
+            }
+            break;
+        case 'sparkles':
+            if (typeof window.triggerSparkles === 'function') {
+                window.triggerSparkles(70);
+            }
+            break;
+        case 'star_shower':
+            if (typeof window.triggerStarShower === 'function') {
+                window.triggerStarShower(100);
+            }
+            break;
+        case 'rainbow_trail':
+            if (typeof window.triggerRainbowTrail === 'function') {
+                window.triggerRainbowTrail(220);
+            }
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 50, 0);
+            }
+            break;
+        case 'snow_globe':
+            if (typeof window.triggerSnowFall === 'function') {
+                window.triggerSnowFall(140);
+            }
+            break;
+        case 'bubble_blast':
+            if (typeof window.triggerBubbleBlast === 'function') {
+                window.triggerBubbleBlast(100);
+            }
+            break;
+        case 'heart_explosion':
+            if (typeof window.triggerHeartExplosion === 'function') {
+                window.triggerHeartExplosion(90);
+            }
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 80, 0);
+            }
+            break;
+        case 'disco_ball':
+            if (typeof window.triggerDiscoBall === 'function') {
+                window.triggerDiscoBall();
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'happy', 5000);
+            }
+            break;
+
+        // === POWER-UPS ===
+        case 'time_warp':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 30 * 60 * 1000);
+            }
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 200, 'Time Warp');
+            }
+            break;
+        case 'shield_buff':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 100, 100);
+            }
+            break;
+        case 'magnet_buff':
+            if (typeof window.triggerDoubleCoinsEffect === 'function') {
+                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 15 * 60 * 1000);
+            }
+            break;
+        case 'focus_boost':
+        case 'productivity_pill':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 25 * 60 * 1000);
+            }
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 150, itemId === 'productivity_pill' ? 'Productivity Pill' : 'Focus Boost');
+            }
+            break;
+        case 'inspiration_spark':
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 300, 'Inspiration Spark');
+            }
+            if (typeof window.triggerSparkles === 'function') {
+                window.triggerSparkles(100);
+            }
+            break;
+        case 'turbo_mode':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 20 * 60 * 1000);
+            }
+            if (typeof window.triggerDoubleCoinsEffect === 'function') {
+                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 10 * 60 * 1000);
+            }
+            break;
+        case 'mega_boost':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 30 * 60 * 1000);
+            }
+            if (typeof window.triggerDoubleCoinsEffect === 'function') {
+                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 15 * 60 * 1000);
+            }
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 500, 'Mega Boost');
+            }
+            if (typeof window.triggerConfetti === 'function') {
+                window.triggerConfetti(200);
+            }
+            if (typeof window.triggerStarShower === 'function') {
+                window.triggerStarShower(60);
+            }
+            break;
+        default:
+            console.warn('[MMS Shop] Unknown consumable effect:', itemId);
+            break;
+    }
+}
+window.applyConsumableEffect = applyConsumableEffect;
+
 function handleShopPurchase(button, config, STORAGE_KEYS) {
     const itemId = button.dataset.itemId;
     const itemCost = parseInt(button.dataset.itemCost, 10);
@@ -2767,258 +3034,7 @@ function handleShopPurchase(button, config, STORAGE_KEYS) {
         const currentTokens = GM_getValue(SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, 0) || 0;
         GM_setValue(SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, currentTokens + 1);
     } else if (itemType === 'consumable') {
-        // Handle immediate use of other consumables
-        switch (itemId) {
-            // === DRINKS & ENERGY ===
-            case 'energized_drink':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 15 * 60 * 1000); // 15 minutes
-                }
-                break;
-            case 'coffee':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 5 * 60 * 1000); // 5 minutes
-                }
-                break;
-            case 'smoothie':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 30, 20);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'happy', 2000);
-                }
-                break;
-            case 'health_potion':
-            case 'mana_potion':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 50, 50);
-                }
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(50);
-                }
-                break;
-            case 'speed_potion':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 8 * 60 * 1000); // 8 minutes
-                }
-                break;
-            case 'lucky_potion':
-                if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                    window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 5 * 60 * 1000); // 5 minutes
-                }
-                break;
-            case 'rainbow_juice':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 100, 100); // Max both stats
-                }
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(150);
-                }
-                break;
-            case 'golden_elixir':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 100, 100);
-                }
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 20 * 60 * 1000); // 20 minutes
-                }
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(300);
-                }
-                break;
-                
-            // === FOOD & SNACKS ===
-            case 'happiness_snack':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 100, 0); // Max out happiness
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'happy', 3000);
-                }
-                break;
-            case 'hunger_meal':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 0, 100); // Max out hunger
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'eating', 2000);
-                }
-                break;
-            case 'super_meal':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 50, 100);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'eating', 3000);
-                }
-                break;
-            case 'pizza_slice':
-            case 'burger_combo':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 20, 40);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'eating', 2000);
-                }
-                break;
-            case 'ice_cream':
-            case 'donut':
-            case 'cookie':
-            case 'chocolate_bar':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 30, 15);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'happy', 2000);
-                }
-                break;
-            case 'sushi_platter':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 40, 60);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'eating', 3000);
-                }
-                break;
-                
-            // === XP & COINS ===
-            case 'double_coins_voucher':
-                if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                    window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 10 * 60 * 1000); // 10 minutes
-                }
-                break;
-            case 'xp_boost_small':
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 100, 'XP Boost Small');
-                }
-                break;
-            case 'xp_boost_medium':
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 250, 'XP Boost Medium');
-                }
-                break;
-            case 'xp_boost_large':
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 500, 'XP Boost Large');
-                }
-                break;
-            case 'coin_magnet':
-            case 'lucky_coin':
-                if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                    window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 7 * 60 * 1000); // 7 minutes
-                }
-                break;
-                
-            // === SPECIAL EFFECTS ===
-            case 'confetti_bomb':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(200);
-                }
-                break;
-            case 'fireworks':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(300);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'happy', 3000);
-                }
-                break;
-            case 'sparkles':
-            case 'star_shower':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(100);
-                }
-                break;
-            case 'rainbow_trail':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(250);
-                }
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 50, 0);
-                }
-                break;
-            case 'snow_globe':
-            case 'bubble_blast':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(150);
-                }
-                break;
-            case 'heart_explosion':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(180);
-                }
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 80, 0);
-                }
-                break;
-            case 'disco_ball':
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(400);
-                }
-                if (typeof window.setMascotState === 'function') {
-                    window.setMascotState(config, 'happy', 5000);
-                }
-                break;
-                
-            // === POWER-UPS ===
-            case 'time_warp':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 30 * 60 * 1000); // 30 minutes
-                }
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 200, 'Time Warp');
-                }
-                break;
-            case 'shield_buff':
-                if (typeof window.updatePetStats === 'function') {
-                    window.updatePetStats(config, STORAGE_KEYS, 100, 100);
-                }
-                break;
-            case 'magnet_buff':
-                if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                    window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 15 * 60 * 1000); // 15 minutes
-                }
-                break;
-            case 'focus_boost':
-            case 'productivity_pill':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 25 * 60 * 1000); // 25 minutes
-                }
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 150, itemId === 'productivity_pill' ? 'Productivity Pill' : 'Focus Boost');
-                }
-                break;
-            case 'inspiration_spark':
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 300, 'Inspiration Spark');
-                }
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(200);
-                }
-                break;
-            case 'turbo_mode':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 20 * 60 * 1000); // 20 minutes
-                }
-                if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                    window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 10 * 60 * 1000); // 10 minutes
-                }
-                break;
-            case 'mega_boost':
-                if (typeof window.triggerEnergizedState === 'function') {
-                    window.triggerEnergizedState(config, STORAGE_KEYS, 30 * 60 * 1000); // 30 minutes
-                }
-                if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                    window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 15 * 60 * 1000); // 15 minutes
-                }
-                if (typeof window.grantXp === 'function') {
-                    window.grantXp(config, STORAGE_KEYS, 500, 'Mega Boost');
-                }
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(500);
-                }
-                break;
-        }
+        applyConsumableEffect(itemId, config, STORAGE_KEYS);
     } else {
         let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
         if (!purchased.includes(itemId)) purchased.push(itemId);
