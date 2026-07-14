@@ -28544,29 +28544,163 @@ function extractProductRetailPrice(row) {
 }
 
 // Try to fetch storehouse availability using the page's own helper (getCheckOtherInventories)
+function normalizeStorehouseResponse(response) {
+    if (!response || !response.length) return [];
+    return response
+        .map((r) => ({
+            name: String(r.storehouse || r.name || '').trim(),
+            qty: String(r.units != null ? r.units : (r.qty != null ? r.qty : '')),
+        }))
+        .filter((s) => s.name);
+}
+
+function fetchStorehousesViaPageScript(productCode) {
+    return new Promise((resolve) => {
+        const requestId = `tmStores${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
+        const timeout = setTimeout(() => {
+            document.removeEventListener('tm-mms-storehouses', onEvent);
+            resolve([]);
+        }, 12000);
+
+        function onEvent(e) {
+            if (!e.detail || e.detail.id !== requestId) return;
+            clearTimeout(timeout);
+            document.removeEventListener('tm-mms-storehouses', onEvent);
+            resolve(e.detail.stores || []);
+        }
+        document.addEventListener('tm-mms-storehouses', onEvent);
+
+        const script = document.createElement('script');
+        const safeCode = JSON.stringify(String(productCode));
+        script.textContent = `(function(){
+            var id=${JSON.stringify(requestId)};
+            var productCode=${safeCode};
+            function finish(stores){document.dispatchEvent(new CustomEvent('tm-mms-storehouses',{detail:{id:id,stores:stores}}));}
+            try{
+                var fn=window.getCheckOtherInventories;
+                if(typeof fn!=='function'){finish([]);return;}
+                fn(productCode,false,{content_type:'json',onFinish:function(r){
+                    finish((r||[]).map(function(x){return{name:String(x.storehouse||'').trim(),qty:String(x.units!=null?x.units:'')}}).filter(function(x){return x.name;}));
+                }});
+            }catch(e){finish([]);}
+        })();`;
+        (document.head || document.documentElement).appendChild(script);
+        script.remove();
+    });
+}
+
 function fetchStorehousesFromPage(productCode) {
-    return new Promise((resolve, reject) => {
-        const fn = (typeof unsafeWindow !== 'undefined' ? unsafeWindow.getCheckOtherInventories : window.getCheckOtherInventories);
-        if (typeof fn !== 'function') {
-            reject(new Error('getCheckOtherInventories not available'));
+    return new Promise((resolve) => {
+        const code = String(productCode || '').trim();
+        if (!code) {
+            resolve([]);
             return;
         }
-        try {
-            fn(productCode, false, {
-                content_type: 'json',
-                onFinish: (response) => {
-                    if (!response) {
-                        resolve([]);
-                        return;
-                    }
-                    const stores = response.map(r => ({ name: r.storehouse, qty: String(r.units) }));
-                    resolve(stores);
-                }
-            });
-        } catch (e) {
-            reject(e);
+        const cached = getCachedPhoneStoreDetails(code);
+        if (cached) {
+            resolve(cached);
+            return;
+        }
+
+        const fn = (typeof unsafeWindow !== 'undefined' ? unsafeWindow.getCheckOtherInventories : null)
+            || (typeof window !== 'undefined' ? window.getCheckOtherInventories : null);
+        if (typeof fn === 'function') {
+            try {
+                fn(code, false, {
+                    content_type: 'json',
+                    onFinish: (response) => {
+                        const stores = normalizeStorehouseResponse(response);
+                        savePhoneStoreDetailsCache(code, stores);
+                        resolve(stores);
+                    },
+                });
+                return;
+            } catch (e) {
+                console.warn('[MMS Phone List] getCheckOtherInventories failed, trying page script:', e);
+            }
+        }
+
+        fetchStorehousesViaPageScript(code).then((stores) => {
+            savePhoneStoreDetailsCache(code, stores);
+            resolve(stores);
+        });
+    });
+}
+
+const PHONE_STORE_DETAILS_CACHE_KEY = 'tm_phone_store_details_cache_v1';
+const PHONE_STORE_DETAILS_CACHE_DAYS = 14;
+
+function loadPhoneStoreDetailsCache() {
+    try {
+        return JSON.parse(GM_getValue(PHONE_STORE_DETAILS_CACHE_KEY, '{}')) || {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function savePhoneStoreDetailsCache(barcode, stores) {
+    if (!barcode) return;
+    const cache = loadPhoneStoreDetailsCache();
+    cache[barcode] = { stores: stores || [], ts: Date.now() };
+    GM_setValue(PHONE_STORE_DETAILS_CACHE_KEY, JSON.stringify(cache));
+}
+
+function getCachedPhoneStoreDetails(barcode) {
+    const entry = loadPhoneStoreDetailsCache()[barcode];
+    if (!entry || !entry.stores) return null;
+    const ageDays = (Date.now() - (entry.ts || 0)) / (1000 * 60 * 60 * 24);
+    if (ageDays > PHONE_STORE_DETAILS_CACHE_DAYS) return null;
+    return entry.stores;
+}
+
+function getEffectivePhoneStores(phone) {
+    const stores = filterOneUnitStores(phone?.stores || []);
+    if (stores.length) return stores;
+    return filterOneUnitStores(phone?.otherStores || []);
+}
+
+function phoneNeedsStoreResolve(phone) {
+    if (getEffectivePhoneStores(phone).length) return false;
+    const count = parseInt(phone?.otherStoreCount, 10) || 0;
+    return count > 0;
+}
+
+function mergeOtherStoresFromAllPhones(allPhones, networkPhones) {
+    const byBarcode = new Map((allPhones || []).map((p) => [p.barcode, p]));
+    (networkPhones || []).forEach((phone) => {
+        if (getEffectivePhoneStores(phone).length) return;
+        const local = byBarcode.get(phone.barcode);
+        if (local?.otherStores?.length) {
+            phone.otherStores = local.otherStores;
         }
     });
+}
+
+async function resolvePhonesStoreDetails(phones, options = {}) {
+    const { concurrency = 6, onProgress, filter } = options;
+    const list = (phones || []).filter((p) => (!filter || filter(p)) && phoneNeedsStoreResolve(p));
+    const unique = [...new Map(list.map((p) => [p.barcode, p])).values()];
+    let done = 0;
+
+    for (let i = 0; i < unique.length; i += concurrency) {
+        const batch = unique.slice(i, i + concurrency);
+        await Promise.all(batch.map(async (phone) => {
+            if (getEffectivePhoneStores(phone).length) {
+                done += 1;
+                onProgress?.(done, unique.length);
+                return;
+            }
+            try {
+                const stores = await fetchStorehousesFromPage(phone.barcode);
+                if (stores.length) phone.stores = stores;
+            } catch (e) {
+                console.warn('[MMS Phone List] Could not resolve stores for', phone.barcode, e);
+            }
+            done += 1;
+            onProgress?.(done, unique.length);
+        }));
+    }
+    return phones;
 }
 
 /**
@@ -29116,6 +29250,10 @@ window.normalizePhoneGrade = normalizePhoneGrade;
 window.comparePhoneGrades = comparePhoneGrades;
 window.getPhoneGradeCircleStyle = getPhoneGradeCircleStyle;
 window.getAllColorHexMap = getAllColorHexMap;
+window.fetchStorehousesFromPage = fetchStorehousesFromPage;
+window.getEffectivePhoneStores = getEffectivePhoneStores;
+window.resolvePhonesStoreDetails = resolvePhonesStoreDetails;
+window.mergeOtherStoresFromAllPhones = mergeOtherStoresFromAllPhones;
 window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
 
 
@@ -29151,7 +29289,8 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
     }
 
     function buildModelIndex(allPhones, otherStorePhones, helpers) {
-        const { extractBaseModel, normalizePhoneGrade, filterIphoneTitlePhones, filterOneUnitStores } = helpers;
+        const { extractBaseModel, normalizePhoneGrade, filterIphoneTitlePhones } = helpers;
+        const getStores = helpers.getEffectivePhoneStores || ((p) => helpers.filterOneUnitStores(p.stores || p.otherStores || []));
         const map = new Map();
 
         function ensure(model) {
@@ -29185,7 +29324,7 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
             entry.totalUnits += 1;
             const g = normalizePhoneGrade(phone.grade);
             if (g) entry.grades[g] = (entry.grades[g] || 0) + 1;
-            filterOneUnitStores(phone.stores || []).forEach((store) => {
+            getStores(phone).forEach((store) => {
                 const name = cleanStoreName(store.name);
                 if (name) entry.storeNames.add(name);
             });
@@ -29305,7 +29444,8 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
     }
 
     function buildStoreBoardData(model, allPhones, otherStorePhones, filters, helpers) {
-        const { filterIphoneTitlePhones, filterOneUnitStores } = helpers;
+        const { filterIphoneTitlePhones } = helpers;
+        const getStores = helpers.getEffectivePhoneStores || ((p) => helpers.filterOneUnitStores(p.stores || p.otherStores || []));
         const storeMap = new Map();
 
         function addVariant(storeKey, storeName, isMine, variant) {
@@ -29328,7 +29468,7 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
         filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             const variant = phoneToVariant(phone, helpers);
-            const stores = filterOneUnitStores(phone.stores || []);
+            const stores = getStores(phone);
             if (!stores.length) {
                 addVariant('__pending__', 'Άλλα καταστήματα (χωρίς λεπτομέρειες)', false, variant);
                 return;
@@ -29433,6 +29573,7 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
             filterIphoneTitlePhones: window.filterIphoneTitlePhones || ((p) => p),
             filterOneUnitStores: window.filterOneUnitStores || ((s) => s),
             getPhoneGradeCircleStyle: window.getPhoneGradeCircleStyle || (() => ''),
+            getEffectivePhoneStores: window.getEffectivePhoneStores || ((p) => (window.filterOneUnitStores || ((s) => s))(p.stores || p.otherStores || [])),
         };
 
         const overlay = document.createElement('div');
@@ -29456,6 +29597,7 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
         let allPhones = [];
         let otherStorePhones = [];
         let otherStoreLoaded = false;
+        let storesResolving = false;
         let lastUpdated = null;
         let keyboardBound = false;
 
@@ -29548,6 +29690,40 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
             bindStoreKeyboard(bodyEl);
         }
 
+        function mergeNetworkStoreHints() {
+            if (typeof window.mergeOtherStoresFromAllPhones === 'function') {
+                window.mergeOtherStoresFromAllPhones(allPhones, otherStorePhones);
+            }
+        }
+
+        async function resolveNetworkStoreDetails(modelFilter = null) {
+            if (storesResolving || typeof window.resolvePhonesStoreDetails !== 'function') return;
+            mergeNetworkStoreHints();
+            const phones = modelFilter
+                ? otherStorePhones.filter(modelFilter)
+                : otherStorePhones;
+            const needsResolve = phones.some((p) => {
+                const stores = helpers.getEffectivePhoneStores(p);
+                return !stores.length && (parseInt(p.otherStoreCount, 10) || 0) > 0;
+            });
+            if (!needsResolve) return;
+
+            storesResolving = true;
+            const prevStatus = statusEl?.textContent || '';
+            try {
+                await window.resolvePhonesStoreDetails(otherStorePhones, {
+                    concurrency: 8,
+                    filter: modelFilter || undefined,
+                    onProgress: (done, total) => {
+                        setStatus(`Φόρτωση καταστημάτων ${done}/${total}…`);
+                    },
+                });
+            } finally {
+                storesResolving = false;
+                if (prevStatus && step === 'models') setStatus(prevStatus);
+            }
+        }
+
         function renderModelsStep() {
             step = 'models';
             selectedModel = null;
@@ -29585,12 +29761,18 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
             wireModelCards();
         }
 
-        function renderStoresStep() {
+        async function renderStoresStep() {
             if (!selectedModel) return renderModelsStep();
             step = 'stores';
             UI.updateBreadcrumb(overlay, 'stores', selectedModel);
             titleEl.textContent = selectedModel;
             subtitleEl.textContent = 'Διαθεσιμότητα ανά κατάστημα';
+
+            bodyEl.innerHTML = UI.buildSkeletonStores(5);
+            setStatus('Φόρτωση καταστημάτων…');
+
+            const modelFilter = (p) => helpers.extractBaseModel(p.model) === selectedModel;
+            await resolveNetworkStoreDetails(modelFilter);
 
             const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers);
             const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers);
@@ -29628,6 +29810,7 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
             if (typeof window.fetchOtherStorePhones !== 'function') return;
             otherStorePhones = helpers.filterIphoneTitlePhones(await window.fetchOtherStorePhones());
             otherStoreLoaded = true;
+            mergeNetworkStoreHints();
         }
 
         async function refreshData() {
@@ -29642,8 +29825,14 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
                 }
                 lastUpdated = new Date();
                 syncFreshness();
-                if (step === 'stores' && selectedModel) renderStoresStep();
-                else renderModelsStep();
+                if (step === 'stores' && selectedModel) {
+                    await renderStoresStep();
+                } else {
+                    renderModelsStep();
+                    resolveNetworkStoreDetails().then(() => {
+                        if (step === 'models') renderModelsStep();
+                    });
+                }
             } catch (err) {
                 bodyEl.innerHTML = UI.buildEmptyState('❌', 'Σφάλμα φόρτωσης', err.message || '');
             }
@@ -29673,7 +29862,12 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
             const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
             lastUpdated = new Date(ts);
             syncFreshness();
-            ensureOtherStores().then(() => renderModelsStep());
+            ensureOtherStores().then(() => {
+                renderModelsStep();
+                resolveNetworkStoreDetails().then(() => {
+                    if (step === 'models') renderModelsStep();
+                });
+            });
         } else {
             bodyEl.innerHTML = UI.buildEmptyState('📱', 'Χωρίς δεδομένα', 'Πατήστε Ανανέωση για φόρτωση');
             setStatus('Πατήστε ανανέωση');

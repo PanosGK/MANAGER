@@ -396,6 +396,7 @@ const productionLoader = `// ==UserScript==
 // @grant        GM_deleteValue
 // @grant        GM_listValues
 // @grant        GM_xmlhttpRequest
+// @grant        unsafeWindow
 // @updateURL    ${loaderUrl}
 // @downloadURL  ${loaderUrl}
 // @connect      thefixers.mymanager.gr
@@ -424,6 +425,7 @@ const localLoader = `// ==UserScript==
 // @grant        GM_deleteValue
 // @grant        GM_listValues
 // @grant        GM_xmlhttpRequest
+// @grant        unsafeWindow
 // @require      file://${localBundlePath}
 // @connect      thefixers.mymanager.gr
 // @connect      geocoding-api.open-meteo.com

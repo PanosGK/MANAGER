@@ -1513,29 +1513,163 @@ function extractProductRetailPrice(row) {
 }
 
 // Try to fetch storehouse availability using the page's own helper (getCheckOtherInventories)
+function normalizeStorehouseResponse(response) {
+    if (!response || !response.length) return [];
+    return response
+        .map((r) => ({
+            name: String(r.storehouse || r.name || '').trim(),
+            qty: String(r.units != null ? r.units : (r.qty != null ? r.qty : '')),
+        }))
+        .filter((s) => s.name);
+}
+
+function fetchStorehousesViaPageScript(productCode) {
+    return new Promise((resolve) => {
+        const requestId = `tmStores${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
+        const timeout = setTimeout(() => {
+            document.removeEventListener('tm-mms-storehouses', onEvent);
+            resolve([]);
+        }, 12000);
+
+        function onEvent(e) {
+            if (!e.detail || e.detail.id !== requestId) return;
+            clearTimeout(timeout);
+            document.removeEventListener('tm-mms-storehouses', onEvent);
+            resolve(e.detail.stores || []);
+        }
+        document.addEventListener('tm-mms-storehouses', onEvent);
+
+        const script = document.createElement('script');
+        const safeCode = JSON.stringify(String(productCode));
+        script.textContent = `(function(){
+            var id=${JSON.stringify(requestId)};
+            var productCode=${safeCode};
+            function finish(stores){document.dispatchEvent(new CustomEvent('tm-mms-storehouses',{detail:{id:id,stores:stores}}));}
+            try{
+                var fn=window.getCheckOtherInventories;
+                if(typeof fn!=='function'){finish([]);return;}
+                fn(productCode,false,{content_type:'json',onFinish:function(r){
+                    finish((r||[]).map(function(x){return{name:String(x.storehouse||'').trim(),qty:String(x.units!=null?x.units:'')}}).filter(function(x){return x.name;}));
+                }});
+            }catch(e){finish([]);}
+        })();`;
+        (document.head || document.documentElement).appendChild(script);
+        script.remove();
+    });
+}
+
 function fetchStorehousesFromPage(productCode) {
-    return new Promise((resolve, reject) => {
-        const fn = (typeof unsafeWindow !== 'undefined' ? unsafeWindow.getCheckOtherInventories : window.getCheckOtherInventories);
-        if (typeof fn !== 'function') {
-            reject(new Error('getCheckOtherInventories not available'));
+    return new Promise((resolve) => {
+        const code = String(productCode || '').trim();
+        if (!code) {
+            resolve([]);
             return;
         }
-        try {
-            fn(productCode, false, {
-                content_type: 'json',
-                onFinish: (response) => {
-                    if (!response) {
-                        resolve([]);
-                        return;
-                    }
-                    const stores = response.map(r => ({ name: r.storehouse, qty: String(r.units) }));
-                    resolve(stores);
-                }
-            });
-        } catch (e) {
-            reject(e);
+        const cached = getCachedPhoneStoreDetails(code);
+        if (cached) {
+            resolve(cached);
+            return;
+        }
+
+        const fn = (typeof unsafeWindow !== 'undefined' ? unsafeWindow.getCheckOtherInventories : null)
+            || (typeof window !== 'undefined' ? window.getCheckOtherInventories : null);
+        if (typeof fn === 'function') {
+            try {
+                fn(code, false, {
+                    content_type: 'json',
+                    onFinish: (response) => {
+                        const stores = normalizeStorehouseResponse(response);
+                        savePhoneStoreDetailsCache(code, stores);
+                        resolve(stores);
+                    },
+                });
+                return;
+            } catch (e) {
+                console.warn('[MMS Phone List] getCheckOtherInventories failed, trying page script:', e);
+            }
+        }
+
+        fetchStorehousesViaPageScript(code).then((stores) => {
+            savePhoneStoreDetailsCache(code, stores);
+            resolve(stores);
+        });
+    });
+}
+
+const PHONE_STORE_DETAILS_CACHE_KEY = 'tm_phone_store_details_cache_v1';
+const PHONE_STORE_DETAILS_CACHE_DAYS = 14;
+
+function loadPhoneStoreDetailsCache() {
+    try {
+        return JSON.parse(GM_getValue(PHONE_STORE_DETAILS_CACHE_KEY, '{}')) || {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function savePhoneStoreDetailsCache(barcode, stores) {
+    if (!barcode) return;
+    const cache = loadPhoneStoreDetailsCache();
+    cache[barcode] = { stores: stores || [], ts: Date.now() };
+    GM_setValue(PHONE_STORE_DETAILS_CACHE_KEY, JSON.stringify(cache));
+}
+
+function getCachedPhoneStoreDetails(barcode) {
+    const entry = loadPhoneStoreDetailsCache()[barcode];
+    if (!entry || !entry.stores) return null;
+    const ageDays = (Date.now() - (entry.ts || 0)) / (1000 * 60 * 60 * 24);
+    if (ageDays > PHONE_STORE_DETAILS_CACHE_DAYS) return null;
+    return entry.stores;
+}
+
+function getEffectivePhoneStores(phone) {
+    const stores = filterOneUnitStores(phone?.stores || []);
+    if (stores.length) return stores;
+    return filterOneUnitStores(phone?.otherStores || []);
+}
+
+function phoneNeedsStoreResolve(phone) {
+    if (getEffectivePhoneStores(phone).length) return false;
+    const count = parseInt(phone?.otherStoreCount, 10) || 0;
+    return count > 0;
+}
+
+function mergeOtherStoresFromAllPhones(allPhones, networkPhones) {
+    const byBarcode = new Map((allPhones || []).map((p) => [p.barcode, p]));
+    (networkPhones || []).forEach((phone) => {
+        if (getEffectivePhoneStores(phone).length) return;
+        const local = byBarcode.get(phone.barcode);
+        if (local?.otherStores?.length) {
+            phone.otherStores = local.otherStores;
         }
     });
+}
+
+async function resolvePhonesStoreDetails(phones, options = {}) {
+    const { concurrency = 6, onProgress, filter } = options;
+    const list = (phones || []).filter((p) => (!filter || filter(p)) && phoneNeedsStoreResolve(p));
+    const unique = [...new Map(list.map((p) => [p.barcode, p])).values()];
+    let done = 0;
+
+    for (let i = 0; i < unique.length; i += concurrency) {
+        const batch = unique.slice(i, i + concurrency);
+        await Promise.all(batch.map(async (phone) => {
+            if (getEffectivePhoneStores(phone).length) {
+                done += 1;
+                onProgress?.(done, unique.length);
+                return;
+            }
+            try {
+                const stores = await fetchStorehousesFromPage(phone.barcode);
+                if (stores.length) phone.stores = stores;
+            } catch (e) {
+                console.warn('[MMS Phone List] Could not resolve stores for', phone.barcode, e);
+            }
+            done += 1;
+            onProgress?.(done, unique.length);
+        }));
+    }
+    return phones;
 }
 
 /**
@@ -2085,5 +2219,9 @@ window.normalizePhoneGrade = normalizePhoneGrade;
 window.comparePhoneGrades = comparePhoneGrades;
 window.getPhoneGradeCircleStyle = getPhoneGradeCircleStyle;
 window.getAllColorHexMap = getAllColorHexMap;
+window.fetchStorehousesFromPage = fetchStorehousesFromPage;
+window.getEffectivePhoneStores = getEffectivePhoneStores;
+window.resolvePhonesStoreDetails = resolvePhonesStoreDetails;
+window.mergeOtherStoresFromAllPhones = mergeOtherStoresFromAllPhones;
 window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
 

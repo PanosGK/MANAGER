@@ -9,6 +9,7 @@
 // @grant        GM_setValue
 // @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
+// @grant        unsafeWindow
 // ==/UserScript==
 
 (function () {
@@ -40,7 +41,8 @@
     }
 
     function buildModelIndex(allPhones, otherStorePhones, helpers) {
-        const { extractBaseModel, normalizePhoneGrade, filterIphoneTitlePhones, filterOneUnitStores } = helpers;
+        const { extractBaseModel, normalizePhoneGrade, filterIphoneTitlePhones } = helpers;
+        const getStores = helpers.getEffectivePhoneStores || ((p) => helpers.filterOneUnitStores(p.stores || p.otherStores || []));
         const map = new Map();
 
         function ensure(model) {
@@ -74,7 +76,7 @@
             entry.totalUnits += 1;
             const g = normalizePhoneGrade(phone.grade);
             if (g) entry.grades[g] = (entry.grades[g] || 0) + 1;
-            filterOneUnitStores(phone.stores || []).forEach((store) => {
+            getStores(phone).forEach((store) => {
                 const name = cleanStoreName(store.name);
                 if (name) entry.storeNames.add(name);
             });
@@ -194,7 +196,8 @@
     }
 
     function buildStoreBoardData(model, allPhones, otherStorePhones, filters, helpers) {
-        const { filterIphoneTitlePhones, filterOneUnitStores } = helpers;
+        const { filterIphoneTitlePhones } = helpers;
+        const getStores = helpers.getEffectivePhoneStores || ((p) => helpers.filterOneUnitStores(p.stores || p.otherStores || []));
         const storeMap = new Map();
 
         function addVariant(storeKey, storeName, isMine, variant) {
@@ -217,7 +220,7 @@
         filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             const variant = phoneToVariant(phone, helpers);
-            const stores = filterOneUnitStores(phone.stores || []);
+            const stores = getStores(phone);
             if (!stores.length) {
                 addVariant('__pending__', 'Άλλα καταστήματα (χωρίς λεπτομέρειες)', false, variant);
                 return;
@@ -322,6 +325,7 @@
             filterIphoneTitlePhones: window.filterIphoneTitlePhones || ((p) => p),
             filterOneUnitStores: window.filterOneUnitStores || ((s) => s),
             getPhoneGradeCircleStyle: window.getPhoneGradeCircleStyle || (() => ''),
+            getEffectivePhoneStores: window.getEffectivePhoneStores || ((p) => (window.filterOneUnitStores || ((s) => s))(p.stores || p.otherStores || [])),
         };
 
         const overlay = document.createElement('div');
@@ -345,6 +349,7 @@
         let allPhones = [];
         let otherStorePhones = [];
         let otherStoreLoaded = false;
+        let storesResolving = false;
         let lastUpdated = null;
         let keyboardBound = false;
 
@@ -437,6 +442,40 @@
             bindStoreKeyboard(bodyEl);
         }
 
+        function mergeNetworkStoreHints() {
+            if (typeof window.mergeOtherStoresFromAllPhones === 'function') {
+                window.mergeOtherStoresFromAllPhones(allPhones, otherStorePhones);
+            }
+        }
+
+        async function resolveNetworkStoreDetails(modelFilter = null) {
+            if (storesResolving || typeof window.resolvePhonesStoreDetails !== 'function') return;
+            mergeNetworkStoreHints();
+            const phones = modelFilter
+                ? otherStorePhones.filter(modelFilter)
+                : otherStorePhones;
+            const needsResolve = phones.some((p) => {
+                const stores = helpers.getEffectivePhoneStores(p);
+                return !stores.length && (parseInt(p.otherStoreCount, 10) || 0) > 0;
+            });
+            if (!needsResolve) return;
+
+            storesResolving = true;
+            const prevStatus = statusEl?.textContent || '';
+            try {
+                await window.resolvePhonesStoreDetails(otherStorePhones, {
+                    concurrency: 8,
+                    filter: modelFilter || undefined,
+                    onProgress: (done, total) => {
+                        setStatus(`Φόρτωση καταστημάτων ${done}/${total}…`);
+                    },
+                });
+            } finally {
+                storesResolving = false;
+                if (prevStatus && step === 'models') setStatus(prevStatus);
+            }
+        }
+
         function renderModelsStep() {
             step = 'models';
             selectedModel = null;
@@ -474,12 +513,18 @@
             wireModelCards();
         }
 
-        function renderStoresStep() {
+        async function renderStoresStep() {
             if (!selectedModel) return renderModelsStep();
             step = 'stores';
             UI.updateBreadcrumb(overlay, 'stores', selectedModel);
             titleEl.textContent = selectedModel;
             subtitleEl.textContent = 'Διαθεσιμότητα ανά κατάστημα';
+
+            bodyEl.innerHTML = UI.buildSkeletonStores(5);
+            setStatus('Φόρτωση καταστημάτων…');
+
+            const modelFilter = (p) => helpers.extractBaseModel(p.model) === selectedModel;
+            await resolveNetworkStoreDetails(modelFilter);
 
             const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers);
             const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers);
@@ -517,6 +562,7 @@
             if (typeof window.fetchOtherStorePhones !== 'function') return;
             otherStorePhones = helpers.filterIphoneTitlePhones(await window.fetchOtherStorePhones());
             otherStoreLoaded = true;
+            mergeNetworkStoreHints();
         }
 
         async function refreshData() {
@@ -531,8 +577,14 @@
                 }
                 lastUpdated = new Date();
                 syncFreshness();
-                if (step === 'stores' && selectedModel) renderStoresStep();
-                else renderModelsStep();
+                if (step === 'stores' && selectedModel) {
+                    await renderStoresStep();
+                } else {
+                    renderModelsStep();
+                    resolveNetworkStoreDetails().then(() => {
+                        if (step === 'models') renderModelsStep();
+                    });
+                }
             } catch (err) {
                 bodyEl.innerHTML = UI.buildEmptyState('❌', 'Σφάλμα φόρτωσης', err.message || '');
             }
@@ -562,7 +614,12 @@
             const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
             lastUpdated = new Date(ts);
             syncFreshness();
-            ensureOtherStores().then(() => renderModelsStep());
+            ensureOtherStores().then(() => {
+                renderModelsStep();
+                resolveNetworkStoreDetails().then(() => {
+                    if (step === 'models') renderModelsStep();
+                });
+            });
         } else {
             bodyEl.innerHTML = UI.buildEmptyState('📱', 'Χωρίς δεδομένα', 'Πατήστε Ανανέωση για φόρτωση');
             setStatus('Πατήστε ανανέωση');
