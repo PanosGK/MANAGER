@@ -26317,11 +26317,14 @@ window.initOrderTracking = initOrderTracking;
             overflow: hidden;
         }
         .tm-sl-network-detail-head {
-            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
+            display: flex; flex-direction: column; align-items: stretch; gap: 6px;
             padding: 8px 12px;
             border-bottom: 1px solid var(--tm-shop-item-border);
             background: color-mix(in srgb, var(--tm-shop-item-border) 6%, var(--tm-shop-item-bg));
             flex-shrink: 0;
+        }
+        .tm-sl-network-detail-head__row {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
         }
         .tm-sl-network-detail-head h3 {
             margin: 0; font-size: 14px; font-weight: 800; line-height: 1.2;
@@ -26329,8 +26332,26 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-network-detail-head__meta {
             display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 11px;
         }
+        .tm-sl-chips--network-detail {
+            display: flex; flex-wrap: wrap; gap: 4px; margin: 0;
+            padding-top: 4px;
+            border-top: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 45%, transparent);
+        }
+        .tm-sl-chips--network-detail .tm-sl-chip {
+            padding: 4px 9px; font-size: 11px;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-toolbar:has(#tm-sl-back:only-child) {
+            padding: 6px 10px;
+        }
         .tm-sl-network-detail-table-wrap {
             flex: 1; min-height: 0; overflow: auto;
+        }
+        #tm-sl-network-table-root {
+            flex: 1; min-height: 0; overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+        #tm-sl-network-table-root .tm-sl-network-detail-table-wrap {
+            flex: 1; min-height: 0;
         }
         .tm-sl-unit-table {
             width: 100%; border-collapse: collapse;
@@ -27187,7 +27208,10 @@ window.initOrderTracking = initOrderTracking;
             <div class="tm-sl-toolbar-row tm-sl-sort-pills">${pills}</div>`;
     }
 
-    function buildStoreToolbar(modelName, chipsHtml) {
+    function buildStoreToolbar(modelName, chipsHtml, opts) {
+        if (opts?.network) {
+            return `<button type="button" id="tm-sl-back" class="tm-sl-btn tm-sl-btn--back">${ICON.back} Μοντέλα</button>`;
+        }
         return `
             <button type="button" id="tm-sl-back" class="tm-sl-btn tm-sl-btn--back">${ICON.back} Μοντέλα</button>
             <div class="tm-sl-chips" id="tm-sl-chips">${chipsHtml || ''}</div>`;
@@ -27596,24 +27620,25 @@ window.initOrderTracking = initOrderTracking;
         </tr>`;
     }
 
-    function buildNetworkStoreDetail(store, ctx) {
+    function buildNetworkStoreMetaInner(store, ctx) {
         const bbBadge = ctx?.showPurchaseStatus ? buildStoreHeadPurchaseBadge(store, true) : '';
         const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
         const distLabel = ctx?.showDistance && myStore
             ? window.getStoreDistanceLabel?.(myStore, store.name)
             : '';
         const qtyLabel = store.variants.length === 1 ? '1 τεμ.' : `${store.variants.length} τεμ.`;
-        const rows = store.variants.map((v) => buildNetworkUnitTableRow(v, ctx)).join('');
 
-        return `<div class="tm-sl-network-detail-head">
-            <h3>${esc(store.name)}</h3>
-            <div class="tm-sl-network-detail-head__meta">
+        return `<h3 id="tm-sl-network-store-title">${esc(store.name)}</h3>
+            <div class="tm-sl-network-detail-head__meta" id="tm-sl-network-store-meta">
                 ${distLabel ? `<span class="tm-sl-store-dist">${esc(distLabel)}</span>` : ''}
                 ${bbBadge}
                 <span>${qtyLabel}</span>
-            </div>
-        </div>
-        <div class="tm-sl-network-detail-table-wrap">
+            </div>`;
+    }
+
+    function buildNetworkStoreTable(store, ctx) {
+        const rows = store.variants.map((v) => buildNetworkUnitTableRow(v, ctx)).join('');
+        return `<div class="tm-sl-network-detail-table-wrap">
             <table class="tm-sl-unit-table">
                 <thead>
                     <tr>
@@ -27628,6 +27653,18 @@ window.initOrderTracking = initOrderTracking;
                 </thead>
                 <tbody>${rows}</tbody>
             </table>
+        </div>`;
+    }
+
+    function buildNetworkDetailHead(store, ctx) {
+        const chipsHtml = ctx?.filterChipsHtml || '';
+        const filterBlock = chipsHtml
+            ? `<div class="tm-sl-chips tm-sl-chips--network-detail" id="tm-sl-network-filters">${chipsHtml}</div>`
+            : '';
+
+        return `<div class="tm-sl-network-detail-head">
+            <div class="tm-sl-network-detail-head__row">${buildNetworkStoreMetaInner(store, ctx)}</div>
+            ${filterBlock}
         </div>`;
     }
 
@@ -27656,7 +27693,10 @@ window.initOrderTracking = initOrderTracking;
         }
         const navHtml = storeRows.map((store, idx) => buildNetworkStoreNavItem(store, idx, ctx, idx === 0)).join('');
         const panelsHtml = storeRows.map((store, idx) =>
-            `<div class="tm-sl-network-panel" data-tm-sl-store-panel="${idx}">${buildNetworkStoreDetail(store, ctx)}</div>`
+            `<div class="tm-sl-network-panel" data-tm-sl-store-panel="${idx}">
+                <div class="tm-sl-network-panel-meta">${buildNetworkStoreMetaInner(store, ctx)}</div>
+                ${buildNetworkStoreTable(store, ctx)}
+            </div>`
         ).join('');
 
         return `<div class="tm-sl-network-board">
@@ -27664,7 +27704,10 @@ window.initOrderTracking = initOrderTracking;
                 <div class="tm-sl-network-stores__label">Καταστήματα · ${storeRows.length}</div>
                 ${navHtml}
             </aside>
-            <main class="tm-sl-network-detail" id="tm-sl-network-detail" role="tabpanel"></main>
+            <main class="tm-sl-network-detail" id="tm-sl-network-detail" role="tabpanel">
+                ${buildNetworkDetailHead(storeRows[0], ctx)}
+                <div id="tm-sl-network-table-root">${buildNetworkStoreTable(storeRows[0], ctx)}</div>
+            </main>
             <div class="tm-sl-network-panels" hidden aria-hidden="true">${panelsHtml}</div>
         </div>`;
     }
@@ -32476,7 +32519,14 @@ if (document.body) {
                 });
                 const panel = panelsRoot?.querySelector(`[data-tm-sl-store-panel="${idx}"]`);
                 if (panel && detailEl) {
-                    detailEl.innerHTML = panel.innerHTML;
+                    const metaRow = detailEl.querySelector('.tm-sl-network-detail-head__row');
+                    const panelMeta = panel.querySelector('.tm-sl-network-panel-meta');
+                    if (metaRow && panelMeta) metaRow.innerHTML = panelMeta.innerHTML;
+
+                    const tableRoot = detailEl.querySelector('#tm-sl-network-table-root');
+                    const panelTable = panel.querySelector('.tm-sl-network-detail-table-wrap');
+                    if (tableRoot && panelTable) tableRoot.innerHTML = panelTable.outerHTML;
+
                     wireUnitActions();
                 }
             };
@@ -32502,9 +32552,31 @@ if (document.body) {
                 }
             });
 
-            if (navItems.length) selectStore(navItems[0].dataset.tmSlSelectStore);
-            else wireUnitActions();
+            if (navItems.length) {
+                navItems[0].classList.add('is-active');
+                navItems[0].setAttribute('aria-selected', 'true');
+                navItems[0].tabIndex = 0;
+                wireUnitActions();
+            } else {
+                wireUnitActions();
+            }
             return true;
+        }
+
+        function wireFilterChips(root) {
+            if (!root) return;
+            root.querySelectorAll('[data-tm-sl-filter]').forEach((chip) => {
+                chip.addEventListener('click', () => {
+                    const key = chip.getAttribute('data-tm-sl-filter');
+                    if (key === 'clear') {
+                        activeFilters = { grade: '', gb: '', color: '' };
+                    } else {
+                        const val = chip.getAttribute('data-tm-sl-value') || '';
+                        activeFilters[key] = activeFilters[key] === val ? '' : val;
+                    }
+                    renderStoresStep();
+                });
+            });
         }
 
         function wireStoreBoard() {
@@ -32638,25 +32710,17 @@ if (document.body) {
             const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers, catalogView);
             const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers, catalogView);
             const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({ counts: filterCounts }));
-            toolbarEl.innerHTML = UI.buildStoreToolbar(selectedModel, chipsHtml);
+            const isNetwork = catalogView === 'network';
+            toolbarEl.innerHTML = UI.buildStoreToolbar(selectedModel, chipsHtml, { network: isNetwork });
 
             toolbarEl.querySelector('#tm-sl-back')?.addEventListener('click', () => {
                 activeFilters = { grade: '', gb: '', color: '' };
                 renderModelsStep();
             });
 
-            toolbarEl.querySelectorAll('[data-tm-sl-filter]').forEach((chip) => {
-                chip.addEventListener('click', () => {
-                    const key = chip.getAttribute('data-tm-sl-filter');
-                    if (key === 'clear') {
-                        activeFilters = { grade: '', gb: '', color: '' };
-                    } else {
-                        const val = chip.getAttribute('data-tm-sl-value') || '';
-                        activeFilters[key] = activeFilters[key] === val ? '' : val;
-                    }
-                    renderStoresStep();
-                });
-            });
+            if (!isNetwork) {
+                wireFilterChips(toolbarEl);
+            }
 
             if (catalogView === 'mine') {
                 const variants = buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
@@ -32677,11 +32741,13 @@ if (document.body) {
                 showPurchaseStatus: true,
                 hideStoreInUnits: true,
                 showDistance: true,
+                filterChipsHtml: chipsHtml,
             }));
 
             const storeCount = storeRows.length;
             setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} στο δίκτυο`);
             wireStoreBoard();
+            wireFilterChips(bodyEl.querySelector('#tm-sl-network-filters'));
         }
 
         async function ensureOtherStores() {

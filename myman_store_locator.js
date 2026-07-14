@@ -571,7 +571,14 @@
                 });
                 const panel = panelsRoot?.querySelector(`[data-tm-sl-store-panel="${idx}"]`);
                 if (panel && detailEl) {
-                    detailEl.innerHTML = panel.innerHTML;
+                    const metaRow = detailEl.querySelector('.tm-sl-network-detail-head__row');
+                    const panelMeta = panel.querySelector('.tm-sl-network-panel-meta');
+                    if (metaRow && panelMeta) metaRow.innerHTML = panelMeta.innerHTML;
+
+                    const tableRoot = detailEl.querySelector('#tm-sl-network-table-root');
+                    const panelTable = panel.querySelector('.tm-sl-network-detail-table-wrap');
+                    if (tableRoot && panelTable) tableRoot.innerHTML = panelTable.outerHTML;
+
                     wireUnitActions();
                 }
             };
@@ -597,9 +604,31 @@
                 }
             });
 
-            if (navItems.length) selectStore(navItems[0].dataset.tmSlSelectStore);
-            else wireUnitActions();
+            if (navItems.length) {
+                navItems[0].classList.add('is-active');
+                navItems[0].setAttribute('aria-selected', 'true');
+                navItems[0].tabIndex = 0;
+                wireUnitActions();
+            } else {
+                wireUnitActions();
+            }
             return true;
+        }
+
+        function wireFilterChips(root) {
+            if (!root) return;
+            root.querySelectorAll('[data-tm-sl-filter]').forEach((chip) => {
+                chip.addEventListener('click', () => {
+                    const key = chip.getAttribute('data-tm-sl-filter');
+                    if (key === 'clear') {
+                        activeFilters = { grade: '', gb: '', color: '' };
+                    } else {
+                        const val = chip.getAttribute('data-tm-sl-value') || '';
+                        activeFilters[key] = activeFilters[key] === val ? '' : val;
+                    }
+                    renderStoresStep();
+                });
+            });
         }
 
         function wireStoreBoard() {
@@ -733,25 +762,17 @@
             const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers, catalogView);
             const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers, catalogView);
             const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({ counts: filterCounts }));
-            toolbarEl.innerHTML = UI.buildStoreToolbar(selectedModel, chipsHtml);
+            const isNetwork = catalogView === 'network';
+            toolbarEl.innerHTML = UI.buildStoreToolbar(selectedModel, chipsHtml, { network: isNetwork });
 
             toolbarEl.querySelector('#tm-sl-back')?.addEventListener('click', () => {
                 activeFilters = { grade: '', gb: '', color: '' };
                 renderModelsStep();
             });
 
-            toolbarEl.querySelectorAll('[data-tm-sl-filter]').forEach((chip) => {
-                chip.addEventListener('click', () => {
-                    const key = chip.getAttribute('data-tm-sl-filter');
-                    if (key === 'clear') {
-                        activeFilters = { grade: '', gb: '', color: '' };
-                    } else {
-                        const val = chip.getAttribute('data-tm-sl-value') || '';
-                        activeFilters[key] = activeFilters[key] === val ? '' : val;
-                    }
-                    renderStoresStep();
-                });
-            });
+            if (!isNetwork) {
+                wireFilterChips(toolbarEl);
+            }
 
             if (catalogView === 'mine') {
                 const variants = buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
@@ -772,11 +793,13 @@
                 showPurchaseStatus: true,
                 hideStoreInUnits: true,
                 showDistance: true,
+                filterChipsHtml: chipsHtml,
             }));
 
             const storeCount = storeRows.length;
             setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} στο δίκτυο`);
             wireStoreBoard();
+            wireFilterChips(bodyEl.querySelector('#tm-sl-network-filters'));
         }
 
         async function ensureOtherStores() {
