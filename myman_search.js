@@ -235,28 +235,25 @@
         }
 
         function cloneNativeMenuItem(templateLi, label) {
+            if (typeof window.createSuiteMenuItem === 'function') {
+                return window.createSuiteMenuItem(templateLi, label, 'super-search');
+            }
             const li = templateLi.cloneNode(true);
             li.classList.remove('current', 'expanded');
             li.removeAttribute('id');
             li.querySelectorAll(':scope > ul').forEach((ul) => ul.remove());
-
             const link = li.querySelector(':scope > div > div > a[href], :scope > div a[href], :scope > a[href]');
             if (link) {
-                const icon = link.querySelector('img.menu-icon');
                 link.setAttribute('href', '#');
-                link.innerHTML = '';
-                if (icon) {
-                    link.appendChild(icon.cloneNode(true));
-                    link.appendChild(document.createTextNode(` ${label}`));
-                } else {
-                    link.textContent = label;
-                }
+                link.textContent = label;
             }
-
             return li;
         }
 
         function createFallbackMenuItem(label) {
+            if (typeof window.createSuiteMenuItem === 'function') {
+                return window.createSuiteMenuItem(null, label, 'super-search');
+            }
             const li = document.createElement('li');
             li.innerHTML = `<div><div><a href="#">${label}</a></div></div>`;
             return li;
@@ -332,15 +329,10 @@
                 else menu.appendChild(item);
             } else {
                 const link = item.querySelector('a[href]');
-                if (link) {
-                    const icon = link.querySelector('img.menu-icon');
-                    link.innerHTML = '';
-                    if (icon) {
-                        link.appendChild(icon.cloneNode(true));
-                        link.appendChild(document.createTextNode(` ${label}`));
-                    } else {
-                        link.textContent = label;
-                    }
+                if (link && typeof window.populateSuiteMenuLink === 'function') {
+                    window.populateSuiteMenuLink(link, label, 'super-search');
+                } else if (link) {
+                    link.textContent = label;
                 }
                 if (!item.parentElement) {
                     const insertBefore = findSearchMenuInsertPoint(menu);

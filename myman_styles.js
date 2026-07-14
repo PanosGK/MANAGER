@@ -1352,6 +1352,18 @@
                 pointer-events: auto;
             }
 
+            /* Suite custom left-menu icons (super search, phone catalog) */
+            img.tm-suite-menu-icon.menu-icon {
+                width: 16px;
+                height: 16px;
+                max-width: 16px;
+                max-height: 16px;
+                display: inline;
+                vertical-align: text-bottom;
+                object-fit: contain;
+                flex-shrink: 0;
+            }
+
             /* Modal Styles */
             .tm-modal-overlay {
                 position: fixed; top: 0; left: 0; width: 100%; height: 100%;
