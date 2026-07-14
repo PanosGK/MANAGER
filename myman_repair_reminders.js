@@ -176,6 +176,9 @@
     }
 
     function activateBannerForReminder(r, STORAGE_KEYS) {
+        if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+            return;
+        }
         const banners = loadActiveBanners(STORAGE_KEYS);
         if (banners.some((b) => b.reminderId === r.id)) return;
 
@@ -285,6 +288,10 @@
     }
 
     function renderActiveReminderBanners(STORAGE_KEYS) {
+        if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+            document.getElementById('tm-repair-reminder-banner-root')?.remove();
+            return;
+        }
         const banners = loadActiveBanners(STORAGE_KEYS);
         document.getElementById('tm-repair-reminder-banner-root')?.remove();
 

@@ -4277,6 +4277,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
      * @param {object} [options] Optional snooze/dismiss handlers (see showFullScreenNotificationOverlay).
      */
     function showNotification(title, body, options) {
+        if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+            return;
+        }
+
         showFullScreenNotificationOverlay(title, body, options);
 
         if (!("Notification" in window)) {
@@ -10244,9 +10248,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             saveCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
             saveCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             saveCheckbox('tm-setting-hidden-menu-enabled', 'hiddenMenuItemsEnabled');
+            saveCheckbox('tm-setting-notifications-enabled', 'notificationsEnabled');
             saveCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
             saveCheckbox('tm-setting-customer-history-enabled', 'customerHistoryEnabled');
             saveCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
+            saveCheckbox('tm-setting-repair-list-quickview-enabled', 'repairListQuickViewEnabled');
             saveNumber('tm-setting-recent-repairs-max', 'recentRepairsMaxItems');
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             saveCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
@@ -10407,6 +10413,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         <div class="tm-setting-control">
                             <input type="checkbox" id="tm-setting-script-enabled" style="transform: scale(1.3);">
                         </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-notifications-enabled">🔔 Ειδοποιήσεις</label>
+                            <p class="tm-setting-description">Εμφανίζει το κουμπί 🔔 και όλες τις εισερχόμενες ειδοποιήσεις (popups, achievements, υπενθυμίσεις). Απενεργοποιήστε για ήσυχη λειτουργία.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-notifications-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -10582,6 +10595,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <p class="tm-setting-description">Προσθέτει κουμπί για γρήγορη πρόσβαση στις πρόσφατες επισκευές.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-recent-repairs-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-repair-list-quickview-enabled">👁 Γρήγορη Προβολή Λίστας</label>
+                            <p class="tm-setting-description">Εμφανίζει το κουμπί 👁 σε κάθε γραμμή λίστας επισκευών για προεπισκόπηση χωρίς αλλαγή σελίδας.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-repair-list-quickview-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -11120,6 +11140,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             populateCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
             populateCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             populateCheckbox('tm-setting-hidden-menu-enabled', 'hiddenMenuItemsEnabled');
+            populateCheckbox('tm-setting-notifications-enabled', 'notificationsEnabled');
             overlay.querySelector('#tm-manage-hidden-menu-btn')?.addEventListener('click', () => {
                 if (typeof window.showHiddenMenuItemsModal === 'function') {
                     window.showHiddenMenuItemsModal(STORAGE_KEYS);
@@ -11130,6 +11151,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             populateCheckbox('tm-setting-quick-search-enabled', 'quickSearchEnabled');
             populateCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
             populateCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
+            populateCheckbox('tm-setting-repair-list-quickview-enabled', 'repairListQuickViewEnabled');
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             populateCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
@@ -11152,6 +11174,30 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             window.initGamificationSettings(config, STORAGE_KEYS);
             
             // Add event listener to recent repairs checkbox to update UI immediately
+            const notificationsCheckbox = document.getElementById('tm-setting-notifications-enabled');
+            if (notificationsCheckbox) {
+                notificationsCheckbox.addEventListener('change', () => {
+                    const value = notificationsCheckbox.checked;
+                    GM_setValue('notificationsEnabled', value);
+                    config.notificationsEnabled = value;
+                    if (typeof window.updateNotificationUIVisibility === 'function') {
+                        window.updateNotificationUIVisibility(config);
+                    }
+                });
+            }
+
+            const quickViewCheckbox = document.getElementById('tm-setting-repair-list-quickview-enabled');
+            if (quickViewCheckbox) {
+                quickViewCheckbox.addEventListener('change', () => {
+                    const value = quickViewCheckbox.checked;
+                    GM_setValue('repairListQuickViewEnabled', value);
+                    config.repairListQuickViewEnabled = value;
+                    if (typeof window.updateRepairListQuickViewVisibility === 'function') {
+                        window.updateRepairListQuickViewVisibility(config);
+                    }
+                });
+            }
+
             const recentRepairsCheckbox = document.getElementById('tm-setting-recent-repairs-enabled');
             if (recentRepairsCheckbox) {
                 recentRepairsCheckbox.addEventListener('change', () => {
@@ -11644,6 +11690,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 window.toggleNotificationPanel();
             });
             window.updateNotificationBadge();
+            if (typeof window.updateNotificationUIVisibility === 'function') {
+                window.updateNotificationUIVisibility(config);
+            }
 
             const button = document.createElement('button');
             button.id = 'tm-settings-btn';
@@ -22538,10 +22587,22 @@ window.alert = function(...args) {
 };
 
 function queueNotification(type, data) {
+    if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+        return;
+    }
     notificationQueue.push({ type, data });
     if (!isDialogOpen && !isShowingNotification) {
         processNotificationQueue();
     }
+}
+
+function clearNotificationQueue() {
+    notificationQueue.length = 0;
+    isShowingNotification = false;
+    document.getElementById('tm-achievement-notification')?.classList.remove('show');
+    document.getElementById('tm-level-up-overlay')?.remove();
+    const positive = document.getElementById('tm-positive-message');
+    if (positive) positive.style.opacity = '0';
 }
 
 function processNotificationQueue() {
@@ -22860,6 +22921,9 @@ function triggerLevelUpAnimation(newLevel, oldLevel, STORAGE_KEYS, rewards = [],
 }
 
 function triggerLevelUpAnimationImmediate(newLevel, oldLevel, STORAGE_KEYS, rewards = [], isLegendary = false) {
+    if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+        return;
+    }
     const overlay = document.createElement('div');
     overlay.id = 'tm-level-up-overlay';
 
@@ -23533,6 +23597,9 @@ function showAchievementNotification(message, xp = 0) {
 }
 
 function showAchievementNotificationImmediate(message, xp = 0) {
+    if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+        return;
+    }
     // New: Log this to the notification center
     if (typeof createNotification === 'function') {
         createNotification(message, '✨');
@@ -25236,6 +25303,7 @@ const GAMIFICATION_PRESET_KEYS = [
     'achievementsEnabled',
     'confettiEnabled',
     'randomEventsEnabled',
+    'notificationsEnabled',
 ];
 
 const GAMIFICATION_PRESET_CHECKBOX_IDS = {
@@ -25245,10 +25313,15 @@ const GAMIFICATION_PRESET_CHECKBOX_IDS = {
     achievementsEnabled: 'tm-setting-achievements-enabled',
     confettiEnabled: 'tm-setting-confetti-enabled',
     randomEventsEnabled: 'tm-setting-random-events-enabled',
+    notificationsEnabled: 'tm-setting-notifications-enabled',
 };
 
 function updateGamificationLayerVisibility(config) {
     updateShopButtonVisibility(config);
+
+    if (typeof window.updateNotificationUIVisibility === 'function') {
+        window.updateNotificationUIVisibility(config);
+    }
 
     const xpBar = document.getElementById('tm-xp-bar-container');
     if (xpBar) {
@@ -25275,6 +25348,7 @@ function applyGamificationPreset(preset, config, STORAGE_KEYS) {
             achievementsEnabled: false,
             confettiEnabled: false,
             randomEventsEnabled: false,
+            notificationsEnabled: false,
         }
         : {
             levelUpSystemEnabled: true,
@@ -25283,6 +25357,7 @@ function applyGamificationPreset(preset, config, STORAGE_KEYS) {
             achievementsEnabled: true,
             confettiEnabled: true,
             randomEventsEnabled: true,
+            notificationsEnabled: true,
         };
 
     GAMIFICATION_PRESET_KEYS.forEach((key) => {
@@ -25730,6 +25805,11 @@ function checkRandomEvent(config, STORAGE_KEYS) {
 }
 
 function updateEventNotification(eventData) {
+    if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+        document.getElementById('tm-event-notification')?.remove();
+        return;
+    }
+
     let container = document.getElementById('tm-event-notification');
     
     if (!eventData) {
@@ -27380,6 +27460,7 @@ window.triggerLevelUpAnimation = triggerLevelUpAnimation;
 window.updateCoinBalanceUI = updateCoinBalanceUI;
 window.showAchievementNotification = showAchievementNotification;
 window.queueNotification = queueNotification;
+window.clearNotificationQueue = clearNotificationQueue;
 window.processNotificationQueue = processNotificationQueue;
 window.isMmsNotificationActive = isMmsNotificationActive;
 window.initOrderTracking = initOrderTracking;
@@ -40552,6 +40633,9 @@ if (typeof window !== 'undefined') {
     }
 
     function activateBannerForReminder(r, STORAGE_KEYS) {
+        if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+            return;
+        }
         const banners = loadActiveBanners(STORAGE_KEYS);
         if (banners.some((b) => b.reminderId === r.id)) return;
 
@@ -40661,6 +40745,10 @@ if (typeof window !== 'undefined') {
     }
 
     function renderActiveReminderBanners(STORAGE_KEYS) {
+        if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+            document.getElementById('tm-repair-reminder-banner-root')?.remove();
+            return;
+        }
         const banners = loadActiveBanners(STORAGE_KEYS);
         document.getElementById('tm-repair-reminder-banner-root')?.remove();
 
@@ -41752,6 +41840,7 @@ if (typeof window !== 'undefined') {
         hiddenMenuItemsEnabled: true,
         // Recent Repairs & Age Indicator
         recentRepairsEnabled: true,
+        repairListQuickViewEnabled: true,
         repairAgeIndicatorEnabled: true,
         recentRepairsMaxItems: 5,
         // Weather Widget
@@ -41763,6 +41852,7 @@ if (typeof window !== 'undefined') {
         returnTo40ButtonEnabled: true,
         eodChecklistEnabled: true,
         autoUpdateCheckEnabled: true,
+        notificationsEnabled: true,
         // Price dropdown options for repair page
         priceOptions: [
             { label: 'Καθαρισμός', value: 35, action: 'add', condition: 'default' },
@@ -42062,7 +42152,33 @@ if (typeof window !== 'undefined') {
     // ===================================================================
     // === 4a. FEATURE: NOTIFICATION CENTER
     // ===================================================================
+    function areNotificationsEnabled() {
+        return config?.notificationsEnabled !== false;
+    }
+    window.areNotificationsEnabled = areNotificationsEnabled;
+
+    function updateNotificationUIVisibility(cfg = config) {
+        const enabled = cfg?.notificationsEnabled !== false;
+        const bell = document.getElementById('tm-notification-bell-wrapper');
+        if (bell) bell.style.display = enabled ? '' : 'none';
+
+        if (!enabled) {
+            closeNotificationPanel();
+            if (typeof window.closeFullScreenNotificationOverlay === 'function') {
+                window.closeFullScreenNotificationOverlay();
+            }
+            if (typeof window.clearNotificationQueue === 'function') {
+                window.clearNotificationQueue();
+            }
+            document.getElementById('tm-event-notification')?.remove();
+            document.getElementById('tm-repair-reminder-banner-root')?.remove();
+        }
+    }
+    window.updateNotificationUIVisibility = updateNotificationUIVisibility;
+
     function createNotification(message, icon = '🔔', options = {}) {
+        if (!areNotificationsEnabled()) return null;
+
         let notifications = JSON.parse(GM_getValue(STORAGE_KEYS.USER_NOTIFICATIONS, '[]'));
 
         const dedupeId = options.id;
@@ -42507,6 +42623,7 @@ if (typeof window !== 'undefined') {
     window.closeNotificationPanel = closeNotificationPanel;
 
     function openNotificationPanel() {
+        if (!areNotificationsEnabled()) return;
         if (document.getElementById('tm-notification-panel')) return;
         if (!document.getElementById('tm-notification-bell-wrapper')) return;
 
@@ -42667,6 +42784,7 @@ if (typeof window !== 'undefined') {
     }
 
     function toggleNotificationPanel() {
+        if (!areNotificationsEnabled()) return;
         if (document.getElementById('tm-notification-panel')) {
             closeNotificationPanel();
         } else {
@@ -45662,7 +45780,30 @@ if (typeof window !== 'undefined') {
     }
     
     // ── Quick View buttons on the repair list table ──────────────────────────
+    let _tmQvInjected = new Set();
+    let _tmQvObserver = null;
+
+    function updateRepairListQuickViewVisibility(cfg = config) {
+        if (cfg?.repairListQuickViewEnabled === false) {
+            document.querySelectorAll('.tm-qv-row-btn').forEach((btn) => btn.remove());
+            document.getElementById('tm-quickview-modal')?.remove();
+            _tmQvObserver?.disconnect();
+            _tmQvObserver = null;
+            _tmQvInjected.clear();
+            return;
+        }
+
+        if (document.querySelector('tr.rnr-row[data-href]')) {
+            _tmQvObserver?.disconnect();
+            _tmQvObserver = null;
+            _tmQvInjected.clear();
+            initRepairListQuickView();
+        }
+    }
+    window.updateRepairListQuickViewVisibility = updateRepairListQuickViewVisibility;
+
     function initRepairListQuickView() {
+        if (config?.repairListQuickViewEnabled === false) return;
         // Only run on pages that have the repairs grid
         if (!document.querySelector('tr.rnr-row[data-href]')) return;
 
@@ -45694,9 +45835,10 @@ if (typeof window !== 'undefined') {
             document.head.appendChild(s);
         }
 
-        const injected = new Set();
+        const injected = _tmQvInjected;
 
         function injectButtons() {
+            if (config?.repairListQuickViewEnabled === false) return;
             document.querySelectorAll('tr.rnr-row[data-href]').forEach(row => {
                 const href = row.getAttribute('data-href');
                 if (!href || injected.has(row)) return;
@@ -45730,7 +45872,9 @@ if (typeof window !== 'undefined') {
         // Watch for rows added by pagination / filtering
         const tbody = document.querySelector('tbody');
         if (tbody) {
-            new MutationObserver(injectButtons).observe(tbody, { childList: true, subtree: true });
+            _tmQvObserver?.disconnect();
+            _tmQvObserver = new MutationObserver(injectButtons);
+            _tmQvObserver.observe(tbody, { childList: true, subtree: true });
         }
     }
 

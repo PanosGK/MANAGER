@@ -135,6 +135,7 @@
         hiddenMenuItemsEnabled: true,
         // Recent Repairs & Age Indicator
         recentRepairsEnabled: true,
+        repairListQuickViewEnabled: true,
         repairAgeIndicatorEnabled: true,
         recentRepairsMaxItems: 5,
         // Weather Widget
@@ -146,6 +147,7 @@
         returnTo40ButtonEnabled: true,
         eodChecklistEnabled: true,
         autoUpdateCheckEnabled: true,
+        notificationsEnabled: true,
         // Price dropdown options for repair page
         priceOptions: [
             { label: 'Καθαρισμός', value: 35, action: 'add', condition: 'default' },
@@ -445,7 +447,33 @@
     // ===================================================================
     // === 4a. FEATURE: NOTIFICATION CENTER
     // ===================================================================
+    function areNotificationsEnabled() {
+        return config?.notificationsEnabled !== false;
+    }
+    window.areNotificationsEnabled = areNotificationsEnabled;
+
+    function updateNotificationUIVisibility(cfg = config) {
+        const enabled = cfg?.notificationsEnabled !== false;
+        const bell = document.getElementById('tm-notification-bell-wrapper');
+        if (bell) bell.style.display = enabled ? '' : 'none';
+
+        if (!enabled) {
+            closeNotificationPanel();
+            if (typeof window.closeFullScreenNotificationOverlay === 'function') {
+                window.closeFullScreenNotificationOverlay();
+            }
+            if (typeof window.clearNotificationQueue === 'function') {
+                window.clearNotificationQueue();
+            }
+            document.getElementById('tm-event-notification')?.remove();
+            document.getElementById('tm-repair-reminder-banner-root')?.remove();
+        }
+    }
+    window.updateNotificationUIVisibility = updateNotificationUIVisibility;
+
     function createNotification(message, icon = '🔔', options = {}) {
+        if (!areNotificationsEnabled()) return null;
+
         let notifications = JSON.parse(GM_getValue(STORAGE_KEYS.USER_NOTIFICATIONS, '[]'));
 
         const dedupeId = options.id;
@@ -890,6 +918,7 @@
     window.closeNotificationPanel = closeNotificationPanel;
 
     function openNotificationPanel() {
+        if (!areNotificationsEnabled()) return;
         if (document.getElementById('tm-notification-panel')) return;
         if (!document.getElementById('tm-notification-bell-wrapper')) return;
 
@@ -1050,6 +1079,7 @@
     }
 
     function toggleNotificationPanel() {
+        if (!areNotificationsEnabled()) return;
         if (document.getElementById('tm-notification-panel')) {
             closeNotificationPanel();
         } else {
@@ -4045,7 +4075,30 @@
     }
     
     // ── Quick View buttons on the repair list table ──────────────────────────
+    let _tmQvInjected = new Set();
+    let _tmQvObserver = null;
+
+    function updateRepairListQuickViewVisibility(cfg = config) {
+        if (cfg?.repairListQuickViewEnabled === false) {
+            document.querySelectorAll('.tm-qv-row-btn').forEach((btn) => btn.remove());
+            document.getElementById('tm-quickview-modal')?.remove();
+            _tmQvObserver?.disconnect();
+            _tmQvObserver = null;
+            _tmQvInjected.clear();
+            return;
+        }
+
+        if (document.querySelector('tr.rnr-row[data-href]')) {
+            _tmQvObserver?.disconnect();
+            _tmQvObserver = null;
+            _tmQvInjected.clear();
+            initRepairListQuickView();
+        }
+    }
+    window.updateRepairListQuickViewVisibility = updateRepairListQuickViewVisibility;
+
     function initRepairListQuickView() {
+        if (config?.repairListQuickViewEnabled === false) return;
         // Only run on pages that have the repairs grid
         if (!document.querySelector('tr.rnr-row[data-href]')) return;
 
@@ -4077,9 +4130,10 @@
             document.head.appendChild(s);
         }
 
-        const injected = new Set();
+        const injected = _tmQvInjected;
 
         function injectButtons() {
+            if (config?.repairListQuickViewEnabled === false) return;
             document.querySelectorAll('tr.rnr-row[data-href]').forEach(row => {
                 const href = row.getAttribute('data-href');
                 if (!href || injected.has(row)) return;
@@ -4113,7 +4167,9 @@
         // Watch for rows added by pagination / filtering
         const tbody = document.querySelector('tbody');
         if (tbody) {
-            new MutationObserver(injectButtons).observe(tbody, { childList: true, subtree: true });
+            _tmQvObserver?.disconnect();
+            _tmQvObserver = new MutationObserver(injectButtons);
+            _tmQvObserver.observe(tbody, { childList: true, subtree: true });
         }
     }
 

@@ -740,10 +740,22 @@ window.alert = function(...args) {
 };
 
 function queueNotification(type, data) {
+    if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+        return;
+    }
     notificationQueue.push({ type, data });
     if (!isDialogOpen && !isShowingNotification) {
         processNotificationQueue();
     }
+}
+
+function clearNotificationQueue() {
+    notificationQueue.length = 0;
+    isShowingNotification = false;
+    document.getElementById('tm-achievement-notification')?.classList.remove('show');
+    document.getElementById('tm-level-up-overlay')?.remove();
+    const positive = document.getElementById('tm-positive-message');
+    if (positive) positive.style.opacity = '0';
 }
 
 function processNotificationQueue() {
@@ -1062,6 +1074,9 @@ function triggerLevelUpAnimation(newLevel, oldLevel, STORAGE_KEYS, rewards = [],
 }
 
 function triggerLevelUpAnimationImmediate(newLevel, oldLevel, STORAGE_KEYS, rewards = [], isLegendary = false) {
+    if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+        return;
+    }
     const overlay = document.createElement('div');
     overlay.id = 'tm-level-up-overlay';
 
@@ -1735,6 +1750,9 @@ function showAchievementNotification(message, xp = 0) {
 }
 
 function showAchievementNotificationImmediate(message, xp = 0) {
+    if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+        return;
+    }
     // New: Log this to the notification center
     if (typeof createNotification === 'function') {
         createNotification(message, '✨');
@@ -3438,6 +3456,7 @@ const GAMIFICATION_PRESET_KEYS = [
     'achievementsEnabled',
     'confettiEnabled',
     'randomEventsEnabled',
+    'notificationsEnabled',
 ];
 
 const GAMIFICATION_PRESET_CHECKBOX_IDS = {
@@ -3447,10 +3466,15 @@ const GAMIFICATION_PRESET_CHECKBOX_IDS = {
     achievementsEnabled: 'tm-setting-achievements-enabled',
     confettiEnabled: 'tm-setting-confetti-enabled',
     randomEventsEnabled: 'tm-setting-random-events-enabled',
+    notificationsEnabled: 'tm-setting-notifications-enabled',
 };
 
 function updateGamificationLayerVisibility(config) {
     updateShopButtonVisibility(config);
+
+    if (typeof window.updateNotificationUIVisibility === 'function') {
+        window.updateNotificationUIVisibility(config);
+    }
 
     const xpBar = document.getElementById('tm-xp-bar-container');
     if (xpBar) {
@@ -3477,6 +3501,7 @@ function applyGamificationPreset(preset, config, STORAGE_KEYS) {
             achievementsEnabled: false,
             confettiEnabled: false,
             randomEventsEnabled: false,
+            notificationsEnabled: false,
         }
         : {
             levelUpSystemEnabled: true,
@@ -3485,6 +3510,7 @@ function applyGamificationPreset(preset, config, STORAGE_KEYS) {
             achievementsEnabled: true,
             confettiEnabled: true,
             randomEventsEnabled: true,
+            notificationsEnabled: true,
         };
 
     GAMIFICATION_PRESET_KEYS.forEach((key) => {
@@ -3932,6 +3958,11 @@ function checkRandomEvent(config, STORAGE_KEYS) {
 }
 
 function updateEventNotification(eventData) {
+    if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+        document.getElementById('tm-event-notification')?.remove();
+        return;
+    }
+
     let container = document.getElementById('tm-event-notification');
     
     if (!eventData) {
@@ -5582,6 +5613,7 @@ window.triggerLevelUpAnimation = triggerLevelUpAnimation;
 window.updateCoinBalanceUI = updateCoinBalanceUI;
 window.showAchievementNotification = showAchievementNotification;
 window.queueNotification = queueNotification;
+window.clearNotificationQueue = clearNotificationQueue;
 window.processNotificationQueue = processNotificationQueue;
 window.isMmsNotificationActive = isMmsNotificationActive;
 window.initOrderTracking = initOrderTracking;

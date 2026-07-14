@@ -254,9 +254,11 @@
             saveCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
             saveCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             saveCheckbox('tm-setting-hidden-menu-enabled', 'hiddenMenuItemsEnabled');
+            saveCheckbox('tm-setting-notifications-enabled', 'notificationsEnabled');
             saveCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
             saveCheckbox('tm-setting-customer-history-enabled', 'customerHistoryEnabled');
             saveCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
+            saveCheckbox('tm-setting-repair-list-quickview-enabled', 'repairListQuickViewEnabled');
             saveNumber('tm-setting-recent-repairs-max', 'recentRepairsMaxItems');
             saveCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             saveCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
@@ -417,6 +419,13 @@
                         <div class="tm-setting-control">
                             <input type="checkbox" id="tm-setting-script-enabled" style="transform: scale(1.3);">
                         </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-notifications-enabled">🔔 Ειδοποιήσεις</label>
+                            <p class="tm-setting-description">Εμφανίζει το κουμπί 🔔 και όλες τις εισερχόμενες ειδοποιήσεις (popups, achievements, υπενθυμίσεις). Απενεργοποιήστε για ήσυχη λειτουργία.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-notifications-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -592,6 +601,13 @@
                             <p class="tm-setting-description">Προσθέτει κουμπί για γρήγορη πρόσβαση στις πρόσφατες επισκευές.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-recent-repairs-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-repair-list-quickview-enabled">👁 Γρήγορη Προβολή Λίστας</label>
+                            <p class="tm-setting-description">Εμφανίζει το κουμπί 👁 σε κάθε γραμμή λίστας επισκευών για προεπισκόπηση χωρίς αλλαγή σελίδας.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-repair-list-quickview-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -1130,6 +1146,7 @@
             populateCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
             populateCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             populateCheckbox('tm-setting-hidden-menu-enabled', 'hiddenMenuItemsEnabled');
+            populateCheckbox('tm-setting-notifications-enabled', 'notificationsEnabled');
             overlay.querySelector('#tm-manage-hidden-menu-btn')?.addEventListener('click', () => {
                 if (typeof window.showHiddenMenuItemsModal === 'function') {
                     window.showHiddenMenuItemsModal(STORAGE_KEYS);
@@ -1140,6 +1157,7 @@
             populateCheckbox('tm-setting-quick-search-enabled', 'quickSearchEnabled');
             populateCheckbox('tm-setting-scratchpad-enabled', 'scratchpadEnabled');
             populateCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
+            populateCheckbox('tm-setting-repair-list-quickview-enabled', 'repairListQuickViewEnabled');
             populateCheckbox('tm-setting-weather-widget-enabled', 'weatherWidgetEnabled');
             populateCheckbox('tm-setting-footer-quick-search-enabled', 'footerQuickSearchEnabled');
             populateCheckbox('tm-setting-phone-catalog-enabled', 'phoneCatalogEnabled');
@@ -1162,6 +1180,30 @@
             window.initGamificationSettings(config, STORAGE_KEYS);
             
             // Add event listener to recent repairs checkbox to update UI immediately
+            const notificationsCheckbox = document.getElementById('tm-setting-notifications-enabled');
+            if (notificationsCheckbox) {
+                notificationsCheckbox.addEventListener('change', () => {
+                    const value = notificationsCheckbox.checked;
+                    GM_setValue('notificationsEnabled', value);
+                    config.notificationsEnabled = value;
+                    if (typeof window.updateNotificationUIVisibility === 'function') {
+                        window.updateNotificationUIVisibility(config);
+                    }
+                });
+            }
+
+            const quickViewCheckbox = document.getElementById('tm-setting-repair-list-quickview-enabled');
+            if (quickViewCheckbox) {
+                quickViewCheckbox.addEventListener('change', () => {
+                    const value = quickViewCheckbox.checked;
+                    GM_setValue('repairListQuickViewEnabled', value);
+                    config.repairListQuickViewEnabled = value;
+                    if (typeof window.updateRepairListQuickViewVisibility === 'function') {
+                        window.updateRepairListQuickViewVisibility(config);
+                    }
+                });
+            }
+
             const recentRepairsCheckbox = document.getElementById('tm-setting-recent-repairs-enabled');
             if (recentRepairsCheckbox) {
                 recentRepairsCheckbox.addEventListener('change', () => {
@@ -1654,6 +1696,9 @@
                 window.toggleNotificationPanel();
             });
             window.updateNotificationBadge();
+            if (typeof window.updateNotificationUIVisibility === 'function') {
+                window.updateNotificationUIVisibility(config);
+            }
 
             const button = document.createElement('button');
             button.id = 'tm-settings-btn';

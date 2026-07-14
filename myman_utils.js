@@ -493,6 +493,10 @@
      * @param {object} [options] Optional snooze/dismiss handlers (see showFullScreenNotificationOverlay).
      */
     function showNotification(title, body, options) {
+        if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+            return;
+        }
+
         showFullScreenNotificationOverlay(title, body, options);
 
         if (!("Notification" in window)) {
