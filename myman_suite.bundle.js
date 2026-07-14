@@ -7256,6 +7256,23 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             .tm-repair-edit-title-row .tm-qs-host--repair {
                 flex: 0 0 auto;
             }
+            .tm-qs-host--repair .tm-qs-input,
+            .tm-qs-host--header .tm-qs-input,
+            .tm-qs-host--repair .tm-qs-search-btn,
+            .tm-qs-host--header .tm-qs-search-btn,
+            .tm-qs-host--repair .tm-qs-hide-native,
+            .tm-qs-host--header .tm-qs-hide-native {
+                background-color: var(--tm-input-bg, #fff) !important;
+                color: var(--tm-input-text, #212529) !important;
+                -webkit-text-fill-color: var(--tm-input-text, #212529);
+                border-color: var(--tm-input-border, #ced4da) !important;
+            }
+            .tm-qs-host--repair .tm-qs-input::placeholder,
+            .tm-qs-host--header .tm-qs-input::placeholder {
+                color: var(--tm-muted-text, #6c757d) !important;
+                -webkit-text-fill-color: var(--tm-muted-text, #6c757d);
+                opacity: 0.85;
+            }
             .tm-qs-panel {
                 display: inline-flex;
                 flex-direction: row;
@@ -7285,26 +7302,26 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 width: 100%;
                 margin: 0;
                 padding: 5px;
-                border: 1px solid #ced4da;
+                border: 1px solid var(--tm-input-border, #ced4da);
                 border-radius: 4px;
                 font: inherit;
                 font-size: inherit;
                 line-height: normal;
                 outline: none;
                 box-sizing: border-box;
-                background: #fff;
-                color: inherit;
+                background: var(--tm-input-bg, #fff);
+                color: var(--tm-input-text, #212529);
                 box-shadow: none;
                 vertical-align: middle;
             }
             .tm-qs-input::placeholder {
-                color: #6c757d;
+                color: var(--tm-muted-text, #6c757d);
                 opacity: 0.85;
                 font-size: inherit;
             }
             .tm-qs-input:focus {
-                border-color: #adb5bd;
-                outline: 1px dotted #333;
+                border-color: var(--tm-input-focus-border, var(--tm-primary-color, #adb5bd));
+                outline: 1px dotted var(--tm-input-text, #333);
                 outline-offset: 1px;
             }
             .tm-qs-search-btn {
@@ -7319,6 +7336,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 box-shadow: none !important;
                 white-space: nowrap;
                 vertical-align: middle;
+                background: var(--tm-input-bg, #fff) !important;
+                color: var(--tm-input-text, #212529) !important;
+                border: 1px solid var(--tm-input-border, #ced4da) !important;
             }
             .tm-qs-hide-native {
                 flex-shrink: 0;
@@ -7327,10 +7347,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 padding: 4px 6px;
                 min-width: 22px;
                 height: auto;
-                border: 1px solid #ced4da;
+                border: 1px solid var(--tm-input-border, #ced4da);
                 border-radius: 4px;
-                background: #fff;
-                color: inherit;
+                background: var(--tm-input-bg, #fff);
+                color: var(--tm-input-text, #212529);
                 font: inherit;
                 font-size: 12px;
                 line-height: 1;
@@ -7339,8 +7359,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 vertical-align: middle;
             }
             .tm-qs-hide-native:hover {
-                border-color: #adb5bd;
-                background: #f8f9fa;
+                border-color: var(--tm-input-focus-border, #adb5bd);
+                background: var(--tm-shop-item-hover-bg, #f8f9fa);
             }
             body.tm-native-search-hidden .style1.rnr-bl.rnr-b-search,
             body.tm-native-search-hidden .rnr-b-search.style1.rnr-bl {
