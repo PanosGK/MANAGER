@@ -23,6 +23,7 @@
     "myman_gamification.js",
     "myman_phone_catalog_ui.js",
     "myman_phonelist.js",
+    "myman_phone_catalog_settings.js",
     "myman_store_locator.js",
     "myman_technicianstats.js",
     "myman_orderhistory.js",

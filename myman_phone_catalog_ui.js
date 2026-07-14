@@ -18,6 +18,10 @@
         back: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>',
         chevron: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>',
         pin: '<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>',
+        settings: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
+        palette: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22a10 10 0 0 0 10-10c0-2-1-4-2.5-5.5"/></svg>',
+        tag: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
+        export: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
     };
 
     function esc(value) {
@@ -161,7 +165,31 @@
             margin: 4px 0 0; font-size: 12px;
             color: var(--tm-muted-text, var(--tm-secondary-color));
         }
-        .tm-sl-header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .tm-sl-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
+        .tm-sl-settings-wrap { position: relative; }
+        .tm-sl-settings-menu, .tm-sl-export-menu {
+            position: absolute; top: calc(100% + 6px); right: 0;
+            background: var(--tm-shop-item-bg);
+            border: 1px solid var(--tm-shop-item-border);
+            border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+            padding: 6px; min-width: 210px; z-index: 30;
+        }
+        .tm-sl-settings-menu button, .tm-sl-export-menu button {
+            width: 100%; text-align: left; border: none; background: transparent;
+            color: var(--tm-shop-item-text); padding: 9px 12px; border-radius: 8px;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .tm-sl-settings-menu button:hover, .tm-sl-export-menu button:hover {
+            background: color-mix(in srgb, var(--tm-primary-color) 10%, transparent);
+            color: var(--tm-primary-color);
+        }
+        .tm-sl-export-menu label {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 12px; font-size: 11px; cursor: pointer;
+            color: var(--tm-shop-item-text);
+        }
         .tm-sl-btn {
             display: inline-flex; align-items: center; gap: 6px;
             padding: 8px 12px; border-radius: 10px;
@@ -604,6 +632,20 @@
                     </div>
                     <div class="tm-sl-header-actions">
                         <button type="button" id="tm-sl-refresh" class="tm-sl-btn" title="Ανανέωση">${ICON.refresh} Ανανέωση</button>
+                        <div class="tm-sl-settings-wrap">
+                            <button type="button" id="tm-sl-settings" class="tm-sl-btn tm-sl-btn--icon" title="Ρυθμίσεις" aria-haspopup="true">${ICON.settings}</button>
+                            <div id="tm-sl-settings-menu" class="tm-sl-settings-menu" hidden>
+                                <button type="button" id="tm-sl-colors-btn">${ICON.palette} Διαχείριση Χρωμάτων</button>
+                                <button type="button" id="tm-sl-tags-btn">${ICON.tag} Διαχείριση Ετικετών</button>
+                                <button type="button" id="tm-sl-stores-btn">${ICON.store} Διαχείριση Καταστημάτων</button>
+                                <button type="button" id="tm-sl-export-btn">${ICON.export} Εξαγωγή</button>
+                            </div>
+                            <div id="tm-sl-export-menu" class="tm-sl-export-menu" hidden>
+                                <button type="button" id="tm-sl-export-clipboard">${ICON.export} Αντιγραφή στο Πρόχειρο</button>
+                                <button type="button" id="tm-sl-export-csv">${ICON.export} Εξαγωγή σε CSV</button>
+                                <label><input type="checkbox" id="tm-sl-export-original-title"> Συμπερίληψη Αρχικού Τίτλου</label>
+                            </div>
+                        </div>
                         <button type="button" id="tm-sl-close" class="tm-sl-btn tm-sl-btn--icon" aria-label="Κλείσιμο">×</button>
                     </div>
                 </div>

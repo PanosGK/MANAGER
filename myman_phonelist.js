@@ -207,6 +207,54 @@ function deleteTagDefinition(key) {
     return true;
 }
 
+const PHONE_TAGS_STORAGE_KEY = 'tm_phone_tags';
+
+function loadPhoneTags() {
+    try {
+        const stored = GM_getValue(PHONE_TAGS_STORAGE_KEY, '{}');
+        const parsed = JSON.parse(stored);
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function savePhoneTags(tags) {
+    GM_setValue(PHONE_TAGS_STORAGE_KEY, JSON.stringify(tags));
+}
+
+function renamePhoneTagKeyOnAllPhones(oldKey, newKey) {
+    const oldK = normalizeTagKey(oldKey);
+    const newK = normalizeTagKey(newKey);
+    if (!oldK || !newK || oldK === newK) return;
+    const allTags = loadPhoneTags();
+    let changed = false;
+    Object.keys(allTags).forEach((barcode) => {
+        const idx = allTags[barcode].indexOf(oldK);
+        if (idx === -1) return;
+        allTags[barcode].splice(idx, 1);
+        if (!allTags[barcode].includes(newK)) {
+            allTags[barcode].push(newK);
+        }
+        if (allTags[barcode].length === 0) delete allTags[barcode];
+        changed = true;
+    });
+    if (changed) savePhoneTags(allTags);
+}
+
+function removePhoneTagFromAllPhones(tagKey) {
+    const key = normalizeTagKey(tagKey);
+    const allTags = loadPhoneTags();
+    let changed = false;
+    Object.keys(allTags).forEach((barcode) => {
+        const before = allTags[barcode].length;
+        allTags[barcode] = allTags[barcode].filter((t) => t !== key);
+        if (allTags[barcode].length === 0) delete allTags[barcode];
+        if (before !== (allTags[barcode]?.length || 0)) changed = true;
+    });
+    if (changed) savePhoneTags(allTags);
+}
+
 const DEFAULT_TITANIUM_LIST_HEX = '#8E8E93';
 
 function normalizeColorEntry(value, colorName = '') {
@@ -2345,4 +2393,38 @@ window.getEffectivePhoneStores = getEffectivePhoneStores;
 window.resolvePhonesStoreDetails = resolvePhonesStoreDetails;
 window.mergeOtherStoresFromAllPhones = mergeOtherStoresFromAllPhones;
 window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
+window.phoneCatalogT = t;
+window.PHONE_CATALOG_TRANSLATIONS = PHONE_CATALOG_TRANSLATIONS;
+window.clearPhoneCatalogCaches = function clearPhoneCatalogCaches() {
+    phoneCatalogColorCache.clear();
+    phoneCatalogGbCache.clear();
+    extractBaseModelCacheGlobal.clear();
+};
+window.loadPhoneColors = loadPhoneColors;
+window.addPhoneColor = addPhoneColor;
+window.removePhoneColor = removePhoneColor;
+window.renamePhoneColor = renamePhoneColor;
+window.updatePhoneListColor = updatePhoneListColor;
+window.getAliasesForColor = getAliasesForColor;
+window.setColorDisplayAliasesForColor = setColorDisplayAliasesForColor;
+window.suggestPhoneColorHex = suggestPhoneColorHex;
+window.normalizePhoneColorHex = normalizePhoneColorHex;
+window.normalizePhoneColorName = normalizePhoneColorName;
+window.normalizeColorEntry = normalizeColorEntry;
+window.getPhoneCatalogOutlineStyle = getPhoneCatalogOutlineStyle;
+window.getDefinedTagKeys = getDefinedTagKeys;
+window.getTagDefinition = getTagDefinition;
+window.getTagDisplayName = getTagDisplayName;
+window.addTagDefinition = addTagDefinition;
+window.updateTagDefinition = updateTagDefinition;
+window.deleteTagDefinition = deleteTagDefinition;
+window.normalizeTagKey = normalizeTagKey;
+window.renamePhoneTagKeyOnAllPhones = renamePhoneTagKeyOnAllPhones;
+window.removePhoneTagFromAllPhones = removePhoneTagFromAllPhones;
+window.loadPhoneStoreRules = loadPhoneStoreRules;
+window.savePhoneStoreRules = savePhoneStoreRules;
+window.getDefaultPhoneStoreRules = getDefaultPhoneStoreRules;
+window.parseStorePatternCsv = parseStorePatternCsv;
+window.storeNameMatchesPatterns = storeNameMatchesPatterns;
+window.collectKnownStoreNames = collectKnownStoreNames;
 

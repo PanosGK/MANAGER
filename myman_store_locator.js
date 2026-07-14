@@ -352,6 +352,31 @@
 
         UI.setDensity(overlay, densityCompact);
 
+        function getSettingsCtx() {
+            return {
+                allPhones,
+                otherStorePhones,
+                onChange: () => {
+                    if (typeof window.syncPhoneColorCatalog === 'function') {
+                        window.syncPhoneColorCatalog(allPhones);
+                    }
+                    if (typeof window.clearPhoneCatalogCaches === 'function') {
+                        window.clearPhoneCatalogCaches();
+                    }
+                    if (step === 'stores' && selectedModel) {
+                        renderStoresStep();
+                    } else {
+                        renderModelsStep();
+                    }
+                },
+                getExportPhones: () => [...allPhones, ...otherStorePhones],
+            };
+        }
+
+        if (typeof window.PhoneCatalogSettings?.wireSettingsMenu === 'function') {
+            window.PhoneCatalogSettings.wireSettingsMenu(overlay, getSettingsCtx);
+        }
+
         function getColorHexMap() {
             return typeof window.getAllColorHexMap === 'function' ? window.getAllColorHexMap() : {};
         }
