@@ -10303,6 +10303,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             saveCheckbox('tm-setting-random-events-enabled', 'randomEventsEnabled');
             saveCheckbox('tm-setting-smart-templates-enabled', 'smartTemplatesEnabled');
             saveCheckbox('tm-setting-personal-dashboard-enabled', 'personalDashboardEnabled');
+            saveCheckbox('tm-setting-shop-enabled', 'shopEnabled');
             saveCheckbox('tm-setting-eod-checklist-enabled', 'eodChecklistEnabled');
 
             // Apply EOD checklist visibility immediately (no reload needed)
@@ -21808,23 +21809,26 @@ const SHOP_ITEMS = {
 };
 
 const CONSUMABLE_GROUP_LABELS = {
-    utility: '🛠️ Tools & Tokens',
-    boosts: '⚡ Work Boosts',
+    bounties: '🎯 Bounties',
+    boosts: '⚡ Boosts',
     mascot: '🐾 Mascot Care',
     fun: '🎉 Celebrations',
 };
 
-/** @type {Array<{id:string,name:string,icon:string,cost:number,type:'consumable'|'feature',group:string,desc:string,effect?:object,mascotOnly?:boolean}>} */
+/**
+ * Shop catalog policy:
+ * - Sell ONLY cosmetics and optional game-layer items (themes/accessories are separate).
+ * - NEVER sell workflow tools (EOD, reminders, search, catalog, etc.) — those belong in Settings.
+ * - type 'feature' in this catalog is reserved for future cosmetic unlocks only, not work utilities.
+ */
+/** @type {Array<{id:string,name:string,icon:string,cost:number,type:'consumable',group:string,desc:string,effect?:object,mascotOnly?:boolean}>} */
 const SHOP_CONSUMABLE_CATALOG = [
-    // ── Tools & Tokens ──
-    { id: 'eod_checklist', name: 'End of Day Checklist', icon: '🌙', cost: 800, type: 'feature', group: 'utility',
-      desc: 'Adds a footer checklist for repairs you visited today.' },
-    { id: 'reroll_token', name: 'Bounty Reroll', icon: '🔄', cost: 100, type: 'consumable', group: 'utility',
+    // ── Bounties (game quests — not work tools) ──
+    { id: 'reroll_token', name: 'Bounty Reroll', icon: '🔄', cost: 100, type: 'consumable', group: 'bounties',
       desc: 'Reroll your daily bounty quest.', effect: { token: 'reroll' } },
-    { id: SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, name: 'Bounty Skip', icon: '🎯', cost: 300, type: 'consumable', group: 'utility',
+    { id: SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, name: 'Bounty Skip', icon: '🎯', cost: 300, type: 'consumable', group: 'bounties',
       desc: 'Instantly complete today\'s bounty.', effect: { token: 'bounty' } },
-
-    // ── Work Boosts (instant use, scales by tier) ──
+    // ── Boosts (optional game buffs — not required for work) ──
     { id: 'coffee', name: 'Coffee', icon: '☕', cost: 40, type: 'consumable', group: 'boosts',
       desc: 'Quick focus — 5 min energized buff.', effect: { energyMs: 5 * 60 * 1000 } },
     { id: 'energy_drink', name: 'Energy Drink', icon: '⚡', cost: 100, type: 'consumable', group: 'boosts',
@@ -24489,14 +24493,14 @@ function showShopModal(config, STORAGE_KEYS) {
     overlay.innerHTML = `
         <div class="tm-modal-content" style="max-width: 700px; height: 85vh; display: flex; flex-direction: column;">
             <div class="tm-modal-header">
-                <h2 class="tm-modal-title">🪙 Shop</h2>
+                <h2 class="tm-modal-title">🪙 Cosmetics Shop</h2>
                 <button class="tm-modal-close">&times;</button>
             </div>
             <div id="tm-shop-content-container" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 10px; padding-right: 10px;">
                 <div class="tm-shop-tabs">
                     <button class="tm-shop-tab active" data-category="themes">🎨 Themes</button>
                     ${accessoriesTabHtml}
-                    <button class="tm-shop-tab" data-category="consumables">⚡ Consumables</button>
+                    <button class="tm-shop-tab" data-category="consumables">🎁 Extras</button>
                 </div>
                 <div id="tm-shop-items-wrapper">
                     <!-- Shop items will be populated here -->
@@ -25024,7 +25028,35 @@ function initFunFeatures(config, STORAGE_KEYS) {
 function getLevelUpSettingsHTML() {
     return `
         <div class="tm-settings-section">
+            <h3>💼 Λειτουργία Εργασίας</h3>
+            <p class="tm-setting-description" style="margin: 0 0 12px; font-size: 13px; color: var(--tm-secondary-hover);">
+                Όλα τα εργαλεία δουλειάς (EOD checklist, αναζήτηση, κατάλογος κ.λπ.) είναι δωρεάν από τις Ρυθμίσεις.
+                Το κατάστημα πωλεί μόνο θέματα, αξεσουάρ και προαιρετικά game extras.
+            </p>
+            <div class="tm-setting-row" style="background: #f0f7ff; padding: 12px; border: 1px solid #bfdbfe; border-radius: 8px; margin-bottom: 12px;">
+                <div class="tm-setting-label">
+                    <label>Γρήγορα profiles</label>
+                    <p class="tm-setting-description">Professional: μόνο εργαλεία δουλειάς. Gamification: XP, mascot, κατάστημα.</p>
+                </div>
+                <div class="tm-setting-control" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" id="tm-setting-professional-mode-btn" style="padding: 8px 14px; border-radius: 8px; border: 1px solid #64748b; background: #fff; cursor: pointer; font-weight: 600;">💼 Professional</button>
+                    <button type="button" id="tm-setting-gamification-mode-btn" style="padding: 8px 14px; border-radius: 8px; border: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; cursor: pointer; font-weight: 600;">🎮 Gamification</button>
+                </div>
+            </div>
+            <div class="tm-setting-row">
+                <div class="tm-setting-label">
+                    <label for="tm-setting-eod-checklist-enabled">🌙 Checklist Τέλους Ημέρας</label>
+                    <p class="tm-setting-description">Κουμπί 📋 στο footer για έλεγχο επισκευών της ημέρας πριν φύγετε. Δωρεάν — χωρίς αγορά από κατάστημα.</p>
+                </div>
+                <div class="tm-setting-control"><input type="checkbox" id="tm-setting-eod-checklist-enabled"></div>
+            </div>
+        </div>
+
+        <div class="tm-settings-section">
             <h3>🎮 Παιχνιδοποίηση (Gamification)</h3>
+            <p class="tm-setting-description" style="margin: 0 0 12px; font-size: 13px; color: var(--tm-secondary-hover);">
+                Προαιρετικό επίπεδο παιχνιδιού — μπορείτε να το απενεργοποιήσετε πλήρως χωρίς να χάσετε εργαλεία δουλειάς.
+            </p>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
                     <label for="tm-setting-levelup-enabled">⭐ Σύστημα Επιπέδων</label>
@@ -25066,17 +25098,10 @@ function getLevelUpSettingsHTML() {
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-shop-enabled">🪙 Κατάστημα</label>
-                    <p class="tm-setting-description">Αγοράστε θέματα, αξεσουάρ και αναλώσιμα με τα νομίσματά σας.</p>
+                    <label for="tm-setting-shop-enabled">🪙 Κατάστημα (Cosmetics)</label>
+                    <p class="tm-setting-description">Θέματα, αξεσουάρ mascot και προαιρετικά game extras — όχι εργαλεία δουλειάς.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-shop-enabled"></div>
-            </div>
-            <div class="tm-setting-row">
-                <div class="tm-setting-label">
-                    <label for="tm-setting-eod-checklist-enabled">🌙 Checklist Τέλους Ημέρας</label>
-                    <p class="tm-setting-description">Εμφανίζει το κουμπί 📋 στο footer για γρήγορο έλεγχο των επισκευών της ημέρας. Απαιτεί αγορά από το κατάστημα.</p>
-                </div>
-                <div class="tm-setting-control"><input type="checkbox" id="tm-setting-eod-checklist-enabled"></div>
             </div>
         </div>`;
 }
@@ -25134,9 +25159,36 @@ function initGamificationSettings(config, STORAGE_KEYS) {
             config.shopEnabled = value;
             
             // Update shop button visibility
-            updateShopButtonVisibility(config);
+            updateGamificationLayerVisibility(config);
         });
     }
+
+    const levelUpCheckbox = document.getElementById('tm-setting-levelup-enabled');
+    if (levelUpCheckbox) {
+        levelUpCheckbox.addEventListener('change', () => {
+            config.levelUpSystemEnabled = levelUpCheckbox.checked;
+            GM_setValue('levelUpSystemEnabled', levelUpCheckbox.checked);
+            updateGamificationLayerVisibility(config);
+        });
+    }
+
+    const mascotCheckbox = document.getElementById('tm-setting-mascot-enabled');
+    if (mascotCheckbox) {
+        mascotCheckbox.addEventListener('change', () => {
+            config.interactiveMascotEnabled = mascotCheckbox.checked;
+            GM_setValue('interactiveMascotEnabled', mascotCheckbox.checked);
+            updateGamificationLayerVisibility(config);
+        });
+    }
+
+    document.getElementById('tm-setting-professional-mode-btn')?.addEventListener('click', () => {
+        applyGamificationPreset('professional', config, STORAGE_KEYS);
+    });
+    document.getElementById('tm-setting-gamification-mode-btn')?.addEventListener('click', () => {
+        applyGamificationPreset('gamification', config, STORAGE_KEYS);
+    });
+
+    updateGamificationLayerVisibility(config);
 
     // Talent unlock now handled in dedicated modal (showTalentsModal)
 }
@@ -25177,6 +25229,83 @@ function updateShopButtonVisibility(config) {
     }
 }
 
+const GAMIFICATION_PRESET_KEYS = [
+    'levelUpSystemEnabled',
+    'shopEnabled',
+    'interactiveMascotEnabled',
+    'achievementsEnabled',
+    'confettiEnabled',
+    'randomEventsEnabled',
+];
+
+const GAMIFICATION_PRESET_CHECKBOX_IDS = {
+    levelUpSystemEnabled: 'tm-setting-levelup-enabled',
+    shopEnabled: 'tm-setting-shop-enabled',
+    interactiveMascotEnabled: 'tm-setting-mascot-enabled',
+    achievementsEnabled: 'tm-setting-achievements-enabled',
+    confettiEnabled: 'tm-setting-confetti-enabled',
+    randomEventsEnabled: 'tm-setting-random-events-enabled',
+};
+
+function updateGamificationLayerVisibility(config) {
+    updateShopButtonVisibility(config);
+
+    const xpBar = document.getElementById('tm-xp-bar-container');
+    if (xpBar) {
+        xpBar.style.display = config.levelUpSystemEnabled !== false ? '' : 'none';
+    }
+
+    const mascot = document.getElementById('tm-mascot-container');
+    if (mascot) {
+        mascot.style.display = config.interactiveMascotEnabled !== false ? '' : 'none';
+    }
+
+    const questsBtn = document.getElementById('tm-quests-btn');
+    if (questsBtn) {
+        questsBtn.style.display = config.levelUpSystemEnabled !== false ? '' : 'none';
+    }
+}
+
+function applyGamificationPreset(preset, config, STORAGE_KEYS) {
+    const values = preset === 'professional'
+        ? {
+            levelUpSystemEnabled: false,
+            shopEnabled: false,
+            interactiveMascotEnabled: false,
+            achievementsEnabled: false,
+            confettiEnabled: false,
+            randomEventsEnabled: false,
+        }
+        : {
+            levelUpSystemEnabled: true,
+            shopEnabled: true,
+            interactiveMascotEnabled: true,
+            achievementsEnabled: true,
+            confettiEnabled: true,
+            randomEventsEnabled: true,
+        };
+
+    GAMIFICATION_PRESET_KEYS.forEach((key) => {
+        GM_setValue(key, values[key]);
+        config[key] = values[key];
+    });
+
+    Object.entries(GAMIFICATION_PRESET_CHECKBOX_IDS).forEach(([key, id]) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = values[key];
+    });
+
+    updateGamificationLayerVisibility(config);
+
+    if (typeof window.showPositiveMessage === 'function') {
+        window.showPositiveMessage(
+            preset === 'professional'
+                ? 'Professional mode — work tools only. Reload για πλήρη απόκρυψη mascot.'
+                : 'Gamification mode ενεργοποιήθηκε.'
+        );
+    }
+}
+
 function saveGamificationSettings() {
     const saveCheckbox = (id, key) => {
         const checkbox = document.getElementById(id);
@@ -25209,8 +25338,8 @@ function saveGamificationSettings() {
     saveNumber('tm-setting-mascot-speed', 'mascotRoamingSpeed');
 
     // Update shop button visibility after saving
-    if (typeof updateShopButtonVisibility === 'function') {
-        updateShopButtonVisibility(config);
+    if (typeof updateGamificationLayerVisibility === 'function') {
+        updateGamificationLayerVisibility(config);
     }
 
     // Apply EOD checklist visibility immediately
@@ -26400,7 +26529,7 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                     font-weight: 600;
                     color: var(--tm-secondary-hover);
                     transition: all 0.2s;
-                ">⚡ Consumables</button>
+                ">🎁 Extras</button>
             </div>
             <div id="tm-shop-dashboard-wrapper">
                 <!-- Shop items will be populated here -->
@@ -27227,6 +27356,8 @@ window.getGamificationSettingsHTML = getGamificationSettingsHTML;
 window.initGamificationSettings = initGamificationSettings;
 window.saveGamificationSettings = saveGamificationSettings;
 window.updateShopButtonVisibility = updateShopButtonVisibility;
+window.updateGamificationLayerVisibility = updateGamificationLayerVisibility;
+window.applyGamificationPreset = applyGamificationPreset;
 window.populateShop = populateShop;
 window.showShopModal = showShopModal;
 window.handleShopPurchase = handleShopPurchase;
@@ -39879,18 +40010,8 @@ if (typeof window !== 'undefined') {
     function isUnlocked(STORAGE_KEYS, config) {
         if (config && config.eodChecklistEnabled === false) return false;
         if (config?.debugEnabled) return true;
-
-        let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
-        if (purchased.includes(FEATURE_ID)) return true;
-
-        // Setting enabled (default): feature is available — keep purchase flag in sync for backup/export
-        if (config?.eodChecklistEnabled !== false) {
-            purchased.push(FEATURE_ID);
-            GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
-            return true;
-        }
-
-        return false;
+        // Work tool — controlled only via Settings, never via shop purchase.
+        return config?.eodChecklistEnabled !== false;
     }
 
     function getTodayKey() {

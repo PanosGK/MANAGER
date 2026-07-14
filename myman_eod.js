@@ -10,18 +10,8 @@
     function isUnlocked(STORAGE_KEYS, config) {
         if (config && config.eodChecklistEnabled === false) return false;
         if (config?.debugEnabled) return true;
-
-        let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
-        if (purchased.includes(FEATURE_ID)) return true;
-
-        // Setting enabled (default): feature is available — keep purchase flag in sync for backup/export
-        if (config?.eodChecklistEnabled !== false) {
-            purchased.push(FEATURE_ID);
-            GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
-            return true;
-        }
-
-        return false;
+        // Work tool — controlled only via Settings, never via shop purchase.
+        return config?.eodChecklistEnabled !== false;
     }
 
     function getTodayKey() {

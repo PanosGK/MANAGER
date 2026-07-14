@@ -313,6 +313,7 @@
             saveCheckbox('tm-setting-random-events-enabled', 'randomEventsEnabled');
             saveCheckbox('tm-setting-smart-templates-enabled', 'smartTemplatesEnabled');
             saveCheckbox('tm-setting-personal-dashboard-enabled', 'personalDashboardEnabled');
+            saveCheckbox('tm-setting-shop-enabled', 'shopEnabled');
             saveCheckbox('tm-setting-eod-checklist-enabled', 'eodChecklistEnabled');
 
             // Apply EOD checklist visibility immediately (no reload needed)
