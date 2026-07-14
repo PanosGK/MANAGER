@@ -26,6 +26,7 @@
         network: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 22a10 10 0 0 1-10-10"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M12 2v4"/><path d="M12 18v4"/></svg>',
         settings: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
         back: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>',
+        filterClear: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>',
     };
 
     const PHONE_CATALOG_UI_STYLES = `
@@ -222,6 +223,7 @@
             padding-top: 2px;
             border-top: 1px dashed color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
             margin-top: 2px;
+            width: 100%;
         }
         .tm-pc-filters-label-inline {
             font-size: 10px; font-weight: 700; text-transform: uppercase;
@@ -264,7 +266,7 @@
         }
 
         .tm-pc-btn, .tm-cat-btn,
-        #tm-phone-clear-filters, #tm-phone-sort-dir, #tm-phone-export-btn,
+        #tm-phone-clear-filters, #tm-network-clear-filters, #tm-phone-sort-dir, #tm-phone-export-btn,
         #tm-phone-select-all, #tm-other-store-clear-filters {
             display: inline-flex; align-items: center; gap: 5px;
             height: 36px; padding: 0 12px; border-radius: 10px;
@@ -274,8 +276,28 @@
             font-size: 12px; font-weight: 600;
             cursor: pointer; transition: all 0.15s;
         }
+        .tm-pc-clear-btn {
+            margin-left: auto;
+            border-color: color-mix(in srgb, var(--tm-shop-item-border) 80%, transparent);
+            background: color-mix(in srgb, var(--tm-shop-item-border) 8%, var(--tm-shop-item-bg));
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(2px);
+            transition: opacity 0.15s, transform 0.15s, border-color 0.15s, color 0.15s, background 0.15s;
+        }
+        .tm-pc-clear-btn.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: none;
+        }
+        .tm-pc-clear-btn:hover {
+            border-color: color-mix(in srgb, var(--tm-warning-color, #eab308) 55%, var(--tm-shop-item-border)) !important;
+            color: var(--tm-warning-color, #ca8a04) !important;
+            background: color-mix(in srgb, var(--tm-warning-color, #eab308) 10%, var(--tm-shop-item-bg)) !important;
+        }
         .tm-pc-btn:hover, .tm-cat-btn:hover, #tm-phone-clear-filters:hover,
-        #tm-phone-sort-dir:hover, #tm-phone-export-btn:hover,
+        #tm-network-clear-filters:hover, #tm-phone-sort-dir:hover, #tm-phone-export-btn:hover,
         #tm-phone-select-all:hover, #tm-other-store-clear-filters:hover {
             border-color: var(--tm-primary-color);
             color: var(--tm-primary-color);
@@ -919,7 +941,6 @@
                     </label>
                     <select id="tm-phone-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
                     <button type="button" id="tm-mine-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
-                    <button type="button" id="tm-phone-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
                 </div>
                 <div class="tm-pc-filters-row2">
                     <span class="tm-pc-filters-label-inline">Φίλτρα</span>
@@ -936,6 +957,7 @@
                         <option value="imei">${esc(T['Sort by IMEI'])}</option>
                     </select>
                     <button type="button" id="tm-phone-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
+                    <button type="button" id="tm-phone-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear All Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
                 </div>
             </div>
 
@@ -945,7 +967,6 @@
                     <select id="tm-network-filter-store" class="tm-pc-select tm-cat-select"><option value="">Όλα τα καταστήματα</option></select>
                     <select id="tm-network-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
                     <button type="button" id="tm-network-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
-                    <button type="button" id="tm-network-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
                 </div>
                 <div class="tm-pc-filters-row2">
                     <span class="tm-pc-filters-label-inline">Φίλτρα</span>
@@ -961,6 +982,7 @@
                         <option value="imei">${esc(T['Sort by IMEI'])}</option>
                     </select>
                     <button type="button" id="tm-network-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
+                    <button type="button" id="tm-network-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear All Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
                 </div>
             </div>
 
@@ -1033,7 +1055,6 @@
                     <select id="tm-other-store-filter-store" class="tm-pc-select tm-cat-select"><option value="">Όλα τα καταστήματα</option></select>
                     <select id="tm-other-store-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
                     <button type="button" id="tm-os-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
-                    <button type="button" id="tm-other-store-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
                 </div>
                 <div class="tm-pc-filters-row2" style="padding:0 24px 12px">
                     <span class="tm-pc-filters-label-inline">Φίλτρα</span>
@@ -1050,6 +1071,7 @@
                         <option value="price-asc">Τιμή ↑</option>
                         <option value="price-desc">Τιμή ↓</option>
                     </select>
+                    <button type="button" id="tm-other-store-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear All Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
                 </div>
             </div>
             <div id="tm-other-store-modal-body" class="tm-pc-list tm-cat-table-body">

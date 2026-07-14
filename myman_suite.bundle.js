@@ -26092,6 +26092,7 @@ window.initOrderTracking = initOrderTracking;
         network: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 22a10 10 0 0 1-10-10"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M12 2v4"/><path d="M12 18v4"/></svg>',
         settings: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
         back: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>',
+        filterClear: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>',
     };
 
     const PHONE_CATALOG_UI_STYLES = `
@@ -26288,6 +26289,7 @@ window.initOrderTracking = initOrderTracking;
             padding-top: 2px;
             border-top: 1px dashed color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
             margin-top: 2px;
+            width: 100%;
         }
         .tm-pc-filters-label-inline {
             font-size: 10px; font-weight: 700; text-transform: uppercase;
@@ -26330,7 +26332,7 @@ window.initOrderTracking = initOrderTracking;
         }
 
         .tm-pc-btn, .tm-cat-btn,
-        #tm-phone-clear-filters, #tm-phone-sort-dir, #tm-phone-export-btn,
+        #tm-phone-clear-filters, #tm-network-clear-filters, #tm-phone-sort-dir, #tm-phone-export-btn,
         #tm-phone-select-all, #tm-other-store-clear-filters {
             display: inline-flex; align-items: center; gap: 5px;
             height: 36px; padding: 0 12px; border-radius: 10px;
@@ -26340,8 +26342,28 @@ window.initOrderTracking = initOrderTracking;
             font-size: 12px; font-weight: 600;
             cursor: pointer; transition: all 0.15s;
         }
+        .tm-pc-clear-btn {
+            margin-left: auto;
+            border-color: color-mix(in srgb, var(--tm-shop-item-border) 80%, transparent);
+            background: color-mix(in srgb, var(--tm-shop-item-border) 8%, var(--tm-shop-item-bg));
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(2px);
+            transition: opacity 0.15s, transform 0.15s, border-color 0.15s, color 0.15s, background 0.15s;
+        }
+        .tm-pc-clear-btn.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: none;
+        }
+        .tm-pc-clear-btn:hover {
+            border-color: color-mix(in srgb, var(--tm-warning-color, #eab308) 55%, var(--tm-shop-item-border)) !important;
+            color: var(--tm-warning-color, #ca8a04) !important;
+            background: color-mix(in srgb, var(--tm-warning-color, #eab308) 10%, var(--tm-shop-item-bg)) !important;
+        }
         .tm-pc-btn:hover, .tm-cat-btn:hover, #tm-phone-clear-filters:hover,
-        #tm-phone-sort-dir:hover, #tm-phone-export-btn:hover,
+        #tm-network-clear-filters:hover, #tm-phone-sort-dir:hover, #tm-phone-export-btn:hover,
         #tm-phone-select-all:hover, #tm-other-store-clear-filters:hover {
             border-color: var(--tm-primary-color);
             color: var(--tm-primary-color);
@@ -26985,7 +27007,6 @@ window.initOrderTracking = initOrderTracking;
                     </label>
                     <select id="tm-phone-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
                     <button type="button" id="tm-mine-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
-                    <button type="button" id="tm-phone-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
                 </div>
                 <div class="tm-pc-filters-row2">
                     <span class="tm-pc-filters-label-inline">Φίλτρα</span>
@@ -27002,6 +27023,7 @@ window.initOrderTracking = initOrderTracking;
                         <option value="imei">${esc(T['Sort by IMEI'])}</option>
                     </select>
                     <button type="button" id="tm-phone-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
+                    <button type="button" id="tm-phone-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear All Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
                 </div>
             </div>
 
@@ -27011,7 +27033,6 @@ window.initOrderTracking = initOrderTracking;
                     <select id="tm-network-filter-store" class="tm-pc-select tm-cat-select"><option value="">Όλα τα καταστήματα</option></select>
                     <select id="tm-network-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
                     <button type="button" id="tm-network-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
-                    <button type="button" id="tm-network-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
                 </div>
                 <div class="tm-pc-filters-row2">
                     <span class="tm-pc-filters-label-inline">Φίλτρα</span>
@@ -27027,6 +27048,7 @@ window.initOrderTracking = initOrderTracking;
                         <option value="imei">${esc(T['Sort by IMEI'])}</option>
                     </select>
                     <button type="button" id="tm-network-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
+                    <button type="button" id="tm-network-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear All Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
                 </div>
             </div>
 
@@ -27099,7 +27121,6 @@ window.initOrderTracking = initOrderTracking;
                     <select id="tm-other-store-filter-store" class="tm-pc-select tm-cat-select"><option value="">Όλα τα καταστήματα</option></select>
                     <select id="tm-other-store-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
                     <button type="button" id="tm-os-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
-                    <button type="button" id="tm-other-store-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
                 </div>
                 <div class="tm-pc-filters-row2" style="padding:0 24px 12px">
                     <span class="tm-pc-filters-label-inline">Φίλτρα</span>
@@ -27116,6 +27137,7 @@ window.initOrderTracking = initOrderTracking;
                         <option value="price-asc">Τιμή ↑</option>
                         <option value="price-desc">Τιμή ↓</option>
                     </select>
+                    <button type="button" id="tm-other-store-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear All Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
                 </div>
             </div>
             <div id="tm-other-store-modal-body" class="tm-pc-list tm-cat-table-body">
@@ -30306,6 +30328,40 @@ async function showPhoneListModal() {
         const networkRow2 = overlay.querySelector('#tm-phone-filters-network .tm-pc-filters-row2');
         syncFiltersLabelVisibility(networkRow2, [networkGbFilter, networkColorFilter]);
         syncNetworkFilterPanelVisibility();
+        syncClearButtonsVisibility();
+    }
+
+    function mineFiltersActive() {
+        return !!(
+            searchInput?.value.trim()
+            || gradeFilter?.value
+            || gbFilter?.value
+            || colorFilter?.value
+            || tagFilter?.value
+            || mineSelectedModel
+            || showFavoritesOnly
+            || sortBy !== 'model'
+            || !sortAscending
+        );
+    }
+
+    function networkFiltersActive() {
+        return !!(
+            networkSelectedModel
+            || networkStoreFilter?.value
+            || networkGradeFilter?.value
+            || networkGbFilter?.value
+            || networkColorFilter?.value
+            || sortBy !== 'model'
+            || !sortAscending
+        );
+    }
+
+    function syncClearButtonsVisibility() {
+        overlay.querySelector('#tm-phone-clear-filters')
+            ?.classList.toggle('is-visible', !showingOtherStores && mineFiltersActive());
+        overlay.querySelector('#tm-network-clear-filters')
+            ?.classList.toggle('is-visible', showingOtherStores && networkFiltersActive());
     }
 
     // Function to populate filter dropdowns
@@ -30456,6 +30512,7 @@ async function showPhoneListModal() {
         }
 
         syncMineFilterVisibility();
+        syncClearButtonsVisibility();
     }
     
     // Function to update statistics display
@@ -30721,6 +30778,7 @@ async function showPhoneListModal() {
         if (statisticsDisplay) statisticsDisplay.innerHTML = '';
         populateNetworkFilters(filteredPhones);
         renderOtherStorePhones(filteredPhones);
+        syncClearButtonsVisibility();
     }
 
     function selectNetworkModel(model) {
@@ -30984,6 +31042,7 @@ async function showPhoneListModal() {
         updateStatistics(filteredPhones);
         renderPhones(filteredPhones, true);
         highlightSearchMatch(container);
+        syncClearButtonsVisibility();
     }
     
     // Virtual scrolling state
@@ -31486,12 +31545,14 @@ async function showPhoneListModal() {
         if (networkGradeFilter) networkGradeFilter.value = '';
         if (networkGbFilter) networkGbFilter.value = '';
         if (networkColorFilter) networkColorFilter.value = '';
+        syncPhoneColorSelectDisplay(networkColorFilter);
         if (modelFilter) modelFilter.value = '';
         sortBy = 'model';
         sortAscending = true;
         syncSortControls();
         updateCatalogBackButtons();
         renderNetworkModelPicker();
+        syncClearButtonsVisibility();
     });
 
     // Model card clicks — direct bind on render; capture fallback on overlay only
@@ -31949,7 +32010,7 @@ async function showPhoneListModal() {
     });
     
     // Clear filters button
-    clearFiltersBtn.addEventListener('click', () => {
+    clearFiltersBtn?.addEventListener('click', () => {
         gradeFilter.value = '';
         modelFilter.value = '';
         mineCatalogStep = 'models';
@@ -31971,6 +32032,7 @@ async function showPhoneListModal() {
         populateFilters(allPhones, ['grade', 'model', 'gb', 'color', 'tag']);
         updateCatalogBackButtons();
         applyFilters();
+        syncClearButtonsVisibility();
     });
     
     // Button handlers
@@ -32025,6 +32087,18 @@ async function showPhoneListModal() {
         let osSelectedModel = null;
         let suppressOsFilterEvents = false;
 
+        function osFiltersActive() {
+            return !!(
+                osSelectedModel
+                || gradeFilterOS.value
+                || modelFilterOS.value
+                || gbFilterOS.value
+                || colorFilterOS.value
+                || storeFilterOS.value
+                || (sortOS && sortOS.value !== 'model-asc')
+            );
+        }
+
         function syncOsFilterVisibility() {
             const count = (el) => Math.max(0, (el?.options.length || 0) - 1);
             const show = (el, n) => {
@@ -32047,6 +32121,7 @@ async function showPhoneListModal() {
                     label.style.display = any ? '' : 'none';
                 }
             }
+            clearFiltersOS?.classList.toggle('is-visible', osFiltersActive());
         }
 
         // --- Model picker ---
@@ -32301,6 +32376,7 @@ async function showPhoneListModal() {
             });
             
             renderOtherStorePhones(filtered, bodyEl, countEl, null);
+            syncOsFilterVisibility();
         };
         
         const renderModal = () => {
@@ -32412,16 +32488,11 @@ async function showPhoneListModal() {
             gbFilterOS.value = '';
             colorFilterOS.value = '';
             storeFilterOS.value = '';
+            syncPhoneColorSelectDisplay(colorFilterOS);
             if (sortOS) sortOS.value = 'model-asc';
             osSelectedModel = null;
             renderModelPicker();
-        });
-        
-        clearFiltersOS.addEventListener('mouseenter', () => {
-            clearFiltersOS.style.background = 'rgba(255,255,255,0.15)';
-        });
-        clearFiltersOS.addEventListener('mouseleave', () => {
-            clearFiltersOS.style.background = 'var(--tm-shop-item-bg)';
+            syncOsFilterVisibility();
         });
         
         // Refresh button handler

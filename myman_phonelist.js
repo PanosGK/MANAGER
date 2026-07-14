@@ -3158,6 +3158,40 @@ async function showPhoneListModal() {
         const networkRow2 = overlay.querySelector('#tm-phone-filters-network .tm-pc-filters-row2');
         syncFiltersLabelVisibility(networkRow2, [networkGbFilter, networkColorFilter]);
         syncNetworkFilterPanelVisibility();
+        syncClearButtonsVisibility();
+    }
+
+    function mineFiltersActive() {
+        return !!(
+            searchInput?.value.trim()
+            || gradeFilter?.value
+            || gbFilter?.value
+            || colorFilter?.value
+            || tagFilter?.value
+            || mineSelectedModel
+            || showFavoritesOnly
+            || sortBy !== 'model'
+            || !sortAscending
+        );
+    }
+
+    function networkFiltersActive() {
+        return !!(
+            networkSelectedModel
+            || networkStoreFilter?.value
+            || networkGradeFilter?.value
+            || networkGbFilter?.value
+            || networkColorFilter?.value
+            || sortBy !== 'model'
+            || !sortAscending
+        );
+    }
+
+    function syncClearButtonsVisibility() {
+        overlay.querySelector('#tm-phone-clear-filters')
+            ?.classList.toggle('is-visible', !showingOtherStores && mineFiltersActive());
+        overlay.querySelector('#tm-network-clear-filters')
+            ?.classList.toggle('is-visible', showingOtherStores && networkFiltersActive());
     }
 
     // Function to populate filter dropdowns
@@ -3308,6 +3342,7 @@ async function showPhoneListModal() {
         }
 
         syncMineFilterVisibility();
+        syncClearButtonsVisibility();
     }
     
     // Function to update statistics display
@@ -3573,6 +3608,7 @@ async function showPhoneListModal() {
         if (statisticsDisplay) statisticsDisplay.innerHTML = '';
         populateNetworkFilters(filteredPhones);
         renderOtherStorePhones(filteredPhones);
+        syncClearButtonsVisibility();
     }
 
     function selectNetworkModel(model) {
@@ -3836,6 +3872,7 @@ async function showPhoneListModal() {
         updateStatistics(filteredPhones);
         renderPhones(filteredPhones, true);
         highlightSearchMatch(container);
+        syncClearButtonsVisibility();
     }
     
     // Virtual scrolling state
@@ -4338,12 +4375,14 @@ async function showPhoneListModal() {
         if (networkGradeFilter) networkGradeFilter.value = '';
         if (networkGbFilter) networkGbFilter.value = '';
         if (networkColorFilter) networkColorFilter.value = '';
+        syncPhoneColorSelectDisplay(networkColorFilter);
         if (modelFilter) modelFilter.value = '';
         sortBy = 'model';
         sortAscending = true;
         syncSortControls();
         updateCatalogBackButtons();
         renderNetworkModelPicker();
+        syncClearButtonsVisibility();
     });
 
     // Model card clicks — direct bind on render; capture fallback on overlay only
@@ -4801,7 +4840,7 @@ async function showPhoneListModal() {
     });
     
     // Clear filters button
-    clearFiltersBtn.addEventListener('click', () => {
+    clearFiltersBtn?.addEventListener('click', () => {
         gradeFilter.value = '';
         modelFilter.value = '';
         mineCatalogStep = 'models';
@@ -4823,6 +4862,7 @@ async function showPhoneListModal() {
         populateFilters(allPhones, ['grade', 'model', 'gb', 'color', 'tag']);
         updateCatalogBackButtons();
         applyFilters();
+        syncClearButtonsVisibility();
     });
     
     // Button handlers
@@ -4877,6 +4917,18 @@ async function showPhoneListModal() {
         let osSelectedModel = null;
         let suppressOsFilterEvents = false;
 
+        function osFiltersActive() {
+            return !!(
+                osSelectedModel
+                || gradeFilterOS.value
+                || modelFilterOS.value
+                || gbFilterOS.value
+                || colorFilterOS.value
+                || storeFilterOS.value
+                || (sortOS && sortOS.value !== 'model-asc')
+            );
+        }
+
         function syncOsFilterVisibility() {
             const count = (el) => Math.max(0, (el?.options.length || 0) - 1);
             const show = (el, n) => {
@@ -4899,6 +4951,7 @@ async function showPhoneListModal() {
                     label.style.display = any ? '' : 'none';
                 }
             }
+            clearFiltersOS?.classList.toggle('is-visible', osFiltersActive());
         }
 
         // --- Model picker ---
@@ -5153,6 +5206,7 @@ async function showPhoneListModal() {
             });
             
             renderOtherStorePhones(filtered, bodyEl, countEl, null);
+            syncOsFilterVisibility();
         };
         
         const renderModal = () => {
@@ -5264,16 +5318,11 @@ async function showPhoneListModal() {
             gbFilterOS.value = '';
             colorFilterOS.value = '';
             storeFilterOS.value = '';
+            syncPhoneColorSelectDisplay(colorFilterOS);
             if (sortOS) sortOS.value = 'model-asc';
             osSelectedModel = null;
             renderModelPicker();
-        });
-        
-        clearFiltersOS.addEventListener('mouseenter', () => {
-            clearFiltersOS.style.background = 'rgba(255,255,255,0.15)';
-        });
-        clearFiltersOS.addEventListener('mouseleave', () => {
-            clearFiltersOS.style.background = 'var(--tm-shop-item-bg)';
+            syncOsFilterVisibility();
         });
         
         // Refresh button handler
