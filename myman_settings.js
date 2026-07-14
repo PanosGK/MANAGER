@@ -1571,17 +1571,9 @@
             // Mascot Test Bubble
             document.getElementById('tm-mascot-test-bubble')?.addEventListener('click', () => {
                 if (typeof window.showMascotBubble === 'function') {
-                    const testMessages = [
-                        'Hello there! 👋',
-                        'Testing 1, 2, 3!',
-                        'Γεια σου! 🎉',
-                        'Ωραία φάση!',
-                        'I am working!',
-                        'Debug mode active! 🔧'
-                    ];
-                    const randomMsg = testMessages[Math.floor(Math.random() * testMessages.length)];
+                    const randomMsg = window.mascotMsg?.('testDebug') || 'Δοκιμή!';
                     window.showMascotBubble(randomMsg, 3000);
-                    showPositiveMessage('💬 Speech bubble displayed!');
+                    showPositiveMessage('💬 Εμφανίστηκε η φούσκα!');
                 } else {
                     showPositiveMessage('❌ Mascot bubble function not available');
                 }

@@ -2975,16 +2975,14 @@
         // Detect page type
         const currentPage = window.location.pathname;
         
-        // Test if mascot bubble works
-        setTimeout(() => {
-            if (window.showMascotBubble) {
-                const testMessages = [
-                    'Έτοιμος να βοηθήσω!', 'Ready to help!', 'Let\'s work!',
-                    'Πάμε!', 'Τι κάνουμε σήμερα;', 'What\'s up?'
-                ];
-                window.showMascotBubble(testMessages[Math.floor(Math.random() * testMessages.length)], 3000);
-            }
-        }, 2000);
+        // Greeting bubble (skip on service pages — repair status opinion takes over)
+        if (!currentPage.includes('service_list') && !currentPage.includes('service_edit')) {
+            setTimeout(() => {
+                if (window.showMascotBubble) {
+                    window.showMascotBubble(window.mascotMsg?.('startupGreeting') || 'Έτοιμος!', 3000);
+                }
+            }, 2000);
+        }
         
         // === REPAIR INTERACTIONS ===
         if (currentPage.includes('service')) {
@@ -2993,11 +2991,7 @@
             statusButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
                     setTimeout(() => {
-                        const messages = [
-                            'Status άλλαξε!', 'Μπράβο!', 'Ωραίος!', 
-                            'Πάμε παρακάτω!', 'Next!', 'Προχωράμε!'
-                        ];
-                        window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2500);
+                        window.showMascotBubble?.(window.mascotMsg?.('statusChange') || 'Άλλαξε η κατάσταση!', 2500);
                     }, 500);
                 });
             });
@@ -3008,11 +3002,7 @@
                 if (btn.textContent.includes('Αποθήκευση') || btn.textContent.includes('Save')) {
                     btn.addEventListener('click', () => {
                         setTimeout(() => {
-                            const messages = [
-                                'Saved! ✓', 'Αποθηκεύτηκε!', 'Done!', 
-                                'Τέλειο!', 'All good!', 'Όλα οκ!'
-                            ];
-                            window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2500);
+                            window.showMascotBubble?.(window.mascotMsg?.('repairSave') || 'Αποθηκεύτηκε!', 2500);
                             window.setMascotState?.(config, 'happy', 3000);
                         }, 300);
                     });
@@ -3024,188 +3014,51 @@
             if (deviceField && deviceField.value) {
                 setTimeout(() => {
                     const device = deviceField.value.substring(0, 20);
-                    const messages = [
-                        `${device}... Μμμ...`, 
-                        `${device}! Το ξέρω αυτό!`,
-                        `Ωραία συσκευή!`,
-                        `Ας δούμε τι έχει...`
-                    ];
-                    window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 3000);
+                    const pool = window.MASCOT_MESSAGES?.deviceDetect || [`${device}... Χμμ...`];
+                    const template = pool[Math.floor(Math.random() * pool.length)];
+                    window.showMascotBubble?.(template.replace(/\{device\}/g, device), 3000);
                 }, 1500);
             }
             
             // Analyze and react to repair statuses from the side menu
-            const statusMenu = document.querySelector('.rnr-b-vmenu.simple.main.initialized');
-            if (statusMenu) {
-                setTimeout(() => {
-                    // Only track specific status IDs
-                    const trackedStatusIds = ['30', '40', '65', '90'];
-                    const statusIdMap = {};
-                    let totalRepairs = 0;
-                    
-                    // Find all menu links with status information
-                    const menuLinks = statusMenu.querySelectorAll('a[href*="statusid"]');
-                    
-                    menuLinks.forEach(link => {
-                        // Check if this link is for one of the tracked status IDs
-                        const href = link.getAttribute('href');
-                        const statusIdMatch = href.match(/statusid=(\d+)/);
-                        
-                        if (statusIdMatch && trackedStatusIds.includes(statusIdMatch[1])) {
-                            // Extract status name and count
-                            const statusBadge = link.querySelector('.statusbadge');
-                            const countBadge = link.querySelector('.badge');
-                            
-                            if (statusBadge && countBadge) {
-                                const statusId = statusIdMatch[1]; // Use the actual status ID (30, 40, 65, 90)
-                                const count = parseInt(countBadge.textContent.trim(), 10);
-                                const linkText = link.textContent;
-                                const statusName = linkText.replace(statusBadge.textContent, '').replace(count.toString(), '').trim();
-                                
-                                if (!isNaN(count) && count > 0) {
-                                    statusIdMap[statusId] = { name: statusName, count: count };
-                                    totalRepairs += count;
-                                }
-                            }
-                        }
-                    });
-                    
-                    // Find the status with the HIGHEST count - that's what we'll roast
-                    let maxStatus = null;
-                    let maxCount = 0;
-                    
-                    Object.keys(statusIdMap).forEach(statusId => {
-                        if (statusIdMap[statusId].count > maxCount) {
-                            maxCount = statusIdMap[statusId].count;
-                            maxStatus = statusId;
-                        }
-                    });
-                    
-                    console.log('[MMS Mascot] Repair Status Analysis from Menu:', {
-                        totalRepairs,
-                        trackedStatusIds,
-                        statusIdMap,
-                        maxStatus: maxStatus,
-                        maxCount: maxCount,
-                        willReactToAllStatuses: Object.keys(statusIdMap).filter(id => statusIdMap[id].count > 0)
-                    });
-                    
-                    // Generate MEAN Greek slang comments for ALL statuses with counts > 0
-                    const messages = [];
-                    
-                    // Generate comments for ALL statuses that have counts > 0
-                    Object.keys(statusIdMap).forEach(statusId => {
-                        const statusData = statusIdMap[statusId];
-                        const count = statusData.count;
-                        
-                        if (count > 0) {
-                        
-                        // Status 30 - Intake/New
-                        if (statusId === '30') {
-                            if (count > 5) {
-                                messages.push(
-                                    `Ρε μαλάκα ${count} στο 30! ΚΟΥΝΗΣΟΥ!`,
-                                    `Άντε ρε! ${count} στο 30 και χαζεύεις;`,
-                                    `${count} εισαγωγές; ΞΥΠΝΑ ΚΑΗΜΕΝΕ!`,
-                                    `Γαμώτο ${count} στο 30... πάμε τώρα!`,
-                                    `Ρε συ ${count} στο 30! Πότε θα τις πιάσεις;`,
-                                    `Παναγία μου ${count} νέες! ΔΟΥΛΕΙΑ!`,
-                                    `${count} στο 30 ρε... τι περιμένεις;`,
-                                    `Μωρέ ${count} στο 30! Κούνα κώλο!`,
-                                    `Ρε πούστη μου ${count} στο 30!`,
-                                    `${count} στο 30! Μπάξε καμιά ρε!`
-                                );
-                            } else {
-                                messages.push(`${count} στο 30 - Οκ ρε.`, `${count} εισαγωγές - Καλά.`);
-                            }
-                        }
-                        
-                        // Status 40 - In Progress
-                        if (statusId === '40') {
-                            if (count > 5) {
-                                messages.push(
-                                    `Ρε ${count} στο 40! Γιατί τόσες;`,
-                                    `${count} στο 40 ρε φίλε! ΤΕΛΕΙΩΣΕ ΤΕΣ!`,
-                                    `${count} στο 40! Προχώρα μπροστά!`,
-                                    `Ρε μαλάκα ${count} στο 40!`,
-                                    `${count} σε εργασία! Κινήσου ρε!`,
-                                    `Ρε φιλαράκο ${count} στο 40 - πότε τελειώνουν;`,
-                                    `${count} στο 40 ρε... σιγά-σιγά;`,
-                                    `Ουφ ${count} στο 40! Τι γίνεται ρε;`,
-                                    `Στραβώσαμε ρε! ${count} στο 40!`,
-                                    `${count} στο 40! Αγάλα-αγάλα ε;`
-                                );
-                            } else {
-                                messages.push(`${count} στο 40 - Οκ.`, `${count} σε εργασία - Καλά είμαστε.`);
-                            }
-                        }
-                        
-                        // Status 65 - Waiting for Parts
-                        if (statusId === '65') {
-                            if (count > 8) {
-                                messages.push(
-                                    `Ρε ${count} στο 65! ΠΕΡΙΜΕΝΟΥΝ PARTS!`,
-                                    `${count} στο 65! Ανταλλακτικά δε φτάνουν!`,
-                                    `${count} περιμένουν parts ρε συ!`,
-                                    `Γαμώ τη μάνα μου ${count} χωρίς parts!`,
-                                    `${count} στο 65 ρε! ΠΟΥ ΤΑ PARTS;`,
-                                    `Μαλάκα μου ${count} χωρίς ανταλλακτικά!`,
-                                    `${count} στο 65 ρε... ΠΑΡΑΓΓΕΙΛΕ!`,
-                                    `Ρε φίλε ${count} περιμένουν! PARTS!`,
-                                    `Αχ γαμώτο ${count} χωρίς parts!`,
-                                    `${count} στο 65! Ανταλλακτικά ρε!`
-                                );
-                            } else {
-                                messages.push(`${count} στο 65 - Περιμένουν parts.`, `${count} για ανταλλακτικά - Εντάξει.`);
-                            }
-                        }
-                        
-                        // Status 90
-                        if (statusId === '90') {
-                            if (count > 2) {
-                                messages.push(
-                                    `Ρε ${count} στο 90! Τι έγινε εκεί;`,
-                                    `${count} στο 90 ρε συ! ΦΤΙΑΞΕ ΤΟ!`,
-                                    `${count} στο 90! Μαλακία γίνεται!`,
-                                    `Γαμώ τα πάντα ${count} στο 90!`,
-                                    `${count} στο 90 ρε! ΠΡΟΣΟΧΗ!`,
-                                    `Ρε συ ${count} στο 90! ΚΙΝΔΥΝΟΣ!`,
-                                    `${count} στο 90 ρε... τι τρέχει;`,
-                                    `Μωρέ ${count} στο 90! Πως έγινε αυτό;`,
-                                    `Ουστ ${count} στο 90!`,
-                                    `${count} στο 90! Αχ σκατά!`
-                                );
-                            } else {
-                                messages.push(`${count} στο 90 - Καλά.`, `${count} στο 90 - Οκ είναι.`);
-                            }
-                        }
-                        } // End of if (count > 0)
-                    }); // End of forEach loop
-                    
-                    // Handle case when no repairs exist
-                    if (totalRepairs === 0) {
-                        messages.push('Καθαρά όλα!', 'Άδειο!', 'Ησυχία!', 'Τίποτα σήμερα!');
-                    }
-                    
-                    // Display the comment
-                    if (messages.length > 0) {
-                        window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 4000);
-                    }
-                    
-                    // Set mascot mood based on urgency of tracked statuses (updated thresholds)
-                    let isUrgent = false;
-                    
-                    if ((statusIdMap['30'] && statusIdMap['30'].count > 5) || 
-                        (statusIdMap['40'] && statusIdMap['40'].count > 5) ||
-                        (statusIdMap['65'] && statusIdMap['65'].count > 8) ||
-                        (statusIdMap['90'] && statusIdMap['90'].count > 2)) {
-                        isUrgent = true;
-                    }
-                    
-                    if (isUrgent) {
-                        window.setMascotState?.(config, 'surprised', 3000);
-                    }
-                }, 2500);
+            function reactToRepairStatusMenu(attempt = 0) {
+                const statusMenu = document.querySelector('.rnr-b-vmenu.simple.main.initialized, .rnr-b-vmenu.simple.main, .rnr-b-vmenu');
+                if (!statusMenu) {
+                    if (attempt < 4) setTimeout(() => reactToRepairStatusMenu(attempt + 1), 1500);
+                    return;
+                }
+
+                const { statusIdMap, totalRepairs } = window.parseRepairStatusMenu?.(statusMenu)
+                    || { statusIdMap: {}, totalRepairs: 0 };
+
+                const hasTrackedCounts = Object.keys(statusIdMap).length > 0;
+                if (!hasTrackedCounts && attempt < 4) {
+                    setTimeout(() => reactToRepairStatusMenu(attempt + 1), 1500);
+                    return;
+                }
+
+                console.log('[MMS Mascot] Repair Status Analysis from Menu:', {
+                    totalRepairs,
+                    statusIdMap,
+                    attempt
+                });
+
+                const opinion = window.mascotRepairOpinion?.(statusIdMap, totalRepairs)
+                    || window.mascotRepairMsgs?.(statusIdMap, totalRepairs)?.[0];
+                if (opinion) {
+                    window.showMascotBubble?.(opinion, 4500);
+                }
+
+                if (window.mascotRepairIsUrgent?.(statusIdMap)) {
+                    window.setMascotState?.(config, 'surprised', 3000);
+                }
+            }
+
+            setTimeout(() => reactToRepairStatusMenu(0), 2000);
+
+            // Comment on repair total price (service_edit only)
+            if (currentPage.includes('service_edit.php')) {
+                window.initMascotRepairPriceComments?.(config);
             }
         }
         
@@ -3220,10 +3073,7 @@
                         // Track the order creation for stats and XP
                         trackDailyStat(config, STORAGE_KEYS, 'ordersCreated');
                         
-                        const messages = [
-                            'Παραγγελία! 📦', 'Order placed!', 'Τέλεια!',
-                            'Πάμε για ανταλλακτικά!', 'Parts incoming!', 'Nice!'
-                        ];
+                        const messages = window.MASCOT_MESSAGES?.orderSave || ['Νέα παραγγελία!'];
                         window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2500);
                         window.setMascotState?.(config, 'happy', 3000);
                     }, 300);
@@ -3239,13 +3089,9 @@
             if (orderItems.length > 0) {
                 setTimeout(() => {
                     const count = orderItems.length;
-                    const messages = [
-                        `${count} παραγγελίες!`, 
-                        `Πολλές παραγγελίες σήμερα!`,
-                        `Έχουμε δουλειά!`,
-                        `${count} orders... Ωραία!`
-                    ];
-                    window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 3000);
+                    const pool = window.MASCOT_MESSAGES?.orderList || [`${count} παραγγελίες!`];
+                    const template = pool[Math.floor(Math.random() * pool.length)];
+                    window.showMascotBubble?.(template.replace(/\{n\}/g, String(count)), 3000);
                 }, 2000);
             }
         }
@@ -3255,11 +3101,7 @@
             const partsRows = document.querySelectorAll('.rnr-b-table tbody tr');
             if (partsRows.length > 5) {
                 setTimeout(() => {
-                    const messages = [
-                        'Πολλά parts!', 'Καλό stock!', 'Nice inventory!',
-                        'Έχουμε όλα!', 'Full stock!', 'Ωραία!'
-                    ];
-                    window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 3000);
+                    window.showMascotBubble?.(window.mascotMsg?.('partsStock') || 'Καλό stock!', 3000);
                 }, 2000);
             }
             
@@ -3267,11 +3109,7 @@
             const searchInput = document.querySelector('input[type="search"], input[name*="search"]');
             if (searchInput) {
                 searchInput.addEventListener('focus', () => {
-                    const messages = [
-                        'Ψάχνεις κάτι;', 'Searching...', 'Τι χρειάζεσαι;',
-                        'Βοηθάω;', 'What part?', 'Πες μου!'
-                    ];
-                    window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2500);
+                    window.showMascotBubble?.(window.mascotMsg?.('partsSearch') || 'Ψάχνεις κάτι;', 2500);
                 });
             }
         }
@@ -3282,11 +3120,7 @@
             const contactLinks = document.querySelectorAll('a[href^="tel:"], a[href^="mailto:"]');
             contactLinks.forEach(link => {
                 link.addEventListener('click', () => {
-                    const messages = [
-                        'Καλή επικοινωνία!', 'Call them!', 'Πάμε!',
-                        'Τηλέφωνο!', 'Contact!', 'Let\'s talk!'
-                    ];
-                    window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2000);
+                    window.showMascotBubble?.(window.mascotMsg?.('customerContact') || 'Καλή επικοινωνία!', 2000);
                 });
             });
         }
@@ -3298,11 +3132,7 @@
         tableRows.forEach((row, index) => {
             row.addEventListener('click', () => {
                 if (Math.random() < 0.1) { // 10% chance to react
-                    const messages = [
-                        'Τι ψάχνεις;', 'Hmm...', 'Ας δούμε...',
-                        'Ενδιαφέρον!', 'Ωραίο!', 'Checking...'
-                    ];
-                    window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2000);
+                    window.showMascotBubble?.(window.mascotMsg?.('tableBrowse') || 'Τι ψάχνεις;', 2000);
                 }
             });
         });
@@ -3408,11 +3238,7 @@
                 if (!btn.hasAttribute('data-tm-print-listener')) {
                     btn.setAttribute('data-tm-print-listener', 'true');
             btn.addEventListener('click', () => {
-                const messages = [
-                    'Εκτύπωση! 🖨️', 'Print time!', 'Τυπώνουμε!',
-                    'Printer go brrrr!', 'Χαρτί!', 'Printing!'
-                ];
-                window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2500);
+                window.showMascotBubble?.(window.mascotMsg?.('printAction') || 'Εκτύπωση!', 2500);
             });
                 }
         });
@@ -3422,11 +3248,7 @@
         const deleteButtons = document.querySelectorAll('button[onclick*="delete"], button[onclick*="remove"], .rnr-b-delete');
         deleteButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                const messages = [
-                    'Προσοχή!', 'Careful!', 'Σίγουρα;',
-                    'Delete;', 'Διαγραφή!', 'Watch out!'
-                ];
-                window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2000);
+                window.showMascotBubble?.(window.mascotMsg?.('deleteWarn') || 'Προσοχή!', 2000);
                 window.setMascotState?.(config, 'surprised', 2000);
             });
         });
@@ -3435,11 +3257,7 @@
         const forms = document.querySelectorAll('form');
         forms.forEach(form => {
             form.addEventListener('submit', () => {
-                const messages = [
-                    'Στέλνουμε!', 'Submitting!', 'Πάμε!',
-                    'Let\'s go!', 'Done!', 'Sent!'
-                ];
-                window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2000);
+                window.showMascotBubble?.(window.mascotMsg?.('formSubmit') || 'Στέλνουμε!', 2000);
             });
         });
 
@@ -3485,13 +3303,8 @@
                         // --- Check for Success Messages ---
                         const isSuccess = node.classList.contains('message_success') || node.classList.contains('alert-success') || (node.innerText && node.innerText.toLowerCase().includes(' επιτυχ'));
                         if (isSuccess) {
-                            const happyMessages = [
-                                'Ναι ρε! 🎉', 'Μπράβο!', 'Εξαιρετικά!', 'Άψογα!', 
-                                'Τέλειο!', 'Success!', 'Όλα καλά!', 'Γαμάτο!',
-                                'Perfect!', 'Nice!', 'Ωραίος!', 'Let\'s go!'
-                            ];
                             window.setMascotState?.(config, 'happy', 5000);
-                            window.showMascotBubble?.(happyMessages[Math.floor(Math.random() * happyMessages.length)], 3000);
+                            window.showMascotBubble?.(window.mascotMsg?.('pageSuccess') || 'Μπράβο!', 3000);
                             if (config.confettiEnabled) triggerConfetti(100);
                             return;
                         }
@@ -3499,13 +3312,8 @@
                         // --- Check for Error Messages ---
                         const isError = node.classList.contains('message_error') || node.classList.contains('alert-danger') || (node.innerText && (node.innerText.toLowerCase().includes('σφάλμα') || node.innerText.toLowerCase().includes('error')));
                         if (isError) {
-                            const sadMessages = [
-                                'Ωχ όχι ρε...', 'Τι έγινε;', 'Πρόβλημα!', 'Μμμ...', 
-                                'Δεν πάει καλά...', 'Άου!', 'Μαλακία...', 'Χμμ...',
-                                'Error ρε!', 'Fuck...', 'Τι έπαθε;', 'Shit happens...'
-                            ];
                             window.setMascotState?.(config, 'sad', 5000);
-                            window.showMascotBubble?.(sadMessages[Math.floor(Math.random() * sadMessages.length)], 3000);
+                            window.showMascotBubble?.(window.mascotMsg?.('pageError') || 'Ωχ...', 3000);
                             // A small, sad shake animation
                             mascotContainer.style.animation = 'tm-mascot-startled 0.5s ease-out';
                             setTimeout(() => { mascotContainer.style.animation = ''; }, 500);
@@ -3832,7 +3640,7 @@
     
     // Global helper to test mascot bubble (can be called from console)
     window.testMascotBubble = function(message) {
-        const msg = message || 'Test message! Δοκιμή!';
+        const msg = message || window.mascotMsg?.('testDebug') || 'Δοκιμή!';
         if (window.showMascotBubble) {
             window.showMascotBubble(msg, 3000);
         } else {

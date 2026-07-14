@@ -12068,17 +12068,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             // Mascot Test Bubble
             document.getElementById('tm-mascot-test-bubble')?.addEventListener('click', () => {
                 if (typeof window.showMascotBubble === 'function') {
-                    const testMessages = [
-                        'Hello there! 👋',
-                        'Testing 1, 2, 3!',
-                        'Γεια σου! 🎉',
-                        'Ωραία φάση!',
-                        'I am working!',
-                        'Debug mode active! 🔧'
-                    ];
-                    const randomMsg = testMessages[Math.floor(Math.random() * testMessages.length)];
+                    const randomMsg = window.mascotMsg?.('testDebug') || 'Δοκιμή!';
                     window.showMascotBubble(randomMsg, 3000);
-                    showPositiveMessage('💬 Speech bubble displayed!');
+                    showPositiveMessage('💬 Εμφανίστηκε η φούσκα!');
                 } else {
                     showPositiveMessage('❌ Mascot bubble function not available');
                 }
@@ -15321,84 +15313,92 @@ let tamagotchiHealth = 100;
 // Epic Character Data with lore and traits
 const MASCOT_CHARACTERS = {
     dragon: {
-        name: 'Dragon',
-        emoji: '🐉',
-        color: '#1de9b6',
-        rarity: 'Legendary',
-        element: 'Fire & Scale',
+        name: 'Dragon', nameGr: 'Δράκος',
+        emoji: '🐉', color: '#1de9b6', rarity: 'Legendary', rarityGr: 'Θρύλος',
+        element: 'Fire & Scale', elementGr: 'Φωτιά & Λέπιδα',
         description: 'Ancient guardian of mystical realms',
+        descriptionGr: 'Αρχαίος φύλακας μυστικών κόσμων',
         lore: 'Born from volcanic energy, this dragon carries the wisdom of ages and the power of flame.',
-        traits: ['🔥 Fire Breath', '🛡️ Armored Scales', '✨ Ancient Magic']
+        loreGr: 'Γεννήθηκε από ηφαιστειακή ενέργεια — κουβαλά τη σοφία των αιώνων και τη δύναμη της φλόγας.',
+        traits: ['🔥 Fire Breath', '🛡️ Armored Scales', '✨ Ancient Magic'],
+        traitsGr: ['🔥 Φωτιά', '🛡️ Θωρακισμένα λέπια', '✨ Αρχαία μαγεία']
     },
     robot: {
-        name: 'Robot',
-        emoji: '🤖',
-        color: '#00b7ff',
-        rarity: 'Epic',
-        element: 'Tech & Code',
+        name: 'Robot', nameGr: 'Ρομπότ',
+        emoji: '🤖', color: '#00b7ff', rarity: 'Epic', rarityGr: 'Επικό',
+        element: 'Tech & Code', elementGr: 'Τεχνολογία & Κώδικας',
         description: 'Advanced AI from the digital frontier',
+        descriptionGr: 'Προηγμένη τεχνητή νοημοσύνη από τον ψηφιακό κόσμο',
         lore: 'Forged in silicon and lightning, this mechanical marvel evolves through code and creativity.',
-        traits: ['⚡ Electric Core', '🔧 Self-Repair', '💾 Data Mind']
+        loreGr: 'Φτιαγμένο από πυρίτιο και αστραπές — εξελίσσεται με κώδικα και φαντασία.',
+        traits: ['⚡ Electric Core', '🔧 Self-Repair', '💾 Data Mind'],
+        traitsGr: ['⚡ Ηλεκτρική καρδιά', '🔧 Αυτοεπισκευή', '💾 Νους δεδομένων']
     },
     slime: {
-        name: 'Slime',
-        emoji: '🟢',
-        color: '#76ff03',
-        rarity: 'Rare',
-        element: 'Liquid & Bounce',
+        name: 'Slime', nameGr: 'Σλίμ',
+        emoji: '🟢', color: '#76ff03', rarity: 'Rare', rarityGr: 'Σπάνιο',
+        element: 'Liquid & Bounce', elementGr: 'Υγρό & Αναπήδημα',
         description: 'Adorable gelatinous life form',
+        descriptionGr: 'Αξιολάτρευτη ζελατινώδης μορφή ζωής',
         lore: 'Created from pure joy and laughter, this bouncy friend absorbs happiness from its surroundings.',
-        traits: ['💧 Shape-Shift', '🎈 Bounce Back', '😊 Joy Aura']
+        loreGr: 'Γεννημένο από χαρά και γέλιο — απορροφά την ευτυχία γύρω του.',
+        traits: ['💧 Shape-Shift', '🎈 Bounce Back', '😊 Joy Aura'],
+        traitsGr: ['💧 Αλλάζει σχήμα', '🎈 Αναπηδάει', '😊 Αύρα χαράς']
     },
     plant: {
-        name: 'Plant Spirit',
-        emoji: '🌱',
-        color: '#4caf50',
-        rarity: 'Rare',
-        element: 'Nature & Growth',
+        name: 'Plant Spirit', nameGr: 'Πνεύμα φυτού',
+        emoji: '🌱', color: '#4caf50', rarity: 'Rare', rarityGr: 'Σπάνιο',
+        element: 'Nature & Growth', elementGr: 'Φύση & Ανάπτυξη',
         description: 'Guardian of forests and life',
+        descriptionGr: 'Φύλακας δασών και ζωής',
         lore: 'Sprouted from the World Tree, this spirit nurtures all living things with ancient earth magic.',
-        traits: ['🌿 Photosynthesis', '🌸 Bloom Power', '🌳 Nature Bond']
+        loreGr: 'Βλάστησε από το Παγκόσμιο Δέντρο — τρέφει τα πλάσματα με γη και μαγεία.',
+        traits: ['🌿 Photosynthesis', '🌸 Bloom Power', '🌳 Nature Bond'],
+        traitsGr: ['🌿 Φωτοσύνθεση', '🌸 Άνθηση', '🌳 Δέσιμο με τη φύση']
     },
     ghost: {
-        name: 'Ghost',
-        emoji: '👻',
-        color: '#b39ddb',
-        rarity: 'Epic',
-        element: 'Spirit & Shadow',
+        name: 'Ghost', nameGr: 'Φάντασμα',
+        emoji: '👻', color: '#b39ddb', rarity: 'Epic', rarityGr: 'Επικό',
+        element: 'Spirit & Shadow', elementGr: 'Πνεύμα & Σκιά',
         description: 'Ethereal being from beyond',
+        descriptionGr: 'Αιθέριο πλάσμα από το πέρα',
         lore: 'Neither living nor dead, this playful spirit phases between dimensions, seeking friendship.',
-        traits: ['👁️ Invisibility', '✨ Phase Through', '🌙 Night Vision']
+        loreGr: 'Ούτε ζωντανό ούτε νεκρό — παίζει ανάμεσα στις διαστάσεις ψάχνοντας παρέα.',
+        traits: ['👁️ Invisibility', '✨ Phase Through', '🌙 Night Vision'],
+        traitsGr: ['👁️ Αόρατο', '✨ Περνάει μέσα', '🌙 Νυχτερινή όραση']
     },
     cat: {
-        name: 'Mystic Cat',
-        emoji: '🐱',
-        color: '#ff6090',
-        rarity: 'Rare',
-        element: 'Luck & Mischief',
+        name: 'Mystic Cat', nameGr: 'Μυστική γάτα',
+        emoji: '🐱', color: '#ff6090', rarity: 'Rare', rarityGr: 'Σπάνιο',
+        element: 'Luck & Mischief', elementGr: 'Τύχη & Σκανταλιά',
         description: 'Feline of nine lives and infinite curiosity',
+        descriptionGr: 'Γάτα με εννέα ζωές και ατελείωτη περιέργεια',
         lore: 'Blessed by moon goddesses, this cat walks between worlds, bringing fortune and mystery.',
-        traits: ['🍀 Lucky Charm', '🌙 Night Hunter', '😼 Nine Lives']
+        loreGr: 'Ευλογημένη από τη Σελήνη — περπατά ανάμεσα στους κόσμους φέρνοντας τύχη.',
+        traits: ['🍀 Lucky Charm', '🌙 Night Hunter', '😼 Nine Lives'],
+        traitsGr: ['🍀 Ταλισμαν τύχης', '🌙 Νυχτερινός κυνηγός', '😼 Εννέα ζωές']
     },
     phoenix: {
-        name: 'Phoenix',
-        emoji: '🔥',
-        color: '#ff6d00',
-        rarity: 'Legendary',
-        element: 'Flame & Rebirth',
+        name: 'Phoenix', nameGr: 'Φοίνικας',
+        emoji: '🔥', color: '#ff6d00', rarity: 'Legendary', rarityGr: 'Θρύλος',
+        element: 'Flame & Rebirth', elementGr: 'Φλόγα & Αναγέννηση',
         description: 'Immortal firebird of legends',
+        descriptionGr: 'Αθάνατο πουλί της φωτιάς από τους μύθους',
         lore: 'Born from sacred flames, this majestic bird rises eternal, symbolizing hope and renewal.',
-        traits: ['🔥 Eternal Flame', '✨ Rebirth', '☀️ Solar Power']
+        loreGr: 'Γεννημένος από ιερές φλόγες — αναγεννιέται αιώνια, σύμβολο ελπίδας.',
+        traits: ['🔥 Eternal Flame', '✨ Rebirth', '☀️ Solar Power'],
+        traitsGr: ['🔥 Αιώνια φλόγα', '✨ Αναγέννηση', '☀️ Ηλιακή δύναμη']
     },
     crystal: {
-        name: 'Crystal Golem',
-        emoji: '💎',
-        color: '#4dd0e1',
-        rarity: 'Epic',
-        element: 'Gem & Light',
+        name: 'Crystal Golem', nameGr: 'Κρυστάλλινο γκόλεμ',
+        emoji: '💎', color: '#4dd0e1', rarity: 'Epic', rarityGr: 'Επικό',
+        element: 'Gem & Light', elementGr: 'Πέτρα & Φως',
         description: 'Living gemstone from deep caverns',
+        descriptionGr: 'Ζωντανό πετράδι από βαθιά σπήλαια',
         lore: 'Formed over millennia in crystal caves, this sentient gem refracts light and magic.',
-        traits: ['💎 Diamond Hard', '🌈 Light Prism', '✨ Mana Storage']
+        loreGr: 'Διαμορφώθηκε σε σπηλιές για χιλιετίες — ανακλά φως και μαγεία.',
+        traits: ['💎 Diamond Hard', '🌈 Light Prism', '✨ Mana Storage'],
+        traitsGr: ['💎 Σκληρό σαν διαμάντι', '🌈 Πρίσμα φωτός', '✨ Αποθήκη μαγείας']
     }
 };
 
@@ -15456,327 +15456,587 @@ function screenShake(duration = 500) {
     shake();
 }
 
-function showEpicCharacterReveal(characterType) {
-    const character = MASCOT_CHARACTERS[characterType];
-    if (!character) return;
-    
-    // Play epic sound
-    playEpicSound();
-    
-    // Create dramatic overlay
-    const overlay = document.createElement('div');
-    overlay.className = 'tm-character-reveal-overlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, rgba(0,0,0,0.95) 0%, rgba(20,20,40,0.98) 100%);
-        z-index: 100000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: fadeIn 0.5s ease-out;
-    `;
-    
-    // Create roulette container
-    const rouletteContainer = document.createElement('div');
-    rouletteContainer.style.cssText = `
-        text-align: center;
-        animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    `;
-    
-    // Create roulette strip
-    const rouletteStrip = document.createElement('div');
-    rouletteStrip.style.cssText = `
-        display: flex;
-        gap: 20px;
-        margin-bottom: 40px;
-        overflow: hidden;
-        width: 400px;
-        height: 120px;
-        position: relative;
-        border: 3px solid ${character.color};
-        border-radius: 12px;
-        box-shadow: 0 0 30px ${character.color}80, inset 0 0 20px rgba(0,0,0,0.5);
-    `;
-    
-    // Calculate which character index was selected
-    const allChars = Object.values(MASCOT_CHARACTERS);
-    const characterKeys = Object.keys(MASCOT_CHARACTERS);
-    const selectedIndex = characterKeys.indexOf(characterType);
-    
-    // Create scrolling characters
-    const charWidth = 120; // 80px width + 40px gap
-    const totalRepeats = 5;
-    const targetIndex = (totalRepeats - 2) * allChars.length + selectedIndex; // Land on 4th repetition
-    const targetOffset = targetIndex * charWidth;
-    const centerOffset = 200 - 60; // Center of roulette (400px / 2) - half char width
-    const finalTranslate = -(targetOffset - centerOffset);
-    
-    const scrollContainer = document.createElement('div');
-    scrollContainer.style.cssText = `
-        display: flex;
-        gap: 40px;
-        animation: rouletteScroll 3s cubic-bezier(0.22, 1, 0.36, 1);
-        padding: 20px;
-    `;
-    
-    // Add CSS animation with calculated end position
-    const animationName = `rouletteScroll_${characterType}`;
-    const animStyle = document.createElement('style');
-    animStyle.textContent = `
-        @keyframes ${animationName} {
-            0% { transform: translateX(0); }
-            70% { transform: translateX(${finalTranslate - 200}px); }
-            85% { transform: translateX(${finalTranslate + 50}px); }
-            100% { transform: translateX(${finalTranslate}px); }
-        }
-    `;
-    document.head.appendChild(animStyle);
-    scrollContainer.style.animation = `${animationName} 3s cubic-bezier(0.22, 1, 0.36, 1) forwards`;
-    
-    // Add all characters multiple times for roulette effect
-    for (let i = 0; i < totalRepeats; i++) {
-        allChars.forEach((char, idx) => {
-            const isSelected = (i === totalRepeats - 2) && (characterKeys[idx] === characterType);
-            const charDiv = document.createElement('div');
-            charDiv.style.cssText = `
-                min-width: 80px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 8px;
-                opacity: ${isSelected ? '1' : '0.4'};
-                transition: all 0.3s;
-            `;
-            charDiv.innerHTML = `
-                <div style="font-size: 50px;">${char.emoji}</div>
-                <div style="color: ${char.color}; font-weight: bold; font-size: 12px;">${char.name}</div>
-            `;
-            scrollContainer.appendChild(charDiv);
-        });
-    }
-    
-    rouletteStrip.appendChild(scrollContainer);
-    
-    // Selection indicator
-    const indicator = document.createElement('div');
-    indicator.style.cssText = `
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        width: 100px;
-        height: 100px;
-        border: 4px solid ${character.color};
-        border-radius: 12px;
-        box-shadow: 0 0 40px ${character.color}, inset 0 0 20px ${character.color}40;
-        pointer-events: none;
-        animation: pulse 1s ease-in-out infinite;
-    `;
-    rouletteStrip.appendChild(indicator);
-    
-    rouletteContainer.appendChild(rouletteStrip);
-    
-    // Character info (hidden initially)
-    const infoContainer = document.createElement('div');
-    infoContainer.style.cssText = `
-        opacity: 0;
-        animation: revealInfo 1s ease-out 3.5s forwards;
-    `;
-    infoContainer.innerHTML = `
-        <div style="text-align: center; color: white; position: relative;">
-            <div style="position: absolute; top: -20px; right: calc(50% - 200px); background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); color: #000; padding: 8px 20px; font-weight: bold; font-size: 16px; border-radius: 4px; transform: rotate(15deg); box-shadow: 0 4px 15px rgba(255,215,0,0.6); animation: ribbonBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) 3.5s; z-index: 10;">
-                ⭐ NEW! ⭐
-            </div>
-            <div style="font-size: 80px; margin-bottom: 20px; text-shadow: 0 0 30px ${character.color}; animation: bounce 1s ease-out 3.5s;">${character.emoji}</div>
-            <div style="font-size: 32px; font-weight: bold; color: ${character.color}; margin-bottom: 10px; text-shadow: 0 0 20px ${character.color};">${character.name}</div>
-            <div style="display: inline-block; background: ${character.color}40; color: ${character.color}; padding: 6px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; margin-bottom: 20px; border: 2px solid ${character.color};">${character.rarity} • ${character.element}</div>
-            <div style="font-size: 18px; color: #ccc; margin-bottom: 15px; font-style: italic;">"${character.description}"</div>
-            <div style="font-size: 14px; color: #aaa; max-width: 500px; margin: 0 auto 25px; line-height: 1.6;">${character.lore}</div>
-            <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;">
-                ${character.traits.map(trait => `
-                    <div style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 8px; font-size: 13px; color: white; border: 1px solid rgba(255,255,255,0.2);">${trait}</div>
-                `).join('')}
-            </div>
-            <button id="tm-reveal-close-btn" style="
-                background: linear-gradient(135deg, ${character.color} 0%, ${character.color}dd 100%);
-                color: white;
-                border: none;
-                padding: 15px 40px;
-                border-radius: 8px;
-                font-size: 18px;
-                font-weight: bold;
-                cursor: pointer;
-                box-shadow: 0 4px 20px ${character.color}80;
-                transition: all 0.3s;
-            " onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 30px ${character.color}';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 20px ${character.color}80';">
-                ✨ Begin Journey
-            </button>
-        </div>
-    `;
-    
-    rouletteContainer.appendChild(infoContainer);
-    overlay.appendChild(rouletteContainer);
-    
-    // Add CSS animations
+let tamaCinematicLock = false;
+
+function ensureTamaCinematicStyles() {
+    if (document.getElementById('tm-tama-cinematic-styles')) return;
     const style = document.createElement('style');
+    style.id = 'tm-tama-cinematic-styles';
     style.textContent = `
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .tm-tama-cinematic-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(ellipse at center, rgba(10, 20, 30, 0.92) 0%, rgba(0, 0, 0, 0.97) 70%);
+            animation: tm-tama-fade-in 0.45s ease-out;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
         }
-        @keyframes scaleIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        .tm-tama-cinematic-panel {
+            width: min(92vw, 520px);
+            background: linear-gradient(180deg, #1a2a1a 0%, #0d1a0d 100%);
+            border: 3px solid #3d5c3d;
+            border-radius: 18px;
+            box-shadow: 0 0 0 2px #1a301a, 0 20px 60px rgba(0,0,0,0.6), inset 0 0 30px rgba(100, 200, 100, 0.08);
+            padding: 28px 24px 24px;
+            text-align: center;
+            color: #c8f0c8;
+            position: relative;
+            overflow: hidden;
         }
-        @keyframes pulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.8; }
+        .tm-tama-cinematic-panel::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border: 1px dashed rgba(120, 200, 120, 0.25);
+            border-radius: 12px;
+            pointer-events: none;
         }
-        @keyframes revealInfo {
-            from { opacity: 0; transform: translateY(20px); }
+        .tm-tama-lcd-title {
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: #6fcf6f;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+        .tm-tama-cinematic-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #e8ffe8;
+            margin: 0 0 6px;
+            text-shadow: 0 0 12px rgba(120, 255, 120, 0.4);
+        }
+        .tm-tama-cinematic-subtitle {
+            font-size: 13px;
+            color: #8fbc8f;
+            margin: 0 0 20px;
+        }
+        .tm-tama-hatch-egg {
+            width: 140px;
+            height: 170px;
+            margin: 0 auto 20px;
+            position: relative;
+            animation: tm-egg-hatch-wobble 0.55s ease-in-out infinite;
+        }
+        .tm-tama-hatch-egg-body {
+            width: 100%;
+            height: 100%;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            background: radial-gradient(ellipse at 35% 30%, #fff8e8 0%, #f5e6c8 30%, #d4b896 70%, #a08060 100%);
+            border: 3px solid #8b7355;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset -8px -12px 20px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        .tm-tama-hatch-egg-glow {
+            position: absolute;
+            inset: -20px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 230, 150, 0.5) 0%, transparent 70%);
+            animation: tm-egg-glow-pulse 1.2s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .tm-tama-hatch-crack {
+            position: absolute;
+            background: #5a4a3a;
+            transform-origin: center;
+            opacity: 0;
+        }
+        .tm-tama-hatch-crack-1 {
+            width: 3px; height: 45px; top: 25%; left: 48%;
+            transform: rotate(-15deg);
+            animation: tm-crack-appear 0.4s ease-out 0.8s forwards;
+        }
+        .tm-tama-hatch-crack-2 {
+            width: 3px; height: 35px; top: 40%; left: 35%;
+            transform: rotate(25deg);
+            animation: tm-crack-appear 0.4s ease-out 1.2s forwards;
+        }
+        .tm-tama-hatch-crack-3 {
+            width: 3px; height: 40px; top: 38%; left: 58%;
+            transform: rotate(-30deg);
+            animation: tm-crack-appear 0.4s ease-out 1.6s forwards;
+        }
+        .tm-tama-hatch-crack-4 {
+            width: 50px; height: 3px; top: 52%; left: 30%;
+            transform: rotate(10deg);
+            animation: tm-crack-appear 0.4s ease-out 2s forwards;
+        }
+        .tm-tama-hatch-status {
+            font-size: 14px;
+            color: #9fdf9f;
+            min-height: 20px;
+            animation: tm-tama-blink 1.5s step-end infinite;
+        }
+        .tm-tama-hatch-burst {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, rgba(255,255,220,0.95) 0%, rgba(255,200,100,0.6) 40%, transparent 70%);
+            opacity: 0;
+            pointer-events: none;
+            border-radius: 18px;
+        }
+        .tm-tama-hatch-burst.active {
+            animation: tm-hatch-burst 0.7s ease-out forwards;
+        }
+        .tm-tama-lucky-slot {
+            display: flex;
+            gap: 16px;
+            margin: 0 auto 24px;
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+            height: 110px;
+            position: relative;
+            border: 3px solid var(--lucky-color, #6fcf6f);
+            border-radius: 12px;
+            box-shadow: 0 0 24px color-mix(in srgb, var(--lucky-color, #6fcf6f) 40%, transparent);
+            background: rgba(0,0,0,0.35);
+        }
+        .tm-tama-lucky-indicator {
+            position: absolute;
+            left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+            width: 90px; height: 90px;
+            border: 3px solid var(--lucky-color, #6fcf6f);
+            border-radius: 10px;
+            box-shadow: 0 0 30px var(--lucky-color, #6fcf6f);
+            pointer-events: none;
+            animation: tm-lucky-pulse 0.8s ease-in-out infinite;
+        }
+        .tm-tama-lucky-scroll {
+            display: flex;
+            gap: 32px;
+            padding: 16px;
+            will-change: transform;
+        }
+        .tm-tama-lucky-char {
+            min-width: 72px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.35;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .tm-tama-lucky-char.selected {
+            opacity: 1;
+            transform: scale(1.15);
+        }
+        .tm-tama-lucky-char-emoji { font-size: 44px; }
+        .tm-tama-lucky-char-name { font-size: 11px; font-weight: 700; }
+        .tm-tama-lucky-reveal {
+            opacity: 0;
+            transform: translateY(16px);
+        }
+        .tm-tama-lucky-reveal.visible {
+            animation: tm-lucky-reveal-in 0.8s ease-out forwards;
+        }
+        .tm-tama-death-scene {
+            position: relative;
+            height: 200px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .tm-tama-death-mascot {
+            font-size: 64px;
+            position: absolute;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+            filter: grayscale(1);
+            opacity: 0.7;
+            animation: tm-death-fade-mascot 2s ease-out forwards;
+        }
+        .tm-tama-death-ghost {
+            font-size: 48px;
+            position: absolute;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: tm-death-ghost-rise 3s ease-out 0.5s forwards;
+        }
+        .tm-tama-death-stars span {
+            position: absolute;
+            font-size: 12px;
+            opacity: 0;
+            animation: tm-death-star 2s ease-out infinite;
+        }
+        .tm-tama-death-message {
+            font-size: 16px;
+            color: #b0b0c0;
+            font-style: italic;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+        .tm-tama-death-options {
+            opacity: 0;
+        }
+        .tm-tama-death-options.visible {
+            animation: tm-lucky-reveal-in 0.6s ease-out forwards;
+        }
+        .tm-tama-death-stat {
+            font-size: 13px;
+            color: #888;
+            margin: 4px 0;
+        }
+        .tm-tama-btn {
+            border: none;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 6px;
+        }
+        .tm-tama-btn:hover { transform: scale(1.04); }
+        .tm-tama-btn-revive { background: linear-gradient(135deg, #28a745, #1e7e34); color: #fff; }
+        .tm-tama-btn-restart { background: linear-gradient(135deg, #dc3545, #a71d2a); color: #fff; }
+        .tm-tama-btn-primary {
+            background: linear-gradient(135deg, var(--lucky-color, #6fcf6f), #3d8b3d);
+            color: #fff;
+            box-shadow: 0 4px 16px color-mix(in srgb, var(--lucky-color, #6fcf6f) 50%, transparent);
+        }
+        #tm-mascot-container.mascot-hatching .tm-mascot-robot {
+            animation: tm-egg-hatch-wobble 0.5s ease-in-out infinite !important;
+        }
+        #tm-mascot-container.mascot-hatching .tm-egg-crack {
+            animation: tm-egg-crack-grow 2s ease-out forwards;
+        }
+        #tm-mascot-container.mascot-hatching .tm-egg-core {
+            animation: tm-egg-core-pulse 0.8s ease-in-out infinite;
+        }
+        #tm-mascot-container.mascot-dying {
+            filter: grayscale(1);
+            opacity: 0.6;
+            transition: filter 2s, opacity 2s;
+        }
+        #tm-mascot-container.mascot-dead .tm-mascot-robot {
+            filter: grayscale(1);
+            opacity: 0.35;
+            animation: none !important;
+        }
+        #tm-mascot-container.mascot-dead {
+            pointer-events: none;
+        }
+        @keyframes tm-tama-fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes tm-egg-hatch-wobble {
+            0%, 100% { transform: rotate(-4deg) scale(1); }
+            25% { transform: rotate(4deg) scale(1.03); }
+            50% { transform: rotate(-3deg) scale(1.01); }
+            75% { transform: rotate(3deg) scale(1.02); }
+        }
+        @keyframes tm-egg-glow-pulse {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(1.1); }
+        }
+        @keyframes tm-crack-appear {
+            from { opacity: 0; transform: scaleY(0); }
+            to { opacity: 1; transform: scaleY(1); }
+        }
+        @keyframes tm-hatch-burst {
+            0% { opacity: 0; transform: scale(0.5); }
+            40% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0; transform: scale(1.8); }
+        }
+        @keyframes tm-tama-blink { 50% { opacity: 0.5; } }
+        @keyframes tm-lucky-pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.06); }
+        }
+        @keyframes tm-lucky-reveal-in {
+            from { opacity: 0; transform: translateY(16px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+        @keyframes tm-death-fade-mascot {
+            to { opacity: 0.2; transform: translateX(-50%) scale(0.9); }
         }
-        @keyframes ribbonBounce {
-            0% { transform: rotate(15deg) scale(0); opacity: 0; }
-            60% { transform: rotate(15deg) scale(1.2); opacity: 1; }
-            100% { transform: rotate(15deg) scale(1); opacity: 1; }
+        @keyframes tm-death-ghost-rise {
+            0% { opacity: 0; transform: translateX(-50%) translateY(0); }
+            20% { opacity: 1; }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-120px); }
+        }
+        @keyframes tm-death-star {
+            0% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+        @keyframes tm-egg-crack-grow {
+            from { stroke-dashoffset: 20; opacity: 0.3; }
+            to { opacity: 1; }
+        }
+        @keyframes tm-egg-core-pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
         }
     `;
     document.head.appendChild(style);
-    
-    // Spawn particles
-    for (let i = 0; i < 50; i++) {
+}
+
+function showEggHatchAnimation(onComplete) {
+    ensureTamaCinematicStyles();
+    if (document.getElementById('tm-tama-hatch-panel')) return;
+
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    mascotContainer?.classList.add('mascot-hatching');
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tm-tama-hatch-panel';
+    overlay.className = 'tm-tama-cinematic-overlay';
+    overlay.innerHTML = `
+        <div class="tm-tama-cinematic-panel">
+            <div class="tm-tama-lcd-title">● Tamagotchi ●</div>
+            <h2 class="tm-tama-cinematic-title">🥚 Εκκόλαψη!</h2>
+            <p class="tm-tama-cinematic-subtitle">Κάτι κινείται μέσα στο ωό...</p>
+            <div class="tm-tama-hatch-egg">
+                <div class="tm-tama-hatch-egg-glow"></div>
+                <div class="tm-tama-hatch-egg-body">
+                    <div class="tm-tama-hatch-crack tm-tama-hatch-crack-1"></div>
+                    <div class="tm-tama-hatch-crack tm-tama-hatch-crack-2"></div>
+                    <div class="tm-tama-hatch-crack tm-tama-hatch-crack-3"></div>
+                    <div class="tm-tama-hatch-crack tm-tama-hatch-crack-4"></div>
+                </div>
+            </div>
+            <div class="tm-tama-hatch-status" id="tm-hatch-status">Αναμονή...</div>
+            <div class="tm-tama-hatch-burst" id="tm-hatch-burst"></div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const statusEl = overlay.querySelector('#tm-hatch-status');
+    const burstEl = overlay.querySelector('#tm-hatch-burst');
+    const phases = [
+        [600, 'Αναμονή...'],
+        [1400, 'Κουνιέται!'],
+        [2200, 'Ρωγμές...'],
+        [3000, 'Σχεδόν έτοιμο!'],
+        [3600, 'ΕΚΚΟΛΑΨΗ!']
+    ];
+    phases.forEach(([ms, text]) => {
+        setTimeout(() => { if (statusEl) statusEl.textContent = text; }, ms);
+    });
+
+    setTimeout(() => screenShake(500), 3200);
+    setTimeout(() => {
+        burstEl?.classList.add('active');
+        playEpicSound();
+    }, 3400);
+
+    setTimeout(() => {
+        mascotContainer?.classList.remove('mascot-hatching');
+        overlay.style.animation = 'tm-tama-fade-in 0.4s ease-out reverse';
         setTimeout(() => {
-            const particle = document.createElement('div');
-            particle.style.cssText = `
-                position: absolute;
-                width: 4px;
-                height: 4px;
-                background: ${character.color};
-                border-radius: 50%;
-                top: ${Math.random() * 100}%;
-                left: ${Math.random() * 100}%;
-                animation: sparkle ${2 + Math.random() * 3}s ease-out infinite;
-                box-shadow: 0 0 10px ${character.color};
-            `;
-            overlay.appendChild(particle);
-        }, i * 30);
+            overlay.remove();
+            if (typeof onComplete === 'function') onComplete();
+        }, 400);
+    }, 4200);
+}
+
+function showTamagotchiDeathCinematic(onComplete) {
+    ensureTamaCinematicStyles();
+    if (document.getElementById('tm-tama-death-cinematic')) {
+        if (typeof onComplete === 'function') onComplete();
+        return;
     }
-    
-    const sparkleStyle = document.createElement('style');
-    sparkleStyle.textContent = `
-        @keyframes sparkle {
-            0%, 100% { opacity: 0; transform: scale(0); }
-            50% { opacity: 1; transform: scale(1); }
+
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    mascotContainer?.classList.add('mascot-dying');
+    stopRoaming(window.config || {});
+
+    const stageEmoji = { egg: '🥚', baby: '👶', kid: '🧒', teen: '🎮', adult: '💼', middleage: '👔', old: '👴' };
+    const emoji = tamagotchiCharacterType && MASCOT_CHARACTERS[tamagotchiCharacterType]
+        ? MASCOT_CHARACTERS[tamagotchiCharacterType].emoji
+        : (stageEmoji[tamagotchiStage] || '💀');
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tm-tama-death-cinematic';
+    overlay.className = 'tm-tama-cinematic-overlay';
+    overlay.innerHTML = `
+        <div class="tm-tama-cinematic-panel" style="border-color:#4a4a5a; background: linear-gradient(180deg, #1a1a2a 0%, #0a0a14 100%);">
+            <div class="tm-tama-lcd-title" style="color:#888;">● Tamagotchi ●</div>
+            <h2 class="tm-tama-cinematic-title" style="color:#ccc; text-shadow:none;">💀 Αντίο...</h2>
+            <div class="tm-tama-death-scene">
+                <div class="tm-tama-death-stars">
+                    ${[10,25,40,55,70,85].map((l, i) => `<span style="left:${l}%;top:${15 + (i%3)*20}%;animation-delay:${i*0.3}s">✦</span>`).join('')}
+                </div>
+                <div class="tm-tama-death-mascot">${emoji}</div>
+                <div class="tm-tama-death-ghost">👻</div>
+            </div>
+            <p class="tm-tama-death-message" id="tm-death-cine-msg">Επέστρεψε στον ψηφιακό κόσμο...</p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const msgs = MASCOT_MESSAGES.deathCinematic;
+    let mi = 0;
+    const msgInterval = setInterval(() => {
+        const el = overlay.querySelector('#tm-death-cine-msg');
+        if (el && mi < msgs.length) el.textContent = msgs[mi++];
+    }, 900);
+
+    setTimeout(() => {
+        clearInterval(msgInterval);
+        mascotContainer?.classList.remove('mascot-dying');
+        overlay.style.animation = 'tm-tama-fade-in 0.5s ease-out reverse';
+        setTimeout(() => {
+            overlay.remove();
+            if (typeof onComplete === 'function') onComplete();
+        }, 500);
+    }, 3800);
+}
+
+function runTamagotchiHatchSequence(characterType, container) {
+    if (tamaCinematicLock) return;
+    tamaCinematicLock = true;
+    const config = typeof window.config !== 'undefined' ? window.config : {};
+    stopRoaming(config);
+
+    showEggHatchAnimation(() => {
+        updateMascotAppearanceByStage('baby');
+        showLuckyCharacterReveal(characterType, () => {
+            tamaCinematicLock = false;
+            showMascotBubble(mascotHatchMsg(characterType), 3000);
+            if (typeof window.STORAGE_KEYS !== 'undefined') {
+                updatePetStateByStats(config, window.STORAGE_KEYS);
+            }
+        });
+    });
+}
+
+function runTamagotchiDeathSequence(STORAGE_KEYS) {
+    if (document.getElementById('tm-tamagotchi-death-overlay')) return;
+    showTamagotchiDeathCinematic(() => {
+        showTamagotchiDeathScreen(STORAGE_KEYS, true);
+    });
+}
+
+function showEpicCharacterReveal(characterType, onComplete) {
+    return showLuckyCharacterReveal(characterType, onComplete);
+}
+
+function showLuckyCharacterReveal(characterType, onComplete) {
+    const character = MASCOT_CHARACTERS[characterType];
+    if (!character) {
+        if (typeof onComplete === 'function') onComplete();
+        return;
+    }
+
+    ensureTamaCinematicStyles();
+    playEpicSound();
+
+    const characterKeys = Object.keys(MASCOT_CHARACTERS);
+    const allChars = Object.values(MASCOT_CHARACTERS);
+    const selectedIndex = characterKeys.indexOf(characterType);
+    const charWidth = 104;
+    const totalRepeats = 5;
+    const targetIndex = (totalRepeats - 2) * allChars.length + selectedIndex;
+    const finalTranslate = -(targetIndex * charWidth - 164);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tm-tama-lucky-panel';
+    overlay.className = 'tm-tama-cinematic-overlay';
+    overlay.style.setProperty('--lucky-color', character.color);
+
+    const scrollItems = [];
+    for (let i = 0; i < totalRepeats; i++) {
+        allChars.forEach((char, idx) => {
+            const isWinner = (i === totalRepeats - 2) && (characterKeys[idx] === characterType);
+            scrollItems.push(`
+                <div class="tm-tama-lucky-char${isWinner ? ' selected' : ''}" data-char-idx="${i * allChars.length + idx}">
+                    <div class="tm-tama-lucky-char-emoji">${char.emoji}</div>
+                    <div class="tm-tama-lucky-char-name" style="color:${char.color}">${char.nameGr || char.name}</div>
+                </div>
+            `);
+        });
+    }
+
+    overlay.innerHTML = `
+        <div class="tm-tama-cinematic-panel" style="--lucky-color:${character.color}; max-width:480px;">
+            <div class="tm-tama-lcd-title">● Τυχερή κλήρωση ●</div>
+            <h2 class="tm-tama-cinematic-title">🎰 Τυχερή επιλογή!</h2>
+            <p class="tm-tama-cinematic-subtitle">Ποιος θα βγει από το αυγό;</p>
+            <div class="tm-tama-lucky-slot">
+                <div class="tm-tama-lucky-indicator"></div>
+                <div class="tm-tama-lucky-scroll" id="tm-lucky-scroll">${scrollItems.join('')}</div>
+            </div>
+            <div class="tm-tama-lucky-reveal" id="tm-lucky-reveal">
+                <div style="font-size:72px;margin-bottom:12px;text-shadow:0 0 24px ${character.color}">${character.emoji}</div>
+                <div style="font-size:26px;font-weight:700;color:${character.color};margin-bottom:8px">${character.nameGr || character.name}</div>
+                <div style="display:inline-block;background:${character.color}33;color:${character.color};padding:5px 14px;border-radius:16px;font-size:12px;font-weight:700;border:2px solid ${character.color};margin-bottom:14px">${character.rarityGr || character.rarity} • ${character.elementGr || character.element}</div>
+                <div style="font-size:14px;color:#aaa;margin-bottom:16px;font-style:italic">"${character.descriptionGr || character.description}"</div>
+                <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px">
+                    ${(character.traitsGr || character.traits).map(t => `<span style="background:rgba(255,255,255,0.08);padding:6px 12px;border-radius:6px;font-size:12px;color:#ddd;border:1px solid rgba(255,255,255,0.15)">${t}</span>`).join('')}
+                </div>
+                <button class="tm-tama-btn tm-tama-btn-primary" id="tm-reveal-close-btn">✨ Ξεκινάμε!</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const scrollEl = overlay.querySelector('#tm-lucky-scroll');
+    const revealEl = overlay.querySelector('#tm-lucky-reveal');
+    const animName = `tmLuckySpin_${characterType}_${Date.now()}`;
+    const spinStyle = document.createElement('style');
+    spinStyle.textContent = `
+        @keyframes ${animName} {
+            0% { transform: translateX(0); }
+            70% { transform: translateX(${finalTranslate - 180}px); }
+            85% { transform: translateX(${finalTranslate + 40}px); }
+            100% { transform: translateX(${finalTranslate}px); }
         }
     `;
-    document.head.appendChild(sparkleStyle);
-    
-    // Add to page
-    document.body.appendChild(overlay);
-    
-    // Highlight selected character when roulette stops at 3 seconds
+    document.head.appendChild(spinStyle);
+    if (scrollEl) scrollEl.style.animation = `${animName} 2.8s cubic-bezier(0.22, 1, 0.36, 1) forwards`;
+
+    const closePanel = () => {
+        overlay.style.animation = 'tm-tama-fade-in 0.35s ease-out reverse';
+        setTimeout(() => {
+            overlay.remove();
+            spinStyle.remove();
+            if (typeof window.triggerConfetti === 'function') window.triggerConfetti(80);
+            if (typeof onComplete === 'function') onComplete();
+        }, 350);
+    };
+
     setTimeout(() => {
-        const allCharDivs = scrollContainer.querySelectorAll('div[style*="min-width: 80px"]');
-        allCharDivs[targetIndex]?.style.setProperty('opacity', '1');
-        allCharDivs[targetIndex]?.style.setProperty('transform', 'scale(1.1)');
-    }, 3000);
-    
-    // Epic reveal moment at 3.5 seconds
+        scrollEl?.querySelectorAll('.tm-tama-lucky-char').forEach((el, i) => {
+            el.classList.toggle('selected', i === targetIndex);
+        });
+    }, 2800);
+
     setTimeout(() => {
-        // Screen shake!
-        screenShake(600);
-        
-        // Flash effect
-        const flash = document.createElement('div');
-        flash.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: ${character.color};
-            z-index: 100001;
-            animation: flash 0.5s ease-out;
-            pointer-events: none;
-        `;
-        document.body.appendChild(flash);
-        setTimeout(() => flash.remove(), 500);
-        
-        const flashStyle = document.createElement('style');
-        flashStyle.textContent = `
-            @keyframes flash {
-                0% { opacity: 0; }
-                50% { opacity: 0.8; }
-                100% { opacity: 0; }
-            }
-        `;
-        document.head.appendChild(flashStyle);
-        
-        // Epic reveal sound
+        screenShake(500);
+        revealEl?.classList.add('visible');
+        if (scrollEl?.parentElement) scrollEl.parentElement.style.opacity = '0.35';
         try {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const playChord = (freqs, startTime, duration) => {
-                freqs.forEach(freq => {
-                    const oscillator = audioContext.createOscillator();
-                    const gainNode = audioContext.createGain();
-                    
-                    oscillator.connect(gainNode);
-                    gainNode.connect(audioContext.destination);
-                    
-                    oscillator.frequency.value = freq;
-                    oscillator.type = 'sine';
-                    
-                    gainNode.gain.setValueAtTime(0, startTime);
-                    gainNode.gain.linearRampToValueAtTime(0.15, startTime + 0.05);
-                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
-                    
-                    oscillator.start(startTime);
-                    oscillator.stop(startTime + duration);
-                });
-            };
-            
-            const now = audioContext.currentTime;
-            playChord([523.25, 659.25, 783.99], now, 1.5); // C major chord (epic!)
-        } catch (e) {
-            console.log('[Mascot] Audio not available:', e);
-        }
-        
-        // Trigger confetti!
-        if (typeof window.triggerConfetti === 'function') {
-            window.triggerConfetti(200);
-        }
-    }, 3500);
-    
-    // Close button handler
-    setTimeout(() => {
-        const closeBtn = document.getElementById('tm-reveal-close-btn');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                overlay.style.animation = 'fadeIn 0.3s ease-out reverse';
-                setTimeout(() => overlay.remove(), 300);
-                
-                // More confetti on close!
-                if (typeof window.triggerConfetti === 'function') {
-                    window.triggerConfetti(100);
-                }
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            [523.25, 659.25, 783.99].forEach((freq, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(0, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
+                osc.start(ctx.currentTime + i * 0.05);
+                osc.stop(ctx.currentTime + 1.2);
             });
-        }
-    }, 3500);
+        } catch (e) { /* audio unavailable */ }
+        if (typeof window.triggerConfetti === 'function') window.triggerConfetti(180);
+        overlay.querySelector('#tm-reveal-close-btn')?.addEventListener('click', closePanel);
+    }, 3200);
 }
 
 window.playEpicSound = playEpicSound;
 window.screenShake = screenShake;
-
 window.showEpicCharacterReveal = showEpicCharacterReveal;
+window.showLuckyCharacterReveal = showLuckyCharacterReveal;
+window.showEggHatchAnimation = showEggHatchAnimation;
+window.showTamagotchiDeathCinematic = showTamagotchiDeathCinematic;
 let tamagotchiDiscipline = 0;
 let tamagotchiLightsOn = true;
 let tamagotchiLastUpdate = Date.now();
@@ -15803,6 +16063,741 @@ let tamagotchiIsSleeping = false;
 let tamagotchiLightsManualOverride = false; // User manually toggled lights (prevents auto sleep/wake)
 let tamagotchiLastPraise = 0; // Last time praised
 let tamagotchiLastScold = 0; // Last time scolded
+let tamagotchiLifeMinutes = 0; // Real-time life clock (classic Tamagotchi pacing)
+
+// Classic Tamagotchi-inspired stage thresholds (real minutes)
+const TAMA_STAGE_MINUTES = {
+    egg: 0,
+    baby: 5,
+    kid: 65,
+    teen: 180,
+    adult: 360,
+    middleage: 720,
+    old: 1440,
+    death: 4800 // ~80 display-years at 60 min/year
+};
+const TAMA_MINUTES_PER_YEAR = 60;
+const TAMA_CHARACTER_TYPES = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal'];
+
+const MASCOT_CHAR_NAMES_GR = {
+    dragon: 'Δράκος', robot: 'Ρομπότ', slime: 'Σλίμ', plant: 'Φυτό',
+    ghost: 'Φάντασμα', cat: 'Γάτα', phoenix: 'Φοίνικας', crystal: 'Κρύσταλλος'
+};
+
+const MASCOT_MESSAGES = {
+    dead: 'Έφυγα από δω...',
+    defaultBubble: [
+        'Ωπ!', 'Έλα!', 'Ναι;', 'Τι έγινε;', 'Λέγε!', 'Εδώ είμαι!',
+        'Τι κάνουμε;', 'Πάμε!', 'Ωραία!', 'Όλα καλά!', 'Μια χαρά!',
+        'Ας δούμε...', 'Έτοιμος!', 'Τέλεια!', 'Φύγαμε!'
+    ],
+    idleRepair: [
+        'Πάμε για δουλειά!', 'Τι θα χαλάσει σήμερα;', 'Έτοιμος!',
+        'Ας δούμε τι έχουμε...', 'Μπαταρία μια χαρά!', 'Χμμ...',
+        'Πού πήγε το κατσαβίδι μου;', 'Μικροκολλήσεις;', 'Θέλει reflow;',
+        'Καλή μέρα!', 'Περιμένουμε κάτι;', 'Έχει δουλειά;',
+        'Θα το κάνω σαν καινούριο!', 'Καμένο IC...', 'Ας δω το σχηματικό...',
+        'Άνοιξε!', 'Θέλει reballing;', 'Πλακέτα ε;',
+        'Μετράω τάσεις!', 'Flux και θερμό!', 'Τι έρχεται τώρα;',
+        'Καφέ θες;', 'Οθόνη γρήγορα!', 'Άλλαξε μπαταρία!',
+        'Θύρα φόρτισης πάλι;', 'Κάμερα χάλασε;', 'Ήχος πάει;',
+        'Τσέκαρε WiFi!', 'Baseband πάει καλά;', 'Λογική πλακέτα;',
+        'Βρήκα βραχύ!', 'Μπέρδεψα καλώδια!', 'Ποια θύρα είναι;',
+        'Flux παντού!', 'Θέλει κόλληση!'
+    ],
+    lowStats: [
+        'Πεινάω...', 'Δεν είμαι καλά...', 'Θέλω φαγητό!',
+        'Λίγη προσοχή παρακαλώ!', 'Τάισέ με!', 'Πότε θα φάω;',
+        'Μου λείπεις...', 'Χάδι θέλω!', 'Δεν μου κάνετε καλό...',
+        'Είμαι λυπημένος...', 'Πεινάω πολύ...'
+    ],
+    oldAgeDeath: [
+        'Ήρθε η ώρα μου...', 'Καλό ταξίδι...', 'Αντίο...', 'Ευχαριστώ για όλα...',
+        'Έζησα όμορφα...', 'Τέλος καλό...', 'Πάω στο φως...', 'Ήταν όλα υπέροχα...'
+    ],
+    evolution: [
+        'Μεγάλωσα!', 'Άλλαξα μορφή!', 'Εξελίχθηκα!', 'Νέο στάδιο!',
+        'Προχώρησα!', 'Μεγαλώνω!', 'Νέα εμφάνιση!', 'Ώρα για κάτι καινούριο!'
+    ],
+    becameOld: [
+        'Γέρασα...', 'Νιώθω μεγάλος...', 'Τα χρόνια περνούν...', 'Έγινα γέρος...'
+    ],
+    oldAgeWarning: [
+        'Κουράζομαι εύκολα...', 'Νιώθω αδύναμος...', 'Τα κόκαλα μου πονάνε...',
+        'Πόσα χρόνια πέρασαν...', 'Γεράσαμε...', 'Ο χρόνος τελειώνει...'
+    ],
+    sick: {
+        cold: ['Αχού...', 'Κρυώνω...', 'Μυρίζω...', 'Δεν είμαι καλά...'],
+        fever: ['Καίω...', 'Πυρετός...', 'Ζεστάκια...', 'Δεν αισθάνομαι καλά...'],
+        upset_stomach: ['Πονάει η κοιλιά μου...', 'Δεν μπορώ να φάω...', 'Άρρωστος...', 'Μου έφτασε...']
+    ],
+    death: [
+        '...', 'Αντίο...', 'Έφυγα...', 'Καλό ταξίδι...',
+        'Επιστρέφω στον ψηφιακό κόσμο...', 'Ξεκουράζομαι...'
+    ],
+    deathCinematic: ['...', 'Αντίο...', 'Καλό ταξίδι...', 'Θα με θυμάσαι...'],
+    revived: 'Ξαναζωσαίνω!',
+    bye: [
+        'Τα λέμε!', 'Γεια!', 'Αντίο!', 'Τα ξαναλέμε!', 'Φιλάκια!',
+        'Πάω!', 'Καλά να περνάς!', 'Τα λέμε σύντομα!'
+    ],
+    eggWarmLights: 'Άναψε πρώτα τα φώτα για ζεστασιά! 💡',
+    eggWarm: [
+        'Ζεστάκια μέσα!', 'Νιώθω ζεστασιά...', 'Κρατιέται καλά!', 'Θα βγει σύντομα!',
+        'Ζεστό και άνετο!', 'Σσσ... αναπνέει!', 'Όλα καλά!'
+    ],
+    eggWatch: [
+        'Νιώθω κούνηση...', 'Χτυπάει μέσα!', 'Ζωντανό είναι!', 'Περιμένουμε...',
+        'Κάτι κινείται!', 'Έρχεται!', 'Λίγη υπομονή ακόμα!'
+    ],
+    feed: [
+        'Μμμ, νόστιμο!', 'Πεινούσα!', 'Ωραίο φαγητό!', 'Τέλειο!',
+        'Νάμ νάμ!', 'Ευχαριστώ!', 'Θέλω κι άλλο!', 'Πεντανόστιμο!',
+        'Υπέροχο!', 'Λατρεύω φαγητό!', 'Τι γεύση!', 'Άψογο!'
+    ],
+    feedPanel: [
+        'Νόστιμο!', 'Ωραίο!', 'Μμμ!', 'Τέλεια!',
+        'Πεινούσα!', 'Νάμ νάμ!', 'Ευχαριστώ φίλε!', 'Άλλο λίγο;',
+        'Σουβλάκι!', 'Γύρος;', 'Καφέδακι!', 'Τυρόπιτα;',
+        'Burger!', 'Πίτσα!', 'Ενέργεια!', 'Φαγητό!',
+        'Νόστιμο πολύ!', 'Κόλλησα!', 'Θα φάω!', 'Ωραία φάση!'
+    ],
+    full: ['Χόρτασα!', 'Γεμάτος!', 'Όχι άλλο!', 'Θα σκάσω!', 'Αρκετά!'],
+    snack: ['Γλυκό!', 'Νόστιμο σνακ!', 'Ωραίο!', 'Μμμ!', 'Τέλεια!'],
+    snackPanel: ['Σνακ!', 'Νόστιμο!', 'Γλυκό!', 'Ωραίο!', 'Ευχαριστώ!', 'Τέλεια!'],
+    notHungrySnack: 'Δεν πεινάω για σνακ!',
+    pet: ['Μ\' αρέσει!', '💕', 'Ωραία!', 'Ακόμα!', 'Τέλειο!', 'Ναι!', 'Πάλι!'],
+    petPanel: [
+        'Ω ναι!', 'Αγάπη!', 'Ωραία!', 'Τέλεια!',
+        'Ακόμα!', 'Χαίρομαι!', 'Ευχαριστώ!', 'Έτσι είναι καλύτερα!',
+        'Ωραία φάση!', 'Μου αρέσει!', 'Χαχα!', 'Γαργαλάει!',
+        'Ωχού!', 'Πάλι πάλι!', 'Τέλεια!', 'Μου αρέσει πολύ!', 'Ωωω!', 'Γλυκιά μου!'
+    ],
+    maxHappy: ['Είμαι μια χαρά!', 'Τέλειος!', 'Όλα καλά!', 'Ήδη χαρούμενος!', 'Κομπλέ!'],
+    clean: ['Καθαρά!', 'Ευχαριστώ!', 'Πολύ καλύτερα!', 'Τέλεια!', 'Φρεσκάδα!'],
+    cleanPanel: ['Καθαρός!', 'Ωραία!', 'Φρέσκο!', 'Καθάρισα!', 'Ευχαριστώ!'],
+    alreadyClean: ['Είμαι ήδη καθαρός!', 'Είναι καθαρά!', 'Όλα καλά εδώ!'],
+    medicine: ['Καλύτερα!', 'Αισθάνομαι καλά!', 'Πέρασε!', 'Έγινα καλά!', 'Ευχαριστώ!'],
+    medicinePanel: ['Καλύτερα!', 'Ευχαριστώ!', 'Γιατρός!', 'Θα γίνω καλά!', 'Έφτιαξα!'],
+    healthy: ['Είμαι υγιής!', 'Μια χαρά είμαι!', 'Όλα καλά!'],
+    feelingBetter: 'Αισθάνομαι καλύτερα!',
+    toiletTrained: 'Έμαθα τουαλέτα! 🎉',
+    toiletRelief: 'Ανακούφιση! 🚽',
+    toiletOk: 'Εντάξει! 🚽',
+    toiletGood: 'Ωραία! 🚽',
+    toiletTraining: 'Εξάσκηση... 🚽',
+    praise: ['Ευχαριστώ!', 'Μπράβο μου!', 'Ωραίος!', 'Τέλειος!', 'Είμαι καλός!', 'Σ\' αρέσω;', 'Χαίρομαι!', 'Ναι ναι!'],
+    praiseThanks: 'Ευχαριστώ! 😊',
+    scoldSorry: 'Συγγνώμη... 😢',
+    scold: ['Εντάξει...', 'Συγγνώμη!', 'Δεν θα το ξανακάνω!', 'Λάθος μου!', 'Κατάλαβα!', 'Συγχώρεσέ με!'],
+    scoldWhy: 'Γιατί; 😢',
+    scoldPanelSorry: 'Συγγνώμη...',
+    tired: 'Κουράστηκα!',
+    lightsOn: 'Φώτα ανοιχτά!',
+    goodNight: 'Καληνύχτα! 😴',
+    greeting: [
+        'Ναι;', 'Τι κάνουμε;', 'Έλα!', 'Λέγε!',
+        'Με φώναξες;', 'Τι θες;', 'Εδώ είμαι!',
+        'Φτιάχνουμε;', 'Βοήθεια θες;', 'Πάμε για δουλειά!', 'Λέγε!'
+    ],
+    wake: ['Ξύπνησα!', 'Έγιρα!', 'Έτοιμος!', 'Καλημέρα!', 'Φύγαμε!'],
+    sleep: ['Κοιμάμαι...', 'Ζζζ...', 'Καληνύχτα!', '💤', 'Νύχτα...'],
+    playGame: ['Ωραίο παιχνίδι!', 'Διασκέδασα!', 'Πάλι!', 'Τέλεια!', 'Γουάου!'],
+    juggling: ['Κοίτα!', 'Ορίστε!', 'Παρακολούθησε!', 'Το κόλπο!'],
+    eureka: [
+        'Το βρήκα!', 'Α! Αυτό ήταν!', 'Εδώ είναι το πρόβλημα!',
+        'Φυσικά!', 'Μα ναι!', 'Το έπιασα!', 'Α! Κατάλαβα!',
+        'Αυτό ψάχνω!', 'Το είχα!', 'Εννοείται!'
+    ],
+    sunny: [
+        'Τι μέρα!', 'Έχει ήλιο!', 'Ωραίος καιρός!', 'Καλός καιρός!',
+        'Λάμπει!', 'Τέλεια μέρα!', 'Ζέστη!', 'Καλοκαιράκι!', 'Υπέροχα!'
+    ],
+    rainy: [
+        'Βροχή...', 'Στάλα στάλα...', 'Μούσκεμα!', 'Ουφ, βρέχει...',
+        'Πού είναι η ομπρέλα μου;', 'Βροχερό!', 'Τι μαύρα!', 'Έχει νερά!', 'Άσχημα...'
+    ],
+    success: [
+        'Ωραία!', 'Μπράβο!', 'Τέλεια!', 'Έγινε!', 'Άριστα!',
+        'Άψογα!', 'Εξαιρετικά!', 'Επισκευή ΟΚ!', 'Κομπλέ!', 'Φοβερά!'
+    ],
+    error: [
+        'Ουπς...', 'Τι έπαθε;', 'Ωχ...', 'Πρόβλημα!',
+        'Δεν πάει καλά...', 'Μμμ...', 'Τι γίνεται;',
+        'Σφάλμα!', 'Άσχημα...', 'Τι έγινε;'
+    ],
+    tooSoon: 'Περίμενε λίγο!',
+    orderSave: [
+        'Νέα παραγγελία!', 'Αποθηκεύτηκε!', 'Ωραία!', 'Καταχωρήθηκε!',
+        'Πάμε!', 'Έτοιμο!', 'Μια ακόμα!', 'Γράψαμε!', 'Κομπλέ!'
+    ],
+    orderPart: [
+        'Παραγγελία ανταλλακτικού!', 'Το παραγγέλνω!', 'Έρχεται το part!',
+        'Έτοιμο!', 'Κομπλέ!', 'Έρχεται!', 'Ας έρθει!', 'Ωραία φάση!'
+    ],
+    testBubble: [
+        'Έτοιμος να βοηθήσω!', 'Πάμε!', 'Τι κάνουμε σήμερα;',
+        'Εδώ είμαι!', 'Ας δουλέψουμε!', 'Έτοιμος για δουλειά!'
+    ],
+    testDebug: [
+        'Γεια σου! 👋', 'Δοκιμή 1, 2, 3!', 'Όλα καλά! 🎉',
+        'Ωραία φάση!', 'Δουλεύω κανονικά!', 'Λειτουργώ! 🔧'
+    ],
+    startupGreeting: [
+        'Έτοιμος να βοηθήσω!', 'Πάμε!', 'Τι κάνουμε σήμερα;',
+        'Εδώ είμαι!', 'Ας δουλέψουμε!', 'Έτοιμος για δουλειά!'
+    ],
+    statusChange: [
+        'Άλλαξε η κατάσταση!', 'Μπράβο!', 'Ωραία!',
+        'Πάμε παρακάτω!', 'Προχωράμε!', 'Συνεχίζουμε!'
+    ],
+    repairSave: [
+        'Αποθηκεύτηκε! ✓', 'Έγινε!', 'Τέλεια!',
+        'Όλα καλά!', 'Κομπλέ!', 'Μια χαρά!'
+    ],
+    deviceDetect: [
+        '{device}... Χμμ...',
+        '{device}! Το ξέρω αυτό!',
+        'Ωραία συσκευή!',
+        'Ας δούμε τι έχει...'
+    ],
+    repair30one: [
+        'Μόνο {n} στο 30 ({name}) — ήσυχα!',
+        'Μία {name} — πιάστη την!',
+        '{n} εισαγωγή — καλά πάμε!',
+        'Ένα στο 30, {name}. Εύκολο!'
+    ],
+    repair30few: [
+        '{n} στο 30 ({name}) — λίγες ακόμα.',
+        '{n} εισαγωγές — manageable.',
+        'Έχουμε {n} {name} — οκ.'
+    ],
+    repair30some: [
+        '{n} στο 30 ({name}) — αρχίζει να γεμίζει.',
+        '{n} εισαγωγές — κράτα ρυθμό!',
+        'Προσοχή: {n} στο 30!'
+    ],
+    repair30many: [
+        '{n} στο 30! Κούνησε λίγο!',
+        'Έχουμε {n} στο 30! Πάμε να τις πάρουμε;',
+        '{n} εισαγωγές! Ώρα για δουλειά!',
+        '{n} στο 30... τι περιμένουμε;',
+        '{n} νέες! Μπροστά!',
+        '{n} στο 30 — δουλειά έχουμε!'
+    ],
+    repair40one: [
+        'Μόνο {n} στο 40 — {name}. Ήσυχα!',
+        'Μία {name}! Πιάστη την!',
+        '{n} στο 40 ({name}) — καλά πάμε!',
+        'Ένα μόνο στο 40, {name}. Άντε!',
+        'Μόνη μία {name} — τελείωσέ την!'
+    ],
+    repair40few: [
+        '{n} στο 40 ({name}) — λίγες, προχώρα!',
+        '{n} προς έλεγχο — οκ ακόμα.',
+        'Έχουμε {n} {name} — πάμε!'
+    ],
+    repair40some: [
+        '{n} στο 40 ({name}) — αρχίζουν να μαζεύονται.',
+        '{n} προς έλεγχο — μην αργείς!',
+        'Προσοχή: {n} στο 40!'
+    ],
+    repair40many: [
+        '{n} στο 40! Γιατί τόσες;',
+        '{n} στο 40! Τελείωνέ τες!',
+        '{n} {name} — πότε τελειώνουν;',
+        'Ουφ, {n} στο 40! Τι γίνεται;',
+        '{n} στο 40! Μην αργείς!'
+    ],
+    repair65one: [
+        'Μόνο {n} στο 65 ({name}) — μία περιμένει part.',
+        'Μία {name} χωρίς ανταλλακτικό — παράγγειλε!',
+        '{n} στο 65 — ένα part λείπει.'
+    ],
+    repair65few: [
+        '{n} στο 65 ({name}) — λίγες περιμένουν.',
+        '{n} για ανταλλακτικά — εντάξει ακόμα.',
+        'Έχουμε {n} {name} — τσέκαρε τα parts.'
+    ],
+    repair65some: [
+        '{n} στο 65 ({name}) — αρχίζει να πιέζει.',
+        '{n} περιμένουν parts — κούνησε τις παραγγελίες!',
+        'Προσοχή: {n} στο 65!'
+    ],
+    repair65many: [
+        '{n} στο 65! Περιμένουν ανταλλακτικά!',
+        '{n} στο 65! Τα parts δεν έρχονται;',
+        '{n} χωρίς ανταλλακτικά!',
+        '{n} στο 65 — παράγγειλε!',
+        '{n} στο 65! Parts ρε!'
+    ],
+    repair90one: [
+        'Μία στο 90 ({name}) — πρόσεχε!',
+        '1 στο 90! Τι έγινε;',
+        'Μόνο {n} στο 90 — αλλά σοβαρό!',
+        'Μία {name} στο 90 — κοίτα την!'
+    ],
+    repair90few: [
+        '{n} στο 90 ({name}) — δεν μου αρέσει αυτό.',
+        '{n} στο 90 — πρόσεχε!',
+        'Έχουμε {n} {name} στο 90 — άμεσα!'
+    ],
+    repair90some: [
+        '{n} στο 90! Τι τρέχει;',
+        '{n} στο 90 ({name}) — κίνδυνος!',
+        'Προσοχή: {n} στο 90!'
+    ],
+    repair90many: [
+        '{n} στο 90! Φτιάξε τες!',
+        '{n} στο 90 — κατάσταση!',
+        '{n} στο 90! Μην το αφήνεις!',
+        'Ουφ, {n} στο 90 ({name})!'
+    ],
+    repairEmpty: ['Καθαρά όλα!', 'Άδειο!', 'Ησυχία!', 'Τίποτα σήμερα!'],
+    orderList: [
+        '{n} παραγγελίες!', 'Πολλές παραγγελίες σήμερα!',
+        'Έχουμε δουλειά!', '{n} παραγγελίες — ωραία!'
+    ],
+    partsStock: [
+        'Πολλά ανταλλακτικά!', 'Καλό stock!', 'Έχουμε όλα!',
+        'Γεμάτο απόθεμα!', 'Ωραία!'
+    ],
+    partsSearch: [
+        'Ψάχνεις κάτι;', 'Τι χρειάζεσαι;',
+        'Βοηθάω;', 'Πες μου!', 'Τι part θες;'
+    ],
+    customerContact: [
+        'Καλή επικοινωνία!', 'Πάμε!', 'Τηλέφωνο!',
+        'Επικοινωνία!', 'Μίλα τους!'
+    ],
+    tableBrowse: [
+        'Τι ψάχνεις;', 'Χμμ...', 'Ας δούμε...',
+        'Ενδιαφέρον!', 'Ωραίο!'
+    ],
+    printAction: [
+        'Εκτύπωση! 🖨️', 'Τυπώνουμε!', 'Χαρτί!',
+        'Στον εκτυπωτή!', 'Εκτύπωσε!'
+    ],
+    deleteWarn: [
+        'Προσοχή!', 'Σίγουρα;', 'Διαγραφή;',
+        'Πρόσεχε!', 'Θες σίγουρα;'
+    ],
+    formSubmit: [
+        'Στέλνουμε!', 'Πάμε!', 'Έγινε!',
+        'Στάλθηκε!', 'Οκ!'
+    ],
+    pageSuccess: [
+        'Ναι ρε! 🎉', 'Μπράβο!', 'Εξαιρετικά!', 'Άψογα!',
+        'Τέλειο!', 'Όλα καλά!', 'Ωραίος!', 'Πάμε!'
+    ],
+    pageError: [
+        'Ωχ όχι...', 'Τι έγινε;', 'Πρόβλημα!', 'Χμμ...',
+        'Δεν πάει καλά...', 'Άου!', 'Τι έπαθε;', 'Σφάλμα!'
+    ],
+    repairPriceZero: [
+        'Χωρίς τιμή; Θα το κάνουμε δωρεάν;',
+        '0€ — κάτι ξέχασες;',
+        'Κενό πεδίο τιμής — βάλε κάτι!',
+        'Καμία τιμή ακόμα...'
+    ],
+    repairPriceTiny: [
+        'Μόνο {price} — σχεδόν δωρεάν!',
+        '{price}; καφέ τιμή!',
+        'Φτηνάκι: {price}!'
+    ],
+    repairPriceLow: [
+        '{price} — λογική τιμή!',
+        'Καλά τα {price}, οκ!',
+        '{price} — μέσα στο budget.'
+    ],
+    repairPriceMid: [
+        '{price} — νορμάλ φάση.',
+        'Οκ τιμή: {price}.',
+        '{price} — τίποτα τρελό.'
+    ],
+    repairPriceHigh: [
+        '{price} — αρχίζει να πονάει!',
+        'Ψηλά τα {price}...',
+        '{price}; προσοχή στον πελάτη!'
+    ],
+    repairPricePremium: [
+        '{price}! Πρινμοτο!',
+        'Ακριβάκι: {price}!',
+        '{price} — θέλει καλή εξήγηση!'
+    ],
+    repairPriceExtreme: [
+        '{price}!!! Τι είναι, καινούριο;',
+        'Ρε συ, {price};',
+        '{price} — θα το πληρώσει;',
+        'Κόσμος τα {price}!'
+    ]
+};
+
+const MASCOT_PERSONALITY_GR = {
+    normal: 'Κανονικός', lazy: 'Τεμπέλης', active: 'Ζωηρός', spoiled: 'Καμωμένος',
+    well_cared: 'Καλοφροντισμένος', neglected: 'Αμελημένος'
+};
+
+const MASCOT_STAGE_GR = {
+    egg: 'Αυγό', baby: 'Μωρό', kid: 'Παιδί', teen: 'Έφηβος',
+    adult: 'Ενήλικας', middleage: 'Μέσης ηλικίας', old: 'Γέρος'
+};
+
+function mascotMsg(key) {
+    const pool = MASCOT_MESSAGES[key];
+    if (Array.isArray(pool)) return pool[Math.floor(Math.random() * pool.length)];
+    return pool || '';
+}
+
+function mascotMsgFmt(key, vars = {}) {
+    let text = mascotMsg(key);
+    Object.keys(vars).forEach(k => {
+        text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), String(vars[k]));
+    });
+    return text;
+}
+
+const REPAIR_STATUS_DEFAULT_NAMES = {
+    '30': 'εισαγωγές',
+    '40': 'προς έλεγχο',
+    '65': 'ανταλλακτικά',
+    '90': 'προβληματικές'
+};
+
+const REPAIR_TIER_LIMITS = {
+    '30': { few: 2, some: 4 },
+    '40': { few: 2, some: 4 },
+    '65': { few: 3, some: 7 },
+    '90': { few: 1, some: 2 }
+};
+
+function repairCountTier(statusId, count) {
+    if (count === 1) return 'one';
+    const limits = REPAIR_TIER_LIMITS[statusId] || { few: 2, some: 5 };
+    if (count <= limits.few) return 'few';
+    if (count <= limits.some) return 'some';
+    return 'many';
+}
+
+function formatRepairOpinion(template, count, statusName) {
+    return template
+        .replace(/\{n\}/g, String(count))
+        .replace(/\{name\}/g, statusName);
+}
+
+function mascotRepairOpinionForStatus(statusId, count, statusName) {
+    const tier = repairCountTier(statusId, count);
+    const poolKey = `repair${statusId}${tier}`;
+    const pool = MASCOT_MESSAGES[poolKey];
+    const name = statusName || REPAIR_STATUS_DEFAULT_NAMES[statusId] || `στάδιο ${statusId}`;
+    if (!pool?.length) return `${count} στο ${statusId} (${name})`;
+    const template = pool[Math.floor(Math.random() * pool.length)];
+    return formatRepairOpinion(template, count, name);
+}
+
+function parseRepairStatusMenu(root = document) {
+    const trackedStatusIds = ['30', '40', '65', '90'];
+    const statusIdMap = {};
+    let totalRepairs = 0;
+
+    const menuLinks = root.querySelectorAll(
+        '.rnr-b-vmenu a[href*="statusid"], .menuLeaf a[href*="statusid"], a[href*="statusid="]'
+    );
+
+    menuLinks.forEach(link => {
+        const href = link.getAttribute('href') || '';
+        const statusIdMatch = href.match(/statusid=(\d+)/);
+        if (!statusIdMatch || !trackedStatusIds.includes(statusIdMatch[1])) return;
+
+        const countBadge = link.querySelector('span.badge, .badge');
+        if (!countBadge) return;
+
+        const count = parseInt(countBadge.textContent.trim(), 10);
+        if (isNaN(count) || count <= 0) return;
+
+        const nameClone = link.cloneNode(true);
+        nameClone.querySelector('.statusbadge')?.remove();
+        nameClone.querySelectorAll('.badge').forEach(b => b.remove());
+        const statusName = nameClone.textContent.replace(/\s+/g, ' ').trim()
+            || REPAIR_STATUS_DEFAULT_NAMES[statusIdMatch[1]];
+
+        statusIdMap[statusIdMatch[1]] = { name: statusName, count };
+        totalRepairs += count;
+    });
+
+    return { statusIdMap, totalRepairs };
+}
+
+function mascotRepairUrgencyScore(statusId, count) {
+    const tier = repairCountTier(statusId, count);
+    const tierWeight = { one: 1, few: 2, some: 4, many: 8 };
+    const statusWeight = { '90': 100, '65': 60, '30': 40, '40': 30 };
+    return (statusWeight[statusId] || 10) + (tierWeight[tier] || 1) * count;
+}
+
+function mascotRepairOpinion(statusIdMap, totalRepairs) {
+    if (totalRepairs === 0) return mascotMsg('repairEmpty');
+
+    const activeIds = ['30', '40', '65', '90'].filter(id => statusIdMap[id]?.count > 0);
+    if (activeIds.length === 0) return mascotMsg('repairEmpty');
+
+    const primaryId = activeIds.reduce((best, id) => {
+        const bestScore = mascotRepairUrgencyScore(best, statusIdMap[best].count);
+        const idScore = mascotRepairUrgencyScore(id, statusIdMap[id].count);
+        return idScore > bestScore ? id : best;
+    }, activeIds[0]);
+
+    const { count, name } = statusIdMap[primaryId];
+    return mascotRepairOpinionForStatus(primaryId, count, name);
+}
+
+function mascotRepairIsUrgent(statusIdMap) {
+    return Object.keys(statusIdMap).some(id => {
+        const count = statusIdMap[id]?.count || 0;
+        if (!count) return false;
+        const tier = repairCountTier(id, count);
+        return tier === 'many' || (id === '90' && tier !== 'one');
+    });
+}
+
+function mascotRepairMsgs(statusIdMap, totalRepairs) {
+    if (totalRepairs === 0) return [...MASCOT_MESSAGES.repairEmpty];
+
+    const messages = [];
+    ['30', '40', '65', '90'].forEach(statusId => {
+        const entry = statusIdMap[statusId];
+        if (entry?.count > 0) {
+            messages.push(mascotRepairOpinionForStatus(statusId, entry.count, entry.name));
+        }
+    });
+    return messages.length ? messages : [...MASCOT_MESSAGES.repairEmpty];
+}
+
+function getRepairTotalAmountElement() {
+    const direct = document.getElementById('value_iTotalAmount_1');
+    if (direct) {
+        const innerInput = direct.querySelector('input, textarea');
+        return innerInput || direct;
+    }
+    return document.querySelector('input[name="value_iTotalAmount_1"]')
+        || document.querySelector('[data-fieldname="iTotalAmount"] input, [data-fieldname="iTotalAmount"]');
+}
+
+function getRepairTotalAmountValue(el = getRepairTotalAmountElement()) {
+    if (!el) return '';
+    if ('value' in el && el.value !== undefined && el.value !== '') return el.value;
+    return (el.textContent || el.innerText || '').trim();
+}
+
+function parseRepairPriceAmount(raw) {
+    if (raw === null || raw === undefined) return NaN;
+    const s = String(raw).trim().replace(/[€\s]/g, '');
+    if (!s || s === '-' || s === '—') return NaN;
+    if (/\d,\d{1,2}$/.test(s)) {
+        return parseFloat(s.replace(/\./g, '').replace(',', '.'));
+    }
+    const normalized = s.replace(/,/g, '');
+    const amount = parseFloat(normalized);
+    return isNaN(amount) ? NaN : amount;
+}
+
+function formatRepairPriceEuro(amount) {
+    return amount.toLocaleString('el-GR', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + '€';
+}
+
+function repairPriceTier(amount) {
+    if (isNaN(amount) || amount <= 0) return 'zero';
+    if (amount < 20) return 'tiny';
+    if (amount < 60) return 'low';
+    if (amount < 120) return 'mid';
+    if (amount < 200) return 'high';
+    if (amount < 350) return 'premium';
+    return 'extreme';
+}
+
+function mascotRepairPriceOpinion(amount) {
+    const tier = repairPriceTier(amount);
+    const price = !isNaN(amount) && amount > 0 ? formatRepairPriceEuro(amount) : '0€';
+    const poolKey = {
+        zero: 'repairPriceZero',
+        tiny: 'repairPriceTiny',
+        low: 'repairPriceLow',
+        mid: 'repairPriceMid',
+        high: 'repairPriceHigh',
+        premium: 'repairPricePremium',
+        extreme: 'repairPriceExtreme'
+    }[tier];
+    const pool = MASCOT_MESSAGES[poolKey];
+    const template = pool?.[Math.floor(Math.random() * pool.length)] || '{price}';
+    const text = template.replace(/\{price\}/g, price);
+
+    const mood = {
+        zero: 'thinking',
+        tiny: 'happy',
+        low: 'happy',
+        mid: 'idle',
+        high: 'surprised',
+        premium: 'surprised',
+        extreme: 'surprised'
+    }[tier];
+
+    return { text, mood, tier, amount };
+}
+
+function initMascotRepairPriceComments(config) {
+    if (!config?.interactiveMascotEnabled) return;
+    if (!window.location.pathname.includes('service_edit.php')) return;
+
+    let lastCommentedAmount = null;
+    let lastCommentTime = 0;
+    let priceObserver = null;
+
+    function showPriceOpinion(amount, options = {}) {
+        const { force = false, throttleMs = 6000 } = options;
+        const now = Date.now();
+        const amountKey = isNaN(amount) ? 'empty' : amount;
+        if (!force && amountKey === lastCommentedAmount) return;
+        if (!force && now - lastCommentTime < throttleMs) return;
+
+        const opinion = mascotRepairPriceOpinion(amount);
+        if (!opinion?.text) return;
+
+        showMascotBubble(opinion.text, 4500);
+        if (opinion.mood) setMascotState(config, opinion.mood, 2500);
+        lastCommentedAmount = amountKey;
+        lastCommentTime = now;
+    }
+
+    function readCurrentPrice() {
+        return parseRepairPriceAmount(getRepairTotalAmountValue());
+    }
+
+    function attachPriceListeners(el) {
+        const handler = () => {
+            const amount = readCurrentPrice();
+            showPriceOpinion(amount);
+        };
+        let debounce;
+        const debounced = () => {
+            clearTimeout(debounce);
+            debounce = setTimeout(handler, 700);
+        };
+
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') {
+            el.addEventListener('input', debounced);
+            el.addEventListener('change', debounced);
+        }
+
+        if (priceObserver) priceObserver.disconnect();
+        priceObserver = new MutationObserver(debounced);
+        priceObserver.observe(el, { childList: true, subtree: true, characterData: true, attributes: true });
+    }
+
+    function trySetup(attempt = 0) {
+        const el = getRepairTotalAmountElement();
+        if (!el) {
+            if (attempt < 10) setTimeout(() => trySetup(attempt + 1), 1000);
+            return;
+        }
+
+        const amount = readCurrentPrice();
+        setTimeout(() => showPriceOpinion(amount, { force: true }), 3500);
+
+        attachPriceListeners(el);
+        console.log('[MMS Mascot] Repair price commentary active on', el.id || el.name || el.tagName);
+    }
+
+    trySetup(0);
+}
+
+function formatTamagotchiStatsBubble() {
+    const daysOld = Math.floor((Date.now() - tamagotchiBirthday) / (1000 * 60 * 60 * 24));
+    const sickNames = { cold: 'Κρύωμα', fever: 'Πυρετός', upset_stomach: 'Αναστάτωση στομάχου' };
+    const stageGr = MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage;
+    const personalityGr = MASCOT_PERSONALITY_GR[tamagotchiPersonality] || tamagotchiPersonality;
+    const sickLine = tamagotchiIsSick
+        ? `🤒 Άρρωστος: ${sickNames[tamagotchiSickType] || 'Άρρωστος'}`
+        : '✅ Υγιής';
+    const toiletLine = tamagotchiToiletTrained ? '🚽 Έμαθε τουαλέτα' : '❌ Χωρίς εκπαίδευση';
+    return `📊 Στατιστικά:
+Ηλικία: ${Math.floor(tamagotchiAge)} χρ. (${daysOld} μέρες)
+Βάρος: ${Math.round(tamagotchiWeight)} kg
+Πείνα: ${Math.round(petStats.hunger)}%
+Χαρά: ${Math.round(petStats.happiness)}%
+Υγεία: ${Math.round(tamagotchiHealth)}%
+Πειθαρχία: ${Math.round(tamagotchiDiscipline)}%
+Στάδιο: ${stageGr}
+Χαρακτήρας: ${personalityGr}
+Λάθη φροντίδας: ${tamagotchiCareMistakes}
+Κακά: ${tamagotchiPoopCount}
+${sickLine}
+${toiletLine}`;
+}
+
+function mascotHatchMsg(characterType) {
+    const char = MASCOT_CHARACTERS[characterType];
+    const nameGr = MASCOT_CHAR_NAMES_GR[characterType] || char?.nameGr || char?.name || characterType;
+    const emoji = char?.emoji || '🐣';
+    return `🥚💫 Γεννήθηκα! Είμαι ${emoji} ${nameGr}!`;
+}
+
+function getTamagotchiStageFromLifeMinutes(minutes) {
+    if (minutes < TAMA_STAGE_MINUTES.baby) return 'egg';
+    if (minutes < TAMA_STAGE_MINUTES.kid) return 'baby';
+    if (minutes < TAMA_STAGE_MINUTES.teen) return 'kid';
+    if (minutes < TAMA_STAGE_MINUTES.adult) return 'teen';
+    if (minutes < TAMA_STAGE_MINUTES.middleage) return 'adult';
+    if (minutes < TAMA_STAGE_MINUTES.old) return 'middleage';
+    return 'old';
+}
+
+function syncTamagotchiAgeFromLife() {
+    tamagotchiAge = Math.floor(tamagotchiLifeMinutes / TAMA_MINUTES_PER_YEAR);
+}
+
+function getEggHatchProgress() {
+    return Math.min(100, (tamagotchiLifeMinutes / TAMA_STAGE_MINUTES.baby) * 100);
+}
+
+function getMinutesUntilHatch() {
+    return Math.max(0, Math.ceil(TAMA_STAGE_MINUTES.baby - tamagotchiLifeMinutes));
+}
+
+function setSvgSpriteVisible(element, visible) {
+    if (!element) return;
+    if (visible) {
+        element.style.removeProperty('display');
+        element.style.visibility = 'visible';
+        element.style.opacity = '1';
+    } else {
+        element.style.display = 'none';
+    }
+}
+
+function ensureTamagotchiCharacterType() {
+    if (tamagotchiStage === 'egg') {
+        tamagotchiCharacterType = 'none';
+        return;
+    }
+    if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none') {
+        tamagotchiCharacterType = TAMA_CHARACTER_TYPES[Math.floor(Math.random() * TAMA_CHARACTER_TYPES.length)];
+        console.log(`[Mascot] Assigned missing character type: ${tamagotchiCharacterType}`);
+    }
+}
+
+function validateTamagotchiState() {
+    tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
+    ensureTamagotchiCharacterType();
+    syncTamagotchiAgeFromLife();
+
+    if (tamagotchiStage === 'egg') {
+        tamagotchiPoopCount = 0;
+        tamagotchiLastPoopTime = 0;
+        updateToiletNeedIndicator();
+    } else if (!tamagotchiLastPoopTime) {
+        tamagotchiLastPoopTime = Date.now();
+    }
+}
 
 /**
  * Helper function to get the correct accessory element from the DOM, handling special cases.
@@ -16100,20 +17095,7 @@ function startRoaming(config) {
 
         // Occasionally say something while roaming
         if (Math.random() < 0.25) { // 25% chance
-            const idleRepairMessages = [
-                'Πάμε για δουλίτσα!', 'Τι θα σπάσει σήμερα;', 'Έτοιμος!',
-                'Ας δούμε τι έχουμε...', 'Μπαταρία μια χαρά!', 'Χμμ...',
-                'Πού πήγε το κατσαβίδι μου;', 'Micro-solder time!', 'Reflow?',
-                'Καλή φάση!', 'Περιμένουμε;', 'Έχει δουλειά;',
-                'Σα νέο θα το κάνω!', 'Καμένο το IC...', 'Ας δω το schematic...',
-                'Power on ρε!', 'Reballing θέλει;', 'Board-level ε;',
-                'Τάσεις μέτρα!', 'Flux και θερμό!', 'Ρεζίνες που είσαι;',
-                'Τι θα μου φέρουν τώρα;', 'Καφεδάκι;', 'Screen γρήγορα!',
-                'Battery άλλαξε!', 'Charging port πάλι;', 'Κάμερα έπαθε;',
-                'Audio πάει;', 'WiFi τσέκαρε!', 'Baseband γαμήθηκε;',
-                'Λογική ταμπλέτα;', 'Short που είσαι;', 'Καλώδια μπέρδεψα!',
-                'Ποια θύρα τώρα;', 'Flux παντού!', 'Solder θέλει!'
-            ];
+            const idleRepairMessages = MASCOT_MESSAGES.idleRepair;
             showMascotBubble(idleRepairMessages[Math.floor(Math.random() * idleRepairMessages.length)], 2500);
         }
 
@@ -16129,13 +17111,7 @@ function showMascotBubble(text, duration = 2000) {
     const bubble = document.getElementById('tm-mascot-speech-bubble');
     if (!bubble) return;
 
-    // Casual Greek slang messages
-    const messages = [
-        "Ωπα!", "Έι!", "Άκου!", "Ουφ!", "Τι έγινε ρε;",
-        "Ναι ρε;", "Ας δούμε τι έχουμε...", "Ωραίος!", "Πάμε καλά!", 
-        "Φοβερά!", "Τέλεια!", "Μια χαρά!", "Όλα μια χαρά!",
-        "Ας το δούμε!", "Σιγά ρε!", "Ωραία φάση!", "Γαμάτο!"
-    ];
+    const messages = MASCOT_MESSAGES.defaultBubble;
     // If no text is provided, pick a random one.
     const messageToShow = text || messages[Math.floor(Math.random() * messages.length)];
 
@@ -16192,18 +17168,33 @@ function triggerDodgeAnimation(config, moveX, moveY) {
     }, 400); // Match the dodge transition duration
 }
 
+const MASCOT_MODIFIER_CLASSES = ['mascot-needs-toilet', 'mascot-needs-cleaning', 'mascot-hatching', 'mascot-dying'];
+
+function applyMascotBehaviorState(mascotContainer, state) {
+    if (!mascotContainer || !state) return;
+    const preserve = new Set(['tm-mascot-container', ...MASCOT_MODIFIER_CLASSES]);
+    [...mascotContainer.classList].forEach((cls) => {
+        if (cls.startsWith('mascot-') && !preserve.has(cls)) {
+            mascotContainer.classList.remove(cls);
+        }
+    });
+    mascotContainer.classList.add(`mascot-${state}`);
+}
+
 function setMascotState(config, state, duration = 0) {
     const mascotContainer = document.getElementById('tm-mascot-container');
     if (!mascotContainer) return;
-    if (!config) config = {}; // Safety fallback to prevent errors
+    if (!config) config = {};
+
+    if (tamagotchiIsDead && state !== 'dead' && state !== 'powersave') return;
+    if (tamaCinematicLock && !['dead', 'powersave'].includes(state)) return;
 
     // CRITICAL: If lights are off (sleeping), only allow powersave state
     if ((!tamagotchiLightsOn || tamagotchiIsSleeping) && state !== 'powersave') {
-        // Don't change state - keep it in powersave
         if (!mascotContainer.classList.contains('mascot-powersave')) {
-            mascotContainer.className = 'tm-mascot-container mascot-powersave';
+            applyMascotBehaviorState(mascotContainer, 'powersave');
         }
-        return; // Exit early - don't proceed with state change
+        return;
     }
 
     // Clear any previous temporary state timeout
@@ -16212,10 +17203,9 @@ function setMascotState(config, state, duration = 0) {
         mascotStateTimeout = null;
     }
 
-    // Get previous state before changing
-    const previousState = mascotContainer.className.replace('tm-mascot-container mascot-', '');
+    const previousState = [...mascotContainer.classList].find((cls) => cls.startsWith('mascot-') && !MASCOT_MODIFIER_CLASSES.includes(cls))?.replace('mascot-', '') || '';
 
-    mascotContainer.className = 'tm-mascot-container mascot-' + state;
+    applyMascotBehaviorState(mascotContainer, state);
     
     // Reset robot element transform when exiting juggling state to prevent shaking
     if (previousState === 'juggling' && state !== 'juggling') {
@@ -16263,7 +17253,9 @@ let lastLowStatMessageTime = 0;
 
 function updatePetStateByStats(config, STORAGE_KEYS, isExitingTempState = false) {
     const mascotContainer = document.getElementById('tm-mascot-container');
-    if (!config) config = {}; // Safety fallback
+    if (!config) config = {};
+
+    if (tamagotchiIsDead || tamaCinematicLock) return;
     
     // Don't change state if the interaction panel is open (user is interacting)
     const interactionPanel = document.getElementById('tm-mascot-interaction-panel');
@@ -16315,12 +17307,7 @@ function updatePetStateByStats(config, STORAGE_KEYS, isExitingTempState = false)
         const cooldownPeriod = 45000; // 45 seconds cooldown between messages
         
         if (now - lastLowStatMessageTime > cooldownPeriod && Math.random() < 0.3) {
-            const lowStatMessages = [
-                'Πεινάω ρε...', 'Λυπάμαι...', 'Φαγητό θέλω!', 
-                'Δεν είμαι καλά...', 'Χάδι παρακαλώ!', 'Τάισέ με ρε!',
-                'Πότε θα φάω ρε;', 'Μοναξιά έχω...', 'Προσοχή μου λίγο!',
-                'Ignored...', 'Sad boy...', 'Hungry...'
-            ];
+            const lowStatMessages = MASCOT_MESSAGES.lowStats;
             showMascotBubble(lowStatMessages[Math.floor(Math.random() * lowStatMessages.length)], 2500);
             lastLowStatMessageTime = now; // Update the timestamp
         }
@@ -16380,6 +17367,12 @@ function loadTamagotchiData(STORAGE_KEYS) {
         tamagotchiAge = savedData.age || 0;
         tamagotchiStage = savedData.stage || 'egg';
         tamagotchiCharacterType = savedData.characterType || 'none';
+        if (savedData.lifeMinutes != null) {
+            tamagotchiLifeMinutes = savedData.lifeMinutes;
+        } else {
+            const stageFloor = TAMA_STAGE_MINUTES[savedData.stage] ?? 0;
+            tamagotchiLifeMinutes = stageFloor + Math.max(0, (savedData.age || 0) * TAMA_MINUTES_PER_YEAR);
+        }
         tamagotchiHealth = savedData.health || 100;
         tamagotchiDiscipline = savedData.discipline || 0;
         tamagotchiLightsOn = savedData.lightsOn !== false;
@@ -16405,15 +17398,16 @@ function loadTamagotchiData(STORAGE_KEYS) {
         tamagotchiSleepEndTime = savedData.sleepEndTime || 0;
         tamagotchiIsSleeping = savedData.isSleeping || false;
         tamagotchiLightsManualOverride = savedData.lightsManualOverride || false;
-        tamagotchiLightsManualOverride = savedData.lightsManualOverride || false;
         tamagotchiLastPraise = savedData.lastPraise || 0;
         tamagotchiLastScold = savedData.lastScold || 0;
+        validateTamagotchiState();
     }
 }
 
 function saveTamagotchiData(STORAGE_KEYS) {
     const data = {
         age: tamagotchiAge,
+        lifeMinutes: tamagotchiLifeMinutes,
         stage: tamagotchiStage,
         characterType: tamagotchiCharacterType,
         health: tamagotchiHealth,
@@ -16448,7 +17442,8 @@ function saveTamagotchiData(STORAGE_KEYS) {
 }
 
 function initTamagotchiSystem(config, STORAGE_KEYS, container) {
-    // Initialize displays
+    validateTamagotchiState();
+    updateMascotAppearanceByStage(tamagotchiStage);
     updateWeightDisplay();
     updatePoopIndicator();
     updateSickIndicator();
@@ -16461,7 +17456,7 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
     if (tamagotchiIsDead) {
         // Small delay to ensure DOM is ready
         setTimeout(() => {
-            showTamagotchiDeathScreen(STORAGE_KEYS);
+            showTamagotchiDeathScreen(STORAGE_KEYS, true);
         }, 500);
     }
     
@@ -16506,8 +17501,9 @@ function updateTamagotchiStats(container) {
             tamagotchiHealth = Math.max(0, tamagotchiHealth - (timeDiff * 0.1));
         }
         
-        // Age increases (1 year per 24 hours of real time)
-        tamagotchiAge += timeDiff / (24 * 60);
+        // Age/life increases on classic Tamagotchi clock (60 real minutes = 1 display year)
+        tamagotchiLifeMinutes += timeDiff;
+        syncTamagotchiAgeFromLife();
         
         // Generate poops periodically (not for egg or baby stage)
         if (!tamagotchiIsSleeping && tamagotchiStage !== 'egg' && tamagotchiStage !== 'baby') {
@@ -16538,19 +17534,19 @@ function updateTamagotchiStats(container) {
     
     if (healthFill) healthFill.style.width = `${tamagotchiHealth}%`;
     if (disciplineFill) disciplineFill.style.width = `${Math.min(100, tamagotchiDiscipline)}%`;
-    if (ageDisplay) ageDisplay.textContent = `AGE: ${Math.floor(tamagotchiAge)}`;
+    if (ageDisplay) ageDisplay.textContent = `ΗΛΙΚΙΑ: ${Math.floor(tamagotchiAge)}`;
     
     // Update stage display
     const stageNames = {
-        'egg': 'EGG',
-        'baby': 'BABY',
-        'kid': 'KID',
-        'teen': 'TEEN',
-        'adult': 'ADULT',
-        'middleage': 'MIDDLE AGE',
-        'old': 'OLD'
+        'egg': 'ΑΥΓΟ',
+        'baby': 'ΜΩΡΟ',
+        'kid': 'ΠΑΙΔΙ',
+        'teen': 'ΕΦΗΒΟΣ',
+        'adult': 'ΕΝΗΛΙΚΑΣ',
+        'middleage': 'ΜΕΣΗ ΗΛΙΚΙΑ',
+        'old': 'ΓΕΡΟΣ'
     };
-    if (stageDisplay) stageDisplay.textContent = stageNames[tamagotchiStage] || 'EGG';
+    if (stageDisplay) stageDisplay.textContent = stageNames[tamagotchiStage] || 'ΑΥΓΟ';
     
     // Update health bar color based on health
     if (healthFill) {
@@ -16580,91 +17576,66 @@ function updateTamagotchiStats(container) {
 }
 
 function checkTamagotchiEvolution(container) {
-    if (!container) return;
+    if (!container || tamagotchiIsDead) return;
     
     const oldStage = tamagotchiStage;
     const oldCharacterType = tamagotchiCharacterType;
     
     // Check for death from old age first
-    if (tamagotchiAge >= 80 && !tamagotchiIsDead) {
+    if (tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.death && !tamagotchiIsDead) {
         tamagotchiIsDead = true;
         tamagotchiHealth = 0;
         saveTamagotchiData(typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : {});
-        const oldAgeMessages = [
-            'Ήρθε η ώρα...', 'Καλό ταξίδι...', 'Αντίο κόσμε...', 'Ευχαριστώ για όλα...',
-            'Έζησα όμορφα...', 'Τέλος καλό...', 'Πάω στο φως...', 'Ήταν υπέροχα...'
-        ];
+        const oldAgeMessages = MASCOT_MESSAGES.oldAgeDeath;
         showMascotBubble(oldAgeMessages[Math.floor(Math.random() * oldAgeMessages.length)], 5000);
         setMascotState(null, 'dead', 10000);
         console.log('[Mascot] 💀 Died from old age at', tamagotchiAge, 'years');
         
         // Show death screen after a delay
         setTimeout(() => {
-            if (typeof showTamagotchiDeathScreen === 'function') {
-                showTamagotchiDeathScreen(typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : {});
-            }
-        }, 3000);
+            runTamagotchiDeathSequence(typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : {});
+        }, 1500);
         
         return; // Exit early, don't update stage
     }
     
-    // Determine stage based on age (Tamagotchi-style evolution)
-    if (tamagotchiAge < 1) {
-        tamagotchiStage = 'egg';
+    // Determine stage based on life minutes (classic Tamagotchi pacing)
+    tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
+    syncTamagotchiAgeFromLife();
+
+    if (tamagotchiStage === 'egg') {
         tamagotchiCharacterType = 'none';
-    } else if (tamagotchiAge < 3) {
-        tamagotchiStage = 'baby';
-        // Randomly select character type on first hatch with EPIC REVEAL!
-        if (oldStage === 'egg' && tamagotchiCharacterType === 'none') {
-            const characterTypes = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal'];
-            tamagotchiCharacterType = characterTypes[Math.floor(Math.random() * characterTypes.length)];
-            console.log(`[Mascot] 🎉 EPIC HATCH: ${tamagotchiCharacterType}!`);
-            
-            // Show epic character reveal!
-            if (typeof showEpicCharacterReveal === 'function') {
-                setTimeout(() => showEpicCharacterReveal(tamagotchiCharacterType), 500);
-            }
-        }
-    } else if (tamagotchiAge < 8) {
-        tamagotchiStage = 'kid';
-    } else if (tamagotchiAge < 18) {
-        tamagotchiStage = 'teen';
-    } else if (tamagotchiAge < 40) {
-        tamagotchiStage = 'adult';
-    } else if (tamagotchiAge < 60) {
-        tamagotchiStage = 'middleage';
+    } else if (tamagotchiStage === 'baby' && (!tamagotchiCharacterType || tamagotchiCharacterType === 'none')) {
+        tamagotchiCharacterType = TAMA_CHARACTER_TYPES[Math.floor(Math.random() * TAMA_CHARACTER_TYPES.length)];
+        console.log(`[Mascot] 🎉 EPIC HATCH: ${tamagotchiCharacterType}!`);
     } else {
-        tamagotchiStage = 'old';
+        ensureTamagotchiCharacterType();
     }
     
     // If evolved or hatched, show message, update personality, and update appearance
     if (oldStage !== tamagotchiStage || oldCharacterType !== tamagotchiCharacterType) {
         updateTamagotchiPersonality();
-        updateMascotAppearanceByStage(tamagotchiStage);
-        const evolutionMessages = [
-            'Εξελίχθηκα!', 'Μεγάλωσα!', 'Evolved!', 'Νέα μορφή!',
-            'Growth!', 'Αλλαγή!', 'Προχώρησα!', 'Changed!'
-        ];
+        const evolutionMessages = MASCOT_MESSAGES.evolution;
         if (oldStage === 'egg' && tamagotchiStage === 'baby') {
-            // Special hatch message
-            showMascotBubble(`🥚💫 I'm a ${tamagotchiCharacterType}!`, 4000);
+            tamagotchiLastPoopTime = Date.now();
+            runTamagotchiHatchSequence(tamagotchiCharacterType, container);
         } else if (tamagotchiStage === 'old' && oldStage !== 'old') {
-            // Special old age message
-            const oldMessages = ['Γέρασα...', 'Νιώθω μεγάλος...', 'Τα χρόνια περνούν...', 'Είμαι γέρος...'];
+            const oldMessages = MASCOT_MESSAGES.becameOld;
             showMascotBubble(oldMessages[Math.floor(Math.random() * oldMessages.length)], 3000);
-        } else {
+        } else if (oldStage !== tamagotchiStage) {
             showMascotBubble(evolutionMessages[Math.floor(Math.random() * evolutionMessages.length)], 3000);
         }
         updateTamagotchiStats(container);
         saveTamagotchiData(typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : {});
     }
+
+    if (!tamaCinematicLock) {
+        updateMascotAppearanceByStage(tamagotchiStage);
+    }
     
     // Show warning messages when approaching death from old age
-    if (tamagotchiAge >= 70 && tamagotchiAge < 80 && Math.random() < 0.1) {
-        const oldAgeWarnings = [
-            'Κουράζομαι εύκολα...', 'Νιώθω αδύναμος...', 'Τα κόκαλα πονάνε...',
-            'Πόσα χρόνια πέρασαν...', 'Είμαι γέρος...', 'Ο χρόνος τελειώνει...'
-        ];
+    if (tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.old && tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.death && Math.random() < 0.1) {
+        const oldAgeWarnings = MASCOT_MESSAGES.oldAgeWarning;
         showMascotBubble(oldAgeWarnings[Math.floor(Math.random() * oldAgeWarnings.length)], 3000);
     }
 }
@@ -16743,7 +17714,9 @@ function updatePoopIndicator() {
 
 // Check if mascot needs to use toilet (based on time since last poop)
 function checkNeedsToilet() {
-    if (tamagotchiIsDead || tamagotchiIsSleeping || tamagotchiPoopCount > 0) return false;
+    if (tamagotchiIsDead || tamagotchiIsSleeping || tamagotchiStage === 'egg' || tamagotchiStage === 'baby') return false;
+    if (tamagotchiPoopCount > 0) return false;
+    if (!tamagotchiLastPoopTime) return false;
     
     const now = Date.now();
     const timeSinceLastPoop = (now - tamagotchiLastPoopTime) / 1000 / 60; // minutes
@@ -16857,11 +17830,7 @@ function makeTamagotchiSick(sickType = 'cold') {
         petStats.hunger = Math.max(0, petStats.hunger - 20); // Loses appetite
     }
     
-    const sickMessages = {
-        'cold': ['Αχού...', 'Κρύωσα...', 'Sniff...', 'Feeling bad...'],
-        'fever': ['Καμμένος...', 'Fever...', 'Hot...', 'Ζεστός...'],
-        'upset_stomach': ['Πονάει η κοιλιά...', 'Stomach ache...', 'Άρρωστος...', 'Sick...']
-    };
+    const sickMessages = MASCOT_MESSAGES.sick;
     
     const messages = sickMessages[sickType] || sickMessages['cold'];
     showMascotBubble(messages[Math.floor(Math.random() * messages.length)], 3000);
@@ -16878,11 +17847,11 @@ function updateSickIndicator() {
     
     if (sickTypeSpan && tamagotchiIsSick) {
         const sickTypeNames = {
-            'cold': 'Cold',
-            'fever': 'Fever',
-            'upset_stomach': 'Upset Stomach'
+            'cold': 'Κρύωμα',
+            'fever': 'Πυρετός',
+            'upset_stomach': 'Αναστάτωση στομάχου'
         };
-        sickTypeSpan.textContent = sickTypeNames[tamagotchiSickType] || 'Sick';
+        sickTypeSpan.textContent = sickTypeNames[tamagotchiSickType] || 'Άρρωστος';
     }
 }
 
@@ -16956,17 +17925,14 @@ function checkTamagotchiDeath(STORAGE_KEYS) {
         tamagotchiIsDead = true;
         saveTamagotchiData(STORAGE_KEYS);
         
-        const deathMessages = [
-            '...', 'Bye...', 'Αντίο...', 'Gone...',
-            'Returning to digital realm...', 'Resting...'
-        ];
+        const deathMessages = MASCOT_MESSAGES.death;
         showMascotBubble(deathMessages[Math.floor(Math.random() * deathMessages.length)], 5000);
         
         // Update death options button visibility
         updateDeathOptionsButton();
         
-        // Show death overlay
-        showTamagotchiDeathScreen(STORAGE_KEYS);
+        // Show death cinematic + options panel
+        runTamagotchiDeathSequence(STORAGE_KEYS);
     }
 }
 
@@ -16978,54 +17944,46 @@ function updateDeathOptionsButton() {
     }
 }
 
-// Show death screen with revival option
-function showTamagotchiDeathScreen(STORAGE_KEYS) {
+// Show death screen with revival option (after cinematic)
+function showTamagotchiDeathScreen(STORAGE_KEYS, skipCinematic = false) {
     const container = document.getElementById('tm-mascot-container');
     if (!container) {
         console.error('[MMS] Mascot container not found for death screen');
         return;
     }
     
-    // Get config from window scope if available
     const config = typeof window.config !== 'undefined' ? window.config : null;
     
-    // Check if overlay already exists - prevent duplicates
     const existingOverlay = document.getElementById('tm-tamagotchi-death-overlay');
-    if (existingOverlay) {
-        return; // Already showing
+    if (existingOverlay) return;
+
+    if (!skipCinematic) {
+        runTamagotchiDeathSequence(STORAGE_KEYS);
+        return;
     }
+
+    ensureTamaCinematicStyles();
     
-    // Create death overlay
+    const charName = tamagotchiCharacterType && MASCOT_CHARACTERS[tamagotchiCharacterType]
+        ? (MASCOT_CHARACTERS[tamagotchiCharacterType].nameGr || MASCOT_CHARACTERS[tamagotchiCharacterType].name)
+        : 'Φίλε';
+    
     const overlay = document.createElement('div');
     overlay.id = 'tm-tamagotchi-death-overlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        z-index: 99999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        color: white;
-        font-family: Arial, sans-serif;
-    `;
-    
+    overlay.className = 'tm-tama-cinematic-overlay';
     overlay.innerHTML = `
-        <div style="background: #1a1a1a; padding: 30px; border-radius: 10px; text-align: center; border: 2px solid #666;">
-            <h2 style="margin: 0 0 20px 0; color: #dc3545;">Your Tamagotchi Has Died</h2>
-            <p style="margin: 0 0 20px 0;">Age: ${Math.floor(tamagotchiAge)} years</p>
-            <p style="margin: 0 0 20px 0;">Personality: ${tamagotchiPersonality}</p>
-            <p style="margin: 0 0 30px 0; color: #888;">Care Mistakes: ${tamagotchiCareMistakes}</p>
-            <button id="tm-revive-btn" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px;">
-                Revive (${tamagotchiReviveCount + 1}x)
-            </button>
-            <button id="tm-restart-btn" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
-                Start New
-            </button>
+        <div class="tm-tama-cinematic-panel" style="border-color:#4a4a5a; background:linear-gradient(180deg,#1a1a2a,#0a0a14); max-width:420px;">
+            <div class="tm-tama-lcd-title" style="color:#888">● Μνημόσυνο ●</div>
+            <h2 class="tm-tama-cinematic-title" style="color:#e8a0a0;text-shadow:none">Σε ανάμνηση του ${charName}</h2>
+            <div class="tm-tama-death-options visible">
+                <p class="tm-tama-death-stat">Ηλικία: ${Math.floor(tamagotchiAge)} χρόνια</p>
+                <p class="tm-tama-death-stat">Χαρακτήρας: ${MASCOT_PERSONALITY_GR[tamagotchiPersonality] || tamagotchiPersonality}</p>
+                <p class="tm-tama-death-stat">Λάθη φροντίδας: ${tamagotchiCareMistakes}</p>
+                <div style="margin-top:20px">
+                    <button class="tm-tama-btn tm-tama-btn-revive" id="tm-revive-btn">♻ Αναζωογόνηση (${tamagotchiReviveCount + 1}η φορά)</button>
+                    <button class="tm-tama-btn tm-tama-btn-restart" id="tm-restart-btn">🥚 Νέο αυγό</button>
+                </div>
+            </div>
         </div>
     `;
     
@@ -17038,32 +17996,36 @@ function showTamagotchiDeathScreen(STORAGE_KEYS) {
         petStats.hunger = 50;
         petStats.happiness = 50;
         tamagotchiReviveCount++;
-        tamagotchiAge = Math.max(1, tamagotchiAge - 1); // Age back by 1 year
+        tamagotchiLifeMinutes = Math.max(TAMA_STAGE_MINUTES.baby, tamagotchiLifeMinutes - TAMA_MINUTES_PER_YEAR);
+        validateTamagotchiState();
         
         // Save both tamagotchi data and pet stats
         saveTamagotchiData(STORAGE_KEYS);
         GM_setValue(STORAGE_KEYS.PET_STATS, JSON.stringify(petStats));
         
         document.body.removeChild(overlay);
-        updateDeathOptionsButton(); // Hide the death button
+        updateDeathOptionsButton();
         
-        // Update displays
         if (container) {
+            updateMascotAppearanceByStage(tamagotchiStage);
             updateTamagotchiStats(container);
             updatePetInteractionPanel();
+            updateToiletNeedIndicator();
             if (config) {
                 setMascotState(config, 'idle');
             }
         }
         
-        showMascotBubble('Revived!', 2000);
+        showMascotBubble(MASCOT_MESSAGES.revived, 2000);
     });
     
     // Restart button
     document.getElementById('tm-restart-btn')?.addEventListener('click', () => {
         // Reset all stats
         tamagotchiAge = 0;
+        tamagotchiLifeMinutes = 0;
         tamagotchiStage = 'egg';
+        tamagotchiCharacterType = 'none';
         tamagotchiHealth = 100;
         tamagotchiDiscipline = 0;
         tamagotchiWeight = 30;
@@ -17132,7 +18094,7 @@ function updateTamagotchiSleepSchedule(config) {
         // Update button appearance if available (use direct querySelector since getButton might not be in scope)
         const lightsBtn = document.querySelector('#tm-pet-lights-btn');
         if (lightsBtn) {
-            lightsBtn.innerHTML = '🌙 Lights OFF';
+            lightsBtn.innerHTML = '🌙 Φώτα κλειστά';
             lightsBtn.style.opacity = '0.6';
             lightsBtn.style.filter = 'brightness(0.7)';
         }
@@ -17146,7 +18108,7 @@ function updateTamagotchiSleepSchedule(config) {
         // Update button appearance if available (use direct querySelector since getButton might not be in scope)
         const lightsBtn = document.querySelector('#tm-pet-lights-btn');
         if (lightsBtn) {
-            lightsBtn.innerHTML = '💡 Lights ON';
+            lightsBtn.innerHTML = '💡 Φώτα ανοιχτά';
             lightsBtn.style.opacity = '1';
             lightsBtn.style.filter = 'brightness(1.2)';
         }
@@ -17312,7 +18274,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             <!-- Header Section -->
             <div class="tm-panel-header">
                 <div class="tm-panel-title">
-                    <span id="tm-tamagotchi-stage-display" class="tm-stage-badge">EGG</span>
+                    <span id="tm-tamagotchi-stage-display" class="tm-stage-badge">ΑΥΓΟ</span>
                     <div class="tm-panel-info">
                         <span id="tm-tamagotchi-age-display" class="tm-age-text">Age: 0</span>
                         <span id="tm-tamagotchi-weight-display" class="tm-weight-text">⚖️ <span id="tm-weight-value">30</span>kg</span>
@@ -17428,7 +18390,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </button>
                     <button id="tm-pet-lights-btn" class="tm-action-btn tm-btn-lights" title="Toggle lights">
                         <span class="tm-btn-icon">💡</span>
-                        <span class="tm-btn-label">Lights</span>
+                        <span class="tm-btn-label">Φώτα</span>
                     </button>
                     <button id="tm-pet-stats-btn" class="tm-action-btn tm-btn-info" title="View detailed stats">
                         <span class="tm-btn-icon">📊</span>
@@ -20627,25 +21589,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
     // Function to show mascot stats in a modal window
     function showMascotStatsModal(config, STORAGE_KEYS) {
-        // Can't interact with an egg!
-        if (tamagotchiStage === 'egg') {
-            const eggMessages = [
-                'Περίμενε να βγει!', 'Ακόμα δεν έχει βγει...', 'Κάνε υπομονή!', 
-                '🥚 Κοιμάται μέσα...', 'Θα βγει σύντομα!', 'Shhh... Κοιμάται!',
-                'Περίμενε λίγο ακόμα!'
-            ];
-            showMascotBubble(eggMessages[Math.floor(Math.random() * eggMessages.length)], 2000);
-            return;
-        }
-        
-        // Remove existing modal if any
         const existingModal = document.getElementById('tm-mascot-stats-modal');
         if (existingModal) existingModal.remove();
 
-        // Get character info
-        const characterName = tamagotchiCharacterType 
-            ? MASCOT_CHARACTERS[tamagotchiCharacterType]?.name || 'Mascot'
-            : 'Ωό';
+        const isEgg = tamagotchiStage === 'egg';
+        const hatchProgress = Math.round(getEggHatchProgress());
+        const minutesToHatch = getMinutesUntilHatch();
+        const eggWarmth = tamagotchiLightsOn ? 'Ζεστό' : 'Κρύο';
+
+        const characterName = isEgg
+            ? 'Μυστικό Ωό'
+            : (MASCOT_CHARACTERS[tamagotchiCharacterType]?.name || 'Mascot');
         
         const stageEmoji = {
             'egg': '🥚',
@@ -20672,14 +21626,19 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <p class="tm-mascot-meta">
                                 <span>Στάδιο: ${tamagotchiStage}</span>
                                 <span>•</span>
-                                <span>Ηλικία: ${Math.floor(tamagotchiAge)} έτη</span>
-                                <span>•</span>
-                                <span>Βάρος: ${Math.round(tamagotchiWeight * 10) / 10}g</span>
+                                <span>${isEgg ? `Εκκόλαψη σε ~${minutesToHatch} λεπτά` : `Ηλικία: ${Math.floor(tamagotchiAge)} έτη`}</span>
+                                ${isEgg ? '' : `<span>•</span><span>Βάρος: ${Math.round(tamagotchiWeight * 10) / 10}g</span>`}
                             </p>
                             <div class="tm-mascot-quick-stats">
-                                <span class="tm-quick-stat" title="Πειθαρχία">🎓 ${Math.round(tamagotchiDiscipline * 10) / 10}%</span>
-                                <span class="tm-quick-stat" title="Καθαρότητα">${tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό'}</span>
-                                <span class="tm-quick-stat" title="Φώτα">${tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά'}</span>
+                                ${isEgg ? `
+                                    <span class="tm-quick-stat" title="Πρόοδος">🥚 ${hatchProgress}%</span>
+                                    <span class="tm-quick-stat" title="Θερμοκρασία">${tamagotchiLightsOn ? '🔥' : '❄️'} ${eggWarmth}</span>
+                                    <span class="tm-quick-stat" title="Φώτα">${tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά'}</span>
+                                ` : `
+                                    <span class="tm-quick-stat" title="Πειθαρχία">🎓 ${Math.round(tamagotchiDiscipline * 10) / 10}%</span>
+                                    <span class="tm-quick-stat" title="Καθαρότητα">${tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό'}</span>
+                                    <span class="tm-quick-stat" title="Φώτα">${tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά'}</span>
+                                `}
                             </div>
                         </div>
                     </div>
@@ -20688,19 +21647,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
                 <!-- Alerts Section -->
                 <div class="tm-mascot-alerts" id="tm-mascot-alerts">
-                    ${tamagotchiAge >= 70 && tamagotchiAge < 80 ? `
-                        <div class="tm-mascot-alert tm-alert-warning">
-                            <span class="tm-alert-icon">⏳</span>
-                            <span>Πολύ μεγάλος σε ηλικία! (Θάνατος στα 80 έτη)</span>
+                    ${isEgg ? `
+                        <div class="tm-mascot-alert tm-alert-info">
+                            <span class="tm-alert-icon">🥚</span>
+                            <span>Κράτα τα φώτα ανοιχτά για ζεστασιά. Η εκκόλαψη έρχεται σύντομα!</span>
                         </div>
                     ` : ''}
-                    ${tamagotchiPoopCount > 0 ? `
+                    ${!isEgg && tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.old && tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.death ? `
+                        <div class="tm-mascot-alert tm-alert-warning">
+                            <span class="tm-alert-icon">⏳</span>
+                            <span>Πολύ μεγάλος σε ηλικία!</span>
+                        </div>
+                    ` : ''}
+                    ${!isEgg && tamagotchiPoopCount > 0 ? `
                         <div class="tm-mascot-alert tm-alert-warning">
                             <span class="tm-alert-icon">💩</span>
                             <span>Χρειάζεται καθάρισμα! (${tamagotchiPoopCount})</span>
                         </div>
                     ` : ''}
-                    ${tamagotchiHealth < 50 ? `
+                    ${!isEgg && tamagotchiHealth < 50 ? `
                         <div class="tm-mascot-alert tm-alert-danger">
                             <span class="tm-alert-icon">🤒</span>
                             <span>Άρρωστος! Χρειάζεται φάρμακο!</span>
@@ -20708,7 +21673,21 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     ` : ''}
                 </div>
 
-                <!-- Stats Grid -->
+                <!-- Stats / Hatch Progress -->
+                ${isEgg ? `
+                <div class="tm-mascot-stats-grid" style="grid-template-columns: 1fr;">
+                    <div class="tm-stat-card">
+                        <div class="tm-stat-icon" style="background: linear-gradient(135deg, #4ecdc4, #26a69a);">🥚</div>
+                        <div class="tm-stat-info">
+                            <div class="tm-stat-label">Πρόοδος Εκκόλαψης</div>
+                            <div class="tm-stat-bar">
+                                <div class="tm-stat-fill" id="tm-egg-hatch-fill" style="width: ${hatchProgress}%; background: linear-gradient(90deg, #4ecdc4, #1de9b6);"></div>
+                            </div>
+                            <div class="tm-stat-value" id="tm-egg-hatch-value">${hatchProgress}%</div>
+                        </div>
+                    </div>
+                </div>
+                ` : `
                 <div class="tm-mascot-stats-grid">
                     <div class="tm-stat-card">
                         <div class="tm-stat-icon" style="background: linear-gradient(135deg, #FFD700, #FFA500);">😊</div>
@@ -20754,8 +21733,28 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </div>
                     </div>
                 </div>
+                `}
 
                 <!-- Actions Section -->
+                ${isEgg ? `
+                <div class="tm-mascot-actions-section">
+                    <h3 class="tm-actions-title">🥚 Φροντίδα Ωού</h3>
+                    <div class="tm-mascot-actions">
+                        <button class="tm-action-btn" id="tm-action-egg-warm" title="Ζέστανε το ωό">
+                            <span class="tm-action-icon">🔥</span>
+                            <span class="tm-action-label">Ζέστανε</span>
+                        </button>
+                        <button class="tm-action-btn" id="tm-action-egg-watch" title="Παρακολούθησε το ωό">
+                            <span class="tm-action-icon">👀</span>
+                            <span class="tm-action-label">Παρακολούθησε</span>
+                        </button>
+                        <button class="tm-action-btn tm-action-lights" id="tm-action-lights" title="Άνοιγμα/Κλείσιμο φώτων">
+                            <span class="tm-action-icon">${tamagotchiLightsOn ? '💡' : '🌙'}</span>
+                            <span class="tm-action-label">${tamagotchiLightsOn ? 'Φώτα' : 'Σκοτάδι'}</span>
+                        </button>
+                    </div>
+                </div>
+                ` : `
                 <div class="tm-mascot-actions-section">
                     <h3 class="tm-actions-title">Φροντίδα</h3>
                     <div class="tm-mascot-actions">
@@ -20815,6 +21814,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </button>
                     </div>
                 </div>
+                `}
             </div>
         `;
 
@@ -20985,6 +21985,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     color: #FF6B6B;
                 }
 
+                .tm-alert-info {
+                    background: rgba(78, 205, 196, 0.2);
+                    border: 1px solid rgba(78, 205, 196, 0.4);
+                    color: #4ecdc4;
+                }
+
                 .tm-alert-icon {
                     font-size: 20px;
                 }
@@ -21151,6 +22157,23 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
         // Helper function to update stats in modal
         function updateModalStats() {
+            if (tamagotchiStage === 'egg') {
+                const progress = Math.round(getEggHatchProgress());
+                const fill = modal.querySelector('#tm-egg-hatch-fill');
+                const value = modal.querySelector('#tm-egg-hatch-value');
+                if (fill) fill.style.width = progress + '%';
+                if (value) value.textContent = progress + '%';
+                const quickStatsContainer = modal.querySelector('.tm-mascot-quick-stats');
+                if (quickStatsContainer) {
+                    quickStatsContainer.innerHTML = `
+                        <span class="tm-quick-stat" title="Πρόοδος">🥚 ${progress}%</span>
+                        <span class="tm-quick-stat" title="Θερμοκρασία">${tamagotchiLightsOn ? '🔥' : '❄️'} ${tamagotchiLightsOn ? 'Ζεστό' : 'Κρύο'}</span>
+                        <span class="tm-quick-stat" title="Φώτα">${tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά'}</span>
+                    `;
+                }
+                return;
+            }
+
             const statCards = modal.querySelectorAll('.tm-stat-card');
             if (statCards[0]) {
                 const fill = statCards[0].querySelector('.tm-stat-fill');
@@ -21182,11 +22205,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             const alertsContainer = modal.querySelector('#tm-mascot-alerts');
             if (alertsContainer) {
                 alertsContainer.innerHTML = '';
-                if (tamagotchiAge >= 70 && tamagotchiAge < 80) {
+                if (tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.old && tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.death) {
                     alertsContainer.innerHTML += `
                         <div class="tm-mascot-alert tm-alert-warning">
                             <span class="tm-alert-icon">⏳</span>
-                            <span>Πολύ μεγάλος σε ηλικία! (Θάνατος στα 80 έτη)</span>
+                            <span>Πολύ μεγάλος σε ηλικία!</span>
                         </div>
                     `;
                 }
@@ -21220,16 +22243,48 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         }
 
         // Event listeners
+        let eggModalInterval = null;
         const closeBtn = modal.querySelector('#tm-modal-close');
-        closeBtn?.addEventListener('click', () => {
+        const closeModal = () => {
+            if (eggModalInterval) {
+                clearInterval(eggModalInterval);
+                eggModalInterval = null;
+            }
             modal.querySelector('.tm-mascot-modal-backdrop').style.animation = 'tmFadeIn 0.2s ease-out reverse';
             modal.querySelector('.tm-mascot-modal-container').style.animation = 'tmSlideUp 0.2s ease-out reverse';
             setTimeout(() => modal.remove(), 200);
+        };
+        closeBtn?.addEventListener('click', () => {
+            closeModal();
             
-            const byeMessages = ['Τα λέμε!', 'Γεια σου!', 'Αντίο!', 'Θα τα πούμε!', 'Φιλάκια!', 'Τα ξαναλέμε!', 'Πάω!', 'Καλά να περνάς!'];
+            const byeMessages = MASCOT_MESSAGES.bye;
             if (Math.random() < 0.5) {
                 showMascotBubble(byeMessages[Math.floor(Math.random() * byeMessages.length)], 1500);
             }
+        });
+
+        if (isEgg) {
+            eggModalInterval = setInterval(() => {
+                updateModalStats();
+                if (tamagotchiStage !== 'egg') {
+                    closeModal();
+                    showMascotStatsModal(config, STORAGE_KEYS);
+                }
+            }, 5000);
+        }
+
+        modal.querySelector('#tm-action-egg-warm')?.addEventListener('click', () => {
+            if (!tamagotchiLightsOn) {
+                showMascotBubble(MASCOT_MESSAGES.eggWarmLights, 2000);
+                return;
+            }
+            const warmMessages = MASCOT_MESSAGES.eggWarm;
+            showMascotBubble(warmMessages[Math.floor(Math.random() * warmMessages.length)], 2000);
+        });
+
+        modal.querySelector('#tm-action-egg-watch')?.addEventListener('click', () => {
+            const watchMessages = MASCOT_MESSAGES.eggWatch;
+            showMascotBubble(watchMessages[Math.floor(Math.random() * watchMessages.length)], 2000);
         });
 
         // Click backdrop to close
@@ -21240,15 +22295,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         // Meal button
         modal.querySelector('#tm-action-meal')?.addEventListener('click', () => {
             if (tamagotchiIsDead) {
-                showMascotBubble('Νεκρός...', 2000);
+                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
                 return;
             }
             if (petStats.hunger < 100) {
-                const feedMessages = [
-                    'Μμμ νόστιμο!', 'Πεινούσα!', 'Ωραίο!', 'Τέλειο φαγητό!', 
-                    'Νάμ νάμ!', 'Ευχαριστώ!', 'Θέλω κι άλλο!', 'Πεντανόστιμο!',
-                    'Υπέροχο!', 'Λατρεύω φαΐ!', 'Τι γεύση!', 'Άψογο!'
-                ];
+                const feedMessages = MASCOT_MESSAGES.feed;
                 updatePetStats(config, STORAGE_KEYS, 0, 30);
                 updateTamagotchiWeight('meal');
                 tamagotchiLastFed = Date.now();
@@ -21258,14 +22309,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
             } else {
-                showMascotBubble('Χόρτασα!', 1500);
+                showMascotBubble(mascotMsg('full'), 1500);
             }
         });
 
         // Snack button
         modal.querySelector('#tm-action-snack')?.addEventListener('click', () => {
             if (tamagotchiIsDead) {
-                showMascotBubble('Νεκρός...', 2000);
+                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
                 return;
             }
             if (petStats.hunger < 95 && petStats.happiness < 95) {
@@ -21273,23 +22324,23 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 updateTamagotchiWeight('snack');
                 tamagotchiLastFed = Date.now();
                 setMascotState(config, 'eating', 2000);
-                showMascotBubble('Γλυκό!', 2000);
+                showMascotBubble(mascotMsg('snack'), 2000);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
             } else {
-                showMascotBubble('Χόρτασα!', 1500);
+                showMascotBubble(mascotMsg('full'), 1500);
             }
         });
 
         // Pet button
         modal.querySelector('#tm-action-pet')?.addEventListener('click', () => {
             if (tamagotchiIsDead) {
-                showMascotBubble('Νεκρός...', 2000);
+                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
                 return;
             }
             updatePetStats(config, STORAGE_KEYS, 15, 0);
             setMascotState(config, 'happy', 2000);
-            const petMessages = ['Μ\' αρέσει!', '💕', 'Ωραία!', 'Ακόμα!', 'Τέλειο!', 'Ναι!', 'Πάλι πάλι!'];
+            const petMessages = MASCOT_MESSAGES.pet;
             showMascotBubble(petMessages[Math.floor(Math.random() * petMessages.length)], 1500);
             saveTamagotchiData(STORAGE_KEYS);
             updateModalStats();
@@ -21300,13 +22351,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             if (tamagotchiPoopCount > 0) {
                 tamagotchiPoopCount = 0;
                 updatePetStats(config, STORAGE_KEYS, 10, 0);
-                const cleanMessages = ['Καθαρό!', 'Ευχαριστώ!', 'Πολύ καλύτερα!', 'Τέλεια!', 'Φρεσκάδα!'];
+                const cleanMessages = MASCOT_MESSAGES.clean;
                 showMascotBubble(cleanMessages[Math.floor(Math.random() * cleanMessages.length)], 1500);
                 updatePoopIndicator();
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
             } else {
-                showMascotBubble('Είναι καθαρά!', 1500);
+                showMascotBubble(mascotMsg('alreadyClean'), 1500);
             }
         });
 
@@ -21314,20 +22365,20 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         modal.querySelector('#tm-action-medicine')?.addEventListener('click', () => {
             if (tamagotchiHealth < 100) {
                 tamagotchiHealth = Math.min(100, tamagotchiHealth + 20);
-                const medicineMessages = ['Καλύτερα!', 'Αισθάνομαι πολύ καλά!', 'Πέρασε το πόνο!', 'Έγινα καλά!', 'Ευχαριστώ!'];
+                const medicineMessages = MASCOT_MESSAGES.medicine;
                 showMascotBubble(medicineMessages[Math.floor(Math.random() * medicineMessages.length)], 2000);
                 updateTamagotchiStats(container);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
             } else {
-                showMascotBubble('Είμαι υγιής!', 1500);
+                showMascotBubble(mascotMsg('healthy'), 1500);
             }
         });
 
         // Toilet button
         modal.querySelector('#tm-action-toilet')?.addEventListener('click', () => {
             if (tamagotchiIsDead) {
-                showMascotBubble('Νεκρός...', 2000);
+                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
                 return;
             }
             if (tamagotchiPoopCount > 0) {
@@ -21335,9 +22386,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 3);
                 if (tamagotchiDiscipline > 40 && !tamagotchiToiletTrained) {
                     tamagotchiToiletTrained = true;
-                    showMascotBubble('Έμαθα τουαλέτα! 🎉', 2500);
+                    showMascotBubble(MASCOT_MESSAGES.toiletTrained, 2500);
                 } else {
-                    showMascotBubble('Ανακούφιση! 🚽', 2000);
+                    showMascotBubble(MASCOT_MESSAGES.toiletRelief, 2000);
                 }
                 updatePoopIndicator();
                 updateToiletNeedIndicator();
@@ -21346,7 +22397,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 updateModalStats();
             } else {
                 tamagotchiLastPoopTime = Date.now();
-                showMascotBubble('Εντάξει! 🚽', 2000);
+                showMascotBubble(MASCOT_MESSAGES.toiletOk, 2000);
                 updateToiletNeedIndicator();
                 saveTamagotchiData(STORAGE_KEYS);
             }
@@ -21355,23 +22406,20 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         // Praise button
         modal.querySelector('#tm-action-praise')?.addEventListener('click', () => {
             if (tamagotchiIsDead) {
-                showMascotBubble('Νεκρός...', 2000);
+                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
                 return;
             }
             if (tamagotchiNeedsPraise) {
                 tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 5);
                 updatePetStats(config, STORAGE_KEYS, 5, 0);
                 tamagotchiNeedsPraise = false;
-                showMascotBubble('Ευχαριστώ! 😊', 2000);
+                showMascotBubble(MASCOT_MESSAGES.praiseThanks, 2000);
                 setMascotState(config, 'happy', 2000);
                 updateTamagotchiStats(container);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
             } else {
-                const randomPraise = [
-                    'Ευχαριστώ!', 'Μπράβο μου!', 'Ωραίος!', 'Τέλειος!', 
-                    'Είμαι καλός!', 'Σ\' αρέσω;', 'Χαίρομαι!', 'Ναι ναι!'
-                ];
+                const randomPraise = MASCOT_MESSAGES.praise;
                 showMascotBubble(randomPraise[Math.floor(Math.random() * randomPraise.length)], 1500);
             }
         });
@@ -21379,20 +22427,20 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         // Scold button
         modal.querySelector('#tm-action-scold')?.addEventListener('click', () => {
             if (tamagotchiIsDead) {
-                showMascotBubble('Νεκρός...', 2000);
+                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
                 return;
             }
             if (tamagotchiNeedsScold) {
                 tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 10);
                 updatePetStats(config, STORAGE_KEYS, -10, 0);
                 tamagotchiNeedsScold = false;
-                showMascotBubble('Συγγνώμη... 😢', 2500);
+                showMascotBubble(MASCOT_MESSAGES.scoldSorry, 2500);
                 setMascotState(config, 'sad', 2500);
                 updateTamagotchiStats(container);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
             } else {
-                const scoldMessages = ['Εντάξει...', 'Συγγνώμη!', 'Δεν θα το ξανακάνω!', 'Λάθος μου!', 'Κατάλαβα!', 'Συγχώρεσέ με!'];
+                const scoldMessages = MASCOT_MESSAGES.scold;
                 updatePetStats(config, STORAGE_KEYS, -5, 0);
                 showMascotBubble(scoldMessages[Math.floor(Math.random() * scoldMessages.length)], 2000);
                 setMascotState(config, 'sad', 2000);
@@ -21403,7 +22451,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         // Play button - Launch mini-game
         modal.querySelector('#tm-action-play')?.addEventListener('click', () => {
             if (tamagotchiIsDead) {
-                showMascotBubble('Νεκρός...', 2000);
+                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
                 return;
             }
             if (petStats.happiness < 100) {
@@ -21411,39 +22459,40 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 modal.remove();
                 showMascotMiniGame(config, STORAGE_KEYS);
             } else {
-                showMascotBubble('Κουράστηκα!', 1500);
+                showMascotBubble(MASCOT_MESSAGES.tired, 1500);
             }
         });
 
         // Lights button
         modal.querySelector('#tm-action-lights')?.addEventListener('click', () => {
             if (tamagotchiIsDead) {
-                showMascotBubble('Νεκρός...', 2000);
+                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
                 return;
             }
             
             tamagotchiLightsOn = !tamagotchiLightsOn;
+            tamagotchiLightsManualOverride = true;
             saveTamagotchiData(STORAGE_KEYS);
             
-            // Update button appearance
             const lightsBtn = modal.querySelector('#tm-action-lights');
             if (lightsBtn) {
                 if (tamagotchiLightsOn) {
+                    tamagotchiIsSleeping = false;
                     lightsBtn.querySelector('.tm-action-icon').textContent = '💡';
                     lightsBtn.querySelector('.tm-action-label').textContent = 'Φώτα';
-                    showMascotBubble('Φώτα ανοιχτά!', 1500);
+                    showMascotBubble(MASCOT_MESSAGES.lightsOn, 1500);
+                    setMascotState(config, 'idle');
                 } else {
+                    tamagotchiIsSleeping = true;
                     lightsBtn.querySelector('.tm-action-icon').textContent = '🌙';
                     lightsBtn.querySelector('.tm-action-label').textContent = 'Σκοτάδι';
-                    showMascotBubble('Καληνύχτα! 😴', 1500);
-                    setMascotState(config, 'sleeping', 3000);
+                    showMascotBubble(MASCOT_MESSAGES.goodNight, 1500);
+                    stopRoaming(config);
+                    setMascotState(config, 'powersave');
                 }
             }
             
-            // If lights are off and it's appropriate time, mascot should sleep
-            if (!tamagotchiLightsOn) {
-                setMascotState(config, 'sleeping', 5000);
-            }
+            updateModalStats();
         });
     }
     
@@ -21634,7 +22683,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 </div>
             `;
             
-            const playMessages = ['Ωραίο παιχνίδι!', 'Διασκέδασα!', 'Πάλι!', 'Τέλεια!', 'Γουάου!'];
+            const playMessages = MASCOT_MESSAGES.playGame;
             showMascotBubble(playMessages[Math.floor(Math.random() * playMessages.length)], 2000);
             setMascotState(config, 'happy', 3000);
             saveTamagotchiData(STORAGE_KEYS);
@@ -21664,19 +22713,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
     // --- Pet Interaction Logic ---
     container.addEventListener('click', (e) => {
-        // Ignore clicks on buttons
         if (e.target.closest('button')) return;
+        if (tamagotchiIsDead) return;
 
-        // Open stats modal instead of showing panel
         showMascotStatsModal(config, STORAGE_KEYS);
         
-        // Greeting messages when clicked
-        const greetingMessages = [
-            'Ναι ρε;', 'Τι κάνουμε;', 'Έλα!', 'Λέγε!', 
-            'Με φώναξες;', 'Sup?', 'Τι θες ρε;', 'Εδώ είμαι φίλε!',
-            'Φτιάχνουμε;', 'Βοήθεια θες;', 'Πάμε για δουλίτσα!', 'Λέγε φίλε!'
-        ];
-        showMascotBubble(greetingMessages[Math.floor(Math.random() * greetingMessages.length)], 2000);
+        if (tamagotchiStage !== 'egg') {
+            const greetingMessages = MASCOT_MESSAGES.greeting;
+            showMascotBubble(greetingMessages[Math.floor(Math.random() * greetingMessages.length)], 2000);
+        }
         
         e.stopPropagation();
     });
@@ -21684,17 +22729,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     // Meal button (proper meal)
     getButton('#tm-pet-meal-btn')?.addEventListener('click', () => {
         if (tamagotchiIsDead) {
-            showMascotBubble('Dead...', 2000);
+            showMascotBubble(MASCOT_MESSAGES.dead, 2000);
             return;
         }
         if (petStats.hunger < 100) {
-            const feedMessages = [
-                'Νόστιμο ρε!', 'Ωραίος!', 'Μμμμ!', 'Γαμάτο!', 
-                'Πεινάω ρε!', 'Νάμ νάμ!', 'Ευχαριστώ φίλε!', 'Άλλο λίγο;',
-                'Σουβλακάκι!', 'Γύρος παίζει;', 'Καφέδακι!', 'Τυρόπιτα ε;',
-                'Burger time!', 'Pizza ρε!', 'Ενέργεια!', 'Φαγάκι!',
-                'Yummy!', 'Κόλλησα!', 'Θα φάω!', 'Ωραία φάση!'
-            ];
+            const feedMessages = MASCOT_MESSAGES.feedPanel;
             updatePetStats(config, STORAGE_KEYS, 0, 30);
             updateTamagotchiWeight('meal');
             tamagotchiLastFed = Date.now();
@@ -21703,7 +22742,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             showMascotBubble(feedMessages[Math.floor(Math.random() * feedMessages.length)], 2000);
             saveTamagotchiData(STORAGE_KEYS);
         } else {
-            const fullMessages = ['Χόρτασα ρε!', 'Γεμάτος!', 'Όχι άλλο!', 'Μπας και σκάσω;', 'Αρκετά φίλε!'];
+            const fullMessages = MASCOT_MESSAGES.full;
             showMascotBubble(fullMessages[Math.floor(Math.random() * fullMessages.length)], 1500);
         }
     });
@@ -21711,14 +22750,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     // Snack button (snacks boost happiness but increase weight)
     getButton('#tm-pet-snack-btn')?.addEventListener('click', () => {
         if (tamagotchiIsDead) {
-            showMascotBubble('Dead...', 2000);
+            showMascotBubble(MASCOT_MESSAGES.dead, 2000);
             return;
         }
         if (petStats.hunger < 95 && petStats.happiness < 95) {
-            const snackMessages = [
-                'Treat!', 'Yummy!', 'Γλυκό!', 'Ωραίο!',
-                'Σνακ!', 'Nice!', 'Thanks!', 'Sweet!'
-            ];
+            const snackMessages = MASCOT_MESSAGES.snackPanel;
             updatePetStats(config, STORAGE_KEYS, 20, 10); // Happiness +20, Hunger +10
             updateTamagotchiWeight('snack');
             tamagotchiLastFed = Date.now();
@@ -21726,19 +22762,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             showMascotBubble(snackMessages[Math.floor(Math.random() * snackMessages.length)], 2000);
             saveTamagotchiData(STORAGE_KEYS);
         } else {
-            showMascotBubble('Not hungry for snack!', 1500);
+            showMascotBubble(MASCOT_MESSAGES.notHungrySnack, 1500);
         }
     });
 
     getButton('#tm-pet-pet-btn')?.addEventListener('click', () => {
         if (petStats.happiness < 100) {
-            const petMessages = [
-                'Ω ναι ρε!', 'Αγάπη!', 'Ωραίος!', 'Γαμάτο!', 
-                'Ακόμα ρε!', 'Χαίρομαι!', 'Ευχαριστώ φίλε!', 'Καλύτερα έτσι!',
-                'Ωραία φάση!', 'Love it!', 'Ναι ρε!', 'Χίχι!',
-                'Γαργαλάει!', 'Ωχού!', 'Πάλι πάλι!', 'Nice!',
-                'Τέλεια!', 'Μου αρέσει!', 'Ωωω!', 'Γλυκά μου!'
-            ];
+            const petMessages = MASCOT_MESSAGES.petPanel;
             trackDailyStat(config, STORAGE_KEYS, 'petMascot'); // Grant XP
             updatePetStats(config, STORAGE_KEYS, 15, 0);
             // Increase discipline when playing
@@ -21751,7 +22781,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             setMascotState(config, 'happy', 2000);
             showMascotBubble(petMessages[Math.floor(Math.random() * petMessages.length)], 2000);
         } else {
-            const maxHappyMessages = ['Μια χαρά είμαι!', 'Τέλειος!', 'All good!', 'Ήδη χαρούμενος!', 'Κομπλέ!'];
+            const maxHappyMessages = MASCOT_MESSAGES.maxHappy;
             showMascotBubble(maxHappyMessages[Math.floor(Math.random() * maxHappyMessages.length)], 1500);
         }
     });
@@ -21769,7 +22799,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     // Tamagotchi actions
     getButton('#tm-pet-clean-btn')?.addEventListener('click', () => {
         if (tamagotchiIsDead) {
-            showMascotBubble('Dead...', 2000);
+            showMascotBubble(MASCOT_MESSAGES.dead, 2000);
             return;
         }
         if (tamagotchiPoopCount > 0) {
@@ -21777,7 +22807,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             tamagotchiPoopCount = 0;
             tamagotchiLastCleaned = Date.now();
             petStats.happiness = Math.min(100, petStats.happiness + 5); // Happy when cleaned
-            const cleanMessages = ['Καθαρός!', 'Ωραία!', 'Φρέσκο!', 'Καθάρισα!', 'Clean!', 'Thanks!'];
+            const cleanMessages = MASCOT_MESSAGES.cleanPanel;
             showMascotBubble(cleanMessages[Math.floor(Math.random() * cleanMessages.length)], 2000);
             updatePoopIndicator();
             updateTamagotchiStats(container);
@@ -21785,17 +22815,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         } else if (tamagotchiHealth < 100) {
             // General cleaning still helps health
             tamagotchiHealth = Math.min(100, tamagotchiHealth + 5);
-            showMascotBubble('Clean!', 1500);
+            showMascotBubble(mascotMsg('cleanPanel'), 1500);
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
         } else {
-            showMascotBubble('Already clean!', 1500);
+            showMascotBubble(mascotMsg('alreadyClean'), 1500);
         }
     });
     
     getButton('#tm-pet-medicine-btn')?.addEventListener('click', () => {
         if (tamagotchiIsDead) {
-            showMascotBubble('Dead...', 2000);
+            showMascotBubble(MASCOT_MESSAGES.dead, 2000);
             return;
         }
         if (tamagotchiIsSick) {
@@ -21803,7 +22833,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             tamagotchiIsSick = false;
             tamagotchiSickType = 'none';
             tamagotchiHealth = Math.min(100, tamagotchiHealth + 30);
-            const medMessages = ['Καλύτερα!', 'Ευχαριστώ!', 'Γιατρός!', 'Better!', 'Θα γίνω καλά!', 'Cured!'];
+            const medMessages = MASCOT_MESSAGES.medicinePanel;
             showMascotBubble(medMessages[Math.floor(Math.random() * medMessages.length)], 2000);
             updateSickIndicator();
             updateTamagotchiStats(container);
@@ -21811,18 +22841,18 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         } else if (tamagotchiHealth < 70) {
             // Can still use medicine for general health
             tamagotchiHealth = Math.min(100, tamagotchiHealth + 20);
-            showMascotBubble('Feeling better!', 2000);
+            showMascotBubble(MASCOT_MESSAGES.feelingBetter, 2000);
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
         } else {
-            showMascotBubble('Υγιής είμαι!', 1500);
+            showMascotBubble(mascotMsg('healthy'), 1500);
         }
     });
     
     // Toilet training button
     getButton('#tm-pet-toilet-btn')?.addEventListener('click', () => {
         if (tamagotchiIsDead) {
-            showMascotBubble('Dead...', 2000);
+            showMascotBubble(MASCOT_MESSAGES.dead, 2000);
             return;
         }
         if (tamagotchiPoopCount > 0) {
@@ -21831,9 +22861,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 3);
             if (tamagotchiDiscipline > 40 && !tamagotchiToiletTrained) {
                 tamagotchiToiletTrained = true;
-                showMascotBubble('Toilet trained! 🎉', 2500);
+                showMascotBubble(MASCOT_MESSAGES.toiletTrained, 2500);
             } else {
-                showMascotBubble('Good! 🚽', 2000);
+                showMascotBubble(MASCOT_MESSAGES.toiletGood, 2000);
             }
             updatePoopIndicator();
             updateToiletNeedIndicator();
@@ -21844,9 +22874,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 2);
             if (tamagotchiDiscipline > 40) {
                 tamagotchiToiletTrained = true;
-                showMascotBubble('Toilet trained! 🎉', 2500);
+                showMascotBubble(MASCOT_MESSAGES.toiletTrained, 2500);
             } else {
-                showMascotBubble('Training... 🚽', 2000);
+                showMascotBubble(MASCOT_MESSAGES.toiletTraining, 2000);
             }
             updateToiletNeedIndicator();
             updateTamagotchiStats(container);
@@ -21854,7 +22884,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         } else {
             // Already toilet trained - using toilet prevents poops
             tamagotchiLastPoopTime = Date.now(); // Reset timer since using toilet
-            showMascotBubble('Good! 🚽', 2000);
+            showMascotBubble(MASCOT_MESSAGES.toiletGood, 2000);
             updateToiletNeedIndicator();
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
@@ -21864,7 +22894,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     // Praise button
     getButton('#tm-pet-praise-btn')?.addEventListener('click', () => {
         if (tamagotchiIsDead) {
-            showMascotBubble('Dead...', 2000);
+            showMascotBubble(MASCOT_MESSAGES.dead, 2000);
             return;
         }
         const now = Date.now();
@@ -21872,19 +22902,19 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 5);
             petStats.happiness = Math.min(100, petStats.happiness + 3);
             tamagotchiLastPraise = now;
-            const praiseMessages = ['Thanks!', 'Happy!', 'Nice!', 'Ευχαριστώ!', '😊'];
+            const praiseMessages = MASCOT_MESSAGES.praise;
             showMascotBubble(praiseMessages[Math.floor(Math.random() * praiseMessages.length)], 2000);
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
         } else {
-            showMascotBubble('Too soon!', 1500);
+            showMascotBubble(MASCOT_MESSAGES.tooSoon, 1500);
         }
     });
     
     // Scold button
     getButton('#tm-pet-scold-btn')?.addEventListener('click', () => {
         if (tamagotchiIsDead) {
-            showMascotBubble('Dead...', 2000);
+            showMascotBubble(MASCOT_MESSAGES.dead, 2000);
             return;
         }
         const now = Date.now();
@@ -21894,18 +22924,18 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             if (tamagotchiPoopCount > 0 || tamagotchiIsSick) {
                 // Scolding when there's a problem = good training
                 tamagotchiDiscipline = Math.min(100, tamagotchiDiscipline + 4);
-                showMascotBubble('Sorry...', 2000);
+                showMascotBubble(MASCOT_MESSAGES.scoldPanelSorry, 2000);
             } else {
                 // Scolding without reason = bad
                 tamagotchiDiscipline = Math.max(0, tamagotchiDiscipline - 2);
                 tamagotchiCareMistakes++;
-                showMascotBubble('Why? 😢', 2000);
+                showMascotBubble(MASCOT_MESSAGES.scoldWhy, 2000);
             }
             tamagotchiLastScold = now;
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
         } else {
-            showMascotBubble('Too soon!', 1500);
+            showMascotBubble(MASCOT_MESSAGES.tooSoon, 1500);
         }
     });
     
@@ -21919,22 +22949,22 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         
         if (tamagotchiLightsOn) {
             if (iconSpan) iconSpan.textContent = '💡';
-            if (labelSpan) labelSpan.textContent = 'Lights';
+            if (labelSpan) labelSpan.textContent = 'Φώτα';
             lightsBtn.style.opacity = '1';
             lightsBtn.style.filter = 'brightness(1.1)';
-            lightsBtn.title = 'Turn lights off (mascot will sleep)';
+            lightsBtn.title = 'Κλείσε τα φώτα (θα κοιμηθεί)';
         } else {
             if (iconSpan) iconSpan.textContent = '🌙';
-            if (labelSpan) labelSpan.textContent = 'Lights';
+            if (labelSpan) labelSpan.textContent = 'Φώτα';
             lightsBtn.style.opacity = '0.7';
             lightsBtn.style.filter = 'brightness(0.8)';
-            lightsBtn.title = 'Turn lights on (mascot will wake up)';
+            lightsBtn.title = 'Άνοιξε τα φώτα (θα ξυπνήσει)';
         }
     }
 
     getButton('#tm-pet-lights-btn')?.addEventListener('click', () => {
         if (tamagotchiIsDead) {
-            showMascotBubble('Dead...', 2000);
+            showMascotBubble(MASCOT_MESSAGES.dead, 2000);
             return;
         }
         
@@ -21955,7 +22985,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 }
             }, 800);
             
-            const wakeMessages = ['Ξύπνησα!', 'Έγειρα!', 'Awake!', 'Έτοιμος!', 'Good morning!'];
+            const wakeMessages = MASCOT_MESSAGES.wake;
             showMascotBubble(wakeMessages[Math.floor(Math.random() * wakeMessages.length)], 2000);
         } else {
             // Lights OFF: Put mascot to sleep
@@ -21963,7 +22993,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             stopRoaming(config);
             setMascotState(config, 'powersave');
             
-            const sleepMessages = ['Κοιμάμαι...', 'Sleep...', 'Zzz...', 'Good night!', '💤'];
+            const sleepMessages = MASCOT_MESSAGES.sleep;
             showMascotBubble(sleepMessages[Math.floor(Math.random() * sleepMessages.length)], 2000);
         }
         
@@ -21980,23 +23010,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     
     getButton('#tm-pet-stats-btn')?.addEventListener('click', () => {
         if (tamagotchiIsDead) {
-            showMascotBubble('Dead...', 2000);
+            showMascotBubble(MASCOT_MESSAGES.dead, 2000);
             return;
         }
-        const daysOld = Math.floor((Date.now() - tamagotchiBirthday) / (1000 * 60 * 60 * 24));
-        const statsMsg = `📊 Stats:
-Age: ${Math.floor(tamagotchiAge)}y (${daysOld}d)
-Weight: ${Math.round(tamagotchiWeight)}kg
-Hunger: ${Math.round(petStats.hunger)}%
-Happiness: ${Math.round(petStats.happiness)}%
-Health: ${Math.round(tamagotchiHealth)}%
-Discipline: ${Math.round(tamagotchiDiscipline)}%
-Stage: ${tamagotchiStage.toUpperCase()}
-Personality: ${tamagotchiPersonality}
-Care Mistakes: ${tamagotchiCareMistakes}
-Poops: ${tamagotchiPoopCount}
-${tamagotchiIsSick ? '🤒 SICK: ' + tamagotchiSickType : '✅ Healthy'}
-${tamagotchiToiletTrained ? '🚽 Toilet Trained' : '❌ Not Trained'}`;
+        const statsMsg = formatTamagotchiStatsBubble();
         
         // Show in a modal or longer bubble
         showMascotBubble(statsMsg, 8000);
@@ -22010,7 +23027,7 @@ ${tamagotchiToiletTrained ? '🚽 Toilet Trained' : '❌ Not Trained'}`;
 
     getButton('#tm-pet-revive-btn')?.addEventListener('click', () => {
         if (typeof window.STORAGE_KEYS !== 'undefined') {
-            showTamagotchiDeathScreen(window.STORAGE_KEYS);
+            showTamagotchiDeathScreen(window.STORAGE_KEYS, true);
         }
     });
     
@@ -22034,15 +23051,15 @@ ${tamagotchiToiletTrained ? '🚽 Toilet Trained' : '❌ Not Trained'}`;
         const lightsBtn = getButton('#tm-pet-lights-btn');
         if (lightsBtn) {
             if (tamagotchiLightsOn) {
-                lightsBtn.innerHTML = '💡 Lights ON';
+                lightsBtn.innerHTML = '💡 Φώτα ανοιχτά';
                 lightsBtn.style.opacity = '1';
                 lightsBtn.style.filter = 'brightness(1.2)';
-                lightsBtn.title = 'Turn lights off (mascot will sleep)';
+                lightsBtn.title = 'Κλείσε τα φώτα (θα κοιμηθεί)';
             } else {
-                lightsBtn.innerHTML = '🌙 Lights OFF';
+                lightsBtn.innerHTML = '🌙 Φώτα κλειστά';
                 lightsBtn.style.opacity = '0.6';
                 lightsBtn.style.filter = 'brightness(0.7)';
-                lightsBtn.title = 'Turn lights on (mascot will wake up)';
+                lightsBtn.title = 'Άνοιξε τα φώτα (θα ξυπνήσει)';
             }
         }
     }, 200);
@@ -22306,7 +23323,7 @@ ${tamagotchiToiletTrained ? '🚽 Toilet Trained' : '❌ Not Trained'}`;
                 
                 // Optional: Show a message occasionally
                 if (Math.random() < 0.3) { // 30% chance
-                    const jugglingMessages = ['Κοίτα!', 'Ορίστε!', 'Check this!', 'Παρακολούθα!', 'Το κόλπο!'];
+                    const jugglingMessages = MASCOT_MESSAGES.juggling;
                     showMascotBubble(jugglingMessages[Math.floor(Math.random() * jugglingMessages.length)], 1500);
                 }
             }
@@ -22360,11 +23377,7 @@ ${tamagotchiToiletTrained ? '🚽 Toilet Trained' : '❌ Not Trained'}`;
 /** Triggers the "Eureka!" animation for the mascot. */
 function triggerEurekaAnimation(config) {
     setMascotState(config, 'eureka', 1500); // Animation lasts 1.5 seconds
-    const eurekaMessages = [
-        'Το βρήκα ρε!', 'Α! Αυτό ήταν!', 'Εδώ είναι το πρόβλημα!', 
-        'Φυσικά ρε!', 'Μα ναι!', 'Eureka!', 'Το έπιασα!',
-        'Α! Κατάλαβα!', 'Αυτό ψάχνω!', 'Got it!', 'Εννοείται ρε!'
-    ];
+    const eurekaMessages = MASCOT_MESSAGES.eureka;
     const msg = eurekaMessages[Math.floor(Math.random() * eurekaMessages.length)];
     showMascotBubble(msg, 1500);
 }
@@ -22708,19 +23721,11 @@ function fetchWeatherAndReact(config) {
 
                             // Weather codes: 0-3 are generally clear/sunny. 51-99 are rainy/snowy.
                             if (weatherCode >= 0 && weatherCode <= 3) {
-                    const sunnyMessages = [
-                        'Τι μέρα ρε!', 'Ήλιος έχει!', 'Ωραίος καιρός!', 
-                        'Καλός!', 'Λάμπει!', 'Τέλεια μέρα!',
-                        'Ζέστη!', 'Καλοκαιράκι!', 'Sunny day!', 'Nice!'
-                    ];
+                    const sunnyMessages = MASCOT_MESSAGES.sunny;
                                 setMascotState(config, 'sunny', 120000); // Show for 2 minutes
                     showMascotBubble(sunnyMessages[Math.floor(Math.random() * sunnyMessages.length)], 3000);
                             } else if (weatherCode >= 51 && weatherCode <= 99) {
-                    const rainyMessages = [
-                        'Βροχή ρε...', 'Στάλα στάλα...', 'Μούσκεμα!', 
-                        'Ουφ βρέχει...', 'Που είναι η ομπρέλα μου;', 'Βροχερό!',
-                        'Τι μαύρα;', 'Έχει νερά!', 'Rainy day...', 'Άσχημα...'
-                    ];
+                    const rainyMessages = MASCOT_MESSAGES.rainy;
                                 setMascotState(config, 'rainy', 120000); // Show for 2 minutes
                     showMascotBubble(rainyMessages[Math.floor(Math.random() * rainyMessages.length)], 3000);
                             }
@@ -22740,11 +23745,7 @@ function initMascotPageReactions(config) {
     // Check for a success message
     const successMessage = document.querySelector('.rnr-message');
     if (successMessage && successMessage.offsetParent !== null) { // Check if it's visible
-        const successMessages = [
-            'Ωραία ρε!', 'Μπράβο!', 'Τέλεια!', 'Έγινε!', 'Success!', 
-            'Γαμάτο!', 'Άψογα!', 'Εξαιρετικά!', 'Επισκευή OK!',
-            'Perfect!', 'Κομπλέ!', 'Done!', 'Φοβερά!'
-        ];
+        const successMessages = MASCOT_MESSAGES.success;
         setMascotState(config, 'happy', 3000);
         showMascotBubble(successMessages[Math.floor(Math.random() * successMessages.length)], 2000);
     }
@@ -22752,11 +23753,7 @@ function initMascotPageReactions(config) {
     // Check for an error message
     const errorMessage = document.querySelector('.rnr-error');
     if (errorMessage && errorMessage.offsetParent !== null) {
-        const errorMessages = [
-            'Ουπς...', 'Τι έπαθε ρε;', 'Ωχ...', 'Πρόβλημα!', 
-            'Δεν πάει καλά...', 'Μμμ...', 'Τι γίνεται;',
-            'Error ρε!', 'Άσχημα...', 'Fuck...', 'Τι έγινε;'
-        ];
+        const errorMessages = MASCOT_MESSAGES.error;
         setMascotState(config, 'sad', 3000);
         showMascotBubble(errorMessages[Math.floor(Math.random() * errorMessages.length)], 2000);
     }
@@ -22766,35 +23763,31 @@ function initMascotPageReactions(config) {
 function updateMascotAppearanceByStage(stage) {
     console.log(`[MMS Mascot] 🔄 Updating mascot appearance for stage: ${stage}, character: ${tamagotchiCharacterType}...`);
     
-    // Hide ALL character variations first
-    const allCharacterTypes = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal'];
+    const allCharacterTypes = TAMA_CHARACTER_TYPES;
     const allStages = ['base', 'baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
     
-    // Hide everything
     allStages.forEach(stageId => {
         allCharacterTypes.forEach(charType => {
-            const elementId = `tm-mascot-${stageId}-${charType}`;
-            const element = document.getElementById(elementId);
-            if (element) element.style.display = 'none';
+            setSvgSpriteVisible(document.getElementById(`tm-mascot-${stageId}-${charType}`), false);
         });
-        // Also hide legacy non-character-specific elements
-        const legacyElement = document.getElementById(`tm-mascot-${stageId}`);
-        if (legacyElement) legacyElement.style.display = 'none';
+        setSvgSpriteVisible(document.getElementById(`tm-mascot-${stageId}`), false);
     });
     
-    // Egg stage is universal (no character type yet)
     if (stage === 'egg') {
-        const eggElement = document.getElementById('tm-mascot-base');
-        if (eggElement) {
-            eggElement.style.display = 'block';
-            eggElement.style.opacity = '1';
+        setSvgSpriteVisible(document.getElementById('tm-mascot-base'), true);
+        const robot = document.querySelector('.tm-mascot-robot');
+        if (robot) {
+            TAMA_CHARACTER_TYPES.forEach((charType) => robot.classList.remove(`mascot-char-${charType}`));
+            robot.classList.remove('mascot-baby', 'mascot-kid', 'mascot-teen', 'mascot-adult', 'mascot-middleage', 'mascot-old', 'mascot-child');
+            robot.classList.add('mascot-egg');
         }
         console.log(`[MMS Mascot] ✅ Updated to EGG stage`);
         return;
     }
 
-    // For all other stages, show character-specific design
-    const characterType = tamagotchiCharacterType || 'dragon'; // Fallback to dragon if somehow undefined
+    const characterType = tamagotchiCharacterType && tamagotchiCharacterType !== 'none'
+        ? tamagotchiCharacterType
+        : 'dragon';
     let stageId = '';
     
     switch(stage) {
@@ -22807,18 +23800,13 @@ function updateMascotAppearanceByStage(stage) {
         default: stageId = 'baby';
     }
     
-    // Show the correct character at the correct stage
-    const elementId = `tm-mascot-${stageId}-${characterType}`;
-    const element = document.getElementById(elementId);
-    
+    const element = document.getElementById(`tm-mascot-${stageId}-${characterType}`);
     if (element) {
-        element.style.display = 'block';
+        setSvgSpriteVisible(element, true);
         console.log(`[MMS Mascot] ✅ Updated to ${stage.toUpperCase()} stage as ${characterType.toUpperCase()}`);
-            } else {
-        console.warn(`[MMS Mascot] ⚠️ Character element not found: ${elementId}. Using fallback.`);
-        // Fallback to legacy design if character-specific not found
-        const fallbackElement = document.getElementById(`tm-mascot-${stageId}`);
-        if (fallbackElement) fallbackElement.style.display = 'block';
+    } else {
+        console.warn(`[MMS Mascot] ⚠️ Character element not found: tm-mascot-${stageId}-${characterType}. Using fallback.`);
+        setSvgSpriteVisible(document.getElementById(`tm-mascot-${stageId}`), true);
     }
     
     // Update robot class to reflect stage and character
@@ -22848,6 +23836,18 @@ window.updateMascotAppearanceByLevel = updateMascotAppearanceByLevel; // Legacy 
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
 window.setMascotState = setMascotState;
 window.showMascotBubble = showMascotBubble;
+window.MASCOT_MESSAGES = MASCOT_MESSAGES;
+window.mascotMsg = mascotMsg;
+window.mascotMsgFmt = mascotMsgFmt;
+window.mascotRepairMsgs = mascotRepairMsgs;
+window.mascotRepairOpinion = mascotRepairOpinion;
+window.mascotRepairIsUrgent = mascotRepairIsUrgent;
+window.parseRepairStatusMenu = parseRepairStatusMenu;
+window.getRepairTotalAmountElement = getRepairTotalAmountElement;
+window.getRepairTotalAmountValue = getRepairTotalAmountValue;
+window.parseRepairPriceAmount = parseRepairPriceAmount;
+window.mascotRepairPriceOpinion = mascotRepairPriceOpinion;
+window.initMascotRepairPriceComments = initMascotRepairPriceComments;
 window.updatePetStats = updatePetStats;
 window.triggerEurekaAnimation = triggerEurekaAnimation;
 window.triggerEnergizedState = triggerEnergizedState;
@@ -26006,12 +27006,7 @@ function initOrderTracking(config, STORAGE_KEYS) {
                 // Show feedback
                 if (config.interactiveMascotEnabled) {
                     setMascotState(config, 'happy', 3000);
-                    const orderMessages = [
-                        'Νέα παραγγελία ρε!', 'Saved!', 'Ωραία!', 
-                        'Κατάχωρήθηκε!', 'Πάμε!', 'Order done!',
-                        'Μια ακόμα!', 'Γράψαμε!', 'Κομπλέ!'
-                    ];
-                    showMascotBubble(orderMessages[Math.floor(Math.random() * orderMessages.length)], 2000);
+                    showMascotBubble(window.mascotMsg?.('orderSave') || 'Νέα παραγγελία!', 2000);
                 }
             }, 100);
         }, { once: false });
@@ -26069,12 +27064,7 @@ function initFunFeatures(config, STORAGE_KEYS) {
                                 trackDailyStat(config, STORAGE_KEYS, 'ordersCreated');
                                 
                                 if (config.interactiveMascotEnabled) {
-                                    const orderMessages = [
-                                        'Παραγγελία part!', 'Το παραγγέλνω!', 
-                                        'Έρχεται το ανταλλακτικό!', 'Order placed!', 'Κομπλέ!',
-                                        'Part incoming!', 'Ας έρθει!', 'Ωραία φάση!'
-                                    ];
-                                    showMascotBubble(orderMessages[Math.floor(Math.random() * orderMessages.length)], 2500);
+                                    showMascotBubble(window.mascotMsg?.('orderPart') || 'Παραγγελία ανταλλακτικού!', 2500);
                                 }
                             }
                             // Restore original confirm
@@ -45683,16 +46673,14 @@ if (typeof window !== 'undefined') {
         // Detect page type
         const currentPage = window.location.pathname;
         
-        // Test if mascot bubble works
-        setTimeout(() => {
-            if (window.showMascotBubble) {
-                const testMessages = [
-                    'Έτοιμος να βοηθήσω!', 'Ready to help!', 'Let\'s work!',
-                    'Πάμε!', 'Τι κάνουμε σήμερα;', 'What\'s up?'
-                ];
-                window.showMascotBubble(testMessages[Math.floor(Math.random() * testMessages.length)], 3000);
-            }
-        }, 2000);
+        // Greeting bubble (skip on service pages — repair status opinion takes over)
+        if (!currentPage.includes('service_list') && !currentPage.includes('service_edit')) {
+            setTimeout(() => {
+                if (window.showMascotBubble) {
+                    window.showMascotBubble(window.mascotMsg?.('startupGreeting') || 'Έτοιμος!', 3000);
+                }
+            }, 2000);
+        }
         
         // === REPAIR INTERACTIONS ===
         if (currentPage.includes('service')) {
@@ -45701,11 +46689,7 @@ if (typeof window !== 'undefined') {
             statusButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
                     setTimeout(() => {
-                        const messages = [
-                            'Status άλλαξε!', 'Μπράβο!', 'Ωραίος!', 
-                            'Πάμε παρακάτω!', 'Next!', 'Προχωράμε!'
-                        ];
-                        window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2500);
+                        window.showMascotBubble?.(window.mascotMsg?.('statusChange') || 'Άλλαξε η κατάσταση!', 2500);
                     }, 500);
                 });
             });
@@ -45716,11 +46700,7 @@ if (typeof window !== 'undefined') {
                 if (btn.textContent.includes('Αποθήκευση') || btn.textContent.includes('Save')) {
                     btn.addEventListener('click', () => {
                         setTimeout(() => {
-                            const messages = [
-                                'Saved! ✓', 'Αποθηκεύτηκε!', 'Done!', 
-                                'Τέλειο!', 'All good!', 'Όλα οκ!'
-                            ];
-                            window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2500);
+                            window.showMascotBubble?.(window.mascotMsg?.('repairSave') || 'Αποθηκεύτηκε!', 2500);
                             window.setMascotState?.(config, 'happy', 3000);
                         }, 300);
                     });
@@ -45732,188 +46712,51 @@ if (typeof window !== 'undefined') {
             if (deviceField && deviceField.value) {
                 setTimeout(() => {
                     const device = deviceField.value.substring(0, 20);
-                    const messages = [
-                        `${device}... Μμμ...`, 
-                        `${device}! Το ξέρω αυτό!`,
-                        `Ωραία συσκευή!`,
-                        `Ας δούμε τι έχει...`
-                    ];
-                    window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 3000);
+                    const pool = window.MASCOT_MESSAGES?.deviceDetect || [`${device}... Χμμ...`];
+                    const template = pool[Math.floor(Math.random() * pool.length)];
+                    window.showMascotBubble?.(template.replace(/\{device\}/g, device), 3000);
                 }, 1500);
             }
             
             // Analyze and react to repair statuses from the side menu
-            const statusMenu = document.querySelector('.rnr-b-vmenu.simple.main.initialized');
-            if (statusMenu) {
-                setTimeout(() => {
-                    // Only track specific status IDs
-                    const trackedStatusIds = ['30', '40', '65', '90'];
-                    const statusIdMap = {};
-                    let totalRepairs = 0;
-                    
-                    // Find all menu links with status information
-                    const menuLinks = statusMenu.querySelectorAll('a[href*="statusid"]');
-                    
-                    menuLinks.forEach(link => {
-                        // Check if this link is for one of the tracked status IDs
-                        const href = link.getAttribute('href');
-                        const statusIdMatch = href.match(/statusid=(\d+)/);
-                        
-                        if (statusIdMatch && trackedStatusIds.includes(statusIdMatch[1])) {
-                            // Extract status name and count
-                            const statusBadge = link.querySelector('.statusbadge');
-                            const countBadge = link.querySelector('.badge');
-                            
-                            if (statusBadge && countBadge) {
-                                const statusId = statusIdMatch[1]; // Use the actual status ID (30, 40, 65, 90)
-                                const count = parseInt(countBadge.textContent.trim(), 10);
-                                const linkText = link.textContent;
-                                const statusName = linkText.replace(statusBadge.textContent, '').replace(count.toString(), '').trim();
-                                
-                                if (!isNaN(count) && count > 0) {
-                                    statusIdMap[statusId] = { name: statusName, count: count };
-                                    totalRepairs += count;
-                                }
-                            }
-                        }
-                    });
-                    
-                    // Find the status with the HIGHEST count - that's what we'll roast
-                    let maxStatus = null;
-                    let maxCount = 0;
-                    
-                    Object.keys(statusIdMap).forEach(statusId => {
-                        if (statusIdMap[statusId].count > maxCount) {
-                            maxCount = statusIdMap[statusId].count;
-                            maxStatus = statusId;
-                        }
-                    });
-                    
-                    console.log('[MMS Mascot] Repair Status Analysis from Menu:', {
-                        totalRepairs,
-                        trackedStatusIds,
-                        statusIdMap,
-                        maxStatus: maxStatus,
-                        maxCount: maxCount,
-                        willReactToAllStatuses: Object.keys(statusIdMap).filter(id => statusIdMap[id].count > 0)
-                    });
-                    
-                    // Generate MEAN Greek slang comments for ALL statuses with counts > 0
-                    const messages = [];
-                    
-                    // Generate comments for ALL statuses that have counts > 0
-                    Object.keys(statusIdMap).forEach(statusId => {
-                        const statusData = statusIdMap[statusId];
-                        const count = statusData.count;
-                        
-                        if (count > 0) {
-                        
-                        // Status 30 - Intake/New
-                        if (statusId === '30') {
-                            if (count > 5) {
-                                messages.push(
-                                    `Ρε μαλάκα ${count} στο 30! ΚΟΥΝΗΣΟΥ!`,
-                                    `Άντε ρε! ${count} στο 30 και χαζεύεις;`,
-                                    `${count} εισαγωγές; ΞΥΠΝΑ ΚΑΗΜΕΝΕ!`,
-                                    `Γαμώτο ${count} στο 30... πάμε τώρα!`,
-                                    `Ρε συ ${count} στο 30! Πότε θα τις πιάσεις;`,
-                                    `Παναγία μου ${count} νέες! ΔΟΥΛΕΙΑ!`,
-                                    `${count} στο 30 ρε... τι περιμένεις;`,
-                                    `Μωρέ ${count} στο 30! Κούνα κώλο!`,
-                                    `Ρε πούστη μου ${count} στο 30!`,
-                                    `${count} στο 30! Μπάξε καμιά ρε!`
-                                );
-                            } else {
-                                messages.push(`${count} στο 30 - Οκ ρε.`, `${count} εισαγωγές - Καλά.`);
-                            }
-                        }
-                        
-                        // Status 40 - In Progress
-                        if (statusId === '40') {
-                            if (count > 5) {
-                                messages.push(
-                                    `Ρε ${count} στο 40! Γιατί τόσες;`,
-                                    `${count} στο 40 ρε φίλε! ΤΕΛΕΙΩΣΕ ΤΕΣ!`,
-                                    `${count} στο 40! Προχώρα μπροστά!`,
-                                    `Ρε μαλάκα ${count} στο 40!`,
-                                    `${count} σε εργασία! Κινήσου ρε!`,
-                                    `Ρε φιλαράκο ${count} στο 40 - πότε τελειώνουν;`,
-                                    `${count} στο 40 ρε... σιγά-σιγά;`,
-                                    `Ουφ ${count} στο 40! Τι γίνεται ρε;`,
-                                    `Στραβώσαμε ρε! ${count} στο 40!`,
-                                    `${count} στο 40! Αγάλα-αγάλα ε;`
-                                );
-                            } else {
-                                messages.push(`${count} στο 40 - Οκ.`, `${count} σε εργασία - Καλά είμαστε.`);
-                            }
-                        }
-                        
-                        // Status 65 - Waiting for Parts
-                        if (statusId === '65') {
-                            if (count > 8) {
-                                messages.push(
-                                    `Ρε ${count} στο 65! ΠΕΡΙΜΕΝΟΥΝ PARTS!`,
-                                    `${count} στο 65! Ανταλλακτικά δε φτάνουν!`,
-                                    `${count} περιμένουν parts ρε συ!`,
-                                    `Γαμώ τη μάνα μου ${count} χωρίς parts!`,
-                                    `${count} στο 65 ρε! ΠΟΥ ΤΑ PARTS;`,
-                                    `Μαλάκα μου ${count} χωρίς ανταλλακτικά!`,
-                                    `${count} στο 65 ρε... ΠΑΡΑΓΓΕΙΛΕ!`,
-                                    `Ρε φίλε ${count} περιμένουν! PARTS!`,
-                                    `Αχ γαμώτο ${count} χωρίς parts!`,
-                                    `${count} στο 65! Ανταλλακτικά ρε!`
-                                );
-                            } else {
-                                messages.push(`${count} στο 65 - Περιμένουν parts.`, `${count} για ανταλλακτικά - Εντάξει.`);
-                            }
-                        }
-                        
-                        // Status 90
-                        if (statusId === '90') {
-                            if (count > 2) {
-                                messages.push(
-                                    `Ρε ${count} στο 90! Τι έγινε εκεί;`,
-                                    `${count} στο 90 ρε συ! ΦΤΙΑΞΕ ΤΟ!`,
-                                    `${count} στο 90! Μαλακία γίνεται!`,
-                                    `Γαμώ τα πάντα ${count} στο 90!`,
-                                    `${count} στο 90 ρε! ΠΡΟΣΟΧΗ!`,
-                                    `Ρε συ ${count} στο 90! ΚΙΝΔΥΝΟΣ!`,
-                                    `${count} στο 90 ρε... τι τρέχει;`,
-                                    `Μωρέ ${count} στο 90! Πως έγινε αυτό;`,
-                                    `Ουστ ${count} στο 90!`,
-                                    `${count} στο 90! Αχ σκατά!`
-                                );
-                            } else {
-                                messages.push(`${count} στο 90 - Καλά.`, `${count} στο 90 - Οκ είναι.`);
-                            }
-                        }
-                        } // End of if (count > 0)
-                    }); // End of forEach loop
-                    
-                    // Handle case when no repairs exist
-                    if (totalRepairs === 0) {
-                        messages.push('Καθαρά όλα!', 'Άδειο!', 'Ησυχία!', 'Τίποτα σήμερα!');
-                    }
-                    
-                    // Display the comment
-                    if (messages.length > 0) {
-                        window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 4000);
-                    }
-                    
-                    // Set mascot mood based on urgency of tracked statuses (updated thresholds)
-                    let isUrgent = false;
-                    
-                    if ((statusIdMap['30'] && statusIdMap['30'].count > 5) || 
-                        (statusIdMap['40'] && statusIdMap['40'].count > 5) ||
-                        (statusIdMap['65'] && statusIdMap['65'].count > 8) ||
-                        (statusIdMap['90'] && statusIdMap['90'].count > 2)) {
-                        isUrgent = true;
-                    }
-                    
-                    if (isUrgent) {
-                        window.setMascotState?.(config, 'surprised', 3000);
-                    }
-                }, 2500);
+            function reactToRepairStatusMenu(attempt = 0) {
+                const statusMenu = document.querySelector('.rnr-b-vmenu.simple.main.initialized, .rnr-b-vmenu.simple.main, .rnr-b-vmenu');
+                if (!statusMenu) {
+                    if (attempt < 4) setTimeout(() => reactToRepairStatusMenu(attempt + 1), 1500);
+                    return;
+                }
+
+                const { statusIdMap, totalRepairs } = window.parseRepairStatusMenu?.(statusMenu)
+                    || { statusIdMap: {}, totalRepairs: 0 };
+
+                const hasTrackedCounts = Object.keys(statusIdMap).length > 0;
+                if (!hasTrackedCounts && attempt < 4) {
+                    setTimeout(() => reactToRepairStatusMenu(attempt + 1), 1500);
+                    return;
+                }
+
+                console.log('[MMS Mascot] Repair Status Analysis from Menu:', {
+                    totalRepairs,
+                    statusIdMap,
+                    attempt
+                });
+
+                const opinion = window.mascotRepairOpinion?.(statusIdMap, totalRepairs)
+                    || window.mascotRepairMsgs?.(statusIdMap, totalRepairs)?.[0];
+                if (opinion) {
+                    window.showMascotBubble?.(opinion, 4500);
+                }
+
+                if (window.mascotRepairIsUrgent?.(statusIdMap)) {
+                    window.setMascotState?.(config, 'surprised', 3000);
+                }
+            }
+
+            setTimeout(() => reactToRepairStatusMenu(0), 2000);
+
+            // Comment on repair total price (service_edit only)
+            if (currentPage.includes('service_edit.php')) {
+                window.initMascotRepairPriceComments?.(config);
             }
         }
         
@@ -45928,10 +46771,7 @@ if (typeof window !== 'undefined') {
                         // Track the order creation for stats and XP
                         trackDailyStat(config, STORAGE_KEYS, 'ordersCreated');
                         
-                        const messages = [
-                            'Παραγγελία! 📦', 'Order placed!', 'Τέλεια!',
-                            'Πάμε για ανταλλακτικά!', 'Parts incoming!', 'Nice!'
-                        ];
+                        const messages = window.MASCOT_MESSAGES?.orderSave || ['Νέα παραγγελία!'];
                         window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2500);
                         window.setMascotState?.(config, 'happy', 3000);
                     }, 300);
@@ -45947,13 +46787,9 @@ if (typeof window !== 'undefined') {
             if (orderItems.length > 0) {
                 setTimeout(() => {
                     const count = orderItems.length;
-                    const messages = [
-                        `${count} παραγγελίες!`, 
-                        `Πολλές παραγγελίες σήμερα!`,
-                        `Έχουμε δουλειά!`,
-                        `${count} orders... Ωραία!`
-                    ];
-                    window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 3000);
+                    const pool = window.MASCOT_MESSAGES?.orderList || [`${count} παραγγελίες!`];
+                    const template = pool[Math.floor(Math.random() * pool.length)];
+                    window.showMascotBubble?.(template.replace(/\{n\}/g, String(count)), 3000);
                 }, 2000);
             }
         }
@@ -45963,11 +46799,7 @@ if (typeof window !== 'undefined') {
             const partsRows = document.querySelectorAll('.rnr-b-table tbody tr');
             if (partsRows.length > 5) {
                 setTimeout(() => {
-                    const messages = [
-                        'Πολλά parts!', 'Καλό stock!', 'Nice inventory!',
-                        'Έχουμε όλα!', 'Full stock!', 'Ωραία!'
-                    ];
-                    window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 3000);
+                    window.showMascotBubble?.(window.mascotMsg?.('partsStock') || 'Καλό stock!', 3000);
                 }, 2000);
             }
             
@@ -45975,11 +46807,7 @@ if (typeof window !== 'undefined') {
             const searchInput = document.querySelector('input[type="search"], input[name*="search"]');
             if (searchInput) {
                 searchInput.addEventListener('focus', () => {
-                    const messages = [
-                        'Ψάχνεις κάτι;', 'Searching...', 'Τι χρειάζεσαι;',
-                        'Βοηθάω;', 'What part?', 'Πες μου!'
-                    ];
-                    window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2500);
+                    window.showMascotBubble?.(window.mascotMsg?.('partsSearch') || 'Ψάχνεις κάτι;', 2500);
                 });
             }
         }
@@ -45990,11 +46818,7 @@ if (typeof window !== 'undefined') {
             const contactLinks = document.querySelectorAll('a[href^="tel:"], a[href^="mailto:"]');
             contactLinks.forEach(link => {
                 link.addEventListener('click', () => {
-                    const messages = [
-                        'Καλή επικοινωνία!', 'Call them!', 'Πάμε!',
-                        'Τηλέφωνο!', 'Contact!', 'Let\'s talk!'
-                    ];
-                    window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2000);
+                    window.showMascotBubble?.(window.mascotMsg?.('customerContact') || 'Καλή επικοινωνία!', 2000);
                 });
             });
         }
@@ -46006,11 +46830,7 @@ if (typeof window !== 'undefined') {
         tableRows.forEach((row, index) => {
             row.addEventListener('click', () => {
                 if (Math.random() < 0.1) { // 10% chance to react
-                    const messages = [
-                        'Τι ψάχνεις;', 'Hmm...', 'Ας δούμε...',
-                        'Ενδιαφέρον!', 'Ωραίο!', 'Checking...'
-                    ];
-                    window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2000);
+                    window.showMascotBubble?.(window.mascotMsg?.('tableBrowse') || 'Τι ψάχνεις;', 2000);
                 }
             });
         });
@@ -46116,11 +46936,7 @@ if (typeof window !== 'undefined') {
                 if (!btn.hasAttribute('data-tm-print-listener')) {
                     btn.setAttribute('data-tm-print-listener', 'true');
             btn.addEventListener('click', () => {
-                const messages = [
-                    'Εκτύπωση! 🖨️', 'Print time!', 'Τυπώνουμε!',
-                    'Printer go brrrr!', 'Χαρτί!', 'Printing!'
-                ];
-                window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2500);
+                window.showMascotBubble?.(window.mascotMsg?.('printAction') || 'Εκτύπωση!', 2500);
             });
                 }
         });
@@ -46130,11 +46946,7 @@ if (typeof window !== 'undefined') {
         const deleteButtons = document.querySelectorAll('button[onclick*="delete"], button[onclick*="remove"], .rnr-b-delete');
         deleteButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                const messages = [
-                    'Προσοχή!', 'Careful!', 'Σίγουρα;',
-                    'Delete;', 'Διαγραφή!', 'Watch out!'
-                ];
-                window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2000);
+                window.showMascotBubble?.(window.mascotMsg?.('deleteWarn') || 'Προσοχή!', 2000);
                 window.setMascotState?.(config, 'surprised', 2000);
             });
         });
@@ -46143,11 +46955,7 @@ if (typeof window !== 'undefined') {
         const forms = document.querySelectorAll('form');
         forms.forEach(form => {
             form.addEventListener('submit', () => {
-                const messages = [
-                    'Στέλνουμε!', 'Submitting!', 'Πάμε!',
-                    'Let\'s go!', 'Done!', 'Sent!'
-                ];
-                window.showMascotBubble?.(messages[Math.floor(Math.random() * messages.length)], 2000);
+                window.showMascotBubble?.(window.mascotMsg?.('formSubmit') || 'Στέλνουμε!', 2000);
             });
         });
 
@@ -46193,13 +47001,8 @@ if (typeof window !== 'undefined') {
                         // --- Check for Success Messages ---
                         const isSuccess = node.classList.contains('message_success') || node.classList.contains('alert-success') || (node.innerText && node.innerText.toLowerCase().includes(' επιτυχ'));
                         if (isSuccess) {
-                            const happyMessages = [
-                                'Ναι ρε! 🎉', 'Μπράβο!', 'Εξαιρετικά!', 'Άψογα!', 
-                                'Τέλειο!', 'Success!', 'Όλα καλά!', 'Γαμάτο!',
-                                'Perfect!', 'Nice!', 'Ωραίος!', 'Let\'s go!'
-                            ];
                             window.setMascotState?.(config, 'happy', 5000);
-                            window.showMascotBubble?.(happyMessages[Math.floor(Math.random() * happyMessages.length)], 3000);
+                            window.showMascotBubble?.(window.mascotMsg?.('pageSuccess') || 'Μπράβο!', 3000);
                             if (config.confettiEnabled) triggerConfetti(100);
                             return;
                         }
@@ -46207,13 +47010,8 @@ if (typeof window !== 'undefined') {
                         // --- Check for Error Messages ---
                         const isError = node.classList.contains('message_error') || node.classList.contains('alert-danger') || (node.innerText && (node.innerText.toLowerCase().includes('σφάλμα') || node.innerText.toLowerCase().includes('error')));
                         if (isError) {
-                            const sadMessages = [
-                                'Ωχ όχι ρε...', 'Τι έγινε;', 'Πρόβλημα!', 'Μμμ...', 
-                                'Δεν πάει καλά...', 'Άου!', 'Μαλακία...', 'Χμμ...',
-                                'Error ρε!', 'Fuck...', 'Τι έπαθε;', 'Shit happens...'
-                            ];
                             window.setMascotState?.(config, 'sad', 5000);
-                            window.showMascotBubble?.(sadMessages[Math.floor(Math.random() * sadMessages.length)], 3000);
+                            window.showMascotBubble?.(window.mascotMsg?.('pageError') || 'Ωχ...', 3000);
                             // A small, sad shake animation
                             mascotContainer.style.animation = 'tm-mascot-startled 0.5s ease-out';
                             setTimeout(() => { mascotContainer.style.animation = ''; }, 500);
@@ -46540,7 +47338,7 @@ if (typeof window !== 'undefined') {
     
     // Global helper to test mascot bubble (can be called from console)
     window.testMascotBubble = function(message) {
-        const msg = message || 'Test message! Δοκιμή!';
+        const msg = message || window.mascotMsg?.('testDebug') || 'Δοκιμή!';
         if (window.showMascotBubble) {
             window.showMascotBubble(msg, 3000);
         } else {

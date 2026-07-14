@@ -3148,12 +3148,7 @@ function initOrderTracking(config, STORAGE_KEYS) {
                 // Show feedback
                 if (config.interactiveMascotEnabled) {
                     setMascotState(config, 'happy', 3000);
-                    const orderMessages = [
-                        'Νέα παραγγελία ρε!', 'Saved!', 'Ωραία!', 
-                        'Κατάχωρήθηκε!', 'Πάμε!', 'Order done!',
-                        'Μια ακόμα!', 'Γράψαμε!', 'Κομπλέ!'
-                    ];
-                    showMascotBubble(orderMessages[Math.floor(Math.random() * orderMessages.length)], 2000);
+                    showMascotBubble(window.mascotMsg?.('orderSave') || 'Νέα παραγγελία!', 2000);
                 }
             }, 100);
         }, { once: false });
@@ -3211,12 +3206,7 @@ function initFunFeatures(config, STORAGE_KEYS) {
                                 trackDailyStat(config, STORAGE_KEYS, 'ordersCreated');
                                 
                                 if (config.interactiveMascotEnabled) {
-                                    const orderMessages = [
-                                        'Παραγγελία part!', 'Το παραγγέλνω!', 
-                                        'Έρχεται το ανταλλακτικό!', 'Order placed!', 'Κομπλέ!',
-                                        'Part incoming!', 'Ας έρθει!', 'Ωραία φάση!'
-                                    ];
-                                    showMascotBubble(orderMessages[Math.floor(Math.random() * orderMessages.length)], 2500);
+                                    showMascotBubble(window.mascotMsg?.('orderPart') || 'Παραγγελία ανταλλακτικού!', 2500);
                                 }
                             }
                             // Restore original confirm
