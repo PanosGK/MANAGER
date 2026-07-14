@@ -3033,10 +3033,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '222',
+        version: '223',
         loaderVersion: '5',
-        silentVersion: '12',
-        displayVersion: '5.12',
+        silentVersion: '13',
+        displayVersion: '5.13',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -26288,6 +26288,20 @@ window.initOrderTracking = initOrderTracking;
             color: var(--tm-muted-text, var(--tm-shop-item-text));
             margin-right: 2px;
         }
+        #tm-phone-filter-grade:not(.tm-pc-filter-visible),
+        #tm-phone-filter-gb:not(.tm-pc-filter-visible),
+        #tm-phone-filter-color:not(.tm-pc-filter-visible),
+        #tm-phone-filter-tag:not(.tm-pc-filter-visible),
+        #tm-network-filter-grade:not(.tm-pc-filter-visible),
+        #tm-network-filter-store:not(.tm-pc-filter-visible),
+        #tm-network-filter-gb:not(.tm-pc-filter-visible),
+        #tm-network-filter-color:not(.tm-pc-filter-visible),
+        #tm-other-store-filter-grade:not(.tm-pc-filter-visible),
+        #tm-other-store-filter-store:not(.tm-pc-filter-visible),
+        #tm-other-store-filter-gb:not(.tm-pc-filter-visible),
+        #tm-other-store-filter-color:not(.tm-pc-filter-visible) {
+            display: none !important;
+        }
         .tm-pc-select, .tm-cat-select,
         #tm-phone-filter-grade, #tm-phone-filter-model, #tm-phone-filter-gb,
         #tm-phone-filter-color, #tm-phone-filter-tag, #tm-phone-sort-by,
@@ -30305,12 +30319,8 @@ async function showPhoneListModal() {
 
     function syncSelectFilterVisibility(selectEl, optionCount) {
         if (!selectEl) return;
-        if (optionCount > 1) {
-            selectEl.style.display = '';
-        } else {
-            selectEl.style.display = 'none';
-            if (selectEl.value) selectEl.value = '';
-        }
+        selectEl.classList.toggle('tm-pc-filter-visible', optionCount > 0);
+        if (optionCount <= 0 && selectEl.value) selectEl.value = '';
     }
 
     function syncFiltersLabelVisibility(rowEl, filterSelects) {
@@ -30318,7 +30328,7 @@ async function showPhoneListModal() {
         const labels = rowEl.querySelectorAll('.tm-pc-filters-label-inline');
         labels.forEach((label) => {
             if (label.textContent.trim() !== 'Φίλτρα') return;
-            const anyVisible = filterSelects.some((el) => el && el.style.display !== 'none');
+            const anyVisible = filterSelects.some((el) => el && el.classList.contains('tm-pc-filter-visible'));
             label.style.display = anyVisible ? '' : 'none';
         });
     }
@@ -30377,6 +30387,8 @@ async function showPhoneListModal() {
         syncSelectFilterVisibility(networkColorFilter, getFilterOptionCount(networkColorFilter));
         const networkRow2 = overlay.querySelector('#tm-phone-filters-network .tm-pc-filters-row2');
         syncFiltersLabelVisibility(networkRow2, [networkGbFilter, networkColorFilter]);
+        const networkRow1 = overlay.querySelector('#tm-phone-filters-network .tm-pc-search-row');
+        syncFiltersLabelVisibility(networkRow1, [networkGradeFilter, networkStoreFilter]);
         syncNetworkFilterPanelVisibility();
         syncClearButtonsVisibility();
     }
@@ -30539,13 +30551,22 @@ async function showPhoneListModal() {
             syncPhoneColorSelectDisplay(colorFilter);
         }
         
-        // Populate tag filter
+        // Populate tag filter — only tags assigned to phones in the current set
         if (updateFilters.includes('tag') && tagFilter) {
             // Clear existing options except "All"
             while (tagFilter.children.length > 1) {
                 tagFilter.removeChild(tagFilter.lastChild);
             }
-            const usedTags = getSelectableTagKeys();
+            const tagSet = new Set();
+            phones.forEach((phone) => {
+                getPhoneTags(phone.barcode).forEach((tag) => {
+                    const key = normalizeTagKey(tag);
+                    if (key) tagSet.add(key);
+                });
+            });
+            const usedTags = Array.from(tagSet).sort((a, b) =>
+                getTagDisplayName(a).localeCompare(getTagDisplayName(b), undefined, { sensitivity: 'base' })
+            );
             usedTags.forEach(tag => {
                 const option = document.createElement('option');
                 option.value = tag;
@@ -30845,6 +30866,7 @@ async function showPhoneListModal() {
         let models = buildModelGroupsFromPhones(phones, extractBaseModel);
         models = filterModelGroupsByQuery(models, searchQuery);
         models = sortModelGroups(models, sortBy, sortAscending);
+        populateFilters(phones);
         if (!contentEl) return;
         contentEl.className = 'tm-pc-list tm-cat-table-body';
         contentEl.style.display = '';
@@ -30867,6 +30889,7 @@ async function showPhoneListModal() {
             sortBy,
             sortAscending
         );
+        populateNetworkFilters(phones);
         if (!contentEl) return;
         contentEl.className = 'tm-pc-list tm-cat-table-body';
         contentEl.style.display = '';
@@ -31109,7 +31132,11 @@ async function showPhoneListModal() {
         });
         
         filteredPhones = sortPhones(filteredPhones);
-        
+
+        if (!showingOtherStores) {
+            populateFilters(getFilteredPhonesForFilterUpdate(null));
+        }
+
         updateStatistics(filteredPhones);
         renderPhones(filteredPhones, true);
         highlightSearchMatch(container);
@@ -32192,24 +32219,17 @@ async function showPhoneListModal() {
             const count = (el) => Math.max(0, (el?.options.length || 0) - 1);
             const show = (el, n) => {
                 if (!el) return;
-                if (n > 1) el.style.display = '';
-                else {
-                    el.style.display = 'none';
-                    if (el.value) el.value = '';
-                }
+                el.classList.toggle('tm-pc-filter-visible', n > 0);
+                if (n <= 0 && el.value) el.value = '';
             };
             show(gradeFilterOS, count(gradeFilterOS));
             show(storeFilterOS, count(storeFilterOS));
             show(gbFilterOS, count(gbFilterOS));
             show(colorFilterOS, count(colorFilterOS));
+            const row1 = filterBarOS?.querySelector('.tm-pc-search-row');
             const row2 = filterBarOS?.querySelector('.tm-pc-filters-row2');
-            if (row2) {
-                const label = row2.querySelector('.tm-pc-filters-label-inline');
-                if (label && label.textContent.trim() === 'Φίλτρα') {
-                    const any = [gbFilterOS, colorFilterOS].some((el) => el && el.style.display !== 'none');
-                    label.style.display = any ? '' : 'none';
-                }
-            }
+            syncFiltersLabelVisibility(row1, [gradeFilterOS, storeFilterOS]);
+            syncFiltersLabelVisibility(row2, [gbFilterOS, colorFilterOS]);
             clearFiltersOS?.classList.toggle('is-visible', osFiltersActive());
         }
 
