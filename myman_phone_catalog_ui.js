@@ -294,8 +294,8 @@
             gap: 10px; padding: 10px 16px;
             font-size: 10px; font-weight: 700;
             text-transform: uppercase; letter-spacing: 0.07em;
-            color: var(--tm-grid-header-text, var(--tm-primary-color));
-            background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg));
+            color: var(--tm-muted-text, var(--tm-secondary-color, var(--tm-shop-item-text)));
+            background: color-mix(in srgb, var(--tm-shop-item-border) 14%, var(--tm-shop-item-bg)) !important;
             border-bottom: 1px solid var(--tm-shop-item-border);
             position: sticky; top: 0; z-index: 4;
         }
