@@ -30246,6 +30246,68 @@ async function showPhoneListModal() {
         });
     }
     
+    function getFilterOptionCount(selectEl) {
+        if (!selectEl) return 0;
+        return Math.max(0, selectEl.options.length - 1);
+    }
+
+    function syncSelectFilterVisibility(selectEl, optionCount) {
+        if (!selectEl) return;
+        if (optionCount > 1) {
+            selectEl.style.display = '';
+        } else {
+            selectEl.style.display = 'none';
+            if (selectEl.value) selectEl.value = '';
+        }
+    }
+
+    function syncFiltersLabelVisibility(rowEl, filterSelects) {
+        if (!rowEl) return;
+        const labels = rowEl.querySelectorAll('.tm-pc-filters-label-inline');
+        labels.forEach((label) => {
+            if (label.textContent.trim() !== 'Φίλτρα') return;
+            const anyVisible = filterSelects.some((el) => el && el.style.display !== 'none');
+            label.style.display = anyVisible ? '' : 'none';
+        });
+    }
+
+    function syncMineFilterVisibility() {
+        syncSelectFilterVisibility(gradeFilter, getFilterOptionCount(gradeFilter));
+        syncSelectFilterVisibility(gbFilter, getFilterOptionCount(gbFilter));
+        syncSelectFilterVisibility(colorFilter, getFilterOptionCount(colorFilter));
+        if (tagFilter) syncSelectFilterVisibility(tagFilter, getFilterOptionCount(tagFilter));
+        const mineRow2 = overlay.querySelector('#tm-phone-filters-mine .tm-pc-filters-row2');
+        syncFiltersLabelVisibility(mineRow2, [gbFilter, colorFilter, tagFilter]);
+    }
+
+    function syncNetworkFilterPanelVisibility() {
+        const networkPanel = overlay.querySelector('#tm-phone-filters-network');
+        if (!networkPanel) return;
+        const modelsStep = networkCatalogStep === 'models' && !networkSelectedModel;
+        networkPanel.querySelectorAll('.tm-pc-search-row, .tm-pc-filters-row2').forEach((row) => {
+            row.style.display = modelsStep ? 'none' : '';
+        });
+    }
+
+    function syncNetworkFilterVisibility() {
+        const phonesStep = networkCatalogStep === 'phones' && !!networkSelectedModel;
+        if (networkModelFilter) {
+            if (phonesStep) {
+                syncSelectFilterVisibility(networkModelFilter, getFilterOptionCount(networkModelFilter));
+            } else {
+                networkModelFilter.style.display = 'none';
+                if (networkModelFilter.value) networkModelFilter.value = '';
+            }
+        }
+        syncSelectFilterVisibility(networkGradeFilter, getFilterOptionCount(networkGradeFilter));
+        syncSelectFilterVisibility(networkStoreFilter, getFilterOptionCount(networkStoreFilter));
+        syncSelectFilterVisibility(networkGbFilter, getFilterOptionCount(networkGbFilter));
+        syncSelectFilterVisibility(networkColorFilter, getFilterOptionCount(networkColorFilter));
+        const networkRow2 = overlay.querySelector('#tm-phone-filters-network .tm-pc-filters-row2');
+        syncFiltersLabelVisibility(networkRow2, [networkGbFilter, networkColorFilter]);
+        syncNetworkFilterPanelVisibility();
+    }
+
     // Function to populate filter dropdowns
     function populateFilters(phones, updateFilters = ['grade', 'model', 'gb', 'color', 'tag']) {
         // Save current selections
@@ -30392,6 +30454,8 @@ async function showPhoneListModal() {
                 tagFilter.value = '';
             }
         }
+
+        syncMineFilterVisibility();
     }
     
     // Function to update statistics display
@@ -30560,6 +30624,7 @@ async function showPhoneListModal() {
     function updateCatalogBackButtons() {
         mineBackBtn?.classList.toggle('is-visible', mineCatalogStep === 'phones' && !searchInput?.value.trim());
         networkBackBtn?.classList.toggle('is-visible', networkCatalogStep === 'phones');
+        syncNetworkFilterPanelVisibility();
     }
 
     function syncSortControls() {
@@ -30702,6 +30767,8 @@ async function showPhoneListModal() {
                 stores.map(s => `<option value="${s}">${s}</option>`).join('');
             if (stores.includes(cur)) networkStoreFilter.value = cur;
         }
+
+        syncNetworkFilterVisibility();
     }
 
     function getFilteredPhonesForNetworkFilters() {
@@ -31924,6 +31991,30 @@ async function showPhoneListModal() {
         let osSelectedModel = null;
         let suppressOsFilterEvents = false;
 
+        function syncOsFilterVisibility() {
+            const count = (el) => Math.max(0, (el?.options.length || 0) - 1);
+            const show = (el, n) => {
+                if (!el) return;
+                if (n > 1) el.style.display = '';
+                else {
+                    el.style.display = 'none';
+                    if (el.value) el.value = '';
+                }
+            };
+            show(gradeFilterOS, count(gradeFilterOS));
+            show(storeFilterOS, count(storeFilterOS));
+            show(gbFilterOS, count(gbFilterOS));
+            show(colorFilterOS, count(colorFilterOS));
+            const row2 = filterBarOS?.querySelector('.tm-pc-filters-row2');
+            if (row2) {
+                const label = row2.querySelector('.tm-pc-filters-label-inline');
+                if (label && label.textContent.trim() === 'Φίλτρα') {
+                    const any = [gbFilterOS, colorFilterOS].some((el) => el && el.style.display !== 'none');
+                    label.style.display = any ? '' : 'none';
+                }
+            }
+        }
+
         // --- Model picker ---
         function selectOsModel(model) {
             if (!model) return;
@@ -32051,6 +32142,8 @@ async function showPhoneListModal() {
                     stores.map(s => `<option value="${s}">${s}</option>`).join('');
                 if (stores.includes(currentStore)) storeFilterOS.value = currentStore;
             }
+
+            syncOsFilterVisibility();
         };
         
         // Helper — uses shared stock check
@@ -32468,6 +32561,8 @@ async function showPhoneListModal() {
 
     syncFilterPanels();
     syncSortControls();
+    syncMineFilterVisibility();
+    syncNetworkFilterVisibility();
     setTimeout(() => searchInput?.focus(), 80);
 }
 
