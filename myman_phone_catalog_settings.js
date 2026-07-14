@@ -476,7 +476,7 @@
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
 
         const panel = document.createElement('div');
-        panel.style.cssText = 'width:min(560px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
+        panel.style.cssText = 'width:min(680px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
 
         panel.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -490,6 +490,14 @@
                     ${storeOptions.map((name) => `<option value="${name.replace(/"/g, '&quot;')}"${currentPick === name ? ' selected' : ''}>${name}</option>`).join('')}
                 </select>
                 <div style="font-size:11px;opacity:0.7;line-height:1.4;">${t('My store location hint')}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <label style="font-size:12px;font-weight:600;">${t('Store addresses')}</label>
+                    <button id="tm-geocode-store-addresses" type="button" style="padding:6px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:transparent;color:var(--tm-shop-item-text);font-size:11px;font-weight:600;cursor:pointer;">${t('Geocode addresses')}</button>
+                </div>
+                <div style="font-size:11px;opacity:0.7;line-height:1.4;">${t('Store addresses hint')}</div>
+                <div id="tm-store-address-list"></div>
             </div>
             <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
                 <label style="font-size:12px;font-weight:600;">${t('Buyback store patterns')}</label>
@@ -513,8 +521,93 @@
         const buybackPatternsInput = panel.querySelector('#tm-buyback-store-patterns');
         const regularPatternsInput = panel.querySelector('#tm-regular-store-patterns');
         const myStorePickInput = panel.querySelector('#tm-my-store-pick-inline');
+        const addressListEl = panel.querySelector('#tm-store-address-list');
+        const geocodeBtn = panel.querySelector('#tm-geocode-store-addresses');
         const listEl = panel.querySelector('#tm-phone-stores-list');
         let draftOverrides = { ...rules.overrides };
+
+        const persistAddressesFromForm = () => {
+            panel.querySelectorAll('.tm-store-address-input').forEach((input) => {
+                const storeName = input.dataset.store;
+                const address = input.value.trim();
+                const prev = window.getStoreAddressEntry?.(storeName);
+                if (!address) {
+                    window.setStoreAddressEntry?.(storeName, { address: '' });
+                    return;
+                }
+                if (prev?.address === address && prev?.lat != null && prev?.lng != null) {
+                    return;
+                }
+                window.setStoreAddressEntry?.(storeName, {
+                    address,
+                    lat: prev?.address === address ? prev?.lat : undefined,
+                    lng: prev?.address === address ? prev?.lng : undefined,
+                    geocodedAt: prev?.address === address ? prev?.geocodedAt : undefined,
+                });
+            });
+        };
+
+        const renderStoreAddressList = () => {
+            const stores = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
+            const myStore = window.getCurrentStoreName?.() || '';
+            if (!stores.length) {
+                addressListEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:8px 0;">${t('No known stores yet')}</div>`;
+                return;
+            }
+            addressListEl.innerHTML = stores.map((storeName) => {
+                const entry = window.getStoreAddressEntry?.(storeName) || {};
+                const address = entry.address || '';
+                const distFromMe = myStore && myStore !== storeName
+                    ? window.getStoreDistanceLabel?.(myStore, storeName)
+                    : '';
+                let status = t('No address set');
+                if (entry.lat != null && entry.lng != null) {
+                    status = distFromMe ? `${t('Address geocoded')} · ${distFromMe}` : t('Address geocoded');
+                } else if (address) {
+                    status = t('Geocoding stores');
+                }
+                return `
+                <div class="tm-store-address-row" style="padding:8px 0;border-bottom:1px solid var(--tm-shop-item-border);">
+                    <div style="font-size:12px;font-weight:700;margin-bottom:6px;word-break:break-word;">${storeName}</div>
+                    <input type="text" class="tm-store-address-input" data-store="${storeName.replace(/"/g, '&quot;')}" value="${address.replace(/"/g, '&quot;')}" placeholder="${t('Store address placeholder')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;">
+                    <div class="tm-store-address-status" style="font-size:10px;opacity:0.65;margin-top:4px;">${status}</div>
+                </div>`;
+            }).join('');
+        };
+
+        const geocodeAddresses = async () => {
+            persistAddressesFromForm();
+            const stores = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
+            const pending = stores.filter((name) => {
+                const entry = window.getStoreAddressEntry?.(name);
+                return entry?.address?.trim();
+            });
+            if (!pending.length) {
+                if (window.showNegativeMessage) window.showNegativeMessage(t('No address set'));
+                return;
+            }
+            geocodeBtn.disabled = true;
+            geocodeBtn.textContent = t('Geocoding stores');
+            let geocoded = 0;
+            let failed = 0;
+            for (let i = 0; i < pending.length; i += 1) {
+                const name = pending[i];
+                const entry = window.getStoreAddressEntry?.(name);
+                const result = await window.geocodeStoreAddress?.(name, entry.address);
+                if (result?.ok) geocoded += 1;
+                else failed += 1;
+                renderStoreAddressList();
+                if (i < pending.length - 1) await new Promise((r) => setTimeout(r, 1100));
+            }
+            geocodeBtn.disabled = false;
+            geocodeBtn.textContent = t('Geocode addresses');
+            if (geocoded > 0 && window.showPositiveMessage) {
+                window.showPositiveMessage(t('Geocode done'));
+            } else if (!geocoded && window.showNegativeMessage) {
+                window.showNegativeMessage(t('Geocode failed'));
+            }
+            onChange();
+        };
 
         const getDraftRules = () => ({
             buybackPatterns: window.parseStorePatternCsv?.(buybackPatternsInput.value) || [],
@@ -568,7 +661,7 @@
             });
         };
 
-        const persistStoreRules = () => {
+        const persistStoreRules = async () => {
             const next = getDraftRules();
             if (!next.buybackPatterns.length) {
                 next.buybackPatterns = window.getDefaultPhoneStoreRules?.().buybackPatterns || [];
@@ -576,13 +669,18 @@
             }
             window.savePhoneStoreRules?.(next);
             window.setUserStorePick?.(myStorePickInput?.value || '');
+            persistAddressesFromForm();
             draftOverrides = { ...next.overrides };
             if (window.showPositiveMessage) window.showPositiveMessage(t('Store rules saved'));
-            onChange();
+            renderStoreAddressList();
             renderStoreRulesList();
+            onChange();
         };
 
-        panel.querySelector('#tm-save-store-rules').addEventListener('click', persistStoreRules);
+        panel.querySelector('#tm-save-store-rules').addEventListener('click', () => {
+            persistStoreRules();
+        });
+        geocodeBtn?.addEventListener('click', geocodeAddresses);
         panel.querySelector('#tm-reset-store-overrides').addEventListener('click', () => {
             draftOverrides = {};
             renderStoreRulesList();
@@ -594,6 +692,7 @@
             if (e.target === modal) modal.remove();
         });
 
+        renderStoreAddressList();
         renderStoreRulesList();
     }
 

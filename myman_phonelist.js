@@ -91,12 +91,22 @@ const PHONE_CATALOG_TRANSLATIONS = {
     'Regular patterns hint': '\u039A\u03B5\u03BD\u03CC = \u03CC\u03BB\u03B1 \u03C4\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1',
     'Known stores': '\u0393\u03BD\u03C9\u03C3\u03C4\u03AC \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1',
     'My store location': '\u03A4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03AC \u03BC\u03BF\u03C5',
-    'My store location hint': '\u0391\u03C5\u03C4\u03CC \u03C7\u03C1\u03B7\u03C3\u03B9\u03BC\u03BF\u03C0\u03BF\u03B9\u03B5\u03AF\u03C4\u03B1\u03B9 \u03B3\u03B9\u03B1 \u03BD\u03B1 \u03B5\u03BC\u03C6\u03B1\u03BD\u03AF\u03B6\u03BF\u03BD\u03C4\u03B1\u03B9 \u03C0\u03C1\u03CE\u03C4\u03B1 \u03C4\u03B1 \u03BA\u03BF\u03BD\u03C4\u03B9\u03BD\u03AC \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03C3\u03C4\u03B7 \u03BB\u03AF\u03C3\u03C4\u03B1 \u0386\u03BB\u03BB\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1.',
+    'My store location hint': '\u0395\u03C0\u03B9\u03BB\u03AD\u03BE\u03C4\u03B5 \u03C4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03AC \u03C3\u03B1\u03C2 \u03BA\u03B1\u03B9 \u03C3\u03C5\u03BC\u03C0\u03BB\u03B7\u03C1\u03CE\u03C3\u03C4\u03B5 \u03C4\u03B9\u03C2 \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2 \u03C0\u03B1\u03C1\u03B1\u03BA\u03AC\u03C4\u03C9 \u03B3\u03B9\u03B1 \u03B1\u03BA\u03C1\u03B9\u03B2\u03AD\u03C3\u03C4\u03B5\u03C1\u03B7 \u03C4\u03B1\u03BE\u03B9\u03BD\u03CC\u03BC\u03B7\u03C3\u03B7 \u03B1\u03C0\u03CC\u03C3\u03C4\u03B1\u03C3\u03B7\u03C2.',
     'Auto-detect store': '\u0391\u03C5\u03C4\u03CC\u03BC\u03B1\u03C4\u03B7 \u03B1\u03BD\u03AF\u03C7\u03BD\u03B5\u03C5\u03C3\u03B7',
     'Auto-detected store': '\u0391\u03BD\u03B9\u03C7\u03BD\u03B5\u03CD\u03B8\u03B7\u03BA\u03B5 \u03B1\u03C5\u03C4\u03CC\u03BC\u03B1\u03C4\u03B1',
     'No store detected': '\u0394\u03B5\u03BD \u03B1\u03BD\u03B9\u03C7\u03BD\u03B5\u03CD\u03B8\u03B7\u03BA\u03B5 \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1',
     'My store saved': '\u0391\u03C0\u03BF\u03B8\u03B7\u03BA\u03B5\u03C8\u03B5 \u03C4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03AC \u03C3\u03B1\u03C2',
     'Select store': '\u0395\u03C0\u03B9\u03BB\u03AD\u03BE\u03C4\u03B5 \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1',
+    'Store addresses': '\u0394\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03B7\u03BC\u03AC\u03C4\u03C9\u03BD',
+    'Store addresses hint': '\u0392\u03AC\u03BB\u03C4\u03B5 \u03C4\u03B7 \u03C4\u03B1\u03C7\u03C5\u03B4\u03C1\u03BF\u03BC\u03B7\u03C3\u03AF\u03B1 \u03BA\u03AC\u03B8\u03B5 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03BF\u03C2 \u03B3\u03B9\u03B1 \u03BD\u03B1 \u03C4\u03B1\u03BE\u03B9\u03BD\u03BF\u03BC\u03BF\u03CD\u03BD\u03C4\u03B1\u03B9 \u03C3\u03C4\u03B7 \u03BB\u03AF\u03C3\u03C4\u03B1 \u0386\u03BB\u03BB\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03B1\u03C0\u03CC \u03C4\u03B7 \u03BC\u03B9\u03BA\u03C1\u03CC\u03C4\u03B5\u03C1\u03B7 \u03C3\u03C4\u03B7 \u03BC\u03B5\u03B3\u03B1\u03BB\u03CD\u03C4\u03B5\u03C1\u03B7 \u03B1\u03C0\u03CC\u03C3\u03C4\u03B1\u03C3\u03B7.',
+    'Store address placeholder': '\u03A0.\u03C7. \u039A\u03B1\u03C3\u03C3\u03B1\u03BD\u03B4\u03C1\u03BF\u03CD 45, \u0392\u03C1\u03B9\u03BB\u03AE\u03C3\u03C3\u03B9\u03B1',
+    'Geocode addresses': '\u0395\u03C5\u03B8\u03B5\u03C4\u03B7\u03C3\u03AF\u03B1 \u03C3\u03C5\u03BD\u03C4\u03B5\u03C4\u03B1\u03B3\u03BC\u03AD\u03BD\u03C9\u03BD',
+    'Geocoding stores': '\u0395\u03C5\u03B8\u03B5\u03C4\u03B7\u03C3\u03AF\u03B1 \u03C4\u03C9\u03BD \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03C9\u03BD\u2026',
+    'Geocode done': '\u039F\u03B9 \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2 \u03B5\u03BD\u03B7\u03BC\u03B5\u03C1\u03CE\u03B8\u03B7\u03BA\u03B1\u03BD',
+    'Geocode failed': '\u0394\u03B5\u03BD \u03B2\u03C1\u03AD\u03B8\u03B7\u03BA\u03B1\u03BD \u03CC\u03BB\u03B5\u03C2 \u03BF\u03B9 \u03B4\u03B9\u03B5\u03C5\u03B8\u03CD\u03BD\u03C3\u03B5\u03B9\u03C2',
+    'Address geocoded': '\u0395\u03C5\u03C1\u03AD\u03B8\u03B7\u03BA\u03B5 \u03C3\u03C4\u03B7 \u03C7\u03AC\u03C1\u03C4\u03B7',
+    'Address not found': '\u0394\u03B5\u03BD \u03B2\u03C1\u03AD\u03B8\u03B7\u03BA\u03B5 \u03C3\u03C4\u03B7 \u03C7\u03AC\u03C1\u03C4\u03B7',
+    'No address set': '\u0394\u03B5\u03BD \u03AD\u03C7\u03B5\u03B9 \u03BF\u03C1\u03B9\u03C3\u03C3\u03C4\u03B5\u03AF',
     'Allow buyback': '\u0395\u03C0\u03B9\u03C4\u03C1\u03AD\u03C0\u03B5\u03C4\u03B1\u03B9 BB',
     'Allow regular': '\u0395\u03C0\u03B9\u03C4\u03C1\u03AD\u03C0\u03B5\u03C4\u03B1\u03B9 \u03BA\u03B1\u03BD\u03BF\u03BD\u03B9\u03BA\u03CC',
     'No known stores yet': '\u0394\u03B5\u03BD \u03B2\u03C1\u03AD\u03B8\u03B7\u03BA\u03B1\u03BD \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03B1\u03BA\u03CC\u03BC\u03B1',
@@ -1041,6 +1051,7 @@ function normalizeStoreDisplayName(name) {
 
 const MY_STORE_NAME_KEY = 'tm_phone_my_store_name_v1';
 const MY_STORE_PICK_KEY = 'tm_phone_my_store_pick_v1';
+const STORE_ADDRESSES_KEY = 'tm_phone_store_addresses_v1';
 
 const DEFAULT_PROFILE_STORES = [
     'ΕΡΥΘΡΑΙΑ (ΕΕ)',
@@ -1200,6 +1211,170 @@ function getCurrentStoreName() {
     return getAutoDetectedStoreName(document);
 }
 
+function loadStoreAddresses() {
+    try {
+        const parsed = JSON.parse(GM_getValue(STORE_ADDRESSES_KEY, '{}'));
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function saveStoreAddresses(map) {
+    GM_setValue(STORE_ADDRESSES_KEY, JSON.stringify(map || {}));
+}
+
+function resolveStoreAddressKey(storeName, map) {
+    const mapObj = map || loadStoreAddresses();
+    const target = normalizeStoreLookupKey(storeName);
+    const exact = normalizeStoreDisplayName(storeName);
+    if (mapObj[exact]) return exact;
+    for (const key of Object.keys(mapObj)) {
+        if (normalizeStoreLookupKey(key) === target) return key;
+    }
+    return exact;
+}
+
+function getStoreAddressEntry(storeName) {
+    const map = loadStoreAddresses();
+    const key = resolveStoreAddressKey(storeName, map);
+    return map[key] || null;
+}
+
+function setStoreAddressEntry(storeName, data) {
+    const map = loadStoreAddresses();
+    const key = resolveStoreAddressKey(storeName, map) || normalizeStoreDisplayName(storeName);
+    const address = String(data?.address || '').trim();
+    if (!address) {
+        delete map[key];
+        saveStoreAddresses(map);
+        return null;
+    }
+    map[key] = {
+        ...(map[key] || {}),
+        address,
+        lat: data?.lat ?? map[key]?.lat,
+        lng: data?.lng ?? map[key]?.lng,
+        geocodedAt: data?.geocodedAt ?? map[key]?.geocodedAt,
+    };
+    saveStoreAddresses(map);
+    return map[key];
+}
+
+function getStoreCoordinates(storeName) {
+    const entry = getStoreAddressEntry(storeName);
+    const lat = parseFloat(entry?.lat);
+    const lng = parseFloat(entry?.lng);
+    if (!entry || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    return { lat, lng };
+}
+
+function haversineDistanceKm(lat1, lng1, lat2, lng2) {
+    const toRad = (deg) => (deg * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a = Math.sin(dLat / 2) ** 2
+        + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDistanceKm(km) {
+    if (km == null || !Number.isFinite(km)) return '';
+    if (km < 1) return `${Math.round(km * 1000)} m`;
+    if (km < 10) return `${km.toFixed(1)} km`;
+    return `${Math.round(km)} km`;
+}
+
+function getStoreDistanceKm(fromStore, toStore) {
+    const a = getStoreCoordinates(fromStore);
+    const b = getStoreCoordinates(toStore);
+    if (!a || !b) return null;
+    return haversineDistanceKm(a.lat, a.lng, b.lat, b.lng);
+}
+
+function getStoreDistanceLabel(fromStore, toStore) {
+    return formatDistanceKm(getStoreDistanceKm(fromStore, toStore));
+}
+
+function geocodeAddressQuery(query) {
+    return new Promise((resolve) => {
+        const q = String(query || '').trim();
+        if (!q) {
+            resolve(null);
+            return;
+        }
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(`${q}, Greece`)}`,
+            headers: {
+                Accept: 'application/json',
+                'User-Agent': 'MyManagerPhoneCatalog/1.0 (store proximity)',
+            },
+            onload(response) {
+                try {
+                    const data = JSON.parse(response.responseText || '[]');
+                    const hit = data?.[0];
+                    if (!hit) {
+                        resolve(null);
+                        return;
+                    }
+                    const lat = parseFloat(hit.lat);
+                    const lng = parseFloat(hit.lon);
+                    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+                        resolve(null);
+                        return;
+                    }
+                    resolve({ lat, lng });
+                } catch (e) {
+                    resolve(null);
+                }
+            },
+            onerror() {
+                resolve(null);
+            },
+        });
+    });
+}
+
+function sleepMs(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function geocodeStoreAddress(storeName, address) {
+    const cleanAddress = String(address || '').trim();
+    if (!cleanAddress) return { ok: false, reason: 'empty' };
+    const coords = await geocodeAddressQuery(cleanAddress);
+    if (!coords) {
+        setStoreAddressEntry(storeName, { address: cleanAddress });
+        return { ok: false, reason: 'not_found' };
+    }
+    setStoreAddressEntry(storeName, {
+        address: cleanAddress,
+        lat: coords.lat,
+        lng: coords.lng,
+        geocodedAt: Date.now(),
+    });
+    return { ok: true, ...coords };
+}
+
+async function geocodeAllStoreAddresses(storeNames, options = {}) {
+    const onProgress = options.onProgress || (() => {});
+    let geocoded = 0;
+    let failed = 0;
+    for (let i = 0; i < storeNames.length; i += 1) {
+        const name = storeNames[i];
+        const entry = getStoreAddressEntry(name);
+        const address = entry?.address?.trim();
+        if (!address) continue;
+        onProgress(i + 1, storeNames.length, name);
+        const result = await geocodeStoreAddress(name, address);
+        if (result.ok) geocoded += 1;
+        else failed += 1;
+        if (i < storeNames.length - 1) await sleepMs(1100);
+    }
+    return { geocoded, failed };
+}
+
 function guessStoreLocality(name) {
     const n = String(name || '').toUpperCase();
     for (const cluster of STORE_LOCALITY_CLUSTERS) {
@@ -1235,8 +1410,15 @@ function getStoreProximityTier(storeName, myStoreName) {
 }
 
 function compareStoresByProximity(aName, bName, myStoreName) {
-    const tierA = getStoreProximityTier(aName, myStoreName);
-    const tierB = getStoreProximityTier(bName, myStoreName);
+    const mine = myStoreName || getCurrentStoreName();
+    const distA = getStoreDistanceKm(mine, aName);
+    const distB = getStoreDistanceKm(mine, bName);
+    if (distA != null && distB != null && distA !== distB) return distA - distB;
+    if (distA != null && distB == null) return -1;
+    if (distA == null && distB != null) return 1;
+
+    const tierA = getStoreProximityTier(aName, mine);
+    const tierB = getStoreProximityTier(bName, mine);
     if (tierA !== tierB) return tierA - tierB;
     if (isDeprecatedStoreName(aName) !== isDeprecatedStoreName(bName)) {
         return isDeprecatedStoreName(aName) ? 1 : -1;
@@ -2887,6 +3069,16 @@ window.getAutoDetectedStoreName = getAutoDetectedStoreName;
 window.getUserStorePick = getUserStorePick;
 window.setUserStorePick = setUserStorePick;
 window.getStorePickerOptions = getStorePickerOptions;
+window.loadStoreAddresses = loadStoreAddresses;
+window.saveStoreAddresses = saveStoreAddresses;
+window.getStoreAddressEntry = getStoreAddressEntry;
+window.setStoreAddressEntry = setStoreAddressEntry;
+window.getStoreCoordinates = getStoreCoordinates;
+window.getStoreDistanceKm = getStoreDistanceKm;
+window.getStoreDistanceLabel = getStoreDistanceLabel;
+window.formatDistanceKm = formatDistanceKm;
+window.geocodeStoreAddress = geocodeStoreAddress;
+window.geocodeAllStoreAddresses = geocodeAllStoreAddresses;
 window.detectAndCacheCurrentStoreName = detectAndCacheCurrentStoreName;
 window.guessStoreRegion = guessStoreRegion;
 window.guessStoreLocality = guessStoreLocality;

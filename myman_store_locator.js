@@ -722,6 +722,7 @@
                 showPurchaseStatus: true,
                 hideStoreInUnits: true,
                 networkCompact: true,
+                showDistance: true,
             }));
 
             const storeCount = storeRows.length;
