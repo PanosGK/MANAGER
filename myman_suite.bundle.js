@@ -26221,116 +26221,193 @@ window.initOrderTracking = initOrderTracking;
         }
 
         .tm-sl-shell.tm-sl-view--network {
-            width: min(1180px, 98vw) !important;
-            max-width: 98vw !important;
-            height: min(94vh, 940px) !important;
-            max-height: 94vh !important;
+            width: min(99vw, 100%) !important;
+            max-width: 99vw !important;
+            height: min(96vh, 980px) !important;
+            max-height: 96vh !important;
+            border-radius: 12px !important;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-header {
-            padding: 10px 14px 8px;
+            padding: 8px 12px 6px;
             background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 8%, transparent), transparent 70%);
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-title { font-size: 1.05rem; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-subtitle { font-size: 11px; margin-top: 2px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-view-tabs { margin-top: 8px; padding: 3px; border-radius: 10px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-view-tab { font-size: 11px; padding: 7px 10px; border-radius: 7px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-toolbar { padding: 8px 14px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-body { padding: 8px 12px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-search { height: 36px; font-size: 13px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-chips { gap: 4px; margin-top: 8px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-chip { padding: 5px 10px; font-size: 11px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-title { font-size: 1rem; margin: 0; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-subtitle { font-size: 11px; margin: 2px 0 0; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-breadcrumb { margin-bottom: 4px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-view-tabs { margin-top: 6px; padding: 3px; border-radius: 8px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-view-tab { font-size: 11px; padding: 6px 10px; border-radius: 6px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-toolbar {
+            padding: 6px 10px; border-bottom: 1px solid var(--tm-shop-item-border);
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-body {
+            padding: 0; overflow: hidden; display: flex; flex-direction: column; min-height: 0;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-body .tm-sl-network-board {
+            flex: 1; min-height: 0;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-search { height: 34px; font-size: 13px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-chips { gap: 4px; margin-top: 0; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-chip { padding: 4px 9px; font-size: 11px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-model-grid {
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 6px; padding: 8px 10px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-model-card { padding: 10px 11px; border-radius: 10px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-model-name { font-size: 13px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-list { gap: 5px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-row { border-radius: 8px; border-left-width: 2px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline {
-            display: flex; align-items: center; gap: 10px;
-            padding: 9px 12px;
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-card { padding: 9px 10px; border-radius: 8px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-name { font-size: 12px; margin-bottom: 4px; padding-right: 48px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-empty { padding: 24px 16px; }
+
+        .tm-sl-network-board {
+            display: grid;
+            grid-template-columns: minmax(220px, 30%) minmax(0, 1fr);
+            height: 100%;
+            min-height: 0;
+            background: var(--tm-shop-item-bg);
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-name {
-            flex: 0 1 auto; font-size: 14px; font-weight: 700;
+        .tm-sl-network-stores {
+            display: flex; flex-direction: column; min-height: 0;
+            border-right: 1px solid var(--tm-shop-item-border);
+            background: color-mix(in srgb, var(--tm-shop-item-border) 8%, var(--tm-shop-item-bg));
+            overflow-y: auto;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-icon svg {
-            width: 15px; height: 15px;
+        .tm-sl-network-stores__label {
+            padding: 8px 10px 6px;
+            font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
+            opacity: 0.55; flex-shrink: 0;
+            border-bottom: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 50%, transparent);
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-head__meta {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 0; margin-left: 0; flex-shrink: 0;
+        .tm-sl-network-store {
+            display: flex; flex-direction: column; align-items: stretch; gap: 3px;
+            width: 100%; text-align: left;
+            padding: 9px 10px;
+            border: none; border-bottom: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 45%, transparent);
+            border-left: 3px solid transparent;
+            background: transparent;
+            color: var(--tm-shop-item-text);
+            cursor: pointer;
+            transition: background 0.12s, border-color 0.12s;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-head--inline .tm-sl-store-chevron {
-            margin-left: auto;
+        .tm-sl-network-store:hover {
+            background: var(--tm-shop-item-hover-bg);
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-qty {
-            font-size: 11px; padding: 3px 8px;
+        .tm-sl-network-store.is-active {
+            background: var(--tm-shop-item-bg);
+            border-left-color: var(--tm-primary-color);
+            box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tm-primary-color) 12%, transparent);
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-bb-status {
-            font-size: 11px; padding: 3px 8px;
+        .tm-sl-network-store.tm-sl-signal--fragile.is-active { border-left-color: var(--tm-warning-color, #f59e0b); }
+        .tm-sl-network-store.tm-sl-signal--moderate.is-active { border-left-color: var(--tm-info-color, #0ea5e9); }
+        .tm-sl-network-store.tm-sl-signal--strong.is-active { border-left-color: var(--tm-success-color, #22c55e); }
+        .tm-sl-network-store:focus-visible {
+            outline: 2px solid var(--tm-primary-color); outline-offset: -2px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-dist {
-            font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+        .tm-sl-network-store__name {
+            font-size: 13px; font-weight: 700; line-height: 1.25;
+            word-break: break-word;
+        }
+        .tm-sl-network-store__meta {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 5px;
+            font-size: 11px; opacity: 0.85;
+        }
+        .tm-sl-network-store__preview {
+            font-size: 10px; opacity: 0.65; line-height: 1.35;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .tm-sl-network-detail {
+            display: flex; flex-direction: column; min-height: 0; min-width: 0;
+            overflow: hidden;
+        }
+        .tm-sl-network-detail-head {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--tm-shop-item-border);
+            background: color-mix(in srgb, var(--tm-shop-item-border) 6%, var(--tm-shop-item-bg));
+            flex-shrink: 0;
+        }
+        .tm-sl-network-detail-head h3 {
+            margin: 0; font-size: 14px; font-weight: 800; line-height: 1.2;
+        }
+        .tm-sl-network-detail-head__meta {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 11px;
+        }
+        .tm-sl-network-detail-table-wrap {
+            flex: 1; min-height: 0; overflow: auto;
+        }
+        .tm-sl-unit-table {
+            width: 100%; border-collapse: collapse;
+            font-size: 12px;
+        }
+        .tm-sl-unit-table thead {
+            position: sticky; top: 0; z-index: 1;
+            background: color-mix(in srgb, var(--tm-shop-item-border) 14%, var(--tm-shop-item-bg));
+        }
+        .tm-sl-unit-table th {
+            padding: 7px 10px; text-align: left;
+            font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+            opacity: 0.7; white-space: nowrap;
+            border-bottom: 1px solid var(--tm-shop-item-border);
+        }
+        .tm-sl-unit-table td {
+            padding: 7px 10px; vertical-align: middle;
+            border-bottom: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 40%, transparent);
+        }
+        .tm-sl-unit-table tbody tr:hover td {
+            background: var(--tm-shop-item-hover-bg);
+        }
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--blocked td {
+            background: color-mix(in srgb, #dc2626 4%, var(--tm-shop-item-bg));
+        }
+        .tm-sl-unit-table .tm-sl-table-grade {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 30px; padding: 2px 8px; border-radius: 999px;
+            font-size: 10px; font-weight: 800; color: #fff;
+        }
+        .tm-sl-unit-table .tm-sl-table-gb {
+            font-weight: 700; white-space: nowrap;
+        }
+        .tm-sl-unit-table .tm-sl-table-color {
+            display: inline-flex; align-items: center; gap: 5px; max-width: 140px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .tm-sl-unit-table .tm-sl-table-barcode {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 11px; font-weight: 600; white-space: nowrap;
+        }
+        .tm-sl-unit-table .tm-sl-table-price {
+            font-weight: 800; color: var(--tm-success-color, #16a34a); white-space: nowrap;
+        }
+        .tm-sl-unit-table .tm-sl-table-actions {
+            display: flex; gap: 4px; justify-content: flex-end; white-space: nowrap;
+        }
+        .tm-sl-unit-table .tm-sl-table-bb {
+            font-size: 9px; font-weight: 800; padding: 2px 5px; border-radius: 4px;
+            background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 18%, transparent);
+            color: var(--tm-warning-color, #d97706);
+        }
+        .tm-sl-store-dist {
+            font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
             background: color-mix(in srgb, var(--tm-primary-color) 12%, transparent);
             color: var(--tm-primary-color);
             border: 1px solid color-mix(in srgb, var(--tm-primary-color) 24%, transparent);
             white-space: nowrap;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-chevron svg { width: 14px; height: 14px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-summary {
-            gap: 5px; margin: 0 8px; padding: 8px 10px 10px;
+        .tm-sl-store-bb-status {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 2px 7px; border-radius: 999px;
+            font-size: 10px; font-weight: 700;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-summary-line {
-            padding: 6px 10px; border-radius: 8px; font-size: 12px; gap: 6px;
+        .tm-sl-overlay:has(.tm-sl-shell.tm-sl-view--network) {
+            padding: 6px !important;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-grade {
-            min-width: 26px; padding: 2px 7px; font-size: 11px;
+        .tm-sl-skeleton-network {
+            display: grid; grid-template-columns: minmax(220px, 30%) minmax(0, 1fr);
+            height: 100%; min-height: 280px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-gb { padding: 2px 7px; font-size: 11px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-color { font-size: 11px; gap: 5px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-summary-color .tm-sl-color-swatch { width: 11px; height: 11px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-store-row.is-open .tm-sl-store-units {
-            padding: 8px 8px 10px; gap: 6px;
+        .tm-sl-skeleton-network__nav {
+            border-right: 1px solid var(--tm-shop-item-border); padding: 8px;
+            display: flex; flex-direction: column; gap: 6px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px 10px;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border-left-width: 3px;
-        }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__specs {
-            display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
-        }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill {
-            padding: 4px 8px; font-size: 11px;
-        }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill--grade { min-width: 28px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-spec-pill--color .tm-sl-color-swatch {
-            width: 11px; height: 11px;
-        }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-barcode-pill {
-            padding: 4px 8px; font-size: 11px; border-radius: 6px;
-        }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__price {
-            font-size: 14px; font-weight: 800; white-space: nowrap;
-        }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-phone-card__actions {
-            display: flex; align-items: center; gap: 5px; margin-left: auto;
-        }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-phone-card--compact .tm-sl-unit-btn {
-            padding: 4px 8px; font-size: 11px; border-radius: 6px;
-        }
-
-        .tm-sl-phone-card--compact {
-            display: flex;
-            grid-template-columns: unset;
-        }
-        .tm-sl-phone-card--compact .tm-sl-phone-card__body,
-        .tm-sl-phone-card--compact .tm-sl-phone-card__aside { display: contents; }
+        .tm-sl-skeleton-network__nav .tm-sl-skeleton-row { height: 44px; border-radius: 8px; }
+        .tm-sl-skeleton-network__main { padding: 10px 12px; }
 
         .tm-sl-breadcrumb {
             display: flex; align-items: center; gap: 6px;
@@ -27002,6 +27079,15 @@ window.initOrderTracking = initOrderTracking;
         return `<div class="tm-sl-skeleton-grid">${cards}</div>`;
     }
 
+    function buildSkeletonNetworkBoard() {
+        const navRows = Array.from({ length: 8 }, () => '<div class="tm-sl-skeleton-row"></div>').join('');
+        const tableLines = Array.from({ length: 12 }, () => '<div class="tm-sl-skeleton-line"></div>').join('');
+        return `<div class="tm-sl-skeleton-network">
+            <div class="tm-sl-skeleton-network__nav">${navRows}</div>
+            <div class="tm-sl-skeleton-network__main">${tableLines}</div>
+        </div>`;
+    }
+
     function buildSkeletonStores(count = 6) {
         const rows = Array.from({ length: count }, () => '<div class="tm-sl-skeleton-row"></div>').join('');
         return `<div class="tm-sl-skeleton-stores">${rows}</div>`;
@@ -27476,12 +27562,111 @@ window.initOrderTracking = initOrderTracking;
         </section>`;
     }
 
+    function buildNetworkUnitTableRow(v, ctx) {
+        const hexMap = ctx?.colorHexMap || {};
+        const getGradeStyle = ctx?.getGradeStyle || (() => '');
+        const storeName = v.storeName || '';
+        const purchaseAllowed = !ctx?.showPurchaseStatus || !storeName
+            || isStorePurchaseAllowed(storeName, !!v.isBuyback);
+        const rowClass = ctx?.showPurchaseStatus && !purchaseAllowed ? ' tm-sl-unit-row--blocked' : '';
+
+        const gradeCell = v.grade
+            ? `<span class="tm-sl-table-grade" style="${getGradeStyle(v.grade)}">${esc(v.grade)}</span>`
+            : '—';
+        const gbCell = v.gb ? `<span class="tm-sl-table-gb">${esc(v.gb)}</span>` : '—';
+        const colorCell = v.color
+            ? `<span class="tm-sl-table-color">${colorSwatchHTML(v.color, hexMap)}${esc(v.color)}</span>`
+            : '—';
+        const bbCell = v.isBuyback ? '<span class="tm-sl-table-bb">BB</span>' : '';
+        const barcodeCell = `<span class="tm-sl-table-barcode">${esc(v.barcode)}</span>`;
+        const priceCell = v.price ? `<span class="tm-sl-table-price">${esc(v.price)}</span>` : '—';
+        const actionsCell = `<div class="tm-sl-table-actions">
+            <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
+            <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
+        </div>`;
+
+        return `<tr class="tm-sl-unit-row${rowClass}" data-barcode="${esc(v.barcode)}">
+            <td>${gradeCell}</td>
+            <td>${gbCell}</td>
+            <td>${colorCell}</td>
+            <td>${bbCell}</td>
+            <td>${barcodeCell}</td>
+            <td>${priceCell}</td>
+            <td>${actionsCell}</td>
+        </tr>`;
+    }
+
+    function buildNetworkStoreDetail(store, ctx) {
+        const bbBadge = ctx?.showPurchaseStatus ? buildStoreHeadPurchaseBadge(store, true) : '';
+        const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
+        const distLabel = ctx?.showDistance && myStore
+            ? window.getStoreDistanceLabel?.(myStore, store.name)
+            : '';
+        const qtyLabel = store.variants.length === 1 ? '1 τεμ.' : `${store.variants.length} τεμ.`;
+        const rows = store.variants.map((v) => buildNetworkUnitTableRow(v, ctx)).join('');
+
+        return `<div class="tm-sl-network-detail-head">
+            <h3>${esc(store.name)}</h3>
+            <div class="tm-sl-network-detail-head__meta">
+                ${distLabel ? `<span class="tm-sl-store-dist">${esc(distLabel)}</span>` : ''}
+                ${bbBadge}
+                <span>${qtyLabel}</span>
+            </div>
+        </div>
+        <div class="tm-sl-network-detail-table-wrap">
+            <table class="tm-sl-unit-table">
+                <thead>
+                    <tr>
+                        <th>Βαθμ.</th>
+                        <th>GB</th>
+                        <th>Χρώμα</th>
+                        <th></th>
+                        <th>Barcode</th>
+                        <th>Τιμή</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
+    }
+
+    function buildNetworkStoreNavItem(store, idx, ctx, isActive) {
+        const signal = getStoreSignalClass(store.variants.length);
+        const bbBadge = ctx?.showPurchaseStatus ? buildStoreHeadPurchaseBadge(store, true) : '';
+        const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
+        const distLabel = ctx?.showDistance && myStore
+            ? window.getStoreDistanceLabel?.(myStore, store.name)
+            : '';
+        const distChip = distLabel ? `<span class="tm-sl-store-dist">${esc(distLabel)}</span>` : '';
+        const preview = store.variants.slice(0, 4).map((v) => formatVariantLine(v, ctx)).join(' · ');
+
+        return `<button type="button" class="tm-sl-network-store ${signal}${isActive ? ' is-active' : ''}"
+            data-tm-sl-select-store="${idx}" role="tab"
+            aria-selected="${isActive ? 'true' : 'false'}" tabindex="${isActive ? '0' : '-1'}">
+            <span class="tm-sl-network-store__name">${esc(store.name)}</span>
+            <span class="tm-sl-network-store__meta">${distChip}${bbBadge}<span>${store.variants.length} τεμ.</span></span>
+            ${preview ? `<span class="tm-sl-network-store__preview">${esc(preview)}</span>` : ''}
+        </button>`;
+    }
+
     function buildNetworkStoreBoard(modelName, storeRows, ctx) {
         if (!storeRows.length) {
             return buildEmptyState('🔍', 'Δεν βρέθηκε σε άλλα καταστήματα', `Κανένα κατάστημα δικτύου δεν έχει ${esc(modelName)}`);
         }
-        const rowHtml = storeRows.map((store, idx) => buildStoreRowHTML(store, idx, ctx)).join('');
-        return `<div class="tm-sl-store-list">${rowHtml}</div>`;
+        const navHtml = storeRows.map((store, idx) => buildNetworkStoreNavItem(store, idx, ctx, idx === 0)).join('');
+        const panelsHtml = storeRows.map((store, idx) =>
+            `<div class="tm-sl-network-panel" data-tm-sl-store-panel="${idx}">${buildNetworkStoreDetail(store, ctx)}</div>`
+        ).join('');
+
+        return `<div class="tm-sl-network-board">
+            <aside class="tm-sl-network-stores" role="tablist" aria-label="Καταστήματα">
+                <div class="tm-sl-network-stores__label">Καταστήματα · ${storeRows.length}</div>
+                ${navHtml}
+            </aside>
+            <main class="tm-sl-network-detail" id="tm-sl-network-detail" role="tabpanel"></main>
+            <div class="tm-sl-network-panels" hidden aria-hidden="true">${panelsHtml}</div>
+        </div>`;
     }
 
     function buildStoreBoard(modelName, myStore, allRows, ctx) {
@@ -27616,6 +27801,7 @@ window.initOrderTracking = initOrderTracking;
         buildEmptyState,
         buildSkeletonGrid,
         buildSkeletonStores,
+        buildSkeletonNetworkBoard,
         buildPhoneListSection,
         buildUnitRowHTML,
         formatVariantLine,
@@ -32273,7 +32459,57 @@ if (document.body) {
             });
         }
 
+        function wireNetworkStoreBoard() {
+            const board = bodyEl.querySelector('.tm-sl-network-board');
+            if (!board) return false;
+
+            const navItems = [...board.querySelectorAll('[data-tm-sl-select-store]')];
+            const detailEl = board.querySelector('#tm-sl-network-detail');
+            const panelsRoot = board.querySelector('.tm-sl-network-panels');
+
+            const selectStore = (idx) => {
+                navItems.forEach((item) => {
+                    const active = item.dataset.tmSlSelectStore === String(idx);
+                    item.classList.toggle('is-active', active);
+                    item.setAttribute('aria-selected', active ? 'true' : 'false');
+                    item.tabIndex = active ? 0 : -1;
+                });
+                const panel = panelsRoot?.querySelector(`[data-tm-sl-store-panel="${idx}"]`);
+                if (panel && detailEl) {
+                    detailEl.innerHTML = panel.innerHTML;
+                    wireUnitActions();
+                }
+            };
+
+            navItems.forEach((item) => {
+                item.addEventListener('click', () => selectStore(item.dataset.tmSlSelectStore));
+            });
+
+            board.querySelector('.tm-sl-network-stores')?.addEventListener('keydown', (e) => {
+                const current = document.activeElement;
+                const idx = navItems.indexOf(current);
+                if (idx < 0) return;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const next = navItems[Math.min(idx + 1, navItems.length - 1)];
+                    next?.focus();
+                    selectStore(next.dataset.tmSlSelectStore);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const prev = navItems[Math.max(idx - 1, 0)];
+                    prev?.focus();
+                    selectStore(prev.dataset.tmSlSelectStore);
+                }
+            });
+
+            if (navItems.length) selectStore(navItems[0].dataset.tmSlSelectStore);
+            else wireUnitActions();
+            return true;
+        }
+
         function wireStoreBoard() {
+            if (wireNetworkStoreBoard()) return;
+
             bodyEl.querySelectorAll('[data-tm-sl-toggle-store]').forEach((head) => {
                 const toggle = () => {
                     const row = head.closest('.tm-sl-store-row');
@@ -32430,7 +32666,7 @@ if (document.body) {
                 return;
             }
 
-            bodyEl.innerHTML = UI.buildSkeletonStores(5);
+            bodyEl.innerHTML = UI.buildSkeletonNetworkBoard();
             setStatus('Φόρτωση καταστημάτων…');
 
             const modelFilter = (p) => helpers.extractBaseModel(p.model) === selectedModel;
@@ -32440,7 +32676,6 @@ if (document.body) {
             bodyEl.innerHTML = UI.buildNetworkStoreBoard(selectedModel, storeRows, buildUiCtx({
                 showPurchaseStatus: true,
                 hideStoreInUnits: true,
-                networkCompact: true,
                 showDistance: true,
             }));
 
@@ -32458,7 +32693,9 @@ if (document.body) {
         }
 
         async function refreshData() {
-            bodyEl.innerHTML = step === 'stores' ? UI.buildSkeletonStores(6) : UI.buildSkeletonGrid(8);
+            bodyEl.innerHTML = step === 'stores'
+                ? (catalogView === 'network' ? UI.buildSkeletonNetworkBoard() : UI.buildSkeletonStores(6))
+                : UI.buildSkeletonGrid(8);
             try {
                 if (typeof window.fetchPhoneList === 'function') {
                     allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList());

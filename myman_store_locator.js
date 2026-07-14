@@ -554,7 +554,57 @@
             });
         }
 
+        function wireNetworkStoreBoard() {
+            const board = bodyEl.querySelector('.tm-sl-network-board');
+            if (!board) return false;
+
+            const navItems = [...board.querySelectorAll('[data-tm-sl-select-store]')];
+            const detailEl = board.querySelector('#tm-sl-network-detail');
+            const panelsRoot = board.querySelector('.tm-sl-network-panels');
+
+            const selectStore = (idx) => {
+                navItems.forEach((item) => {
+                    const active = item.dataset.tmSlSelectStore === String(idx);
+                    item.classList.toggle('is-active', active);
+                    item.setAttribute('aria-selected', active ? 'true' : 'false');
+                    item.tabIndex = active ? 0 : -1;
+                });
+                const panel = panelsRoot?.querySelector(`[data-tm-sl-store-panel="${idx}"]`);
+                if (panel && detailEl) {
+                    detailEl.innerHTML = panel.innerHTML;
+                    wireUnitActions();
+                }
+            };
+
+            navItems.forEach((item) => {
+                item.addEventListener('click', () => selectStore(item.dataset.tmSlSelectStore));
+            });
+
+            board.querySelector('.tm-sl-network-stores')?.addEventListener('keydown', (e) => {
+                const current = document.activeElement;
+                const idx = navItems.indexOf(current);
+                if (idx < 0) return;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const next = navItems[Math.min(idx + 1, navItems.length - 1)];
+                    next?.focus();
+                    selectStore(next.dataset.tmSlSelectStore);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const prev = navItems[Math.max(idx - 1, 0)];
+                    prev?.focus();
+                    selectStore(prev.dataset.tmSlSelectStore);
+                }
+            });
+
+            if (navItems.length) selectStore(navItems[0].dataset.tmSlSelectStore);
+            else wireUnitActions();
+            return true;
+        }
+
         function wireStoreBoard() {
+            if (wireNetworkStoreBoard()) return;
+
             bodyEl.querySelectorAll('[data-tm-sl-toggle-store]').forEach((head) => {
                 const toggle = () => {
                     const row = head.closest('.tm-sl-store-row');
@@ -711,7 +761,7 @@
                 return;
             }
 
-            bodyEl.innerHTML = UI.buildSkeletonStores(5);
+            bodyEl.innerHTML = UI.buildSkeletonNetworkBoard();
             setStatus('Φόρτωση καταστημάτων…');
 
             const modelFilter = (p) => helpers.extractBaseModel(p.model) === selectedModel;
@@ -721,7 +771,6 @@
             bodyEl.innerHTML = UI.buildNetworkStoreBoard(selectedModel, storeRows, buildUiCtx({
                 showPurchaseStatus: true,
                 hideStoreInUnits: true,
-                networkCompact: true,
                 showDistance: true,
             }));
 
@@ -739,7 +788,9 @@
         }
 
         async function refreshData() {
-            bodyEl.innerHTML = step === 'stores' ? UI.buildSkeletonStores(6) : UI.buildSkeletonGrid(8);
+            bodyEl.innerHTML = step === 'stores'
+                ? (catalogView === 'network' ? UI.buildSkeletonNetworkBoard() : UI.buildSkeletonStores(6))
+                : UI.buildSkeletonGrid(8);
             try {
                 if (typeof window.fetchPhoneList === 'function') {
                     allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList());
