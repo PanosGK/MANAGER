@@ -4341,6 +4341,20 @@
                 max-width: 600px; /* Limit width for better layout */
                 margin: 0 auto; /* Center the grid */
             }
+            .tm-shop-consumable-group {
+                grid-column: 1 / -1;
+                font-weight: 700;
+                font-size: 13px;
+                color: var(--tm-primary-color, #343a40);
+                margin: 10px 0 2px;
+                padding-top: 10px;
+                border-top: 1px solid var(--tm-shop-item-border, #dee2e6);
+            }
+            .tm-shop-grid > .tm-shop-consumable-group:first-child {
+                border-top: none;
+                margin-top: 0;
+                padding-top: 0;
+            }
             @media (max-width: 768px) {
                 .tm-shop-grid {
                     grid-template-columns: repeat(2, 1fr); /* 2 columns on small screens */

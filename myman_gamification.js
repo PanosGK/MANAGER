@@ -10,12 +10,72 @@ const SHOP_ITEMS = {
     // Add other item IDs here for easy reference
 };
 
-const MASCOT_CONSUMABLE_DESC_PATTERN = /\b(hunger|happiness)\b|both stats|max stats|max hunger|max happiness/i;
+const CONSUMABLE_GROUP_LABELS = {
+    utility: '🛠️ Tools & Tokens',
+    boosts: '⚡ Work Boosts',
+    mascot: '🐾 Mascot Care',
+    fun: '🎉 Celebrations',
+};
+
+/** @type {Array<{id:string,name:string,icon:string,cost:number,type:'consumable'|'feature',group:string,desc:string,effect?:object,mascotOnly?:boolean}>} */
+const SHOP_CONSUMABLE_CATALOG = [
+    // ── Tools & Tokens ──
+    { id: 'eod_checklist', name: 'End of Day Checklist', icon: '🌙', cost: 800, type: 'feature', group: 'utility',
+      desc: 'Adds a footer checklist for repairs you visited today.' },
+    { id: 'reroll_token', name: 'Bounty Reroll', icon: '🔄', cost: 100, type: 'consumable', group: 'utility',
+      desc: 'Reroll your daily bounty quest.', effect: { token: 'reroll' } },
+    { id: SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, name: 'Bounty Skip', icon: '🎯', cost: 300, type: 'consumable', group: 'utility',
+      desc: 'Instantly complete today\'s bounty.', effect: { token: 'bounty' } },
+
+    // ── Work Boosts (instant use, scales by tier) ──
+    { id: 'coffee', name: 'Coffee', icon: '☕', cost: 40, type: 'consumable', group: 'boosts',
+      desc: 'Quick focus — 5 min energized buff.', effect: { energyMs: 5 * 60 * 1000 } },
+    { id: 'energy_drink', name: 'Energy Drink', icon: '⚡', cost: 100, type: 'consumable', group: 'boosts',
+      desc: 'Stay sharp — 15 min energized buff.', effect: { energyMs: 15 * 60 * 1000 } },
+    { id: 'coin_rush', name: 'Coin Rush', icon: '💰', cost: 150, type: 'consumable', group: 'boosts',
+      desc: 'Earn double Fixer-Coins for 10 minutes.', effect: { coinsMs: 10 * 60 * 1000 } },
+    { id: 'xp_scroll', name: 'XP Scroll', icon: '📜', cost: 120, type: 'consumable', group: 'boosts',
+      desc: 'Instant +150 XP.', effect: { xp: 150, visual: 'sparkles' } },
+    { id: 'power_shift', name: 'Power Shift', icon: '🎯', cost: 280, type: 'consumable', group: 'boosts',
+      desc: '25 min energized buff + 100 XP.', effect: { energyMs: 25 * 60 * 1000, xp: 100 } },
+    { id: 'all_in', name: 'All-In Shift', icon: '🚀', cost: 450, type: 'consumable', group: 'boosts',
+      desc: '30 min energy, 15 min double coins, +300 XP.', effect: { energyMs: 30 * 60 * 1000, coinsMs: 15 * 60 * 1000, xp: 300, visual: 'mega' } },
+
+    // ── Mascot Care (hidden when mascot is off) ──
+    { id: 'treat', name: 'Treat', icon: '🍪', cost: 30, type: 'consumable', group: 'mascot', mascotOnly: true,
+      desc: 'Snack — +35 happiness.', effect: { happiness: 35, mascotState: 'happy', mascotMs: 2000 } },
+    { id: 'meal', name: 'Meal', icon: '🍱', cost: 30, type: 'consumable', group: 'mascot', mascotOnly: true,
+      desc: 'Full plate — +40 satiety.', effect: { satiety: 40, mascotState: 'eating', mascotMs: 2000 } },
+    { id: 'feast', name: 'Feast', icon: '🍜', cost: 85, type: 'consumable', group: 'mascot', mascotOnly: true,
+      desc: 'Big meal — +50 happiness & satiety.', effect: { happiness: 50, satiety: 50, mascotState: 'eating', mascotMs: 3000 } },
+    { id: 'spa_day', name: 'Spa Day', icon: '💆', cost: 130, type: 'consumable', group: 'mascot', mascotOnly: true,
+      desc: 'Max both stats + sparkles.', effect: { maxStats: true, visual: 'sparkles', mascotState: 'happy', mascotMs: 4000 } },
+
+    // ── Celebrations (pure fun, each with a unique visual) ──
+    { id: 'confetti_pop', name: 'Confetti Pop', icon: '🎉', cost: 20, type: 'consumable', group: 'fun',
+      desc: 'Quick confetti burst.', effect: { visual: 'confetti' } },
+    { id: 'star_shower', name: 'Star Shower', icon: '🌟', cost: 70, type: 'consumable', group: 'fun',
+      desc: 'Golden stars rain down.', effect: { visual: 'stars' } },
+    { id: 'snow_globe', name: 'Snow Globe', icon: '❄️', cost: 80, type: 'consumable', group: 'fun',
+      desc: 'Gentle snowfall across the screen.', effect: { visual: 'snow' } },
+    { id: 'bubble_blast', name: 'Bubble Blast', icon: '🫧', cost: 80, type: 'consumable', group: 'fun',
+      desc: 'Bubbles float up from the bottom.', effect: { visual: 'bubbles' } },
+    { id: 'heart_burst', name: 'Heart Burst', icon: '💕', cost: 90, type: 'consumable', group: 'fun',
+      desc: 'Hearts everywhere.', effect: { visual: 'hearts' } },
+    { id: 'rainbow_trail', name: 'Rainbow Trail', icon: '🌈', cost: 100, type: 'consumable', group: 'fun',
+      desc: 'Rainbow particles across the screen.', effect: { visual: 'rainbow' } },
+    { id: 'fireworks', name: 'Fireworks', icon: '🎆', cost: 110, type: 'consumable', group: 'fun',
+      desc: 'Fireworks show (+ mascot cheer if enabled).', effect: { visual: 'fireworks', mascotState: 'happy', mascotMs: 3000 } },
+    { id: 'party_mode', name: 'Party Mode', icon: '🪩', cost: 160, type: 'consumable', group: 'fun',
+      desc: 'Full disco party (+ mascot cheer if enabled).', effect: { visual: 'disco', mascotState: 'happy', mascotMs: 5000 } },
+];
+
+function getConsumableCatalogItem(itemId) {
+    return SHOP_CONSUMABLE_CATALOG.find(item => item.id === itemId);
+}
 
 function isMascotShopConsumable(item) {
-    if (item.mascotOnly) return true;
-    const desc = item.desc || '';
-    return MASCOT_CONSUMABLE_DESC_PATTERN.test(desc);
+    return item.mascotOnly === true || item.group === 'mascot';
 }
 
 function isInteractiveMascotShopEnabled(config) {
@@ -59,53 +119,144 @@ function getShopAccessoryItems() {
 }
 
 function getShopConsumableItems(config) {
-    const items = [
-        { id: 'eod_checklist', name: 'End of Day Checklist', icon: '🌙', cost: 800, type: 'feature',
-          desc: 'Adds a 📋 button to the footer. Shows all repairs you visited today so you can review and check them off before leaving.' },
-        { id: 'reroll_token', name: 'Bounty Reroll Token', icon: '🔄', cost: 100, type: 'consumable', desc: 'Reroll daily bounty' },
-        { id: SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, name: 'Bounty Completion Token', icon: '🎯', cost: 300, type: 'consumable', desc: 'Instantly complete bounty' },
-        { id: 'confetti_bomb', name: 'Confetti Bomb', icon: '🎉', cost: 25, type: 'consumable', desc: 'Party celebration!' },
-        { id: 'happiness_snack', name: 'Happiness Snack', icon: '💖', cost: 50, type: 'consumable', desc: 'Max happiness' },
-        { id: 'hunger_meal', name: 'Hunger Meal', icon: '🍱', cost: 50, type: 'consumable', desc: 'Max hunger' },
-        { id: 'super_meal', name: 'Super Meal', icon: '🍜', cost: 100, type: 'consumable', desc: 'Max hunger + happiness' },
-        { id: 'pizza_slice', name: 'Pizza Slice', icon: '🍕', cost: 60, type: 'consumable', desc: '+35 hunger, +15 happiness' },
-        { id: 'ice_cream', name: 'Ice Cream', icon: '🍦', cost: 40, type: 'consumable', desc: '+15 hunger, +30 happiness' },
-        { id: 'donut', name: 'Donut', icon: '🍩', cost: 35, type: 'consumable', desc: '+15 hunger, +25 happiness' },
-        { id: 'cookie', name: 'Cookie', icon: '🍪', cost: 25, type: 'consumable', desc: '+10 hunger, +15 happiness' },
-        { id: 'chocolate_bar', name: 'Chocolate Bar', icon: '🍫', cost: 45, type: 'consumable', desc: '+5 hunger, +40 happiness' },
-        { id: 'sushi_platter', name: 'Sushi Platter', icon: '🍣', cost: 120, type: 'consumable', desc: '+60 hunger, +40 happiness' },
-        { id: 'energized_drink', name: 'Energized Drink', icon: '⚡️', cost: 150, type: 'consumable', desc: '15 min energized buff' },
-        { id: 'coffee', name: 'Coffee', icon: '☕', cost: 50, type: 'consumable', desc: '5 min energized buff' },
-        { id: 'smoothie', name: 'Smoothie', icon: '🥤', cost: 75, type: 'consumable', desc: '+20 hunger, +30 happiness' },
-        { id: 'health_potion', name: 'Health Potion', icon: '🧪', cost: 100, type: 'consumable', desc: '+50 to both stats' },
-        { id: 'mana_potion', name: 'Mana Potion', icon: '🔮', cost: 120, type: 'consumable', desc: '+30 stats + 100 XP' },
-        { id: 'speed_potion', name: 'Speed Potion', icon: '💨', cost: 130, type: 'consumable', desc: '8 min energized buff' },
-        { id: 'lucky_potion', name: 'Lucky Potion', icon: '🍀', cost: 180, type: 'consumable', desc: '5 min double coins' },
-        { id: 'rainbow_juice', name: 'Rainbow Juice', icon: '🌈', cost: 200, type: 'consumable', desc: 'Max stats + confetti' },
-        { id: 'golden_elixir', name: 'Golden Elixir', icon: '✨', cost: 250, type: 'consumable', desc: 'Max stats + 20 min buff' },
-        { id: 'double_coins_voucher', name: 'Double Coins Voucher', icon: '💰', cost: 200, type: 'consumable', desc: '10 min double coins' },
-        { id: 'xp_boost_small', name: 'Small XP Boost', icon: '📈', cost: 150, type: 'consumable', desc: 'Instant +100 XP' },
-        { id: 'xp_boost_medium', name: 'Medium XP Boost', icon: '📊', cost: 250, type: 'consumable', desc: 'Instant +250 XP' },
-        { id: 'xp_boost_large', name: 'Large XP Boost', icon: '💹', cost: 400, type: 'consumable', desc: 'Instant +500 XP' },
-        { id: 'coin_magnet', name: 'Coin Magnet', icon: '🧲', cost: 180, type: 'consumable', desc: '7 min double coins' },
-        { id: 'fireworks', name: 'Fireworks', icon: '🎆', cost: 100, type: 'consumable', desc: 'Huge celebration!', mascotOnly: true },
-        { id: 'sparkles', name: 'Sparkles', icon: '✨', cost: 80, type: 'consumable', desc: 'Sparkly effect' },
-        { id: 'rainbow_trail', name: 'Rainbow Trail', icon: '🌈', cost: 150, type: 'consumable', desc: 'Rainbow + 50 happiness' },
-        { id: 'snow_globe', name: 'Snow Globe', icon: '❄️', cost: 120, type: 'consumable', desc: 'Snow celebration' },
-        { id: 'bubble_blast', name: 'Bubble Blast', icon: '🫧', cost: 90, type: 'consumable', desc: 'Bubble party' },
-        { id: 'star_shower', name: 'Star Shower', icon: '🌟', cost: 130, type: 'consumable', desc: 'Starry effect' },
-        { id: 'heart_explosion', name: 'Heart Explosion', icon: '💕', cost: 110, type: 'consumable', desc: 'Hearts + 80 happiness' },
-        { id: 'disco_ball', name: 'Disco Ball', icon: '🪩', cost: 200, type: 'consumable', desc: 'Ultimate party!', mascotOnly: true },
-        { id: 'time_warp', name: 'Time Warp', icon: '⏰', cost: 300, type: 'consumable', desc: '30 min buff + 200 XP' },
-        { id: 'shield_buff', name: 'Shield Buff', icon: '🛡️', cost: 250, type: 'consumable', desc: 'Max stats + 15 min buff' },
-        { id: 'magnet_buff', name: 'Magnet Buff', icon: '🧲', cost: 220, type: 'consumable', desc: '15 min double coins' },
-        { id: 'focus_boost', name: 'Focus Boost', icon: '🎯', cost: 280, type: 'consumable', desc: '25 min buff + 150 XP' },
-        { id: 'inspiration_spark', name: 'Inspiration Spark', icon: '💡', cost: 320, type: 'consumable', desc: '300 XP + sparkles' },
-        { id: 'turbo_mode', name: 'Turbo Mode', icon: '🚀', cost: 400, type: 'consumable', desc: '20 min double buff' },
-        { id: 'mega_boost', name: 'Mega Boost', icon: '⚡', cost: 500, type: 'consumable', desc: '30 min full buff + 500 XP' },
-    ];
+    const items = SHOP_CONSUMABLE_CATALOG.map(({ effect, mascotOnly, ...shopItem }) => shopItem);
     if (isInteractiveMascotShopEnabled(config)) return items;
     return items.filter(item => !isMascotShopConsumable(item));
+}
+
+function triggerConsumableVisual(visual) {
+    const visuals = Array.isArray(visual) ? visual : [visual];
+    visuals.forEach((key) => {
+        switch (key) {
+            case 'confetti':
+                window.triggerConfetti?.(180);
+                break;
+            case 'stars':
+                window.triggerStarShower?.(100);
+                break;
+            case 'hearts':
+                window.triggerHeartExplosion?.(90);
+                break;
+            case 'fireworks':
+                triggerFireworks(true, 2800);
+                break;
+            case 'disco':
+                window.triggerDiscoBall?.();
+                break;
+            case 'sparkles':
+                window.triggerSparkles?.(70);
+                break;
+            case 'rainbow':
+                window.triggerRainbowTrail?.(200);
+                break;
+            case 'snow':
+                window.triggerSnowFall?.(120);
+                break;
+            case 'bubbles':
+                window.triggerBubbleBlast?.(90);
+                break;
+            case 'mega':
+                window.triggerConfetti?.(150);
+                window.triggerStarShower?.(50);
+                break;
+            default:
+                break;
+        }
+    });
+}
+
+function executeConsumableEffect(effect, item, config, STORAGE_KEYS) {
+    if (!effect) return;
+
+    if (effect.energyMs && typeof window.triggerEnergizedState === 'function') {
+        window.triggerEnergizedState(config, STORAGE_KEYS, effect.energyMs);
+    }
+    if (effect.coinsMs && typeof window.triggerDoubleCoinsEffect === 'function') {
+        window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, effect.coinsMs);
+    }
+    if (effect.xp && typeof window.grantXp === 'function') {
+        window.grantXp(config, STORAGE_KEYS, effect.xp, item?.name || 'Consumable');
+    }
+
+    let happiness = effect.happiness || 0;
+    let satiety = effect.satiety || 0;
+    if (effect.maxStats) {
+        happiness = 100;
+        satiety = 100;
+    }
+    if ((happiness || satiety) && typeof window.updatePetStats === 'function') {
+        window.updatePetStats(config, STORAGE_KEYS, happiness, satiety);
+    }
+
+    if (effect.mascotState && typeof window.setMascotState === 'function' && isInteractiveMascotShopEnabled(config)) {
+        window.setMascotState(config, effect.mascotState, effect.mascotMs || 2000);
+    }
+
+    if (effect.visual) {
+        triggerConsumableVisual(effect.visual);
+    }
+}
+
+function applyConsumableEffect(itemId, config, STORAGE_KEYS) {
+    const item = getConsumableCatalogItem(itemId);
+    if (!item?.effect) {
+        console.warn('[MMS Shop] Unknown consumable effect:', itemId);
+        return;
+    }
+    executeConsumableEffect(item.effect, item, config, STORAGE_KEYS);
+}
+window.applyConsumableEffect = applyConsumableEffect;
+
+function createShopItemElement(item, config, STORAGE_KEYS, purchasedItems, equippedItems, currentCoins) {
+    const isOwned = purchasedItems.includes(item.id);
+    const isEquipped = (item.type === 'accessory' && equippedItems.includes(item.id))
+        || (item.type === 'theme' && config && config.equippedTheme === item.id)
+        || (item.type === 'feature' && isOwned);
+
+    const itemDiv = document.createElement('div');
+    itemDiv.className = `tm-shop-item ${isOwned || (config && config.debugEnabled && item.type !== 'consumable') ? 'owned' : ''}`;
+    itemDiv.innerHTML = `
+        <div class="tm-shop-item-icon">${item.icon}</div>
+        <div class="tm-shop-item-name">${item.name}</div>
+        ${item.desc ? `<div class="tm-shop-item-desc">${item.desc}</div>` : ''}
+        <div class="tm-shop-item-cost">${(isOwned && item.type !== 'consumable') ? 'Owned' : formatShopCostHTML(item.cost, STORAGE_KEYS, config)}</div>
+        <button class="tm-shop-item-btn" data-item-id="${item.id}" data-item-cost="${item.cost}" data-item-type="${item.type}"></button>
+    `;
+
+    const button = itemDiv.querySelector('.tm-shop-item-btn');
+    if (isOwned || (config && config.debugEnabled && item.type !== 'consumable')) {
+        button.textContent = isEquipped
+            ? (item.type === 'accessory' ? 'Unequip' : item.type === 'feature' ? '✓ Ενεργό' : 'Equipped')
+            : 'Equip';
+        button.className += isEquipped ? ' equipped' : ' equip';
+        if (isEquipped && item.type !== 'accessory') {
+            button.disabled = true;
+        }
+    } else {
+        button.textContent = (config && config.debugEnabled) ? 'Get (Free)' : 'Buy';
+        button.className += ' buy';
+        const { final: effectiveCost } = getDiscountedShopCost(item.cost, STORAGE_KEYS, config);
+        if (!(config && config.debugEnabled) && currentCoins < effectiveCost) button.disabled = true;
+    }
+
+    return itemDiv;
+}
+
+function appendConsumableGroupSections(shopGrid, items, config, STORAGE_KEYS, purchasedItems, equippedItems, currentCoins) {
+    const groups = [...new Set(items.map(item => item.group).filter(Boolean))];
+    groups.forEach((group) => {
+        const groupItems = items.filter(item => item.group === group);
+        if (!groupItems.length) return;
+
+        const header = document.createElement('div');
+        header.className = 'tm-shop-consumable-group';
+        header.textContent = CONSUMABLE_GROUP_LABELS[group] || group;
+        shopGrid.appendChild(header);
+
+        groupItems.forEach((item) => {
+            shopGrid.appendChild(createShopItemElement(item, config, STORAGE_KEYS, purchasedItems, equippedItems, currentCoins));
+        });
+    });
 }
 
 const XP_CONFIG = {
@@ -2701,342 +2852,17 @@ function populateShop(config, STORAGE_KEYS) {
         const shopGrid = document.createElement('div');
         shopGrid.className = 'tm-shop-grid'; // Use a class instead of a duplicate ID
 
-        categories[category].forEach(item => {
-            const isOwned = purchasedItems.includes(item.id);
-            const isEquipped = (item.type === 'accessory' && equippedItems.includes(item.id))
-                || (item.type === 'theme' && config && config.equippedTheme === item.id)
-                || (item.type === 'feature' && isOwned);
-
-            const itemDiv = document.createElement('div');
-            itemDiv.className = `tm-shop-item ${isOwned || (config && config.debugEnabled && item.type !== 'consumable') ? 'owned' : ''}`;
-            itemDiv.innerHTML = `
-                <div class="tm-shop-item-icon">${item.icon}</div>
-                <div class="tm-shop-item-name">${item.name}</div>
-                ${item.desc ? `<div class="tm-shop-item-desc">${item.desc}</div>` : ''}
-                <div class="tm-shop-item-cost">${(isOwned && item.type !== 'consumable') ? 'Owned' : formatShopCostHTML(item.cost, STORAGE_KEYS, config)}</div>
-                <button class="tm-shop-item-btn" data-item-id="${item.id}" data-item-cost="${item.cost}" data-item-type="${item.type}"></button>
-            `;
-
-            const button = itemDiv.querySelector('.tm-shop-item-btn');
-            if (isOwned || (config && config.debugEnabled && item.type !== 'consumable')) {
-                button.textContent = isEquipped
-                    ? (item.type === 'accessory' ? 'Unequip' : item.type === 'feature' ? '✓ Ενεργό' : 'Equipped')
-                    : 'Equip';
-                button.className += isEquipped ? ' equipped' : ' equip';
-                // For accessories, the button is never disabled if owned, as it toggles equip/unequip.
-                if (isEquipped && item.type !== 'accessory') {
-                    button.disabled = true;
-                }
-            } else {
-                button.textContent = (config && config.debugEnabled) ? 'Get (Free)' : 'Buy';
-                button.className += ' buy';
-                const { final: effectiveCost } = getDiscountedShopCost(item.cost, STORAGE_KEYS, config);
-                if (!(config && config.debugEnabled) && currentCoins < effectiveCost) button.disabled = true;
-            }
-            shopGrid.appendChild(itemDiv);
-        });
+        if (category === 'consumables') {
+            appendConsumableGroupSections(shopGrid, categories.consumables, config, STORAGE_KEYS, purchasedItems, equippedItems, currentCoins);
+        } else {
+            categories[category].forEach(item => {
+                shopGrid.appendChild(createShopItemElement(item, config, STORAGE_KEYS, purchasedItems, equippedItems, currentCoins));
+            });
+        }
         categoryContent.appendChild(shopGrid);
         itemsWrapper.appendChild(categoryContent);
     }
 }
-
-function applyConsumableEffect(itemId, config, STORAGE_KEYS) {
-    switch (itemId) {
-        // === DRINKS & ENERGY ===
-        case 'energized_drink':
-            if (typeof window.triggerEnergizedState === 'function') {
-                window.triggerEnergizedState(config, STORAGE_KEYS, 15 * 60 * 1000);
-            }
-            break;
-        case 'coffee':
-            if (typeof window.triggerEnergizedState === 'function') {
-                window.triggerEnergizedState(config, STORAGE_KEYS, 5 * 60 * 1000);
-            }
-            break;
-        case 'smoothie':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 30, 20);
-            }
-            if (typeof window.setMascotState === 'function') {
-                window.setMascotState(config, 'happy', 2000);
-            }
-            break;
-        case 'health_potion':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 50, 50);
-            }
-            if (typeof window.triggerSparkles === 'function') {
-                window.triggerSparkles(40);
-            }
-            break;
-        case 'mana_potion':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 30, 30);
-            }
-            if (typeof window.grantXp === 'function') {
-                window.grantXp(config, STORAGE_KEYS, 100, 'Mana Potion');
-            }
-            if (typeof window.triggerSparkles === 'function') {
-                window.triggerSparkles(60);
-            }
-            break;
-        case 'speed_potion':
-            if (typeof window.triggerEnergizedState === 'function') {
-                window.triggerEnergizedState(config, STORAGE_KEYS, 8 * 60 * 1000);
-            }
-            break;
-        case 'lucky_potion':
-            if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 5 * 60 * 1000);
-            }
-            break;
-        case 'rainbow_juice':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 100, 100);
-            }
-            if (typeof window.triggerConfetti === 'function') {
-                window.triggerConfetti(150);
-            }
-            break;
-        case 'golden_elixir':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 100, 100);
-            }
-            if (typeof window.triggerEnergizedState === 'function') {
-                window.triggerEnergizedState(config, STORAGE_KEYS, 20 * 60 * 1000);
-            }
-            if (typeof window.triggerStarShower === 'function') {
-                window.triggerStarShower(80);
-            }
-            break;
-
-        // === FOOD & SNACKS ===
-        case 'happiness_snack':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 100, 0);
-            }
-            if (typeof window.setMascotState === 'function') {
-                window.setMascotState(config, 'happy', 3000);
-            }
-            break;
-        case 'hunger_meal':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 0, 100);
-            }
-            if (typeof window.setMascotState === 'function') {
-                window.setMascotState(config, 'eating', 2000);
-            }
-            break;
-        case 'super_meal':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 50, 100);
-            }
-            if (typeof window.setMascotState === 'function') {
-                window.setMascotState(config, 'eating', 3000);
-            }
-            break;
-        case 'pizza_slice':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 15, 35);
-            }
-            if (typeof window.setMascotState === 'function') {
-                window.setMascotState(config, 'eating', 2000);
-            }
-            break;
-        case 'cookie':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 15, 10);
-            }
-            if (typeof window.setMascotState === 'function') {
-                window.setMascotState(config, 'happy', 1500);
-            }
-            break;
-        case 'donut':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 25, 15);
-            }
-            if (typeof window.setMascotState === 'function') {
-                window.setMascotState(config, 'happy', 2000);
-            }
-            break;
-        case 'ice_cream':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 30, 15);
-            }
-            if (typeof window.setMascotState === 'function') {
-                window.setMascotState(config, 'happy', 2000);
-            }
-            break;
-        case 'chocolate_bar':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 40, 5);
-            }
-            if (typeof window.setMascotState === 'function') {
-                window.setMascotState(config, 'happy', 2500);
-            }
-            break;
-        case 'sushi_platter':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 40, 60);
-            }
-            if (typeof window.setMascotState === 'function') {
-                window.setMascotState(config, 'eating', 3000);
-            }
-            break;
-
-        // === XP & COINS ===
-        case 'double_coins_voucher':
-            if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 10 * 60 * 1000);
-            }
-            break;
-        case 'xp_boost_small':
-            if (typeof window.grantXp === 'function') {
-                window.grantXp(config, STORAGE_KEYS, 100, 'XP Boost Small');
-            }
-            break;
-        case 'xp_boost_medium':
-            if (typeof window.grantXp === 'function') {
-                window.grantXp(config, STORAGE_KEYS, 250, 'XP Boost Medium');
-            }
-            break;
-        case 'xp_boost_large':
-            if (typeof window.grantXp === 'function') {
-                window.grantXp(config, STORAGE_KEYS, 500, 'XP Boost Large');
-            }
-            break;
-        case 'coin_magnet':
-            if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 7 * 60 * 1000);
-            }
-            break;
-
-        // === SPECIAL EFFECTS ===
-        case 'confetti_bomb':
-            if (typeof window.triggerConfetti === 'function') {
-                window.triggerConfetti(200);
-            }
-            break;
-        case 'fireworks':
-            triggerFireworks(true, 2800);
-            if (typeof window.setMascotState === 'function') {
-                window.setMascotState(config, 'happy', 3000);
-            }
-            break;
-        case 'sparkles':
-            if (typeof window.triggerSparkles === 'function') {
-                window.triggerSparkles(70);
-            }
-            break;
-        case 'star_shower':
-            if (typeof window.triggerStarShower === 'function') {
-                window.triggerStarShower(100);
-            }
-            break;
-        case 'rainbow_trail':
-            if (typeof window.triggerRainbowTrail === 'function') {
-                window.triggerRainbowTrail(220);
-            }
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 50, 0);
-            }
-            break;
-        case 'snow_globe':
-            if (typeof window.triggerSnowFall === 'function') {
-                window.triggerSnowFall(140);
-            }
-            break;
-        case 'bubble_blast':
-            if (typeof window.triggerBubbleBlast === 'function') {
-                window.triggerBubbleBlast(100);
-            }
-            break;
-        case 'heart_explosion':
-            if (typeof window.triggerHeartExplosion === 'function') {
-                window.triggerHeartExplosion(90);
-            }
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 80, 0);
-            }
-            break;
-        case 'disco_ball':
-            if (typeof window.triggerDiscoBall === 'function') {
-                window.triggerDiscoBall();
-            }
-            if (typeof window.setMascotState === 'function') {
-                window.setMascotState(config, 'happy', 5000);
-            }
-            break;
-
-        // === POWER-UPS ===
-        case 'time_warp':
-            if (typeof window.triggerEnergizedState === 'function') {
-                window.triggerEnergizedState(config, STORAGE_KEYS, 30 * 60 * 1000);
-            }
-            if (typeof window.grantXp === 'function') {
-                window.grantXp(config, STORAGE_KEYS, 200, 'Time Warp');
-            }
-            break;
-        case 'shield_buff':
-            if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 100, 100);
-            }
-            if (typeof window.triggerEnergizedState === 'function') {
-                window.triggerEnergizedState(config, STORAGE_KEYS, 15 * 60 * 1000);
-            }
-            break;
-        case 'magnet_buff':
-            if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 15 * 60 * 1000);
-            }
-            break;
-        case 'focus_boost':
-            if (typeof window.triggerEnergizedState === 'function') {
-                window.triggerEnergizedState(config, STORAGE_KEYS, 25 * 60 * 1000);
-            }
-            if (typeof window.grantXp === 'function') {
-                window.grantXp(config, STORAGE_KEYS, 150, 'Focus Boost');
-            }
-            break;
-        case 'inspiration_spark':
-            if (typeof window.grantXp === 'function') {
-                window.grantXp(config, STORAGE_KEYS, 300, 'Inspiration Spark');
-            }
-            if (typeof window.triggerSparkles === 'function') {
-                window.triggerSparkles(100);
-            }
-            break;
-        case 'turbo_mode':
-            if (typeof window.triggerEnergizedState === 'function') {
-                window.triggerEnergizedState(config, STORAGE_KEYS, 20 * 60 * 1000);
-            }
-            if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 10 * 60 * 1000);
-            }
-            break;
-        case 'mega_boost':
-            if (typeof window.triggerEnergizedState === 'function') {
-                window.triggerEnergizedState(config, STORAGE_KEYS, 30 * 60 * 1000);
-            }
-            if (typeof window.triggerDoubleCoinsEffect === 'function') {
-                window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 15 * 60 * 1000);
-            }
-            if (typeof window.grantXp === 'function') {
-                window.grantXp(config, STORAGE_KEYS, 500, 'Mega Boost');
-            }
-            if (typeof window.triggerConfetti === 'function') {
-                window.triggerConfetti(200);
-            }
-            if (typeof window.triggerStarShower === 'function') {
-                window.triggerStarShower(60);
-            }
-            break;
-        default:
-            console.warn('[MMS Shop] Unknown consumable effect:', itemId);
-            break;
-    }
-}
-window.applyConsumableEffect = applyConsumableEffect;
 
 function handleShopPurchase(button, config, STORAGE_KEYS) {
     const itemId = button.dataset.itemId;
@@ -5129,35 +4955,41 @@ function populateShopDashboard(config, STORAGE_KEYS) {
         }).join('');
     }
     
-    // Populate consumables (mascot-only items hidden when mascot is disabled)
+    // Populate consumables (grouped sections; mascot items hidden when mascot is off)
     const consumablesContainer = wrapper.querySelector('#tm-shop-category-consumables');
-    consumablesContainer.innerHTML = getShopConsumableItems(config).map(consumable => {
-        const isFeature = consumable.type === 'feature';
-        const isOwned = isFeature && purchasedItems.includes(consumable.id);
-        return `
-            <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
-                <div style="font-size: 48px; margin-bottom: 12px;">${consumable.icon}</div>
-                <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${consumable.name}</div>
-                ${consumable.desc ? `<div style="font-size: 12px; color: var(--tm-secondary-hover); min-height: 36px; margin-bottom: 12px;">${consumable.desc}</div>` : ''}
-                <button class="tm-shop-item-btn ${isOwned ? 'equipped' : 'buy'}" 
-                        data-item-id="${consumable.id}" 
-                        data-item-type="${consumable.type}"
-                        data-item-cost="${consumable.cost}"
-                        style="
-                            width: 100%;
-                            padding: 10px;
-                            border: none;
-                            border-radius: 8px;
-                            font-weight: 600;
-                            cursor: ${isOwned ? 'not-allowed' : 'pointer'};
-                            background: ${isOwned ? '#e2e8f0' : 'linear-gradient(135deg, #ff9800 0%, #ff5722 100%)'};
-                            color: ${isOwned ? '#94a3b8' : 'white'};
-                        "
-                        ${isOwned ? 'disabled' : ''}>
-                    ${isOwned ? '✓ Owned' : `Buy ${consumable.cost} 🪙`}
-                </button>
-            </div>
-        `;
+    const consumableItems = getShopConsumableItems(config);
+    const consumableGroups = [...new Set(consumableItems.map(item => item.group).filter(Boolean))];
+    consumablesContainer.innerHTML = consumableGroups.map((group) => {
+        const groupHeader = `<div class="tm-shop-consumable-group" style="grid-column: 1 / -1; font-weight: 700; font-size: 13px; color: var(--tm-primary-color); margin: 8px 0 4px; padding-top: 8px; border-top: 1px solid var(--tm-shop-item-border);">${CONSUMABLE_GROUP_LABELS[group] || group}</div>`;
+        const groupCards = consumableItems.filter(item => item.group === group).map(consumable => {
+            const isFeature = consumable.type === 'feature';
+            const isOwned = isFeature && purchasedItems.includes(consumable.id);
+            return `
+                <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">${consumable.icon}</div>
+                    <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${consumable.name}</div>
+                    ${consumable.desc ? `<div style="font-size: 12px; color: var(--tm-secondary-hover); min-height: 36px; margin-bottom: 12px;">${consumable.desc}</div>` : ''}
+                    <button class="tm-shop-item-btn ${isOwned ? 'equipped' : 'buy'}" 
+                            data-item-id="${consumable.id}" 
+                            data-item-type="${consumable.type}"
+                            data-item-cost="${consumable.cost}"
+                            style="
+                                width: 100%;
+                                padding: 10px;
+                                border: none;
+                                border-radius: 8px;
+                                font-weight: 600;
+                                cursor: ${isOwned ? 'not-allowed' : 'pointer'};
+                                background: ${isOwned ? '#e2e8f0' : 'linear-gradient(135deg, #ff9800 0%, #ff5722 100%)'};
+                                color: ${isOwned ? '#94a3b8' : 'white'};
+                            "
+                            ${isOwned ? 'disabled' : ''}>
+                        ${isOwned ? '✓ Owned' : `Buy ${consumable.cost} 🪙`}
+                    </button>
+                </div>
+            `;
+        }).join('');
+        return groupHeader + groupCards;
     }).join('');
     
     // Add event listeners for shop buttons
