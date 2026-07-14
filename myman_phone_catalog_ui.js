@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager Phone Catalog UI
 // @namespace    http://tampermonkey.net/
-// @version      3.0
+// @version      4.0
 // @description  Phone catalog layout, styles, and row rendering.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -24,6 +24,8 @@
         export: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
         sort: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="16" y2="6"/><line x1="4" y1="12" x2="12" y2="12"/><line x1="4" y1="18" x2="8" y2="18"/><polyline points="18 15 21 18 24 15"/><line x1="21" y1="18" x2="21" y2="6"/></svg>',
         network: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 22a10 10 0 0 1-10-10"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M12 2v4"/><path d="M12 18v4"/></svg>',
+        settings: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
+        back: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>',
     };
 
     const PHONE_CATALOG_UI_STYLES = `
@@ -587,6 +589,100 @@
             }
             .tm-pc-hero-actions .tm-pc-tool-label { display: none; }
         }
+
+        /* ── Slim workflow: model groups ── */
+        .tm-pc-model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px;
+            padding: 16px;
+        }
+        .tm-pc-model-card {
+            text-align: left;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-shop-item-bg);
+            cursor: pointer;
+            transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+        }
+        .tm-pc-model-card:hover {
+            border-color: var(--tm-primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px color-mix(in srgb, var(--tm-primary-color) 12%, transparent);
+        }
+        .tm-pc-model-card-name {
+            font-size: 14px; font-weight: 800;
+            color: var(--tm-shop-item-text);
+            margin-bottom: 6px; line-height: 1.25;
+        }
+        .tm-pc-model-card-count {
+            font-size: 12px; font-weight: 700;
+            color: var(--tm-primary-color);
+        }
+        .tm-pc-model-card-grades {
+            margin-top: 8px;
+            display: flex; flex-wrap: wrap; gap: 4px;
+        }
+        .tm-pc-model-grade-chip {
+            font-size: 10px; font-weight: 700;
+            padding: 2px 7px; border-radius: 6px;
+            background: color-mix(in srgb, var(--tm-shop-item-border) 22%, transparent);
+            border: 1px solid var(--tm-shop-item-border);
+        }
+        .tm-pc-model-card--bb .tm-pc-model-card-count::after {
+            content: ' · BB';
+            color: var(--tm-warning-color, #ca8a04);
+            font-weight: 700;
+        }
+
+        .tm-pc-store-summary {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 700;
+            padding: 3px 8px; border-radius: 6px; margin-bottom: 4px;
+            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 12%, transparent);
+            border: 1px solid color-mix(in srgb, var(--tm-info-color, #0ea5e9) 28%, transparent);
+            color: var(--tm-info-color, #0369a1);
+            white-space: nowrap;
+        }
+        .tm-pc-store-summary--warn {
+            background: color-mix(in srgb, var(--tm-warning-color, #eab308) 12%, transparent);
+            border-color: color-mix(in srgb, var(--tm-warning-color) 30%, transparent);
+            color: var(--tm-warning-color, #a16207);
+        }
+
+        .tm-pc-row--highlight, .tm-cat-tr.tm-pc-row--highlight {
+            background: color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-shop-item-bg)) !important;
+            box-shadow: inset 3px 0 0 var(--tm-primary-color);
+        }
+
+        .tm-pc-back-btn { display: none; }
+        .tm-pc-back-btn.is-visible { display: inline-flex; }
+
+        .tm-pc-settings-wrap { position: relative; }
+        #tm-phone-settings-menu {
+            position: absolute; top: calc(100% + 6px); right: 0;
+            background: var(--tm-shop-item-bg);
+            border: 1px solid var(--tm-shop-item-border);
+            border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+            padding: 6px; min-width: 200px; display: none; z-index: 30;
+        }
+        #tm-phone-settings-menu button {
+            width: 100%; text-align: left; border: none; background: transparent;
+            color: var(--tm-shop-item-text); padding: 9px 12px; border-radius: 8px;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+        }
+        #tm-phone-settings-menu button:hover {
+            background: color-mix(in srgb, var(--tm-primary-color) 10%, transparent);
+            color: var(--tm-primary-color);
+        }
+
+        .tm-pc-advanced-filters { display: none !important; }
+        .tm-pc-filters--network { display: none; }
+        .tm-pc-filters--network.is-active { display: flex; }
+        .tm-pc-filters--mine.is-hidden { display: none !important; }
     `;
 
     function esc(str) {
@@ -651,6 +747,7 @@
             storesHtml = '',
             storesPending = false,
             noBuybackStore = false,
+            storeSummary = '',
         } = options;
 
         const T = ctx.T;
@@ -690,11 +787,16 @@
             ? `<span class="tm-pc-price tm-cat-price tm-pc-row-price">${esc(item.retailPrice)} €</span>`
             : `<span class="tm-pc-price tm-pc-price--empty">—</span>`;
 
+        const summaryHtml = storeSummary
+            ? `<span class="tm-pc-store-summary ${noBuybackStore ? 'tm-pc-store-summary--warn' : ''}">${esc(storeSummary)}</span>`
+            : '';
+
         const storesCell = variant === 'other' ? `
             <div class="tm-pc-stores tm-pc-row-stores tm-cat-stores tm-other-store-stores" data-product="${esc(item.barcode)}">
+                ${summaryHtml}
                 ${storesPending
         ? '<span class="tm-pc-store-loading tm-cat-store-loading tm-pc-store-loading"><i></i>Φόρτωση…</span>'
-        : (storesHtml || '<span style="opacity:0.35;font-size:11px">—</span>')}
+        : (storesHtml || (storeSummary ? '' : '<span style="opacity:0.35;font-size:11px">—</span>'))}
             </div>` : '';
 
         const actions = `
@@ -734,6 +836,28 @@
 
     const buildPhoneCard = buildPhoneRow;
 
+    function buildModelGroupList(models, options = {}) {
+        const { clickAttr = 'data-tm-pc-model' } = options;
+        if (!models || !models.length) {
+            return buildEmptyState('📱', 'Δεν βρέθηκαν μοντέλα', 'Δοκιμάστε ανανέωση ή άλλη αναζήτηση');
+        }
+        const cards = models.map(([model, data]) => {
+            const grades = data.grades || {};
+            const gradeChips = Object.entries(grades)
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .map(([g, count]) => `<span class="tm-pc-model-grade-chip">${esc(g)}:${count}</span>`)
+                .join('');
+            const bbClass = data.buybackCount > 0 ? ' tm-pc-model-card--bb' : '';
+            const unitLabel = data.count === 1 ? 'συσκευή' : 'συσκευές';
+            return `<button type="button" class="tm-pc-model-card${bbClass}" ${clickAttr}="${esc(model)}">
+                <div class="tm-pc-model-card-name">${esc(model)}</div>
+                <div class="tm-pc-model-card-count">${data.count} ${unitLabel}</div>
+                ${gradeChips ? `<div class="tm-pc-model-card-grades">${gradeChips}</div>` : ''}
+            </button>`;
+        }).join('');
+        return `<div class="tm-pc-model-grid">${cards}</div>`;
+    }
+
     function buildModalHTML(T) {
         return `
         <style>${PHONE_CATALOG_UI_STYLES}</style>
@@ -743,19 +867,22 @@
                     <div class="tm-pc-hero-brand">
                         <div class="tm-pc-hero-icon">${ICON.phone}</div>
                         <div>
-                            <h2 class="tm-pc-hero-title">
-                                ${esc(T['Phone Catalog'])}
-                                <span class="tm-pc-hero-badge">Inventory</span>
-                            </h2>
-                            <p class="tm-pc-hero-sub">Διαχείριση και αναζήτηση διαθέσιμων συσκευών στο δίκτυο καταστημάτων</p>
+                            <h2 class="tm-pc-hero-title">${esc(T['Phone Catalog'])}</h2>
+                            <p class="tm-pc-hero-sub">Απόθεμα καταστήματος &amp; διαθεσιμότητα ανά μοντέλο</p>
                         </div>
                     </div>
                     <div class="tm-pc-hero-actions">
                         <button type="button" id="tm-phone-refresh-btn" class="tm-pc-tool-btn tm-phone-toolbar-btn" title="${esc(T['Refresh (Ctrl+R)'])}">${ICON.refresh}<span class="tm-pc-tool-label">Ανανέωση</span></button>
+                        <div class="tm-pc-settings-wrap">
+                            <button type="button" id="tm-phone-settings-btn" class="tm-pc-tool-btn" title="Ρυθμίσεις">${ICON.settings}</button>
+                            <div id="tm-phone-settings-menu">
+                                <button type="button" id="tm-phone-colors-btn" class="tm-phone-toolbar-btn">${ICON.palette} ${esc(T['Manage Colors'])}</button>
+                                <button type="button" id="tm-phone-tags-btn" class="tm-phone-toolbar-btn">${ICON.tag} ${esc(T['Manage Tags'])}</button>
+                                <button type="button" id="tm-phone-stores-btn" class="tm-phone-toolbar-btn">${ICON.store} ${esc(T['Manage Stores'])}</button>
+                                <button type="button" id="tm-phone-export-btn">${ICON.export} ${esc(T['Export'] || 'Export')}</button>
+                            </div>
+                        </div>
                         <button type="button" id="tm-phone-view-toggle" hidden aria-hidden="true"></button>
-                        <button type="button" id="tm-phone-colors-btn" class="tm-pc-tool-btn tm-phone-toolbar-btn" title="${esc(T['Manage Colors'])}">${ICON.palette}<span class="tm-pc-tool-label">Χρώματα</span></button>
-                        <button type="button" id="tm-phone-tags-btn" class="tm-pc-tool-btn tm-phone-toolbar-btn" title="${esc(T['Manage Tags'])}">${ICON.tag}<span class="tm-pc-tool-label">Ετικέτες</span></button>
-                        <button type="button" id="tm-phone-stores-btn" class="tm-pc-tool-btn tm-phone-toolbar-btn" title="${esc(T['Manage Stores'])}">${ICON.store}<span class="tm-pc-tool-label">Καταστήματα</span></button>
                         <button type="button" id="tm-phone-other-store-toggle" hidden aria-hidden="true"></button>
                         <button type="button" class="tm-modal-close tm-pc-close tm-pc-tool-btn" aria-label="Close">×</button>
                     </div>
@@ -763,58 +890,53 @@
                 <div class="tm-pc-hero-bottom">
                     <nav class="tm-pc-seg tm-cat-tabs" role="tablist">
                         <button type="button" class="tm-pc-seg-btn tm-cat-tab active" id="tm-pc-view-mine" data-view="mine">Το κατάστημά μου</button>
-                        <button type="button" class="tm-pc-seg-btn tm-cat-tab" id="tm-pc-view-other" data-view="other">Άλλα καταστήματα</button>
+                        <button type="button" class="tm-pc-seg-btn tm-cat-tab" id="tm-pc-view-other" data-view="other">Πού υπάρχει το μοντέλο</button>
                     </nav>
                 </div>
             </header>
 
-            <div class="tm-pc-filters tm-cat-controls" data-tm-phone-toolbar>
-                <div class="tm-pc-filters-label">Αναζήτηση & φίλτρα</div>
+            <div id="tm-phone-filters-mine" class="tm-pc-filters tm-cat-controls tm-pc-filters--mine" data-tm-phone-toolbar>
                 <div class="tm-pc-search-row tm-cat-search-line">
                     <label class="tm-pc-search tm-cat-search">
                         <span class="tm-pc-search-icon tm-cat-search-icon">${ICON.search}</span>
-                        <input type="search" id="tm-phone-search-input" placeholder="${esc(T['Search...'])}" autocomplete="off">
+                        <input type="search" id="tm-phone-search-input" placeholder="Barcode, μοντέλο, IMEI…" autocomplete="off">
                     </label>
-                    <label class="tm-pc-regex tm-cat-regex">
-                        <input type="checkbox" id="tm-phone-regex-toggle"> ${esc(T['Regex'])}
-                    </label>
-                    <button type="button" id="tm-phone-favorites-btn" class="tm-pc-fav-btn tm-cat-pill" title="${esc(T['Show Favorites'])}">${ICON.starOutline}<span>${esc(T['Fav'])}</span></button>
-                </div>
-                <div class="tm-pc-filter-row tm-cat-filters">
                     <select id="tm-phone-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
-                    <select id="tm-phone-filter-model" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Models'])}</option></select>
-                    <select id="tm-phone-filter-gb" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Storage'])}</option></select>
-                    <select id="tm-phone-filter-color" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Colors'])}</option></select>
-                    <select id="tm-phone-filter-tag" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Tags'])}</option></select>
-                    <select id="tm-phone-sort-by" class="tm-pc-select tm-cat-select">
-                        <option value="model">${esc(T['Sort by Model'])}</option>
-                        <option value="grade">${esc(T['Sort by Grade'])}</option>
-                        <option value="gb">${esc(T['Sort by Storage'])}</option>
-                        <option value="color">${esc(T['Sort by Color'])}</option>
-                        <option value="imei">${esc(T['Sort by IMEI'])}</option>
-                    </select>
-                    <button type="button" id="tm-phone-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">${ICON.sort}</button>
+                    <button type="button" id="tm-mine-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
                     <button type="button" id="tm-phone-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
-                    <div style="position:relative">
-                        <button type="button" id="tm-phone-export-btn" class="tm-pc-btn tm-cat-btn">${ICON.export}<span>${esc(T['Export'] || 'Export')}</span></button>
-                        <div id="tm-phone-export-menu">
-                            <button type="button" id="tm-phone-export-clipboard">${esc(T['Copy to Clipboard'])}</button>
-                            <button type="button" id="tm-phone-export-csv">${esc(T['Export to CSV'])}</button>
-                            <button type="button" id="tm-phone-export-selected" style="display:none">${esc(T['Export Selected'])}</button>
-                            <div style="border-top:1px solid var(--tm-shop-item-border);margin-top:6px;padding-top:6px">
-                                <label style="display:flex;align-items:center;gap:8px;font-size:11px;padding:6px 8px;cursor:pointer;font-weight:600">
-                                    <input type="checkbox" id="tm-phone-export-original-title">
-                                    ${esc(T['Include Original Title'])}
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <button type="button" id="tm-phone-select-all" class="tm-pc-btn tm-cat-btn" style="display:none">${esc(T['Select All'])}</button>
+                </div>
+            </div>
+
+            <div id="tm-phone-filters-network" class="tm-pc-filters tm-cat-controls tm-pc-filters--network">
+                <div class="tm-pc-search-row tm-cat-search-line">
+                    <select id="tm-network-filter-model" class="tm-pc-select tm-cat-select" style="flex:1;min-width:180px"><option value="">— Επιλέξτε μοντέλο —</option></select>
+                    <select id="tm-network-filter-store" class="tm-pc-select tm-cat-select"><option value="">Όλα τα καταστήματα</option></select>
+                    <select id="tm-network-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
+                    <button type="button" id="tm-network-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
+                    <button type="button" id="tm-network-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
+                </div>
+            </div>
+
+            <div class="tm-pc-advanced-filters" aria-hidden="true">
+                <input type="checkbox" id="tm-phone-regex-toggle" hidden>
+                <button type="button" id="tm-phone-favorites-btn" hidden></button>
+                <select id="tm-phone-filter-model" hidden><option value=""></option></select>
+                <select id="tm-phone-filter-gb" hidden><option value=""></option></select>
+                <select id="tm-phone-filter-color" hidden><option value=""></option></select>
+                <select id="tm-phone-filter-tag" hidden><option value=""></option></select>
+                <select id="tm-phone-sort-by" hidden><option value="model"></option></select>
+                <button type="button" id="tm-phone-sort-dir" hidden></button>
+                <button type="button" id="tm-phone-select-all" hidden></button>
+                <div id="tm-phone-export-menu" hidden>
+                    <button type="button" id="tm-phone-export-clipboard"></button>
+                    <button type="button" id="tm-phone-export-csv"></button>
+                    <button type="button" id="tm-phone-export-selected"></button>
+                    <input type="checkbox" id="tm-phone-export-original-title" hidden>
                 </div>
             </div>
 
             <div class="tm-pc-body">
-                <div class="tm-pc-table-wrap">
+                <div class="tm-pc-table-wrap" id="tm-mine-table-wrap">
                     <div id="tm-phone-list-container" class="tm-pc-list tm-cat-table-body">
                         ${buildEmptyState('…', 'Φόρτωση', 'Παρακαλώ περιμένετε')}
                     </div>
@@ -822,7 +944,7 @@
                 <div id="tm-other-store-container" style="display:none;flex:1;overflow:hidden;flex-direction:column">
                     <div class="tm-pc-table-wrap" style="flex:1">
                         <div id="tm-other-store-content" class="tm-pc-list tm-cat-table-body">
-                            ${buildEmptyState('…', 'Φόρτωση', 'Άλλα καταστήματα')}
+                            ${buildEmptyState('…', 'Φόρτωση', 'Επιλέξτε μοντέλο')}
                         </div>
                     </div>
                 </div>
@@ -853,13 +975,9 @@
                 <div style="display:flex;align-items:center;gap:14px;min-width:0">
                     <div class="tm-pc-hero-icon">${ICON.network}</div>
                     <div>
-                        <div style="font-weight:800;font-size:1.2rem;color:var(--tm-shop-item-text);display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                            Δίκτυο καταστημάτων
-                            <span class="tm-pc-hero-badge">Network</span>
-                        </div>
-                        <div style="font-size:12px;opacity:0.6;margin-top:4px">Διαθεσιμότητα συσκευών σε όλα τα καταστήματα</div>
+                        <div style="font-weight:800;font-size:1.2rem;color:var(--tm-shop-item-text)">Πού υπάρχει το μοντέλο</div>
+                        <div style="font-size:12px;opacity:0.6;margin-top:4px">Επιλέξτε μοντέλο και δείτε σε ποια καταστήματα υπάρχει</div>
                     </div>
-                    <button type="button" id="tm-os-back-btn" class="tm-pc-btn tm-cat-btn" style="display:none;margin-left:8px">← Μοντέλα</button>
                 </div>
                 <div style="display:flex;gap:8px;align-items:center">
                     <span id="tm-other-store-count" style="font-size:11px;font-weight:600;opacity:0.7"></span>
@@ -867,25 +985,19 @@
                     <button type="button" id="tm-other-store-close" class="tm-modal-close tm-pc-close tm-pc-tool-btn">×</button>
                 </div>
             </header>
-            <div id="tm-os-filter-bar" style="display:none">
-                <div class="tm-pc-filter-row tm-cat-filters" style="padding:12px 24px">
-                    <select id="tm-other-store-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
-                    <select id="tm-other-store-filter-model" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Models'])}</option></select>
-                    <select id="tm-other-store-filter-gb" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Storage'])}</option></select>
-                    <select id="tm-other-store-filter-color" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Colors'])}</option></select>
+            <div id="tm-os-filter-bar" class="tm-pc-filters" style="display:none">
+                <div class="tm-pc-search-row" style="padding:12px 24px">
+                    <select id="tm-other-store-filter-model" class="tm-pc-select tm-cat-select" style="flex:1;min-width:180px"><option value="">— Επιλέξτε μοντέλο —</option></select>
                     <select id="tm-other-store-filter-store" class="tm-pc-select tm-cat-select"><option value="">Όλα τα καταστήματα</option></select>
-                    <select id="tm-other-store-sort" class="tm-pc-select tm-cat-select">
-                        <option value="model-asc">Μοντέλο Α→Ω</option>
-                        <option value="model-desc">Μοντέλο Ω→Α</option>
-                        <option value="price-asc">Τιμή ↑</option>
-                        <option value="price-desc">Τιμή ↓</option>
-                        <option value="grade-asc">Βαθμός A+→A</option>
-                        <option value="grade-desc">Βαθμός A→A+</option>
-                        <option value="storage-asc">Χωρητικότητα ↑</option>
-                        <option value="storage-desc">Χωρητικότητα ↓</option>
-                    </select>
+                    <select id="tm-other-store-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
+                    <button type="button" id="tm-os-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
                     <button type="button" id="tm-other-store-clear-filters" class="tm-pc-btn tm-cat-btn">${esc(T['Clear'])}</button>
                 </div>
+            </div>
+            <div class="tm-pc-advanced-filters" aria-hidden="true">
+                <select id="tm-other-store-filter-gb" hidden><option value=""></option></select>
+                <select id="tm-other-store-filter-color" hidden><option value=""></option></select>
+                <select id="tm-other-store-sort" hidden><option value="model-asc"></option></select>
             </div>
             <div id="tm-other-store-modal-body" class="tm-pc-list tm-cat-table-body">
                 ${buildEmptyState('…', 'Φόρτωση', 'Λήψη δεδομένων δικτύου')}
@@ -894,19 +1006,7 @@
     }
 
     function buildModelPickerHTML(models, totalPhones) {
-        const options = models.map(([model, data]) =>
-            `<option value="${esc(model)}">${esc(model)} (${data.count}${data.buybackCount > 0 ? ` · ${data.buybackCount} BB` : ''})</option>`
-        ).join('');
-        return `
-            <div class="tm-pc-empty tm-cat-empty" style="min-height:300px">
-                <div class="tm-pc-empty-visual">${ICON.phone}</div>
-                <div class="tm-pc-empty-title tm-cat-empty-title">Επιλογή μοντέλου</div>
-                <div class="tm-pc-empty-sub tm-cat-empty-sub">${totalPhones} συσκευές · ${models.length} μοντέλα</div>
-                <select id="tm-os-model-picker-select" class="tm-pc-select tm-cat-select" style="width:min(400px,100%);margin-top:16px;height:42px!important;font-size:13px!important">
-                    <option value="">— Επιλέξτε μοντέλο —</option>
-                    ${options}
-                </select>
-            </div>`;
+        return buildModelGroupList(models);
     }
 
     window.PhoneCatalogUI = {
@@ -921,5 +1021,6 @@
         buildEmptyState,
         buildOtherStoresModalHTML,
         buildModelPickerHTML,
+        buildModelGroupList,
     };
 })();

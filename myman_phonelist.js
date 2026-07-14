@@ -1960,6 +1960,47 @@ function getPhoneCatalogUICtx(modalHelpers = {}) {
     };
 }
 
+function buildModelGroupsFromPhones(phones, baseModelFn) {
+    const map = new Map();
+    phones.forEach((phone) => {
+        const model = baseModelFn(phone.model) || phone.model || 'Unknown';
+        if (!map.has(model)) {
+            map.set(model, { count: 0, buybackCount: 0, grades: {} });
+        }
+        const entry = map.get(model);
+        entry.count += 1;
+        if (phone.isBuyback) entry.buybackCount += 1;
+        const grade = normalizePhoneGrade(phone.grade);
+        if (grade) entry.grades[grade] = (entry.grades[grade] || 0) + 1;
+    });
+    return [...map.entries()].sort((a, b) =>
+        a[0].localeCompare(b[0], undefined, { numeric: true, sensitivity: 'base' })
+    );
+}
+
+function phoneHasStoreWithStock(phone, storeName) {
+    if (!storeName) return true;
+    const phoneStores = phone.stores || [];
+    if (phoneStores.length === 0) return true;
+    return phoneStores.some((store) => {
+        if (!store.name) return false;
+        const cleanName = store.name.replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
+        const qty = parseInt(store.qty, 10) || 0;
+        return cleanName === storeName && qty === 1;
+    });
+}
+
+function formatStoreSummaryText(item, loadedStoreCount = null) {
+    if (loadedStoreCount != null && loadedStoreCount >= 0) {
+        const n = loadedStoreCount;
+        if (n === 0) return 'Κανένα κατ.';
+        return n === 1 ? '1 κατάστημα' : `${n} καταστήματα`;
+    }
+    const n = parseInt(item.otherStoreCount, 10) || 0;
+    if (n <= 0) return '';
+    return n === 1 ? 'Σε 1 κατ.' : `Σε ${n} κατ.`;
+}
+
 /**
  * Shows a modal with a searchable list of phones
  */
@@ -2008,6 +2049,10 @@ async function showPhoneListModal() {
     let showingOtherStores = false;
     let otherStorePhones = [];
     let otherStoreLoaded = false;
+    let mineCatalogStep = 'models';
+    let mineSelectedModel = null;
+    let networkCatalogStep = 'models';
+    let networkSelectedModel = null;
     
     // Tag system — phone assignments + user-defined tag catalog
     const TAGS_STORAGE_KEY = 'tm_phone_tags';
@@ -3347,41 +3392,215 @@ async function showPhoneListModal() {
         });
     }
     
+    function getNetworkBasePhones() {
+        return otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
+    }
+
+    function syncMineModelFilter() {
+        if (modelFilter) modelFilter.value = mineSelectedModel || '';
+    }
+
+    function syncNetworkModelFilter() {
+        if (networkModelFilter) networkModelFilter.value = networkSelectedModel || '';
+    }
+
+    function updateCatalogBackButtons() {
+        mineBackBtn?.classList.toggle('is-visible', mineCatalogStep === 'phones' && !searchInput?.value.trim());
+        networkBackBtn?.classList.toggle('is-visible', networkCatalogStep === 'phones');
+    }
+
+    function syncFilterPanels() {
+        const minePanel = overlay.querySelector('#tm-phone-filters-mine');
+        const networkPanel = overlay.querySelector('#tm-phone-filters-network');
+        if (showingOtherStores) {
+            minePanel?.classList.add('is-hidden');
+            networkPanel?.classList.add('is-active');
+        } else {
+            minePanel?.classList.remove('is-hidden');
+            networkPanel?.classList.remove('is-active');
+        }
+        updateCatalogBackButtons();
+    }
+
+    function attachModelGroupHandlers(containerEl, onPick) {
+        if (!containerEl) return;
+        containerEl.querySelectorAll('.tm-pc-model-card[data-tm-pc-model]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const model = btn.getAttribute('data-tm-pc-model');
+                if (model) onPick(model);
+            });
+        });
+    }
+
+    function renderMineModelPicker() {
+        const phones = filterIphoneTitlePhones(allPhones);
+        const models = buildModelGroupsFromPhones(phones, extractBaseModel);
+        container.className = 'tm-pc-list tm-cat-table-body';
+        container.innerHTML = PhoneCatalogUI.buildModelGroupList(models);
+        attachModelGroupHandlers(container, (model) => {
+            mineSelectedModel = model;
+            mineCatalogStep = 'phones';
+            syncMineModelFilter();
+            updateCatalogBackButtons();
+            applyFilters();
+        });
+        if (countDisplay) {
+            countDisplay.textContent = `${models.length} μοντέλα · ${phones.length} συσκευές`;
+        }
+        if (statisticsDisplay) statisticsDisplay.innerHTML = '';
+    }
+
+    function renderNetworkModelPicker() {
+        const phones = getNetworkBasePhones();
+        const models = buildModelGroupsFromPhones(phones, extractBaseModel);
+        if (!otherStoreContent) return;
+        otherStoreContent.className = 'tm-pc-list tm-cat-table-body';
+        otherStoreContent.innerHTML = PhoneCatalogUI.buildModelGroupList(models);
+        attachModelGroupHandlers(otherStoreContent, (model) => {
+            networkSelectedModel = model;
+            networkCatalogStep = 'phones';
+            syncNetworkModelFilter();
+            if (modelFilter) modelFilter.value = model;
+            updateCatalogBackButtons();
+            populateNetworkFilters();
+            applyFilters();
+        });
+        if (countDisplay) {
+            countDisplay.textContent = `${models.length} μοντέλα · ${phones.length} συσκευές στο δίκτυο`;
+        }
+        if (statisticsDisplay) statisticsDisplay.innerHTML = '';
+    }
+
+    function populateNetworkFilters(dataset = null) {
+        const base = dataset || getFilteredPhonesForNetworkFilters();
+        const grades = [...new Set(base.map(p => p.grade).filter(Boolean))].sort(comparePhoneGrades);
+        const models = [...new Set(base.map(p => extractBaseModel(p.model)).filter(Boolean))]
+            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
+        if (networkGradeFilter) {
+            const cur = networkGradeFilter.value;
+            networkGradeFilter.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Grades']}</option>` +
+                grades.map(g => `<option value="${g}">${g}</option>`).join('');
+            if (grades.includes(cur)) networkGradeFilter.value = cur;
+        }
+        if (networkModelFilter) {
+            const cur = networkModelFilter.value;
+            networkModelFilter.innerHTML = '<option value="">— Επιλέξτε μοντέλο —</option>' +
+                models.map(m => `<option value="${m}">${m}</option>`).join('');
+            if (cur && models.includes(cur)) networkModelFilter.value = cur;
+            else if (networkSelectedModel && models.includes(networkSelectedModel)) {
+                networkModelFilter.value = networkSelectedModel;
+            }
+        }
+
+        const storeSet = new Set();
+        base.forEach((phone) => {
+            (phone.stores || []).forEach((store) => {
+                if (!store.name) return;
+                const clean = store.name.replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
+                const qty = parseInt(store.qty, 10) || 0;
+                if (qty === 1) storeSet.add(clean);
+            });
+        });
+        if (networkStoreFilter) {
+            const cur = networkStoreFilter.value;
+            const stores = [...storeSet].sort();
+            networkStoreFilter.innerHTML = '<option value="">Όλα τα καταστήματα</option>' +
+                stores.map(s => `<option value="${s}">${s}</option>`).join('');
+            if (stores.includes(cur)) networkStoreFilter.value = cur;
+        }
+    }
+
+    function getFilteredPhonesForNetworkFilters() {
+        let base = getNetworkBasePhones();
+        if (networkSelectedModel) {
+            base = base.filter(p => extractBaseModel(p.model) === networkSelectedModel);
+        }
+        return base;
+    }
+
+    function highlightSearchMatch(containerEl) {
+        const query = searchInput?.value.trim();
+        if (!query || !containerEl) return;
+        const q = query.toLowerCase();
+        const rows = containerEl.querySelectorAll('.tm-phone-item');
+        let first = null;
+        rows.forEach((row) => {
+            row.classList.remove('tm-pc-row--highlight');
+            const barcode = (row.dataset.barcode || '').toLowerCase();
+            const name = (row.dataset.name || '').toLowerCase();
+            const imei = (row.dataset.imei || '').toLowerCase();
+            if (barcode === q || barcode.includes(q) || name.includes(q) || imei.includes(q)) {
+                row.classList.add('tm-pc-row--highlight');
+                if (!first) first = row;
+            }
+        });
+        if (first) first.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
     // Function to apply all filters
     function applyFilters() {
         const query = searchInput.value.trim();
-        const selectedGrade = gradeFilter.value;
-        const selectedModel = modelFilter.value;
+        const useRegex = overlay.querySelector('#tm-phone-regex-toggle')?.checked;
+
+        if (showingOtherStores) {
+            if (networkModelFilter?.value) {
+                networkSelectedModel = networkModelFilter.value;
+                modelFilter.value = networkSelectedModel;
+            }
+            if (!query && networkCatalogStep === 'models' && !networkSelectedModel) {
+                renderNetworkModelPicker();
+                return;
+            }
+            networkCatalogStep = 'phones';
+            updateCatalogBackButtons();
+        } else if (!query && mineCatalogStep === 'models' && !mineSelectedModel) {
+            renderMineModelPicker();
+            return;
+        } else if (query) {
+            mineCatalogStep = 'phones';
+            updateCatalogBackButtons();
+        }
+
+        const selectedGrade = showingOtherStores
+            ? (networkGradeFilter?.value || '')
+            : gradeFilter.value;
+        const selectedModel = showingOtherStores
+            ? (networkSelectedModel || networkModelFilter?.value || modelFilter.value)
+            : (mineSelectedModel || modelFilter.value);
+        const selectedStore = showingOtherStores ? (networkStoreFilter?.value || '') : '';
         const selectedGB = gbFilter.value;
         const selectedColor = colorFilter.value;
         const selectedTag = tagFilter ? tagFilter.value : '';
-        const useRegex = overlay.querySelector('#tm-phone-regex-toggle').checked;
+
+        if (!showingOtherStores && selectedModel) {
+            mineCatalogStep = 'phones';
+            mineSelectedModel = selectedModel;
+            syncMineModelFilter();
+            updateCatalogBackButtons();
+        }
         
         let phonesToFilter = showingOtherStores
-            ? otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0))
+            ? getNetworkBasePhones()
             : (showFavoritesOnly
                 ? allPhones.filter(p => favorites.includes(p.barcode))
                 : allPhones);
         phonesToFilter = filterIphoneTitlePhones(phonesToFilter);
         
-        // Pre-compute query lowercase once for performance
         const queryLower = query ? query.toLowerCase() : null;
         let searchRegex = null;
         if (query && useRegex) {
             try {
                 searchRegex = new RegExp(query, 'i');
             } catch (e) {
-                // Invalid regex, will fall back to simple search
                 searchRegex = null;
             }
         }
         
         filteredPhones = phonesToFilter.filter(phone => {
-            // Text search filter - optimized with pre-computed values
             if (query) {
                 let matchesSearch = false;
                 if (searchRegex) {
-                    // Use regex if valid
                     matchesSearch = 
                         searchRegex.test(phone.name) ||
                         searchRegex.test(phone.barcode) ||
@@ -3389,7 +3608,6 @@ async function showPhoneListModal() {
                         searchRegex.test(phone.grade || '') ||
                         searchRegex.test(phone.imei || '');
                 } else {
-                    // Simple search - use pre-computed lowercase
                     matchesSearch = 
                         phone.name.toLowerCase().includes(queryLower) ||
                         phone.barcode.toLowerCase().includes(queryLower) ||
@@ -3400,20 +3618,21 @@ async function showPhoneListModal() {
                 if (!matchesSearch) return false;
             }
             
-            // Grade filter (fastest check first)
             if (selectedGrade && phone.grade !== selectedGrade) {
                 return false;
             }
             
-            // Model filter (cached via extractBaseModel)
             if (selectedModel) {
                 const baseModel = extractBaseModel(phone.model);
                 if (baseModel !== selectedModel) {
                     return false;
                 }
             }
+
+            if (selectedStore && !phoneHasStoreWithStock(phone, selectedStore)) {
+                return false;
+            }
             
-            // GB filter (cached via extractGB)
             if (selectedGB) {
                 const gb = extractGB(phone.name || phone.model);
                 if (gb !== selectedGB) {
@@ -3421,7 +3640,6 @@ async function showPhoneListModal() {
                 }
             }
             
-            // Color filter (cached via extractColor)
             if (selectedColor) {
                 const color = extractColor(phone.name || phone.model);
                 if (color !== selectedColor) {
@@ -3429,7 +3647,6 @@ async function showPhoneListModal() {
                 }
             }
             
-            // Tag filter
             if (selectedTag) {
                 const phoneTags = getPhoneTags(phone.barcode);
                 if (!phoneTags.includes(selectedTag)) {
@@ -3440,19 +3657,18 @@ async function showPhoneListModal() {
             return true;
         });
         
-        // Sort phones
         filteredPhones = sortPhones(filteredPhones);
         
-        // Update statistics
-        updateStatistics(filteredPhones);
-        
         if (showingOtherStores) {
+            if (statisticsDisplay) statisticsDisplay.innerHTML = '';
             renderOtherStorePhones(filteredPhones);
+            populateNetworkFilters(filteredPhones);
             return;
         }
         
-        // Update statistics - reset pagination when filters change
+        updateStatistics(filteredPhones);
         renderPhones(filteredPhones, true);
+        highlightSearchMatch(container);
     }
     
     // Virtual scrolling state
@@ -3471,7 +3687,7 @@ async function showPhoneListModal() {
                 'Δεν βρέθηκαν συσκευές',
                 'Δοκιμάστε άλλα φίλτρα ή αναζήτηση'
             );
-            countDisplay.textContent = '0 phones found';
+            countDisplay.textContent = '0 συσκευές';
             return;
         }
         
@@ -3503,7 +3719,7 @@ async function showPhoneListModal() {
         const showingPhones = phonesToRender.length;
         if (totalPhones > ITEMS_PER_PAGE) {
             const pageInfo = ` (Showing ${startIndex + 1}-${endIndex} of ${totalPhones})`;
-            countDisplay.textContent = `${totalPhones} phone${totalPhones !== 1 ? 's' : ''} found${pageInfo}`;
+            countDisplay.textContent = `${totalPhones} συσκευές${mineSelectedModel ? ` · ${mineSelectedModel}` : ''}${pageInfo}`;
             
             // Add "Load More" button if there are more phones
             let loadMoreBtn = container.parentElement.querySelector('.tm-phone-load-more');
@@ -3544,7 +3760,7 @@ async function showPhoneListModal() {
                 loadMoreBtn.textContent = `Load More (${totalPhones - endIndex} remaining)`;
             }
         } else {
-            countDisplay.textContent = `${totalPhones} phone${totalPhones !== 1 ? 's' : ''} found`;
+            countDisplay.textContent = `${totalPhones} συσκευές${mineSelectedModel ? ` · ${mineSelectedModel}` : ''}`;
             // Remove load more button if it exists
             const loadMoreBtn = container.parentElement.querySelector('.tm-phone-load-more');
             if (loadMoreBtn) {
@@ -3612,8 +3828,17 @@ async function showPhoneListModal() {
                 item.classList.toggle('selected');
                 updateSelectionUI();
             } else {
-                // Single click - copy barcode
                 copyToClipboard(barcode);
+            }
+        };
+
+        container._phoneDblClickHandler = (e) => {
+            const item = e.target.closest('.tm-phone-item');
+            if (!item || e.target.closest('button')) return;
+            const barcode = item.dataset.barcode;
+            if (barcode) {
+                const searchUrl = `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(barcode)}`;
+                window.open(searchUrl, '_blank');
             }
         };
         
@@ -3661,6 +3886,7 @@ async function showPhoneListModal() {
         };
         
         container.addEventListener('click', container._phoneClickHandler);
+        container.addEventListener('dblclick', container._phoneDblClickHandler);
         container.addEventListener('contextmenu', container._phoneContextMenuHandler);
         
         // Favorite buttons
@@ -3792,7 +4018,7 @@ async function showPhoneListModal() {
     const clearFiltersBtn = overlay.querySelector('#tm-phone-clear-filters');
     const sortDirBtn = overlay.querySelector('#tm-phone-sort-dir');
     const container = overlay.querySelector('#tm-phone-list-container');
-    const listTableWrap = container?.closest('.tm-pc-table-wrap');
+    const listTableWrap = overlay.querySelector('#tm-mine-table-wrap') || container?.closest('.tm-pc-table-wrap');
     const otherStoreContainer = overlay.querySelector('#tm-other-store-container');
     const otherStoreContent = overlay.querySelector('#tm-other-store-content');
     const countDisplay = overlay.querySelector('#tm-phone-count-text');
@@ -3815,6 +4041,14 @@ async function showPhoneListModal() {
     const closeBtn = overlay.querySelector('.tm-modal-close');
     const viewTabMine = overlay.querySelector('#tm-pc-view-mine');
     const viewTabOther = overlay.querySelector('#tm-pc-view-other');
+    const mineBackBtn = overlay.querySelector('#tm-mine-back-btn');
+    const networkBackBtn = overlay.querySelector('#tm-network-back-btn');
+    const networkModelFilter = overlay.querySelector('#tm-network-filter-model');
+    const networkStoreFilter = overlay.querySelector('#tm-network-filter-store');
+    const networkGradeFilter = overlay.querySelector('#tm-network-filter-grade');
+    const networkClearBtn = overlay.querySelector('#tm-network-clear-filters');
+    const settingsBtn = overlay.querySelector('#tm-phone-settings-btn');
+    const settingsMenu = overlay.querySelector('#tm-phone-settings-menu');
     
     function setViewTabActive(view) {
         viewTabMine?.classList.toggle('active', view === 'mine');
@@ -3830,7 +4064,11 @@ async function showPhoneListModal() {
             otherStoreContainer.style.flexDirection = 'column';
         }
         setViewTabActive('other');
+        syncFilterPanels();
         if (statisticsDisplay) statisticsDisplay.innerHTML = '';
+        if (!networkSelectedModel && !searchInput.value.trim()) {
+            networkCatalogStep = 'models';
+        }
         applyFilters();
     }
     
@@ -3840,7 +4078,11 @@ async function showPhoneListModal() {
         if (container) container.style.display = '';
         if (otherStoreContainer) otherStoreContainer.style.display = 'none';
         setViewTabActive('mine');
+        syncFilterPanels();
         updateSelectionUI();
+        if (!searchInput.value.trim() && !mineSelectedModel) {
+            mineCatalogStep = 'models';
+        }
         applyFilters();
     }
     
@@ -3862,6 +4104,63 @@ async function showPhoneListModal() {
     viewTabOther?.addEventListener('dblclick', (e) => {
         e.preventDefault();
         showOtherStoresModal();
+    });
+
+    mineBackBtn?.addEventListener('click', () => {
+        mineCatalogStep = 'models';
+        mineSelectedModel = null;
+        syncMineModelFilter();
+        searchInput.value = '';
+        gradeFilter.value = '';
+        updateCatalogBackButtons();
+        renderMineModelPicker();
+    });
+
+    networkBackBtn?.addEventListener('click', () => {
+        networkCatalogStep = 'models';
+        networkSelectedModel = null;
+        syncNetworkModelFilter();
+        if (modelFilter) modelFilter.value = '';
+        if (networkGradeFilter) networkGradeFilter.value = '';
+        if (networkStoreFilter) networkStoreFilter.value = '';
+        updateCatalogBackButtons();
+        renderNetworkModelPicker();
+    });
+
+    networkModelFilter?.addEventListener('change', () => {
+        networkSelectedModel = networkModelFilter.value || null;
+        if (networkSelectedModel) {
+            networkCatalogStep = 'phones';
+            if (modelFilter) modelFilter.value = networkSelectedModel;
+        } else {
+            networkCatalogStep = 'models';
+        }
+        updateCatalogBackButtons();
+        applyFilters();
+    });
+    networkStoreFilter?.addEventListener('change', applyFilters);
+    networkGradeFilter?.addEventListener('change', applyFilters);
+    networkClearBtn?.addEventListener('click', () => {
+        networkCatalogStep = 'models';
+        networkSelectedModel = null;
+        if (networkModelFilter) networkModelFilter.value = '';
+        if (networkStoreFilter) networkStoreFilter.value = '';
+        if (networkGradeFilter) networkGradeFilter.value = '';
+        if (modelFilter) modelFilter.value = '';
+        updateCatalogBackButtons();
+        renderNetworkModelPicker();
+    });
+
+    settingsBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!settingsMenu) return;
+        settingsMenu.style.display = settingsMenu.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', (e) => {
+        if (!settingsMenu || !settingsBtn) return;
+        if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
+            settingsMenu.style.display = 'none';
+        }
     });
     
     function filterOtherStoresWithCurrentFilters(dataset) {
@@ -3957,12 +4256,20 @@ async function showPhoneListModal() {
                 storesHtml,
                 storesPending: !storesHtml && (!hasStoresData || item.stores.length === 0),
                 noBuybackStore,
+                storeSummary: formatStoreSummaryText(
+                    item,
+                    storesPending ? null : (oneUnitStores.length > 0 ? oneUnitStores.length : 0)
+                ),
             });
         }).join('');
 
         targetEl.innerHTML = PhoneCatalogUI.buildListHeader('other') + rows;
-        if (countEl) countEl.textContent = `${list.length} phones available in other stores`;
+        if (countEl) {
+            const modelLabel = networkSelectedModel ? ` · ${networkSelectedModel}` : '';
+            countEl.textContent = `${list.length} συσκευές${modelLabel}`;
+        }
         if (statsEl) statsEl.innerHTML = '';
+        highlightSearchMatch(targetEl);
         
         // Add event listeners for buttons (event delegation)
         if (!targetEl._buttonHandlersAdded) {
@@ -4039,11 +4346,13 @@ async function showPhoneListModal() {
                     }
                     const filtered = filterOneUnitStores(stores);
                     if (filtered.length === 0) {
-                        sc.innerHTML = `<span style="opacity:0.35;font-size:10px;font-style:italic;">No stores</span>`;
+                        sc.innerHTML = `<span style="opacity:0.35;font-size:10px;font-style:italic;">Κανένα κατάστημα</span>`;
                         return;
                     }
                     const itemIsBuyback = phoneItem ? phoneItem.isBuyback : false;
-                    sc.innerHTML = renderPhoneStoreChipsHtml(stores, itemIsBuyback);
+                    const summary = formatStoreSummaryText(phoneItem || {}, filtered.length);
+                    sc.innerHTML = (summary ? `<span class="tm-pc-store-summary">${summary}</span>` : '') +
+                        renderPhoneStoreChipsHtml(stores, itemIsBuyback);
                     if (itemIsBuyback && !phoneHasAllowedBuybackStore(stores)) {
                         const row = sc.closest('.tm-cat-tr--other') || sc.closest('.tm-pc-row--other');
                         if (row) {
@@ -4125,16 +4434,16 @@ async function showPhoneListModal() {
         }
     }
     
-    // Export menu toggle
-    exportBtn.addEventListener('click', (e) => {
+    // Export menu — toggled from settings
+    exportBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
-        const isVisible = exportMenu.style.display === 'block';
-        exportMenu.style.display = isVisible ? 'none' : 'block';
+        if (settingsMenu) settingsMenu.style.display = 'none';
+        if (!exportMenu) return;
+        exportMenu.style.display = exportMenu.style.display === 'block' ? 'none' : 'block';
     });
     
-    // Close export menu when clicking outside
     document.addEventListener('click', (e) => {
-        if (exportMenu && !exportMenu.contains(e.target) && !exportBtn.contains(e.target)) {
+        if (exportMenu && exportBtn && !exportMenu.contains(e.target) && !exportBtn.contains(e.target)) {
             exportMenu.style.display = 'none';
         }
     });
@@ -4150,7 +4459,10 @@ async function showPhoneListModal() {
             syncPhoneColorCatalog(allPhones);
             populateFilters(allPhones);
             lastUpdated = new Date();
-            lastUpdatedDisplay.textContent = `Last updated: ${lastUpdated.toLocaleDateString()} ${lastUpdated.toLocaleTimeString()}`;
+            lastUpdatedDisplay.textContent = `Ενημέρωση: ${lastUpdated.toLocaleDateString()} ${lastUpdated.toLocaleTimeString()}`;
+            mineCatalogStep = 'models';
+            mineSelectedModel = null;
+            syncMineModelFilter();
             // Hide cache warning after refresh
             if (cacheWarning) {
                 cacheWarning.style.display = 'none';
@@ -4267,11 +4579,11 @@ async function showPhoneListModal() {
         });
     }
     
-    sortBySelect.addEventListener('change', () => {
+    sortBySelect?.addEventListener('change', () => {
         sortBy = sortBySelect.value;
         applyFilters();
     });
-    sortDirBtn.addEventListener('click', () => {
+    sortDirBtn?.addEventListener('click', () => {
         sortAscending = !sortAscending;
         sortDirBtn.textContent = sortAscending ? '↑' : '↓';
         applyFilters();
@@ -4279,82 +4591,34 @@ async function showPhoneListModal() {
     
     // Clear filters button
     clearFiltersBtn.addEventListener('click', () => {
-        // Clear all filter dropdowns
         gradeFilter.value = '';
         modelFilter.value = '';
+        mineCatalogStep = 'models';
+        mineSelectedModel = null;
         gbFilter.value = '';
         colorFilter.value = '';
         syncPhoneColorSelectDisplay(colorFilter);
         if (tagFilter) tagFilter.value = '';
-        
-        // Clear search input
         searchInput.value = '';
-        
-        // Clear regex toggle
-        overlay.querySelector('#tm-phone-regex-toggle').checked = false;
-        
-        // Clear favorites filter
+        const regexEl = overlay.querySelector('#tm-phone-regex-toggle');
+        if (regexEl) regexEl.checked = false;
         showFavoritesOnly = false;
-        const favoritesBtn = overlay.querySelector('#tm-phone-favorites-btn');
-        if (favoritesBtn) {
-            favoritesBtn.classList.remove('active');
-        }
-        
-        // Reset sort to default
+        if (favoritesBtn) favoritesBtn.classList.remove('active');
         sortBy = 'model';
         sortAscending = true;
-        sortBySelect.value = 'model';
-        sortDirBtn.textContent = '↑';
-        
-        // Repopulate all filters with all phones
+        if (sortBySelect) sortBySelect.value = 'model';
+        if (sortDirBtn) sortDirBtn.textContent = '↑';
         populateFilters(allPhones, ['grade', 'model', 'gb', 'color', 'tag']);
-        
-        // Apply filters (which will show all phones)
+        updateCatalogBackButtons();
         applyFilters();
     });
     
     // Button handlers
-    colorsBtn.addEventListener('click', showColorManagerModal);
-    colorsBtn.addEventListener('mouseenter', () => {
-        colorsBtn.style.background = 'rgba(255,255,255,0.15)';
-    });
-    colorsBtn.addEventListener('mouseleave', () => {
-        colorsBtn.style.background = 'var(--tm-shop-item-bg)';
-    });
-    tagsBtn.addEventListener('click', showTagManagerModal);
-    tagsBtn.addEventListener('mouseenter', () => {
-        tagsBtn.style.background = 'rgba(255,255,255,0.15)';
-    });
-    tagsBtn.addEventListener('mouseleave', () => {
-        tagsBtn.style.background = 'var(--tm-shop-item-bg)';
-    });
-    storesBtn.addEventListener('click', showStoreRulesModal);
-    storesBtn.addEventListener('mouseenter', () => {
-        storesBtn.style.background = 'rgba(255,255,255,0.15)';
-    });
-    storesBtn.addEventListener('mouseleave', () => {
-        storesBtn.style.background = 'var(--tm-shop-item-bg)';
-    });
+    colorsBtn?.addEventListener('click', () => { if (settingsMenu) settingsMenu.style.display = 'none'; showColorManagerModal(); });
+    tagsBtn?.addEventListener('click', () => { if (settingsMenu) settingsMenu.style.display = 'none'; showTagManagerModal(); });
+    storesBtn?.addEventListener('click', () => { if (settingsMenu) settingsMenu.style.display = 'none'; showStoreRulesModal(); });
 
-    refreshBtn.addEventListener('click', refreshPhoneList);
-    refreshBtn.addEventListener('mouseenter', () => {
-        refreshBtn.style.background = 'rgba(255,255,255,0.15)';
-    });
-    refreshBtn.addEventListener('mouseleave', () => {
-        refreshBtn.style.background = 'rgba(255,255,255,0.1)';
-    });
-    
-    viewToggleBtn.addEventListener('click', () => {
-        isGridView = !isGridView;
-        viewToggleBtn.textContent = isGridView ? '▦' : '☰';
-        applyFilters();
-    });
-    viewToggleBtn.addEventListener('mouseenter', () => {
-        viewToggleBtn.style.background = 'rgba(255,255,255,0.15)';
-    });
-    viewToggleBtn.addEventListener('mouseleave', () => {
-        viewToggleBtn.style.background = 'rgba(255,255,255,0.1)';
-    });
+    refreshBtn?.addEventListener('click', refreshPhoneList);
     
     async function ensureOtherStoreData() {
         if (otherStoreLoaded) return;
@@ -4405,50 +4669,34 @@ async function showPhoneListModal() {
             osSelectedModel = null;
             modelFilterOS.value = '';
             filterBarOS.style.display = 'none';
-            backBtnOS.style.display = 'none';
+            backBtnOS.classList.remove('is-visible');
 
-            const base = otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
+            const base = getNetworkBasePhones();
+            const models = buildModelGroupsFromPhones(base, extractBaseModel);
 
-            // Group phones by base model
-            const modelMap = new Map();
-            base.forEach(p => {
-                const model = extractBaseModel(p.model) || p.model || 'Unknown';
-                if (!modelMap.has(model)) modelMap.set(model, { count: 0, buybackCount: 0 });
-                const entry = modelMap.get(model);
-                entry.count++;
-                if (p.isBuyback) entry.buybackCount++;
-            });
+            if (countEl) countEl.textContent = `${models.length} μοντέλα · ${base.length} συσκευές`;
 
-            const models = [...modelMap.entries()].sort(([a], [b]) => a.localeCompare(b));
-
-            if (countEl) countEl.textContent = `${models.length} models · ${base.length} phones`;
-
-            bodyEl.innerHTML = PhoneCatalogUI.buildModelPickerHTML(models, base.length);
-
-            const sel = bodyEl.querySelector('#tm-os-model-picker-select');
-            sel.addEventListener('focus', () => { sel.style.borderColor = 'var(--tm-primary-color,#4facfe)'; sel.style.boxShadow = '0 0 0 3px rgba(79,172,254,0.15)'; });
-            sel.addEventListener('blur',  () => { sel.style.borderColor = 'var(--tm-shop-item-border)'; sel.style.boxShadow = 'none'; });
-            sel.addEventListener('change', () => {
-                if (!sel.value) return;
-                osSelectedModel = sel.value;
-                modelFilterOS.value = osSelectedModel;
-                showPhoneList();
+            bodyEl.innerHTML = PhoneCatalogUI.buildModelGroupList(models);
+            bodyEl.querySelectorAll('.tm-pc-model-card[data-tm-pc-model]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const model = btn.getAttribute('data-tm-pc-model');
+                    if (!model) return;
+                    osSelectedModel = model;
+                    modelFilterOS.value = osSelectedModel;
+                    showPhoneList();
+                });
             });
         }
 
         function showPhoneList() {
             filterBarOS.style.display = 'block';
-            backBtnOS.style.display = 'inline-block';
+            backBtnOS.classList.add('is-visible');
             populateFilters();
-            // populateFilters() rebuilds the <select> options and may not restore the
-            // value reliably — force it again before filtering
             if (osSelectedModel) modelFilterOS.value = osSelectedModel;
             applyOtherStoreFilters();
         }
 
         backBtnOS.addEventListener('click', renderModelPicker);
-        backBtnOS.addEventListener('mouseenter', () => { backBtnOS.style.background = 'rgba(79,172,254,0.12)'; });
-        backBtnOS.addEventListener('mouseleave', () => { backBtnOS.style.background = 'none'; });
 
         closeBtn.addEventListener('click', () => overlayEl.remove());
         
@@ -4524,18 +4772,8 @@ async function showPhoneListModal() {
             }
         };
         
-        // Helper function to check if a phone has a specific store with qty === 1
-        const phoneHasStore = (phone, storeName) => {
-            if (!storeName) return true; // No filter applied
-            const phoneStores = phone.stores || [];
-            if (phoneStores.length === 0) return false; // No store data loaded yet
-            return phoneStores.some(store => {
-                if (!store.name) return false;
-                const cleanName = store.name.replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
-                const qty = parseInt(store.qty, 10) || 0;
-                return cleanName === storeName && qty === 1;
-            });
-        };
+        // Helper — uses shared stock check
+        const phoneHasStore = phoneHasStoreWithStock;
         
         // Get filtered dataset excluding specific filters
         const getFilteredDataExcluding = (excludeFilters = []) => {
@@ -4734,7 +4972,14 @@ async function showPhoneListModal() {
         
         // Add filter event listeners - reload all filters on any change
         gradeFilterOS.addEventListener('change', reloadAllFilters);
-        modelFilterOS.addEventListener('change', reloadAllFilters);
+        modelFilterOS.addEventListener('change', () => {
+            if (modelFilterOS.value) {
+                osSelectedModel = modelFilterOS.value;
+                showPhoneList();
+            } else {
+                renderModelPicker();
+            }
+        });
         gbFilterOS.addEventListener('change', reloadAllFilters);
         colorFilterOS.addEventListener('change', () => {
             syncPhoneColorSelectDisplay(colorFilterOS);
@@ -4757,11 +5002,11 @@ async function showPhoneListModal() {
             gbFilterOS.value = '';
             colorFilterOS.value = '';
             storeFilterOS.value = '';
-            sortOS.value = 'model-asc';
-            renderModelPicker(); // Go back to model picker on clear
+            if (sortOS) sortOS.value = 'model-asc';
+            osSelectedModel = null;
+            renderModelPicker();
         });
         
-        // Hover effects for clear filters button
         clearFiltersOS.addEventListener('mouseenter', () => {
             clearFiltersOS.style.background = 'rgba(255,255,255,0.15)';
         });
@@ -4840,25 +5085,25 @@ async function showPhoneListModal() {
     
     otherStoreToggleBtn?.addEventListener('click', () => viewTabOther?.click());
     
-    favoritesBtn.addEventListener('click', () => {
+    favoritesBtn?.addEventListener('click', () => {
         showFavoritesOnly = !showFavoritesOnly;
         favoritesBtn.classList.toggle('active', showFavoritesOnly);
         applyFilters();
     });
     
-    exportClipboardBtn.addEventListener('click', (e) => {
+    exportClipboardBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         exportMenu.style.display = 'none';
         exportToClipboard(filteredPhones);
     });
     
-    exportCSVBtn.addEventListener('click', (e) => {
+    exportCSVBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         exportMenu.style.display = 'none';
         exportToCSV(filteredPhones);
     });
     
-    exportSelectedBtn.addEventListener('click', (e) => {
+    exportSelectedBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         exportMenu.style.display = 'none';
         const selected = filteredPhones.filter(p => selectedPhones.has(p.barcode));
@@ -4912,7 +5157,7 @@ async function showPhoneListModal() {
         // Get cache timestamp
         const cacheTimestamp = GM_getValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, Date.now());
         lastUpdated = new Date(cacheTimestamp);
-        lastUpdatedDisplay.textContent = `Last updated: ${lastUpdated.toLocaleDateString()} ${lastUpdated.toLocaleTimeString()}`;
+        lastUpdatedDisplay.textContent = `Ενημέρωση: ${lastUpdated.toLocaleDateString()} ${lastUpdated.toLocaleTimeString()}`;
         
         // Show warning if cache is stale
         if (cacheAgeDays !== null && cacheAgeDays >= CACHE_EXPIRATION_DAYS) {
@@ -4935,9 +5180,12 @@ async function showPhoneListModal() {
                 </div>
             </div>
         `;
-        countDisplay.textContent = 'No data - click refresh to load';
-        lastUpdatedDisplay.textContent = 'Never updated';
+        countDisplay.textContent = 'Χωρίς δεδομένα — πατήστε ανανέωση';
+        lastUpdatedDisplay.textContent = 'Ποτέ';
     }
+
+    syncFilterPanels();
+    setTimeout(() => searchInput?.focus(), 80);
 }
 
 // Make function globally accessible
