@@ -38,12 +38,45 @@
         return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
     }
 
-    function getDirectMenuLink(item) {
-        return item.querySelector(':scope > div > div > a[href], :scope > div a[href], :scope > a[href]');
+    function getMenuEntryAnchor(item) {
+        const selectors = [
+            ':scope > div > div > a[href]',
+            ':scope > div a[href]',
+            ':scope > a[href]',
+            ':scope > div > div > a[itemtitle]',
+            ':scope > div a[itemtitle]',
+            ':scope > a[itemtitle]',
+        ];
+        for (const selector of selectors) {
+            const link = item.querySelector(selector);
+            if (link) return link;
+        }
+        return null;
+    }
+
+    function isSuiteMenuItem(item) {
+        return item.hasAttribute('data-tm-suite-item') || item.hasAttribute('data-tm-manage-hidden');
+    }
+
+    function isHideableMenuItem(item) {
+        if (item.getAttribute('data-tm-special') === 'true') return false;
+        if (isSuiteMenuItem(item)) return false;
+
+        const link = getMenuEntryAnchor(item);
+        if (!link) return false;
+
+        const href = (link.getAttribute('href') || '').trim();
+        if (href && href !== '#') return true;
+        if (item.classList.contains('menuGroup')) return true;
+        if (link.hasAttribute('itemtitle')) return true;
+
+        return false;
     }
 
     function cleanMenuItemLabel(name) {
         return String(name || '')
+            .replace(/\u00bb/g, '')
+            .replace(/»/g, '')
             .replace(/\s+/g, ' ')
             .trim()
             .replace(/\d+\s*$/, '')
@@ -51,10 +84,15 @@
     }
 
     function extractMenuItemLabel(sourceEl) {
-        const link = sourceEl.tagName === 'A' ? sourceEl : getDirectMenuLink(sourceEl) || sourceEl;
+        const link = sourceEl.tagName === 'A' ? sourceEl : getMenuEntryAnchor(sourceEl) || sourceEl;
         if (!link) return cleanMenuItemLabel(sourceEl.textContent);
 
+        if (link.getAttribute('itemtitle')) {
+            return cleanMenuItemLabel(link.getAttribute('itemtitle'));
+        }
+
         const clone = link.cloneNode(true);
+        clone.querySelectorAll('b.raquo, .raquo, img.menu-icon').forEach((el) => el.remove());
         clone.querySelectorAll('*').forEach((el) => {
             const text = (el.textContent || '').trim();
             if (/^\d+$/.test(text)) {
@@ -67,25 +105,53 @@
     }
 
     function getMenuItemMeta(item) {
-        const link = getDirectMenuLink(item);
+        const link = getMenuEntryAnchor(item);
         const name = extractMenuItemLabel(link || item);
         const href = link ? normalizeMenuHref(link.getAttribute('href') || '') : '';
-        const id = href
-            ? `href-${sanitizeToken(href)}`
-            : `text-${sanitizeToken(name.substring(0, 40))}`;
+        let id;
 
-        return { id, name, href };
+        if (href) {
+            id = `href-${sanitizeToken(href)}`;
+        } else if (link?.id) {
+            id = `group-${sanitizeToken(link.id)}`;
+        } else {
+            id = `text-${sanitizeToken(name.substring(0, 40))}`;
+        }
+
+        return {
+            id,
+            name,
+            href,
+            isGroup: item.classList.contains('menuGroup'),
+        };
+    }
+
+    function collectHideableMenuItems(menu) {
+        const rows = [];
+
+        function walk(container, depth) {
+            Array.from(container.querySelectorAll(':scope > li')).forEach((item) => {
+                if (isHideableMenuItem(item)) {
+                    rows.push({
+                        item,
+                        depth,
+                        meta: getMenuItemMeta(item),
+                    });
+                }
+
+                const childList = item.querySelector(':scope > ul');
+                if (childList) {
+                    walk(childList, depth + 1);
+                }
+            });
+        }
+
+        walk(menu, 0);
+        return rows;
     }
 
     function getHideableMenuItems(menu) {
-        return Array.from(menu.querySelectorAll('li')).filter((item) => {
-            if (item.getAttribute('data-tm-special') === 'true') return false;
-            if (item.hasAttribute('data-tm-manage-hidden')) return false;
-            const link = getDirectMenuLink(item);
-            if (!link) return false;
-            const href = (link.getAttribute('href') || '').trim();
-            return href && href !== '#';
-        });
+        return collectHideableMenuItems(menu).map((row) => row.item);
     }
 
     function buildMenuItemHideSelector(href) {
@@ -184,7 +250,7 @@
                 }
             }
 
-            if (!hidden.id.startsWith('href-') && !hidden.id.startsWith('text-')) {
+            if (!hidden.id.startsWith('href-') && !hidden.id.startsWith('text-') && !hidden.id.startsWith('group-')) {
                 const legacySuffix = hidden.id.split('-').slice(3).join('-');
                 if (legacySuffix) {
                     const bySuffix = currentMetas.find((meta) => {
@@ -221,12 +287,12 @@
         const rows = [];
 
         if (menu) {
-            getHideableMenuItems(menu).forEach((item) => {
-                const meta = getMenuItemMeta(item);
+            collectHideableMenuItems(menu).forEach(({ item, depth, meta }) => {
                 seen.add(meta.id);
                 rows.push({
                     meta,
                     element: item,
+                    depth,
                     hidden: isHiddenItem(meta, hiddenItems),
                     inMenu: true,
                 });
@@ -238,6 +304,7 @@
                 rows.push({
                     meta: hidden,
                     element: null,
+                    depth: 0,
                     hidden: true,
                     inMenu: false,
                 });
@@ -245,6 +312,11 @@
         });
 
         return rows;
+    }
+
+    function refreshMenuVisibilityInDom(menu, hiddenItems) {
+        if (!menu) return;
+        applyHiddenMenuItems(menu, hiddenItems);
     }
 
     function hideMenuItem(meta, STORAGE_KEYS) {
@@ -343,8 +415,17 @@
                 card.style.opacity = '0.75';
             }
 
+            if (row.depth > 0) {
+                card.style.marginLeft = `${Math.min(row.depth, 4) * 16}px`;
+            }
+
+            const groupBadge = row.meta.isGroup
+                ? '<span style="font-size:10px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.04em;">Ομάδα</span>'
+                : '';
+
             card.innerHTML = `
                 <span style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+                    ${groupBadge}
                     <span style="font-weight:600;font-size:13px;color:#2c3e50;word-break:break-word;">${row.meta.name}</span>
                     ${row.inMenu ? '' : '<span style="font-size:11px;color:#888;">Δεν εμφανίζεται τώρα στο μενού</span>'}
                 </span>
