@@ -145,6 +145,10 @@
 
     window.__tmMenuGuardActive = menuFeatureEnabled && hiddenMenuItems.length > 0;
 
+    function cssAttrSubstring(value) {
+        return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    }
+
     function buildMenuHideCss(items) {
         const rules = [
             'html:not(.tm-mms-menu-ready) .rnr-left { visibility: hidden !important; opacity: 0 !important; }',
@@ -154,11 +158,16 @@
         items.forEach((item) => {
             const href = typeof item === 'object' ? item.href : '';
             const id = typeof item === 'string' ? item : item?.id;
-            if (href) {
-                rules.push(`.rnr-left li:has(a[href*="${href.replace(/"/g, '')}"]) { display: none !important; }`);
-            } else if (id && /^href-[a-zA-Z0-9._-]+$/.test(id)) {
-                const file = id.slice(5);
-                rules.push(`.rnr-left li:has(a[href*="${file}"]) { display: none !important; }`);
+            if (href && href.includes('?')) {
+                const escaped = cssAttrSubstring(href);
+                rules.push(`.rnr-b-vmenu.simple.main li:has(> div > div > a[href*="${escaped}"]) { display: none !important; }`);
+                rules.push(`.rnr-b-vmenu.simple.main li:has(> div a[href*="${escaped}"]) { display: none !important; }`);
+            } else if (href) {
+                const escaped = cssAttrSubstring(href);
+                rules.push(`.rnr-b-vmenu.simple.main li:has(> div > div > a[href="${escaped}"]) { display: none !important; }`);
+                rules.push(`.rnr-b-vmenu.simple.main li:has(> div a[href="${escaped}"]) { display: none !important; }`);
+            } else if (id) {
+                rules.push(`.rnr-b-vmenu.simple.main li[data-menu-id="${cssAttrSubstring(id)}"] { display: none !important; }`);
             }
         });
 

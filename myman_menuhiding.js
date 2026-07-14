@@ -26,23 +26,51 @@
             .slice(0, 80);
     }
 
+    function normalizeMenuHref(rawHref) {
+        const trimmed = (rawHref || '').trim();
+        if (!trimmed || trimmed === '#') return '';
+        let path = trimmed.replace(/^https?:\/\/[^/?#]+/i, '');
+        path = path.replace(/^\.\//, '');
+        return path.split('#')[0];
+    }
+
+    function cssAttrSubstring(value) {
+        return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    }
+
+    function getDirectMenuLink(item) {
+        return item.querySelector(':scope > div > div > a[href], :scope > div a[href], :scope > a[href]');
+    }
+
     function getMenuItemMeta(item) {
-        const link = item.querySelector(':scope > div a[href], :scope > a[href], a[href]');
+        const link = getDirectMenuLink(item);
         const name = (link || item).textContent.replace(/\s+/g, ' ').trim();
-        let href = '';
-
-        if (link) {
-            const rawHref = (link.getAttribute('href') || '').trim();
-            const fileMatch = rawHref.match(/([^/?#]+\.php)/);
-            if (fileMatch) href = fileMatch[1];
-            else if (rawHref && rawHref !== '#') href = rawHref.replace(/^\.?\//, '').split('?')[0];
-        }
-
+        const href = link ? normalizeMenuHref(link.getAttribute('href') || '') : '';
         const id = href
             ? `href-${sanitizeToken(href)}`
             : `text-${sanitizeToken(name.substring(0, 40))}`;
 
         return { id, name, href };
+    }
+
+    function getHideableMenuItems(menu) {
+        return Array.from(menu.querySelectorAll('li')).filter((item) => {
+            if (item.getAttribute('data-tm-special') === 'true') return false;
+            if (item.hasAttribute('data-tm-manage-hidden')) return false;
+            const link = getDirectMenuLink(item);
+            if (!link) return false;
+            const href = (link.getAttribute('href') || '').trim();
+            return href && href !== '#';
+        });
+    }
+
+    function buildMenuItemHideSelector(href) {
+        if (!href) return '';
+        const escaped = cssAttrSubstring(href);
+        return [
+            `.rnr-b-vmenu.simple.main li:has(> div > div > a[href*="${escaped}"])`,
+            `.rnr-b-vmenu.simple.main li:has(> div a[href*="${escaped}"])`,
+        ].join(',\n');
     }
 
     function normalizeHiddenItem(item) {
@@ -67,11 +95,7 @@
     }
 
     function isHiddenItem(meta, hiddenItems) {
-        return hiddenItems.some((hidden) => {
-            if (hidden.id === meta.id) return true;
-            if (hidden.href && meta.href && hidden.href === meta.href) return true;
-            return false;
-        });
+        return hiddenItems.some((hidden) => hidden.id === meta.id);
     }
 
     function markMenuReady() {
@@ -98,11 +122,7 @@
     }
 
     function applyHiddenMenuItems(menu, hiddenItems) {
-        const topLevelItems = menu.querySelectorAll(':scope > li');
-
-        topLevelItems.forEach((item) => {
-            if (item.getAttribute('data-tm-special') === 'true') return;
-
+        getHideableMenuItems(menu).forEach((item) => {
             const meta = getMenuItemMeta(item);
             item.setAttribute('data-menu-id', meta.id);
             if (meta.href) item.setAttribute('data-menu-href', meta.href);
@@ -116,15 +136,11 @@
     }
 
     function migrateLegacyHiddenItems(menu, hiddenItems, STORAGE_KEYS) {
-        const topLevelItems = menu.querySelectorAll(':scope > li');
-        const currentMetas = Array.from(topLevelItems)
-            .filter((item) => item.getAttribute('data-tm-special') !== 'true')
-            .map((item) => getMenuItemMeta(item));
+        const currentMetas = getHideableMenuItems(menu).map((item) => getMenuItemMeta(item));
 
         const migrated = hiddenItems.map((hidden) => {
-            if (hidden.id.startsWith('href-') || hidden.id.startsWith('text-')) {
-                return hidden;
-            }
+            const exact = currentMetas.find((meta) => meta.id === hidden.id);
+            if (exact) return { id: exact.id, name: exact.name, href: exact.href };
 
             if (hidden.name) {
                 const byName = currentMetas.find((meta) => meta.name === hidden.name);
@@ -133,19 +149,31 @@
                 }
             }
 
-            const legacySuffix = hidden.id.split('-').slice(3).join('-');
-            if (legacySuffix) {
-                const bySuffix = currentMetas.find((meta) => {
-                    const token = sanitizeToken(meta.name);
-                    return token === legacySuffix || meta.name.toLowerCase().includes(legacySuffix.toLowerCase());
+            if (hidden.id.startsWith('href-') && !hidden.id.includes('_') && hidden.href) {
+                const legacyFile = hidden.href;
+                const byFileAndName = currentMetas.find((meta) => {
+                    return meta.href.startsWith(legacyFile) && (!hidden.name || meta.name === hidden.name);
                 });
-                if (bySuffix) {
-                    return { id: bySuffix.id, name: bySuffix.name, href: bySuffix.href };
+                if (byFileAndName) {
+                    return { id: byFileAndName.id, name: byFileAndName.name, href: byFileAndName.href };
                 }
             }
 
-            return hidden;
-        });
+            if (!hidden.id.startsWith('href-') && !hidden.id.startsWith('text-')) {
+                const legacySuffix = hidden.id.split('-').slice(3).join('-');
+                if (legacySuffix) {
+                    const bySuffix = currentMetas.find((meta) => {
+                        const token = sanitizeToken(meta.name);
+                        return token === legacySuffix || meta.name.toLowerCase().includes(legacySuffix.toLowerCase());
+                    });
+                    if (bySuffix) {
+                        return { id: bySuffix.id, name: bySuffix.name, href: bySuffix.href };
+                    }
+                }
+            }
+
+            return null;
+        }).filter(Boolean);
 
         const deduped = [];
         const seen = new Set();
@@ -191,13 +219,13 @@
     }
 
     function addMenuItemContextMenu(menu, STORAGE_KEYS) {
-        menu.querySelectorAll(':scope > li').forEach((item) => {
-            if (item.getAttribute('data-tm-special') === 'true') return;
+        getHideableMenuItems(menu).forEach((item) => {
             if (item.dataset.tmHideBound === '1') return;
             item.dataset.tmHideBound = '1';
 
             item.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 const meta = getMenuItemMeta(item);
                 const promptText = `Απόκρυψη "${meta.name}" από το μενού;\n\nΜπορείτε να το επαναφέρετε από Ρυθμίσεις → Αριστερό Μενού.`;
 
@@ -314,6 +342,9 @@
 
         let hiddenItems = loadHiddenItems(STORAGE_KEYS);
         hiddenItems = migrateLegacyHiddenItems(menu, hiddenItems, STORAGE_KEYS);
+        if (typeof window.tmRefreshMenuEarlyCss === 'function') {
+            window.tmRefreshMenuEarlyCss(hiddenItems);
+        }
         applyHiddenMenuItems(menu, hiddenItems);
         addMenuItemContextMenu(menu, STORAGE_KEYS);
         addManageMenuItemToList(menu, STORAGE_KEYS);
@@ -360,5 +391,7 @@
         }, 5000);
     }
 
+    window.buildMenuItemHideSelector = buildMenuItemHideSelector;
+    window.normalizeMenuHref = normalizeMenuHref;
     window.initMenuItemHiding = initMenuItemHiding;
 })();
