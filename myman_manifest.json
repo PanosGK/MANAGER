@@ -1,11 +1,11 @@
 {
-  "version": "222",
+  "version": "223",
   "loaderVersion": "5",
-  "silentVersion": "12",
-  "displayVersion": "5.12",
+  "silentVersion": "13",
+  "displayVersion": "5.13",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "phonelist fixes",
+  "releaseNotes": "code cleanup",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
