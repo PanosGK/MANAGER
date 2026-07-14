@@ -10188,7 +10188,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <label for="tm-setting-hidden-menu-enabled">📋 Απόκρυψη Αριστερού Μενού</label>
-                            <p class="tm-setting-description">Δεξί κλικ σε στοιχείο του αριστερού μενού για απόκρυψη. Το μενού δεν εμφανίζεται μέχρι να εφαρμοστούν οι ρυθμίσεις (όπως με τα themes).</p>
+                            <p class="tm-setting-description">Διαχειριστείτε ποια στοιχεία του αριστερού μενού εμφανίζονται από το «Κρυφά Στοιχεία Μενού». Το μενού δεν εμφανίζεται μέχρι να εφαρμοστούν οι ρυθμίσεις (όπως με τα themes).</p>
                         </div>
                         <div class="tm-setting-control" style="display:flex;align-items:center;gap:10px;">
                             <input type="checkbox" id="tm-setting-hidden-menu-enabled">
@@ -11578,7 +11578,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
 // ----- myman_menuhiding.js -----
 // ==================================================================================================
-// Menu Item Hiding System — hide left sidebar items via right-click; restore from settings.
+// Menu Item Hiding System — manage left sidebar visibility from the menu panel.
 // ==================================================================================================
 
 (function tmMenuItemHidingModule() {
@@ -11795,6 +11795,37 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return deduped;
     }
 
+    function buildMenuItemsCatalog(menu, hiddenItems) {
+        const seen = new Set();
+        const rows = [];
+
+        if (menu) {
+            getHideableMenuItems(menu).forEach((item) => {
+                const meta = getMenuItemMeta(item);
+                seen.add(meta.id);
+                rows.push({
+                    meta,
+                    element: item,
+                    hidden: isHiddenItem(meta, hiddenItems),
+                    inMenu: true,
+                });
+            });
+        }
+
+        hiddenItems.forEach((hidden) => {
+            if (!seen.has(hidden.id)) {
+                rows.push({
+                    meta: hidden,
+                    element: null,
+                    hidden: true,
+                    inMenu: false,
+                });
+            }
+        });
+
+        return rows;
+    }
+
     function hideMenuItem(meta, STORAGE_KEYS) {
         let hiddenItems = loadHiddenItems(STORAGE_KEYS);
         if (!isHiddenItem(meta, hiddenItems)) {
@@ -11822,30 +11853,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
     }
 
-    function addMenuItemContextMenu(menu, STORAGE_KEYS) {
-        getHideableMenuItems(menu).forEach((item) => {
-            if (item.dataset.tmHideBound === '1') return;
-            item.dataset.tmHideBound = '1';
-
-            item.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const meta = getMenuItemMeta(item);
-                const promptText = `Απόκρυψη "${meta.name}" από το μενού;\n\nΜπορείτε να το επαναφέρετε από Ρυθμίσεις → Αριστερό Μενού.`;
-
-                if (confirm(promptText)) {
-                    hideMenuItem(meta, STORAGE_KEYS);
-                    hideMenuItemElement(item);
-                    if (window.showPositiveMessage) {
-                        window.showPositiveMessage('✓ Το στοιχείο μενού αποκρύφθηκε');
-                    }
-                }
-            });
-
-            item.title = 'Δεξί κλικ για απόκρυψη';
-        });
-    }
-
     function addManageMenuItemToList(menu, STORAGE_KEYS) {
         if (menu.querySelector('[data-tm-manage-hidden="true"]')) return;
 
@@ -11859,11 +11866,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         manageItem.innerHTML = `
             <div><div><a href="#">🔒 Κρυφά Στοιχεία Μενού</a></div></div>
         `;
-        manageItem.title = 'Κάντε κλικ για διαχείριση κρυφών στοιχείων';
+        manageItem.title = 'Κάντε κλικ για διαχείριση ορατότητας του μενού';
 
         manageItem.addEventListener('click', (e) => {
             e.preventDefault();
-            showHiddenMenuItemsModal(STORAGE_KEYS);
+            showMenuVisibilityPanel(STORAGE_KEYS);
         });
         manageItem.addEventListener('contextmenu', (e) => {
             e.preventDefault();
@@ -11874,31 +11881,99 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         menu.appendChild(manageItem);
     }
 
-    function showHiddenMenuItemsModal(STORAGE_KEYS) {
+    function renderMenuVisibilityPanel(overlay, STORAGE_KEYS) {
+        const menu = document.querySelector('.rnr-b-vmenu.simple.main');
         const hiddenItems = loadHiddenItems(STORAGE_KEYS);
+        const catalog = buildMenuItemsCatalog(menu, hiddenItems);
+        const listContainer = overlay.querySelector('#tm-menu-visibility-list');
+        const summaryEl = overlay.querySelector('#tm-menu-visibility-summary');
 
-        if (hiddenItems.length === 0) {
-            if (window.showPositiveMessage) {
-                window.showPositiveMessage('Δεν υπάρχουν κρυφά στοιχεία. Κάντε δεξί κλικ σε ένα στοιχείο του μενού για απόκρυψη.');
-            }
+        if (!listContainer) return;
+
+        const hiddenCount = catalog.filter((row) => row.hidden).length;
+        if (summaryEl) {
+            summaryEl.textContent = catalog.length
+                ? `${catalog.length - hiddenCount} ορατά · ${hiddenCount} κρυφά`
+                : 'Δεν βρέθηκαν στοιχεία μενού.';
+        }
+
+        listContainer.innerHTML = '';
+
+        if (!catalog.length) {
+            listContainer.innerHTML = '<p style="margin:0;color:#666;font-size:13px;">Δεν βρέθηκαν στοιχεία στο αριστερό μενού.</p>';
             return;
         }
 
+        catalog.forEach((row) => {
+            const card = document.createElement('label');
+            card.style.cssText = [
+                'display:flex',
+                'align-items:center',
+                'justify-content:space-between',
+                'gap:12px',
+                'padding:12px 14px',
+                'background:#f8f9fa',
+                'border-radius:8px',
+                'cursor:pointer',
+                'border:1px solid #e9ecef',
+            ].join(';');
+
+            if (!row.inMenu) {
+                card.style.opacity = '0.75';
+            }
+
+            card.innerHTML = `
+                <span style="display:flex;flex-direction:column;gap:2px;min-width:0;">
+                    <span style="font-weight:600;font-size:13px;color:#2c3e50;word-break:break-word;">${row.meta.name}</span>
+                    ${row.inMenu ? '' : '<span style="font-size:11px;color:#888;">Δεν εμφανίζεται τώρα στο μενού</span>'}
+                </span>
+                <span style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                    <span style="font-size:12px;color:#666;">${row.hidden ? 'Κρυφό' : 'Ορατό'}</span>
+                    <input type="checkbox" class="tm-menu-visibility-toggle" data-item-id="${row.meta.id}" ${row.hidden ? '' : 'checked'} style="width:18px;height:18px;cursor:pointer;">
+                </span>
+            `;
+
+            const checkbox = card.querySelector('.tm-menu-visibility-toggle');
+            checkbox.addEventListener('change', () => {
+                const shouldShow = checkbox.checked;
+                const currentHidden = loadHiddenItems(STORAGE_KEYS);
+                const isCurrentlyHidden = isHiddenItem(row.meta, currentHidden);
+
+                if (shouldShow && isCurrentlyHidden) {
+                    unhideMenuItem(row.meta.id, STORAGE_KEYS);
+                } else if (!shouldShow && !isCurrentlyHidden) {
+                    hideMenuItem(row.meta, STORAGE_KEYS);
+                    if (row.element) hideMenuItemElement(row.element);
+                }
+
+                renderMenuVisibilityPanel(overlay, STORAGE_KEYS);
+            });
+
+            listContainer.appendChild(card);
+        });
+    }
+
+    function showMenuVisibilityPanel(STORAGE_KEYS) {
+        const existing = document.getElementById('tm-menu-visibility-overlay');
+        if (existing) existing.remove();
+
         const overlay = document.createElement('div');
+        overlay.id = 'tm-menu-visibility-overlay';
         overlay.className = 'tm-modal-overlay';
         overlay.innerHTML = `
-            <div class="tm-modal-content" style="max-width:520px;">
+            <div class="tm-modal-content" style="max-width:560px;">
                 <div class="tm-modal-header">
                     <h3 class="tm-modal-title">🔒 Κρυφά Στοιχεία Μενού</h3>
                     <button class="tm-modal-close">&times;</button>
                 </div>
-                <div class="tm-modal-body" style="max-height:60vh;overflow-y:auto;">
-                    <p style="margin:0 0 14px;font-size:13px;color:#555;">
-                        Δεξί κλικ σε οποιοδήποτε στοιχείο του αριστερού μενού για απόκρυψη. Επαναφέρετε τα παρακάτω όποτε θέλετε.
+                <div class="tm-modal-body" style="max-height:65vh;overflow-y:auto;">
+                    <p style="margin:0 0 10px;font-size:13px;color:#555;">
+                        Επιλέξτε ποια στοιχεία του αριστερού μενού θέλετε να εμφανίζονται.
                     </p>
-                    <div id="tm-hidden-items-list" style="display:flex;flex-direction:column;gap:8px;"></div>
-                    <button id="tm-restore-all-menu-items" style="width:100%;margin-top:16px;padding:10px;border:none;border-radius:8px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);color:#fff;">
-                        Επαναφορά Όλων
+                    <p id="tm-menu-visibility-summary" style="margin:0 0 14px;font-size:12px;color:#667eea;font-weight:600;"></p>
+                    <div id="tm-menu-visibility-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+                    <button id="tm-restore-all-menu-items" type="button" style="width:100%;margin-top:16px;padding:10px;border:none;border-radius:8px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);color:#fff;">
+                        Εμφάνιση Όλων
                     </button>
                 </div>
             </div>
@@ -11908,37 +11983,22 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         overlay.querySelector('.tm-modal-close').addEventListener('click', () => overlay.remove());
         overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
 
-        const listContainer = overlay.querySelector('#tm-hidden-items-list');
-        hiddenItems.forEach((hiddenItem) => {
-            const card = document.createElement('div');
-            card.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px;background:#f8f9fa;border-radius:8px;';
-            card.innerHTML = `
-                <span style="font-weight:600;font-size:13px;">${hiddenItem.name}</span>
-                <button class="tm-restore-menu-item" data-item-id="${hiddenItem.id}" style="padding:6px 12px;border:none;border-radius:6px;font-weight:600;font-size:12px;cursor:pointer;background:#4caf50;color:#fff;">Επαναφορά</button>
-            `;
-            listContainer.appendChild(card);
-        });
-
-        listContainer.addEventListener('click', (e) => {
-            if (!e.target.classList.contains('tm-restore-menu-item')) return;
-            unhideMenuItem(e.target.getAttribute('data-item-id'), STORAGE_KEYS);
-            if (window.showPositiveMessage) {
-                window.showPositiveMessage('✓ Το στοιχείο επαναφέρθηκε');
-            }
-            overlay.remove();
-            showHiddenMenuItemsModal(STORAGE_KEYS);
-        });
-
         overlay.querySelector('#tm-restore-all-menu-items').addEventListener('click', () => {
+            const hiddenItems = loadHiddenItems(STORAGE_KEYS);
             hiddenItems.forEach((item) => unhideMenuItem(item.id, STORAGE_KEYS));
+            const menu = document.querySelector('.rnr-b-vmenu.simple.main');
+            if (menu) refreshMenuVisibilityInDom(menu, []);
+            renderMenuVisibilityPanel(overlay, STORAGE_KEYS);
             if (window.showPositiveMessage) {
-                window.showPositiveMessage('✓ Όλα τα στοιχεία επαναφέρθηκαν');
+                window.showPositiveMessage('✓ Όλα τα στοιχεία εμφανίζονται ξανά');
             }
-            overlay.remove();
         });
+
+        renderMenuVisibilityPanel(overlay, STORAGE_KEYS);
     }
 
-    window.showHiddenMenuItemsModal = showHiddenMenuItemsModal;
+    window.showHiddenMenuItemsModal = showMenuVisibilityPanel;
+    window.showMenuVisibilityPanel = showMenuVisibilityPanel;
 
     function processMenu(config, STORAGE_KEYS) {
         const menu = document.querySelector('.rnr-b-vmenu.simple.main');
@@ -11950,7 +12010,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             window.tmRefreshMenuEarlyCss(hiddenItems);
         }
         applyHiddenMenuItems(menu, hiddenItems);
-        addMenuItemContextMenu(menu, STORAGE_KEYS);
         addManageMenuItemToList(menu, STORAGE_KEYS);
         markMenuReady();
         return true;

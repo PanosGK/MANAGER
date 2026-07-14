@@ -434,7 +434,7 @@
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <label for="tm-setting-hidden-menu-enabled">📋 Απόκρυψη Αριστερού Μενού</label>
-                            <p class="tm-setting-description">Δεξί κλικ σε στοιχείο του αριστερού μενού για απόκρυψη. Το μενού δεν εμφανίζεται μέχρι να εφαρμοστούν οι ρυθμίσεις (όπως με τα themes).</p>
+                            <p class="tm-setting-description">Διαχειριστείτε ποια στοιχεία του αριστερού μενού εμφανίζονται από το «Κρυφά Στοιχεία Μενού». Το μενού δεν εμφανίζεται μέχρι να εφαρμοστούν οι ρυθμίσεις (όπως με τα themes).</p>
                         </div>
                         <div class="tm-setting-control" style="display:flex;align-items:center;gap:10px;">
                             <input type="checkbox" id="tm-setting-hidden-menu-enabled">
