@@ -2053,6 +2053,7 @@ async function showPhoneListModal() {
     let mineSelectedModel = null;
     let networkCatalogStep = 'models';
     let networkSelectedModel = null;
+    let suppressNetworkFilterEvents = false;
     
     // Tag system — phone assignments + user-defined tag catalog
     const TAGS_STORAGE_KEY = 'tm_phone_tags';
@@ -3443,12 +3444,16 @@ async function showPhoneListModal() {
         applyFilters();
     }
 
+    function readModelFromCard(card) {
+        if (!card) return '';
+        return card.dataset.tmPcModel || card.getAttribute('data-tm-pc-model') || '';
+    }
+
     function selectNetworkModel(model) {
         if (!model) return;
         networkSelectedModel = model;
         networkCatalogStep = 'phones';
         if (modelFilter) modelFilter.value = model;
-        syncNetworkModelFilter();
         updateCatalogBackButtons();
         applyFilters();
     }
@@ -3500,18 +3505,23 @@ async function showPhoneListModal() {
             if (grades.includes(cur)) networkGradeFilter.value = cur;
         }
         if (networkModelFilter) {
-            const cur = networkModelFilter.value || networkSelectedModel || '';
-            networkModelFilter.innerHTML = '<option value="">— Επιλέξτε μοντέλο —</option>' +
-                models.map(m => `<option value="${PhoneCatalogUI.esc(m)}">${PhoneCatalogUI.esc(m)}</option>`).join('');
-            if (cur && models.includes(cur)) networkModelFilter.value = cur;
-            else if (networkSelectedModel && models.includes(networkSelectedModel)) {
-                networkModelFilter.value = networkSelectedModel;
-            } else if (networkSelectedModel && !models.includes(networkSelectedModel)) {
-                const opt = document.createElement('option');
-                opt.value = networkSelectedModel;
-                opt.textContent = networkSelectedModel;
-                networkModelFilter.appendChild(opt);
-                networkModelFilter.value = networkSelectedModel;
+            suppressNetworkFilterEvents = true;
+            try {
+                const cur = networkModelFilter.value || networkSelectedModel || '';
+                networkModelFilter.innerHTML = '<option value="">— Επιλέξτε μοντέλο —</option>' +
+                    models.map(m => `<option value="${PhoneCatalogUI.esc(m)}">${PhoneCatalogUI.esc(m)}</option>`).join('');
+                if (cur && models.includes(cur)) networkModelFilter.value = cur;
+                else if (networkSelectedModel && models.includes(networkSelectedModel)) {
+                    networkModelFilter.value = networkSelectedModel;
+                } else if (networkSelectedModel && !models.includes(networkSelectedModel)) {
+                    const opt = document.createElement('option');
+                    opt.value = networkSelectedModel;
+                    opt.textContent = networkSelectedModel;
+                    networkModelFilter.appendChild(opt);
+                    networkModelFilter.value = networkSelectedModel;
+                }
+            } finally {
+                suppressNetworkFilterEvents = false;
             }
         }
         if (networkGbFilter) {
@@ -3585,7 +3595,6 @@ async function showPhoneListModal() {
             }
             if (networkSelectedModel) {
                 networkCatalogStep = 'phones';
-                if (networkModelFilter) networkModelFilter.value = networkSelectedModel;
                 if (modelFilter) modelFilter.value = networkSelectedModel;
             }
             updateCatalogBackButtons();
@@ -4173,10 +4182,11 @@ async function showPhoneListModal() {
         renderNetworkModelPicker();
     });
 
-    networkModelFilter?.addEventListener('change', () => {
+    networkModelFilter?.addEventListener('change', (e) => {
+        if (suppressNetworkFilterEvents) return;
         if (networkModelFilter.value) {
             selectNetworkModel(networkModelFilter.value);
-        } else {
+        } else if (e.isTrusted) {
             networkCatalogStep = 'models';
             networkSelectedModel = null;
             if (modelFilter) modelFilter.value = '';
@@ -4217,36 +4227,34 @@ async function showPhoneListModal() {
         renderNetworkModelPicker();
     });
 
-    // Model card clicks — delegated so re-renders never lose handlers
-    otherStoreContainer?.addEventListener('click', (e) => {
+    // Model card clicks — delegated on content nodes so re-renders never lose handlers
+    function handleNetworkModelCardPick(e) {
+        if (!showingOtherStores) return;
         const card = e.target.closest('.tm-pc-model-card[data-tm-pc-model]');
-        if (!card || !showingOtherStores) return;
-        if (card.closest('.tm-phone-item')) return;
+        if (!card || card.closest('.tm-phone-item')) return;
         e.preventDefault();
         e.stopPropagation();
-        selectNetworkModel(card.getAttribute('data-tm-pc-model'));
-    });
-    listTableWrap?.addEventListener('click', (e) => {
+        const model = readModelFromCard(card);
+        if (model) selectNetworkModel(model);
+    }
+    function handleMineModelCardPick(e) {
+        if (showingOtherStores) return;
         const card = e.target.closest('.tm-pc-model-card[data-tm-pc-model]');
-        if (!card || showingOtherStores) return;
-        if (card.closest('.tm-phone-item')) return;
+        if (!card || card.closest('.tm-phone-item')) return;
         e.preventDefault();
         e.stopPropagation();
-        selectMineModel(card.getAttribute('data-tm-pc-model'));
-    });
-    otherStoreContainer?.addEventListener('keydown', (e) => {
+        const model = readModelFromCard(card);
+        if (model) selectMineModel(model);
+    }
+    otherStoreContent?.addEventListener('click', handleNetworkModelCardPick);
+    listTableWrap?.addEventListener('click', handleMineModelCardPick);
+    otherStoreContent?.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter' && e.key !== ' ') return;
-        const card = e.target.closest('.tm-pc-model-card[data-tm-pc-model]');
-        if (!card || !showingOtherStores) return;
-        e.preventDefault();
-        selectNetworkModel(card.getAttribute('data-tm-pc-model'));
+        handleNetworkModelCardPick(e);
     });
     listTableWrap?.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter' && e.key !== ' ') return;
-        const card = e.target.closest('.tm-pc-model-card[data-tm-pc-model]');
-        if (!card || showingOtherStores) return;
-        e.preventDefault();
-        selectMineModel(card.getAttribute('data-tm-pc-model'));
+        handleMineModelCardPick(e);
     });
 
     settingsBtn?.addEventListener('click', (e) => {
@@ -4766,12 +4774,12 @@ async function showPhoneListModal() {
         const backBtnOS      = overlayEl.querySelector('#tm-os-back-btn');
 
         let osSelectedModel = null;
+        let suppressOsFilterEvents = false;
 
         // --- Model picker ---
         function selectOsModel(model) {
             if (!model) return;
             osSelectedModel = model;
-            modelFilterOS.value = osSelectedModel;
             showPhoneList();
         }
 
@@ -4805,7 +4813,8 @@ async function showPhoneListModal() {
             if (filterBarOS.style.display !== 'none') return;
             e.preventDefault();
             e.stopPropagation();
-            selectOsModel(card.getAttribute('data-tm-pc-model'));
+            const model = card.dataset.tmPcModel || card.getAttribute('data-tm-pc-model');
+            if (model) selectOsModel(model);
         });
 
         closeBtn.addEventListener('click', () => overlayEl.remove());
@@ -4833,9 +4842,23 @@ async function showPhoneListModal() {
                 const models = [...new Set(base.map(p => {
                     return extractBaseModel(p.model);
                 }).filter(m => m))].sort();
-                modelFilterOS.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Models']}</option>` +
-                    models.map(m => `<option value="${m}" style="${getPhoneCatalogMetaTextStyle()}">${m}</option>`).join('');
-                if (models.includes(currentModel)) modelFilterOS.value = currentModel;
+                suppressOsFilterEvents = true;
+                try {
+                    modelFilterOS.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Models']}</option>` +
+                        models.map(m => `<option value="${m}" style="${getPhoneCatalogMetaTextStyle()}">${m}</option>`).join('');
+                    const modelToSelect = osSelectedModel || currentModel;
+                    if (modelToSelect && models.includes(modelToSelect)) {
+                        modelFilterOS.value = modelToSelect;
+                    } else if (osSelectedModel && !models.includes(osSelectedModel)) {
+                        const opt = document.createElement('option');
+                        opt.value = osSelectedModel;
+                        opt.textContent = osSelectedModel;
+                        modelFilterOS.appendChild(opt);
+                        modelFilterOS.value = osSelectedModel;
+                    }
+                } finally {
+                    suppressOsFilterEvents = false;
+                }
             }
             
             if (filtersToUpdate.includes('gb')) {
@@ -5082,11 +5105,12 @@ async function showPhoneListModal() {
         
         // Add filter event listeners - reload all filters on any change
         gradeFilterOS.addEventListener('change', reloadAllFilters);
-        modelFilterOS.addEventListener('change', () => {
+        modelFilterOS.addEventListener('change', (e) => {
+            if (suppressOsFilterEvents) return;
             if (modelFilterOS.value) {
                 osSelectedModel = modelFilterOS.value;
                 showPhoneList();
-            } else {
+            } else if (e.isTrusted) {
                 renderModelPicker();
             }
         });
