@@ -440,6 +440,7 @@
 
         function syncCatalogHeaders() {
             if (step === 'stores' && selectedModel) return;
+            UI.clearStoresModelHeader(overlay);
             if (catalogView === 'mine') {
                 titleEl.textContent = 'Το κατάστημά μου';
                 subtitleEl.textContent = 'Συσκευές που έχετε σε stock';
@@ -754,10 +755,9 @@
             if (!selectedModel) return renderModelsStep();
             step = 'stores';
             UI.updateBreadcrumb(overlay, 'stores', selectedModel);
-            titleEl.textContent = selectedModel;
-            subtitleEl.textContent = catalogView === 'mine'
+            UI.setStoresModelHeader(overlay, selectedModel, catalogView === 'mine'
                 ? 'Συσκευές στο κατάστημά σας'
-                : 'Διαθεσιμότητα σε άλλα καταστήματα';
+                : 'Διαθεσιμότητα σε άλλα καταστήματα');
 
             const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers, catalogView);
             const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers, catalogView);

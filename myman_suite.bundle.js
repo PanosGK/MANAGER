@@ -26231,7 +26231,63 @@ window.initOrderTracking = initOrderTracking;
             padding: 8px 12px 6px;
             background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 8%, transparent), transparent 70%);
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-title { font-size: 1rem; margin: 0; }
+        .tm-sl-shell.tm-sl-view--network:not(.tm-sl-step--stores) .tm-sl-title { font-size: 1rem; margin: 0; }
+        .tm-sl-shell.tm-sl-step--stores .tm-sl-header {
+            padding: 12px 14px 10px;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 16%, transparent), transparent 72%);
+        }
+        .tm-sl-shell.tm-sl-step--stores .tm-sl-breadcrumb {
+            margin-bottom: 8px;
+        }
+        .tm-sl-shell.tm-sl-step--stores .tm-sl-breadcrumb-current {
+            font-size: 12px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: color-mix(in srgb, var(--tm-primary-color) 12%, transparent);
+        }
+        .tm-sl-title--model {
+            font-size: 1.55rem !important;
+            font-weight: 900 !important;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            margin: 0;
+        }
+        .tm-sl-shell.tm-sl-view--network.tm-sl-step--stores .tm-sl-title--model {
+            font-size: 1.45rem !important;
+        }
+        .tm-sl-model-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 100%;
+            padding: 7px 14px 7px 11px;
+            border-radius: 11px;
+            background: color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-shop-item-bg));
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 30%, transparent);
+            box-shadow: 0 2px 14px color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
+            color: var(--tm-primary-color);
+        }
+        .tm-sl-model-title__icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: color-mix(in srgb, var(--tm-primary-color) 18%, transparent);
+            flex-shrink: 0;
+        }
+        .tm-sl-model-title__icon svg { display: block; }
+        .tm-sl-model-title__name {
+            word-break: break-word;
+            color: var(--tm-shop-item-text, var(--tm-primary-color));
+        }
+        .tm-sl-shell.tm-sl-step--stores .tm-sl-subtitle {
+            font-size: 11px;
+            font-weight: 600;
+            opacity: 0.85;
+        }
         .tm-sl-shell.tm-sl-view--network .tm-sl-subtitle { font-size: 11px; margin: 2px 0 0; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-breadcrumb { margin-bottom: 4px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-view-tabs { margin-top: 6px; padding: 3px; border-radius: 8px; }
@@ -27793,6 +27849,29 @@ window.initOrderTracking = initOrderTracking;
         if (updatedEl) updatedEl.textContent = lastUpdated.toLocaleString('el-GR');
     }
 
+    function setStoresModelHeader(overlay, modelName, subtitle) {
+        const shell = overlay?.querySelector('#tm-sl-shell');
+        const titleEl = overlay?.querySelector('#tm-sl-title');
+        const subtitleEl = overlay?.querySelector('#tm-sl-subtitle');
+        shell?.classList.add('tm-sl-step--stores');
+        if (titleEl) {
+            titleEl.className = 'tm-sl-title tm-sl-title--model';
+            const phoneIcon = ICON.phone.replace('width="14"', 'width="18"').replace('height="14"', 'height="18"');
+            titleEl.innerHTML = `<span class="tm-sl-model-title">
+                <span class="tm-sl-model-title__icon">${phoneIcon}</span>
+                <span class="tm-sl-model-title__name">${esc(modelName)}</span>
+            </span>`;
+        }
+        if (subtitleEl) subtitleEl.textContent = subtitle || '';
+    }
+
+    function clearStoresModelHeader(overlay) {
+        const shell = overlay?.querySelector('#tm-sl-shell');
+        const titleEl = overlay?.querySelector('#tm-sl-title');
+        shell?.classList.remove('tm-sl-step--stores');
+        if (titleEl) titleEl.className = 'tm-sl-title';
+    }
+
     function updateBreadcrumb(overlay, step, modelName) {
         const wrap = overlay?.querySelector('#tm-sl-breadcrumb-wrap');
         if (wrap) wrap.innerHTML = buildBreadcrumb(step, modelName);
@@ -27853,6 +27932,8 @@ window.initOrderTracking = initOrderTracking;
         isStorePurchaseAllowed,
         showToast,
         updateFreshness,
+        setStoresModelHeader,
+        clearStoresModelHeader,
         updateBreadcrumb,
         updateViewTabs,
         setDensity,
@@ -32388,6 +32469,7 @@ if (document.body) {
 
         function syncCatalogHeaders() {
             if (step === 'stores' && selectedModel) return;
+            UI.clearStoresModelHeader(overlay);
             if (catalogView === 'mine') {
                 titleEl.textContent = 'Το κατάστημά μου';
                 subtitleEl.textContent = 'Συσκευές που έχετε σε stock';
@@ -32702,10 +32784,9 @@ if (document.body) {
             if (!selectedModel) return renderModelsStep();
             step = 'stores';
             UI.updateBreadcrumb(overlay, 'stores', selectedModel);
-            titleEl.textContent = selectedModel;
-            subtitleEl.textContent = catalogView === 'mine'
+            UI.setStoresModelHeader(overlay, selectedModel, catalogView === 'mine'
                 ? 'Συσκευές στο κατάστημά σας'
-                : 'Διαθεσιμότητα σε άλλα καταστήματα';
+                : 'Διαθεσιμότητα σε άλλα καταστήματα');
 
             const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers, catalogView);
             const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers, catalogView);
