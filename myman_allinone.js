@@ -100,7 +100,6 @@
         refreshIntervalMinutes: 7,
         autoRefreshEnabled: true,
         debugEnabled: false,
-        customLoginPageEnabled: true,
         workingHoursStart: 9,
         workingHoursEnd: 21,
         workingDays: [1, 2, 3, 4, 5, 6], // Mon-Sat

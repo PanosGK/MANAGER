@@ -3033,10 +3033,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '221',
+        version: '222',
         loaderVersion: '5',
-        silentVersion: '11',
-        displayVersion: '5.11',
+        silentVersion: '12',
+        displayVersion: '5.12',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -9835,7 +9835,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             
             // Debug mode is handled separately with passcode protection
-            saveCheckbox('tm-setting-login-page-enabled', 'customLoginPageEnabled');
             saveCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
             saveCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             saveCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
@@ -10000,13 +9999,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         <div class="tm-setting-control">
                             <input type="checkbox" id="tm-setting-script-enabled" style="transform: scale(1.3);">
                         </div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <label for="tm-setting-login-page-enabled">🎨 Προσαρμοσμένη Σελίδα Σύνδεσης</label>
-                            <p class="tm-setting-description">Αντικαθιστά την προεπιλεγμένη σελίδα σύνδεσης με μια μινιμαλιστική, σύγχρονη έκδοση.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-login-page-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -10707,7 +10699,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 });
             }
             
-            populateCheckbox('tm-setting-login-page-enabled', 'customLoginPageEnabled');
             populateCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
             populateCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             populateCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
@@ -40024,7 +40015,6 @@ if (typeof window !== 'undefined') {
         refreshIntervalMinutes: 7,
         autoRefreshEnabled: true,
         debugEnabled: false,
-        customLoginPageEnabled: true,
         workingHoursStart: 9,
         workingHoursEnd: 21,
         workingDays: [1, 2, 3, 4, 5, 6], // Mon-Sat

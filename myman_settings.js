@@ -251,7 +251,6 @@
             }
             
             // Debug mode is handled separately with passcode protection
-            saveCheckbox('tm-setting-login-page-enabled', 'customLoginPageEnabled');
             saveCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
             saveCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             saveCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
@@ -416,13 +415,6 @@
                         <div class="tm-setting-control">
                             <input type="checkbox" id="tm-setting-script-enabled" style="transform: scale(1.3);">
                         </div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <label for="tm-setting-login-page-enabled">🎨 Προσαρμοσμένη Σελίδα Σύνδεσης</label>
-                            <p class="tm-setting-description">Αντικαθιστά την προεπιλεγμένη σελίδα σύνδεσης με μια μινιμαλιστική, σύγχρονη έκδοση.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-login-page-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -1123,7 +1115,6 @@
                 });
             }
             
-            populateCheckbox('tm-setting-login-page-enabled', 'customLoginPageEnabled');
             populateCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
             populateCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
             populateCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
