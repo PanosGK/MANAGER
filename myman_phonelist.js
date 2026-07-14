@@ -90,6 +90,13 @@ const PHONE_CATALOG_TRANSLATIONS = {
     'Regular store patterns': '\u03A0\u03C1\u03CC\u03C4\u03C5\u03C0\u03B1 \u03BF\u03BD\u03CC\u03BC\u03B1\u03C4\u03BF\u03C2 \u03B3\u03B9\u03B1 \u03BA\u03B1\u03BD\u03BF\u03BD\u03B9\u03BA\u03AC',
     'Regular patterns hint': '\u039A\u03B5\u03BD\u03CC = \u03CC\u03BB\u03B1 \u03C4\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1',
     'Known stores': '\u0393\u03BD\u03C9\u03C3\u03C4\u03AC \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1',
+    'My store location': '\u03A4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03AC \u03BC\u03BF\u03C5',
+    'My store location hint': '\u0391\u03C5\u03C4\u03CC \u03C7\u03C1\u03B7\u03C3\u03B9\u03BC\u03BF\u03C0\u03BF\u03B9\u03B5\u03AF\u03C4\u03B1\u03B9 \u03B3\u03B9\u03B1 \u03BD\u03B1 \u03B5\u03BC\u03C6\u03B1\u03BD\u03AF\u03B6\u03BF\u03BD\u03C4\u03B1\u03B9 \u03C0\u03C1\u03CE\u03C4\u03B1 \u03C4\u03B1 \u03BA\u03BF\u03BD\u03C4\u03B9\u03BD\u03AC \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03C3\u03C4\u03B7 \u03BB\u03AF\u03C3\u03C4\u03B1 \u0386\u03BB\u03BB\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1.',
+    'Auto-detect store': '\u0391\u03C5\u03C4\u03CC\u03BC\u03B1\u03C4\u03B7 \u03B1\u03BD\u03AF\u03C7\u03BD\u03B5\u03C5\u03C3\u03B7',
+    'Auto-detected store': '\u0391\u03BD\u03B9\u03C7\u03BD\u03B5\u03CD\u03B8\u03B7\u03BA\u03B5 \u03B1\u03C5\u03C4\u03CC\u03BC\u03B1\u03C4\u03B1',
+    'No store detected': '\u0394\u03B5\u03BD \u03B1\u03BD\u03B9\u03C7\u03BD\u03B5\u03CD\u03B8\u03B7\u03BA\u03B5 \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1',
+    'My store saved': '\u0391\u03C0\u03BF\u03B8\u03B7\u03BA\u03B5\u03C8\u03B5 \u03C4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03AC \u03C3\u03B1\u03C2',
+    'Select store': '\u0395\u03C0\u03B9\u03BB\u03AD\u03BE\u03C4\u03B5 \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1',
     'Allow buyback': '\u0395\u03C0\u03B9\u03C4\u03C1\u03AD\u03C0\u03B5\u03C4\u03B1\u03B9 BB',
     'Allow regular': '\u0395\u03C0\u03B9\u03C4\u03C1\u03AD\u03C0\u03B5\u03C4\u03B1\u03B9 \u03BA\u03B1\u03BD\u03BF\u03BD\u03B9\u03BA\u03CC',
     'No known stores yet': '\u0394\u03B5\u03BD \u03B2\u03C1\u03AD\u03B8\u03B7\u03BA\u03B1\u03BD \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03B1\u03BA\u03CC\u03BC\u03B1',
@@ -1033,7 +1040,25 @@ function normalizeStoreDisplayName(name) {
 }
 
 const MY_STORE_NAME_KEY = 'tm_phone_my_store_name_v1';
+const MY_STORE_PICK_KEY = 'tm_phone_my_store_pick_v1';
 
+const DEFAULT_PROFILE_STORES = [
+    'ΕΡΥΘΡΑΙΑ (ΕΕ)',
+    'ΣΥΝΤΑΓΜΑ SERVICE (ΕΕ)',
+    'ΣΥΝΤΑΓΜΑ (ΕΕ)',
+    'ΧΟΛΑΡΓΟΣ (ΙΚΕ)',
+    'ATHENS MALL (ΙΚΕ)',
+    'ΚΕΝΤΡΙΚΗ ΑΠΟΘΗΚΗ (ΙΚΕ)',
+    'ΚΟΛΩΝΑΚΙ (ΕΕ)',
+    'ΓΛΥΦΑΔΑ (ΙΚΕ)',
+    'ΠΕΙΡΑΙΑΣ (ΙΚΕ)',
+    'ΒΡΙΛΗΣΣΙΑ (IKE)',
+    'ΚΟΡΥΔΑΛΛΟΣ (ΕΕ)',
+    'ΚΗΦΙΣΙΑ (ΕΕ)',
+    'ΕΛΛΗΝΙΚΟ (ΙΚΕ)',
+    'ΑΓ.ΠΑΡΑΣΚΕΥΗ (ΕΕ)',
+    'ΧΑΛΑΝΔΡΙ (IKE)',
+];
 const STORE_LOCALITY_CLUSTERS = [
     { id: 'central', patterns: [/ΣΥΝΤΑΓΜΑ|ΚΟΛΩΝΑΚΙ/i], region: 'Αττική' },
     { id: 'north', patterns: [/ΧΟΛΑΡΓΟΣ|ATHENS\s*MALL|ΒΡΙΛΗΣΣΙ|ΚΗΦΙΣΙ|ΧΑΛΑΝΔΡ/i], region: 'Αττική' },
@@ -1131,8 +1156,48 @@ function detectAndCacheCurrentStoreName(doc = document) {
     return GM_getValue(MY_STORE_NAME_KEY, '') || '';
 }
 
+function getAutoDetectedStoreName(doc = document) {
+    return detectAndCacheCurrentStoreName(doc);
+}
+
+function getUserStorePick() {
+    return GM_getValue(MY_STORE_PICK_KEY, '') || '';
+}
+
+function setUserStorePick(name) {
+    const clean = normalizeStoreDisplayName(name);
+    if (clean) {
+        GM_setValue(MY_STORE_PICK_KEY, clean);
+        return clean;
+    }
+    GM_deleteValue(MY_STORE_PICK_KEY);
+    return '';
+}
+
+function getStorePickerOptions(...phoneLists) {
+    const seen = new Map();
+    const add = (name) => {
+        const clean = normalizeStoreDisplayName(name);
+        if (!clean || isDeprecatedStoreName(clean)) return;
+        const key = normalizeStoreLookupKey(clean);
+        if (!seen.has(key)) seen.set(key, clean);
+    };
+
+    DEFAULT_PROFILE_STORES.forEach(add);
+    getProfileStoreNamesFromDocument().forEach(add);
+    (collectKnownStoreNames(...phoneLists) || []).forEach(add);
+    const detected = GM_getValue(MY_STORE_NAME_KEY, '');
+    if (detected) add(detected);
+    const pick = getUserStorePick();
+    if (pick) add(pick);
+
+    return [...seen.values()].sort((a, b) => a.localeCompare(b, 'el'));
+}
+
 function getCurrentStoreName() {
-    return detectAndCacheCurrentStoreName(document);
+    const pick = getUserStorePick();
+    if (pick) return pick;
+    return getAutoDetectedStoreName(document);
 }
 
 function guessStoreLocality(name) {
@@ -2818,6 +2883,10 @@ window.parseStorePatternCsv = parseStorePatternCsv;
 window.storeNameMatchesPatterns = storeNameMatchesPatterns;
 window.collectKnownStoreNames = collectKnownStoreNames;
 window.getCurrentStoreName = getCurrentStoreName;
+window.getAutoDetectedStoreName = getAutoDetectedStoreName;
+window.getUserStorePick = getUserStorePick;
+window.setUserStorePick = setUserStorePick;
+window.getStorePickerOptions = getStorePickerOptions;
 window.detectAndCacheCurrentStoreName = detectAndCacheCurrentStoreName;
 window.guessStoreRegion = guessStoreRegion;
 window.guessStoreLocality = guessStoreLocality;

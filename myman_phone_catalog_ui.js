@@ -855,6 +855,7 @@
                         <div class="tm-sl-settings-wrap">
                             <button type="button" id="tm-sl-settings" class="tm-sl-btn tm-sl-btn--icon" title="Ρυθμίσεις" aria-haspopup="true">${ICON.settings}</button>
                             <div id="tm-sl-settings-menu" class="tm-sl-settings-menu" hidden>
+                                <button type="button" id="tm-sl-mystore-btn">${ICON.pin} Το κατάστημά μου</button>
                                 <button type="button" id="tm-sl-models-btn">${ICON.phone} Διαχείριση Μοντέλων</button>
                                 <button type="button" id="tm-sl-colors-btn">${ICON.palette} Διαχείριση Χρωμάτων</button>
                                 <button type="button" id="tm-sl-tags-btn">${ICON.tag} Διαχείριση Ετικετών</button>

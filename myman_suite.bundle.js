@@ -26932,6 +26932,7 @@ window.initOrderTracking = initOrderTracking;
                         <div class="tm-sl-settings-wrap">
                             <button type="button" id="tm-sl-settings" class="tm-sl-btn tm-sl-btn--icon" title="Ρυθμίσεις" aria-haspopup="true">${ICON.settings}</button>
                             <div id="tm-sl-settings-menu" class="tm-sl-settings-menu" hidden>
+                                <button type="button" id="tm-sl-mystore-btn">${ICON.pin} Το κατάστημά μου</button>
                                 <button type="button" id="tm-sl-models-btn">${ICON.phone} Διαχείριση Μοντέλων</button>
                                 <button type="button" id="tm-sl-colors-btn">${ICON.palette} Διαχείριση Χρωμάτων</button>
                                 <button type="button" id="tm-sl-tags-btn">${ICON.tag} Διαχείριση Ετικετών</button>
@@ -27568,6 +27569,13 @@ const PHONE_CATALOG_TRANSLATIONS = {
     'Regular store patterns': '\u03A0\u03C1\u03CC\u03C4\u03C5\u03C0\u03B1 \u03BF\u03BD\u03CC\u03BC\u03B1\u03C4\u03BF\u03C2 \u03B3\u03B9\u03B1 \u03BA\u03B1\u03BD\u03BF\u03BD\u03B9\u03BA\u03AC',
     'Regular patterns hint': '\u039A\u03B5\u03BD\u03CC = \u03CC\u03BB\u03B1 \u03C4\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1',
     'Known stores': '\u0393\u03BD\u03C9\u03C3\u03C4\u03AC \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1',
+    'My store location': '\u03A4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03AC \u03BC\u03BF\u03C5',
+    'My store location hint': '\u0391\u03C5\u03C4\u03CC \u03C7\u03C1\u03B7\u03C3\u03B9\u03BC\u03BF\u03C0\u03BF\u03B9\u03B5\u03AF\u03C4\u03B1\u03B9 \u03B3\u03B9\u03B1 \u03BD\u03B1 \u03B5\u03BC\u03C6\u03B1\u03BD\u03AF\u03B6\u03BF\u03BD\u03C4\u03B1\u03B9 \u03C0\u03C1\u03CE\u03C4\u03B1 \u03C4\u03B1 \u03BA\u03BF\u03BD\u03C4\u03B9\u03BD\u03AC \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03C3\u03C4\u03B7 \u03BB\u03AF\u03C3\u03C4\u03B1 \u0386\u03BB\u03BB\u03B1 \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1.',
+    'Auto-detect store': '\u0391\u03C5\u03C4\u03CC\u03BC\u03B1\u03C4\u03B7 \u03B1\u03BD\u03AF\u03C7\u03BD\u03B5\u03C5\u03C3\u03B7',
+    'Auto-detected store': '\u0391\u03BD\u03B9\u03C7\u03BD\u03B5\u03CD\u03B8\u03B7\u03BA\u03B5 \u03B1\u03C5\u03C4\u03CC\u03BC\u03B1\u03C4\u03B1',
+    'No store detected': '\u0394\u03B5\u03BD \u03B1\u03BD\u03B9\u03C7\u03BD\u03B5\u03CD\u03B8\u03B7\u03BA\u03B5 \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1',
+    'My store saved': '\u0391\u03C0\u03BF\u03B8\u03B7\u03BA\u03B5\u03C8\u03B5 \u03C4\u03BF \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03AC \u03C3\u03B1\u03C2',
+    'Select store': '\u0395\u03C0\u03B9\u03BB\u03AD\u03BE\u03C4\u03B5 \u03BA\u03B1\u03C4\u03AC\u03C3\u03C4\u03B7\u03BC\u03B1',
     'Allow buyback': '\u0395\u03C0\u03B9\u03C4\u03C1\u03AD\u03C0\u03B5\u03C4\u03B1\u03B9 BB',
     'Allow regular': '\u0395\u03C0\u03B9\u03C4\u03C1\u03AD\u03C0\u03B5\u03C4\u03B1\u03B9 \u03BA\u03B1\u03BD\u03BF\u03BD\u03B9\u03BA\u03CC',
     'No known stores yet': '\u0394\u03B5\u03BD \u03B2\u03C1\u03AD\u03B8\u03B7\u03BA\u03B1\u03BD \u03BA\u03B1\u03C4\u03B1\u03C3\u03C4\u03AE\u03BC\u03B1\u03C4\u03B1 \u03B1\u03BA\u03CC\u03BC\u03B1',
@@ -28511,7 +28519,25 @@ function normalizeStoreDisplayName(name) {
 }
 
 const MY_STORE_NAME_KEY = 'tm_phone_my_store_name_v1';
+const MY_STORE_PICK_KEY = 'tm_phone_my_store_pick_v1';
 
+const DEFAULT_PROFILE_STORES = [
+    'ΕΡΥΘΡΑΙΑ (ΕΕ)',
+    'ΣΥΝΤΑΓΜΑ SERVICE (ΕΕ)',
+    'ΣΥΝΤΑΓΜΑ (ΕΕ)',
+    'ΧΟΛΑΡΓΟΣ (ΙΚΕ)',
+    'ATHENS MALL (ΙΚΕ)',
+    'ΚΕΝΤΡΙΚΗ ΑΠΟΘΗΚΗ (ΙΚΕ)',
+    'ΚΟΛΩΝΑΚΙ (ΕΕ)',
+    'ΓΛΥΦΑΔΑ (ΙΚΕ)',
+    'ΠΕΙΡΑΙΑΣ (ΙΚΕ)',
+    'ΒΡΙΛΗΣΣΙΑ (IKE)',
+    'ΚΟΡΥΔΑΛΛΟΣ (ΕΕ)',
+    'ΚΗΦΙΣΙΑ (ΕΕ)',
+    'ΕΛΛΗΝΙΚΟ (ΙΚΕ)',
+    'ΑΓ.ΠΑΡΑΣΚΕΥΗ (ΕΕ)',
+    'ΧΑΛΑΝΔΡΙ (IKE)',
+];
 const STORE_LOCALITY_CLUSTERS = [
     { id: 'central', patterns: [/ΣΥΝΤΑΓΜΑ|ΚΟΛΩΝΑΚΙ/i], region: 'Αττική' },
     { id: 'north', patterns: [/ΧΟΛΑΡΓΟΣ|ATHENS\s*MALL|ΒΡΙΛΗΣΣΙ|ΚΗΦΙΣΙ|ΧΑΛΑΝΔΡ/i], region: 'Αττική' },
@@ -28609,8 +28635,48 @@ function detectAndCacheCurrentStoreName(doc = document) {
     return GM_getValue(MY_STORE_NAME_KEY, '') || '';
 }
 
+function getAutoDetectedStoreName(doc = document) {
+    return detectAndCacheCurrentStoreName(doc);
+}
+
+function getUserStorePick() {
+    return GM_getValue(MY_STORE_PICK_KEY, '') || '';
+}
+
+function setUserStorePick(name) {
+    const clean = normalizeStoreDisplayName(name);
+    if (clean) {
+        GM_setValue(MY_STORE_PICK_KEY, clean);
+        return clean;
+    }
+    GM_deleteValue(MY_STORE_PICK_KEY);
+    return '';
+}
+
+function getStorePickerOptions(...phoneLists) {
+    const seen = new Map();
+    const add = (name) => {
+        const clean = normalizeStoreDisplayName(name);
+        if (!clean || isDeprecatedStoreName(clean)) return;
+        const key = normalizeStoreLookupKey(clean);
+        if (!seen.has(key)) seen.set(key, clean);
+    };
+
+    DEFAULT_PROFILE_STORES.forEach(add);
+    getProfileStoreNamesFromDocument().forEach(add);
+    (collectKnownStoreNames(...phoneLists) || []).forEach(add);
+    const detected = GM_getValue(MY_STORE_NAME_KEY, '');
+    if (detected) add(detected);
+    const pick = getUserStorePick();
+    if (pick) add(pick);
+
+    return [...seen.values()].sort((a, b) => a.localeCompare(b, 'el'));
+}
+
 function getCurrentStoreName() {
-    return detectAndCacheCurrentStoreName(document);
+    const pick = getUserStorePick();
+    if (pick) return pick;
+    return getAutoDetectedStoreName(document);
 }
 
 function guessStoreLocality(name) {
@@ -30296,6 +30362,10 @@ window.parseStorePatternCsv = parseStorePatternCsv;
 window.storeNameMatchesPatterns = storeNameMatchesPatterns;
 window.collectKnownStoreNames = collectKnownStoreNames;
 window.getCurrentStoreName = getCurrentStoreName;
+window.getAutoDetectedStoreName = getAutoDetectedStoreName;
+window.getUserStorePick = getUserStorePick;
+window.setUserStorePick = setUserStorePick;
+window.getStorePickerOptions = getStorePickerOptions;
 window.detectAndCacheCurrentStoreName = detectAndCacheCurrentStoreName;
 window.guessStoreRegion = guessStoreRegion;
 window.guessStoreLocality = guessStoreLocality;
@@ -30724,12 +30794,73 @@ if (document.body) {
         renderTagList();
     }
 
+    function showMyStoreLocationModal(ctx = {}) {
+        const { allPhones = [], otherStorePhones = [], onChange = () => {} } = ctx;
+        const existing = document.getElementById('tm-phone-mystore-modal');
+        if (existing) existing.remove();
+
+        const options = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
+        const currentPick = window.getUserStorePick?.() || '';
+        const detected = window.getAutoDetectedStoreName?.() || '';
+        const modal = document.createElement('div');
+        modal.id = 'tm-phone-mystore-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
+
+        const panel = document.createElement('div');
+        panel.style.cssText = 'width:min(480px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
+
+        const optionHtml = options.map((name) => {
+            const selected = currentPick === name ? ' selected' : '';
+            return `<option value="${name.replace(/"/g, '&quot;')}"${selected}>${name}</option>`;
+        }).join('');
+
+        panel.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <h3 style="margin:0;font-size:16px;font-weight:600;">${t('My store location')}</h3>
+                <button id="tm-mystore-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
+            </div>
+            <div style="font-size:11px;opacity:0.75;margin-bottom:12px;line-height:1.45;">${t('My store location hint')}</div>
+            <label style="display:block;font-size:12px;font-weight:600;margin-bottom:6px;">${t('Select store')}</label>
+            <select id="tm-my-store-pick" style="width:100%;padding:10px 12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;box-sizing:border-box;margin-bottom:10px;">
+                <option value="">${t('Auto-detect store')}${detected ? ` (${detected})` : ''}</option>
+                ${optionHtml}
+            </select>
+            <div id="tm-my-store-detected" style="font-size:11px;opacity:0.7;margin-bottom:14px;">
+                ${detected ? `${t('Auto-detected store')}: <strong>${detected}</strong>` : t('No store detected')}
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button id="tm-save-my-store" type="button" style="padding:8px 14px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;">${t('Save')}</button>
+            </div>
+        `;
+
+        modal.appendChild(panel);
+        document.body.appendChild(modal);
+
+        const pickSelect = panel.querySelector('#tm-my-store-pick');
+        const save = () => {
+            const value = pickSelect.value || '';
+            window.setUserStorePick?.(value);
+            if (window.showPositiveMessage) window.showPositiveMessage(t('My store saved'));
+            onChange();
+            modal.remove();
+        };
+
+        panel.querySelector('#tm-save-my-store').addEventListener('click', save);
+        panel.querySelector('#tm-mystore-close').addEventListener('click', () => modal.remove());
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
+    }
+
     function showStoreRulesModal(ctx = {}) {
         const { allPhones = [], otherStorePhones = [], onChange = () => {} } = ctx;
         const existing = document.getElementById('tm-phone-stores-modal');
         if (existing) existing.remove();
 
         const rules = window.loadPhoneStoreRules?.() || window.getDefaultPhoneStoreRules?.() || { buybackPatterns: [], regularPatterns: [], overrides: {} };
+        const storeOptions = window.getStorePickerOptions?.(allPhones, otherStorePhones) || [];
+        const currentPick = window.getUserStorePick?.() || '';
+        const detected = window.getAutoDetectedStoreName?.() || '';
         const modal = document.createElement('div');
         modal.id = 'tm-phone-stores-modal';
         modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
@@ -30741,6 +30872,14 @@ if (document.body) {
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <h3 style="margin:0;font-size:16px;font-weight:600;">${t('Manage Stores')}</h3>
                 <button id="tm-stores-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
+                <label style="font-size:12px;font-weight:600;">${t('My store location')}</label>
+                <select id="tm-my-store-pick-inline" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;">
+                    <option value="">${t('Auto-detect store')}${detected ? ` (${detected})` : ''}</option>
+                    ${storeOptions.map((name) => `<option value="${name.replace(/"/g, '&quot;')}"${currentPick === name ? ' selected' : ''}>${name}</option>`).join('')}
+                </select>
+                <div style="font-size:11px;opacity:0.7;line-height:1.4;">${t('My store location hint')}</div>
             </div>
             <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
                 <label style="font-size:12px;font-weight:600;">${t('Buyback store patterns')}</label>
@@ -30763,6 +30902,7 @@ if (document.body) {
 
         const buybackPatternsInput = panel.querySelector('#tm-buyback-store-patterns');
         const regularPatternsInput = panel.querySelector('#tm-regular-store-patterns');
+        const myStorePickInput = panel.querySelector('#tm-my-store-pick-inline');
         const listEl = panel.querySelector('#tm-phone-stores-list');
         let draftOverrides = { ...rules.overrides };
 
@@ -30825,6 +30965,7 @@ if (document.body) {
                 buybackPatternsInput.value = next.buybackPatterns.join(', ');
             }
             window.savePhoneStoreRules?.(next);
+            window.setUserStorePick?.(myStorePickInput?.value || '');
             draftOverrides = { ...next.overrides };
             if (window.showPositiveMessage) window.showPositiveMessage(t('Store rules saved'));
             onChange();
@@ -31090,6 +31231,10 @@ if (document.body) {
             hideMenus();
         });
 
+        overlay.querySelector('#tm-sl-mystore-btn')?.addEventListener('click', () => {
+            hideMenus();
+            showMyStoreLocationModal(getCtx());
+        });
         overlay.querySelector('#tm-sl-models-btn')?.addEventListener('click', () => {
             hideMenus();
             showModelsManagerModal(getCtx());
@@ -31129,6 +31274,7 @@ if (document.body) {
         showColorManagerModal,
         showTagManagerModal,
         showStoreRulesModal,
+        showMyStoreLocationModal,
         showModelsManagerModal,
         wireSettingsMenu,
         exportToClipboard,
