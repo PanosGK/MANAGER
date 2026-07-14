@@ -673,6 +673,233 @@ function getXpForLevel(level) {
     return Math.floor(100 * Math.pow(1.2, level - 1));
 }
 
+function getLevelBaseCoinReward(level) {
+    if (level >= 25) return 250;
+    if (level >= 10) return 150;
+    return 100;
+}
+
+function getLevelBountyBonusFraction(level) {
+    return Math.floor(level / 12) * 0.10;
+}
+
+function getBountyRewardMultiplier(STORAGE_KEYS) {
+    const level = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
+    let multiplier = 1 + getLevelBountyBonusFraction(level);
+    const unlockedTalents = JSON.parse(GM_getValue(STORAGE_KEYS.UNLOCKED_TALENTS, '[]'));
+    TALENT_TREE.forEach((t) => {
+        if (unlockedTalents.includes(t.id) && t.bonus?.type === 'bounty_modifier') {
+            multiplier += t.bonus.multiplier || 0;
+        }
+    });
+    return multiplier;
+}
+
+function getShopDiscountRate(STORAGE_KEYS) {
+    return Math.min(0.9, GM_getValue(STORAGE_KEYS.SHOP_DISCOUNT, 0) || 0);
+}
+
+function getDiscountedShopCost(baseCost, STORAGE_KEYS, config) {
+    if (config?.debugEnabled) return { base: baseCost, final: 0, hasDiscount: false };
+    const rate = getShopDiscountRate(STORAGE_KEYS);
+    const final = Math.max(1, Math.ceil(baseCost * (1 - rate)));
+    return { base: baseCost, final, hasDiscount: rate > 0 && final < baseCost };
+}
+
+function formatShopCostHTML(baseCost, STORAGE_KEYS, config) {
+    const { base, final, hasDiscount } = getDiscountedShopCost(baseCost, STORAGE_KEYS, config);
+    if (config?.debugEnabled) return '🪙 0 (Free)';
+    if (!hasDiscount) return `🪙 ${base}`;
+    return `<span class="tm-shop-price-original">🪙 ${base}</span> <span class="tm-shop-price-sale">🪙 ${final}</span>`;
+}
+
+function describeLevelRewardLines(level) {
+    const lines = [];
+    lines.push(`🪙 +${getLevelBaseCoinReward(level)} Fixer-Coins`);
+    lines.push('🌟 +1 Talent Point');
+    const special = LEVEL_REWARDS.special[level];
+    if (special?.message) lines.push(special.message.replace(/<[^>]+>/g, ''));
+    const rank = RANKS.find((r) => r.level === level);
+    if (rank) lines.push(`🏆 Title: ${rank.title}`);
+    if (level % 5 === 0) lines.push('🎁 Loot box — pick 1 of 3 rewards');
+    return lines;
+}
+
+function getNextLevelPreviewHTML(STORAGE_KEYS) {
+    const level = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
+    const next = level + 1;
+    const xp = GM_getValue(STORAGE_KEYS.USER_XP, 0);
+    const need = getXpForLevel(level) - xp;
+    const lines = describeLevelRewardLines(next);
+    const bountyPct = Math.round(getLevelBountyBonusFraction(level) * 100);
+    const discountPct = Math.round(getShopDiscountRate(STORAGE_KEYS) * 100);
+    let perks = [];
+    if (bountyPct > 0) perks.push(`Bounties +${bountyPct}%`);
+    if (discountPct > 0) perks.push(`Shop -${discountPct}%`);
+    const perksLine = perks.length ? `<div class="tm-xp-preview-perks">Active: ${perks.join(' · ')}</div>` : '';
+    return `<div class="tm-xp-preview-title">Level ${next} in ${Math.max(0, need)} XP</div>
+        ${lines.map((l) => `<div class="tm-xp-preview-line">${l}</div>`).join('')}
+        ${perksLine}`;
+}
+
+const LOOT_BOX_POOL = [
+    { id: 'reroll', label: '🔄 Reroll Token', icon: '🔄', desc: 'Reroll a daily bounty' },
+    { id: 'bounty_token', label: '🎯 Bounty Token', icon: '🎯', desc: 'Instantly complete a bounty' },
+    { id: 'coffee', label: '☕ Coffee', icon: '☕', desc: '5 min Energized buff' },
+    { id: 'xp_small', label: '📈 +100 XP', icon: '📈', desc: 'Instant XP boost' },
+    { id: 'confetti', label: '🎉 Confetti', icon: '🎉', desc: 'Celebration burst' },
+    { id: 'coins', label: '💰 +75 Coins', icon: '💰', desc: 'Bonus Fixer-Coins' },
+];
+
+function applyLootBoxReward(rewardId, config, STORAGE_KEYS) {
+    switch (rewardId) {
+        case 'reroll': {
+            const n = GM_getValue(STORAGE_KEYS.USER_REROLL_TOKENS, 0);
+            GM_setValue(STORAGE_KEYS.USER_REROLL_TOKENS, n + 1);
+            break;
+        }
+        case 'bounty_token': {
+            const n = GM_getValue(SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, 0) || 0;
+            GM_setValue(SHOP_ITEMS.BOUNTY_COMPLETE_TOKEN, n + 1);
+            break;
+        }
+        case 'coffee':
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 5 * 60 * 1000);
+            }
+            break;
+        case 'xp_small':
+            grantXp(config, STORAGE_KEYS, 100, 'loot_box');
+            break;
+        case 'confetti':
+            if (typeof window.triggerConfetti === 'function') window.triggerConfetti(80);
+            break;
+        case 'coins':
+            grantCoins(config, STORAGE_KEYS, 75, 'loot_box');
+            break;
+        default:
+            break;
+    }
+}
+
+function showLevelLootBox(config, STORAGE_KEYS, level) {
+    if (document.getElementById('tm-loot-box-overlay')) return;
+    const picks = [...LOOT_BOX_POOL].sort(() => 0.5 - Math.random()).slice(0, 3);
+    const overlay = document.createElement('div');
+    overlay.id = 'tm-loot-box-overlay';
+    overlay.className = 'tm-modal-overlay';
+    overlay.innerHTML = `
+        <div class="tm-loot-box-panel">
+            <h2 class="tm-loot-box-title">🎁 Level ${level} Loot Box</h2>
+            <p class="tm-loot-box-sub">Pick one reward:</p>
+            <div class="tm-loot-box-options">
+                ${picks.map((p) => `
+                    <button type="button" class="tm-loot-box-option" data-loot-id="${p.id}">
+                        <span class="tm-loot-box-option__icon">${p.icon}</span>
+                        <span class="tm-loot-box-option__label">${p.label}</span>
+                        <span class="tm-loot-box-option__desc">${p.desc}</span>
+                    </button>
+                `).join('')}
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelectorAll('.tm-loot-box-option').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.lootId;
+            const pick = picks.find((p) => p.id === id);
+            applyLootBoxReward(id, config, STORAGE_KEYS);
+            if (typeof window.createNotification === 'function') {
+                window.createNotification(`Loot box: ${pick?.label || id}`, '🎁');
+            }
+            updateBuffInventoryUI(STORAGE_KEYS);
+            if (typeof window.updateCoinBalanceUI === 'function') {
+                window.updateCoinBalanceUI(STORAGE_KEYS, GM_getValue(STORAGE_KEYS.USER_COINS, 0), config);
+            }
+            overlay.remove();
+        });
+    });
+}
+
+function tryGrantDailyStipend(config, STORAGE_KEYS) {
+    if (!config?.levelUpSystemEnabled) return;
+    const today = new Date().toISOString().slice(0, 10);
+    if (GM_getValue('tm_daily_stipend_date', '') === today) return;
+    const level = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
+    const stipend = Math.floor(level / 10) * 5;
+    GM_setValue('tm_daily_stipend_date', today);
+    if (stipend <= 0) return;
+    grantCoins(config, STORAGE_KEYS, stipend, 'daily_stipend');
+    if (typeof window.createNotification === 'function') {
+        window.createNotification(`Daily stipend: +${stipend} coins (Lv.${level})`, '🪙');
+    }
+}
+
+function updateBuffInventoryUI(STORAGE_KEYS) {
+    const el = document.getElementById('tm-buff-inventory');
+    if (!el) return;
+    const energized = GM_getValue(STORAGE_KEYS.ENERGIZED_BUFF_COUNT, 0) || 0;
+    const doubleCoins = GM_getValue(STORAGE_KEYS.DOUBLE_COINS_BUFF_COUNT, 0) || 0;
+    const parts = [];
+    if (energized > 0) parts.push(`⚡${energized}`);
+    if (doubleCoins > 0) parts.push(`💰${doubleCoins}`);
+    if (!parts.length) {
+        el.style.display = 'none';
+        el.textContent = '';
+        return;
+    }
+    el.style.display = 'inline-flex';
+    el.textContent = parts.join(' · ');
+    el.title = `Click to activate: ${energized} Energized (1h XP) · ${doubleCoins} Double Coins (1h)`;
+}
+
+function activateBuffFromInventory(type, config, STORAGE_KEYS) {
+    const key = type === 'energized' ? STORAGE_KEYS.ENERGIZED_BUFF_COUNT : STORAGE_KEYS.DOUBLE_COINS_BUFF_COUNT;
+    let count = GM_getValue(key, 0) || 0;
+    if (count <= 0) return;
+    count -= 1;
+    GM_setValue(key, count);
+    const duration = 60 * 60 * 1000;
+    if (type === 'energized' && typeof window.triggerEnergizedState === 'function') {
+        window.triggerEnergizedState(config, STORAGE_KEYS, duration);
+    } else if (type === 'double' && typeof window.triggerDoubleCoinsEffect === 'function') {
+        window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, duration);
+    }
+    updateBuffInventoryUI(STORAGE_KEYS);
+}
+
+function handleBuffInventoryClick(config, STORAGE_KEYS) {
+    const energized = GM_getValue(STORAGE_KEYS.ENERGIZED_BUFF_COUNT, 0) || 0;
+    const doubleCoins = GM_getValue(STORAGE_KEYS.DOUBLE_COINS_BUFF_COUNT, 0) || 0;
+    if (energized > 0) {
+        activateBuffFromInventory('energized', config, STORAGE_KEYS);
+        return;
+    }
+    if (doubleCoins > 0) activateBuffFromInventory('double', config, STORAGE_KEYS);
+}
+
+function updateLevelPerksLine(STORAGE_KEYS) {
+    const el = document.getElementById('tm-level-perks-line');
+    if (!el) return;
+    const level = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
+    const bountyPct = Math.round(getLevelBountyBonusFraction(level) * 100);
+    const discountPct = Math.round(getShopDiscountRate(STORAGE_KEYS) * 100);
+    const parts = [];
+    if (bountyPct > 0) parts.push(`Bounties +${bountyPct}%`);
+    if (discountPct > 0) parts.push(`Shop -${discountPct}%`);
+    if (!parts.length) {
+        el.style.display = 'none';
+        return;
+    }
+    el.style.display = 'block';
+    el.textContent = parts.join(' · ');
+}
+
+function logLevelUpNotification(level, rewards) {
+    if (typeof window.createNotification !== 'function') return;
+    const plain = rewards.map((r) => String(r).replace(/<[^>]+>/g, '')).join(' · ');
+    window.createNotification(`Level ${level} — ${plain}`, '🎉', { type: 'level_up' });
+}
+
 // Wrapper function that queues level-up animations
 function triggerLevelUpAnimation(newLevel, oldLevel, STORAGE_KEYS, rewards = [], isLegendary = false) {
     if (typeof queueNotification === 'function') {
@@ -1020,20 +1247,21 @@ function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
         const rewards = [];
         let isLegendaryLevelUp = false;
         
-        // 1. Base rewards - ALWAYS given
+        // 1. Base rewards - ALWAYS given (scales with level)
         const doubleCoinsExpires = GM_getValue(STORAGE_KEYS.DOUBLE_COINS_BUFF_EXPIRES, 0);
         const hasDoubleCoinsBuff = Date.now() < doubleCoinsExpires;
-        
-        grantCoins(config, STORAGE_KEYS, LEVEL_REWARDS.base.coins, 'level_up');
-        
+        const baseCoins = getLevelBaseCoinReward(currentLevel);
+
+        grantCoins(config, STORAGE_KEYS, baseCoins, 'level_up');
+
         const currentTalentPoints = GM_getValue(STORAGE_KEYS.USER_TALENT_POINTS, 0);
         GM_setValue(STORAGE_KEYS.USER_TALENT_POINTS, currentTalentPoints + LEVEL_REWARDS.base.talentPoints);
-        
+
         rewards.push('🌟 +1 Talent Point!');
         if (hasDoubleCoinsBuff) {
-            rewards.push(`🪙 +${LEVEL_REWARDS.base.coins} Fixer-Coins! 💰 (+${LEVEL_REWARDS.base.coins} DOUBLE COINS BONUS!)`);
+            rewards.push(`🪙 +${baseCoins} Fixer-Coins! 💰 (+${baseCoins} DOUBLE COINS BONUS!)`);
         } else {
-            rewards.push(`🪙 +${LEVEL_REWARDS.base.coins} Fixer-Coins!`);
+            rewards.push(`🪙 +${baseCoins} Fixer-Coins!`);
         }
         
         // 2. Special level rewards
@@ -1057,6 +1285,14 @@ function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
         }
 
         triggerLevelUpAnimation(currentLevel, oldLevel, STORAGE_KEYS, rewards, isLegendaryLevelUp);
+        logLevelUpNotification(currentLevel, rewards);
+        updateBuffInventoryUI(STORAGE_KEYS);
+        updateLevelPerksLine(STORAGE_KEYS);
+
+        if (currentLevel % 5 === 0) {
+            setTimeout(() => showLevelLootBox(config, STORAGE_KEYS, currentLevel), isLegendaryLevelUp ? 5500 : 5200);
+        }
+
         xpForNextLevel = getXpForLevel(currentLevel);
     }
 
@@ -1113,6 +1349,7 @@ function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
 
 
         updateXpBarUI(STORAGE_KEYS, currentLevel, currentXp, xpForNextLevel);
+        updateLevelPerksLine(STORAGE_KEYS);
     }
 }
 
@@ -1539,6 +1776,13 @@ function populateQuestsModal(config, STORAGE_KEYS) {
         const progressPercent = (quest.progress / quest.targetCount) * 100;
         const canReroll = !quest.claimed && !isComplete && rerollTokens > 0;
         const canUseToken = !quest.claimed && !isComplete && bountyTokens > 0;
+        const bountyMult = getBountyRewardMultiplier(STORAGE_KEYS);
+        const rewardXp = Math.ceil(quest.rewardXp * bountyMult);
+        const rewardCoins = Math.ceil(quest.rewardCoins * bountyMult);
+        const bountyBonusNote = bountyMult > 1
+            ? `<div class="tm-quest-bounty-bonus">+${Math.round((bountyMult - 1) * 100)}% level bonus</div>`
+            : '';
+
         return `
             <div class="tm-quest-item ${quest.claimed ? 'completed' : ''}">
                 <div class="tm-quest-status-icon">${isComplete ? '✅' : '⏳'}</div>
@@ -1550,7 +1794,8 @@ function populateQuestsModal(config, STORAGE_KEYS) {
                     <div class="tm-quest-progress-text">${quest.progress} / ${quest.targetCount}</div>
                 </div>
                 <div class="tm-quest-reward">
-                    XP: ${quest.rewardXp}<br>Coins: ${quest.rewardCoins}
+                    XP: ${rewardXp}<br>Coins: ${rewardCoins}
+                    ${bountyBonusNote}
                 </div>
                 <div class="tm-quest-actions">
                     <button class="tm-quest-claim-btn" data-quest-id="${quest.id}" ${(!isComplete || quest.claimed) ? 'disabled' : ''}>
@@ -1569,12 +1814,13 @@ function populateQuestsModal(config, STORAGE_KEYS) {
             let quests = JSON.parse(GM_getValue(STORAGE_KEYS.DAILY_QUESTS, '[]'));
             const quest = quests.find(q => q.id === questId);
             if (quest && !quest.claimed && quest.progress >= quest.targetCount) {
-                grantXp(config, STORAGE_KEYS, quest.rewardXp);
-                grantCoins(config, STORAGE_KEYS, quest.rewardCoins, 'quest');
+                const bountyMult = getBountyRewardMultiplier(STORAGE_KEYS);
+                grantXp(config, STORAGE_KEYS, Math.ceil(quest.rewardXp * bountyMult));
+                grantCoins(config, STORAGE_KEYS, Math.ceil(quest.rewardCoins * bountyMult), 'quest');
                 quest.claimed = true;
                 // New: Chance to trigger Energized state on bounty completion
-                if (Math.random() < 0.33) { // 33% chance
-                    triggerEnergizedState(config, STORAGE_KEYS, 5 * 60 * 1000); // 5 minutes
+                if (Math.random() < 0.33 && typeof window.triggerEnergizedState === 'function') {
+                    window.triggerEnergizedState(config, STORAGE_KEYS, 5 * 60 * 1000);
                 }
                 GM_setValue(STORAGE_KEYS.DAILY_QUESTS, JSON.stringify(quests));
                 populateQuestsModal(config, STORAGE_KEYS); // Re-render the modal to update state
@@ -2470,7 +2716,7 @@ function populateShop(config, STORAGE_KEYS) {
                 <div class="tm-shop-item-icon">${item.icon}</div>
                 <div class="tm-shop-item-name">${item.name}</div>
                 ${item.desc ? `<div class="tm-shop-item-desc">${item.desc}</div>` : ''}
-                <div class="tm-shop-item-cost">${(isOwned && item.type !== 'consumable') ? 'Owned' : (config && config.debugEnabled ? '🪙 0 (Free)' : `🪙 ${item.cost}`)}</div>
+                <div class="tm-shop-item-cost">${(isOwned && item.type !== 'consumable') ? 'Owned' : formatShopCostHTML(item.cost, STORAGE_KEYS, config)}</div>
                 <button class="tm-shop-item-btn" data-item-id="${item.id}" data-item-cost="${item.cost}" data-item-type="${item.type}"></button>
             `;
 
@@ -2487,7 +2733,8 @@ function populateShop(config, STORAGE_KEYS) {
             } else {
                 button.textContent = (config && config.debugEnabled) ? 'Get (Free)' : 'Buy';
                 button.className += ' buy';
-                if (!(config && config.debugEnabled) && currentCoins < item.cost) button.disabled = true;
+                const { final: effectiveCost } = getDiscountedShopCost(item.cost, STORAGE_KEYS, config);
+                if (!(config && config.debugEnabled) && currentCoins < effectiveCost) button.disabled = true;
             }
             shopGrid.appendChild(itemDiv);
         });
@@ -2501,9 +2748,7 @@ function handleShopPurchase(button, config, STORAGE_KEYS) {
     const itemCost = parseInt(button.dataset.itemCost, 10);
     const itemType = button.dataset.itemType;
 
-    // The bug was here. The coin check was happening even in debug mode.
-    // I've fixed it so if debug mode is on, the cost is considered 0.
-    const finalCost = (config && config.debugEnabled) ? 0 : itemCost;
+    const { final: finalCost } = getDiscountedShopCost(itemCost, STORAGE_KEYS, config);
     let currentCoins = GM_getValue(STORAGE_KEYS.USER_COINS, 0);
 
     if (currentCoins < finalCost) {
@@ -2859,43 +3104,74 @@ function initDailyDashboardWidget(config, parentContainer, STORAGE_KEYS) {
  * @param {HTMLElement} parentContainer The container element to which the widget will be appended.
  */
 function initXpBarWidget(parentContainer, STORAGE_KEYS) {
-    if (!config.levelUpSystemEnabled) return;
+    const cfg = window.config || {};
+    if (!cfg.levelUpSystemEnabled) return;
+
+    tryGrantDailyStipend(cfg, STORAGE_KEYS);
 
     const currentLevel = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
-    const currentTitle = GM_getValue(STORAGE_KEYS.USER_TITLE, RANKS[0].title);
     const currentXp = GM_getValue(STORAGE_KEYS.USER_XP, 0);
+    const xpForNextLevel = getXpForLevel(currentLevel);
+    const rankInfo = RANKS.slice().reverse().find(r => currentLevel >= r.level) || RANKS[0];
+    const currentTitle = GM_getValue(STORAGE_KEYS.USER_TITLE, rankInfo.title);
 
     const xpBarContainer = document.createElement('div');
     xpBarContainer.id = 'tm-xp-bar-container';
-    const xpForNextLevel = getXpForLevel(currentLevel);
-    xpBarContainer.title = `${currentTitle}\nExperience Points`;
+    xpBarContainer.className = 'tm-footer-widget tm-xp-bar-widget';
     xpBarContainer.innerHTML = `
-        <div id="tm-buff-timers-container">
-            <!-- Buff timers will be injected here -->
+        <div class="tm-xp-bar-header">
+            <span id="tm-level-text">Lv.${currentLevel}</span>
+            <span class="tm-xp-bar-sep">·</span>
+            <span id="tm-user-title-text"></span>
+            <span id="tm-buff-inventory" class="tm-buff-inventory" style="display:none;" title="Activate stored buffs"></span>
         </div>
-        <span id="tm-user-title-text"></span> 
+        <div class="tm-xp-bar-track-row">
+            <div class="tm-xp-bar" title="${currentXp} / ${xpForNextLevel} XP">
+                <div id="tm-xp-bar-fill" style="width: ${(currentXp / xpForNextLevel) * 100}%;"></div>
+                <div id="tm-xp-text">${xpForNextLevel - currentXp} XP</div>
+            </div>
+        </div>
+        <div id="tm-level-perks-line" class="tm-level-perks-line"></div>
+        <div id="tm-xp-next-preview" class="tm-xp-next-preview" hidden></div>
         <span id="tm-energized-buff-indicator" style="display: none;"></span>
-        <span id="tm-level-text">Lv. ${currentLevel}</span>
-        <div class="tm-xp-bar" title="${currentXp} / ${xpForNextLevel} XP">
-            <div id="tm-xp-bar-fill" style="width: ${(currentXp / xpForNextLevel) * 100}%;"></div>
-            <div id="tm-xp-text">${xpForNextLevel - currentXp} XP to next level</div>
-        </div>
     `;
-    const rankInfo = RANKS.slice().reverse().find(r => currentLevel >= r.level) || RANKS[0];
-    const titleColor = rankInfo.color;
-    const glowStyle = rankInfo.glow ? `text-shadow: 0 0 5px ${titleColor};` : '';
 
     parentContainer.appendChild(xpBarContainer);
-    // Now that the elements are in the DOM, update them with the correct title and style
-    const titleText = document.getElementById('tm-user-title-text');
-    titleText.textContent = currentTitle;
-    titleText.style.color = titleColor;
-    titleText.style.textShadow = glowStyle;
 
-    // Make the entire bar clickable to show the titles modal
-    xpBarContainer.style.cursor = 'pointer';
-    xpBarContainer.addEventListener('click', () => showTitlesModal(STORAGE_KEYS));
+    const titleText = xpBarContainer.querySelector('#tm-user-title-text');
+    if (titleText) {
+        titleText.textContent = rankInfo.title;
+        titleText.style.color = rankInfo.color;
+        if (rankInfo.glow) titleText.style.textShadow = `0 0 6px ${rankInfo.color}`;
+    }
 
+    const previewEl = xpBarContainer.querySelector('#tm-xp-next-preview');
+    const xpBar = xpBarContainer.querySelector('.tm-xp-bar');
+    const showPreview = () => {
+        if (!previewEl) return;
+        previewEl.innerHTML = getNextLevelPreviewHTML(STORAGE_KEYS);
+        previewEl.hidden = false;
+    };
+    const hidePreview = () => {
+        if (previewEl) previewEl.hidden = true;
+    };
+
+    xpBarContainer.addEventListener('click', (e) => {
+        if (e.target.closest('#tm-buff-inventory')) return;
+        showTitlesModal(STORAGE_KEYS);
+    });
+    xpBar?.addEventListener('mouseenter', showPreview);
+    xpBar?.addEventListener('mouseleave', hidePreview);
+    xpBar?.addEventListener('focus', showPreview);
+    xpBar?.addEventListener('blur', hidePreview);
+
+    xpBarContainer.querySelector('#tm-buff-inventory')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleBuffInventoryClick(cfg, STORAGE_KEYS);
+    });
+
+    updateBuffInventoryUI(STORAGE_KEYS);
+    updateLevelPerksLine(STORAGE_KEYS);
     console.log('[MMS] XP Bar widget initialized in footer.');
 }
 
@@ -2904,21 +3180,28 @@ function updateXpBarUI(STORAGE_KEYS, level, xp, xpForNext) {
     const xpText = document.getElementById('tm-xp-text');
     const levelText = document.getElementById('tm-level-text');
     const titleText = document.getElementById('tm-user-title-text');
-    const xpBar = document.querySelector('.tm-xp-bar');
+    const xpBar = document.querySelector('#tm-xp-bar-container .tm-xp-bar');
+    const previewEl = document.getElementById('tm-xp-next-preview');
 
-    const percentage = (xp / xpForNext) * 100;
+    const percentage = xpForNext > 0 ? (xp / xpForNext) * 100 : 0;
     if (xpBarFill) xpBarFill.style.width = `${percentage}%`;
-    if (xpText) xpText.textContent = `${xpForNext - xp} XP to next level`;
-    if (xpBar) xpBar.title = `${xp} / ${xpForNext} XP`;
+    if (xpText) xpText.textContent = `${Math.max(0, xpForNext - xp)} XP`;
+    if (xpBar) xpBar.title = `${xp} / ${xpForNext} XP — hover for next level rewards`;
 
     const rankInfo = RANKS.slice().reverse().find(r => level >= r.level) || RANKS[0];
+    GM_setValue(STORAGE_KEYS.USER_TITLE, rankInfo.title);
 
     if (titleText) {
         titleText.textContent = rankInfo.title;
         titleText.style.color = rankInfo.color;
-        titleText.style.textShadow = rankInfo.glow ? `0 0 5px ${rankInfo.color}` : 'none';
+        titleText.style.textShadow = rankInfo.glow ? `0 0 6px ${rankInfo.color}` : 'none';
     }
-    levelText.textContent = `Lv. ${level}`;
+    if (levelText) levelText.textContent = `Lv.${level}`;
+    if (previewEl && !previewEl.hidden) {
+        previewEl.innerHTML = getNextLevelPreviewHTML(STORAGE_KEYS);
+    }
+    updateBuffInventoryUI(STORAGE_KEYS);
+    updateLevelPerksLine(STORAGE_KEYS);
 }
 
 /**
@@ -5286,6 +5569,9 @@ window.checkAchievements = checkAchievements;
 window.updateQuestProgress = updateQuestProgress;
 window.generateDailyQuests = generateDailyQuests;
 window.getXpForLevel = getXpForLevel;
+window.initXpBarWidget = initXpBarWidget;
+window.updateXpBarUI = updateXpBarUI;
+window.updateBuffInventoryUI = updateBuffInventoryUI;
 window.triggerLevelUpAnimation = triggerLevelUpAnimation;
 window.updateCoinBalanceUI = updateCoinBalanceUI;
 window.showAchievementNotification = showAchievementNotification;

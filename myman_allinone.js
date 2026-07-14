@@ -2711,82 +2711,21 @@
 
     /**
      * Creates a small widget in the footer to display the user's XP bar.
-     * @param {HTMLElement} parentContainer The container element to which the widget will be appended.
+     * Delegates to gamification module when available.
      */
     function initXpBarWidget(parentContainer) {
+        if (typeof window.initXpBarWidget === 'function') {
+            window.initXpBarWidget(parentContainer, STORAGE_KEYS);
+            return;
+        }
         if (!config.levelUpSystemEnabled) return;
-
-        const currentLevel = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
-        const currentXp = GM_getValue(STORAGE_KEYS.USER_XP, 0);
-
-        const xpBarContainer = document.createElement('div');
-        xpBarContainer.id = 'tm-xp-bar-container';
-        xpBarContainer.className = 'tm-footer-widget';
-        const xpForNextLevel = getXpForLevel(currentLevel);
-        const rankInfo = RANKS.slice().reverse().find(r => currentLevel >= r.level) || RANKS[0];
-        const defaultRankTitle = (rankInfo && rankInfo.title) || (RANKS[0] && RANKS[0].title) || 'Novice Tech';
-        let storedTitle = GM_getValue(STORAGE_KEYS.USER_TITLE, defaultRankTitle);
-        if (storedTitle == null || String(storedTitle) === 'undefined' || String(storedTitle).trim() === '') {
-            storedTitle = defaultRankTitle;
-        }
-        const currentTitle = storedTitle;
-        const titleColor = rankInfo && rankInfo.color ? rankInfo.color : '#d1d1d1';
-        const glowStyle = rankInfo && rankInfo.glow ? `text-shadow: 0 0 5px ${titleColor};` : '';
-        
-        xpBarContainer.title = `Click to view all titles & ranks`;
-        xpBarContainer.style.position = 'relative'; // For absolute positioned badges
-        
-        xpBarContainer.innerHTML = `
-            <span id="tm-energized-buff-indicator" style="display: none;"></span>
-            <span id="tm-level-text">Lv. ${currentLevel}</span>
-            <span id="tm-user-title-text">${currentTitle}</span>
-            <div class="tm-xp-bar" title="${currentXp} / ${xpForNextLevel} XP">
-                <div id="tm-xp-bar-fill" style="width: ${(currentXp / xpForNextLevel) * 100}%;"></div>
-                <div id="tm-xp-text">${currentXp}/${xpForNextLevel}</div>
-            </div>
-        `;
-        
-        // Coin balance is in its own dedicated widget, not in the XP bar anymore
-
-        parentContainer.appendChild(xpBarContainer);
-
-        // Make the entire bar clickable to show the titles modal
-        xpBarContainer.style.cursor = 'pointer';
-        xpBarContainer.addEventListener('click', () => showTitlesModal(STORAGE_KEYS));
-
-        if (config?.debugEnabled) {
-        console.log('[MMS] XP Bar widget initialized in footer.');
-        }
+        console.warn('[MMS] Gamification XP bar not loaded.');
     }
 
     function updateXpBarUI(STORAGE_KEYS, level, xp, xpForNext) {
-        const xpBarFill = document.getElementById('tm-xp-bar-fill');
-        const xpText = document.getElementById('tm-xp-text');
-        const levelText = document.getElementById('tm-level-text');
-        const titleText = document.getElementById('tm-user-title-text');
-        const xpBar = document.querySelector('.tm-xp-bar');
-
-        const percentage = (xp / xpForNext) * 100;
-        if (xpBarFill) xpBarFill.style.width = `${percentage}%`;
-        if (xpText) xpText.textContent = `${xp}/${xpForNext}`;
-        if (xpBar) xpBar.title = `${xp} / ${xpForNext} XP`;
-
-        const rankInfo = RANKS.slice().reverse().find(r => level >= r.level) || RANKS[0];
-        const safeRankTitle = (rankInfo && rankInfo.title) ? rankInfo.title : (RANKS[0] && RANKS[0].title) || 'Novice Tech';
-        
-        // Also save the title to storage so it persists
-        GM_setValue(STORAGE_KEYS.USER_TITLE, safeRankTitle);
-
-        if (titleText) {
-            titleText.textContent = safeRankTitle;
-            titleText.style.color = 'white';
-            titleText.style.textShadow = (rankInfo && rankInfo.glow && rankInfo.color) ? `0 0 8px ${rankInfo.color}` : 'none';
+        if (typeof window.updateXpBarUI === 'function') {
+            window.updateXpBarUI(STORAGE_KEYS, level, xp, xpForNext);
         }
-        if (levelText) {
-        levelText.textContent = `Lv. ${level}`;
-        }
-        
-        console.log(`[MMS XP Bar] Updated UI - Level: ${level}, Title: ${safeRankTitle}, XP: ${xp}/${xpForNext}`);
     }
 
 

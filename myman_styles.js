@@ -3934,57 +3934,131 @@
                 color: var(--tm-primary-color) !important;
                 border: 1px solid rgba(255,255,255,0.2) !important;
                 border-radius: 12px;
-                height: 40px;
-                padding: 4px 10px;
+                min-height: 40px;
+                height: auto;
+                padding: 5px 10px 6px;
                 cursor: pointer;
                 transition: all 0.3s;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                min-width: 180px;
-                max-width: 200px;
+                min-width: 200px;
+                max-width: 260px;
                 position: relative;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
+                gap: 3px;
             }
+            .tm-xp-bar-header {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                flex-wrap: wrap;
+                line-height: 1.2;
+                padding-right: 2px;
+            }
+            .tm-xp-bar-sep { opacity: 0.5; font-size: 10px; }
+            #tm-level-text {
+                position: static;
+                background: linear-gradient(135deg, rgba(255,215,0,0.35) 0%, rgba(255,170,0,0.25) 100%);
+                padding: 1px 6px;
+                border-radius: 8px;
+                font-size: 9px;
+                font-weight: 800;
+                color: white;
+                border: 1px solid rgba(255, 215, 0, 0.45);
+                flex-shrink: 0;
+            }
+            #tm-user-title-text {
+                display: inline;
+                font-size: 9px;
+                font-weight: 700;
+                margin: 0;
+                padding: 0;
+                letter-spacing: 0.2px;
+                text-transform: none;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 120px;
+                color: white;
+            }
+            .tm-buff-inventory {
+                margin-left: auto;
+                font-size: 9px;
+                font-weight: 800;
+                padding: 2px 6px;
+                border-radius: 8px;
+                background: rgba(0,0,0,0.25);
+                border: 1px solid rgba(255,255,255,0.25);
+                cursor: pointer;
+                color: #fff;
+            }
+            .tm-buff-inventory:hover { background: rgba(0,191,255,0.35); }
+            .tm-xp-bar-track-row { width: 100%; }
+            .tm-level-perks-line {
+                font-size: 8px;
+                opacity: 0.85;
+                color: rgba(255,255,255,0.9);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .tm-xp-next-preview {
+                position: absolute;
+                left: 0;
+                right: 0;
+                bottom: calc(100% + 6px);
+                z-index: 100010;
+                background: rgba(20,24,32,0.96);
+                border: 1px solid rgba(255,255,255,0.15);
+                border-radius: 10px;
+                padding: 8px 10px;
+                font-size: 10px;
+                color: #eee;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+                pointer-events: none;
+            }
+            .tm-xp-preview-title { font-weight: 800; margin-bottom: 4px; color: #ffd700; }
+            .tm-xp-preview-line { margin: 2px 0; opacity: 0.95; }
+            .tm-xp-preview-perks { margin-top: 5px; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.12); opacity: 0.8; }
+            .tm-shop-price-original { text-decoration: line-through; opacity: 0.55; margin-right: 4px; }
+            .tm-shop-price-sale { color: var(--tm-success-color, #22c55e); font-weight: 800; }
+            .tm-quest-bounty-bonus { font-size: 10px; opacity: 0.75; margin-top: 2px; }
+            .tm-loot-box-panel {
+                background: var(--tm-shop-item-bg, #1a1a2e);
+                border-radius: 14px;
+                padding: 20px;
+                max-width: 420px;
+                width: min(92vw, 420px);
+                border: 1px solid rgba(255,215,0,0.35);
+            }
+            .tm-loot-box-title { margin: 0 0 6px; text-align: center; color: #ffd700; }
+            .tm-loot-box-sub { margin: 0 0 14px; text-align: center; opacity: 0.85; font-size: 13px; }
+            .tm-loot-box-options { display: flex; flex-direction: column; gap: 8px; }
+            .tm-loot-box-option {
+                display: grid;
+                grid-template-columns: 36px 1fr;
+                grid-template-rows: auto auto;
+                gap: 2px 10px;
+                align-items: center;
+                padding: 10px 12px;
+                border-radius: 10px;
+                border: 1px solid rgba(255,255,255,0.12);
+                background: rgba(255,255,255,0.05);
+                cursor: pointer;
+                color: inherit;
+                text-align: left;
+            }
+            .tm-loot-box-option:hover { border-color: #ffd700; background: rgba(255,215,0,0.12); }
+            .tm-loot-box-option__icon { grid-row: 1 / 3; font-size: 22px; }
+            .tm-loot-box-option__label { font-weight: 800; font-size: 13px; }
+            .tm-loot-box-option__desc { grid-column: 2; font-size: 11px; opacity: 0.75; }
             #tm-xp-bar-container:hover {
                 background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%) !important;
                 backdrop-filter: blur(10px) !important;
                 -webkit-backdrop-filter: blur(10px) !important;
                 transform: translateY(-2px);
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            }
-            
-            /* Title above the bar */
-            #tm-user-title-text {
-                display: block;
-                font-size: 9px;
-                font-weight: 700;
-                text-align: left;
-                margin-bottom: 4px;
-                padding: 0 55px 0 6px; /* More padding on right for badges, left aligned */
-                letter-spacing: 0.3px;
-                text-transform: uppercase;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                line-height: 1.2;
-                color: white;
-            }
-            
-            /* Level badge */
-            #tm-level-text {
-                position: absolute;
-                top: 3px;
-                right: 6px;
-                background: linear-gradient(135deg, rgba(255,215,0,0.3) 0%, rgba(255,170,0,0.3) 100%);
-                backdrop-filter: blur(4px);
-                padding: 2px 6px;
-                border-radius: 10px;
-                font-size: 8px;
-                font-weight: 700;
-                color: white;
-                border: 1px solid rgba(255, 215, 0, 0.5);
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             }
             
             /* --- New: Energized Buff Indicator --- */
