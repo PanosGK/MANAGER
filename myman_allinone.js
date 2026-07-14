@@ -4448,50 +4448,6 @@
     // Make function globally accessible
     window.updateRecentRepairsButtonVisibility = updateRecentRepairsButtonVisibility;
     
-    function updatePhoneCatalogButtonVisibility(config) {
-        const phoneCatalogBtn = document.getElementById('tm-phone-catalog-btn');
-        if (phoneCatalogBtn) {
-            phoneCatalogBtn.style.display = config.phoneCatalogEnabled ? 'flex' : 'none';
-            // Remove any inline background/color styles to let theme CSS handle it
-            phoneCatalogBtn.style.background = '';
-            phoneCatalogBtn.style.backgroundColor = '';
-            phoneCatalogBtn.style.color = '';
-        } else if (config.phoneCatalogEnabled) {
-            // Button doesn't exist yet, try to create it
-            setTimeout(() => {
-                let rightSideContainer = document.getElementById('tm-search-container');
-                if (!rightSideContainer) {
-                    rightSideContainer = document.createElement('div');
-                    rightSideContainer.id = 'tm-search-container';
-                    rightSideContainer.style.cssText = 'position: fixed; right: 0; top: 50%; transform: translateY(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px;';
-                    document.body.appendChild(rightSideContainer);
-                }
-                
-                if (!document.getElementById('tm-phone-catalog-btn')) {
-                    const phoneCatalogBtn = document.createElement('button');
-                    phoneCatalogBtn.id = 'tm-phone-catalog-btn';
-                    phoneCatalogBtn.className = 'tm-slide-out-btn';
-                    phoneCatalogBtn.textContent = '📱 Phone Catalog';
-                    phoneCatalogBtn.title = 'Phone Catalog';
-                    // Clear any inline styles - theme CSS will handle styling
-                    phoneCatalogBtn.style.background = '';
-                    phoneCatalogBtn.style.backgroundColor = '';
-                    phoneCatalogBtn.style.backgroundImage = '';
-                    phoneCatalogBtn.style.color = '';
-                    phoneCatalogBtn.addEventListener('click', () => {
-                        if (typeof window.showPhoneListModal === 'function') {
-                            window.showPhoneListModal();
-                        }
-                    });
-                    rightSideContainer.appendChild(phoneCatalogBtn);
-                }
-            }, 100);
-        }
-    }
-    
-    // Make function globally accessible
-    window.updatePhoneCatalogButtonVisibility = updatePhoneCatalogButtonVisibility;
-    
     function updateOrderHistoryButtonVisibility(config) {
         const orderHistoryBtn = document.getElementById('tm-order-history-btn');
         if (orderHistoryBtn) {
@@ -5413,35 +5369,9 @@
         window.initScratchpadFeature(config, STORAGE_KEYS); // Pass config
         }
         
-        // Ensure Phone Catalog button is added to side container
-        setTimeout(() => {
-            let rightSideContainer = document.getElementById('tm-search-container');
-            if (!rightSideContainer) {
-                rightSideContainer = document.createElement('div');
-                rightSideContainer.id = 'tm-search-container';
-                document.body.appendChild(rightSideContainer);
-            }
-            
-            // Add Phone Catalog button if enabled and not already added
-            if (config.phoneCatalogEnabled && !document.getElementById('tm-phone-catalog-btn')) {
-                const phoneCatalogBtn = document.createElement('button');
-                phoneCatalogBtn.id = 'tm-phone-catalog-btn';
-                phoneCatalogBtn.className = 'tm-slide-out-btn';
-                phoneCatalogBtn.textContent = '📱 Phone Catalog';
-                phoneCatalogBtn.title = 'Phone Catalog';
-                // Clear any inline styles - theme CSS will handle styling
-                phoneCatalogBtn.style.background = '';
-                phoneCatalogBtn.style.backgroundColor = '';
-                phoneCatalogBtn.style.backgroundImage = '';
-                phoneCatalogBtn.style.color = '';
-                phoneCatalogBtn.addEventListener('click', () => {
-                    if (typeof window.showPhoneListModal === 'function') {
-                        window.showPhoneListModal();
-                    }
-                });
-                rightSideContainer.appendChild(phoneCatalogBtn);
-            }
-        }, 500);
+        if (typeof window.initPhoneCatalogMenuItem === 'function') {
+            window.initPhoneCatalogMenuItem(config);
+        }
         
         initScrollToTopFeature();
         if (typeof window.initRepairReminderFeature === 'function') {

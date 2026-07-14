@@ -905,4 +905,157 @@
     }
 
     window.showStoreLocatorModal = showStoreLocatorModal;
+
+    const PHONE_CATALOG_MENU_ID = 'tm-phone-catalog-menu-item';
+
+    function removeLegacyPhoneCatalogButton() {
+        document.getElementById('tm-phone-catalog-btn')?.remove();
+    }
+
+    function getPhoneCatalogMenuLabel() {
+        if (typeof window.phoneCatalogT === 'function') {
+            const translated = window.phoneCatalogT('catalogTitle');
+            if (translated && translated !== 'catalogTitle') return translated;
+        }
+        return 'Κατάλογος Συσκευών';
+    }
+
+    function cloneNativeMenuItem(templateLi, label) {
+        const li = templateLi.cloneNode(true);
+        li.classList.remove('current', 'expanded');
+        li.removeAttribute('id');
+        li.querySelectorAll(':scope > ul').forEach((ul) => ul.remove());
+
+        const link = li.querySelector(':scope > div > div > a[href], :scope > div a[href], :scope > a[href]');
+        if (link) {
+            const icon = link.querySelector('img.menu-icon');
+            link.setAttribute('href', '#');
+            link.innerHTML = '';
+            if (icon) {
+                link.appendChild(icon.cloneNode(true));
+                link.appendChild(document.createTextNode(` ${label}`));
+            } else {
+                link.textContent = label;
+            }
+        }
+
+        return li;
+    }
+
+    function createFallbackMenuItem(label) {
+        const li = document.createElement('li');
+        li.innerHTML = `<div><div><a href="#">${label}</a></div></div>`;
+        return li;
+    }
+
+    function findMenuInsertPoint(menu) {
+        const manageItem = menu.querySelector('[data-tm-manage-hidden="true"]');
+        if (manageItem) {
+            const separator = manageItem.previousElementSibling;
+            if (separator?.getAttribute('data-tm-special') === 'true') return separator;
+            return manageItem;
+        }
+        return null;
+    }
+
+    function openPhoneCatalogFromMenu() {
+        if (typeof window.showPhoneListModal === 'function') {
+            window.showPhoneListModal();
+        }
+    }
+
+    function ensurePhoneCatalogMenuItem(config) {
+        removeLegacyPhoneCatalogButton();
+
+        const menu = document.querySelector('.rnr-b-vmenu.simple.main');
+        if (!menu) return false;
+
+        const enabled = config?.phoneCatalogEnabled !== false;
+        let item = document.getElementById(PHONE_CATALOG_MENU_ID);
+
+        if (!enabled) {
+            if (item) item.style.display = 'none';
+            return true;
+        }
+
+        const label = getPhoneCatalogMenuLabel();
+
+        if (!item) {
+            const template = menu.querySelector(':scope > li:not(.menuGroup):not([data-tm-special]):not([data-tm-suite-item])')
+                || menu.querySelector('li:not([data-tm-special]):not([data-tm-suite-item])');
+            item = template
+                ? cloneNativeMenuItem(template, label)
+                : createFallbackMenuItem(label);
+
+            item.id = PHONE_CATALOG_MENU_ID;
+            item.setAttribute('data-tm-suite-item', 'phone-catalog');
+            item.setAttribute('data-menu-id', 'suite-phone-catalog');
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                openPhoneCatalogFromMenu();
+            });
+
+            const insertBefore = findMenuInsertPoint(menu);
+            if (insertBefore) menu.insertBefore(item, insertBefore);
+            else menu.appendChild(item);
+        } else {
+            const link = item.querySelector('a[href]');
+            if (link) {
+                const icon = link.querySelector('img.menu-icon');
+                link.innerHTML = '';
+                if (icon) {
+                    link.appendChild(icon.cloneNode(true));
+                    link.appendChild(document.createTextNode(` ${label}`));
+                } else {
+                    link.textContent = label;
+                }
+            }
+            if (!item.parentElement) {
+                const insertBefore = findMenuInsertPoint(menu);
+                if (insertBefore) menu.insertBefore(item, insertBefore);
+                else menu.appendChild(item);
+            }
+        }
+
+        item.style.display = '';
+        return true;
+    }
+
+    function initPhoneCatalogMenuItem(config) {
+        removeLegacyPhoneCatalogButton();
+
+        if (config?.phoneCatalogEnabled === false) {
+            document.getElementById(PHONE_CATALOG_MENU_ID)?.remove();
+            return;
+        }
+
+        let attempts = 0;
+        const maxAttempts = 80;
+        let observer = null;
+
+        const tryInject = () => {
+            attempts += 1;
+            if (ensurePhoneCatalogMenuItem(config)) {
+                if (observer) observer.disconnect();
+                return;
+            }
+            if (attempts >= maxAttempts && observer) observer.disconnect();
+        };
+
+        tryInject();
+
+        observer = new MutationObserver(() => {
+            tryInject();
+        });
+        const leftPanel = document.querySelector('.rnr-left') || document.body;
+        observer.observe(leftPanel, { childList: true, subtree: true });
+        setTimeout(() => observer?.disconnect(), 10000);
+    }
+
+    function updatePhoneCatalogMenuItemVisibility(config) {
+        ensurePhoneCatalogMenuItem(config);
+    }
+
+    window.initPhoneCatalogMenuItem = initPhoneCatalogMenuItem;
+    window.updatePhoneCatalogButtonVisibility = updatePhoneCatalogMenuItemVisibility;
 })();
