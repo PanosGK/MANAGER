@@ -26089,1113 +26089,427 @@ window.initOrderTracking = initOrderTracking;
     'use strict';
 
     const ICON = {
-        phone: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>',
-        search: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>',
-        refresh: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>',
-        star: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>',
-        starOutline: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>',
-        copy: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
-        palette: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/><path d="M12 22a10 10 0 0 0 10-10 4 4 0 0 0-4-4H12a4 4 0 0 0-4 4 10 10 0 0 0 4 10z"/></svg>',
-        tag: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7" y2="7.01"/></svg>',
-        store: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-        export: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
-        sort: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="16" y2="6"/><line x1="4" y1="12" x2="12" y2="12"/><line x1="4" y1="18" x2="8" y2="18"/><polyline points="18 15 21 18 24 15"/><line x1="21" y1="18" x2="21" y2="6"/></svg>',
-        network: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 22a10 10 0 0 1-10-10"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M12 2v4"/><path d="M12 18v4"/></svg>',
-        settings: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>',
-        back: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>',
-        filterClear: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>',
+        search: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>',
+        refresh: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>',
+        store: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+        back: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="15 18 9 12 15 6"/></svg>',
+        chevron: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 18 15 12 9 6"/></svg>',
     };
 
-    const PHONE_CATALOG_UI_STYLES = `
-        @keyframes tm-pc-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes tm-pc-out { from { opacity: 1; } to { opacity: 0; } }
-        @keyframes tm-cat-out { from { opacity: 1; } to { opacity: 0; } }
-        @keyframes tm-pc-rise { from { opacity: 0; transform: translateY(16px) scale(0.98); } to { opacity: 1; transform: none; } }
-        @keyframes tm-pc-spin { to { transform: rotate(360deg); } }
-
-        .tm-phone-catalog-overlay {
-            animation: tm-pc-in 0.24s ease;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            background: var(--tm-overlay-dim, rgba(0,0,0,0.72)) !important;
-        }
-
-        .tm-phone-modal-content.tm-pc-shell,
-        .tm-phone-modal-content.tm-cat-app {
-            animation: tm-pc-rise 0.32s cubic-bezier(0.22, 1, 0.36, 1);
-            width: min(1480px, 96vw) !important;
-            max-width: 96vw !important;
-            height: 94vh !important;
-            max-height: 94vh !important;
-            border-radius: 18px !important;
-            border: 1px solid var(--tm-shop-item-border) !important;
-            box-shadow: 0 28px 80px var(--tm-shadow-color, rgba(0,0,0,0.45)) !important;
-            background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            display: flex !important;
-            flex-direction: column !important;
-            color: var(--tm-shop-item-text, var(--tm-primary-color));
-        }
-
-        /* ── Hero ── */
-        .tm-pc-hero {
-            padding: 20px 24px 14px;
-            background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 16%, transparent) 0%, transparent 72%);
-            border-bottom: 1px solid var(--tm-shop-item-border);
-            flex-shrink: 0;
-        }
-        .tm-pc-hero-top {
-            display: flex; align-items: flex-start; justify-content: space-between;
-            gap: 16px; margin-bottom: 14px;
-        }
-        .tm-pc-hero-brand { display: flex; align-items: flex-start; gap: 14px; min-width: 0; }
-        .tm-pc-hero-icon {
-            width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center;
-            background: color-mix(in srgb, var(--tm-primary-color) 18%, var(--tm-shop-item-bg));
-            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 28%, var(--tm-shop-item-border));
-            color: var(--tm-primary-color);
-            box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent);
-        }
-        .tm-pc-hero-title {
-            margin: 0; font-size: 1.35rem; font-weight: 800;
-            letter-spacing: 0.01em; line-height: 1.2;
-            color: var(--tm-shop-item-text, var(--tm-primary-color));
-            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-        }
-        .tm-pc-hero-badge {
-            display: inline-flex; align-items: center; padding: 4px 10px;
-            border-radius: 999px; font-size: 10px; font-weight: 700;
-            letter-spacing: 0.06em; text-transform: uppercase;
-            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 14%, transparent);
-            color: var(--tm-info-color, #0ea5e9);
-            border: 1px solid color-mix(in srgb, var(--tm-info-color, #0ea5e9) 32%, transparent);
-        }
-        .tm-pc-hero-sub {
-            margin: 5px 0 0; font-size: 12px;
-            color: var(--tm-muted-text, var(--tm-secondary-color, rgba(128,128,128,0.9)));
-        }
-        .tm-pc-hero-actions {
-            display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap;
-        }
-        .tm-pc-tool-btn, .tm-phone-toolbar-btn {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 12px; border-radius: 10px;
-            border: 1px solid var(--tm-shop-item-border);
-            background: var(--tm-input-bg, var(--tm-shop-item-bg));
-            color: var(--tm-shop-item-text, var(--tm-primary-color));
-            font-size: 12px; font-weight: 600; cursor: pointer;
-            transition: background 0.15s, border-color 0.15s, transform 0.12s;
-            white-space: nowrap;
-        }
-        .tm-pc-tool-btn:hover, .tm-phone-toolbar-btn:hover {
-            background: var(--tm-shop-item-hover-bg);
-            border-color: var(--tm-primary-color);
-            transform: translateY(-1px);
-        }
-        .tm-pc-tool-btn svg, .tm-phone-toolbar-btn svg { flex-shrink: 0; opacity: 0.85; }
-        .tm-pc-close, .tm-modal-close {
-            width: 38px; height: 38px; padding: 0 !important;
-            border-radius: 10px !important; font-size: 22px !important; line-height: 1;
-            display: inline-flex !important; align-items: center; justify-content: center;
-        }
-        .tm-pc-close:hover, .tm-modal-close:hover {
-            background: color-mix(in srgb, var(--tm-danger-color, #ef4444) 14%, transparent) !important;
-            border-color: color-mix(in srgb, var(--tm-danger-color, #ef4444) 38%, transparent) !important;
-            transform: scale(1.04);
-        }
-
-        /* ── Segmented tabs ── */
-        .tm-pc-hero-bottom {
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 12px; flex-wrap: wrap;
-        }
-        .tm-pc-seg {
-            display: inline-flex; padding: 4px; border-radius: 12px;
-            background: var(--tm-chip-bg, var(--tm-shop-item-hover-bg));
-            border: 1px solid var(--tm-chip-border, var(--tm-shop-item-border));
-        }
-        .tm-pc-seg-btn, .tm-cat-tab {
-            border: none; background: transparent; cursor: pointer;
-            padding: 8px 18px; border-radius: 9px;
-            font-size: 12px; font-weight: 700;
-            color: var(--tm-muted-text, var(--tm-shop-item-text));
-            opacity: 0.75; transition: all 0.15s;
-        }
-        .tm-pc-seg-btn:hover, .tm-cat-tab:hover { opacity: 1; color: var(--tm-primary-color); }
-        .tm-pc-seg-btn.active, .tm-cat-tab.active {
-            opacity: 1; color: var(--tm-primary-color);
-            background: var(--tm-shop-item-bg);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 color-mix(in srgb, #fff 50%, transparent);
-        }
-
-        /* ── Filters ── */
-        .tm-pc-filters, .tm-cat-controls {
-            padding: 14px 24px;
-            border-bottom: 1px solid var(--tm-shop-item-border);
-            background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg));
-            flex-shrink: 0;
-            display: flex; flex-direction: column; gap: 12px;
-        }
-        .tm-pc-filters-label {
-            font-size: 10px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.08em; color: var(--tm-muted-text, var(--tm-secondary-color));
-            margin-bottom: -4px;
-        }
-        .tm-pc-search-row, .tm-cat-search-line {
-            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-        }
-        .tm-pc-search, .tm-cat-search {
-            position: relative; flex: 1 1 260px; min-width: 200px;
-            display: flex; align-items: center;
-        }
-        .tm-pc-search-icon, .tm-cat-search-icon {
-            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-            color: var(--tm-muted-text, var(--tm-shop-item-text)); opacity: 0.5;
-            pointer-events: none; display: flex;
-        }
-        #tm-phone-search-input {
-            width: 100% !important; box-sizing: border-box !important;
-            height: 40px !important; padding: 0 14px 0 38px !important;
-            border-radius: 10px !important;
-            border: 1px solid var(--tm-input-border, var(--tm-shop-item-border)) !important;
-            background: var(--tm-input-bg, var(--tm-shop-item-bg)) !important;
-            color: var(--tm-input-text, var(--tm-shop-item-text)) !important;
-            font-size: 13px !important; outline: none !important;
-            transition: border-color 0.15s, box-shadow 0.15s;
-        }
-        #tm-phone-search-input:focus {
-            border-color: var(--tm-primary-color) !important;
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--tm-primary-color) 18%, transparent) !important;
-        }
-        .tm-pc-regex, .tm-cat-regex {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 12px; border-radius: 10px;
-            border: 1px solid var(--tm-shop-item-border);
-            background: var(--tm-shop-item-bg);
-            font-size: 12px; font-weight: 600; cursor: pointer;
-            color: var(--tm-shop-item-text); white-space: nowrap;
-        }
-        .tm-pc-fav-btn, #tm-phone-favorites-btn, .tm-cat-pill {
-            display: inline-flex; align-items: center; gap: 6px;
-            height: 40px; padding: 0 14px; border-radius: 10px;
-            border: 1px solid var(--tm-shop-item-border);
-            background: var(--tm-shop-item-bg);
-            color: var(--tm-shop-item-text);
-            font-size: 12px; font-weight: 600; cursor: pointer;
-            transition: all 0.15s;
-        }
-        .tm-pc-fav-btn:hover, #tm-phone-favorites-btn:hover,
-        #tm-phone-favorites-btn.active {
-            border-color: var(--tm-warning-color, #eab308);
-            color: var(--tm-warning-color, #ca8a04);
-            background: color-mix(in srgb, var(--tm-warning-color, #eab308) 10%, var(--tm-shop-item-bg));
-        }
-
-        .tm-pc-filter-row, .tm-pc-filters-row2, .tm-cat-filters {
-            display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
-        }
-        .tm-pc-filters-row2 {
-            padding-top: 2px;
-            border-top: 1px dashed color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
-            margin-top: 2px;
-            width: 100%;
-        }
-        .tm-pc-filters-label-inline {
-            font-size: 10px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.06em; opacity: 0.55;
-            color: var(--tm-muted-text, var(--tm-shop-item-text));
-            margin-right: 2px;
-        }
-        #tm-phone-filter-grade:not(.tm-pc-filter-visible),
-        #tm-phone-filter-gb:not(.tm-pc-filter-visible),
-        #tm-phone-filter-color:not(.tm-pc-filter-visible),
-        #tm-phone-filter-tag:not(.tm-pc-filter-visible),
-        #tm-network-filter-grade:not(.tm-pc-filter-visible),
-        #tm-network-filter-store:not(.tm-pc-filter-visible),
-        #tm-network-filter-gb:not(.tm-pc-filter-visible),
-        #tm-network-filter-color:not(.tm-pc-filter-visible),
-        #tm-other-store-filter-grade:not(.tm-pc-filter-visible),
-        #tm-other-store-filter-store:not(.tm-pc-filter-visible),
-        #tm-other-store-filter-gb:not(.tm-pc-filter-visible),
-        #tm-other-store-filter-color:not(.tm-pc-filter-visible) {
-            display: none !important;
-        }
-        .tm-pc-select, .tm-cat-select,
-        #tm-phone-filter-grade, #tm-phone-filter-model, #tm-phone-filter-gb,
-        #tm-phone-filter-color, #tm-phone-filter-tag, #tm-phone-sort-by,
-        #tm-network-filter-grade, #tm-network-filter-model, #tm-network-filter-gb,
-        #tm-network-filter-color, #tm-network-filter-store, #tm-network-sort-by,
-        #tm-other-store-filter-grade, #tm-other-store-filter-model, #tm-other-store-filter-gb,
-        #tm-other-store-filter-color, #tm-other-store-filter-store, #tm-other-store-sort {
-            height: 36px; min-width: 118px;
-            padding: 0 30px 0 12px !important;
-            border-radius: 10px !important;
-            border: 1px solid var(--tm-input-border, var(--tm-shop-item-border)) !important;
-            background: var(--tm-input-bg, var(--tm-shop-item-bg)) !important;
-            color: var(--tm-input-text, var(--tm-shop-item-text)) !important;
-            font-size: 12px !important; font-weight: 600;
-            cursor: pointer; appearance: none !important;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%23999' d='M5 7L1.5 3.5h7z'/%3E%3C/svg%3E") !important;
-            background-repeat: no-repeat !important;
-            background-position: right 10px center !important;
-            transition: border-color 0.15s, box-shadow 0.15s;
-        }
-        #tm-phone-filter-model, #tm-other-store-filter-model { flex: 1; min-width: 160px; }
-        .tm-pc-select:hover, #tm-phone-filter-grade:hover, #tm-phone-filter-model:hover,
-        #tm-phone-filter-gb:hover, #tm-phone-filter-color:hover, #tm-phone-filter-tag:hover,
-        #tm-phone-sort-by:hover, #tm-network-filter-grade:hover, #tm-network-filter-model:hover,
-        #tm-network-filter-gb:hover, #tm-network-filter-color:hover,
-        #tm-network-filter-store:hover, #tm-network-sort-by:hover,
-        #tm-other-store-filter-grade:hover, #tm-other-store-filter-model:hover,
-        #tm-other-store-filter-gb:hover, #tm-other-store-filter-color:hover,
-        #tm-other-store-filter-store:hover, #tm-other-store-sort:hover {
-            border-color: var(--tm-primary-color) !important;
-        }
-        .tm-pc-select:focus, #tm-phone-search-input:focus,
-        #tm-phone-filter-grade:focus, #tm-phone-filter-model:focus,
-        #tm-phone-filter-gb:focus, #tm-phone-filter-color:focus,
-        #tm-phone-filter-tag:focus, #tm-phone-sort-by:focus,
-        #tm-network-sort-by:focus {
-            outline: none !important;
-            border-color: var(--tm-primary-color) !important;
-        }
-
-        .tm-pc-btn, .tm-cat-btn,
-        #tm-phone-clear-filters, #tm-network-clear-filters, #tm-phone-sort-dir, #tm-phone-export-btn,
-        #tm-phone-select-all, #tm-other-store-clear-filters {
-            display: inline-flex; align-items: center; gap: 5px;
-            height: 36px; padding: 0 12px; border-radius: 10px;
-            border: 1px solid var(--tm-shop-item-border);
-            background: var(--tm-shop-item-bg);
-            color: var(--tm-shop-item-text);
-            font-size: 12px; font-weight: 600;
-            cursor: pointer; transition: all 0.15s;
-        }
-        .tm-pc-clear-btn {
-            margin-left: auto;
-            border-color: color-mix(in srgb, var(--tm-shop-item-border) 80%, transparent);
-            background: color-mix(in srgb, var(--tm-shop-item-border) 8%, var(--tm-shop-item-bg));
-            color: var(--tm-muted-text, var(--tm-shop-item-text));
-            opacity: 0;
-            pointer-events: none;
-            transform: translateY(2px);
-            transition: opacity 0.15s, transform 0.15s, border-color 0.15s, color 0.15s, background 0.15s;
-        }
-        .tm-pc-clear-btn.is-visible {
-            opacity: 1;
-            pointer-events: auto;
-            transform: none;
-        }
-        .tm-pc-clear-btn:hover {
-            border-color: color-mix(in srgb, var(--tm-warning-color, #eab308) 55%, var(--tm-shop-item-border)) !important;
-            color: var(--tm-warning-color, #ca8a04) !important;
-            background: color-mix(in srgb, var(--tm-warning-color, #eab308) 10%, var(--tm-shop-item-bg)) !important;
-        }
-        .tm-pc-btn:hover, .tm-cat-btn:hover, #tm-phone-clear-filters:hover,
-        #tm-network-clear-filters:hover, #tm-phone-sort-dir:hover, #tm-phone-export-btn:hover,
-        #tm-phone-select-all:hover, #tm-other-store-clear-filters:hover {
-            border-color: var(--tm-primary-color);
-            color: var(--tm-primary-color);
-            background: var(--tm-shop-item-hover-bg);
-        }
-
-        /* ── Body & table ── */
-        .tm-pc-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
-        #tm-other-store-container { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
-        .tm-pc-table-wrap {
-            flex: 1; overflow: hidden; margin: 12px 16px 0;
-            border: 1px solid var(--tm-shop-item-border);
-            border-radius: 14px;
-            background: var(--tm-shop-item-bg);
-            box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 30%, transparent);
-            display: flex; flex-direction: column; min-height: 0;
-        }
-        #tm-phone-list-container, #tm-other-store-content, #tm-other-store-modal-body {
-            flex: 1; overflow-y: auto; padding: 0 !important;
-            background: transparent !important;
-        }
-        .tm-pc-list, .tm-cat-table-body {
-            display: flex; flex-direction: column;
-        }
-
-        .tm-pc-thead, .tm-cat-thead {
-            display: grid;
-            grid-template-columns: var(--tm-pc-grid-mine);
-            gap: 10px; padding: 10px 16px;
-            font-size: 10px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.07em;
-            color: var(--tm-muted-text, var(--tm-secondary-color, var(--tm-shop-item-text)));
-            background: color-mix(in srgb, var(--tm-shop-item-border) 14%, var(--tm-shop-item-bg)) !important;
-            border-bottom: 1px solid var(--tm-shop-item-border);
-            position: sticky; top: 0; z-index: 4;
-        }
-        .tm-pc-thead--other, .tm-cat-thead--other {
-            grid-template-columns: var(--tm-pc-grid-other);
-        }
-        .tm-pc-thead span:last-child, .tm-cat-thead span:last-child { text-align: right; }
-
-        :root {
-            --tm-pc-grid-mine: 56px minmax(200px, 1.6fr) 96px 72px minmax(120px, 1fr) 88px 120px;
-            --tm-pc-grid-other: 56px minmax(180px, 1.3fr) minmax(160px, 1.2fr) 96px 72px minmax(110px, 0.9fr) 88px 120px;
-        }
-
-        .tm-pc-row, .tm-cat-tr {
-            display: grid;
-            grid-template-columns: var(--tm-pc-grid-mine);
-            gap: 10px; align-items: center;
-            padding: 11px 16px;
-            border-bottom: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 65%, transparent);
-            cursor: pointer;
-            transition: background 0.12s, box-shadow 0.12s;
-            position: relative;
-        }
-        .tm-pc-row--other, .tm-cat-tr--other {
-            grid-template-columns: var(--tm-pc-grid-other);
-        }
-        .tm-pc-row::before, .tm-cat-tr::before {
-            content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-            width: 3px; background: transparent; transition: background 0.12s;
-        }
-        .tm-pc-row:hover, .tm-cat-tr:hover {
-            background: var(--tm-shop-item-hover-bg);
-        }
-        .tm-pc-row:hover::before, .tm-cat-tr:hover::before {
-            background: color-mix(in srgb, var(--tm-primary-color) 50%, transparent);
-        }
-        .tm-pc-row.selected, .tm-cat-tr.selected {
-            background: color-mix(in srgb, var(--tm-primary-color) 10%, var(--tm-shop-item-bg)) !important;
-        }
-        .tm-pc-row.selected::before, .tm-cat-tr.selected::before {
-            background: var(--tm-primary-color);
-        }
-        .tm-pc-row.favorite::before, .tm-cat-tr.favorite::before {
-            background: var(--tm-warning-color, #eab308);
-        }
-        .tm-pc-row.favorite.selected::before, .tm-cat-tr.favorite.selected::before {
-            background: var(--tm-primary-color);
-        }
-
-        .tm-pc-col { min-width: 0; }
-        .tm-pc-grade-badge, .tm-pc-row-grade, .tm-cat-grade {
-            width: 40px; height: 32px; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 12px; font-weight: 800;
-            box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 25%, transparent);
-        }
-        .tm-pc-col-device, .tm-pc-row-main, .tm-cat-device { min-width: 0; }
-        .tm-pc-row-line1, .tm-cat-line-primary {
-            display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-            margin-bottom: 3px;
-        }
-        .tm-pc-row-line2, .tm-cat-line-secondary {
-            display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
-        }
-        .tm-pc-row-model, .tm-cat-model {
-            font-size: 13px; font-weight: 700;
-            letter-spacing: -0.015em; word-break: break-word;
-            line-height: 1.3;
-        }
-        .tm-pc-meta, .tm-cat-tag, .tm-pc-meta-chip {
-            display: inline-flex; align-items: center; gap: 4px;
-            padding: 2px 8px; border-radius: 6px;
-            font-size: 10px; font-weight: 700;
-            background: var(--tm-chip-bg, color-mix(in srgb, var(--tm-shop-item-border) 28%, transparent));
-            border: 1px solid var(--tm-chip-border, var(--tm-shop-item-border));
-            color: var(--tm-chip-text, var(--tm-shop-item-text));
-        }
-        .tm-pc-meta--bb, .tm-cat-tag--bb, .tm-pc-meta-chip--buyback {
-            background: color-mix(in srgb, var(--tm-warning-color, #eab308) 14%, transparent);
-            border-color: color-mix(in srgb, var(--tm-warning-color) 35%, transparent);
-            color: var(--tm-warning-color, #a16207);
-        }
-        .tm-pc-meta--tag, .tm-cat-tag--hash, .tm-pc-meta-chip--tag {
-            background: transparent;
-        }
-        .tm-pc-color-cell {
-            display: flex; align-items: center; gap: 6px;
-            font-size: 11px; font-weight: 600;
-        }
-        .tm-pc-swatch, .tm-cat-swatch, .tm-pc-color-dot {
-            width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-            border: 1.5px solid color-mix(in srgb, var(--tm-shop-item-border) 80%, #888);
-            box-shadow: inset 0 1px 2px rgba(0,0,0,0.12);
-        }
-        .tm-pc-storage {
-            font-size: 12px; font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            color: var(--tm-shop-item-text);
-        }
-        .tm-pc-barcode, .tm-cat-code {
-            font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
-            font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
-            padding: 4px 8px; border-radius: 6px;
-            background: color-mix(in srgb, var(--tm-shop-item-border) 22%, transparent);
-            border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
-            color: var(--tm-shop-item-text);
-            display: inline-block; max-width: 100%;
-            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .tm-pc-price, .tm-cat-price {
-            display: inline-flex; align-items: center; justify-content: center;
-            min-width: 72px; padding: 4px 10px; border-radius: 8px;
-            font-size: 12px; font-weight: 800;
-            font-variant-numeric: tabular-nums;
-            background: color-mix(in srgb, var(--tm-success-color, #22c55e) 12%, transparent);
-            border: 1px solid color-mix(in srgb, var(--tm-success-color, #22c55e) 28%, transparent);
-            color: var(--tm-success-color, #16a34a);
-        }
-        .tm-pc-price--empty { opacity: 0.35; background: transparent; border-color: transparent; font-weight: 600; }
-
-        .tm-pc-stores, .tm-pc-row-stores, .tm-cat-stores {
-            display: flex; flex-wrap: wrap; gap: 4px;
-            align-items: center; align-self: center;
-        }
-        .tm-pc-row-actions, .tm-cat-actions {
-            display: flex; gap: 4px; justify-content: flex-end;
-        }
-        .tm-pc-act, .tm-pc-action-btn, .tm-cat-act,
-        .tm-phone-search-btn, .tm-phone-copy-imei-btn, .tm-phone-favorite-btn, .tm-os-action-btn {
-            width: 32px; height: 32px; border-radius: 8px;
-            border: 1px solid var(--tm-shop-item-border);
-            background: var(--tm-shop-item-bg);
-            color: var(--tm-shop-item-text);
-            cursor: pointer; font-size: 0;
-            display: inline-flex; align-items: center; justify-content: center;
-            transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.1s;
-        }
-        .tm-pc-act:hover, .tm-pc-action-btn:hover, .tm-cat-act:hover,
-        .tm-phone-search-btn:hover, .tm-phone-copy-imei-btn:hover,
-        .tm-phone-favorite-btn:hover, .tm-os-action-btn:hover {
-            border-color: var(--tm-primary-color);
-            color: var(--tm-primary-color);
-            background: color-mix(in srgb, var(--tm-primary-color) 8%, var(--tm-shop-item-bg));
-            transform: translateY(-1px);
-        }
-        .tm-pc-act.is-fav, .tm-phone-favorite-btn.is-fav {
-            border-color: color-mix(in srgb, var(--tm-warning-color, #eab308) 45%, transparent);
-            color: var(--tm-warning-color, #ca8a04) !important;
-            background: color-mix(in srgb, var(--tm-warning-color, #eab308) 12%, var(--tm-shop-item-bg));
-        }
-
-        .tm-pc-store, .tm-cat-store, .tm-pc-store-chip {
-            display: inline-flex; align-items: center; gap: 4px;
-            padding: 3px 8px; border-radius: 6px;
-            font-size: 10px; font-weight: 700; line-height: 1.35;
-            white-space: nowrap;
-        }
-        .tm-pc-store--ok, .tm-cat-store--ok, .tm-pc-store-chip--ok {
-            background: color-mix(in srgb, #16a34a 14%, transparent);
-            color: #15803d;
-            border: 1px solid color-mix(in srgb, #16a34a 28%, transparent);
-        }
-        .tm-pc-store--no, .tm-cat-store--no, .tm-pc-store-chip--bad {
-            background: color-mix(in srgb, #dc2626 12%, transparent);
-            color: #b91c1c;
-            border: 1px solid color-mix(in srgb, #dc2626 26%, transparent);
-        }
-        .tm-pc-store--mid, .tm-cat-store--mid, .tm-pc-store-chip--neutral {
-            background: color-mix(in srgb, var(--tm-shop-item-border) 22%, transparent);
-            color: var(--tm-shop-item-text);
-            border: 1px solid var(--tm-shop-item-border);
-        }
-        .tm-pc-store-loading, .tm-cat-store-loading, .tm-pc-store-loading {
-            display: inline-flex; align-items: center; gap: 6px;
-            font-size: 11px; opacity: 0.55; font-style: italic;
-        }
-        .tm-pc-store-loading i, .tm-cat-store-loading i, .tm-pc-store-loading i {
-            width: 10px; height: 10px; border-radius: 50%;
-            border: 2px solid currentColor; border-top-color: transparent;
-            animation: tm-pc-spin 0.7s linear infinite; display: inline-block;
-        }
-
-        /* ── Empty & footer ── */
-        .tm-pc-empty, .tm-cat-empty {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 280px; gap: 10px; padding: 40px 24px;
-            color: var(--tm-shop-item-text);
-        }
-        .tm-pc-empty-visual {
-            width: 64px; height: 64px; border-radius: 18px;
-            display: flex; align-items: center; justify-content: center;
-            background: color-mix(in srgb, var(--tm-primary-color) 10%, var(--tm-shop-item-bg));
-            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 20%, var(--tm-shop-item-border));
-            color: var(--tm-primary-color); opacity: 0.7;
-            margin-bottom: 4px;
-        }
-        .tm-pc-empty-icon, .tm-cat-empty-icon { font-size: 36px; opacity: 0.4; }
-        .tm-pc-empty-title, .tm-cat-empty-title { font-size: 15px; font-weight: 700; }
-        .tm-pc-empty-sub, .tm-cat-empty-sub {
-            font-size: 12px; opacity: 0.6; max-width: 340px; text-align: center; line-height: 1.5;
-        }
-
-        .tm-pc-footer, .tm-cat-statusbar, .tm-pc-statusbar {
-            display: flex; justify-content: space-between; align-items: center;
-            gap: 14px; flex-wrap: wrap;
-            padding: 12px 24px;
-            border-top: 1px solid var(--tm-shop-item-border);
-            background: var(--tm-grid-header-bg, var(--tm-shop-item-hover-bg));
-            font-size: 12px; color: var(--tm-shop-item-text);
-            flex-shrink: 0;
-        }
-        #tm-phone-statistics { display: flex; gap: 8px; flex-wrap: wrap; }
-        #tm-phone-statistics span, .tm-pc-stat-chip {
-            display: inline-flex; align-items: center; gap: 4px;
-            padding: 3px 10px; border-radius: 999px;
-            font-size: 10px; font-weight: 700;
-            background: var(--tm-chip-bg, color-mix(in srgb, var(--tm-shop-item-border) 25%, transparent));
-            border: 1px solid var(--tm-chip-border, var(--tm-shop-item-border));
-        }
-        #tm-phone-count-text { font-weight: 800; font-size: 13px; }
-
-        #tm-phone-export-menu {
-            position: absolute; top: calc(100% + 6px); right: 0;
-            background: var(--tm-shop-item-bg);
-            border: 1px solid var(--tm-shop-item-border);
-            border-radius: 12px;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.2);
-            padding: 8px; min-width: 220px; display: none; z-index: 20;
-        }
-        #tm-phone-export-menu button {
-            width: 100%; text-align: left; margin-bottom: 4px;
-            border: none; background: transparent;
-            color: var(--tm-shop-item-text);
-            padding: 9px 12px; border-radius: 8px;
-            font-size: 12px; font-weight: 600; cursor: pointer;
-        }
-        #tm-phone-export-menu button:hover {
-            background: color-mix(in srgb, var(--tm-primary-color) 10%, transparent);
-            color: var(--tm-primary-color);
-        }
-
-        .tm-phone-load-more {
-            margin: 10px 16px 14px; padding: 12px;
-            border-radius: 10px;
-            border: 1px solid var(--tm-shop-item-border);
-            background: var(--tm-shop-item-bg);
-            color: var(--tm-primary-color);
-            font-size: 12px; font-weight: 700; cursor: pointer;
-        }
-        .tm-phone-load-more:hover {
-            background: color-mix(in srgb, var(--tm-primary-color) 8%, transparent);
-            border-color: var(--tm-primary-color);
-        }
-
-        .tm-phone-context-menu, .tm-phone-tag-submenu {
-            border-radius: 12px !important;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.28) !important;
-            border: 1px solid var(--tm-shop-item-border) !important;
-            font-size: 12px !important;
-            padding: 6px !important;
-        }
-
-        /* ── Other-store modal ── */
-        .tm-other-store-overlay .tm-pc-os-shell, .tm-other-store-overlay .tm-cat-os-panel {
-            width: min(1480px, 96vw); height: 94vh; max-height: 94vh;
-            border-radius: 18px; overflow: hidden;
-            border: 1px solid var(--tm-shop-item-border);
-            box-shadow: 0 28px 80px var(--tm-shadow-color, rgba(0,0,0,0.45));
-            background: var(--tm-modal-bg, var(--tm-shop-item-bg));
-            display: flex; flex-direction: column;
-        }
-        .tm-pc-os-hero, .tm-cat-os-top {
-            padding: 18px 24px;
-            border-bottom: 1px solid var(--tm-shop-item-border);
-            display: flex; align-items: center; justify-content: space-between; gap: 12px;
-            background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 14%, transparent) 0%, transparent 70%);
-            flex-shrink: 0;
-        }
-        #tm-os-filter-bar { border-bottom: 1px solid var(--tm-shop-item-border) !important; flex-shrink: 0; }
-        #tm-other-store-modal-body { flex: 1; min-height: 0; }
-        .tm-other-store-overlay #tm-other-store-modal-body .tm-pc-table-wrap {
-            margin: 12px 16px; flex: 1;
-        }
-
-        @media (max-width: 1100px) {
-            :root {
-                --tm-pc-grid-mine: 48px minmax(160px, 1.4fr) 80px 64px minmax(100px, 0.9fr) 76px 108px;
-                --tm-pc-grid-other: 48px minmax(140px, 1.1fr) minmax(120px, 1fr) 80px 64px minmax(90px, 0.8fr) 76px 108px;
-            }
-            .tm-pc-hero-actions .tm-pc-tool-label { display: none; }
-        }
-
-        /* ── Slim workflow: model groups ── */
-        .tm-pc-model-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 10px;
-            padding: 16px;
-        }
-        .tm-pc-model-card {
-            text-align: left;
-            padding: 14px 16px;
-            border-radius: 12px;
-            border: 1px solid var(--tm-shop-item-border);
-            background: var(--tm-shop-item-bg);
-            cursor: pointer;
-            transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
-            user-select: none;
-        }
-        .tm-pc-model-card:focus-visible {
-            outline: 2px solid var(--tm-primary-color);
-            outline-offset: 2px;
-        }
-        .tm-pc-model-card:hover {
-            border-color: var(--tm-primary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px color-mix(in srgb, var(--tm-primary-color) 12%, transparent);
-        }
-        .tm-pc-model-card-name {
-            font-size: 14px; font-weight: 800;
-            color: var(--tm-shop-item-text);
-            margin-bottom: 6px; line-height: 1.25;
-        }
-        .tm-pc-model-card-count {
-            font-size: 12px; font-weight: 700;
-            color: var(--tm-primary-color);
-        }
-        .tm-pc-model-card-grades {
-            margin-top: 8px;
-            display: flex; flex-wrap: wrap; gap: 4px;
-        }
-        .tm-pc-model-grade-chip {
-            font-size: 10px; font-weight: 700;
-            padding: 2px 7px; border-radius: 6px;
-            background: color-mix(in srgb, var(--tm-shop-item-border) 22%, transparent);
-            border: 1px solid var(--tm-shop-item-border);
-        }
-        .tm-pc-model-card--bb .tm-pc-model-card-count::after {
-            content: ' · BB';
-            color: var(--tm-warning-color, #ca8a04);
-            font-weight: 700;
-        }
-
-        .tm-pc-store-summary {
-            display: inline-flex; align-items: center; gap: 4px;
-            font-size: 10px; font-weight: 700;
-            padding: 3px 8px; border-radius: 6px; margin-bottom: 4px;
-            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 12%, transparent);
-            border: 1px solid color-mix(in srgb, var(--tm-info-color, #0ea5e9) 28%, transparent);
-            color: var(--tm-info-color, #0369a1);
-            white-space: nowrap;
-        }
-        .tm-pc-store-summary--warn {
-            background: color-mix(in srgb, var(--tm-warning-color, #eab308) 12%, transparent);
-            border-color: color-mix(in srgb, var(--tm-warning-color) 30%, transparent);
-            color: var(--tm-warning-color, #a16207);
-        }
-
-        .tm-pc-row--highlight, .tm-cat-tr.tm-pc-row--highlight {
-            background: color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-shop-item-bg)) !important;
-            box-shadow: inset 3px 0 0 var(--tm-primary-color);
-        }
-
-        .tm-pc-back-btn { display: none; }
-        .tm-pc-back-btn.is-visible { display: inline-flex; }
-
-        .tm-pc-settings-wrap { position: relative; }
-        #tm-phone-settings-menu {
-            position: absolute; top: calc(100% + 6px); right: 0;
-            background: var(--tm-shop-item-bg);
-            border: 1px solid var(--tm-shop-item-border);
-            border-radius: 12px;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.2);
-            padding: 6px; min-width: 200px; display: none; z-index: 30;
-        }
-        #tm-phone-settings-menu button {
-            width: 100%; text-align: left; border: none; background: transparent;
-            color: var(--tm-shop-item-text); padding: 9px 12px; border-radius: 8px;
-            font-size: 12px; font-weight: 600; cursor: pointer;
-            display: flex; align-items: center; gap: 8px;
-        }
-        #tm-phone-settings-menu button:hover {
-            background: color-mix(in srgb, var(--tm-primary-color) 10%, transparent);
-            color: var(--tm-primary-color);
-        }
-
-        .tm-pc-advanced-filters { display: none !important; }
-        .tm-pc-filters--network { display: none; flex-direction: column; gap: 10px; }
-        .tm-pc-filters--network.is-active { display: flex; }
-        .tm-pc-filters--mine.is-hidden { display: none !important; }
-    `;
-
-    function esc(str) {
-        if (str == null) return '';
-        return String(str)
+    function esc(value) {
+        return String(value ?? '')
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
     }
 
-    function buildStoreChipHtml(storeName, isBuyback, allowed) {
-        const name = esc(storeName);
-        if (isBuyback) {
-            const cls = allowed ? 'tm-pc-store--ok tm-cat-store--ok tm-pc-store-chip--ok' : 'tm-pc-store--no tm-cat-store--no tm-pc-store-chip--bad';
-            const icon = allowed ? '●' : '○';
-            return `<span class="tm-pc-store tm-cat-store tm-pc-store-chip ${cls}">${icon} ${name}</span>`;
-        }
-        if (!allowed) {
-            return `<span class="tm-pc-store tm-cat-store tm-pc-store--no tm-pc-store-chip--bad">○ ${name}</span>`;
-        }
-        return `<span class="tm-pc-store tm-cat-store tm-pc-store--mid tm-pc-store-chip--neutral">${name}</span>`;
-    }
+    const STYLES = `
+        @keyframes tm-sl-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes tm-sl-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
-    function buildStoreChipsHtml(stores, isBuyback, filterFn, renderChipFn) {
-        const filtered = filterFn(stores);
-        if (!filtered.length) return '';
-        return filtered.map((s) => renderChipFn(s.name, isBuyback)).join('');
-    }
-
-    function buildEmptyState(icon, title, subtitle = '') {
-        const isEmoji = icon && icon.length <= 4;
-        const visual = isEmoji
-            ? `<div class="tm-pc-empty-icon tm-cat-empty-icon">${icon}</div>`
-            : `<div class="tm-pc-empty-visual">${ICON.phone}</div>`;
-        return `
-            <div class="tm-pc-empty tm-cat-empty">
-                ${visual}
-                <div class="tm-pc-empty-title tm-cat-empty-title">${esc(title)}</div>
-                ${subtitle ? `<div class="tm-pc-empty-sub tm-cat-empty-sub">${esc(subtitle)}</div>` : ''}
-            </div>`;
-    }
-
-    function buildListHeader(variant = 'mine') {
-        if (variant === 'other') {
-            return `<div class="tm-pc-thead tm-pc-thead--other tm-cat-thead tm-cat-thead--other tm-pc-list-header tm-pc-list-header--other">
-                <span>Βαθμ.</span><span>Μοντέλο</span><span>Καταστήματα</span>
-                <span>Χρώμα</span><span>GB</span><span>Barcode</span><span>Τιμή</span><span>Ενέργειες</span>
-            </div>`;
+        .tm-sl-overlay {
+            animation: tm-sl-in 0.2s ease;
+            backdrop-filter: blur(8px);
+            background: var(--tm-overlay-dim, rgba(0,0,0,0.75)) !important;
         }
-        return `<div class="tm-pc-thead tm-cat-thead tm-pc-list-header">
-            <span>Βαθμ.</span><span>Μοντέλο</span><span>Χρώμα</span>
-            <span>GB</span><span>Barcode</span><span>Τιμή</span><span>Ενέργειες</span>
+        .tm-sl-shell {
+            animation: tm-sl-rise 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+            width: min(920px, 96vw) !important;
+            max-width: 96vw !important;
+            height: min(88vh, 820px) !important;
+            max-height: 88vh !important;
+            border-radius: 16px !important;
+            border: 1px solid var(--tm-shop-item-border) !important;
+            background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
+            box-shadow: 0 24px 64px var(--tm-shadow-color, rgba(0,0,0,0.4)) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden;
+            color: var(--tm-shop-item-text, var(--tm-primary-color));
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .tm-sl-header {
+            padding: 18px 20px 14px;
+            border-bottom: 1px solid var(--tm-shop-item-border);
+            flex-shrink: 0;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 12%, transparent), transparent 70%);
+        }
+        .tm-sl-header-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        }
+        .tm-sl-title-block { min-width: 0; flex: 1; }
+        .tm-sl-title {
+            margin: 0; font-size: 1.25rem; font-weight: 800; line-height: 1.2;
+            color: var(--tm-shop-item-text, var(--tm-primary-color));
+        }
+        .tm-sl-subtitle {
+            margin: 4px 0 0; font-size: 12px;
+            color: var(--tm-muted-text, var(--tm-secondary-color));
+        }
+        .tm-sl-header-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .tm-sl-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 12px; border-radius: 10px;
+            border: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-input-bg, var(--tm-shop-item-bg));
+            color: var(--tm-shop-item-text);
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .tm-sl-btn:hover { border-color: var(--tm-primary-color); background: var(--tm-shop-item-hover-bg); }
+        .tm-sl-btn--icon { padding: 8px 10px; }
+        .tm-sl-btn--back { margin-right: 4px; }
+
+        .tm-sl-toolbar {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg));
+            flex-shrink: 0;
+        }
+        .tm-sl-search-wrap {
+            position: relative; display: flex; align-items: center;
+        }
+        .tm-sl-search-icon {
+            position: absolute; left: 12px; opacity: 0.45; pointer-events: none;
+            display: flex;
+        }
+        .tm-sl-search {
+            width: 100%; box-sizing: border-box;
+            height: 42px; padding: 0 14px 0 38px;
+            border-radius: 10px;
+            border: 1px solid var(--tm-input-border, var(--tm-shop-item-border));
+            background: var(--tm-input-bg, #fff);
+            color: var(--tm-input-text, #212529);
+            font-size: 14px; outline: none;
+        }
+        .tm-sl-search:focus {
+            border-color: var(--tm-primary-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--tm-primary-color) 15%, transparent);
+        }
+        .tm-sl-chips {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;
+        }
+        .tm-sl-chip {
+            padding: 6px 12px; border-radius: 999px;
+            border: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-shop-item-bg);
+            color: var(--tm-shop-item-text);
+            font-size: 11px; font-weight: 700; cursor: pointer;
+            transition: all 0.12s;
+        }
+        .tm-sl-chip:hover { border-color: var(--tm-primary-color); }
+        .tm-sl-chip.is-active {
+            background: color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-shop-item-bg));
+            border-color: var(--tm-primary-color);
+            color: var(--tm-primary-color);
+        }
+
+        .tm-sl-body {
+            flex: 1; overflow-y: auto; padding: 16px 20px; min-height: 0;
+        }
+
+        .tm-sl-model-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 12px;
+        }
+        .tm-sl-model-card {
+            border: 1px solid var(--tm-shop-item-border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            background: var(--tm-shop-item-bg);
+            cursor: pointer;
+            transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+        }
+        .tm-sl-model-card:hover {
+            border-color: var(--tm-primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px color-mix(in srgb, var(--tm-shadow-color, #000) 25%, transparent);
+        }
+        .tm-sl-model-name {
+            font-size: 14px; font-weight: 800; line-height: 1.25;
+            margin-bottom: 8px;
+            color: var(--tm-shop-item-text);
+        }
+        .tm-sl-model-meta {
+            font-size: 12px; font-weight: 600;
+            color: var(--tm-info-color, #0ea5e9);
+            margin-bottom: 6px;
+        }
+        .tm-sl-model-stores {
+            font-size: 11px; opacity: 0.75; margin-bottom: 8px;
+        }
+        .tm-sl-grade-row { display: flex; flex-wrap: wrap; gap: 4px; }
+        .tm-sl-grade-chip {
+            font-size: 10px; font-weight: 700; padding: 2px 6px;
+            border-radius: 4px;
+            background: var(--tm-chip-bg, var(--tm-shop-item-hover-bg));
+            border: 1px solid var(--tm-chip-border, var(--tm-shop-item-border));
+        }
+
+        .tm-sl-mine-banner {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 16px; border-radius: 12px; margin-bottom: 16px;
+            border: 1px solid var(--tm-shop-item-border);
+        }
+        .tm-sl-mine-banner--yes {
+            background: color-mix(in srgb, var(--tm-success-color, #22c55e) 12%, var(--tm-shop-item-bg));
+            border-color: color-mix(in srgb, var(--tm-success-color, #22c55e) 35%, var(--tm-shop-item-border));
+        }
+        .tm-sl-mine-banner--no {
+            background: color-mix(in srgb, var(--tm-shop-item-border) 20%, var(--tm-shop-item-bg));
+            opacity: 0.9;
+        }
+        .tm-sl-mine-icon { font-size: 22px; line-height: 1; flex-shrink: 0; }
+        .tm-sl-mine-text { font-size: 13px; font-weight: 700; }
+        .tm-sl-mine-detail { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+
+        .tm-sl-store-list { display: flex; flex-direction: column; gap: 8px; }
+        .tm-sl-store-row {
+            border: 1px solid var(--tm-shop-item-border);
+            border-radius: 12px;
+            background: var(--tm-shop-item-bg);
+            overflow: hidden;
+        }
+        .tm-sl-store-row.is-mine {
+            border-color: color-mix(in srgb, var(--tm-primary-color) 40%, var(--tm-shop-item-border));
+        }
+        .tm-sl-store-head {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 14px; cursor: pointer;
+            transition: background 0.12s;
+        }
+        .tm-sl-store-head:hover { background: var(--tm-shop-item-hover-bg); }
+        .tm-sl-store-icon { opacity: 0.7; flex-shrink: 0; display: flex; }
+        .tm-sl-store-name { flex: 1; font-size: 13px; font-weight: 800; min-width: 0; }
+        .tm-sl-store-qty {
+            font-size: 11px; font-weight: 700; padding: 4px 8px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 14%, transparent);
+            color: var(--tm-info-color, #0ea5e9);
+            flex-shrink: 0;
+        }
+        .tm-sl-store-chevron { opacity: 0.4; flex-shrink: 0; transition: transform 0.15s; }
+        .tm-sl-store-row.is-open .tm-sl-store-chevron { transform: rotate(90deg); }
+        .tm-sl-store-preview {
+            font-size: 11px; opacity: 0.7; padding: 0 14px 10px 40px;
+            line-height: 1.4;
+        }
+        .tm-sl-store-units {
+            display: none; border-top: 1px dashed var(--tm-shop-item-border);
+            padding: 8px 10px 10px;
+            background: color-mix(in srgb, var(--tm-shop-item-border) 8%, var(--tm-shop-item-bg));
+        }
+        .tm-sl-store-row.is-open .tm-sl-store-units { display: block; }
+        .tm-sl-unit {
+            display: grid;
+            grid-template-columns: 36px 1fr auto;
+            gap: 8px; align-items: center;
+            padding: 8px 10px; border-radius: 8px;
+            font-size: 12px;
+        }
+        .tm-sl-unit:hover { background: var(--tm-shop-item-hover-bg); }
+        .tm-sl-unit-grade {
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 800;
+        }
+        .tm-sl-unit-spec { font-weight: 600; line-height: 1.35; }
+        .tm-sl-unit-barcode {
+            font-size: 10px; opacity: 0.65; font-family: ui-monospace, monospace;
+        }
+        .tm-sl-unit-price { font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .tm-sl-unit-actions { display: flex; gap: 4px; }
+        .tm-sl-unit-btn {
+            padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 700;
+            border: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-shop-item-bg); cursor: pointer;
+        }
+        .tm-sl-unit-btn:hover { border-color: var(--tm-primary-color); }
+
+        .tm-sl-empty {
+            text-align: center; padding: 48px 24px;
+            color: var(--tm-muted-text);
+        }
+        .tm-sl-empty-icon { font-size: 40px; margin-bottom: 12px; }
+        .tm-sl-empty-title { font-size: 16px; font-weight: 800; margin-bottom: 6px; color: var(--tm-shop-item-text); }
+        .tm-sl-empty-sub { font-size: 13px; opacity: 0.8; }
+
+        .tm-sl-footer {
+            padding: 10px 20px;
+            border-top: 1px solid var(--tm-shop-item-border);
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 11px; opacity: 0.75; flex-shrink: 0;
+        }
+        .tm-sl-loading { text-align: center; padding: 40px; opacity: 0.7; }
+    `;
+
+    function buildEmptyState(icon, title, sub) {
+        return `<div class="tm-sl-empty">
+            <div class="tm-sl-empty-icon">${icon}</div>
+            <div class="tm-sl-empty-title">${esc(title)}</div>
+            ${sub ? `<div class="tm-sl-empty-sub">${esc(sub)}</div>` : ''}
         </div>`;
     }
 
-    function buildPhoneRow(item, ctx, options = {}) {
-        const {
-            variant = 'mine',
-            isSelected = false,
-            isFavorite = false,
-            storesHtml = '',
-            storesPending = false,
-            noBuybackStore = false,
-            storeSummary = '',
-        } = options;
-
-        const T = ctx.T;
-        const phoneColor = ctx.extractColor(item.name || item.model);
-        const colorHex = ctx.getColorHex(phoneColor);
-        const displayModel = ctx.extractBaseModel(item.model) || item.model || item.name;
-        const storage = ctx.extractGB(item.name || item.model);
-        const grade = item.grade || '';
-        const titleStyle = ctx.getPhoneModelTitleStyle(phoneColor, colorHex);
-        const tags = ctx.getPhoneTags(item.barcode);
-
-        const rowClass = [
-            'tm-pc-row', 'tm-cat-tr', 'tm-phone-item',
-            variant === 'other' ? 'tm-pc-row--other tm-cat-tr--other' : '',
-            isSelected ? 'selected' : '',
-            isFavorite ? 'favorite' : '',
-        ].filter(Boolean).join(' ');
-
-        const tagHtml = tags.map((tag) => {
-            const color = ctx.getTagColor(tag);
-            return `<span class="tm-pc-meta tm-pc-meta--tag tm-cat-tag tm-cat-tag--hash tm-pc-meta-chip tm-pc-meta-chip--tag" style="color:${esc(color)};border-color:${esc(color)}">#${esc(ctx.getTagDisplayName(tag))}</span>`;
-        }).join('');
-
-        const swatch = colorHex
-            ? `<span class="tm-pc-swatch tm-cat-swatch tm-pc-color-dot" style="background:${esc(colorHex)}"></span>`
-            : '';
-
-        const colorCell = phoneColor
-            ? `<div class="tm-pc-color-cell"><span class="tm-pc-swatch tm-cat-swatch" style="background:${esc(colorHex || '#ccc')}"></span><span>${esc(phoneColor)}</span></div>`
-            : `<span class="tm-pc-storage" style="opacity:0.35">—</span>`;
-
-        const storageCell = storage
-            ? `<span class="tm-pc-storage">${esc(storage)}</span>`
-            : `<span class="tm-pc-storage" style="opacity:0.35">—</span>`;
-
-        const priceCell = item.retailPrice
-            ? `<span class="tm-pc-price tm-cat-price tm-pc-row-price">${esc(item.retailPrice)} €</span>`
-            : `<span class="tm-pc-price tm-pc-price--empty">—</span>`;
-
-        const summaryHtml = storeSummary
-            ? `<span class="tm-pc-store-summary ${noBuybackStore ? 'tm-pc-store-summary--warn' : ''}">${esc(storeSummary)}</span>`
-            : '';
-
-        const storesCell = variant === 'other' ? `
-            <div class="tm-pc-stores tm-pc-row-stores tm-cat-stores tm-other-store-stores" data-product="${esc(item.barcode)}">
-                ${summaryHtml}
-                ${storesPending
-        ? '<span class="tm-pc-store-loading tm-cat-store-loading tm-pc-store-loading"><i></i>Φόρτωση…</span>'
-        : (storesHtml || (storeSummary ? '' : '<span style="opacity:0.35;font-size:11px">—</span>'))}
-            </div>` : '';
-
-        const actions = `
-            <div class="tm-pc-row-actions tm-cat-actions tm-pc-col-actions">
-                <button type="button" class="tm-pc-act tm-pc-action-btn tm-cat-act tm-phone-search-btn" data-barcode="${esc(item.barcode)}" title="${esc(T['Search barcode in system'])}">${ICON.search}</button>
-                ${item.imei ? `<button type="button" class="tm-pc-act tm-pc-action-btn tm-cat-act tm-phone-copy-imei-btn" data-imei="${esc(item.imei)}" title="${esc(T['Copy IMEI'])}">${ICON.copy}</button>` : ''}
-                <button type="button" class="tm-pc-act tm-pc-action-btn tm-cat-act tm-phone-favorite-btn ${isFavorite ? 'is-fav' : ''}" data-barcode="${esc(item.barcode)}"
-                    title="${esc(isFavorite ? T['Remove from favorites'] : T['Add to favorites'])}">${isFavorite ? ICON.star : ICON.starOutline}</button>
-            </div>`;
-
+    function buildShellHTML() {
         return `
-            <div class="${rowClass}"
-                data-barcode="${esc(item.barcode)}"
-                data-name="${esc(item.name)}"
-                data-imei="${esc(item.imei || '')}">
-                <div class="tm-pc-col tm-pc-col-grade">
-                    <div class="tm-pc-grade-badge tm-pc-row-grade tm-cat-grade" style="${ctx.getPhoneGradeCircleStyle(grade)}">${esc(grade || '—')}</div>
-                </div>
-                <div class="tm-pc-col tm-pc-col-device tm-pc-row-main tm-cat-device">
-                    <div class="tm-pc-row-line1 tm-cat-line-primary">
-                        ${noBuybackStore ? `<span title="${esc(ctx.t('No buyback store'))}" style="font-size:13px;line-height:1">🚫</span>` : ''}
-                        <span class="tm-pc-row-model tm-cat-model" style="${titleStyle}" title="${esc(displayModel)}">${esc(displayModel)}</span>
-                        ${item.isBuyback ? '<span class="tm-pc-meta tm-pc-meta--bb tm-cat-tag tm-cat-tag--bb tm-pc-meta-chip tm-pc-meta-chip--buyback">Buyback</span>' : ''}
+        <style>${STYLES}</style>
+        <div class="tm-sl-shell">
+            <header class="tm-sl-header">
+                <div class="tm-sl-header-row">
+                    <div class="tm-sl-title-block">
+                        <h2 class="tm-sl-title" id="tm-sl-title">Πού υπάρχει το μοντέλο</h2>
+                        <p class="tm-sl-subtitle" id="tm-sl-subtitle">Επιλέξτε μοντέλο για να δείτε διαθεσιμότητα ανά κατάστημα</p>
                     </div>
-                    ${tagHtml ? `<div class="tm-pc-row-line2 tm-cat-line-secondary">${tagHtml}</div>` : ''}
+                    <div class="tm-sl-header-actions">
+                        <button type="button" id="tm-sl-refresh" class="tm-sl-btn" title="Ανανέωση">${ICON.refresh} Ανανέωση</button>
+                        <button type="button" id="tm-sl-close" class="tm-sl-btn tm-sl-btn--icon" aria-label="Κλείσιμο">×</button>
+                    </div>
                 </div>
-                ${storesCell}
-                <div class="tm-pc-col tm-pc-col-color">${colorCell}</div>
-                <div class="tm-pc-col tm-pc-col-storage">${storageCell}</div>
-                <div class="tm-pc-col tm-pc-col-barcode">
-                    <code class="tm-pc-barcode tm-cat-code">${esc(item.barcode)}</code>
-                </div>
-                <div class="tm-pc-col tm-pc-col-price">${priceCell}</div>
-                ${actions}
+            </header>
+            <div class="tm-sl-toolbar" id="tm-sl-toolbar"></div>
+            <div class="tm-sl-body" id="tm-sl-body">${buildEmptyState('⏳', 'Φόρτωση…', '')}</div>
+            <footer class="tm-sl-footer">
+                <span id="tm-sl-status">—</span>
+                <span id="tm-sl-updated"></span>
+            </footer>
+        </div>`;
+    }
+
+    function buildModelSearchToolbar() {
+        return `
+            <div class="tm-sl-search-wrap">
+                <span class="tm-sl-search-icon">${ICON.search}</span>
+                <input type="search" id="tm-sl-model-search" class="tm-sl-search"
+                    placeholder="Αναζήτηση μοντέλου…" autocomplete="off">
             </div>`;
     }
 
-    const buildPhoneCard = buildPhoneRow;
+    function buildStoreToolbar(modelName, chipsHtml) {
+        return `
+            <button type="button" id="tm-sl-back" class="tm-sl-btn tm-sl-btn--back">${ICON.back} Μοντέλα</button>
+            <div class="tm-sl-chips" id="tm-sl-chips">${chipsHtml || ''}</div>`;
+    }
 
-    function buildModelGroupList(models, options = {}) {
-        const { clickAttr = 'data-tm-pc-model' } = options;
-        if (!models || !models.length) {
-            return buildEmptyState('📱', 'Δεν βρέθηκαν μοντέλα', 'Δοκιμάστε ανανέωση ή άλλη αναζήτηση');
+    function buildModelGrid(models) {
+        if (!models.length) {
+            return buildEmptyState('📱', 'Δεν βρέθηκαν μοντέλα', 'Δοκιμάστε άλλη αναζήτηση ή ανανέωση');
         }
         const cards = models.map(([model, data]) => {
-            const grades = data.grades || {};
-            const gradeChips = Object.entries(grades)
+            const storeLabel = data.storeCount === 1
+                ? '1 κατάστημα'
+                : `${data.storeCount} καταστήματα`;
+            const grades = Object.entries(data.grades || {})
                 .sort((a, b) => a[0].localeCompare(b[0]))
-                .map(([g, count]) => `<span class="tm-pc-model-grade-chip">${esc(g)}:${count}</span>`)
+                .map(([g, n]) => `<span class="tm-sl-grade-chip">${esc(g)}:${n}</span>`)
                 .join('');
-            const bbClass = data.buybackCount > 0 ? ' tm-pc-model-card--bb' : '';
-            const unitLabel = data.count === 1 ? 'συσκευή' : 'συσκευές';
-            return `<div class="tm-pc-model-card${bbClass}" role="button" tabindex="0" ${clickAttr}="${esc(model)}">
-                <div class="tm-pc-model-card-name">${esc(model)}</div>
-                <div class="tm-pc-model-card-count">${data.count} ${unitLabel}</div>
-                ${gradeChips ? `<div class="tm-pc-model-card-grades">${gradeChips}</div>` : ''}
+            return `<div class="tm-sl-model-card" role="button" tabindex="0" data-tm-sl-model="${esc(model)}">
+                <div class="tm-sl-model-name">${esc(model)}</div>
+                <div class="tm-sl-model-meta">${ICON.store.replace('width="16"', 'width="12"').replace('height="16"', 'height="12"')} ${esc(storeLabel)}</div>
+                <div class="tm-sl-model-stores">${data.totalUnits} συσκευές στο δίκτυο</div>
+                ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
             </div>`;
         }).join('');
-        return `<div class="tm-pc-model-grid">${cards}</div>`;
+        return `<div class="tm-sl-model-grid">${cards}</div>`;
     }
 
-    function buildModalHTML(T) {
-        return `
-        <style>${PHONE_CATALOG_UI_STYLES}</style>
-        <div class="tm-phone-modal-content tm-pc-shell tm-cat-app">
-            <header class="tm-pc-hero">
-                <div class="tm-pc-hero-top">
-                    <div class="tm-pc-hero-brand">
-                        <div class="tm-pc-hero-icon">${ICON.phone}</div>
-                        <div>
-                            <h2 class="tm-pc-hero-title">${esc(T['Phone Catalog'])}</h2>
-                            <p class="tm-pc-hero-sub">Απόθεμα καταστήματος &amp; διαθεσιμότητα ανά μοντέλο</p>
-                        </div>
-                    </div>
-                    <div class="tm-pc-hero-actions">
-                        <button type="button" id="tm-phone-refresh-btn" class="tm-pc-tool-btn tm-phone-toolbar-btn" title="${esc(T['Refresh (Ctrl+R)'])}">${ICON.refresh}<span class="tm-pc-tool-label">Ανανέωση</span></button>
-                        <div class="tm-pc-settings-wrap">
-                            <button type="button" id="tm-phone-settings-btn" class="tm-pc-tool-btn" title="Ρυθμίσεις">${ICON.settings}</button>
-                            <div id="tm-phone-settings-menu">
-                                <button type="button" id="tm-phone-colors-btn" class="tm-phone-toolbar-btn">${ICON.palette} ${esc(T['Manage Colors'])}</button>
-                                <button type="button" id="tm-phone-tags-btn" class="tm-phone-toolbar-btn">${ICON.tag} ${esc(T['Manage Tags'])}</button>
-                                <button type="button" id="tm-phone-stores-btn" class="tm-phone-toolbar-btn">${ICON.store} ${esc(T['Manage Stores'])}</button>
-                                <button type="button" id="tm-phone-export-btn">${ICON.export} ${esc(T['Export'] || 'Export')}</button>
-                            </div>
-                        </div>
-                        <button type="button" id="tm-phone-view-toggle" hidden aria-hidden="true"></button>
-                        <button type="button" id="tm-phone-other-store-toggle" hidden aria-hidden="true"></button>
-                        <button type="button" class="tm-modal-close tm-pc-close tm-pc-tool-btn" aria-label="Close">×</button>
-                    </div>
-                </div>
-                <div class="tm-pc-hero-bottom">
-                    <nav class="tm-pc-seg tm-cat-tabs" role="tablist">
-                        <button type="button" class="tm-pc-seg-btn tm-cat-tab active" id="tm-pc-view-mine" data-view="mine">Το κατάστημά μου</button>
-                        <button type="button" class="tm-pc-seg-btn tm-cat-tab" id="tm-pc-view-other" data-view="other">Πού υπάρχει το μοντέλο</button>
-                    </nav>
-                </div>
-            </header>
-
-            <div id="tm-phone-filters-mine" class="tm-pc-filters tm-cat-controls tm-pc-filters--mine" data-tm-phone-toolbar>
-                <div class="tm-pc-search-row tm-cat-search-line">
-                    <label class="tm-pc-search tm-cat-search">
-                        <span class="tm-pc-search-icon tm-cat-search-icon">${ICON.search}</span>
-                        <input type="search" id="tm-phone-search-input" placeholder="Μοντέλο, barcode, IMEI…" autocomplete="off">
-                    </label>
-                    <select id="tm-phone-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
-                    <button type="button" id="tm-mine-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
-                </div>
-                <div class="tm-pc-filters-row2">
-                    <span class="tm-pc-filters-label-inline">Φίλτρα</span>
-                    <select id="tm-phone-filter-gb" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Storage'])}</option></select>
-                    <select id="tm-phone-filter-color" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Colors'])}</option></select>
-                    <select id="tm-phone-filter-tag" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Tags'])}</option></select>
-                    <span class="tm-pc-filters-label-inline">Ταξινόμηση</span>
-                    <select id="tm-phone-sort-by" class="tm-pc-select tm-cat-select">
-                        <option value="model">${esc(T['Sort by Model'])}</option>
-                        <option value="count">${esc(T['Sort by Count'] || 'Sort by Count')}</option>
-                        <option value="grade">${esc(T['Sort by Grade'])}</option>
-                        <option value="gb">${esc(T['Sort by Storage'])}</option>
-                        <option value="color">${esc(T['Sort by Color'])}</option>
-                        <option value="price">${esc(T['Sort by Price'] || 'Sort by Price')}</option>
-                        <option value="imei">${esc(T['Sort by IMEI'])}</option>
-                    </select>
-                    <button type="button" id="tm-phone-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
-                    <button type="button" id="tm-phone-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear All Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
-                </div>
-            </div>
-
-            <div id="tm-phone-filters-network" class="tm-pc-filters tm-cat-controls tm-pc-filters--network">
-                <div class="tm-pc-search-row tm-cat-search-line">
-                    <select id="tm-network-filter-model" class="tm-pc-select tm-cat-select" style="flex:1;min-width:180px"><option value="">— Επιλέξτε μοντέλο —</option></select>
-                    <select id="tm-network-filter-store" class="tm-pc-select tm-cat-select"><option value="">Όλα τα καταστήματα</option></select>
-                    <select id="tm-network-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
-                    <button type="button" id="tm-network-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
-                </div>
-                <div class="tm-pc-filters-row2">
-                    <span class="tm-pc-filters-label-inline">Φίλτρα</span>
-                    <select id="tm-network-filter-gb" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Storage'])}</option></select>
-                    <select id="tm-network-filter-color" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Colors'])}</option></select>
-                    <span class="tm-pc-filters-label-inline">Ταξινόμηση</span>
-                    <select id="tm-network-sort-by" class="tm-pc-select tm-cat-select">
-                        <option value="model">${esc(T['Sort by Model'])}</option>
-                        <option value="count">${esc(T['Sort by Count'] || 'Sort by Count')}</option>
-                        <option value="grade">${esc(T['Sort by Grade'])}</option>
-                        <option value="gb">${esc(T['Sort by Storage'])}</option>
-                        <option value="color">${esc(T['Sort by Color'])}</option>
-                        <option value="price">${esc(T['Sort by Price'] || 'Sort by Price')}</option>
-                        <option value="imei">${esc(T['Sort by IMEI'])}</option>
-                    </select>
-                    <button type="button" id="tm-network-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
-                    <button type="button" id="tm-network-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear All Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
-                </div>
-            </div>
-
-            <div class="tm-pc-advanced-filters" aria-hidden="true">
-                <input type="checkbox" id="tm-phone-regex-toggle" hidden>
-                <button type="button" id="tm-phone-favorites-btn" hidden></button>
-                <select id="tm-phone-filter-model" hidden><option value=""></option></select>
-                <button type="button" id="tm-phone-select-all" hidden></button>
-                <div id="tm-phone-export-menu" hidden>
-                    <button type="button" id="tm-phone-export-clipboard"></button>
-                    <button type="button" id="tm-phone-export-csv"></button>
-                    <button type="button" id="tm-phone-export-selected"></button>
-                    <input type="checkbox" id="tm-phone-export-original-title" hidden>
-                </div>
-            </div>
-
-            <div class="tm-pc-body">
-                <div class="tm-pc-table-wrap" id="tm-mine-table-wrap">
-                    <div id="tm-phone-list-container" class="tm-pc-list tm-cat-table-body">
-                        ${buildEmptyState('…', 'Φόρτωση', 'Παρακαλώ περιμένετε')}
-                    </div>
-                </div>
-                <div id="tm-other-store-container" style="display:none;flex:1;overflow:hidden;flex-direction:column">
-                    <div class="tm-pc-table-wrap" style="flex:1">
-                        <div id="tm-other-store-content" class="tm-pc-list tm-cat-table-body">
-                            ${buildEmptyState('…', 'Φόρτωση', 'Επιλέξτε μοντέλο')}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <footer class="tm-pc-footer tm-cat-statusbar tm-pc-statusbar" id="tm-phone-count">
-                <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-                    <span id="tm-phone-count-text">0 συσκευές</span>
-                    <div id="tm-phone-statistics"></div>
-                </div>
-                <div style="display:flex;gap:10px;align-items:center">
-                    <span id="tm-phone-last-updated" style="font-size:11px;opacity:0.65"></span>
-                    <span id="tm-phone-cache-warning" style="display:none;color:var(--tm-warning-color);font-weight:700;font-size:11px"></span>
-                </div>
-            </footer>
-        </div>
-        <div class="tm-phone-context-menu">
-            <div class="tm-phone-context-menu-item" data-action="add-tag">${esc(T['Add Tag'])}</div>
-            <div class="tm-phone-context-menu-item" data-action="remove-tag">${esc(T['Remove Tag'])}</div>
-        </div>`;
+    function buildFilterChips(filters, active) {
+        const parts = [];
+        const addGroup = (key, label, values) => {
+            if (!values.length) return;
+            values.forEach((val) => {
+                const isActive = active[key] === val;
+                parts.push(`<button type="button" class="tm-sl-chip${isActive ? ' is-active' : ''}"
+                    data-tm-sl-filter="${esc(key)}" data-tm-sl-value="${esc(val)}">${esc(label ? `${label}: ` : '')}${esc(val)}</button>`);
+            });
+        };
+        addGroup('grade', '', filters.grades);
+        addGroup('gb', '', filters.gbs);
+        addGroup('color', '', filters.colors);
+        if (active.grade || active.gb || active.color) {
+            parts.push('<button type="button" class="tm-sl-chip" data-tm-sl-filter="clear">Καθαρισμός</button>');
+        }
+        return parts.join('');
     }
 
-    function buildOtherStoresModalHTML(T) {
-        return `
-        <style>${PHONE_CATALOG_UI_STYLES}</style>
-        <div class="tm-pc-os-shell tm-cat-os-panel tm-pc-os-panel">
-            <header class="tm-pc-os-hero tm-cat-os-top">
-                <div style="display:flex;align-items:center;gap:14px;min-width:0">
-                    <div class="tm-pc-hero-icon">${ICON.network}</div>
+    function formatVariantLine(v) {
+        const bits = [v.grade, v.gb, v.color].filter(Boolean);
+        return bits.join(' · ') || '—';
+    }
+
+    function buildStoreBoard(modelName, myStore, storeRows, ctx) {
+        let html = '';
+
+        if (myStore && myStore.variants.length) {
+            html += `<div class="tm-sl-mine-banner tm-sl-mine-banner--yes">
+                <span class="tm-sl-mine-icon">✅</span>
+                <div>
+                    <div class="tm-sl-mine-text">Υπάρχει στο κατάστημά σας</div>
+                    <div class="tm-sl-mine-detail">${myStore.variants.length} ${myStore.variants.length === 1 ? 'συσκευή' : 'συσκευές'} — ${esc(myStore.preview)}</div>
+                </div>
+            </div>`;
+        } else {
+            html += `<div class="tm-sl-mine-banner tm-sl-mine-banner--no">
+                <span class="tm-sl-mine-icon">—</span>
+                <div>
+                    <div class="tm-sl-mine-text">Δεν υπάρχει στο κατάστημά σας</div>
+                    <div class="tm-sl-mine-detail">Δείτε παρακάτω ποια καταστήματα έχουν ${esc(modelName)}</div>
+                </div>
+            </div>`;
+        }
+
+        if (!storeRows.length && !(myStore && myStore.variants.length)) {
+            html += buildEmptyState('🔍', 'Δεν βρέθηκε σε κανένα κατάστημα', 'Δοκιμάστε άλλα φίλτρα ή ανανέωση δεδομένων');
+            return html;
+        }
+
+        const rows = storeRows.map((store, idx) => {
+            const preview = store.variants.slice(0, 3).map(formatVariantLine).join(' · ');
+            const units = store.variants.map((v) => {
+                const gradeStyle = ctx.getGradeStyle(v.grade);
+                return `<div class="tm-sl-unit" data-barcode="${esc(v.barcode)}">
+                    <div class="tm-sl-unit-grade" style="${gradeStyle}">${esc(v.grade || '—')}</div>
                     <div>
-                        <div style="font-weight:800;font-size:1.2rem;color:var(--tm-shop-item-text)">Πού υπάρχει το μοντέλο</div>
-                        <div style="font-size:12px;opacity:0.6;margin-top:4px">Επιλέξτε μοντέλο και δείτε σε ποια καταστήματα υπάρχει</div>
+                        <div class="tm-sl-unit-spec">${esc(formatVariantLine(v))}${v.isBuyback ? ' · BB' : ''}</div>
+                        <div class="tm-sl-unit-barcode">${esc(v.barcode)}</div>
                     </div>
+                    <div class="tm-sl-unit-actions">
+                        ${v.price ? `<span class="tm-sl-unit-price">${esc(v.price)}</span>` : ''}
+                        <button type="button" class="tm-sl-unit-btn" data-tm-sl-copy="${esc(v.barcode)}">Copy</button>
+                        <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}">Open</button>
+                    </div>
+                </div>`;
+            }).join('');
+            return `<div class="tm-sl-store-row${store.isMine ? ' is-mine' : ''}" data-store-idx="${idx}">
+                <div class="tm-sl-store-head" data-tm-sl-toggle-store="${idx}">
+                    <span class="tm-sl-store-icon">${ICON.store}</span>
+                    <span class="tm-sl-store-name">${esc(store.name)}</span>
+                    <span class="tm-sl-store-qty">${store.variants.length} τεμ.</span>
+                    <span class="tm-sl-store-chevron">${ICON.chevron}</span>
                 </div>
-                <div style="display:flex;gap:8px;align-items:center">
-                    <span id="tm-other-store-count" style="font-size:11px;font-weight:600;opacity:0.7"></span>
-                    <button type="button" id="tm-other-store-refresh-btn" class="tm-pc-tool-btn" title="Ανανέωση">${ICON.refresh}</button>
-                    <button type="button" id="tm-other-store-close" class="tm-modal-close tm-pc-close tm-pc-tool-btn">×</button>
-                </div>
-            </header>
-            <div id="tm-os-filter-bar" class="tm-pc-filters" style="display:none">
-                <div class="tm-pc-search-row" style="padding:12px 24px 6px">
-                    <select id="tm-other-store-filter-model" class="tm-pc-select tm-cat-select" style="flex:1;min-width:180px"><option value="">— Επιλέξτε μοντέλο —</option></select>
-                    <select id="tm-other-store-filter-store" class="tm-pc-select tm-cat-select"><option value="">Όλα τα καταστήματα</option></select>
-                    <select id="tm-other-store-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
-                    <button type="button" id="tm-os-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
-                </div>
-                <div class="tm-pc-filters-row2" style="padding:0 24px 12px">
-                    <span class="tm-pc-filters-label-inline">Φίλτρα</span>
-                    <select id="tm-other-store-filter-gb" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Storage'])}</option></select>
-                    <select id="tm-other-store-filter-color" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Colors'])}</option></select>
-                    <span class="tm-pc-filters-label-inline">Ταξινόμηση</span>
-                    <select id="tm-other-store-sort" class="tm-pc-select tm-cat-select">
-                        <option value="model-asc">${esc(T['Sort by Model'])} ↑</option>
-                        <option value="model-desc">${esc(T['Sort by Model'])} ↓</option>
-                        <option value="grade-asc">${esc(T['Sort by Grade'])} A+→A</option>
-                        <option value="grade-desc">${esc(T['Sort by Grade'])} A→A+</option>
-                        <option value="storage-asc">${esc(T['Sort by Storage'])} ↑</option>
-                        <option value="storage-desc">${esc(T['Sort by Storage'])} ↓</option>
-                        <option value="price-asc">Τιμή ↑</option>
-                        <option value="price-desc">Τιμή ↓</option>
-                    </select>
-                    <button type="button" id="tm-other-store-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear All Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
-                </div>
-            </div>
-            <div id="tm-other-store-modal-body" class="tm-pc-list tm-cat-table-body">
-                ${buildEmptyState('…', 'Φόρτωση', 'Λήψη δεδομένων δικτύου')}
-            </div>
-        </div>`;
-    }
+                ${preview ? `<div class="tm-sl-store-preview">${esc(preview)}${store.variants.length > 3 ? '…' : ''}</div>` : ''}
+                <div class="tm-sl-store-units">${units}</div>
+            </div>`;
+        }).join('');
 
-    function buildModelPickerHTML(models, totalPhones) {
-        return buildModelGroupList(models);
+        html += `<div class="tm-sl-store-list">${rows}</div>`;
+        return html;
     }
 
     window.PhoneCatalogUI = {
-        STYLES: PHONE_CATALOG_UI_STYLES,
+        STYLES,
         esc,
-        buildModalHTML,
-        buildPhoneRow,
-        buildPhoneCard,
-        buildListHeader,
-        buildStoreChipHtml,
-        buildStoreChipsHtml,
+        buildShellHTML,
+        buildModelSearchToolbar,
+        buildStoreToolbar,
+        buildModelGrid,
+        buildFilterChips,
+        buildStoreBoard,
         buildEmptyState,
-        buildOtherStoresModalHTML,
-        buildModelPickerHTML,
-        buildModelGroupList,
+        formatVariantLine,
     };
 })();
 
@@ -29235,3574 +28549,440 @@ function formatStoreSummaryText(item, loadedStoreCount = null) {
     return n === 1 ? 'Σε 1 κατ.' : `Σε ${n} κατ.`;
 }
 
+const extractBaseModelCacheGlobal = new Map();
+
+function extractBaseModel(model) {
+    if (!model) return '';
+    if (extractBaseModelCacheGlobal.has(model)) return extractBaseModelCacheGlobal.get(model);
+    let base = model
+        .replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '')
+        .replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ')
+        .replace(/\s*\(BB[^)]*\)?\s*/gi, ' ')
+        .replace(/\s+(BB|ΒΒ):\s*$/gi, ' ')
+        .replace(/\s*[–\-]?\s*[\u0045\u0395][\s\-]?SIM(\s+ONLY)?\s*/gi, ' ')
+        .replace(/\s*\d+\s*TB\s*/gi, ' ')
+        .replace(/\s*\d+\s*GB\s*/gi, ' ')
+        .replace(/\s*\d+\s*G(?!\w)/gi, ' ');
+    const color = extractColor(model);
+    if (color) {
+        base = base.replace(new RegExp(color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), ' ');
+    }
+    const gb = extractGB(model);
+    if (gb) {
+        base = base.replace(new RegExp(gb.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), ' ');
+    }
+    base = base.replace(/\s+/g, ' ').trim();
+    extractBaseModelCacheGlobal.set(model, base);
+    return base;
+}
+
 /**
- * Shows a modal with a searchable list of phones
+ * Opens the store locator (model → store availability).
  */
 async function showPhoneListModal() {
-    // Prevent multiple modals
-    if (document.querySelector('.tm-modal-overlay')) return;
+    if (document.querySelector('.tm-modal-overlay, .tm-sl-overlay')) return;
+    if (typeof window.showStoreLocatorModal === 'function') {
+        return window.showStoreLocatorModal();
+    }
+}
 
-    syncPhoneColorCatalog();
-    
-    // Load favorites from storage
-    const FAVORITES_KEY = 'tm_phone_favorites';
-    let favorites = JSON.parse(GM_getValue(FAVORITES_KEY, '[]'));
-    
-    const overlay = document.createElement('div');
-    overlay.className = 'tm-modal-overlay tm-phone-catalog-overlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: var(--tm-overlay-dim, rgba(0,0,0,0.72));
-        opacity: 1;
-        z-index: 100000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        animation: fadeIn 0.3s ease;
-    `;
-    
-    overlay.innerHTML = window.PhoneCatalogUI.buildModalHTML(PHONE_CATALOG_TRANSLATIONS);
-    
-    document.body.appendChild(overlay);
-    
-    // State variables
-    let allPhones = [];
-    let filteredPhones = [];
-    let selectedPhones = new Set();
-    let sortBy = 'model';
-    let sortAscending = true;
-    let isGridView = true;
-    let showFavoritesOnly = false;
-    let lastUpdated = null;
-    let contextMenu = overlay.querySelector('.tm-phone-context-menu');
-    let contextMenuPhone = null;
-    let showingOtherStores = false;
-    let otherStorePhones = [];
-    let otherStoreLoaded = false;
-    let mineCatalogStep = 'models';
-    let mineSelectedModel = null;
-    let networkCatalogStep = 'models';
-    let networkSelectedModel = null;
-    let suppressNetworkFilterEvents = false;
-    
-    // Tag system — phone assignments + user-defined tag catalog
-    const TAGS_STORAGE_KEY = 'tm_phone_tags';
-    
-    function loadPhoneTags() {
-        try {
-            const stored = GM_getValue(TAGS_STORAGE_KEY, '{}');
-            return JSON.parse(stored);
-        } catch (e) {
-            return {};
-        }
-    }
-    
-    function savePhoneTags(tags) {
-        GM_setValue(TAGS_STORAGE_KEY, JSON.stringify(tags));
-    }
-    
-    function getPhoneTags(barcode) {
-        const allTags = loadPhoneTags();
-        return allTags[barcode] || [];
-    }
-    
-    function addPhoneTag(barcode, tag) {
-        const tagKey = normalizeTagKey(tag);
-        if (!tagKey) return false;
-        const allTags = loadPhoneTags();
-        if (!allTags[barcode]) {
-            allTags[barcode] = [];
-        }
-        if (!allTags[barcode].includes(tagKey)) {
-            allTags[barcode].push(tagKey);
-            savePhoneTags(allTags);
-            return true;
-        }
-        return false;
-    }
-    
-    function removePhoneTag(barcode, tag) {
-        const tagKey = normalizeTagKey(tag);
-        const allTags = loadPhoneTags();
-        if (allTags[barcode]) {
-            allTags[barcode] = allTags[barcode].filter(t => t !== tagKey);
-            if (allTags[barcode].length === 0) {
-                delete allTags[barcode];
-            }
-            savePhoneTags(allTags);
-            return true;
-        }
-        return false;
+window.showPhoneListModal = showPhoneListModal;
+window.showPhoneListModalLegacy = null;
+window.fetchPhoneList = fetchPhoneList;
+window.fetchOtherStorePhones = fetchOtherStorePhones;
+window.loadPhoneListCache = loadPhoneListCache;
+window.syncPhoneColorCatalog = syncPhoneColorCatalog;
+window.extractBaseModel = extractBaseModel;
+window.extractGB = extractGB;
+window.extractColor = extractColor;
+window.filterIphoneTitlePhones = filterIphoneTitlePhones;
+window.filterOneUnitStores = filterOneUnitStores;
+window.normalizePhoneGrade = normalizePhoneGrade;
+window.comparePhoneGrades = comparePhoneGrades;
+window.getPhoneGradeCircleStyle = getPhoneGradeCircleStyle;
+window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
+
+
+
+// ----- myman_store_locator.js -----
+
+(function () {
+    'use strict';
+
+    const MINE_STORE_KEY = '__mine__';
+
+    function cleanStoreName(name) {
+        return String(name || '').replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
     }
 
-    function renamePhoneTagKeyOnAllPhones(oldKey, newKey) {
-        const oldK = normalizeTagKey(oldKey);
-        const newK = normalizeTagKey(newKey);
-        if (!oldK || !newK || oldK === newK) return;
-        const allTags = loadPhoneTags();
-        let changed = false;
-        Object.keys(allTags).forEach(barcode => {
-            const idx = allTags[barcode].indexOf(oldK);
-            if (idx === -1) return;
-            allTags[barcode].splice(idx, 1);
-            if (!allTags[barcode].includes(newK)) {
-                allTags[barcode].push(newK);
-            }
-            if (allTags[barcode].length === 0) delete allTags[barcode];
-            changed = true;
-        });
-        if (changed) savePhoneTags(allTags);
+    function phoneToVariant(phone, helpers) {
+        const { extractGB, extractColor } = helpers;
+        return {
+            grade: phone.grade || '',
+            gb: extractGB(phone.name || phone.model) || '',
+            color: extractColor(phone.name || phone.model) || '',
+            barcode: phone.barcode,
+            price: phone.retailPrice || '',
+            isBuyback: !!phone.isBuyback,
+            phone,
+        };
     }
 
-    function removePhoneTagFromAllPhones(tagKey) {
-        const key = normalizeTagKey(tagKey);
-        const allTags = loadPhoneTags();
-        let changed = false;
-        Object.keys(allTags).forEach(barcode => {
-            const before = allTags[barcode].length;
-            allTags[barcode] = allTags[barcode].filter(t => t !== key);
-            if (allTags[barcode].length === 0) delete allTags[barcode];
-            if (before !== (allTags[barcode]?.length || 0)) changed = true;
-        });
-        if (changed) savePhoneTags(allTags);
-    }
-    
-    function getAllUsedTags() {
-        const allTags = loadPhoneTags();
-        const usedTags = new Set();
-        Object.values(allTags).forEach(tags => {
-            tags.forEach(tag => usedTags.add(normalizeTagKey(tag)));
-        });
-        return Array.from(usedTags).filter(Boolean).sort((a, b) =>
-            getTagDisplayName(a).localeCompare(getTagDisplayName(b), undefined, { sensitivity: 'base' })
-        );
+    function variantKey(v) {
+        return [v.barcode, v.grade, v.gb, v.color].join('|');
     }
 
-    function getSelectableTagKeys() {
-        const keys = new Set(getDefinedTagKeys());
-        getAllUsedTags().forEach(k => keys.add(k));
-        return Array.from(keys).sort((a, b) =>
-            getTagDisplayName(a).localeCompare(getTagDisplayName(b), undefined, { sensitivity: 'base' })
-        );
-    }
+    function buildModelIndex(allPhones, otherStorePhones, helpers) {
+        const { extractBaseModel, normalizePhoneGrade, filterIphoneTitlePhones, filterOneUnitStores } = helpers;
+        const map = new Map();
 
-    function ensureTagDefinitionsForUsedTags() {
-        const defs = loadTagDefinitions();
-        let changed = false;
-        getAllUsedTags().forEach(key => {
-            if (!defs[key]) {
-                defs[key] = { name: formatTagNameFromKey(key), color: '#9e9e9e' };
-                changed = true;
-            }
-        });
-        if (changed) saveTagDefinitions(defs);
-    }
-
-    function normalizeStoredPhoneTagKeys() {
-        const allTags = loadPhoneTags();
-        let changed = false;
-        Object.keys(allTags).forEach(barcode => {
-            const normalized = [...new Set(allTags[barcode].map(normalizeTagKey).filter(Boolean))];
-            if (JSON.stringify(normalized) !== JSON.stringify(allTags[barcode])) {
-                if (normalized.length) allTags[barcode] = normalized;
-                else delete allTags[barcode];
-                changed = true;
-            }
-        });
-        if (changed) savePhoneTags(allTags);
-    }
-
-    normalizeStoredPhoneTagKeys();
-    ensureTagDefinitionsForUsedTags();
-    
-    function showTagSelectionMenu(barcode, mode, existingTags = []) {
-        const existingMenu = document.querySelector('.tm-phone-tag-submenu');
-        if (existingMenu) {
-            existingMenu.remove();
-        }
-        
-        const tagMenu = document.createElement('div');
-        tagMenu.className = 'tm-phone-tag-submenu';
-        
-        const normalizedExisting = existingTags.map(normalizeTagKey);
-        const tagsToShow = mode === 'add'
-            ? getDefinedTagKeys().filter(tag => !normalizedExisting.includes(tag))
-            : normalizedExisting;
-
-        if (tagsToShow.length === 0) {
-            tagMenu.innerHTML = `<div style="padding: 12px; text-align: center; color: var(--tm-shop-item-text); opacity: 0.7; font-size: 12px; max-width: 220px;">
-                ${mode === 'add' ? t('Create tags first') : 'No tags to remove'}
-            </div>`;
-        } else {
-            tagsToShow.forEach(tag => {
-                const menuItem = document.createElement('div');
-                menuItem.className = 'tm-phone-tag-submenu-item';
-                const color = getTagColor(tag);
-                menuItem.innerHTML = `
-                    <span class="tag-color" style="background: ${color};"></span>
-                    <span>${getTagDisplayName(tag)}</span>
-                `;
-                menuItem.addEventListener('click', () => {
-                    if (mode === 'add') {
-                        if (addPhoneTag(barcode, tag)) {
-                            applyFilters();
-                            if (window.showPositiveMessage) {
-                                window.showPositiveMessage(`${t('Tag added')}: ${getTagDisplayName(tag)}`);
-                            }
-                        }
-                    } else {
-                        if (removePhoneTag(barcode, tag)) {
-                            applyFilters();
-                            if (window.showPositiveMessage) {
-                                window.showPositiveMessage(`${t('Tag removed')}: ${getTagDisplayName(tag)}`);
-                            }
-                        }
-                    }
-                    tagMenu.remove();
-                    contextMenu.style.display = 'none';
+        function ensure(model) {
+            if (!map.has(model)) {
+                map.set(model, {
+                    grades: {},
+                    storeNames: new Set(),
+                    totalUnits: 0,
+                    myCount: 0,
                 });
-                tagMenu.appendChild(menuItem);
+            }
+            return map.get(model);
+        }
+
+        filterIphoneTitlePhones(allPhones).forEach((phone) => {
+            if ((phone.unitsRemaining || 0) <= 0) return;
+            const model = extractBaseModel(phone.model);
+            if (!model) return;
+            const entry = ensure(model);
+            entry.totalUnits += 1;
+            entry.myCount += 1;
+            entry.storeNames.add(MINE_STORE_KEY);
+            const g = normalizePhoneGrade(phone.grade);
+            if (g) entry.grades[g] = (entry.grades[g] || 0) + 1;
+        });
+
+        filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
+            const model = extractBaseModel(phone.model);
+            if (!model) return;
+            const entry = ensure(model);
+            entry.totalUnits += 1;
+            const g = normalizePhoneGrade(phone.grade);
+            if (g) entry.grades[g] = (entry.grades[g] || 0) + 1;
+            filterOneUnitStores(phone.stores || []).forEach((store) => {
+                const name = cleanStoreName(store.name);
+                if (name) entry.storeNames.add(name);
             });
-        }
-
-        if (mode === 'add') {
-            const manageItem = document.createElement('div');
-            manageItem.className = 'tm-phone-tag-submenu-item';
-            manageItem.style.borderTop = '1px solid var(--tm-shop-item-border)';
-            manageItem.style.marginTop = '4px';
-            manageItem.style.paddingTop = '10px';
-            manageItem.innerHTML = `<span style="opacity:0.85;">⚙️ ${t('Manage Tags')}</span>`;
-            manageItem.addEventListener('click', () => {
-                tagMenu.remove();
-                contextMenu.style.display = 'none';
-                showTagManagerModal();
-            });
-            tagMenu.appendChild(manageItem);
-        }
-        // Position the menu next to the context menu
-        const addTagItem = contextMenu.querySelector('[data-action="add-tag"]') || contextMenu.querySelector('[data-action="remove-tag"]');
-        if (addTagItem) {
-            const rect = addTagItem.getBoundingClientRect();
-            tagMenu.style.position = 'fixed';
-            
-            // Temporarily append to measure dimensions
-            tagMenu.style.visibility = 'hidden';
-            tagMenu.style.display = 'block';
-            document.body.appendChild(tagMenu);
-            
-            const menuWidth = tagMenu.offsetWidth;
-            const menuHeight = tagMenu.offsetHeight;
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-            
-            // Calculate horizontal position
-            let left = rect.right + 4;
-            // If menu would go off right edge, position it to the left instead
-            if (left + menuWidth > viewportWidth) {
-                left = rect.left - menuWidth - 4;
-                // If that would go off left edge, just position from right edge
-                if (left < 0) {
-                    left = viewportWidth - menuWidth - 10;
-                }
-            }
-            
-            // Calculate vertical position
-            let top = rect.top;
-            // If menu would go off bottom edge, adjust upward
-            if (top + menuHeight > viewportHeight) {
-                top = viewportHeight - menuHeight - 10;
-                // If that would go off top edge, just position from top
-                if (top < 10) {
-                    top = 10;
-                }
-            }
-            
-            tagMenu.style.left = `${left}px`;
-            tagMenu.style.top = `${top}px`;
-            tagMenu.style.visibility = 'visible';
-        } else {
-            // Make submenu visible
-            tagMenu.style.display = 'block';
-            document.body.appendChild(tagMenu);
-        }
-        
-        // Close menu when clicking outside
-        setTimeout(() => {
-            const closeHandler = (e) => {
-                if (!tagMenu.contains(e.target) && !contextMenu.contains(e.target)) {
-                    tagMenu.remove();
-                    document.removeEventListener('click', closeHandler);
-                }
-            };
-            document.addEventListener('click', closeHandler);
-        }, 100);
-    }
-    
-    // Performance optimization: Caches for expensive operations
-    const extractBaseModelCache = new Map();
-    const parsePhoneNameCache = new Map();
-    
-    function clearCaches() {
-        phoneCatalogGbCache.clear();
-        phoneCatalogColorCache.clear();
-        extractBaseModelCache.clear();
-        parsePhoneNameCache.clear();
-    }
-    
-    setInterval(() => {
-        if (phoneCatalogGbCache.size > 10000 || phoneCatalogColorCache.size > 10000 || extractBaseModelCache.size > 10000) {
-            clearCaches();
-            console.log('[MMS Phone List] Caches cleared to free memory');
-        }
-    }, 600000); // 10 minutes
-    
-    // Debounce function for search input
-    function debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-    
-    function showColorManagerModal() {
-        const existing = document.getElementById('tm-phone-colors-modal');
-        if (existing) existing.remove();
-
-        const modal = document.createElement('div');
-        modal.id = 'tm-phone-colors-modal';
-        modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
-
-        const panel = document.createElement('div');
-        panel.style.cssText = 'width:min(520px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
-
-        panel.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                <h3 style="margin:0;font-size:16px;font-weight:600;">${t('Manage Colors')}</h3>
-                <button id="tm-colors-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
-                <input id="tm-new-color-name" type="text" placeholder="${t('Color Name')} (${t('e.g. MINT GREEN')})" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;box-sizing:border-box;">
-                <div id="tm-color-suggest-hint" style="font-size:11px;opacity:0.8;min-height:14px;"></div>
-                <div style="font-size:11px;opacity:0.7;margin-bottom:2px;">${t('Catalog title color')}</div>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <input type="color" id="tm-new-color-picker" value="#808080" title="${t('Catalog title color')}" style="width:42px;height:34px;padding:2px;border:1px solid var(--tm-shop-item-border);border-radius:6px;cursor:pointer;background:var(--tm-shop-item-bg);">
-                    <input id="tm-new-color-hex" type="text" placeholder="#RRGGBB" style="flex:1;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;font-family:monospace;box-sizing:border-box;">
-                    <button id="tm-add-color-btn" type="button" style="padding:8px 12px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">${t('Add Color')}</button>
-                </div>
-            </div>
-            <div style="font-size:12px;font-weight:600;margin-bottom:8px;opacity:0.75;">${t('Custom Colors')}</div>
-            <div id="tm-phone-colors-list"></div>
-        `;
-
-        modal.appendChild(panel);
-        document.body.appendChild(modal);
-
-        const nameInput = panel.querySelector('#tm-new-color-name');
-        const picker = panel.querySelector('#tm-new-color-picker');
-        const hexInput = panel.querySelector('#tm-new-color-hex');
-        const hintEl = panel.querySelector('#tm-color-suggest-hint');
-        const listEl = panel.querySelector('#tm-phone-colors-list');
-        let hexFieldDirty = false;
-
-        const applySuggestedHex = (suggestion) => {
-            if (!suggestion?.hex) return;
-            hexInput.value = suggestion.hex;
-            picker.value = suggestion.hex;
-        };
-
-        const updateColorSuggestion = () => {
-            const suggestion = suggestPhoneColorHex(nameInput.value);
-            if (!suggestion) {
-                hintEl.textContent = '';
-                return;
-            }
-            hintEl.innerHTML = `${t('Suggested hex')}: <button type="button" class="tm-apply-suggest-hex" style="border:none;background:transparent;color:var(--tm-primary-color);font-family:monospace;font-size:11px;font-weight:700;cursor:pointer;padding:0;text-decoration:underline;">${suggestion.hex}</button> <span style="opacity:0.65;">(${suggestion.source})</span>`;
-            hintEl.querySelector('.tm-apply-suggest-hex').addEventListener('click', () => {
-                applySuggestedHex(suggestion);
-                hexFieldDirty = true;
-            });
-            if (!hexFieldDirty) applySuggestedHex(suggestion);
-        };
-
-        const syncHexFromPicker = () => {
-            hexInput.value = picker.value.toUpperCase();
-        };
-        picker.addEventListener('input', () => {
-            hexFieldDirty = true;
-            syncHexFromPicker();
-        });
-        hexInput.addEventListener('input', () => {
-            hexFieldDirty = true;
-            const hex = normalizePhoneColorHex(hexInput.value);
-            if (hex) picker.value = hex;
-        });
-        nameInput.addEventListener('input', updateColorSuggestion);
-        syncHexFromPicker();
-
-        const refreshAfterChange = () => {
-            phoneCatalogColorCache.clear();
-            extractBaseModelCache.clear();
-            populateFilters(allPhones, ['color']);
-            applyFilters();
-            renderPhoneColorList();
-        };
-
-        const renderPhoneColorList = () => {
-            const colors = loadPhoneColors();
-            const names = Object.keys(colors).sort((a, b) => {
-                const aMulti = a.includes(' ') ? 0 : 1;
-                const bMulti = b.includes(' ') ? 0 : 1;
-                if (aMulti !== bMulti) return aMulti - bMulti;
-                return b.length - a.length || a.localeCompare(b);
-            });
-            if (!names.length) {
-                listEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:8px 0;">${t('No custom colors yet')}</div>`;
-                return;
-            }
-            listEl.innerHTML = names.map(name => {
-                const entry = normalizeColorEntry(colors[name], name);
-                const listHex = entry.listHex || entry.hex || '#808080';
-                const aliases = getAliasesForColor(name).join(', ');
-                const titleOutline = getPhoneCatalogOutlineStyle(name, listHex);
-                const nameInputStyle = `flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);font-size:13px;font-weight:700;min-width:0;box-sizing:border-box;color:${listHex};${titleOutline}`;
-                return `
-                <div class="tm-phone-color-row" data-color="${name}" style="padding:10px 0;border-bottom:1px solid var(--tm-shop-item-border);">
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Color Name')}</span>
-                        <input type="text" class="tm-phone-color-name-input" data-color="${name}" value="${name}" style="${nameInputStyle}">
-                        <button type="button" data-color="${name}" class="tm-delete-phone-color" style="padding:4px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-shop-item-text);font-size:11px;cursor:pointer;flex-shrink:0;">${t('Delete')}</button>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Catalog title color')}</span>
-                        <input type="color" class="tm-phone-list-color-picker" data-color="${name}" value="${listHex}" style="width:32px;height:28px;padding:1px;border:1px solid var(--tm-shop-item-border);border-radius:5px;cursor:pointer;background:var(--tm-shop-item-bg);flex-shrink:0;">
-                        <span class="tm-phone-list-color-label" style="font-size:11px;opacity:0.65;font-family:monospace;">${listHex}</span>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Also for labels')}</span>
-                        <input type="text" class="tm-phone-color-alias-input" data-color="${name}" value="${aliases}" placeholder="${t('Aliases hint')}" style="flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:11px;box-sizing:border-box;">
-                    </div>
-                </div>`;
-            }).join('');
-
-            const applyNameInputStyle = (input, colorName, hex) => {
-                const outline = getPhoneCatalogOutlineStyle(colorName, hex);
-                input.setAttribute('style', `flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);font-size:13px;font-weight:700;min-width:0;box-sizing:border-box;color:${hex};${outline}`);
-            };
-
-            listEl.querySelectorAll('.tm-phone-list-color-picker').forEach(input => {
-                input.addEventListener('change', () => {
-                    const hex = normalizePhoneColorHex(input.value);
-                    if (!hex || !updatePhoneListColor(input.dataset.color, hex)) return;
-                    const row = input.closest('.tm-phone-color-row');
-                    const label = row?.querySelector('.tm-phone-list-color-label');
-                    const nameInput = row?.querySelector('.tm-phone-color-name-input');
-                    if (label) label.textContent = hex;
-                    if (nameInput) applyNameInputStyle(nameInput, input.dataset.color, hex);
-                    phoneCatalogColorCache.clear();
-                    extractBaseModelCache.clear();
-                    applyFilters();
-                    if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
-                });
-            });
-
-            listEl.querySelectorAll('.tm-phone-color-name-input').forEach(input => {
-                const commitRename = () => {
-                    const oldName = input.dataset.color;
-                    const newName = normalizePhoneColorName(input.value);
-                    if (!newName) {
-                        input.value = oldName;
-                        if (window.showNegativeMessage) window.showNegativeMessage(t('Invalid color name or hex'));
-                        return;
-                    }
-                    if (newName === oldName) return;
-                    const result = renamePhoneColor(oldName, newName);
-                    if (!result.ok) {
-                        input.value = oldName;
-                        const msg = result.error === 'exists' ? t('Color already exists') : t('Invalid color name or hex');
-                        if (window.showNegativeMessage) window.showNegativeMessage(msg);
-                        else if (window.showPositiveMessage) window.showPositiveMessage(msg);
-                        return;
-                    }
-                    phoneCatalogColorCache.clear();
-                    extractBaseModelCache.clear();
-                    if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
-                    refreshAfterChange();
-                };
-                input.addEventListener('change', commitRename);
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        input.blur();
-                    }
-                });
-            });
-
-            listEl.querySelectorAll('.tm-phone-color-alias-input').forEach(input => {
-                input.addEventListener('change', () => {
-                    setColorDisplayAliasesForColor(input.dataset.color, input.value);
-                    phoneCatalogColorCache.clear();
-                    applyFilters();
-                    if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
-                });
-            });
-
-            listEl.querySelectorAll('.tm-delete-phone-color').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    removePhoneColor(btn.dataset.color);
-                    if (window.showPositiveMessage) window.showPositiveMessage(t('Color removed'));
-                    refreshAfterChange();
-                });
-            });
-        };
-
-        panel.querySelector('#tm-add-color-btn').addEventListener('click', () => {
-            const result = addPhoneColor(nameInput.value, hexInput.value || picker.value, hexInput.value || picker.value);
-            if (!result.ok) {
-                const msg = result.error === 'exists' ? t('Color already exists') : t('Invalid color name or hex');
-                if (window.showNegativeMessage) window.showNegativeMessage(msg);
-                else if (window.showPositiveMessage) window.showPositiveMessage(msg);
-                return;
-            }
-            nameInput.value = '';
-            hexInput.value = '';
-            picker.value = '#808080';
-            hexFieldDirty = false;
-            hintEl.textContent = '';
-            if (window.showPositiveMessage) window.showPositiveMessage(t('Color added'));
-            refreshAfterChange();
         });
 
-        nameInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') panel.querySelector('#tm-add-color-btn').click();
-        });
-
-        panel.querySelector('#tm-colors-close').addEventListener('click', () => modal.remove());
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
-        });
-
-        syncPhoneColorCatalog(allPhones);
-        renderPhoneColorList();
+        return [...map.entries()]
+            .map(([model, data]) => [model, {
+                ...data,
+                storeCount: data.storeNames.size,
+            }])
+            .filter(([, data]) => data.storeCount > 0 || data.myCount > 0);
     }
 
-    function showTagManagerModal() {
-        const existing = document.getElementById('tm-phone-tags-modal');
-        if (existing) existing.remove();
-
-        const modal = document.createElement('div');
-        modal.id = 'tm-phone-tags-modal';
-        modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
-
-        const panel = document.createElement('div');
-        panel.style.cssText = 'width:min(480px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
-
-        panel.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                <h3 style="margin:0;font-size:16px;font-weight:600;">${t('Manage Tags')}</h3>
-                <button id="tm-tags-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
-                <input id="tm-new-tag-name" type="text" placeholder="${t('Tag Name')} (${t('e.g. Reserved')})" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;box-sizing:border-box;">
-                <div style="font-size:11px;opacity:0.7;margin-bottom:2px;">${t('Tag Color')}</div>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <input type="color" id="tm-new-tag-picker" value="#2196f3" title="${t('Tag Color')}" style="width:42px;height:34px;padding:2px;border:1px solid var(--tm-shop-item-border);border-radius:6px;cursor:pointer;background:var(--tm-shop-item-bg);">
-                    <input id="tm-new-tag-hex" type="text" placeholder="#RRGGBB" style="flex:1;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:13px;font-family:monospace;box-sizing:border-box;">
-                    <button id="tm-add-tag-btn" type="button" style="padding:8px 12px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">${t('Add Tag')}</button>
-                </div>
-            </div>
-            <div style="font-size:12px;font-weight:600;margin-bottom:8px;opacity:0.75;">${t('Custom Tags')}</div>
-            <div id="tm-phone-tags-list"></div>
-        `;
-
-        modal.appendChild(panel);
-        document.body.appendChild(modal);
-
-        const nameInput = panel.querySelector('#tm-new-tag-name');
-        const picker = panel.querySelector('#tm-new-tag-picker');
-        const hexInput = panel.querySelector('#tm-new-tag-hex');
-        const listEl = panel.querySelector('#tm-phone-tags-list');
-
-        const syncHexFromPicker = () => {
-            hexInput.value = picker.value.toUpperCase();
-        };
-        picker.addEventListener('input', syncHexFromPicker);
-        hexInput.addEventListener('input', () => {
-            const hex = normalizePhoneColorHex(hexInput.value);
-            if (hex) picker.value = hex;
-        });
-        syncHexFromPicker();
-
-        const refreshAfterChange = () => {
-            populateFilters(allPhones, ['tag']);
-            applyFilters();
-            renderTagList();
-        };
-
-        const renderTagList = () => {
-            const keys = getDefinedTagKeys();
-            if (!keys.length) {
-                listEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:8px 0;">${t('No custom tags yet')}</div>`;
-                return;
-            }
-            listEl.innerHTML = keys.map(key => {
-                const def = getTagDefinition(key);
-                return `
-                <div class="tm-phone-tag-row" data-tag="${key}" style="padding:10px 0;border-bottom:1px solid var(--tm-shop-item-border);">
-                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Tag Name')}</span>
-                        <input type="text" class="tm-phone-tag-name-input" data-tag="${key}" value="${def.name.replace(/"/g, '&quot;')}" style="flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);font-size:13px;font-weight:600;min-width:0;box-sizing:border-box;color:${def.color};">
-                        <button type="button" data-tag="${key}" class="tm-delete-phone-tag" style="padding:4px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:transparent;color:var(--tm-shop-item-text);font-size:11px;cursor:pointer;flex-shrink:0;">${t('Delete')}</button>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Tag Color')}</span>
-                        <input type="color" class="tm-phone-tag-color-picker" data-tag="${key}" value="${def.color}" style="width:32px;height:28px;padding:1px;border:1px solid var(--tm-shop-item-border);border-radius:5px;cursor:pointer;background:var(--tm-shop-item-bg);flex-shrink:0;">
-                        <span class="tm-phone-tag-color-label" style="font-size:11px;opacity:0.65;font-family:monospace;">${def.color}</span>
-                    </div>
-                </div>`;
-            }).join('');
-
-            listEl.querySelectorAll('.tm-phone-tag-color-picker').forEach(input => {
-                input.addEventListener('change', () => {
-                    const hex = normalizePhoneColorHex(input.value);
-                    const key = input.dataset.tag;
-                    const def = getTagDefinition(key);
-                    if (!hex || !updateTagDefinition(key, def.name, hex).ok) return;
-                    const row = input.closest('.tm-phone-tag-row');
-                    const label = row?.querySelector('.tm-phone-tag-color-label');
-                    const nameInputEl = row?.querySelector('.tm-phone-tag-name-input');
-                    if (label) label.textContent = hex;
-                    if (nameInputEl) nameInputEl.style.color = hex;
-                    refreshAfterChange();
-                });
-            });
-
-            listEl.querySelectorAll('.tm-phone-tag-name-input').forEach(input => {
-                const commitRename = () => {
-                    const oldKey = input.dataset.tag;
-                    const newName = input.value.trim();
-                    if (!newName) {
-                        input.value = getTagDisplayName(oldKey);
-                        if (window.showNegativeMessage) window.showNegativeMessage(t('Invalid tag name'));
-                        return;
-                    }
-                    if (normalizeTagKey(newName) === oldKey && newName === getTagDefinition(oldKey).name) return;
-                    const def = getTagDefinition(oldKey);
-                    const result = updateTagDefinition(oldKey, newName, def.color);
-                    if (!result.ok) {
-                        input.value = getTagDisplayName(oldKey);
-                        const msg = result.error === 'exists' ? t('Tag already exists') : t('Invalid tag name');
-                        if (window.showNegativeMessage) window.showNegativeMessage(msg);
-                        return;
-                    }
-                    if (result.renamed) renamePhoneTagKeyOnAllPhones(result.oldKey, result.key);
-                    refreshAfterChange();
-                };
-                input.addEventListener('change', commitRename);
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        input.blur();
-                    }
-                });
-            });
-
-            listEl.querySelectorAll('.tm-delete-phone-tag').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const key = btn.dataset.tag;
-                    deleteTagDefinition(key);
-                    removePhoneTagFromAllPhones(key);
-                    if (window.showPositiveMessage) window.showPositiveMessage(t('Tag removed'));
-                    refreshAfterChange();
-                });
-            });
-        };
-
-        panel.querySelector('#tm-add-tag-btn').addEventListener('click', () => {
-            const result = addTagDefinition(nameInput.value, hexInput.value || picker.value);
-            if (!result.ok) {
-                const msg = result.error === 'exists' ? t('Tag already exists') : t('Invalid tag name');
-                if (window.showNegativeMessage) window.showNegativeMessage(msg);
-                return;
-            }
-            nameInput.value = '';
-            hexInput.value = '';
-            picker.value = '#2196F3';
-            syncHexFromPicker();
-            if (window.showPositiveMessage) window.showPositiveMessage(t('Tag added'));
-            refreshAfterChange();
-        });
-
-        nameInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') panel.querySelector('#tm-add-tag-btn').click();
-        });
-
-        panel.querySelector('#tm-tags-close').addEventListener('click', () => modal.remove());
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
-        });
-
-        renderTagList();
-    }
-
-    function showStoreRulesModal() {
-        const existing = document.getElementById('tm-phone-stores-modal');
-        if (existing) existing.remove();
-
-        const rules = loadPhoneStoreRules();
-        const modal = document.createElement('div');
-        modal.id = 'tm-phone-stores-modal';
-        modal.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;padding:16px;';
-
-        const panel = document.createElement('div');
-        panel.style.cssText = 'width:min(560px,100%);max-height:85vh;overflow:auto;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);border:1px solid var(--tm-shop-item-border);border-radius:12px;box-shadow:0 16px 40px rgba(0,0,0,0.35);padding:16px;';
-
-        panel.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                <h3 style="margin:0;font-size:16px;font-weight:600;">${t('Manage Stores')}</h3>
-                <button id="tm-stores-close" type="button" style="border:none;background:transparent;font-size:22px;cursor:pointer;color:var(--tm-shop-item-text);line-height:1;">&times;</button>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding:12px;border:1px solid var(--tm-shop-item-border);border-radius:8px;background:rgba(128,128,128,0.06);">
-                <label style="font-size:12px;font-weight:600;">${t('Buyback store patterns')}</label>
-                <input id="tm-buyback-store-patterns" type="text" value="${rules.buybackPatterns.join(', ')}" placeholder="${t('Buyback patterns hint')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;">
-                <div style="font-size:11px;opacity:0.7;">${t('Buyback patterns hint')}</div>
-                <label style="font-size:12px;font-weight:600;">${t('Regular store patterns')}</label>
-                <input id="tm-regular-store-patterns" type="text" value="${rules.regularPatterns.join(', ')}" placeholder="${t('Regular patterns hint')}" style="width:100%;padding:8px 10px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:12px;box-sizing:border-box;">
-                <div style="font-size:11px;opacity:0.7;">${t('Regular patterns hint')}</div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                    <button id="tm-save-store-rules" type="button" style="padding:8px 12px;border:none;border-radius:6px;background:var(--tm-primary-color);color:#fff;font-size:12px;font-weight:600;cursor:pointer;">${t('Save')}</button>
-                    <button id="tm-reset-store-overrides" type="button" style="padding:8px 12px;border:1px solid var(--tm-shop-item-border);border-radius:6px;background:transparent;color:var(--tm-shop-item-text);font-size:12px;cursor:pointer;">${t('Reset store overrides')}</button>
-                </div>
-            </div>
-            <div style="font-size:12px;font-weight:600;margin-bottom:8px;opacity:0.75;">${t('Known stores')}</div>
-            <div id="tm-phone-stores-list"></div>
-        `;
-
-        modal.appendChild(panel);
-        document.body.appendChild(modal);
-
-        const buybackPatternsInput = panel.querySelector('#tm-buyback-store-patterns');
-        const regularPatternsInput = panel.querySelector('#tm-regular-store-patterns');
-        const listEl = panel.querySelector('#tm-phone-stores-list');
-        let draftOverrides = { ...rules.overrides };
-
-        const getDraftRules = () => ({
-            buybackPatterns: parseStorePatternCsv(buybackPatternsInput.value),
-            regularPatterns: parseStorePatternCsv(regularPatternsInput.value),
-            overrides: { ...draftOverrides }
-        });
-
-        const renderStoreRulesList = () => {
-            const draft = getDraftRules();
-            const knownStores = collectKnownStoreNames(allPhones, otherStorePhones);
-            if (!knownStores.length) {
-                listEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:8px 0;">${t('No known stores yet')}</div>`;
-                return;
-            }
-            listEl.innerHTML = knownStores.map(storeName => {
-                const override = draft.overrides[storeName] || {};
-                const bbAllowed = typeof override.buyback === 'boolean'
-                    ? override.buyback
-                    : storeNameMatchesPatterns(storeName, draft.buybackPatterns);
-                const regularAllowed = typeof override.regular === 'boolean'
-                    ? override.regular
-                    : storeNameMatchesPatterns(storeName, draft.regularPatterns);
-                const bbChecked = bbAllowed ? 'checked' : '';
-                const regularChecked = regularAllowed ? 'checked' : '';
-                return `
-                <div class="tm-store-rule-row" data-store="${storeName.replace(/"/g, '&quot;')}" style="padding:10px 0;border-bottom:1px solid var(--tm-shop-item-border);">
-                    <div style="font-size:13px;font-weight:700;margin-bottom:8px;word-break:break-word;">${storeName}</div>
-                    <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;">
-                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-                            <input type="checkbox" class="tm-store-bb-allowed" data-store="${storeName.replace(/"/g, '&quot;')}" ${bbChecked}>
-                            <span>${t('Allow buyback')}</span>
-                        </label>
-                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-                            <input type="checkbox" class="tm-store-regular-allowed" data-store="${storeName.replace(/"/g, '&quot;')}" ${regularChecked}>
-                            <span>${t('Allow regular')}</span>
-                        </label>
-                    </div>
-                </div>`;
-            }).join('');
-
-            listEl.querySelectorAll('.tm-store-bb-allowed, .tm-store-regular-allowed').forEach(input => {
-                input.addEventListener('change', () => {
-                    const storeName = input.dataset.store;
-                    if (!draftOverrides[storeName]) draftOverrides[storeName] = {};
-                    if (input.classList.contains('tm-store-bb-allowed')) {
-                        draftOverrides[storeName].buyback = input.checked;
-                    } else {
-                        draftOverrides[storeName].regular = input.checked;
-                    }
-                });
-            });
-        };
-
-        const persistStoreRules = () => {
-            const next = getDraftRules();
-            if (!next.buybackPatterns.length) {
-                next.buybackPatterns = getDefaultPhoneStoreRules().buybackPatterns;
-                buybackPatternsInput.value = next.buybackPatterns.join(', ');
-            }
-            savePhoneStoreRules(next);
-            draftOverrides = { ...next.overrides };
-            if (window.showPositiveMessage) window.showPositiveMessage(t('Store rules saved'));
-            applyFilters();
-            renderStoreRulesList();
-        };
-
-        panel.querySelector('#tm-save-store-rules').addEventListener('click', persistStoreRules);
-        panel.querySelector('#tm-reset-store-overrides').addEventListener('click', () => {
-            draftOverrides = {};
-            renderStoreRulesList();
-        });
-        buybackPatternsInput.addEventListener('change', renderStoreRulesList);
-        regularPatternsInput.addEventListener('change', renderStoreRulesList);
-        panel.querySelector('#tm-stores-close').addEventListener('click', () => modal.remove());
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.remove();
-        });
-
-        renderStoreRulesList();
-    }
-    
-    // ── Canonical model list ───────────────────────────────────────────────────
-    // Ordered most-specific → least-specific within each family.
-    // Used to normalise typo variants (e.g. "PROMAX", "PRO  MAX", Greek chars)
-    // back to a single display name.
-    const CANONICAL_MODELS = [
-        // iPhone SE — year/generation variants before generic SE
-        'iPhone SE 2022', 'iPhone SE 2020',
-        'iPhone SE (3rd gen)', 'iPhone SE (2nd gen)', 'iPhone SE',
-        // iPhone 6
-        'iPhone 6s Plus', 'iPhone 6s', 'iPhone 6 Plus', 'iPhone 6',
-        // iPhone 7
-        'iPhone 7 Plus', 'iPhone 7',
-        // iPhone 8
-        'iPhone 8 Plus', 'iPhone 8',
-        // iPhone X
-        'iPhone XS Max', 'iPhone XS', 'iPhone XR', 'iPhone X',
-        // iPhone 11
-        'iPhone 11 Pro Max', 'iPhone 11 Pro', 'iPhone 11',
-        // iPhone 12
-        'iPhone 12 Pro Max', 'iPhone 12 Pro', 'iPhone 12 Mini', 'iPhone 12',
-        // iPhone 13
-        'iPhone 13 Pro Max', 'iPhone 13 Pro', 'iPhone 13 Mini', 'iPhone 13',
-        // iPhone 14
-        'iPhone 14 Pro Max', 'iPhone 14 Pro', 'iPhone 14 Plus', 'iPhone 14',
-        // iPhone 15
-        'iPhone 15 Pro Max', 'iPhone 15 Pro', 'iPhone 15 Plus', 'iPhone 15',
-        // iPhone 16
-        'iPhone 16 Pro Max', 'iPhone 16 Pro', 'iPhone 16 Plus', 'iPhone 16',
-        // iPhone 17 / Air
-        'iPhone 17 Pro Max', 'iPhone 17 Pro', 'iPhone 17 Plus', 'iPhone 17',
-        'iPhone Air',
-        // Samsung Galaxy S (newest first so more-specific entries match first)
-        'Samsung Galaxy S25 Ultra', 'Samsung Galaxy S25 Plus', 'Samsung Galaxy S25',
-        'Samsung Galaxy S24 Ultra', 'Samsung Galaxy S24 Plus', 'Samsung Galaxy S24 FE', 'Samsung Galaxy S24',
-        'Samsung Galaxy S23 Ultra', 'Samsung Galaxy S23 Plus', 'Samsung Galaxy S23 FE', 'Samsung Galaxy S23',
-        'Samsung Galaxy S22 Ultra', 'Samsung Galaxy S22 Plus', 'Samsung Galaxy S22',
-        'Samsung Galaxy S21 Ultra', 'Samsung Galaxy S21 Plus', 'Samsung Galaxy S21 FE', 'Samsung Galaxy S21',
-        'Samsung Galaxy S20 Ultra', 'Samsung Galaxy S20 Plus', 'Samsung Galaxy S20 FE', 'Samsung Galaxy S20',
-        'Samsung Galaxy S10 Plus', 'Samsung Galaxy S10e', 'Samsung Galaxy S10',
-        'Samsung Galaxy S9 Plus', 'Samsung Galaxy S9',
-        'Samsung Galaxy S8 Plus', 'Samsung Galaxy S8',
-        'Samsung Galaxy S7 Edge', 'Samsung Galaxy S7',
-        'Samsung Galaxy S6 Edge Plus', 'Samsung Galaxy S6 Edge', 'Samsung Galaxy S6',
-        // Samsung Galaxy Note
-        'Samsung Galaxy Note 20 Ultra', 'Samsung Galaxy Note 20',
-        'Samsung Galaxy Note 10 Plus', 'Samsung Galaxy Note 10',
-        'Samsung Galaxy Note 9', 'Samsung Galaxy Note 8',
-        // Samsung Galaxy Z
-        'Samsung Galaxy Z Fold 6', 'Samsung Galaxy Z Fold 5', 'Samsung Galaxy Z Fold 4',
-        'Samsung Galaxy Z Fold 3', 'Samsung Galaxy Z Fold 2',
-        'Samsung Galaxy Z Flip 6', 'Samsung Galaxy Z Flip 5', 'Samsung Galaxy Z Flip 4',
-        'Samsung Galaxy Z Flip 3',
-        // Samsung Galaxy A (most popular first within each number tier)
-        'Samsung Galaxy A73', 'Samsung Galaxy A72', 'Samsung Galaxy A71',
-        'Samsung Galaxy A55', 'Samsung Galaxy A54', 'Samsung Galaxy A53', 'Samsung Galaxy A52s', 'Samsung Galaxy A52', 'Samsung Galaxy A51',
-        'Samsung Galaxy A35', 'Samsung Galaxy A34', 'Samsung Galaxy A33',
-        'Samsung Galaxy A25', 'Samsung Galaxy A24', 'Samsung Galaxy A23',
-        'Samsung Galaxy A16', 'Samsung Galaxy A15', 'Samsung Galaxy A14', 'Samsung Galaxy A13',
-        'Samsung Galaxy A06', 'Samsung Galaxy A05', 'Samsung Galaxy A04', 'Samsung Galaxy A03',
-    ];
-
-    // Normalise a string for canonical matching:
-    // collapse typos, convert + to PLUS, strip non-alphanumeric
-    function _normForCanonical(str) {
-        return str.toUpperCase()
-            .replace(/\bPROMAX\b/g, 'PRO MAX')
-            .replace(/\bXSMAX\b/g,  'XS MAX')
-            .replace(/\+/g, ' PLUS ')
-            .replace(/[^A-Z0-9\s]/g, ' ')
-            .replace(/\s+/g, ' ').trim();
-    }
-
-    // Pre-compute normalised token arrays once
-    const _canonTokens = CANONICAL_MODELS.map(name => ({
-        name,
-        tokens: _normForCanonical(name).split(' '),
-    }));
-
-    // Return the canonical display name if base matches one, otherwise return base as-is
-    function normalizeIphoneSeGeneration(base) {
-        const norm = _normForCanonical(base);
-        if (!/\bIPHONE\b/.test(norm) || !/\bSE\b/.test(norm)) return base;
-
-        if (/\b2022\b/.test(norm) || /\b3RD\b/.test(norm)) {
-            return 'iPhone SE 2022';
-        }
-        if (/\b2020\b/.test(norm) || /\b2ND\b/.test(norm)) {
-            return 'iPhone SE 2020';
-        }
-        if (/\b2016\b/.test(norm) || /\b1ST\b/.test(norm)) {
-            return 'iPhone SE';
-        }
-        return base;
-    }
-
-    function matchCanonical(base) {
-        if (!base) return base;
-        const norm = _normForCanonical(base);
-        for (const { name, tokens } of _canonTokens) {
-            // All tokens of the canonical must appear as whole words in norm
-            const allMatch = tokens.every(t =>
-                new RegExp('(?:^|\\s)' + t + '(?:\\s|$)').test(norm)
-            );
-            if (allMatch) {
-                // Year/generation SE models must not collapse to generic "iPhone SE"
-                if (name === 'iPhone SE' && /\b(2020|2022|2016|2ND|3RD|1ST)\b/.test(norm)) {
-                    continue;
-                }
-                return name;
-            }
-        }
-        return base;
-    }
-
-    // Helper function to extract base model (without GB/TB and color)
-    function extractBaseModel(model) {
-        if (!model) return '';
-        if (extractBaseModelCache.has(model)) {
-            return extractBaseModelCache.get(model);
-        }
-        // Remove GB/TB and color info, keep main model name
-        // e.g., "IPHONE 11 PRO MAX 64GB SILVER" -> "IPHONE 11 PRO MAX"
-        let base = model;
-        
-        // Strip Greek "used phone" prefix e.g. "ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ"
-        base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '');
-
-        // Strip BB buyback codes in parentheses e.g. (BB-B:…), (BB: A+ …), (BB-A+ …)
-        base = base.replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ');
-        base = base.replace(/\s*\(BB[^)]*\)?\s*/gi, ' ');
-
-        // Strip trailing buyback marker if parsing left it behind
-        base = base.replace(/\s+(BB|ΒΒ):\s*$/gi, ' ');
-
-        // Normalise eSIM variants — handles Latin E, Greek Ε (U+0395), with or without dash/space/hyphen
-        // Matches: eSIM, E-SIM, Ε-SIM (Greek), e sim only, E SIM ONLY, etc.
-        base = base.replace(/\s*[–\-]?\s*[\u0045\u0395][\s\-]?SIM(\s+ONLY)?\s*/gi, ' ');
-
-        // Remove storage (GB/TB) - handle various formats
-        base = base.replace(/\s*\d+\s*TB\s*/gi, ' ');
-        base = base.replace(/\s*\d+\s*GB\s*/gi, ' ');
-        
-        // Remove storage with just "G" (e.g., "128G", "256G")
-        base = base.replace(/\s*\d+\s*G(?!\w)/gi, ' ');
-        
-        // Remove common storage sizes WITHOUT suffix (64GB and up only), but ONLY if they appear after a color or at the end
-        // This prevents removing model numbers like "16" in "IPHONE 16"
-        // Only remove if: number is followed by a space and then a color, or is at the end of the string
-        const commonSizes = [64, 128, 256, 512, 1024, 2048];
-        const allColors = getAllKnownColorsForModelFix();
-        
-        for (const size of commonSizes) {
-            // Only remove storage number if it's followed by a color or BB pattern
-            for (const color of allColors) {
-                const regex = new RegExp('\\b' + size + '\\s+' + color + '\\b', 'gi');
-                base = base.replace(regex, color);
-            }
-            // Also remove if followed by BB pattern
-            const bbRegex = new RegExp('\\b' + size + '\\s+(BB|ΒΒ)', 'gi');
-            base = base.replace(bbRegex, '$1');
-        }
-        
-        const multiWordColors = getMultiWordPhoneColors();
-        for (const color of multiWordColors) {
-            const colorRegex = new RegExp(color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            base = base.replace(colorRegex, ' ');
-        }
-        
-        const singleColors = getSingleWordPhoneColors();
-        for (const color of singleColors) {
-            const colorRegex = new RegExp('\\b' + color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
-            base = base.replace(colorRegex, ' ');
-        }
-        
-        // Clean up multiple spaces and trim
-        base = base.replace(/\s+/g, ' ').trim();
-
-        base = normalizeIphoneSeGeneration(base);
-
-        // Map to canonical display name (fixes typos, joins variants like eSIM / non-eSIM)
-        base = matchCanonical(base);
-
-        extractBaseModelCache.set(model, base);
-        return base;
-    }
-
-    // Function to copy text to clipboard
-    function copyToClipboard(text) {
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(text).then(() => {
-                if (window.showPositiveMessage) {
-                    window.showPositiveMessage(`✓ Copied to clipboard`);
-                }
-            });
-        } else {
-            // Fallback for older browsers
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-            if (window.showPositiveMessage) {
-                window.showPositiveMessage(`✓ Copied to clipboard`);
-            }
-        }
-    }
-    
-    
-    // Function to sort phones
-    function sortPhones(phones) {
-        return [...phones].sort((a, b) => {
-            let aVal, bVal;
-            
-            switch(sortBy) {
-                case 'model':
-                    aVal = extractBaseModel(a.model || '');
-                    bVal = extractBaseModel(b.model || '');
-                    break;
-                case 'grade':
-                    return sortAscending
-                        ? comparePhoneGrades(a.grade, b.grade)
-                        : comparePhoneGrades(b.grade, a.grade);
-                case 'gb':
-                    aVal = extractGB(a.model || '');
-                    bVal = extractGB(b.model || '');
-                    // Convert to numeric for proper sorting
-                    const aIsTB = aVal.toUpperCase().includes('TB');
-                    const bIsTB = bVal.toUpperCase().includes('TB');
-                    const aNum = parseInt(aVal) * (aIsTB ? 1024 : 1);
-                    const bNum = parseInt(bVal) * (bIsTB ? 1024 : 1);
-                    return sortAscending ? aNum - bNum : bNum - aNum;
-                case 'color':
-                    aVal = extractColor(a.model || '');
-                    bVal = extractColor(b.model || '');
-                    break;
-                case 'imei':
-                    aVal = a.imei || '';
-                    bVal = b.imei || '';
-                    break;
-                case 'price':
-                    aVal = parseFloat(String(a.retailPrice || '0').replace(/[^0-9.]/g, '')) || 0;
-                    bVal = parseFloat(String(b.retailPrice || '0').replace(/[^0-9.]/g, '')) || 0;
-                    return sortAscending ? aVal - bVal : bVal - aVal;
-                default:
-                    aVal = a.model || '';
-                    bVal = b.model || '';
-            }
-            
-            if (sortBy === 'gb') return 0; // Already handled above
-            
-            const comparison = aVal.localeCompare(bVal, undefined, { numeric: true, sensitivity: 'base' });
-            return sortAscending ? comparison : -comparison;
-        });
-    }
-    
-    function getFilterOptionCount(selectEl) {
-        if (!selectEl) return 0;
-        return Math.max(0, selectEl.options.length - 1);
-    }
-
-    function syncSelectFilterVisibility(selectEl, optionCount) {
-        if (!selectEl) return;
-        selectEl.classList.toggle('tm-pc-filter-visible', optionCount > 0);
-        if (optionCount <= 0 && selectEl.value) selectEl.value = '';
-    }
-
-    function syncFiltersLabelVisibility(rowEl, filterSelects) {
-        if (!rowEl) return;
-        const labels = rowEl.querySelectorAll('.tm-pc-filters-label-inline');
-        labels.forEach((label) => {
-            if (label.textContent.trim() !== 'Φίλτρα') return;
-            const anyVisible = filterSelects.some((el) => el && el.classList.contains('tm-pc-filter-visible'));
-            label.style.display = anyVisible ? '' : 'none';
-        });
-    }
-
-    function syncMineFilterVisibility() {
-        syncSelectFilterVisibility(gradeFilter, getFilterOptionCount(gradeFilter));
-        syncSelectFilterVisibility(gbFilter, getFilterOptionCount(gbFilter));
-        syncSelectFilterVisibility(colorFilter, getFilterOptionCount(colorFilter));
-        if (tagFilter) syncSelectFilterVisibility(tagFilter, getFilterOptionCount(tagFilter));
-        const mineRow2 = overlay.querySelector('#tm-phone-filters-mine .tm-pc-filters-row2');
-        syncFiltersLabelVisibility(mineRow2, [gbFilter, colorFilter, tagFilter]);
-    }
-
-    function syncNetworkFilterPanelVisibility() {
-        const networkPanel = overlay.querySelector('#tm-phone-filters-network');
-        if (!networkPanel) return;
-        networkPanel.querySelectorAll('.tm-pc-search-row, .tm-pc-filters-row2').forEach((row) => {
-            row.style.display = '';
-        });
-    }
-
-    function getNetworkPhonesForModelPicker() {
-        const selectedGrade = networkGradeFilter?.value || '';
-        const selectedStore = networkStoreFilter?.value || '';
-        const selectedGB = networkGbFilter?.value || '';
-        const selectedColor = networkColorFilter?.value || '';
-
-        return filterIphoneTitlePhones(getNetworkBasePhones()).filter((phone) => {
-            if (selectedGrade && phone.grade !== selectedGrade) return false;
-            if (selectedStore && !phoneHasStoreWithStock(phone, selectedStore)) return false;
-            if (selectedGB && extractGB(phone.name || phone.model) !== selectedGB) return false;
-            if (selectedColor && extractColor(phone.name || phone.model) !== selectedColor) return false;
-            return true;
-        });
-    }
-
-    function filterModelGroupsByQuery(models, query) {
-        if (!query) return models;
-        const q = query.toLowerCase();
-        return models.filter(([name]) => name.toLowerCase().includes(q));
-    }
-
-    function syncNetworkFilterVisibility() {
-        const phonesStep = networkCatalogStep === 'phones' && !!networkSelectedModel;
-        if (networkModelFilter) {
-            if (phonesStep) {
-                networkModelFilter.style.display = '';
-            } else {
-                networkModelFilter.style.display = 'none';
-                if (networkModelFilter.value) networkModelFilter.value = '';
-            }
-        }
-        syncSelectFilterVisibility(networkGradeFilter, getFilterOptionCount(networkGradeFilter));
-        syncSelectFilterVisibility(networkStoreFilter, getFilterOptionCount(networkStoreFilter));
-        syncSelectFilterVisibility(networkGbFilter, getFilterOptionCount(networkGbFilter));
-        syncSelectFilterVisibility(networkColorFilter, getFilterOptionCount(networkColorFilter));
-        const networkRow2 = overlay.querySelector('#tm-phone-filters-network .tm-pc-filters-row2');
-        syncFiltersLabelVisibility(networkRow2, [networkGbFilter, networkColorFilter]);
-        const networkRow1 = overlay.querySelector('#tm-phone-filters-network .tm-pc-search-row');
-        syncFiltersLabelVisibility(networkRow1, [networkGradeFilter, networkStoreFilter]);
-        syncNetworkFilterPanelVisibility();
-        syncClearButtonsVisibility();
-    }
-
-    function mineFiltersActive() {
-        return !!(
-            searchInput?.value.trim()
-            || gradeFilter?.value
-            || gbFilter?.value
-            || colorFilter?.value
-            || tagFilter?.value
-            || mineSelectedModel
-            || showFavoritesOnly
-            || sortBy !== 'model'
-            || !sortAscending
-        );
-    }
-
-    function networkFiltersActive() {
-        return !!(
-            networkSelectedModel
-            || networkStoreFilter?.value
-            || networkGradeFilter?.value
-            || networkGbFilter?.value
-            || networkColorFilter?.value
-            || sortBy !== 'model'
-            || !sortAscending
-        );
-    }
-
-    function syncClearButtonsVisibility() {
-        overlay.querySelector('#tm-phone-clear-filters')
-            ?.classList.toggle('is-visible', !showingOtherStores && mineFiltersActive());
-        overlay.querySelector('#tm-network-clear-filters')
-            ?.classList.toggle('is-visible', showingOtherStores && networkFiltersActive());
-    }
-
-    // Function to populate filter dropdowns
-    function populateFilters(phones, updateFilters = ['grade', 'model', 'gb', 'color', 'tag']) {
-        // Save current selections
-        const currentGrade = gradeFilter.value;
-        const currentModel = modelFilter.value;
-        const currentGB = gbFilter.value;
-        const currentColor = colorFilter.value;
-        const currentTag = (tagFilter && tagFilter.value) || '';
-        
-        // Extract unique values
+    function collectFiltersForModel(allPhones, otherStorePhones, model, helpers) {
+        const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
         const grades = new Set();
-        const models = new Set();
         const gbs = new Set();
         const colors = new Set();
-        
-        phones.forEach(phone => {
+
+        const addPhone = (phone) => {
+            if (extractBaseModel(phone.model) !== model) return;
             if (phone.grade) grades.add(phone.grade);
-            const baseModel = extractBaseModel(phone.model);
-            if (baseModel) models.add(baseModel);
-            // Extract GB and color from the full name (phone.name) not the parsed model
             const gb = extractGB(phone.name || phone.model);
             if (gb) gbs.add(gb);
             const color = extractColor(phone.name || phone.model);
             if (color) colors.add(color);
-        });
-        
-        // Populate grade filter
-        if (updateFilters.includes('grade')) {
-            // Clear existing options except "All"
-            while (gradeFilter.children.length > 1) {
-                gradeFilter.removeChild(gradeFilter.lastChild);
-            }
-            const sortedGrades = Array.from(grades).sort(comparePhoneGrades);
-            sortedGrades.forEach(grade => {
-                const option = document.createElement('option');
-                option.value = grade;
-                option.textContent = `Grade ${grade}`;
-                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-shop-item-text); padding: 10px;';
-                gradeFilter.appendChild(option);
-            });
-            // Restore selection if still valid
-            if (currentGrade && Array.from(grades).includes(currentGrade)) {
-                gradeFilter.value = currentGrade;
-            } else if (currentGrade) {
-                gradeFilter.value = '';
-            }
-        }
-        
-        // Populate model filter
-        if (updateFilters.includes('model')) {
-            // Clear existing options except "All"
-            while (modelFilter.children.length > 1) {
-                modelFilter.removeChild(modelFilter.lastChild);
-            }
-            const sortedModels = Array.from(models).sort((a, b) => {
-                // Sort iPhone models naturally (iPhone SE before iPhone 11, etc.)
-                return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
-            });
-            sortedModels.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model;
-                option.textContent = model;
-                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-shop-item-text); padding: 10px;';
-                modelFilter.appendChild(option);
-            });
-            // Restore selection if still valid
-            if (currentModel && Array.from(models).includes(currentModel)) {
-                modelFilter.value = currentModel;
-            } else if (currentModel) {
-                modelFilter.value = '';
-            }
-        }
-        
-        // Populate GB filter - handle both GB and TB
-        if (updateFilters.includes('gb')) {
-            // Clear existing options except "All"
-            while (gbFilter.children.length > 1) {
-                gbFilter.removeChild(gbFilter.lastChild);
-            }
-            const sortedGBs = Array.from(gbs).sort((a, b) => {
-                // Convert to GB equivalent for comparison (1TB = 1024GB)
-                const aIsTB = a.toUpperCase().includes('TB');
-                const bIsTB = b.toUpperCase().includes('TB');
-                const aNum = parseInt(a) * (aIsTB ? 1024 : 1);
-                const bNum = parseInt(b) * (bIsTB ? 1024 : 1);
-                return aNum - bNum;
-            });
-            sortedGBs.forEach(gb => {
-                const option = document.createElement('option');
-                option.value = gb;
-                option.textContent = gb;
-                option.style.cssText = 'background: var(--tm-shop-item-bg); color: var(--tm-shop-item-text); padding: 10px;';
-                gbFilter.appendChild(option);
-            });
-            // Restore selection if still valid
-            if (currentGB && Array.from(gbs).includes(currentGB)) {
-                gbFilter.value = currentGB;
-            } else if (currentGB) {
-                gbFilter.value = '';
-            }
-        }
-        
-        // Populate color filter
-        if (updateFilters.includes('color')) {
-            // Clear existing options except "All"
-            while (colorFilter.children.length > 1) {
-                colorFilter.removeChild(colorFilter.lastChild);
-            }
-            const sortedColors = Array.from(colors).sort();
-            sortedColors.forEach(color => {
-                const option = document.createElement('option');
-                option.value = color;
-                option.textContent = color;
-                stylePhoneColorSelectOption(option, color);
-                colorFilter.appendChild(option);
-            });
-            // Restore selection if still valid
-            if (currentColor && Array.from(colors).includes(currentColor)) {
-                colorFilter.value = currentColor;
-            } else if (currentColor) {
-                colorFilter.value = '';
-            }
-            syncPhoneColorSelectDisplay(colorFilter);
-        }
-        
-        // Populate tag filter — only tags assigned to phones in the current set
-        if (updateFilters.includes('tag') && tagFilter) {
-            // Clear existing options except "All"
-            while (tagFilter.children.length > 1) {
-                tagFilter.removeChild(tagFilter.lastChild);
-            }
-            const tagSet = new Set();
-            phones.forEach((phone) => {
-                getPhoneTags(phone.barcode).forEach((tag) => {
-                    const key = normalizeTagKey(tag);
-                    if (key) tagSet.add(key);
-                });
-            });
-            const usedTags = Array.from(tagSet).sort((a, b) =>
-                getTagDisplayName(a).localeCompare(getTagDisplayName(b), undefined, { sensitivity: 'base' })
-            );
-            usedTags.forEach(tag => {
-                const option = document.createElement('option');
-                option.value = tag;
-                option.textContent = getTagDisplayName(tag);
-                option.style.cssText = `background: var(--tm-shop-item-bg); color: ${getTagColor(tag)}; padding: 10px; font-weight: 600;`;
-                tagFilter.appendChild(option);
-            });
-            // Restore selection if still valid
-            if (currentTag && usedTags.includes(currentTag)) {
-                tagFilter.value = currentTag;
-            } else if (currentTag) {
-                tagFilter.value = '';
-            }
-        }
-
-        syncMineFilterVisibility();
-        syncClearButtonsVisibility();
-    }
-    
-    // Function to update statistics display
-    function updateStatistics(phones) {
-        if (!statisticsDisplay) return;
-        
-        const stats = {
-            total: phones.length,
-            byGrade: {},
-            byModel: {}
         };
-        
-        phones.forEach(phone => {
-            if (phone.grade) {
-                const g = normalizePhoneGrade(phone.grade);
-                stats.byGrade[g] = (stats.byGrade[g] || 0) + 1;
-            }
-            const baseModel = extractBaseModel(phone.model);
-            if (baseModel) {
-                stats.byModel[baseModel] = (stats.byModel[baseModel] || 0) + 1;
-            }
+
+        filterIphoneTitlePhones(allPhones).forEach((p) => {
+            if ((p.unitsRemaining || 0) > 0) addPhone(p);
         });
-        
-        if (stats.total === 0) {
-            statisticsDisplay.innerHTML = '';
-            return;
-        }
-        
-        // Build statistics with better formatting
-        const statsParts = [];
-        
-        // Total count
-        statsParts.push(`<span style="font-weight: 600; color: var(--tm-primary-color);">${stats.total}</span>`);
-        
-        // Grade breakdown
-        const gradeEntries = Object.entries(stats.byGrade).sort((a, b) => comparePhoneGrades(a[0], b[0]));
-        if (gradeEntries.length > 0) {
-            const gradeParts = gradeEntries.map(([g, count]) => {
-                const color = getPhoneGradeColor(g);
-                return `<span style="color: ${color};">${g}:${count}</span>`;
-            });
-            statsParts.push(gradeParts.join(' '));
-        }
-        
-        // Top models (max 3)
-        const topModels = Object.entries(stats.byModel)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 3);
-        
-        if (topModels.length > 0) {
-            const modelParts = topModels.map(([model, count]) => {
-                // Shorten model names if too long
-                const shortModel = model.length > 20 ? model.substring(0, 17) + '...' : model;
-                return `<span style="opacity: 0.9;">${shortModel}:<strong style="color: var(--tm-primary-color);">${count}</strong></span>`;
-            });
-            statsParts.push(modelParts.join(' '));
-        }
-        
-        statisticsDisplay.innerHTML = statsParts.join(' <span style="opacity: 0.3; margin: 0 8px;">|</span> ');
-    }
-    
-    // Helper function to get filtered phones based on current filters, excluding one filter
-    function getFilteredPhonesForFilterUpdate(excludeFilter = null) {
-        const query = searchInput.value.trim();
-        const selectedGrade = excludeFilter !== 'grade' ? gradeFilter.value : '';
-        const selectedModel = excludeFilter !== 'model' ? modelFilter.value : '';
-        const selectedGB = excludeFilter !== 'gb' ? gbFilter.value : '';
-        const selectedColor = excludeFilter !== 'color' ? colorFilter.value : '';
-        const selectedTag = (excludeFilter !== 'tag' && tagFilter) ? tagFilter.value : '';
-        const useRegex = overlay.querySelector('#tm-phone-regex-toggle').checked;
-        
-        const baseDataset = showingOtherStores
-            ? otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0))
-            : (showFavoritesOnly ? allPhones.filter(p => favorites.includes(p.barcode)) : allPhones);
-        
-        let phonesToFilter = baseDataset;
-        phonesToFilter = filterIphoneTitlePhones(phonesToFilter);
-        
-        return phonesToFilter.filter(phone => {
-            // Text search filter
-            if (query) {
-                let matchesSearch = false;
-                if (useRegex) {
-                    try {
-                        const regex = new RegExp(query, 'i');
-                        matchesSearch = 
-                            regex.test(phone.name) ||
-                            regex.test(phone.barcode) ||
-                            regex.test(phone.model || '') ||
-                            regex.test(phone.grade || '') ||
-                            regex.test(phone.imei || '');
-                    } catch (e) {
-                        // Invalid regex, fall back to simple search
-                        matchesSearch = 
-                            phone.name.toLowerCase().includes(query.toLowerCase()) ||
-                            phone.barcode.toLowerCase().includes(query.toLowerCase()) ||
-                            (phone.model && phone.model.toLowerCase().includes(query.toLowerCase())) ||
-                            (phone.grade && phone.grade.toLowerCase().includes(query.toLowerCase())) ||
-                            (phone.imei && phone.imei.toLowerCase().includes(query.toLowerCase()));
-                    }
-                } else {
-                    const queryLower = query.toLowerCase();
-                    matchesSearch = 
-                        phone.name.toLowerCase().includes(queryLower) ||
-                        phone.barcode.toLowerCase().includes(queryLower) ||
-                        (phone.model && phone.model.toLowerCase().includes(queryLower)) ||
-                        (phone.grade && phone.grade.toLowerCase().includes(queryLower)) ||
-                        (phone.imei && phone.imei.toLowerCase().includes(queryLower));
-                }
-                if (!matchesSearch) return false;
-            }
-            
-            // Grade filter
-            if (selectedGrade && phone.grade !== selectedGrade) {
-                return false;
-            }
-            
-            // Model filter
-            if (selectedModel) {
-                const baseModel = extractBaseModel(phone.model);
-                if (baseModel !== selectedModel) {
-                    return false;
-                }
-            }
-            
-            // GB filter
-            if (selectedGB) {
-                const gb = extractGB(phone.name || phone.model);
-                if (gb !== selectedGB) {
-                    return false;
-                }
-            }
-            
-            // Color filter
-            if (selectedColor) {
-                const color = extractColor(phone.name || phone.model);
-                if (color !== selectedColor) {
-                    return false;
-                }
-            }
-            
-            // Tag filter
-            if (selectedTag) {
-                const phoneTags = getPhoneTags(phone.barcode);
-                if (!phoneTags.includes(selectedTag)) {
-                    return false;
-                }
-            }
-            
-            return true;
-        });
-    }
-    
-    function getNetworkBasePhones() {
-        return otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
-    }
+        filterIphoneTitlePhones(otherStorePhones).forEach(addPhone);
 
-    function syncMineModelFilter() {
-        if (modelFilter) modelFilter.value = mineSelectedModel || '';
-    }
-
-    function syncNetworkModelFilter() {
-        if (networkModelFilter) networkModelFilter.value = networkSelectedModel || '';
-    }
-
-    function updateCatalogBackButtons() {
-        mineBackBtn?.classList.toggle('is-visible', mineCatalogStep === 'phones' && !searchInput?.value.trim());
-        networkBackBtn?.classList.toggle('is-visible', networkCatalogStep === 'phones');
-        syncNetworkFilterPanelVisibility();
-    }
-
-    function syncSortControls() {
-        const arrow = sortAscending ? '↑' : '↓';
-        if (sortBySelect) sortBySelect.value = sortBy;
-        if (networkSortBySelect) networkSortBySelect.value = sortBy;
-        if (sortDirBtn) sortDirBtn.textContent = arrow;
-        if (networkSortDirBtn) networkSortDirBtn.textContent = arrow;
-    }
-
-    function syncFilterPanels() {
-        const minePanel = overlay.querySelector('#tm-phone-filters-mine');
-        const networkPanel = overlay.querySelector('#tm-phone-filters-network');
-        if (showingOtherStores) {
-            minePanel?.classList.add('is-hidden');
-            networkPanel?.classList.add('is-active');
-        } else {
-            minePanel?.classList.remove('is-hidden');
-            networkPanel?.classList.remove('is-active');
-        }
-        updateCatalogBackButtons();
-        syncSortControls();
-    }
-
-    function selectMineModel(model) {
-        mineSelectedModel = model;
-        mineCatalogStep = 'phones';
-        syncMineModelFilter();
-        updateCatalogBackButtons();
-        applyFilters();
-    }
-
-    function readModelFromCard(card) {
-        if (!card) return '';
-        return card.dataset.tmPcModel || card.getAttribute('data-tm-pc-model') || '';
-    }
-
-    function bindModelCardClicks(containerEl, onSelect) {
-        if (!containerEl || typeof onSelect !== 'function') return;
-        containerEl.querySelectorAll('.tm-pc-model-card[data-tm-pc-model]').forEach((card) => {
-            const activate = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const model = readModelFromCard(card);
-                if (model) onSelect(model);
+        const sortGb = (a, b) => {
+            const num = (s) => {
+                const tb = s.toUpperCase().includes('TB');
+                return parseInt(s, 10) * (tb ? 1024 : 1);
             };
-            card.addEventListener('click', activate);
-            card.addEventListener('keydown', (e) => {
-                if (e.key !== 'Enter' && e.key !== ' ') return;
-                activate(e);
-            });
-        });
-    }
-
-    function computeNetworkFilteredPhones() {
-        const selectedGrade = networkGradeFilter?.value || '';
-        const selectedModel = networkSelectedModel || networkModelFilter?.value || modelFilter?.value || '';
-        const selectedStore = networkStoreFilter?.value || '';
-        const selectedGB = networkGbFilter?.value || '';
-        const selectedColor = networkColorFilter?.value || '';
-
-        let phonesToFilter = filterIphoneTitlePhones(getNetworkBasePhones());
-
-        const filtered = phonesToFilter.filter((phone) => {
-            if (selectedGrade && phone.grade !== selectedGrade) return false;
-            if (selectedModel) {
-                const baseModel = extractBaseModel(phone.model);
-                if (baseModel !== selectedModel) return false;
-            }
-            if (selectedStore && !phoneHasStoreWithStock(phone, selectedStore)) return false;
-            if (selectedGB) {
-                const gb = extractGB(phone.name || phone.model);
-                if (gb !== selectedGB) return false;
-            }
-            if (selectedColor) {
-                const color = extractColor(phone.name || phone.model);
-                if (color !== selectedColor) return false;
-            }
-            return true;
-        });
-
-        return sortPhones(filtered);
-    }
-
-    function renderNetworkPhoneList() {
-        if (!showingOtherStores) return;
-        if (!networkSelectedModel && networkCatalogStep === 'models') {
-            renderNetworkModelPicker();
-            return;
-        }
-        networkCatalogStep = 'phones';
-        updateCatalogBackButtons();
-        filteredPhones = computeNetworkFilteredPhones();
-        if (statisticsDisplay) statisticsDisplay.innerHTML = '';
-        populateNetworkFilters(filteredPhones);
-        renderOtherStorePhones(filteredPhones);
-        syncClearButtonsVisibility();
-    }
-
-    function selectNetworkModel(model) {
-        if (!model) return;
-        networkSelectedModel = model;
-        networkCatalogStep = 'phones';
-        if (modelFilter) modelFilter.value = model;
-        renderNetworkPhoneList();
-    }
-
-    function renderMineModelPicker(searchQuery = '') {
-        const contentEl = overlay.querySelector('#tm-phone-list-container');
-        const phones = getFilteredPhonesForFilterUpdate(null);
-        let models = buildModelGroupsFromPhones(phones, extractBaseModel);
-        models = filterModelGroupsByQuery(models, searchQuery);
-        models = sortModelGroups(models, sortBy, sortAscending);
-        populateFilters(phones);
-        if (!contentEl) return;
-        contentEl.className = 'tm-pc-list tm-cat-table-body';
-        contentEl.style.display = '';
-        contentEl.innerHTML = PhoneCatalogUI.buildModelGroupList(models);
-        bindModelCardClicks(contentEl, selectMineModel);
-        const deviceCount = phones.length;
-        if (countDisplay) {
-            const filterNote = mineFiltersActive() ? ' (φιλτραρισμένα)' : '';
-            countDisplay.textContent = `${models.length} μοντέλα · ${deviceCount} συσκευές${filterNote}`;
-        }
-        if (statisticsDisplay) statisticsDisplay.innerHTML = '';
-        syncClearButtonsVisibility();
-    }
-
-    function renderNetworkModelPicker() {
-        const contentEl = overlay.querySelector('#tm-other-store-content');
-        const phones = getNetworkPhonesForModelPicker();
-        const models = sortModelGroups(
-            buildModelGroupsFromPhones(phones, extractBaseModel),
-            sortBy,
-            sortAscending
-        );
-        populateNetworkFilters(phones);
-        if (!contentEl) return;
-        contentEl.className = 'tm-pc-list tm-cat-table-body';
-        contentEl.style.display = '';
-        contentEl.innerHTML = PhoneCatalogUI.buildModelGroupList(models);
-        bindModelCardClicks(contentEl, selectNetworkModel);
-        if (countDisplay) {
-            const filterNote = networkFiltersActive() ? ' (φιλτραρισμένα)' : '';
-            countDisplay.textContent = `${models.length} μοντέλα · ${phones.length} συσκευές στο δίκτυο${filterNote}`;
-        }
-        if (statisticsDisplay) statisticsDisplay.innerHTML = '';
-        syncClearButtonsVisibility();
-    }
-
-    function populateNetworkFilters(dataset = null) {
-        const base = dataset || getFilteredPhonesForNetworkFilters();
-        const allModels = [...new Set(getNetworkBasePhones().map(p => extractBaseModel(p.model)).filter(Boolean))]
-            .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-        const grades = [...new Set(base.map(p => p.grade).filter(Boolean))].sort(comparePhoneGrades);
-        const gbs = [...new Set(base.map(p => extractGB(p.name || p.model)).filter(Boolean))].sort((a, b) => {
-            const aIsTB = a.toUpperCase().includes('TB');
-            const bIsTB = b.toUpperCase().includes('TB');
-            return parseInt(a) * (aIsTB ? 1024 : 1) - parseInt(b) * (bIsTB ? 1024 : 1);
-        });
-        const colors = [...new Set(base.map(p => extractColor(p.name || p.model)).filter(Boolean))].sort();
-
-        if (networkGradeFilter) {
-            const cur = networkGradeFilter.value;
-            networkGradeFilter.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Grades']}</option>` +
-                grades.map(g => `<option value="${g}">${g}</option>`).join('');
-            if (grades.includes(cur)) networkGradeFilter.value = cur;
-        }
-        if (networkModelFilter) {
-            suppressNetworkFilterEvents = true;
-            try {
-                const cur = networkModelFilter.value || networkSelectedModel || '';
-                networkModelFilter.innerHTML = '<option value="">— Επιλέξτε μοντέλο —</option>' +
-                    allModels.map(m => `<option value="${PhoneCatalogUI.esc(m)}">${PhoneCatalogUI.esc(m)}</option>`).join('');
-                if (cur && allModels.includes(cur)) networkModelFilter.value = cur;
-                else if (networkSelectedModel && allModels.includes(networkSelectedModel)) {
-                    networkModelFilter.value = networkSelectedModel;
-                } else if (networkSelectedModel && !allModels.includes(networkSelectedModel)) {
-                    const opt = document.createElement('option');
-                    opt.value = networkSelectedModel;
-                    opt.textContent = networkSelectedModel;
-                    networkModelFilter.appendChild(opt);
-                    networkModelFilter.value = networkSelectedModel;
-                }
-            } finally {
-                suppressNetworkFilterEvents = false;
-            }
-        }
-        if (networkGbFilter) {
-            const cur = networkGbFilter.value;
-            networkGbFilter.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Storage']}</option>` +
-                gbs.map(g => `<option value="${PhoneCatalogUI.esc(g)}">${PhoneCatalogUI.esc(g)}</option>`).join('');
-            if (gbs.includes(cur)) networkGbFilter.value = cur;
-        }
-        if (networkColorFilter) {
-            const cur = networkColorFilter.value;
-            networkColorFilter.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Colors']}</option>` +
-                colors.map(c => `<option value="${PhoneCatalogUI.esc(c)}">${PhoneCatalogUI.esc(c)}</option>`).join('');
-            if (colors.includes(cur)) networkColorFilter.value = cur;
-            syncPhoneColorSelectDisplay(networkColorFilter);
-        }
-
-        const storeSet = new Set();
-        base.forEach((phone) => {
-            (phone.stores || []).forEach((store) => {
-                if (!store.name) return;
-                const clean = store.name.replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
-                const qty = parseInt(store.qty, 10) || 0;
-                if (qty === 1) storeSet.add(clean);
-            });
-        });
-        if (networkStoreFilter) {
-            const cur = networkStoreFilter.value;
-            const stores = [...storeSet].sort();
-            networkStoreFilter.innerHTML = '<option value="">Όλα τα καταστήματα</option>' +
-                stores.map(s => `<option value="${s}">${s}</option>`).join('');
-            if (stores.includes(cur)) networkStoreFilter.value = cur;
-        }
-
-        syncNetworkFilterVisibility();
-    }
-
-    function getFilteredPhonesForNetworkFilters() {
-        let base = getNetworkBasePhones();
-        if (networkSelectedModel) {
-            base = base.filter(p => extractBaseModel(p.model) === networkSelectedModel);
-        }
-        return base;
-    }
-
-    function highlightSearchMatch(containerEl) {
-        const query = searchInput?.value.trim();
-        if (!query || !containerEl) return;
-        const q = query.toLowerCase();
-        const rows = containerEl.querySelectorAll('.tm-phone-item');
-        let first = null;
-        rows.forEach((row) => {
-            row.classList.remove('tm-pc-row--highlight');
-            const barcode = (row.dataset.barcode || '').toLowerCase();
-            const name = (row.dataset.name || '').toLowerCase();
-            const imei = (row.dataset.imei || '').toLowerCase();
-            if (barcode === q || barcode.includes(q) || name.includes(q) || imei.includes(q)) {
-                row.classList.add('tm-pc-row--highlight');
-                if (!first) first = row;
-            }
-        });
-        if (first) first.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }
-
-    // Function to apply all filters
-    function applyFilters() {
-        const query = showingOtherStores ? '' : searchInput.value.trim();
-        const useRegex = overlay.querySelector('#tm-phone-regex-toggle')?.checked;
-
-        if (showingOtherStores) {
-            if (!networkSelectedModel && networkCatalogStep === 'models') {
-                renderNetworkModelPicker();
-                return;
-            }
-            renderNetworkPhoneList();
-            return;
-        } else if (mineCatalogStep === 'models' && !mineSelectedModel) {
-            const q = query.toLowerCase();
-            const phoneMatch = q && filterIphoneTitlePhones(allPhones).some((p) =>
-                p.barcode.toLowerCase().includes(q)
-                || (p.imei && p.imei.toLowerCase().includes(q))
-            );
-            if (phoneMatch && q.length >= 4) {
-                mineCatalogStep = 'phones';
-                updateCatalogBackButtons();
-            } else {
-                renderMineModelPicker(query);
-                return;
-            }
-        } else if (query) {
-            mineCatalogStep = 'phones';
-            updateCatalogBackButtons();
-        }
-
-        const selectedGrade = showingOtherStores
-            ? (networkGradeFilter?.value || '')
-            : gradeFilter.value;
-        const selectedModel = showingOtherStores
-            ? (networkSelectedModel || networkModelFilter?.value || modelFilter.value)
-            : (mineSelectedModel || modelFilter.value);
-        const selectedStore = showingOtherStores ? (networkStoreFilter?.value || '') : '';
-        const selectedGB = showingOtherStores
-            ? (networkGbFilter?.value || '')
-            : gbFilter.value;
-        const selectedColor = showingOtherStores
-            ? (networkColorFilter?.value || '')
-            : colorFilter.value;
-        const selectedTag = showingOtherStores ? '' : (tagFilter ? tagFilter.value : '');
-
-        if (!showingOtherStores && selectedModel) {
-            mineCatalogStep = 'phones';
-            mineSelectedModel = selectedModel;
-            syncMineModelFilter();
-            updateCatalogBackButtons();
-        }
-        
-        let phonesToFilter = showingOtherStores
-            ? getNetworkBasePhones()
-            : (showFavoritesOnly
-                ? allPhones.filter(p => favorites.includes(p.barcode))
-                : allPhones);
-        phonesToFilter = filterIphoneTitlePhones(phonesToFilter);
-        
-        const queryLower = query ? query.toLowerCase() : null;
-        let searchRegex = null;
-        if (query && useRegex) {
-            try {
-                searchRegex = new RegExp(query, 'i');
-            } catch (e) {
-                searchRegex = null;
-            }
-        }
-        
-        filteredPhones = phonesToFilter.filter(phone => {
-            if (query) {
-                let matchesSearch = false;
-                if (searchRegex) {
-                    matchesSearch = 
-                        searchRegex.test(phone.name) ||
-                        searchRegex.test(phone.barcode) ||
-                        searchRegex.test(phone.model || '') ||
-                        searchRegex.test(phone.grade || '') ||
-                        searchRegex.test(phone.imei || '');
-                } else {
-                    matchesSearch = 
-                        phone.name.toLowerCase().includes(queryLower) ||
-                        phone.barcode.toLowerCase().includes(queryLower) ||
-                        (phone.model && phone.model.toLowerCase().includes(queryLower)) ||
-                        (phone.grade && phone.grade.toLowerCase().includes(queryLower)) ||
-                        (phone.imei && phone.imei.toLowerCase().includes(queryLower));
-                }
-                if (!matchesSearch) return false;
-            }
-            
-            if (selectedGrade && phone.grade !== selectedGrade) {
-                return false;
-            }
-            
-            if (selectedModel) {
-                const baseModel = extractBaseModel(phone.model);
-                if (baseModel !== selectedModel) {
-                    return false;
-                }
-            }
-
-            if (selectedStore && !phoneHasStoreWithStock(phone, selectedStore)) {
-                return false;
-            }
-            
-            if (selectedGB) {
-                const gb = extractGB(phone.name || phone.model);
-                if (gb !== selectedGB) {
-                    return false;
-                }
-            }
-            
-            if (selectedColor) {
-                const color = extractColor(phone.name || phone.model);
-                if (color !== selectedColor) {
-                    return false;
-                }
-            }
-            
-            if (selectedTag) {
-                const phoneTags = getPhoneTags(phone.barcode);
-                if (!phoneTags.includes(selectedTag)) {
-                    return false;
-                }
-            }
-            
-            return true;
-        });
-        
-        filteredPhones = sortPhones(filteredPhones);
-
-        if (!showingOtherStores) {
-            populateFilters(getFilteredPhonesForFilterUpdate(null));
-        }
-
-        updateStatistics(filteredPhones);
-        renderPhones(filteredPhones, true);
-        highlightSearchMatch(container);
-        syncClearButtonsVisibility();
-    }
-    
-    // Virtual scrolling state
-    const ITEMS_PER_PAGE = 100; // Render 100 phones at a time
-    let currentPage = 0;
-    let renderedPhones = [];
-    
-    // Function to render phones (with virtual scrolling for performance)
-    function renderPhones(phones, resetPagination = false) {
-        const container = overlay.querySelector('#tm-phone-list-container');
-        const countDisplay = overlay.querySelector('#tm-phone-count-text');
-        
-        if (phones.length === 0) {
-            container.innerHTML = PhoneCatalogUI.buildEmptyState(
-                '🔍',
-                'Δεν βρέθηκαν συσκευές',
-                'Δοκιμάστε άλλα φίλτρα ή αναζήτηση'
-            );
-            countDisplay.textContent = '0 συσκευές';
-            return;
-        }
-        
-        // Reset pagination if requested
-        if (resetPagination) {
-            currentPage = 0;
-        }
-        
-        container.className = 'tm-pc-list tm-cat-table-body';
-        container.classList.remove('tm-pc-grid', 'tm-pc-list-mode', 'grid-view');
-        
-        // Virtual scrolling: only render visible phones + buffer
-        const startIndex = currentPage * ITEMS_PER_PAGE;
-        const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, phones.length);
-        const phonesToRender = phones.slice(startIndex, endIndex);
-        renderedPhones = phones;
-        
-        const catalogCtx = getPhoneCatalogUICtx({ extractBaseModel, getPhoneTags });
-        const phonesHTML = phonesToRender.map((phone, idx) => PhoneCatalogUI.buildPhoneRow(phone, catalogCtx, {
-            variant: 'mine',
-            isSelected: selectedPhones.has(phone.barcode),
-            isFavorite: favorites.includes(phone.barcode),
-        })).join('');
-        
-        container.innerHTML = PhoneCatalogUI.buildListHeader('mine') + phonesHTML;
-        
-        // Show pagination info if there are more phones
-        const totalPhones = phones.length;
-        const showingPhones = phonesToRender.length;
-        if (totalPhones > ITEMS_PER_PAGE) {
-            const pageInfo = ` (Showing ${startIndex + 1}-${endIndex} of ${totalPhones})`;
-            countDisplay.textContent = `${totalPhones} συσκευές${mineSelectedModel ? ` · ${mineSelectedModel}` : ''}${pageInfo}`;
-            
-            // Add "Load More" button if there are more phones
-            let loadMoreBtn = container.parentElement.querySelector('.tm-phone-load-more');
-            if (!loadMoreBtn) {
-                loadMoreBtn = document.createElement('button');
-                loadMoreBtn.className = 'tm-phone-load-more';
-                loadMoreBtn.textContent = 'Load More';
-                loadMoreBtn.style.cssText = `
-                    width: 100%;
-                    padding: 12px;
-                    margin-top: 16px;
-                    background: var(--tm-shop-item-bg);
-                    border: 1px solid var(--tm-shop-item-border);
-                    border-radius: 8px;
-                    color: var(--tm-shop-item-text);
-                    cursor: pointer;
-                    font-size: 14px;
-                    font-weight: 600;
-                    transition: all 0.2s;
-                `;
-                loadMoreBtn.addEventListener('click', () => {
-                    currentPage++;
-                    renderPhones(renderedPhones, false);
-                });
-                loadMoreBtn.addEventListener('mouseenter', () => {
-                    loadMoreBtn.style.background = 'var(--tm-shop-item-hover-bg)';
-                });
-                loadMoreBtn.addEventListener('mouseleave', () => {
-                    loadMoreBtn.style.background = 'var(--tm-shop-item-bg)';
-                });
-                container.parentElement.appendChild(loadMoreBtn);
-            }
-            // Show/hide load more button
-            if (endIndex >= totalPhones) {
-                loadMoreBtn.style.display = 'none';
-            } else {
-                loadMoreBtn.style.display = 'block';
-                loadMoreBtn.textContent = `Load More (${totalPhones - endIndex} remaining)`;
-            }
-        } else {
-            countDisplay.textContent = `${totalPhones} συσκευές${mineSelectedModel ? ` · ${mineSelectedModel}` : ''}`;
-            // Remove load more button if it exists
-            const loadMoreBtn = container.parentElement.querySelector('.tm-phone-load-more');
-            if (loadMoreBtn) {
-                loadMoreBtn.remove();
-            }
-        }
-        
-        // Use event delegation instead of individual listeners (much more efficient)
-        // Remove old listeners if they exist
-        if (container._phoneClickHandler) {
-            container.removeEventListener('click', container._phoneClickHandler);
-            container.removeEventListener('contextmenu', container._phoneContextMenuHandler);
-        }
-        
-        // Click handler (event delegation)
-        container._phoneClickHandler = (e) => {
-            // Check for buttons first (regardless of whether inside item or not)
-            const searchBtn = e.target.closest('.tm-phone-search-btn');
-            if (searchBtn) {
-                e.stopPropagation();
-                const barcode = searchBtn.dataset.barcode;
-                if (barcode) {
-                    const searchUrl = `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(barcode)}`;
-                    window.open(searchUrl, '_blank');
-                }
-                return;
-            }
-            
-            const copyImeiBtn = e.target.closest('.tm-phone-copy-imei-btn');
-            if (copyImeiBtn) {
-                e.stopPropagation();
-                const imei = copyImeiBtn.dataset.imei;
-                if (imei) {
-                    copyToClipboard(imei);
-                }
-                return;
-            }
-            
-            const favoriteBtn = e.target.closest('.tm-phone-favorite-btn');
-            if (favoriteBtn) {
-                e.stopPropagation();
-                const barcode = favoriteBtn.dataset.barcode;
-                if (barcode) {
-                    toggleFavorite(barcode);
-                }
-                return;
-            }
-            
-            // If not a button, check if clicking on phone item
-            const item = e.target.closest('.tm-phone-item');
-            if (!item) return;
-            
-            // Don't trigger if clicking buttons (double check)
-            if (e.target.closest('button')) return;
-            
-            const barcode = item.dataset.barcode;
-            
-            // Toggle selection if Ctrl/Cmd is held
-            if (e.ctrlKey || e.metaKey) {
-                if (selectedPhones.has(barcode)) {
-                    selectedPhones.delete(barcode);
-                } else {
-                    selectedPhones.add(barcode);
-                }
-                item.classList.toggle('selected');
-                updateSelectionUI();
-            } else {
-                copyToClipboard(barcode);
-            }
+            return num(a) - num(b);
         };
 
-        container._phoneDblClickHandler = (e) => {
-            const item = e.target.closest('.tm-phone-item');
-            if (!item || e.target.closest('button')) return;
-            const barcode = item.dataset.barcode;
-            if (barcode) {
-                const searchUrl = `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(barcode)}`;
-                window.open(searchUrl, '_blank');
-            }
+        return {
+            grades: [...grades].sort((a, b) => helpers.comparePhoneGrades(a, b)),
+            gbs: [...gbs].sort(sortGb),
+            colors: [...colors].sort((a, b) => a.localeCompare(b, 'el')),
         };
-        
-        // Right-click handler for context menu (event delegation)
-        container._phoneContextMenuHandler = (e) => {
-            const item = e.target.closest('.tm-phone-item');
-            if (!item) return;
-            e.preventDefault();
-            contextMenuPhone = item;
-            
-            // Show menu temporarily to measure dimensions
-            contextMenu.style.display = 'block';
-            contextMenu.style.visibility = 'hidden';
-            
-            const menuWidth = contextMenu.offsetWidth;
-            const menuHeight = contextMenu.offsetHeight;
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-            
-            // Calculate horizontal position
-            let left = e.pageX;
-            // If menu would go off right edge, position to the left of cursor
-            if (left + menuWidth > viewportWidth) {
-                left = e.pageX - menuWidth;
-                // If that would go off left edge, just position from right edge
-                if (left < 0) {
-                    left = viewportWidth - menuWidth - 10;
-                }
+    }
+
+    function phoneMatchesFilters(phone, model, filters, helpers) {
+        const { extractBaseModel, extractGB, extractColor } = helpers;
+        if (extractBaseModel(phone.model) !== model) return false;
+        if (filters.grade && phone.grade !== filters.grade) return false;
+        const gb = extractGB(phone.name || phone.model);
+        if (filters.gb && gb !== filters.gb) return false;
+        const color = extractColor(phone.name || phone.model);
+        if (filters.color && color !== filters.color) return false;
+        return true;
+    }
+
+    function buildStoreBoardData(model, allPhones, otherStorePhones, filters, helpers) {
+        const { filterIphoneTitlePhones, filterOneUnitStores } = helpers;
+        const storeMap = new Map();
+
+        function addVariant(storeKey, storeName, isMine, variant) {
+            if (!storeMap.has(storeKey)) {
+                storeMap.set(storeKey, { name: storeName, isMine, variants: [], seen: new Set() });
             }
-            
-            // Calculate vertical position
-            let top = e.pageY;
-            // If menu would go off bottom edge, position above cursor
-            if (top + menuHeight > viewportHeight) {
-                top = e.pageY - menuHeight;
-                // If that would go off top edge, just position from bottom edge
-                if (top < 0) {
-                    top = viewportHeight - menuHeight - 10;
-                }
+            const bucket = storeMap.get(storeKey);
+            const key = variantKey(variant);
+            if (bucket.seen.has(key)) return;
+            bucket.seen.add(key);
+            bucket.variants.push(variant);
+        }
+
+        filterIphoneTitlePhones(allPhones).forEach((phone) => {
+            if ((phone.unitsRemaining || 0) <= 0) return;
+            if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
+            addVariant(MINE_STORE_KEY, 'Το κατάστημά μου', true, phoneToVariant(phone, helpers));
+        });
+
+        filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
+            if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
+            const variant = phoneToVariant(phone, helpers);
+            const stores = filterOneUnitStores(phone.stores || []);
+            if (!stores.length) {
+                addVariant('__pending__', 'Άλλα καταστήματα (χωρίς λεπτομέρειες)', false, variant);
+                return;
             }
-            
-            contextMenu.style.left = left + 'px';
-            contextMenu.style.top = top + 'px';
-            contextMenu.style.visibility = 'visible';
+            stores.forEach((store) => {
+                const name = cleanStoreName(store.name);
+                if (!name) return;
+                addVariant(name, name, false, variant);
+            });
+        });
+
+        const rows = [...storeMap.values()]
+            .filter((s) => s.key !== '__pending__' || s.variants.length)
+            .map(({ name, isMine, variants }) => ({
+                name,
+                isMine,
+                variants,
+                preview: variants.slice(0, 3).map((v) => {
+                    const bits = [v.grade, v.gb, v.color].filter(Boolean);
+                    return bits.join(' · ');
+                }).join(' · '),
+            }))
+            .sort((a, b) => {
+                if (a.isMine) return -1;
+                if (b.isMine) return 1;
+                return a.name.localeCompare(b.name, 'el');
+            });
+
+        const mine = rows.find((r) => r.isMine) || null;
+        const others = rows.filter((r) => !r.isMine);
+
+        return { mine, storeRows: others, allRows: rows };
+    }
+
+    async function showStoreLocatorModal() {
+        if (document.querySelector('.tm-sl-overlay')) return;
+
+        const UI = window.PhoneCatalogUI;
+        const helpers = {
+            extractBaseModel: window.extractBaseModel || ((m) => m),
+            extractGB: window.extractGB || (() => ''),
+            extractColor: window.extractColor || (() => ''),
+            normalizePhoneGrade: window.normalizePhoneGrade || ((g) => g),
+            comparePhoneGrades: window.comparePhoneGrades || ((a, b) => a.localeCompare(b)),
+            filterIphoneTitlePhones: window.filterIphoneTitlePhones || ((p) => p),
+            filterOneUnitStores: window.filterOneUnitStores || ((s) => s),
+            getPhoneGradeCircleStyle: window.getPhoneGradeCircleStyle || (() => ''),
         };
-        
-        container.addEventListener('click', container._phoneClickHandler);
-        container.addEventListener('dblclick', container._phoneDblClickHandler);
-        container.addEventListener('contextmenu', container._phoneContextMenuHandler);
-        
-        // Favorite buttons
-        container.querySelectorAll('.tm-phone-favorite-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const barcode = btn.dataset.barcode;
-                toggleFavorite(barcode);
-            });
-        });
-    }
-    
-    // Function to toggle favorite
-    function toggleFavorite(barcode) {
-        const index = favorites.indexOf(barcode);
-        if (index > -1) {
-            favorites.splice(index, 1);
-        } else {
-            favorites.push(barcode);
-        }
-        GM_setValue(FAVORITES_KEY, JSON.stringify(favorites));
-        applyFilters();
-    }
-    
-    // Function to update selection UI
-    function updateSelectionUI() {
-        const exportSelectedBtn = overlay.querySelector('#tm-phone-export-selected');
-        const selectAllBtn = overlay.querySelector('#tm-phone-select-all');
-        
-        if (selectedPhones.size > 0) {
-            exportSelectedBtn.style.display = 'block';
-            selectAllBtn.style.display = 'inline-block';
-            selectAllBtn.textContent = selectedPhones.size === filteredPhones.length 
-                ? `☐ ${PHONE_CATALOG_TRANSLATIONS['Deselect All']}` 
-                : `☑ ${PHONE_CATALOG_TRANSLATIONS['Select All']}`;
-        } else {
-            exportSelectedBtn.style.display = 'none';
-            selectAllBtn.style.display = 'none';
-        }
-    }
-    
-    // Function to export to clipboard
-    function exportToClipboard(phones) {
-        const lines = phones.map(p => {
-            const modelWithoutColor = extractBaseModel(p.model) || p.model || p.name;
-            return `${p.barcode}\t${modelWithoutColor}\t${p.grade || ''}\t${p.imei || ''}\t${extractGB(p.model) || ''}\t${extractColor(p.model) || ''}`;
-        });
-        copyToClipboard(lines.join('\n'));
-    }
-    
-    // Function to export to CSV
-    function exportToCSV(phones) {
-        // Check if "Include Original Title" checkbox is checked
-        const includeOriginalTitle = document.getElementById('tm-phone-export-original-title')?.checked || false;
-        
-        // Build headers based on option (with Greek translations)
-        const headers = includeOriginalTitle 
-            ? [
-                PHONE_CATALOG_TRANSLATIONS['Barcode'], 
-                PHONE_CATALOG_TRANSLATIONS['Model'], 
-                PHONE_CATALOG_TRANSLATIONS['Original Title'], 
-                PHONE_CATALOG_TRANSLATIONS['Grade'], 
-                PHONE_CATALOG_TRANSLATIONS['IMEI'], 
-                PHONE_CATALOG_TRANSLATIONS['Storage'], 
-                PHONE_CATALOG_TRANSLATIONS['Color']
-              ]
-            : [
-                PHONE_CATALOG_TRANSLATIONS['Barcode'], 
-                PHONE_CATALOG_TRANSLATIONS['Model'], 
-                PHONE_CATALOG_TRANSLATIONS['Grade'], 
-                PHONE_CATALOG_TRANSLATIONS['IMEI'], 
-                PHONE_CATALOG_TRANSLATIONS['Storage'], 
-                PHONE_CATALOG_TRANSLATIONS['Color']
-              ];
-        
-        // Build rows based on option
-        const rows = phones.map(p => {
-            const modelWithoutColor = extractBaseModel(p.model) || p.model || p.name;
-            const baseRow = [
-                p.barcode,
-                modelWithoutColor,
-                p.grade || '',
-                p.imei || '',
-                extractGB(p.model) || '',
-                extractColor(p.model) || ''
-            ];
-            
-            // Insert original title after Model if option is enabled
-            if (includeOriginalTitle) {
-                baseRow.splice(2, 0, p.name || ''); // Insert at index 2 (after Model)
-            }
-            
-            return baseRow;
-        });
-        
-        const csvContent = [
-            headers.join(','),
-            ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-        ].join('\n');
-        
-        // Add UTF-8 BOM (Byte Order Mark) so Excel can properly read Greek characters
-        const BOM = '\uFEFF';
-        const csvWithBOM = BOM + csvContent;
-        
-        // Use UTF-8 encoding explicitly
-        const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `phone-catalog-${new Date().toISOString().split('T')[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        if (window.showPositiveMessage) {
-            window.showPositiveMessage('✓ CSV exported successfully');
-        }
-    }
-    
-    // Get DOM elements
-    const searchInput = overlay.querySelector('#tm-phone-search-input');
-    const gradeFilter = overlay.querySelector('#tm-phone-filter-grade');
-    const modelFilter = overlay.querySelector('#tm-phone-filter-model');
-    const gbFilter = overlay.querySelector('#tm-phone-filter-gb');
-    const colorFilter = overlay.querySelector('#tm-phone-filter-color');
-    const tagFilter = overlay.querySelector('#tm-phone-filter-tag');
-    const sortBySelect = overlay.querySelector('#tm-phone-sort-by');
-    const clearFiltersBtn = overlay.querySelector('#tm-phone-clear-filters');
-    const sortDirBtn = overlay.querySelector('#tm-phone-sort-dir');
-    const container = overlay.querySelector('#tm-phone-list-container');
-    const listTableWrap = overlay.querySelector('#tm-mine-table-wrap') || container?.closest('.tm-pc-table-wrap');
-    const otherStoreContainer = overlay.querySelector('#tm-other-store-container');
-    const otherStoreContent = overlay.querySelector('#tm-other-store-content');
-    const countDisplay = overlay.querySelector('#tm-phone-count-text');
-    const statisticsDisplay = overlay.querySelector('#tm-phone-statistics');
-    const lastUpdatedDisplay = overlay.querySelector('#tm-phone-last-updated');
-    const cacheWarning = overlay.querySelector('#tm-phone-cache-warning');
-    const refreshBtn = overlay.querySelector('#tm-phone-refresh-btn');
-    const viewToggleBtn = overlay.querySelector('#tm-phone-view-toggle');
-    const colorsBtn = overlay.querySelector('#tm-phone-colors-btn');
-    const tagsBtn = overlay.querySelector('#tm-phone-tags-btn');
-    const storesBtn = overlay.querySelector('#tm-phone-stores-btn');
-    const otherStoreToggleBtn = overlay.querySelector('#tm-phone-other-store-toggle');
-    const favoritesBtn = overlay.querySelector('#tm-phone-favorites-btn');
-    const exportBtn = overlay.querySelector('#tm-phone-export-btn');
-    const exportMenu = overlay.querySelector('#tm-phone-export-menu');
-    const exportClipboardBtn = overlay.querySelector('#tm-phone-export-clipboard');
-    const exportCSVBtn = overlay.querySelector('#tm-phone-export-csv');
-    const exportSelectedBtn = overlay.querySelector('#tm-phone-export-selected');
-    const selectAllBtn = overlay.querySelector('#tm-phone-select-all');
-    const closeBtn = overlay.querySelector('.tm-modal-close');
-    const viewTabMine = overlay.querySelector('#tm-pc-view-mine');
-    const viewTabOther = overlay.querySelector('#tm-pc-view-other');
-    const mineBackBtn = overlay.querySelector('#tm-mine-back-btn');
-    const networkBackBtn = overlay.querySelector('#tm-network-back-btn');
-    const networkModelFilter = overlay.querySelector('#tm-network-filter-model');
-    const networkStoreFilter = overlay.querySelector('#tm-network-filter-store');
-    const networkGradeFilter = overlay.querySelector('#tm-network-filter-grade');
-    const networkGbFilter = overlay.querySelector('#tm-network-filter-gb');
-    const networkColorFilter = overlay.querySelector('#tm-network-filter-color');
-    const networkSortBySelect = overlay.querySelector('#tm-network-sort-by');
-    const networkSortDirBtn = overlay.querySelector('#tm-network-sort-dir');
-    const networkClearBtn = overlay.querySelector('#tm-network-clear-filters');
-    const settingsBtn = overlay.querySelector('#tm-phone-settings-btn');
-    const settingsMenu = overlay.querySelector('#tm-phone-settings-menu');
-    
-    function setViewTabActive(view) {
-        viewTabMine?.classList.toggle('active', view === 'mine');
-        viewTabOther?.classList.toggle('active', view === 'other');
-    }
-    
-    function showOtherStoreView() {
-        showingOtherStores = true;
-        if (listTableWrap) listTableWrap.style.display = 'none';
-        if (container) container.style.display = 'none';
-        if (otherStoreContainer) {
-            otherStoreContainer.style.display = 'flex';
-            otherStoreContainer.style.flexDirection = 'column';
-            otherStoreContainer.style.flex = '1';
-            otherStoreContainer.style.minHeight = '0';
-        }
-        if (otherStoreContent) otherStoreContent.style.display = '';
-        setViewTabActive('other');
-        syncFilterPanels();
-        if (statisticsDisplay) statisticsDisplay.innerHTML = '';
-        if (!networkSelectedModel) {
-            networkCatalogStep = 'models';
-        }
-        applyFilters();
-    }
-    
-    function showMainView() {
-        showingOtherStores = false;
-        if (listTableWrap) listTableWrap.style.display = '';
-        if (container) container.style.display = '';
-        if (otherStoreContainer) otherStoreContainer.style.display = 'none';
-        setViewTabActive('mine');
-        syncFilterPanels();
-        updateSelectionUI();
-        if (!searchInput.value.trim() && !mineSelectedModel) {
-            mineCatalogStep = 'models';
-        }
-        applyFilters();
-    }
-    
-    viewTabMine?.addEventListener('click', () => showMainView());
-    viewTabOther?.addEventListener('click', async () => {
-        try {
-            const loadingEl = otherStoreContent;
-            if (loadingEl && !otherStoreLoaded) {
-                loadingEl.innerHTML = PhoneCatalogUI.buildEmptyState('⏳', 'Φόρτωση άλλων καταστημάτων…');
-            }
-            await ensureOtherStoreData();
-            showOtherStoreView();
-        } catch (err) {
-            if (otherStoreContent) {
-                otherStoreContent.innerHTML = PhoneCatalogUI.buildEmptyState('⚠️', 'Σφάλμα φόρτωσης', err.message || '');
-            }
-        }
-    });
-    viewTabOther?.addEventListener('dblclick', (e) => {
-        e.preventDefault();
-        showOtherStoresModal();
-    });
 
-    mineBackBtn?.addEventListener('click', () => {
-        mineCatalogStep = 'models';
-        mineSelectedModel = null;
-        syncMineModelFilter();
-        searchInput.value = '';
-        gradeFilter.value = '';
-        updateCatalogBackButtons();
-        renderMineModelPicker();
-    });
+        const overlay = document.createElement('div');
+        overlay.className = 'tm-modal-overlay tm-sl-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;';
+        overlay.innerHTML = UI.buildShellHTML();
+        document.body.appendChild(overlay);
 
-    networkBackBtn?.addEventListener('click', () => {
-        networkCatalogStep = 'models';
-        networkSelectedModel = null;
-        syncNetworkModelFilter();
-        if (modelFilter) modelFilter.value = '';
-        if (networkGradeFilter) networkGradeFilter.value = '';
-        if (networkStoreFilter) networkStoreFilter.value = '';
-        updateCatalogBackButtons();
-        renderNetworkModelPicker();
-    });
+        const bodyEl = overlay.querySelector('#tm-sl-body');
+        const toolbarEl = overlay.querySelector('#tm-sl-toolbar');
+        const statusEl = overlay.querySelector('#tm-sl-status');
+        const updatedEl = overlay.querySelector('#tm-sl-updated');
+        const titleEl = overlay.querySelector('#tm-sl-title');
+        const subtitleEl = overlay.querySelector('#tm-sl-subtitle');
 
-    networkModelFilter?.addEventListener('change', (e) => {
-        if (suppressNetworkFilterEvents) return;
-        if (networkModelFilter.value) {
-            selectNetworkModel(networkModelFilter.value);
-        } else if (e.isTrusted) {
-            networkCatalogStep = 'models';
-            networkSelectedModel = null;
-            if (modelFilter) modelFilter.value = '';
-            updateCatalogBackButtons();
-            renderNetworkModelPicker();
-        }
-    });
-    networkStoreFilter?.addEventListener('change', () => {
-        if (networkCatalogStep === 'models' && !networkSelectedModel) {
-            populateNetworkFilters(getNetworkPhonesForModelPicker());
-        }
-        applyFilters();
-    });
-    networkGradeFilter?.addEventListener('change', () => {
-        if (networkCatalogStep === 'models' && !networkSelectedModel) {
-            populateNetworkFilters(getNetworkPhonesForModelPicker());
-        }
-        applyFilters();
-    });
-    networkGbFilter?.addEventListener('change', () => {
-        if (networkCatalogStep === 'models' && !networkSelectedModel) {
-            populateNetworkFilters(getNetworkPhonesForModelPicker());
-        }
-        applyFilters();
-    });
-    networkColorFilter?.addEventListener('change', () => {
-        syncPhoneColorSelectDisplay(networkColorFilter);
-        if (networkCatalogStep === 'models' && !networkSelectedModel) {
-            populateNetworkFilters(getNetworkPhonesForModelPicker());
-        }
-        applyFilters();
-    });
-    networkSortBySelect?.addEventListener('change', () => {
-        sortBy = networkSortBySelect.value;
-        syncSortControls();
-        applyFilters();
-    });
-    networkSortDirBtn?.addEventListener('click', () => {
-        sortAscending = !sortAscending;
-        syncSortControls();
-        applyFilters();
-    });
-    networkClearBtn?.addEventListener('click', () => {
-        networkCatalogStep = 'models';
-        networkSelectedModel = null;
-        if (networkModelFilter) networkModelFilter.value = '';
-        if (networkStoreFilter) networkStoreFilter.value = '';
-        if (networkGradeFilter) networkGradeFilter.value = '';
-        if (networkGbFilter) networkGbFilter.value = '';
-        if (networkColorFilter) networkColorFilter.value = '';
-        syncPhoneColorSelectDisplay(networkColorFilter);
-        if (modelFilter) modelFilter.value = '';
-        sortBy = 'model';
-        sortAscending = true;
-        syncSortControls();
-        updateCatalogBackButtons();
-        renderNetworkModelPicker();
-        syncClearButtonsVisibility();
-    });
+        let step = 'models';
+        let selectedModel = null;
+        let modelQuery = '';
+        let activeFilters = { grade: '', gb: '', color: '' };
+        let allPhones = [];
+        let otherStorePhones = [];
+        let otherStoreLoaded = false;
+        let lastUpdated = null;
 
-    // Model card clicks — direct bind on render; capture fallback on overlay only
-    overlay.addEventListener('click', (e) => {
-        if (!showingOtherStores || networkCatalogStep !== 'models') return;
-        const card = e.target.closest('#tm-other-store-content .tm-pc-model-card[data-tm-pc-model]');
-        if (!card || card.closest('.tm-phone-item')) return;
-        e.preventDefault();
-        e.stopPropagation();
-        const model = readModelFromCard(card);
-        if (model) selectNetworkModel(model);
-    }, true);
+        const ctx = {
+            getGradeStyle: (grade) => helpers.getPhoneGradeCircleStyle(grade),
+        };
 
-    settingsBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (!settingsMenu) return;
-        settingsMenu.style.display = settingsMenu.style.display === 'block' ? 'none' : 'block';
-    });
-    document.addEventListener('click', (e) => {
-        if (!settingsMenu || !settingsBtn) return;
-        if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
-            settingsMenu.style.display = 'none';
-        }
-    });
-    
-    function filterOtherStoresWithCurrentFilters(dataset) {
-        const query = searchInput.value.trim();
-        const selectedGrade = gradeFilter.value;
-        const selectedModel = modelFilter.value;
-        const selectedGB = gbFilter.value;
-        const selectedColor = colorFilter.value;
-        const selectedTag = tagFilter ? tagFilter.value : '';
-        const useRegex = overlay.querySelector('#tm-phone-regex-toggle').checked;
-        
-        let searchRegex = null;
-        const queryLower = query ? query.toLowerCase() : '';
-        if (query && useRegex) {
-            try {
-                searchRegex = new RegExp(query, 'i');
-            } catch (e) {
-                searchRegex = null;
-            }
-        }
-        
-        const filtered = dataset.filter(phone => {
-            if (query) {
-                let matchesSearch = false;
-                if (searchRegex) {
-                    matchesSearch =
-                        searchRegex.test(phone.name) ||
-                        searchRegex.test(phone.barcode) ||
-                        searchRegex.test(phone.model || '') ||
-                        searchRegex.test(phone.grade || '') ||
-                        searchRegex.test(phone.imei || '');
-                } else {
-                    matchesSearch =
-                        phone.name.toLowerCase().includes(queryLower) ||
-                        phone.barcode.toLowerCase().includes(queryLower) ||
-                        (phone.model && phone.model.toLowerCase().includes(queryLower)) ||
-                        (phone.grade && phone.grade.toLowerCase().includes(queryLower)) ||
-                        (phone.imei && phone.imei.toLowerCase().includes(queryLower));
-                }
-                if (!matchesSearch) return false;
-            }
-            
-            if (selectedGrade && phone.grade !== selectedGrade) return false;
-            if (selectedModel) {
-                const baseModel = extractBaseModel(phone.model);
-                if (baseModel !== selectedModel) return false;
-            }
-            if (selectedGB) {
-                const gb = extractGB(phone.model);
-                if (gb !== selectedGB) return false;
-            }
-            if (selectedColor) {
-                const color = extractColor(phone.model);
-                if (color !== selectedColor) return false;
-            }
-            if (selectedTag) {
-                const phoneTags = getPhoneTags(phone.barcode);
-                if (!phoneTags.includes(selectedTag)) return false;
-            }
-            return true;
-        });
-        
-        return sortPhones(filtered);
-    }
-    
-    function renderOtherStorePhones(list, targetEl, countEl, statsEl) {
-        targetEl = targetEl || overlay.querySelector('#tm-other-store-content');
-        countEl = countEl || overlay.querySelector('#tm-phone-count-text');
-        statsEl = statsEl !== undefined ? statsEl : overlay.querySelector('#tm-phone-statistics');
-        if (!targetEl) return;
-        if (!list || list.length === 0) {
-            targetEl.className = 'tm-pc-list';
-            targetEl.innerHTML = PhoneCatalogUI.buildEmptyState(
-                'ℹ️',
-                'Δεν υπάρχουν συσκευές σε άλλα καταστήματα',
-                'Δοκιμάστε άλλα φίλτρα'
-            );
-            if (countEl) countEl.textContent = '0 phones available in other stores';
-            return;
+        function closeModal() {
+            overlay.remove();
         }
 
-        targetEl.className = 'tm-pc-list tm-cat-table-body';
-        const catalogCtx = getPhoneCatalogUICtx({ extractBaseModel, getPhoneTags });
-        const rows = list.map((item, idx) => {
-            const hasStoresData = Array.isArray(item.stores);
-            const oneUnitStores = hasStoresData && item.stores.length > 0
-                ? filterOneUnitStores(item.stores)
-                : [];
-            const storesHtml = oneUnitStores.length > 0
-                ? renderPhoneStoreChipsHtml(item.stores, item.isBuyback)
-                : '';
-            const noBuybackStore = item.isBuyback && hasStoresData && oneUnitStores.length > 0 && !phoneHasAllowedBuybackStore(item.stores);
-            const storesPending = !storesHtml && (!hasStoresData || item.stores.length === 0);
-            return PhoneCatalogUI.buildPhoneRow(item, catalogCtx, {
-                variant: 'other',
-                isFavorite: favorites.includes(item.barcode),
-                storesHtml,
-                storesPending,
-                noBuybackStore,
-                storeSummary: formatStoreSummaryText(
-                    item,
-                    storesPending ? null : (oneUnitStores.length > 0 ? oneUnitStores.length : 0)
-                ),
-            });
-        }).join('');
-
-        targetEl.innerHTML = PhoneCatalogUI.buildListHeader('other') + rows;
-        if (countEl) {
-            const modelLabel = networkSelectedModel ? ` · ${networkSelectedModel}` : '';
-            countEl.textContent = `${list.length} συσκευές${modelLabel}`;
+        function setStatus(text) {
+            if (statusEl) statusEl.textContent = text;
         }
-        if (statsEl) statsEl.innerHTML = '';
-        highlightSearchMatch(targetEl);
-        
-        // Add event listeners for buttons (event delegation)
-        if (!targetEl._buttonHandlersAdded) {
-            targetEl.addEventListener('click', (e) => {
-                // Search button
-                const searchBtn = e.target.closest('.tm-phone-search-btn');
-                if (searchBtn) {
-                    e.stopPropagation();
-                    const barcode = searchBtn.dataset.barcode;
-                    if (barcode) {
-                        const searchUrl = `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(barcode)}`;
-                        window.open(searchUrl, '_blank');
-                    }
-                    return;
-                }
-                
-                // Copy IMEI button
-                const copyImeiBtn = e.target.closest('.tm-phone-copy-imei-btn');
-                if (copyImeiBtn) {
-                    e.stopPropagation();
-                    const imei = copyImeiBtn.dataset.imei;
-                    if (imei) {
-                        GM_setClipboard(imei);
-                        const originalText = copyImeiBtn.innerHTML;
-                        copyImeiBtn.innerHTML = '✓';
-                        setTimeout(() => {
-                            copyImeiBtn.innerHTML = originalText;
-                        }, 1000);
-                    }
-                    return;
-                }
-                
-                // Favorite button
-                const favoriteBtn = e.target.closest('.tm-phone-favorite-btn');
-                if (favoriteBtn) {
-                    e.stopPropagation();
-                    const barcode = favoriteBtn.dataset.barcode;
-                    if (barcode) {
-                        const index = favorites.indexOf(barcode);
-                        if (index > -1) {
-                            favorites.splice(index, 1);
-                        } else {
-                            favorites.push(barcode);
-                        }
-                        GM_setValue(FAVORITES_KEY, JSON.stringify(favorites));
-                        // Re-render to update the favorite button state
-                        renderOtherStorePhones(list, targetEl, countEl, statsEl);
-                    }
-                    return;
-                }
-            });
-            targetEl._buttonHandlersAdded = true;
-        }
-        
-        // Auto-load stores for cards that didn't have inline data.
-        // Uses a concurrency-limited queue (max 4 parallel requests) + IntersectionObserver
-        // so visible cards are prioritised and the page never lags from a flood of requests.
-        const CONCURRENCY = 4;
-        const storeContainers = Array.from(targetEl.querySelectorAll('.tm-other-store-stores'))
-            .filter(sc => sc.querySelector('.tm-cat-store-loading, .tm-pc-store-loading'));
 
-        if (storeContainers.length === 0) return;
+        function renderModelsStep() {
+            step = 'models';
+            selectedModel = null;
+            titleEl.textContent = 'Πού υπάρχει το μοντέλο';
+            subtitleEl.textContent = 'Επιλέξτε μοντέλο για να δείτε διαθεσιμότητα ανά κατάστημα';
+            toolbarEl.innerHTML = UI.buildModelSearchToolbar();
 
-        // Resolve a single store container, update the DOM, and cache the result
-        function resolveStoreContainer(sc) {
-            const productCode = sc.getAttribute('data-product');
-            return fetchStorehousesFromPage(productCode)
-                .then(stores => {
-                    const phoneItem = list.find(p => p.barcode === productCode);
-                    if (phoneItem && stores) {
-                        phoneItem.stores = stores;
-                        const globalItem = otherStorePhones.find(p => p.barcode === productCode);
-                        if (globalItem) globalItem.stores = stores;
-                    }
-                    const filtered = filterOneUnitStores(stores);
-                    if (filtered.length === 0) {
-                        sc.innerHTML = `<span style="opacity:0.35;font-size:10px;font-style:italic;">Κανένα κατάστημα</span>`;
-                        return;
-                    }
-                    const itemIsBuyback = phoneItem ? phoneItem.isBuyback : false;
-                    const summary = formatStoreSummaryText(phoneItem || {}, filtered.length);
-                    sc.innerHTML = (summary ? `<span class="tm-pc-store-summary">${summary}</span>` : '') +
-                        renderPhoneStoreChipsHtml(stores, itemIsBuyback);
-                    if (itemIsBuyback && !phoneHasAllowedBuybackStore(stores)) {
-                        const row = sc.closest('.tm-cat-tr--other') || sc.closest('.tm-pc-row--other');
-                        if (row) {
-                            const modelRow = row.querySelector('.tm-cat-line-primary') || row.querySelector('.tm-pc-row-line1');
-                            const noBuybackTitle = t('No buyback store');
-                            if (modelRow && !modelRow.querySelector(`span[title="${noBuybackTitle}"]`)) {
-                                const ind = document.createElement('span');
-                                ind.style.cssText = 'font-size:12px;line-height:1;';
-                                ind.title = noBuybackTitle;
-                                ind.textContent = '🚫';
-                                modelRow.insertBefore(ind, modelRow.firstChild);
-                            }
-                        }
-                    }
-                })
-                .catch(() => {
-                    sc.innerHTML = `<span style="opacity:0.6;font-size:10px;color:#f44336;font-style:italic;">⚠️ Error</span>`;
+            const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
+            if (searchInput) {
+                searchInput.value = modelQuery;
+                searchInput.addEventListener('input', () => {
+                    modelQuery = searchInput.value.trim().toLowerCase();
+                    renderModelsStep();
                 });
-        }
-
-        // Concurrency queue
-        let active = 0;
-        const queue = [];
-        const allPromises = [];
-
-        function runNext() {
-            while (active < CONCURRENCY && queue.length > 0) {
-                const sc = queue.shift();
-                active++;
-                const p = resolveStoreContainer(sc).finally(() => {
-                    active--;
-                    runNext();
-                });
-                allPromises.push(p);
+                setTimeout(() => searchInput.focus(), 50);
             }
-        }
 
-        // IntersectionObserver: visible cards go to the FRONT of the queue
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting) return;
-                const sc = entry.target;
-                observer.unobserve(sc);
-                // Move to front so visible cards load first
-                const idx = queue.indexOf(sc);
-                if (idx > 0) { queue.splice(idx, 1); queue.unshift(sc); }
-                runNext();
-            });
-        }, { root: targetEl.closest('.tm-other-store-overlay') || null, rootMargin: '200px' });
+            let models = buildModelIndex(allPhones, otherStorePhones, helpers);
+            models = models.sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true, sensitivity: 'base' }));
+            if (modelQuery) {
+                models = models.filter(([name]) => name.toLowerCase().includes(modelQuery));
+            }
 
-        storeContainers.forEach(sc => {
-            queue.push(sc);
-            observer.observe(sc);
-        });
+            bodyEl.innerHTML = UI.buildModelGrid(models);
+            setStatus(`${models.length} μοντέλα · ${allPhones.length + otherStorePhones.length} συσκευές στο δίκτυο`);
 
-        // Kick off initial batch
-        runNext();
-
-        // After all stores are loaded, update the store filter
-        const isInModal = targetEl.closest('.tm-other-store-overlay');
-        if (isInModal) {
-            Promise.all(allPromises).then(() => {
-                const base = otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
-                const storeSet = new Set();
-                base.forEach(p => {
-                    (p.stores || []).forEach(store => {
-                        if (store.name) storeSet.add(store.name.replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim());
-                    });
+            bodyEl.querySelectorAll('.tm-sl-model-card[data-tm-sl-model]').forEach((card) => {
+                const activate = () => {
+                    selectedModel = card.getAttribute('data-tm-sl-model');
+                    renderStoresStep();
+                };
+                card.addEventListener('click', activate);
+                card.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        activate();
+                    }
                 });
-                const stores = [...storeSet].sort();
-                const storeFilterOS = document.querySelector('#tm-other-store-filter-store');
-                if (storeFilterOS && stores.length > 0) {
-                    const currentStore = storeFilterOS.value;
-                    storeFilterOS.innerHTML = `<option value="">All Stores</option>` +
-                        stores.map(s => `<option value="${s}">${s}</option>`).join('');
-                    if (stores.includes(currentStore)) storeFilterOS.value = currentStore;
-                }
             });
         }
-    }
-    
-    // Export menu — toggled from settings
-    exportBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (settingsMenu) settingsMenu.style.display = 'none';
-        if (!exportMenu) return;
-        exportMenu.style.display = exportMenu.style.display === 'block' ? 'none' : 'block';
-    });
-    
-    document.addEventListener('click', (e) => {
-        if (exportMenu && exportBtn && !exportMenu.contains(e.target) && !exportBtn.contains(e.target)) {
-            exportMenu.style.display = 'none';
-        }
-    });
-    
-    // Function to refresh phone list
-    async function refreshPhoneList() {
-        refreshBtn.style.opacity = '0.5';
-        refreshBtn.style.transform = 'rotate(360deg)';
-        container.innerHTML = PhoneCatalogUI.buildEmptyState('⏳', 'Ανανέωση συσκευών…');
-        
-        try {
-            allPhones = filterIphoneTitlePhones(await fetchPhoneList());
-            syncPhoneColorCatalog(allPhones);
-            populateFilters(allPhones);
-            lastUpdated = new Date();
-            lastUpdatedDisplay.textContent = `Ενημέρωση: ${lastUpdated.toLocaleDateString()} ${lastUpdated.toLocaleTimeString()}`;
-            mineCatalogStep = 'models';
-            mineSelectedModel = null;
-            syncMineModelFilter();
-            // Hide cache warning after refresh
-            if (cacheWarning) {
-                cacheWarning.style.display = 'none';
-            }
-            applyFilters();
-        } catch (error) {
-            container.innerHTML = PhoneCatalogUI.buildEmptyState('❌', 'Αποτυχία ανανέωσης', error.message || 'Unknown error');
-        } finally {
-            refreshBtn.style.opacity = '1';
-            refreshBtn.style.transform = 'rotate(0deg)';
-        }
-    }
-    
-    // Close handlers
-    closeBtn.addEventListener('mouseenter', () => {
-        closeBtn.style.background = 'var(--tm-shop-item-hover-bg)';
-        closeBtn.style.color = 'var(--tm-shop-item-text)';
-    });
-    closeBtn.addEventListener('mouseleave', () => {
-        closeBtn.style.background = 'transparent';
-        closeBtn.style.color = 'var(--tm-shop-item-text)';
-    });
-    closeBtn.addEventListener('click', () => {
-        overlay.style.animation = 'tm-cat-out 0.18s ease';
-        setTimeout(() => overlay.remove(), 200);
-    });
-    overlay.addEventListener('click', (e) => { 
-        if (e.target === overlay) {
-            overlay.style.animation = 'tm-cat-out 0.18s ease';
-            setTimeout(() => overlay.remove(), 200);
-        }
-    });
-    
-    // Close context menu when clicking outside
-    document.addEventListener('click', () => {
-        if (contextMenu) contextMenu.style.display = 'none';
-    });
-    
-    // Context menu handlers
-    contextMenu.querySelectorAll('.tm-phone-context-menu-item').forEach(item => {
-        item.addEventListener('click', () => {
-            if (!contextMenuPhone) return;
-            const action = item.dataset.action;
-            const barcode = contextMenuPhone.dataset.barcode;
-            const imei = contextMenuPhone.dataset.imei;
-            
-            switch(action) {
-                case 'add-tag':
-                    const currentTags = getPhoneTags(barcode);
-                    showTagSelectionMenu(barcode, 'add', currentTags);
-                    // Don't close context menu yet - let user select tag
-                    return;
-                case 'remove-tag':
-                    const phoneTags = getPhoneTags(barcode);
-                    if (phoneTags.length === 0) {
-                        if (window.showNegativeMessage) {
-                            window.showNegativeMessage('No tags to remove');
-                        }
+
+        function renderStoresStep() {
+            if (!selectedModel) return renderModelsStep();
+            step = 'stores';
+            titleEl.textContent = selectedModel;
+            subtitleEl.textContent = 'Διαθεσιμότητα ανά κατάστημα';
+
+            const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers);
+            const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters);
+            toolbarEl.innerHTML = UI.buildStoreToolbar(selectedModel, chipsHtml);
+
+            toolbarEl.querySelector('#tm-sl-back')?.addEventListener('click', () => {
+                activeFilters = { grade: '', gb: '', color: '' };
+                renderModelsStep();
+            });
+
+            toolbarEl.querySelectorAll('[data-tm-sl-filter]').forEach((chip) => {
+                chip.addEventListener('click', () => {
+                    const key = chip.getAttribute('data-tm-sl-filter');
+                    if (key === 'clear') {
+                        activeFilters = { grade: '', gb: '', color: '' };
                     } else {
-                        showTagSelectionMenu(barcode, 'remove', phoneTags);
-                        // Don't close context menu yet - let user select tag
-                        return;
+                        const val = chip.getAttribute('data-tm-sl-value') || '';
+                        activeFilters[key] = activeFilters[key] === val ? '' : val;
                     }
-                    break;
-            }
-            contextMenu.style.display = 'none';
-        });
-    });
-    
-    // Filter handlers - debounce search input for performance
-    const debouncedApplyFilters = debounce(applyFilters, 300);
-    searchInput.addEventListener('input', debouncedApplyFilters);
-    
-    gradeFilter.addEventListener('change', () => {
-        // Get phones filtered by all other filters (excluding grade)
-        const filteredPhonesForUpdate = getFilteredPhonesForFilterUpdate('grade');
-        // Update other filters based on current filtered results
-        populateFilters(filteredPhonesForUpdate, ['model', 'gb', 'color', 'tag']);
-        applyFilters();
-    });
-    
-    modelFilter.addEventListener('change', () => {
-        // Get phones filtered by all other filters (excluding model)
-        const filteredPhonesForUpdate = getFilteredPhonesForFilterUpdate('model');
-        // Update other filters based on current filtered results
-        populateFilters(filteredPhonesForUpdate, ['grade', 'gb', 'color', 'tag']);
-        applyFilters();
-    });
-    
-    gbFilter.addEventListener('change', () => {
-        // Get phones filtered by all other filters (excluding gb)
-        const filteredPhonesForUpdate = getFilteredPhonesForFilterUpdate('gb');
-        // Update other filters based on current filtered results
-        populateFilters(filteredPhonesForUpdate, ['grade', 'model', 'color', 'tag']);
-        applyFilters();
-    });
-    
-    colorFilter.addEventListener('change', () => {
-        syncPhoneColorSelectDisplay(colorFilter);
-        // Get phones filtered by all other filters (excluding color)
-        const filteredPhonesForUpdate = getFilteredPhonesForFilterUpdate('color');
-        // Update other filters based on current filtered results
-        populateFilters(filteredPhonesForUpdate, ['grade', 'model', 'gb', 'tag']);
-        applyFilters();
-    });
-    
-    if (tagFilter) {
-        tagFilter.addEventListener('change', () => {
-            // Get phones filtered by all other filters (excluding tag)
-            const filteredPhonesForUpdate = getFilteredPhonesForFilterUpdate('tag');
-            // Update other filters based on current filtered results
-            populateFilters(filteredPhonesForUpdate, ['grade', 'model', 'gb', 'color']);
-            applyFilters();
-        });
-    }
-    
-    sortBySelect?.addEventListener('change', () => {
-        sortBy = sortBySelect.value;
-        syncSortControls();
-        applyFilters();
-    });
-    sortDirBtn?.addEventListener('click', () => {
-        sortAscending = !sortAscending;
-        syncSortControls();
-        applyFilters();
-    });
-    
-    // Clear filters button
-    clearFiltersBtn?.addEventListener('click', () => {
-        gradeFilter.value = '';
-        modelFilter.value = '';
-        mineCatalogStep = 'models';
-        mineSelectedModel = null;
-        gbFilter.value = '';
-        colorFilter.value = '';
-        syncPhoneColorSelectDisplay(colorFilter);
-        if (tagFilter) tagFilter.value = '';
-        searchInput.value = '';
-        const regexEl = overlay.querySelector('#tm-phone-regex-toggle');
-        if (regexEl) regexEl.checked = false;
-        showFavoritesOnly = false;
-        if (favoritesBtn) favoritesBtn.classList.remove('active');
-        sortBy = 'model';
-        sortAscending = true;
-        if (sortBySelect) sortBySelect.value = 'model';
-        if (sortDirBtn) sortDirBtn.textContent = '↑';
-        syncSortControls();
-        populateFilters(allPhones, ['grade', 'model', 'gb', 'color', 'tag']);
-        updateCatalogBackButtons();
-        applyFilters();
-        syncClearButtonsVisibility();
-    });
-    
-    // Button handlers
-    colorsBtn?.addEventListener('click', () => { if (settingsMenu) settingsMenu.style.display = 'none'; showColorManagerModal(); });
-    tagsBtn?.addEventListener('click', () => { if (settingsMenu) settingsMenu.style.display = 'none'; showTagManagerModal(); });
-    storesBtn?.addEventListener('click', () => { if (settingsMenu) settingsMenu.style.display = 'none'; showStoreRulesModal(); });
-
-    refreshBtn?.addEventListener('click', refreshPhoneList);
-    
-    async function ensureOtherStoreData() {
-        if (otherStoreLoaded) return;
-        otherStorePhones = filterIphoneTitlePhones(await fetchOtherStorePhones());
-        otherStoreLoaded = true;
-    }
-    
-    function showOtherStoresModal() {
-        if (document.querySelector('.tm-other-store-overlay')) return;
-        
-        const overlayEl = document.createElement('div');
-        overlayEl.className = 'tm-other-store-overlay';
-        overlayEl.style.cssText = `
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.45);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            z-index: 100002;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        `;
-        
-        overlayEl.innerHTML = window.PhoneCatalogUI.buildOtherStoresModalHTML(PHONE_CATALOG_TRANSLATIONS);
-        
-        document.body.appendChild(overlayEl);
-        
-        const bodyEl = overlayEl.querySelector('#tm-other-store-modal-body');
-        const countEl = overlayEl.querySelector('#tm-other-store-count');
-        const closeBtn = overlayEl.querySelector('#tm-other-store-close');
-        const refreshBtn = overlayEl.querySelector('#tm-other-store-refresh-btn');
-        const gradeFilterOS = overlayEl.querySelector('#tm-other-store-filter-grade');
-        const modelFilterOS = overlayEl.querySelector('#tm-other-store-filter-model');
-        const gbFilterOS = overlayEl.querySelector('#tm-other-store-filter-gb');
-        const colorFilterOS = overlayEl.querySelector('#tm-other-store-filter-color');
-        const storeFilterOS = overlayEl.querySelector('#tm-other-store-filter-store');
-        const sortOS = overlayEl.querySelector('#tm-other-store-sort');
-        const clearFiltersOS = overlayEl.querySelector('#tm-other-store-clear-filters');
-        const filterBarOS    = overlayEl.querySelector('#tm-os-filter-bar');
-        const backBtnOS      = overlayEl.querySelector('#tm-os-back-btn');
-
-        let osSelectedModel = null;
-        let suppressOsFilterEvents = false;
-
-        function osFiltersActive() {
-            return !!(
-                osSelectedModel
-                || gradeFilterOS.value
-                || modelFilterOS.value
-                || gbFilterOS.value
-                || colorFilterOS.value
-                || storeFilterOS.value
-                || (sortOS && sortOS.value !== 'model-asc')
-            );
-        }
-
-        function syncOsFilterVisibility() {
-            const count = (el) => Math.max(0, (el?.options.length || 0) - 1);
-            const show = (el, n) => {
-                if (!el) return;
-                el.classList.toggle('tm-pc-filter-visible', n > 0);
-                if (n <= 0 && el.value) el.value = '';
-            };
-            show(gradeFilterOS, count(gradeFilterOS));
-            show(storeFilterOS, count(storeFilterOS));
-            show(gbFilterOS, count(gbFilterOS));
-            show(colorFilterOS, count(colorFilterOS));
-            const row1 = filterBarOS?.querySelector('.tm-pc-search-row');
-            const row2 = filterBarOS?.querySelector('.tm-pc-filters-row2');
-            syncFiltersLabelVisibility(row1, [gradeFilterOS, storeFilterOS]);
-            syncFiltersLabelVisibility(row2, [gbFilterOS, colorFilterOS]);
-            clearFiltersOS?.classList.toggle('is-visible', osFiltersActive());
-        }
-
-        // --- Model picker ---
-        function selectOsModel(model) {
-            if (!model) return;
-            osSelectedModel = model;
-            showPhoneList();
-        }
-
-        function renderModelPicker() {
-            osSelectedModel = null;
-            modelFilterOS.value = '';
-            filterBarOS.style.display = 'none';
-            backBtnOS.classList.remove('is-visible');
-
-            const base = getNetworkBasePhones();
-            const models = buildModelGroupsFromPhones(base, extractBaseModel);
-
-            if (countEl) countEl.textContent = `${models.length} μοντέλα · ${base.length} συσκευές`;
-
-            bodyEl.innerHTML = PhoneCatalogUI.buildModelGroupList(models);
-            bindModelCardClicks(bodyEl, selectOsModel);
-        }
-
-        function showPhoneList() {
-            filterBarOS.style.display = 'block';
-            backBtnOS.classList.add('is-visible');
-            populateFilters();
-            if (osSelectedModel) modelFilterOS.value = osSelectedModel;
-            applyOtherStoreFilters();
-        }
-
-        backBtnOS.addEventListener('click', renderModelPicker);
-
-        overlayEl.addEventListener('click', (e) => {
-            const card = e.target.closest('.tm-pc-model-card[data-tm-pc-model]');
-            if (!card || card.closest('.tm-phone-item')) return;
-            if (filterBarOS.style.display !== 'none') return;
-            e.preventDefault();
-            e.stopPropagation();
-            const model = card.dataset.tmPcModel || card.getAttribute('data-tm-pc-model');
-            if (model) selectOsModel(model);
-        });
-
-        closeBtn.addEventListener('click', () => overlayEl.remove());
-        
-        // Populate filters with unique values from the given dataset
-        const populateFilters = (dataset = null, filtersToUpdate = ['grade', 'model', 'gb', 'color', 'store']) => {
-            const base = dataset || otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
-            
-            // Save current selections
-            const currentGrade = gradeFilterOS.value;
-            const currentModel = modelFilterOS.value;
-            const currentGB = gbFilterOS.value;
-            const currentColor = colorFilterOS.value;
-            const currentStore = storeFilterOS.value;
-            
-            // Extract unique values
-            if (filtersToUpdate.includes('grade')) {
-                const grades = [...new Set(base.map(p => p.grade).filter(g => g))].sort(comparePhoneGrades);
-                gradeFilterOS.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Grades']}</option>` +
-                    grades.map(g => `<option value="${g}" style="${getPhoneGradeDisplayStyle(g)}">${g}</option>`).join('');
-                if (grades.includes(currentGrade)) gradeFilterOS.value = currentGrade;
-            }
-            
-            if (filtersToUpdate.includes('model')) {
-                const models = [...new Set(base.map(p => {
-                    return extractBaseModel(p.model);
-                }).filter(m => m))].sort();
-                suppressOsFilterEvents = true;
-                try {
-                    modelFilterOS.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Models']}</option>` +
-                        models.map(m => `<option value="${m}" style="${getPhoneCatalogMetaTextStyle()}">${m}</option>`).join('');
-                    const modelToSelect = osSelectedModel || currentModel;
-                    if (modelToSelect && models.includes(modelToSelect)) {
-                        modelFilterOS.value = modelToSelect;
-                    } else if (osSelectedModel && !models.includes(osSelectedModel)) {
-                        const opt = document.createElement('option');
-                        opt.value = osSelectedModel;
-                        opt.textContent = osSelectedModel;
-                        modelFilterOS.appendChild(opt);
-                        modelFilterOS.value = osSelectedModel;
-                    }
-                } finally {
-                    suppressOsFilterEvents = false;
-                }
-            }
-            
-            if (filtersToUpdate.includes('gb')) {
-                const storages = [...new Set(base.map(p => {
-                    const gb = extractGB(p.name || p.model);
-                    return gb;
-                }).filter(s => s))].sort((a, b) => {
-                    const aNum = parseInt(a);
-                    const bNum = parseInt(b);
-                    return aNum - bNum;
+                    renderStoresStep();
                 });
-                gbFilterOS.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Storage']}</option>` +
-                    storages.map(s => `<option value="${s}" style="${getPhoneCatalogMetaTextStyle()}">${s}</option>`).join('');
-                if (storages.includes(currentGB)) gbFilterOS.value = currentGB;
-            }
-            
-            if (filtersToUpdate.includes('color')) {
-                const colors = [...new Set(base.map(p => {
-                    const color = extractColor(p.name || p.model);
-                    return color;
-                }).filter(c => c))].sort();
-                colorFilterOS.innerHTML = `<option value="">${PHONE_CATALOG_TRANSLATIONS['All Colors']}</option>` +
-                    colors.map(c => `<option value="${c}" style="${getPhoneColorDropdownStyle(c)}">${c}</option>`).join('');
-                if (colors.includes(currentColor)) colorFilterOS.value = currentColor;
-                syncPhoneColorSelectDisplay(colorFilterOS);
-            }
-            
-            if (filtersToUpdate.includes('store')) {
-                const storeSet = new Set();
-                base.forEach(p => {
-                    if (p.stores && Array.isArray(p.stores)) {
-                        p.stores.forEach(store => {
-                            if (store.name) {
-                                const cleanName = store.name.replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
-                                storeSet.add(cleanName);
-                            }
-                        });
+            });
+
+            const board = buildStoreBoardData(selectedModel, allPhones, otherStorePhones, activeFilters, helpers);
+            bodyEl.innerHTML = UI.buildStoreBoard(selectedModel, board.mine, board.storeRows, ctx);
+
+            const storeCount = board.allRows.length;
+            setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} με διαθέσιμες εκδόσεις`);
+
+            bodyEl.querySelectorAll('[data-tm-sl-toggle-store]').forEach((head) => {
+                head.addEventListener('click', () => {
+                    const row = head.closest('.tm-sl-store-row');
+                    row?.classList.toggle('is-open');
+                });
+            });
+
+            bodyEl.querySelectorAll('[data-tm-sl-copy]').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const code = btn.getAttribute('data-tm-sl-copy');
+                    if (code && typeof GM_setClipboard === 'function') GM_setClipboard(code);
+                });
+            });
+
+            bodyEl.querySelectorAll('[data-tm-sl-open]').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const code = btn.getAttribute('data-tm-sl-open');
+                    if (code) {
+                        window.open(`https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`, '_blank');
                     }
                 });
-                const stores = [...storeSet].sort();
-                storeFilterOS.innerHTML = `<option value="">All Stores</option>` +
-                    stores.map(s => `<option value="${s}">${s}</option>`).join('');
-                if (stores.includes(currentStore)) storeFilterOS.value = currentStore;
-            }
+            });
+        }
 
-            syncOsFilterVisibility();
-        };
-        
-        // Helper — uses shared stock check
-        const phoneHasStore = phoneHasStoreWithStock;
-        
-        // Get filtered dataset excluding specific filters
-        const getFilteredDataExcluding = (excludeFilters = []) => {
-            const base = otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
-            
-            return base.filter(phone => {
-                if (!excludeFilters.includes('grade') && gradeFilterOS.value && phone.grade !== gradeFilterOS.value) {
-                    return false;
-                }
-                if (!excludeFilters.includes('model') && modelFilterOS.value) {
-                    const phoneModel = extractBaseModel(phone.model);
-                    if (phoneModel !== modelFilterOS.value) {
-                        return false;
-                    }
-                }
-                if (!excludeFilters.includes('gb') && gbFilterOS.value) {
-                    const phoneStorage = extractGB(phone.name || phone.model);
-                    if (phoneStorage !== gbFilterOS.value) {
-                        return false;
-                    }
-                }
-                if (!excludeFilters.includes('color') && colorFilterOS.value) {
-                    const phoneColor = extractColor(phone.name || phone.model);
-                    if (phoneColor !== colorFilterOS.value) {
-                        return false;
-                    }
-                }
-                if (!excludeFilters.includes('store') && !phoneHasStore(phone, storeFilterOS.value)) {
-                    return false;
-                }
-                return true;
-            });
-        };
-        
-        const applyOtherStoreFilters = () => {
-            const base = otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
-            
-            // Apply filters
-            const filtered = base.filter(phone => {
-                // Grade filter
-                if (gradeFilterOS.value && phone.grade !== gradeFilterOS.value) {
-                    return false;
-                }
-                
-                // Model filter
-                if (modelFilterOS.value) {
-                    const phoneModel = extractBaseModel(phone.model);
-                    if (phoneModel !== modelFilterOS.value) {
-                        return false;
-                    }
-                }
-                
-                // Storage filter
-                if (gbFilterOS.value) {
-                    const phoneStorage = extractGB(phone.name || phone.model);
-                    if (phoneStorage !== gbFilterOS.value) {
-                        return false;
-                    }
-                }
-                
-                // Color filter
-                if (colorFilterOS.value) {
-                    const phoneColor = extractColor(phone.name || phone.model);
-                    if (phoneColor !== colorFilterOS.value) {
-                        return false;
-                    }
-                }
-                
-                // Store filter
-                if (!phoneHasStore(phone, storeFilterOS.value)) {
-                    return false;
-                }
-                
-                return true;
-            });
-            
-            // Apply sorting
-            const sortValue = sortOS.value || 'model-asc';
-            const [sortBy, sortDir] = sortValue.split('-');
-            
-            filtered.sort((a, b) => {
-                let valA, valB;
-                
-                switch(sortBy) {
-                    case 'model':
-                        valA = extractBaseModel(a.model) || a.model || '';
-                        valB = extractBaseModel(b.model) || b.model || '';
-                        break;
-                    case 'price':
-                        valA = parseFloat((a.retailPrice || '0').replace(/[^0-9.]/g, '')) || 0;
-                        valB = parseFloat((b.retailPrice || '0').replace(/[^0-9.]/g, '')) || 0;
-                        break;
-                    case 'grade':
-                        return sortDir === 'desc'
-                            ? comparePhoneGrades(b.grade, a.grade)
-                            : comparePhoneGrades(a.grade, b.grade);
-                    case 'storage':
-                        const gbA = extractGB(a.name || a.model);
-                        const gbB = extractGB(b.name || b.model);
-                        valA = parseInt((gbA || '0').replace(/[^0-9]/g, '')) || 0;
-                        valB = parseInt((gbB || '0').replace(/[^0-9]/g, '')) || 0;
-                        break;
-                    default:
-                        valA = a.model || '';
-                        valB = b.model || '';
-                }
-                
-                let comparison = 0;
-                if (sortBy === 'price' || sortBy === 'storage') {
-                    comparison = valA - valB;
-                } else {
-                    comparison = String(valA).localeCompare(String(valB));
-                }
-                
-                return sortDir === 'desc' ? -comparison : comparison;
-            });
-            
-            renderOtherStorePhones(filtered, bodyEl, countEl, null);
-            syncOsFilterVisibility();
-        };
-        
-        const renderModal = () => {
-            renderModelPicker();
-        };
-        
-        // Reload all filters based on current selections
-        const reloadAllFilters = () => {
-            // Get the current filtered data based on ALL current filter selections
-            const base = otherStorePhones.filter(p => (p.otherStoreCount > 0) && ((p.localUnits || 0) <= 0));
-            
-            // Apply current filters to get available options
-            const currentlyFiltered = base.filter(phone => {
-                if (gradeFilterOS.value && phone.grade !== gradeFilterOS.value) return false;
-                if (modelFilterOS.value && extractBaseModel(phone.model) !== modelFilterOS.value) return false;
-                if (gbFilterOS.value && extractGB(phone.name || phone.model) !== gbFilterOS.value) return false;
-                if (colorFilterOS.value && extractColor(phone.name || phone.model) !== colorFilterOS.value) return false;
-                if (!phoneHasStore(phone, storeFilterOS.value)) return false;
-                return true;
-            });
-            
-            // For each filter, show options available based on OTHER filters
-            // Grade options (based on model, gb, color, store selections)
-            const gradeData = base.filter(phone => {
-                if (modelFilterOS.value && extractBaseModel(phone.model) !== modelFilterOS.value) return false;
-                if (gbFilterOS.value && extractGB(phone.name || phone.model) !== gbFilterOS.value) return false;
-                if (colorFilterOS.value && extractColor(phone.name || phone.model) !== colorFilterOS.value) return false;
-                if (!phoneHasStore(phone, storeFilterOS.value)) return false;
-                return true;
-            });
-            
-            // Model options (based on grade, gb, color, store selections)
-            const modelData = base.filter(phone => {
-                if (gradeFilterOS.value && phone.grade !== gradeFilterOS.value) return false;
-                if (gbFilterOS.value && extractGB(phone.name || phone.model) !== gbFilterOS.value) return false;
-                if (colorFilterOS.value && extractColor(phone.name || phone.model) !== colorFilterOS.value) return false;
-                if (!phoneHasStore(phone, storeFilterOS.value)) return false;
-                return true;
-            });
-            
-            // GB options (based on grade, model, color, store selections)
-            const gbData = base.filter(phone => {
-                if (gradeFilterOS.value && phone.grade !== gradeFilterOS.value) return false;
-                if (modelFilterOS.value && extractBaseModel(phone.model) !== modelFilterOS.value) return false;
-                if (colorFilterOS.value && extractColor(phone.name || phone.model) !== colorFilterOS.value) return false;
-                if (!phoneHasStore(phone, storeFilterOS.value)) return false;
-                return true;
-            });
-            
-            // Color options (based on grade, model, gb, store selections)
-            const colorData = base.filter(phone => {
-                if (gradeFilterOS.value && phone.grade !== gradeFilterOS.value) return false;
-                if (modelFilterOS.value && extractBaseModel(phone.model) !== modelFilterOS.value) return false;
-                if (gbFilterOS.value && extractGB(phone.name || phone.model) !== gbFilterOS.value) return false;
-                if (!phoneHasStore(phone, storeFilterOS.value)) return false;
-                return true;
-            });
-            
-            // Store options (based on grade, model, gb, color selections)
-            const storeData = base.filter(phone => {
-                if (gradeFilterOS.value && phone.grade !== gradeFilterOS.value) return false;
-                if (modelFilterOS.value && extractBaseModel(phone.model) !== modelFilterOS.value) return false;
-                if (gbFilterOS.value && extractGB(phone.name || phone.model) !== gbFilterOS.value) return false;
-                if (colorFilterOS.value && extractColor(phone.name || phone.model) !== colorFilterOS.value) return false;
-                return true;
-            });
-            
-            // Update each filter with its specific dataset
-            populateFilters(gradeData, ['grade']);
-            populateFilters(modelData, ['model']);
-            populateFilters(gbData, ['gb']);
-            populateFilters(colorData, ['color']);
-            populateFilters(storeData, ['store']);
-            
-            // Apply the filters to update the display
-            applyOtherStoreFilters();
-        };
-        
-        // Add filter event listeners - reload all filters on any change
-        gradeFilterOS.addEventListener('change', reloadAllFilters);
-        modelFilterOS.addEventListener('change', (e) => {
-            if (suppressOsFilterEvents) return;
-            if (modelFilterOS.value) {
-                osSelectedModel = modelFilterOS.value;
-                showPhoneList();
-            } else if (e.isTrusted) {
-                renderModelPicker();
-            }
-        });
-        gbFilterOS.addEventListener('change', reloadAllFilters);
-        colorFilterOS.addEventListener('change', () => {
-            syncPhoneColorSelectDisplay(colorFilterOS);
-            reloadAllFilters();
-        });
-        storeFilterOS.addEventListener('change', reloadAllFilters);
-        
-        // Also reload on focus (when user clicks on a filter)
-        gradeFilterOS.addEventListener('focus', reloadAllFilters);
-        modelFilterOS.addEventListener('focus', reloadAllFilters);
-        gbFilterOS.addEventListener('focus', reloadAllFilters);
-        colorFilterOS.addEventListener('focus', reloadAllFilters);
-        storeFilterOS.addEventListener('focus', reloadAllFilters);
-        
-        sortOS.addEventListener('change', applyOtherStoreFilters);
-        
-        clearFiltersOS.addEventListener('click', () => {
-            gradeFilterOS.value = '';
-            modelFilterOS.value = '';
-            gbFilterOS.value = '';
-            colorFilterOS.value = '';
-            storeFilterOS.value = '';
-            syncPhoneColorSelectDisplay(colorFilterOS);
-            if (sortOS) sortOS.value = 'model-asc';
-            osSelectedModel = null;
-            renderModelPicker();
-            syncOsFilterVisibility();
-        });
-        
-        // Refresh button handler
-        refreshBtn.addEventListener('click', async () => {
-            // Disable button and show loading state
-            refreshBtn.style.opacity = '0.5';
-            refreshBtn.style.transform = 'rotate(360deg)';
-            refreshBtn.style.pointerEvents = 'none';
-            
-            bodyEl.innerHTML = `
-                <div style="text-align:center; color: var(--tm-shop-item-text);">
-                    <div style="font-size:36px; margin-bottom:10px; animation: pulse 2s ease-in-out infinite;">⏳</div>
-                    <div>Refreshing other stores...</div>
-                </div>
-            `;
-            
+        async function ensureOtherStores() {
+            if (otherStoreLoaded) return;
+            if (typeof window.fetchOtherStorePhones !== 'function') return;
+            otherStorePhones = helpers.filterIphoneTitlePhones(await window.fetchOtherStorePhones());
+            otherStoreLoaded = true;
+        }
+
+        async function refreshData() {
+            bodyEl.innerHTML = UI.buildEmptyState('⏳', 'Ανανέωση δεδομένων…', '');
             try {
-                // Clear cache and force reload
-                otherStoreLoaded = false;
-                GM_setValue(OTHER_STORE_CACHE_KEY, null);
-                GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0);
-                
-                // Fetch fresh data
-                otherStorePhones = filterIphoneTitlePhones(await fetchOtherStorePhones());
-                otherStoreLoaded = true;
-                
-                // Reset filters and render updated data
-                gradeFilterOS.value = '';
-                modelFilterOS.value = '';
-                gbFilterOS.value = '';
-                colorFilterOS.value = '';
-                storeFilterOS.value = '';
-                sortOS.value = 'model-asc';
-                renderModal();
-            } catch (error) {
-                bodyEl.innerHTML = `
-                    <div style="text-align:center; color: var(--tm-shop-item-text);">
-                        <div style="font-size:32px; margin-bottom:8px;">⚠️</div>
-                        <div>Failed to refresh. Please try again.</div>
-                    </div>
-                `;
-            } finally {
-                // Re-enable button
-                refreshBtn.style.opacity = '1';
-                refreshBtn.style.transform = 'rotate(0deg)';
-                refreshBtn.style.pointerEvents = 'auto';
+                if (typeof window.fetchPhoneList === 'function') {
+                    allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList());
+                }
+                await ensureOtherStores();
+                if (typeof window.syncPhoneColorCatalog === 'function') {
+                    window.syncPhoneColorCatalog(allPhones);
+                }
+                lastUpdated = new Date();
+                updatedEl.textContent = `Ενημέρωση: ${lastUpdated.toLocaleString('el-GR')}`;
+                if (step === 'stores' && selectedModel) renderStoresStep();
+                else renderModelsStep();
+            } catch (err) {
+                bodyEl.innerHTML = UI.buildEmptyState('❌', 'Σφάλμα φόρτωσης', err.message || '');
             }
+        }
+
+        overlay.querySelector('#tm-sl-close')?.addEventListener('click', closeModal);
+        overlay.querySelector('#tm-sl-refresh')?.addEventListener('click', refreshData);
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeModal();
         });
-        
-        // Hover effects for refresh button
-        refreshBtn.addEventListener('mouseenter', () => {
-            if (refreshBtn.style.pointerEvents !== 'none') {
-                refreshBtn.style.background = 'rgba(255,255,255,0.15)';
-            }
-        });
-        refreshBtn.addEventListener('mouseleave', () => {
-            refreshBtn.style.background = 'rgba(255,255,255,0.1)';
-        });
-        
-        ensureOtherStoreData()
-            .then(renderModal)
-            .catch(() => {
-                bodyEl.innerHTML = `
-                    <div style="text-align:center; color: var(--tm-shop-item-text);">
-                        <div style="font-size:32px; margin-bottom:8px;">⚠️</div>
-                        <div>Could not load other-store availability.</div>
-                    </div>
-                `;
-            });
-    }
-    
-    otherStoreToggleBtn?.addEventListener('click', () => viewTabOther?.click());
-    
-    favoritesBtn?.addEventListener('click', () => {
-        showFavoritesOnly = !showFavoritesOnly;
-        favoritesBtn.classList.toggle('active', showFavoritesOnly);
-        applyFilters();
-    });
-    
-    exportClipboardBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        exportMenu.style.display = 'none';
-        exportToClipboard(filteredPhones);
-    });
-    
-    exportCSVBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        exportMenu.style.display = 'none';
-        exportToCSV(filteredPhones);
-    });
-    
-    exportSelectedBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        exportMenu.style.display = 'none';
-        const selected = filteredPhones.filter(p => selectedPhones.has(p.barcode));
-        exportToCSV(selected);
-    });
-    
-    selectAllBtn.addEventListener('click', () => {
-        if (selectedPhones.size === filteredPhones.length) {
-            selectedPhones.clear();
-            container.querySelectorAll('.tm-phone-item').forEach(item => {
-                item.classList.remove('selected');
-            });
+
+        const cached = typeof window.loadPhoneListCache === 'function' ? window.loadPhoneListCache() : null;
+        if (cached && cached.length) {
+            allPhones = helpers.filterIphoneTitlePhones(cached);
+            const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
+            lastUpdated = new Date(ts);
+            updatedEl.textContent = `Ενημέρωση: ${lastUpdated.toLocaleString('el-GR')}`;
+            ensureOtherStores().then(() => renderModelsStep());
         } else {
-            filteredPhones.forEach(p => selectedPhones.add(p.barcode));
-            container.querySelectorAll('.tm-phone-item').forEach(item => {
-                item.classList.add('selected');
-            });
+            bodyEl.innerHTML = UI.buildEmptyState('📱', 'Χωρίς δεδομένα', 'Πατήστε Ανανέωση για φόρτωση');
+            setStatus('Πατήστε ανανέωση');
         }
-        updateSelectionUI();
-    });
-    
-    // Keyboard shortcuts
-    overlay.addEventListener('keydown', (e) => {
-        // ESC to close
-        if (e.key === 'Escape') {
-            overlay.style.animation = 'tm-cat-out 0.18s ease';
-            setTimeout(() => overlay.remove(), 200);
-        }
-        // Ctrl+F or Cmd+F to focus search
-        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-            e.preventDefault();
-            searchInput.focus();
-        }
-        // Ctrl+R to refresh
-        if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
-            e.preventDefault();
-            refreshPhoneList();
-        }
-    });
-    
-    // Try to load from cache first (only load from cache, don't auto-fetch)
-    const cachedPhones = loadPhoneListCache();
-    const cacheAgeDays = getCacheAgeDays();
-    
-    if (cachedPhones && cachedPhones.length > 0) {
-        console.log('[MMS Phone List] Loading from cache');
-        allPhones = filterIphoneTitlePhones(cachedPhones);
-        syncPhoneColorCatalog(allPhones);
-        populateFilters(allPhones);
-        
-        // Get cache timestamp
-        const cacheTimestamp = GM_getValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, Date.now());
-        lastUpdated = new Date(cacheTimestamp);
-        lastUpdatedDisplay.textContent = `Ενημέρωση: ${lastUpdated.toLocaleDateString()} ${lastUpdated.toLocaleTimeString()}`;
-        
-        // Show warning if cache is stale
-        if (cacheAgeDays !== null && cacheAgeDays >= CACHE_EXPIRATION_DAYS) {
-            cacheWarning.style.display = 'inline';
-            cacheWarning.textContent = `⚠️ Cache is ${cacheAgeDays} day${cacheAgeDays !== 1 ? 's' : ''} old - click refresh to update`;
-            cacheWarning.title = `Data was last refreshed ${cacheAgeDays} day${cacheAgeDays !== 1 ? 's' : ''} ago. Click refresh to update.`;
-        }
-        
-        filteredPhones = allPhones;
-        applyFilters();
-    } else {
-        // No cache, show message to user to click refresh
-        console.log('[MMS Phone List] No cache found');
-        container.innerHTML = `
-            <div style="display: flex; justify-content: center; align-items: center; min-height: 400px; color: var(--tm-shop-item-text);">
-                <div style="text-align: center;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">📱</div>
-                    <div style="margin-bottom: 16px; font-size: 16px; font-weight: 600;">No cached data found</div>
-                    <div style="font-size: 13px; opacity: 0.7; margin-bottom: 20px;">Click the refresh button (🔄) to load phones</div>
-                </div>
-            </div>
-        `;
-        countDisplay.textContent = 'Χωρίς δεδομένα — πατήστε ανανέωση';
-        lastUpdatedDisplay.textContent = 'Ποτέ';
     }
 
-    syncFilterPanels();
-    syncSortControls();
-    syncMineFilterVisibility();
-    syncNetworkFilterVisibility();
-    setTimeout(() => searchInput?.focus(), 80);
-}
-
-// Make function globally accessible
-window.showPhoneListModal = showPhoneListModal;
+    window.showStoreLocatorModal = showStoreLocatorModal;
+})();
 
 
 // ----- myman_technicianstats.js -----
