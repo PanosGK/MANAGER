@@ -21851,18 +21851,17 @@ function getShopConsumableItems(config) {
         { id: 'happiness_snack', name: 'Happiness Snack', icon: '💖', cost: 50, type: 'consumable', desc: 'Max happiness' },
         { id: 'hunger_meal', name: 'Hunger Meal', icon: '🍱', cost: 50, type: 'consumable', desc: 'Max hunger' },
         { id: 'super_meal', name: 'Super Meal', icon: '🍜', cost: 100, type: 'consumable', desc: 'Max hunger + happiness' },
-        { id: 'pizza_slice', name: 'Pizza Slice', icon: '🍕', cost: 60, type: 'consumable', desc: '+40 hunger, +20 happiness' },
-        { id: 'burger_combo', name: 'Burger Combo', icon: '🍔', cost: 70, type: 'consumable', desc: '+40 hunger, +20 happiness' },
+        { id: 'pizza_slice', name: 'Pizza Slice', icon: '🍕', cost: 60, type: 'consumable', desc: '+35 hunger, +15 happiness' },
         { id: 'ice_cream', name: 'Ice Cream', icon: '🍦', cost: 40, type: 'consumable', desc: '+15 hunger, +30 happiness' },
-        { id: 'donut', name: 'Donut', icon: '🍩', cost: 35, type: 'consumable', desc: '+15 hunger, +30 happiness' },
-        { id: 'cookie', name: 'Cookie', icon: '🍪', cost: 30, type: 'consumable', desc: '+15 hunger, +30 happiness' },
-        { id: 'chocolate_bar', name: 'Chocolate Bar', icon: '🍫', cost: 45, type: 'consumable', desc: '+15 hunger, +30 happiness' },
+        { id: 'donut', name: 'Donut', icon: '🍩', cost: 35, type: 'consumable', desc: '+15 hunger, +25 happiness' },
+        { id: 'cookie', name: 'Cookie', icon: '🍪', cost: 25, type: 'consumable', desc: '+10 hunger, +15 happiness' },
+        { id: 'chocolate_bar', name: 'Chocolate Bar', icon: '🍫', cost: 45, type: 'consumable', desc: '+5 hunger, +40 happiness' },
         { id: 'sushi_platter', name: 'Sushi Platter', icon: '🍣', cost: 120, type: 'consumable', desc: '+60 hunger, +40 happiness' },
         { id: 'energized_drink', name: 'Energized Drink', icon: '⚡️', cost: 150, type: 'consumable', desc: '15 min energized buff' },
         { id: 'coffee', name: 'Coffee', icon: '☕', cost: 50, type: 'consumable', desc: '5 min energized buff' },
         { id: 'smoothie', name: 'Smoothie', icon: '🥤', cost: 75, type: 'consumable', desc: '+20 hunger, +30 happiness' },
         { id: 'health_potion', name: 'Health Potion', icon: '🧪', cost: 100, type: 'consumable', desc: '+50 to both stats' },
-        { id: 'mana_potion', name: 'Mana Potion', icon: '🔮', cost: 120, type: 'consumable', desc: '+50 to both stats' },
+        { id: 'mana_potion', name: 'Mana Potion', icon: '🔮', cost: 120, type: 'consumable', desc: '+30 stats + 100 XP' },
         { id: 'speed_potion', name: 'Speed Potion', icon: '💨', cost: 130, type: 'consumable', desc: '8 min energized buff' },
         { id: 'lucky_potion', name: 'Lucky Potion', icon: '🍀', cost: 180, type: 'consumable', desc: '5 min double coins' },
         { id: 'rainbow_juice', name: 'Rainbow Juice', icon: '🌈', cost: 200, type: 'consumable', desc: 'Max stats + confetti' },
@@ -21872,7 +21871,6 @@ function getShopConsumableItems(config) {
         { id: 'xp_boost_medium', name: 'Medium XP Boost', icon: '📊', cost: 250, type: 'consumable', desc: 'Instant +250 XP' },
         { id: 'xp_boost_large', name: 'Large XP Boost', icon: '💹', cost: 400, type: 'consumable', desc: 'Instant +500 XP' },
         { id: 'coin_magnet', name: 'Coin Magnet', icon: '🧲', cost: 180, type: 'consumable', desc: '7 min double coins' },
-        { id: 'lucky_coin', name: 'Lucky Coin', icon: '🪙', cost: 170, type: 'consumable', desc: '7 min double coins' },
         { id: 'fireworks', name: 'Fireworks', icon: '🎆', cost: 100, type: 'consumable', desc: 'Huge celebration!', mascotOnly: true },
         { id: 'sparkles', name: 'Sparkles', icon: '✨', cost: 80, type: 'consumable', desc: 'Sparkly effect' },
         { id: 'rainbow_trail', name: 'Rainbow Trail', icon: '🌈', cost: 150, type: 'consumable', desc: 'Rainbow + 50 happiness' },
@@ -21882,11 +21880,10 @@ function getShopConsumableItems(config) {
         { id: 'heart_explosion', name: 'Heart Explosion', icon: '💕', cost: 110, type: 'consumable', desc: 'Hearts + 80 happiness' },
         { id: 'disco_ball', name: 'Disco Ball', icon: '🪩', cost: 200, type: 'consumable', desc: 'Ultimate party!', mascotOnly: true },
         { id: 'time_warp', name: 'Time Warp', icon: '⏰', cost: 300, type: 'consumable', desc: '30 min buff + 200 XP' },
-        { id: 'shield_buff', name: 'Shield Buff', icon: '🛡️', cost: 250, type: 'consumable', desc: 'Max both stats' },
+        { id: 'shield_buff', name: 'Shield Buff', icon: '🛡️', cost: 250, type: 'consumable', desc: 'Max stats + 15 min buff' },
         { id: 'magnet_buff', name: 'Magnet Buff', icon: '🧲', cost: 220, type: 'consumable', desc: '15 min double coins' },
         { id: 'focus_boost', name: 'Focus Boost', icon: '🎯', cost: 280, type: 'consumable', desc: '25 min buff + 150 XP' },
-        { id: 'productivity_pill', name: 'Productivity Pill', icon: '💊', cost: 350, type: 'consumable', desc: '25 min buff + 150 XP' },
-        { id: 'inspiration_spark', name: 'Inspiration Spark', icon: '💡', cost: 320, type: 'consumable', desc: '300 XP + confetti' },
+        { id: 'inspiration_spark', name: 'Inspiration Spark', icon: '💡', cost: 320, type: 'consumable', desc: '300 XP + sparkles' },
         { id: 'turbo_mode', name: 'Turbo Mode', icon: '🚀', cost: 400, type: 'consumable', desc: '20 min double buff' },
         { id: 'mega_boost', name: 'Mega Boost', icon: '⚡', cost: 500, type: 'consumable', desc: '30 min full buff + 500 XP' },
     ];
@@ -24548,12 +24545,22 @@ function applyConsumableEffect(itemId, config, STORAGE_KEYS) {
             }
             break;
         case 'health_potion':
-        case 'mana_potion':
             if (typeof window.updatePetStats === 'function') {
                 window.updatePetStats(config, STORAGE_KEYS, 50, 50);
             }
             if (typeof window.triggerSparkles === 'function') {
                 window.triggerSparkles(40);
+            }
+            break;
+        case 'mana_potion':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 30, 30);
+            }
+            if (typeof window.grantXp === 'function') {
+                window.grantXp(config, STORAGE_KEYS, 100, 'Mana Potion');
+            }
+            if (typeof window.triggerSparkles === 'function') {
+                window.triggerSparkles(60);
             }
             break;
         case 'speed_potion':
@@ -24612,23 +24619,43 @@ function applyConsumableEffect(itemId, config, STORAGE_KEYS) {
             }
             break;
         case 'pizza_slice':
-        case 'burger_combo':
             if (typeof window.updatePetStats === 'function') {
-                window.updatePetStats(config, STORAGE_KEYS, 20, 40);
+                window.updatePetStats(config, STORAGE_KEYS, 15, 35);
             }
             if (typeof window.setMascotState === 'function') {
                 window.setMascotState(config, 'eating', 2000);
             }
             break;
-        case 'ice_cream':
-        case 'donut':
         case 'cookie':
-        case 'chocolate_bar':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 15, 10);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'happy', 1500);
+            }
+            break;
+        case 'donut':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 25, 15);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'happy', 2000);
+            }
+            break;
+        case 'ice_cream':
             if (typeof window.updatePetStats === 'function') {
                 window.updatePetStats(config, STORAGE_KEYS, 30, 15);
             }
             if (typeof window.setMascotState === 'function') {
                 window.setMascotState(config, 'happy', 2000);
+            }
+            break;
+        case 'chocolate_bar':
+            if (typeof window.updatePetStats === 'function') {
+                window.updatePetStats(config, STORAGE_KEYS, 40, 5);
+            }
+            if (typeof window.setMascotState === 'function') {
+                window.setMascotState(config, 'happy', 2500);
             }
             break;
         case 'sushi_platter':
@@ -24662,7 +24689,6 @@ function applyConsumableEffect(itemId, config, STORAGE_KEYS) {
             }
             break;
         case 'coin_magnet':
-        case 'lucky_coin':
             if (typeof window.triggerDoubleCoinsEffect === 'function') {
                 window.triggerDoubleCoinsEffect(config, STORAGE_KEYS, 7 * 60 * 1000);
             }
@@ -24738,6 +24764,9 @@ function applyConsumableEffect(itemId, config, STORAGE_KEYS) {
             if (typeof window.updatePetStats === 'function') {
                 window.updatePetStats(config, STORAGE_KEYS, 100, 100);
             }
+            if (typeof window.triggerEnergizedState === 'function') {
+                window.triggerEnergizedState(config, STORAGE_KEYS, 15 * 60 * 1000);
+            }
             break;
         case 'magnet_buff':
             if (typeof window.triggerDoubleCoinsEffect === 'function') {
@@ -24745,12 +24774,11 @@ function applyConsumableEffect(itemId, config, STORAGE_KEYS) {
             }
             break;
         case 'focus_boost':
-        case 'productivity_pill':
             if (typeof window.triggerEnergizedState === 'function') {
                 window.triggerEnergizedState(config, STORAGE_KEYS, 25 * 60 * 1000);
             }
             if (typeof window.grantXp === 'function') {
-                window.grantXp(config, STORAGE_KEYS, 150, itemId === 'productivity_pill' ? 'Productivity Pill' : 'Focus Boost');
+                window.grantXp(config, STORAGE_KEYS, 150, 'Focus Boost');
             }
             break;
         case 'inspiration_spark':
