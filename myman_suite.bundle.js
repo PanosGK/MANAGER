@@ -26528,23 +26528,93 @@ window.initOrderTracking = initOrderTracking;
             border-color: color-mix(in srgb, var(--tm-primary-color) 40%, var(--tm-shop-item-border));
         }
         .tm-sl-store-head {
-            display: flex; align-items: center; gap: 10px;
-            padding: 12px 14px; cursor: pointer;
+            display: block;
+            padding: 0; cursor: pointer;
             transition: background 0.12s;
         }
         .tm-sl-store-head:hover { background: var(--tm-shop-item-hover-bg); }
         .tm-sl-store-head:focus-visible { outline: 2px solid var(--tm-primary-color); outline-offset: -2px; }
+        .tm-sl-store-head__top {
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 14px 8px;
+        }
+        .tm-sl-store-head__meta {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+            padding: 0 14px 10px 42px;
+        }
         .tm-sl-store-icon { opacity: 0.7; flex-shrink: 0; display: flex; }
-        .tm-sl-store-name { flex: 1; font-size: 13px; font-weight: 800; min-width: 0; }
+        .tm-sl-store-name {
+            flex: 1; font-size: 14px; font-weight: 800; min-width: 0;
+            line-height: 1.25; word-break: break-word;
+        }
         .tm-sl-store-qty {
-            font-size: 11px; font-weight: 700; padding: 4px 8px;
+            font-size: 11px; font-weight: 700; padding: 5px 10px;
             border-radius: 999px;
             background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 14%, transparent);
             color: var(--tm-info-color, #0ea5e9);
             flex-shrink: 0;
         }
-        .tm-sl-store-chevron { opacity: 0.4; flex-shrink: 0; transition: transform 0.15s; }
+        .tm-sl-store-bb-status {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 5px 10px; border-radius: 999px;
+            font-size: 11px; font-weight: 700;
+        }
+        .tm-sl-store-bb-status--ok {
+            background: color-mix(in srgb, #16a34a 14%, transparent);
+            color: #15803d;
+            border: 1px solid color-mix(in srgb, #16a34a 28%, transparent);
+        }
+        .tm-sl-store-bb-status--no {
+            background: color-mix(in srgb, #dc2626 12%, transparent);
+            color: #b91c1c;
+            border: 1px solid color-mix(in srgb, #dc2626 26%, transparent);
+        }
+        .tm-sl-store-chevron { opacity: 0.4; flex-shrink: 0; transition: transform 0.15s; margin-left: auto; }
         .tm-sl-store-row.is-open .tm-sl-store-chevron { transform: rotate(90deg); }
+        .tm-sl-store-summary {
+            display: flex; flex-direction: column; gap: 6px;
+            padding: 0 12px 12px 12px;
+            border-top: 1px dashed color-mix(in srgb, var(--tm-shop-item-border) 55%, transparent);
+            margin: 0 10px 0;
+            padding-top: 10px;
+        }
+        .tm-sl-store-row.is-open .tm-sl-store-summary { display: none; }
+        .tm-sl-store-summary-line {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+            padding: 7px 10px; border-radius: 10px;
+            background: color-mix(in srgb, var(--tm-shop-item-border) 12%, var(--tm-shop-item-bg));
+            border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 45%, transparent);
+            font-size: 11px;
+        }
+        .tm-sl-summary-grade {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 28px; padding: 2px 7px; border-radius: 999px;
+            font-size: 10px; font-weight: 800; color: #fff;
+        }
+        .tm-sl-summary-gb {
+            font-weight: 700; padding: 2px 7px; border-radius: 999px;
+            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 12%, transparent);
+            color: var(--tm-info-color, #0284c7);
+        }
+        .tm-sl-summary-color {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-weight: 600; color: var(--tm-shop-item-text);
+        }
+        .tm-sl-summary-color .tm-sl-color-swatch {
+            width: 11px; height: 11px; border-radius: 50%;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);
+        }
+        .tm-sl-summary-bb {
+            padding: 2px 6px; border-radius: 999px; font-size: 9px; font-weight: 800;
+            background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 18%, transparent);
+            color: var(--tm-warning-color, #d97706);
+            border: 1px solid color-mix(in srgb, var(--tm-warning-color, #f59e0b) 35%, transparent);
+        }
+        .tm-sl-summary-count {
+            margin-left: auto; font-size: 10px; font-weight: 800; opacity: 0.55;
+            padding: 2px 6px; border-radius: 999px;
+            background: color-mix(in srgb, var(--tm-shop-item-border) 25%, transparent);
+        }
         .tm-sl-store-preview {
             font-size: 11px; opacity: 0.7; padding: 0 14px 10px 40px;
             line-height: 1.4;
@@ -26665,12 +26735,7 @@ window.initOrderTracking = initOrderTracking;
             color: var(--tm-success-color, #16a34a);
             border-color: color-mix(in srgb, var(--tm-success-color, #22c55e) 28%, transparent);
         }
-        .tm-sl-store-preview-chips { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 14px 10px 40px; }
-        .tm-sl-preview-pill {
-            font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
-            background: color-mix(in srgb, var(--tm-shop-item-border) 20%, var(--tm-shop-item-bg));
-            opacity: 0.85;
-        }
+        .tm-sl-store-preview-chips { display: none; }
 
         .tm-sl-unit {
             display: grid;
@@ -27088,6 +27153,52 @@ window.initOrderTracking = initOrderTracking;
         return pills.join('');
     }
 
+    function buildStoreHeadPurchaseBadge(store) {
+        const hasBuyback = store.variants.some((v) => v.isBuyback);
+        if (!hasBuyback) return '';
+        const allowed = isStorePurchaseAllowed(store.name, true);
+        if (allowed) {
+            return '<span class="tm-sl-store-bb-status tm-sl-store-bb-status--ok" title="Επιτρέπεται αγορά BB από αυτό το κατάστημα">✓ Αγορά BB</span>';
+        }
+        return '<span class="tm-sl-store-bb-status tm-sl-store-bb-status--no" title="Δεν επιτρέπεται αγορά BB από αυτό το κατάστημα">✕ Όχι BB</span>';
+    }
+
+    function buildStoreInventorySummary(variants, ctx) {
+        if (!variants.length) return '';
+        const hexMap = ctx?.colorHexMap || {};
+        const getGradeStyle = ctx?.getGradeStyle || (() => '');
+
+        const groups = new Map();
+        variants.forEach((v) => {
+            const key = [v.grade || '', v.gb || '', v.color || '', v.isBuyback ? '1' : '0'].join('|');
+            if (!groups.has(key)) {
+                groups.set(key, { ...v, count: 0 });
+            }
+            groups.get(key).count += 1;
+        });
+
+        const sorted = [...groups.values()].sort((a, b) => {
+            const gradeCmp = (a.grade || '').localeCompare(b.grade || '');
+            if (gradeCmp) return gradeCmp;
+            return (a.color || '').localeCompare(b.color || '', 'el');
+        });
+
+        const lines = sorted.map((g) => {
+            const gradePill = g.grade
+                ? `<span class="tm-sl-summary-grade" style="${getGradeStyle(g.grade)}">${esc(g.grade)}</span>`
+                : '';
+            const gb = g.gb ? `<span class="tm-sl-summary-gb">${esc(g.gb)}</span>` : '';
+            const color = g.color
+                ? `<span class="tm-sl-summary-color">${colorSwatchHTML(g.color, hexMap)}<span>${esc(g.color)}</span></span>`
+                : '';
+            const bb = g.isBuyback ? '<span class="tm-sl-summary-bb">BB</span>' : '';
+            const count = g.count > 1 ? `<span class="tm-sl-summary-count">×${g.count}</span>` : '';
+            return `<div class="tm-sl-store-summary-line">${gradePill}${gb}${color}${bb}${count}</div>`;
+        }).join('');
+
+        return `<div class="tm-sl-store-summary">${lines}</div>`;
+    }
+
     function buildVariantPreviewHTML(v, ctx) {
         const hexMap = ctx?.colorHexMap || {};
         const parts = [];
@@ -27170,22 +27281,29 @@ window.initOrderTracking = initOrderTracking;
 
     function buildStoreRowHTML(store, idx, ctx) {
         const signal = getStoreSignalClass(store.variants.length);
-        const previewChips = store.variants.slice(0, 4).map((v) => buildVariantPreviewHTML(v, ctx)).join('');
-        const previewMore = store.variants.length > 4 ? `<span class="tm-sl-preview-pill">+${store.variants.length - 4}</span>` : '';
+        const summary = buildStoreInventorySummary(store.variants, ctx);
         const units = store.variants.map((v) => buildUnitRowHTML(v, ctx)).join('');
         const purchase = ctx?.showPurchaseStatus && !store.isMine
             ? buildStorePurchaseSummary(store)
             : { html: '', noPurchase: false };
         const noPurchaseClass = purchase.noPurchase ? ' tm-sl-store-row--no-purchase' : '';
+        const bbBadge = ctx?.showPurchaseStatus && !store.isMine
+            ? buildStoreHeadPurchaseBadge(store)
+            : '';
+        const qtyLabel = store.variants.length === 1 ? '1 τεμάχιο' : `${store.variants.length} τεμ.`;
         return `<div class="tm-sl-store-row ${signal}${store.isMine ? ' is-mine' : ''}${noPurchaseClass}" data-store-idx="${idx}">
-            <div class="tm-sl-store-head" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button">
-                <span class="tm-sl-store-icon">${ICON.store}</span>
-                <span class="tm-sl-store-name">${esc(store.name)}</span>
-                ${purchase.html}
-                <span class="tm-sl-store-qty">${store.variants.length} τεμ.</span>
-                <span class="tm-sl-store-chevron">${ICON.chevron}</span>
+            <div class="tm-sl-store-head" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button" aria-expanded="false">
+                <div class="tm-sl-store-head__top">
+                    <span class="tm-sl-store-icon">${ICON.store}</span>
+                    <span class="tm-sl-store-name">${esc(store.name)}</span>
+                    <span class="tm-sl-store-chevron">${ICON.chevron}</span>
+                </div>
+                <div class="tm-sl-store-head__meta">
+                    ${bbBadge}
+                    <span class="tm-sl-store-qty">${qtyLabel}</span>
+                </div>
             </div>
-            ${previewChips ? `<div class="tm-sl-store-preview-chips">${previewChips}${previewMore}</div>` : ''}
+            ${summary}
             <div class="tm-sl-store-units">${units}</div>
         </div>`;
     }
@@ -31379,7 +31497,9 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
             bodyEl.querySelectorAll('[data-tm-sl-toggle-store]').forEach((head) => {
                 const toggle = () => {
                     const row = head.closest('.tm-sl-store-row');
-                    row?.classList.toggle('is-open');
+                    if (!row) return;
+                    row.classList.toggle('is-open');
+                    head.setAttribute('aria-expanded', row.classList.contains('is-open') ? 'true' : 'false');
                 };
                 head.addEventListener('click', toggle);
                 head.addEventListener('keydown', (e) => {

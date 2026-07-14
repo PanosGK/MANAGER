@@ -544,7 +544,9 @@
             bodyEl.querySelectorAll('[data-tm-sl-toggle-store]').forEach((head) => {
                 const toggle = () => {
                     const row = head.closest('.tm-sl-store-row');
-                    row?.classList.toggle('is-open');
+                    if (!row) return;
+                    row.classList.toggle('is-open');
+                    head.setAttribute('aria-expanded', row.classList.contains('is-open') ? 'true' : 'false');
                 };
                 head.addEventListener('click', toggle);
                 head.addEventListener('keydown', (e) => {
