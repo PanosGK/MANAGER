@@ -234,6 +234,8 @@
         .tm-pc-select, .tm-cat-select,
         #tm-phone-filter-grade, #tm-phone-filter-model, #tm-phone-filter-gb,
         #tm-phone-filter-color, #tm-phone-filter-tag, #tm-phone-sort-by,
+        #tm-network-filter-grade, #tm-network-filter-model, #tm-network-filter-gb,
+        #tm-network-filter-color, #tm-network-filter-store, #tm-network-sort-by,
         #tm-other-store-filter-grade, #tm-other-store-filter-model, #tm-other-store-filter-gb,
         #tm-other-store-filter-color, #tm-other-store-filter-store, #tm-other-store-sort {
             height: 36px; min-width: 118px;
@@ -252,7 +254,10 @@
         #tm-phone-filter-model, #tm-other-store-filter-model { flex: 1; min-width: 160px; }
         .tm-pc-select:hover, #tm-phone-filter-grade:hover, #tm-phone-filter-model:hover,
         #tm-phone-filter-gb:hover, #tm-phone-filter-color:hover, #tm-phone-filter-tag:hover,
-        #tm-phone-sort-by:hover, #tm-other-store-filter-grade:hover, #tm-other-store-filter-model:hover,
+        #tm-phone-sort-by:hover, #tm-network-filter-grade:hover, #tm-network-filter-model:hover,
+        #tm-network-filter-gb:hover, #tm-network-filter-color:hover,
+        #tm-network-filter-store:hover, #tm-network-sort-by:hover,
+        #tm-other-store-filter-grade:hover, #tm-other-store-filter-model:hover,
         #tm-other-store-filter-gb:hover, #tm-other-store-filter-color:hover,
         #tm-other-store-filter-store:hover, #tm-other-store-sort:hover {
             border-color: var(--tm-primary-color) !important;
@@ -260,7 +265,8 @@
         .tm-pc-select:focus, #tm-phone-search-input:focus,
         #tm-phone-filter-grade:focus, #tm-phone-filter-model:focus,
         #tm-phone-filter-gb:focus, #tm-phone-filter-color:focus,
-        #tm-phone-filter-tag:focus, #tm-phone-sort-by:focus {
+        #tm-phone-filter-tag:focus, #tm-phone-sort-by:focus,
+        #tm-network-sort-by:focus {
             outline: none !important;
             border-color: var(--tm-primary-color) !important;
         }
@@ -937,7 +943,7 @@
                 <div class="tm-pc-search-row tm-cat-search-line">
                     <label class="tm-pc-search tm-cat-search">
                         <span class="tm-pc-search-icon tm-cat-search-icon">${ICON.search}</span>
-                        <input type="search" id="tm-phone-search-input" placeholder="Barcode, μοντέλο, IMEI…" autocomplete="off">
+                        <input type="search" id="tm-phone-search-input" placeholder="Μοντέλο, barcode, IMEI…" autocomplete="off">
                     </label>
                     <select id="tm-phone-filter-grade" class="tm-pc-select tm-cat-select"><option value="">${esc(T['All Grades'])}</option></select>
                     <button type="button" id="tm-mine-back-btn" class="tm-pc-btn tm-cat-btn tm-pc-back-btn">${ICON.back} Μοντέλα</button>
@@ -950,10 +956,11 @@
                     <span class="tm-pc-filters-label-inline">Ταξινόμηση</span>
                     <select id="tm-phone-sort-by" class="tm-pc-select tm-cat-select">
                         <option value="model">${esc(T['Sort by Model'])}</option>
+                        <option value="count">${esc(T['Sort by Count'] || 'Sort by Count')}</option>
                         <option value="grade">${esc(T['Sort by Grade'])}</option>
                         <option value="gb">${esc(T['Sort by Storage'])}</option>
                         <option value="color">${esc(T['Sort by Color'])}</option>
-                        <option value="price">Ταξινόμηση κατά Τιμή</option>
+                        <option value="price">${esc(T['Sort by Price'] || 'Sort by Price')}</option>
                         <option value="imei">${esc(T['Sort by IMEI'])}</option>
                     </select>
                     <button type="button" id="tm-phone-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
@@ -975,10 +982,11 @@
                     <span class="tm-pc-filters-label-inline">Ταξινόμηση</span>
                     <select id="tm-network-sort-by" class="tm-pc-select tm-cat-select">
                         <option value="model">${esc(T['Sort by Model'])}</option>
+                        <option value="count">${esc(T['Sort by Count'] || 'Sort by Count')}</option>
                         <option value="grade">${esc(T['Sort by Grade'])}</option>
                         <option value="gb">${esc(T['Sort by Storage'])}</option>
                         <option value="color">${esc(T['Sort by Color'])}</option>
-                        <option value="price">Ταξινόμηση κατά Τιμή</option>
+                        <option value="price">${esc(T['Sort by Price'] || 'Sort by Price')}</option>
                         <option value="imei">${esc(T['Sort by IMEI'])}</option>
                     </select>
                     <button type="button" id="tm-network-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
