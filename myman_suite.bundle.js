@@ -11621,9 +11621,33 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return item.querySelector(':scope > div > div > a[href], :scope > div a[href], :scope > a[href]');
     }
 
+    function cleanMenuItemLabel(name) {
+        return String(name || '')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .replace(/\d+\s*$/, '')
+            .trim();
+    }
+
+    function extractMenuItemLabel(sourceEl) {
+        const link = sourceEl.tagName === 'A' ? sourceEl : getDirectMenuLink(sourceEl) || sourceEl;
+        if (!link) return cleanMenuItemLabel(sourceEl.textContent);
+
+        const clone = link.cloneNode(true);
+        clone.querySelectorAll('*').forEach((el) => {
+            const text = (el.textContent || '').trim();
+            if (/^\d+$/.test(text)) {
+                el.remove();
+            }
+        });
+
+        const label = clone.textContent.replace(/\s+/g, ' ').trim();
+        return cleanMenuItemLabel(label || link.textContent.replace(/\s+/g, ' ').trim());
+    }
+
     function getMenuItemMeta(item) {
         const link = getDirectMenuLink(item);
-        const name = (link || item).textContent.replace(/\s+/g, ' ').trim();
+        const name = extractMenuItemLabel(link || item);
         const href = link ? normalizeMenuHref(link.getAttribute('href') || '') : '';
         const id = href
             ? `href-${sanitizeToken(href)}`
@@ -11658,7 +11682,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
         return {
             id: String(item?.id || ''),
-            name: String(item?.name || item?.id || 'Unknown'),
+            name: cleanMenuItemLabel(String(item?.name || item?.id || 'Unknown')),
             href: String(item?.href || ''),
         };
     }
@@ -11722,7 +11746,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             if (exact) return { id: exact.id, name: exact.name, href: exact.href };
 
             if (hidden.name) {
-                const byName = currentMetas.find((meta) => meta.name === hidden.name);
+                const targetName = cleanMenuItemLabel(hidden.name);
+                const byName = currentMetas.find((meta) => cleanMenuItemLabel(meta.name) === targetName);
                 if (byName) {
                     return { id: byName.id, name: byName.name, href: byName.href };
                 }
