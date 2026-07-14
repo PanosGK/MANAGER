@@ -3480,7 +3480,7 @@ async function showPhoneListModal() {
             currentPage = 0;
         }
         
-        container.className = 'tm-cat-table-body tm-pc-list';
+        container.className = 'tm-pc-list tm-cat-table-body';
         container.classList.remove('tm-pc-grid', 'tm-pc-list-mode', 'grid-view');
         
         // Virtual scrolling: only render visible phones + buffer
@@ -3792,6 +3792,7 @@ async function showPhoneListModal() {
     const clearFiltersBtn = overlay.querySelector('#tm-phone-clear-filters');
     const sortDirBtn = overlay.querySelector('#tm-phone-sort-dir');
     const container = overlay.querySelector('#tm-phone-list-container');
+    const listTableWrap = container?.closest('.tm-pc-table-wrap');
     const otherStoreContainer = overlay.querySelector('#tm-other-store-container');
     const otherStoreContent = overlay.querySelector('#tm-other-store-content');
     const countDisplay = overlay.querySelector('#tm-phone-count-text');
@@ -3822,6 +3823,7 @@ async function showPhoneListModal() {
     
     function showOtherStoreView() {
         showingOtherStores = true;
+        if (listTableWrap) listTableWrap.style.display = 'none';
         if (container) container.style.display = 'none';
         if (otherStoreContainer) {
             otherStoreContainer.style.display = 'flex';
@@ -3834,6 +3836,7 @@ async function showPhoneListModal() {
     
     function showMainView() {
         showingOtherStores = false;
+        if (listTableWrap) listTableWrap.style.display = '';
         if (container) container.style.display = '';
         if (otherStoreContainer) otherStoreContainer.style.display = 'none';
         setViewTabActive('mine');
@@ -3927,7 +3930,7 @@ async function showPhoneListModal() {
     function renderOtherStorePhones(list, targetEl = otherStoreContent, countEl = countDisplay, statsEl = statisticsDisplay) {
         if (!targetEl) return;
         if (!list || list.length === 0) {
-            targetEl.className = 'tm-cat-table-body';
+            targetEl.className = 'tm-pc-list';
             targetEl.innerHTML = PhoneCatalogUI.buildEmptyState(
                 'ℹ️',
                 'Δεν υπάρχουν συσκευές σε άλλα καταστήματα',
@@ -3937,7 +3940,7 @@ async function showPhoneListModal() {
             return;
         }
 
-        targetEl.className = 'tm-cat-table-body tm-pc-list';
+        targetEl.className = 'tm-pc-list tm-cat-table-body';
         const catalogCtx = getPhoneCatalogUICtx({ extractBaseModel, getPhoneTags });
         const rows = list.map((item, idx) => {
             const hasStoresData = Array.isArray(item.stores);
