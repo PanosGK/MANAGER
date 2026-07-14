@@ -319,6 +319,21 @@
             margin-bottom: 6px;
         }
         .tm-sl-model-stores { font-size: 11px; opacity: 0.75; margin-bottom: 8px; }
+        .tm-sl-model-store-list {
+            display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px;
+        }
+        .tm-sl-model-store-chip {
+            font-size: 9px; font-weight: 700; padding: 3px 7px; border-radius: 999px;
+            border: 1px solid var(--tm-shop-item-border);
+            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 10%, var(--tm-shop-item-bg));
+            color: var(--tm-shop-item-text);
+            max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .tm-sl-model-store-chip--mine {
+            background: color-mix(in srgb, var(--tm-success-color, #22c55e) 12%, var(--tm-shop-item-bg));
+            border-color: color-mix(in srgb, var(--tm-success-color, #22c55e) 35%, transparent);
+        }
+        .tm-sl-model-store-more { font-size: 9px; opacity: 0.6; align-self: center; }
 
         .tm-sl-avail-bar {
             display: flex; height: 4px; border-radius: 999px; overflow: hidden;
@@ -422,6 +437,41 @@
         .tm-sl-unit-barcode {
             font-size: 10px; opacity: 0.65; font-family: ui-monospace, monospace;
         }
+        .tm-sl-unit-store {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 700; margin-top: 3px;
+            color: var(--tm-info-color, #0ea5e9);
+        }
+        .tm-sl-unit-store--mine { color: var(--tm-success-color, #22c55e); }
+        .tm-sl-unit-store svg { opacity: 0.85; flex-shrink: 0; }
+
+        .tm-sl-phone-list-section { margin-bottom: 18px; }
+        .tm-sl-phone-list-title {
+            font-size: 11px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.05em; opacity: 0.6; margin: 0 0 10px 2px;
+        }
+        .tm-sl-phone-list {
+            display: flex; flex-direction: column; gap: 6px;
+            border: 1px solid var(--tm-shop-item-border);
+            border-radius: 12px; overflow: hidden;
+        }
+        .tm-sl-phone-list-item {
+            display: grid;
+            grid-template-columns: 36px 1fr auto;
+            gap: 8px; align-items: center;
+            padding: 10px 12px;
+            background: var(--tm-shop-item-bg);
+            border-bottom: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 50%, transparent);
+            font-size: 12px;
+        }
+        .tm-sl-phone-list-item:last-child { border-bottom: none; }
+        .tm-sl-phone-list-item:hover { background: var(--tm-shop-item-hover-bg); }
+        .tm-sl-phone-list-store {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 800; margin-bottom: 2px;
+            color: var(--tm-info-color, #0ea5e9);
+        }
+        .tm-sl-phone-list-store--mine { color: var(--tm-success-color, #22c55e); }
         .tm-sl-unit-price { font-size: 12px; font-weight: 700; white-space: nowrap; }
         .tm-sl-unit-actions { display: flex; gap: 4px; align-items: center; }
         .tm-sl-unit-btn {
@@ -618,6 +668,15 @@
             const mineBadge = data.myCount > 0
                 ? `<span class="tm-sl-mine-badge">${ICON.pin} Στο δικό μου</span>`
                 : '';
+            const storeNames = data.storeList || [];
+            const maxStores = 4;
+            const storeChips = storeNames.slice(0, maxStores).map((name) => {
+                const isMine = name === 'Το κατάστημά μου';
+                return `<span class="tm-sl-model-store-chip${isMine ? ' tm-sl-model-store-chip--mine' : ''}">${esc(name)}</span>`;
+            }).join('');
+            const storeMore = storeNames.length > maxStores
+                ? `<span class="tm-sl-model-store-more">+${storeNames.length - maxStores}</span>`
+                : '';
             return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
                 data-tm-sl-model="${esc(model)}" style="--i:${i}">
                 ${mineBadge}
@@ -626,6 +685,7 @@
                 ${buildAvailabilityBar(data)}
                 <div class="tm-sl-model-stores">${data.totalUnits} συσκευές στο δίκτυο</div>
                 ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
+                ${storeChips ? `<div class="tm-sl-model-store-list">${storeChips}${storeMore}</div>` : ''}
             </div>`;
         }).join('');
         return `<div class="tm-sl-model-grid">${cards}</div>`;
@@ -684,15 +744,52 @@
         return `${spec}${bb}`;
     }
 
-    function buildStoreRowHTML(store, idx, ctx) {
+    function buildUnitStoreHTML(storeName, isMine) {
+        const cls = isMine ? 'tm-sl-unit-store tm-sl-unit-store--mine' : 'tm-sl-unit-store';
+        return `<div class="${cls}">${ICON.store.replace('width="16"', 'width="11"').replace('height="16"', 'height="11"')} ${esc(storeName)}</div>`;
+    }
+
+    function buildUnitRowHTML(v, ctx) {
         const getGradeStyle = ctx?.getGradeStyle || (() => '');
-        const signal = getStoreSignalClass(store.variants.length);
-        const preview = store.variants.slice(0, 3).map((v) => formatVariantLine(v, ctx)).join(' · ');
-        const units = store.variants.map((v) => {
+        const gradeStyle = getGradeStyle(v.grade);
+        const storeName = v.storeName || '—';
+        return `<div class="tm-sl-unit" data-barcode="${esc(v.barcode)}">
+            <div class="tm-sl-unit-grade" style="${gradeStyle}">${esc(v.grade || '—')}</div>
+            <div>
+                ${buildUnitStoreHTML(storeName, v.isMine)}
+                <div class="tm-sl-unit-spec">${buildUnitSpecHTML(v, ctx)}</div>
+                <div class="tm-sl-unit-barcode">${esc(v.barcode)}</div>
+            </div>
+            <div class="tm-sl-unit-actions">
+                ${v.price ? `<span class="tm-sl-unit-price">${esc(v.price)}</span>` : ''}
+                <button type="button" class="tm-sl-unit-btn" data-tm-sl-copy="${esc(v.barcode)}">Copy</button>
+                <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}">Open</button>
+            </div>
+        </div>`;
+    }
+
+    function buildPhoneListSection(allRows, ctx) {
+        const units = [];
+        allRows.forEach((row) => {
+            row.variants.forEach((v) => units.push(v));
+        });
+        if (!units.length) return '';
+
+        units.sort((a, b) => {
+            if (a.isMine !== b.isMine) return a.isMine ? -1 : 1;
+            const storeCmp = (a.storeName || '').localeCompare(b.storeName || '', 'el');
+            if (storeCmp) return storeCmp;
+            return (a.grade || '').localeCompare(b.grade || '');
+        });
+
+        const items = units.map((v) => {
+            const getGradeStyle = ctx?.getGradeStyle || (() => '');
             const gradeStyle = getGradeStyle(v.grade);
-            return `<div class="tm-sl-unit" data-barcode="${esc(v.barcode)}">
+            const storeCls = v.isMine ? 'tm-sl-phone-list-store tm-sl-phone-list-store--mine' : 'tm-sl-phone-list-store';
+            return `<div class="tm-sl-phone-list-item" data-barcode="${esc(v.barcode)}">
                 <div class="tm-sl-unit-grade" style="${gradeStyle}">${esc(v.grade || '—')}</div>
                 <div>
+                    <div class="${storeCls}">${ICON.store.replace('width="16"', 'width="11"').replace('height="16"', 'height="11"')} ${esc(v.storeName || '—')}</div>
                     <div class="tm-sl-unit-spec">${buildUnitSpecHTML(v, ctx)}</div>
                     <div class="tm-sl-unit-barcode">${esc(v.barcode)}</div>
                 </div>
@@ -703,6 +800,17 @@
                 </div>
             </div>`;
         }).join('');
+
+        return `<section class="tm-sl-phone-list-section">
+            <h3 class="tm-sl-phone-list-title">Λίστα συσκευών · ${units.length}</h3>
+            <div class="tm-sl-phone-list">${items}</div>
+        </section>`;
+    }
+
+    function buildStoreRowHTML(store, idx, ctx) {
+        const signal = getStoreSignalClass(store.variants.length);
+        const preview = store.variants.slice(0, 3).map((v) => formatVariantLine(v, ctx)).join(' · ');
+        const units = store.variants.map((v) => buildUnitRowHTML(v, ctx)).join('');
         return `<div class="tm-sl-store-row ${signal}${store.isMine ? ' is-mine' : ''}" data-store-idx="${idx}">
             <div class="tm-sl-store-head" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button">
                 <span class="tm-sl-store-icon">${ICON.store}</span>
@@ -715,8 +823,9 @@
         </div>`;
     }
 
-    function buildStoreBoard(modelName, myStore, storeRows, ctx) {
+    function buildStoreBoard(modelName, myStore, allRows, ctx) {
         let html = '';
+        const otherRows = (allRows || []).filter((r) => !r.isMine);
 
         if (myStore && myStore.variants.length) {
             html += `<div class="tm-sl-mine-banner tm-sl-mine-banner--yes">
@@ -736,13 +845,28 @@
             </div>`;
         }
 
-        if (!storeRows.length && !(myStore && myStore.variants.length)) {
+        if (!allRows?.length) {
             html += buildEmptyState('🔍', 'Δεν βρέθηκε σε κανένα κατάστημα', 'Δοκιμάστε άλλα φίλτρα ή ανανέωση δεδομένων');
             return html;
         }
 
-        const grouped = groupStoresByRegion(storeRows);
+        html += buildPhoneListSection(allRows, ctx);
+
+        if (!otherRows.length && !(myStore && myStore.variants.length)) {
+            return html;
+        }
+
+        const grouped = groupStoresByRegion(otherRows);
         let globalIdx = 0;
+
+        if (myStore && myStore.variants.length) {
+            html += `<section class="tm-sl-region">
+                <h3 class="tm-sl-region-title">Το κατάστημά μου</h3>
+                <div class="tm-sl-store-list">${buildStoreRowHTML(myStore, globalIdx, ctx)}</div>
+            </section>`;
+            globalIdx += 1;
+        }
+
         const regionBlocks = grouped.map(([region, rows]) => {
             const rowHtml = rows.map((store) => {
                 const block = buildStoreRowHTML(store, globalIdx, ctx);
@@ -816,6 +940,8 @@
         buildEmptyState,
         buildSkeletonGrid,
         buildSkeletonStores,
+        buildPhoneListSection,
+        buildUnitRowHTML,
         formatVariantLine,
         showToast,
         updateFreshness,

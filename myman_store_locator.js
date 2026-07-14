@@ -80,11 +80,22 @@
             });
         });
 
+        const MINE_LABEL = 'Το κατάστημά μου';
         return [...map.entries()]
-            .map(([model, data]) => [model, {
-                ...data,
-                storeCount: data.storeNames.size,
-            }])
+            .map(([model, data]) => {
+                const storeList = [...data.storeNames]
+                    .map((key) => (key === MINE_STORE_KEY ? MINE_LABEL : key))
+                    .sort((a, b) => {
+                        if (a === MINE_LABEL) return -1;
+                        if (b === MINE_LABEL) return 1;
+                        return a.localeCompare(b, 'el');
+                    });
+                return [model, {
+                    ...data,
+                    storeCount: data.storeNames.size,
+                    storeList,
+                }];
+            })
             .filter(([, data]) => data.storeCount > 0 || data.myCount > 0);
     }
 
@@ -194,7 +205,7 @@
             const key = variantKey(variant);
             if (bucket.seen.has(key)) return;
             bucket.seen.add(key);
-            bucket.variants.push(variant);
+            bucket.variants.push({ ...variant, storeName, isMine });
         }
 
         filterIphoneTitlePhones(allPhones).forEach((phone) => {
@@ -494,7 +505,7 @@
             });
 
             const board = buildStoreBoardData(selectedModel, allPhones, otherStorePhones, activeFilters, helpers);
-            bodyEl.innerHTML = UI.buildStoreBoard(selectedModel, board.mine, board.storeRows, buildUiCtx());
+            bodyEl.innerHTML = UI.buildStoreBoard(selectedModel, board.mine, board.allRows, buildUiCtx());
 
             const storeCount = board.allRows.length;
             setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} με διαθέσιμες εκδόσεις`);
