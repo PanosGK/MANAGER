@@ -605,6 +605,11 @@
             background: var(--tm-shop-item-bg);
             cursor: pointer;
             transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+            user-select: none;
+        }
+        .tm-pc-model-card:focus-visible {
+            outline: 2px solid var(--tm-primary-color);
+            outline-offset: 2px;
         }
         .tm-pc-model-card:hover {
             border-color: var(--tm-primary-color);
@@ -849,11 +854,11 @@
                 .join('');
             const bbClass = data.buybackCount > 0 ? ' tm-pc-model-card--bb' : '';
             const unitLabel = data.count === 1 ? 'συσκευή' : 'συσκευές';
-            return `<button type="button" class="tm-pc-model-card${bbClass}" ${clickAttr}="${esc(model)}">
+            return `<div class="tm-pc-model-card${bbClass}" role="button" tabindex="0" ${clickAttr}="${esc(model)}">
                 <div class="tm-pc-model-card-name">${esc(model)}</div>
                 <div class="tm-pc-model-card-count">${data.count} ${unitLabel}</div>
                 ${gradeChips ? `<div class="tm-pc-model-card-grades">${gradeChips}</div>` : ''}
-            </button>`;
+            </div>`;
         }).join('');
         return `<div class="tm-pc-model-grid">${cards}</div>`;
     }
