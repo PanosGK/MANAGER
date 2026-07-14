@@ -957,7 +957,7 @@
                         <option value="imei">${esc(T['Sort by IMEI'])}</option>
                     </select>
                     <button type="button" id="tm-phone-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
-                    <button type="button" id="tm-phone-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear All Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
+                    <button type="button" id="tm-phone-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear Secondary Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
                 </div>
             </div>
 
@@ -982,7 +982,7 @@
                         <option value="imei">${esc(T['Sort by IMEI'])}</option>
                     </select>
                     <button type="button" id="tm-network-sort-dir" class="tm-pc-btn tm-cat-btn" title="${esc(T['Toggle Sort Direction'])}">↑</button>
-                    <button type="button" id="tm-network-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear All Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
+                    <button type="button" id="tm-network-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear Secondary Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
                 </div>
             </div>
 
@@ -1071,7 +1071,7 @@
                         <option value="price-asc">Τιμή ↑</option>
                         <option value="price-desc">Τιμή ↓</option>
                     </select>
-                    <button type="button" id="tm-other-store-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear All Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
+                    <button type="button" id="tm-other-store-clear-filters" class="tm-pc-btn tm-cat-btn tm-pc-clear-btn" title="${esc(T['Clear Secondary Filters'])}">${ICON.filterClear}<span>Καθαρισμός</span></button>
                 </div>
             </div>
             <div id="tm-other-store-modal-body" class="tm-pc-list tm-cat-table-body">
