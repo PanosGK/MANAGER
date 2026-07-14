@@ -3145,7 +3145,7 @@ async function showPhoneListModal() {
         const phonesStep = networkCatalogStep === 'phones' && !!networkSelectedModel;
         if (networkModelFilter) {
             if (phonesStep) {
-                syncSelectFilterVisibility(networkModelFilter, getFilterOptionCount(networkModelFilter));
+                networkModelFilter.style.display = '';
             } else {
                 networkModelFilter.style.display = 'none';
                 if (networkModelFilter.value) networkModelFilter.value = '';
@@ -3833,13 +3833,6 @@ async function showPhoneListModal() {
         
         filteredPhones = sortPhones(filteredPhones);
         
-        if (showingOtherStores) {
-            if (statisticsDisplay) statisticsDisplay.innerHTML = '';
-            populateNetworkFilters(filteredPhones);
-            renderOtherStorePhones(filteredPhones);
-            return;
-        }
-        
         updateStatistics(filteredPhones);
         renderPhones(filteredPhones, true);
         highlightSearchMatch(container);
@@ -4247,7 +4240,7 @@ async function showPhoneListModal() {
         setViewTabActive('other');
         syncFilterPanels();
         if (statisticsDisplay) statisticsDisplay.innerHTML = '';
-        if (!networkSelectedModel && !searchInput.value.trim()) {
+        if (!networkSelectedModel) {
             networkCatalogStep = 'models';
         }
         applyFilters();
@@ -4374,6 +4367,15 @@ async function showPhoneListModal() {
     }
     otherStoreContent?.addEventListener('click', handleNetworkModelCardPick);
     listTableWrap?.addEventListener('click', handleMineModelCardPick);
+    overlay.addEventListener('click', (e) => {
+        if (!showingOtherStores) return;
+        const card = e.target.closest('#tm-other-store-content .tm-pc-model-card[data-tm-pc-model]');
+        if (!card || card.closest('.tm-phone-item')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const model = readModelFromCard(card);
+        if (model) selectNetworkModel(model);
+    }, true);
     otherStoreContent?.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter' && e.key !== ' ') return;
         handleNetworkModelCardPick(e);
@@ -4945,6 +4947,7 @@ async function showPhoneListModal() {
             if (countEl) countEl.textContent = `${models.length} μοντέλα · ${base.length} συσκευές`;
 
             bodyEl.innerHTML = PhoneCatalogUI.buildModelGroupList(models);
+            bindModelCardClicks(bodyEl, selectOsModel);
         }
 
         function showPhoneList() {

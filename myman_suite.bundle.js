@@ -30293,7 +30293,7 @@ async function showPhoneListModal() {
         const phonesStep = networkCatalogStep === 'phones' && !!networkSelectedModel;
         if (networkModelFilter) {
             if (phonesStep) {
-                syncSelectFilterVisibility(networkModelFilter, getFilterOptionCount(networkModelFilter));
+                networkModelFilter.style.display = '';
             } else {
                 networkModelFilter.style.display = 'none';
                 if (networkModelFilter.value) networkModelFilter.value = '';
@@ -30662,13 +30662,73 @@ async function showPhoneListModal() {
         return card.dataset.tmPcModel || card.getAttribute('data-tm-pc-model') || '';
     }
 
+    function bindModelCardClicks(containerEl, onSelect) {
+        if (!containerEl || typeof onSelect !== 'function') return;
+        containerEl.querySelectorAll('.tm-pc-model-card[data-tm-pc-model]').forEach((card) => {
+            const activate = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const model = readModelFromCard(card);
+                if (model) onSelect(model);
+            };
+            card.addEventListener('click', activate);
+            card.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                activate(e);
+            });
+        });
+    }
+
+    function computeNetworkFilteredPhones() {
+        const selectedGrade = networkGradeFilter?.value || '';
+        const selectedModel = networkSelectedModel || networkModelFilter?.value || modelFilter?.value || '';
+        const selectedStore = networkStoreFilter?.value || '';
+        const selectedGB = networkGbFilter?.value || '';
+        const selectedColor = networkColorFilter?.value || '';
+
+        let phonesToFilter = filterIphoneTitlePhones(getNetworkBasePhones());
+
+        const filtered = phonesToFilter.filter((phone) => {
+            if (selectedGrade && phone.grade !== selectedGrade) return false;
+            if (selectedModel) {
+                const baseModel = extractBaseModel(phone.model);
+                if (baseModel !== selectedModel) return false;
+            }
+            if (selectedStore && !phoneHasStoreWithStock(phone, selectedStore)) return false;
+            if (selectedGB) {
+                const gb = extractGB(phone.name || phone.model);
+                if (gb !== selectedGB) return false;
+            }
+            if (selectedColor) {
+                const color = extractColor(phone.name || phone.model);
+                if (color !== selectedColor) return false;
+            }
+            return true;
+        });
+
+        return sortPhones(filtered);
+    }
+
+    function renderNetworkPhoneList() {
+        if (!showingOtherStores) return;
+        if (!networkSelectedModel && networkCatalogStep === 'models') {
+            renderNetworkModelPicker();
+            return;
+        }
+        networkCatalogStep = 'phones';
+        updateCatalogBackButtons();
+        filteredPhones = computeNetworkFilteredPhones();
+        if (statisticsDisplay) statisticsDisplay.innerHTML = '';
+        populateNetworkFilters(filteredPhones);
+        renderOtherStorePhones(filteredPhones);
+    }
+
     function selectNetworkModel(model) {
         if (!model) return;
         networkSelectedModel = model;
         networkCatalogStep = 'phones';
         if (modelFilter) modelFilter.value = model;
-        updateCatalogBackButtons();
-        applyFilters();
+        renderNetworkPhoneList();
     }
 
     function renderMineModelPicker() {
@@ -30679,6 +30739,7 @@ async function showPhoneListModal() {
         contentEl.className = 'tm-pc-list tm-cat-table-body';
         contentEl.style.display = '';
         contentEl.innerHTML = PhoneCatalogUI.buildModelGroupList(models);
+        bindModelCardClicks(contentEl, selectMineModel);
         if (countDisplay) {
             countDisplay.textContent = `${models.length} μοντέλα · ${phones.length} συσκευές`;
         }
@@ -30693,6 +30754,7 @@ async function showPhoneListModal() {
         contentEl.className = 'tm-pc-list tm-cat-table-body';
         contentEl.style.display = '';
         contentEl.innerHTML = PhoneCatalogUI.buildModelGroupList(models);
+        bindModelCardClicks(contentEl, selectNetworkModel);
         if (countDisplay) {
             countDisplay.textContent = `${models.length} μοντέλα · ${phones.length} συσκευές στο δίκτυο`;
         }
@@ -30800,19 +30862,16 @@ async function showPhoneListModal() {
 
     // Function to apply all filters
     function applyFilters() {
-        const query = searchInput.value.trim();
+        const query = showingOtherStores ? '' : searchInput.value.trim();
         const useRegex = overlay.querySelector('#tm-phone-regex-toggle')?.checked;
 
         if (showingOtherStores) {
-            if (!query && networkCatalogStep === 'models' && !networkSelectedModel) {
+            if (!networkSelectedModel && networkCatalogStep === 'models') {
                 renderNetworkModelPicker();
                 return;
             }
-            if (networkSelectedModel) {
-                networkCatalogStep = 'phones';
-                if (modelFilter) modelFilter.value = networkSelectedModel;
-            }
-            updateCatalogBackButtons();
+            renderNetworkPhoneList();
+            return;
         } else if (!query && mineCatalogStep === 'models' && !mineSelectedModel) {
             renderMineModelPicker();
             return;
@@ -30921,13 +30980,6 @@ async function showPhoneListModal() {
         });
         
         filteredPhones = sortPhones(filteredPhones);
-        
-        if (showingOtherStores) {
-            if (statisticsDisplay) statisticsDisplay.innerHTML = '';
-            populateNetworkFilters(filteredPhones);
-            renderOtherStorePhones(filteredPhones);
-            return;
-        }
         
         updateStatistics(filteredPhones);
         renderPhones(filteredPhones, true);
@@ -31336,7 +31388,7 @@ async function showPhoneListModal() {
         setViewTabActive('other');
         syncFilterPanels();
         if (statisticsDisplay) statisticsDisplay.innerHTML = '';
-        if (!networkSelectedModel && !searchInput.value.trim()) {
+        if (!networkSelectedModel) {
             networkCatalogStep = 'models';
         }
         applyFilters();
@@ -31463,6 +31515,15 @@ async function showPhoneListModal() {
     }
     otherStoreContent?.addEventListener('click', handleNetworkModelCardPick);
     listTableWrap?.addEventListener('click', handleMineModelCardPick);
+    overlay.addEventListener('click', (e) => {
+        if (!showingOtherStores) return;
+        const card = e.target.closest('#tm-other-store-content .tm-pc-model-card[data-tm-pc-model]');
+        if (!card || card.closest('.tm-phone-item')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const model = readModelFromCard(card);
+        if (model) selectNetworkModel(model);
+    }, true);
     otherStoreContent?.addEventListener('keydown', (e) => {
         if (e.key !== 'Enter' && e.key !== ' ') return;
         handleNetworkModelCardPick(e);
@@ -32034,6 +32095,7 @@ async function showPhoneListModal() {
             if (countEl) countEl.textContent = `${models.length} μοντέλα · ${base.length} συσκευές`;
 
             bodyEl.innerHTML = PhoneCatalogUI.buildModelGroupList(models);
+            bindModelCardClicks(bodyEl, selectOsModel);
         }
 
         function showPhoneList() {
