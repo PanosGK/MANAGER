@@ -3136,7 +3136,7 @@ async function showPhoneListModal() {
 
     function syncSelectFilterVisibility(selectEl, optionCount) {
         if (!selectEl) return;
-        if (optionCount > 1) {
+        if (optionCount > 0) {
             selectEl.style.display = '';
         } else {
             selectEl.style.display = 'none';
@@ -3370,13 +3370,22 @@ async function showPhoneListModal() {
             syncPhoneColorSelectDisplay(colorFilter);
         }
         
-        // Populate tag filter
+        // Populate tag filter — only tags assigned to phones in the current set
         if (updateFilters.includes('tag') && tagFilter) {
             // Clear existing options except "All"
             while (tagFilter.children.length > 1) {
                 tagFilter.removeChild(tagFilter.lastChild);
             }
-            const usedTags = getSelectableTagKeys();
+            const tagSet = new Set();
+            phones.forEach((phone) => {
+                getPhoneTags(phone.barcode).forEach((tag) => {
+                    const key = normalizeTagKey(tag);
+                    if (key) tagSet.add(key);
+                });
+            });
+            const usedTags = Array.from(tagSet).sort((a, b) =>
+                getTagDisplayName(a).localeCompare(getTagDisplayName(b), undefined, { sensitivity: 'base' })
+            );
             usedTags.forEach(tag => {
                 const option = document.createElement('option');
                 option.value = tag;
@@ -3676,6 +3685,7 @@ async function showPhoneListModal() {
         let models = buildModelGroupsFromPhones(phones, extractBaseModel);
         models = filterModelGroupsByQuery(models, searchQuery);
         models = sortModelGroups(models, sortBy, sortAscending);
+        populateFilters(phones);
         if (!contentEl) return;
         contentEl.className = 'tm-pc-list tm-cat-table-body';
         contentEl.style.display = '';
@@ -3698,6 +3708,7 @@ async function showPhoneListModal() {
             sortBy,
             sortAscending
         );
+        populateNetworkFilters(phones);
         if (!contentEl) return;
         contentEl.className = 'tm-pc-list tm-cat-table-body';
         contentEl.style.display = '';
@@ -3940,7 +3951,11 @@ async function showPhoneListModal() {
         });
         
         filteredPhones = sortPhones(filteredPhones);
-        
+
+        if (!showingOtherStores) {
+            populateFilters(getFilteredPhonesForFilterUpdate(null));
+        }
+
         updateStatistics(filteredPhones);
         renderPhones(filteredPhones, true);
         highlightSearchMatch(container);

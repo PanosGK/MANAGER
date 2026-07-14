@@ -231,6 +231,10 @@
             color: var(--tm-muted-text, var(--tm-shop-item-text));
             margin-right: 2px;
         }
+        #tm-phone-filter-grade, #tm-phone-filter-gb, #tm-phone-filter-color, #tm-phone-filter-tag,
+        #tm-network-filter-grade, #tm-network-filter-store, #tm-network-filter-gb, #tm-network-filter-color {
+            display: none;
+        }
         .tm-pc-select, .tm-cat-select,
         #tm-phone-filter-grade, #tm-phone-filter-model, #tm-phone-filter-gb,
         #tm-phone-filter-color, #tm-phone-filter-tag, #tm-phone-sort-by,
