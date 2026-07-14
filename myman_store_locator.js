@@ -262,7 +262,13 @@
                     return bits.join(' · ');
                 }).join(' · '),
             }))
-            .sort((a, b) => a.name.localeCompare(b.name, 'el'));
+            .sort((a, b) => {
+                const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
+                if (typeof window.compareStoresByProximity === 'function') {
+                    return window.compareStoresByProximity(a.name, b.name, myStore);
+                }
+                return a.name.localeCompare(b.name, 'el');
+            });
     }
 
     function buildStoreBoardData(model, allPhones, otherStorePhones, filters, helpers) {
@@ -313,6 +319,10 @@
             .sort((a, b) => {
                 if (a.isMine) return -1;
                 if (b.isMine) return 1;
+                const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
+                if (typeof window.compareStoresByProximity === 'function') {
+                    return window.compareStoresByProximity(a.name, b.name, myStore);
+                }
                 return a.name.localeCompare(b.name, 'el');
             });
 
@@ -381,6 +391,10 @@
 
     async function showStoreLocatorModal() {
         if (document.querySelector('.tm-sl-overlay')) return;
+
+        if (typeof window.detectAndCacheCurrentStoreName === 'function') {
+            window.detectAndCacheCurrentStoreName(document);
+        }
 
         const UI = window.PhoneCatalogUI;
         const helpers = {

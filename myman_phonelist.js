@@ -1032,6 +1032,162 @@ function normalizeStoreDisplayName(name) {
     return String(name || '').replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
 }
 
+const MY_STORE_NAME_KEY = 'tm_phone_my_store_name_v1';
+
+const STORE_LOCALITY_CLUSTERS = [
+    { id: 'central', patterns: [/ΣΥΝΤΑΓΜΑ|ΚΟΛΩΝΑΚΙ/i], region: 'Αττική' },
+    { id: 'north', patterns: [/ΧΟΛΑΡΓΟΣ|ATHENS\s*MALL|ΒΡΙΛΗΣΣΙ|ΚΗΦΙΣΙ|ΧΑΛΑΝΔΡ/i], region: 'Αττική' },
+    { id: 'south', patterns: [/ΕΛΛΗΝΙΚ|ΓΛΥΦΑΔ/i], region: 'Αττική' },
+    { id: 'east', patterns: [/ΑΓ\.?\s*ΠΑΡΑΣΚΕΥ/i], region: 'Αττική' },
+    { id: 'west', patterns: [/ΕΡΥΘΡΑΙ|ΚΟΡΥΔΑΛΛ|ΠΕΡΙΣΤΕΡ/i], region: 'Αττική' },
+    { id: 'piraeus', patterns: [/ΠΕΙΡΑ/i], region: 'Αττική' },
+    { id: 'warehouse', patterns: [/ΚΕΝΤΡΙΚΗ\s*ΑΠΟΘΗΚΗ/i], region: 'Αττική' },
+    { id: 'thessaloniki', patterns: [/ΘΕΣΣΑΛΟΝΙΚ|THESS|SALON/i], region: 'Θεσσαλονίκη' },
+    { id: 'crete', patterns: [/ΗΡΑΚΛΕΙΟ|ΚΡΗΤ|ΧΑΝΙΑ|ΡΕΘΥΜ/i], region: 'Κρήτη' },
+    { id: 'west-greece', patterns: [/ΠΑΤΡ|ΑΧΑΙ|ΠΥΡΓ/i], region: 'Δυτ. Ελλάδα' },
+    { id: 'thessaly', patterns: [/ΛΑΡΙΣ|ΒΟΛΟ|ΘΕΣΣΑΛΙ/i], region: 'Θεσσαλία' },
+    { id: 'epirus', patterns: [/ΙΩΑΝΝΙΝ|ΗΠΕΙΡ/i], region: 'Ήπειρος' },
+    { id: 'north-greece', patterns: [/ΚΑΒΑΛ|ΚΟΜΟΤΗΝ|ΞΑΝΘ|ΑΛΕΞΑΝΔΡΟΥΠΟΛ/i], region: 'Βόρεια Ελλάδα' },
+];
+
+const STORE_LOCALITY_ADJACENCY = {
+    central: ['north', 'south', 'east', 'west', 'piraeus', 'warehouse'],
+    north: ['central', 'east', 'warehouse'],
+    south: ['central', 'east', 'piraeus'],
+    east: ['central', 'north', 'south'],
+    west: ['central', 'piraeus', 'north'],
+    piraeus: ['central', 'south', 'west'],
+    warehouse: ['central', 'north'],
+};
+
+function isDeprecatedStoreName(name) {
+    return /^\(OLD\)/i.test(String(name || '').trim());
+}
+
+function normalizeStoreLookupKey(name) {
+    return normalizeStoreDisplayName(name)
+        .toUpperCase()
+        .replace(/\s*\([^)]*\)\s*$/, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function getProfileStoreNamesFromDocument(doc = document) {
+    const sel = doc.querySelector('#iProfileID, select[name="iProfileID"]');
+    if (!sel) return [];
+    return [...sel.options]
+        .map((opt) => normalizeStoreDisplayName(opt.text))
+        .filter((name) => name && !isDeprecatedStoreName(name));
+}
+
+function matchStoreNameInText(text, candidates) {
+    const upper = String(text || '').toUpperCase();
+    let best = null;
+    let bestLen = 0;
+    (candidates || []).forEach((name) => {
+        const clean = normalizeStoreDisplayName(name);
+        if (!clean || isDeprecatedStoreName(clean)) return;
+        const key = normalizeStoreLookupKey(clean);
+        if (key.length >= 4 && upper.includes(key) && key.length > bestLen) {
+            best = clean;
+            bestLen = key.length;
+        }
+    });
+    return best;
+}
+
+function parseCurrentStoreFromDocument(doc = document) {
+    if (!doc) return '';
+
+    const sel = doc.querySelector('#iProfileID, select[name="iProfileID"]');
+    if (sel && sel.selectedIndex >= 0) {
+        const name = normalizeStoreDisplayName(sel.options[sel.selectedIndex].text);
+        if (name && !isDeprecatedStoreName(name)) return name;
+    }
+
+    const profileNames = getProfileStoreNamesFromDocument(doc);
+    const searchRoots = [
+        doc.querySelector('#login_block1'),
+        doc.querySelector('.rnr-b-loggedas'),
+        doc.querySelector('.rnr-top'),
+        doc.querySelector('#head-outter'),
+        doc.body,
+    ].filter(Boolean);
+
+    for (const root of searchRoots) {
+        const matched = matchStoreNameInText(root.textContent, profileNames);
+        if (matched) return matched;
+    }
+
+    return '';
+}
+
+function detectAndCacheCurrentStoreName(doc = document) {
+    const parsed = parseCurrentStoreFromDocument(doc);
+    if (parsed) {
+        GM_setValue(MY_STORE_NAME_KEY, parsed);
+        return parsed;
+    }
+    return GM_getValue(MY_STORE_NAME_KEY, '') || '';
+}
+
+function getCurrentStoreName() {
+    return detectAndCacheCurrentStoreName(document);
+}
+
+function guessStoreLocality(name) {
+    const n = String(name || '').toUpperCase();
+    for (const cluster of STORE_LOCALITY_CLUSTERS) {
+        if (cluster.patterns.some((re) => re.test(n))) return cluster.id;
+    }
+    return 'other';
+}
+
+function guessStoreRegion(name) {
+    const n = String(name || '').toUpperCase();
+    for (const cluster of STORE_LOCALITY_CLUSTERS) {
+        if (cluster.patterns.some((re) => re.test(n))) return cluster.region;
+    }
+    if (/ΑΘΗΝ|ΑΤΤΙΚ|ΜΑΡΟΥΣΙ|ΚΑΛΛΙΘΕΑ|ΝΕΑ\s*ΣΜΥΡΝ/i.test(n)) return 'Αττική';
+    return 'Άλλες περιοχές';
+}
+
+function getStoreProximityTier(storeName, myStoreName) {
+    if (!myStoreName) return 99;
+    const myKey = normalizeStoreLookupKey(myStoreName);
+    const storeKey = normalizeStoreLookupKey(storeName);
+    if (myKey && storeKey && myKey === storeKey) return 0;
+
+    const myLocality = guessStoreLocality(myStoreName);
+    const storeLocality = guessStoreLocality(storeName);
+    if (myLocality !== 'other' && storeLocality === myLocality) return 0;
+    if (myLocality !== 'other' && (STORE_LOCALITY_ADJACENCY[myLocality] || []).includes(storeLocality)) return 1;
+
+    const myRegion = guessStoreRegion(myStoreName);
+    const storeRegion = guessStoreRegion(storeName);
+    if (myRegion === storeRegion && myRegion !== 'Άλλες περιοχές') return 2;
+    return 3;
+}
+
+function compareStoresByProximity(aName, bName, myStoreName) {
+    const tierA = getStoreProximityTier(aName, myStoreName);
+    const tierB = getStoreProximityTier(bName, myStoreName);
+    if (tierA !== tierB) return tierA - tierB;
+    if (isDeprecatedStoreName(aName) !== isDeprecatedStoreName(bName)) {
+        return isDeprecatedStoreName(aName) ? 1 : -1;
+    }
+    return String(aName || '').localeCompare(String(bName || ''), 'el');
+}
+
+function sortStoresByProximity(stores, myStoreName) {
+    const mine = myStoreName || getCurrentStoreName();
+    return [...(stores || [])].sort((a, b) => {
+        const aName = typeof a === 'string' ? a : a?.name;
+        const bName = typeof b === 'string' ? b : b?.name;
+        return compareStoresByProximity(aName, bName, mine);
+    });
+}
+
 function storeNameMatchesPatterns(storeName, patterns) {
     if (!patterns || patterns.length === 0) return true;
     const clean = normalizeStoreDisplayName(storeName).toUpperCase();
@@ -1878,6 +2034,7 @@ async function fetchPhoneList() {
                 try {
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(response.responseText, 'text/html');
+                    detectAndCacheCurrentStoreName(doc);
                     
                     // Try multiple table selectors - be more flexible
                     let table = doc.querySelector('table.rnr-c.rnr-cont.rnr-c-grid.rnr-b-grid.rnr-gridtable.hoverable');
@@ -2095,6 +2252,7 @@ async function fetchOtherStorePhones() {
                     try {
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(response.responseText, 'text/html');
+                        detectAndCacheCurrentStoreName(doc);
                         
                         let table = doc.querySelector('table.rnr-c.rnr-cont.rnr-b-grid.rnr-gridtable.hoverable');
                         if (!table) table = doc.querySelector('table.rnr-b-grid.rnr-gridtable');
@@ -2659,6 +2817,13 @@ window.getDefaultPhoneStoreRules = getDefaultPhoneStoreRules;
 window.parseStorePatternCsv = parseStorePatternCsv;
 window.storeNameMatchesPatterns = storeNameMatchesPatterns;
 window.collectKnownStoreNames = collectKnownStoreNames;
+window.getCurrentStoreName = getCurrentStoreName;
+window.detectAndCacheCurrentStoreName = detectAndCacheCurrentStoreName;
+window.guessStoreRegion = guessStoreRegion;
+window.guessStoreLocality = guessStoreLocality;
+window.getStoreProximityTier = getStoreProximityTier;
+window.compareStoresByProximity = compareStoresByProximity;
+window.sortStoresByProximity = sortStoresByProximity;
 window.isStoreAllowedForPhone = isStoreAllowedForPhone;
 window.isStoreAllowedForBuybackPhone = isStoreAllowedForBuybackPhone;
 window.isStoreAllowedForRegularPhone = isStoreAllowedForRegularPhone;
@@ -2674,4 +2839,10 @@ window.renamePhoneCanonicalModel = renamePhoneCanonicalModel;
 window.movePhoneCanonicalModel = movePhoneCanonicalModel;
 window.collectSuggestedCanonicalModels = collectSuggestedCanonicalModels;
 window.rebuildCanonModelTokens = rebuildCanonModelTokens;
+
+if (document.body) {
+    detectAndCacheCurrentStoreName(document);
+} else {
+    document.addEventListener('DOMContentLoaded', () => detectAndCacheCurrentStoreName(document), { once: true });
+}
 

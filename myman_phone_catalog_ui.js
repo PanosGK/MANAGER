@@ -69,9 +69,12 @@
     }
 
     function guessStoreRegion(name) {
+        if (typeof window.guessStoreRegion === 'function' && window.guessStoreRegion !== guessStoreRegion) {
+            return window.guessStoreRegion(name);
+        }
         const n = String(name || '').toUpperCase();
         if (/ΘΕΣΣΑΛΟΝΙΚ|THESS|SALON/i.test(n)) return 'Θεσσαλονίκη';
-        if (/ΑΘΗΝ|ΑΤΤΙΚ|ΠΕΙΡΑΙ|ΜΑΡΟΥΣΙ|ΚΑΛΛΙΘΕΑ|ΓΛΥΦΑΔ|ΠΕΡΙΣΤΕΡ|ΧΑΛΑΝΔΡ|ΝΕΑ ΣΜΥΡΝ/i.test(n)) return 'Αττική';
+        if (/ΑΘΗΝ|ΑΤΤΙΚ|ΠΕΙΡΑΙ|ΜΑΡΟΥΣΙ|ΚΑΛΛΙΘΕΑ|ΓΛΥΦΑΔ|ΠΕΡΙΣΤΕΡ|ΧΑΛΑΝΔΡ|ΝΕΑ ΣΜΥΡΝ|ΕΛΛΗΝΙΚ|ΧΟΛΑΡΓ|ΒΡΙΛΗΣΣΙ|ΚΗΦΙΣΙ|ΕΡΥΘΡΑΙ|ΚΟΡΥΔΑΛΛ|ΚΟΛΩΝΑΚΙ|ΣΥΝΤΑΓΜ/i.test(n)) return 'Αττική';
         if (/ΗΡΑΚΛΕΙΟ|ΚΡΗΤ|ΧΑΝΙΑ|ΡΕΘΥΜ/i.test(n)) return 'Κρήτη';
         if (/ΠΑΤΡ|ΑΧΑΙ|ΠΥΡΓ/i.test(n)) return 'Δυτ. Ελλάδα';
         if (/ΛΑΡΙΣ|ΒΟΛΟ|ΘΕΣΣΑΛΙ/i.test(n)) return 'Θεσσαλία';
