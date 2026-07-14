@@ -699,7 +699,7 @@
             await resolveNetworkStoreDetails(modelFilter);
 
             const storeRows = buildNetworkStoreBoardData(selectedModel, otherStorePhones, activeFilters, helpers);
-            bodyEl.innerHTML = UI.buildNetworkStoreBoard(selectedModel, storeRows, buildUiCtx());
+            bodyEl.innerHTML = UI.buildNetworkStoreBoard(selectedModel, storeRows, buildUiCtx({ showPurchaseStatus: true }));
 
             const storeCount = storeRows.length;
             setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} στο δίκτυο`);

@@ -26630,6 +26630,31 @@ window.initOrderTracking = initOrderTracking;
             border: 1px solid color-mix(in srgb, var(--tm-warning-color, #f59e0b) 40%, transparent);
         }
 
+        .tm-sl-store-purchase { display: inline-flex; flex-wrap: wrap; gap: 4px; flex-shrink: 0; }
+        .tm-sl-purchase-chip, .tm-sl-purchase-badge {
+            display: inline-flex; align-items: center; gap: 3px;
+            padding: 3px 7px; border-radius: 6px;
+            font-size: 10px; font-weight: 700; line-height: 1.2; white-space: nowrap;
+        }
+        .tm-sl-purchase-chip--ok, .tm-sl-purchase-badge--ok {
+            background: color-mix(in srgb, #16a34a 14%, transparent);
+            color: #15803d;
+            border: 1px solid color-mix(in srgb, #16a34a 28%, transparent);
+        }
+        .tm-sl-purchase-chip--no, .tm-sl-purchase-badge--no {
+            background: color-mix(in srgb, #dc2626 12%, transparent);
+            color: #b91c1c;
+            border: 1px solid color-mix(in srgb, #dc2626 26%, transparent);
+        }
+        .tm-sl-purchase-chip--neutral {
+            background: color-mix(in srgb, var(--tm-shop-item-border) 22%, transparent);
+            color: var(--tm-shop-item-text);
+            border: 1px solid var(--tm-shop-item-border);
+        }
+        .tm-sl-store-row.tm-sl-store-row--no-purchase {
+            border-left-color: var(--tm-warning-color, #f59e0b);
+        }
+
         .tm-sl-skeleton-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -26890,6 +26915,62 @@ window.initOrderTracking = initOrderTracking;
         return parts.join('');
     }
 
+    function isStorePurchaseAllowed(storeName, isBuyback) {
+        if (typeof window.isStoreAllowedForPhone === 'function') {
+            return window.isStoreAllowedForPhone(storeName, isBuyback);
+        }
+        return true;
+    }
+
+    function buildStoreChipHtml(storeName, isBuyback, allowed) {
+        const name = esc(storeName);
+        if (isBuyback) {
+            const cls = allowed ? 'tm-sl-purchase-chip--ok' : 'tm-sl-purchase-chip--no';
+            const icon = allowed ? '●' : '○';
+            const label = allowed ? 'BB OK' : 'Όχι BB';
+            return `<span class="tm-sl-purchase-chip ${cls}" title="${allowed ? 'Επιτρέπεται αγορά BB' : 'Δεν επιτρέπεται αγορά BB'}">${icon} ${label}</span>`;
+        }
+        if (!allowed) {
+            return `<span class="tm-sl-purchase-chip tm-sl-purchase-chip--no" title="Μη επιτρεπόμενο κατάστημα">○ ${name}</span>`;
+        }
+        return `<span class="tm-sl-purchase-chip tm-sl-purchase-chip--neutral" title="Επιτρεπόμενο">✓ Αγορά</span>`;
+    }
+
+    function buildPurchaseBadgeHtml(isBuyback, allowed) {
+        if (isBuyback) {
+            return allowed
+                ? `<span class="tm-sl-purchase-badge tm-sl-purchase-badge--ok" title="Επιτρέπεται αγορά BB">✓ Αγοράσιμο BB</span>`
+                : `<span class="tm-sl-purchase-badge tm-sl-purchase-badge--no" title="Δεν επιτρέπεται αγορά BB από αυτό το κατάστημα">✕ Όχι BB κατ.</span>`;
+        }
+        return allowed
+            ? `<span class="tm-sl-purchase-badge tm-sl-purchase-badge--ok" title="Επιτρεπόμενο κατάστημα">✓ Αγοράσιμο</span>`
+            : `<span class="tm-sl-purchase-badge tm-sl-purchase-badge--no" title="Μη επιτρεπόμενο κατάστημα">✕ Μη επιτρεπόμενο</span>`;
+    }
+
+    function buildStorePurchaseSummary(store) {
+        if (!store?.variants?.length) return { html: '', noPurchase: false };
+        const hasBuyback = store.variants.some((v) => v.isBuyback);
+        const hasRegular = store.variants.some((v) => !v.isBuyback);
+        const badges = [];
+        let noPurchase = false;
+        if (hasBuyback) {
+            const allowed = isStorePurchaseAllowed(store.name, true);
+            badges.push(buildStoreChipHtml(store.name, true, allowed));
+            if (!allowed) noPurchase = true;
+        }
+        if (hasRegular) {
+            const allowed = isStorePurchaseAllowed(store.name, false);
+            if (!allowed) {
+                badges.push(buildStoreChipHtml(store.name, false, allowed));
+                noPurchase = true;
+            }
+        }
+        return {
+            html: badges.length ? `<span class="tm-sl-store-purchase">${badges.join('')}</span>` : '',
+            noPurchase,
+        };
+    }
+
     function formatVariantLine(v, ctx) {
         const hexMap = ctx?.colorHexMap || {};
         const bits = [];
@@ -26922,6 +27003,9 @@ window.initOrderTracking = initOrderTracking;
         const gradeStyle = getGradeStyle(v.grade);
         const storeName = v.storeName || '—';
         const storeHtml = ctx?.hideStoreInUnits ? '' : buildUnitStoreHTML(storeName, v.isMine);
+        const purchaseBadge = ctx?.showPurchaseStatus && v.storeName
+            ? buildPurchaseBadgeHtml(!!v.isBuyback, isStorePurchaseAllowed(v.storeName, !!v.isBuyback))
+            : '';
         return `<div class="tm-sl-unit" data-barcode="${esc(v.barcode)}">
             <div class="tm-sl-unit-grade" style="${gradeStyle}">${esc(v.grade || '—')}</div>
             <div>
@@ -26930,6 +27014,7 @@ window.initOrderTracking = initOrderTracking;
                 <div class="tm-sl-unit-barcode">${esc(v.barcode)}</div>
             </div>
             <div class="tm-sl-unit-actions">
+                ${purchaseBadge}
                 ${v.price ? `<span class="tm-sl-unit-price">${esc(v.price)}</span>` : ''}
                 <button type="button" class="tm-sl-unit-btn" data-tm-sl-copy="${esc(v.barcode)}">Copy</button>
                 <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}">Open</button>
@@ -26980,10 +27065,15 @@ window.initOrderTracking = initOrderTracking;
         const signal = getStoreSignalClass(store.variants.length);
         const preview = store.variants.slice(0, 3).map((v) => formatVariantLine(v, ctx)).join(' · ');
         const units = store.variants.map((v) => buildUnitRowHTML(v, ctx)).join('');
-        return `<div class="tm-sl-store-row ${signal}${store.isMine ? ' is-mine' : ''}" data-store-idx="${idx}">
+        const purchase = ctx?.showPurchaseStatus && !store.isMine
+            ? buildStorePurchaseSummary(store)
+            : { html: '', noPurchase: false };
+        const noPurchaseClass = purchase.noPurchase ? ' tm-sl-store-row--no-purchase' : '';
+        return `<div class="tm-sl-store-row ${signal}${store.isMine ? ' is-mine' : ''}${noPurchaseClass}" data-store-idx="${idx}">
             <div class="tm-sl-store-head" data-tm-sl-toggle-store="${idx}" tabindex="0" role="button">
                 <span class="tm-sl-store-icon">${ICON.store}</span>
                 <span class="tm-sl-store-name">${esc(store.name)}</span>
+                ${purchase.html}
                 <span class="tm-sl-store-qty">${store.variants.length} τεμ.</span>
                 <span class="tm-sl-store-chevron">${ICON.chevron}</span>
             </div>
@@ -27144,6 +27234,9 @@ window.initOrderTracking = initOrderTracking;
         buildPhoneListSection,
         buildUnitRowHTML,
         formatVariantLine,
+        buildStoreChipHtml,
+        buildPurchaseBadgeHtml,
+        isStorePurchaseAllowed,
         showToast,
         updateFreshness,
         updateBreadcrumb,
@@ -29814,6 +29907,10 @@ window.getDefaultPhoneStoreRules = getDefaultPhoneStoreRules;
 window.parseStorePatternCsv = parseStorePatternCsv;
 window.storeNameMatchesPatterns = storeNameMatchesPatterns;
 window.collectKnownStoreNames = collectKnownStoreNames;
+window.isStoreAllowedForPhone = isStoreAllowedForPhone;
+window.isStoreAllowedForBuybackPhone = isStoreAllowedForBuybackPhone;
+window.isStoreAllowedForRegularPhone = isStoreAllowedForRegularPhone;
+window.phoneHasAllowedBuybackStore = phoneHasAllowedBuybackStore;
 window.getDefaultPhoneCanonicalModels = getDefaultPhoneCanonicalModels;
 window.loadPhoneCanonicalModels = loadPhoneCanonicalModels;
 window.savePhoneCanonicalModels = savePhoneCanonicalModels;
@@ -31328,7 +31425,7 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
             await resolveNetworkStoreDetails(modelFilter);
 
             const storeRows = buildNetworkStoreBoardData(selectedModel, otherStorePhones, activeFilters, helpers);
-            bodyEl.innerHTML = UI.buildNetworkStoreBoard(selectedModel, storeRows, buildUiCtx());
+            bodyEl.innerHTML = UI.buildNetworkStoreBoard(selectedModel, storeRows, buildUiCtx({ showPurchaseStatus: true }));
 
             const storeCount = storeRows.length;
             setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} στο δίκτυο`);
