@@ -26225,6 +26225,40 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-breadcrumb-sep { opacity: 0.45; }
         .tm-sl-breadcrumb-current { color: var(--tm-primary-color); }
 
+        .tm-sl-view-tabs {
+            display: flex;
+            gap: 6px;
+            margin-top: 12px;
+            padding: 4px;
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--tm-shop-item-border) 35%, transparent);
+            border: 1px solid var(--tm-shop-item-border);
+        }
+        .tm-sl-view-tab {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: var(--tm-shop-item-text);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 9px 12px;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+        }
+        .tm-sl-view-tab:hover {
+            background: color-mix(in srgb, var(--tm-primary-color) 8%, transparent);
+        }
+        .tm-sl-view-tab.is-active {
+            background: var(--tm-shop-item-bg);
+            color: var(--tm-primary-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .tm-sl-view-tab:focus-visible {
+            outline: 2px solid var(--tm-primary-color);
+            outline-offset: 2px;
+        }
+
         .tm-sl-header {
             padding: 18px 20px 14px;
             border-bottom: 1px solid var(--tm-shop-item-border);
@@ -26705,8 +26739,8 @@ window.initOrderTracking = initOrderTracking;
                 <div id="tm-sl-breadcrumb-wrap">${buildBreadcrumb('models')}</div>
                 <div class="tm-sl-header-row">
                     <div class="tm-sl-title-block">
-                        <h2 class="tm-sl-title" id="tm-sl-title">Πού υπάρχει το μοντέλο</h2>
-                        <p class="tm-sl-subtitle" id="tm-sl-subtitle">Επιλέξτε μοντέλο για να δείτε διαθεσιμότητα ανά κατάστημα</p>
+                        <h2 class="tm-sl-title" id="tm-sl-title">Το κατάστημά μου</h2>
+                        <p class="tm-sl-subtitle" id="tm-sl-subtitle">Συσκευές που έχετε σε stock</p>
                     </div>
                     <div class="tm-sl-header-actions">
                         <button type="button" id="tm-sl-refresh" class="tm-sl-btn" title="Ανανέωση">${ICON.refresh} Ανανέωση</button>
@@ -26728,6 +26762,10 @@ window.initOrderTracking = initOrderTracking;
                         <button type="button" id="tm-sl-close" class="tm-sl-btn tm-sl-btn--icon" aria-label="Κλείσιμο">×</button>
                     </div>
                 </div>
+                <nav class="tm-sl-view-tabs" role="tablist" aria-label="Προβολή καταλόγου">
+                    <button type="button" id="tm-sl-view-mine" class="tm-sl-view-tab is-active" role="tab" aria-selected="true">${ICON.pin} Το κατάστημά μου</button>
+                    <button type="button" id="tm-sl-view-network" class="tm-sl-view-tab" role="tab" aria-selected="false">${ICON.store} Άλλα καταστήματα</button>
+                </nav>
             </header>
             <div class="tm-sl-toolbar" id="tm-sl-toolbar"></div>
             <div class="tm-sl-body" id="tm-sl-body">${buildSkeletonGrid(6)}</div>
@@ -26773,37 +26811,46 @@ window.initOrderTracking = initOrderTracking;
 
     function buildModelGrid(models, ctx) {
         if (!models.length) {
-            return buildEmptyState('📱', 'Δεν βρέθηκαν μοντέλα', 'Δοκιμάστε άλλη αναζήτηση ή ανανέωση');
+            const emptyMsg = ctx?.catalogView === 'mine'
+                ? 'Δεν βρέθηκαν συσκευές στο κατάστημά σας'
+                : 'Δεν βρέθηκαν μοντέλα σε άλλα καταστήματα';
+            return buildEmptyState('📱', 'Δεν βρέθηκαν μοντέλα', emptyMsg);
         }
         const query = ctx?.query || '';
+        const catalogView = ctx?.catalogView || 'mine';
         const getGradeStyle = ctx?.getGradeStyle || (() => '');
         const cards = models.map(([model, data], i) => {
-            const storeLabel = data.storeCount === 1
-                ? '1 κατάστημα'
-                : `${data.storeCount} καταστήματα`;
             const grades = Object.entries(data.grades || {})
                 .sort((a, b) => a[0].localeCompare(b[0]))
                 .map(([g, n]) => gradeChipHTML(g, n, getGradeStyle))
                 .join('');
             const heat = getModelHeatClass(data);
-            const mineBadge = data.myCount > 0
-                ? `<span class="tm-sl-mine-badge">${ICON.pin} Στο δικό μου</span>`
-                : '';
+
+            if (catalogView === 'mine') {
+                const count = data.myCount || data.totalUnits || 0;
+                return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
+                    data-tm-sl-model="${esc(model)}" style="--i:${i}">
+                    <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
+                    <div class="tm-sl-model-meta">${ICON.pin.replace('width="11"', 'width="12"').replace('height="11"', 'height="12"')} ${count} ${count === 1 ? 'συσκευή' : 'συσκευές'} στο δικό σας</div>
+                    ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
+                </div>`;
+            }
+
+            const storeLabel = data.storeCount === 1
+                ? '1 κατάστημα'
+                : `${data.storeCount} καταστήματα`;
             const storeNames = data.storeList || [];
             const maxStores = 4;
-            const storeChips = storeNames.slice(0, maxStores).map((name) => {
-                const isMine = name === 'Το κατάστημά μου';
-                return `<span class="tm-sl-model-store-chip${isMine ? ' tm-sl-model-store-chip--mine' : ''}">${esc(name)}</span>`;
-            }).join('');
+            const storeChips = storeNames.slice(0, maxStores).map((name) =>
+                `<span class="tm-sl-model-store-chip">${esc(name)}</span>`
+            ).join('');
             const storeMore = storeNames.length > maxStores
                 ? `<span class="tm-sl-model-store-more">+${storeNames.length - maxStores}</span>`
                 : '';
             return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
                 data-tm-sl-model="${esc(model)}" style="--i:${i}">
-                ${mineBadge}
                 <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
                 <div class="tm-sl-model-meta">${ICON.store.replace('width="16"', 'width="12"').replace('height="16"', 'height="12"')} ${esc(storeLabel)}</div>
-                ${buildAvailabilityBar(data)}
                 <div class="tm-sl-model-stores">${data.totalUnits} συσκευές στο δίκτυο</div>
                 ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                 ${storeChips ? `<div class="tm-sl-model-store-list">${storeChips}${storeMore}</div>` : ''}
@@ -26874,10 +26921,11 @@ window.initOrderTracking = initOrderTracking;
         const getGradeStyle = ctx?.getGradeStyle || (() => '');
         const gradeStyle = getGradeStyle(v.grade);
         const storeName = v.storeName || '—';
+        const storeHtml = ctx?.hideStoreInUnits ? '' : buildUnitStoreHTML(storeName, v.isMine);
         return `<div class="tm-sl-unit" data-barcode="${esc(v.barcode)}">
             <div class="tm-sl-unit-grade" style="${gradeStyle}">${esc(v.grade || '—')}</div>
             <div>
-                ${buildUnitStoreHTML(storeName, v.isMine)}
+                ${storeHtml}
                 <div class="tm-sl-unit-spec">${buildUnitSpecHTML(v, ctx)}</div>
                 <div class="tm-sl-unit-barcode">${esc(v.barcode)}</div>
             </div>
@@ -26942,6 +26990,36 @@ window.initOrderTracking = initOrderTracking;
             ${preview ? `<div class="tm-sl-store-preview">${esc(preview)}${store.variants.length > 3 ? '…' : ''}</div>` : ''}
             <div class="tm-sl-store-units">${units}</div>
         </div>`;
+    }
+
+    function buildMyStoreBoard(modelName, variants, ctx) {
+        if (!variants.length) {
+            return buildEmptyState('📱', 'Χωρίς διαθέσιμες συσκευές', `Δεν υπάρχει ${esc(modelName)} στο κατάστημά σας`);
+        }
+        const units = variants.map((v) => buildUnitRowHTML(v, ctx)).join('');
+        return `<section class="tm-sl-phone-list-section">
+            <h3 class="tm-sl-phone-list-title">${ICON.pin} Το κατάστημά μου · ${variants.length} ${variants.length === 1 ? 'συσκευή' : 'συσκευές'}</h3>
+            <div class="tm-sl-phone-list tm-sl-phone-list--mine">${units}</div>
+        </section>`;
+    }
+
+    function buildNetworkStoreBoard(modelName, storeRows, ctx) {
+        if (!storeRows.length) {
+            return buildEmptyState('🔍', 'Δεν βρέθηκε σε άλλα καταστήματα', `Κανένα κατάστημα δικτύου δεν έχει ${esc(modelName)}`);
+        }
+        const grouped = groupStoresByRegion(storeRows);
+        let globalIdx = 0;
+        return grouped.map(([region, rows]) => {
+            const rowHtml = rows.map((store) => {
+                const block = buildStoreRowHTML(store, globalIdx, ctx);
+                globalIdx += 1;
+                return block;
+            }).join('');
+            return `<section class="tm-sl-region">
+                <h3 class="tm-sl-region-title">${esc(region)}</h3>
+                <div class="tm-sl-store-list">${rowHtml}</div>
+            </section>`;
+        }).join('');
     }
 
     function buildStoreBoard(modelName, myStore, allRows, ctx) {
@@ -27030,6 +27108,17 @@ window.initOrderTracking = initOrderTracking;
         if (wrap) wrap.innerHTML = buildBreadcrumb(step, modelName);
     }
 
+    function updateViewTabs(overlay, view) {
+        const mineTab = overlay?.querySelector('#tm-sl-view-mine');
+        const networkTab = overlay?.querySelector('#tm-sl-view-network');
+        if (!mineTab || !networkTab) return;
+        const isMine = view === 'mine';
+        mineTab.classList.toggle('is-active', isMine);
+        networkTab.classList.toggle('is-active', !isMine);
+        mineTab.setAttribute('aria-selected', isMine ? 'true' : 'false');
+        networkTab.setAttribute('aria-selected', !isMine ? 'true' : 'false');
+    }
+
     function setDensity(overlay, compact) {
         const shell = overlay?.querySelector('#tm-sl-shell');
         const btn = overlay?.querySelector('#tm-sl-density');
@@ -27058,6 +27147,8 @@ window.initOrderTracking = initOrderTracking;
         buildModelGrid,
         buildFilterChips,
         buildStoreBoard,
+        buildMyStoreBoard,
+        buildNetworkStoreBoard,
         buildEmptyState,
         buildSkeletonGrid,
         buildSkeletonStores,
@@ -27067,6 +27158,7 @@ window.initOrderTracking = initOrderTracking;
         showToast,
         updateFreshness,
         updateBreadcrumb,
+        updateViewTabs,
         setDensity,
     };
 })();
@@ -30566,6 +30658,7 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
     const MINE_STORE_KEY = '__mine__';
     const DENSITY_KEY = 'tm_sl_density_compact';
     const SORT_KEY = 'tm_sl_model_sort';
+    const CATALOG_VIEW_KEY = 'tm_sl_catalog_view';
 
     function cleanStoreName(name) {
         return String(name || '').replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
@@ -30588,65 +30681,67 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
         return [v.barcode, v.grade, v.gb, v.color].join('|');
     }
 
-    function buildModelIndex(allPhones, otherStorePhones, helpers) {
+    function buildMyStoreModelIndex(allPhones, helpers) {
         const { extractBaseModel, normalizePhoneGrade, filterIphoneTitlePhones } = helpers;
-        const getStores = helpers.getEffectivePhoneStores || ((p) => helpers.filterOneUnitStores(p.stores || p.otherStores || []));
         const map = new Map();
-
-        function ensure(model) {
-            if (!map.has(model)) {
-                map.set(model, {
-                    grades: {},
-                    storeNames: new Set(),
-                    totalUnits: 0,
-                    myCount: 0,
-                });
-            }
-            return map.get(model);
-        }
 
         filterIphoneTitlePhones(allPhones).forEach((phone) => {
             if ((phone.unitsRemaining || 0) <= 0) return;
             const model = extractBaseModel(phone.model);
             if (!model) return;
-            const entry = ensure(model);
+            if (!map.has(model)) {
+                map.set(model, { grades: {}, totalUnits: 0, myCount: 0, storeCount: 0, storeList: [] });
+            }
+            const entry = map.get(model);
             entry.totalUnits += 1;
             entry.myCount += 1;
-            entry.storeNames.add(MINE_STORE_KEY);
             const g = normalizePhoneGrade(phone.grade);
             if (g) entry.grades[g] = (entry.grades[g] || 0) + 1;
         });
 
+        return [...map.entries()].filter(([, data]) => data.myCount > 0);
+    }
+
+    function buildNetworkModelIndex(otherStorePhones, helpers) {
+        const { extractBaseModel, normalizePhoneGrade, filterIphoneTitlePhones } = helpers;
+        const getStores = helpers.getEffectivePhoneStores || ((p) => helpers.filterOneUnitStores(p.stores || p.otherStores || []));
+        const map = new Map();
+
         filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
             const model = extractBaseModel(phone.model);
             if (!model) return;
-            const entry = ensure(model);
+            const stores = getStores(phone);
+            if (!stores.length) return;
+            if (!map.has(model)) {
+                map.set(model, { grades: {}, storeNames: new Set(), totalUnits: 0, myCount: 0 });
+            }
+            const entry = map.get(model);
             entry.totalUnits += 1;
             const g = normalizePhoneGrade(phone.grade);
             if (g) entry.grades[g] = (entry.grades[g] || 0) + 1;
-            getStores(phone).forEach((store) => {
+            stores.forEach((store) => {
                 const name = cleanStoreName(store.name);
                 if (name) entry.storeNames.add(name);
             });
         });
 
-        const MINE_LABEL = 'Το κατάστημά μου';
         return [...map.entries()]
             .map(([model, data]) => {
-                const storeList = [...data.storeNames]
-                    .map((key) => (key === MINE_STORE_KEY ? MINE_LABEL : key))
-                    .sort((a, b) => {
-                        if (a === MINE_LABEL) return -1;
-                        if (b === MINE_LABEL) return 1;
-                        return a.localeCompare(b, 'el');
-                    });
+                const storeList = [...data.storeNames].sort((a, b) => a.localeCompare(b, 'el'));
                 return [model, {
                     ...data,
                     storeCount: data.storeNames.size,
                     storeList,
                 }];
             })
-            .filter(([, data]) => data.storeCount > 0 || data.myCount > 0);
+            .filter(([, data]) => data.storeCount > 0);
+    }
+
+    function buildModelIndex(allPhones, otherStorePhones, helpers, catalogView = 'mine') {
+        if (catalogView === 'network') {
+            return buildNetworkModelIndex(otherStorePhones, helpers);
+        }
+        return buildMyStoreModelIndex(allPhones, helpers);
     }
 
     function sortModels(models, sortKey) {
@@ -30661,7 +30756,7 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
         return list;
     }
 
-    function collectFiltersForModel(allPhones, otherStorePhones, model, helpers) {
+    function collectFiltersForModel(allPhones, otherStorePhones, model, helpers, catalogView = 'mine') {
         const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
         const grades = new Set();
         const gbs = new Set();
@@ -30676,10 +30771,14 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
             if (color) colors.add(color);
         };
 
-        filterIphoneTitlePhones(allPhones).forEach((p) => {
-            if ((p.unitsRemaining || 0) > 0) addPhone(p);
-        });
-        filterIphoneTitlePhones(otherStorePhones).forEach(addPhone);
+        if (catalogView !== 'network') {
+            filterIphoneTitlePhones(allPhones).forEach((p) => {
+                if ((p.unitsRemaining || 0) > 0) addPhone(p);
+            });
+        }
+        if (catalogView !== 'mine') {
+            filterIphoneTitlePhones(otherStorePhones).forEach(addPhone);
+        }
 
         const sortGb = (a, b) => {
             const num = (s) => {
@@ -30696,17 +30795,21 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
         };
     }
 
-    function collectFilterCounts(allPhones, otherStorePhones, model, activeFilters, helpers) {
+    function collectFilterCounts(allPhones, otherStorePhones, model, activeFilters, helpers, catalogView = 'mine') {
         const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
         const counts = { grade: {}, gb: {}, color: {} };
 
         const phones = [];
-        filterIphoneTitlePhones(allPhones).forEach((p) => {
-            if ((p.unitsRemaining || 0) > 0 && extractBaseModel(p.model) === model) phones.push(p);
-        });
-        filterIphoneTitlePhones(otherStorePhones).forEach((p) => {
-            if (extractBaseModel(p.model) === model) phones.push(p);
-        });
+        if (catalogView !== 'network') {
+            filterIphoneTitlePhones(allPhones).forEach((p) => {
+                if ((p.unitsRemaining || 0) > 0 && extractBaseModel(p.model) === model) phones.push(p);
+            });
+        }
+        if (catalogView !== 'mine') {
+            filterIphoneTitlePhones(otherStorePhones).forEach((p) => {
+                if (extractBaseModel(p.model) === model) phones.push(p);
+            });
+        }
 
         function matchesExcept(phone, exceptKey) {
             const filters = { ...activeFilters };
@@ -30741,6 +30844,65 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
         const color = extractColor(phone.name || phone.model);
         if (filters.color && color !== filters.color) return false;
         return true;
+    }
+
+    function buildMyStoreUnitsData(model, allPhones, filters, helpers) {
+        const { filterIphoneTitlePhones } = helpers;
+        const variants = [];
+
+        filterIphoneTitlePhones(allPhones).forEach((phone) => {
+            if ((phone.unitsRemaining || 0) <= 0) return;
+            if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
+            variants.push({
+                ...phoneToVariant(phone, helpers),
+                storeName: 'Το κατάστημά μου',
+                isMine: true,
+            });
+        });
+
+        return variants;
+    }
+
+    function buildNetworkStoreBoardData(model, otherStorePhones, filters, helpers) {
+        const { filterIphoneTitlePhones } = helpers;
+        const getStores = helpers.getEffectivePhoneStores || ((p) => helpers.filterOneUnitStores(p.stores || p.otherStores || []));
+        const storeMap = new Map();
+
+        function addVariant(storeKey, storeName, variant) {
+            if (!storeMap.has(storeKey)) {
+                storeMap.set(storeKey, { name: storeName, isMine: false, variants: [], seen: new Set() });
+            }
+            const bucket = storeMap.get(storeKey);
+            const key = variantKey(variant);
+            if (bucket.seen.has(key)) return;
+            bucket.seen.add(key);
+            bucket.variants.push({ ...variant, storeName, isMine: false });
+        }
+
+        filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
+            if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
+            const variant = phoneToVariant(phone, helpers);
+            const stores = getStores(phone);
+            if (!stores.length) return;
+            stores.forEach((store) => {
+                const name = cleanStoreName(store.name);
+                if (!name) return;
+                addVariant(name, name, variant);
+            });
+        });
+
+        return [...storeMap.values()]
+            .filter((s) => s.variants.length > 0)
+            .map(({ name, isMine, variants }) => ({
+                name,
+                isMine,
+                variants,
+                preview: variants.slice(0, 3).map((v) => {
+                    const bits = [v.grade, v.gb, v.color].filter(Boolean);
+                    return bits.join(' · ');
+                }).join(' · '),
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name, 'el'));
     }
 
     function buildStoreBoardData(model, allPhones, otherStorePhones, filters, helpers) {
@@ -30889,6 +31051,7 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
         let selectedModel = null;
         let modelQuery = '';
         let modelSort = GM_getValue(SORT_KEY, 'name');
+        let catalogView = GM_getValue(CATALOG_VIEW_KEY, 'mine');
         let densityCompact = GM_getValue(DENSITY_KEY, false);
         let activeFilters = { grade: '', gb: '', color: '' };
         let allPhones = [];
@@ -30899,6 +31062,18 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
         let keyboardBound = false;
 
         UI.setDensity(overlay, densityCompact);
+        UI.updateViewTabs(overlay, catalogView);
+
+        function syncCatalogHeaders() {
+            if (step === 'stores' && selectedModel) return;
+            if (catalogView === 'mine') {
+                titleEl.textContent = 'Το κατάστημά μου';
+                subtitleEl.textContent = 'Συσκευές που έχετε σε stock';
+            } else {
+                titleEl.textContent = 'Άλλα καταστήματα';
+                subtitleEl.textContent = 'Πού υπάρχει κάθε μοντέλο στο δίκτυο';
+            }
+        }
 
         function getSettingsCtx() {
             return {
@@ -30917,7 +31092,12 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
                         renderModelsStep();
                     }
                 },
-                getExportPhones: () => [...allPhones, ...otherStorePhones],
+                getExportPhones: () => {
+                    if (catalogView === 'mine') {
+                        return allPhones.filter((p) => (p.unitsRemaining || 0) > 0);
+                    }
+                    return otherStorePhones;
+                },
             };
         }
 
@@ -30934,6 +31114,7 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
                 getGradeStyle: (grade) => helpers.getPhoneGradeCircleStyle(grade),
                 colorHexMap: getColorHexMap(),
                 query: modelQuery,
+                catalogView,
                 ...extra,
             };
         }
@@ -30973,21 +31154,7 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
             }
         }
 
-        function wireStoreBoard() {
-            bodyEl.querySelectorAll('[data-tm-sl-toggle-store]').forEach((head) => {
-                const toggle = () => {
-                    const row = head.closest('.tm-sl-store-row');
-                    row?.classList.toggle('is-open');
-                };
-                head.addEventListener('click', toggle);
-                head.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        toggle();
-                    }
-                });
-            });
-
+        function wireUnitActions() {
             bodyEl.querySelectorAll('[data-tm-sl-copy]').forEach((btn) => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -31008,9 +31175,48 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
                     }
                 });
             });
+        }
 
+        function wireStoreBoard() {
+            bodyEl.querySelectorAll('[data-tm-sl-toggle-store]').forEach((head) => {
+                const toggle = () => {
+                    const row = head.closest('.tm-sl-store-row');
+                    row?.classList.toggle('is-open');
+                };
+                head.addEventListener('click', toggle);
+                head.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        toggle();
+                    }
+                });
+            });
+
+            wireUnitActions();
             bindStoreKeyboard(bodyEl);
         }
+
+        function wireViewTabs() {
+            const mineTab = overlay.querySelector('#tm-sl-view-mine');
+            const networkTab = overlay.querySelector('#tm-sl-view-network');
+            const switchView = async (view) => {
+                if (catalogView === view) return;
+                catalogView = view;
+                GM_setValue(CATALOG_VIEW_KEY, catalogView);
+                UI.updateViewTabs(overlay, catalogView);
+                step = 'models';
+                selectedModel = null;
+                activeFilters = { grade: '', gb: '', color: '' };
+                if (catalogView === 'network') {
+                    await ensureOtherStores();
+                }
+                renderModelsStep();
+            };
+            mineTab?.addEventListener('click', () => switchView('mine'));
+            networkTab?.addEventListener('click', () => switchView('network'));
+        }
+
+        wireViewTabs();
 
         function mergeNetworkStoreHints() {
             if (typeof window.mergeOtherStoresFromAllPhones === 'function') {
@@ -31049,8 +31255,7 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
             step = 'models';
             selectedModel = null;
             UI.updateBreadcrumb(overlay, 'models');
-            titleEl.textContent = 'Πού υπάρχει το μοντέλο';
-            subtitleEl.textContent = 'Επιλέξτε μοντέλο για να δείτε διαθεσιμότητα ανά κατάστημα';
+            syncCatalogHeaders();
             toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort);
 
             const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
@@ -31071,14 +31276,19 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
                 });
             });
 
-            let models = buildModelIndex(allPhones, otherStorePhones, helpers);
+            let models = buildModelIndex(allPhones, otherStorePhones, helpers, catalogView);
             models = sortModels(models, modelSort);
             if (modelQuery) {
                 models = models.filter(([name]) => name.toLowerCase().includes(modelQuery));
             }
 
             bodyEl.innerHTML = UI.buildModelGrid(models, buildUiCtx());
-            setStatus(`${models.length} μοντέλα · ${allPhones.length + otherStorePhones.length} συσκευές στο δίκτυο`);
+            if (catalogView === 'mine') {
+                const mineCount = allPhones.filter((p) => (p.unitsRemaining || 0) > 0).length;
+                setStatus(`${models.length} μοντέλα · ${mineCount} συσκευές στο δικό σας`);
+            } else {
+                setStatus(`${models.length} μοντέλα · ${otherStorePhones.length} συσκευές στο δίκτυο`);
+            }
             wireModelCards();
         }
 
@@ -31087,16 +31297,12 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
             step = 'stores';
             UI.updateBreadcrumb(overlay, 'stores', selectedModel);
             titleEl.textContent = selectedModel;
-            subtitleEl.textContent = 'Διαθεσιμότητα ανά κατάστημα';
+            subtitleEl.textContent = catalogView === 'mine'
+                ? 'Συσκευές στο κατάστημά σας'
+                : 'Διαθεσιμότητα σε άλλα καταστήματα';
 
-            bodyEl.innerHTML = UI.buildSkeletonStores(5);
-            setStatus('Φόρτωση καταστημάτων…');
-
-            const modelFilter = (p) => helpers.extractBaseModel(p.model) === selectedModel;
-            await resolveNetworkStoreDetails(modelFilter);
-
-            const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers);
-            const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers);
+            const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers, catalogView);
+            const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers, catalogView);
             const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({ counts: filterCounts }));
             toolbarEl.innerHTML = UI.buildStoreToolbar(selectedModel, chipsHtml);
 
@@ -31118,11 +31324,25 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
                 });
             });
 
-            const board = buildStoreBoardData(selectedModel, allPhones, otherStorePhones, activeFilters, helpers);
-            bodyEl.innerHTML = UI.buildStoreBoard(selectedModel, board.mine, board.allRows, buildUiCtx());
+            if (catalogView === 'mine') {
+                const variants = buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
+                bodyEl.innerHTML = UI.buildMyStoreBoard(selectedModel, variants, buildUiCtx({ hideStoreInUnits: true }));
+                setStatus(`${variants.length} ${variants.length === 1 ? 'συσκευή' : 'συσκευές'} στο δικό σας`);
+                wireUnitActions();
+                return;
+            }
 
-            const storeCount = board.allRows.length;
-            setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} με διαθέσιμες εκδόσεις`);
+            bodyEl.innerHTML = UI.buildSkeletonStores(5);
+            setStatus('Φόρτωση καταστημάτων…');
+
+            const modelFilter = (p) => helpers.extractBaseModel(p.model) === selectedModel;
+            await resolveNetworkStoreDetails(modelFilter);
+
+            const storeRows = buildNetworkStoreBoardData(selectedModel, otherStorePhones, activeFilters, helpers);
+            bodyEl.innerHTML = UI.buildNetworkStoreBoard(selectedModel, storeRows, buildUiCtx());
+
+            const storeCount = storeRows.length;
+            setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} στο δίκτυο`);
             wireStoreBoard();
         }
 
@@ -31144,8 +31364,10 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
                 GM_setValue('tm_phone_other_store_cache_v3', null);
                 GM_setValue('tm_phone_other_store_cache_timestamp', 0);
                 await ensureOtherStores();
-                setStatus('Φόρτωση καταστημάτων…');
-                await resolveNetworkStoreDetails();
+                if (catalogView === 'network') {
+                    setStatus('Φόρτωση καταστημάτων…');
+                    await resolveNetworkStoreDetails();
+                }
                 if (typeof window.syncPhoneColorCatalog === 'function') {
                     window.syncPhoneColorCatalog(allPhones);
                 }
@@ -31186,7 +31408,9 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
             lastUpdated = new Date(ts);
             syncFreshness();
             ensureOtherStores().then(async () => {
-                await resolveNetworkStoreDetails();
+                if (catalogView === 'network') {
+                    await resolveNetworkStoreDetails();
+                }
                 renderModelsStep();
             });
         } else {

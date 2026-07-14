@@ -148,6 +148,40 @@
         .tm-sl-breadcrumb-sep { opacity: 0.45; }
         .tm-sl-breadcrumb-current { color: var(--tm-primary-color); }
 
+        .tm-sl-view-tabs {
+            display: flex;
+            gap: 6px;
+            margin-top: 12px;
+            padding: 4px;
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--tm-shop-item-border) 35%, transparent);
+            border: 1px solid var(--tm-shop-item-border);
+        }
+        .tm-sl-view-tab {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: var(--tm-shop-item-text);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 9px 12px;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+        }
+        .tm-sl-view-tab:hover {
+            background: color-mix(in srgb, var(--tm-primary-color) 8%, transparent);
+        }
+        .tm-sl-view-tab.is-active {
+            background: var(--tm-shop-item-bg);
+            color: var(--tm-primary-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .tm-sl-view-tab:focus-visible {
+            outline: 2px solid var(--tm-primary-color);
+            outline-offset: 2px;
+        }
+
         .tm-sl-header {
             padding: 18px 20px 14px;
             border-bottom: 1px solid var(--tm-shop-item-border);
@@ -628,8 +662,8 @@
                 <div id="tm-sl-breadcrumb-wrap">${buildBreadcrumb('models')}</div>
                 <div class="tm-sl-header-row">
                     <div class="tm-sl-title-block">
-                        <h2 class="tm-sl-title" id="tm-sl-title">Πού υπάρχει το μοντέλο</h2>
-                        <p class="tm-sl-subtitle" id="tm-sl-subtitle">Επιλέξτε μοντέλο για να δείτε διαθεσιμότητα ανά κατάστημα</p>
+                        <h2 class="tm-sl-title" id="tm-sl-title">Το κατάστημά μου</h2>
+                        <p class="tm-sl-subtitle" id="tm-sl-subtitle">Συσκευές που έχετε σε stock</p>
                     </div>
                     <div class="tm-sl-header-actions">
                         <button type="button" id="tm-sl-refresh" class="tm-sl-btn" title="Ανανέωση">${ICON.refresh} Ανανέωση</button>
@@ -651,6 +685,10 @@
                         <button type="button" id="tm-sl-close" class="tm-sl-btn tm-sl-btn--icon" aria-label="Κλείσιμο">×</button>
                     </div>
                 </div>
+                <nav class="tm-sl-view-tabs" role="tablist" aria-label="Προβολή καταλόγου">
+                    <button type="button" id="tm-sl-view-mine" class="tm-sl-view-tab is-active" role="tab" aria-selected="true">${ICON.pin} Το κατάστημά μου</button>
+                    <button type="button" id="tm-sl-view-network" class="tm-sl-view-tab" role="tab" aria-selected="false">${ICON.store} Άλλα καταστήματα</button>
+                </nav>
             </header>
             <div class="tm-sl-toolbar" id="tm-sl-toolbar"></div>
             <div class="tm-sl-body" id="tm-sl-body">${buildSkeletonGrid(6)}</div>
@@ -696,37 +734,46 @@
 
     function buildModelGrid(models, ctx) {
         if (!models.length) {
-            return buildEmptyState('📱', 'Δεν βρέθηκαν μοντέλα', 'Δοκιμάστε άλλη αναζήτηση ή ανανέωση');
+            const emptyMsg = ctx?.catalogView === 'mine'
+                ? 'Δεν βρέθηκαν συσκευές στο κατάστημά σας'
+                : 'Δεν βρέθηκαν μοντέλα σε άλλα καταστήματα';
+            return buildEmptyState('📱', 'Δεν βρέθηκαν μοντέλα', emptyMsg);
         }
         const query = ctx?.query || '';
+        const catalogView = ctx?.catalogView || 'mine';
         const getGradeStyle = ctx?.getGradeStyle || (() => '');
         const cards = models.map(([model, data], i) => {
-            const storeLabel = data.storeCount === 1
-                ? '1 κατάστημα'
-                : `${data.storeCount} καταστήματα`;
             const grades = Object.entries(data.grades || {})
                 .sort((a, b) => a[0].localeCompare(b[0]))
                 .map(([g, n]) => gradeChipHTML(g, n, getGradeStyle))
                 .join('');
             const heat = getModelHeatClass(data);
-            const mineBadge = data.myCount > 0
-                ? `<span class="tm-sl-mine-badge">${ICON.pin} Στο δικό μου</span>`
-                : '';
+
+            if (catalogView === 'mine') {
+                const count = data.myCount || data.totalUnits || 0;
+                return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
+                    data-tm-sl-model="${esc(model)}" style="--i:${i}">
+                    <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
+                    <div class="tm-sl-model-meta">${ICON.pin.replace('width="11"', 'width="12"').replace('height="11"', 'height="12"')} ${count} ${count === 1 ? 'συσκευή' : 'συσκευές'} στο δικό σας</div>
+                    ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
+                </div>`;
+            }
+
+            const storeLabel = data.storeCount === 1
+                ? '1 κατάστημα'
+                : `${data.storeCount} καταστήματα`;
             const storeNames = data.storeList || [];
             const maxStores = 4;
-            const storeChips = storeNames.slice(0, maxStores).map((name) => {
-                const isMine = name === 'Το κατάστημά μου';
-                return `<span class="tm-sl-model-store-chip${isMine ? ' tm-sl-model-store-chip--mine' : ''}">${esc(name)}</span>`;
-            }).join('');
+            const storeChips = storeNames.slice(0, maxStores).map((name) =>
+                `<span class="tm-sl-model-store-chip">${esc(name)}</span>`
+            ).join('');
             const storeMore = storeNames.length > maxStores
                 ? `<span class="tm-sl-model-store-more">+${storeNames.length - maxStores}</span>`
                 : '';
             return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
                 data-tm-sl-model="${esc(model)}" style="--i:${i}">
-                ${mineBadge}
                 <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
                 <div class="tm-sl-model-meta">${ICON.store.replace('width="16"', 'width="12"').replace('height="16"', 'height="12"')} ${esc(storeLabel)}</div>
-                ${buildAvailabilityBar(data)}
                 <div class="tm-sl-model-stores">${data.totalUnits} συσκευές στο δίκτυο</div>
                 ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                 ${storeChips ? `<div class="tm-sl-model-store-list">${storeChips}${storeMore}</div>` : ''}
@@ -797,10 +844,11 @@
         const getGradeStyle = ctx?.getGradeStyle || (() => '');
         const gradeStyle = getGradeStyle(v.grade);
         const storeName = v.storeName || '—';
+        const storeHtml = ctx?.hideStoreInUnits ? '' : buildUnitStoreHTML(storeName, v.isMine);
         return `<div class="tm-sl-unit" data-barcode="${esc(v.barcode)}">
             <div class="tm-sl-unit-grade" style="${gradeStyle}">${esc(v.grade || '—')}</div>
             <div>
-                ${buildUnitStoreHTML(storeName, v.isMine)}
+                ${storeHtml}
                 <div class="tm-sl-unit-spec">${buildUnitSpecHTML(v, ctx)}</div>
                 <div class="tm-sl-unit-barcode">${esc(v.barcode)}</div>
             </div>
@@ -865,6 +913,36 @@
             ${preview ? `<div class="tm-sl-store-preview">${esc(preview)}${store.variants.length > 3 ? '…' : ''}</div>` : ''}
             <div class="tm-sl-store-units">${units}</div>
         </div>`;
+    }
+
+    function buildMyStoreBoard(modelName, variants, ctx) {
+        if (!variants.length) {
+            return buildEmptyState('📱', 'Χωρίς διαθέσιμες συσκευές', `Δεν υπάρχει ${esc(modelName)} στο κατάστημά σας`);
+        }
+        const units = variants.map((v) => buildUnitRowHTML(v, ctx)).join('');
+        return `<section class="tm-sl-phone-list-section">
+            <h3 class="tm-sl-phone-list-title">${ICON.pin} Το κατάστημά μου · ${variants.length} ${variants.length === 1 ? 'συσκευή' : 'συσκευές'}</h3>
+            <div class="tm-sl-phone-list tm-sl-phone-list--mine">${units}</div>
+        </section>`;
+    }
+
+    function buildNetworkStoreBoard(modelName, storeRows, ctx) {
+        if (!storeRows.length) {
+            return buildEmptyState('🔍', 'Δεν βρέθηκε σε άλλα καταστήματα', `Κανένα κατάστημα δικτύου δεν έχει ${esc(modelName)}`);
+        }
+        const grouped = groupStoresByRegion(storeRows);
+        let globalIdx = 0;
+        return grouped.map(([region, rows]) => {
+            const rowHtml = rows.map((store) => {
+                const block = buildStoreRowHTML(store, globalIdx, ctx);
+                globalIdx += 1;
+                return block;
+            }).join('');
+            return `<section class="tm-sl-region">
+                <h3 class="tm-sl-region-title">${esc(region)}</h3>
+                <div class="tm-sl-store-list">${rowHtml}</div>
+            </section>`;
+        }).join('');
     }
 
     function buildStoreBoard(modelName, myStore, allRows, ctx) {
@@ -953,6 +1031,17 @@
         if (wrap) wrap.innerHTML = buildBreadcrumb(step, modelName);
     }
 
+    function updateViewTabs(overlay, view) {
+        const mineTab = overlay?.querySelector('#tm-sl-view-mine');
+        const networkTab = overlay?.querySelector('#tm-sl-view-network');
+        if (!mineTab || !networkTab) return;
+        const isMine = view === 'mine';
+        mineTab.classList.toggle('is-active', isMine);
+        networkTab.classList.toggle('is-active', !isMine);
+        mineTab.setAttribute('aria-selected', isMine ? 'true' : 'false');
+        networkTab.setAttribute('aria-selected', !isMine ? 'true' : 'false');
+    }
+
     function setDensity(overlay, compact) {
         const shell = overlay?.querySelector('#tm-sl-shell');
         const btn = overlay?.querySelector('#tm-sl-density');
@@ -981,6 +1070,8 @@
         buildModelGrid,
         buildFilterChips,
         buildStoreBoard,
+        buildMyStoreBoard,
+        buildNetworkStoreBoard,
         buildEmptyState,
         buildSkeletonGrid,
         buildSkeletonStores,
@@ -990,6 +1081,7 @@
         showToast,
         updateFreshness,
         updateBreadcrumb,
+        updateViewTabs,
         setDensity,
     };
 })();
