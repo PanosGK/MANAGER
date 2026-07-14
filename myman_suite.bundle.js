@@ -158,7 +158,7 @@ a:hover, .rnr-orderlink:hover {
     background: rgba(0, 122, 255, 0.14) !important;
     border-color: rgba(0, 122, 255, 0.28) !important;
 }
-.rnr-button.img, .menu-icon {
+.rnr-button.img, .menu-icon, .tm-suite-menu-icon {
     filter: brightness(0) saturate(100%) invert(32%) sepia(98%) saturate(1800%) hue-rotate(196deg) brightness(98%) contrast(101%) !important;
 }
 
@@ -874,8 +874,8 @@ const THEME_STYLES = `/* Universal Theme Styles */
             .rnr-b-vmenu li:hover > div, .MyMANAGERWhite_label1 .rnr-b-vmenu.simple.main > *:hover { background: var(--tm-shop-item-hover-bg) !important; }
             .rnr-b-vmenu li.current > div, .MyMANAGERWhite_label1 .rnr-b-vmenu.simple.main > *.current { background: var(--tm-primary-color) !important; border-left: 3px solid var(--tm-info-color); }
             .rnr-b-vmenu li.current a, .MyMANAGERWhite_label1 .rnr-b-vmenu.simple.main > *.current a { color: var(--tm-dark-hover) !important; font-weight: bold; text-shadow: none !important; }
-            .menu-icon { filter: brightness(0) saturate(100%) invert(25%) sepia(100%) saturate(1000%) hue-rotate(90deg); }
-            .rnr-b-vmenu li.current .menu-icon { filter: none; }
+            .menu-icon, .tm-suite-menu-icon { filter: brightness(0) saturate(100%) invert(25%) sepia(100%) saturate(1000%) hue-rotate(90deg); }
+            .rnr-b-vmenu li.current .menu-icon, .rnr-b-vmenu li.current .tm-suite-menu-icon { filter: none; }
             .rnr-b-hmenu.main { background: var(--tm-dark-color) !important; }
             .rnr-b-hmenu.main > div:not(.rnr-hseparator) { color: var(--tm-primary-color) !important; }
             .rnr-b-hmenu.main:hover:not(.expanded) { background: var(--tm-shop-item-hover-bg) !important; }
@@ -2595,7 +2595,7 @@ const UI_THEMES = {
         colors: UI_SPECIALIST_PALETTES.oceanic,
         pageStyles: THEME_STYLES + `/* Oceanic Theme Overrides */
             body::before { background-image: radial-gradient(ellipse at 25% 15%, rgba(45,212,191,0.12) 0%, transparent 45%), radial-gradient(ellipse at 75% 85%, rgba(14,116,144,0.10) 0%, transparent 50%), radial-gradient(ellipse at 50% 100%, rgba(5,150,105,0.06) 0%, transparent 40%) !important; opacity: 1 !important; animation: none !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(72%) sepia(42%) saturate(650%) hue-rotate(128deg) brightness(95%) contrast(101%) !important; }
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(72%) sepia(42%) saturate(650%) hue-rotate(128deg) brightness(95%) contrast(101%) !important; }
             
             /* Oceanic Contrast Fixes */
             .tm-modal-content { background: rgba(0, 26, 46, 0.96) !important; }
@@ -2608,7 +2608,7 @@ const UI_THEMES = {
         colors: UI_SPECIALIST_PALETTES.cyberpunk,
         pageStyles: THEME_STYLES + `/* Cyberpunk Theme Overrides */
             body::before { background-image: linear-gradient(var(--tm-primary-color) 1px, transparent 1px), linear-gradient(90deg, var(--tm-primary-color) 1px, transparent 1px) !important; background-size: 50px 50px !important; opacity: 0.1 !important; animation: none !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(58%) sepia(99%) saturate(1455%) hue-rotate(168deg) brightness(102%) contrast(102%) !important; }
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(58%) sepia(99%) saturate(1455%) hue-rotate(168deg) brightness(102%) contrast(102%) !important; }
             
             /* Cyberpunk Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; }
@@ -2633,7 +2633,7 @@ const UI_THEMES = {
         colors: UI_SPECIALIST_PALETTES.solarized_dark,
         pageStyles: THEME_STYLES + `/* Solarized Dark Theme Overrides */
             body::before { background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23073642' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 6V5zM6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E") !important; opacity: 1 !important; animation: none !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(60%) sepia(11%) saturate(334%) hue-rotate(148deg) brightness(91%) contrast(88%) !important; }
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(60%) sepia(11%) saturate(334%) hue-rotate(148deg) brightness(91%) contrast(88%) !important; }
             
             /* Solarized Dark Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; }`
@@ -2644,7 +2644,7 @@ const UI_THEMES = {
         pageStyles: THEME_STYLES + `/* Solarized Light Theme Overrides */
             body { background: linear-gradient(135deg, #fdf6e3 0%, #eee8d5 100%) !important; }
             body::before { background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23268bd2' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") !important; opacity: 1 !important; animation: none !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(42%) sepia(52%) saturate(1200%) hue-rotate(182deg) brightness(92%) contrast(92%) !important; }
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(42%) sepia(52%) saturate(1200%) hue-rotate(182deg) brightness(92%) contrast(92%) !important; }
             
             /* Light Theme Specific Contrast Fixes */
             #tm-notification-unread-count { color: #ffffff !important; }
@@ -2670,7 +2670,7 @@ const UI_THEMES = {
         colors: UI_SPECIALIST_PALETTES.midnight_purple,
         pageStyles: THEME_STYLES + `/* Midnight Purple Theme (Linear) */
             body::before { background-image: radial-gradient(circle at 50% 30%, rgba(94, 106, 210, 0.14) 0%, rgba(62, 63, 78, 0.06) 40%, transparent 70%) !important; opacity: 0.7 !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(42%) sepia(85%) saturate(1800%) hue-rotate(243deg) brightness(98%) contrast(101%) !important; }
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(42%) sepia(85%) saturate(1800%) hue-rotate(243deg) brightness(98%) contrast(101%) !important; }
             
             /* Midnight Purple Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; }`
@@ -2680,7 +2680,7 @@ const UI_THEMES = {
         colors: UI_SPECIALIST_PALETTES.sunset,
         pageStyles: THEME_STYLES + `/* Sunset Theme */
             body::before { background: linear-gradient(180deg, rgba(255,107,107,0.1) 0%, rgba(255,146,43,0.1) 50%, rgba(240,62,62,0.1) 100%) !important; opacity: 0.4 !important; animation: none !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(61%) sepia(67%) saturate(581%) hue-rotate(312deg) brightness(102%) contrast(101%) !important; }
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(61%) sepia(67%) saturate(581%) hue-rotate(312deg) brightness(102%) contrast(101%) !important; }
             
             /* Sunset Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; }`
@@ -2691,7 +2691,7 @@ const UI_THEMES = {
         pageStyles: THEME_STYLES + `/* Neon Pink Theme */
             body::before { background-image: repeating-linear-gradient(0deg, rgba(233,61,157,0.05) 0px, transparent 2px, transparent 4px, rgba(233,61,157,0.05) 6px) !important; opacity: 1 !important; }
             body::after { background: repeating-linear-gradient(90deg, rgba(196,30,122,0.04) 0px, transparent 2px, transparent 4px, rgba(196,30,122,0.04) 6px) !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(45%) sepia(98%) saturate(5000%) hue-rotate(310deg) brightness(105%) contrast(101%) !important; }
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(45%) sepia(98%) saturate(5000%) hue-rotate(310deg) brightness(105%) contrast(101%) !important; }
             
             /* Neon Pink Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; }`
@@ -2701,7 +2701,7 @@ const UI_THEMES = {
         colors: UI_SPECIALIST_PALETTES.forest,
         pageStyles: THEME_STYLES + `/* Forest Theme */
             body::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cpath d='M50 10 L55 25 L70 25 L58 35 L63 50 L50 40 L37 50 L42 35 L30 25 L45 25 Z' fill='rgba(81,207,102,0.05)' /%3E%3C/svg%3E") !important; opacity: 0.3 !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(79%) sepia(11%) saturate(1459%) hue-rotate(77deg) brightness(94%) contrast(90%) !important; }
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(79%) sepia(11%) saturate(1459%) hue-rotate(77deg) brightness(94%) contrast(90%) !important; }
             
             /* Forest Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-dark-hover) !important; }`
@@ -2711,14 +2711,14 @@ const UI_THEMES = {
         colors: UI_SPECIALIST_PALETTES.retro_amber,
         pageStyles: THEME_STYLES + `/* Retro Terminal (Gruvbox) Theme */
             body::before { background-image: repeating-linear-gradient(0deg, rgba(250,189,47,0.03) 0px, transparent 1px, transparent 2px, rgba(250,189,47,0.03) 3px) !important; opacity: 1 !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(68%) sepia(54%) saturate(777%) hue-rotate(359deg) brightness(103%) contrast(101%) !important; }`
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(68%) sepia(54%) saturate(777%) hue-rotate(359deg) brightness(103%) contrast(101%) !important; }`
     },
     'ice': {
         name: 'Ice', icon: '❄️', cost: 500, type: 'theme',
         colors: UI_SPECIALIST_PALETTES.ice,
         pageStyles: THEME_STYLES + `/* Ice Theme */
             body::before { background-image: radial-gradient(circle at 15% 20%, rgba(232,242,248,0.07) 0%, transparent 45%), radial-gradient(circle at 85% 75%, rgba(200,220,232,0.05) 0%, transparent 50%), radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 60%) !important; opacity: 1 !important; animation: none !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(92%) sepia(8%) saturate(180%) hue-rotate(182deg) brightness(102%) contrast(92%) !important; }
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(92%) sepia(8%) saturate(180%) hue-rotate(182deg) brightness(102%) contrast(92%) !important; }
             
             /* Ice Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; }`
@@ -2728,7 +2728,7 @@ const UI_THEMES = {
         colors: UI_SPECIALIST_PALETTES.crimson,
         pageStyles: THEME_STYLES + `/* Crimson Theme */
             body::before { background-image: radial-gradient(circle at 50% 50%, rgba(255,107,107,0.1) 0%, transparent 70%) !important; opacity: 0.5 !important; animation: none !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(61%) sepia(67%) saturate(581%) hue-rotate(312deg) brightness(102%) contrast(101%) !important; }
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(61%) sepia(67%) saturate(581%) hue-rotate(312deg) brightness(102%) contrast(101%) !important; }
             
             /* Crimson Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; }`
@@ -2738,7 +2738,7 @@ const UI_THEMES = {
         colors: UI_SPECIALIST_PALETTES.dracula,
         pageStyles: THEME_STYLES + `/* Dracula Theme */
             body::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Ctext x='10' y='20' fill='rgba(189,147,249,0.05)' font-size='16' font-family='monospace'%3E🦇🩸🧛%3C/text%3E%3C/svg%3E") !important; opacity: 0.3 !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(79%) sepia(23%) saturate(1280%) hue-rotate(203deg) brightness(99%) contrast(97%) !important; }
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(79%) sepia(23%) saturate(1280%) hue-rotate(203deg) brightness(99%) contrast(97%) !important; }
             
             /* Dracula Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-dark-hover) !important; }`
@@ -2748,7 +2748,7 @@ const UI_THEMES = {
         colors: UI_SPECIALIST_PALETTES.nord,
         pageStyles: THEME_STYLES + `/* Nord Theme */
             body::before { background: linear-gradient(135deg, rgba(94,129,172,0.05) 0%, rgba(136,192,208,0.05) 100%) !important; opacity: 0.5 !important; animation: none !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(74%) sepia(14%) saturate(657%) hue-rotate(152deg) brightness(92%) contrast(87%) !important; }
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(74%) sepia(14%) saturate(657%) hue-rotate(152deg) brightness(92%) contrast(87%) !important; }
             
             /* Nord Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; }`
@@ -2758,7 +2758,7 @@ const UI_THEMES = {
         colors: UI_SPECIALIST_PALETTES.tokyo_night,
         pageStyles: THEME_STYLES + `/* Tokyo Night Theme */
             body::before { background-image: repeating-linear-gradient(0deg, rgba(122,162,247,0.02) 0px, transparent 1px, transparent 2px), repeating-linear-gradient(90deg, rgba(122,162,247,0.02) 0px, transparent 1px, transparent 2px) !important; opacity: 1 !important; background-size: 30px 30px !important; }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(67%) sepia(27%) saturate(930%) hue-rotate(186deg) brightness(98%) contrast(95%) !important; }
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox { filter: brightness(0) saturate(100%) invert(67%) sepia(27%) saturate(930%) hue-rotate(186deg) brightness(98%) contrast(95%) !important; }
             
             /* Tokyo Night Contrast Fixes */
             #tm-notification-unread-count { color: var(--tm-text-on-primary) !important; }`
@@ -2777,7 +2777,7 @@ const UI_THEMES = {
                 background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%230f62fe' fill-opacity='0.04' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='1'/%3E%3C/g%3E%3C/svg%3E") !important;
                 opacity: 1 !important; animation: none !important;
             }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox {
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox {
                 filter: brightness(0) saturate(100%) invert(24%) sepia(98%) saturate(2800%) hue-rotate(211deg) brightness(93%) contrast(101%) !important;
             }
             ${THEME_LIGHT_PAGE_OVERRIDES}`
@@ -2792,7 +2792,7 @@ const UI_THEMES = {
                     radial-gradient(circle at 88% 82%, rgba(251, 113, 133, 0.07) 0%, transparent 45%) !important;
                 opacity: 1 !important; animation: none !important;
             }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox {
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox {
                 filter: brightness(0) saturate(100%) invert(30%) sepia(72%) saturate(2200%) hue-rotate(305deg) brightness(92%) contrast(95%) !important;
             }
             ${THEME_LIGHT_PAGE_OVERRIDES}`
@@ -2806,7 +2806,7 @@ const UI_THEMES = {
                 background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%230284c7' stroke-opacity='0.07'%3E%3Cpath d='M0 40h80M40 0v80'/%3E%3C/g%3E%3C/svg%3E") !important;
                 opacity: 1 !important; animation: none !important;
             }
-            .rnr-button.img, .menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox {
+            .rnr-button.img, .menu-icon, .tm-suite-menu-icon, .ui-dialog .ui-dialog-titlebar-close, img[src='images/smsdelivered.png'], .tm-scratchpad-checkbox {
                 filter: brightness(0) saturate(100%) invert(41%) sepia(86%) saturate(1200%) hue-rotate(182deg) brightness(92%) contrast(96%) !important;
             }
             ${THEME_LIGHT_PAGE_OVERRIDES}`
@@ -6585,7 +6585,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
 
             /* Suite custom left-menu icons (super search, phone catalog) */
-            img.tm-suite-menu-icon.menu-icon {
+            img.tm-suite-menu-icon {
                 width: 16px;
                 height: 16px;
                 max-width: 16px;
@@ -6594,6 +6594,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 vertical-align: text-bottom;
                 object-fit: contain;
                 flex-shrink: 0;
+                filter: brightness(0) saturate(100%) invert(25%) sepia(100%) saturate(1000%) hue-rotate(90deg);
+            }
+            .rnr-b-vmenu li.current img.tm-suite-menu-icon {
+                filter: none;
             }
 
             /* Modal Styles */
@@ -12965,7 +12969,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     function createSuiteMenuIcon(kind) {
         const svg = SUITE_MENU_ICON_SVGS[kind];
         const img = document.createElement('img');
-        img.className = 'menu-icon tm-suite-menu-icon';
+        img.className = 'tm-suite-menu-icon';
         if (kind) img.classList.add(`tm-suite-menu-icon--${kind}`);
         img.alt = '';
         img.setAttribute('aria-hidden', 'true');
@@ -12976,6 +12980,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function populateSuiteMenuLink(link, label, iconKind) {
         if (!link) return;
+        const menuItem = link.closest('li');
+        if (menuItem) {
+            menuItem.querySelectorAll('img.menu-icon').forEach((img) => img.remove());
+        }
         link.setAttribute('href', '#');
         link.innerHTML = '';
         if (iconKind && SUITE_MENU_ICON_SVGS[iconKind]) {
@@ -12997,6 +13005,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             li.classList.remove('current', 'expanded');
             li.removeAttribute('id');
             li.querySelectorAll(':scope > ul').forEach((ul) => ul.remove());
+            li.querySelectorAll('img.menu-icon').forEach((img) => img.remove());
         } else {
             li = document.createElement('li');
             li.innerHTML = '<div><div><a href="#"></a></div></div>';

@@ -128,7 +128,7 @@ a:hover, .rnr-orderlink:hover {
     background: rgba(0, 122, 255, 0.14) !important;
     border-color: rgba(0, 122, 255, 0.28) !important;
 }
-.rnr-button.img, .menu-icon {
+.rnr-button.img, .menu-icon, .tm-suite-menu-icon {
     filter: brightness(0) saturate(100%) invert(32%) sepia(98%) saturate(1800%) hue-rotate(196deg) brightness(98%) contrast(101%) !important;
 }
 

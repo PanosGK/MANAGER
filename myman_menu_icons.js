@@ -31,7 +31,7 @@
     function createSuiteMenuIcon(kind) {
         const svg = SUITE_MENU_ICON_SVGS[kind];
         const img = document.createElement('img');
-        img.className = 'menu-icon tm-suite-menu-icon';
+        img.className = 'tm-suite-menu-icon';
         if (kind) img.classList.add(`tm-suite-menu-icon--${kind}`);
         img.alt = '';
         img.setAttribute('aria-hidden', 'true');
@@ -42,6 +42,10 @@
 
     function populateSuiteMenuLink(link, label, iconKind) {
         if (!link) return;
+        const menuItem = link.closest('li');
+        if (menuItem) {
+            menuItem.querySelectorAll('img.menu-icon').forEach((img) => img.remove());
+        }
         link.setAttribute('href', '#');
         link.innerHTML = '';
         if (iconKind && SUITE_MENU_ICON_SVGS[iconKind]) {
@@ -63,6 +67,7 @@
             li.classList.remove('current', 'expanded');
             li.removeAttribute('id');
             li.querySelectorAll(':scope > ul').forEach((ul) => ul.remove());
+            li.querySelectorAll('img.menu-icon').forEach((img) => img.remove());
         } else {
             li = document.createElement('li');
             li.innerHTML = '<div><div><a href="#"></a></div></div>';

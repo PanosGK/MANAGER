@@ -1353,7 +1353,7 @@
             }
 
             /* Suite custom left-menu icons (super search, phone catalog) */
-            img.tm-suite-menu-icon.menu-icon {
+            img.tm-suite-menu-icon {
                 width: 16px;
                 height: 16px;
                 max-width: 16px;
@@ -1362,6 +1362,10 @@
                 vertical-align: text-bottom;
                 object-fit: contain;
                 flex-shrink: 0;
+                filter: brightness(0) saturate(100%) invert(25%) sepia(100%) saturate(1000%) hue-rotate(90deg);
+            }
+            .rnr-b-vmenu li.current img.tm-suite-menu-icon {
+                filter: none;
             }
 
             /* Modal Styles */
