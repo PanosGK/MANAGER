@@ -3547,12 +3547,11 @@
             
             // Shift + F → Advanced Search (only if enabled)
             if (matchesShortcut(e, 'f') && config?.searchFeatureEnabled) {
-                const btn = document.getElementById('tm-search-btn');
-                if (btn) {
+                if (typeof window.openSuperSearchModal === 'function') {
                     e.preventDefault();
-                    btn.click();
+                    window.openSuperSearchModal();
                 } else if (config?.debugEnabled) {
-                    console.log('[MMS] Shortcut: Search button not found (tm-search-btn).');
+                    console.log('[MMS] Shortcut: openSuperSearchModal is not available.');
                 }
                 return;
             }
@@ -5508,6 +5507,11 @@
         // Update phone catalog button visibility on page load
         if (typeof window.updatePhoneCatalogButtonVisibility === 'function') {
             window.updatePhoneCatalogButtonVisibility(config);
+        }
+
+        // Update super search menu item visibility on page load
+        if (typeof window.updateSearchMenuItemVisibility === 'function') {
+            window.updateSearchMenuItemVisibility(config);
         }
         
         // Update order history button visibility on page load

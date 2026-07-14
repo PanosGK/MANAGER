@@ -43,52 +43,431 @@
             document.body.appendChild(container);
             console.log('[MMS] Right-side panel container created.');
         }
-        createRightSidePanel(); // Ensure the panel exists
+        createRightSidePanel(); // Ensure the panel exists (scratchpad / auxiliary slide-outs)
 
-        // --- Feature-specific Constants ---
+        const SEARCH_MENU_ID = 'tm-search-menu-item';
+        let searchKeyboardShortcutsBound = false;
         const QUICK_SEARCH_HIDDEN_KEY = 'tm_quick_search_hidden';
 
         // --- Configuration & Constants ---
-        const SEARCH_URLS = [
-            '/mymanagerservice/srvorders_list.php?pagesize=-1',      // Merchandise Orders
-            '/mymanagerservice/sparepartstoorder_list.php?pagesize=-1' // Spare Parts Orders
-        ];
+        const SEARCH_URL_MAP = {
+            orders: '/mymanagerservice/srvorders_list.php?pagesize=-1',
+            spareparts: '/mymanagerservice/sparepartstoorder_list.php?pagesize=-1'
+        };
+
+        const SEARCH_INCLUDE_MERCHANDISE_HISTORY_KEY = 'tm_search_include_merchandise_history';
+        const SEARCH_INCLUDE_PARTS_HISTORY_KEY = 'tm_search_include_parts_history';
 
         // State Variables
-        let searchResults = []; // Holds results from a search
-        let searchTerms = []; // Holds the split terms of the current query
+        let searchResults = [];
+        let searchTerms = [];
+        let searchScope = 'all';
+        let searchGeneration = 0;
+        let searchProgress = { total: 0, done: 0 };
+
+        function getSearchUrlsForScope(scope) {
+            if (scope === 'orders') return [SEARCH_URL_MAP.orders];
+            if (scope === 'spareparts') return [SEARCH_URL_MAP.spareparts];
+            return Object.values(SEARCH_URL_MAP);
+        }
+
+        function getResultTypeLabel(result) {
+            const source = typeof result === 'object' ? result.source : null;
+            const orderLink = typeof result === 'object' ? result.orderLink : result;
+            if (source === 'history-merchandise') return 'Ιστορικό Εμπόρ.';
+            if (source === 'history-parts') return 'Ιστορικό Ανταλλ.';
+            if (!orderLink) return 'Αποτέλεσμα';
+            if (orderLink.includes('sparepartstoorder')) return 'Ανταλλακτικό';
+            if (orderLink.includes('srvorders')) return 'Παραγγελία';
+            return 'Αποτέλεσμα';
+        }
+
+        function escapeSearchHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function loadOrderHistory(storageKey) {
+            try {
+                const data = GM_getValue(storageKey, '[]');
+                const parsed = JSON.parse(data);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                console.error('[MMS Search] Error parsing order history:', e);
+                return [];
+            }
+        }
+
+        function orderHistorySearchText(order) {
+            const parts = [
+                order.id,
+                order.phone,
+                order.customer,
+                order.code,
+                order.repairNumber,
+                order.date,
+                order.type
+            ];
+            if (order.allColumns) {
+                parts.push(...Object.values(order.allColumns));
+            }
+            return parts.filter(Boolean).join(' ').toLowerCase();
+        }
+
+        function buildHistoryDisplayCells(order) {
+            const cells = [];
+            const seen = new Set();
+            const push = (text) => {
+                const value = String(text).trim();
+                if (!value || seen.has(value)) return;
+                seen.add(value);
+                cells.push({ html: escapeSearchHtml(value), text: value });
+            };
+
+            push(order.id);
+            push(order.customer);
+            push(order.phone);
+            push(order.code);
+            push(order.repairNumber);
+            push(order.date);
+            if (order.allColumns) {
+                Object.values(order.allColumns).forEach(push);
+            }
+            return cells;
+        }
+
+        function searchOrderHistory(storageKey, source) {
+            const orders = loadOrderHistory(storageKey);
+            const query = document.getElementById('tm-search-input')?.value.trim() || '';
+
+            orders.forEach(order => {
+                const text = orderHistorySearchText(order);
+                const allTermsMatch = searchTerms.every(term => text.includes(term));
+                if (!allTermsMatch || !order.url) return;
+                if (searchResults.some(r => r.orderLink === order.url)) return;
+
+                searchResults.push({
+                    term: query,
+                    orderLink: order.url,
+                    source,
+                    historyEntry: order
+                });
+            });
+        }
+
+        function getSearchSourceOptions() {
+            const merchCb = document.getElementById('tm-search-include-merchandise-history');
+            const partsCb = document.getElementById('tm-search-include-parts-history');
+            return {
+                merchandiseHistory: merchCb ? merchCb.checked : false,
+                partsHistory: partsCb ? partsCb.checked : false
+            };
+        }
+
+        function countHistorySearchTasks(options) {
+            let count = 0;
+            if (options.merchandiseHistory) count++;
+            if (options.partsHistory) count++;
+            return count;
+        }
+
+        function runHistorySearches(options, generation) {
+            if (generation !== searchGeneration) return;
+
+            const serviceKey = STORAGE_KEYS.ORDER_HISTORY_SERVICE || 'tm_srvorders_page_history';
+            const partsKey = STORAGE_KEYS.ORDER_HISTORY_PARTS || 'tm_partsorders_page_history';
+
+            if (options.merchandiseHistory) {
+                searchOrderHistory(serviceKey, 'history-merchandise');
+                searchProgress.done++;
+                updateSearchProgressUI();
+            }
+            if (options.partsHistory) {
+                searchOrderHistory(partsKey, 'history-parts');
+                searchProgress.done++;
+                updateSearchProgressUI();
+            }
+        }
+
+        function extractRowCells(rowHTML) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = rowHTML;
+            return Array.from(tr.querySelectorAll('td'))
+                .map(td => ({ html: td.innerHTML, text: td.innerText.trim() }))
+                .filter(cell => cell.text);
+        }
+
+        function highlightTermsInHtml(html, terms) {
+            let highlighted = html;
+            terms.forEach(term => {
+                const regex = new RegExp(term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
+                highlighted = highlighted.replace(regex, '<span class="tm-result-highlight">$&</span>');
+            });
+            return highlighted;
+        }
+
+        function updateSearchProgressUI() {
+            const progressEl = document.getElementById('tm-search-progress');
+            if (!progressEl) return;
+            const pct = searchProgress.total > 0
+                ? Math.min(100, Math.round((searchProgress.done / searchProgress.total) * 100))
+                : 0;
+            const bar = progressEl.querySelector('.tm-search-progress-bar-fill');
+            const text = progressEl.querySelector('.tm-search-progress-text');
+            if (bar) bar.style.width = `${pct}%`;
+            if (text) {
+                text.textContent = searchProgress.total > 0
+                    ? `Αναζήτηση… ${searchProgress.done}/${searchProgress.total}`
+                    : 'Αναζήτηση…';
+            }
+        }
+
+        function setSearchProgressVisible(visible) {
+            const progressEl = document.getElementById('tm-search-progress');
+            if (progressEl) progressEl.classList.toggle('tm-search-progress--active', visible);
+        }
+
+        function removeLegacySearchButton() {
+            document.getElementById('tm-search-btn')?.remove();
+        }
+
+        function cloneNativeMenuItem(templateLi, label) {
+            const li = templateLi.cloneNode(true);
+            li.classList.remove('current', 'expanded');
+            li.removeAttribute('id');
+            li.querySelectorAll(':scope > ul').forEach((ul) => ul.remove());
+
+            const link = li.querySelector(':scope > div > div > a[href], :scope > div a[href], :scope > a[href]');
+            if (link) {
+                const icon = link.querySelector('img.menu-icon');
+                link.setAttribute('href', '#');
+                link.innerHTML = '';
+                if (icon) {
+                    link.appendChild(icon.cloneNode(true));
+                    link.appendChild(document.createTextNode(` ${label}`));
+                } else {
+                    link.textContent = label;
+                }
+            }
+
+            return li;
+        }
+
+        function createFallbackMenuItem(label) {
+            const li = document.createElement('li');
+            li.innerHTML = `<div><div><a href="#">${label}</a></div></div>`;
+            return li;
+        }
+
+        function findMenuInsertPoint(menu) {
+            const manageItem = menu.querySelector('[data-tm-manage-hidden="true"]');
+            if (manageItem) {
+                const separator = manageItem.previousElementSibling;
+                if (separator?.getAttribute('data-tm-special') === 'true') return separator;
+                return manageItem;
+            }
+            return null;
+        }
+
+        function findSearchMenuInsertPoint(menu) {
+            const phoneCatalogItem = document.getElementById('tm-phone-catalog-menu-item');
+            if (phoneCatalogItem?.parentElement === menu) {
+                return phoneCatalogItem.nextElementSibling;
+            }
+            return findMenuInsertPoint(menu);
+        }
+
+        function getSearchMenuLabel() {
+            return 'Αναζήτηση Παραγγελίας';
+        }
+
+        function bindSearchKeyboardShortcuts() {
+            if (searchKeyboardShortcutsBound) return;
+            searchKeyboardShortcutsBound = true;
+
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    createSearchModal();
+                }
+            });
+        }
+
+        function ensureSearchMenuItem(activeConfig) {
+            removeLegacySearchButton();
+
+            const menu = document.querySelector('.rnr-b-vmenu.simple.main');
+            if (!menu) return false;
+
+            const enabled = activeConfig?.searchFeatureEnabled !== false;
+            let item = document.getElementById(SEARCH_MENU_ID);
+
+            if (!enabled) {
+                if (item) item.style.display = 'none';
+                return true;
+            }
+
+            const label = getSearchMenuLabel();
+
+            if (!item) {
+                const template = menu.querySelector(':scope > li:not(.menuGroup):not([data-tm-special]):not([data-tm-suite-item])')
+                    || menu.querySelector('li:not([data-tm-special]):not([data-tm-suite-item])');
+                item = template
+                    ? cloneNativeMenuItem(template, label)
+                    : createFallbackMenuItem(label);
+
+                item.id = SEARCH_MENU_ID;
+                item.setAttribute('data-tm-suite-item', 'super-search');
+                item.setAttribute('data-menu-id', 'suite-super-search');
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    createSearchModal();
+                });
+
+                const insertBefore = findSearchMenuInsertPoint(menu);
+                if (insertBefore) menu.insertBefore(item, insertBefore);
+                else menu.appendChild(item);
+            } else {
+                const link = item.querySelector('a[href]');
+                if (link) {
+                    const icon = link.querySelector('img.menu-icon');
+                    link.innerHTML = '';
+                    if (icon) {
+                        link.appendChild(icon.cloneNode(true));
+                        link.appendChild(document.createTextNode(` ${label}`));
+                    } else {
+                        link.textContent = label;
+                    }
+                }
+                if (!item.parentElement) {
+                    const insertBefore = findSearchMenuInsertPoint(menu);
+                    if (insertBefore) menu.insertBefore(item, insertBefore);
+                    else menu.appendChild(item);
+                }
+            }
+
+            item.style.display = '';
+            return true;
+        }
+
+        function initSearchMenuItem(activeConfig) {
+            removeLegacySearchButton();
+            bindSearchKeyboardShortcuts();
+
+            if (activeConfig?.searchFeatureEnabled === false) {
+                document.getElementById(SEARCH_MENU_ID)?.remove();
+                return;
+            }
+
+            let attempts = 0;
+            const maxAttempts = 80;
+            let observer = null;
+
+            const tryInject = () => {
+                attempts += 1;
+                if (ensureSearchMenuItem(activeConfig)) {
+                    if (observer) observer.disconnect();
+                    return;
+                }
+                if (attempts >= maxAttempts && observer) observer.disconnect();
+            };
+
+            tryInject();
+
+            observer = new MutationObserver(() => {
+                tryInject();
+            });
+            const leftPanel = document.querySelector('.rnr-left') || document.body;
+            observer.observe(leftPanel, { childList: true, subtree: true });
+            setTimeout(() => observer?.disconnect(), 10000);
+        }
+
+        function updateSearchMenuItemVisibility(activeConfig) {
+            ensureSearchMenuItem(activeConfig);
+        }
 
         function createSearchModal() {
-            if (document.querySelector('.tm-modal-overlay')) return; // Prevent multiple modals
+            if (document.getElementById('tm-search-modal-overlay')) return;
 
             const overlay = document.createElement('div');
-            overlay.className = 'tm-modal-overlay';
-            // Enable hacker theme automatically when matrix theme is active
+            overlay.id = 'tm-search-modal-overlay';
+            overlay.className = 'tm-modal-overlay tm-search-modal-overlay';
             const currentTheme = GM_getValue('equippedTheme', 'default');
             overlay.classList.toggle('tm-hacker-theme-enabled', currentTheme === 'matrix');
             overlay.innerHTML = `
-                <div class="tm-modal-content">
-                    <div class="tm-modal-header">
-                        <h2 class="tm-modal-title">Αναζήτηση Παραγγελίας</h2>
-                        <button class="tm-modal-close">&times;</button>
-                    </div>
-                    <div id="tm-search-input-area">
-                        <input type="text" id="tm-search-input" placeholder="Αρ. Παραγγελίας, Όνομα, Ανταλλακτικό...">
-                        <button id="tm-search-favorite-btn" title="Προσθήκη στα Αγαπημένα">&#9734;</button>
-                        <button id="tm-search-submit">Αναζήτηση</button>
-                    </div>
-                    <div id="tm-search-history-favorites-container">
-                        <div class="tm-search-list-section">
-                            <h4>Πρόσφατες Αναζητήσεις</h4>
-                            <ul id="tm-search-history-list" class="tm-search-list"></ul>
+                <div class="tm-modal-content tm-search-modal-content">
+                    <div class="tm-modal-header tm-search-modal-header">
+                        <div class="tm-search-modal-brand">
+                            <span class="tm-search-modal-icon" aria-hidden="true">🔍</span>
+                            <div>
+                                <h2 class="tm-modal-title">Αναζήτηση Παραγγελίας</h2>
+                                <p class="tm-search-modal-subtitle">Παραγγελίες &amp; ανταλλακτικά — όλοι οι όροι πρέπει να ταιριάζουν</p>
+                            </div>
                         </div>
-                        <div class="tm-search-list-section">
-                            <h4>Αγαπημένες Αναζητήσεις</h4>
-                            <ul id="tm-search-favorites-list" class="tm-search-list"></ul>
+                        <div class="tm-search-modal-meta">
+                            <kbd class="tm-search-kbd-hint" title="Άνοιγμα αναζήτησης">Ctrl+K</kbd>
+                            <button class="tm-modal-close" aria-label="Κλείσιμο">&times;</button>
                         </div>
                     </div>
-                    <div id="tm-results-container">
-                        <div id="tm-status-message">Εισάγετε έναν όρο αναζήτησης για να ξεκινήσετε.</div>
+
+                    <div class="tm-search-toolbar">
+                        <div id="tm-search-input-area" class="tm-search-input-wrap">
+                            <span class="tm-search-input-icon" aria-hidden="true">⌕</span>
+                            <input type="text" id="tm-search-input" placeholder="Αρ. παραγγελίας, όνομα, ανταλλακτικό…" autocomplete="off" spellcheck="false">
+                            <button id="tm-search-favorite-btn" type="button" title="Προσθήκη στα Αγαπημένα">&#9734;</button>
+                            <button id="tm-search-submit" type="button">Αναζήτηση</button>
+                            <button id="tm-search-cancel" type="button" class="tm-search-cancel-btn" hidden>Ακύρωση</button>
+                        </div>
+                        <div class="tm-search-filters-row">
+                            <div class="tm-search-scope-toggles" role="group" aria-label="Ζωντανή αναζήτηση">
+                                <button type="button" class="tm-search-scope active" data-scope="all">Όλα</button>
+                                <button type="button" class="tm-search-scope" data-scope="orders">Παραγγελίες</button>
+                                <button type="button" class="tm-search-scope" data-scope="spareparts">Ανταλλακτικά</button>
+                            </div>
+                            <div class="tm-search-history-toggles" role="group" aria-label="Ιστορικό παραγγελιών">
+                                <label class="tm-search-toggle-check">
+                                    <input type="checkbox" id="tm-search-include-merchandise-history">
+                                    <span class="tm-search-toggle-check-ui" aria-hidden="true"></span>
+                                    <span class="tm-search-toggle-check-label">Ιστορικό Εμπορευμάτων</span>
+                                </label>
+                                <label class="tm-search-toggle-check">
+                                    <input type="checkbox" id="tm-search-include-parts-history">
+                                    <span class="tm-search-toggle-check-ui" aria-hidden="true"></span>
+                                    <span class="tm-search-toggle-check-label">Ιστορικό Ανταλλακτικών</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tm-search-body">
+                        <aside class="tm-search-sidebar">
+                            <div class="tm-search-sidebar-section">
+                                <h4 class="tm-search-sidebar-title">Πρόσφατες</h4>
+                                <div id="tm-search-history-chips" class="tm-search-chips"></div>
+                            </div>
+                            <div class="tm-search-sidebar-section">
+                                <h4 class="tm-search-sidebar-title">Αγαπημένες</h4>
+                                <div id="tm-search-favorites-chips" class="tm-search-chips"></div>
+                            </div>
+                        </aside>
+                        <main class="tm-search-main">
+                            <div id="tm-search-progress" class="tm-search-progress" aria-hidden="true">
+                                <div class="tm-search-progress-track">
+                                    <div class="tm-search-progress-bar-fill"></div>
+                                </div>
+                                <span class="tm-search-progress-text">Αναζήτηση…</span>
+                            </div>
+                            <div id="tm-results-container">
+                                <div class="tm-search-empty-state">
+                                    <span class="tm-search-empty-icon" aria-hidden="true">📋</span>
+                                    <p class="tm-search-empty-title">Ξεκινήστε μια αναζήτηση</p>
+                                    <p class="tm-search-empty-hint">Πληκτρολογήστε όρους χωρισμένους με κενό — όλοι πρέπει να υπάρχουν στο αποτέλεσμα.</p>
+                                </div>
+                            </div>
+                        </main>
                     </div>
                 </div>
             `;
@@ -96,28 +475,74 @@
 
             renderHistoryAndFavorites(overlay, config, STORAGE_KEYS);
 
-            // Event Listeners
-            overlay.querySelector('.tm-modal-close').addEventListener('click', () => overlay.remove());
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+            const closeModal = () => overlay.remove();
+            overlay.querySelector('.tm-modal-close').addEventListener('click', closeModal);
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
             overlay.querySelector('#tm-search-submit').addEventListener('click', handleSearchSubmit);
+            overlay.querySelector('#tm-search-cancel').addEventListener('click', () => {
+                searchGeneration++;
+                finishSearchUI();
+                const resultsContainer = document.getElementById('tm-results-container');
+                if (resultsContainer) {
+                    resultsContainer.innerHTML = `
+                        <div class="tm-search-empty-state">
+                            <span class="tm-search-empty-icon" aria-hidden="true">⏹</span>
+                            <p class="tm-search-empty-title">Η αναζήτηση ακυρώθηκε</p>
+                        </div>`;
+                }
+            });
+
+            overlay.querySelectorAll('.tm-search-scope').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    searchScope = btn.dataset.scope || 'all';
+                    overlay.querySelectorAll('.tm-search-scope').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+
+            const merchHistoryCb = overlay.querySelector('#tm-search-include-merchandise-history');
+            const partsHistoryCb = overlay.querySelector('#tm-search-include-parts-history');
+            if (merchHistoryCb) {
+                merchHistoryCb.checked = GM_getValue(SEARCH_INCLUDE_MERCHANDISE_HISTORY_KEY, true);
+                merchHistoryCb.addEventListener('change', () => {
+                    GM_setValue(SEARCH_INCLUDE_MERCHANDISE_HISTORY_KEY, merchHistoryCb.checked);
+                });
+            }
+            if (partsHistoryCb) {
+                partsHistoryCb.checked = GM_getValue(SEARCH_INCLUDE_PARTS_HISTORY_KEY, true);
+                partsHistoryCb.addEventListener('change', () => {
+                    GM_setValue(SEARCH_INCLUDE_PARTS_HISTORY_KEY, partsHistoryCb.checked);
+                });
+            }
 
             const searchInput = overlay.querySelector('#tm-search-input');
             const favoriteBtn = overlay.querySelector('#tm-search-favorite-btn');
 
             searchInput.addEventListener('keyup', (e) => {
                 if (e.key === 'Enter') handleSearchSubmit();
+                if (e.key === 'Escape') closeModal();
                 updateFavoriteButtonState(searchInput.value, favoriteBtn, STORAGE_KEYS);
             });
 
             favoriteBtn.addEventListener('click', () => {
                 toggleFavoriteSearch(searchInput.value, favoriteBtn, STORAGE_KEYS);
-                renderHistoryAndFavorites(overlay, config, STORAGE_KEYS); // Re-render to show changes
+                renderHistoryAndFavorites(overlay, config, STORAGE_KEYS);
             });
 
             updateFavoriteButtonState(searchInput.value, favoriteBtn, STORAGE_KEYS);
-
-            // Auto-focus the input field for immediate typing
             setTimeout(() => searchInput.focus(), 100);
+        }
+
+        function finishSearchUI() {
+            const submitBtn = document.getElementById('tm-search-submit');
+            const cancelBtn = document.getElementById('tm-search-cancel');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Αναζήτηση';
+            }
+            if (cancelBtn) cancelBtn.hidden = true;
+            setSearchProgressVisible(false);
         }
 
         // --- History & Favorites Logic ---
@@ -188,65 +613,60 @@
         }
 
         function renderHistoryAndFavorites(modal, config, STORAGE_KEYS) {
-            const historyList = modal.querySelector('#tm-search-history-list');
-            const favoritesList = modal.querySelector('#tm-search-favorites-list');
+            const historyChips = modal.querySelector('#tm-search-history-chips');
+            const favoritesChips = modal.querySelector('#tm-search-favorites-chips');
+            if (!historyChips || !favoritesChips) return;
 
-            historyList.innerHTML = '';
-            favoritesList.innerHTML = '';
+            historyChips.innerHTML = '';
+            favoritesChips.innerHTML = '';
 
-            // Render History
             const history = getSearchHistory(STORAGE_KEYS);
             if (history.length === 0) {
-                historyList.innerHTML = '<li style="color: #888; font-style: italic;">Δεν υπάρχουν πρόσφατες αναζητήσεις.</li>';
+                historyChips.innerHTML = '<span class="tm-search-chips-empty">Καμία πρόσφατη αναζήτηση</span>';
             } else {
                 history.forEach(query => {
-                    const li = document.createElement('li');
-                    li.className = 'tm-search-list-item';
-                    li.innerHTML = `<a href="#" title="Αναζήτηση για: ${query}">${query}</a>`;
-                    li.querySelector('a').addEventListener('click', (e) => {
-                        e.preventDefault();
-                        performSearchInModal(query, config, STORAGE_KEYS);
-                    });
-                    historyList.appendChild(li);
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.className = 'tm-search-chip';
+                    chip.title = `Αναζήτηση: ${query}`;
+                    chip.innerHTML = `<span class="tm-search-chip-label">${query}</span>`;
+                    chip.addEventListener('click', () => performSearchInModal(query, config, STORAGE_KEYS));
+                    historyChips.appendChild(chip);
                 });
             }
 
-            // Render Favorites
             const favorites = getFavoriteSearches(STORAGE_KEYS);
             if (favorites.length === 0) {
-                favoritesList.innerHTML = '<li style="color: #888; font-style: italic;">Δεν υπάρχουν αγαπημένες αναζητήσεις.</li>';
+                favoritesChips.innerHTML = '<span class="tm-search-chips-empty">Κανένα αγαπημένο</span>';
             } else {
                 favorites.forEach(query => {
-                    const li = document.createElement('li');
-                    li.className = 'tm-search-list-item';
-                    li.innerHTML = `
-                        <a href="#" title="Αναζήτηση για: ${query}">${query}</a>
-                        <button class="tm-search-list-action-btn" title="Αφαίρεση Αγαπημένου">&#128465;</button>
-                    `;
-                    li.querySelector('a').addEventListener('click', (e) => { e.preventDefault(); performSearchInModal(query, config, STORAGE_KEYS); });
-                    li.querySelector('button').addEventListener('click', () => {
-                        toggleFavoriteSearch(query, modal.querySelector('#tm-search-favorite-btn'), STORAGE_KEYS);
-                        renderHistoryAndFavorites(modal, config, STORAGE_KEYS); // Re-render after removal
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.className = 'tm-search-chip tm-search-chip--favorite';
+                    chip.title = `Αναζήτηση: ${query}`;
+                    chip.innerHTML = `
+                        <span class="tm-search-chip-star" aria-hidden="true">★</span>
+                        <span class="tm-search-chip-label">${query}</span>
+                        <span class="tm-search-chip-remove" aria-label="Αφαίρεση">×</span>`;
+                    chip.addEventListener('click', (e) => {
+                        if (e.target.closest('.tm-search-chip-remove')) return;
+                        performSearchInModal(query, config, STORAGE_KEYS);
                     });
-                    favoritesList.appendChild(li);
+                    chip.querySelector('.tm-search-chip-remove').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        toggleFavoriteSearch(query, modal.querySelector('#tm-search-favorite-btn'), STORAGE_KEYS);
+                        renderHistoryAndFavorites(modal, config, STORAGE_KEYS);
+                    });
+                    favoritesChips.appendChild(chip);
                 });
             }
         }
 
-        function addMainButton() {
+        function addAuxiliarySlideOutButtons() {
             const container = document.getElementById('tm-search-container');
             if (!container) return;
 
-            const button = document.createElement('button');
-            button.id = 'tm-search-btn';
-            button.className = 'tm-slide-out-btn'; // Pass config
-            button.textContent = 'Αναζήτηση Παραγγελίας';
-            button.addEventListener('click', createSearchModal);
-
-            container.appendChild(button);
-
-            if (config.levelUpSystemEnabled) {
-                // Add Daily Bounties button
+            if (config.levelUpSystemEnabled && !document.getElementById('tm-quests-btn')) {
                 const questsButton = document.createElement('button');
                 questsButton.id = 'tm-quests-btn';
                 questsButton.className = 'tm-slide-out-btn';
@@ -255,8 +675,6 @@
                 container.appendChild(questsButton);
             }
 
-            // Add Technician Stats button if on the correct page
-            // This function is called on 'window.load', so the DOM is already ready.
             const isOnServiceListPage = window.location.pathname.includes('/mymanagerservice/service_list.php');
             const isView105 = new URLSearchParams(window.location.search).get('view') === '105';
 
@@ -272,7 +690,6 @@
                         const rows = gridTable.querySelectorAll('tbody tr[id^="gridRow"]');
                         rows.forEach(row => {
                             const statusCell = row.cells[statusIndex];
-                            // The status is inside a span with an ID like 'edit5_ccc_iStatusID'
                             const statusSpan = statusCell ? statusCell.querySelector('span[id$="_ccc_iStatusID"]') : null;
                             if (statusSpan && statusSpan.innerText.trim() === '105') {
                                 status105Count++;
@@ -282,12 +699,12 @@
                 }
             }
 
-            if (config.technicianStatsEnabled && isOnServiceListPage && isView105 && status105Count >= 10) {
+            if (config.technicianStatsEnabled && isOnServiceListPage && isView105 && status105Count >= 10 && !document.getElementById('tm-tech-stats-btn')) {
                 const statsButton = document.createElement('button');
                 statsButton.id = 'tm-tech-stats-btn';
                 statsButton.innerHTML = '📊 Στατιστικά Τεχνικών';
-                statsButton.className = 'tm-slide-out-btn'; // Pass config
-                statsButton.onclick = window.initTechnicianStatsFeature; // Use onclick to prevent multiple listeners
+                statsButton.className = 'tm-slide-out-btn';
+                statsButton.onclick = window.initTechnicianStatsFeature;
                 container.appendChild(statsButton);
             }
         }
@@ -407,11 +824,9 @@
 
         // Helper to perform a search from anywhere (e.g., history, quick actions)
         function performSearchInModal(query, config, STORAGE_KEYS) {
-            const modal = document.querySelector('.tm-modal-overlay');
+            const modal = document.getElementById('tm-search-modal-overlay');
             if (!modal) {
-                // If modal isn't open, open it and then search
-                createSearchModal(config, STORAGE_KEYS);
-                // Need to wait a moment for the modal to be in the DOM
+                createSearchModal();
                 setTimeout(() => performSearchInModal(query, config, STORAGE_KEYS), 100);
                 return;
             }
@@ -425,42 +840,41 @@
             }
         }
 
-        // --- Search Logic ---
         function handleSearchSubmit() {
             const input = document.getElementById('tm-search-input');
             const submitBtn = document.getElementById('tm-search-submit');
+            const cancelBtn = document.getElementById('tm-search-cancel');
             const resultsContainer = document.getElementById('tm-results-container');
 
             const query = input.value.trim();
-            console.log('[MMS] Search: handleSearchSubmit called with query:', query);
-            
-            if (!query) {
-                console.log('[MMS] Search: Empty query, returning early');
-                return;
-            }
+            if (!query) return;
+
+            searchGeneration++;
+            const currentGeneration = searchGeneration;
 
             window.trackDailyStat(config, STORAGE_KEYS, 'searches');
             addSearchToHistory(query, config, STORAGE_KEYS);
-            renderHistoryAndFavorites(document.querySelector('.tm-modal-overlay'), config, STORAGE_KEYS); // Update history live
+            const modal = document.getElementById('tm-search-modal-overlay');
+            if (modal) renderHistoryAndFavorites(modal, config, STORAGE_KEYS);
 
-            // Split the query by spaces or commas for an "AND" search where all terms must match.
             searchTerms = query.split(/[\s,]+/).map(t => t.trim().toLowerCase()).filter(Boolean);
-            console.log('[MMS] Search: Search terms:', searchTerms);
-            
-            if (searchTerms.length === 0) {
-                console.log('[MMS] Search: No valid search terms, returning early');
-                return;
-            }
+            if (searchTerms.length === 0) return;
 
             searchResults = [];
             processedUrls.clear();
-            console.log('[MMS] Search: Starting search with URLs:', SEARCH_URLS);
+
+            const sourceOptions = getSearchSourceOptions();
+            const liveUrls = getSearchUrlsForScope(searchScope);
+            const historyTasks = countHistorySearchTasks(sourceOptions);
+            searchProgress = { total: liveUrls.length + historyTasks, done: 0 };
+
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Αναζήτηση...';
+            submitBtn.textContent = 'Αναζήτηση…';
+            if (cancelBtn) cancelBtn.hidden = false;
+            setSearchProgressVisible(true);
+            updateSearchProgressUI();
 
             let terminalInterval = null;
-
-            // Use hacker search effects when matrix theme is active
             const currentTheme = GM_getValue('equippedTheme', 'default');
             if (currentTheme === 'matrix') {
                 resultsContainer.innerHTML = `<div id="tm-hacker-terminal"><div id="tm-hacker-output"></div><span class="tm-hacker-cursor"></span></div>`;
@@ -494,22 +908,27 @@
                     }
                 }, 250);
             } else {
-                resultsContainer.innerHTML = `<div id="tm-status-message" class="tm-minimal-loader"><div class="tm-spinner"></div>Αναζήτηση...</div>`;
+                resultsContainer.innerHTML = `<div class="tm-search-loading-state"><div class="tm-spinner"></div><span>Σάρωση πηγών δεδομένων…</span></div>`;
             }
 
-            // This function will be called when the search is complete.
             const onSearchComplete = () => {
+                if (currentGeneration !== searchGeneration) return;
                 window.setMascotState(config, 'idle');
                 if (terminalInterval) clearInterval(terminalInterval);
-                // A small delay to let the "SUCCESS" message be seen if using hacker theme
-                // Add delay for matrix theme hacker effects
-                const currentTheme = GM_getValue('equippedTheme', 'default');
-                setTimeout(displayResults, currentTheme === 'matrix' ? 500 : 0);
+                const theme = GM_getValue('equippedTheme', 'default');
+                setTimeout(displayResults, theme === 'matrix' ? 500 : 0);
             };
 
             if (config.interactiveMascotEnabled) window.setMascotState(config, 'searching');
-            urlsToProcess = [...SEARCH_URLS]; // Re-initialize the queue with the base URLs
-            processNextUrl(onSearchComplete, config); // Start the search
+
+            runHistorySearches(sourceOptions, currentGeneration);
+
+            urlsToProcess = [...liveUrls];
+            if (urlsToProcess.length === 0) {
+                onSearchComplete();
+            } else {
+                processNextUrl(onSearchComplete, currentGeneration);
+            }
         }
 
         function handleQuickSearchClick(event) {
@@ -528,96 +947,87 @@
         let processedUrls = new Set();
         let activeSearchRequests = 0;
 
-        // This function remains within initSearchFeature as it's specific to the search modal's operation
-        function processNextUrl(onComplete) {
+        function processNextUrl(onComplete, generation) {
+            if (generation !== undefined && generation !== searchGeneration) return;
+
             if (urlsToProcess.length === 0) {
                 if (activeSearchRequests === 0 && onComplete) onComplete();
                 return;
             }
 
             const url = urlsToProcess.shift();
-            // If we have already processed this exact URL, skip to the next one.
             if (processedUrls.has(url)) {
-                processNextUrl(onComplete);
+                processNextUrl(onComplete, generation);
                 return;
             }
-            // Mark the URL as processed *before* the request to avoid race conditions.
-            // where a page might be added to the queue multiple times.
             processedUrls.add(url);
 
-            activeSearchRequests++; // Increment for the new request
-            console.log(`Searching in: ${url} for terms:`, searchTerms);
-
+            activeSearchRequests++;
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: url,
                 onload: function(response) {
-                    console.log(`[MMS] Search: Successfully fetched ${url}, response status:`, response.status);
+                    if (generation !== undefined && generation !== searchGeneration) {
+                        activeSearchRequests--;
+                        return;
+                    }
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(response.responseText, 'text/html');
-                    console.log(`[MMS] Search: Parsed HTML, looking for rows in page`);
-                    parseAndSearchPage(doc, response.finalUrl);
-                    activeSearchRequests--; // Decrement after processing
-                    console.log(`[MMS] Search: Active requests remaining:`, activeSearchRequests);
-                    // Process the next URL in the queue if there is one
+                    parseAndSearchPage(doc, response.finalUrl, generation);
+                    activeSearchRequests--;
+                    searchProgress.done++;
+                    updateSearchProgressUI();
                     if (urlsToProcess.length > 0) {
-                        processNextUrl(onComplete);
+                        processNextUrl(onComplete, generation);
                     } else if (activeSearchRequests === 0) {
-                        // Only call onComplete when all requests are finished
-                        console.log(`[MMS] Search: All requests completed, calling onComplete`);
                         if (onComplete) onComplete();
                     }
                 },
-                onerror: function(error) {
-                    console.error(`[MMS] Search: Error fetching ${url}:`, error);
-                    activeSearchRequests--; // Decrement on error too
-                    if (urlsToProcess.length > 0) processNextUrl(onComplete);
+                onerror: function() {
+                    if (generation !== undefined && generation !== searchGeneration) {
+                        activeSearchRequests--;
+                        return;
+                    }
+                    activeSearchRequests--;
+                    searchProgress.done++;
+                    updateSearchProgressUI();
+                    if (urlsToProcess.length > 0) processNextUrl(onComplete, generation);
+                    else if (activeSearchRequests === 0 && onComplete) onComplete();
                 }
             });
         }
 
-        // This function remains within initSearchFeature as it's specific to the search modal's operation
-        function parseAndSearchPage(doc, pageBaseUrl) {
-            console.log(`[MMS] Search: parseAndSearchPage called for URL:`, pageBaseUrl);
-            
+        function parseAndSearchPage(doc, pageBaseUrl, generation) {
+            if (generation !== undefined && generation !== searchGeneration) return;
+
             doc.querySelectorAll('.pagination a').forEach(a => {
                 const pageHref = a.getAttribute('href');
                 if (pageHref && !pageHref.startsWith('javascript:')) {
                     const absoluteUrl = new URL(pageHref, pageBaseUrl).href;
                     if (!processedUrls.has(absoluteUrl)) {
                         urlsToProcess.push(absoluteUrl);
+                        searchProgress.total++;
+                        updateSearchProgressUI();
                     }
                 }
             });
 
             const rows = doc.querySelectorAll('tbody tr');
-            console.log(`[MMS] Search: Found ${rows.length} rows to process in this page`);
-            
-            let matchCount = 0;
             rows.forEach(row => {
                 const rowText = row.innerText.toLowerCase();
-                // Check if the row text includes ALL search terms (AND logic)
                 const allTermsMatch = searchTerms.every(term => rowText.includes(term));
 
                 if (allTermsMatch) {
-                    matchCount++;
-                    console.log(`[MMS] Search: Found matching row:`, rowText.substring(0, 100) + '...');
                     const linkUrl = window.findOrderLink(row, pageBaseUrl);
-                    console.log(`[MMS] Search: Link URL for match:`, linkUrl);
-
                     if (linkUrl && !searchResults.some(r => r.orderLink === linkUrl)) {
                         searchResults.push({
                             term: document.getElementById('tm-search-input').value.trim(),
                             rowHTML: row.innerHTML,
                             orderLink: linkUrl
                         });
-                        console.log(`[MMS] Search: Added result to searchResults. Total results:`, searchResults.length);
-                    } else {
-                        console.log(`[MMS] Search: Skipped result - no link URL or duplicate`);
                     }
                 }
             });
-            console.log(`[MMS] Search: Processed ${rows.length} rows, found ${matchCount} matches in this page`);
         }
 
         // --- Results & Printing ---
@@ -628,6 +1038,7 @@
             // If details are already visible, remove them to collapse the view.
             if (existingDetails) {
                 existingDetails.remove();
+                itemDiv.classList.remove('tm-result-card--expanded');
                 return;
             }
 
@@ -635,8 +1046,9 @@
             // Create a container and show a loading message.
             const detailsContainer = document.createElement('div');
             detailsContainer.className = 'tm-result-details-container';
-            detailsContainer.innerHTML = '<div class="tm-details-loading">Φόρτωση λεπτομερειών...</div>';
+            detailsContainer.innerHTML = '<div class="tm-details-loading">Φόρτωση λεπτομερειών…</div>';
             itemDiv.appendChild(detailsContainer);
+            itemDiv.classList.add('tm-result-card--expanded');
 
             GM_xmlhttpRequest({
                 method: 'GET',
@@ -669,69 +1081,80 @@
 
         function displayResults() {
             const resultsContainer = document.getElementById('tm-results-container');
-            const submitBtn = document.getElementById('tm-search-submit');
             const input = document.getElementById('tm-search-input');
+            const query = input ? input.value.trim() : '';
 
-            console.log('[MMS] Search: displayResults called with', searchResults.length, 'results');
+            finishSearchUI();
 
             if (searchResults.length === 0) {
-                console.log('[MMS] Search: No results found, displaying empty message');
-                resultsContainer.innerHTML = `<div id="tm-status-message">Δεν βρέθηκαν αποτελέσματα για "${input.value}". Δοκιμάστε ξανά.</div>`;
-            } else {
-                console.log('[MMS] Search: Displaying', searchResults.length, 'results');
-                if (config.confettiEnabled) window.triggerConfetti(30); // Fun: Confetti on successful search
-                resultsContainer.innerHTML = '';
-                searchResults.forEach((result, index) => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'tm-result-item';
-
-                    // Highlight all search terms
-                    let highlightedHTML = result.rowHTML;
-                    searchTerms.forEach(term => {
-                        const regex = new RegExp(term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
-                        highlightedHTML = highlightedHTML.replace(regex, `<span class="tm-result-highlight">$&</span>`);
-                    });
-
-                    itemDiv.innerHTML = `
-                        <div class="tm-result-header">
-                            <span>Αποτέλεσμα #${index + 1} (Βρέθηκε για: ${result.term})</span>
-                            <div>
-                                ${result.orderLink ? `<a href="${result.orderLink}" target="_blank" class="tm-goto-btn">Μετάβαση στην Παραγγελία</a>` : ''}
-                                ${result.orderLink ? `<button class="tm-print-btn" data-link="${result.orderLink}">Εκτύπωση Παραγγελίας</button>` : ''}
-                            </div>
-                        </div>
-                        <div class="tm-result-body">
-                            <table class="tm-result-table">${highlightedHTML}</table>
-                        </div>
-                    `;
-                    resultsContainer.appendChild(itemDiv);
-
-                    // Make the result body clickable if it has an order link
-                    if (result.orderLink) {
-                        const resultBody = itemDiv.querySelector('.tm-result-body');
-                        console.log(`[MMS] Result #${index + 1}: Found orderLink: ${result.orderLink}. Attaching click listener.`);
-                        if (resultBody) {
-                            resultBody.classList.add('tm-result-clickable');
-                            resultBody.title = 'Κάντε κλικ για εμφάνιση/απόκρυψη λεπτομερειών';
-                            resultBody.addEventListener('click', () => {
-                                toggleOrderDetails(result, itemDiv);
-                            });
-                        }
-                    } else {
-                        console.warn(`[MMS] Result #${index + 1}: No orderLink found. Not making clickable. Row HTML:`, result.rowHTML);
-                    }
-                });
-
-                resultsContainer.querySelectorAll('.tm-print-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const url = e.target.dataset.link;
-                        window.handlePrintClick(url, e.target);
-                    });
-                });
+                resultsContainer.innerHTML = `
+                    <div class="tm-search-empty-state">
+                        <span class="tm-search-empty-icon" aria-hidden="true">🔎</span>
+                        <p class="tm-search-empty-title">Δεν βρέθηκαν αποτελέσματα</p>
+                        <p class="tm-search-empty-hint">Για «${query}» — δοκιμάστε λιγότερους όρους ή άλλο εύρος.</p>
+                    </div>`;
+                return;
             }
 
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Αναζήτηση';
+            if (config.confettiEnabled) window.triggerConfetti(30);
+
+            const summary = document.createElement('div');
+            summary.className = 'tm-search-results-summary';
+            summary.innerHTML = `
+                <span>Βρέθηκαν <strong>${searchResults.length}</strong> αποτελέσματα</span>
+                <span class="tm-search-results-query">«${query}»</span>`;
+            resultsContainer.innerHTML = '';
+            resultsContainer.appendChild(summary);
+
+            searchResults.forEach((result, index) => {
+                const cells = result.historyEntry
+                    ? buildHistoryDisplayCells(result.historyEntry)
+                    : extractRowCells(result.rowHTML);
+                const primary = cells[0] ? highlightTermsInHtml(cells[0].html, searchTerms) : '—';
+                const metaCells = cells.slice(1, 5);
+                const typeLabel = getResultTypeLabel(result);
+                const isHistoryResult = result.source === 'history-merchandise' || result.source === 'history-parts';
+
+                const itemDiv = document.createElement('article');
+                itemDiv.className = 'tm-result-card';
+                if (result.orderLink) itemDiv.classList.add('tm-result-clickable');
+                if (isHistoryResult) itemDiv.classList.add('tm-result-card--from-history');
+
+                const fieldsHtml = metaCells.map(cell =>
+                    `<span class="tm-result-field-pill">${highlightTermsInHtml(cell.html, searchTerms)}</span>`
+                ).join('');
+
+                itemDiv.innerHTML = `
+                    <div class="tm-result-card-header">
+                        <div class="tm-result-card-title">
+                            <span class="tm-result-card-badge">${index + 1}</span>
+                            <span class="tm-result-card-primary">${primary}</span>
+                            <span class="tm-result-card-type${isHistoryResult ? ' tm-result-card-type--history' : ''}">${typeLabel}</span>
+                        </div>
+                        <div class="tm-result-card-actions">
+                            ${result.orderLink ? `<a href="${result.orderLink}" target="_blank" class="tm-goto-btn" title="Άνοιγμα παραγγελίας">↗ Άνοιγμα</a>` : ''}
+                            ${result.orderLink ? `<button type="button" class="tm-print-btn" data-link="${result.orderLink}" title="Εκτύπωση">🖨</button>` : ''}
+                        </div>
+                    </div>
+                    ${fieldsHtml ? `<div class="tm-result-card-fields">${fieldsHtml}</div>` : ''}
+                    <div class="tm-result-card-hint">Κλικ για λεπτομέρειες</div>
+                `;
+                resultsContainer.appendChild(itemDiv);
+
+                if (result.orderLink) {
+                    itemDiv.addEventListener('click', (e) => {
+                        if (e.target.closest('.tm-goto-btn, .tm-print-btn')) return;
+                        toggleOrderDetails(result, itemDiv);
+                    });
+                }
+            });
+
+            resultsContainer.querySelectorAll('.tm-print-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.handlePrintClick(e.currentTarget.dataset.link, e.currentTarget);
+                });
+            });
         }
 
         // New function for adding print button to edit pages
@@ -775,6 +1198,10 @@
         }
 
         // --- Feature Initializer ---
+        window.openSuperSearchModal = createSearchModal;
+        window.updateSearchMenuItemVisibility = updateSearchMenuItemVisibility;
+        initSearchMenuItem(config);
+
         const pathname = window.location.pathname;
         const isEditPage = pathname.includes('_edit.php');
 
@@ -784,12 +1211,10 @@
         } else if (isEditPage) {
             addPrintButtonToEditPage();
         } else if (pathname.includes('_list.php')) {
-            // On non-edit pages (list pages), just add the main search button.
-            addMainButton();
+            addAuxiliarySlideOutButtons();
         }
     }
 
-    // Make the main initializer function globally accessible
     window.initSearchFeature = initSearchFeature;
 
 })();

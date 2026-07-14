@@ -513,6 +513,18 @@ const THEME_STYLES = `/* Universal Theme Styles */
             .tm-settings-main td,
             .tm-settings-main th,
             #tm-status-message,
+            .tm-search-sidebar-title,
+            .tm-search-chip,
+            .tm-search-chip-label,
+            .tm-search-chips-empty,
+            .tm-search-scope,
+            .tm-search-toggle-check-label,
+            .tm-search-empty-title,
+            .tm-search-empty-hint,
+            .tm-search-results-summary,
+            .tm-result-card-primary,
+            .tm-result-card-type--history,
+            .tm-result-field-pill,
             .tm-search-list-section h4,
             .tm-search-list-item,
             .tm-search-list-item a,
@@ -540,6 +552,12 @@ const THEME_STYLES = `/* Universal Theme Styles */
             .tm-talent-description,
             #tm-notification-empty-state,
             .tm-details-loading,
+            .tm-search-sidebar-title,
+            .tm-search-chips-empty,
+            .tm-search-empty-hint,
+            .tm-search-results-query,
+            .tm-result-card-hint,
+            .tm-search-progress-text,
             .tm-search-list-section h4 {
                 color: var(--tm-secondary-hover, var(--tm-secondary-color)) !important;
             }
@@ -558,6 +576,13 @@ const THEME_STYLES = `/* Universal Theme Styles */
             }
             .tm-modal-footer {
                 border-top-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-search-sidebar {
+                border-right-color: var(--tm-shop-item-border) !important;
+                background: var(--tm-shop-item-hover-bg) !important;
+            }
+            .tm-search-modal-header {
+                border-bottom-color: var(--tm-shop-item-border) !important;
             }
             #tm-search-history-favorites-container {
                 border-top-color: var(--tm-shop-item-border) !important;

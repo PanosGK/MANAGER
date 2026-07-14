@@ -1344,6 +1344,18 @@ const THEME_STYLES = `/* Universal Theme Styles */
             .tm-settings-main td,
             .tm-settings-main th,
             #tm-status-message,
+            .tm-search-sidebar-title,
+            .tm-search-chip,
+            .tm-search-chip-label,
+            .tm-search-chips-empty,
+            .tm-search-scope,
+            .tm-search-toggle-check-label,
+            .tm-search-empty-title,
+            .tm-search-empty-hint,
+            .tm-search-results-summary,
+            .tm-result-card-primary,
+            .tm-result-card-type--history,
+            .tm-result-field-pill,
             .tm-search-list-section h4,
             .tm-search-list-item,
             .tm-search-list-item a,
@@ -1371,6 +1383,12 @@ const THEME_STYLES = `/* Universal Theme Styles */
             .tm-talent-description,
             #tm-notification-empty-state,
             .tm-details-loading,
+            .tm-search-sidebar-title,
+            .tm-search-chips-empty,
+            .tm-search-empty-hint,
+            .tm-search-results-query,
+            .tm-result-card-hint,
+            .tm-search-progress-text,
             .tm-search-list-section h4 {
                 color: var(--tm-secondary-hover, var(--tm-secondary-color)) !important;
             }
@@ -1389,6 +1407,13 @@ const THEME_STYLES = `/* Universal Theme Styles */
             }
             .tm-modal-footer {
                 border-top-color: var(--tm-shop-item-border) !important;
+            }
+            .tm-search-sidebar {
+                border-right-color: var(--tm-shop-item-border) !important;
+                background: var(--tm-shop-item-hover-bg) !important;
+            }
+            .tm-search-modal-header {
+                border-bottom-color: var(--tm-shop-item-border) !important;
             }
             #tm-search-history-favorites-container {
                 border-top-color: var(--tm-shop-item-border) !important;
@@ -6449,10 +6474,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 box-sizing: border-box; /* Ensure padding is included in the width */
             }
 
-            /* Individual button colors */
-            #tm-search-btn { background-color: var(--tm-primary-color); }
-            #tm-search-btn:hover { background-color: var(--tm-primary-hover); }
-
+            /* Individual button colors (auxiliary slide-outs only) */
             #tm-quests-btn { background-color: #8B4513; } /* SaddleBrown */
             #tm-quests-btn:hover { background-color: #A0522D; } /* Sienna */
 
@@ -6668,125 +6690,590 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             .tm-modal-close { font-size: 28px; font-weight: bold; cursor: pointer; border: none; background: none; color: var(--tm-secondary-color); position: relative; z-index: 10; pointer-events: auto; }
             .tm-modal-close:hover { color: var(--tm-secondary-hover); }
 
-            /* Search Input Area */
-            #tm-search-input-area { display: flex; margin-bottom: 20px; pointer-events: auto; position: relative; z-index: 1; }
-            #tm-search-input { flex-grow: 1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; text-align: center; pointer-events: auto; }
-            #tm-search-submit { padding: 10px 20px; font-size: 16px; background-color: var(--tm-success-color); color: white; border: none; cursor: pointer; pointer-events: auto; }
-            #tm-search-submit:disabled { background-color: var(--tm-secondary-color); cursor: not-allowed; }
-            /* Default focus style for search input */
+            /* ===== Super Search Modal ===== */
+            .tm-search-modal-overlay {
+                background: var(--tm-overlay-dim, rgba(15, 23, 42, 0.55));
+                backdrop-filter: blur(4px);
+            }
+            .tm-search-modal-content {
+                width: min(96vw, 1100px);
+                max-width: 1100px;
+                height: min(88vh, 820px);
+                padding: 0;
+                overflow: hidden;
+                border-radius: 16px;
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+                background: var(--tm-modal-bg, #fff);
+            }
+            .tm-search-modal-header {
+                margin: 0;
+                padding: 18px 22px;
+                border-bottom: 1px solid var(--tm-shop-item-border, #e8ecf0);
+                background: linear-gradient(180deg, var(--tm-shop-item-hover-bg, #f8fafc) 0%, var(--tm-modal-bg, #fff) 100%);
+            }
+            .tm-search-modal-brand {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex: 1;
+                min-width: 0;
+            }
+            .tm-search-modal-icon { font-size: 26px; line-height: 1; }
+            .tm-search-modal-content .tm-modal-title {
+                font-size: 18px;
+                font-weight: 700;
+                text-align: left;
+                margin: 0;
+                color: var(--tm-shop-item-text, #1e293b);
+            }
+            .tm-search-modal-subtitle {
+                margin: 2px 0 0;
+                font-size: 12px;
+                color: var(--tm-muted-text, #64748b);
+            }
+            .tm-search-modal-meta {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-shrink: 0;
+            }
+            .tm-search-kbd-hint {
+                font-size: 11px;
+                padding: 3px 7px;
+                border-radius: 6px;
+                border: 1px solid var(--tm-shop-item-border, #cbd5e1);
+                background: var(--tm-chip-bg, #f1f5f9);
+                color: var(--tm-muted-text, #64748b);
+                font-family: inherit;
+            }
+
+            .tm-search-toolbar {
+                padding: 14px 22px 12px;
+                border-bottom: 1px solid var(--tm-shop-item-border, #e8ecf0);
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .tm-search-input-wrap {
+                display: flex;
+                align-items: stretch;
+                gap: 0;
+                background: var(--tm-shop-item-bg, #fff);
+                border: 1px solid var(--tm-shop-item-border, #cbd5e1);
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            }
+            .tm-search-input-icon {
+                display: flex;
+                align-items: center;
+                padding: 0 12px;
+                color: var(--tm-muted-text, #94a3b8);
+                font-size: 18px;
+                background: var(--tm-shop-item-hover-bg, #f8fafc);
+                border-right: 1px solid var(--tm-shop-item-border, #e2e8f0);
+            }
+            #tm-search-input {
+                flex: 1;
+                min-width: 0;
+                border: none;
+                padding: 12px 14px;
+                font-size: 15px;
+                text-align: left;
+                background: transparent;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+            }
             #tm-search-input:focus {
+                outline: none;
+                box-shadow: none;
+            }
+            .tm-search-input-wrap:focus-within {
                 border-color: var(--tm-primary-color);
-                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25); /* Standard bootstrap-like focus */
-                transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
             }
-            /* "Hacker" effect on focus, only when theme is enabled */
-            .tm-hacker-theme-enabled #tm-search-input:focus {
-                border-color: #0f0;
-                box-shadow: 0 0 8px #0f0, 0 0 15px #0f0;
-                color: #0f0;
-                background-color: #030d03;
-                text-shadow: 0 0 4px #0f0;
+            #tm-search-favorite-btn {
+                border: none;
+                border-left: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                background: var(--tm-shop-item-hover-bg, #f8fafc);
+                padding: 0 14px;
+                font-size: 20px;
+                cursor: pointer;
+                color: var(--tm-muted-text, #94a3b8);
+                display: flex;
+                align-items: center;
             }
-            /* Full hacker theme for the search modal */
-            .tm-hacker-theme-enabled .tm-modal-content {
+            #tm-search-favorite-btn:hover { color: var(--tm-warning-color); }
+            #tm-search-favorite-btn.favorited { color: var(--tm-warning-color); }
+            #tm-search-submit {
+                border: none;
+                border-left: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                background: var(--tm-success-color);
+                color: #fff;
+                padding: 0 20px;
+                font-size: 14px;
+                font-weight: 600;
+                cursor: pointer;
+                white-space: nowrap;
+            }
+            #tm-search-submit:hover:not(:disabled) { background: var(--tm-success-hover); }
+            #tm-search-submit:disabled { background: var(--tm-secondary-color); cursor: not-allowed; }
+            .tm-search-cancel-btn {
+                border: none;
+                border-left: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                background: var(--tm-danger-color);
+                color: #fff;
+                padding: 0 16px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+            }
+            .tm-search-cancel-btn:hover { background: var(--tm-danger-hover); }
+
+            .tm-search-scope-toggles {
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+            .tm-search-filters-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .tm-search-history-toggles {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+                margin-left: auto;
+            }
+            .tm-search-toggle-check {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+                cursor: pointer;
+                user-select: none;
+                padding: 5px 10px;
+                border-radius: 999px;
+                border: 1px solid var(--tm-shop-item-border, #cbd5e1);
+                background: var(--tm-chip-bg, #f8fafc);
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--tm-chip-text, #475569);
+                transition: border-color 0.15s, background 0.15s, color 0.15s;
+            }
+            .tm-search-toggle-check:hover {
+                border-color: var(--tm-primary-color);
+                color: var(--tm-primary-color);
+            }
+            .tm-search-toggle-check input {
+                position: absolute;
+                opacity: 0;
+                width: 0;
+                height: 0;
+                pointer-events: none;
+            }
+            .tm-search-toggle-check-ui {
+                width: 15px;
+                height: 15px;
+                border-radius: 4px;
+                border: 1.5px solid var(--tm-shop-item-border, #94a3b8);
+                background: var(--tm-modal-bg, #fff);
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                transition: background 0.15s, border-color 0.15s;
+            }
+            .tm-search-toggle-check-ui::after {
+                content: '';
+                width: 4px;
+                height: 7px;
+                border: solid #fff;
+                border-width: 0 2px 2px 0;
+                transform: rotate(45deg) scale(0);
+                margin-top: -1px;
+                transition: transform 0.12s ease;
+            }
+            .tm-search-toggle-check input:checked + .tm-search-toggle-check-ui {
+                background: var(--tm-primary-color);
+                border-color: var(--tm-primary-color);
+            }
+            .tm-search-toggle-check input:checked + .tm-search-toggle-check-ui::after {
+                transform: rotate(45deg) scale(1);
+            }
+            .tm-search-toggle-check input:focus-visible + .tm-search-toggle-check-ui {
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            }
+            .tm-search-toggle-check input:checked ~ .tm-search-toggle-check-label {
+                color: var(--tm-primary-color);
+            }
+            .tm-search-toggle-check-label {
+                line-height: 1.2;
+                white-space: nowrap;
+            }
+            .tm-search-scope {
+                border: 1px solid var(--tm-shop-item-border, #cbd5e1);
+                background: var(--tm-chip-bg, #f1f5f9);
+                color: var(--tm-chip-text, #475569);
+                border-radius: 999px;
+                padding: 5px 14px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.15s, border-color 0.15s, color 0.15s;
+            }
+            .tm-search-scope:hover {
+                border-color: var(--tm-primary-color);
+                color: var(--tm-primary-color);
+            }
+            .tm-search-scope.active {
+                background: var(--tm-primary-color);
+                border-color: var(--tm-primary-color);
+                color: #fff;
+            }
+
+            .tm-search-body {
+                display: flex;
+                flex: 1;
+                min-height: 0;
+                overflow: hidden;
+            }
+            .tm-search-sidebar {
+                width: 220px;
+                flex-shrink: 0;
+                border-right: 1px solid var(--tm-shop-item-border, #e8ecf0);
+                padding: 14px 12px;
+                overflow-y: auto;
+                background: var(--tm-shop-item-hover-bg, #f8fafc);
+            }
+            .tm-search-sidebar-section + .tm-search-sidebar-section { margin-top: 16px; }
+            .tm-search-sidebar-title {
+                margin: 0 0 8px;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                color: var(--tm-muted-text, #64748b);
+            }
+            .tm-search-chips {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .tm-search-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                max-width: 100%;
+                border: 1px solid var(--tm-chip-border, #cbd5e1);
+                background: var(--tm-modal-bg, #fff);
+                color: var(--tm-chip-text, #334155);
+                border-radius: 999px;
+                padding: 4px 10px;
+                font-size: 12px;
+                cursor: pointer;
+                transition: border-color 0.15s, background 0.15s;
+            }
+            .tm-search-chip:hover {
+                border-color: var(--tm-primary-color);
+                background: var(--tm-shop-item-bg, #fff);
+            }
+            .tm-search-chip--favorite .tm-search-chip-star {
+                color: var(--tm-warning-color);
+                font-size: 10px;
+            }
+            .tm-search-chip-label {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                max-width: 140px;
+            }
+            .tm-search-chip-remove {
+                margin-left: 2px;
+                opacity: 0.5;
+                font-size: 14px;
+                line-height: 1;
+            }
+            .tm-search-chip-remove:hover { opacity: 1; color: var(--tm-danger-color); }
+            .tm-search-chips-empty {
+                font-size: 11px;
+                color: var(--tm-muted-text, #94a3b8);
+                font-style: italic;
+            }
+
+            .tm-search-main {
+                flex: 1;
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            .tm-search-progress {
+                display: none;
+                align-items: center;
+                gap: 10px;
+                padding: 8px 16px;
+                border-bottom: 1px solid var(--tm-shop-item-border, #e8ecf0);
+                background: var(--tm-shop-item-hover-bg, #f8fafc);
+            }
+            .tm-search-progress--active { display: flex; }
+            .tm-search-progress-track {
+                flex: 1;
+                height: 4px;
+                background: var(--tm-shop-item-border, #e2e8f0);
+                border-radius: 999px;
+                overflow: hidden;
+            }
+            .tm-search-progress-bar-fill {
+                height: 100%;
+                width: 0%;
+                background: linear-gradient(90deg, var(--tm-primary-color), var(--tm-info-color));
+                border-radius: 999px;
+                transition: width 0.25s ease;
+            }
+            .tm-search-progress-text {
+                font-size: 11px;
+                color: var(--tm-muted-text, #64748b);
+                white-space: nowrap;
+            }
+
+            #tm-results-container {
+                flex: 1;
+                overflow-y: auto;
+                padding: 14px 16px;
+                pointer-events: auto;
+            }
+            .tm-search-empty-state,
+            .tm-search-loading-state {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 48px 24px;
+                color: var(--tm-muted-text, #64748b);
+                gap: 8px;
+                min-height: 200px;
+            }
+            .tm-search-loading-state { flex-direction: row; gap: 12px; }
+            .tm-search-empty-icon { font-size: 36px; opacity: 0.7; }
+            .tm-search-empty-title {
+                margin: 0;
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+            }
+            .tm-search-empty-hint {
+                margin: 0;
+                font-size: 13px;
+                max-width: 360px;
+                line-height: 1.5;
+            }
+            .tm-search-results-summary {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                padding: 8px 12px;
+                margin-bottom: 12px;
+                border-radius: 10px;
+                background: var(--tm-chip-bg, #f1f5f9);
+                border: 1px solid var(--tm-chip-border, #e2e8f0);
+                font-size: 13px;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+            }
+            .tm-search-results-query {
+                color: var(--tm-muted-text, #64748b);
+                font-size: 12px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .tm-result-card {
+                border: 1px solid var(--tm-shop-item-border);
+                border-radius: 12px;
+                margin-bottom: 10px;
+                overflow: hidden;
+                background: var(--tm-shop-item-bg);
+                transition: box-shadow 0.2s, border-color 0.2s;
+            }
+            .tm-result-card.tm-result-clickable { cursor: pointer; }
+            .tm-result-card.tm-result-clickable:hover {
+                border-color: var(--tm-primary-color);
+                box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+            }
+            .tm-result-card--expanded {
+                border-color: var(--tm-info-color);
+                box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
+            }
+            .tm-result-card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 12px;
+                border-bottom: 1px solid var(--tm-shop-item-border);
+                background: var(--tm-shop-item-hover-bg, #f8fafc);
+            }
+            .tm-result-card-title {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                min-width: 0;
+                flex: 1;
+            }
+            .tm-result-card-badge {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 24px;
+                height: 24px;
+                border-radius: 8px;
+                background: var(--tm-primary-color);
+                color: #fff;
+                font-size: 11px;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+            .tm-result-card-primary {
+                font-weight: 700;
+                font-size: 14px;
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .tm-result-card-type {
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+                padding: 2px 8px;
+                border-radius: 999px;
+                background: var(--tm-chip-bg);
+                border: 1px solid var(--tm-chip-border);
+                color: var(--tm-muted-text);
+                flex-shrink: 0;
+            }
+            .tm-result-card-type--history {
+                background: rgba(139, 92, 246, 0.12);
+                border-color: rgba(139, 92, 246, 0.35);
+                color: #6d28d9;
+            }
+            .tm-result-card--from-history {
+                border-left: 3px solid #8b5cf6;
+            }
+            .tm-result-card-actions {
+                display: flex;
+                gap: 6px;
+                flex-shrink: 0;
+            }
+            .tm-result-card-fields {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                padding: 10px 12px;
+            }
+            .tm-result-field-pill {
+                font-size: 12px;
+                padding: 4px 10px;
+                border-radius: 8px;
+                background: var(--tm-chip-bg);
+                border: 1px solid var(--tm-chip-border);
+                color: var(--tm-shop-item-text, var(--tm-primary-color));
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .tm-result-card-hint {
+                padding: 0 12px 8px;
+                font-size: 10px;
+                color: var(--tm-muted-text, #94a3b8);
+            }
+            .tm-result-card--expanded .tm-result-card-hint { display: none; }
+
+            .tm-result-highlight {
+                background-color: var(--tm-warning-color);
+                color: var(--tm-dark-hover, #1e293b);
+                border-radius: 2px;
+                padding: 0 2px;
+            }
+            .tm-print-btn, .tm-goto-btn {
+                background-color: var(--tm-info-color);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 6px 10px;
+                font-size: 12px;
+                cursor: pointer;
+                text-decoration: none;
+                pointer-events: auto;
+            }
+            .tm-print-btn { padding: 6px 9px; }
+            .tm-print-btn:hover { background-color: var(--tm-info-hover); }
+            .tm-goto-btn { background-color: var(--tm-success-color); }
+            .tm-goto-btn:hover { background-color: var(--tm-success-hover); }
+
+            /* Legacy result classes (other modals may still use) */
+            .tm-result-item { border: 1px solid var(--tm-shop-item-border); border-radius: 5px; margin-bottom: 10px; overflow: hidden; pointer-events: auto; background: var(--tm-shop-item-bg); }
+            .tm-result-clickable { cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; pointer-events: auto; }
+            .tm-result-header { background-color: var(--tm-shop-item-bg); color: var(--tm-primary-color); padding: 8px 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+            .tm-result-body { padding: 12px; color: var(--tm-primary-color); }
+            .tm-result-table { width: 100%; border-collapse: collapse; }
+            .tm-result-table td { padding: 5px; border-bottom: 1px solid var(--tm-shop-item-border); font-size: 13px; text-align: center; color: var(--tm-primary-color); }
+
+            /* Hacker theme — search modal */
+            .tm-hacker-theme-enabled .tm-search-modal-content {
                 background: #050505;
                 color: #0f0;
                 border: 1px solid #0f0;
                 box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
             }
-            .tm-hacker-theme-enabled .tm-modal-header { border-bottom-color: #0f0; }
-            .tm-hacker-theme-enabled .tm-modal-title { color: #0f0; }
+            .tm-hacker-theme-enabled .tm-search-modal-header { border-bottom-color: #0f0; background: #0a0a0a; }
+            .tm-hacker-theme-enabled .tm-search-modal-content .tm-modal-title { color: #0f0; }
+            .tm-hacker-theme-enabled .tm-search-modal-subtitle { color: #3f3; }
             .tm-hacker-theme-enabled .tm-modal-close { color: #0f0; }
-            .tm-hacker-theme-enabled #tm-search-submit { background-color: #009900; border-color: #0f0; }
+            .tm-hacker-theme-enabled .tm-search-input-wrap { border-color: #0f0; background: #030d03; }
+            .tm-hacker-theme-enabled .tm-search-input-icon { background: #0a0a0a; border-color: #0f0; color: #0f0; }
+            .tm-hacker-theme-enabled #tm-search-input { color: #0f0; }
+            .tm-hacker-theme-enabled #tm-search-input:focus { color: #0f0; background-color: #030d03; text-shadow: 0 0 4px #0f0; }
+            .tm-hacker-theme-enabled .tm-search-input-wrap:focus-within { box-shadow: 0 0 8px #0f0; }
+            .tm-hacker-theme-enabled #tm-search-submit { background-color: #009900; }
             .tm-hacker-theme-enabled #tm-search-submit:hover { background-color: #00cc00; }
             .tm-hacker-theme-enabled #tm-search-favorite-btn { border-color: #0f0; color: #0f0; }
             .tm-hacker-theme-enabled #tm-search-favorite-btn.favorited { color: #ffff00; }
-            .tm-hacker-theme-enabled #tm-search-history-favorites-container { border-top-color: #0f0; }
-            .tm-hacker-theme-enabled .tm-search-list-section h4 { color: #0f0; border-bottom-color: #0f0; }
-            .tm-hacker-theme-enabled .tm-search-list-item a { color: #3f3; }
-            .tm-hacker-theme-enabled .tm-search-list-action-btn { color: #0f0; }
-            .tm-hacker-theme-enabled .tm-search-list-action-btn:hover { color: #ff0000; }
-            .tm-hacker-theme-enabled #tm-status-message { color: #0f0; }
-            .tm-hacker-theme-enabled .tm-result-item { border-color: #0f0; background: #080808; }
-            .tm-hacker-theme-enabled .tm-result-header { background: #111; }
-            .tm-hacker-theme-enabled .tm-result-table td { border-color: #0f0; }
+            .tm-hacker-theme-enabled .tm-search-sidebar { background: #080808; border-color: #0f0; }
+            .tm-hacker-theme-enabled .tm-search-sidebar-title { color: #0f0; }
+            .tm-hacker-theme-enabled .tm-search-chip { border-color: #0f0; background: #080808; color: #3f3; }
+            .tm-hacker-theme-enabled .tm-search-scope { border-color: #0f0; color: #0f0; background: #080808; }
+            .tm-hacker-theme-enabled .tm-search-scope.active { background: #009900; }
+            .tm-hacker-theme-enabled .tm-search-toggle-check { border-color: #0f0; background: #080808; color: #3f3; }
+            .tm-hacker-theme-enabled .tm-search-toggle-check-ui { border-color: #0f0; background: #030d03; }
+            .tm-hacker-theme-enabled .tm-search-toggle-check input:checked + .tm-search-toggle-check-ui { background: #009900; border-color: #0f0; }
+            .tm-hacker-theme-enabled .tm-search-toggle-check input:checked ~ .tm-search-toggle-check-label { color: #0f0; }
+            .tm-hacker-theme-enabled .tm-result-card-type--history { color: #0f0; border-color: #0f0; background: #0a1a0a; }
+            .tm-hacker-theme-enabled .tm-result-card--from-history { border-left-color: #0f0; }
+            .tm-hacker-theme-enabled .tm-result-card { border-color: #0f0; background: #080808; }
+            .tm-hacker-theme-enabled .tm-result-card-header { background: #111; border-color: #0f0; }
             .tm-hacker-theme-enabled .tm-result-highlight { background-color: #00ff00; color: #000; }
             .tm-hacker-theme-enabled .tm-goto-btn, .tm-hacker-theme-enabled .tm-print-btn { background-color: #009900; }
             .tm-hacker-theme-enabled .tm-goto-btn:hover, .tm-hacker-theme-enabled .tm-print-btn:hover { background-color: #00cc00; }
 
-            /* Search History & Favorites */
-            #tm-search-input { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-            #tm-search-favorite-btn {
-                padding: 10px; font-size: 18px; background: none;
-                border: 1px solid #ccc; border-left: none;
-                cursor: pointer; color: #6c757d;
-                display: flex; align-items: center; justify-content: center;
-                pointer-events: auto;
-            }
-            #tm-search-favorite-btn:hover { background-color: #f0f0f0; }
-            #tm-search-favorite-btn.favorited { color: var(--tm-warning-color); /* Gold for favorited */ }
-            #tm-search-submit { border-radius: 0 4px 4px 0; }
-
-            #tm-search-history-favorites-container {
-                display: flex;
-                gap: 20px;
-                margin-top: 15px;
-                padding-top: 15px;
-                border-top: 1px solid #eee;
-                pointer-events: auto;
-            }
-            .tm-search-list-section { flex: 1; min-width: 0; }
-            .tm-search-list-section h4 {
-                margin-top: 0; margin-bottom: 8px; font-size: 14px;
-                border-bottom: 1px solid #f0f0f0; padding-bottom: 4px;
-            }
-            .tm-search-list {
-                list-style: none; padding: 0; margin: 0;
-                max-height: 120px; overflow-y: auto;
-            }
-            .tm-search-list-item {
-                display: flex; justify-content: space-between; align-items: center;
-                padding: 4px 0; font-size: 13px;
-            }
-            .tm-search-list-item a {
-                color: var(--tm-primary-color); text-decoration: none; cursor: pointer;
-                flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-                pointer-events: auto;
-            }
-            .tm-search-list-item a:hover { text-decoration: underline; }
-            .tm-search-list-action-btn {
-                background: none; border: none; cursor: pointer; font-size: 14px;
-                margin-left: 5px; color: #888; padding: 2px; line-height: 1;
-                flex-shrink: 0;
-                pointer-events: auto;
-            }
-            .tm-search-list-action-btn:hover { color: #dc3545; } /* Red for remove */
-
-            /* Results Area */
-            #tm-results-container { overflow-y: auto; pointer-events: auto; }
-            .tm-result-item { border: 1px solid var(--tm-shop-item-border); border-radius: 5px; margin-bottom: 10px; overflow: hidden; pointer-events: auto; background: var(--tm-shop-item-bg); }
-            .tm-result-clickable { cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s; pointer-events: auto; }
-            .tm-result-clickable:hover {
-                box-shadow: 0 0 8px var(--tm-primary-color);
-            }
-            .tm-result-header { background-color: var(--tm-shop-item-bg); color: var(--tm-primary-color); padding: 8px 12px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; text-align: center; border: 1px solid var(--tm-shop-item-border); }
-            .tm-result-body { padding: 12px; color: var(--tm-primary-color); }
-            .tm-result-table { width: 100%; border-collapse: collapse; }
-            .tm-result-table td { padding: 5px; border-bottom: 1px solid var(--tm-shop-item-border); font-size: 13px; text-align: center; color: var(--tm-primary-color); }
-            .tm-result-table tr:last-child td { border-bottom: none; }
-            .tm-result-highlight { background-color: var(--tm-warning-color); color: var(--tm-dark-hover); }
-            .tm-print-btn, .tm-goto-btn {
-                background-color: var(--tm-info-color); color: white; border: none; border-radius: 4px;
-                padding: 5px 10px; font-size: 12px; cursor: pointer; text-decoration: none;
-                margin-left: 5px;
-                pointer-events: auto;
-            }
-            .tm-print-btn:hover { background-color: var(--tm-info-hover); }
-            .tm-goto-btn {
-                background-color: var(--tm-success-color);
-            }
-            .tm-goto-btn:hover {
-                background-color: var(--tm-success-hover);
+            @media (max-width: 768px) {
+                .tm-search-body { flex-direction: column; }
+                .tm-search-sidebar {
+                    width: 100%;
+                    border-right: none;
+                    border-bottom: 1px solid var(--tm-shop-item-border, #e8ecf0);
+                    max-height: 120px;
+                }
+                .tm-search-modal-meta .tm-search-kbd-hint { display: none; }
+                .tm-search-history-toggles { margin-left: 0; width: 100%; }
             }
 
             /* Quick Action Buttons within details */
@@ -11260,6 +11747,19 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     }
                 });
             }
+
+            const searchFeatureCheckbox = document.getElementById('tm-setting-search-enabled');
+            if (searchFeatureCheckbox) {
+                searchFeatureCheckbox.addEventListener('change', () => {
+                    const value = searchFeatureCheckbox.checked;
+                    GM_setValue('searchFeatureEnabled', value);
+                    config.searchFeatureEnabled = value;
+
+                    if (typeof window.updateSearchMenuItemVisibility === 'function') {
+                        window.updateSearchMenuItemVisibility(config);
+                    }
+                });
+            }
             
             const orderHistoryCheckbox = document.getElementById('tm-setting-order-history-enabled');
             if (orderHistoryCheckbox) {
@@ -12462,52 +12962,431 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             document.body.appendChild(container);
             console.log('[MMS] Right-side panel container created.');
         }
-        createRightSidePanel(); // Ensure the panel exists
+        createRightSidePanel(); // Ensure the panel exists (scratchpad / auxiliary slide-outs)
 
-        // --- Feature-specific Constants ---
+        const SEARCH_MENU_ID = 'tm-search-menu-item';
+        let searchKeyboardShortcutsBound = false;
         const QUICK_SEARCH_HIDDEN_KEY = 'tm_quick_search_hidden';
 
         // --- Configuration & Constants ---
-        const SEARCH_URLS = [
-            '/mymanagerservice/srvorders_list.php?pagesize=-1',      // Merchandise Orders
-            '/mymanagerservice/sparepartstoorder_list.php?pagesize=-1' // Spare Parts Orders
-        ];
+        const SEARCH_URL_MAP = {
+            orders: '/mymanagerservice/srvorders_list.php?pagesize=-1',
+            spareparts: '/mymanagerservice/sparepartstoorder_list.php?pagesize=-1'
+        };
+
+        const SEARCH_INCLUDE_MERCHANDISE_HISTORY_KEY = 'tm_search_include_merchandise_history';
+        const SEARCH_INCLUDE_PARTS_HISTORY_KEY = 'tm_search_include_parts_history';
 
         // State Variables
-        let searchResults = []; // Holds results from a search
-        let searchTerms = []; // Holds the split terms of the current query
+        let searchResults = [];
+        let searchTerms = [];
+        let searchScope = 'all';
+        let searchGeneration = 0;
+        let searchProgress = { total: 0, done: 0 };
+
+        function getSearchUrlsForScope(scope) {
+            if (scope === 'orders') return [SEARCH_URL_MAP.orders];
+            if (scope === 'spareparts') return [SEARCH_URL_MAP.spareparts];
+            return Object.values(SEARCH_URL_MAP);
+        }
+
+        function getResultTypeLabel(result) {
+            const source = typeof result === 'object' ? result.source : null;
+            const orderLink = typeof result === 'object' ? result.orderLink : result;
+            if (source === 'history-merchandise') return 'Ιστορικό Εμπόρ.';
+            if (source === 'history-parts') return 'Ιστορικό Ανταλλ.';
+            if (!orderLink) return 'Αποτέλεσμα';
+            if (orderLink.includes('sparepartstoorder')) return 'Ανταλλακτικό';
+            if (orderLink.includes('srvorders')) return 'Παραγγελία';
+            return 'Αποτέλεσμα';
+        }
+
+        function escapeSearchHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function loadOrderHistory(storageKey) {
+            try {
+                const data = GM_getValue(storageKey, '[]');
+                const parsed = JSON.parse(data);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                console.error('[MMS Search] Error parsing order history:', e);
+                return [];
+            }
+        }
+
+        function orderHistorySearchText(order) {
+            const parts = [
+                order.id,
+                order.phone,
+                order.customer,
+                order.code,
+                order.repairNumber,
+                order.date,
+                order.type
+            ];
+            if (order.allColumns) {
+                parts.push(...Object.values(order.allColumns));
+            }
+            return parts.filter(Boolean).join(' ').toLowerCase();
+        }
+
+        function buildHistoryDisplayCells(order) {
+            const cells = [];
+            const seen = new Set();
+            const push = (text) => {
+                const value = String(text).trim();
+                if (!value || seen.has(value)) return;
+                seen.add(value);
+                cells.push({ html: escapeSearchHtml(value), text: value });
+            };
+
+            push(order.id);
+            push(order.customer);
+            push(order.phone);
+            push(order.code);
+            push(order.repairNumber);
+            push(order.date);
+            if (order.allColumns) {
+                Object.values(order.allColumns).forEach(push);
+            }
+            return cells;
+        }
+
+        function searchOrderHistory(storageKey, source) {
+            const orders = loadOrderHistory(storageKey);
+            const query = document.getElementById('tm-search-input')?.value.trim() || '';
+
+            orders.forEach(order => {
+                const text = orderHistorySearchText(order);
+                const allTermsMatch = searchTerms.every(term => text.includes(term));
+                if (!allTermsMatch || !order.url) return;
+                if (searchResults.some(r => r.orderLink === order.url)) return;
+
+                searchResults.push({
+                    term: query,
+                    orderLink: order.url,
+                    source,
+                    historyEntry: order
+                });
+            });
+        }
+
+        function getSearchSourceOptions() {
+            const merchCb = document.getElementById('tm-search-include-merchandise-history');
+            const partsCb = document.getElementById('tm-search-include-parts-history');
+            return {
+                merchandiseHistory: merchCb ? merchCb.checked : false,
+                partsHistory: partsCb ? partsCb.checked : false
+            };
+        }
+
+        function countHistorySearchTasks(options) {
+            let count = 0;
+            if (options.merchandiseHistory) count++;
+            if (options.partsHistory) count++;
+            return count;
+        }
+
+        function runHistorySearches(options, generation) {
+            if (generation !== searchGeneration) return;
+
+            const serviceKey = STORAGE_KEYS.ORDER_HISTORY_SERVICE || 'tm_srvorders_page_history';
+            const partsKey = STORAGE_KEYS.ORDER_HISTORY_PARTS || 'tm_partsorders_page_history';
+
+            if (options.merchandiseHistory) {
+                searchOrderHistory(serviceKey, 'history-merchandise');
+                searchProgress.done++;
+                updateSearchProgressUI();
+            }
+            if (options.partsHistory) {
+                searchOrderHistory(partsKey, 'history-parts');
+                searchProgress.done++;
+                updateSearchProgressUI();
+            }
+        }
+
+        function extractRowCells(rowHTML) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = rowHTML;
+            return Array.from(tr.querySelectorAll('td'))
+                .map(td => ({ html: td.innerHTML, text: td.innerText.trim() }))
+                .filter(cell => cell.text);
+        }
+
+        function highlightTermsInHtml(html, terms) {
+            let highlighted = html;
+            terms.forEach(term => {
+                const regex = new RegExp(term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
+                highlighted = highlighted.replace(regex, '<span class="tm-result-highlight">$&</span>');
+            });
+            return highlighted;
+        }
+
+        function updateSearchProgressUI() {
+            const progressEl = document.getElementById('tm-search-progress');
+            if (!progressEl) return;
+            const pct = searchProgress.total > 0
+                ? Math.min(100, Math.round((searchProgress.done / searchProgress.total) * 100))
+                : 0;
+            const bar = progressEl.querySelector('.tm-search-progress-bar-fill');
+            const text = progressEl.querySelector('.tm-search-progress-text');
+            if (bar) bar.style.width = `${pct}%`;
+            if (text) {
+                text.textContent = searchProgress.total > 0
+                    ? `Αναζήτηση… ${searchProgress.done}/${searchProgress.total}`
+                    : 'Αναζήτηση…';
+            }
+        }
+
+        function setSearchProgressVisible(visible) {
+            const progressEl = document.getElementById('tm-search-progress');
+            if (progressEl) progressEl.classList.toggle('tm-search-progress--active', visible);
+        }
+
+        function removeLegacySearchButton() {
+            document.getElementById('tm-search-btn')?.remove();
+        }
+
+        function cloneNativeMenuItem(templateLi, label) {
+            const li = templateLi.cloneNode(true);
+            li.classList.remove('current', 'expanded');
+            li.removeAttribute('id');
+            li.querySelectorAll(':scope > ul').forEach((ul) => ul.remove());
+
+            const link = li.querySelector(':scope > div > div > a[href], :scope > div a[href], :scope > a[href]');
+            if (link) {
+                const icon = link.querySelector('img.menu-icon');
+                link.setAttribute('href', '#');
+                link.innerHTML = '';
+                if (icon) {
+                    link.appendChild(icon.cloneNode(true));
+                    link.appendChild(document.createTextNode(` ${label}`));
+                } else {
+                    link.textContent = label;
+                }
+            }
+
+            return li;
+        }
+
+        function createFallbackMenuItem(label) {
+            const li = document.createElement('li');
+            li.innerHTML = `<div><div><a href="#">${label}</a></div></div>`;
+            return li;
+        }
+
+        function findMenuInsertPoint(menu) {
+            const manageItem = menu.querySelector('[data-tm-manage-hidden="true"]');
+            if (manageItem) {
+                const separator = manageItem.previousElementSibling;
+                if (separator?.getAttribute('data-tm-special') === 'true') return separator;
+                return manageItem;
+            }
+            return null;
+        }
+
+        function findSearchMenuInsertPoint(menu) {
+            const phoneCatalogItem = document.getElementById('tm-phone-catalog-menu-item');
+            if (phoneCatalogItem?.parentElement === menu) {
+                return phoneCatalogItem.nextElementSibling;
+            }
+            return findMenuInsertPoint(menu);
+        }
+
+        function getSearchMenuLabel() {
+            return 'Αναζήτηση Παραγγελίας';
+        }
+
+        function bindSearchKeyboardShortcuts() {
+            if (searchKeyboardShortcutsBound) return;
+            searchKeyboardShortcutsBound = true;
+
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    createSearchModal();
+                }
+            });
+        }
+
+        function ensureSearchMenuItem(activeConfig) {
+            removeLegacySearchButton();
+
+            const menu = document.querySelector('.rnr-b-vmenu.simple.main');
+            if (!menu) return false;
+
+            const enabled = activeConfig?.searchFeatureEnabled !== false;
+            let item = document.getElementById(SEARCH_MENU_ID);
+
+            if (!enabled) {
+                if (item) item.style.display = 'none';
+                return true;
+            }
+
+            const label = getSearchMenuLabel();
+
+            if (!item) {
+                const template = menu.querySelector(':scope > li:not(.menuGroup):not([data-tm-special]):not([data-tm-suite-item])')
+                    || menu.querySelector('li:not([data-tm-special]):not([data-tm-suite-item])');
+                item = template
+                    ? cloneNativeMenuItem(template, label)
+                    : createFallbackMenuItem(label);
+
+                item.id = SEARCH_MENU_ID;
+                item.setAttribute('data-tm-suite-item', 'super-search');
+                item.setAttribute('data-menu-id', 'suite-super-search');
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    createSearchModal();
+                });
+
+                const insertBefore = findSearchMenuInsertPoint(menu);
+                if (insertBefore) menu.insertBefore(item, insertBefore);
+                else menu.appendChild(item);
+            } else {
+                const link = item.querySelector('a[href]');
+                if (link) {
+                    const icon = link.querySelector('img.menu-icon');
+                    link.innerHTML = '';
+                    if (icon) {
+                        link.appendChild(icon.cloneNode(true));
+                        link.appendChild(document.createTextNode(` ${label}`));
+                    } else {
+                        link.textContent = label;
+                    }
+                }
+                if (!item.parentElement) {
+                    const insertBefore = findSearchMenuInsertPoint(menu);
+                    if (insertBefore) menu.insertBefore(item, insertBefore);
+                    else menu.appendChild(item);
+                }
+            }
+
+            item.style.display = '';
+            return true;
+        }
+
+        function initSearchMenuItem(activeConfig) {
+            removeLegacySearchButton();
+            bindSearchKeyboardShortcuts();
+
+            if (activeConfig?.searchFeatureEnabled === false) {
+                document.getElementById(SEARCH_MENU_ID)?.remove();
+                return;
+            }
+
+            let attempts = 0;
+            const maxAttempts = 80;
+            let observer = null;
+
+            const tryInject = () => {
+                attempts += 1;
+                if (ensureSearchMenuItem(activeConfig)) {
+                    if (observer) observer.disconnect();
+                    return;
+                }
+                if (attempts >= maxAttempts && observer) observer.disconnect();
+            };
+
+            tryInject();
+
+            observer = new MutationObserver(() => {
+                tryInject();
+            });
+            const leftPanel = document.querySelector('.rnr-left') || document.body;
+            observer.observe(leftPanel, { childList: true, subtree: true });
+            setTimeout(() => observer?.disconnect(), 10000);
+        }
+
+        function updateSearchMenuItemVisibility(activeConfig) {
+            ensureSearchMenuItem(activeConfig);
+        }
 
         function createSearchModal() {
-            if (document.querySelector('.tm-modal-overlay')) return; // Prevent multiple modals
+            if (document.getElementById('tm-search-modal-overlay')) return;
 
             const overlay = document.createElement('div');
-            overlay.className = 'tm-modal-overlay';
-            // Enable hacker theme automatically when matrix theme is active
+            overlay.id = 'tm-search-modal-overlay';
+            overlay.className = 'tm-modal-overlay tm-search-modal-overlay';
             const currentTheme = GM_getValue('equippedTheme', 'default');
             overlay.classList.toggle('tm-hacker-theme-enabled', currentTheme === 'matrix');
             overlay.innerHTML = `
-                <div class="tm-modal-content">
-                    <div class="tm-modal-header">
-                        <h2 class="tm-modal-title">Αναζήτηση Παραγγελίας</h2>
-                        <button class="tm-modal-close">&times;</button>
-                    </div>
-                    <div id="tm-search-input-area">
-                        <input type="text" id="tm-search-input" placeholder="Αρ. Παραγγελίας, Όνομα, Ανταλλακτικό...">
-                        <button id="tm-search-favorite-btn" title="Προσθήκη στα Αγαπημένα">&#9734;</button>
-                        <button id="tm-search-submit">Αναζήτηση</button>
-                    </div>
-                    <div id="tm-search-history-favorites-container">
-                        <div class="tm-search-list-section">
-                            <h4>Πρόσφατες Αναζητήσεις</h4>
-                            <ul id="tm-search-history-list" class="tm-search-list"></ul>
+                <div class="tm-modal-content tm-search-modal-content">
+                    <div class="tm-modal-header tm-search-modal-header">
+                        <div class="tm-search-modal-brand">
+                            <span class="tm-search-modal-icon" aria-hidden="true">🔍</span>
+                            <div>
+                                <h2 class="tm-modal-title">Αναζήτηση Παραγγελίας</h2>
+                                <p class="tm-search-modal-subtitle">Παραγγελίες &amp; ανταλλακτικά — όλοι οι όροι πρέπει να ταιριάζουν</p>
+                            </div>
                         </div>
-                        <div class="tm-search-list-section">
-                            <h4>Αγαπημένες Αναζητήσεις</h4>
-                            <ul id="tm-search-favorites-list" class="tm-search-list"></ul>
+                        <div class="tm-search-modal-meta">
+                            <kbd class="tm-search-kbd-hint" title="Άνοιγμα αναζήτησης">Ctrl+K</kbd>
+                            <button class="tm-modal-close" aria-label="Κλείσιμο">&times;</button>
                         </div>
                     </div>
-                    <div id="tm-results-container">
-                        <div id="tm-status-message">Εισάγετε έναν όρο αναζήτησης για να ξεκινήσετε.</div>
+
+                    <div class="tm-search-toolbar">
+                        <div id="tm-search-input-area" class="tm-search-input-wrap">
+                            <span class="tm-search-input-icon" aria-hidden="true">⌕</span>
+                            <input type="text" id="tm-search-input" placeholder="Αρ. παραγγελίας, όνομα, ανταλλακτικό…" autocomplete="off" spellcheck="false">
+                            <button id="tm-search-favorite-btn" type="button" title="Προσθήκη στα Αγαπημένα">&#9734;</button>
+                            <button id="tm-search-submit" type="button">Αναζήτηση</button>
+                            <button id="tm-search-cancel" type="button" class="tm-search-cancel-btn" hidden>Ακύρωση</button>
+                        </div>
+                        <div class="tm-search-filters-row">
+                            <div class="tm-search-scope-toggles" role="group" aria-label="Ζωντανή αναζήτηση">
+                                <button type="button" class="tm-search-scope active" data-scope="all">Όλα</button>
+                                <button type="button" class="tm-search-scope" data-scope="orders">Παραγγελίες</button>
+                                <button type="button" class="tm-search-scope" data-scope="spareparts">Ανταλλακτικά</button>
+                            </div>
+                            <div class="tm-search-history-toggles" role="group" aria-label="Ιστορικό παραγγελιών">
+                                <label class="tm-search-toggle-check">
+                                    <input type="checkbox" id="tm-search-include-merchandise-history">
+                                    <span class="tm-search-toggle-check-ui" aria-hidden="true"></span>
+                                    <span class="tm-search-toggle-check-label">Ιστορικό Εμπορευμάτων</span>
+                                </label>
+                                <label class="tm-search-toggle-check">
+                                    <input type="checkbox" id="tm-search-include-parts-history">
+                                    <span class="tm-search-toggle-check-ui" aria-hidden="true"></span>
+                                    <span class="tm-search-toggle-check-label">Ιστορικό Ανταλλακτικών</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tm-search-body">
+                        <aside class="tm-search-sidebar">
+                            <div class="tm-search-sidebar-section">
+                                <h4 class="tm-search-sidebar-title">Πρόσφατες</h4>
+                                <div id="tm-search-history-chips" class="tm-search-chips"></div>
+                            </div>
+                            <div class="tm-search-sidebar-section">
+                                <h4 class="tm-search-sidebar-title">Αγαπημένες</h4>
+                                <div id="tm-search-favorites-chips" class="tm-search-chips"></div>
+                            </div>
+                        </aside>
+                        <main class="tm-search-main">
+                            <div id="tm-search-progress" class="tm-search-progress" aria-hidden="true">
+                                <div class="tm-search-progress-track">
+                                    <div class="tm-search-progress-bar-fill"></div>
+                                </div>
+                                <span class="tm-search-progress-text">Αναζήτηση…</span>
+                            </div>
+                            <div id="tm-results-container">
+                                <div class="tm-search-empty-state">
+                                    <span class="tm-search-empty-icon" aria-hidden="true">📋</span>
+                                    <p class="tm-search-empty-title">Ξεκινήστε μια αναζήτηση</p>
+                                    <p class="tm-search-empty-hint">Πληκτρολογήστε όρους χωρισμένους με κενό — όλοι πρέπει να υπάρχουν στο αποτέλεσμα.</p>
+                                </div>
+                            </div>
+                        </main>
                     </div>
                 </div>
             `;
@@ -12515,28 +13394,74 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
             renderHistoryAndFavorites(overlay, config, STORAGE_KEYS);
 
-            // Event Listeners
-            overlay.querySelector('.tm-modal-close').addEventListener('click', () => overlay.remove());
-            overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+            const closeModal = () => overlay.remove();
+            overlay.querySelector('.tm-modal-close').addEventListener('click', closeModal);
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
             overlay.querySelector('#tm-search-submit').addEventListener('click', handleSearchSubmit);
+            overlay.querySelector('#tm-search-cancel').addEventListener('click', () => {
+                searchGeneration++;
+                finishSearchUI();
+                const resultsContainer = document.getElementById('tm-results-container');
+                if (resultsContainer) {
+                    resultsContainer.innerHTML = `
+                        <div class="tm-search-empty-state">
+                            <span class="tm-search-empty-icon" aria-hidden="true">⏹</span>
+                            <p class="tm-search-empty-title">Η αναζήτηση ακυρώθηκε</p>
+                        </div>`;
+                }
+            });
+
+            overlay.querySelectorAll('.tm-search-scope').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    searchScope = btn.dataset.scope || 'all';
+                    overlay.querySelectorAll('.tm-search-scope').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            });
+
+            const merchHistoryCb = overlay.querySelector('#tm-search-include-merchandise-history');
+            const partsHistoryCb = overlay.querySelector('#tm-search-include-parts-history');
+            if (merchHistoryCb) {
+                merchHistoryCb.checked = GM_getValue(SEARCH_INCLUDE_MERCHANDISE_HISTORY_KEY, true);
+                merchHistoryCb.addEventListener('change', () => {
+                    GM_setValue(SEARCH_INCLUDE_MERCHANDISE_HISTORY_KEY, merchHistoryCb.checked);
+                });
+            }
+            if (partsHistoryCb) {
+                partsHistoryCb.checked = GM_getValue(SEARCH_INCLUDE_PARTS_HISTORY_KEY, true);
+                partsHistoryCb.addEventListener('change', () => {
+                    GM_setValue(SEARCH_INCLUDE_PARTS_HISTORY_KEY, partsHistoryCb.checked);
+                });
+            }
 
             const searchInput = overlay.querySelector('#tm-search-input');
             const favoriteBtn = overlay.querySelector('#tm-search-favorite-btn');
 
             searchInput.addEventListener('keyup', (e) => {
                 if (e.key === 'Enter') handleSearchSubmit();
+                if (e.key === 'Escape') closeModal();
                 updateFavoriteButtonState(searchInput.value, favoriteBtn, STORAGE_KEYS);
             });
 
             favoriteBtn.addEventListener('click', () => {
                 toggleFavoriteSearch(searchInput.value, favoriteBtn, STORAGE_KEYS);
-                renderHistoryAndFavorites(overlay, config, STORAGE_KEYS); // Re-render to show changes
+                renderHistoryAndFavorites(overlay, config, STORAGE_KEYS);
             });
 
             updateFavoriteButtonState(searchInput.value, favoriteBtn, STORAGE_KEYS);
-
-            // Auto-focus the input field for immediate typing
             setTimeout(() => searchInput.focus(), 100);
+        }
+
+        function finishSearchUI() {
+            const submitBtn = document.getElementById('tm-search-submit');
+            const cancelBtn = document.getElementById('tm-search-cancel');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Αναζήτηση';
+            }
+            if (cancelBtn) cancelBtn.hidden = true;
+            setSearchProgressVisible(false);
         }
 
         // --- History & Favorites Logic ---
@@ -12607,65 +13532,60 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         function renderHistoryAndFavorites(modal, config, STORAGE_KEYS) {
-            const historyList = modal.querySelector('#tm-search-history-list');
-            const favoritesList = modal.querySelector('#tm-search-favorites-list');
+            const historyChips = modal.querySelector('#tm-search-history-chips');
+            const favoritesChips = modal.querySelector('#tm-search-favorites-chips');
+            if (!historyChips || !favoritesChips) return;
 
-            historyList.innerHTML = '';
-            favoritesList.innerHTML = '';
+            historyChips.innerHTML = '';
+            favoritesChips.innerHTML = '';
 
-            // Render History
             const history = getSearchHistory(STORAGE_KEYS);
             if (history.length === 0) {
-                historyList.innerHTML = '<li style="color: #888; font-style: italic;">Δεν υπάρχουν πρόσφατες αναζητήσεις.</li>';
+                historyChips.innerHTML = '<span class="tm-search-chips-empty">Καμία πρόσφατη αναζήτηση</span>';
             } else {
                 history.forEach(query => {
-                    const li = document.createElement('li');
-                    li.className = 'tm-search-list-item';
-                    li.innerHTML = `<a href="#" title="Αναζήτηση για: ${query}">${query}</a>`;
-                    li.querySelector('a').addEventListener('click', (e) => {
-                        e.preventDefault();
-                        performSearchInModal(query, config, STORAGE_KEYS);
-                    });
-                    historyList.appendChild(li);
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.className = 'tm-search-chip';
+                    chip.title = `Αναζήτηση: ${query}`;
+                    chip.innerHTML = `<span class="tm-search-chip-label">${query}</span>`;
+                    chip.addEventListener('click', () => performSearchInModal(query, config, STORAGE_KEYS));
+                    historyChips.appendChild(chip);
                 });
             }
 
-            // Render Favorites
             const favorites = getFavoriteSearches(STORAGE_KEYS);
             if (favorites.length === 0) {
-                favoritesList.innerHTML = '<li style="color: #888; font-style: italic;">Δεν υπάρχουν αγαπημένες αναζητήσεις.</li>';
+                favoritesChips.innerHTML = '<span class="tm-search-chips-empty">Κανένα αγαπημένο</span>';
             } else {
                 favorites.forEach(query => {
-                    const li = document.createElement('li');
-                    li.className = 'tm-search-list-item';
-                    li.innerHTML = `
-                        <a href="#" title="Αναζήτηση για: ${query}">${query}</a>
-                        <button class="tm-search-list-action-btn" title="Αφαίρεση Αγαπημένου">&#128465;</button>
-                    `;
-                    li.querySelector('a').addEventListener('click', (e) => { e.preventDefault(); performSearchInModal(query, config, STORAGE_KEYS); });
-                    li.querySelector('button').addEventListener('click', () => {
-                        toggleFavoriteSearch(query, modal.querySelector('#tm-search-favorite-btn'), STORAGE_KEYS);
-                        renderHistoryAndFavorites(modal, config, STORAGE_KEYS); // Re-render after removal
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.className = 'tm-search-chip tm-search-chip--favorite';
+                    chip.title = `Αναζήτηση: ${query}`;
+                    chip.innerHTML = `
+                        <span class="tm-search-chip-star" aria-hidden="true">★</span>
+                        <span class="tm-search-chip-label">${query}</span>
+                        <span class="tm-search-chip-remove" aria-label="Αφαίρεση">×</span>`;
+                    chip.addEventListener('click', (e) => {
+                        if (e.target.closest('.tm-search-chip-remove')) return;
+                        performSearchInModal(query, config, STORAGE_KEYS);
                     });
-                    favoritesList.appendChild(li);
+                    chip.querySelector('.tm-search-chip-remove').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        toggleFavoriteSearch(query, modal.querySelector('#tm-search-favorite-btn'), STORAGE_KEYS);
+                        renderHistoryAndFavorites(modal, config, STORAGE_KEYS);
+                    });
+                    favoritesChips.appendChild(chip);
                 });
             }
         }
 
-        function addMainButton() {
+        function addAuxiliarySlideOutButtons() {
             const container = document.getElementById('tm-search-container');
             if (!container) return;
 
-            const button = document.createElement('button');
-            button.id = 'tm-search-btn';
-            button.className = 'tm-slide-out-btn'; // Pass config
-            button.textContent = 'Αναζήτηση Παραγγελίας';
-            button.addEventListener('click', createSearchModal);
-
-            container.appendChild(button);
-
-            if (config.levelUpSystemEnabled) {
-                // Add Daily Bounties button
+            if (config.levelUpSystemEnabled && !document.getElementById('tm-quests-btn')) {
                 const questsButton = document.createElement('button');
                 questsButton.id = 'tm-quests-btn';
                 questsButton.className = 'tm-slide-out-btn';
@@ -12674,8 +13594,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 container.appendChild(questsButton);
             }
 
-            // Add Technician Stats button if on the correct page
-            // This function is called on 'window.load', so the DOM is already ready.
             const isOnServiceListPage = window.location.pathname.includes('/mymanagerservice/service_list.php');
             const isView105 = new URLSearchParams(window.location.search).get('view') === '105';
 
@@ -12691,7 +13609,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         const rows = gridTable.querySelectorAll('tbody tr[id^="gridRow"]');
                         rows.forEach(row => {
                             const statusCell = row.cells[statusIndex];
-                            // The status is inside a span with an ID like 'edit5_ccc_iStatusID'
                             const statusSpan = statusCell ? statusCell.querySelector('span[id$="_ccc_iStatusID"]') : null;
                             if (statusSpan && statusSpan.innerText.trim() === '105') {
                                 status105Count++;
@@ -12701,12 +13618,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 }
             }
 
-            if (config.technicianStatsEnabled && isOnServiceListPage && isView105 && status105Count >= 10) {
+            if (config.technicianStatsEnabled && isOnServiceListPage && isView105 && status105Count >= 10 && !document.getElementById('tm-tech-stats-btn')) {
                 const statsButton = document.createElement('button');
                 statsButton.id = 'tm-tech-stats-btn';
                 statsButton.innerHTML = '📊 Στατιστικά Τεχνικών';
-                statsButton.className = 'tm-slide-out-btn'; // Pass config
-                statsButton.onclick = window.initTechnicianStatsFeature; // Use onclick to prevent multiple listeners
+                statsButton.className = 'tm-slide-out-btn';
+                statsButton.onclick = window.initTechnicianStatsFeature;
                 container.appendChild(statsButton);
             }
         }
@@ -12826,11 +13743,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
         // Helper to perform a search from anywhere (e.g., history, quick actions)
         function performSearchInModal(query, config, STORAGE_KEYS) {
-            const modal = document.querySelector('.tm-modal-overlay');
+            const modal = document.getElementById('tm-search-modal-overlay');
             if (!modal) {
-                // If modal isn't open, open it and then search
-                createSearchModal(config, STORAGE_KEYS);
-                // Need to wait a moment for the modal to be in the DOM
+                createSearchModal();
                 setTimeout(() => performSearchInModal(query, config, STORAGE_KEYS), 100);
                 return;
             }
@@ -12844,42 +13759,41 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
         }
 
-        // --- Search Logic ---
         function handleSearchSubmit() {
             const input = document.getElementById('tm-search-input');
             const submitBtn = document.getElementById('tm-search-submit');
+            const cancelBtn = document.getElementById('tm-search-cancel');
             const resultsContainer = document.getElementById('tm-results-container');
 
             const query = input.value.trim();
-            console.log('[MMS] Search: handleSearchSubmit called with query:', query);
-            
-            if (!query) {
-                console.log('[MMS] Search: Empty query, returning early');
-                return;
-            }
+            if (!query) return;
+
+            searchGeneration++;
+            const currentGeneration = searchGeneration;
 
             window.trackDailyStat(config, STORAGE_KEYS, 'searches');
             addSearchToHistory(query, config, STORAGE_KEYS);
-            renderHistoryAndFavorites(document.querySelector('.tm-modal-overlay'), config, STORAGE_KEYS); // Update history live
+            const modal = document.getElementById('tm-search-modal-overlay');
+            if (modal) renderHistoryAndFavorites(modal, config, STORAGE_KEYS);
 
-            // Split the query by spaces or commas for an "AND" search where all terms must match.
             searchTerms = query.split(/[\s,]+/).map(t => t.trim().toLowerCase()).filter(Boolean);
-            console.log('[MMS] Search: Search terms:', searchTerms);
-            
-            if (searchTerms.length === 0) {
-                console.log('[MMS] Search: No valid search terms, returning early');
-                return;
-            }
+            if (searchTerms.length === 0) return;
 
             searchResults = [];
             processedUrls.clear();
-            console.log('[MMS] Search: Starting search with URLs:', SEARCH_URLS);
+
+            const sourceOptions = getSearchSourceOptions();
+            const liveUrls = getSearchUrlsForScope(searchScope);
+            const historyTasks = countHistorySearchTasks(sourceOptions);
+            searchProgress = { total: liveUrls.length + historyTasks, done: 0 };
+
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Αναζήτηση...';
+            submitBtn.textContent = 'Αναζήτηση…';
+            if (cancelBtn) cancelBtn.hidden = false;
+            setSearchProgressVisible(true);
+            updateSearchProgressUI();
 
             let terminalInterval = null;
-
-            // Use hacker search effects when matrix theme is active
             const currentTheme = GM_getValue('equippedTheme', 'default');
             if (currentTheme === 'matrix') {
                 resultsContainer.innerHTML = `<div id="tm-hacker-terminal"><div id="tm-hacker-output"></div><span class="tm-hacker-cursor"></span></div>`;
@@ -12913,22 +13827,27 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     }
                 }, 250);
             } else {
-                resultsContainer.innerHTML = `<div id="tm-status-message" class="tm-minimal-loader"><div class="tm-spinner"></div>Αναζήτηση...</div>`;
+                resultsContainer.innerHTML = `<div class="tm-search-loading-state"><div class="tm-spinner"></div><span>Σάρωση πηγών δεδομένων…</span></div>`;
             }
 
-            // This function will be called when the search is complete.
             const onSearchComplete = () => {
+                if (currentGeneration !== searchGeneration) return;
                 window.setMascotState(config, 'idle');
                 if (terminalInterval) clearInterval(terminalInterval);
-                // A small delay to let the "SUCCESS" message be seen if using hacker theme
-                // Add delay for matrix theme hacker effects
-                const currentTheme = GM_getValue('equippedTheme', 'default');
-                setTimeout(displayResults, currentTheme === 'matrix' ? 500 : 0);
+                const theme = GM_getValue('equippedTheme', 'default');
+                setTimeout(displayResults, theme === 'matrix' ? 500 : 0);
             };
 
             if (config.interactiveMascotEnabled) window.setMascotState(config, 'searching');
-            urlsToProcess = [...SEARCH_URLS]; // Re-initialize the queue with the base URLs
-            processNextUrl(onSearchComplete, config); // Start the search
+
+            runHistorySearches(sourceOptions, currentGeneration);
+
+            urlsToProcess = [...liveUrls];
+            if (urlsToProcess.length === 0) {
+                onSearchComplete();
+            } else {
+                processNextUrl(onSearchComplete, currentGeneration);
+            }
         }
 
         function handleQuickSearchClick(event) {
@@ -12947,96 +13866,87 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         let processedUrls = new Set();
         let activeSearchRequests = 0;
 
-        // This function remains within initSearchFeature as it's specific to the search modal's operation
-        function processNextUrl(onComplete) {
+        function processNextUrl(onComplete, generation) {
+            if (generation !== undefined && generation !== searchGeneration) return;
+
             if (urlsToProcess.length === 0) {
                 if (activeSearchRequests === 0 && onComplete) onComplete();
                 return;
             }
 
             const url = urlsToProcess.shift();
-            // If we have already processed this exact URL, skip to the next one.
             if (processedUrls.has(url)) {
-                processNextUrl(onComplete);
+                processNextUrl(onComplete, generation);
                 return;
             }
-            // Mark the URL as processed *before* the request to avoid race conditions.
-            // where a page might be added to the queue multiple times.
             processedUrls.add(url);
 
-            activeSearchRequests++; // Increment for the new request
-            console.log(`Searching in: ${url} for terms:`, searchTerms);
-
+            activeSearchRequests++;
             GM_xmlhttpRequest({
                 method: 'GET',
                 url: url,
                 onload: function(response) {
-                    console.log(`[MMS] Search: Successfully fetched ${url}, response status:`, response.status);
+                    if (generation !== undefined && generation !== searchGeneration) {
+                        activeSearchRequests--;
+                        return;
+                    }
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(response.responseText, 'text/html');
-                    console.log(`[MMS] Search: Parsed HTML, looking for rows in page`);
-                    parseAndSearchPage(doc, response.finalUrl);
-                    activeSearchRequests--; // Decrement after processing
-                    console.log(`[MMS] Search: Active requests remaining:`, activeSearchRequests);
-                    // Process the next URL in the queue if there is one
+                    parseAndSearchPage(doc, response.finalUrl, generation);
+                    activeSearchRequests--;
+                    searchProgress.done++;
+                    updateSearchProgressUI();
                     if (urlsToProcess.length > 0) {
-                        processNextUrl(onComplete);
+                        processNextUrl(onComplete, generation);
                     } else if (activeSearchRequests === 0) {
-                        // Only call onComplete when all requests are finished
-                        console.log(`[MMS] Search: All requests completed, calling onComplete`);
                         if (onComplete) onComplete();
                     }
                 },
-                onerror: function(error) {
-                    console.error(`[MMS] Search: Error fetching ${url}:`, error);
-                    activeSearchRequests--; // Decrement on error too
-                    if (urlsToProcess.length > 0) processNextUrl(onComplete);
+                onerror: function() {
+                    if (generation !== undefined && generation !== searchGeneration) {
+                        activeSearchRequests--;
+                        return;
+                    }
+                    activeSearchRequests--;
+                    searchProgress.done++;
+                    updateSearchProgressUI();
+                    if (urlsToProcess.length > 0) processNextUrl(onComplete, generation);
+                    else if (activeSearchRequests === 0 && onComplete) onComplete();
                 }
             });
         }
 
-        // This function remains within initSearchFeature as it's specific to the search modal's operation
-        function parseAndSearchPage(doc, pageBaseUrl) {
-            console.log(`[MMS] Search: parseAndSearchPage called for URL:`, pageBaseUrl);
-            
+        function parseAndSearchPage(doc, pageBaseUrl, generation) {
+            if (generation !== undefined && generation !== searchGeneration) return;
+
             doc.querySelectorAll('.pagination a').forEach(a => {
                 const pageHref = a.getAttribute('href');
                 if (pageHref && !pageHref.startsWith('javascript:')) {
                     const absoluteUrl = new URL(pageHref, pageBaseUrl).href;
                     if (!processedUrls.has(absoluteUrl)) {
                         urlsToProcess.push(absoluteUrl);
+                        searchProgress.total++;
+                        updateSearchProgressUI();
                     }
                 }
             });
 
             const rows = doc.querySelectorAll('tbody tr');
-            console.log(`[MMS] Search: Found ${rows.length} rows to process in this page`);
-            
-            let matchCount = 0;
             rows.forEach(row => {
                 const rowText = row.innerText.toLowerCase();
-                // Check if the row text includes ALL search terms (AND logic)
                 const allTermsMatch = searchTerms.every(term => rowText.includes(term));
 
                 if (allTermsMatch) {
-                    matchCount++;
-                    console.log(`[MMS] Search: Found matching row:`, rowText.substring(0, 100) + '...');
                     const linkUrl = window.findOrderLink(row, pageBaseUrl);
-                    console.log(`[MMS] Search: Link URL for match:`, linkUrl);
-
                     if (linkUrl && !searchResults.some(r => r.orderLink === linkUrl)) {
                         searchResults.push({
                             term: document.getElementById('tm-search-input').value.trim(),
                             rowHTML: row.innerHTML,
                             orderLink: linkUrl
                         });
-                        console.log(`[MMS] Search: Added result to searchResults. Total results:`, searchResults.length);
-                    } else {
-                        console.log(`[MMS] Search: Skipped result - no link URL or duplicate`);
                     }
                 }
             });
-            console.log(`[MMS] Search: Processed ${rows.length} rows, found ${matchCount} matches in this page`);
         }
 
         // --- Results & Printing ---
@@ -13047,6 +13957,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             // If details are already visible, remove them to collapse the view.
             if (existingDetails) {
                 existingDetails.remove();
+                itemDiv.classList.remove('tm-result-card--expanded');
                 return;
             }
 
@@ -13054,8 +13965,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             // Create a container and show a loading message.
             const detailsContainer = document.createElement('div');
             detailsContainer.className = 'tm-result-details-container';
-            detailsContainer.innerHTML = '<div class="tm-details-loading">Φόρτωση λεπτομερειών...</div>';
+            detailsContainer.innerHTML = '<div class="tm-details-loading">Φόρτωση λεπτομερειών…</div>';
             itemDiv.appendChild(detailsContainer);
+            itemDiv.classList.add('tm-result-card--expanded');
 
             GM_xmlhttpRequest({
                 method: 'GET',
@@ -13088,69 +14000,80 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
         function displayResults() {
             const resultsContainer = document.getElementById('tm-results-container');
-            const submitBtn = document.getElementById('tm-search-submit');
             const input = document.getElementById('tm-search-input');
+            const query = input ? input.value.trim() : '';
 
-            console.log('[MMS] Search: displayResults called with', searchResults.length, 'results');
+            finishSearchUI();
 
             if (searchResults.length === 0) {
-                console.log('[MMS] Search: No results found, displaying empty message');
-                resultsContainer.innerHTML = `<div id="tm-status-message">Δεν βρέθηκαν αποτελέσματα για "${input.value}". Δοκιμάστε ξανά.</div>`;
-            } else {
-                console.log('[MMS] Search: Displaying', searchResults.length, 'results');
-                if (config.confettiEnabled) window.triggerConfetti(30); // Fun: Confetti on successful search
-                resultsContainer.innerHTML = '';
-                searchResults.forEach((result, index) => {
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'tm-result-item';
-
-                    // Highlight all search terms
-                    let highlightedHTML = result.rowHTML;
-                    searchTerms.forEach(term => {
-                        const regex = new RegExp(term.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
-                        highlightedHTML = highlightedHTML.replace(regex, `<span class="tm-result-highlight">$&</span>`);
-                    });
-
-                    itemDiv.innerHTML = `
-                        <div class="tm-result-header">
-                            <span>Αποτέλεσμα #${index + 1} (Βρέθηκε για: ${result.term})</span>
-                            <div>
-                                ${result.orderLink ? `<a href="${result.orderLink}" target="_blank" class="tm-goto-btn">Μετάβαση στην Παραγγελία</a>` : ''}
-                                ${result.orderLink ? `<button class="tm-print-btn" data-link="${result.orderLink}">Εκτύπωση Παραγγελίας</button>` : ''}
-                            </div>
-                        </div>
-                        <div class="tm-result-body">
-                            <table class="tm-result-table">${highlightedHTML}</table>
-                        </div>
-                    `;
-                    resultsContainer.appendChild(itemDiv);
-
-                    // Make the result body clickable if it has an order link
-                    if (result.orderLink) {
-                        const resultBody = itemDiv.querySelector('.tm-result-body');
-                        console.log(`[MMS] Result #${index + 1}: Found orderLink: ${result.orderLink}. Attaching click listener.`);
-                        if (resultBody) {
-                            resultBody.classList.add('tm-result-clickable');
-                            resultBody.title = 'Κάντε κλικ για εμφάνιση/απόκρυψη λεπτομερειών';
-                            resultBody.addEventListener('click', () => {
-                                toggleOrderDetails(result, itemDiv);
-                            });
-                        }
-                    } else {
-                        console.warn(`[MMS] Result #${index + 1}: No orderLink found. Not making clickable. Row HTML:`, result.rowHTML);
-                    }
-                });
-
-                resultsContainer.querySelectorAll('.tm-print-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const url = e.target.dataset.link;
-                        window.handlePrintClick(url, e.target);
-                    });
-                });
+                resultsContainer.innerHTML = `
+                    <div class="tm-search-empty-state">
+                        <span class="tm-search-empty-icon" aria-hidden="true">🔎</span>
+                        <p class="tm-search-empty-title">Δεν βρέθηκαν αποτελέσματα</p>
+                        <p class="tm-search-empty-hint">Για «${query}» — δοκιμάστε λιγότερους όρους ή άλλο εύρος.</p>
+                    </div>`;
+                return;
             }
 
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Αναζήτηση';
+            if (config.confettiEnabled) window.triggerConfetti(30);
+
+            const summary = document.createElement('div');
+            summary.className = 'tm-search-results-summary';
+            summary.innerHTML = `
+                <span>Βρέθηκαν <strong>${searchResults.length}</strong> αποτελέσματα</span>
+                <span class="tm-search-results-query">«${query}»</span>`;
+            resultsContainer.innerHTML = '';
+            resultsContainer.appendChild(summary);
+
+            searchResults.forEach((result, index) => {
+                const cells = result.historyEntry
+                    ? buildHistoryDisplayCells(result.historyEntry)
+                    : extractRowCells(result.rowHTML);
+                const primary = cells[0] ? highlightTermsInHtml(cells[0].html, searchTerms) : '—';
+                const metaCells = cells.slice(1, 5);
+                const typeLabel = getResultTypeLabel(result);
+                const isHistoryResult = result.source === 'history-merchandise' || result.source === 'history-parts';
+
+                const itemDiv = document.createElement('article');
+                itemDiv.className = 'tm-result-card';
+                if (result.orderLink) itemDiv.classList.add('tm-result-clickable');
+                if (isHistoryResult) itemDiv.classList.add('tm-result-card--from-history');
+
+                const fieldsHtml = metaCells.map(cell =>
+                    `<span class="tm-result-field-pill">${highlightTermsInHtml(cell.html, searchTerms)}</span>`
+                ).join('');
+
+                itemDiv.innerHTML = `
+                    <div class="tm-result-card-header">
+                        <div class="tm-result-card-title">
+                            <span class="tm-result-card-badge">${index + 1}</span>
+                            <span class="tm-result-card-primary">${primary}</span>
+                            <span class="tm-result-card-type${isHistoryResult ? ' tm-result-card-type--history' : ''}">${typeLabel}</span>
+                        </div>
+                        <div class="tm-result-card-actions">
+                            ${result.orderLink ? `<a href="${result.orderLink}" target="_blank" class="tm-goto-btn" title="Άνοιγμα παραγγελίας">↗ Άνοιγμα</a>` : ''}
+                            ${result.orderLink ? `<button type="button" class="tm-print-btn" data-link="${result.orderLink}" title="Εκτύπωση">🖨</button>` : ''}
+                        </div>
+                    </div>
+                    ${fieldsHtml ? `<div class="tm-result-card-fields">${fieldsHtml}</div>` : ''}
+                    <div class="tm-result-card-hint">Κλικ για λεπτομέρειες</div>
+                `;
+                resultsContainer.appendChild(itemDiv);
+
+                if (result.orderLink) {
+                    itemDiv.addEventListener('click', (e) => {
+                        if (e.target.closest('.tm-goto-btn, .tm-print-btn')) return;
+                        toggleOrderDetails(result, itemDiv);
+                    });
+                }
+            });
+
+            resultsContainer.querySelectorAll('.tm-print-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.handlePrintClick(e.currentTarget.dataset.link, e.currentTarget);
+                });
+            });
         }
 
         // New function for adding print button to edit pages
@@ -13194,6 +14117,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         // --- Feature Initializer ---
+        window.openSuperSearchModal = createSearchModal;
+        window.updateSearchMenuItemVisibility = updateSearchMenuItemVisibility;
+        initSearchMenuItem(config);
+
         const pathname = window.location.pathname;
         const isEditPage = pathname.includes('_edit.php');
 
@@ -13203,12 +14130,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         } else if (isEditPage) {
             addPrintButtonToEditPage();
         } else if (pathname.includes('_list.php')) {
-            // On non-edit pages (list pages), just add the main search button.
-            addMainButton();
+            addAuxiliarySlideOutButtons();
         }
     }
 
-    // Make the main initializer function globally accessible
     window.initSearchFeature = initSearchFeature;
 
 })();
@@ -45252,12 +46177,11 @@ if (typeof window !== 'undefined') {
             
             // Shift + F → Advanced Search (only if enabled)
             if (matchesShortcut(e, 'f') && config?.searchFeatureEnabled) {
-                const btn = document.getElementById('tm-search-btn');
-                if (btn) {
+                if (typeof window.openSuperSearchModal === 'function') {
                     e.preventDefault();
-                    btn.click();
+                    window.openSuperSearchModal();
                 } else if (config?.debugEnabled) {
-                    console.log('[MMS] Shortcut: Search button not found (tm-search-btn).');
+                    console.log('[MMS] Shortcut: openSuperSearchModal is not available.');
                 }
                 return;
             }
@@ -47213,6 +48137,11 @@ if (typeof window !== 'undefined') {
         // Update phone catalog button visibility on page load
         if (typeof window.updatePhoneCatalogButtonVisibility === 'function') {
             window.updatePhoneCatalogButtonVisibility(config);
+        }
+
+        // Update super search menu item visibility on page load
+        if (typeof window.updateSearchMenuItemVisibility === 'function') {
+            window.updateSearchMenuItemVisibility(config);
         }
         
         // Update order history button visibility on page load

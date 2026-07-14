@@ -1266,6 +1266,19 @@
                     }
                 });
             }
+
+            const searchFeatureCheckbox = document.getElementById('tm-setting-search-enabled');
+            if (searchFeatureCheckbox) {
+                searchFeatureCheckbox.addEventListener('change', () => {
+                    const value = searchFeatureCheckbox.checked;
+                    GM_setValue('searchFeatureEnabled', value);
+                    config.searchFeatureEnabled = value;
+
+                    if (typeof window.updateSearchMenuItemVisibility === 'function') {
+                        window.updateSearchMenuItemVisibility(config);
+                    }
+                });
+            }
             
             const orderHistoryCheckbox = document.getElementById('tm-setting-order-history-enabled');
             if (orderHistoryCheckbox) {
