@@ -1568,9 +1568,12 @@
                     // independent of whether the level-up / XP system is enabled.
                     console.log('[MMS] 🛠️ REPAIR COMPLETED — calling trackDailyStat(repairsCompleted)');
                     trackDailyStat(config, STORAGE_KEYS, 'repairsCompleted');
+                    trackDailyStat(config, STORAGE_KEYS, 'status100Transfers');
                     if (config.interactiveMascotEnabled) {
                         setMascotState(config, 'happy', 5000);
                     }
+                } else if (repairInfo.status === '40') {
+                    trackDailyStat(config, STORAGE_KEYS, 'status40Transfers');
                 }
             } catch (e) {
                 console.error('[MMS] ❌ Error storing status transfer:', e);

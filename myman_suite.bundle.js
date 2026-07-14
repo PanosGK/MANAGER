@@ -20954,21 +20954,64 @@ const XP_CONFIG = {
     petMascot: 5, // For petting the interactive mascot
     memoryGame: 15, // Base XP for playing the memory mini-game
     bugSquishGame: 30, // Base XP for playing the bug squish mini-game
+    status40Transfers: 15,
+    status100Transfers: 25,
+    phoneCatalogOpen: 5,
+    phoneCatalogLookup: 5,
+    phoneCatalogNetworkLookup: 10,
+    phoneCatalogBarcodeCopy: 3,
+    eodCheckItem: 10,
+    eodChecklistComplete: 40,
 };
 
 const QUEST_POOL = [
+    // ── Repairs & orders ──
+    { id: 'complete_1_repair', description: 'Complete 1 repair', targetStat: 'repairsCompleted', targetCount: 1, rewardXp: 80, rewardCoins: 25 },
     { id: 'complete_3_repairs', description: 'Complete 3 repairs', targetStat: 'repairsCompleted', targetCount: 3, rewardXp: 150, rewardCoins: 50 },
+    { id: 'complete_5_repairs', description: 'Complete 5 repairs', targetStat: 'repairsCompleted', targetCount: 5, rewardXp: 220, rewardCoins: 75 },
+    { id: 'create_3_orders', description: 'Create 3 new orders', targetStat: 'ordersCreated', targetCount: 3, rewardXp: 70, rewardCoins: 20 },
     { id: 'create_5_orders', description: 'Create 5 new orders', targetStat: 'ordersCreated', targetCount: 5, rewardXp: 100, rewardCoins: 30 },
+    // ── Search & workflow ──
+    { id: 'search_5_times', description: 'Use Advanced Search 5 times', targetStat: 'searches', targetCount: 5, rewardXp: 45, rewardCoins: 10 },
     { id: 'search_10_times', description: 'Use Advanced Search 10 times', targetStat: 'searches', targetCount: 10, rewardXp: 75, rewardCoins: 15 },
-    { id: 'pet_mascot_5_times', description: 'Pet the mascot 5 times', targetStat: 'petMascot', targetCount: 5, rewardXp: 50, rewardCoins: 10 },
-    { id: 'feed_mascot_3_times', description: 'Feed the mascot 3 times', targetStat: 'feedMascot', targetCount: 3, rewardXp: 40, rewardCoins: 10 },
+    { id: 'change_3_statuses', description: 'Change the status of 3 repairs', targetStat: 'statusChanges', targetCount: 3, rewardXp: 50, rewardCoins: 12 },
     { id: 'change_5_statuses', description: 'Change the status of 5 repairs', targetStat: 'statusChanges', targetCount: 5, rewardXp: 80, rewardCoins: 20 },
+    { id: 'move_2_status_40', description: 'Move 2 repairs to status 40 (ΠΡΟΣ ΕΛΕΓΧΟ)', targetStat: 'status40Transfers', targetCount: 2, rewardXp: 90, rewardCoins: 25 },
+    { id: 'move_2_status_100', description: 'Move 2 repairs to status 100 (ΠΡΟΣ ΠΑΡΑΔΟΣΗ)', targetStat: 'status100Transfers', targetCount: 2, rewardXp: 120, rewardCoins: 35 },
     { id: 'print_2_orders', description: 'Print 2 order tickets', targetStat: 'printOrder', targetCount: 2, rewardXp: 50, rewardCoins: 15 },
+    { id: 'view_3_histories', description: 'View customer history 3 times', targetStat: 'viewCustomerHistory', targetCount: 3, rewardXp: 40, rewardCoins: 10 },
     { id: 'view_5_histories', description: 'View customer history 5 times', targetStat: 'viewCustomerHistory', targetCount: 5, rewardXp: 60, rewardCoins: 15 },
+    { id: 'set_2_scratchpad_reminders', description: 'Set 2 scratchpad reminders', targetStat: 'setScratchpadReminder', targetCount: 2, rewardXp: 55, rewardCoins: 15 },
+    // ── Mascot ──
+    { id: 'pet_mascot_5_times', description: 'Pet the mascot 5 times', targetStat: 'petMascot', targetCount: 5, rewardXp: 50, rewardCoins: 10, requiresFeature: 'mascot' },
+    { id: 'feed_mascot_3_times', description: 'Feed the mascot 3 times', targetStat: 'feedMascot', targetCount: 3, rewardXp: 40, rewardCoins: 10, requiresFeature: 'mascot' },
+    // ── Mini-games & economy ──
     { id: 'play_2_games', description: 'Play any mini-game 2 times', targetStat: 'anyGamePlayed', targetCount: 2, rewardXp: 70, rewardCoins: 25 },
     { id: 'earn_100_xp', description: 'Earn 100 XP from any source', targetStat: 'xpEarned', targetCount: 100, rewardXp: 100, rewardCoins: 30 },
     { id: 'earn_20_coins', description: 'Earn 20 Fixer-Coins', targetStat: 'coinsEarned', targetCount: 20, rewardXp: 50, rewardCoins: 50 },
+    // ── Phone catalog ──
+    { id: 'open_phone_catalog', description: 'Open the Phone Catalog once', targetStat: 'phoneCatalogOpen', targetCount: 1, rewardXp: 40, rewardCoins: 10, requiresFeature: 'phoneCatalog' },
+    { id: 'lookup_3_phone_models', description: 'Look up 3 phone models in the catalog', targetStat: 'phoneCatalogLookup', targetCount: 3, rewardXp: 70, rewardCoins: 20, requiresFeature: 'phoneCatalog' },
+    { id: 'check_other_stores_model', description: 'Check other stores for a model', targetStat: 'phoneCatalogNetworkLookup', targetCount: 1, rewardXp: 65, rewardCoins: 18, requiresFeature: 'phoneCatalog' },
+    { id: 'copy_3_catalog_barcodes', description: 'Copy 3 barcodes from the catalog', targetStat: 'phoneCatalogBarcodeCopy', targetCount: 3, rewardXp: 55, rewardCoins: 15, requiresFeature: 'phoneCatalog' },
+    // ── EOD checklist ──
+    { id: 'verify_3_eod_items', description: 'Verify 3 repairs in the EOD checklist', targetStat: 'eodCheckItem', targetCount: 3, rewardXp: 60, rewardCoins: 15, requiresFeature: 'eod' },
+    { id: 'complete_eod_checklist', description: 'Complete the EOD checklist for today', targetStat: 'eodChecklistComplete', targetCount: 1, rewardXp: 100, rewardCoins: 30, requiresFeature: 'eod' },
 ];
+
+function filterQuestPool(config) {
+    const mascotEnabled = config?.interactiveMascotEnabled !== false;
+    const phoneCatalogEnabled = config?.phoneCatalogEnabled !== false;
+    const eodEnabled = config?.eodChecklistEnabled !== false;
+
+    return QUEST_POOL.filter((q) => {
+        if (q.requiresFeature === 'mascot' && !mascotEnabled) return false;
+        if (q.requiresFeature === 'phoneCatalog' && !phoneCatalogEnabled) return false;
+        if (q.requiresFeature === 'eod' && !eodEnabled) return false;
+        if (!mascotEnabled && (q.targetStat === 'petMascot' || q.targetStat === 'feedMascot')) return false;
+        return true;
+    });
+}
 
 // Unified constant for all ranks and titles.
 const RANKS = [
@@ -22038,7 +22081,15 @@ function trackDailyStat(config, STORAGE_KEYS, statName, value = 1) {
         memoryGame: 0,
         bugSquishGame: 0,
         xpEarned: 0,
-        coinsEarned: 0
+        coinsEarned: 0,
+        status40Transfers: 0,
+        status100Transfers: 0,
+        phoneCatalogOpen: 0,
+        phoneCatalogLookup: 0,
+        phoneCatalogNetworkLookup: 0,
+        phoneCatalogBarcodeCopy: 0,
+        eodCheckItem: 0,
+        eodChecklistComplete: 0,
     };
 
     try {
@@ -22217,10 +22268,7 @@ function checkAchievements(config, STORAGE_KEYS, statName, currentCount) {
 // === DAILY BOUNTIES / QUESTS SYSTEM
 // ===================================================================
 function generateDailyQuests(STORAGE_KEYS, config) {
-    const mascotEnabled = config?.interactiveMascotEnabled !== false;
-    const pool = mascotEnabled
-        ? QUEST_POOL
-        : QUEST_POOL.filter(q => q.targetStat !== 'petMascot' && q.targetStat !== 'feedMascot');
+    const pool = filterQuestPool(config);
     const shuffled = pool.sort(() => 0.5 - Math.random());
     const dailyQuests = shuffled.slice(0, 3).map(quest => ({
         ...quest,
@@ -22387,11 +22435,7 @@ function populateQuestsModal(config, STORAGE_KEYS) {
             // Find a new quest
             let quests = JSON.parse(GM_getValue(STORAGE_KEYS.DAILY_QUESTS, '[]'));
             const currentQuestIds = quests.map(q => q.id);
-            const mascotEnabled = config?.interactiveMascotEnabled !== false;
-            const availableNewQuests = QUEST_POOL.filter(p =>
-                !currentQuestIds.includes(p.id) &&
-                (mascotEnabled || (p.targetStat !== 'petMascot' && p.targetStat !== 'feedMascot'))
-            );
+            const availableNewQuests = filterQuestPool(config).filter(p => !currentQuestIds.includes(p.id));
 
             if (availableNewQuests.length > 0) {
                 const newQuestTemplate = availableNewQuests[Math.floor(Math.random() * availableNewQuests.length)];
@@ -32421,6 +32465,10 @@ if (document.body) {
     async function showStoreLocatorModal() {
         if (document.querySelector('.tm-sl-overlay')) return;
 
+        if (typeof window.trackDailyStat === 'function' && window.config && window.STORAGE_KEYS) {
+            window.trackDailyStat(window.config, window.STORAGE_KEYS, 'phoneCatalogOpen');
+        }
+
         if (typeof window.detectAndCacheCurrentStoreName === 'function') {
             window.detectAndCacheCurrentStoreName(document);
         }
@@ -32463,6 +32511,8 @@ if (document.body) {
         let storesResolving = false;
         let lastUpdated = null;
         let keyboardBound = false;
+        let lastTrackedLookupModel = null;
+        let lastTrackedNetworkModel = null;
 
         UI.setDensity(overlay, densityCompact);
         UI.updateViewTabs(overlay, catalogView);
@@ -32561,6 +32611,12 @@ if (document.body) {
             }
         }
 
+        function trackCatalogStat(statName, value = 1) {
+            if (typeof window.trackDailyStat === 'function' && window.config && window.STORAGE_KEYS) {
+                window.trackDailyStat(window.config, window.STORAGE_KEYS, statName, value);
+            }
+        }
+
         function wireUnitActions() {
             bodyEl.querySelectorAll('[data-tm-sl-copy]').forEach((btn) => {
                 btn.addEventListener('click', (e) => {
@@ -32568,6 +32624,7 @@ if (document.body) {
                     const code = btn.getAttribute('data-tm-sl-copy');
                     if (code && typeof GM_setClipboard === 'function') {
                         GM_setClipboard(code);
+                        trackCatalogStat('phoneCatalogBarcodeCopy');
                         UI.showToast(overlay, `Αντιγράφηκε ✓ ${code}`);
                     }
                 });
@@ -32742,6 +32799,8 @@ if (document.body) {
         function renderModelsStep() {
             step = 'models';
             selectedModel = null;
+            lastTrackedLookupModel = null;
+            lastTrackedNetworkModel = null;
             UI.updateBreadcrumb(overlay, 'models');
             syncCatalogHeaders();
             toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort);
@@ -32807,6 +32866,10 @@ if (document.body) {
                 const variants = buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
                 bodyEl.innerHTML = UI.buildMyStoreBoard(selectedModel, variants, buildUiCtx({ hideStoreInUnits: true }));
                 setStatus(`${variants.length} ${variants.length === 1 ? 'συσκευή' : 'συσκευές'} στο δικό σας`);
+                if (selectedModel !== lastTrackedLookupModel) {
+                    trackCatalogStat('phoneCatalogLookup');
+                    lastTrackedLookupModel = selectedModel;
+                }
                 wireUnitActions();
                 return;
             }
@@ -32827,6 +32890,14 @@ if (document.body) {
 
             const storeCount = storeRows.length;
             setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} στο δίκτυο`);
+            if (selectedModel !== lastTrackedLookupModel) {
+                trackCatalogStat('phoneCatalogLookup');
+                lastTrackedLookupModel = selectedModel;
+            }
+            if (selectedModel !== lastTrackedNetworkModel) {
+                trackCatalogStat('phoneCatalogNetworkLookup');
+                lastTrackedNetworkModel = selectedModel;
+            }
             wireStoreBoard();
             wireFilterChips(bodyEl.querySelector('#tm-sl-network-filters'));
         }
@@ -38717,6 +38788,19 @@ if (typeof window !== 'undefined') {
             </div>`;
     }
 
+    function trackEodStat(statName, value = 1) {
+        if (typeof window.trackDailyStat === 'function' && window.config && window.STORAGE_KEYS) {
+            window.trackDailyStat(window.config, window.STORAGE_KEYS, statName, value);
+        }
+    }
+
+    function notifyEodProgress(STORAGE_KEYS, today, dismissedIds) {
+        const pending = today.filter(r => !isEODDoneRepair(r, dismissedIds));
+        if (today.length > 0 && pending.length === 0) {
+            trackEodStat('eodChecklistComplete');
+        }
+    }
+
     function showEODModal(STORAGE_KEYS) {
         document.getElementById('tm-eod-modal')?.remove();
 
@@ -38824,18 +38908,25 @@ if (typeof window !== 'undefined') {
                 const id = cb.dataset.id;
                 if (cb.checked) {
                     if (!current.includes(id)) current.push(id);
+                    trackEodStat('eodCheckItem');
                 } else {
                     current = current.filter(x => x !== id);
                 }
                 setDismissed(STORAGE_KEYS, current);
                 updateFooterBadge(STORAGE_KEYS);
+                notifyEodProgress(STORAGE_KEYS, today, current);
                 showEODModal(STORAGE_KEYS);
             });
         });
 
         overlay.querySelector('#tm-eod-mark-all')?.addEventListener('click', () => {
+            const pendingCount = pending.length;
+            if (pendingCount > 0) {
+                trackEodStat('eodCheckItem', pendingCount);
+            }
             setDismissed(STORAGE_KEYS, today.map(r => r.id));
             updateFooterBadge(STORAGE_KEYS);
+            notifyEodProgress(STORAGE_KEYS, today, today.map(r => r.id));
             showEODModal(STORAGE_KEYS);
         });
     }
@@ -41690,9 +41781,12 @@ if (typeof window !== 'undefined') {
                     // independent of whether the level-up / XP system is enabled.
                     console.log('[MMS] 🛠️ REPAIR COMPLETED — calling trackDailyStat(repairsCompleted)');
                     trackDailyStat(config, STORAGE_KEYS, 'repairsCompleted');
+                    trackDailyStat(config, STORAGE_KEYS, 'status100Transfers');
                     if (config.interactiveMascotEnabled) {
                         setMascotState(config, 'happy', 5000);
                     }
+                } else if (repairInfo.status === '40') {
+                    trackDailyStat(config, STORAGE_KEYS, 'status40Transfers');
                 }
             } catch (e) {
                 console.error('[MMS] ❌ Error storing status transfer:', e);

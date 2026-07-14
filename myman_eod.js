@@ -202,6 +202,19 @@
             </div>`;
     }
 
+    function trackEodStat(statName, value = 1) {
+        if (typeof window.trackDailyStat === 'function' && window.config && window.STORAGE_KEYS) {
+            window.trackDailyStat(window.config, window.STORAGE_KEYS, statName, value);
+        }
+    }
+
+    function notifyEodProgress(STORAGE_KEYS, today, dismissedIds) {
+        const pending = today.filter(r => !isEODDoneRepair(r, dismissedIds));
+        if (today.length > 0 && pending.length === 0) {
+            trackEodStat('eodChecklistComplete');
+        }
+    }
+
     function showEODModal(STORAGE_KEYS) {
         document.getElementById('tm-eod-modal')?.remove();
 
@@ -309,18 +322,25 @@
                 const id = cb.dataset.id;
                 if (cb.checked) {
                     if (!current.includes(id)) current.push(id);
+                    trackEodStat('eodCheckItem');
                 } else {
                     current = current.filter(x => x !== id);
                 }
                 setDismissed(STORAGE_KEYS, current);
                 updateFooterBadge(STORAGE_KEYS);
+                notifyEodProgress(STORAGE_KEYS, today, current);
                 showEODModal(STORAGE_KEYS);
             });
         });
 
         overlay.querySelector('#tm-eod-mark-all')?.addEventListener('click', () => {
+            const pendingCount = pending.length;
+            if (pendingCount > 0) {
+                trackEodStat('eodCheckItem', pendingCount);
+            }
             setDismissed(STORAGE_KEYS, today.map(r => r.id));
             updateFooterBadge(STORAGE_KEYS);
+            notifyEodProgress(STORAGE_KEYS, today, today.map(r => r.id));
             showEODModal(STORAGE_KEYS);
         });
     }

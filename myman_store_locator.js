@@ -392,6 +392,10 @@
     async function showStoreLocatorModal() {
         if (document.querySelector('.tm-sl-overlay')) return;
 
+        if (typeof window.trackDailyStat === 'function' && window.config && window.STORAGE_KEYS) {
+            window.trackDailyStat(window.config, window.STORAGE_KEYS, 'phoneCatalogOpen');
+        }
+
         if (typeof window.detectAndCacheCurrentStoreName === 'function') {
             window.detectAndCacheCurrentStoreName(document);
         }
@@ -434,6 +438,8 @@
         let storesResolving = false;
         let lastUpdated = null;
         let keyboardBound = false;
+        let lastTrackedLookupModel = null;
+        let lastTrackedNetworkModel = null;
 
         UI.setDensity(overlay, densityCompact);
         UI.updateViewTabs(overlay, catalogView);
@@ -532,6 +538,12 @@
             }
         }
 
+        function trackCatalogStat(statName, value = 1) {
+            if (typeof window.trackDailyStat === 'function' && window.config && window.STORAGE_KEYS) {
+                window.trackDailyStat(window.config, window.STORAGE_KEYS, statName, value);
+            }
+        }
+
         function wireUnitActions() {
             bodyEl.querySelectorAll('[data-tm-sl-copy]').forEach((btn) => {
                 btn.addEventListener('click', (e) => {
@@ -539,6 +551,7 @@
                     const code = btn.getAttribute('data-tm-sl-copy');
                     if (code && typeof GM_setClipboard === 'function') {
                         GM_setClipboard(code);
+                        trackCatalogStat('phoneCatalogBarcodeCopy');
                         UI.showToast(overlay, `Αντιγράφηκε ✓ ${code}`);
                     }
                 });
@@ -713,6 +726,8 @@
         function renderModelsStep() {
             step = 'models';
             selectedModel = null;
+            lastTrackedLookupModel = null;
+            lastTrackedNetworkModel = null;
             UI.updateBreadcrumb(overlay, 'models');
             syncCatalogHeaders();
             toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort);
@@ -778,6 +793,10 @@
                 const variants = buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
                 bodyEl.innerHTML = UI.buildMyStoreBoard(selectedModel, variants, buildUiCtx({ hideStoreInUnits: true }));
                 setStatus(`${variants.length} ${variants.length === 1 ? 'συσκευή' : 'συσκευές'} στο δικό σας`);
+                if (selectedModel !== lastTrackedLookupModel) {
+                    trackCatalogStat('phoneCatalogLookup');
+                    lastTrackedLookupModel = selectedModel;
+                }
                 wireUnitActions();
                 return;
             }
@@ -798,6 +817,14 @@
 
             const storeCount = storeRows.length;
             setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} στο δίκτυο`);
+            if (selectedModel !== lastTrackedLookupModel) {
+                trackCatalogStat('phoneCatalogLookup');
+                lastTrackedLookupModel = selectedModel;
+            }
+            if (selectedModel !== lastTrackedNetworkModel) {
+                trackCatalogStat('phoneCatalogNetworkLookup');
+                lastTrackedNetworkModel = selectedModel;
+            }
             wireStoreBoard();
             wireFilterChips(bodyEl.querySelector('#tm-sl-network-filters'));
         }
