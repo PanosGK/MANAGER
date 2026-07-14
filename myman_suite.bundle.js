@@ -27007,19 +27007,8 @@ window.initOrderTracking = initOrderTracking;
         if (!storeRows.length) {
             return buildEmptyState('🔍', 'Δεν βρέθηκε σε άλλα καταστήματα', `Κανένα κατάστημα δικτύου δεν έχει ${esc(modelName)}`);
         }
-        const grouped = groupStoresByRegion(storeRows);
-        let globalIdx = 0;
-        return grouped.map(([region, rows]) => {
-            const rowHtml = rows.map((store) => {
-                const block = buildStoreRowHTML(store, globalIdx, ctx);
-                globalIdx += 1;
-                return block;
-            }).join('');
-            return `<section class="tm-sl-region">
-                <h3 class="tm-sl-region-title">${esc(region)}</h3>
-                <div class="tm-sl-store-list">${rowHtml}</div>
-            </section>`;
-        }).join('');
+        const rowHtml = storeRows.map((store, idx) => buildStoreRowHTML(store, idx, ctx)).join('');
+        return `<div class="tm-sl-store-list">${rowHtml}</div>`;
     }
 
     function buildStoreBoard(modelName, myStore, allRows, ctx) {
