@@ -221,10 +221,7 @@
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             const variant = phoneToVariant(phone, helpers);
             const stores = getStores(phone);
-            if (!stores.length) {
-                addVariant('__pending__', 'Άλλα καταστήματα (χωρίς λεπτομέρειες)', false, variant);
-                return;
-            }
+            if (!stores.length) return;
             stores.forEach((store) => {
                 const name = cleanStoreName(store.name);
                 if (!name) return;
@@ -461,18 +458,17 @@
             if (!needsResolve) return;
 
             storesResolving = true;
-            const prevStatus = statusEl?.textContent || '';
             try {
                 await window.resolvePhonesStoreDetails(otherStorePhones, {
                     concurrency: 8,
                     filter: modelFilter || undefined,
+                    persistOtherStoreCache: true,
                     onProgress: (done, total) => {
                         setStatus(`Φόρτωση καταστημάτων ${done}/${total}…`);
                     },
                 });
             } finally {
                 storesResolving = false;
-                if (prevStatus && step === 'models') setStatus(prevStatus);
             }
         }
 
@@ -571,7 +567,12 @@
                 if (typeof window.fetchPhoneList === 'function') {
                     allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList());
                 }
+                otherStoreLoaded = false;
+                GM_setValue('tm_phone_other_store_cache_v3', null);
+                GM_setValue('tm_phone_other_store_cache_timestamp', 0);
                 await ensureOtherStores();
+                setStatus('Φόρτωση καταστημάτων…');
+                await resolveNetworkStoreDetails();
                 if (typeof window.syncPhoneColorCatalog === 'function') {
                     window.syncPhoneColorCatalog(allPhones);
                 }
@@ -581,9 +582,6 @@
                     await renderStoresStep();
                 } else {
                     renderModelsStep();
-                    resolveNetworkStoreDetails().then(() => {
-                        if (step === 'models') renderModelsStep();
-                    });
                 }
             } catch (err) {
                 bodyEl.innerHTML = UI.buildEmptyState('❌', 'Σφάλμα φόρτωσης', err.message || '');
@@ -614,11 +612,9 @@
             const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
             lastUpdated = new Date(ts);
             syncFreshness();
-            ensureOtherStores().then(() => {
+            ensureOtherStores().then(async () => {
+                await resolveNetworkStoreDetails();
                 renderModelsStep();
-                resolveNetworkStoreDetails().then(() => {
-                    if (step === 'models') renderModelsStep();
-                });
             });
         } else {
             bodyEl.innerHTML = UI.buildEmptyState('📱', 'Χωρίς δεδομένα', 'Πατήστε Ανανέωση για φόρτωση');

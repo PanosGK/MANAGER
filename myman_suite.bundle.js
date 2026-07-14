@@ -27038,7 +27038,7 @@ const PHONE_LIST_CACHE_KEY = 'tm_phone_list_cache';
 const PHONE_LIST_CACHE_TIMESTAMP_KEY = 'tm_phone_list_cache_timestamp';
 const CACHE_EXPIRATION_DAYS = 3; // Notify user if cache is older than 3 days
 // v2: price parsing (div/input IDs) + UI shows retailPrice on other-store cards
-const OTHER_STORE_CACHE_KEY = 'tm_phone_other_store_cache_v2';
+const OTHER_STORE_CACHE_KEY = 'tm_phone_other_store_cache_v3';
 const OTHER_STORE_CACHE_TIMESTAMP_KEY = 'tm_phone_other_store_cache_timestamp';
 const OTHER_STORE_CACHE_EXPIRATION_DAYS = 1;
 
@@ -28430,11 +28430,75 @@ function getOtherStoreCache() {
     }
 }
 
+function decodeHtmlEntities(text) {
+    if (!text) return '';
+    const el = document.createElement('textarea');
+    el.innerHTML = text;
+    return el.value;
+}
+
+function parseStorehouseSnippets(rawSnippet, stores) {
+    if (!rawSnippet) return;
+    const decoded = decodeHtmlEntities(rawSnippet);
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`<div>${decoded}</div>`, 'text/html');
+
+    doc.querySelectorAll('tr').forEach((r) => {
+        const cols = r.querySelectorAll('td,th');
+        if (cols.length >= 2) {
+            const name = (cols[0].textContent || '').trim();
+            const qty = (cols[1].textContent || '').trim();
+            if (name) stores.push({ name, qty });
+        }
+    });
+
+    if (stores.length) return;
+
+    decoded.split('\n').map((l) => l.trim()).filter(Boolean).forEach((line) => {
+        const match = line.match(/(.+?)\s+(\d+)\s*$/);
+        if (match) stores.push({ name: match[1].trim(), qty: match[2].trim() });
+    });
+}
+
+function parseOtherStorehousesFromRow(row) {
+    if (!row) return [];
+    const seen = new Map();
+
+    function addList(list) {
+        (list || []).forEach((store) => {
+            const name = String(store.name || '').trim();
+            if (!name) return;
+            seen.set(name, { name, qty: String(store.qty != null ? store.qty : '1') });
+        });
+    }
+
+    addList(parseOtherStorehouses(row.querySelector('[id*="iUnitsRemainingOtherStoreHouses"]')));
+
+    if (!seen.size) {
+        row.querySelectorAll('a, span, div, td, button').forEach((el) => {
+            addList(parseOtherStorehouses(el));
+        });
+    }
+
+    if (!seen.size && row.innerHTML) {
+        const snippets = new Set();
+        row.querySelectorAll('[data-content],[data-bs-content],[data-original-title],[title]').forEach((el) => {
+            ['data-content', 'data-bs-content', 'data-original-title', 'title'].forEach((attr) => {
+                const val = el.getAttribute(attr);
+                if (val) snippets.add(val);
+            });
+        });
+        const stores = [];
+        snippets.forEach((snippet) => parseStorehouseSnippets(snippet, stores));
+        addList(stores);
+    }
+
+    return [...seen.values()];
+}
+
 function parseOtherStorehouses(cell) {
     if (!cell) return [];
     const stores = [];
-    
-    // Collect candidate HTML snippets from the element and its descendants
     const candidateAttrs = [
         'data-content',
         'data-storehouses',
@@ -28444,61 +28508,31 @@ function parseOtherStorehouses(cell) {
         'data-original-title',
         'data-bs-content',
         'data-bs-original-title',
-        'title'
+        'title',
     ];
-    
     const snippets = new Set();
-    
+
     const collect = (el) => {
         if (!el || !el.getAttribute) return;
-        candidateAttrs.forEach(attr => {
+        candidateAttrs.forEach((attr) => {
             const val = el.getAttribute(attr);
             if (val) snippets.add(val);
         });
     };
-    
+
     collect(cell);
-    // Check descendants as the popover data is often on a child <a> or <span>
     cell.querySelectorAll('*').forEach(collect);
-    
-    // Fallback to raw innerHTML/text
+
     if (snippets.size === 0) {
         if (cell.innerHTML) snippets.add(cell.innerHTML);
         else if (cell.textContent) snippets.add(cell.textContent);
     }
-    
-    // Try to parse each snippet until we find store rows
+
     for (const rawSnippet of snippets) {
-        if (!rawSnippet) continue;
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(`<div>${rawSnippet}</div>`, 'text/html');
-        
-        // Parse table rows if present
-        const rows = doc.querySelectorAll('tr');
-        rows.forEach(r => {
-            const cols = r.querySelectorAll('td,th');
-            if (cols.length >= 2) {
-                const name = (cols[0].textContent || '').trim();
-                const qty = (cols[1].textContent || '').trim();
-                if (name) stores.push({ name, qty });
-            }
-        });
-        
-        // If we already extracted stores, no need to parse further
-        if (stores.length > 0) break;
-        
-        // Fallback: parse plain text lines like "STORE 1"
-        const lines = rawSnippet.split('\n').map(l => l.trim()).filter(Boolean);
-        lines.forEach(line => {
-            const match = line.match(/(.+?)\s+(\d+)$/);
-            if (match) {
-                stores.push({ name: match[1].trim(), qty: match[2].trim() });
-            }
-        });
-        
+        parseStorehouseSnippets(rawSnippet, stores);
         if (stores.length > 0) break;
     }
-    
+
     return stores;
 }
 
@@ -28548,39 +28582,72 @@ function normalizeStorehouseResponse(response) {
     if (!response || !response.length) return [];
     return response
         .map((r) => ({
-            name: String(r.storehouse || r.name || '').trim(),
-            qty: String(r.units != null ? r.units : (r.qty != null ? r.qty : '')),
+            name: String(r.storehouse || r.name || r.store || '').trim(),
+            qty: String(r.units != null ? r.units : (r.qty != null ? r.qty : '1')),
         }))
         .filter((s) => s.name);
+}
+
+function fetchStorehousesViaUnsafeWindow(productCode) {
+    return new Promise((resolve) => {
+        const fn = (typeof unsafeWindow !== 'undefined' ? unsafeWindow.getCheckOtherInventories : null)
+            || (typeof window !== 'undefined' ? window.getCheckOtherInventories : null);
+        if (typeof fn !== 'function') {
+            resolve([]);
+            return;
+        }
+        let settled = false;
+        const timer = setTimeout(() => {
+            if (!settled) {
+                settled = true;
+                resolve([]);
+            }
+        }, 10000);
+        try {
+            fn(productCode, false, {
+                content_type: 'json',
+                onFinish: (response) => {
+                    if (settled) return;
+                    settled = true;
+                    clearTimeout(timer);
+                    resolve(normalizeStorehouseResponse(response));
+                },
+            });
+        } catch (e) {
+            clearTimeout(timer);
+            resolve([]);
+        }
+    });
 }
 
 function fetchStorehousesViaPageScript(productCode) {
     return new Promise((resolve) => {
         const requestId = `tmStores${Date.now()}${Math.random().toString(36).slice(2, 8)}`;
         const timeout = setTimeout(() => {
-            document.removeEventListener('tm-mms-storehouses', onEvent);
+            window.removeEventListener('message', onMessage);
             resolve([]);
         }, 12000);
 
-        function onEvent(e) {
-            if (!e.detail || e.detail.id !== requestId) return;
+        function onMessage(event) {
+            if (event.source !== window || !event.data || event.data.type !== 'tm-mms-storehouses') return;
+            if (event.data.id !== requestId) return;
             clearTimeout(timeout);
-            document.removeEventListener('tm-mms-storehouses', onEvent);
-            resolve(e.detail.stores || []);
+            window.removeEventListener('message', onMessage);
+            resolve(event.data.stores || []);
         }
-        document.addEventListener('tm-mms-storehouses', onEvent);
+        window.addEventListener('message', onMessage);
 
         const script = document.createElement('script');
         const safeCode = JSON.stringify(String(productCode));
         script.textContent = `(function(){
             var id=${JSON.stringify(requestId)};
             var productCode=${safeCode};
-            function finish(stores){document.dispatchEvent(new CustomEvent('tm-mms-storehouses',{detail:{id:id,stores:stores}}));}
+            function finish(stores){window.postMessage({type:'tm-mms-storehouses',id:id,stores:stores},'*');}
             try{
                 var fn=window.getCheckOtherInventories;
                 if(typeof fn!=='function'){finish([]);return;}
                 fn(productCode,false,{content_type:'json',onFinish:function(r){
-                    finish((r||[]).map(function(x){return{name:String(x.storehouse||'').trim(),qty:String(x.units!=null?x.units:'')}}).filter(function(x){return x.name;}));
+                    finish((r||[]).map(function(x){return{name:String(x.storehouse||x.name||'').trim(),qty:String(x.units!=null?x.units:(x.qty!=null?x.qty:'1'))}}).filter(function(x){return x.name;}));
                 }});
             }catch(e){finish([]);}
         })();`;
@@ -28589,45 +28656,75 @@ function fetchStorehousesViaPageScript(productCode) {
     });
 }
 
-function fetchStorehousesFromPage(productCode) {
+function parseStorehousesFromProductHtml(html, barcode) {
+    try {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        let best = [];
+        doc.querySelectorAll('tr').forEach((row) => {
+            const rowBarcodeEl = row.querySelector('[id*="strProductID"]');
+            const rowBarcode = (rowBarcodeEl?.textContent || '').trim();
+            if (barcode && rowBarcode && rowBarcode !== barcode) return;
+
+            const otherStoreEl = row.querySelector('[id*="iUnitsRemainingOtherStoreHouses"]');
+            if (!otherStoreEl) return;
+            const otherCount = parseInt((otherStoreEl.textContent || '').trim(), 10) || 0;
+            if (otherCount <= 0) return;
+
+            let stores = parseOtherStorehouses(otherStoreEl);
+            if (!stores.length) stores = parseOtherStorehousesFromRow(row);
+            if (stores.length > best.length) best = stores;
+        });
+        return best;
+    } catch (e) {
+        return [];
+    }
+}
+
+function fetchStorehousesViaHttp(productCode) {
     return new Promise((resolve) => {
         const code = String(productCode || '').trim();
         if (!code) {
             resolve([]);
             return;
         }
-        const cached = getCachedPhoneStoreDetails(code);
-        if (cached) {
-            resolve(cached);
-            return;
-        }
-
-        const fn = (typeof unsafeWindow !== 'undefined' ? unsafeWindow.getCheckOtherInventories : null)
-            || (typeof window !== 'undefined' ? window.getCheckOtherInventories : null);
-        if (typeof fn === 'function') {
-            try {
-                fn(code, false, {
-                    content_type: 'json',
-                    onFinish: (response) => {
-                        const stores = normalizeStorehouseResponse(response);
-                        savePhoneStoreDetailsCache(code, stores);
-                        resolve(stores);
-                    },
-                });
-                return;
-            } catch (e) {
-                console.warn('[MMS Phone List] getCheckOtherInventories failed, trying page script:', e);
-            }
-        }
-
-        fetchStorehousesViaPageScript(code).then((stores) => {
-            savePhoneStoreDetailsCache(code, stores);
-            resolve(stores);
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: `https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`,
+            onload(response) {
+                resolve(parseStorehousesFromProductHtml(response.responseText || '', code));
+            },
+            onerror() {
+                resolve([]);
+            },
         });
     });
 }
 
-const PHONE_STORE_DETAILS_CACHE_KEY = 'tm_phone_store_details_cache_v1';
+async function fetchStorehousesFromPage(productCode) {
+    const code = String(productCode || '').trim();
+    if (!code) return [];
+
+    const cached = getCachedPhoneStoreDetails(code);
+    if (cached?.length) return cached;
+
+    const methods = [
+        () => fetchStorehousesViaUnsafeWindow(code),
+        () => fetchStorehousesViaPageScript(code),
+        () => fetchStorehousesViaHttp(code),
+    ];
+
+    for (const method of methods) {
+        const stores = await method();
+        if (stores.length) {
+            savePhoneStoreDetailsCache(code, stores);
+            return stores;
+        }
+    }
+
+    return [];
+}
+
+const PHONE_STORE_DETAILS_CACHE_KEY = 'tm_phone_store_details_cache_v2';
 const PHONE_STORE_DETAILS_CACHE_DAYS = 14;
 
 function loadPhoneStoreDetailsCache() {
@@ -28639,7 +28736,7 @@ function loadPhoneStoreDetailsCache() {
 }
 
 function savePhoneStoreDetailsCache(barcode, stores) {
-    if (!barcode) return;
+    if (!barcode || !stores?.length) return;
     const cache = loadPhoneStoreDetailsCache();
     cache[barcode] = { stores: stores || [], ts: Date.now() };
     GM_setValue(PHONE_STORE_DETAILS_CACHE_KEY, JSON.stringify(cache));
@@ -28647,16 +28744,31 @@ function savePhoneStoreDetailsCache(barcode, stores) {
 
 function getCachedPhoneStoreDetails(barcode) {
     const entry = loadPhoneStoreDetailsCache()[barcode];
-    if (!entry || !entry.stores) return null;
+    if (!entry || !entry.stores?.length) return null;
     const ageDays = (Date.now() - (entry.ts || 0)) / (1000 * 60 * 60 * 24);
     if (ageDays > PHONE_STORE_DETAILS_CACHE_DAYS) return null;
     return entry.stores;
 }
 
+function getLoosePhoneStores(phone) {
+    const raw = [...(phone?.stores || []), ...(phone?.otherStores || [])];
+    const seen = new Map();
+    raw.forEach((store) => {
+        const name = String(store?.name || '').trim();
+        if (!name) return;
+        const qty = parseInt(store.qty, 10) || 0;
+        if (qty <= 0) return;
+        seen.set(name, { name, qty: String(store.qty) });
+    });
+    return [...seen.values()];
+}
+
 function getEffectivePhoneStores(phone) {
-    const stores = filterOneUnitStores(phone?.stores || []);
-    if (stores.length) return stores;
-    return filterOneUnitStores(phone?.otherStores || []);
+    const strict = filterOneUnitStores(phone?.stores || []);
+    if (strict.length) return strict;
+    const strictOther = filterOneUnitStores(phone?.otherStores || []);
+    if (strictOther.length) return strictOther;
+    return filterOneUnitStores(getLoosePhoneStores(phone));
 }
 
 function phoneNeedsStoreResolve(phone) {
@@ -28692,13 +28804,20 @@ async function resolvePhonesStoreDetails(phones, options = {}) {
             }
             try {
                 const stores = await fetchStorehousesFromPage(phone.barcode);
-                if (stores.length) phone.stores = stores;
+                if (stores.length) {
+                    phone.stores = stores;
+                    phone.otherStores = stores;
+                }
             } catch (e) {
                 console.warn('[MMS Phone List] Could not resolve stores for', phone.barcode, e);
             }
             done += 1;
             onProgress?.(done, unique.length);
         }));
+    }
+
+    if (options.persistOtherStoreCache) {
+        saveOtherStoreCache(phones);
     }
     return phones;
 }
@@ -28818,6 +28937,7 @@ async function fetchPhoneList() {
                         otherStoreCount = parseInt((otherStoreEl.textContent || '').trim(), 10) || 0;
                         if (otherStoreCount > 0) {
                             otherStores = parseOtherStorehouses(otherStoreEl);
+                            if (!otherStores.length) otherStores = parseOtherStorehousesFromRow(row);
                         }
                     }
                         
@@ -29002,7 +29122,8 @@ async function fetchOtherStorePhones() {
                             name = name.replace(/\s+Περισσότερα\s*\.\.\.\s*/i, '').trim();
                             
                             const parsed = parsePhoneName(name);
-                            const stores = parseOtherStorehouses(otherStoreEl);
+                            let stores = parseOtherStorehouses(otherStoreEl);
+                            if (!stores.length) stores = parseOtherStorehousesFromRow(row);
                             const isBuyback = isBuybackTitle(name);
                             
                             // Only include items with "ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ ΚΙΝΗΤΟ ΤΗΛΕΦΩΝΟ" in the title
@@ -29469,10 +29590,7 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             const variant = phoneToVariant(phone, helpers);
             const stores = getStores(phone);
-            if (!stores.length) {
-                addVariant('__pending__', 'Άλλα καταστήματα (χωρίς λεπτομέρειες)', false, variant);
-                return;
-            }
+            if (!stores.length) return;
             stores.forEach((store) => {
                 const name = cleanStoreName(store.name);
                 if (!name) return;
@@ -29709,18 +29827,17 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
             if (!needsResolve) return;
 
             storesResolving = true;
-            const prevStatus = statusEl?.textContent || '';
             try {
                 await window.resolvePhonesStoreDetails(otherStorePhones, {
                     concurrency: 8,
                     filter: modelFilter || undefined,
+                    persistOtherStoreCache: true,
                     onProgress: (done, total) => {
                         setStatus(`Φόρτωση καταστημάτων ${done}/${total}…`);
                     },
                 });
             } finally {
                 storesResolving = false;
-                if (prevStatus && step === 'models') setStatus(prevStatus);
             }
         }
 
@@ -29819,7 +29936,12 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
                 if (typeof window.fetchPhoneList === 'function') {
                     allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList());
                 }
+                otherStoreLoaded = false;
+                GM_setValue('tm_phone_other_store_cache_v3', null);
+                GM_setValue('tm_phone_other_store_cache_timestamp', 0);
                 await ensureOtherStores();
+                setStatus('Φόρτωση καταστημάτων…');
+                await resolveNetworkStoreDetails();
                 if (typeof window.syncPhoneColorCatalog === 'function') {
                     window.syncPhoneColorCatalog(allPhones);
                 }
@@ -29829,9 +29951,6 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
                     await renderStoresStep();
                 } else {
                     renderModelsStep();
-                    resolveNetworkStoreDetails().then(() => {
-                        if (step === 'models') renderModelsStep();
-                    });
                 }
             } catch (err) {
                 bodyEl.innerHTML = UI.buildEmptyState('❌', 'Σφάλμα φόρτωσης', err.message || '');
@@ -29862,11 +29981,9 @@ window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
             const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
             lastUpdated = new Date(ts);
             syncFreshness();
-            ensureOtherStores().then(() => {
+            ensureOtherStores().then(async () => {
+                await resolveNetworkStoreDetails();
                 renderModelsStep();
-                resolveNetworkStoreDetails().then(() => {
-                    if (step === 'models') renderModelsStep();
-                });
             });
         } else {
             bodyEl.innerHTML = UI.buildEmptyState('📱', 'Χωρίς δεδομένα', 'Πατήστε Ανανέωση για φόρτωση');
