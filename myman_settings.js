@@ -253,6 +253,7 @@
             // Debug mode is handled separately with passcode protection
             saveCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
             saveCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
+            saveCheckbox('tm-setting-hidden-menu-enabled', 'hiddenMenuItemsEnabled');
             saveCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
             saveCheckbox('tm-setting-customer-history-enabled', 'customerHistoryEnabled');
             saveCheckbox('tm-setting-recent-repairs-enabled', 'recentRepairsEnabled');
@@ -429,6 +430,16 @@
                             <p class="tm-setting-description">Προσθέτει ένα κουμπί για γρήγορη επιστροφή στην κορυφή της σελίδας.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-scroll-top-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-hidden-menu-enabled">📋 Απόκρυψη Αριστερού Μενού</label>
+                            <p class="tm-setting-description">Δεξί κλικ σε στοιχείο του αριστερού μενού για απόκρυψη. Το μενού δεν εμφανίζεται μέχρι να εφαρμοστούν οι ρυθμίσεις (όπως με τα themes).</p>
+                        </div>
+                        <div class="tm-setting-control" style="display:flex;align-items:center;gap:10px;">
+                            <input type="checkbox" id="tm-setting-hidden-menu-enabled">
+                            <button type="button" id="tm-manage-hidden-menu-btn" style="padding:6px 10px;border:none;border-radius:6px;cursor:pointer;background:#667eea;color:#fff;font-size:12px;font-weight:600;">Κρυφά Στοιχεία</button>
+                        </div>
                     </div>
                     <div class="tm-setting-row" style="background: #fffbe6; padding-top: 10px; padding-bottom: 10px; border: 1px solid #ffe58f; border-radius: 5px;">
                         <div class="tm-setting-label">
@@ -1117,6 +1128,12 @@
             
             populateCheckbox('tm-setting-dashboard-enabled', 'dashboardWidgetEnabled');
             populateCheckbox('tm-setting-scroll-top-enabled', 'scrollToTopEnabled');
+            populateCheckbox('tm-setting-hidden-menu-enabled', 'hiddenMenuItemsEnabled');
+            overlay.querySelector('#tm-manage-hidden-menu-btn')?.addEventListener('click', () => {
+                if (typeof window.showHiddenMenuItemsModal === 'function') {
+                    window.showHiddenMenuItemsModal(STORAGE_KEYS);
+                }
+            });
             populateCheckbox('tm-setting-tech-stats-enabled', 'technicianStatsEnabled');
             populateCheckbox('tm-setting-search-enabled', 'searchFeatureEnabled');
             populateCheckbox('tm-setting-quick-search-enabled', 'quickSearchEnabled');

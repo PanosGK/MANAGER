@@ -5322,6 +5322,10 @@
         // Load settings first, as they determine which features to run.
         loadSettings();
 
+        if (typeof window.initMenuItemHiding === 'function') {
+            window.initMenuItemHiding(config);
+        }
+
         // User info is set by MMS_PROFILES.activateProfileForCurrentUser (above).
         if (config?.debugEnabled && window.tmCurrentUser) {
             console.log('[MMS] Logged in as:', window.tmCurrentUser || '(unknown)');
