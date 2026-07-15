@@ -2107,12 +2107,10 @@ function updateLimbPhysics() {
     const mascotContainer = document.getElementById('tm-mascot-container');
     if (!mascotContainer) return;
 
-    // Keep mascot on-screen while roaming (every few frames to avoid fighting CSS anims).
-    if (isRoaming) {
-        limbPhysicsFrameCount += 1;
-        if (limbPhysicsFrameCount % 4 === 0) {
-            ensureMascotInBounds(mascotContainer);
-        }
+    // Keep mascot on-screen (every few frames; CSS idle float / jetpack can extend painted bounds).
+    limbPhysicsFrameCount += 1;
+    if (limbPhysicsFrameCount % 6 === 0) {
+        ensureMascotInBounds(mascotContainer);
     }
 
     // Get current position
@@ -2208,6 +2206,8 @@ function stopPhysicsAnimation() {
 }
 
 const MASCOT_EDGE_PAD = 6;
+/** Minimum painted overflow beyond the 100×100 box (shadow, jetpack flames, bubble). */
+const MASCOT_OVERFLOW_SLACK = { top: 42, right: 16, bottom: 24, left: 16 };
 
 function cacheMascotScreenInfo() {
     const info = {
@@ -2219,6 +2219,35 @@ function cacheMascotScreenInfo() {
     };
     window.__tmMascotScreen = info;
     return info;
+}
+
+/** Pixels to reserve at the bottom (footer bar, taskbar overlap, safe area). */
+function getMascotBottomInset() {
+    const vv = window.visualViewport;
+    const vTop = vv?.offsetTop ?? 0;
+    const vHeight = vv?.height ?? window.innerHeight;
+    const vBottom = Math.min(vTop + vHeight, window.innerHeight);
+
+    let inset = 12;
+
+    const selectors = [
+        '#tm-footer-controls-container',
+        '#footer-outterwrap',
+        '#footer-outter',
+        '#tm-xp-bar-container',
+    ];
+    for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        if (!el) continue;
+        const r = el.getBoundingClientRect();
+        if (r.height <= 0 || r.width <= 0) continue;
+        if (r.bottom <= vTop || r.top >= vBottom) continue;
+        const lowerBandTop = vBottom - Math.min(180, vHeight * 0.28);
+        if (r.bottom > lowerBandTop) {
+            inset = Math.max(inset, vBottom - r.top + MASCOT_EDGE_PAD);
+        }
+    }
+    return Math.min(inset, Math.floor(vHeight * 0.4));
 }
 
 /** Visible browser viewport clipped to the monitor's available screen area. */
@@ -2238,13 +2267,19 @@ function getMascotViewportRect() {
     if (left + width > availW) width = Math.max(0, availW - left);
     if (top + height > availH) height = Math.max(0, availH - top);
 
+    const bottomInset = getMascotBottomInset();
+    const rawBottom = top + height;
+    const visibleBottom = Math.min(rawBottom, window.innerHeight, top + availH) - bottomInset;
+    const visibleHeight = Math.max(0, visibleBottom - top);
+
     return {
         left,
         top,
         width,
-        height,
+        height: visibleHeight,
         right: left + width,
-        bottom: top + height,
+        bottom: visibleBottom,
+        bottomInset,
         screenWidth: screen.screenWidth,
         screenHeight: screen.screenHeight,
     };
@@ -2252,7 +2287,7 @@ function getMascotViewportRect() {
 
 /** How far painted content (bubble, hats, flames) extends beyond the 100×100 box. */
 function getMascotPaintOverflow(container = document.getElementById('tm-mascot-container')) {
-    if (!container) return { top: 40, right: 12, bottom: 12, left: 12 };
+    if (!container) return { ...MASCOT_OVERFLOW_SLACK };
 
     const { x, y } = getMascotTranslate(container);
     const w = container.offsetWidth || 100;
@@ -2261,22 +2296,27 @@ function getMascotPaintOverflow(container = document.getElementById('tm-mascot-c
     try {
         rect = container.getBoundingClientRect();
     } catch {
-        return { top: 40, right: 12, bottom: 12, left: 12 };
+        return { ...MASCOT_OVERFLOW_SLACK };
     }
 
     return {
-        left: Math.max(0, x - rect.left),
-        top: Math.max(0, y - rect.top),
-        right: Math.max(0, rect.right - (x + w)),
-        bottom: Math.max(0, rect.bottom - (y + h)),
+        left: Math.max(MASCOT_OVERFLOW_SLACK.left, x - rect.left),
+        top: Math.max(MASCOT_OVERFLOW_SLACK.top, y - rect.top),
+        right: Math.max(MASCOT_OVERFLOW_SLACK.right, rect.right - (x + w)),
+        bottom: Math.max(MASCOT_OVERFLOW_SLACK.bottom, rect.bottom - (y + h)),
     };
+}
+
+/** Painted bounds relative to the container translate origin (stable for path keyframes). */
+function getMascotBoundsOffset(container = document.getElementById('tm-mascot-container')) {
+    return getMascotPaintOverflow(container);
 }
 
 function getMascotRoamingMetrics(container = document.getElementById('tm-mascot-container')) {
     const vp = getMascotViewportRect();
     const width = Math.max(container?.offsetWidth || 0, 100);
     const height = Math.max(container?.offsetHeight || 0, 100);
-    const overflow = getMascotPaintOverflow(container);
+    const overflow = getMascotBoundsOffset(container);
     const pad = MASCOT_EDGE_PAD;
 
     const minX = vp.left + pad + overflow.left;
@@ -2311,36 +2351,30 @@ function clampMascotPosition(x, y, metrics = getMascotRoamingMetrics()) {
 }
 
 /** Clamps using the full painted bounds (mascot + bubble + accessories) against the live viewport. */
-function clampMascotPositionToViewport(x, y, container = document.getElementById('tm-mascot-container')) {
+function clampMascotPositionToViewport(x, y, container = document.getElementById('tm-mascot-container'), offsets = null) {
     if (!container) return { x, y };
 
     const vp = getMascotViewportRect();
     const pad = MASCOT_EDGE_PAD;
-    const { x: cx, y: cy } = getMascotTranslate(container);
-    const rect = container.getBoundingClientRect();
-    const dx = x - cx;
-    const dy = y - cy;
+    const off = offsets || getMascotBoundsOffset(container);
+    const width = container.offsetWidth || 100;
+    const height = container.offsetHeight || 100;
 
-    let left = rect.left + dx;
-    let top = rect.top + dy;
-    let right = rect.right + dx;
-    let bottom = rect.bottom + dy;
+    const minX = vp.left + pad + off.left;
+    const minY = vp.top + pad + off.top;
+    const maxX = vp.right - pad - off.right - width;
+    const maxY = vp.bottom - pad - off.bottom - height;
 
-    let fixX = 0;
-    let fixY = 0;
-    if (left < vp.left + pad) fixX += (vp.left + pad) - left;
-    if (top < vp.top + pad) fixY += (vp.top + pad) - top;
-    if (right > vp.right - pad) fixX -= right - (vp.right - pad);
-    if (bottom > vp.bottom - pad) fixY -= bottom - (vp.bottom - pad);
-
-    return { x: x + fixX, y: y + fixY };
+    return {
+        x: Math.min(Math.max(minX, x), maxX),
+        y: Math.min(Math.max(minY, y), maxY),
+    };
 }
 
 function applyMascotPosition(container, x, y) {
     if (!container) return { x, y };
-    const metrics = getMascotRoamingMetrics(container);
-    const rough = clampMascotPosition(x, y, metrics);
-    const clamped = clampMascotPositionToViewport(rough.x, rough.y, container);
+    let clamped = clampMascotPositionToViewport(x, y, container);
+    clamped = clampMascotPositionToViewport(clamped.x, clamped.y, container);
     container.style.transform = `translate(${clamped.x}px, ${clamped.y}px)`;
     return clamped;
 }
@@ -2351,24 +2385,26 @@ function ensureMascotInBounds(container = document.getElementById('tm-mascot-con
     applyMascotPosition(container, x, y);
 }
 
-function randomMascotPosition(metrics = getMascotRoamingMetrics()) {
+function randomMascotPosition(container = document.getElementById('tm-mascot-container'), metrics = getMascotRoamingMetrics(container)) {
     const spanX = Math.max(0, metrics.maxX - metrics.minX);
     const spanY = Math.max(0, metrics.maxY - metrics.minY);
-    return clampMascotPosition(
+    const rough = clampMascotPosition(
         metrics.minX + Math.random() * spanX,
         metrics.minY + Math.random() * spanY,
         metrics
     );
+    return clampMascotPositionToViewport(rough.x, rough.y, container);
 }
 
-function sampleClampedBezierPath(from, control, to, metrics, steps = 8) {
+function sampleClampedBezierPath(from, control, to, container, steps = 8) {
+    const offsets = getMascotBoundsOffset(container);
     const keyframes = [];
     for (let i = 0; i <= steps; i++) {
         const t = i / steps;
         const inv = 1 - t;
         const x = inv * inv * from.x + 2 * inv * t * control.x + t * t * to.x;
         const y = inv * inv * from.y + 2 * inv * t * control.y + t * t * to.y;
-        const point = clampMascotPosition(x, y, metrics);
+        const point = clampMascotPositionToViewport(x, y, container, offsets);
         keyframes.push({ transform: `translate(${point.x}px, ${point.y}px)` });
     }
     return keyframes;
@@ -2454,11 +2490,11 @@ async function moveToNewPosition() {
     const [currentX, currentY] = [transformMatrix.m41, transformMatrix.m42];
 
     const metrics = getMascotRoamingMetrics(mascotContainer);
-    const current = clampMascotPosition(currentX, currentY, metrics);
+    const current = clampMascotPositionToViewport(currentX, currentY, mascotContainer);
     if (current.x !== currentX || current.y !== currentY) {
         mascotContainer.style.transform = `translate(${current.x}px, ${current.y}px)`;
     }
-    const target = randomMascotPosition(metrics);
+    const target = randomMascotPosition(mascotContainer, metrics);
     const newX = target.x;
     const newY = target.y;
 
@@ -2482,10 +2518,11 @@ async function moveToNewPosition() {
     const dx = newX - current.x;
     const dy = newY - current.y;
     const bulge = (Math.random() - 0.5) * 0.15;
-    const control = clampMascotPosition(midX - dy * bulge, midY + dx * bulge, metrics);
-    const end = clampMascotPosition(newX, newY, metrics);
+    const roughControl = clampMascotPosition(midX - dy * bulge, midY + dx * bulge, metrics);
+    const control = clampMascotPositionToViewport(roughControl.x, roughControl.y, mascotContainer);
+    const end = clampMascotPositionToViewport(newX, newY, mascotContainer);
 
-    const keyframes = sampleClampedBezierPath(current, control, end, metrics);
+    const keyframes = sampleClampedBezierPath(current, control, end, mascotContainer);
 
     const animation = mascotContainer.animate(keyframes, {
         duration: duration * 1000,
@@ -2544,7 +2581,7 @@ function ensureRoamingWatchdog(config) {
             scheduleRoamingMove(300);
         }
         ensureMascotInBounds();
-    }, 4000);
+    }, 2000);
 }
 
 function startRoaming(config) {
@@ -2566,7 +2603,7 @@ function startRoaming(config) {
 
     if (!mascotContainer.style.transform) {
         const metrics = getMascotRoamingMetrics(mascotContainer);
-        const start = randomMascotPosition(metrics);
+        const start = randomMascotPosition(mascotContainer, metrics);
         mascotContainer.style.transform = `translate(${start.x}px, ${start.y}px)`;
     } else {
         ensureMascotInBounds(mascotContainer);
@@ -3440,7 +3477,20 @@ function refreshTamagotchiAfterEggReset(config, STORAGE_KEYS) {
 
     document.getElementById('tm-tamagotchi-death-overlay')?.remove();
     document.getElementById('tm-mascot-stats-modal')?.remove();
+    document.getElementById('tm-mascot-kill-confirm')?.remove();
     clearMascotStagePreview(false);
+
+    if (container) {
+        try {
+            container.getAnimations().forEach((anim) => anim.cancel());
+        } catch { /* ignore */ }
+        container.classList.remove('mascot-dead', 'mascot-dying', 'mascot-hatching');
+        const robot = container.querySelector('.tm-mascot-robot');
+        if (robot) {
+            robot.style.removeProperty('filter');
+            robot.style.removeProperty('opacity');
+        }
+    }
 
     validateTamagotchiState();
     saveTamagotchiData(STORAGE_KEYS);
@@ -3449,6 +3499,7 @@ function refreshTamagotchiAfterEggReset(config, STORAGE_KEYS) {
     if (container) {
         updateMascotAppearanceByStage('egg');
         updateTamagotchiStats(container);
+        checkTamagotchiEvolution(container);
         updatePetInteractionPanel();
         updatePoopIndicator();
         updateSickIndicator();
@@ -3456,6 +3507,8 @@ function refreshTamagotchiAfterEggReset(config, STORAGE_KEYS) {
         updateWeightDisplay();
         updateDeathOptionsButton();
         ensureMascotInBounds(container);
+
+        applyMascotBehaviorState(container, 'idle');
 
         if (config) {
             stopRoaming(config);
@@ -3470,12 +3523,53 @@ function refreshTamagotchiAfterEggReset(config, STORAGE_KEYS) {
     showMascotBubble(newEggMessages[Math.floor(Math.random() * newEggMessages.length)], 2500);
 }
 
+/** Custom confirm — native confirm() is often blocked or broken on MyManager pages. */
+function confirmMascotKillRestart() {
+    return new Promise((resolve) => {
+        document.getElementById('tm-mascot-kill-confirm')?.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'tm-mascot-kill-confirm';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:100010;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;padding:20px;';
+        overlay.innerHTML = `
+            <div role="dialog" aria-modal="true" style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(220,53,69,0.55);border-radius:16px;padding:24px;max-width:380px;width:100%;color:#fff;font-family:system-ui,sans-serif;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.55);">
+                <div style="font-size:40px;margin-bottom:10px">💀🥚</div>
+                <h3 style="margin:0 0 10px;font-size:18px;font-weight:700">Σκότωσε &amp; νέο αυγό;</h3>
+                <p style="margin:0 0 20px;font-size:14px;line-height:1.55;opacity:0.88">Όλη η πρόοδος (ηλικία, χαρακτήρας, στατιστικά) θα χαθεί οριστικά.</p>
+                <div style="display:flex;gap:10px">
+                    <button type="button" id="tm-kill-confirm-cancel" style="flex:1;padding:11px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.22);background:rgba(255,255,255,0.08);color:#fff;cursor:pointer;font-size:14px;">Άκυρο</button>
+                    <button type="button" id="tm-kill-confirm-yes" style="flex:1;padding:11px 14px;border-radius:10px;border:none;background:#dc3545;color:#fff;cursor:pointer;font-size:14px;font-weight:700;">Ναι, νέο αυγό</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const finish = (result) => {
+            overlay.remove();
+            resolve(result);
+        };
+        overlay.querySelector('#tm-kill-confirm-cancel')?.addEventListener('click', () => finish(false));
+        overlay.querySelector('#tm-kill-confirm-yes')?.addEventListener('click', () => finish(true));
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) finish(false);
+        });
+    });
+}
+
 /**
  * Kill the current mascot and restart from a fresh egg.
  * @returns {boolean} true if reset was performed
  */
 function restartTamagotchiAsEgg(config, STORAGE_KEYS, options = {}) {
+    const keys = STORAGE_KEYS || window.STORAGE_KEYS;
+    const cfg = config || window.config || {};
     const { skipConfirm = false, reloadPage = false } = options;
+
+    if (!keys?.TAMAGOTCHI_DATA) {
+        console.error('[MMS Mascot] restartTamagotchiAsEgg: STORAGE_KEYS missing');
+        showMascotBubble('Δεν ήταν δυνατή η επαναφορά (αποθήκευση).', 3000);
+        return false;
+    }
 
     if (!skipConfirm) {
         const ok = confirm(
@@ -3485,17 +3579,29 @@ function restartTamagotchiAsEgg(config, STORAGE_KEYS, options = {}) {
         if (!ok) return false;
     }
 
-    applyTamagotchiEggResetState();
-    saveTamagotchiData(STORAGE_KEYS);
-    GM_setValue(STORAGE_KEYS.PET_STATS, JSON.stringify(petStats));
+    try {
+        if (cfg) stopRoaming(cfg);
 
-    if (reloadPage) {
-        setTimeout(() => location.reload(), 100);
+        applyTamagotchiEggResetState();
+        saveTamagotchiData(keys);
+        const setValue = typeof GM_setValue === 'function' ? GM_setValue : window.GM_setValue;
+        if (typeof setValue !== 'function') {
+            throw new Error('GM_setValue unavailable');
+        }
+        setValue(keys.PET_STATS, JSON.stringify(petStats));
+
+        if (reloadPage) {
+            setTimeout(() => location.reload(), 150);
+            return true;
+        }
+
+        refreshTamagotchiAfterEggReset(cfg, keys);
         return true;
+    } catch (err) {
+        console.error('[MMS Mascot] restartTamagotchiAsEgg failed:', err);
+        showMascotBubble('Σφάλμα επαναφοράς αυγού.', 3000);
+        return false;
     }
-
-    refreshTamagotchiAfterEggReset(config, STORAGE_KEYS);
-    return true;
 }
 
 function checkTamagotchiDeath(STORAGE_KEYS) {
@@ -3602,7 +3708,9 @@ function showTamagotchiDeathScreen(STORAGE_KEYS, skipCinematic = false) {
     
     // Restart button
     document.getElementById('tm-restart-btn')?.addEventListener('click', () => {
-        restartTamagotchiAsEgg(config, STORAGE_KEYS, { reloadPage: true });
+        if (restartTamagotchiAsEgg(config, STORAGE_KEYS, { skipConfirm: true })) {
+            overlay.remove();
+        }
     });
 }
 
@@ -7361,7 +7469,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 <!-- Kill & restart (always available) -->
                 <div class="tm-mascot-actions-section tm-mascot-danger-section">
                     <h3 class="tm-actions-title">⚠️ Επαναφορά</h3>
-                    <button class="tm-action-btn tm-action-kill-restart" id="tm-action-kill-restart" title="Σκοτώνει το τρέχον mascot και ξεκινά νέο αυγό">
+                    <button type="button" class="tm-action-btn tm-action-kill-restart" id="tm-action-kill-restart" title="Σκοτώνει το τρέχον mascot και ξεκινά νέο αυγό">
                         <span class="tm-action-icon">💀</span>
                         <span class="tm-action-label">Σκότωσε &amp; νέο αυγό</span>
                     </button>
@@ -7854,8 +7962,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             showMascotBubble(watchMessages[Math.floor(Math.random() * watchMessages.length)], 2000);
         });
 
-        modal.querySelector('#tm-action-kill-restart')?.addEventListener('click', () => {
-            if (restartTamagotchiAsEgg(config, STORAGE_KEYS)) {
+        modal.querySelector('#tm-action-kill-restart')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const ok = await confirmMascotKillRestart();
+            if (ok && restartTamagotchiAsEgg(config, STORAGE_KEYS, { skipConfirm: true })) {
                 closeModal();
             }
         });
@@ -8287,11 +8398,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     // --- Pet Interaction Logic ---
     container.addEventListener('click', (e) => {
         if (e.target.closest('button')) return;
-        if (tamagotchiIsDead) return;
 
         showMascotStatsModal(config, STORAGE_KEYS);
         
-        if (tamagotchiStage !== 'egg') {
+        if (!tamagotchiIsDead && tamagotchiStage !== 'egg') {
             const greetingMessages = MASCOT_MESSAGES.greeting;
             showMascotBubble(greetingMessages[Math.floor(Math.random() * greetingMessages.length)], 2000);
         }
@@ -8604,8 +8714,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         }
     });
 
-    getButton('#tm-pet-kill-restart-btn')?.addEventListener('click', () => {
-        restartTamagotchiAsEgg(config, STORAGE_KEYS);
+    getButton('#tm-pet-kill-restart-btn')?.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const ok = await confirmMascotKillRestart();
+        if (ok) {
+            restartTamagotchiAsEgg(config, STORAGE_KEYS, { skipConfirm: true });
+        }
     });
     
     // --- Initialization ---
@@ -9380,6 +9495,7 @@ window.resolveMascotDynamicAnchors = resolveMascotDynamicAnchors;
 window.MASCOT_ACCESSORY_CATALOG = MASCOT_ACCESSORY_CATALOG;
 window.updateMascotAppearanceByLevel = updateMascotAppearanceByLevel; // Legacy - disabled
 window.restartTamagotchiAsEgg = restartTamagotchiAsEgg;
+window.confirmMascotKillRestart = confirmMascotKillRestart;
 window.previewMascotStage = previewMascotStage;
 window.clearMascotStagePreview = clearMascotStagePreview;
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
