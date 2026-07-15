@@ -12,6 +12,169 @@ let roamingWatchdogInterval = null;
 const ROAMING_ACTIVE_STATES = ['idle', 'biking', 'juggling', 'reading', 'happy', 'sad', 'energized'];
 const ROAMING_MOVE_STATES = ['idle'];
 const MASCOT_MODIFIER_CLASSES = ['mascot-needs-toilet', 'mascot-needs-cleaning', 'mascot-hatching', 'mascot-dying'];
+
+/** Unified accessory catalog for Tamagotchi sprites (shop + equip + SVG ids must match). */
+const MASCOT_ACCESSORY_CATALOG = [
+    { id: 'digital_headphones', name: 'Digital Headphones', nameGr: 'Ψηφιακά ακουστικά', icon: '🎧', cost: 350, slot: 'head' },
+    { id: 'pixel_sunglasses', name: 'Pixel Sunglasses', nameGr: 'Pixel γυαλιά', icon: '😎', cost: 300, slot: 'face' },
+    { id: 'tech_goggles', name: 'Tech Goggles', nameGr: 'Tech γυαλιά', icon: '🥽', cost: 450, slot: 'face' },
+    { id: 'party_hat', name: 'Party Hat', nameGr: 'Party καπέλο', icon: '🎊', cost: 200, slot: 'head' },
+    { id: 'flower_crown', name: 'Flower Crown', nameGr: 'Στεφάνι λουλουδιών', icon: '🌸', cost: 400, slot: 'head' },
+    { id: 'star_crown', name: "Master's Crown", nameGr: 'Κορώνα master', icon: '👑', cost: 10000, slot: 'head' },
+    { id: 'halo', name: 'Angel Halo', nameGr: 'Φωτοστέφανο', icon: '😇', cost: 800, slot: 'head' },
+    { id: 'rainbow_scarf', name: 'Rainbow Scarf', nameGr: 'Ουράνιο κασκόλ', icon: '🧣', cost: 300, slot: 'neck' },
+    { id: 'backpack', name: 'Adventure Backpack', nameGr: 'Σακίδιο περιπέτειας', icon: '🎒', cost: 400, slot: 'back' },
+    { id: 'jetpack', name: 'Jetpack', nameGr: 'Jetpack', icon: '🚀', cost: 1200, slot: 'back' },
+    { id: 'shield', name: 'Energy Shield', nameGr: 'Ασπίδα ενέργειας', icon: '🛡️', cost: 500, slot: 'hand' },
+    { id: 'magic_wand', name: 'Magic Wand', nameGr: 'Μαγικό ραβδί', icon: '🪄', cost: 550, slot: 'hand' },
+    { id: 'bubble_wand', name: 'Bubble Wand', nameGr: 'Ραβδί φυσαλίδων', icon: '🫧', cost: 350, slot: 'hand' },
+    { id: 'book', name: 'Bookworm Kit', nameGr: 'Βιβλίο', icon: '📚', cost: 300, slot: 'hand' },
+    { id: 'umbrella', name: 'Rain Umbrella', nameGr: 'Ομπρέλα', icon: '☂️', cost: 350, slot: 'hand' },
+    { id: 'digital_watch', name: 'Digital Watch', nameGr: 'Ψηφιακό ρολόι', icon: '⌚', cost: 350, slot: 'wrist' },
+    { id: 'legend_badge', name: 'Legend Badge', nameGr: 'Σήμα θρύλου', icon: '🏅', cost: 2500, slot: 'body' },
+    { id: 'power_ring', name: 'Power Ring', nameGr: 'Δαχτυλίδι δύναμης', icon: '💍', cost: 1500, slot: 'aura' },
+];
+
+/** Maps legacy pre-overhaul shop ids to new SVG ids (null = removed). */
+const MASCOT_ACCESSORY_ID_ALIASES = {
+    top_hat: 'party_hat',
+    cowboy_hat: 'party_hat',
+    wizard_hat: 'star_crown',
+    chef_hat: 'party_hat',
+    santa_hat: 'party_hat',
+    party_hat: 'party_hat',
+    halo: 'halo',
+    cool_shades: 'pixel_sunglasses',
+    nerd_glasses: 'tech_goggles',
+    monocle: 'tech_goggles',
+    rainy_day_umbrella: 'umbrella',
+    beach_umbrella: 'umbrella',
+    bookworm_kit: 'book',
+    magic_wand: 'magic_wand',
+    flower_crown: 'flower_crown',
+    master_crown: 'star_crown',
+    tech_goggles: 'tech_goggles',
+    legend_badge: 'legend_badge',
+    jetpack: 'jetpack',
+    stunt_bike: null,
+    juggling_balls: null,
+    skateboard: null,
+    camera: null,
+    microphone: null,
+    guitar: null,
+    laurel_wreath: 'legend_badge',
+    devil_horns: null,
+    ninja_mask: null,
+    diamond_ring: 'power_ring',
+    golden_trophy: 'legend_badge',
+    rainbow_wings: 'power_ring',
+    power_glove: 'power_ring',
+    vip_pass: 'legend_badge',
+};
+
+function normalizeAccessoryId(itemId) {
+    if (!itemId) return null;
+    if (MASCOT_ACCESSORY_CATALOG.some((item) => item.id === itemId)) return itemId;
+    const aliased = MASCOT_ACCESSORY_ID_ALIASES[itemId];
+    if (aliased === null) return null;
+    if (aliased && MASCOT_ACCESSORY_CATALOG.some((item) => item.id === aliased)) return aliased;
+    return null;
+}
+
+function getAccessoryCatalogItem(itemId) {
+    const normalized = normalizeAccessoryId(itemId);
+    return MASCOT_ACCESSORY_CATALOG.find((item) => item.id === normalized) || null;
+}
+
+function hideAllMascotAccessories() {
+    MASCOT_ACCESSORY_CATALOG.forEach(({ id }) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.style.display = 'none';
+            el.classList.remove('tm-accessory-equipped');
+        }
+    });
+}
+
+function showMascotAccessory(itemId) {
+    const el = getAccessoryElement(itemId);
+    if (!el) return false;
+    el.style.display = 'block';
+    el.classList.add('tm-accessory-equipped');
+    return true;
+}
+
+function migrateAccessoryStorage(STORAGE_KEYS) {
+    if (!STORAGE_KEYS?.PURCHASED_ITEMS || !STORAGE_KEYS?.EQUIPPED_ITEMS) return;
+
+    const migrateList = (list) => [...new Set(
+        (Array.isArray(list) ? list : [])
+            .map(normalizeAccessoryId)
+            .filter(Boolean)
+    )];
+
+    const purchased = migrateList(JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]')));
+    const equipped = migrateList(JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]')));
+
+    GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
+    GM_setValue(STORAGE_KEYS.EQUIPPED_ITEMS, JSON.stringify(equipped));
+}
+
+function applyEquippedMascotAccessories(STORAGE_KEYS) {
+    hideAllMascotAccessories();
+    if (!STORAGE_KEYS?.EQUIPPED_ITEMS) return;
+
+    const equipped = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
+    equipped.map(normalizeAccessoryId).filter(Boolean).forEach(showMascotAccessory);
+}
+
+function equipMascotAccessory(config, STORAGE_KEYS, itemId) {
+    const catalogItem = getAccessoryCatalogItem(itemId);
+    if (!catalogItem || !STORAGE_KEYS?.EQUIPPED_ITEMS) return false;
+
+    let equipped = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
+    equipped = equipped.map(normalizeAccessoryId).filter(Boolean);
+    equipped = equipped.filter((id) => getAccessoryCatalogItem(id)?.slot !== catalogItem.slot);
+    if (!equipped.includes(catalogItem.id)) equipped.push(catalogItem.id);
+
+    GM_setValue(STORAGE_KEYS.EQUIPPED_ITEMS, JSON.stringify(equipped));
+    applyEquippedMascotAccessories(STORAGE_KEYS);
+    return true;
+}
+
+function unequipMascotAccessory(STORAGE_KEYS, itemId) {
+    if (!STORAGE_KEYS?.EQUIPPED_ITEMS) return false;
+    const normalized = normalizeAccessoryId(itemId);
+    if (!normalized) return false;
+
+    let equipped = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
+    equipped = equipped.map(normalizeAccessoryId).filter((id) => id && id !== normalized);
+    GM_setValue(STORAGE_KEYS.EQUIPPED_ITEMS, JSON.stringify(equipped));
+    applyEquippedMascotAccessories(STORAGE_KEYS);
+    return true;
+}
+
+function toggleMascotAccessory(config, STORAGE_KEYS, itemId) {
+    const normalized = normalizeAccessoryId(itemId);
+    if (!normalized || !STORAGE_KEYS?.EQUIPPED_ITEMS) return false;
+
+    const equipped = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'))
+        .map(normalizeAccessoryId)
+        .filter(Boolean);
+
+    if (equipped.includes(normalized)) {
+        return unequipMascotAccessory(STORAGE_KEYS, normalized);
+    }
+    return equipMascotAccessory(config, STORAGE_KEYS, normalized);
+}
+
+function getShopAccessoryCatalog() {
+    return MASCOT_ACCESSORY_CATALOG.map(({ slot, nameGr, ...item }) => ({
+        ...item,
+        type: 'accessory',
+    }));
+}
+
 let petStats = { happiness: 100, hunger: 100, lastUpdate: Date.now() };
 // Tamagotchi state variables
 let tamagotchiAge = 0;
@@ -1509,8 +1672,9 @@ function validateTamagotchiState() {
  * @returns {HTMLElement|null} The DOM element for the accessory.
  */
 function getAccessoryElement(itemId) {
-    // Direct ID lookup for all new accessories
-    return document.getElementById(itemId);
+    const normalized = normalizeAccessoryId(itemId);
+    if (!normalized) return null;
+    return document.getElementById(normalized);
 }
 
 function stopRoaming(config) {
@@ -1764,7 +1928,7 @@ async function moveToNewPosition() {
         return;
     }
 
-    const body = mascotContainer.querySelector('.tm-mascot-main-body');
+    const body = mascotContainer.querySelector('.tm-animate-body') || mascotContainer.querySelector('.tm-mascot-flipper');
     const flipper = mascotContainer.querySelector('.tm-mascot-flipper');
 
     const transformMatrix = new DOMMatrix(window.getComputedStyle(mascotContainer).transform);
@@ -3229,7 +3393,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             <!-- Flipper group for horizontal flipping -->
             <g class="tm-mascot-flipper" transform-origin="50 50">
                 <!-- Jetpack (shared across stages, shown conditionally) -->
-                <g id="jetpack" style="display: none;">
+                <g id="jetpack" class="tm-mascot-accessory" style="display: none;">
                     <!-- Left tank -->
                     <rect x="8" y="0" width="18" height="30" rx="5" fill="url(#jetpack-gradient)" stroke="#5d6d7e" stroke-width="1.5"/>
                     <circle cx="17" cy="10" r="3" fill="#34495e" stroke="#2c3e50" stroke-width="0.5"/>
@@ -6221,7 +6385,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 </g>
                 
                 <!-- 4. Magic Wand - Sparkly -->
-                <g id="magic_wand_new" class="tm-mascot-accessory" style="display: none;" transform="translate(75, 55) rotate(30)">
+                <g id="magic_wand" class="tm-mascot-accessory" style="display: none;" transform="translate(75, 55) rotate(30)">
                     <defs>
                         <radialGradient id="wand-sparkle">
                             <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
@@ -6259,7 +6423,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 </g>
                 
                 <!-- 7. Party Hat - Celebration -->
-                <g id="party_hat_new" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                <g id="party_hat" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
                     <path d="M 35 15 L 50 -8 L 65 15 Z" fill="#ff4081" stroke="#e91e63" stroke-width="2"/>
                     <ellipse cx="50" cy="15" rx="18" ry="4" fill="#ff1493"/>
                     <circle cx="50" cy="-6" r="5" fill="#ffd700"/>
@@ -6300,7 +6464,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 </g>
                 
                 <!-- 11. Flower Crown - Nature -->
-                <g id="flower_crown_new" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                <g id="flower_crown" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
                     <ellipse cx="50" cy="10" rx="22" ry="4" fill="#90ee90" stroke="#228b22" stroke-width="1.5"/>
                     <!-- Flowers -->
                     <circle cx="38" cy="8" r="4" fill="#ff69b4"/>
@@ -6326,6 +6490,42 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="35" cy="93" r="3" fill="#00b7ff"/>
                     <circle cx="50" cy="91" r="3" fill="#00b7ff"/>
                     <circle cx="65" cy="93" r="3" fill="#00b7ff"/>
+                </g>
+
+                <!-- 13. Tech Goggles - Level reward / shop -->
+                <g id="tech_goggles" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                    <rect x="30" y="27" width="18" height="12" rx="3" fill="#1a1a1a" stroke="#00ff88" stroke-width="1.5"/>
+                    <rect x="52" y="27" width="18" height="12" rx="3" fill="#1a1a1a" stroke="#00ff88" stroke-width="1.5"/>
+                    <rect x="32" y="29" width="14" height="8" fill="#00ff88" opacity="0.35"/>
+                    <rect x="54" y="29" width="14" height="8" fill="#00ff88" opacity="0.35"/>
+                    <line x1="48" y1="33" x2="52" y2="33" stroke="#00ff88" stroke-width="2"/>
+                    <rect x="38" y="24" width="24" height="3" rx="1" fill="#333"/>
+                </g>
+
+                <!-- 14. Legend Badge - chest badge -->
+                <g id="legend_badge" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                    <circle cx="50" cy="58" r="11" fill="#ffd700" stroke="#ff8f00" stroke-width="2"/>
+                    <polygon points="50,50 53,57 60,57 54,61 56,68 50,64 44,68 46,61 40,57 47,57" fill="#fff8dc"/>
+                </g>
+
+                <!-- 15. Book - reading prop -->
+                <g id="book" class="tm-mascot-accessory" style="display: none;" transform="translate(62, 52) rotate(15)">
+                    <rect x="0" y="0" width="22" height="16" rx="2" fill="#8b4513" stroke="#654321" stroke-width="1"/>
+                    <rect x="2" y="2" width="18" height="12" fill="#fff8dc"/>
+                    <line x1="5" y1="6" x2="17" y2="6" stroke="#ccc" stroke-width="1"/>
+                    <line x1="5" y1="9" x2="15" y2="9" stroke="#ccc" stroke-width="1"/>
+                </g>
+
+                <!-- 16. Umbrella - rainy weather -->
+                <g id="umbrella" class="tm-mascot-accessory" style="display: none;" transform="translate(68, 35) rotate(25)">
+                    <path d="M 0 0 Q -14 -10 0 -18 Q 14 -10 0 0" fill="#3498db" stroke="#2980b9" stroke-width="1.5"/>
+                    <line x1="0" y1="0" x2="0" y2="22" stroke="#654321" stroke-width="2"/>
+                </g>
+
+                <!-- 17. Halo - angel accessory -->
+                <g id="halo" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
+                    <ellipse cx="50" cy="6" rx="16" ry="4" fill="none" stroke="#ffd700" stroke-width="3" opacity="0.9"/>
+                    <ellipse cx="50" cy="6" rx="16" ry="4" fill="#fff8dc" opacity="0.15"/>
                 </g>
             </g>
         </svg>
@@ -7862,38 +8062,21 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     
     initTamagotchiSystem(config, STORAGE_KEYS, container);
     resetIdleTimer(config);
+
+    migrateAccessoryStorage(STORAGE_KEYS);
     
     // --- Load equipped items (deferred to avoid blocking initialization) ---
     setTimeout(() => {
         try {
+            applyEquippedMascotAccessories(STORAGE_KEYS);
             const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
             if (equippedItems.length > 0) {
-                console.log(`[MMS Mascot] Equipping items:`, equippedItems);
-                equippedItems.forEach(itemId => {
-                    try {
-                        const accessory = getAccessoryElement(itemId);
-                        if (accessory) {
-                            accessory.style.display = 'block';
-                        }
-                        
-                        // Restore animation state for special accessories (except juggling - it's periodic)
-                        // Only set state if lights are on and mascot is not sleeping
-                        if (tamagotchiLightsOn && !tamagotchiIsSleeping) {
-                            if (itemId === 'stunt_bike') {
-                                setMascotState(config, 'biking', 0);
-                            } else if (itemId === 'bookworm_kit') {
-                                setMascotState(config, 'reading', 0);
-                            }
-                        }
-                    } catch (err) {
-                        console.error(`[MMS Mascot] Error equipping item ${itemId}:`, err);
-                    }
-                });
+                console.log(`[MMS Mascot] Equipped accessories:`, equippedItems);
             }
         } catch (err) {
             console.error('[MMS Mascot] Error loading equipped items:', err);
         }
-    }, 500); // Defer by 500ms to ensure DOM and state are fully ready
+    }, 500);
     
     // Check and restore active buffs on page load
     const energizedExpires = GM_getValue(STORAGE_KEYS.ENERGIZED_BUFF_EXPIRES, 0);
@@ -8092,46 +8275,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         document.addEventListener(eventType, () => resetIdleTimer(config));
     });
 
-    // Periodic decay of stats
+    // Periodic stat decay
     setInterval(() => {
-        // Only decay if user is active
-        if (document.getElementById('tm-mascot-container').className.includes('sleeping')) return;
-        updatePetStats(config, STORAGE_KEYS, -1, -2); // Happiness decays slower than hunger
-    }, 60 * 1000); // Decay every minute
-
-    // Periodic juggling animation (if balls are equipped)
-    function checkPeriodicJuggling() {
-        // Old accessory system removed - this function is kept for potential future use
-        const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
-        if (false) { // Disabled for now
-            const mascotContainer = document.getElementById('tm-mascot-container');
-            const interactionPanel = document.getElementById('tm-mascot-interaction-panel');
-            
-            // Only juggle if mascot is in idle/happy state, interaction panel is closed, and not energized
-            if (mascotContainer && 
-                (mascotContainer.classList.contains('mascot-idle') || mascotContainer.classList.contains('mascot-happy')) &&
-                !mascotContainer.classList.contains('mascot-energized') &&
-                (!interactionPanel || interactionPanel.style.display !== 'flex')) {
-                
-                // Duration synced to animation cycle (1.2s) to avoid mid-animation cutoff
-                const jugglingDuration = 2400; // 2.4 seconds = 2 complete cycles
-                setMascotState(config, 'juggling', jugglingDuration);
-                
-                // Optional: Show a message occasionally
-                if (Math.random() < 0.3) { // 30% chance
-                    const jugglingMessages = MASCOT_MESSAGES.juggling;
-                    showMascotBubble(jugglingMessages[Math.floor(Math.random() * jugglingMessages.length)], 1500);
-                }
-            }
-        }
-        
-        // Schedule next check at a random interval (20-40 seconds)
-        const nextCheck = 20000 + Math.random() * 20000;
-        setTimeout(checkPeriodicJuggling, nextCheck);
-    }
-    
-    // Start periodic juggling checks after a random initial delay
-    setTimeout(checkPeriodicJuggling, 15000 + Math.random() * 10000);
+        if (document.getElementById('tm-mascot-container')?.className.includes('sleeping')) return;
+        updatePetStats(config, STORAGE_KEYS, -1, -2);
+    }, 60 * 1000);
 
     // Update mascot appearance based on current level on page load
     const currentLevel = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
@@ -8604,6 +8752,10 @@ function updateMascotAppearanceByStage(stage) {
         console.warn(`[MMS Mascot] ⚠️ Character element not found: tm-mascot-${stageId}-${characterType}. Using fallback.`);
         setSvgSpriteVisible(document.getElementById(`tm-mascot-${stageId}`), true);
     }
+
+    if (typeof window.STORAGE_KEYS !== 'undefined') {
+        applyEquippedMascotAccessories(window.STORAGE_KEYS);
+    }
     
     // Update robot class to reflect stage and character
     const robot = document.querySelector('.tm-mascot-robot');
@@ -8628,6 +8780,14 @@ function updateMascotAppearanceByLevel(level) {
 
 // Make functions globally accessible for external scripts
 window.getAccessoryElement = getAccessoryElement;
+window.getShopAccessoryCatalog = getShopAccessoryCatalog;
+window.normalizeAccessoryId = normalizeAccessoryId;
+window.equipMascotAccessory = equipMascotAccessory;
+window.unequipMascotAccessory = unequipMascotAccessory;
+window.toggleMascotAccessory = toggleMascotAccessory;
+window.applyEquippedMascotAccessories = applyEquippedMascotAccessories;
+window.migrateAccessoryStorage = migrateAccessoryStorage;
+window.MASCOT_ACCESSORY_CATALOG = MASCOT_ACCESSORY_CATALOG;
 window.updateMascotAppearanceByLevel = updateMascotAppearanceByLevel; // Legacy - disabled
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
 window.setMascotState = setMascotState;

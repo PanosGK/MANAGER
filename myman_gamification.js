@@ -86,39 +86,10 @@ function isInteractiveMascotShopEnabled(config) {
 }
 
 function getShopAccessoryItems() {
-    return [
-        { id: 'top_hat', name: 'Top Hat', icon: '🎩', cost: 250, type: 'accessory' },
-        { id: 'cowboy_hat', name: 'Cowboy Hat', icon: '🤠', cost: 300, type: 'accessory' },
-        { id: 'party_hat', name: 'Party Hat', icon: '🎊', cost: 200, type: 'accessory' },
-        { id: 'wizard_hat', name: 'Wizard Hat', icon: '🧙', cost: 500, type: 'accessory' },
-        { id: 'chef_hat', name: 'Chef Hat', icon: '👨‍🍳', cost: 350, type: 'accessory' },
-        { id: 'halo', name: 'Angel Halo', icon: '😇', cost: 800, type: 'accessory' },
-        { id: 'cool_shades', name: 'Cool Shades', icon: '😎', cost: 350, type: 'accessory' },
-        { id: 'nerd_glasses', name: 'Nerd Glasses', icon: '🤓', cost: 300, type: 'accessory' },
-        { id: 'monocle', name: 'Fancy Monocle', icon: '🧐', cost: 400, type: 'accessory' },
-        { id: 'rainy_day_umbrella', name: 'Rainy Day Umbrella', icon: '☂️', cost: 350, type: 'accessory' },
-        { id: 'beach_umbrella', name: 'Beach Umbrella', icon: '🏖️', cost: 400, type: 'accessory' },
-        { id: 'bookworm_kit', name: 'Bookworm Kit', icon: '📚', cost: 300, type: 'accessory' },
-        { id: 'stunt_bike', name: 'Stunt Bike', icon: '🚲', cost: 750, type: 'accessory' },
-        { id: 'juggling_balls', name: 'Juggling Balls', icon: '🤹', cost: 400, type: 'accessory' },
-        { id: 'jetpack', name: 'Jetpack', icon: '🚀', cost: 1200, type: 'accessory' },
-        { id: 'skateboard', name: 'Skateboard', icon: '🛹', cost: 600, type: 'accessory' },
-        { id: 'magic_wand', name: 'Magic Wand', icon: '🪄', cost: 550, type: 'accessory' },
-        { id: 'camera', name: 'Camera', icon: '📸', cost: 450, type: 'accessory' },
-        { id: 'microphone', name: 'Microphone', icon: '🎤', cost: 500, type: 'accessory' },
-        { id: 'guitar', name: 'Guitar', icon: '🎸', cost: 700, type: 'accessory' },
-        { id: 'santa_hat', name: 'Santa Hat', icon: '🎅', cost: 600, type: 'accessory' },
-        { id: 'flower_crown', name: 'Flower Crown', icon: '🌸', cost: 400, type: 'accessory' },
-        { id: 'laurel_wreath', name: 'Laurel Wreath', icon: '🏆', cost: 900, type: 'accessory' },
-        { id: 'devil_horns', name: 'Devil Horns', icon: '😈', cost: 666, type: 'accessory' },
-        { id: 'ninja_mask', name: 'Ninja Mask', icon: '🥷', cost: 750, type: 'accessory' },
-        { id: 'master_crown', name: 'Master\'s Crown', icon: '👑', cost: 10000, type: 'accessory' },
-        { id: 'diamond_ring', name: 'Diamond Ring', icon: '💎', cost: 5000, type: 'accessory' },
-        { id: 'golden_trophy', name: 'Golden Trophy', icon: '🥇', cost: 3000, type: 'accessory' },
-        { id: 'rainbow_wings', name: 'Rainbow Wings', icon: '🌈', cost: 2500, type: 'accessory' },
-        { id: 'power_glove', name: 'Power Glove', icon: '🔥', cost: 1500, type: 'accessory' },
-        { id: 'vip_pass', name: 'VIP Pass', icon: '🎫', cost: 2000, type: 'accessory' },
-    ];
+    if (typeof window.getShopAccessoryCatalog === 'function') {
+        return window.getShopAccessoryCatalog();
+    }
+    return [];
 }
 
 function getShopConsumableItems(config) {
@@ -1329,8 +1300,9 @@ function processLevelRewards(config, STORAGE_KEYS, level) {
     // Free Accessory
     if (levelReward.freeAccessory) {
         let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
-        if (!purchased.includes(levelReward.freeAccessory)) {
-            purchased.push(levelReward.freeAccessory);
+        const normalizedAccessory = window.normalizeAccessoryId?.(levelReward.freeAccessory) || levelReward.freeAccessory;
+        if (normalizedAccessory && !purchased.includes(normalizedAccessory)) {
+            purchased.push(normalizedAccessory);
             GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
         }
     }
@@ -1338,20 +1310,12 @@ function processLevelRewards(config, STORAGE_KEYS, level) {
     // Master Crown (Level 100)
     if (levelReward.masterCrown) {
         let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
-        if (!purchased.includes('master_crown')) {
-            purchased.push('master_crown');
+        if (!purchased.includes('star_crown')) {
+            purchased.push('star_crown');
             GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
-            
-            // Auto-equip the crown
-            if (typeof window.getAccessoryElement === 'function') {
-                let equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
-                if (!equippedItems.includes('master_crown')) {
-                    equippedItems.push('master_crown');
-                    GM_setValue(STORAGE_KEYS.EQUIPPED_ITEMS, JSON.stringify(equippedItems));
-                    const crownAccessory = window.getAccessoryElement('master_crown');
-                    if (crownAccessory) crownAccessory.style.display = 'block';
-                }
-            }
+        }
+        if (typeof window.equipMascotAccessory === 'function') {
+            window.equipMascotAccessory(config, STORAGE_KEYS, 'star_crown');
         }
     }
     
@@ -2761,46 +2725,27 @@ function showShopModal(config, STORAGE_KEYS) {
 
                 // Equip/Unequip logic
                 if (itemType === 'accessory') {
-                    let equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
-                    const accessoryElement = typeof window.getAccessoryElement === 'function' ? window.getAccessoryElement(itemId) : null;
-                    
-                    if (!accessoryElement) {
-                        console.error(`[MMS Shop] Failed to get accessory element for ${itemId}`);
+                    const normalizedId = typeof window.normalizeAccessoryId === 'function'
+                        ? window.normalizeAccessoryId(itemId)
+                        : itemId;
+
+                    if (!normalizedId) {
+                        console.warn(`[MMS Shop] Accessory "${itemId}" is no longer available.`);
                         return;
                     }
 
-                    if (equippedItems.includes(itemId)) {
-                        // Unequip: Remove from array and hide element
-                        equippedItems = equippedItems.filter(id => id !== itemId);
-                        if (accessoryElement) accessoryElement.style.display = 'none';
-                        console.log(`[MMS Shop] Unequipped ${itemId}`);
-                        
-                        // Reset mascot state to idle when unequipping animation accessories
-                        if (itemId === 'stunt_bike' || itemId === 'juggling_balls' || itemId === 'bookworm_kit') {
-                            if (typeof window.setMascotState === 'function') {
-                                window.setMascotState({}, 'idle');
-                            }
-                        }
-                    } else {
-                        // Equip: Add to array and show element
-                        equippedItems.push(itemId);
-                        if (accessoryElement) accessoryElement.style.display = 'block';
-                        console.log(`[MMS Shop] Equipped ${itemId}`);
-                        
-                        // Trigger animation state when equipping special accessories
-                        // Note: Juggling balls don't force permanent state - they trigger periodic animations
-                        if (itemId === 'stunt_bike') {
-                            if (typeof window.setMascotState === 'function') {
-                                window.setMascotState({}, 'biking', 0); // 0 = infinite duration
-                            }
-                        } else if (itemId === 'bookworm_kit') {
-                            if (typeof window.setMascotState === 'function') {
-                                window.setMascotState({}, 'reading', 0); // 0 = infinite duration
-                            }
-                        }
-                    }
+                    const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'))
+                        .map((id) => (typeof window.normalizeAccessoryId === 'function' ? window.normalizeAccessoryId(id) : id))
+                        .filter(Boolean);
+                    const isEquipped = equippedItems.includes(normalizedId);
 
-                    GM_setValue(STORAGE_KEYS.EQUIPPED_ITEMS, JSON.stringify(equippedItems));
+                    if (isEquipped) {
+                        window.unequipMascotAccessory?.(STORAGE_KEYS, normalizedId);
+                        console.log(`[MMS Shop] Unequipped ${normalizedId}`);
+                    } else {
+                        window.equipMascotAccessory?.(config, STORAGE_KEYS, normalizedId);
+                        console.log(`[MMS Shop] Equipped ${normalizedId}`);
+                    }
 
                 } else if (itemType === 'theme') {
                     if (typeof window.applyTheme === 'function') {
@@ -2856,8 +2801,14 @@ function populateShop(config, STORAGE_KEYS) {
     // Evolutions are automatically unlocked by leveling up, not purchasable
     // They are removed from the shop to prevent buying/equipping
 
-    const purchasedItems = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
-    const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
+    window.migrateAccessoryStorage?.(STORAGE_KEYS);
+
+    const purchasedItems = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'))
+        .map((id) => window.normalizeAccessoryId?.(id) || id)
+        .filter(Boolean);
+    const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'))
+        .map((id) => window.normalizeAccessoryId?.(id) || id)
+        .filter(Boolean);
     let currentCoins = GM_getValue(STORAGE_KEYS.USER_COINS, 0);
 
     itemsWrapper.innerHTML = ''; // Clear previous items
@@ -5025,9 +4976,15 @@ function populateShopDashboard(config, STORAGE_KEYS) {
     const wrapper = document.getElementById('tm-shop-dashboard-wrapper');
     if (!wrapper) return;
     
+    window.migrateAccessoryStorage?.(STORAGE_KEYS);
+
     const coins = GM_getValue(STORAGE_KEYS.USER_COINS, 0);
-    const purchasedItems = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
-    const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
+    const purchasedItems = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'))
+        .map((id) => window.normalizeAccessoryId?.(id) || id)
+        .filter(Boolean);
+    const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'))
+        .map((id) => window.normalizeAccessoryId?.(id) || id)
+        .filter(Boolean);
     
     // Create category containers
     const accessoriesCategoryHtml = config.interactiveMascotEnabled
@@ -5154,34 +5111,12 @@ function populateShopDashboard(config, STORAGE_KEYS) {
                 const itemType = button.dataset.itemType;
 
                 if (itemType === 'accessory') {
-                    let equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
-                    const accessoryElement = typeof window.getAccessoryElement === 'function' ? window.getAccessoryElement(itemId) : null;
-                    
-                    if (!accessoryElement) {
-                        console.error(`[MMS Shop] Failed to get accessory element for ${itemId}`);
+                    const normalizedId = window.normalizeAccessoryId?.(itemId) || itemId;
+                    if (!normalizedId) {
+                        console.warn(`[MMS Shop] Accessory "${itemId}" is no longer available.`);
                         return;
                     }
-
-                    if (equippedItems.includes(itemId)) {
-                        // Unequip
-                        equippedItems = equippedItems.filter(id => id !== itemId);
-                        GM_setValue(STORAGE_KEYS.EQUIPPED_ITEMS, JSON.stringify(equippedItems));
-                        
-                        // Remove from mascot
-                        if (typeof window.removeAccessoryFromMascot === 'function') {
-                            window.removeAccessoryFromMascot(itemId);
-                        }
-                    } else {
-                        // Equip
-                        equippedItems.push(itemId);
-                        GM_setValue(STORAGE_KEYS.EQUIPPED_ITEMS, JSON.stringify(equippedItems));
-                        
-                        // Add to mascot
-                        if (typeof window.addAccessoryToMascot === 'function') {
-                            window.addAccessoryToMascot(itemId, accessoryElement);
-                        }
-                    }
-                    
+                    window.toggleMascotAccessory?.(config, STORAGE_KEYS, normalizedId);
                     populateShopDashboard(config, STORAGE_KEYS);
                 }
             } else if (e.target.classList.contains('use')) {

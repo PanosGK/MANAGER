@@ -52,12 +52,15 @@
             // Reset mascot appearance to egg
             const mascotContainer = document.getElementById('tm-mascot-container');
             if (mascotContainer) {
-                // Hide all equipped accessories
-                const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
-                equippedItems.forEach(itemId => {
-                    const accessory = typeof window.getAccessoryElement === 'function' ? window.getAccessoryElement(itemId) : null;
-                    if (accessory) accessory.style.display = 'none';
-                });
+                if (typeof window.applyEquippedMascotAccessories === 'function') {
+                    window.applyEquippedMascotAccessories(STORAGE_KEYS);
+                } else {
+                    const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
+                    equippedItems.forEach(itemId => {
+                        const accessory = typeof window.getAccessoryElement === 'function' ? window.getAccessoryElement(itemId) : null;
+                        if (accessory) accessory.style.display = 'none';
+                    });
+                }
                 
                 // Reset mascot to egg appearance
                 if (typeof window.updateMascotAppearanceByStage === 'function') {

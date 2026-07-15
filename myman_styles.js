@@ -3554,12 +3554,9 @@
                 transform: translateZ(0); /* Force hardware acceleration */
             }
             /* Optimize all mascot accessories for smooth animation */
-            .tm-mascot-accessory, #top_hat, #master_crown, #jetpack,
-            .tm-mascot-book, .tm-mascot-bicycle, .tm-mascot-ball,
-            .tm-mascot-sunglasses, .tm-mascot-umbrella, 
-            .tm-mascot-thinking-bubble, .tm-mascot-eureka-bubble {
+            .tm-mascot-accessory {
                 will-change: transform, opacity;
-                transform: translateZ(0); /* Hardware acceleration */
+                transform: translateZ(0);
                 backface-visibility: hidden;
                 -webkit-backface-visibility: hidden;
             }
@@ -3593,7 +3590,8 @@
             }
 
             /* Mascot States */
-            #tm-mascot-container.mascot-idle .tm-mascot-main-body { animation: tm-mascot-roam-fly 1.2s ease-in-out infinite; }
+            #tm-mascot-container.mascot-idle .tm-animate-body,
+            #tm-mascot-container.mascot-idle .tm-mascot-robot { animation: tm-mascot-idle-float 4s ease-in-out infinite; }
             #tm-mascot-container.mascot-idle .tm-mascot-eye-open,
             #tm-mascot-container.mascot-happy .tm-mascot-eye-open,
             #tm-mascot-container.mascot-sad .tm-mascot-eye-open {
@@ -3601,11 +3599,15 @@
             }
             
             /* Accessories animate naturally during idle/roaming */
-            #tm-mascot-container.mascot-idle #top_hat,
-            #tm-mascot-container.mascot-idle #master_crown {
+            #tm-mascot-container.mascot-idle #party_hat,
+            #tm-mascot-container.mascot-idle #star_crown,
+            #tm-mascot-container.mascot-idle #flower_crown,
+            #tm-mascot-container.mascot-idle #digital_headphones,
+            #tm-mascot-container.mascot-idle #halo {
                 animation: tm-mascot-hat-gentle-bob 2s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-idle .tm-mascot-sunglasses {
+            #tm-mascot-container.mascot-idle #pixel_sunglasses,
+            #tm-mascot-container.mascot-idle #tech_goggles {
                 animation: tm-mascot-shades-adjust 4s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-idle #jetpack .tm-mascot-thruster-left,
@@ -3617,8 +3619,9 @@
 
             #tm-mascot-container.mascot-happy .tm-mascot-robot { animation: tm-mascot-happy-dance 0.8s ease-in-out infinite; }
             #tm-mascot-container.mascot-happy .tm-mascot-antenna { animation: tm-mascot-antenna-happy-wiggle 0.4s ease-in-out infinite; }
-            #tm-mascot-container.mascot-happy #top_hat,
-            #tm-mascot-container.mascot-happy #master_crown {
+            #tm-mascot-container.mascot-happy #party_hat,
+            #tm-mascot-container.mascot-happy #star_crown,
+            #tm-mascot-container.mascot-happy #flower_crown {
                 animation: tm-mascot-hat-bounce-happy 0.8s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-happy #jetpack {
@@ -3648,12 +3651,7 @@
                 }
             }
             /* Hide accessory animations when energized to prevent conflicts */
-            #tm-mascot-container.mascot-energized .tm-mascot-ball,
-            #tm-mascot-container.mascot-energized .tm-mascot-bicycle,
-            #tm-mascot-container.mascot-energized .tm-mascot-book,
-            #tm-mascot-container.mascot-energized #top_hat,
-            #tm-mascot-container.mascot-energized #master_crown,
-            #tm-mascot-container.mascot-energized #jetpack {
+            #tm-mascot-container.mascot-energized .tm-mascot-accessory {
                 animation: none !important;
             }
             /* Energized state overrides all other body animations */
@@ -3682,18 +3680,20 @@
             #tm-mascot-container.mascot-dodging .tm-mascot-robot { animation: tm-mascot-startled 0.4s ease-out; }
             #tm-mascot-container.mascot-surprised .tm-mascot-robot { animation: tm-mascot-startled 0.45s ease-out infinite; }
             #tm-mascot-container.mascot-surprised .tm-mascot-antenna { animation: tm-mascot-antenna-happy-wiggle 0.35s ease-in-out infinite; }
-            #tm-mascot-container.mascot-dodging #top_hat,
-            #tm-mascot-container.mascot-dodging #master_crown {
+            #tm-mascot-container.mascot-dodging #party_hat,
+            #tm-mascot-container.mascot-dodging #star_crown,
+            #tm-mascot-container.mascot-dodging #flower_crown {
                 animation: tm-mascot-hat-fly-off 0.4s ease-out;
             }
-            #tm-mascot-container.mascot-dodging .tm-mascot-sunglasses {
+            #tm-mascot-container.mascot-dodging #pixel_sunglasses,
+            #tm-mascot-container.mascot-dodging #tech_goggles {
                 animation: tm-mascot-shades-wobble 0.4s ease-out;
             }
 
             /* Enhanced Playful States with Natural Accessory Interactions */
             #tm-mascot-container.mascot-reading .tm-mascot-robot { animation: tm-mascot-reading-bob 3s ease-in-out infinite; }
-            #tm-mascot-container.mascot-reading .tm-mascot-book { 
-                display: block; 
+            #tm-mascot-container.mascot-reading #book {
+                display: block !important;
                 animation: tm-mascot-book-flip 2s ease-in-out infinite;
                 transform-origin: left center;
             }
@@ -3707,20 +3707,18 @@
             #tm-mascot-container.mascot-juggling .tm-mascot-robot { 
                 animation: tm-mascot-juggling-sway 2.4s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-juggling .tm-mascot-ball { 
-                display: block;
+            #tm-mascot-container.mascot-juggling #bubble_wand {
+                display: block !important;
+                animation: tm-mascot-shades-adjust 1.2s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-juggling .tm-mascot-ball-1 { 
-                animation: tm-mascot-juggle-left-to-right 1.2s ease-in-out infinite;
-                animation-delay: 0s;
+            #tm-mascot-container.mascot-sunny #pixel_sunglasses,
+            #tm-mascot-container.mascot-sunny #tech_goggles { display: block !important; }
+            #tm-mascot-container.mascot-rainy #umbrella {
+                display: block !important;
+                animation: tm-mascot-shades-adjust 2s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-juggling .tm-mascot-ball-2 { 
-                animation: tm-mascot-juggle-right-to-left 1.2s ease-in-out infinite;
-                animation-delay: 0.4s;
-            }
-            #tm-mascot-container.mascot-juggling .tm-mascot-ball-3 { 
-                animation: tm-mascot-juggle-left-to-right 1.2s ease-in-out infinite;
-                animation-delay: 0.8s;
+            #tm-mascot-container.mascot-glitching .tm-mascot-accessory {
+                animation: tm-mascot-accessory-glitch 0.3s infinite;
             }
             
             /* Ensure smooth transition when exiting juggling state */
