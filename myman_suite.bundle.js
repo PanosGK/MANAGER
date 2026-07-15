@@ -16999,9 +16999,8 @@ function stopRoaming(config) {
             animations.forEach(anim => anim.cancel());
             
             // Set the final position explicitly
-            const metrics = getMascotRoamingMetrics(mascotContainer);
-            const clamped = clampMascotPosition(currentX, currentY, metrics);
-            mascotContainer.style.transform = `translate(${clamped.x}px, ${clamped.y}px)`;
+            const clamped = clampMascotPosition(currentX, currentY, getMascotRoamingMetrics(mascotContainer));
+            applyMascotPosition(mascotContainer, clamped.x, clamped.y);
         }
     }
 
@@ -17015,10 +17014,19 @@ let lastMascotY = 0;
 let mascotVelocityX = 0;
 let mascotVelocityY = 0;
 let physicsAnimationFrame = null;
+let limbPhysicsFrameCount = 0;
 
 function updateLimbPhysics() {
     const mascotContainer = document.getElementById('tm-mascot-container');
     if (!mascotContainer) return;
+
+    // Keep mascot on-screen while roaming (every few frames to avoid fighting CSS anims).
+    if (isRoaming) {
+        limbPhysicsFrameCount += 1;
+        if (limbPhysicsFrameCount % 4 === 0) {
+            ensureMascotInBounds(mascotContainer);
+        }
+    }
 
     // Get current position
     const transformMatrix = new DOMMatrix(window.getComputedStyle(mascotContainer).transform);
@@ -17107,25 +17115,44 @@ function stopPhysicsAnimation() {
     }
 }
 
+/** Extra pixels the mascot draws outside its 100×100 box (bubble, hats, float anim). */
+const MASCOT_VISUAL_OVERFLOW = {
+    top: 72,
+    right: 30,
+    bottom: 24,
+    left: 16,
+};
+
 function getMascotRoamingMetrics(container = document.getElementById('tm-mascot-container')) {
     const width = Math.max(container?.offsetWidth || 0, 100);
     const height = Math.max(container?.offsetHeight || 0, 100);
     const vv = window.visualViewport;
-    const viewW = vv?.width ?? window.innerWidth;
-    const viewH = vv?.height ?? window.innerHeight;
+    const viewW = vv?.width ?? document.documentElement.clientWidth ?? window.innerWidth;
+    const viewH = vv?.height ?? document.documentElement.clientHeight ?? window.innerHeight;
     const offsetX = vv?.offsetLeft ?? 0;
     const offsetY = vv?.offsetTop ?? 0;
-    const edgePad = 12;
-    const topPad = 56; // speech bubble headroom
-    const bottomPad = 80; // footer / bottom chrome
+    const edgePad = 16;
+    const bottomPad = 88; // footer / bottom chrome
+
+    const minX = offsetX + edgePad + MASCOT_VISUAL_OVERFLOW.left;
+    const minY = offsetY + edgePad + MASCOT_VISUAL_OVERFLOW.top;
+    const maxX = offsetX + viewW - width - edgePad - MASCOT_VISUAL_OVERFLOW.right;
+    const maxY = offsetY + viewH - height - bottomPad - MASCOT_VISUAL_OVERFLOW.bottom;
+
     return {
         width,
         height,
-        minX: offsetX + edgePad,
-        minY: offsetY + topPad,
-        maxX: offsetX + Math.max(edgePad, viewW - width - edgePad),
-        maxY: offsetY + Math.max(topPad, viewH - height - bottomPad),
+        minX: Math.min(minX, maxX),
+        minY: Math.min(minY, maxY),
+        maxX: Math.max(minX, maxX),
+        maxY: Math.max(minY, maxY),
     };
+}
+
+function getMascotTranslate(container = document.getElementById('tm-mascot-container')) {
+    if (!container) return { x: 0, y: 0 };
+    const matrix = new DOMMatrix(window.getComputedStyle(container).transform);
+    return { x: matrix.m41, y: matrix.m42 };
 }
 
 function clampMascotPosition(x, y, metrics = getMascotRoamingMetrics()) {
@@ -17133,6 +17160,40 @@ function clampMascotPosition(x, y, metrics = getMascotRoamingMetrics()) {
         x: Math.min(metrics.maxX, Math.max(metrics.minX, x)),
         y: Math.min(metrics.maxY, Math.max(metrics.minY, y)),
     };
+}
+
+function applyMascotPosition(container, x, y) {
+    if (!container) return { x, y };
+    const clamped = clampMascotPosition(x, y, getMascotRoamingMetrics(container));
+    container.style.transform = `translate(${clamped.x}px, ${clamped.y}px)`;
+    return clamped;
+}
+
+function ensureMascotInBounds(container = document.getElementById('tm-mascot-container')) {
+    if (!container) return;
+
+    const { x, y } = getMascotTranslate(container);
+    const clamped = applyMascotPosition(container, x, y);
+
+    // Nudge if painted content still clips the viewport (bubble / accessories).
+    const rect = container.getBoundingClientRect();
+    const vv = window.visualViewport;
+    const vLeft = vv?.offsetLeft ?? 0;
+    const vTop = vv?.offsetTop ?? 0;
+    const vRight = vLeft + (vv?.width ?? window.innerWidth);
+    const vBottom = vTop + (vv?.height ?? window.innerHeight);
+    const pad = 10;
+    let nx = clamped.x;
+    let ny = clamped.y;
+
+    if (rect.left < vLeft + pad) nx += (vLeft + pad) - rect.left;
+    if (rect.top < vTop + pad) ny += (vTop + pad) - rect.top;
+    if (rect.right > vRight - pad) nx -= rect.right - (vRight - pad);
+    if (rect.bottom > vBottom - pad) ny -= rect.bottom - (vBottom - pad);
+
+    if (nx !== clamped.x || ny !== clamped.y) {
+        applyMascotPosition(container, nx, ny);
+    }
 }
 
 function randomMascotPosition(metrics = getMascotRoamingMetrics()) {
@@ -17145,14 +17206,17 @@ function randomMascotPosition(metrics = getMascotRoamingMetrics()) {
     );
 }
 
-function ensureMascotInBounds(container = document.getElementById('tm-mascot-container')) {
-    if (!container) return;
-    const metrics = getMascotRoamingMetrics(container);
-    const transformMatrix = new DOMMatrix(window.getComputedStyle(container).transform);
-    const clamped = clampMascotPosition(transformMatrix.m41, transformMatrix.m42, metrics);
-    if (clamped.x !== transformMatrix.m41 || clamped.y !== transformMatrix.m42) {
-        container.style.transform = `translate(${clamped.x}px, ${clamped.y}px)`;
+function sampleClampedBezierPath(from, control, to, metrics, steps = 8) {
+    const keyframes = [];
+    for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const inv = 1 - t;
+        const x = inv * inv * from.x + 2 * inv * t * control.x + t * t * to.x;
+        const y = inv * inv * from.y + 2 * inv * t * control.y + t * t * to.y;
+        const point = clampMascotPosition(x, y, metrics);
+        keyframes.push({ transform: `translate(${point.x}px, ${point.y}px)` });
     }
+    return keyframes;
 }
 
 function resolveMascotConfig(config) {
@@ -17262,14 +17326,11 @@ async function moveToNewPosition() {
     const midY = (current.y + newY) / 2;
     const dx = newX - current.x;
     const dy = newY - current.y;
-    const bulge = (Math.random() - 0.5) * 0.3;
+    const bulge = (Math.random() - 0.5) * 0.15;
     const control = clampMascotPosition(midX - dy * bulge, midY + dx * bulge, metrics);
+    const end = clampMascotPosition(newX, newY, metrics);
 
-    const keyframes = [
-        { transform: `translate(${current.x}px, ${current.y}px)` },
-        { transform: `translate(${control.x}px, ${control.y}px)`, offset: 0.5 },
-        { transform: `translate(${newX}px, ${newY}px)` }
-    ];
+    const keyframes = sampleClampedBezierPath(current, control, end, metrics);
 
     const animation = mascotContainer.animate(keyframes, {
         duration: duration * 1000,
@@ -17281,7 +17342,8 @@ async function moveToNewPosition() {
     try {
         await animation.finished;
         requestAnimationFrame(() => {
-            mascotContainer.style.transform = `translate(${newX}px, ${newY}px)`;
+            applyMascotPosition(mascotContainer, end.x, end.y);
+            ensureMascotInBounds(mascotContainer);
         });
     } catch (error) {
         scheduleRoamingMove(800);
@@ -17326,7 +17388,8 @@ function ensureRoamingWatchdog(config) {
         if (canMascotRoamingMove() && !roamingTimeout) {
             scheduleRoamingMove(300);
         }
-    }, 12000);
+        ensureMascotInBounds();
+    }, 4000);
 }
 
 function startRoaming(config) {
@@ -21836,9 +21899,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         window.__tmMascotBoundsListener = true;
         const onViewportChange = () => ensureMascotInBounds();
         window.addEventListener('resize', onViewportChange);
+        window.addEventListener('scroll', onViewportChange, { passive: true });
         window.visualViewport?.addEventListener('resize', onViewportChange);
         window.visualViewport?.addEventListener('scroll', onViewportChange);
     }
+
+    ensureMascotInBounds(container);
 
     // Move interaction panel out of container to make it fixed
     const interactionPanel = container.querySelector('#tm-mascot-interaction-panel');
