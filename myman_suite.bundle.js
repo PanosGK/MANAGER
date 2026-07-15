@@ -8786,12 +8786,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 transform: translateZ(0); /* Force hardware acceleration */
             }
             /* Optimize all mascot accessories for smooth animation */
-            .tm-mascot-accessory {
-                will-change: transform, opacity;
-                transform: translateZ(0);
-                backface-visibility: hidden;
-                -webkit-backface-visibility: hidden;
-            }
+            #tm-mascot-acc-back .tm-mascot-accessory { pointer-events: none; }
+            #tm-mascot-acc-front .tm-mascot-accessory { pointer-events: none; }
+            .tm-accessory-art { transform-origin: center center; transform-box: fill-box; }
             #tm-mascot-container .tm-mascot-eye { animation: tm-mascot-blink 5s infinite; }
             /* New: Add subtle secondary animation to the antenna */
             #tm-mascot-container .tm-mascot-antenna {
@@ -8830,16 +8827,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 animation: tm-mascot-blink 5s steps(1, end) infinite;
             }
             
-            /* Accessories animate naturally during idle/roaming */
-            #tm-mascot-container.mascot-idle #party_hat,
-            #tm-mascot-container.mascot-idle #star_crown,
-            #tm-mascot-container.mascot-idle #flower_crown,
-            #tm-mascot-container.mascot-idle #digital_headphones,
-            #tm-mascot-container.mascot-idle #halo {
+            /* Accessories animate on inner art so SVG anchor transforms stay intact */
+            #tm-mascot-container.mascot-idle #party_hat .tm-accessory-art,
+            #tm-mascot-container.mascot-idle #star_crown .tm-accessory-art,
+            #tm-mascot-container.mascot-idle #flower_crown .tm-accessory-art,
+            #tm-mascot-container.mascot-idle #digital_headphones .tm-accessory-art,
+            #tm-mascot-container.mascot-idle #halo .tm-accessory-art {
                 animation: tm-mascot-hat-gentle-bob 2s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-idle #pixel_sunglasses,
-            #tm-mascot-container.mascot-idle #tech_goggles {
+            #tm-mascot-container.mascot-idle #pixel_sunglasses .tm-accessory-art,
+            #tm-mascot-container.mascot-idle #tech_goggles .tm-accessory-art {
                 animation: tm-mascot-shades-adjust 4s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-idle #jetpack .tm-mascot-thruster-left,
@@ -8851,12 +8848,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
             #tm-mascot-container.mascot-happy .tm-mascot-robot { animation: tm-mascot-happy-dance 0.8s ease-in-out infinite; }
             #tm-mascot-container.mascot-happy .tm-mascot-antenna { animation: tm-mascot-antenna-happy-wiggle 0.4s ease-in-out infinite; }
-            #tm-mascot-container.mascot-happy #party_hat,
-            #tm-mascot-container.mascot-happy #star_crown,
-            #tm-mascot-container.mascot-happy #flower_crown {
+            #tm-mascot-container.mascot-happy #party_hat .tm-accessory-art,
+            #tm-mascot-container.mascot-happy #star_crown .tm-accessory-art,
+            #tm-mascot-container.mascot-happy #flower_crown .tm-accessory-art {
                 animation: tm-mascot-hat-bounce-happy 0.8s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-happy #jetpack {
+            #tm-mascot-container.mascot-happy #jetpack .tm-accessory-art {
                 animation: tm-mascot-jetpack-boost 0.4s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-energized .tm-mascot-robot { 
@@ -8912,13 +8909,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-mascot-container.mascot-dodging .tm-mascot-robot { animation: tm-mascot-startled 0.4s ease-out; }
             #tm-mascot-container.mascot-surprised .tm-mascot-robot { animation: tm-mascot-startled 0.45s ease-out infinite; }
             #tm-mascot-container.mascot-surprised .tm-mascot-antenna { animation: tm-mascot-antenna-happy-wiggle 0.35s ease-in-out infinite; }
-            #tm-mascot-container.mascot-dodging #party_hat,
-            #tm-mascot-container.mascot-dodging #star_crown,
-            #tm-mascot-container.mascot-dodging #flower_crown {
+            #tm-mascot-container.mascot-dodging #party_hat .tm-accessory-art,
+            #tm-mascot-container.mascot-dodging #star_crown .tm-accessory-art,
+            #tm-mascot-container.mascot-dodging #flower_crown .tm-accessory-art {
                 animation: tm-mascot-hat-fly-off 0.4s ease-out;
             }
-            #tm-mascot-container.mascot-dodging #pixel_sunglasses,
-            #tm-mascot-container.mascot-dodging #tech_goggles {
+            #tm-mascot-container.mascot-dodging #pixel_sunglasses .tm-accessory-art,
+            #tm-mascot-container.mascot-dodging #tech_goggles .tm-accessory-art {
                 animation: tm-mascot-shades-wobble 0.4s ease-out;
             }
 
@@ -8926,6 +8923,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-mascot-container.mascot-reading .tm-mascot-robot { animation: tm-mascot-reading-bob 3s ease-in-out infinite; }
             #tm-mascot-container.mascot-reading #book {
                 display: block !important;
+            }
+            #tm-mascot-container.mascot-reading #book .tm-accessory-art {
                 animation: tm-mascot-book-flip 2s ease-in-out infinite;
                 transform-origin: left center;
             }
@@ -8941,12 +8940,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             #tm-mascot-container.mascot-juggling #bubble_wand {
                 display: block !important;
+            }
+            #tm-mascot-container.mascot-juggling #bubble_wand .tm-accessory-art {
                 animation: tm-mascot-shades-adjust 1.2s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-sunny #pixel_sunglasses,
             #tm-mascot-container.mascot-sunny #tech_goggles { display: block !important; }
             #tm-mascot-container.mascot-rainy #umbrella {
                 display: block !important;
+            }
+            #tm-mascot-container.mascot-rainy #umbrella .tm-accessory-art {
                 animation: tm-mascot-shades-adjust 2s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-glitching .tm-mascot-accessory {
@@ -15399,8 +15402,9 @@ function hideAllMascotAccessories() {
 function showMascotAccessory(itemId) {
     const el = getAccessoryElement(itemId);
     if (!el) return false;
-    el.style.display = 'block';
     el.classList.add('tm-accessory-equipped');
+    layoutMascotAccessory(itemId, tamagotchiStage);
+    el.style.display = 'block';
     return true;
 }
 
@@ -15426,6 +15430,7 @@ function applyEquippedMascotAccessories(STORAGE_KEYS) {
 
     const equipped = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'));
     equipped.map(normalizeAccessoryId).filter(Boolean).forEach(showMascotAccessory);
+    updateMascotAccessoryLayout(tamagotchiStage);
 }
 
 function equipMascotAccessory(config, STORAGE_KEYS, itemId) {
@@ -15473,6 +15478,136 @@ function getShopAccessoryCatalog() {
         ...item,
         type: 'accessory',
     }));
+}
+
+/** Body attachment points per Tamagotchi stage (viewBox coords). */
+const MASCOT_STAGE_ANCHORS = {
+    egg:      { headTop: [50, 16], eyes: [50, 44, 14], neck: [50, 54], chest: [50, 54], back: [50, 54], handR: [62, 54, 18], wristR: [60, 56], aura: [50, 54], scale: 0.6 },
+    baby:     { headTop: [50, 24], eyes: [50, 36, 16], neck: [50, 46], chest: [50, 64], back: [50, 58], handR: [72, 60, 22], wristR: [74, 64], aura: [50, 64], scale: 0.82 },
+    kid:      { headTop: [50, 20], eyes: [50, 32, 18], neck: [50, 42], chest: [50, 58], back: [50, 52], handR: [74, 56, 20], wristR: [76, 60], aura: [50, 58], scale: 0.9 },
+    teen:     { headTop: [50, 18], eyes: [50, 28, 20], neck: [50, 38], chest: [50, 56], back: [50, 50], handR: [76, 54, 18], wristR: [78, 58], aura: [50, 56], scale: 0.95 },
+    adult:    { headTop: [50, 14], eyes: [50, 26, 18], neck: [50, 36], chest: [50, 54], back: [50, 48], handR: [78, 52, 15], wristR: [80, 56], aura: [50, 54], scale: 1 },
+    middleage:{ headTop: [50, 16], eyes: [50, 28, 18], neck: [50, 38], chest: [50, 56], back: [50, 50], handR: [76, 54, 15], wristR: [78, 58], aura: [50, 56], scale: 1 },
+    old:      { headTop: [50, 18], eyes: [50, 30, 16], neck: [50, 40], chest: [50, 58], back: [50, 52], handR: [74, 56, 12], wristR: [76, 60], aura: [50, 58], scale: 0.95 },
+};
+
+const ACCESSORY_SLOT_ANCHOR = {
+    head: 'headTop', face: 'eyes', neck: 'neck', back: 'back',
+    hand: 'handR', wrist: 'wristR', body: 'chest', aura: 'aura',
+};
+
+const ACCESSORY_BACK_LAYER = new Set(['jetpack', 'backpack', 'power_ring']);
+
+/** Per-item fine tuning (offsets relative to anchor, in local space). */
+const ACCESSORY_LAYOUT = {
+    digital_headphones: { dy: 4, scale: 1.05 },
+    pixel_sunglasses:   { dy: 0 },
+    tech_goggles:       { dy: -1, scale: 1.05 },
+    party_hat:          { dy: 10, scale: 0.88 },
+    flower_crown:       { dy: 12, scale: 0.82 },
+    star_crown:         { dy: 8, scale: 0.72 },
+    halo:               { dy: -12, scale: 0.78 },
+    rainbow_scarf:      { dy: 2, scale: 0.85 },
+    backpack:           { dy: -4, scale: 0.68 },
+    jetpack:            { dy: -6, scale: 0.75 },
+    shield:             { rot: -8, scale: 0.8, dx: 4 },
+    magic_wand:         { rot: 28, scale: 0.85, dx: 2, dy: -4 },
+    bubble_wand:        { rot: -18, scale: 0.8, dx: 2 },
+    book:               { rot: 14, scale: 0.75, dx: 4, dy: 2 },
+    umbrella:           { rot: 22, scale: 0.7, dx: 2, dy: -8 },
+    digital_watch:        { scale: 0.65, dx: 2 },
+    legend_badge:       { dy: 2, scale: 0.7 },
+    power_ring:         { dy: 18, scale: 1.05 },
+};
+
+function getMascotStageAnchors(stage = tamagotchiStage) {
+    return MASCOT_STAGE_ANCHORS[stage] || MASCOT_STAGE_ANCHORS.adult;
+}
+
+/** Accessories shown temporarily by mascot behavior states (even when not equipped). */
+const STATE_FORCED_ACCESSORIES = {
+    reading: ['book'],
+    rainy: ['umbrella'],
+    juggling: ['bubble_wand'],
+    sunny: ['pixel_sunglasses', 'tech_goggles'],
+};
+
+function layoutMascotAccessory(accessoryId, stage = tamagotchiStage, options = {}) {
+    const el = getAccessoryElement(accessoryId);
+    const catalogItem = getAccessoryCatalogItem(accessoryId);
+    if (!el || !catalogItem) return;
+
+    if (stage === 'egg') {
+        el.style.display = 'none';
+        return;
+    }
+
+    const anchors = getMascotStageAnchors(stage);
+    const anchorKey = ACCESSORY_SLOT_ANCHOR[catalogItem.slot] || 'chest';
+    const anchor = anchors[anchorKey];
+    if (!anchor) return;
+
+    const layout = ACCESSORY_LAYOUT[accessoryId] || {};
+    const stageScale = anchors.scale || 1;
+    const scale = (layout.scale || 1) * stageScale;
+    let rot = layout.rot ?? 0;
+    if (catalogItem.slot === 'hand' && anchor.length > 2 && layout.rot == null) {
+        rot = anchor[2];
+    }
+    const ax = anchor[0] + (layout.dx || 0);
+    const ay = anchor[1] + (layout.dy || 0);
+
+    el.setAttribute('transform', `translate(${ax}, ${ay}) rotate(${rot}) scale(${scale})`);
+    if (options.force) return;
+    el.style.display = el.classList.contains('tm-accessory-equipped') ? 'block' : 'none';
+}
+
+function syncStateAccessoryLayout(state, previousState) {
+    Object.entries(STATE_FORCED_ACCESSORIES).forEach(([behaviorState, ids]) => {
+        ids.forEach((id) => {
+            if (state === behaviorState) {
+                layoutMascotAccessory(id, tamagotchiStage, { force: true });
+            } else if (previousState === behaviorState && state !== behaviorState) {
+                const el = getAccessoryElement(id);
+                if (el && !el.classList.contains('tm-accessory-equipped')) {
+                    el.style.display = 'none';
+                }
+            }
+        });
+    });
+}
+
+function updateMascotAccessoryLayout(stage = tamagotchiStage) {
+    MASCOT_ACCESSORY_CATALOG.forEach(({ id }) => {
+        const el = document.getElementById(id);
+        if (el?.classList.contains('tm-accessory-equipped')) {
+            layoutMascotAccessory(id, stage);
+        }
+    });
+}
+
+function initMascotAccessoryLayers() {
+    const flipper = document.querySelector('.tm-mascot-flipper');
+    if (!flipper || document.getElementById('tm-mascot-acc-back')) return;
+
+    const backLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    backLayer.id = 'tm-mascot-acc-back';
+    const frontLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    frontLayer.id = 'tm-mascot-acc-front';
+
+    const firstSprite = flipper.querySelector('#tm-mascot-base')
+        || flipper.querySelector('[id^="tm-mascot-baby-"]')
+        || flipper.querySelector('[id^="tm-mascot-"]');
+    if (firstSprite) flipper.insertBefore(backLayer, firstSprite);
+    else flipper.prepend(backLayer);
+    flipper.appendChild(frontLayer);
+
+    MASCOT_ACCESSORY_CATALOG.forEach(({ id }) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const target = ACCESSORY_BACK_LAYER.has(id) ? backLayer : frontLayer;
+        target.appendChild(el);
+    });
 }
 
 let petStats = { happiness: 100, hunger: 100, lastUpdate: Date.now() };
@@ -17517,6 +17652,7 @@ function setMascotState(config, state, duration = 0) {
     const previousState = [...mascotContainer.classList].find((cls) => cls.startsWith('mascot-') && !MASCOT_MODIFIER_CLASSES.includes(cls))?.replace('mascot-', '') || '';
 
     applyMascotBehaviorState(mascotContainer, state);
+    syncStateAccessoryLayout(state, previousState);
     
     // Reset robot element transform when exiting juggling state to prevent shaking
     if (previousState === 'juggling' && state !== 'juggling') {
@@ -18755,18 +18891,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             
             <!-- Flipper group for horizontal flipping -->
             <g class="tm-mascot-flipper" transform-origin="50 50">
-                <!-- Jetpack (shared across stages, shown conditionally) -->
+                <!-- Jetpack (back layer — positioned via anchors) -->
                 <g id="jetpack" class="tm-mascot-accessory" style="display: none;">
-                    <!-- Left tank -->
-                    <rect x="8" y="0" width="18" height="30" rx="5" fill="url(#jetpack-gradient)" stroke="#5d6d7e" stroke-width="1.5"/>
-                    <circle cx="17" cy="10" r="3" fill="#34495e" stroke="#2c3e50" stroke-width="0.5"/>
-                    <rect x="11" y="6" width="4" height="8" fill="#3498db" rx="1" opacity="0.4"/>
-                    <ellipse class="tm-mascot-thruster-left" cx="17" cy="32" rx="6" ry="9" fill="url(#flame-gradient)"/>
-                    <!-- Right tank -->
-                    <rect x="74" y="0" width="18" height="30" rx="5" fill="url(#jetpack-gradient)" stroke="#5d6d7e" stroke-width="1.5"/>
-                    <circle cx="83" cy="10" r="3" fill="#34495e" stroke="#2c3e50" stroke-width="0.5"/>
-                    <rect x="77" y="6" width="4" height="8" fill="#3498db" rx="1" opacity="0.4"/>
-                    <ellipse class="tm-mascot-thruster-right" cx="83" cy="32" rx="6" ry="9" fill="url(#flame-gradient)"/>
+                    <g class="tm-accessory-art">
+                        <rect x="-22" y="-12" width="14" height="26" rx="4" fill="url(#jetpack-gradient)" stroke="#5d6d7e" stroke-width="1.5"/>
+                        <circle cx="-15" cy="-4" r="2.5" fill="#34495e"/>
+                        <ellipse class="tm-mascot-thruster-left" cx="-15" cy="16" rx="5" ry="8" fill="url(#flame-gradient)"/>
+                        <rect x="8" y="-12" width="14" height="26" rx="4" fill="url(#jetpack-gradient)" stroke="#5d6d7e" stroke-width="1.5"/>
+                        <circle cx="15" cy="-4" r="2.5" fill="#34495e"/>
+                        <ellipse class="tm-mascot-thruster-right" cx="15" cy="16" rx="5" ry="8" fill="url(#flame-gradient)"/>
+                        <rect x="-10" y="-14" width="20" height="5" rx="2" fill="#7f8c8d" stroke="#5d6d7e" stroke-width="1"/>
+                    </g>
                 </g>
                 
                 <!-- ═══════════════════════════════════════ -->
@@ -21702,193 +21837,138 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="64" cy="88" r="1.8" fill="#4fc3f7" opacity="0.8" filter="url(#glow)"/>
                 </g>
 
-                <!-- New Accessories Collection -->
-                
-                <!-- 1. Digital Headphones - Gaming vibe -->
-                <g id="digital_headphones" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
-                    <defs>
-                        <linearGradient id="headphone-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#00b7ff;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#0099cc;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <!-- Left earcup -->
-                    <circle cx="35" cy="32" r="10" fill="url(#headphone-gradient)" stroke="#006699" stroke-width="1.5"/>
-                    <circle cx="35" cy="32" r="6" fill="#1a1a1a"/>
-                    <rect x="28" y="28" width="3" height="8" fill="#00b7ff"/>
-                    <!-- Right earcup -->
-                    <circle cx="65" cy="32" r="10" fill="url(#headphone-gradient)" stroke="#006699" stroke-width="1.5"/>
-                    <circle cx="65" cy="32" r="6" fill="#1a1a1a"/>
-                    <rect x="69" y="28" width="3" height="8" fill="#00b7ff"/>
-                    <!-- Headband -->
-                    <rect x="35" y="22" width="30" height="4" rx="2" fill="url(#headphone-gradient)" stroke="#006699" stroke-width="1"/>
+                <!-- Integrated accessories (anchor-local art, positioned by layoutMascotAccessory) -->
+                <g id="digital_headphones" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <path d="M -14 -6 Q 0 -14 14 -6" fill="none" stroke="#0099cc" stroke-width="3.5" stroke-linecap="round"/>
+                        <circle cx="-12" cy="0" r="7" fill="#00b7ff" stroke="#006699" stroke-width="1.5"/>
+                        <circle cx="-12" cy="0" r="4" fill="#1a1a1a"/>
+                        <circle cx="12" cy="0" r="7" fill="#00b7ff" stroke="#006699" stroke-width="1.5"/>
+                        <circle cx="12" cy="0" r="4" fill="#1a1a1a"/>
+                    </g>
                 </g>
-                
-                <!-- 2. Pixel Sunglasses - Retro style -->
-                <g id="pixel_sunglasses" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
-                    <rect x="32" y="28" width="16" height="10" rx="2" fill="#1a1a1a" stroke="#000" stroke-width="1.5"/>
-                    <rect x="52" y="28" width="16" height="10" rx="2" fill="#1a1a1a" stroke="#000" stroke-width="1.5"/>
-                    <rect x="34" y="30" width="12" height="6" fill="#00b7ff" opacity="0.6"/>
-                    <rect x="54" y="30" width="12" height="6" fill="#00b7ff" opacity="0.6"/>
-                    <line x1="48" y1="33" x2="52" y2="33" stroke="#333" stroke-width="2"/>
+                <g id="pixel_sunglasses" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <rect x="-17" y="-4" width="14" height="8" rx="1.5" fill="#1a1a1a" stroke="#000" stroke-width="1"/>
+                        <rect x="-15" y="-2" width="10" height="4" fill="#00b7ff" opacity="0.55"/>
+                        <rect x="3" y="-4" width="14" height="8" rx="1.5" fill="#1a1a1a" stroke="#000" stroke-width="1"/>
+                        <rect x="5" y="-2" width="10" height="4" fill="#00b7ff" opacity="0.55"/>
+                        <line x1="-3" y1="0" x2="3" y2="0" stroke="#333" stroke-width="1.5"/>
+                    </g>
                 </g>
-                
-                <!-- 3. Star Crown - Magical -->
-                <g id="star_crown" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
-                    <defs>
-                        <linearGradient id="star-gold">
-                            <stop offset="0%" style="stop-color:#ffd700;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffed4e;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M 38 8 L 42 0 L 46 8 L 54 8 L 46 12 L 50 20 L 42 16 L 34 20 L 38 12 L 30 8 Z" fill="url(#star-gold)" stroke="#ffc107" stroke-width="1"/>
-                    <path d="M 50 8 L 54 0 L 58 8 L 66 8 L 58 12 L 62 20 L 54 16 L 46 20 L 50 12 L 42 8 Z" fill="url(#star-gold)" stroke="#ffc107" stroke-width="1"/>
-                    <path d="M 62 8 L 66 0 L 70 8 L 78 8 L 70 12 L 74 20 L 66 16 L 58 20 L 62 12 L 54 8 Z" fill="url(#star-gold)" stroke="#ffc107" stroke-width="1"/>
-                    <ellipse cx="50" cy="10" rx="22" ry="3" fill="url(#star-gold)" opacity="0.3"/>
+                <g id="tech_goggles" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <rect x="-19" y="-5" width="16" height="10" rx="2.5" fill="#1a1a1a" stroke="#00ff88" stroke-width="1.5"/>
+                        <rect x="-17" y="-3" width="12" height="6" fill="#00ff88" opacity="0.35"/>
+                        <rect x="3" y="-5" width="16" height="10" rx="2.5" fill="#1a1a1a" stroke="#00ff88" stroke-width="1.5"/>
+                        <rect x="5" y="-3" width="12" height="6" fill="#00ff88" opacity="0.35"/>
+                        <rect x="-10" y="-8" width="20" height="3" rx="1" fill="#333"/>
+                        <line x1="-3" y1="0" x2="3" y2="0" stroke="#00ff88" stroke-width="1.5"/>
+                    </g>
                 </g>
-                
-                <!-- 4. Magic Wand - Sparkly -->
-                <g id="magic_wand" class="tm-mascot-accessory" style="display: none;" transform="translate(75, 55) rotate(30)">
-                    <defs>
-                        <radialGradient id="wand-sparkle">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#00b7ff;stop-opacity:0" />
-                        </radialGradient>
-                    </defs>
-                    <rect x="-1.5" y="-20" width="3" height="20" rx="1.5" fill="#ffd700" stroke="#ffc107" stroke-width="0.8"/>
-                    <circle cx="0" cy="-22" r="4" fill="url(#wand-sparkle)"/>
-                    <circle cx="0" cy="-22" r="2" fill="#fff"/>
-                    <circle cx="-3" cy="-20" r="1" fill="#fff" opacity="0.8"/>
-                    <circle cx="3" cy="-18" r="1.5" fill="#fff" opacity="0.6"/>
+                <g id="star_crown" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <ellipse cx="0" cy="6" rx="18" ry="3" fill="#ffd700" opacity="0.35"/>
+                        <path d="M -16 8 L -12 0 L -8 8 L -4 4 L 0 10 L 4 4 L 8 8 L 12 0 L 16 8 Z" fill="#ffd700" stroke="#ffc107" stroke-width="1"/>
+                        <circle cx="0" cy="2" r="2.5" fill="#fff8dc"/>
+                    </g>
                 </g>
-                
-                <!-- 5. Rainbow Scarf - Colorful -->
-                <g id="rainbow_scarf" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
-                    <rect x="25" y="68" width="50" height="6" fill="#ff0000" opacity="0.8"/>
-                    <rect x="25" y="74" width="50" height="6" fill="#ff7f00" opacity="0.8"/>
-                    <rect x="25" y="80" width="50" height="6" fill="#ffff00" opacity="0.8"/>
-                    <rect x="25" y="86" width="50" height="6" fill="#00ff00" opacity="0.8"/>
-                    <rect x="25" y="92" width="50" height="6" fill="#0000ff" opacity="0.8"/>
-                    <rect x="25" y="98" width="50" height="6" fill="#4b0082" opacity="0.8"/>
-                    <ellipse cx="75" cy="83" rx="8" ry="20" fill="#4b0082" opacity="0.6"/>
+                <g id="party_hat" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <path d="M -12 8 L 0 -18 L 12 8 Z" fill="#ff4081" stroke="#e91e63" stroke-width="1.5"/>
+                        <ellipse cx="0" cy="8" rx="14" ry="3" fill="#ff1493"/>
+                        <circle cx="0" cy="-14" r="4" fill="#ffd700"/>
+                    </g>
                 </g>
-                
-                <!-- 6. Backpack - Adventure -->
-                <g id="backpack" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
-                    <rect x="25" y="55" width="50" height="40" rx="4" fill="#1a1a1a" stroke="#333" stroke-width="2"/>
-                    <rect x="30" y="60" width="40" height="30" rx="2" fill="#2c3e50"/>
-                    <rect x="35" y="65" width="30" height="20" fill="#34495e"/>
-                    <rect x="42" y="70" width="16" height="12" rx="1" fill="#00b7ff" opacity="0.5"/>
-                    <circle cx="30" cy="75" r="3" fill="#95a5a6"/>
-                    <circle cx="70" cy="75" r="3" fill="#95a5a6"/>
-                    <line x1="25" y1="80" x2="20" y2="85" stroke="#555" stroke-width="2"/>
-                    <line x1="75" y1="80" x2="80" y2="85" stroke="#555" stroke-width="2"/>
+                <g id="flower_crown" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <ellipse cx="0" cy="4" rx="17" ry="3.5" fill="#90ee90" stroke="#228b22" stroke-width="1"/>
+                        <circle cx="-10" cy="2" r="3.5" fill="#ff69b4"/><circle cx="-10" cy="2" r="1.5" fill="#ff1493"/>
+                        <circle cx="0" cy="0" r="4" fill="#ffb6c1"/><circle cx="0" cy="0" r="2" fill="#ff4081"/>
+                        <circle cx="10" cy="2" r="3.5" fill="#ff1493"/><circle cx="10" cy="2" r="1.5" fill="#ff69b4"/>
+                    </g>
                 </g>
-                
-                <!-- 7. Party Hat - Celebration -->
-                <g id="party_hat" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
-                    <path d="M 35 15 L 50 -8 L 65 15 Z" fill="#ff4081" stroke="#e91e63" stroke-width="2"/>
-                    <ellipse cx="50" cy="15" rx="18" ry="4" fill="#ff1493"/>
-                    <circle cx="50" cy="-6" r="5" fill="#ffd700"/>
-                    <circle cx="45" cy="-4" r="2" fill="#00ff00"/>
-                    <circle cx="55" cy="-4" r="2" fill="#00b7ff"/>
+                <g id="halo" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <ellipse cx="0" cy="0" rx="14" ry="3.5" fill="none" stroke="#ffd700" stroke-width="2.5" opacity="0.95"/>
+                        <ellipse cx="0" cy="0" rx="14" ry="3.5" fill="#fff8dc" opacity="0.2"/>
+                    </g>
                 </g>
-                
-                <!-- 8. Shield - Protection -->
-                <g id="shield" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
-                    <defs>
-                        <linearGradient id="shield-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#00b7ff;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#006699;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M 70 45 Q 85 40 85 60 Q 85 80 70 85 Q 70 65 70 45" fill="url(#shield-gradient)" stroke="#006699" stroke-width="2"/>
-                    <path d="M 72 50 Q 80 48 82 60 Q 80 72 72 75 Q 72 62 72 50" fill="#fff" opacity="0.3"/>
-                    <circle cx="77" cy="62" r="4" fill="#ffd700"/>
+                <g id="rainbow_scarf" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <path d="M -18 -2 Q 0 6 18 -2 L 16 4 Q 0 12 -16 4 Z" fill="#ff0000" opacity="0.85"/>
+                        <path d="M -17 4 Q 0 12 17 4 L 15 10 Q 0 18 -15 10 Z" fill="#ff7f00" opacity="0.85"/>
+                        <path d="M -14 10 Q 0 18 14 10 L 12 16 Q 0 24 -12 16 Z" fill="#0000ff" opacity="0.75"/>
+                        <path d="M 10 8 Q 18 14 14 22 Q 8 18 10 8" fill="#4b0082" opacity="0.65"/>
+                    </g>
                 </g>
-                
-                <!-- 9. Bubble Wand - Playful -->
-                <g id="bubble_wand" class="tm-mascot-accessory" style="display: none;" transform="translate(10, 55) rotate(-20)">
-                    <rect x="0" y="0" width="3" height="25" rx="1.5" fill="#8b4513" stroke="#654321" stroke-width="0.8"/>
-                    <circle cx="1.5" cy="-5" r="8" fill="none" stroke="#00b7ff" stroke-width="1.5" stroke-dasharray="2,2" opacity="0.6"/>
-                    <circle cx="5" cy="-2" r="6" fill="none" stroke="#ff4081" stroke-width="1" stroke-dasharray="2,2" opacity="0.5"/>
-                    <circle cx="-3" cy="-8" r="5" fill="none" stroke="#ffd700" stroke-width="1" stroke-dasharray="2,2" opacity="0.5"/>
+                <g id="backpack" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <rect x="-16" y="-8" width="32" height="28" rx="4" fill="#2c3e50" stroke="#1a1a1a" stroke-width="1.5"/>
+                        <rect x="-12" y="-4" width="24" height="20" rx="2" fill="#34495e"/>
+                        <rect x="-8" y="0" width="16" height="12" rx="1" fill="#00b7ff" opacity="0.35"/>
+                        <path d="M -10 -8 Q -14 0 -10 8" fill="none" stroke="#555" stroke-width="2.5"/>
+                        <path d="M 10 -8 Q 14 0 10 8" fill="none" stroke="#555" stroke-width="2.5"/>
+                    </g>
                 </g>
-                
-                <!-- 10. Digital Watch - Tech -->
-                <g id="digital_watch" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
-                    <rect x="75" y="58" width="14" height="18" rx="3" fill="#1a1a1a" stroke="#333" stroke-width="1.5"/>
-                    <rect x="77" y="60" width="10" height="14" fill="#00ff00"/>
-                    <rect x="78" y="63" width="8" height="2" fill="#000"/>
-                    <rect x="78" y="68" width="8" height="2" fill="#000"/>
-                    <rect x="78" y="71" width="6" height="2" fill="#000"/>
-                    <rect x="72" y="64" width="3" height="8" rx="1" fill="#666"/>
-                    <rect x="89" y="64" width="3" height="8" rx="1" fill="#666"/>
+                <g id="shield" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <path d="M 0 -14 Q 12 -12 12 2 Q 12 16 0 20 Q -12 16 -12 2 Q -12 -12 0 -14" fill="#00b7ff" stroke="#006699" stroke-width="1.5"/>
+                        <path d="M 0 -10 Q 8 -8 8 2 Q 8 12 0 15 Q -8 12 -8 2 Q -8 -8 0 -10" fill="#fff" opacity="0.25"/>
+                        <circle cx="0" cy="2" r="3" fill="#ffd700"/>
+                    </g>
                 </g>
-                
-                <!-- 11. Flower Crown - Nature -->
-                <g id="flower_crown" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
-                    <ellipse cx="50" cy="10" rx="22" ry="4" fill="#90ee90" stroke="#228b22" stroke-width="1.5"/>
-                    <!-- Flowers -->
-                    <circle cx="38" cy="8" r="4" fill="#ff69b4"/>
-                    <circle cx="38" cy="8" r="2" fill="#ff1493"/>
-                    <circle cx="50" cy="6" r="5" fill="#ffb6c1"/>
-                    <circle cx="50" cy="6" r="2.5" fill="#ff4081"/>
-                    <circle cx="62" cy="8" r="4" fill="#ff1493"/>
-                    <circle cx="62" cy="8" r="2" fill="#ff69b4"/>
-                    <circle cx="32" cy="10" r="3" fill="#ffd700"/>
-                    <circle cx="68" cy="10" r="3" fill="#00b7ff"/>
+                <g id="magic_wand" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <rect x="-1" y="-2" width="2" height="18" rx="1" fill="#ffd700"/>
+                        <circle cx="0" cy="-6" r="4" fill="#fff" opacity="0.9"/>
+                        <circle cx="-3" cy="-4" r="1" fill="#00b7ff" opacity="0.8"/>
+                        <circle cx="3" cy="-8" r="1.2" fill="#ff4081" opacity="0.7"/>
+                    </g>
                 </g>
-                
-                <!-- 12. Power Ring - Energy -->
-                <g id="power_ring" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
-                    <defs>
-                        <radialGradient id="ring-power">
-                            <stop offset="0%" style="stop-color:#00b7ff;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#006699;stop-opacity:0.6" />
-                        </radialGradient>
-                    </defs>
-                    <ellipse cx="50" cy="95" rx="30" ry="8" fill="url(#ring-power)" stroke="#00b7ff" stroke-width="2" opacity="0.8"/>
-                    <circle cx="50" cy="95" r="25" fill="none" stroke="#00b7ff" stroke-width="2" stroke-dasharray="4,4" opacity="0.6"/>
-                    <circle cx="35" cy="93" r="3" fill="#00b7ff"/>
-                    <circle cx="50" cy="91" r="3" fill="#00b7ff"/>
-                    <circle cx="65" cy="93" r="3" fill="#00b7ff"/>
+                <g id="bubble_wand" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <rect x="-1" y="0" width="2" height="16" rx="1" fill="#8b4513"/>
+                        <circle cx="0" cy="-6" r="5" fill="none" stroke="#00b7ff" stroke-width="1.2" opacity="0.7"/>
+                        <circle cx="4" cy="-3" r="3.5" fill="none" stroke="#ff4081" stroke-width="1" opacity="0.6"/>
+                    </g>
                 </g>
-
-                <!-- 13. Tech Goggles - Level reward / shop -->
-                <g id="tech_goggles" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
-                    <rect x="30" y="27" width="18" height="12" rx="3" fill="#1a1a1a" stroke="#00ff88" stroke-width="1.5"/>
-                    <rect x="52" y="27" width="18" height="12" rx="3" fill="#1a1a1a" stroke="#00ff88" stroke-width="1.5"/>
-                    <rect x="32" y="29" width="14" height="8" fill="#00ff88" opacity="0.35"/>
-                    <rect x="54" y="29" width="14" height="8" fill="#00ff88" opacity="0.35"/>
-                    <line x1="48" y1="33" x2="52" y2="33" stroke="#00ff88" stroke-width="2"/>
-                    <rect x="38" y="24" width="24" height="3" rx="1" fill="#333"/>
+                <g id="book" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <rect x="-9" y="-6" width="18" height="12" rx="1.5" fill="#8b4513" stroke="#654321" stroke-width="0.8"/>
+                        <rect x="-7" y="-4" width="14" height="8" fill="#fff8dc"/>
+                        <line x1="-5" y1="-1" x2="5" y2="-1" stroke="#ccc" stroke-width="0.8"/>
+                        <line x1="-5" y1="2" x2="4" y2="2" stroke="#ccc" stroke-width="0.8"/>
+                    </g>
                 </g>
-
-                <!-- 14. Legend Badge - chest badge -->
-                <g id="legend_badge" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
-                    <circle cx="50" cy="58" r="11" fill="#ffd700" stroke="#ff8f00" stroke-width="2"/>
-                    <polygon points="50,50 53,57 60,57 54,61 56,68 50,64 44,68 46,61 40,57 47,57" fill="#fff8dc"/>
+                <g id="umbrella" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <path d="M 0 0 Q -12 -8 0 -14 Q 12 -8 0 0" fill="#3498db" stroke="#2980b9" stroke-width="1.2"/>
+                        <line x1="0" y1="0" x2="0" y2="16" stroke="#654321" stroke-width="1.5"/>
+                    </g>
                 </g>
-
-                <!-- 15. Book - reading prop -->
-                <g id="book" class="tm-mascot-accessory" style="display: none;" transform="translate(62, 52) rotate(15)">
-                    <rect x="0" y="0" width="22" height="16" rx="2" fill="#8b4513" stroke="#654321" stroke-width="1"/>
-                    <rect x="2" y="2" width="18" height="12" fill="#fff8dc"/>
-                    <line x1="5" y1="6" x2="17" y2="6" stroke="#ccc" stroke-width="1"/>
-                    <line x1="5" y1="9" x2="15" y2="9" stroke="#ccc" stroke-width="1"/>
+                <g id="digital_watch" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <rect x="-6" y="-5" width="12" height="10" rx="2" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+                        <rect x="-4.5" y="-3.5" width="9" height="7" fill="#00ff00"/>
+                        <rect x="-3" y="-1" width="6" height="1.2" fill="#000"/>
+                        <rect x="-4" y="2" width="8" height="1.2" fill="#000"/>
+                    </g>
                 </g>
-
-                <!-- 16. Umbrella - rainy weather -->
-                <g id="umbrella" class="tm-mascot-accessory" style="display: none;" transform="translate(68, 35) rotate(25)">
-                    <path d="M 0 0 Q -14 -10 0 -18 Q 14 -10 0 0" fill="#3498db" stroke="#2980b9" stroke-width="1.5"/>
-                    <line x1="0" y1="0" x2="0" y2="22" stroke="#654321" stroke-width="2"/>
+                <g id="legend_badge" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <circle cx="0" cy="0" r="8" fill="#ffd700" stroke="#ff8f00" stroke-width="1.5"/>
+                        <polygon points="0,-5 2,0 7,0 3,3 5,8 0,5 -5,8 -3,3 -7,0 -2,0" fill="#fff8dc"/>
+                    </g>
                 </g>
-
-                <!-- 17. Halo - angel accessory -->
-                <g id="halo" class="tm-mascot-accessory" style="display: none;" transform="translate(0, 0)">
-                    <ellipse cx="50" cy="6" rx="16" ry="4" fill="none" stroke="#ffd700" stroke-width="3" opacity="0.9"/>
-                    <ellipse cx="50" cy="6" rx="16" ry="4" fill="#fff8dc" opacity="0.15"/>
+                <g id="power_ring" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <ellipse cx="0" cy="0" rx="26" ry="7" fill="none" stroke="#00b7ff" stroke-width="2" opacity="0.55"/>
+                        <ellipse cx="0" cy="0" rx="20" ry="5" fill="#00b7ff" opacity="0.12"/>
+                        <circle cx="-14" cy="0" r="2" fill="#00b7ff" opacity="0.7"/>
+                        <circle cx="0" cy="-1" r="2" fill="#00b7ff" opacity="0.7"/>
+                        <circle cx="14" cy="0" r="2" fill="#00b7ff" opacity="0.7"/>
+                    </g>
                 </g>
             </g>
         </svg>
@@ -21905,6 +21985,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     }
 
     ensureMascotInBounds(container);
+    initMascotAccessoryLayers();
 
     // Move interaction panel out of container to make it fixed
     const interactionPanel = container.querySelector('#tm-mascot-interaction-panel');
@@ -24092,6 +24173,11 @@ function updateMascotAppearanceByStage(stage) {
             robot.classList.add('mascot-egg');
         }
         console.log(`[MMS Mascot] ✅ Updated to EGG stage`);
+        if (typeof window.STORAGE_KEYS !== 'undefined') {
+            applyEquippedMascotAccessories(window.STORAGE_KEYS);
+        } else {
+            updateMascotAccessoryLayout('egg');
+        }
         return;
     }
 
@@ -24121,6 +24207,8 @@ function updateMascotAppearanceByStage(stage) {
 
     if (typeof window.STORAGE_KEYS !== 'undefined') {
         applyEquippedMascotAccessories(window.STORAGE_KEYS);
+    } else {
+        updateMascotAccessoryLayout(stage);
     }
     
     // Update robot class to reflect stage and character
@@ -24153,6 +24241,7 @@ window.unequipMascotAccessory = unequipMascotAccessory;
 window.toggleMascotAccessory = toggleMascotAccessory;
 window.applyEquippedMascotAccessories = applyEquippedMascotAccessories;
 window.migrateAccessoryStorage = migrateAccessoryStorage;
+window.updateMascotAccessoryLayout = updateMascotAccessoryLayout;
 window.MASCOT_ACCESSORY_CATALOG = MASCOT_ACCESSORY_CATALOG;
 window.updateMascotAppearanceByLevel = updateMascotAppearanceByLevel; // Legacy - disabled
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;

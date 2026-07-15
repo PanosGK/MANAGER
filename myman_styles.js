@@ -3554,12 +3554,9 @@
                 transform: translateZ(0); /* Force hardware acceleration */
             }
             /* Optimize all mascot accessories for smooth animation */
-            .tm-mascot-accessory {
-                will-change: transform, opacity;
-                transform: translateZ(0);
-                backface-visibility: hidden;
-                -webkit-backface-visibility: hidden;
-            }
+            #tm-mascot-acc-back .tm-mascot-accessory { pointer-events: none; }
+            #tm-mascot-acc-front .tm-mascot-accessory { pointer-events: none; }
+            .tm-accessory-art { transform-origin: center center; transform-box: fill-box; }
             #tm-mascot-container .tm-mascot-eye { animation: tm-mascot-blink 5s infinite; }
             /* New: Add subtle secondary animation to the antenna */
             #tm-mascot-container .tm-mascot-antenna {
@@ -3598,16 +3595,16 @@
                 animation: tm-mascot-blink 5s steps(1, end) infinite;
             }
             
-            /* Accessories animate naturally during idle/roaming */
-            #tm-mascot-container.mascot-idle #party_hat,
-            #tm-mascot-container.mascot-idle #star_crown,
-            #tm-mascot-container.mascot-idle #flower_crown,
-            #tm-mascot-container.mascot-idle #digital_headphones,
-            #tm-mascot-container.mascot-idle #halo {
+            /* Accessories animate on inner art so SVG anchor transforms stay intact */
+            #tm-mascot-container.mascot-idle #party_hat .tm-accessory-art,
+            #tm-mascot-container.mascot-idle #star_crown .tm-accessory-art,
+            #tm-mascot-container.mascot-idle #flower_crown .tm-accessory-art,
+            #tm-mascot-container.mascot-idle #digital_headphones .tm-accessory-art,
+            #tm-mascot-container.mascot-idle #halo .tm-accessory-art {
                 animation: tm-mascot-hat-gentle-bob 2s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-idle #pixel_sunglasses,
-            #tm-mascot-container.mascot-idle #tech_goggles {
+            #tm-mascot-container.mascot-idle #pixel_sunglasses .tm-accessory-art,
+            #tm-mascot-container.mascot-idle #tech_goggles .tm-accessory-art {
                 animation: tm-mascot-shades-adjust 4s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-idle #jetpack .tm-mascot-thruster-left,
@@ -3619,12 +3616,12 @@
 
             #tm-mascot-container.mascot-happy .tm-mascot-robot { animation: tm-mascot-happy-dance 0.8s ease-in-out infinite; }
             #tm-mascot-container.mascot-happy .tm-mascot-antenna { animation: tm-mascot-antenna-happy-wiggle 0.4s ease-in-out infinite; }
-            #tm-mascot-container.mascot-happy #party_hat,
-            #tm-mascot-container.mascot-happy #star_crown,
-            #tm-mascot-container.mascot-happy #flower_crown {
+            #tm-mascot-container.mascot-happy #party_hat .tm-accessory-art,
+            #tm-mascot-container.mascot-happy #star_crown .tm-accessory-art,
+            #tm-mascot-container.mascot-happy #flower_crown .tm-accessory-art {
                 animation: tm-mascot-hat-bounce-happy 0.8s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-happy #jetpack {
+            #tm-mascot-container.mascot-happy #jetpack .tm-accessory-art {
                 animation: tm-mascot-jetpack-boost 0.4s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-energized .tm-mascot-robot { 
@@ -3680,13 +3677,13 @@
             #tm-mascot-container.mascot-dodging .tm-mascot-robot { animation: tm-mascot-startled 0.4s ease-out; }
             #tm-mascot-container.mascot-surprised .tm-mascot-robot { animation: tm-mascot-startled 0.45s ease-out infinite; }
             #tm-mascot-container.mascot-surprised .tm-mascot-antenna { animation: tm-mascot-antenna-happy-wiggle 0.35s ease-in-out infinite; }
-            #tm-mascot-container.mascot-dodging #party_hat,
-            #tm-mascot-container.mascot-dodging #star_crown,
-            #tm-mascot-container.mascot-dodging #flower_crown {
+            #tm-mascot-container.mascot-dodging #party_hat .tm-accessory-art,
+            #tm-mascot-container.mascot-dodging #star_crown .tm-accessory-art,
+            #tm-mascot-container.mascot-dodging #flower_crown .tm-accessory-art {
                 animation: tm-mascot-hat-fly-off 0.4s ease-out;
             }
-            #tm-mascot-container.mascot-dodging #pixel_sunglasses,
-            #tm-mascot-container.mascot-dodging #tech_goggles {
+            #tm-mascot-container.mascot-dodging #pixel_sunglasses .tm-accessory-art,
+            #tm-mascot-container.mascot-dodging #tech_goggles .tm-accessory-art {
                 animation: tm-mascot-shades-wobble 0.4s ease-out;
             }
 
@@ -3694,6 +3691,8 @@
             #tm-mascot-container.mascot-reading .tm-mascot-robot { animation: tm-mascot-reading-bob 3s ease-in-out infinite; }
             #tm-mascot-container.mascot-reading #book {
                 display: block !important;
+            }
+            #tm-mascot-container.mascot-reading #book .tm-accessory-art {
                 animation: tm-mascot-book-flip 2s ease-in-out infinite;
                 transform-origin: left center;
             }
@@ -3709,12 +3708,16 @@
             }
             #tm-mascot-container.mascot-juggling #bubble_wand {
                 display: block !important;
+            }
+            #tm-mascot-container.mascot-juggling #bubble_wand .tm-accessory-art {
                 animation: tm-mascot-shades-adjust 1.2s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-sunny #pixel_sunglasses,
             #tm-mascot-container.mascot-sunny #tech_goggles { display: block !important; }
             #tm-mascot-container.mascot-rainy #umbrella {
                 display: block !important;
+            }
+            #tm-mascot-container.mascot-rainy #umbrella .tm-accessory-art {
                 animation: tm-mascot-shades-adjust 2s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-glitching .tm-mascot-accessory {
