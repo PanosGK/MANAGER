@@ -1545,32 +1545,34 @@
                 }
             });
             
-            // Mascot State Test Buttons
-            document.querySelectorAll('.tm-mascot-state-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const state = btn.dataset.state;
-                    if (typeof window.setMascotState === 'function') {
-                        window.setMascotState(config, state, 5000); // 5 second preview
-                        showPositiveMessage(`🤖 Mascot state: ${state}`);
-                    } else {
-                        showPositiveMessage('❌ Mascot functions not available');
+            // Mascot appearance tester (delegated — avoids duplicate listeners on each settings open)
+            const settingsContent = document.getElementById('tm-settings-content');
+            if (settingsContent && !settingsContent.dataset.tmMascotTesterBound) {
+                settingsContent.dataset.tmMascotTesterBound = '1';
+                settingsContent.addEventListener('click', (e) => {
+                    const stageBtn = e.target.closest('.tm-mascot-stage-btn');
+                    if (stageBtn?.dataset.stage) {
+                        if (typeof window.previewMascotStage === 'function') {
+                            window.previewMascotStage(stageBtn.dataset.stage, 5000);
+                            showPositiveMessage(`🤖 Προεπισκόπηση σταδίου: ${stageBtn.dataset.stage} (5 δευτ.)`);
+                        } else {
+                            showPositiveMessage('❌ Mascot stage functions not available');
+                        }
+                        return;
+                    }
+
+                    const stateBtn = e.target.closest('.tm-mascot-state-btn');
+                    if (stateBtn?.dataset.state) {
+                        if (typeof window.setMascotState === 'function') {
+                            window.setMascotState(config, stateBtn.dataset.state, 5000);
+                            showPositiveMessage(`🤖 Mascot state: ${stateBtn.dataset.state}`);
+                        } else {
+                            showPositiveMessage('❌ Mascot functions not available');
+                        }
                     }
                 });
-            });
-            
-            // Mascot Stage Test Buttons
-            document.querySelectorAll('.tm-mascot-stage-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const stage = btn.dataset.stage;
-                    if (typeof window.updateMascotAppearanceByStage === 'function') {
-                        window.updateMascotAppearanceByStage(stage);
-                        showPositiveMessage(`🤖 Mascot stage: ${stage}`);
-                    } else {
-                        showPositiveMessage('❌ Mascot stage functions not available');
-                    }
-                });
-            });
-            
+            }
+
             // Mascot Test Bubble
             document.getElementById('tm-mascot-test-bubble')?.addEventListener('click', () => {
                 if (typeof window.showMascotBubble === 'function') {
@@ -1604,6 +1606,9 @@
             
             // Mascot Reset to Normal
             document.getElementById('tm-mascot-reset')?.addEventListener('click', () => {
+                if (typeof window.clearMascotStagePreview === 'function') {
+                    window.clearMascotStagePreview(true);
+                }
                 if (typeof window.setMascotState === 'function' && typeof window.updatePetStateByStats === 'function') {
                     window.updatePetStateByStats(config, STORAGE_KEYS, true);
                     showPositiveMessage('🔄 Mascot reset to normal state!');

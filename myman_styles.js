@@ -4467,6 +4467,22 @@
                 border-color: rgba(220, 53, 69, 0.7);
             }
 
+            .tm-panel-section-danger {
+                border-top: 1px solid rgba(220, 53, 69, 0.2);
+                margin-top: 4px;
+                padding-top: 12px;
+            }
+
+            .tm-btn-kill-restart {
+                background: linear-gradient(135deg, rgba(220, 53, 69, 0.22), rgba(220, 53, 69, 0.12));
+                border-color: rgba(220, 53, 69, 0.45);
+                width: 100%;
+            }
+            .tm-btn-kill-restart:hover {
+                background: linear-gradient(135deg, rgba(220, 53, 69, 0.35), rgba(220, 53, 69, 0.22));
+                border-color: rgba(220, 53, 69, 0.7);
+            }
+
             #tm-pet-revive-btn-container {
                 padding: 12px 16px;
             }
