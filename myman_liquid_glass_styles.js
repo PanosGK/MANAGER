@@ -299,9 +299,34 @@ input:focus, select:focus, textarea:focus {
     text-shadow: none !important;
 }
 #tm-notification-unread-count { background: var(--tm-danger-color) !important; color: #fff !important; }
-.tm-notification-message { color: var(--lg-label) !important; }
-.tm-notification-timestamp { color: var(--lg-label-secondary) !important; }
-.tm-notification-item.unread { background: rgba(0, 122, 255, 0.06) !important; }
+#tm-notification-panel .tm-notification-header h4,
+.tm-notif-history-message,
+.tm-reminder-card-title { color: var(--lg-label) !important; }
+.tm-notification-message,
+.tm-notif-history-card.read .tm-notif-history-message { color: var(--lg-label-secondary) !important; }
+.tm-notification-timestamp,
+.tm-notif-history-time,
+.tm-notif-empty-hint,
+.tm-alerts-section-label { color: var(--lg-label-secondary) !important; }
+.tm-notif-empty-title { color: var(--lg-label) !important; }
+.tm-notification-item.unread,
+.tm-notif-history-card.unread {
+    background: color-mix(in srgb, var(--tm-info-color) 8%, var(--lg-fill)) !important;
+    border-color: color-mix(in srgb, var(--tm-info-color) 22%, var(--lg-stroke-subtle)) !important;
+}
+.tm-notif-history-icon-wrap {
+    background: color-mix(in srgb, var(--tm-primary-color) 10%, var(--lg-fill)) !important;
+    border-color: color-mix(in srgb, var(--tm-primary-color) 18%, var(--lg-stroke-subtle)) !important;
+}
+.tm-notif-tab.active {
+    background: color-mix(in srgb, var(--tm-primary-color) 10%, var(--lg-fill)) !important;
+    border-color: color-mix(in srgb, var(--tm-primary-color) 22%, var(--lg-stroke-subtle)) !important;
+}
+.tm-reminder-card-message {
+    background: color-mix(in srgb, var(--lg-label) 4%, var(--lg-fill)) !important;
+    border-color: var(--lg-stroke-subtle) !important;
+    color: var(--lg-label) !important;
+}
 
 .tm-mascot-speech-bubble {
     background: var(--lg-fill-thick) !important;

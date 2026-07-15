@@ -637,13 +637,13 @@
                 top: 50%;
                 transform: translate(-50%, -50%);
                 width: calc(100vw - 32px);
-                max-width: 440px;
+                max-width: 460px;
                 max-height: min(85vh, calc(100vh - 32px));
-                background: var(--tm-dark-color) !important;
-                color: var(--tm-primary-color) !important;
-                border: 1px solid var(--tm-primary-color) !important;
-                border-radius: 12px;
-                box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+                background: var(--tm-panel-bg, var(--tm-modal-bg, var(--tm-shop-item-bg, var(--tm-dark-color)))) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border: 1px solid var(--tm-shop-item-border) !important;
+                border-radius: 16px;
+                box-shadow: 0 24px 64px rgba(0, 0, 0, 0.38);
                 z-index: 2147482999;
                 display: flex;
                 flex-direction: column;
@@ -651,82 +651,240 @@
                 box-sizing: border-box;
             }
             .tm-notification-header {
-                padding: 10px 12px 10px 15px;
+                padding: 14px 16px;
                 border-bottom: 1px solid var(--tm-shop-item-border) !important;
-                background: var(--tm-dark-hover) !important;
-                color: var(--tm-primary-color) !important;
+                background: var(--tm-panel-header-bg, var(--tm-dark-hover, rgba(0, 0, 0, 0.12))) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                gap: 8px;
+                gap: 10px;
                 flex-wrap: wrap;
             }
-            .tm-notification-header h4 { margin: 0; font-size: 16px; color: var(--tm-primary-color) !important; flex: 1; min-width: 0; }
+            .tm-notification-header h4 {
+                margin: 0;
+                font-size: 15px;
+                font-weight: 700;
+                letter-spacing: 0.01em;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                flex: 1;
+                min-width: 0;
+            }
             .tm-notification-header-actions {
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                gap: 6px;
                 flex-shrink: 0;
             }
-            .tm-notification-header-actions button {
-                background: none;
-                border: none;
-                color: var(--tm-primary-color) !important;
+            .tm-notif-header-btn {
+                padding: 5px 10px;
+                border-radius: 8px;
+                border: 1px solid var(--tm-shop-item-border) !important;
+                background: color-mix(in srgb, var(--tm-shop-item-text, var(--tm-primary-color)) 6%, transparent);
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
                 cursor: pointer;
-                font-size: 12px;
-                text-decoration: underline;
-                padding: 4px 6px;
+                font-size: 11px;
+                font-weight: 600;
+                line-height: 1.3;
+                white-space: nowrap;
+                text-decoration: none;
+                transition: background 0.15s, border-color 0.15s;
+            }
+            .tm-notif-header-btn:hover {
+                background: color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
+                border-color: color-mix(in srgb, var(--tm-primary-color) 35%, var(--tm-shop-item-border)) !important;
+            }
+            .tm-notif-header-btn--danger {
+                color: var(--tm-danger-color) !important;
+                border-color: color-mix(in srgb, var(--tm-danger-color) 35%, var(--tm-shop-item-border)) !important;
+                background: color-mix(in srgb, var(--tm-danger-color) 8%, transparent);
+            }
+            .tm-notif-header-btn--danger:hover {
+                background: color-mix(in srgb, var(--tm-danger-color) 16%, transparent);
             }
             #tm-notification-panel-close {
                 font-size: 22px !important;
                 line-height: 1;
                 text-decoration: none !important;
-                opacity: 0.85;
-            }
-            #tm-notification-panel-close:hover { opacity: 1; }
-            #tm-notification-list { flex-grow: 1; overflow-y: auto; padding: 8px; background: var(--tm-dark-color) !important; }
-            .tm-notification-item {
-                display: flex; gap: 10px; padding: 10px;
-                border-bottom: 1px solid var(--tm-shop-item-border) !important;
-                color: var(--tm-primary-color) !important;
+                opacity: 0.75;
+                border: none !important;
+                background: transparent !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                padding: 2px 6px !important;
                 cursor: pointer;
             }
-            .tm-notification-item:last-child { border-bottom: none; }
-            .tm-notification-item.unread { background-color: var(--tm-shop-item-owned-bg) !important; }
-            .tm-notification-icon { font-size: 18px; flex-shrink: 0; color: var(--tm-primary-color) !important; }
-            .tm-notification-content { flex-grow: 1; }
-            .tm-notification-message { font-size: 14px; color: var(--tm-primary-color) !important; }
-            .tm-notification-timestamp { font-size: 11px; color: var(--tm-secondary-hover) !important; margin-top: 4px; }
-            #tm-notification-empty-state { text-align: center; color: var(--tm-secondary-hover) !important; padding: 40px 20px; }
+            #tm-notification-panel-close:hover { opacity: 1; }
             .tm-notification-tabs {
                 display: flex;
+                gap: 6px;
+                padding: 8px 10px;
                 border-bottom: 1px solid var(--tm-shop-item-border) !important;
-                background: var(--tm-dark-hover) !important;
+                background: color-mix(in srgb, var(--tm-shop-item-text, var(--tm-primary-color)) 3%, transparent);
             }
             .tm-notif-tab {
                 flex: 1;
-                padding: 10px 12px;
-                border: none;
+                padding: 9px 12px;
+                border: 1px solid transparent;
+                border-radius: 10px;
                 background: transparent;
-                color: var(--tm-secondary-hover) !important;
+                color: var(--tm-muted-text, var(--tm-secondary-hover)) !important;
                 cursor: pointer;
                 font-size: 13px;
                 font-weight: 600;
-                border-bottom: 2px solid transparent;
-                transition: color 0.15s, border-color 0.15s;
+                transition: background 0.15s, color 0.15s, border-color 0.15s;
             }
-            .tm-notif-tab:hover { color: var(--tm-primary-color) !important; }
+            .tm-notif-tab:hover {
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                background: color-mix(in srgb, var(--tm-shop-item-text, var(--tm-primary-color)) 5%, transparent);
+            }
             .tm-notif-tab.active {
-                color: var(--tm-primary-color) !important;
-                border-bottom-color: var(--tm-info-color);
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                background: color-mix(in srgb, var(--tm-primary-color) 12%, transparent);
+                border-color: color-mix(in srgb, var(--tm-primary-color) 28%, var(--tm-shop-item-border)) !important;
             }
             .tm-notification-tab-panel {
                 flex-grow: 1;
                 overflow-y: auto;
                 display: none;
-                background: var(--tm-dark-color) !important;
+                background: var(--tm-panel-bg, var(--tm-modal-bg, var(--tm-shop-item-bg, var(--tm-dark-color)))) !important;
             }
             .tm-notification-tab-panel.active { display: block; }
+            #tm-notification-list {
+                flex-grow: 1;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                padding: 10px 12px 14px;
+                background: transparent !important;
+            }
+            /* Legacy row layout (fallback) */
+            .tm-notification-item {
+                display: flex; gap: 10px; padding: 10px;
+                border-bottom: 1px solid var(--tm-shop-item-border) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                cursor: pointer;
+            }
+            .tm-notification-item:last-child { border-bottom: none; }
+            .tm-notification-item.unread {
+                background: color-mix(in srgb, var(--tm-info-color) 10%, transparent) !important;
+            }
+            .tm-notification-icon { font-size: 18px; flex-shrink: 0; }
+            .tm-notification-content { flex-grow: 1; }
+            .tm-notification-message {
+                font-size: 14px;
+                line-height: 1.4;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+            }
+            .tm-notification-timestamp {
+                font-size: 11px;
+                color: var(--tm-muted-text, var(--tm-secondary-hover)) !important;
+                margin-top: 4px;
+            }
+            /* Notification history cards */
+            .tm-notif-history-card {
+                display: flex;
+                gap: 12px;
+                align-items: flex-start;
+                padding: 12px 14px;
+                border-radius: 12px;
+                border: 1px solid var(--tm-shop-item-border) !important;
+                background: var(--tm-shop-item-bg, rgba(255, 255, 255, 0.03)) !important;
+                cursor: pointer;
+                transition: background 0.15s, border-color 0.15s, transform 0.12s;
+            }
+            .tm-notif-history-card:hover {
+                border-color: color-mix(in srgb, var(--tm-primary-color) 30%, var(--tm-shop-item-border)) !important;
+                background: var(--tm-shop-item-hover-bg, color-mix(in srgb, var(--tm-primary-color) 6%, transparent)) !important;
+            }
+            .tm-notif-history-card.unread {
+                border-color: color-mix(in srgb, var(--tm-info-color) 35%, var(--tm-shop-item-border)) !important;
+                background: color-mix(in srgb, var(--tm-info-color) 9%, var(--tm-shop-item-bg, transparent)) !important;
+                box-shadow: inset 3px 0 0 var(--tm-info-color);
+            }
+            .tm-notif-history-card.read {
+                opacity: 0.88;
+            }
+            .tm-notif-history-icon-wrap {
+                flex-shrink: 0;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 10px;
+                font-size: 18px;
+                line-height: 1;
+                background: color-mix(in srgb, var(--tm-primary-color) 10%, transparent);
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color) 18%, transparent);
+            }
+            .tm-notif-history-card.unread .tm-notif-history-icon-wrap {
+                background: color-mix(in srgb, var(--tm-info-color) 14%, transparent);
+                border-color: color-mix(in srgb, var(--tm-info-color) 28%, transparent);
+            }
+            .tm-notif-history-body { flex: 1; min-width: 0; }
+            .tm-notif-history-message {
+                font-size: 13px;
+                font-weight: 500;
+                line-height: 1.45;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                word-break: break-word;
+            }
+            .tm-notif-history-card.read .tm-notif-history-message {
+                color: var(--tm-muted-text, var(--tm-secondary-hover)) !important;
+                font-weight: 400;
+            }
+            .tm-notif-history-meta {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-top: 6px;
+            }
+            .tm-notif-history-time {
+                font-size: 11px;
+                color: var(--tm-muted-text, var(--tm-secondary-hover)) !important;
+            }
+            .tm-notif-unread-pill {
+                display: inline-flex;
+                align-items: center;
+                padding: 1px 7px;
+                border-radius: 999px;
+                font-size: 9px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                color: var(--tm-info-color) !important;
+                background: color-mix(in srgb, var(--tm-info-color) 16%, transparent);
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 30%, transparent);
+            }
+            #tm-notification-empty-state {
+                text-align: center;
+                color: var(--tm-muted-text, var(--tm-secondary-hover)) !important;
+                padding: 36px 24px 44px;
+            }
+            #tm-notification-empty-state.tm-notif-empty--compact {
+                padding: 28px 16px 32px;
+            }
+            .tm-notif-empty-icon {
+                font-size: 32px;
+                line-height: 1;
+                margin-bottom: 10px;
+                opacity: 0.55;
+            }
+            .tm-notif-empty-title {
+                font-size: 14px;
+                font-weight: 700;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                margin-bottom: 6px;
+            }
+            .tm-notif-empty-hint {
+                font-size: 12px;
+                line-height: 1.45;
+                color: var(--tm-muted-text, var(--tm-secondary-hover)) !important;
+                max-width: 260px;
+                margin: 0 auto;
+            }
             #tm-notification-list, #tm-active-alerts-list { padding: 8px; }
             .tm-alerts-active-section,
             .tm-alerts-history-section {
@@ -747,29 +905,30 @@
                 display: flex;
                 flex-direction: column;
                 gap: 8px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             }
             .tm-reminder-card--scheduled {
-                border-color: rgba(59, 130, 246, 0.35) !important;
-                background: rgba(59, 130, 246, 0.06) !important;
+                border-color: color-mix(in srgb, var(--tm-info-color) 35%, var(--tm-shop-item-border)) !important;
+                background: color-mix(in srgb, var(--tm-info-color) 7%, var(--tm-shop-item-bg)) !important;
             }
             .tm-reminder-card--overdue {
-                border-color: rgba(239, 68, 68, 0.45) !important;
-                background: rgba(239, 68, 68, 0.08) !important;
+                border-color: color-mix(in srgb, var(--tm-danger-color) 40%, var(--tm-shop-item-border)) !important;
+                background: color-mix(in srgb, var(--tm-danger-color) 8%, var(--tm-shop-item-bg)) !important;
             }
             .tm-reminder-card--live {
-                border-color: rgba(251, 191, 36, 0.55) !important;
-                background: rgba(251, 191, 36, 0.1) !important;
-                box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.15), 0 4px 14px rgba(0, 0, 0, 0.14);
+                border-color: color-mix(in srgb, var(--tm-warning-color) 45%, var(--tm-shop-item-border)) !important;
+                background: color-mix(in srgb, var(--tm-warning-color) 10%, var(--tm-shop-item-bg)) !important;
+                box-shadow: 0 0 0 1px color-mix(in srgb, var(--tm-warning-color) 12%, transparent), 0 4px 14px rgba(0, 0, 0, 0.1);
             }
             .tm-reminder-card--history {
-                opacity: 0.96;
+                opacity: 0.95;
                 box-shadow: none;
+                background: color-mix(in srgb, var(--tm-shop-item-text, var(--tm-primary-color)) 3%, var(--tm-shop-item-bg)) !important;
             }
-            .tm-reminder-card--history-fired { border-left: 3px solid var(--tm-warning-color, #fbbf24) !important; }
-            .tm-reminder-card--history-snoozed { border-left: 3px solid var(--tm-info-color, #38bdf8) !important; }
-            .tm-reminder-card--history-dismissed { border-left: 3px solid var(--tm-secondary-color, #94a3b8) !important; }
-            .tm-reminder-card--history-cancelled { border-left: 3px solid var(--tm-danger-color, #ef4444) !important; }
+            .tm-reminder-card--history-fired { border-left: 3px solid var(--tm-warning-color) !important; }
+            .tm-reminder-card--history-snoozed { border-left: 3px solid var(--tm-info-color) !important; }
+            .tm-reminder-card--history-dismissed { border-left: 3px solid var(--tm-muted-text, var(--tm-secondary-color)) !important; }
+            .tm-reminder-card--history-cancelled { border-left: 3px solid var(--tm-danger-color) !important; }
             .tm-reminder-card-header {
                 display: flex;
                 align-items: flex-start;
@@ -790,7 +949,7 @@
                 font-size: 14px;
                 font-weight: 700;
                 line-height: 1.35;
-                color: var(--tm-primary-color) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
                 margin-bottom: 6px;
                 word-break: break-word;
             }
@@ -811,56 +970,56 @@
                 border: 1px solid transparent;
             }
             .tm-reminder-badge--source {
-                background: rgba(148, 163, 184, 0.18);
-                color: var(--tm-secondary-hover) !important;
-                border-color: rgba(148, 163, 184, 0.28);
+                background: color-mix(in srgb, var(--tm-muted-text, var(--tm-secondary-color)) 16%, transparent);
+                color: var(--tm-muted-text, var(--tm-secondary-hover)) !important;
+                border-color: color-mix(in srgb, var(--tm-muted-text, var(--tm-secondary-color)) 28%, transparent);
             }
             .tm-reminder-badge--scheduled {
-                background: rgba(59, 130, 246, 0.16);
-                color: #93c5fd !important;
-                border-color: rgba(59, 130, 246, 0.35);
+                background: color-mix(in srgb, var(--tm-info-color) 16%, transparent);
+                color: var(--tm-info-color) !important;
+                border-color: color-mix(in srgb, var(--tm-info-color) 35%, transparent);
             }
             .tm-reminder-badge--overdue {
-                background: rgba(239, 68, 68, 0.18);
-                color: #fca5a5 !important;
-                border-color: rgba(239, 68, 68, 0.4);
+                background: color-mix(in srgb, var(--tm-danger-color) 16%, transparent);
+                color: var(--tm-danger-color) !important;
+                border-color: color-mix(in srgb, var(--tm-danger-color) 38%, transparent);
             }
             .tm-reminder-badge--live {
-                background: rgba(251, 191, 36, 0.22);
-                color: #fde68a !important;
-                border-color: rgba(251, 191, 36, 0.45);
+                background: color-mix(in srgb, var(--tm-warning-color) 20%, transparent);
+                color: var(--tm-warning-color) !important;
+                border-color: color-mix(in srgb, var(--tm-warning-color) 40%, transparent);
             }
             .tm-reminder-badge--fired {
-                background: rgba(251, 191, 36, 0.16);
-                color: #fcd34d !important;
-                border-color: rgba(251, 191, 36, 0.35);
+                background: color-mix(in srgb, var(--tm-warning-color) 16%, transparent);
+                color: var(--tm-warning-color) !important;
+                border-color: color-mix(in srgb, var(--tm-warning-color) 32%, transparent);
             }
             .tm-reminder-badge--snoozed {
-                background: rgba(56, 189, 248, 0.16);
-                color: #7dd3fc !important;
-                border-color: rgba(56, 189, 248, 0.35);
+                background: color-mix(in srgb, var(--tm-info-color) 16%, transparent);
+                color: var(--tm-info-color) !important;
+                border-color: color-mix(in srgb, var(--tm-info-color) 32%, transparent);
             }
             .tm-reminder-badge--dismissed,
             .tm-reminder-badge--closed {
-                background: rgba(148, 163, 184, 0.14);
-                color: var(--tm-secondary-hover) !important;
-                border-color: rgba(148, 163, 184, 0.28);
+                background: color-mix(in srgb, var(--tm-muted-text, var(--tm-secondary-color)) 14%, transparent);
+                color: var(--tm-muted-text, var(--tm-secondary-hover)) !important;
+                border-color: color-mix(in srgb, var(--tm-muted-text, var(--tm-secondary-color)) 26%, transparent);
             }
             .tm-reminder-badge--cancelled {
-                background: rgba(239, 68, 68, 0.14);
-                color: #fca5a5 !important;
-                border-color: rgba(239, 68, 68, 0.32);
+                background: color-mix(in srgb, var(--tm-danger-color) 14%, transparent);
+                color: var(--tm-danger-color) !important;
+                border-color: color-mix(in srgb, var(--tm-danger-color) 30%, transparent);
             }
             .tm-reminder-card-message {
                 font-size: 12px;
                 line-height: 1.45;
-                color: var(--tm-primary-color) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
                 opacity: 0.92;
                 word-break: break-word;
                 padding: 8px 10px;
                 border-radius: 8px;
-                background: rgba(0, 0, 0, 0.12);
-                border: 1px solid rgba(255, 255, 255, 0.06);
+                background: color-mix(in srgb, var(--tm-shop-item-text, var(--tm-primary-color)) 4%, transparent);
+                border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 80%, transparent);
             }
             .tm-reminder-card-meta {
                 display: flex;
@@ -874,9 +1033,9 @@
                 border-radius: 8px;
                 font-size: 11px;
                 line-height: 1.3;
-                color: var(--tm-secondary-hover) !important;
-                background: rgba(0, 0, 0, 0.14);
-                border: 1px solid rgba(255, 255, 255, 0.06);
+                color: var(--tm-muted-text, var(--tm-secondary-hover)) !important;
+                background: color-mix(in srgb, var(--tm-shop-item-text, var(--tm-primary-color)) 5%, transparent);
+                border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
                 white-space: nowrap;
                 max-width: 100%;
                 overflow: hidden;
@@ -895,8 +1054,8 @@
                 justify-content: center;
                 padding: 6px 12px;
                 border-radius: 8px;
-                border: 1px solid rgba(56, 189, 248, 0.4);
-                background: rgba(56, 189, 248, 0.12);
+                border: 1px solid color-mix(in srgb, var(--tm-info-color) 38%, transparent);
+                background: color-mix(in srgb, var(--tm-info-color) 12%, transparent);
                 color: var(--tm-info-color) !important;
                 font-size: 11px;
                 font-weight: 700;
@@ -904,7 +1063,7 @@
                 white-space: nowrap;
             }
             .tm-reminder-action-link:hover {
-                background: rgba(56, 189, 248, 0.22);
+                background: color-mix(in srgb, var(--tm-info-color) 22%, transparent);
                 text-decoration: none;
             }
             .tm-reminder-action-btn {
@@ -916,12 +1075,12 @@
                 white-space: nowrap;
             }
             .tm-reminder-action-btn--danger {
-                border: 1px solid rgba(239, 68, 68, 0.45);
-                background: rgba(239, 68, 68, 0.12);
-                color: #f87171 !important;
+                border: 1px solid color-mix(in srgb, var(--tm-danger-color) 42%, transparent);
+                background: color-mix(in srgb, var(--tm-danger-color) 12%, transparent);
+                color: var(--tm-danger-color) !important;
             }
             .tm-reminder-action-btn--danger:hover {
-                background: rgba(239, 68, 68, 0.22);
+                background: color-mix(in srgb, var(--tm-danger-color) 22%, transparent);
             }
             /* Legacy alert row classes (kept for cancel handler) */
             .tm-alert-item {
@@ -983,12 +1142,12 @@
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.06em;
-                color: var(--tm-secondary-hover) !important;
+                color: var(--tm-muted-text, var(--tm-secondary-hover)) !important;
             }
             .tm-alerts-history-section {
                 border-top: 1px solid var(--tm-shop-item-border) !important;
                 margin-top: 4px;
-                background: rgba(0, 0, 0, 0.08);
+                background: color-mix(in srgb, var(--tm-shop-item-text, var(--tm-primary-color)) 3%, transparent);
             }
             .tm-alerts-history-header {
                 display: flex;
@@ -1005,16 +1164,16 @@
                 padding: 5px 12px;
                 border-radius: 8px;
                 border: 1px solid var(--tm-shop-item-border) !important;
-                background: transparent;
-                color: var(--tm-secondary-hover) !important;
+                background: color-mix(in srgb, var(--tm-shop-item-text, var(--tm-primary-color)) 5%, transparent);
+                color: var(--tm-muted-text, var(--tm-secondary-hover)) !important;
                 font-size: 11px;
                 font-weight: 600;
                 cursor: pointer;
             }
             #tm-clear-reminder-history-btn:hover {
-                color: var(--tm-primary-color) !important;
-                border-color: var(--tm-primary-color) !important;
-                background: rgba(255, 255, 255, 0.04);
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border-color: color-mix(in srgb, var(--tm-primary-color) 35%, var(--tm-shop-item-border)) !important;
+                background: color-mix(in srgb, var(--tm-primary-color) 10%, transparent);
             }
             .tm-reminder-history-search {
                 display: block;
@@ -1024,17 +1183,17 @@
                 box-sizing: border-box;
                 border: 1px solid var(--tm-shop-item-border) !important;
                 border-radius: 10px;
-                background: var(--tm-dark-hover) !important;
-                color: var(--tm-primary-color) !important;
+                background: var(--tm-shop-item-bg, var(--tm-dark-hover)) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
                 font-size: 12px;
             }
             .tm-reminder-history-search:focus {
                 outline: none;
-                border-color: var(--tm-info-color) !important;
-                box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+                border-color: color-mix(in srgb, var(--tm-info-color) 50%, var(--tm-shop-item-border)) !important;
+                box-shadow: 0 0 0 2px color-mix(in srgb, var(--tm-info-color) 18%, transparent);
             }
             .tm-reminder-history-search::placeholder {
-                color: var(--tm-secondary-hover) !important;
+                color: var(--tm-muted-text, var(--tm-secondary-hover)) !important;
                 opacity: 0.85;
             }
             #tm-alerts-tab-count {

@@ -548,23 +548,56 @@
         }
     }
 
+    function formatNotificationRelativeTime(ts) {
+        if (!ts) return '';
+        const diff = Date.now() - Number(ts);
+        if (!Number.isFinite(diff) || diff < 0) {
+            return new Date(ts).toLocaleString('el-GR', {
+                day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+            });
+        }
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) return 'Μόλις τώρα';
+        if (mins < 60) return `πριν ${mins} λεπ.`;
+        const hours = Math.floor(mins / 60);
+        if (hours < 24) return `πριν ${hours} ώρ.`;
+        const days = Math.floor(hours / 24);
+        if (days < 7) return `πριν ${days} ημ.`;
+        return new Date(ts).toLocaleString('el-GR', {
+            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+        });
+    }
+
     function buildNotificationListHTML() {
         const notifications = getStoredNotifications();
         if (notifications.length === 0) {
-            return '<div id="tm-notification-empty-state">Δεν υπάρχουν ειδοποιήσεις ακόμα.</div>';
+            return `
+                <div id="tm-notification-empty-state">
+                    <div class="tm-notif-empty-icon" aria-hidden="true">🔔</div>
+                    <div class="tm-notif-empty-title">Καμία ειδοποίηση</div>
+                    <div class="tm-notif-empty-hint">Εδώ θα εμφανίζονται επιτεύγματα, ενημερώσεις και alerts.</div>
+                </div>`;
         }
         return notifications.map((n, idx) => {
             const idAttr = n.id ? escapeNotificationText(n.id) : '';
             const icon = escapeNotificationText(n.icon || '🔔');
             const msg = escapeNotificationText(n.message || '');
-            const when = n.timestamp ? new Date(n.timestamp).toLocaleString('el-GR') : '';
-            const unread = n.read ? '' : ' unread';
+            const whenRel = escapeNotificationText(formatNotificationRelativeTime(n.timestamp));
+            const whenFull = n.timestamp
+                ? escapeNotificationText(new Date(n.timestamp).toLocaleString('el-GR'))
+                : '';
+            const isUnread = !n.read;
+            const unreadClass = isUnread ? ' unread' : ' read';
+            const unreadPill = isUnread ? '<span class="tm-notif-unread-pill">Νέο</span>' : '';
             return `
-                <div class="tm-notification-item${unread}" data-index="${idx}" data-id="${idAttr}" role="button" tabindex="0" title="Κλικ για σήμανση ως αναγνωσμένο">
-                    <div class="tm-notification-icon">${icon}</div>
-                    <div class="tm-notification-content">
-                        <div class="tm-notification-message">${msg}</div>
-                        <div class="tm-notification-timestamp">${when}</div>
+                <div class="tm-notif-history-card${unreadClass}" data-index="${idx}" data-id="${idAttr}" role="button" tabindex="0" title="Κλικ για σήμανση ως αναγνωσμένο">
+                    <div class="tm-notif-history-icon-wrap" aria-hidden="true">${icon}</div>
+                    <div class="tm-notif-history-body">
+                        <div class="tm-notif-history-message">${msg}</div>
+                        <div class="tm-notif-history-meta">
+                            <time class="tm-notif-history-time" datetime="${n.timestamp || ''}" title="${whenFull}">${whenRel}</time>
+                            ${unreadPill}
+                        </div>
                     </div>
                 </div>`;
         }).join('');
@@ -687,7 +720,12 @@
             });
         }
         if (history.length === 0) {
-            return `<div id="tm-notification-empty-state">${q ? 'Δεν βρέθηκαν υπενθυμίσεις.' : 'Δεν υπάρχει ιστορικό υπενθυμίσεων ακόμα.'}</div>`;
+            return `
+                <div id="tm-notification-empty-state" class="tm-notif-empty--compact">
+                    <div class="tm-notif-empty-icon" aria-hidden="true">📋</div>
+                    <div class="tm-notif-empty-title">${q ? 'Δεν βρέθηκαν υπενθυμίσεις' : 'Κενό ιστορικό'}</div>
+                    <div class="tm-notif-empty-hint">${q ? 'Δοκίμασε άλλη αναζήτηση.' : 'Κλεισμένες υπενθυμίσεις θα εμφανίζονται εδώ.'}</div>
+                </div>`;
         }
         return history.map((h) => {
             const icon = getReminderHistoryIcon(h.source);
@@ -938,8 +976,8 @@
             <div class="tm-notification-header">
                 <h4 id="tm-notification-panel-title">Κέντρο ειδοποιήσεων</h4>
                 <div class="tm-notification-header-actions">
-                    <button type="button" id="tm-mark-all-read-btn" title="Σήμανση όλων ως αναγνωσμένων">Όλα αναγνωσμένα</button>
-                    <button type="button" id="tm-clear-all-notif-btn" title="Διαγραφή όλου του ιστορικού">Διαγραφή όλων</button>
+                    <button type="button" class="tm-notif-header-btn" id="tm-mark-all-read-btn" title="Σήμανση όλων ως αναγνωσμένων">Όλα αναγνωσμένα</button>
+                    <button type="button" class="tm-notif-header-btn tm-notif-header-btn--danger" id="tm-clear-all-notif-btn" title="Διαγραφή όλου του ιστορικού">Διαγραφή</button>
                     <button type="button" id="tm-notification-panel-close" title="Κλείσιμο" aria-label="Κλείσιμο">&times;</button>
                 </div>
             </div>
@@ -1021,7 +1059,7 @@
         });
 
         listEl.addEventListener('click', (e) => {
-            const row = e.target.closest('.tm-notification-item');
+            const row = e.target.closest('.tm-notif-history-card, .tm-notification-item');
             if (!row) return;
             const id = row.getAttribute('data-id') || '';
             const idx = parseInt(row.getAttribute('data-index'), 10);
@@ -1041,6 +1079,7 @@
                 GM_setValue(STORAGE_KEYS.USER_NOTIFICATIONS, JSON.stringify(notifs));
                 updateNotificationBadge();
                 row.classList.remove('unread');
+                row.classList.add('read');
             }
         });
 
