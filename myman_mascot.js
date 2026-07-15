@@ -6,6 +6,12 @@ let idleTimer = null;
 let isRoaming = false;
 let roamingTimeout = null;
 let playfulTimeout = null;
+let roamingConfig = null;
+let roamingWatchdogInterval = null;
+
+const ROAMING_ACTIVE_STATES = ['idle', 'biking', 'juggling', 'reading', 'happy', 'sad', 'energized'];
+const ROAMING_MOVE_STATES = ['idle'];
+const MASCOT_MODIFIER_CLASSES = ['mascot-needs-toilet', 'mascot-needs-cleaning', 'mascot-hatching', 'mascot-dying'];
 let petStats = { happiness: 100, hunger: 100, lastUpdate: Date.now() };
 // Tamagotchi state variables
 let tamagotchiAge = 0;
@@ -1244,14 +1250,9 @@ function mascotRepairOpinion(statusIdMap, totalRepairs) {
     const activeIds = ['30', '40', '65', '90'].filter(id => statusIdMap[id]?.count > 0);
     if (activeIds.length === 0) return mascotMsg('repairEmpty');
 
-    const primaryId = activeIds.reduce((best, id) => {
-        const bestScore = mascotRepairUrgencyScore(best, statusIdMap[best].count);
-        const idScore = mascotRepairUrgencyScore(id, statusIdMap[id].count);
-        return idScore > bestScore ? id : best;
-    }, activeIds[0]);
-
-    const { count, name } = statusIdMap[primaryId];
-    return mascotRepairOpinionForStatus(primaryId, count, name);
+    const pickId = activeIds[Math.floor(Math.random() * activeIds.length)];
+    const { count, name } = statusIdMap[pickId];
+    return mascotRepairOpinionForStatus(pickId, count, name);
 }
 
 function mascotRepairIsUrgent(statusIdMap) {
@@ -1513,7 +1514,7 @@ function getAccessoryElement(itemId) {
 }
 
 function stopRoaming(config) {
-    if (roamingTimeout) clearTimeout(roamingTimeout);
+    clearRoamingMoveTimeout();
     if (playfulTimeout) clearTimeout(playfulTimeout);
     
     // Stop physics animation
@@ -1690,20 +1691,197 @@ function ensureMascotInBounds(container = document.getElementById('tm-mascot-con
     }
 }
 
+function resolveMascotConfig(config) {
+    return config || roamingConfig || (typeof window !== 'undefined' ? window.config : null) || {};
+}
+
+function isMascotInteractiveEnabled(config) {
+    return resolveMascotConfig(config).interactiveMascotEnabled !== false;
+}
+
+function getMascotBehaviorState(mascotContainer = document.getElementById('tm-mascot-container')) {
+    if (!mascotContainer) return '';
+    return [...mascotContainer.classList]
+        .find((cls) => cls.startsWith('mascot-') && !MASCOT_MODIFIER_CLASSES.includes(cls))
+        ?.replace('mascot-', '') || '';
+}
+
+function canMascotRoamingMove(state = getMascotBehaviorState()) {
+    return ROAMING_MOVE_STATES.includes(state);
+}
+
+function shouldMascotBeRoaming(config) {
+    if (!isMascotInteractiveEnabled(config)) return false;
+    if (tamagotchiIsDead || tamaCinematicLock) return false;
+    if (!tamagotchiLightsOn || tamagotchiIsSleeping) return false;
+    const panel = document.getElementById('tm-mascot-interaction-panel');
+    if (panel && panel.style.display === 'flex') return false;
+    return ROAMING_ACTIVE_STATES.includes(getMascotBehaviorState());
+}
+
+function clearRoamingMoveTimeout() {
+    if (roamingTimeout) {
+        clearTimeout(roamingTimeout);
+        roamingTimeout = null;
+    }
+}
+
+function scheduleRoamingMove(delayMs = 1500) {
+    if (!isRoaming || roamingTimeout) return;
+    roamingTimeout = setTimeout(() => {
+        roamingTimeout = null;
+        moveToNewPosition();
+    }, delayMs);
+}
+
+function schedulePlayfulAction() {
+    if (!isRoaming) return;
+    if (playfulTimeout) clearTimeout(playfulTimeout);
+    const randomDelay = 30000 + Math.random() * 30000;
+    playfulTimeout = setTimeout(() => {
+        if (!isRoaming || !canMascotRoamingMove()) {
+            schedulePlayfulAction();
+            return;
+        }
+        const actions = ['reading', 'biking', 'juggling', 'happy', 'energized'];
+        const randomAction = actions[Math.floor(Math.random() * actions.length)];
+        setMascotState(resolveMascotConfig(roamingConfig), randomAction, 10000);
+    }, randomDelay);
+}
+
+async function moveToNewPosition() {
+    const config = roamingConfig || window.config || {};
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    if (!mascotContainer || !isRoaming) return;
+
+    if (!canMascotRoamingMove(getMascotBehaviorState(mascotContainer))) {
+        scheduleRoamingMove(1000);
+        return;
+    }
+
+    if (!tamagotchiLightsOn || tamagotchiIsSleeping) {
+        stopRoaming(config);
+        return;
+    }
+
+    const body = mascotContainer.querySelector('.tm-mascot-main-body');
+    const flipper = mascotContainer.querySelector('.tm-mascot-flipper');
+
+    const transformMatrix = new DOMMatrix(window.getComputedStyle(mascotContainer).transform);
+    const [currentX, currentY] = [transformMatrix.m41, transformMatrix.m42];
+
+    const metrics = getMascotRoamingMetrics(mascotContainer);
+    const current = clampMascotPosition(currentX, currentY, metrics);
+    if (current.x !== currentX || current.y !== currentY) {
+        mascotContainer.style.transform = `translate(${current.x}px, ${current.y}px)`;
+    }
+    const target = randomMascotPosition(metrics);
+    const newX = target.x;
+    const newY = target.y;
+
+    if (flipper) {
+        flipper.style.transition = 'transform 0.3s ease-out';
+        flipper.style.transform = (newX < current.x) ? 'scaleX(-1)' : 'scaleX(1)';
+    }
+
+    const tilt = Math.max(-10, Math.min(10, (newX - current.x) * 0.03));
+    if (body) {
+        body.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)';
+        body.style.transform = `rotate(${tilt}deg)`;
+    }
+
+    const speed = (config && config.mascotRoamingSpeed) || 100;
+    const distance = Math.sqrt(Math.pow(newX - current.x, 2) + Math.pow(newY - current.y, 2));
+    const duration = Math.max(2, distance / speed);
+
+    const midX = (current.x + newX) / 2;
+    const midY = (current.y + newY) / 2;
+    const dx = newX - current.x;
+    const dy = newY - current.y;
+    const bulge = (Math.random() - 0.5) * 0.3;
+    const control = clampMascotPosition(midX - dy * bulge, midY + dx * bulge, metrics);
+
+    const keyframes = [
+        { transform: `translate(${current.x}px, ${current.y}px)` },
+        { transform: `translate(${control.x}px, ${control.y}px)`, offset: 0.5 },
+        { transform: `translate(${newX}px, ${newY}px)` }
+    ];
+
+    const animation = mascotContainer.animate(keyframes, {
+        duration: duration * 1000,
+        easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)',
+        fill: 'forwards',
+        composite: 'replace'
+    });
+
+    try {
+        await animation.finished;
+        requestAnimationFrame(() => {
+            mascotContainer.style.transform = `translate(${newX}px, ${newY}px)`;
+        });
+    } catch (error) {
+        scheduleRoamingMove(800);
+        return;
+    }
+
+    if (!isRoaming) return;
+
+    if (body) {
+        await new Promise(resolve => setTimeout(resolve, 150));
+        body.style.transform = 'rotate(0deg)';
+    }
+
+    if (!isRoaming) return;
+
+    if (Math.random() < 0.25) {
+        const statusMenu = document.querySelector('.rnr-b-vmenu.simple.main, .rnr-b-vmenu');
+        const parsed = statusMenu ? parseRepairStatusMenu(statusMenu) : null;
+        if (parsed?.totalRepairs > 0) {
+            showMascotBubble(mascotRepairOpinion(parsed.statusIdMap, parsed.totalRepairs), 2500);
+        } else {
+            const idleRepairMessages = MASCOT_MESSAGES.idleRepair;
+            showMascotBubble(idleRepairMessages[Math.floor(Math.random() * idleRepairMessages.length)], 2500);
+        }
+    }
+
+    schedulePlayfulAction();
+    scheduleRoamingMove(2000 + Math.random() * 3000);
+}
+
+function ensureRoamingWatchdog(config) {
+    if (roamingWatchdogInterval) return;
+    roamingWatchdogInterval = setInterval(() => {
+        if (!shouldMascotBeRoaming(config)) {
+            if (isRoaming) stopRoaming(config);
+            return;
+        }
+        if (!isRoaming) {
+            startRoaming(config);
+            return;
+        }
+        if (canMascotRoamingMove() && !roamingTimeout) {
+            scheduleRoamingMove(300);
+        }
+    }, 12000);
+}
+
 function startRoaming(config) {
     const mascotContainer = document.getElementById('tm-mascot-container');
     if (!mascotContainer) return;
-    if (isRoaming) return;
-    // Don't start roaming if lights are off (sleeping)
-    if (!tamagotchiLightsOn || tamagotchiIsSleeping) {
+    if (!tamagotchiLightsOn || tamagotchiIsSleeping) return;
+
+    roamingConfig = config;
+
+    if (isRoaming) {
+        if (canMascotRoamingMove() && !roamingTimeout) {
+            scheduleRoamingMove(300);
+        }
         return;
     }
+
     isRoaming = true;
-    
-    // Start physics-based limb animation
     startPhysicsAnimation();
 
-    // Set initial position before starting to move
     if (!mascotContainer.style.transform) {
         const metrics = getMascotRoamingMetrics(mascotContainer);
         const start = randomMascotPosition(metrics);
@@ -1712,131 +1890,8 @@ function startRoaming(config) {
         ensureMascotInBounds(mascotContainer);
     }
 
-    // Set a timer for a random playful action
-    function schedulePlayfulAction() {
-        if (playfulTimeout) clearTimeout(playfulTimeout);
-        const randomDelay = 30000 + Math.random() * 30000; // 30-60 seconds
-        playfulTimeout = setTimeout(() => {
-            const actions = ['reading', 'biking', 'juggling', 'thinking', 'glitching'];
-            const randomAction = actions[Math.floor(Math.random() * actions.length)];
-            // Set state with a duration, after which it will revert to idle (and thus roaming)
-            setMascotState(config, randomAction, 10000); // Action lasts 10 seconds
-        }, randomDelay);
-    }
-
-    // Initial schedule
     schedulePlayfulAction();
-
-    async function moveToNewPosition() {
-        // Triple-check: Only move if the mascot is truly in an idle/roaming state.
-        // This prevents a new move from starting if a temporary state (like 'happy') was just triggered.
-        const currentMascotState = mascotContainer.className;
-        if (!isRoaming || !currentMascotState.includes('mascot-idle')) {
-            return; // Exit if not in a valid roaming state.
-        }
-
-        if (!isRoaming) return; // Stop if roaming has been cancelled
-        
-        // Don't move if lights are off (sleeping)
-        if (!tamagotchiLightsOn || tamagotchiIsSleeping) {
-            stopRoaming(config);
-            return;
-        }
-
-        const body = mascotContainer.querySelector('.tm-mascot-main-body');
-        const flipper = mascotContainer.querySelector('.tm-mascot-flipper');
-
-        // Get current translation from the transform property
-        const transformMatrix = new DOMMatrix(window.getComputedStyle(mascotContainer).transform);
-        const [currentX, currentY] = [transformMatrix.m41, transformMatrix.m42];
-
-        const metrics = getMascotRoamingMetrics(mascotContainer);
-        const current = clampMascotPosition(currentX, currentY, metrics);
-        if (current.x !== currentX || current.y !== currentY) {
-            mascotContainer.style.transform = `translate(${current.x}px, ${current.y}px)`;
-        }
-        const target = randomMascotPosition(metrics);
-        let newX = target.x;
-        let newY = target.y;
-
-        // Flip the pet's SVG based on horizontal direction (smooth transition)
-        if (flipper) {
-            flipper.style.transition = 'transform 0.3s ease-out';
-            flipper.style.transform = (newX < current.x) ? 'scaleX(-1)' : 'scaleX(1)';
-        }
-
-        // Tilt the body into the turn (smoother)
-        const tilt = Math.max(-10, Math.min(10, (newX - current.x) * 0.03)); // Reduced tilt for smoother look
-        if (body) {
-            body.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)'; // Smoother easing
-            body.style.transform = `rotate(${tilt}deg)`;
-        }
-
-        // Calculate distance to keep speed constant
-        const speed = (config && config.mascotRoamingSpeed) || 100; // pixels per second
-        const distance = Math.sqrt(Math.pow(newX - current.x, 2) + Math.pow(newY - current.y, 2));
-        const duration = Math.max(2, distance / speed); // Minimum 2s duration
-
-        // --- Optimized Web Animations API Implementation ---
-
-        // 1. Calculate a control point for a smoother Bezier curve (clamped to viewport)
-        const midX = (current.x + newX) / 2;
-        const midY = (current.y + newY) / 2;
-        const dx = newX - current.x;
-        const dy = newY - current.y;
-        const bulge = (Math.random() - 0.5) * 0.3; // Reduced bulge for smoother arcs
-        const control = clampMascotPosition(midX - dy * bulge, midY + dx * bulge, metrics);
-
-        // 2. Define the animation keyframes for a curved path
-        const keyframes = [
-            { transform: `translate(${current.x}px, ${current.y}px)` },
-            { transform: `translate(${control.x}px, ${control.y}px)`, offset: 0.5 },
-            { transform: `translate(${newX}px, ${newY}px)` }
-        ];
-
-        // 3. Create and play the animation with optimized settings
-        const animation = mascotContainer.animate(keyframes, {
-            duration: duration * 1000, // duration in milliseconds
-            easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)', // Material Design Standard easing for smooth motion
-            fill: 'forwards', // Keep the final state
-            composite: 'replace' // Replace previous animations cleanly
-        });
-
-        try {
-            // 4. Wait for the animation to finish. The 'finished' promise is a key part of the API.
-            await animation.finished;
-            
-            // Commit the final position to avoid drift
-            requestAnimationFrame(() => {
-                mascotContainer.style.transform = `translate(${newX}px, ${newY}px)`;
-            });
-        } catch (error) {
-            // The animation might be cancelled (e.g., by another state change).
-            // In that case, we just stop this movement sequence.
-            return;
-        }
-
-        if (!isRoaming) return; // Check again if roaming was cancelled during the move
-
-        // Reset body tilt after settling (smoother)
-        if (body) {
-            await new Promise(resolve => setTimeout(resolve, 150));
-            body.style.transform = 'rotate(0deg)';
-        }
-
-        if (!isRoaming) return; // Final check before scheduling next move
-
-        // Occasionally say something while roaming
-        if (Math.random() < 0.25) { // 25% chance
-            const idleRepairMessages = MASCOT_MESSAGES.idleRepair;
-            showMascotBubble(idleRepairMessages[Math.floor(Math.random() * idleRepairMessages.length)], 2500);
-        }
-
-        // Set a timeout to move again after the transition ends
-        schedulePlayfulAction(); // Reschedule playful action
-        roamingTimeout = setTimeout(moveToNewPosition, 2000 + Math.random() * 3000); // Wait 2-5 seconds before next move
-    }
-
+    ensureRoamingWatchdog(config);
     moveToNewPosition();
 }
 
@@ -1899,8 +1954,6 @@ function triggerDodgeAnimation(config, moveX, moveY) {
     }, 400); // Match the dodge transition duration
 }
 
-const MASCOT_MODIFIER_CLASSES = ['mascot-needs-toilet', 'mascot-needs-cleaning', 'mascot-hatching', 'mascot-dying'];
-
 function applyMascotBehaviorState(mascotContainer, state) {
     if (!mascotContainer || !state) return;
     const preserve = new Set(['tm-mascot-container', ...MASCOT_MODIFIER_CLASSES]);
@@ -1951,8 +2004,8 @@ function setMascotState(config, state, duration = 0) {
 
     // If a duration is set, revert to the correct base state after the time is up
     if (duration > 0) {
-        mascotStateTimeout = setTimeout(() => { // Revert based on current needs, passing 'true' to indicate the temp state is over.
-            // Need to get STORAGE_KEYS from window scope
+        mascotStateTimeout = setTimeout(() => {
+            mascotStateTimeout = null;
             if (typeof window.STORAGE_KEYS !== 'undefined') {
                 updatePetStateByStats(config, window.STORAGE_KEYS, true);
             }
@@ -1960,21 +2013,17 @@ function setMascotState(config, state, duration = 0) {
     }
 
     // Handle roaming based on the new state, AFTER the class has been set.
-    // BUT don't start roaming if the interaction panel is visible
-    const interactionPanel = document.getElementById('tm-mascot-interaction-panel');
-    const isPanelVisible = interactionPanel && interactionPanel.style.display === 'flex';
-    
-    // States that allow roaming (mascot can move around while in these states)
-    const roamingStates = ['idle', 'biking', 'juggling', 'reading', 'happy', 'sad', 'energized'];
-    
-    if (roamingStates.includes(state) && !isRoaming && !isPanelVisible && tamagotchiLightsOn && !tamagotchiIsSleeping) {
-        // Add small delay when transitioning from juggling to prevent jerky motion
-        if (previousState === 'juggling' && state !== 'juggling') {
-            setTimeout(() => startRoaming(config), 300);
-        } else {
-            startRoaming(config);
+    if (shouldMascotBeRoaming(config)) {
+        if (!isRoaming) {
+            if (previousState === 'juggling' && state !== 'juggling') {
+                setTimeout(() => startRoaming(config), 300);
+            } else {
+                startRoaming(config);
+            }
+        } else if (canMascotRoamingMove(state) && !roamingTimeout) {
+            scheduleRoamingMove(state === 'idle' && previousState !== 'idle' ? 300 : 1500);
         }
-    } else if (!roamingStates.includes(state) && isRoaming) {
+    } else if (isRoaming) {
         stopRoaming(config);
     }
 }
@@ -1987,6 +2036,11 @@ function updatePetStateByStats(config, STORAGE_KEYS, isExitingTempState = false)
     if (!config) config = {};
 
     if (tamagotchiIsDead || tamaCinematicLock) return;
+
+    // Don't override a timed preview/action state (e.g. happy, juggling, surprised).
+    if (!isExitingTempState && mascotStateTimeout) {
+        return;
+    }
     
     // Don't change state if the interaction panel is open (user is interacting)
     const interactionPanel = document.getElementById('tm-mascot-interaction-panel');
@@ -2008,7 +2062,11 @@ function updatePetStateByStats(config, STORAGE_KEYS, isExitingTempState = false)
     
     // This function is called periodically AND at the end of temporary states (like 'dodging').
     // We only want to interrupt a temporary state if we are explicitly being told to do so by its timeout finishing. Also, don't interrupt the energized state.
-    const temporaryStates = ['mascot-happy', 'mascot-eating', 'mascot-dodging', 'mascot-thinking', 'mascot-glitching', 'mascot-eureka', 'mascot-sunny', 'mascot-rainy', 'mascot-energized'];
+    const temporaryStates = [
+        'mascot-happy', 'mascot-sad', 'mascot-eating', 'mascot-dodging', 'mascot-thinking',
+        'mascot-glitching', 'mascot-eureka', 'mascot-sunny', 'mascot-rainy', 'mascot-energized',
+        'mascot-reading', 'mascot-biking', 'mascot-juggling', 'mascot-searching', 'mascot-surprised'
+    ];
     const persistentAccessoryStates = [];
     
     if (!isExitingTempState && mascotContainer) {
@@ -2865,18 +2923,17 @@ function resetIdleTimer(config) {
         return; // Don't set idle timer when sleeping
     }
     
-    // If waking up from power-save, do a little jolt
-    if (mascotContainer && mascotContainer.classList.contains('mascot-powersave')) {
+    // Wake from power-save on activity only — do not reset state on every mouse move.
+    const wakingFromSleep = mascotContainer?.classList.contains('mascot-powersave');
+    if (wakingFromSleep) {
         const robot = mascotContainer.querySelector('.tm-mascot-robot');
         if (robot) {
             robot.style.animation = 'tm-mascot-startled 0.4s ease-out';
             setTimeout(() => { robot.style.animation = ''; }, 400);
         }
-    }
-
-    // Wake up and set to idle/sad (need STORAGE_KEYS from window scope)
-    if (typeof window.STORAGE_KEYS !== 'undefined') {
-        updatePetStateByStats(config, window.STORAGE_KEYS);
+        if (typeof window.STORAGE_KEYS !== 'undefined') {
+            updatePetStateByStats(config, window.STORAGE_KEYS);
+        }
     }
 
     // Set mascot to sleep after 3 minutes of inactivity (but only if lights are on)

@@ -1556,6 +1556,8 @@
             #tm-mascot-container.mascot-sad .tm-mascot-mouth-sad { display: block; }
 
             #tm-mascot-container.mascot-dodging .tm-mascot-robot { animation: tm-mascot-startled 0.4s ease-out; }
+            #tm-mascot-container.mascot-surprised .tm-mascot-robot { animation: tm-mascot-startled 0.45s ease-out infinite; }
+            #tm-mascot-container.mascot-surprised .tm-mascot-antenna { animation: tm-mascot-antenna-happy-wiggle 0.35s ease-in-out infinite; }
             #tm-mascot-container.mascot-dodging #top_hat,
             #tm-mascot-container.mascot-dodging #master_crown {
                 animation: tm-mascot-hat-fly-off 0.4s ease-out;
