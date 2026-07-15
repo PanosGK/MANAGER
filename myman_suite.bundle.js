@@ -8786,8 +8786,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 transform: translateZ(0); /* Force hardware acceleration */
             }
             /* Optimize all mascot accessories for smooth animation */
-            #tm-mascot-acc-back .tm-mascot-accessory { pointer-events: none; }
             #tm-mascot-acc-front .tm-mascot-accessory { pointer-events: none; }
+            #tm-mascot-acc-front .tm-mascot-accessory[data-tm-back-slot="true"] { opacity: 0.98; }
             .tm-accessory-art { transform-origin: center center; transform-box: fill-box; }
             #tm-mascot-container .tm-mascot-eye { animation: tm-mascot-blink 5s infinite; }
             /* New: Add subtle secondary animation to the antenna */
@@ -15389,11 +15389,17 @@ function getAccessoryCatalogItem(itemId) {
     return MASCOT_ACCESSORY_CATALOG.find((item) => item.id === normalized) || null;
 }
 
+function setMascotAccessoryVisible(el, visible) {
+    if (!el) return;
+    if (visible) el.style.removeProperty('display');
+    else el.style.display = 'none';
+}
+
 function hideAllMascotAccessories() {
     MASCOT_ACCESSORY_CATALOG.forEach(({ id }) => {
         const el = document.getElementById(id);
         if (el) {
-            el.style.display = 'none';
+            setMascotAccessoryVisible(el, false);
             el.classList.remove('tm-accessory-equipped');
         }
     });
@@ -15404,7 +15410,7 @@ function showMascotAccessory(itemId) {
     if (!el) return false;
     el.classList.add('tm-accessory-equipped');
     layoutMascotAccessory(itemId, tamagotchiStage);
-    el.style.display = 'block';
+    setMascotAccessoryVisible(el, true);
     return true;
 }
 
@@ -15496,7 +15502,8 @@ const ACCESSORY_SLOT_ANCHOR = {
     hand: 'handR', wrist: 'wristR', body: 'chest', aura: 'aura',
 };
 
-const ACCESSORY_BACK_LAYER = new Set(['jetpack', 'backpack', 'power_ring']);
+/** Back-slot items render on the front SVG layer (sprites are one opaque group — a true back layer is fully hidden). */
+const ACCESSORY_PREPEND_FRONT = new Set(['jetpack', 'backpack', 'power_ring']);
 
 /** Per-item fine tuning (offsets relative to anchor, in local space). */
 const ACCESSORY_LAYOUT = {
@@ -15508,8 +15515,8 @@ const ACCESSORY_LAYOUT = {
     star_crown:         { dy: 8, scale: 0.72 },
     halo:               { dy: -12, scale: 0.78 },
     rainbow_scarf:      { dy: 2, scale: 0.85 },
-    backpack:           { dy: -4, scale: 0.68 },
-    jetpack:            { dy: -6, scale: 0.75 },
+    backpack:           { dy: -2, scale: 0.82 },
+    jetpack:            { dy: -2, scale: 0.85 },
     shield:             { rot: -8, scale: 0.8, dx: 4 },
     magic_wand:         { rot: 28, scale: 0.85, dx: 2, dy: -4 },
     bubble_wand:        { rot: -18, scale: 0.8, dx: 2 },
@@ -15520,8 +15527,194 @@ const ACCESSORY_LAYOUT = {
     power_ring:         { dy: 18, scale: 1.05 },
 };
 
+/** Reference body height (viewBox units) for adult sprites — used to scale accessories. */
+const MASCOT_REFERENCE_BODY_HEIGHT = 48;
+
+function getMascotFlipper() {
+    return document.querySelector('.tm-mascot-flipper');
+}
+
+/** Returns the currently visible evolution/egg sprite root inside the flipper. */
+function getVisibleMascotSpriteRoot() {
+    const flipper = getMascotFlipper();
+    if (!flipper) return null;
+
+    for (const child of flipper.children) {
+        if (!child.id?.startsWith('tm-mascot-')) continue;
+        if (child.id === 'tm-mascot-acc-back' || child.id === 'tm-mascot-acc-front') continue;
+        if (child.style.display === 'none') continue;
+        const cs = window.getComputedStyle(child);
+        if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+        return child;
+    }
+    return document.getElementById('tm-mascot-base');
+}
+
+function getSpriteEyeElement(sprite) {
+    if (!sprite) return null;
+    const open = sprite.querySelector('.tm-mascot-eye-open');
+    if (open && window.getComputedStyle(open).display !== 'none') return open;
+    const closed = sprite.querySelector('.tm-mascot-eye-closed');
+    if (closed && window.getComputedStyle(closed).display !== 'none') return closed;
+    return open || closed;
+}
+
+function svgLocalPointToFlipper(flipper, element, localX, localY) {
+    const svg = flipper?.ownerSVGElement || flipper?.closest('svg');
+    if (!svg || !element) return null;
+    const pt = svg.createSVGPoint();
+    pt.x = localX;
+    pt.y = localY;
+    const elCtm = element.getCTM?.();
+    const flipperCtm = flipper.getCTM?.();
+    if (!elCtm || !flipperCtm) return null;
+    const inSvg = pt.matrixTransform(elCtm);
+    const inFlipper = inSvg.matrixTransform(flipperCtm.inverse());
+    return { x: inFlipper.x, y: inFlipper.y };
+}
+
+function getSvgElementAnchor(flipper, element, mode = 'center') {
+    if (!element || !flipper) return null;
+    let bbox;
+    try {
+        bbox = element.getBBox();
+    } catch {
+        return null;
+    }
+    if (!bbox.width && !bbox.height) return null;
+
+    let lx = bbox.x + bbox.width / 2;
+    let ly = bbox.y + bbox.height / 2;
+    if (mode === 'top') ly = bbox.y;
+    else if (mode === 'bottom') ly = bbox.y + bbox.height;
+    else if (mode === 'top-left') { lx = bbox.x; ly = bbox.y; }
+
+    const pt = svgLocalPointToFlipper(flipper, element, lx, ly);
+    return pt ? [pt.x, pt.y] : null;
+}
+
+function getArmHandAnchor(flipper, armEl, bodyCenter) {
+    if (!armEl) return null;
+    let bbox;
+    try {
+        bbox = armEl.getBBox();
+    } catch {
+        return null;
+    }
+    const hand = svgLocalPointToFlipper(flipper, armEl, bbox.x + bbox.width * 0.55, bbox.y + bbox.height * 0.88);
+    const shoulder = svgLocalPointToFlipper(flipper, armEl, bbox.x + bbox.width * 0.5, bbox.y + bbox.height * 0.12);
+    if (!hand) return null;
+
+    let rot = 15;
+    if (shoulder && bodyCenter) {
+        rot = Math.atan2(hand.y - shoulder.y, hand.x - shoulder.x) * (180 / Math.PI) + 90;
+    } else if (shoulder) {
+        rot = Math.atan2(hand.y - shoulder.y, hand.x - shoulder.x) * (180 / Math.PI) + 90;
+    }
+    return [hand.x, hand.y, rot];
+}
+
+/**
+ * Measure attachment points from the live visible sprite (eyes, arms, body).
+ * Falls back to per-stage static anchors when a part is missing.
+ */
+function resolveMascotDynamicAnchors(stage = tamagotchiStage) {
+    const fallback = MASCOT_STAGE_ANCHORS[stage] || MASCOT_STAGE_ANCHORS.adult;
+    const flipper = getMascotFlipper();
+    const sprite = getVisibleMascotSpriteRoot();
+
+    if (!flipper || !sprite || stage === 'egg') return { ...fallback };
+
+    const anchors = { ...fallback };
+
+    const eyesEl = getSpriteEyeElement(sprite);
+    if (eyesEl) {
+        let eyeBox;
+        try {
+            eyeBox = eyesEl.getBBox();
+        } catch {
+            eyeBox = null;
+        }
+        const eyeCenter = getSvgElementAnchor(flipper, eyesEl, 'center');
+        if (eyeCenter) {
+            anchors.eyes = [eyeCenter[0], eyeCenter[1], Math.max(eyeBox?.width || 16, 12)];
+            const headTop = svgLocalPointToFlipper(
+                flipper,
+                eyesEl,
+                eyeBox.x + eyeBox.width / 2,
+                eyeBox.y - Math.max(eyeBox.height * 0.75, 6),
+            );
+            if (headTop) anchors.headTop = [headTop.x, headTop.y];
+        }
+    }
+
+    const bodyEl = sprite.querySelector('.tm-animate-body') || sprite.querySelector('.tm-mascot-main-body');
+    const chest = bodyEl ? getSvgElementAnchor(flipper, bodyEl, 'center') : null;
+    if (chest) {
+        anchors.chest = chest;
+        anchors.back = chest;
+    } else if (eyesEl && anchors.eyes) {
+        const bodyGuess = [anchors.eyes[0], anchors.eyes[1] + Math.max(22, (fallback.chest?.[1] || 54) - (fallback.eyes?.[1] || 26))];
+        anchors.chest = bodyGuess;
+        anchors.back = bodyGuess;
+    }
+
+    if (anchors.eyes && anchors.chest) {
+        anchors.neck = [anchors.eyes[0], (anchors.eyes[1] + anchors.chest[1]) / 2 + 2];
+    }
+
+    const bodyCenter = chest ? { x: chest[0], y: chest[1] } : null;
+    const rightArm = sprite.querySelector('.tm-animate-arm-right');
+    const handR = getArmHandAnchor(flipper, rightArm, bodyCenter);
+    if (handR) {
+        anchors.handR = handR;
+        anchors.wristR = [handR[0] - 1, handR[1] + 3, handR[2]];
+    }
+
+    const leftLeg = sprite.querySelector('.tm-animate-leg-left');
+    const rightLeg = sprite.querySelector('.tm-animate-leg-right');
+    const legBottoms = [leftLeg, rightLeg]
+        .map((leg) => getSvgElementAnchor(flipper, leg, 'bottom'))
+        .filter(Boolean);
+    if (legBottoms.length) {
+        const avgX = legBottoms.reduce((sum, p) => sum + p[0], 0) / legBottoms.length;
+        const maxY = Math.max(...legBottoms.map((p) => p[1]));
+        anchors.aura = [avgX, maxY + 4];
+    } else if (anchors.chest) {
+        anchors.aura = [anchors.chest[0], anchors.chest[1] + 18];
+    }
+
+    let bodyHeight = MASCOT_REFERENCE_BODY_HEIGHT;
+    if (bodyEl) {
+        try {
+            bodyHeight = bodyEl.getBBox().height;
+        } catch { /* keep default */ }
+    } else if (eyesEl && legBottoms.length) {
+        bodyHeight = legBottoms[0][1] - (anchors.eyes?.[1] || legBottoms[0][1]);
+    }
+    anchors.scale = Math.max(0.55, Math.min(1.15, bodyHeight / MASCOT_REFERENCE_BODY_HEIGHT));
+
+    return anchors;
+}
+
 function getMascotStageAnchors(stage = tamagotchiStage) {
-    return MASCOT_STAGE_ANCHORS[stage] || MASCOT_STAGE_ANCHORS.adult;
+    return resolveMascotDynamicAnchors(stage);
+}
+
+function hasEquippedMascotAccessories() {
+    return MASCOT_ACCESSORY_CATALOG.some(({ id }) => document.getElementById(id)?.classList.contains('tm-accessory-equipped'));
+}
+
+function hasActiveStateAccessories() {
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return false;
+    return Object.entries(STATE_FORCED_ACCESSORIES).some(([state, ids]) =>
+        container.classList.contains(`mascot-${state}`)
+        && ids.some((id) => {
+            const el = document.getElementById(id);
+            return el && window.getComputedStyle(el).display !== 'none';
+        }),
+    );
 }
 
 /** Accessories shown temporarily by mascot behavior states (even when not equipped). */
@@ -15538,7 +15731,7 @@ function layoutMascotAccessory(accessoryId, stage = tamagotchiStage, options = {
     if (!el || !catalogItem) return;
 
     if (stage === 'egg') {
-        el.style.display = 'none';
+        setMascotAccessoryVisible(el, false);
         return;
     }
 
@@ -15559,7 +15752,7 @@ function layoutMascotAccessory(accessoryId, stage = tamagotchiStage, options = {
 
     el.setAttribute('transform', `translate(${ax}, ${ay}) rotate(${rot}) scale(${scale})`);
     if (options.force) return;
-    el.style.display = el.classList.contains('tm-accessory-equipped') ? 'block' : 'none';
+    setMascotAccessoryVisible(el, el.classList.contains('tm-accessory-equipped'));
 }
 
 function syncStateAccessoryLayout(state, previousState) {
@@ -15570,7 +15763,7 @@ function syncStateAccessoryLayout(state, previousState) {
             } else if (previousState === behaviorState && state !== behaviorState) {
                 const el = getAccessoryElement(id);
                 if (el && !el.classList.contains('tm-accessory-equipped')) {
-                    el.style.display = 'none';
+                    setMascotAccessoryVisible(el, false);
                 }
             }
         });
@@ -15584,30 +15777,50 @@ function updateMascotAccessoryLayout(stage = tamagotchiStage) {
             layoutMascotAccessory(id, stage);
         }
     });
+
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return;
+    Object.entries(STATE_FORCED_ACCESSORIES).forEach(([state, ids]) => {
+        if (!container.classList.contains(`mascot-${state}`)) return;
+        ids.forEach((id) => layoutMascotAccessory(id, stage, { force: true }));
+    });
 }
 
 function initMascotAccessoryLayers() {
     const flipper = document.querySelector('.tm-mascot-flipper');
-    if (!flipper || document.getElementById('tm-mascot-acc-back')) return;
+    if (!flipper) return;
 
-    const backLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    backLayer.id = 'tm-mascot-acc-back';
-    const frontLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    frontLayer.id = 'tm-mascot-acc-front';
+    const legacyBackLayer = document.getElementById('tm-mascot-acc-back');
+    let frontLayer = document.getElementById('tm-mascot-acc-front');
 
-    const firstSprite = flipper.querySelector('#tm-mascot-base')
-        || flipper.querySelector('[id^="tm-mascot-baby-"]')
-        || flipper.querySelector('[id^="tm-mascot-"]');
-    if (firstSprite) flipper.insertBefore(backLayer, firstSprite);
-    else flipper.prepend(backLayer);
-    flipper.appendChild(frontLayer);
+    if (frontLayer && legacyBackLayer) {
+        while (legacyBackLayer.firstChild) {
+            frontLayer.insertBefore(legacyBackLayer.firstChild, frontLayer.firstChild);
+        }
+        legacyBackLayer.remove();
+        return;
+    }
+    if (frontLayer) return;
 
+    const frontLayerNew = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    frontLayerNew.id = 'tm-mascot-acc-front';
+    flipper.appendChild(frontLayerNew);
+    frontLayer = frontLayerNew;
+
+    legacyBackLayer?.remove();
+
+    const prependFront = [];
     MASCOT_ACCESSORY_CATALOG.forEach(({ id }) => {
         const el = document.getElementById(id);
         if (!el) return;
-        const target = ACCESSORY_BACK_LAYER.has(id) ? backLayer : frontLayer;
-        target.appendChild(el);
+        if (ACCESSORY_PREPEND_FRONT.has(id)) {
+            el.setAttribute('data-tm-back-slot', 'true');
+            prependFront.push(el);
+        } else {
+            frontLayer.appendChild(el);
+        }
     });
+    prependFront.reverse().forEach((el) => frontLayer.insertBefore(el, frontLayer.firstChild));
 }
 
 let petStats = { happiness: 100, hunger: 100, lastUpdate: Date.now() };
@@ -17178,14 +17391,15 @@ function updateLimbPhysics() {
     lastMascotX = currentX;
     lastMascotY = currentY;
 
-    // Apply physics to limbs based on velocity
-    const leftArm = mascotContainer.querySelector('.tm-animate-arm-left');
-    const rightArm = mascotContainer.querySelector('.tm-animate-arm-right');
-    const leftLeg = mascotContainer.querySelector('.tm-animate-leg-left');
-    const rightLeg = mascotContainer.querySelector('.tm-animate-leg-right');
-    const tail = mascotContainer.querySelector('.tm-animate-tail');
-    const leftWing = mascotContainer.querySelector('.tm-animate-wing-left');
-    const rightWing = mascotContainer.querySelector('.tm-animate-wing-right');
+    // Apply physics to limbs based on velocity (visible sprite only)
+    const sprite = getVisibleMascotSpriteRoot();
+    const leftArm = sprite?.querySelector('.tm-animate-arm-left');
+    const rightArm = sprite?.querySelector('.tm-animate-arm-right');
+    const leftLeg = sprite?.querySelector('.tm-animate-leg-left');
+    const rightLeg = sprite?.querySelector('.tm-animate-leg-right');
+    const tail = sprite?.querySelector('.tm-animate-tail');
+    const leftWing = sprite?.querySelector('.tm-animate-wing-left');
+    const rightWing = sprite?.querySelector('.tm-animate-wing-right');
 
     // Calculate speed
     const speed = Math.sqrt(mascotVelocityX * mascotVelocityX + mascotVelocityY * mascotVelocityY);
@@ -17222,6 +17436,10 @@ function updateLimbPhysics() {
         if (rightWing) {
             rightWing.style.transform = `rotate(${wingFlap}deg)`;
         }
+
+        if ((hasEquippedMascotAccessories() || hasActiveStateAccessories()) && limbPhysicsFrameCount % 6 === 0) {
+            updateMascotAccessoryLayout();
+        }
     } else {
         // Reset to neutral when not moving (let CSS animations take over)
         if (leftArm) leftArm.style.transform = '';
@@ -17250,37 +17468,93 @@ function stopPhysicsAnimation() {
     }
 }
 
-/** Extra pixels the mascot draws outside its 100×100 box (bubble, hats, float anim). */
-const MASCOT_VISUAL_OVERFLOW = {
-    top: 72,
-    right: 30,
-    bottom: 24,
-    left: 16,
-};
+const MASCOT_EDGE_PAD = 6;
+
+function cacheMascotScreenInfo() {
+    const info = {
+        screenWidth: window.screen?.width ?? window.innerWidth,
+        screenHeight: window.screen?.height ?? window.innerHeight,
+        availWidth: window.screen?.availWidth ?? window.innerWidth,
+        availHeight: window.screen?.availHeight ?? window.innerHeight,
+        devicePixelRatio: window.devicePixelRatio ?? 1,
+    };
+    window.__tmMascotScreen = info;
+    return info;
+}
+
+/** Visible browser viewport clipped to the monitor's available screen area. */
+function getMascotViewportRect() {
+    const screen = window.__tmMascotScreen || cacheMascotScreenInfo();
+    const vv = window.visualViewport;
+    const availW = screen.availWidth ?? window.innerWidth;
+    const availH = screen.availHeight ?? window.innerHeight;
+
+    let left = vv?.offsetLeft ?? 0;
+    let top = vv?.offsetTop ?? 0;
+    let width = vv?.width ?? document.documentElement.clientWidth ?? window.innerWidth;
+    let height = vv?.height ?? document.documentElement.clientHeight ?? window.innerHeight;
+
+    if (left < 0) { width += left; left = 0; }
+    if (top < 0) { height += top; top = 0; }
+    if (left + width > availW) width = Math.max(0, availW - left);
+    if (top + height > availH) height = Math.max(0, availH - top);
+
+    return {
+        left,
+        top,
+        width,
+        height,
+        right: left + width,
+        bottom: top + height,
+        screenWidth: screen.screenWidth,
+        screenHeight: screen.screenHeight,
+    };
+}
+
+/** How far painted content (bubble, hats, flames) extends beyond the 100×100 box. */
+function getMascotPaintOverflow(container = document.getElementById('tm-mascot-container')) {
+    if (!container) return { top: 40, right: 12, bottom: 12, left: 12 };
+
+    const { x, y } = getMascotTranslate(container);
+    const w = container.offsetWidth || 100;
+    const h = container.offsetHeight || 100;
+    let rect;
+    try {
+        rect = container.getBoundingClientRect();
+    } catch {
+        return { top: 40, right: 12, bottom: 12, left: 12 };
+    }
+
+    return {
+        left: Math.max(0, x - rect.left),
+        top: Math.max(0, y - rect.top),
+        right: Math.max(0, rect.right - (x + w)),
+        bottom: Math.max(0, rect.bottom - (y + h)),
+    };
+}
 
 function getMascotRoamingMetrics(container = document.getElementById('tm-mascot-container')) {
+    const vp = getMascotViewportRect();
     const width = Math.max(container?.offsetWidth || 0, 100);
     const height = Math.max(container?.offsetHeight || 0, 100);
-    const vv = window.visualViewport;
-    const viewW = vv?.width ?? document.documentElement.clientWidth ?? window.innerWidth;
-    const viewH = vv?.height ?? document.documentElement.clientHeight ?? window.innerHeight;
-    const offsetX = vv?.offsetLeft ?? 0;
-    const offsetY = vv?.offsetTop ?? 0;
-    const edgePad = 16;
-    const bottomPad = 88; // footer / bottom chrome
+    const overflow = getMascotPaintOverflow(container);
+    const pad = MASCOT_EDGE_PAD;
 
-    const minX = offsetX + edgePad + MASCOT_VISUAL_OVERFLOW.left;
-    const minY = offsetY + edgePad + MASCOT_VISUAL_OVERFLOW.top;
-    const maxX = offsetX + viewW - width - edgePad - MASCOT_VISUAL_OVERFLOW.right;
-    const maxY = offsetY + viewH - height - bottomPad - MASCOT_VISUAL_OVERFLOW.bottom;
+    const minX = vp.left + pad + overflow.left;
+    const minY = vp.top + pad + overflow.top;
+    const maxX = vp.right - pad - width - overflow.right;
+    const maxY = vp.bottom - pad - height - overflow.bottom;
+    const centerX = vp.left + Math.max(0, (vp.width - width) / 2);
+    const centerY = vp.top + Math.max(0, (vp.height - height) / 2);
 
     return {
         width,
         height,
-        minX: Math.min(minX, maxX),
-        minY: Math.min(minY, maxY),
-        maxX: Math.max(minX, maxX),
-        maxY: Math.max(minY, maxY),
+        minX: Math.min(minX, maxX, centerX),
+        minY: Math.min(minY, maxY, centerY),
+        maxX: Math.max(minX, maxX, centerX),
+        maxY: Math.max(minY, maxY, centerY),
+        viewport: vp,
     };
 }
 
@@ -17297,38 +17571,45 @@ function clampMascotPosition(x, y, metrics = getMascotRoamingMetrics()) {
     };
 }
 
+/** Clamps using the full painted bounds (mascot + bubble + accessories) against the live viewport. */
+function clampMascotPositionToViewport(x, y, container = document.getElementById('tm-mascot-container')) {
+    if (!container) return { x, y };
+
+    const vp = getMascotViewportRect();
+    const pad = MASCOT_EDGE_PAD;
+    const { x: cx, y: cy } = getMascotTranslate(container);
+    const rect = container.getBoundingClientRect();
+    const dx = x - cx;
+    const dy = y - cy;
+
+    let left = rect.left + dx;
+    let top = rect.top + dy;
+    let right = rect.right + dx;
+    let bottom = rect.bottom + dy;
+
+    let fixX = 0;
+    let fixY = 0;
+    if (left < vp.left + pad) fixX += (vp.left + pad) - left;
+    if (top < vp.top + pad) fixY += (vp.top + pad) - top;
+    if (right > vp.right - pad) fixX -= right - (vp.right - pad);
+    if (bottom > vp.bottom - pad) fixY -= bottom - (vp.bottom - pad);
+
+    return { x: x + fixX, y: y + fixY };
+}
+
 function applyMascotPosition(container, x, y) {
     if (!container) return { x, y };
-    const clamped = clampMascotPosition(x, y, getMascotRoamingMetrics(container));
+    const metrics = getMascotRoamingMetrics(container);
+    const rough = clampMascotPosition(x, y, metrics);
+    const clamped = clampMascotPositionToViewport(rough.x, rough.y, container);
     container.style.transform = `translate(${clamped.x}px, ${clamped.y}px)`;
     return clamped;
 }
 
 function ensureMascotInBounds(container = document.getElementById('tm-mascot-container')) {
     if (!container) return;
-
     const { x, y } = getMascotTranslate(container);
-    const clamped = applyMascotPosition(container, x, y);
-
-    // Nudge if painted content still clips the viewport (bubble / accessories).
-    const rect = container.getBoundingClientRect();
-    const vv = window.visualViewport;
-    const vLeft = vv?.offsetLeft ?? 0;
-    const vTop = vv?.offsetTop ?? 0;
-    const vRight = vLeft + (vv?.width ?? window.innerWidth);
-    const vBottom = vTop + (vv?.height ?? window.innerHeight);
-    const pad = 10;
-    let nx = clamped.x;
-    let ny = clamped.y;
-
-    if (rect.left < vLeft + pad) nx += (vLeft + pad) - rect.left;
-    if (rect.top < vTop + pad) ny += (vTop + pad) - rect.top;
-    if (rect.right > vRight - pad) nx -= rect.right - (vRight - pad);
-    if (rect.bottom > vBottom - pad) ny -= rect.bottom - (vBottom - pad);
-
-    if (nx !== clamped.x || ny !== clamped.y) {
-        applyMascotPosition(container, nx, ny);
-    }
+    applyMascotPosition(container, x, y);
 }
 
 function randomMascotPosition(metrics = getMascotRoamingMetrics()) {
@@ -17599,11 +17880,10 @@ function triggerDodgeAnimation(config, moveX, moveY) {
 
     // Apply an immediate, short-lived transform
     const currentTransform = new DOMMatrix(window.getComputedStyle(mascotContainer).transform);
-    const metrics = getMascotRoamingMetrics(mascotContainer);
-    const dodged = clampMascotPosition(
+    const dodged = clampMascotPositionToViewport(
         currentTransform.m41 + dodgeX,
         currentTransform.m42 + dodgeY,
-        metrics
+        mascotContainer,
     );
 
     mascotContainer.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)'; // Use CSS transition for this short, sharp movement
@@ -18891,19 +19171,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             
             <!-- Flipper group for horizontal flipping -->
             <g class="tm-mascot-flipper" transform-origin="50 50">
-                <!-- Jetpack (back layer — positioned via anchors) -->
-                <g id="jetpack" class="tm-mascot-accessory" style="display: none;">
-                    <g class="tm-accessory-art">
-                        <rect x="-22" y="-12" width="14" height="26" rx="4" fill="url(#jetpack-gradient)" stroke="#5d6d7e" stroke-width="1.5"/>
-                        <circle cx="-15" cy="-4" r="2.5" fill="#34495e"/>
-                        <ellipse class="tm-mascot-thruster-left" cx="-15" cy="16" rx="5" ry="8" fill="url(#flame-gradient)"/>
-                        <rect x="8" y="-12" width="14" height="26" rx="4" fill="url(#jetpack-gradient)" stroke="#5d6d7e" stroke-width="1.5"/>
-                        <circle cx="15" cy="-4" r="2.5" fill="#34495e"/>
-                        <ellipse class="tm-mascot-thruster-right" cx="15" cy="16" rx="5" ry="8" fill="url(#flame-gradient)"/>
-                        <rect x="-10" y="-14" width="20" height="5" rx="2" fill="#7f8c8d" stroke="#5d6d7e" stroke-width="1"/>
-                    </g>
-                </g>
-                
                 <!-- ═══════════════════════════════════════ -->
                 <!-- EGG STAGE - Mysterious Cosmic Egg -->
                 <!-- ═══════════════════════════════════════ -->
@@ -21904,11 +22171,22 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 </g>
                 <g id="backpack" class="tm-mascot-accessory" style="display: none;">
                     <g class="tm-accessory-art">
-                        <rect x="-16" y="-8" width="32" height="28" rx="4" fill="#2c3e50" stroke="#1a1a1a" stroke-width="1.5"/>
-                        <rect x="-12" y="-4" width="24" height="20" rx="2" fill="#34495e"/>
-                        <rect x="-8" y="0" width="16" height="12" rx="1" fill="#00b7ff" opacity="0.35"/>
-                        <path d="M -10 -8 Q -14 0 -10 8" fill="none" stroke="#555" stroke-width="2.5"/>
-                        <path d="M 10 -8 Q 14 0 10 8" fill="none" stroke="#555" stroke-width="2.5"/>
+                        <rect x="-16" y="-10" width="32" height="28" rx="4" fill="#2c3e50" stroke="#1a1a1a" stroke-width="1.5"/>
+                        <rect x="-12" y="-6" width="24" height="20" rx="2" fill="#34495e"/>
+                        <rect x="-8" y="-2" width="16" height="12" rx="1" fill="#00b7ff" opacity="0.35"/>
+                        <path d="M -10 -10 Q -14 0 -10 10" fill="none" stroke="#555" stroke-width="2.5"/>
+                        <path d="M 10 -10 Q 14 0 10 10" fill="none" stroke="#555" stroke-width="2.5"/>
+                    </g>
+                </g>
+                <g id="jetpack" class="tm-mascot-accessory" style="display: none;">
+                    <g class="tm-accessory-art">
+                        <rect x="-22" y="-12" width="14" height="26" rx="4" fill="url(#jetpack-gradient)" stroke="#5d6d7e" stroke-width="1.5"/>
+                        <circle cx="-15" cy="-4" r="2.5" fill="#34495e"/>
+                        <ellipse class="tm-mascot-thruster-left" cx="-15" cy="16" rx="5" ry="8" fill="url(#flame-gradient)"/>
+                        <rect x="8" y="-12" width="14" height="26" rx="4" fill="url(#jetpack-gradient)" stroke="#5d6d7e" stroke-width="1.5"/>
+                        <circle cx="15" cy="-4" r="2.5" fill="#34495e"/>
+                        <ellipse class="tm-mascot-thruster-right" cx="15" cy="16" rx="5" ry="8" fill="url(#flame-gradient)"/>
+                        <rect x="-10" y="-14" width="20" height="5" rx="2" fill="#7f8c8d" stroke="#5d6d7e" stroke-width="1"/>
                     </g>
                 </g>
                 <g id="shield" class="tm-mascot-accessory" style="display: none;">
@@ -21977,13 +22255,20 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
     if (!window.__tmMascotBoundsListener) {
         window.__tmMascotBoundsListener = true;
-        const onViewportChange = () => ensureMascotInBounds();
+        cacheMascotScreenInfo();
+        const onViewportChange = () => {
+            cacheMascotScreenInfo();
+            ensureMascotInBounds();
+        };
         window.addEventListener('resize', onViewportChange);
         window.addEventListener('scroll', onViewportChange, { passive: true });
         window.visualViewport?.addEventListener('resize', onViewportChange);
         window.visualViewport?.addEventListener('scroll', onViewportChange);
     }
 
+    const screen = cacheMascotScreenInfo();
+    const vp = getMascotViewportRect();
+    console.log(`[MMS Mascot] Screen ${screen.screenWidth}×${screen.screenHeight} (avail ${screen.availWidth}×${screen.availHeight}), viewport ${Math.round(vp.width)}×${Math.round(vp.height)}`);
     ensureMascotInBounds(container);
     initMascotAccessoryLayers();
 
@@ -24210,6 +24495,7 @@ function updateMascotAppearanceByStage(stage) {
     } else {
         updateMascotAccessoryLayout(stage);
     }
+    requestAnimationFrame(() => updateMascotAccessoryLayout(stage));
     
     // Update robot class to reflect stage and character
     const robot = document.querySelector('.tm-mascot-robot');
@@ -24242,6 +24528,8 @@ window.toggleMascotAccessory = toggleMascotAccessory;
 window.applyEquippedMascotAccessories = applyEquippedMascotAccessories;
 window.migrateAccessoryStorage = migrateAccessoryStorage;
 window.updateMascotAccessoryLayout = updateMascotAccessoryLayout;
+window.getMascotStageAnchors = getMascotStageAnchors;
+window.resolveMascotDynamicAnchors = resolveMascotDynamicAnchors;
 window.MASCOT_ACCESSORY_CATALOG = MASCOT_ACCESSORY_CATALOG;
 window.updateMascotAppearanceByLevel = updateMascotAppearanceByLevel; // Legacy - disabled
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
