@@ -28,7 +28,7 @@
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "223";
+    var FALLBACK_BUNDLE_VERSION = "224";
 
     try {
         if (typeof GM_setValue === 'function') {
@@ -215,6 +215,7 @@
 
     function revealOnFailure() {
         document.documentElement.classList.add('tm-mms-theme-ready');
+        document.documentElement.classList.add('tm-mms-menu-ready');
         document.documentElement.style.removeProperty('visibility');
         document.documentElement.style.removeProperty('opacity');
         if (document.body) {

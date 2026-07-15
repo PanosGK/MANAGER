@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v223 / Custom Ver. 5.13 — generated, do not edit */
+/* MyManager Suite bundle v224 / Custom Ver. 5.13 — generated, do not edit */
 (function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
@@ -3134,7 +3134,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '223',
+        version: '224',
         loaderVersion: '5',
         silentVersion: '13',
         displayVersion: '5.13',
@@ -16831,7 +16831,9 @@ function stopRoaming(config) {
             animations.forEach(anim => anim.cancel());
             
             // Set the final position explicitly
-            mascotContainer.style.transform = `translate(${currentX}px, ${currentY}px)`;
+            const metrics = getMascotRoamingMetrics(mascotContainer);
+            const clamped = clampMascotPosition(currentX, currentY, metrics);
+            mascotContainer.style.transform = `translate(${clamped.x}px, ${clamped.y}px)`;
         }
     }
 
@@ -16937,6 +16939,54 @@ function stopPhysicsAnimation() {
     }
 }
 
+function getMascotRoamingMetrics(container = document.getElementById('tm-mascot-container')) {
+    const width = Math.max(container?.offsetWidth || 0, 100);
+    const height = Math.max(container?.offsetHeight || 0, 100);
+    const vv = window.visualViewport;
+    const viewW = vv?.width ?? window.innerWidth;
+    const viewH = vv?.height ?? window.innerHeight;
+    const offsetX = vv?.offsetLeft ?? 0;
+    const offsetY = vv?.offsetTop ?? 0;
+    const edgePad = 12;
+    const topPad = 56; // speech bubble headroom
+    const bottomPad = 80; // footer / bottom chrome
+    return {
+        width,
+        height,
+        minX: offsetX + edgePad,
+        minY: offsetY + topPad,
+        maxX: offsetX + Math.max(edgePad, viewW - width - edgePad),
+        maxY: offsetY + Math.max(topPad, viewH - height - bottomPad),
+    };
+}
+
+function clampMascotPosition(x, y, metrics = getMascotRoamingMetrics()) {
+    return {
+        x: Math.min(metrics.maxX, Math.max(metrics.minX, x)),
+        y: Math.min(metrics.maxY, Math.max(metrics.minY, y)),
+    };
+}
+
+function randomMascotPosition(metrics = getMascotRoamingMetrics()) {
+    const spanX = Math.max(0, metrics.maxX - metrics.minX);
+    const spanY = Math.max(0, metrics.maxY - metrics.minY);
+    return clampMascotPosition(
+        metrics.minX + Math.random() * spanX,
+        metrics.minY + Math.random() * spanY,
+        metrics
+    );
+}
+
+function ensureMascotInBounds(container = document.getElementById('tm-mascot-container')) {
+    if (!container) return;
+    const metrics = getMascotRoamingMetrics(container);
+    const transformMatrix = new DOMMatrix(window.getComputedStyle(container).transform);
+    const clamped = clampMascotPosition(transformMatrix.m41, transformMatrix.m42, metrics);
+    if (clamped.x !== transformMatrix.m41 || clamped.y !== transformMatrix.m42) {
+        container.style.transform = `translate(${clamped.x}px, ${clamped.y}px)`;
+    }
+}
+
 function startRoaming(config) {
     const mascotContainer = document.getElementById('tm-mascot-container');
     if (!mascotContainer) return;
@@ -16952,25 +17002,11 @@ function startRoaming(config) {
 
     // Set initial position before starting to move
     if (!mascotContainer.style.transform) {
-        // New: Randomize starting position to one of four corners
-        const mascotWidth = mascotContainer.offsetWidth || 100;
-        const mascotHeight = mascotContainer.offsetHeight || 100;
-        const padding = 50; // Px from the edge
-
-        const positions = [
-            { x: padding, y: padding + 100 }, // Top-left (with extra top padding)
-            { x: window.innerWidth - mascotWidth - padding, y: padding + 100 }, // Top-right
-            { x: padding, y: window.innerHeight - mascotHeight - padding }, // Bottom-left
-            { x: window.innerWidth - mascotWidth - padding, y: window.innerHeight - mascotHeight - padding } // Bottom-right
-        ];
-
-        const startPosition = positions[Math.floor(Math.random() * positions.length)];
-
-        // Ensure the position is not off-screen if the window is very small
-        const initialX = Math.max(0, Math.min(startPosition.x, window.innerWidth - mascotWidth));
-        const initialY = Math.max(0, Math.min(startPosition.y, window.innerHeight - mascotHeight));
-
-        mascotContainer.style.transform = `translate(${initialX}px, ${initialY}px)`;
+        const metrics = getMascotRoamingMetrics(mascotContainer);
+        const start = randomMascotPosition(metrics);
+        mascotContainer.style.transform = `translate(${start.x}px, ${start.y}px)`;
+    } else {
+        ensureMascotInBounds(mascotContainer);
     }
 
     // Set a timer for a random playful action
@@ -17011,27 +17047,23 @@ function startRoaming(config) {
         const transformMatrix = new DOMMatrix(window.getComputedStyle(mascotContainer).transform);
         const [currentX, currentY] = [transformMatrix.m41, transformMatrix.m42];
 
-        // Calculate new random position within viewport bounds
-        const mascotWidth = mascotContainer.offsetWidth;
-        const mascotHeight = mascotContainer.offsetHeight;
-        let newX = Math.random() * (window.innerWidth - mascotWidth);
-        let newY = Math.random() * (window.innerHeight - mascotHeight);
-
-        // Refined "collision" check: if moving to the top of the screen, the panel might go off.
-        // Let's re-roll the position quickly instead of just stopping.
-        if (newY < 150) { // 150px is a safe buffer for the panel
-            roamingTimeout = setTimeout(moveToNewPosition, 100); // Try again quickly
-            return;
+        const metrics = getMascotRoamingMetrics(mascotContainer);
+        const current = clampMascotPosition(currentX, currentY, metrics);
+        if (current.x !== currentX || current.y !== currentY) {
+            mascotContainer.style.transform = `translate(${current.x}px, ${current.y}px)`;
         }
+        const target = randomMascotPosition(metrics);
+        let newX = target.x;
+        let newY = target.y;
 
         // Flip the pet's SVG based on horizontal direction (smooth transition)
         if (flipper) {
             flipper.style.transition = 'transform 0.3s ease-out';
-            flipper.style.transform = (newX < currentX) ? 'scaleX(-1)' : 'scaleX(1)';
+            flipper.style.transform = (newX < current.x) ? 'scaleX(-1)' : 'scaleX(1)';
         }
 
         // Tilt the body into the turn (smoother)
-        const tilt = Math.max(-10, Math.min(10, (newX - currentX) * 0.03)); // Reduced tilt for smoother look
+        const tilt = Math.max(-10, Math.min(10, (newX - current.x) * 0.03)); // Reduced tilt for smoother look
         if (body) {
             body.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)'; // Smoother easing
             body.style.transform = `rotate(${tilt}deg)`;
@@ -17039,26 +17071,24 @@ function startRoaming(config) {
 
         // Calculate distance to keep speed constant
         const speed = (config && config.mascotRoamingSpeed) || 100; // pixels per second
-        const distance = Math.sqrt(Math.pow(newX - currentX, 2) + Math.pow(newY - currentY, 2));
+        const distance = Math.sqrt(Math.pow(newX - current.x, 2) + Math.pow(newY - current.y, 2));
         const duration = Math.max(2, distance / speed); // Minimum 2s duration
 
         // --- Optimized Web Animations API Implementation ---
 
-        // 1. Calculate a control point for a smoother Bezier curve
-        const midX = (currentX + newX) / 2;
-        const midY = (currentY + newY) / 2;
-        const dx = newX - currentX;
-        const dy = newY - currentY;
+        // 1. Calculate a control point for a smoother Bezier curve (clamped to viewport)
+        const midX = (current.x + newX) / 2;
+        const midY = (current.y + newY) / 2;
+        const dx = newX - current.x;
+        const dy = newY - current.y;
         const bulge = (Math.random() - 0.5) * 0.3; // Reduced bulge for smoother arcs
-        const controlX = midX - dy * bulge;
-        const controlY = midY + dx * bulge;
+        const control = clampMascotPosition(midX - dy * bulge, midY + dx * bulge, metrics);
 
         // 2. Define the animation keyframes for a curved path
-        // Use current computed position as start to avoid jumps
         const keyframes = [
-            { transform: `translate(${currentX}px, ${currentY}px)` }, // Start from current position
-            { transform: `translate(${controlX}px, ${controlY}px)`, offset: 0.5 }, // Mid-point (curve)
-            { transform: `translate(${newX}px, ${newY}px)` }  // End
+            { transform: `translate(${current.x}px, ${current.y}px)` },
+            { transform: `translate(${control.x}px, ${control.y}px)`, offset: 0.5 },
+            { transform: `translate(${newX}px, ${newY}px)` }
         ];
 
         // 3. Create and play the animation with optimized settings
@@ -17149,17 +17179,15 @@ function triggerDodgeAnimation(config, moveX, moveY) {
 
     // Apply an immediate, short-lived transform
     const currentTransform = new DOMMatrix(window.getComputedStyle(mascotContainer).transform);
-    let newX = currentTransform.m41 + dodgeX;
-    let newY = currentTransform.m42 + dodgeY;
-
-    // Boundary checks to keep the mascot on screen
-    const mascotWidth = mascotContainer.offsetWidth;
-    const mascotHeight = mascotContainer.offsetHeight;
-    newX = Math.max(0, Math.min(newX, window.innerWidth - mascotWidth));
-    newY = Math.max(0, Math.min(newY, window.innerHeight - mascotHeight));
+    const metrics = getMascotRoamingMetrics(mascotContainer);
+    const dodged = clampMascotPosition(
+        currentTransform.m41 + dodgeX,
+        currentTransform.m42 + dodgeY,
+        metrics
+    );
 
     mascotContainer.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)'; // Use CSS transition for this short, sharp movement
-    mascotContainer.style.transform = `translate(${newX}px, ${newY}px)`;
+    mascotContainer.style.transform = `translate(${dodged.x}px, ${dodged.y}px)`;
 
     // The state will automatically revert via the timeout in setMascotState.
     // When it reverts, it will call updatePetStateByStats(), which can restart roaming if appropriate.
@@ -21543,6 +21571,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         </svg>
     `;
     document.body.appendChild(container);
+
+    if (!window.__tmMascotBoundsListener) {
+        window.__tmMascotBoundsListener = true;
+        const onViewportChange = () => ensureMascotInBounds();
+        window.addEventListener('resize', onViewportChange);
+        window.visualViewport?.addEventListener('resize', onViewportChange);
+        window.visualViewport?.addEventListener('scroll', onViewportChange);
+    }
 
     // Move interaction panel out of container to make it fixed
     const interactionPanel = container.querySelector('#tm-mascot-interaction-panel');
@@ -48687,14 +48723,17 @@ if (typeof window !== 'undefined') {
     function revealMmsBody() {
         if (typeof window.tmRevealThemedPageIfReady === 'function') {
             window.tmRevealThemedPageIfReady();
-            return;
         }
-        document.documentElement.classList.add('tm-mms-theme-ready');
-        document.documentElement.style.removeProperty('visibility');
-        document.documentElement.style.removeProperty('opacity');
-        if (document.body) {
-            document.body.style.visibility = 'visible';
-            document.body.style.opacity = '1';
+        const root = document.documentElement;
+        if (!root.classList.contains('tm-mms-theme-ready')) {
+            root.classList.add('tm-mms-theme-ready');
+            root.classList.add('tm-mms-menu-ready');
+            root.style.removeProperty('visibility');
+            root.style.removeProperty('opacity');
+            if (document.body) {
+                document.body.style.visibility = 'visible';
+                document.body.style.opacity = '1';
+            }
         }
     }
 
@@ -48812,15 +48851,14 @@ if (typeof window !== 'undefined') {
     }
 
     function initializeScript() {
+        try {
         // Do nothing on the login page — no buttons, no UI, no features
         if (window.location.pathname.includes('login.php')) {
-            revealMmsBody();
             return;
         }
 
         // Quick View iframe — show the native page cleanly, no script UI
         if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') {
-            revealMmsBody();
             return;
         }
 
@@ -48858,7 +48896,6 @@ if (typeof window !== 'undefined') {
         if (!config.scriptEnabled) {
             // Stealth mode - completely silent, no UI elements, no messages
             // Only the key combination Ctrl+Shift+E can re-enable (handler is set up above)
-            revealMmsBody();
             return; // Exit early - don't initialize any features
         }
 
@@ -49024,9 +49061,11 @@ if (typeof window !== 'undefined') {
         if (typeof window.updateOrderHistoryButtonVisibility === 'function') {
             window.updateOrderHistoryButtonVisibility(config);
         }
-
-        // Make the body visible now that all styles and themes are applied.
-        revealMmsBody();
+        } catch (initError) {
+            console.error('[MMS] initializeScript failed — revealing page anyway:', initError);
+        } finally {
+            revealMmsBody();
+        }
     }
 
 })(); // End of MyManager All-in-One Suite

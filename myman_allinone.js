@@ -4989,14 +4989,17 @@
     function revealMmsBody() {
         if (typeof window.tmRevealThemedPageIfReady === 'function') {
             window.tmRevealThemedPageIfReady();
-            return;
         }
-        document.documentElement.classList.add('tm-mms-theme-ready');
-        document.documentElement.style.removeProperty('visibility');
-        document.documentElement.style.removeProperty('opacity');
-        if (document.body) {
-            document.body.style.visibility = 'visible';
-            document.body.style.opacity = '1';
+        const root = document.documentElement;
+        if (!root.classList.contains('tm-mms-theme-ready')) {
+            root.classList.add('tm-mms-theme-ready');
+            root.classList.add('tm-mms-menu-ready');
+            root.style.removeProperty('visibility');
+            root.style.removeProperty('opacity');
+            if (document.body) {
+                document.body.style.visibility = 'visible';
+                document.body.style.opacity = '1';
+            }
         }
     }
 
@@ -5114,15 +5117,14 @@
     }
 
     function initializeScript() {
+        try {
         // Do nothing on the login page — no buttons, no UI, no features
         if (window.location.pathname.includes('login.php')) {
-            revealMmsBody();
             return;
         }
 
         // Quick View iframe — show the native page cleanly, no script UI
         if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') {
-            revealMmsBody();
             return;
         }
 
@@ -5160,7 +5162,6 @@
         if (!config.scriptEnabled) {
             // Stealth mode - completely silent, no UI elements, no messages
             // Only the key combination Ctrl+Shift+E can re-enable (handler is set up above)
-            revealMmsBody();
             return; // Exit early - don't initialize any features
         }
 
@@ -5326,9 +5327,11 @@
         if (typeof window.updateOrderHistoryButtonVisibility === 'function') {
             window.updateOrderHistoryButtonVisibility(config);
         }
-
-        // Make the body visible now that all styles and themes are applied.
-        revealMmsBody();
+        } catch (initError) {
+            console.error('[MMS] initializeScript failed — revealing page anyway:', initError);
+        } finally {
+            revealMmsBody();
+        }
     }
 
 })(); // End of MyManager All-in-One Suite

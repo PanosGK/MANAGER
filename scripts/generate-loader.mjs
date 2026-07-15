@@ -250,6 +250,7 @@ function buildInlineBootstrap(bundleLoadUrl) {
 
     function revealOnFailure() {
         document.documentElement.classList.add('tm-mms-theme-ready');
+        document.documentElement.classList.add('tm-mms-menu-ready');
         document.documentElement.style.removeProperty('visibility');
         document.documentElement.style.removeProperty('opacity');
         if (document.body) {

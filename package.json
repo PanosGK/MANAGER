@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/generate-loader.mjs",
+    "sanity": "node scripts/sanity-check-syntax.mjs && node scripts/sanity-check-mascot.mjs",
     "release": "node scripts/release.mjs",
     "release:loader": "node scripts/release.mjs --loader",
     "install-hooks": "node scripts/install-git-hooks.mjs"
