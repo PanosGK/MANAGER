@@ -2397,18 +2397,44 @@ let mascotStagePreviewLock = false;
 let mascotStagePreviewStage = null;
 let mascotStagePreviewTimeout = null;
 
-// Classic Tamagotchi-inspired stage thresholds (real minutes)
+// Life only advances during office hours (09:00–21:00). Outside that window the
+// mascot is frozen so leaving the PC on overnight won't age or starve it.
+const TAMA_OFFICE_HOUR_START = 9;  // inclusive
+const TAMA_OFFICE_HOUR_END = 21;   // exclusive (stops at 21:00)
+
+// Stage thresholds in office-minutes. ~15 office-days (12h/day) to reach old.
 const TAMA_STAGE_MINUTES = {
     egg: 0,
-    baby: 5,
-    kid: 65,
-    teen: 180,
-    adult: 360,
-    middleage: 720,
-    old: 1440,
-    death: 4800 // ~80 display-years at 60 min/year
+    baby: 38,         // ~38 office-min — hatch
+    kid: 488,         // ~0.7 office-days
+    teen: 1350,       // ~1.9 office-days
+    adult: 2700,      // ~3.8 office-days
+    middleage: 5400,  // ~7.5 office-days
+    old: 10800,       // ~15 office-days
+    death: 36000,     // ~50 office-days (~80 display-years)
 };
-const TAMA_MINUTES_PER_YEAR = 60;
+// Display age pacing: old ≈ 24 years, death ≈ 80 years
+const TAMA_MINUTES_PER_YEAR = 450;
+
+/** Minutes between two timestamps that fall inside office hours (09:00–21:00 local). */
+function getOfficeMinutesBetween(startMs, endMs) {
+    if (!(endMs > startMs)) return 0;
+    let totalMs = 0;
+    const day = new Date(startMs);
+    day.setHours(0, 0, 0, 0);
+    while (day.getTime() < endMs) {
+        const officeStart = new Date(day);
+        officeStart.setHours(TAMA_OFFICE_HOUR_START, 0, 0, 0);
+        const officeEnd = new Date(day);
+        officeEnd.setHours(TAMA_OFFICE_HOUR_END, 0, 0, 0);
+        const segStart = Math.max(startMs, officeStart.getTime());
+        const segEnd = Math.min(endMs, officeEnd.getTime());
+        if (segEnd > segStart) totalMs += segEnd - segStart;
+        day.setDate(day.getDate() + 1);
+    }
+    return totalMs / 60000;
+}
+
 const TAMA_CHARACTER_TYPES = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal'];
 
 const MASCOT_CHAR_NAMES_GR = {
@@ -3908,11 +3934,11 @@ function loadPetStats(config, STORAGE_KEYS) {
     if (savedStats) {
         petStats = savedStats;
     }
-    // Apply decay for the time the script was inactive
-    const timeDiffHours = (Date.now() - petStats.lastUpdate) / (1000 * 60 * 60);
-    const decayAmount = Math.floor(timeDiffHours * 5); // Decay 5 points per hour
+    // Apply decay only for office-hours while inactive (nights/weekends off-clock don't count)
+    const officeHoursAway = getOfficeMinutesBetween(petStats.lastUpdate || Date.now(), Date.now()) / 60;
+    const decayAmount = Math.floor(officeHoursAway * 5); // Decay 5 points per office hour
     if (decayAmount > 0) {
-        console.log(`[MMS Pet] Applying ${decayAmount} decay for offline time.`);
+        console.log(`[MMS Pet] Applying ${decayAmount} decay for ${officeHoursAway.toFixed(1)} office-hours away.`);
         petStats.happiness = Math.max(0, petStats.happiness - decayAmount);
         petStats.hunger = Math.max(0, petStats.hunger - decayAmount);
     }
@@ -4063,9 +4089,15 @@ function updateTamagotchiStats(container) {
     // Container parameter kept for backward compatibility but not required
     
     const now = Date.now();
-    const timeDiff = (now - tamagotchiLastUpdate) / 1000 / 60; // minutes
+    // Only office-hour minutes count — overnight / after-hours leave-on is frozen
+    const timeDiff = getOfficeMinutesBetween(tamagotchiLastUpdate || now, now);
     
-    // Update stats based on time
+    // Sleep schedule always follows wall clock (even when life is frozen)
+    if (typeof window !== 'undefined' && typeof window.config !== 'undefined' && window.config) {
+        updateTamagotchiSleepSchedule(window.config);
+    }
+    
+    // Update stats based on office time only
     if (timeDiff > 0 && !tamagotchiIsDead) {
         // Hunger decreases over time (unless sleeping)
         if (!tamagotchiIsSleeping) {
@@ -4088,7 +4120,7 @@ function updateTamagotchiStats(container) {
             tamagotchiHealth = Math.max(0, tamagotchiHealth - (timeDiff * 0.1));
         }
         
-        // Age/life increases on classic Tamagotchi clock (60 real minutes = 1 display year)
+        // Age/life increases only during office hours
         tamagotchiLifeMinutes += timeDiff;
         syncTamagotchiAgeFromLife();
         
@@ -4100,16 +4132,14 @@ function updateTamagotchiStats(container) {
         // Update toilet need indicator
         updateToiletNeedIndicator();
         
-        // Update sleep schedule (need config - check if available)
-        if (typeof window !== 'undefined' && typeof window.config !== 'undefined' && window.config) {
-            updateTamagotchiSleepSchedule(window.config);
-        }
-        
         // Slowly decrease discipline if not maintained
         if (tamagotchiDiscipline > 0) {
             tamagotchiDiscipline = Math.max(0, tamagotchiDiscipline - (timeDiff * 0.05));
         }
-        
+    }
+    
+    // Always advance lastUpdate so off-hours gaps aren't re-counted later
+    if (now !== tamagotchiLastUpdate) {
         tamagotchiLastUpdate = now;
     }
     
@@ -4701,8 +4731,9 @@ async function restartTamagotchiAsEgg(config, STORAGE_KEYS, options = {}) {
 function checkTamagotchiDeath(STORAGE_KEYS) {
     if (tamagotchiIsDead) return;
     
-    // Die if health reaches 0 or hunger stays at 0 for too long
-    if (tamagotchiHealth <= 0 || (petStats.hunger <= 0 && (Date.now() - tamagotchiLastFed) > 4 * 60 * 60 * 1000)) {
+    // Die if health reaches 0, or hunger stays at 0 for >4 office-hours (nights don't count)
+    const starvedOfficeMin = getOfficeMinutesBetween(tamagotchiLastFed || Date.now(), Date.now());
+    if (tamagotchiHealth <= 0 || (petStats.hunger <= 0 && starvedOfficeMin > 4 * 60)) {
         cancelTamagotchiCinematics();
         tamagotchiIsDead = true;
         saveTamagotchiData(STORAGE_KEYS);
@@ -4821,8 +4852,8 @@ function updateTamagotchiSleepSchedule(config) {
     const now = new Date();
     const currentHour = now.getHours();
     
-    // Sleep between 9 PM and 7 AM (21:00 - 07:00)
-    const shouldSleep = currentHour >= 21 || currentHour < 7;
+    // Sleep outside office hours (21:00 – 09:00) so overnight leave-on stays dormant
+    const shouldSleep = currentHour >= TAMA_OFFICE_HOUR_END || currentHour < TAMA_OFFICE_HOUR_START;
     
     if (shouldSleep && !tamagotchiIsSleeping) {
         tamagotchiIsSleeping = true;
