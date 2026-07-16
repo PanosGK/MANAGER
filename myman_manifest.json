@@ -1,11 +1,11 @@
 {
-  "version": "224",
-  "loaderVersion": "8",
+  "version": "225",
+  "loaderVersion": "9",
   "silentVersion": "1",
-  "displayVersion": "8.1",
+  "displayVersion": "9.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "",
+  "releaseNotes": "loader v9: FOUC cover, update copy, clear stale skip",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
