@@ -820,6 +820,20 @@
                             <button type="button" id="tm-debug-age-up-btn" class="tm-settings-ghost-btn">Age +10</button>
                         </div>
                     </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-debug-natural-death-cause">Natural death</label>
+                            <p class="tm-setting-description">Θάνατος από πείνα / υγεία / ηλικία (όχι το shooting cinematic).</p>
+                        </div>
+                        <div class="tm-setting-control tm-setting-control--wrap">
+                            <select id="tm-debug-natural-death-cause" class="tm-settings-select" aria-label="Αιτία θανάτου">
+                                <option value="hunger">Hunger</option>
+                                <option value="health">Health</option>
+                                <option value="oldAge">Old age</option>
+                            </select>
+                            <button type="button" id="tm-debug-natural-death-btn" class="tm-settings-ghost-btn">Kill (natural)</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="tm-settings-section">
@@ -2046,6 +2060,21 @@
                     showPositiveMessage(`⏭️ Aged up! Now ${Math.floor(tamaData.age)} years old. Refresh to see changes.`);
                 } else {
                     showPositiveMessage('❌ Mascot data not found. Enable mascot first.');
+                }
+            });
+
+            document.getElementById('tm-debug-natural-death-btn')?.addEventListener('click', () => {
+                const cause = document.getElementById('tm-debug-natural-death-cause')?.value || 'hunger';
+                if (typeof window.debugKillTamagotchiNatural !== 'function') {
+                    showPositiveMessage('❌ Natural death debug δεν είναι διαθέσιμο.');
+                    return;
+                }
+                const labels = { hunger: 'πείνα', health: 'υγεία', oldAge: 'ηλικία' };
+                if (!confirm(`Να πεθάνει το mascot από ${labels[cause] || cause}; (όχι shooting)`)) return;
+                const ok = window.debugKillTamagotchiNatural(STORAGE_KEYS, cause);
+                if (ok) {
+                    showPositiveMessage(`💀 Natural death: ${labels[cause] || cause}`);
+                    document.querySelector('.tm-modal-overlay')?.remove();
                 }
             });
             

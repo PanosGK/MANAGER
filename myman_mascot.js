@@ -203,6 +203,68 @@ function debugSetMascotCharacter(characterType, STORAGE_KEYS) {
     return true;
 }
 
+/**
+ * Debug: natural / care death (hunger, health, old age) — NOT the AK-47 execution cinematic.
+ * @param {object|null} STORAGE_KEYS
+ * @param {'hunger'|'health'|'oldAge'} [cause='hunger']
+ * @returns {boolean}
+ */
+function debugKillTamagotchiNatural(STORAGE_KEYS, cause = 'hunger') {
+    const reason = ['hunger', 'health', 'oldAge'].includes(cause) ? cause : 'hunger';
+    if (tamagotchiIsDead) {
+        showMascotBubble('Ήδη νεκρό…', 2500);
+        return false;
+    }
+    if (tamagotchiStage === 'egg' || tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.baby) {
+        showMascotBubble('Το αυγό δεν πεθαίνει από πείνα/ηλικία.', 3000);
+        return false;
+    }
+
+    cancelTamagotchiCinematics();
+    clearMascotStagePreview(false);
+
+    const keys = getTamagotchiStorageKeys(
+        STORAGE_KEYS || (typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null),
+    );
+
+    if (reason === 'oldAge') {
+        tamagotchiLifeMinutes = Math.max(Number(tamagotchiLifeMinutes) || 0, TAMA_STAGE_MINUTES.death);
+        syncTamagotchiAgeFromLife();
+        tamagotchiStage = 'old';
+        tamagotchiHealth = 0;
+    } else if (reason === 'health') {
+        tamagotchiHealth = 0;
+        tamagotchiCareMistakes = Math.max(tamagotchiCareMistakes || 0, 5);
+    } else {
+        petStats.hunger = 0;
+        petStats.happiness = Math.min(petStats.happiness || 0, 15);
+        tamagotchiHealth = 0;
+        // Make starvation condition true if anything re-checks office minutes
+        tamagotchiLastFed = Date.now() - (6 * 60 * 60 * 1000);
+    }
+
+    tamagotchiIsDead = true;
+    if (keys) {
+        saveTamagotchiData(keys);
+        if (keys.PET_STATS) {
+            GM_setValue(keys.PET_STATS, JSON.stringify(petStats));
+        }
+    }
+
+    const pool = reason === 'oldAge' ? MASCOT_MESSAGES.oldAgeDeath : MASCOT_MESSAGES.death;
+    showMascotBubble(pool[Math.floor(Math.random() * pool.length)], 5000);
+    setMascotState(null, 'dead', 10000);
+    updateDeathOptionsButton();
+
+    const delay = reason === 'oldAge' ? 1500 : 500;
+    setTimeout(() => {
+        if (keys) runTamagotchiDeathSequence(keys);
+    }, delay);
+
+    console.log(`[Mascot] Debug natural death (${reason})`);
+    return true;
+}
+
 function getMascotCharacterType() {
     return tamagotchiCharacterType;
 }
@@ -5542,7 +5604,7 @@ function confirmMascotKillRestart() {
 
 /**
  * Kill the current mascot and restart from a fresh egg.
- * Plays a cartoon gun execution cinematic first (unless skipExecution).
+ * Plays the gun execution cinematic only when the mascot is still alive.
  * @returns {Promise<boolean>} true if reset was performed
  */
 async function restartTamagotchiAsEgg(config, STORAGE_KEYS, options = {}) {
@@ -5567,11 +5629,18 @@ async function restartTamagotchiAsEgg(config, STORAGE_KEYS, options = {}) {
     try {
         if (cfg) stopRoaming(cfg);
 
-        if (!skipExecution) {
+        // Already dead (hunger / health / old age) → no execution cinematic
+        const playExecution = !skipExecution && !tamagotchiIsDead;
+        if (playExecution) {
             document.getElementById('tm-mascot-stats-modal')?.remove();
             document.getElementById('tm-mascot-kill-confirm')?.remove();
             document.getElementById('tm-tamagotchi-death-overlay')?.remove();
             await showMascotExecutionCinematic();
+        } else {
+            document.getElementById('tm-mascot-stats-modal')?.remove();
+            document.getElementById('tm-mascot-kill-confirm')?.remove();
+            document.getElementById('tm-tamagotchi-death-overlay')?.remove();
+            document.getElementById('tm-tama-death-cinematic')?.remove();
         }
 
         cancelTamagotchiCinematics();
@@ -5702,9 +5771,9 @@ function showTamagotchiDeathScreen(STORAGE_KEYS, skipCinematic = false) {
         showMascotBubble(MASCOT_MESSAGES.revived, 2000);
     });
     
-    // Restart button
+    // Restart button (already dead — skip shoot cinematic)
     document.getElementById('tm-restart-btn')?.addEventListener('click', async () => {
-        if (await restartTamagotchiAsEgg(config, STORAGE_KEYS, { skipConfirm: true })) {
+        if (await restartTamagotchiAsEgg(config, STORAGE_KEYS, { skipConfirm: true, skipExecution: true })) {
             overlay.remove();
         }
     });
@@ -15014,6 +15083,7 @@ window.confirmMascotKillRestart = confirmMascotKillRestart;
 window.previewMascotStage = previewMascotStage;
 window.clearMascotStagePreview = clearMascotStagePreview;
 window.debugSetMascotCharacter = debugSetMascotCharacter;
+window.debugKillTamagotchiNatural = debugKillTamagotchiNatural;
 window.getMascotCharacterType = getMascotCharacterType;
 window.MASCOT_CHARACTERS = MASCOT_CHARACTERS;
 window.TAMA_CHARACTER_TYPES = TAMA_CHARACTER_TYPES;
