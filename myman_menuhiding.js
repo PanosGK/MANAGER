@@ -345,10 +345,10 @@
             window.tmRefreshMenuEarlyCss(hiddenItems);
         }
     }
-
+    
     function addManageMenuItemToList(menu, STORAGE_KEYS) {
         if (menu.querySelector('[data-tm-manage-hidden="true"]')) return;
-
+        
         const separator = document.createElement('li');
         separator.setAttribute('data-tm-special', 'true');
         separator.style.cssText = 'height:1px;background:rgba(0,0,0,0.1);margin:4px 0;pointer-events:none;';
@@ -369,7 +369,7 @@
             e.preventDefault();
             e.stopPropagation();
         });
-
+        
         menu.appendChild(separator);
         menu.appendChild(manageItem);
     }

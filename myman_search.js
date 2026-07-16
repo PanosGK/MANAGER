@@ -395,15 +395,15 @@
                         <div class="tm-search-modal-brand">
                             <span class="tm-search-modal-icon" aria-hidden="true">🔍</span>
                             <div>
-                                <h2 class="tm-modal-title">Αναζήτηση Παραγγελίας</h2>
+                        <h2 class="tm-modal-title">Αναζήτηση Παραγγελίας</h2>
                                 <p class="tm-search-modal-subtitle">Παραγγελίες &amp; ανταλλακτικά — όλοι οι όροι πρέπει να ταιριάζουν</p>
-                            </div>
-                        </div>
+                    </div>
+                    </div>
                         <div class="tm-search-modal-meta">
                             <kbd class="tm-search-kbd-hint" title="Άνοιγμα αναζήτησης">Ctrl+K</kbd>
                             <button class="tm-modal-close" aria-label="Κλείσιμο">&times;</button>
                         </div>
-                    </div>
+                        </div>
 
                     <div class="tm-search-toolbar">
                         <div id="tm-search-input-area" class="tm-search-input-wrap">
@@ -451,8 +451,8 @@
                                     <div class="tm-search-progress-bar-fill"></div>
                                 </div>
                                 <span class="tm-search-progress-text">Αναζήτηση…</span>
-                            </div>
-                            <div id="tm-results-container">
+                    </div>
+                    <div id="tm-results-container">
                                 <div class="tm-search-empty-state">
                                     <span class="tm-search-empty-icon" aria-hidden="true">📋</span>
                                     <p class="tm-search-empty-title">Ξεκινήστε μια αναζήτηση</p>
@@ -991,7 +991,7 @@
 
         function parseAndSearchPage(doc, pageBaseUrl, generation) {
             if (generation !== undefined && generation !== searchGeneration) return;
-
+            
             doc.querySelectorAll('.pagination a').forEach(a => {
                 const pageHref = a.getAttribute('href');
                 if (pageHref && !pageHref.startsWith('javascript:')) {
@@ -1095,10 +1095,10 @@
             summary.innerHTML = `
                 <span>Βρέθηκαν <strong>${searchResults.length}</strong> αποτελέσματα</span>
                 <span class="tm-search-results-query">«${query}»</span>`;
-            resultsContainer.innerHTML = '';
+                resultsContainer.innerHTML = '';
             resultsContainer.appendChild(summary);
 
-            searchResults.forEach((result, index) => {
+                searchResults.forEach((result, index) => {
                 const cells = result.historyEntry
                     ? buildHistoryDisplayCells(result.historyEntry)
                     : extractRowCells(result.rowHTML);
@@ -1116,37 +1116,37 @@
                     `<span class="tm-result-field-pill">${highlightTermsInHtml(cell.html, searchTerms)}</span>`
                 ).join('');
 
-                itemDiv.innerHTML = `
+                    itemDiv.innerHTML = `
                     <div class="tm-result-card-header">
                         <div class="tm-result-card-title">
                             <span class="tm-result-card-badge">${index + 1}</span>
                             <span class="tm-result-card-primary">${primary}</span>
                             <span class="tm-result-card-type${isHistoryResult ? ' tm-result-card-type--history' : ''}">${typeLabel}</span>
-                        </div>
+                            </div>
                         <div class="tm-result-card-actions">
                             ${result.orderLink ? `<a href="${result.orderLink}" target="_blank" class="tm-goto-btn" title="Άνοιγμα παραγγελίας">↗ Άνοιγμα</a>` : ''}
                             ${result.orderLink ? `<button type="button" class="tm-print-btn" data-link="${result.orderLink}" title="Εκτύπωση">🖨</button>` : ''}
                         </div>
-                    </div>
+                        </div>
                     ${fieldsHtml ? `<div class="tm-result-card-fields">${fieldsHtml}</div>` : ''}
                     <div class="tm-result-card-hint">Κλικ για λεπτομέρειες</div>
-                `;
-                resultsContainer.appendChild(itemDiv);
+                    `;
+                    resultsContainer.appendChild(itemDiv);
 
-                if (result.orderLink) {
+                    if (result.orderLink) {
                     itemDiv.addEventListener('click', (e) => {
                         if (e.target.closest('.tm-goto-btn, .tm-print-btn')) return;
-                        toggleOrderDetails(result, itemDiv);
-                    });
-                }
-            });
+                                toggleOrderDetails(result, itemDiv);
+                            });
+                    }
+                });
 
-            resultsContainer.querySelectorAll('.tm-print-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
+                resultsContainer.querySelectorAll('.tm-print-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     window.handlePrintClick(e.currentTarget.dataset.link, e.currentTarget);
+                    });
                 });
-            });
         }
 
         // New function for adding print button to edit pages

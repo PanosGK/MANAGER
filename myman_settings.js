@@ -1461,9 +1461,13 @@
                             return;
                         }
 
-                        window.MMS_PROFILES.importProfileData(importedData);
+                        const importResult = window.MMS_PROFILES.importProfileData(importedData);
+                        const importedCount = importResult?.importedKeys;
+                        const countNote = Number.isFinite(importedCount)
+                            ? ` (${importedCount} τιμές)`
+                            : '';
 
-                        alert('Τα δεδομένα εισήχθησαν με επιτυχία! Η σελίδα θα ανανεωθεί για να εφαρμοστούν οι αλλαγές.');
+                        alert(`Τα δεδομένα εισήχθησαν με επιτυχία${countNote}! Η σελίδα θα ανανεωθεί για να εφαρμοστούν οι αλλαγές.`);
                         window.location.reload();
 
                     } catch (error) {

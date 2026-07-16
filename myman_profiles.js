@@ -17,7 +17,8 @@
     const NATIVE = {
         get: GM_getValue,
         set: GM_setValue,
-        del: GM_deleteValue
+        del: GM_deleteValue,
+        list: typeof GM_listValues === 'function' ? GM_listValues : () => []
     };
 
     const GLOBAL_KEYS = new Set([
@@ -29,6 +30,7 @@
 
     const PROFILE_PREFIX = 'tm:p:';
     const MIGRATED_SUFFIX = ':__legacy_migrated';
+    const LEGACY_SYNC_FLAG = 'tm_mms_unscoped_synced_v1';
 
     let activeProfileId = null;
     let activeProfileLabel = null;
@@ -84,6 +86,10 @@
             return;
         }
         NATIVE.del(scopedStorageKey(key));
+        // Also clear leftover unscoped value from before profile wrappers worked.
+        if (activeProfileId && !String(key).startsWith(PROFILE_PREFIX)) {
+            try { NATIVE.del(key); } catch (_) { /* ignore */ }
+        }
     }
 
     function installStorageWrappers() {
@@ -91,6 +97,19 @@
         root.GM_getValue = wrappedGetValue;
         root.GM_setValue = wrappedSetValue;
         root.GM_deleteValue = wrappedDeleteValue;
+
+        // Bare GM_* in the bundle/eval sandbox does NOT use globalThis — rebind the grant
+        // identifiers so profile scoping actually applies to normal GM_getValue/GM_setValue calls.
+        try {
+            // eslint-disable-next-line no-global-assign, no-undef
+            GM_getValue = wrappedGetValue;
+            // eslint-disable-next-line no-global-assign, no-undef
+            GM_setValue = wrappedSetValue;
+            // eslint-disable-next-line no-global-assign, no-undef
+            GM_deleteValue = wrappedDeleteValue;
+        } catch (err) {
+            console.warn('[MMS Profiles] Could not rebind GM_* grants — import/export may miss profile keys:', err);
+        }
     }
 
     installStorageWrappers();
@@ -200,6 +219,7 @@
         activeProfileId = profileId;
         activeProfileLabel = label || profileId;
         NATIVE.set('tm_mms_last_profile_id', profileId);
+        syncUnscopedIntoActiveProfile(profileId);
     }
 
     function activateProfileForCurrentUser() {
@@ -239,16 +259,50 @@
     }
 
     function listNativeStorageKeys() {
-        if (typeof GM_listValues === 'function') {
-            return GM_listValues();
+        try {
+            return NATIVE.list() || [];
+        } catch (_) {
+            return [];
         }
-        return [];
+    }
+
+    /**
+     * Before wrappers worked, the suite wrote unscoped keys while migration copied a one-time
+     * snapshot into tm:p:… . Push current unscoped values into the active profile once so
+     * scoped storage matches what the UI has been using.
+     */
+    function syncUnscopedIntoActiveProfile(profileId) {
+        if (!profileId) return;
+        const flagKey = `${PROFILE_PREFIX}${profileId}:${LEGACY_SYNC_FLAG}`;
+        if (NATIVE.get(flagKey, false)) return;
+
+        let synced = 0;
+        const prefix = `${PROFILE_PREFIX}${profileId}:`;
+        const known = new Set(collectLegacyMigrationKeys());
+
+        listNativeStorageKeys().forEach((rawKey) => {
+            if (!rawKey || isGlobalKey(rawKey)) return;
+            if (rawKey.startsWith(PROFILE_PREFIX)) return;
+            if (rawKey.endsWith(MIGRATED_SUFFIX) || rawKey === LEGACY_SYNC_FLAG) return;
+            if (!known.has(rawKey) && !rawKey.startsWith('order_status_') && !rawKey.startsWith('tm_')) return;
+
+            const legacy = NATIVE.get(rawKey, undefined);
+            if (legacy === undefined) return;
+            NATIVE.set(prefix + rawKey, legacy);
+            synced++;
+        });
+
+        NATIVE.set(flagKey, true);
+        if (synced > 0) {
+            console.log(`[MMS Profiles] Synced ${synced} unscoped keys into profile "${profileId}"`);
+        }
     }
 
     function isExcludedExportKey(key) {
         if (!key || key === '_mms_export') return true;
         if (isGlobalKey(key)) return true;
         if (key.endsWith(MIGRATED_SUFFIX)) return true;
+        if (key === LEGACY_SYNC_FLAG) return true;
         if (key === 'defaultThemeColors') return true;
         return false;
     }
@@ -279,7 +333,7 @@
         return [...keys];
     }
 
-    function coerceValueForGmStorage(value) {
+    function coerceValueForGmStorage(key, value) {
         if (value === undefined) {
             return { action: 'skip' };
         }
@@ -290,10 +344,16 @@
         if (valueType === 'string' || valueType === 'boolean' || valueType === 'number') {
             return { action: 'set', value };
         }
-        // Keep objects/arrays as-is (order-status caches and some GM values are objects).
-        // Most feature keys already store JSON strings; those arrive as strings above.
         if (valueType === 'object') {
-            return { action: 'set', value };
+            // Order-status caches are stored as real objects; most other keys expect JSON strings.
+            if (String(key).startsWith('order_status_')) {
+                return { action: 'set', value };
+            }
+            try {
+                return { action: 'set', value: JSON.stringify(value) };
+            } catch (_) {
+                return { action: 'skip' };
+            }
         }
         return { action: 'skip' };
     }
@@ -405,6 +465,21 @@
         return data;
     }
 
+    function normalizeImportedKey(key, profileId) {
+        if (!key || typeof key !== 'string') return null;
+        if (key === '_mms_export' || isGlobalKey(key) || key.endsWith(MIGRATED_SUFFIX)) return null;
+        if (key === LEGACY_SYNC_FLAG) return null;
+
+        // Backups should use logical keys; tolerate accidental profile-prefixed keys.
+        if (key.startsWith(PROFILE_PREFIX)) {
+            const rest = key.slice(PROFILE_PREFIX.length);
+            const colon = rest.indexOf(':');
+            if (colon === -1) return null;
+            return rest.slice(colon + 1) || null;
+        }
+        return key;
+    }
+
     function importProfileData(importedData) {
         if (!importedData || typeof importedData !== 'object' || Array.isArray(importedData)) {
             throw new Error('Μη έγκυρα δεδομένα εισαγωγής');
@@ -413,27 +488,38 @@
             throw new Error('Μη έγκυρη μορφή αρχείου backup.');
         }
 
-        if (!activeProfileId && typeof activateProfileForCurrentUser === 'function') {
+        if (!activeProfileId) {
             activateProfileForCurrentUser();
+        }
+        if (!activeProfileId) {
+            throw new Error('Δεν εντοπίστηκε ενεργό προφίλ. Συνδεθείτε στο MyManager και δοκιμάστε ξανά.');
         }
 
         const normalized = normalizeImportedBackup(importedData);
         const meta = normalized._mms_export;
         const importErrors = [];
+        let written = 0;
+        let deleted = 0;
 
-        Object.keys(normalized).forEach((key) => {
-            if (key === '_mms_export') return;
-            if (isGlobalKey(key)) return;
+        Object.keys(normalized).forEach((rawKey) => {
+            const key = normalizeImportedKey(rawKey, activeProfileId);
+            if (!key) return;
 
-            const coerced = coerceValueForGmStorage(normalized[key]);
+            const coerced = coerceValueForGmStorage(key, normalized[rawKey]);
             if (coerced.action === 'skip') return;
 
             try {
+                const scopedKey = `${PROFILE_PREFIX}${activeProfileId}:${key}`;
                 if (coerced.action === 'delete') {
-                    wrappedDeleteValue(key);
+                    NATIVE.del(scopedKey);
+                    try { NATIVE.del(key); } catch (_) { /* ignore */ }
+                    deleted++;
                     return;
                 }
-                wrappedSetValue(key, coerced.value);
+                // Write scoped (canonical) and unscoped (compat if grant rebind failed).
+                NATIVE.set(scopedKey, coerced.value);
+                NATIVE.set(key, coerced.value);
+                written++;
             } catch (error) {
                 importErrors.push(`${key}: ${error.message || error}`);
                 console.error('[MMS Profiles] Import key failed:', key, error);
@@ -443,8 +529,30 @@
         if (importErrors.length) {
             throw new Error(`Αποτυχία αποθήκευσης ${importErrors.length} τιμών (π.χ. ${importErrors[0]})`);
         }
+        if (written === 0 && deleted === 0) {
+            throw new Error('Το αρχείο δεν περιείχε δεδομένα προς εισαγωγή.');
+        }
 
-        return meta || null;
+        // Verify a representative key landed in storage the UI can read.
+        const probeLogical = window.STORAGE_KEYS?.USER_LEVEL || 'tm_user_level';
+        if (Object.prototype.hasOwnProperty.call(normalized, probeLogical)
+            || Object.prototype.hasOwnProperty.call(normalized, 'userLevel')
+            || Object.prototype.hasOwnProperty.call(normalized, 'USER_LEVEL')) {
+            const expected = normalized[probeLogical] ?? normalized.userLevel ?? normalized.USER_LEVEL;
+            const scopedProbe = NATIVE.get(`${PROFILE_PREFIX}${activeProfileId}:${probeLogical}`, undefined);
+            const bareProbe = NATIVE.get(probeLogical, undefined);
+            if (scopedProbe === undefined && bareProbe === undefined && expected !== undefined && expected !== null) {
+                throw new Error('Η εισαγωγή δεν αποθηκεύτηκε στο Tampermonkey. Ελέγξτε τα δικαιώματα GM_setValue.');
+            }
+        }
+
+        console.log(`[MMS Profiles] Import complete: ${written} written, ${deleted} deleted → profile "${activeProfileId}"`);
+        return {
+            ...(meta && typeof meta === 'object' ? meta : {}),
+            importedKeys: written,
+            deletedKeys: deleted,
+            profileId: activeProfileId
+        };
     }
 
     window.MMS_PROFILES = {

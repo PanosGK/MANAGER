@@ -1948,7 +1948,7 @@ function parseOtherStorehouses(cell) {
         'title',
     ];
     const snippets = new Set();
-
+    
     const collect = (el) => {
         if (!el || !el.getAttribute) return;
         candidateAttrs.forEach((attr) => {
@@ -1956,20 +1956,20 @@ function parseOtherStorehouses(cell) {
             if (val) snippets.add(val);
         });
     };
-
+    
     collect(cell);
     cell.querySelectorAll('*').forEach(collect);
-
+    
     if (snippets.size === 0) {
         if (cell.innerHTML) snippets.add(cell.innerHTML);
         else if (cell.textContent) snippets.add(cell.textContent);
     }
-
+    
     for (const rawSnippet of snippets) {
         parseStorehouseSnippets(rawSnippet, stores);
         if (stores.length > 0) break;
     }
-
+    
     return stores;
 }
 
@@ -2052,7 +2052,7 @@ function fetchStorehousesViaUnsafeWindow(productCode) {
             });
         } catch (e) {
             clearTimeout(timer);
-            resolve([]);
+                        resolve([]);
         }
     });
 }
@@ -2112,7 +2112,7 @@ function parseStorehousesFromProductHtml(html, barcode) {
             if (stores.length > best.length) best = stores;
         });
         return best;
-    } catch (e) {
+        } catch (e) {
         return [];
     }
 }
@@ -2758,45 +2758,45 @@ function formatStoreSummaryText(item, loadedStoreCount = null) {
 }
 
 const DEFAULT_PHONE_CANONICAL_MODELS = [
-    'iPhone SE 2022', 'iPhone SE 2020',
-    'iPhone SE (3rd gen)', 'iPhone SE (2nd gen)', 'iPhone SE',
-    'iPhone 6s Plus', 'iPhone 6s', 'iPhone 6 Plus', 'iPhone 6',
-    'iPhone 7 Plus', 'iPhone 7',
-    'iPhone 8 Plus', 'iPhone 8',
-    'iPhone XS Max', 'iPhone XS', 'iPhone XR', 'iPhone X',
-    'iPhone 11 Pro Max', 'iPhone 11 Pro', 'iPhone 11',
-    'iPhone 12 Pro Max', 'iPhone 12 Pro', 'iPhone 12 Mini', 'iPhone 12',
-    'iPhone 13 Pro Max', 'iPhone 13 Pro', 'iPhone 13 Mini', 'iPhone 13',
-    'iPhone 14 Pro Max', 'iPhone 14 Pro', 'iPhone 14 Plus', 'iPhone 14',
-    'iPhone 15 Pro Max', 'iPhone 15 Pro', 'iPhone 15 Plus', 'iPhone 15',
-    'iPhone 16 Pro Max', 'iPhone 16 Pro', 'iPhone 16 Plus', 'iPhone 16',
-    'iPhone 17 Pro Max', 'iPhone 17 Pro', 'iPhone 17 Plus', 'iPhone 17',
-    'iPhone Air',
-    'Samsung Galaxy S25 Ultra', 'Samsung Galaxy S25 Plus', 'Samsung Galaxy S25',
-    'Samsung Galaxy S24 Ultra', 'Samsung Galaxy S24 Plus', 'Samsung Galaxy S24 FE', 'Samsung Galaxy S24',
-    'Samsung Galaxy S23 Ultra', 'Samsung Galaxy S23 Plus', 'Samsung Galaxy S23 FE', 'Samsung Galaxy S23',
-    'Samsung Galaxy S22 Ultra', 'Samsung Galaxy S22 Plus', 'Samsung Galaxy S22',
-    'Samsung Galaxy S21 Ultra', 'Samsung Galaxy S21 Plus', 'Samsung Galaxy S21 FE', 'Samsung Galaxy S21',
-    'Samsung Galaxy S20 Ultra', 'Samsung Galaxy S20 Plus', 'Samsung Galaxy S20 FE', 'Samsung Galaxy S20',
-    'Samsung Galaxy S10 Plus', 'Samsung Galaxy S10e', 'Samsung Galaxy S10',
-    'Samsung Galaxy S9 Plus', 'Samsung Galaxy S9',
-    'Samsung Galaxy S8 Plus', 'Samsung Galaxy S8',
-    'Samsung Galaxy S7 Edge', 'Samsung Galaxy S7',
-    'Samsung Galaxy S6 Edge Plus', 'Samsung Galaxy S6 Edge', 'Samsung Galaxy S6',
-    'Samsung Galaxy Note 20 Ultra', 'Samsung Galaxy Note 20',
-    'Samsung Galaxy Note 10 Plus', 'Samsung Galaxy Note 10',
-    'Samsung Galaxy Note 9', 'Samsung Galaxy Note 8',
-    'Samsung Galaxy Z Fold 6', 'Samsung Galaxy Z Fold 5', 'Samsung Galaxy Z Fold 4',
-    'Samsung Galaxy Z Fold 3', 'Samsung Galaxy Z Fold 2',
-    'Samsung Galaxy Z Flip 6', 'Samsung Galaxy Z Flip 5', 'Samsung Galaxy Z Flip 4',
-    'Samsung Galaxy Z Flip 3',
-    'Samsung Galaxy A73', 'Samsung Galaxy A72', 'Samsung Galaxy A71',
-    'Samsung Galaxy A55', 'Samsung Galaxy A54', 'Samsung Galaxy A53', 'Samsung Galaxy A52s', 'Samsung Galaxy A52', 'Samsung Galaxy A51',
-    'Samsung Galaxy A35', 'Samsung Galaxy A34', 'Samsung Galaxy A33',
-    'Samsung Galaxy A25', 'Samsung Galaxy A24', 'Samsung Galaxy A23',
-    'Samsung Galaxy A16', 'Samsung Galaxy A15', 'Samsung Galaxy A14', 'Samsung Galaxy A13',
-    'Samsung Galaxy A06', 'Samsung Galaxy A05', 'Samsung Galaxy A04', 'Samsung Galaxy A03',
-];
+        'iPhone SE 2022', 'iPhone SE 2020',
+        'iPhone SE (3rd gen)', 'iPhone SE (2nd gen)', 'iPhone SE',
+        'iPhone 6s Plus', 'iPhone 6s', 'iPhone 6 Plus', 'iPhone 6',
+        'iPhone 7 Plus', 'iPhone 7',
+        'iPhone 8 Plus', 'iPhone 8',
+        'iPhone XS Max', 'iPhone XS', 'iPhone XR', 'iPhone X',
+        'iPhone 11 Pro Max', 'iPhone 11 Pro', 'iPhone 11',
+        'iPhone 12 Pro Max', 'iPhone 12 Pro', 'iPhone 12 Mini', 'iPhone 12',
+        'iPhone 13 Pro Max', 'iPhone 13 Pro', 'iPhone 13 Mini', 'iPhone 13',
+        'iPhone 14 Pro Max', 'iPhone 14 Pro', 'iPhone 14 Plus', 'iPhone 14',
+        'iPhone 15 Pro Max', 'iPhone 15 Pro', 'iPhone 15 Plus', 'iPhone 15',
+        'iPhone 16 Pro Max', 'iPhone 16 Pro', 'iPhone 16 Plus', 'iPhone 16',
+        'iPhone 17 Pro Max', 'iPhone 17 Pro', 'iPhone 17 Plus', 'iPhone 17',
+        'iPhone Air',
+        'Samsung Galaxy S25 Ultra', 'Samsung Galaxy S25 Plus', 'Samsung Galaxy S25',
+        'Samsung Galaxy S24 Ultra', 'Samsung Galaxy S24 Plus', 'Samsung Galaxy S24 FE', 'Samsung Galaxy S24',
+        'Samsung Galaxy S23 Ultra', 'Samsung Galaxy S23 Plus', 'Samsung Galaxy S23 FE', 'Samsung Galaxy S23',
+        'Samsung Galaxy S22 Ultra', 'Samsung Galaxy S22 Plus', 'Samsung Galaxy S22',
+        'Samsung Galaxy S21 Ultra', 'Samsung Galaxy S21 Plus', 'Samsung Galaxy S21 FE', 'Samsung Galaxy S21',
+        'Samsung Galaxy S20 Ultra', 'Samsung Galaxy S20 Plus', 'Samsung Galaxy S20 FE', 'Samsung Galaxy S20',
+        'Samsung Galaxy S10 Plus', 'Samsung Galaxy S10e', 'Samsung Galaxy S10',
+        'Samsung Galaxy S9 Plus', 'Samsung Galaxy S9',
+        'Samsung Galaxy S8 Plus', 'Samsung Galaxy S8',
+        'Samsung Galaxy S7 Edge', 'Samsung Galaxy S7',
+        'Samsung Galaxy S6 Edge Plus', 'Samsung Galaxy S6 Edge', 'Samsung Galaxy S6',
+        'Samsung Galaxy Note 20 Ultra', 'Samsung Galaxy Note 20',
+        'Samsung Galaxy Note 10 Plus', 'Samsung Galaxy Note 10',
+        'Samsung Galaxy Note 9', 'Samsung Galaxy Note 8',
+        'Samsung Galaxy Z Fold 6', 'Samsung Galaxy Z Fold 5', 'Samsung Galaxy Z Fold 4',
+        'Samsung Galaxy Z Fold 3', 'Samsung Galaxy Z Fold 2',
+        'Samsung Galaxy Z Flip 6', 'Samsung Galaxy Z Flip 5', 'Samsung Galaxy Z Flip 4',
+        'Samsung Galaxy Z Flip 3',
+        'Samsung Galaxy A73', 'Samsung Galaxy A72', 'Samsung Galaxy A71',
+        'Samsung Galaxy A55', 'Samsung Galaxy A54', 'Samsung Galaxy A53', 'Samsung Galaxy A52s', 'Samsung Galaxy A52', 'Samsung Galaxy A51',
+        'Samsung Galaxy A35', 'Samsung Galaxy A34', 'Samsung Galaxy A33',
+        'Samsung Galaxy A25', 'Samsung Galaxy A24', 'Samsung Galaxy A23',
+        'Samsung Galaxy A16', 'Samsung Galaxy A15', 'Samsung Galaxy A14', 'Samsung Galaxy A13',
+        'Samsung Galaxy A06', 'Samsung Galaxy A05', 'Samsung Galaxy A04', 'Samsung Galaxy A03',
+    ];
 
 function normalizeCanonicalModelName(name) {
     return String(name || '').replace(/\s+/g, ' ').trim();
@@ -2886,12 +2886,12 @@ function movePhoneCanonicalModel(name, direction) {
 
 function normForCanonical(str) {
     return String(str || '').toUpperCase()
-        .replace(/\bPROMAX\b/g, 'PRO MAX')
+            .replace(/\bPROMAX\b/g, 'PRO MAX')
         .replace(/\bXSMAX\b/g, 'XS MAX')
-        .replace(/\+/g, ' PLUS ')
-        .replace(/[^A-Z0-9\s]/g, ' ')
-        .replace(/\s+/g, ' ').trim();
-}
+            .replace(/\+/g, ' PLUS ')
+            .replace(/[^A-Z0-9\s]/g, ' ')
+            .replace(/\s+/g, ' ').trim();
+    }
 
 let canonModelTokens = [];
 
@@ -2904,55 +2904,55 @@ function rebuildCanonModelTokens(models = loadPhoneCanonicalModels()) {
 
 rebuildCanonModelTokens();
 
-function normalizeIphoneSeGeneration(base) {
+    function normalizeIphoneSeGeneration(base) {
     const norm = normForCanonical(base);
-    if (!/\bIPHONE\b/.test(norm) || !/\bSE\b/.test(norm)) return base;
+        if (!/\bIPHONE\b/.test(norm) || !/\bSE\b/.test(norm)) return base;
     if (/\b2022\b/.test(norm) || /\b3RD\b/.test(norm)) return 'iPhone SE 2022';
     if (/\b2020\b/.test(norm) || /\b2ND\b/.test(norm)) return 'iPhone SE 2020';
     if (/\b2016\b/.test(norm) || /\b1ST\b/.test(norm)) return 'iPhone SE';
-    return base;
-}
+        return base;
+    }
 
 function matchCanonicalModel(base) {
-    if (!base) return base;
+        if (!base) return base;
     const norm = normForCanonical(base);
     for (const { name, tokens } of canonModelTokens) {
         const allMatch = tokens.every((token) =>
             new RegExp('(?:^|\\s)' + token + '(?:\\s|$)').test(norm)
-        );
-        if (allMatch) {
-            if (name === 'iPhone SE' && /\b(2020|2022|2016|2ND|3RD|1ST)\b/.test(norm)) {
-                continue;
+            );
+            if (allMatch) {
+                if (name === 'iPhone SE' && /\b(2020|2022|2016|2ND|3RD|1ST)\b/.test(norm)) {
+                    continue;
+                }
+                return name;
             }
-            return name;
         }
+        return base;
     }
-    return base;
-}
 
 const extractBaseModelCacheGlobal = new Map();
 
 function stripModelToBaseRaw(model) {
-    if (!model) return '';
-    let base = model;
-
-    base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '');
-    base = base.replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ');
-    base = base.replace(/\s*\(BB[^)]*\)?\s*/gi, ' ');
-    base = base.replace(/\s+(BB|ΒΒ):\s*$/gi, ' ');
+        if (!model) return '';
+        let base = model;
+        
+        base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '');
+        base = base.replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ');
+        base = base.replace(/\s*\(BB[^)]*\)?\s*/gi, ' ');
+        base = base.replace(/\s+(BB|ΒΒ):\s*$/gi, ' ');
     base = base.replace(/\b(BB|ΒΒ)\b/gi, ' ');
-    base = base.replace(/\s*[–\-]?\s*[\u0045\u0395][\s\-]?SIM(\s+ONLY)?\s*/gi, ' ');
-    base = base.replace(/\s*\d+\s*TB\s*/gi, ' ');
-    base = base.replace(/\s*\d+\s*GB\s*/gi, ' ');
-    base = base.replace(/\s*\d+\s*G(?!\w)/gi, ' ');
-
-    const commonSizes = [64, 128, 256, 512, 1024, 2048];
-    const allColors = getAllKnownColorsForModelFix();
-    for (const size of commonSizes) {
-        for (const color of allColors) {
+        base = base.replace(/\s*[–\-]?\s*[\u0045\u0395][\s\-]?SIM(\s+ONLY)?\s*/gi, ' ');
+        base = base.replace(/\s*\d+\s*TB\s*/gi, ' ');
+        base = base.replace(/\s*\d+\s*GB\s*/gi, ' ');
+        base = base.replace(/\s*\d+\s*G(?!\w)/gi, ' ');
+        
+        const commonSizes = [64, 128, 256, 512, 1024, 2048];
+        const allColors = getAllKnownColorsForModelFix();
+        for (const size of commonSizes) {
+            for (const color of allColors) {
             const regex = new RegExp('\\b' + size + '\\s+' + color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
-            base = base.replace(regex, color);
-        }
+                base = base.replace(regex, color);
+            }
         base = base.replace(new RegExp('\\b' + size + '\\s+(BB|ΒΒ)\\b', 'gi'), '$1');
     }
 
@@ -2995,8 +2995,8 @@ function extractBaseModel(model) {
     base = matchCanonicalModel(base);
 
     extractBaseModelCacheGlobal.set(model, base);
-    return base;
-}
+        return base;
+    }
 
 /**
  * Opens the store locator (model → store availability).
@@ -3103,7 +3103,7 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
 
 if (document.body) {
     detectAndCacheCurrentStoreName(document);
-} else {
+        } else {
     document.addEventListener('DOMContentLoaded', () => detectAndCacheCurrentStoreName(document), { once: true });
 }
 

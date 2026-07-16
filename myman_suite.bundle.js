@@ -3489,7 +3489,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     const NATIVE = {
         get: GM_getValue,
         set: GM_setValue,
-        del: GM_deleteValue
+        del: GM_deleteValue,
+        list: typeof GM_listValues === 'function' ? GM_listValues : () => []
     };
 
     const GLOBAL_KEYS = new Set([
@@ -3501,6 +3502,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     const PROFILE_PREFIX = 'tm:p:';
     const MIGRATED_SUFFIX = ':__legacy_migrated';
+    const LEGACY_SYNC_FLAG = 'tm_mms_unscoped_synced_v1';
 
     let activeProfileId = null;
     let activeProfileLabel = null;
@@ -3556,6 +3558,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             return;
         }
         NATIVE.del(scopedStorageKey(key));
+        // Also clear leftover unscoped value from before profile wrappers worked.
+        if (activeProfileId && !String(key).startsWith(PROFILE_PREFIX)) {
+            try { NATIVE.del(key); } catch (_) { /* ignore */ }
+        }
     }
 
     function installStorageWrappers() {
@@ -3563,6 +3569,19 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         root.GM_getValue = wrappedGetValue;
         root.GM_setValue = wrappedSetValue;
         root.GM_deleteValue = wrappedDeleteValue;
+
+        // Bare GM_* in the bundle/eval sandbox does NOT use globalThis — rebind the grant
+        // identifiers so profile scoping actually applies to normal GM_getValue/GM_setValue calls.
+        try {
+            // eslint-disable-next-line no-global-assign, no-undef
+            GM_getValue = wrappedGetValue;
+            // eslint-disable-next-line no-global-assign, no-undef
+            GM_setValue = wrappedSetValue;
+            // eslint-disable-next-line no-global-assign, no-undef
+            GM_deleteValue = wrappedDeleteValue;
+        } catch (err) {
+            console.warn('[MMS Profiles] Could not rebind GM_* grants — import/export may miss profile keys:', err);
+        }
     }
 
     installStorageWrappers();
@@ -3672,6 +3691,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         activeProfileId = profileId;
         activeProfileLabel = label || profileId;
         NATIVE.set('tm_mms_last_profile_id', profileId);
+        syncUnscopedIntoActiveProfile(profileId);
     }
 
     function activateProfileForCurrentUser() {
@@ -3711,16 +3731,50 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function listNativeStorageKeys() {
-        if (typeof GM_listValues === 'function') {
-            return GM_listValues();
+        try {
+            return NATIVE.list() || [];
+        } catch (_) {
+            return [];
         }
-        return [];
+    }
+
+    /**
+     * Before wrappers worked, the suite wrote unscoped keys while migration copied a one-time
+     * snapshot into tm:p:… . Push current unscoped values into the active profile once so
+     * scoped storage matches what the UI has been using.
+     */
+    function syncUnscopedIntoActiveProfile(profileId) {
+        if (!profileId) return;
+        const flagKey = `${PROFILE_PREFIX}${profileId}:${LEGACY_SYNC_FLAG}`;
+        if (NATIVE.get(flagKey, false)) return;
+
+        let synced = 0;
+        const prefix = `${PROFILE_PREFIX}${profileId}:`;
+        const known = new Set(collectLegacyMigrationKeys());
+
+        listNativeStorageKeys().forEach((rawKey) => {
+            if (!rawKey || isGlobalKey(rawKey)) return;
+            if (rawKey.startsWith(PROFILE_PREFIX)) return;
+            if (rawKey.endsWith(MIGRATED_SUFFIX) || rawKey === LEGACY_SYNC_FLAG) return;
+            if (!known.has(rawKey) && !rawKey.startsWith('order_status_') && !rawKey.startsWith('tm_')) return;
+
+            const legacy = NATIVE.get(rawKey, undefined);
+            if (legacy === undefined) return;
+            NATIVE.set(prefix + rawKey, legacy);
+            synced++;
+        });
+
+        NATIVE.set(flagKey, true);
+        if (synced > 0) {
+            console.log(`[MMS Profiles] Synced ${synced} unscoped keys into profile "${profileId}"`);
+        }
     }
 
     function isExcludedExportKey(key) {
         if (!key || key === '_mms_export') return true;
         if (isGlobalKey(key)) return true;
         if (key.endsWith(MIGRATED_SUFFIX)) return true;
+        if (key === LEGACY_SYNC_FLAG) return true;
         if (key === 'defaultThemeColors') return true;
         return false;
     }
@@ -3751,7 +3805,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return [...keys];
     }
 
-    function coerceValueForGmStorage(value) {
+    function coerceValueForGmStorage(key, value) {
         if (value === undefined) {
             return { action: 'skip' };
         }
@@ -3762,10 +3816,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (valueType === 'string' || valueType === 'boolean' || valueType === 'number') {
             return { action: 'set', value };
         }
-        // Keep objects/arrays as-is (order-status caches and some GM values are objects).
-        // Most feature keys already store JSON strings; those arrive as strings above.
         if (valueType === 'object') {
-            return { action: 'set', value };
+            // Order-status caches are stored as real objects; most other keys expect JSON strings.
+            if (String(key).startsWith('order_status_')) {
+                return { action: 'set', value };
+            }
+            try {
+                return { action: 'set', value: JSON.stringify(value) };
+            } catch (_) {
+                return { action: 'skip' };
+            }
         }
         return { action: 'skip' };
     }
@@ -3877,6 +3937,21 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return data;
     }
 
+    function normalizeImportedKey(key, profileId) {
+        if (!key || typeof key !== 'string') return null;
+        if (key === '_mms_export' || isGlobalKey(key) || key.endsWith(MIGRATED_SUFFIX)) return null;
+        if (key === LEGACY_SYNC_FLAG) return null;
+
+        // Backups should use logical keys; tolerate accidental profile-prefixed keys.
+        if (key.startsWith(PROFILE_PREFIX)) {
+            const rest = key.slice(PROFILE_PREFIX.length);
+            const colon = rest.indexOf(':');
+            if (colon === -1) return null;
+            return rest.slice(colon + 1) || null;
+        }
+        return key;
+    }
+
     function importProfileData(importedData) {
         if (!importedData || typeof importedData !== 'object' || Array.isArray(importedData)) {
             throw new Error('Μη έγκυρα δεδομένα εισαγωγής');
@@ -3885,27 +3960,38 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             throw new Error('Μη έγκυρη μορφή αρχείου backup.');
         }
 
-        if (!activeProfileId && typeof activateProfileForCurrentUser === 'function') {
+        if (!activeProfileId) {
             activateProfileForCurrentUser();
+        }
+        if (!activeProfileId) {
+            throw new Error('Δεν εντοπίστηκε ενεργό προφίλ. Συνδεθείτε στο MyManager και δοκιμάστε ξανά.');
         }
 
         const normalized = normalizeImportedBackup(importedData);
         const meta = normalized._mms_export;
         const importErrors = [];
+        let written = 0;
+        let deleted = 0;
 
-        Object.keys(normalized).forEach((key) => {
-            if (key === '_mms_export') return;
-            if (isGlobalKey(key)) return;
+        Object.keys(normalized).forEach((rawKey) => {
+            const key = normalizeImportedKey(rawKey, activeProfileId);
+            if (!key) return;
 
-            const coerced = coerceValueForGmStorage(normalized[key]);
+            const coerced = coerceValueForGmStorage(key, normalized[rawKey]);
             if (coerced.action === 'skip') return;
 
             try {
+                const scopedKey = `${PROFILE_PREFIX}${activeProfileId}:${key}`;
                 if (coerced.action === 'delete') {
-                    wrappedDeleteValue(key);
+                    NATIVE.del(scopedKey);
+                    try { NATIVE.del(key); } catch (_) { /* ignore */ }
+                    deleted++;
                     return;
                 }
-                wrappedSetValue(key, coerced.value);
+                // Write scoped (canonical) and unscoped (compat if grant rebind failed).
+                NATIVE.set(scopedKey, coerced.value);
+                NATIVE.set(key, coerced.value);
+                written++;
             } catch (error) {
                 importErrors.push(`${key}: ${error.message || error}`);
                 console.error('[MMS Profiles] Import key failed:', key, error);
@@ -3915,8 +4001,30 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (importErrors.length) {
             throw new Error(`Αποτυχία αποθήκευσης ${importErrors.length} τιμών (π.χ. ${importErrors[0]})`);
         }
+        if (written === 0 && deleted === 0) {
+            throw new Error('Το αρχείο δεν περιείχε δεδομένα προς εισαγωγή.');
+        }
 
-        return meta || null;
+        // Verify a representative key landed in storage the UI can read.
+        const probeLogical = window.STORAGE_KEYS?.USER_LEVEL || 'tm_user_level';
+        if (Object.prototype.hasOwnProperty.call(normalized, probeLogical)
+            || Object.prototype.hasOwnProperty.call(normalized, 'userLevel')
+            || Object.prototype.hasOwnProperty.call(normalized, 'USER_LEVEL')) {
+            const expected = normalized[probeLogical] ?? normalized.userLevel ?? normalized.USER_LEVEL;
+            const scopedProbe = NATIVE.get(`${PROFILE_PREFIX}${activeProfileId}:${probeLogical}`, undefined);
+            const bareProbe = NATIVE.get(probeLogical, undefined);
+            if (scopedProbe === undefined && bareProbe === undefined && expected !== undefined && expected !== null) {
+                throw new Error('Η εισαγωγή δεν αποθηκεύτηκε στο Tampermonkey. Ελέγξτε τα δικαιώματα GM_setValue.');
+            }
+        }
+
+        console.log(`[MMS Profiles] Import complete: ${written} written, ${deleted} deleted → profile "${activeProfileId}"`);
+        return {
+            ...(meta && typeof meta === 'object' ? meta : {}),
+            importedKeys: written,
+            deletedKeys: deleted,
+            profileId: activeProfileId
+        };
     }
 
     window.MMS_PROFILES = {
@@ -12995,9 +13103,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             return;
                         }
 
-                        window.MMS_PROFILES.importProfileData(importedData);
+                        const importResult = window.MMS_PROFILES.importProfileData(importedData);
+                        const importedCount = importResult?.importedKeys;
+                        const countNote = Number.isFinite(importedCount)
+                            ? ` (${importedCount} τιμές)`
+                            : '';
 
-                        alert('Τα δεδομένα εισήχθησαν με επιτυχία! Η σελίδα θα ανανεωθεί για να εφαρμοστούν οι αλλαγές.');
+                        alert(`Τα δεδομένα εισήχθησαν με επιτυχία${countNote}! Η σελίδα θα ανανεωθεί για να εφαρμοστούν οι αλλαγές.`);
                         window.location.reload();
 
                     } catch (error) {
@@ -14299,10 +14411,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             window.tmRefreshMenuEarlyCss(hiddenItems);
         }
     }
-
+    
     function addManageMenuItemToList(menu, STORAGE_KEYS) {
         if (menu.querySelector('[data-tm-manage-hidden="true"]')) return;
-
+        
         const separator = document.createElement('li');
         separator.setAttribute('data-tm-special', 'true');
         separator.style.cssText = 'height:1px;background:rgba(0,0,0,0.1);margin:4px 0;pointer-events:none;';
@@ -14323,7 +14435,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             e.preventDefault();
             e.stopPropagation();
         });
-
+        
         menu.appendChild(separator);
         menu.appendChild(manageItem);
     }
@@ -14981,15 +15093,15 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         <div class="tm-search-modal-brand">
                             <span class="tm-search-modal-icon" aria-hidden="true">🔍</span>
                             <div>
-                                <h2 class="tm-modal-title">Αναζήτηση Παραγγελίας</h2>
+                        <h2 class="tm-modal-title">Αναζήτηση Παραγγελίας</h2>
                                 <p class="tm-search-modal-subtitle">Παραγγελίες &amp; ανταλλακτικά — όλοι οι όροι πρέπει να ταιριάζουν</p>
-                            </div>
-                        </div>
+                    </div>
+                    </div>
                         <div class="tm-search-modal-meta">
                             <kbd class="tm-search-kbd-hint" title="Άνοιγμα αναζήτησης">Ctrl+K</kbd>
                             <button class="tm-modal-close" aria-label="Κλείσιμο">&times;</button>
                         </div>
-                    </div>
+                        </div>
 
                     <div class="tm-search-toolbar">
                         <div id="tm-search-input-area" class="tm-search-input-wrap">
@@ -15037,8 +15149,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                                     <div class="tm-search-progress-bar-fill"></div>
                                 </div>
                                 <span class="tm-search-progress-text">Αναζήτηση…</span>
-                            </div>
-                            <div id="tm-results-container">
+                    </div>
+                    <div id="tm-results-container">
                                 <div class="tm-search-empty-state">
                                     <span class="tm-search-empty-icon" aria-hidden="true">📋</span>
                                     <p class="tm-search-empty-title">Ξεκινήστε μια αναζήτηση</p>
@@ -15577,7 +15689,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
         function parseAndSearchPage(doc, pageBaseUrl, generation) {
             if (generation !== undefined && generation !== searchGeneration) return;
-
+            
             doc.querySelectorAll('.pagination a').forEach(a => {
                 const pageHref = a.getAttribute('href');
                 if (pageHref && !pageHref.startsWith('javascript:')) {
@@ -15681,10 +15793,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             summary.innerHTML = `
                 <span>Βρέθηκαν <strong>${searchResults.length}</strong> αποτελέσματα</span>
                 <span class="tm-search-results-query">«${query}»</span>`;
-            resultsContainer.innerHTML = '';
+                resultsContainer.innerHTML = '';
             resultsContainer.appendChild(summary);
 
-            searchResults.forEach((result, index) => {
+                searchResults.forEach((result, index) => {
                 const cells = result.historyEntry
                     ? buildHistoryDisplayCells(result.historyEntry)
                     : extractRowCells(result.rowHTML);
@@ -15702,37 +15814,37 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     `<span class="tm-result-field-pill">${highlightTermsInHtml(cell.html, searchTerms)}</span>`
                 ).join('');
 
-                itemDiv.innerHTML = `
+                    itemDiv.innerHTML = `
                     <div class="tm-result-card-header">
                         <div class="tm-result-card-title">
                             <span class="tm-result-card-badge">${index + 1}</span>
                             <span class="tm-result-card-primary">${primary}</span>
                             <span class="tm-result-card-type${isHistoryResult ? ' tm-result-card-type--history' : ''}">${typeLabel}</span>
-                        </div>
+                            </div>
                         <div class="tm-result-card-actions">
                             ${result.orderLink ? `<a href="${result.orderLink}" target="_blank" class="tm-goto-btn" title="Άνοιγμα παραγγελίας">↗ Άνοιγμα</a>` : ''}
                             ${result.orderLink ? `<button type="button" class="tm-print-btn" data-link="${result.orderLink}" title="Εκτύπωση">🖨</button>` : ''}
                         </div>
-                    </div>
+                        </div>
                     ${fieldsHtml ? `<div class="tm-result-card-fields">${fieldsHtml}</div>` : ''}
                     <div class="tm-result-card-hint">Κλικ για λεπτομέρειες</div>
-                `;
-                resultsContainer.appendChild(itemDiv);
+                    `;
+                    resultsContainer.appendChild(itemDiv);
 
-                if (result.orderLink) {
+                    if (result.orderLink) {
                     itemDiv.addEventListener('click', (e) => {
                         if (e.target.closest('.tm-goto-btn, .tm-print-btn')) return;
-                        toggleOrderDetails(result, itemDiv);
-                    });
-                }
-            });
+                                toggleOrderDetails(result, itemDiv);
+                            });
+                    }
+                });
 
-            resultsContainer.querySelectorAll('.tm-print-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
+                resultsContainer.querySelectorAll('.tm-print-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     window.handlePrintClick(e.currentTarget.dataset.link, e.currentTarget);
+                    });
                 });
-            });
         }
 
         // New function for adding print button to edit pages
@@ -42426,7 +42538,7 @@ function parseOtherStorehouses(cell) {
         'title',
     ];
     const snippets = new Set();
-
+    
     const collect = (el) => {
         if (!el || !el.getAttribute) return;
         candidateAttrs.forEach((attr) => {
@@ -42434,20 +42546,20 @@ function parseOtherStorehouses(cell) {
             if (val) snippets.add(val);
         });
     };
-
+    
     collect(cell);
     cell.querySelectorAll('*').forEach(collect);
-
+    
     if (snippets.size === 0) {
         if (cell.innerHTML) snippets.add(cell.innerHTML);
         else if (cell.textContent) snippets.add(cell.textContent);
     }
-
+    
     for (const rawSnippet of snippets) {
         parseStorehouseSnippets(rawSnippet, stores);
         if (stores.length > 0) break;
     }
-
+    
     return stores;
 }
 
@@ -42530,7 +42642,7 @@ function fetchStorehousesViaUnsafeWindow(productCode) {
             });
         } catch (e) {
             clearTimeout(timer);
-            resolve([]);
+                        resolve([]);
         }
     });
 }
@@ -42590,7 +42702,7 @@ function parseStorehousesFromProductHtml(html, barcode) {
             if (stores.length > best.length) best = stores;
         });
         return best;
-    } catch (e) {
+        } catch (e) {
         return [];
     }
 }
@@ -43236,45 +43348,45 @@ function formatStoreSummaryText(item, loadedStoreCount = null) {
 }
 
 const DEFAULT_PHONE_CANONICAL_MODELS = [
-    'iPhone SE 2022', 'iPhone SE 2020',
-    'iPhone SE (3rd gen)', 'iPhone SE (2nd gen)', 'iPhone SE',
-    'iPhone 6s Plus', 'iPhone 6s', 'iPhone 6 Plus', 'iPhone 6',
-    'iPhone 7 Plus', 'iPhone 7',
-    'iPhone 8 Plus', 'iPhone 8',
-    'iPhone XS Max', 'iPhone XS', 'iPhone XR', 'iPhone X',
-    'iPhone 11 Pro Max', 'iPhone 11 Pro', 'iPhone 11',
-    'iPhone 12 Pro Max', 'iPhone 12 Pro', 'iPhone 12 Mini', 'iPhone 12',
-    'iPhone 13 Pro Max', 'iPhone 13 Pro', 'iPhone 13 Mini', 'iPhone 13',
-    'iPhone 14 Pro Max', 'iPhone 14 Pro', 'iPhone 14 Plus', 'iPhone 14',
-    'iPhone 15 Pro Max', 'iPhone 15 Pro', 'iPhone 15 Plus', 'iPhone 15',
-    'iPhone 16 Pro Max', 'iPhone 16 Pro', 'iPhone 16 Plus', 'iPhone 16',
-    'iPhone 17 Pro Max', 'iPhone 17 Pro', 'iPhone 17 Plus', 'iPhone 17',
-    'iPhone Air',
-    'Samsung Galaxy S25 Ultra', 'Samsung Galaxy S25 Plus', 'Samsung Galaxy S25',
-    'Samsung Galaxy S24 Ultra', 'Samsung Galaxy S24 Plus', 'Samsung Galaxy S24 FE', 'Samsung Galaxy S24',
-    'Samsung Galaxy S23 Ultra', 'Samsung Galaxy S23 Plus', 'Samsung Galaxy S23 FE', 'Samsung Galaxy S23',
-    'Samsung Galaxy S22 Ultra', 'Samsung Galaxy S22 Plus', 'Samsung Galaxy S22',
-    'Samsung Galaxy S21 Ultra', 'Samsung Galaxy S21 Plus', 'Samsung Galaxy S21 FE', 'Samsung Galaxy S21',
-    'Samsung Galaxy S20 Ultra', 'Samsung Galaxy S20 Plus', 'Samsung Galaxy S20 FE', 'Samsung Galaxy S20',
-    'Samsung Galaxy S10 Plus', 'Samsung Galaxy S10e', 'Samsung Galaxy S10',
-    'Samsung Galaxy S9 Plus', 'Samsung Galaxy S9',
-    'Samsung Galaxy S8 Plus', 'Samsung Galaxy S8',
-    'Samsung Galaxy S7 Edge', 'Samsung Galaxy S7',
-    'Samsung Galaxy S6 Edge Plus', 'Samsung Galaxy S6 Edge', 'Samsung Galaxy S6',
-    'Samsung Galaxy Note 20 Ultra', 'Samsung Galaxy Note 20',
-    'Samsung Galaxy Note 10 Plus', 'Samsung Galaxy Note 10',
-    'Samsung Galaxy Note 9', 'Samsung Galaxy Note 8',
-    'Samsung Galaxy Z Fold 6', 'Samsung Galaxy Z Fold 5', 'Samsung Galaxy Z Fold 4',
-    'Samsung Galaxy Z Fold 3', 'Samsung Galaxy Z Fold 2',
-    'Samsung Galaxy Z Flip 6', 'Samsung Galaxy Z Flip 5', 'Samsung Galaxy Z Flip 4',
-    'Samsung Galaxy Z Flip 3',
-    'Samsung Galaxy A73', 'Samsung Galaxy A72', 'Samsung Galaxy A71',
-    'Samsung Galaxy A55', 'Samsung Galaxy A54', 'Samsung Galaxy A53', 'Samsung Galaxy A52s', 'Samsung Galaxy A52', 'Samsung Galaxy A51',
-    'Samsung Galaxy A35', 'Samsung Galaxy A34', 'Samsung Galaxy A33',
-    'Samsung Galaxy A25', 'Samsung Galaxy A24', 'Samsung Galaxy A23',
-    'Samsung Galaxy A16', 'Samsung Galaxy A15', 'Samsung Galaxy A14', 'Samsung Galaxy A13',
-    'Samsung Galaxy A06', 'Samsung Galaxy A05', 'Samsung Galaxy A04', 'Samsung Galaxy A03',
-];
+        'iPhone SE 2022', 'iPhone SE 2020',
+        'iPhone SE (3rd gen)', 'iPhone SE (2nd gen)', 'iPhone SE',
+        'iPhone 6s Plus', 'iPhone 6s', 'iPhone 6 Plus', 'iPhone 6',
+        'iPhone 7 Plus', 'iPhone 7',
+        'iPhone 8 Plus', 'iPhone 8',
+        'iPhone XS Max', 'iPhone XS', 'iPhone XR', 'iPhone X',
+        'iPhone 11 Pro Max', 'iPhone 11 Pro', 'iPhone 11',
+        'iPhone 12 Pro Max', 'iPhone 12 Pro', 'iPhone 12 Mini', 'iPhone 12',
+        'iPhone 13 Pro Max', 'iPhone 13 Pro', 'iPhone 13 Mini', 'iPhone 13',
+        'iPhone 14 Pro Max', 'iPhone 14 Pro', 'iPhone 14 Plus', 'iPhone 14',
+        'iPhone 15 Pro Max', 'iPhone 15 Pro', 'iPhone 15 Plus', 'iPhone 15',
+        'iPhone 16 Pro Max', 'iPhone 16 Pro', 'iPhone 16 Plus', 'iPhone 16',
+        'iPhone 17 Pro Max', 'iPhone 17 Pro', 'iPhone 17 Plus', 'iPhone 17',
+        'iPhone Air',
+        'Samsung Galaxy S25 Ultra', 'Samsung Galaxy S25 Plus', 'Samsung Galaxy S25',
+        'Samsung Galaxy S24 Ultra', 'Samsung Galaxy S24 Plus', 'Samsung Galaxy S24 FE', 'Samsung Galaxy S24',
+        'Samsung Galaxy S23 Ultra', 'Samsung Galaxy S23 Plus', 'Samsung Galaxy S23 FE', 'Samsung Galaxy S23',
+        'Samsung Galaxy S22 Ultra', 'Samsung Galaxy S22 Plus', 'Samsung Galaxy S22',
+        'Samsung Galaxy S21 Ultra', 'Samsung Galaxy S21 Plus', 'Samsung Galaxy S21 FE', 'Samsung Galaxy S21',
+        'Samsung Galaxy S20 Ultra', 'Samsung Galaxy S20 Plus', 'Samsung Galaxy S20 FE', 'Samsung Galaxy S20',
+        'Samsung Galaxy S10 Plus', 'Samsung Galaxy S10e', 'Samsung Galaxy S10',
+        'Samsung Galaxy S9 Plus', 'Samsung Galaxy S9',
+        'Samsung Galaxy S8 Plus', 'Samsung Galaxy S8',
+        'Samsung Galaxy S7 Edge', 'Samsung Galaxy S7',
+        'Samsung Galaxy S6 Edge Plus', 'Samsung Galaxy S6 Edge', 'Samsung Galaxy S6',
+        'Samsung Galaxy Note 20 Ultra', 'Samsung Galaxy Note 20',
+        'Samsung Galaxy Note 10 Plus', 'Samsung Galaxy Note 10',
+        'Samsung Galaxy Note 9', 'Samsung Galaxy Note 8',
+        'Samsung Galaxy Z Fold 6', 'Samsung Galaxy Z Fold 5', 'Samsung Galaxy Z Fold 4',
+        'Samsung Galaxy Z Fold 3', 'Samsung Galaxy Z Fold 2',
+        'Samsung Galaxy Z Flip 6', 'Samsung Galaxy Z Flip 5', 'Samsung Galaxy Z Flip 4',
+        'Samsung Galaxy Z Flip 3',
+        'Samsung Galaxy A73', 'Samsung Galaxy A72', 'Samsung Galaxy A71',
+        'Samsung Galaxy A55', 'Samsung Galaxy A54', 'Samsung Galaxy A53', 'Samsung Galaxy A52s', 'Samsung Galaxy A52', 'Samsung Galaxy A51',
+        'Samsung Galaxy A35', 'Samsung Galaxy A34', 'Samsung Galaxy A33',
+        'Samsung Galaxy A25', 'Samsung Galaxy A24', 'Samsung Galaxy A23',
+        'Samsung Galaxy A16', 'Samsung Galaxy A15', 'Samsung Galaxy A14', 'Samsung Galaxy A13',
+        'Samsung Galaxy A06', 'Samsung Galaxy A05', 'Samsung Galaxy A04', 'Samsung Galaxy A03',
+    ];
 
 function normalizeCanonicalModelName(name) {
     return String(name || '').replace(/\s+/g, ' ').trim();
@@ -43364,12 +43476,12 @@ function movePhoneCanonicalModel(name, direction) {
 
 function normForCanonical(str) {
     return String(str || '').toUpperCase()
-        .replace(/\bPROMAX\b/g, 'PRO MAX')
+            .replace(/\bPROMAX\b/g, 'PRO MAX')
         .replace(/\bXSMAX\b/g, 'XS MAX')
-        .replace(/\+/g, ' PLUS ')
-        .replace(/[^A-Z0-9\s]/g, ' ')
-        .replace(/\s+/g, ' ').trim();
-}
+            .replace(/\+/g, ' PLUS ')
+            .replace(/[^A-Z0-9\s]/g, ' ')
+            .replace(/\s+/g, ' ').trim();
+    }
 
 let canonModelTokens = [];
 
@@ -43382,55 +43494,55 @@ function rebuildCanonModelTokens(models = loadPhoneCanonicalModels()) {
 
 rebuildCanonModelTokens();
 
-function normalizeIphoneSeGeneration(base) {
+    function normalizeIphoneSeGeneration(base) {
     const norm = normForCanonical(base);
-    if (!/\bIPHONE\b/.test(norm) || !/\bSE\b/.test(norm)) return base;
+        if (!/\bIPHONE\b/.test(norm) || !/\bSE\b/.test(norm)) return base;
     if (/\b2022\b/.test(norm) || /\b3RD\b/.test(norm)) return 'iPhone SE 2022';
     if (/\b2020\b/.test(norm) || /\b2ND\b/.test(norm)) return 'iPhone SE 2020';
     if (/\b2016\b/.test(norm) || /\b1ST\b/.test(norm)) return 'iPhone SE';
-    return base;
-}
+        return base;
+    }
 
 function matchCanonicalModel(base) {
-    if (!base) return base;
+        if (!base) return base;
     const norm = normForCanonical(base);
     for (const { name, tokens } of canonModelTokens) {
         const allMatch = tokens.every((token) =>
             new RegExp('(?:^|\\s)' + token + '(?:\\s|$)').test(norm)
-        );
-        if (allMatch) {
-            if (name === 'iPhone SE' && /\b(2020|2022|2016|2ND|3RD|1ST)\b/.test(norm)) {
-                continue;
+            );
+            if (allMatch) {
+                if (name === 'iPhone SE' && /\b(2020|2022|2016|2ND|3RD|1ST)\b/.test(norm)) {
+                    continue;
+                }
+                return name;
             }
-            return name;
         }
+        return base;
     }
-    return base;
-}
 
 const extractBaseModelCacheGlobal = new Map();
 
 function stripModelToBaseRaw(model) {
-    if (!model) return '';
-    let base = model;
-
-    base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '');
-    base = base.replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ');
-    base = base.replace(/\s*\(BB[^)]*\)?\s*/gi, ' ');
-    base = base.replace(/\s+(BB|ΒΒ):\s*$/gi, ' ');
+        if (!model) return '';
+        let base = model;
+        
+        base = base.replace(/ΜΕΤΑΧΕΙΡΙΣΜΕΝΟ\s+ΚΙΝΗΤΟ\s+ΤΗΛΕΦΩΝΟ\s*/gi, '');
+        base = base.replace(/\s*(BB|ΒΒ):\s*\([^)]*\)?\s*/gi, ' ');
+        base = base.replace(/\s*\(BB[^)]*\)?\s*/gi, ' ');
+        base = base.replace(/\s+(BB|ΒΒ):\s*$/gi, ' ');
     base = base.replace(/\b(BB|ΒΒ)\b/gi, ' ');
-    base = base.replace(/\s*[–\-]?\s*[\u0045\u0395][\s\-]?SIM(\s+ONLY)?\s*/gi, ' ');
-    base = base.replace(/\s*\d+\s*TB\s*/gi, ' ');
-    base = base.replace(/\s*\d+\s*GB\s*/gi, ' ');
-    base = base.replace(/\s*\d+\s*G(?!\w)/gi, ' ');
-
-    const commonSizes = [64, 128, 256, 512, 1024, 2048];
-    const allColors = getAllKnownColorsForModelFix();
-    for (const size of commonSizes) {
-        for (const color of allColors) {
+        base = base.replace(/\s*[–\-]?\s*[\u0045\u0395][\s\-]?SIM(\s+ONLY)?\s*/gi, ' ');
+        base = base.replace(/\s*\d+\s*TB\s*/gi, ' ');
+        base = base.replace(/\s*\d+\s*GB\s*/gi, ' ');
+        base = base.replace(/\s*\d+\s*G(?!\w)/gi, ' ');
+        
+        const commonSizes = [64, 128, 256, 512, 1024, 2048];
+        const allColors = getAllKnownColorsForModelFix();
+        for (const size of commonSizes) {
+            for (const color of allColors) {
             const regex = new RegExp('\\b' + size + '\\s+' + color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'gi');
-            base = base.replace(regex, color);
-        }
+                base = base.replace(regex, color);
+            }
         base = base.replace(new RegExp('\\b' + size + '\\s+(BB|ΒΒ)\\b', 'gi'), '$1');
     }
 
@@ -43473,8 +43585,8 @@ function extractBaseModel(model) {
     base = matchCanonicalModel(base);
 
     extractBaseModelCacheGlobal.set(model, base);
-    return base;
-}
+        return base;
+    }
 
 /**
  * Opens the store locator (model → store availability).
@@ -43581,7 +43693,7 @@ window.rebuildCanonModelTokens = rebuildCanonModelTokens;
 
 if (document.body) {
     detectAndCacheCurrentStoreName(document);
-} else {
+        } else {
     document.addEventListener('DOMContentLoaded', () => detectAndCacheCurrentStoreName(document), { once: true });
 }
 
