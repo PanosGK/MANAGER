@@ -12,6 +12,11 @@ let roamingWatchdogInterval = null;
 const ROAMING_ACTIVE_STATES = ['idle', 'biking', 'juggling', 'reading', 'happy', 'sad', 'energized'];
 const ROAMING_MOVE_STATES = ['idle'];
 const MASCOT_MODIFIER_CLASSES = ['mascot-needs-toilet', 'mascot-needs-cleaning', 'mascot-hatching', 'mascot-dying'];
+const MASCOT_INTERACTION_CLASSES = [
+    'mascot-parked', 'mascot-dragging', 'mascot-focus-quiet',
+    'mascot-chasing', 'mascot-chase-tired', 'mascot-hiding', 'mascot-hide-hint', 'mascot-hide-found',
+    'mascot-jetpack-boost',
+];
 // Mood classes are preserved separately (mascot-mood-*) in applyMascotBehaviorState.
 
 /** Unified accessory catalog for Tamagotchi sprites (shop + equip + SVG ids must match). */
@@ -750,6 +755,11 @@ let mascotClickOpenTimer = null;
 let mascotFocusQuietUntil = 0;
 let mascotFocusQuietTimer = null;
 
+/** Nickname + taught tricks (used by myman_mascot_play.js) */
+let tamagotchiNickname = '';
+let tamagotchiTaughtTricks = { unlocked: [], practice: {} };
+let mascotTrickCycleIndex = 0;
+
 const MASCOT_FOCUS_QUIET_MS = 25 * 60 * 1000;
 const MASCOT_DRAG_THRESHOLD_PX = 6;
 const MASCOT_TRICK_BY_CHARACTER = {
@@ -956,9 +966,11 @@ function isMascotFocusQuiet() {
 
 function syncMascotInteractionClasses(container = document.getElementById('tm-mascot-container')) {
     if (!container) return;
-    container.classList.toggle('mascot-parked', !!mascotPositionLocked);
+    container.classList.toggle('mascot-parked', !!mascotPositionLocked && !(typeof mascotHideSeekActive !== 'undefined' && mascotHideSeekActive));
     container.classList.toggle('mascot-dragging', !!mascotIsDragging);
     container.classList.toggle('mascot-focus-quiet', isMascotFocusQuiet());
+    container.classList.toggle('mascot-chasing', typeof mascotChaseEnabled !== 'undefined' && !!mascotChaseEnabled);
+    container.classList.toggle('mascot-hiding', typeof mascotHideSeekActive !== 'undefined' && !!mascotHideSeekActive);
 }
 
 function setMascotParked(locked, x = null, y = null, STORAGE_KEYS = window.STORAGE_KEYS) {
@@ -3198,7 +3210,8 @@ const MASCOT_MESSAGES = {
     greeting: [
         'Ναι;', 'Τι κάνουμε;', 'Έλα!', 'Λέγε!',
         'Με φώναξες;', 'Τι θες;', 'Εδώ είμαι!',
-        'Φτιάχνουμε;', 'Βοήθεια θες;', 'Πάμε για δουλειά!', 'Λέγε!'
+        'Φτιάχνουμε;', 'Βοήθεια θες;', 'Πάμε για δουλειά!', 'Λέγε!',
+        'Γεια {nickname}!', 'Έλα {nickname}!', '{nickname} εδώ!'
     ],
     wake: ['Ξύπνησα!', 'Έγιρα!', 'Έτοιμος!', 'Καλημέρα!', 'Φύγαμε!'],
     sleep: ['Κοιμάμαι...', 'Ζζζ...', 'Καληνύχτα!', '💤', 'Νύχτα...'],
@@ -4219,7 +4232,11 @@ function isMascotInteractiveEnabled(config) {
 function getMascotBehaviorState(mascotContainer = document.getElementById('tm-mascot-container')) {
     if (!mascotContainer) return '';
     return [...mascotContainer.classList]
-        .find((cls) => cls.startsWith('mascot-') && !MASCOT_MODIFIER_CLASSES.includes(cls))
+        .find((cls) => cls.startsWith('mascot-')
+            && !MASCOT_MODIFIER_CLASSES.includes(cls)
+            && !MASCOT_INTERACTION_CLASSES.includes(cls)
+            && !cls.startsWith('mascot-mood-')
+            && !cls.startsWith('mascot-char-'))
         ?.replace('mascot-', '') || '';
 }
 
@@ -4233,6 +4250,8 @@ function shouldMascotBeRoaming(config) {
     if (!tamagotchiLightsOn || tamagotchiIsSleeping) return false;
     if (mascotPositionLocked || mascotIsDragging) return false;
     if (isMascotFocusQuiet()) return false;
+    if (typeof mascotChaseEnabled !== 'undefined' && mascotChaseEnabled) return false;
+    if (typeof mascotHideSeekActive !== 'undefined' && mascotHideSeekActive) return false;
     const panel = document.getElementById('tm-mascot-interaction-panel');
     if (panel && panel.style.display === 'flex') return false;
     return ROAMING_ACTIVE_STATES.includes(getMascotBehaviorState());
@@ -4421,7 +4440,10 @@ function showMascotBubble(text, duration = 2000) {
 
     const messages = MASCOT_MESSAGES.defaultBubble;
     // If no text is provided, pick a random one.
-    const messageToShow = text || messages[Math.floor(Math.random() * messages.length)];
+    let messageToShow = text || messages[Math.floor(Math.random() * messages.length)];
+    if (typeof formatMascotBubbleText === 'function') {
+        messageToShow = formatMascotBubbleText(messageToShow);
+    }
 
     bubble.textContent = messageToShow;
     bubble.style.display = 'block';
@@ -4476,7 +4498,7 @@ function triggerDodgeAnimation(config, moveX, moveY) {
 
 function applyMascotBehaviorState(mascotContainer, state) {
     if (!mascotContainer || !state) return;
-    const preserve = new Set(['tm-mascot-container', ...MASCOT_MODIFIER_CLASSES]);
+    const preserve = new Set(['tm-mascot-container', ...MASCOT_MODIFIER_CLASSES, ...MASCOT_INTERACTION_CLASSES]);
     [...mascotContainer.classList].forEach((cls) => {
         if (cls.startsWith('mascot-') && !preserve.has(cls) && !cls.startsWith('mascot-mood-')) {
             mascotContainer.classList.remove(cls);
@@ -4598,7 +4620,8 @@ function updatePetStateByStats(config, STORAGE_KEYS, isExitingTempState = false)
     const temporaryStates = [
         'mascot-happy', 'mascot-sad', 'mascot-eating', 'mascot-dodging', 'mascot-thinking',
         'mascot-glitching', 'mascot-eureka', 'mascot-sunny', 'mascot-rainy', 'mascot-energized',
-        'mascot-reading', 'mascot-biking', 'mascot-juggling', 'mascot-searching', 'mascot-surprised'
+        'mascot-reading', 'mascot-biking', 'mascot-juggling', 'mascot-searching', 'mascot-surprised',
+        'mascot-spin', 'mascot-bow', 'mascot-firebreath'
     ];
     const persistentAccessoryStates = [];
     
@@ -4733,6 +4756,17 @@ function loadTamagotchiData(STORAGE_KEYS) {
         if (mascotFocusQuietUntil && mascotFocusQuietUntil <= Date.now()) {
             mascotFocusQuietUntil = 0;
         }
+        tamagotchiNickname = typeof normalizeMascotNickname === 'function'
+            ? normalizeMascotNickname(savedData.nickname || '')
+            : String(savedData.nickname || '').trim().slice(0, 16);
+        if (savedData.taughtTricks && typeof savedData.taughtTricks === 'object') {
+            tamagotchiTaughtTricks = {
+                unlocked: Array.isArray(savedData.taughtTricks.unlocked) ? savedData.taughtTricks.unlocked.slice() : [],
+                practice: { ...(savedData.taughtTricks.practice || {}) },
+            };
+        } else {
+            tamagotchiTaughtTricks = { unlocked: [], practice: {} };
+        }
         validateTamagotchiState();
         // Recover sticky character after validate if storage had one and we're hatched
         if (tamagotchiStage !== 'egg' && loadedChar && loadedChar !== 'none'
@@ -4840,6 +4874,11 @@ function saveTamagotchiData(STORAGE_KEYS) {
         parkedX: mascotPositionLocked ? mascotParkedX : null,
         parkedY: mascotPositionLocked ? mascotParkedY : null,
         focusQuietUntil: isMascotFocusQuiet() ? mascotFocusQuietUntil : 0,
+        nickname: tamagotchiNickname || '',
+        taughtTricks: {
+            unlocked: Array.isArray(tamagotchiTaughtTricks?.unlocked) ? tamagotchiTaughtTricks.unlocked.slice() : [],
+            practice: { ...(tamagotchiTaughtTricks?.practice || {}) },
+        },
     };
     GM_setValue(keys.TAMAGOTCHI_DATA, JSON.stringify(data));
 }
@@ -12576,9 +12615,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         const minutesToHatch = getMinutesUntilHatch();
         const stageGr = MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage;
         const charMeta = !isEgg && tamagotchiCharacterType ? MASCOT_CHARACTERS[tamagotchiCharacterType] : null;
-        const characterName = isEgg
-            ? 'Μυστήριο αυγάκι'
-            : (charMeta?.name || 'Mascot');
+        const characterName = typeof getMascotDisplayName === 'function'
+            ? getMascotDisplayName()
+            : (isEgg
+                ? 'Μυστήριο αυγάκι'
+                : (charMeta?.name || 'Mascot'));
         const avatarEmoji = isEgg ? '🥚' : (charMeta?.emoji || '🐾');
         const fullness = Math.round(petStats.hunger * 10) / 10;
         const happiness = Math.round(petStats.happiness * 10) / 10;
@@ -12840,6 +12881,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </button>
                     </div>
                 </div>
+                ${typeof getMascotPlayCareSectionHTML === 'function' ? getMascotPlayCareSectionHTML(STORAGE_KEYS) : ''}
                 `}
 
                 <details class="tm-mascot-danger-details">
@@ -13496,6 +13538,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             updateModalStats();
         });
 
+        if (typeof wireMascotPlayCareHandlers === 'function') {
+            wireMascotPlayCareHandlers(modal, config, STORAGE_KEYS, { closeModal });
+        }
+
         // Lights button
         modal.querySelector('#tm-action-lights')?.addEventListener('click', () => {
             if (tamagotchiIsDead) {
@@ -13749,10 +13795,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     const openCareFromClick = (e) => {
         if (e?.target?.closest?.('button')) return;
         if (Date.now() < mascotSuppressClickUntil) return;
+        if (typeof handleMascotPlayPrimaryClick === 'function' && handleMascotPlayPrimaryClick(config, STORAGE_KEYS, e)) {
+            return;
+        }
         showMascotStatsModal(config, STORAGE_KEYS);
         if (!tamagotchiIsDead && tamagotchiStage !== 'egg' && !isMascotFocusQuiet()) {
             const greetingMessages = MASCOT_MESSAGES.greeting;
-            showMascotBubble(greetingMessages[Math.floor(Math.random() * greetingMessages.length)], 2000);
+            const raw = greetingMessages[Math.floor(Math.random() * greetingMessages.length)];
+            showMascotBubble(raw, 2000);
         }
     };
 
@@ -13785,7 +13835,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             mascotClickOpenTimer = null;
         }
         mascotSuppressClickUntil = Date.now() + 400;
-        playMascotTrick(config, STORAGE_KEYS);
+        if (typeof playMascotTrickEnhanced === 'function') {
+            playMascotTrickEnhanced(config, STORAGE_KEYS);
+        } else {
+            playMascotTrick(config, STORAGE_KEYS);
+        }
     });
 
     // Drag to park
@@ -14183,6 +14237,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         stopRoaming(config);
     }
     syncMascotInteractionClasses(container);
+    if (typeof initMascotPlaySystems === 'function') {
+        initMascotPlaySystems(config, STORAGE_KEYS);
+    }
     
     // Update lights button appearance on initialization (delayed to ensure DOM is ready)
     setTimeout(() => {

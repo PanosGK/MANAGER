@@ -4154,6 +4154,228 @@
             #tm-mascot-container.mascot-focus-quiet #tm-mascot-speech-bubble {
                 display: none !important;
             }
+            #tm-mascot-container.mascot-hiding {
+                opacity: 0.42;
+                filter: blur(0.4px) brightness(0.85);
+                z-index: 40;
+                transition: opacity 0.35s ease, filter 0.35s ease;
+            }
+            #tm-mascot-container.mascot-hiding.mascot-hide-hint {
+                opacity: 0.62;
+                animation: tm-mascot-hide-peek 1.2s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-hide-found .tm-mascot-robot {
+                animation: tm-mascot-happy-dance 0.8s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-chasing .tm-mascot-robot {
+                animation: tm-mascot-chase-wiggle 0.35s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-chase-tired {
+                opacity: 0.75;
+                filter: grayscale(0.25);
+            }
+            #tm-mascot-container.mascot-spin .tm-mascot-robot {
+                animation: tm-mascot-trick-spin 0.7s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-bow .tm-mascot-robot {
+                animation: tm-mascot-trick-bow 1.1s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-firebreath .tm-mascot-robot {
+                animation: tm-mascot-trick-fire 0.55s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-firebreath::before {
+                content: '';
+                position: absolute;
+                left: 50%;
+                top: 42%;
+                width: 28px;
+                height: 18px;
+                margin-left: 10px;
+                border-radius: 40% 60% 50% 50%;
+                background: radial-gradient(circle at 20% 50%, #fff59d, #ff6d00 55%, transparent 70%);
+                opacity: 0.85;
+                pointer-events: none;
+                animation: tm-mascot-fire-plume 0.45s ease-out infinite;
+                z-index: 2;
+            }
+            #tm-mascot-container.mascot-jetpack-boost #jetpack .tm-mascot-thruster-left,
+            #tm-mascot-container.mascot-jetpack-boost #jetpack .tm-mascot-thruster-right {
+                animation: tm-mascot-jetpack-flame 0.15s linear infinite !important;
+                filter: brightness(1.4);
+            }
+            #tm-mascot-container #jetpack.tm-accessory-equipped,
+            #tm-mascot-container #bubble_wand.tm-accessory-equipped {
+                cursor: pointer;
+                pointer-events: auto;
+            }
+            @keyframes tm-mascot-hide-peek {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-4px); }
+            }
+            @keyframes tm-mascot-chase-wiggle {
+                0%, 100% { transform: rotate(-4deg) scale(1.02); }
+                50% { transform: rotate(4deg) scale(1.05); }
+            }
+            @keyframes tm-mascot-trick-spin {
+                from { transform: rotate(0deg) scale(1.05); }
+                to { transform: rotate(360deg) scale(1.05); }
+            }
+            @keyframes tm-mascot-trick-bow {
+                0%, 100% { transform: rotate(0deg) translateY(0); }
+                40% { transform: rotate(18deg) translateY(6px); }
+                55% { transform: rotate(18deg) translateY(6px); }
+            }
+            @keyframes tm-mascot-trick-fire {
+                0%, 100% { transform: scale(1) translateX(0); }
+                50% { transform: scale(1.08) translateX(3px); }
+            }
+            @keyframes tm-mascot-fire-plume {
+                0% { opacity: 0.2; transform: scaleX(0.4) translateX(0); }
+                50% { opacity: 0.95; transform: scaleX(1.2) translateX(8px); }
+                100% { opacity: 0.15; transform: scaleX(0.6) translateX(14px); }
+            }
+
+            /* Mascot play overlay + mini-games */
+            #tm-mascot-play-overlay {
+                position: fixed; inset: 0; z-index: 100200;
+                display: flex; align-items: center; justify-content: center;
+            }
+            #tm-mascot-play-overlay .tm-mascot-play-backdrop {
+                position: absolute; inset: 0;
+                background: rgba(15, 23, 42, 0.5);
+                backdrop-filter: blur(4px);
+            }
+            #tm-mascot-play-overlay .tm-mascot-play-card {
+                position: relative;
+                width: min(420px, 94vw);
+                max-height: 90vh;
+                overflow: auto;
+                background: var(--tm-modal-bg, #fff);
+                color: var(--tm-shop-item-text, #1e293b);
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                border-radius: 16px;
+                box-shadow: 0 18px 40px rgba(0,0,0,0.25);
+                padding: 16px 16px 14px;
+            }
+            #tm-mascot-play-overlay .tm-mascot-play-head {
+                display: flex; justify-content: space-between; gap: 10px; align-items: flex-start;
+                margin-bottom: 12px;
+            }
+            #tm-mascot-play-overlay .tm-mascot-play-title { margin: 0; font-size: 1.1rem; }
+            #tm-mascot-play-overlay .tm-mascot-play-sub { margin: 4px 0 0; font-size: 12px; opacity: 0.75; }
+            #tm-mascot-play-overlay .tm-mascot-play-close {
+                border: none; background: var(--tm-shop-item-bg, #f1f5f9); border-radius: 10px;
+                width: 32px; height: 32px; cursor: pointer; font-size: 18px;
+            }
+            #tm-mascot-play-overlay .tm-mascot-play-result { margin: 0 0 8px; font-weight: 600; }
+            #tm-mascot-play-overlay .tm-mascot-play-done,
+            #tm-mascot-play-overlay .tm-scramble-check,
+            #tm-mascot-play-overlay .tm-rhythm-pad {
+                border: 1px solid var(--tm-primary-color, #007bff);
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 12%, transparent);
+                color: var(--tm-primary-color, #007bff);
+                border-radius: 12px; padding: 10px 14px; cursor: pointer; font-weight: 700;
+            }
+            .tm-rhythm-stage { text-align: center; }
+            .tm-rhythm-mascot { font-size: 42px; margin: 8px 0 4px; display: inline-block; }
+            .tm-rhythm-mascot.beat { animation: tm-rhythm-flap 0.28s ease-out; }
+            @keyframes tm-rhythm-flap {
+                0% { transform: scale(1) rotate(0); }
+                40% { transform: scale(1.2) rotate(-12deg); }
+                100% { transform: scale(1) rotate(0); }
+            }
+            .tm-rhythm-hit { font-size: 18px; font-weight: 700; min-height: 28px; margin-bottom: 8px; }
+            .tm-rhythm-hit.good { color: #16a34a; }
+            .tm-rhythm-hit.ok { color: #ca8a04; }
+            .tm-rhythm-hit.miss { color: #dc2626; }
+            .tm-rhythm-stats { display: flex; justify-content: center; gap: 14px; font-size: 12px; margin-bottom: 12px; }
+            .tm-rhythm-pad { width: 100%; font-size: 1.2rem; padding: 18px !important; }
+            .tm-rhythm-pad.good { background: #16a34a !important; color: #fff !important; border-color: #16a34a !important; }
+            .tm-rhythm-pad.miss { background: #dc2626 !important; color: #fff !important; border-color: #dc2626 !important; }
+            .tm-shadow-silhouette {
+                width: 100px; height: 100px; margin: 0 auto 10px;
+                background: #0f172a;
+                border-radius: 16px;
+                filter: contrast(2);
+                box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08);
+                position: relative;
+                overflow: hidden;
+            }
+            .tm-shadow-silhouette::after {
+                content: attr(data-char);
+                position: absolute; inset: 0;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 48px; filter: brightness(0);
+                opacity: 0.95;
+            }
+            .tm-shadow-silhouette[data-char="dragon"]::after { content: '🐉'; }
+            .tm-shadow-silhouette[data-char="robot"]::after { content: '🤖'; }
+            .tm-shadow-silhouette[data-char="slime"]::after { content: '🟢'; }
+            .tm-shadow-silhouette[data-char="plant"]::after { content: '🌱'; }
+            .tm-shadow-silhouette[data-char="ghost"]::after { content: '👻'; }
+            .tm-shadow-silhouette[data-char="cat"]::after { content: '🐱'; }
+            .tm-shadow-silhouette[data-char="phoenix"]::after { content: '🔥'; }
+            .tm-shadow-silhouette[data-char="crystal"]::after { content: '💎'; }
+            .tm-shadow-options { display: grid; gap: 8px; }
+            .tm-shadow-opt {
+                display: flex; align-items: center; gap: 10px;
+                padding: 10px 12px; border-radius: 12px; cursor: pointer;
+                border: 1px solid var(--tm-shop-item-border, #cbd5e1);
+                background: var(--tm-shop-item-bg, #f8fafc);
+            }
+            .tm-shadow-opt.correct { border-color: #16a34a; background: #dcfce7; }
+            .tm-shadow-opt.wrong { border-color: #dc2626; background: #fee2e2; }
+            .tm-shadow-emoji { font-size: 22px; }
+            .tm-scramble-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
+            .tm-scramble-ticket {
+                display: grid; grid-template-columns: auto 1fr auto auto; gap: 8px; align-items: center;
+                padding: 10px; border-radius: 12px; border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                background: var(--tm-shop-item-bg, #fff);
+            }
+            .tm-scramble-status { color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 999px; }
+            .tm-scramble-moves button {
+                width: 28px; height: 28px; border-radius: 8px; border: 1px solid #cbd5e1; cursor: pointer; background: #f8fafc;
+            }
+            .tm-scramble-check { width: 100%; }
+            .tm-mascot-bubble-toy-layer {
+                position: fixed; inset: 0; z-index: 100100; pointer-events: none;
+            }
+            .tm-mascot-toy-bubble {
+                position: fixed; width: 28px; height: 28px; border-radius: 50%;
+                border: 2px solid rgba(125, 211, 252, 0.9);
+                background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.85), rgba(125,211,252,0.35));
+                pointer-events: auto; cursor: pointer;
+                animation: tm-toy-bubble-float var(--tm-bubble-dur, 3s) ease-out forwards;
+            }
+            .tm-mascot-toy-bubble.popped {
+                animation: tm-toy-bubble-pop 0.25s ease-out forwards;
+            }
+            @keyframes tm-toy-bubble-float {
+                to { transform: translate(var(--tm-bubble-dx, 40px), -160px); opacity: 0.15; }
+            }
+            @keyframes tm-toy-bubble-pop {
+                to { transform: scale(1.6); opacity: 0; }
+            }
+            #tm-mascot-stats-modal .tm-mascot-nickname-row {
+                display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+                margin: 0 0 12px; padding: 8px 10px;
+                border-radius: 12px;
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 6%, transparent);
+            }
+            #tm-mascot-stats-modal .tm-mascot-nickname-row label { font-size: 12px; font-weight: 600; }
+            #tm-mascot-stats-modal .tm-mascot-nickname-input {
+                flex: 1; min-width: 120px; padding: 8px 10px; border-radius: 10px;
+                border: 1px solid var(--tm-shop-item-border, #cbd5e1);
+                background: var(--tm-input-bg, #fff);
+            }
+            #tm-mascot-stats-modal .tm-actions-subtitle {
+                margin: 10px 0 8px; font-size: 12px; font-weight: 700;
+                text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.7;
+            }
+            #tm-mascot-stats-modal .tm-trick-unlocked {
+                border-color: color-mix(in srgb, #16a34a 45%, transparent);
+                background: color-mix(in srgb, #16a34a 10%, transparent);
+            }
             /* ...but the robot and its panel inside are. */
             #tm-mascot-container > svg {
                 pointer-events: auto;
