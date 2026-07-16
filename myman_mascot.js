@@ -1195,16 +1195,24 @@ function ensureMascotExecutionStyles() {
         }
         .tm-exec-gun-wrap {
             position: absolute;
-            right: 8%;
-            bottom: 36px;
-            width: 168px;
-            height: 88px;
+            right: 2%;
+            bottom: 28px;
+            width: 240px;
+            height: 100px;
             z-index: 3;
-            transform: translate3d(120%, 8px, 0) rotate(-6deg);
+            transform: translate3d(120%, 8px, 0) rotate(-4deg);
             opacity: 0;
-            transform-origin: 85% 70%;
+            transform-origin: 88% 65%;
             will-change: transform, opacity;
             filter: drop-shadow(0 8px 14px rgba(0,0,0,0.45));
+        }
+        /* Locked resting poses — survive after animations end */
+        .tm-exec-gun-wrap.on-stage {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) rotate(-2deg);
+        }
+        .tm-exec-gun-wrap.on-stage.aimed {
+            transform: translate3d(-18px, -2px, 0) rotate(-8deg);
         }
         .tm-exec-gun-wrap.enter {
             animation: tm-exec-gun-enter 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -1213,15 +1221,15 @@ function ensureMascotExecutionStyles() {
             animation: tm-exec-gun-aim 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
         .tm-exec-gun-wrap.recoil {
-            animation: tm-exec-gun-recoil 0.42s cubic-bezier(0.22, 0.61, 0.36, 1);
+            animation: tm-exec-gun-recoil 0.12s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
         }
         .tm-exec-gun { width: 100%; height: 100%; display: block; }
         .tm-exec-muzzle {
             position: absolute;
-            left: -6px;
-            top: 24px;
-            width: 56px;
-            height: 56px;
+            left: -4px;
+            top: 18px;
+            width: 64px;
+            height: 64px;
             pointer-events: none;
             opacity: 0;
         }
@@ -1244,8 +1252,8 @@ function ensureMascotExecutionStyles() {
         }
         .tm-exec-tracer {
             position: absolute;
-            left: 34%;
-            bottom: 72px;
+            left: 28%;
+            bottom: 68px;
             width: 0;
             height: 2px;
             border-radius: 2px;
@@ -1257,7 +1265,26 @@ function ensureMascotExecutionStyles() {
             pointer-events: none;
         }
         .tm-exec-tracer.fly {
-            animation: tm-exec-tracer-fly 0.14s linear forwards;
+            animation: tm-exec-tracer-fly 0.11s linear forwards;
+        }
+        .tm-exec-casings {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+        .tm-exec-casing {
+            position: absolute;
+            right: 22%;
+            bottom: 58px;
+            width: 10px;
+            height: 4px;
+            border-radius: 1px;
+            background: linear-gradient(180deg, #d4a84b, #8a6a28);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+            opacity: 0;
+            animation: tm-exec-casing-eject 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
         }
         .tm-exec-hitmark {
             position: absolute;
@@ -1343,6 +1370,106 @@ function ensureMascotExecutionStyles() {
         .tm-exec-status.is-critical {
             color: rgba(255, 170, 170, 0.95);
         }
+        /* Full-screen blood splat layer */
+        .tm-exec-blood-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .tm-exec-blood-flash {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 32% 48%, rgba(140, 0, 10, 0.55) 0%, rgba(80, 0, 0, 0.2) 35%, transparent 70%);
+            opacity: 0;
+        }
+        .tm-exec-blood-flash.show {
+            animation: tm-exec-blood-flash 0.55s ease-out forwards;
+        }
+        .tm-exec-blood-splat {
+            position: absolute;
+            border-radius: 50% 40% 55% 45%;
+            background: radial-gradient(circle at 35% 30%, #c4121a 0%, #8b0008 55%, #4a0004 100%);
+            box-shadow:
+                inset -2px -3px 6px rgba(0,0,0,0.35),
+                0 0 0 1px rgba(60,0,0,0.25);
+            opacity: 0;
+            transform: scale(0.15) rotate(var(--rot, 0deg));
+            will-change: transform, opacity;
+            animation: tm-exec-splat-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation-delay: var(--delay, 0ms);
+        }
+        .tm-exec-blood-splat::before,
+        .tm-exec-blood-splat::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            background: inherit;
+            opacity: 0.9;
+        }
+        .tm-exec-blood-splat::before {
+            width: 42%;
+            height: 38%;
+            top: -18%;
+            left: 55%;
+            transform: rotate(25deg);
+        }
+        .tm-exec-blood-splat::after {
+            width: 28%;
+            height: 32%;
+            bottom: -12%;
+            left: 10%;
+            transform: rotate(-30deg);
+        }
+        .tm-exec-blood-splat.is-drip {
+            border-radius: 40% 40% 60% 60% / 20% 20% 80% 80%;
+            animation: tm-exec-splat-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+                       tm-exec-drip 1.4s ease-in var(--delay, 0ms) forwards;
+        }
+        .tm-exec-blood-splat.is-streak {
+            border-radius: 60% 20% 60% 20%;
+            filter: blur(0.3px);
+            animation: tm-exec-streak 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+            animation-delay: var(--delay, 0ms);
+        }
+        .tm-exec-blood-mist {
+            position: absolute;
+            inset: -10%;
+            background:
+                radial-gradient(ellipse 40% 30% at 30% 45%, rgba(120, 0, 8, 0.45) 0%, transparent 70%),
+                radial-gradient(ellipse 35% 28% at 70% 30%, rgba(90, 0, 5, 0.35) 0%, transparent 65%),
+                radial-gradient(ellipse 50% 40% at 55% 70%, rgba(70, 0, 4, 0.3) 0%, transparent 70%);
+            opacity: 0;
+            mix-blend-mode: multiply;
+        }
+        .tm-exec-blood-mist.show {
+            animation: tm-exec-blood-mist 1.2s ease-out forwards;
+        }
+        @keyframes tm-exec-blood-flash {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            100% { opacity: 0.35; }
+        }
+        @keyframes tm-exec-splat-in {
+            0% { opacity: 0; transform: scale(0.1) rotate(var(--rot, 0deg)); }
+            55% { opacity: 1; transform: scale(1.08) rotate(var(--rot, 0deg)); }
+            100% { opacity: 0.92; transform: scale(1) rotate(var(--rot, 0deg)); }
+        }
+        @keyframes tm-exec-drip {
+            0% { height: var(--h, 24px); }
+            100% { height: calc(var(--h, 24px) + var(--drip, 40px)); }
+        }
+        @keyframes tm-exec-streak {
+            0% { opacity: 0; transform: scaleX(0.2) scaleY(0.4) rotate(var(--rot, 0deg)); }
+            40% { opacity: 1; }
+            100% { opacity: 0.88; transform: scaleX(1) scaleY(1) rotate(var(--rot, 0deg)); }
+        }
+        @keyframes tm-exec-blood-mist {
+            0% { opacity: 0; transform: scale(0.92); }
+            40% { opacity: 0.85; }
+            100% { opacity: 0.55; transform: scale(1); }
+        }
         @keyframes tm-exec-panel-in {
             from { opacity: 0; transform: translateY(12px) scale(0.98); }
             to { opacity: 1; transform: translateY(0) scale(1); }
@@ -1357,29 +1484,32 @@ function ensureMascotExecutionStyles() {
             75% { transform: translateX(1.5px) scale(1.01); }
         }
         @keyframes tm-exec-gun-enter {
-            0% { transform: translate3d(120%, 8px, 0) rotate(-6deg); opacity: 0; }
+            0% { transform: translate3d(120%, 8px, 0) rotate(-4deg); opacity: 0; }
             60% { opacity: 1; }
-            100% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
+            100% { transform: translate3d(0, 0, 0) rotate(-2deg); opacity: 1; }
         }
         @keyframes tm-exec-gun-aim {
-            0% { transform: translate3d(0, 0, 0) rotate(0deg); }
-            100% { transform: translate3d(-22px, -4px, 0) rotate(-10deg); }
+            0% { transform: translate3d(0, 0, 0) rotate(-2deg); }
+            100% { transform: translate3d(-18px, -2px, 0) rotate(-8deg); }
         }
         @keyframes tm-exec-gun-recoil {
-            0% { transform: translate3d(-22px, -4px, 0) rotate(-10deg); }
-            18% { transform: translate3d(14px, 2px, 0) rotate(4deg); }
-            55% { transform: translate3d(-18px, -6px, 0) rotate(-12deg); }
-            100% { transform: translate3d(-22px, -4px, 0) rotate(-10deg); }
+            0% { transform: translate3d(-18px, -2px, 0) rotate(-8deg); }
+            35% { transform: translate3d(10px, 3px, 0) rotate(2deg); }
+            100% { transform: translate3d(-18px, -2px, 0) rotate(-8deg); }
         }
         @keyframes tm-exec-muzzle-flash {
             0% { opacity: 0; transform: scale(0.4) rotate(0deg); }
-            20% { opacity: 1; transform: scale(1.25) rotate(18deg); }
-            100% { opacity: 0; transform: scale(0.8) rotate(40deg); }
+            25% { opacity: 1; transform: scale(1.35) rotate(12deg); }
+            100% { opacity: 0; transform: scale(0.75) rotate(28deg); }
         }
         @keyframes tm-exec-tracer-fly {
-            0% { width: 0; opacity: 0; transform: translateX(110px); }
-            15% { opacity: 1; }
-            100% { width: 140px; opacity: 0; transform: translateX(-20px); }
+            0% { width: 0; opacity: 0; transform: translateX(130px); }
+            20% { opacity: 1; }
+            100% { width: 160px; opacity: 0; transform: translateX(-30px); }
+        }
+        @keyframes tm-exec-casing-eject {
+            0% { opacity: 1; transform: translate(0, 0) rotate(0deg); }
+            100% { opacity: 0; transform: translate(48px, -56px) rotate(420deg); }
         }
         @keyframes tm-exec-hitmark {
             0% { opacity: 1; transform: scale(0.4); }
@@ -1473,8 +1603,107 @@ function getMascotExecutionEmoji() {
     return stageEmoji[tamagotchiStage] || '🤖';
 }
 
+/** Spray blood splats across the execution overlay. */
+function spawnExecutionBloodSplats(layer, originX = 32, originY = 48, options = {}) {
+    if (!layer) return;
+    const { count = 42, withFlash = true, withMist = true, edgeSmears = 8 } = options;
+
+    if (withFlash) {
+        const flash = document.createElement('div');
+        flash.className = 'tm-exec-blood-flash';
+        layer.appendChild(flash);
+        requestAnimationFrame(() => flash.classList.add('show'));
+    }
+
+    if (withMist) {
+        const mist = document.createElement('div');
+        mist.className = 'tm-exec-blood-mist';
+        layer.appendChild(mist);
+        requestAnimationFrame(() => mist.classList.add('show'));
+    }
+
+    for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        const roll = Math.random();
+        const isDrip = roll > 0.72;
+        const isStreak = !isDrip && roll > 0.48;
+        el.className = `tm-exec-blood-splat${isDrip ? ' is-drip' : ''}${isStreak ? ' is-streak' : ''}`;
+
+        const spread = Math.random();
+        let left;
+        let top;
+        if (spread < 0.45) {
+            left = originX + (Math.random() - 0.5) * 55;
+            top = originY + (Math.random() - 0.5) * 50;
+        } else {
+            left = Math.random() * 100;
+            top = Math.random() * 100;
+        }
+        left = Math.max(-5, Math.min(105, left));
+        top = Math.max(-5, Math.min(105, top));
+
+        const size = isStreak
+            ? 18 + Math.random() * 70
+            : isDrip
+                ? 10 + Math.random() * 28
+                : 14 + Math.random() * 90;
+        const height = isStreak
+            ? 6 + Math.random() * 18
+            : isDrip
+                ? size * (1.4 + Math.random())
+                : size * (0.65 + Math.random() * 0.55);
+
+        el.style.left = `${left}%`;
+        el.style.top = `${top}%`;
+        el.style.width = `${size}px`;
+        el.style.height = `${height}px`;
+        el.style.setProperty('--rot', `${Math.floor(Math.random() * 360)}deg`);
+        el.style.setProperty('--delay', `${Math.floor(Math.random() * 120)}ms`);
+        el.style.setProperty('--h', `${height}px`);
+        el.style.setProperty('--drip', `${20 + Math.random() * 70}px`);
+        if (Math.random() > 0.55) {
+            el.style.background = `radial-gradient(circle at 40% 30%, #e01822 0%, #9a050c 50%, #3d0003 100%)`;
+        }
+        layer.appendChild(el);
+    }
+
+    for (let i = 0; i < edgeSmears; i++) {
+        const smear = document.createElement('div');
+        smear.className = 'tm-exec-blood-splat';
+        const edge = i % 4;
+        const size = 80 + Math.random() * 140;
+        smear.style.width = `${size}px`;
+        smear.style.height = `${size * (0.5 + Math.random() * 0.6)}px`;
+        smear.style.setProperty('--rot', `${Math.floor(Math.random() * 360)}deg`);
+        smear.style.setProperty('--delay', `${40 + i * 20}ms`);
+        if (edge === 0) { smear.style.left = `${Math.random() * 90}%`; smear.style.top = `-4%`; }
+        if (edge === 1) { smear.style.left = `${Math.random() * 90}%`; smear.style.top = `${88 + Math.random() * 12}%`; }
+        if (edge === 2) { smear.style.left = `-4%`; smear.style.top = `${Math.random() * 90}%`; }
+        if (edge === 3) { smear.style.left = `${88 + Math.random() * 12}%`; smear.style.top = `${Math.random() * 90}%`; }
+        layer.appendChild(smear);
+    }
+}
+
+function retriggerCssAnimation(el, className) {
+    if (!el) return;
+    el.classList.remove(className);
+    // Force reflow so the animation can restart
+    void el.offsetWidth;
+    el.classList.add(className);
+}
+
+function ejectExecutionCasing(container) {
+    if (!container) return;
+    const casing = document.createElement('div');
+    casing.className = 'tm-exec-casing';
+    casing.style.right = `${18 + Math.random() * 8}%`;
+    casing.style.bottom = `${52 + Math.random() * 10}px`;
+    container.appendChild(casing);
+    casing.addEventListener('animationend', () => casing.remove(), { once: true });
+}
+
 /**
- * Cinematic gun execution before egg reset.
+ * Cinematic AK-47 execution before egg reset.
  * @returns {Promise<void>}
  */
 function showMascotExecutionCinematic() {
@@ -1495,6 +1724,7 @@ function showMascotExecutionCinematic() {
     overlay.id = 'tm-tama-execution-panel';
     overlay.className = 'tm-tama-cinematic-overlay';
     overlay.innerHTML = `
+        <div class="tm-exec-blood-layer" id="tm-exec-blood" aria-hidden="true"></div>
         <div class="tm-exec-panel">
             <div class="tm-exec-letterbox tm-exec-letterbox--top"></div>
             <div class="tm-exec-letterbox tm-exec-letterbox--bot"></div>
@@ -1508,37 +1738,63 @@ function showMascotExecutionCinematic() {
                     <span class="tm-exec-victim-emoji">${emoji}</span>
                 </div>
                 <div class="tm-exec-gun-wrap" id="tm-exec-gun">
-                    <svg class="tm-exec-gun" viewBox="0 0 170 90" aria-hidden="true">
+                    <svg class="tm-exec-gun" viewBox="0 0 260 110" aria-hidden="true">
                         <defs>
-                            <linearGradient id="tm-gun-metal" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#e8ecf0"/>
-                                <stop offset="40%" stop-color="#9aa3ae"/>
-                                <stop offset="100%" stop-color="#3d4450"/>
+                            <linearGradient id="tm-ak-metal" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#6a727c"/>
+                                <stop offset="50%" stop-color="#3a424c"/>
+                                <stop offset="100%" stop-color="#1c2228"/>
                             </linearGradient>
-                            <linearGradient id="tm-gun-grip" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#7a4a36"/>
-                                <stop offset="100%" stop-color="#2e1710"/>
+                            <linearGradient id="tm-ak-wood" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#a0673a"/>
+                                <stop offset="55%" stop-color="#6b3d22"/>
+                                <stop offset="100%" stop-color="#3a1f12"/>
                             </linearGradient>
-                            <linearGradient id="tm-gun-barrel" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#c5ccd4"/>
-                                <stop offset="100%" stop-color="#5a6270"/>
+                            <linearGradient id="tm-ak-mag" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#4a525c"/>
+                                <stop offset="100%" stop-color="#1a1e24"/>
                             </linearGradient>
                         </defs>
-                        <ellipse cx="126" cy="36" rx="26" ry="24" fill="url(#tm-gun-metal)" stroke="#1c2026" stroke-width="1.5"/>
-                        <circle cx="126" cy="36" r="14" fill="none" stroke="#2a3038" stroke-width="3"/>
-                        <circle cx="126" cy="36" r="8" fill="#14171c" stroke="#666" stroke-width="1"/>
-                        <circle cx="126" cy="36" r="2.5" fill="#aaa"/>
-                        <rect x="20" y="27" width="90" height="16" rx="3" fill="url(#tm-gun-barrel)" stroke="#1c2026" stroke-width="1.5"/>
-                        <rect x="20" y="30" width="90" height="3" fill="rgba(255,255,255,0.18)"/>
-                        <rect x="6" y="29" width="18" height="12" rx="2" fill="#2e343c" stroke="#111" stroke-width="1.2"/>
-                        <rect x="4" y="32" width="5" height="6" rx="1" fill="#111"/>
-                        <path d="M116 46 L128 76 L146 70 L136 46 Z" fill="url(#tm-gun-grip)" stroke="#1a100c" stroke-width="1.5"/>
-                        <path d="M122 52 L132 70" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
-                        <rect x="106" y="44" width="12" height="9" rx="1.5" fill="#4a515c" stroke="#1c2026" stroke-width="1"/>
-                        <rect x="70" y="21" width="9" height="7" rx="1" fill="#6a727c"/>
+                        <!-- Stock -->
+                        <path d="M208 34 L248 28 L255 42 L248 70 L214 62 L208 48 Z" fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.2"/>
+                        <path d="M214 38 L246 33" stroke="rgba(255,220,180,0.15)" stroke-width="2"/>
+                        <!-- Receiver -->
+                        <rect x="118" y="30" width="96" height="28" rx="2" fill="url(#tm-ak-metal)" stroke="#0e1216" stroke-width="1.2"/>
+                        <rect x="122" y="33" width="88" height="5" fill="rgba(255,255,255,0.1)"/>
+                        <!-- Dust cover ridge -->
+                        <rect x="130" y="26" width="70" height="6" rx="1" fill="#2e363e" stroke="#111" stroke-width="0.8"/>
+                        <!-- Pistol grip -->
+                        <path d="M168 56 L176 56 L184 92 L168 96 Z" fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.1"/>
+                        <!-- Trigger guard + trigger -->
+                        <path d="M158 56 h22 v10 h-8 v-4 h-6 v4 h-8 Z" fill="none" stroke="#222" stroke-width="1.6"/>
+                        <rect x="168" y="58" width="3" height="8" rx="1" fill="#111"/>
+                        <!-- Curved magazine (signature AK) -->
+                        <path d="M148 56 C146 72 142 88 150 100 C158 102 166 90 168 72 L168 56 Z"
+                              fill="url(#tm-ak-mag)" stroke="#0a0c10" stroke-width="1.3"/>
+                        <path d="M152 62 C151 76 149 88 154 96" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+                        <!-- Handguard -->
+                        <rect x="58" y="32" width="62" height="22" rx="2" fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.1"/>
+                        <path d="M64 38 H114 M64 44 H114 M64 50 H114" stroke="rgba(0,0,0,0.25)" stroke-width="1"/>
+                        <!-- Gas tube -->
+                        <rect x="52" y="24" width="78" height="7" rx="2" fill="#3a444e" stroke="#111" stroke-width="0.9"/>
+                        <!-- Rear sight -->
+                        <rect x="126" y="20" width="10" height="8" rx="1" fill="#2a3038"/>
+                        <!-- Front sight -->
+                        <rect x="28" y="18" width="5" height="12" rx="1" fill="#2a3038"/>
+                        <rect x="26" y="16" width="9" height="3" rx="1" fill="#3a424c"/>
+                        <!-- Barrel -->
+                        <rect x="8" y="34" width="52" height="8" rx="2" fill="url(#tm-ak-metal)" stroke="#0e1216" stroke-width="1"/>
+                        <rect x="8" y="36" width="52" height="2" fill="rgba(255,255,255,0.12)"/>
+                        <!-- Muzzle brake -->
+                        <rect x="2" y="32" width="10" height="12" rx="1" fill="#2a3038" stroke="#111" stroke-width="1"/>
+                        <rect x="3" y="34" width="3" height="8" fill="#111"/>
+                        <rect x="7" y="34" width="3" height="8" fill="#111"/>
+                        <!-- Slant cut tip -->
+                        <path d="M2 32 L0 38 L2 44" fill="#1a1e24"/>
                     </svg>
                     <div class="tm-exec-muzzle" id="tm-exec-muzzle"></div>
                 </div>
+                <div class="tm-exec-casings" id="tm-exec-casings"></div>
                 <div class="tm-exec-tracer" id="tm-exec-tracer"></div>
                 <div class="tm-exec-hitmark" id="tm-exec-hitmark"></div>
                 <div class="tm-exec-rings" id="tm-exec-rings"><span></span><span></span></div>
@@ -1558,8 +1814,10 @@ function showMascotExecutionCinematic() {
     const hitmark = overlay.querySelector('#tm-exec-hitmark');
     const rings = overlay.querySelector('#tm-exec-rings');
     const smoke = overlay.querySelector('#tm-exec-smoke');
+    const casings = overlay.querySelector('#tm-exec-casings');
     const status = overlay.querySelector('#tm-exec-status');
     const progress = overlay.querySelector('#tm-exec-progress');
+    const bloodLayer = overlay.querySelector('#tm-exec-blood');
 
     const stillValid = () => execGen === tamaCinematicGeneration
         && document.getElementById('tm-tama-execution-panel') === overlay;
@@ -1579,6 +1837,34 @@ function showMascotExecutionCinematic() {
         if (progress) progress.style.width = `${pct}%`;
     };
 
+    const fireAkShot = (shotIndex, totalShots) => {
+        if (!stillValid()) return;
+        playGunshotSound();
+        screenShake(shotIndex === 0 ? 320 : 160);
+        stage?.classList.add('flash', 'fired');
+        gun?.classList.add('on-stage', 'aimed');
+        retriggerCssAnimation(gun, 'recoil');
+        retriggerCssAnimation(muzzle, 'flash');
+        retriggerCssAnimation(tracer, 'fly');
+        ejectExecutionCasing(casings);
+        if (shotIndex === 0) {
+            hitmark?.classList.add('show');
+            rings?.classList.add('show');
+            victim?.classList.add('hit');
+            spawnExecutionBloodSplats(bloodLayer, 28, 46, { count: 36, withFlash: true, withMist: true, edgeSmears: 8 });
+            setStatus('Πυρά AK-47', true);
+        } else {
+            spawnExecutionBloodSplats(bloodLayer, 26 + Math.random() * 12, 40 + Math.random() * 16, {
+                count: 14,
+                withFlash: false,
+                withMist: false,
+                edgeSmears: 2,
+            });
+            setStatus(`Πυρά ${shotIndex + 1}/${totalShots}`, true);
+        }
+        setProgress(70 + Math.round(((shotIndex + 1) / totalShots) * 30));
+    };
+
     return new Promise((resolve) => {
         const finish = () => {
             if (!stillValid()) {
@@ -1594,15 +1880,21 @@ function showMascotExecutionCinematic() {
             }, 450);
         };
 
+        const BURST_COUNT = 7;
+        const BURST_GAP = 115;
+        const BURST_START = 3200;
+
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
             setProgress(18);
             gun?.classList.add('enter');
-            setStatus('Είσοδος');
+            setStatus('AK-47 · Είσοδος');
         }, 320);
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
+            gun?.classList.add('on-stage');
+            gun?.classList.remove('enter');
             setProgress(42);
             victim?.classList.add('scared');
             gun?.classList.add('aim');
@@ -1611,45 +1903,40 @@ function showMascotExecutionCinematic() {
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
+            gun?.classList.add('on-stage', 'aimed');
+            gun?.classList.remove('aim');
             setProgress(58);
             setStatus('03', true);
         }, 1750);
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
-            setProgress(72);
+            setProgress(66);
             setStatus('02', true);
         }, 2300);
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
-            setProgress(86);
+            setProgress(70);
             setStatus('01', true);
         }, 2850);
 
-        scheduleTamagotchiCinematic(() => {
-            if (!stillValid()) return;
-            setProgress(100);
-            playGunshotSound();
-            screenShake(280);
-            stage?.classList.add('flash', 'fired');
-            gun?.classList.add('recoil');
-            muzzle?.classList.add('flash');
-            tracer?.classList.add('fly');
-            hitmark?.classList.add('show');
-            rings?.classList.add('show');
-            victim?.classList.add('hit');
-            setStatus('Εκτελέστηκε', true);
-        }, 3400);
+        for (let i = 0; i < BURST_COUNT; i++) {
+            scheduleTamagotchiCinematic(() => fireAkShot(i, BURST_COUNT), BURST_START + i * BURST_GAP);
+        }
+
+        const afterBurst = BURST_START + BURST_COUNT * BURST_GAP;
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
+            gun?.classList.remove('recoil');
+            gun?.classList.add('on-stage', 'aimed');
             victim?.classList.add('dissolve');
             smoke?.classList.add('show');
             setStatus('Επαναφορά σε αυγό');
-        }, 3750);
+        }, afterBurst + 180);
 
-        scheduleTamagotchiCinematic(finish, 5100);
+        scheduleTamagotchiCinematic(finish, afterBurst + 1400);
     });
 }
 
