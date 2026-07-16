@@ -16675,7 +16675,7 @@ function ensureTamaCinematicStyles() {
 }
 
 function ensureMascotExecutionStyles() {
-    const STYLE_VER = 'inplace-v2';
+    const STYLE_VER = 'inplace-v3';
     const existing = document.getElementById('tm-tama-execution-styles');
     if (existing?.dataset.tmVer === STYLE_VER) return;
     existing?.remove();
@@ -16689,7 +16689,7 @@ function ensureMascotExecutionStyles() {
             inset: 0;
             z-index: 10000;
             pointer-events: none;
-            overflow: hidden;
+            overflow: visible;
         }
         .tm-exec-inplace-vignette {
             position: absolute;
@@ -16862,22 +16862,34 @@ function ensureMascotExecutionStyles() {
             animation: tm-exec-smoke 1.2s ease-out forwards;
         }
         .tm-exec-blood-layer {
-            position: fixed;
-            inset: 0;
+            position: fixed !important;
+            inset: 0 !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
             z-index: 6;
             pointer-events: none;
-            overflow: hidden;
-            left: 0;
-            top: 0;
-            width: 100vw;
-            height: 100vh;
-            border-radius: 0;
+            overflow: visible !important;
+            border-radius: 0 !important;
+        }
+        .tm-exec-blood-wash {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 90% 80% at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%),
+                    rgba(150, 0, 12, 0.58) 0%, rgba(80, 0, 6, 0.32) 42%, rgba(40, 0, 0, 0.2) 100%),
+                rgba(55, 0, 0, 0.28);
+            opacity: 0;
+        }
+        .tm-exec-blood-wash.show {
+            animation: tm-exec-blood-wash 0.65s ease-out forwards;
         }
         .tm-exec-blood-flash {
             position: absolute;
             inset: 0;
             background: radial-gradient(circle at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%),
-                rgba(160, 0, 12, 0.62) 0%, rgba(90, 0, 0, 0.28) 32%, transparent 72%);
+                rgba(210, 0, 18, 0.8) 0%, rgba(130, 0, 10, 0.45) 26%, rgba(70, 0, 0, 0.2) 52%, transparent 78%);
             opacity: 0;
         }
         .tm-exec-blood-flash.show {
@@ -16886,7 +16898,7 @@ function ensureMascotExecutionStyles() {
         .tm-exec-blood-splat {
             position: absolute;
             border-radius: 50% 40% 55% 45%;
-            background: radial-gradient(circle at 35% 30%, #c4121a 0%, #8b0008 55%, #4a0004 100%);
+            background: radial-gradient(circle at 35% 30%, #e01822 0%, #9a050c 50%, #3d0003 100%);
             box-shadow:
                 inset -2px -3px 6px rgba(0,0,0,0.35),
                 0 0 0 1px rgba(60,0,0,0.25);
@@ -16923,16 +16935,22 @@ function ensureMascotExecutionStyles() {
         }
         .tm-exec-blood-mist {
             position: absolute;
-            inset: -10%;
+            inset: -5%;
             background:
-                radial-gradient(ellipse 55% 45% at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%), rgba(120, 0, 8, 0.5) 0%, transparent 70%),
-                radial-gradient(ellipse 40% 35% at 20% 25%, rgba(90, 0, 5, 0.32) 0%, transparent 65%),
-                radial-gradient(ellipse 45% 40% at 80% 70%, rgba(70, 0, 4, 0.3) 0%, transparent 70%);
+                radial-gradient(ellipse 75% 65% at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%), rgba(140, 0, 12, 0.55) 0%, transparent 70%),
+                radial-gradient(ellipse 55% 50% at 12% 18%, rgba(110, 0, 8, 0.42) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 55% at 88% 78%, rgba(90, 0, 6, 0.4) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 45% at 72% 12%, rgba(100, 0, 7, 0.35) 0%, transparent 65%),
+                radial-gradient(ellipse 48% 42% at 22% 85%, rgba(80, 0, 5, 0.36) 0%, transparent 65%);
             opacity: 0;
-            mix-blend-mode: multiply;
         }
         .tm-exec-blood-mist.show {
             animation: tm-exec-blood-mist 1.2s ease-out forwards;
+        }
+        @keyframes tm-exec-blood-wash {
+            0% { opacity: 0; }
+            30% { opacity: 1; }
+            100% { opacity: 0.88; }
         }
         #tm-mascot-container.mascot-exec-scared .tm-mascot-robot {
             animation: tm-exec-tense 0.9s ease-in-out infinite !important;
@@ -16953,7 +16971,7 @@ function ensureMascotExecutionStyles() {
         @keyframes tm-exec-blood-flash {
             0% { opacity: 0; }
             20% { opacity: 1; }
-            100% { opacity: 0.35; }
+            100% { opacity: 0.55; }
         }
         @keyframes tm-exec-splat-in {
             0% { opacity: 0; transform: scale(0.1) rotate(var(--rot, 0deg)); }
@@ -16971,8 +16989,8 @@ function ensureMascotExecutionStyles() {
         }
         @keyframes tm-exec-blood-mist {
             0% { opacity: 0; transform: scale(0.92); }
-            40% { opacity: 0.85; }
-            100% { opacity: 0.55; transform: scale(1); }
+            40% { opacity: 0.95; }
+            100% { opacity: 0.75; transform: scale(1); }
         }
         @keyframes tm-exec-tense {
             0%, 100% { transform: translateX(0) scale(1); }
@@ -17094,10 +17112,27 @@ function getMascotExecutionEmoji() {
     return stageEmoji[tamagotchiStage] || '🤖';
 }
 
-/** Spray blood splats across the execution overlay. */
+/** Spray blood across the full viewport (origin is impact %; most splats cover the page). */
 function spawnExecutionBloodSplats(layer, originX = 32, originY = 48, options = {}) {
     if (!layer) return;
-    const { count = 42, withFlash = true, withMist = true, edgeSmears = 8 } = options;
+    const {
+        count = 70,
+        withFlash = true,
+        withMist = true,
+        withWash = true,
+        edgeSmears = 18,
+        fullscreen = true,
+    } = options;
+
+    const vw = Math.max(window.innerWidth, 320);
+    const vh = Math.max(window.innerHeight, 320);
+
+    if (withWash) {
+        const wash = document.createElement('div');
+        wash.className = 'tm-exec-blood-wash';
+        layer.appendChild(wash);
+        requestAnimationFrame(() => wash.classList.add('show'));
+    }
 
     if (withFlash) {
         const flash = document.createElement('div');
@@ -17116,43 +17151,45 @@ function spawnExecutionBloodSplats(layer, originX = 32, originY = 48, options = 
     for (let i = 0; i < count; i++) {
         const el = document.createElement('div');
         const roll = Math.random();
-        const isDrip = roll > 0.72;
-        const isStreak = !isDrip && roll > 0.48;
+        const isDrip = roll > 0.78;
+        const isStreak = !isDrip && roll > 0.55;
         el.className = `tm-exec-blood-splat${isDrip ? ' is-drip' : ''}${isStreak ? ' is-streak' : ''}`;
 
+        // ~20% near impact, ~80% scattered across the whole page
         const spread = Math.random();
         let left;
         let top;
-        if (spread < 0.45) {
-            left = originX + (Math.random() - 0.5) * 55;
-            top = originY + (Math.random() - 0.5) * 50;
+        if (!fullscreen || spread < 0.2) {
+            left = originX + (Math.random() - 0.5) * 28;
+            top = originY + (Math.random() - 0.5) * 24;
         } else {
             left = Math.random() * 100;
             top = Math.random() * 100;
         }
-        left = Math.max(-5, Math.min(105, left));
-        top = Math.max(-5, Math.min(105, top));
+        left = Math.max(-8, Math.min(108, left));
+        top = Math.max(-8, Math.min(108, top));
 
+        // Large enough to read on a full desktop viewport
         const size = isStreak
-            ? 18 + Math.random() * 70
+            ? Math.max(40, vw * (0.04 + Math.random() * 0.12))
             : isDrip
-                ? 10 + Math.random() * 28
-                : 14 + Math.random() * 90;
+                ? Math.max(24, vw * (0.02 + Math.random() * 0.05))
+                : Math.max(48, vw * (0.035 + Math.random() * 0.14));
         const height = isStreak
-            ? 6 + Math.random() * 18
+            ? Math.max(10, size * (0.12 + Math.random() * 0.25))
             : isDrip
-                ? size * (1.4 + Math.random())
-                : size * (0.65 + Math.random() * 0.55);
+                ? size * (1.5 + Math.random() * 1.2)
+                : size * (0.55 + Math.random() * 0.7);
 
         el.style.left = `${left}%`;
         el.style.top = `${top}%`;
         el.style.width = `${size}px`;
         el.style.height = `${height}px`;
         el.style.setProperty('--rot', `${Math.floor(Math.random() * 360)}deg`);
-        el.style.setProperty('--delay', `${Math.floor(Math.random() * 120)}ms`);
+        el.style.setProperty('--delay', `${Math.floor(Math.random() * 140)}ms`);
         el.style.setProperty('--h', `${height}px`);
-        el.style.setProperty('--drip', `${20 + Math.random() * 70}px`);
-        if (Math.random() > 0.55) {
+        el.style.setProperty('--drip', `${30 + Math.random() * Math.min(120, vh * 0.12)}px`);
+        if (Math.random() > 0.4) {
             el.style.background = `radial-gradient(circle at 40% 30%, #e01822 0%, #9a050c 50%, #3d0003 100%)`;
         }
         layer.appendChild(el);
@@ -17162,15 +17199,15 @@ function spawnExecutionBloodSplats(layer, originX = 32, originY = 48, options = 
         const smear = document.createElement('div');
         smear.className = 'tm-exec-blood-splat';
         const edge = i % 4;
-        const size = 80 + Math.random() * 140;
+        const size = Math.max(100, vw * (0.08 + Math.random() * 0.18));
         smear.style.width = `${size}px`;
-        smear.style.height = `${size * (0.5 + Math.random() * 0.6)}px`;
+        smear.style.height = `${size * (0.45 + Math.random() * 0.7)}px`;
         smear.style.setProperty('--rot', `${Math.floor(Math.random() * 360)}deg`);
-        smear.style.setProperty('--delay', `${40 + i * 20}ms`);
-        if (edge === 0) { smear.style.left = `${Math.random() * 90}%`; smear.style.top = `-4%`; }
-        if (edge === 1) { smear.style.left = `${Math.random() * 90}%`; smear.style.top = `${88 + Math.random() * 12}%`; }
-        if (edge === 2) { smear.style.left = `-4%`; smear.style.top = `${Math.random() * 90}%`; }
-        if (edge === 3) { smear.style.left = `${88 + Math.random() * 12}%`; smear.style.top = `${Math.random() * 90}%`; }
+        smear.style.setProperty('--delay', `${30 + i * 18}ms`);
+        if (edge === 0) { smear.style.left = `${Math.random() * 90}%`; smear.style.top = `-6%`; }
+        if (edge === 1) { smear.style.left = `${Math.random() * 90}%`; smear.style.top = `${86 + Math.random() * 16}%`; }
+        if (edge === 2) { smear.style.left = `-6%`; smear.style.top = `${Math.random() * 90}%`; }
+        if (edge === 3) { smear.style.left = `${86 + Math.random() * 16}%`; smear.style.top = `${Math.random() * 90}%`; }
         layer.appendChild(smear);
     }
 }
@@ -17337,21 +17374,25 @@ function showMascotExecutionCinematic() {
             rings?.classList.add('show');
             mascot.classList.add('mascot-exec-hit');
             spawnExecutionBloodSplats(bloodLayer, bloodOriginX, bloodOriginY, {
-                count: 52,
+                count: 80,
                 withFlash: true,
                 withMist: true,
-                edgeSmears: 14,
+                withWash: true,
+                edgeSmears: 22,
+                fullscreen: true,
             });
         } else {
             spawnExecutionBloodSplats(
                 bloodLayer,
-                bloodOriginX + (Math.random() - 0.5) * 18,
-                bloodOriginY + (Math.random() - 0.5) * 14,
+                bloodOriginX + (Math.random() - 0.5) * 20,
+                bloodOriginY + (Math.random() - 0.5) * 16,
                 {
-                    count: 22,
+                    count: 36,
                     withFlash: false,
-                    withMist: shotIndex === 2,
-                    edgeSmears: 4,
+                    withMist: false,
+                    withWash: shotIndex === 1,
+                    edgeSmears: 8,
+                    fullscreen: true,
                 },
             );
         }
