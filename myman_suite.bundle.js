@@ -16240,9 +16240,10 @@ function cancelTamagotchiCinematics() {
     document.getElementById('tm-tama-hatch-panel')?.remove();
     document.getElementById('tm-tama-lucky-panel')?.remove();
     document.getElementById('tm-tama-death-cinematic')?.remove();
+    document.getElementById('tm-tama-execution-panel')?.remove();
 
     const mascotContainer = document.getElementById('tm-mascot-container');
-    mascotContainer?.classList.remove('mascot-hatching', 'mascot-dying');
+    mascotContainer?.classList.remove('mascot-hatching', 'mascot-dying', 'mascot-executed');
 }
 
 function ensureTamaCinematicStyles() {
@@ -16562,6 +16563,454 @@ function ensureTamaCinematicStyles() {
         }
     `;
     document.head.appendChild(style);
+}
+
+function ensureMascotExecutionStyles() {
+    if (document.getElementById('tm-tama-execution-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'tm-tama-execution-styles';
+    style.textContent = `
+        #tm-tama-execution-panel.tm-tama-cinematic-overlay {
+            background: radial-gradient(ellipse at center, rgba(40, 8, 8, 0.94) 0%, rgba(0, 0, 0, 0.98) 75%);
+        }
+        .tm-exec-panel {
+            width: min(94vw, 560px);
+            background: linear-gradient(180deg, #2a1218 0%, #12080c 100%);
+            border: 3px solid #8b3a3a;
+            border-radius: 18px;
+            box-shadow: 0 0 0 2px #3a1010, 0 24px 70px rgba(0,0,0,0.65), inset 0 0 40px rgba(255, 60, 60, 0.08);
+            padding: 24px 20px 22px;
+            text-align: center;
+            color: #f5d0d0;
+            position: relative;
+            overflow: hidden;
+        }
+        .tm-exec-panel::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border: 1px dashed rgba(255, 120, 120, 0.22);
+            border-radius: 12px;
+            pointer-events: none;
+        }
+        .tm-exec-title { color: #ffb4b4 !important; text-shadow: 0 0 14px rgba(255, 80, 80, 0.45) !important; }
+        .tm-exec-subtitle { color: #c08080 !important; }
+        .tm-exec-stage {
+            position: relative;
+            height: 210px;
+            margin: 8px 0 12px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 8px;
+        }
+        .tm-exec-victim {
+            position: relative;
+            width: 120px;
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            z-index: 2;
+            transition: transform 0.15s ease-out;
+        }
+        .tm-exec-victim-emoji {
+            font-size: 78px;
+            line-height: 1;
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.45));
+            animation: tm-exec-nervous 0.45s ease-in-out infinite;
+            transform-origin: 50% 90%;
+        }
+        .tm-exec-victim.scared .tm-exec-victim-emoji {
+            animation: tm-exec-scared 0.18s ease-in-out infinite;
+        }
+        .tm-exec-victim.hit .tm-exec-victim-emoji {
+            animation: none;
+            filter: grayscale(1) brightness(0.7) drop-shadow(0 0 8px #ff3333);
+        }
+        .tm-exec-victim.fall {
+            animation: tm-exec-fall 0.85s cubic-bezier(0.4, 0.05, 0.7, 1) forwards;
+        }
+        .tm-exec-xeyes {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 28px;
+            font-weight: 900;
+            color: #ff3b3b;
+            letter-spacing: 10px;
+            opacity: 0;
+            text-shadow: 0 0 8px #000;
+            pointer-events: none;
+        }
+        .tm-exec-victim.hit .tm-exec-xeyes { opacity: 1; }
+        .tm-exec-sweat {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 22px;
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+        .tm-exec-victim.scared .tm-exec-sweat {
+            opacity: 1;
+            animation: tm-exec-sweat-drip 0.7s ease-out infinite;
+        }
+        .tm-exec-gun-wrap {
+            position: absolute;
+            right: 18px;
+            bottom: 28px;
+            width: 170px;
+            height: 90px;
+            z-index: 3;
+            transform: translateX(140%) rotate(-8deg);
+            opacity: 0;
+        }
+        .tm-exec-gun-wrap.enter {
+            animation: tm-exec-gun-enter 0.55s cubic-bezier(0.2, 1.2, 0.4, 1) forwards;
+        }
+        .tm-exec-gun-wrap.aim {
+            animation: tm-exec-gun-aim 0.35s ease-out forwards;
+        }
+        .tm-exec-gun-wrap.recoil {
+            animation: tm-exec-gun-recoil 0.28s ease-out;
+        }
+        .tm-exec-gun {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 6px 10px rgba(0,0,0,0.5));
+        }
+        .tm-exec-muzzle {
+            position: absolute;
+            left: -8px;
+            top: 28px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff8c8 0%, #ffcc33 25%, #ff5522 55%, transparent 70%);
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.2);
+        }
+        .tm-exec-muzzle.flash {
+            animation: tm-exec-muzzle-flash 0.22s ease-out forwards;
+        }
+        .tm-exec-bullet {
+            position: absolute;
+            left: 46%;
+            bottom: 68px;
+            width: 18px;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #ffe566, #ff9900);
+            box-shadow: 0 0 10px #ffaa00, -16px 0 12px rgba(255, 180, 0, 0.55);
+            opacity: 0;
+            z-index: 4;
+            pointer-events: none;
+        }
+        .tm-exec-bullet.fly {
+            animation: tm-exec-bullet-fly 0.18s linear forwards;
+        }
+        .tm-exec-bang {
+            position: absolute;
+            left: 52%;
+            top: 18%;
+            transform: translateX(-50%) scale(0.4) rotate(-8deg);
+            font-size: 42px;
+            font-weight: 900;
+            color: #ffee55;
+            text-shadow: 3px 3px 0 #c33, -1px -1px 0 #000, 0 0 18px #ff6600;
+            opacity: 0;
+            z-index: 5;
+            pointer-events: none;
+            letter-spacing: 2px;
+        }
+        .tm-exec-bang.show {
+            animation: tm-exec-bang-pop 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) forwards;
+        }
+        .tm-exec-impact {
+            position: absolute;
+            left: 28%;
+            top: 42%;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid #ff5555;
+            opacity: 0;
+            z-index: 4;
+            pointer-events: none;
+        }
+        .tm-exec-impact.show {
+            animation: tm-exec-impact-ring 0.45s ease-out forwards;
+        }
+        .tm-exec-status {
+            min-height: 22px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffc0c0;
+            letter-spacing: 0.04em;
+        }
+        .tm-exec-smoke {
+            position: absolute;
+            left: 30%;
+            bottom: 40px;
+            font-size: 34px;
+            opacity: 0;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .tm-exec-smoke.show {
+            animation: tm-exec-smoke-up 1s ease-out forwards;
+        }
+        @keyframes tm-exec-nervous {
+            0%, 100% { transform: rotate(-2deg) translateY(0); }
+            50% { transform: rotate(2deg) translateY(-2px); }
+        }
+        @keyframes tm-exec-scared {
+            0%, 100% { transform: translateX(-2px) scale(1.02); }
+            50% { transform: translateX(2px) scale(0.98); }
+        }
+        @keyframes tm-exec-sweat-drip {
+            0% { transform: translateY(-4px); opacity: 0.9; }
+            100% { transform: translateY(10px); opacity: 0.2; }
+        }
+        @keyframes tm-exec-gun-enter {
+            to { transform: translateX(0) rotate(0deg); opacity: 1; }
+        }
+        @keyframes tm-exec-gun-aim {
+            to { transform: translateX(-18px) rotate(-12deg); opacity: 1; }
+        }
+        @keyframes tm-exec-gun-recoil {
+            0% { transform: translateX(-18px) rotate(-12deg); }
+            40% { transform: translateX(10px) rotate(6deg); }
+            100% { transform: translateX(-18px) rotate(-12deg); }
+        }
+        @keyframes tm-exec-muzzle-flash {
+            0% { opacity: 1; transform: scale(0.3); }
+            40% { opacity: 1; transform: scale(1.35); }
+            100% { opacity: 0; transform: scale(0.6); }
+        }
+        @keyframes tm-exec-bullet-fly {
+            0% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateX(-150px); }
+        }
+        @keyframes tm-exec-bang-pop {
+            0% { opacity: 0; transform: translateX(-50%) scale(0.3) rotate(-12deg); }
+            35% { opacity: 1; transform: translateX(-50%) scale(1.25) rotate(4deg); }
+            100% { opacity: 0; transform: translateX(-50%) scale(1.5) rotate(-6deg) translateY(-20px); }
+        }
+        @keyframes tm-exec-impact-ring {
+            0% { opacity: 1; transform: scale(0.3); }
+            100% { opacity: 0; transform: scale(1.8); }
+        }
+        @keyframes tm-exec-fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            35% { transform: translateY(-12px) rotate(-18deg); }
+            100% { transform: translateY(90px) rotate(-95deg); opacity: 0; }
+        }
+        @keyframes tm-exec-smoke-up {
+            0% { opacity: 0.9; transform: translateY(0) scale(0.7); }
+            100% { opacity: 0; transform: translateY(-70px) scale(1.4); }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function playGunshotSound() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime;
+        const noiseLen = 0.18;
+        const buffer = ctx.createBuffer(1, ctx.sampleRate * noiseLen, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2.2);
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.35, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.01, now + noiseLen);
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1800, now);
+        filter.frequency.exponentialRampToValueAtTime(400, now + noiseLen);
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        noise.start(now);
+
+        const osc = ctx.createOscillator();
+        const oscGain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(55, now + 0.12);
+        oscGain.gain.setValueAtTime(0.12, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+        osc.connect(oscGain);
+        oscGain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.13);
+    } catch { /* ignore audio failures */ }
+}
+
+function getMascotExecutionEmoji() {
+    if (tamagotchiStage === 'egg') return '🥚';
+    if (tamagotchiCharacterType && MASCOT_CHARACTERS[tamagotchiCharacterType]) {
+        return MASCOT_CHARACTERS[tamagotchiCharacterType].emoji;
+    }
+    const stageEmoji = {
+        egg: '🥚', baby: '👶', kid: '🧒', teen: '🎮',
+        adult: '💼', middleage: '👔', old: '👴',
+    };
+    return stageEmoji[tamagotchiStage] || '🤖';
+}
+
+/**
+ * Cartoon gun execution cinematic before egg reset.
+ * @returns {Promise<void>}
+ */
+function showMascotExecutionCinematic() {
+    ensureTamaCinematicStyles();
+    ensureMascotExecutionStyles();
+    document.getElementById('tm-tama-execution-panel')?.remove();
+
+    const execGen = tamaCinematicGeneration;
+    tamaCinematicLock = true;
+    stopRoaming(window.config || {});
+
+    const emoji = getMascotExecutionEmoji();
+    const charLabel = tamagotchiCharacterType && MASCOT_CHARACTERS[tamagotchiCharacterType]
+        ? (MASCOT_CHARACTERS[tamagotchiCharacterType].nameGr || MASCOT_CHARACTERS[tamagotchiCharacterType].name)
+        : (tamagotchiStage === 'egg' ? 'το αυγό' : 'το mascot');
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tm-tama-execution-panel';
+    overlay.className = 'tm-tama-cinematic-overlay';
+    overlay.innerHTML = `
+        <div class="tm-exec-panel">
+            <div class="tm-tama-lcd-title" style="color:#e88;">● Εκτέλεση ●</div>
+            <h2 class="tm-tama-cinematic-title tm-exec-title">🔫 Εκτέλεση!</h2>
+            <p class="tm-tama-cinematic-subtitle tm-exec-subtitle">Αντίο, ${charLabel}...</p>
+            <div class="tm-exec-stage">
+                <div class="tm-exec-victim" id="tm-exec-victim">
+                    <span class="tm-exec-sweat" aria-hidden="true">💦</span>
+                    <span class="tm-exec-xeyes" aria-hidden="true">✕ ✕</span>
+                    <span class="tm-exec-victim-emoji">${emoji}</span>
+                </div>
+                <div class="tm-exec-gun-wrap" id="tm-exec-gun">
+                    <svg class="tm-exec-gun" viewBox="0 0 170 90" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="tm-gun-metal" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#d0d5dc"/>
+                                <stop offset="45%" stop-color="#8a919c"/>
+                                <stop offset="100%" stop-color="#4a5058"/>
+                            </linearGradient>
+                            <linearGradient id="tm-gun-grip" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#6b3a28"/>
+                                <stop offset="100%" stop-color="#3a1e14"/>
+                            </linearGradient>
+                        </defs>
+                        <ellipse cx="128" cy="38" rx="28" ry="26" fill="url(#tm-gun-metal)" stroke="#2a2e34" stroke-width="2"/>
+                        <circle cx="128" cy="38" r="10" fill="#1a1c20" stroke="#555" stroke-width="1.5"/>
+                        <circle cx="128" cy="38" r="3" fill="#888"/>
+                        <rect x="18" y="28" width="92" height="18" rx="4" fill="url(#tm-gun-metal)" stroke="#2a2e34" stroke-width="2"/>
+                        <rect x="8" y="31" width="18" height="12" rx="2" fill="#3a4048" stroke="#222" stroke-width="1.5"/>
+                        <path d="M118 48 L132 78 L148 72 L138 48 Z" fill="url(#tm-gun-grip)" stroke="#2a1810" stroke-width="2"/>
+                        <rect x="108" y="46" width="14" height="10" rx="2" fill="#5a6068"/>
+                        <rect x="72" y="22" width="10" height="8" rx="1" fill="#666"/>
+                    </svg>
+                    <div class="tm-exec-muzzle" id="tm-exec-muzzle"></div>
+                </div>
+                <div class="tm-exec-bullet" id="tm-exec-bullet"></div>
+                <div class="tm-exec-bang" id="tm-exec-bang">BANG!</div>
+                <div class="tm-exec-impact" id="tm-exec-impact"></div>
+                <div class="tm-exec-smoke" id="tm-exec-smoke">💨</div>
+            </div>
+            <div class="tm-exec-status" id="tm-exec-status">Το όπλο πλησιάζει...</div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const victim = overlay.querySelector('#tm-exec-victim');
+    const gun = overlay.querySelector('#tm-exec-gun');
+    const muzzle = overlay.querySelector('#tm-exec-muzzle');
+    const bullet = overlay.querySelector('#tm-exec-bullet');
+    const bang = overlay.querySelector('#tm-exec-bang');
+    const impact = overlay.querySelector('#tm-exec-impact');
+    const smoke = overlay.querySelector('#tm-exec-smoke');
+    const status = overlay.querySelector('#tm-exec-status');
+
+    const stillValid = () => execGen === tamaCinematicGeneration
+        && document.getElementById('tm-tama-execution-panel') === overlay;
+
+    return new Promise((resolve) => {
+        const finish = () => {
+            if (!stillValid()) {
+                tamaCinematicLock = false;
+                resolve();
+                return;
+            }
+            overlay.style.animation = 'tm-tama-fade-in 0.35s ease-out reverse';
+            scheduleTamagotchiCinematic(() => {
+                overlay.remove();
+                tamaCinematicLock = false;
+                resolve();
+            }, 350);
+        };
+
+        scheduleTamagotchiCinematic(() => {
+            if (!stillValid()) return;
+            gun?.classList.add('enter');
+            if (status) status.textContent = 'Το όπλο μπαίνει στη σκηνή...';
+        }, 250);
+
+        scheduleTamagotchiCinematic(() => {
+            if (!stillValid()) return;
+            victim?.classList.add('scared');
+            gun?.classList.add('aim');
+            if (status) status.textContent = 'Στόχευση...';
+        }, 900);
+
+        scheduleTamagotchiCinematic(() => {
+            if (!stillValid()) return;
+            if (status) status.textContent = '3...';
+        }, 1400);
+
+        scheduleTamagotchiCinematic(() => {
+            if (!stillValid()) return;
+            if (status) status.textContent = '2...';
+        }, 1750);
+
+        scheduleTamagotchiCinematic(() => {
+            if (!stillValid()) return;
+            if (status) status.textContent = '1...';
+        }, 2100);
+
+        scheduleTamagotchiCinematic(() => {
+            if (!stillValid()) return;
+            playGunshotSound();
+            screenShake(420);
+            gun?.classList.add('recoil');
+            muzzle?.classList.add('flash');
+            bullet?.classList.add('fly');
+            bang?.classList.add('show');
+            impact?.classList.add('show');
+            victim?.classList.add('hit');
+            if (status) status.textContent = 'BANG!';
+        }, 2450);
+
+        scheduleTamagotchiCinematic(() => {
+            if (!stillValid()) return;
+            victim?.classList.add('fall');
+            smoke?.classList.add('show');
+            if (status) status.textContent = 'Τέλος... έρχεται νέο αυγό.';
+        }, 2750);
+
+        scheduleTamagotchiCinematic(finish, 3900);
+    });
 }
 
 function showEggHatchAnimation(onComplete) {
@@ -19123,12 +19572,13 @@ function confirmMascotKillRestart() {
 
 /**
  * Kill the current mascot and restart from a fresh egg.
- * @returns {boolean} true if reset was performed
+ * Plays a cartoon gun execution cinematic first (unless skipExecution).
+ * @returns {Promise<boolean>} true if reset was performed
  */
-function restartTamagotchiAsEgg(config, STORAGE_KEYS, options = {}) {
+async function restartTamagotchiAsEgg(config, STORAGE_KEYS, options = {}) {
     const keys = STORAGE_KEYS || window.STORAGE_KEYS;
     const cfg = config || window.config || {};
-    const { skipConfirm = false, reloadPage = false } = options;
+    const { skipConfirm = false, reloadPage = false, skipExecution = false } = options;
 
     if (!keys?.TAMAGOTCHI_DATA) {
         console.error('[MMS Mascot] restartTamagotchiAsEgg: STORAGE_KEYS missing');
@@ -19146,6 +19596,14 @@ function restartTamagotchiAsEgg(config, STORAGE_KEYS, options = {}) {
 
     try {
         if (cfg) stopRoaming(cfg);
+
+        if (!skipExecution) {
+            document.getElementById('tm-mascot-stats-modal')?.remove();
+            document.getElementById('tm-mascot-kill-confirm')?.remove();
+            document.getElementById('tm-tamagotchi-death-overlay')?.remove();
+            await showMascotExecutionCinematic();
+        }
+
         cancelTamagotchiCinematics();
 
         applyTamagotchiEggResetState();
@@ -19274,8 +19732,8 @@ function showTamagotchiDeathScreen(STORAGE_KEYS, skipCinematic = false) {
     });
     
     // Restart button
-    document.getElementById('tm-restart-btn')?.addEventListener('click', () => {
-        if (restartTamagotchiAsEgg(config, STORAGE_KEYS, { skipConfirm: true })) {
+    document.getElementById('tm-restart-btn')?.addEventListener('click', async () => {
+        if (await restartTamagotchiAsEgg(config, STORAGE_KEYS, { skipConfirm: true })) {
             overlay.remove();
         }
     });
@@ -23533,9 +23991,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             e.preventDefault();
             e.stopPropagation();
             const ok = await confirmMascotKillRestart();
-            if (ok && restartTamagotchiAsEgg(config, STORAGE_KEYS, { skipConfirm: true })) {
-                closeModal();
-            }
+            if (!ok) return;
+            closeModal();
+            await restartTamagotchiAsEgg(config, STORAGE_KEYS, { skipConfirm: true });
         });
 
         // Click backdrop to close
@@ -24286,7 +24744,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         e.stopPropagation();
         const ok = await confirmMascotKillRestart();
         if (ok) {
-            restartTamagotchiAsEgg(config, STORAGE_KEYS, { skipConfirm: true });
+            await restartTamagotchiAsEgg(config, STORAGE_KEYS, { skipConfirm: true });
         }
     });
     
@@ -25063,6 +25521,7 @@ window.MASCOT_ACCESSORY_CATALOG = MASCOT_ACCESSORY_CATALOG;
 window.updateMascotAppearanceByLevel = updateMascotAppearanceByLevel; // Legacy - disabled
 window.restartTamagotchiAsEgg = restartTamagotchiAsEgg;
 window.cancelTamagotchiCinematics = cancelTamagotchiCinematics;
+window.showMascotExecutionCinematic = showMascotExecutionCinematic;
 window.confirmMascotKillRestart = confirmMascotKillRestart;
 window.previewMascotStage = previewMascotStage;
 window.clearMascotStagePreview = clearMascotStagePreview;
