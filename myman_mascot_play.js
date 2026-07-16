@@ -933,38 +933,32 @@ function getMascotPlayCareSectionHTML(STORAGE_KEYS) {
     }).join('');
 
     return `
-        <div class="tm-mascot-actions-section tm-mascot-play-extra-section">
-            <h3 class="tm-actions-title">Παιχνίδια &amp; δεσμός</h3>
+        <div class="tm-mascot-play-extra-inner">
             <div class="tm-mascot-nickname-row">
                 <label for="tm-mascot-nickname-input">Παρατσούκλι</label>
                 <input type="text" id="tm-mascot-nickname-input" class="tm-mascot-nickname-input" maxlength="16" placeholder="π.χ. Φλόγα" value="${nick.replace(/"/g, '&quot;')}">
                 <button type="button" class="tm-settings-ghost-btn" id="tm-mascot-nickname-save">Αποθήκευση</button>
             </div>
             <div class="tm-mascot-actions tm-actions-secondary">
-                <button type="button" class="tm-action-btn" id="tm-action-hide-seek" title="Κρυφτό πίσω από footer/sidebar">
+                <button type="button" class="tm-action-btn" id="tm-action-hide-seek" title="Κρυφτό">
                     <span class="tm-action-icon">🙈</span>
                     <span class="tm-action-label">Κρυφτό</span>
-                    <span class="tm-action-hint">Βρες με</span>
                 </button>
-                <button type="button" class="tm-action-btn ${mascotChaseEnabled ? 'tm-action-urgent' : ''}" id="tm-action-chase" title="Κυνήγι κέρσορα (playful)">
+                <button type="button" class="tm-action-btn ${mascotChaseEnabled ? 'tm-action-urgent' : ''}" id="tm-action-chase" title="Κυνήγι κέρσορα">
                     <span class="tm-action-icon">🏃</span>
                     <span class="tm-action-label">${mascotChaseEnabled ? 'Στοπ κυνήγι' : 'Κυνήγι'}</span>
-                    <span class="tm-action-hint">Playful</span>
                 </button>
                 <button type="button" class="tm-action-btn" id="tm-action-rhythm" title="Rhythm tap">
                     <span class="tm-action-icon">🥁</span>
                     <span class="tm-action-label">Rhythm</span>
-                    <span class="tm-action-hint">Tap στον ρυθμό</span>
                 </button>
                 <button type="button" class="tm-action-btn" id="tm-action-shadow" title="Shadow match">
                     <span class="tm-action-icon">🌑</span>
                     <span class="tm-action-label">Σκιά</span>
-                    <span class="tm-action-hint">Μάντεψε</span>
                 </button>
                 <button type="button" class="tm-action-btn" id="tm-action-scramble" title="Order scramble">
                     <span class="tm-action-icon">🎫</span>
                     <span class="tm-action-label">Tickets</span>
-                    <span class="tm-action-hint">Ταξινόμηση</span>
                 </button>
             </div>
             <h4 class="tm-actions-subtitle">Δίδαξε κόλπα</h4>
