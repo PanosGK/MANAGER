@@ -3730,7 +3730,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (window.SHOP_ITEMS) {
             Object.values(window.SHOP_ITEMS).forEach((key) => keys.add(key));
         }
-        keys.delete(getMappingKey());
+        // Legacy global key from the removed user-name mapping feature
+        keys.delete('tm_user_name_mapping');
         keys.delete('tm_script_enabled');
         keys.delete('defaultThemeColors');
         return [...keys];
