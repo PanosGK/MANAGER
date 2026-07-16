@@ -4393,7 +4393,19 @@
             }
             /* Optimize all mascot accessories for smooth animation */
             #tm-mascot-acc-front .tm-mascot-accessory { pointer-events: none; }
-            #tm-mascot-acc-front .tm-mascot-accessory[data-tm-back-slot="true"] { opacity: 0.98; }
+            #tm-mascot-acc-front .tm-mascot-accessory[data-tm-back-slot="true"] { opacity: 1; }
+            /* Egg layer must never ghost behind hatched sprites */
+            .tm-mascot-robot:not(.mascot-egg) #tm-mascot-base {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
+            .tm-mascot-robot.mascot-egg #tm-mascot-base {
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
             .tm-accessory-art { transform-origin: center center; transform-box: fill-box; }
             #tm-mascot-container .tm-mascot-eye { animation: tm-mascot-blink 5s infinite; }
             /* New: Add subtle secondary animation to the antenna */

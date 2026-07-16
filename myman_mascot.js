@@ -316,15 +316,21 @@ function getVisibleMascotSpriteRoot() {
     const flipper = getMascotFlipper();
     if (!flipper) return null;
 
+    let fallback = null;
     for (const child of flipper.children) {
         if (!child.id?.startsWith('tm-mascot-')) continue;
         if (child.id === 'tm-mascot-acc-back' || child.id === 'tm-mascot-acc-front') continue;
-        if (child.style.display === 'none') continue;
+        if (child.style.display === 'none' || child.style.opacity === '0') continue;
         const cs = window.getComputedStyle(child);
-        if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+        if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) continue;
+        // Prefer non-egg sprites if both somehow visible
+        if (child.id === 'tm-mascot-base') {
+            fallback = child;
+            continue;
+        }
         return child;
     }
-    return document.getElementById('tm-mascot-base');
+    return fallback || document.getElementById('tm-mascot-base');
 }
 
 function getSpriteEyeElement(sprite) {
@@ -3799,11 +3805,15 @@ function getMinutesUntilHatch() {
 function setSvgSpriteVisible(element, visible) {
     if (!element) return;
     if (visible) {
-        element.style.removeProperty('display');
+        // Explicit show — do not rely on removeProperty (fragile with mixed inline styles)
+        element.style.display = 'block';
         element.style.visibility = 'visible';
         element.style.opacity = '1';
+        element.removeAttribute('hidden');
     } else {
         element.style.display = 'none';
+        element.style.visibility = 'hidden';
+        element.style.opacity = '0';
     }
 }
 
@@ -6097,7 +6107,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 <!-- ═══════════════════════════════════════ -->
                 <!-- EGG STAGE - Mysterious Cosmic Egg -->
                 <!-- ═══════════════════════════════════════ -->
-                <g id="tm-mascot-base" style="display: block; opacity: 1;">
+                <g id="tm-mascot-base" style="display: none; visibility: hidden; opacity: 0;">
                     <defs>
                         <radialGradient id="egg-glow">
                             <stop offset="0%" style="stop-color:#fff;stop-opacity:0.8" />
