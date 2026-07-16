@@ -13,7 +13,7 @@ for (const s of stages) {
 
 const lifeStages = ['egg', 'baby', 'kid', 'teen', 'adult', 'middleage', 'old'];
 // Office-minutes thresholds (~12h/day × 15 days ≈ old)
-const thresholds = { egg: 0, baby: 38, kid: 488, teen: 1350, adult: 2700, middleage: 5400, old: 10800, death: 36000 };
+const thresholds = { egg: 0, baby: 1, kid: 488, teen: 1350, adult: 2700, middleage: 5400, old: 10800, death: 36000 };
 
 function stageFromMinutes(m) {
   if (m < thresholds.baby) return 'egg';
@@ -47,7 +47,7 @@ for (const [label, min] of Object.entries(thresholds)) {
   console.log(`  ${label.padEnd(10)} @ ${String(min).padStart(5)} office-min (~${officeDays}d @ 9–21) -> sprite tm-mascot-${sprite}-*`);
 }
 
-const testMinutes = [0, 37.9, 38, 487, 488, 1349, 1350, 2699, 2700, 5399, 5400, 10799, 10800, 35999, 36000];
+const testMinutes = [0, 0.9, 1, 487, 488, 1349, 1350, 2699, 2700, 5399, 5400, 10799, 10800, 35999, 36000];
 console.log('\nBoundary office-minutes -> stage:');
 for (const m of testMinutes) {
   console.log(`  ${String(m).padStart(7)} min -> ${stageFromMinutes(m)}`);

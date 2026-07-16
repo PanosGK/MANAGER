@@ -12206,7 +12206,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     const selectedCharacter = characterTypes[Math.floor(Math.random() * characterTypes.length)];
                     
                     tamaData.age = 0;
-                    tamaData.lifeMinutes = 38; // baby hatch threshold (office-minutes)
+                    tamaData.lifeMinutes = 1; // baby hatch threshold (1 office-min)
                     tamaData.stage = 'baby';
                     tamaData.characterType = selectedCharacter;
                     tamaData.lastUpdate = Date.now();
@@ -16264,10 +16264,14 @@ function cancelTamagotchiCinematics() {
     document.getElementById('tm-tama-lucky-panel')?.remove();
     document.getElementById('tm-tama-death-cinematic')?.remove();
     document.getElementById('tm-tama-execution-panel')?.remove();
+    document.getElementById('tm-tama-execution-inplace')?.remove();
     document.querySelectorAll('style[data-tm-lucky-spin]').forEach((el) => el.remove());
 
     const mascotContainer = document.getElementById('tm-mascot-container');
-    mascotContainer?.classList.remove('mascot-hatching', 'mascot-dying', 'mascot-executed');
+    mascotContainer?.classList.remove(
+        'mascot-hatching', 'mascot-dying', 'mascot-executed',
+        'mascot-exec-scared', 'mascot-exec-hit', 'mascot-exec-dissolve',
+    );
 }
 
 function ensureTamaCinematicStyles() {
@@ -16671,155 +16675,51 @@ function ensureTamaCinematicStyles() {
 }
 
 function ensureMascotExecutionStyles() {
-    document.getElementById('tm-tama-execution-styles')?.remove();
+    const STYLE_VER = 'inplace-v1';
+    const existing = document.getElementById('tm-tama-execution-styles');
+    if (existing?.dataset.tmVer === STYLE_VER) return;
+    existing?.remove();
     const style = document.createElement('style');
     style.id = 'tm-tama-execution-styles';
+    style.dataset.tmVer = STYLE_VER;
     style.textContent = `
-        #tm-tama-execution-panel.tm-tama-cinematic-overlay {
-            background:
-                radial-gradient(ellipse 70% 55% at 50% 42%, rgba(55, 12, 18, 0.55) 0%, transparent 70%),
-                linear-gradient(180deg, rgba(0,0,0,0.92) 0%, rgba(8,4,6,0.98) 100%);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-        }
-        .tm-exec-panel {
-            width: min(92vw, 520px);
-            background: linear-gradient(165deg, rgba(28, 14, 18, 0.96) 0%, rgba(12, 8, 10, 0.98) 100%);
-            border: 1px solid rgba(255, 120, 120, 0.18);
-            border-radius: 16px;
-            box-shadow:
-                0 0 0 1px rgba(0,0,0,0.5),
-                0 28px 80px rgba(0,0,0,0.55),
-                inset 0 1px 0 rgba(255,255,255,0.06);
-            padding: 28px 24px 24px;
-            text-align: center;
-            color: #edd8d8;
-            position: relative;
+        /* In-place kill: no popup — effects anchored to live mascot */
+        .tm-exec-inplace {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            pointer-events: none;
             overflow: hidden;
-            animation: tm-exec-panel-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
-        .tm-exec-panel::after {
-            content: '';
+        .tm-exec-inplace-vignette {
             position: absolute;
             inset: 0;
-            background: linear-gradient(180deg, transparent 0%, transparent 88%, rgba(0,0,0,0.35) 100%);
-            pointer-events: none;
-        }
-        .tm-exec-letterbox {
-            position: absolute;
-            left: 0; right: 0;
-            height: 28px;
-            background: #000;
-            z-index: 6;
-            pointer-events: none;
-            opacity: 0.55;
-        }
-        .tm-exec-letterbox--top { top: 0; }
-        .tm-exec-letterbox--bot { bottom: 0; }
-        .tm-exec-kicker {
-            font-size: 10px;
-            letter-spacing: 0.28em;
-            text-transform: uppercase;
-            color: rgba(255, 160, 160, 0.55);
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        .tm-exec-title {
-            margin: 0 0 6px !important;
-            font-size: 22px !important;
-            font-weight: 650 !important;
-            letter-spacing: 0.02em;
-            color: #f2e4e4 !important;
-            text-shadow: none !important;
-        }
-        .tm-exec-subtitle {
-            margin: 0 0 18px !important;
-            font-size: 13px !important;
-            color: rgba(220, 180, 180, 0.65) !important;
-            font-weight: 400;
-        }
-        .tm-exec-stage {
-            position: relative;
-            height: 220px;
-            margin: 0 0 16px;
-            border-radius: 12px;
-            background:
-                radial-gradient(ellipse 55% 40% at 35% 70%, rgba(120, 30, 40, 0.18) 0%, transparent 70%),
-                linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.25) 100%);
-            border: 1px solid rgba(255,255,255,0.05);
-            overflow: hidden;
-            isolation: isolate;
-        }
-        .tm-exec-stage.flash {
-            animation: tm-exec-stage-flash 0.28s ease-out;
-        }
-        .tm-exec-vignette {
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.45) 100%);
-            pointer-events: none;
-            z-index: 5;
-        }
-        .tm-exec-victim {
-            position: absolute;
-            left: 18%;
-            bottom: 28px;
-            width: 110px;
-            height: 130px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            z-index: 2;
-            transform-origin: 50% 100%;
-            will-change: transform, filter, opacity;
-        }
-        .tm-exec-victim-emoji {
-            font-size: 72px;
-            line-height: 1;
-            filter: drop-shadow(0 10px 16px rgba(0,0,0,0.5));
-            transform-origin: 50% 90%;
-            animation: tm-exec-idle-breathe 2.4s ease-in-out infinite;
-        }
-        .tm-exec-victim.scared .tm-exec-victim-emoji {
-            animation: tm-exec-tense 0.9s ease-in-out infinite;
-        }
-        .tm-exec-victim.hit .tm-exec-victim-emoji {
-            animation: none;
-            filter: grayscale(0.85) brightness(0.55) contrast(1.1) drop-shadow(0 0 12px rgba(255,60,60,0.35));
-        }
-        .tm-exec-victim.dissolve {
-            animation: tm-exec-dissolve 1.1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
-        .tm-exec-shadow {
-            position: absolute;
-            bottom: 18px;
-            left: 22%;
-            width: 70px;
-            height: 12px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.35);
-            filter: blur(4px);
-            z-index: 1;
-            transition: opacity 0.8s ease, transform 0.8s ease;
-        }
-        .tm-exec-stage.fired .tm-exec-shadow {
+            background: radial-gradient(ellipse 45% 40% at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%),
+                rgba(40, 0, 8, 0.22) 0%, transparent 70%);
             opacity: 0;
-            transform: scaleX(0.4);
+            transition: opacity 0.4s ease;
+        }
+        .tm-exec-inplace.is-live .tm-exec-inplace-vignette { opacity: 1; }
+        .tm-exec-inplace.is-firing .tm-exec-inplace-vignette {
+            background: radial-gradient(ellipse 50% 45% at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%),
+                rgba(90, 0, 12, 0.35) 0%, transparent 72%);
         }
         .tm-exec-gun-wrap {
-            position: absolute;
-            right: 2%;
-            bottom: 28px;
+            position: fixed;
             width: 240px;
             height: 100px;
             z-index: 3;
-            transform: translate3d(120%, 8px, 0) rotate(-4deg);
+            transform: translate3d(40px, 8px, 0) rotate(-4deg);
             opacity: 0;
             transform-origin: 88% 65%;
             will-change: transform, opacity;
             filter: drop-shadow(0 8px 14px rgba(0,0,0,0.45));
+            left: var(--tm-exec-gun-left, 0px);
+            top: var(--tm-exec-gun-top, 0px);
+            margin: 0;
+            right: auto;
+            bottom: auto;
         }
-        /* Locked resting poses — survive after animations end */
         .tm-exec-gun-wrap.on-stage {
             opacity: 1;
             transform: translate3d(0, 0, 0) rotate(-2deg);
@@ -16864,9 +16764,7 @@ function ensureMascotExecutionStyles() {
             animation: tm-exec-muzzle-flash 0.18s ease-out forwards;
         }
         .tm-exec-tracer {
-            position: absolute;
-            left: 28%;
-            bottom: 68px;
+            position: fixed;
             width: 0;
             height: 2px;
             border-radius: 2px;
@@ -16876,16 +16774,23 @@ function ensureMascotExecutionStyles() {
             z-index: 4;
             transform-origin: right center;
             pointer-events: none;
+            left: var(--tm-exec-tracer-left, 0px);
+            top: var(--tm-exec-tracer-top, 0px);
+            margin: 0;
         }
         .tm-exec-tracer.fly {
             animation: tm-exec-tracer-fly 0.11s linear forwards;
         }
         .tm-exec-casings {
-            position: absolute;
-            inset: 0;
+            position: fixed;
+            left: var(--tm-exec-gun-left, 0px);
+            top: var(--tm-exec-gun-top, 0px);
+            width: 240px;
+            height: 100px;
             pointer-events: none;
             z-index: 5;
-            overflow: hidden;
+            overflow: visible;
+            margin: 0;
         }
         .tm-exec-casing {
             position: absolute;
@@ -16900,9 +16805,7 @@ function ensureMascotExecutionStyles() {
             animation: tm-exec-casing-eject 0.55s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
         }
         .tm-exec-hitmark {
-            position: absolute;
-            left: 28%;
-            top: 44%;
+            position: fixed;
             width: 8px;
             height: 8px;
             border-radius: 50%;
@@ -16911,23 +16814,25 @@ function ensureMascotExecutionStyles() {
             opacity: 0;
             z-index: 4;
             pointer-events: none;
+            left: var(--tm-exec-aim-x, 0px);
+            top: var(--tm-exec-aim-y, 0px);
+            margin: -4px 0 0 -4px;
         }
         .tm-exec-hitmark.show {
             animation: tm-exec-hitmark 0.5s ease-out forwards;
         }
         .tm-exec-rings {
-            position: absolute;
-            left: 26%;
-            top: 40%;
+            position: fixed;
             width: 80px;
             height: 80px;
             pointer-events: none;
             z-index: 3;
             opacity: 0;
+            left: var(--tm-exec-aim-x, 0px);
+            top: var(--tm-exec-aim-y, 0px);
+            margin: -40px 0 0 -40px;
         }
-        .tm-exec-rings.show {
-            opacity: 1;
-        }
+        .tm-exec-rings.show { opacity: 1; }
         .tm-exec-rings span {
             position: absolute;
             inset: 0;
@@ -16940,9 +16845,7 @@ function ensureMascotExecutionStyles() {
             border-color: rgba(255, 200, 140, 0.35);
         }
         .tm-exec-smoke-puff {
-            position: absolute;
-            left: 24%;
-            bottom: 36px;
+            position: fixed;
             width: 48px;
             height: 48px;
             border-radius: 50%;
@@ -16951,50 +16854,28 @@ function ensureMascotExecutionStyles() {
             opacity: 0;
             z-index: 4;
             pointer-events: none;
+            left: var(--tm-exec-aim-x, 0px);
+            top: var(--tm-exec-aim-y, 0px);
+            margin: -10px 0 0 -24px;
         }
         .tm-exec-smoke-puff.show {
             animation: tm-exec-smoke 1.2s ease-out forwards;
         }
-        .tm-exec-progress {
-            height: 2px;
-            width: 100%;
-            max-width: 220px;
-            margin: 0 auto 14px;
-            border-radius: 2px;
-            background: rgba(255,255,255,0.08);
-            overflow: hidden;
-        }
-        .tm-exec-progress-bar {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #c45c5c, #e8a0a0);
-            border-radius: 2px;
-            transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        .tm-exec-status {
-            min-height: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: rgba(230, 190, 190, 0.7);
-            transition: opacity 0.25s ease, color 0.25s ease;
-        }
-        .tm-exec-status.is-critical {
-            color: rgba(255, 170, 170, 0.95);
-        }
-        /* Full-screen blood splat layer */
         .tm-exec-blood-layer {
-            position: absolute;
-            inset: 0;
-            z-index: 20;
+            position: fixed;
+            z-index: 2;
             pointer-events: none;
             overflow: hidden;
+            left: var(--tm-exec-blood-left, 0px);
+            top: var(--tm-exec-blood-top, 0px);
+            width: var(--tm-exec-blood-w, 200px);
+            height: var(--tm-exec-blood-h, 200px);
+            border-radius: 8px;
         }
         .tm-exec-blood-flash {
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at 32% 48%, rgba(140, 0, 10, 0.55) 0%, rgba(80, 0, 0, 0.2) 35%, transparent 70%);
+            background: radial-gradient(circle at 50% 50%, rgba(140, 0, 10, 0.55) 0%, rgba(80, 0, 0, 0.2) 35%, transparent 70%);
             opacity: 0;
         }
         .tm-exec-blood-flash.show {
@@ -17022,18 +16903,10 @@ function ensureMascotExecutionStyles() {
             opacity: 0.9;
         }
         .tm-exec-blood-splat::before {
-            width: 42%;
-            height: 38%;
-            top: -18%;
-            left: 55%;
-            transform: rotate(25deg);
+            width: 42%; height: 38%; top: -18%; left: 55%; transform: rotate(25deg);
         }
         .tm-exec-blood-splat::after {
-            width: 28%;
-            height: 32%;
-            bottom: -12%;
-            left: 10%;
-            transform: rotate(-30deg);
+            width: 28%; height: 32%; bottom: -12%; left: 10%; transform: rotate(-30deg);
         }
         .tm-exec-blood-splat.is-drip {
             border-radius: 40% 40% 60% 60% / 20% 20% 80% 80%;
@@ -17050,14 +16923,29 @@ function ensureMascotExecutionStyles() {
             position: absolute;
             inset: -10%;
             background:
-                radial-gradient(ellipse 40% 30% at 30% 45%, rgba(120, 0, 8, 0.45) 0%, transparent 70%),
-                radial-gradient(ellipse 35% 28% at 70% 30%, rgba(90, 0, 5, 0.35) 0%, transparent 65%),
-                radial-gradient(ellipse 50% 40% at 55% 70%, rgba(70, 0, 4, 0.3) 0%, transparent 70%);
+                radial-gradient(ellipse 40% 30% at 50% 45%, rgba(120, 0, 8, 0.45) 0%, transparent 70%),
+                radial-gradient(ellipse 35% 28% at 60% 30%, rgba(90, 0, 5, 0.35) 0%, transparent 65%);
             opacity: 0;
             mix-blend-mode: multiply;
         }
         .tm-exec-blood-mist.show {
             animation: tm-exec-blood-mist 1.2s ease-out forwards;
+        }
+        #tm-mascot-container.mascot-exec-scared .tm-mascot-robot {
+            animation: tm-exec-tense 0.9s ease-in-out infinite !important;
+        }
+        #tm-mascot-container.mascot-exec-hit .tm-mascot-robot {
+            animation: none !important;
+            filter: grayscale(0.85) brightness(0.55) contrast(1.1) drop-shadow(0 0 12px rgba(255,60,60,0.35)) !important;
+        }
+        #tm-mascot-container.mascot-exec-dissolve {
+            animation: tm-exec-dissolve 1.1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            pointer-events: none;
+        }
+        #tm-mascot-container.mascot-exec-scared #tm-mascot-speech-bubble,
+        #tm-mascot-container.mascot-exec-hit #tm-mascot-speech-bubble,
+        #tm-mascot-container.mascot-exec-dissolve #tm-mascot-speech-bubble {
+            display: none !important;
         }
         @keyframes tm-exec-blood-flash {
             0% { opacity: 0; }
@@ -17083,21 +16971,13 @@ function ensureMascotExecutionStyles() {
             40% { opacity: 0.85; }
             100% { opacity: 0.55; transform: scale(1); }
         }
-        @keyframes tm-exec-panel-in {
-            from { opacity: 0; transform: translateY(12px) scale(0.98); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes tm-exec-idle-breathe {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-3px) scale(1.015); }
-        }
         @keyframes tm-exec-tense {
             0%, 100% { transform: translateX(0) scale(1); }
             25% { transform: translateX(-1.5px) scale(0.99); }
             75% { transform: translateX(1.5px) scale(1.01); }
         }
         @keyframes tm-exec-gun-enter {
-            0% { transform: translate3d(120%, 8px, 0) rotate(-4deg); opacity: 0; }
+            0% { transform: translate3d(80px, 8px, 0) rotate(-4deg); opacity: 0; }
             60% { opacity: 1; }
             100% { transform: translate3d(0, 0, 0) rotate(-2deg); opacity: 1; }
         }
@@ -17116,9 +16996,9 @@ function ensureMascotExecutionStyles() {
             100% { opacity: 0; transform: scale(0.75) rotate(28deg); }
         }
         @keyframes tm-exec-tracer-fly {
-            0% { width: 0; opacity: 0; transform: translateX(130px); }
+            0% { width: 0; opacity: 0; transform: translateX(var(--tm-exec-tracer-span, 130px)); }
             20% { opacity: 1; }
-            100% { width: 160px; opacity: 0; transform: translateX(-30px); }
+            100% { width: var(--tm-exec-tracer-span, 130px); opacity: 0; transform: translateX(0); }
         }
         @keyframes tm-exec-casing-eject {
             0% { opacity: 1; transform: translate(0, 0) rotate(0deg); }
@@ -17134,18 +17014,13 @@ function ensureMascotExecutionStyles() {
             100% { transform: scale(1.6); opacity: 0; }
         }
         @keyframes tm-exec-dissolve {
-            0% { opacity: 1; transform: translateY(0) scale(1); filter: none; }
-            35% { opacity: 0.85; transform: translateY(-6px) scale(1.04); }
-            100% { opacity: 0; transform: translateY(28px) scale(0.88); filter: blur(6px); }
+            0% { opacity: 1; filter: none; }
+            35% { opacity: 0.85; filter: blur(1px); }
+            100% { opacity: 0; filter: blur(6px); }
         }
         @keyframes tm-exec-smoke {
             0% { opacity: 0.55; transform: translateY(0) scale(0.6); }
             100% { opacity: 0; transform: translateY(-56px) scale(1.8); }
-        }
-        @keyframes tm-exec-stage-flash {
-            0% { box-shadow: inset 0 0 0 0 rgba(255,200,140,0); }
-            30% { box-shadow: inset 0 0 60px 10px rgba(255,180,120,0.18); }
-            100% { box-shadow: inset 0 0 0 0 rgba(255,200,140,0); }
         }
     `;
     document.head.appendChild(style);
@@ -17316,145 +17191,145 @@ function ejectExecutionCasing(container) {
 }
 
 /**
- * Cinematic AK-47 execution before egg reset.
+ * In-place AK-47 execution: shoots the live mascot at its page position (no popup).
  * @returns {Promise<void>}
  */
 function showMascotExecutionCinematic() {
     ensureTamaCinematicStyles();
     ensureMascotExecutionStyles();
     document.getElementById('tm-tama-execution-panel')?.remove();
+    document.getElementById('tm-tama-execution-inplace')?.remove();
 
     const execGen = tamaCinematicGeneration;
     tamaCinematicLock = true;
     stopRoaming(window.config || {});
 
-    const emoji = getMascotExecutionEmoji();
-    const charLabel = tamagotchiCharacterType && MASCOT_CHARACTERS[tamagotchiCharacterType]
-        ? (MASCOT_CHARACTERS[tamagotchiCharacterType].nameGr || MASCOT_CHARACTERS[tamagotchiCharacterType].name)
-        : (tamagotchiStage === 'egg' ? 'το αυγό' : 'το mascot');
+    const mascot = document.getElementById('tm-mascot-container');
+    if (!mascot) {
+        tamaCinematicLock = false;
+        return Promise.resolve();
+    }
 
-    const overlay = document.createElement('div');
-    overlay.id = 'tm-tama-execution-panel';
-    overlay.className = 'tm-tama-cinematic-overlay';
-    overlay.innerHTML = `
+    // Freeze current painted position
+    try { mascot.getAnimations().forEach((a) => a.cancel()); } catch { /* ignore */ }
+    const rect = mascot.getBoundingClientRect();
+    const aimX = rect.left + rect.width / 2;
+    const aimY = rect.top + rect.height * 0.55;
+
+    // Gun sits to the right of the mascot, barrel pointing left
+    const gunW = 240;
+    const gunH = 100;
+    let gunLeft = rect.right + 12;
+    let gunTop = aimY - gunH * 0.45;
+    // Keep gun on-screen
+    if (gunLeft + gunW > window.innerWidth - 8) {
+        gunLeft = Math.max(8, window.innerWidth - gunW - 8);
+    }
+    if (gunTop < 8) gunTop = 8;
+    if (gunTop + gunH > window.innerHeight - 8) gunTop = window.innerHeight - gunH - 8;
+
+    const muzzleX = gunLeft + 4; // barrel tip near left of SVG
+    const muzzleY = gunTop + 34;
+    const tracerSpan = Math.max(40, muzzleX - aimX);
+    const tracerLeft = aimX;
+    const tracerTop = aimY;
+
+    const bloodPad = 56;
+    const bloodLeft = rect.left - bloodPad;
+    const bloodTop = rect.top - bloodPad;
+    const bloodW = rect.width + bloodPad * 2;
+    const bloodH = rect.height + bloodPad * 2;
+
+    const layer = document.createElement('div');
+    layer.id = 'tm-tama-execution-inplace';
+    layer.className = 'tm-exec-inplace';
+    layer.style.setProperty('--tm-exec-aim-x', `${aimX}px`);
+    layer.style.setProperty('--tm-exec-aim-y', `${aimY}px`);
+    layer.style.setProperty('--tm-exec-gun-left', `${gunLeft}px`);
+    layer.style.setProperty('--tm-exec-gun-top', `${gunTop}px`);
+    layer.style.setProperty('--tm-exec-tracer-left', `${tracerLeft}px`);
+    layer.style.setProperty('--tm-exec-tracer-top', `${tracerTop}px`);
+    layer.style.setProperty('--tm-exec-tracer-span', `${tracerSpan}px`);
+    layer.style.setProperty('--tm-exec-blood-left', `${bloodLeft}px`);
+    layer.style.setProperty('--tm-exec-blood-top', `${bloodTop}px`);
+    layer.style.setProperty('--tm-exec-blood-w', `${bloodW}px`);
+    layer.style.setProperty('--tm-exec-blood-h', `${bloodH}px`);
+
+    layer.innerHTML = `
+        <div class="tm-exec-inplace-vignette" aria-hidden="true"></div>
         <div class="tm-exec-blood-layer" id="tm-exec-blood" aria-hidden="true"></div>
-        <div class="tm-exec-panel">
-            <div class="tm-exec-letterbox tm-exec-letterbox--top"></div>
-            <div class="tm-exec-letterbox tm-exec-letterbox--bot"></div>
-            <div class="tm-exec-kicker">Protocol · Reset</div>
-            <h2 class="tm-exec-title">Εκτέλεση</h2>
-            <p class="tm-exec-subtitle">Αντίο, ${charLabel}</p>
-            <div class="tm-exec-stage" id="tm-exec-stage">
-                <div class="tm-exec-vignette"></div>
-                <div class="tm-exec-shadow"></div>
-                <div class="tm-exec-victim" id="tm-exec-victim">
-                    <span class="tm-exec-victim-emoji">${emoji}</span>
-                </div>
-                <div class="tm-exec-gun-wrap" id="tm-exec-gun">
-                    <svg class="tm-exec-gun" viewBox="0 0 260 110" aria-hidden="true">
-                        <defs>
-                            <linearGradient id="tm-ak-metal" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#6a727c"/>
-                                <stop offset="50%" stop-color="#3a424c"/>
-                                <stop offset="100%" stop-color="#1c2228"/>
-                            </linearGradient>
-                            <linearGradient id="tm-ak-wood" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#a0673a"/>
-                                <stop offset="55%" stop-color="#6b3d22"/>
-                                <stop offset="100%" stop-color="#3a1f12"/>
-                            </linearGradient>
-                            <linearGradient id="tm-ak-mag" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#4a525c"/>
-                                <stop offset="100%" stop-color="#1a1e24"/>
-                            </linearGradient>
-                        </defs>
-                        <!-- Stock -->
-                        <path d="M208 34 L248 28 L255 42 L248 70 L214 62 L208 48 Z" fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.2"/>
-                        <path d="M214 38 L246 33" stroke="rgba(255,220,180,0.15)" stroke-width="2"/>
-                        <!-- Receiver -->
-                        <rect x="118" y="30" width="96" height="28" rx="2" fill="url(#tm-ak-metal)" stroke="#0e1216" stroke-width="1.2"/>
-                        <rect x="122" y="33" width="88" height="5" fill="rgba(255,255,255,0.1)"/>
-                        <!-- Dust cover ridge -->
-                        <rect x="130" y="26" width="70" height="6" rx="1" fill="#2e363e" stroke="#111" stroke-width="0.8"/>
-                        <!-- Pistol grip -->
-                        <path d="M168 56 L176 56 L184 92 L168 96 Z" fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.1"/>
-                        <!-- Trigger guard + trigger -->
-                        <path d="M158 56 h22 v10 h-8 v-4 h-6 v4 h-8 Z" fill="none" stroke="#222" stroke-width="1.6"/>
-                        <rect x="168" y="58" width="3" height="8" rx="1" fill="#111"/>
-                        <!-- Curved magazine (signature AK) -->
-                        <path d="M148 56 C146 72 142 88 150 100 C158 102 166 90 168 72 L168 56 Z"
-                              fill="url(#tm-ak-mag)" stroke="#0a0c10" stroke-width="1.3"/>
-                        <path d="M152 62 C151 76 149 88 154 96" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-                        <!-- Handguard -->
-                        <rect x="58" y="32" width="62" height="22" rx="2" fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.1"/>
-                        <path d="M64 38 H114 M64 44 H114 M64 50 H114" stroke="rgba(0,0,0,0.25)" stroke-width="1"/>
-                        <!-- Gas tube -->
-                        <rect x="52" y="24" width="78" height="7" rx="2" fill="#3a444e" stroke="#111" stroke-width="0.9"/>
-                        <!-- Rear sight -->
-                        <rect x="126" y="20" width="10" height="8" rx="1" fill="#2a3038"/>
-                        <!-- Front sight -->
-                        <rect x="28" y="18" width="5" height="12" rx="1" fill="#2a3038"/>
-                        <rect x="26" y="16" width="9" height="3" rx="1" fill="#3a424c"/>
-                        <!-- Barrel -->
-                        <rect x="8" y="34" width="52" height="8" rx="2" fill="url(#tm-ak-metal)" stroke="#0e1216" stroke-width="1"/>
-                        <rect x="8" y="36" width="52" height="2" fill="rgba(255,255,255,0.12)"/>
-                        <!-- Muzzle brake -->
-                        <rect x="2" y="32" width="10" height="12" rx="1" fill="#2a3038" stroke="#111" stroke-width="1"/>
-                        <rect x="3" y="34" width="3" height="8" fill="#111"/>
-                        <rect x="7" y="34" width="3" height="8" fill="#111"/>
-                        <!-- Slant cut tip -->
-                        <path d="M2 32 L0 38 L2 44" fill="#1a1e24"/>
-                    </svg>
-                    <div class="tm-exec-muzzle" id="tm-exec-muzzle"></div>
-                </div>
-                <div class="tm-exec-casings" id="tm-exec-casings"></div>
-                <div class="tm-exec-tracer" id="tm-exec-tracer"></div>
-                <div class="tm-exec-hitmark" id="tm-exec-hitmark"></div>
-                <div class="tm-exec-rings" id="tm-exec-rings"><span></span><span></span></div>
-                <div class="tm-exec-smoke-puff" id="tm-exec-smoke"></div>
-            </div>
-            <div class="tm-exec-progress"><div class="tm-exec-progress-bar" id="tm-exec-progress"></div></div>
-            <div class="tm-exec-status" id="tm-exec-status">Προετοιμασία</div>
+        <div class="tm-exec-gun-wrap" id="tm-exec-gun">
+            <svg class="tm-exec-gun" viewBox="0 0 260 110" aria-hidden="true">
+                <defs>
+                    <linearGradient id="tm-ak-metal" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#6a727c"/>
+                        <stop offset="50%" stop-color="#3a424c"/>
+                        <stop offset="100%" stop-color="#1c2228"/>
+                    </linearGradient>
+                    <linearGradient id="tm-ak-wood" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="#a0673a"/>
+                        <stop offset="55%" stop-color="#6b3d22"/>
+                        <stop offset="100%" stop-color="#3a1f12"/>
+                    </linearGradient>
+                    <linearGradient id="tm-ak-mag" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#4a525c"/>
+                        <stop offset="100%" stop-color="#1a1e24"/>
+                    </linearGradient>
+                </defs>
+                <path d="M208 34 L248 28 L255 42 L248 70 L214 62 L208 48 Z" fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.2"/>
+                <path d="M214 38 L246 33" stroke="rgba(255,220,180,0.15)" stroke-width="2"/>
+                <rect x="118" y="30" width="96" height="28" rx="2" fill="url(#tm-ak-metal)" stroke="#0e1216" stroke-width="1.2"/>
+                <rect x="122" y="33" width="88" height="5" fill="rgba(255,255,255,0.1)"/>
+                <rect x="130" y="26" width="70" height="6" rx="1" fill="#2e363e" stroke="#111" stroke-width="0.8"/>
+                <path d="M168 56 L176 56 L184 92 L168 96 Z" fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.1"/>
+                <path d="M158 56 h22 v10 h-8 v-4 h-6 v4 h-8 Z" fill="none" stroke="#222" stroke-width="1.6"/>
+                <rect x="168" y="58" width="3" height="8" rx="1" fill="#111"/>
+                <path d="M148 56 C146 72 142 88 150 100 C158 102 166 90 168 72 L168 56 Z"
+                      fill="url(#tm-ak-mag)" stroke="#0a0c10" stroke-width="1.3"/>
+                <path d="M152 62 C151 76 149 88 154 96" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+                <rect x="58" y="32" width="62" height="22" rx="2" fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.1"/>
+                <path d="M64 38 H114 M64 44 H114 M64 50 H114" stroke="rgba(0,0,0,0.25)" stroke-width="1"/>
+                <rect x="52" y="24" width="78" height="7" rx="2" fill="#3a444e" stroke="#111" stroke-width="0.9"/>
+                <rect x="126" y="20" width="10" height="8" rx="1" fill="#2a3038"/>
+                <rect x="28" y="18" width="5" height="12" rx="1" fill="#2a3038"/>
+                <rect x="26" y="16" width="9" height="3" rx="1" fill="#3a424c"/>
+                <rect x="8" y="34" width="52" height="8" rx="2" fill="url(#tm-ak-metal)" stroke="#0e1216" stroke-width="1"/>
+                <rect x="8" y="36" width="52" height="2" fill="rgba(255,255,255,0.12)"/>
+                <rect x="2" y="32" width="10" height="12" rx="1" fill="#2a3038" stroke="#111" stroke-width="1"/>
+                <rect x="3" y="34" width="3" height="8" fill="#111"/>
+                <rect x="7" y="34" width="3" height="8" fill="#111"/>
+                <path d="M2 32 L0 38 L2 44" fill="#1a1e24"/>
+            </svg>
+            <div class="tm-exec-muzzle" id="tm-exec-muzzle"></div>
         </div>
+        <div class="tm-exec-casings" id="tm-exec-casings"></div>
+        <div class="tm-exec-tracer" id="tm-exec-tracer"></div>
+        <div class="tm-exec-hitmark" id="tm-exec-hitmark"></div>
+        <div class="tm-exec-rings" id="tm-exec-rings"><span></span><span></span></div>
+        <div class="tm-exec-smoke-puff" id="tm-exec-smoke"></div>
     `;
-    document.body.appendChild(overlay);
+    document.body.appendChild(layer);
+    requestAnimationFrame(() => layer.classList.add('is-live'));
 
-    const stage = overlay.querySelector('#tm-exec-stage');
-    const victim = overlay.querySelector('#tm-exec-victim');
-    const gun = overlay.querySelector('#tm-exec-gun');
-    const muzzle = overlay.querySelector('#tm-exec-muzzle');
-    const tracer = overlay.querySelector('#tm-exec-tracer');
-    const hitmark = overlay.querySelector('#tm-exec-hitmark');
-    const rings = overlay.querySelector('#tm-exec-rings');
-    const smoke = overlay.querySelector('#tm-exec-smoke');
-    const casings = overlay.querySelector('#tm-exec-casings');
-    const status = overlay.querySelector('#tm-exec-status');
-    const progress = overlay.querySelector('#tm-exec-progress');
-    const bloodLayer = overlay.querySelector('#tm-exec-blood');
+    mascot.classList.remove('mascot-exec-scared', 'mascot-exec-hit', 'mascot-exec-dissolve');
+
+    const gun = layer.querySelector('#tm-exec-gun');
+    const muzzle = layer.querySelector('#tm-exec-muzzle');
+    const tracer = layer.querySelector('#tm-exec-tracer');
+    const hitmark = layer.querySelector('#tm-exec-hitmark');
+    const rings = layer.querySelector('#tm-exec-rings');
+    const smoke = layer.querySelector('#tm-exec-smoke');
+    const casings = layer.querySelector('#tm-exec-casings');
+    const bloodLayer = layer.querySelector('#tm-exec-blood');
 
     const stillValid = () => execGen === tamaCinematicGeneration
-        && document.getElementById('tm-tama-execution-panel') === overlay;
+        && document.getElementById('tm-tama-execution-inplace') === layer;
 
-    const setStatus = (text, critical = false) => {
-        if (!status) return;
-        status.style.opacity = '0';
-        scheduleTamagotchiCinematic(() => {
-            if (!stillValid()) return;
-            status.textContent = text;
-            status.classList.toggle('is-critical', critical);
-            status.style.opacity = '1';
-        }, 120);
-    };
-
-    const setProgress = (pct) => {
-        if (progress) progress.style.width = `${pct}%`;
-    };
-
-    const fireAkShot = (shotIndex, totalShots) => {
+    const fireAkShot = (shotIndex) => {
         if (!stillValid()) return;
         playGunshotSound();
-        screenShake(shotIndex === 0 ? 320 : 160);
-        stage?.classList.add('flash', 'fired');
+        screenShake(shotIndex === 0 ? 280 : 140);
+        layer.classList.add('is-firing');
         gun?.classList.add('on-stage', 'aimed');
         retriggerCssAnimation(gun, 'recoil');
         retriggerCssAnimation(muzzle, 'flash');
@@ -17463,79 +17338,66 @@ function showMascotExecutionCinematic() {
         if (shotIndex === 0) {
             hitmark?.classList.add('show');
             rings?.classList.add('show');
-            victim?.classList.add('hit');
-            spawnExecutionBloodSplats(bloodLayer, 28, 46, { count: 36, withFlash: true, withMist: true, edgeSmears: 8 });
-            setStatus('Πυρά AK-47', true);
+            mascot.classList.add('mascot-exec-hit');
+            spawnExecutionBloodSplats(bloodLayer, 50, 50, {
+                count: 28,
+                withFlash: true,
+                withMist: true,
+                edgeSmears: 4,
+            });
         } else {
-            spawnExecutionBloodSplats(bloodLayer, 26 + Math.random() * 12, 40 + Math.random() * 16, {
-                count: 14,
+            spawnExecutionBloodSplats(bloodLayer, 48 + Math.random() * 8, 48 + Math.random() * 10, {
+                count: 10,
                 withFlash: false,
                 withMist: false,
-                edgeSmears: 2,
+                edgeSmears: 1,
             });
-            setStatus(`Πυρά ${shotIndex + 1}/${totalShots}`, true);
         }
-        setProgress(70 + Math.round(((shotIndex + 1) / totalShots) * 30));
     };
 
     return new Promise((resolve) => {
         const finish = () => {
             if (!stillValid()) {
+                mascot.classList.remove('mascot-exec-scared', 'mascot-exec-hit', 'mascot-exec-dissolve');
                 tamaCinematicLock = false;
                 resolve();
                 return;
             }
-            overlay.style.animation = 'tm-tama-fade-in 0.45s ease-out reverse';
+            layer.style.transition = 'opacity 0.35s ease';
+            layer.style.opacity = '0';
             scheduleTamagotchiCinematic(() => {
-                overlay.remove();
+                layer.remove();
+                mascot.classList.remove('mascot-exec-scared', 'mascot-exec-hit', 'mascot-exec-dissolve');
                 tamaCinematicLock = false;
                 resolve();
-            }, 450);
+            }, 360);
         };
 
         const BURST_COUNT = 7;
         const BURST_GAP = 115;
-        const BURST_START = 3200;
+        const BURST_START = 2800;
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
-            setProgress(18);
             gun?.classList.add('enter');
-            setStatus('AK-47 · Είσοδος');
-        }, 320);
+        }, 200);
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
             gun?.classList.add('on-stage');
             gun?.classList.remove('enter');
-            setProgress(42);
-            victim?.classList.add('scared');
+            mascot.classList.add('mascot-exec-scared');
             gun?.classList.add('aim');
-            setStatus('Στόχευση');
-        }, 1100);
+        }, 950);
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
             gun?.classList.add('on-stage', 'aimed');
             gun?.classList.remove('aim');
-            setProgress(58);
-            setStatus('03', true);
-        }, 1750);
-
-        scheduleTamagotchiCinematic(() => {
-            if (!stillValid()) return;
-            setProgress(66);
-            setStatus('02', true);
-        }, 2300);
-
-        scheduleTamagotchiCinematic(() => {
-            if (!stillValid()) return;
-            setProgress(70);
-            setStatus('01', true);
-        }, 2850);
+        }, 1550);
 
         for (let i = 0; i < BURST_COUNT; i++) {
-            scheduleTamagotchiCinematic(() => fireAkShot(i, BURST_COUNT), BURST_START + i * BURST_GAP);
+            scheduleTamagotchiCinematic(() => fireAkShot(i), BURST_START + i * BURST_GAP);
         }
 
         const afterBurst = BURST_START + BURST_COUNT * BURST_GAP;
@@ -17544,12 +17406,12 @@ function showMascotExecutionCinematic() {
             if (!stillValid()) return;
             gun?.classList.remove('recoil');
             gun?.classList.add('on-stage', 'aimed');
-            victim?.classList.add('dissolve');
+            mascot.classList.remove('mascot-exec-scared');
+            mascot.classList.add('mascot-exec-dissolve');
             smoke?.classList.add('show');
-            setStatus('Επαναφορά σε αυγό');
-        }, afterBurst + 180);
+        }, afterBurst + 160);
 
-        scheduleTamagotchiCinematic(finish, afterBurst + 1400);
+        scheduleTamagotchiCinematic(finish, afterBurst + 1200);
     });
 }
 
@@ -17938,7 +17800,7 @@ const TAMA_OFFICE_HOUR_END = 21;   // exclusive (stops at 21:00)
 // Stage thresholds in office-minutes. ~15 office-days (12h/day) to reach old.
 const TAMA_STAGE_MINUTES = {
     egg: 0,
-    baby: 38,         // ~38 office-min — hatch
+    baby: 1,          // 1 office-min — hatch
     kid: 488,         // ~0.7 office-days
     teen: 1350,       // ~1.9 office-days
     adult: 2700,      // ~3.8 office-days

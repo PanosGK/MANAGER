@@ -1491,7 +1491,7 @@
                     const selectedCharacter = characterTypes[Math.floor(Math.random() * characterTypes.length)];
                     
                     tamaData.age = 0;
-                    tamaData.lifeMinutes = 38; // baby hatch threshold (office-minutes)
+                    tamaData.lifeMinutes = 1; // baby hatch threshold (1 office-min)
                     tamaData.stage = 'baby';
                     tamaData.characterType = selectedCharacter;
                     tamaData.lastUpdate = Date.now();
