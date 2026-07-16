@@ -3613,19 +3613,33 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         [
+            // Scratchpad UI / legacy single-note
             'tm_user_scratchpad_text', 'tm_user_scratchpad_geometry', 'tm_user_scratchpad_is_open',
             'tm_user_scratchpad_font_size', 'tm_user_scratchpad_last_edited', 'tm_user_scratchpad_is_maximized',
+            // Search + dashboard history
             'tm_search_history', 'tm_favorite_searches', 'tm_daily_stats_history', 'tm_stats_history_7days',
+            'tm_daily_stipend_date',
+            'tm_search_include_merchandise_history', 'tm_search_include_parts_history',
+            'tm_native_search_hidden', 'tm_quick_search_hidden',
+            // Status transfer counters (extra statuses beyond STORAGE_KEYS)
             'tm_status_30_transfers', 'tm_status_55_transfers', 'tm_status_70_transfers', 'tm_status_75_transfers',
             'tm_status_90_transfers', 'tm_status_105_transfers', 'TM_FORM_CREATING',
+            // Phone catalog (user data + caches)
             'tm_phone_colors_v2', 'tm_phone_color_display_aliases', 'tm_phone_custom_colors',
-            'tm_phone_list_cache', 'tm_phone_list_cache_timestamp', 'tm_phone_other_store_cache_v2',
-            'tm_phone_other_store_cache_timestamp', 'tm_phone_store_rules_v1', 'tm_phone_tags',
-            'tm_phone_tag_definitions',
+            'tm_phone_list_cache', 'tm_phone_list_cache_timestamp',
+            'tm_phone_other_store_cache_v2', 'tm_phone_other_store_cache_v3',
+            'tm_phone_other_store_cache_timestamp', 'tm_phone_store_details_cache_v2',
+            'tm_phone_store_rules_v1', 'tm_phone_tags', 'tm_phone_tag_definitions',
+            'tm_phone_my_store_name_v1', 'tm_phone_my_store_pick_v1', 'tm_phone_store_addresses_v1',
+            'tm_phone_canonical_models_v1',
             'tm_phone_favorites', 'phone_favorites',
+            'tm_sl_density_compact', 'tm_sl_model_sort', 'tm_sl_catalog_view',
+            // Order history pages + toggles
             'tm_srvorders_page_history', 'tm_partsorders_page_history',
             'orderHistoryStatusCheckEnabled', 'orderHistoryBackgroundEnabled',
-            'tm_quick_search_hidden',
+            // Misc prefs
+            'tm_update_banner_dismissed_version',
+            'equippedTheme', // legacy orphan key still read by search.js
         ].forEach((key) => keys.add(key));
 
         return [...keys];
@@ -3748,8 +3762,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (valueType === 'string' || valueType === 'boolean' || valueType === 'number') {
             return { action: 'set', value };
         }
+        // Keep objects/arrays as-is (order-status caches and some GM values are objects).
+        // Most feature keys already store JSON strings; those arrive as strings above.
         if (valueType === 'object') {
-            return { action: 'set', value: JSON.stringify(value) };
+            return { action: 'set', value };
         }
         return { action: 'skip' };
     }
@@ -3827,19 +3843,26 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
         });
 
-        // Include any profile-scoped keys listValues found that wrappedGetValue missed
-        if (profileId) {
-            const prefix = `${PROFILE_PREFIX}${profileId}:`;
-            listNativeStorageKeys().forEach((rawKey) => {
-                if (!rawKey.startsWith(prefix)) return;
-                const logicalKey = rawKey.slice(prefix.length);
-                if (isExcludedExportKey(logicalKey) || data[logicalKey] !== undefined) return;
-                const value = NATIVE.get(rawKey, undefined);
-                if (value !== undefined) {
-                    data[logicalKey] = exportStorageValue(value);
-                }
-            });
-        }
+        // Include any profile-scoped keys listValues found that wrappedGetValue missed,
+        // plus unscoped order_status_* caches (dynamic keys, not in the known list).
+        const prefix = profileId ? `${PROFILE_PREFIX}${profileId}:` : null;
+        listNativeStorageKeys().forEach((rawKey) => {
+            let logicalKey = null;
+            if (prefix && rawKey.startsWith(prefix)) {
+                logicalKey = rawKey.slice(prefix.length);
+            } else if (!rawKey.startsWith(PROFILE_PREFIX) && rawKey.startsWith('order_status_')) {
+                logicalKey = rawKey;
+            } else {
+                return;
+            }
+            if (isExcludedExportKey(logicalKey) || data[logicalKey] !== undefined) return;
+            const value = logicalKey === rawKey
+                ? wrappedGetValue(logicalKey, undefined)
+                : NATIVE.get(rawKey, undefined);
+            if (value !== undefined) {
+                data[logicalKey] = exportStorageValue(value);
+            }
+        });
 
         const buffExpires = window.STORAGE_KEYS?.ENERGIZED_BUFF_EXPIRES || 'tm_energized_buff_expires';
         const doubleExpires = window.STORAGE_KEYS?.DOUBLE_COINS_BUFF_EXPIRES || 'tm_double_coins_buff_expires';
