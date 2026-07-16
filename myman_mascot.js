@@ -5611,505 +5611,852 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 </g>
                 
                 <!-- ═══════════════════════════════════════ -->
-                <!-- DRAGON CHARACTER - All Life Stages -->
+                <!-- DRAGON CHARACTER - All Life Stages (dense cute vector v2) -->
                 <!-- ═══════════════════════════════════════ -->
-                
+
                 <!-- DRAGON BABY -->
                 <g id="tm-mascot-baby-dragon" style="display: none;">
                     <defs>
                         <linearGradient id="baby-dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#b2fab4;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#76ff03;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#d4ff9a;stop-opacity:1" />
+                            <stop offset="40%" style="stop-color:#8cff3a;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#64dd17;stop-opacity:1" />
                         </linearGradient>
-                        <radialGradient id="baby-dragon-belly">
-                            <stop offset="0%" style="stop-color:#fff9c4;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#fff59d;stop-opacity:1" />
+                        <linearGradient id="baby-dragon-scales-dark" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#76ff03;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#558b2f;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="baby-dragon-belly" cx="50%" cy="35%" r="65%">
+                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#fff59d;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ffe082;stop-opacity:1" />
+                        </radialGradient>
+                        <radialGradient id="baby-dragon-cheek" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" style="stop-color:#ff8a9b;stop-opacity:0.55" />
+                            <stop offset="100%" style="stop-color:#ff8a9b;stop-opacity:0" />
+                        </radialGradient>
+                        <linearGradient id="baby-dragon-horn" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" style="stop-color:#ff6090;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ffc1e3;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="baby-dragon-wing" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:0.85" />
+                            <stop offset="100%" style="stop-color:#80deea;stop-opacity:0.55" />
+                        </linearGradient>
+                        <radialGradient id="baby-dragon-iris" cx="40%" cy="35%" r="60%">
+                            <stop offset="0%" style="stop-color:#4e6b3a;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1b2e12;stop-opacity:1" />
                         </radialGradient>
                     </defs>
-                    <!-- Shadow -->
-                    <ellipse cx="50" cy="88" rx="28" ry="6" fill="#333" opacity="0.2"/>
-                    <!-- Tiny tail (curved) -->
-                    <path class="tm-animate-tail" d="M 68 72 Q 78 75 80 70 Q 82 65 78 63" 
-                          fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.8"/>
-                    <!-- Body (round and chubby) -->
-                    <ellipse class="tm-animate-body" cx="50" cy="65" rx="24" ry="20" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="2"/>
-                    <!-- Belly patch -->
-                    <ellipse cx="50" cy="70" rx="14" ry="12" fill="url(#baby-dragon-belly)" opacity="0.8"/>
-                    <!-- Head (large compared to body) -->
-                    <ellipse cx="50" cy="38" rx="18" ry="16" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="2"/>
-                    <!-- Tiny snout -->
-                    <ellipse cx="50" cy="44" rx="8" ry="5" fill="url(#baby-dragon-belly)"/>
-                    <!-- Nostrils (tiny dots) -->
-                    <circle cx="47" cy="45" r="1.2" fill="#558b2f"/>
-                    <circle cx="53" cy="45" r="1.2" fill="#558b2f"/>
-                    <!-- Tiny horns (nubs) -->
-                    <ellipse cx="38" cy="28" rx="3" ry="5" fill="#ff6090" stroke="#e91e63" stroke-width="1" transform="rotate(-20 38 28)"/>
-                    <ellipse cx="62" cy="28" rx="3" ry="5" fill="#ff6090" stroke="#e91e63" stroke-width="1" transform="rotate(20 62 28)"/>
-                    <!-- Baby spikes on back (tiny) -->
-                    <circle cx="48" cy="52" r="2.5" fill="#ff80ab"/>
-                    <circle cx="52" cy="52" r="2.5" fill="#ff80ab"/>
-                    <circle cx="46" cy="60" r="2" fill="#ff6090"/>
-                    <circle cx="54" cy="60" r="2" fill="#ff6090"/>
-                    <!-- Huge cute eyes -->
+                    <ellipse cx="50" cy="90" rx="26" ry="5" fill="#1a1a1a" opacity="0.18"/>
+                    <!-- Tail -->
+                    <g class="tm-animate-tail">
+                        <path d="M 66 70 Q 78 74 82 68 Q 85 62 80 58 Q 76 56 74 60"
+                              fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.6"/>
+                        <path d="M 74 59 Q 78 56 80 60" fill="none" stroke="#7cb342" stroke-width="0.8" opacity="0.7"/>
+                        <circle cx="80" cy="59" r="3.2" fill="url(#baby-dragon-horn)" stroke="#e91e63" stroke-width="0.9"/>
+                        <circle cx="79" cy="58" r="1.1" fill="#fff" opacity="0.45"/>
+                    </g>
+                    <!-- Wing nubs (behind body) -->
+                    <g class="tm-animate-wing-left">
+                        <ellipse cx="28" cy="58" rx="6" ry="9" fill="url(#baby-dragon-wing)" stroke="#558b2f" stroke-width="1.1" transform="rotate(-18 28 58)"/>
+                        <path d="M 26 54 Q 24 58 26 62" stroke="#4db6c6" stroke-width="0.7" opacity="0.7" fill="none"/>
+                    </g>
+                    <g class="tm-animate-wing-right">
+                        <ellipse cx="72" cy="58" rx="6" ry="9" fill="url(#baby-dragon-wing)" stroke="#558b2f" stroke-width="1.1" transform="rotate(18 72 58)"/>
+                        <path d="M 74 54 Q 76 58 74 62" stroke="#4db6c6" stroke-width="0.7" opacity="0.7" fill="none"/>
+                    </g>
+                    <!-- Body -->
+                    <g class="tm-animate-body">
+                        <ellipse cx="50" cy="66" rx="25" ry="21" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="2"/>
+                        <ellipse cx="42" cy="58" rx="8" ry="5" fill="#fff" opacity="0.22"/>
+                        <!-- Soft scale dots -->
+                        <circle cx="38" cy="62" r="1.4" fill="#558b2f" opacity="0.28"/>
+                        <circle cx="44" cy="58" r="1.2" fill="#558b2f" opacity="0.22"/>
+                        <circle cx="56" cy="58" r="1.2" fill="#558b2f" opacity="0.22"/>
+                        <circle cx="62" cy="62" r="1.4" fill="#558b2f" opacity="0.28"/>
+                        <circle cx="40" cy="70" r="1.1" fill="#558b2f" opacity="0.2"/>
+                        <circle cx="60" cy="70" r="1.1" fill="#558b2f" opacity="0.2"/>
+                        <!-- Belly -->
+                        <ellipse cx="50" cy="70" rx="14" ry="12" fill="url(#baby-dragon-belly)"/>
+                        <path d="M 42 66 Q 50 68 58 66" stroke="#ffe082" stroke-width="0.9" fill="none" opacity="0.7"/>
+                        <path d="M 41 72 Q 50 74 59 72" stroke="#ffe082" stroke-width="0.9" fill="none" opacity="0.55"/>
+                        <!-- Back nubs -->
+                        <circle cx="46" cy="52" r="2.6" fill="#ff80ab" stroke="#e91e63" stroke-width="0.7"/>
+                        <circle cx="54" cy="52" r="2.6" fill="#ff80ab" stroke="#e91e63" stroke-width="0.7"/>
+                        <circle cx="44" cy="59" r="2" fill="#ff6090" stroke="#e91e63" stroke-width="0.6"/>
+                        <circle cx="56" cy="59" r="2" fill="#ff6090" stroke="#e91e63" stroke-width="0.6"/>
+                    </g>
+                    <!-- Arms -->
+                    <g class="tm-animate-arm-left">
+                        <ellipse cx="27" cy="62" rx="6.5" ry="8.5" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.4"/>
+                        <ellipse cx="25" cy="58" rx="2.5" ry="1.8" fill="#fff" opacity="0.25"/>
+                        <path d="M 23 68 L 21 71 M 26 69 L 25 72 M 29 68 L 29 71" stroke="#558b2f" stroke-width="1.3" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-animate-arm-right">
+                        <ellipse cx="73" cy="62" rx="6.5" ry="8.5" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.4"/>
+                        <ellipse cx="75" cy="58" rx="2.5" ry="1.8" fill="#fff" opacity="0.25"/>
+                        <path d="M 71 68 L 71 71 M 74 69 L 75 72 M 77 68 L 79 71" stroke="#558b2f" stroke-width="1.3" stroke-linecap="round"/>
+                    </g>
+                    <!-- Head (oversized) -->
+                    <ellipse cx="50" cy="37" rx="19" ry="17" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="2"/>
+                    <ellipse cx="42" cy="30" rx="7" ry="4" fill="#fff" opacity="0.2"/>
+                    <!-- Horn nubs -->
+                    <ellipse cx="37" cy="26" rx="3.2" ry="5.5" fill="url(#baby-dragon-horn)" stroke="#e91e63" stroke-width="1" transform="rotate(-22 37 26)"/>
+                    <ellipse cx="63" cy="26" rx="3.2" ry="5.5" fill="url(#baby-dragon-horn)" stroke="#e91e63" stroke-width="1" transform="rotate(22 63 26)"/>
+                    <ellipse cx="36" cy="24" rx="1.2" ry="2" fill="#fff" opacity="0.4" transform="rotate(-22 36 24)"/>
+                    <ellipse cx="64" cy="24" rx="1.2" ry="2" fill="#fff" opacity="0.4" transform="rotate(22 64 24)"/>
+                    <!-- Snout -->
+                    <ellipse cx="50" cy="44" rx="9" ry="5.5" fill="url(#baby-dragon-belly)" stroke="#c9a227" stroke-width="0.6" opacity="0.95"/>
+                    <circle cx="47" cy="45" r="1.3" fill="#558b2f"/>
+                    <circle cx="53" cy="45" r="1.3" fill="#558b2f"/>
+                    <circle cx="46.6" cy="44.5" r="0.4" fill="#fff" opacity="0.5"/>
+                    <circle cx="52.6" cy="44.5" r="0.4" fill="#fff" opacity="0.5"/>
+                    <!-- Cheeks -->
+                    <circle cx="34" cy="42" r="4" fill="url(#baby-dragon-cheek)"/>
+                    <circle cx="66" cy="42" r="4" fill="url(#baby-dragon-cheek)"/>
+                    <!-- Eyes -->
                     <g class="tm-mascot-eye-open">
-                        <ellipse cx="42" cy="36" rx="7" ry="9" fill="#fff" stroke="#558b2f" stroke-width="1.5"/>
-                        <ellipse cx="58" cy="36" rx="7" ry="9" fill="#fff" stroke="#558b2f" stroke-width="1.5"/>
-                        <ellipse cx="43" cy="37" rx="4" ry="5" fill="#2c3e50"/>
-                        <ellipse cx="59" cy="37" rx="4" ry="5" fill="#2c3e50"/>
-                        <circle cx="44" cy="35" r="2.5" fill="#fff" opacity="0.9"/>
-                        <circle cx="60" cy="35" r="2.5" fill="#fff" opacity="0.9"/>
+                        <ellipse cx="41" cy="35" rx="7.5" ry="9.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
+                        <ellipse cx="59" cy="35" rx="7.5" ry="9.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
+                        <ellipse cx="42" cy="36.5" rx="4.2" ry="5.4" fill="url(#baby-dragon-iris)"/>
+                        <ellipse cx="60" cy="36.5" rx="4.2" ry="5.4" fill="url(#baby-dragon-iris)"/>
+                        <ellipse cx="42" cy="36.8" rx="2.2" ry="3" fill="#0d1a08"/>
+                        <ellipse cx="60" cy="36.8" rx="2.2" ry="3" fill="#0d1a08"/>
+                        <circle cx="43.5" cy="33.5" r="2.4" fill="#fff" opacity="0.95"/>
+                        <circle cx="61.5" cy="33.5" r="2.4" fill="#fff" opacity="0.95"/>
+                        <circle cx="40.2" cy="38" r="1" fill="#fff" opacity="0.5"/>
+                        <circle cx="58.2" cy="38" r="1" fill="#fff" opacity="0.5"/>
                     </g>
                     <g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 35 36 Q 42 33 49 36" stroke="#558b2f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                        <path d="M 51 36 Q 58 33 65 36" stroke="#558b2f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 34 36 Q 41 32 48 36" stroke="#558b2f" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 36 Q 59 32 66 36" stroke="#558b2f" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                     </g>
-                    <!-- Cute mouth -->
-                    <path class="tm-mascot-mouth-happy" d="M 44 48 Q 50 52 56 48" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 50 Q 50 46 56 50" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <!-- Tiny stubby arms -->
-                    <ellipse class="tm-animate-arm-left" cx="28" cy="60" rx="6" ry="8" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.5"/>
-                    <ellipse class="tm-animate-arm-right" cx="72" cy="60" rx="6" ry="8" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.5"/>
-                    <!-- Tiny feet -->
-                    <ellipse class="tm-animate-leg-left" cx="40" cy="84" rx="6" ry="4" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.5"/>
-                    <ellipse class="tm-animate-leg-right" cx="60" cy="84" rx="6" ry="4" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.5"/>
-                    <!-- Tiny wing nubs -->
-                    <ellipse class="tm-animate-wing-left" cx="30" cy="58" rx="5" ry="8" fill="#80deea" opacity="0.5" stroke="#558b2f" stroke-width="1" transform="rotate(-15 30 58)"/>
-                    <ellipse class="tm-animate-wing-right" cx="70" cy="58" rx="5" ry="8" fill="#80deea" opacity="0.5" stroke="#558b2f" stroke-width="1" transform="rotate(15 70 58)"/>
+                    <path class="tm-mascot-mouth-happy" d="M 44 49 Q 50 53.5 56 49" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 51 Q 50 47 56 51" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <!-- Feet -->
+                    <g class="tm-animate-leg-left">
+                        <ellipse cx="40" cy="85" rx="6.5" ry="4.2" fill="url(#baby-dragon-scales-dark)" stroke="#558b2f" stroke-width="1.4"/>
+                        <path d="M 36 86 L 34 89 M 40 87 L 40 90 M 44 86 L 46 89" stroke="#33691e" stroke-width="1.3" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-animate-leg-right">
+                        <ellipse cx="60" cy="85" rx="6.5" ry="4.2" fill="url(#baby-dragon-scales-dark)" stroke="#558b2f" stroke-width="1.4"/>
+                        <path d="M 54 86 L 52 89 M 60 87 L 60 90 M 64 86 L 66 89" stroke="#33691e" stroke-width="1.3" stroke-linecap="round"/>
+                    </g>
                 </g>
 
                 <!-- DRAGON KID -->
                 <g id="tm-mascot-evo1-dragon" style="display: none;">
                     <defs>
                         <linearGradient id="dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#a7ffeb;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#64ffda;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#b2fff0;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#64ffda;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#1de9b6;stop-opacity:1" />
                         </linearGradient>
+                        <linearGradient id="dragon-scales-shade" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#1de9b6;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#00897b;stop-opacity:1" />
+                        </linearGradient>
                         <linearGradient id="dragon-belly" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e1f5fe;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#f1fbff;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#b3e5fc;stop-opacity:1" />
                         </linearGradient>
+                        <linearGradient id="dragon-wing-kid" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0.65" />
+                        </linearGradient>
+                        <linearGradient id="dragon-horn-kid" x1="0%" y1="100%" x2="40%" y2="0%">
+                            <stop offset="0%" style="stop-color:#e91e63;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ff80ab;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="dragon-iris-kid" cx="38%" cy="32%" r="62%">
+                            <stop offset="0%" style="stop-color:#00695c;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#004d40;stop-opacity:1" />
+                        </radialGradient>
+                        <radialGradient id="dragon-cheek-kid" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" style="stop-color:#ff8a80;stop-opacity:0.5" />
+                            <stop offset="100%" style="stop-color:#ff8a80;stop-opacity:0" />
+                        </radialGradient>
                     </defs>
-                    <!-- Shadow -->
-                    <ellipse cx="50" cy="90" rx="32" ry="8" fill="#333" opacity="0.2"/>
-                    <!-- Tail (curled) -->
+                    <ellipse cx="50" cy="92" rx="30" ry="6" fill="#1a1a1a" opacity="0.2"/>
+                    <!-- Tail -->
                     <g class="tm-animate-tail">
-                        <path d="M 70 70 Q 85 75 88 68 Q 90 62 85 58 Q 82 56 78 58" 
-                              fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="2" stroke-linecap="round"/>
-                        <circle cx="86" cy="59" r="4" fill="#ff6090" opacity="0.8"/>
-                        <circle cx="84" cy="60" r="2" fill="#ff6090" opacity="0.6"/>
+                        <path d="M 70 70 Q 86 76 90 68 Q 93 60 86 56 Q 80 54 78 58"
+                              fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="2"/>
+                        <path d="M 78 62 Q 84 58 88 62" fill="none" stroke="#26a69a" stroke-width="1" opacity="0.55"/>
+                        <path d="M 82 66 Q 87 64 89 68" fill="none" stroke="#26a69a" stroke-width="0.8" opacity="0.45"/>
+                        <circle cx="87" cy="57" r="4.2" fill="url(#dragon-horn-kid)" stroke="#c2185b" stroke-width="1.1"/>
+                        <circle cx="86" cy="55.5" r="1.4" fill="#fff" opacity="0.4"/>
+                        <path d="M 87 53 L 89 49 L 85 51 Z" fill="#ff6090"/>
                     </g>
-                    <!-- Body (chubby) -->
-                    <ellipse class="tm-animate-body" cx="50" cy="65" rx="28" ry="24" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="2.5"/>
-                    <!-- Belly scales pattern -->
-                    <ellipse cx="50" cy="68" rx="18" ry="16" fill="url(#dragon-belly)" opacity="0.8"/>
-                    <path d="M 40 62 Q 50 64 60 62" stroke="#80deea" stroke-width="1" opacity="0.6" fill="none"/>
-                    <path d="M 38 68 Q 50 70 62 68" stroke="#80deea" stroke-width="1" opacity="0.6" fill="none"/>
-                    <path d="M 40 74 Q 50 76 60 74" stroke="#80deea" stroke-width="1" opacity="0.6" fill="none"/>
-                    <!-- Head (cute dragon face) -->
-                    <ellipse cx="50" cy="35" rx="22" ry="20" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="2.5"/>
-                    <!-- Snout -->
-                    <ellipse cx="50" cy="42" rx="12" ry="8" fill="url(#dragon-belly)"/>
-                    <!-- Nostrils -->
-                    <ellipse cx="46" cy="44" rx="2" ry="1.5" fill="#00897b"/>
-                    <ellipse cx="54" cy="44" rx="2" ry="1.5" fill="#00897b"/>
-                    <!-- Horns (small and cute) -->
-                    <path d="M 35 28 Q 32 22 30 20 Q 28 18 32 20 L 35 26" fill="#ff6090" stroke="#e91e63" stroke-width="1.5"/>
-                    <path d="M 65 28 Q 68 22 70 20 Q 72 18 68 20 L 65 26" fill="#ff6090" stroke="#e91e63" stroke-width="1.5"/>
-                    <!-- Spikes on back -->
-                    <path d="M 50 48 L 48 53 L 52 53 Z" fill="#ff6090"/>
-                    <path d="M 45 58 L 43 62 L 47 62 Z" fill="#ff80ab"/>
-                    <path d="M 55 58 L 53 62 L 57 62 Z" fill="#ff80ab"/>
-                    <!-- Eyes (big and curious) -->
-                    <g class="tm-mascot-eye-open">
-                        <ellipse cx="42" cy="32" rx="7" ry="8" fill="#fff" stroke="#00bfa5" stroke-width="1.5"/>
-                        <ellipse cx="58" cy="32" rx="7" ry="8" fill="#fff" stroke="#00bfa5" stroke-width="1.5"/>
-                        <ellipse cx="43" cy="33" rx="4" ry="5" fill="#2c3e50"/>
-                        <ellipse cx="59" cy="33" rx="4" ry="5" fill="#2c3e50"/>
-                        <circle cx="44" cy="31" r="2" fill="#fff"/>
-                        <circle cx="60" cy="31" r="2" fill="#fff"/>
+                    <!-- Budding wings with membrane -->
+                    <g class="tm-animate-wing-left">
+                        <path d="M 30 56 Q 18 48 16 40 Q 15 34 20 36 Q 26 48 32 54 Z"
+                              fill="url(#dragon-wing-kid)" stroke="#00bfa5" stroke-width="1.4"/>
+                        <path d="M 22 40 Q 24 46 28 52" stroke="#00897b" stroke-width="0.8" opacity="0.55" fill="none"/>
+                        <path d="M 26 42 Q 28 48 31 53" stroke="#00897b" stroke-width="0.7" opacity="0.45" fill="none"/>
                     </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 35 32 Q 42 29 49 32" stroke="#00897b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                        <path d="M 51 32 Q 58 29 65 32" stroke="#00897b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <g class="tm-animate-wing-right">
+                        <path d="M 70 56 Q 82 48 84 40 Q 85 34 80 36 Q 74 48 68 54 Z"
+                              fill="url(#dragon-wing-kid)" stroke="#00bfa5" stroke-width="1.4"/>
+                        <path d="M 78 40 Q 76 46 72 52" stroke="#00897b" stroke-width="0.8" opacity="0.55" fill="none"/>
+                        <path d="M 74 42 Q 72 48 69 53" stroke="#00897b" stroke-width="0.7" opacity="0.45" fill="none"/>
                     </g>
-                    <!-- Mouth -->
-                    <path class="tm-mascot-mouth-happy" d="M 43 48 Q 50 52 57 48" stroke="#00897b" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 50 Q 50 46 57 50" stroke="#00897b" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <!-- Arms (claws) -->
+                    <!-- Body -->
+                    <g class="tm-animate-body">
+                        <ellipse cx="50" cy="66" rx="28" ry="24" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="2.4"/>
+                        <ellipse cx="40" cy="56" rx="9" ry="5" fill="#fff" opacity="0.18"/>
+                        <!-- Scale arcs -->
+                        <path d="M 32 58 Q 36 56 40 58" stroke="#00897b" stroke-width="0.9" fill="none" opacity="0.4"/>
+                        <path d="M 34 64 Q 38 62 42 64" stroke="#00897b" stroke-width="0.9" fill="none" opacity="0.35"/>
+                        <path d="M 60 58 Q 64 56 68 58" stroke="#00897b" stroke-width="0.9" fill="none" opacity="0.4"/>
+                        <path d="M 58 64 Q 62 62 66 64" stroke="#00897b" stroke-width="0.9" fill="none" opacity="0.35"/>
+                        <circle cx="36" cy="70" r="1.3" fill="#00897b" opacity="0.3"/>
+                        <circle cx="64" cy="70" r="1.3" fill="#00897b" opacity="0.3"/>
+                        <!-- Belly plates -->
+                        <ellipse cx="50" cy="69" rx="17" ry="15" fill="url(#dragon-belly)"/>
+                        <path d="M 38 62 Q 50 64.5 62 62" stroke="#81d4fa" stroke-width="1.1" fill="none" opacity="0.75"/>
+                        <path d="M 36 68 Q 50 71 64 68" stroke="#81d4fa" stroke-width="1.1" fill="none" opacity="0.7"/>
+                        <path d="M 38 74 Q 50 77 62 74" stroke="#81d4fa" stroke-width="1.1" fill="none" opacity="0.65"/>
+                        <!-- Spines -->
+                        <path d="M 48 48 L 46 55 L 50 55 Z" fill="#ff6090" stroke="#c2185b" stroke-width="0.8"/>
+                        <path d="M 52 48 L 50 55 L 54 55 Z" fill="#ff6090" stroke="#c2185b" stroke-width="0.8"/>
+                        <path d="M 44 56 L 42 62 L 46 62 Z" fill="#ff80ab" stroke="#e91e63" stroke-width="0.7"/>
+                        <path d="M 56 56 L 54 62 L 58 62 Z" fill="#ff80ab" stroke="#e91e63" stroke-width="0.7"/>
+                    </g>
+                    <!-- Arms -->
                     <g class="tm-animate-arm-left">
-                        <ellipse cx="26" cy="62" rx="7" ry="9" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.8"/>
-                        <path d="M 22 68 L 20 72 M 25 69 L 24 73 M 28 68 L 28 72" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
+                        <ellipse cx="25" cy="62" rx="7.5" ry="10" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.7"/>
+                        <ellipse cx="23" cy="57" rx="2.8" ry="2" fill="#fff" opacity="0.22"/>
+                        <path d="M 21 70 L 18 74 M 24 71 L 23 75 M 28 70 L 28 74" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
                     </g>
                     <g class="tm-animate-arm-right">
-                        <ellipse cx="74" cy="62" rx="7" ry="9" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.8"/>
-                        <path d="M 72 68 L 72 72 M 75 69 L 76 73 M 78 68 L 80 72" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
+                        <ellipse cx="75" cy="62" rx="7.5" ry="10" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.7"/>
+                        <ellipse cx="77" cy="57" rx="2.8" ry="2" fill="#fff" opacity="0.22"/>
+                        <path d="M 72 70 L 72 74 M 75 71 L 76 75 M 79 70 L 82 74" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
                     </g>
-                    <!-- Feet (dino claws) -->
+                    <!-- Head -->
+                    <ellipse cx="50" cy="34" rx="22" ry="20" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="2.4"/>
+                    <ellipse cx="42" cy="26" rx="8" ry="4.5" fill="#fff" opacity="0.18"/>
+                    <!-- Horns -->
+                    <path d="M 34 26 Q 30 18 26 15 Q 24 13 28 16 L 34 24 Z" fill="url(#dragon-horn-kid)" stroke="#c2185b" stroke-width="1.3"/>
+                    <path d="M 66 26 Q 70 18 74 15 Q 76 13 72 16 L 66 24 Z" fill="url(#dragon-horn-kid)" stroke="#c2185b" stroke-width="1.3"/>
+                    <path d="M 29 17 L 31 20" stroke="#fff" stroke-width="1" opacity="0.45" stroke-linecap="round"/>
+                    <path d="M 71 17 L 69 20" stroke="#fff" stroke-width="1" opacity="0.45" stroke-linecap="round"/>
+                    <!-- Snout -->
+                    <ellipse cx="50" cy="42" rx="12" ry="8" fill="url(#dragon-belly)" stroke="#4fc3f7" stroke-width="0.7"/>
+                    <path d="M 42 40 Q 50 42 58 40" stroke="#81d4fa" stroke-width="0.8" fill="none" opacity="0.6"/>
+                    <ellipse cx="46" cy="44" rx="2.2" ry="1.6" fill="#00897b"/>
+                    <ellipse cx="54" cy="44" rx="2.2" ry="1.6" fill="#00897b"/>
+                    <circle cx="45.5" cy="43.4" r="0.55" fill="#fff" opacity="0.45"/>
+                    <circle cx="53.5" cy="43.4" r="0.55" fill="#fff" opacity="0.45"/>
+                    <circle cx="33" cy="40" r="4.5" fill="url(#dragon-cheek-kid)"/>
+                    <circle cx="67" cy="40" r="4.5" fill="url(#dragon-cheek-kid)"/>
+                    <!-- Eyes -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="41" cy="31" rx="7.2" ry="8.2" fill="#fff" stroke="#00bfa5" stroke-width="1.4"/>
+                        <ellipse cx="59" cy="31" rx="7.2" ry="8.2" fill="#fff" stroke="#00bfa5" stroke-width="1.4"/>
+                        <ellipse cx="42" cy="32.2" rx="4" ry="5" fill="url(#dragon-iris-kid)"/>
+                        <ellipse cx="60" cy="32.2" rx="4" ry="5" fill="url(#dragon-iris-kid)"/>
+                        <ellipse cx="42" cy="32.5" rx="2" ry="2.8" fill="#001a16"/>
+                        <ellipse cx="60" cy="32.5" rx="2" ry="2.8" fill="#001a16"/>
+                        <circle cx="43.6" cy="29.5" r="2.1" fill="#fff"/>
+                        <circle cx="61.6" cy="29.5" r="2.1" fill="#fff"/>
+                        <circle cx="39.8" cy="34.5" r="0.9" fill="#4dd0e1" opacity="0.7"/>
+                        <circle cx="57.8" cy="34.5" r="0.9" fill="#4dd0e1" opacity="0.7"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 34 32 Q 41 28 48 32" stroke="#00897b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 32 Q 59 28 66 32" stroke="#00897b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <path class="tm-mascot-mouth-happy" d="M 42 49 Q 50 54 58 49" stroke="#00897b" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 51 Q 50 46 58 51" stroke="#00897b" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <!-- Feet -->
                     <g class="tm-animate-leg-left">
-                        <ellipse cx="40" cy="86" rx="7" ry="5" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.8"/>
-                        <path d="M 36 88 L 34 91 M 40 89 L 40 92 M 44 88 L 46 91" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
+                        <ellipse cx="39" cy="87" rx="7.5" ry="5" fill="url(#dragon-scales-shade)" stroke="#00bfa5" stroke-width="1.6"/>
+                        <path d="M 34 88 L 32 92 M 39 89 L 39 93 M 44 88 L 46 92" stroke="#00695c" stroke-width="1.5" stroke-linecap="round"/>
                     </g>
                     <g class="tm-animate-leg-right">
-                        <ellipse cx="60" cy="86" rx="7" ry="5" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.8"/>
-                        <path d="M 54 88 L 52 91 M 60 89 L 60 92 M 64 88 L 66 91" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
+                        <ellipse cx="61" cy="87" rx="7.5" ry="5" fill="url(#dragon-scales-shade)" stroke="#00bfa5" stroke-width="1.6"/>
+                        <path d="M 54 88 L 52 92 M 61 89 L 61 93 M 66 88 L 68 92" stroke="#00695c" stroke-width="1.5" stroke-linecap="round"/>
                     </g>
-                    <!-- Wings (tiny baby wings) -->
-                    <ellipse class="tm-animate-wing-left" cx="28" cy="58" rx="8" ry="12" fill="#80deea" opacity="0.6" stroke="#00bfa5" stroke-width="1.5" transform="rotate(-20 28 58)"/>
-                    <ellipse class="tm-animate-wing-right" cx="72" cy="58" rx="8" ry="12" fill="#80deea" opacity="0.6" stroke="#00bfa5" stroke-width="1.5" transform="rotate(20 72 58)"/>
                 </g>
 
                 <!-- DRAGON TEEN -->
                 <g id="tm-mascot-evo2-dragon" style="display: none;">
                     <defs>
                         <linearGradient id="teen-dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#4dd0e1;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#26c6da;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#00bcd4;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#80deea;stop-opacity:1" />
+                            <stop offset="40%" style="stop-color:#26c6da;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#0097a7;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="teen-dragon-shade" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00acc1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#006064;stop-opacity:1" />
                         </linearGradient>
                         <linearGradient id="teen-dragon-wing" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#80deea;stop-opacity:0.8" />
-                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0.6" />
+                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:0.92" />
+                            <stop offset="55%" style="stop-color:#4dd0e1;stop-opacity:0.75" />
+                            <stop offset="100%" style="stop-color:#26c6da;stop-opacity:0.55" />
                         </linearGradient>
+                        <linearGradient id="teen-dragon-belly" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#f5fdff;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b2ebf2;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="teen-dragon-horn" x1="0%" y1="100%" x2="30%" y2="0%">
+                            <stop offset="0%" style="stop-color:#c2185b;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ff80ab;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="teen-dragon-iris" cx="38%" cy="30%" r="65%">
+                            <stop offset="0%" style="stop-color:#00838f;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#00363a;stop-opacity:1" />
+                        </radialGradient>
+                        <radialGradient id="teen-ember" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" style="stop-color:#ffab40;stop-opacity:0.55" />
+                            <stop offset="100%" style="stop-color:#ff6d00;stop-opacity:0" />
+                        </radialGradient>
                     </defs>
-                    <!-- Shadow -->
-                    <ellipse cx="50" cy="92" rx="36" ry="7" fill="#333" opacity="0.3"/>
-                    <!-- Tail (longer, spiky) -->
+                    <ellipse cx="50" cy="93" rx="34" ry="6" fill="#1a1a1a" opacity="0.22"/>
+                    <!-- Tail -->
                     <g class="tm-animate-tail">
-                        <path d="M 72 75 Q 88 78 92 72 Q 94 66 90 62 Q 87 60 83 62" 
-                              fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="2"/>
-                        <path d="M 88 62 L 92 60 L 90 65 Z" fill="#ff6090"/>
-                        <path d="M 84 67 L 88 66 L 86 70 Z" fill="#ff6090"/>
+                        <path d="M 72 74 Q 90 80 95 70 Q 98 62 92 56 Q 88 52 84 56"
+                              fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="2.1"/>
+                        <path d="M 84 64 Q 90 58 94 64" fill="none" stroke="#00acc1" stroke-width="1" opacity="0.5"/>
+                        <path d="M 86 70 Q 92 66 94 72" fill="none" stroke="#00acc1" stroke-width="0.85" opacity="0.4"/>
+                        <path d="M 90 56 L 96 52 L 93 58 Z" fill="#ff6090" stroke="#c2185b" stroke-width="0.8"/>
+                        <path d="M 86 62 L 91 59 L 88 65 Z" fill="#ff80ab" stroke="#e91e63" stroke-width="0.7"/>
+                        <path d="M 82 68 L 87 66 L 84 71 Z" fill="#f48fb1" stroke="#e91e63" stroke-width="0.6"/>
                     </g>
-                    <!-- Larger wings (can flap now) -->
+                    <!-- Wings -->
                     <g class="tm-animate-wing-left">
-                        <ellipse cx="25" cy="55" rx="12" ry="20" fill="url(#teen-dragon-wing)" stroke="#0097a7" stroke-width="2" transform="rotate(-25 25 55)"/>
-                        <path d="M 20 50 Q 18 55 20 60" stroke="#0097a7" stroke-width="1" opacity="0.6"/>
-                        <path d="M 25 48 Q 23 55 25 62" stroke="#0097a7" stroke-width="1" opacity="0.6"/>
+                        <path d="M 28 54 Q 12 44 8 30 Q 6 20 14 22 Q 20 36 26 48 Q 28 52 30 56 Z"
+                              fill="url(#teen-dragon-wing)" stroke="#00838f" stroke-width="1.7"/>
+                        <path d="M 14 28 Q 18 36 24 46" stroke="#006064" stroke-width="1" opacity="0.55" fill="none"/>
+                        <path d="M 18 30 Q 22 40 27 50" stroke="#006064" stroke-width="0.9" opacity="0.45" fill="none"/>
+                        <path d="M 22 34 Q 25 42 29 52" stroke="#006064" stroke-width="0.75" opacity="0.35" fill="none"/>
+                        <path d="M 12 26 L 10 24" stroke="#00838f" stroke-width="1.2" stroke-linecap="round"/>
                     </g>
                     <g class="tm-animate-wing-right">
-                        <ellipse cx="75" cy="55" rx="12" ry="20" fill="url(#teen-dragon-wing)" stroke="#0097a7" stroke-width="2" transform="rotate(25 75 55)"/>
-                        <path d="M 80 50 Q 82 55 80 60" stroke="#0097a7" stroke-width="1" opacity="0.6"/>
-                        <path d="M 75 48 Q 77 55 75 62" stroke="#0097a7" stroke-width="1" opacity="0.6"/>
+                        <path d="M 72 54 Q 88 44 92 30 Q 94 20 86 22 Q 80 36 74 48 Q 72 52 70 56 Z"
+                              fill="url(#teen-dragon-wing)" stroke="#00838f" stroke-width="1.7"/>
+                        <path d="M 86 28 Q 82 36 76 46" stroke="#006064" stroke-width="1" opacity="0.55" fill="none"/>
+                        <path d="M 82 30 Q 78 40 73 50" stroke="#006064" stroke-width="0.9" opacity="0.45" fill="none"/>
+                        <path d="M 78 34 Q 75 42 71 52" stroke="#006064" stroke-width="0.75" opacity="0.35" fill="none"/>
+                        <path d="M 88 26 L 90 24" stroke="#00838f" stroke-width="1.2" stroke-linecap="round"/>
                     </g>
-                    <!-- Body (getting longer) -->
-                    <ellipse class="tm-animate-body" cx="50" cy="68" rx="26" ry="22" fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="2.5"/>
-                    <!-- Belly pattern -->
-                    <ellipse cx="50" cy="70" rx="16" ry="14" fill="#e0f7fa" opacity="0.7"/>
-                    <!-- Spikes on back (developing) -->
-                    <path d="M 48 50 L 46 58 L 50 58 Z" fill="#ff6090" stroke="#e91e63" stroke-width="1"/>
-                    <path d="M 52 50 L 50 58 L 54 58 Z" fill="#ff6090" stroke="#e91e63" stroke-width="1"/>
-                    <path d="M 44 60 L 42 66 L 46 66 Z" fill="#ff80ab" stroke="#e91e63" stroke-width="1"/>
-                    <path d="M 56 60 L 54 66 L 58 66 Z" fill="#ff80ab" stroke="#e91e63" stroke-width="1"/>
-                    <!-- Head (more defined snout) -->
-                    <ellipse cx="50" cy="32" rx="20" ry="18" fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="2.5"/>
-                    <!-- Snout (more pronounced) -->
-                    <ellipse cx="50" cy="40" rx="11" ry="7" fill="#e0f7fa"/>
-                    <!-- Nostrils -->
-                    <ellipse cx="46" cy="42" rx="2" ry="1.5" fill="#00838f"/>
-                    <ellipse cx="54" cy="42" rx="2" ry="1.5" fill="#00838f"/>
-                    <!-- Horns (longer) -->
-                    <path d="M 36 24 Q 32 18 28 16 Q 26 14 30 16 L 35 22" fill="#ff6090" stroke="#e91e63" stroke-width="1.5"/>
-                    <path d="M 64 24 Q 68 18 72 16 Q 74 14 70 16 L 65 22" fill="#ff6090" stroke="#e91e63" stroke-width="1.5"/>
-                    <!-- Eyes (more focused) -->
-                    <g class="tm-mascot-eye-open">
-                        <ellipse cx="42" cy="30" rx="6" ry="7" fill="#fff" stroke="#0097a7" stroke-width="1.5"/>
-                        <ellipse cx="58" cy="30" rx="6" ry="7" fill="#fff" stroke="#0097a7" stroke-width="1.5"/>
-                        <ellipse cx="43" cy="31" rx="3.5" ry="4.5" fill="#2c3e50"/>
-                        <ellipse cx="59" cy="31" rx="3.5" ry="4.5" fill="#2c3e50"/>
-                        <circle cx="44" cy="29" r="1.8" fill="#4dd0e1"/>
-                        <circle cx="60" cy="29" r="1.8" fill="#4dd0e1"/>
+                    <!-- Body -->
+                    <g class="tm-animate-body">
+                        <ellipse cx="50" cy="68" rx="27" ry="23" fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="2.4"/>
+                        <ellipse cx="40" cy="58" rx="8" ry="4.5" fill="#fff" opacity="0.16"/>
+                        <path d="M 30 58 Q 34 55 38 58" stroke="#006064" stroke-width="1" fill="none" opacity="0.4"/>
+                        <path d="M 32 64 Q 36 61 40 64" stroke="#006064" stroke-width="1" fill="none" opacity="0.35"/>
+                        <path d="M 62 58 Q 66 55 70 58" stroke="#006064" stroke-width="1" fill="none" opacity="0.4"/>
+                        <path d="M 60 64 Q 64 61 68 64" stroke="#006064" stroke-width="1" fill="none" opacity="0.35"/>
+                        <circle cx="34" cy="72" r="1.4" fill="#006064" opacity="0.3"/>
+                        <circle cx="66" cy="72" r="1.4" fill="#006064" opacity="0.3"/>
+                        <ellipse cx="50" cy="71" rx="16" ry="14" fill="url(#teen-dragon-belly)"/>
+                        <path d="M 38 64 Q 50 66.5 62 64" stroke="#4dd0e1" stroke-width="1.15" fill="none" opacity="0.7"/>
+                        <path d="M 36 70 Q 50 73 64 70" stroke="#4dd0e1" stroke-width="1.15" fill="none" opacity="0.65"/>
+                        <path d="M 38 76 Q 50 79 62 76" stroke="#4dd0e1" stroke-width="1.1" fill="none" opacity="0.6"/>
+                        <!-- Ridge spines -->
+                        <path d="M 46 50 L 44 58 L 48 58 Z" fill="#ff6090" stroke="#ad1457" stroke-width="0.9"/>
+                        <path d="M 50 48 L 48 56 L 52 56 Z" fill="#e91e63" stroke="#ad1457" stroke-width="0.9"/>
+                        <path d="M 54 50 L 52 58 L 56 58 Z" fill="#ff6090" stroke="#ad1457" stroke-width="0.9"/>
+                        <path d="M 42 60 L 40 66 L 44 66 Z" fill="#ff80ab" stroke="#c2185b" stroke-width="0.7"/>
+                        <path d="M 58 60 L 56 66 L 60 66 Z" fill="#ff80ab" stroke="#c2185b" stroke-width="0.7"/>
                     </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 36 30 Q 42 27 48 30" stroke="#00838f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                        <path d="M 52 30 Q 58 27 64 30" stroke="#00838f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                    </g>
-                    <!-- Mouth -->
-                    <path class="tm-mascot-mouth-happy" d="M 42 46 Q 50 50 58 46" stroke="#00838f" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 48 Q 50 44 58 48" stroke="#00838f" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <!-- Arms (clawed) -->
+                    <!-- Arms -->
                     <g class="tm-animate-arm-left">
-                        <ellipse cx="28" cy="64" rx="7" ry="10" fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="1.8"/>
-                        <path d="M 24 70 L 22 74 M 27 71 L 26 75 M 30 70 L 30 74" stroke="#00838f" stroke-width="1.5" stroke-linecap="round"/>
+                        <ellipse cx="26" cy="64" rx="7.5" ry="11" fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="1.7"/>
+                        <path d="M 22 72 L 19 77 M 25 73 L 24 78 M 29 72 L 29 77" stroke="#006064" stroke-width="1.6" stroke-linecap="round"/>
                     </g>
                     <g class="tm-animate-arm-right">
-                        <ellipse cx="72" cy="64" rx="7" ry="10" fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="1.8"/>
-                        <path d="M 70 70 L 70 74 M 73 71 L 74 75 M 76 70 L 78 74" stroke="#00838f" stroke-width="1.5" stroke-linecap="round"/>
+                        <ellipse cx="74" cy="64" rx="7.5" ry="11" fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="1.7"/>
+                        <path d="M 71 72 L 71 77 M 75 73 L 76 78 M 78 72 L 81 77" stroke="#006064" stroke-width="1.6" stroke-linecap="round"/>
                     </g>
+                    <!-- Head -->
+                    <ellipse cx="50" cy="31" rx="21" ry="18.5" fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="2.4"/>
+                    <ellipse cx="42" cy="24" rx="7" ry="4" fill="#fff" opacity="0.16"/>
+                    <!-- Jaw / snout -->
+                    <ellipse cx="50" cy="40" rx="12" ry="7.5" fill="url(#teen-dragon-belly)" stroke="#26c6da" stroke-width="0.8"/>
+                    <path d="M 40 37 Q 50 39.5 60 37" stroke="#4dd0e1" stroke-width="0.85" fill="none" opacity="0.55"/>
+                    <ellipse cx="46" cy="42" rx="2.3" ry="1.7" fill="#006064"/>
+                    <ellipse cx="54" cy="42" rx="2.3" ry="1.7" fill="#006064"/>
+                    <circle cx="50" cy="43" r="5" fill="url(#teen-ember)" opacity="0.7"/>
+                    <!-- Horns -->
+                    <path d="M 35 22 Q 28 14 22 10 Q 20 8 24 11 L 34 20 Z" fill="url(#teen-dragon-horn)" stroke="#ad1457" stroke-width="1.4"/>
+                    <path d="M 65 22 Q 72 14 78 10 Q 80 8 76 11 L 66 20 Z" fill="url(#teen-dragon-horn)" stroke="#ad1457" stroke-width="1.4"/>
+                    <path d="M 26 12 L 29 16" stroke="#fff" stroke-width="1.1" opacity="0.4" stroke-linecap="round"/>
+                    <path d="M 74 12 L 71 16" stroke="#fff" stroke-width="1.1" opacity="0.4" stroke-linecap="round"/>
+                    <!-- Eyes -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="41" cy="29" rx="6.5" ry="7.5" fill="#fff" stroke="#00838f" stroke-width="1.4"/>
+                        <ellipse cx="59" cy="29" rx="6.5" ry="7.5" fill="#fff" stroke="#00838f" stroke-width="1.4"/>
+                        <ellipse cx="41.8" cy="30" rx="3.6" ry="4.6" fill="url(#teen-dragon-iris)"/>
+                        <ellipse cx="59.8" cy="30" rx="3.6" ry="4.6" fill="url(#teen-dragon-iris)"/>
+                        <ellipse cx="42" cy="30.3" rx="1.8" ry="2.6" fill="#001416"/>
+                        <ellipse cx="60" cy="30.3" rx="1.8" ry="2.6" fill="#001416"/>
+                        <circle cx="43.4" cy="27.5" r="1.9" fill="#fff"/>
+                        <circle cx="61.4" cy="27.5" r="1.9" fill="#fff"/>
+                        <circle cx="39.6" cy="32.5" r="0.85" fill="#4dd0e1" opacity="0.75"/>
+                        <circle cx="57.6" cy="32.5" r="0.85" fill="#4dd0e1" opacity="0.75"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 35 29 Q 41 25 47 29" stroke="#006064" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 29 Q 59 25 65 29" stroke="#006064" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <path class="tm-mascot-mouth-happy" d="M 41 46 Q 50 51 59 46" stroke="#006064" stroke-width="2.1" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 48 Q 50 43 59 48" stroke="#006064" stroke-width="2.1" fill="none" stroke-linecap="round"/>
+                    <path d="M 46 47 L 45 50" stroke="#e0f7fa" stroke-width="1.6" stroke-linecap="round"/>
+                    <path d="M 54 47 L 55 50" stroke="#e0f7fa" stroke-width="1.6" stroke-linecap="round"/>
                     <!-- Feet -->
                     <g class="tm-animate-leg-left">
-                        <ellipse cx="40" cy="88" rx="7" ry="5" fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="1.8"/>
-                        <path d="M 36 90 L 34 93 M 40 91 L 40 94 M 44 90 L 46 93" stroke="#00838f" stroke-width="1.5" stroke-linecap="round"/>
+                        <ellipse cx="39" cy="88" rx="7.5" ry="5.2" fill="url(#teen-dragon-shade)" stroke="#00838f" stroke-width="1.6"/>
+                        <path d="M 34 89 L 31 93 M 39 90 L 39 94 M 44 89 L 47 93" stroke="#004d40" stroke-width="1.6" stroke-linecap="round"/>
                     </g>
                     <g class="tm-animate-leg-right">
-                        <ellipse cx="60" cy="88" rx="7" ry="5" fill="url(#teen-dragon-scales)" stroke="#0097a7" stroke-width="1.8"/>
-                        <path d="M 54 90 L 52 93 M 60 91 L 60 94 M 64 90 L 66 93" stroke="#00838f" stroke-width="1.5" stroke-linecap="round"/>
+                        <ellipse cx="61" cy="88" rx="7.5" ry="5.2" fill="url(#teen-dragon-shade)" stroke="#00838f" stroke-width="1.6"/>
+                        <path d="M 54 89 L 51 93 M 61 90 L 61 94 M 66 89 L 69 93" stroke="#004d40" stroke-width="1.6" stroke-linecap="round"/>
                     </g>
                 </g>
 
-                <!-- ADULT Stage - Full Grown Tamagotchi -->
                 <!-- DRAGON ADULT -->
                 <g id="tm-mascot-evo3-dragon" style="display: none;">
                     <defs>
                         <linearGradient id="adult-dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#26a69a;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#00897b;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#00695c;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#4db6ac;stop-opacity:1" />
+                            <stop offset="40%" style="stop-color:#00897b;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#004d40;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="adult-dragon-shade" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00796b;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#00251a;stop-opacity:1" />
                         </linearGradient>
                         <linearGradient id="adult-dragon-wing" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#4db6ac;stop-opacity:0.9" />
-                            <stop offset="100%" style="stop-color:#26a69a;stop-opacity:0.7" />
+                            <stop offset="0%" style="stop-color:#80cbc4;stop-opacity:0.95" />
+                            <stop offset="50%" style="stop-color:#26a69a;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#00695c;stop-opacity:0.65" />
                         </linearGradient>
+                        <linearGradient id="adult-dragon-belly" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#e0f2f1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#80cbc4;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="adult-dragon-horn" x1="0%" y1="100%" x2="25%" y2="0%">
+                            <stop offset="0%" style="stop-color:#880e4f;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#e91e63;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#f8bbd0;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="adult-dragon-iris" cx="35%" cy="30%" r="65%">
+                            <stop offset="0%" style="stop-color:#ffd54f;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#ff8f00;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+                        </radialGradient>
+                        <radialGradient id="adult-ember" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" style="stop-color:#ffab40;stop-opacity:0.7" />
+                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
+                        </radialGradient>
                     </defs>
-                    <!-- Shadow -->
-                    <ellipse cx="50" cy="94" rx="40" ry="6" fill="#333" opacity="0.35"/>
-                    <!-- Majestic wings (large and detailed) -->
+                    <ellipse cx="50" cy="95" rx="38" ry="5.5" fill="#1a1a1a" opacity="0.28"/>
+                    <!-- Wings -->
                     <g class="tm-animate-wing-left">
-                        <path d="M 15 50 Q 8 40 10 30 Q 12 20 18 18 Q 22 50 25 55 Z" 
-                              fill="url(#adult-dragon-wing)" stroke="#00695c" stroke-width="2.5" filter="url(#glow)"/>
-                        <path d="M 12 35 Q 15 35 18 40" stroke="#00695c" stroke-width="1.2" opacity="0.6"/>
-                        <path d="M 14 42 Q 17 42 20 47" stroke="#00695c" stroke-width="1.2" opacity="0.6"/>
-                        <path d="M 16 48 Q 19 48 22 53" stroke="#00695c" stroke-width="1.2" opacity="0.6"/>
+                        <path d="M 22 52 Q 6 40 4 24 Q 3 12 14 14 Q 18 28 22 40 Q 24 48 28 56 Z"
+                              fill="url(#adult-dragon-wing)" stroke="#004d40" stroke-width="2"/>
+                        <path d="M 10 22 Q 14 32 20 44" stroke="#00332c" stroke-width="1.15" opacity="0.55" fill="none"/>
+                        <path d="M 14 24 Q 18 36 24 48" stroke="#00332c" stroke-width="1" opacity="0.45" fill="none"/>
+                        <path d="M 18 28 Q 21 38 26 50" stroke="#00332c" stroke-width="0.85" opacity="0.35" fill="none"/>
+                        <path d="M 8 18 L 5 14" stroke="#004d40" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M 12 16 L 10 12" stroke="#004d40" stroke-width="1.2" stroke-linecap="round"/>
                     </g>
                     <g class="tm-animate-wing-right">
-                        <path d="M 85 50 Q 92 40 90 30 Q 88 20 82 18 Q 78 50 75 55 Z" 
-                              fill="url(#adult-dragon-wing)" stroke="#00695c" stroke-width="2.5" filter="url(#glow)"/>
-                        <path d="M 88 35 Q 85 35 82 40" stroke="#00695c" stroke-width="1.2" opacity="0.6"/>
-                        <path d="M 86 42 Q 83 42 80 47" stroke="#00695c" stroke-width="1.2" opacity="0.6"/>
-                        <path d="M 84 48 Q 81 48 78 53" stroke="#00695c" stroke-width="1.2" opacity="0.6"/>
+                        <path d="M 78 52 Q 94 40 96 24 Q 97 12 86 14 Q 82 28 78 40 Q 76 48 72 56 Z"
+                              fill="url(#adult-dragon-wing)" stroke="#004d40" stroke-width="2"/>
+                        <path d="M 90 22 Q 86 32 80 44" stroke="#00332c" stroke-width="1.15" opacity="0.55" fill="none"/>
+                        <path d="M 86 24 Q 82 36 76 48" stroke="#00332c" stroke-width="1" opacity="0.45" fill="none"/>
+                        <path d="M 82 28 Q 79 38 74 50" stroke="#00332c" stroke-width="0.85" opacity="0.35" fill="none"/>
+                        <path d="M 92 18 L 95 14" stroke="#004d40" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M 88 16 L 90 12" stroke="#004d40" stroke-width="1.2" stroke-linecap="round"/>
                     </g>
-                    <!-- Long powerful tail -->
+                    <!-- Tail -->
                     <g class="tm-animate-tail">
-                        <path d="M 75 72 Q 90 75 96 68 Q 100 60 96 54 Q 94 50 88 52" 
-                              fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="2.5"/>
-                        <!-- Tail spikes -->
-                        <path d="M 92 52 L 96 50 L 94 55 Z" fill="#e91e63"/>
-                        <path d="M 88 58 L 92 57 L 90 61 Z" fill="#ec407a"/>
-                        <path d="M 84 64 L 88 63 L 86 67 Z" fill="#f06292"/>
+                        <path d="M 74 72 Q 92 78 98 68 Q 102 58 96 50 Q 92 46 86 50"
+                              fill="url(#adult-dragon-scales)" stroke="#00332c" stroke-width="2.3"/>
+                        <path d="M 86 60 Q 93 54 97 60" fill="none" stroke="#26a69a" stroke-width="1.1" opacity="0.45"/>
+                        <path d="M 88 66 Q 94 62 97 68" fill="none" stroke="#26a69a" stroke-width="0.9" opacity="0.35"/>
+                        <path d="M 94 50 L 100 46 L 96 54 Z" fill="#d81b60" stroke="#880e4f" stroke-width="0.9"/>
+                        <path d="M 90 56 L 96 54 L 92 60 Z" fill="#e91e63" stroke="#ad1457" stroke-width="0.8"/>
+                        <path d="M 86 62 L 91 61 L 88 66 Z" fill="#ec407a" stroke="#c2185b" stroke-width="0.7"/>
                     </g>
-                    <!-- Muscular body -->
-                    <ellipse class="tm-animate-body" cx="50" cy="65" rx="28" ry="24" fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="3"/>
-                    <!-- Armored belly scales -->
-                    <ellipse cx="50" cy="68" rx="18" ry="16" fill="#80cbc4" opacity="0.7"/>
-                    <path d="M 38 60 Q 50 62 62 60" stroke="#4db6ac" stroke-width="1.5" opacity="0.7"/>
-                    <path d="M 36 66 Q 50 68 64 66" stroke="#4db6ac" stroke-width="1.5" opacity="0.7"/>
-                    <path d="M 38 72 Q 50 74 62 72" stroke="#4db6ac" stroke-width="1.5" opacity="0.7"/>
-                    <path d="M 40 78 Q 50 80 60 78" stroke="#4db6ac" stroke-width="1.5" opacity="0.7"/>
-                    <!-- Prominent back spikes -->
-                    <path d="M 46 48 L 44 56 L 48 56 Z" fill="#d81b60" stroke="#ad1457" stroke-width="1.5"/>
-                    <path d="M 50 46 L 48 54 L 52 54 Z" fill="#d81b60" stroke="#ad1457" stroke-width="1.5"/>
-                    <path d="M 54 48 L 52 56 L 56 56 Z" fill="#d81b60" stroke="#ad1457" stroke-width="1.5"/>
-                    <path d="M 42 60 L 40 66 L 44 66 Z" fill="#ec407a" stroke="#c2185b" stroke-width="1.5"/>
-                    <path d="M 58 60 L 56 66 L 60 66 Z" fill="#ec407a" stroke="#c2185b" stroke-width="1.5"/>
-                    <!-- Majestic head (elongated) -->
-                    <ellipse cx="50" cy="28" rx="22" ry="20" fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="2.5"/>
-                    <!-- Pronounced snout -->
-                    <ellipse cx="50" cy="36" rx="13" ry="9" fill="#80cbc4"/>
-                    <path d="M 42 34 Q 50 36 58 34" stroke="#4db6ac" stroke-width="1" opacity="0.6"/>
-                    <!-- Flared nostrils -->
-                    <ellipse cx="45" cy="38" rx="2.5" ry="2" fill="#004d40"/>
-                    <ellipse cx="55" cy="38" rx="2.5" ry="2" fill="#004d40"/>
-                    <!-- Large swept-back horns -->
-                    <path d="M 34 20 Q 28 12 24 8 Q 22 6 26 8 L 32 16 L 36 22" fill="#e91e63" stroke="#ad1457" stroke-width="2"/>
-                    <path d="M 66 20 Q 72 12 76 8 Q 78 6 74 8 L 68 16 L 64 22" fill="#e91e63" stroke="#ad1457" stroke-width="2"/>
-                    <!-- Piercing eyes -->
-                    <g class="tm-mascot-eye-open">
-                        <ellipse cx="41" cy="26" rx="6" ry="7" fill="#ffd700" stroke="#004d40" stroke-width="1.5"/>
-                        <ellipse cx="59" cy="26" rx="6" ry="7" fill="#ffd700" stroke="#004d40" stroke-width="1.5"/>
-                        <ellipse cx="41" cy="26" rx="2.5" ry="4" fill="#000"/>
-                        <ellipse cx="59" cy="26" rx="2.5" ry="4" fill="#000"/>
-                        <circle cx="42" cy="24" r="1.5" fill="#ffeb3b"/>
+                    <!-- Body -->
+                    <g class="tm-animate-body">
+                        <ellipse cx="50" cy="66" rx="29" ry="24" fill="url(#adult-dragon-scales)" stroke="#00332c" stroke-width="2.6"/>
+                        <ellipse cx="40" cy="56" rx="9" ry="5" fill="#fff" opacity="0.12"/>
+                        <path d="M 28 56 Q 33 52 38 56" stroke="#004d40" stroke-width="1.1" fill="none" opacity="0.4"/>
+                        <path d="M 30 62 Q 35 58 40 62" stroke="#004d40" stroke-width="1.1" fill="none" opacity="0.35"/>
+                        <path d="M 62 56 Q 67 52 72 56" stroke="#004d40" stroke-width="1.1" fill="none" opacity="0.4"/>
+                        <path d="M 60 62 Q 65 58 70 62" stroke="#004d40" stroke-width="1.1" fill="none" opacity="0.35"/>
+                        <circle cx="32" cy="70" r="1.5" fill="#004d40" opacity="0.3"/>
+                        <circle cx="68" cy="70" r="1.5" fill="#004d40" opacity="0.3"/>
+                        <!-- Armored belly -->
+                        <ellipse cx="50" cy="69" rx="18" ry="16" fill="url(#adult-dragon-belly)"/>
+                        <path d="M 36 60 Q 50 62.5 64 60" stroke="#4db6ac" stroke-width="1.4" fill="none" opacity="0.8"/>
+                        <path d="M 34 66 Q 50 69 66 66" stroke="#4db6ac" stroke-width="1.4" fill="none" opacity="0.75"/>
+                        <path d="M 36 72 Q 50 75 64 72" stroke="#4db6ac" stroke-width="1.35" fill="none" opacity="0.7"/>
+                        <path d="M 38 78 Q 50 81 62 78" stroke="#4db6ac" stroke-width="1.3" fill="none" opacity="0.65"/>
+                        <!-- Spines -->
+                        <path d="M 44 48 L 42 56 L 46 56 Z" fill="#c2185b" stroke="#880e4f" stroke-width="1"/>
+                        <path d="M 50 46 L 48 54 L 52 54 Z" fill="#d81b60" stroke="#880e4f" stroke-width="1"/>
+                        <path d="M 56 48 L 54 56 L 58 56 Z" fill="#c2185b" stroke="#880e4f" stroke-width="1"/>
+                        <path d="M 40 58 L 38 65 L 42 65 Z" fill="#ec407a" stroke="#ad1457" stroke-width="0.8"/>
+                        <path d="M 60 58 L 58 65 L 62 65 Z" fill="#ec407a" stroke="#ad1457" stroke-width="0.8"/>
                     </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 35 26 Q 41 23 47 26" stroke="#004d40" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                        <path d="M 53 26 Q 59 23 65 26" stroke="#004d40" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                    </g>
-                    <!-- Fierce mouth -->
-                    <path class="tm-mascot-mouth-happy" d="M 40 42 Q 50 46 60 42" stroke="#004d40" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 40 44 Q 50 40 60 44" stroke="#004d40" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                    <!-- Fangs -->
-                    <path d="M 47 43 L 46 46" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M 53 43 L 54 46" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
-                    <!-- Powerful arms/claws -->
+                    <!-- Arms -->
                     <g class="tm-animate-arm-left">
-                        <ellipse cx="26" cy="62" rx="8" ry="12" fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="2"/>
-                        <path d="M 22 70 L 20 75 M 25 71 L 24 76 M 28 71 L 28 76 M 31 70 L 32 75" stroke="#004d40" stroke-width="2" stroke-linecap="round"/>
+                        <ellipse cx="24" cy="62" rx="8.5" ry="12.5" fill="url(#adult-dragon-scales)" stroke="#00332c" stroke-width="2"/>
+                        <ellipse cx="22" cy="56" rx="3" ry="2" fill="#fff" opacity="0.12"/>
+                        <path d="M 19 72 L 16 78 M 23 73 L 22 79 M 27 73 L 27 79 M 30 72 L 32 78" stroke="#00251a" stroke-width="1.8" stroke-linecap="round"/>
                     </g>
                     <g class="tm-animate-arm-right">
-                        <ellipse cx="74" cy="62" rx="8" ry="12" fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="2"/>
-                        <path d="M 72 70 L 72 75 M 75 71 L 76 76 M 78 71 L 78 76 M 81 70 L 82 75" stroke="#004d40" stroke-width="2" stroke-linecap="round"/>
+                        <ellipse cx="76" cy="62" rx="8.5" ry="12.5" fill="url(#adult-dragon-scales)" stroke="#00332c" stroke-width="2"/>
+                        <ellipse cx="78" cy="56" rx="3" ry="2" fill="#fff" opacity="0.12"/>
+                        <path d="M 70 72 L 68 78 M 73 73 L 74 79 M 77 73 L 77 79 M 81 72 L 84 78" stroke="#00251a" stroke-width="1.8" stroke-linecap="round"/>
                     </g>
-                    <!-- Strong legs/claws -->
+                    <!-- Head -->
+                    <ellipse cx="50" cy="28" rx="22" ry="20" fill="url(#adult-dragon-scales)" stroke="#00332c" stroke-width="2.5"/>
+                    <ellipse cx="42" cy="20" rx="8" ry="4.5" fill="#fff" opacity="0.12"/>
+                    <ellipse cx="50" cy="37" rx="14" ry="9.5" fill="url(#adult-dragon-belly)" stroke="#26a69a" stroke-width="0.9"/>
+                    <path d="M 40 34 Q 50 36.5 60 34" stroke="#4db6ac" stroke-width="0.9" fill="none" opacity="0.55"/>
+                    <ellipse cx="45" cy="39" rx="2.6" ry="2" fill="#00251a"/>
+                    <ellipse cx="55" cy="39" rx="2.6" ry="2" fill="#00251a"/>
+                    <circle cx="50" cy="40" r="6.5" fill="url(#adult-ember)"/>
+                    <!-- Horns -->
+                    <path d="M 33 18 Q 24 8 18 2 Q 16 0 20 3 L 32 16 Z" fill="url(#adult-dragon-horn)" stroke="#880e4f" stroke-width="1.6"/>
+                    <path d="M 67 18 Q 76 8 82 2 Q 84 0 80 3 L 68 16 Z" fill="url(#adult-dragon-horn)" stroke="#880e4f" stroke-width="1.6"/>
+                    <path d="M 22 5 L 26 10" stroke="#fff" stroke-width="1.2" opacity="0.4" stroke-linecap="round"/>
+                    <path d="M 78 5 L 74 10" stroke="#fff" stroke-width="1.2" opacity="0.4" stroke-linecap="round"/>
+                    <path d="M 36 14 L 34 10 L 38 12 Z" fill="#f48fb1" opacity="0.8"/>
+                    <path d="M 64 14 L 66 10 L 62 12 Z" fill="#f48fb1" opacity="0.8"/>
+                    <!-- Eyes -->
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="40" cy="26" rx="6.5" ry="7.5" fill="#fff8e1" stroke="#00332c" stroke-width="1.5"/>
+                        <ellipse cx="60" cy="26" rx="6.5" ry="7.5" fill="#fff8e1" stroke="#00332c" stroke-width="1.5"/>
+                        <ellipse cx="40.5" cy="26.5" rx="3.4" ry="4.5" fill="url(#adult-dragon-iris)"/>
+                        <ellipse cx="60.5" cy="26.5" rx="3.4" ry="4.5" fill="url(#adult-dragon-iris)"/>
+                        <ellipse cx="40.5" cy="27" rx="1.6" ry="2.6" fill="#1a0a00"/>
+                        <ellipse cx="60.5" cy="27" rx="1.6" ry="2.6" fill="#1a0a00"/>
+                        <circle cx="42" cy="24" r="1.7" fill="#fffde7"/>
+                        <circle cx="62" cy="24" r="1.7" fill="#fffde7"/>
+                        <circle cx="38.8" cy="29.2" r="0.7" fill="#ffecb3" opacity="0.8"/>
+                        <circle cx="58.8" cy="29.2" r="0.7" fill="#ffecb3" opacity="0.8"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 34 26 Q 40 22 46 26" stroke="#00332c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 54 26 Q 60 22 66 26" stroke="#00332c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <path class="tm-mascot-mouth-happy" d="M 39 44 Q 50 49 61 44" stroke="#00332c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 39 46 Q 50 41 61 46" stroke="#00332c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                    <path d="M 46 45 L 45 49" stroke="#e0f2f1" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M 54 45 L 55 49" stroke="#e0f2f1" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Feet -->
                     <g class="tm-animate-leg-left">
-                        <ellipse cx="39" cy="88" rx="8" ry="6" fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="2"/>
-                        <path d="M 34 90 L 32 94 M 38 91 L 38 95 M 42 91 L 42 95 M 46 90 L 48 94" stroke="#004d40" stroke-width="2" stroke-linecap="round"/>
+                        <ellipse cx="38" cy="89" rx="8.5" ry="6" fill="url(#adult-dragon-shade)" stroke="#00332c" stroke-width="1.8"/>
+                        <path d="M 32 90 L 29 95 M 37 91 L 37 96 M 42 91 L 42 96 M 47 90 L 50 95" stroke="#001a14" stroke-width="1.8" stroke-linecap="round"/>
                     </g>
                     <g class="tm-animate-leg-right">
-                        <ellipse cx="61" cy="88" rx="8" ry="6" fill="url(#adult-dragon-scales)" stroke="#004d40" stroke-width="2"/>
-                        <path d="M 54 90 L 52 94 M 60 91 L 60 95 M 64 91 L 64 95 M 68 90 L 70 94" stroke="#004d40" stroke-width="2" stroke-linecap="round"/>
+                        <ellipse cx="62" cy="89" rx="8.5" ry="6" fill="url(#adult-dragon-shade)" stroke="#00332c" stroke-width="1.8"/>
+                        <path d="M 54 90 L 51 95 M 60 91 L 60 96 M 65 91 L 65 96 M 70 90 L 73 95" stroke="#001a14" stroke-width="1.8" stroke-linecap="round"/>
                     </g>
                 </g>
 
-                <!-- DRAGON MIDDLE AGE -->
+                <!-- DRAGON MIDDLE AGE — wizard dragon -->
                 <g id="tm-mascot-evo4-dragon" style="display: none;">
                     <defs>
                         <linearGradient id="wizard-robe" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#7e57c2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#5e35b1;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#9575cd;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#7e57c2;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#4527a0;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="wizard-robe-fold" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#5e35b1;stop-opacity:0.55" />
+                            <stop offset="100%" style="stop-color:#5e35b1;stop-opacity:0" />
+                        </linearGradient>
+                        <linearGradient id="mid-dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#80cbc4;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#26a69a;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#00695c;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="mid-dragon-belly" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#e0f2f1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b2dfdb;stop-opacity:1" />
                         </linearGradient>
                         <radialGradient id="magic-orb">
-                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#ba68c8;stop-opacity:0.8" />
-                            <stop offset="100%" style="stop-color:#9c27b0;stop-opacity:0.4" />
+                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#ce93d8;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#7b1fa2;stop-opacity:0.35" />
                         </radialGradient>
+                        <linearGradient id="mid-dragon-horn" x1="0%" y1="100%" x2="20%" y2="0%">
+                            <stop offset="0%" style="stop-color:#6a1b9a;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ea80fc;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="mid-dragon-iris" cx="38%" cy="32%" r="62%">
+                            <stop offset="0%" style="stop-color:#7e57c2;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:1" />
+                        </radialGradient>
+                        <linearGradient id="mid-dragon-wing" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#d1c4e9;stop-opacity:0.85" />
+                            <stop offset="100%" style="stop-color:#7e57c2;stop-opacity:0.55" />
+                        </linearGradient>
                     </defs>
-                    <!-- Shadow -->
-                    <ellipse cx="50" cy="98" rx="30" ry="5" fill="#333" opacity="0.3"/>
-                    <!-- Robe (long flowing) -->
-                    <path d="M 35 55 L 30 92 Q 32 96 38 95 L 42 60 Z" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="1.5"/>
-                    <path d="M 65 55 L 70 92 Q 68 96 62 95 L 58 60 Z" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="1.5"/>
-                    <ellipse cx="50" cy="68" rx="22" ry="28" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="2"/>
-                    <!-- Robe details (stars and moons) -->
-                    <circle cx="45" cy="65" r="2" fill="#ffd54f" opacity="0.8"/>
-                    <circle cx="55" cy="72" r="1.5" fill="#ffd54f" opacity="0.7"/>
-                    <circle cx="52" cy="80" r="2" fill="#ffd54f" opacity="0.8"/>
-                    <path d="M 41 75 L 43 77 L 41 79 L 39 77 Z" fill="#fff" opacity="0.6"/>
-                    <path d="M 59 68 L 61 70 L 59 72 L 57 70 Z" fill="#fff" opacity="0.6"/>
-                    <!-- Belt with pouches -->
-                    <rect x="35" y="62" width="30" height="3" fill="#8d6e63" stroke="#5d4037" stroke-width="1"/>
-                    <circle cx="42" cy="65" r="2.5" fill="#6d4c41"/>
-                    <circle cx="50" cy="65" r="3" fill="#8d6e63"/>
-                    <circle cx="58" cy="65" r="2.5" fill="#6d4c41"/>
-                    <!-- Magic staff (left hand) -->
-                    <line x1="22" y1="58" x2="18" y2="25" stroke="#8d6e63" stroke-width="3" stroke-linecap="round"/>
-                    <circle cx="18" cy="22" r="5" fill="url(#magic-orb)" filter="url(#strong-glow)"/>
-                    <circle cx="18" cy="22" r="3" fill="#e1bee7" opacity="0.8"/>
-                    <circle cx="19" cy="21" r="1.5" fill="#fff"/>
-                    <!-- Magic sparkles around staff -->
-                    <circle cx="15" cy="28" r="1" fill="#e1bee7" opacity="0.9" class="tm-sparkle"/>
-                    <circle cx="21" cy="26" r="0.8" fill="#ce93d8" opacity="0.8" class="tm-sparkle"/>
-                    <circle cx="17" cy="31" r="1.2" fill="#ba68c8" opacity="0.9" class="tm-sparkle"/>
+                    <ellipse cx="50" cy="98" rx="30" ry="4.5" fill="#1a1a1a" opacity="0.25"/>
+                    <!-- Soft wing tips behind robe -->
+                    <g class="tm-animate-wing-left">
+                        <path d="M 28 58 Q 16 50 12 40 Q 10 34 16 36 Q 22 46 30 56 Z"
+                              fill="url(#mid-dragon-wing)" stroke="#5e35b1" stroke-width="1.2"/>
+                    </g>
+                    <g class="tm-animate-wing-right">
+                        <path d="M 72 58 Q 84 50 88 40 Q 90 34 84 36 Q 78 46 70 56 Z"
+                              fill="url(#mid-dragon-wing)" stroke="#5e35b1" stroke-width="1.2"/>
+                    </g>
+                    <!-- Tail peeking from robe -->
+                    <g class="tm-animate-tail">
+                        <path d="M 68 78 Q 82 84 86 76 Q 88 70 82 68"
+                              fill="url(#mid-dragon-scales)" stroke="#00695c" stroke-width="1.6"/>
+                        <circle cx="84" cy="70" r="3" fill="#ea80fc" stroke="#6a1b9a" stroke-width="0.8"/>
+                    </g>
+                    <!-- Robe body -->
+                    <g class="tm-animate-body">
+                        <path d="M 34 54 L 28 94 Q 30 98 38 96 L 42 62 Z" fill="url(#wizard-robe)" stroke="#311b92" stroke-width="1.4"/>
+                        <path d="M 66 54 L 72 94 Q 70 98 62 96 L 58 62 Z" fill="url(#wizard-robe)" stroke="#311b92" stroke-width="1.4"/>
+                        <ellipse cx="50" cy="70" rx="23" ry="28" fill="url(#wizard-robe)" stroke="#311b92" stroke-width="2"/>
+                        <path d="M 38 58 Q 42 78 40 92" stroke="#4527a0" stroke-width="2" fill="none" opacity="0.35"/>
+                        <path d="M 62 58 Q 58 78 60 92" stroke="#4527a0" stroke-width="2" fill="none" opacity="0.35"/>
+                        <path d="M 45 62 Q 50 64 55 62" stroke="#b39ddb" stroke-width="1" fill="none" opacity="0.5"/>
+                        <!-- Stars / moons -->
+                        <circle cx="44" cy="66" r="2.2" fill="#ffd54f"/>
+                        <circle cx="44" cy="66" r="0.8" fill="#fff8e1"/>
+                        <path d="M 56 74 L 58 78 L 56 82 L 54 78 Z" fill="#fff" opacity="0.75"/>
+                        <circle cx="52" cy="84" r="1.8" fill="#ffd54f" opacity="0.85"/>
+                        <path d="M 40 80 Q 42 78 44 80" stroke="#fff" stroke-width="1" fill="none" opacity="0.55"/>
+                        <!-- Belt -->
+                        <rect x="34" y="64" width="32" height="3.5" rx="1" fill="#8d6e63" stroke="#5d4037" stroke-width="0.9"/>
+                        <circle cx="42" cy="65.8" r="2.4" fill="#6d4c41" stroke="#3e2723" stroke-width="0.6"/>
+                        <circle cx="50" cy="65.8" r="3" fill="#a1887f" stroke="#5d4037" stroke-width="0.7"/>
+                        <circle cx="58" cy="65.8" r="2.4" fill="#6d4c41" stroke="#3e2723" stroke-width="0.6"/>
+                        <circle cx="50" cy="65.5" r="1.1" fill="#ffd54f"/>
+                    </g>
+                    <!-- Staff -->
+                    <line x1="20" y1="60" x2="16" y2="22" stroke="#6d4c41" stroke-width="3.2" stroke-linecap="round"/>
+                    <line x1="20" y1="60" x2="16" y2="22" stroke="#a1887f" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+                    <circle cx="16" cy="19" r="5.5" fill="url(#magic-orb)"/>
+                    <circle cx="16" cy="19" r="3.2" fill="#f3e5f5" opacity="0.85"/>
+                    <circle cx="17.2" cy="17.5" r="1.4" fill="#fff"/>
+                    <circle cx="13" cy="26" r="1.1" fill="#e1bee7" opacity="0.9" class="tm-sparkle"/>
+                    <circle cx="19" cy="24" r="0.9" fill="#ce93d8" opacity="0.85" class="tm-sparkle"/>
+                    <circle cx="15" cy="30" r="1.2" fill="#ba68c8" opacity="0.8" class="tm-sparkle"/>
                     <!-- Arms -->
-                    <ellipse cx="24" cy="60" rx="6" ry="11" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="1.5"/>
-                    <ellipse cx="76" cy="60" rx="6" ry="11" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="1.5"/>
-                    <!-- Hands -->
-                    <ellipse cx="22" cy="68" rx="4" ry="5" fill="#ffccbc" stroke="#ff8a65" stroke-width="1"/>
-                    <ellipse cx="78" cy="68" rx="4" ry="5" fill="#ffccbc" stroke="#ff8a65" stroke-width="1"/>
-                    <!-- Head -->
-                    <circle cx="50" cy="35" r="17" fill="#ffccbc" stroke="#ff8a65" stroke-width="1.5"/>
-                    <!-- Wizard hat (tall and pointed) -->
-                    <path d="M 35 30 L 50 5 L 65 30 Z" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="2"/>
-                    <ellipse cx="50" cy="30" rx="18" ry="5" fill="url(#wizard-robe)" stroke="#4a148c" stroke-width="2"/>
-                    <!-- Hat band with stars -->
-                    <rect x="35" y="29" width="30" height="3" fill="#ffd54f" stroke="#f9a825" stroke-width="1"/>
-                    <circle cx="42" cy="30.5" r="1" fill="#9c27b0"/>
-                    <circle cx="50" cy="30.5" r="1" fill="#9c27b0"/>
-                    <circle cx="58" cy="30.5" r="1" fill="#9c27b0"/>
-                    <!-- Wise eyes (glasses optional) -->
+                    <g class="tm-animate-arm-left">
+                        <ellipse cx="24" cy="62" rx="6.5" ry="11" fill="url(#wizard-robe)" stroke="#311b92" stroke-width="1.4"/>
+                        <ellipse cx="22" cy="70" rx="4.2" ry="5" fill="url(#mid-dragon-scales)" stroke="#00695c" stroke-width="1.1"/>
+                        <path d="M 19 73 L 17 76 M 22 74 L 21 77 M 25 73 L 25 76" stroke="#004d40" stroke-width="1.2" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-animate-arm-right">
+                        <ellipse cx="76" cy="62" rx="6.5" ry="11" fill="url(#wizard-robe)" stroke="#311b92" stroke-width="1.4"/>
+                        <ellipse cx="78" cy="70" rx="4.2" ry="5" fill="url(#mid-dragon-scales)" stroke="#00695c" stroke-width="1.1"/>
+                        <path d="M 75 73 L 75 76 M 78 74 L 79 77 M 81 73 L 83 76" stroke="#004d40" stroke-width="1.2" stroke-linecap="round"/>
+                    </g>
+                    <!-- Dragon head under hat -->
+                    <ellipse cx="50" cy="36" rx="17" ry="15" fill="url(#mid-dragon-scales)" stroke="#00695c" stroke-width="1.8"/>
+                    <ellipse cx="43" cy="30" rx="6" ry="3.5" fill="#fff" opacity="0.14"/>
+                    <ellipse cx="50" cy="42" rx="10" ry="6" fill="url(#mid-dragon-belly)" stroke="#4db6ac" stroke-width="0.7"/>
+                    <ellipse cx="47" cy="43.5" rx="1.8" ry="1.3" fill="#004d40"/>
+                    <ellipse cx="53" cy="43.5" rx="1.8" ry="1.3" fill="#004d40"/>
+                    <!-- Aged horn ridges -->
+                    <path d="M 36 28 Q 30 20 26 16 Q 24 14 28 17 L 36 26 Z" fill="url(#mid-dragon-horn)" stroke="#4a148c" stroke-width="1.2"/>
+                    <path d="M 64 28 Q 70 20 74 16 Q 76 14 72 17 L 64 26 Z" fill="url(#mid-dragon-horn)" stroke="#4a148c" stroke-width="1.2"/>
+                    <!-- Wizard hat -->
+                    <path d="M 34 30 L 50 2 L 66 30 Z" fill="url(#wizard-robe)" stroke="#311b92" stroke-width="1.8"/>
+                    <path d="M 42 18 Q 50 10 58 18" stroke="#b39ddb" stroke-width="1.2" fill="none" opacity="0.5"/>
+                    <ellipse cx="50" cy="30" rx="18" ry="5" fill="url(#wizard-robe)" stroke="#311b92" stroke-width="1.8"/>
+                    <rect x="34" y="28.5" width="32" height="3.2" rx="1" fill="#ffd54f" stroke="#f9a825" stroke-width="0.8"/>
+                    <circle cx="42" cy="30.1" r="1.1" fill="#6a1b9a"/>
+                    <circle cx="50" cy="30.1" r="1.1" fill="#6a1b9a"/>
+                    <circle cx="58" cy="30.1" r="1.1" fill="#6a1b9a"/>
+                    <!-- Whiskers / mustache -->
+                    <path d="M 44 44 Q 36 46 32 43" stroke="#5d4037" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                    <path d="M 56 44 Q 64 46 68 43" stroke="#5d4037" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                    <path d="M 46 47 Q 50 50 54 47 L 53 52 Q 50 54 47 52 Z" fill="#6d4c41" stroke="#4e342e" stroke-width="0.7"/>
+                    <!-- Eyes -->
                     <g class="tm-mascot-eye-open">
-                        <ellipse cx="44" cy="35" rx="5" ry="5" fill="#fff" stroke="#ff8a65" stroke-width="1"/>
-                        <ellipse cx="44" cy="36" rx="3" ry="3" fill="#5d4037"/>
-                        <circle cx="45" cy="34.5" r="1" fill="#fff"/>
-                        <ellipse cx="56" cy="35" rx="5" ry="5" fill="#fff" stroke="#ff8a65" stroke-width="1"/>
-                        <ellipse cx="56" cy="36" rx="3" ry="3" fill="#5d4037"/>
-                        <circle cx="57" cy="34.5" r="1" fill="#fff"/>
+                        <ellipse cx="43" cy="35" rx="5.2" ry="5.5" fill="#fff" stroke="#00695c" stroke-width="1.1"/>
+                        <ellipse cx="57" cy="35" rx="5.2" ry="5.5" fill="#fff" stroke="#00695c" stroke-width="1.1"/>
+                        <ellipse cx="43.5" cy="35.8" rx="2.8" ry="3.1" fill="url(#mid-dragon-iris)"/>
+                        <ellipse cx="57.5" cy="35.8" rx="2.8" ry="3.1" fill="url(#mid-dragon-iris)"/>
+                        <ellipse cx="43.5" cy="36" rx="1.3" ry="1.7" fill="#12052a"/>
+                        <ellipse cx="57.5" cy="36" rx="1.3" ry="1.7" fill="#12052a"/>
+                        <circle cx="44.6" cy="34" r="1.2" fill="#fff"/>
+                        <circle cx="58.6" cy="34" r="1.2" fill="#fff"/>
                     </g>
                     <g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 39 35 Q 44 33 49 35" stroke="#d84315" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path d="M 51 35 Q 56 33 61 35" stroke="#d84315" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 38 35 Q 43 32 48 35" stroke="#004d40" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 35 Q 57 32 62 35" stroke="#004d40" stroke-width="2" fill="none" stroke-linecap="round"/>
                     </g>
-                    <!-- Wise smile/mustache -->
-                    <path class="tm-mascot-mouth-happy" d="M 44 42 Q 50 45 56 42" stroke="#d84315" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 44 Q 50 40 56 44" stroke="#d84315" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <!-- Mustache -->
-                    <path d="M 44 42 Q 38 44 35 42" stroke="#8d6e63" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <path d="M 56 42 Q 62 44 65 42" stroke="#8d6e63" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <!-- Beard (small, neat) -->
-                    <path d="M 46 46 Q 50 48 54 46 L 53 50 Q 50 52 47 50 Z" fill="#8d6e63" stroke="#6d4c41" stroke-width="1"/>
+                    <path class="tm-mascot-mouth-happy" d="M 44 48 Q 50 51 56 48" stroke="#004d40" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 50 Q 50 46 56 50" stroke="#004d40" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <!-- Feet under robe -->
+                    <g class="tm-animate-leg-left">
+                        <ellipse cx="40" cy="95" rx="6" ry="3.2" fill="url(#mid-dragon-scales)" stroke="#00695c" stroke-width="1.1"/>
+                    </g>
+                    <g class="tm-animate-leg-right">
+                        <ellipse cx="60" cy="95" rx="6" ry="3.2" fill="url(#mid-dragon-scales)" stroke="#00695c" stroke-width="1.1"/>
+                    </g>
                 </g>
 
-                <!-- OLD Stage - Elderly Tamagotchi -->
-                <!-- DRAGON OLD -->
+                <!-- DRAGON OLD — sage dragon -->
                 <g id="tm-mascot-evo5-dragon" style="display: none;">
                     <defs>
                         <linearGradient id="sage-robe" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#eceff1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#b0bec5;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#f5f7fa;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#cfd8dc;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#90a4ae;stop-opacity:1" />
                         </linearGradient>
                         <radialGradient id="wisdom-aura">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:0.6" />
-                            <stop offset="50%" style="stop-color:#80deea;stop-opacity:0.3" />
+                            <stop offset="0%" style="stop-color:#fff;stop-opacity:0.55" />
+                            <stop offset="50%" style="stop-color:#80deea;stop-opacity:0.22" />
                             <stop offset="100%" style="stop-color:#26c6da;stop-opacity:0" />
                         </radialGradient>
+                        <linearGradient id="old-dragon-scales" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#b2dfdb;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#80cbc4;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#4db6ac;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="old-dragon-belly" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#e0f2f1;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="old-dragon-horn" x1="0%" y1="100%" x2="20%" y2="0%">
+                            <stop offset="0%" style="stop-color:#546e7a;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#90a4ae;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#eceff1;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="old-dragon-iris" cx="40%" cy="35%" r="60%">
+                            <stop offset="0%" style="stop-color:#4dd0e1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#01579b;stop-opacity:1" />
+                        </radialGradient>
+                        <linearGradient id="old-dragon-wing" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#eceff1;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#90a4ae;stop-opacity:0.5" />
+                        </linearGradient>
                     </defs>
-                    <!-- Wisdom aura -->
-                    <ellipse cx="50" cy="55" rx="48" ry="55" fill="url(#wisdom-aura)" class="tm-wisdom-aura"/>
-                    <!-- Shadow -->
-                    <ellipse cx="50" cy="100" rx="28" ry="4" fill="#333" opacity="0.25"/>
-                    <!-- Ancient staff (walking stick) -->
-                    <line x1="72" y1="72" x2="75" y2="96" stroke="#795548" stroke-width="3" stroke-linecap="round"/>
-                    <circle cx="72" cy="70" r="4" fill="#9e9e9e" stroke="#616161" stroke-width="1"/>
-                    <path d="M 70 68 Q 68 66 70 64 L 74 66 Z" fill="#90a4ae"/>
-                    <!-- Robe (flowing,ancient) -->
-                    <ellipse cx="50" cy="72" rx="24" ry="28" fill="url(#sage-robe)" stroke="#78909c" stroke-width="2"/>
-                    <path d="M 32 55 L 28 94 Q 30 98 35 96 L 38 62 Z" fill="url(#sage-robe)" stroke="#78909c" stroke-width="1.5"/>
-                    <path d="M 68 55 L 72 94 Q 70 98 65 96 L 62 62 Z" fill="url(#sage-robe)" stroke="#78909c" stroke-width="1.5"/>
-                    <!-- Robe trim (gold, ancient) -->
-                    <path d="M 30 56 Q 50 58 70 56" stroke="#ffd54f" stroke-width="2" fill="none"/>
-                    <path d="M 32 70 Q 50 72 68 70" stroke="#ffd54f" stroke-width="1.5" fill="none" opacity="0.7"/>
-                    <!-- Ancient symbols on robe -->
-                    <text x="44" y="68" font-family="serif" font-size="8" fill="#90a4ae" opacity="0.6">☯</text>
-                    <text x="50" y="80" font-family="serif" font-size="7" fill="#90a4ae" opacity="0.5">✦</text>
-                    <!-- Arms (holding scroll) -->
-                    <ellipse cx="30" cy="64" rx="6" ry="10" fill="url(#sage-robe)" stroke="#78909c" stroke-width="1.5"/>
-                    <ellipse cx="70" cy="64" rx="6" ry="10" fill="url(#sage-robe)" stroke="#78909c" stroke-width="1.5"/>
-                    <!-- Hands (aged) -->
-                    <ellipse cx="28" cy="72" rx="4" ry="5" fill="#d7ccc8" stroke="#a1887f" stroke-width="1"/>
-                    <ellipse cx="72" cy="72" rx="4" ry="5" fill="#d7ccc8" stroke="#a1887f" stroke-width="1"/>
-                    <!-- Ancient scroll -->
-                    <rect x="22" y="70" width="14" height="8" fill="#f3e5d0" rx="1" stroke="#bcaaa4" stroke-width="1"/>
-                    <line x1="24" y1="72" x2="34" y2="72" stroke="#8d6e63" stroke-width="0.5"/>
-                    <line x1="24" y1="74" x2="34" y2="74" stroke="#8d6e63" stroke-width="0.5"/>
-                    <line x1="24" y1="76" x2="32" y2="76" stroke="#8d6e63" stroke-width="0.5"/>
-                    <!-- Head (wise and aged) -->
-                    <circle cx="50" cy="30" r="18" fill="#d7ccc8" stroke="#a1887f" stroke-width="1.5"/>
-                    <!-- Wise wrinkles -->
-                    <path d="M 38 32 Q 45 30 52 32" stroke="#8d6e63" stroke-width="0.8" fill="none" opacity="0.5"/>
-                    <path d="M 48 32 Q 55 30 62 32" stroke="#8d6e63" stroke-width="0.8" fill="none" opacity="0.5"/>
-                    <path d="M 36 36 Q 42 34 48 36" stroke="#8d6e63" stroke-width="0.7" fill="none" opacity="0.4"/>
-                    <path d="M 52 36 Q 58 34 64 36" stroke="#8d6e63" stroke-width="0.7" fill="none" opacity="0.4"/>
-                    <!-- Ancient wizard hat (conical, weathered) -->
-                    <path d="M 36 24 L 50 2 L 64 24 Z" fill="url(#sage-robe)" stroke="#78909c" stroke-width="2"/>
-                    <ellipse cx="50" cy="24" rx="17" ry="4" fill="url(#sage-robe)" stroke="#78909c" stroke-width="2"/>
-                    <path d="M 36 24 Q 50 20 64 24" stroke="#ffd54f" stroke-width="1.5" fill="none"/>
-                    <!-- Wise eyes (small, knowing) -->
+                    <ellipse cx="50" cy="55" rx="46" ry="52" fill="url(#wisdom-aura)" class="tm-wisdom-aura"/>
+                    <ellipse cx="50" cy="99" rx="28" ry="3.8" fill="#1a1a1a" opacity="0.22"/>
+                    <!-- Wings -->
+                    <g class="tm-animate-wing-left">
+                        <path d="M 30 60 Q 16 52 12 42 Q 10 36 16 38 Q 22 48 32 58 Z"
+                              fill="url(#old-dragon-wing)" stroke="#78909c" stroke-width="1.2"/>
+                        <path d="M 18 42 Q 22 48 28 54" stroke="#607d8b" stroke-width="0.7" opacity="0.45" fill="none"/>
+                    </g>
+                    <g class="tm-animate-wing-right">
+                        <path d="M 70 60 Q 84 52 88 42 Q 90 36 84 38 Q 78 48 68 58 Z"
+                              fill="url(#old-dragon-wing)" stroke="#78909c" stroke-width="1.2"/>
+                        <path d="M 82 42 Q 78 48 72 54" stroke="#607d8b" stroke-width="0.7" opacity="0.45" fill="none"/>
+                    </g>
+                    <!-- Tail -->
+                    <g class="tm-animate-tail">
+                        <path d="M 66 80 Q 80 86 84 78 Q 86 72 80 70"
+                              fill="url(#old-dragon-scales)" stroke="#546e7a" stroke-width="1.5"/>
+                        <circle cx="82" cy="72" r="2.8" fill="#ffd54f" stroke="#f9a825" stroke-width="0.7"/>
+                    </g>
+                    <!-- Staff -->
+                    <line x1="74" y1="70" x2="78" y2="96" stroke="#5d4037" stroke-width="3" stroke-linecap="round"/>
+                    <line x1="74" y1="70" x2="78" y2="96" stroke="#a1887f" stroke-width="1.1" stroke-linecap="round" opacity="0.45"/>
+                    <circle cx="73" cy="68" r="4.2" fill="#90a4ae" stroke="#546e7a" stroke-width="1"/>
+                    <path d="M 71 66 Q 69 63 72 61 L 75 64 Z" fill="#cfd8dc"/>
+                    <circle cx="73.5" cy="67" r="1.2" fill="#ffd54f" opacity="0.8"/>
+                    <!-- Robe -->
+                    <g class="tm-animate-body">
+                        <path d="M 32 56 L 27 94 Q 29 98 36 96 L 40 64 Z" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.4"/>
+                        <path d="M 68 56 L 73 94 Q 71 98 64 96 L 60 64 Z" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.4"/>
+                        <ellipse cx="50" cy="72" rx="24" ry="27" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.8"/>
+                        <path d="M 38 58 Q 42 80 40 92" stroke="#78909c" stroke-width="1.8" fill="none" opacity="0.35"/>
+                        <path d="M 62 58 Q 58 80 60 92" stroke="#78909c" stroke-width="1.8" fill="none" opacity="0.35"/>
+                        <path d="M 30 56 Q 50 59 70 56" stroke="#ffd54f" stroke-width="2" fill="none"/>
+                        <path d="M 32 70 Q 50 73 68 70" stroke="#ffd54f" stroke-width="1.4" fill="none" opacity="0.7"/>
+                        <circle cx="44" cy="66" r="1.6" fill="#90a4ae" opacity="0.55"/>
+                        <circle cx="56" cy="78" r="1.4" fill="#90a4ae" opacity="0.45"/>
+                        <path d="M 48 82 L 50 86 L 52 82" fill="none" stroke="#90a4ae" stroke-width="0.9" opacity="0.5"/>
+                    </g>
+                    <!-- Arms + scroll -->
+                    <g class="tm-animate-arm-left">
+                        <ellipse cx="30" cy="64" rx="6.2" ry="10" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.3"/>
+                        <ellipse cx="28" cy="72" rx="4" ry="4.8" fill="url(#old-dragon-scales)" stroke="#546e7a" stroke-width="1"/>
+                        <rect x="20" y="70" width="15" height="8.5" rx="1.5" fill="#f3e5d0" stroke="#bcaaa4" stroke-width="0.9"/>
+                        <line x1="22.5" y1="72.5" x2="32.5" y2="72.5" stroke="#8d6e63" stroke-width="0.55"/>
+                        <line x1="22.5" y1="74.5" x2="32.5" y2="74.5" stroke="#8d6e63" stroke-width="0.55"/>
+                        <line x1="22.5" y1="76.5" x2="30.5" y2="76.5" stroke="#8d6e63" stroke-width="0.55"/>
+                    </g>
+                    <g class="tm-animate-arm-right">
+                        <ellipse cx="70" cy="64" rx="6.2" ry="10" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.3"/>
+                        <ellipse cx="72" cy="72" rx="4" ry="4.8" fill="url(#old-dragon-scales)" stroke="#546e7a" stroke-width="1"/>
+                    </g>
+                    <!-- Weathered dragon head -->
+                    <ellipse cx="50" cy="32" rx="17.5" ry="15.5" fill="url(#old-dragon-scales)" stroke="#546e7a" stroke-width="1.7"/>
+                    <ellipse cx="43" cy="26" rx="6" ry="3.2" fill="#fff" opacity="0.16"/>
+                    <!-- Wrinkles -->
+                    <path d="M 38 34 Q 44 32 48 34" stroke="#607d8b" stroke-width="0.75" fill="none" opacity="0.55"/>
+                    <path d="M 52 34 Q 56 32 62 34" stroke="#607d8b" stroke-width="0.75" fill="none" opacity="0.55"/>
+                    <path d="M 37 38 Q 42 36 47 38" stroke="#607d8b" stroke-width="0.65" fill="none" opacity="0.4"/>
+                    <path d="M 53 38 Q 58 36 63 38" stroke="#607d8b" stroke-width="0.65" fill="none" opacity="0.4"/>
+                    <!-- Weathered scale marks -->
+                    <path d="M 36 30 Q 38 28 40 30" stroke="#546e7a" stroke-width="0.7" fill="none" opacity="0.35"/>
+                    <path d="M 60 30 Q 62 28 64 30" stroke="#546e7a" stroke-width="0.7" fill="none" opacity="0.35"/>
+                    <ellipse cx="50" cy="40" rx="10" ry="5.5" fill="url(#old-dragon-belly)" stroke="#80cbc4" stroke-width="0.6"/>
+                    <ellipse cx="47" cy="41" rx="1.6" ry="1.2" fill="#455a64"/>
+                    <ellipse cx="53" cy="41" rx="1.6" ry="1.2" fill="#455a64"/>
+                    <!-- Ornate horns -->
+                    <path d="M 36 24 Q 28 14 22 8 Q 20 6 24 9 L 35 22 Z" fill="url(#old-dragon-horn)" stroke="#455a64" stroke-width="1.3"/>
+                    <path d="M 64 24 Q 72 14 78 8 Q 80 6 76 9 L 65 22 Z" fill="url(#old-dragon-horn)" stroke="#455a64" stroke-width="1.3"/>
+                    <path d="M 26 11 L 30 16" stroke="#fff" stroke-width="1" opacity="0.45" stroke-linecap="round"/>
+                    <path d="M 74 11 L 70 16" stroke="#fff" stroke-width="1" opacity="0.45" stroke-linecap="round"/>
+                    <circle cx="28" cy="12" r="1.3" fill="#ffd54f" opacity="0.75"/>
+                    <circle cx="72" cy="12" r="1.3" fill="#ffd54f" opacity="0.75"/>
+                    <!-- Sage hat -->
+                    <path d="M 35 24 L 50 1 L 65 24 Z" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.7"/>
+                    <path d="M 42 14 Q 50 6 58 14" stroke="#ffd54f" stroke-width="1.1" fill="none" opacity="0.55"/>
+                    <ellipse cx="50" cy="24" rx="17" ry="4" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.7"/>
+                    <path d="M 35 24 Q 50 20 65 24" stroke="#ffd54f" stroke-width="1.4" fill="none"/>
+                    <!-- Third-eye gem -->
+                    <circle cx="50" cy="22" r="2.2" fill="#80deea" opacity="0.55"/>
+                    <circle cx="50" cy="22" r="1.1" fill="#4dd0e1" opacity="0.75"/>
+                    <!-- Long beard / whiskers -->
+                    <path d="M 42 42 Q 34 52 38 60 L 42 56 Q 40 48 42 44 Z" fill="#eceff1" stroke="#b0bec5" stroke-width="0.9"/>
+                    <path d="M 50 44 Q 46 56 48 64 L 52 62 Q 50 52 50 46 Z" fill="#f5f5f5" stroke="#b0bec5" stroke-width="0.9"/>
+                    <path d="M 58 42 Q 66 52 62 60 L 58 56 Q 60 48 58 44 Z" fill="#eceff1" stroke="#b0bec5" stroke-width="0.9"/>
+                    <line x1="40" y1="48" x2="38" y2="56" stroke="#cfd8dc" stroke-width="0.55" opacity="0.7"/>
+                    <line x1="50" y1="50" x2="49" y2="60" stroke="#cfd8dc" stroke-width="0.55" opacity="0.7"/>
+                    <line x1="60" y1="48" x2="62" y2="56" stroke="#cfd8dc" stroke-width="0.55" opacity="0.7"/>
+                    <!-- Eyes -->
                     <g class="tm-mascot-eye-open">
-                        <ellipse cx="43" cy="30" rx="4" ry="4" fill="#fff" stroke="#a1887f" stroke-width="1"/>
-                        <ellipse cx="43" cy="31" rx="2" ry="2" fill="#5d4037"/>
-                        <circle cx="44" cy="30" r="0.8" fill="#fff" opacity="0.8"/>
-                        <ellipse cx="57" cy="30" rx="4" ry="4" fill="#fff" stroke="#a1887f" stroke-width="1"/>
-                        <ellipse cx="57" cy="31" rx="2" ry="2" fill="#5d4037"/>
-                        <circle cx="58" cy="30" r="0.8" fill="#fff" opacity="0.8"/>
+                        <ellipse cx="43" cy="31" rx="4.4" ry="4.6" fill="#fff" stroke="#607d8b" stroke-width="1"/>
+                        <ellipse cx="57" cy="31" rx="4.4" ry="4.6" fill="#fff" stroke="#607d8b" stroke-width="1"/>
+                        <ellipse cx="43.3" cy="31.6" rx="2.2" ry="2.4" fill="url(#old-dragon-iris)"/>
+                        <ellipse cx="57.3" cy="31.6" rx="2.2" ry="2.4" fill="url(#old-dragon-iris)"/>
+                        <ellipse cx="43.3" cy="31.8" rx="1" ry="1.3" fill="#012a4a"/>
+                        <ellipse cx="57.3" cy="31.8" rx="1" ry="1.3" fill="#012a4a"/>
+                        <circle cx="44.2" cy="30.2" r="0.95" fill="#fff" opacity="0.9"/>
+                        <circle cx="58.2" cy="30.2" r="0.95" fill="#fff" opacity="0.9"/>
                     </g>
                     <g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 39 30 Q 43 28 47 30" stroke="#8d6e63" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                        <path d="M 53 30 Q 57 28 61 30" stroke="#8d6e63" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 39 31 Q 43 28 47 31" stroke="#546e7a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 31 Q 57 28 61 31" stroke="#546e7a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
                     </g>
-                    <!-- Serene smile -->
-                    <path class="tm-mascot-mouth-happy" d="M 44 38 Q 50 40 56 38" stroke="#8d6e63" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 40 Q 50 36 56 40" stroke="#8d6e63" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                    <!-- Epic long beard (flowing) -->
-                    <path d="M 42 40 Q 35 48 38 55 L 42 52 Q 40 46 42 42 Z" fill="#e0e0e0" stroke="#bdbdbd" stroke-width="1"/>
-                    <path d="M 50 42 Q 46 52 48 60 L 52 58 Q 50 50 50 44 Z" fill="#e0e0e0" stroke="#bdbdbd" stroke-width="1"/>
-                    <path d="M 58 40 Q 65 48 62 55 L 58 52 Q 60 46 58 42 Z" fill="#e0e0e0" stroke="#bdbdbd" stroke-width="1"/>
-                    <!-- Beard details (strands) -->
-                    <line x1="40" y1="45" x2="38" y2="52" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
-                    <line x1="50" y1="47" x2="49" y2="56" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
-                    <line x1="60" y1="45" x2="62" y2="52" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
-                    <!-- Mystical third eye (optional, subtle) -->
-                    <circle cx="50" cy="25" r="2" fill="#80deea" opacity="0.4" filter="url(#glow)"/>
-                    <circle cx="50" cy="25" r="1" fill="#4dd0e1" opacity="0.6"/>
+                    <path class="tm-mascot-mouth-happy" d="M 44 40 Q 50 42.5 56 40" stroke="#546e7a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 42 Q 50 38.5 56 42" stroke="#546e7a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <!-- Feet -->
+                    <g class="tm-animate-leg-left">
+                        <ellipse cx="40" cy="96" rx="5.5" ry="2.8" fill="url(#old-dragon-scales)" stroke="#546e7a" stroke-width="1"/>
+                    </g>
+                    <g class="tm-animate-leg-right">
+                        <ellipse cx="60" cy="96" rx="5.5" ry="2.8" fill="url(#old-dragon-scales)" stroke="#546e7a" stroke-width="1"/>
+                    </g>
                 </g>
 
                 <!-- ═══════════════════════════════════════ -->
