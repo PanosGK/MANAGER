@@ -70,14 +70,17 @@
 
     function loadReminders(STORAGE_KEYS) {
         try {
-            return JSON.parse(GM_getValue(remindersStorageKey(STORAGE_KEYS), '[]'));
+            const raw = GM_getValue(remindersStorageKey(STORAGE_KEYS), '[]');
+            if (Array.isArray(raw)) return raw;
+            if (typeof raw === 'string') return JSON.parse(raw || '[]') || [];
+            return [];
         } catch (_) {
             return [];
         }
     }
 
     function saveReminders(STORAGE_KEYS, arr) {
-        GM_setValue(remindersStorageKey(STORAGE_KEYS), JSON.stringify(arr));
+        GM_setValue(remindersStorageKey(STORAGE_KEYS), JSON.stringify(Array.isArray(arr) ? arr : []));
     }
 
     /**
@@ -88,6 +91,8 @@
         const list = loadReminders(STORAGE_KEYS);
         const next = [];
         let changed = false;
+        const notifsOn = !(typeof window.areNotificationsEnabled === 'function'
+            && !window.areNotificationsEnabled());
 
         for (const r of list) {
             if (!r || !r.dueTime) {
@@ -99,7 +104,20 @@
                 continue;
             }
 
-            activateBannerForReminder(r, STORAGE_KEYS);
+            const banners = loadActiveBanners(STORAGE_KEYS);
+            const hasBanner = banners.some((b) => b.reminderId === r.id);
+
+            // Notifications off: keep the reminder scheduled until banners can show.
+            if (!notifsOn && !hasBanner) {
+                next.push(r);
+                continue;
+            }
+
+            const activated = activateBannerForReminder(r, STORAGE_KEYS);
+            if (!activated) {
+                next.push(r);
+                continue;
+            }
 
             const rec = r.recurrence || 'none';
             changed = true;
@@ -125,6 +143,12 @@
         if (typeof window.updateNotificationBadge === 'function') {
             window.updateNotificationBadge();
         }
+        if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
+            window.refreshActiveAlertsPanelIfOpen();
+        }
+        if (typeof window.refreshReminderHistoryPanelIfOpen === 'function') {
+            window.refreshReminderHistoryPanelIfOpen();
+        }
     }
 
     function escapeHtml(s) {
@@ -145,14 +169,17 @@
 
     function loadActiveBanners(STORAGE_KEYS) {
         try {
-            return JSON.parse(GM_getValue(bannersStorageKey(STORAGE_KEYS), '[]'));
+            const raw = GM_getValue(bannersStorageKey(STORAGE_KEYS), '[]');
+            if (Array.isArray(raw)) return raw;
+            if (typeof raw === 'string') return JSON.parse(raw || '[]') || [];
+            return [];
         } catch (_) {
             return [];
         }
     }
 
     function saveActiveBanners(STORAGE_KEYS, arr) {
-        GM_setValue(bannersStorageKey(STORAGE_KEYS), JSON.stringify(arr));
+        GM_setValue(bannersStorageKey(STORAGE_KEYS), JSON.stringify(Array.isArray(arr) ? arr : []));
     }
 
     function repairEditUrl(invoiceLinesId) {
@@ -160,27 +187,47 @@
     }
 
     function logRepairReminderHistory(r, action, extra = {}) {
-        if (!r || typeof window.appendReminderHistory !== 'function') return;
-        window.appendReminderHistory({
+        if (!r) return;
+        const entry = {
             source: extra.source || 'repair',
             action,
             title: r.title || `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`,
             message: r.message || extra.message || '',
             dueTime: r.dueTime || extra.dueTime || null,
-            invoiceLinesId: r.invoiceLinesId,
-            invoiceNumber: r.invoiceNumber,
+            invoiceLinesId: r.invoiceLinesId || null,
+            invoiceNumber: r.invoiceNumber || null,
             recurrence: r.recurrence || 'none',
             reminderId: r.id || r.reminderId || null,
-            closedAt: extra.closedAt,
-        });
-    }
-
-    function activateBannerForReminder(r, STORAGE_KEYS) {
-        if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+            closedAt: extra.closedAt || Date.now(),
+        };
+        if (typeof window.appendReminderHistory === 'function') {
+            window.appendReminderHistory(entry);
             return;
         }
+        // Fallback if notification module is not ready yet
+        try {
+            const key = (window.STORAGE_KEYS && window.STORAGE_KEYS.REMINDER_HISTORY) || 'tm_reminder_history_v1';
+            const raw = GM_getValue(key, '[]');
+            const history = Array.isArray(raw) ? raw.slice() : (JSON.parse(raw || '[]') || []);
+            history.unshift({
+                id: `rh_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                ...entry,
+            });
+            if (history.length > 120) history.length = 120;
+            GM_setValue(key, JSON.stringify(history));
+        } catch (_) { /* ignore */ }
+    }
+
+    /**
+     * @returns {boolean} true if a banner is active (or already was)
+     */
+    function activateBannerForReminder(r, STORAGE_KEYS) {
         const banners = loadActiveBanners(STORAGE_KEYS);
-        if (banners.some((b) => b.reminderId === r.id)) return;
+        if (banners.some((b) => b.reminderId === r.id)) return true;
+
+        if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+            return false;
+        }
 
         logRepairReminderHistory(r, 'fired', { source: 'repair' });
 
@@ -195,6 +242,7 @@
             firedAt: Date.now(),
         });
         saveActiveBanners(STORAGE_KEYS, banners);
+        return true;
     }
 
     function dismissReminderBanner(STORAGE_KEYS, bannerId) {
@@ -642,10 +690,17 @@
             const all = loadReminders(STORAGE_KEYS);
             all.push(entry);
             saveReminders(STORAGE_KEYS, all);
+            logRepairReminderHistory(entry, 'created', { source: 'repair' });
             renderList();
             hideReminderModal();
             if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
                 window.refreshActiveAlertsPanelIfOpen();
+            }
+            if (typeof window.refreshReminderHistoryPanelIfOpen === 'function') {
+                window.refreshReminderHistoryPanelIfOpen();
+            }
+            if (typeof window.updateNotificationBadge === 'function') {
+                window.updateNotificationBadge();
             }
             if (typeof window.createNotification === 'function') {
                 window.createNotification(`Υπενθύμιση ορίστηκε για #${ids.invoiceNumber}`, '✅');

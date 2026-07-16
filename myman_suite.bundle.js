@@ -6502,6 +6502,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 color: var(--tm-warning-color) !important;
                 border-color: color-mix(in srgb, var(--tm-warning-color) 32%, transparent);
             }
+            .tm-reminder-badge--created {
+                background: color-mix(in srgb, var(--tm-success-color, #16a34a) 14%, transparent);
+                color: var(--tm-success-color, #16a34a) !important;
+                border-color: color-mix(in srgb, var(--tm-success-color, #16a34a) 30%, transparent);
+            }
             .tm-reminder-badge--snoozed {
                 background: color-mix(in srgb, var(--tm-info-color) 16%, transparent);
                 color: var(--tm-info-color) !important;
@@ -51925,14 +51930,17 @@ if (typeof window !== 'undefined') {
 
     function loadReminders(STORAGE_KEYS) {
         try {
-            return JSON.parse(GM_getValue(remindersStorageKey(STORAGE_KEYS), '[]'));
+            const raw = GM_getValue(remindersStorageKey(STORAGE_KEYS), '[]');
+            if (Array.isArray(raw)) return raw;
+            if (typeof raw === 'string') return JSON.parse(raw || '[]') || [];
+            return [];
         } catch (_) {
             return [];
         }
     }
 
     function saveReminders(STORAGE_KEYS, arr) {
-        GM_setValue(remindersStorageKey(STORAGE_KEYS), JSON.stringify(arr));
+        GM_setValue(remindersStorageKey(STORAGE_KEYS), JSON.stringify(Array.isArray(arr) ? arr : []));
     }
 
     /**
@@ -51943,6 +51951,8 @@ if (typeof window !== 'undefined') {
         const list = loadReminders(STORAGE_KEYS);
         const next = [];
         let changed = false;
+        const notifsOn = !(typeof window.areNotificationsEnabled === 'function'
+            && !window.areNotificationsEnabled());
 
         for (const r of list) {
             if (!r || !r.dueTime) {
@@ -51954,7 +51964,20 @@ if (typeof window !== 'undefined') {
                 continue;
             }
 
-            activateBannerForReminder(r, STORAGE_KEYS);
+            const banners = loadActiveBanners(STORAGE_KEYS);
+            const hasBanner = banners.some((b) => b.reminderId === r.id);
+
+            // Notifications off: keep the reminder scheduled until banners can show.
+            if (!notifsOn && !hasBanner) {
+                next.push(r);
+                continue;
+            }
+
+            const activated = activateBannerForReminder(r, STORAGE_KEYS);
+            if (!activated) {
+                next.push(r);
+                continue;
+            }
 
             const rec = r.recurrence || 'none';
             changed = true;
@@ -51980,6 +52003,12 @@ if (typeof window !== 'undefined') {
         if (typeof window.updateNotificationBadge === 'function') {
             window.updateNotificationBadge();
         }
+        if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
+            window.refreshActiveAlertsPanelIfOpen();
+        }
+        if (typeof window.refreshReminderHistoryPanelIfOpen === 'function') {
+            window.refreshReminderHistoryPanelIfOpen();
+        }
     }
 
     function escapeHtml(s) {
@@ -52000,14 +52029,17 @@ if (typeof window !== 'undefined') {
 
     function loadActiveBanners(STORAGE_KEYS) {
         try {
-            return JSON.parse(GM_getValue(bannersStorageKey(STORAGE_KEYS), '[]'));
+            const raw = GM_getValue(bannersStorageKey(STORAGE_KEYS), '[]');
+            if (Array.isArray(raw)) return raw;
+            if (typeof raw === 'string') return JSON.parse(raw || '[]') || [];
+            return [];
         } catch (_) {
             return [];
         }
     }
 
     function saveActiveBanners(STORAGE_KEYS, arr) {
-        GM_setValue(bannersStorageKey(STORAGE_KEYS), JSON.stringify(arr));
+        GM_setValue(bannersStorageKey(STORAGE_KEYS), JSON.stringify(Array.isArray(arr) ? arr : []));
     }
 
     function repairEditUrl(invoiceLinesId) {
@@ -52015,27 +52047,47 @@ if (typeof window !== 'undefined') {
     }
 
     function logRepairReminderHistory(r, action, extra = {}) {
-        if (!r || typeof window.appendReminderHistory !== 'function') return;
-        window.appendReminderHistory({
+        if (!r) return;
+        const entry = {
             source: extra.source || 'repair',
             action,
             title: r.title || `Επισκευή #${r.invoiceNumber || r.invoiceLinesId}`,
             message: r.message || extra.message || '',
             dueTime: r.dueTime || extra.dueTime || null,
-            invoiceLinesId: r.invoiceLinesId,
-            invoiceNumber: r.invoiceNumber,
+            invoiceLinesId: r.invoiceLinesId || null,
+            invoiceNumber: r.invoiceNumber || null,
             recurrence: r.recurrence || 'none',
             reminderId: r.id || r.reminderId || null,
-            closedAt: extra.closedAt,
-        });
-    }
-
-    function activateBannerForReminder(r, STORAGE_KEYS) {
-        if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+            closedAt: extra.closedAt || Date.now(),
+        };
+        if (typeof window.appendReminderHistory === 'function') {
+            window.appendReminderHistory(entry);
             return;
         }
+        // Fallback if notification module is not ready yet
+        try {
+            const key = (window.STORAGE_KEYS && window.STORAGE_KEYS.REMINDER_HISTORY) || 'tm_reminder_history_v1';
+            const raw = GM_getValue(key, '[]');
+            const history = Array.isArray(raw) ? raw.slice() : (JSON.parse(raw || '[]') || []);
+            history.unshift({
+                id: `rh_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                ...entry,
+            });
+            if (history.length > 120) history.length = 120;
+            GM_setValue(key, JSON.stringify(history));
+        } catch (_) { /* ignore */ }
+    }
+
+    /**
+     * @returns {boolean} true if a banner is active (or already was)
+     */
+    function activateBannerForReminder(r, STORAGE_KEYS) {
         const banners = loadActiveBanners(STORAGE_KEYS);
-        if (banners.some((b) => b.reminderId === r.id)) return;
+        if (banners.some((b) => b.reminderId === r.id)) return true;
+
+        if (typeof window.areNotificationsEnabled === 'function' && !window.areNotificationsEnabled()) {
+            return false;
+        }
 
         logRepairReminderHistory(r, 'fired', { source: 'repair' });
 
@@ -52050,6 +52102,7 @@ if (typeof window !== 'undefined') {
             firedAt: Date.now(),
         });
         saveActiveBanners(STORAGE_KEYS, banners);
+        return true;
     }
 
     function dismissReminderBanner(STORAGE_KEYS, bannerId) {
@@ -52497,10 +52550,17 @@ if (typeof window !== 'undefined') {
             const all = loadReminders(STORAGE_KEYS);
             all.push(entry);
             saveReminders(STORAGE_KEYS, all);
+            logRepairReminderHistory(entry, 'created', { source: 'repair' });
             renderList();
             hideReminderModal();
             if (typeof window.refreshActiveAlertsPanelIfOpen === 'function') {
                 window.refreshActiveAlertsPanelIfOpen();
+            }
+            if (typeof window.refreshReminderHistoryPanelIfOpen === 'function') {
+                window.refreshReminderHistoryPanelIfOpen();
+            }
+            if (typeof window.updateNotificationBadge === 'function') {
+                window.updateNotificationBadge();
             }
             if (typeof window.createNotification === 'function') {
                 window.createNotification(`Υπενθύμιση ορίστηκε για #${ids.invoiceNumber}`, '✅');
@@ -53757,6 +53817,7 @@ if (typeof window !== 'undefined') {
     }
 
     function getReminderHistoryActionClass(action) {
+        if (action === 'created') return 'tm-reminder-badge--created';
         if (action === 'fired') return 'tm-reminder-badge--fired';
         if (action === 'snoozed') return 'tm-reminder-badge--snoozed';
         if (action === 'dismissed') return 'tm-reminder-badge--dismissed';
@@ -53765,6 +53826,7 @@ if (typeof window !== 'undefined') {
     }
 
     function formatReminderHistoryAction(action) {
+        if (action === 'created') return 'Ορίστηκε';
         if (action === 'fired') return 'Ενεργοποιήθηκε';
         if (action === 'snoozed') return 'Αναβλήθηκε';
         if (action === 'dismissed') return 'Αποκρύφτηκε';
@@ -53780,7 +53842,10 @@ if (typeof window !== 'undefined') {
 
     function loadReminderHistory() {
         try {
-            return JSON.parse(GM_getValue(STORAGE_KEYS.REMINDER_HISTORY, '[]')) || [];
+            const raw = GM_getValue(STORAGE_KEYS.REMINDER_HISTORY, '[]');
+            if (Array.isArray(raw)) return raw;
+            if (typeof raw === 'string') return JSON.parse(raw || '[]') || [];
+            return [];
         } catch {
             return [];
         }
@@ -53827,7 +53892,7 @@ if (typeof window !== 'undefined') {
                 <div id="tm-notification-empty-state" class="tm-notif-empty--compact">
                     <div class="tm-notif-empty-icon" aria-hidden="true">📋</div>
                     <div class="tm-notif-empty-title">${q ? 'Δεν βρέθηκαν υπενθυμίσεις' : 'Κενό ιστορικό'}</div>
-                    <div class="tm-notif-empty-hint">${q ? 'Δοκίμασε άλλη αναζήτηση.' : 'Κλεισμένες υπενθυμίσεις θα εμφανίζονται εδώ.'}</div>
+                    <div class="tm-notif-empty-hint">${q ? 'Δοκίμασε άλλη αναζήτηση.' : 'Οι υπενθυμίσεις επισκευών και σημειωματάριου εμφανίζονται εδώ όταν ορίζονται, ενεργοποιούνται ή κλείνουν.'}</div>
                 </div>`;
         }
         return history.map((h) => {

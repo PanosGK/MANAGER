@@ -994,6 +994,11 @@
                 color: var(--tm-warning-color) !important;
                 border-color: color-mix(in srgb, var(--tm-warning-color) 32%, transparent);
             }
+            .tm-reminder-badge--created {
+                background: color-mix(in srgb, var(--tm-success-color, #16a34a) 14%, transparent);
+                color: var(--tm-success-color, #16a34a) !important;
+                border-color: color-mix(in srgb, var(--tm-success-color, #16a34a) 30%, transparent);
+            }
             .tm-reminder-badge--snoozed {
                 background: color-mix(in srgb, var(--tm-info-color) 16%, transparent);
                 color: var(--tm-info-color) !important;

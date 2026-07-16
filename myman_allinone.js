@@ -654,6 +654,7 @@
     }
 
     function getReminderHistoryActionClass(action) {
+        if (action === 'created') return 'tm-reminder-badge--created';
         if (action === 'fired') return 'tm-reminder-badge--fired';
         if (action === 'snoozed') return 'tm-reminder-badge--snoozed';
         if (action === 'dismissed') return 'tm-reminder-badge--dismissed';
@@ -662,6 +663,7 @@
     }
 
     function formatReminderHistoryAction(action) {
+        if (action === 'created') return 'Ορίστηκε';
         if (action === 'fired') return 'Ενεργοποιήθηκε';
         if (action === 'snoozed') return 'Αναβλήθηκε';
         if (action === 'dismissed') return 'Αποκρύφτηκε';
@@ -677,7 +679,10 @@
 
     function loadReminderHistory() {
         try {
-            return JSON.parse(GM_getValue(STORAGE_KEYS.REMINDER_HISTORY, '[]')) || [];
+            const raw = GM_getValue(STORAGE_KEYS.REMINDER_HISTORY, '[]');
+            if (Array.isArray(raw)) return raw;
+            if (typeof raw === 'string') return JSON.parse(raw || '[]') || [];
+            return [];
         } catch {
             return [];
         }
@@ -724,7 +729,7 @@
                 <div id="tm-notification-empty-state" class="tm-notif-empty--compact">
                     <div class="tm-notif-empty-icon" aria-hidden="true">📋</div>
                     <div class="tm-notif-empty-title">${q ? 'Δεν βρέθηκαν υπενθυμίσεις' : 'Κενό ιστορικό'}</div>
-                    <div class="tm-notif-empty-hint">${q ? 'Δοκίμασε άλλη αναζήτηση.' : 'Κλεισμένες υπενθυμίσεις θα εμφανίζονται εδώ.'}</div>
+                    <div class="tm-notif-empty-hint">${q ? 'Δοκίμασε άλλη αναζήτηση.' : 'Οι υπενθυμίσεις επισκευών και σημειωματάριου εμφανίζονται εδώ όταν ορίζονται, ενεργοποιούνται ή κλείνουν.'}</div>
                 </div>`;
         }
         return history.map((h) => {
