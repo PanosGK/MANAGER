@@ -188,6 +188,81 @@ function buildInlineBootstrap(bundleLoadUrl) {
         return false;
     }
 
+    /** Always-on master toggle — lives in the loader because the bundle is skipped when disabled. */
+    function enableSuiteAndReload() {
+        try {
+            if (typeof GM_setValue === 'function') GM_setValue('tm_script_enabled', true);
+        } catch (e) { /* ignore */ }
+        try { location.reload(); } catch (e2) { /* ignore */ }
+    }
+
+    function installMasterToggleRecovery() {
+        // Ctrl+Shift+. (period) — avoids Greek AltGr (=Ctrl+Alt) and Shift+E typing conflicts
+        document.addEventListener('keydown', function (e) {
+            var key = String(e.key || '');
+            if (!(e.ctrlKey || e.metaKey) || !e.shiftKey || e.altKey) return;
+            if (key !== '.' && e.code !== 'Period') return;
+            if (e.isComposing) return;
+            e.preventDefault();
+            e.stopPropagation();
+            var enabled = true;
+            try {
+                if (typeof GM_getValue === 'function') {
+                    enabled = GM_getValue('tm_script_enabled', true) !== false;
+                }
+            } catch (err) { /* ignore */ }
+            try {
+                if (typeof GM_setValue === 'function') {
+                    GM_setValue('tm_script_enabled', !enabled);
+                }
+            } catch (err2) { /* ignore */ }
+            try { location.reload(); } catch (err3) { /* ignore */ }
+        }, true);
+
+        // Visible recovery when suite is off (bundle never loads)
+        try {
+            if (typeof GM_getValue !== 'function' || GM_getValue('tm_script_enabled', true) !== false) return;
+        } catch (e) {
+            return;
+        }
+
+        function mountEnableButton() {
+            if (document.getElementById('tm-mms-reenable-btn')) return;
+            var btn = document.createElement('button');
+            btn.id = 'tm-mms-reenable-btn';
+            btn.type = 'button';
+            btn.textContent = 'Enable MyManager (Ctrl+Shift+.)';
+            btn.setAttribute('title', 'Ενεργοποίηση MyManager Suite');
+            btn.style.cssText = [
+                'position:fixed',
+                'right:12px',
+                'bottom:12px',
+                'z-index:2147483646',
+                'padding:10px 14px',
+                'border-radius:10px',
+                'border:1px solid #334155',
+                'background:#0f172a',
+                'color:#e2e8f0',
+                'font:600 13px/1.2 system-ui,sans-serif',
+                'cursor:pointer',
+                'box-shadow:0 8px 24px rgba(0,0,0,.35)',
+            ].join(';');
+            btn.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                enableSuiteAndReload();
+            });
+            (document.body || document.documentElement).appendChild(btn);
+        }
+
+        if (document.body) {
+            mountEnableButton();
+        } else {
+            document.addEventListener('DOMContentLoaded', mountEnableButton);
+        }
+    }
+
+    installMasterToggleRecovery();
+
     function hidePageNow() {
         var root = document.documentElement;
         root.style.setProperty('visibility', 'hidden', 'important');

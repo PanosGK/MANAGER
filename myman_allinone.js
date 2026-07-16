@@ -3688,21 +3688,18 @@
     };
 
     // ===================================================================
-    // === KEYBOARD SHORTCUT (always active — even when suite is off)
+    // === KEYBOARD SHORTCUT (bundle path — loader also installs the same when disabled)
     // ===================================================================
-    // Ctrl+Alt+M — toggle master switch (MyManager). Avoids Shift+E (breaks typing)
-    // and Ctrl+Shift+M (browser device toolbar).
+    // Ctrl+Shift+. (period) — avoids Shift+E typing and Greek AltGr (=Ctrl+Alt).
     document.addEventListener('keydown', (e) => {
-        const key = String(e.key || '').toLowerCase();
-        if (!(e.ctrlKey || e.metaKey) || !e.altKey || e.shiftKey || key !== 'm') return;
-        // Ignore pure IME/composition noise
+        const key = String(e.key || '');
+        if (!(e.ctrlKey || e.metaKey) || !e.shiftKey || e.altKey) return;
+        if (key !== '.' && e.code !== 'Period') return;
         if (e.isComposing) return;
         e.preventDefault();
         e.stopPropagation();
         const currentState = GM_getValue(STORAGE_KEYS.SCRIPT_ENABLED, DEFAULTS.scriptEnabled);
-        const newState = !currentState;
-        GM_setValue(STORAGE_KEYS.SCRIPT_ENABLED, newState);
-        // Silent reload so the toggle applies immediately
+        GM_setValue(STORAGE_KEYS.SCRIPT_ENABLED, !currentState);
         location.reload();
     }, true);
 
@@ -5200,10 +5197,30 @@
         console.log('[MMS] Repair Age Indicator Enabled:', config.repairAgeIndicatorEnabled);
         }
 
-        // Check if script is enabled - if not, show minimal UI and exit
+        // Check if script is enabled - if not, show minimal recovery UI and exit
         if (!config.scriptEnabled) {
-            // Stealth mode - completely silent, no UI elements, no messages
-            // Only Ctrl+Alt+M can re-enable (handler is set up above)
+            // Stealth mode — suite features off. Recovery lives here too for local @require loader.
+            try {
+                if (!document.getElementById('tm-mms-reenable-btn')) {
+                    const mount = () => {
+                        if (document.getElementById('tm-mms-reenable-btn')) return;
+                        const btn = document.createElement('button');
+                        btn.id = 'tm-mms-reenable-btn';
+                        btn.type = 'button';
+                        btn.textContent = 'Enable MyManager (Ctrl+Shift+.)';
+                        btn.title = 'Ενεργοποίηση MyManager Suite';
+                        btn.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:2147483646;padding:10px 14px;border-radius:10px;border:1px solid #334155;background:#0f172a;color:#e2e8f0;font:600 13px/1.2 system-ui,sans-serif;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35)';
+                        btn.addEventListener('click', (ev) => {
+                            ev.preventDefault();
+                            GM_setValue(STORAGE_KEYS.SCRIPT_ENABLED, true);
+                            location.reload();
+                        });
+                        (document.body || document.documentElement).appendChild(btn);
+                    };
+                    if (document.body) mount();
+                    else document.addEventListener('DOMContentLoaded', mount);
+                }
+            } catch (_) { /* ignore */ }
             return; // Exit early - don't initialize any features
         }
 

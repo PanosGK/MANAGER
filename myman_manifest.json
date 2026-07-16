@@ -1,8 +1,8 @@
 {
   "version": "224",
-  "loaderVersion": "5",
+  "loaderVersion": "6",
   "silentVersion": "13",
-  "displayVersion": "5.13",
+  "displayVersion": "6.13",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
   "releaseNotes": "phone catalog fixes",
