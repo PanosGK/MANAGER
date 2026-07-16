@@ -1144,7 +1144,7 @@ function ensureTamaCinematicStyles() {
 }
 
 function ensureMascotExecutionStyles() {
-    const STYLE_VER = 'inplace-v1';
+    const STYLE_VER = 'inplace-v2';
     const existing = document.getElementById('tm-tama-execution-styles');
     if (existing?.dataset.tmVer === STYLE_VER) return;
     existing?.remove();
@@ -1177,7 +1177,7 @@ function ensureMascotExecutionStyles() {
             position: fixed;
             width: 240px;
             height: 100px;
-            z-index: 3;
+            z-index: 8;
             transform: translate3d(40px, 8px, 0) rotate(-4deg);
             opacity: 0;
             transform-origin: 88% 65%;
@@ -1240,7 +1240,7 @@ function ensureMascotExecutionStyles() {
             background: linear-gradient(90deg, transparent, rgba(255,230,170,0.95), rgba(255,160,60,0.8));
             box-shadow: 0 0 8px rgba(255, 180, 80, 0.7);
             opacity: 0;
-            z-index: 4;
+            z-index: 7;
             transform-origin: right center;
             pointer-events: none;
             left: var(--tm-exec-tracer-left, 0px);
@@ -1257,7 +1257,7 @@ function ensureMascotExecutionStyles() {
             width: 240px;
             height: 100px;
             pointer-events: none;
-            z-index: 5;
+            z-index: 9;
             overflow: visible;
             margin: 0;
         }
@@ -1332,19 +1332,21 @@ function ensureMascotExecutionStyles() {
         }
         .tm-exec-blood-layer {
             position: fixed;
-            z-index: 2;
+            inset: 0;
+            z-index: 6;
             pointer-events: none;
             overflow: hidden;
-            left: var(--tm-exec-blood-left, 0px);
-            top: var(--tm-exec-blood-top, 0px);
-            width: var(--tm-exec-blood-w, 200px);
-            height: var(--tm-exec-blood-h, 200px);
-            border-radius: 8px;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
         }
         .tm-exec-blood-flash {
             position: absolute;
             inset: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(140, 0, 10, 0.55) 0%, rgba(80, 0, 0, 0.2) 35%, transparent 70%);
+            background: radial-gradient(circle at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%),
+                rgba(160, 0, 12, 0.62) 0%, rgba(90, 0, 0, 0.28) 32%, transparent 72%);
             opacity: 0;
         }
         .tm-exec-blood-flash.show {
@@ -1392,8 +1394,9 @@ function ensureMascotExecutionStyles() {
             position: absolute;
             inset: -10%;
             background:
-                radial-gradient(ellipse 40% 30% at 50% 45%, rgba(120, 0, 8, 0.45) 0%, transparent 70%),
-                radial-gradient(ellipse 35% 28% at 60% 30%, rgba(90, 0, 5, 0.35) 0%, transparent 65%);
+                radial-gradient(ellipse 55% 45% at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%), rgba(120, 0, 8, 0.5) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 35% at 20% 25%, rgba(90, 0, 5, 0.32) 0%, transparent 65%),
+                radial-gradient(ellipse 45% 40% at 80% 70%, rgba(70, 0, 4, 0.3) 0%, transparent 70%);
             opacity: 0;
             mix-blend-mode: multiply;
         }
@@ -1703,11 +1706,9 @@ function showMascotExecutionCinematic() {
     const tracerLeft = aimX;
     const tracerTop = aimY;
 
-    const bloodPad = 56;
-    const bloodLeft = rect.left - bloodPad;
-    const bloodTop = rect.top - bloodPad;
-    const bloodW = rect.width + bloodPad * 2;
-    const bloodH = rect.height + bloodPad * 2;
+    // Blood origin as % of viewport (splats spray from impact, then cover full screen)
+    const bloodOriginX = Math.max(2, Math.min(98, (aimX / Math.max(1, window.innerWidth)) * 100));
+    const bloodOriginY = Math.max(2, Math.min(98, (aimY / Math.max(1, window.innerHeight)) * 100));
 
     const layer = document.createElement('div');
     layer.id = 'tm-tama-execution-inplace';
@@ -1719,10 +1720,6 @@ function showMascotExecutionCinematic() {
     layer.style.setProperty('--tm-exec-tracer-left', `${tracerLeft}px`);
     layer.style.setProperty('--tm-exec-tracer-top', `${tracerTop}px`);
     layer.style.setProperty('--tm-exec-tracer-span', `${tracerSpan}px`);
-    layer.style.setProperty('--tm-exec-blood-left', `${bloodLeft}px`);
-    layer.style.setProperty('--tm-exec-blood-top', `${bloodTop}px`);
-    layer.style.setProperty('--tm-exec-blood-w', `${bloodW}px`);
-    layer.style.setProperty('--tm-exec-blood-h', `${bloodH}px`);
 
     layer.innerHTML = `
         <div class="tm-exec-inplace-vignette" aria-hidden="true"></div>
@@ -1808,19 +1805,24 @@ function showMascotExecutionCinematic() {
             hitmark?.classList.add('show');
             rings?.classList.add('show');
             mascot.classList.add('mascot-exec-hit');
-            spawnExecutionBloodSplats(bloodLayer, 50, 50, {
-                count: 28,
+            spawnExecutionBloodSplats(bloodLayer, bloodOriginX, bloodOriginY, {
+                count: 52,
                 withFlash: true,
                 withMist: true,
-                edgeSmears: 4,
+                edgeSmears: 14,
             });
         } else {
-            spawnExecutionBloodSplats(bloodLayer, 48 + Math.random() * 8, 48 + Math.random() * 10, {
-                count: 10,
-                withFlash: false,
-                withMist: false,
-                edgeSmears: 1,
-            });
+            spawnExecutionBloodSplats(
+                bloodLayer,
+                bloodOriginX + (Math.random() - 0.5) * 18,
+                bloodOriginY + (Math.random() - 0.5) * 14,
+                {
+                    count: 22,
+                    withFlash: false,
+                    withMist: shotIndex === 2,
+                    edgeSmears: 4,
+                },
+            );
         }
     };
 
