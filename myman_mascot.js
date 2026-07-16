@@ -11904,592 +11904,502 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         const isEgg = tamagotchiStage === 'egg';
         const hatchProgress = Math.round(getEggHatchProgress());
         const minutesToHatch = getMinutesUntilHatch();
-        const eggWarmth = tamagotchiLightsOn ? 'Ζεστό' : 'Κρύο';
-
+        const stageGr = MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage;
+        const charMeta = !isEgg && tamagotchiCharacterType ? MASCOT_CHARACTERS[tamagotchiCharacterType] : null;
         const characterName = isEgg
             ? 'Μυστικό Ωό'
-            : (MASCOT_CHARACTERS[tamagotchiCharacterType]?.name || 'Mascot');
-        
-        const stageEmoji = {
-            'egg': '🥚',
-            'baby': '👶',
-            'kid': '🧒',
-            'teen': '🎮',
-            'adult': '💼',
-            'middleage': '👔',
-            'old': '👴'
-        };
+            : (charMeta?.name || 'Mascot');
+        const avatarEmoji = isEgg ? '🥚' : (charMeta?.emoji || '🐾');
+        const fullness = Math.round(petStats.hunger * 10) / 10;
+        const happiness = Math.round(petStats.happiness * 10) / 10;
+        const health = Math.round(tamagotchiHealth * 10) / 10;
+        const discipline = Math.round(tamagotchiDiscipline * 10) / 10;
 
-        // Create modal overlay
+        function getCareTip() {
+            if (isEgg) {
+                return {
+                    level: tamagotchiLightsOn ? 'ok' : 'warn',
+                    icon: tamagotchiLightsOn ? '🥚' : '❄️',
+                    text: tamagotchiLightsOn
+                        ? `Όλα καλά — εκκόλαψη σε ~${getMinutesUntilHatch()} λεπτά. Μπορείς να το ζεστάνεις.`
+                        : 'Κρύο αυγό! Άνοιξε τα φώτα για ζεστασιά.',
+                };
+            }
+            if (tamagotchiIsDead) {
+                return { level: 'danger', icon: '💀', text: 'Το mascot έχει φύγει. Ξεκίνα νέο αυγό από την επαναφορά.' };
+            }
+            if (tamagotchiHealth < 50) {
+                return { level: 'danger', icon: '💊', text: 'Χαμηλή υγεία — πάτα Φάρμακο.' };
+            }
+            if (tamagotchiPoopCount > 0) {
+                return { level: 'warn', icon: '🧹', text: `Χρειάζεται καθάρισμα (${tamagotchiPoopCount}). Πάτα Καθάρισμα ή Τουαλέτα.` };
+            }
+            if (petStats.hunger < 35) {
+                return { level: 'warn', icon: '🍖', text: 'Πεινάει — δώσε Γεύμα ή Σνακ.' };
+            }
+            if (petStats.happiness < 40) {
+                return { level: 'warn', icon: '💕', text: 'Λυπημένο — χάιδεψέ το ή παίξε μαζί του.' };
+            }
+            if (tamagotchiNeedsPraise) {
+                return { level: 'info', icon: '👍', text: 'Θέλει έπαινο — πάτα Έπαινος.' };
+            }
+            if (tamagotchiNeedsScold) {
+                return { level: 'info', icon: '👎', text: 'Χρειάζεται επίπληξη για πειθαρχία.' };
+            }
+            return { level: 'ok', icon: '✨', text: 'Όλα καλά! Χάδι ή παιχνίδι για επιπλέον χαρά.' };
+        }
+
+        const tip = getCareTip();
+        const cleanUrgent = !isEgg && tamagotchiPoopCount > 0;
+        const medUrgent = !isEgg && tamagotchiHealth < 50;
+        const feedUrgent = !isEgg && petStats.hunger < 35;
+
         const modal = document.createElement('div');
         modal.id = 'tm-mascot-stats-modal';
         modal.innerHTML = `
             <div class="tm-mascot-modal-backdrop"></div>
-            <div class="tm-mascot-modal-container">
-                <!-- Header -->
+            <div class="tm-mascot-modal-container" role="dialog" aria-modal="true" aria-labelledby="tm-mascot-care-title">
                 <div class="tm-mascot-modal-header">
                     <div class="tm-mascot-header-left">
-                        <div class="tm-mascot-avatar">${stageEmoji[tamagotchiStage] || '🥚'}</div>
+                        <div class="tm-mascot-avatar" aria-hidden="true">${avatarEmoji}</div>
                         <div class="tm-mascot-header-info">
-                            <h2 class="tm-mascot-name">${characterName}</h2>
+                            <h2 class="tm-mascot-name" id="tm-mascot-care-title">${characterName}</h2>
                             <p class="tm-mascot-meta">
-                                <span>Στάδιο: ${tamagotchiStage}</span>
-                                <span>•</span>
-                                <span>${isEgg ? `Εκκόλαψη σε ~${minutesToHatch} λεπτά` : `Ηλικία: ${Math.floor(tamagotchiAge)} έτη`}</span>
-                                ${isEgg ? '' : `<span>•</span><span>Βάρος: ${Math.round(tamagotchiWeight * 10) / 10}g</span>`}
+                                <span class="tm-mascot-stage-pill">${stageGr}</span>
+                                <span>${isEgg ? `Εκκόλαψη ~${minutesToHatch} λεπτά` : `Ηλικία ${Math.floor(tamagotchiAge)}`}</span>
+                                ${isEgg ? '' : `<span>·</span><span>${Math.round(tamagotchiWeight * 10) / 10}g</span>`}
                             </p>
-                            <div class="tm-mascot-quick-stats">
-                                ${isEgg ? `
-                                    <span class="tm-quick-stat" title="Πρόοδος">🥚 ${hatchProgress}%</span>
-                                    <span class="tm-quick-stat" title="Θερμοκρασία">${tamagotchiLightsOn ? '🔥' : '❄️'} ${eggWarmth}</span>
-                                    <span class="tm-quick-stat" title="Φώτα">${tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά'}</span>
-                                ` : `
-                                    <span class="tm-quick-stat" title="Πειθαρχία">🎓 ${Math.round(tamagotchiDiscipline * 10) / 10}%</span>
-                                    <span class="tm-quick-stat" title="Καθαρότητα">${tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό'}</span>
-                                    <span class="tm-quick-stat" title="Φώτα">${tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά'}</span>
-                                `}
-                            </div>
                         </div>
                     </div>
-                    <button class="tm-mascot-close-btn" id="tm-modal-close">✕</button>
+                    <button type="button" class="tm-mascot-close-btn" id="tm-modal-close" aria-label="Κλείσιμο">✕</button>
                 </div>
 
-                <!-- Alerts Section -->
+                <div class="tm-mascot-tip tm-tip-${tip.level}" id="tm-mascot-care-tip">
+                    <span class="tm-tip-icon">${tip.icon}</span>
+                    <span class="tm-tip-text">${tip.text}</span>
+                </div>
+
                 <div class="tm-mascot-alerts" id="tm-mascot-alerts">
-                    ${isEgg ? `
-                        <div class="tm-mascot-alert tm-alert-info">
-                            <span class="tm-alert-icon">🥚</span>
-                            <span>Κράτα τα φώτα ανοιχτά για ζεστασιά. Η εκκόλαψη έρχεται σύντομα!</span>
+                    ${isEgg && !tamagotchiLightsOn ? `
+                        <div class="tm-mascot-alert tm-alert-warning">
+                            <span class="tm-alert-icon">❄️</span>
+                            <span>Τα φώτα είναι κλειστά — το αυγό κρυώνει.</span>
                         </div>
                     ` : ''}
                     ${!isEgg && tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.old && tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.death ? `
                         <div class="tm-mascot-alert tm-alert-warning">
                             <span class="tm-alert-icon">⏳</span>
-                            <span>Πολύ μεγάλος σε ηλικία!</span>
+                            <span>Πολύ μεγάλος σε ηλικία — φρόντισέ τον καλά.</span>
                         </div>
                     ` : ''}
                     ${!isEgg && tamagotchiPoopCount > 0 ? `
                         <div class="tm-mascot-alert tm-alert-warning">
                             <span class="tm-alert-icon">💩</span>
-                            <span>Χρειάζεται καθάρισμα! (${tamagotchiPoopCount})</span>
+                            <span>Χρειάζεται καθάρισμα (${tamagotchiPoopCount})</span>
                         </div>
                     ` : ''}
                     ${!isEgg && tamagotchiHealth < 50 ? `
                         <div class="tm-mascot-alert tm-alert-danger">
                             <span class="tm-alert-icon">🤒</span>
-                            <span>Άρρωστος! Χρειάζεται φάρμακο!</span>
+                            <span>Άρρωστος — δώσε φάρμακο</span>
                         </div>
                     ` : ''}
                 </div>
 
-                <!-- Stats / Hatch Progress -->
                 ${isEgg ? `
-                <div class="tm-mascot-stats-grid" style="grid-template-columns: 1fr;">
-                    <div class="tm-stat-card">
-                        <div class="tm-stat-icon" style="background: linear-gradient(135deg, #4ecdc4, #26a69a);">🥚</div>
-                        <div class="tm-stat-info">
-                            <div class="tm-stat-label">Πρόοδος Εκκόλαψης</div>
-                            <div class="tm-stat-bar">
-                                <div class="tm-stat-fill" id="tm-egg-hatch-fill" style="width: ${hatchProgress}%; background: linear-gradient(90deg, #4ecdc4, #1de9b6);"></div>
-                            </div>
-                            <div class="tm-stat-value" id="tm-egg-hatch-value">${hatchProgress}%</div>
+                <div class="tm-mascot-stats-block">
+                    <div class="tm-stat-row" data-stat="hatch">
+                        <div class="tm-stat-row-top">
+                            <span class="tm-stat-label">🥚 Πρόοδος εκκόλαψης</span>
+                            <span class="tm-stat-value" id="tm-egg-hatch-value">${hatchProgress}%</span>
+                        </div>
+                        <div class="tm-stat-bar">
+                            <div class="tm-stat-fill tm-fill-hatch" id="tm-egg-hatch-fill" style="width: ${hatchProgress}%;"></div>
                         </div>
                     </div>
                 </div>
                 ` : `
-                <div class="tm-mascot-stats-grid">
-                    <div class="tm-stat-card">
-                        <div class="tm-stat-icon" style="background: linear-gradient(135deg, #FFD700, #FFA500);">😊</div>
-                        <div class="tm-stat-info">
-                            <div class="tm-stat-label">Ευτυχία</div>
-                            <div class="tm-stat-bar">
-                                <div class="tm-stat-fill" style="width: ${petStats.happiness}%; background: linear-gradient(90deg, #FFD700, #FFA500);"></div>
-                            </div>
-                            <div class="tm-stat-value">${Math.round(petStats.happiness * 10) / 10}%</div>
+                <div class="tm-mascot-stats-block">
+                    <div class="tm-stat-row" data-stat="happiness">
+                        <div class="tm-stat-row-top">
+                            <span class="tm-stat-label">😊 Ευτυχία</span>
+                            <span class="tm-stat-value" id="tm-modal-val-happiness">${happiness}%</span>
+                        </div>
+                        <div class="tm-stat-bar">
+                            <div class="tm-stat-fill tm-fill-happy" id="tm-modal-fill-happiness" style="width: ${petStats.happiness}%;"></div>
                         </div>
                     </div>
-
-                    <div class="tm-stat-card">
-                        <div class="tm-stat-icon" style="background: linear-gradient(135deg, #32CD32, #228B22);">🍔</div>
-                        <div class="tm-stat-info">
-                            <div class="tm-stat-label">Πείνα</div>
-                            <div class="tm-stat-bar">
-                                <div class="tm-stat-fill" style="width: ${100 - petStats.hunger}%; background: linear-gradient(90deg, #32CD32, #228B22);"></div>
-                            </div>
-                            <div class="tm-stat-value">${Math.round((100 - petStats.hunger) * 10) / 10}%</div>
+                    <div class="tm-stat-row" data-stat="food">
+                        <div class="tm-stat-row-top">
+                            <span class="tm-stat-label">🍖 Φαγητό</span>
+                            <span class="tm-stat-value" id="tm-modal-val-food">${fullness}%</span>
+                        </div>
+                        <div class="tm-stat-bar">
+                            <div class="tm-stat-fill tm-fill-food" id="tm-modal-fill-food" style="width: ${petStats.hunger}%;"></div>
                         </div>
                     </div>
-
-                    <div class="tm-stat-card">
-                        <div class="tm-stat-icon" style="background: linear-gradient(135deg, #00CED1, #008B8B);">❤️</div>
-                        <div class="tm-stat-info">
-                            <div class="tm-stat-label">Υγεία</div>
-                            <div class="tm-stat-bar">
-                                <div class="tm-stat-fill" style="width: ${tamagotchiHealth}%; background: linear-gradient(90deg, #00CED1, #008B8B);"></div>
-                            </div>
-                            <div class="tm-stat-value">${Math.round(tamagotchiHealth * 10) / 10}%</div>
+                    <div class="tm-stat-row" data-stat="health">
+                        <div class="tm-stat-row-top">
+                            <span class="tm-stat-label">❤️ Υγεία</span>
+                            <span class="tm-stat-value" id="tm-modal-val-health">${health}%</span>
+                        </div>
+                        <div class="tm-stat-bar">
+                            <div class="tm-stat-fill tm-fill-health" id="tm-modal-fill-health" style="width: ${tamagotchiHealth}%;"></div>
                         </div>
                     </div>
-
-                    <div class="tm-stat-card">
-                        <div class="tm-stat-icon" style="background: linear-gradient(135deg, #9370DB, #6A5ACD);">🎓</div>
-                        <div class="tm-stat-info">
-                            <div class="tm-stat-label">Πειθαρχία</div>
-                            <div class="tm-stat-bar">
-                                <div class="tm-stat-fill" style="width: ${tamagotchiDiscipline}%; background: linear-gradient(90deg, #9370DB, #6A5ACD);"></div>
-                            </div>
-                            <div class="tm-stat-value">${Math.round(tamagotchiDiscipline * 10) / 10}%</div>
+                    <div class="tm-stat-row" data-stat="discipline">
+                        <div class="tm-stat-row-top">
+                            <span class="tm-stat-label">🎓 Πειθαρχία</span>
+                            <span class="tm-stat-value" id="tm-modal-val-discipline">${discipline}%</span>
                         </div>
+                        <div class="tm-stat-bar">
+                            <div class="tm-stat-fill tm-fill-disc" id="tm-modal-fill-discipline" style="width: ${tamagotchiDiscipline}%;"></div>
+                        </div>
+                    </div>
+                    <div class="tm-mascot-status-chips" id="tm-mascot-status-chips">
+                        <span class="tm-status-chip">${tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό'}</span>
+                        <span class="tm-status-chip">${tamagotchiLightsOn ? '💡 Φώτα ανοιχτά' : '🌙 Φώτα κλειστά'}</span>
+                        ${tamagotchiToiletTrained ? '<span class="tm-status-chip">🚽 Εκπαιδευμένο</span>' : ''}
                     </div>
                 </div>
                 `}
 
-                <!-- Actions Section -->
                 ${isEgg ? `
                 <div class="tm-mascot-actions-section">
-                    <h3 class="tm-actions-title">🥚 Φροντίδα Ωού</h3>
-                    <div class="tm-mascot-actions">
-                        <button class="tm-action-btn" id="tm-action-egg-warm" title="Ζέστανε το ωό">
+                    <h3 class="tm-actions-title">Φροντίδα ωού</h3>
+                    <div class="tm-mascot-actions tm-actions-primary">
+                        <button type="button" class="tm-action-btn" id="tm-action-egg-warm" title="Ζέστανε το ωό">
                             <span class="tm-action-icon">🔥</span>
                             <span class="tm-action-label">Ζέστανε</span>
+                            <span class="tm-action-hint">Ζεστασιά</span>
                         </button>
-                        <button class="tm-action-btn" id="tm-action-egg-watch" title="Παρακολούθησε το ωό">
+                        <button type="button" class="tm-action-btn" id="tm-action-egg-watch" title="Παρακολούθησε το ωό">
                             <span class="tm-action-icon">👀</span>
-                            <span class="tm-action-label">Παρακολούθησε</span>
+                            <span class="tm-action-label">Δες το</span>
+                            <span class="tm-action-hint">Έλεγχος</span>
                         </button>
-                        <button class="tm-action-btn tm-action-lights" id="tm-action-lights" title="Άνοιγμα/Κλείσιμο φώτων">
+                        <button type="button" class="tm-action-btn tm-action-lights ${tamagotchiLightsOn ? '' : 'tm-action-urgent'}" id="tm-action-lights" title="Άνοιγμα/Κλείσιμο φώτων">
                             <span class="tm-action-icon">${tamagotchiLightsOn ? '💡' : '🌙'}</span>
-                            <span class="tm-action-label">${tamagotchiLightsOn ? 'Φώτα' : 'Σκοτάδι'}</span>
+                            <span class="tm-action-label">${tamagotchiLightsOn ? 'Φώτα' : 'Άνοιξε φώτα'}</span>
+                            <span class="tm-action-hint">Θερμοκρασία</span>
                         </button>
                     </div>
                 </div>
                 ` : `
                 <div class="tm-mascot-actions-section">
-                    <h3 class="tm-actions-title">Φροντίδα</h3>
-                    <div class="tm-mascot-actions">
-                        <button class="tm-action-btn tm-action-meal" id="tm-action-meal" title="Γεύμα (+30 πείνα)">
+                    <h3 class="tm-actions-title">Γρήγορη φροντίδα</h3>
+                    <div class="tm-mascot-actions tm-actions-primary">
+                        <button type="button" class="tm-action-btn tm-action-meal ${feedUrgent ? 'tm-action-urgent' : ''}" id="tm-action-meal" title="Γεύμα (+30 φαγητό)">
                             <span class="tm-action-icon">🍖</span>
                             <span class="tm-action-label">Γεύμα</span>
+                            <span class="tm-action-hint">+30 φαγητό</span>
                         </button>
-                        <button class="tm-action-btn tm-action-snack" id="tm-action-snack" title="Σνακ (+10 πείνα, +20 ευτυχία)">
+                        <button type="button" class="tm-action-btn tm-action-snack" id="tm-action-snack" title="Σνακ (+10 φαγητό, +20 ευτυχία)">
                             <span class="tm-action-icon">🍪</span>
                             <span class="tm-action-label">Σνακ</span>
+                            <span class="tm-action-hint">+φαγητό & χαρά</span>
                         </button>
-                        <button class="tm-action-btn tm-action-pet" id="tm-action-pet" title="Χάδι (+15 ευτυχία)">
+                        <button type="button" class="tm-action-btn tm-action-pet" id="tm-action-pet" title="Χάδι (+15 ευτυχία)">
                             <span class="tm-action-icon">💕</span>
                             <span class="tm-action-label">Χάδι</span>
+                            <span class="tm-action-hint">+15 χαρά</span>
                         </button>
-                        <button class="tm-action-btn tm-action-clean" id="tm-action-clean" title="Καθάρισμα">
+                        <button type="button" class="tm-action-btn tm-action-clean ${cleanUrgent ? 'tm-action-urgent' : ''}" id="tm-action-clean" title="Καθάρισμα">
                             <span class="tm-action-icon">🧹</span>
                             <span class="tm-action-label">Καθάρισμα</span>
+                            <span class="tm-action-hint">Καθαρότητα</span>
                         </button>
-                        <button class="tm-action-btn tm-action-medicine" id="tm-action-medicine" title="Φάρμακο (+20 υγεία)">
+                        <button type="button" class="tm-action-btn tm-action-medicine ${medUrgent ? 'tm-action-urgent' : ''}" id="tm-action-medicine" title="Φάρμακο (+20 υγεία)">
                             <span class="tm-action-icon">💊</span>
                             <span class="tm-action-label">Φάρμακο</span>
+                            <span class="tm-action-hint">+20 υγεία</span>
                         </button>
-                        <button class="tm-action-btn tm-action-toilet" id="tm-action-toilet" title="Τουαλέτα (+3 πειθαρχία)">
+                        <button type="button" class="tm-action-btn tm-action-toilet ${cleanUrgent ? 'tm-action-urgent' : ''}" id="tm-action-toilet" title="Τουαλέτα (+3 πειθαρχία)">
                             <span class="tm-action-icon">🚽</span>
                             <span class="tm-action-label">Τουαλέτα</span>
+                            <span class="tm-action-hint">+πειθαρχία</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Training Section -->
-                <div class="tm-mascot-actions-section">
-                    <h3 class="tm-actions-title">Εκπαίδευση</h3>
-                    <div class="tm-mascot-actions tm-actions-training">
-                        <button class="tm-action-btn tm-action-praise" id="tm-action-praise" title="Επαίνεσε (+5 πειθαρχία, +5 ευτυχία)">
-                            <span class="tm-action-icon">👍</span>
-                            <span class="tm-action-label">Έπαινος</span>
-                        </button>
-                        <button class="tm-action-btn tm-action-scold" id="tm-action-scold" title="Επίπληξη (+10 πειθαρχία, -10 ευτυχία)">
-                            <span class="tm-action-icon">👎</span>
-                            <span class="tm-action-label">Επίπληξη</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Fun & Activities Section -->
-                <div class="tm-mascot-actions-section">
-                    <h3 class="tm-actions-title">Διασκέδαση</h3>
-                    <div class="tm-mascot-actions tm-actions-fun">
-                        <button class="tm-action-btn tm-action-play" id="tm-action-play" title="Παίξε μαζί του (+20 ευτυχία)">
+                <div class="tm-mascot-actions-section tm-mascot-more-section">
+                    <h3 class="tm-actions-title">Παιχνίδι & εκπαίδευση</h3>
+                    <div class="tm-mascot-actions tm-actions-secondary">
+                        <button type="button" class="tm-action-btn tm-action-play" id="tm-action-play" title="Παίξε μαζί του">
                             <span class="tm-action-icon">🎮</span>
                             <span class="tm-action-label">Παιχνίδι</span>
+                            <span class="tm-action-hint">Mini-game</span>
                         </button>
-                        <button class="tm-action-btn tm-action-lights" id="tm-action-lights" title="Άνοιγμα/Κλείσιμο φώτων">
-                            <span class="tm-action-icon">💡</span>
-                            <span class="tm-action-label">Φώτα</span>
+                        <button type="button" class="tm-action-btn tm-action-lights" id="tm-action-lights" title="Άνοιγμα/Κλείσιμο φώτων">
+                            <span class="tm-action-icon">${tamagotchiLightsOn ? '💡' : '🌙'}</span>
+                            <span class="tm-action-label">${tamagotchiLightsOn ? 'Φώτα' : 'Σκοτάδι'}</span>
+                            <span class="tm-action-hint">Ύπνος / ξύπνιο</span>
+                        </button>
+                        <button type="button" class="tm-action-btn tm-action-praise" id="tm-action-praise" title="Επαίνεσε">
+                            <span class="tm-action-icon">👍</span>
+                            <span class="tm-action-label">Έπαινος</span>
+                            <span class="tm-action-hint">+πειθαρχία</span>
+                        </button>
+                        <button type="button" class="tm-action-btn tm-action-scold" id="tm-action-scold" title="Επίπληξη">
+                            <span class="tm-action-icon">👎</span>
+                            <span class="tm-action-label">Επίπληξη</span>
+                            <span class="tm-action-hint">Πειθαρχία</span>
                         </button>
                     </div>
                 </div>
                 `}
 
-                <!-- Kill & restart (always available) -->
-                <div class="tm-mascot-actions-section tm-mascot-danger-section">
-                    <h3 class="tm-actions-title">⚠️ Επαναφορά</h3>
+                <details class="tm-mascot-danger-details">
+                    <summary>Επαναφορά / νέο αυγό</summary>
+                    <p class="tm-danger-help">Σβήνει το τρέχον mascot και ξεκινά από την αρχή. Δεν αναιρείται.</p>
                     <button type="button" class="tm-action-btn tm-action-kill-restart" id="tm-action-kill-restart" title="Σκοτώνει το τρέχον mascot και ξεκινά νέο αυγό">
                         <span class="tm-action-icon">💀</span>
                         <span class="tm-action-label">Σκότωσε &amp; νέο αυγό</span>
                     </button>
-                </div>
+                </details>
             </div>
         `;
 
         document.body.appendChild(modal);
 
-        // Add styles
-        if (!document.getElementById('tm-mascot-modal-styles')) {
-            const style = document.createElement('style');
-            style.id = 'tm-mascot-modal-styles';
-            style.textContent = `
-                .tm-mascot-modal-backdrop {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.75);
-                    backdrop-filter: blur(8px);
-                    z-index: 100000;
-                    animation: tmFadeIn 0.3s ease-out;
-                }
-
-                .tm-mascot-modal-container {
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    z-index: 100001;
-                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-                    border-radius: 24px;
-                    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1);
-                    width: 90%;
-                    max-width: 600px;
-                    max-height: 90vh;
-                    overflow-y: auto;
-                    animation: tmSlideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-                }
-
-                .tm-mascot-modal-container::-webkit-scrollbar {
-                    width: 8px;
-                }
-
-                .tm-mascot-modal-container::-webkit-scrollbar-track {
-                    background: rgba(255, 255, 255, 0.05);
-                    border-radius: 4px;
-                }
-
-                .tm-mascot-modal-container::-webkit-scrollbar-thumb {
-                    background: rgba(0, 255, 255, 0.3);
-                    border-radius: 4px;
-                }
-
-                .tm-mascot-modal-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 28px;
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                    background: rgba(0, 0, 0, 0.2);
-                }
-
-                .tm-mascot-header-left {
-                    display: flex;
-                    align-items: center;
-                    gap: 16px;
-                }
-
-                .tm-mascot-avatar {
-                    width: 64px;
-                    height: 64px;
-                    background: linear-gradient(135deg, #00CED1, #1E90FF);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 32px;
-                    box-shadow: 0 8px 16px rgba(0, 206, 209, 0.3);
-                }
-
-                .tm-mascot-header-info {
-                    flex: 1;
-                }
-
-                .tm-mascot-name {
-                    margin: 0 0 6px 0;
-                    font-size: 24px;
-                    font-weight: 700;
-                    color: #fff;
-                    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-                }
-
-                .tm-mascot-meta {
-                    margin: 0 0 8px 0;
-                    font-size: 13px;
-                    color: rgba(255, 255, 255, 0.6);
-                    display: flex;
-                    gap: 8px;
-                    align-items: center;
-                }
-
-                .tm-mascot-quick-stats {
-                    display: flex;
-                    gap: 12px;
-                    flex-wrap: wrap;
-                }
-
-                .tm-quick-stat {
-                    font-size: 12px;
-                    padding: 4px 10px;
-                    background: rgba(0, 255, 255, 0.1);
-                    border: 1px solid rgba(0, 255, 255, 0.2);
-                    border-radius: 12px;
-                    color: rgba(255, 255, 255, 0.9);
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 4px;
-                    font-weight: 500;
-                }
-
-                .tm-mascot-close-btn {
-                    width: 36px;
-                    height: 36px;
-                    border: none;
-                    background: rgba(255, 255, 255, 0.1);
-                    color: #fff;
-                    border-radius: 50%;
-                    font-size: 20px;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                }
-
-                .tm-mascot-close-btn:hover {
-                    background: rgba(255, 70, 70, 0.8);
-                    transform: rotate(90deg);
-                }
-
-                .tm-mascot-alerts {
-                    padding: 0 28px;
-                    margin-top: 16px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                }
-
-                .tm-mascot-alert {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 14px 18px;
-                    border-radius: 12px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    animation: tmPulse 2s infinite;
-                }
-
-                .tm-alert-warning {
-                    background: rgba(255, 193, 7, 0.2);
-                    border: 1px solid rgba(255, 193, 7, 0.4);
-                    color: #FFD700;
-                }
-
-                .tm-alert-danger {
-                    background: rgba(255, 87, 87, 0.2);
-                    border: 1px solid rgba(255, 87, 87, 0.4);
-                    color: #FF6B6B;
-                }
-
-                .tm-alert-info {
-                    background: rgba(78, 205, 196, 0.2);
-                    border: 1px solid rgba(78, 205, 196, 0.4);
-                    color: #4ecdc4;
-                }
-
-                .tm-alert-icon {
-                    font-size: 20px;
-                }
-
-                .tm-mascot-stats-grid {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 16px;
-                    padding: 28px;
-                }
-
-                .tm-stat-card {
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 16px;
-                    padding: 18px;
-                    display: flex;
-                    gap: 14px;
-                    align-items: center;
-                    transition: all 0.3s;
-                }
-
-                .tm-stat-card:hover {
-                    background: rgba(255, 255, 255, 0.08);
-                    transform: translateY(-2px);
-                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-                }
-
-                .tm-stat-icon {
-                    width: 48px;
-                    height: 48px;
-                    border-radius: 12px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 24px;
-                    flex-shrink: 0;
-                }
-
-                .tm-stat-info {
-                    flex: 1;
-                    min-width: 0;
-                }
-
-                .tm-stat-label {
-                    font-size: 13px;
-                    color: rgba(255, 255, 255, 0.7);
-                    margin-bottom: 6px;
-                    font-weight: 500;
-                }
-
-                .tm-stat-bar {
-                    height: 8px;
-                    background: rgba(255, 255, 255, 0.1);
-                    border-radius: 4px;
-                    overflow: hidden;
-                    margin-bottom: 4px;
-                }
-
-                .tm-stat-fill {
-                    height: 100%;
-                    transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-                    border-radius: 4px;
-                }
-
-                .tm-stat-value {
-                    font-size: 12px;
-                    color: rgba(255, 255, 255, 0.5);
-                    text-align: right;
-                    font-weight: 600;
-                }
-
-                .tm-mascot-actions-section {
-                    padding: 0 28px 28px 28px;
-                }
-
-                .tm-actions-title {
-                    margin: 0 0 16px 0;
-                    font-size: 16px;
-                    font-weight: 600;
-                    color: rgba(255, 255, 255, 0.9);
-                    text-align: center;
-                }
-
-                .tm-mascot-actions {
-                    display: grid;
-                    grid-template-columns: repeat(3, 1fr);
-                    gap: 12px;
-                }
-
-                .tm-actions-training,
-                .tm-actions-fun {
+        // Always refresh styles (v2 care panel)
+        document.getElementById('tm-mascot-modal-styles')?.remove();
+        document.getElementById('tm-mascot-modal-styles-v2')?.remove();
+        const style = document.createElement('style');
+        style.id = 'tm-mascot-modal-styles-v2';
+        style.textContent = `
+            #tm-mascot-stats-modal .tm-mascot-modal-backdrop {
+                position: fixed; inset: 0;
+                background: rgba(15, 23, 42, 0.45);
+                backdrop-filter: blur(6px);
+                z-index: 100000;
+                animation: tmCareFadeIn 0.2s ease-out;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container {
+                position: fixed;
+                top: 50%; left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 100001;
+                width: min(92vw, 440px);
+                max-height: min(90vh, 720px);
+                overflow-y: auto;
+                background: var(--tm-modal-bg, #ffffff);
+                color: var(--tm-shop-item-text, #1e293b);
+                border-radius: 16px;
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+                animation: tmCareSlideIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+                font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-container::-webkit-scrollbar { width: 6px; }
+            #tm-mascot-stats-modal .tm-mascot-modal-container::-webkit-scrollbar-thumb {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 35%, #cbd5e1);
+                border-radius: 4px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-modal-header {
+                display: flex; justify-content: space-between; align-items: flex-start;
+                gap: 12px; padding: 18px 18px 12px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-header-left {
+                display: flex; align-items: center; gap: 12px; min-width: 0;
+            }
+            #tm-mascot-stats-modal .tm-mascot-avatar {
+                width: 52px; height: 52px; flex-shrink: 0;
+                border-radius: 14px;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 28px;
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 14%, var(--tm-shop-item-bg, #f8f9fa));
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 22%, transparent);
+            }
+            #tm-mascot-stats-modal .tm-mascot-name {
+                margin: 0 0 4px; font-size: 1.15rem; font-weight: 700;
+                color: var(--tm-shop-item-text, #0f172a); line-height: 1.25;
+            }
+            #tm-mascot-stats-modal .tm-mascot-meta {
+                margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+                font-size: 12px; color: color-mix(in srgb, var(--tm-shop-item-text, #64748b) 80%, #64748b);
+            }
+            #tm-mascot-stats-modal .tm-mascot-stage-pill {
+                display: inline-flex; padding: 2px 8px; border-radius: 999px;
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 12%, transparent);
+                color: var(--tm-primary-color, #007bff); font-weight: 600; font-size: 11px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-close-btn {
+                width: 34px; height: 34px; border: none; border-radius: 10px; cursor: pointer;
+                background: var(--tm-shop-item-bg, #f1f5f9);
+                color: var(--tm-shop-item-text, #334155); font-size: 16px;
+                display: flex; align-items: center; justify-content: center;
+                transition: background 0.15s, color 0.15s;
+            }
+            #tm-mascot-stats-modal .tm-mascot-close-btn:hover {
+                background: #fee2e2; color: #b91c1c;
+            }
+            #tm-mascot-stats-modal .tm-mascot-tip {
+                margin: 0 18px 10px; padding: 12px 14px; border-radius: 12px;
+                display: flex; align-items: flex-start; gap: 10px;
+                font-size: 13px; line-height: 1.4; font-weight: 500;
+            }
+            #tm-mascot-stats-modal .tm-tip-icon { font-size: 18px; line-height: 1.2; }
+            #tm-mascot-stats-modal .tm-tip-ok {
+                background: color-mix(in srgb, #22c55e 12%, var(--tm-shop-item-bg, #f8fafc));
+                border: 1px solid color-mix(in srgb, #22c55e 28%, transparent); color: #166534;
+            }
+            #tm-mascot-stats-modal .tm-tip-info {
+                background: color-mix(in srgb, var(--tm-primary-color, #3b82f6) 10%, var(--tm-shop-item-bg, #f8fafc));
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #3b82f6) 25%, transparent);
+                color: var(--tm-primary-color, #1d4ed8);
+            }
+            #tm-mascot-stats-modal .tm-tip-warn {
+                background: color-mix(in srgb, #f59e0b 12%, var(--tm-shop-item-bg, #fffbeb));
+                border: 1px solid color-mix(in srgb, #f59e0b 30%, transparent); color: #92400e;
+            }
+            #tm-mascot-stats-modal .tm-tip-danger {
+                background: color-mix(in srgb, #ef4444 12%, var(--tm-shop-item-bg, #fef2f2));
+                border: 1px solid color-mix(in srgb, #ef4444 30%, transparent); color: #991b1b;
+            }
+            #tm-mascot-stats-modal .tm-mascot-alerts {
+                padding: 0 18px; display: flex; flex-direction: column; gap: 8px;
+                margin-bottom: 4px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-alerts:empty { display: none; margin: 0; }
+            #tm-mascot-stats-modal .tm-mascot-alert {
+                display: flex; align-items: center; gap: 8px;
+                padding: 10px 12px; border-radius: 10px; font-size: 12.5px; font-weight: 500;
+            }
+            #tm-mascot-stats-modal .tm-alert-warning {
+                background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412;
+            }
+            #tm-mascot-stats-modal .tm-alert-danger {
+                background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;
+            }
+            #tm-mascot-stats-modal .tm-alert-info {
+                background: #ecfeff; border: 1px solid #a5f3fc; color: #0e7490;
+            }
+            #tm-mascot-stats-modal .tm-mascot-stats-block {
+                padding: 8px 18px 14px; display: flex; flex-direction: column; gap: 12px;
+            }
+            #tm-mascot-stats-modal .tm-stat-row-top {
+                display: flex; justify-content: space-between; align-items: baseline;
+                margin-bottom: 5px; gap: 8px;
+            }
+            #tm-mascot-stats-modal .tm-stat-label {
+                font-size: 12.5px; font-weight: 600;
+                color: var(--tm-shop-item-text, #334155);
+            }
+            #tm-mascot-stats-modal .tm-stat-value {
+                font-size: 12px; font-weight: 700;
+                color: var(--tm-primary-color, #007bff); font-variant-numeric: tabular-nums;
+            }
+            #tm-mascot-stats-modal .tm-stat-bar {
+                height: 10px; border-radius: 999px; overflow: hidden;
+                background: var(--tm-shop-item-bg, #e2e8f0);
+            }
+            #tm-mascot-stats-modal .tm-stat-fill {
+                height: 100%; border-radius: 999px;
+                transition: width 0.45s ease;
+            }
+            #tm-mascot-stats-modal .tm-fill-happy { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+            #tm-mascot-stats-modal .tm-fill-food { background: linear-gradient(90deg, #4ade80, #16a34a); }
+            #tm-mascot-stats-modal .tm-fill-health { background: linear-gradient(90deg, #f87171, #dc2626); }
+            #tm-mascot-stats-modal .tm-fill-disc { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
+            #tm-mascot-stats-modal .tm-fill-hatch { background: linear-gradient(90deg, #2dd4bf, #0d9488); }
+            #tm-mascot-stats-modal .tm-mascot-status-chips {
+                display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px;
+            }
+            #tm-mascot-stats-modal .tm-status-chip {
+                font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 999px;
+                background: var(--tm-shop-item-bg, #f1f5f9);
+                color: var(--tm-shop-item-text, #475569);
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+            }
+            #tm-mascot-stats-modal .tm-mascot-actions-section {
+                padding: 4px 18px 14px;
+            }
+            #tm-mascot-stats-modal .tm-actions-title {
+                margin: 0 0 10px; font-size: 12px; font-weight: 700; letter-spacing: 0.02em;
+                text-transform: uppercase; color: color-mix(in srgb, var(--tm-shop-item-text, #64748b) 90%, #64748b);
+            }
+            #tm-mascot-stats-modal .tm-mascot-actions {
+                display: grid; gap: 8px;
+            }
+            #tm-mascot-stats-modal .tm-actions-primary {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            #tm-mascot-stats-modal .tm-actions-secondary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            #tm-mascot-stats-modal .tm-action-btn {
+                appearance: none; border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                background: var(--tm-shop-item-bg, #f8fafc);
+                border-radius: 12px; padding: 10px 6px 8px;
+                display: flex; flex-direction: column; align-items: center; gap: 2px;
+                cursor: pointer; color: var(--tm-shop-item-text, #1e293b);
+                transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.1s;
+            }
+            #tm-mascot-stats-modal .tm-action-btn:hover {
+                border-color: color-mix(in srgb, var(--tm-primary-color, #007bff) 45%, #cbd5e1);
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 8%, #ffffff);
+                box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+            }
+            #tm-mascot-stats-modal .tm-action-btn:active { transform: scale(0.98); }
+            #tm-mascot-stats-modal .tm-action-urgent {
+                border-color: color-mix(in srgb, #f59e0b 55%, #e2e8f0);
+                background: color-mix(in srgb, #f59e0b 12%, #ffffff);
+                box-shadow: 0 0 0 2px color-mix(in srgb, #f59e0b 18%, transparent);
+            }
+            #tm-mascot-stats-modal .tm-action-icon { font-size: 22px; line-height: 1.2; }
+            #tm-mascot-stats-modal .tm-action-label {
+                font-size: 12px; font-weight: 700; text-align: center;
+            }
+            #tm-mascot-stats-modal .tm-action-hint {
+                font-size: 10px; font-weight: 500; text-align: center;
+                color: color-mix(in srgb, var(--tm-shop-item-text, #94a3b8) 85%, #94a3b8);
+            }
+            #tm-mascot-stats-modal .tm-mascot-danger-details {
+                margin: 4px 18px 18px; padding: 10px 12px;
+                border-radius: 12px; border: 1px dashed #fca5a5;
+                background: #fffafa;
+            }
+            #tm-mascot-stats-modal .tm-mascot-danger-details summary {
+                cursor: pointer; font-size: 12px; font-weight: 600; color: #b91c1c;
+                list-style: none; display: flex; align-items: center; gap: 6px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-danger-details summary::-webkit-details-marker { display: none; }
+            #tm-mascot-stats-modal .tm-mascot-danger-details summary::before {
+                content: '▸'; font-size: 10px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-danger-details[open] summary::before { content: '▾'; }
+            #tm-mascot-stats-modal .tm-danger-help {
+                margin: 8px 0 10px; font-size: 11px; color: #7f1d1d; line-height: 1.4;
+            }
+            #tm-mascot-stats-modal .tm-action-kill-restart {
+                width: 100%; flex-direction: row; gap: 8px; justify-content: center;
+                background: #fef2f2; border-color: #fca5a5; color: #991b1b;
+            }
+            #tm-mascot-stats-modal .tm-action-kill-restart:hover {
+                background: #fee2e2; border-color: #f87171;
+            }
+            @keyframes tmCareFadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes tmCareSlideIn {
+                from { opacity: 0; transform: translate(-50%, -48%) scale(0.97); }
+                to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            }
+            @media (max-width: 420px) {
+                #tm-mascot-stats-modal .tm-actions-primary {
                     grid-template-columns: repeat(2, 1fr);
                 }
+            }
+        `;
+        document.head.appendChild(style);
 
-                .tm-action-btn {
-                    background: rgba(255, 255, 255, 0.08);
-                    border: 1px solid rgba(255, 255, 255, 0.15);
-                    border-radius: 14px;
-                    padding: 16px 12px;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 8px;
-                    cursor: pointer;
-                    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-                    color: #fff;
-                    font-weight: 500;
-                }
-
-                .tm-action-btn:hover {
-                    background: rgba(0, 255, 255, 0.15);
-                    border-color: rgba(0, 255, 255, 0.4);
-                    transform: translateY(-4px) scale(1.05);
-                    box-shadow: 0 12px 24px rgba(0, 255, 255, 0.2);
-                }
-
-                .tm-action-btn:active {
-                    transform: translateY(-2px) scale(1.02);
-                }
-
-                .tm-mascot-danger-section {
-                    padding-top: 0;
-                }
-
-                .tm-action-kill-restart {
-                    width: 100%;
-                    background: rgba(220, 53, 69, 0.12);
-                    border-color: rgba(220, 53, 69, 0.45);
-                }
-
-                .tm-action-kill-restart:hover {
-                    background: rgba(220, 53, 69, 0.28);
-                    border-color: rgba(220, 53, 69, 0.75);
-                    box-shadow: 0 12px 24px rgba(220, 53, 69, 0.22);
-                }
-
-                .tm-action-icon {
-                    font-size: 32px;
-                    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-                }
-
-                .tm-action-label {
-                    font-size: 13px;
-                }
-
-                @keyframes tmFadeIn {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-
-                @keyframes tmSlideUp {
-                    from {
-                        opacity: 0;
-                        transform: translate(-50%, -45%) scale(0.9);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translate(-50%, -50%) scale(1);
-                    }
-                }
-
-                @keyframes tmPulse {
-                    0%, 100% { opacity: 1; }
-                    50% { opacity: 0.7; }
-                }
-
-                @media (max-width: 640px) {
-                    .tm-mascot-stats-grid {
-                        grid-template-columns: 1fr;
-                    }
-                    
-                    .tm-mascot-actions {
-                        grid-template-columns: repeat(2, 1fr);
-                    }
-                }
-            `;
-            document.head.appendChild(style);
+        function refreshCareTip() {
+            const tipEl = modal.querySelector('#tm-mascot-care-tip');
+            if (!tipEl) return;
+            const next = getCareTip();
+            tipEl.className = 'tm-mascot-tip tm-tip-' + next.level;
+            tipEl.innerHTML = '<span class="tm-tip-icon">' + next.icon + '</span><span class="tm-tip-text">' + next.text + '</span>';
         }
 
-        // Helper function to update stats in modal
         function updateModalStats() {
             if (tamagotchiStage === 'egg') {
                 const progress = Math.round(getEggHatchProgress());
@@ -12497,83 +12407,65 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 const value = modal.querySelector('#tm-egg-hatch-value');
                 if (fill) fill.style.width = progress + '%';
                 if (value) value.textContent = progress + '%';
-                const quickStatsContainer = modal.querySelector('.tm-mascot-quick-stats');
-                if (quickStatsContainer) {
-                    quickStatsContainer.innerHTML = `
-                        <span class="tm-quick-stat" title="Πρόοδος">🥚 ${progress}%</span>
-                        <span class="tm-quick-stat" title="Θερμοκρασία">${tamagotchiLightsOn ? '🔥' : '❄️'} ${tamagotchiLightsOn ? 'Ζεστό' : 'Κρύο'}</span>
-                        <span class="tm-quick-stat" title="Φώτα">${tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά'}</span>
-                    `;
+                refreshCareTip();
+                const alertsContainer = modal.querySelector('#tm-mascot-alerts');
+                if (alertsContainer) {
+                    alertsContainer.innerHTML = !tamagotchiLightsOn
+                        ? '<div class="tm-mascot-alert tm-alert-warning"><span class="tm-alert-icon">❄️</span><span>Τα φώτα είναι κλειστά — το αυγό κρυώνει.</span></div>'
+                        : '';
+                }
+                const lightsBtn = modal.querySelector('#tm-action-lights');
+                if (lightsBtn) {
+                    lightsBtn.classList.toggle('tm-action-urgent', !tamagotchiLightsOn);
+                    const icon = lightsBtn.querySelector('.tm-action-icon');
+                    const label = lightsBtn.querySelector('.tm-action-label');
+                    if (icon) icon.textContent = tamagotchiLightsOn ? '💡' : '🌙';
+                    if (label) label.textContent = tamagotchiLightsOn ? 'Φώτα' : 'Άνοιξε φώτα';
                 }
                 return;
             }
 
-            const statCards = modal.querySelectorAll('.tm-stat-card');
-            if (statCards[0]) {
-                const fill = statCards[0].querySelector('.tm-stat-fill');
-                const value = statCards[0].querySelector('.tm-stat-value');
-                if (fill) fill.style.width = petStats.happiness + '%';
-                if (value) value.textContent = (Math.round(petStats.happiness * 10) / 10) + '%';
-            }
-            if (statCards[1]) {
-                const fill = statCards[1].querySelector('.tm-stat-fill');
-                const value = statCards[1].querySelector('.tm-stat-value');
-                const hungerDisplay = 100 - petStats.hunger;
-                if (fill) fill.style.width = hungerDisplay + '%';
-                if (value) value.textContent = (Math.round(hungerDisplay * 10) / 10) + '%';
-            }
-            if (statCards[2]) {
-                const fill = statCards[2].querySelector('.tm-stat-fill');
-                const value = statCards[2].querySelector('.tm-stat-value');
-                if (fill) fill.style.width = tamagotchiHealth + '%';
-                if (value) value.textContent = (Math.round(tamagotchiHealth * 10) / 10) + '%';
-            }
-            if (statCards[3]) {
-                const fill = statCards[3].querySelector('.tm-stat-fill');
-                const value = statCards[3].querySelector('.tm-stat-value');
-                if (fill) fill.style.width = tamagotchiDiscipline + '%';
-                if (value) value.textContent = (Math.round(tamagotchiDiscipline * 10) / 10) + '%';
+            const setStat = (fillId, valId, pct) => {
+                const fill = modal.querySelector(fillId);
+                const val = modal.querySelector(valId);
+                const n = Math.round(pct * 10) / 10;
+                if (fill) fill.style.width = pct + '%';
+                if (val) val.textContent = n + '%';
+            };
+            setStat('#tm-modal-fill-happiness', '#tm-modal-val-happiness', petStats.happiness);
+            setStat('#tm-modal-fill-food', '#tm-modal-val-food', petStats.hunger);
+            setStat('#tm-modal-fill-health', '#tm-modal-val-health', tamagotchiHealth);
+            setStat('#tm-modal-fill-discipline', '#tm-modal-val-discipline', tamagotchiDiscipline);
+
+            const chips = modal.querySelector('#tm-mascot-status-chips');
+            if (chips) {
+                chips.innerHTML =
+                    '<span class="tm-status-chip">' + (tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό') + '</span>' +
+                    '<span class="tm-status-chip">' + (tamagotchiLightsOn ? '💡 Φώτα ανοιχτά' : '🌙 Φώτα κλειστά') + '</span>' +
+                    (tamagotchiToiletTrained ? '<span class="tm-status-chip">🚽 Εκπαιδευμένο</span>' : '');
             }
 
-            // Update alerts
             const alertsContainer = modal.querySelector('#tm-mascot-alerts');
             if (alertsContainer) {
-                alertsContainer.innerHTML = '';
+                let html = '';
                 if (tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.old && tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.death) {
-                    alertsContainer.innerHTML += `
-                        <div class="tm-mascot-alert tm-alert-warning">
-                            <span class="tm-alert-icon">⏳</span>
-                            <span>Πολύ μεγάλος σε ηλικία!</span>
-                        </div>
-                    `;
+                    html += '<div class="tm-mascot-alert tm-alert-warning"><span class="tm-alert-icon">⏳</span><span>Πολύ μεγάλος σε ηλικία — φρόντισέ τον καλά.</span></div>';
                 }
                 if (tamagotchiPoopCount > 0) {
-                    alertsContainer.innerHTML += `
-                        <div class="tm-mascot-alert tm-alert-warning">
-                            <span class="tm-alert-icon">💩</span>
-                            <span>Χρειάζεται καθάρισμα! (${tamagotchiPoopCount})</span>
-                        </div>
-                    `;
+                    html += '<div class="tm-mascot-alert tm-alert-warning"><span class="tm-alert-icon">💩</span><span>Χρειάζεται καθάρισμα (' + tamagotchiPoopCount + ')</span></div>';
                 }
                 if (tamagotchiHealth < 50) {
-                    alertsContainer.innerHTML += `
-                        <div class="tm-mascot-alert tm-alert-danger">
-                            <span class="tm-alert-icon">🤒</span>
-                            <span>Άρρωστος! Χρειάζεται φάρμακο!</span>
-                        </div>
-                    `;
+                    html += '<div class="tm-mascot-alert tm-alert-danger"><span class="tm-alert-icon">🤒</span><span>Άρρωστος — δώσε φάρμακο</span></div>';
                 }
+                alertsContainer.innerHTML = html;
             }
 
-            // Update quick stats in header
-            const quickStatsContainer = modal.querySelector('.tm-mascot-quick-stats');
-            if (quickStatsContainer) {
-                quickStatsContainer.innerHTML = `
-                    <span class="tm-quick-stat" title="Πειθαρχία">🎓 ${Math.round(tamagotchiDiscipline * 10) / 10}%</span>
-                    <span class="tm-quick-stat" title="Καθαρότητα">${tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό'}</span>
-                    <span class="tm-quick-stat" title="Φώτα">${tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά'}</span>
-                `;
-            }
+            modal.querySelector('#tm-action-meal')?.classList.toggle('tm-action-urgent', petStats.hunger < 35);
+            modal.querySelector('#tm-action-clean')?.classList.toggle('tm-action-urgent', tamagotchiPoopCount > 0);
+            modal.querySelector('#tm-action-toilet')?.classList.toggle('tm-action-urgent', tamagotchiPoopCount > 0);
+            modal.querySelector('#tm-action-medicine')?.classList.toggle('tm-action-urgent', tamagotchiHealth < 50);
+
+            refreshCareTip();
         }
 
         // Event listeners
@@ -12584,8 +12476,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 clearInterval(eggModalInterval);
                 eggModalInterval = null;
             }
-            modal.querySelector('.tm-mascot-modal-backdrop').style.animation = 'tmFadeIn 0.2s ease-out reverse';
-            modal.querySelector('.tm-mascot-modal-container').style.animation = 'tmSlideUp 0.2s ease-out reverse';
+            modal.querySelector('.tm-mascot-modal-backdrop').style.animation = 'tmCareFadeIn 0.2s ease-out reverse';
+            modal.querySelector('.tm-mascot-modal-container').style.animation = 'tmCareSlideIn 0.2s ease-out reverse';
             setTimeout(() => modal.remove(), 200);
         };
         closeBtn?.addEventListener('click', () => {
