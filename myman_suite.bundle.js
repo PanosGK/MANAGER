@@ -17788,6 +17788,7 @@ let tamagotchiNeedsScold = false;
 let tamagotchiLifeMinutes = 0; // Real-time life clock (classic Tamagotchi pacing)
 let tamagotchiEggGeneration = 0; // Bumps on intentional egg reset; blocks stale tabs from wiping progress
 let tamagotchiTickIntervalId = null;
+let tamagotchiDataLoaded = false; // Gate ticks until storage is loaded (prevents egg/none clobber)
 let mascotStagePreviewLock = false;
 let mascotStagePreviewStage = null;
 let mascotStagePreviewTimeout = null;
@@ -17813,17 +17814,19 @@ const TAMA_MINUTES_PER_YEAR = 450;
 
 /** Minutes between two timestamps that fall inside office hours (09:00–21:00 local). */
 function getOfficeMinutesBetween(startMs, endMs) {
-    if (!(endMs > startMs)) return 0;
+    const start = Number(startMs);
+    const end = Number(endMs);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || !(end > start)) return 0;
     let totalMs = 0;
-    const day = new Date(startMs);
+    const day = new Date(start);
     day.setHours(0, 0, 0, 0);
-    while (day.getTime() < endMs) {
+    while (day.getTime() < end) {
         const officeStart = new Date(day);
         officeStart.setHours(TAMA_OFFICE_HOUR_START, 0, 0, 0);
         const officeEnd = new Date(day);
         officeEnd.setHours(TAMA_OFFICE_HOUR_END, 0, 0, 0);
-        const segStart = Math.max(startMs, officeStart.getTime());
-        const segEnd = Math.min(endMs, officeEnd.getTime());
+        const segStart = Math.max(start, officeStart.getTime());
+        const segEnd = Math.min(end, officeEnd.getTime());
         if (segEnd > segStart) totalMs += segEnd - segStart;
         day.setDate(day.getDate() + 1);
     }
@@ -18552,21 +18555,36 @@ function setSvgSpriteVisible(element, visible) {
     }
 }
 
-function ensureTamagotchiCharacterType() {
-    if (tamagotchiStage === 'egg') {
-        tamagotchiCharacterType = 'none';
+function ensureTamagotchiCharacterType(options = {}) {
+    const { allowRandom = false, clearForEgg = false } = options;
+
+    if (tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.baby || tamagotchiStage === 'egg') {
+        if (clearForEgg || tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.baby) {
+            tamagotchiCharacterType = 'none';
+        }
         return;
     }
-    if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none') {
-        tamagotchiCharacterType = TAMA_CHARACTER_TYPES[Math.floor(Math.random() * TAMA_CHARACTER_TYPES.length)];
-        console.log(`[Mascot] Assigned missing character type: ${tamagotchiCharacterType}`);
+
+    if (tamagotchiCharacterType && tamagotchiCharacterType !== 'none'
+        && TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)) {
+        return;
     }
+
+    // Hatched pet missing a character: only roll once when explicitly hatching — never on load/validate
+    if (allowRandom) {
+        tamagotchiCharacterType = TAMA_CHARACTER_TYPES[Math.floor(Math.random() * TAMA_CHARACTER_TYPES.length)];
+        console.log(`[Mascot] Assigned character type: ${tamagotchiCharacterType}`);
+        return;
+    }
+
+    console.warn('[Mascot] Hatched pet missing characterType — leaving unset until hatch/recover (no random re-roll)');
 }
 
 function validateTamagotchiState() {
     syncTamagotchiAgeFromLife();
     tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
-    ensureTamagotchiCharacterType();
+    // Never randomly re-roll character here — that caused a new mascot on every refresh
+    ensureTamagotchiCharacterType({ clearForEgg: tamagotchiStage === 'egg' });
 
     if (tamagotchiStage === 'egg') {
         tamagotchiPoopCount = 0;
@@ -18575,6 +18593,23 @@ function validateTamagotchiState() {
     } else if (!tamagotchiLastPoopTime) {
         tamagotchiLastPoopTime = Date.now();
     }
+}
+
+function parseTamagotchiStorageValue(raw) {
+    if (raw == null || raw === '' || raw === 'null') return null;
+    if (typeof raw === 'object') return raw;
+    try {
+        return JSON.parse(raw);
+    } catch (err) {
+        console.warn('[Mascot] Failed to parse tamagotchi storage:', err);
+        return null;
+    }
+}
+
+function getTamagotchiStorageKeys(STORAGE_KEYS) {
+    if (STORAGE_KEYS?.TAMAGOTCHI_DATA) return STORAGE_KEYS;
+    if (typeof window !== 'undefined' && window.STORAGE_KEYS?.TAMAGOTCHI_DATA) return window.STORAGE_KEYS;
+    return { TAMAGOTCHI_DATA: 'tm_tamagotchi_data', PET_STATS: 'tm_pet_stats' };
 }
 
 /**
@@ -19394,17 +19429,25 @@ function updatePetInteractionPanel() {
 // ===================================================================
 
 function loadTamagotchiData(STORAGE_KEYS) {
-    const savedData = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
+    const keys = getTamagotchiStorageKeys(STORAGE_KEYS);
+    const savedData = parseTamagotchiStorageValue(GM_getValue(keys.TAMAGOTCHI_DATA, 'null'));
     if (savedData) {
         tamagotchiAge = savedData.age || 0;
         tamagotchiStage = savedData.stage || 'egg';
-        tamagotchiCharacterType = savedData.characterType || 'none';
+        const loadedChar = savedData.characterType;
+        tamagotchiCharacterType = (loadedChar && loadedChar !== 'none' && TAMA_CHARACTER_TYPES.includes(loadedChar))
+            ? loadedChar
+            : 'none';
+        if (loadedChar && loadedChar !== 'none' && !TAMA_CHARACTER_TYPES.includes(loadedChar)) {
+            console.warn('[Mascot] Unknown characterType in storage:', loadedChar);
+        }
         tamagotchiLifeMinutes = resolveLifeMinutesFromSave(savedData);
         tamagotchiEggGeneration = Number(savedData.eggGeneration) || 0;
         tamagotchiHealth = savedData.health || 100;
         tamagotchiDiscipline = savedData.discipline || 0;
         tamagotchiLightsOn = savedData.lightsOn !== false;
-        tamagotchiLastUpdate = savedData.lastUpdate || Date.now();
+        const loadedUpdate = Number(savedData.lastUpdate);
+        tamagotchiLastUpdate = Number.isFinite(loadedUpdate) ? loadedUpdate : Date.now();
         // Enhanced variables
         tamagotchiWeight = savedData.weight || 30;
         tamagotchiPoopCount = savedData.poopCount || 0;
@@ -19429,19 +19472,27 @@ function loadTamagotchiData(STORAGE_KEYS) {
         tamagotchiLastPraise = savedData.lastPraise || 0;
         tamagotchiLastScold = savedData.lastScold || 0;
         validateTamagotchiState();
+        // Recover sticky character after validate if storage had one and we're hatched
+        if (tamagotchiStage !== 'egg' && loadedChar && loadedChar !== 'none'
+            && TAMA_CHARACTER_TYPES.includes(loadedChar)) {
+            tamagotchiCharacterType = loadedChar;
+        }
         tamagotchiEggHatchCinematicDone = tamagotchiStage !== 'egg';
     }
+    tamagotchiDataLoaded = true;
 }
 
 function saveTamagotchiData(STORAGE_KEYS) {
-    if (!STORAGE_KEYS?.TAMAGOTCHI_DATA) return;
+    const keys = getTamagotchiStorageKeys(STORAGE_KEYS);
+    if (!keys?.TAMAGOTCHI_DATA) return;
 
-    validateTamagotchiState();
+    syncTamagotchiAgeFromLife();
+    tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
 
-    // Multi-tab guard: never let a stale tab wipe a more progressed pet
+    // Multi-tab guard: never let a stale tab wipe a more progressed pet / character
     let stored = null;
     try {
-        stored = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
+        stored = parseTamagotchiStorageValue(GM_getValue(keys.TAMAGOTCHI_DATA, 'null'));
     } catch { /* ignore */ }
 
     if (stored) {
@@ -19450,7 +19501,7 @@ function saveTamagotchiData(STORAGE_KEYS) {
 
         if (storedGen > ourGen) {
             // Another tab intentionally reset — adopt that state instead of overwriting
-            loadTamagotchiData(STORAGE_KEYS);
+            loadTamagotchiData(keys);
             return;
         }
 
@@ -19458,14 +19509,36 @@ function saveTamagotchiData(STORAGE_KEYS) {
             const storedLife = Number(stored.lifeMinutes);
             if (Number.isFinite(storedLife) && storedLife > tamagotchiLifeMinutes) {
                 tamagotchiLifeMinutes = storedLife;
-                if (stored.characterType && stored.characterType !== 'none') {
-                    tamagotchiCharacterType = stored.characterType;
+                tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
+            }
+
+            const storedChar = stored.characterType;
+            const storedCharOk = storedChar && storedChar !== 'none' && TAMA_CHARACTER_TYPES.includes(storedChar);
+
+            // Sticky character: never replace a real stored character with none while hatched
+            if (tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.baby) {
+                if (storedCharOk && (!tamagotchiCharacterType || tamagotchiCharacterType === 'none')) {
+                    tamagotchiCharacterType = storedChar;
                 }
-                if (stored.isDead) tamagotchiIsDead = true;
-                validateTamagotchiState();
+                // Also refuse to clobber a different in-memory character with none — keep memory if valid
+                if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none') {
+                    if (storedCharOk) tamagotchiCharacterType = storedChar;
+                }
             }
         }
         // ourGen > storedGen → intentional reset in this tab; write egg state through
+    }
+
+    if (tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.baby) {
+        tamagotchiStage = 'egg';
+        tamagotchiCharacterType = 'none';
+    } else {
+        tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
+        // Still missing after merge — assign once so refresh stays stable
+        if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none'
+            || !TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)) {
+            ensureTamagotchiCharacterType({ allowRandom: true });
+        }
     }
 
     const data = {
@@ -19502,7 +19575,7 @@ function saveTamagotchiData(STORAGE_KEYS) {
         lastPraise: tamagotchiLastPraise,
         lastScold: tamagotchiLastScold
     };
-    GM_setValue(STORAGE_KEYS.TAMAGOTCHI_DATA, JSON.stringify(data));
+    GM_setValue(keys.TAMAGOTCHI_DATA, JSON.stringify(data));
 }
 
 function initTamagotchiSystem(config, STORAGE_KEYS, container) {
@@ -19559,6 +19632,7 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
 
 function updateTamagotchiStats(container) {
     // Container parameter kept for backward compatibility but not required
+    if (!tamagotchiDataLoaded) return;
     
     const now = Date.now();
     // Only office-hour minutes count — overnight / after-hours leave-on is frozen
@@ -19675,7 +19749,9 @@ function checkTamagotchiEvolution(container) {
         cancelTamagotchiCinematics();
         tamagotchiIsDead = true;
         tamagotchiHealth = 0;
-        saveTamagotchiData(typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : {});
+        saveTamagotchiData(getTamagotchiStorageKeys(
+            typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null
+        ));
         const oldAgeMessages = MASCOT_MESSAGES.oldAgeDeath;
         showMascotBubble(oldAgeMessages[Math.floor(Math.random() * oldAgeMessages.length)], 5000);
         setMascotState(null, 'dead', 10000);
@@ -19683,7 +19759,9 @@ function checkTamagotchiEvolution(container) {
         
         // Show death screen after a delay
         setTimeout(() => {
-            runTamagotchiDeathSequence(typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : {});
+            runTamagotchiDeathSequence(getTamagotchiStorageKeys(
+                typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null
+            ));
         }, 1500);
         
         return; // Exit early, don't update stage
@@ -19693,25 +19771,27 @@ function checkTamagotchiEvolution(container) {
     tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
     syncTamagotchiAgeFromLife();
 
-    if (tamagotchiStage === 'egg') {
+    if (tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.baby) {
         tamagotchiCharacterType = 'none';
-    } else if (tamagotchiStage === 'baby' && (!tamagotchiCharacterType || tamagotchiCharacterType === 'none')) {
-        tamagotchiCharacterType = TAMA_CHARACTER_TYPES[Math.floor(Math.random() * TAMA_CHARACTER_TYPES.length)];
-        console.log(`[Mascot] 🎉 EPIC HATCH: ${tamagotchiCharacterType}!`);
-    } else {
-        ensureTamagotchiCharacterType();
+    } else if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none'
+        || !TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)) {
+        // Hatch / recover: assign once only when missing
+        ensureTamagotchiCharacterType({ allowRandom: true });
+        if (oldStage === 'egg') {
+            console.log(`[Mascot] 🎉 EPIC HATCH: ${tamagotchiCharacterType}!`);
+        }
     }
     
     // If evolved or hatched, show message, update personality, and update appearance
     if (oldStage !== tamagotchiStage || oldCharacterType !== tamagotchiCharacterType) {
         updateTamagotchiPersonality();
         const evolutionMessages = MASCOT_MESSAGES.evolution;
-        if (oldStage === 'egg' && tamagotchiStage === 'baby') {
+        if (oldStage === 'egg' && tamagotchiStage !== 'egg') {
             tamagotchiLastPoopTime = Date.now();
-            if (!tamagotchiEggHatchCinematicDone) {
+            if (tamagotchiStage === 'baby' && !tamagotchiEggHatchCinematicDone) {
                 runTamagotchiHatchSequence(tamagotchiCharacterType, container);
             } else if (!tamaCinematicLock && !mascotStagePreviewLock) {
-                updateMascotAppearanceByStage('baby');
+                updateMascotAppearanceByStage(tamagotchiStage);
             }
         } else if (tamagotchiStage === 'old' && oldStage !== 'old') {
             const oldMessages = MASCOT_MESSAGES.becameOld;
@@ -19720,7 +19800,9 @@ function checkTamagotchiEvolution(container) {
             showMascotBubble(evolutionMessages[Math.floor(Math.random() * evolutionMessages.length)], 3000);
         }
         updateTamagotchiStats(container);
-        saveTamagotchiData(typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : {});
+        saveTamagotchiData(getTamagotchiStorageKeys(
+            typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null
+        ));
     }
 
     if (!tamaCinematicLock && !mascotStagePreviewLock) {
@@ -25323,8 +25405,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     });
     
     // --- Initialization ---
-    loadPetStats(config, STORAGE_KEYS);
+    // Load tamagotchi BEFORE pet stats so early ticks cannot clobber character/life with defaults
     loadTamagotchiData(STORAGE_KEYS);
+    loadPetStats(config, STORAGE_KEYS);
     
     // Restore lights state based on loaded data
     if (!tamagotchiLightsOn || tamagotchiIsSleeping) {
