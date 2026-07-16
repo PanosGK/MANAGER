@@ -11251,6 +11251,23 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
                     
                     <div class="tm-setting-row" style="margin-top: 15px;">
+                        <div class="tm-setting-label">
+                            <label>Mascot Character</label>
+                            <p class="tm-setting-description">Επίλεξε χαρακτήρα (αποθηκεύεται). Αν είναι αυγό, προχωρά σε baby για να φανεί.</p>
+                        </div>
+                        <div class="tm-setting-control" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;">
+                            <button type="button" class="tm-mascot-char-btn" data-character="dragon">🐉 Dragon</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="robot">🤖 Robot</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="slime">🟢 Slime</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="plant">🌱 Plant</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="ghost">👻 Ghost</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="cat">🐱 Cat</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="phoenix">🔥 Phoenix</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="crystal">💎 Crystal</button>
+                        </div>
+                    </div>
+
+                    <div class="tm-setting-row" style="margin-top: 15px;">
                         <div class="tm-setting-label"><label>Mascot Stages (Evolution)</label></div>
                         <div class="tm-setting-control" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;">
                             <button class="tm-mascot-stage-btn" data-stage="egg">🥚 Egg</button>
@@ -12278,6 +12295,29 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             if (settingsContent && !settingsContent.dataset.tmMascotTesterBound) {
                 settingsContent.dataset.tmMascotTesterBound = '1';
                 settingsContent.addEventListener('click', (e) => {
+                    const charBtn = e.target.closest('.tm-mascot-char-btn');
+                    if (charBtn?.dataset.character) {
+                        const character = charBtn.dataset.character;
+                        if (typeof window.debugSetMascotCharacter === 'function') {
+                            const ok = window.debugSetMascotCharacter(character, STORAGE_KEYS);
+                            if (ok) {
+                                settingsContent.querySelectorAll('.tm-mascot-char-btn').forEach((btn) => {
+                                    btn.style.outline = btn.dataset.character === character
+                                        ? '2px solid var(--tm-primary-color, #4facfe)'
+                                        : '';
+                                });
+                                const meta = window.MASCOT_CHARACTERS?.[character];
+                                const label = meta?.nameGr || meta?.name || character;
+                                showPositiveMessage(`🎭 Χαρακτήρας: ${label}`);
+                            } else {
+                                showPositiveMessage('❌ Αποτυχία αλλαγής χαρακτήρα');
+                            }
+                        } else {
+                            showPositiveMessage('❌ Mascot character function not available');
+                        }
+                        return;
+                    }
+
                     const stageBtn = e.target.closest('.tm-mascot-stage-btn');
                     if (stageBtn?.dataset.stage) {
                         if (typeof window.previewMascotStage === 'function') {
@@ -12298,6 +12338,19 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             showPositiveMessage('❌ Mascot functions not available');
                         }
                     }
+                });
+            }
+
+            // Highlight current character whenever settings open (HTML is rebuilt)
+            {
+                const currentChar = typeof window.getMascotCharacterType === 'function'
+                    ? window.getMascotCharacterType()
+                    : null;
+                const content = document.getElementById('tm-settings-content');
+                content?.querySelectorAll('.tm-mascot-char-btn').forEach((btn) => {
+                    btn.style.outline = (currentChar && btn.dataset.character === currentChar)
+                        ? '2px solid var(--tm-primary-color, #4facfe)'
+                        : '';
                 });
             }
 
@@ -15695,6 +15748,46 @@ function previewMascotStage(stage, durationMs = 5000) {
         mascotStagePreviewTimeout = setTimeout(() => clearMascotStagePreview(true), durationMs);
     }
     return true;
+}
+
+/**
+ * Debug helper: permanently set the active mascot character and refresh the sprite.
+ * If still an egg, advances to baby so the chosen character is visible.
+ */
+function debugSetMascotCharacter(characterType, STORAGE_KEYS) {
+    if (!characterType || !TAMA_CHARACTER_TYPES.includes(characterType)) return false;
+
+    cancelTamagotchiCinematics();
+    clearMascotStagePreview(false);
+
+    tamagotchiCharacterType = characterType;
+    tamagotchiIsDead = false;
+
+    if (tamagotchiStage === 'egg' || tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.baby) {
+        tamagotchiLifeMinutes = Math.max(Number(tamagotchiLifeMinutes) || 0, TAMA_STAGE_MINUTES.baby);
+        tamagotchiStage = 'baby';
+        tamagotchiEggHatchCinematicDone = true;
+    } else {
+        tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
+    }
+
+    syncTamagotchiAgeFromLife();
+    const keys = getTamagotchiStorageKeys(
+        STORAGE_KEYS || (typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null),
+    );
+    if (keys) saveTamagotchiData(keys);
+
+    updateMascotAppearanceByStage(tamagotchiStage);
+    if (typeof updateTamagotchiPersonality === 'function') {
+        try { updateTamagotchiPersonality(); } catch { /* ignore */ }
+    }
+
+    console.log(`[Mascot] Debug character set to ${characterType} (stage ${tamagotchiStage})`);
+    return true;
+}
+
+function getMascotCharacterType() {
+    return tamagotchiCharacterType;
 }
 
 function applyEquippedMascotAccessories(STORAGE_KEYS, stage = getEffectiveMascotStage()) {
@@ -26853,6 +26946,10 @@ window.showMascotExecutionCinematic = showMascotExecutionCinematic;
 window.confirmMascotKillRestart = confirmMascotKillRestart;
 window.previewMascotStage = previewMascotStage;
 window.clearMascotStagePreview = clearMascotStagePreview;
+window.debugSetMascotCharacter = debugSetMascotCharacter;
+window.getMascotCharacterType = getMascotCharacterType;
+window.MASCOT_CHARACTERS = MASCOT_CHARACTERS;
+window.TAMA_CHARACTER_TYPES = TAMA_CHARACTER_TYPES;
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
 window.setMascotState = setMascotState;
 window.showMascotBubble = showMascotBubble;

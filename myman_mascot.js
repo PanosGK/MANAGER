@@ -161,6 +161,46 @@ function previewMascotStage(stage, durationMs = 5000) {
     return true;
 }
 
+/**
+ * Debug helper: permanently set the active mascot character and refresh the sprite.
+ * If still an egg, advances to baby so the chosen character is visible.
+ */
+function debugSetMascotCharacter(characterType, STORAGE_KEYS) {
+    if (!characterType || !TAMA_CHARACTER_TYPES.includes(characterType)) return false;
+
+    cancelTamagotchiCinematics();
+    clearMascotStagePreview(false);
+
+    tamagotchiCharacterType = characterType;
+    tamagotchiIsDead = false;
+
+    if (tamagotchiStage === 'egg' || tamagotchiLifeMinutes < TAMA_STAGE_MINUTES.baby) {
+        tamagotchiLifeMinutes = Math.max(Number(tamagotchiLifeMinutes) || 0, TAMA_STAGE_MINUTES.baby);
+        tamagotchiStage = 'baby';
+        tamagotchiEggHatchCinematicDone = true;
+    } else {
+        tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
+    }
+
+    syncTamagotchiAgeFromLife();
+    const keys = getTamagotchiStorageKeys(
+        STORAGE_KEYS || (typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null),
+    );
+    if (keys) saveTamagotchiData(keys);
+
+    updateMascotAppearanceByStage(tamagotchiStage);
+    if (typeof updateTamagotchiPersonality === 'function') {
+        try { updateTamagotchiPersonality(); } catch { /* ignore */ }
+    }
+
+    console.log(`[Mascot] Debug character set to ${characterType} (stage ${tamagotchiStage})`);
+    return true;
+}
+
+function getMascotCharacterType() {
+    return tamagotchiCharacterType;
+}
+
 function applyEquippedMascotAccessories(STORAGE_KEYS, stage = getEffectiveMascotStage()) {
     hideAllMascotAccessories();
     if (!STORAGE_KEYS?.EQUIPPED_ITEMS) return;
@@ -11317,6 +11357,10 @@ window.showMascotExecutionCinematic = showMascotExecutionCinematic;
 window.confirmMascotKillRestart = confirmMascotKillRestart;
 window.previewMascotStage = previewMascotStage;
 window.clearMascotStagePreview = clearMascotStagePreview;
+window.debugSetMascotCharacter = debugSetMascotCharacter;
+window.getMascotCharacterType = getMascotCharacterType;
+window.MASCOT_CHARACTERS = MASCOT_CHARACTERS;
+window.TAMA_CHARACTER_TYPES = TAMA_CHARACTER_TYPES;
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
 window.setMascotState = setMascotState;
 window.showMascotBubble = showMascotBubble;

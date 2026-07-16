@@ -531,6 +531,23 @@
                     </div>
                     
                     <div class="tm-setting-row" style="margin-top: 15px;">
+                        <div class="tm-setting-label">
+                            <label>Mascot Character</label>
+                            <p class="tm-setting-description">Επίλεξε χαρακτήρα (αποθηκεύεται). Αν είναι αυγό, προχωρά σε baby για να φανεί.</p>
+                        </div>
+                        <div class="tm-setting-control" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;">
+                            <button type="button" class="tm-mascot-char-btn" data-character="dragon">🐉 Dragon</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="robot">🤖 Robot</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="slime">🟢 Slime</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="plant">🌱 Plant</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="ghost">👻 Ghost</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="cat">🐱 Cat</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="phoenix">🔥 Phoenix</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="crystal">💎 Crystal</button>
+                        </div>
+                    </div>
+
+                    <div class="tm-setting-row" style="margin-top: 15px;">
                         <div class="tm-setting-label"><label>Mascot Stages (Evolution)</label></div>
                         <div class="tm-setting-control" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;">
                             <button class="tm-mascot-stage-btn" data-stage="egg">🥚 Egg</button>
@@ -1558,6 +1575,29 @@
             if (settingsContent && !settingsContent.dataset.tmMascotTesterBound) {
                 settingsContent.dataset.tmMascotTesterBound = '1';
                 settingsContent.addEventListener('click', (e) => {
+                    const charBtn = e.target.closest('.tm-mascot-char-btn');
+                    if (charBtn?.dataset.character) {
+                        const character = charBtn.dataset.character;
+                        if (typeof window.debugSetMascotCharacter === 'function') {
+                            const ok = window.debugSetMascotCharacter(character, STORAGE_KEYS);
+                            if (ok) {
+                                settingsContent.querySelectorAll('.tm-mascot-char-btn').forEach((btn) => {
+                                    btn.style.outline = btn.dataset.character === character
+                                        ? '2px solid var(--tm-primary-color, #4facfe)'
+                                        : '';
+                                });
+                                const meta = window.MASCOT_CHARACTERS?.[character];
+                                const label = meta?.nameGr || meta?.name || character;
+                                showPositiveMessage(`🎭 Χαρακτήρας: ${label}`);
+                            } else {
+                                showPositiveMessage('❌ Αποτυχία αλλαγής χαρακτήρα');
+                            }
+                        } else {
+                            showPositiveMessage('❌ Mascot character function not available');
+                        }
+                        return;
+                    }
+
                     const stageBtn = e.target.closest('.tm-mascot-stage-btn');
                     if (stageBtn?.dataset.stage) {
                         if (typeof window.previewMascotStage === 'function') {
@@ -1578,6 +1618,19 @@
                             showPositiveMessage('❌ Mascot functions not available');
                         }
                     }
+                });
+            }
+
+            // Highlight current character whenever settings open (HTML is rebuilt)
+            {
+                const currentChar = typeof window.getMascotCharacterType === 'function'
+                    ? window.getMascotCharacterType()
+                    : null;
+                const content = document.getElementById('tm-settings-content');
+                content?.querySelectorAll('.tm-mascot-char-btn').forEach((btn) => {
+                    btn.style.outline = (currentChar && btn.dataset.character === currentChar)
+                        ? '2px solid var(--tm-primary-color, #4facfe)'
+                        : '';
                 });
             }
 
