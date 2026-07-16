@@ -1,4 +1,4 @@
-/* MyManager FOUC instant hide — keep tiny; first @require for local loader */
+/* MyManager FOUC instant hide — keep tiny; used as fallback / optional guard */
 (function tmMmsHidePageForTheme() {
     try {
         if (window.__tmMmsFoucHideApplied) return;
@@ -21,26 +21,61 @@
                 if (raw) {
                     var cache = typeof raw === 'string' ? JSON.parse(raw) : raw;
                     var c = cache && cache.colors;
-                    if (c) BG = c['--tm-dark-color'] || c['--tm-shop-item-bg'] || BG;
+                    // Prefer page chrome bg — shop-item-bg is often white on light themes.
+                    if (c) BG = c['--tm-dark-color'] || c['--tm-body-bg'] || c['--tm-primary-bg'] || BG;
                 }
             }
         } catch (e0) { /* ignore */ }
 
         var root = document.documentElement;
-        root.style.backgroundColor = BG;
-        // Do NOT hide <html> with visibility — cover would vanish and flash white.
+        try {
+            root.style.setProperty('background-color', BG, 'important');
+        } catch (eBg) {
+            root.style.backgroundColor = BG;
+        }
+        // Do NOT hide <html> with visibility — cover would vanish and flash browser-white.
         root.style.removeProperty('visibility');
         root.style.removeProperty('opacity');
 
+        function hideBody(el) {
+            if (!el || el.getAttribute('data-tm-mms-fouc') === '1') return;
+            if (root.classList.contains('tm-mms-theme-ready')) return;
+            el.setAttribute('data-tm-mms-fouc', '1');
+            try {
+                el.style.setProperty('opacity', '0', 'important');
+                el.style.setProperty('visibility', 'hidden', 'important');
+            } catch (eH) {
+                el.style.opacity = '0';
+                el.style.visibility = 'hidden';
+            }
+        }
+
+        function mountCover() {
+            if (root.classList.contains('tm-mms-theme-ready')) return;
+            var cover = document.getElementById('tm-mms-boot-cover');
+            if (!cover) {
+                cover = document.createElement('div');
+                cover.id = 'tm-mms-boot-cover';
+                cover.setAttribute('aria-hidden', 'true');
+                // Inline styles so the cover paints even if <style> injection is delayed.
+                cover.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:' + BG + ';pointer-events:none;display:block;';
+                if (root.firstChild) root.insertBefore(cover, root.firstChild);
+                else root.appendChild(cover);
+            } else {
+                cover.style.background = BG;
+                cover.style.display = 'block';
+            }
+        }
+
         var css = [
             'html{background:' + BG + '!important;}',
-            'html:not(.tm-mms-theme-ready) body{opacity:0!important;}',
+            'html:not(.tm-mms-theme-ready) body{opacity:0!important;visibility:hidden!important;}',
             '#tm-mms-boot-cover{',
             'position:fixed!important;inset:0!important;z-index:2147483647!important;',
             'background:' + BG + '!important;pointer-events:none!important;',
             '}',
             'html.tm-mms-theme-ready #tm-mms-boot-cover{display:none!important;}',
-            'html.tm-mms-theme-ready body{opacity:1!important;transition:opacity .12s ease-in;}',
+            'html.tm-mms-theme-ready body{opacity:1!important;visibility:visible!important;transition:opacity .12s ease-in;}',
         ].join('');
 
         if (typeof GM_addStyle === 'function') {
@@ -49,18 +84,36 @@
         var style = document.createElement('style');
         style.id = 'tm-mms-fouc-boot-style';
         style.textContent = css;
-        (document.head || root).appendChild(style);
-
-        function mountCover() {
-            if (document.getElementById('tm-mms-boot-cover')) return;
-            var cover = document.createElement('div');
-            cover.id = 'tm-mms-boot-cover';
-            cover.setAttribute('aria-hidden', 'true');
-            (document.documentElement).appendChild(cover);
+        if (document.head) {
+            document.head.insertBefore(style, document.head.firstChild);
+        } else {
+            root.insertBefore(style, root.firstChild);
         }
+
         mountCover();
+        if (document.body) hideBody(document.body);
+
+        try {
+            if (window.__tmMmsFoucMo) {
+                try { window.__tmMmsFoucMo.disconnect(); } catch (eD) { /* ignore */ }
+            }
+            var mo = new MutationObserver(function () {
+                if (root.classList.contains('tm-mms-theme-ready')) {
+                    mo.disconnect();
+                    return;
+                }
+                mountCover();
+                if (document.body) hideBody(document.body);
+            });
+            mo.observe(root, { childList: true, subtree: true });
+            window.__tmMmsFoucMo = mo;
+        } catch (eMo) { /* ignore */ }
+
         if (!document.body) {
-            document.addEventListener('DOMContentLoaded', mountCover, { once: true });
+            document.addEventListener('DOMContentLoaded', function () {
+                hideBody(document.body);
+                mountCover();
+            }, { once: true });
         }
     } catch (e) { /* ignore */ }
 })();

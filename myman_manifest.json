@@ -1,11 +1,11 @@
 {
   "version": "225",
-  "loaderVersion": "9",
+  "loaderVersion": "10",
   "silentVersion": "1",
-  "displayVersion": "9.1",
+  "displayVersion": "10.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "loader v9: FOUC cover, update copy, clear stale skip",
+  "releaseNotes": "loader v10: FOUC cover before first paint (async local bundle)",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

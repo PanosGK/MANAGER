@@ -196,6 +196,10 @@
 })();
 
 window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
+    try {
+        if (window.__tmMmsFoucMo) window.__tmMmsFoucMo.disconnect();
+    } catch (_) { /* ignore */ }
+
     if (window.location.pathname.includes('login.php')) {
         document.documentElement.classList.add('tm-mms-theme-ready');
         document.documentElement.classList.add('tm-mms-menu-ready');
@@ -204,6 +208,7 @@ window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
         if (document.body) {
             document.body.style.removeProperty('visibility');
             document.body.style.removeProperty('opacity');
+            document.body.removeAttribute('data-tm-mms-fouc');
         }
         document.getElementById('tm-mms-boot-cover')?.remove();
         return;
@@ -219,6 +224,7 @@ window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
     if (document.body) {
         document.body.style.removeProperty('visibility');
         document.body.style.removeProperty('opacity');
+        document.body.removeAttribute('data-tm-mms-fouc');
     }
     document.getElementById('tm-mms-boot-cover')?.remove();
 };
