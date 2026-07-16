@@ -1,8 +1,8 @@
 {
   "version": "224",
-  "loaderVersion": "7",
+  "loaderVersion": "8",
   "silentVersion": "1",
-  "displayVersion": "7.1",
+  "displayVersion": "8.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
   "releaseNotes": "",
