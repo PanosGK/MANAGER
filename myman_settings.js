@@ -19,7 +19,7 @@
             title: 'Κύριος διακόπτης',
             what: 'Ενεργοποιεί ή απενεργοποιεί ολόκληρο το MyManager Suite (όλα τα εργαλεία, widgets, mascot, gamification).',
             where: 'Ισχύει σε όλες τις σελίδες του MyManager όπου φορτώνει το script.',
-            when: 'Όταν είναι off, το suite δεν τρέχει. Εναλλαγή και με Ctrl+Shift+E χωρίς να ανοίξετε ρυθμίσεις.',
+            when: 'Όταν είναι off, το suite δεν τρέχει. Εναλλαγή και με Ctrl+Alt+M χωρίς να ανοίξετε ρυθμίσεις.',
         },
         notifications: {
             title: 'Ειδοποιήσεις',
@@ -719,7 +719,7 @@
                                 <label for="tm-setting-script-enabled">Κύριος διακόπτης</label>
                                 ${info('script')}
                             </div>
-                            <p class="tm-setting-description">Απενεργοποιεί όλες τις λειτουργίες. Ctrl+Shift+E για γρήγορη εναλλαγή.</p>
+                            <p class="tm-setting-description">Απενεργοποιεί όλες τις λειτουργίες. Ctrl+Alt+M για γρήγορη εναλλαγή.</p>
                         </div>
                         <div class="tm-setting-control">
                             <input type="checkbox" id="tm-setting-script-enabled">

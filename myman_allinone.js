@@ -3688,20 +3688,23 @@
     };
 
     // ===================================================================
-    // === KEYBOARD SHORTCUT (always active)
+    // === KEYBOARD SHORTCUT (always active — even when suite is off)
     // ===================================================================
-    // Shift+E to toggle script on/off (stealth mode - no notifications)
+    // Ctrl+Alt+M — toggle master switch (MyManager). Avoids Shift+E (breaks typing)
+    // and Ctrl+Shift+M (browser device toolbar).
     document.addEventListener('keydown', (e) => {
-        if (!e.ctrlKey && !e.metaKey && !e.altKey && e.shiftKey && e.key === 'E') {
-            e.preventDefault();
-            const currentState = GM_getValue(STORAGE_KEYS.SCRIPT_ENABLED, DEFAULTS.scriptEnabled);
-            const newState = !currentState;
-            GM_setValue(STORAGE_KEYS.SCRIPT_ENABLED, newState);
-            
-            // Silent mode - no notifications, just reload immediately
-                location.reload();
-        }
-    });
+        const key = String(e.key || '').toLowerCase();
+        if (!(e.ctrlKey || e.metaKey) || !e.altKey || e.shiftKey || key !== 'm') return;
+        // Ignore pure IME/composition noise
+        if (e.isComposing) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const currentState = GM_getValue(STORAGE_KEYS.SCRIPT_ENABLED, DEFAULTS.scriptEnabled);
+        const newState = !currentState;
+        GM_setValue(STORAGE_KEYS.SCRIPT_ENABLED, newState);
+        // Silent reload so the toggle applies immediately
+        location.reload();
+    }, true);
 
     function trackRepairAccess(config, STORAGE_KEYS) {
         if (!config.recentRepairsEnabled) {
@@ -5200,7 +5203,7 @@
         // Check if script is enabled - if not, show minimal UI and exit
         if (!config.scriptEnabled) {
             // Stealth mode - completely silent, no UI elements, no messages
-            // Only the key combination Ctrl+Shift+E can re-enable (handler is set up above)
+            // Only Ctrl+Alt+M can re-enable (handler is set up above)
             return; // Exit early - don't initialize any features
         }
 
