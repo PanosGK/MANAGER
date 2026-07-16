@@ -708,6 +708,34 @@ function screenShake(duration = 500) {
 }
 
 let tamaCinematicLock = false;
+let tamaCinematicGeneration = 0;
+const tamaCinematicTimeouts = [];
+/** Prevents duplicate egg→baby hatch cinematics for the same egg cycle. */
+let tamagotchiEggHatchCinematicDone = false;
+
+function scheduleTamagotchiCinematic(fn, delayMs) {
+    const gen = tamaCinematicGeneration;
+    const id = setTimeout(() => {
+        if (gen !== tamaCinematicGeneration) return;
+        fn();
+    }, delayMs);
+    tamaCinematicTimeouts.push(id);
+    return id;
+}
+
+function cancelTamagotchiCinematics() {
+    tamaCinematicGeneration += 1;
+    tamaCinematicTimeouts.forEach((id) => clearTimeout(id));
+    tamaCinematicTimeouts.length = 0;
+    tamaCinematicLock = false;
+
+    document.getElementById('tm-tama-hatch-panel')?.remove();
+    document.getElementById('tm-tama-lucky-panel')?.remove();
+    document.getElementById('tm-tama-death-cinematic')?.remove();
+
+    const mascotContainer = document.getElementById('tm-mascot-container');
+    mascotContainer?.classList.remove('mascot-hatching', 'mascot-dying');
+}
 
 function ensureTamaCinematicStyles() {
     if (document.getElementById('tm-tama-cinematic-styles')) return;
@@ -1031,7 +1059,9 @@ function ensureTamaCinematicStyles() {
 function showEggHatchAnimation(onComplete) {
     ensureTamaCinematicStyles();
     if (document.getElementById('tm-tama-hatch-panel')) return;
+    if (tamagotchiIsDead) return;
 
+    const hatchGen = tamaCinematicGeneration;
     const mascotContainer = document.getElementById('tm-mascot-container');
     mascotContainer?.classList.add('mascot-hatching');
 
@@ -1068,20 +1098,28 @@ function showEggHatchAnimation(onComplete) {
         [3600, 'ΕΚΚΟΛΑΨΗ!']
     ];
     phases.forEach(([ms, text]) => {
-        setTimeout(() => { if (statusEl) statusEl.textContent = text; }, ms);
+        scheduleTamagotchiCinematic(() => {
+            if (statusEl) statusEl.textContent = text;
+        }, ms);
     });
 
-    setTimeout(() => screenShake(500), 3200);
-    setTimeout(() => {
+    scheduleTamagotchiCinematic(() => screenShake(500), 3200);
+    scheduleTamagotchiCinematic(() => {
         burstEl?.classList.add('active');
         playEpicSound();
     }, 3400);
 
-    setTimeout(() => {
+    scheduleTamagotchiCinematic(() => {
+        if (hatchGen !== tamaCinematicGeneration || tamagotchiIsDead) {
+            overlay.remove();
+            mascotContainer?.classList.remove('mascot-hatching');
+            return;
+        }
         mascotContainer?.classList.remove('mascot-hatching');
         overlay.style.animation = 'tm-tama-fade-in 0.4s ease-out reverse';
-        setTimeout(() => {
+        scheduleTamagotchiCinematic(() => {
             overlay.remove();
+            if (hatchGen !== tamaCinematicGeneration || tamagotchiIsDead) return;
             if (typeof onComplete === 'function') onComplete();
         }, 400);
     }, 4200);
@@ -1141,14 +1179,24 @@ function showTamagotchiDeathCinematic(onComplete) {
 }
 
 function runTamagotchiHatchSequence(characterType, container) {
-    if (tamaCinematicLock) return;
+    if (tamaCinematicLock || tamagotchiIsDead || tamagotchiEggHatchCinematicDone) return;
     tamaCinematicLock = true;
+    tamagotchiEggHatchCinematicDone = true;
+    const hatchGen = tamaCinematicGeneration;
     const config = typeof window.config !== 'undefined' ? window.config : {};
     stopRoaming(config);
 
     showEggHatchAnimation(() => {
+        if (hatchGen !== tamaCinematicGeneration || tamagotchiIsDead || tamagotchiStage !== 'baby') {
+            tamaCinematicLock = false;
+            return;
+        }
         updateMascotAppearanceByStage('baby');
         showLuckyCharacterReveal(characterType, () => {
+            if (hatchGen !== tamaCinematicGeneration || tamagotchiIsDead) {
+                tamaCinematicLock = false;
+                return;
+            }
             tamaCinematicLock = false;
             showMascotBubble(mascotHatchMsg(characterType), 3000);
             if (typeof window.STORAGE_KEYS !== 'undefined') {
@@ -1160,6 +1208,7 @@ function runTamagotchiHatchSequence(characterType, container) {
 
 function runTamagotchiDeathSequence(STORAGE_KEYS) {
     if (document.getElementById('tm-tamagotchi-death-overlay')) return;
+    cancelTamagotchiCinematics();
     showTamagotchiDeathCinematic(() => {
         showTamagotchiDeathScreen(STORAGE_KEYS, true);
     });
@@ -2911,6 +2960,7 @@ function loadTamagotchiData(STORAGE_KEYS) {
         tamagotchiLastPraise = savedData.lastPraise || 0;
         tamagotchiLastScold = savedData.lastScold || 0;
         validateTamagotchiState();
+        tamagotchiEggHatchCinematicDone = tamagotchiStage !== 'egg';
     }
 }
 
@@ -3093,6 +3143,7 @@ function checkTamagotchiEvolution(container) {
     
     // Check for death from old age first
     if (tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.death && !tamagotchiIsDead) {
+        cancelTamagotchiCinematics();
         tamagotchiIsDead = true;
         tamagotchiHealth = 0;
         saveTamagotchiData(typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : {});
@@ -3128,7 +3179,11 @@ function checkTamagotchiEvolution(container) {
         const evolutionMessages = MASCOT_MESSAGES.evolution;
         if (oldStage === 'egg' && tamagotchiStage === 'baby') {
             tamagotchiLastPoopTime = Date.now();
-            runTamagotchiHatchSequence(tamagotchiCharacterType, container);
+            if (!tamagotchiEggHatchCinematicDone) {
+                runTamagotchiHatchSequence(tamagotchiCharacterType, container);
+            } else if (!tamaCinematicLock && !mascotStagePreviewLock) {
+                updateMascotAppearanceByStage('baby');
+            }
         } else if (tamagotchiStage === 'old' && oldStage !== 'old') {
             const oldMessages = MASCOT_MESSAGES.becameOld;
             showMascotBubble(oldMessages[Math.floor(Math.random() * oldMessages.length)], 3000);
@@ -3460,6 +3515,7 @@ function applyTamagotchiEggResetState() {
     tamagotchiLastUpdate = Date.now();
     tamagotchiNeedsPraise = false;
     tamagotchiNeedsScold = false;
+    tamagotchiEggHatchCinematicDone = false;
 
     petStats.hunger = 100;
     petStats.happiness = 100;
@@ -3470,7 +3526,7 @@ function applyTamagotchiEggResetState() {
 
 function refreshTamagotchiAfterEggReset(config, STORAGE_KEYS) {
     const container = document.getElementById('tm-mascot-container');
-    tamaCinematicLock = false;
+    cancelTamagotchiCinematics();
 
     if (mascotStateTimeout) {
         clearTimeout(mascotStateTimeout);
@@ -3501,7 +3557,6 @@ function refreshTamagotchiAfterEggReset(config, STORAGE_KEYS) {
     if (container) {
         updateMascotAppearanceByStage('egg');
         updateTamagotchiStats(container);
-        checkTamagotchiEvolution(container);
         updatePetInteractionPanel();
         updatePoopIndicator();
         updateSickIndicator();
@@ -3583,6 +3638,7 @@ function restartTamagotchiAsEgg(config, STORAGE_KEYS, options = {}) {
 
     try {
         if (cfg) stopRoaming(cfg);
+        cancelTamagotchiCinematics();
 
         applyTamagotchiEggResetState();
         saveTamagotchiData(keys);
@@ -3611,6 +3667,7 @@ function checkTamagotchiDeath(STORAGE_KEYS) {
     
     // Die if health reaches 0 or hunger stays at 0 for too long
     if (tamagotchiHealth <= 0 || (petStats.hunger <= 0 && (Date.now() - tamagotchiLastFed) > 4 * 60 * 60 * 1000)) {
+        cancelTamagotchiCinematics();
         tamagotchiIsDead = true;
         saveTamagotchiData(STORAGE_KEYS);
         
@@ -9497,6 +9554,7 @@ window.resolveMascotDynamicAnchors = resolveMascotDynamicAnchors;
 window.MASCOT_ACCESSORY_CATALOG = MASCOT_ACCESSORY_CATALOG;
 window.updateMascotAppearanceByLevel = updateMascotAppearanceByLevel; // Legacy - disabled
 window.restartTamagotchiAsEgg = restartTamagotchiAsEgg;
+window.cancelTamagotchiCinematics = cancelTamagotchiCinematics;
 window.confirmMascotKillRestart = confirmMascotKillRestart;
 window.previewMascotStage = previewMascotStage;
 window.clearMascotStagePreview = clearMascotStagePreview;
