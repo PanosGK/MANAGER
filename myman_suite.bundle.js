@@ -3276,9 +3276,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     const SCRIPT_META = {
         version: '224',
-        loaderVersion: '6',
-        silentVersion: '13',
-        displayVersion: '6.13',
+        loaderVersion: '7',
+        silentVersion: '1',
+        displayVersion: '7.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -4822,9 +4822,15 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
         const displayVer = result.displayVersion || getSuiteDisplayVersion();
         if (result.updateAvailable) {
-            let msg = `⟳ Χρειάζεται ενημέρωση του αρχείου εγκατάστασης: <strong>v${escapeHtml(result.remote)}</strong> (έχετε v${escapeHtml(result.current)}).<br>Ανοίξτε το Tampermonkey → Πίνακας ελέγχου → Έλεγχος για ενημερώσεις.`;
+            const loaderHref = escapeHtml(
+                window.SCRIPT_META?.loaderUrl
+                || 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
+            );
+            let msg = `⟳ Χρειάζεται ενημέρωση του αρχείου εγκατάστασης: <strong>v${escapeHtml(result.remote)}</strong> (έχετε v${escapeHtml(result.current)}).<br>`
+                + 'Εικονίδιο Tampermonkey → <strong>Dashboard</strong> → ανοίξτε το <strong>MyManager All-in-One Suite</strong> → καρτέλα <strong>Settings</strong> → στην ενότητα Updates πατήστε <strong>Check for userscript updates</strong>.<br>'
+                + `Ή ανοίξτε <a href="${loaderHref}" target="_blank" rel="noopener noreferrer">αυτόν τον σύνδεσμο</a> και πατήστε <strong>Override</strong>.`;
             if (result.releaseNotes) {
-                msg += `<br><span style="opacity:0.85;">${escapeHtml(result.releaseNotes)}</span>`;
+                msg += `<br><span style="opacity:0.85;">Σημειώσεις έκδοσης: ${escapeHtml(result.releaseNotes)}</span>`;
             }
             return msg;
         }
@@ -4868,10 +4874,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (openUpdatesSettings()) return;
 
         const result = lastUpdateResult;
-        const loaderUrl = window.SCRIPT_META?.loaderUrl || 'myman_loader.user.js';
+        const loaderUrl = window.SCRIPT_META?.loaderUrl
+            || 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js';
         const remote = result?.remote || '?';
         const current = result?.current || getInstalledLoaderVersion();
-        const msg = `Χρειάζεται ενημέρωση του αρχείου εγκατάστασης (v${current} → v${remote}). Ανοίξτε το Tampermonkey → Πίνακας ελέγχου → Έλεγχος για ενημερώσεις. ${loaderUrl}`;
+        const msg = `Χρειάζεται ενημέρωση του αρχείου εγκατάστασης (v${current} → v${remote}). Εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates. Ή ανοίξτε τον σύνδεσμο και πατήστε Override: ${loaderUrl}`;
         if (typeof showPositiveMessage === 'function') {
             showPositiveMessage(msg);
         } else {
@@ -11765,7 +11772,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         updates_loader: {
             title: 'Αρχείο εγκατάστασης (loader)',
             what: 'Το αρχείο εγκατάστασης του Tampermonkey μπαίνει μία φορά από το GitHub. Οι μικρές αλλαγές φορτώνονται αυτόματα· μόνο όταν αλλάζει το ίδιο το αρχείο χρειάζεται ενημέρωση από το Tampermonkey.',
-            where: 'Tampermonkey → Πίνακας ελέγχου, ή από το σύνδεσμο του αρχείου.',
+            where: 'Εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον σύνδεσμο του αρχείου και πατήστε Override.',
             when: 'Σπάνια — μόνο όταν αλλάζει το αρχείο εγκατάστασης.',
         },
         data_backup: {
@@ -12786,7 +12793,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                                 <label>Αρχείο εγκατάστασης (loader)</label>
                                 ${info('updates_loader')}
                             </div>
-                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι μικρές αλλαγές έρχονται αυτόματα· μόνο όταν αλλάζει αυτό το αρχείο χρειάζεται ενημέρωση από το Tampermonkey.</p>
+                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι μικρές αλλαγές έρχονται αυτόματα. Όταν χρειάζεται ενημέρωση: εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον παρακάτω σύνδεσμο και πατήστε Override.</p>
                             <p class="tm-setting-description tm-settings-code-line"><code>${loaderUrl}</code></p>
                         </div>
                     </div>

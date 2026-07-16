@@ -258,7 +258,7 @@
         updates_loader: {
             title: 'Αρχείο εγκατάστασης (loader)',
             what: 'Το αρχείο εγκατάστασης του Tampermonkey μπαίνει μία φορά από το GitHub. Οι μικρές αλλαγές φορτώνονται αυτόματα· μόνο όταν αλλάζει το ίδιο το αρχείο χρειάζεται ενημέρωση από το Tampermonkey.',
-            where: 'Tampermonkey → Πίνακας ελέγχου, ή από το σύνδεσμο του αρχείου.',
+            where: 'Εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον σύνδεσμο του αρχείου και πατήστε Override.',
             when: 'Σπάνια — μόνο όταν αλλάζει το αρχείο εγκατάστασης.',
         },
         data_backup: {
@@ -1279,7 +1279,7 @@
                                 <label>Αρχείο εγκατάστασης (loader)</label>
                                 ${info('updates_loader')}
                             </div>
-                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι μικρές αλλαγές έρχονται αυτόματα· μόνο όταν αλλάζει αυτό το αρχείο χρειάζεται ενημέρωση από το Tampermonkey.</p>
+                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι μικρές αλλαγές έρχονται αυτόματα. Όταν χρειάζεται ενημέρωση: εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον παρακάτω σύνδεσμο και πατήστε Override.</p>
                             <p class="tm-setting-description tm-settings-code-line"><code>${loaderUrl}</code></p>
                         </div>
                     </div>

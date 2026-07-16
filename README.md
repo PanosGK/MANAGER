@@ -16,7 +16,7 @@ Tampermonkey will check `@updateURL` and pull new versions automatically. You do
 
 ### Manual update check
 
-Open **Settings → Διαχείριση Δεδομένων → Έλεγχος Ενημερώσεων**, or use Tampermonkey Dashboard → **Check for userscript updates**.
+Open suite **Settings → Ενημερώσεις → Έλεγχος τώρα**, or in Tampermonkey: icon → **Dashboard** → **MyManager All-in-One Suite** → **Settings** → **Check for userscript updates**. Or open the loader URL and click **Override**: https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js
 
 ## Local development
 
