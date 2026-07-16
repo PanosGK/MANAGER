@@ -13,6 +13,7 @@
 // @grant        GM_listValues
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
+// @require      file://C:/Users/User/Documents/GitHub/MANAGER/myman_fouc_instant.js
 // @require      file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.bundle.js
 // @connect      thefixers.mymanager.gr
 // @connect      geocoding-api.open-meteo.com
@@ -20,4 +21,4 @@
 // @connect      raw.githubusercontent.com
 // ==/UserScript==
 
-// Local dev — bundle loads from disk (fast). Regenerate with: node scripts/generate-loader.mjs
+// Local: tiny FOUC @require runs before the large bundle is parsed.

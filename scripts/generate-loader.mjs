@@ -25,35 +25,79 @@ function stripUserScriptHeader(content) {
     return content.replace(/^\/\/ ==UserScript==[\s\S]*?^\/\/ ==\/UserScript==\r?\n?/m, '');
 }
 
-/** Runs synchronously the moment the bundle is parsed — before any module body. */
-const INSTANT_FOUC_GUARD = `
-(function tmMmsInstantFoucGuard() {
+/**
+ * FOUC hide — never use visibility:hidden on <html> (that blanks the viewport to
+ * browser-white). Keep html painted with a solid bg + full-screen cover overlay.
+ * Tiny enough to run before the huge bundle parses (local @require order).
+ */
+const FOUC_HIDE_IIFE = `(function tmMmsHidePageForTheme() {
     try {
+        if (window.__tmMmsFoucHideApplied) return;
         var path = (window.location && window.location.pathname) || '';
         if (path.indexOf('login.php') !== -1) return;
         if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
+        try {
+            if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return;
+        } catch (eSkip) { /* ignore */ }
+        window.__tmMmsFoucHideApplied = true;
+
+        var BG = '#121212';
+        try {
+            if (typeof GM_getValue === 'function') {
+                var profileId = GM_getValue('tm_mms_last_profile_id', '') || '';
+                var raw = profileId
+                    ? GM_getValue('tm:p:' + profileId + ':tm_theme_colors_cache', null)
+                    : null;
+                if (raw == null) raw = GM_getValue('tm_theme_colors_cache', null);
+                if (raw) {
+                    var cache = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                    var c = cache && cache.colors;
+                    if (c) BG = c['--tm-dark-color'] || c['--tm-shop-item-bg'] || BG;
+                }
+            }
+        } catch (e0) { /* ignore */ }
+
         var root = document.documentElement;
-        root.style.setProperty('visibility', 'hidden', 'important');
-        root.style.setProperty('opacity', '0', 'important');
-        root.style.backgroundColor = '#121212';
-        var style = document.createElement('style');
-        style.id = 'tm-mms-instant-guard';
-        style.textContent = [
-            'html:not(.tm-mms-theme-ready){',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            'background:#121212!important;',
+        root.style.backgroundColor = BG;
+        // Do NOT hide <html> with visibility — cover would vanish and flash white.
+        root.style.removeProperty('visibility');
+        root.style.removeProperty('opacity');
+
+        var css = [
+            'html{background:' + BG + '!important;}',
+            'html:not(.tm-mms-theme-ready) body{opacity:0!important;}',
+            '#tm-mms-boot-cover{',
+            'position:fixed!important;inset:0!important;z-index:2147483647!important;',
+            'background:' + BG + '!important;pointer-events:none!important;',
             '}',
-            'html:not(.tm-mms-theme-ready) body{',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            '}',
+            'html.tm-mms-theme-ready #tm-mms-boot-cover{display:none!important;}',
+            'html.tm-mms-theme-ready body{opacity:1!important;transition:opacity .12s ease-in;}',
         ].join('');
-        var parent = document.head || document.getElementsByTagName('head')[0] || root;
-        parent.appendChild(style);
+
+        if (typeof GM_addStyle === 'function') {
+            try { GM_addStyle(css); } catch (e1) { /* ignore */ }
+        }
+        var style = document.createElement('style');
+        style.id = 'tm-mms-fouc-boot-style';
+        style.textContent = css;
+        (document.head || root).appendChild(style);
+
+        function mountCover() {
+            if (document.getElementById('tm-mms-boot-cover')) return;
+            var cover = document.createElement('div');
+            cover.id = 'tm-mms-boot-cover';
+            cover.setAttribute('aria-hidden', 'true');
+            (document.documentElement).appendChild(cover);
+        }
+        mountCover();
+        if (!document.body) {
+            document.addEventListener('DOMContentLoaded', mountCover, { once: true });
+        }
     } catch (e) { /* ignore */ }
-})();
-`;
+})();`;
+
+/** Fallback inside the bundle (production eval / local second @require). */
+const INSTANT_FOUC_GUARD = `\n${FOUC_HIDE_IIFE}\n`;
 
 function buildInlineBootstrap(bundleLoadUrl) {
     return `(function tmMmsLoaderBootstrap() {
@@ -264,34 +308,7 @@ function buildInlineBootstrap(bundleLoadUrl) {
     installMasterToggleRecovery();
 
     function hidePageNow() {
-        var root = document.documentElement;
-        root.style.setProperty('visibility', 'hidden', 'important');
-        root.style.setProperty('opacity', '0', 'important');
-        root.style.backgroundColor = '#121212';
-
-        var css = [
-            'html:not(.tm-mms-theme-ready){',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            'background:#121212!important;',
-            '}',
-            'html:not(.tm-mms-theme-ready) body{',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            '}',
-        ].join('');
-
-        try {
-            var style = document.createElement('style');
-            style.id = 'tm-mms-loader-guard';
-            style.textContent = css;
-            var parent = document.head || document.getElementsByTagName('head')[0] || root;
-            parent.appendChild(style);
-        } catch (e) { /* ignore */ }
-
-        if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(css); } catch (e2) { /* ignore */ }
-        }
+        ${FOUC_HIDE_IIFE}
     }
 
     function readProfileScoped(key, defaultValue) {
@@ -319,7 +336,11 @@ function buildInlineBootstrap(bundleLoadUrl) {
                 root.style.setProperty(variable, cache.colors[variable]);
             });
             var bg = cache.colors['--tm-dark-color'] || cache.colors['--tm-shop-item-bg'];
-            if (bg) root.style.backgroundColor = bg;
+            if (bg) {
+                root.style.backgroundColor = bg;
+                var cover = document.getElementById('tm-mms-boot-cover');
+                if (cover) cover.style.backgroundColor = bg;
+            }
         } catch (e) { /* ignore */ }
     }
 
@@ -329,9 +350,11 @@ function buildInlineBootstrap(bundleLoadUrl) {
         document.documentElement.style.removeProperty('visibility');
         document.documentElement.style.removeProperty('opacity');
         if (document.body) {
-            document.body.style.visibility = 'visible';
-            document.body.style.opacity = '1';
+            document.body.style.removeProperty('visibility');
+            document.body.style.removeProperty('opacity');
         }
+        var cover = document.getElementById('tm-mms-boot-cover');
+        if (cover) cover.remove();
     }
 
     function exposeTampermonkeyApisForBundle() {
@@ -428,6 +451,7 @@ function buildInlineBootstrap(bundleLoadUrl) {
         return;
     }
 
+    // Hide before any network — first paint must not show unthemed host UI.
     hidePageNow();
     applyCachedThemeColors();
     fetchManifestThenLoadBundle();
@@ -440,6 +464,9 @@ function buildInlineBootstrap(bundleLoadUrl) {
     }, 15000);
 })();`;
 }
+
+const foucInstantPath = path.join(root, 'myman_fouc_instant.js');
+fs.writeFileSync(foucInstantPath, `/* MyManager FOUC instant hide — keep tiny; first @require for local loader */\n${FOUC_HIDE_IIFE}\n`);
 
 const bundleFiles = [...modules, 'myman_allinone.js'];
 let bundle = `/* MyManager Suite bundle v${version} / Custom Ver. ${displayVersion} — generated, do not edit */\n`;
@@ -487,6 +514,7 @@ ${buildInlineBootstrap(bundleUrl)}
 fs.writeFileSync(path.join(root, 'myman_loader.user.js'), productionLoader);
 
 const localBundlePath = path.join(root, bundleFileName).replace(/\\/g, '/');
+const localFoucPath = foucInstantPath.replace(/\\/g, '/');
 const localLoader = `// ==UserScript==
 // @name         ${manifest.name} (Local Dev)
 // @namespace    http://tampermonkey.net/
@@ -502,6 +530,7 @@ const localLoader = `// ==UserScript==
 // @grant        GM_listValues
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
+// @require      file://${localFoucPath}
 // @require      file://${localBundlePath}
 // @connect      thefixers.mymanager.gr
 // @connect      geocoding-api.open-meteo.com
@@ -509,7 +538,7 @@ const localLoader = `// ==UserScript==
 // @connect      raw.githubusercontent.com
 // ==/UserScript==
 
-// Local dev — bundle loads from disk (fast). Regenerate with: node scripts/generate-loader.mjs
+// Local: tiny FOUC @require runs before the large bundle is parsed.
 `;
 
 fs.writeFileSync(path.join(root, 'myman_loader.local.user.js'), localLoader);
@@ -517,30 +546,16 @@ fs.writeFileSync(path.join(root, 'myman_loader.local.user.js'), localLoader);
 const foucGuard = `// ==UserScript==
 // @name         MyManager FOUC Guard
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Optional extra hide layer (no downloads). Enable if you still see a flash before the main suite loads.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @run-at       document-start
-// @grant        none
+// @grant        GM_addStyle
+// @grant        GM_getValue
 // ==/UserScript==
 
-(function () {
-    'use strict';
-    var path = (window.location && window.location.pathname) || '';
-    if (path.indexOf('login.php') !== -1) return;
-    if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
-
-    var root = document.documentElement;
-    root.style.setProperty('visibility', 'hidden', 'important');
-    root.style.setProperty('opacity', '0', 'important');
-    root.style.backgroundColor = '#121212';
-
-    var style = document.createElement('style');
-    style.id = 'tm-mms-fouc-guard';
-    style.textContent = 'html:not(.tm-mms-theme-ready),html:not(.tm-mms-theme-ready) body{visibility:hidden!important;opacity:0!important;background:#121212!important}';
-    (document.head || root).appendChild(style);
-})();
+${FOUC_HIDE_IIFE}
 `;
 
 fs.writeFileSync(path.join(root, 'myman_fouc_guard.user.js'), foucGuard);

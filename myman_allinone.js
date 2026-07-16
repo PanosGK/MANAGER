@@ -5041,9 +5041,10 @@
             root.style.removeProperty('visibility');
             root.style.removeProperty('opacity');
             if (document.body) {
-                document.body.style.visibility = 'visible';
-                document.body.style.opacity = '1';
+                document.body.style.removeProperty('visibility');
+                document.body.style.removeProperty('opacity');
             }
+            document.getElementById('tm-mms-boot-cover')?.remove();
         }
     }
 

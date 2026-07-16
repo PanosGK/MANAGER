@@ -126,9 +126,9 @@
         REPAIR_REMINDER_BANNERS: 'tm_repair_reminder_active_banners_v1',
         REMINDER_HISTORY: 'tm_reminder_history_v1',
 
-        // Script update preferences (per profile)
-        SKIPPED_UPDATE_VERSION: 'tm_skipped_update_version',
-        SCRIPT_UPDATE_NOTIFIED_VERSION: 'tm_script_update_notified_version',
+        // Script update preferences (per profile) — loaderVersion only (not bundle)
+        SKIPPED_UPDATE_VERSION: 'tm_skipped_loader_version',
+        SCRIPT_UPDATE_NOTIFIED_VERSION: 'tm_script_update_notified_loader_version',
 
         // Add other keys here as needed
     };

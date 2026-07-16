@@ -258,7 +258,7 @@
         updates_loader: {
             title: 'Αρχείο εγκατάστασης (loader)',
             what: 'Το αρχείο εγκατάστασης του Tampermonkey μπαίνει μία φορά από το GitHub. Οι μικρές αλλαγές φορτώνονται αυτόματα· μόνο όταν αλλάζει το ίδιο το αρχείο χρειάζεται ενημέρωση από το Tampermonkey.',
-            where: 'Εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον σύνδεσμο του αρχείου και πατήστε Override.',
+            where: 'Εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον σύνδεσμο του αρχείου και πατήστε Override ή Update.',
             when: 'Σπάνια — μόνο όταν αλλάζει το αρχείο εγκατάστασης.',
         },
         data_backup: {
@@ -1293,7 +1293,7 @@
                                 <label>Αρχείο εγκατάστασης (loader)</label>
                                 ${info('updates_loader')}
                             </div>
-                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι μικρές αλλαγές έρχονται αυτόματα. Όταν χρειάζεται ενημέρωση: εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον παρακάτω σύνδεσμο και πατήστε Override.</p>
+                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι μικρές αλλαγές έρχονται αυτόματα. Όταν χρειάζεται ενημέρωση: εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον παρακάτω σύνδεσμο και πατήστε Override ή Update.</p>
                             <p class="tm-setting-description tm-settings-code-line"><code>${loaderUrl}</code></p>
                         </div>
                     </div>
@@ -1324,7 +1324,7 @@
             if (skippedEl && clearSkipBtn) {
                 if (skipped) {
                     skippedEl.style.display = 'block';
-                    skippedEl.textContent = `Έχετε παραλείψει την ειδοποίηση για την έκδοση loader v${skipped}.`;
+                    skippedEl.textContent = `Έχετε παραλείψει την ειδοποίηση για την έκδοση αρχείου εγκατάστασης v${skipped}.`;
                     clearSkipBtn.style.display = 'inline-block';
                 } else {
                     skippedEl.style.display = 'none';

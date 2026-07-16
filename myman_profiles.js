@@ -185,7 +185,9 @@
             'tm_srvorders_page_history', 'tm_partsorders_page_history',
             'orderHistoryStatusCheckEnabled', 'orderHistoryBackgroundEnabled',
             // Misc prefs
-            'tm_update_banner_dismissed_version',
+            'tm_update_banner_dismissed_loader_version',
+            'tm_skipped_loader_version',
+            'tm_script_update_notified_loader_version',
             'equippedTheme', // legacy orphan key still read by search.js
         ].forEach((key) => keys.add(key));
 

@@ -1,15 +1,4 @@
-// ==UserScript==
-// @name         MyManager FOUC Guard
-// @namespace    http://tampermonkey.net/
-// @version      1.2
-// @description  Optional extra hide layer (no downloads). Enable if you still see a flash before the main suite loads.
-// @author       Gkorogias
-// @match        *://thefixers.mymanager.gr/*
-// @run-at       document-start
-// @grant        GM_addStyle
-// @grant        GM_getValue
-// ==/UserScript==
-
+/* MyManager FOUC instant hide — keep tiny; first @require for local loader */
 (function tmMmsHidePageForTheme() {
     try {
         if (window.__tmMmsFoucHideApplied) return;

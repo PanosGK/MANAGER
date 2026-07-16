@@ -1,28 +1,67 @@
 /* MyManager Suite bundle v224 / Custom Ver. 8.1 — generated, do not edit */
-(function tmMmsInstantFoucGuard() {
+(function tmMmsHidePageForTheme() {
     try {
+        if (window.__tmMmsFoucHideApplied) return;
         var path = (window.location && window.location.pathname) || '';
         if (path.indexOf('login.php') !== -1) return;
         if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
+        try {
+            if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return;
+        } catch (eSkip) { /* ignore */ }
+        window.__tmMmsFoucHideApplied = true;
+
+        var BG = '#121212';
+        try {
+            if (typeof GM_getValue === 'function') {
+                var profileId = GM_getValue('tm_mms_last_profile_id', '') || '';
+                var raw = profileId
+                    ? GM_getValue('tm:p:' + profileId + ':tm_theme_colors_cache', null)
+                    : null;
+                if (raw == null) raw = GM_getValue('tm_theme_colors_cache', null);
+                if (raw) {
+                    var cache = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                    var c = cache && cache.colors;
+                    if (c) BG = c['--tm-dark-color'] || c['--tm-shop-item-bg'] || BG;
+                }
+            }
+        } catch (e0) { /* ignore */ }
+
         var root = document.documentElement;
-        root.style.setProperty('visibility', 'hidden', 'important');
-        root.style.setProperty('opacity', '0', 'important');
-        root.style.backgroundColor = '#121212';
-        var style = document.createElement('style');
-        style.id = 'tm-mms-instant-guard';
-        style.textContent = [
-            'html:not(.tm-mms-theme-ready){',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            'background:#121212!important;',
+        root.style.backgroundColor = BG;
+        // Do NOT hide <html> with visibility — cover would vanish and flash white.
+        root.style.removeProperty('visibility');
+        root.style.removeProperty('opacity');
+
+        var css = [
+            'html{background:' + BG + '!important;}',
+            'html:not(.tm-mms-theme-ready) body{opacity:0!important;}',
+            '#tm-mms-boot-cover{',
+            'position:fixed!important;inset:0!important;z-index:2147483647!important;',
+            'background:' + BG + '!important;pointer-events:none!important;',
             '}',
-            'html:not(.tm-mms-theme-ready) body{',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            '}',
+            'html.tm-mms-theme-ready #tm-mms-boot-cover{display:none!important;}',
+            'html.tm-mms-theme-ready body{opacity:1!important;transition:opacity .12s ease-in;}',
         ].join('');
-        var parent = document.head || document.getElementsByTagName('head')[0] || root;
-        parent.appendChild(style);
+
+        if (typeof GM_addStyle === 'function') {
+            try { GM_addStyle(css); } catch (e1) { /* ignore */ }
+        }
+        var style = document.createElement('style');
+        style.id = 'tm-mms-fouc-boot-style';
+        style.textContent = css;
+        (document.head || root).appendChild(style);
+
+        function mountCover() {
+            if (document.getElementById('tm-mms-boot-cover')) return;
+            var cover = document.createElement('div');
+            cover.id = 'tm-mms-boot-cover';
+            cover.setAttribute('aria-hidden', 'true');
+            (document.documentElement).appendChild(cover);
+        }
+        mountCover();
+        if (!document.body) {
+            document.addEventListener('DOMContentLoaded', mountCover, { once: true });
+        }
     } catch (e) { /* ignore */ }
 })();
 
@@ -512,33 +551,27 @@ img[src='images/smsdelivered.png'] {
     if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
 
     const root = document.documentElement;
-    root.style.setProperty('visibility', 'hidden', 'important');
-    root.style.setProperty('opacity', '0', 'important');
+    // Never visibility:hidden on <html> — that blanks the viewport to browser-white.
+    root.style.removeProperty('visibility');
+    root.style.removeProperty('opacity');
 
     if (typeof GM_addStyle === 'function') {
         GM_addStyle(`
-            html:not(.tm-mms-theme-ready) {
-                visibility: hidden !important;
-                opacity: 0 !important;
-            }
             html:not(.tm-mms-theme-ready) body {
-                visibility: hidden !important;
                 opacity: 0 !important;
-            }
-            html.tm-mms-theme-ready {
-                visibility: visible !important;
-                opacity: 1 !important;
-                transition: opacity 0.15s ease-in;
             }
             html.tm-mms-theme-ready body {
-                visibility: visible !important;
                 opacity: 1 !important;
+                transition: opacity 0.12s ease-in;
+            }
+            html.tm-mms-theme-ready #tm-mms-boot-cover {
+                display: none !important;
             }
         `);
     } else {
         const style = document.createElement('style');
         style.id = 'tm-mms-theme-early-guard';
-        style.textContent = 'html:not(.tm-mms-theme-ready),html:not(.tm-mms-theme-ready) body{visibility:hidden!important;opacity:0!important}';
+        style.textContent = 'html:not(.tm-mms-theme-ready) body{opacity:0!important}html.tm-mms-theme-ready body{opacity:1!important}html.tm-mms-theme-ready #tm-mms-boot-cover{display:none!important}';
         (document.head || root).appendChild(style);
     }
 
@@ -546,9 +579,8 @@ img[src='images/smsdelivered.png'] {
 
     try {
         if (GM_getValue('tm_script_enabled', true) === false) {
-            root.style.removeProperty('visibility');
-            root.style.removeProperty('opacity');
             root.classList.add('tm-mms-theme-ready');
+            document.getElementById('tm-mms-boot-cover')?.remove();
             return;
         }
     } catch (_) { /* ignore */ }
@@ -704,9 +736,10 @@ window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
         document.documentElement.style.removeProperty('visibility');
         document.documentElement.style.removeProperty('opacity');
         if (document.body) {
-            document.body.style.visibility = 'visible';
-            document.body.style.opacity = '1';
+            document.body.style.removeProperty('visibility');
+            document.body.style.removeProperty('opacity');
         }
+        document.getElementById('tm-mms-boot-cover')?.remove();
         return;
     }
 
@@ -718,9 +751,10 @@ window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
     document.documentElement.style.removeProperty('visibility');
     document.documentElement.style.removeProperty('opacity');
     if (document.body) {
-        document.body.style.visibility = 'visible';
-        document.body.style.opacity = '1';
+        document.body.style.removeProperty('visibility');
+        document.body.style.removeProperty('opacity');
     }
+    document.getElementById('tm-mms-boot-cover')?.remove();
 };
 
 
@@ -3276,9 +3310,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     const SCRIPT_META = {
         version: '224',
-        loaderVersion: '7',
+        loaderVersion: '8',
         silentVersion: '1',
-        displayVersion: '7.1',
+        displayVersion: '8.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -3385,9 +3419,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         REPAIR_REMINDER_BANNERS: 'tm_repair_reminder_active_banners_v1',
         REMINDER_HISTORY: 'tm_reminder_history_v1',
 
-        // Script update preferences (per profile)
-        SKIPPED_UPDATE_VERSION: 'tm_skipped_update_version',
-        SCRIPT_UPDATE_NOTIFIED_VERSION: 'tm_script_update_notified_version',
+        // Script update preferences (per profile) — loaderVersion only (not bundle)
+        SKIPPED_UPDATE_VERSION: 'tm_skipped_loader_version',
+        SCRIPT_UPDATE_NOTIFIED_VERSION: 'tm_script_update_notified_loader_version',
 
         // Add other keys here as needed
     };
@@ -3657,7 +3691,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             'tm_srvorders_page_history', 'tm_partsorders_page_history',
             'orderHistoryStatusCheckEnabled', 'orderHistoryBackgroundEnabled',
             // Misc prefs
-            'tm_update_banner_dismissed_version',
+            'tm_update_banner_dismissed_loader_version',
+            'tm_skipped_loader_version',
+            'tm_script_update_notified_loader_version',
             'equippedTheme', // legacy orphan key still read by search.js
         ].forEach((key) => keys.add(key));
 
@@ -4861,20 +4897,64 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     let lastUpdateResult = null;
 
     function getSkippedUpdateKey() {
-        return window.STORAGE_KEYS?.SKIPPED_UPDATE_VERSION || 'tm_skipped_update_version';
+        return window.STORAGE_KEYS?.SKIPPED_UPDATE_VERSION || 'tm_skipped_loader_version';
     }
 
     function getUpdateBannerDismissedKey() {
-        return 'tm_update_banner_dismissed_version';
+        return 'tm_update_banner_dismissed_loader_version';
     }
 
     function getScriptUpdateNotificationId(remoteVersion) {
-        return `script_update_v${String(remoteVersion)}`;
+        return `script_update_loader_v${String(remoteVersion)}`;
     }
 
     function getUpdateNotifiedVersionKey() {
-        return window.STORAGE_KEYS?.SCRIPT_UPDATE_NOTIFIED_VERSION || 'tm_script_update_notified_version';
+        return window.STORAGE_KEYS?.SCRIPT_UPDATE_NOTIFIED_VERSION || 'tm_script_update_notified_loader_version';
     }
+
+    /** Old suite stored bundle versions (e.g. 126) in skip keys — drop those so loader prompts work. */
+    function isPlausibleLoaderVersion(version) {
+        const n = parseScriptVersion(version);
+        return Number.isFinite(n) && n > 0 && n < 50;
+    }
+
+    function purgeLegacyUpdateSkipKeys() {
+        const legacyKeys = [
+            'tm_skipped_update_version',
+            'tm_script_update_notified_version',
+            'tm_update_banner_dismissed_version',
+        ];
+        legacyKeys.forEach((key) => {
+            try {
+                const raw = GM_getValue(key, '');
+                if (raw === '' || raw == null) return;
+                if (!isPlausibleLoaderVersion(raw)) {
+                    GM_deleteValue(key);
+                    return;
+                }
+                // Migrate a plausible old skip into the new loader key once
+                if (key === 'tm_skipped_update_version') {
+                    const nextKey = getSkippedUpdateKey();
+                    if (!GM_getValue(nextKey, '')) {
+                        GM_setValue(nextKey, String(raw));
+                    }
+                    GM_deleteValue(key);
+                } else {
+                    GM_deleteValue(key);
+                }
+            } catch (_) { /* ignore */ }
+        });
+
+        // Also scrub new keys if somehow polluted with old bundle numbers
+        [getSkippedUpdateKey(), getUpdateNotifiedVersionKey(), getUpdateBannerDismissedKey()].forEach((key) => {
+            try {
+                const raw = GM_getValue(key, '');
+                if (raw && !isPlausibleLoaderVersion(raw)) GM_deleteValue(key);
+            } catch (_) { /* ignore */ }
+        });
+    }
+
+    try { purgeLegacyUpdateSkipKeys(); } catch (_) { /* ignore */ }
 
     function getStoredNotificationsForUpdateCheck() {
         const key = window.STORAGE_KEYS?.USER_NOTIFICATIONS || 'tm_user_notifications_v1';
@@ -4911,7 +4991,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function getSkippedUpdateVersion() {
-        return String(GM_getValue(getSkippedUpdateKey(), '') || '');
+        const skipped = String(GM_getValue(getSkippedUpdateKey(), '') || '');
+        if (skipped && !isPlausibleLoaderVersion(skipped)) {
+            try { GM_deleteValue(getSkippedUpdateKey()); } catch (_) { /* ignore */ }
+            return '';
+        }
+        return skipped;
     }
 
     function skipUpdateVersion(version) {
@@ -4960,7 +5045,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             );
             return `⟳ Χρειάζεται ενημέρωση του αρχείου εγκατάστασης: <strong>v${escapeHtml(result.remote)}</strong> (έχετε v${escapeHtml(result.current)}).<br>`
                 + 'Εικονίδιο Tampermonkey → <strong>Dashboard</strong> → ανοίξτε το <strong>MyManager All-in-One Suite</strong> → καρτέλα <strong>Settings</strong> → στην ενότητα Updates πατήστε <strong>Check for userscript updates</strong>.<br>'
-                + `Ή ανοίξτε <a href="${loaderHref}" target="_blank" rel="noopener noreferrer">αυτόν τον σύνδεσμο</a> και πατήστε <strong>Override</strong>.`;
+                + `Ή ανοίξτε <a href="${loaderHref}" target="_blank" rel="noopener noreferrer">αυτόν τον σύνδεσμο</a> και πατήστε <strong>Override</strong> ή <strong>Update</strong>.`;
         }
         const bundleNote = result.bundleUpdateAvailable
             ? ' Οι μικρές αλλαγές φορτώνονται αυτόματα.'
@@ -5006,7 +5091,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             || 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js';
         const remote = result?.remote || '?';
         const current = result?.current || getInstalledLoaderVersion();
-        const msg = `Χρειάζεται ενημέρωση του αρχείου εγκατάστασης (v${current} → v${remote}). Εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates. Ή ανοίξτε τον σύνδεσμο και πατήστε Override: ${loaderUrl}`;
+        const msg = `Χρειάζεται ενημέρωση του αρχείου εγκατάστασης (v${current} → v${remote}). Εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates. Ή ανοίξτε τον σύνδεσμο και πατήστε Override ή Update: ${loaderUrl}`;
         if (typeof showPositiveMessage === 'function') {
             showPositiveMessage(msg);
         } else {
@@ -11905,7 +11990,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         updates_loader: {
             title: 'Αρχείο εγκατάστασης (loader)',
             what: 'Το αρχείο εγκατάστασης του Tampermonkey μπαίνει μία φορά από το GitHub. Οι μικρές αλλαγές φορτώνονται αυτόματα· μόνο όταν αλλάζει το ίδιο το αρχείο χρειάζεται ενημέρωση από το Tampermonkey.',
-            where: 'Εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον σύνδεσμο του αρχείου και πατήστε Override.',
+            where: 'Εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον σύνδεσμο του αρχείου και πατήστε Override ή Update.',
             when: 'Σπάνια — μόνο όταν αλλάζει το αρχείο εγκατάστασης.',
         },
         data_backup: {
@@ -12940,7 +13025,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                                 <label>Αρχείο εγκατάστασης (loader)</label>
                                 ${info('updates_loader')}
                             </div>
-                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι μικρές αλλαγές έρχονται αυτόματα. Όταν χρειάζεται ενημέρωση: εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον παρακάτω σύνδεσμο και πατήστε Override.</p>
+                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι μικρές αλλαγές έρχονται αυτόματα. Όταν χρειάζεται ενημέρωση: εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον παρακάτω σύνδεσμο και πατήστε Override ή Update.</p>
                             <p class="tm-setting-description tm-settings-code-line"><code>${loaderUrl}</code></p>
                         </div>
                     </div>
@@ -12971,7 +13056,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             if (skippedEl && clearSkipBtn) {
                 if (skipped) {
                     skippedEl.style.display = 'block';
-                    skippedEl.textContent = `Έχετε παραλείψει την ειδοποίηση για την έκδοση loader v${skipped}.`;
+                    skippedEl.textContent = `Έχετε παραλείψει την ειδοποίηση για την έκδοση αρχείου εγκατάστασης v${skipped}.`;
                     clearSkipBtn.style.display = 'inline-block';
                 } else {
                     skippedEl.style.display = 'none';
@@ -17871,24 +17956,51 @@ function getMascotCareCoinCost(actionId) {
     return Number(MASCOT_CARE_COIN_COSTS[actionId] || 0);
 }
 
+function recordMascotCareCoinSpend(STORAGE_KEYS, amount, actionId) {
+    if (!STORAGE_KEYS || !(amount > 0)) return;
+    const historyKey = STORAGE_KEYS.COIN_HISTORY || 'tm_coin_history';
+    try {
+        const raw = GM_getValue(historyKey, '[]');
+        const history = Array.isArray(raw) ? raw.slice() : (JSON.parse(raw || '[]') || []);
+        history.unshift({
+            amount: -Math.abs(amount),
+            baseAmount: -Math.abs(amount),
+            timestamp: Date.now(),
+            source: `mascot_care_${actionId || 'unknown'}`,
+        });
+        if (history.length > 50) history.length = 50;
+        GM_setValue(historyKey, JSON.stringify(history));
+    } catch (_) { /* ignore */ }
+}
+
 function trySpendMascotCareCoins(STORAGE_KEYS, actionId, config) {
     const cost = getMascotCareCoinCost(actionId);
-    if (cost <= 0) return { ok: true, cost: 0 };
-    if (config?.debugEnabled) return { ok: true, cost: 0, free: true };
-    const coins = Number(GM_getValue(STORAGE_KEYS.USER_COINS, 0) || 0);
+    if (cost <= 0) return { ok: true, cost: 0, paidWith: null };
+
+    const keys = STORAGE_KEYS || window.STORAGE_KEYS || {};
+    const coinKey = keys.USER_COINS || 'tm_user_coins';
+    const coins = Number(GM_getValue(coinKey, 0) || 0);
+
     if (coins < cost) {
-        showMascotBubble(`Θέλω ${cost} 🪙!`, 2000);
-        if (typeof window.showNotification === 'function') {
-            window.showNotification('error', `Χρειάζονται ${cost} Fixer-Coins`);
+        showMascotBubble(`Θέλω ${cost} 🪙!`, 2200);
+        if (typeof window.showPositiveMessage === 'function') {
+            window.showPositiveMessage(`Χρειάζονται ${cost} Fixer-Coins για αυτή την ενέργεια.`);
         }
-        return { ok: false, cost };
+        return { ok: false, cost, paidWith: null };
     }
+
     const next = coins - cost;
-    GM_setValue(STORAGE_KEYS.USER_COINS, next);
+    GM_setValue(coinKey, next);
+    recordMascotCareCoinSpend(keys, cost, actionId);
+
     if (typeof window.updateCoinBalanceUI === 'function') {
-        window.updateCoinBalanceUI(STORAGE_KEYS, next, config || window.config);
+        window.updateCoinBalanceUI(keys, next, config || window.config);
+    } else {
+        const coinDisplay = document.getElementById('tm-coin-balance');
+        if (coinDisplay) coinDisplay.innerHTML = `🪙 ${next}`;
     }
-    return { ok: true, cost };
+
+    return { ok: true, cost, paidWith: 'coins' };
 }
 
 function getActiveMascotPrefs() {
@@ -18030,21 +18142,44 @@ function tryPayForMascotCare(STORAGE_KEYS, actionId, config) {
     if (!keys) return trySpendMascotCareCoins(STORAGE_KEYS, actionId, config);
 
     if (actionId === 'meal') {
-        const food = Math.max(0, Number(GM_getValue(keys.MASCOT_FOOD_ITEMS, 0) || 0));
+        const food = Math.max(0, Number(GM_getValue(keys.MASCOT_FOOD_ITEMS || 'tm_mascot_food_items', 0) || 0));
         if (food > 0) {
-            GM_setValue(keys.MASCOT_FOOD_ITEMS, food - 1);
+            GM_setValue(keys.MASCOT_FOOD_ITEMS || 'tm_mascot_food_items', food - 1);
             return { ok: true, paidWith: 'food', remaining: food - 1, cost: 0 };
         }
     }
     if (actionId === 'snack') {
-        const treats = Math.max(0, Number(GM_getValue(keys.MASCOT_TREAT_ITEMS, 0) || 0));
+        const treats = Math.max(0, Number(GM_getValue(keys.MASCOT_TREAT_ITEMS || 'tm_mascot_treat_items', 0) || 0));
         if (treats > 0) {
-            GM_setValue(keys.MASCOT_TREAT_ITEMS, treats - 1);
+            GM_setValue(keys.MASCOT_TREAT_ITEMS || 'tm_mascot_treat_items', treats - 1);
             return { ok: true, paidWith: 'treat', remaining: treats - 1, cost: 0 };
         }
     }
-    const coin = trySpendMascotCareCoins(STORAGE_KEYS, actionId, config);
-    return { ...coin, paidWith: coin.ok ? 'coins' : null };
+    return trySpendMascotCareCoins(keys, actionId, config);
+}
+
+function announceMascotCarePayment(pay, fallbackMessages) {
+    if (!pay?.ok) return;
+    if (pay.paidWith === 'food') {
+        showMascotBubble(`Από το απόθεμα! (απομένουν ${pay.remaining})`, 1800);
+        return;
+    }
+    if (pay.paidWith === 'treat') {
+        showMascotBubble(`Λιχουδιά από απόθεμα! (${pay.remaining} ακόμα)`, 1800);
+        return;
+    }
+    if (pay.paidWith === 'coins' && pay.cost > 0) {
+        const base = Array.isArray(fallbackMessages)
+            ? fallbackMessages[Math.floor(Math.random() * fallbackMessages.length)]
+            : (fallbackMessages || 'Οκ!');
+        showMascotBubble(`${base} (−${pay.cost}🪙)`, 2000);
+        return;
+    }
+    if (Array.isArray(fallbackMessages) && fallbackMessages.length) {
+        showMascotBubble(fallbackMessages[Math.floor(Math.random() * fallbackMessages.length)], 2000);
+    } else if (fallbackMessages) {
+        showMascotBubble(String(fallbackMessages), 2000);
+    }
 }
 
 function careFeedHint(baseHint, actionId, STORAGE_KEYS) {
@@ -30432,17 +30567,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             if (petStats.hunger < 100) {
                 const pay = tryPayForMascotCare(STORAGE_KEYS, 'meal', config);
                 if (!pay.ok) return;
-                const feedMessages = MASCOT_MESSAGES.feed;
                 updatePetStats(config, STORAGE_KEYS, 0, 30);
                 updateTamagotchiWeight('meal');
                 tamagotchiLastFed = Date.now();
                 trackDailyStat(config, STORAGE_KEYS, 'feedMascot');
                 setMascotState(config, 'eating', 2000);
-                if (pay.paidWith === 'food') {
-                    showMascotBubble(`Από το απόθεμα! (απομένουν ${pay.remaining})`, 1800);
-                } else {
-                    showMascotBubble(feedMessages[Math.floor(Math.random() * feedMessages.length)], 2000);
-                }
+                announceMascotCarePayment(pay, MASCOT_MESSAGES.feed);
                 applyMascotCarePreference('meal', config, STORAGE_KEYS);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
@@ -30464,11 +30594,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 updateTamagotchiWeight('snack');
                 tamagotchiLastFed = Date.now();
                 setMascotState(config, 'eating', 2000);
-                if (pay.paidWith === 'treat') {
-                    showMascotBubble(`Λιχουδιά από απόθεμα! (${pay.remaining} ακόμα)`, 1800);
-                } else {
-                    showMascotBubble(mascotMsg('snack'), 2000);
-                }
+                announceMascotCarePayment(pay, MASCOT_MESSAGES.snack);
                 applyMascotCarePreference('snack', config, STORAGE_KEYS);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
@@ -30495,12 +30621,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         // Clean button
         modal.querySelector('#tm-action-clean')?.addEventListener('click', () => {
             if (tamagotchiPoopCount > 0) {
-                if (!trySpendMascotCareCoins(STORAGE_KEYS, 'clean', config).ok) return;
+                const pay = trySpendMascotCareCoins(STORAGE_KEYS, 'clean', config);
+                if (!pay.ok) return;
                 tamagotchiPoopCount = 0;
                 tamagotchiNeedsPraise = true;
                 updatePetStats(config, STORAGE_KEYS, 10, 0);
-                const cleanMessages = MASCOT_MESSAGES.clean;
-                showMascotBubble(cleanMessages[Math.floor(Math.random() * cleanMessages.length)], 1500);
+                announceMascotCarePayment(pay, MASCOT_MESSAGES.clean);
                 applyMascotCarePreference('clean', config, STORAGE_KEYS);
                 updatePoopIndicator();
                 saveTamagotchiData(STORAGE_KEYS);
@@ -30513,10 +30639,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         // Medicine button
         modal.querySelector('#tm-action-medicine')?.addEventListener('click', () => {
             if (tamagotchiHealth < 100) {
-                if (!trySpendMascotCareCoins(STORAGE_KEYS, 'medicine', config).ok) return;
+                const pay = trySpendMascotCareCoins(STORAGE_KEYS, 'medicine', config);
+                if (!pay.ok) return;
                 tamagotchiHealth = Math.min(100, tamagotchiHealth + 20);
-                const medicineMessages = MASCOT_MESSAGES.medicine;
-                showMascotBubble(medicineMessages[Math.floor(Math.random() * medicineMessages.length)], 2000);
+                announceMascotCarePayment(pay, MASCOT_MESSAGES.medicine);
                 applyMascotCarePreference('medicine', config, STORAGE_KEYS);
                 updateTamagotchiStats(container);
                 saveTamagotchiData(STORAGE_KEYS);
@@ -31059,13 +31185,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             return;
         }
         if (petStats.hunger < 100) {
-            const feedMessages = MASCOT_MESSAGES.feedPanel;
+            const pay = tryPayForMascotCare(STORAGE_KEYS, 'meal', config);
+            if (!pay.ok) return;
             updatePetStats(config, STORAGE_KEYS, 0, 30);
             updateTamagotchiWeight('meal');
             tamagotchiLastFed = Date.now();
             trackDailyStat(config, STORAGE_KEYS, 'feedMascot');
             setMascotState(config, 'eating', 2000);
-            showMascotBubble(feedMessages[Math.floor(Math.random() * feedMessages.length)], 2000);
+            announceMascotCarePayment(pay, MASCOT_MESSAGES.feedPanel);
+            applyMascotCarePreference('meal', config, STORAGE_KEYS);
             saveTamagotchiData(STORAGE_KEYS);
         } else {
             const fullMessages = MASCOT_MESSAGES.full;
@@ -31080,12 +31208,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             return;
         }
         if (petStats.hunger < 95 && petStats.happiness < 95) {
-            const snackMessages = MASCOT_MESSAGES.snackPanel;
+            const pay = tryPayForMascotCare(STORAGE_KEYS, 'snack', config);
+            if (!pay.ok) return;
             updatePetStats(config, STORAGE_KEYS, 20, 10); // Happiness +20, Hunger +10
             updateTamagotchiWeight('snack');
             tamagotchiLastFed = Date.now();
             setMascotState(config, 'eating', 2000);
-            showMascotBubble(snackMessages[Math.floor(Math.random() * snackMessages.length)], 2000);
+            announceMascotCarePayment(pay, MASCOT_MESSAGES.snackPanel);
+            applyMascotCarePreference('snack', config, STORAGE_KEYS);
             saveTamagotchiData(STORAGE_KEYS);
         } else {
             showMascotBubble(MASCOT_MESSAGES.notHungrySnack, 1500);
@@ -31129,17 +31259,18 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             return;
         }
         if (tamagotchiPoopCount > 0) {
-            // Clean up poops
+            const pay = trySpendMascotCareCoins(STORAGE_KEYS, 'clean', config);
+            if (!pay.ok) return;
             tamagotchiPoopCount = 0;
             tamagotchiLastCleaned = Date.now();
-            petStats.happiness = Math.min(100, petStats.happiness + 5); // Happy when cleaned
-            const cleanMessages = MASCOT_MESSAGES.cleanPanel;
-            showMascotBubble(cleanMessages[Math.floor(Math.random() * cleanMessages.length)], 2000);
+            petStats.happiness = Math.min(100, petStats.happiness + 5);
+            announceMascotCarePayment(pay, MASCOT_MESSAGES.cleanPanel);
+            applyMascotCarePreference('clean', config, STORAGE_KEYS);
             updatePoopIndicator();
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
         } else if (tamagotchiHealth < 100) {
-            // General cleaning still helps health
+            // Light tidy (no poop) — free health nudge
             tamagotchiHealth = Math.min(100, tamagotchiHealth + 5);
             showMascotBubble(mascotMsg('cleanPanel'), 1500);
             updateTamagotchiStats(container);
@@ -31155,19 +31286,22 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             return;
         }
         if (tamagotchiIsSick) {
-            // Medicine cures sickness
+            const pay = trySpendMascotCareCoins(STORAGE_KEYS, 'medicine', config);
+            if (!pay.ok) return;
             tamagotchiIsSick = false;
             tamagotchiSickType = 'none';
             tamagotchiHealth = Math.min(100, tamagotchiHealth + 30);
-            const medMessages = MASCOT_MESSAGES.medicinePanel;
-            showMascotBubble(medMessages[Math.floor(Math.random() * medMessages.length)], 2000);
+            announceMascotCarePayment(pay, MASCOT_MESSAGES.medicinePanel);
+            applyMascotCarePreference('medicine', config, STORAGE_KEYS);
             updateSickIndicator();
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
         } else if (tamagotchiHealth < 70) {
-            // Can still use medicine for general health
+            const pay = trySpendMascotCareCoins(STORAGE_KEYS, 'medicine', config);
+            if (!pay.ok) return;
             tamagotchiHealth = Math.min(100, tamagotchiHealth + 20);
-            showMascotBubble(MASCOT_MESSAGES.feelingBetter, 2000);
+            announceMascotCarePayment(pay, MASCOT_MESSAGES.feelingBetter);
+            applyMascotCarePreference('medicine', config, STORAGE_KEYS);
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
         } else {
@@ -58204,9 +58338,10 @@ if (typeof window !== 'undefined') {
             root.style.removeProperty('visibility');
             root.style.removeProperty('opacity');
             if (document.body) {
-                document.body.style.visibility = 'visible';
-                document.body.style.opacity = '1';
+                document.body.style.removeProperty('visibility');
+                document.body.style.removeProperty('opacity');
             }
+            document.getElementById('tm-mms-boot-cover')?.remove();
         }
     }
 

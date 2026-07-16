@@ -229,34 +229,71 @@
     installMasterToggleRecovery();
 
     function hidePageNow() {
+        (function tmMmsHidePageForTheme() {
+    try {
+        if (window.__tmMmsFoucHideApplied) return;
+        var path = (window.location && window.location.pathname) || '';
+        if (path.indexOf('login.php') !== -1) return;
+        if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
+        try {
+            if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return;
+        } catch (eSkip) { /* ignore */ }
+        window.__tmMmsFoucHideApplied = true;
+
+        var BG = '#121212';
+        try {
+            if (typeof GM_getValue === 'function') {
+                var profileId = GM_getValue('tm_mms_last_profile_id', '') || '';
+                var raw = profileId
+                    ? GM_getValue('tm:p:' + profileId + ':tm_theme_colors_cache', null)
+                    : null;
+                if (raw == null) raw = GM_getValue('tm_theme_colors_cache', null);
+                if (raw) {
+                    var cache = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                    var c = cache && cache.colors;
+                    if (c) BG = c['--tm-dark-color'] || c['--tm-shop-item-bg'] || BG;
+                }
+            }
+        } catch (e0) { /* ignore */ }
+
         var root = document.documentElement;
-        root.style.setProperty('visibility', 'hidden', 'important');
-        root.style.setProperty('opacity', '0', 'important');
-        root.style.backgroundColor = '#121212';
+        root.style.backgroundColor = BG;
+        // Do NOT hide <html> with visibility — cover would vanish and flash white.
+        root.style.removeProperty('visibility');
+        root.style.removeProperty('opacity');
 
         var css = [
-            'html:not(.tm-mms-theme-ready){',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            'background:#121212!important;',
+            'html{background:' + BG + '!important;}',
+            'html:not(.tm-mms-theme-ready) body{opacity:0!important;}',
+            '#tm-mms-boot-cover{',
+            'position:fixed!important;inset:0!important;z-index:2147483647!important;',
+            'background:' + BG + '!important;pointer-events:none!important;',
             '}',
-            'html:not(.tm-mms-theme-ready) body{',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            '}',
+            'html.tm-mms-theme-ready #tm-mms-boot-cover{display:none!important;}',
+            'html.tm-mms-theme-ready body{opacity:1!important;transition:opacity .12s ease-in;}',
         ].join('');
 
-        try {
-            var style = document.createElement('style');
-            style.id = 'tm-mms-loader-guard';
-            style.textContent = css;
-            var parent = document.head || document.getElementsByTagName('head')[0] || root;
-            parent.appendChild(style);
-        } catch (e) { /* ignore */ }
-
         if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(css); } catch (e2) { /* ignore */ }
+            try { GM_addStyle(css); } catch (e1) { /* ignore */ }
         }
+        var style = document.createElement('style');
+        style.id = 'tm-mms-fouc-boot-style';
+        style.textContent = css;
+        (document.head || root).appendChild(style);
+
+        function mountCover() {
+            if (document.getElementById('tm-mms-boot-cover')) return;
+            var cover = document.createElement('div');
+            cover.id = 'tm-mms-boot-cover';
+            cover.setAttribute('aria-hidden', 'true');
+            (document.documentElement).appendChild(cover);
+        }
+        mountCover();
+        if (!document.body) {
+            document.addEventListener('DOMContentLoaded', mountCover, { once: true });
+        }
+    } catch (e) { /* ignore */ }
+})();
     }
 
     function readProfileScoped(key, defaultValue) {
@@ -284,7 +321,11 @@
                 root.style.setProperty(variable, cache.colors[variable]);
             });
             var bg = cache.colors['--tm-dark-color'] || cache.colors['--tm-shop-item-bg'];
-            if (bg) root.style.backgroundColor = bg;
+            if (bg) {
+                root.style.backgroundColor = bg;
+                var cover = document.getElementById('tm-mms-boot-cover');
+                if (cover) cover.style.backgroundColor = bg;
+            }
         } catch (e) { /* ignore */ }
     }
 
@@ -294,9 +335,11 @@
         document.documentElement.style.removeProperty('visibility');
         document.documentElement.style.removeProperty('opacity');
         if (document.body) {
-            document.body.style.visibility = 'visible';
-            document.body.style.opacity = '1';
+            document.body.style.removeProperty('visibility');
+            document.body.style.removeProperty('opacity');
         }
+        var cover = document.getElementById('tm-mms-boot-cover');
+        if (cover) cover.remove();
     }
 
     function exposeTampermonkeyApisForBundle() {
@@ -393,6 +436,7 @@
         return;
     }
 
+    // Hide before any network — first paint must not show unthemed host UI.
     hidePageNow();
     applyCachedThemeColors();
     fetchManifestThenLoadBundle();

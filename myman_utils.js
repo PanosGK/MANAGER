@@ -779,20 +779,64 @@
     let lastUpdateResult = null;
 
     function getSkippedUpdateKey() {
-        return window.STORAGE_KEYS?.SKIPPED_UPDATE_VERSION || 'tm_skipped_update_version';
+        return window.STORAGE_KEYS?.SKIPPED_UPDATE_VERSION || 'tm_skipped_loader_version';
     }
 
     function getUpdateBannerDismissedKey() {
-        return 'tm_update_banner_dismissed_version';
+        return 'tm_update_banner_dismissed_loader_version';
     }
 
     function getScriptUpdateNotificationId(remoteVersion) {
-        return `script_update_v${String(remoteVersion)}`;
+        return `script_update_loader_v${String(remoteVersion)}`;
     }
 
     function getUpdateNotifiedVersionKey() {
-        return window.STORAGE_KEYS?.SCRIPT_UPDATE_NOTIFIED_VERSION || 'tm_script_update_notified_version';
+        return window.STORAGE_KEYS?.SCRIPT_UPDATE_NOTIFIED_VERSION || 'tm_script_update_notified_loader_version';
     }
+
+    /** Old suite stored bundle versions (e.g. 126) in skip keys — drop those so loader prompts work. */
+    function isPlausibleLoaderVersion(version) {
+        const n = parseScriptVersion(version);
+        return Number.isFinite(n) && n > 0 && n < 50;
+    }
+
+    function purgeLegacyUpdateSkipKeys() {
+        const legacyKeys = [
+            'tm_skipped_update_version',
+            'tm_script_update_notified_version',
+            'tm_update_banner_dismissed_version',
+        ];
+        legacyKeys.forEach((key) => {
+            try {
+                const raw = GM_getValue(key, '');
+                if (raw === '' || raw == null) return;
+                if (!isPlausibleLoaderVersion(raw)) {
+                    GM_deleteValue(key);
+                    return;
+                }
+                // Migrate a plausible old skip into the new loader key once
+                if (key === 'tm_skipped_update_version') {
+                    const nextKey = getSkippedUpdateKey();
+                    if (!GM_getValue(nextKey, '')) {
+                        GM_setValue(nextKey, String(raw));
+                    }
+                    GM_deleteValue(key);
+                } else {
+                    GM_deleteValue(key);
+                }
+            } catch (_) { /* ignore */ }
+        });
+
+        // Also scrub new keys if somehow polluted with old bundle numbers
+        [getSkippedUpdateKey(), getUpdateNotifiedVersionKey(), getUpdateBannerDismissedKey()].forEach((key) => {
+            try {
+                const raw = GM_getValue(key, '');
+                if (raw && !isPlausibleLoaderVersion(raw)) GM_deleteValue(key);
+            } catch (_) { /* ignore */ }
+        });
+    }
+
+    try { purgeLegacyUpdateSkipKeys(); } catch (_) { /* ignore */ }
 
     function getStoredNotificationsForUpdateCheck() {
         const key = window.STORAGE_KEYS?.USER_NOTIFICATIONS || 'tm_user_notifications_v1';
@@ -829,7 +873,12 @@
     }
 
     function getSkippedUpdateVersion() {
-        return String(GM_getValue(getSkippedUpdateKey(), '') || '');
+        const skipped = String(GM_getValue(getSkippedUpdateKey(), '') || '');
+        if (skipped && !isPlausibleLoaderVersion(skipped)) {
+            try { GM_deleteValue(getSkippedUpdateKey()); } catch (_) { /* ignore */ }
+            return '';
+        }
+        return skipped;
     }
 
     function skipUpdateVersion(version) {
@@ -878,7 +927,7 @@
             );
             return `⟳ Χρειάζεται ενημέρωση του αρχείου εγκατάστασης: <strong>v${escapeHtml(result.remote)}</strong> (έχετε v${escapeHtml(result.current)}).<br>`
                 + 'Εικονίδιο Tampermonkey → <strong>Dashboard</strong> → ανοίξτε το <strong>MyManager All-in-One Suite</strong> → καρτέλα <strong>Settings</strong> → στην ενότητα Updates πατήστε <strong>Check for userscript updates</strong>.<br>'
-                + `Ή ανοίξτε <a href="${loaderHref}" target="_blank" rel="noopener noreferrer">αυτόν τον σύνδεσμο</a> και πατήστε <strong>Override</strong>.`;
+                + `Ή ανοίξτε <a href="${loaderHref}" target="_blank" rel="noopener noreferrer">αυτόν τον σύνδεσμο</a> και πατήστε <strong>Override</strong> ή <strong>Update</strong>.`;
         }
         const bundleNote = result.bundleUpdateAvailable
             ? ' Οι μικρές αλλαγές φορτώνονται αυτόματα.'
@@ -924,7 +973,7 @@
             || 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js';
         const remote = result?.remote || '?';
         const current = result?.current || getInstalledLoaderVersion();
-        const msg = `Χρειάζεται ενημέρωση του αρχείου εγκατάστασης (v${current} → v${remote}). Εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates. Ή ανοίξτε τον σύνδεσμο και πατήστε Override: ${loaderUrl}`;
+        const msg = `Χρειάζεται ενημέρωση του αρχείου εγκατάστασης (v${current} → v${remote}). Εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates. Ή ανοίξτε τον σύνδεσμο και πατήστε Override ή Update: ${loaderUrl}`;
         if (typeof showPositiveMessage === 'function') {
             showPositiveMessage(msg);
         } else {

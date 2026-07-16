@@ -847,24 +847,51 @@ function getMascotCareCoinCost(actionId) {
     return Number(MASCOT_CARE_COIN_COSTS[actionId] || 0);
 }
 
+function recordMascotCareCoinSpend(STORAGE_KEYS, amount, actionId) {
+    if (!STORAGE_KEYS || !(amount > 0)) return;
+    const historyKey = STORAGE_KEYS.COIN_HISTORY || 'tm_coin_history';
+    try {
+        const raw = GM_getValue(historyKey, '[]');
+        const history = Array.isArray(raw) ? raw.slice() : (JSON.parse(raw || '[]') || []);
+        history.unshift({
+            amount: -Math.abs(amount),
+            baseAmount: -Math.abs(amount),
+            timestamp: Date.now(),
+            source: `mascot_care_${actionId || 'unknown'}`,
+        });
+        if (history.length > 50) history.length = 50;
+        GM_setValue(historyKey, JSON.stringify(history));
+    } catch (_) { /* ignore */ }
+}
+
 function trySpendMascotCareCoins(STORAGE_KEYS, actionId, config) {
     const cost = getMascotCareCoinCost(actionId);
-    if (cost <= 0) return { ok: true, cost: 0 };
-    if (config?.debugEnabled) return { ok: true, cost: 0, free: true };
-    const coins = Number(GM_getValue(STORAGE_KEYS.USER_COINS, 0) || 0);
+    if (cost <= 0) return { ok: true, cost: 0, paidWith: null };
+
+    const keys = STORAGE_KEYS || window.STORAGE_KEYS || {};
+    const coinKey = keys.USER_COINS || 'tm_user_coins';
+    const coins = Number(GM_getValue(coinKey, 0) || 0);
+
     if (coins < cost) {
-        showMascotBubble(`Θέλω ${cost} 🪙!`, 2000);
-        if (typeof window.showNotification === 'function') {
-            window.showNotification('error', `Χρειάζονται ${cost} Fixer-Coins`);
+        showMascotBubble(`Θέλω ${cost} 🪙!`, 2200);
+        if (typeof window.showPositiveMessage === 'function') {
+            window.showPositiveMessage(`Χρειάζονται ${cost} Fixer-Coins για αυτή την ενέργεια.`);
         }
-        return { ok: false, cost };
+        return { ok: false, cost, paidWith: null };
     }
+
     const next = coins - cost;
-    GM_setValue(STORAGE_KEYS.USER_COINS, next);
+    GM_setValue(coinKey, next);
+    recordMascotCareCoinSpend(keys, cost, actionId);
+
     if (typeof window.updateCoinBalanceUI === 'function') {
-        window.updateCoinBalanceUI(STORAGE_KEYS, next, config || window.config);
+        window.updateCoinBalanceUI(keys, next, config || window.config);
+    } else {
+        const coinDisplay = document.getElementById('tm-coin-balance');
+        if (coinDisplay) coinDisplay.innerHTML = `🪙 ${next}`;
     }
-    return { ok: true, cost };
+
+    return { ok: true, cost, paidWith: 'coins' };
 }
 
 function getActiveMascotPrefs() {
@@ -1006,21 +1033,44 @@ function tryPayForMascotCare(STORAGE_KEYS, actionId, config) {
     if (!keys) return trySpendMascotCareCoins(STORAGE_KEYS, actionId, config);
 
     if (actionId === 'meal') {
-        const food = Math.max(0, Number(GM_getValue(keys.MASCOT_FOOD_ITEMS, 0) || 0));
+        const food = Math.max(0, Number(GM_getValue(keys.MASCOT_FOOD_ITEMS || 'tm_mascot_food_items', 0) || 0));
         if (food > 0) {
-            GM_setValue(keys.MASCOT_FOOD_ITEMS, food - 1);
+            GM_setValue(keys.MASCOT_FOOD_ITEMS || 'tm_mascot_food_items', food - 1);
             return { ok: true, paidWith: 'food', remaining: food - 1, cost: 0 };
         }
     }
     if (actionId === 'snack') {
-        const treats = Math.max(0, Number(GM_getValue(keys.MASCOT_TREAT_ITEMS, 0) || 0));
+        const treats = Math.max(0, Number(GM_getValue(keys.MASCOT_TREAT_ITEMS || 'tm_mascot_treat_items', 0) || 0));
         if (treats > 0) {
-            GM_setValue(keys.MASCOT_TREAT_ITEMS, treats - 1);
+            GM_setValue(keys.MASCOT_TREAT_ITEMS || 'tm_mascot_treat_items', treats - 1);
             return { ok: true, paidWith: 'treat', remaining: treats - 1, cost: 0 };
         }
     }
-    const coin = trySpendMascotCareCoins(STORAGE_KEYS, actionId, config);
-    return { ...coin, paidWith: coin.ok ? 'coins' : null };
+    return trySpendMascotCareCoins(keys, actionId, config);
+}
+
+function announceMascotCarePayment(pay, fallbackMessages) {
+    if (!pay?.ok) return;
+    if (pay.paidWith === 'food') {
+        showMascotBubble(`Από το απόθεμα! (απομένουν ${pay.remaining})`, 1800);
+        return;
+    }
+    if (pay.paidWith === 'treat') {
+        showMascotBubble(`Λιχουδιά από απόθεμα! (${pay.remaining} ακόμα)`, 1800);
+        return;
+    }
+    if (pay.paidWith === 'coins' && pay.cost > 0) {
+        const base = Array.isArray(fallbackMessages)
+            ? fallbackMessages[Math.floor(Math.random() * fallbackMessages.length)]
+            : (fallbackMessages || 'Οκ!');
+        showMascotBubble(`${base} (−${pay.cost}🪙)`, 2000);
+        return;
+    }
+    if (Array.isArray(fallbackMessages) && fallbackMessages.length) {
+        showMascotBubble(fallbackMessages[Math.floor(Math.random() * fallbackMessages.length)], 2000);
+    } else if (fallbackMessages) {
+        showMascotBubble(String(fallbackMessages), 2000);
+    }
 }
 
 function careFeedHint(baseHint, actionId, STORAGE_KEYS) {
@@ -13408,17 +13458,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             if (petStats.hunger < 100) {
                 const pay = tryPayForMascotCare(STORAGE_KEYS, 'meal', config);
                 if (!pay.ok) return;
-                const feedMessages = MASCOT_MESSAGES.feed;
                 updatePetStats(config, STORAGE_KEYS, 0, 30);
                 updateTamagotchiWeight('meal');
                 tamagotchiLastFed = Date.now();
                 trackDailyStat(config, STORAGE_KEYS, 'feedMascot');
                 setMascotState(config, 'eating', 2000);
-                if (pay.paidWith === 'food') {
-                    showMascotBubble(`Από το απόθεμα! (απομένουν ${pay.remaining})`, 1800);
-                } else {
-                    showMascotBubble(feedMessages[Math.floor(Math.random() * feedMessages.length)], 2000);
-                }
+                announceMascotCarePayment(pay, MASCOT_MESSAGES.feed);
                 applyMascotCarePreference('meal', config, STORAGE_KEYS);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
@@ -13440,11 +13485,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 updateTamagotchiWeight('snack');
                 tamagotchiLastFed = Date.now();
                 setMascotState(config, 'eating', 2000);
-                if (pay.paidWith === 'treat') {
-                    showMascotBubble(`Λιχουδιά από απόθεμα! (${pay.remaining} ακόμα)`, 1800);
-                } else {
-                    showMascotBubble(mascotMsg('snack'), 2000);
-                }
+                announceMascotCarePayment(pay, MASCOT_MESSAGES.snack);
                 applyMascotCarePreference('snack', config, STORAGE_KEYS);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
@@ -13471,12 +13512,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         // Clean button
         modal.querySelector('#tm-action-clean')?.addEventListener('click', () => {
             if (tamagotchiPoopCount > 0) {
-                if (!trySpendMascotCareCoins(STORAGE_KEYS, 'clean', config).ok) return;
+                const pay = trySpendMascotCareCoins(STORAGE_KEYS, 'clean', config);
+                if (!pay.ok) return;
                 tamagotchiPoopCount = 0;
                 tamagotchiNeedsPraise = true;
                 updatePetStats(config, STORAGE_KEYS, 10, 0);
-                const cleanMessages = MASCOT_MESSAGES.clean;
-                showMascotBubble(cleanMessages[Math.floor(Math.random() * cleanMessages.length)], 1500);
+                announceMascotCarePayment(pay, MASCOT_MESSAGES.clean);
                 applyMascotCarePreference('clean', config, STORAGE_KEYS);
                 updatePoopIndicator();
                 saveTamagotchiData(STORAGE_KEYS);
@@ -13489,10 +13530,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         // Medicine button
         modal.querySelector('#tm-action-medicine')?.addEventListener('click', () => {
             if (tamagotchiHealth < 100) {
-                if (!trySpendMascotCareCoins(STORAGE_KEYS, 'medicine', config).ok) return;
+                const pay = trySpendMascotCareCoins(STORAGE_KEYS, 'medicine', config);
+                if (!pay.ok) return;
                 tamagotchiHealth = Math.min(100, tamagotchiHealth + 20);
-                const medicineMessages = MASCOT_MESSAGES.medicine;
-                showMascotBubble(medicineMessages[Math.floor(Math.random() * medicineMessages.length)], 2000);
+                announceMascotCarePayment(pay, MASCOT_MESSAGES.medicine);
                 applyMascotCarePreference('medicine', config, STORAGE_KEYS);
                 updateTamagotchiStats(container);
                 saveTamagotchiData(STORAGE_KEYS);
@@ -14035,13 +14076,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             return;
         }
         if (petStats.hunger < 100) {
-            const feedMessages = MASCOT_MESSAGES.feedPanel;
+            const pay = tryPayForMascotCare(STORAGE_KEYS, 'meal', config);
+            if (!pay.ok) return;
             updatePetStats(config, STORAGE_KEYS, 0, 30);
             updateTamagotchiWeight('meal');
             tamagotchiLastFed = Date.now();
             trackDailyStat(config, STORAGE_KEYS, 'feedMascot');
             setMascotState(config, 'eating', 2000);
-            showMascotBubble(feedMessages[Math.floor(Math.random() * feedMessages.length)], 2000);
+            announceMascotCarePayment(pay, MASCOT_MESSAGES.feedPanel);
+            applyMascotCarePreference('meal', config, STORAGE_KEYS);
             saveTamagotchiData(STORAGE_KEYS);
         } else {
             const fullMessages = MASCOT_MESSAGES.full;
@@ -14056,12 +14099,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             return;
         }
         if (petStats.hunger < 95 && petStats.happiness < 95) {
-            const snackMessages = MASCOT_MESSAGES.snackPanel;
+            const pay = tryPayForMascotCare(STORAGE_KEYS, 'snack', config);
+            if (!pay.ok) return;
             updatePetStats(config, STORAGE_KEYS, 20, 10); // Happiness +20, Hunger +10
             updateTamagotchiWeight('snack');
             tamagotchiLastFed = Date.now();
             setMascotState(config, 'eating', 2000);
-            showMascotBubble(snackMessages[Math.floor(Math.random() * snackMessages.length)], 2000);
+            announceMascotCarePayment(pay, MASCOT_MESSAGES.snackPanel);
+            applyMascotCarePreference('snack', config, STORAGE_KEYS);
             saveTamagotchiData(STORAGE_KEYS);
         } else {
             showMascotBubble(MASCOT_MESSAGES.notHungrySnack, 1500);
@@ -14105,17 +14150,18 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             return;
         }
         if (tamagotchiPoopCount > 0) {
-            // Clean up poops
+            const pay = trySpendMascotCareCoins(STORAGE_KEYS, 'clean', config);
+            if (!pay.ok) return;
             tamagotchiPoopCount = 0;
             tamagotchiLastCleaned = Date.now();
-            petStats.happiness = Math.min(100, petStats.happiness + 5); // Happy when cleaned
-            const cleanMessages = MASCOT_MESSAGES.cleanPanel;
-            showMascotBubble(cleanMessages[Math.floor(Math.random() * cleanMessages.length)], 2000);
+            petStats.happiness = Math.min(100, petStats.happiness + 5);
+            announceMascotCarePayment(pay, MASCOT_MESSAGES.cleanPanel);
+            applyMascotCarePreference('clean', config, STORAGE_KEYS);
             updatePoopIndicator();
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
         } else if (tamagotchiHealth < 100) {
-            // General cleaning still helps health
+            // Light tidy (no poop) — free health nudge
             tamagotchiHealth = Math.min(100, tamagotchiHealth + 5);
             showMascotBubble(mascotMsg('cleanPanel'), 1500);
             updateTamagotchiStats(container);
@@ -14131,19 +14177,22 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             return;
         }
         if (tamagotchiIsSick) {
-            // Medicine cures sickness
+            const pay = trySpendMascotCareCoins(STORAGE_KEYS, 'medicine', config);
+            if (!pay.ok) return;
             tamagotchiIsSick = false;
             tamagotchiSickType = 'none';
             tamagotchiHealth = Math.min(100, tamagotchiHealth + 30);
-            const medMessages = MASCOT_MESSAGES.medicinePanel;
-            showMascotBubble(medMessages[Math.floor(Math.random() * medMessages.length)], 2000);
+            announceMascotCarePayment(pay, MASCOT_MESSAGES.medicinePanel);
+            applyMascotCarePreference('medicine', config, STORAGE_KEYS);
             updateSickIndicator();
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
         } else if (tamagotchiHealth < 70) {
-            // Can still use medicine for general health
+            const pay = trySpendMascotCareCoins(STORAGE_KEYS, 'medicine', config);
+            if (!pay.ok) return;
             tamagotchiHealth = Math.min(100, tamagotchiHealth + 20);
-            showMascotBubble(MASCOT_MESSAGES.feelingBetter, 2000);
+            announceMascotCarePayment(pay, MASCOT_MESSAGES.feelingBetter);
+            applyMascotCarePreference('medicine', config, STORAGE_KEYS);
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
         } else {
