@@ -1058,253 +1058,351 @@ function ensureTamaCinematicStyles() {
 }
 
 function ensureMascotExecutionStyles() {
-    if (document.getElementById('tm-tama-execution-styles')) return;
+    document.getElementById('tm-tama-execution-styles')?.remove();
     const style = document.createElement('style');
     style.id = 'tm-tama-execution-styles';
     style.textContent = `
         #tm-tama-execution-panel.tm-tama-cinematic-overlay {
-            background: radial-gradient(ellipse at center, rgba(40, 8, 8, 0.94) 0%, rgba(0, 0, 0, 0.98) 75%);
+            background:
+                radial-gradient(ellipse 70% 55% at 50% 42%, rgba(55, 12, 18, 0.55) 0%, transparent 70%),
+                linear-gradient(180deg, rgba(0,0,0,0.92) 0%, rgba(8,4,6,0.98) 100%);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
         }
         .tm-exec-panel {
-            width: min(94vw, 560px);
-            background: linear-gradient(180deg, #2a1218 0%, #12080c 100%);
-            border: 3px solid #8b3a3a;
-            border-radius: 18px;
-            box-shadow: 0 0 0 2px #3a1010, 0 24px 70px rgba(0,0,0,0.65), inset 0 0 40px rgba(255, 60, 60, 0.08);
-            padding: 24px 20px 22px;
+            width: min(92vw, 520px);
+            background: linear-gradient(165deg, rgba(28, 14, 18, 0.96) 0%, rgba(12, 8, 10, 0.98) 100%);
+            border: 1px solid rgba(255, 120, 120, 0.18);
+            border-radius: 16px;
+            box-shadow:
+                0 0 0 1px rgba(0,0,0,0.5),
+                0 28px 80px rgba(0,0,0,0.55),
+                inset 0 1px 0 rgba(255,255,255,0.06);
+            padding: 28px 24px 24px;
             text-align: center;
-            color: #f5d0d0;
+            color: #edd8d8;
             position: relative;
             overflow: hidden;
+            animation: tm-exec-panel-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
-        .tm-exec-panel::before {
+        .tm-exec-panel::after {
             content: '';
             position: absolute;
-            inset: 8px;
-            border: 1px dashed rgba(255, 120, 120, 0.22);
-            border-radius: 12px;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 0%, transparent 88%, rgba(0,0,0,0.35) 100%);
             pointer-events: none;
         }
-        .tm-exec-title { color: #ffb4b4 !important; text-shadow: 0 0 14px rgba(255, 80, 80, 0.45) !important; }
-        .tm-exec-subtitle { color: #c08080 !important; }
+        .tm-exec-letterbox {
+            position: absolute;
+            left: 0; right: 0;
+            height: 28px;
+            background: #000;
+            z-index: 6;
+            pointer-events: none;
+            opacity: 0.55;
+        }
+        .tm-exec-letterbox--top { top: 0; }
+        .tm-exec-letterbox--bot { bottom: 0; }
+        .tm-exec-kicker {
+            font-size: 10px;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: rgba(255, 160, 160, 0.55);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .tm-exec-title {
+            margin: 0 0 6px !important;
+            font-size: 22px !important;
+            font-weight: 650 !important;
+            letter-spacing: 0.02em;
+            color: #f2e4e4 !important;
+            text-shadow: none !important;
+        }
+        .tm-exec-subtitle {
+            margin: 0 0 18px !important;
+            font-size: 13px !important;
+            color: rgba(220, 180, 180, 0.65) !important;
+            font-weight: 400;
+        }
         .tm-exec-stage {
             position: relative;
-            height: 210px;
-            margin: 8px 0 12px;
+            height: 220px;
+            margin: 0 0 16px;
+            border-radius: 12px;
+            background:
+                radial-gradient(ellipse 55% 40% at 35% 70%, rgba(120, 30, 40, 0.18) 0%, transparent 70%),
+                linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.25) 100%);
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+            isolation: isolate;
+        }
+        .tm-exec-stage.flash {
+            animation: tm-exec-stage-flash 0.28s ease-out;
+        }
+        .tm-exec-vignette {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.45) 100%);
+            pointer-events: none;
+            z-index: 5;
+        }
+        .tm-exec-victim {
+            position: absolute;
+            left: 18%;
+            bottom: 28px;
+            width: 110px;
+            height: 130px;
             display: flex;
             align-items: flex-end;
             justify-content: center;
-            gap: 8px;
-        }
-        .tm-exec-victim {
-            position: relative;
-            width: 120px;
-            height: 140px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-end;
             z-index: 2;
-            transition: transform 0.15s ease-out;
+            transform-origin: 50% 100%;
+            will-change: transform, filter, opacity;
         }
         .tm-exec-victim-emoji {
-            font-size: 78px;
+            font-size: 72px;
             line-height: 1;
-            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.45));
-            animation: tm-exec-nervous 0.45s ease-in-out infinite;
+            filter: drop-shadow(0 10px 16px rgba(0,0,0,0.5));
             transform-origin: 50% 90%;
+            animation: tm-exec-idle-breathe 2.4s ease-in-out infinite;
         }
         .tm-exec-victim.scared .tm-exec-victim-emoji {
-            animation: tm-exec-scared 0.18s ease-in-out infinite;
+            animation: tm-exec-tense 0.9s ease-in-out infinite;
         }
         .tm-exec-victim.hit .tm-exec-victim-emoji {
             animation: none;
-            filter: grayscale(1) brightness(0.7) drop-shadow(0 0 8px #ff3333);
+            filter: grayscale(0.85) brightness(0.55) contrast(1.1) drop-shadow(0 0 12px rgba(255,60,60,0.35));
         }
-        .tm-exec-victim.fall {
-            animation: tm-exec-fall 0.85s cubic-bezier(0.4, 0.05, 0.7, 1) forwards;
+        .tm-exec-victim.dissolve {
+            animation: tm-exec-dissolve 1.1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
-        .tm-exec-xeyes {
+        .tm-exec-shadow {
             position: absolute;
-            top: 18px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 28px;
-            font-weight: 900;
-            color: #ff3b3b;
-            letter-spacing: 10px;
-            opacity: 0;
-            text-shadow: 0 0 8px #000;
-            pointer-events: none;
+            bottom: 18px;
+            left: 22%;
+            width: 70px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.35);
+            filter: blur(4px);
+            z-index: 1;
+            transition: opacity 0.8s ease, transform 0.8s ease;
         }
-        .tm-exec-victim.hit .tm-exec-xeyes { opacity: 1; }
-        .tm-exec-sweat {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            font-size: 22px;
+        .tm-exec-stage.fired .tm-exec-shadow {
             opacity: 0;
-            transform: translateY(-6px);
-        }
-        .tm-exec-victim.scared .tm-exec-sweat {
-            opacity: 1;
-            animation: tm-exec-sweat-drip 0.7s ease-out infinite;
+            transform: scaleX(0.4);
         }
         .tm-exec-gun-wrap {
             position: absolute;
-            right: 18px;
-            bottom: 28px;
-            width: 170px;
-            height: 90px;
+            right: 8%;
+            bottom: 36px;
+            width: 168px;
+            height: 88px;
             z-index: 3;
-            transform: translateX(140%) rotate(-8deg);
+            transform: translate3d(120%, 8px, 0) rotate(-6deg);
             opacity: 0;
+            transform-origin: 85% 70%;
+            will-change: transform, opacity;
+            filter: drop-shadow(0 8px 14px rgba(0,0,0,0.45));
         }
         .tm-exec-gun-wrap.enter {
-            animation: tm-exec-gun-enter 0.55s cubic-bezier(0.2, 1.2, 0.4, 1) forwards;
+            animation: tm-exec-gun-enter 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         .tm-exec-gun-wrap.aim {
-            animation: tm-exec-gun-aim 0.35s ease-out forwards;
+            animation: tm-exec-gun-aim 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
         .tm-exec-gun-wrap.recoil {
-            animation: tm-exec-gun-recoil 0.28s ease-out;
+            animation: tm-exec-gun-recoil 0.42s cubic-bezier(0.22, 0.61, 0.36, 1);
         }
-        .tm-exec-gun {
-            width: 100%;
-            height: 100%;
-            filter: drop-shadow(0 6px 10px rgba(0,0,0,0.5));
-        }
+        .tm-exec-gun { width: 100%; height: 100%; display: block; }
         .tm-exec-muzzle {
             position: absolute;
-            left: -8px;
-            top: 28px;
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #fff8c8 0%, #ffcc33 25%, #ff5522 55%, transparent 70%);
-            opacity: 0;
+            left: -6px;
+            top: 24px;
+            width: 56px;
+            height: 56px;
             pointer-events: none;
-            transform: scale(0.2);
+            opacity: 0;
+        }
+        .tm-exec-muzzle::before,
+        .tm-exec-muzzle::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+        }
+        .tm-exec-muzzle::before {
+            background: radial-gradient(circle, rgba(255,250,220,0.95) 0%, rgba(255,180,60,0.7) 28%, rgba(255,80,30,0.35) 52%, transparent 68%);
+        }
+        .tm-exec-muzzle::after {
+            background: conic-gradient(from 200deg, transparent 0%, rgba(255,220,140,0.7) 8%, transparent 16%, transparent 40%, rgba(255,200,100,0.5) 48%, transparent 56%);
+            mix-blend-mode: screen;
         }
         .tm-exec-muzzle.flash {
-            animation: tm-exec-muzzle-flash 0.22s ease-out forwards;
+            animation: tm-exec-muzzle-flash 0.18s ease-out forwards;
         }
-        .tm-exec-bullet {
+        .tm-exec-tracer {
             position: absolute;
-            left: 46%;
-            bottom: 68px;
-            width: 18px;
-            height: 6px;
-            border-radius: 3px;
-            background: linear-gradient(90deg, #ffe566, #ff9900);
-            box-shadow: 0 0 10px #ffaa00, -16px 0 12px rgba(255, 180, 0, 0.55);
+            left: 34%;
+            bottom: 72px;
+            width: 0;
+            height: 2px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,230,170,0.95), rgba(255,160,60,0.8));
+            box-shadow: 0 0 8px rgba(255, 180, 80, 0.7);
             opacity: 0;
             z-index: 4;
+            transform-origin: right center;
             pointer-events: none;
         }
-        .tm-exec-bullet.fly {
-            animation: tm-exec-bullet-fly 0.18s linear forwards;
+        .tm-exec-tracer.fly {
+            animation: tm-exec-tracer-fly 0.14s linear forwards;
         }
-        .tm-exec-bang {
-            position: absolute;
-            left: 52%;
-            top: 18%;
-            transform: translateX(-50%) scale(0.4) rotate(-8deg);
-            font-size: 42px;
-            font-weight: 900;
-            color: #ffee55;
-            text-shadow: 3px 3px 0 #c33, -1px -1px 0 #000, 0 0 18px #ff6600;
-            opacity: 0;
-            z-index: 5;
-            pointer-events: none;
-            letter-spacing: 2px;
-        }
-        .tm-exec-bang.show {
-            animation: tm-exec-bang-pop 0.55s cubic-bezier(0.2, 1.4, 0.4, 1) forwards;
-        }
-        .tm-exec-impact {
+        .tm-exec-hitmark {
             position: absolute;
             left: 28%;
-            top: 42%;
-            width: 70px;
-            height: 70px;
+            top: 44%;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            border: 3px solid #ff5555;
+            background: rgba(255, 220, 180, 0.9);
+            box-shadow: 0 0 16px 6px rgba(255, 100, 60, 0.45);
             opacity: 0;
             z-index: 4;
             pointer-events: none;
         }
-        .tm-exec-impact.show {
-            animation: tm-exec-impact-ring 0.45s ease-out forwards;
+        .tm-exec-hitmark.show {
+            animation: tm-exec-hitmark 0.5s ease-out forwards;
         }
-        .tm-exec-status {
-            min-height: 22px;
-            font-size: 14px;
-            font-weight: 700;
-            color: #ffc0c0;
-            letter-spacing: 0.04em;
-        }
-        .tm-exec-smoke {
+        .tm-exec-rings {
             position: absolute;
-            left: 30%;
-            bottom: 40px;
-            font-size: 34px;
+            left: 26%;
+            top: 40%;
+            width: 80px;
+            height: 80px;
+            pointer-events: none;
+            z-index: 3;
             opacity: 0;
-            z-index: 5;
+        }
+        .tm-exec-rings.show {
+            opacity: 1;
+        }
+        .tm-exec-rings span {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 140, 120, 0.55);
+            animation: tm-exec-ring 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .tm-exec-rings span:nth-child(2) {
+            animation-delay: 0.06s;
+            border-color: rgba(255, 200, 140, 0.35);
+        }
+        .tm-exec-smoke-puff {
+            position: absolute;
+            left: 24%;
+            bottom: 36px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(180,160,160,0.35) 0%, transparent 70%);
+            filter: blur(6px);
+            opacity: 0;
+            z-index: 4;
             pointer-events: none;
         }
-        .tm-exec-smoke.show {
-            animation: tm-exec-smoke-up 1s ease-out forwards;
+        .tm-exec-smoke-puff.show {
+            animation: tm-exec-smoke 1.2s ease-out forwards;
         }
-        @keyframes tm-exec-nervous {
-            0%, 100% { transform: rotate(-2deg) translateY(0); }
-            50% { transform: rotate(2deg) translateY(-2px); }
+        .tm-exec-progress {
+            height: 2px;
+            width: 100%;
+            max-width: 220px;
+            margin: 0 auto 14px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.08);
+            overflow: hidden;
         }
-        @keyframes tm-exec-scared {
-            0%, 100% { transform: translateX(-2px) scale(1.02); }
-            50% { transform: translateX(2px) scale(0.98); }
+        .tm-exec-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #c45c5c, #e8a0a0);
+            border-radius: 2px;
+            transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        @keyframes tm-exec-sweat-drip {
-            0% { transform: translateY(-4px); opacity: 0.9; }
-            100% { transform: translateY(10px); opacity: 0.2; }
+        .tm-exec-status {
+            min-height: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: rgba(230, 190, 190, 0.7);
+            transition: opacity 0.25s ease, color 0.25s ease;
+        }
+        .tm-exec-status.is-critical {
+            color: rgba(255, 170, 170, 0.95);
+        }
+        @keyframes tm-exec-panel-in {
+            from { opacity: 0; transform: translateY(12px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes tm-exec-idle-breathe {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-3px) scale(1.015); }
+        }
+        @keyframes tm-exec-tense {
+            0%, 100% { transform: translateX(0) scale(1); }
+            25% { transform: translateX(-1.5px) scale(0.99); }
+            75% { transform: translateX(1.5px) scale(1.01); }
         }
         @keyframes tm-exec-gun-enter {
-            to { transform: translateX(0) rotate(0deg); opacity: 1; }
+            0% { transform: translate3d(120%, 8px, 0) rotate(-6deg); opacity: 0; }
+            60% { opacity: 1; }
+            100% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; }
         }
         @keyframes tm-exec-gun-aim {
-            to { transform: translateX(-18px) rotate(-12deg); opacity: 1; }
+            0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+            100% { transform: translate3d(-22px, -4px, 0) rotate(-10deg); }
         }
         @keyframes tm-exec-gun-recoil {
-            0% { transform: translateX(-18px) rotate(-12deg); }
-            40% { transform: translateX(10px) rotate(6deg); }
-            100% { transform: translateX(-18px) rotate(-12deg); }
+            0% { transform: translate3d(-22px, -4px, 0) rotate(-10deg); }
+            18% { transform: translate3d(14px, 2px, 0) rotate(4deg); }
+            55% { transform: translate3d(-18px, -6px, 0) rotate(-12deg); }
+            100% { transform: translate3d(-22px, -4px, 0) rotate(-10deg); }
         }
         @keyframes tm-exec-muzzle-flash {
-            0% { opacity: 1; transform: scale(0.3); }
-            40% { opacity: 1; transform: scale(1.35); }
-            100% { opacity: 0; transform: scale(0.6); }
+            0% { opacity: 0; transform: scale(0.4) rotate(0deg); }
+            20% { opacity: 1; transform: scale(1.25) rotate(18deg); }
+            100% { opacity: 0; transform: scale(0.8) rotate(40deg); }
         }
-        @keyframes tm-exec-bullet-fly {
-            0% { opacity: 1; transform: translateX(0); }
-            100% { opacity: 0; transform: translateX(-150px); }
+        @keyframes tm-exec-tracer-fly {
+            0% { width: 0; opacity: 0; transform: translateX(110px); }
+            15% { opacity: 1; }
+            100% { width: 140px; opacity: 0; transform: translateX(-20px); }
         }
-        @keyframes tm-exec-bang-pop {
-            0% { opacity: 0; transform: translateX(-50%) scale(0.3) rotate(-12deg); }
-            35% { opacity: 1; transform: translateX(-50%) scale(1.25) rotate(4deg); }
-            100% { opacity: 0; transform: translateX(-50%) scale(1.5) rotate(-6deg) translateY(-20px); }
+        @keyframes tm-exec-hitmark {
+            0% { opacity: 1; transform: scale(0.4); }
+            40% { opacity: 1; transform: scale(1.6); }
+            100% { opacity: 0; transform: scale(0.2); }
         }
-        @keyframes tm-exec-impact-ring {
-            0% { opacity: 1; transform: scale(0.3); }
-            100% { opacity: 0; transform: scale(1.8); }
+        @keyframes tm-exec-ring {
+            0% { transform: scale(0.2); opacity: 0.8; }
+            100% { transform: scale(1.6); opacity: 0; }
         }
-        @keyframes tm-exec-fall {
-            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-            35% { transform: translateY(-12px) rotate(-18deg); }
-            100% { transform: translateY(90px) rotate(-95deg); opacity: 0; }
+        @keyframes tm-exec-dissolve {
+            0% { opacity: 1; transform: translateY(0) scale(1); filter: none; }
+            35% { opacity: 0.85; transform: translateY(-6px) scale(1.04); }
+            100% { opacity: 0; transform: translateY(28px) scale(0.88); filter: blur(6px); }
         }
-        @keyframes tm-exec-smoke-up {
-            0% { opacity: 0.9; transform: translateY(0) scale(0.7); }
-            100% { opacity: 0; transform: translateY(-70px) scale(1.4); }
+        @keyframes tm-exec-smoke {
+            0% { opacity: 0.55; transform: translateY(0) scale(0.6); }
+            100% { opacity: 0; transform: translateY(-56px) scale(1.8); }
+        }
+        @keyframes tm-exec-stage-flash {
+            0% { box-shadow: inset 0 0 0 0 rgba(255,200,140,0); }
+            30% { box-shadow: inset 0 0 60px 10px rgba(255,180,120,0.18); }
+            100% { box-shadow: inset 0 0 0 0 rgba(255,200,140,0); }
         }
     `;
     document.head.appendChild(style);
@@ -1314,37 +1412,52 @@ function playGunshotSound() {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const now = ctx.currentTime;
-        const noiseLen = 0.18;
-        const buffer = ctx.createBuffer(1, ctx.sampleRate * noiseLen, ctx.sampleRate);
+
+        const noiseLen = 0.28;
+        const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * noiseLen), ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < data.length; i++) {
-            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 2.2);
+            const t = i / data.length;
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 1.6);
         }
         const noise = ctx.createBufferSource();
         noise.buffer = buffer;
+        const noiseFilter = ctx.createBiquadFilter();
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.setValueAtTime(900, now);
+        noiseFilter.frequency.exponentialRampToValueAtTime(220, now + 0.22);
+        noiseFilter.Q.value = 0.7;
         const noiseGain = ctx.createGain();
-        noiseGain.gain.setValueAtTime(0.35, now);
+        noiseGain.gain.setValueAtTime(0.28, now);
         noiseGain.gain.exponentialRampToValueAtTime(0.01, now + noiseLen);
-        const filter = ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(1800, now);
-        filter.frequency.exponentialRampToValueAtTime(400, now + noiseLen);
-        noise.connect(filter);
-        filter.connect(noiseGain);
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
         noiseGain.connect(ctx.destination);
         noise.start(now);
 
-        const osc = ctx.createOscillator();
-        const oscGain = ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(180, now);
-        osc.frequency.exponentialRampToValueAtTime(55, now + 0.12);
-        oscGain.gain.setValueAtTime(0.12, now);
-        oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
-        osc.connect(oscGain);
-        oscGain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.13);
+        const thump = ctx.createOscillator();
+        const thumpGain = ctx.createGain();
+        thump.type = 'sine';
+        thump.frequency.setValueAtTime(110, now);
+        thump.frequency.exponentialRampToValueAtTime(38, now + 0.16);
+        thumpGain.gain.setValueAtTime(0.22, now);
+        thumpGain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+        thump.connect(thumpGain);
+        thumpGain.connect(ctx.destination);
+        thump.start(now);
+        thump.stop(now + 0.2);
+
+        const click = ctx.createOscillator();
+        const clickGain = ctx.createGain();
+        click.type = 'triangle';
+        click.frequency.setValueAtTime(1400, now);
+        click.frequency.exponentialRampToValueAtTime(400, now + 0.04);
+        clickGain.gain.setValueAtTime(0.06, now);
+        clickGain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+        click.connect(clickGain);
+        clickGain.connect(ctx.destination);
+        click.start(now);
+        click.stop(now + 0.06);
     } catch { /* ignore audio failures */ }
 }
 
@@ -1361,7 +1474,7 @@ function getMascotExecutionEmoji() {
 }
 
 /**
- * Cartoon gun execution cinematic before egg reset.
+ * Cinematic gun execution before egg reset.
  * @returns {Promise<void>}
  */
 function showMascotExecutionCinematic() {
@@ -1383,60 +1496,88 @@ function showMascotExecutionCinematic() {
     overlay.className = 'tm-tama-cinematic-overlay';
     overlay.innerHTML = `
         <div class="tm-exec-panel">
-            <div class="tm-tama-lcd-title" style="color:#e88;">● Εκτέλεση ●</div>
-            <h2 class="tm-tama-cinematic-title tm-exec-title">🔫 Εκτέλεση!</h2>
-            <p class="tm-tama-cinematic-subtitle tm-exec-subtitle">Αντίο, ${charLabel}...</p>
-            <div class="tm-exec-stage">
+            <div class="tm-exec-letterbox tm-exec-letterbox--top"></div>
+            <div class="tm-exec-letterbox tm-exec-letterbox--bot"></div>
+            <div class="tm-exec-kicker">Protocol · Reset</div>
+            <h2 class="tm-exec-title">Εκτέλεση</h2>
+            <p class="tm-exec-subtitle">Αντίο, ${charLabel}</p>
+            <div class="tm-exec-stage" id="tm-exec-stage">
+                <div class="tm-exec-vignette"></div>
+                <div class="tm-exec-shadow"></div>
                 <div class="tm-exec-victim" id="tm-exec-victim">
-                    <span class="tm-exec-sweat" aria-hidden="true">💦</span>
-                    <span class="tm-exec-xeyes" aria-hidden="true">✕ ✕</span>
                     <span class="tm-exec-victim-emoji">${emoji}</span>
                 </div>
                 <div class="tm-exec-gun-wrap" id="tm-exec-gun">
                     <svg class="tm-exec-gun" viewBox="0 0 170 90" aria-hidden="true">
                         <defs>
                             <linearGradient id="tm-gun-metal" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#d0d5dc"/>
-                                <stop offset="45%" stop-color="#8a919c"/>
-                                <stop offset="100%" stop-color="#4a5058"/>
+                                <stop offset="0%" stop-color="#e8ecf0"/>
+                                <stop offset="40%" stop-color="#9aa3ae"/>
+                                <stop offset="100%" stop-color="#3d4450"/>
                             </linearGradient>
                             <linearGradient id="tm-gun-grip" x1="0%" y1="0%" x2="0%" y2="100%">
-                                <stop offset="0%" stop-color="#6b3a28"/>
-                                <stop offset="100%" stop-color="#3a1e14"/>
+                                <stop offset="0%" stop-color="#7a4a36"/>
+                                <stop offset="100%" stop-color="#2e1710"/>
+                            </linearGradient>
+                            <linearGradient id="tm-gun-barrel" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" stop-color="#c5ccd4"/>
+                                <stop offset="100%" stop-color="#5a6270"/>
                             </linearGradient>
                         </defs>
-                        <ellipse cx="128" cy="38" rx="28" ry="26" fill="url(#tm-gun-metal)" stroke="#2a2e34" stroke-width="2"/>
-                        <circle cx="128" cy="38" r="10" fill="#1a1c20" stroke="#555" stroke-width="1.5"/>
-                        <circle cx="128" cy="38" r="3" fill="#888"/>
-                        <rect x="18" y="28" width="92" height="18" rx="4" fill="url(#tm-gun-metal)" stroke="#2a2e34" stroke-width="2"/>
-                        <rect x="8" y="31" width="18" height="12" rx="2" fill="#3a4048" stroke="#222" stroke-width="1.5"/>
-                        <path d="M118 48 L132 78 L148 72 L138 48 Z" fill="url(#tm-gun-grip)" stroke="#2a1810" stroke-width="2"/>
-                        <rect x="108" y="46" width="14" height="10" rx="2" fill="#5a6068"/>
-                        <rect x="72" y="22" width="10" height="8" rx="1" fill="#666"/>
+                        <ellipse cx="126" cy="36" rx="26" ry="24" fill="url(#tm-gun-metal)" stroke="#1c2026" stroke-width="1.5"/>
+                        <circle cx="126" cy="36" r="14" fill="none" stroke="#2a3038" stroke-width="3"/>
+                        <circle cx="126" cy="36" r="8" fill="#14171c" stroke="#666" stroke-width="1"/>
+                        <circle cx="126" cy="36" r="2.5" fill="#aaa"/>
+                        <rect x="20" y="27" width="90" height="16" rx="3" fill="url(#tm-gun-barrel)" stroke="#1c2026" stroke-width="1.5"/>
+                        <rect x="20" y="30" width="90" height="3" fill="rgba(255,255,255,0.18)"/>
+                        <rect x="6" y="29" width="18" height="12" rx="2" fill="#2e343c" stroke="#111" stroke-width="1.2"/>
+                        <rect x="4" y="32" width="5" height="6" rx="1" fill="#111"/>
+                        <path d="M116 46 L128 76 L146 70 L136 46 Z" fill="url(#tm-gun-grip)" stroke="#1a100c" stroke-width="1.5"/>
+                        <path d="M122 52 L132 70" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+                        <rect x="106" y="44" width="12" height="9" rx="1.5" fill="#4a515c" stroke="#1c2026" stroke-width="1"/>
+                        <rect x="70" y="21" width="9" height="7" rx="1" fill="#6a727c"/>
                     </svg>
                     <div class="tm-exec-muzzle" id="tm-exec-muzzle"></div>
                 </div>
-                <div class="tm-exec-bullet" id="tm-exec-bullet"></div>
-                <div class="tm-exec-bang" id="tm-exec-bang">BANG!</div>
-                <div class="tm-exec-impact" id="tm-exec-impact"></div>
-                <div class="tm-exec-smoke" id="tm-exec-smoke">💨</div>
+                <div class="tm-exec-tracer" id="tm-exec-tracer"></div>
+                <div class="tm-exec-hitmark" id="tm-exec-hitmark"></div>
+                <div class="tm-exec-rings" id="tm-exec-rings"><span></span><span></span></div>
+                <div class="tm-exec-smoke-puff" id="tm-exec-smoke"></div>
             </div>
-            <div class="tm-exec-status" id="tm-exec-status">Το όπλο πλησιάζει...</div>
+            <div class="tm-exec-progress"><div class="tm-exec-progress-bar" id="tm-exec-progress"></div></div>
+            <div class="tm-exec-status" id="tm-exec-status">Προετοιμασία</div>
         </div>
     `;
     document.body.appendChild(overlay);
 
+    const stage = overlay.querySelector('#tm-exec-stage');
     const victim = overlay.querySelector('#tm-exec-victim');
     const gun = overlay.querySelector('#tm-exec-gun');
     const muzzle = overlay.querySelector('#tm-exec-muzzle');
-    const bullet = overlay.querySelector('#tm-exec-bullet');
-    const bang = overlay.querySelector('#tm-exec-bang');
-    const impact = overlay.querySelector('#tm-exec-impact');
+    const tracer = overlay.querySelector('#tm-exec-tracer');
+    const hitmark = overlay.querySelector('#tm-exec-hitmark');
+    const rings = overlay.querySelector('#tm-exec-rings');
     const smoke = overlay.querySelector('#tm-exec-smoke');
     const status = overlay.querySelector('#tm-exec-status');
+    const progress = overlay.querySelector('#tm-exec-progress');
 
     const stillValid = () => execGen === tamaCinematicGeneration
         && document.getElementById('tm-tama-execution-panel') === overlay;
+
+    const setStatus = (text, critical = false) => {
+        if (!status) return;
+        status.style.opacity = '0';
+        scheduleTamagotchiCinematic(() => {
+            if (!stillValid()) return;
+            status.textContent = text;
+            status.classList.toggle('is-critical', critical);
+            status.style.opacity = '1';
+        }, 120);
+    };
+
+    const setProgress = (pct) => {
+        if (progress) progress.style.width = `${pct}%`;
+    };
 
     return new Promise((resolve) => {
         const finish = () => {
@@ -1445,63 +1586,70 @@ function showMascotExecutionCinematic() {
                 resolve();
                 return;
             }
-            overlay.style.animation = 'tm-tama-fade-in 0.35s ease-out reverse';
+            overlay.style.animation = 'tm-tama-fade-in 0.45s ease-out reverse';
             scheduleTamagotchiCinematic(() => {
                 overlay.remove();
                 tamaCinematicLock = false;
                 resolve();
-            }, 350);
+            }, 450);
         };
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
+            setProgress(18);
             gun?.classList.add('enter');
-            if (status) status.textContent = 'Το όπλο μπαίνει στη σκηνή...';
-        }, 250);
+            setStatus('Είσοδος');
+        }, 320);
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
+            setProgress(42);
             victim?.classList.add('scared');
             gun?.classList.add('aim');
-            if (status) status.textContent = 'Στόχευση...';
-        }, 900);
+            setStatus('Στόχευση');
+        }, 1100);
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
-            if (status) status.textContent = '3...';
-        }, 1400);
-
-        scheduleTamagotchiCinematic(() => {
-            if (!stillValid()) return;
-            if (status) status.textContent = '2...';
+            setProgress(58);
+            setStatus('03', true);
         }, 1750);
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
-            if (status) status.textContent = '1...';
-        }, 2100);
+            setProgress(72);
+            setStatus('02', true);
+        }, 2300);
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
+            setProgress(86);
+            setStatus('01', true);
+        }, 2850);
+
+        scheduleTamagotchiCinematic(() => {
+            if (!stillValid()) return;
+            setProgress(100);
             playGunshotSound();
-            screenShake(420);
+            screenShake(280);
+            stage?.classList.add('flash', 'fired');
             gun?.classList.add('recoil');
             muzzle?.classList.add('flash');
-            bullet?.classList.add('fly');
-            bang?.classList.add('show');
-            impact?.classList.add('show');
+            tracer?.classList.add('fly');
+            hitmark?.classList.add('show');
+            rings?.classList.add('show');
             victim?.classList.add('hit');
-            if (status) status.textContent = 'BANG!';
-        }, 2450);
+            setStatus('Εκτελέστηκε', true);
+        }, 3400);
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
-            victim?.classList.add('fall');
+            victim?.classList.add('dissolve');
             smoke?.classList.add('show');
-            if (status) status.textContent = 'Τέλος... έρχεται νέο αυγό.';
-        }, 2750);
+            setStatus('Επαναφορά σε αυγό');
+        }, 3750);
 
-        scheduleTamagotchiCinematic(finish, 3900);
+        scheduleTamagotchiCinematic(finish, 5100);
     });
 }
 
