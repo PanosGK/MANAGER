@@ -4127,6 +4127,33 @@
                 z-index: 9990;
                 pointer-events: none; /* The container itself is not clickable... */
             }
+            #tm-mascot-container.mascot-dragging {
+                cursor: grabbing;
+                z-index: 10050;
+                transition: none !important;
+            }
+            #tm-mascot-container.mascot-dragging .tm-mascot-robot {
+                cursor: grabbing;
+                animation: none !important;
+            }
+            #tm-mascot-container.mascot-parked::after {
+                content: '📌';
+                position: absolute;
+                top: -2px;
+                right: -2px;
+                font-size: 11px;
+                line-height: 1;
+                opacity: 0.85;
+                pointer-events: none;
+                filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35));
+            }
+            #tm-mascot-container.mascot-focus-quiet {
+                opacity: 0.88;
+                filter: saturate(0.85);
+            }
+            #tm-mascot-container.mascot-focus-quiet #tm-mascot-speech-bubble {
+                display: none !important;
+            }
             /* ...but the robot and its panel inside are. */
             #tm-mascot-container > svg {
                 pointer-events: auto;
@@ -4135,7 +4162,8 @@
                 width: 100%; height: 100%;
                 /* Default idle animation - applies to ALL evolutions */
                 animation: tm-mascot-idle-float 4s ease-in-out infinite;
-                cursor: pointer;
+                cursor: grab;
+                touch-action: none;
                 image-rendering: pixelated; /* Key for the retro look */
                 /* Performance optimizations */
                 will-change: transform;

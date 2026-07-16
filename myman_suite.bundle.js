@@ -9500,6 +9500,33 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 z-index: 9990;
                 pointer-events: none; /* The container itself is not clickable... */
             }
+            #tm-mascot-container.mascot-dragging {
+                cursor: grabbing;
+                z-index: 10050;
+                transition: none !important;
+            }
+            #tm-mascot-container.mascot-dragging .tm-mascot-robot {
+                cursor: grabbing;
+                animation: none !important;
+            }
+            #tm-mascot-container.mascot-parked::after {
+                content: '📌';
+                position: absolute;
+                top: -2px;
+                right: -2px;
+                font-size: 11px;
+                line-height: 1;
+                opacity: 0.85;
+                pointer-events: none;
+                filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35));
+            }
+            #tm-mascot-container.mascot-focus-quiet {
+                opacity: 0.88;
+                filter: saturate(0.85);
+            }
+            #tm-mascot-container.mascot-focus-quiet #tm-mascot-speech-bubble {
+                display: none !important;
+            }
             /* ...but the robot and its panel inside are. */
             #tm-mascot-container > svg {
                 pointer-events: auto;
@@ -9508,7 +9535,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 width: 100%; height: 100%;
                 /* Default idle animation - applies to ALL evolutions */
                 animation: tm-mascot-idle-float 4s ease-in-out infinite;
-                cursor: pointer;
+                cursor: grab;
+                touch-action: none;
                 image-rendering: pixelated; /* Key for the retro look */
                 /* Performance optimizations */
                 will-change: transform;
@@ -17328,6 +17356,30 @@ let mascotMood = 'calm';
 let mascotMoodTimeout = null;
 let lastMascotWorkReactAt = 0;
 
+/** Drag-to-park / focus quiet interaction state */
+let mascotPositionLocked = false;
+let mascotParkedX = null;
+let mascotParkedY = null;
+let mascotIsDragging = false;
+let mascotDragMoved = false;
+let mascotSuppressClickUntil = 0;
+let mascotClickOpenTimer = null;
+let mascotFocusQuietUntil = 0;
+let mascotFocusQuietTimer = null;
+
+const MASCOT_FOCUS_QUIET_MS = 25 * 60 * 1000;
+const MASCOT_DRAG_THRESHOLD_PX = 6;
+const MASCOT_TRICK_BY_CHARACTER = {
+    dragon: 'energized',
+    robot: 'eureka',
+    slime: 'happy',
+    plant: 'sunny',
+    ghost: 'glitching',
+    cat: 'happy',
+    phoenix: 'energized',
+    crystal: 'eureka',
+};
+
 function getMascotCareCoinCost(actionId) {
     return Number(MASCOT_CARE_COIN_COSTS[actionId] || 0);
 }
@@ -17428,6 +17480,7 @@ function notifyMascotWorkEvent(type, config) {
     if (config?.interactiveMascotEnabled === false) return;
     if (tamagotchiIsDead || tamagotchiStage === 'egg' || tamaCinematicLock) return;
     if (!tamagotchiLightsOn || tamagotchiIsSleeping) return;
+    if (isMascotFocusQuiet()) return;
 
     const now = Date.now();
     const minGap = type === 'idle' ? 45000 : 12000;
@@ -17474,6 +17527,174 @@ function careCoinHint(baseHint, actionId) {
     const cost = getMascotCareCoinCost(actionId);
     if (cost <= 0) return baseHint;
     return `${baseHint} · ${cost}🪙`;
+}
+
+function getMascotInventoryCounts(STORAGE_KEYS) {
+    const keys = STORAGE_KEYS || window.STORAGE_KEYS || {};
+    return {
+        food: Math.max(0, Number(GM_getValue(keys.MASCOT_FOOD_ITEMS, 0) || 0)),
+        treats: Math.max(0, Number(GM_getValue(keys.MASCOT_TREAT_ITEMS, 0) || 0)),
+    };
+}
+
+/** Prefer inventory for meal (food) / snack (treat); fall back to Fixer-Coins. */
+function tryPayForMascotCare(STORAGE_KEYS, actionId, config) {
+    const keys = STORAGE_KEYS || window.STORAGE_KEYS;
+    if (!keys) return trySpendMascotCareCoins(STORAGE_KEYS, actionId, config);
+
+    if (actionId === 'meal') {
+        const food = Math.max(0, Number(GM_getValue(keys.MASCOT_FOOD_ITEMS, 0) || 0));
+        if (food > 0) {
+            GM_setValue(keys.MASCOT_FOOD_ITEMS, food - 1);
+            return { ok: true, paidWith: 'food', remaining: food - 1, cost: 0 };
+        }
+    }
+    if (actionId === 'snack') {
+        const treats = Math.max(0, Number(GM_getValue(keys.MASCOT_TREAT_ITEMS, 0) || 0));
+        if (treats > 0) {
+            GM_setValue(keys.MASCOT_TREAT_ITEMS, treats - 1);
+            return { ok: true, paidWith: 'treat', remaining: treats - 1, cost: 0 };
+        }
+    }
+    const coin = trySpendMascotCareCoins(STORAGE_KEYS, actionId, config);
+    return { ...coin, paidWith: coin.ok ? 'coins' : null };
+}
+
+function careFeedHint(baseHint, actionId, STORAGE_KEYS) {
+    const inv = getMascotInventoryCounts(STORAGE_KEYS);
+    if (actionId === 'meal' && inv.food > 0) return `${baseHint} · απόθεμα ${inv.food}`;
+    if (actionId === 'snack' && inv.treats > 0) return `${baseHint} · λιχουδιές ${inv.treats}`;
+    return careCoinHint(baseHint, actionId);
+}
+
+function isMascotFocusQuiet() {
+    return mascotFocusQuietUntil > Date.now();
+}
+
+function syncMascotInteractionClasses(container = document.getElementById('tm-mascot-container')) {
+    if (!container) return;
+    container.classList.toggle('mascot-parked', !!mascotPositionLocked);
+    container.classList.toggle('mascot-dragging', !!mascotIsDragging);
+    container.classList.toggle('mascot-focus-quiet', isMascotFocusQuiet());
+}
+
+function setMascotParked(locked, x = null, y = null, STORAGE_KEYS = window.STORAGE_KEYS) {
+    mascotPositionLocked = !!locked;
+    if (locked) {
+        const pos = (Number.isFinite(x) && Number.isFinite(y))
+            ? { x, y }
+            : getMascotTranslate();
+        const container = document.getElementById('tm-mascot-container');
+        const clamped = applyMascotPosition(container, pos.x, pos.y);
+        mascotParkedX = clamped.x;
+        mascotParkedY = clamped.y;
+        stopRoaming(window.config || {});
+    } else {
+        mascotParkedX = null;
+        mascotParkedY = null;
+    }
+    syncMascotInteractionClasses();
+    if (STORAGE_KEYS && typeof saveTamagotchiData === 'function') {
+        saveTamagotchiData(STORAGE_KEYS);
+    }
+}
+
+function restoreMascotParkedPosition() {
+    if (!mascotPositionLocked || !Number.isFinite(mascotParkedX) || !Number.isFinite(mascotParkedY)) return;
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return;
+    applyMascotPosition(container, mascotParkedX, mascotParkedY);
+    syncMascotInteractionClasses();
+}
+
+function clearMascotFocusQuietTimer() {
+    if (mascotFocusQuietTimer) {
+        clearTimeout(mascotFocusQuietTimer);
+        mascotFocusQuietTimer = null;
+    }
+}
+
+function endMascotFocusQuiet(config, STORAGE_KEYS, { announce = true } = {}) {
+    clearMascotFocusQuietTimer();
+    const wasActive = mascotFocusQuietUntil > 0;
+    mascotFocusQuietUntil = 0;
+    // After focus, unlock so it can roam again from the current spot
+    mascotPositionLocked = false;
+    mascotParkedX = null;
+    mascotParkedY = null;
+    syncMascotInteractionClasses();
+    if (STORAGE_KEYS) saveTamagotchiData(STORAGE_KEYS);
+    if (wasActive && announce) {
+        showMascotBubble('Τέλος εστίασης!', 2000);
+        setMascotMood('happy', 6000);
+    }
+    if (shouldMascotBeRoaming(config || window.config)) {
+        startRoaming(config || window.config);
+    }
+}
+
+function startMascotFocusQuiet(config, STORAGE_KEYS, durationMs = MASCOT_FOCUS_QUIET_MS) {
+    if (tamagotchiIsDead || tamagotchiStage === 'egg') return false;
+    clearMascotFocusQuietTimer();
+    mascotFocusQuietUntil = Date.now() + durationMs;
+    // Sit still where it is
+    const pos = getMascotTranslate();
+    setMascotParked(true, pos.x, pos.y, STORAGE_KEYS);
+    setMascotState(config || window.config || {}, 'reading', 0);
+    setMascotMood('calm', 0);
+    syncMascotInteractionClasses();
+    saveTamagotchiData(STORAGE_KEYS);
+    mascotFocusQuietTimer = setTimeout(() => {
+        endMascotFocusQuiet(config, STORAGE_KEYS, { announce: true });
+    }, durationMs);
+    return true;
+}
+
+function scheduleMascotFocusQuietResume(config, STORAGE_KEYS) {
+    clearMascotFocusQuietTimer();
+    if (!isMascotFocusQuiet()) {
+        mascotFocusQuietUntil = 0;
+        syncMascotInteractionClasses();
+        return;
+    }
+    const remaining = Math.max(0, mascotFocusQuietUntil - Date.now());
+    mascotFocusQuietTimer = setTimeout(() => {
+        endMascotFocusQuiet(config, STORAGE_KEYS, { announce: true });
+    }, remaining);
+    syncMascotInteractionClasses();
+}
+
+function getMascotFocusQuietRemainingLabel() {
+    if (!isMascotFocusQuiet()) return '';
+    const mins = Math.ceil((mascotFocusQuietUntil - Date.now()) / 60000);
+    return `🎯 Εστίαση ~${mins}′`;
+}
+
+function playMascotTrick(config, STORAGE_KEYS) {
+    if (tamagotchiIsDead || tamagotchiStage === 'egg' || tamaCinematicLock) return false;
+    if (isMascotFocusQuiet()) {
+        // Soft ack without chatty bubbles
+        setMascotState(config || window.config || {}, 'happy', 1200);
+        return true;
+    }
+    const trick = MASCOT_TRICK_BY_CHARACTER[tamagotchiCharacterType] || 'happy';
+    setMascotState(config || window.config || {}, trick, 2800);
+    setMascotMood('playful', 5000);
+    updatePetStats(config, STORAGE_KEYS, 3, 0);
+    const lines = {
+        dragon: ['Φλόγα!', 'Ρρρ!', 'Κοίτα αυτό!'],
+        robot: ['Beep-boop!', 'Trick.exe!', 'Σύστημα OK!'],
+        slime: ['Μπλουπ!', 'Γλίτσα-τρικ!', 'Γιούπι!'],
+        plant: ['Φύλλο-φρου!', 'Ανθίζω!', 'Ηλιοτρόπιο!'],
+        ghost: ['Μπου!', 'Φανταστικό!', 'Ουουου!'],
+        cat: ['Νιάου!', 'Περπατώ κομψά!', 'Γουργούρ!'],
+        phoenix: ['Φτερούγες!', 'Αναγέννηση!', 'Φωτιά!'],
+        crystal: ['Λάμψη!', 'Prism!', 'Κρύσταλλο!'],
+    };
+    const pool = lines[tamagotchiCharacterType] || ['Τα-δα!', 'Κοίτα!', 'Τρικ!'];
+    showMascotBubble(pool[Math.floor(Math.random() * pool.length)], 1800);
+    if (STORAGE_KEYS) saveTamagotchiData(STORAGE_KEYS);
+    return true;
 }
 
 /** Shop consumable side-effects (health / clean / prefs). */
@@ -20627,6 +20848,8 @@ function shouldMascotBeRoaming(config) {
     if (!isMascotInteractiveEnabled(config)) return false;
     if (tamagotchiIsDead || tamaCinematicLock) return false;
     if (!tamagotchiLightsOn || tamagotchiIsSleeping) return false;
+    if (mascotPositionLocked || mascotIsDragging) return false;
+    if (isMascotFocusQuiet()) return false;
     const panel = document.getElementById('tm-mascot-interaction-panel');
     if (panel && panel.style.display === 'flex') return false;
     return ROAMING_ACTIVE_STATES.includes(getMascotBehaviorState());
@@ -20809,6 +21032,7 @@ function startRoaming(config) {
 }
 
 function showMascotBubble(text, duration = 2000) {
+    if (isMascotFocusQuiet()) return;
     const bubble = document.getElementById('tm-mascot-speech-bubble');
     if (!bubble) return;
 
@@ -20836,6 +21060,7 @@ function triggerDodgeAnimation(config, moveX, moveY) {
     if (!mascotContainer || mascotContainer.classList.contains('mascot-dodging')) {
         return; // Don't dodge if already dodging
     }
+    if (mascotIsDragging || mascotPositionLocked || isMascotFocusQuiet()) return;
 
     // Stop roaming and set the dodging state. `setMascotState` will call `stopRoaming(config)`.
     setMascotState(config, 'dodging', 1000); // State lasts for 1s
@@ -20952,6 +21177,15 @@ function updatePetStateByStats(config, STORAGE_KEYS, isExitingTempState = false)
     if (!config) config = {};
 
     if (tamagotchiIsDead || tamaCinematicLock) return;
+
+    // Focus quiet: stay parked & quiet; keep a calm reading pose
+    if (isMascotFocusQuiet()) {
+        if (mascotContainer && !mascotContainer.classList.contains('mascot-reading')
+            && !mascotContainer.classList.contains('mascot-powersave')) {
+            applyMascotBehaviorState(mascotContainer, 'reading');
+        }
+        return;
+    }
 
     // Don't override a timed preview/action state (e.g. happy, juggling, surprised).
     if (!isExitingTempState && mascotStateTimeout) {
@@ -21109,6 +21343,13 @@ function loadTamagotchiData(STORAGE_KEYS) {
         tamagotchiLightsManualOverride = savedData.lightsManualOverride || false;
         tamagotchiLastPraise = savedData.lastPraise || 0;
         tamagotchiLastScold = savedData.lastScold || 0;
+        mascotPositionLocked = !!savedData.parked;
+        mascotParkedX = Number.isFinite(Number(savedData.parkedX)) ? Number(savedData.parkedX) : null;
+        mascotParkedY = Number.isFinite(Number(savedData.parkedY)) ? Number(savedData.parkedY) : null;
+        mascotFocusQuietUntil = Number(savedData.focusQuietUntil) || 0;
+        if (mascotFocusQuietUntil && mascotFocusQuietUntil <= Date.now()) {
+            mascotFocusQuietUntil = 0;
+        }
         validateTamagotchiState();
         // Recover sticky character after validate if storage had one and we're hatched
         if (tamagotchiStage !== 'egg' && loadedChar && loadedChar !== 'none'
@@ -21211,7 +21452,11 @@ function saveTamagotchiData(STORAGE_KEYS) {
         isSleeping: tamagotchiIsSleeping,
         lightsManualOverride: tamagotchiLightsManualOverride,
         lastPraise: tamagotchiLastPraise,
-        lastScold: tamagotchiLastScold
+        lastScold: tamagotchiLastScold,
+        parked: !!mascotPositionLocked,
+        parkedX: mascotPositionLocked ? mascotParkedX : null,
+        parkedY: mascotPositionLocked ? mascotParkedY : null,
+        focusQuietUntil: isMascotFocusQuiet() ? mascotFocusQuietUntil : 0,
     };
     GM_setValue(keys.TAMAGOTCHI_DATA, JSON.stringify(data));
 }
@@ -28913,6 +29158,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         lastMousePos = { x: 0, y: 0, time: 0 }; // Reset on enter
     });
     container.addEventListener('mousemove', (e) => {
+        if (mascotIsDragging || mascotPositionLocked || isMascotFocusQuiet()) return;
         if (lastMousePos.time === 0) {
             lastMousePos = { x: e.clientX, y: e.clientY, time: Date.now() };
             return;
@@ -29106,6 +29352,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <span class="tm-status-chip">${tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό'}</span>
                         <span class="tm-status-chip">${tamagotchiLightsOn ? '💡 Φώτα ανοιχτά' : '🌙 Φώτα κλειστά'}</span>
                         ${tamagotchiToiletTrained ? '<span class="tm-status-chip">🚽 Εκπαιδευμένο</span>' : ''}
+                        ${(() => { const inv = getMascotInventoryCounts(STORAGE_KEYS); return `<span class="tm-status-chip" id="tm-mascot-inv-chip">🍖 ${inv.food} · 🍪 ${inv.treats}</span>`; })()}
+                        ${mascotPositionLocked ? '<span class="tm-status-chip" id="tm-mascot-park-chip">📌 Σταθμευμένο</span>' : ''}
+                        ${isMascotFocusQuiet() ? `<span class="tm-status-chip" id="tm-mascot-focus-chip">${getMascotFocusQuietRemainingLabel()}</span>` : ''}
                     </div>
                 </div>
                 `}
@@ -29135,15 +29384,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 <div class="tm-mascot-actions-section">
                     <h3 class="tm-actions-title">Γρήγορη φροντίδα</h3>
                     <div class="tm-mascot-actions tm-actions-primary">
-                        <button type="button" class="tm-action-btn tm-action-meal ${feedUrgent ? 'tm-action-urgent' : ''}" id="tm-action-meal" title="Γεύμα (+30 φαγητό) — ${getMascotCareCoinCost('meal')}🪙">
+                        <button type="button" class="tm-action-btn tm-action-meal ${feedUrgent ? 'tm-action-urgent' : ''}" id="tm-action-meal" title="Γεύμα (+30 φαγητό) — απόθεμα ή ${getMascotCareCoinCost('meal')}🪙">
                             <span class="tm-action-icon">🍖</span>
                             <span class="tm-action-label">Γεύμα</span>
-                            <span class="tm-action-hint">${careCoinHint('+30 φαγητό', 'meal')}</span>
+                            <span class="tm-action-hint">${careFeedHint('+30 φαγητό', 'meal', STORAGE_KEYS)}</span>
                         </button>
-                        <button type="button" class="tm-action-btn tm-action-snack" id="tm-action-snack" title="Σνακ (+10 φαγητό, +20 ευτυχία) — ${getMascotCareCoinCost('snack')}🪙">
+                        <button type="button" class="tm-action-btn tm-action-snack" id="tm-action-snack" title="Σνακ (+10 φαγητό, +20 ευτυχία) — λιχουδιά ή ${getMascotCareCoinCost('snack')}🪙">
                             <span class="tm-action-icon">🍪</span>
                             <span class="tm-action-label">Σνακ</span>
-                            <span class="tm-action-hint">${careCoinHint('+φαγητό & χαρά', 'snack')}</span>
+                            <span class="tm-action-hint">${careFeedHint('+φαγητό & χαρά', 'snack', STORAGE_KEYS)}</span>
                         </button>
                         <button type="button" class="tm-action-btn tm-action-pet" id="tm-action-pet" title="Χάδι (+15 ευτυχία)">
                             <span class="tm-action-icon">💕</span>
@@ -29174,7 +29423,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <button type="button" class="tm-action-btn tm-action-play" id="tm-action-play" title="Παίξε μαζί του">
                             <span class="tm-action-icon">🎮</span>
                             <span class="tm-action-label">Παιχνίδι</span>
-                            <span class="tm-action-hint">Mini-game</span>
+                            <span class="tm-action-hint">Πιάσε τα!</span>
+                        </button>
+                        <button type="button" class="tm-action-btn tm-action-bug-game" id="tm-action-bug-game" title="Bug Squish mini-game">
+                            <span class="tm-action-icon">🐛</span>
+                            <span class="tm-action-label">Bug Squish</span>
+                            <span class="tm-action-hint">Πάτα τα bugs</span>
                         </button>
                         <button type="button" class="tm-action-btn tm-action-lights" id="tm-action-lights" title="Άνοιγμα/Κλείσιμο φώτων">
                             <span class="tm-action-icon">${tamagotchiLightsOn ? '💡' : '🌙'}</span>
@@ -29190,6 +29444,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <span class="tm-action-icon">👎</span>
                             <span class="tm-action-label">Επίπληξη</span>
                             <span class="tm-action-hint">Πειθαρχία</span>
+                        </button>
+                        <button type="button" class="tm-action-btn tm-action-park" id="tm-action-park" title="Κλείδωμα θέσης / απελευθέρωση περιπλάνησης">
+                            <span class="tm-action-icon">${mascotPositionLocked ? '🔓' : '📌'}</span>
+                            <span class="tm-action-label">${mascotPositionLocked ? 'Ελεύθερο' : 'Σταθμεύσε'}</span>
+                            <span class="tm-action-hint">${mascotPositionLocked ? 'Ξαναπερπάτα' : 'Μείνε εδώ'}</span>
+                        </button>
+                        <button type="button" class="tm-action-btn tm-action-focus ${isMascotFocusQuiet() ? 'tm-action-urgent' : ''}" id="tm-action-focus" title="Ήσυχη εστίαση 25 λεπτών — χωρίς bubbles">
+                            <span class="tm-action-icon">🎯</span>
+                            <span class="tm-action-label">${isMascotFocusQuiet() ? 'Τέλος εστίασης' : 'Εστίαση'}</span>
+                            <span class="tm-action-hint">${isMascotFocusQuiet() ? getMascotFocusQuietRemainingLabel() : '25′ ήσυχα'}</span>
                         </button>
                     </div>
                 </div>
@@ -29485,10 +29749,36 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
             const chips = modal.querySelector('#tm-mascot-status-chips');
             if (chips) {
+                const inv = getMascotInventoryCounts(STORAGE_KEYS);
                 chips.innerHTML =
                     '<span class="tm-status-chip">' + (tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό') + '</span>' +
                     '<span class="tm-status-chip">' + (tamagotchiLightsOn ? '💡 Φώτα ανοιχτά' : '🌙 Φώτα κλειστά') + '</span>' +
-                    (tamagotchiToiletTrained ? '<span class="tm-status-chip">🚽 Εκπαιδευμένο</span>' : '');
+                    (tamagotchiToiletTrained ? '<span class="tm-status-chip">🚽 Εκπαιδευμένο</span>' : '') +
+                    '<span class="tm-status-chip" id="tm-mascot-inv-chip">🍖 ' + inv.food + ' · 🍪 ' + inv.treats + '</span>' +
+                    (mascotPositionLocked ? '<span class="tm-status-chip" id="tm-mascot-park-chip">📌 Σταθμευμένο</span>' : '') +
+                    (isMascotFocusQuiet() ? '<span class="tm-status-chip" id="tm-mascot-focus-chip">' + getMascotFocusQuietRemainingLabel() + '</span>' : '');
+            }
+
+            const mealHint = modal.querySelector('#tm-action-meal .tm-action-hint');
+            if (mealHint) mealHint.textContent = careFeedHint('+30 φαγητό', 'meal', STORAGE_KEYS);
+            const snackHint = modal.querySelector('#tm-action-snack .tm-action-hint');
+            if (snackHint) snackHint.textContent = careFeedHint('+φαγητό & χαρά', 'snack', STORAGE_KEYS);
+            const parkBtn = modal.querySelector('#tm-action-park');
+            if (parkBtn) {
+                const icon = parkBtn.querySelector('.tm-action-icon');
+                const label = parkBtn.querySelector('.tm-action-label');
+                const hint = parkBtn.querySelector('.tm-action-hint');
+                if (icon) icon.textContent = mascotPositionLocked ? '🔓' : '📌';
+                if (label) label.textContent = mascotPositionLocked ? 'Ελεύθερο' : 'Σταθμεύσε';
+                if (hint) hint.textContent = mascotPositionLocked ? 'Ξαναπερπάτα' : 'Μείνε εδώ';
+            }
+            const focusBtn = modal.querySelector('#tm-action-focus');
+            if (focusBtn) {
+                focusBtn.classList.toggle('tm-action-urgent', isMascotFocusQuiet());
+                const label = focusBtn.querySelector('.tm-action-label');
+                const hint = focusBtn.querySelector('.tm-action-hint');
+                if (label) label.textContent = isMascotFocusQuiet() ? 'Τέλος εστίασης' : 'Εστίαση';
+                if (hint) hint.textContent = isMascotFocusQuiet() ? getMascotFocusQuietRemainingLabel() : '25′ ήσυχα';
             }
 
             const alertsContainer = modal.querySelector('#tm-mascot-alerts');
@@ -29580,14 +29870,19 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 return;
             }
             if (petStats.hunger < 100) {
-                if (!trySpendMascotCareCoins(STORAGE_KEYS, 'meal', config).ok) return;
+                const pay = tryPayForMascotCare(STORAGE_KEYS, 'meal', config);
+                if (!pay.ok) return;
                 const feedMessages = MASCOT_MESSAGES.feed;
                 updatePetStats(config, STORAGE_KEYS, 0, 30);
                 updateTamagotchiWeight('meal');
                 tamagotchiLastFed = Date.now();
                 trackDailyStat(config, STORAGE_KEYS, 'feedMascot');
                 setMascotState(config, 'eating', 2000);
-                showMascotBubble(feedMessages[Math.floor(Math.random() * feedMessages.length)], 2000);
+                if (pay.paidWith === 'food') {
+                    showMascotBubble(`Από το απόθεμα! (απομένουν ${pay.remaining})`, 1800);
+                } else {
+                    showMascotBubble(feedMessages[Math.floor(Math.random() * feedMessages.length)], 2000);
+                }
                 applyMascotCarePreference('meal', config, STORAGE_KEYS);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
@@ -29603,12 +29898,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 return;
             }
             if (petStats.hunger < 95 && petStats.happiness < 95) {
-                if (!trySpendMascotCareCoins(STORAGE_KEYS, 'snack', config).ok) return;
+                const pay = tryPayForMascotCare(STORAGE_KEYS, 'snack', config);
+                if (!pay.ok) return;
                 updatePetStats(config, STORAGE_KEYS, 20, 10);
                 updateTamagotchiWeight('snack');
                 tamagotchiLastFed = Date.now();
                 setMascotState(config, 'eating', 2000);
-                showMascotBubble(mascotMsg('snack'), 2000);
+                if (pay.paidWith === 'treat') {
+                    showMascotBubble(`Λιχουδιά από απόθεμα! (${pay.remaining} ακόμα)`, 1800);
+                } else {
+                    showMascotBubble(mascotMsg('snack'), 2000);
+                }
                 applyMascotCarePreference('snack', config, STORAGE_KEYS);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
@@ -29758,6 +30058,59 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             } else {
                 showMascotBubble(MASCOT_MESSAGES.tired, 1500);
             }
+        });
+
+        // Bug Squish mini-game
+        modal.querySelector('#tm-action-bug-game')?.addEventListener('click', () => {
+            if (tamagotchiIsDead) {
+                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
+                return;
+            }
+            closeModal();
+            if (typeof window.startBugSquishGame === 'function') {
+                window.startBugSquishGame();
+            } else if (typeof startBugSquishGame === 'function') {
+                startBugSquishGame();
+            } else {
+                showMascotBubble('Το Bug Squish δεν είναι διαθέσιμο…', 2000);
+            }
+        });
+
+        // Park / unpark
+        modal.querySelector('#tm-action-park')?.addEventListener('click', () => {
+            if (tamagotchiIsDead) {
+                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
+                return;
+            }
+            if (mascotPositionLocked && !isMascotFocusQuiet()) {
+                setMascotParked(false, null, null, STORAGE_KEYS);
+                showMascotBubble('Ξαναπερπατάω!', 1600);
+                if (shouldMascotBeRoaming(config)) startRoaming(config);
+            } else if (!mascotPositionLocked) {
+                const pos = getMascotTranslate();
+                setMascotParked(true, pos.x, pos.y, STORAGE_KEYS);
+                showMascotBubble('Μένω εδώ!', 1600);
+            } else {
+                showMascotBubble('Η εστίαση με κρατά εδώ — πάτα Τέλος εστίασης.', 2200);
+            }
+            updateModalStats();
+        });
+
+        // Focus quiet 25'
+        modal.querySelector('#tm-action-focus')?.addEventListener('click', () => {
+            if (tamagotchiIsDead) {
+                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
+                return;
+            }
+            if (isMascotFocusQuiet()) {
+                endMascotFocusQuiet(config, STORAGE_KEYS, { announce: true });
+                setMascotState(config, 'idle');
+            } else {
+                // Brief bubble before silence starts
+                showMascotBubble('Ησυχία 25′ — καλή δουλειά!', 1600);
+                startMascotFocusQuiet(config, STORAGE_KEYS);
+            }
+            updateModalStats();
         });
 
         // Lights button
@@ -30009,18 +30362,105 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     window.showMascotStatsModal = showMascotStatsModal;
     window.showMascotMiniGame = showMascotMiniGame;
 
-    // --- Pet Interaction Logic ---
-    container.addEventListener('click', (e) => {
-        if (e.target.closest('button')) return;
-
+    // --- Click / double-click / drag-to-park ---
+    const openCareFromClick = (e) => {
+        if (e?.target?.closest?.('button')) return;
+        if (Date.now() < mascotSuppressClickUntil) return;
         showMascotStatsModal(config, STORAGE_KEYS);
-        
-        if (!tamagotchiIsDead && tamagotchiStage !== 'egg') {
+        if (!tamagotchiIsDead && tamagotchiStage !== 'egg' && !isMascotFocusQuiet()) {
             const greetingMessages = MASCOT_MESSAGES.greeting;
             showMascotBubble(greetingMessages[Math.floor(Math.random() * greetingMessages.length)], 2000);
         }
-        
+    };
+
+    container.addEventListener('click', (e) => {
+        if (e.target.closest('button')) return;
+        if (Date.now() < mascotSuppressClickUntil) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
         e.stopPropagation();
+        // Delay single-click open so double-click can cancel it for tricks
+        if (mascotClickOpenTimer) {
+            clearTimeout(mascotClickOpenTimer);
+            mascotClickOpenTimer = null;
+            return;
+        }
+        mascotClickOpenTimer = setTimeout(() => {
+            mascotClickOpenTimer = null;
+            openCareFromClick(e);
+        }, 280);
+    });
+
+    container.addEventListener('dblclick', (e) => {
+        if (e.target.closest('button')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (mascotClickOpenTimer) {
+            clearTimeout(mascotClickOpenTimer);
+            mascotClickOpenTimer = null;
+        }
+        mascotSuppressClickUntil = Date.now() + 400;
+        playMascotTrick(config, STORAGE_KEYS);
+    });
+
+    // Drag to park
+    container.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+        if (e.target.closest('button')) return;
+        if (tamagotchiIsDead || tamaCinematicLock) return;
+        if (isMascotFocusQuiet()) return; // stay put during focus
+
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const origin = getMascotTranslate(container);
+        let dragging = false;
+
+        const onMove = (ev) => {
+            const dx = ev.clientX - startX;
+            const dy = ev.clientY - startY;
+            if (!dragging) {
+                if (Math.hypot(dx, dy) < MASCOT_DRAG_THRESHOLD_PX) return;
+                dragging = true;
+                mascotIsDragging = true;
+                mascotDragMoved = true;
+                if (mascotClickOpenTimer) {
+                    clearTimeout(mascotClickOpenTimer);
+                    mascotClickOpenTimer = null;
+                }
+                stopRoaming(config);
+                syncMascotInteractionClasses(container);
+                try { container.setPointerCapture(ev.pointerId); } catch (_) {}
+            }
+            applyMascotPosition(container, origin.x + dx, origin.y + dy);
+        };
+
+        const onUp = (ev) => {
+            window.removeEventListener('pointermove', onMove);
+            window.removeEventListener('pointerup', onUp);
+            window.removeEventListener('pointercancel', onUp);
+            try { container.releasePointerCapture(ev.pointerId); } catch (_) {}
+
+            if (!dragging) {
+                mascotIsDragging = false;
+                syncMascotInteractionClasses(container);
+                return;
+            }
+
+            const pos = getMascotTranslate(container);
+            mascotIsDragging = false;
+            mascotSuppressClickUntil = Date.now() + 450;
+            setMascotParked(true, pos.x, pos.y, STORAGE_KEYS);
+            if (!isMascotFocusQuiet()) {
+                showMascotBubble('Σταθμεύτηκα!', 1400);
+            }
+            syncMascotInteractionClasses(container);
+        };
+
+        window.addEventListener('pointermove', onMove);
+        window.addEventListener('pointerup', onUp);
+        window.addEventListener('pointercancel', onUp);
     });
 
     // Meal button (proper meal)
@@ -30349,9 +30789,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     } else {
         // Ensure state is correct if lights are on
         if (tamagotchiLightsOn && !tamagotchiIsSleeping) {
-            setMascotState(config, 'idle');
+            setMascotState(config, isMascotFocusQuiet() ? 'reading' : 'idle');
         }
     }
+
+    // Restore parked position + focus quiet after load
+    restoreMascotParkedPosition();
+    scheduleMascotFocusQuietResume(config, STORAGE_KEYS);
+    if (mascotPositionLocked || isMascotFocusQuiet()) {
+        stopRoaming(config);
+    }
+    syncMascotInteractionClasses(container);
     
     // Update lights button appearance on initialization (delayed to ensure DOM is ready)
     setTimeout(() => {
@@ -31127,6 +31575,12 @@ window.getMascotCareCoinCost = getMascotCareCoinCost;
 window.trySpendMascotCareCoins = trySpendMascotCareCoins;
 window.applyMascotCarePreference = applyMascotCarePreference;
 window.applyMascotShopCareEffect = applyMascotShopCareEffect;
+window.getMascotInventoryCounts = getMascotInventoryCounts;
+window.tryPayForMascotCare = tryPayForMascotCare;
+window.setMascotParked = setMascotParked;
+window.startMascotFocusQuiet = startMascotFocusQuiet;
+window.endMascotFocusQuiet = endMascotFocusQuiet;
+window.playMascotTrick = playMascotTrick;
 window.showMascotBubble = showMascotBubble;
 window.MASCOT_MESSAGES = MASCOT_MESSAGES;
 window.mascotMsg = mascotMsg;
