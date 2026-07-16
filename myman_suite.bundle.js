@@ -3276,9 +3276,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     const SCRIPT_META = {
         version: '224',
-        loaderVersion: '5',
+        loaderVersion: '6',
         silentVersion: '13',
-        displayVersion: '5.13',
+        displayVersion: '6.13',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -4815,23 +4815,23 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             return `❌ Αποτυχία σύνδεσης με το GitHub (${result.url || 'manifest'}).`;
         }
         if (result.error === 'no_xhr') {
-            return '❌ Το Tampermonkey δεν επιτρέπει αίτημα προς GitHub. Ελέγξτε ότι το script έχει @grant GM_xmlhttpRequest.';
+            return '❌ Το Tampermonkey δεν επιτρέπει αίτημα προς το GitHub. Βεβαιωθείτε ότι το script έχει δικαίωμα GM_xmlhttpRequest.';
         }
         if (result.error) {
-            return `❌ Δεν ήταν δυνατός ο έλεγχος ενημέρωσης (HTTP ${result.status || '?'}).`;
+            return `❌ Δεν ήταν δυνατός ο έλεγχος ενημερώσεων (HTTP ${result.status || '?'}).`;
         }
         const displayVer = result.displayVersion || getSuiteDisplayVersion();
         if (result.updateAvailable) {
-            let msg = `⟳ Απαιτείται ενημέρωση loader <strong>v${escapeHtml(result.remote)}</strong> (έχετε v${escapeHtml(result.current)}).<br>Tampermonkey → Dashboard → Έλεγχος για ενημερώσεων.`;
+            let msg = `⟳ Χρειάζεται ενημέρωση του αρχείου εγκατάστασης: <strong>v${escapeHtml(result.remote)}</strong> (έχετε v${escapeHtml(result.current)}).<br>Ανοίξτε το Tampermonkey → Πίνακας ελέγχου → Έλεγχος για ενημερώσεις.`;
             if (result.releaseNotes) {
                 msg += `<br><span style="opacity:0.85;">${escapeHtml(result.releaseNotes)}</span>`;
             }
             return msg;
         }
         const bundleNote = result.bundleUpdateAvailable
-            ? ' Το bundle ενημερώνεται αυτόματα.'
+            ? ' Οι μικρές αλλαγές φορτώνονται αυτόματα.'
             : '';
-        return `✅ Ενημερωμένο — <strong>Custom Ver. ${escapeHtml(displayVer)}</strong>.${bundleNote}`;
+        return `✅ Είστε ενημερωμένοι — <strong>Custom Ver. ${escapeHtml(displayVer)}</strong>.${bundleNote}`;
     }
 
     function hideScriptUpdateNotification() {
@@ -4871,7 +4871,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         const loaderUrl = window.SCRIPT_META?.loaderUrl || 'myman_loader.user.js';
         const remote = result?.remote || '?';
         const current = result?.current || getInstalledLoaderVersion();
-        const msg = `Απαιτείται ενημέρωση loader (v${current} → v${remote}). Tampermonkey → Dashboard → Έλεγχος για ενημερώσεων. ${loaderUrl}`;
+        const msg = `Χρειάζεται ενημέρωση του αρχείου εγκατάστασης (v${current} → v${remote}). Ανοίξτε το Tampermonkey → Πίνακας ελέγχου → Έλεγχος για ενημερώσεις. ${loaderUrl}`;
         if (typeof showPositiveMessage === 'function') {
             showPositiveMessage(msg);
         } else {
@@ -4886,7 +4886,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         const needsUpdate = result?.updateAvailable && !isUpdateVersionSkipped(result.remote);
         btn.hidden = !needsUpdate;
         btn.title = needsUpdate
-            ? `Ενημέρωση loader v${result.current} → v${result.remote} — κλικ για οδηγίες`
+            ? `Διαθέσιμη ενημέρωση αρχείου εγκατάστασης: v${result.current} → v${result.remote}. Κλικ για οδηγίες.`
             : '';
     }
 
@@ -4912,7 +4912,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         brand.id = 'tm-footer-suite-brand';
         brand.innerHTML = `
             <button type="button" class="tm-footer-version-label" title="Ενημερώσεις">Custom Ver. ${escapeHtml(displayVer)}</button>
-            <button type="button" id="tm-loader-update-icon" class="tm-footer-loader-update-btn" title="" hidden aria-label="Ενημέρωση loader">
+            <button type="button" id="tm-loader-update-icon" class="tm-footer-loader-update-btn" title="" hidden aria-label="Ενημέρωση αρχείου εγκατάστασης">
                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
                     <path fill="currentColor" d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
                 </svg>
@@ -11752,21 +11752,21 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         },
         auto_update: {
             title: 'Αυτόματος έλεγχος ενημερώσεων',
-            what: 'Κάθε ~5 λεπτά ελέγχει αν χρειάζεται νέο Tampermonkey loader.',
-            where: 'Ισχύει στο παρασκήνιο · εικονίδιο ↻ στο footer αν χρειάζεται update.',
-            when: 'Συνεχώς στο παρασκήνιο όσο είστε στο MyManager.',
+            what: 'Κάθε περίπου 5 λεπτά ελέγχει αν χρειάζεται ενημέρωση του αρχείου εγκατάστασης (loader) στο Tampermonkey.',
+            where: 'Τρέχει στο παρασκήνιο. Αν χρειάζεται ενημέρωση, εμφανίζεται το εικονίδιο ↻ κάτω δεξιά.',
+            when: 'Όσο είστε συνδεδεμένοι στο MyManager.',
         },
         updates_version: {
-            title: 'Έκδοση / έλεγχος τώρα',
-            what: 'Δείχνει την τρέχουσα Custom Ver. και επιτρέπει χειροκίνητο έλεγχο ενημέρωσης.',
+            title: 'Τρέχουσα έκδοση',
+            what: 'Δείχνει την έκδοση Custom Ver. που χρησιμοποιείτε και επιτρέπει χειροκίνητο έλεγχο.',
             where: 'Ρυθμίσεις → Ενημερώσεις.',
-            when: 'Πατήστε «Έλεγχος τώρα» όποτε θέλετε άμεσο έλεγχο.',
+            when: 'Πατήστε «Έλεγχος τώρα» όποτε θέλετε να ελέγξετε αμέσως.',
         },
         updates_loader: {
-            title: 'Loader',
-            what: 'Το Tampermonkey loader εγκαθίσταται μία φορά από GitHub. Το bundle ενημερώνεται αυτόματα· μόνο αλλαγές loader χρειάζονται update από το Dashboard.',
-            where: 'Tampermonkey Dashboard / URL loader.',
-            when: 'Μόνο όταν αλλάζει το ίδιο το loader (σπάνια).',
+            title: 'Αρχείο εγκατάστασης (loader)',
+            what: 'Το αρχείο εγκατάστασης του Tampermonkey μπαίνει μία φορά από το GitHub. Οι μικρές αλλαγές φορτώνονται αυτόματα· μόνο όταν αλλάζει το ίδιο το αρχείο χρειάζεται ενημέρωση από το Tampermonkey.',
+            where: 'Tampermonkey → Πίνακας ελέγχου, ή από το σύνδεσμο του αρχείου.',
+            when: 'Σπάνια — μόνο όταν αλλάζει το αρχείο εγκατάστασης.',
         },
         data_backup: {
             title: 'Δεδομένα & backup',
@@ -12751,7 +12751,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
                         <h3>Ενημερώσεις</h3>
-                        <p class="tm-settings-section-desc">Μικρές αλλαγές φορτώνονται αυτόματα. Ειδοποίηση μόνο για νέο loader.</p>
+                        <p class="tm-settings-section-desc">Οι μικρές αλλαγές φορτώνονται αυτόματα. Θα δείτε ειδοποίηση μόνο αν χρειάζεται ενημέρωση του αρχείου εγκατάστασης.</p>
                     </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -12759,7 +12759,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                                 <label for="tm-setting-auto-update-check-enabled">Αυτόματος έλεγχος</label>
                                 ${info('auto_update')}
                             </div>
-                            <p class="tm-setting-description">Κάθε 5 λεπτά · εικονίδιο ↻ στο footer αν χρειάζεται.</p>
+                            <p class="tm-setting-description">Ελέγχει κάθε 5 λεπτά. Αν χρειάζεται ενημέρωση, εμφανίζεται το εικονίδιο ↻ κάτω δεξιά.</p>
                         </div>
                         <div class="tm-setting-control">
                             <input type="checkbox" id="tm-setting-auto-update-check-enabled">
@@ -12768,7 +12768,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <div class="tm-setting-label-row">
-                                <label>Έκδοση</label>
+                                <label>Τρέχουσα έκδοση</label>
                                 ${info('updates_version')}
                             </div>
                             <p class="tm-setting-description"><strong id="tm-settings-current-version">Custom Ver. ${displayVer}</strong></p>
@@ -12777,16 +12777,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         </div>
                         <div class="tm-setting-control tm-setting-control--stack">
                             <button id="tm-settings-check-update-btn" class="tm-data-btn export" type="button">Έλεγχος τώρα</button>
-                            <button id="tm-settings-clear-skip-update-btn" class="tm-data-btn import" type="button" style="display: none;">Ξεχάστε παράλειψη</button>
+                            <button id="tm-settings-clear-skip-update-btn" class="tm-data-btn import" type="button" style="display: none;">Αναίρεση παράλειψης</button>
                         </div>
                     </div>
                     <div class="tm-setting-row tm-setting-row--divider">
                         <div class="tm-setting-label">
                             <div class="tm-setting-label-row">
-                                <label>Loader</label>
+                                <label>Αρχείο εγκατάστασης (loader)</label>
                                 ${info('updates_loader')}
                             </div>
-                            <p class="tm-setting-description">Εγκατάσταση μία φορά από GitHub. Μόνο αλλαγές loader χρειάζονται update από το Tampermonkey.</p>
+                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι μικρές αλλαγές έρχονται αυτόματα· μόνο όταν αλλάζει αυτό το αρχείο χρειάζεται ενημέρωση από το Tampermonkey.</p>
                             <p class="tm-setting-description tm-settings-code-line"><code>${loaderUrl}</code></p>
                         </div>
                     </div>
@@ -12817,7 +12817,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             if (skippedEl && clearSkipBtn) {
                 if (skipped) {
                     skippedEl.style.display = 'block';
-                    skippedEl.textContent = `Παραλείφθηκε η ειδοποίηση για loader v${skipped}.`;
+                    skippedEl.textContent = `Έχετε παραλείψει την ειδοποίηση για την έκδοση loader v${skipped}.`;
                     clearSkipBtn.style.display = 'inline-block';
                 } else {
                     skippedEl.style.display = 'none';
@@ -12844,11 +12844,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
             checkBtn?.addEventListener('click', () => {
                 if (typeof window.runScriptUpdateCheck !== 'function') {
-                    if (statusEl) statusEl.textContent = '❌ Η λειτουργία ελέγχου ενημερώσεων δεν είναι διαθέσιμη.';
+                    if (statusEl) statusEl.textContent = '❌ Ο έλεγχος ενημερώσεων δεν είναι διαθέσιμος αυτή τη στιγμή.';
                     return;
                 }
                 checkBtn.disabled = true;
-                if (statusEl) statusEl.textContent = '⏳ Έλεγχος για νέα έκδοση...';
+                if (statusEl) statusEl.textContent = '⏳ Έλεγχος ενημερώσεων σε εξέλιξη…';
 
                 window.runScriptUpdateCheck({ silent: false }).then((result) => {
                     checkBtn.disabled = false;
@@ -12862,7 +12862,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 }
                 refreshUpdatesSettingsUI(window.getLastScriptUpdateResult?.() || null);
                 if (typeof showPositiveMessage === 'function') {
-                    showPositiveMessage('Η παράλειψη έκδοσης ακυρώθηκε.');
+                    showPositiveMessage('Η παράλειψη ειδοποίησης ακυρώθηκε.');
                 }
             });
 
@@ -53397,7 +53397,7 @@ if (typeof window !== 'undefined') {
                 <div id="tm-notification-empty-state">
                     <div class="tm-notif-empty-icon" aria-hidden="true">🔔</div>
                     <div class="tm-notif-empty-title">Καμία ειδοποίηση</div>
-                    <div class="tm-notif-empty-hint">Εδώ θα εμφανίζονται επιτεύγματα, ενημερώσεις και alerts.</div>
+                    <div class="tm-notif-empty-hint">Εδώ θα εμφανίζονται επιτεύγματα, μηνύματα ενημέρωσης και άλλες ειδοποιήσεις.</div>
                 </div>`;
         }
         return notifications.map((n, idx) => {

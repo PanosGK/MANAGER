@@ -245,21 +245,21 @@
         },
         auto_update: {
             title: 'Αυτόματος έλεγχος ενημερώσεων',
-            what: 'Κάθε ~5 λεπτά ελέγχει αν χρειάζεται νέο Tampermonkey loader.',
-            where: 'Ισχύει στο παρασκήνιο · εικονίδιο ↻ στο footer αν χρειάζεται update.',
-            when: 'Συνεχώς στο παρασκήνιο όσο είστε στο MyManager.',
+            what: 'Κάθε περίπου 5 λεπτά ελέγχει αν χρειάζεται ενημέρωση του αρχείου εγκατάστασης (loader) στο Tampermonkey.',
+            where: 'Τρέχει στο παρασκήνιο. Αν χρειάζεται ενημέρωση, εμφανίζεται το εικονίδιο ↻ κάτω δεξιά.',
+            when: 'Όσο είστε συνδεδεμένοι στο MyManager.',
         },
         updates_version: {
-            title: 'Έκδοση / έλεγχος τώρα',
-            what: 'Δείχνει την τρέχουσα Custom Ver. και επιτρέπει χειροκίνητο έλεγχο ενημέρωσης.',
+            title: 'Τρέχουσα έκδοση',
+            what: 'Δείχνει την έκδοση Custom Ver. που χρησιμοποιείτε και επιτρέπει χειροκίνητο έλεγχο.',
             where: 'Ρυθμίσεις → Ενημερώσεις.',
-            when: 'Πατήστε «Έλεγχος τώρα» όποτε θέλετε άμεσο έλεγχο.',
+            when: 'Πατήστε «Έλεγχος τώρα» όποτε θέλετε να ελέγξετε αμέσως.',
         },
         updates_loader: {
-            title: 'Loader',
-            what: 'Το Tampermonkey loader εγκαθίσταται μία φορά από GitHub. Το bundle ενημερώνεται αυτόματα· μόνο αλλαγές loader χρειάζονται update από το Dashboard.',
-            where: 'Tampermonkey Dashboard / URL loader.',
-            when: 'Μόνο όταν αλλάζει το ίδιο το loader (σπάνια).',
+            title: 'Αρχείο εγκατάστασης (loader)',
+            what: 'Το αρχείο εγκατάστασης του Tampermonkey μπαίνει μία φορά από το GitHub. Οι μικρές αλλαγές φορτώνονται αυτόματα· μόνο όταν αλλάζει το ίδιο το αρχείο χρειάζεται ενημέρωση από το Tampermonkey.',
+            where: 'Tampermonkey → Πίνακας ελέγχου, ή από το σύνδεσμο του αρχείου.',
+            when: 'Σπάνια — μόνο όταν αλλάζει το αρχείο εγκατάστασης.',
         },
         data_backup: {
             title: 'Δεδομένα & backup',
@@ -1244,7 +1244,7 @@
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
                         <h3>Ενημερώσεις</h3>
-                        <p class="tm-settings-section-desc">Μικρές αλλαγές φορτώνονται αυτόματα. Ειδοποίηση μόνο για νέο loader.</p>
+                        <p class="tm-settings-section-desc">Οι μικρές αλλαγές φορτώνονται αυτόματα. Θα δείτε ειδοποίηση μόνο αν χρειάζεται ενημέρωση του αρχείου εγκατάστασης.</p>
                     </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -1252,7 +1252,7 @@
                                 <label for="tm-setting-auto-update-check-enabled">Αυτόματος έλεγχος</label>
                                 ${info('auto_update')}
                             </div>
-                            <p class="tm-setting-description">Κάθε 5 λεπτά · εικονίδιο ↻ στο footer αν χρειάζεται.</p>
+                            <p class="tm-setting-description">Ελέγχει κάθε 5 λεπτά. Αν χρειάζεται ενημέρωση, εμφανίζεται το εικονίδιο ↻ κάτω δεξιά.</p>
                         </div>
                         <div class="tm-setting-control">
                             <input type="checkbox" id="tm-setting-auto-update-check-enabled">
@@ -1261,7 +1261,7 @@
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <div class="tm-setting-label-row">
-                                <label>Έκδοση</label>
+                                <label>Τρέχουσα έκδοση</label>
                                 ${info('updates_version')}
                             </div>
                             <p class="tm-setting-description"><strong id="tm-settings-current-version">Custom Ver. ${displayVer}</strong></p>
@@ -1270,16 +1270,16 @@
                         </div>
                         <div class="tm-setting-control tm-setting-control--stack">
                             <button id="tm-settings-check-update-btn" class="tm-data-btn export" type="button">Έλεγχος τώρα</button>
-                            <button id="tm-settings-clear-skip-update-btn" class="tm-data-btn import" type="button" style="display: none;">Ξεχάστε παράλειψη</button>
+                            <button id="tm-settings-clear-skip-update-btn" class="tm-data-btn import" type="button" style="display: none;">Αναίρεση παράλειψης</button>
                         </div>
                     </div>
                     <div class="tm-setting-row tm-setting-row--divider">
                         <div class="tm-setting-label">
                             <div class="tm-setting-label-row">
-                                <label>Loader</label>
+                                <label>Αρχείο εγκατάστασης (loader)</label>
                                 ${info('updates_loader')}
                             </div>
-                            <p class="tm-setting-description">Εγκατάσταση μία φορά από GitHub. Μόνο αλλαγές loader χρειάζονται update από το Tampermonkey.</p>
+                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι μικρές αλλαγές έρχονται αυτόματα· μόνο όταν αλλάζει αυτό το αρχείο χρειάζεται ενημέρωση από το Tampermonkey.</p>
                             <p class="tm-setting-description tm-settings-code-line"><code>${loaderUrl}</code></p>
                         </div>
                     </div>
@@ -1310,7 +1310,7 @@
             if (skippedEl && clearSkipBtn) {
                 if (skipped) {
                     skippedEl.style.display = 'block';
-                    skippedEl.textContent = `Παραλείφθηκε η ειδοποίηση για loader v${skipped}.`;
+                    skippedEl.textContent = `Έχετε παραλείψει την ειδοποίηση για την έκδοση loader v${skipped}.`;
                     clearSkipBtn.style.display = 'inline-block';
                 } else {
                     skippedEl.style.display = 'none';
@@ -1337,11 +1337,11 @@
 
             checkBtn?.addEventListener('click', () => {
                 if (typeof window.runScriptUpdateCheck !== 'function') {
-                    if (statusEl) statusEl.textContent = '❌ Η λειτουργία ελέγχου ενημερώσεων δεν είναι διαθέσιμη.';
+                    if (statusEl) statusEl.textContent = '❌ Ο έλεγχος ενημερώσεων δεν είναι διαθέσιμος αυτή τη στιγμή.';
                     return;
                 }
                 checkBtn.disabled = true;
-                if (statusEl) statusEl.textContent = '⏳ Έλεγχος για νέα έκδοση...';
+                if (statusEl) statusEl.textContent = '⏳ Έλεγχος ενημερώσεων σε εξέλιξη…';
 
                 window.runScriptUpdateCheck({ silent: false }).then((result) => {
                     checkBtn.disabled = false;
@@ -1355,7 +1355,7 @@
                 }
                 refreshUpdatesSettingsUI(window.getLastScriptUpdateResult?.() || null);
                 if (typeof showPositiveMessage === 'function') {
-                    showPositiveMessage('Η παράλειψη έκδοσης ακυρώθηκε.');
+                    showPositiveMessage('Η παράλειψη ειδοποίησης ακυρώθηκε.');
                 }
             });
 

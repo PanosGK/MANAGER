@@ -575,7 +575,7 @@
                 <div id="tm-notification-empty-state">
                     <div class="tm-notif-empty-icon" aria-hidden="true">🔔</div>
                     <div class="tm-notif-empty-title">Καμία ειδοποίηση</div>
-                    <div class="tm-notif-empty-hint">Εδώ θα εμφανίζονται επιτεύγματα, ενημερώσεις και alerts.</div>
+                    <div class="tm-notif-empty-hint">Εδώ θα εμφανίζονται επιτεύγματα, μηνύματα ενημέρωσης και άλλες ειδοποιήσεις.</div>
                 </div>`;
         }
         return notifications.map((n, idx) => {

@@ -865,23 +865,23 @@
             return `❌ Αποτυχία σύνδεσης με το GitHub (${result.url || 'manifest'}).`;
         }
         if (result.error === 'no_xhr') {
-            return '❌ Το Tampermonkey δεν επιτρέπει αίτημα προς GitHub. Ελέγξτε ότι το script έχει @grant GM_xmlhttpRequest.';
+            return '❌ Το Tampermonkey δεν επιτρέπει αίτημα προς το GitHub. Βεβαιωθείτε ότι το script έχει δικαίωμα GM_xmlhttpRequest.';
         }
         if (result.error) {
-            return `❌ Δεν ήταν δυνατός ο έλεγχος ενημέρωσης (HTTP ${result.status || '?'}).`;
+            return `❌ Δεν ήταν δυνατός ο έλεγχος ενημερώσεων (HTTP ${result.status || '?'}).`;
         }
         const displayVer = result.displayVersion || getSuiteDisplayVersion();
         if (result.updateAvailable) {
-            let msg = `⟳ Απαιτείται ενημέρωση loader <strong>v${escapeHtml(result.remote)}</strong> (έχετε v${escapeHtml(result.current)}).<br>Tampermonkey → Dashboard → Έλεγχος για ενημερώσεων.`;
+            let msg = `⟳ Χρειάζεται ενημέρωση του αρχείου εγκατάστασης: <strong>v${escapeHtml(result.remote)}</strong> (έχετε v${escapeHtml(result.current)}).<br>Ανοίξτε το Tampermonkey → Πίνακας ελέγχου → Έλεγχος για ενημερώσεις.`;
             if (result.releaseNotes) {
                 msg += `<br><span style="opacity:0.85;">${escapeHtml(result.releaseNotes)}</span>`;
             }
             return msg;
         }
         const bundleNote = result.bundleUpdateAvailable
-            ? ' Το bundle ενημερώνεται αυτόματα.'
+            ? ' Οι μικρές αλλαγές φορτώνονται αυτόματα.'
             : '';
-        return `✅ Ενημερωμένο — <strong>Custom Ver. ${escapeHtml(displayVer)}</strong>.${bundleNote}`;
+        return `✅ Είστε ενημερωμένοι — <strong>Custom Ver. ${escapeHtml(displayVer)}</strong>.${bundleNote}`;
     }
 
     function hideScriptUpdateNotification() {
@@ -921,7 +921,7 @@
         const loaderUrl = window.SCRIPT_META?.loaderUrl || 'myman_loader.user.js';
         const remote = result?.remote || '?';
         const current = result?.current || getInstalledLoaderVersion();
-        const msg = `Απαιτείται ενημέρωση loader (v${current} → v${remote}). Tampermonkey → Dashboard → Έλεγχος για ενημερώσεων. ${loaderUrl}`;
+        const msg = `Χρειάζεται ενημέρωση του αρχείου εγκατάστασης (v${current} → v${remote}). Ανοίξτε το Tampermonkey → Πίνακας ελέγχου → Έλεγχος για ενημερώσεις. ${loaderUrl}`;
         if (typeof showPositiveMessage === 'function') {
             showPositiveMessage(msg);
         } else {
@@ -936,7 +936,7 @@
         const needsUpdate = result?.updateAvailable && !isUpdateVersionSkipped(result.remote);
         btn.hidden = !needsUpdate;
         btn.title = needsUpdate
-            ? `Ενημέρωση loader v${result.current} → v${result.remote} — κλικ για οδηγίες`
+            ? `Διαθέσιμη ενημέρωση αρχείου εγκατάστασης: v${result.current} → v${result.remote}. Κλικ για οδηγίες.`
             : '';
     }
 
@@ -962,7 +962,7 @@
         brand.id = 'tm-footer-suite-brand';
         brand.innerHTML = `
             <button type="button" class="tm-footer-version-label" title="Ενημερώσεις">Custom Ver. ${escapeHtml(displayVer)}</button>
-            <button type="button" id="tm-loader-update-icon" class="tm-footer-loader-update-btn" title="" hidden aria-label="Ενημέρωση loader">
+            <button type="button" id="tm-loader-update-icon" class="tm-footer-loader-update-btn" title="" hidden aria-label="Ενημέρωση αρχείου εγκατάστασης">
                 <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
                     <path fill="currentColor" d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/>
                 </svg>
