@@ -1,8 +1,8 @@
 /**
- * Ashborn Phoenix — dense cute epic v3 (6 life stages)
- * Export for apply-cute-epic-svgs.mjs
+ * Ashborn Phoenix — dense cute epic v4 · BOSS MYTHICAL
+ * Huge angry beautiful firebird for boss-battle presence.
+ * Export for apply scripts → myman_mascot.js
  */
-
 const I = '                ';
 const I2 = I + '    ';
 const I3 = I2 + '    ';
@@ -13,41 +13,66 @@ const STAGE_LABEL = {
   baby: 'BABY', evo1: 'KID', evo2: 'TEEN', evo3: 'ADULT', evo4: 'MIDDLE AGE', evo5: 'OLD',
 };
 
-function grad(id, stops, type = 'radial', attrs = 'cx="40%" cy="30%" r="75%"') {
+function grad(id, stops, type = 'radial', attrs) {
   const tag = type === 'linear' ? 'linearGradient' : 'radialGradient';
-  const defAttrs = type === 'linear' ? (attrs || 'x1="0%" y1="0%" x2="0%" y2="100%"') : attrs;
+  const defAttrs = attrs
+    || (type === 'linear' ? 'x1="0%" y1="0%" x2="100%" y2="100%"' : 'cx="40%" cy="30%" r="75%"');
   const stopLines = stops.map(([o, c, a = 1]) =>
     `${I4}<stop offset="${o}" style="stop-color:${c};stop-opacity:${a}" />`).join('\n');
   return `${I3}<${tag} id="${id}" ${defAttrs}>\n${stopLines}\n${I3}</${tag}>`;
 }
 
-/** Dragon-style big glossy eyes */
-function glossyEyes(lx, rx, cy, rxEye, ryEye, iris, stroke, sclera = '#fff8e1') {
+/** Fierce phoenix eyes — glowing gold/crimson, angled angry brows */
+function fierceEyes(lx, rx, cy, rxE, ryE, irisRef, stroke, {
+  angry = false, sclera = '#fff8e1', glow = '#fffde7',
+} = {}) {
+  const brow = angry
+    ? `${I4}<path d="M ${lx - rxE - 1} ${cy - ryE - 1.5} Q ${lx} ${cy - ryE - 4.5} ${lx + rxE + 0.5} ${cy - ryE + 0.5}" stroke="${stroke}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+${I4}<path d="M ${rx + rxE + 1} ${cy - ryE - 1.5} Q ${rx} ${cy - ryE - 4.5} ${rx - rxE - 0.5} ${cy - ryE + 0.5}" stroke="${stroke}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+${I4}<path d="M ${lx - rxE} ${cy - ryE - 0.2} Q ${lx} ${cy - ryE - 2.2} ${lx + rxE} ${cy - ryE + 1}" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>
+${I4}<path d="M ${rx + rxE} ${cy - ryE - 0.2} Q ${rx} ${cy - ryE - 2.2} ${rx - rxE} ${cy - ryE + 1}" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>`
+    : '';
   return `${I3}<g class="tm-mascot-eye-open">
-${I4}<ellipse cx="${lx}" cy="${cy}" rx="${rxEye}" ry="${ryEye}" fill="${sclera}" stroke="${stroke}" stroke-width="1.5"/>
-${I4}<ellipse cx="${rx}" cy="${cy}" rx="${rxEye}" ry="${ryEye}" fill="${sclera}" stroke="${stroke}" stroke-width="1.5"/>
-${I4}<ellipse cx="${lx + 0.5}" cy="${cy + 0.5}" rx="${rxEye * 0.55}" ry="${ryEye * 0.58}" fill="${iris}"/>
-${I4}<ellipse cx="${rx + 0.5}" cy="${cy + 0.5}" rx="${rxEye * 0.55}" ry="${ryEye * 0.58}" fill="${iris}"/>
-${I4}<ellipse cx="${lx + 0.5}" cy="${cy + 0.8}" rx="${rxEye * 0.28}" ry="${ryEye * 0.35}" fill="#1a0a00"/>
-${I4}<ellipse cx="${rx + 0.5}" cy="${cy + 0.8}" rx="${rxEye * 0.28}" ry="${ryEye * 0.35}" fill="#1a0a00"/>
-${I4}<circle cx="${lx + 1.5}" cy="${cy - ryEye * 0.35}" r="${Math.max(1.2, rxEye * 0.28)}" fill="#fffde7"/>
-${I4}<circle cx="${rx + 1.5}" cy="${cy - ryEye * 0.35}" r="${Math.max(1.2, rxEye * 0.28)}" fill="#fffde7"/>
-${I4}<circle cx="${lx - rxEye * 0.35}" cy="${cy + ryEye * 0.35}" r="${Math.max(0.6, rxEye * 0.12)}" fill="#ffecb3" opacity="0.75"/>
-${I4}<circle cx="${rx - rxEye * 0.35}" cy="${cy + ryEye * 0.35}" r="${Math.max(0.6, rxEye * 0.12)}" fill="#ffecb3" opacity="0.75"/>
+${brow}
+${I4}<ellipse cx="${lx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="${sclera}" stroke="${stroke}" stroke-width="1.6"/>
+${I4}<ellipse cx="${rx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="${sclera}" stroke="${stroke}" stroke-width="1.6"/>
+${I4}<ellipse cx="${lx + 0.4}" cy="${cy + 0.3}" rx="${(rxE * 0.58).toFixed(1)}" ry="${(ryE * 0.62).toFixed(1)}" fill="${irisRef}"/>
+${I4}<ellipse cx="${rx + 0.4}" cy="${cy + 0.3}" rx="${(rxE * 0.58).toFixed(1)}" ry="${(ryE * 0.62).toFixed(1)}" fill="${irisRef}"/>
+${I4}<ellipse cx="${lx + 0.5}" cy="${cy + 0.6}" rx="${(rxE * 0.26).toFixed(1)}" ry="${(ryE * 0.4).toFixed(1)}" fill="#1a0500"/>
+${I4}<ellipse cx="${rx + 0.5}" cy="${cy + 0.6}" rx="${(rxE * 0.26).toFixed(1)}" ry="${(ryE * 0.4).toFixed(1)}" fill="#1a0500"/>
+${I4}<circle cx="${(lx + 1.5).toFixed(1)}" cy="${(cy - ryE * 0.32).toFixed(1)}" r="${Math.max(1.3, rxE * 0.3).toFixed(1)}" fill="${glow}" opacity="0.95"/>
+${I4}<circle cx="${(rx + 1.5).toFixed(1)}" cy="${(cy - ryE * 0.32).toFixed(1)}" r="${Math.max(1.3, rxE * 0.3).toFixed(1)}" fill="${glow}" opacity="0.95"/>
+${I4}<circle cx="${(lx - rxE * 0.3).toFixed(1)}" cy="${(cy + ryE * 0.28).toFixed(1)}" r="${Math.max(0.7, rxE * 0.14).toFixed(1)}" fill="#ffab40" opacity="0.7"/>
+${I4}<circle cx="${(rx - rxE * 0.3).toFixed(1)}" cy="${(cy + ryE * 0.28).toFixed(1)}" r="${Math.max(0.7, rxE * 0.14).toFixed(1)}" fill="#ffab40" opacity="0.7"/>
 ${I3}</g>
 ${I3}<g class="tm-mascot-eye-closed" style="display:none;">
-${I4}<path d="M ${lx - rxEye} ${cy} Q ${lx} ${cy - 3} ${lx + rxEye} ${cy}" stroke="${stroke}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-${I4}<path d="M ${rx - rxEye} ${cy} Q ${rx} ${cy - 3} ${rx + rxEye} ${cy}" stroke="${stroke}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+${I4}<path d="M ${lx - rxE} ${cy} Q ${lx} ${cy - 3.2} ${lx + rxE} ${cy}" stroke="${stroke}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+${I4}<path d="M ${rx - rxE} ${cy} Q ${rx} ${cy - 3.2} ${rx + rxE} ${cy}" stroke="${stroke}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
 ${I3}</g>`;
 }
 
-function beakMouths(y, stroke, fill = '#ff6d00') {
-  return `${I3}<path class="tm-mascot-mouth-happy" d="M ${50 - 4} ${y} Q 50 ${y + 4} ${50 + 4} ${y}" stroke="${stroke}" stroke-width="1.9" fill="${fill}" stroke-linecap="round"/>
-${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="M ${50 - 4} ${y + 2} Q 50 ${y - 2} ${50 + 4} ${y + 2}" stroke="${stroke}" stroke-width="1.9" fill="${fill}" stroke-linecap="round"/>`;
+/** Predatory hooked beak — happy / open-rage sad swap */
+function hookedBeak(y, stroke, fill = '#ff6d00', size = 1) {
+  const s = size;
+  const tip = (4.5 * s).toFixed(1);
+  const depth = (7 * s).toFixed(1);
+  return `${I3}<path class="tm-mascot-mouth-happy" d="M ${50 - tip} ${y} L 50 ${y + Number(depth)} L ${50 + tip} ${y} Q 50 ${y + 2.5 * s} ${50 - tip} ${y}" fill="${fill}" stroke="${stroke}" stroke-width="1.7" stroke-linejoin="round"/>
+${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="M ${50 - tip - 1} ${y + 1} L 50 ${y + Number(depth) + 1.5} L ${50 + tip + 1} ${y + 1} Q 50 ${y - 1} ${50 - tip - 1} ${y + 1}" fill="${fill}" stroke="${stroke}" stroke-width="1.7" stroke-linejoin="round"/>
+${I4}<path d="M 50 ${y + 1} L 50 ${y + Number(depth) - 1}" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>`;
 }
 
-function shadow(cy = 92, rx = 26, opacity = 0.2) {
-  return `${I3}<ellipse cx="50" cy="${cy}" rx="${rx}" ry="5" fill="#1a1a1a" opacity="${opacity}"/>`;
+function shadow(rx = 30, opacity = 0.28) {
+  return `${I3}<ellipse cx="50" cy="96" rx="${rx}" ry="5.5" fill="#1a0500" opacity="${opacity}"/>`;
+}
+
+function emberSparks(count = 6) {
+  const pts = [
+    [18, 28], [82, 24], [12, 48], [88, 50], [22, 70], [78, 72],
+    [8, 38], [92, 40], [30, 18], [70, 16], [16, 62], [84, 64],
+  ].slice(0, count);
+  return pts.map(([x, y], i) =>
+    `${I3}<circle cx="${x}" cy="${y}" r="${i % 3 === 0 ? 1.8 : 1.2}" fill="${i % 2 ? '#fff59d' : '#ff6d00'}" opacity="${0.35 + (i % 4) * 0.1}"/>`
+  ).join('\n');
 }
 
 function wrapStage(stage, title, defs, body) {
@@ -64,450 +89,307 @@ ${I}</g>
 function phoenixStage(stage) {
   const p = `phoenix-${stage === 'evo1' ? 'kid' : stage === 'evo2' ? 'teen' : stage === 'evo3' ? 'adult' : stage === 'evo4' ? 'mid' : stage === 'evo5' ? 'old' : 'baby'}`;
   const titles = {
-    baby: 'fluffy ember chick',
-    evo1: 'flame fledgling',
-    evo2: 'solar youth',
-    evo3: 'Ashborn Phoenix',
-    evo4: 'crimson ash elder',
-    evo5: 'immortal ashborn',
+    baby: 'ember hatchling',
+    evo1: 'wrath fledgling',
+    evo2: 'solar ravager',
+    evo3: 'Ashborn Phoenix — BOSS',
+    evo4: 'crimson ash tyrant',
+    evo5: 'immortal sun god',
   };
 
   const plumage = stage === 'evo5'
-    ? [['0%', '#fffde7'], ['30%', '#fff8e1'], ['55%', '#ffecb3'], ['80%', '#ffcc80'], ['100%', '#ff8a65']]
+    ? [['0%', '#fffde7'], ['20%', '#fff59d'], ['45%', '#ffd54f'], ['70%', '#ff8a65'], ['100%', '#ff6d00']]
     : stage === 'evo4'
-      ? [['0%', '#ff8a65'], ['25%', '#d84315'], ['50%', '#5d4037'], ['75%', '#bf360c'], ['100%', '#3e2723']]
+      ? [['0%', '#ff8a65'], ['20%', '#e64a19'], ['45%', '#bf360c'], ['70%', '#4e342e'], ['100%', '#1a0a00']]
       : stage === 'evo3'
-        ? [['0%', '#ffe082'], ['25%', '#ff6d00'], ['55%', '#e65100'], ['100%', '#bf360c']]
+        ? [['0%', '#fff59d'], ['18%', '#ffea00'], ['40%', '#ff6d00'], ['65%', '#dd2c00'], ['100%', '#4a0000']]
         : stage === 'evo2'
-          ? [['0%', '#fff176'], ['35%', '#ff9100'], ['100%', '#e64a19']]
+          ? [['0%', '#fff176'], ['30%', '#ff9100'], ['60%', '#e64a19'], ['100%', '#bf360c']]
           : stage === 'evo1'
             ? [['0%', '#fff59d'], ['40%', '#ff9800'], ['100%', '#ef6c00']]
-            : [['0%', '#fff9c4'], ['35%', '#ffb74d'], ['100%', '#ff7043']];
+            : [['0%', '#fff9c4'], ['40%', '#ffb74d'], ['100%', '#ff7043']];
 
-  const stroke = stage === 'evo5' ? '#ff8f00' : stage === 'evo4' ? '#4e342e' : '#bf360c';
-  const accent = stage === 'evo5' ? '#ffd54f' : stage === 'evo4' ? '#ffab40' : '#ffea00';
-  const flame = stage === 'evo5' ? '#fff9c4' : stage === 'evo4' ? '#ff5722' : '#ff6d00';
+  const stroke = stage === 'evo5' ? '#ff6f00'
+    : stage === 'evo4' ? '#3e2723'
+      : stage === 'evo3' ? '#3d0000'
+        : '#bf360c';
+  const accent = stage === 'evo5' ? '#fff59d' : stage === 'evo4' ? '#ffab40' : '#ffea00';
+  const flame = stage === 'evo5' ? '#ffcc80' : stage === 'evo4' ? '#ff5722' : '#ff3d00';
+  const boss = stage === 'evo3' || stage === 'evo4' || stage === 'evo5';
+  const angry = stage !== 'baby';
 
   const defs = [
-    grad(`${p}-body`, plumage, 'radial', 'cx="38%" cy="28%" r="78%"'),
-    grad(`${p}-belly`, [['0%', '#fffde7'], ['60%', '#ffe082'], ['100%', '#ffcc80']], 'radial', 'cx="50%" cy="38%" r="62%"'),
-    grad(`${p}-wing`, stage === 'evo5'
-      ? [['0%', '#fffde7', 0.95], ['40%', '#ffecb3', 0.9], ['100%', '#ffab40', 0.8]]
-      : [['0%', accent, 0.95], ['45%', flame, 0.9], ['100%', '#bf360c', 0.85]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
-    grad(`${p}-core`, [['0%', '#fffde7'], ['35%', accent], ['100%', '#ff3d00', 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
+    grad(`${p}-body`, plumage, 'radial', 'cx="36%" cy="26%" r="80%"'),
+    grad(`${p}-belly`, [['0%', '#fffde7'], ['50%', '#ffe082'], ['100%', '#ffab40']], 'radial', 'cx="50%" cy="35%" r="65%"'),
+    grad(`${p}-wing`, [['0%', '#fffde7', 0.98], ['25%', accent, 0.95], ['55%', '#ff6d00', 0.92], ['85%', flame, 0.88], ['100%', '#bf360c', 0.8]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
+    grad(`${p}-wing2`, [['0%', '#ffea00', 0.9], ['50%', '#ff3d00', 0.85], ['100%', '#7f0000', 0.75]], 'linear', 'x1="100%" y1="0%" x2="0%" y2="100%"'),
+    grad(`${p}-core`, [['0%', '#fff'], ['25%', '#fff59d'], ['55%', '#ff6d00'], ['100%', '#ff3d00', 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
     grad(`${p}-iris`, stage === 'evo5'
-      ? [['0%', '#fff9c4'], ['45%', '#ffb300'], ['100%', '#e65100']]
-      : [['0%', '#ffecb3'], ['50%', '#ff6d00'], ['100%', '#bf360c']], 'radial', 'cx="35%" cy="30%" r="65%"'),
-    grad(`${p}-cheek`, [['0%', '#ff8a80', 0.5], ['100%', '#ff8a80', 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
-    grad(`${p}-aura`, [['0%', stage === 'evo5' ? '#fff59d' : flame, stage === 'evo5' ? 0.45 : 0.32], ['100%', flame, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
-    ...(stage === 'evo4' ? [grad(`${p}-ash`, [['0%', '#78909c', 0.7], ['100%', '#37474f', 0.3]], 'radial', 'cx="50%" cy="50%" r="50%')] : []),
+      ? [['0%', '#fffde7'], ['40%', '#ffd54f'], ['100%', '#e65100']]
+      : [['0%', '#fff59d'], ['35%', '#ff9100'], ['70%', '#dd2c00'], ['100%', '#4a0000']], 'radial', 'cx="35%" cy="28%" r="68%"'),
+    grad(`${p}-cheek`, [['0%', '#ff8a80', 0.55], ['100%', '#ff8a80', 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
+    grad(`${p}-aura`, [['0%', '#fff59d', boss ? 0.55 : 0.35], ['40%', '#ff6d00', 0.28], ['100%', '#bf360c', 0]], 'radial', 'cx="50%" cy="48%" r="55%"'),
+    grad(`${p}-corona`, [['0%', '#fffde7', 0.5], ['35%', '#ffea00', 0.3], ['100%', '#ff3d00', 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
+    grad(`${p}-tail`, [['0%', '#fffde7'], ['30%', accent], ['60%', '#ff6d00'], ['100%', '#7f0000']], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
+    ...(stage === 'evo4' ? [grad(`${p}-ash`, [['0%', '#90a4ae', 0.65], ['100%', '#37474f', 0.25]], 'radial', 'cx="50%" cy="50%" r="50%')] : []),
   ].join('\n');
 
-  // ── BABY: round fluffy ember chick ──
-  if (stage === 'baby') {
-    const body = `${shadow(90, 24, 0.18)}
-${I3}<ellipse cx="50" cy="54" rx="36" ry="34" fill="url(#${p}-aura)" opacity="0.65"/>
-${I3}<g class="tm-animate-tail">
-${I4}<ellipse cx="68" cy="72" rx="8" ry="6" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.3"/>
-${I4}<ellipse cx="74" cy="68" rx="5" ry="4" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.9" opacity="0.85"/>
-${I4}<circle cx="78" cy="66" r="2.5" fill="${accent}" opacity="0.7"/>
-${I4}<circle cx="77" cy="65" r="0.9" fill="#fff" opacity="0.5"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-left">
-${I4}<ellipse cx="26" cy="58" rx="7" ry="10" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.1" transform="rotate(-22 26 58)" opacity="0.9"/>
-${I4}<path d="M 24 54 Q 20 58 24 62" stroke="${accent}" stroke-width="0.7" fill="none" opacity="0.55"/>
-${I4}<circle cx="22" cy="56" r="1.2" fill="#fff" opacity="0.4"/>
+  // Shared geometry knobs
+  const cfg = {
+    baby: {
+      shadowRx: 26, auraR: 38, bodyY: 66, bodyRx: 23, bodyRy: 19, headY: 36, headRx: 18, headRy: 16,
+      eyeY: 34, eyeRx: 7, eyeRy: 8.5, beakY: 46, beakSize: 0.9, sparks: 5, crest: 'sm', wings: 'sm',
+    },
+    evo1: {
+      shadowRx: 30, auraR: 42, bodyY: 64, bodyRx: 22, bodyRy: 18, headY: 34, headRx: 16.5, headRy: 14.5,
+      eyeY: 32, eyeRx: 6.5, eyeRy: 7.8, beakY: 44, beakSize: 1, sparks: 7, crest: 'md', wings: 'md',
+    },
+    evo2: {
+      shadowRx: 34, auraR: 46, bodyY: 62, bodyRx: 23, bodyRy: 19, headY: 30, headRx: 17, headRy: 15,
+      eyeY: 28, eyeRx: 6.8, eyeRy: 8, beakY: 42, beakSize: 1.1, sparks: 9, crest: 'lg', wings: 'lg',
+    },
+    evo3: {
+      shadowRx: 38, auraR: 50, bodyY: 60, bodyRx: 25, bodyRy: 21, headY: 26, headRx: 19, headRy: 17,
+      eyeY: 24, eyeRx: 7.5, eyeRy: 8.8, beakY: 40, beakSize: 1.25, sparks: 12, crest: 'boss', wings: 'boss',
+    },
+    evo4: {
+      shadowRx: 36, auraR: 46, bodyY: 62, bodyRx: 24, bodyRy: 20, headY: 28, headRx: 18, headRy: 16,
+      eyeY: 26, eyeRx: 7, eyeRy: 8.2, beakY: 42, beakSize: 1.15, sparks: 10, crest: 'lg', wings: 'lg',
+    },
+    evo5: {
+      shadowRx: 40, auraR: 52, bodyY: 58, bodyRx: 24, bodyRy: 20, headY: 24, headRx: 18.5, headRy: 16.5,
+      eyeY: 22, eyeRx: 7.2, eyeRy: 8.5, beakY: 38, beakSize: 1.2, sparks: 12, crest: 'divine', wings: 'boss',
+    },
+  }[stage];
+
+  const c = cfg;
+
+  // ── Wings (huge for boss) ──
+  let wings;
+  if (c.wings === 'boss') {
+    wings = `${I3}<g class="tm-animate-wing-left">
+${I4}<!-- Outer flame wing -->
+${I4}<path d="M 30 48 Q -6 8 -8 40 Q -4 72 16 68 Q 26 58 32 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="2.2"/>
+${I4}<path d="M 26 50 Q 2 22 0 46 Q 2 66 18 62 Q 24 56 28 52 Z" fill="url(#${p}-wing2)" opacity="0.85" stroke="${flame}" stroke-width="1.1"/>
+${I4}<path d="M 8 28 Q 0 36 4 52" stroke="${accent}" stroke-width="1.3" fill="none" opacity="0.7"/>
+${I4}<path d="M 4 36 Q -2 42 2 56" stroke="#ff8a65" stroke-width="1.1" fill="none" opacity="0.55"/>
+${I4}<path d="M 2 46 Q -4 50 0 62" stroke="#ff3d00" stroke-width="0.95" fill="none" opacity="0.5"/>
+${I4}<path d="M 12 54 Q 18 60 24 64" stroke="#fff59d" stroke-width="0.85" fill="none" opacity="0.45"/>
+${I4}<path d="M -2 22 L -8 12" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round"/>
+${I4}<path d="M 4 18 L 0 8" stroke="${flame}" stroke-width="1.4" stroke-linecap="round"/>
+${I4}<path d="M 10 16 L 8 6" stroke="${accent}" stroke-width="1.2" stroke-linecap="round"/>
+${I4}<circle cx="-4" cy="30" r="2" fill="#fffde7" opacity="0.55"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-wing-right">
-${I4}<ellipse cx="74" cy="58" rx="7" ry="10" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.1" transform="rotate(22 74 58)" opacity="0.9"/>
-${I4}<path d="M 76 54 Q 80 58 76 62" stroke="${accent}" stroke-width="0.7" fill="none" opacity="0.55"/>
-${I4}<circle cx="78" cy="56" r="1.2" fill="#fff" opacity="0.4"/>
-${I3}</g>
-${I3}<g class="tm-animate-body">
-${I4}<!-- Fluffy down layers -->
-${I4}<ellipse cx="50" cy="66" rx="24" ry="20" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="2"/>
-${I4}<ellipse cx="46" cy="58" rx="10" ry="6" fill="#fff" opacity="0.22"/>
-${I4}<ellipse cx="50" cy="68" rx="15" ry="13" fill="url(#${p}-belly)"/>
-${I4}<path d="M 42 64 Q 50 66 58 64" stroke="#ffe082" stroke-width="0.9" fill="none" opacity="0.65"/>
-${I4}<circle cx="38" cy="62" r="1.5" fill="${stroke}" opacity="0.22"/>
-${I4}<circle cx="44" cy="58" r="1.2" fill="${stroke}" opacity="0.18"/>
-${I4}<circle cx="56" cy="58" r="1.2" fill="${stroke}" opacity="0.18"/>
-${I4}<circle cx="62" cy="62" r="1.5" fill="${stroke}" opacity="0.22"/>
-${I4}<circle cx="40" cy="72" r="1.1" fill="${stroke}" opacity="0.16"/>
-${I4}<circle cx="60" cy="72" r="1.1" fill="${stroke}" opacity="0.16"/>
-${I4}<circle cx="50" cy="66" r="7" fill="url(#${p}-core)"/>
-${I4}<circle cx="50" cy="66" r="3" fill="#fffde7" opacity="0.75"/>
-${I4}<!-- Oversized chick head -->
-${I4}<ellipse cx="50" cy="38" rx="18" ry="16" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="2"/>
-${I4}<ellipse cx="42" cy="32" rx="7" ry="4" fill="#fff" opacity="0.2"/>
-${I4}<!-- Down tufts -->
-${I4}<ellipse cx="36" cy="34" rx="4" ry="6" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="0.9" transform="rotate(-18 36 34)"/>
-${I4}<ellipse cx="64" cy="34" rx="4" ry="6" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="0.9" transform="rotate(18 64 34)"/>
-${I4}<ellipse cx="50" cy="28" rx="3" ry="5" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.7"/>
-${I4}<!-- Cheeks -->
-${I4}<circle cx="34" cy="42" r="4" fill="url(#${p}-cheek)"/>
-${I4}<circle cx="66" cy="42" r="4" fill="url(#${p}-cheek)"/>
-${I4}<!-- Beak base -->
-${I4}<path d="M 46 46 L 50 52 L 54 46 Z" fill="#ff8a50" stroke="${stroke}" stroke-width="0.8"/>
-${I4}<circle cx="36" cy="50" r="1.6" fill="${accent}" opacity="0.5"/>
-${I4}<circle cx="64" cy="52" r="1.4" fill="${flame}" opacity="0.45"/>
-${I3}</g>
-${I3}<g class="tm-animate-arm-left">
-${I4}<ellipse cx="28" cy="64" rx="6" ry="8" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.3" transform="rotate(-20 28 64)"/>
-${I4}<path d="M 24 70 L 22 74 M 26 71 L 25 75 M 28 70 L 30 74" stroke="${stroke}" stroke-width="1.2" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-arm-right">
-${I4}<ellipse cx="72" cy="64" rx="6" ry="8" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.3" transform="rotate(20 72 64)"/>
-${I4}<path d="M 72 70 L 70 74 M 74 71 L 75 75 M 76 70 L 78 74" stroke="${stroke}" stroke-width="1.2" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-leg-left">
-${I4}<ellipse cx="40" cy="84" rx="6" ry="4" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.3"/>
-${I4}<path d="M 36 86 L 34 89 M 40 87 L 40 90 M 44 86 L 46 89" stroke="${stroke}" stroke-width="1.2" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-leg-right">
-${I4}<ellipse cx="60" cy="84" rx="6" ry="4" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.3"/>
-${I4}<path d="M 54 86 L 52 89 M 60 87 L 60 90 M 64 86 L 66 89" stroke="${stroke}" stroke-width="1.2" stroke-linecap="round"/>
-${I3}</g>
-${glossyEyes(41, 59, 36, 7, 8.5, `url(#${p}-iris)`, stroke)}
-${beakMouths(48, stroke)}`;
-    return wrapStage(stage, titles.baby, defs, body);
-  }
-
-  // ── EVO1: fledgling, longer flame tail/wings ──
-  if (stage === 'evo1') {
-    const body = `${shadow(92, 28, 0.2)}
-${I3}<ellipse cx="50" cy="52" rx="38" ry="36" fill="url(#${p}-aura)"/>
-${I3}<g class="tm-animate-tail">
-${I4}<path d="M 64 70 Q 76 82 84 66 Q 88 54 80 50 Q 72 54 64 70 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.4"/>
-${I4}<path d="M 68 72 Q 78 90 88 68" fill="url(#${p}-wing)" opacity="0.7" stroke="${flame}" stroke-width="0.9"/>
-${I4}<path d="M 72 68 Q 82 84 90 62" fill="none" stroke="${accent}" stroke-width="1" opacity="0.55"/>
-${I4}<circle cx="84" cy="58" r="2.5" fill="${accent}" opacity="0.75"/>
-${I4}<circle cx="83" cy="57" r="1" fill="#fff" opacity="0.45"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-left">
-${I4}<path d="M 32 54 Q 14 44 10 58 Q 12 70 22 66 Q 28 60 32 56 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.4"/>
-${I4}<path d="M 24 52 Q 16 48 14 58" stroke="${accent}" stroke-width="0.85" fill="none" opacity="0.55"/>
-${I4}<path d="M 20 58 Q 14 56 14 64" stroke="#ff8a65" stroke-width="0.75" fill="none" opacity="0.45"/>
-${I4}<path d="M 18 62 Q 12 60 12 68" stroke="#ff3d00" stroke-width="0.65" fill="none" opacity="0.4"/>
+${I4}<path d="M 70 48 Q 106 8 108 40 Q 104 72 84 68 Q 74 58 68 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="2.2"/>
+${I4}<path d="M 74 50 Q 98 22 100 46 Q 98 66 82 62 Q 76 56 72 52 Z" fill="url(#${p}-wing2)" opacity="0.85" stroke="${flame}" stroke-width="1.1"/>
+${I4}<path d="M 92 28 Q 100 36 96 52" stroke="${accent}" stroke-width="1.3" fill="none" opacity="0.7"/>
+${I4}<path d="M 96 36 Q 102 42 98 56" stroke="#ff8a65" stroke-width="1.1" fill="none" opacity="0.55"/>
+${I4}<path d="M 98 46 Q 104 50 100 62" stroke="#ff3d00" stroke-width="0.95" fill="none" opacity="0.5"/>
+${I4}<path d="M 88 54 Q 82 60 76 64" stroke="#fff59d" stroke-width="0.85" fill="none" opacity="0.45"/>
+${I4}<path d="M 102 22 L 108 12" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round"/>
+${I4}<path d="M 96 18 L 100 8" stroke="${flame}" stroke-width="1.4" stroke-linecap="round"/>
+${I4}<path d="M 90 16 L 92 6" stroke="${accent}" stroke-width="1.2" stroke-linecap="round"/>
+${I4}<circle cx="104" cy="30" r="2" fill="#fffde7" opacity="0.55"/>
+${I3}</g>`;
+  } else if (c.wings === 'lg') {
+    wings = `${I3}<g class="tm-animate-wing-left">
+${I4}<path d="M 28 50 Q 0 22 -2 46 Q 0 68 16 64 Q 24 56 30 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.9"/>
+${I4}<path d="M 12 36 Q 4 44 8 58" stroke="${accent}" stroke-width="1.1" fill="none" opacity="0.6"/>
+${I4}<path d="M 8 44 Q 2 50 6 62" stroke="#ff8a65" stroke-width="0.9" fill="none" opacity="0.5"/>
+${I4}<path d="M 4 28 L -2 20" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round"/>
+${I4}<path d="M 10 24 L 6 16" stroke="${flame}" stroke-width="1.2" stroke-linecap="round"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 68 54 Q 86 44 90 58 Q 88 70 78 66 Q 72 60 68 56 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.4"/>
-${I4}<path d="M 76 52 Q 84 48 86 58" stroke="${accent}" stroke-width="0.85" fill="none" opacity="0.55"/>
-${I4}<path d="M 80 58 Q 86 56 86 64" stroke="#ff8a65" stroke-width="0.75" fill="none" opacity="0.45"/>
-${I4}<path d="M 82 62 Q 88 60 88 68" stroke="#ff3d00" stroke-width="0.65" fill="none" opacity="0.4"/>
-${I3}</g>
-${I3}<g class="tm-animate-body">
-${I4}<ellipse cx="50" cy="64" rx="22" ry="19" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.8"/>
-${I4}<ellipse cx="44" cy="56" rx="8" ry="5" fill="#fff" opacity="0.18"/>
-${I4}<ellipse cx="50" cy="66" rx="13" ry="11" fill="url(#${p}-belly)"/>
-${I4}<path d="M 42 62 Q 50 64 58 62" stroke="#ffe082" stroke-width="0.85" fill="none" opacity="0.6"/>
-${I4}<circle cx="50" cy="64" r="7.5" fill="url(#${p}-core)"/>
-${I4}<circle cx="50" cy="64" r="3.2" fill="#fffde7" opacity="0.7"/>
-${I4}<ellipse cx="50" cy="36" rx="16" ry="14" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.7"/>
-${I4}<path d="M 42 26 L 40 14 L 46 24 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.85"/>
-${I4}<path d="M 50 24 L 50 10 L 54 22 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.85"/>
-${I4}<path d="M 58 26 L 60 14 L 54 24 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.85"/>
-${I4}<path d="M 46 42 L 50 48 L 54 42 Z" fill="#ff8a50" stroke="${stroke}" stroke-width="0.75"/>
-${I4}<circle cx="36" cy="52" r="1.7" fill="${accent}" opacity="0.5"/>
-${I4}<circle cx="64" cy="54" r="1.5" fill="${flame}" opacity="0.45"/>
-${I4}<circle cx="42" cy="72" r="1.3" fill="#ff3d00" opacity="0.35"/>
-${I4}<circle cx="58" cy="74" r="1.2" fill="${accent}" opacity="0.35"/>
-${I4}<circle cx="34" cy="42" r="3.5" fill="url(#${p}-cheek)"/>
-${I4}<circle cx="66" cy="42" r="3.5" fill="url(#${p}-cheek)"/>
-${I4}<path d="M 48 24 Q 50 18 52 24" stroke="${accent}" stroke-width="0.8" fill="none" opacity="0.45"/>
-${I3}</g>
-${I3}<g class="tm-animate-arm-left">
-${I4}<ellipse cx="30" cy="62" rx="5.5" ry="9" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.2" transform="rotate(-22 30 62)"/>
-${I4}<path d="M 26 70 L 22 76 M 28 72 L 26 78 M 30 70 L 32 76" stroke="${flame}" stroke-width="1.2" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-arm-right">
-${I4}<ellipse cx="70" cy="62" rx="5.5" ry="9" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.2" transform="rotate(22 70 62)"/>
-${I4}<path d="M 68 70 L 66 76 M 70 72 L 72 78 M 72 70 L 76 76" stroke="${flame}" stroke-width="1.2" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-leg-left">
-${I4}<path d="M 42 80 L 38 90" stroke="${flame}" stroke-width="2.4" stroke-linecap="round"/>
-${I4}<path d="M 38 90 L 34 94 M 38 90 L 38 96 M 38 90 L 42 94" stroke="${stroke}" stroke-width="1.4" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-leg-right">
-${I4}<path d="M 58 80 L 62 90" stroke="${flame}" stroke-width="2.4" stroke-linecap="round"/>
-${I4}<path d="M 62 90 L 58 94 M 62 90 L 62 96 M 62 90 L 66 94" stroke="${stroke}" stroke-width="1.4" stroke-linecap="round"/>
-${I3}</g>
-${glossyEyes(42, 58, 34, 6, 7, `url(#${p}-iris)`, stroke)}
-${beakMouths(44, stroke)}`;
-    return wrapStage(stage, titles.evo1, defs, body);
-  }
-
-  // ── EVO2: teen dramatic wings ──
-  if (stage === 'evo2') {
-    const body = `${shadow(94, 32, 0.22)}
-${I3}<ellipse cx="50" cy="50" rx="44" ry="42" fill="url(#${p}-aura)"/>
-${I3}<g class="tm-animate-wing-left">
-${I4}<path d="M 28 50 Q 4 28 2 48 Q 4 68 18 64 Q 26 58 30 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.8"/>
-${I4}<path d="M 16 40 Q 10 50 14 60" stroke="${accent}" stroke-width="1" fill="none" opacity="0.6"/>
-${I4}<path d="M 12 48 Q 8 54 12 62" stroke="#ff8a65" stroke-width="0.85" fill="none" opacity="0.5"/>
-${I4}<path d="M 10 56 Q 6 60 8 68" stroke="#ff3d00" stroke-width="0.75" fill="none" opacity="0.45"/>
-${I4}<path d="M 6 34 L 2 28" stroke="${stroke}" stroke-width="1.4" stroke-linecap="round"/>
-${I4}<path d="M 10 32 L 8 26" stroke="${stroke}" stroke-width="1.1" stroke-linecap="round"/>
+${I4}<path d="M 72 50 Q 100 22 102 46 Q 100 68 84 64 Q 76 56 70 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.9"/>
+${I4}<path d="M 88 36 Q 96 44 92 58" stroke="${accent}" stroke-width="1.1" fill="none" opacity="0.6"/>
+${I4}<path d="M 92 44 Q 98 50 94 62" stroke="#ff8a65" stroke-width="0.9" fill="none" opacity="0.5"/>
+${I4}<path d="M 96 28 L 102 20" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round"/>
+${I4}<path d="M 90 24 L 94 16" stroke="${flame}" stroke-width="1.2" stroke-linecap="round"/>
+${I3}</g>`;
+  } else if (c.wings === 'md') {
+    wings = `${I3}<g class="tm-animate-wing-left">
+${I4}<path d="M 30 52 Q 10 36 8 52 Q 10 68 22 64 Q 28 58 32 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.5"/>
+${I4}<path d="M 18 44 Q 12 50 16 60" stroke="${accent}" stroke-width="0.9" fill="none" opacity="0.55"/>
+${I4}<path d="M 12 32 L 6 24" stroke="${stroke}" stroke-width="1.3" stroke-linecap="round"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 72 50 Q 96 28 98 48 Q 96 68 82 64 Q 74 58 70 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.8"/>
-${I4}<path d="M 84 40 Q 90 50 86 60" stroke="${accent}" stroke-width="1" fill="none" opacity="0.6"/>
-${I4}<path d="M 88 48 Q 92 54 88 62" stroke="#ff8a65" stroke-width="0.85" fill="none" opacity="0.5"/>
-${I4}<path d="M 90 56 Q 94 60 92 68" stroke="#ff3d00" stroke-width="0.75" fill="none" opacity="0.45"/>
-${I4}<path d="M 94 34 L 98 28" stroke="${stroke}" stroke-width="1.4" stroke-linecap="round"/>
-${I4}<path d="M 90 32 L 92 26" stroke="${stroke}" stroke-width="1.1" stroke-linecap="round"/>
+${I4}<path d="M 70 52 Q 90 36 92 52 Q 90 68 78 64 Q 72 58 68 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.5"/>
+${I4}<path d="M 82 44 Q 88 50 84 60" stroke="${accent}" stroke-width="0.9" fill="none" opacity="0.55"/>
+${I4}<path d="M 88 32 L 94 24" stroke="${stroke}" stroke-width="1.3" stroke-linecap="round"/>
+${I3}</g>`;
+  } else {
+    wings = `${I3}<g class="tm-animate-wing-left">
+${I4}<ellipse cx="24" cy="58" rx="8" ry="12" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2" transform="rotate(-28 24 58)"/>
+${I4}<path d="M 20 50 Q 14 54 18 62" stroke="${accent}" stroke-width="0.8" fill="none" opacity="0.55"/>
+${I4}<circle cx="18" cy="52" r="1.3" fill="#fff" opacity="0.45"/>
 ${I3}</g>
-${I3}<g class="tm-animate-tail">
-${I4}<path d="M 60 72 Q 74 92 86 64 Q 90 48 82 44 Q 72 50 60 72 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.5"/>
-${I4}<path d="M 66 74 Q 78 96 88 70" fill="url(#${p}-wing)" opacity="0.65" stroke="${flame}" stroke-width="0.9"/>
-${I4}<path d="M 70 70 Q 82 88 92 66" fill="none" stroke="${accent}" stroke-width="1.1" opacity="0.55"/>
-${I4}<circle cx="86" cy="58" r="2.8" fill="${accent}" opacity="0.8"/>
-${I3}</g>
-${I3}<g class="tm-animate-body">
-${I4}<ellipse cx="50" cy="62" rx="24" ry="20" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="2.1"/>
-${I4}<ellipse cx="42" cy="54" rx="9" ry="5" fill="#fff" opacity="0.16"/>
-${I4}<ellipse cx="50" cy="64" rx="14" ry="12" fill="url(#${p}-belly)"/>
-${I4}<path d="M 40 60 Q 50 62 60 60" stroke="#ffe082" stroke-width="0.9" fill="none" opacity="0.55"/>
-${I4}<circle cx="50" cy="62" r="8" fill="url(#${p}-core)"/>
-${I4}<circle cx="50" cy="62" r="3.5" fill="#fffde7" opacity="0.7"/>
-${I4}<ellipse cx="50" cy="32" rx="17" ry="15" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.9"/>
-${I4}<path d="M 40 22 L 36 8 L 44 20 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.9"/>
-${I4}<path d="M 50 20 L 50 4 L 56 18 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.9"/>
-${I4}<path d="M 60 22 L 64 8 L 56 20 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.9"/>
-${I4}<path d="M 38 18 L 32 6 L 40 16 Z" fill="#ff8a65" opacity="0.75"/>
-${I4}<path d="M 62 18 L 68 6 L 60 16 Z" fill="#ff8a65" opacity="0.75"/>
-${I4}<path d="M 46 40 L 50 47 L 54 40 Z" fill="#ff8a50" stroke="${stroke}" stroke-width="0.8"/>
-${I4}<circle cx="34" cy="48" r="1.8" fill="${accent}" opacity="0.5"/>
-${I4}<circle cx="66" cy="50" r="1.6" fill="${flame}" opacity="0.45"/>
-${I3}</g>
-${I3}<g class="tm-animate-arm-left">
-${I4}<ellipse cx="28" cy="60" rx="6" ry="10" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.3" transform="rotate(-18 28 60)"/>
-${I4}<path d="M 24 68 L 20 74 M 26 70 L 24 76 M 28 68 L 30 74" stroke="${flame}" stroke-width="1.3" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-arm-right">
-${I4}<ellipse cx="72" cy="60" rx="6" ry="10" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.3" transform="rotate(18 72 60)"/>
-${I4}<path d="M 70 68 L 68 74 M 72 70 L 74 76 M 74 68 L 78 74" stroke="${flame}" stroke-width="1.3" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-leg-left">
-${I4}<path d="M 40 80 L 36 92" stroke="${flame}" stroke-width="2.6" stroke-linecap="round"/>
-${I4}<path d="M 36 92 L 32 96 M 36 92 L 36 98 M 36 92 L 40 96" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-leg-right">
-${I4}<path d="M 60 80 L 64 92" stroke="${flame}" stroke-width="2.6" stroke-linecap="round"/>
-${I4}<path d="M 64 92 L 60 96 M 64 92 L 64 98 M 64 92 L 68 96" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round"/>
-${I3}</g>
-${glossyEyes(41, 59, 30, 5.5, 6.5, `url(#${p}-iris)`, stroke)}
-${beakMouths(42, stroke)}`;
-    return wrapStage(stage, titles.evo2, defs, body);
+${I3}<g class="tm-animate-wing-right">
+${I4}<ellipse cx="76" cy="58" rx="8" ry="12" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2" transform="rotate(28 76 58)"/>
+${I4}<path d="M 80 50 Q 86 54 82 62" stroke="${accent}" stroke-width="0.8" fill="none" opacity="0.55"/>
+${I4}<circle cx="82" cy="52" r="1.3" fill="#fff" opacity="0.45"/>
+${I3}</g>`;
   }
 
-  // ── EVO3: adult majestic solar crest, layered feathers ──
+  // ── Tail of living flame ──
+  let tail;
+  if (boss) {
+    tail = `${I3}<g class="tm-animate-tail">
+${I4}<path d="M 58 68 Q 78 102 98 52 Q 104 28 90 24 Q 74 36 58 68 Z" fill="url(#${p}-tail)" stroke="${stroke}" stroke-width="1.8"/>
+${I4}<path d="M 62 70 Q 80 108 100 60" fill="url(#${p}-wing)" opacity="0.7" stroke="${flame}" stroke-width="1.1"/>
+${I4}<path d="M 66 66 Q 84 98 102 56" fill="none" stroke="${accent}" stroke-width="1.3" opacity="0.65"/>
+${I4}<path d="M 70 62 Q 86 90 96 50" fill="none" stroke="#ff8a65" stroke-width="1" opacity="0.5"/>
+${I4}<path d="M 74 58 Q 88 82 94 48" fill="none" stroke="#fff59d" stroke-width="0.85" opacity="0.45"/>
+${I4}<ellipse cx="96" cy="40" rx="6" ry="8" fill="${accent}" opacity="0.75"/>
+${I4}<circle cx="95" cy="38" r="2.2" fill="#fff" opacity="0.7"/>
+${I4}<circle cx="100" cy="48" r="1.6" fill="#ff3d00" opacity="0.55"/>
+${I3}</g>`;
+  } else if (stage === 'evo2') {
+    tail = `${I3}<g class="tm-animate-tail">
+${I4}<path d="M 60 70 Q 78 96 92 58 Q 96 40 86 38 Q 72 48 60 70 Z" fill="url(#${p}-tail)" stroke="${stroke}" stroke-width="1.5"/>
+${I4}<path d="M 66 72 Q 80 100 94 64" fill="url(#${p}-wing)" opacity="0.65" stroke="${flame}" stroke-width="0.95"/>
+${I4}<circle cx="90" cy="50" r="3" fill="${accent}" opacity="0.8"/>
+${I3}</g>`;
+  } else if (stage === 'evo1') {
+    tail = `${I3}<g class="tm-animate-tail">
+${I4}<path d="M 64 70 Q 80 88 90 60 Q 94 46 84 44 Q 72 52 64 70 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.35"/>
+${I4}<path d="M 70 72 Q 82 92 92 64" fill="none" stroke="${accent}" stroke-width="1" opacity="0.55"/>
+${I4}<circle cx="88" cy="54" r="2.4" fill="${accent}" opacity="0.75"/>
+${I3}</g>`;
+  } else {
+    tail = `${I3}<g class="tm-animate-tail">
+${I4}<ellipse cx="68" cy="72" rx="9" ry="7" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.3"/>
+${I4}<ellipse cx="76" cy="66" rx="6" ry="5" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.9"/>
+${I4}<circle cx="80" cy="62" r="2.6" fill="${accent}" opacity="0.75"/>
+${I3}</g>`;
+  }
+
+  // ── Crest ──
+  let crest;
+  if (c.crest === 'boss') {
+    crest = `${I4}<!-- Mythic solar crown -->
+${I4}<ellipse cx="50" cy="6" rx="22" ry="5" fill="url(#${p}-corona)" opacity="0.85"/>
+${I4}<path d="M 28 18 L 18 -2 L 34 14 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.1"/>
+${I4}<path d="M 36 14 L 30 -6 L 42 12 Z" fill="${flame}" stroke="${stroke}" stroke-width="1.05"/>
+${I4}<path d="M 44 10 L 40 -10 L 50 8 Z" fill="${accent}" stroke="${stroke}" stroke-width="1.1"/>
+${I4}<path d="M 56 10 L 60 -10 L 50 8 Z" fill="${accent}" stroke="${stroke}" stroke-width="1.1"/>
+${I4}<path d="M 64 14 L 70 -6 L 58 12 Z" fill="${flame}" stroke="${stroke}" stroke-width="1.05"/>
+${I4}<path d="M 72 18 L 82 -2 L 66 14 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.1"/>
+${I4}<path d="M 22 12 L 12 0 L 26 10 Z" fill="#ff8a65" opacity="0.85"/>
+${I4}<path d="M 78 12 L 88 0 L 74 10 Z" fill="#ff8a65" opacity="0.85"/>
+${I4}<circle cx="50" cy="-6" r="2.8" fill="#fffde7" opacity="0.9"/>
+${I4}<circle cx="50" cy="2" r="1.6" fill="#ff3d00" opacity="0.55"/>`;
+  } else if (c.crest === 'divine') {
+    crest = `${I4}<!-- Immortal sun halo -->
+${I4}<ellipse cx="50" cy="4" rx="24" ry="5.5" fill="none" stroke="#fff59d" stroke-width="1.6" opacity="0.7"/>
+${I4}<ellipse cx="50" cy="4" rx="18" ry="3.5" fill="url(#${p}-corona)" opacity="0.8"/>
+${I4}<path d="M 30 16 L 22 -4 L 36 14 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1"/>
+${I4}<path d="M 40 12 L 36 -8 L 48 10 Z" fill="#fff59d" stroke="${stroke}" stroke-width="1"/>
+${I4}<path d="M 50 8 L 50 -12 L 56 8 Z" fill="#fffde7" stroke="${stroke}" stroke-width="1.05"/>
+${I4}<path d="M 60 12 L 64 -8 L 52 10 Z" fill="#fff59d" stroke="${stroke}" stroke-width="1"/>
+${I4}<path d="M 70 16 L 78 -4 L 64 14 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1"/>
+${I4}<circle cx="50" cy="-8" r="3" fill="#fff" opacity="0.9"/>
+${I4}<circle cx="24" cy="8" r="1.8" fill="#fff" opacity="0.55"/>
+${I4}<circle cx="76" cy="8" r="1.8" fill="#fff" opacity="0.55"/>`;
+  } else if (c.crest === 'lg') {
+    crest = `${I4}<path d="M 36 18 L 28 2 L 40 16 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.95"/>
+${I4}<path d="M 44 14 L 40 -2 L 50 12 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.95"/>
+${I4}<path d="M 56 14 L 60 -2 L 50 12 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.95"/>
+${I4}<path d="M 64 18 L 72 2 L 60 16 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.95"/>
+${I4}<path d="M 32 12 L 24 0 L 34 10 Z" fill="#ff8a65" opacity="0.8"/>
+${I4}<path d="M 68 12 L 76 0 L 66 10 Z" fill="#ff8a65" opacity="0.8"/>
+${I4}<circle cx="50" cy="0" r="2" fill="#fffde7" opacity="0.75"/>`;
+  } else if (c.crest === 'md') {
+    crest = `${I4}<path d="M 40 22 L 36 8 L 44 20 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.85"/>
+${I4}<path d="M 50 18 L 50 4 L 54 16 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.85"/>
+${I4}<path d="M 60 22 L 64 8 L 56 20 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.85"/>`;
+  } else {
+    crest = `${I4}<ellipse cx="36" cy="32" rx="4" ry="6" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="0.85" transform="rotate(-16 36 32)"/>
+${I4}<ellipse cx="64" cy="32" rx="4" ry="6" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="0.85" transform="rotate(16 64 32)"/>
+${I4}<ellipse cx="50" cy="26" rx="3.2" ry="5" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.7"/>`;
+  }
+
+  // Stage extras
+  let bodyExtra = '';
+  let auraExtra = '';
   if (stage === 'evo3') {
-    const body = `${shadow(95, 36, 0.28)}
-${I3}<ellipse cx="50" cy="48" rx="46" ry="44" fill="url(#${p}-aura)"/>
-${I3}<g class="tm-animate-wing-left">
-${I4}<path d="M 24 48 Q 2 26 0 44 Q 2 62 14 58 Q 22 52 26 50 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="2"/>
-${I4}<path d="M 10 36 Q 6 44 10 52" stroke="${accent}" stroke-width="1.05" fill="none" opacity="0.55"/>
-${I4}<path d="M 8 42 Q 4 48 8 56" stroke="#ff8a65" stroke-width="0.9" fill="none" opacity="0.45"/>
-${I4}<path d="M 6 48 Q 2 52 4 60" stroke="#ff3d00" stroke-width="0.8" fill="none" opacity="0.4"/>
-${I4}<path d="M 14 50 Q 18 54 22 58" stroke="#ffe082" stroke-width="0.75" fill="none" opacity="0.35"/>
-${I4}<path d="M 4 30 L 0 24" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 76 48 Q 98 26 100 44 Q 98 62 86 58 Q 78 52 74 50 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="2"/>
-${I4}<path d="M 90 36 Q 94 44 90 52" stroke="${accent}" stroke-width="1.05" fill="none" opacity="0.55"/>
-${I4}<path d="M 92 42 Q 96 48 92 56" stroke="#ff8a65" stroke-width="0.9" fill="none" opacity="0.45"/>
-${I4}<path d="M 94 48 Q 98 52 96 60" stroke="#ff3d00" stroke-width="0.8" fill="none" opacity="0.4"/>
-${I4}<path d="M 86 50 Q 82 54 78 58" stroke="#ffe082" stroke-width="0.75" fill="none" opacity="0.35"/>
-${I4}<path d="M 96 30 L 100 24" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-tail">
-${I4}<path d="M 58 70 Q 72 94 88 62 Q 94 44 86 40 Q 74 46 58 70 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.7"/>
-${I4}<path d="M 64 72 Q 76 98 90 68" fill="url(#${p}-wing)" opacity="0.6" stroke="${flame}" stroke-width="1"/>
-${I4}<path d="M 68 68 Q 80 90 94 64" fill="none" stroke="${accent}" stroke-width="1.15" opacity="0.55"/>
-${I4}<path d="M 72 64 Q 84 82 92 58" fill="none" stroke="#ff8a65" stroke-width="0.85" opacity="0.4"/>
-${I4}<circle cx="88" cy="54" r="3" fill="${accent}" opacity="0.85"/>
-${I4}<circle cx="87" cy="53" r="1.2" fill="#fff" opacity="0.5"/>
-${I3}</g>
-${I3}<g class="tm-animate-body">
-${I4}<ellipse cx="50" cy="60" rx="26" ry="22" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="2.4"/>
-${I4}<ellipse cx="40" cy="52" rx="10" ry="5.5" fill="#fff" opacity="0.14"/>
-${I4}<ellipse cx="50" cy="62" rx="16" ry="14" fill="url(#${p}-belly)"/>
-${I4}<path d="M 38 56 Q 50 58 62 56" stroke="#ffe082" stroke-width="1" fill="none" opacity="0.6"/>
-${I4}<path d="M 36 62 Q 50 65 64 62" stroke="#ffe082" stroke-width="0.95" fill="none" opacity="0.55"/>
-${I4}<path d="M 38 68 Q 50 71 62 68" stroke="#ffe082" stroke-width="0.9" fill="none" opacity="0.5"/>
-${I4}<!-- Layered feather rows -->
-${I4}<path d="M 44 50 L 42 56 L 46 56 Z" fill="#ff8a65" stroke="${stroke}" stroke-width="0.7"/>
-${I4}<path d="M 50 48 L 48 54 L 52 54 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.7"/>
-${I4}<path d="M 56 50 L 54 56 L 58 56 Z" fill="#ff8a65" stroke="${stroke}" stroke-width="0.7"/>
-${I4}<circle cx="50" cy="60" r="9" fill="url(#${p}-core)"/>
-${I4}<circle cx="50" cy="60" r="4" fill="#fffde7" opacity="0.75"/>
-${I4}<!-- Head + solar crest -->
-${I4}<ellipse cx="50" cy="28" rx="19" ry="17" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="2.2"/>
-${I4}<ellipse cx="42" cy="22" rx="8" ry="4.5" fill="#fff" opacity="0.14"/>
-${I4}<path d="M 38 18 L 32 4 L 42 16 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.95"/>
-${I4}<path d="M 46 16 L 44 0 L 52 14 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.95"/>
-${I4}<path d="M 54 16 L 56 0 L 48 14 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.95"/>
-${I4}<path d="M 62 18 L 68 4 L 58 16 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.95"/>
-${I4}<path d="M 34 14 L 28 2 L 36 12 Z" fill="#ff8a65" opacity="0.8"/>
-${I4}<path d="M 66 14 L 72 2 L 64 12 Z" fill="#ff8a65" opacity="0.8"/>
-${I4}<circle cx="50" cy="6" r="2" fill="#fffde7" opacity="0.7"/>
-${I4}<path d="M 45 38 L 50 46 L 55 38 Z" fill="#ff8a50" stroke="${stroke}" stroke-width="0.85"/>
-${I4}<circle cx="32" cy="44" r="2" fill="${accent}" opacity="0.55"/>
-${I4}<circle cx="68" cy="46" r="1.8" fill="${flame}" opacity="0.5"/>
-${I3}</g>
-${I3}<g class="tm-animate-arm-left">
-${I4}<ellipse cx="26" cy="58" rx="7" ry="11" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5" transform="rotate(-16 26 58)"/>
-${I4}<path d="M 22 68 L 18 74 M 24 70 L 22 76 M 26 68 L 28 74" stroke="${flame}" stroke-width="1.4" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-arm-right">
-${I4}<ellipse cx="74" cy="58" rx="7" ry="11" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5" transform="rotate(16 74 58)"/>
-${I4}<path d="M 72 68 L 70 74 M 74 70 L 76 76 M 76 68 L 80 74" stroke="${flame}" stroke-width="1.4" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-leg-left">
-${I4}<ellipse cx="38" cy="88" rx="7.5" ry="5.5" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.6"/>
-${I4}<path d="M 32 90 L 28 95 M 37 91 L 37 96 M 42 91 L 42 96 M 46 90 L 50 95" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-leg-right">
-${I4}<ellipse cx="62" cy="88" rx="7.5" ry="5.5" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.6"/>
-${I4}<path d="M 54 90 L 50 95 M 59 91 L 59 96 M 64 91 L 64 96 M 68 90 L 72 95" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round"/>
-${I3}</g>
-${glossyEyes(40, 60, 26, 6, 7, `url(#${p}-iris)`, stroke)}
-${beakMouths(40, stroke)}`;
-    return wrapStage(stage, titles.evo3, defs, body);
+    auraExtra = `${I3}<ellipse cx="50" cy="46" rx="42" ry="40" fill="url(#${p}-corona)" opacity="0.55"/>
+${I3}<ellipse cx="50" cy="46" rx="34" ry="32" fill="none" stroke="#ffea00" stroke-width="1.2" opacity="0.35"/>
+${I3}<ellipse cx="50" cy="46" rx="26" ry="24" fill="none" stroke="#ff3d00" stroke-width="0.8" opacity="0.25"/>`;
+    bodyExtra = `${I4}<!-- Armor-like flame plates -->
+${I4}<path d="M 38 48 L 36 56 L 42 54 Z" fill="#ff8a65" stroke="${stroke}" stroke-width="0.75"/>
+${I4}<path d="M 50 46 L 48 54 L 52 54 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.8"/>
+${I4}<path d="M 62 48 L 58 54 L 64 56 Z" fill="#ff8a65" stroke="${stroke}" stroke-width="0.75"/>
+${I4}<path d="M 34 58 Q 50 62 66 58" stroke="#ffe082" stroke-width="1.15" fill="none" opacity="0.65"/>
+${I4}<path d="M 36 64 Q 50 68 64 64" stroke="#ffe082" stroke-width="1" fill="none" opacity="0.55"/>
+${I4}<path d="M 38 70 Q 50 74 62 70" stroke="#ffab40" stroke-width="0.9" fill="none" opacity="0.45"/>`;
+  } else if (stage === 'evo4') {
+    bodyExtra = `${I4}<!-- Ash scars -->
+${I4}<ellipse cx="36" cy="58" rx="6" ry="5" fill="url(#${p}-ash)" opacity="0.55"/>
+${I4}<ellipse cx="64" cy="62" rx="5" ry="4" fill="url(#${p}-ash)" opacity="0.5"/>
+${I4}<path d="M 54 32 L 58 38 L 56 42" stroke="#90a4ae" stroke-width="1.3" fill="none" opacity="0.7"/>
+${I4}<path d="M 34 56 Q 50 60 66 56" stroke="#ffab40" stroke-width="1" fill="none" opacity="0.45"/>`;
+  } else if (stage === 'evo5') {
+    auraExtra = `${I3}<ellipse cx="50" cy="44" rx="44" ry="42" fill="url(#${p}-corona)" opacity="0.65"/>
+${I3}<ellipse cx="50" cy="44" rx="36" ry="34" fill="none" stroke="#fffde7" stroke-width="1.4" opacity="0.4"/>
+${I3}<ellipse cx="50" cy="44" rx="28" ry="26" fill="none" stroke="#ffd54f" stroke-width="0.9" opacity="0.3"/>`;
+    bodyExtra = `${I4}<path d="M 36 52 Q 50 54 64 52" stroke="#fffde7" stroke-width="1.1" fill="none" opacity="0.55"/>
+${I4}<circle cx="28" cy="40" r="2.2" fill="#fff" opacity="0.55"/>
+${I4}<circle cx="72" cy="38" r="2.2" fill="#fff" opacity="0.5"/>`;
+  } else if (stage === 'evo2') {
+    bodyExtra = `${I4}<path d="M 38 56 Q 50 58 62 56" stroke="#ffe082" stroke-width="0.95" fill="none" opacity="0.55"/>
+${I4}<path d="M 40 62 Q 50 64 60 62" stroke="#ffe082" stroke-width="0.85" fill="none" opacity="0.45"/>`;
   }
 
-  // ── EVO4: crimson ash-mottled elder ──
-  if (stage === 'evo4') {
-    const body = `${shadow(96, 34, 0.26)}
-${I3}<ellipse cx="50" cy="50" rx="42" ry="40" fill="url(#${p}-aura)" opacity="0.85"/>
-${I3}<g class="tm-animate-wing-left">
-${I4}<path d="M 26 52 Q 8 38 6 54 Q 8 68 18 64 Q 24 58 28 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.7"/>
-${I4}<path d="M 14 46 Q 10 52 14 60" stroke="#78909c" stroke-width="0.9" fill="none" opacity="0.45"/>
-${I4}<ellipse cx="12" cy="50" rx="4" ry="3" fill="url(#${p}-ash)" opacity="0.55"/>
-${I4}<path d="M 20 52 Q 16 56 18 62" stroke="${accent}" stroke-width="0.8" fill="none" opacity="0.4"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 74 52 Q 92 38 94 54 Q 92 68 82 64 Q 76 58 72 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.7"/>
-${I4}<path d="M 86 46 Q 90 52 86 60" stroke="#78909c" stroke-width="0.9" fill="none" opacity="0.45"/>
-${I4}<ellipse cx="88" cy="50" rx="4" ry="3" fill="url(#${p}-ash)" opacity="0.55"/>
-${I4}<path d="M 80 52 Q 84 56 82 62" stroke="${accent}" stroke-width="0.8" fill="none" opacity="0.4"/>
-${I3}</g>
-${I3}<g class="tm-animate-tail">
-${I4}<path d="M 60 74 Q 74 90 86 68 Q 90 54 82 50 Q 70 58 60 74 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.5"/>
-${I4}<ellipse cx="84" cy="62" rx="5" ry="4" fill="url(#${p}-ash)" opacity="0.6"/>
-${I4}<path d="M 66 76 Q 78 94 88 72" fill="none" stroke="#ff5722" stroke-width="0.9" opacity="0.45"/>
-${I4}<circle cx="82" cy="58" r="2.2" fill="${accent}" opacity="0.65"/>
-${I3}</g>
-${I3}<g class="tm-animate-body">
-${I4}<ellipse cx="50" cy="62" rx="25" ry="21" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="2.2"/>
-${I4}<ellipse cx="42" cy="54" rx="9" ry="5" fill="#fff" opacity="0.1"/>
-${I4}<!-- Ash mottling -->
-${I4}<ellipse cx="38" cy="60" rx="6" ry="5" fill="url(#${p}-ash)" opacity="0.5"/>
-${I4}<ellipse cx="62" cy="64" rx="5" ry="4" fill="url(#${p}-ash)" opacity="0.45"/>
-${I4}<ellipse cx="48" cy="70" rx="4" ry="3" fill="url(#${p}-ash)" opacity="0.4"/>
-${I4}<ellipse cx="50" cy="64" rx="14" ry="12" fill="url(#${p}-belly)" opacity="0.85"/>
-${I4}<circle cx="50" cy="62" r="8" fill="url(#${p}-core)" opacity="0.9"/>
-${I4}<circle cx="50" cy="62" r="3.5" fill="#ffab40" opacity="0.65"/>
-${I4}<ellipse cx="50" cy="30" rx="18" ry="16" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="2"/>
-${I4}<ellipse cx="40" cy="58" rx="5" ry="3" fill="url(#${p}-ash)" opacity="0.35"/>
-${I4}<path d="M 40 22 L 36 10 L 44 20 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.85"/>
-${I4}<path d="M 50 20 L 50 6 L 54 18 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.85"/>
-${I4}<path d="M 60 22 L 64 10 L 56 20 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.85"/>
-${I4}<path d="M 46 40 L 50 47 L 54 40 Z" fill="#d84315" stroke="${stroke}" stroke-width="0.8"/>
-${I4}<circle cx="34" cy="48" r="1.5" fill="#78909c" opacity="0.5"/>
-${I4}<circle cx="66" cy="50" r="1.4" fill="#78909c" opacity="0.45"/>
-${I4}<circle cx="44" cy="74" r="1.2" fill="#ff5722" opacity="0.35"/>
-${I3}</g>
-${I3}<g class="tm-animate-arm-left">
-${I4}<ellipse cx="28" cy="60" rx="6" ry="10" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.4" transform="rotate(-18 28 60)"/>
-${I4}<ellipse cx="24" cy="66" rx="3" ry="2.5" fill="url(#${p}-ash)" opacity="0.45"/>
-${I4}<path d="M 24 70 L 20 76 M 26 72 L 24 78" stroke="#5d4037" stroke-width="1.3" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-arm-right">
-${I4}<ellipse cx="72" cy="60" rx="6" ry="10" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.4" transform="rotate(18 72 60)"/>
-${I4}<ellipse cx="76" cy="66" rx="3" ry="2.5" fill="url(#${p}-ash)" opacity="0.45"/>
-${I4}<path d="M 74 70 L 76 76 M 72 72 L 74 78" stroke="#5d4037" stroke-width="1.3" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-leg-left">
-${I4}<ellipse cx="40" cy="88" rx="7" ry="5" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5"/>
-${I4}<path d="M 34 90 L 30 95 M 39 91 L 39 96 M 44 91 L 48 95" stroke="#4e342e" stroke-width="1.4" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-leg-right">
-${I4}<ellipse cx="60" cy="88" rx="7" ry="5" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5"/>
-${I4}<path d="M 52 90 L 48 95 M 57 91 L 57 96 M 62 91 L 66 95" stroke="#4e342e" stroke-width="1.4" stroke-linecap="round"/>
-${I3}</g>
-${glossyEyes(41, 59, 28, 5, 5.8, `url(#${p}-iris)`, stroke, '#fff3e0')}
-${beakMouths(42, stroke, '#d84315')}`;
-    return wrapStage(stage, titles.evo4, defs, body);
-  }
+  const armY = stage === 'baby' ? 64 : 58;
+  const legY = boss ? 88 : 86;
 
-  // ── EVO5: white-gold immortal with aura ──
-  const body = `${shadow(98, 38, 0.22)}
-${I3}<ellipse cx="50" cy="46" rx="48" ry="46" fill="url(#${p}-aura)"/>
-${I3}<ellipse cx="50" cy="46" rx="40" ry="38" fill="none" stroke="#fff59d" stroke-width="1.2" opacity="0.35"/>
-${I3}<ellipse cx="50" cy="46" rx="32" ry="30" fill="none" stroke="#ffecb3" stroke-width="0.8" opacity="0.25"/>
-${I3}<g class="tm-animate-wing-left">
-${I4}<path d="M 22 46 Q 0 20 -2 42 Q 0 64 12 60 Q 20 54 24 50 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.9" opacity="0.95"/>
-${I4}<path d="M 8 32 Q 4 40 8 50" stroke="#fffde7" stroke-width="1" fill="none" opacity="0.55"/>
-${I4}<path d="M 6 40 Q 2 46 6 54" stroke="#ffecb3" stroke-width="0.85" fill="none" opacity="0.45"/>
-${I4}<circle cx="4" cy="36" r="1.5" fill="#fff" opacity="0.6"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 78 46 Q 100 20 102 42 Q 100 64 88 60 Q 80 54 76 50 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.9" opacity="0.95"/>
-${I4}<path d="M 92 32 Q 96 40 92 50" stroke="#fffde7" stroke-width="1" fill="none" opacity="0.55"/>
-${I4}<path d="M 94 40 Q 98 46 94 54" stroke="#ffecb3" stroke-width="0.85" fill="none" opacity="0.45"/>
-${I4}<circle cx="96" cy="36" r="1.5" fill="#fff" opacity="0.6"/>
-${I3}</g>
-${I3}<g class="tm-animate-tail">
-${I4}<path d="M 56 68 Q 70 98 90 60 Q 96 38 86 34 Q 72 42 56 68 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.6" opacity="0.9"/>
-${I4}<path d="M 62 70 Q 74 100 92 66" fill="url(#${p}-wing)" opacity="0.5" stroke="#fff9c4" stroke-width="0.9"/>
-${I4}<path d="M 66 66 Q 78 92 94 62" fill="none" stroke="#fffde7" stroke-width="1.1" opacity="0.5"/>
-${I4}<circle cx="90" cy="52" r="3.2" fill="#fff59d" opacity="0.9"/>
-${I4}<circle cx="89" cy="51" r="1.3" fill="#fff" opacity="0.7"/>
-${I3}</g>
+  const body = `${shadow(c.shadowRx, boss ? 0.32 : 0.24)}
+${I3}<ellipse cx="50" cy="48" rx="${c.auraR}" ry="${(c.auraR * 0.94).toFixed(0)}" fill="url(#${p}-aura)"/>
+${auraExtra}
+${emberSparks(c.sparks)}
+${wings}
+${tail}
 ${I3}<g class="tm-animate-body">
-${I4}<ellipse cx="50" cy="58" rx="24" ry="20" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="2.2"/>
-${I4}<ellipse cx="42" cy="50" rx="10" ry="5.5" fill="#fff" opacity="0.28"/>
-${I4}<ellipse cx="50" cy="60" rx="15" ry="13" fill="url(#${p}-belly)"/>
-${I4}<path d="M 38 54 Q 50 56 62 54" stroke="#fff9c4" stroke-width="0.95" fill="none" opacity="0.55"/>
-${I4}<circle cx="50" cy="58" r="9" fill="url(#${p}-core)"/>
-${I4}<circle cx="50" cy="58" r="4" fill="#fff" opacity="0.8"/>
-${I4}<ellipse cx="50" cy="26" rx="18" ry="16" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="2"/>
-${I4}<!-- Golden solar halo -->
-${I4}<ellipse cx="50" cy="8" rx="16" ry="4" fill="none" stroke="#fff59d" stroke-width="1.3" opacity="0.55"/>
-${I4}<path d="M 36 16 L 30 0 L 40 14 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.9"/>
-${I4}<path d="M 44 14 L 42 -2 L 50 12 Z" fill="#fff59d" stroke="${stroke}" stroke-width="0.9"/>
-${I4}<path d="M 56 14 L 58 -2 L 50 12 Z" fill="#fff59d" stroke="${stroke}" stroke-width="0.9"/>
-${I4}<path d="M 64 16 L 70 0 L 60 14 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.9"/>
-${I4}<circle cx="50" cy="-2" r="2.2" fill="#fffde7" opacity="0.85"/>
-${I4}<circle cx="28" cy="38" r="2" fill="#fff" opacity="0.55"/>
-${I4}<circle cx="72" cy="36" r="2" fill="#fff" opacity="0.5"/>
-${I4}<path d="M 45 36 L 50 44 L 55 36 Z" fill="#ffcc80" stroke="${stroke}" stroke-width="0.85"/>
+${I4}<ellipse cx="50" cy="${c.bodyY}" rx="${c.bodyRx}" ry="${c.bodyRy}" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="${boss ? 2.5 : 1.8}"/>
+${I4}<ellipse cx="${(50 - c.bodyRx + 8).toFixed(1)}" cy="${c.bodyY - 8}" rx="9" ry="5" fill="#fff" opacity="0.16"/>
+${I4}<ellipse cx="50" cy="${c.bodyY + 2}" rx="${(c.bodyRx - 8).toFixed(1)}" ry="${(c.bodyRy - 6).toFixed(1)}" fill="url(#${p}-belly)"/>
+${bodyExtra}
+${I4}<circle cx="50" cy="${c.bodyY}" r="${boss ? 10 : 7.5}" fill="url(#${p}-core)"/>
+${I4}<circle cx="50" cy="${c.bodyY}" r="${boss ? 4.5 : 3.2}" fill="#fffde7" opacity="${boss ? 0.85 : 0.7}"/>
+${I4}<!-- Head -->
+${I4}<ellipse cx="50" cy="${c.headY}" rx="${c.headRx}" ry="${c.headRy}" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="${boss ? 2.3 : 1.7}"/>
+${I4}<ellipse cx="${(50 - c.headRx + 7).toFixed(1)}" cy="${c.headY - 5}" rx="7" ry="4" fill="#fff" opacity="0.15"/>
+${crest}
+${I4}<circle cx="34" cy="${c.headY + 6}" r="${boss ? 4.5 : 3.8}" fill="url(#${p}-cheek)"/>
+${I4}<circle cx="66" cy="${c.headY + 6}" r="${boss ? 4.5 : 3.8}" fill="url(#${p}-cheek)"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-arm-left">
-${I4}<ellipse cx="26" cy="56" rx="6.5" ry="10" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.4" transform="rotate(-14 26 56)"/>
-${I4}<path d="M 22 66 L 18 72 M 24 68 L 22 74" stroke="#ffab40" stroke-width="1.3" stroke-linecap="round"/>
+${I4}<ellipse cx="26" cy="${armY}" rx="${boss ? 7.5 : 6}" ry="${boss ? 12 : 9}" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.4" transform="rotate(-20 26 ${armY})"/>
+${I4}<path d="M 22 ${armY + 10} L 16 ${armY + 18} M 24 ${armY + 12} L 22 ${armY + 20} M 26 ${armY + 10} L 30 ${armY + 18}" stroke="${flame}" stroke-width="${boss ? 1.6 : 1.3}" stroke-linecap="round"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-arm-right">
-${I4}<ellipse cx="74" cy="56" rx="6.5" ry="10" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.4" transform="rotate(14 74 56)"/>
-${I4}<path d="M 74 66 L 76 72 M 72 68 L 74 74" stroke="#ffab40" stroke-width="1.3" stroke-linecap="round"/>
+${I4}<ellipse cx="74" cy="${armY}" rx="${boss ? 7.5 : 6}" ry="${boss ? 12 : 9}" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.4" transform="rotate(20 74 ${armY})"/>
+${I4}<path d="M 74 ${armY + 10} L 70 ${armY + 18} M 76 ${armY + 12} L 78 ${armY + 20} M 78 ${armY + 10} L 84 ${armY + 18}" stroke="${flame}" stroke-width="${boss ? 1.6 : 1.3}" stroke-linecap="round"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-leg-left">
-${I4}<ellipse cx="38" cy="86" rx="7" ry="5" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5" opacity="0.9"/>
-${I4}<path d="M 32 88 L 28 93 M 37 89 L 37 94 M 42 89 L 46 93" stroke="${stroke}" stroke-width="1.3" stroke-linecap="round"/>
+${I4}<ellipse cx="38" cy="${legY}" rx="${boss ? 8 : 6.5}" ry="${boss ? 6 : 5}" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5"/>
+${I4}<path d="M 32 ${legY + 2} L 26 ${legY + 8} M 37 ${legY + 3} L 37 ${legY + 10} M 42 ${legY + 3} L 42 ${legY + 10} M 46 ${legY + 2} L 52 ${legY + 8}" stroke="${stroke}" stroke-width="${boss ? 1.7 : 1.4}" stroke-linecap="round"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-leg-right">
-${I4}<ellipse cx="62" cy="86" rx="7" ry="5" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5" opacity="0.9"/>
-${I4}<path d="M 54 88 L 50 93 M 59 89 L 59 94 M 64 89 L 68 93" stroke="${stroke}" stroke-width="1.3" stroke-linecap="round"/>
+${I4}<ellipse cx="62" cy="${legY}" rx="${boss ? 8 : 6.5}" ry="${boss ? 6 : 5}" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5"/>
+${I4}<path d="M 54 ${legY + 2} L 48 ${legY + 8} M 59 ${legY + 3} L 59 ${legY + 10} M 64 ${legY + 3} L 64 ${legY + 10} M 68 ${legY + 2} L 74 ${legY + 8}" stroke="${stroke}" stroke-width="${boss ? 1.7 : 1.4}" stroke-linecap="round"/>
 ${I3}</g>
-${glossyEyes(40, 60, 24, 5.5, 6.5, `url(#${p}-iris)`, stroke, '#fffde7')}
-${beakMouths(38, stroke, '#ffcc80')}`;
-  return wrapStage(stage, titles.evo5, defs, body);
+${fierceEyes(40, 60, c.eyeY, c.eyeRx, c.eyeRy, `url(#${p}-iris)`, stroke, {
+    angry, sclera: stage === 'evo5' ? '#fffde7' : '#fff8e1', glow: stage === 'evo5' ? '#fff' : '#fffde7',
+  })}
+${hookedBeak(c.beakY, stroke, stage === 'evo5' ? '#ffcc80' : stage === 'evo4' ? '#d84315' : '#ff6d00', c.beakSize)}`;
+
+  return wrapStage(stage, titles[stage], defs, body);
 }
 
 export const phoenixSvg = [
-  `${I}<!-- PHOENIX CHARACTER - All Life Stages (dense cute epic v3) -->`,
+  `${I}<!-- PHOENIX CHARACTER - All Life Stages (dense cute epic v4 · BOSS MYTHICAL) -->`,
   `${I}<!-- Solar Flame • Legendary Rarity • Ashborn Phoenix -->`,
   `${I}<!-- ═══════════════════════════════════════ -->`,
   '',
