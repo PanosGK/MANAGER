@@ -16218,15 +16218,16 @@ function playEpicSound() {
     }
 }
 
-function screenShake(duration = 500) {
+function screenShake(duration = 500, intensityMax = 5) {
     const body = document.body;
     const originalTransform = body.style.transform;
     const startTime = Date.now();
-    
+    const peak = Math.max(0.5, intensityMax);
+
     const shake = () => {
         const elapsed = Date.now() - startTime;
         if (elapsed < duration) {
-            const intensity = (1 - elapsed / duration) * 5;
+            const intensity = (1 - elapsed / duration) * peak;
             const x = (Math.random() - 0.5) * intensity;
             const y = (Math.random() - 0.5) * intensity;
             body.style.transform = `translate(${x}px, ${y}px)`;
@@ -16270,12 +16271,12 @@ function cancelTamagotchiCinematics() {
     const mascotContainer = document.getElementById('tm-mascot-container');
     mascotContainer?.classList.remove(
         'mascot-hatching', 'mascot-dying', 'mascot-executed',
-        'mascot-exec-scared', 'mascot-exec-hit', 'mascot-exec-dissolve',
+        'mascot-exec-scared', 'mascot-exec-hit', 'mascot-exec-dying', 'mascot-exec-dissolve',
     );
 }
 
 function ensureTamaCinematicStyles() {
-    const STYLE_VER = 'lucky-v4';
+    const STYLE_VER = 'lucky-v5';
     const existing = document.getElementById('tm-tama-cinematic-styles');
     if (existing?.dataset.tmVer === STYLE_VER) return;
     existing?.remove();
@@ -16553,37 +16554,6 @@ function ensureTamaCinematicStyles() {
             filter: blur(1px);
             transition: opacity 0.45s ease, filter 0.45s ease;
         }
-        .tm-tama-death-scene {
-            position: relative;
-            height: 200px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-        .tm-tama-death-mascot {
-            font-size: 64px;
-            position: absolute;
-            left: 50%;
-            bottom: 20px;
-            transform: translateX(-50%);
-            filter: grayscale(1);
-            opacity: 0.7;
-            animation: tm-death-fade-mascot 2s ease-out forwards;
-        }
-        .tm-tama-death-ghost {
-            font-size: 48px;
-            position: absolute;
-            left: 50%;
-            bottom: 30px;
-            transform: translateX(-50%);
-            opacity: 0;
-            animation: tm-death-ghost-rise 3s ease-out 0.5s forwards;
-        }
-        .tm-tama-death-stars span {
-            position: absolute;
-            font-size: 12px;
-            opacity: 0;
-            animation: tm-death-star 2s ease-out infinite;
-        }
         .tm-tama-death-message {
             font-size: 16px;
             color: #b0b0c0;
@@ -16630,9 +16600,12 @@ function ensureTamaCinematicStyles() {
             animation: tm-egg-core-pulse 0.8s ease-in-out infinite;
         }
         #tm-mascot-container.mascot-dying {
-            filter: grayscale(1);
-            opacity: 0.6;
-            transition: filter 2s, opacity 2s;
+            pointer-events: none;
+        }
+        #tm-mascot-container.mascot-dying .tm-mascot-robot {
+            transform-origin: 50% 85%;
+            animation: tm-death-collapse 2.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards !important;
+            filter: grayscale(0.4);
         }
         #tm-mascot-container.mascot-dead .tm-mascot-robot {
             filter: grayscale(1);
@@ -16671,18 +16644,95 @@ function ensureTamaCinematicStyles() {
             from { opacity: 0; transform: translateY(18px) scale(0.98); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
+        @keyframes tm-death-collapse {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); filter: grayscale(0.2) brightness(1); opacity: 1; }
+            12% { transform: translate(-10px, -8px) rotate(-14deg) scale(1.06); filter: grayscale(0.35) brightness(1.1); }
+            28% { transform: translate(12px, 2px) rotate(10deg) scale(0.98); }
+            42% { transform: translate(-6px, 10px) rotate(-22deg) scale(0.94); filter: grayscale(0.7) brightness(0.75); }
+            58% { transform: translate(4px, 22px) rotate(-48deg) scale(0.9); }
+            74% { transform: translate(0, 36px) rotate(-78deg) scale(0.86); filter: grayscale(1) brightness(0.45); opacity: 0.75; }
+            100% { transform: translate(0, 44px) rotate(-90deg) scale(0.82); filter: grayscale(1) brightness(0.3) blur(1.5px); opacity: 0.25; }
+        }
         @keyframes tm-death-fade-mascot {
-            to { opacity: 0.2; transform: translateX(-50%) scale(0.9); }
+            0% { opacity: 0.85; transform: translateX(-50%) scale(1) rotate(0deg); filter: grayscale(0.3); }
+            40% { opacity: 0.7; transform: translateX(-50%) translateY(8px) scale(0.96) rotate(-8deg); filter: grayscale(0.7); }
+            100% { opacity: 0.15; transform: translateX(-50%) translateY(28px) scale(0.85) rotate(-25deg); filter: grayscale(1); }
         }
         @keyframes tm-death-ghost-rise {
-            0% { opacity: 0; transform: translateX(-50%) translateY(0); }
-            20% { opacity: 1; }
-            100% { opacity: 0; transform: translateX(-50%) translateY(-120px); }
+            0% { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.7); filter: blur(2px); }
+            18% { opacity: 1; transform: translateX(-50%) translateY(-8px) scale(1.05); filter: blur(0); }
+            55% { opacity: 0.85; }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-150px) scale(1.15); filter: blur(4px); }
         }
         @keyframes tm-death-star {
-            0% { opacity: 0; transform: scale(0); }
-            50% { opacity: 1; transform: scale(1); }
-            100% { opacity: 0; transform: scale(0.5); }
+            0% { opacity: 0; transform: scale(0) rotate(0deg); }
+            40% { opacity: 1; transform: scale(1.2) rotate(20deg); }
+            100% { opacity: 0; transform: scale(0.4) rotate(-10deg); }
+        }
+        @keyframes tm-death-ripple {
+            0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.7; }
+            100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
+        }
+        @keyframes tm-death-title-in {
+            0% { opacity: 0; letter-spacing: 0.6em; transform: scale(1.2); }
+            30% { opacity: 1; letter-spacing: 0.22em; transform: scale(1); }
+            80% { opacity: 1; }
+            100% { opacity: 0.85; letter-spacing: 0.18em; }
+        }
+        .tm-tama-death-scene {
+            position: relative;
+            height: 240px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .tm-tama-death-ripple {
+            position: absolute;
+            left: 50%;
+            top: 58%;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid rgba(180, 190, 220, 0.45);
+            pointer-events: none;
+            animation: tm-death-ripple 2.2s ease-out forwards;
+        }
+        .tm-tama-death-ripple:nth-child(2) { animation-delay: 0.35s; border-color: rgba(140, 160, 220, 0.3); }
+        .tm-tama-death-title {
+            font-size: clamp(22px, 5vw, 36px);
+            font-weight: 800;
+            color: #e8e8f0;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            margin: 0 0 8px;
+            text-shadow: 0 0 28px rgba(120, 140, 200, 0.45);
+            animation: tm-death-title-in 2.8s ease-out forwards;
+        }
+        .tm-tama-death-mascot {
+            font-size: 72px;
+            position: absolute;
+            left: 50%;
+            bottom: 28px;
+            transform: translateX(-50%);
+            filter: grayscale(1);
+            opacity: 0.7;
+            animation: tm-death-fade-mascot 2.6s ease-out forwards;
+        }
+        .tm-tama-death-ghost {
+            font-size: 52px;
+            position: absolute;
+            left: 50%;
+            bottom: 40px;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: tm-death-ghost-rise 3.4s ease-out 0.45s forwards;
+            filter: drop-shadow(0 0 16px rgba(180, 200, 255, 0.7));
+        }
+        .tm-tama-death-stars span {
+            position: absolute;
+            font-size: 14px;
+            opacity: 0;
+            color: #c8d0ff;
+            animation: tm-death-star 2.4s ease-out infinite;
         }
         @keyframes tm-egg-crack-grow {
             from { stroke-dashoffset: 20; opacity: 0.3; }
@@ -16697,7 +16747,7 @@ function ensureTamaCinematicStyles() {
 }
 
 function ensureMascotExecutionStyles() {
-    const STYLE_VER = 'inplace-v3';
+    const STYLE_VER = 'inplace-v5';
     const existing = document.getElementById('tm-tama-execution-styles');
     if (existing?.dataset.tmVer === STYLE_VER) return;
     existing?.remove();
@@ -16725,6 +16775,18 @@ function ensureMascotExecutionStyles() {
         .tm-exec-inplace.is-firing .tm-exec-inplace-vignette {
             background: radial-gradient(ellipse 50% 45% at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%),
                 rgba(90, 0, 12, 0.35) 0%, transparent 72%);
+        }
+        .tm-exec-inplace.is-dying .tm-exec-inplace-vignette {
+            opacity: 1;
+            background:
+                radial-gradient(ellipse 55% 50% at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%),
+                    rgba(20, 0, 8, 0.55) 0%, transparent 68%),
+                rgba(0, 0, 0, 0.42);
+            animation: tm-exec-vignette-die 2.4s ease-out forwards;
+        }
+        .tm-exec-inplace.is-dying {
+            transition: filter 0.8s ease;
+            filter: saturate(0.55) contrast(1.08);
         }
         .tm-exec-gun-wrap {
             position: fixed;
@@ -16899,106 +16961,149 @@ function ensureMascotExecutionStyles() {
             position: absolute;
             inset: 0;
             background:
-                radial-gradient(ellipse 90% 80% at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%),
-                    rgba(150, 0, 12, 0.58) 0%, rgba(80, 0, 6, 0.32) 42%, rgba(40, 0, 0, 0.2) 100%),
-                rgba(55, 0, 0, 0.28);
+                radial-gradient(ellipse 70% 60% at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%),
+                    rgba(150, 0, 12, 0.28) 0%, rgba(80, 0, 6, 0.12) 45%, transparent 75%);
             opacity: 0;
+            pointer-events: none;
         }
         .tm-exec-blood-wash.show {
-            animation: tm-exec-blood-wash 0.65s ease-out forwards;
+            animation: tm-exec-blood-wash 0.45s ease-out forwards;
         }
         .tm-exec-blood-flash {
             position: absolute;
             inset: 0;
             background: radial-gradient(circle at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%),
-                rgba(210, 0, 18, 0.8) 0%, rgba(130, 0, 10, 0.45) 26%, rgba(70, 0, 0, 0.2) 52%, transparent 78%);
+                rgba(210, 0, 18, 0.45) 0%, rgba(130, 0, 10, 0.18) 28%, transparent 58%);
             opacity: 0;
+            pointer-events: none;
         }
         .tm-exec-blood-flash.show {
-            animation: tm-exec-blood-flash 0.55s ease-out forwards;
+            animation: tm-exec-blood-flash 0.28s ease-out forwards;
         }
         .tm-exec-blood-splat {
             position: absolute;
             border-radius: 50% 40% 55% 45%;
-            background: radial-gradient(circle at 35% 30%, #e01822 0%, #9a050c 50%, #3d0003 100%);
-            box-shadow:
-                inset -2px -3px 6px rgba(0,0,0,0.35),
-                0 0 0 1px rgba(60,0,0,0.25);
+            background: radial-gradient(circle at 35% 30%, #e01822 0%, #9a050c 55%, #3d0003 100%);
             opacity: 0;
-            transform: scale(0.15) rotate(var(--rot, 0deg));
-            will-change: transform, opacity;
-            animation: tm-exec-splat-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            animation-delay: var(--delay, 0ms);
+            transform: scale(0.2) rotate(var(--rot, 0deg));
+            animation: tm-exec-splat-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation-delay: 0ms;
+            pointer-events: none;
         }
-        .tm-exec-blood-splat::before,
-        .tm-exec-blood-splat::after {
-            content: '';
-            position: absolute;
-            border-radius: 50%;
-            background: inherit;
-            opacity: 0.9;
-        }
-        .tm-exec-blood-splat::before {
-            width: 42%; height: 38%; top: -18%; left: 55%; transform: rotate(25deg);
-        }
-        .tm-exec-blood-splat::after {
-            width: 28%; height: 32%; bottom: -12%; left: 10%; transform: rotate(-30deg);
-        }
-        .tm-exec-blood-splat.is-drip {
-            border-radius: 40% 40% 60% 60% / 20% 20% 80% 80%;
-            animation: tm-exec-splat-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards,
-                       tm-exec-drip 1.4s ease-in var(--delay, 0ms) forwards;
-        }
-        .tm-exec-blood-splat.is-streak {
-            border-radius: 60% 20% 60% 20%;
-            filter: blur(0.3px);
-            animation: tm-exec-streak 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-            animation-delay: var(--delay, 0ms);
-        }
-        .tm-exec-blood-mist {
-            position: absolute;
-            inset: -5%;
-            background:
-                radial-gradient(ellipse 75% 65% at var(--tm-exec-aim-x, 50%) var(--tm-exec-aim-y, 50%), rgba(140, 0, 12, 0.55) 0%, transparent 70%),
-                radial-gradient(ellipse 55% 50% at 12% 18%, rgba(110, 0, 8, 0.42) 0%, transparent 70%),
-                radial-gradient(ellipse 60% 55% at 88% 78%, rgba(90, 0, 6, 0.4) 0%, transparent 70%),
-                radial-gradient(ellipse 50% 45% at 72% 12%, rgba(100, 0, 7, 0.35) 0%, transparent 65%),
-                radial-gradient(ellipse 48% 42% at 22% 85%, rgba(80, 0, 5, 0.36) 0%, transparent 65%);
-            opacity: 0;
-        }
-        .tm-exec-blood-mist.show {
-            animation: tm-exec-blood-mist 1.2s ease-out forwards;
+        /* Lite splats: no pseudo-elements / no will-change (keeps FPS up) */
+        .tm-exec-blood-splat--lite::before,
+        .tm-exec-blood-splat--lite::after {
+            content: none !important;
+            display: none !important;
         }
         @keyframes tm-exec-blood-wash {
             0% { opacity: 0; }
-            30% { opacity: 1; }
-            100% { opacity: 0.88; }
+            35% { opacity: 0.55; }
+            100% { opacity: 0.28; }
         }
         #tm-mascot-container.mascot-exec-scared .tm-mascot-robot {
-            animation: tm-exec-tense 0.9s ease-in-out infinite !important;
+            animation: tm-exec-tense 0.55s ease-in-out infinite !important;
         }
         #tm-mascot-container.mascot-exec-hit .tm-mascot-robot {
-            animation: none !important;
-            filter: grayscale(0.85) brightness(0.55) contrast(1.1) drop-shadow(0 0 12px rgba(255,60,60,0.35)) !important;
+            animation: tm-exec-flinch 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) forwards !important;
+            filter: grayscale(0.75) brightness(0.5) contrast(1.15) drop-shadow(0 0 14px rgba(255,50,50,0.45)) !important;
+        }
+        #tm-mascot-container.mascot-exec-dying {
+            pointer-events: none;
+            z-index: 10001 !important;
+        }
+        #tm-mascot-container.mascot-exec-dying .tm-mascot-robot {
+            transform-origin: 50% 88%;
+            animation: tm-exec-die-collapse 1.9s cubic-bezier(0.4, 0.02, 0.35, 1) forwards !important;
         }
         #tm-mascot-container.mascot-exec-dissolve {
-            animation: tm-exec-dissolve 1.1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation: tm-exec-dissolve 1.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             pointer-events: none;
         }
         #tm-mascot-container.mascot-exec-scared #tm-mascot-speech-bubble,
         #tm-mascot-container.mascot-exec-hit #tm-mascot-speech-bubble,
+        #tm-mascot-container.mascot-exec-dying #tm-mascot-speech-bubble,
         #tm-mascot-container.mascot-exec-dissolve #tm-mascot-speech-bubble {
             display: none !important;
         }
+        .tm-exec-soul {
+            position: fixed;
+            left: var(--tm-exec-aim-x, 50%);
+            top: var(--tm-exec-aim-y, 50%);
+            margin: -28px 0 0 -28px;
+            width: 56px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 44px;
+            line-height: 1;
+            opacity: 0;
+            z-index: 14;
+            pointer-events: none;
+            filter: drop-shadow(0 0 18px rgba(190, 210, 255, 0.85));
+        }
+        .tm-exec-soul.show {
+            animation: tm-exec-soul-rise 2.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .tm-exec-epitaph {
+            position: fixed;
+            left: 50%;
+            top: 38%;
+            transform: translate(-50%, -50%);
+            z-index: 16;
+            pointer-events: none;
+            text-align: center;
+            opacity: 0;
+        }
+        .tm-exec-epitaph.show {
+            animation: tm-exec-epitaph-in 2.6s ease-out forwards;
+        }
+        .tm-exec-epitaph-title {
+            font-size: clamp(28px, 7vw, 64px);
+            font-weight: 900;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: #f2ecec;
+            text-shadow:
+                0 0 40px rgba(180, 20, 40, 0.55),
+                0 0 80px rgba(80, 0, 20, 0.4),
+                0 6px 24px rgba(0, 0, 0, 0.85);
+            margin: 0;
+        }
+        .tm-exec-epitaph-sub {
+            margin: 14px 0 0;
+            font-size: clamp(13px, 2.4vw, 18px);
+            letter-spacing: 0.12em;
+            color: rgba(220, 200, 200, 0.75);
+            font-style: italic;
+        }
+        .tm-exec-soul-spark {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff 0%, #a8c0ff 45%, transparent 70%);
+            box-shadow: 0 0 10px rgba(180, 200, 255, 0.8);
+            opacity: 0;
+            z-index: 13;
+            pointer-events: none;
+            left: var(--tm-exec-aim-x, 50%);
+            top: var(--tm-exec-aim-y, 50%);
+            margin: -3px 0 0 -3px;
+        }
+        .tm-exec-soul-spark.show {
+            animation: tm-exec-soul-spark 1.8s ease-out forwards;
+        }
         @keyframes tm-exec-blood-flash {
             0% { opacity: 0; }
-            20% { opacity: 1; }
-            100% { opacity: 0.55; }
+            30% { opacity: 0.85; }
+            100% { opacity: 0; }
         }
         @keyframes tm-exec-splat-in {
-            0% { opacity: 0; transform: scale(0.1) rotate(var(--rot, 0deg)); }
-            55% { opacity: 1; transform: scale(1.08) rotate(var(--rot, 0deg)); }
-            100% { opacity: 0.92; transform: scale(1) rotate(var(--rot, 0deg)); }
+            0% { opacity: 0; transform: scale(0.15) rotate(var(--rot, 0deg)); }
+            50% { opacity: 0.9; transform: scale(1.05) rotate(var(--rot, 0deg)); }
+            100% { opacity: 0.72; transform: scale(1) rotate(var(--rot, 0deg)); }
         }
         @keyframes tm-exec-drip {
             0% { height: var(--h, 24px); }
@@ -17016,8 +17121,24 @@ function ensureMascotExecutionStyles() {
         }
         @keyframes tm-exec-tense {
             0%, 100% { transform: translateX(0) scale(1); }
-            25% { transform: translateX(-1.5px) scale(0.99); }
-            75% { transform: translateX(1.5px) scale(1.01); }
+            25% { transform: translateX(-2.5px) scale(0.97); }
+            75% { transform: translateX(2.5px) scale(1.02); }
+        }
+        @keyframes tm-exec-flinch {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            18% { transform: translate(-18px, 6px) rotate(-16deg) scale(0.94); }
+            40% { transform: translate(10px, -4px) rotate(8deg) scale(1.04); }
+            70% { transform: translate(-8px, 10px) rotate(-6deg) scale(0.98); }
+            100% { transform: translate(-4px, 12px) rotate(-3deg) scale(0.97); }
+        }
+        @keyframes tm-exec-die-collapse {
+            0% { transform: translate(-4px, 12px) rotate(-3deg) scale(0.97); filter: grayscale(0.6) brightness(0.55); opacity: 1; }
+            14% { transform: translate(-14px, -10px) rotate(-20deg) scale(1.08); filter: grayscale(0.4) brightness(0.9) drop-shadow(0 0 16px rgba(255,80,80,0.5)); }
+            28% { transform: translate(14px, 4px) rotate(14deg) scale(0.96); }
+            44% { transform: translate(-6px, 16px) rotate(-28deg) scale(0.92); filter: grayscale(0.85) brightness(0.45); }
+            62% { transform: translate(2px, 34px) rotate(-62deg) scale(0.88); opacity: 0.85; }
+            82% { transform: translate(0, 48px) rotate(-88deg) scale(0.82); filter: grayscale(1) brightness(0.3) blur(1px); opacity: 0.45; }
+            100% { transform: translate(0, 54px) rotate(-92deg) scale(0.78); filter: grayscale(1) brightness(0.2) blur(3px); opacity: 0.08; }
         }
         @keyframes tm-exec-gun-enter {
             0% { transform: translate3d(80px, 8px, 0) rotate(-4deg); opacity: 0; }
@@ -17058,68 +17179,146 @@ function ensureMascotExecutionStyles() {
         }
         @keyframes tm-exec-dissolve {
             0% { opacity: 1; filter: none; }
-            35% { opacity: 0.85; filter: blur(1px); }
-            100% { opacity: 0; filter: blur(6px); }
+            40% { opacity: 0.7; filter: blur(2px) brightness(1.3); }
+            100% { opacity: 0; filter: blur(10px) brightness(1.6); }
         }
         @keyframes tm-exec-smoke {
             0% { opacity: 0.55; transform: translateY(0) scale(0.6); }
             100% { opacity: 0; transform: translateY(-56px) scale(1.8); }
         }
+        @keyframes tm-exec-soul-rise {
+            0% { opacity: 0; transform: translateY(12px) scale(0.55); filter: blur(3px) drop-shadow(0 0 8px rgba(180,200,255,0.4)); }
+            15% { opacity: 1; transform: translateY(-6px) scale(1.1); filter: blur(0) drop-shadow(0 0 22px rgba(190,210,255,0.9)); }
+            55% { opacity: 0.9; }
+            100% { opacity: 0; transform: translateY(-160px) scale(1.25); filter: blur(5px) drop-shadow(0 0 30px rgba(200,220,255,0.3)); }
+        }
+        @keyframes tm-exec-epitaph-in {
+            0% { opacity: 0; transform: translate(-50%, -40%) scale(1.25); filter: blur(8px); }
+            25% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0); }
+            75% { opacity: 1; }
+            100% { opacity: 0; transform: translate(-50%, -58%) scale(0.96); filter: blur(2px); }
+        }
+        @keyframes tm-exec-soul-spark {
+            0% { opacity: 0; transform: translate(0, 0) scale(0.4); }
+            20% { opacity: 1; }
+            100% { opacity: 0; transform: translate(var(--sx, 40px), var(--sy, -90px)) scale(0.2); }
+        }
+        @keyframes tm-exec-vignette-die {
+            0% { opacity: 0.35; }
+            40% { opacity: 1; }
+            100% { opacity: 0.85; }
+        }
     `;
     document.head.appendChild(style);
 }
 
+let tmExecAudioCtx = null;
+function getExecAudioContext() {
+    try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        if (!tmExecAudioCtx || tmExecAudioCtx.state === 'closed') {
+            tmExecAudioCtx = new AC();
+        }
+        if (tmExecAudioCtx.state === 'suspended') {
+            tmExecAudioCtx.resume().catch(() => {});
+        }
+        return tmExecAudioCtx;
+    } catch {
+        return null;
+    }
+}
+
 function playGunshotSound() {
     try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const ctx = getExecAudioContext();
+        if (!ctx) return;
         const now = ctx.currentTime;
 
-        const noiseLen = 0.28;
+        const noiseLen = 0.18;
         const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * noiseLen), ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < data.length; i++) {
             const t = i / data.length;
-            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 1.6);
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 1.8);
         }
         const noise = ctx.createBufferSource();
         noise.buffer = buffer;
         const noiseFilter = ctx.createBiquadFilter();
         noiseFilter.type = 'bandpass';
-        noiseFilter.frequency.setValueAtTime(900, now);
-        noiseFilter.frequency.exponentialRampToValueAtTime(220, now + 0.22);
-        noiseFilter.Q.value = 0.7;
+        noiseFilter.frequency.setValueAtTime(850, now);
+        noiseFilter.frequency.exponentialRampToValueAtTime(240, now + 0.14);
+        noiseFilter.Q.value = 0.8;
         const noiseGain = ctx.createGain();
-        noiseGain.gain.setValueAtTime(0.28, now);
+        noiseGain.gain.setValueAtTime(0.3, now);
         noiseGain.gain.exponentialRampToValueAtTime(0.01, now + noiseLen);
         noise.connect(noiseFilter);
         noiseFilter.connect(noiseGain);
         noiseGain.connect(ctx.destination);
         noise.start(now);
+        noise.stop(now + noiseLen + 0.02);
 
         const thump = ctx.createOscillator();
         const thumpGain = ctx.createGain();
         thump.type = 'sine';
-        thump.frequency.setValueAtTime(110, now);
-        thump.frequency.exponentialRampToValueAtTime(38, now + 0.16);
-        thumpGain.gain.setValueAtTime(0.22, now);
-        thumpGain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+        thump.frequency.setValueAtTime(100, now);
+        thump.frequency.exponentialRampToValueAtTime(42, now + 0.12);
+        thumpGain.gain.setValueAtTime(0.2, now);
+        thumpGain.gain.exponentialRampToValueAtTime(0.01, now + 0.14);
         thump.connect(thumpGain);
         thumpGain.connect(ctx.destination);
         thump.start(now);
-        thump.stop(now + 0.2);
-
-        const click = ctx.createOscillator();
-        const clickGain = ctx.createGain();
-        click.type = 'triangle';
-        click.frequency.setValueAtTime(1400, now);
-        click.frequency.exponentialRampToValueAtTime(400, now + 0.04);
-        clickGain.gain.setValueAtTime(0.06, now);
-        clickGain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-        click.connect(clickGain);
-        clickGain.connect(ctx.destination);
-        click.start(now);
-        click.stop(now + 0.06);
+        thump.stop(now + 0.15);
     } catch { /* ignore audio failures */ }
+}
+
+/** Slow, dramatic death knell — reused AudioContext so it stays in sync. */
+function playDeathKnellSound() {
+    try {
+        const ctx = getExecAudioContext();
+        if (!ctx) return;
+        const now = ctx.currentTime;
+
+        const playTone = (freq, start, dur, vol, type = 'sine') => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, now + start);
+            osc.frequency.exponentialRampToValueAtTime(Math.max(30, freq * 0.55), now + start + dur);
+            gain.gain.setValueAtTime(0.0001, now + start);
+            gain.gain.exponentialRampToValueAtTime(vol, now + start + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + start);
+            osc.stop(now + start + dur + 0.05);
+        };
+
+        // Heartbeat thuds
+        playTone(70, 0, 0.22, 0.22, 'sine');
+        playTone(55, 0.32, 0.28, 0.18, 'sine');
+        // Descending knell
+        playTone(220, 0.55, 0.55, 0.12, 'triangle');
+        playTone(165, 1.05, 0.7, 0.14, 'triangle');
+        playTone(110, 1.7, 1.1, 0.16, 'sine');
+        playTone(82, 2.5, 1.4, 0.12, 'sine');
+    } catch { /* ignore */ }
+}
+
+function spawnExecSoulSparks(layer, count = 6) {
+    if (!layer) return;
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < count; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'tm-exec-soul-spark show';
+        const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+        const dist = 50 + Math.random() * 70;
+        spark.style.setProperty('--sx', `${Math.cos(angle) * dist}px`);
+        spark.style.setProperty('--sy', `${-40 - Math.sin(Math.abs(angle)) * dist - Math.random() * 40}px`);
+        spark.style.animationDelay = `${i * 40}ms`;
+        frag.appendChild(spark);
+    }
+    layer.appendChild(frag);
 }
 
 function getMascotExecutionEmoji() {
@@ -17134,104 +17333,67 @@ function getMascotExecutionEmoji() {
     return stageEmoji[tamagotchiStage] || '🤖';
 }
 
-/** Spray blood across the full viewport (origin is impact %; most splats cover the page). */
+/** Lightweight blood spray — kept small so sound/visuals stay in sync and the page stays smooth. */
 function spawnExecutionBloodSplats(layer, originX = 32, originY = 48, options = {}) {
     if (!layer) return;
     const {
-        count = 70,
+        count = 10,
         withFlash = true,
-        withMist = true,
-        withWash = true,
-        edgeSmears = 18,
-        fullscreen = true,
+        withWash = false,
+        edgeSmears = 2,
     } = options;
 
     const vw = Math.max(window.innerWidth, 320);
-    const vh = Math.max(window.innerHeight, 320);
 
+    // Apply overlays immediately (no rAF) so they land with the gunshot
     if (withWash) {
         const wash = document.createElement('div');
-        wash.className = 'tm-exec-blood-wash';
+        wash.className = 'tm-exec-blood-wash show';
         layer.appendChild(wash);
-        requestAnimationFrame(() => wash.classList.add('show'));
     }
 
     if (withFlash) {
         const flash = document.createElement('div');
-        flash.className = 'tm-exec-blood-flash';
+        flash.className = 'tm-exec-blood-flash show';
         layer.appendChild(flash);
-        requestAnimationFrame(() => flash.classList.add('show'));
     }
 
-    if (withMist) {
-        const mist = document.createElement('div');
-        mist.className = 'tm-exec-blood-mist';
-        layer.appendChild(mist);
-        requestAnimationFrame(() => mist.classList.add('show'));
-    }
-
+    const frag = document.createDocumentFragment();
     for (let i = 0; i < count; i++) {
         const el = document.createElement('div');
-        const roll = Math.random();
-        const isDrip = roll > 0.78;
-        const isStreak = !isDrip && roll > 0.55;
-        el.className = `tm-exec-blood-splat${isDrip ? ' is-drip' : ''}${isStreak ? ' is-streak' : ''}`;
+        el.className = 'tm-exec-blood-splat tm-exec-blood-splat--lite show';
 
-        // ~20% near impact, ~80% scattered across the whole page
-        const spread = Math.random();
-        let left;
-        let top;
-        if (!fullscreen || spread < 0.2) {
-            left = originX + (Math.random() - 0.5) * 28;
-            top = originY + (Math.random() - 0.5) * 24;
-        } else {
-            left = Math.random() * 100;
-            top = Math.random() * 100;
-        }
-        left = Math.max(-8, Math.min(108, left));
-        top = Math.max(-8, Math.min(108, top));
+        // Mostly near impact, a few across the page
+        const near = Math.random() < 0.7;
+        let left = near ? originX + (Math.random() - 0.5) * 36 : Math.random() * 100;
+        let top = near ? originY + (Math.random() - 0.5) * 30 : Math.random() * 100;
+        left = Math.max(0, Math.min(100, left));
+        top = Math.max(0, Math.min(100, top));
 
-        // Large enough to read on a full desktop viewport
-        const size = isStreak
-            ? Math.max(40, vw * (0.04 + Math.random() * 0.12))
-            : isDrip
-                ? Math.max(24, vw * (0.02 + Math.random() * 0.05))
-                : Math.max(48, vw * (0.035 + Math.random() * 0.14));
-        const height = isStreak
-            ? Math.max(10, size * (0.12 + Math.random() * 0.25))
-            : isDrip
-                ? size * (1.5 + Math.random() * 1.2)
-                : size * (0.55 + Math.random() * 0.7);
-
+        const size = Math.max(18, Math.min(70, vw * (0.018 + Math.random() * 0.035)));
         el.style.left = `${left}%`;
         el.style.top = `${top}%`;
         el.style.width = `${size}px`;
-        el.style.height = `${height}px`;
+        el.style.height = `${size * (0.55 + Math.random() * 0.5)}px`;
         el.style.setProperty('--rot', `${Math.floor(Math.random() * 360)}deg`);
-        el.style.setProperty('--delay', `${Math.floor(Math.random() * 140)}ms`);
-        el.style.setProperty('--h', `${height}px`);
-        el.style.setProperty('--drip', `${30 + Math.random() * Math.min(120, vh * 0.12)}px`);
-        if (Math.random() > 0.4) {
-            el.style.background = `radial-gradient(circle at 40% 30%, #e01822 0%, #9a050c 50%, #3d0003 100%)`;
-        }
-        layer.appendChild(el);
+        frag.appendChild(el);
     }
 
     for (let i = 0; i < edgeSmears; i++) {
         const smear = document.createElement('div');
-        smear.className = 'tm-exec-blood-splat';
-        const edge = i % 4;
-        const size = Math.max(100, vw * (0.08 + Math.random() * 0.18));
+        smear.className = 'tm-exec-blood-splat tm-exec-blood-splat--lite show';
+        const size = Math.max(40, Math.min(110, vw * 0.06));
         smear.style.width = `${size}px`;
-        smear.style.height = `${size * (0.45 + Math.random() * 0.7)}px`;
+        smear.style.height = `${size * 0.55}px`;
         smear.style.setProperty('--rot', `${Math.floor(Math.random() * 360)}deg`);
-        smear.style.setProperty('--delay', `${30 + i * 18}ms`);
-        if (edge === 0) { smear.style.left = `${Math.random() * 90}%`; smear.style.top = `-6%`; }
-        if (edge === 1) { smear.style.left = `${Math.random() * 90}%`; smear.style.top = `${86 + Math.random() * 16}%`; }
-        if (edge === 2) { smear.style.left = `-6%`; smear.style.top = `${Math.random() * 90}%`; }
-        if (edge === 3) { smear.style.left = `${86 + Math.random() * 16}%`; smear.style.top = `${Math.random() * 90}%`; }
-        layer.appendChild(smear);
+        const edge = i % 4;
+        if (edge === 0) { smear.style.left = `${10 + Math.random() * 80}%`; smear.style.top = `2%`; }
+        if (edge === 1) { smear.style.left = `${10 + Math.random() * 80}%`; smear.style.top = `90%`; }
+        if (edge === 2) { smear.style.left = `2%`; smear.style.top = `${15 + Math.random() * 70}%`; }
+        if (edge === 3) { smear.style.left = `90%`; smear.style.top = `${15 + Math.random() * 70}%`; }
+        frag.appendChild(smear);
     }
+    layer.appendChild(frag);
 }
 
 function retriggerCssAnimation(el, className) {
@@ -17265,6 +17427,7 @@ function showMascotExecutionCinematic() {
     const execGen = tamaCinematicGeneration;
     tamaCinematicLock = true;
     stopRoaming(window.config || {});
+    getExecAudioContext(); // unlock / warm audio so first shot isn't delayed
 
     const mascot = document.getElementById('tm-mascot-container');
     if (!mascot) {
@@ -17363,11 +17526,16 @@ function showMascotExecutionCinematic() {
         <div class="tm-exec-hitmark" id="tm-exec-hitmark"></div>
         <div class="tm-exec-rings" id="tm-exec-rings"><span></span><span></span></div>
         <div class="tm-exec-smoke-puff" id="tm-exec-smoke"></div>
+        <div class="tm-exec-soul" id="tm-exec-soul" aria-hidden="true">👻</div>
+        <div class="tm-exec-epitaph" id="tm-exec-epitaph" aria-hidden="true">
+            <p class="tm-exec-epitaph-title">Αντίο</p>
+            <p class="tm-exec-epitaph-sub">Η ιστορία τελείωσε...</p>
+        </div>
     `;
     document.body.appendChild(layer);
     requestAnimationFrame(() => layer.classList.add('is-live'));
 
-    mascot.classList.remove('mascot-exec-scared', 'mascot-exec-hit', 'mascot-exec-dissolve');
+    mascot.classList.remove('mascot-exec-scared', 'mascot-exec-hit', 'mascot-exec-dying', 'mascot-exec-dissolve');
 
     const gun = layer.querySelector('#tm-exec-gun');
     const muzzle = layer.querySelector('#tm-exec-muzzle');
@@ -17377,44 +17545,53 @@ function showMascotExecutionCinematic() {
     const smoke = layer.querySelector('#tm-exec-smoke');
     const casings = layer.querySelector('#tm-exec-casings');
     const bloodLayer = layer.querySelector('#tm-exec-blood');
+    const soul = layer.querySelector('#tm-exec-soul');
+    const epitaph = layer.querySelector('#tm-exec-epitaph');
 
     const stillValid = () => execGen === tamaCinematicGeneration
         && document.getElementById('tm-tama-execution-inplace') === layer;
 
+    const clearExecClasses = () => {
+        mascot.classList.remove('mascot-exec-scared', 'mascot-exec-hit', 'mascot-exec-dying', 'mascot-exec-dissolve');
+    };
+
     const fireAkShot = (shotIndex) => {
         if (!stillValid()) return;
+        // Sound + muzzle + blood in the same sync call so they land together
         playGunshotSound();
-        screenShake(shotIndex === 0 ? 280 : 140);
         layer.classList.add('is-firing');
         gun?.classList.add('on-stage', 'aimed');
         retriggerCssAnimation(gun, 'recoil');
         retriggerCssAnimation(muzzle, 'flash');
         retriggerCssAnimation(tracer, 'fly');
         ejectExecutionCasing(casings);
+        screenShake(shotIndex === 0 ? 140 : 80, shotIndex === 0 ? 2.8 : 1.4);
+
         if (shotIndex === 0) {
             hitmark?.classList.add('show');
             rings?.classList.add('show');
+            mascot.classList.remove('mascot-exec-scared');
             mascot.classList.add('mascot-exec-hit');
             spawnExecutionBloodSplats(bloodLayer, bloodOriginX, bloodOriginY, {
-                count: 80,
+                count: 8,
                 withFlash: true,
-                withMist: true,
                 withWash: true,
-                edgeSmears: 22,
-                fullscreen: true,
+                edgeSmears: 2,
             });
-        } else {
+        } else if (shotIndex === 1) {
+            // Retrigger flinch on second hit
+            mascot.classList.remove('mascot-exec-hit');
+            void mascot.offsetWidth;
+            mascot.classList.add('mascot-exec-hit');
             spawnExecutionBloodSplats(
                 bloodLayer,
-                bloodOriginX + (Math.random() - 0.5) * 20,
-                bloodOriginY + (Math.random() - 0.5) * 16,
+                bloodOriginX + (Math.random() - 0.5) * 12,
+                bloodOriginY + (Math.random() - 0.5) * 10,
                 {
-                    count: 36,
+                    count: 4,
                     withFlash: false,
-                    withMist: false,
-                    withWash: shotIndex === 1,
-                    edgeSmears: 8,
-                    fullscreen: true,
+                    withWash: false,
+                    edgeSmears: 0,
                 },
             );
         }
@@ -17423,24 +17600,27 @@ function showMascotExecutionCinematic() {
     return new Promise((resolve) => {
         const finish = () => {
             if (!stillValid()) {
-                mascot.classList.remove('mascot-exec-scared', 'mascot-exec-hit', 'mascot-exec-dissolve');
+                clearExecClasses();
                 tamaCinematicLock = false;
                 resolve();
                 return;
             }
-            layer.style.transition = 'opacity 0.35s ease';
+            layer.style.transition = 'opacity 0.55s ease';
             layer.style.opacity = '0';
             scheduleTamagotchiCinematic(() => {
                 layer.remove();
-                mascot.classList.remove('mascot-exec-scared', 'mascot-exec-hit', 'mascot-exec-dissolve');
+                clearExecClasses();
                 tamaCinematicLock = false;
                 resolve();
-            }, 360);
+            }, 560);
         };
 
-        const BURST_COUNT = 7;
-        const BURST_GAP = 115;
+        const BURST_COUNT = 4;
+        const BURST_GAP = 150;
         const BURST_START = 2800;
+
+        // Warm up shared AudioContext before the burst so shot 1 isn't late
+        getExecAudioContext();
 
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
@@ -17467,16 +17647,38 @@ function showMascotExecutionCinematic() {
 
         const afterBurst = BURST_START + BURST_COUNT * BURST_GAP;
 
+        // Dramatic dying beat: collapse → soul → epitaph → dissolve
         scheduleTamagotchiCinematic(() => {
             if (!stillValid()) return;
             gun?.classList.remove('recoil');
             gun?.classList.add('on-stage', 'aimed');
-            mascot.classList.remove('mascot-exec-scared');
-            mascot.classList.add('mascot-exec-dissolve');
+            layer.classList.remove('is-firing');
+            layer.classList.add('is-dying');
+            mascot.classList.remove('mascot-exec-scared', 'mascot-exec-hit');
+            mascot.classList.add('mascot-exec-dying');
             smoke?.classList.add('show');
-        }, afterBurst + 160);
+            playDeathKnellSound();
+            screenShake(420, 1.6);
+        }, afterBurst + 120);
 
-        scheduleTamagotchiCinematic(finish, afterBurst + 1200);
+        scheduleTamagotchiCinematic(() => {
+            if (!stillValid()) return;
+            soul?.classList.add('show');
+            spawnExecSoulSparks(layer, 6);
+        }, afterBurst + 520);
+
+        scheduleTamagotchiCinematic(() => {
+            if (!stillValid()) return;
+            epitaph?.classList.add('show');
+        }, afterBurst + 900);
+
+        scheduleTamagotchiCinematic(() => {
+            if (!stillValid()) return;
+            mascot.classList.remove('mascot-exec-dying');
+            mascot.classList.add('mascot-exec-dissolve');
+        }, afterBurst + 2100);
+
+        scheduleTamagotchiCinematic(finish, afterBurst + 3400);
     });
 }
 
@@ -17559,6 +17761,9 @@ function showTamagotchiDeathCinematic(onComplete) {
     const mascotContainer = document.getElementById('tm-mascot-container');
     mascotContainer?.classList.add('mascot-dying');
     stopRoaming(window.config || {});
+    getExecAudioContext();
+    playDeathKnellSound();
+    screenShake(600, 2.2);
 
     const stageEmoji = { egg: '🥚', baby: '👶', kid: '🧒', teen: '🎮', adult: '💼', middleage: '👔', old: '👴' };
     const emoji = tamagotchiCharacterType && MASCOT_CHARACTERS[tamagotchiCharacterType]
@@ -17568,38 +17773,47 @@ function showTamagotchiDeathCinematic(onComplete) {
     const overlay = document.createElement('div');
     overlay.id = 'tm-tama-death-cinematic';
     overlay.className = 'tm-tama-cinematic-overlay';
+    overlay.style.opacity = '0';
     overlay.innerHTML = `
         <div class="tm-tama-cinematic-panel" style="border-color:#4a4a5a; background: linear-gradient(180deg, #1a1a2a 0%, #0a0a14 100%);">
             <div class="tm-tama-lcd-title" style="color:#888;">● Tamagotchi ●</div>
-            <h2 class="tm-tama-cinematic-title" style="color:#ccc; text-shadow:none;">💀 Αντίο...</h2>
+            <h2 class="tm-tama-death-title">Τέλος</h2>
             <div class="tm-tama-death-scene">
+                <div class="tm-tama-death-ripple" aria-hidden="true"></div>
+                <div class="tm-tama-death-ripple" aria-hidden="true"></div>
                 <div class="tm-tama-death-stars">
-                    ${[10,25,40,55,70,85].map((l, i) => `<span style="left:${l}%;top:${15 + (i%3)*20}%;animation-delay:${i*0.3}s">✦</span>`).join('')}
+                    ${[8,22,38,52,68,82,15,75].map((l, i) => `<span style="left:${l}%;top:${10 + (i%4)*18}%;animation-delay:${i*0.22}s">✦</span>`).join('')}
                 </div>
                 <div class="tm-tama-death-mascot">${emoji}</div>
                 <div class="tm-tama-death-ghost">👻</div>
             </div>
-            <p class="tm-tama-death-message" id="tm-death-cine-msg">Επέστρεψε στον ψηφιακό κόσμο...</p>
+            <p class="tm-tama-death-message" id="tm-death-cine-msg">Η καρδιά σταμάτησε...</p>
         </div>
     `;
     document.body.appendChild(overlay);
+
+    // Let the live mascot collapse first, then fade the cinematic in
+    setTimeout(() => {
+        overlay.style.transition = 'opacity 0.7s ease';
+        overlay.style.opacity = '1';
+    }, 900);
 
     const msgs = MASCOT_MESSAGES.deathCinematic;
     let mi = 0;
     const msgInterval = setInterval(() => {
         const el = overlay.querySelector('#tm-death-cine-msg');
         if (el && mi < msgs.length) el.textContent = msgs[mi++];
-    }, 900);
+    }, 1000);
 
     setTimeout(() => {
         clearInterval(msgInterval);
         mascotContainer?.classList.remove('mascot-dying');
-        overlay.style.animation = 'tm-tama-fade-in 0.5s ease-out reverse';
+        overlay.style.opacity = '0';
         setTimeout(() => {
             overlay.remove();
             if (typeof onComplete === 'function') onComplete();
-        }, 500);
-    }, 3800);
+        }, 550);
+    }, 5200);
 }
 
 function runTamagotchiHatchSequence(characterType, container) {
