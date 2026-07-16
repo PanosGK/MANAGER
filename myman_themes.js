@@ -1414,7 +1414,22 @@ const THEME_EOD_MODAL_STYLES = `
 const THEME_SUITE_EOD_STYLES = THEME_SUITE_EOD_BTN_STYLES + THEME_EOD_MODAL_STYLES;
 
 const THEME_SUITE_EXTENDED_STYLES = THEME_SUITE_WIDGET_STYLES_WITH_POPUPS + THEME_SUITE_EOD_STYLES;
-const THEME_DEFAULT_SUITE_INJECT_STYLES = THEME_EOD_MODAL_STYLES + THEME_ORDER_POPUP_STYLES + THEME_REPAIR_REMINDER_POPOVER_STYLES;
+const THEME_DEFAULT_HEADER_STYLES = `/* Default theme: white top header (native MyMANAGER chrome) */
+            #head-outter, #head-outterwrap, .rnr-top {
+                background-color: #ffffff !important;
+                background-image: none !important;
+                border-bottom: 1px solid #dee2e6 !important;
+                opacity: 1 !important;
+            }
+            h1.logo, h1.logo-text, .header-logo {
+                color: #343a40 !important;
+            }
+            .rnr-s-undermenu, .rnr-cw-hmenu.rnr-s-undermenu {
+                background: #ffffff !important;
+            }
+`;
+
+const THEME_DEFAULT_SUITE_INJECT_STYLES = THEME_DEFAULT_HEADER_STYLES + THEME_EOD_MODAL_STYLES + THEME_ORDER_POPUP_STYLES + THEME_REPAIR_REMINDER_POPOVER_STYLES;
 const THEME_EXTENDED_STYLES = THEME_SUITE_EXTENDED_STYLES + THEME_NATIVE_PAGE_EXTENDED_STYLES;
 
 /** Shared native-page tweaks for light / white-based themes. */

@@ -24,6 +24,8 @@
             // Reset mascot to egg state with default values
             const defaultTamagotchiData = {
                 age: 0,
+                lifeMinutes: 0,
+                eggGeneration: Date.now(),
                 stage: 'egg',
                 health: 100,
                 hunger: 50,
@@ -38,7 +40,7 @@
                 evolutionHistory: [],
                 poopCount: 0,
                 lastPoopTime: Date.now(),
-                characterType: null, // Will be randomly selected on first hatch
+                characterType: 'none',
                 deathCount: 0,
                 careHistory: {
                     fedCount: 0,
@@ -1488,7 +1490,8 @@
                     const characterTypes = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal'];
                     const selectedCharacter = characterTypes[Math.floor(Math.random() * characterTypes.length)];
                     
-                    tamaData.age = 1.5; // Force hatch (baby stage)
+                    tamaData.age = 0;
+                    tamaData.lifeMinutes = 38; // baby hatch threshold (office-minutes)
                     tamaData.stage = 'baby';
                     tamaData.characterType = selectedCharacter;
                     tamaData.lastUpdate = Date.now();
@@ -1516,6 +1519,8 @@
                 const tamaData = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
                 if (tamaData) {
                     tamaData.age = 0;
+                    tamaData.lifeMinutes = 0;
+                    tamaData.eggGeneration = (Number(tamaData.eggGeneration) || 0) + 1;
                     tamaData.stage = 'egg';
                     tamaData.characterType = 'none';
                     tamaData.lastUpdate = Date.now();
@@ -1534,8 +1539,11 @@
             document.getElementById('tm-debug-age-up-btn')?.addEventListener('click', () => {
                 const tamaData = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
                 if (tamaData) {
-                    const oldAge = tamaData.age || 0;
-                    tamaData.age = oldAge + 10;
+                    const minutesPerYear = 450;
+                    const currentLife = Number(tamaData.lifeMinutes);
+                    const life = Number.isFinite(currentLife) ? currentLife : 0;
+                    tamaData.lifeMinutes = life + (10 * minutesPerYear);
+                    tamaData.age = Math.floor(tamaData.lifeMinutes / minutesPerYear);
                     tamaData.lastUpdate = Date.now();
                     GM_setValue(STORAGE_KEYS.TAMAGOTCHI_DATA, JSON.stringify(tamaData));
                     

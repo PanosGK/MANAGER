@@ -2270,7 +2270,22 @@ const THEME_EOD_MODAL_STYLES = `
 const THEME_SUITE_EOD_STYLES = THEME_SUITE_EOD_BTN_STYLES + THEME_EOD_MODAL_STYLES;
 
 const THEME_SUITE_EXTENDED_STYLES = THEME_SUITE_WIDGET_STYLES_WITH_POPUPS + THEME_SUITE_EOD_STYLES;
-const THEME_DEFAULT_SUITE_INJECT_STYLES = THEME_EOD_MODAL_STYLES + THEME_ORDER_POPUP_STYLES + THEME_REPAIR_REMINDER_POPOVER_STYLES;
+const THEME_DEFAULT_HEADER_STYLES = `/* Default theme: white top header (native MyMANAGER chrome) */
+            #head-outter, #head-outterwrap, .rnr-top {
+                background-color: #ffffff !important;
+                background-image: none !important;
+                border-bottom: 1px solid #dee2e6 !important;
+                opacity: 1 !important;
+            }
+            h1.logo, h1.logo-text, .header-logo {
+                color: #343a40 !important;
+            }
+            .rnr-s-undermenu, .rnr-cw-hmenu.rnr-s-undermenu {
+                background: #ffffff !important;
+            }
+`;
+
+const THEME_DEFAULT_SUITE_INJECT_STYLES = THEME_DEFAULT_HEADER_STYLES + THEME_EOD_MODAL_STYLES + THEME_ORDER_POPUP_STYLES + THEME_REPAIR_REMINDER_POPOVER_STYLES;
 const THEME_EXTENDED_STYLES = THEME_SUITE_EXTENDED_STYLES + THEME_NATIVE_PAGE_EXTENDED_STYLES;
 
 /** Shared native-page tweaks for light / white-based themes. */
@@ -5379,9 +5394,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 --tm-xp-fill-start: #ffc107;
                 --tm-xp-fill-end: #e0a800;
                 --tm-coin-color: #ffc107;
-                --tm-header-bar-bg: #23272b;
+                --tm-header-bar-bg: #ffffff;
                 --tm-footer-bar-bg: #23272b;
-                --tm-header-bar-text: #f4f4f4;
+                --tm-header-bar-text: #343a40;
                 --tm-footer-bar-text: #f4f4f4;
                 --tm-footer-text: #f4f4f4;
                 --tm-count-badge-bg: #23272b;
@@ -10724,6 +10739,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             // Reset mascot to egg state with default values
             const defaultTamagotchiData = {
                 age: 0,
+                lifeMinutes: 0,
+                eggGeneration: Date.now(),
                 stage: 'egg',
                 health: 100,
                 hunger: 50,
@@ -10738,7 +10755,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 evolutionHistory: [],
                 poopCount: 0,
                 lastPoopTime: Date.now(),
-                characterType: null, // Will be randomly selected on first hatch
+                characterType: 'none',
                 deathCount: 0,
                 careHistory: {
                     fedCount: 0,
@@ -12188,7 +12205,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     const characterTypes = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal'];
                     const selectedCharacter = characterTypes[Math.floor(Math.random() * characterTypes.length)];
                     
-                    tamaData.age = 1.5; // Force hatch (baby stage)
+                    tamaData.age = 0;
+                    tamaData.lifeMinutes = 38; // baby hatch threshold (office-minutes)
                     tamaData.stage = 'baby';
                     tamaData.characterType = selectedCharacter;
                     tamaData.lastUpdate = Date.now();
@@ -12216,6 +12234,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 const tamaData = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
                 if (tamaData) {
                     tamaData.age = 0;
+                    tamaData.lifeMinutes = 0;
+                    tamaData.eggGeneration = (Number(tamaData.eggGeneration) || 0) + 1;
                     tamaData.stage = 'egg';
                     tamaData.characterType = 'none';
                     tamaData.lastUpdate = Date.now();
@@ -12234,8 +12254,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             document.getElementById('tm-debug-age-up-btn')?.addEventListener('click', () => {
                 const tamaData = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
                 if (tamaData) {
-                    const oldAge = tamaData.age || 0;
-                    tamaData.age = oldAge + 10;
+                    const minutesPerYear = 450;
+                    const currentLife = Number(tamaData.lifeMinutes);
+                    const life = Number.isFinite(currentLife) ? currentLife : 0;
+                    tamaData.lifeMinutes = life + (10 * minutesPerYear);
+                    tamaData.age = Math.floor(tamaData.lifeMinutes / minutesPerYear);
                     tamaData.lastUpdate = Date.now();
                     GM_setValue(STORAGE_KEYS.TAMAGOTCHI_DATA, JSON.stringify(tamaData));
                     
@@ -17901,6 +17924,8 @@ let tamagotchiLastScold = 0; // Last time scolded
 let tamagotchiNeedsPraise = false;
 let tamagotchiNeedsScold = false;
 let tamagotchiLifeMinutes = 0; // Real-time life clock (classic Tamagotchi pacing)
+let tamagotchiEggGeneration = 0; // Bumps on intentional egg reset; blocks stale tabs from wiping progress
+let tamagotchiTickIntervalId = null;
 let mascotStagePreviewLock = false;
 let mascotStagePreviewStage = null;
 let mascotStagePreviewTimeout = null;
@@ -18608,17 +18633,42 @@ function mascotHatchMsg(characterType) {
 }
 
 function getTamagotchiStageFromLifeMinutes(minutes) {
-    if (minutes < TAMA_STAGE_MINUTES.baby) return 'egg';
-    if (minutes < TAMA_STAGE_MINUTES.kid) return 'baby';
-    if (minutes < TAMA_STAGE_MINUTES.teen) return 'kid';
-    if (minutes < TAMA_STAGE_MINUTES.adult) return 'teen';
-    if (minutes < TAMA_STAGE_MINUTES.middleage) return 'adult';
-    if (minutes < TAMA_STAGE_MINUTES.old) return 'middleage';
+    const m = Number(minutes);
+    if (!Number.isFinite(m) || m < TAMA_STAGE_MINUTES.baby) return 'egg';
+    if (m < TAMA_STAGE_MINUTES.kid) return 'baby';
+    if (m < TAMA_STAGE_MINUTES.teen) return 'kid';
+    if (m < TAMA_STAGE_MINUTES.adult) return 'teen';
+    if (m < TAMA_STAGE_MINUTES.middleage) return 'adult';
+    if (m < TAMA_STAGE_MINUTES.old) return 'middleage';
     return 'old';
 }
 
 function syncTamagotchiAgeFromLife() {
+    const m = Number(tamagotchiLifeMinutes);
+    tamagotchiLifeMinutes = Number.isFinite(m) ? Math.max(0, m) : 0;
     tamagotchiAge = Math.floor(tamagotchiLifeMinutes / TAMA_MINUTES_PER_YEAR);
+}
+
+/** Recover lifeMinutes when storage has a hatched pet but life clock was wiped to 0. */
+function resolveLifeMinutesFromSave(savedData) {
+    const stage = savedData.stage || 'egg';
+    const char = savedData.characterType;
+    const hatchedHint = (stage && stage !== 'egg') || (char && char !== 'none');
+    let life = Number(savedData.lifeMinutes);
+
+    if (!Number.isFinite(life)) {
+        const stageFloor = TAMA_STAGE_MINUTES[stage] ?? 0;
+        return stageFloor + Math.max(0, (savedData.age || 0) * TAMA_MINUTES_PER_YEAR);
+    }
+
+    if (life <= 0 && hatchedHint) {
+        const floor = TAMA_STAGE_MINUTES[stage !== 'egg' ? stage : 'baby'] ?? TAMA_STAGE_MINUTES.baby;
+        const recovered = Math.max(floor, Math.max(0, (savedData.age || 0) * TAMA_MINUTES_PER_YEAR));
+        console.warn(`[Mascot] Recovered lifeMinutes=${recovered} from stage/character (was ${savedData.lifeMinutes})`);
+        return recovered;
+    }
+
+    return Math.max(0, life);
 }
 
 function getEggHatchProgress() {
@@ -18652,9 +18702,9 @@ function ensureTamagotchiCharacterType() {
 }
 
 function validateTamagotchiState() {
+    syncTamagotchiAgeFromLife();
     tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
     ensureTamagotchiCharacterType();
-    syncTamagotchiAgeFromLife();
 
     if (tamagotchiStage === 'egg') {
         tamagotchiPoopCount = 0;
@@ -19487,12 +19537,8 @@ function loadTamagotchiData(STORAGE_KEYS) {
         tamagotchiAge = savedData.age || 0;
         tamagotchiStage = savedData.stage || 'egg';
         tamagotchiCharacterType = savedData.characterType || 'none';
-        if (savedData.lifeMinutes != null) {
-            tamagotchiLifeMinutes = savedData.lifeMinutes;
-        } else {
-            const stageFloor = TAMA_STAGE_MINUTES[savedData.stage] ?? 0;
-            tamagotchiLifeMinutes = stageFloor + Math.max(0, (savedData.age || 0) * TAMA_MINUTES_PER_YEAR);
-        }
+        tamagotchiLifeMinutes = resolveLifeMinutesFromSave(savedData);
+        tamagotchiEggGeneration = Number(savedData.eggGeneration) || 0;
         tamagotchiHealth = savedData.health || 100;
         tamagotchiDiscipline = savedData.discipline || 0;
         tamagotchiLightsOn = savedData.lightsOn !== false;
@@ -19526,9 +19572,44 @@ function loadTamagotchiData(STORAGE_KEYS) {
 }
 
 function saveTamagotchiData(STORAGE_KEYS) {
+    if (!STORAGE_KEYS?.TAMAGOTCHI_DATA) return;
+
+    validateTamagotchiState();
+
+    // Multi-tab guard: never let a stale tab wipe a more progressed pet
+    let stored = null;
+    try {
+        stored = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
+    } catch { /* ignore */ }
+
+    if (stored) {
+        const storedGen = Number(stored.eggGeneration) || 0;
+        const ourGen = Number(tamagotchiEggGeneration) || 0;
+
+        if (storedGen > ourGen) {
+            // Another tab intentionally reset — adopt that state instead of overwriting
+            loadTamagotchiData(STORAGE_KEYS);
+            return;
+        }
+
+        if (storedGen === ourGen) {
+            const storedLife = Number(stored.lifeMinutes);
+            if (Number.isFinite(storedLife) && storedLife > tamagotchiLifeMinutes) {
+                tamagotchiLifeMinutes = storedLife;
+                if (stored.characterType && stored.characterType !== 'none') {
+                    tamagotchiCharacterType = stored.characterType;
+                }
+                if (stored.isDead) tamagotchiIsDead = true;
+                validateTamagotchiState();
+            }
+        }
+        // ourGen > storedGen → intentional reset in this tab; write egg state through
+    }
+
     const data = {
         age: tamagotchiAge,
         lifeMinutes: tamagotchiLifeMinutes,
+        eggGeneration: tamagotchiEggGeneration,
         stage: tamagotchiStage,
         characterType: tamagotchiCharacterType,
         health: tamagotchiHealth,
@@ -19585,12 +19666,33 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
     updateTamagotchiStats(container);
     checkTamagotchiEvolution(container);
     
-    // Periodic updates every minute
-    setInterval(() => {
+    // Periodic updates every minute (single interval — avoid duplicate timers on re-init)
+    if (tamagotchiTickIntervalId) {
+        clearInterval(tamagotchiTickIntervalId);
+        tamagotchiTickIntervalId = null;
+    }
+    tamagotchiTickIntervalId = setInterval(() => {
         updateTamagotchiStats(container);
         checkTamagotchiEvolution(container);
         saveTamagotchiData(STORAGE_KEYS);
     }, 60000);
+
+    if (!window.__tmTamagotchiFocusSyncBound) {
+        window.__tmTamagotchiFocusSyncBound = true;
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState !== 'visible') return;
+            const keys = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
+            if (!keys?.TAMAGOTCHI_DATA) return;
+            const prevStage = tamagotchiStage;
+            const prevLife = tamagotchiLifeMinutes;
+            loadTamagotchiData(keys);
+            if (tamagotchiStage !== prevStage || Math.abs(tamagotchiLifeMinutes - prevLife) > 0.01) {
+                const el = document.getElementById('tm-mascot-container');
+                updateMascotAppearanceByStage(tamagotchiStage);
+                if (el) updateTamagotchiStats(el);
+            }
+        });
+    }
 }
 
 function updateTamagotchiStats(container) {
@@ -20048,6 +20150,7 @@ function updateWeightDisplay() {
 
 // Death system
 function applyTamagotchiEggResetState() {
+    tamagotchiEggGeneration = (Number(tamagotchiEggGeneration) || 0) + 1;
     tamagotchiAge = 0;
     tamagotchiLifeMinutes = 0;
     tamagotchiStage = 'egg';

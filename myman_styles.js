@@ -122,9 +122,9 @@
                 --tm-xp-fill-start: #ffc107;
                 --tm-xp-fill-end: #e0a800;
                 --tm-coin-color: #ffc107;
-                --tm-header-bar-bg: #23272b;
+                --tm-header-bar-bg: #ffffff;
                 --tm-footer-bar-bg: #23272b;
-                --tm-header-bar-text: #f4f4f4;
+                --tm-header-bar-text: #343a40;
                 --tm-footer-bar-text: #f4f4f4;
                 --tm-footer-text: #f4f4f4;
                 --tm-count-badge-bg: #23272b;
