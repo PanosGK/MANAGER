@@ -744,7 +744,7 @@ function cancelTamagotchiCinematics() {
 }
 
 function ensureTamaCinematicStyles() {
-    const STYLE_VER = 'lucky-v3';
+    const STYLE_VER = 'lucky-v4';
     const existing = document.getElementById('tm-tama-cinematic-styles');
     if (existing?.dataset.tmVer === STYLE_VER) return;
     existing?.remove();
@@ -871,8 +871,8 @@ function ensureTamaCinematicStyles() {
             animation: tm-hatch-burst 0.7s ease-out forwards;
         }
         .tm-tama-lucky-slot {
-            --lucky-cell-w: 88px;
-            --lucky-slot-h: 118px;
+            --lucky-cell-w: 96px;
+            --lucky-slot-h: 120px;
             position: relative;
             margin: 0 auto 22px;
             width: 100%;
@@ -894,25 +894,26 @@ function ensureTamaCinematicStyles() {
             content: '';
             position: absolute;
             top: 0; bottom: 0;
-            width: 56px;
+            width: 72px;
             z-index: 3;
             pointer-events: none;
         }
         .tm-tama-lucky-slot::before {
             left: 0;
-            background: linear-gradient(90deg, rgba(0,0,0,0.55), transparent);
+            background: linear-gradient(90deg, rgba(0,0,0,0.65), transparent);
         }
         .tm-tama-lucky-slot::after {
             right: 0;
-            background: linear-gradient(270deg, rgba(0,0,0,0.55), transparent);
+            background: linear-gradient(270deg, rgba(0,0,0,0.65), transparent);
         }
+        /* Frame sits dead-center; no transform pulse (that caused visual misalignment) */
         .tm-tama-lucky-indicator {
             position: absolute;
             left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
+            top: 8px;
+            bottom: 8px;
             width: var(--lucky-cell-w);
-            height: calc(var(--lucky-slot-h) - 16px);
+            margin-left: calc(var(--lucky-cell-w) / -2);
             border: 2px solid var(--lucky-color, #6fcf6f);
             border-radius: 12px;
             box-shadow:
@@ -921,8 +922,8 @@ function ensureTamaCinematicStyles() {
                 inset 0 0 18px color-mix(in srgb, var(--lucky-color, #6fcf6f) 18%, transparent);
             pointer-events: none;
             z-index: 4;
-            animation: tm-lucky-pulse 1.4s ease-in-out infinite;
             box-sizing: border-box;
+            animation: tm-lucky-pulse 1.4s ease-in-out infinite;
         }
         .tm-tama-lucky-indicator::before,
         .tm-tama-lucky-indicator::after {
@@ -931,7 +932,7 @@ function ensureTamaCinematicStyles() {
             left: 50%;
             width: 0;
             height: 0;
-            transform: translateX(-50%);
+            margin-left: -7px;
             border-left: 7px solid transparent;
             border-right: 7px solid transparent;
         }
@@ -944,9 +945,14 @@ function ensureTamaCinematicStyles() {
             border-bottom: 8px solid var(--lucky-color, #6fcf6f);
         }
         .tm-tama-lucky-scroll {
-            display: flex;
-            align-items: stretch;
+            position: absolute;
+            left: 0;
+            top: 0;
             height: 100%;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: stretch;
             gap: 0;
             padding: 0;
             margin: 0;
@@ -954,11 +960,8 @@ function ensureTamaCinematicStyles() {
             transform: translate3d(0, 0, 0);
         }
         .tm-tama-lucky-scroll.is-spinning .tm-tama-lucky-char {
-            filter: blur(0.55px);
-            opacity: 0.5;
-        }
-        .tm-tama-lucky-scroll.is-spinning .tm-tama-lucky-char-emoji {
-            transform: scale(0.94);
+            filter: blur(0.45px);
+            opacity: 0.48;
         }
         .tm-tama-lucky-char {
             flex: 0 0 var(--lucky-cell-w);
@@ -971,34 +974,34 @@ function ensureTamaCinematicStyles() {
             align-items: center;
             justify-content: center;
             gap: 4px;
-            opacity: 0.42;
-            transform: none;
-            transition: opacity 0.25s ease, filter 0.25s ease;
+            opacity: 0.38;
             box-sizing: border-box;
-            padding: 0;
+            padding: 0 2px;
             margin: 0;
+            border: 0;
         }
         .tm-tama-lucky-char.selected {
             opacity: 1;
             filter: none;
         }
-        .tm-tama-lucky-char.selected .tm-tama-lucky-char-emoji {
-            transform: scale(1.12);
-            filter: drop-shadow(0 0 12px var(--lucky-color, #6fcf6f));
-        }
         .tm-tama-lucky-char-emoji {
-            font-size: 42px;
+            font-size: 40px;
             line-height: 1;
             display: block;
-            transform-origin: center center;
-            transition: transform 0.25s ease, filter 0.25s ease;
+            height: 40px;
+            width: 100%;
+            text-align: center;
             filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));
+        }
+        .tm-tama-lucky-char.selected .tm-tama-lucky-char-emoji {
+            filter: drop-shadow(0 0 12px var(--lucky-color, #6fcf6f));
         }
         .tm-tama-lucky-char-name {
             font-size: 10px;
             font-weight: 700;
             letter-spacing: 0.02em;
-            max-width: calc(var(--lucky-cell-w) - 8px);
+            width: 100%;
+            max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -1130,8 +1133,8 @@ function ensureTamaCinematicStyles() {
         }
         @keyframes tm-tama-blink { 50% { opacity: 0.5; } }
         @keyframes tm-lucky-pulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.95; }
-            50% { transform: translate(-50%, -50%) scale(1.03); opacity: 1; }
+            0%, 100% { opacity: 0.92; box-shadow: 0 0 0 1px color-mix(in srgb, var(--lucky-color, #6fcf6f) 35%, transparent), 0 0 18px color-mix(in srgb, var(--lucky-color, #6fcf6f) 35%, transparent), inset 0 0 14px color-mix(in srgb, var(--lucky-color, #6fcf6f) 14%, transparent); }
+            50% { opacity: 1; box-shadow: 0 0 0 1px color-mix(in srgb, var(--lucky-color, #6fcf6f) 45%, transparent), 0 0 28px color-mix(in srgb, var(--lucky-color, #6fcf6f) 55%, transparent), inset 0 0 20px color-mix(in srgb, var(--lucky-color, #6fcf6f) 22%, transparent); }
         }
         @keyframes tm-lucky-reveal-in {
             from { opacity: 0; transform: translateY(18px) scale(0.98); }
@@ -2110,7 +2113,7 @@ function showEpicCharacterReveal(characterType, onComplete) {
 
 /**
  * Professional slot-machine character reveal.
- * Aligns the winner under the indicator using real DOM offsets after layout.
+ * Uses locked cell widths + viewport-center formula so the winner always fills the frame.
  */
 function showLuckyCharacterReveal(characterType, onComplete) {
     const character = MASCOT_CHARACTERS[characterType];
@@ -2131,9 +2134,8 @@ function showLuckyCharacterReveal(characterType, onComplete) {
 
     const characterEntries = Object.entries(MASCOT_CHARACTERS);
     const selectedIndex = Math.max(0, characterEntries.findIndex(([key]) => key === characterType));
-    const CELL_W = 88;
+    const CELL_W = 96;
     const totalRepeats = 6;
-    // Land on a far repeat so the spin feels long, then settle on winner
     const landRepeat = totalRepeats - 2;
     const targetIndex = landRepeat * characterEntries.length + selectedIndex;
 
@@ -2146,7 +2148,7 @@ function showLuckyCharacterReveal(characterType, onComplete) {
     for (let i = 0; i < totalRepeats; i++) {
         characterEntries.forEach(([key, char]) => {
             scrollItems.push(`
-                <div class="tm-tama-lucky-char" data-char-key="${key}">
+                <div class="tm-tama-lucky-char" data-char-key="${key}" style="flex:0 0 ${CELL_W}px;width:${CELL_W}px;min-width:${CELL_W}px;max-width:${CELL_W}px;">
                     <div class="tm-tama-lucky-char-emoji">${char.emoji}</div>
                     <div class="tm-tama-lucky-char-name" style="color:${char.color}">${char.nameGr || char.name}</div>
                 </div>
@@ -2163,7 +2165,7 @@ function showLuckyCharacterReveal(characterType, onComplete) {
             <div class="tm-tama-lcd-title">● Τυχερή κλήρωση ●</div>
             <h2 class="tm-tama-cinematic-title">Επιλογή χαρακτήρα</h2>
             <p class="tm-tama-cinematic-subtitle">Ποιος θα βγει από το αυγό;</p>
-            <div class="tm-tama-lucky-slot" id="tm-lucky-slot">
+            <div class="tm-tama-lucky-slot" id="tm-lucky-slot" style="--lucky-cell-w:${CELL_W}px;">
                 <div class="tm-tama-lucky-indicator" aria-hidden="true"></div>
                 <div class="tm-tama-lucky-scroll" id="tm-lucky-scroll">${scrollItems.join('')}</div>
             </div>
@@ -2187,33 +2189,29 @@ function showLuckyCharacterReveal(characterType, onComplete) {
     const chars = [...(scrollEl?.querySelectorAll('.tm-tama-lucky-char') || [])];
     const targetEl = chars[targetIndex] || null;
 
-    /** Align target cell center with slot center using real layout offsets. */
-    const measureFinalTranslate = () => {
-        if (!slotEl || !scrollEl || !targetEl) {
-            return { finalTranslate: -targetIndex * CELL_W, cellWidth: CELL_W };
-        }
-        // Force layout
-        void slotEl.offsetWidth;
-        const cellWidth = targetEl.offsetWidth || chars[0]?.offsetWidth || CELL_W;
-        const targetCenterInScroll = targetEl.offsetLeft + (targetEl.offsetWidth / 2);
-        const slotCenter = slotEl.clientWidth / 2;
-        return {
-            finalTranslate: Math.round(slotCenter - targetCenterInScroll),
-            cellWidth,
-        };
+    /**
+     * Classic slot math with locked cell width:
+     * translate so cell[i] left edge sits at (slotWidth - cellW) / 2
+     * → cell center == slot center.
+     */
+    const computeTranslate = () => {
+        const slotWidth = slotEl?.clientWidth || 420;
+        return Math.round(((slotWidth - CELL_W) / 2) - (targetIndex * CELL_W));
     };
 
-    const correctLandingDrift = (baseTranslate) => {
-        if (!slotEl || !scrollEl || !targetEl) return baseTranslate;
+    /** Snap using live getBoundingClientRect after transform is applied. */
+    const snapWinnerUnderFrame = (currentTranslate) => {
+        if (!slotEl || !scrollEl || !targetEl) return currentTranslate;
+        void scrollEl.offsetWidth;
         const slotRect = slotEl.getBoundingClientRect();
         const targetRect = targetEl.getBoundingClientRect();
-        const drift = (slotRect.left + slotRect.width / 2) - (targetRect.left + targetRect.width / 2);
-        if (Math.abs(drift) > 0.5) {
-            const corrected = Math.round(baseTranslate + drift);
-            scrollEl.style.transform = `translate3d(${corrected}px,0,0)`;
-            return corrected;
-        }
-        return baseTranslate;
+        const slotCenter = slotRect.left + slotRect.width / 2;
+        const targetCenter = targetRect.left + targetRect.width / 2;
+        const drift = slotCenter - targetCenter;
+        if (Math.abs(drift) < 0.75) return currentTranslate;
+        const corrected = Math.round(currentTranslate + drift);
+        scrollEl.style.transform = `translate3d(${corrected}px,0,0)`;
+        return corrected;
     };
 
     let finished = false;
@@ -2263,7 +2261,6 @@ function showLuckyCharacterReveal(characterType, onComplete) {
         overlay.querySelector('#tm-reveal-close-btn')?.addEventListener('click', finishReveal, { once: true });
     };
 
-    // Double rAF: wait until layout + fonts have settled before measuring
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
             if (!stillValid() || !scrollEl || !slotEl) {
@@ -2271,19 +2268,31 @@ function showLuckyCharacterReveal(characterType, onComplete) {
                 return;
             }
 
-            const { finalTranslate, cellWidth } = measureFinalTranslate();
-            scrollEl.classList.add('is-spinning');
+            // Lock strip width so flex can't reflow mid-spin
+            scrollEl.style.width = `${chars.length * CELL_W}px`;
             scrollEl.style.transform = 'translate3d(0,0,0)';
 
-            // Overshoot a little past the winner, then ease back — classic slot feel
-            const overshoot = finalTranslate - Math.min(120, cellWidth * 1.2);
+            let finalTranslate = computeTranslate();
+            // Verify with live rects while at 0, then recompute if needed
+            {
+                const slotRect = slotEl.getBoundingClientRect();
+                const targetRect = targetEl?.getBoundingClientRect();
+                if (targetRect) {
+                    const desired = (slotRect.left + slotRect.width / 2) - (targetRect.left + targetRect.width / 2);
+                    // At translate 0, desired is exactly the translate we need
+                    finalTranslate = Math.round(desired);
+                }
+            }
+
+            scrollEl.classList.add('is-spinning');
+            const overshoot = finalTranslate - Math.min(140, CELL_W * 1.35);
             const spinDuration = 3200;
 
             const anim = scrollEl.animate(
                 [
                     { transform: 'translate3d(0px,0,0)', offset: 0, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
                     { transform: `translate3d(${overshoot}px,0,0)`, offset: 0.78, easing: 'cubic-bezier(0.15, 0.85, 0.25, 1)' },
-                    { transform: `translate3d(${finalTranslate + 14}px,0,0)`, offset: 0.9, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+                    { transform: `translate3d(${finalTranslate + 12}px,0,0)`, offset: 0.9, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
                     { transform: `translate3d(${finalTranslate}px,0,0)`, offset: 1 },
                 ],
                 {
@@ -2295,13 +2304,20 @@ function showLuckyCharacterReveal(characterType, onComplete) {
 
             const settle = () => {
                 if (!stillValid()) return;
-                scrollEl.style.transform = `translate3d(${finalTranslate}px,0,0)`;
-                // Cancel WAAPI so style.transform is the source of truth, then nudge if needed
                 try { anim.cancel(); } catch { /* ignore */ }
                 scrollEl.style.transform = `translate3d(${finalTranslate}px,0,0)`;
-                correctLandingDrift(finalTranslate);
-                highlightWinner();
-                scheduleTamagotchiCinematic(showRevealCard, 220);
+                // Double-snap after layout settles under the new transform
+                requestAnimationFrame(() => {
+                    if (!stillValid()) return;
+                    snapWinnerUnderFrame(finalTranslate);
+                    requestAnimationFrame(() => {
+                        if (!stillValid()) return;
+                        const matrix = new DOMMatrix(getComputedStyle(scrollEl).transform);
+                        snapWinnerUnderFrame(matrix.m41 || finalTranslate);
+                        highlightWinner();
+                        scheduleTamagotchiCinematic(showRevealCard, 200);
+                    });
+                });
             };
 
             anim.finished.then(settle).catch(settle);
