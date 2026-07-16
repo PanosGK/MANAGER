@@ -46,13 +46,17 @@ const SHOP_CONSUMABLE_CATALOG = [
 
     // ── Mascot Care (hidden when mascot is off) ──
     { id: 'treat', name: 'Treat', icon: '🍪', cost: 30, type: 'consumable', group: 'mascot', mascotOnly: true,
-      desc: 'Snack — +35 happiness.', effect: { happiness: 35, mascotState: 'happy', mascotMs: 2000 } },
+      desc: 'Snack — +35 happiness.', effect: { happiness: 35, careAction: 'snack', mascotState: 'happy', mascotMs: 2000 } },
     { id: 'meal', name: 'Meal', icon: '🍱', cost: 30, type: 'consumable', group: 'mascot', mascotOnly: true,
-      desc: 'Full plate — +40 satiety.', effect: { satiety: 40, mascotState: 'eating', mascotMs: 2000 } },
+      desc: 'Full plate — +40 satiety.', effect: { satiety: 40, careAction: 'meal', mascotState: 'eating', mascotMs: 2000 } },
     { id: 'feast', name: 'Feast', icon: '🍜', cost: 85, type: 'consumable', group: 'mascot', mascotOnly: true,
-      desc: 'Big meal — +50 happiness & satiety.', effect: { happiness: 50, satiety: 50, mascotState: 'eating', mascotMs: 3000 } },
+      desc: 'Big meal — +50 happiness & satiety.', effect: { happiness: 50, satiety: 50, careAction: 'meal', mascotState: 'eating', mascotMs: 3000 } },
+    { id: 'medicine', name: 'Medicine', icon: '💊', cost: 40, type: 'consumable', group: 'mascot', mascotOnly: true,
+      desc: 'Heal +20 health.', effect: { health: 20, careAction: 'medicine', mascotState: 'happy', mascotMs: 2000 } },
+    { id: 'clean_kit', name: 'Clean Kit', icon: '🧹', cost: 25, type: 'consumable', group: 'mascot', mascotOnly: true,
+      desc: 'Clear mess + happiness boost.', effect: { clean: true, happiness: 10, careAction: 'clean', mascotState: 'happy', mascotMs: 2000 } },
     { id: 'spa_day', name: 'Spa Day', icon: '💆', cost: 130, type: 'consumable', group: 'mascot', mascotOnly: true,
-      desc: 'Max both stats + sparkles.', effect: { maxStats: true, visual: 'sparkles', mascotState: 'happy', mascotMs: 4000 } },
+      desc: 'Max both stats + sparkles.', effect: { maxStats: true, clean: true, health: 30, careAction: 'clean', visual: 'sparkles', mascotState: 'happy', mascotMs: 4000 } },
 
     // ── Celebrations (pure fun, each with a unique visual) ──
     { id: 'confetti_pop', name: 'Confetti Pop', icon: '🎉', cost: 20, type: 'consumable', group: 'fun',
@@ -160,6 +164,10 @@ function executeConsumableEffect(effect, item, config, STORAGE_KEYS) {
     }
     if ((happiness || satiety) && typeof window.updatePetStats === 'function') {
         window.updatePetStats(config, STORAGE_KEYS, happiness, satiety);
+    }
+
+    if (typeof window.applyMascotShopCareEffect === 'function' && isInteractiveMascotShopEnabled(config)) {
+        window.applyMascotShopCareEffect(effect, config, STORAGE_KEYS);
     }
 
     if (effect.mascotState && typeof window.setMascotState === 'function' && isInteractiveMascotShopEnabled(config)) {
@@ -3098,8 +3106,12 @@ function initOrderTracking(config, STORAGE_KEYS) {
                 
                 // Show feedback
                 if (config.interactiveMascotEnabled) {
-                    setMascotState(config, 'happy', 3000);
-                    showMascotBubble(window.mascotMsg?.('orderSave') || 'Νέα παραγγελία!', 2000);
+                    if (typeof window.notifyMascotWorkEvent === 'function') {
+                        window.notifyMascotWorkEvent('newOrder', config);
+                    } else {
+                        setMascotState(config, 'happy', 3000);
+                        showMascotBubble(window.mascotMsg?.('orderSave') || 'Νέα παραγγελία!', 2000);
+                    }
                 }
             }, 100);
         }, { once: false });
@@ -3157,7 +3169,11 @@ function initFunFeatures(config, STORAGE_KEYS) {
                                 trackDailyStat(config, STORAGE_KEYS, 'ordersCreated');
                                 
                                 if (config.interactiveMascotEnabled) {
-                                    showMascotBubble(window.mascotMsg?.('orderPart') || 'Παραγγελία ανταλλακτικού!', 2500);
+                                    if (typeof window.notifyMascotWorkEvent === 'function') {
+                                        window.notifyMascotWorkEvent('newOrder', config);
+                                    } else {
+                                        showMascotBubble(window.mascotMsg?.('orderPart') || 'Παραγγελία ανταλλακτικού!', 2500);
+                                    }
                                 }
                             }
                             // Restore original confirm
@@ -3175,9 +3191,15 @@ function initFunFeatures(config, STORAGE_KEYS) {
                         if (button.innerHTML.includes('ΠΡΟΣ ΠΑΡΑΔΟΣΗ')) {
                             trackDailyStat(config, STORAGE_KEYS, 'repairsCompleted');
                             if (config.interactiveMascotEnabled) {
-                                setMascotState(config, 'happy', 5000);
+                                if (typeof window.notifyMascotWorkEvent === 'function') {
+                                    window.notifyMascotWorkEvent('repairDone', config);
+                                } else {
+                                    setMascotState(config, 'happy', 5000);
+                                }
                             }
                             if (config.confettiEnabled) triggerConfetti(100);
+                        } else if (config.interactiveMascotEnabled && typeof window.notifyMascotWorkEvent === 'function') {
+                            window.notifyMascotWorkEvent('statusChange', config);
                         }
                     }, 500);
                 });
@@ -3189,78 +3211,80 @@ function initFunFeatures(config, STORAGE_KEYS) {
 function getLevelUpSettingsHTML() {
     return `
         <div class="tm-settings-section">
-            <h3>💼 Λειτουργία Εργασίας</h3>
-            <p class="tm-setting-description" style="margin: 0 0 12px; font-size: 13px; color: var(--tm-secondary-hover);">
-                Όλα τα εργαλεία δουλειάς (EOD checklist, αναζήτηση, κατάλογος κ.λπ.) είναι δωρεάν από τις Ρυθμίσεις.
-                Το κατάστημα πωλεί μόνο θέματα, αξεσουάρ και προαιρετικά game extras.
-            </p>
-            <div class="tm-setting-row" style="background: #f0f7ff; padding: 12px; border: 1px solid #bfdbfe; border-radius: 8px; margin-bottom: 12px;">
+            <header class="tm-settings-section-head">
+                <h3>Λειτουργία εργασίας</h3>
+                <p class="tm-settings-section-desc">Εργαλεία δουλειάς δωρεάν από ρυθμίσεις. Το κατάστημα πουλάει μόνο cosmetics.</p>
+            </header>
+            <div class="tm-setting-row tm-setting-row--accent">
                 <div class="tm-setting-label">
                     <label>Γρήγορα profiles</label>
-                    <p class="tm-setting-description">Professional: μόνο εργαλεία δουλειάς. Gamification: XP, mascot, κατάστημα.</p>
+                    <p class="tm-setting-description">Professional: μόνο εργαλεία. Gamification: XP, mascot, κατάστημα.</p>
                 </div>
-                <div class="tm-setting-control" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button type="button" id="tm-setting-professional-mode-btn" style="padding: 8px 14px; border-radius: 8px; border: 1px solid #64748b; background: #fff; cursor: pointer; font-weight: 600;">💼 Professional</button>
-                    <button type="button" id="tm-setting-gamification-mode-btn" style="padding: 8px 14px; border-radius: 8px; border: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; cursor: pointer; font-weight: 600;">🎮 Gamification</button>
+                <div class="tm-setting-control tm-setting-control--wrap">
+                    <button type="button" id="tm-setting-professional-mode-btn" class="tm-settings-ghost-btn">Professional</button>
+                    <button type="button" id="tm-setting-gamification-mode-btn" class="tm-settings-primary-btn">Gamification</button>
                 </div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-eod-checklist-enabled">🌙 Checklist Τέλους Ημέρας</label>
-                    <p class="tm-setting-description">Κουμπί 📋 στο footer για έλεγχο επισκευών της ημέρας πριν φύγετε. Δωρεάν — χωρίς αγορά από κατάστημα.</p>
+                    <label for="tm-setting-eod-checklist-enabled">Checklist τέλους ημέρας</label>
+                    <p class="tm-setting-description">Κουμπί στο footer για έλεγχο επισκευών πριν φύγετε.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-eod-checklist-enabled"></div>
             </div>
         </div>
 
         <div class="tm-settings-section">
-            <h3>🎮 Παιχνιδοποίηση (Gamification)</h3>
-            <p class="tm-setting-description" style="margin: 0 0 12px; font-size: 13px; color: var(--tm-secondary-hover);">
-                Προαιρετικό επίπεδο παιχνιδιού — μπορείτε να το απενεργοποιήσετε πλήρως χωρίς να χάσετε εργαλεία δουλειάς.
-            </p>
+            <header class="tm-settings-section-head">
+                <h3>Παιχνιδοποίηση</h3>
+                <p class="tm-settings-section-desc">Προαιρετικό — απενεργοποιήστε χωρίς να χάσετε εργαλεία δουλειάς.</p>
+            </header>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-levelup-enabled">⭐ Σύστημα Επιπέδων</label>
-                    <p class="tm-setting-description">Κερδίστε XP και ανεβείτε επίπεδο ολοκληρώνοντας επισκευές και εργασίες.</p>
+                    <label for="tm-setting-levelup-enabled">Σύστημα επιπέδων</label>
+                    <p class="tm-setting-description">XP και επίπεδα από επισκευές και εργασίες.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-levelup-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-confetti-enabled">🎉 Εφέ Κομφετί</label>
-                    <p class="tm-setting-description">Οπτικά εφέ κομφετί σε επιτυχίες και milestone events.</p>
+                    <label for="tm-setting-confetti-enabled">Εφέ κομφετί</label>
+                    <p class="tm-setting-description">Οπτικά εφέ σε επιτυχίες και milestones.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-confetti-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-achievements-enabled">🏆 Επιτεύγματα</label>
-                    <p class="tm-setting-description">Ξεκλειδώστε επιτεύγματα για ειδικές ενέργειες και στόχους.</p>
+                    <label for="tm-setting-achievements-enabled">Επιτεύγματα</label>
+                    <p class="tm-setting-description">Ξεκλείδωμα για ειδικές ενέργειες και στόχους.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-achievements-enabled"></div>
             </div>
         </div>
-        
+
         <div class="tm-settings-section">
-            <h3>🚀 Προχωρημένα Χαρακτηριστικά</h3>
+            <header class="tm-settings-section-head">
+                <h3>Προχωρημένα</h3>
+                <p class="tm-settings-section-desc">Extra παιχνιδιού και εμφανίσεις.</p>
+            </header>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-random-events-enabled">⚡ Τυχαία Γεγονότα</label>
-                    <p class="tm-setting-description">Τυχαία events που εμφανίζονται και παρέχουν μπόνους (2x νομίσματα, 2x XP, κ.λπ.).</p>
+                    <label for="tm-setting-random-events-enabled">Τυχαία γεγονότα</label>
+                    <p class="tm-setting-description">Μπόνους όπως 2× νομίσματα ή XP.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-random-events-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-personal-dashboard-enabled">📊 Προσωπικός Πίνακας</label>
-                    <p class="tm-setting-description">Προβολή αναλυτικών στοιχείων, γραφημάτων και στατιστικών απόδοσης.</p>
+                    <label for="tm-setting-personal-dashboard-enabled">Προσωπικός πίνακας</label>
+                    <p class="tm-setting-description">Αναλυτικά στοιχεία και γραφήματα.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-personal-dashboard-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-shop-enabled">🪙 Κατάστημα (Cosmetics)</label>
-                    <p class="tm-setting-description">Θέματα, αξεσουάρ mascot και προαιρετικά game extras — όχι εργαλεία δουλειάς.</p>
+                    <label for="tm-setting-shop-enabled">Κατάστημα (cosmetics)</label>
+                    <p class="tm-setting-description">Θέματα, αξεσουάρ και game extras.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-shop-enabled"></div>
             </div>
@@ -3270,20 +3294,26 @@ function getLevelUpSettingsHTML() {
 function getMascotSettingsHTML() {
     return `
         <div class="tm-settings-section">
-            <h3>🤖 Mascot</h3>
+            <header class="tm-settings-section-head">
+                <h3>Mascot</h3>
+                <p class="tm-settings-section-desc">Διαδραστικός βοηθός στην οθόνη.</p>
+            </header>
             <div class="tm-setting-row">
-                <div class="tm-setting-label"><label for="tm-setting-mascot-enabled">Ενεργοποίηση Mascot</label><p class="tm-setting-description">Εμφανίζει έναν διαδραστικό βοηθό στην οθόνη.</p></div>
+                <div class="tm-setting-label">
+                    <label for="tm-setting-mascot-enabled">Ενεργοποίηση</label>
+                    <p class="tm-setting-description">Εμφάνιση του mascot.</p>
+                </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-mascot-enabled"></div>
-        </div>
-        <div class="tm-setting-row">
-            <div class="tm-setting-label">
-                <label for="tm-setting-mascot-speed">Ταχύτητα Περιπλάνησης</label>
-                <p class="tm-setting-description">Ορίστε την ταχύτητα κίνησης του mascot (pixels ανά δευτερόλεπτο).</p>
             </div>
-            <div class="tm-setting-control">
-                <input type="number" id="tm-setting-mascot-speed" min="25" max="500" step="25">
+            <div class="tm-setting-row">
+                <div class="tm-setting-label">
+                    <label for="tm-setting-mascot-speed">Ταχύτητα περιπλάνησης</label>
+                    <p class="tm-setting-description">Pixels ανά δευτερόλεπτο.</p>
+                </div>
+                <div class="tm-setting-control">
+                    <input type="number" id="tm-setting-mascot-speed" min="25" max="500" step="25">
+                </div>
             </div>
-        </div>
         </div>`;
 }
 

@@ -208,6 +208,10 @@
     function showEODModal(STORAGE_KEYS) {
         document.getElementById('tm-eod-modal')?.remove();
 
+        if (typeof window.notifyMascotWorkEvent === 'function') {
+            window.notifyMascotWorkEvent('eod', window.config);
+        }
+
         const today      = getTodaysRepairs(STORAGE_KEYS);
         const dismissed  = getDismissed(STORAGE_KEYS);
         const pending    = today.filter(r => !isEODDoneRepair(r, dismissed));

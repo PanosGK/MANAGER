@@ -279,15 +279,27 @@ input:focus, select:focus, textarea:focus {
 .tm-modal-title, .tm-modal-close, .tm-setting-label label, .tm-talent-name { color: var(--lg-label) !important; }
 .tm-setting-description, .tm-talent-description { color: var(--lg-label-secondary) !important; }
 .tm-settings-sidebar .tm-nav a {
-    background: var(--lg-fill) !important;
-    border: 0.55px solid var(--lg-stroke-subtle) !important;
+    background: transparent !important;
+    border: 0.55px solid transparent !important;
     border-radius: var(--lg-radius-sm) !important;
     color: var(--lg-label) !important;
+}
+.tm-settings-sidebar .tm-nav a:hover {
+    background: var(--lg-fill) !important;
+    border-color: var(--lg-stroke-subtle) !important;
 }
 .tm-settings-sidebar .tm-nav a.active {
     background: rgba(0, 122, 255, 0.12) !important;
     color: var(--tm-primary-color) !important;
     font-weight: 600 !important;
+    border-color: rgba(0, 122, 255, 0.2) !important;
+}
+.tm-settings-modal .tm-settings-header,
+.tm-settings-modal .tm-settings-footer {
+    background: rgba(255, 255, 255, 0.28) !important;
+}
+.tm-settings-section {
+    background: transparent !important;
 }
 
 /* --- Shop --- */
@@ -1028,9 +1040,19 @@ const THEME_STYLES = `/* Universal Theme Styles */
             .tm-shop-item-btn:disabled { background: var(--tm-dark-hover) !important; color: var(--tm-secondary-hover) !important; border-color: var(--tm-secondary-hover) !important; }
 
             /* Settings Styles */
-            .tm-settings-sidebar .tm-nav a { background: var(--tm-dark-color) !important; color: var(--tm-primary-color) !important; }
-            .tm-settings-sidebar .tm-nav a:hover { background: var(--tm-shop-item-hover-bg) !important; }
-            .tm-settings-sidebar .tm-nav a.active { background: var(--tm-secondary-hover) !important; color: var(--tm-info-color) !important; }
+            .tm-settings-sidebar .tm-nav a {
+                background: transparent !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border-color: transparent !important;
+            }
+            .tm-settings-sidebar .tm-nav a:hover {
+                background: color-mix(in srgb, var(--tm-primary-color) 10%, var(--tm-shop-item-bg, var(--tm-dark-color))) !important;
+            }
+            .tm-settings-sidebar .tm-nav a.active {
+                background: color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-shop-item-bg, var(--tm-dark-color))) !important;
+                color: var(--tm-primary-color) !important;
+                border-color: color-mix(in srgb, var(--tm-primary-color) 30%, transparent) !important;
+            }
             
             /* Factions System */
             #tm-factions-grid .tm-faction-card { background: var(--tm-shop-item-bg) !important; border: 1px solid var(--tm-shop-item-border) !important; color: var(--tm-primary-color) !important; }
@@ -1119,8 +1141,23 @@ const THEME_STYLES = `/* Universal Theme Styles */
             }
             #sec-debug button { background: transparent !important; color: var(--tm-primary-color) !important; border: 1px solid var(--tm-primary-color) !important; border-radius: 16px !important; text-shadow: none; transition: all 0.2s ease-out; box-shadow: none; padding: 0 15px; margin-left: 5px; }
             #sec-debug button:hover { background: var(--tm-primary-color) !important; color: var(--tm-dark-hover) !important; box-shadow: 0 0 10px var(--tm-primary-color); }
-            .tm-mascot-state-btn, .tm-mascot-stage-btn { background: linear-gradient(135deg, rgba(79, 172, 254, 0.2) 0%, rgba(0, 242, 254, 0.2) 100%) !important; color: var(--tm-primary-color) !important; border: 1px solid var(--tm-primary-color) !important; border-radius: 8px !important; padding: 8px 12px !important; cursor: pointer; font-weight: 500; text-shadow: none; transition: all 0.2s ease-out; box-shadow: none; font-size: 13px; }
-            .tm-mascot-state-btn:hover, .tm-mascot-stage-btn:hover { background: linear-gradient(135deg, rgba(79, 172, 254, 0.4) 0%, rgba(0, 242, 254, 0.4) 100%) !important; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3) !important; }
+            .tm-mascot-state-btn, .tm-mascot-stage-btn, .tm-mascot-char-btn {
+                background: color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-shop-item-bg)) !important;
+                color: var(--tm-primary-color) !important;
+                border: 1px solid var(--tm-shop-item-border) !important;
+                border-radius: 10px !important;
+                padding: 7px 10px !important;
+                cursor: pointer;
+                font-weight: 500;
+                text-shadow: none;
+                transition: all 0.15s ease-out;
+                box-shadow: none;
+                font-size: 12px;
+            }
+            .tm-mascot-state-btn:hover, .tm-mascot-stage-btn:hover, .tm-mascot-char-btn:hover {
+                border-color: var(--tm-primary-color) !important;
+                background: color-mix(in srgb, var(--tm-primary-color) 18%, var(--tm-shop-item-bg)) !important;
+            }
             .tm-setting-control input[type="checkbox"], #tm-working-hours-editor input[type="checkbox"] { -webkit-appearance: none; appearance: none; background-color: var(--tm-dark-hover); margin: 0; font: inherit; color: var(--tm-primary-color); width: 1.15em; height: 1.15em; border: 1px solid var(--tm-primary-color); border-radius: 2px; transform: translateY(-0.075em); display: grid; place-content: center; }
             .tm-setting-control input[type="checkbox"]::before, #tm-working-hours-editor input[type="checkbox"]::before { content: ""; width: 0.65em; height: 0.65em; transform: scale(0); transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em var(--tm-primary-color); }
             #tm-working-hours-editor { background: var(--tm-shop-item-bg) !important; border: 1px solid var(--tm-shop-item-border) !important; }
@@ -1131,11 +1168,50 @@ const THEME_STYLES = `/* Universal Theme Styles */
                 text-shadow: 0 0 5px var(--tm-primary-color);
             }
             .tm-talent-points-display span { color: var(--tm-info-color) !important; }
-            .tm-settings-section h3 { color: var(--tm-primary-color) !important; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid var(--tm-secondary-hover) !important; text-shadow: 0 0 5px var(--tm-primary-color); }
-            /* Style for the debug mode row in settings */
-            @keyframes matrix-pulse-red { 0%, 100% { border-color: #800; box-shadow: 0 0 5px #f00; } 50% { border-color: #f00; box-shadow: 0 0 15px #f00; } }
-            .tm-settings-section .tm-setting-row[style*="fffbe6"] { background: #1a0505 !important; border: 1px solid #800 !important; border-radius: 8px; animation: matrix-pulse-red 3s infinite; }
-            .tm-settings-section .tm-setting-row[style*="fffbe6"] label { color: #ff4444 !important; }
+            .tm-settings-modal .tm-settings-section h3,
+            .tm-settings-modal .tm-settings-section-head h3 {
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                text-transform: none !important;
+                letter-spacing: normal !important;
+                border-bottom: none !important;
+                text-shadow: none !important;
+            }
+            /* Highlight rows in settings (semantic classes) */
+            .tm-settings-section .tm-setting-row--warn {
+                background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 12%, var(--tm-shop-item-bg)) !important;
+                border: 1px solid color-mix(in srgb, var(--tm-warning-color, #f59e0b) 35%, transparent) !important;
+                border-radius: 12px;
+                animation: none;
+            }
+            .tm-settings-section .tm-setting-row--warn label {
+                color: var(--tm-warning-color, #f59e0b) !important;
+            }
+            .tm-settings-section .tm-setting-row--danger {
+                background: color-mix(in srgb, var(--tm-danger-color, #ef4444) 12%, var(--tm-shop-item-bg)) !important;
+                border: 1px solid color-mix(in srgb, var(--tm-danger-color, #ef4444) 32%, transparent) !important;
+            }
+            .tm-settings-section .tm-setting-row--danger label {
+                color: var(--tm-danger-color, #ff6b6b) !important;
+            }
+            .tm-settings-ghost-btn,
+            .tm-settings-primary-btn {
+                box-shadow: none !important;
+            }
+            .tm-settings-ghost-btn {
+                background: transparent !important;
+                color: var(--tm-primary-color) !important;
+                border: 1px solid var(--tm-primary-color) !important;
+            }
+            .tm-settings-primary-btn {
+                background: var(--tm-primary-color) !important;
+                color: var(--tm-text-on-primary, var(--tm-dark-hover)) !important;
+                border: 1px solid var(--tm-primary-color) !important;
+            }
+            .tm-settings-danger-btn {
+                background: transparent !important;
+                color: var(--tm-danger-color) !important;
+                border: 1px solid var(--tm-danger-color) !important;
+            }
             .tm-talent-item { background: var(--tm-shop-item-bg) !important; border-color: var(--tm-shop-item-border) !important; }
             .tm-talent-item.unlocked { background: var(--tm-shop-item-owned-bg) !important; border-left-color: var(--tm-primary-color) !important; }
             .tm-talent-btn.unlockable { background-color: var(--tm-success-color) !important; color: var(--tm-dark-hover) !important; }
@@ -1422,17 +1498,22 @@ const THEME_STYLES = `/* Universal Theme Styles */
                 color: var(--tm-secondary-hover, var(--tm-secondary-color)) !important;
             }
             .tm-settings-sidebar .tm-nav a {
-                color: var(--tm-primary-color) !important;
-                background: var(--tm-dark-color) !important;
+                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                background: transparent !important;
             }
             .tm-settings-sidebar .tm-nav a.active {
-                color: var(--tm-info-color, var(--tm-primary-color)) !important;
+                color: var(--tm-primary-color) !important;
+                background: color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-shop-item-bg, transparent)) !important;
             }
             .tm-settings-section {
                 border-bottom-color: var(--tm-shop-item-border) !important;
+                background: transparent !important;
             }
             .tm-settings-section h3 {
-                border-bottom-color: var(--tm-shop-item-border) !important;
+                border-bottom: none !important;
+                text-shadow: none !important;
+                text-transform: none !important;
+                letter-spacing: normal !important;
             }
             .tm-modal-footer {
                 border-top-color: var(--tm-shop-item-border) !important;
@@ -6849,16 +6930,54 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             /* Settings layout as panel with sidebar */
             .tm-settings-layout {
                 display: flex;
-                gap: 16px;
-                flex-grow: 1; /* Allow this layout to fill the space */
-                overflow: hidden; /* Prevent this container from scrolling */
+                gap: 0;
+                flex-grow: 1;
+                overflow: hidden;
+                min-height: 0;
             }
-            .tm-settings-sidebar { width: 220px; border-right: 1px solid #eee; padding-right: 12px; }
-            .tm-settings-sidebar .tm-nav { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-            .tm-settings-sidebar .tm-nav a { text-decoration: none; color: #333; font-weight: 600; border-radius: 6px; padding: 8px 10px; display: block; background: #f8f9fa; }
-            .tm-settings-sidebar .tm-nav a.active { background: #e7f1ff; color: #0b5ed7; }
-            .tm-settings-sidebar .tm-nav a:hover { background: #eef2f7; }
-            .tm-settings-main { flex: 1; padding-left: 4px; }
+            .tm-settings-sidebar {
+                width: 200px;
+                flex-shrink: 0;
+                border-right: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                padding: 4px 12px 8px 0;
+                overflow-y: auto;
+            }
+            .tm-settings-sidebar .tm-nav {
+                list-style: none; margin: 0; padding: 0;
+                display: flex; flex-direction: column; gap: 4px;
+            }
+            .tm-settings-sidebar .tm-nav a {
+                text-decoration: none;
+                color: var(--tm-shop-item-text, #334155);
+                font-weight: 500;
+                font-size: 13px;
+                border-radius: 10px;
+                padding: 9px 12px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: transparent;
+                border: 1px solid transparent;
+                transition: background 0.15s, color 0.15s, border-color 0.15s;
+            }
+            .tm-settings-sidebar .tm-nav .tm-nav-icon {
+                width: 1.25em; text-align: center; opacity: 0.85; flex-shrink: 0;
+            }
+            .tm-settings-sidebar .tm-nav .tm-nav-label { min-width: 0; }
+            .tm-settings-sidebar .tm-nav a:hover {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 8%, var(--tm-shop-item-bg, #f8fafc));
+            }
+            .tm-settings-sidebar .tm-nav a.active {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 12%, var(--tm-shop-item-bg, #f8fafc));
+                color: var(--tm-primary-color, #0b5ed7);
+                border-color: color-mix(in srgb, var(--tm-primary-color, #007bff) 22%, transparent);
+                font-weight: 600;
+            }
+            .tm-settings-main {
+                flex: 1;
+                min-width: 0;
+                padding: 0 4px 0 16px;
+            }
             .tm-settings-main section { display: none; }
             .tm-settings-main section.active { display: block; }
             @keyframes tm-fade-in {
@@ -7656,97 +7775,327 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 border-color: rgba(255,255,255,0.4) !important;
             }
             
-            /* New Settings Panel Styles */
+            /* New Settings Panel Styles — theme-aware minimal */
+            .tm-settings-modal {
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg, #ffffff)) !important;
+                color: var(--tm-shop-item-text, #1e293b);
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0) !important;
+                border-radius: 16px !important;
+                box-shadow: 0 20px 50px color-mix(in srgb, var(--tm-shadow-color, #0f172a) 18%, transparent);
+                padding: 0 !important;
+                max-width: 980px;
+                overflow: hidden;
+            }
+            .tm-settings-modal .tm-settings-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 18px 20px 14px;
+                margin: 0;
+                border-bottom: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                background: transparent !important;
+            }
+            .tm-settings-header-text { min-width: 0; }
+            .tm-settings-modal .tm-modal-title {
+                margin: 0;
+                font-size: 1.15rem;
+                font-weight: 700;
+                text-align: left;
+                color: var(--tm-shop-item-text, #0f172a);
+                pointer-events: auto;
+            }
+            .tm-settings-subtitle {
+                margin: 4px 0 0;
+                font-size: 12px;
+                color: var(--tm-subtle-text, var(--tm-secondary-color, #64748b));
+            }
+            .tm-settings-modal .tm-modal-close {
+                width: 34px; height: 34px;
+                border: none; border-radius: 10px; cursor: pointer;
+                background: var(--tm-shop-item-bg, #f1f5f9);
+                color: var(--tm-shop-item-text, #334155);
+                font-size: 18px; line-height: 1;
+                display: flex; align-items: center; justify-content: center;
+                transition: background 0.15s, color 0.15s;
+            }
+            .tm-settings-modal .tm-modal-close:hover {
+                background: color-mix(in srgb, var(--tm-danger-color, #ef4444) 14%, transparent);
+                color: var(--tm-danger-color, #b91c1c);
+            }
+            .tm-settings-modal .tm-settings-layout {
+                padding: 12px 16px 8px;
+            }
+            .tm-settings-modal #tm-settings-content {
+                padding-right: 6px;
+            }
+            .tm-settings-modal .tm-settings-footer {
+                padding: 14px 20px;
+                margin: 0;
+                border-top: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                background: transparent !important;
+                gap: 12px;
+            }
+
             .tm-settings-section {
-                margin-bottom: 20px;
-                padding-bottom: 15px;
-                border-bottom: 1px solid #eee;
+                margin-bottom: 18px;
+                padding: 0 0 16px;
+                border-bottom: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                background: transparent !important;
             }
             .tm-settings-section:last-of-type {
                 border-bottom: none;
                 margin-bottom: 0;
                 padding-bottom: 0;
             }
-            .tm-settings-section h3 {
-                margin-top: 0;
-                margin-bottom: 20px;
-                font-size: 16px;
-                color: #343a40;
+            .tm-settings-section-head {
+                margin-bottom: 12px;
+            }
+            .tm-settings-section h3,
+            .tm-settings-section-head h3 {
+                margin: 0 0 4px;
+                font-size: 15px;
+                font-weight: 700;
+                color: var(--tm-shop-item-text, #0f172a);
                 text-align: left;
-                border-bottom: 1px solid #f1f1f1;
-                padding-bottom: 10px;
+                border: none;
+                padding: 0;
+                text-transform: none;
+                letter-spacing: normal;
+                text-shadow: none;
+            }
+            .tm-settings-section-desc {
+                margin: 0;
+                font-size: 12.5px;
+                line-height: 1.4;
+                color: var(--tm-subtle-text, var(--tm-secondary-color, #64748b));
+            }
+            .tm-settings-subgroup {
+                margin: 14px 0 8px;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                color: var(--tm-muted-text, var(--tm-secondary-color, #94a3b8));
             }
             .tm-setting-row {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 15px;
-                padding: 0 10px;
+                gap: 16px;
+                margin-bottom: 8px;
+                padding: 10px 12px;
+                border-radius: 12px;
+                border: 1px solid transparent;
+                transition: background 0.15s;
+            }
+            .tm-setting-row:hover {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 5%, transparent);
+            }
+            .tm-setting-row--stack {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .tm-setting-row--stack .tm-setting-control {
+                justify-content: flex-start;
+                width: 100%;
+            }
+            .tm-setting-row--divider {
+                margin-top: 8px;
+                padding-top: 14px;
+                border-top: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                border-radius: 0;
+            }
+            .tm-setting-row--danger {
+                background: color-mix(in srgb, var(--tm-danger-color, #ef4444) 10%, var(--tm-shop-item-bg, #fff));
+                border-color: color-mix(in srgb, var(--tm-danger-color, #ef4444) 28%, transparent);
+            }
+            .tm-setting-row--danger .tm-setting-label label {
+                color: var(--tm-danger-color, #b91c1c);
+            }
+            .tm-setting-row--warn {
+                background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 10%, var(--tm-shop-item-bg, #fff));
+                border-color: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 30%, transparent);
+            }
+            .tm-setting-row--accent {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 8%, var(--tm-shop-item-bg, #fff));
+                border-color: color-mix(in srgb, var(--tm-primary-color, #007bff) 22%, transparent);
             }
             .tm-setting-label {
-                flex-basis: 60%;
+                flex: 1;
+                min-width: 0;
                 text-align: left;
             }
             .tm-setting-label label {
-                font-weight: bold;
-                color: #495057;
-                font-size: 14px;
+                font-weight: 600;
+                color: var(--tm-shop-item-text, #334155);
+                font-size: 13.5px;
             }
             .tm-setting-control {
-                flex-basis: 35%;
+                flex-shrink: 0;
                 text-align: right;
                 display: flex;
                 justify-content: flex-end;
                 align-items: center;
-                gap: 10px;
+                gap: 8px;
             }
-            .tm-setting-control input[type="number"] {
-                width: 70px;
-                padding: 8px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
+            .tm-setting-control--wrap { flex-wrap: wrap; justify-content: flex-end; }
+            .tm-setting-control--grid {
+                display: grid !important;
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 6px;
+                width: 100%;
+            }
+            .tm-setting-control--stack {
+                flex-direction: column;
+                align-items: flex-end;
+            }
+            .tm-setting-control input[type="number"],
+            .tm-settings-input,
+            .tm-settings-modal input[type="text"],
+            .tm-settings-modal input[type="password"] {
+                width: 88px;
+                min-width: 0;
+                padding: 8px 10px;
+                border: 1px solid var(--tm-shop-item-border, #cbd5e1);
+                border-radius: 10px;
                 text-align: center;
+                background: var(--tm-input-bg, var(--tm-shop-item-bg, #fff));
+                color: var(--tm-shop-item-text, #1e293b);
+            }
+            .tm-settings-input,
+            .tm-settings-modal input[type="text"],
+            .tm-settings-modal input[type="password"] {
+                width: auto;
+                min-width: 180px;
+                text-align: left;
             }
             .tm-setting-control input[type="checkbox"] {
-                transform: scale(1.3);
+                transform: scale(1.15);
                 cursor: pointer;
+                accent-color: var(--tm-primary-color, #007bff);
             }
             .tm-setting-description {
                 font-size: 12px;
-                color: #6c757d;
-                margin-top: 4px;
+                color: var(--tm-subtle-text, var(--tm-secondary-color, #64748b));
+                margin-top: 3px;
                 text-align: left;
                 margin-bottom: 0;
+                line-height: 1.4;
+            }
+            .tm-settings-muted { opacity: 0.8; }
+            .tm-settings-unit {
+                font-size: 12px;
+                color: var(--tm-subtle-text, #64748b);
+            }
+            .tm-settings-profile-line { margin-bottom: 12px; }
+            .tm-settings-code-line {
+                word-break: break-all;
+                font-size: 11px;
+                opacity: 0.85;
+            }
+            .tm-settings-panel {
+                padding: 14px;
+                margin-top: 10px;
+                border-radius: 12px;
+                background: var(--tm-shop-item-bg, #f8fafc);
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+            }
+            .tm-settings-panel-title {
+                text-align: center;
+                margin-bottom: 10px !important;
+            }
+            .tm-settings-editor { padding: 0 2px 8px; }
+            .tm-settings-danger-zone {
+                margin-top: 18px;
+                padding-top: 14px;
+                border-top: 1px dashed color-mix(in srgb, var(--tm-danger-color, #ef4444) 35%, transparent);
+                text-align: center;
+            }
+            .tm-settings-ghost-btn,
+            .tm-settings-primary-btn,
+            .tm-settings-danger-btn {
+                padding: 7px 12px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-size: 12.5px;
+                font-weight: 600;
+                transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+            }
+            .tm-settings-ghost-btn {
+                background: transparent;
+                color: var(--tm-primary-color, #007bff);
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 45%, transparent);
+            }
+            .tm-settings-ghost-btn:hover {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 10%, transparent);
+            }
+            .tm-settings-primary-btn {
+                background: var(--tm-primary-color, #007bff);
+                color: var(--tm-text-on-primary, #fff);
+                border: 1px solid var(--tm-primary-color, #007bff);
+            }
+            .tm-settings-primary-btn:hover {
+                background: var(--tm-primary-hover, #0056b3);
+            }
+            .tm-settings-danger-btn {
+                background: color-mix(in srgb, var(--tm-danger-color, #ef4444) 12%, transparent);
+                color: var(--tm-danger-color, #b91c1c);
+                border: 1px solid color-mix(in srgb, var(--tm-danger-color, #ef4444) 40%, transparent);
+            }
+            .tm-settings-danger-btn:hover {
+                background: color-mix(in srgb, var(--tm-danger-color, #ef4444) 20%, transparent);
+            }
+            .tm-mascot-state-btn,
+            .tm-mascot-stage-btn,
+            .tm-mascot-char-btn {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 8%, var(--tm-shop-item-bg, #fff));
+                color: var(--tm-shop-item-text, #334155);
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                border-radius: 10px;
+                padding: 7px 10px;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 500;
+            }
+            .tm-mascot-state-btn:hover,
+            .tm-mascot-stage-btn:hover,
+            .tm-mascot-char-btn:hover {
+                border-color: var(--tm-primary-color, #007bff);
+                color: var(--tm-primary-color, #007bff);
             }
             #tm-settings-feedback {
-                margin-left: 15px; color: #28a745; font-weight: bold;
-                font-size: 14px;
+                margin-right: auto;
+                color: var(--tm-success-color, #28a745);
+                font-weight: 600;
+                font-size: 13px;
                 transition: opacity 0.3s;
             }
             .tm-modal-footer {
                 padding-top: 20px;
                 margin-top: 10px;
-                border-top: 1px solid #eee;
+                border-top: 1px solid var(--tm-shop-item-border, #eee);
                 display: flex;
                 justify-content: flex-end;
                 align-items: center;
                 gap: 10px;
             }
             #tm-settings-save, #tm-settings-reset {
-                padding: 12px 25px;
-                font-size: 16px;
-                font-weight: bold;
+                padding: 11px 20px;
+                font-size: 14px;
+                font-weight: 600;
                 color: white;
                 border: none;
-                border-radius: 5px;
+                border-radius: 12px;
                 cursor: pointer;
-                min-width: 220px; /* Ensure buttons have the same width */
+                min-width: 200px;
                 transition: background-color 0.2s, transform 0.1s ease-out, box-shadow 0.2s;
             }
             #tm-settings-save { background-color: var(--tm-primary-color); }
             #tm-settings-save:hover {
                 background-color: var(--tm-primary-hover);
-                transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px color-mix(in srgb, var(--tm-primary-color) 35%, transparent);
             }
             #tm-settings-reset { background-color: var(--tm-secondary-color); }
             #tm-settings-reset:hover { background-color: var(--tm-secondary-hover); }
@@ -7760,27 +8109,43 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             #tm-quick-search-editor input[type="text"] {
                 padding: 8px;
-                border: 1px solid #ccc; text-align: center;
-                border-radius: 4px;
+                border: 1px solid var(--tm-shop-item-border, #ccc);
+                text-align: center;
+                border-radius: 10px;
                 flex: 1;
+                background: var(--tm-input-bg, #fff);
+                color: var(--tm-shop-item-text, #1e293b);
             }
-            .tm-quick-search-remove-btn, #tm-quick-search-add-btn, #tm-price-options-add-btn {
-                padding: 5px 10px;
+            .tm-quick-search-remove-btn, #tm-quick-search-add-btn, #tm-price-options-add-btn, #tm-scratchpad-template-add-btn {
+                padding: 7px 12px;
                 border: none;
-                border-radius: 4px;
+                border-radius: 10px;
                 cursor: pointer;
                 color: white;
+                margin-top: 4px;
             }
             .tm-quick-search-remove-btn { background-color: var(--tm-danger-color); }
             .tm-quick-search-remove-btn:hover { background-color: var(--tm-danger-hover); }
-            #tm-quick-search-add-btn, #tm-price-options-add-btn { background-color: var(--tm-primary-color); margin-top: 5px; }
-            #tm-quick-search-add-btn:hover, #tm-price-options-add-btn:hover { background-color: var(--tm-primary-hover); }
+            #tm-quick-search-add-btn, #tm-price-options-add-btn, #tm-scratchpad-template-add-btn {
+                background-color: var(--tm-primary-color);
+            }
+            #tm-quick-search-add-btn:hover, #tm-price-options-add-btn:hover, #tm-scratchpad-template-add-btn:hover {
+                background-color: var(--tm-primary-hover);
+            }
+            #tm-quick-search-add-btn.tm-settings-ghost-btn,
+            #tm-price-options-add-btn.tm-settings-ghost-btn,
+            #tm-scratchpad-template-add-btn.tm-settings-ghost-btn {
+                color: var(--tm-primary-color, #007bff);
+                background: transparent;
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 45%, transparent);
+            }
 
             #tm-working-hours-editor {
-                padding: 15px;
-                background-color: #f8f9fa;
-                border-radius: 5px;
-                margin-top: 15px;
+                padding: 14px;
+                background-color: var(--tm-shop-item-bg, #f8f9fa);
+                border: 1px solid var(--tm-shop-item-border, transparent);
+                border-radius: 12px;
+                margin-top: 12px;
             }
             #tm-working-hours-time-inputs {
                 display: flex;
@@ -7788,15 +8153,37 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 gap: 10px;
                 align-items: center;
                 margin-bottom: 15px;
+                flex-wrap: wrap;
             }
             #tm-working-days-editor {
                 display: flex;
                 flex-wrap: wrap;
                 justify-content: center;
-                gap: 15px;
+                gap: 12px;
             }
             #tm-working-days-editor label {
                 font-weight: normal;
+            }
+            @media (max-width: 720px) {
+                .tm-settings-modal { width: 96%; height: 92vh; }
+                .tm-settings-layout { flex-direction: column; }
+                .tm-settings-sidebar {
+                    width: 100%;
+                    border-right: none;
+                    border-bottom: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                    padding: 0 0 10px;
+                }
+                .tm-settings-sidebar .tm-nav {
+                    flex-direction: row;
+                    flex-wrap: nowrap;
+                    overflow-x: auto;
+                    gap: 6px;
+                    padding-bottom: 4px;
+                }
+                .tm-settings-sidebar .tm-nav a {
+                    white-space: nowrap;
+                }
+                .tm-settings-main { padding: 10px 0 0; }
             }
             /* --- Bottom Center Controls Container --- */
             #tm-bottom-center-container {
@@ -11135,51 +11522,54 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             // Merged General and Login settings
             return `
                 <div class="tm-settings-section">
-                    <h3>⚙️ Γενικές Ρυθμίσεις</h3>
-                    <div class="tm-setting-row" style="background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%); padding: 12px; border: 2px solid #ff4757; border-radius: 8px; margin-bottom: 15px;">
+                    <header class="tm-settings-section-head">
+                        <h3>Γενικές</h3>
+                        <p class="tm-settings-section-desc">Βασικές επιλογές εμφάνισης και λειτουργίας.</p>
+                    </header>
+                    <div class="tm-setting-row tm-setting-row--danger">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-script-enabled" style="color: white; font-weight: 700; font-size: 14px;">⚡ Ενεργοποίηση Script (Κύριος Διακόπτης)</label>
-                            <p class="tm-setting-description" style="color: white; opacity: 0.95; font-weight: 500;">Απενεργοποιεί όλες τις λειτουργίες του script. Αποεπιλέξτε για να κλείσει τα πάντα. Χρησιμοποιήστε Ctrl+Shift+E για γρήγορη εναλλαγή.</p>
+                            <label for="tm-setting-script-enabled">Κύριος διακόπτης</label>
+                            <p class="tm-setting-description">Απενεργοποιεί όλες τις λειτουργίες. Ctrl+Shift+E για γρήγορη εναλλαγή.</p>
                         </div>
                         <div class="tm-setting-control">
-                            <input type="checkbox" id="tm-setting-script-enabled" style="transform: scale(1.3);">
+                            <input type="checkbox" id="tm-setting-script-enabled">
                         </div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-notifications-enabled">🔔 Ειδοποιήσεις</label>
-                            <p class="tm-setting-description">Εμφανίζει το κουμπί 🔔 και όλες τις εισερχόμενες ειδοποιήσεις (popups, achievements, υπενθυμίσεις). Απενεργοποιήστε για ήσυχη λειτουργία.</p>
+                            <label for="tm-setting-notifications-enabled">Ειδοποιήσεις</label>
+                            <p class="tm-setting-description">Popups, achievements και υπενθυμίσεις.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-notifications-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-dashboard-enabled">📊 Εμφάνιση Widget "Σήμερα"</label>
-                            <p class="tm-setting-description">Εμφανίζει ένα widget με στατιστικά και πληροφορίες για την τρέχουσα ημέρα.</p>
+                            <label for="tm-setting-dashboard-enabled">Widget «Σήμερα»</label>
+                            <p class="tm-setting-description">Στατιστικά της τρέχουσας ημέρας στο footer.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-dashboard-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-scroll-top-enabled">⬆️ Κουμπί Επιστροφής στην Κορυφή</label>
-                            <p class="tm-setting-description">Προσθέτει ένα κουμπί για γρήγορη επιστροφή στην κορυφή της σελίδας.</p>
+                            <label for="tm-setting-scroll-top-enabled">Επιστροφή στην κορυφή</label>
+                            <p class="tm-setting-description">Κουμπί γρήγορης κύλισης πάνω.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-scroll-top-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-hidden-menu-enabled">📋 Απόκρυψη Αριστερού Μενού</label>
-                            <p class="tm-setting-description">Διαχειριστείτε ποια στοιχεία του αριστερού μενού εμφανίζονται από το «Κρυφά Στοιχεία Μενού». Το μενού δεν εμφανίζεται μέχρι να εφαρμοστούν οι ρυθμίσεις (όπως με τα themes).</p>
+                            <label for="tm-setting-hidden-menu-enabled">Απόκρυψη αριστερού μενού</label>
+                            <p class="tm-setting-description">Επιλέξτε ποια στοιχεία εμφανίζονται.</p>
                         </div>
-                        <div class="tm-setting-control" style="display:flex;align-items:center;gap:10px;">
+                        <div class="tm-setting-control">
                             <input type="checkbox" id="tm-setting-hidden-menu-enabled">
-                            <button type="button" id="tm-manage-hidden-menu-btn" style="padding:6px 10px;border:none;border-radius:6px;cursor:pointer;background:#667eea;color:#fff;font-size:12px;font-weight:600;">Κρυφά Στοιχεία</button>
+                            <button type="button" id="tm-manage-hidden-menu-btn" class="tm-settings-ghost-btn">Κρυφά στοιχεία</button>
                         </div>
                     </div>
-                    <div class="tm-setting-row" style="background: #fffbe6; padding-top: 10px; padding-bottom: 10px; border: 1px solid #ffe58f; border-radius: 5px;">
+                    <div class="tm-setting-row tm-setting-row--warn">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-debug-enabled">🔐 Λειτουργία Ανάπτυξης (Προστατευμένη)</label>
-                            <p class="tm-setting-description">Ενεργοποιεί επιλογές για δοκιμές και δωρεάν αντικείμενα στο κατάστημα. <strong>Απαιτείται κωδικός πρόσβασης.</strong></p>
+                            <label for="tm-setting-debug-enabled">Λειτουργία ανάπτυξης</label>
+                            <p class="tm-setting-description">Δοκιμές και δωρεάν αντικείμενα. Απαιτεί κωδικό.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-debug-enabled"></div>
                     </div>
@@ -11190,114 +11580,119 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         function getDebugSettingsHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>🔧 Εργαλεία Debug</h3>
+                    <header class="tm-settings-section-head">
+                        <h3>Εργαλεία debug</h3>
+                        <p class="tm-settings-section-desc">Μόνο για δοκιμές — μην χρησιμοποιείτε σε κανονική εργασία.</p>
+                    </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label"><label for="tm-debug-level-input">Ορισμός Level</label></div>
-                        <div class="tm-setting-control"><input type="number" id="tm-debug-level-input" min="1" value="${GM_getValue(STORAGE_KEYS.USER_LEVEL, 1)}"><button id="tm-debug-set-level-btn">Set</button></div>
+                        <div class="tm-setting-control"><input type="number" id="tm-debug-level-input" min="1" value="${GM_getValue(STORAGE_KEYS.USER_LEVEL, 1)}"><button type="button" id="tm-debug-set-level-btn" class="tm-settings-ghost-btn">Set</button></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label"><label for="tm-debug-xp-input">Προσθήκη XP</label></div>
-                        <div class="tm-setting-control"><input type="number" id="tm-debug-xp-input" value="100"><button id="tm-debug-add-xp-btn">Add</button></div>
+                        <div class="tm-setting-control"><input type="number" id="tm-debug-xp-input" value="100"><button type="button" id="tm-debug-add-xp-btn" class="tm-settings-ghost-btn">Add</button></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label"><label for="tm-debug-coins-input">Προσθήκη Coins</label></div>
-                        <div class="tm-setting-control"><input type="number" id="tm-debug-coins-input" value="1000"><button id="tm-debug-add-coins-btn">Add</button></div>
+                        <div class="tm-setting-control"><input type="number" id="tm-debug-coins-input" value="1000"><button type="button" id="tm-debug-add-coins-btn" class="tm-settings-ghost-btn">Add</button></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label"><label>Trigger Random Event</label></div>
-                        <div class="tm-setting-control"><button id="tm-debug-trigger-event-btn" style="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🎲 Trigger Event</button></div>
+                        <div class="tm-setting-control"><button type="button" id="tm-debug-trigger-event-btn" class="tm-settings-ghost-btn">Trigger Event</button></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label"><label>Stop Random Event</label></div>
-                        <div class="tm-setting-control"><button id="tm-debug-stop-event-btn" style="background: linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🛑 Stop Event</button></div>
+                        <div class="tm-setting-control"><button type="button" id="tm-debug-stop-event-btn" class="tm-settings-ghost-btn">Stop Event</button></div>
                     </div>
-                    <div class="tm-setting-row" style="border-top: 2px solid #26c6da; margin-top: 20px; padding-top: 20px;">
+                    <div class="tm-setting-row tm-setting-row--divider">
                         <div class="tm-setting-label">
-                            <label>Mascot Evolution Control</label>
-                            <p class="tm-setting-description">Force hatch the egg or reset back to egg state. Current character will be random on next hatch.</p>
+                            <label>Mascot evolution</label>
+                            <p class="tm-setting-description">Force hatch ή reset σε αυγό. Ο χαρακτήρας είναι τυχαίος στο επόμενο hatch.</p>
                         </div>
-                        <div class="tm-setting-control" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button id="tm-debug-hatch-egg-btn" style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🐣 Force Hatch</button>
-                            <button id="tm-debug-reset-egg-btn" style="background: linear-gradient(135deg, #ff9800 0%, #e65100 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🥚 Reset to Egg</button>
-                            <button id="tm-debug-age-up-btn" style="background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">⏭️ Age +10 Years</button>
+                        <div class="tm-setting-control tm-setting-control--wrap">
+                            <button type="button" id="tm-debug-hatch-egg-btn" class="tm-settings-ghost-btn">Force Hatch</button>
+                            <button type="button" id="tm-debug-reset-egg-btn" class="tm-settings-ghost-btn">Reset to Egg</button>
+                            <button type="button" id="tm-debug-age-up-btn" class="tm-settings-ghost-btn">Age +10</button>
                         </div>
                     </div>
                 </div>
-                
-                <div class="tm-settings-section" style="margin-top: 20px; border-top: 2px solid #4facfe; padding-top: 20px;">
-                    <h3>🤖 Mascot Appearance Tester</h3>
-                    <p class="tm-setting-description" style="margin-bottom: 15px;">Preview all mascot states and stages. The mascot will return to normal after 5 seconds.</p>
-                    
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label"><label>Mascot States</label></div>
-                        <div class="tm-setting-control" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;">
-                            <button class="tm-mascot-state-btn" data-state="idle">🧍 Idle</button>
-                            <button class="tm-mascot-state-btn" data-state="happy">😊 Happy</button>
-                            <button class="tm-mascot-state-btn" data-state="sad">😢 Sad</button>
-                            <button class="tm-mascot-state-btn" data-state="eating">🍔 Eating</button>
-                            <button class="tm-mascot-state-btn" data-state="thinking">🤔 Thinking</button>
-                            <button class="tm-mascot-state-btn" data-state="dodging">💨 Dodging</button>
-                            <button class="tm-mascot-state-btn" data-state="searching">🔍 Searching</button>
-                            <button class="tm-mascot-state-btn" data-state="reading">📖 Reading</button>
-                            <button class="tm-mascot-state-btn" data-state="biking">🚴 Biking</button>
-                            <button class="tm-mascot-state-btn" data-state="juggling">🤹 Juggling</button>
-                            <button class="tm-mascot-state-btn" data-state="energized">⚡ Energized</button>
-                            <button class="tm-mascot-state-btn" data-state="glitching">⚠️ Glitching</button>
-                            <button class="tm-mascot-state-btn" data-state="eureka">💡 Eureka</button>
-                            <button class="tm-mascot-state-btn" data-state="sunny">☀️ Sunny</button>
-                            <button class="tm-mascot-state-btn" data-state="rainy">🌧️ Rainy</button>
-                            <button class="tm-mascot-state-btn" data-state="powersave">😴 Sleep</button>
-                        </div>
-                    </div>
-                    
-                    <div class="tm-setting-row" style="margin-top: 15px;">
-                        <div class="tm-setting-label">
-                            <label>Mascot Character</label>
-                            <p class="tm-setting-description">Επίλεξε χαρακτήρα (αποθηκεύεται). Αν είναι αυγό, προχωρά σε baby για να φανεί.</p>
-                        </div>
-                        <div class="tm-setting-control" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;">
-                            <button type="button" class="tm-mascot-char-btn" data-character="dragon">🐉 Dragon</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="robot">🤖 Robot</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="slime">🟢 Slime</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="plant">🌱 Plant</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="ghost">👻 Ghost</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="cat">🐱 Cat</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="phoenix">🔥 Phoenix</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="crystal">💎 Crystal</button>
+
+                <div class="tm-settings-section">
+                    <header class="tm-settings-section-head">
+                        <h3>Mascot tester</h3>
+                        <p class="tm-settings-section-desc">Προεπισκόπηση — επιστρέφει στο κανονικό μετά από ~5 δευτ.</p>
+                    </header>
+
+                    <div class="tm-setting-row tm-setting-row--stack">
+                        <div class="tm-setting-label"><label>States</label></div>
+                        <div class="tm-setting-control tm-setting-control--grid">
+                            <button type="button" class="tm-mascot-state-btn" data-state="idle">Idle</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="happy">Happy</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="sad">Sad</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="eating">Eating</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="thinking">Thinking</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="dodging">Dodging</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="searching">Searching</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="reading">Reading</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="biking">Biking</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="juggling">Juggling</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="energized">Energized</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="glitching">Glitching</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="eureka">Eureka</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="sunny">Sunny</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="rainy">Rainy</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="powersave">Sleep</button>
                         </div>
                     </div>
 
-                    <div class="tm-setting-row" style="margin-top: 15px;">
-                        <div class="tm-setting-label"><label>Mascot Stages (Evolution)</label></div>
-                        <div class="tm-setting-control" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;">
-                            <button class="tm-mascot-stage-btn" data-stage="egg">🥚 Egg</button>
-                            <button class="tm-mascot-stage-btn" data-stage="baby">👶 Baby</button>
-                            <button class="tm-mascot-stage-btn" data-stage="kid">🧒 Kid</button>
-                            <button class="tm-mascot-stage-btn" data-stage="teen">🧑 Teen</button>
-                            <button class="tm-mascot-stage-btn" data-stage="adult">👨 Adult</button>
-                            <button class="tm-mascot-stage-btn" data-stage="middleage">🧔 Middle Age</button>
-                            <button class="tm-mascot-stage-btn" data-stage="old">👴 Old</button>
+                    <div class="tm-setting-row tm-setting-row--stack">
+                        <div class="tm-setting-label">
+                            <label>Character</label>
+                            <p class="tm-setting-description">Αποθηκεύεται. Αν είναι αυγό, προχωρά σε baby για προβολή.</p>
+                        </div>
+                        <div class="tm-setting-control tm-setting-control--grid">
+                            <button type="button" class="tm-mascot-char-btn" data-character="dragon">Dragon</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="robot">Robot</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="slime">Slime</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="plant">Plant</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="ghost">Ghost</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="cat">Cat</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="phoenix">Phoenix</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="crystal">Crystal</button>
                         </div>
                     </div>
-                    
-                    <div class="tm-setting-row" style="margin-top: 15px;">
-                        <div class="tm-setting-label"><label>Quick Tests</label></div>
-                        <div class="tm-setting-control" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button id="tm-mascot-test-bubble" style="background: linear-gradient(135deg, #00c9ff 0%, #92fe9d 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">💬 Show Bubble</button>
-                            <button id="tm-mascot-test-dodge" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">💨 Trigger Dodge</button>
-                            <button id="tm-mascot-test-confetti" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🎉 Confetti</button>
-                            <button id="tm-mascot-reset" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🔄 Reset to Normal</button>
+
+                    <div class="tm-setting-row tm-setting-row--stack">
+                        <div class="tm-setting-label"><label>Stages</label></div>
+                        <div class="tm-setting-control tm-setting-control--grid">
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="egg">Egg</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="baby">Baby</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="kid">Kid</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="teen">Teen</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="adult">Adult</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="middleage">Middle Age</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="old">Old</button>
+                        </div>
+                    </div>
+
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label"><label>Quick tests</label></div>
+                        <div class="tm-setting-control tm-setting-control--wrap">
+                            <button type="button" id="tm-mascot-test-bubble" class="tm-settings-ghost-btn">Bubble</button>
+                            <button type="button" id="tm-mascot-test-dodge" class="tm-settings-ghost-btn">Dodge</button>
+                            <button type="button" id="tm-mascot-test-confetti" class="tm-settings-ghost-btn">Confetti</button>
+                            <button type="button" id="tm-mascot-reset" class="tm-settings-ghost-btn">Reset</button>
                         </div>
                     </div>
                 </div>
-                
-                <div class="tm-settings-section" style="margin-top: 20px;">
-                    <div class="tm-setting-row" style="border-top: 2px solid #ff5252; padding-top: 20px;">
+
+                <div class="tm-settings-section">
+                    <div class="tm-setting-row tm-setting-row--danger">
                         <div class="tm-setting-label">
-                            <label>Clear Dashboard Stats</label>
-                            <p class="tm-setting-description" style="color: #ff5252; font-weight: 600;">⚠️ DANGER: This will clear ALL status transfer history, counters, and dashboard statistics. This cannot be undone!</p>
+                            <label>Clear dashboard stats</label>
+                            <p class="tm-setting-description">Διαγράφει ιστορικό status, counters και στατιστικά. Δεν αναιρείται.</p>
                         </div>
-                        <div class="tm-setting-control"><button id="tm-debug-clear-dashboard-btn" style="background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🗑️ Clear Dashboard Stats</button></div>
+                        <div class="tm-setting-control"><button type="button" id="tm-debug-clear-dashboard-btn" class="tm-settings-danger-btn">Clear stats</button></div>
                     </div>
                 </div>
             `;
@@ -11308,120 +11703,127 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const status40AdminPass = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_PASSWORD, '');
             return `
                 <div class="tm-settings-section">
-                    <h3>🔍 Αναζήτηση & Εργαλεία</h3>
+                    <header class="tm-settings-section-head">
+                        <h3>Αναζήτηση &amp; εργαλεία</h3>
+                        <p class="tm-settings-section-desc">Εργαλεία δουλειάς — δωρεάν από τις ρυθμίσεις.</p>
+                    </header>
+                    <h4 class="tm-settings-subgroup">Αναζήτηση</h4>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-search-enabled">🔎 Προηγμένη Αναζήτηση</label>
-                            <p class="tm-setting-description">Προσθέτει προηγμένη αναζήτηση με φίλτρα και ταχεία αποτελέσματα για επισκευές, πελάτες και προϊόντα.</p>
+                            <label for="tm-setting-search-enabled">Προηγμένη αναζήτηση</label>
+                            <p class="tm-setting-description">Φίλτρα και ταχεία αποτελέσματα για επισκευές, πελάτες, προϊόντα.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-search-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-search-history-max">📜 Μέγεθος Ιστορικού Αναζητήσεων</label>
-                            <p class="tm-setting-description">Αριθμός πρόσφατων αναζητήσεων που θα αποθηκεύονται (0-50).</p>
+                            <label for="tm-setting-search-history-max">Μέγεθος ιστορικού</label>
+                            <p class="tm-setting-description">Πρόσφατες αναζητήσεις (0–50).</p>
                         </div>
                         <div class="tm-setting-control"><input type="number" id="tm-setting-search-history-max" min="0" max="50"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-quick-search-enabled">⚡ Κουμπιά Γρήγορης Αναζήτησης</label>
-                            <p class="tm-setting-description">Εμφανίζει κουμπιά για γρήγορη αναζήτηση ανταλλακτικών (π.χ. "Οθόνη", "Μπαταρία") στις σελίδες επισκευών.</p>
+                            <label for="tm-setting-quick-search-enabled">Κουμπιά γρήγορης αναζήτησης</label>
+                            <p class="tm-setting-description">Π.χ. «Οθόνη», «Μπαταρία» στις σελίδες επισκευών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-quick-search-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-tech-stats-enabled">📊 Στατιστικά Τεχνικών</label>
-                            <p class="tm-setting-description">Εμφανίζει στατιστικά απόδοσης για κάθε τεχνικό (επισκευές, μέσος χρόνος, κλπ.).</p>
+                            <label for="tm-setting-footer-quick-search-enabled">Γρήγορη αναζήτηση header</label>
+                            <p class="tm-setting-description">Στο header ή δίπλα στον τίτλο επισκευής.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-footer-quick-search-enabled"></div>
+                    </div>
+
+                    <h4 class="tm-settings-subgroup">Λίστα &amp; προβολή</h4>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-tech-stats-enabled">Στατιστικά τεχνικών</label>
+                            <p class="tm-setting-description">Απόδοση ανά τεχνικό.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-tech-stats-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-recent-repairs-enabled">📋 Πρόσφατες Επισκευές</label>
-                            <p class="tm-setting-description">Προσθέτει κουμπί για γρήγορη πρόσβαση στις πρόσφατες επισκευές.</p>
+                            <label for="tm-setting-recent-repairs-enabled">Πρόσφατες επισκευές</label>
+                            <p class="tm-setting-description">Γρήγορη πρόσβαση στις τελευταίες επισκευές.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-recent-repairs-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-repair-list-quickview-enabled">👁 Γρήγορη Προβολή Λίστας</label>
-                            <p class="tm-setting-description">Εμφανίζει το κουμπί 👁 σε κάθε γραμμή λίστας επισκευών για προεπισκόπηση χωρίς αλλαγή σελίδας.</p>
+                            <label for="tm-setting-repair-list-quickview-enabled">Γρήγορη προβολή λίστας</label>
+                            <p class="tm-setting-description">Προεπισκόπηση χωρίς αλλαγή σελίδας.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-repair-list-quickview-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-recent-repairs-max">🔢 Αριθμός Πρόσφατων Επισκευών</label>
-                            <p class="tm-setting-description">Πόσες πρόσφατες επισκευές να εμφανίζονται στη λίστα (1-20).</p>
+                            <label for="tm-setting-recent-repairs-max">Αριθμός πρόσφατων</label>
+                            <p class="tm-setting-description">Πόσες να εμφανίζονται (1–20).</p>
                         </div>
                         <div class="tm-setting-control">
-                            <input type="number" id="tm-setting-recent-repairs-max" min="1" max="20" style="width: 80px; padding: 5px;">
+                            <input type="number" id="tm-setting-recent-repairs-max" min="1" max="20">
                         </div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-weather-widget-enabled">🌤️ Widget Καιρού</label>
-                            <p class="tm-setting-description">Εμφανίζει την τοπική πρόγνωση καιρού στο κέντρο του footer. Απενεργοποιήστε το αν προτιμάτε μόνο την γρήγορη αναζήτηση.</p>
+                            <label for="tm-setting-customer-history-enabled">Ιστορικό πελάτη</label>
+                            <p class="tm-setting-description">Γρήγορη προβολή στη λίστα επισκευών.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-customer-history-enabled"></div>
+                    </div>
+
+                    <h4 class="tm-settings-subgroup">Άλλα εργαλεία</h4>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-weather-widget-enabled">Widget καιρού</label>
+                            <p class="tm-setting-description">Πρόγνωση στο κέντρο του footer.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-weather-widget-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-footer-quick-search-enabled">🔍 Γρήγορη Αναζήτηση Header</label>
-                            <p class="tm-setting-description">Γρήγορη αναζήτηση: στο header (rnr-hfiller) σε όλες τις σελίδες, ή δίπλα στον τίτλο επισκευής στο service_edit. Κουμπί ✕ για απόκρυψη native .rnr-b-search.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-footer-quick-search-enabled"></div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <label for="tm-setting-phone-catalog-enabled">📱 Κατάλογος Συσκευών</label>
-                            <p class="tm-setting-description">Εμφανίζει κατάλογο μεταχειρισμένων συσκευών του καταστήματος με μοντέλο, βαθμίδα, IMEI, αποθηκευτικό χώρο και χρώμα. Υποστηρίζει αναζήτηση, φίλτρα και εξαγωγή CSV.</p>
+                            <label for="tm-setting-phone-catalog-enabled">Κατάλογος συσκευών</label>
+                            <p class="tm-setting-description">Μεταχειρισμένες συσκευές με αναζήτηση και CSV.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-phone-catalog-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-order-history-enabled">📦 Ιστορικό Παραγγελιών</label>
-                            <p class="tm-setting-description">Εμφανίζει το ιστορικό παραγγελιών ανταλλακτικών.</p>
+                            <label for="tm-setting-order-history-enabled">Ιστορικό παραγγελιών</label>
+                            <p class="tm-setting-description">Παραγγελίες ανταλλακτικών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-history-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-order-link-enabled">🔗 Σύνδεση Status 65 → Παραγγελίες</label>
-                            <p class="tm-setting-description">Στις επισκευές status 65, κάνει το badge κλικ για αναζήτηση παραγγελιών ανταλλακτικών. Στη σελίδα παραγγελίας εμφανίζει σύνδεσμο προς την επισκευή.</p>
+                            <label for="tm-setting-order-link-enabled">Σύνδεση status 65 → παραγγελίες</label>
+                            <p class="tm-setting-description">Κλικ στο badge για αναζήτηση παραγγελιών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-link-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-customer-history-enabled">📜 Ιστορικό Πελάτη</label>
-                            <p class="tm-setting-description">Εμφάνιση γρήγορης προβολής του ιστορικού πελάτη στη λίστα επισκευών.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-customer-history-enabled"></div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <label for="tm-setting-return-to-40-enabled">🔴 Κουμπί «40» (65/100)</label>
-                            <p class="tm-setting-description">Εμφανίζει κόκκινο αναβοσβήνον κουμπί «40» στις επισκευές με status 65 ή 100. Κάνει logout → login ως admin (όπως το logo) και μετά εφαρμόζει αυτόματα status 40.</p>
+                            <label for="tm-setting-return-to-40-enabled">Κουμπί «40» (65/100)</label>
+                            <p class="tm-setting-description">Επιστροφή σε status 40 μέσω admin login.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-return-to-40-enabled"></div>
                     </div>
                 </div>
-                <div class="tm-settings-section" style="margin-top: 20px; border-top: 1px solid #dee2e6; padding-top: 16px;">
-                    <h3>🔑 Λογαριασμός Admin (Status 40)</h3>
-                    <p class="tm-setting-description">
-                        Διαπιστευτήρια για το κλικ στο logo στο <code>service_edit</code> (logout → login ως admin → επιστροφή στην ίδια επισκευή).
-                        Αποθηκεύονται τοπικά στο Tampermonkey (όχι ανά προφίλ χρήστη).
-                    </p>
+                <div class="tm-settings-section">
+                    <header class="tm-settings-section-head">
+                        <h3>Admin (Status 40)</h3>
+                        <p class="tm-settings-section-desc">Διαπιστευτήρια για logo → admin login. Αποθηκεύονται τοπικά.</p>
+                    </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <label for="tm-setting-status40-admin-username">Username</label>
                         </div>
                         <div class="tm-setting-control">
-                            <input type="text" id="tm-setting-status40-admin-username" value="${String(status40AdminUser).replace(/"/g, '&quot;')}" autocomplete="off" spellcheck="false" style="min-width: 200px; padding: 8px;">
+                            <input type="text" id="tm-setting-status40-admin-username" class="tm-settings-input" value="${String(status40AdminUser).replace(/"/g, '&quot;')}" autocomplete="off" spellcheck="false">
                         </div>
                     </div>
                     <div class="tm-setting-row">
@@ -11429,7 +11831,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <label for="tm-setting-status40-admin-password">Κωδικός</label>
                         </div>
                         <div class="tm-setting-control">
-                            <input type="password" id="tm-setting-status40-admin-password" value="${String(status40AdminPass).replace(/"/g, '&quot;')}" autocomplete="new-password" style="min-width: 200px; padding: 8px;">
+                            <input type="password" id="tm-setting-status40-admin-password" class="tm-settings-input" value="${String(status40AdminPass).replace(/"/g, '&quot;')}" autocomplete="new-password">
                         </div>
                     </div>
                 </div>`;
@@ -11438,10 +11840,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         function getAutoRefreshSettingsHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>Αυτόματη Ανανέωση</h3>
+                    <header class="tm-settings-section-head">
+                        <h3>Αυτόματη ανανέωση</h3>
+                        <p class="tm-settings-section-desc">Ανανέωση λιστών σε εργάσιμο ωράριο.</p>
+                    </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-autorefresh-enabled">Ενεργοποίηση Αυτόματης Ανανέωσης</label>
+                            <label for="tm-setting-autorefresh-enabled">Ενεργοποίηση</label>
                             <p class="tm-setting-description">Ανανεώνει αυτόματα τις σελίδες λίστας.</p>
                         </div>
                         <div class="tm-setting-control">
@@ -11451,20 +11856,20 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     <div id="tm-autorefresh-options">
                         <div class="tm-setting-row">
                             <div class="tm-setting-label">
-                                <label for="tm-setting-refresh-interval">Διάστημα Ανανέωσης</label>
-                                <p class="tm-setting-description">Ορίστε το διάστημα σε λεπτά.</p>
+                                <label for="tm-setting-refresh-interval">Διάστημα</label>
+                                <p class="tm-setting-description">Λεπτά μεταξύ ανανεώσεων.</p>
                             </div>
                             <div class="tm-setting-control">
                                 <input type="number" id="tm-setting-refresh-interval" value="${config.refreshIntervalMinutes}" min="1" max="120">
-                                <span>λεπτά</span>
+                                <span class="tm-settings-unit">λεπτά</span>
                             </div>
                         </div>
-                        <div id="tm-working-hours-editor">
-                            <p class="tm-setting-description" style="text-align:center; margin-bottom:10px;">Ενεργό μόνο τις παρακάτω ώρες και ημέρες:</p>
+                        <div id="tm-working-hours-editor" class="tm-settings-panel">
+                            <p class="tm-setting-description tm-settings-panel-title">Ενεργό μόνο στις παρακάτω ώρες και ημέρες</p>
                             <div id="tm-working-hours-time-inputs">
-                                <label for="tm-setting-wh-start">Από:</label>
+                                <label for="tm-setting-wh-start">Από</label>
                                 <input type="number" id="tm-setting-wh-start" value="${config.workingHoursStart}" min="0" max="23">
-                                <label for="tm-setting-wh-end">Έως:</label>
+                                <label for="tm-setting-wh-end">Έως</label>
                                 <input type="number" id="tm-setting-wh-end" value="${config.workingHoursEnd}" min="1" max="24">
                             </div>
                             <div id="tm-working-days-editor"></div>
@@ -11477,10 +11882,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         function getQuickSearchEditorHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>Επεξεργαστής Γρήγορης Αναζήτησης</h3>
-                    <p class="tm-setting-description">Προσαρμόστε τα κουμπιά που εμφανίζονται στις σελίδες επεξεργασίας παραγγελιών για γρήγορες αναζητήσεις ανταλλακτικών. Η 'Ετικέτα' είναι αυτό που εμφανίζει το κουμπί, και ο 'Όρος Αναζήτησης' είναι η λέξη-κλειδί που αναζητά.</p>
-                    <div id="tm-quick-search-editor" style="padding: 0 10px;"></div>
-                    <button id="tm-quick-search-add-btn" style="margin-top: 15px;">Προσθήκη Νέου Κουμπιού</button>
+                    <header class="tm-settings-section-head">
+                        <h3>Γρήγορη αναζήτηση</h3>
+                        <p class="tm-settings-section-desc">Ετικέτα = κουμπί · Όρος = λέξη-κλειδί αναζήτησης.</p>
+                    </header>
+                    <div id="tm-quick-search-editor" class="tm-settings-editor"></div>
+                    <button type="button" id="tm-quick-search-add-btn" class="tm-settings-ghost-btn">Προσθήκη κουμπιού</button>
                 </div>
             `;
         }
@@ -11488,10 +11895,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         function getPriceOptionsEditorHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>💰 Επιλογές Τιμών Επισκευής</h3>
-                    <p class="tm-setting-description">Προσαρμόστε τις επιλογές που εμφανίζονται στο dropdown τιμών στη σελίδα επισκευής. Μπορείτε να προσθέσετε επιπλέον χρεώσεις (π.χ. καθαρισμός, μεταφορά) ή να ορίσετε ειδικές τιμές.</p>
-                    <div id="tm-price-options-editor" style="padding: 0 10px;"></div>
-                    <button id="tm-price-options-add-btn" style="margin-top: 15px;">➕ Προσθήκη Επιλογής</button>
+                    <header class="tm-settings-section-head">
+                        <h3>Επιλογές τιμών</h3>
+                        <p class="tm-settings-section-desc">Extra χρεώσεις ή ειδικές τιμές στο dropdown επισκευής.</p>
+                    </header>
+                    <div id="tm-price-options-editor" class="tm-settings-editor"></div>
+                    <button type="button" id="tm-price-options-add-btn" class="tm-settings-ghost-btn">Προσθήκη επιλογής</button>
                 </div>
             `;
         }
@@ -11499,10 +11908,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         function getScratchpadTemplatesEditorHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>Πρότυπα Σημειωματαρίου</h3>
-                    <p class="tm-setting-description">Δημιουργήστε πρότυπα για γρήγορη εισαγωγή στο σημειωματάριο. Χρήσιμο για checklists ή επαναλαμβανόμενες σημειώσεις.</p>
-                    <div id="tm-scratchpad-templates-editor" style="padding: 0 10px;"></div>
-                    <button id="tm-scratchpad-template-add-btn" style="margin-top: 15px;">Προσθήκη Νέου Προτύπου</button>
+                    <header class="tm-settings-section-head">
+                        <h3>Πρότυπα</h3>
+                        <p class="tm-settings-section-desc">Γρήγορη εισαγωγή checklists ή επαναλαμβανόμενων σημειώσεων.</p>
+                    </header>
+                    <div id="tm-scratchpad-templates-editor" class="tm-settings-editor"></div>
+                    <button type="button" id="tm-scratchpad-template-add-btn" class="tm-settings-ghost-btn">Προσθήκη προτύπου</button>
                 </div>
             `;
         }
@@ -11510,9 +11921,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         function getScratchpadSettingsHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>Σημειωματάριο</h3>
+                    <header class="tm-settings-section-head">
+                        <h3>Σημειωματάριο</h3>
+                        <p class="tm-settings-section-desc">Γρήγορες σημειώσεις κατά την εργασία.</p>
+                    </header>
                     <div class="tm-setting-row">
-                        <div class="tm-setting-label"><label for="tm-setting-scratchpad-enabled">Ενεργοποίηση Σημειωματαρίου</label></div>
+                        <div class="tm-setting-label"><label for="tm-setting-scratchpad-enabled">Ενεργοποίηση</label></div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-scratchpad-enabled"></div>
                     </div>
                 </div>
@@ -11523,15 +11937,19 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         function getDataManagementHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>💾 Διαχείριση Δεδομένων</h3>
-                    <p class="tm-setting-description">Δημιουργήστε αντίγραφα ασφαλείας των ρυθμίσεων και της προόδου σας, ή μεταφέρετέ τα σε άλλη συσκευή.</p>
-                    <p class="tm-setting-description" style="margin-bottom: 12px;">Ενεργό προφίλ: <strong id="tm-settings-active-profile">—</strong> <span style="opacity:0.8;">(ξεχωριστά δεδομένα ανά χρήστη σύνδεσης στο ίδιο PC)</span></p>
+                    <header class="tm-settings-section-head">
+                        <h3>Δεδομένα &amp; backup</h3>
+                        <p class="tm-settings-section-desc">Αντίγραφα ασφαλείας ρυθμίσεων και προόδου.</p>
+                    </header>
+                    <p class="tm-setting-description tm-settings-profile-line">Ενεργό προφίλ: <strong id="tm-settings-active-profile">—</strong> <span class="tm-settings-muted">(ανά χρήστη σύνδεσης στο ίδιο PC)</span></p>
                     <div class="tm-data-actions">
-                        <button id="tm-export-data-btn" class="tm-data-btn export">💾 Εξαγωγή Δεδομένων</button>
-                        <button id="tm-import-data-btn" class="tm-data-btn import">📂 Εισαγωγή Δεδομένων</button>
+                        <button type="button" id="tm-export-data-btn" class="tm-data-btn export">Εξαγωγή</button>
+                        <button type="button" id="tm-import-data-btn" class="tm-data-btn import">Εισαγωγή</button>
                     </div>
-                    <p class="tm-setting-description" style="text-align: center; margin-top: 20px;">Επαναφέρετε όλες τις ρυθμίσεις και την πρόοδο στις αρχικές τους τιμές. <strong>Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</strong></p>
-                    <div class="tm-data-actions"><button id="tm-settings-reset" class="tm-data-btn reset">⚠️ Επαναφορά Όλων</button></div>
+                    <div class="tm-settings-danger-zone">
+                        <p class="tm-setting-description">Επαναφορά όλων των ρυθμίσεων και της προόδου. <strong>Δεν αναιρείται.</strong></p>
+                        <div class="tm-data-actions"><button type="button" id="tm-settings-reset" class="tm-data-btn reset">Επαναφορά όλων</button></div>
+                    </div>
                 </div>`;
         }
 
@@ -11540,12 +11958,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const displayVer = window.getSuiteDisplayVersion?.() || window.SCRIPT_META?.displayVersion || '—';
             return `
                 <div class="tm-settings-section">
-                    <h3>🔄 Ενημερώσεις Script</h3>
-                    <p class="tm-setting-description">Οι μικρές αλλαγές φορτώνονται αυτόματα χωρίς ειδοποίηση. Ειδοποίηση εμφανίζεται μόνο όταν χρειάζεται ενημέρωση του Tampermonkey loader.</p>
+                    <header class="tm-settings-section-head">
+                        <h3>Ενημερώσεις</h3>
+                        <p class="tm-settings-section-desc">Μικρές αλλαγές φορτώνονται αυτόματα. Ειδοποίηση μόνο για νέο loader.</p>
+                    </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-auto-update-check-enabled">Αυτόματος έλεγχος κάθε 5 λεπτά</label>
-                            <p class="tm-setting-description">Ελέγχει στο παρασκήνιο αν απαιτείται νέο loader (εικονίδιο ↻ στο footer).</p>
+                            <label for="tm-setting-auto-update-check-enabled">Αυτόματος έλεγχος</label>
+                            <p class="tm-setting-description">Κάθε 5 λεπτά · εικονίδιο ↻ στο footer αν χρειάζεται.</p>
                         </div>
                         <div class="tm-setting-control">
                             <input type="checkbox" id="tm-setting-auto-update-check-enabled">
@@ -11558,16 +11978,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <p class="tm-setting-description" id="tm-settings-update-status">—</p>
                             <p class="tm-setting-description" id="tm-settings-skipped-version" style="display: none;"></p>
                         </div>
-                        <div class="tm-setting-control" style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                        <div class="tm-setting-control tm-setting-control--stack">
                             <button id="tm-settings-check-update-btn" class="tm-data-btn export" type="button">Έλεγχος τώρα</button>
-                            <button id="tm-settings-clear-skip-update-btn" class="tm-data-btn import" type="button" style="display: none;">Ξεχάστε παράλειψη έκδοσης</button>
+                            <button id="tm-settings-clear-skip-update-btn" class="tm-data-btn import" type="button" style="display: none;">Ξεχάστε παράλειψη</button>
                         </div>
                     </div>
-                    <div class="tm-setting-row" style="border-top: 1px solid #e0e0e0; padding-top: 15px;">
+                    <div class="tm-setting-row tm-setting-row--divider">
                         <div class="tm-setting-label">
-                            <label>Εγκατάσταση / Ενημέρωση loader</label>
-                            <p class="tm-setting-description">Εγκαταστήστε μία φορά το loader από το GitHub. Μετά, οι αλλαγές στο bundle φορτώνονται αυτόματα· μόνο αλλαγές στο loader απαιτούν ενημέρωση από το Tampermonkey Dashboard.</p>
-                            <p class="tm-setting-description" style="word-break: break-all; font-size: 11px; opacity: 0.85;"><code>${loaderUrl}</code></p>
+                            <label>Loader</label>
+                            <p class="tm-setting-description">Εγκατάσταση μία φορά από GitHub. Μόνο αλλαγές loader χρειάζονται update από το Tampermonkey.</p>
+                            <p class="tm-setting-description tm-settings-code-line"><code>${loaderUrl}</code></p>
                         </div>
                     </div>
                 </div>`;
@@ -11769,22 +12189,25 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const overlay = document.createElement('div');
             overlay.className = 'tm-modal-overlay';
             overlay.innerHTML = `
-                <div class="tm-modal-content">
-                    <div class="tm-modal-header">
-                        <h2 class="tm-modal-title">Ρυθμίσεις MyManager Suite</h2>
-                        <button class="tm-modal-close">&times;</button>
+                <div class="tm-modal-content tm-settings-modal">
+                    <div class="tm-modal-header tm-settings-header">
+                        <div class="tm-settings-header-text">
+                            <h2 class="tm-modal-title">Ρυθμίσεις</h2>
+                            <p class="tm-settings-subtitle">MyManager Suite</p>
+                        </div>
+                        <button type="button" class="tm-modal-close" aria-label="Κλείσιμο">&times;</button>
                     </div>
                     <div class="tm-settings-layout">
                         <aside class="tm-settings-sidebar">
                             <ul class="tm-nav">
-                                <li><a href="#sec-general">⚙️ Γενικές</a></li>
-                                <li><a href="#sec-search">🔍 Αναζήτηση & Εργαλεία</a></li>
-                                <li><a href="#sec-autorefresh">🔄 Αυτόματη Ανανέωση</a></li>
-                                <li><a href="#sec-scratchpad">📝 Σημειωματάριο</a></li>                            
-                                <li><a href="#sec-gamification">🎮 Παιχνιδοποίηση & Mascot</a></li>
-                                <li><a href="#sec-updates">🔄 Ενημερώσεις</a></li>
-                                <li><a href="#sec-data">💾 Δεδομένα & Backup</a></li>
-                                <li style="display: none;" data-debug-only="true"><a href="#sec-debug">🔧 Ανάπτυξη</a></li>
+                                <li><a href="#sec-general"><span class="tm-nav-icon" aria-hidden="true">⚙️</span><span class="tm-nav-label">Γενικές</span></a></li>
+                                <li><a href="#sec-search"><span class="tm-nav-icon" aria-hidden="true">🔍</span><span class="tm-nav-label">Εργαλεία</span></a></li>
+                                <li><a href="#sec-autorefresh"><span class="tm-nav-icon" aria-hidden="true">🔄</span><span class="tm-nav-label">Ανανέωση</span></a></li>
+                                <li><a href="#sec-scratchpad"><span class="tm-nav-icon" aria-hidden="true">📝</span><span class="tm-nav-label">Σημειωματάριο</span></a></li>
+                                <li><a href="#sec-gamification"><span class="tm-nav-icon" aria-hidden="true">🎮</span><span class="tm-nav-label">Παιχνίδι</span></a></li>
+                                <li><a href="#sec-updates"><span class="tm-nav-icon" aria-hidden="true">↻</span><span class="tm-nav-label">Ενημερώσεις</span></a></li>
+                                <li><a href="#sec-data"><span class="tm-nav-icon" aria-hidden="true">💾</span><span class="tm-nav-label">Δεδομένα</span></a></li>
+                                <li class="tm-nav-debug" style="display: none;" data-debug-only="true"><a href="#sec-debug"><span class="tm-nav-icon" aria-hidden="true">🔧</span><span class="tm-nav-label">Ανάπτυξη</span></a></li>
                             </ul>
                         </aside>
                         <main class="tm-settings-main" id="tm-settings-content">
@@ -11798,9 +12221,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <section id="sec-data">${getDataManagementHTML()}</section>
                         </main>
                     </div>
-                    <div class="tm-modal-footer">
+                    <div class="tm-modal-footer tm-settings-footer">
                         <span id="tm-settings-feedback"></span>
-                        <button id="tm-settings-save">Αποθήκευση & Επαναφόρτωση</button>
+                        <button type="button" id="tm-settings-save" class="tm-settings-save-btn">Αποθήκευση &amp; Επαναφόρτωση</button>
                     </div>
                 </div>
             `;
@@ -15601,6 +16024,7 @@ let roamingWatchdogInterval = null;
 const ROAMING_ACTIVE_STATES = ['idle', 'biking', 'juggling', 'reading', 'happy', 'sad', 'energized'];
 const ROAMING_MOVE_STATES = ['idle'];
 const MASCOT_MODIFIER_CLASSES = ['mascot-needs-toilet', 'mascot-needs-cleaning', 'mascot-hatching', 'mascot-dying'];
+// Mood classes are preserved separately (mascot-mood-*) in applyMascotBehaviorState.
 
 /** Unified accessory catalog for Tamagotchi sprites (shop + equip + SVG ids must match). */
 const MASCOT_ACCESSORY_CATALOG = [
@@ -16201,7 +16625,8 @@ const MASCOT_CHARACTERS = {
         lore: 'Forged in volcanic cataclysm, this sovereign of flame carries the wrath of ages and the wisdom of dying stars.',
         loreGr: 'Γεννήθηκε από ηφαιστειακή ενέργεια — κουβαλά τη σοφία των αιώνων και τη δύναμη της φλόγας.',
         traits: ['🔥 Cataclysm Breath', '🛡️ Obsidian Scales', '✨ Primordial Magic'],
-        traitsGr: ['🔥 Φωτιά', '🛡️ Θωρακισμένα λέπια', '✨ Αρχαία μαγεία']
+        traitsGr: ['🔥 Φωτιά', '🛡️ Θωρακισμένα λέπια', '✨ Αρχαία μαγεία'],
+        prefs: { likes: ['meal', 'play', 'praise'], dislikes: ['scold', 'lights_off'], favorite: 'meal' }
     },
     robot: {
         name: 'Neon Colossus', nameGr: 'Neon Colossus',
@@ -16212,7 +16637,8 @@ const MASCOT_CHARACTERS = {
         lore: 'Forged in silicon storms and lightning cores, this colossus rewrites reality through code and iron will.',
         loreGr: 'Φτιαγμένο από πυρίτιο και αστραπές — εξελίσσεται με κώδικα και φαντασία.',
         traits: ['⚡ Plasma Core', '🔧 Autoregen Protocols', '💾 Overmind'],
-        traitsGr: ['⚡ Ηλεκτρική καρδιά', '🔧 Αυτοεπισκευή', '💾 Νους δεδομένων']
+        traitsGr: ['⚡ Ηλεκτρική καρδιά', '🔧 Αυτοεπισκευή', '💾 Νους δεδομένων'],
+        prefs: { likes: ['play', 'medicine', 'lights_on'], dislikes: ['snack', 'scold'], favorite: 'play' }
     },
     slime: {
         name: 'Abyssal Ooze', nameGr: 'Abyssal Ooze',
@@ -16223,7 +16649,8 @@ const MASCOT_CHARACTERS = {
         lore: 'Spawned in the lightless depths, this living venom reshapes itself into fangs, tendrils, and hunger.',
         loreGr: 'Γεννημένο από χαρά και γέλιο — απορροφά την ευτυχία γύρω του.',
         traits: ['💧 Formless Hunger', '☠️ Acid Bloom', '👁 Predatory Gaze'],
-        traitsGr: ['💧 Αλλάζει σχήμα', '🎈 Αναπηδάει', '😊 Αύρα χαράς']
+        traitsGr: ['💧 Αλλάζει σχήμα', '🎈 Αναπηδάει', '😊 Αύρα χαράς'],
+        prefs: { likes: ['snack', 'pet', 'meal'], dislikes: ['clean', 'lights_on'], favorite: 'snack' }
     },
     plant: {
         name: 'Worldroot Warden', nameGr: 'Worldroot Warden',
@@ -16234,7 +16661,8 @@ const MASCOT_CHARACTERS = {
         lore: 'Sprouted from the World Tree itself, this warden binds forests, beasts, and seasons with earthbound magic.',
         loreGr: 'Βλάστησε από το Παγκόσμιο Δέντρο — τρέφει τα πλάσματα με γη και μαγεία.',
         traits: ['🌿 Canopy Dominion', '🌸 Bloom Surge', '🌳 Rootbind'],
-        traitsGr: ['🌿 Φωτοσύνθεση', '🌸 Άνθηση', '🌳 Δέσιμο με τη φύση']
+        traitsGr: ['🌿 Φωτοσύνθεση', '🌸 Άνθηση', '🌳 Δέσιμο με τη φύση'],
+        prefs: { likes: ['lights_on', 'pet', 'clean'], dislikes: ['snack', 'lights_off'], favorite: 'lights_on' }
     },
     ghost: {
         name: 'Veil Wraith', nameGr: 'Veil Wraith',
@@ -16245,18 +16673,20 @@ const MASCOT_CHARACTERS = {
         lore: 'Torn from the veil between life and death, this wraith slips through dimensions as a whisper of cold night.',
         loreGr: 'Ούτε ζωντανό ούτε νεκρό — παίζει ανάμεσα στις διαστάσεις ψάχνοντας παρέα.',
         traits: ['👁️ Vanish', '✨ Phase Strike', '🌙 Umbral Sight'],
-        traitsGr: ['👁️ Αόρατο', '✨ Περνάει μέσα', '🌙 Νυχτερινή όραση']
+        traitsGr: ['👁️ Αόρατο', '✨ Περνάει μέσα', '🌙 Νυχτερινή όραση'],
+        prefs: { likes: ['lights_off', 'pet', 'play'], dislikes: ['meal', 'lights_on'], favorite: 'lights_off' }
     },
     cat: {
         name: 'Moonfang Oracle', nameGr: 'Moonfang Oracle',
-        emoji: '🐱', color: '#ff6090', rarity: 'Rare', rarityGr: 'Σπάνιο',
+        emoji: '🐱', color: '#7e57c2', rarity: 'Rare', rarityGr: 'Σπάνιο',
         element: 'Fate & Shadow', elementGr: 'Τύχη & Σκανταλιά',
         description: 'Astral feline that walks the omen paths',
         descriptionGr: 'Γάτα με εννέα ζωές και ατελείωτη περιέργεια',
         lore: 'Blessed by moon goddesses, this oracle pads between worlds, weaving fortune, ruin, and quiet prophecy.',
         loreGr: 'Ευλογημένη από τη Σελήνη — περπατά ανάμεσα στους κόσμους φέρνοντας τύχη.',
         traits: ['🍀 Fate Charm', '🌙 Night Stalker', '😼 Ninefold Life'],
-        traitsGr: ['🍀 Ταλισμαν τύχης', '🌙 Νυχτερινός κυνηγός', '😼 Εννέα ζωές']
+        traitsGr: ['🍀 Ταλισμαν τύχης', '🌙 Νυχτερινός κυνηγός', '😼 Εννέα ζωές'],
+        prefs: { likes: ['pet', 'play', 'snack'], dislikes: ['clean', 'scold'], favorite: 'pet' }
     },
     phoenix: {
         name: 'Ashborn Phoenix', nameGr: 'Ashborn Phoenix',
@@ -16267,7 +16697,8 @@ const MASCOT_CHARACTERS = {
         lore: 'Born of sacred pyres, this eternal bird rises from ruin — a living sun of hope, fury, and renewal.',
         loreGr: 'Γεννημένος από ιερές φλόγες — αναγεννιέται αιώνια, σύμβολο ελπίδας.',
         traits: ['🔥 Eternal Pyre', '✨ Ash Rebirth', '☀️ Solar Wrath'],
-        traitsGr: ['🔥 Αιώνια φλόγα', '✨ Αναγέννηση', '☀️ Ηλιακή δύναμη']
+        traitsGr: ['🔥 Αιώνια φλόγα', '✨ Αναγέννηση', '☀️ Ηλιακή δύναμη'],
+        prefs: { likes: ['play', 'praise', 'lights_on'], dislikes: ['lights_off', 'scold'], favorite: 'praise' }
     },
     crystal: {
         name: 'Prism Titan', nameGr: 'Prism Titan',
@@ -16278,9 +16709,219 @@ const MASCOT_CHARACTERS = {
         lore: 'Carved across millennia in crystal vaults, this titan refracts light into blades of pure mana.',
         loreGr: 'Διαμορφώθηκε σε σπηλιές για χιλιετίες — ανακλά φως και μαγεία.',
         traits: ['💎 Adamant Shell', '🌈 Prism Barrage', '✨ Mana Reservoir'],
-        traitsGr: ['💎 Σκληρό σαν διαμάντι', '🌈 Πρίσμα φωτός', '✨ Αποθήκη μαγείας']
+        traitsGr: ['💎 Σκληρό σαν διαμάντι', '🌈 Πρίσμα φωτός', '✨ Αποθήκη μαγείας'],
+        prefs: { likes: ['clean', 'medicine', 'toilet'], dislikes: ['snack', 'scold'], favorite: 'clean' }
     }
 };
+
+/** Coin cost when using care actions from the care panel (0 = free). */
+const MASCOT_CARE_COIN_COSTS = {
+    meal: 25,
+    snack: 15,
+    medicine: 35,
+    clean: 20,
+    pet: 0,
+    toilet: 0,
+    praise: 0,
+    scold: 0,
+    play: 0,
+    lights: 0,
+};
+
+const MASCOT_MOOD_MESSAGES = {
+    happy: ['Ναι!', 'Χαρά!', 'Τέλεια!', 'Μου αρέσει!'],
+    curious: ['Τι έγινε;', 'Χμμ;', 'Λέγε…', 'Ενδιαφέρον!'],
+    sleepy: ['Ζζζ…', 'Νύσταξα…', 'Ήσυχα…', 'Λίγο ακόμα…'],
+    hungry: ['Πεινάω…', 'Φαΐ;', 'Το στομάχι μου!', 'Κάτι νόστιμο;'],
+    playful: ['Πάμε!', 'Παίξε!', 'Έλα δω!', 'Γρήγορα!'],
+    proud: ['Το ήξερα!', 'Άξιος!', 'Κοίτα με!', 'Επικό!'],
+    grumpy: ['Όχι…', 'Μπα.', 'Άστο.', 'Χμμφ.'],
+    calm: ['Ήρεμα…', 'Οκ.', 'Όλα καλά.', 'Σιγά-σιγά.'],
+};
+
+const MASCOT_WORK_REACTION_MESSAGES = {
+    statusChange: ['Νέο status!', 'Άλλη μία!', 'Προχωράμε!', 'Ωραία αλλαγή!'],
+    repairDone: ['Παράδοση!', 'Τέλος!', 'Μπράβο!', 'Άλλη μία έτοιμη!'],
+    newOrder: ['Παραγγελία!', 'Ανταλλακτικό!', 'Νέα δουλειά!', 'Πάμε!'],
+    idle: ['Πού πήγε το κατσαβίδι;', 'Τι θα χαλάσει σήμερα;', 'Έτοιμος!', 'Χμμ…'],
+    eod: ['Τέλος ημέρας;', 'Checklist!', 'Φεύγουμε;', 'Καλό βράδυ!'],
+};
+
+let mascotMood = 'calm';
+let mascotMoodTimeout = null;
+let lastMascotWorkReactAt = 0;
+
+function getMascotCareCoinCost(actionId) {
+    return Number(MASCOT_CARE_COIN_COSTS[actionId] || 0);
+}
+
+function trySpendMascotCareCoins(STORAGE_KEYS, actionId, config) {
+    const cost = getMascotCareCoinCost(actionId);
+    if (cost <= 0) return { ok: true, cost: 0 };
+    if (config?.debugEnabled) return { ok: true, cost: 0, free: true };
+    const coins = Number(GM_getValue(STORAGE_KEYS.USER_COINS, 0) || 0);
+    if (coins < cost) {
+        showMascotBubble(`Θέλω ${cost} 🪙!`, 2000);
+        if (typeof window.showNotification === 'function') {
+            window.showNotification('error', `Χρειάζονται ${cost} Fixer-Coins`);
+        }
+        return { ok: false, cost };
+    }
+    const next = coins - cost;
+    GM_setValue(STORAGE_KEYS.USER_COINS, next);
+    if (typeof window.updateCoinBalanceUI === 'function') {
+        window.updateCoinBalanceUI(STORAGE_KEYS, next, config || window.config);
+    }
+    return { ok: true, cost };
+}
+
+function getActiveMascotPrefs() {
+    if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none') return null;
+    return MASCOT_CHARACTERS[tamagotchiCharacterType]?.prefs || null;
+}
+
+function setMascotMood(mood, durationMs = 8000) {
+    const allowed = Object.keys(MASCOT_MOOD_MESSAGES);
+    if (!allowed.includes(mood)) mood = 'calm';
+    mascotMood = mood;
+    const el = document.getElementById('tm-mascot-container');
+    if (el) {
+        [...el.classList].forEach((cls) => {
+            if (cls.startsWith('mascot-mood-')) el.classList.remove(cls);
+        });
+        el.classList.add(`mascot-mood-${mood}`);
+    }
+    if (mascotMoodTimeout) {
+        clearTimeout(mascotMoodTimeout);
+        mascotMoodTimeout = null;
+    }
+    if (durationMs > 0) {
+        mascotMoodTimeout = setTimeout(() => {
+            mascotMoodTimeout = null;
+            setMascotMood('calm', 0);
+        }, durationMs);
+    }
+}
+
+function pickMoodBubble(fallbackPool) {
+    const moodPool = MASCOT_MOOD_MESSAGES[mascotMood];
+    if (moodPool?.length && Math.random() < 0.55) {
+        return moodPool[Math.floor(Math.random() * moodPool.length)];
+    }
+    if (Array.isArray(fallbackPool) && fallbackPool.length) {
+        return fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
+    }
+    return null;
+}
+
+/**
+ * Apply like/dislike/favorite bonus after a care action.
+ * @returns {{reaction:'love'|'like'|'dislike'|null, bonus:number}}
+ */
+function applyMascotCarePreference(actionId, config, STORAGE_KEYS) {
+    const prefs = getActiveMascotPrefs();
+    if (!prefs || tamagotchiStage === 'egg' || tamagotchiIsDead) {
+        return { reaction: null, bonus: 0 };
+    }
+    if (prefs.favorite === actionId) {
+        updatePetStats(config, STORAGE_KEYS, 10, 0);
+        setMascotMood('proud', 9000);
+        showMascotBubble(pickMoodBubble(['Το λατρεύω!', 'Ναι ναι ναι!', 'Αγαπημένο!']) || 'Το λατρεύω!', 2000);
+        return { reaction: 'love', bonus: 10 };
+    }
+    if (prefs.likes?.includes(actionId)) {
+        updatePetStats(config, STORAGE_KEYS, 5, 0);
+        setMascotMood('happy', 7000);
+        return { reaction: 'like', bonus: 5 };
+    }
+    if (prefs.dislikes?.includes(actionId)) {
+        updatePetStats(config, STORAGE_KEYS, -6, 0);
+        setMascotMood('grumpy', 8000);
+        showMascotBubble(pickMoodBubble(['Όχι αυτό…', 'Μπα.', 'Άστο καλύτερα.']) || 'Όχι αυτό…', 1800);
+        return { reaction: 'dislike', bonus: -6 };
+    }
+    return { reaction: null, bonus: 0 };
+}
+
+/**
+ * Work-linked mascot reactions (throttled).
+ * @param {'statusChange'|'repairDone'|'newOrder'|'idle'|'eod'} type
+ */
+function notifyMascotWorkEvent(type, config) {
+    if (config?.interactiveMascotEnabled === false) return;
+    if (tamagotchiIsDead || tamagotchiStage === 'egg' || tamaCinematicLock) return;
+    if (!tamagotchiLightsOn || tamagotchiIsSleeping) return;
+
+    const now = Date.now();
+    const minGap = type === 'idle' ? 45000 : 12000;
+    if (now - lastMascotWorkReactAt < minGap) return;
+    lastMascotWorkReactAt = now;
+
+    const pool = MASCOT_WORK_REACTION_MESSAGES[type] || MASCOT_WORK_REACTION_MESSAGES.idle;
+    const text = pickMoodBubble(pool) || pool[Math.floor(Math.random() * pool.length)];
+
+    if (type === 'repairDone') {
+        setMascotMood('proud', 10000);
+        setMascotState(config || window.config || {}, 'happy', 4000);
+    } else if (type === 'newOrder') {
+        setMascotMood('curious', 8000);
+        setMascotState(config || window.config || {}, 'eureka', 2500);
+    } else if (type === 'statusChange') {
+        setMascotMood('curious', 6000);
+    } else if (type === 'eod') {
+        setMascotMood('sleepy', 12000);
+    } else if (type === 'idle') {
+        if (petStats.hunger < 35) setMascotMood('hungry', 8000);
+        else if (petStats.happiness > 70) setMascotMood('playful', 8000);
+        else setMascotMood('calm', 6000);
+    }
+
+    showMascotBubble(text, type === 'eod' ? 3500 : 2200);
+}
+
+const MASCOT_CARE_ACTION_LABELS_GR = {
+    meal: 'Γεύμα',
+    snack: 'Σνακ',
+    pet: 'Χάδι',
+    clean: 'Καθάρισμα',
+    medicine: 'Φάρμακο',
+    toilet: 'Τουαλέτα',
+    praise: 'Έπαινος',
+    scold: 'Επίπληξη',
+    play: 'Παιχνίδι',
+    lights_on: 'Φώτα ανοιχτά',
+    lights_off: 'Φώτα κλειστά',
+};
+
+function careCoinHint(baseHint, actionId) {
+    const cost = getMascotCareCoinCost(actionId);
+    if (cost <= 0) return baseHint;
+    return `${baseHint} · ${cost}🪙`;
+}
+
+/** Shop consumable side-effects (health / clean / prefs). */
+function applyMascotShopCareEffect(effect, config, STORAGE_KEYS) {
+    if (!effect || tamagotchiIsDead || tamagotchiStage === 'egg') return;
+    let changed = false;
+    if (effect.health) {
+        tamagotchiHealth = Math.min(100, tamagotchiHealth + Number(effect.health || 0));
+        const container = document.getElementById('tm-mascot-container');
+        if (container) updateTamagotchiStats(container);
+        changed = true;
+    }
+    if (effect.clean) {
+        tamagotchiPoopCount = 0;
+        if (typeof updatePoopIndicator === 'function') updatePoopIndicator();
+        changed = true;
+    }
+    if (effect.careAction) {
+        applyMascotCarePreference(effect.careAction, config, STORAGE_KEYS);
+        changed = true;
+    }
+    if (changed && STORAGE_KEYS && typeof saveTamagotchiData === 'function') {
+        saveTamagotchiData(STORAGE_KEYS);
+    }
+}
 
 function playEpicSound() {
     try {
@@ -19532,9 +20173,9 @@ async function moveToNewPosition() {
         const parsed = statusMenu ? parseRepairStatusMenu(statusMenu) : null;
         if (parsed?.totalRepairs > 0) {
             showMascotBubble(mascotRepairOpinion(parsed.statusIdMap, parsed.totalRepairs), 2500);
+            setMascotMood(petStats.hunger < 35 ? 'hungry' : 'curious', 7000);
         } else {
-            const idleRepairMessages = MASCOT_MESSAGES.idleRepair;
-            showMascotBubble(idleRepairMessages[Math.floor(Math.random() * idleRepairMessages.length)], 2500);
+            notifyMascotWorkEvent('idle', roamingConfig || window.config);
         }
     }
 
@@ -19652,11 +20293,14 @@ function applyMascotBehaviorState(mascotContainer, state) {
     if (!mascotContainer || !state) return;
     const preserve = new Set(['tm-mascot-container', ...MASCOT_MODIFIER_CLASSES]);
     [...mascotContainer.classList].forEach((cls) => {
-        if (cls.startsWith('mascot-') && !preserve.has(cls)) {
+        if (cls.startsWith('mascot-') && !preserve.has(cls) && !cls.startsWith('mascot-mood-')) {
             mascotContainer.classList.remove(cls);
         }
     });
     mascotContainer.classList.add(`mascot-${state}`);
+    if (mascotMood && mascotMood !== 'calm') {
+        mascotContainer.classList.add(`mascot-mood-${mascotMood}`);
+    }
 }
 
 function setMascotState(config, state, duration = 0) {
@@ -21001,6 +21645,21 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             .mascot-idle .tm-animate-wing-right {
                 animation: tm-wing-flap-right 1.8s ease-in-out infinite;
             }
+
+            /* Short-lived moods tweak idle motion */
+            .mascot-mood-happy .tm-animate-body { animation-duration: 2.2s; }
+            .mascot-mood-playful .tm-animate-tail { animation-duration: 1.2s; }
+            .mascot-mood-playful .tm-animate-arm-left,
+            .mascot-mood-playful .tm-animate-arm-right { animation-duration: 1.1s; }
+            .mascot-mood-sleepy .tm-animate-body { animation-duration: 4.5s; }
+            .mascot-mood-sleepy .tm-animate-arm-left,
+            .mascot-mood-sleepy .tm-animate-arm-right { animation-duration: 3.5s; }
+            .mascot-mood-grumpy .tm-animate-tail { animation-duration: 3.2s; }
+            .mascot-mood-hungry .tm-animate-body { animation: tm-body-breathe 1.6s ease-in-out infinite; }
+            .mascot-mood-proud .tm-animate-wing-left,
+            .mascot-mood-proud .tm-animate-wing-right { animation-duration: 1.2s; }
+            .mascot-mood-curious #tm-mascot-container,
+            .mascot-mood-curious { filter: saturate(1.08); }
         `;
         document.head.appendChild(animStyle);
     }
@@ -25009,7 +25668,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path class="tm-mascot-mouth-happy" d="M 45 46 Q 50 51.5 55 46" stroke="#546e7a" stroke-width="2" fill="none" stroke-linecap="round"/>
                         <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 48 Q 50 42 55 48" stroke="#546e7a" stroke-width="2" fill="none" stroke-linecap="round"/>
                 </g>
-                <!-- CAT CHARACTER - All Life Stages (dense cute epic v3) -->
+                <!-- CAT CHARACTER - All Life Stages (dense cute epic v4 · feline boss) -->
                 <!-- Fate & Shadow • Rare Rarity • Moonfang Oracle -->
                 <!-- ═══════════════════════════════════════ -->
 
@@ -25017,903 +25676,877 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 <g id="tm-mascot-baby-cat" style="display: none;">
                     <defs>
                         <radialGradient id="cat-baby-fur" cx="38%" cy="28%" r="75%">
-                            <stop offset="0%" style="stop-color:#ffe0b2;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffb74d;stop-opacity:1" />
-                            <stop offset="65%" style="stop-color:#f57c00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#ce93d8;stop-opacity:1" />
+                            <stop offset="35%" style="stop-color:#ab47bc;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#7b1fa2;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#4a148c;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="cat-baby-belly" cx="50%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#fff8e1;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#ffe0b2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffcc80;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#e1bee7;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="cat-baby-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#80d8ff;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#0288d1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#01579b;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#ce93d8;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#6a1b9a;stop-opacity:1" />
                         </radialGradient>
-                        <linearGradient id="cat-baby-ear" cx="38%" cy="28%" r="75%">
+                        <linearGradient id="cat-baby-ear" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#f8bbd0;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#c2185b;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ad1457;stop-opacity:1" />
                         </linearGradient>
                         <radialGradient id="cat-baby-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a9b;stop-opacity:0.6" />
-                            <stop offset="100%" style="stop-color:#ff8a9b;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-baby-flare" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#e1f5fe;stop-opacity:0.75" />
-                            <stop offset="50%" style="stop-color:#80deea;stop-opacity:0.45" />
-                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0" />
+                            <stop offset="0%" style="stop-color:#f48fb1;stop-opacity:0.55" />
+                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:0" />
                         </radialGradient>
                         <radialGradient id="cat-baby-aura" cx="50%" cy="45%" r="55%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.32" />
-                            <stop offset="50%" style="stop-color:#7986cb;stop-opacity:0.18" />
-                            <stop offset="100%" style="stop-color:#5c6bc0;stop-opacity:0" />
+                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.38" />
+                            <stop offset="45%" style="stop-color:#7e57c2;stop-opacity:0.2" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
                         </radialGradient>
-                        <radialGradient id="cat-baby-pad-glow" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#80deea;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#80deea;stop-opacity:0" />
+                        <radialGradient id="cat-baby-mane" cx="50%" cy="40%" r="55%">
+                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:0.7" />
+                            <stop offset="50%" style="stop-color:#7e57c2;stop-opacity:0.35" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
+                        </radialGradient>
+                        <radialGradient id="cat-baby-tail-tip" cx="50%" cy="40%" r="55%">
+                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
+                            <stop offset="60%" style="stop-color:#f48fb1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:1" />
                         </radialGradient>
                     </defs>
-                        <ellipse cx="50" cy="94" rx="26" ry="4.5" fill="#1a1a1a" opacity="0.22"/>
+                        <ellipse cx="50" cy="94" rx="24" ry="4.5" fill="#0a0614" opacity="0.28"/>
 
                         <g class="tm-animate-tail">
-                            <path d="M 64 72 Q 76 68 80 58 Q 82 50 76 52 Q 70 58 66 70 Z" fill="url(#cat-baby-fur)" stroke="#e65100" stroke-width="1.3"/>
-                            <path d="M 74 58 Q 82 50 84 44" stroke="#fff3e0" stroke-width="0.85" fill="none" opacity="0.4"/>
-
+                            <path d="M 62 70 Q 78 62 84 48 Q 88 38 80 40 Q 70 52 64 68 Z" fill="url(#cat-baby-fur)" stroke="#4a148c" stroke-width="1.45"/>
+                            <path d="M 72 56 Q 84 44 90 34" stroke="#e1bee7" stroke-width="0.9" fill="none" opacity="0.4"/>
+                            <ellipse cx="80" cy="46" rx="3.5" ry="4.5" fill="url(#cat-baby-tail-tip)" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-wing-left">
-                            <!-- Lunar ear-flare -->
-                            <path d="M 30 36 Q 20 24 22 36 Q 24 42 32 40 Z" fill="url(#cat-baby-flare)" stroke="#e65100" stroke-width="1" opacity="0.88"/>
-                            <path d="M 24 30 L 18 24" stroke="#ff6090" stroke-width="0.9" opacity="0.55"/>
-                            <circle cx="16" cy="26" r="1.2" fill="#fff" opacity="0.45"/>
+                            <!-- Left ear tuft -->
+                            <path d="M 24 18 Q 14 8 16 22" stroke="#f48fb1" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 22 16 L 12 6" stroke="#4a148c" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
+                            <circle cx="13" cy="8" r="1.35" fill="#fff" opacity="0.55"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 70 36 Q 80 24 78 36 Q 76 42 68 40 Z" fill="url(#cat-baby-flare)" stroke="#e65100" stroke-width="1" opacity="0.88"/>
-                            <path d="M 76 30 L 82 24" stroke="#ff6090" stroke-width="0.9" opacity="0.55"/>
-                            <circle cx="84" cy="26" r="1.2" fill="#fff" opacity="0.45"/>
+                            <!-- Right ear tuft -->
+                            <path d="M 76 18 Q 86 8 84 22" stroke="#f48fb1" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 78 16 L 88 6" stroke="#4a148c" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
+                            <circle cx="87" cy="8" r="1.35" fill="#fff" opacity="0.55"/>
                         </g>
                         <g class="tm-animate-body">
-                            <ellipse cx="50" cy="70" rx="24" ry="21" fill="url(#cat-baby-fur)" stroke="#e65100" stroke-width="1.6"/>
-                            <ellipse cx="50" cy="74" rx="16" ry="14" fill="url(#cat-baby-belly)"/>
-                            <path d="M 34 68 Q 50 70 66 68" stroke="#ffe0b2" stroke-width="0.9" fill="none" opacity="0.55"/>
 
-                            <!-- Head -->
-                            <ellipse cx="50" cy="36" rx="21" ry="19" fill="url(#cat-baby-fur)" stroke="#e65100" stroke-width="1.6"/>
-                            <ellipse cx="37" cy="30" rx="7" ry="4" fill="#fff" opacity="0.18"/>
-                            <!-- Ears -->
-                            <path d="M 34 34 L 28 18 L 42 30 Z" fill="url(#cat-baby-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <path d="M 34 33 L 30 22 L 38 31 Z" fill="url(#cat-baby-ear)" opacity="0.88"/>
-                            <path d="M 66 34 L 72 18 L 58 30 Z" fill="url(#cat-baby-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <path d="M 66 33 L 70 22 L 62 31 Z" fill="url(#cat-baby-ear)" opacity="0.88"/>
+                            <ellipse cx="50" cy="68" rx="22" ry="20" fill="url(#cat-baby-fur)" stroke="#4a148c" stroke-width="1.55"/>
+                            <ellipse cx="50" cy="71" rx="15.0" ry="14.0" fill="url(#cat-baby-belly)"/>
 
-                            <!-- Crescent mark -->
-                            <path d="M 50 28 Q 46 32 50 36 Q 54 32 50 28" fill="none" stroke="#ff6090" stroke-width="1.2" opacity="0.85"/>
-                            <circle cx="50" cy="32" r="0.9" fill="#ff6090" opacity="0.65"/>
+                            <!-- Round cat head -->
+                            <ellipse cx="50" cy="34" rx="20" ry="18" fill="url(#cat-baby-fur)" stroke="#4a148c" stroke-width="1.55"/>
+                            <ellipse cx="37.0" cy="29" rx="6.5" ry="3.8" fill="#fff" opacity="0.16"/>
+                            <!-- Cat ears -->
+                            <path d="M 33.4 32 L 25.1 8 L 42 27 Z" fill="url(#cat-baby-fur)" stroke="#4a148c" stroke-width="1.35"/>
+                            <path d="M 34 31 L 28.4 14 L 38 28.5 Z" fill="url(#cat-baby-ear)" opacity="0.92"/>
+                            <path d="M 66.6 32 L 74.9 8 L 58 27 Z" fill="url(#cat-baby-fur)" stroke="#4a148c" stroke-width="1.35"/>
+                            <path d="M 66 31 L 71.6 14 L 62 28.5 Z" fill="url(#cat-baby-ear)" opacity="0.92"/>
+                            <!-- Tiny moon mark -->
+                            <path d="M 50 18 A 4 4 0 1 1 50 25.5 A 3.2 3.2 0 1 0 50 18" fill="#f48fb1" opacity="0.85"/>
                             <!-- Muzzle -->
-                            <ellipse cx="50" cy="44" rx="9" ry="5.5" fill="url(#cat-baby-belly)"/>
-                            <ellipse cx="47" cy="44" rx="1.3" ry="1" fill="#5d4037"/>
-                            <ellipse cx="53" cy="44" rx="1.3" ry="1" fill="#5d4037"/>
-                            <circle cx="34" cy="42" r="5" fill="url(#cat-baby-cheek)"/>
-                            <circle cx="66" cy="42" r="5" fill="url(#cat-baby-cheek)"/>
+                            <ellipse cx="50" cy="42" rx="8.5" ry="5.2" fill="url(#cat-baby-belly)"/>
+                            <path d="M 50 40.74 L 47.48 43.68 L 52.52 43.68 Z" fill="#ff8fab" stroke="#e91e63" stroke-width="0.7"/>
+                            <ellipse cx="50" cy="42.21" rx="0.735" ry="0.47250000000000003" fill="#fff" opacity="0.45"/>
+                            <circle cx="33" cy="39" r="5" fill="url(#cat-baby-cheek)"/>
+                            <circle cx="67" cy="39" r="5" fill="url(#cat-baby-cheek)"/>
                             <!-- Whiskers -->
-                            <path d="M 40 40 L 28 39 M 40 42 L 28 42 M 40 44 L 30 45" stroke="#fff" stroke-width="0.75" opacity="0.6" stroke-linecap="round"/>
-                            <path d="M 60 40 L 72 39 M 60 42 L 72 42 M 60 44 L 70 45" stroke="#fff" stroke-width="0.75" opacity="0.6" stroke-linecap="round"/>
-                            <!-- Fur tufts -->
-                            <circle cx="36" cy="58" r="1.5" fill="#e65100" opacity="0.28"/>
-                            <circle cx="64" cy="58" r="1.5" fill="#e65100" opacity="0.28"/>
-                            <circle cx="42" cy="72" r="1.2" fill="#e65100" opacity="0.23800000000000002"/>
-                            <circle cx="58" cy="72" r="1.2" fill="#e65100" opacity="0.23800000000000002"/>
-                            <path d="M 48 52 Q 50 54 52 52" stroke="#e65100" stroke-width="0.9" fill="none" opacity="0.196"/>
-                            <path d="M 46 62 Q 48 64 50 62" stroke="#e65100" stroke-width="0.8" fill="none" opacity="0.168"/>
+                            <path d="M 41 39 L 28 37 M 41 41 L 29 41 M 41 43 L 29 45" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 59 39 L 72 37 M 59 41 L 71 41 M 59 43 L 71 45" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-arm-left">
-                            <ellipse cx="28" cy="64" rx="6.5" ry="9.5" fill="url(#cat-baby-fur)" stroke="#e65100" stroke-width="1.2" transform="rotate(-22 28 64)"/>
-                            <ellipse cx="24" cy="74" rx="5.5" ry="4.5" fill="url(#cat-baby-belly)" stroke="#e65100" stroke-width="0.9"/>
-                            <ellipse cx="24" cy="75.1" rx="4.95" ry="3.08" fill="#f8bbd0" opacity="0.85"/>
-                            <circle cx="21.8" cy="74.55" r="1.1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="24" cy="74.22" r="1.1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="26.2" cy="74.55" r="1.1" fill="#ff6090" opacity="0.75"/>
+                            <ellipse cx="27" cy="62" rx="6.2" ry="9.2" fill="url(#cat-baby-fur)" stroke="#4a148c" stroke-width="1.2" transform="rotate(-24 27 62)"/>
+                            <ellipse cx="23" cy="72" rx="5.4" ry="4.4" fill="url(#cat-baby-belly)" stroke="#4a148c" stroke-width="0.9"/>
+                            <ellipse cx="23" cy="73.155" rx="4.41" ry="2.7300000000000004" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="20.795" cy="72.315" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="23" cy="72" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="25.205" cy="72.315" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-arm-right">
-                            <ellipse cx="72" cy="64" rx="6.5" ry="9.5" fill="url(#cat-baby-fur)" stroke="#e65100" stroke-width="1.2" transform="rotate(22 72 64)"/>
-                            <ellipse cx="76" cy="74" rx="5.5" ry="4.5" fill="url(#cat-baby-belly)" stroke="#e65100" stroke-width="0.9"/>
-                            <ellipse cx="76" cy="75.1" rx="4.95" ry="3.08" fill="#f8bbd0" opacity="0.85"/>
-                            <circle cx="73.8" cy="74.55" r="1.1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="76" cy="74.22" r="1.1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="78.2" cy="74.55" r="1.1" fill="#ff6090" opacity="0.75"/>
+                            <ellipse cx="73" cy="62" rx="6.2" ry="9.2" fill="url(#cat-baby-fur)" stroke="#4a148c" stroke-width="1.2" transform="rotate(24 73 62)"/>
+                            <ellipse cx="77" cy="72" rx="5.4" ry="4.4" fill="url(#cat-baby-belly)" stroke="#4a148c" stroke-width="0.9"/>
+                            <ellipse cx="77" cy="73.155" rx="4.41" ry="2.7300000000000004" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="74.795" cy="72.315" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="77" cy="72" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="79.205" cy="72.315" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-leg-left">
-
-                            <ellipse cx="40" cy="86" rx="7.5" ry="5.5" fill="url(#cat-baby-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <ellipse cx="40" cy="88" rx="5.5" ry="3" fill="url(#cat-baby-belly)"/>
-                            <ellipse cx="40" cy="88.1" rx="4.95" ry="3.08" fill="#f8bbd0" opacity="0.85"/>
-                            <circle cx="37.8" cy="87.55" r="1.1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="40" cy="87.22" r="1.1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="42.2" cy="87.55" r="1.1" fill="#ff6090" opacity="0.75"/>
+                            <ellipse cx="39" cy="86" rx="7.2" ry="5.4" fill="url(#cat-baby-fur)" stroke="#4a148c" stroke-width="1.2"/>
+                            <ellipse cx="39" cy="88" rx="5.2" ry="2.8" fill="url(#cat-baby-belly)"/>
+                            <ellipse cx="39" cy="88.155" rx="4.41" ry="2.7300000000000004" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="36.795" cy="87.315" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="39" cy="87" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="41.205" cy="87.315" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <ellipse cx="60" cy="86" rx="7.5" ry="5.5" fill="url(#cat-baby-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <ellipse cx="60" cy="88" rx="5.5" ry="3" fill="url(#cat-baby-belly)"/>
-                            <ellipse cx="60" cy="88.1" rx="4.95" ry="3.08" fill="#f8bbd0" opacity="0.85"/>
-                            <circle cx="57.8" cy="87.55" r="1.1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="60" cy="87.22" r="1.1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="62.2" cy="87.55" r="1.1" fill="#ff6090" opacity="0.75"/>
+                            <ellipse cx="61" cy="86" rx="7.2" ry="5.4" fill="url(#cat-baby-fur)" stroke="#4a148c" stroke-width="1.2"/>
+                            <ellipse cx="61" cy="88" rx="5.2" ry="2.8" fill="url(#cat-baby-belly)"/>
+                            <ellipse cx="61" cy="88.155" rx="4.41" ry="2.7300000000000004" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="58.795" cy="87.315" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="61" cy="87" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="63.205" cy="87.315" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="34" rx="7.5" ry="9" fill="#fff" stroke="#e65100" stroke-width="1.5"/>
-                            <ellipse cx="41.5" cy="34.5" rx="4.2" ry="5.2" fill="url(#cat-baby-iris)"/>
-                            <ellipse cx="41.6" cy="34.8" rx="2.1" ry="3.4" fill="#0a0812"/>
-                            <circle cx="42.6" cy="31.1" r="2.4" fill="#fff" opacity="0.96"/>
-                            <circle cx="40.2" cy="36.5" r="1.1" fill="#fff" opacity="0.55"/>
-                            <ellipse cx="59" cy="34" rx="7.5" ry="9" fill="#fff" stroke="#e65100" stroke-width="1.5"/>
-                            <ellipse cx="59.5" cy="34.5" rx="4.2" ry="5.2" fill="url(#cat-baby-iris)"/>
-                            <ellipse cx="59.6" cy="34.8" rx="2.1" ry="3.4" fill="#0a0812"/>
-                            <circle cx="60.6" cy="31.1" r="2.4" fill="#fff" opacity="0.96"/>
-                            <circle cx="58.2" cy="36.5" r="1.1" fill="#fff" opacity="0.55"/>
+                            <ellipse cx="40" cy="32" rx="7.2" ry="8.8" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
+                            <ellipse cx="40.3" cy="32.4" rx="3.7" ry="6.3" fill="url(#cat-baby-iris)"/>
+                            <ellipse cx="40.35" cy="32.5" rx="1.6" ry="3.7" fill="#0a0614"/>
+                            <circle cx="41.4" cy="29.5" r="2.0" fill="#f3e5f5" opacity="0.95"/>
+                            <circle cx="39.1" cy="34.6" r="0.9" fill="#f3e5f5" opacity="0.5"/>
+                            <ellipse cx="60" cy="32" rx="7.2" ry="8.8" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
+                            <ellipse cx="60.3" cy="32.4" rx="3.7" ry="6.3" fill="url(#cat-baby-iris)"/>
+                            <ellipse cx="60.35" cy="32.5" rx="1.6" ry="3.7" fill="#0a0614"/>
+                            <circle cx="61.4" cy="29.5" r="2.0" fill="#f3e5f5" opacity="0.95"/>
+                            <circle cx="59.1" cy="34.6" r="0.9" fill="#f3e5f5" opacity="0.5"/>
 
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33.5 34 Q 41 30.5 48.5 34" stroke="#e65100" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 51.5 34 Q 59 30.5 66.5 34" stroke="#e65100" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 32.8 32 Q 40 28.8 47.2 32" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                            <path d="M 52.8 32 Q 60 28.8 67.2 32" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44 48 Q 50 53.5 56 48" stroke="#e65100" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 50 Q 50 44 56 50" stroke="#e65100" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-happy" d="M 44.5 46 Q 47.25 50.5 50 47.5 Q 52.75 50.5 55.5 46" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44.5 49 Q 50 43.5 55.5 49" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round"/>
                 </g>
 
-                <!-- CAT KID — mystic cub -->
+                <!-- CAT KID — shadow cub -->
                 <g id="tm-mascot-evo1-cat" style="display: none;">
                     <defs>
                         <radialGradient id="cat-kid-fur" cx="38%" cy="28%" r="75%">
-                            <stop offset="0%" style="stop-color:#ffe0b2;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffb74d;stop-opacity:1" />
-                            <stop offset="65%" style="stop-color:#f57c00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:1" />
+                            <stop offset="40%" style="stop-color:#7e57c2;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#4527a0;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="cat-kid-belly" cx="50%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#fff8e1;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#ffe0b2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffcc80;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#e1bee7;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="cat-kid-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#80d8ff;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#0288d1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#01579b;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#ce93d8;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#6a1b9a;stop-opacity:1" />
                         </radialGradient>
-                        <linearGradient id="cat-kid-ear" cx="38%" cy="28%" r="75%">
+                        <linearGradient id="cat-kid-ear" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#f8bbd0;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#c2185b;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ad1457;stop-opacity:1" />
                         </linearGradient>
                         <radialGradient id="cat-kid-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a9b;stop-opacity:0.6" />
-                            <stop offset="100%" style="stop-color:#ff8a9b;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-kid-flare" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#e1f5fe;stop-opacity:0.75" />
-                            <stop offset="50%" style="stop-color:#80deea;stop-opacity:0.45" />
-                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0" />
+                            <stop offset="0%" style="stop-color:#f48fb1;stop-opacity:0.55" />
+                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:0" />
                         </radialGradient>
                         <radialGradient id="cat-kid-aura" cx="50%" cy="45%" r="55%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.32" />
-                            <stop offset="50%" style="stop-color:#7986cb;stop-opacity:0.18" />
-                            <stop offset="100%" style="stop-color:#5c6bc0;stop-opacity:0" />
+                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.38" />
+                            <stop offset="45%" style="stop-color:#7e57c2;stop-opacity:0.2" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
                         </radialGradient>
-                        <radialGradient id="cat-kid-pad-glow" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#80deea;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#80deea;stop-opacity:0" />
+                        <radialGradient id="cat-kid-mane" cx="50%" cy="40%" r="55%">
+                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:0.7" />
+                            <stop offset="50%" style="stop-color:#7e57c2;stop-opacity:0.35" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
+                        </radialGradient>
+                        <radialGradient id="cat-kid-tail-tip" cx="50%" cy="40%" r="55%">
+                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
+                            <stop offset="60%" style="stop-color:#f48fb1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:1" />
                         </radialGradient>
                     </defs>
-                        <ellipse cx="50" cy="94" rx="28" ry="4.5" fill="#1a1a1a" opacity="0.22"/>
+                        <ellipse cx="50" cy="94" rx="26" ry="4.5" fill="#0a0614" opacity="0.28"/>
 
                         <g class="tm-animate-tail">
-                            <path d="M 68 68 Q 86 58 92 42 Q 94 32 86 34 Q 74 46 68 66 Z" fill="url(#cat-kid-fur)" stroke="#e65100" stroke-width="1.3"/>
-                            <path d="M 74 58 Q 82 50 84 44" stroke="#fff3e0" stroke-width="0.85" fill="none" opacity="0.4"/>
-                            <circle cx="88" cy="36" r="2" fill="#fff" opacity="0.75"/>
-                            <path d="M 84 44 L 86 40 L 88 44 L 86 48 Z" fill="#fff59d" opacity="0.7"/>
-                            <circle cx="78" cy="50" r="1.3" fill="#fff" opacity="0.55"/>
-                            <circle cx="62" cy="54" r="1.1" fill="#ffe082" opacity="0.5"/>
+                            <path d="M 66 68 Q 86 56 92 40 Q 96 28 86 30 Q 74 44 68 66 Z" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.45"/>
+                            <path d="M 72 56 Q 84 44 90 34" stroke="#e1bee7" stroke-width="0.9" fill="none" opacity="0.4"/>
+                            <ellipse cx="90" cy="34" rx="4" ry="5" fill="url(#cat-kid-tail-tip)" opacity="0.85"/>
+                            <circle cx="86" cy="42" r="1.2" fill="#fff" opacity="0.55"/>
                         </g>
                         <g class="tm-animate-wing-left">
-                            <!-- Lunar ear-flare -->
-                            <path d="M 28 34 Q 16 20 18 34 Q 20 44 30 40 Z" fill="url(#cat-kid-flare)" stroke="#e65100" stroke-width="1" opacity="0.88"/>
-                            <path d="M 24 30 L 18 24" stroke="#ff6090" stroke-width="0.9" opacity="0.55"/>
-                            <circle cx="16" cy="26" r="1.2" fill="#fff" opacity="0.45"/>
+                            <!-- Left ear tuft -->
+                            <path d="M 24 14 Q 14 4 16 18" stroke="#f48fb1" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 22 12 L 12 2" stroke="#4a148c" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
+                            <circle cx="13" cy="4" r="1.35" fill="#fff" opacity="0.55"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 72 34 Q 84 20 82 34 Q 80 44 70 40 Z" fill="url(#cat-kid-flare)" stroke="#e65100" stroke-width="1" opacity="0.88"/>
-                            <path d="M 76 30 L 82 24" stroke="#ff6090" stroke-width="0.9" opacity="0.55"/>
-                            <circle cx="84" cy="26" r="1.2" fill="#fff" opacity="0.45"/>
+                            <!-- Right ear tuft -->
+                            <path d="M 76 14 Q 86 4 84 18" stroke="#f48fb1" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 78 12 L 88 2" stroke="#4a148c" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
+                            <circle cx="87" cy="4" r="1.35" fill="#fff" opacity="0.55"/>
                         </g>
                         <g class="tm-animate-body">
-                            <ellipse cx="50" cy="66" rx="23" ry="20" fill="url(#cat-kid-fur)" stroke="#e65100" stroke-width="1.6"/>
-                            <ellipse cx="50" cy="70" rx="15" ry="13" fill="url(#cat-kid-belly)"/>
-                            <path d="M 35 64 Q 50 66 65 64" stroke="#ffe0b2" stroke-width="0.9" fill="none" opacity="0.55"/>
-                            <!-- Sparkle dots -->
-                            <circle cx="38" cy="56" r="1.4" fill="#fff" opacity="0.7"/>
-                            <path d="M 58 52 L 59 50 L 60 52 L 59 54 Z" fill="#fff59d" opacity="0.75"/>
-                            <circle cx="44" cy="68" r="1.2" fill="#fff" opacity="0.55"/>
-                            <circle cx="56" cy="70" r="1.1" fill="#ffe082" opacity="0.5"/>
-                            <!-- Head -->
-                            <ellipse cx="50" cy="34" rx="19" ry="17" fill="url(#cat-kid-fur)" stroke="#e65100" stroke-width="1.6"/>
-                            <ellipse cx="39" cy="28" rx="7" ry="4" fill="#fff" opacity="0.18"/>
 
-                            <!-- Bigger ears -->
-                            <path d="M 32 30 L 26 8 L 40 26 Z" fill="url(#cat-kid-fur)" stroke="#e65100" stroke-width="1.3"/>
-                            <path d="M 32 29 L 28 12 L 36 27 Z" fill="url(#cat-kid-ear)" opacity="0.9"/>
-                            <path d="M 68 30 L 74 8 L 60 26 Z" fill="url(#cat-kid-fur)" stroke="#e65100" stroke-width="1.3"/>
-                            <path d="M 68 29 L 72 12 L 64 27 Z" fill="url(#cat-kid-ear)" opacity="0.9"/>
-                            <!-- Crescent mark -->
-                            <path d="M 50 26 Q 46 30 50 34 Q 54 30 50 26" fill="none" stroke="#ff6090" stroke-width="1.2" opacity="0.85"/>
-                            <circle cx="50" cy="30" r="0.9" fill="#ff6090" opacity="0.65"/>
+                            <ellipse cx="50" cy="66" rx="21" ry="19" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.55"/>
+                            <ellipse cx="50" cy="69" rx="14.0" ry="13.0" fill="url(#cat-kid-belly)"/>
+                            <!-- Soft spots -->
+                            <ellipse cx="40" cy="60" rx="3.5" ry="2.5" fill="#f48fb1" opacity="0.25"/>
+                            <ellipse cx="58" cy="66" rx="2.8" ry="2" fill="#f48fb1" opacity="0.22"/>
+                            <!-- Round cat head -->
+                            <ellipse cx="50" cy="32" rx="18.5" ry="16.5" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.55"/>
+                            <ellipse cx="38.5" cy="27" rx="6.5" ry="3.8" fill="#fff" opacity="0.16"/>
+                            <!-- Cat ears -->
+                            <path d="M 33.2 30 L 24.8 4 L 42 25 Z" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.35"/>
+                            <path d="M 34 29 L 28.2 10 L 38 26.5 Z" fill="url(#cat-kid-ear)" opacity="0.92"/>
+                            <path d="M 66.8 30 L 75.2 4 L 58 25 Z" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.35"/>
+                            <path d="M 66 29 L 71.8 10 L 62 26.5 Z" fill="url(#cat-kid-ear)" opacity="0.92"/>
+
                             <!-- Muzzle -->
-                            <ellipse cx="50" cy="42" rx="9" ry="5.5" fill="url(#cat-kid-belly)"/>
-                            <ellipse cx="47" cy="42" rx="1.3" ry="1" fill="#5d4037"/>
-                            <ellipse cx="53" cy="42" rx="1.3" ry="1" fill="#5d4037"/>
-                            <circle cx="34" cy="40" r="4.2" fill="url(#cat-kid-cheek)"/>
-                            <circle cx="66" cy="40" r="4.2" fill="url(#cat-kid-cheek)"/>
+                            <ellipse cx="50" cy="40" rx="8.5" ry="5.2" fill="url(#cat-kid-belly)"/>
+                            <path d="M 50 38.8 L 47.6 41.6 L 52.4 41.6 Z" fill="#ff8fab" stroke="#e91e63" stroke-width="0.7"/>
+                            <ellipse cx="50" cy="40.2" rx="0.7" ry="0.45" fill="#fff" opacity="0.45"/>
+                            <circle cx="33" cy="37" r="4" fill="url(#cat-kid-cheek)"/>
+                            <circle cx="67" cy="37" r="4" fill="url(#cat-kid-cheek)"/>
                             <!-- Whiskers -->
-                            <path d="M 40 38 L 28 37 M 40 40 L 28 40 M 40 42 L 30 43" stroke="#fff" stroke-width="0.75" opacity="0.6" stroke-linecap="round"/>
-                            <path d="M 60 38 L 72 37 M 60 40 L 72 40 M 60 42 L 70 43" stroke="#fff" stroke-width="0.75" opacity="0.6" stroke-linecap="round"/>
-                            <!-- Fur tufts -->
-                            <circle cx="36" cy="58" r="1.5" fill="#e65100" opacity="0.28"/>
-                            <circle cx="64" cy="58" r="1.5" fill="#e65100" opacity="0.28"/>
-                            <circle cx="42" cy="72" r="1.2" fill="#e65100" opacity="0.23800000000000002"/>
-                            <circle cx="58" cy="72" r="1.2" fill="#e65100" opacity="0.23800000000000002"/>
-                            <path d="M 48 52 Q 50 54 52 52" stroke="#e65100" stroke-width="0.9" fill="none" opacity="0.196"/>
-                            <path d="M 46 62 Q 48 64 50 62" stroke="#e65100" stroke-width="0.8" fill="none" opacity="0.168"/>
+                            <path d="M 41 37 L 28 35 M 41 39 L 29 39 M 41 41 L 29 43" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 59 37 L 72 35 M 59 39 L 71 39 M 59 41 L 71 43" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-arm-left">
-                            <ellipse cx="28" cy="62" rx="6.5" ry="9.5" fill="url(#cat-kid-fur)" stroke="#e65100" stroke-width="1.2" transform="rotate(-22 28 62)"/>
-                            <ellipse cx="24" cy="72" rx="5.5" ry="4.5" fill="url(#cat-kid-belly)" stroke="#e65100" stroke-width="0.9"/>
-                            <ellipse cx="24" cy="73" rx="4.5" ry="2.8" fill="#f8bbd0" opacity="0.85"/>
-                            <circle cx="22" cy="72.5" r="1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="24" cy="72.2" r="1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="26" cy="72.5" r="1" fill="#ff6090" opacity="0.75"/>
+                            <ellipse cx="27" cy="60" rx="6.2" ry="9.2" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.2" transform="rotate(-24 27 60)"/>
+                            <ellipse cx="23" cy="70" rx="5.4" ry="4.4" fill="url(#cat-kid-belly)" stroke="#4a148c" stroke-width="0.9"/>
+                            <ellipse cx="23" cy="71.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="20.9" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="23" cy="70" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="25.1" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-arm-right">
-                            <ellipse cx="72" cy="62" rx="6.5" ry="9.5" fill="url(#cat-kid-fur)" stroke="#e65100" stroke-width="1.2" transform="rotate(22 72 62)"/>
-                            <ellipse cx="76" cy="72" rx="5.5" ry="4.5" fill="url(#cat-kid-belly)" stroke="#e65100" stroke-width="0.9"/>
-                            <ellipse cx="76" cy="73" rx="4.5" ry="2.8" fill="#f8bbd0" opacity="0.85"/>
-                            <circle cx="74" cy="72.5" r="1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="76" cy="72.2" r="1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="78" cy="72.5" r="1" fill="#ff6090" opacity="0.75"/>
+                            <ellipse cx="73" cy="60" rx="6.2" ry="9.2" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.2" transform="rotate(24 73 60)"/>
+                            <ellipse cx="77" cy="70" rx="5.4" ry="4.4" fill="url(#cat-kid-belly)" stroke="#4a148c" stroke-width="0.9"/>
+                            <ellipse cx="77" cy="71.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="74.9" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="77" cy="70" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="79.1" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-leg-left">
-
-                            <ellipse cx="40" cy="86" rx="7.5" ry="5.5" fill="url(#cat-kid-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <ellipse cx="40" cy="88" rx="5.5" ry="3" fill="url(#cat-kid-belly)"/>
-                            <ellipse cx="40" cy="88" rx="4.5" ry="2.8" fill="#f8bbd0" opacity="0.85"/>
-                            <circle cx="38" cy="87.5" r="1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="40" cy="87.2" r="1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="42" cy="87.5" r="1" fill="#ff6090" opacity="0.75"/>
+                            <ellipse cx="39" cy="86" rx="7.2" ry="5.4" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.2"/>
+                            <ellipse cx="39" cy="88" rx="5.2" ry="2.8" fill="url(#cat-kid-belly)"/>
+                            <ellipse cx="39" cy="88.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="36.9" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="39" cy="87" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="41.1" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <ellipse cx="60" cy="86" rx="7.5" ry="5.5" fill="url(#cat-kid-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <ellipse cx="60" cy="88" rx="5.5" ry="3" fill="url(#cat-kid-belly)"/>
-                            <ellipse cx="60" cy="88" rx="4.5" ry="2.8" fill="#f8bbd0" opacity="0.85"/>
-                            <circle cx="58" cy="87.5" r="1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="60" cy="87.2" r="1" fill="#ff6090" opacity="0.75"/>
-                            <circle cx="62" cy="87.5" r="1" fill="#ff6090" opacity="0.75"/>
+                            <ellipse cx="61" cy="86" rx="7.2" ry="5.4" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.2"/>
+                            <ellipse cx="61" cy="88" rx="5.2" ry="2.8" fill="url(#cat-kid-belly)"/>
+                            <ellipse cx="61" cy="88.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="58.9" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="61" cy="87" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="63.1" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="32" rx="7" ry="8.2" fill="#fff" stroke="#e65100" stroke-width="1.5"/>
-                            <ellipse cx="41.5" cy="32.5" rx="3.9" ry="4.8" fill="url(#cat-kid-iris)"/>
-                            <ellipse cx="41.6" cy="32.8" rx="2.0" ry="3.1" fill="#0a0812"/>
-                            <circle cx="42.6" cy="29.4" r="2.2" fill="#fff" opacity="0.96"/>
-                            <circle cx="40.2" cy="34.3" r="1.0" fill="#fff" opacity="0.55"/>
-                            <ellipse cx="59" cy="32" rx="7" ry="8.2" fill="#fff" stroke="#e65100" stroke-width="1.5"/>
-                            <ellipse cx="59.5" cy="32.5" rx="3.9" ry="4.8" fill="url(#cat-kid-iris)"/>
-                            <ellipse cx="59.6" cy="32.8" rx="2.0" ry="3.1" fill="#0a0812"/>
-                            <circle cx="60.6" cy="29.4" r="2.2" fill="#fff" opacity="0.96"/>
-                            <circle cx="58.2" cy="34.3" r="1.0" fill="#fff" opacity="0.55"/>
+                            <ellipse cx="40" cy="30" rx="6.8" ry="8.2" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
+                            <ellipse cx="40.3" cy="30.4" rx="3.5" ry="5.9" fill="url(#cat-kid-iris)"/>
+                            <ellipse cx="40.35" cy="30.5" rx="1.5" ry="3.4" fill="#0a0614"/>
+                            <circle cx="41.4" cy="27.7" r="1.9" fill="#f3e5f5" opacity="0.95"/>
+                            <circle cx="39.1" cy="32.5" r="0.8" fill="#f3e5f5" opacity="0.5"/>
+                            <ellipse cx="60" cy="30" rx="6.8" ry="8.2" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
+                            <ellipse cx="60.3" cy="30.4" rx="3.5" ry="5.9" fill="url(#cat-kid-iris)"/>
+                            <ellipse cx="60.35" cy="30.5" rx="1.5" ry="3.4" fill="#0a0614"/>
+                            <circle cx="61.4" cy="27.7" r="1.9" fill="#f3e5f5" opacity="0.95"/>
+                            <circle cx="59.1" cy="32.5" r="0.8" fill="#f3e5f5" opacity="0.5"/>
 
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 34 32 Q 41 28.5 48 32" stroke="#e65100" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52 32 Q 59 28.5 66 32" stroke="#e65100" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 33.2 30 Q 40 26.8 46.8 30" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                            <path d="M 53.2 30 Q 60 26.8 66.8 30" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 46 Q 50 51.5 57 46" stroke="#e65100" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 48 Q 50 42 57 48" stroke="#e65100" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-happy" d="M 43.8 44 Q 46.9 48.5 50 45.5 Q 53.1 48.5 56.2 44" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 47 Q 50 41.5 56.2 47" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round"/>
                 </g>
 
-                <!-- CAT TEEN — lunar stalker -->
+                <!-- CAT TEEN — omen stalker -->
                 <g id="tm-mascot-evo2-cat" style="display: none;">
                     <defs>
                         <radialGradient id="cat-teen-fur" cx="38%" cy="28%" r="75%">
-                            <stop offset="0%" style="stop-color:#ffe0b2;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffb74d;stop-opacity:1" />
-                            <stop offset="65%" style="stop-color:#f57c00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#9575cd;stop-opacity:1" />
+                            <stop offset="40%" style="stop-color:#5e35b1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="cat-teen-belly" cx="50%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#fff8e1;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#ffe0b2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffcc80;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#e1bee7;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="cat-teen-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#80d8ff;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#0288d1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#01579b;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#ce93d8;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#6a1b9a;stop-opacity:1" />
                         </radialGradient>
-                        <linearGradient id="cat-teen-ear" cx="38%" cy="28%" r="75%">
+                        <linearGradient id="cat-teen-ear" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#f8bbd0;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#c2185b;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ad1457;stop-opacity:1" />
                         </linearGradient>
                         <radialGradient id="cat-teen-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a9b;stop-opacity:0.6" />
-                            <stop offset="100%" style="stop-color:#ff8a9b;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-teen-flare" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#e1f5fe;stop-opacity:0.75" />
-                            <stop offset="50%" style="stop-color:#80deea;stop-opacity:0.45" />
-                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0" />
+                            <stop offset="0%" style="stop-color:#f48fb1;stop-opacity:0.55" />
+                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:0" />
                         </radialGradient>
                         <radialGradient id="cat-teen-aura" cx="50%" cy="45%" r="55%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.32" />
-                            <stop offset="50%" style="stop-color:#7986cb;stop-opacity:0.18" />
-                            <stop offset="100%" style="stop-color:#5c6bc0;stop-opacity:0" />
+                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.38" />
+                            <stop offset="45%" style="stop-color:#7e57c2;stop-opacity:0.2" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
                         </radialGradient>
-                        <radialGradient id="cat-teen-pad-glow" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#80deea;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#80deea;stop-opacity:0" />
+                        <radialGradient id="cat-teen-mane" cx="50%" cy="40%" r="55%">
+                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:0.7" />
+                            <stop offset="50%" style="stop-color:#7e57c2;stop-opacity:0.35" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
+                        </radialGradient>
+                        <radialGradient id="cat-teen-tail-tip" cx="50%" cy="40%" r="55%">
+                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
+                            <stop offset="60%" style="stop-color:#f48fb1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:1" />
                         </radialGradient>
                     </defs>
-                        <ellipse cx="50" cy="94" rx="26" ry="4.5" fill="#1a1a1a" opacity="0.22"/>
+                        <ellipse cx="50" cy="94" rx="25" ry="4.5" fill="#0a0614" opacity="0.28"/>
 
                         <g class="tm-animate-tail">
-                            <path d="M 70 66 Q 90 52 94 36 Q 96 26 88 28 Q 78 40 70 64 Z" fill="url(#cat-teen-fur)" stroke="#e65100" stroke-width="1.3"/>
-                            <path d="M 74 58 Q 82 50 84 44" stroke="#fff3e0" stroke-width="0.85" fill="none" opacity="0.4"/>
-                            <ellipse cx="92" cy="30" rx="3.5" ry="4.5" fill="#ff6090" opacity="0.4"/>
-                            <path d="M 80 48 Q 88 42 90 34" stroke="#e1f5fe" stroke-width="0.9" fill="none" opacity="0.5"/>
+                            <path d="M 68 66 Q 90 50 96 32 Q 100 20 90 22 Q 78 36 70 64 Z" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.45"/>
+                            <path d="M 72 56 Q 84 44 90 34" stroke="#e1bee7" stroke-width="0.9" fill="none" opacity="0.4"/>
+                            <ellipse cx="94" cy="26" rx="5" ry="6.5" fill="url(#cat-teen-tail-tip)" opacity="0.9"/>
+                            <path d="M 82 44 Q 90 36 94 28" stroke="#e1bee7" stroke-width="0.9" fill="none" opacity="0.45"/>
                         </g>
                         <g class="tm-animate-wing-left">
-                            <!-- Lunar ear-flare -->
-                            <path d="M 28 34 Q 16 20 18 34 Q 20 44 30 40 Z" fill="url(#cat-teen-flare)" stroke="#e65100" stroke-width="1" opacity="0.88"/>
-                            <path d="M 24 30 L 18 24" stroke="#ff6090" stroke-width="0.9" opacity="0.55"/>
-                            <circle cx="16" cy="26" r="1.2" fill="#fff" opacity="0.45"/>
+                            <!-- Left ear tuft -->
+                            <path d="M 24 12 Q 14 2 16 16" stroke="#f48fb1" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 22 10 L 12 0" stroke="#311b92" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
+                            <circle cx="13" cy="2" r="1.35" fill="#fff" opacity="0.55"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 72 34 Q 84 20 82 34 Q 80 44 70 40 Z" fill="url(#cat-teen-flare)" stroke="#e65100" stroke-width="1" opacity="0.88"/>
-                            <path d="M 76 30 L 82 24" stroke="#ff6090" stroke-width="0.9" opacity="0.55"/>
-                            <circle cx="84" cy="26" r="1.2" fill="#fff" opacity="0.45"/>
+                            <!-- Right ear tuft -->
+                            <path d="M 76 12 Q 86 2 84 16" stroke="#f48fb1" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 78 10 L 88 0" stroke="#311b92" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
+                            <circle cx="87" cy="2" r="1.35" fill="#fff" opacity="0.55"/>
                         </g>
                         <g class="tm-animate-body">
-                            <ellipse cx="50" cy="64" rx="20" ry="17" fill="url(#cat-teen-fur)" stroke="#e65100" stroke-width="1.6"/>
-                            <ellipse cx="50" cy="68" rx="12" ry="10" fill="url(#cat-teen-belly)"/>
-                            <path d="M 38 62 Q 50 64 62 62" stroke="#ffe0b2" stroke-width="0.9" fill="none" opacity="0.55"/>
-                            <!-- Sleek stripe accents -->
-                            <path d="M 38 58 Q 50 60 62 58" stroke="#e65100" stroke-width="0.8" fill="none" opacity="0.25"/>
-                            <path d="M 40 64 Q 50 66 60 64" stroke="#e65100" stroke-width="0.7" fill="none" opacity="0.2"/>
-                            <!-- Head -->
-                            <ellipse cx="50" cy="32" rx="17" ry="15" fill="url(#cat-teen-fur)" stroke="#e65100" stroke-width="1.6"/>
-                            <ellipse cx="41" cy="26" rx="7" ry="4" fill="#fff" opacity="0.18"/>
-                            <!-- Ears -->
-                            <path d="M 34 30 L 28 12 L 42 26 Z" fill="url(#cat-teen-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <path d="M 34 29 L 30 16 L 38 27 Z" fill="url(#cat-teen-ear)" opacity="0.88"/>
-                            <path d="M 66 30 L 72 12 L 58 26 Z" fill="url(#cat-teen-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <path d="M 66 29 L 70 16 L 62 27 Z" fill="url(#cat-teen-ear)" opacity="0.88"/>
 
-                            <!-- Crescent mark -->
-                            <path d="M 50 24 Q 46 28 50 32 Q 54 28 50 24" fill="none" stroke="#ff6090" stroke-width="1.6" opacity="0.85"/>
-                            <circle cx="50" cy="28" r="1.3" fill="#ff6090" opacity="0.65"/>
+                            <ellipse cx="50" cy="64" rx="19" ry="17" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.55"/>
+                            <ellipse cx="50" cy="67" rx="12.0" ry="11.0" fill="url(#cat-teen-belly)"/>
+                            <!-- Tabby stripes -->
+                            <path d="M 38 56 Q 50 58 62 56" stroke="#311b92" stroke-width="1.1" fill="none" opacity="0.28"/>
+                            <path d="M 40 62 Q 50 64 60 62" stroke="#311b92" stroke-width="0.95" fill="none" opacity="0.22"/>
+                            <path d="M 42 68 Q 50 69.5 58 68" stroke="#311b92" stroke-width="0.85" fill="none" opacity="0.18"/>
+                            <!-- Round cat head -->
+                            <ellipse cx="50" cy="30" rx="17" ry="15" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.55"/>
+                            <ellipse cx="40.0" cy="25" rx="6.5" ry="3.8" fill="#fff" opacity="0.16"/>
+                            <!-- Cat ears -->
+                            <path d="M 33.2 28 L 24.8 2 L 42 23 Z" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.35"/>
+                            <path d="M 34 27 L 28.2 8 L 38 24.5 Z" fill="url(#cat-teen-ear)" opacity="0.92"/>
+                            <path d="M 66.8 28 L 75.2 2 L 58 23 Z" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.35"/>
+                            <path d="M 66 27 L 71.8 8 L 62 24.5 Z" fill="url(#cat-teen-ear)" opacity="0.92"/>
+
                             <!-- Muzzle -->
-                            <ellipse cx="50" cy="40" rx="9" ry="5.5" fill="url(#cat-teen-belly)"/>
-                            <ellipse cx="47" cy="40" rx="1.3" ry="1" fill="#5d4037"/>
-                            <ellipse cx="53" cy="40" rx="1.3" ry="1" fill="#5d4037"/>
-                            <circle cx="34" cy="38" r="4.2" fill="url(#cat-teen-cheek)"/>
-                            <circle cx="66" cy="38" r="4.2" fill="url(#cat-teen-cheek)"/>
+                            <ellipse cx="50" cy="38" rx="8.5" ry="5.2" fill="url(#cat-teen-belly)"/>
+                            <path d="M 50 36.8 L 47.6 39.6 L 52.4 39.6 Z" fill="#ff8fab" stroke="#e91e63" stroke-width="0.7"/>
+                            <ellipse cx="50" cy="38.2" rx="0.7" ry="0.45" fill="#fff" opacity="0.45"/>
+                            <circle cx="33" cy="35" r="4" fill="url(#cat-teen-cheek)"/>
+                            <circle cx="67" cy="35" r="4" fill="url(#cat-teen-cheek)"/>
                             <!-- Whiskers -->
-                            <path d="M 40 36 L 28 35 M 40 38 L 28 38 M 40 40 L 30 41" stroke="#fff" stroke-width="0.75" opacity="0.6" stroke-linecap="round"/>
-                            <path d="M 60 36 L 72 35 M 60 38 L 72 38 M 60 40 L 70 41" stroke="#fff" stroke-width="0.75" opacity="0.6" stroke-linecap="round"/>
-                            <!-- Fur tufts -->
-                            <circle cx="36" cy="58" r="1.5" fill="#e65100" opacity="0.28"/>
-                            <circle cx="64" cy="58" r="1.5" fill="#e65100" opacity="0.28"/>
-                            <circle cx="42" cy="72" r="1.2" fill="#e65100" opacity="0.23800000000000002"/>
-                            <circle cx="58" cy="72" r="1.2" fill="#e65100" opacity="0.23800000000000002"/>
-                            <path d="M 48 52 Q 50 54 52 52" stroke="#e65100" stroke-width="0.9" fill="none" opacity="0.196"/>
-                            <path d="M 46 62 Q 48 64 50 62" stroke="#e65100" stroke-width="0.8" fill="none" opacity="0.168"/>
+                            <path d="M 41 35 L 28 33 M 41 37 L 29 37 M 41 39 L 29 41" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 59 35 L 72 33 M 59 37 L 71 37 M 59 39 L 71 41" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-arm-left">
-                            <ellipse cx="28" cy="62" rx="6.5" ry="9.5" fill="url(#cat-teen-fur)" stroke="#e65100" stroke-width="1.2" transform="rotate(-22 28 62)"/>
-                            <ellipse cx="24" cy="72" rx="5.5" ry="4.5" fill="url(#cat-teen-belly)" stroke="#e65100" stroke-width="0.9"/>
-                            <circle cx="22" cy="72" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="25" cy="74" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="27" cy="71" r="1.1" fill="#ff6090" opacity="0.55"/>
+                            <ellipse cx="27" cy="60" rx="6.2" ry="9.2" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.2" transform="rotate(-24 27 60)"/>
+                            <ellipse cx="23" cy="70" rx="5.4" ry="4.4" fill="url(#cat-teen-belly)" stroke="#311b92" stroke-width="0.9"/>
+                            <ellipse cx="23" cy="71.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="21.005" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="23" cy="70" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="24.995" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-arm-right">
-                            <ellipse cx="72" cy="62" rx="6.5" ry="9.5" fill="url(#cat-teen-fur)" stroke="#e65100" stroke-width="1.2" transform="rotate(22 72 62)"/>
-                            <ellipse cx="76" cy="72" rx="5.5" ry="4.5" fill="url(#cat-teen-belly)" stroke="#e65100" stroke-width="0.9"/>
-                            <circle cx="74" cy="72" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="77" cy="74" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="78" cy="71" r="1.1" fill="#ff6090" opacity="0.55"/>
+                            <ellipse cx="73" cy="60" rx="6.2" ry="9.2" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.2" transform="rotate(24 73 60)"/>
+                            <ellipse cx="77" cy="70" rx="5.4" ry="4.4" fill="url(#cat-teen-belly)" stroke="#311b92" stroke-width="0.9"/>
+                            <ellipse cx="77" cy="71.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="75.005" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="77" cy="70" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="78.995" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-leg-left">
-                            <ellipse cx="40" cy="88" rx="6" ry="3" fill="url(#cat-teen-pad-glow)" opacity="0.65"/>
-                            <ellipse cx="60" cy="88" rx="6" ry="3" fill="url(#cat-teen-pad-glow)" opacity="0.65"/>
-                            <ellipse cx="40" cy="86" rx="7.5" ry="5.5" fill="url(#cat-teen-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <ellipse cx="40" cy="88" rx="5.5" ry="3" fill="url(#cat-teen-belly)"/>
-                            <ellipse cx="40" cy="88" rx="4" ry="2.2" fill="#80deea" opacity="0.55"/>
-                            <circle cx="37" cy="87" r="1" fill="#4dd0e1" opacity="0.7"/>
-                            <circle cx="40" cy="86" r="1" fill="#4dd0e1" opacity="0.7"/>
-                            <circle cx="43" cy="87" r="1" fill="#4dd0e1" opacity="0.7"/>
+                            <ellipse cx="39" cy="86" rx="7.2" ry="5.4" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.2"/>
+                            <ellipse cx="39" cy="88" rx="5.2" ry="2.8" fill="url(#cat-teen-belly)"/>
+                            <ellipse cx="39" cy="88.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="37.005" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="39" cy="87" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="40.995" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <ellipse cx="60" cy="86" rx="7.5" ry="5.5" fill="url(#cat-teen-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <ellipse cx="60" cy="88" rx="5.5" ry="3" fill="url(#cat-teen-belly)"/>
-                            <ellipse cx="60" cy="88" rx="4" ry="2.2" fill="#80deea" opacity="0.55"/>
-                            <circle cx="57" cy="87" r="1" fill="#4dd0e1" opacity="0.7"/>
-                            <circle cx="60" cy="86" r="1" fill="#4dd0e1" opacity="0.7"/>
-                            <circle cx="63" cy="87" r="1" fill="#4dd0e1" opacity="0.7"/>
+                            <ellipse cx="61" cy="86" rx="7.2" ry="5.4" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.2"/>
+                            <ellipse cx="61" cy="88" rx="5.2" ry="2.8" fill="url(#cat-teen-belly)"/>
+                            <ellipse cx="61" cy="88.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="59.005" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="61" cy="87" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="62.995" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="30" rx="6.2" ry="7.2" fill="#fff" stroke="#e65100" stroke-width="1.5"/>
-                            <ellipse cx="41.5" cy="30.5" rx="3.5" ry="4.2" fill="url(#cat-teen-iris)"/>
-                            <ellipse cx="41.6" cy="30.8" rx="1.7" ry="2.7" fill="#0a0812"/>
-                            <circle cx="42.6" cy="27.7" r="2.0" fill="#b3e5fc" opacity="0.96"/>
-                            <circle cx="40.2" cy="32.0" r="0.9" fill="#b3e5fc" opacity="0.55"/>
-                            <ellipse cx="59" cy="30" rx="6.2" ry="7.2" fill="#fff" stroke="#e65100" stroke-width="1.5"/>
-                            <ellipse cx="59.5" cy="30.5" rx="3.5" ry="4.2" fill="url(#cat-teen-iris)"/>
-                            <ellipse cx="59.6" cy="30.8" rx="1.7" ry="2.7" fill="#0a0812"/>
-                            <circle cx="60.6" cy="27.7" r="2.0" fill="#b3e5fc" opacity="0.96"/>
-                            <circle cx="58.2" cy="32.0" r="0.9" fill="#b3e5fc" opacity="0.55"/>
+                            <ellipse cx="40" cy="28" rx="6.4" ry="7.6" fill="#f8fbff" stroke="#311b92" stroke-width="1.45"/>
+                            <ellipse cx="40.3" cy="28.4" rx="3.3" ry="5.5" fill="url(#cat-teen-iris)"/>
+                            <ellipse cx="40.35" cy="28.5" rx="0.9" ry="4.7" fill="#0a0614"/>
+                            <circle cx="41.4" cy="25.9" r="1.8" fill="#f3e5f5" opacity="0.95"/>
+                            <circle cx="39.1" cy="30.3" r="0.8" fill="#f3e5f5" opacity="0.5"/>
+                            <ellipse cx="60" cy="28" rx="6.4" ry="7.6" fill="#f8fbff" stroke="#311b92" stroke-width="1.45"/>
+                            <ellipse cx="60.3" cy="28.4" rx="3.3" ry="5.5" fill="url(#cat-teen-iris)"/>
+                            <ellipse cx="60.35" cy="28.5" rx="0.9" ry="4.7" fill="#0a0614"/>
+                            <circle cx="61.4" cy="25.9" r="1.8" fill="#f3e5f5" opacity="0.95"/>
+                            <circle cx="59.1" cy="30.3" r="0.8" fill="#f3e5f5" opacity="0.5"/>
 
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 34.8 30 Q 41 26.5 47.2 30" stroke="#e65100" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.8 30 Q 59 26.5 65.2 30" stroke="#e65100" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 33.6 28 Q 40 24.8 46.4 28" stroke="#311b92" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                            <path d="M 53.6 28 Q 60 24.8 66.4 28" stroke="#311b92" stroke-width="2.3" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 44 Q 50 49.5 57 44" stroke="#e65100" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 46 Q 50 40 57 46" stroke="#e65100" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-happy" d="M 43.8 42 Q 46.9 46.5 50 43.5 Q 53.1 46.5 56.2 42" stroke="#311b92" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 45 Q 50 39.5 56.2 45" stroke="#311b92" stroke-width="1.9" fill="none" stroke-linecap="round"/>
                 </g>
 
                 <!-- CAT ADULT — Moonfang Oracle -->
                 <g id="tm-mascot-evo3-cat" style="display: none;">
                     <defs>
                         <radialGradient id="cat-adult-fur" cx="38%" cy="28%" r="75%">
-                            <stop offset="0%" style="stop-color:#ffe0b2;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffb74d;stop-opacity:1" />
-                            <stop offset="65%" style="stop-color:#f57c00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#7e57c2;stop-opacity:1" />
+                            <stop offset="25%" style="stop-color:#5e35b1;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#311b92;stop-opacity:1" />
+                            <stop offset="85%" style="stop-color:#1a0a2e;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#0d0221;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="cat-adult-belly" cx="50%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#fff8e1;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#ffe0b2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffcc80;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#e1bee7;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="cat-adult-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#80d8ff;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#0288d1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#01579b;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:1" />
+                            <stop offset="40%" style="stop-color:#ffd54f;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#f57f17;stop-opacity:1" />
                         </radialGradient>
-                        <linearGradient id="cat-adult-ear" cx="38%" cy="28%" r="75%">
+                        <linearGradient id="cat-adult-ear" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#f8bbd0;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#c2185b;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ad1457;stop-opacity:1" />
                         </linearGradient>
                         <radialGradient id="cat-adult-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a9b;stop-opacity:0.6" />
-                            <stop offset="100%" style="stop-color:#ff8a9b;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-adult-flare" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#e1f5fe;stop-opacity:0.75" />
-                            <stop offset="50%" style="stop-color:#80deea;stop-opacity:0.45" />
-                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0" />
+                            <stop offset="0%" style="stop-color:#f48fb1;stop-opacity:0.55" />
+                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:0" />
                         </radialGradient>
                         <radialGradient id="cat-adult-aura" cx="50%" cy="45%" r="55%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.32" />
-                            <stop offset="50%" style="stop-color:#7986cb;stop-opacity:0.18" />
-                            <stop offset="100%" style="stop-color:#5c6bc0;stop-opacity:0" />
+                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.38" />
+                            <stop offset="45%" style="stop-color:#7e57c2;stop-opacity:0.2" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
                         </radialGradient>
-                        <radialGradient id="cat-adult-pad-glow" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#80deea;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#80deea;stop-opacity:0" />
+                        <radialGradient id="cat-adult-mane" cx="50%" cy="40%" r="55%">
+                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:0.7" />
+                            <stop offset="50%" style="stop-color:#7e57c2;stop-opacity:0.35" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
+                        </radialGradient>
+                        <radialGradient id="cat-adult-tail-tip" cx="50%" cy="40%" r="55%">
+                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
+                            <stop offset="60%" style="stop-color:#f48fb1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:1" />
                         </radialGradient>
                     </defs>
-                        <ellipse cx="50" cy="94" rx="32" ry="4.5" fill="#1a1a1a" opacity="0.22"/>
-                        <ellipse cx="50" cy="50" rx="42" ry="40" fill="url(#cat-adult-aura)"/>
-                        <circle cx="28" cy="38" r="1.8" fill="#b39ddb" opacity="0.45"/>
-                        <circle cx="72" cy="42" r="1.5" fill="#7986cb" opacity="0.4"/>
-                        <circle cx="50" cy="18" r="1.6" fill="#fff" opacity="0.35"/>
+                        <ellipse cx="50" cy="94" rx="30" ry="4.5" fill="#0a0614" opacity="0.28"/>
+                        <ellipse cx="50" cy="48" rx="44" ry="42" fill="url(#cat-adult-aura)"/>
+                        <circle cx="22" cy="30" r="1.6" fill="#fff" opacity="0.4"/>
+                        <circle cx="78" cy="26" r="1.3" fill="#fff" opacity="0.35"/>
+                        <circle cx="18" cy="52" r="1.1" fill="#f48fb1" opacity="0.35"/>
+                        <circle cx="82" cy="54" r="1.2" fill="#ffd54f" opacity="0.3"/>
                         <g class="tm-animate-tail">
-                            <path d="M 72 64 Q 94 48 98 28 Q 100 16 90 18 Q 80 32 72 62 Z" fill="url(#cat-adult-fur)" stroke="#e65100" stroke-width="1.3"/>
-                            <path d="M 74 58 Q 82 50 84 44" stroke="#fff3e0" stroke-width="0.85" fill="none" opacity="0.4"/>
-                            <!-- Flowing tail wisps -->
-                            <path d="M 88 22 Q 96 18 98 26" stroke="#e1f5fe" stroke-width="1.1" fill="none" opacity="0.55"/>
-                            <path d="M 84 32 Q 92 28 94 36" stroke="#b39ddb" stroke-width="0.9" fill="none" opacity="0.45"/>
-                            <ellipse cx="94" cy="24" rx="3" ry="4" fill="#ff6090" opacity="0.35"/>
+                            <path d="M 70 64 Q 94 46 100 24 Q 104 10 92 12 Q 80 28 72 62 Z" fill="url(#cat-adult-fur)" stroke="#12002b" stroke-width="1.45"/>
+                            <path d="M 72 56 Q 84 44 90 34" stroke="#e1bee7" stroke-width="0.9" fill="none" opacity="0.4"/>
+                            <!-- Fluffy boss tail tip -->
+                            <ellipse cx="96" cy="18" rx="7" ry="9" fill="url(#cat-adult-tail-tip)" opacity="0.95"/>
+                            <path d="M 90 28 Q 98 22 100 30" stroke="#fff" stroke-width="1" fill="none" opacity="0.45"/>
+                            <circle cx="98" cy="14" r="1.5" fill="#fff" opacity="0.65"/>
                         </g>
                         <g class="tm-animate-wing-left">
-                            <!-- Lunar ear-flare -->
-                            <path d="M 26 34 Q 10 18 14 36 Q 18 48 30 42 Z" fill="url(#cat-adult-flare)" stroke="#e65100" stroke-width="1" opacity="0.88"/>
-                            <path d="M 24 30 L 18 24" stroke="#ff6090" stroke-width="0.9" opacity="0.55"/>
-                            <circle cx="16" cy="26" r="1.2" fill="#fff" opacity="0.45"/>
+                            <!-- Left ear tuft -->
+                            <path d="M 24 12 Q 14 2 16 16" stroke="#f48fb1" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 22 10 L 12 0" stroke="#12002b" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
+                            <circle cx="13" cy="2" r="1.35" fill="#fff" opacity="0.55"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 74 34 Q 90 18 86 36 Q 82 48 70 42 Z" fill="url(#cat-adult-flare)" stroke="#e65100" stroke-width="1" opacity="0.88"/>
-                            <path d="M 76 30 L 82 24" stroke="#ff6090" stroke-width="0.9" opacity="0.55"/>
-                            <circle cx="84" cy="26" r="1.2" fill="#fff" opacity="0.45"/>
+                            <!-- Right ear tuft -->
+                            <path d="M 76 12 Q 86 2 84 16" stroke="#f48fb1" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 78 10 L 88 0" stroke="#12002b" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
+                            <circle cx="87" cy="2" r="1.35" fill="#fff" opacity="0.55"/>
                         </g>
                         <g class="tm-animate-body">
-                            <ellipse cx="50" cy="62" rx="22" ry="19" fill="url(#cat-adult-fur)" stroke="#e65100" stroke-width="2"/>
-                            <ellipse cx="50" cy="66" rx="14" ry="12" fill="url(#cat-adult-belly)"/>
-                            <path d="M 36 60 Q 50 62 64 60" stroke="#ffe0b2" stroke-width="0.9" fill="none" opacity="0.55"/>
-                            <!-- Crescent collar -->
-                            <path d="M 36 52 Q 50 58 64 52" fill="none" stroke="#ff6090" stroke-width="1.8" opacity="0.75"/>
-                            <path d="M 48 56 L 50 60 L 52 56 Z" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="50" cy="57" r="2.2" fill="#7986cb" opacity="0.45"/>
-                            <circle cx="50" cy="57" r="1" fill="#fff" opacity="0.5"/>
-                            <!-- Heroic chest fur -->
-                            <path d="M 44 58 Q 50 62 56 58" stroke="#ffe0b2" stroke-width="1" fill="none" opacity="0.55"/>
-                            <!-- Head -->
-                            <ellipse cx="50" cy="28" rx="18" ry="16" fill="url(#cat-adult-fur)" stroke="#e65100" stroke-width="2"/>
-                            <ellipse cx="40" cy="22" rx="7" ry="4" fill="#fff" opacity="0.18"/>
-                            <!-- Ears -->
-                            <path d="M 34 26 L 28 10 L 42 22 Z" fill="url(#cat-adult-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <path d="M 34 25 L 30 14 L 38 23 Z" fill="url(#cat-adult-ear)" opacity="0.88"/>
-                            <path d="M 66 26 L 72 10 L 58 22 Z" fill="url(#cat-adult-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <path d="M 66 25 L 70 14 L 62 23 Z" fill="url(#cat-adult-ear)" opacity="0.88"/>
-
-                            <!-- Crescent mark -->
-                            <path d="M 50 20 Q 46 24 50 28 Q 54 24 50 20" fill="none" stroke="#ff6090" stroke-width="1.6" opacity="0.85"/>
-                            <circle cx="50" cy="24" r="1.3" fill="#ff6090" opacity="0.65"/>
+                            <!-- Boss lunar mane -->
+                            <ellipse cx="50" cy="48" rx="26" ry="14" fill="url(#cat-adult-mane)" opacity="0.55"/>
+                            <path d="M 28 44 Q 22 52 28 60" fill="url(#cat-adult-fur)" stroke="#12002b" stroke-width="0.9" opacity="0.85"/>
+                            <path d="M 72 44 Q 78 52 72 60" fill="url(#cat-adult-fur)" stroke="#12002b" stroke-width="0.9" opacity="0.85"/>
+                            <ellipse cx="50" cy="62" rx="21" ry="18" fill="url(#cat-adult-fur)" stroke="#12002b" stroke-width="2"/>
+                            <ellipse cx="50" cy="65" rx="14.0" ry="12.0" fill="url(#cat-adult-belly)"/>
+                            <!-- Crescent collar amulet -->
+                            <path d="M 34 50 Q 50 58 66 50" fill="none" stroke="#ffd54f" stroke-width="2" opacity="0.9"/>
+                            <path d="M 50 54 A 5 5 0 1 1 50 62 A 3.8 3.8 0 1 0 50 54" fill="#fffde7" stroke="#f9a825" stroke-width="0.8"/>
+                            <circle cx="50" cy="58" r="1.4" fill="#f48fb1" opacity="0.8"/>
+                            <!-- Constellation chest marks -->
+                            <circle cx="42" cy="58" r="1.1" fill="#fff" opacity="0.55"/>
+                            <circle cx="50" cy="64" r="1.3" fill="#fff" opacity="0.5"/>
+                            <circle cx="58" cy="58" r="1.1" fill="#fff" opacity="0.55"/>
+                            <path d="M 42 58 L 50 64 L 58 58" stroke="#e1bee7" stroke-width="0.7" fill="none" opacity="0.45"/>
+                            <!-- Round cat head -->
+                            <ellipse cx="50" cy="26" rx="18" ry="16" fill="url(#cat-adult-fur)" stroke="#12002b" stroke-width="2"/>
+                            <ellipse cx="39.0" cy="21" rx="6.5" ry="3.8" fill="#fff" opacity="0.16"/>
+                            <!-- Cat ears -->
+                            <path d="M 33 24 L 24.5 0 L 42 19 Z" fill="url(#cat-adult-fur)" stroke="#12002b" stroke-width="1.35"/>
+                            <path d="M 34 23 L 28 6 L 38 20.5 Z" fill="url(#cat-adult-ear)" opacity="0.92"/>
+                            <path d="M 67 24 L 75.5 0 L 58 19 Z" fill="url(#cat-adult-fur)" stroke="#12002b" stroke-width="1.35"/>
+                            <path d="M 66 23 L 72 6 L 62 20.5 Z" fill="url(#cat-adult-ear)" opacity="0.92"/>
+                            <!-- Boss moon crown -->
+                            <path d="M 36 14 Q 50 6 64 14" fill="none" stroke="#f48fb1" stroke-width="1.6" opacity="0.85"/>
+                            <path d="M 50 7 A 5.5 5.5 0 1 1 50 17 A 4.2 4.2 0 1 0 50 7" fill="#fffde7" opacity="0.9"/>
+                            <circle cx="38" cy="13" r="1.6" fill="#fff" opacity="0.7"/>
+                            <circle cx="62" cy="13" r="1.6" fill="#fff" opacity="0.7"/>
+                            <circle cx="50" cy="4" r="1.3" fill="#f48fb1" opacity="0.75"/>
                             <!-- Muzzle -->
-                            <ellipse cx="50" cy="36" rx="9" ry="5.5" fill="url(#cat-adult-belly)"/>
-                            <ellipse cx="47" cy="36" rx="1.3" ry="1" fill="#5d4037"/>
-                            <ellipse cx="53" cy="36" rx="1.3" ry="1" fill="#5d4037"/>
-                            <circle cx="34" cy="34" r="4.2" fill="url(#cat-adult-cheek)"/>
-                            <circle cx="66" cy="34" r="4.2" fill="url(#cat-adult-cheek)"/>
+                            <ellipse cx="50" cy="34" rx="8.5" ry="5.2" fill="url(#cat-adult-belly)"/>
+                            <path d="M 50 34.8 L 47.6 37.6 L 52.4 37.6 Z" fill="#ff8fab" stroke="#e91e63" stroke-width="0.7"/>
+                            <ellipse cx="50" cy="36.2" rx="0.7" ry="0.45" fill="#fff" opacity="0.45"/>
+                            <circle cx="33" cy="31" r="4" fill="url(#cat-adult-cheek)"/>
+                            <circle cx="67" cy="31" r="4" fill="url(#cat-adult-cheek)"/>
                             <!-- Whiskers -->
-                            <path d="M 40 32 L 28 31 M 40 34 L 28 34 M 40 36 L 30 37" stroke="#fff" stroke-width="0.75" opacity="0.6" stroke-linecap="round"/>
-                            <path d="M 60 32 L 72 31 M 60 34 L 72 34 M 60 36 L 70 37" stroke="#fff" stroke-width="0.75" opacity="0.6" stroke-linecap="round"/>
-                            <!-- Fur tufts -->
-                            <circle cx="36" cy="58" r="1.5" fill="#e65100" opacity="0.28"/>
-                            <circle cx="64" cy="58" r="1.5" fill="#e65100" opacity="0.28"/>
-                            <circle cx="42" cy="72" r="1.2" fill="#e65100" opacity="0.23800000000000002"/>
-                            <circle cx="58" cy="72" r="1.2" fill="#e65100" opacity="0.23800000000000002"/>
-                            <path d="M 48 52 Q 50 54 52 52" stroke="#e65100" stroke-width="0.9" fill="none" opacity="0.196"/>
-                            <path d="M 46 62 Q 48 64 50 62" stroke="#e65100" stroke-width="0.8" fill="none" opacity="0.168"/>
+                            <path d="M 41 31 L 24 29 M 41 33 L 26 33 M 41 35 L 25 37" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 59 31 L 76 29 M 59 33 L 74 33 M 59 35 L 75 37" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-arm-left">
-                            <ellipse cx="28" cy="62" rx="6.5" ry="9.5" fill="url(#cat-adult-fur)" stroke="#e65100" stroke-width="1.2" transform="rotate(-22 28 62)"/>
-                            <ellipse cx="24" cy="72" rx="5.5" ry="4.5" fill="url(#cat-adult-belly)" stroke="#e65100" stroke-width="0.9"/>
-                            <circle cx="22" cy="72" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="25" cy="74" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="27" cy="71" r="1.1" fill="#ff6090" opacity="0.55"/>
+                            <ellipse cx="27" cy="60" rx="6.2" ry="9.2" fill="url(#cat-adult-fur)" stroke="#12002b" stroke-width="1.2" transform="rotate(-24 27 60)"/>
+                            <ellipse cx="23" cy="70" rx="5.4" ry="4.4" fill="url(#cat-adult-belly)" stroke="#12002b" stroke-width="0.9"/>
+                            <ellipse cx="23" cy="71.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="20.9" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="23" cy="70" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="25.1" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-arm-right">
-                            <ellipse cx="72" cy="62" rx="6.5" ry="9.5" fill="url(#cat-adult-fur)" stroke="#e65100" stroke-width="1.2" transform="rotate(22 72 62)"/>
-                            <ellipse cx="76" cy="72" rx="5.5" ry="4.5" fill="url(#cat-adult-belly)" stroke="#e65100" stroke-width="0.9"/>
-                            <circle cx="74" cy="72" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="77" cy="74" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="78" cy="71" r="1.1" fill="#ff6090" opacity="0.55"/>
+                            <ellipse cx="73" cy="60" rx="6.2" ry="9.2" fill="url(#cat-adult-fur)" stroke="#12002b" stroke-width="1.2" transform="rotate(24 73 60)"/>
+                            <ellipse cx="77" cy="70" rx="5.4" ry="4.4" fill="url(#cat-adult-belly)" stroke="#12002b" stroke-width="0.9"/>
+                            <ellipse cx="77" cy="71.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="74.9" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="77" cy="70" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="79.1" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-leg-left">
-
-                            <ellipse cx="40" cy="84" rx="7.5" ry="5.5" fill="url(#cat-adult-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <ellipse cx="40" cy="86" rx="5.5" ry="3" fill="url(#cat-adult-belly)"/>
-
+                            <ellipse cx="39" cy="84" rx="7.2" ry="5.4" fill="url(#cat-adult-fur)" stroke="#12002b" stroke-width="1.2"/>
+                            <ellipse cx="39" cy="86" rx="5.2" ry="2.8" fill="url(#cat-adult-belly)"/>
+                            <ellipse cx="39" cy="86.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="36.9" cy="85.3" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="39" cy="85" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="41.1" cy="85.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <ellipse cx="60" cy="84" rx="7.5" ry="5.5" fill="url(#cat-adult-fur)" stroke="#e65100" stroke-width="1.2"/>
-                            <ellipse cx="60" cy="86" rx="5.5" ry="3" fill="url(#cat-adult-belly)"/>
-
+                            <ellipse cx="61" cy="84" rx="7.2" ry="5.4" fill="url(#cat-adult-fur)" stroke="#12002b" stroke-width="1.2"/>
+                            <ellipse cx="61" cy="86" rx="5.2" ry="2.8" fill="url(#cat-adult-belly)"/>
+                            <ellipse cx="61" cy="86.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="58.9" cy="85.3" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="61" cy="85" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="63.1" cy="85.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="26" rx="6.8" ry="7.8" fill="#fff" stroke="#e65100" stroke-width="1.5"/>
-                            <ellipse cx="41.5" cy="26.5" rx="3.8" ry="4.5" fill="url(#cat-adult-iris)"/>
-                            <ellipse cx="41.6" cy="26.8" rx="1.9" ry="3.0" fill="#0a0812"/>
-                            <circle cx="42.6" cy="23.5" r="2.2" fill="#b3e5fc" opacity="0.96"/>
-                            <circle cx="40.2" cy="28.2" r="1.0" fill="#b3e5fc" opacity="0.55"/>
-                            <ellipse cx="59" cy="26" rx="6.8" ry="7.8" fill="#fff" stroke="#e65100" stroke-width="1.5"/>
-                            <ellipse cx="59.5" cy="26.5" rx="3.8" ry="4.5" fill="url(#cat-adult-iris)"/>
-                            <ellipse cx="59.6" cy="26.8" rx="1.9" ry="3.0" fill="#0a0812"/>
-                            <circle cx="60.6" cy="23.5" r="2.2" fill="#b3e5fc" opacity="0.96"/>
-                            <circle cx="58.2" cy="28.2" r="1.0" fill="#b3e5fc" opacity="0.55"/>
+                            <ellipse cx="40" cy="24" rx="7" ry="8.4" fill="#f8fbff" stroke="#12002b" stroke-width="1.45"/>
+                            <ellipse cx="40.3" cy="24.4" rx="3.6" ry="6.0" fill="url(#cat-adult-iris)"/>
+                            <ellipse cx="40.35" cy="24.5" rx="1.0" ry="5.2" fill="#0a0614"/>
+                            <circle cx="41.4" cy="21.6" r="2.0" fill="#fffde7" opacity="0.95"/>
+                            <circle cx="39.1" cy="26.5" r="0.8" fill="#fffde7" opacity="0.5"/>
+                            <ellipse cx="60" cy="24" rx="7" ry="8.4" fill="#f8fbff" stroke="#12002b" stroke-width="1.45"/>
+                            <ellipse cx="60.3" cy="24.4" rx="3.6" ry="6.0" fill="url(#cat-adult-iris)"/>
+                            <ellipse cx="60.35" cy="24.5" rx="1.0" ry="5.2" fill="#0a0614"/>
+                            <circle cx="61.4" cy="21.6" r="2.0" fill="#fffde7" opacity="0.95"/>
+                            <circle cx="59.1" cy="26.5" r="0.8" fill="#fffde7" opacity="0.5"/>
 
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 34.2 26 Q 41 22.5 47.8 26" stroke="#e65100" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.2 26 Q 59 22.5 65.8 26" stroke="#e65100" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 33 24 Q 40 20.8 47 24" stroke="#12002b" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                            <path d="M 53 24 Q 60 20.8 67 24" stroke="#12002b" stroke-width="2.3" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 42 Q 50 47.5 57 42" stroke="#e65100" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 44 Q 50 38 57 44" stroke="#e65100" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-happy" d="M 43.8 40 Q 46.9 44.5 50 41.5 Q 53.1 44.5 56.2 40" stroke="#12002b" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 43 Q 50 37.5 56.2 43" stroke="#12002b" stroke-width="1.9" fill="none" stroke-linecap="round"/>
                 </g>
 
-                <!-- CAT MIDDLE AGE — scarred lucky -->
+                <!-- CAT MIDDLE AGE — scarred omen lord -->
                 <g id="tm-mascot-evo4-cat" style="display: none;">
                     <defs>
                         <radialGradient id="cat-mid-fur" cx="38%" cy="28%" r="75%">
-                            <stop offset="0%" style="stop-color:#d7ccc8;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#a1887f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#6d4c41;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#5c6bc0;stop-opacity:1" />
+                            <stop offset="30%" style="stop-color:#3949ab;stop-opacity:1" />
+                            <stop offset="65%" style="stop-color:#283593;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#1a237e;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="cat-mid-belly" cx="50%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#fff8e1;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#ffe0b2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffcc80;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#e1bee7;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="cat-mid-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#80d8ff;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#0288d1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#01579b;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:1" />
+                            <stop offset="40%" style="stop-color:#ffd54f;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#f57f17;stop-opacity:1" />
                         </radialGradient>
-                        <linearGradient id="cat-mid-ear" cx="38%" cy="28%" r="75%">
+                        <linearGradient id="cat-mid-ear" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#f8bbd0;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#c2185b;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ad1457;stop-opacity:1" />
                         </linearGradient>
                         <radialGradient id="cat-mid-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a9b;stop-opacity:0.6" />
-                            <stop offset="100%" style="stop-color:#ff8a9b;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-mid-flare" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#e1f5fe;stop-opacity:0.75" />
-                            <stop offset="50%" style="stop-color:#80deea;stop-opacity:0.45" />
-                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0" />
+                            <stop offset="0%" style="stop-color:#f48fb1;stop-opacity:0.55" />
+                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:0" />
                         </radialGradient>
                         <radialGradient id="cat-mid-aura" cx="50%" cy="45%" r="55%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.32" />
-                            <stop offset="50%" style="stop-color:#7986cb;stop-opacity:0.18" />
-                            <stop offset="100%" style="stop-color:#5c6bc0;stop-opacity:0" />
+                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.38" />
+                            <stop offset="45%" style="stop-color:#7e57c2;stop-opacity:0.2" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
                         </radialGradient>
-                        <radialGradient id="cat-mid-pad-glow" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#80deea;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#80deea;stop-opacity:0" />
+                        <radialGradient id="cat-mid-mane" cx="50%" cy="40%" r="55%">
+                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:0.7" />
+                            <stop offset="50%" style="stop-color:#7e57c2;stop-opacity:0.35" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
+                        </radialGradient>
+                        <radialGradient id="cat-mid-tail-tip" cx="50%" cy="40%" r="55%">
+                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
+                            <stop offset="60%" style="stop-color:#ffd54f;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ffd54f;stop-opacity:1" />
                         </radialGradient>
                     </defs>
-                        <ellipse cx="50" cy="94" rx="27" ry="4.5" fill="#1a1a1a" opacity="0.22"/>
-
+                        <ellipse cx="50" cy="94" rx="27" ry="4.5" fill="#0a0614" opacity="0.28"/>
+                        <ellipse cx="50" cy="50" rx="40" ry="38" fill="url(#cat-mid-aura)" opacity="0.7"/>
                         <g class="tm-animate-tail">
-                            <path d="M 68 68 Q 84 56 88 40 Q 90 30 82 32 Q 72 48 68 66 Z" fill="url(#cat-mid-fur)" stroke="#795548" stroke-width="1.3"/>
-                            <path d="M 74 58 Q 82 50 84 44" stroke="#fff3e0" stroke-width="0.85" fill="none" opacity="0.4"/>
-
+                            <path d="M 68 68 Q 88 54 94 36 Q 98 24 88 26 Q 76 42 70 66 Z" fill="url(#cat-mid-fur)" stroke="#1a237e" stroke-width="1.45"/>
+                            <path d="M 72 56 Q 84 44 90 34" stroke="#e1bee7" stroke-width="0.9" fill="none" opacity="0.4"/>
+                            <ellipse cx="92" cy="30" rx="5.5" ry="7" fill="url(#cat-mid-tail-tip)" opacity="0.85"/>
                         </g>
                         <g class="tm-animate-wing-left">
-                            <!-- Lunar ear-flare -->
-                            <path d="M 28 34 Q 16 20 18 34 Q 20 44 30 40 Z" fill="url(#cat-mid-flare)" stroke="#795548" stroke-width="1" opacity="0.88"/>
-                            <path d="M 24 30 L 18 24" stroke="#ff6090" stroke-width="0.9" opacity="0.55"/>
-                            <circle cx="16" cy="26" r="1.2" fill="#fff" opacity="0.45"/>
+                            <!-- Left ear tuft -->
+                            <path d="M 24 14 Q 14 4 16 18" stroke="#ffd54f" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 22 12 L 12 2" stroke="#1a237e" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
+                            <circle cx="13" cy="4" r="1.35" fill="#fff" opacity="0.55"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 72 34 Q 84 20 82 34 Q 80 44 70 40 Z" fill="url(#cat-mid-flare)" stroke="#795548" stroke-width="1" opacity="0.88"/>
-                            <path d="M 76 30 L 82 24" stroke="#ff6090" stroke-width="0.9" opacity="0.55"/>
-                            <circle cx="84" cy="26" r="1.2" fill="#fff" opacity="0.45"/>
+                            <!-- Right ear tuft -->
+                            <path d="M 76 14 Q 86 4 84 18" stroke="#ffd54f" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 78 12 L 88 2" stroke="#1a237e" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
+                            <circle cx="87" cy="4" r="1.35" fill="#fff" opacity="0.55"/>
                         </g>
                         <g class="tm-animate-body">
-                            <ellipse cx="50" cy="64" rx="21" ry="18" fill="url(#cat-mid-fur)" stroke="#795548" stroke-width="1.6"/>
-                            <ellipse cx="50" cy="68" rx="13" ry="11" fill="url(#cat-mid-belly)"/>
-                            <path d="M 37 62 Q 50 64 63 62" stroke="#ffe0b2" stroke-width="0.9" fill="none" opacity="0.55"/>
-                            <!-- Lucky bell -->
-                            <path d="M 46 54 L 48 58 L 52 58 L 54 54 Q 50 52 46 54 Z" fill="#ffd54f" stroke="#f9a825" stroke-width="0.9"/>
-                            <circle cx="50" cy="59" r="1.4" fill="#f9a825"/>
-                            <path d="M 49 59 L 50 61 L 51 59" stroke="#fff" stroke-width="0.5" fill="none"/>
-                            <!-- Coin charm -->
-                            <circle cx="58" cy="56" r="3" fill="#ffca28" stroke="#f57f17" stroke-width="0.8"/>
-                            <rect x="57" y="55" width="2" height="2" rx="0.3" fill="#fff8e1" opacity="0.7"/>
-                            <!-- Scar charm -->
-                            <path d="M 56 36 L 58 38 L 57 40" stroke="#bcaaa4" stroke-width="1.1" fill="none" stroke-linecap="round" opacity="0.75"/>
-                            <circle cx="57" cy="39" r="0.8" fill="#ff6090" opacity="0.45"/>
-                            <!-- Head -->
-                            <ellipse cx="50" cy="32" rx="17" ry="15" fill="url(#cat-mid-fur)" stroke="#795548" stroke-width="1.6"/>
-                            <ellipse cx="41" cy="26" rx="7" ry="4" fill="#fff" opacity="0.18"/>
-                            <!-- Ears -->
-                            <path d="M 34 30 L 28 13 L 42 26 Z" fill="url(#cat-mid-fur)" stroke="#795548" stroke-width="1.2"/>
-                            <path d="M 34 29 L 30 17 L 38 27 Z" fill="url(#cat-mid-ear)" opacity="0.88"/>
-                            <path d="M 66 30 L 72 13 L 58 26 Z" fill="url(#cat-mid-fur)" stroke="#795548" stroke-width="1.2"/>
-                            <path d="M 66 29 L 70 17 L 62 27 Z" fill="url(#cat-mid-ear)" opacity="0.88"/>
 
-                            <!-- Crescent mark -->
-                            <path d="M 50 24 Q 46 28 50 32 Q 54 28 50 24" fill="none" stroke="#ff6090" stroke-width="1.6" opacity="0.85"/>
-                            <circle cx="50" cy="28" r="1.3" fill="#ff6090" opacity="0.65"/>
+                            <ellipse cx="50" cy="64" rx="20" ry="17.5" fill="url(#cat-mid-fur)" stroke="#1a237e" stroke-width="2"/>
+                            <ellipse cx="50" cy="67" rx="13.0" ry="11.5" fill="url(#cat-mid-belly)"/>
+                            <!-- Battle scars + lucky bell -->
+                            <path d="M 54 34 L 58 38 L 56 42" stroke="#90a4ae" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.75"/>
+                            <path d="M 36 56 Q 50 62 64 56" fill="none" stroke="#ffd54f" stroke-width="1.5" opacity="0.8"/>
+                            <path d="M 46 54 L 48 58 L 52 58 L 54 54 Q 50 52 46 54 Z" fill="#ffd54f" stroke="#f9a825" stroke-width="0.8"/>
+                            <circle cx="50" cy="59" r="1.3" fill="#f57f17"/>
+                            <!-- Round cat head -->
+                            <ellipse cx="50" cy="30" rx="17" ry="15" fill="url(#cat-mid-fur)" stroke="#1a237e" stroke-width="2"/>
+                            <ellipse cx="40.0" cy="25" rx="6.5" ry="3.8" fill="#fff" opacity="0.16"/>
+                            <!-- Cat ears -->
+                            <path d="M 33.2 28 L 24.8 4 L 42 23 Z" fill="url(#cat-mid-fur)" stroke="#1a237e" stroke-width="1.35"/>
+                            <path d="M 34 27 L 28.2 10 L 38 24.5 Z" fill="url(#cat-mid-ear)" opacity="0.92"/>
+                            <path d="M 66.8 28 L 75.2 4 L 58 23 Z" fill="url(#cat-mid-fur)" stroke="#1a237e" stroke-width="1.35"/>
+                            <path d="M 66 27 L 71.8 10 L 62 24.5 Z" fill="url(#cat-mid-ear)" opacity="0.92"/>
+                            <!-- Worn crescent -->
+                            <path d="M 50 10 A 4.5 4.5 0 1 1 50 18 A 3.4 3.4 0 1 0 50 10" fill="#ffd54f" opacity="0.75"/>
                             <!-- Muzzle -->
-                            <ellipse cx="50" cy="40" rx="9" ry="5.5" fill="url(#cat-mid-belly)"/>
-                            <ellipse cx="47" cy="40" rx="1.3" ry="1" fill="#5d4037"/>
-                            <ellipse cx="53" cy="40" rx="1.3" ry="1" fill="#5d4037"/>
-                            <circle cx="34" cy="38" r="4.2" fill="url(#cat-mid-cheek)"/>
-                            <circle cx="66" cy="38" r="4.2" fill="url(#cat-mid-cheek)"/>
+                            <ellipse cx="50" cy="38" rx="8.5" ry="5.2" fill="url(#cat-mid-belly)"/>
+                            <path d="M 50 36.8 L 47.6 39.6 L 52.4 39.6 Z" fill="#ff8fab" stroke="#e91e63" stroke-width="0.7"/>
+                            <ellipse cx="50" cy="38.2" rx="0.7" ry="0.45" fill="#fff" opacity="0.45"/>
+                            <circle cx="33" cy="35" r="4" fill="url(#cat-mid-cheek)"/>
+                            <circle cx="67" cy="35" r="4" fill="url(#cat-mid-cheek)"/>
                             <!-- Whiskers -->
-                            <path d="M 40 36 L 28 35 M 40 38 L 28 38 M 40 40 L 30 41" stroke="#fff" stroke-width="0.75" opacity="0.6" stroke-linecap="round"/>
-                            <path d="M 60 36 L 72 35 M 60 38 L 72 38 M 60 40 L 70 41" stroke="#fff" stroke-width="0.75" opacity="0.6" stroke-linecap="round"/>
-                            <!-- Fur tufts -->
-                            <circle cx="36" cy="58" r="1.5" fill="#795548" opacity="0.2"/>
-                            <circle cx="64" cy="58" r="1.5" fill="#795548" opacity="0.2"/>
-                            <circle cx="42" cy="72" r="1.2" fill="#795548" opacity="0.17"/>
-                            <circle cx="58" cy="72" r="1.2" fill="#795548" opacity="0.17"/>
-                            <path d="M 48 52 Q 50 54 52 52" stroke="#795548" stroke-width="0.9" fill="none" opacity="0.13999999999999999"/>
-                            <path d="M 46 62 Q 48 64 50 62" stroke="#795548" stroke-width="0.8" fill="none" opacity="0.12"/>
+                            <path d="M 41 35 L 28 33 M 41 37 L 29 37 M 41 39 L 29 41" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 59 35 L 72 33 M 59 37 L 71 37 M 59 39 L 71 41" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-arm-left">
-                            <ellipse cx="28" cy="62" rx="6.5" ry="9.5" fill="url(#cat-mid-fur)" stroke="#795548" stroke-width="1.2" transform="rotate(-22 28 62)"/>
-                            <ellipse cx="24" cy="72" rx="5.5" ry="4.5" fill="url(#cat-mid-belly)" stroke="#795548" stroke-width="0.9"/>
-                            <circle cx="22" cy="72" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="25" cy="74" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="27" cy="71" r="1.1" fill="#ff6090" opacity="0.55"/>
+                            <ellipse cx="27" cy="60" rx="6.2" ry="9.2" fill="url(#cat-mid-fur)" stroke="#1a237e" stroke-width="1.2" transform="rotate(-24 27 60)"/>
+                            <ellipse cx="23" cy="70" rx="5.4" ry="4.4" fill="url(#cat-mid-belly)" stroke="#1a237e" stroke-width="0.9"/>
+                            <ellipse cx="23" cy="71.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="20.9" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="23" cy="70" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="25.1" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-arm-right">
-                            <ellipse cx="72" cy="62" rx="6.5" ry="9.5" fill="url(#cat-mid-fur)" stroke="#795548" stroke-width="1.2" transform="rotate(22 72 62)"/>
-                            <ellipse cx="76" cy="72" rx="5.5" ry="4.5" fill="url(#cat-mid-belly)" stroke="#795548" stroke-width="0.9"/>
-                            <circle cx="74" cy="72" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="77" cy="74" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="78" cy="71" r="1.1" fill="#ff6090" opacity="0.55"/>
+                            <ellipse cx="73" cy="60" rx="6.2" ry="9.2" fill="url(#cat-mid-fur)" stroke="#1a237e" stroke-width="1.2" transform="rotate(24 73 60)"/>
+                            <ellipse cx="77" cy="70" rx="5.4" ry="4.4" fill="url(#cat-mid-belly)" stroke="#1a237e" stroke-width="0.9"/>
+                            <ellipse cx="77" cy="71.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="74.9" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="77" cy="70" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="79.1" cy="70.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-leg-left">
-
-                            <ellipse cx="40" cy="86" rx="7.5" ry="5.5" fill="url(#cat-mid-fur)" stroke="#795548" stroke-width="1.2"/>
-                            <ellipse cx="40" cy="88" rx="5.5" ry="3" fill="url(#cat-mid-belly)"/>
-
+                            <ellipse cx="39" cy="86" rx="7.2" ry="5.4" fill="url(#cat-mid-fur)" stroke="#1a237e" stroke-width="1.2"/>
+                            <ellipse cx="39" cy="88" rx="5.2" ry="2.8" fill="url(#cat-mid-belly)"/>
+                            <ellipse cx="39" cy="88.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="36.9" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="39" cy="87" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="41.1" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <ellipse cx="60" cy="86" rx="7.5" ry="5.5" fill="url(#cat-mid-fur)" stroke="#795548" stroke-width="1.2"/>
-                            <ellipse cx="60" cy="88" rx="5.5" ry="3" fill="url(#cat-mid-belly)"/>
-
+                            <ellipse cx="61" cy="86" rx="7.2" ry="5.4" fill="url(#cat-mid-fur)" stroke="#1a237e" stroke-width="1.2"/>
+                            <ellipse cx="61" cy="88" rx="5.2" ry="2.8" fill="url(#cat-mid-belly)"/>
+                            <ellipse cx="61" cy="88.1" rx="4.2" ry="2.6" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="58.9" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="61" cy="87" r="0.95" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="63.1" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="30" rx="6.5" ry="7.5" fill="#fff" stroke="#795548" stroke-width="1.5"/>
-                            <ellipse cx="41.5" cy="30.5" rx="3.6" ry="4.3" fill="url(#cat-mid-iris)"/>
-                            <ellipse cx="41.6" cy="30.8" rx="1.8" ry="2.9" fill="#0a0812"/>
-                            <circle cx="42.6" cy="27.6" r="2.1" fill="#fff" opacity="0.96"/>
-                            <circle cx="40.2" cy="32.1" r="0.9" fill="#fff" opacity="0.55"/>
-                            <ellipse cx="59" cy="30" rx="6.5" ry="7.5" fill="#fff" stroke="#795548" stroke-width="1.5"/>
-                            <ellipse cx="59.5" cy="30.5" rx="3.6" ry="4.3" fill="url(#cat-mid-iris)"/>
-                            <ellipse cx="59.6" cy="30.8" rx="1.8" ry="2.9" fill="#0a0812"/>
-                            <circle cx="60.6" cy="27.6" r="2.1" fill="#fff" opacity="0.96"/>
-                            <circle cx="58.2" cy="32.1" r="0.9" fill="#fff" opacity="0.55"/>
+                            <ellipse cx="40" cy="28" rx="6.6" ry="7.8" fill="#f8fbff" stroke="#1a237e" stroke-width="1.45"/>
+                            <ellipse cx="40.3" cy="28.4" rx="3.4" ry="5.6" fill="url(#cat-mid-iris)"/>
+                            <ellipse cx="40.35" cy="28.5" rx="0.9" ry="4.8" fill="#0a0614"/>
+                            <circle cx="41.4" cy="25.8" r="1.8" fill="#fffde7" opacity="0.95"/>
+                            <circle cx="39.1" cy="30.3" r="0.8" fill="#fffde7" opacity="0.5"/>
+                            <ellipse cx="60" cy="28" rx="6.6" ry="7.8" fill="#f8fbff" stroke="#1a237e" stroke-width="1.45"/>
+                            <ellipse cx="60.3" cy="28.4" rx="3.4" ry="5.6" fill="url(#cat-mid-iris)"/>
+                            <ellipse cx="60.35" cy="28.5" rx="0.9" ry="4.8" fill="#0a0614"/>
+                            <circle cx="61.4" cy="25.8" r="1.8" fill="#fffde7" opacity="0.95"/>
+                            <circle cx="59.1" cy="30.3" r="0.8" fill="#fffde7" opacity="0.5"/>
 
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 34.5 30 Q 41 26.5 47.5 30" stroke="#795548" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.5 30 Q 59 26.5 65.5 30" stroke="#795548" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 33.4 28 Q 40 24.8 46.6 28" stroke="#1a237e" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                            <path d="M 53.4 28 Q 60 24.8 66.6 28" stroke="#1a237e" stroke-width="2.3" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 44 Q 50 49.5 57 44" stroke="#795548" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 46 Q 50 40 57 46" stroke="#795548" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-happy" d="M 43.8 42 Q 46.9 46.5 50 43.5 Q 53.1 46.5 56.2 42" stroke="#1a237e" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 45 Q 50 39.5 56.2 45" stroke="#1a237e" stroke-width="1.9" fill="none" stroke-linecap="round"/>
                 </g>
 
-                <!-- CAT OLD — silver sage -->
+                <!-- CAT OLD — silver moon sage -->
                 <g id="tm-mascot-evo5-cat" style="display: none;">
                     <defs>
                         <radialGradient id="cat-old-fur" cx="38%" cy="28%" r="75%">
-                            <stop offset="0%" style="stop-color:#f5f7fa;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#eceff1;stop-opacity:1" />
                             <stop offset="35%" style="stop-color:#b0bec5;stop-opacity:1" />
                             <stop offset="70%" style="stop-color:#78909c;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#546e7a;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#455a64;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="cat-old-belly" cx="50%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#fff8e1;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#ffe0b2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffcc80;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#e1bee7;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="cat-old-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#80d8ff;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#0288d1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#01579b;stop-opacity:1" />
+                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#4dd0e1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#006064;stop-opacity:1" />
                         </radialGradient>
-                        <linearGradient id="cat-old-ear" cx="38%" cy="28%" r="75%">
+                        <linearGradient id="cat-old-ear" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#f8bbd0;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#c2185b;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ad1457;stop-opacity:1" />
                         </linearGradient>
                         <radialGradient id="cat-old-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a9b;stop-opacity:0.6" />
-                            <stop offset="100%" style="stop-color:#ff8a9b;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="cat-old-flare" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#e1f5fe;stop-opacity:0.75" />
-                            <stop offset="50%" style="stop-color:#80deea;stop-opacity:0.45" />
-                            <stop offset="100%" style="stop-color:#4dd0e1;stop-opacity:0" />
+                            <stop offset="0%" style="stop-color:#f48fb1;stop-opacity:0.55" />
+                            <stop offset="100%" style="stop-color:#f48fb1;stop-opacity:0" />
                         </radialGradient>
                         <radialGradient id="cat-old-aura" cx="50%" cy="45%" r="55%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.32" />
-                            <stop offset="50%" style="stop-color:#7986cb;stop-opacity:0.18" />
-                            <stop offset="100%" style="stop-color:#5c6bc0;stop-opacity:0" />
+                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:0.38" />
+                            <stop offset="45%" style="stop-color:#7e57c2;stop-opacity:0.2" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
                         </radialGradient>
-                        <radialGradient id="cat-old-pad-glow" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#80deea;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#80deea;stop-opacity:0" />
+                        <radialGradient id="cat-old-mane" cx="50%" cy="40%" r="55%">
+                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:0.7" />
+                            <stop offset="50%" style="stop-color:#7e57c2;stop-opacity:0.35" />
+                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0" />
+                        </radialGradient>
+                        <radialGradient id="cat-old-tail-tip" cx="50%" cy="40%" r="55%">
+                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
+                            <stop offset="60%" style="stop-color:#b3e5fc;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b3e5fc;stop-opacity:1" />
                         </radialGradient>
                     </defs>
-                        <ellipse cx="50" cy="94" rx="28" ry="4.5" fill="#1a1a1a" opacity="0.22"/>
-                        <ellipse cx="50" cy="50" rx="40" ry="38" fill="url(#cat-old-aura)" opacity="0.55"/>
+                        <ellipse cx="50" cy="94" rx="26" ry="4.5" fill="#0a0614" opacity="0.28"/>
+                        <ellipse cx="50" cy="48" rx="40" ry="38" fill="url(#cat-old-aura)" opacity="0.5"/>
                         <g class="tm-animate-tail">
-                            <path d="M 66 72 Q 82 78 86 66 Q 88 58 80 60 Q 72 66 66 72 Z" fill="url(#cat-old-fur)" stroke="#607d8b" stroke-width="1.3"/>
-                            <path d="M 74 58 Q 82 50 84 44" stroke="#fff3e0" stroke-width="0.85" fill="none" opacity="0.4"/>
-
+                            <path d="M 64 72 Q 80 80 88 68 Q 94 56 84 58 Q 72 66 66 72 Z" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.45"/>
+                            <path d="M 72 56 Q 84 44 90 34" stroke="#e1bee7" stroke-width="0.9" fill="none" opacity="0.4"/>
+                            <ellipse cx="84" cy="62" rx="5" ry="6" fill="#eceff1" opacity="0.75"/>
                         </g>
                         <g class="tm-animate-wing-left">
-                            <!-- Lunar ear-flare -->
-                            <path d="M 28 34 Q 16 20 18 34 Q 20 44 30 40 Z" fill="url(#cat-old-flare)" stroke="#607d8b" stroke-width="1" opacity="0.88"/>
-                            <path d="M 24 30 L 18 24" stroke="#ff6090" stroke-width="0.9" opacity="0.55"/>
-                            <circle cx="16" cy="26" r="1.2" fill="#fff" opacity="0.45"/>
+                            <!-- Left ear tuft -->
+                            <path d="M 24 12 Q 14 2 16 16" stroke="#b3e5fc" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 22 10 L 12 0" stroke="#546e7a" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
+                            <circle cx="13" cy="2" r="1.35" fill="#fff" opacity="0.55"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 72 34 Q 84 20 82 34 Q 80 44 70 40 Z" fill="url(#cat-old-flare)" stroke="#607d8b" stroke-width="1" opacity="0.88"/>
-                            <path d="M 76 30 L 82 24" stroke="#ff6090" stroke-width="0.9" opacity="0.55"/>
-                            <circle cx="84" cy="26" r="1.2" fill="#fff" opacity="0.45"/>
+                            <!-- Right ear tuft -->
+                            <path d="M 76 12 Q 86 2 84 16" stroke="#b3e5fc" stroke-width="1.5" fill="none" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 78 10 L 88 0" stroke="#546e7a" stroke-width="1.15" fill="none" opacity="0.5" stroke-linecap="round"/>
+                            <circle cx="87" cy="2" r="1.35" fill="#fff" opacity="0.55"/>
                         </g>
                         <g class="tm-animate-body">
-                            <ellipse cx="50" cy="66" rx="20" ry="17" fill="url(#cat-old-fur)" stroke="#607d8b" stroke-width="1.6"/>
-                            <ellipse cx="50" cy="70" rx="12" ry="10" fill="url(#cat-old-belly)"/>
-                            <path d="M 38 64 Q 50 66 62 64" stroke="#ffe0b2" stroke-width="0.9" fill="none" opacity="0.55"/>
-                            <!-- Weathered tufts -->
-                            <path d="M 38 60 Q 36 64 38 68" stroke="#78909c" stroke-width="0.8" fill="none" opacity="0.4"/>
-                            <path d="M 62 60 Q 64 64 62 68" stroke="#78909c" stroke-width="0.8" fill="none" opacity="0.4"/>
-                            <!-- Head -->
-                            <ellipse cx="50" cy="30" rx="17" ry="15" fill="url(#cat-old-fur)" stroke="#607d8b" stroke-width="1.6"/>
-                            <ellipse cx="41" cy="24" rx="7" ry="4" fill="#fff" opacity="0.18"/>
-                            <!-- Ears -->
-                            <path d="M 34 28 L 28 11 L 42 24 Z" fill="url(#cat-old-fur)" stroke="#607d8b" stroke-width="1.2"/>
-                            <path d="M 34 27 L 30 15 L 38 25 Z" fill="url(#cat-old-ear)" opacity="0.88"/>
-                            <path d="M 66 28 L 72 11 L 58 24 Z" fill="url(#cat-old-fur)" stroke="#607d8b" stroke-width="1.2"/>
-                            <path d="M 66 27 L 70 15 L 62 25 Z" fill="url(#cat-old-ear)" opacity="0.88"/>
-                            <!-- Moon halo -->
-                            <ellipse cx="50" cy="14" rx="16" ry="3.5" fill="none" stroke="#eceff1" stroke-width="1.4" opacity="0.65"/>
-                            <circle cx="34" cy="14" r="2" fill="#cfd8dc" opacity="0.55"/>
-                            <circle cx="50" cy="12" r="2.5" fill="#fff" opacity="0.7"/>
-                            <circle cx="66" cy="14" r="2" fill="#cfd8dc" opacity="0.55"/>
-                            <!-- Sage chest ruff -->
-                            <path d="M 42 48 Q 38 56 42 62 Q 46 58 44 52 Z" fill="#eceff1" stroke="#b0bec5" stroke-width="0.7" opacity="0.75"/>
-                            <path d="M 58 48 Q 62 56 58 62 Q 54 58 56 52 Z" fill="#eceff1" stroke="#b0bec5" stroke-width="0.7" opacity="0.75"/>
-                            <!-- Crescent mark -->
-                            <path d="M 50 22 Q 46 26 50 30 Q 54 26 50 22" fill="none" stroke="#ff6090" stroke-width="1.6" opacity="0.85"/>
-                            <circle cx="50" cy="26" r="1.3" fill="#ff6090" opacity="0.65"/>
+
+                            <ellipse cx="50" cy="66" rx="19.5" ry="17" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="2"/>
+                            <ellipse cx="50" cy="69" rx="12.5" ry="11.0" fill="url(#cat-old-belly)"/>
+                            <!-- Silver collar -->
+                            <path d="M 36 50 Q 50 56 64 50" fill="none" stroke="#cfd8dc" stroke-width="1.8" opacity="0.85"/>
+                            <circle cx="50" cy="54" r="2.4" fill="#eceff1" stroke="#90a4ae" stroke-width="0.7"/>
+                            <!-- Round cat head -->
+                            <ellipse cx="50" cy="28" rx="17" ry="15.5" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="2"/>
+                            <ellipse cx="40.0" cy="23" rx="6.5" ry="3.8" fill="#fff" opacity="0.16"/>
+                            <!-- Cat ears -->
+                            <path d="M 33.2 26 L 24.8 2 L 42 21 Z" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.35"/>
+                            <path d="M 34 25 L 28.2 8 L 38 22.5 Z" fill="url(#cat-old-ear)" opacity="0.92"/>
+                            <path d="M 66.8 26 L 75.2 2 L 58 21 Z" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.35"/>
+                            <path d="M 66 25 L 71.8 8 L 62 22.5 Z" fill="url(#cat-old-ear)" opacity="0.92"/>
+                            <!-- Silver moon halo -->
+                            <ellipse cx="50" cy="12" rx="18" ry="3.8" fill="none" stroke="#eceff1" stroke-width="1.5" opacity="0.7"/>
+                            <path d="M 50 6 A 5 5 0 1 1 50 15 A 3.8 3.8 0 1 0 50 6" fill="#fff" opacity="0.85"/>
+                            <!-- Sage cheek ruff -->
+                            <path d="M 32 36 Q 26 44 32 52 Q 36 46 34 40 Z" fill="#eceff1" stroke="#90a4ae" stroke-width="0.7" opacity="0.8"/>
+                            <path d="M 68 36 Q 74 44 68 52 Q 64 46 66 40 Z" fill="#eceff1" stroke="#90a4ae" stroke-width="0.7" opacity="0.8"/>
                             <!-- Muzzle -->
-                            <ellipse cx="50" cy="38" rx="9" ry="5.5" fill="url(#cat-old-belly)"/>
-                            <ellipse cx="47" cy="38" rx="1.3" ry="1" fill="#5d4037"/>
-                            <ellipse cx="53" cy="38" rx="1.3" ry="1" fill="#5d4037"/>
-                            <circle cx="34" cy="36" r="4.2" fill="url(#cat-old-cheek)"/>
-                            <circle cx="66" cy="36" r="4.2" fill="url(#cat-old-cheek)"/>
+                            <ellipse cx="50" cy="36" rx="8.5" ry="5.2" fill="url(#cat-old-belly)"/>
+                            <path d="M 50 34.8 L 47.6 37.6 L 52.4 37.6 Z" fill="#ff8fab" stroke="#e91e63" stroke-width="0.7"/>
+                            <ellipse cx="50" cy="36.2" rx="0.7" ry="0.45" fill="#fff" opacity="0.45"/>
+                            <circle cx="33" cy="33" r="4" fill="url(#cat-old-cheek)"/>
+                            <circle cx="67" cy="33" r="4" fill="url(#cat-old-cheek)"/>
                             <!-- Whiskers -->
-                            <path d="M 40 34 L 24 33 M 40 36 L 26 36 M 40 38 L 26 39" stroke="#fff" stroke-width="0.75" opacity="0.6" stroke-linecap="round"/>
-                            <path d="M 60 34 L 76 33 M 60 36 L 74 36 M 60 38 L 74 39" stroke="#fff" stroke-width="0.75" opacity="0.6" stroke-linecap="round"/>
-                            <!-- Fur tufts -->
-                            <circle cx="36" cy="58" r="1.5" fill="#607d8b" opacity="0.28"/>
-                            <circle cx="64" cy="58" r="1.5" fill="#607d8b" opacity="0.28"/>
-                            <circle cx="42" cy="72" r="1.2" fill="#607d8b" opacity="0.23800000000000002"/>
-                            <circle cx="58" cy="72" r="1.2" fill="#607d8b" opacity="0.23800000000000002"/>
-                            <path d="M 48 52 Q 50 54 52 52" stroke="#607d8b" stroke-width="0.9" fill="none" opacity="0.196"/>
-                            <path d="M 46 62 Q 48 64 50 62" stroke="#607d8b" stroke-width="0.8" fill="none" opacity="0.168"/>
+                            <path d="M 41 33 L 24 31 M 41 35 L 26 35 M 41 37 L 25 39" stroke="#eceff1" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
+                            <path d="M 59 33 L 76 31 M 59 35 L 74 35 M 59 37 L 75 39" stroke="#eceff1" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-arm-left">
-                            <ellipse cx="28" cy="62" rx="6.5" ry="9.5" fill="url(#cat-old-fur)" stroke="#607d8b" stroke-width="1.2" transform="rotate(-22 28 62)"/>
-                            <ellipse cx="24" cy="72" rx="5.5" ry="4.5" fill="url(#cat-old-belly)" stroke="#607d8b" stroke-width="0.9"/>
-                            <circle cx="22" cy="72" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="25" cy="74" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="27" cy="71" r="1.1" fill="#ff6090" opacity="0.55"/>
+                            <ellipse cx="27" cy="60" rx="6.2" ry="9.2" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.2" transform="rotate(-24 27 60)"/>
+                            <ellipse cx="23" cy="70" rx="5.4" ry="4.4" fill="url(#cat-old-belly)" stroke="#546e7a" stroke-width="0.9"/>
+                            <ellipse cx="23" cy="71.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="21.005" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="23" cy="70" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="24.995" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-arm-right">
-                            <ellipse cx="72" cy="62" rx="6.5" ry="9.5" fill="url(#cat-old-fur)" stroke="#607d8b" stroke-width="1.2" transform="rotate(22 72 62)"/>
-                            <ellipse cx="76" cy="72" rx="5.5" ry="4.5" fill="url(#cat-old-belly)" stroke="#607d8b" stroke-width="0.9"/>
-                            <circle cx="74" cy="72" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="77" cy="74" r="1.1" fill="#ff6090" opacity="0.55"/>
-                            <circle cx="78" cy="71" r="1.1" fill="#ff6090" opacity="0.55"/>
+                            <ellipse cx="73" cy="60" rx="6.2" ry="9.2" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.2" transform="rotate(24 73 60)"/>
+                            <ellipse cx="77" cy="70" rx="5.4" ry="4.4" fill="url(#cat-old-belly)" stroke="#546e7a" stroke-width="0.9"/>
+                            <ellipse cx="77" cy="71.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="75.005" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="77" cy="70" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="78.995" cy="70.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-leg-left">
-
-                            <ellipse cx="40" cy="86" rx="7.5" ry="5.5" fill="url(#cat-old-fur)" stroke="#607d8b" stroke-width="1.2"/>
-                            <ellipse cx="40" cy="88" rx="5.5" ry="3" fill="url(#cat-old-belly)"/>
-
+                            <ellipse cx="39" cy="86" rx="7.2" ry="5.4" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.2"/>
+                            <ellipse cx="39" cy="88" rx="5.2" ry="2.8" fill="url(#cat-old-belly)"/>
+                            <ellipse cx="39" cy="88.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="37.005" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="39" cy="87" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="40.995" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <ellipse cx="60" cy="86" rx="7.5" ry="5.5" fill="url(#cat-old-fur)" stroke="#607d8b" stroke-width="1.2"/>
-                            <ellipse cx="60" cy="88" rx="5.5" ry="3" fill="url(#cat-old-belly)"/>
-
+                            <ellipse cx="61" cy="86" rx="7.2" ry="5.4" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.2"/>
+                            <ellipse cx="61" cy="88" rx="5.2" ry="2.8" fill="url(#cat-old-belly)"/>
+                            <ellipse cx="61" cy="88.045" rx="3.9899999999999998" ry="2.4699999999999998" fill="#f8bbd0" opacity="0.9"/>
+                            <circle cx="59.005" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="61" cy="87" r="0.9025" fill="#ff6090" opacity="0.8"/>
+                            <circle cx="62.995" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
                         </g>
                         <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="28" rx="7.2" ry="8" fill="#fff" stroke="#607d8b" stroke-width="1.5"/>
-                            <ellipse cx="41.5" cy="28.5" rx="4.0" ry="4.6" fill="url(#cat-old-iris)"/>
-                            <ellipse cx="41.6" cy="28.8" rx="2.0" ry="3.0" fill="#0a0812"/>
-                            <circle cx="42.6" cy="25.4" r="2.3" fill="#e0f7fa" opacity="0.96"/>
-                            <circle cx="40.2" cy="30.2" r="1.0" fill="#e0f7fa" opacity="0.55"/>
-                            <ellipse cx="59" cy="28" rx="7.2" ry="8" fill="#fff" stroke="#607d8b" stroke-width="1.5"/>
-                            <ellipse cx="59.5" cy="28.5" rx="4.0" ry="4.6" fill="url(#cat-old-iris)"/>
-                            <ellipse cx="59.6" cy="28.8" rx="2.0" ry="3.0" fill="#0a0812"/>
-                            <circle cx="60.6" cy="25.4" r="2.3" fill="#e0f7fa" opacity="0.96"/>
-                            <circle cx="58.2" cy="30.2" r="1.0" fill="#e0f7fa" opacity="0.55"/>
-                            <path d="M 33.3 27 Q 41 23.6 48.7 27" fill="#607d8b" opacity="0.72"/>
-                            <path d="M 51.3 27 Q 59 23.6 66.7 27" fill="#607d8b" opacity="0.72"/>
+                            <ellipse cx="40" cy="26" rx="7" ry="8.2" fill="#f8fbff" stroke="#546e7a" stroke-width="1.45"/>
+                            <ellipse cx="40.3" cy="26.4" rx="3.6" ry="5.9" fill="url(#cat-old-iris)"/>
+                            <ellipse cx="40.35" cy="26.5" rx="1.0" ry="5.1" fill="#0a0614"/>
+                            <circle cx="41.4" cy="23.7" r="2.0" fill="#e0f7fa" opacity="0.95"/>
+                            <circle cx="39.1" cy="28.5" r="0.8" fill="#e0f7fa" opacity="0.5"/>
+                            <ellipse cx="60" cy="26" rx="7" ry="8.2" fill="#f8fbff" stroke="#546e7a" stroke-width="1.45"/>
+                            <ellipse cx="60.3" cy="26.4" rx="3.6" ry="5.9" fill="url(#cat-old-iris)"/>
+                            <ellipse cx="60.35" cy="26.5" rx="1.0" ry="5.1" fill="#0a0614"/>
+                            <circle cx="61.4" cy="23.7" r="2.0" fill="#e0f7fa" opacity="0.95"/>
+                            <circle cx="59.1" cy="28.5" r="0.8" fill="#e0f7fa" opacity="0.5"/>
+                            <path d="M 32.6 25.5 Q 40 20.26 47.4 25.5" fill="#546e7a" opacity="0.78"/>
+                            <path d="M 52.6 25.5 Q 60 20.26 67.4 25.5" fill="#546e7a" opacity="0.78"/>
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33.8 28 Q 41 24.5 48.2 28" stroke="#607d8b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 51.8 28 Q 59 24.5 66.2 28" stroke="#607d8b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 33 26 Q 40 22.8 47 26" stroke="#546e7a" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                            <path d="M 53 26 Q 60 22.8 67 26" stroke="#546e7a" stroke-width="2.3" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 42 Q 50 47.5 57 42" stroke="#607d8b" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 44 Q 50 38 57 44" stroke="#607d8b" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-happy" d="M 43.8 40 Q 46.9 44.5 50 41.5 Q 53.1 44.5 56.2 40" stroke="#546e7a" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 43 Q 50 37.5 56.2 43" stroke="#546e7a" stroke-width="1.9" fill="none" stroke-linecap="round"/>
                 </g>
 
                 <!-- PHOENIX CHARACTER - All Life Stages (dense cute epic v3) -->
@@ -27496,7 +28129,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         const stageGr = MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage;
         const charMeta = !isEgg && tamagotchiCharacterType ? MASCOT_CHARACTERS[tamagotchiCharacterType] : null;
         const characterName = isEgg
-            ? 'Μυστικό Ωό'
+            ? 'Μυστήριο αυγάκι'
             : (charMeta?.name || 'Mascot');
         const avatarEmoji = isEgg ? '🥚' : (charMeta?.emoji || '🐾');
         const fullness = Math.round(petStats.hunger * 10) / 10;
@@ -27534,6 +28167,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
             if (tamagotchiNeedsScold) {
                 return { level: 'info', icon: '👎', text: 'Χρειάζεται επίπληξη για πειθαρχία.' };
+            }
+            const fav = getActiveMascotPrefs()?.favorite;
+            const favLabel = fav ? MASCOT_CARE_ACTION_LABELS_GR[fav] : null;
+            if (favLabel) {
+                return { level: 'ok', icon: '✨', text: `Όλα καλά! Αγαπημένο: ${favLabel} (bonus χαρά).` };
             }
             return { level: 'ok', icon: '✨', text: 'Όλα καλά! Χάδι ή παιχνίδι για επιπλέον χαρά.' };
         }
@@ -27678,30 +28316,30 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 <div class="tm-mascot-actions-section">
                     <h3 class="tm-actions-title">Γρήγορη φροντίδα</h3>
                     <div class="tm-mascot-actions tm-actions-primary">
-                        <button type="button" class="tm-action-btn tm-action-meal ${feedUrgent ? 'tm-action-urgent' : ''}" id="tm-action-meal" title="Γεύμα (+30 φαγητό)">
+                        <button type="button" class="tm-action-btn tm-action-meal ${feedUrgent ? 'tm-action-urgent' : ''}" id="tm-action-meal" title="Γεύμα (+30 φαγητό) — ${getMascotCareCoinCost('meal')}🪙">
                             <span class="tm-action-icon">🍖</span>
                             <span class="tm-action-label">Γεύμα</span>
-                            <span class="tm-action-hint">+30 φαγητό</span>
+                            <span class="tm-action-hint">${careCoinHint('+30 φαγητό', 'meal')}</span>
                         </button>
-                        <button type="button" class="tm-action-btn tm-action-snack" id="tm-action-snack" title="Σνακ (+10 φαγητό, +20 ευτυχία)">
+                        <button type="button" class="tm-action-btn tm-action-snack" id="tm-action-snack" title="Σνακ (+10 φαγητό, +20 ευτυχία) — ${getMascotCareCoinCost('snack')}🪙">
                             <span class="tm-action-icon">🍪</span>
                             <span class="tm-action-label">Σνακ</span>
-                            <span class="tm-action-hint">+φαγητό & χαρά</span>
+                            <span class="tm-action-hint">${careCoinHint('+φαγητό & χαρά', 'snack')}</span>
                         </button>
                         <button type="button" class="tm-action-btn tm-action-pet" id="tm-action-pet" title="Χάδι (+15 ευτυχία)">
                             <span class="tm-action-icon">💕</span>
                             <span class="tm-action-label">Χάδι</span>
                             <span class="tm-action-hint">+15 χαρά</span>
                         </button>
-                        <button type="button" class="tm-action-btn tm-action-clean ${cleanUrgent ? 'tm-action-urgent' : ''}" id="tm-action-clean" title="Καθάρισμα">
+                        <button type="button" class="tm-action-btn tm-action-clean ${cleanUrgent ? 'tm-action-urgent' : ''}" id="tm-action-clean" title="Καθάρισμα — ${getMascotCareCoinCost('clean')}🪙">
                             <span class="tm-action-icon">🧹</span>
                             <span class="tm-action-label">Καθάρισμα</span>
-                            <span class="tm-action-hint">Καθαρότητα</span>
+                            <span class="tm-action-hint">${careCoinHint('Καθαρότητα', 'clean')}</span>
                         </button>
-                        <button type="button" class="tm-action-btn tm-action-medicine ${medUrgent ? 'tm-action-urgent' : ''}" id="tm-action-medicine" title="Φάρμακο (+20 υγεία)">
+                        <button type="button" class="tm-action-btn tm-action-medicine ${medUrgent ? 'tm-action-urgent' : ''}" id="tm-action-medicine" title="Φάρμακο (+20 υγεία) — ${getMascotCareCoinCost('medicine')}🪙">
                             <span class="tm-action-icon">💊</span>
                             <span class="tm-action-label">Φάρμακο</span>
-                            <span class="tm-action-hint">+20 υγεία</span>
+                            <span class="tm-action-hint">${careCoinHint('+20 υγεία', 'medicine')}</span>
                         </button>
                         <button type="button" class="tm-action-btn tm-action-toilet ${cleanUrgent ? 'tm-action-urgent' : ''}" id="tm-action-toilet" title="Τουαλέτα (+3 πειθαρχία)">
                             <span class="tm-action-icon">🚽</span>
@@ -28123,6 +28761,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 return;
             }
             if (petStats.hunger < 100) {
+                if (!trySpendMascotCareCoins(STORAGE_KEYS, 'meal', config).ok) return;
                 const feedMessages = MASCOT_MESSAGES.feed;
                 updatePetStats(config, STORAGE_KEYS, 0, 30);
                 updateTamagotchiWeight('meal');
@@ -28130,6 +28769,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 trackDailyStat(config, STORAGE_KEYS, 'feedMascot');
                 setMascotState(config, 'eating', 2000);
                 showMascotBubble(feedMessages[Math.floor(Math.random() * feedMessages.length)], 2000);
+                applyMascotCarePreference('meal', config, STORAGE_KEYS);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
             } else {
@@ -28144,11 +28784,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 return;
             }
             if (petStats.hunger < 95 && petStats.happiness < 95) {
+                if (!trySpendMascotCareCoins(STORAGE_KEYS, 'snack', config).ok) return;
                 updatePetStats(config, STORAGE_KEYS, 20, 10);
                 updateTamagotchiWeight('snack');
                 tamagotchiLastFed = Date.now();
                 setMascotState(config, 'eating', 2000);
                 showMascotBubble(mascotMsg('snack'), 2000);
+                applyMascotCarePreference('snack', config, STORAGE_KEYS);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
             } else {
@@ -28166,6 +28808,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             setMascotState(config, 'happy', 2000);
             const petMessages = MASCOT_MESSAGES.pet;
             showMascotBubble(petMessages[Math.floor(Math.random() * petMessages.length)], 1500);
+            applyMascotCarePreference('pet', config, STORAGE_KEYS);
             saveTamagotchiData(STORAGE_KEYS);
             updateModalStats();
         });
@@ -28173,10 +28816,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         // Clean button
         modal.querySelector('#tm-action-clean')?.addEventListener('click', () => {
             if (tamagotchiPoopCount > 0) {
+                if (!trySpendMascotCareCoins(STORAGE_KEYS, 'clean', config).ok) return;
                 tamagotchiPoopCount = 0;
                 updatePetStats(config, STORAGE_KEYS, 10, 0);
                 const cleanMessages = MASCOT_MESSAGES.clean;
                 showMascotBubble(cleanMessages[Math.floor(Math.random() * cleanMessages.length)], 1500);
+                applyMascotCarePreference('clean', config, STORAGE_KEYS);
                 updatePoopIndicator();
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
@@ -28188,9 +28833,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         // Medicine button
         modal.querySelector('#tm-action-medicine')?.addEventListener('click', () => {
             if (tamagotchiHealth < 100) {
+                if (!trySpendMascotCareCoins(STORAGE_KEYS, 'medicine', config).ok) return;
                 tamagotchiHealth = Math.min(100, tamagotchiHealth + 20);
                 const medicineMessages = MASCOT_MESSAGES.medicine;
                 showMascotBubble(medicineMessages[Math.floor(Math.random() * medicineMessages.length)], 2000);
+                applyMascotCarePreference('medicine', config, STORAGE_KEYS);
                 updateTamagotchiStats(container);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
@@ -28214,6 +28861,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 } else {
                     showMascotBubble(MASCOT_MESSAGES.toiletRelief, 2000);
                 }
+                applyMascotCarePreference('toilet', config, STORAGE_KEYS);
                 updatePoopIndicator();
                 updateToiletNeedIndicator();
                 updateTamagotchiStats(container);
@@ -28222,6 +28870,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             } else {
                 tamagotchiLastPoopTime = Date.now();
                 showMascotBubble(MASCOT_MESSAGES.toiletOk, 2000);
+                applyMascotCarePreference('toilet', config, STORAGE_KEYS);
                 updateToiletNeedIndicator();
                 saveTamagotchiData(STORAGE_KEYS);
             }
@@ -28239,12 +28888,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 tamagotchiNeedsPraise = false;
                 showMascotBubble(MASCOT_MESSAGES.praiseThanks, 2000);
                 setMascotState(config, 'happy', 2000);
+                applyMascotCarePreference('praise', config, STORAGE_KEYS);
                 updateTamagotchiStats(container);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
             } else {
                 const randomPraise = MASCOT_MESSAGES.praise;
                 showMascotBubble(randomPraise[Math.floor(Math.random() * randomPraise.length)], 1500);
+                applyMascotCarePreference('praise', config, STORAGE_KEYS);
             }
         });
 
@@ -28260,6 +28911,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 tamagotchiNeedsScold = false;
                 showMascotBubble(MASCOT_MESSAGES.scoldSorry, 2500);
                 setMascotState(config, 'sad', 2500);
+                applyMascotCarePreference('scold', config, STORAGE_KEYS);
                 updateTamagotchiStats(container);
                 saveTamagotchiData(STORAGE_KEYS);
                 updateModalStats();
@@ -28268,6 +28920,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 updatePetStats(config, STORAGE_KEYS, -5, 0);
                 showMascotBubble(scoldMessages[Math.floor(Math.random() * scoldMessages.length)], 2000);
                 setMascotState(config, 'sad', 2000);
+                applyMascotCarePreference('scold', config, STORAGE_KEYS);
                 updateModalStats();
             }
         });
@@ -28279,6 +28932,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 return;
             }
             if (petStats.happiness < 100) {
+                applyMascotCarePreference('play', config, STORAGE_KEYS);
                 // Close stats modal and launch game
                 modal.remove();
                 showMascotMiniGame(config, STORAGE_KEYS);
@@ -28297,6 +28951,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             tamagotchiLightsOn = !tamagotchiLightsOn;
             tamagotchiLightsManualOverride = true;
             saveTamagotchiData(STORAGE_KEYS);
+            applyMascotCarePreference(tamagotchiLightsOn ? 'lights_on' : 'lights_off', config, STORAGE_KEYS);
             
             const lightsBtn = modal.querySelector('#tm-action-lights');
             if (lightsBtn) {
@@ -29647,6 +30302,12 @@ window.MASCOT_CHARACTERS = MASCOT_CHARACTERS;
 window.TAMA_CHARACTER_TYPES = TAMA_CHARACTER_TYPES;
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
 window.setMascotState = setMascotState;
+window.setMascotMood = setMascotMood;
+window.notifyMascotWorkEvent = notifyMascotWorkEvent;
+window.getMascotCareCoinCost = getMascotCareCoinCost;
+window.trySpendMascotCareCoins = trySpendMascotCareCoins;
+window.applyMascotCarePreference = applyMascotCarePreference;
+window.applyMascotShopCareEffect = applyMascotShopCareEffect;
 window.showMascotBubble = showMascotBubble;
 window.MASCOT_MESSAGES = MASCOT_MESSAGES;
 window.mascotMsg = mascotMsg;
@@ -29716,13 +30377,17 @@ const SHOP_CONSUMABLE_CATALOG = [
 
     // ── Mascot Care (hidden when mascot is off) ──
     { id: 'treat', name: 'Treat', icon: '🍪', cost: 30, type: 'consumable', group: 'mascot', mascotOnly: true,
-      desc: 'Snack — +35 happiness.', effect: { happiness: 35, mascotState: 'happy', mascotMs: 2000 } },
+      desc: 'Snack — +35 happiness.', effect: { happiness: 35, careAction: 'snack', mascotState: 'happy', mascotMs: 2000 } },
     { id: 'meal', name: 'Meal', icon: '🍱', cost: 30, type: 'consumable', group: 'mascot', mascotOnly: true,
-      desc: 'Full plate — +40 satiety.', effect: { satiety: 40, mascotState: 'eating', mascotMs: 2000 } },
+      desc: 'Full plate — +40 satiety.', effect: { satiety: 40, careAction: 'meal', mascotState: 'eating', mascotMs: 2000 } },
     { id: 'feast', name: 'Feast', icon: '🍜', cost: 85, type: 'consumable', group: 'mascot', mascotOnly: true,
-      desc: 'Big meal — +50 happiness & satiety.', effect: { happiness: 50, satiety: 50, mascotState: 'eating', mascotMs: 3000 } },
+      desc: 'Big meal — +50 happiness & satiety.', effect: { happiness: 50, satiety: 50, careAction: 'meal', mascotState: 'eating', mascotMs: 3000 } },
+    { id: 'medicine', name: 'Medicine', icon: '💊', cost: 40, type: 'consumable', group: 'mascot', mascotOnly: true,
+      desc: 'Heal +20 health.', effect: { health: 20, careAction: 'medicine', mascotState: 'happy', mascotMs: 2000 } },
+    { id: 'clean_kit', name: 'Clean Kit', icon: '🧹', cost: 25, type: 'consumable', group: 'mascot', mascotOnly: true,
+      desc: 'Clear mess + happiness boost.', effect: { clean: true, happiness: 10, careAction: 'clean', mascotState: 'happy', mascotMs: 2000 } },
     { id: 'spa_day', name: 'Spa Day', icon: '💆', cost: 130, type: 'consumable', group: 'mascot', mascotOnly: true,
-      desc: 'Max both stats + sparkles.', effect: { maxStats: true, visual: 'sparkles', mascotState: 'happy', mascotMs: 4000 } },
+      desc: 'Max both stats + sparkles.', effect: { maxStats: true, clean: true, health: 30, careAction: 'clean', visual: 'sparkles', mascotState: 'happy', mascotMs: 4000 } },
 
     // ── Celebrations (pure fun, each with a unique visual) ──
     { id: 'confetti_pop', name: 'Confetti Pop', icon: '🎉', cost: 20, type: 'consumable', group: 'fun',
@@ -29830,6 +30495,10 @@ function executeConsumableEffect(effect, item, config, STORAGE_KEYS) {
     }
     if ((happiness || satiety) && typeof window.updatePetStats === 'function') {
         window.updatePetStats(config, STORAGE_KEYS, happiness, satiety);
+    }
+
+    if (typeof window.applyMascotShopCareEffect === 'function' && isInteractiveMascotShopEnabled(config)) {
+        window.applyMascotShopCareEffect(effect, config, STORAGE_KEYS);
     }
 
     if (effect.mascotState && typeof window.setMascotState === 'function' && isInteractiveMascotShopEnabled(config)) {
@@ -32768,8 +33437,12 @@ function initOrderTracking(config, STORAGE_KEYS) {
                 
                 // Show feedback
                 if (config.interactiveMascotEnabled) {
-                    setMascotState(config, 'happy', 3000);
-                    showMascotBubble(window.mascotMsg?.('orderSave') || 'Νέα παραγγελία!', 2000);
+                    if (typeof window.notifyMascotWorkEvent === 'function') {
+                        window.notifyMascotWorkEvent('newOrder', config);
+                    } else {
+                        setMascotState(config, 'happy', 3000);
+                        showMascotBubble(window.mascotMsg?.('orderSave') || 'Νέα παραγγελία!', 2000);
+                    }
                 }
             }, 100);
         }, { once: false });
@@ -32827,7 +33500,11 @@ function initFunFeatures(config, STORAGE_KEYS) {
                                 trackDailyStat(config, STORAGE_KEYS, 'ordersCreated');
                                 
                                 if (config.interactiveMascotEnabled) {
-                                    showMascotBubble(window.mascotMsg?.('orderPart') || 'Παραγγελία ανταλλακτικού!', 2500);
+                                    if (typeof window.notifyMascotWorkEvent === 'function') {
+                                        window.notifyMascotWorkEvent('newOrder', config);
+                                    } else {
+                                        showMascotBubble(window.mascotMsg?.('orderPart') || 'Παραγγελία ανταλλακτικού!', 2500);
+                                    }
                                 }
                             }
                             // Restore original confirm
@@ -32845,9 +33522,15 @@ function initFunFeatures(config, STORAGE_KEYS) {
                         if (button.innerHTML.includes('ΠΡΟΣ ΠΑΡΑΔΟΣΗ')) {
                             trackDailyStat(config, STORAGE_KEYS, 'repairsCompleted');
                             if (config.interactiveMascotEnabled) {
-                                setMascotState(config, 'happy', 5000);
+                                if (typeof window.notifyMascotWorkEvent === 'function') {
+                                    window.notifyMascotWorkEvent('repairDone', config);
+                                } else {
+                                    setMascotState(config, 'happy', 5000);
+                                }
                             }
                             if (config.confettiEnabled) triggerConfetti(100);
+                        } else if (config.interactiveMascotEnabled && typeof window.notifyMascotWorkEvent === 'function') {
+                            window.notifyMascotWorkEvent('statusChange', config);
                         }
                     }, 500);
                 });
@@ -32859,78 +33542,80 @@ function initFunFeatures(config, STORAGE_KEYS) {
 function getLevelUpSettingsHTML() {
     return `
         <div class="tm-settings-section">
-            <h3>💼 Λειτουργία Εργασίας</h3>
-            <p class="tm-setting-description" style="margin: 0 0 12px; font-size: 13px; color: var(--tm-secondary-hover);">
-                Όλα τα εργαλεία δουλειάς (EOD checklist, αναζήτηση, κατάλογος κ.λπ.) είναι δωρεάν από τις Ρυθμίσεις.
-                Το κατάστημα πωλεί μόνο θέματα, αξεσουάρ και προαιρετικά game extras.
-            </p>
-            <div class="tm-setting-row" style="background: #f0f7ff; padding: 12px; border: 1px solid #bfdbfe; border-radius: 8px; margin-bottom: 12px;">
+            <header class="tm-settings-section-head">
+                <h3>Λειτουργία εργασίας</h3>
+                <p class="tm-settings-section-desc">Εργαλεία δουλειάς δωρεάν από ρυθμίσεις. Το κατάστημα πουλάει μόνο cosmetics.</p>
+            </header>
+            <div class="tm-setting-row tm-setting-row--accent">
                 <div class="tm-setting-label">
                     <label>Γρήγορα profiles</label>
-                    <p class="tm-setting-description">Professional: μόνο εργαλεία δουλειάς. Gamification: XP, mascot, κατάστημα.</p>
+                    <p class="tm-setting-description">Professional: μόνο εργαλεία. Gamification: XP, mascot, κατάστημα.</p>
                 </div>
-                <div class="tm-setting-control" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button type="button" id="tm-setting-professional-mode-btn" style="padding: 8px 14px; border-radius: 8px; border: 1px solid #64748b; background: #fff; cursor: pointer; font-weight: 600;">💼 Professional</button>
-                    <button type="button" id="tm-setting-gamification-mode-btn" style="padding: 8px 14px; border-radius: 8px; border: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; cursor: pointer; font-weight: 600;">🎮 Gamification</button>
+                <div class="tm-setting-control tm-setting-control--wrap">
+                    <button type="button" id="tm-setting-professional-mode-btn" class="tm-settings-ghost-btn">Professional</button>
+                    <button type="button" id="tm-setting-gamification-mode-btn" class="tm-settings-primary-btn">Gamification</button>
                 </div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-eod-checklist-enabled">🌙 Checklist Τέλους Ημέρας</label>
-                    <p class="tm-setting-description">Κουμπί 📋 στο footer για έλεγχο επισκευών της ημέρας πριν φύγετε. Δωρεάν — χωρίς αγορά από κατάστημα.</p>
+                    <label for="tm-setting-eod-checklist-enabled">Checklist τέλους ημέρας</label>
+                    <p class="tm-setting-description">Κουμπί στο footer για έλεγχο επισκευών πριν φύγετε.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-eod-checklist-enabled"></div>
             </div>
         </div>
 
         <div class="tm-settings-section">
-            <h3>🎮 Παιχνιδοποίηση (Gamification)</h3>
-            <p class="tm-setting-description" style="margin: 0 0 12px; font-size: 13px; color: var(--tm-secondary-hover);">
-                Προαιρετικό επίπεδο παιχνιδιού — μπορείτε να το απενεργοποιήσετε πλήρως χωρίς να χάσετε εργαλεία δουλειάς.
-            </p>
+            <header class="tm-settings-section-head">
+                <h3>Παιχνιδοποίηση</h3>
+                <p class="tm-settings-section-desc">Προαιρετικό — απενεργοποιήστε χωρίς να χάσετε εργαλεία δουλειάς.</p>
+            </header>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-levelup-enabled">⭐ Σύστημα Επιπέδων</label>
-                    <p class="tm-setting-description">Κερδίστε XP και ανεβείτε επίπεδο ολοκληρώνοντας επισκευές και εργασίες.</p>
+                    <label for="tm-setting-levelup-enabled">Σύστημα επιπέδων</label>
+                    <p class="tm-setting-description">XP και επίπεδα από επισκευές και εργασίες.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-levelup-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-confetti-enabled">🎉 Εφέ Κομφετί</label>
-                    <p class="tm-setting-description">Οπτικά εφέ κομφετί σε επιτυχίες και milestone events.</p>
+                    <label for="tm-setting-confetti-enabled">Εφέ κομφετί</label>
+                    <p class="tm-setting-description">Οπτικά εφέ σε επιτυχίες και milestones.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-confetti-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-achievements-enabled">🏆 Επιτεύγματα</label>
-                    <p class="tm-setting-description">Ξεκλειδώστε επιτεύγματα για ειδικές ενέργειες και στόχους.</p>
+                    <label for="tm-setting-achievements-enabled">Επιτεύγματα</label>
+                    <p class="tm-setting-description">Ξεκλείδωμα για ειδικές ενέργειες και στόχους.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-achievements-enabled"></div>
             </div>
         </div>
-        
+
         <div class="tm-settings-section">
-            <h3>🚀 Προχωρημένα Χαρακτηριστικά</h3>
+            <header class="tm-settings-section-head">
+                <h3>Προχωρημένα</h3>
+                <p class="tm-settings-section-desc">Extra παιχνιδιού και εμφανίσεις.</p>
+            </header>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-random-events-enabled">⚡ Τυχαία Γεγονότα</label>
-                    <p class="tm-setting-description">Τυχαία events που εμφανίζονται και παρέχουν μπόνους (2x νομίσματα, 2x XP, κ.λπ.).</p>
+                    <label for="tm-setting-random-events-enabled">Τυχαία γεγονότα</label>
+                    <p class="tm-setting-description">Μπόνους όπως 2× νομίσματα ή XP.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-random-events-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-personal-dashboard-enabled">📊 Προσωπικός Πίνακας</label>
-                    <p class="tm-setting-description">Προβολή αναλυτικών στοιχείων, γραφημάτων και στατιστικών απόδοσης.</p>
+                    <label for="tm-setting-personal-dashboard-enabled">Προσωπικός πίνακας</label>
+                    <p class="tm-setting-description">Αναλυτικά στοιχεία και γραφήματα.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-personal-dashboard-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-shop-enabled">🪙 Κατάστημα (Cosmetics)</label>
-                    <p class="tm-setting-description">Θέματα, αξεσουάρ mascot και προαιρετικά game extras — όχι εργαλεία δουλειάς.</p>
+                    <label for="tm-setting-shop-enabled">Κατάστημα (cosmetics)</label>
+                    <p class="tm-setting-description">Θέματα, αξεσουάρ και game extras.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-shop-enabled"></div>
             </div>
@@ -32940,20 +33625,26 @@ function getLevelUpSettingsHTML() {
 function getMascotSettingsHTML() {
     return `
         <div class="tm-settings-section">
-            <h3>🤖 Mascot</h3>
+            <header class="tm-settings-section-head">
+                <h3>Mascot</h3>
+                <p class="tm-settings-section-desc">Διαδραστικός βοηθός στην οθόνη.</p>
+            </header>
             <div class="tm-setting-row">
-                <div class="tm-setting-label"><label for="tm-setting-mascot-enabled">Ενεργοποίηση Mascot</label><p class="tm-setting-description">Εμφανίζει έναν διαδραστικό βοηθό στην οθόνη.</p></div>
+                <div class="tm-setting-label">
+                    <label for="tm-setting-mascot-enabled">Ενεργοποίηση</label>
+                    <p class="tm-setting-description">Εμφάνιση του mascot.</p>
+                </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-mascot-enabled"></div>
-        </div>
-        <div class="tm-setting-row">
-            <div class="tm-setting-label">
-                <label for="tm-setting-mascot-speed">Ταχύτητα Περιπλάνησης</label>
-                <p class="tm-setting-description">Ορίστε την ταχύτητα κίνησης του mascot (pixels ανά δευτερόλεπτο).</p>
             </div>
-            <div class="tm-setting-control">
-                <input type="number" id="tm-setting-mascot-speed" min="25" max="500" step="25">
+            <div class="tm-setting-row">
+                <div class="tm-setting-label">
+                    <label for="tm-setting-mascot-speed">Ταχύτητα περιπλάνησης</label>
+                    <p class="tm-setting-description">Pixels ανά δευτερόλεπτο.</p>
+                </div>
+                <div class="tm-setting-control">
+                    <input type="number" id="tm-setting-mascot-speed" min="25" max="500" step="25">
+                </div>
             </div>
-        </div>
         </div>`;
 }
 
@@ -48028,6 +48719,10 @@ if (typeof window !== 'undefined') {
 
     function showEODModal(STORAGE_KEYS) {
         document.getElementById('tm-eod-modal')?.remove();
+
+        if (typeof window.notifyMascotWorkEvent === 'function') {
+            window.notifyMascotWorkEvent('eod', window.config);
+        }
 
         const today      = getTodaysRepairs(STORAGE_KEYS);
         const dismissed  = getDismissed(STORAGE_KEYS);

@@ -415,51 +415,54 @@
             // Merged General and Login settings
             return `
                 <div class="tm-settings-section">
-                    <h3>⚙️ Γενικές Ρυθμίσεις</h3>
-                    <div class="tm-setting-row" style="background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%); padding: 12px; border: 2px solid #ff4757; border-radius: 8px; margin-bottom: 15px;">
+                    <header class="tm-settings-section-head">
+                        <h3>Γενικές</h3>
+                        <p class="tm-settings-section-desc">Βασικές επιλογές εμφάνισης και λειτουργίας.</p>
+                    </header>
+                    <div class="tm-setting-row tm-setting-row--danger">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-script-enabled" style="color: white; font-weight: 700; font-size: 14px;">⚡ Ενεργοποίηση Script (Κύριος Διακόπτης)</label>
-                            <p class="tm-setting-description" style="color: white; opacity: 0.95; font-weight: 500;">Απενεργοποιεί όλες τις λειτουργίες του script. Αποεπιλέξτε για να κλείσει τα πάντα. Χρησιμοποιήστε Ctrl+Shift+E για γρήγορη εναλλαγή.</p>
+                            <label for="tm-setting-script-enabled">Κύριος διακόπτης</label>
+                            <p class="tm-setting-description">Απενεργοποιεί όλες τις λειτουργίες. Ctrl+Shift+E για γρήγορη εναλλαγή.</p>
                         </div>
                         <div class="tm-setting-control">
-                            <input type="checkbox" id="tm-setting-script-enabled" style="transform: scale(1.3);">
+                            <input type="checkbox" id="tm-setting-script-enabled">
                         </div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-notifications-enabled">🔔 Ειδοποιήσεις</label>
-                            <p class="tm-setting-description">Εμφανίζει το κουμπί 🔔 και όλες τις εισερχόμενες ειδοποιήσεις (popups, achievements, υπενθυμίσεις). Απενεργοποιήστε για ήσυχη λειτουργία.</p>
+                            <label for="tm-setting-notifications-enabled">Ειδοποιήσεις</label>
+                            <p class="tm-setting-description">Popups, achievements και υπενθυμίσεις.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-notifications-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-dashboard-enabled">📊 Εμφάνιση Widget "Σήμερα"</label>
-                            <p class="tm-setting-description">Εμφανίζει ένα widget με στατιστικά και πληροφορίες για την τρέχουσα ημέρα.</p>
+                            <label for="tm-setting-dashboard-enabled">Widget «Σήμερα»</label>
+                            <p class="tm-setting-description">Στατιστικά της τρέχουσας ημέρας στο footer.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-dashboard-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-scroll-top-enabled">⬆️ Κουμπί Επιστροφής στην Κορυφή</label>
-                            <p class="tm-setting-description">Προσθέτει ένα κουμπί για γρήγορη επιστροφή στην κορυφή της σελίδας.</p>
+                            <label for="tm-setting-scroll-top-enabled">Επιστροφή στην κορυφή</label>
+                            <p class="tm-setting-description">Κουμπί γρήγορης κύλισης πάνω.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-scroll-top-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-hidden-menu-enabled">📋 Απόκρυψη Αριστερού Μενού</label>
-                            <p class="tm-setting-description">Διαχειριστείτε ποια στοιχεία του αριστερού μενού εμφανίζονται από το «Κρυφά Στοιχεία Μενού». Το μενού δεν εμφανίζεται μέχρι να εφαρμοστούν οι ρυθμίσεις (όπως με τα themes).</p>
+                            <label for="tm-setting-hidden-menu-enabled">Απόκρυψη αριστερού μενού</label>
+                            <p class="tm-setting-description">Επιλέξτε ποια στοιχεία εμφανίζονται.</p>
                         </div>
-                        <div class="tm-setting-control" style="display:flex;align-items:center;gap:10px;">
+                        <div class="tm-setting-control">
                             <input type="checkbox" id="tm-setting-hidden-menu-enabled">
-                            <button type="button" id="tm-manage-hidden-menu-btn" style="padding:6px 10px;border:none;border-radius:6px;cursor:pointer;background:#667eea;color:#fff;font-size:12px;font-weight:600;">Κρυφά Στοιχεία</button>
+                            <button type="button" id="tm-manage-hidden-menu-btn" class="tm-settings-ghost-btn">Κρυφά στοιχεία</button>
                         </div>
                     </div>
-                    <div class="tm-setting-row" style="background: #fffbe6; padding-top: 10px; padding-bottom: 10px; border: 1px solid #ffe58f; border-radius: 5px;">
+                    <div class="tm-setting-row tm-setting-row--warn">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-debug-enabled">🔐 Λειτουργία Ανάπτυξης (Προστατευμένη)</label>
-                            <p class="tm-setting-description">Ενεργοποιεί επιλογές για δοκιμές και δωρεάν αντικείμενα στο κατάστημα. <strong>Απαιτείται κωδικός πρόσβασης.</strong></p>
+                            <label for="tm-setting-debug-enabled">Λειτουργία ανάπτυξης</label>
+                            <p class="tm-setting-description">Δοκιμές και δωρεάν αντικείμενα. Απαιτεί κωδικό.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-debug-enabled"></div>
                     </div>
@@ -470,114 +473,119 @@
         function getDebugSettingsHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>🔧 Εργαλεία Debug</h3>
+                    <header class="tm-settings-section-head">
+                        <h3>Εργαλεία debug</h3>
+                        <p class="tm-settings-section-desc">Μόνο για δοκιμές — μην χρησιμοποιείτε σε κανονική εργασία.</p>
+                    </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label"><label for="tm-debug-level-input">Ορισμός Level</label></div>
-                        <div class="tm-setting-control"><input type="number" id="tm-debug-level-input" min="1" value="${GM_getValue(STORAGE_KEYS.USER_LEVEL, 1)}"><button id="tm-debug-set-level-btn">Set</button></div>
+                        <div class="tm-setting-control"><input type="number" id="tm-debug-level-input" min="1" value="${GM_getValue(STORAGE_KEYS.USER_LEVEL, 1)}"><button type="button" id="tm-debug-set-level-btn" class="tm-settings-ghost-btn">Set</button></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label"><label for="tm-debug-xp-input">Προσθήκη XP</label></div>
-                        <div class="tm-setting-control"><input type="number" id="tm-debug-xp-input" value="100"><button id="tm-debug-add-xp-btn">Add</button></div>
+                        <div class="tm-setting-control"><input type="number" id="tm-debug-xp-input" value="100"><button type="button" id="tm-debug-add-xp-btn" class="tm-settings-ghost-btn">Add</button></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label"><label for="tm-debug-coins-input">Προσθήκη Coins</label></div>
-                        <div class="tm-setting-control"><input type="number" id="tm-debug-coins-input" value="1000"><button id="tm-debug-add-coins-btn">Add</button></div>
+                        <div class="tm-setting-control"><input type="number" id="tm-debug-coins-input" value="1000"><button type="button" id="tm-debug-add-coins-btn" class="tm-settings-ghost-btn">Add</button></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label"><label>Trigger Random Event</label></div>
-                        <div class="tm-setting-control"><button id="tm-debug-trigger-event-btn" style="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🎲 Trigger Event</button></div>
+                        <div class="tm-setting-control"><button type="button" id="tm-debug-trigger-event-btn" class="tm-settings-ghost-btn">Trigger Event</button></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label"><label>Stop Random Event</label></div>
-                        <div class="tm-setting-control"><button id="tm-debug-stop-event-btn" style="background: linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🛑 Stop Event</button></div>
+                        <div class="tm-setting-control"><button type="button" id="tm-debug-stop-event-btn" class="tm-settings-ghost-btn">Stop Event</button></div>
                     </div>
-                    <div class="tm-setting-row" style="border-top: 2px solid #26c6da; margin-top: 20px; padding-top: 20px;">
+                    <div class="tm-setting-row tm-setting-row--divider">
                         <div class="tm-setting-label">
-                            <label>Mascot Evolution Control</label>
-                            <p class="tm-setting-description">Force hatch the egg or reset back to egg state. Current character will be random on next hatch.</p>
+                            <label>Mascot evolution</label>
+                            <p class="tm-setting-description">Force hatch ή reset σε αυγό. Ο χαρακτήρας είναι τυχαίος στο επόμενο hatch.</p>
                         </div>
-                        <div class="tm-setting-control" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button id="tm-debug-hatch-egg-btn" style="background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🐣 Force Hatch</button>
-                            <button id="tm-debug-reset-egg-btn" style="background: linear-gradient(135deg, #ff9800 0%, #e65100 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🥚 Reset to Egg</button>
-                            <button id="tm-debug-age-up-btn" style="background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">⏭️ Age +10 Years</button>
+                        <div class="tm-setting-control tm-setting-control--wrap">
+                            <button type="button" id="tm-debug-hatch-egg-btn" class="tm-settings-ghost-btn">Force Hatch</button>
+                            <button type="button" id="tm-debug-reset-egg-btn" class="tm-settings-ghost-btn">Reset to Egg</button>
+                            <button type="button" id="tm-debug-age-up-btn" class="tm-settings-ghost-btn">Age +10</button>
                         </div>
                     </div>
                 </div>
-                
-                <div class="tm-settings-section" style="margin-top: 20px; border-top: 2px solid #4facfe; padding-top: 20px;">
-                    <h3>🤖 Mascot Appearance Tester</h3>
-                    <p class="tm-setting-description" style="margin-bottom: 15px;">Preview all mascot states and stages. The mascot will return to normal after 5 seconds.</p>
-                    
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label"><label>Mascot States</label></div>
-                        <div class="tm-setting-control" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;">
-                            <button class="tm-mascot-state-btn" data-state="idle">🧍 Idle</button>
-                            <button class="tm-mascot-state-btn" data-state="happy">😊 Happy</button>
-                            <button class="tm-mascot-state-btn" data-state="sad">😢 Sad</button>
-                            <button class="tm-mascot-state-btn" data-state="eating">🍔 Eating</button>
-                            <button class="tm-mascot-state-btn" data-state="thinking">🤔 Thinking</button>
-                            <button class="tm-mascot-state-btn" data-state="dodging">💨 Dodging</button>
-                            <button class="tm-mascot-state-btn" data-state="searching">🔍 Searching</button>
-                            <button class="tm-mascot-state-btn" data-state="reading">📖 Reading</button>
-                            <button class="tm-mascot-state-btn" data-state="biking">🚴 Biking</button>
-                            <button class="tm-mascot-state-btn" data-state="juggling">🤹 Juggling</button>
-                            <button class="tm-mascot-state-btn" data-state="energized">⚡ Energized</button>
-                            <button class="tm-mascot-state-btn" data-state="glitching">⚠️ Glitching</button>
-                            <button class="tm-mascot-state-btn" data-state="eureka">💡 Eureka</button>
-                            <button class="tm-mascot-state-btn" data-state="sunny">☀️ Sunny</button>
-                            <button class="tm-mascot-state-btn" data-state="rainy">🌧️ Rainy</button>
-                            <button class="tm-mascot-state-btn" data-state="powersave">😴 Sleep</button>
-                        </div>
-                    </div>
-                    
-                    <div class="tm-setting-row" style="margin-top: 15px;">
-                        <div class="tm-setting-label">
-                            <label>Mascot Character</label>
-                            <p class="tm-setting-description">Επίλεξε χαρακτήρα (αποθηκεύεται). Αν είναι αυγό, προχωρά σε baby για να φανεί.</p>
-                        </div>
-                        <div class="tm-setting-control" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;">
-                            <button type="button" class="tm-mascot-char-btn" data-character="dragon">🐉 Dragon</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="robot">🤖 Robot</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="slime">🟢 Slime</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="plant">🌱 Plant</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="ghost">👻 Ghost</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="cat">🐱 Cat</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="phoenix">🔥 Phoenix</button>
-                            <button type="button" class="tm-mascot-char-btn" data-character="crystal">💎 Crystal</button>
+
+                <div class="tm-settings-section">
+                    <header class="tm-settings-section-head">
+                        <h3>Mascot tester</h3>
+                        <p class="tm-settings-section-desc">Προεπισκόπηση — επιστρέφει στο κανονικό μετά από ~5 δευτ.</p>
+                    </header>
+
+                    <div class="tm-setting-row tm-setting-row--stack">
+                        <div class="tm-setting-label"><label>States</label></div>
+                        <div class="tm-setting-control tm-setting-control--grid">
+                            <button type="button" class="tm-mascot-state-btn" data-state="idle">Idle</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="happy">Happy</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="sad">Sad</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="eating">Eating</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="thinking">Thinking</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="dodging">Dodging</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="searching">Searching</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="reading">Reading</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="biking">Biking</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="juggling">Juggling</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="energized">Energized</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="glitching">Glitching</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="eureka">Eureka</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="sunny">Sunny</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="rainy">Rainy</button>
+                            <button type="button" class="tm-mascot-state-btn" data-state="powersave">Sleep</button>
                         </div>
                     </div>
 
-                    <div class="tm-setting-row" style="margin-top: 15px;">
-                        <div class="tm-setting-label"><label>Mascot Stages (Evolution)</label></div>
-                        <div class="tm-setting-control" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px;">
-                            <button class="tm-mascot-stage-btn" data-stage="egg">🥚 Egg</button>
-                            <button class="tm-mascot-stage-btn" data-stage="baby">👶 Baby</button>
-                            <button class="tm-mascot-stage-btn" data-stage="kid">🧒 Kid</button>
-                            <button class="tm-mascot-stage-btn" data-stage="teen">🧑 Teen</button>
-                            <button class="tm-mascot-stage-btn" data-stage="adult">👨 Adult</button>
-                            <button class="tm-mascot-stage-btn" data-stage="middleage">🧔 Middle Age</button>
-                            <button class="tm-mascot-stage-btn" data-stage="old">👴 Old</button>
+                    <div class="tm-setting-row tm-setting-row--stack">
+                        <div class="tm-setting-label">
+                            <label>Character</label>
+                            <p class="tm-setting-description">Αποθηκεύεται. Αν είναι αυγό, προχωρά σε baby για προβολή.</p>
+                        </div>
+                        <div class="tm-setting-control tm-setting-control--grid">
+                            <button type="button" class="tm-mascot-char-btn" data-character="dragon">Dragon</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="robot">Robot</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="slime">Slime</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="plant">Plant</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="ghost">Ghost</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="cat">Cat</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="phoenix">Phoenix</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="crystal">Crystal</button>
                         </div>
                     </div>
-                    
-                    <div class="tm-setting-row" style="margin-top: 15px;">
-                        <div class="tm-setting-label"><label>Quick Tests</label></div>
-                        <div class="tm-setting-control" style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            <button id="tm-mascot-test-bubble" style="background: linear-gradient(135deg, #00c9ff 0%, #92fe9d 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">💬 Show Bubble</button>
-                            <button id="tm-mascot-test-dodge" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">💨 Trigger Dodge</button>
-                            <button id="tm-mascot-test-confetti" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🎉 Confetti</button>
-                            <button id="tm-mascot-reset" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🔄 Reset to Normal</button>
+
+                    <div class="tm-setting-row tm-setting-row--stack">
+                        <div class="tm-setting-label"><label>Stages</label></div>
+                        <div class="tm-setting-control tm-setting-control--grid">
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="egg">Egg</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="baby">Baby</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="kid">Kid</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="teen">Teen</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="adult">Adult</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="middleage">Middle Age</button>
+                            <button type="button" class="tm-mascot-stage-btn" data-stage="old">Old</button>
+                        </div>
+                    </div>
+
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label"><label>Quick tests</label></div>
+                        <div class="tm-setting-control tm-setting-control--wrap">
+                            <button type="button" id="tm-mascot-test-bubble" class="tm-settings-ghost-btn">Bubble</button>
+                            <button type="button" id="tm-mascot-test-dodge" class="tm-settings-ghost-btn">Dodge</button>
+                            <button type="button" id="tm-mascot-test-confetti" class="tm-settings-ghost-btn">Confetti</button>
+                            <button type="button" id="tm-mascot-reset" class="tm-settings-ghost-btn">Reset</button>
                         </div>
                     </div>
                 </div>
-                
-                <div class="tm-settings-section" style="margin-top: 20px;">
-                    <div class="tm-setting-row" style="border-top: 2px solid #ff5252; padding-top: 20px;">
+
+                <div class="tm-settings-section">
+                    <div class="tm-setting-row tm-setting-row--danger">
                         <div class="tm-setting-label">
-                            <label>Clear Dashboard Stats</label>
-                            <p class="tm-setting-description" style="color: #ff5252; font-weight: 600;">⚠️ DANGER: This will clear ALL status transfer history, counters, and dashboard statistics. This cannot be undone!</p>
+                            <label>Clear dashboard stats</label>
+                            <p class="tm-setting-description">Διαγράφει ιστορικό status, counters και στατιστικά. Δεν αναιρείται.</p>
                         </div>
-                        <div class="tm-setting-control"><button id="tm-debug-clear-dashboard-btn" style="background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%); color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">🗑️ Clear Dashboard Stats</button></div>
+                        <div class="tm-setting-control"><button type="button" id="tm-debug-clear-dashboard-btn" class="tm-settings-danger-btn">Clear stats</button></div>
                     </div>
                 </div>
             `;
@@ -588,120 +596,127 @@
             const status40AdminPass = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_PASSWORD, '');
             return `
                 <div class="tm-settings-section">
-                    <h3>🔍 Αναζήτηση & Εργαλεία</h3>
+                    <header class="tm-settings-section-head">
+                        <h3>Αναζήτηση &amp; εργαλεία</h3>
+                        <p class="tm-settings-section-desc">Εργαλεία δουλειάς — δωρεάν από τις ρυθμίσεις.</p>
+                    </header>
+                    <h4 class="tm-settings-subgroup">Αναζήτηση</h4>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-search-enabled">🔎 Προηγμένη Αναζήτηση</label>
-                            <p class="tm-setting-description">Προσθέτει προηγμένη αναζήτηση με φίλτρα και ταχεία αποτελέσματα για επισκευές, πελάτες και προϊόντα.</p>
+                            <label for="tm-setting-search-enabled">Προηγμένη αναζήτηση</label>
+                            <p class="tm-setting-description">Φίλτρα και ταχεία αποτελέσματα για επισκευές, πελάτες, προϊόντα.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-search-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-search-history-max">📜 Μέγεθος Ιστορικού Αναζητήσεων</label>
-                            <p class="tm-setting-description">Αριθμός πρόσφατων αναζητήσεων που θα αποθηκεύονται (0-50).</p>
+                            <label for="tm-setting-search-history-max">Μέγεθος ιστορικού</label>
+                            <p class="tm-setting-description">Πρόσφατες αναζητήσεις (0–50).</p>
                         </div>
                         <div class="tm-setting-control"><input type="number" id="tm-setting-search-history-max" min="0" max="50"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-quick-search-enabled">⚡ Κουμπιά Γρήγορης Αναζήτησης</label>
-                            <p class="tm-setting-description">Εμφανίζει κουμπιά για γρήγορη αναζήτηση ανταλλακτικών (π.χ. "Οθόνη", "Μπαταρία") στις σελίδες επισκευών.</p>
+                            <label for="tm-setting-quick-search-enabled">Κουμπιά γρήγορης αναζήτησης</label>
+                            <p class="tm-setting-description">Π.χ. «Οθόνη», «Μπαταρία» στις σελίδες επισκευών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-quick-search-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-tech-stats-enabled">📊 Στατιστικά Τεχνικών</label>
-                            <p class="tm-setting-description">Εμφανίζει στατιστικά απόδοσης για κάθε τεχνικό (επισκευές, μέσος χρόνος, κλπ.).</p>
+                            <label for="tm-setting-footer-quick-search-enabled">Γρήγορη αναζήτηση header</label>
+                            <p class="tm-setting-description">Στο header ή δίπλα στον τίτλο επισκευής.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-footer-quick-search-enabled"></div>
+                    </div>
+
+                    <h4 class="tm-settings-subgroup">Λίστα &amp; προβολή</h4>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-tech-stats-enabled">Στατιστικά τεχνικών</label>
+                            <p class="tm-setting-description">Απόδοση ανά τεχνικό.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-tech-stats-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-recent-repairs-enabled">📋 Πρόσφατες Επισκευές</label>
-                            <p class="tm-setting-description">Προσθέτει κουμπί για γρήγορη πρόσβαση στις πρόσφατες επισκευές.</p>
+                            <label for="tm-setting-recent-repairs-enabled">Πρόσφατες επισκευές</label>
+                            <p class="tm-setting-description">Γρήγορη πρόσβαση στις τελευταίες επισκευές.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-recent-repairs-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-repair-list-quickview-enabled">👁 Γρήγορη Προβολή Λίστας</label>
-                            <p class="tm-setting-description">Εμφανίζει το κουμπί 👁 σε κάθε γραμμή λίστας επισκευών για προεπισκόπηση χωρίς αλλαγή σελίδας.</p>
+                            <label for="tm-setting-repair-list-quickview-enabled">Γρήγορη προβολή λίστας</label>
+                            <p class="tm-setting-description">Προεπισκόπηση χωρίς αλλαγή σελίδας.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-repair-list-quickview-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-recent-repairs-max">🔢 Αριθμός Πρόσφατων Επισκευών</label>
-                            <p class="tm-setting-description">Πόσες πρόσφατες επισκευές να εμφανίζονται στη λίστα (1-20).</p>
+                            <label for="tm-setting-recent-repairs-max">Αριθμός πρόσφατων</label>
+                            <p class="tm-setting-description">Πόσες να εμφανίζονται (1–20).</p>
                         </div>
                         <div class="tm-setting-control">
-                            <input type="number" id="tm-setting-recent-repairs-max" min="1" max="20" style="width: 80px; padding: 5px;">
+                            <input type="number" id="tm-setting-recent-repairs-max" min="1" max="20">
                         </div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-weather-widget-enabled">🌤️ Widget Καιρού</label>
-                            <p class="tm-setting-description">Εμφανίζει την τοπική πρόγνωση καιρού στο κέντρο του footer. Απενεργοποιήστε το αν προτιμάτε μόνο την γρήγορη αναζήτηση.</p>
+                            <label for="tm-setting-customer-history-enabled">Ιστορικό πελάτη</label>
+                            <p class="tm-setting-description">Γρήγορη προβολή στη λίστα επισκευών.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-customer-history-enabled"></div>
+                    </div>
+
+                    <h4 class="tm-settings-subgroup">Άλλα εργαλεία</h4>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-weather-widget-enabled">Widget καιρού</label>
+                            <p class="tm-setting-description">Πρόγνωση στο κέντρο του footer.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-weather-widget-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-footer-quick-search-enabled">🔍 Γρήγορη Αναζήτηση Header</label>
-                            <p class="tm-setting-description">Γρήγορη αναζήτηση: στο header (rnr-hfiller) σε όλες τις σελίδες, ή δίπλα στον τίτλο επισκευής στο service_edit. Κουμπί ✕ για απόκρυψη native .rnr-b-search.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-footer-quick-search-enabled"></div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <label for="tm-setting-phone-catalog-enabled">📱 Κατάλογος Συσκευών</label>
-                            <p class="tm-setting-description">Εμφανίζει κατάλογο μεταχειρισμένων συσκευών του καταστήματος με μοντέλο, βαθμίδα, IMEI, αποθηκευτικό χώρο και χρώμα. Υποστηρίζει αναζήτηση, φίλτρα και εξαγωγή CSV.</p>
+                            <label for="tm-setting-phone-catalog-enabled">Κατάλογος συσκευών</label>
+                            <p class="tm-setting-description">Μεταχειρισμένες συσκευές με αναζήτηση και CSV.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-phone-catalog-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-order-history-enabled">📦 Ιστορικό Παραγγελιών</label>
-                            <p class="tm-setting-description">Εμφανίζει το ιστορικό παραγγελιών ανταλλακτικών.</p>
+                            <label for="tm-setting-order-history-enabled">Ιστορικό παραγγελιών</label>
+                            <p class="tm-setting-description">Παραγγελίες ανταλλακτικών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-history-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-order-link-enabled">🔗 Σύνδεση Status 65 → Παραγγελίες</label>
-                            <p class="tm-setting-description">Στις επισκευές status 65, κάνει το badge κλικ για αναζήτηση παραγγελιών ανταλλακτικών. Στη σελίδα παραγγελίας εμφανίζει σύνδεσμο προς την επισκευή.</p>
+                            <label for="tm-setting-order-link-enabled">Σύνδεση status 65 → παραγγελίες</label>
+                            <p class="tm-setting-description">Κλικ στο badge για αναζήτηση παραγγελιών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-link-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-customer-history-enabled">📜 Ιστορικό Πελάτη</label>
-                            <p class="tm-setting-description">Εμφάνιση γρήγορης προβολής του ιστορικού πελάτη στη λίστα επισκευών.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-customer-history-enabled"></div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <label for="tm-setting-return-to-40-enabled">🔴 Κουμπί «40» (65/100)</label>
-                            <p class="tm-setting-description">Εμφανίζει κόκκινο αναβοσβήνον κουμπί «40» στις επισκευές με status 65 ή 100. Κάνει logout → login ως admin (όπως το logo) και μετά εφαρμόζει αυτόματα status 40.</p>
+                            <label for="tm-setting-return-to-40-enabled">Κουμπί «40» (65/100)</label>
+                            <p class="tm-setting-description">Επιστροφή σε status 40 μέσω admin login.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-return-to-40-enabled"></div>
                     </div>
                 </div>
-                <div class="tm-settings-section" style="margin-top: 20px; border-top: 1px solid #dee2e6; padding-top: 16px;">
-                    <h3>🔑 Λογαριασμός Admin (Status 40)</h3>
-                    <p class="tm-setting-description">
-                        Διαπιστευτήρια για το κλικ στο logo στο <code>service_edit</code> (logout → login ως admin → επιστροφή στην ίδια επισκευή).
-                        Αποθηκεύονται τοπικά στο Tampermonkey (όχι ανά προφίλ χρήστη).
-                    </p>
+                <div class="tm-settings-section">
+                    <header class="tm-settings-section-head">
+                        <h3>Admin (Status 40)</h3>
+                        <p class="tm-settings-section-desc">Διαπιστευτήρια για logo → admin login. Αποθηκεύονται τοπικά.</p>
+                    </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <label for="tm-setting-status40-admin-username">Username</label>
                         </div>
                         <div class="tm-setting-control">
-                            <input type="text" id="tm-setting-status40-admin-username" value="${String(status40AdminUser).replace(/"/g, '&quot;')}" autocomplete="off" spellcheck="false" style="min-width: 200px; padding: 8px;">
+                            <input type="text" id="tm-setting-status40-admin-username" class="tm-settings-input" value="${String(status40AdminUser).replace(/"/g, '&quot;')}" autocomplete="off" spellcheck="false">
                         </div>
                     </div>
                     <div class="tm-setting-row">
@@ -709,7 +724,7 @@
                             <label for="tm-setting-status40-admin-password">Κωδικός</label>
                         </div>
                         <div class="tm-setting-control">
-                            <input type="password" id="tm-setting-status40-admin-password" value="${String(status40AdminPass).replace(/"/g, '&quot;')}" autocomplete="new-password" style="min-width: 200px; padding: 8px;">
+                            <input type="password" id="tm-setting-status40-admin-password" class="tm-settings-input" value="${String(status40AdminPass).replace(/"/g, '&quot;')}" autocomplete="new-password">
                         </div>
                     </div>
                 </div>`;
@@ -718,10 +733,13 @@
         function getAutoRefreshSettingsHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>Αυτόματη Ανανέωση</h3>
+                    <header class="tm-settings-section-head">
+                        <h3>Αυτόματη ανανέωση</h3>
+                        <p class="tm-settings-section-desc">Ανανέωση λιστών σε εργάσιμο ωράριο.</p>
+                    </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-autorefresh-enabled">Ενεργοποίηση Αυτόματης Ανανέωσης</label>
+                            <label for="tm-setting-autorefresh-enabled">Ενεργοποίηση</label>
                             <p class="tm-setting-description">Ανανεώνει αυτόματα τις σελίδες λίστας.</p>
                         </div>
                         <div class="tm-setting-control">
@@ -731,20 +749,20 @@
                     <div id="tm-autorefresh-options">
                         <div class="tm-setting-row">
                             <div class="tm-setting-label">
-                                <label for="tm-setting-refresh-interval">Διάστημα Ανανέωσης</label>
-                                <p class="tm-setting-description">Ορίστε το διάστημα σε λεπτά.</p>
+                                <label for="tm-setting-refresh-interval">Διάστημα</label>
+                                <p class="tm-setting-description">Λεπτά μεταξύ ανανεώσεων.</p>
                             </div>
                             <div class="tm-setting-control">
                                 <input type="number" id="tm-setting-refresh-interval" value="${config.refreshIntervalMinutes}" min="1" max="120">
-                                <span>λεπτά</span>
+                                <span class="tm-settings-unit">λεπτά</span>
                             </div>
                         </div>
-                        <div id="tm-working-hours-editor">
-                            <p class="tm-setting-description" style="text-align:center; margin-bottom:10px;">Ενεργό μόνο τις παρακάτω ώρες και ημέρες:</p>
+                        <div id="tm-working-hours-editor" class="tm-settings-panel">
+                            <p class="tm-setting-description tm-settings-panel-title">Ενεργό μόνο στις παρακάτω ώρες και ημέρες</p>
                             <div id="tm-working-hours-time-inputs">
-                                <label for="tm-setting-wh-start">Από:</label>
+                                <label for="tm-setting-wh-start">Από</label>
                                 <input type="number" id="tm-setting-wh-start" value="${config.workingHoursStart}" min="0" max="23">
-                                <label for="tm-setting-wh-end">Έως:</label>
+                                <label for="tm-setting-wh-end">Έως</label>
                                 <input type="number" id="tm-setting-wh-end" value="${config.workingHoursEnd}" min="1" max="24">
                             </div>
                             <div id="tm-working-days-editor"></div>
@@ -757,10 +775,12 @@
         function getQuickSearchEditorHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>Επεξεργαστής Γρήγορης Αναζήτησης</h3>
-                    <p class="tm-setting-description">Προσαρμόστε τα κουμπιά που εμφανίζονται στις σελίδες επεξεργασίας παραγγελιών για γρήγορες αναζητήσεις ανταλλακτικών. Η 'Ετικέτα' είναι αυτό που εμφανίζει το κουμπί, και ο 'Όρος Αναζήτησης' είναι η λέξη-κλειδί που αναζητά.</p>
-                    <div id="tm-quick-search-editor" style="padding: 0 10px;"></div>
-                    <button id="tm-quick-search-add-btn" style="margin-top: 15px;">Προσθήκη Νέου Κουμπιού</button>
+                    <header class="tm-settings-section-head">
+                        <h3>Γρήγορη αναζήτηση</h3>
+                        <p class="tm-settings-section-desc">Ετικέτα = κουμπί · Όρος = λέξη-κλειδί αναζήτησης.</p>
+                    </header>
+                    <div id="tm-quick-search-editor" class="tm-settings-editor"></div>
+                    <button type="button" id="tm-quick-search-add-btn" class="tm-settings-ghost-btn">Προσθήκη κουμπιού</button>
                 </div>
             `;
         }
@@ -768,10 +788,12 @@
         function getPriceOptionsEditorHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>💰 Επιλογές Τιμών Επισκευής</h3>
-                    <p class="tm-setting-description">Προσαρμόστε τις επιλογές που εμφανίζονται στο dropdown τιμών στη σελίδα επισκευής. Μπορείτε να προσθέσετε επιπλέον χρεώσεις (π.χ. καθαρισμός, μεταφορά) ή να ορίσετε ειδικές τιμές.</p>
-                    <div id="tm-price-options-editor" style="padding: 0 10px;"></div>
-                    <button id="tm-price-options-add-btn" style="margin-top: 15px;">➕ Προσθήκη Επιλογής</button>
+                    <header class="tm-settings-section-head">
+                        <h3>Επιλογές τιμών</h3>
+                        <p class="tm-settings-section-desc">Extra χρεώσεις ή ειδικές τιμές στο dropdown επισκευής.</p>
+                    </header>
+                    <div id="tm-price-options-editor" class="tm-settings-editor"></div>
+                    <button type="button" id="tm-price-options-add-btn" class="tm-settings-ghost-btn">Προσθήκη επιλογής</button>
                 </div>
             `;
         }
@@ -779,10 +801,12 @@
         function getScratchpadTemplatesEditorHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>Πρότυπα Σημειωματαρίου</h3>
-                    <p class="tm-setting-description">Δημιουργήστε πρότυπα για γρήγορη εισαγωγή στο σημειωματάριο. Χρήσιμο για checklists ή επαναλαμβανόμενες σημειώσεις.</p>
-                    <div id="tm-scratchpad-templates-editor" style="padding: 0 10px;"></div>
-                    <button id="tm-scratchpad-template-add-btn" style="margin-top: 15px;">Προσθήκη Νέου Προτύπου</button>
+                    <header class="tm-settings-section-head">
+                        <h3>Πρότυπα</h3>
+                        <p class="tm-settings-section-desc">Γρήγορη εισαγωγή checklists ή επαναλαμβανόμενων σημειώσεων.</p>
+                    </header>
+                    <div id="tm-scratchpad-templates-editor" class="tm-settings-editor"></div>
+                    <button type="button" id="tm-scratchpad-template-add-btn" class="tm-settings-ghost-btn">Προσθήκη προτύπου</button>
                 </div>
             `;
         }
@@ -790,9 +814,12 @@
         function getScratchpadSettingsHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>Σημειωματάριο</h3>
+                    <header class="tm-settings-section-head">
+                        <h3>Σημειωματάριο</h3>
+                        <p class="tm-settings-section-desc">Γρήγορες σημειώσεις κατά την εργασία.</p>
+                    </header>
                     <div class="tm-setting-row">
-                        <div class="tm-setting-label"><label for="tm-setting-scratchpad-enabled">Ενεργοποίηση Σημειωματαρίου</label></div>
+                        <div class="tm-setting-label"><label for="tm-setting-scratchpad-enabled">Ενεργοποίηση</label></div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-scratchpad-enabled"></div>
                     </div>
                 </div>
@@ -803,15 +830,19 @@
         function getDataManagementHTML() {
             return `
                 <div class="tm-settings-section">
-                    <h3>💾 Διαχείριση Δεδομένων</h3>
-                    <p class="tm-setting-description">Δημιουργήστε αντίγραφα ασφαλείας των ρυθμίσεων και της προόδου σας, ή μεταφέρετέ τα σε άλλη συσκευή.</p>
-                    <p class="tm-setting-description" style="margin-bottom: 12px;">Ενεργό προφίλ: <strong id="tm-settings-active-profile">—</strong> <span style="opacity:0.8;">(ξεχωριστά δεδομένα ανά χρήστη σύνδεσης στο ίδιο PC)</span></p>
+                    <header class="tm-settings-section-head">
+                        <h3>Δεδομένα &amp; backup</h3>
+                        <p class="tm-settings-section-desc">Αντίγραφα ασφαλείας ρυθμίσεων και προόδου.</p>
+                    </header>
+                    <p class="tm-setting-description tm-settings-profile-line">Ενεργό προφίλ: <strong id="tm-settings-active-profile">—</strong> <span class="tm-settings-muted">(ανά χρήστη σύνδεσης στο ίδιο PC)</span></p>
                     <div class="tm-data-actions">
-                        <button id="tm-export-data-btn" class="tm-data-btn export">💾 Εξαγωγή Δεδομένων</button>
-                        <button id="tm-import-data-btn" class="tm-data-btn import">📂 Εισαγωγή Δεδομένων</button>
+                        <button type="button" id="tm-export-data-btn" class="tm-data-btn export">Εξαγωγή</button>
+                        <button type="button" id="tm-import-data-btn" class="tm-data-btn import">Εισαγωγή</button>
                     </div>
-                    <p class="tm-setting-description" style="text-align: center; margin-top: 20px;">Επαναφέρετε όλες τις ρυθμίσεις και την πρόοδο στις αρχικές τους τιμές. <strong>Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.</strong></p>
-                    <div class="tm-data-actions"><button id="tm-settings-reset" class="tm-data-btn reset">⚠️ Επαναφορά Όλων</button></div>
+                    <div class="tm-settings-danger-zone">
+                        <p class="tm-setting-description">Επαναφορά όλων των ρυθμίσεων και της προόδου. <strong>Δεν αναιρείται.</strong></p>
+                        <div class="tm-data-actions"><button type="button" id="tm-settings-reset" class="tm-data-btn reset">Επαναφορά όλων</button></div>
+                    </div>
                 </div>`;
         }
 
@@ -820,12 +851,14 @@
             const displayVer = window.getSuiteDisplayVersion?.() || window.SCRIPT_META?.displayVersion || '—';
             return `
                 <div class="tm-settings-section">
-                    <h3>🔄 Ενημερώσεις Script</h3>
-                    <p class="tm-setting-description">Οι μικρές αλλαγές φορτώνονται αυτόματα χωρίς ειδοποίηση. Ειδοποίηση εμφανίζεται μόνο όταν χρειάζεται ενημέρωση του Tampermonkey loader.</p>
+                    <header class="tm-settings-section-head">
+                        <h3>Ενημερώσεις</h3>
+                        <p class="tm-settings-section-desc">Μικρές αλλαγές φορτώνονται αυτόματα. Ειδοποίηση μόνο για νέο loader.</p>
+                    </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-auto-update-check-enabled">Αυτόματος έλεγχος κάθε 5 λεπτά</label>
-                            <p class="tm-setting-description">Ελέγχει στο παρασκήνιο αν απαιτείται νέο loader (εικονίδιο ↻ στο footer).</p>
+                            <label for="tm-setting-auto-update-check-enabled">Αυτόματος έλεγχος</label>
+                            <p class="tm-setting-description">Κάθε 5 λεπτά · εικονίδιο ↻ στο footer αν χρειάζεται.</p>
                         </div>
                         <div class="tm-setting-control">
                             <input type="checkbox" id="tm-setting-auto-update-check-enabled">
@@ -838,16 +871,16 @@
                             <p class="tm-setting-description" id="tm-settings-update-status">—</p>
                             <p class="tm-setting-description" id="tm-settings-skipped-version" style="display: none;"></p>
                         </div>
-                        <div class="tm-setting-control" style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                        <div class="tm-setting-control tm-setting-control--stack">
                             <button id="tm-settings-check-update-btn" class="tm-data-btn export" type="button">Έλεγχος τώρα</button>
-                            <button id="tm-settings-clear-skip-update-btn" class="tm-data-btn import" type="button" style="display: none;">Ξεχάστε παράλειψη έκδοσης</button>
+                            <button id="tm-settings-clear-skip-update-btn" class="tm-data-btn import" type="button" style="display: none;">Ξεχάστε παράλειψη</button>
                         </div>
                     </div>
-                    <div class="tm-setting-row" style="border-top: 1px solid #e0e0e0; padding-top: 15px;">
+                    <div class="tm-setting-row tm-setting-row--divider">
                         <div class="tm-setting-label">
-                            <label>Εγκατάσταση / Ενημέρωση loader</label>
-                            <p class="tm-setting-description">Εγκαταστήστε μία φορά το loader από το GitHub. Μετά, οι αλλαγές στο bundle φορτώνονται αυτόματα· μόνο αλλαγές στο loader απαιτούν ενημέρωση από το Tampermonkey Dashboard.</p>
-                            <p class="tm-setting-description" style="word-break: break-all; font-size: 11px; opacity: 0.85;"><code>${loaderUrl}</code></p>
+                            <label>Loader</label>
+                            <p class="tm-setting-description">Εγκατάσταση μία φορά από GitHub. Μόνο αλλαγές loader χρειάζονται update από το Tampermonkey.</p>
+                            <p class="tm-setting-description tm-settings-code-line"><code>${loaderUrl}</code></p>
                         </div>
                     </div>
                 </div>`;
@@ -1049,22 +1082,25 @@
             const overlay = document.createElement('div');
             overlay.className = 'tm-modal-overlay';
             overlay.innerHTML = `
-                <div class="tm-modal-content">
-                    <div class="tm-modal-header">
-                        <h2 class="tm-modal-title">Ρυθμίσεις MyManager Suite</h2>
-                        <button class="tm-modal-close">&times;</button>
+                <div class="tm-modal-content tm-settings-modal">
+                    <div class="tm-modal-header tm-settings-header">
+                        <div class="tm-settings-header-text">
+                            <h2 class="tm-modal-title">Ρυθμίσεις</h2>
+                            <p class="tm-settings-subtitle">MyManager Suite</p>
+                        </div>
+                        <button type="button" class="tm-modal-close" aria-label="Κλείσιμο">&times;</button>
                     </div>
                     <div class="tm-settings-layout">
                         <aside class="tm-settings-sidebar">
                             <ul class="tm-nav">
-                                <li><a href="#sec-general">⚙️ Γενικές</a></li>
-                                <li><a href="#sec-search">🔍 Αναζήτηση & Εργαλεία</a></li>
-                                <li><a href="#sec-autorefresh">🔄 Αυτόματη Ανανέωση</a></li>
-                                <li><a href="#sec-scratchpad">📝 Σημειωματάριο</a></li>                            
-                                <li><a href="#sec-gamification">🎮 Παιχνιδοποίηση & Mascot</a></li>
-                                <li><a href="#sec-updates">🔄 Ενημερώσεις</a></li>
-                                <li><a href="#sec-data">💾 Δεδομένα & Backup</a></li>
-                                <li style="display: none;" data-debug-only="true"><a href="#sec-debug">🔧 Ανάπτυξη</a></li>
+                                <li><a href="#sec-general"><span class="tm-nav-icon" aria-hidden="true">⚙️</span><span class="tm-nav-label">Γενικές</span></a></li>
+                                <li><a href="#sec-search"><span class="tm-nav-icon" aria-hidden="true">🔍</span><span class="tm-nav-label">Εργαλεία</span></a></li>
+                                <li><a href="#sec-autorefresh"><span class="tm-nav-icon" aria-hidden="true">🔄</span><span class="tm-nav-label">Ανανέωση</span></a></li>
+                                <li><a href="#sec-scratchpad"><span class="tm-nav-icon" aria-hidden="true">📝</span><span class="tm-nav-label">Σημειωματάριο</span></a></li>
+                                <li><a href="#sec-gamification"><span class="tm-nav-icon" aria-hidden="true">🎮</span><span class="tm-nav-label">Παιχνίδι</span></a></li>
+                                <li><a href="#sec-updates"><span class="tm-nav-icon" aria-hidden="true">↻</span><span class="tm-nav-label">Ενημερώσεις</span></a></li>
+                                <li><a href="#sec-data"><span class="tm-nav-icon" aria-hidden="true">💾</span><span class="tm-nav-label">Δεδομένα</span></a></li>
+                                <li class="tm-nav-debug" style="display: none;" data-debug-only="true"><a href="#sec-debug"><span class="tm-nav-icon" aria-hidden="true">🔧</span><span class="tm-nav-label">Ανάπτυξη</span></a></li>
                             </ul>
                         </aside>
                         <main class="tm-settings-main" id="tm-settings-content">
@@ -1078,9 +1114,9 @@
                             <section id="sec-data">${getDataManagementHTML()}</section>
                         </main>
                     </div>
-                    <div class="tm-modal-footer">
+                    <div class="tm-modal-footer tm-settings-footer">
                         <span id="tm-settings-feedback"></span>
-                        <button id="tm-settings-save">Αποθήκευση & Επαναφόρτωση</button>
+                        <button type="button" id="tm-settings-save" class="tm-settings-save-btn">Αποθήκευση &amp; Επαναφόρτωση</button>
                     </div>
                 </div>
             `;

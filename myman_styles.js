@@ -1572,16 +1572,54 @@
             /* Settings layout as panel with sidebar */
             .tm-settings-layout {
                 display: flex;
-                gap: 16px;
-                flex-grow: 1; /* Allow this layout to fill the space */
-                overflow: hidden; /* Prevent this container from scrolling */
+                gap: 0;
+                flex-grow: 1;
+                overflow: hidden;
+                min-height: 0;
             }
-            .tm-settings-sidebar { width: 220px; border-right: 1px solid #eee; padding-right: 12px; }
-            .tm-settings-sidebar .tm-nav { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-            .tm-settings-sidebar .tm-nav a { text-decoration: none; color: #333; font-weight: 600; border-radius: 6px; padding: 8px 10px; display: block; background: #f8f9fa; }
-            .tm-settings-sidebar .tm-nav a.active { background: #e7f1ff; color: #0b5ed7; }
-            .tm-settings-sidebar .tm-nav a:hover { background: #eef2f7; }
-            .tm-settings-main { flex: 1; padding-left: 4px; }
+            .tm-settings-sidebar {
+                width: 200px;
+                flex-shrink: 0;
+                border-right: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                padding: 4px 12px 8px 0;
+                overflow-y: auto;
+            }
+            .tm-settings-sidebar .tm-nav {
+                list-style: none; margin: 0; padding: 0;
+                display: flex; flex-direction: column; gap: 4px;
+            }
+            .tm-settings-sidebar .tm-nav a {
+                text-decoration: none;
+                color: var(--tm-shop-item-text, #334155);
+                font-weight: 500;
+                font-size: 13px;
+                border-radius: 10px;
+                padding: 9px 12px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background: transparent;
+                border: 1px solid transparent;
+                transition: background 0.15s, color 0.15s, border-color 0.15s;
+            }
+            .tm-settings-sidebar .tm-nav .tm-nav-icon {
+                width: 1.25em; text-align: center; opacity: 0.85; flex-shrink: 0;
+            }
+            .tm-settings-sidebar .tm-nav .tm-nav-label { min-width: 0; }
+            .tm-settings-sidebar .tm-nav a:hover {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 8%, var(--tm-shop-item-bg, #f8fafc));
+            }
+            .tm-settings-sidebar .tm-nav a.active {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 12%, var(--tm-shop-item-bg, #f8fafc));
+                color: var(--tm-primary-color, #0b5ed7);
+                border-color: color-mix(in srgb, var(--tm-primary-color, #007bff) 22%, transparent);
+                font-weight: 600;
+            }
+            .tm-settings-main {
+                flex: 1;
+                min-width: 0;
+                padding: 0 4px 0 16px;
+            }
             .tm-settings-main section { display: none; }
             .tm-settings-main section.active { display: block; }
             @keyframes tm-fade-in {
@@ -2379,97 +2417,327 @@
                 border-color: rgba(255,255,255,0.4) !important;
             }
             
-            /* New Settings Panel Styles */
+            /* New Settings Panel Styles — theme-aware minimal */
+            .tm-settings-modal {
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg, #ffffff)) !important;
+                color: var(--tm-shop-item-text, #1e293b);
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0) !important;
+                border-radius: 16px !important;
+                box-shadow: 0 20px 50px color-mix(in srgb, var(--tm-shadow-color, #0f172a) 18%, transparent);
+                padding: 0 !important;
+                max-width: 980px;
+                overflow: hidden;
+            }
+            .tm-settings-modal .tm-settings-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 18px 20px 14px;
+                margin: 0;
+                border-bottom: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                background: transparent !important;
+            }
+            .tm-settings-header-text { min-width: 0; }
+            .tm-settings-modal .tm-modal-title {
+                margin: 0;
+                font-size: 1.15rem;
+                font-weight: 700;
+                text-align: left;
+                color: var(--tm-shop-item-text, #0f172a);
+                pointer-events: auto;
+            }
+            .tm-settings-subtitle {
+                margin: 4px 0 0;
+                font-size: 12px;
+                color: var(--tm-subtle-text, var(--tm-secondary-color, #64748b));
+            }
+            .tm-settings-modal .tm-modal-close {
+                width: 34px; height: 34px;
+                border: none; border-radius: 10px; cursor: pointer;
+                background: var(--tm-shop-item-bg, #f1f5f9);
+                color: var(--tm-shop-item-text, #334155);
+                font-size: 18px; line-height: 1;
+                display: flex; align-items: center; justify-content: center;
+                transition: background 0.15s, color 0.15s;
+            }
+            .tm-settings-modal .tm-modal-close:hover {
+                background: color-mix(in srgb, var(--tm-danger-color, #ef4444) 14%, transparent);
+                color: var(--tm-danger-color, #b91c1c);
+            }
+            .tm-settings-modal .tm-settings-layout {
+                padding: 12px 16px 8px;
+            }
+            .tm-settings-modal #tm-settings-content {
+                padding-right: 6px;
+            }
+            .tm-settings-modal .tm-settings-footer {
+                padding: 14px 20px;
+                margin: 0;
+                border-top: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                background: transparent !important;
+                gap: 12px;
+            }
+
             .tm-settings-section {
-                margin-bottom: 20px;
-                padding-bottom: 15px;
-                border-bottom: 1px solid #eee;
+                margin-bottom: 18px;
+                padding: 0 0 16px;
+                border-bottom: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                background: transparent !important;
             }
             .tm-settings-section:last-of-type {
                 border-bottom: none;
                 margin-bottom: 0;
                 padding-bottom: 0;
             }
-            .tm-settings-section h3 {
-                margin-top: 0;
-                margin-bottom: 20px;
-                font-size: 16px;
-                color: #343a40;
+            .tm-settings-section-head {
+                margin-bottom: 12px;
+            }
+            .tm-settings-section h3,
+            .tm-settings-section-head h3 {
+                margin: 0 0 4px;
+                font-size: 15px;
+                font-weight: 700;
+                color: var(--tm-shop-item-text, #0f172a);
                 text-align: left;
-                border-bottom: 1px solid #f1f1f1;
-                padding-bottom: 10px;
+                border: none;
+                padding: 0;
+                text-transform: none;
+                letter-spacing: normal;
+                text-shadow: none;
+            }
+            .tm-settings-section-desc {
+                margin: 0;
+                font-size: 12.5px;
+                line-height: 1.4;
+                color: var(--tm-subtle-text, var(--tm-secondary-color, #64748b));
+            }
+            .tm-settings-subgroup {
+                margin: 14px 0 8px;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                color: var(--tm-muted-text, var(--tm-secondary-color, #94a3b8));
             }
             .tm-setting-row {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-bottom: 15px;
-                padding: 0 10px;
+                gap: 16px;
+                margin-bottom: 8px;
+                padding: 10px 12px;
+                border-radius: 12px;
+                border: 1px solid transparent;
+                transition: background 0.15s;
+            }
+            .tm-setting-row:hover {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 5%, transparent);
+            }
+            .tm-setting-row--stack {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .tm-setting-row--stack .tm-setting-control {
+                justify-content: flex-start;
+                width: 100%;
+            }
+            .tm-setting-row--divider {
+                margin-top: 8px;
+                padding-top: 14px;
+                border-top: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                border-radius: 0;
+            }
+            .tm-setting-row--danger {
+                background: color-mix(in srgb, var(--tm-danger-color, #ef4444) 10%, var(--tm-shop-item-bg, #fff));
+                border-color: color-mix(in srgb, var(--tm-danger-color, #ef4444) 28%, transparent);
+            }
+            .tm-setting-row--danger .tm-setting-label label {
+                color: var(--tm-danger-color, #b91c1c);
+            }
+            .tm-setting-row--warn {
+                background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 10%, var(--tm-shop-item-bg, #fff));
+                border-color: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 30%, transparent);
+            }
+            .tm-setting-row--accent {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 8%, var(--tm-shop-item-bg, #fff));
+                border-color: color-mix(in srgb, var(--tm-primary-color, #007bff) 22%, transparent);
             }
             .tm-setting-label {
-                flex-basis: 60%;
+                flex: 1;
+                min-width: 0;
                 text-align: left;
             }
             .tm-setting-label label {
-                font-weight: bold;
-                color: #495057;
-                font-size: 14px;
+                font-weight: 600;
+                color: var(--tm-shop-item-text, #334155);
+                font-size: 13.5px;
             }
             .tm-setting-control {
-                flex-basis: 35%;
+                flex-shrink: 0;
                 text-align: right;
                 display: flex;
                 justify-content: flex-end;
                 align-items: center;
-                gap: 10px;
+                gap: 8px;
             }
-            .tm-setting-control input[type="number"] {
-                width: 70px;
-                padding: 8px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
+            .tm-setting-control--wrap { flex-wrap: wrap; justify-content: flex-end; }
+            .tm-setting-control--grid {
+                display: grid !important;
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 6px;
+                width: 100%;
+            }
+            .tm-setting-control--stack {
+                flex-direction: column;
+                align-items: flex-end;
+            }
+            .tm-setting-control input[type="number"],
+            .tm-settings-input,
+            .tm-settings-modal input[type="text"],
+            .tm-settings-modal input[type="password"] {
+                width: 88px;
+                min-width: 0;
+                padding: 8px 10px;
+                border: 1px solid var(--tm-shop-item-border, #cbd5e1);
+                border-radius: 10px;
                 text-align: center;
+                background: var(--tm-input-bg, var(--tm-shop-item-bg, #fff));
+                color: var(--tm-shop-item-text, #1e293b);
+            }
+            .tm-settings-input,
+            .tm-settings-modal input[type="text"],
+            .tm-settings-modal input[type="password"] {
+                width: auto;
+                min-width: 180px;
+                text-align: left;
             }
             .tm-setting-control input[type="checkbox"] {
-                transform: scale(1.3);
+                transform: scale(1.15);
                 cursor: pointer;
+                accent-color: var(--tm-primary-color, #007bff);
             }
             .tm-setting-description {
                 font-size: 12px;
-                color: #6c757d;
-                margin-top: 4px;
+                color: var(--tm-subtle-text, var(--tm-secondary-color, #64748b));
+                margin-top: 3px;
                 text-align: left;
                 margin-bottom: 0;
+                line-height: 1.4;
+            }
+            .tm-settings-muted { opacity: 0.8; }
+            .tm-settings-unit {
+                font-size: 12px;
+                color: var(--tm-subtle-text, #64748b);
+            }
+            .tm-settings-profile-line { margin-bottom: 12px; }
+            .tm-settings-code-line {
+                word-break: break-all;
+                font-size: 11px;
+                opacity: 0.85;
+            }
+            .tm-settings-panel {
+                padding: 14px;
+                margin-top: 10px;
+                border-radius: 12px;
+                background: var(--tm-shop-item-bg, #f8fafc);
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+            }
+            .tm-settings-panel-title {
+                text-align: center;
+                margin-bottom: 10px !important;
+            }
+            .tm-settings-editor { padding: 0 2px 8px; }
+            .tm-settings-danger-zone {
+                margin-top: 18px;
+                padding-top: 14px;
+                border-top: 1px dashed color-mix(in srgb, var(--tm-danger-color, #ef4444) 35%, transparent);
+                text-align: center;
+            }
+            .tm-settings-ghost-btn,
+            .tm-settings-primary-btn,
+            .tm-settings-danger-btn {
+                padding: 7px 12px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-size: 12.5px;
+                font-weight: 600;
+                transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+            }
+            .tm-settings-ghost-btn {
+                background: transparent;
+                color: var(--tm-primary-color, #007bff);
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 45%, transparent);
+            }
+            .tm-settings-ghost-btn:hover {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 10%, transparent);
+            }
+            .tm-settings-primary-btn {
+                background: var(--tm-primary-color, #007bff);
+                color: var(--tm-text-on-primary, #fff);
+                border: 1px solid var(--tm-primary-color, #007bff);
+            }
+            .tm-settings-primary-btn:hover {
+                background: var(--tm-primary-hover, #0056b3);
+            }
+            .tm-settings-danger-btn {
+                background: color-mix(in srgb, var(--tm-danger-color, #ef4444) 12%, transparent);
+                color: var(--tm-danger-color, #b91c1c);
+                border: 1px solid color-mix(in srgb, var(--tm-danger-color, #ef4444) 40%, transparent);
+            }
+            .tm-settings-danger-btn:hover {
+                background: color-mix(in srgb, var(--tm-danger-color, #ef4444) 20%, transparent);
+            }
+            .tm-mascot-state-btn,
+            .tm-mascot-stage-btn,
+            .tm-mascot-char-btn {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 8%, var(--tm-shop-item-bg, #fff));
+                color: var(--tm-shop-item-text, #334155);
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                border-radius: 10px;
+                padding: 7px 10px;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 500;
+            }
+            .tm-mascot-state-btn:hover,
+            .tm-mascot-stage-btn:hover,
+            .tm-mascot-char-btn:hover {
+                border-color: var(--tm-primary-color, #007bff);
+                color: var(--tm-primary-color, #007bff);
             }
             #tm-settings-feedback {
-                margin-left: 15px; color: #28a745; font-weight: bold;
-                font-size: 14px;
+                margin-right: auto;
+                color: var(--tm-success-color, #28a745);
+                font-weight: 600;
+                font-size: 13px;
                 transition: opacity 0.3s;
             }
             .tm-modal-footer {
                 padding-top: 20px;
                 margin-top: 10px;
-                border-top: 1px solid #eee;
+                border-top: 1px solid var(--tm-shop-item-border, #eee);
                 display: flex;
                 justify-content: flex-end;
                 align-items: center;
                 gap: 10px;
             }
             #tm-settings-save, #tm-settings-reset {
-                padding: 12px 25px;
-                font-size: 16px;
-                font-weight: bold;
+                padding: 11px 20px;
+                font-size: 14px;
+                font-weight: 600;
                 color: white;
                 border: none;
-                border-radius: 5px;
+                border-radius: 12px;
                 cursor: pointer;
-                min-width: 220px; /* Ensure buttons have the same width */
+                min-width: 200px;
                 transition: background-color 0.2s, transform 0.1s ease-out, box-shadow 0.2s;
             }
             #tm-settings-save { background-color: var(--tm-primary-color); }
             #tm-settings-save:hover {
                 background-color: var(--tm-primary-hover);
-                transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px color-mix(in srgb, var(--tm-primary-color) 35%, transparent);
             }
             #tm-settings-reset { background-color: var(--tm-secondary-color); }
             #tm-settings-reset:hover { background-color: var(--tm-secondary-hover); }
@@ -2483,27 +2751,43 @@
             }
             #tm-quick-search-editor input[type="text"] {
                 padding: 8px;
-                border: 1px solid #ccc; text-align: center;
-                border-radius: 4px;
+                border: 1px solid var(--tm-shop-item-border, #ccc);
+                text-align: center;
+                border-radius: 10px;
                 flex: 1;
+                background: var(--tm-input-bg, #fff);
+                color: var(--tm-shop-item-text, #1e293b);
             }
-            .tm-quick-search-remove-btn, #tm-quick-search-add-btn, #tm-price-options-add-btn {
-                padding: 5px 10px;
+            .tm-quick-search-remove-btn, #tm-quick-search-add-btn, #tm-price-options-add-btn, #tm-scratchpad-template-add-btn {
+                padding: 7px 12px;
                 border: none;
-                border-radius: 4px;
+                border-radius: 10px;
                 cursor: pointer;
                 color: white;
+                margin-top: 4px;
             }
             .tm-quick-search-remove-btn { background-color: var(--tm-danger-color); }
             .tm-quick-search-remove-btn:hover { background-color: var(--tm-danger-hover); }
-            #tm-quick-search-add-btn, #tm-price-options-add-btn { background-color: var(--tm-primary-color); margin-top: 5px; }
-            #tm-quick-search-add-btn:hover, #tm-price-options-add-btn:hover { background-color: var(--tm-primary-hover); }
+            #tm-quick-search-add-btn, #tm-price-options-add-btn, #tm-scratchpad-template-add-btn {
+                background-color: var(--tm-primary-color);
+            }
+            #tm-quick-search-add-btn:hover, #tm-price-options-add-btn:hover, #tm-scratchpad-template-add-btn:hover {
+                background-color: var(--tm-primary-hover);
+            }
+            #tm-quick-search-add-btn.tm-settings-ghost-btn,
+            #tm-price-options-add-btn.tm-settings-ghost-btn,
+            #tm-scratchpad-template-add-btn.tm-settings-ghost-btn {
+                color: var(--tm-primary-color, #007bff);
+                background: transparent;
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 45%, transparent);
+            }
 
             #tm-working-hours-editor {
-                padding: 15px;
-                background-color: #f8f9fa;
-                border-radius: 5px;
-                margin-top: 15px;
+                padding: 14px;
+                background-color: var(--tm-shop-item-bg, #f8f9fa);
+                border: 1px solid var(--tm-shop-item-border, transparent);
+                border-radius: 12px;
+                margin-top: 12px;
             }
             #tm-working-hours-time-inputs {
                 display: flex;
@@ -2511,15 +2795,37 @@
                 gap: 10px;
                 align-items: center;
                 margin-bottom: 15px;
+                flex-wrap: wrap;
             }
             #tm-working-days-editor {
                 display: flex;
                 flex-wrap: wrap;
                 justify-content: center;
-                gap: 15px;
+                gap: 12px;
             }
             #tm-working-days-editor label {
                 font-weight: normal;
+            }
+            @media (max-width: 720px) {
+                .tm-settings-modal { width: 96%; height: 92vh; }
+                .tm-settings-layout { flex-direction: column; }
+                .tm-settings-sidebar {
+                    width: 100%;
+                    border-right: none;
+                    border-bottom: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                    padding: 0 0 10px;
+                }
+                .tm-settings-sidebar .tm-nav {
+                    flex-direction: row;
+                    flex-wrap: nowrap;
+                    overflow-x: auto;
+                    gap: 6px;
+                    padding-bottom: 4px;
+                }
+                .tm-settings-sidebar .tm-nav a {
+                    white-space: nowrap;
+                }
+                .tm-settings-main { padding: 10px 0 0; }
             }
             /* --- Bottom Center Controls Container --- */
             #tm-bottom-center-container {

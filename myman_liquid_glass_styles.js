@@ -249,15 +249,27 @@ input:focus, select:focus, textarea:focus {
 .tm-modal-title, .tm-modal-close, .tm-setting-label label, .tm-talent-name { color: var(--lg-label) !important; }
 .tm-setting-description, .tm-talent-description { color: var(--lg-label-secondary) !important; }
 .tm-settings-sidebar .tm-nav a {
-    background: var(--lg-fill) !important;
-    border: 0.55px solid var(--lg-stroke-subtle) !important;
+    background: transparent !important;
+    border: 0.55px solid transparent !important;
     border-radius: var(--lg-radius-sm) !important;
     color: var(--lg-label) !important;
+}
+.tm-settings-sidebar .tm-nav a:hover {
+    background: var(--lg-fill) !important;
+    border-color: var(--lg-stroke-subtle) !important;
 }
 .tm-settings-sidebar .tm-nav a.active {
     background: rgba(0, 122, 255, 0.12) !important;
     color: var(--tm-primary-color) !important;
     font-weight: 600 !important;
+    border-color: rgba(0, 122, 255, 0.2) !important;
+}
+.tm-settings-modal .tm-settings-header,
+.tm-settings-modal .tm-settings-footer {
+    background: rgba(255, 255, 255, 0.28) !important;
+}
+.tm-settings-section {
+    background: transparent !important;
 }
 
 /* --- Shop --- */
