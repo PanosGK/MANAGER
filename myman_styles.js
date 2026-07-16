@@ -652,9 +652,9 @@
             }
             .tm-notification-header {
                 padding: 14px 16px;
-                border-bottom: 1px solid var(--tm-shop-item-border) !important;
-                background: var(--tm-panel-header-bg, var(--tm-dark-hover, rgba(0, 0, 0, 0.12))) !important;
-                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border-bottom: 1px solid var(--tm-shop-item-border, #dee2e6) !important;
+                background: var(--tm-notification-header-bg, #ffffff) !important;
+                color: var(--tm-notification-header-text, #212529) !important;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -666,7 +666,7 @@
                 font-size: 15px;
                 font-weight: 700;
                 letter-spacing: 0.01em;
-                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                color: var(--tm-notification-header-text, #212529) !important;
                 flex: 1;
                 min-width: 0;
             }
@@ -679,9 +679,9 @@
             .tm-notif-header-btn {
                 padding: 5px 10px;
                 border-radius: 8px;
-                border: 1px solid var(--tm-shop-item-border) !important;
-                background: color-mix(in srgb, var(--tm-shop-item-text, var(--tm-primary-color)) 6%, transparent);
-                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border: 1px solid var(--tm-shop-item-border, #dee2e6) !important;
+                background: color-mix(in srgb, var(--tm-notification-header-text, #212529) 6%, transparent);
+                color: var(--tm-notification-header-text, #495057) !important;
                 cursor: pointer;
                 font-size: 11px;
                 font-weight: 600;

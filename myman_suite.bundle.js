@@ -1204,9 +1204,13 @@ const THEME_STYLES = `/* Universal Theme Styles */
             /* --- Notification Center - Keep glass theme --- */
             #tm-notification-unread-count { background-color: var(--tm-danger-color) !important; color: white !important; text-shadow: none; }
             #tm-notification-panel { background: var(--tm-dark-color) !important; border: 1px solid var(--tm-primary-color) !important; color: var(--tm-primary-color) !important; }
-            .tm-notification-header { border-bottom-color: var(--tm-secondary-hover) !important; }
-            .tm-notification-header h4 { color: var(--tm-primary-color) !important; }
-            .tm-notification-header button { color: var(--tm-primary-hover) !important; }
+            .tm-notification-header {
+                border-bottom-color: #dee2e6 !important;
+                background: var(--tm-notification-header-bg, #ffffff) !important;
+                color: var(--tm-notification-header-text, #212529) !important;
+            }
+            .tm-notification-header h4 { color: var(--tm-notification-header-text, #212529) !important; }
+            .tm-notification-header button { color: var(--tm-notification-header-text, #495057) !important; }
             .tm-notification-item { border-bottom-color: var(--tm-shop-item-border) !important; }
             .tm-notification-item.unread { background-color: var(--tm-shop-item-owned-bg) !important; }
             .tm-notification-message { color: var(--tm-primary-color) !important; }
@@ -3006,7 +3010,8 @@ function tmBuildDerivedThemeTokens(colors) {
         '--tm-tab-active-bg': darkHover,
         '--tm-tab-active-border': primary,
         '--tm-notification-panel-bg': dark,
-        '--tm-notification-header-bg': darkHover,
+        '--tm-notification-header-bg': '#ffffff',
+        '--tm-notification-header-text': '#212529',
         '--tm-buff-accent': info,
         '--tm-level-badge-bg': warningRgb
             ? `linear-gradient(135deg, rgba(${warningRgb},0.35) 0%, rgba(${warningRgb},0.18) 100%)`
@@ -5924,9 +5929,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             .tm-notification-header {
                 padding: 14px 16px;
-                border-bottom: 1px solid var(--tm-shop-item-border) !important;
-                background: var(--tm-panel-header-bg, var(--tm-dark-hover, rgba(0, 0, 0, 0.12))) !important;
-                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border-bottom: 1px solid var(--tm-shop-item-border, #dee2e6) !important;
+                background: var(--tm-notification-header-bg, #ffffff) !important;
+                color: var(--tm-notification-header-text, #212529) !important;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -5938,7 +5943,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 font-size: 15px;
                 font-weight: 700;
                 letter-spacing: 0.01em;
-                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                color: var(--tm-notification-header-text, #212529) !important;
                 flex: 1;
                 min-width: 0;
             }
@@ -5951,9 +5956,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             .tm-notif-header-btn {
                 padding: 5px 10px;
                 border-radius: 8px;
-                border: 1px solid var(--tm-shop-item-border) !important;
-                background: color-mix(in srgb, var(--tm-shop-item-text, var(--tm-primary-color)) 6%, transparent);
-                color: var(--tm-shop-item-text, var(--tm-primary-color)) !important;
+                border: 1px solid var(--tm-shop-item-border, #dee2e6) !important;
+                background: color-mix(in srgb, var(--tm-notification-header-text, #212529) 6%, transparent);
+                color: var(--tm-notification-header-text, #495057) !important;
                 cursor: pointer;
                 font-size: 11px;
                 font-weight: 600;

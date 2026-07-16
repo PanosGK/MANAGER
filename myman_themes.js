@@ -348,9 +348,13 @@ const THEME_STYLES = `/* Universal Theme Styles */
             /* --- Notification Center - Keep glass theme --- */
             #tm-notification-unread-count { background-color: var(--tm-danger-color) !important; color: white !important; text-shadow: none; }
             #tm-notification-panel { background: var(--tm-dark-color) !important; border: 1px solid var(--tm-primary-color) !important; color: var(--tm-primary-color) !important; }
-            .tm-notification-header { border-bottom-color: var(--tm-secondary-hover) !important; }
-            .tm-notification-header h4 { color: var(--tm-primary-color) !important; }
-            .tm-notification-header button { color: var(--tm-primary-hover) !important; }
+            .tm-notification-header {
+                border-bottom-color: #dee2e6 !important;
+                background: var(--tm-notification-header-bg, #ffffff) !important;
+                color: var(--tm-notification-header-text, #212529) !important;
+            }
+            .tm-notification-header h4 { color: var(--tm-notification-header-text, #212529) !important; }
+            .tm-notification-header button { color: var(--tm-notification-header-text, #495057) !important; }
             .tm-notification-item { border-bottom-color: var(--tm-shop-item-border) !important; }
             .tm-notification-item.unread { background-color: var(--tm-shop-item-owned-bg) !important; }
             .tm-notification-message { color: var(--tm-primary-color) !important; }
@@ -2150,7 +2154,8 @@ function tmBuildDerivedThemeTokens(colors) {
         '--tm-tab-active-bg': darkHover,
         '--tm-tab-active-border': primary,
         '--tm-notification-panel-bg': dark,
-        '--tm-notification-header-bg': darkHover,
+        '--tm-notification-header-bg': '#ffffff',
+        '--tm-notification-header-text': '#212529',
         '--tm-buff-accent': info,
         '--tm-level-badge-bg': warningRgb
             ? `linear-gradient(135deg, rgba(${warningRgb},0.35) 0%, rgba(${warningRgb},0.18) 100%)`
