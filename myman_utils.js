@@ -876,13 +876,9 @@
                 window.SCRIPT_META?.loaderUrl
                 || 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
             );
-            let msg = `⟳ Χρειάζεται ενημέρωση του αρχείου εγκατάστασης: <strong>v${escapeHtml(result.remote)}</strong> (έχετε v${escapeHtml(result.current)}).<br>`
+            return `⟳ Χρειάζεται ενημέρωση του αρχείου εγκατάστασης: <strong>v${escapeHtml(result.remote)}</strong> (έχετε v${escapeHtml(result.current)}).<br>`
                 + 'Εικονίδιο Tampermonkey → <strong>Dashboard</strong> → ανοίξτε το <strong>MyManager All-in-One Suite</strong> → καρτέλα <strong>Settings</strong> → στην ενότητα Updates πατήστε <strong>Check for userscript updates</strong>.<br>'
                 + `Ή ανοίξτε <a href="${loaderHref}" target="_blank" rel="noopener noreferrer">αυτόν τον σύνδεσμο</a> και πατήστε <strong>Override</strong>.`;
-            if (result.releaseNotes) {
-                msg += `<br><span style="opacity:0.85;">Σημειώσεις έκδοσης: ${escapeHtml(result.releaseNotes)}</span>`;
-            }
-            return msg;
         }
         const bundleNote = result.bundleUpdateAvailable
             ? ' Οι μικρές αλλαγές φορτώνονται αυτόματα.'
