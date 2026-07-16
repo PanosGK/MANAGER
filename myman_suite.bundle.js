@@ -16241,15 +16241,20 @@ function cancelTamagotchiCinematics() {
     document.getElementById('tm-tama-lucky-panel')?.remove();
     document.getElementById('tm-tama-death-cinematic')?.remove();
     document.getElementById('tm-tama-execution-panel')?.remove();
+    document.querySelectorAll('style[data-tm-lucky-spin]').forEach((el) => el.remove());
 
     const mascotContainer = document.getElementById('tm-mascot-container');
     mascotContainer?.classList.remove('mascot-hatching', 'mascot-dying', 'mascot-executed');
 }
 
 function ensureTamaCinematicStyles() {
-    if (document.getElementById('tm-tama-cinematic-styles')) return;
+    const STYLE_VER = 'lucky-v2';
+    const existing = document.getElementById('tm-tama-cinematic-styles');
+    if (existing?.dataset.tmVer === STYLE_VER) return;
+    existing?.remove();
     const style = document.createElement('style');
     style.id = 'tm-tama-cinematic-styles';
+    style.dataset.tmVer = STYLE_VER;
     style.textContent = `
         .tm-tama-cinematic-overlay {
             position: fixed;
@@ -16370,57 +16375,134 @@ function ensureTamaCinematicStyles() {
             animation: tm-hatch-burst 0.7s ease-out forwards;
         }
         .tm-tama-lucky-slot {
-            display: flex;
-            gap: 16px;
-            margin: 0 auto 24px;
-            overflow: hidden;
-            width: 100%;
-            max-width: 400px;
-            height: 110px;
             position: relative;
-            border: 3px solid var(--lucky-color, #6fcf6f);
-            border-radius: 12px;
-            box-shadow: 0 0 24px color-mix(in srgb, var(--lucky-color, #6fcf6f) 40%, transparent);
-            background: rgba(0,0,0,0.35);
+            margin: 0 auto 22px;
+            width: 100%;
+            max-width: 420px;
+            height: 118px;
+            overflow: hidden;
+            border-radius: 14px;
+            border: 1px solid color-mix(in srgb, var(--lucky-color, #6fcf6f) 55%, #fff);
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 28%),
+                rgba(0, 0, 0, 0.42);
+            box-shadow:
+                0 0 0 1px rgba(0,0,0,0.35),
+                0 12px 36px rgba(0,0,0,0.35),
+                inset 0 0 40px color-mix(in srgb, var(--lucky-color, #6fcf6f) 18%, transparent);
+        }
+        .tm-tama-lucky-slot::before,
+        .tm-tama-lucky-slot::after {
+            content: '';
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 56px;
+            z-index: 3;
+            pointer-events: none;
+        }
+        .tm-tama-lucky-slot::before {
+            left: 0;
+            background: linear-gradient(90deg, rgba(0,0,0,0.55), transparent);
+        }
+        .tm-tama-lucky-slot::after {
+            right: 0;
+            background: linear-gradient(270deg, rgba(0,0,0,0.55), transparent);
         }
         .tm-tama-lucky-indicator {
             position: absolute;
-            left: 50%; top: 50%;
+            left: 50%;
+            top: 50%;
             transform: translate(-50%, -50%);
-            width: 90px; height: 90px;
-            border: 3px solid var(--lucky-color, #6fcf6f);
-            border-radius: 10px;
-            box-shadow: 0 0 30px var(--lucky-color, #6fcf6f);
+            width: 88px;
+            height: 96px;
+            border: 2px solid var(--lucky-color, #6fcf6f);
+            border-radius: 12px;
+            box-shadow:
+                0 0 0 1px color-mix(in srgb, var(--lucky-color, #6fcf6f) 35%, transparent),
+                0 0 24px color-mix(in srgb, var(--lucky-color, #6fcf6f) 45%, transparent),
+                inset 0 0 18px color-mix(in srgb, var(--lucky-color, #6fcf6f) 18%, transparent);
             pointer-events: none;
-            animation: tm-lucky-pulse 0.8s ease-in-out infinite;
+            z-index: 4;
+            animation: tm-lucky-pulse 1.4s ease-in-out infinite;
+        }
+        .tm-tama-lucky-indicator::before,
+        .tm-tama-lucky-indicator::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            width: 0;
+            height: 0;
+            transform: translateX(-50%);
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+        }
+        .tm-tama-lucky-indicator::before {
+            top: -10px;
+            border-top: 8px solid var(--lucky-color, #6fcf6f);
+        }
+        .tm-tama-lucky-indicator::after {
+            bottom: -10px;
+            border-bottom: 8px solid var(--lucky-color, #6fcf6f);
         }
         .tm-tama-lucky-scroll {
             display: flex;
-            gap: 32px;
-            padding: 16px;
+            align-items: center;
+            height: 100%;
+            gap: 0;
+            padding: 0;
             will-change: transform;
+            transform: translate3d(0, 0, 0);
+        }
+        .tm-tama-lucky-scroll.is-spinning .tm-tama-lucky-char {
+            filter: blur(0.6px);
+            opacity: 0.55;
         }
         .tm-tama-lucky-char {
-            min-width: 72px;
+            flex: 0 0 88px;
+            width: 88px;
+            height: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
-            opacity: 0.35;
-            transition: opacity 0.3s, transform 0.3s;
+            justify-content: center;
+            gap: 4px;
+            opacity: 0.4;
+            transform: scale(0.92);
+            transition: opacity 0.25s ease, transform 0.25s ease, filter 0.25s ease;
+            box-sizing: border-box;
         }
         .tm-tama-lucky-char.selected {
             opacity: 1;
-            transform: scale(1.15);
+            transform: scale(1.12);
+            filter: none;
         }
-        .tm-tama-lucky-char-emoji { font-size: 44px; }
-        .tm-tama-lucky-char-name { font-size: 11px; font-weight: 700; }
+        .tm-tama-lucky-char-emoji {
+            font-size: 42px;
+            line-height: 1;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));
+        }
+        .tm-tama-lucky-char-name {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
         .tm-tama-lucky-reveal {
             opacity: 0;
-            transform: translateY(16px);
+            transform: translateY(18px) scale(0.98);
+            pointer-events: none;
         }
         .tm-tama-lucky-reveal.visible {
-            animation: tm-lucky-reveal-in 0.8s ease-out forwards;
+            pointer-events: auto;
+            animation: tm-lucky-reveal-in 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .tm-tama-lucky-slot.is-dimmed {
+            opacity: 0.28;
+            filter: blur(1px);
+            transition: opacity 0.45s ease, filter 0.45s ease;
         }
         .tm-tama-death-scene {
             position: relative;
@@ -16533,12 +16615,12 @@ function ensureTamaCinematicStyles() {
         }
         @keyframes tm-tama-blink { 50% { opacity: 0.5; } }
         @keyframes tm-lucky-pulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.06); }
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.95; }
+            50% { transform: translate(-50%, -50%) scale(1.03); opacity: 1; }
         }
         @keyframes tm-lucky-reveal-in {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(18px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
         @keyframes tm-death-fade-mascot {
             to { opacity: 0.2; transform: translateX(-50%) scale(0.9); }
@@ -17610,6 +17692,10 @@ function showEpicCharacterReveal(characterType, onComplete) {
     return showLuckyCharacterReveal(characterType, onComplete);
 }
 
+/**
+ * Professional slot-machine character reveal.
+ * Uses measured cell widths + WAAPI so the winner always lands under the indicator.
+ */
 function showLuckyCharacterReveal(characterType, onComplete) {
     const character = MASCOT_CHARACTERS[characterType];
     if (!character) {
@@ -17618,15 +17704,22 @@ function showLuckyCharacterReveal(characterType, onComplete) {
     }
 
     ensureTamaCinematicStyles();
+    document.getElementById('tm-tama-lucky-panel')?.remove();
+    document.querySelectorAll('style[data-tm-lucky-spin]').forEach((el) => el.remove());
+
+    const revealGen = tamaCinematicGeneration;
+    const stillValid = () => revealGen === tamaCinematicGeneration
+        && document.getElementById('tm-tama-lucky-panel');
+
     playEpicSound();
 
-    const characterKeys = Object.keys(MASCOT_CHARACTERS);
-    const allChars = Object.values(MASCOT_CHARACTERS);
-    const selectedIndex = characterKeys.indexOf(characterType);
-    const charWidth = 104;
-    const totalRepeats = 5;
-    const targetIndex = (totalRepeats - 2) * allChars.length + selectedIndex;
-    const finalTranslate = -(targetIndex * charWidth - 164);
+    const characterEntries = Object.entries(MASCOT_CHARACTERS);
+    const selectedIndex = Math.max(0, characterEntries.findIndex(([key]) => key === characterType));
+    const CELL_W = 88;
+    const totalRepeats = 6;
+    // Land on a far repeat so the spin feels long, then settle on winner
+    const landRepeat = totalRepeats - 2;
+    const targetIndex = landRepeat * characterEntries.length + selectedIndex;
 
     const overlay = document.createElement('div');
     overlay.id = 'tm-tama-lucky-panel';
@@ -17635,10 +17728,9 @@ function showLuckyCharacterReveal(characterType, onComplete) {
 
     const scrollItems = [];
     for (let i = 0; i < totalRepeats; i++) {
-        allChars.forEach((char, idx) => {
-            const isWinner = (i === totalRepeats - 2) && (characterKeys[idx] === characterType);
+        characterEntries.forEach(([key, char]) => {
             scrollItems.push(`
-                <div class="tm-tama-lucky-char${isWinner ? ' selected' : ''}" data-char-idx="${i * allChars.length + idx}">
+                <div class="tm-tama-lucky-char" data-char-key="${key}">
                     <div class="tm-tama-lucky-char-emoji">${char.emoji}</div>
                     <div class="tm-tama-lucky-char-name" style="color:${char.color}">${char.nameGr || char.name}</div>
                 </div>
@@ -17646,81 +17738,132 @@ function showLuckyCharacterReveal(characterType, onComplete) {
         });
     }
 
+    const rarity = character.rarityGr || character.rarity || '';
+    const element = character.elementGr || character.element || '';
+    const traits = character.traitsGr || character.traits || [];
+
     overlay.innerHTML = `
-        <div class="tm-tama-cinematic-panel" style="--lucky-color:${character.color}; max-width:480px;">
+        <div class="tm-tama-cinematic-panel" style="--lucky-color:${character.color}; max-width:500px;">
             <div class="tm-tama-lcd-title">● Τυχερή κλήρωση ●</div>
-            <h2 class="tm-tama-cinematic-title">🎰 Τυχερή επιλογή!</h2>
+            <h2 class="tm-tama-cinematic-title">Επιλογή χαρακτήρα</h2>
             <p class="tm-tama-cinematic-subtitle">Ποιος θα βγει από το αυγό;</p>
-            <div class="tm-tama-lucky-slot">
-                <div class="tm-tama-lucky-indicator"></div>
+            <div class="tm-tama-lucky-slot" id="tm-lucky-slot">
+                <div class="tm-tama-lucky-indicator" aria-hidden="true"></div>
                 <div class="tm-tama-lucky-scroll" id="tm-lucky-scroll">${scrollItems.join('')}</div>
             </div>
             <div class="tm-tama-lucky-reveal" id="tm-lucky-reveal">
-                <div style="font-size:72px;margin-bottom:12px;text-shadow:0 0 24px ${character.color}">${character.emoji}</div>
-                <div style="font-size:26px;font-weight:700;color:${character.color};margin-bottom:8px">${character.nameGr || character.name}</div>
-                <div style="display:inline-block;background:${character.color}33;color:${character.color};padding:5px 14px;border-radius:16px;font-size:12px;font-weight:700;border:2px solid ${character.color};margin-bottom:14px">${character.rarityGr || character.rarity} • ${character.elementGr || character.element}</div>
-                <div style="font-size:14px;color:#aaa;margin-bottom:16px;font-style:italic">"${character.descriptionGr || character.description}"</div>
+                <div style="font-size:72px;margin-bottom:10px;line-height:1;filter:drop-shadow(0 0 22px ${character.color})">${character.emoji}</div>
+                <div style="font-size:24px;font-weight:700;color:${character.color};margin-bottom:8px;letter-spacing:0.01em">${character.nameGr || character.name}</div>
+                <div style="display:inline-block;background:color-mix(in srgb, ${character.color} 22%, transparent);color:${character.color};padding:5px 14px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid color-mix(in srgb, ${character.color} 55%, transparent);margin-bottom:14px;letter-spacing:0.06em;text-transform:uppercase">${rarity}${rarity && element ? ' · ' : ''}${element}</div>
+                <div style="font-size:13px;color:#b0b8b0;margin-bottom:16px;font-style:italic;line-height:1.45;max-width:360px;margin-left:auto;margin-right:auto">"${character.descriptionGr || character.description || ''}"</div>
                 <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px">
-                    ${(character.traitsGr || character.traits).map(t => `<span style="background:rgba(255,255,255,0.08);padding:6px 12px;border-radius:6px;font-size:12px;color:#ddd;border:1px solid rgba(255,255,255,0.15)">${t}</span>`).join('')}
+                    ${traits.map((t) => `<span style="background:rgba(255,255,255,0.07);padding:6px 11px;border-radius:8px;font-size:12px;color:#ddd;border:1px solid rgba(255,255,255,0.12)">${t}</span>`).join('')}
                 </div>
-                <button class="tm-tama-btn tm-tama-btn-primary" id="tm-reveal-close-btn">✨ Ξεκινάμε!</button>
+                <button type="button" class="tm-tama-btn tm-tama-btn-primary" id="tm-reveal-close-btn">Ξεκινάμε</button>
             </div>
         </div>
     `;
     document.body.appendChild(overlay);
 
+    const slotEl = overlay.querySelector('#tm-lucky-slot');
     const scrollEl = overlay.querySelector('#tm-lucky-scroll');
     const revealEl = overlay.querySelector('#tm-lucky-reveal');
-    const animName = `tmLuckySpin_${characterType}_${Date.now()}`;
-    const spinStyle = document.createElement('style');
-    spinStyle.textContent = `
-        @keyframes ${animName} {
-            0% { transform: translateX(0); }
-            70% { transform: translateX(${finalTranslate - 180}px); }
-            85% { transform: translateX(${finalTranslate + 40}px); }
-            100% { transform: translateX(${finalTranslate}px); }
-        }
-    `;
-    document.head.appendChild(spinStyle);
-    if (scrollEl) scrollEl.style.animation = `${animName} 2.8s cubic-bezier(0.22, 1, 0.36, 1) forwards`;
+    const chars = [...(scrollEl?.querySelectorAll('.tm-tama-lucky-char') || [])];
 
-    const closePanel = () => {
+    // Measure real cell size after layout (more reliable than hardcoded width)
+    const measuredCell = chars[0]?.getBoundingClientRect().width || CELL_W;
+    const slotWidth = slotEl?.clientWidth || 420;
+    // Center of indicator is slot midpoint; align cell center under it
+    const finalTranslate = Math.round((slotWidth / 2) - (targetIndex * measuredCell + measuredCell / 2));
+
+    let finished = false;
+    const finishReveal = () => {
+        if (finished) return;
+        finished = true;
+        if (!stillValid()) {
+            if (typeof onComplete === 'function') onComplete();
+            return;
+        }
         overlay.style.animation = 'tm-tama-fade-in 0.35s ease-out reverse';
-        setTimeout(() => {
+        scheduleTamagotchiCinematic(() => {
             overlay.remove();
-            spinStyle.remove();
             if (typeof window.triggerConfetti === 'function') window.triggerConfetti(80);
             if (typeof onComplete === 'function') onComplete();
         }, 350);
     };
 
-    setTimeout(() => {
-        scrollEl?.querySelectorAll('.tm-tama-lucky-char').forEach((el, i) => {
-            el.classList.toggle('selected', i === targetIndex);
-        });
-    }, 2800);
+    const highlightWinner = () => {
+        chars.forEach((el, i) => el.classList.toggle('selected', i === targetIndex));
+    };
 
-    setTimeout(() => {
-        screenShake(500);
+    const showRevealCard = () => {
+        if (!stillValid()) return;
+        scrollEl?.classList.remove('is-spinning');
+        highlightWinner();
+        slotEl?.classList.add('is-dimmed');
         revealEl?.classList.add('visible');
-        if (scrollEl?.parentElement) scrollEl.parentElement.style.opacity = '0.35';
+        screenShake(280);
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             [523.25, 659.25, 783.99].forEach((freq, i) => {
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
-                osc.connect(gain); gain.connect(ctx.destination);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
                 osc.frequency.value = freq;
                 gain.gain.setValueAtTime(0, ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.05);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.2);
+                gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.04);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.0);
                 osc.start(ctx.currentTime + i * 0.05);
-                osc.stop(ctx.currentTime + 1.2);
+                osc.stop(ctx.currentTime + 1.0);
             });
-        } catch (e) { /* audio unavailable */ }
-        if (typeof window.triggerConfetti === 'function') window.triggerConfetti(180);
-        overlay.querySelector('#tm-reveal-close-btn')?.addEventListener('click', closePanel);
-    }, 3200);
+        } catch { /* ignore */ }
+        if (typeof window.triggerConfetti === 'function') window.triggerConfetti(160);
+        overlay.querySelector('#tm-reveal-close-btn')?.addEventListener('click', finishReveal, { once: true });
+    };
+
+    // Start spin after first paint so measurements are stable
+    requestAnimationFrame(() => {
+        if (!stillValid() || !scrollEl) {
+            if (typeof onComplete === 'function') onComplete();
+            return;
+        }
+
+        scrollEl.classList.add('is-spinning');
+        scrollEl.style.transform = 'translate3d(0,0,0)';
+
+        // Overshoot a little past the winner, then ease back — classic slot feel
+        const overshoot = finalTranslate - Math.min(120, measuredCell * 1.2);
+        const spinDuration = 3200;
+
+        const anim = scrollEl.animate(
+            [
+                { transform: 'translate3d(0px,0,0)', offset: 0, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' },
+                { transform: `translate3d(${overshoot}px,0,0)`, offset: 0.78, easing: 'cubic-bezier(0.15, 0.85, 0.25, 1)' },
+                { transform: `translate3d(${finalTranslate + 18}px,0,0)`, offset: 0.9, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+                { transform: `translate3d(${finalTranslate}px,0,0)`, offset: 1 },
+            ],
+            {
+                duration: spinDuration,
+                fill: 'forwards',
+                easing: 'linear',
+            },
+        );
+
+        anim.finished.then(() => {
+            if (!stillValid()) return;
+            // Commit final transform so it survives animation cancel/cleanup
+            scrollEl.style.transform = `translate3d(${finalTranslate}px,0,0)`;
+            highlightWinner();
+            scheduleTamagotchiCinematic(showRevealCard, 220);
+        }).catch(() => {
+            if (!stillValid()) return;
+            scrollEl.style.transform = `translate3d(${finalTranslate}px,0,0)`;
+            highlightWinner();
+            showRevealCard();
+        });
+    });
 }
 
 window.playEpicSound = playEpicSound;
