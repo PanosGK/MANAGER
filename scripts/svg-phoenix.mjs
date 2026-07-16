@@ -53,12 +53,19 @@ ${I3}</g>`;
 
 /** Predatory hooked beak — happy / open-rage sad swap */
 function hookedBeak(y, stroke, fill = '#ff6d00', size = 1) {
-  const s = size;
-  const tip = (4.5 * s).toFixed(1);
-  const depth = (7 * s).toFixed(1);
-  return `${I3}<path class="tm-mascot-mouth-happy" d="M ${50 - tip} ${y} L 50 ${y + Number(depth)} L ${50 + tip} ${y} Q 50 ${y + 2.5 * s} ${50 - tip} ${y}" fill="${fill}" stroke="${stroke}" stroke-width="1.7" stroke-linejoin="round"/>
-${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="M ${50 - tip - 1} ${y + 1} L 50 ${y + Number(depth) + 1.5} L ${50 + tip + 1} ${y + 1} Q 50 ${y - 1} ${50 - tip - 1} ${y + 1}" fill="${fill}" stroke="${stroke}" stroke-width="1.7" stroke-linejoin="round"/>
-${I4}<path d="M 50 ${y + 1} L 50 ${y + Number(depth) - 1}" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>`;
+  const s = Number(size) || 1;
+  const tip = 3.6 * s;
+  const depth = 4.8 * s;
+  const x0 = (50 - tip).toFixed(1);
+  const x1 = (50 + tip).toFixed(1);
+  const yTip = (y + depth).toFixed(1);
+  const yCurve = (y + 1.8 * s).toFixed(1);
+  const x0s = (50 - tip - 0.8).toFixed(1);
+  const x1s = (50 + tip + 0.8).toFixed(1);
+  const yTipSad = (y + depth + 1.2).toFixed(1);
+  return `${I3}<path class="tm-mascot-mouth-happy" d="M ${x0} ${y} L 50 ${yTip} L ${x1} ${y} Q 50 ${yCurve} ${x0} ${y}" fill="${fill}" stroke="${stroke}" stroke-width="1.4" stroke-linejoin="round"/>
+${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="M ${x0s} ${y + 1} L 50 ${yTipSad} L ${x1s} ${y + 1} Q 50 ${y - 0.8} ${x0s} ${y + 1}" fill="${fill}" stroke="${stroke}" stroke-width="1.4" stroke-linejoin="round"/>
+${I4}<path d="M 50 ${y + 0.8} L 50 ${(y + depth - 0.8).toFixed(1)}" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>`;
 }
 
 function shadow(rx = 30, opacity = 0.28) {
@@ -138,27 +145,27 @@ function phoenixStage(stage) {
   const cfg = {
     baby: {
       shadowRx: 26, auraR: 38, bodyY: 66, bodyRx: 23, bodyRy: 19, headY: 36, headRx: 18, headRy: 16,
-      eyeY: 34, eyeRx: 7, eyeRy: 8.5, beakY: 46, beakSize: 0.9, sparks: 5, crest: 'sm', wings: 'sm',
+      eyeY: 34, eyeRx: 7, eyeRy: 8.5, beakY: 47, beakSize: 0.85, sparks: 5, crest: 'sm', wings: 'sm',
     },
     evo1: {
       shadowRx: 30, auraR: 42, bodyY: 64, bodyRx: 22, bodyRy: 18, headY: 34, headRx: 16.5, headRy: 14.5,
-      eyeY: 32, eyeRx: 6.5, eyeRy: 7.8, beakY: 44, beakSize: 1, sparks: 7, crest: 'md', wings: 'md',
+      eyeY: 32, eyeRx: 6.5, eyeRy: 7.8, beakY: 45, beakSize: 0.9, sparks: 7, crest: 'md', wings: 'md',
     },
     evo2: {
       shadowRx: 34, auraR: 46, bodyY: 62, bodyRx: 23, bodyRy: 19, headY: 30, headRx: 17, headRy: 15,
-      eyeY: 28, eyeRx: 6.8, eyeRy: 8, beakY: 42, beakSize: 1.1, sparks: 9, crest: 'lg', wings: 'lg',
+      eyeY: 28, eyeRx: 6.8, eyeRy: 8, beakY: 43, beakSize: 0.95, sparks: 9, crest: 'lg', wings: 'lg',
     },
     evo3: {
       shadowRx: 38, auraR: 50, bodyY: 60, bodyRx: 25, bodyRy: 21, headY: 26, headRx: 19, headRy: 17,
-      eyeY: 24, eyeRx: 7.5, eyeRy: 8.8, beakY: 40, beakSize: 1.25, sparks: 12, crest: 'boss', wings: 'boss',
+      eyeY: 24, eyeRx: 7.5, eyeRy: 8.8, beakY: 41, beakSize: 1.05, sparks: 12, crest: 'boss', wings: 'boss',
     },
     evo4: {
       shadowRx: 36, auraR: 46, bodyY: 62, bodyRx: 24, bodyRy: 20, headY: 28, headRx: 18, headRy: 16,
-      eyeY: 26, eyeRx: 7, eyeRy: 8.2, beakY: 42, beakSize: 1.15, sparks: 10, crest: 'lg', wings: 'lg',
+      eyeY: 26, eyeRx: 7, eyeRy: 8.2, beakY: 43, beakSize: 1, sparks: 10, crest: 'lg', wings: 'lg',
     },
     evo5: {
       shadowRx: 40, auraR: 52, bodyY: 58, bodyRx: 24, bodyRy: 20, headY: 24, headRx: 18.5, headRy: 16.5,
-      eyeY: 22, eyeRx: 7.2, eyeRy: 8.5, beakY: 38, beakSize: 1.2, sparks: 12, crest: 'divine', wings: 'boss',
+      eyeY: 22, eyeRx: 7.2, eyeRy: 8.5, beakY: 39, beakSize: 1.05, sparks: 12, crest: 'divine', wings: 'boss',
     },
   }[stage];
 

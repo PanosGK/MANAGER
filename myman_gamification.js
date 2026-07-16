@@ -3209,6 +3209,7 @@ function initFunFeatures(config, STORAGE_KEYS) {
 }
 
 function getLevelUpSettingsHTML() {
+    const info = typeof window.tmSettingsInfoBtn === 'function' ? window.tmSettingsInfoBtn : () => '';
     return `
         <div class="tm-settings-section">
             <header class="tm-settings-section-head">
@@ -3217,7 +3218,10 @@ function getLevelUpSettingsHTML() {
             </header>
             <div class="tm-setting-row tm-setting-row--accent">
                 <div class="tm-setting-label">
-                    <label>Γρήγορα profiles</label>
+                    <div class="tm-setting-label-row">
+                        <label>Γρήγορα profiles</label>
+                        ${info('work_profiles')}
+                    </div>
                     <p class="tm-setting-description">Professional: μόνο εργαλεία. Gamification: XP, mascot, κατάστημα.</p>
                 </div>
                 <div class="tm-setting-control tm-setting-control--wrap">
@@ -3227,7 +3231,10 @@ function getLevelUpSettingsHTML() {
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-eod-checklist-enabled">Checklist τέλους ημέρας</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-eod-checklist-enabled">Checklist τέλους ημέρας</label>
+                        ${info('eod_checklist')}
+                    </div>
                     <p class="tm-setting-description">Κουμπί στο footer για έλεγχο επισκευών πριν φύγετε.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-eod-checklist-enabled"></div>
@@ -3241,21 +3248,30 @@ function getLevelUpSettingsHTML() {
             </header>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-levelup-enabled">Σύστημα επιπέδων</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-levelup-enabled">Σύστημα επιπέδων</label>
+                        ${info('levelup')}
+                    </div>
                     <p class="tm-setting-description">XP και επίπεδα από επισκευές και εργασίες.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-levelup-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-confetti-enabled">Εφέ κομφετί</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-confetti-enabled">Εφέ κομφετί</label>
+                        ${info('confetti')}
+                    </div>
                     <p class="tm-setting-description">Οπτικά εφέ σε επιτυχίες και milestones.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-confetti-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-achievements-enabled">Επιτεύγματα</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-achievements-enabled">Επιτεύγματα</label>
+                        ${info('achievements')}
+                    </div>
                     <p class="tm-setting-description">Ξεκλείδωμα για ειδικές ενέργειες και στόχους.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-achievements-enabled"></div>
@@ -3269,21 +3285,30 @@ function getLevelUpSettingsHTML() {
             </header>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-random-events-enabled">Τυχαία γεγονότα</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-random-events-enabled">Τυχαία γεγονότα</label>
+                        ${info('random_events')}
+                    </div>
                     <p class="tm-setting-description">Μπόνους όπως 2× νομίσματα ή XP.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-random-events-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-personal-dashboard-enabled">Προσωπικός πίνακας</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-personal-dashboard-enabled">Προσωπικός πίνακας</label>
+                        ${info('personal_dashboard')}
+                    </div>
                     <p class="tm-setting-description">Αναλυτικά στοιχεία και γραφήματα.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-personal-dashboard-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-shop-enabled">Κατάστημα (cosmetics)</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-shop-enabled">Κατάστημα (cosmetics)</label>
+                        ${info('shop')}
+                    </div>
                     <p class="tm-setting-description">Θέματα, αξεσουάρ και game extras.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-shop-enabled"></div>
@@ -3292,6 +3317,7 @@ function getLevelUpSettingsHTML() {
 }
 
 function getMascotSettingsHTML() {
+    const info = typeof window.tmSettingsInfoBtn === 'function' ? window.tmSettingsInfoBtn : () => '';
     return `
         <div class="tm-settings-section">
             <header class="tm-settings-section-head">
@@ -3300,14 +3326,20 @@ function getMascotSettingsHTML() {
             </header>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-mascot-enabled">Ενεργοποίηση</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-mascot-enabled">Ενεργοποίηση</label>
+                        ${info('mascot')}
+                    </div>
                     <p class="tm-setting-description">Εμφάνιση του mascot.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-mascot-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-mascot-speed">Ταχύτητα περιπλάνησης</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-mascot-speed">Ταχύτητα περιπλάνησης</label>
+                        ${info('mascot_speed')}
+                    </div>
                     <p class="tm-setting-description">Pixels ανά δευτερόλεπτο.</p>
                 </div>
                 <div class="tm-setting-control">

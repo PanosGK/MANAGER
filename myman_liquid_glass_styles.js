@@ -271,6 +271,21 @@ input:focus, select:focus, textarea:focus {
 .tm-settings-section {
     background: transparent !important;
 }
+.tm-setting-info-btn {
+    background: var(--lg-fill) !important;
+    border-color: var(--lg-stroke-subtle) !important;
+    color: var(--tm-primary-color) !important;
+}
+.tm-settings-help-panel {
+    background: rgba(255, 255, 255, 0.72) !important;
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    border-left-color: var(--lg-stroke-subtle) !important;
+}
+.tm-settings-help-close {
+    background: var(--lg-fill) !important;
+    color: var(--lg-label) !important;
+}
 
 /* --- Shop --- */
 .tm-shop-tab {

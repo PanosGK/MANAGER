@@ -2419,6 +2419,7 @@
             
             /* New Settings Panel Styles — theme-aware minimal */
             .tm-settings-modal {
+                position: relative;
                 background: var(--tm-modal-bg, var(--tm-shop-item-bg, #ffffff)) !important;
                 color: var(--tm-shop-item-text, #1e293b);
                 border: 1px solid var(--tm-shop-item-border, #e2e8f0) !important;
@@ -2624,6 +2625,128 @@
                 text-align: left;
                 margin-bottom: 0;
                 line-height: 1.4;
+            }
+            .tm-setting-label-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .tm-setting-label-row label {
+                margin: 0;
+            }
+            .tm-setting-info-btn {
+                flex-shrink: 0;
+                width: 22px;
+                height: 22px;
+                padding: 0;
+                border-radius: 999px;
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 35%, var(--tm-shop-item-border, #cbd5e1));
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 8%, var(--tm-shop-item-bg, #fff));
+                color: var(--tm-primary-color, #007bff);
+                font-size: 11px;
+                font-weight: 700;
+                font-style: italic;
+                font-family: Georgia, 'Times New Roman', serif;
+                line-height: 1;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.12s;
+            }
+            .tm-setting-info-btn:hover {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 16%, var(--tm-shop-item-bg, #fff));
+                border-color: var(--tm-primary-color, #007bff);
+                transform: scale(1.06);
+            }
+            .tm-setting-info-btn:focus-visible {
+                outline: 2px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 55%, transparent);
+                outline-offset: 2px;
+            }
+            .tm-settings-help-panel {
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: min(340px, 92%);
+                z-index: 20;
+                display: flex;
+                flex-direction: column;
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg, #ffffff));
+                border-left: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                box-shadow: -12px 0 28px color-mix(in srgb, var(--tm-shadow-color, #0f172a) 14%, transparent);
+                transform: translateX(100%);
+                opacity: 0;
+                pointer-events: none;
+                transition: transform 0.22s ease, opacity 0.18s ease;
+            }
+            .tm-settings-help-panel[hidden] {
+                display: none !important;
+            }
+            .tm-settings-modal.tm-settings-help-open .tm-settings-help-panel {
+                transform: translateX(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+            .tm-settings-help-header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 16px 16px 12px;
+                border-bottom: 1px solid var(--tm-shop-item-border, #e2e8f0);
+            }
+            .tm-settings-help-header h3 {
+                margin: 0;
+                font-size: 15px;
+                font-weight: 700;
+                color: var(--tm-shop-item-text, #0f172a);
+                line-height: 1.35;
+            }
+            .tm-settings-help-close {
+                width: 32px;
+                height: 32px;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                background: var(--tm-shop-item-bg, #f1f5f9);
+                color: var(--tm-shop-item-text, #334155);
+                font-size: 18px;
+                line-height: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .tm-settings-help-close:hover {
+                background: color-mix(in srgb, var(--tm-danger-color, #ef4444) 14%, transparent);
+                color: var(--tm-danger-color, #b91c1c);
+            }
+            .tm-settings-help-body {
+                padding: 14px 16px 20px;
+                overflow-y: auto;
+                flex: 1;
+            }
+            .tm-settings-help-block {
+                margin-bottom: 16px;
+            }
+            .tm-settings-help-block:last-child {
+                margin-bottom: 0;
+            }
+            .tm-settings-help-block h4 {
+                margin: 0 0 6px;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                color: var(--tm-muted-text, var(--tm-secondary-color, #94a3b8));
+            }
+            .tm-settings-help-block p {
+                margin: 0;
+                font-size: 13px;
+                line-height: 1.5;
+                color: var(--tm-shop-item-text, #334155);
             }
             .tm-settings-muted { opacity: 0.8; }
             .tm-settings-unit {

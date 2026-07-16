@@ -10671,9 +10671,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 33 34 Q 40 30.8 47 34" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <path d="M 53 34 Q 60 30.8 67 34" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 46 46 L 50 52.3 L 504.0 46 Q 50 48.25 46 46" fill="#ff6d00" stroke="#bf360c" stroke-width="1.7" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 47 L 50 53.8 L 504.01 47 Q 50 45 45 47" fill="#ff6d00" stroke="#bf360c" stroke-width="1.7" stroke-linejoin="round"/>
-                            <path d="M 50 47 L 50 51.3" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>
+                        <path class="tm-mascot-mouth-happy" d="M 46.9 47 L 50 51.1 L 53.1 47 Q 50 48.5 46.9 47" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 46.1 48 L 50 52.3 L 53.9 48 Q 50 46.2 46.1 48" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M 50 47.8 L 50 50.3" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
                 </g>
 
                 <!-- PHOENIX KID — wrath fledgling -->
@@ -10811,9 +10811,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 33.5 32 Q 40 28.8 46.5 32" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <path d="M 53.5 32 Q 60 28.8 66.5 32" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45.5 44 L 50 51 L 504.5 44 Q 50 46.5 45.5 44" fill="#ff6d00" stroke="#bf360c" stroke-width="1.7" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44.5 45 L 50 52.5 L 504.51 45 Q 50 43 44.5 45" fill="#ff6d00" stroke="#bf360c" stroke-width="1.7" stroke-linejoin="round"/>
-                            <path d="M 50 45 L 50 50" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>
+                        <path class="tm-mascot-mouth-happy" d="M 46.8 45 L 50 49.3 L 53.2 45 Q 50 46.6 46.8 45" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 46.0 46 L 50 50.5 L 54.0 46 Q 50 44.2 46.0 46" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M 50 45.8 L 50 48.5" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
                 </g>
 
                 <!-- PHOENIX TEEN — solar ravager -->
@@ -10963,9 +10963,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 33.2 28 Q 40 24.8 46.8 28" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <path d="M 53.2 28 Q 60 24.8 66.8 28" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45 42 L 50 49.7 L 505.0 42 Q 50 44.75 45 42" fill="#ff6d00" stroke="#bf360c" stroke-width="1.7" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 43 L 50 51.2 L 505.01 43 Q 50 41 44 43" fill="#ff6d00" stroke="#bf360c" stroke-width="1.7" stroke-linejoin="round"/>
-                            <path d="M 50 43 L 50 48.7" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>
+                        <path class="tm-mascot-mouth-happy" d="M 46.6 43 L 50 47.6 L 53.4 43 Q 50 44.7 46.6 43" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45.8 44 L 50 48.8 L 54.2 44 Q 50 42.2 45.8 44" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M 50 43.8 L 50 46.8" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
                 </g>
 
                 <!-- PHOENIX ADULT — Ashborn Phoenix — BOSS -->
@@ -11147,9 +11147,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 32.5 24 Q 40 20.8 47.5 24" stroke="#3d0000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <path d="M 52.5 24 Q 60 20.8 67.5 24" stroke="#3d0000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44.4 40 L 50 48.8 L 505.6 40 Q 50 43.125 44.4 40" fill="#ff6d00" stroke="#3d0000" stroke-width="1.7" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.4 41 L 50 50.3 L 505.61 41 Q 50 39 43.4 41" fill="#ff6d00" stroke="#3d0000" stroke-width="1.7" stroke-linejoin="round"/>
-                            <path d="M 50 41 L 50 47.8" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>
+                        <path class="tm-mascot-mouth-happy" d="M 46.2 41 L 50 46.0 L 53.8 41 Q 50 42.9 46.2 41" fill="#ff6d00" stroke="#3d0000" stroke-width="1.4" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45.4 42 L 50 47.2 L 54.6 42 Q 50 40.2 45.4 42" fill="#ff6d00" stroke="#3d0000" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M 50 41.8 L 50 45.2" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
                 </g>
 
                 <!-- PHOENIX MIDDLE AGE — crimson ash tyrant -->
@@ -11313,9 +11313,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 33 26 Q 40 22.8 47 26" stroke="#3e2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <path d="M 53 26 Q 60 22.8 67 26" stroke="#3e2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44.8 42 L 50 50 L 505.2 42 Q 50 44.875 44.8 42" fill="#d84315" stroke="#3e2723" stroke-width="1.7" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 43 L 50 51.5 L 505.21 43 Q 50 41 43.8 43" fill="#d84315" stroke="#3e2723" stroke-width="1.7" stroke-linejoin="round"/>
-                            <path d="M 50 43 L 50 49" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>
+                        <path class="tm-mascot-mouth-happy" d="M 46.4 43 L 50 47.8 L 53.6 43 Q 50 44.8 46.4 43" fill="#d84315" stroke="#3e2723" stroke-width="1.4" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45.6 44 L 50 49.0 L 54.4 44 Q 50 42.2 45.6 44" fill="#d84315" stroke="#3e2723" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M 50 43.8 L 50 47.0" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
                 </g>
 
                 <!-- PHOENIX OLD — immortal sun god -->
@@ -11491,9 +11491,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 32.8 22 Q 40 18.8 47.2 22" stroke="#ff6f00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <path d="M 52.8 22 Q 60 18.8 67.2 22" stroke="#ff6f00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44.6 38 L 50 46.4 L 505.4 38 Q 50 41 44.6 38" fill="#ffcc80" stroke="#ff6f00" stroke-width="1.7" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.6 39 L 50 47.9 L 505.41 39 Q 50 37 43.6 39" fill="#ffcc80" stroke="#ff6f00" stroke-width="1.7" stroke-linejoin="round"/>
-                            <path d="M 50 39 L 50 45.4" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>
+                        <path class="tm-mascot-mouth-happy" d="M 46.2 39 L 50 44.0 L 53.8 39 Q 50 40.9 46.2 39" fill="#ffcc80" stroke="#ff6f00" stroke-width="1.4" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45.4 40 L 50 45.2 L 54.6 40 Q 50 38.2 45.4 40" fill="#ffcc80" stroke="#ff6f00" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M 50 39.8 L 50 43.2" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
                 </g>
                 <!-- CRYSTAL CHARACTER - All Life Stages (dense cute epic v3) -->
                 <!-- Aether & Stone • Epic Rarity • Prism Titan -->

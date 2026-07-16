@@ -301,6 +301,21 @@ input:focus, select:focus, textarea:focus {
 .tm-settings-section {
     background: transparent !important;
 }
+.tm-setting-info-btn {
+    background: var(--lg-fill) !important;
+    border-color: var(--lg-stroke-subtle) !important;
+    color: var(--tm-primary-color) !important;
+}
+.tm-settings-help-panel {
+    background: rgba(255, 255, 255, 0.72) !important;
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    border-left-color: var(--lg-stroke-subtle) !important;
+}
+.tm-settings-help-close {
+    background: var(--lg-fill) !important;
+    color: var(--lg-label) !important;
+}
 
 /* --- Shop --- */
 .tm-shop-tab {
@@ -7777,6 +7792,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             
             /* New Settings Panel Styles — theme-aware minimal */
             .tm-settings-modal {
+                position: relative;
                 background: var(--tm-modal-bg, var(--tm-shop-item-bg, #ffffff)) !important;
                 color: var(--tm-shop-item-text, #1e293b);
                 border: 1px solid var(--tm-shop-item-border, #e2e8f0) !important;
@@ -7982,6 +7998,128 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 text-align: left;
                 margin-bottom: 0;
                 line-height: 1.4;
+            }
+            .tm-setting-label-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .tm-setting-label-row label {
+                margin: 0;
+            }
+            .tm-setting-info-btn {
+                flex-shrink: 0;
+                width: 22px;
+                height: 22px;
+                padding: 0;
+                border-radius: 999px;
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 35%, var(--tm-shop-item-border, #cbd5e1));
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 8%, var(--tm-shop-item-bg, #fff));
+                color: var(--tm-primary-color, #007bff);
+                font-size: 11px;
+                font-weight: 700;
+                font-style: italic;
+                font-family: Georgia, 'Times New Roman', serif;
+                line-height: 1;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.12s;
+            }
+            .tm-setting-info-btn:hover {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 16%, var(--tm-shop-item-bg, #fff));
+                border-color: var(--tm-primary-color, #007bff);
+                transform: scale(1.06);
+            }
+            .tm-setting-info-btn:focus-visible {
+                outline: 2px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 55%, transparent);
+                outline-offset: 2px;
+            }
+            .tm-settings-help-panel {
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                width: min(340px, 92%);
+                z-index: 20;
+                display: flex;
+                flex-direction: column;
+                background: var(--tm-modal-bg, var(--tm-shop-item-bg, #ffffff));
+                border-left: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                box-shadow: -12px 0 28px color-mix(in srgb, var(--tm-shadow-color, #0f172a) 14%, transparent);
+                transform: translateX(100%);
+                opacity: 0;
+                pointer-events: none;
+                transition: transform 0.22s ease, opacity 0.18s ease;
+            }
+            .tm-settings-help-panel[hidden] {
+                display: none !important;
+            }
+            .tm-settings-modal.tm-settings-help-open .tm-settings-help-panel {
+                transform: translateX(0);
+                opacity: 1;
+                pointer-events: auto;
+            }
+            .tm-settings-help-header {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 16px 16px 12px;
+                border-bottom: 1px solid var(--tm-shop-item-border, #e2e8f0);
+            }
+            .tm-settings-help-header h3 {
+                margin: 0;
+                font-size: 15px;
+                font-weight: 700;
+                color: var(--tm-shop-item-text, #0f172a);
+                line-height: 1.35;
+            }
+            .tm-settings-help-close {
+                width: 32px;
+                height: 32px;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                background: var(--tm-shop-item-bg, #f1f5f9);
+                color: var(--tm-shop-item-text, #334155);
+                font-size: 18px;
+                line-height: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .tm-settings-help-close:hover {
+                background: color-mix(in srgb, var(--tm-danger-color, #ef4444) 14%, transparent);
+                color: var(--tm-danger-color, #b91c1c);
+            }
+            .tm-settings-help-body {
+                padding: 14px 16px 20px;
+                overflow-y: auto;
+                flex: 1;
+            }
+            .tm-settings-help-block {
+                margin-bottom: 16px;
+            }
+            .tm-settings-help-block:last-child {
+                margin-bottom: 0;
+            }
+            .tm-settings-help-block h4 {
+                margin: 0 0 6px;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                color: var(--tm-muted-text, var(--tm-secondary-color, #94a3b8));
+            }
+            .tm-settings-help-block p {
+                margin: 0;
+                font-size: 13px;
+                line-height: 1.5;
+                color: var(--tm-shop-item-text, #334155);
             }
             .tm-settings-muted { opacity: 0.8; }
             .tm-settings-unit {
@@ -11120,6 +11258,299 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 (function() {
     'use strict';
 
+    /** Help text for settings toggles — shown in the info drawer. */
+    const SETTINGS_HELP = {
+        script: {
+            title: 'Κύριος διακόπτης',
+            what: 'Ενεργοποιεί ή απενεργοποιεί ολόκληρο το MyManager Suite (όλα τα εργαλεία, widgets, mascot, gamification).',
+            where: 'Ισχύει σε όλες τις σελίδες του MyManager όπου φορτώνει το script.',
+            when: 'Όταν είναι off, το suite δεν τρέχει. Εναλλαγή και με Ctrl+Shift+E χωρίς να ανοίξετε ρυθμίσεις.',
+        },
+        notifications: {
+            title: 'Ειδοποιήσεις',
+            what: 'Εμφανίζει το κουμπί ειδοποιήσεων και όλα τα popups (επιτεύγματα, υπενθυμίσεις, μηνύματα συστήματος).',
+            where: 'Footer / γωνία οθόνης σε όλες τις σελίδες του suite.',
+            when: 'Όποτε το suite θέλει να σας ειδοποιήσει. Απενεργοποιήστε για ήσυχη λειτουργία.',
+        },
+        dashboard: {
+            title: 'Widget «Σήμερα»',
+            what: 'Μικρό widget με στατιστικά της ημέρας (επισκευές, αλλαγές status κ.λπ.).',
+            where: 'Footer της εφαρμογής.',
+            when: 'Καθ’ όλη τη διάρκεια της εργασίας· ενημερώνεται καθώς κάνετε ενέργειες.',
+        },
+        scroll_top: {
+            title: 'Επιστροφή στην κορυφή',
+            what: 'Κουμπί που κυλάει τη σελίδα στην κορυφή με ένα κλικ.',
+            where: 'Σταθερό στην οθόνη σε μεγάλες λίστες / μακριές σελίδες.',
+            when: 'Όταν κάνετε scroll προς τα κάτω — εμφανίζεται για γρήγορη επιστροφή.',
+        },
+        hidden_menu: {
+            title: 'Απόκρυψη αριστερού μενού',
+            what: 'Επιτρέπει να κρύβετε στοιχεία του αριστερού μενού του MyManager. Από «Κρυφά στοιχεία» επιλέγετε τι θα εμφανίζεται.',
+            where: 'Αριστερό πλαϊνό μενού (όλες οι σελίδες με το native menu).',
+            when: 'Μετά την αποθήκευση ρυθμίσεων / εφαρμογή — το μενού φιλτράρεται όπως τα themes.',
+        },
+        debug: {
+            title: 'Λειτουργία ανάπτυξης',
+            what: 'Ξεκλειδώνει την καρτέλα «Ανάπτυξη», δοκιμές mascot και δωρεάν αντικείμενα στο κατάστημα.',
+            where: 'Ρυθμίσεις → Ανάπτυξη · επίσης επηρεάζει το κατάστημα.',
+            when: 'Μόνο για δοκιμές. Απαιτεί κωδικό πρόσβασης. Μην το αφήνετε on σε κανονική εργασία.',
+        },
+        search: {
+            title: 'Προηγμένη αναζήτηση',
+            what: 'Ισχυρή αναζήτηση με φίλτρα και γρήγορα αποτελέσματα για επισκευές, πελάτες και προϊόντα.',
+            where: 'Modal αναζήτησης (κουμπί / συντόμευση suite) σε σελίδες εργασίας.',
+            when: 'Όταν χρειάζεστε να βρείτε επισκευή, πελάτη ή προϊόν γρήγορα.',
+        },
+        search_history: {
+            title: 'Μέγεθος ιστορικού αναζήτησης',
+            what: 'Πόσες πρόσφατες αναζητήσεις αποθηκεύονται για επανάληψη (0–50).',
+            where: 'Μέσα στο παράθυρο προηγμένης αναζήτησης.',
+            when: 'Κάθε φορά που κάνετε αναζήτηση — εμφανίζονται οι πρόσφατες εγγραφές.',
+        },
+        quick_search: {
+            title: 'Κουμπιά γρήγορης αναζήτησης',
+            what: 'Κουμπιά με προκαθορισμένους όρους (π.χ. Οθόνη, Μπαταρία) για άμεση αναζήτηση ανταλλακτικών.',
+            where: 'Σελίδες επεξεργασίας παραγγελιών / επισκευών όπου εμφανίζεται η μπάρα γρήγορης αναζήτησης.',
+            when: 'Όταν παραγγέλνετε ή ψάχνετε ανταλλακτικά — ένα κλικ αντί για πληκτρολόγηση.',
+        },
+        footer_quick_search: {
+            title: 'Γρήγορη αναζήτηση header',
+            what: 'Πεδίο γρήγορης αναζήτησης στο header (ή δίπλα στον τίτλο στο service_edit). Μπορεί να κρύψει το native search.',
+            where: 'Header (rnr-hfiller) σε πολλές σελίδες · service_edit δίπλα στον τίτλο επισκευής.',
+            when: 'Συνεχώς ορατό όσο είστε σε σελίδες με header — για γρήγορη αναζήτηση χωρίς modal.',
+        },
+        tech_stats: {
+            title: 'Στατιστικά τεχνικών',
+            what: 'Εμφανίζει στατιστικά απόδοσης ανά τεχνικό (επισκευές, χρόνοι κ.λπ.).',
+            where: 'Σχετικές οθόνες / widgets στατιστικών τεχνικών στο suite.',
+            when: 'Όταν θέλετε επισκόπηση απόδοσης ομάδας ή ατόμου.',
+        },
+        recent_repairs: {
+            title: 'Πρόσφατες επισκευές',
+            what: 'Κουμπί / λίστα για γρήγορη πρόσβαση στις τελευταίες επισκευές που ανοίξατε ή δουλέψατε.',
+            where: 'UI suite (κουμπί πρόσφατων) σε σελίδες εργασίας.',
+            when: 'Όταν θέλετε να επιστρέψετε γρήγορα σε πρόσφατη επισκευή.',
+        },
+        repair_quickview: {
+            title: 'Γρήγορη προβολή λίστας',
+            what: 'Κουμπί προεπισκόπησης σε κάθε γραμμή λίστας επισκευών χωρίς να αλλάξετε σελίδα.',
+            where: 'Λίστα επισκευών (service list).',
+            when: 'Όταν σκανάρετε τη λίστα και θέλετε γρήγορη ματιά σε λεπτομέρειες.',
+        },
+        recent_repairs_max: {
+            title: 'Αριθμός πρόσφατων επισκευών',
+            what: 'Πόσες επισκευές κρατάει η λίστα «Πρόσφατες» (1–20).',
+            where: 'Ίδιο UI με τις πρόσφατες επισκευές.',
+            when: 'Επηρεάζει το μήκος της λίστας κάθε φορά που ανοίγετε πρόσφατες.',
+        },
+        customer_history: {
+            title: 'Ιστορικό πελάτη',
+            what: 'Γρήγορη προβολή προηγούμενων επισκευών / ιστορικού του πελάτη.',
+            where: 'Λίστα επισκευών και σχετικά σημεία πελάτη.',
+            when: 'Όταν ανοίγετε ή κοιτάτε επισκευή και θέλετε προηγούμενο ιστορικό πελάτη.',
+        },
+        weather: {
+            title: 'Widget καιρού',
+            what: 'Τοπική πρόγνωση καιρού στο footer.',
+            where: 'Κέντρο footer.',
+            when: 'Συνεχώς (όσο είναι ενεργό) — ενημερώνεται περιοδικά.',
+        },
+        phone_catalog: {
+            title: 'Κατάλογος συσκευών',
+            what: 'Κατάλογος μεταχειρισμένων συσκευών (μοντέλο, βαθμίδα, IMEI, χωρητικότητα, χρώμα) με αναζήτηση, φίλτρα και CSV.',
+            where: 'Ξεχωριστό UI καταλόγου από το suite.',
+            when: 'Όταν ψάχνετε ή εξάγετε διαθέσιμες μεταχειρισμένες συσκευές του καταστήματος.',
+        },
+        order_history: {
+            title: 'Ιστορικό παραγγελιών',
+            what: 'Εμφάνιση ιστορικού παραγγελιών ανταλλακτικών.',
+            where: 'Σχετικές οθόνες παραγγελιών / επισκευών με σύνδεση παραγγελίας.',
+            when: 'Όταν ελέγχετε τι έχει παραγγελθεί για μια επισκευή ή γενικά.',
+        },
+        order_link: {
+            title: 'Σύνδεση status 65 → παραγγελίες',
+            what: 'Σε επισκευές status 65, το badge γίνεται κλικ για αναζήτηση παραγγελιών. Στη σελίδα παραγγελίας εμφανίζει σύνδεσμο προς την επισκευή.',
+            where: 'service_edit (status 65) και σελίδες παραγγελιών.',
+            when: 'Όταν η επισκευή περιμένει ανταλλακτικά ή ανοίγετε σχετική παραγγελία.',
+        },
+        return_to_40: {
+            title: 'Κουμπί «40» (65/100)',
+            what: 'Κόκκινο κουμπί που κάνει logout → login ως admin και εφαρμόζει status 40 (όπως το logo flow).',
+            where: 'service_edit σε επισκευές με status 65 ή 100.',
+            when: 'Όταν χρειάζεται επιστροφή σε status 40 με δικαιώματα admin.',
+        },
+        status40_admin: {
+            title: 'Admin (Status 40)',
+            what: 'Username/κωδικός admin για το flow logo / κουμπί 40 (logout → login ως admin → επιστροφή στην επισκευή).',
+            where: 'Αποθηκεύονται τοπικά στο Tampermonkey (όχι ανά προφίλ χρήστη).',
+            when: 'Χρησιμοποιούνται όταν κάνετε κλικ στο logo ή στο κουμπί «40».',
+        },
+        autorefresh: {
+            title: 'Αυτόματη ανανέωση',
+            what: 'Ανανεώνει αυτόματα τις σελίδες λίστας ώστε να βλέπετε νέες εγγραφές χωρίς F5.',
+            where: 'Σελίδες λίστας (π.χ. λίστα επισκευών).',
+            when: 'Μόνο μέσα στο ορισμένο ωράριο και τις επιλεγμένες ημέρες.',
+        },
+        refresh_interval: {
+            title: 'Διάστημα ανανέωσης',
+            what: 'Πόσα λεπτά περιμένει μεταξύ αυτόματων ανανεώσεων.',
+            where: 'Ίδιες σελίδες λίστας με την αυτόματη ανανέωση.',
+            when: 'Κάθε N λεπτά όσο η αυτόματη ανανέωση είναι ενεργή και είστε σε εργάσιμο χρόνο.',
+        },
+        working_hours: {
+            title: 'Ώρες & ημέρες εργασίας',
+            what: 'Περιορίζει την αυτόματη ανανέωση σε συγκεκριμένες ώρες και ημέρες.',
+            where: 'Εφαρμόζεται στη συμπεριφορά auto-refresh (όχι ορατό UI στη λίστα).',
+            when: 'Η ανανέωση τρέχει μόνο μέσα στο παράθυρο που ορίζετε εδώ.',
+        },
+        scratchpad: {
+            title: 'Σημειωματάριο',
+            what: 'Γρήγορο σημειωματάριο για checklists και προσωρινές σημειώσεις κατά τη δουλειά.',
+            where: 'Panel σημειωματαρίου του suite (κουμπί / overlay).',
+            when: 'Όποτε θέλετε να κρατήσετε σημειώσεις χωρίς να φύγετε από τη σελίδα.',
+        },
+        scratchpad_templates: {
+            title: 'Πρότυπα σημειωματαρίου',
+            what: 'Έτοιμα πρότυπα κειμένου για γρήγορη εισαγωγή στο σημειωματάριο.',
+            where: 'Μέσα στο σημειωματάριο.',
+            when: 'Όταν επιλέγετε πρότυπο αντί να γράφετε από την αρχή.',
+        },
+        quick_search_editor: {
+            title: 'Επεξεργαστής γρήγορης αναζήτησης',
+            what: 'Ορίζετε ετικέτα κουμπιού και όρο αναζήτησης για τα κουμπιά γρήγορης αναζήτησης.',
+            where: 'Ρυθμίσεις → Εργαλεία · τα κουμπιά εμφανίζονται στις σελίδες παραγγελιών/επισκευών.',
+            when: 'Αφού αποθηκεύσετε, τα νέα κουμπιά είναι διαθέσιμα στην επόμενη χρήση.',
+        },
+        price_options: {
+            title: 'Επιλογές τιμών επισκευής',
+            what: 'Προσαρμόζει τις επιλογές στο dropdown τιμών (extra χρεώσεις, ειδικές τιμές).',
+            where: 'Σελίδα επεξεργασίας επισκευής (πεδίο τιμής).',
+            when: 'Όταν συμπληρώνετε ή αλλάζετε τιμή επισκευής.',
+        },
+        work_profiles: {
+            title: 'Γρήγορα profiles',
+            what: 'Professional απενεργοποιεί παιχνίδι/mascot/shop και αφήνει εργαλεία δουλειάς. Gamification ενεργοποιεί XP, mascot, κατάστημα κ.λπ.',
+            where: 'Επηρεάζει όλο το suite μετά την αποθήκευση.',
+            when: 'Πατήστε το κουμπί για να εφαρμοστεί το αντίστοιχο σετ ρυθμίσεων αμέσως (και αποθηκεύστε αν χρειάζεται).',
+        },
+        eod_checklist: {
+            title: 'Checklist τέλους ημέρας',
+            what: 'Checklist με τις επισκευές της ημέρας πριν φύγετε — δωρεάν εργαλείο δουλειάς.',
+            where: 'Κουμπί στο footer · ανοίγει modal EOD.',
+            when: 'Στο τέλος της βάρδιας ή όποτε θέλετε έλεγχο εκκρεμοτήτων της ημέρας.',
+        },
+        levelup: {
+            title: 'Σύστημα επιπέδων',
+            what: 'Κερδίζετε XP και ανεβαίνετε επίπεδο από επισκευές, status changes, παραγγελίες κ.λπ.',
+            where: 'UI επιπέδου / XP στο suite (footer ή σχετικά panels).',
+            when: 'Μετά από επιτυχημένες εργασίες όσο είναι ενεργό.',
+        },
+        confetti: {
+            title: 'Εφέ κομφετί',
+            what: 'Οπτικά εφέ κομφετί σε επιτυχίες και milestones.',
+            where: 'Πάνω από την τρέχουσα σελίδα (overlay).',
+            when: 'Π.χ. ολοκλήρωση επισκευής / σημαντικά events — αν είναι ενεργό και το confetti setting.',
+        },
+        achievements: {
+            title: 'Επιτεύγματα',
+            what: 'Ξεκλειδώνει επιτεύγματα για ειδικούς στόχους και ενέργειες.',
+            where: 'Ειδοποιήσεις / σχετικά panels επιτευγμάτων.',
+            when: 'Όταν πιάσετε στόχο όσο το σύστημα είναι ενεργό.',
+        },
+        random_events: {
+            title: 'Τυχαία γεγονότα',
+            what: 'Περιοδικά events με μπόνους (π.χ. 2× νομίσματα, 2× XP).',
+            where: 'Popup / banner πάνω στην εργασία.',
+            when: 'Τυχαία κατά τη διάρκεια της ημέρας όσο είστε ενεργοί στο MyManager.',
+        },
+        personal_dashboard: {
+            title: 'Προσωπικός πίνακας',
+            what: 'Αναλυτικά γραφήματα και στατιστικά απόδοσης.',
+            where: 'Modal / σελίδα προσωπικού dashboard του suite.',
+            when: 'Όταν ανοίγετε τον πίνακα για ανασκόπηση προόδου.',
+        },
+        shop: {
+            title: 'Κατάστημα (cosmetics)',
+            what: 'Κατάστημα για θέματα, αξεσουάρ mascot και προαιρετικά game extras — όχι εργαλεία δουλειάς.',
+            where: 'Κουμπί καταστήματος / modal shop.',
+            when: 'Όταν θέλετε να αγοράσετε ή να εξοπλίσετε cosmetics με Fixer-Coins.',
+        },
+        mascot: {
+            title: 'Mascot',
+            what: 'Διαδραστικός βοηθός στην οθόνη (Tamagotchi): φροντίδα, αντιδράσεις στη δουλειά, bubbles.',
+            where: 'Πλωτό mascot σε όλες τις σελίδες όσο είναι ενεργό.',
+            when: 'Συνεχώς (idle / αντιδράσεις σε επισκευές, παραγγελίες, EOD κ.λπ.).',
+        },
+        mascot_speed: {
+            title: 'Ταχύτητα περιπλάνησης',
+            what: 'Πόσο γρήγορα κινείται το mascot στην οθόνη (pixels/δευτ.).',
+            where: 'Οπουδήποτε εμφανίζεται το mascot.',
+            when: 'Κατά την περιπλάνηση (roaming) σε idle.',
+        },
+        auto_update: {
+            title: 'Αυτόματος έλεγχος ενημερώσεων',
+            what: 'Κάθε ~5 λεπτά ελέγχει αν χρειάζεται νέο Tampermonkey loader.',
+            where: 'Ισχύει στο παρασκήνιο · εικονίδιο ↻ στο footer αν χρειάζεται update.',
+            when: 'Συνεχώς στο παρασκήνιο όσο είστε στο MyManager.',
+        },
+        updates_version: {
+            title: 'Έκδοση / έλεγχος τώρα',
+            what: 'Δείχνει την τρέχουσα Custom Ver. και επιτρέπει χειροκίνητο έλεγχο ενημέρωσης.',
+            where: 'Ρυθμίσεις → Ενημερώσεις.',
+            when: 'Πατήστε «Έλεγχος τώρα» όποτε θέλετε άμεσο έλεγχο.',
+        },
+        updates_loader: {
+            title: 'Loader',
+            what: 'Το Tampermonkey loader εγκαθίσταται μία φορά από GitHub. Το bundle ενημερώνεται αυτόματα· μόνο αλλαγές loader χρειάζονται update από το Dashboard.',
+            where: 'Tampermonkey Dashboard / URL loader.',
+            when: 'Μόνο όταν αλλάζει το ίδιο το loader (σπάνια).',
+        },
+        data_backup: {
+            title: 'Δεδομένα & backup',
+            what: 'Εξαγωγή / εισαγωγή ρυθμίσεων και προόδου του ενεργού προφίλ. Η επαναφορά σβήνει τα πάντα.',
+            where: 'Ρυθμίσεις → Δεδομένα · τα αρχεία είναι τοπικά στο PC σας.',
+            when: 'Πριν αλλαγή PC, πριν μεγάλο reset, ή για μεταφορά προφίλ.',
+        },
+    };
+
+    function tmSettingsInfoBtn(key) {
+        if (!SETTINGS_HELP[key]) return '';
+        return `<button type="button" class="tm-setting-info-btn" data-tm-help="${key}" title="Περισσότερες πληροφορίες" aria-label="Περισσότερες πληροφορίες για αυτή τη ρύθμιση"><span aria-hidden="true">i</span></button>`;
+    }
+
+    function openSettingsHelpPanel(modalRoot, key) {
+        const info = SETTINGS_HELP[key];
+        const panel = modalRoot?.querySelector('#tm-settings-help-panel');
+        if (!info || !panel) return;
+        panel.querySelector('[data-help-title]').textContent = info.title;
+        panel.querySelector('[data-help-what]').textContent = info.what;
+        panel.querySelector('[data-help-where]').textContent = info.where;
+        panel.querySelector('[data-help-when]').textContent = info.when;
+        panel.removeAttribute('hidden');
+        panel.setAttribute('aria-hidden', 'false');
+        // Next frame so the slide-in transition runs after display becomes flex
+        requestAnimationFrame(() => {
+            modalRoot.classList.add('tm-settings-help-open');
+        });
+    }
+
+    function closeSettingsHelpPanel(modalRoot) {
+        const panel = modalRoot?.querySelector('#tm-settings-help-panel');
+        if (!panel) return;
+        modalRoot.classList.remove('tm-settings-help-open');
+        panel.setAttribute('aria-hidden', 'true');
+        const finish = () => {
+            if (modalRoot.classList.contains('tm-settings-help-open')) return;
+            panel.setAttribute('hidden', '');
+        };
+        panel.addEventListener('transitionend', finish, { once: true });
+        setTimeout(finish, 280);
+    }
+
+    window.SETTINGS_HELP = SETTINGS_HELP;
+    window.tmSettingsInfoBtn = tmSettingsInfoBtn;
+
     // This function will be attached to the window object to be called from the main script.
     function initSettingsPanel(parentContainer, config, STORAGE_KEYS) {
 
@@ -11519,6 +11950,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
         // --- Settings Modal HTML Generators (for better readability) ---
         function getGeneralUISettingsHTML() {
+            const info = tmSettingsInfoBtn;
             // Merged General and Login settings
             return `
                 <div class="tm-settings-section">
@@ -11528,7 +11960,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </header>
                     <div class="tm-setting-row tm-setting-row--danger">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-script-enabled">Κύριος διακόπτης</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-script-enabled">Κύριος διακόπτης</label>
+                                ${info('script')}
+                            </div>
                             <p class="tm-setting-description">Απενεργοποιεί όλες τις λειτουργίες. Ctrl+Shift+E για γρήγορη εναλλαγή.</p>
                         </div>
                         <div class="tm-setting-control">
@@ -11537,28 +11972,40 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-notifications-enabled">Ειδοποιήσεις</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-notifications-enabled">Ειδοποιήσεις</label>
+                                ${info('notifications')}
+                            </div>
                             <p class="tm-setting-description">Popups, achievements και υπενθυμίσεις.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-notifications-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-dashboard-enabled">Widget «Σήμερα»</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-dashboard-enabled">Widget «Σήμερα»</label>
+                                ${info('dashboard')}
+                            </div>
                             <p class="tm-setting-description">Στατιστικά της τρέχουσας ημέρας στο footer.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-dashboard-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-scroll-top-enabled">Επιστροφή στην κορυφή</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-scroll-top-enabled">Επιστροφή στην κορυφή</label>
+                                ${info('scroll_top')}
+                            </div>
                             <p class="tm-setting-description">Κουμπί γρήγορης κύλισης πάνω.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-scroll-top-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-hidden-menu-enabled">Απόκρυψη αριστερού μενού</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-hidden-menu-enabled">Απόκρυψη αριστερού μενού</label>
+                                ${info('hidden_menu')}
+                            </div>
                             <p class="tm-setting-description">Επιλέξτε ποια στοιχεία εμφανίζονται.</p>
                         </div>
                         <div class="tm-setting-control">
@@ -11568,7 +12015,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
                     <div class="tm-setting-row tm-setting-row--warn">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-debug-enabled">Λειτουργία ανάπτυξης</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-debug-enabled">Λειτουργία ανάπτυξης</label>
+                                ${info('debug')}
+                            </div>
                             <p class="tm-setting-description">Δοκιμές και δωρεάν αντικείμενα. Απαιτεί κωδικό.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-debug-enabled"></div>
@@ -11699,6 +12149,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         function getSearchSettingsHTML() {
+            const info = tmSettingsInfoBtn;
             const status40AdminUser = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_USERNAME, '');
             const status40AdminPass = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_PASSWORD, '');
             return `
@@ -11710,28 +12161,40 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     <h4 class="tm-settings-subgroup">Αναζήτηση</h4>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-search-enabled">Προηγμένη αναζήτηση</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-search-enabled">Προηγμένη αναζήτηση</label>
+                                ${info('search')}
+                            </div>
                             <p class="tm-setting-description">Φίλτρα και ταχεία αποτελέσματα για επισκευές, πελάτες, προϊόντα.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-search-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-search-history-max">Μέγεθος ιστορικού</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-search-history-max">Μέγεθος ιστορικού</label>
+                                ${info('search_history')}
+                            </div>
                             <p class="tm-setting-description">Πρόσφατες αναζητήσεις (0–50).</p>
                         </div>
                         <div class="tm-setting-control"><input type="number" id="tm-setting-search-history-max" min="0" max="50"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-quick-search-enabled">Κουμπιά γρήγορης αναζήτησης</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-quick-search-enabled">Κουμπιά γρήγορης αναζήτησης</label>
+                                ${info('quick_search')}
+                            </div>
                             <p class="tm-setting-description">Π.χ. «Οθόνη», «Μπαταρία» στις σελίδες επισκευών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-quick-search-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-footer-quick-search-enabled">Γρήγορη αναζήτηση header</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-footer-quick-search-enabled">Γρήγορη αναζήτηση header</label>
+                                ${info('footer_quick_search')}
+                            </div>
                             <p class="tm-setting-description">Στο header ή δίπλα στον τίτλο επισκευής.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-footer-quick-search-enabled"></div>
@@ -11740,28 +12203,40 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     <h4 class="tm-settings-subgroup">Λίστα &amp; προβολή</h4>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-tech-stats-enabled">Στατιστικά τεχνικών</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-tech-stats-enabled">Στατιστικά τεχνικών</label>
+                                ${info('tech_stats')}
+                            </div>
                             <p class="tm-setting-description">Απόδοση ανά τεχνικό.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-tech-stats-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-recent-repairs-enabled">Πρόσφατες επισκευές</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-recent-repairs-enabled">Πρόσφατες επισκευές</label>
+                                ${info('recent_repairs')}
+                            </div>
                             <p class="tm-setting-description">Γρήγορη πρόσβαση στις τελευταίες επισκευές.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-recent-repairs-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-repair-list-quickview-enabled">Γρήγορη προβολή λίστας</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-repair-list-quickview-enabled">Γρήγορη προβολή λίστας</label>
+                                ${info('repair_quickview')}
+                            </div>
                             <p class="tm-setting-description">Προεπισκόπηση χωρίς αλλαγή σελίδας.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-repair-list-quickview-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-recent-repairs-max">Αριθμός πρόσφατων</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-recent-repairs-max">Αριθμός πρόσφατων</label>
+                                ${info('recent_repairs_max')}
+                            </div>
                             <p class="tm-setting-description">Πόσες να εμφανίζονται (1–20).</p>
                         </div>
                         <div class="tm-setting-control">
@@ -11770,7 +12245,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-customer-history-enabled">Ιστορικό πελάτη</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-customer-history-enabled">Ιστορικό πελάτη</label>
+                                ${info('customer_history')}
+                            </div>
                             <p class="tm-setting-description">Γρήγορη προβολή στη λίστα επισκευών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-customer-history-enabled"></div>
@@ -11779,35 +12257,50 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     <h4 class="tm-settings-subgroup">Άλλα εργαλεία</h4>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-weather-widget-enabled">Widget καιρού</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-weather-widget-enabled">Widget καιρού</label>
+                                ${info('weather')}
+                            </div>
                             <p class="tm-setting-description">Πρόγνωση στο κέντρο του footer.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-weather-widget-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-phone-catalog-enabled">Κατάλογος συσκευών</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-phone-catalog-enabled">Κατάλογος συσκευών</label>
+                                ${info('phone_catalog')}
+                            </div>
                             <p class="tm-setting-description">Μεταχειρισμένες συσκευές με αναζήτηση και CSV.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-phone-catalog-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-order-history-enabled">Ιστορικό παραγγελιών</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-order-history-enabled">Ιστορικό παραγγελιών</label>
+                                ${info('order_history')}
+                            </div>
                             <p class="tm-setting-description">Παραγγελίες ανταλλακτικών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-history-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-order-link-enabled">Σύνδεση status 65 → παραγγελίες</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-order-link-enabled">Σύνδεση status 65 → παραγγελίες</label>
+                                ${info('order_link')}
+                            </div>
                             <p class="tm-setting-description">Κλικ στο badge για αναζήτηση παραγγελιών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-link-enabled"></div>
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-return-to-40-enabled">Κουμπί «40» (65/100)</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-return-to-40-enabled">Κουμπί «40» (65/100)</label>
+                                ${info('return_to_40')}
+                            </div>
                             <p class="tm-setting-description">Επιστροφή σε status 40 μέσω admin login.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-return-to-40-enabled"></div>
@@ -11815,7 +12308,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 </div>
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
-                        <h3>Admin (Status 40)</h3>
+                        <div class="tm-setting-label-row">
+                            <h3>Admin (Status 40)</h3>
+                            ${info('status40_admin')}
+                        </div>
                         <p class="tm-settings-section-desc">Διαπιστευτήρια για logo → admin login. Αποθηκεύονται τοπικά.</p>
                     </header>
                     <div class="tm-setting-row">
@@ -11838,6 +12334,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         function getAutoRefreshSettingsHTML() {
+            const info = tmSettingsInfoBtn;
             return `
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
@@ -11846,7 +12343,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-autorefresh-enabled">Ενεργοποίηση</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-autorefresh-enabled">Ενεργοποίηση</label>
+                                ${info('autorefresh')}
+                            </div>
                             <p class="tm-setting-description">Ανανεώνει αυτόματα τις σελίδες λίστας.</p>
                         </div>
                         <div class="tm-setting-control">
@@ -11856,7 +12356,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     <div id="tm-autorefresh-options">
                         <div class="tm-setting-row">
                             <div class="tm-setting-label">
-                                <label for="tm-setting-refresh-interval">Διάστημα</label>
+                                <div class="tm-setting-label-row">
+                                    <label for="tm-setting-refresh-interval">Διάστημα</label>
+                                    ${info('refresh_interval')}
+                                </div>
                                 <p class="tm-setting-description">Λεπτά μεταξύ ανανεώσεων.</p>
                             </div>
                             <div class="tm-setting-control">
@@ -11865,7 +12368,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             </div>
                         </div>
                         <div id="tm-working-hours-editor" class="tm-settings-panel">
-                            <p class="tm-setting-description tm-settings-panel-title">Ενεργό μόνο στις παρακάτω ώρες και ημέρες</p>
+                            <div class="tm-setting-label-row tm-settings-panel-title-row">
+                                <p class="tm-setting-description tm-settings-panel-title">Ενεργό μόνο στις παρακάτω ώρες και ημέρες</p>
+                                ${info('working_hours')}
+                            </div>
                             <div id="tm-working-hours-time-inputs">
                                 <label for="tm-setting-wh-start">Από</label>
                                 <input type="number" id="tm-setting-wh-start" value="${config.workingHoursStart}" min="0" max="23">
@@ -11880,10 +12386,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         function getQuickSearchEditorHTML() {
+            const info = tmSettingsInfoBtn;
             return `
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
-                        <h3>Γρήγορη αναζήτηση</h3>
+                        <div class="tm-setting-label-row">
+                            <h3>Γρήγορη αναζήτηση</h3>
+                            ${info('quick_search_editor')}
+                        </div>
                         <p class="tm-settings-section-desc">Ετικέτα = κουμπί · Όρος = λέξη-κλειδί αναζήτησης.</p>
                     </header>
                     <div id="tm-quick-search-editor" class="tm-settings-editor"></div>
@@ -11893,10 +12403,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         function getPriceOptionsEditorHTML() {
+            const info = tmSettingsInfoBtn;
             return `
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
-                        <h3>Επιλογές τιμών</h3>
+                        <div class="tm-setting-label-row">
+                            <h3>Επιλογές τιμών</h3>
+                            ${info('price_options')}
+                        </div>
                         <p class="tm-settings-section-desc">Extra χρεώσεις ή ειδικές τιμές στο dropdown επισκευής.</p>
                     </header>
                     <div id="tm-price-options-editor" class="tm-settings-editor"></div>
@@ -11906,10 +12420,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         function getScratchpadTemplatesEditorHTML() {
+            const info = tmSettingsInfoBtn;
             return `
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
-                        <h3>Πρότυπα</h3>
+                        <div class="tm-setting-label-row">
+                            <h3>Πρότυπα</h3>
+                            ${info('scratchpad_templates')}
+                        </div>
                         <p class="tm-settings-section-desc">Γρήγορη εισαγωγή checklists ή επαναλαμβανόμενων σημειώσεων.</p>
                     </header>
                     <div id="tm-scratchpad-templates-editor" class="tm-settings-editor"></div>
@@ -11919,6 +12437,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         function getScratchpadSettingsHTML() {
+            const info = tmSettingsInfoBtn;
             return `
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
@@ -11926,7 +12445,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         <p class="tm-settings-section-desc">Γρήγορες σημειώσεις κατά την εργασία.</p>
                     </header>
                     <div class="tm-setting-row">
-                        <div class="tm-setting-label"><label for="tm-setting-scratchpad-enabled">Ενεργοποίηση</label></div>
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-scratchpad-enabled">Ενεργοποίηση</label>
+                                ${info('scratchpad')}
+                            </div>
+                        </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-scratchpad-enabled"></div>
                     </div>
                 </div>
@@ -11935,10 +12459,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         function getDataManagementHTML() {
+            const info = tmSettingsInfoBtn;
             return `
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
-                        <h3>Δεδομένα &amp; backup</h3>
+                        <div class="tm-setting-label-row">
+                            <h3>Δεδομένα &amp; backup</h3>
+                            ${info('data_backup')}
+                        </div>
                         <p class="tm-settings-section-desc">Αντίγραφα ασφαλείας ρυθμίσεων και προόδου.</p>
                     </header>
                     <p class="tm-setting-description tm-settings-profile-line">Ενεργό προφίλ: <strong id="tm-settings-active-profile">—</strong> <span class="tm-settings-muted">(ανά χρήστη σύνδεσης στο ίδιο PC)</span></p>
@@ -11954,6 +12482,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         function getUpdatesSettingsHTML() {
+            const info = tmSettingsInfoBtn;
             const loaderUrl = window.SCRIPT_META?.loaderUrl || 'myman_loader.user.js';
             const displayVer = window.getSuiteDisplayVersion?.() || window.SCRIPT_META?.displayVersion || '—';
             return `
@@ -11964,7 +12493,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label for="tm-setting-auto-update-check-enabled">Αυτόματος έλεγχος</label>
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-auto-update-check-enabled">Αυτόματος έλεγχος</label>
+                                ${info('auto_update')}
+                            </div>
                             <p class="tm-setting-description">Κάθε 5 λεπτά · εικονίδιο ↻ στο footer αν χρειάζεται.</p>
                         </div>
                         <div class="tm-setting-control">
@@ -11973,7 +12505,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
-                            <label>Έκδοση</label>
+                            <div class="tm-setting-label-row">
+                                <label>Έκδοση</label>
+                                ${info('updates_version')}
+                            </div>
                             <p class="tm-setting-description"><strong id="tm-settings-current-version">Custom Ver. ${displayVer}</strong></p>
                             <p class="tm-setting-description" id="tm-settings-update-status">—</p>
                             <p class="tm-setting-description" id="tm-settings-skipped-version" style="display: none;"></p>
@@ -11985,7 +12520,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
                     <div class="tm-setting-row tm-setting-row--divider">
                         <div class="tm-setting-label">
-                            <label>Loader</label>
+                            <div class="tm-setting-label-row">
+                                <label>Loader</label>
+                                ${info('updates_loader')}
+                            </div>
                             <p class="tm-setting-description">Εγκατάσταση μία φορά από GitHub. Μόνο αλλαγές loader χρειάζονται update από το Tampermonkey.</p>
                             <p class="tm-setting-description tm-settings-code-line"><code>${loaderUrl}</code></p>
                         </div>
@@ -12225,14 +12763,53 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         <span id="tm-settings-feedback"></span>
                         <button type="button" id="tm-settings-save" class="tm-settings-save-btn">Αποθήκευση &amp; Επαναφόρτωση</button>
                     </div>
+                    <aside id="tm-settings-help-panel" class="tm-settings-help-panel" hidden aria-hidden="true" role="dialog" aria-labelledby="tm-settings-help-title">
+                        <div class="tm-settings-help-header">
+                            <h3 id="tm-settings-help-title" data-help-title>Πληροφορίες</h3>
+                            <button type="button" class="tm-settings-help-close" aria-label="Κλείσιμο πληροφοριών">&times;</button>
+                        </div>
+                        <div class="tm-settings-help-body">
+                            <section class="tm-settings-help-block">
+                                <h4>Τι κάνει</h4>
+                                <p data-help-what></p>
+                            </section>
+                            <section class="tm-settings-help-block">
+                                <h4>Πού εμφανίζεται</h4>
+                                <p data-help-where></p>
+                            </section>
+                            <section class="tm-settings-help-block">
+                                <h4>Πότε χρησιμοποιείται</h4>
+                                <p data-help-when></p>
+                            </section>
+                        </div>
+                    </aside>
                 </div>
             `;
             document.body.appendChild(overlay);
 
             // Event Listeners
+            const modalRoot = overlay.querySelector('.tm-settings-modal');
             overlay.querySelector('.tm-modal-close').addEventListener('click', () => overlay.remove());
             overlay.querySelector('#tm-settings-save').addEventListener('click', saveSettings);
             overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+            overlay.querySelector('.tm-settings-help-close')?.addEventListener('click', () => closeSettingsHelpPanel(modalRoot));
+            overlay.addEventListener('click', (e) => {
+                const btn = e.target.closest?.('.tm-setting-info-btn');
+                if (!btn) return;
+                e.preventDefault();
+                e.stopPropagation();
+                openSettingsHelpPanel(modalRoot, btn.getAttribute('data-tm-help'));
+            });
+            document.addEventListener('keydown', function onHelpEsc(ev) {
+                if (ev.key !== 'Escape') return;
+                if (!modalRoot.isConnected) {
+                    document.removeEventListener('keydown', onHelpEsc);
+                    return;
+                }
+                if (!modalRoot.classList.contains('tm-settings-help-open')) return;
+                closeSettingsHelpPanel(modalRoot);
+                ev.stopPropagation();
+            });
             try {
                 const links = overlay.querySelectorAll('.tm-settings-sidebar .tm-nav a');
                 const sections = overlay.querySelectorAll('.tm-settings-main section');
@@ -26683,9 +27260,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 33 34 Q 40 30.8 47 34" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <path d="M 53 34 Q 60 30.8 67 34" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 46 46 L 50 52.3 L 504.0 46 Q 50 48.25 46 46" fill="#ff6d00" stroke="#bf360c" stroke-width="1.7" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 47 L 50 53.8 L 504.01 47 Q 50 45 45 47" fill="#ff6d00" stroke="#bf360c" stroke-width="1.7" stroke-linejoin="round"/>
-                            <path d="M 50 47 L 50 51.3" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>
+                        <path class="tm-mascot-mouth-happy" d="M 46.9 47 L 50 51.1 L 53.1 47 Q 50 48.5 46.9 47" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 46.1 48 L 50 52.3 L 53.9 48 Q 50 46.2 46.1 48" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M 50 47.8 L 50 50.3" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
                 </g>
 
                 <!-- PHOENIX KID — wrath fledgling -->
@@ -26823,9 +27400,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 33.5 32 Q 40 28.8 46.5 32" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <path d="M 53.5 32 Q 60 28.8 66.5 32" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45.5 44 L 50 51 L 504.5 44 Q 50 46.5 45.5 44" fill="#ff6d00" stroke="#bf360c" stroke-width="1.7" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44.5 45 L 50 52.5 L 504.51 45 Q 50 43 44.5 45" fill="#ff6d00" stroke="#bf360c" stroke-width="1.7" stroke-linejoin="round"/>
-                            <path d="M 50 45 L 50 50" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>
+                        <path class="tm-mascot-mouth-happy" d="M 46.8 45 L 50 49.3 L 53.2 45 Q 50 46.6 46.8 45" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 46.0 46 L 50 50.5 L 54.0 46 Q 50 44.2 46.0 46" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M 50 45.8 L 50 48.5" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
                 </g>
 
                 <!-- PHOENIX TEEN — solar ravager -->
@@ -26975,9 +27552,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 33.2 28 Q 40 24.8 46.8 28" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <path d="M 53.2 28 Q 60 24.8 66.8 28" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45 42 L 50 49.7 L 505.0 42 Q 50 44.75 45 42" fill="#ff6d00" stroke="#bf360c" stroke-width="1.7" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 43 L 50 51.2 L 505.01 43 Q 50 41 44 43" fill="#ff6d00" stroke="#bf360c" stroke-width="1.7" stroke-linejoin="round"/>
-                            <path d="M 50 43 L 50 48.7" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>
+                        <path class="tm-mascot-mouth-happy" d="M 46.6 43 L 50 47.6 L 53.4 43 Q 50 44.7 46.6 43" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45.8 44 L 50 48.8 L 54.2 44 Q 50 42.2 45.8 44" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M 50 43.8 L 50 46.8" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
                 </g>
 
                 <!-- PHOENIX ADULT — Ashborn Phoenix — BOSS -->
@@ -27159,9 +27736,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 32.5 24 Q 40 20.8 47.5 24" stroke="#3d0000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <path d="M 52.5 24 Q 60 20.8 67.5 24" stroke="#3d0000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44.4 40 L 50 48.8 L 505.6 40 Q 50 43.125 44.4 40" fill="#ff6d00" stroke="#3d0000" stroke-width="1.7" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.4 41 L 50 50.3 L 505.61 41 Q 50 39 43.4 41" fill="#ff6d00" stroke="#3d0000" stroke-width="1.7" stroke-linejoin="round"/>
-                            <path d="M 50 41 L 50 47.8" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>
+                        <path class="tm-mascot-mouth-happy" d="M 46.2 41 L 50 46.0 L 53.8 41 Q 50 42.9 46.2 41" fill="#ff6d00" stroke="#3d0000" stroke-width="1.4" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45.4 42 L 50 47.2 L 54.6 42 Q 50 40.2 45.4 42" fill="#ff6d00" stroke="#3d0000" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M 50 41.8 L 50 45.2" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
                 </g>
 
                 <!-- PHOENIX MIDDLE AGE — crimson ash tyrant -->
@@ -27325,9 +27902,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 33 26 Q 40 22.8 47 26" stroke="#3e2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <path d="M 53 26 Q 60 22.8 67 26" stroke="#3e2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44.8 42 L 50 50 L 505.2 42 Q 50 44.875 44.8 42" fill="#d84315" stroke="#3e2723" stroke-width="1.7" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 43 L 50 51.5 L 505.21 43 Q 50 41 43.8 43" fill="#d84315" stroke="#3e2723" stroke-width="1.7" stroke-linejoin="round"/>
-                            <path d="M 50 43 L 50 49" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>
+                        <path class="tm-mascot-mouth-happy" d="M 46.4 43 L 50 47.8 L 53.6 43 Q 50 44.8 46.4 43" fill="#d84315" stroke="#3e2723" stroke-width="1.4" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45.6 44 L 50 49.0 L 54.4 44 Q 50 42.2 45.6 44" fill="#d84315" stroke="#3e2723" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M 50 43.8 L 50 47.0" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
                 </g>
 
                 <!-- PHOENIX OLD — immortal sun god -->
@@ -27503,9 +28080,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 32.8 22 Q 40 18.8 47.2 22" stroke="#ff6f00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <path d="M 52.8 22 Q 60 18.8 67.2 22" stroke="#ff6f00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44.6 38 L 50 46.4 L 505.4 38 Q 50 41 44.6 38" fill="#ffcc80" stroke="#ff6f00" stroke-width="1.7" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.6 39 L 50 47.9 L 505.41 39 Q 50 37 43.6 39" fill="#ffcc80" stroke="#ff6f00" stroke-width="1.7" stroke-linejoin="round"/>
-                            <path d="M 50 39 L 50 45.4" stroke="#bf360c" stroke-width="0.7" opacity="0.45"/>
+                        <path class="tm-mascot-mouth-happy" d="M 46.2 39 L 50 44.0 L 53.8 39 Q 50 40.9 46.2 39" fill="#ffcc80" stroke="#ff6f00" stroke-width="1.4" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45.4 40 L 50 45.2 L 54.6 40 Q 50 38.2 45.4 40" fill="#ffcc80" stroke="#ff6f00" stroke-width="1.4" stroke-linejoin="round"/>
+                            <path d="M 50 39.8 L 50 43.2" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
                 </g>
                 <!-- CRYSTAL CHARACTER - All Life Stages (dense cute epic v3) -->
                 <!-- Aether & Stone • Epic Rarity • Prism Titan -->
@@ -33782,6 +34359,7 @@ function initFunFeatures(config, STORAGE_KEYS) {
 }
 
 function getLevelUpSettingsHTML() {
+    const info = typeof window.tmSettingsInfoBtn === 'function' ? window.tmSettingsInfoBtn : () => '';
     return `
         <div class="tm-settings-section">
             <header class="tm-settings-section-head">
@@ -33790,7 +34368,10 @@ function getLevelUpSettingsHTML() {
             </header>
             <div class="tm-setting-row tm-setting-row--accent">
                 <div class="tm-setting-label">
-                    <label>Γρήγορα profiles</label>
+                    <div class="tm-setting-label-row">
+                        <label>Γρήγορα profiles</label>
+                        ${info('work_profiles')}
+                    </div>
                     <p class="tm-setting-description">Professional: μόνο εργαλεία. Gamification: XP, mascot, κατάστημα.</p>
                 </div>
                 <div class="tm-setting-control tm-setting-control--wrap">
@@ -33800,7 +34381,10 @@ function getLevelUpSettingsHTML() {
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-eod-checklist-enabled">Checklist τέλους ημέρας</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-eod-checklist-enabled">Checklist τέλους ημέρας</label>
+                        ${info('eod_checklist')}
+                    </div>
                     <p class="tm-setting-description">Κουμπί στο footer για έλεγχο επισκευών πριν φύγετε.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-eod-checklist-enabled"></div>
@@ -33814,21 +34398,30 @@ function getLevelUpSettingsHTML() {
             </header>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-levelup-enabled">Σύστημα επιπέδων</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-levelup-enabled">Σύστημα επιπέδων</label>
+                        ${info('levelup')}
+                    </div>
                     <p class="tm-setting-description">XP και επίπεδα από επισκευές και εργασίες.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-levelup-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-confetti-enabled">Εφέ κομφετί</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-confetti-enabled">Εφέ κομφετί</label>
+                        ${info('confetti')}
+                    </div>
                     <p class="tm-setting-description">Οπτικά εφέ σε επιτυχίες και milestones.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-confetti-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-achievements-enabled">Επιτεύγματα</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-achievements-enabled">Επιτεύγματα</label>
+                        ${info('achievements')}
+                    </div>
                     <p class="tm-setting-description">Ξεκλείδωμα για ειδικές ενέργειες και στόχους.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-achievements-enabled"></div>
@@ -33842,21 +34435,30 @@ function getLevelUpSettingsHTML() {
             </header>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-random-events-enabled">Τυχαία γεγονότα</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-random-events-enabled">Τυχαία γεγονότα</label>
+                        ${info('random_events')}
+                    </div>
                     <p class="tm-setting-description">Μπόνους όπως 2× νομίσματα ή XP.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-random-events-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-personal-dashboard-enabled">Προσωπικός πίνακας</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-personal-dashboard-enabled">Προσωπικός πίνακας</label>
+                        ${info('personal_dashboard')}
+                    </div>
                     <p class="tm-setting-description">Αναλυτικά στοιχεία και γραφήματα.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-personal-dashboard-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-shop-enabled">Κατάστημα (cosmetics)</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-shop-enabled">Κατάστημα (cosmetics)</label>
+                        ${info('shop')}
+                    </div>
                     <p class="tm-setting-description">Θέματα, αξεσουάρ και game extras.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-shop-enabled"></div>
@@ -33865,6 +34467,7 @@ function getLevelUpSettingsHTML() {
 }
 
 function getMascotSettingsHTML() {
+    const info = typeof window.tmSettingsInfoBtn === 'function' ? window.tmSettingsInfoBtn : () => '';
     return `
         <div class="tm-settings-section">
             <header class="tm-settings-section-head">
@@ -33873,14 +34476,20 @@ function getMascotSettingsHTML() {
             </header>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-mascot-enabled">Ενεργοποίηση</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-mascot-enabled">Ενεργοποίηση</label>
+                        ${info('mascot')}
+                    </div>
                     <p class="tm-setting-description">Εμφάνιση του mascot.</p>
                 </div>
                 <div class="tm-setting-control"><input type="checkbox" id="tm-setting-mascot-enabled"></div>
             </div>
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
-                    <label for="tm-setting-mascot-speed">Ταχύτητα περιπλάνησης</label>
+                    <div class="tm-setting-label-row">
+                        <label for="tm-setting-mascot-speed">Ταχύτητα περιπλάνησης</label>
+                        ${info('mascot_speed')}
+                    </div>
                     <p class="tm-setting-description">Pixels ανά δευτερόλεπτο.</p>
                 </div>
                 <div class="tm-setting-control">
