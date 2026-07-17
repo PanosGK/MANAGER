@@ -7,12 +7,28 @@ Tampermonkey userscript suite that enhances [MyManager](https://thefixers.mymana
 1. Install [Tampermonkey](https://www.tampermonkey.net/) in your browser.
 2. Push this repo to GitHub. The `updateBase` in `myman_manifest.json` must match your raw URL, e.g. `https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main`.
 3. Install the loader once:
-   - Open `myman_loader.user.js` on GitHub → **Raw**
-   - Tampermonkey should offer to install it  
-   - Or: Tampermonkey → Create new script → paste the loader contents → Save
+    - Open `myman_loader.user.js` on GitHub → **Raw**
+    - Tampermonkey should offer to install it  
+    - Or: Tampermonkey → Create new script → paste the loader contents → Save
 4. Enable **Check for userscript updates** in Tampermonkey settings (daily or on browser start).
 
 Tampermonkey will check `@updateURL` and pull new versions automatically. You do **not** need to copy files manually.
+
+### Stop the unthemed page flash (FOUC)
+
+Tampermonkey runs **after** the browser’s first paint, so a userscript alone cannot hide the host UI in time. Use one of these (recommended: extension):
+
+**Option A — Chrome / Edge extension (best)**  
+1. Open `chrome://extensions` (or `edge://extensions`)  
+2. Enable **Developer mode**  
+3. **Load unpacked** → select the `fouc-extension` folder in this repo  
+4. Keep it enabled alongside Tampermonkey  
+
+**Option B — Stylus**  
+1. Install [Stylus](https://add0n.com/stylus.html)  
+2. Install `myman_fouc.user.css` from this repo  
+
+Both hide `body` until the suite adds `html.tm-mms-theme-ready`.
 
 ### Manual update check
 
@@ -22,12 +38,12 @@ Open suite **Settings → Ενημερώσεις → Έλεγχος τώρα**, 
 
 For editing files on your machine:
 
-1. Edit `file://` paths in `myman_loader.local.user.js` to match your clone path.
-2. Install `myman_loader.local.user.js` in Tampermonkey (disable or remove the GitHub loader while developing).
-3. Enable Tampermonkey **Allow access to file URLs** for your browser.
-4. Edit module files directly; reload the MyManager page to test.
+1. Install `myman_loader.local.user.js` in Tampermonkey (disable or remove the GitHub loader while developing).
+2. Enable Tampermonkey **Allow access to file URLs** for this script (needed for async `file://` bundle load).
+3. Edit module files directly; run `npm run build` after edits; reload the MyManager page to test.
+4. For no FOUC while developing, also load `fouc-extension` (see above).
 
-`myman_allinone.js` is the main application logic (no userscript header). Loaders pull it in via `@require`.
+`myman_allinone.js` is the main application logic (no userscript header). The local loader fetches `myman_suite.bundle.js` asynchronously after the FOUC hide runs.
 
 ## Releasing a new version
 
@@ -46,7 +62,9 @@ For editing files on your machine:
 | File | Purpose |
 |------|---------|
 | `myman_loader.user.js` | **Production** — install this; auto-updates from GitHub |
-| `myman_loader.local.user.js` | **Local dev** — loads modules from disk |
+| `myman_loader.local.user.js` | **Local dev** — loads bundle from disk (async) |
+| `fouc-extension/` | **FOUC guard** — Chrome/Edge unpacked extension (before first paint) |
+| `myman_fouc.user.css` | Stylus alternative for FOUC |
 | `myman_manifest.json` | Version + module list for updates |
 | `myman_allinone.js` | Main app logic |
 | `myman_*.js` | Feature modules (config, gamification, phonelist, etc.) |

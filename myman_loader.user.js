@@ -613,10 +613,17 @@
         });
     }
 
-    if (shouldSkip()) return;
+    if (shouldSkip()) {
+        // Extension/Stylus FOUC CSS hides body until this class exists.
+        document.documentElement.classList.add('tm-mms-theme-ready');
+        document.documentElement.classList.add('tm-mms-menu-ready');
+        return;
+    }
 
     var loginPath = (window.location && window.location.pathname) || '';
     if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {
+        document.documentElement.classList.add('tm-mms-theme-ready');
+        document.documentElement.classList.add('tm-mms-menu-ready');
         runStatus40InlineAutoLogin();
         return;
     }

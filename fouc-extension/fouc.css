@@ -1,0 +1,17 @@
+/**
+ * Injected by the browser at document_start (before first paint).
+ * Userscripts alone cannot do this — that is why the host UI still flashed.
+ */
+html {
+  background: #121212 !important;
+}
+
+html:not(.tm-mms-theme-ready) body {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+html.tm-mms-theme-ready body {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
