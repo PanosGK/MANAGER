@@ -5031,9 +5031,6 @@
     // ===================================================================
     
     function revealMmsBody() {
-        try {
-            if (window.__tmMmsFoucMo) window.__tmMmsFoucMo.disconnect();
-        } catch (_) { /* ignore */ }
         if (typeof window.tmRevealThemedPageIfReady === 'function') {
             window.tmRevealThemedPageIfReady();
         }
@@ -5044,11 +5041,9 @@
             root.style.removeProperty('visibility');
             root.style.removeProperty('opacity');
             if (document.body) {
-                document.body.style.removeProperty('visibility');
-                document.body.style.removeProperty('opacity');
-                document.body.removeAttribute('data-tm-mms-fouc');
+                document.body.style.visibility = 'visible';
+                document.body.style.opacity = '1';
             }
-            document.getElementById('tm-mms-boot-cover')?.remove();
         }
     }
 

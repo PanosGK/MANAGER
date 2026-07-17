@@ -1,11 +1,11 @@
 {
   "version": "225",
-  "loaderVersion": "10",
+  "loaderVersion": "11",
   "silentVersion": "1",
-  "displayVersion": "10.1",
+  "displayVersion": "11.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "loader v10: FOUC cover before first paint (async local bundle)",
+  "releaseNotes": "loader v11: restore working FOUC visibility:hidden hide",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

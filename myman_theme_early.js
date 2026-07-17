@@ -17,27 +17,34 @@
     if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
 
     const root = document.documentElement;
-    // Never visibility:hidden on <html> — that blanks the viewport to browser-white.
-    root.style.removeProperty('visibility');
-    root.style.removeProperty('opacity');
+    // Keep the proven FOUC hide — do NOT clear visibility/opacity here (that re-shows host UI).
+    root.style.setProperty('visibility', 'hidden', 'important');
+    root.style.setProperty('opacity', '0', 'important');
 
     if (typeof GM_addStyle === 'function') {
         GM_addStyle(`
-            html:not(.tm-mms-theme-ready) body {
+            html:not(.tm-mms-theme-ready) {
+                visibility: hidden !important;
                 opacity: 0 !important;
             }
-            html.tm-mms-theme-ready body {
-                opacity: 1 !important;
-                transition: opacity 0.12s ease-in;
+            html:not(.tm-mms-theme-ready) body {
+                visibility: hidden !important;
+                opacity: 0 !important;
             }
-            html.tm-mms-theme-ready #tm-mms-boot-cover {
-                display: none !important;
+            html.tm-mms-theme-ready {
+                visibility: visible !important;
+                opacity: 1 !important;
+                transition: opacity 0.15s ease-in;
+            }
+            html.tm-mms-theme-ready body {
+                visibility: visible !important;
+                opacity: 1 !important;
             }
         `);
     } else {
         const style = document.createElement('style');
         style.id = 'tm-mms-theme-early-guard';
-        style.textContent = 'html:not(.tm-mms-theme-ready) body{opacity:0!important}html.tm-mms-theme-ready body{opacity:1!important}html.tm-mms-theme-ready #tm-mms-boot-cover{display:none!important}';
+        style.textContent = 'html:not(.tm-mms-theme-ready),html:not(.tm-mms-theme-ready) body{visibility:hidden!important;opacity:0!important}html.tm-mms-theme-ready,html.tm-mms-theme-ready body{visibility:visible!important;opacity:1!important}';
         (document.head || root).appendChild(style);
     }
 
@@ -45,8 +52,9 @@
 
     try {
         if (GM_getValue('tm_script_enabled', true) === false) {
+            root.style.removeProperty('visibility');
+            root.style.removeProperty('opacity');
             root.classList.add('tm-mms-theme-ready');
-            document.getElementById('tm-mms-boot-cover')?.remove();
             return;
         }
     } catch (_) { /* ignore */ }
@@ -196,21 +204,15 @@
 })();
 
 window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
-    try {
-        if (window.__tmMmsFoucMo) window.__tmMmsFoucMo.disconnect();
-    } catch (_) { /* ignore */ }
-
     if (window.location.pathname.includes('login.php')) {
         document.documentElement.classList.add('tm-mms-theme-ready');
         document.documentElement.classList.add('tm-mms-menu-ready');
         document.documentElement.style.removeProperty('visibility');
         document.documentElement.style.removeProperty('opacity');
         if (document.body) {
-            document.body.style.removeProperty('visibility');
-            document.body.style.removeProperty('opacity');
-            document.body.removeAttribute('data-tm-mms-fouc');
+            document.body.style.visibility = 'visible';
+            document.body.style.opacity = '1';
         }
-        document.getElementById('tm-mms-boot-cover')?.remove();
         return;
     }
 
@@ -222,9 +224,7 @@ window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
     document.documentElement.style.removeProperty('visibility');
     document.documentElement.style.removeProperty('opacity');
     if (document.body) {
-        document.body.style.removeProperty('visibility');
-        document.body.style.removeProperty('opacity');
-        document.body.removeAttribute('data-tm-mms-fouc');
+        document.body.style.visibility = 'visible';
+        document.body.style.opacity = '1';
     }
-    document.getElementById('tm-mms-boot-cover')?.remove();
 };

@@ -1,17 +1,20 @@
 /**
  * Injected by the browser at document_start (before first paint).
- * Userscripts alone cannot do this — that is why the host UI still flashed.
+ * Matches the suite FOUC guard: hide html until .tm-mms-theme-ready.
  */
-html {
+html:not(.tm-mms-theme-ready) {
+  visibility: hidden !important;
+  opacity: 0 !important;
   background: #121212 !important;
 }
 
 html:not(.tm-mms-theme-ready) body {
-  opacity: 0 !important;
   visibility: hidden !important;
+  opacity: 0 !important;
 }
 
+html.tm-mms-theme-ready,
 html.tm-mms-theme-ready body {
-  opacity: 1 !important;
   visibility: visible !important;
+  opacity: 1 !important;
 }

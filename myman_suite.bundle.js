@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v225 / Custom Ver. 10.1 — generated, do not edit */
+/* MyManager Suite bundle v225 / Custom Ver. 11.1 — generated, do not edit */
 (function tmMmsHidePageForTheme() {
     try {
         if (window.__tmMmsFoucHideApplied) return;
@@ -21,61 +21,34 @@
                 if (raw) {
                     var cache = typeof raw === 'string' ? JSON.parse(raw) : raw;
                     var c = cache && cache.colors;
-                    // Prefer page chrome bg — shop-item-bg is often white on light themes.
                     if (c) BG = c['--tm-dark-color'] || c['--tm-body-bg'] || c['--tm-primary-bg'] || BG;
                 }
             }
         } catch (e0) { /* ignore */ }
 
         var root = document.documentElement;
-        try {
-            root.style.setProperty('background-color', BG, 'important');
-        } catch (eBg) {
-            root.style.backgroundColor = BG;
-        }
-        // Do NOT hide <html> with visibility — cover would vanish and flash browser-white.
-        root.style.removeProperty('visibility');
-        root.style.removeProperty('opacity');
-
-        function hideBody(el) {
-            if (!el || el.getAttribute('data-tm-mms-fouc') === '1') return;
-            if (root.classList.contains('tm-mms-theme-ready')) return;
-            el.setAttribute('data-tm-mms-fouc', '1');
-            try {
-                el.style.setProperty('opacity', '0', 'important');
-                el.style.setProperty('visibility', 'hidden', 'important');
-            } catch (eH) {
-                el.style.opacity = '0';
-                el.style.visibility = 'hidden';
-            }
-        }
-
-        function mountCover() {
-            if (root.classList.contains('tm-mms-theme-ready')) return;
-            var cover = document.getElementById('tm-mms-boot-cover');
-            if (!cover) {
-                cover = document.createElement('div');
-                cover.id = 'tm-mms-boot-cover';
-                cover.setAttribute('aria-hidden', 'true');
-                // Inline styles so the cover paints even if <style> injection is delayed.
-                cover.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:' + BG + ';pointer-events:none;display:block;';
-                if (root.firstChild) root.insertBefore(cover, root.firstChild);
-                else root.appendChild(cover);
-            } else {
-                cover.style.background = BG;
-                cover.style.display = 'block';
-            }
-        }
+        root.style.setProperty('visibility', 'hidden', 'important');
+        root.style.setProperty('opacity', '0', 'important');
+        root.style.backgroundColor = BG;
 
         var css = [
-            'html{background:' + BG + '!important;}',
-            'html:not(.tm-mms-theme-ready) body{opacity:0!important;visibility:hidden!important;}',
-            '#tm-mms-boot-cover{',
-            'position:fixed!important;inset:0!important;z-index:2147483647!important;',
-            'background:' + BG + '!important;pointer-events:none!important;',
+            'html:not(.tm-mms-theme-ready){',
+            'visibility:hidden!important;',
+            'opacity:0!important;',
+            'background:' + BG + '!important;',
             '}',
-            'html.tm-mms-theme-ready #tm-mms-boot-cover{display:none!important;}',
-            'html.tm-mms-theme-ready body{opacity:1!important;visibility:visible!important;transition:opacity .12s ease-in;}',
+            'html:not(.tm-mms-theme-ready) body{',
+            'visibility:hidden!important;',
+            'opacity:0!important;',
+            '}',
+            'html.tm-mms-theme-ready{',
+            'visibility:visible!important;',
+            'opacity:1!important;',
+            '}',
+            'html.tm-mms-theme-ready body{',
+            'visibility:visible!important;',
+            'opacity:1!important;',
+            '}',
         ].join('');
 
         if (typeof GM_addStyle === 'function') {
@@ -84,37 +57,8 @@
         var style = document.createElement('style');
         style.id = 'tm-mms-fouc-boot-style';
         style.textContent = css;
-        if (document.head) {
-            document.head.insertBefore(style, document.head.firstChild);
-        } else {
-            root.insertBefore(style, root.firstChild);
-        }
-
-        mountCover();
-        if (document.body) hideBody(document.body);
-
-        try {
-            if (window.__tmMmsFoucMo) {
-                try { window.__tmMmsFoucMo.disconnect(); } catch (eD) { /* ignore */ }
-            }
-            var mo = new MutationObserver(function () {
-                if (root.classList.contains('tm-mms-theme-ready')) {
-                    mo.disconnect();
-                    return;
-                }
-                mountCover();
-                if (document.body) hideBody(document.body);
-            });
-            mo.observe(root, { childList: true, subtree: true });
-            window.__tmMmsFoucMo = mo;
-        } catch (eMo) { /* ignore */ }
-
-        if (!document.body) {
-            document.addEventListener('DOMContentLoaded', function () {
-                hideBody(document.body);
-                mountCover();
-            }, { once: true });
-        }
+        var parent = document.head || document.getElementsByTagName('head')[0] || root;
+        parent.appendChild(style);
     } catch (e) { /* ignore */ }
 })();
 
@@ -604,27 +548,34 @@ img[src='images/smsdelivered.png'] {
     if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
 
     const root = document.documentElement;
-    // Never visibility:hidden on <html> — that blanks the viewport to browser-white.
-    root.style.removeProperty('visibility');
-    root.style.removeProperty('opacity');
+    // Keep the proven FOUC hide — do NOT clear visibility/opacity here (that re-shows host UI).
+    root.style.setProperty('visibility', 'hidden', 'important');
+    root.style.setProperty('opacity', '0', 'important');
 
     if (typeof GM_addStyle === 'function') {
         GM_addStyle(`
-            html:not(.tm-mms-theme-ready) body {
+            html:not(.tm-mms-theme-ready) {
+                visibility: hidden !important;
                 opacity: 0 !important;
             }
-            html.tm-mms-theme-ready body {
-                opacity: 1 !important;
-                transition: opacity 0.12s ease-in;
+            html:not(.tm-mms-theme-ready) body {
+                visibility: hidden !important;
+                opacity: 0 !important;
             }
-            html.tm-mms-theme-ready #tm-mms-boot-cover {
-                display: none !important;
+            html.tm-mms-theme-ready {
+                visibility: visible !important;
+                opacity: 1 !important;
+                transition: opacity 0.15s ease-in;
+            }
+            html.tm-mms-theme-ready body {
+                visibility: visible !important;
+                opacity: 1 !important;
             }
         `);
     } else {
         const style = document.createElement('style');
         style.id = 'tm-mms-theme-early-guard';
-        style.textContent = 'html:not(.tm-mms-theme-ready) body{opacity:0!important}html.tm-mms-theme-ready body{opacity:1!important}html.tm-mms-theme-ready #tm-mms-boot-cover{display:none!important}';
+        style.textContent = 'html:not(.tm-mms-theme-ready),html:not(.tm-mms-theme-ready) body{visibility:hidden!important;opacity:0!important}html.tm-mms-theme-ready,html.tm-mms-theme-ready body{visibility:visible!important;opacity:1!important}';
         (document.head || root).appendChild(style);
     }
 
@@ -632,8 +583,9 @@ img[src='images/smsdelivered.png'] {
 
     try {
         if (GM_getValue('tm_script_enabled', true) === false) {
+            root.style.removeProperty('visibility');
+            root.style.removeProperty('opacity');
             root.classList.add('tm-mms-theme-ready');
-            document.getElementById('tm-mms-boot-cover')?.remove();
             return;
         }
     } catch (_) { /* ignore */ }
@@ -783,21 +735,15 @@ img[src='images/smsdelivered.png'] {
 })();
 
 window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
-    try {
-        if (window.__tmMmsFoucMo) window.__tmMmsFoucMo.disconnect();
-    } catch (_) { /* ignore */ }
-
     if (window.location.pathname.includes('login.php')) {
         document.documentElement.classList.add('tm-mms-theme-ready');
         document.documentElement.classList.add('tm-mms-menu-ready');
         document.documentElement.style.removeProperty('visibility');
         document.documentElement.style.removeProperty('opacity');
         if (document.body) {
-            document.body.style.removeProperty('visibility');
-            document.body.style.removeProperty('opacity');
-            document.body.removeAttribute('data-tm-mms-fouc');
+            document.body.style.visibility = 'visible';
+            document.body.style.opacity = '1';
         }
-        document.getElementById('tm-mms-boot-cover')?.remove();
         return;
     }
 
@@ -809,11 +755,9 @@ window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
     document.documentElement.style.removeProperty('visibility');
     document.documentElement.style.removeProperty('opacity');
     if (document.body) {
-        document.body.style.removeProperty('visibility');
-        document.body.style.removeProperty('opacity');
-        document.body.removeAttribute('data-tm-mms-fouc');
+        document.body.style.visibility = 'visible';
+        document.body.style.opacity = '1';
     }
-    document.getElementById('tm-mms-boot-cover')?.remove();
 };
 
 
@@ -13093,7 +13037,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <div class="tm-setting-label-row">
                                 <label>Flash χωρίς θέμα (FOUC)</label>
                             </div>
-                            <p class="tm-setting-description">Το Tampermonkey τρέχει <strong>μετά</strong> το πρώτο paint — γι’ αυτό φαίνεται στιγμιαία η κανονική σελίδα. Για να εξαφανιστεί: εγκαταστήστε το μικρό extension <code>fouc-extension</code> από το repo (Chrome/Edge → Extensions → Load unpacked), ή το <code>myman_fouc.user.css</code> με Stylus.</p>
+                            <p class="tm-setting-description">Η σελίδα μένει κρυφή μέχρι να φορτώσει το θέμα. Αν δείτε ακόμα flash, προαιρετικά φορτώστε το <code>fouc-extension</code> (Chrome/Edge → Load unpacked) ή το <code>myman_fouc.user.css</code> με Stylus.</p>
                         </div>
                     </div>
                 </div>`;
@@ -58395,9 +58339,6 @@ if (typeof window !== 'undefined') {
     // ===================================================================
     
     function revealMmsBody() {
-        try {
-            if (window.__tmMmsFoucMo) window.__tmMmsFoucMo.disconnect();
-        } catch (_) { /* ignore */ }
         if (typeof window.tmRevealThemedPageIfReady === 'function') {
             window.tmRevealThemedPageIfReady();
         }
@@ -58408,11 +58349,9 @@ if (typeof window !== 'undefined') {
             root.style.removeProperty('visibility');
             root.style.removeProperty('opacity');
             if (document.body) {
-                document.body.style.removeProperty('visibility');
-                document.body.style.removeProperty('opacity');
-                document.body.removeAttribute('data-tm-mms-fouc');
+                document.body.style.visibility = 'visible';
+                document.body.style.opacity = '1';
             }
-            document.getElementById('tm-mms-boot-cover')?.remove();
         }
     }
 

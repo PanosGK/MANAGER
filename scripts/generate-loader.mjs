@@ -26,8 +26,8 @@ function stripUserScriptHeader(content) {
 }
 
 /**
- * FOUC hide — never use visibility:hidden on <html> (that blanks the viewport to
- * browser-white). Paint html bg + an inline-styled full-screen cover immediately.
+ * FOUC hide — the version that worked: hide <html> with visibility+opacity until
+ * theme-ready. (Do NOT clear these in theme_early — that re-exposes the host UI.)
  * Must run as the first statement in the loader (before network / heavy work).
  */
 const FOUC_HIDE_IIFE = `(function tmMmsHidePageForTheme() {
@@ -52,61 +52,34 @@ const FOUC_HIDE_IIFE = `(function tmMmsHidePageForTheme() {
                 if (raw) {
                     var cache = typeof raw === 'string' ? JSON.parse(raw) : raw;
                     var c = cache && cache.colors;
-                    // Prefer page chrome bg — shop-item-bg is often white on light themes.
                     if (c) BG = c['--tm-dark-color'] || c['--tm-body-bg'] || c['--tm-primary-bg'] || BG;
                 }
             }
         } catch (e0) { /* ignore */ }
 
         var root = document.documentElement;
-        try {
-            root.style.setProperty('background-color', BG, 'important');
-        } catch (eBg) {
-            root.style.backgroundColor = BG;
-        }
-        // Do NOT hide <html> with visibility — cover would vanish and flash browser-white.
-        root.style.removeProperty('visibility');
-        root.style.removeProperty('opacity');
-
-        function hideBody(el) {
-            if (!el || el.getAttribute('data-tm-mms-fouc') === '1') return;
-            if (root.classList.contains('tm-mms-theme-ready')) return;
-            el.setAttribute('data-tm-mms-fouc', '1');
-            try {
-                el.style.setProperty('opacity', '0', 'important');
-                el.style.setProperty('visibility', 'hidden', 'important');
-            } catch (eH) {
-                el.style.opacity = '0';
-                el.style.visibility = 'hidden';
-            }
-        }
-
-        function mountCover() {
-            if (root.classList.contains('tm-mms-theme-ready')) return;
-            var cover = document.getElementById('tm-mms-boot-cover');
-            if (!cover) {
-                cover = document.createElement('div');
-                cover.id = 'tm-mms-boot-cover';
-                cover.setAttribute('aria-hidden', 'true');
-                // Inline styles so the cover paints even if <style> injection is delayed.
-                cover.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:' + BG + ';pointer-events:none;display:block;';
-                if (root.firstChild) root.insertBefore(cover, root.firstChild);
-                else root.appendChild(cover);
-            } else {
-                cover.style.background = BG;
-                cover.style.display = 'block';
-            }
-        }
+        root.style.setProperty('visibility', 'hidden', 'important');
+        root.style.setProperty('opacity', '0', 'important');
+        root.style.backgroundColor = BG;
 
         var css = [
-            'html{background:' + BG + '!important;}',
-            'html:not(.tm-mms-theme-ready) body{opacity:0!important;visibility:hidden!important;}',
-            '#tm-mms-boot-cover{',
-            'position:fixed!important;inset:0!important;z-index:2147483647!important;',
-            'background:' + BG + '!important;pointer-events:none!important;',
+            'html:not(.tm-mms-theme-ready){',
+            'visibility:hidden!important;',
+            'opacity:0!important;',
+            'background:' + BG + '!important;',
             '}',
-            'html.tm-mms-theme-ready #tm-mms-boot-cover{display:none!important;}',
-            'html.tm-mms-theme-ready body{opacity:1!important;visibility:visible!important;transition:opacity .12s ease-in;}',
+            'html:not(.tm-mms-theme-ready) body{',
+            'visibility:hidden!important;',
+            'opacity:0!important;',
+            '}',
+            'html.tm-mms-theme-ready{',
+            'visibility:visible!important;',
+            'opacity:1!important;',
+            '}',
+            'html.tm-mms-theme-ready body{',
+            'visibility:visible!important;',
+            'opacity:1!important;',
+            '}',
         ].join('');
 
         if (typeof GM_addStyle === 'function') {
@@ -115,37 +88,8 @@ const FOUC_HIDE_IIFE = `(function tmMmsHidePageForTheme() {
         var style = document.createElement('style');
         style.id = 'tm-mms-fouc-boot-style';
         style.textContent = css;
-        if (document.head) {
-            document.head.insertBefore(style, document.head.firstChild);
-        } else {
-            root.insertBefore(style, root.firstChild);
-        }
-
-        mountCover();
-        if (document.body) hideBody(document.body);
-
-        try {
-            if (window.__tmMmsFoucMo) {
-                try { window.__tmMmsFoucMo.disconnect(); } catch (eD) { /* ignore */ }
-            }
-            var mo = new MutationObserver(function () {
-                if (root.classList.contains('tm-mms-theme-ready')) {
-                    mo.disconnect();
-                    return;
-                }
-                mountCover();
-                if (document.body) hideBody(document.body);
-            });
-            mo.observe(root, { childList: true, subtree: true });
-            window.__tmMmsFoucMo = mo;
-        } catch (eMo) { /* ignore */ }
-
-        if (!document.body) {
-            document.addEventListener('DOMContentLoaded', function () {
-                hideBody(document.body);
-                mountCover();
-            }, { once: true });
-        }
+        var parent = document.head || document.getElementsByTagName('head')[0] || root;
+        parent.appendChild(style);
     } catch (e) { /* ignore */ }
 })();`;
 
@@ -392,27 +336,19 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
             var bg = cache.colors['--tm-dark-color'] || cache.colors['--tm-shop-item-bg'];
             if (bg) {
                 root.style.backgroundColor = bg;
-                var cover = document.getElementById('tm-mms-boot-cover');
-                if (cover) cover.style.backgroundColor = bg;
             }
         } catch (e) { /* ignore */ }
     }
 
     function revealOnFailure() {
-        try {
-            if (window.__tmMmsFoucMo) window.__tmMmsFoucMo.disconnect();
-        } catch (eMo) { /* ignore */ }
         document.documentElement.classList.add('tm-mms-theme-ready');
         document.documentElement.classList.add('tm-mms-menu-ready');
         document.documentElement.style.removeProperty('visibility');
         document.documentElement.style.removeProperty('opacity');
         if (document.body) {
-            document.body.style.removeProperty('visibility');
-            document.body.style.removeProperty('opacity');
-            document.body.removeAttribute('data-tm-mms-fouc');
+            document.body.style.visibility = 'visible';
+            document.body.style.opacity = '1';
         }
-        var cover = document.getElementById('tm-mms-boot-cover');
-        if (cover) cover.remove();
     }
 
     function exposeTampermonkeyApisForBundle() {

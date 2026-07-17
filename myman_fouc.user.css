@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name         MyManager FOUC Guard
 @namespace    mymanager-suite
-@version      1.0.0
+@version      1.0.1
 @description  Hides MyManager until the suite adds html.tm-mms-theme-ready (no FOUC). Install with Stylus.
 @author       Gkorogias
 @match        *://thefixers.mymanager.gr/*
@@ -9,17 +9,20 @@
 ==/UserStyle== */
 
 @-moz-document domain("thefixers.mymanager.gr") {
-  html {
+  html:not(.tm-mms-theme-ready) {
+    visibility: hidden !important;
+    opacity: 0 !important;
     background: #121212 !important;
   }
 
   html:not(.tm-mms-theme-ready) body {
-    opacity: 0 !important;
     visibility: hidden !important;
+    opacity: 0 !important;
   }
 
+  html.tm-mms-theme-ready,
   html.tm-mms-theme-ready body {
-    opacity: 1 !important;
     visibility: visible !important;
+    opacity: 1 !important;
   }
 }
