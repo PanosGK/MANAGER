@@ -1297,14 +1297,6 @@
                             <p class="tm-setting-description tm-settings-code-line"><code>${loaderUrl}</code></p>
                         </div>
                     </div>
-                    <div class="tm-setting-row tm-setting-row--divider">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label>Flash χωρίς θέμα (FOUC)</label>
-                            </div>
-                            <p class="tm-setting-description">Η σελίδα μένει κρυφή μέχρι να φορτώσει το θέμα. Αν δείτε ακόμα flash, προαιρετικά φορτώστε το <code>fouc-extension</code> (Chrome/Edge → Load unpacked) ή το <code>myman_fouc.user.css</code> με Stylus.</p>
-                        </div>
-                    </div>
                 </div>`;
         }
 

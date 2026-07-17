@@ -47,7 +47,7 @@ fi
 
 node "$ROOT/scripts/release.mjs" "pre-push release"
 
-git add myman_manifest.json myman_config.js myman_suite.bundle.js myman_loader.user.js myman_loader.local.user.js myman_fouc_guard.user.js myman_fouc_instant.js
+git add myman_manifest.json myman_config.js myman_suite.bundle.js myman_loader.user.js myman_loader.local.user.js
 
 if git diff --staged --quiet; then
   exit 0

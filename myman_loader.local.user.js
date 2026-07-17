@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite (Local Dev)
 // @namespace    http://tampermonkey.net/
-// @version      14
-// @description  Local development — blanks page first, then async file:// bundle. Enable "Allow access to local file URLs". Run: npm run build.
+// @version      15
+// @description  Local development — async file:// bundle. Enable "Allow access to local file URLs". Run: npm run build.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @run-at       document-start
@@ -19,45 +19,14 @@
 // @connect      raw.githubusercontent.com
 // ==/UserScript==
 
-// Blank FIRST (pre-mascot behavior), then load the large suite without blocking on parse.
-(function tmMmsInstantFoucGuard() {
-    try {
-        var path = (window.location && window.location.pathname) || '';
-        if (path.indexOf('login.php') !== -1) return;
-        if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
-        var root = document.documentElement;
-        root.style.setProperty('visibility', 'hidden', 'important');
-        root.style.setProperty('opacity', '0', 'important');
-        root.style.backgroundColor = '#121212';
-        var style = document.createElement('style');
-        style.id = 'tm-mms-instant-guard';
-        style.textContent = [
-            'html:not(.tm-mms-theme-ready){',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            'background:#121212!important;',
-            '}',
-            'html:not(.tm-mms-theme-ready) body{',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            '}',
-        ].join('');
-        var parent = document.head || document.getElementsByTagName('head')[0] || root;
-        parent.appendChild(style);
-        if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(style.textContent); } catch (e1) { /* ignore */ }
-        }
-    } catch (e) { /* ignore */ }
-})();
-
 (function tmMmsLoaderBootstrap() {
     'use strict';
 
-    var LOADER_VERSION = "14";
+    var LOADER_VERSION = "15";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "228";
+    var FALLBACK_BUNDLE_VERSION = "229";
     var LOCAL_BUNDLE_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.bundle.js";
 
     try {
@@ -258,38 +227,6 @@
 
     installMasterToggleRecovery();
 
-    function hidePageNow() {
-        (function tmMmsInstantFoucGuard() {
-    try {
-        var path = (window.location && window.location.pathname) || '';
-        if (path.indexOf('login.php') !== -1) return;
-        if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
-        var root = document.documentElement;
-        root.style.setProperty('visibility', 'hidden', 'important');
-        root.style.setProperty('opacity', '0', 'important');
-        root.style.backgroundColor = '#121212';
-        var style = document.createElement('style');
-        style.id = 'tm-mms-instant-guard';
-        style.textContent = [
-            'html:not(.tm-mms-theme-ready){',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            'background:#121212!important;',
-            '}',
-            'html:not(.tm-mms-theme-ready) body{',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            '}',
-        ].join('');
-        var parent = document.head || document.getElementsByTagName('head')[0] || root;
-        parent.appendChild(style);
-        if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(style.textContent); } catch (e1) { /* ignore */ }
-        }
-    } catch (e) { /* ignore */ }
-})();
-    }
-
     function readProfileScoped(key, defaultValue) {
         try {
             if (typeof GM_getValue !== 'function') return defaultValue;
@@ -321,15 +258,9 @@
         } catch (e) { /* ignore */ }
     }
 
-    function revealOnFailure() {
-        document.documentElement.classList.add('tm-mms-theme-ready');
+    function onBundleFailure(reason) {
+        console.error('[MMS] Bundle load failed:', reason || 'unknown');
         document.documentElement.classList.add('tm-mms-menu-ready');
-        document.documentElement.style.removeProperty('visibility');
-        document.documentElement.style.removeProperty('opacity');
-        if (document.body) {
-            document.body.style.visibility = 'visible';
-            document.body.style.opacity = '1';
-        }
     }
 
     function exposeTampermonkeyApisForBundle() {
@@ -350,8 +281,7 @@
 
     function loadBundle(bundleVersion) {
         if (typeof GM_xmlhttpRequest !== 'function') {
-            console.error('[MMS] GM_xmlhttpRequest unavailable');
-            revealOnFailure();
+            onBundleFailure('GM_xmlhttpRequest unavailable');
             return;
         }
 
@@ -369,16 +299,14 @@
                         runBundle(response.responseText);
                     } catch (err) {
                         console.error('[MMS] Bundle eval failed:', err);
-                        revealOnFailure();
+                        onBundleFailure(err);
                     }
                 } else {
-                    console.error('[MMS] Bundle HTTP error:', response.status);
-                    revealOnFailure();
+                    onBundleFailure('HTTP ' + response.status);
                 }
             },
             onerror: function () {
-                console.error('[MMS] Bundle fetch failed');
-                revealOnFailure();
+                onBundleFailure('network');
             },
         });
     }
@@ -426,29 +354,17 @@
     }
 
     if (shouldSkip()) {
-        // Extension/Stylus FOUC CSS hides body until this class exists.
-        document.documentElement.classList.add('tm-mms-theme-ready');
         document.documentElement.classList.add('tm-mms-menu-ready');
         return;
     }
 
     var loginPath = (window.location && window.location.pathname) || '';
     if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {
-        document.documentElement.classList.add('tm-mms-theme-ready');
         document.documentElement.classList.add('tm-mms-menu-ready');
         runStatus40InlineAutoLogin();
         return;
     }
 
-    // Hide before any network — first paint must not show unthemed host UI.
-    hidePageNow();
     applyCachedThemeColors();
     fetchManifestThenLoadBundle();
-
-    setTimeout(function () {
-        if (!document.documentElement.classList.contains('tm-mms-theme-ready')) {
-            console.warn('[MMS] Bundle load timeout — revealing page');
-            revealOnFailure();
-        }
-    }, 15000);
 })();

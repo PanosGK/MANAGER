@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         MyMANAGER Theme Early Bootstrap (module)
 // @namespace    http://tampermonkey.net/
-// @version      1.1
-// @description  Hide FOUC and apply cached theme colors before heavier modules load.
+// @version      1.2
+// @description  Apply cached theme colors and menu hide CSS before heavier modules load.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @grant        GM_getValue
@@ -17,44 +17,12 @@
     if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
 
     const root = document.documentElement;
-    // Pre-mascot-rework hide: blank the whole page until themes mark ready.
-    root.style.setProperty('visibility', 'hidden', 'important');
-    root.style.setProperty('opacity', '0', 'important');
-
-    if (typeof GM_addStyle === 'function') {
-        GM_addStyle(`
-            html:not(.tm-mms-theme-ready) {
-                visibility: hidden !important;
-                opacity: 0 !important;
-            }
-            html:not(.tm-mms-theme-ready) body {
-                visibility: hidden !important;
-                opacity: 0 !important;
-            }
-            html.tm-mms-theme-ready {
-                visibility: visible !important;
-                opacity: 1 !important;
-                transition: opacity 0.15s ease-in;
-            }
-            html.tm-mms-theme-ready body {
-                visibility: visible !important;
-                opacity: 1 !important;
-            }
-        `);
-    } else {
-        const style = document.createElement('style');
-        style.id = 'tm-mms-theme-early-guard';
-        style.textContent = 'html:not(.tm-mms-theme-ready),html:not(.tm-mms-theme-ready) body{visibility:hidden!important;opacity:0!important}';
-        (document.head || root).appendChild(style);
-    }
 
     if (typeof GM_getValue !== 'function') return;
 
     try {
         if (GM_getValue('tm_script_enabled', true) === false) {
-            root.style.removeProperty('visibility');
-            root.style.removeProperty('opacity');
-            root.classList.add('tm-mms-theme-ready');
+            root.classList.add('tm-mms-menu-ready');
             return;
         }
     } catch (_) { /* ignore */ }
@@ -88,12 +56,12 @@
 
     function applyColors(colors) {
         if (!colors || typeof colors !== 'object') return;
-        const root = document.documentElement;
+        const rootEl = document.documentElement;
         const expanded = typeof window.tmBuildDerivedThemeTokens === 'function'
             ? window.tmBuildDerivedThemeTokens(colors)
             : colors;
         for (const [variable, color] of Object.entries(expanded)) {
-            root.style.setProperty(variable, color);
+            rootEl.style.setProperty(variable, color);
         }
         const shopBg = expanded['--tm-shop-item-bg'] || colors['--tm-shop-item-bg'];
         const shopRgb = (() => {
@@ -109,10 +77,10 @@
             || (lightShop
                 ? (expanded['--tm-text-on-light'] || colors['--tm-text-on-light'] || '#343a40')
                 : (expanded['--tm-text-on-dark'] || colors['--tm-text-on-dark'] || expanded['--tm-primary-color'] || colors['--tm-primary-color'] || '#e8e8e8'));
-        root.style.setProperty('--tm-shop-item-text', shopText);
+        rootEl.style.setProperty('--tm-shop-item-text', shopText);
         const bg = expanded['--tm-dark-color'] || colors['--tm-dark-color'] || shopBg;
         if (bg && String(window.__tmEarlyThemeId || readProfileScoped(THEME_KEY, 'default')) !== 'default') {
-            root.style.backgroundColor = bg;
+            rootEl.style.backgroundColor = bg;
         }
     }
 
@@ -203,28 +171,10 @@
     }
 })();
 
+/** Kept for callers that used to wait on page-blank reveal; now only clears menu guard. */
 window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
-    if (window.location.pathname.includes('login.php')) {
-        document.documentElement.classList.add('tm-mms-theme-ready');
-        document.documentElement.classList.add('tm-mms-menu-ready');
-        document.documentElement.style.removeProperty('visibility');
-        document.documentElement.style.removeProperty('opacity');
-        if (document.body) {
-            document.body.style.visibility = 'visible';
-            document.body.style.opacity = '1';
-        }
-        return;
-    }
-
     if (window.__tmMenuGuardActive && !document.documentElement.classList.contains('tm-mms-menu-ready')) {
         return;
     }
-
-    document.documentElement.classList.add('tm-mms-theme-ready');
-    document.documentElement.style.removeProperty('visibility');
-    document.documentElement.style.removeProperty('opacity');
-    if (document.body) {
-        document.body.style.visibility = 'visible';
-        document.body.style.opacity = '1';
-    }
+    document.documentElement.classList.add('tm-mms-menu-ready');
 };

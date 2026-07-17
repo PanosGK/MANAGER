@@ -1,7 +1,9 @@
 (function() {
     'use strict';
 
-    // FOUC prevention runs in myman_theme_early.js (first @require).
+    // ===================================================================
+    // === MAIN SCRIPT INITIALIZATION
+    // ===================================================================
     // IMMEDIATE: Hide print buttons on service_edit.php pages
     // This runs immediately, before any other code
     (function hidePrintButtonsImmediate() {
@@ -5034,17 +5036,7 @@
         if (typeof window.tmRevealThemedPageIfReady === 'function') {
             window.tmRevealThemedPageIfReady();
         }
-        const root = document.documentElement;
-        if (!root.classList.contains('tm-mms-theme-ready')) {
-            root.classList.add('tm-mms-theme-ready');
-            root.classList.add('tm-mms-menu-ready');
-            root.style.removeProperty('visibility');
-            root.style.removeProperty('opacity');
-            if (document.body) {
-                document.body.style.visibility = 'visible';
-                document.body.style.opacity = '1';
-            }
-        }
+        document.documentElement.classList.add('tm-mms-menu-ready');
     }
 
     function scheduleScriptInitialization() {

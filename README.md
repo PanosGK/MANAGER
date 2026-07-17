@@ -14,34 +14,16 @@ Tampermonkey userscript suite that enhances [MyManager](https://thefixers.mymana
 
 Tampermonkey will check `@updateURL` and pull new versions automatically. You do **not** need to copy files manually.
 
-### Stop the unthemed page flash (FOUC)
-
-Tampermonkey runs **after** the browser’s first paint, so a userscript alone cannot hide the host UI in time. Use one of these (recommended: extension):
-
-**Option A — Chrome / Edge extension (best)**  
-1. Open `chrome://extensions` (or `edge://extensions`)  
-2. Enable **Developer mode**  
-3. **Load unpacked** → select the `fouc-extension` folder in this repo  
-4. Keep it enabled alongside Tampermonkey  
-
-**Option B — Stylus**  
-1. Install [Stylus](https://add0n.com/stylus.html)  
-2. Install `myman_fouc.user.css` from this repo  
-
-Both hide `body` until the suite adds `html.tm-mms-theme-ready`.
-
 ### Manual update check
 
 Open suite **Settings → Ενημερώσεις → Έλεγχος τώρα**, or in Tampermonkey: icon → **Dashboard** → **MyManager All-in-One Suite** → **Settings** → **Check for userscript updates**. Or open the loader URL and click **Override** or **Update**: https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js
 
 ## Local development
 
-1. Install `myman_loader.local.user.js` (version **14+**) in Tampermonkey — disable the GitHub loader while developing.
+1. Install `myman_loader.local.user.js` in Tampermonkey — disable the GitHub loader while developing.
 2. Enable **Allow access to local file URLs** for this script.
 3. Run `npm run build` after edits; hard-refresh MyManager.
 4. After loader changes: reinstall/save the local script in Tampermonkey.
-
-The local loader is a **small** script: it blanks the page first, then loads `myman_suite.bundle.js` asynchronously. That avoids waiting to parse the large post-mascot bundle before hiding (which caused the host UI flash).
 
 ## Releasing a new version
 
@@ -65,8 +47,6 @@ Regenerate without a version bump: `npm run build` (does not rewrite the product
 |------|---------|
 | `myman_loader.user.js` | **Production** — install this; auto-updates from GitHub |
 | `myman_loader.local.user.js` | **Local dev** — loads bundle from disk (async) |
-| `fouc-extension/` | **FOUC guard** — Chrome/Edge unpacked extension (before first paint) |
-| `myman_fouc.user.css` | Stylus alternative for FOUC |
 | `myman_manifest.json` | Version + module list for updates |
 | `myman_allinone.js` | Main app logic |
 | `myman_*.js` | Feature modules (config, gamification, phonelist, etc.) |

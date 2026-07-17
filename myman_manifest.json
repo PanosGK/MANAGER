@@ -1,11 +1,11 @@
 {
-  "version": "228",
-  "loaderVersion": "14",
+  "version": "229",
+  "loaderVersion": "15",
   "silentVersion": "1",
-  "displayVersion": "14.1",
+  "displayVersion": "15.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "loader v14: blank page before huge post-mascot bundle parse",
+  "releaseNotes": "loader v15: remove theme blank/FOUC hide",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

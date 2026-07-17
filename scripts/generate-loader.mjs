@@ -30,44 +30,6 @@ function stripUserScriptHeader(content) {
     return content.replace(/^\/\/ ==UserScript==[\s\S]*?^\/\/ ==\/UserScript==\r?\n?/m, '');
 }
 
-/**
- * Pre-mascot-rework hide (from when themes worked): blank the page by hiding <html>
- * until .tm-mms-theme-ready. Must run in the loader script BODY (not inside a huge
- * @require) so Tampermonkey does not wait to parse the mascot-heavy bundle first.
- */
-const FOUC_HIDE_IIFE = `(function tmMmsInstantFoucGuard() {
-    try {
-        var path = (window.location && window.location.pathname) || '';
-        if (path.indexOf('login.php') !== -1) return;
-        if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
-        var root = document.documentElement;
-        root.style.setProperty('visibility', 'hidden', 'important');
-        root.style.setProperty('opacity', '0', 'important');
-        root.style.backgroundColor = '#121212';
-        var style = document.createElement('style');
-        style.id = 'tm-mms-instant-guard';
-        style.textContent = [
-            'html:not(.tm-mms-theme-ready){',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            'background:#121212!important;',
-            '}',
-            'html:not(.tm-mms-theme-ready) body{',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            '}',
-        ].join('');
-        var parent = document.head || document.getElementsByTagName('head')[0] || root;
-        parent.appendChild(style);
-        if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(style.textContent); } catch (e1) { /* ignore */ }
-        }
-    } catch (e) { /* ignore */ }
-})();`;
-
-/** Also first lines of the suite bundle (after async eval / as safety net). */
-const INSTANT_FOUC_GUARD = `\n${FOUC_HIDE_IIFE}\n`;
-
 function buildInlineBootstrap({ localBundleUrl = null } = {}) {
     return `(function tmMmsLoaderBootstrap() {
     'use strict';
@@ -277,10 +239,6 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
 
     installMasterToggleRecovery();
 
-    function hidePageNow() {
-        ${FOUC_HIDE_IIFE}
-    }
-
     function readProfileScoped(key, defaultValue) {
         try {
             if (typeof GM_getValue !== 'function') return defaultValue;
@@ -312,15 +270,9 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
         } catch (e) { /* ignore */ }
     }
 
-    function revealOnFailure() {
-        document.documentElement.classList.add('tm-mms-theme-ready');
+    function onBundleFailure(reason) {
+        console.error('[MMS] Bundle load failed:', reason || 'unknown');
         document.documentElement.classList.add('tm-mms-menu-ready');
-        document.documentElement.style.removeProperty('visibility');
-        document.documentElement.style.removeProperty('opacity');
-        if (document.body) {
-            document.body.style.visibility = 'visible';
-            document.body.style.opacity = '1';
-        }
     }
 
     function exposeTampermonkeyApisForBundle() {
@@ -341,8 +293,7 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
 
     function loadBundle(bundleVersion) {
         if (typeof GM_xmlhttpRequest !== 'function') {
-            console.error('[MMS] GM_xmlhttpRequest unavailable');
-            revealOnFailure();
+            onBundleFailure('GM_xmlhttpRequest unavailable');
             return;
         }
 
@@ -360,16 +311,14 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
                         runBundle(response.responseText);
                     } catch (err) {
                         console.error('[MMS] Bundle eval failed:', err);
-                        revealOnFailure();
+                        onBundleFailure(err);
                     }
                 } else {
-                    console.error('[MMS] Bundle HTTP error:', response.status);
-                    revealOnFailure();
+                    onBundleFailure('HTTP ' + response.status);
                 }
             },
             onerror: function () {
-                console.error('[MMS] Bundle fetch failed');
-                revealOnFailure();
+                onBundleFailure('network');
             },
         });
     }
@@ -417,41 +366,24 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
     }
 
     if (shouldSkip()) {
-        // Extension/Stylus FOUC CSS hides body until this class exists.
-        document.documentElement.classList.add('tm-mms-theme-ready');
         document.documentElement.classList.add('tm-mms-menu-ready');
         return;
     }
 
     var loginPath = (window.location && window.location.pathname) || '';
     if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {
-        document.documentElement.classList.add('tm-mms-theme-ready');
         document.documentElement.classList.add('tm-mms-menu-ready');
         runStatus40InlineAutoLogin();
         return;
     }
 
-    // Hide before any network — first paint must not show unthemed host UI.
-    hidePageNow();
     applyCachedThemeColors();
     fetchManifestThenLoadBundle();
-
-    setTimeout(function () {
-        if (!document.documentElement.classList.contains('tm-mms-theme-ready')) {
-            console.warn('[MMS] Bundle load timeout — revealing page');
-            revealOnFailure();
-        }
-    }, 15000);
 })();`;
 }
 
-const foucInstantPath = path.join(root, 'myman_fouc_instant.js');
-fs.writeFileSync(foucInstantPath, `/* Theme blank — keep tiny; used at top of loaders */\n${FOUC_HIDE_IIFE}\n`);
-
-// Keep manifest module order (liquid_glass → theme_early → …) like pre-mascot era.
 const bundleFiles = [...modules, 'myman_allinone.js'];
 let bundle = `/* MyManager Suite bundle v${version} / Custom Ver. ${displayVersion} — generated, do not edit */\n`;
-bundle += INSTANT_FOUC_GUARD.trim() + '\n';
 
 for (const file of bundleFiles) {
     const filePath = path.join(root, file);
@@ -490,9 +422,6 @@ const productionLoader = `// ==UserScript==
 // @connect      raw.githubusercontent.com
 // ==/UserScript==
 
-// Blank page BEFORE fetching/parsing the suite (required after mascot grew the bundle).
-${FOUC_HIDE_IIFE}
-
 ${buildInlineBootstrap()}
 `;
 
@@ -519,13 +448,11 @@ if (shouldWriteProductionLoader) {
 
 const localBundlePath = path.join(root, bundleFileName).replace(/\\/g, '/');
 const localBundleUrl = `file://${localBundlePath}`;
-// Local: NO huge @require — Tampermonkey would parse the whole bundle before any hide.
-// Hide runs in this small script body first, then the bundle loads async (same as production).
 const localLoader = `// ==UserScript==
 // @name         ${manifest.name} (Local Dev)
 // @namespace    http://tampermonkey.net/
 // @version      ${loaderVersion}
-// @description  Local development — blanks page first, then async file:// bundle. Enable "Allow access to local file URLs". Run: npm run build.
+// @description  Local development — async file:// bundle. Enable "Allow access to local file URLs". Run: npm run build.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @run-at       document-start
@@ -542,30 +469,10 @@ const localLoader = `// ==UserScript==
 // @connect      raw.githubusercontent.com
 // ==/UserScript==
 
-// Blank FIRST (pre-mascot behavior), then load the large suite without blocking on parse.
-${FOUC_HIDE_IIFE}
-
 ${buildInlineBootstrap({ localBundleUrl })}
 `;
 
 fs.writeFileSync(path.join(root, 'myman_loader.local.user.js'), localLoader);
-
-const foucGuard = `// ==UserScript==
-// @name         MyManager Theme Blank Guard
-// @namespace    http://tampermonkey.net/
-// @version      2.0
-// @description  Optional: install ABOVE the main suite. Blanks the page until themes are ready.
-// @author       Gkorogias
-// @match        *://thefixers.mymanager.gr/*
-// @run-at       document-start
-// @grant        GM_addStyle
-// @grant        GM_getValue
-// ==/UserScript==
-
-${FOUC_HIDE_IIFE}
-`;
-
-fs.writeFileSync(path.join(root, 'myman_fouc_guard.user.js'), foucGuard);
 
 const configPath = path.join(root, 'myman_config.js');
 let config = fs.readFileSync(configPath, 'utf8');
@@ -589,5 +496,5 @@ if (config.includes('const SCRIPT_META = {')) {
 }
 
 fs.writeFileSync(configPath, config);
-console.log(`Generated ${bundleFileName}, local loader, fouc guard — bundle v${version}, Custom Ver. ${displayVersion}, loader v${loaderVersion}${shouldWriteProductionLoader ? ', production loader written' : ''}`);
+console.log(`Generated ${bundleFileName}, local loader — bundle v${version}, Custom Ver. ${displayVersion}, loader v${loaderVersion}${shouldWriteProductionLoader ? ', production loader written' : ''}`);
 console.log('Silent updates: node scripts/release.mjs "notes"  |  Loader (Tampermonkey) updates: node scripts/release.mjs --loader "notes"');
