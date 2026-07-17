@@ -3200,10 +3200,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '228',
-        loaderVersion: '14',
+        version: '229',
+        loaderVersion: '15',
         silentVersion: '1',
-        displayVersion: '14.1',
+        displayVersion: '15.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -39249,7 +39249,26 @@ window.initOrderTracking = initOrderTracking;
             background: var(--tm-shop-item-hover-bg);
         }
         .tm-sl-unit-table tbody tr.tm-sl-unit-row--blocked td {
-            background: color-mix(in srgb, #dc2626 4%, var(--tm-shop-item-bg));
+            background: color-mix(in srgb, #dc2626 9%, var(--tm-shop-item-bg));
+        }
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--blocked td:first-child {
+            box-shadow: inset 4px 0 0 #dc2626;
+        }
+        .tm-sl-unit-table .tm-sl-table-blocked {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 8px; border-radius: 6px;
+            font-size: 10px; font-weight: 800; letter-spacing: 0.02em;
+            background: #dc2626; color: #fff;
+            white-space: nowrap;
+        }
+        .tm-sl-unit-table .tm-sl-table-bb {
+            font-size: 10px; font-weight: 800; padding: 3px 7px; border-radius: 6px;
+            background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 22%, transparent);
+            color: var(--tm-warning-color, #d97706);
+            border: 1px solid color-mix(in srgb, var(--tm-warning-color, #f59e0b) 40%, transparent);
+        }
+        .tm-sl-unit-table .tm-sl-table-bb--blocked {
+            background: #dc2626; color: #fff; border-color: #b91c1c;
         }
         .tm-sl-unit-table .tm-sl-table-grade {
             display: inline-flex; align-items: center; justify-content: center;
@@ -39272,11 +39291,6 @@ window.initOrderTracking = initOrderTracking;
         }
         .tm-sl-unit-table .tm-sl-table-actions {
             display: flex; gap: 4px; justify-content: flex-end; white-space: nowrap;
-        }
-        .tm-sl-unit-table .tm-sl-table-bb {
-            font-size: 9px; font-weight: 800; padding: 2px 5px; border-radius: 4px;
-            background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 18%, transparent);
-            color: var(--tm-warning-color, #d97706);
         }
         .tm-sl-store-dist {
             font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
@@ -39652,9 +39666,11 @@ window.initOrderTracking = initOrderTracking;
             border: 1px solid color-mix(in srgb, #16a34a 28%, transparent);
         }
         .tm-sl-store-bb-status--no {
-            background: color-mix(in srgb, #dc2626 12%, transparent);
-            color: #b91c1c;
-            border: 1px solid color-mix(in srgb, #dc2626 26%, transparent);
+            background: #dc2626;
+            color: #fff;
+            border: 1px solid #b91c1c;
+            box-shadow: 0 1px 3px color-mix(in srgb, #dc2626 35%, transparent);
+            font-weight: 800;
         }
         .tm-sl-store-chevron { opacity: 0.4; flex-shrink: 0; transition: transform 0.15s; margin-left: auto; }
         .tm-sl-store-row.is-open .tm-sl-store-chevron { transform: rotate(90deg); }
@@ -39743,10 +39759,35 @@ window.initOrderTracking = initOrderTracking;
                 var(--tm-shop-item-bg) 55%);
         }
         .tm-sl-phone-card--blocked {
-            border-left-color: #dc2626;
+            border-left: 6px solid #dc2626;
+            border-color: color-mix(in srgb, #dc2626 45%, var(--tm-shop-item-border));
             background: linear-gradient(135deg,
-                color-mix(in srgb, #dc2626 5%, var(--tm-shop-item-bg)),
-                var(--tm-shop-item-bg) 50%);
+                color-mix(in srgb, #dc2626 14%, var(--tm-shop-item-bg)),
+                color-mix(in srgb, #dc2626 4%, var(--tm-shop-item-bg)) 55%);
+            box-shadow: inset 0 0 0 1px color-mix(in srgb, #dc2626 18%, transparent);
+        }
+        .tm-sl-phone-card--blocked .tm-sl-phone-card__price {
+            text-decoration: line-through;
+            opacity: 0.55;
+            color: var(--tm-muted-text, #64748b);
+        }
+        .tm-sl-blocked-banner {
+            display: flex; align-items: center; gap: 6px;
+            width: 100%;
+            padding: 6px 10px; border-radius: 8px;
+            font-size: 11px; font-weight: 800; letter-spacing: 0.01em;
+            background: #dc2626; color: #fff;
+            box-shadow: 0 1px 4px color-mix(in srgb, #dc2626 40%, transparent);
+        }
+        .tm-sl-phone-card--compact.tm-sl-phone-card--blocked {
+            position: relative;
+            padding-top: 28px;
+        }
+        .tm-sl-phone-card--compact .tm-sl-blocked-banner {
+            position: absolute; top: 0; left: 0; right: 0;
+            border-radius: 10px 10px 0 0;
+            justify-content: center;
+            padding: 4px 8px; font-size: 10px;
         }
         .tm-sl-phone-card__body { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
         .tm-sl-phone-card__specs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -39787,6 +39828,12 @@ window.initOrderTracking = initOrderTracking;
             background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 18%, transparent);
             color: var(--tm-warning-color, #d97706);
             border-color: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 35%, transparent);
+        }
+        .tm-sl-spec-pill--bb-blocked {
+            background: #dc2626;
+            color: #fff;
+            border-color: #b91c1c;
+            font-weight: 800;
         }
         .tm-sl-barcode-pill {
             display: inline-flex; align-items: center; gap: 5px;
@@ -39886,9 +39933,11 @@ window.initOrderTracking = initOrderTracking;
             border: 1px solid color-mix(in srgb, #16a34a 28%, transparent);
         }
         .tm-sl-purchase-chip--no, .tm-sl-purchase-badge--no {
-            background: color-mix(in srgb, #dc2626 12%, transparent);
-            color: #b91c1c;
-            border: 1px solid color-mix(in srgb, #dc2626 26%, transparent);
+            background: #dc2626;
+            color: #fff;
+            border: 1px solid #b91c1c;
+            font-weight: 800;
+            box-shadow: 0 1px 3px color-mix(in srgb, #dc2626 35%, transparent);
         }
         .tm-sl-purchase-chip--neutral {
             background: color-mix(in srgb, var(--tm-shop-item-border) 22%, transparent);
@@ -39896,7 +39945,8 @@ window.initOrderTracking = initOrderTracking;
             border: 1px solid var(--tm-shop-item-border);
         }
         .tm-sl-store-row.tm-sl-store-row--no-purchase {
-            border-left-color: var(--tm-warning-color, #f59e0b);
+            border-left: 5px solid #dc2626;
+            background: color-mix(in srgb, #dc2626 6%, var(--tm-shop-item-bg));
         }
 
         .tm-sl-skeleton-grid {
@@ -40184,8 +40234,8 @@ window.initOrderTracking = initOrderTracking;
         if (isBuyback) {
             const cls = allowed ? 'tm-sl-purchase-chip--ok' : 'tm-sl-purchase-chip--no';
             const icon = allowed ? '●' : '○';
-            const label = allowed ? 'BB OK' : 'Όχι BB';
-            return `<span class="tm-sl-purchase-chip ${cls}" title="${allowed ? 'Επιτρέπεται αγορά BB' : 'Δεν επιτρέπεται αγορά BB'}">${icon} ${label}</span>`;
+            const label = allowed ? 'BB OK' : 'Δεν αγοράζεται · BB';
+            return `<span class="tm-sl-purchase-chip ${cls}" title="${allowed ? 'Επιτρέπεται αγορά BB' : 'Buyback IKE — δεν αγοράζεται από άλλα καταστήματα'}">${icon} ${label}</span>`;
         }
         if (!allowed) {
             return `<span class="tm-sl-purchase-chip tm-sl-purchase-chip--no" title="Μη επιτρεπόμενο κατάστημα">○ ${name}</span>`;
@@ -40197,11 +40247,21 @@ window.initOrderTracking = initOrderTracking;
         if (isBuyback) {
             return allowed
                 ? `<span class="tm-sl-purchase-badge tm-sl-purchase-badge--ok" title="Επιτρέπεται αγορά BB">✓ Αγοράσιμο BB</span>`
-                : `<span class="tm-sl-purchase-badge tm-sl-purchase-badge--no" title="Δεν επιτρέπεται αγορά BB από αυτό το κατάστημα">✕ Όχι BB κατ.</span>`;
+                : `<span class="tm-sl-purchase-badge tm-sl-purchase-badge--no" title="Buyback από κατάστημα IKE — δεν αγοράζεται από άλλα καταστήματα">✕ Δεν αγοράζεται · BB IKE</span>`;
         }
         return allowed
             ? `<span class="tm-sl-purchase-badge tm-sl-purchase-badge--ok" title="Επιτρεπόμενο κατάστημα">✓ Αγοράσιμο</span>`
-            : `<span class="tm-sl-purchase-badge tm-sl-purchase-badge--no" title="Μη επιτρεπόμενο κατάστημα">✕ Μη επιτρεπόμενο</span>`;
+            : `<span class="tm-sl-purchase-badge tm-sl-purchase-badge--no" title="Μη επιτρεπόμενο κατάστημα">✕ Δεν αγοράζεται</span>`;
+    }
+
+    function buildBlockedBannerHtml(isBuyback, compact) {
+        const label = isBuyback
+            ? (compact ? '✕ Δεν αγοράζεται · BB' : '✕ Δεν αγοράζεται — BB από κατάστημα IKE')
+            : (compact ? '✕ Δεν αγοράζεται' : '✕ Δεν αγοράζεται από αυτό το κατάστημα');
+        const title = isBuyback
+            ? 'Buyback από κατάστημα IKE — δεν επιτρέπεται αγορά από άλλα καταστήματα'
+            : 'Μη επιτρεπόμενο κατάστημα για αγορά';
+        return `<div class="tm-sl-blocked-banner" title="${title}">${label}</div>`;
     }
 
     function buildStorePurchaseSummary(store) {
@@ -40234,7 +40294,7 @@ window.initOrderTracking = initOrderTracking;
         return '#607d8b';
     }
 
-    function buildSpecPillsHTML(v, ctx) {
+    function buildSpecPillsHTML(v, ctx, purchaseBlocked) {
         const hexMap = ctx?.colorHexMap || {};
         const getGradeStyle = ctx?.getGradeStyle || (() => '');
         const pills = [];
@@ -40248,7 +40308,11 @@ window.initOrderTracking = initOrderTracking;
             pills.push(`<span class="tm-sl-spec-pill tm-sl-spec-pill--color">${colorSwatchHTML(v.color, hexMap)} ${esc(v.color)}</span>`);
         }
         if (v.isBuyback) {
-            pills.push('<span class="tm-sl-spec-pill tm-sl-spec-pill--bb">BB</span>');
+            if (purchaseBlocked) {
+                pills.push('<span class="tm-sl-spec-pill tm-sl-spec-pill--bb-blocked" title="Buyback IKE — δεν αγοράζεται">BB ✕</span>');
+            } else {
+                pills.push('<span class="tm-sl-spec-pill tm-sl-spec-pill--bb">BB</span>');
+            }
         }
         return pills.join('');
     }
@@ -40261,12 +40325,12 @@ window.initOrderTracking = initOrderTracking;
             if (allowed) {
                 return '<span class="tm-sl-store-bb-status tm-sl-store-bb-status--ok" title="Επιτρέπεται αγορά BB">BB ✓</span>';
             }
-            return '<span class="tm-sl-store-bb-status tm-sl-store-bb-status--no" title="Δεν επιτρέπεται αγορά BB">BB ✕</span>';
+            return '<span class="tm-sl-store-bb-status tm-sl-store-bb-status--no" title="Buyback IKE — δεν αγοράζεται από άλλα καταστήματα">✕ Όχι BB</span>';
         }
         if (allowed) {
             return '<span class="tm-sl-store-bb-status tm-sl-store-bb-status--ok" title="Επιτρέπεται αγορά BB από αυτό το κατάστημα">✓ Αγορά BB</span>';
         }
-        return '<span class="tm-sl-store-bb-status tm-sl-store-bb-status--no" title="Δεν επιτρέπεται αγορά BB από αυτό το κατάστημα">✕ Όχι BB</span>';
+        return '<span class="tm-sl-store-bb-status tm-sl-store-bb-status--no" title="Buyback IKE — δεν αγοράζεται από άλλα καταστήματα">✕ Δεν αγοράζεται · BB</span>';
     }
 
     function buildStoreInventorySummary(variants, ctx) {
@@ -40336,21 +40400,25 @@ window.initOrderTracking = initOrderTracking;
         const storeHtml = !compact && !ctx?.hideStoreInUnits && storeName ? buildUnitStoreHTML(storeName, v.isMine) : '';
         const purchaseAllowed = !ctx?.showPurchaseStatus || !storeName
             || isStorePurchaseAllowed(storeName, !!v.isBuyback);
+        const purchaseBlocked = ctx?.showPurchaseStatus && !purchaseAllowed;
         const purchaseBadge = !compact && ctx?.showPurchaseStatus && storeName
             ? buildPurchaseBadgeHtml(!!v.isBuyback, purchaseAllowed)
             : '';
+        const blockedBanner = purchaseBlocked ? buildBlockedBannerHtml(!!v.isBuyback, compact) : '';
         const cardClasses = [
             'tm-sl-phone-card',
             v.isBuyback ? 'tm-sl-phone-card--bb' : '',
-            ctx?.showPurchaseStatus && !purchaseAllowed ? 'tm-sl-phone-card--blocked' : '',
+            purchaseBlocked ? 'tm-sl-phone-card--blocked' : '',
             compact ? 'tm-sl-phone-card--compact' : '',
         ].filter(Boolean).join(' ');
         const priceHtml = v.price ? `<div class="tm-sl-phone-card__price">${esc(v.price)}</div>` : '';
         const barcodeHtml = `<span class="tm-sl-barcode-pill"><span class="tm-sl-barcode-pill__icon">#</span>${esc(v.barcode)}</span>`;
+        const specsHtml = buildSpecPillsHTML(v, ctx, purchaseBlocked) || '<span class="tm-sl-preview-pill">—</span>';
 
         if (compact) {
             return `<article class="${cardClasses}" data-barcode="${esc(v.barcode)}" style="--tm-sl-grade-accent:${esc(gradeAccent)}">
-                <div class="tm-sl-phone-card__specs">${buildSpecPillsHTML(v, ctx) || '<span class="tm-sl-preview-pill">—</span>'}</div>
+                ${blockedBanner}
+                <div class="tm-sl-phone-card__specs">${specsHtml}</div>
                 ${barcodeHtml}
                 ${priceHtml}
                 <div class="tm-sl-phone-card__actions">
@@ -40362,19 +40430,20 @@ window.initOrderTracking = initOrderTracking;
 
         return `<article class="${cardClasses}" data-barcode="${esc(v.barcode)}" style="--tm-sl-grade-accent:${esc(gradeAccent)}">
             <div class="tm-sl-phone-card__body">
-                <div class="tm-sl-phone-card__specs">${buildSpecPillsHTML(v, ctx) || '<span class="tm-sl-preview-pill">—</span>'}</div>
+                ${blockedBanner}
+                <div class="tm-sl-phone-card__specs">${specsHtml}</div>
                 ${storeHtml || purchaseBadge ? `<div class="tm-sl-phone-card__meta">${storeHtml}${purchaseBadge}</div>` : ''}
                 <div class="tm-sl-phone-card__footer">
                     ${barcodeHtml}
                 </div>
-            </div>
+                    </div>
             <div class="tm-sl-phone-card__aside">
                 ${priceHtml}
                 <div class="tm-sl-phone-card__actions">
                     <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
                     <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
                 </div>
-            </div>
+                </div>
         </article>`;
     }
 
@@ -40446,7 +40515,7 @@ window.initOrderTracking = initOrderTracking;
             ${headHtml}
             ${summary}
             <div class="tm-sl-store-units">${units}</div>
-        </div>`;
+            </div>`;
     }
 
     function buildMyStoreBoard(modelName, variants, ctx) {
@@ -40466,7 +40535,8 @@ window.initOrderTracking = initOrderTracking;
         const storeName = v.storeName || '';
         const purchaseAllowed = !ctx?.showPurchaseStatus || !storeName
             || isStorePurchaseAllowed(storeName, !!v.isBuyback);
-        const rowClass = ctx?.showPurchaseStatus && !purchaseAllowed ? ' tm-sl-unit-row--blocked' : '';
+        const purchaseBlocked = ctx?.showPurchaseStatus && !purchaseAllowed;
+        const rowClass = purchaseBlocked ? ' tm-sl-unit-row--blocked' : '';
 
         const gradeCell = v.grade
             ? `<span class="tm-sl-table-grade" style="${getGradeStyle(v.grade)}">${esc(v.grade)}</span>`
@@ -40475,7 +40545,14 @@ window.initOrderTracking = initOrderTracking;
         const colorCell = v.color
             ? `<span class="tm-sl-table-color">${colorSwatchHTML(v.color, hexMap)}${esc(v.color)}</span>`
             : '—';
-        const bbCell = v.isBuyback ? '<span class="tm-sl-table-bb">BB</span>' : '';
+        let bbCell = '';
+        if (purchaseBlocked) {
+            bbCell = v.isBuyback
+                ? '<span class="tm-sl-table-bb tm-sl-table-bb--blocked" title="Buyback IKE — δεν αγοράζεται">BB ✕</span>'
+                : '<span class="tm-sl-table-blocked" title="Δεν αγοράζεται">✕ Όχι</span>';
+        } else if (v.isBuyback) {
+            bbCell = '<span class="tm-sl-table-bb">BB</span>';
+        }
         const barcodeCell = `<span class="tm-sl-table-barcode">${esc(v.barcode)}</span>`;
         const priceCell = v.price ? `<span class="tm-sl-table-price">${esc(v.price)}</span>` : '—';
         const actionsCell = `<div class="tm-sl-table-actions">
@@ -40593,10 +40670,10 @@ window.initOrderTracking = initOrderTracking;
         if (myStore && myStore.variants.length) {
             html += `<div class="tm-sl-mine-banner tm-sl-mine-banner--yes">
                 <span class="tm-sl-mine-icon">✅</span>
-                <div>
+                    <div>
                     <div class="tm-sl-mine-text">Υπάρχει στο κατάστημά σας</div>
                     <div class="tm-sl-mine-detail">${myStore.variants.length} ${myStore.variants.length === 1 ? 'συσκευή' : 'συσκευές'} — ${esc(myStore.preview)}</div>
-                </div>
+                    </div>
             </div>`;
         } else {
             html += `<div class="tm-sl-mine-banner tm-sl-mine-banner--no">
@@ -40604,9 +40681,9 @@ window.initOrderTracking = initOrderTracking;
                 <div>
                     <div class="tm-sl-mine-text">Δεν υπάρχει στο κατάστημά σας</div>
                     <div class="tm-sl-mine-detail">Δείτε παρακάτω ποια καταστήματα έχουν ${esc(modelName)}</div>
-                </div>
-            </div>`;
-        }
+            </div>
+        </div>`;
+    }
 
         if (!allRows?.length) {
             html += buildEmptyState('🔍', 'Δεν βρέθηκε σε κανένα κατάστημα', 'Δοκιμάστε άλλα φίλτρα ή ανανέωση δεδομένων');
