@@ -1,245 +1,33 @@
-/* MyManager Suite bundle v226 / Custom Ver. 13.1 — generated, do not edit */
-(function tmMmsThemeLoadBlank() {
+/* MyManager Suite bundle v228 / Custom Ver. 14.1 — generated, do not edit */
+(function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
         if (path.indexOf('login.php') !== -1) return;
         if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
-        try {
-            if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return;
-        } catch (eSkip) { /* ignore */ }
-        var css = [
+        var root = document.documentElement;
+        root.style.setProperty('visibility', 'hidden', 'important');
+        root.style.setProperty('opacity', '0', 'important');
+        root.style.backgroundColor = '#121212';
+        var style = document.createElement('style');
+        style.id = 'tm-mms-instant-guard';
+        style.textContent = [
+            'html:not(.tm-mms-theme-ready){',
+            'visibility:hidden!important;',
+            'opacity:0!important;',
+            'background:#121212!important;',
+            '}',
             'html:not(.tm-mms-theme-ready) body{',
             'visibility:hidden!important;',
             'opacity:0!important;',
             '}',
-            'html.tm-mms-theme-ready body{',
-            'visibility:visible!important;',
-            'opacity:1!important;',
-            'transition:opacity .2s ease-in;',
-            '}',
         ].join('');
-        if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(css); } catch (e1) { /* ignore */ }
-        }
-        var style = document.createElement('style');
-        style.id = 'tm-mms-theme-load-blank';
-        style.textContent = css;
-        var parent = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+        var parent = document.head || document.getElementsByTagName('head')[0] || root;
         parent.appendChild(style);
+        if (typeof GM_addStyle === 'function') {
+            try { GM_addStyle(style.textContent); } catch (e1) { /* ignore */ }
+        }
     } catch (e) { /* ignore */ }
 })();
-
-
-// ----- myman_theme_early.js -----
-
-(function tmMmsThemeEarlyBootstrap() {
-    'use strict';
-
-    const pathname = window.location.pathname || '';
-    if (pathname.includes('login.php')) return;
-    if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
-
-    const root = document.documentElement;
-
-    // Original theme-load blank: hide body until .tm-mms-theme-ready (looks like a white/blank
-    // screen for a moment). Must run as the FIRST small @require — before heavy modules.
-    if (typeof GM_addStyle === 'function') {
-        GM_addStyle(`
-            html:not(.tm-mms-theme-ready) body {
-                visibility: hidden !important;
-                opacity: 0 !important;
-            }
-            html.tm-mms-theme-ready body {
-                visibility: visible !important;
-                opacity: 1 !important;
-                transition: opacity 0.2s ease-in;
-            }
-        `);
-    } else {
-        const style = document.createElement('style');
-        style.id = 'tm-mms-theme-early-guard';
-        style.textContent = 'html:not(.tm-mms-theme-ready) body{visibility:hidden!important;opacity:0!important}html.tm-mms-theme-ready body{visibility:visible!important;opacity:1!important;transition:opacity .2s ease-in}';
-        (document.head || root).appendChild(style);
-    }
-
-    if (typeof GM_getValue !== 'function') return;
-
-    try {
-        if (GM_getValue('tm_script_enabled', true) === false) {
-            root.classList.add('tm-mms-theme-ready');
-            return;
-        }
-    } catch (_) { /* ignore */ }
-
-    const THEME_KEY = 'tm_equipped_theme';
-    const CACHE_KEY = 'tm_theme_colors_cache';
-    const PROFILE_PREFIX = 'tm:p:';
-
-    function readProfileScoped(key, defaultValue) {
-        try {
-            const profileId = GM_getValue('tm_mms_last_profile_id', '');
-            if (profileId) {
-                const scoped = GM_getValue(`${PROFILE_PREFIX}${profileId}:${key}`, undefined);
-                if (scoped !== undefined) return scoped;
-            }
-            const legacy = GM_getValue(key, undefined);
-            if (legacy !== undefined) return legacy;
-        } catch (_) { /* ignore */ }
-        return defaultValue;
-    }
-
-    function hexToRgb(hex) {
-        const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(String(hex || ''));
-        if (!match) return null;
-        return {
-            r: parseInt(match[1], 16),
-            g: parseInt(match[2], 16),
-            b: parseInt(match[3], 16),
-        };
-    }
-
-    function applyColors(colors) {
-        if (!colors || typeof colors !== 'object') return;
-        const root = document.documentElement;
-        const expanded = typeof window.tmBuildDerivedThemeTokens === 'function'
-            ? window.tmBuildDerivedThemeTokens(colors)
-            : colors;
-        for (const [variable, color] of Object.entries(expanded)) {
-            root.style.setProperty(variable, color);
-        }
-        const shopBg = expanded['--tm-shop-item-bg'] || colors['--tm-shop-item-bg'];
-        const shopRgb = (() => {
-            const s = String(shopBg || '').trim();
-            const rgba = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
-            if (rgba) return { r: +rgba[1], g: +rgba[2], b: +rgba[3] };
-            return hexToRgb(s);
-        })();
-        const lightShop = shopRgb
-            ? (0.299 * shopRgb.r + 0.587 * shopRgb.g + 0.114 * shopRgb.b) / 255 > 0.52
-            : true;
-        const shopText = expanded['--tm-shop-item-text'] || colors['--tm-shop-item-text']
-            || (lightShop
-                ? (expanded['--tm-text-on-light'] || colors['--tm-text-on-light'] || '#343a40')
-                : (expanded['--tm-text-on-dark'] || colors['--tm-text-on-dark'] || expanded['--tm-primary-color'] || colors['--tm-primary-color'] || '#e8e8e8'));
-        root.style.setProperty('--tm-shop-item-text', shopText);
-        const bg = expanded['--tm-dark-color'] || colors['--tm-dark-color'] || shopBg;
-        if (bg && String(window.__tmEarlyThemeId || readProfileScoped(THEME_KEY, 'default')) !== 'default') {
-            root.style.backgroundColor = bg;
-        }
-    }
-
-    const themeId = String(readProfileScoped(THEME_KEY, 'default') || 'default');
-
-    let cache = null;
-    try {
-        const raw = readProfileScoped(CACHE_KEY, null);
-        if (raw) {
-            cache = typeof raw === 'string' ? JSON.parse(raw) : raw;
-        }
-    } catch (_) { /* ignore */ }
-
-    if (themeId !== 'default' && cache && cache.colors) {
-        applyColors(cache.colors);
-    }
-
-    window.__tmEarlyThemeId = themeId;
-
-    const HIDDEN_MENU_KEY = 'tm_hidden_menu_items';
-    const menuFeatureEnabled = readProfileScoped('hiddenMenuItemsEnabled', true) !== false;
-    let hiddenMenuItems = [];
-
-    try {
-        const rawHidden = readProfileScoped(HIDDEN_MENU_KEY, '[]');
-        hiddenMenuItems = typeof rawHidden === 'string' ? JSON.parse(rawHidden) : (rawHidden || []);
-        if (!Array.isArray(hiddenMenuItems)) hiddenMenuItems = [];
-    } catch (_) {
-        hiddenMenuItems = [];
-    }
-
-    window.__tmMenuGuardActive = menuFeatureEnabled && hiddenMenuItems.length > 0;
-
-    function cssAttrSubstring(value) {
-        return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-    }
-
-    function buildMenuHideCss(items) {
-        const rules = [
-            'html:not(.tm-mms-menu-ready) .rnr-left { visibility: hidden !important; opacity: 0 !important; }',
-            'html.tm-mms-menu-ready .rnr-left { visibility: visible !important; opacity: 1 !important; transition: opacity 0.12s ease-in; }',
-        ];
-
-        items.forEach((item) => {
-            const href = typeof item === 'object' ? item.href : '';
-            const id = typeof item === 'string' ? item : item?.id;
-            if (href && href.includes('?')) {
-                const escaped = cssAttrSubstring(href);
-                rules.push(`.rnr-b-vmenu.simple.main li:has(> div > div > a[href*="${escaped}"]) { display: none !important; }`);
-                rules.push(`.rnr-b-vmenu.simple.main li:has(> div a[href*="${escaped}"]) { display: none !important; }`);
-            } else if (href) {
-                const escaped = cssAttrSubstring(href);
-                rules.push(`.rnr-b-vmenu.simple.main li:has(> div > div > a[href="${escaped}"]) { display: none !important; }`);
-                rules.push(`.rnr-b-vmenu.simple.main li:has(> div a[href="${escaped}"]) { display: none !important; }`);
-            } else if (id) {
-                rules.push(`.rnr-b-vmenu.simple.main li[data-menu-id="${cssAttrSubstring(id)}"] { display: none !important; }`);
-            }
-        });
-
-        return rules.join('\n');
-    }
-
-    function injectMenuGuardCss(cssText) {
-        let style = document.getElementById('tm-mms-menu-early-guard');
-        if (!style) {
-            style = document.createElement('style');
-            style.id = 'tm-mms-menu-early-guard';
-            (document.head || root).appendChild(style);
-        }
-        style.textContent = cssText;
-    }
-
-    window.tmRefreshMenuEarlyCss = function tmRefreshMenuEarlyCss(items) {
-        const list = Array.isArray(items) ? items : [];
-        window.__tmMenuGuardActive = menuFeatureEnabled && list.length > 0;
-        if (menuFeatureEnabled && list.length > 0) {
-            injectMenuGuardCss(buildMenuHideCss(list));
-        } else {
-            injectMenuGuardCss('');
-            document.documentElement.classList.add('tm-mms-menu-ready');
-        }
-    };
-
-    if (window.__tmMenuGuardActive) {
-        injectMenuGuardCss(buildMenuHideCss(hiddenMenuItems));
-    } else {
-        root.classList.add('tm-mms-menu-ready');
-    }
-})();
-
-window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
-    if (window.location.pathname.includes('login.php')) {
-        document.documentElement.classList.add('tm-mms-theme-ready');
-        document.documentElement.classList.add('tm-mms-menu-ready');
-        document.documentElement.style.removeProperty('visibility');
-        document.documentElement.style.removeProperty('opacity');
-        if (document.body) {
-            document.body.style.visibility = 'visible';
-            document.body.style.opacity = '1';
-        }
-        return;
-    }
-
-    if (window.__tmMenuGuardActive && !document.documentElement.classList.contains('tm-mms-menu-ready')) {
-        return;
-    }
-
-    document.documentElement.classList.add('tm-mms-theme-ready');
-    document.documentElement.style.removeProperty('visibility');
-    document.documentElement.style.removeProperty('opacity');
-    if (document.body) {
-        document.body.style.visibility = 'visible';
-        document.body.style.opacity = '1';
-    }
-};
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -715,6 +503,229 @@ img[src='images/smsdelivered.png'] {
     }
 }
 `;
+
+
+// ----- myman_theme_early.js -----
+
+(function tmMmsThemeEarlyBootstrap() {
+    'use strict';
+
+    const pathname = window.location.pathname || '';
+    if (pathname.includes('login.php')) return;
+    if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
+
+    const root = document.documentElement;
+    // Pre-mascot-rework hide: blank the whole page until themes mark ready.
+    root.style.setProperty('visibility', 'hidden', 'important');
+    root.style.setProperty('opacity', '0', 'important');
+
+    if (typeof GM_addStyle === 'function') {
+        GM_addStyle(`
+            html:not(.tm-mms-theme-ready) {
+                visibility: hidden !important;
+                opacity: 0 !important;
+            }
+            html:not(.tm-mms-theme-ready) body {
+                visibility: hidden !important;
+                opacity: 0 !important;
+            }
+            html.tm-mms-theme-ready {
+                visibility: visible !important;
+                opacity: 1 !important;
+                transition: opacity 0.15s ease-in;
+            }
+            html.tm-mms-theme-ready body {
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+        `);
+    } else {
+        const style = document.createElement('style');
+        style.id = 'tm-mms-theme-early-guard';
+        style.textContent = 'html:not(.tm-mms-theme-ready),html:not(.tm-mms-theme-ready) body{visibility:hidden!important;opacity:0!important}';
+        (document.head || root).appendChild(style);
+    }
+
+    if (typeof GM_getValue !== 'function') return;
+
+    try {
+        if (GM_getValue('tm_script_enabled', true) === false) {
+            root.style.removeProperty('visibility');
+            root.style.removeProperty('opacity');
+            root.classList.add('tm-mms-theme-ready');
+            return;
+        }
+    } catch (_) { /* ignore */ }
+
+    const THEME_KEY = 'tm_equipped_theme';
+    const CACHE_KEY = 'tm_theme_colors_cache';
+    const PROFILE_PREFIX = 'tm:p:';
+
+    function readProfileScoped(key, defaultValue) {
+        try {
+            const profileId = GM_getValue('tm_mms_last_profile_id', '');
+            if (profileId) {
+                const scoped = GM_getValue(`${PROFILE_PREFIX}${profileId}:${key}`, undefined);
+                if (scoped !== undefined) return scoped;
+            }
+            const legacy = GM_getValue(key, undefined);
+            if (legacy !== undefined) return legacy;
+        } catch (_) { /* ignore */ }
+        return defaultValue;
+    }
+
+    function hexToRgb(hex) {
+        const match = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(String(hex || ''));
+        if (!match) return null;
+        return {
+            r: parseInt(match[1], 16),
+            g: parseInt(match[2], 16),
+            b: parseInt(match[3], 16),
+        };
+    }
+
+    function applyColors(colors) {
+        if (!colors || typeof colors !== 'object') return;
+        const root = document.documentElement;
+        const expanded = typeof window.tmBuildDerivedThemeTokens === 'function'
+            ? window.tmBuildDerivedThemeTokens(colors)
+            : colors;
+        for (const [variable, color] of Object.entries(expanded)) {
+            root.style.setProperty(variable, color);
+        }
+        const shopBg = expanded['--tm-shop-item-bg'] || colors['--tm-shop-item-bg'];
+        const shopRgb = (() => {
+            const s = String(shopBg || '').trim();
+            const rgba = s.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+            if (rgba) return { r: +rgba[1], g: +rgba[2], b: +rgba[3] };
+            return hexToRgb(s);
+        })();
+        const lightShop = shopRgb
+            ? (0.299 * shopRgb.r + 0.587 * shopRgb.g + 0.114 * shopRgb.b) / 255 > 0.52
+            : true;
+        const shopText = expanded['--tm-shop-item-text'] || colors['--tm-shop-item-text']
+            || (lightShop
+                ? (expanded['--tm-text-on-light'] || colors['--tm-text-on-light'] || '#343a40')
+                : (expanded['--tm-text-on-dark'] || colors['--tm-text-on-dark'] || expanded['--tm-primary-color'] || colors['--tm-primary-color'] || '#e8e8e8'));
+        root.style.setProperty('--tm-shop-item-text', shopText);
+        const bg = expanded['--tm-dark-color'] || colors['--tm-dark-color'] || shopBg;
+        if (bg && String(window.__tmEarlyThemeId || readProfileScoped(THEME_KEY, 'default')) !== 'default') {
+            root.style.backgroundColor = bg;
+        }
+    }
+
+    const themeId = String(readProfileScoped(THEME_KEY, 'default') || 'default');
+
+    let cache = null;
+    try {
+        const raw = readProfileScoped(CACHE_KEY, null);
+        if (raw) {
+            cache = typeof raw === 'string' ? JSON.parse(raw) : raw;
+        }
+    } catch (_) { /* ignore */ }
+
+    if (themeId !== 'default' && cache && cache.colors) {
+        applyColors(cache.colors);
+    }
+
+    window.__tmEarlyThemeId = themeId;
+
+    const HIDDEN_MENU_KEY = 'tm_hidden_menu_items';
+    const menuFeatureEnabled = readProfileScoped('hiddenMenuItemsEnabled', true) !== false;
+    let hiddenMenuItems = [];
+
+    try {
+        const rawHidden = readProfileScoped(HIDDEN_MENU_KEY, '[]');
+        hiddenMenuItems = typeof rawHidden === 'string' ? JSON.parse(rawHidden) : (rawHidden || []);
+        if (!Array.isArray(hiddenMenuItems)) hiddenMenuItems = [];
+    } catch (_) {
+        hiddenMenuItems = [];
+    }
+
+    window.__tmMenuGuardActive = menuFeatureEnabled && hiddenMenuItems.length > 0;
+
+    function cssAttrSubstring(value) {
+        return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    }
+
+    function buildMenuHideCss(items) {
+        const rules = [
+            'html:not(.tm-mms-menu-ready) .rnr-left { visibility: hidden !important; opacity: 0 !important; }',
+            'html.tm-mms-menu-ready .rnr-left { visibility: visible !important; opacity: 1 !important; transition: opacity 0.12s ease-in; }',
+        ];
+
+        items.forEach((item) => {
+            const href = typeof item === 'object' ? item.href : '';
+            const id = typeof item === 'string' ? item : item?.id;
+            if (href && href.includes('?')) {
+                const escaped = cssAttrSubstring(href);
+                rules.push(`.rnr-b-vmenu.simple.main li:has(> div > div > a[href*="${escaped}"]) { display: none !important; }`);
+                rules.push(`.rnr-b-vmenu.simple.main li:has(> div a[href*="${escaped}"]) { display: none !important; }`);
+            } else if (href) {
+                const escaped = cssAttrSubstring(href);
+                rules.push(`.rnr-b-vmenu.simple.main li:has(> div > div > a[href="${escaped}"]) { display: none !important; }`);
+                rules.push(`.rnr-b-vmenu.simple.main li:has(> div a[href="${escaped}"]) { display: none !important; }`);
+            } else if (id) {
+                rules.push(`.rnr-b-vmenu.simple.main li[data-menu-id="${cssAttrSubstring(id)}"] { display: none !important; }`);
+            }
+        });
+
+        return rules.join('\n');
+    }
+
+    function injectMenuGuardCss(cssText) {
+        let style = document.getElementById('tm-mms-menu-early-guard');
+        if (!style) {
+            style = document.createElement('style');
+            style.id = 'tm-mms-menu-early-guard';
+            (document.head || root).appendChild(style);
+        }
+        style.textContent = cssText;
+    }
+
+    window.tmRefreshMenuEarlyCss = function tmRefreshMenuEarlyCss(items) {
+        const list = Array.isArray(items) ? items : [];
+        window.__tmMenuGuardActive = menuFeatureEnabled && list.length > 0;
+        if (menuFeatureEnabled && list.length > 0) {
+            injectMenuGuardCss(buildMenuHideCss(list));
+        } else {
+            injectMenuGuardCss('');
+            document.documentElement.classList.add('tm-mms-menu-ready');
+        }
+    };
+
+    if (window.__tmMenuGuardActive) {
+        injectMenuGuardCss(buildMenuHideCss(hiddenMenuItems));
+    } else {
+        root.classList.add('tm-mms-menu-ready');
+    }
+})();
+
+window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
+    if (window.location.pathname.includes('login.php')) {
+        document.documentElement.classList.add('tm-mms-theme-ready');
+        document.documentElement.classList.add('tm-mms-menu-ready');
+        document.documentElement.style.removeProperty('visibility');
+        document.documentElement.style.removeProperty('opacity');
+        if (document.body) {
+            document.body.style.visibility = 'visible';
+            document.body.style.opacity = '1';
+        }
+        return;
+    }
+
+    if (window.__tmMenuGuardActive && !document.documentElement.classList.contains('tm-mms-menu-ready')) {
+        return;
+    }
+
+    document.documentElement.classList.add('tm-mms-theme-ready');
+    document.documentElement.style.removeProperty('visibility');
+    document.documentElement.style.removeProperty('opacity');
+    if (document.body) {
+        document.body.style.visibility = 'visible';
+        document.body.style.opacity = '1';
+    }
+};
 
 
 // ----- myman_performance_styles.js -----
@@ -3268,10 +3279,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '226',
-        loaderVersion: '12',
-        silentVersion: '1',
-        displayVersion: '12.1',
+        version: '227',
+        loaderVersion: '13',
+        silentVersion: '2',
+        displayVersion: '13.2',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -11936,8 +11947,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         },
         auto_update: {
             title: 'Αυτόματος έλεγχος ενημερώσεων',
-            what: 'Κάθε περίπου 5 λεπτά ελέγχει αν χρειάζεται ενημέρωση του αρχείου εγκατάστασης (loader) στο Tampermonkey.',
-            where: 'Τρέχει στο παρασκήνιο. Αν χρειάζεται ενημέρωση, εμφανίζεται το εικονίδιο ↻ κάτω δεξιά.',
+            what: 'Κάθε περίπου 5 λεπτά ελέγχει για ενημερώσεις. Οι μικρές αλλαγές φορτώνονται μόνες τους· ειδοποίηση μόνο αν πρέπει να ενημερωθεί ο loader στο Tampermonkey.',
+            where: 'Τρέχει στο παρασκήνιο. Το εικονίδιο ↻ κάτω δεξιά εμφανίζεται μόνο για ενημέρωση loader.',
             when: 'Όσο είστε συνδεδεμένοι στο MyManager.',
         },
         updates_version: {
@@ -12949,7 +12960,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
                         <h3>Ενημερώσεις</h3>
-                        <p class="tm-settings-section-desc">Οι μικρές αλλαγές φορτώνονται αυτόματα. Θα δείτε ειδοποίηση μόνο αν χρειάζεται ενημέρωση του αρχείου εγκατάστασης.</p>
+                        <p class="tm-settings-section-desc">Οι μικρές αλλαγές (bundle) φορτώνονται αυτόματα — χωρίς ενημέρωση από το Tampermonkey. Ειδοποίηση εμφανίζεται μόνο αν αλλάξει το αρχείο εγκατάστασης (loader).</p>
                     </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -12984,7 +12995,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                                 <label>Αρχείο εγκατάστασης (loader)</label>
                                 ${info('updates_loader')}
                             </div>
-                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι μικρές αλλαγές έρχονται αυτόματα. Όταν χρειάζεται ενημέρωση: εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον παρακάτω σύνδεσμο και πατήστε Override ή Update.</p>
+                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι καθημερινές αλλαγές έρχονται σιωπηλά (silent). Ενημέρωση από Tampermonkey χρειάζεται μόνο όταν αλλάζει ο loader — τότε: Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον σύνδεσμο και Override/Update.</p>
                             <p class="tm-setting-description tm-settings-code-line"><code>${loaderUrl}</code></p>
                         </div>
                     </div>

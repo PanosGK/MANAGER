@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         MyManager Theme Early Guard
+// @name         MyManager Theme Blank Guard
 // @namespace    http://tampermonkey.net/
-// @version      1.5
-// @description  Optional: install ABOVE the main suite. Hides body until themes ready (same as theme_early).
+// @version      2.0
+// @description  Optional: install ABOVE the main suite. Blanks the page until themes are ready.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @run-at       document-start
@@ -10,32 +10,32 @@
 // @grant        GM_getValue
 // ==/UserScript==
 
-(function tmMmsThemeLoadBlank() {
+(function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
         if (path.indexOf('login.php') !== -1) return;
         if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
-        try {
-            if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return;
-        } catch (eSkip) { /* ignore */ }
-        var css = [
+        var root = document.documentElement;
+        root.style.setProperty('visibility', 'hidden', 'important');
+        root.style.setProperty('opacity', '0', 'important');
+        root.style.backgroundColor = '#121212';
+        var style = document.createElement('style');
+        style.id = 'tm-mms-instant-guard';
+        style.textContent = [
+            'html:not(.tm-mms-theme-ready){',
+            'visibility:hidden!important;',
+            'opacity:0!important;',
+            'background:#121212!important;',
+            '}',
             'html:not(.tm-mms-theme-ready) body{',
             'visibility:hidden!important;',
             'opacity:0!important;',
             '}',
-            'html.tm-mms-theme-ready body{',
-            'visibility:visible!important;',
-            'opacity:1!important;',
-            'transition:opacity .2s ease-in;',
-            '}',
         ].join('');
-        if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(css); } catch (e1) { /* ignore */ }
-        }
-        var style = document.createElement('style');
-        style.id = 'tm-mms-theme-load-blank';
-        style.textContent = css;
-        var parent = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+        var parent = document.head || document.getElementsByTagName('head')[0] || root;
         parent.appendChild(style);
+        if (typeof GM_addStyle === 'function') {
+            try { GM_addStyle(style.textContent); } catch (e1) { /* ignore */ }
+        }
     } catch (e) { /* ignore */ }
 })();

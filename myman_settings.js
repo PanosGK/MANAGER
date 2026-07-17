@@ -245,8 +245,8 @@
         },
         auto_update: {
             title: 'Αυτόματος έλεγχος ενημερώσεων',
-            what: 'Κάθε περίπου 5 λεπτά ελέγχει αν χρειάζεται ενημέρωση του αρχείου εγκατάστασης (loader) στο Tampermonkey.',
-            where: 'Τρέχει στο παρασκήνιο. Αν χρειάζεται ενημέρωση, εμφανίζεται το εικονίδιο ↻ κάτω δεξιά.',
+            what: 'Κάθε περίπου 5 λεπτά ελέγχει για ενημερώσεις. Οι μικρές αλλαγές φορτώνονται μόνες τους· ειδοποίηση μόνο αν πρέπει να ενημερωθεί ο loader στο Tampermonkey.',
+            where: 'Τρέχει στο παρασκήνιο. Το εικονίδιο ↻ κάτω δεξιά εμφανίζεται μόνο για ενημέρωση loader.',
             when: 'Όσο είστε συνδεδεμένοι στο MyManager.',
         },
         updates_version: {
@@ -1258,7 +1258,7 @@
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
                         <h3>Ενημερώσεις</h3>
-                        <p class="tm-settings-section-desc">Οι μικρές αλλαγές φορτώνονται αυτόματα. Θα δείτε ειδοποίηση μόνο αν χρειάζεται ενημέρωση του αρχείου εγκατάστασης.</p>
+                        <p class="tm-settings-section-desc">Οι μικρές αλλαγές (bundle) φορτώνονται αυτόματα — χωρίς ενημέρωση από το Tampermonkey. Ειδοποίηση εμφανίζεται μόνο αν αλλάξει το αρχείο εγκατάστασης (loader).</p>
                     </header>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
@@ -1293,7 +1293,7 @@
                                 <label>Αρχείο εγκατάστασης (loader)</label>
                                 ${info('updates_loader')}
                             </div>
-                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι μικρές αλλαγές έρχονται αυτόματα. Όταν χρειάζεται ενημέρωση: εικονίδιο Tampermonkey → Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον παρακάτω σύνδεσμο και πατήστε Override ή Update.</p>
+                            <p class="tm-setting-description">Εγκαθίσταται μία φορά από το GitHub. Οι καθημερινές αλλαγές έρχονται σιωπηλά (silent). Ενημέρωση από Tampermonkey χρειάζεται μόνο όταν αλλάζει ο loader — τότε: Dashboard → MyManager All-in-One Suite → Settings → Check for userscript updates · ή ανοίξτε τον σύνδεσμο και Override/Update.</p>
                             <p class="tm-setting-description tm-settings-code-line"><code>${loaderUrl}</code></p>
                         </div>
                     </div>

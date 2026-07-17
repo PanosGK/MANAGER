@@ -36,26 +36,28 @@ Open suite **Settings → Ενημερώσεις → Έλεγχος τώρα**, 
 
 ## Local development
 
-For editing files on your machine:
+1. Install `myman_loader.local.user.js` (version **14+**) in Tampermonkey — disable the GitHub loader while developing.
+2. Enable **Allow access to local file URLs** for this script.
+3. Run `npm run build` after edits; hard-refresh MyManager.
+4. After loader changes: reinstall/save the local script in Tampermonkey.
 
-1. Install `myman_loader.local.user.js` in Tampermonkey (disable the GitHub loader while developing).
-2. Enable Tampermonkey **Allow access to file URLs** for this script.
-3. Run `npm run build` after editing the loader/manifest; module edits on disk are picked up on refresh.
-4. **After loader changes:** open the script in Tampermonkey → **Save** (or reinstall) so `@require` lines update.
-
-The local loader uses **many small `@require`s** with **`myman_theme_early.js` first**. That is what used to blank the page while themes load (before the single giant bundle broke the timing).
+The local loader is a **small** script: it blanks the page first, then loads `myman_suite.bundle.js` asynchronously. That avoids waiting to parse the large post-mascot bundle before hiding (which caused the host UI flash).
 
 ## Releasing a new version
 
-1. Make your code changes.
-2. Bump `version` in `myman_manifest.json` (and optional `releaseNotes`).
-3. Run:
-   ```bash
-   node scripts/generate-loader.mjs
-   ```
-   This regenerates `myman_loader.user.js` and syncs `SCRIPT_META.version` in `myman_config.js`.
-4. Commit and push to GitHub (`main` branch).
-5. Users with the loader installed get the update on Tampermonkey’s next check (or immediately via manual check).
+**Silent update (default — no Tampermonkey reinstall):**
+```bash
+node scripts/release.mjs "Short release note"
+```
+Bumps bundle + Custom Ver. (`loader.silent`). Production users get the new bundle automatically. Tampermonkey `@version` stays the same.
+
+**Loader update (only when `myman_loader.user.js` behavior must change):**
+```bash
+node scripts/release.mjs --loader "Why the loader changed"
+```
+Bumps Tampermonkey `@version` — users need Dashboard → Check for userscript updates.
+
+Regenerate without a version bump: `npm run build` (does not rewrite the production loader unless you pass `--write-loader` or the loader version changed).
 
 ## File structure
 

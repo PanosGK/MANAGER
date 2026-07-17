@@ -5,8 +5,12 @@
  * Silent release (bumps bundle + Custom Ver.):
  *   node scripts/release.mjs "Short release note"
  *
+ * Loader release (Tampermonkey @version bump — users must update the userscript):
+ *   node scripts/release.mjs --loader "Loader change"
+ *
  * Regenerate only (no version bump):
  *   node scripts/generate-loader.mjs
+ *   node scripts/generate-loader.mjs --write-loader   # force rewrite production loader
  */
 import fs from 'fs';
 import path from 'path';
@@ -20,47 +24,48 @@ const displayVersion = manifest.displayVersion || `${loaderVersion}.${silentVers
 const loaderUrl = `${updateBase}/myman_loader.user.js`;
 const bundleFileName = 'myman_suite.bundle.js';
 const bundleUrl = `${updateBase}/${bundleFileName}?v=${version}`;
+const forceWriteLoader = process.argv.includes('--write-loader');
 
 function stripUserScriptHeader(content) {
     return content.replace(/^\/\/ ==UserScript==[\s\S]*?^\/\/ ==\/UserScript==\r?\n?/m, '');
 }
 
 /**
- * Early page blank while themes load (original approach):
- * hide body until .tm-mms-theme-ready. Used at top of production loader
- * and as optional standalone guard. Local uses theme_early as first @require instead.
+ * Pre-mascot-rework hide (from when themes worked): blank the page by hiding <html>
+ * until .tm-mms-theme-ready. Must run in the loader script BODY (not inside a huge
+ * @require) so Tampermonkey does not wait to parse the mascot-heavy bundle first.
  */
-const FOUC_HIDE_IIFE = `(function tmMmsThemeLoadBlank() {
+const FOUC_HIDE_IIFE = `(function tmMmsInstantFoucGuard() {
     try {
         var path = (window.location && window.location.pathname) || '';
         if (path.indexOf('login.php') !== -1) return;
         if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
-        try {
-            if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return;
-        } catch (eSkip) { /* ignore */ }
-        var css = [
+        var root = document.documentElement;
+        root.style.setProperty('visibility', 'hidden', 'important');
+        root.style.setProperty('opacity', '0', 'important');
+        root.style.backgroundColor = '#121212';
+        var style = document.createElement('style');
+        style.id = 'tm-mms-instant-guard';
+        style.textContent = [
+            'html:not(.tm-mms-theme-ready){',
+            'visibility:hidden!important;',
+            'opacity:0!important;',
+            'background:#121212!important;',
+            '}',
             'html:not(.tm-mms-theme-ready) body{',
             'visibility:hidden!important;',
             'opacity:0!important;',
             '}',
-            'html.tm-mms-theme-ready body{',
-            'visibility:visible!important;',
-            'opacity:1!important;',
-            'transition:opacity .2s ease-in;',
-            '}',
         ].join('');
-        if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(css); } catch (e1) { /* ignore */ }
-        }
-        var style = document.createElement('style');
-        style.id = 'tm-mms-theme-load-blank';
-        style.textContent = css;
-        var parent = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+        var parent = document.head || document.getElementsByTagName('head')[0] || root;
         parent.appendChild(style);
+        if (typeof GM_addStyle === 'function') {
+            try { GM_addStyle(style.textContent); } catch (e1) { /* ignore */ }
+        }
     } catch (e) { /* ignore */ }
 })();`;
 
-/** Also prepended to the production bundle as a safety net after eval. */
+/** Also first lines of the suite bundle (after async eval / as safety net). */
 const INSTANT_FOUC_GUARD = `\n${FOUC_HIDE_IIFE}\n`;
 
 function buildInlineBootstrap({ localBundleUrl = null } = {}) {
@@ -441,21 +446,10 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
 }
 
 const foucInstantPath = path.join(root, 'myman_fouc_instant.js');
-fs.writeFileSync(foucInstantPath, `/* MyManager FOUC instant hide — first lines of local @require bundle */\n${FOUC_HIDE_IIFE}\n`);
+fs.writeFileSync(foucInstantPath, `/* Theme blank — keep tiny; used at top of loaders */\n${FOUC_HIDE_IIFE}\n`);
 
-// theme_early must run before heavy style modules so the hide sticks.
-const orderedModules = (() => {
-    const list = [...modules];
-    const early = 'myman_theme_early.js';
-    const idx = list.indexOf(early);
-    if (idx > 0) {
-        list.splice(idx, 1);
-        list.unshift(early);
-    }
-    return list;
-})();
-
-const bundleFiles = [...orderedModules, 'myman_allinone.js'];
+// Keep manifest module order (liquid_glass → theme_early → …) like pre-mascot era.
+const bundleFiles = [...modules, 'myman_allinone.js'];
 let bundle = `/* MyManager Suite bundle v${version} / Custom Ver. ${displayVersion} — generated, do not edit */\n`;
 bundle += INSTANT_FOUC_GUARD.trim() + '\n';
 
@@ -472,6 +466,7 @@ for (const file of bundleFiles) {
 
 fs.writeFileSync(path.join(root, bundleFileName), bundle);
 
+const productionLoaderPath = path.join(root, 'myman_loader.user.js');
 const productionLoader = `// ==UserScript==
 // @name         ${manifest.name}
 // @namespace    http://tampermonkey.net/
@@ -495,27 +490,42 @@ const productionLoader = `// ==UserScript==
 // @connect      raw.githubusercontent.com
 // ==/UserScript==
 
-// Hide before any network fetch (production).
+// Blank page BEFORE fetching/parsing the suite (required after mascot grew the bundle).
 ${FOUC_HIDE_IIFE}
 
 ${buildInlineBootstrap()}
 `;
 
-fs.writeFileSync(path.join(root, 'myman_loader.user.js'), productionLoader);
+function readExistingLoaderVersion(filePath) {
+    try {
+        if (!fs.existsSync(filePath)) return null;
+        const match = fs.readFileSync(filePath, 'utf8').match(/\/\/ @version\s+(\S+)/);
+        return match ? String(match[1]) : null;
+    } catch (_) {
+        return null;
+    }
+}
 
-// Proven local setup (themes era): MANY small @requires with theme_early FIRST.
-// That way the blank/hide runs before Tampermonkey parses huge modules (mascot, etc.).
-// A single @require of the giant bundle parses everything before ANY hide — that broke it.
-const localModuleFiles = [...orderedModules, 'myman_allinone.js'];
-const localRequireLines = localModuleFiles
-    .map((file) => `// @require      file://${path.join(root, file).replace(/\\/g, '/')}`)
-    .join('\n');
+const existingLoaderVersion = readExistingLoaderVersion(productionLoaderPath);
+const shouldWriteProductionLoader = forceWriteLoader
+    || existingLoaderVersion == null
+    || existingLoaderVersion !== String(loaderVersion);
 
+if (shouldWriteProductionLoader) {
+    fs.writeFileSync(productionLoaderPath, productionLoader);
+} else {
+    console.log(`Kept ${path.basename(productionLoaderPath)} unchanged (@version ${existingLoaderVersion} — silent-safe; use --write-loader or release --loader to update it)`);
+}
+
+const localBundlePath = path.join(root, bundleFileName).replace(/\\/g, '/');
+const localBundleUrl = `file://${localBundlePath}`;
+// Local: NO huge @require — Tampermonkey would parse the whole bundle before any hide.
+// Hide runs in this small script body first, then the bundle loads async (same as production).
 const localLoader = `// ==UserScript==
 // @name         ${manifest.name} (Local Dev)
 // @namespace    http://tampermonkey.net/
 // @version      ${loaderVersion}
-// @description  Local development — theme_early first, then modules from disk. Run: npm run build. Enable "Allow access to local file URLs".
+// @description  Local development — blanks page first, then async file:// bundle. Enable "Allow access to local file URLs". Run: npm run build.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @run-at       document-start
@@ -526,23 +536,25 @@ const localLoader = `// ==UserScript==
 // @grant        GM_listValues
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
-${localRequireLines}
 // @connect      thefixers.mymanager.gr
 // @connect      geocoding-api.open-meteo.com
 // @connect      api.open-meteo.com
 // @connect      raw.githubusercontent.com
 // ==/UserScript==
 
-// Local: theme_early is the first @require (hides body until themes are ready).
+// Blank FIRST (pre-mascot behavior), then load the large suite without blocking on parse.
+${FOUC_HIDE_IIFE}
+
+${buildInlineBootstrap({ localBundleUrl })}
 `;
 
 fs.writeFileSync(path.join(root, 'myman_loader.local.user.js'), localLoader);
 
 const foucGuard = `// ==UserScript==
-// @name         MyManager Theme Early Guard
+// @name         MyManager Theme Blank Guard
 // @namespace    http://tampermonkey.net/
-// @version      1.5
-// @description  Optional: install ABOVE the main suite. Hides body until themes ready (same as theme_early).
+// @version      2.0
+// @description  Optional: install ABOVE the main suite. Blanks the page until themes are ready.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @run-at       document-start
@@ -577,5 +589,5 @@ if (config.includes('const SCRIPT_META = {')) {
 }
 
 fs.writeFileSync(configPath, config);
-console.log(`Generated ${bundleFileName}, production loader, local @require loader, fouc guard — bundle v${version}, Custom Ver. ${displayVersion}, loader v${loaderVersion}`);
-console.log('Note: Custom Ver. only changes when you run: node scripts/release.mjs "what changed"');
+console.log(`Generated ${bundleFileName}, local loader, fouc guard — bundle v${version}, Custom Ver. ${displayVersion}, loader v${loaderVersion}${shouldWriteProductionLoader ? ', production loader written' : ''}`);
+console.log('Silent updates: node scripts/release.mjs "notes"  |  Loader (Tampermonkey) updates: node scripts/release.mjs --loader "notes"');
