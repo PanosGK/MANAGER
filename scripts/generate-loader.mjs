@@ -26,74 +26,44 @@ function stripUserScriptHeader(content) {
 }
 
 /**
- * FOUC hide — the version that worked: hide <html> with visibility+opacity until
- * theme-ready. (Do NOT clear these in theme_early — that re-exposes the host UI.)
- * Must run as the first statement in the loader (before network / heavy work).
+ * Proven FOUC hide (restored from the working v5–v8 era):
+ * hide <html> with visibility+opacity until .tm-mms-theme-ready.
+ * Local loader must @require the bundle so this runs as the first sync code.
  */
-const FOUC_HIDE_IIFE = `(function tmMmsHidePageForTheme() {
+const FOUC_HIDE_IIFE = `(function tmMmsInstantFoucGuard() {
     try {
-        if (window.__tmMmsFoucHideApplied) return;
         var path = (window.location && window.location.pathname) || '';
         if (path.indexOf('login.php') !== -1) return;
         if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
         try {
             if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return;
         } catch (eSkip) { /* ignore */ }
-        window.__tmMmsFoucHideApplied = true;
-
-        var BG = '#121212';
-        try {
-            if (typeof GM_getValue === 'function') {
-                var profileId = GM_getValue('tm_mms_last_profile_id', '') || '';
-                var raw = profileId
-                    ? GM_getValue('tm:p:' + profileId + ':tm_theme_colors_cache', null)
-                    : null;
-                if (raw == null) raw = GM_getValue('tm_theme_colors_cache', null);
-                if (raw) {
-                    var cache = typeof raw === 'string' ? JSON.parse(raw) : raw;
-                    var c = cache && cache.colors;
-                    if (c) BG = c['--tm-dark-color'] || c['--tm-body-bg'] || c['--tm-primary-bg'] || BG;
-                }
-            }
-        } catch (e0) { /* ignore */ }
-
         var root = document.documentElement;
         root.style.setProperty('visibility', 'hidden', 'important');
         root.style.setProperty('opacity', '0', 'important');
-        root.style.backgroundColor = BG;
-
-        var css = [
+        root.style.backgroundColor = '#121212';
+        var style = document.createElement('style');
+        style.id = 'tm-mms-instant-guard';
+        style.textContent = [
             'html:not(.tm-mms-theme-ready){',
             'visibility:hidden!important;',
             'opacity:0!important;',
-            'background:' + BG + '!important;',
+            'background:#121212!important;',
             '}',
             'html:not(.tm-mms-theme-ready) body{',
             'visibility:hidden!important;',
             'opacity:0!important;',
             '}',
-            'html.tm-mms-theme-ready{',
-            'visibility:visible!important;',
-            'opacity:1!important;',
-            '}',
-            'html.tm-mms-theme-ready body{',
-            'visibility:visible!important;',
-            'opacity:1!important;',
-            '}',
         ].join('');
-
-        if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(css); } catch (e1) { /* ignore */ }
-        }
-        var style = document.createElement('style');
-        style.id = 'tm-mms-fouc-boot-style';
-        style.textContent = css;
         var parent = document.head || document.getElementsByTagName('head')[0] || root;
         parent.appendChild(style);
+        if (typeof GM_addStyle === 'function') {
+            try { GM_addStyle(style.textContent); } catch (e1) { /* ignore */ }
+        }
     } catch (e) { /* ignore */ }
 })();`;
 
-/** Fallback inside the bundle (production eval) if loader hide was skipped. */
+/** First lines of the suite bundle — must stay tiny and first. */
 const INSTANT_FOUC_GUARD = `\n${FOUC_HIDE_IIFE}\n`;
 
 function buildInlineBootstrap({ localBundleUrl = null } = {}) {
@@ -474,9 +444,21 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
 }
 
 const foucInstantPath = path.join(root, 'myman_fouc_instant.js');
-fs.writeFileSync(foucInstantPath, `/* MyManager FOUC instant hide — keep tiny; used as fallback / optional guard */\n${FOUC_HIDE_IIFE}\n`);
+fs.writeFileSync(foucInstantPath, `/* MyManager FOUC instant hide — first lines of local @require bundle */\n${FOUC_HIDE_IIFE}\n`);
 
-const bundleFiles = [...modules, 'myman_allinone.js'];
+// theme_early must run before heavy style modules so the hide sticks.
+const orderedModules = (() => {
+    const list = [...modules];
+    const early = 'myman_theme_early.js';
+    const idx = list.indexOf(early);
+    if (idx > 0) {
+        list.splice(idx, 1);
+        list.unshift(early);
+    }
+    return list;
+})();
+
+const bundleFiles = [...orderedModules, 'myman_allinone.js'];
 let bundle = `/* MyManager Suite bundle v${version} / Custom Ver. ${displayVersion} — generated, do not edit */\n`;
 bundle += INSTANT_FOUC_GUARD.trim() + '\n';
 
@@ -516,7 +498,7 @@ const productionLoader = `// ==UserScript==
 // @connect      raw.githubusercontent.com
 // ==/UserScript==
 
-// FOUC first — before bootstrap / network — so the first paint is the cover, not the host UI.
+// Hide before any network fetch (production).
 ${FOUC_HIDE_IIFE}
 
 ${buildInlineBootstrap()}
@@ -525,14 +507,13 @@ ${buildInlineBootstrap()}
 fs.writeFileSync(path.join(root, 'myman_loader.user.js'), productionLoader);
 
 const localBundlePath = path.join(root, bundleFileName).replace(/\\/g, '/');
-const localBundleUrl = `file://${localBundlePath}`;
-// Do NOT @require the huge bundle — Tampermonkey waits for all @requires before any
-// script runs, which lets the unthemed page paint first. Load it async like production.
+// Proven local setup (v5–v8): sync @require of the bundle. FOUC is the first code inside
+// the bundle and runs as soon as Tampermonkey executes the require — do NOT async-fetch.
 const localLoader = `// ==UserScript==
 // @name         ${manifest.name} (Local Dev)
 // @namespace    http://tampermonkey.net/
 // @version      ${loaderVersion}
-// @description  Local development — FOUC first, then async file:// bundle. Run: npm run build after edits. Enable "Allow access to local file URLs" for this script.
+// @description  Local development — sync @require bundle (FOUC first inside bundle). Run: npm run build. Enable "Allow access to local file URLs".
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @run-at       document-start
@@ -543,16 +524,14 @@ const localLoader = `// ==UserScript==
 // @grant        GM_listValues
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
+// @require      file://${localBundlePath}
 // @connect      thefixers.mymanager.gr
 // @connect      geocoding-api.open-meteo.com
 // @connect      api.open-meteo.com
 // @connect      raw.githubusercontent.com
 // ==/UserScript==
 
-// FOUC first — local bundle loads async so hide is not blocked on parsing the suite.
-${FOUC_HIDE_IIFE}
-
-${buildInlineBootstrap({ localBundleUrl })}
+// Local: bundle @require runs FOUC as its first lines (same as when FOUC worked).
 `;
 
 fs.writeFileSync(path.join(root, 'myman_loader.local.user.js'), localLoader);
@@ -560,8 +539,8 @@ fs.writeFileSync(path.join(root, 'myman_loader.local.user.js'), localLoader);
 const foucGuard = `// ==UserScript==
 // @name         MyManager FOUC Guard
 // @namespace    http://tampermonkey.net/
-// @version      1.3
-// @description  Optional extra hide layer (no downloads). Enable if you still see a flash before the main suite loads.
+// @version      1.4
+// @description  Optional early hide (install ABOVE the main suite in Tampermonkey). Same visibility:hidden guard.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @run-at       document-start
@@ -596,5 +575,5 @@ if (config.includes('const SCRIPT_META = {')) {
 }
 
 fs.writeFileSync(configPath, config);
-console.log(`Generated ${bundleFileName}, async loader (no @require), local loader, fouc guard — bundle v${version}, Custom Ver. ${displayVersion}, loader v${loaderVersion}`);
+console.log(`Generated ${bundleFileName}, production loader, local @require loader, fouc guard — bundle v${version}, Custom Ver. ${displayVersion}, loader v${loaderVersion}`);
 console.log('Note: Custom Ver. only changes when you run: node scripts/release.mjs "what changed"');

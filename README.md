@@ -38,12 +38,12 @@ Open suite **Settings → Ενημερώσεις → Έλεγχος τώρα**, 
 
 For editing files on your machine:
 
-1. Install `myman_loader.local.user.js` in Tampermonkey (disable or remove the GitHub loader while developing).
-2. Enable Tampermonkey **Allow access to file URLs** for this script (needed for async `file://` bundle load).
-3. Edit module files directly; run `npm run build` after edits; reload the MyManager page to test.
-4. For no FOUC while developing, also load `fouc-extension` (see above).
+1. Install `myman_loader.local.user.js` in Tampermonkey (disable the GitHub loader while developing).
+2. Enable Tampermonkey **Allow access to file URLs** for this script.
+3. Run `npm run build` after edits, then reload MyManager.
+4. **Important:** after loader changes, open the script in Tampermonkey and click **Save** (or reinstall) so `@require` updates.
 
-`myman_allinone.js` is the main application logic (no userscript header). The local loader fetches `myman_suite.bundle.js` asynchronously after the FOUC hide runs.
+The local loader sync-`@require`s `myman_suite.bundle.js`. FOUC hide is the **first code inside that bundle** (same setup that worked in v5–v8).
 
 ## Releasing a new version
 
