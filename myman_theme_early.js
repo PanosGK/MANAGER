@@ -17,34 +17,25 @@
     if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
 
     const root = document.documentElement;
-    // Keep the proven FOUC hide — do NOT clear visibility/opacity here (that re-shows host UI).
-    root.style.setProperty('visibility', 'hidden', 'important');
-    root.style.setProperty('opacity', '0', 'important');
 
+    // Original theme-load blank: hide body until .tm-mms-theme-ready (looks like a white/blank
+    // screen for a moment). Must run as the FIRST small @require — before heavy modules.
     if (typeof GM_addStyle === 'function') {
         GM_addStyle(`
-            html:not(.tm-mms-theme-ready) {
-                visibility: hidden !important;
-                opacity: 0 !important;
-            }
             html:not(.tm-mms-theme-ready) body {
                 visibility: hidden !important;
                 opacity: 0 !important;
             }
-            html.tm-mms-theme-ready {
-                visibility: visible !important;
-                opacity: 1 !important;
-                transition: opacity 0.15s ease-in;
-            }
             html.tm-mms-theme-ready body {
                 visibility: visible !important;
                 opacity: 1 !important;
+                transition: opacity 0.2s ease-in;
             }
         `);
     } else {
         const style = document.createElement('style');
         style.id = 'tm-mms-theme-early-guard';
-        style.textContent = 'html:not(.tm-mms-theme-ready),html:not(.tm-mms-theme-ready) body{visibility:hidden!important;opacity:0!important}html.tm-mms-theme-ready,html.tm-mms-theme-ready body{visibility:visible!important;opacity:1!important}';
+        style.textContent = 'html:not(.tm-mms-theme-ready) body{visibility:hidden!important;opacity:0!important}html.tm-mms-theme-ready body{visibility:visible!important;opacity:1!important;transition:opacity .2s ease-in}';
         (document.head || root).appendChild(style);
     }
 
@@ -52,8 +43,6 @@
 
     try {
         if (GM_getValue('tm_script_enabled', true) === false) {
-            root.style.removeProperty('visibility');
-            root.style.removeProperty('opacity');
             root.classList.add('tm-mms-theme-ready');
             return;
         }

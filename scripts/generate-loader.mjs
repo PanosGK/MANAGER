@@ -26,11 +26,11 @@ function stripUserScriptHeader(content) {
 }
 
 /**
- * Proven FOUC hide (restored from the working v5–v8 era):
- * hide <html> with visibility+opacity until .tm-mms-theme-ready.
- * Local loader must @require the bundle so this runs as the first sync code.
+ * Early page blank while themes load (original approach):
+ * hide body until .tm-mms-theme-ready. Used at top of production loader
+ * and as optional standalone guard. Local uses theme_early as first @require instead.
  */
-const FOUC_HIDE_IIFE = `(function tmMmsInstantFoucGuard() {
+const FOUC_HIDE_IIFE = `(function tmMmsThemeLoadBlank() {
     try {
         var path = (window.location && window.location.pathname) || '';
         if (path.indexOf('login.php') !== -1) return;
@@ -38,32 +38,29 @@ const FOUC_HIDE_IIFE = `(function tmMmsInstantFoucGuard() {
         try {
             if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return;
         } catch (eSkip) { /* ignore */ }
-        var root = document.documentElement;
-        root.style.setProperty('visibility', 'hidden', 'important');
-        root.style.setProperty('opacity', '0', 'important');
-        root.style.backgroundColor = '#121212';
-        var style = document.createElement('style');
-        style.id = 'tm-mms-instant-guard';
-        style.textContent = [
-            'html:not(.tm-mms-theme-ready){',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            'background:#121212!important;',
-            '}',
+        var css = [
             'html:not(.tm-mms-theme-ready) body{',
             'visibility:hidden!important;',
             'opacity:0!important;',
             '}',
+            'html.tm-mms-theme-ready body{',
+            'visibility:visible!important;',
+            'opacity:1!important;',
+            'transition:opacity .2s ease-in;',
+            '}',
         ].join('');
-        var parent = document.head || document.getElementsByTagName('head')[0] || root;
-        parent.appendChild(style);
         if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(style.textContent); } catch (e1) { /* ignore */ }
+            try { GM_addStyle(css); } catch (e1) { /* ignore */ }
         }
+        var style = document.createElement('style');
+        style.id = 'tm-mms-theme-load-blank';
+        style.textContent = css;
+        var parent = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+        parent.appendChild(style);
     } catch (e) { /* ignore */ }
 })();`;
 
-/** First lines of the suite bundle — must stay tiny and first. */
+/** Also prepended to the production bundle as a safety net after eval. */
 const INSTANT_FOUC_GUARD = `\n${FOUC_HIDE_IIFE}\n`;
 
 function buildInlineBootstrap({ localBundleUrl = null } = {}) {
@@ -506,14 +503,19 @@ ${buildInlineBootstrap()}
 
 fs.writeFileSync(path.join(root, 'myman_loader.user.js'), productionLoader);
 
-const localBundlePath = path.join(root, bundleFileName).replace(/\\/g, '/');
-// Proven local setup (v5–v8): sync @require of the bundle. FOUC is the first code inside
-// the bundle and runs as soon as Tampermonkey executes the require — do NOT async-fetch.
+// Proven local setup (themes era): MANY small @requires with theme_early FIRST.
+// That way the blank/hide runs before Tampermonkey parses huge modules (mascot, etc.).
+// A single @require of the giant bundle parses everything before ANY hide — that broke it.
+const localModuleFiles = [...orderedModules, 'myman_allinone.js'];
+const localRequireLines = localModuleFiles
+    .map((file) => `// @require      file://${path.join(root, file).replace(/\\/g, '/')}`)
+    .join('\n');
+
 const localLoader = `// ==UserScript==
 // @name         ${manifest.name} (Local Dev)
 // @namespace    http://tampermonkey.net/
 // @version      ${loaderVersion}
-// @description  Local development — sync @require bundle (FOUC first inside bundle). Run: npm run build. Enable "Allow access to local file URLs".
+// @description  Local development — theme_early first, then modules from disk. Run: npm run build. Enable "Allow access to local file URLs".
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @run-at       document-start
@@ -524,23 +526,23 @@ const localLoader = `// ==UserScript==
 // @grant        GM_listValues
 // @grant        GM_xmlhttpRequest
 // @grant        unsafeWindow
-// @require      file://${localBundlePath}
+${localRequireLines}
 // @connect      thefixers.mymanager.gr
 // @connect      geocoding-api.open-meteo.com
 // @connect      api.open-meteo.com
 // @connect      raw.githubusercontent.com
 // ==/UserScript==
 
-// Local: bundle @require runs FOUC as its first lines (same as when FOUC worked).
+// Local: theme_early is the first @require (hides body until themes are ready).
 `;
 
 fs.writeFileSync(path.join(root, 'myman_loader.local.user.js'), localLoader);
 
 const foucGuard = `// ==UserScript==
-// @name         MyManager FOUC Guard
+// @name         MyManager Theme Early Guard
 // @namespace    http://tampermonkey.net/
-// @version      1.4
-// @description  Optional early hide (install ABOVE the main suite in Tampermonkey). Same visibility:hidden guard.
+// @version      1.5
+// @description  Optional: install ABOVE the main suite. Hides body until themes ready (same as theme_early).
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @run-at       document-start

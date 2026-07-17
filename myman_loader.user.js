@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite
 // @namespace    http://tampermonkey.net/
-// @version      12
+// @version      13
 // @description  An all-in-one suite for mymanager.gr. Auto-updates from GitHub — install this file once.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -22,7 +22,7 @@
 // ==/UserScript==
 
 // Hide before any network fetch (production).
-(function tmMmsInstantFoucGuard() {
+(function tmMmsThemeLoadBlank() {
     try {
         var path = (window.location && window.location.pathname) || '';
         if (path.indexOf('login.php') !== -1) return;
@@ -30,35 +30,32 @@
         try {
             if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return;
         } catch (eSkip) { /* ignore */ }
-        var root = document.documentElement;
-        root.style.setProperty('visibility', 'hidden', 'important');
-        root.style.setProperty('opacity', '0', 'important');
-        root.style.backgroundColor = '#121212';
-        var style = document.createElement('style');
-        style.id = 'tm-mms-instant-guard';
-        style.textContent = [
-            'html:not(.tm-mms-theme-ready){',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            'background:#121212!important;',
-            '}',
+        var css = [
             'html:not(.tm-mms-theme-ready) body{',
             'visibility:hidden!important;',
             'opacity:0!important;',
             '}',
+            'html.tm-mms-theme-ready body{',
+            'visibility:visible!important;',
+            'opacity:1!important;',
+            'transition:opacity .2s ease-in;',
+            '}',
         ].join('');
-        var parent = document.head || document.getElementsByTagName('head')[0] || root;
-        parent.appendChild(style);
         if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(style.textContent); } catch (e1) { /* ignore */ }
+            try { GM_addStyle(css); } catch (e1) { /* ignore */ }
         }
+        var style = document.createElement('style');
+        style.id = 'tm-mms-theme-load-blank';
+        style.textContent = css;
+        var parent = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+        parent.appendChild(style);
     } catch (e) { /* ignore */ }
 })();
 
 (function tmMmsLoaderBootstrap() {
     'use strict';
 
-    var LOADER_VERSION = "12";
+    var LOADER_VERSION = "13";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
@@ -264,7 +261,7 @@
     installMasterToggleRecovery();
 
     function hidePageNow() {
-        (function tmMmsInstantFoucGuard() {
+        (function tmMmsThemeLoadBlank() {
     try {
         var path = (window.location && window.location.pathname) || '';
         if (path.indexOf('login.php') !== -1) return;
@@ -272,28 +269,25 @@
         try {
             if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return;
         } catch (eSkip) { /* ignore */ }
-        var root = document.documentElement;
-        root.style.setProperty('visibility', 'hidden', 'important');
-        root.style.setProperty('opacity', '0', 'important');
-        root.style.backgroundColor = '#121212';
-        var style = document.createElement('style');
-        style.id = 'tm-mms-instant-guard';
-        style.textContent = [
-            'html:not(.tm-mms-theme-ready){',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            'background:#121212!important;',
-            '}',
+        var css = [
             'html:not(.tm-mms-theme-ready) body{',
             'visibility:hidden!important;',
             'opacity:0!important;',
             '}',
+            'html.tm-mms-theme-ready body{',
+            'visibility:visible!important;',
+            'opacity:1!important;',
+            'transition:opacity .2s ease-in;',
+            '}',
         ].join('');
-        var parent = document.head || document.getElementsByTagName('head')[0] || root;
-        parent.appendChild(style);
         if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(style.textContent); } catch (e1) { /* ignore */ }
+            try { GM_addStyle(css); } catch (e1) { /* ignore */ }
         }
+        var style = document.createElement('style');
+        style.id = 'tm-mms-theme-load-blank';
+        style.textContent = css;
+        var parent = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+        parent.appendChild(style);
     } catch (e) { /* ignore */ }
 })();
     }

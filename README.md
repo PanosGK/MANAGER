@@ -40,10 +40,10 @@ For editing files on your machine:
 
 1. Install `myman_loader.local.user.js` in Tampermonkey (disable the GitHub loader while developing).
 2. Enable Tampermonkey **Allow access to file URLs** for this script.
-3. Run `npm run build` after edits, then reload MyManager.
-4. **Important:** after loader changes, open the script in Tampermonkey and click **Save** (or reinstall) so `@require` updates.
+3. Run `npm run build` after editing the loader/manifest; module edits on disk are picked up on refresh.
+4. **After loader changes:** open the script in Tampermonkey → **Save** (or reinstall) so `@require` lines update.
 
-The local loader sync-`@require`s `myman_suite.bundle.js`. FOUC hide is the **first code inside that bundle** (same setup that worked in v5–v8).
+The local loader uses **many small `@require`s** with **`myman_theme_early.js` first**. That is what used to blank the page while themes load (before the single giant bundle broke the timing).
 
 ## Releasing a new version
 

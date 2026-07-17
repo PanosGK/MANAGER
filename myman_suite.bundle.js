@@ -1,5 +1,5 @@
-/* MyManager Suite bundle v226 / Custom Ver. 12.1 — generated, do not edit */
-(function tmMmsInstantFoucGuard() {
+/* MyManager Suite bundle v226 / Custom Ver. 13.1 — generated, do not edit */
+(function tmMmsThemeLoadBlank() {
     try {
         var path = (window.location && window.location.pathname) || '';
         if (path.indexOf('login.php') !== -1) return;
@@ -7,28 +7,25 @@
         try {
             if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return;
         } catch (eSkip) { /* ignore */ }
-        var root = document.documentElement;
-        root.style.setProperty('visibility', 'hidden', 'important');
-        root.style.setProperty('opacity', '0', 'important');
-        root.style.backgroundColor = '#121212';
-        var style = document.createElement('style');
-        style.id = 'tm-mms-instant-guard';
-        style.textContent = [
-            'html:not(.tm-mms-theme-ready){',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            'background:#121212!important;',
-            '}',
+        var css = [
             'html:not(.tm-mms-theme-ready) body{',
             'visibility:hidden!important;',
             'opacity:0!important;',
             '}',
+            'html.tm-mms-theme-ready body{',
+            'visibility:visible!important;',
+            'opacity:1!important;',
+            'transition:opacity .2s ease-in;',
+            '}',
         ].join('');
-        var parent = document.head || document.getElementsByTagName('head')[0] || root;
-        parent.appendChild(style);
         if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(style.textContent); } catch (e1) { /* ignore */ }
+            try { GM_addStyle(css); } catch (e1) { /* ignore */ }
         }
+        var style = document.createElement('style');
+        style.id = 'tm-mms-theme-load-blank';
+        style.textContent = css;
+        var parent = document.head || document.getElementsByTagName('head')[0] || document.documentElement;
+        parent.appendChild(style);
     } catch (e) { /* ignore */ }
 })();
 
@@ -43,34 +40,25 @@
     if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
 
     const root = document.documentElement;
-    // Keep the proven FOUC hide — do NOT clear visibility/opacity here (that re-shows host UI).
-    root.style.setProperty('visibility', 'hidden', 'important');
-    root.style.setProperty('opacity', '0', 'important');
 
+    // Original theme-load blank: hide body until .tm-mms-theme-ready (looks like a white/blank
+    // screen for a moment). Must run as the FIRST small @require — before heavy modules.
     if (typeof GM_addStyle === 'function') {
         GM_addStyle(`
-            html:not(.tm-mms-theme-ready) {
-                visibility: hidden !important;
-                opacity: 0 !important;
-            }
             html:not(.tm-mms-theme-ready) body {
                 visibility: hidden !important;
                 opacity: 0 !important;
             }
-            html.tm-mms-theme-ready {
-                visibility: visible !important;
-                opacity: 1 !important;
-                transition: opacity 0.15s ease-in;
-            }
             html.tm-mms-theme-ready body {
                 visibility: visible !important;
                 opacity: 1 !important;
+                transition: opacity 0.2s ease-in;
             }
         `);
     } else {
         const style = document.createElement('style');
         style.id = 'tm-mms-theme-early-guard';
-        style.textContent = 'html:not(.tm-mms-theme-ready),html:not(.tm-mms-theme-ready) body{visibility:hidden!important;opacity:0!important}html.tm-mms-theme-ready,html.tm-mms-theme-ready body{visibility:visible!important;opacity:1!important}';
+        style.textContent = 'html:not(.tm-mms-theme-ready) body{visibility:hidden!important;opacity:0!important}html.tm-mms-theme-ready body{visibility:visible!important;opacity:1!important;transition:opacity .2s ease-in}';
         (document.head || root).appendChild(style);
     }
 
@@ -78,8 +66,6 @@
 
     try {
         if (GM_getValue('tm_script_enabled', true) === false) {
-            root.style.removeProperty('visibility');
-            root.style.removeProperty('opacity');
             root.classList.add('tm-mms-theme-ready');
             return;
         }
@@ -3282,10 +3268,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '225',
-        loaderVersion: '11',
+        version: '226',
+        loaderVersion: '12',
         silentVersion: '1',
-        displayVersion: '11.1',
+        displayVersion: '12.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
