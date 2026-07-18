@@ -171,8 +171,20 @@
     }
 })();
 
-/** Kept for callers that used to wait on page-blank reveal; now only clears menu guard. */
+/** Clears menu guard when ready, and removes the loader boot cover if still present. */
 window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
+    if (typeof window.tmRevealBootCover === 'function') {
+        window.tmRevealBootCover();
+    } else {
+        try {
+            document.documentElement.classList.remove('tm-mms-booting');
+            const cover = document.getElementById('tm-mms-boot-cover');
+            if (cover) cover.remove();
+            const style = document.getElementById('tm-mms-boot-cover-style');
+            if (style) style.remove();
+        } catch (_) { /* ignore */ }
+        window.__tmBootCoverActive = false;
+    }
     if (window.__tmMenuGuardActive && !document.documentElement.classList.contains('tm-mms-menu-ready')) {
         return;
     }

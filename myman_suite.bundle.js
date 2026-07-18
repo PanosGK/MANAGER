@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v229 / Custom Ver. 15.1 — generated, do not edit */
+/* MyManager Suite bundle v230 / Custom Ver. 16.0 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -640,8 +640,20 @@ img[src='images/smsdelivered.png'] {
     }
 })();
 
-/** Kept for callers that used to wait on page-blank reveal; now only clears menu guard. */
+/** Clears menu guard when ready, and removes the loader boot cover if still present. */
 window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
+    if (typeof window.tmRevealBootCover === 'function') {
+        window.tmRevealBootCover();
+    } else {
+        try {
+            document.documentElement.classList.remove('tm-mms-booting');
+            const cover = document.getElementById('tm-mms-boot-cover');
+            if (cover) cover.remove();
+            const style = document.getElementById('tm-mms-boot-cover-style');
+            if (style) style.remove();
+        } catch (_) { /* ignore */ }
+        window.__tmBootCoverActive = false;
+    }
     if (window.__tmMenuGuardActive && !document.documentElement.classList.contains('tm-mms-menu-ready')) {
         return;
     }

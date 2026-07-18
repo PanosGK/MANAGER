@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite
 // @namespace    http://tampermonkey.net/
-// @version      15
+// @version      16
 // @description  An all-in-one suite for mymanager.gr. Auto-updates from GitHub — install this file once.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -24,11 +24,11 @@
 (function tmMmsLoaderBootstrap() {
     'use strict';
 
-    var LOADER_VERSION = "15";
+    var LOADER_VERSION = "16";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "229";
+    var FALLBACK_BUNDLE_VERSION = "230";
     var LOCAL_BUNDLE_URL = null;
 
     try {
@@ -260,8 +260,94 @@
         } catch (e) { /* ignore */ }
     }
 
+    var BOOT_COVER_ID = 'tm-mms-boot-cover';
+    var BOOT_COVER_STYLE_ID = 'tm-mms-boot-cover-style';
+    var BOOT_COVER_CLASS = 'tm-mms-booting';
+    var BOOT_COVER_MAX_MS = 10000;
+    var bootCoverTimer = null;
+
+    function revealBootCover() {
+        window.__tmBootCoverActive = false;
+        try {
+            if (bootCoverTimer) {
+                clearTimeout(bootCoverTimer);
+                bootCoverTimer = null;
+            }
+        } catch (e) { /* ignore */ }
+        try {
+            document.documentElement.classList.remove(BOOT_COVER_CLASS);
+        } catch (e2) { /* ignore */ }
+        try {
+            var el = document.getElementById(BOOT_COVER_ID);
+            if (el && el.parentNode) el.parentNode.removeChild(el);
+        } catch (e3) { /* ignore */ }
+        try {
+            var st = document.getElementById(BOOT_COVER_STYLE_ID);
+            if (st && st.parentNode) st.parentNode.removeChild(st);
+        } catch (e4) { /* ignore */ }
+    }
+
+    function installBootCover() {
+        if (window.__tmBootCoverActive) return;
+        window.__tmBootCoverActive = true;
+        window.tmRevealBootCover = revealBootCover;
+
+        try {
+            document.documentElement.classList.add(BOOT_COVER_CLASS);
+        } catch (e) { /* ignore */ }
+
+        try {
+            if (!document.getElementById(BOOT_COVER_STYLE_ID)) {
+                var style = document.createElement('style');
+                style.id = BOOT_COVER_STYLE_ID;
+                style.textContent = [
+                    'html.' + BOOT_COVER_CLASS + ', html.' + BOOT_COVER_CLASS + ' body {',
+                    '  background: #fff !important;',
+                    '}',
+                    '#' + BOOT_COVER_ID + ' {',
+                    '  position: fixed !important;',
+                    '  inset: 0 !important;',
+                    '  z-index: 2147483647 !important;',
+                    '  background: #fff !important;',
+                    '  pointer-events: none !important;',
+                    '}',
+                    'html:not(.' + BOOT_COVER_CLASS + ') #' + BOOT_COVER_ID + ' { display: none !important; }',
+                ].join('\n');
+                (document.head || document.documentElement).appendChild(style);
+            }
+        } catch (e2) { /* ignore */ }
+
+        function mountCoverEl() {
+            if (document.getElementById(BOOT_COVER_ID)) return;
+            try {
+                var cover = document.createElement('div');
+                cover.id = BOOT_COVER_ID;
+                cover.setAttribute('aria-hidden', 'true');
+                (document.body || document.documentElement).appendChild(cover);
+            } catch (e3) { /* ignore */ }
+        }
+
+        if (document.body) {
+            mountCoverEl();
+        } else {
+            document.addEventListener('DOMContentLoaded', mountCoverEl, { once: true });
+            try {
+                mountCoverEl();
+            } catch (e4) { /* ignore */ }
+        }
+
+        try {
+            bootCoverTimer = setTimeout(function () {
+                console.warn('[MMS] Boot cover timeout — revealing page');
+                revealBootCover();
+                document.documentElement.classList.add('tm-mms-menu-ready');
+            }, BOOT_COVER_MAX_MS);
+        } catch (e5) { /* ignore */ }
+    }
+
     function onBundleFailure(reason) {
         console.error('[MMS] Bundle load failed:', reason || 'unknown');
+        revealBootCover();
         document.documentElement.classList.add('tm-mms-menu-ready');
     }
 
@@ -279,6 +365,7 @@
         exposeTampermonkeyApisForBundle();
         // Direct eval keeps execution in the Tampermonkey sandbox (indirect eval uses page scope).
         eval(code);
+        revealBootCover();
     }
 
     function loadBundle(bundleVersion) {
@@ -367,6 +454,7 @@
         return;
     }
 
+    installBootCover();
     applyCachedThemeColors();
     fetchManifestThenLoadBundle();
 })();
