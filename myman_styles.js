@@ -6139,9 +6139,8 @@
 
         addGlobalStyles();
 
-        if (typeof window.tmRevealThemedPageIfReady === 'function') {
-            window.tmRevealThemedPageIfReady();
-        }
+        // Boot cover stays until the loader finishes eval'ing the full suite.
+        // Do not reveal here — mid-bundle reveal caused flashes on navigation.
     }
 
     bootstrapStylesAndReveal();

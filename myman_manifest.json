@@ -1,11 +1,11 @@
 {
-  "version": "231",
-  "loaderVersion": "17",
+  "version": "232",
+  "loaderVersion": "18",
   "silentVersion": "0",
-  "displayVersion": "17.0",
+  "displayVersion": "18.0",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "heal dual profile storage; block duplicate loaders",
+  "releaseNotes": "faster boot cover; no flash on page changes",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

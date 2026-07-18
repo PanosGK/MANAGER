@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v231 / Custom Ver. 17.0 — generated, do not edit */
+/* MyManager Suite bundle v232 / Custom Ver. 18.0 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3212,10 +3212,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '230',
-        loaderVersion: '16',
+        version: '232',
+        loaderVersion: '18',
         silentVersion: '0',
-        displayVersion: '16.0',
+        displayVersion: '18.0',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -11680,9 +11680,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
         addGlobalStyles();
 
-        if (typeof window.tmRevealThemedPageIfReady === 'function') {
-            window.tmRevealThemedPageIfReady();
-        }
+        // Boot cover stays until the loader finishes eval'ing the full suite.
+        // Do not reveal here — mid-bundle reveal caused flashes on navigation.
     }
 
     bootstrapStylesAndReveal();

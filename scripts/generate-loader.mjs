@@ -48,6 +48,174 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
     } catch (e) { /* ignore */ }
     window.TMMS_LOADER_VERSION = LOADER_VERSION;
 
+    // -------------------------------------------------------------------------
+    // Boot cover — install FIRST so the first paint is white, not the bare page.
+    // Re-armed on in-app navigation so page changes do not flash unthemed UI.
+    // -------------------------------------------------------------------------
+    var BOOT_COVER_ID = 'tm-mms-boot-cover';
+    var BOOT_COVER_STYLE_ID = 'tm-mms-boot-cover-style';
+    var BOOT_COVER_CLASS = 'tm-mms-booting';
+    var BOOT_COVER_MAX_MS = 8000;
+    var bootCoverTimer = null;
+
+    function bootCoverShouldSkip() {
+        var p = (window.location && window.location.pathname) || '';
+        if (p.indexOf('login.php') !== -1) return true;
+        try {
+            if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return true;
+        } catch (e0) { /* ignore */ }
+        try {
+            if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return true;
+        } catch (e1) { /* ignore */ }
+        return false;
+    }
+
+    function bootCoverCssText() {
+        return [
+            'html.' + BOOT_COVER_CLASS + ' {',
+            '  background: #fff !important;',
+            '}',
+            'html.' + BOOT_COVER_CLASS + ' body {',
+            '  background: #fff !important;',
+            '}',
+            'html.' + BOOT_COVER_CLASS + ' body > *:not(#' + BOOT_COVER_ID + ') {',
+            '  visibility: hidden !important;',
+            '  opacity: 0 !important;',
+            '  pointer-events: none !important;',
+            '}',
+            '#' + BOOT_COVER_ID + ' {',
+            '  position: fixed !important;',
+            '  inset: 0 !important;',
+            '  z-index: 2147483647 !important;',
+            '  background: #fff !important;',
+            '  visibility: visible !important;',
+            '  opacity: 1 !important;',
+            '  pointer-events: none !important;',
+            '}',
+        ].join('\\n');
+    }
+
+    function revealBootCover() {
+        window.__tmBootCoverActive = false;
+        try { sessionStorage.removeItem('tm_mms_nav_cover'); } catch (e0) { /* ignore */ }
+        try {
+            if (bootCoverTimer) {
+                clearTimeout(bootCoverTimer);
+                bootCoverTimer = null;
+            }
+        } catch (e1) { /* ignore */ }
+        try {
+            document.documentElement.classList.remove(BOOT_COVER_CLASS);
+            document.documentElement.style.removeProperty('background-color');
+        } catch (e2) { /* ignore */ }
+        try {
+            var el = document.getElementById(BOOT_COVER_ID);
+            if (el && el.parentNode) el.parentNode.removeChild(el);
+        } catch (e3) { /* ignore */ }
+        try {
+            var st = document.getElementById(BOOT_COVER_STYLE_ID);
+            if (st && st.parentNode) st.parentNode.removeChild(st);
+        } catch (e4) { /* ignore */ }
+    }
+
+    function installBootCover(force) {
+        if (bootCoverShouldSkip()) return;
+        if (window.__tmBootCoverActive && !force) return;
+        window.__tmBootCoverActive = true;
+        window.tmRevealBootCover = revealBootCover;
+
+        try {
+            document.documentElement.classList.add(BOOT_COVER_CLASS);
+            document.documentElement.style.setProperty('background-color', '#fff', 'important');
+        } catch (e0) { /* ignore */ }
+
+        try {
+            var css = bootCoverCssText();
+            var style = document.getElementById(BOOT_COVER_STYLE_ID);
+            if (!style) {
+                if (typeof GM_addStyle === 'function') {
+                    try { GM_addStyle(css); } catch (eGm) { /* fall through */ }
+                }
+                style = document.createElement('style');
+                style.id = BOOT_COVER_STYLE_ID;
+                style.textContent = css;
+                (document.documentElement || document.head).insertBefore(
+                    style,
+                    (document.documentElement || document.head).firstChild
+                );
+            } else {
+                style.textContent = css;
+            }
+        } catch (e1) { /* ignore */ }
+
+        function mountCoverEl() {
+            if (document.getElementById(BOOT_COVER_ID)) return;
+            try {
+                var cover = document.createElement('div');
+                cover.id = BOOT_COVER_ID;
+                cover.setAttribute('aria-hidden', 'true');
+                (document.documentElement || document.body).appendChild(cover);
+            } catch (e2) { /* ignore */ }
+        }
+
+        mountCoverEl();
+        if (!document.body) {
+            document.addEventListener('DOMContentLoaded', mountCoverEl, { once: true });
+        }
+
+        try {
+            if (bootCoverTimer) clearTimeout(bootCoverTimer);
+            bootCoverTimer = setTimeout(function () {
+                console.warn('[MMS] Boot cover timeout — revealing page');
+                revealBootCover();
+                document.documentElement.classList.add('tm-mms-menu-ready');
+            }, BOOT_COVER_MAX_MS);
+        } catch (e3) { /* ignore */ }
+    }
+
+    function armBootCoverForNavigation() {
+        if (bootCoverShouldSkip()) return;
+        try { sessionStorage.setItem('tm_mms_nav_cover', '1'); } catch (e0) { /* ignore */ }
+        installBootCover(true);
+    }
+
+    function wireBootCoverNavigation() {
+        if (window.__tmBootNavArmed || bootCoverShouldSkip()) return;
+        window.__tmBootNavArmed = true;
+
+        document.addEventListener('click', function (ev) {
+            if (ev.defaultPrevented || ev.button !== 0) return;
+            if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
+            var t = ev.target;
+            var a = t && t.closest ? t.closest('a[href]') : null;
+            if (!a) return;
+            var href = a.getAttribute('href') || '';
+            if (!href || href.charAt(0) === '#' || href.indexOf('javascript:') === 0) return;
+            if (a.target && a.target !== '' && a.target !== '_self') return;
+            if (a.hasAttribute('download')) return;
+            try {
+                var url = new URL(a.href, location.href);
+                if (url.origin !== location.origin) return;
+                if ((url.pathname || '').indexOf('login.php') !== -1) return;
+            } catch (e1) { return; }
+            armBootCoverForNavigation();
+        }, true);
+
+        document.addEventListener('submit', function (ev) {
+            var form = ev.target;
+            if (!form || (form.target && form.target !== '' && form.target !== '_self')) return;
+            armBootCoverForNavigation();
+        }, true);
+
+        window.addEventListener('pagehide', function () {
+            armBootCoverForNavigation();
+        });
+    }
+
+    // Paint white before anything else on this document.
+    installBootCover(true);
+    wireBootCoverNavigation();
+
     function isStatus40LoginPending() {
         try {
             return sessionStorage.getItem('tm_status40_active') === 'true'
@@ -270,91 +438,6 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
         } catch (e) { /* ignore */ }
     }
 
-    var BOOT_COVER_ID = 'tm-mms-boot-cover';
-    var BOOT_COVER_STYLE_ID = 'tm-mms-boot-cover-style';
-    var BOOT_COVER_CLASS = 'tm-mms-booting';
-    var BOOT_COVER_MAX_MS = 10000;
-    var bootCoverTimer = null;
-
-    function revealBootCover() {
-        window.__tmBootCoverActive = false;
-        try {
-            if (bootCoverTimer) {
-                clearTimeout(bootCoverTimer);
-                bootCoverTimer = null;
-            }
-        } catch (e) { /* ignore */ }
-        try {
-            document.documentElement.classList.remove(BOOT_COVER_CLASS);
-        } catch (e2) { /* ignore */ }
-        try {
-            var el = document.getElementById(BOOT_COVER_ID);
-            if (el && el.parentNode) el.parentNode.removeChild(el);
-        } catch (e3) { /* ignore */ }
-        try {
-            var st = document.getElementById(BOOT_COVER_STYLE_ID);
-            if (st && st.parentNode) st.parentNode.removeChild(st);
-        } catch (e4) { /* ignore */ }
-    }
-
-    function installBootCover() {
-        if (window.__tmBootCoverActive) return;
-        window.__tmBootCoverActive = true;
-        window.tmRevealBootCover = revealBootCover;
-
-        try {
-            document.documentElement.classList.add(BOOT_COVER_CLASS);
-        } catch (e) { /* ignore */ }
-
-        try {
-            if (!document.getElementById(BOOT_COVER_STYLE_ID)) {
-                var style = document.createElement('style');
-                style.id = BOOT_COVER_STYLE_ID;
-                style.textContent = [
-                    'html.' + BOOT_COVER_CLASS + ', html.' + BOOT_COVER_CLASS + ' body {',
-                    '  background: #fff !important;',
-                    '}',
-                    '#' + BOOT_COVER_ID + ' {',
-                    '  position: fixed !important;',
-                    '  inset: 0 !important;',
-                    '  z-index: 2147483647 !important;',
-                    '  background: #fff !important;',
-                    '  pointer-events: none !important;',
-                    '}',
-                    'html:not(.' + BOOT_COVER_CLASS + ') #' + BOOT_COVER_ID + ' { display: none !important; }',
-                ].join('\\n');
-                (document.head || document.documentElement).appendChild(style);
-            }
-        } catch (e2) { /* ignore */ }
-
-        function mountCoverEl() {
-            if (document.getElementById(BOOT_COVER_ID)) return;
-            try {
-                var cover = document.createElement('div');
-                cover.id = BOOT_COVER_ID;
-                cover.setAttribute('aria-hidden', 'true');
-                (document.body || document.documentElement).appendChild(cover);
-            } catch (e3) { /* ignore */ }
-        }
-
-        if (document.body) {
-            mountCoverEl();
-        } else {
-            document.addEventListener('DOMContentLoaded', mountCoverEl, { once: true });
-            try {
-                mountCoverEl();
-            } catch (e4) { /* ignore */ }
-        }
-
-        try {
-            bootCoverTimer = setTimeout(function () {
-                console.warn('[MMS] Boot cover timeout — revealing page');
-                revealBootCover();
-                document.documentElement.classList.add('tm-mms-menu-ready');
-            }, BOOT_COVER_MAX_MS);
-        } catch (e5) { /* ignore */ }
-    }
-
     function onBundleFailure(reason) {
         console.error('[MMS] Bundle load failed:', reason || 'unknown');
         revealBootCover();
@@ -453,6 +536,7 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
     }
 
     if (shouldSkip()) {
+        revealBootCover();
         document.documentElement.classList.add('tm-mms-menu-ready');
         return;
     }
@@ -460,7 +544,7 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
     // Prevent prod + local loaders from both owning the same page (separate TM storage worlds).
     if (window.__TMMS_SUITE_CLAIMED) {
         console.warn('[MMS] Another MyManager loader already claimed this page — skipping duplicate suite');
-        document.documentElement.classList.add('tm-mms-menu-ready');
+        // Keep the first loader's cover; do not tear it down here.
         return;
     }
     window.__TMMS_SUITE_CLAIMED = true;
@@ -468,12 +552,13 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
 
     var loginPath = (window.location && window.location.pathname) || '';
     if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {
+        revealBootCover();
         document.documentElement.classList.add('tm-mms-menu-ready');
         runStatus40InlineAutoLogin();
         return;
     }
 
-    installBootCover();
+    installBootCover(true);
     applyCachedThemeColors();
     fetchManifestThenLoadBundle();
 })();`;
