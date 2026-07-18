@@ -5,7 +5,10 @@
 // Cache constants
 const PHONE_LIST_CACHE_KEY = 'tm_phone_list_cache';
 const PHONE_LIST_CACHE_TIMESTAMP_KEY = 'tm_phone_list_cache_timestamp';
-const CACHE_EXPIRATION_DAYS = 3; // Notify user if cache is older than 3 days
+/** Hard-expire local list cache after this many days (discard + force fetch). */
+const CACHE_EXPIRATION_DAYS = 3;
+/** Soft-stale: auto-refresh in background when older than this (ms). */
+const PHONE_LIST_SOFT_REFRESH_MS = 60 * 60 * 1000; // 1 hour
 // v2: price parsing (div/input IDs) + UI shows retailPrice on other-store cards
 const OTHER_STORE_CACHE_KEY = 'tm_phone_other_store_cache_v3';
 const OTHER_STORE_CACHE_TIMESTAMP_KEY = 'tm_phone_other_store_cache_timestamp';
@@ -1812,15 +1815,34 @@ function parsePhoneName(fullName) {
  * @param {Array} phones - The phone list to cache
  */
 function savePhoneListCache(phones) {
+    if (!Array.isArray(phones) || !phones.length) {
+        console.warn('[MMS Phone List] Skipping cache save — empty list (keeping previous snapshot)');
+        return;
+    }
     GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(phones));
     GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, Date.now());
     console.log('[MMS Phone List] Cache saved');
 }
 
 function saveOtherStoreCache(phones) {
+    if (!Array.isArray(phones) || !phones.length) {
+        console.warn('[MMS Phone List] Skipping other-store cache save — empty list');
+        return;
+    }
     GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(phones));
     GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, Date.now());
     console.log('[MMS Phone List] Other-store cache saved');
+}
+
+function getPhoneListCacheTimestamp() {
+    const ts = Number(GM_getValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0)) || 0;
+    return ts > 0 ? ts : 0;
+}
+
+function getPhoneListCacheAgeMs() {
+    const timestamp = getPhoneListCacheTimestamp();
+    if (!timestamp) return null;
+    return Math.max(0, Date.now() - timestamp);
 }
 
 /**
@@ -1829,14 +1851,26 @@ function saveOtherStoreCache(phones) {
  */
 function loadPhoneListCache() {
     const cached = GM_getValue(PHONE_LIST_CACHE_KEY, null);
-    const timestamp = GM_getValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0);
-    
+    const timestamp = getPhoneListCacheTimestamp();
+
     if (!cached || !timestamp) {
         return null;
     }
-    
+
+    const ageMs = Date.now() - timestamp;
+    const ageDays = ageMs / (1000 * 60 * 60 * 24);
+    if (ageDays > CACHE_EXPIRATION_DAYS) {
+        console.warn(`[MMS Phone List] Local cache expired (${ageDays.toFixed(1)}d > ${CACHE_EXPIRATION_DAYS}d) — discarding`);
+        try {
+            GM_setValue(PHONE_LIST_CACHE_KEY, null);
+            GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0);
+        } catch (_) { /* ignore */ }
+        return null;
+    }
+
     try {
-        return JSON.parse(cached);
+        const phones = JSON.parse(cached);
+        return Array.isArray(phones) && phones.length ? phones : null;
     } catch (e) {
         console.error('[MMS Phone List] Error parsing cache:', e);
         return null;
@@ -1844,13 +1878,21 @@ function loadPhoneListCache() {
 }
 
 /**
+ * True when cache exists but is old enough that we should re-fetch in the background.
+ */
+function isPhoneListCacheStale() {
+    const ageMs = getPhoneListCacheAgeMs();
+    if (ageMs == null) return true;
+    return ageMs >= PHONE_LIST_SOFT_REFRESH_MS;
+}
+
+/**
  * Gets cache age in days
  * @returns {number|null} Age in days, or null if no cache
  */
 function getCacheAgeDays() {
-    const timestamp = GM_getValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0);
-    if (!timestamp) return null;
-    const ageMs = Date.now() - timestamp;
+    const ageMs = getPhoneListCacheAgeMs();
+    if (ageMs == null) return null;
     return Math.floor(ageMs / (1000 * 60 * 60 * 24));
 }
 
@@ -3014,6 +3056,8 @@ window.showPhoneListModalLegacy = null;
 window.fetchPhoneList = fetchPhoneList;
 window.fetchOtherStorePhones = fetchOtherStorePhones;
 window.loadPhoneListCache = loadPhoneListCache;
+window.isPhoneListCacheStale = isPhoneListCacheStale;
+window.getPhoneListCacheAgeMs = getPhoneListCacheAgeMs;
 window.syncPhoneColorCatalog = syncPhoneColorCatalog;
 window.extractBaseModel = extractBaseModel;
 window.extractGB = extractGB;
@@ -3036,6 +3080,16 @@ window.clearPhoneCatalogCaches = function clearPhoneCatalogCaches() {
     phoneCatalogColorCache.clear();
     phoneCatalogGbCache.clear();
     extractBaseModelCacheGlobal.clear();
+    try {
+        GM_setValue(PHONE_LIST_CACHE_KEY, null);
+        GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0);
+        GM_setValue(OTHER_STORE_CACHE_KEY, null);
+        GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0);
+        GM_setValue(PHONE_STORE_DETAILS_CACHE_KEY, '{}');
+        GM_setValue('tm_phone_other_store_cache_v2', null);
+    } catch (e) {
+        console.warn('[MMS Phone List] Failed to clear GM phone caches:', e);
+    }
 };
 window.loadPhoneColors = loadPhoneColors;
 window.addPhoneColor = addPhoneColor;

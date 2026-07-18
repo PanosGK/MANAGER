@@ -887,20 +887,32 @@
 
         bodyEl.innerHTML = UI.buildSkeletonGrid(8);
         const cached = typeof window.loadPhoneListCache === 'function' ? window.loadPhoneListCache() : null;
+        const cacheStale = typeof window.isPhoneListCacheStale === 'function'
+            ? window.isPhoneListCacheStale()
+            : true;
+
         if (cached && cached.length) {
             allPhones = helpers.filterIphoneTitlePhones(cached);
             const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
             lastUpdated = new Date(ts);
             syncFreshness();
-            ensureOtherStores().then(async () => {
-                if (catalogView === 'network') {
-                    await resolveNetworkStoreDetails();
-                }
-                renderModelsStep();
-            });
+
+            if (cacheStale) {
+                // Stale-while-revalidate: show snapshot, then pull today's list automatically.
+                setStatus('Παλιά δεδομένα — ανανέωση…');
+                refreshData();
+            } else {
+                ensureOtherStores().then(async () => {
+                    if (catalogView === 'network') {
+                        await resolveNetworkStoreDetails();
+                    }
+                    renderModelsStep();
+                });
+            }
         } else {
-            bodyEl.innerHTML = UI.buildEmptyState('📱', 'Χωρίς δεδομένα', 'Πατήστε Ανανέωση για φόρτωση');
-            setStatus('Πατήστε ανανέωση');
+            // No usable cache — fetch live instead of waiting for a manual refresh click.
+            setStatus('Φόρτωση καταλόγου…');
+            refreshData();
         }
     }
 

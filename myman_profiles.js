@@ -30,7 +30,9 @@
 
     const PROFILE_PREFIX = 'tm:p:';
     const MIGRATED_SUFFIX = ':__legacy_migrated';
+    /** v1 could stick after a failed listValues; v2 re-runs the heal once for everyone. */
     const LEGACY_SYNC_FLAG = 'tm_mms_unscoped_synced_v1';
+    const LEGACY_SYNC_FLAG_V2 = 'tm_mms_unscoped_synced_v2';
 
     let activeProfileId = null;
     let activeProfileLabel = null;
@@ -49,7 +51,14 @@
     }
 
     function resolveProfileId(displayName) {
-        return sanitizeProfileId(displayName) || '_unknown';
+        const fromName = sanitizeProfileId(displayName);
+        if (fromName) return fromName;
+        // Prefer last real profile over a temporary `_unknown` bucket (avoids dual worlds).
+        try {
+            const last = sanitizeProfileId(NATIVE.get('tm_mms_last_profile_id', ''));
+            if (last && last !== '_unknown') return last;
+        } catch (_) { /* ignore */ }
+        return '_unknown';
     }
 
     function scopedStorageKey(key) {
@@ -77,7 +86,12 @@
     }
 
     function wrappedSetValue(key, value) {
-        NATIVE.set(scopedStorageKey(key), value);
+        const scopedKey = scopedStorageKey(key);
+        NATIVE.set(scopedKey, value);
+        // Keep a single canonical copy: drop unscoped leftovers after profile writes.
+        if (activeProfileId && !isGlobalKey(key) && scopedKey !== key) {
+            try { NATIVE.del(key); } catch (_) { /* ignore */ }
+        }
     }
 
     function wrappedDeleteValue(key) {
@@ -195,7 +209,7 @@
     }
 
     function migrateLegacyForProfile(profileId) {
-        if (!profileId) return;
+        if (!profileId || profileId === '_unknown') return;
 
         const migratedFlag = `${PROFILE_PREFIX}${profileId}${MIGRATED_SUFFIX}`;
         if (NATIVE.get(migratedFlag, false)) return;
@@ -268,43 +282,72 @@
         }
     }
 
+    function shouldCopyUnscopedKey(rawKey) {
+        if (!rawKey || isGlobalKey(rawKey)) return false;
+        if (rawKey.startsWith(PROFILE_PREFIX)) return false;
+        if (rawKey.endsWith(MIGRATED_SUFFIX)) return false;
+        if (rawKey === LEGACY_SYNC_FLAG || rawKey === LEGACY_SYNC_FLAG_V2) return false;
+        return true;
+    }
+
     /**
-     * Before wrappers worked, the suite wrote unscoped keys while migration copied a one-time
-     * snapshot into tm:p:… . Push current unscoped values into the active profile once so
-     * scoped storage matches what the UI has been using.
+     * Heal dual storage: for months the suite wrote unscoped keys while a one-shot migrate
+     * froze an older copy under tm:p:… . Overwrite scoped with current unscoped once (v2).
      */
-    function syncUnscopedIntoActiveProfile(profileId) {
-        if (!profileId) return;
-        const flagKey = `${PROFILE_PREFIX}${profileId}:${LEGACY_SYNC_FLAG}`;
-        if (NATIVE.get(flagKey, false)) return;
+    function syncUnscopedIntoActiveProfile(profileId, options = {}) {
+        if (!profileId || profileId === '_unknown') return 0;
+        const force = !!options.force;
+        const flagKey = `${PROFILE_PREFIX}${profileId}:${LEGACY_SYNC_FLAG_V2}`;
+        if (!force && NATIVE.get(flagKey, false)) return 0;
 
         let synced = 0;
         const prefix = `${PROFILE_PREFIX}${profileId}:`;
         const known = new Set(collectLegacyMigrationKeys());
+        const candidates = new Set(known);
 
         listNativeStorageKeys().forEach((rawKey) => {
-            if (!rawKey || isGlobalKey(rawKey)) return;
-            if (rawKey.startsWith(PROFILE_PREFIX)) return;
-            if (rawKey.endsWith(MIGRATED_SUFFIX) || rawKey === LEGACY_SYNC_FLAG) return;
+            if (!shouldCopyUnscopedKey(rawKey)) return;
             if (!known.has(rawKey) && !rawKey.startsWith('order_status_') && !rawKey.startsWith('tm_')) return;
+            candidates.add(rawKey);
+        });
 
+        candidates.forEach((rawKey) => {
+            if (!shouldCopyUnscopedKey(rawKey)) return;
             const legacy = NATIVE.get(rawKey, undefined);
             if (legacy === undefined) return;
+            // Unscoped was the live world until wrappers rebound — it wins over the frozen scoped copy.
             NATIVE.set(prefix + rawKey, legacy);
             synced++;
         });
 
         NATIVE.set(flagKey, true);
+        // Mark v1 done too so old code paths don't re-run a weaker sync.
+        try { NATIVE.set(`${PROFILE_PREFIX}${profileId}:${LEGACY_SYNC_FLAG}`, true); } catch (_) { /* ignore */ }
+
         if (synced > 0) {
-            console.log(`[MMS Profiles] Synced ${synced} unscoped keys into profile "${profileId}"`);
+            console.log(`[MMS Profiles] Healed ${synced} keys into profile "${profileId}" (unscoped → scoped)`);
+        } else {
+            console.log(`[MMS Profiles] Profile heal complete for "${profileId}" (no unscoped leftovers)`);
         }
+        return synced;
+    }
+
+    function forceResyncFromUnscoped() {
+        const profileId = activeProfileId || activateProfileForCurrentUser();
+        if (!profileId || profileId === '_unknown') {
+            throw new Error('No real profile active yet — wait until login name is visible, then retry.');
+        }
+        try {
+            NATIVE.del(`${PROFILE_PREFIX}${profileId}:${LEGACY_SYNC_FLAG_V2}`);
+        } catch (_) { /* ignore */ }
+        return syncUnscopedIntoActiveProfile(profileId, { force: true });
     }
 
     function isExcludedExportKey(key) {
         if (!key || key === '_mms_export') return true;
         if (isGlobalKey(key)) return true;
         if (key.endsWith(MIGRATED_SUFFIX)) return true;
-        if (key === LEGACY_SYNC_FLAG) return true;
+        if (key === LEGACY_SYNC_FLAG || key === LEGACY_SYNC_FLAG_V2) return true;
         if (key === 'defaultThemeColors') return true;
         return false;
     }
@@ -470,7 +513,7 @@
     function normalizeImportedKey(key, profileId) {
         if (!key || typeof key !== 'string') return null;
         if (key === '_mms_export' || isGlobalKey(key) || key.endsWith(MIGRATED_SUFFIX)) return null;
-        if (key === LEGACY_SYNC_FLAG) return null;
+        if (key === LEGACY_SYNC_FLAG || key === LEGACY_SYNC_FLAG_V2) return null;
 
         // Backups should use logical keys; tolerate accidental profile-prefixed keys.
         if (key.startsWith(PROFILE_PREFIX)) {
@@ -563,6 +606,8 @@
         detectLoggedInUser,
         parseLoginBlockDisplayName,
         activateProfileForCurrentUser,
+        syncUnscopedIntoActiveProfile,
+        forceResyncFromUnscoped,
         exportCurrentProfileData,
         importProfileData,
         isValidBackupPayload,

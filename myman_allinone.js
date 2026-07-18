@@ -5169,7 +5169,22 @@
             window.MMS_PROFILES.activateProfileForCurrentUser();
         }
 
-        window.addEventListener('mms-profile-changed', () => {
+        window.addEventListener('mms-profile-changed', (event) => {
+            const detail = event?.detail || {};
+            const fromId = detail.previousProfileId;
+            const toId = detail.profileId;
+            // Full reload so mascot/repairs/catalog all re-read the new profile bucket.
+            if (fromId && toId && fromId !== toId) {
+                try {
+                    const marker = `${fromId}->${toId}`;
+                    if (sessionStorage.getItem('tm_mms_profile_reload') !== marker) {
+                        sessionStorage.setItem('tm_mms_profile_reload', marker);
+                        console.log(`[MMS] Profile switched ${fromId} → ${toId}; reloading…`);
+                        location.reload();
+                        return;
+                    }
+                } catch (_) { /* ignore */ }
+            }
             loadSettings();
             if (config?.debugEnabled) {
                 console.log('[MMS] Profile changed — settings reloaded for', window.tmCurrentUser);

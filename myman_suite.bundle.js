@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v230 / Custom Ver. 16.0 — generated, do not edit */
+/* MyManager Suite bundle v231 / Custom Ver. 17.0 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3212,10 +3212,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '229',
-        loaderVersion: '15',
-        silentVersion: '1',
-        displayVersion: '15.1',
+        version: '230',
+        loaderVersion: '16',
+        silentVersion: '0',
+        displayVersion: '16.0',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -3439,7 +3439,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     const PROFILE_PREFIX = 'tm:p:';
     const MIGRATED_SUFFIX = ':__legacy_migrated';
+    /** v1 could stick after a failed listValues; v2 re-runs the heal once for everyone. */
     const LEGACY_SYNC_FLAG = 'tm_mms_unscoped_synced_v1';
+    const LEGACY_SYNC_FLAG_V2 = 'tm_mms_unscoped_synced_v2';
 
     let activeProfileId = null;
     let activeProfileLabel = null;
@@ -3458,7 +3460,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function resolveProfileId(displayName) {
-        return sanitizeProfileId(displayName) || '_unknown';
+        const fromName = sanitizeProfileId(displayName);
+        if (fromName) return fromName;
+        // Prefer last real profile over a temporary `_unknown` bucket (avoids dual worlds).
+        try {
+            const last = sanitizeProfileId(NATIVE.get('tm_mms_last_profile_id', ''));
+            if (last && last !== '_unknown') return last;
+        } catch (_) { /* ignore */ }
+        return '_unknown';
     }
 
     function scopedStorageKey(key) {
@@ -3486,7 +3495,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function wrappedSetValue(key, value) {
-        NATIVE.set(scopedStorageKey(key), value);
+        const scopedKey = scopedStorageKey(key);
+        NATIVE.set(scopedKey, value);
+        // Keep a single canonical copy: drop unscoped leftovers after profile writes.
+        if (activeProfileId && !isGlobalKey(key) && scopedKey !== key) {
+            try { NATIVE.del(key); } catch (_) { /* ignore */ }
+        }
     }
 
     function wrappedDeleteValue(key) {
@@ -3604,7 +3618,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function migrateLegacyForProfile(profileId) {
-        if (!profileId) return;
+        if (!profileId || profileId === '_unknown') return;
 
         const migratedFlag = `${PROFILE_PREFIX}${profileId}${MIGRATED_SUFFIX}`;
         if (NATIVE.get(migratedFlag, false)) return;
@@ -3677,43 +3691,72 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
     }
 
+    function shouldCopyUnscopedKey(rawKey) {
+        if (!rawKey || isGlobalKey(rawKey)) return false;
+        if (rawKey.startsWith(PROFILE_PREFIX)) return false;
+        if (rawKey.endsWith(MIGRATED_SUFFIX)) return false;
+        if (rawKey === LEGACY_SYNC_FLAG || rawKey === LEGACY_SYNC_FLAG_V2) return false;
+        return true;
+    }
+
     /**
-     * Before wrappers worked, the suite wrote unscoped keys while migration copied a one-time
-     * snapshot into tm:p:… . Push current unscoped values into the active profile once so
-     * scoped storage matches what the UI has been using.
+     * Heal dual storage: for months the suite wrote unscoped keys while a one-shot migrate
+     * froze an older copy under tm:p:… . Overwrite scoped with current unscoped once (v2).
      */
-    function syncUnscopedIntoActiveProfile(profileId) {
-        if (!profileId) return;
-        const flagKey = `${PROFILE_PREFIX}${profileId}:${LEGACY_SYNC_FLAG}`;
-        if (NATIVE.get(flagKey, false)) return;
+    function syncUnscopedIntoActiveProfile(profileId, options = {}) {
+        if (!profileId || profileId === '_unknown') return 0;
+        const force = !!options.force;
+        const flagKey = `${PROFILE_PREFIX}${profileId}:${LEGACY_SYNC_FLAG_V2}`;
+        if (!force && NATIVE.get(flagKey, false)) return 0;
 
         let synced = 0;
         const prefix = `${PROFILE_PREFIX}${profileId}:`;
         const known = new Set(collectLegacyMigrationKeys());
+        const candidates = new Set(known);
 
         listNativeStorageKeys().forEach((rawKey) => {
-            if (!rawKey || isGlobalKey(rawKey)) return;
-            if (rawKey.startsWith(PROFILE_PREFIX)) return;
-            if (rawKey.endsWith(MIGRATED_SUFFIX) || rawKey === LEGACY_SYNC_FLAG) return;
+            if (!shouldCopyUnscopedKey(rawKey)) return;
             if (!known.has(rawKey) && !rawKey.startsWith('order_status_') && !rawKey.startsWith('tm_')) return;
+            candidates.add(rawKey);
+        });
 
+        candidates.forEach((rawKey) => {
+            if (!shouldCopyUnscopedKey(rawKey)) return;
             const legacy = NATIVE.get(rawKey, undefined);
             if (legacy === undefined) return;
+            // Unscoped was the live world until wrappers rebound — it wins over the frozen scoped copy.
             NATIVE.set(prefix + rawKey, legacy);
             synced++;
         });
 
         NATIVE.set(flagKey, true);
+        // Mark v1 done too so old code paths don't re-run a weaker sync.
+        try { NATIVE.set(`${PROFILE_PREFIX}${profileId}:${LEGACY_SYNC_FLAG}`, true); } catch (_) { /* ignore */ }
+
         if (synced > 0) {
-            console.log(`[MMS Profiles] Synced ${synced} unscoped keys into profile "${profileId}"`);
+            console.log(`[MMS Profiles] Healed ${synced} keys into profile "${profileId}" (unscoped → scoped)`);
+        } else {
+            console.log(`[MMS Profiles] Profile heal complete for "${profileId}" (no unscoped leftovers)`);
         }
+        return synced;
+    }
+
+    function forceResyncFromUnscoped() {
+        const profileId = activeProfileId || activateProfileForCurrentUser();
+        if (!profileId || profileId === '_unknown') {
+            throw new Error('No real profile active yet — wait until login name is visible, then retry.');
+        }
+        try {
+            NATIVE.del(`${PROFILE_PREFIX}${profileId}:${LEGACY_SYNC_FLAG_V2}`);
+        } catch (_) { /* ignore */ }
+        return syncUnscopedIntoActiveProfile(profileId, { force: true });
     }
 
     function isExcludedExportKey(key) {
         if (!key || key === '_mms_export') return true;
         if (isGlobalKey(key)) return true;
         if (key.endsWith(MIGRATED_SUFFIX)) return true;
-        if (key === LEGACY_SYNC_FLAG) return true;
+        if (key === LEGACY_SYNC_FLAG || key === LEGACY_SYNC_FLAG_V2) return true;
         if (key === 'defaultThemeColors') return true;
         return false;
     }
@@ -3879,7 +3922,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     function normalizeImportedKey(key, profileId) {
         if (!key || typeof key !== 'string') return null;
         if (key === '_mms_export' || isGlobalKey(key) || key.endsWith(MIGRATED_SUFFIX)) return null;
-        if (key === LEGACY_SYNC_FLAG) return null;
+        if (key === LEGACY_SYNC_FLAG || key === LEGACY_SYNC_FLAG_V2) return null;
 
         // Backups should use logical keys; tolerate accidental profile-prefixed keys.
         if (key.startsWith(PROFILE_PREFIX)) {
@@ -3972,6 +4015,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         detectLoggedInUser,
         parseLoginBlockDisplayName,
         activateProfileForCurrentUser,
+        syncUnscopedIntoActiveProfile,
+        forceResyncFromUnscoped,
         exportCurrentProfileData,
         importProfileData,
         isValidBackupPayload,
@@ -40856,7 +40901,10 @@ window.initOrderTracking = initOrderTracking;
 // Cache constants
 const PHONE_LIST_CACHE_KEY = 'tm_phone_list_cache';
 const PHONE_LIST_CACHE_TIMESTAMP_KEY = 'tm_phone_list_cache_timestamp';
-const CACHE_EXPIRATION_DAYS = 3; // Notify user if cache is older than 3 days
+/** Hard-expire local list cache after this many days (discard + force fetch). */
+const CACHE_EXPIRATION_DAYS = 3;
+/** Soft-stale: auto-refresh in background when older than this (ms). */
+const PHONE_LIST_SOFT_REFRESH_MS = 60 * 60 * 1000; // 1 hour
 // v2: price parsing (div/input IDs) + UI shows retailPrice on other-store cards
 const OTHER_STORE_CACHE_KEY = 'tm_phone_other_store_cache_v3';
 const OTHER_STORE_CACHE_TIMESTAMP_KEY = 'tm_phone_other_store_cache_timestamp';
@@ -42663,15 +42711,34 @@ function parsePhoneName(fullName) {
  * @param {Array} phones - The phone list to cache
  */
 function savePhoneListCache(phones) {
+    if (!Array.isArray(phones) || !phones.length) {
+        console.warn('[MMS Phone List] Skipping cache save — empty list (keeping previous snapshot)');
+        return;
+    }
     GM_setValue(PHONE_LIST_CACHE_KEY, JSON.stringify(phones));
     GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, Date.now());
     console.log('[MMS Phone List] Cache saved');
 }
 
 function saveOtherStoreCache(phones) {
+    if (!Array.isArray(phones) || !phones.length) {
+        console.warn('[MMS Phone List] Skipping other-store cache save — empty list');
+        return;
+    }
     GM_setValue(OTHER_STORE_CACHE_KEY, JSON.stringify(phones));
     GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, Date.now());
     console.log('[MMS Phone List] Other-store cache saved');
+}
+
+function getPhoneListCacheTimestamp() {
+    const ts = Number(GM_getValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0)) || 0;
+    return ts > 0 ? ts : 0;
+}
+
+function getPhoneListCacheAgeMs() {
+    const timestamp = getPhoneListCacheTimestamp();
+    if (!timestamp) return null;
+    return Math.max(0, Date.now() - timestamp);
 }
 
 /**
@@ -42680,14 +42747,26 @@ function saveOtherStoreCache(phones) {
  */
 function loadPhoneListCache() {
     const cached = GM_getValue(PHONE_LIST_CACHE_KEY, null);
-    const timestamp = GM_getValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0);
-    
+    const timestamp = getPhoneListCacheTimestamp();
+
     if (!cached || !timestamp) {
         return null;
     }
-    
+
+    const ageMs = Date.now() - timestamp;
+    const ageDays = ageMs / (1000 * 60 * 60 * 24);
+    if (ageDays > CACHE_EXPIRATION_DAYS) {
+        console.warn(`[MMS Phone List] Local cache expired (${ageDays.toFixed(1)}d > ${CACHE_EXPIRATION_DAYS}d) — discarding`);
+        try {
+            GM_setValue(PHONE_LIST_CACHE_KEY, null);
+            GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0);
+        } catch (_) { /* ignore */ }
+        return null;
+    }
+
     try {
-        return JSON.parse(cached);
+        const phones = JSON.parse(cached);
+        return Array.isArray(phones) && phones.length ? phones : null;
     } catch (e) {
         console.error('[MMS Phone List] Error parsing cache:', e);
         return null;
@@ -42695,13 +42774,21 @@ function loadPhoneListCache() {
 }
 
 /**
+ * True when cache exists but is old enough that we should re-fetch in the background.
+ */
+function isPhoneListCacheStale() {
+    const ageMs = getPhoneListCacheAgeMs();
+    if (ageMs == null) return true;
+    return ageMs >= PHONE_LIST_SOFT_REFRESH_MS;
+}
+
+/**
  * Gets cache age in days
  * @returns {number|null} Age in days, or null if no cache
  */
 function getCacheAgeDays() {
-    const timestamp = GM_getValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0);
-    if (!timestamp) return null;
-    const ageMs = Date.now() - timestamp;
+    const ageMs = getPhoneListCacheAgeMs();
+    if (ageMs == null) return null;
     return Math.floor(ageMs / (1000 * 60 * 60 * 24));
 }
 
@@ -43865,6 +43952,8 @@ window.showPhoneListModalLegacy = null;
 window.fetchPhoneList = fetchPhoneList;
 window.fetchOtherStorePhones = fetchOtherStorePhones;
 window.loadPhoneListCache = loadPhoneListCache;
+window.isPhoneListCacheStale = isPhoneListCacheStale;
+window.getPhoneListCacheAgeMs = getPhoneListCacheAgeMs;
 window.syncPhoneColorCatalog = syncPhoneColorCatalog;
 window.extractBaseModel = extractBaseModel;
 window.extractGB = extractGB;
@@ -43887,6 +43976,16 @@ window.clearPhoneCatalogCaches = function clearPhoneCatalogCaches() {
     phoneCatalogColorCache.clear();
     phoneCatalogGbCache.clear();
     extractBaseModelCacheGlobal.clear();
+    try {
+        GM_setValue(PHONE_LIST_CACHE_KEY, null);
+        GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0);
+        GM_setValue(OTHER_STORE_CACHE_KEY, null);
+        GM_setValue(OTHER_STORE_CACHE_TIMESTAMP_KEY, 0);
+        GM_setValue(PHONE_STORE_DETAILS_CACHE_KEY, '{}');
+        GM_setValue('tm_phone_other_store_cache_v2', null);
+    } catch (e) {
+        console.warn('[MMS Phone List] Failed to clear GM phone caches:', e);
+    }
 };
 window.loadPhoneColors = loadPhoneColors;
 window.addPhoneColor = addPhoneColor;
@@ -45823,20 +45922,32 @@ if (document.body) {
 
         bodyEl.innerHTML = UI.buildSkeletonGrid(8);
         const cached = typeof window.loadPhoneListCache === 'function' ? window.loadPhoneListCache() : null;
+        const cacheStale = typeof window.isPhoneListCacheStale === 'function'
+            ? window.isPhoneListCacheStale()
+            : true;
+
         if (cached && cached.length) {
             allPhones = helpers.filterIphoneTitlePhones(cached);
             const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
             lastUpdated = new Date(ts);
             syncFreshness();
-            ensureOtherStores().then(async () => {
-                if (catalogView === 'network') {
-                    await resolveNetworkStoreDetails();
-                }
-                renderModelsStep();
-            });
+
+            if (cacheStale) {
+                // Stale-while-revalidate: show snapshot, then pull today's list automatically.
+                setStatus('Παλιά δεδομένα — ανανέωση…');
+                refreshData();
+            } else {
+                ensureOtherStores().then(async () => {
+                    if (catalogView === 'network') {
+                        await resolveNetworkStoreDetails();
+                    }
+                    renderModelsStep();
+                });
+            }
         } else {
-            bodyEl.innerHTML = UI.buildEmptyState('📱', 'Χωρίς δεδομένα', 'Πατήστε Ανανέωση για φόρτωση');
-            setStatus('Πατήστε ανανέωση');
+            // No usable cache — fetch live instead of waiting for a manual refresh click.
+            setStatus('Φόρτωση καταλόγου…');
+            refreshData();
         }
     }
 
@@ -58446,7 +58557,22 @@ if (typeof window !== 'undefined') {
             window.MMS_PROFILES.activateProfileForCurrentUser();
         }
 
-        window.addEventListener('mms-profile-changed', () => {
+        window.addEventListener('mms-profile-changed', (event) => {
+            const detail = event?.detail || {};
+            const fromId = detail.previousProfileId;
+            const toId = detail.profileId;
+            // Full reload so mascot/repairs/catalog all re-read the new profile bucket.
+            if (fromId && toId && fromId !== toId) {
+                try {
+                    const marker = `${fromId}->${toId}`;
+                    if (sessionStorage.getItem('tm_mms_profile_reload') !== marker) {
+                        sessionStorage.setItem('tm_mms_profile_reload', marker);
+                        console.log(`[MMS] Profile switched ${fromId} → ${toId}; reloading…`);
+                        location.reload();
+                        return;
+                    }
+                } catch (_) { /* ignore */ }
+            }
             loadSettings();
             if (config?.debugEnabled) {
                 console.log('[MMS] Profile changed — settings reloaded for', window.tmCurrentUser);

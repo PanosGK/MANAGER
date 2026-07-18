@@ -1,11 +1,11 @@
 {
-  "version": "230",
-  "loaderVersion": "16",
+  "version": "231",
+  "loaderVersion": "17",
   "silentVersion": "0",
-  "displayVersion": "16.0",
+  "displayVersion": "17.0",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "loader v16: white boot cover until suite loads",
+  "releaseNotes": "heal dual profile storage; block duplicate loaders",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

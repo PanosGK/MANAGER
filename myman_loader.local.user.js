@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite (Local Dev)
 // @namespace    http://tampermonkey.net/
-// @version      16
+// @version      17
 // @description  Local development — async file:// bundle. Enable "Allow access to local file URLs". Run: npm run build.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -22,11 +22,11 @@
 (function tmMmsLoaderBootstrap() {
     'use strict';
 
-    var LOADER_VERSION = "16";
+    var LOADER_VERSION = "17";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "230";
+    var FALLBACK_BUNDLE_VERSION = "231";
     var LOCAL_BUNDLE_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.bundle.js";
 
     try {
@@ -444,6 +444,15 @@
         document.documentElement.classList.add('tm-mms-menu-ready');
         return;
     }
+
+    // Prevent prod + local loaders from both owning the same page (separate TM storage worlds).
+    if (window.__TMMS_SUITE_CLAIMED) {
+        console.warn('[MMS] Another MyManager loader already claimed this page — skipping duplicate suite');
+        document.documentElement.classList.add('tm-mms-menu-ready');
+        return;
+    }
+    window.__TMMS_SUITE_CLAIMED = true;
+    window.__TMMS_SUITE_LOADER = LOCAL_BUNDLE_URL ? 'local' : 'production';
 
     var loginPath = (window.location && window.location.pathname) || '';
     if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {

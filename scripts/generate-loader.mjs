@@ -457,6 +457,15 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
         return;
     }
 
+    // Prevent prod + local loaders from both owning the same page (separate TM storage worlds).
+    if (window.__TMMS_SUITE_CLAIMED) {
+        console.warn('[MMS] Another MyManager loader already claimed this page — skipping duplicate suite');
+        document.documentElement.classList.add('tm-mms-menu-ready');
+        return;
+    }
+    window.__TMMS_SUITE_CLAIMED = true;
+    window.__TMMS_SUITE_LOADER = LOCAL_BUNDLE_URL ? 'local' : 'production';
+
     var loginPath = (window.location && window.location.pathname) || '';
     if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {
         document.documentElement.classList.add('tm-mms-menu-ready');
