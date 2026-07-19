@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v232 / Custom Ver. 18.0 — generated, do not edit */
+/* MyManager Suite bundle v236 / Custom Ver. 22.0 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -640,20 +640,8 @@ img[src='images/smsdelivered.png'] {
     }
 })();
 
-/** Clears menu guard when ready, and removes the loader boot cover if still present. */
+/** Clears menu guard when ready. */
 window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
-    if (typeof window.tmRevealBootCover === 'function') {
-        window.tmRevealBootCover();
-    } else {
-        try {
-            document.documentElement.classList.remove('tm-mms-booting');
-            const cover = document.getElementById('tm-mms-boot-cover');
-            if (cover) cover.remove();
-            const style = document.getElementById('tm-mms-boot-cover-style');
-            if (style) style.remove();
-        } catch (_) { /* ignore */ }
-        window.__tmBootCoverActive = false;
-    }
     if (window.__tmMenuGuardActive && !document.documentElement.classList.contains('tm-mms-menu-ready')) {
         return;
     }
@@ -3212,10 +3200,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '232',
-        loaderVersion: '18',
+        version: '236',
+        loaderVersion: '22',
         silentVersion: '0',
-        displayVersion: '18.0',
+        displayVersion: '22.0',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'

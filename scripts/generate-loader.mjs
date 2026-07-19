@@ -1,16 +1,20 @@
 /**
- * Regenerates myman_loader.user.js, myman_suite.bundle.js, and syncs SCRIPT_META
+ * Regenerates myman_suite.bundle.js (+ local loader) and syncs SCRIPT_META
  * from myman_manifest.json.
  *
- * Silent release (bumps bundle + Custom Ver.):
+ * Production myman_loader.user.js is ONLY rewritten when you pass --write-loader
+ * (or the file is missing). Silent/small builds leave it untouched so Tampermonkey
+ * @version does not change.
+ *
+ * Silent release (bumps bundle + Custom Ver., does NOT rewrite production loader):
  *   node scripts/release.mjs "Short release note"
  *
- * Loader release (Tampermonkey @version bump — users must update the userscript):
+ * Loader release (bumps Tampermonkey @version and rewrites myman_loader.user.js):
  *   node scripts/release.mjs --loader "Loader change"
  *
  * Regenerate only (no version bump):
  *   node scripts/generate-loader.mjs
- *   node scripts/generate-loader.mjs --write-loader   # force rewrite production loader
+ *   node scripts/generate-loader.mjs --write-loader   # rewrite production loader
  */
 import fs from 'fs';
 import path from 'path';
@@ -47,174 +51,6 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
         }
     } catch (e) { /* ignore */ }
     window.TMMS_LOADER_VERSION = LOADER_VERSION;
-
-    // -------------------------------------------------------------------------
-    // Boot cover — install FIRST so the first paint is white, not the bare page.
-    // Re-armed on in-app navigation so page changes do not flash unthemed UI.
-    // -------------------------------------------------------------------------
-    var BOOT_COVER_ID = 'tm-mms-boot-cover';
-    var BOOT_COVER_STYLE_ID = 'tm-mms-boot-cover-style';
-    var BOOT_COVER_CLASS = 'tm-mms-booting';
-    var BOOT_COVER_MAX_MS = 8000;
-    var bootCoverTimer = null;
-
-    function bootCoverShouldSkip() {
-        var p = (window.location && window.location.pathname) || '';
-        if (p.indexOf('login.php') !== -1) return true;
-        try {
-            if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return true;
-        } catch (e0) { /* ignore */ }
-        try {
-            if (typeof GM_getValue === 'function' && GM_getValue('tm_script_enabled', true) === false) return true;
-        } catch (e1) { /* ignore */ }
-        return false;
-    }
-
-    function bootCoverCssText() {
-        return [
-            'html.' + BOOT_COVER_CLASS + ' {',
-            '  background: #fff !important;',
-            '}',
-            'html.' + BOOT_COVER_CLASS + ' body {',
-            '  background: #fff !important;',
-            '}',
-            'html.' + BOOT_COVER_CLASS + ' body > *:not(#' + BOOT_COVER_ID + ') {',
-            '  visibility: hidden !important;',
-            '  opacity: 0 !important;',
-            '  pointer-events: none !important;',
-            '}',
-            '#' + BOOT_COVER_ID + ' {',
-            '  position: fixed !important;',
-            '  inset: 0 !important;',
-            '  z-index: 2147483647 !important;',
-            '  background: #fff !important;',
-            '  visibility: visible !important;',
-            '  opacity: 1 !important;',
-            '  pointer-events: none !important;',
-            '}',
-        ].join('\\n');
-    }
-
-    function revealBootCover() {
-        window.__tmBootCoverActive = false;
-        try { sessionStorage.removeItem('tm_mms_nav_cover'); } catch (e0) { /* ignore */ }
-        try {
-            if (bootCoverTimer) {
-                clearTimeout(bootCoverTimer);
-                bootCoverTimer = null;
-            }
-        } catch (e1) { /* ignore */ }
-        try {
-            document.documentElement.classList.remove(BOOT_COVER_CLASS);
-            document.documentElement.style.removeProperty('background-color');
-        } catch (e2) { /* ignore */ }
-        try {
-            var el = document.getElementById(BOOT_COVER_ID);
-            if (el && el.parentNode) el.parentNode.removeChild(el);
-        } catch (e3) { /* ignore */ }
-        try {
-            var st = document.getElementById(BOOT_COVER_STYLE_ID);
-            if (st && st.parentNode) st.parentNode.removeChild(st);
-        } catch (e4) { /* ignore */ }
-    }
-
-    function installBootCover(force) {
-        if (bootCoverShouldSkip()) return;
-        if (window.__tmBootCoverActive && !force) return;
-        window.__tmBootCoverActive = true;
-        window.tmRevealBootCover = revealBootCover;
-
-        try {
-            document.documentElement.classList.add(BOOT_COVER_CLASS);
-            document.documentElement.style.setProperty('background-color', '#fff', 'important');
-        } catch (e0) { /* ignore */ }
-
-        try {
-            var css = bootCoverCssText();
-            var style = document.getElementById(BOOT_COVER_STYLE_ID);
-            if (!style) {
-                if (typeof GM_addStyle === 'function') {
-                    try { GM_addStyle(css); } catch (eGm) { /* fall through */ }
-                }
-                style = document.createElement('style');
-                style.id = BOOT_COVER_STYLE_ID;
-                style.textContent = css;
-                (document.documentElement || document.head).insertBefore(
-                    style,
-                    (document.documentElement || document.head).firstChild
-                );
-            } else {
-                style.textContent = css;
-            }
-        } catch (e1) { /* ignore */ }
-
-        function mountCoverEl() {
-            if (document.getElementById(BOOT_COVER_ID)) return;
-            try {
-                var cover = document.createElement('div');
-                cover.id = BOOT_COVER_ID;
-                cover.setAttribute('aria-hidden', 'true');
-                (document.documentElement || document.body).appendChild(cover);
-            } catch (e2) { /* ignore */ }
-        }
-
-        mountCoverEl();
-        if (!document.body) {
-            document.addEventListener('DOMContentLoaded', mountCoverEl, { once: true });
-        }
-
-        try {
-            if (bootCoverTimer) clearTimeout(bootCoverTimer);
-            bootCoverTimer = setTimeout(function () {
-                console.warn('[MMS] Boot cover timeout — revealing page');
-                revealBootCover();
-                document.documentElement.classList.add('tm-mms-menu-ready');
-            }, BOOT_COVER_MAX_MS);
-        } catch (e3) { /* ignore */ }
-    }
-
-    function armBootCoverForNavigation() {
-        if (bootCoverShouldSkip()) return;
-        try { sessionStorage.setItem('tm_mms_nav_cover', '1'); } catch (e0) { /* ignore */ }
-        installBootCover(true);
-    }
-
-    function wireBootCoverNavigation() {
-        if (window.__tmBootNavArmed || bootCoverShouldSkip()) return;
-        window.__tmBootNavArmed = true;
-
-        document.addEventListener('click', function (ev) {
-            if (ev.defaultPrevented || ev.button !== 0) return;
-            if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) return;
-            var t = ev.target;
-            var a = t && t.closest ? t.closest('a[href]') : null;
-            if (!a) return;
-            var href = a.getAttribute('href') || '';
-            if (!href || href.charAt(0) === '#' || href.indexOf('javascript:') === 0) return;
-            if (a.target && a.target !== '' && a.target !== '_self') return;
-            if (a.hasAttribute('download')) return;
-            try {
-                var url = new URL(a.href, location.href);
-                if (url.origin !== location.origin) return;
-                if ((url.pathname || '').indexOf('login.php') !== -1) return;
-            } catch (e1) { return; }
-            armBootCoverForNavigation();
-        }, true);
-
-        document.addEventListener('submit', function (ev) {
-            var form = ev.target;
-            if (!form || (form.target && form.target !== '' && form.target !== '_self')) return;
-            armBootCoverForNavigation();
-        }, true);
-
-        window.addEventListener('pagehide', function () {
-            armBootCoverForNavigation();
-        });
-    }
-
-    // Paint white before anything else on this document.
-    installBootCover(true);
-    wireBootCoverNavigation();
 
     function isStatus40LoginPending() {
         try {
@@ -440,7 +276,6 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
 
     function onBundleFailure(reason) {
         console.error('[MMS] Bundle load failed:', reason || 'unknown');
-        revealBootCover();
         document.documentElement.classList.add('tm-mms-menu-ready');
     }
 
@@ -458,85 +293,196 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
         exposeTampermonkeyApisForBundle();
         // Direct eval keeps execution in the Tampermonkey sandbox (indirect eval uses page scope).
         eval(code);
-        revealBootCover();
     }
 
-    function loadBundle(bundleVersion) {
+    function rememberBundleVersion(bundleVersion) {
+        try {
+            if (typeof GM_setValue === 'function' && bundleVersion) {
+                GM_setValue('tm_last_bundle_version', String(bundleVersion));
+            }
+        } catch (e) { /* ignore */ }
+    }
+
+    function readPreferredBundleVersion() {
+        try {
+            if (typeof GM_getValue === 'function') {
+                var remembered = GM_getValue('tm_last_bundle_version', '');
+                if (remembered) return String(remembered);
+            }
+        } catch (e) { /* ignore */ }
+        return FALLBACK_BUNDLE_VERSION;
+    }
+
+    // ---- IndexedDB bundle cache (avoids re-downloading ~3MB on every page) ----
+    var BUNDLE_IDB_NAME = 'tm_mms_bundle_cache';
+    var BUNDLE_IDB_STORE = 'bundles';
+    var BUNDLE_IDB_VERSION = 1;
+
+    function withBundleIdb(onReady, onError) {
+        try {
+            if (typeof indexedDB === 'undefined') {
+                onError();
+                return;
+            }
+            var openReq = indexedDB.open(BUNDLE_IDB_NAME, BUNDLE_IDB_VERSION);
+            openReq.onupgradeneeded = function () {
+                var db = openReq.result;
+                if (!db.objectStoreNames.contains(BUNDLE_IDB_STORE)) {
+                    db.createObjectStore(BUNDLE_IDB_STORE);
+                }
+            };
+            openReq.onsuccess = function () { onReady(openReq.result); };
+            openReq.onerror = function () { onError(); };
+        } catch (e) {
+            onError();
+        }
+    }
+
+    function readCachedBundle(versionTag, onHit, onMiss) {
+        var key = String(versionTag || '');
+        if (!key) {
+            onMiss();
+            return;
+        }
+        withBundleIdb(function (db) {
+            try {
+                var tx = db.transaction(BUNDLE_IDB_STORE, 'readonly');
+                var req = tx.objectStore(BUNDLE_IDB_STORE).get(key);
+                req.onsuccess = function () {
+                    var code = req.result;
+                    if (typeof code === 'string' && code.length > 10000) {
+                        onHit(code);
+                    } else {
+                        onMiss();
+                    }
+                };
+                req.onerror = function () { onMiss(); };
+            } catch (e) {
+                onMiss();
+            }
+        }, onMiss);
+    }
+
+    function writeCachedBundle(versionTag, code) {
+        var key = String(versionTag || '');
+        if (!key || typeof code !== 'string' || code.length < 10000) return;
+        withBundleIdb(function (db) {
+            try {
+                var tx = db.transaction(BUNDLE_IDB_STORE, 'readwrite');
+                var store = tx.objectStore(BUNDLE_IDB_STORE);
+                // Keep only the active version to limit disk use.
+                var clearReq = store.clear();
+                clearReq.onsuccess = function () {
+                    store.put(code, key);
+                };
+                clearReq.onerror = function () {
+                    try { store.put(code, key); } catch (e2) { /* ignore */ }
+                };
+            } catch (e) { /* ignore */ }
+        }, function () { /* ignore */ });
+    }
+
+    function bundleUrlFor(versionTag) {
+        // Production: version query only so CDN/browser can help; local always busts.
+        if (LOCAL_BUNDLE_URL) {
+            return LOCAL_BUNDLE_URL + (LOCAL_BUNDLE_URL.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now();
+        }
+        return UPDATE_BASE + '/' + BUNDLE_FILE + '?v=' + encodeURIComponent(String(versionTag));
+    }
+
+    function downloadBundle(versionTag, opts) {
+        opts = opts || {};
         if (typeof GM_xmlhttpRequest !== 'function') {
-            onBundleFailure('GM_xmlhttpRequest unavailable');
+            if (!opts.cacheOnly) onBundleFailure('GM_xmlhttpRequest unavailable');
             return;
         }
 
-        var versionTag = String(bundleVersion || FALLBACK_BUNDLE_VERSION);
-        var bundleUrl = LOCAL_BUNDLE_URL
-            ? (LOCAL_BUNDLE_URL + (LOCAL_BUNDLE_URL.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now())
-            : (UPDATE_BASE + '/' + BUNDLE_FILE + '?v=' + encodeURIComponent(versionTag) + '&t=' + Date.now());
-
+        var tag = String(versionTag || FALLBACK_BUNDLE_VERSION);
         GM_xmlhttpRequest({
             method: 'GET',
-            url: bundleUrl,
+            url: bundleUrlFor(tag),
             onload: function (response) {
                 if (response.status >= 200 && response.status < 300 && response.responseText) {
-                    try {
-                        runBundle(response.responseText);
-                    } catch (err) {
-                        console.error('[MMS] Bundle eval failed:', err);
-                        onBundleFailure(err);
+                    var code = response.responseText;
+                    rememberBundleVersion(tag);
+                    writeCachedBundle(tag, code);
+                    if (!opts.cacheOnly) {
+                        try {
+                            runBundle(code);
+                        } catch (err) {
+                            console.error('[MMS] Bundle eval failed:', err);
+                            onBundleFailure(err);
+                        }
+                    } else {
+                        console.log('[MMS] Prefetched bundle v' + tag + ' into cache');
                     }
-                } else {
+                } else if (!opts.cacheOnly) {
                     onBundleFailure('HTTP ' + response.status);
                 }
             },
             onerror: function () {
-                onBundleFailure('network');
+                if (!opts.cacheOnly) onBundleFailure('network');
             },
         });
     }
 
-    function fetchManifestThenLoadBundle() {
+    function loadBundle(bundleVersion) {
+        downloadBundle(bundleVersion, { cacheOnly: false });
+    }
+
+    function refreshManifestInBackground(currentVersion) {
+        if (LOCAL_BUNDLE_URL || typeof GM_xmlhttpRequest !== 'function') return;
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: MANIFEST_URL + '?t=' + Date.now(),
+            onload: function (response) {
+                if (!(response.status >= 200 && response.status < 300 && response.responseText)) return;
+                try {
+                    var manifest = JSON.parse(response.responseText);
+                    var remoteVer = manifest && manifest.version != null ? String(manifest.version) : '';
+                    if (remoteVer) {
+                        rememberBundleVersion(remoteVer);
+                        // Prefetch the newer suite so the next page change is instant.
+                        if (remoteVer !== String(currentVersion || '')) {
+                            downloadBundle(remoteVer, { cacheOnly: true });
+                        }
+                    }
+                    if (manifest && manifest.displayVersion) {
+                        window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.displayVersion);
+                    } else if (manifest && manifest.loaderVersion != null && manifest.silentVersion != null) {
+                        window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.loaderVersion) + '.' + String(manifest.silentVersion);
+                    }
+                } catch (e) { /* ignore */ }
+            },
+        });
+    }
+
+    /** Prefer disk cache, then network. Manifest/prefetch runs in the background. */
+    function startBundleLoad() {
         if (LOCAL_BUNDLE_URL) {
             loadBundle(FALLBACK_BUNDLE_VERSION);
             return;
         }
 
-        if (typeof GM_xmlhttpRequest !== 'function') {
-            loadBundle(FALLBACK_BUNDLE_VERSION);
-            return;
-        }
-
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url: MANIFEST_URL + '?t=' + Date.now(),
-            onload: function (response) {
-                var bundleVersion = FALLBACK_BUNDLE_VERSION;
-                if (response.status >= 200 && response.status < 300 && response.responseText) {
-                    try {
-                        var manifest = JSON.parse(response.responseText);
-                        if (manifest && manifest.version != null) {
-                            bundleVersion = String(manifest.version);
-                        }
-                        if (manifest && manifest.displayVersion) {
-                            window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.displayVersion);
-                        } else if (manifest && manifest.loaderVersion != null && manifest.silentVersion != null) {
-                            window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.loaderVersion) + '.' + String(manifest.silentVersion);
-                        }
-                    } catch (e) {
-                        console.warn('[MMS] Manifest parse failed, using fallback bundle version');
-                    }
-                } else {
-                    console.warn('[MMS] Manifest HTTP', response.status, '— using fallback bundle version');
-                }
-                loadBundle(bundleVersion);
-            },
-            onerror: function () {
-                console.warn('[MMS] Manifest fetch failed — using fallback bundle version');
-                loadBundle(FALLBACK_BUNDLE_VERSION);
-            },
+        var versionTag = readPreferredBundleVersion();
+        readCachedBundle(versionTag, function (code) {
+            console.log('[MMS] Bundle cache hit v' + versionTag);
+            try {
+                runBundle(code);
+            } catch (err) {
+                console.error('[MMS] Cached bundle eval failed — re-downloading:', err);
+                downloadBundle(versionTag, { cacheOnly: false });
+                return;
+            }
+            refreshManifestInBackground(versionTag);
+        }, function () {
+            console.log('[MMS] Bundle cache miss — downloading v' + versionTag);
+            downloadBundle(versionTag, { cacheOnly: false });
+            refreshManifestInBackground(versionTag);
         });
     }
 
     if (shouldSkip()) {
-        revealBootCover();
         document.documentElement.classList.add('tm-mms-menu-ready');
         return;
     }
@@ -544,7 +490,6 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
     // Prevent prod + local loaders from both owning the same page (separate TM storage worlds).
     if (window.__TMMS_SUITE_CLAIMED) {
         console.warn('[MMS] Another MyManager loader already claimed this page — skipping duplicate suite');
-        // Keep the first loader's cover; do not tear it down here.
         return;
     }
     window.__TMMS_SUITE_CLAIMED = true;
@@ -552,15 +497,13 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
 
     var loginPath = (window.location && window.location.pathname) || '';
     if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {
-        revealBootCover();
         document.documentElement.classList.add('tm-mms-menu-ready');
         runStatus40InlineAutoLogin();
         return;
     }
 
-    installBootCover(true);
     applyCachedThemeColors();
-    fetchManifestThenLoadBundle();
+    startBundleLoad();
 })();`;
 }
 
@@ -618,14 +561,18 @@ function readExistingLoaderVersion(filePath) {
 }
 
 const existingLoaderVersion = readExistingLoaderVersion(productionLoaderPath);
-const shouldWriteProductionLoader = forceWriteLoader
-    || existingLoaderVersion == null
-    || existingLoaderVersion !== String(loaderVersion);
+// Never rewrite production loader on silent/small builds — only with --write-loader
+// (or when the file does not exist yet). Manifest loaderVersion alone must not touch it.
+const shouldWriteProductionLoader = forceWriteLoader || existingLoaderVersion == null;
 
 if (shouldWriteProductionLoader) {
     fs.writeFileSync(productionLoaderPath, productionLoader);
+    console.log(`Wrote ${path.basename(productionLoaderPath)} (@version ${loaderVersion})`);
 } else {
     console.log(`Kept ${path.basename(productionLoaderPath)} unchanged (@version ${existingLoaderVersion} — silent-safe; use --write-loader or release --loader to update it)`);
+    if (existingLoaderVersion !== String(loaderVersion)) {
+        console.warn(`Note: manifest loaderVersion is ${loaderVersion} but ${path.basename(productionLoaderPath)} is still @version ${existingLoaderVersion}. Run release --loader if the loader bootstrap actually changed.`);
+    }
 }
 
 const localBundlePath = path.join(root, bundleFileName).replace(/\\/g, '/');

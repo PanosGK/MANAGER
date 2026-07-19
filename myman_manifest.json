@@ -1,11 +1,11 @@
 {
-  "version": "232",
-  "loaderVersion": "18",
+  "version": "236",
+  "loaderVersion": "22",
   "silentVersion": "0",
-  "displayVersion": "18.0",
+  "displayVersion": "22.0",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "faster boot cover; no flash on page changes",
+  "releaseNotes": "cache suite bundle in IndexedDB for faster page loads",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
