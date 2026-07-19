@@ -1,11 +1,11 @@
 {
-  "version": "236",
-  "loaderVersion": "22",
+  "version": "240",
+  "loaderVersion": "25",
   "silentVersion": "0",
-  "displayVersion": "22.0",
+  "displayVersion": "25.0",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "cache suite bundle in IndexedDB for faster page loads",
+  "releaseNotes": "revert core/defer split; bump loader so Tampermonkey upgrades past v23/v24",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

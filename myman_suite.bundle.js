@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v236 / Custom Ver. 22.0 — generated, do not edit */
+/* MyManager Suite bundle v240 / Custom Ver. 25.0 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
