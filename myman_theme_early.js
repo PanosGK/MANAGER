@@ -101,12 +101,7 @@
 
     window.__tmEarlyThemeId = themeId;
 
-    if (typeof window.tmRevealThemeReady === 'function') {
-        // Cached/default colors are on the root — safe to show the page.
-        if (themeId === 'default' || (cache && cache.colors)) {
-            window.tmRevealThemeReady();
-        }
-    }
+    // Stay blank until myman_themes.js applies the real theme (tmRevealThemeReady).
 
     const HIDDEN_MENU_KEY = 'tm_hidden_menu_items';
     const menuFeatureEnabled = readProfileScoped('hiddenMenuItemsEnabled', true) !== false;

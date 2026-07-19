@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite (Local Dev)
 // @namespace    http://tampermonkey.net/
-// @version      26
+// @version      27
 // @description  Local development — async file:// bundle. Enable "Allow access to local file URLs". Run: npm run build.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -22,11 +22,11 @@
 (function tmMmsLoaderBootstrap() {
     'use strict';
 
-    var LOADER_VERSION = "26";
+    var LOADER_VERSION = "27";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "242";
+    var FALLBACK_BUNDLE_VERSION = "243";
     var LOCAL_BUNDLE_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.bundle.js";
 
     try {
@@ -262,7 +262,7 @@
     }
 
     var THEME_READY_CLASS = 'tm-mms-theme-ready';
-    var FOUC_FAILSAFE_MS = 5000;
+    var FOUC_FAILSAFE_MS = 8000;
 
     function tmRevealThemeReady() {
         var root = document.documentElement;
@@ -278,26 +278,35 @@
 
     function installThemeFoucGuard() {
         var root = document.documentElement;
+        // Keep page blank until the suite applies theme (or failsafe).
         try {
+            root.classList.remove(THEME_READY_CLASS);
             root.style.setProperty('visibility', 'hidden', 'important');
             root.style.setProperty('opacity', '0', 'important');
-            root.style.backgroundColor = root.style.backgroundColor || '#121212';
+            if (!root.style.backgroundColor) root.style.backgroundColor = '#121212';
         } catch (e) { /* ignore */ }
 
-        if (document.getElementById('tm-mms-fouc-guard')) return;
-        var style = document.createElement('style');
-        style.id = 'tm-mms-fouc-guard';
-        style.textContent = [
-            'html:not(.' + THEME_READY_CLASS + '){',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            '}',
+        var css = [
+            'html:not(.' + THEME_READY_CLASS + '),',
             'html:not(.' + THEME_READY_CLASS + ') body{',
             'visibility:hidden!important;',
             'opacity:0!important;',
             '}',
+            'html:not(.' + THEME_READY_CLASS + '){',
+            'background:#121212!important;',
+            '}',
         ].join('');
-        (document.head || root).appendChild(style);
+
+        if (typeof GM_addStyle === 'function') {
+            try { GM_addStyle(css); } catch (e2) { /* ignore */ }
+        }
+
+        if (!document.getElementById('tm-mms-fouc-guard')) {
+            var style = document.createElement('style');
+            style.id = 'tm-mms-fouc-guard';
+            style.textContent = css;
+            (document.documentElement || document.head || document).appendChild(style);
+        }
         setTimeout(tmRevealThemeReady, FOUC_FAILSAFE_MS);
     }
 
@@ -532,11 +541,7 @@
     }
 
     installThemeFoucGuard();
-    var hadThemeCache = applyCachedThemeColors();
-    var equippedTheme = String(readProfileScoped('tm_equipped_theme', 'default') || 'default');
-    // Default theme, or cached colors already painted → show page; otherwise wait for suite theme apply.
-    if (equippedTheme === 'default' || hadThemeCache) {
-        tmRevealThemeReady();
-    }
+    applyCachedThemeColors();
+    // Do NOT reveal here — stay blank until themes.js applies the theme (or failsafe).
     startBundleLoad();
 })();

@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v242 / Custom Ver. 26.0 — generated, do not edit */
+/* MyManager Suite bundle v243 / Custom Ver. 27.0 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -570,12 +570,7 @@ img[src='images/smsdelivered.png'] {
 
     window.__tmEarlyThemeId = themeId;
 
-    if (typeof window.tmRevealThemeReady === 'function') {
-        // Cached/default colors are on the root — safe to show the page.
-        if (themeId === 'default' || (cache && cache.colors)) {
-            window.tmRevealThemeReady();
-        }
-    }
+    // Stay blank until myman_themes.js applies the real theme (tmRevealThemeReady).
 
     const HIDDEN_MENU_KEY = 'tm_hidden_menu_items';
     const menuFeatureEnabled = readProfileScoped('hiddenMenuItemsEnabled', true) !== false;
