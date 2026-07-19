@@ -5247,8 +5247,13 @@
         // Unlock the page ASAP — heavy features (mascot/catalog/etc.) continue after reveal.
         revealMmsBody();
 
+        // Footer may run before deferred modules exist — never let that abort the rest of init.
         const trySetupFooter = (attempt = 0) => {
-            if (setupFooterControls(config, STORAGE_KEYS)) return;
+            try {
+                if (setupFooterControls(config, STORAGE_KEYS)) return;
+            } catch (footerErr) {
+                console.warn('[MMS] setupFooterControls failed (will retry):', footerErr);
+            }
             if (attempt < 50) {
                 setTimeout(() => trySetupFooter(attempt + 1), 300);
             }

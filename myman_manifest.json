@@ -1,11 +1,11 @@
 {
-  "version": "237",
+  "version": "238",
   "loaderVersion": "23",
-  "silentVersion": "0",
-  "displayVersion": "23.0",
+  "silentVersion": "1",
+  "displayVersion": "23.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "faster load: core bundle first, defer mascot/catalog",
+  "releaseNotes": "fix shop/coins when deferring mascot; keep gamification in core",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
@@ -44,7 +44,6 @@
     "myman_scratchpad.js",
     "myman_mascot.js",
     "myman_mascot_play.js",
-    "myman_gamification.js",
     "myman_phone_catalog_ui.js",
     "myman_phonelist.js",
     "myman_phone_catalog_settings.js",

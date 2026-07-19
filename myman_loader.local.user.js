@@ -27,7 +27,7 @@
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var CORE_BUNDLE_FILE = "myman_suite.core.bundle.js";
     var DEFER_BUNDLE_FILE = "myman_suite.defer.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "237";
+    var FALLBACK_BUNDLE_VERSION = "238";
     var LOCAL_CORE_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.core.bundle.js";
     var LOCAL_DEFER_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.defer.bundle.js";
 

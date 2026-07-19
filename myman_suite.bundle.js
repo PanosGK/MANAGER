@@ -1,4 +1,4 @@
-/* MyManager Suite full v237 / Custom Ver. 23.0 — generated, do not edit */
+/* MyManager Suite full v238 / Custom Ver. 23.1 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -14105,7 +14105,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             });
             
             parentContainer.appendChild(coinBalance);
-            window.updateCoinBalanceUI(STORAGE_KEYS, GM_getValue(STORAGE_KEYS.USER_COINS, 0));
+            if (typeof window.updateCoinBalanceUI === 'function') {
+                window.updateCoinBalanceUI(STORAGE_KEYS, GM_getValue(STORAGE_KEYS.USER_COINS, 0));
+            } else {
+                coinBalance.textContent = `💰 ${GM_getValue(STORAGE_KEYS.USER_COINS, 0)}`;
+            }
         }
 
         // Initializer for settings
@@ -58622,8 +58626,13 @@ if (typeof window !== 'undefined') {
         // Unlock the page ASAP — heavy features (mascot/catalog/etc.) continue after reveal.
         revealMmsBody();
 
+        // Footer may run before deferred modules exist — never let that abort the rest of init.
         const trySetupFooter = (attempt = 0) => {
-            if (setupFooterControls(config, STORAGE_KEYS)) return;
+            try {
+                if (setupFooterControls(config, STORAGE_KEYS)) return;
+            } catch (footerErr) {
+                console.warn('[MMS] setupFooterControls failed (will retry):', footerErr);
+            }
             if (attempt < 50) {
                 setTimeout(() => trySetupFooter(attempt + 1), 300);
             }

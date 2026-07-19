@@ -2438,7 +2438,11 @@
             });
             
             parentContainer.appendChild(coinBalance);
-            window.updateCoinBalanceUI(STORAGE_KEYS, GM_getValue(STORAGE_KEYS.USER_COINS, 0));
+            if (typeof window.updateCoinBalanceUI === 'function') {
+                window.updateCoinBalanceUI(STORAGE_KEYS, GM_getValue(STORAGE_KEYS.USER_COINS, 0));
+            } else {
+                coinBalance.textContent = `💰 ${GM_getValue(STORAGE_KEYS.USER_COINS, 0)}`;
+            }
         }
 
         // Initializer for settings
