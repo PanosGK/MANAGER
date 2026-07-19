@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite (Local Dev)
 // @namespace    http://tampermonkey.net/
-// @version      22
-// @description  Local development — async file:// bundle. Enable "Allow access to local file URLs". Run: npm run build.
+// @version      23
+// @description  Local development — async file:// core+defer bundles. Enable "Allow access to local file URLs". Run: npm run build.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @run-at       document-start
@@ -22,12 +22,14 @@
 (function tmMmsLoaderBootstrap() {
     'use strict';
 
-    var LOADER_VERSION = "22";
+    var LOADER_VERSION = "23";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
-    var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "236";
-    var LOCAL_BUNDLE_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.bundle.js";
+    var CORE_BUNDLE_FILE = "myman_suite.core.bundle.js";
+    var DEFER_BUNDLE_FILE = "myman_suite.defer.bundle.js";
+    var FALLBACK_BUNDLE_VERSION = "237";
+    var LOCAL_CORE_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.core.bundle.js";
+    var LOCAL_DEFER_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.defer.bundle.js";
 
     try {
         if (typeof GM_setValue === 'function') {
@@ -275,7 +277,6 @@
 
     function runBundle(code) {
         exposeTampermonkeyApisForBundle();
-        // Direct eval keeps execution in the Tampermonkey sandbox (indirect eval uses page scope).
         eval(code);
     }
 
@@ -297,10 +298,9 @@
         return FALLBACK_BUNDLE_VERSION;
     }
 
-    // ---- IndexedDB bundle cache (avoids re-downloading ~3MB on every page) ----
     var BUNDLE_IDB_NAME = 'tm_mms_bundle_cache';
     var BUNDLE_IDB_STORE = 'bundles';
-    var BUNDLE_IDB_VERSION = 1;
+    var BUNDLE_IDB_VERSION = 2;
 
     function withBundleIdb(onReady, onError) {
         try {
@@ -322,23 +322,20 @@
         }
     }
 
-    function readCachedBundle(versionTag, onHit, onMiss) {
-        var key = String(versionTag || '');
-        if (!key) {
-            onMiss();
-            return;
-        }
+    function cacheKey(part, versionTag) {
+        return String(part) + ':' + String(versionTag);
+    }
+
+    function readCachedBundle(part, versionTag, onHit, onMiss) {
+        var key = cacheKey(part, versionTag);
         withBundleIdb(function (db) {
             try {
                 var tx = db.transaction(BUNDLE_IDB_STORE, 'readonly');
                 var req = tx.objectStore(BUNDLE_IDB_STORE).get(key);
                 req.onsuccess = function () {
                     var code = req.result;
-                    if (typeof code === 'string' && code.length > 10000) {
-                        onHit(code);
-                    } else {
-                        onMiss();
-                    }
+                    if (typeof code === 'string' && code.length > 1000) onHit(code);
+                    else onMiss();
                 };
                 req.onerror = function () { onMiss(); };
             } catch (e) {
@@ -347,75 +344,108 @@
         }, onMiss);
     }
 
-    function writeCachedBundle(versionTag, code) {
-        var key = String(versionTag || '');
-        if (!key || typeof code !== 'string' || code.length < 10000) return;
+    function writeCachedBundle(part, versionTag, code) {
+        var key = cacheKey(part, versionTag);
+        if (typeof code !== 'string' || code.length < 1000) return;
         withBundleIdb(function (db) {
             try {
                 var tx = db.transaction(BUNDLE_IDB_STORE, 'readwrite');
-                var store = tx.objectStore(BUNDLE_IDB_STORE);
-                // Keep only the active version to limit disk use.
-                var clearReq = store.clear();
-                clearReq.onsuccess = function () {
-                    store.put(code, key);
-                };
-                clearReq.onerror = function () {
-                    try { store.put(code, key); } catch (e2) { /* ignore */ }
-                };
+                tx.objectStore(BUNDLE_IDB_STORE).put(code, key);
             } catch (e) { /* ignore */ }
         }, function () { /* ignore */ });
     }
 
-    function bundleUrlFor(versionTag) {
-        // Production: version query only so CDN/browser can help; local always busts.
-        if (LOCAL_BUNDLE_URL) {
-            return LOCAL_BUNDLE_URL + (LOCAL_BUNDLE_URL.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now();
+    function bundleUrlFor(part, versionTag) {
+        if (part === 'defer') {
+            if (LOCAL_DEFER_URL) {
+                return LOCAL_DEFER_URL + (LOCAL_DEFER_URL.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now();
+            }
+            return UPDATE_BASE + '/' + DEFER_BUNDLE_FILE + '?v=' + encodeURIComponent(String(versionTag));
         }
-        return UPDATE_BASE + '/' + BUNDLE_FILE + '?v=' + encodeURIComponent(String(versionTag));
+        if (LOCAL_CORE_URL) {
+            return LOCAL_CORE_URL + (LOCAL_CORE_URL.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now();
+        }
+        return UPDATE_BASE + '/' + CORE_BUNDLE_FILE + '?v=' + encodeURIComponent(String(versionTag));
     }
 
-    function downloadBundle(versionTag, opts) {
+    function notifyDeferReady() {
+        window.__tmDeferLoaded = true;
+        if (typeof window.__tmRunDeferredFeatureInits === 'function') {
+            try { window.__tmRunDeferredFeatureInits(); } catch (e) {
+                console.error('[MMS] Deferred feature init failed:', e);
+            }
+        }
+    }
+
+    function downloadBundlePart(part, versionTag, opts) {
         opts = opts || {};
         if (typeof GM_xmlhttpRequest !== 'function') {
-            if (!opts.cacheOnly) onBundleFailure('GM_xmlhttpRequest unavailable');
+            if (!opts.cacheOnly && part === 'core') onBundleFailure('GM_xmlhttpRequest unavailable');
             return;
         }
-
         var tag = String(versionTag || FALLBACK_BUNDLE_VERSION);
         GM_xmlhttpRequest({
             method: 'GET',
-            url: bundleUrlFor(tag),
+            url: bundleUrlFor(part, tag),
             onload: function (response) {
                 if (response.status >= 200 && response.status < 300 && response.responseText) {
                     var code = response.responseText;
                     rememberBundleVersion(tag);
-                    writeCachedBundle(tag, code);
-                    if (!opts.cacheOnly) {
-                        try {
-                            runBundle(code);
-                        } catch (err) {
-                            console.error('[MMS] Bundle eval failed:', err);
-                            onBundleFailure(err);
-                        }
-                    } else {
-                        console.log('[MMS] Prefetched bundle v' + tag + ' into cache');
+                    writeCachedBundle(part, tag, code);
+                    if (opts.cacheOnly) {
+                        console.log('[MMS] Prefetched ' + part + ' bundle v' + tag);
+                        return;
                     }
-                } else if (!opts.cacheOnly) {
+                    try {
+                        runBundle(code);
+                        if (part === 'core') {
+                            scheduleDeferLoad(tag);
+                        } else {
+                            notifyDeferReady();
+                        }
+                    } catch (err) {
+                        console.error('[MMS] ' + part + ' bundle eval failed:', err);
+                        if (part === 'core') onBundleFailure(err);
+                    }
+                } else if (!opts.cacheOnly && part === 'core') {
                     onBundleFailure('HTTP ' + response.status);
                 }
             },
             onerror: function () {
-                if (!opts.cacheOnly) onBundleFailure('network');
+                if (!opts.cacheOnly && part === 'core') onBundleFailure('network');
             },
         });
     }
 
-    function loadBundle(bundleVersion) {
-        downloadBundle(bundleVersion, { cacheOnly: false });
+    function loadCachedOrDownload(part, versionTag, onAfterCacheHit) {
+        readCachedBundle(part, versionTag, function (code) {
+            console.log('[MMS] ' + part + ' cache hit v' + versionTag);
+            try {
+                runBundle(code);
+                if (typeof onAfterCacheHit === 'function') onAfterCacheHit();
+            } catch (err) {
+                console.error('[MMS] Cached ' + part + ' eval failed — re-downloading:', err);
+                downloadBundlePart(part, versionTag, { cacheOnly: false });
+            }
+        }, function () {
+            console.log('[MMS] ' + part + ' cache miss — downloading v' + versionTag);
+            downloadBundlePart(part, versionTag, { cacheOnly: false });
+        });
+    }
+
+    function scheduleDeferLoad(versionTag) {
+        var run = function () {
+            loadCachedOrDownload('defer', versionTag, notifyDeferReady);
+        };
+        if (typeof requestIdleCallback === 'function') {
+            requestIdleCallback(run, { timeout: 900 });
+        } else {
+            setTimeout(run, 40);
+        }
     }
 
     function refreshManifestInBackground(currentVersion) {
-        if (LOCAL_BUNDLE_URL || typeof GM_xmlhttpRequest !== 'function') return;
+        if (LOCAL_CORE_URL || typeof GM_xmlhttpRequest !== 'function') return;
         GM_xmlhttpRequest({
             method: 'GET',
             url: MANIFEST_URL + '?t=' + Date.now(),
@@ -426,9 +456,9 @@
                     var remoteVer = manifest && manifest.version != null ? String(manifest.version) : '';
                     if (remoteVer) {
                         rememberBundleVersion(remoteVer);
-                        // Prefetch the newer suite so the next page change is instant.
                         if (remoteVer !== String(currentVersion || '')) {
-                            downloadBundle(remoteVer, { cacheOnly: true });
+                            downloadBundlePart('core', remoteVer, { cacheOnly: true });
+                            downloadBundlePart('defer', remoteVer, { cacheOnly: true });
                         }
                     }
                     if (manifest && manifest.displayVersion) {
@@ -441,29 +471,13 @@
         });
     }
 
-    /** Prefer disk cache, then network. Manifest/prefetch runs in the background. */
+    /** Core first (theme/menu/workflow), then defer heavy modules on idle. */
     function startBundleLoad() {
-        if (LOCAL_BUNDLE_URL) {
-            loadBundle(FALLBACK_BUNDLE_VERSION);
-            return;
-        }
-
         var versionTag = readPreferredBundleVersion();
-        readCachedBundle(versionTag, function (code) {
-            console.log('[MMS] Bundle cache hit v' + versionTag);
-            try {
-                runBundle(code);
-            } catch (err) {
-                console.error('[MMS] Cached bundle eval failed — re-downloading:', err);
-                downloadBundle(versionTag, { cacheOnly: false });
-                return;
-            }
-            refreshManifestInBackground(versionTag);
-        }, function () {
-            console.log('[MMS] Bundle cache miss — downloading v' + versionTag);
-            downloadBundle(versionTag, { cacheOnly: false });
-            refreshManifestInBackground(versionTag);
+        loadCachedOrDownload('core', versionTag, function () {
+            scheduleDeferLoad(versionTag);
         });
+        refreshManifestInBackground(versionTag);
     }
 
     if (shouldSkip()) {
@@ -477,7 +491,7 @@
         return;
     }
     window.__TMMS_SUITE_CLAIMED = true;
-    window.__TMMS_SUITE_LOADER = LOCAL_BUNDLE_URL ? 'local' : 'production';
+    window.__TMMS_SUITE_LOADER = LOCAL_CORE_URL ? 'local' : 'production';
 
     var loginPath = (window.location && window.location.pathname) || '';
     if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {
