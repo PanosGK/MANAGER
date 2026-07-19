@@ -1,4 +1,4 @@
-/* MyManager Suite full v239 / Custom Ver. 24.0 — generated, do not edit */
+/* MyManager Suite bundle v236 / Custom Ver. 22.0 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3200,10 +3200,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '238',
-        loaderVersion: '23',
-        silentVersion: '1',
-        displayVersion: '23.1',
+        version: '236',
+        loaderVersion: '22',
+        silentVersion: '0',
+        displayVersion: '22.0',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -14105,11 +14105,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             });
             
             parentContainer.appendChild(coinBalance);
-            if (typeof window.updateCoinBalanceUI === 'function') {
-                window.updateCoinBalanceUI(STORAGE_KEYS, GM_getValue(STORAGE_KEYS.USER_COINS, 0));
-            } else {
-                coinBalance.textContent = `💰 ${GM_getValue(STORAGE_KEYS.USER_COINS, 0)}`;
-            }
+            window.updateCoinBalanceUI(STORAGE_KEYS, GM_getValue(STORAGE_KEYS.USER_COINS, 0));
         }
 
         // Initializer for settings
@@ -53380,26 +53376,6 @@ if (typeof window !== 'undefined') {
 (function() {
     'use strict';
 
-    // Safe stubs until gamification (or a newer core cache) is present.
-    // Prevents footer/settings from aborting init when an old deferred split is cached.
-    if (typeof window.updateCoinBalanceUI !== 'function') {
-        window.updateCoinBalanceUI = function updateCoinBalanceUIStub(STORAGE_KEYS, balance) {
-            const el = document.getElementById('tm-coin-balance');
-            if (!el) return;
-            const value = balance != null ? balance : (typeof GM_getValue === 'function'
-                ? GM_getValue(STORAGE_KEYS?.USER_COINS || 'tm_user_coins', 0)
-                : 0);
-            el.innerHTML = `🪙 ${value}`;
-            el.style.display = '';
-        };
-    }
-    if (typeof window.updateShopButtonVisibility !== 'function') {
-        window.updateShopButtonVisibility = function updateShopButtonVisibilityStub() { /* filled by gamification */ };
-    }
-    if (typeof window.initXpBarWidget !== 'function') {
-        window.initXpBarWidget = function initXpBarWidgetStub() { /* filled by gamification */ };
-    }
-
     // ===================================================================
     // === MAIN SCRIPT INITIALIZATION
     // ===================================================================
@@ -58643,16 +58619,14 @@ if (typeof window !== 'undefined') {
             console.warn('[MMS] myman_styles.js did not load — styles skipped. Use the local loader or check @require URLs.');
         }
 
-        // Unlock the page ASAP — heavy features (mascot/catalog/etc.) continue after reveal.
-        revealMmsBody();
+        // Create a shared container for bottom controls
+        // const bottomControlsContainer = document.createElement('div');
+        // bottomControlsContainer.id = 'tm-bottom-center-container';
+        // document.body.appendChild(bottomControlsContainer);
+        initInteractiveMascot(config, STORAGE_KEYS);
 
-        // Footer may run before deferred modules exist — never let that abort the rest of init.
         const trySetupFooter = (attempt = 0) => {
-            try {
-                if (setupFooterControls(config, STORAGE_KEYS)) return;
-            } catch (footerErr) {
-                console.warn('[MMS] setupFooterControls failed (will retry):', footerErr);
-            }
+            if (setupFooterControls(config, STORAGE_KEYS)) return;
             if (attempt < 50) {
                 setTimeout(() => trySetupFooter(attempt + 1), 300);
             }
@@ -58677,133 +58651,128 @@ if (typeof window !== 'undefined') {
             window.initEODChecklist(config, STORAGE_KEYS);
         }
 
-        if (config?.searchFeatureEnabled) {
-            if (config?.debugEnabled) {
-                console.log('[MMS] About to initialize search feature. Config searchFeatureEnabled:', config.searchFeatureEnabled);
+        // Initialize remaining features
+        
+        // Initialize random events check (checks every 2.5 hours for new events - REDUCED FREQUENCY)
+        if (config.randomEventsEnabled && typeof window.checkRandomEvent === 'function') {
+            window.checkRandomEvent(config, STORAGE_KEYS);
+            setInterval(() => window.checkRandomEvent(config, STORAGE_KEYS), 2.5 * 60 * 60 * 1000);
+            
+            // Restore active event notification on page load
+            const activeEvent = JSON.parse(GM_getValue(STORAGE_KEYS.ACTIVE_EVENT, 'null'));
+            if (activeEvent && Date.now() < activeEvent.expiresAt) {
+                window.updateEventNotification(activeEvent);
             }
-            window.initSearchFeature();
         }
-
+        
+        if (typeof window.teardownBossBattlesUI === 'function') {
+            window.teardownBossBattlesUI(STORAGE_KEYS);
+        }
+        
+        if (config?.searchFeatureEnabled) {
+        if (config?.debugEnabled) {
+            console.log('[MMS] About to initialize search feature. Config searchFeatureEnabled:', config.searchFeatureEnabled);
+        }
+        window.initSearchFeature();
+        }
+        if (config?.scratchpadEnabled) {
+        window.initScratchpadFeature(config, STORAGE_KEYS); // Pass config
+        }
+        
+        if (typeof window.initPhoneCatalogMenuItem === 'function') {
+            window.initPhoneCatalogMenuItem(config);
+        }
+        
         initScrollToTopFeature();
         if (typeof window.initRepairReminderFeature === 'function') {
             window.initRepairReminderFeature(config, STORAGE_KEYS);
         }
+        if (config?.scratchpadEnabled) {
+        initReminderSystem(STORAGE_KEYS);
+        }
         if (config?.statusTrackingEnabled !== false) {
-            initStatusCounterTracking();
+            initStatusCounterTracking(); // Status transfer counters
         }
         if (config?.returnTo40ButtonEnabled !== false) {
-            injectReturnTo40Button();
+            injectReturnTo40Button(); // Red "40" shortcut button on status-65 and status-100 repairs
         }
-        initCustomerHistoryFeature(config);
+        initFunFeatures(config); // Handles confetti and other event-based interactions
+        initMascotPageReactions(config); // Mascot reactions to page events.
+        initScratchpadIntegration();
+        fetchWeatherAndReact(config); // Check the weather for the mascot
+        initCustomerHistoryFeature(config); // Pass config
+        updateBuffTimersUI(config, STORAGE_KEYS);
+        setInterval(() => updateBuffTimersUI(config, STORAGE_KEYS), 1000); // Update the timer every second
+        initOrderTracking(config, STORAGE_KEYS);
         initKeyboardShortcuts();
-        initRepairAgeIndicator(config);
-        initRepairListQuickView();
-
+        
+        // Initialize new workflow features
+        initRepairAgeIndicator(config); // Add age indicators to service list
+        initRepairListQuickView();      // Add 👁 quick-view buttons to every list row
+        
+        // Ensure Status 40 button is initialized on repair edit pages
         if (window.location.pathname.includes('service_edit.php') && typeof window.initStatus40Button === 'function') {
+            // Call twice with slight delay to handle late DOM elements
             setTimeout(() => window.initStatus40Button(), 200);
             setTimeout(() => window.initStatus40Button(), 1200);
         }
-
+        
+        // Initialize suggested price transfer button on repair edit pages
         initSuggestedPriceTransfer();
         if (typeof window.initRepairPhoneButton === 'function') {
             window.initRepairPhoneButton();
         }
+        
+        // Initialize status hover preview for menu items
         initStatusHoverPreview();
-
+        
+        // Initialize order link button for status 65 repairs
         if (config?.orderLinkEnabled !== false && typeof window.initOrderLinkModule === 'function') {
             window.initOrderLinkModule();
         } else if (typeof window.teardownOrderLinkModule === 'function') {
             window.teardownOrderLinkModule();
         }
-
+        
+        // Track repair access with a delay to ensure DOM is loaded
         setTimeout(() => {
             trackRepairAccess(config, STORAGE_KEYS);
         }, 1000);
+
+        console.log('[MMS] MyManager All-in-One Suite Loaded!');
 
         if (typeof window.initScriptUpdateChecker === 'function') {
             window.initScriptUpdateChecker();
         }
 
+        // Update shop button visibility on page load
+        if (typeof window.updateShopButtonVisibility === 'function') {
+            window.updateShopButtonVisibility(config);
+        }
+        
+        // Update recent repairs button visibility on page load
         if (typeof window.updateRecentRepairsButtonVisibility === 'function') {
             window.updateRecentRepairsButtonVisibility(config);
         }
+        
+        // Update weather widget visibility on page load
+        if (typeof window.updateWeatherWidgetVisibility === 'function') {
+            window.updateWeatherWidgetVisibility(config);
+        }
+        
+        // Update phone catalog button visibility on page load
+        if (typeof window.updatePhoneCatalogButtonVisibility === 'function') {
+            window.updatePhoneCatalogButtonVisibility(config);
+        }
+
+        // Update super search menu item visibility on page load
         if (typeof window.updateSearchMenuItemVisibility === 'function') {
             window.updateSearchMenuItemVisibility(config);
         }
-
-        // Heavy modules (mascot / gamification / phone / weather / scratchpad) may arrive
-        // in the deferred bundle — run when ready, or immediately if already present.
-        window.__tmRunDeferredFeatureInits = function __tmRunDeferredFeatureInits() {
-            if (window.__tmDeferredFeaturesStarted) return;
-            window.__tmDeferredFeaturesStarted = true;
-            try {
-                if (typeof initInteractiveMascot === 'function') {
-                    initInteractiveMascot(config, STORAGE_KEYS);
-                }
-                if (config.randomEventsEnabled && typeof window.checkRandomEvent === 'function') {
-                    window.checkRandomEvent(config, STORAGE_KEYS);
-                    setInterval(() => window.checkRandomEvent(config, STORAGE_KEYS), 2.5 * 60 * 60 * 1000);
-                    const activeEvent = JSON.parse(GM_getValue(STORAGE_KEYS.ACTIVE_EVENT, 'null'));
-                    if (activeEvent && Date.now() < activeEvent.expiresAt) {
-                        window.updateEventNotification(activeEvent);
-                    }
-                }
-                if (typeof window.teardownBossBattlesUI === 'function') {
-                    window.teardownBossBattlesUI(STORAGE_KEYS);
-                }
-                if (config?.scratchpadEnabled && typeof window.initScratchpadFeature === 'function') {
-                    window.initScratchpadFeature(config, STORAGE_KEYS);
-                }
-                if (typeof window.initPhoneCatalogMenuItem === 'function') {
-                    window.initPhoneCatalogMenuItem(config);
-                }
-                if (config?.scratchpadEnabled) {
-                    initReminderSystem(STORAGE_KEYS);
-                }
-                if (typeof initFunFeatures === 'function') {
-                    initFunFeatures(config);
-                }
-                if (typeof initMascotPageReactions === 'function') {
-                    initMascotPageReactions(config);
-                }
-                if (typeof initScratchpadIntegration === 'function') {
-                    initScratchpadIntegration();
-                }
-                if (typeof fetchWeatherAndReact === 'function') {
-                    fetchWeatherAndReact(config);
-                }
-                if (typeof window.updateBuffTimersUI === 'function') {
-                    window.updateBuffTimersUI(config, STORAGE_KEYS);
-                    setInterval(() => window.updateBuffTimersUI(config, STORAGE_KEYS), 1000);
-                }
-                if (typeof window.initOrderTracking === 'function') {
-                    window.initOrderTracking(config, STORAGE_KEYS);
-                }
-                if (typeof window.updateShopButtonVisibility === 'function') {
-                    window.updateShopButtonVisibility(config);
-                }
-                if (typeof window.updateWeatherWidgetVisibility === 'function') {
-                    window.updateWeatherWidgetVisibility(config);
-                }
-                if (typeof window.updatePhoneCatalogButtonVisibility === 'function') {
-                    window.updatePhoneCatalogButtonVisibility(config);
-                }
-                if (typeof window.updateOrderHistoryButtonVisibility === 'function') {
-                    window.updateOrderHistoryButtonVisibility(config);
-                }
-                // Re-run footer setup so XP/shop/weather slots fill after defer loads.
-                trySetupFooter();
-                console.log('[MMS] Deferred features ready');
-            } catch (deferErr) {
-                console.error('[MMS] Deferred feature init failed:', deferErr);
-            }
-        };
-
-        if (window.__tmDeferLoaded || typeof initInteractiveMascot === 'function') {
-            window.__tmRunDeferredFeatureInits();
+        
+        // Update order history button visibility on page load
+        if (typeof window.updateOrderHistoryButtonVisibility === 'function') {
+            window.updateOrderHistoryButtonVisibility(config);
         }
-
-        console.log('[MMS] MyManager All-in-One Suite core ready');
         } catch (initError) {
             console.error('[MMS] initializeScript failed — revealing page anyway:', initError);
         } finally {
