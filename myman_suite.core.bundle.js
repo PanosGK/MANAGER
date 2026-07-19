@@ -1,4 +1,4 @@
-/* MyManager Suite core v238 / Custom Ver. 23.1 — generated, do not edit */
+/* MyManager Suite core v239 / Custom Ver. 24.0 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3200,10 +3200,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '237',
+        version: '238',
         loaderVersion: '23',
-        silentVersion: '0',
-        displayVersion: '23.0',
+        silentVersion: '1',
+        displayVersion: '23.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -25107,6 +25107,26 @@ if (typeof window !== 'undefined') {
 // ----- myman_allinone.js -----
 (function() {
     'use strict';
+
+    // Safe stubs until gamification (or a newer core cache) is present.
+    // Prevents footer/settings from aborting init when an old deferred split is cached.
+    if (typeof window.updateCoinBalanceUI !== 'function') {
+        window.updateCoinBalanceUI = function updateCoinBalanceUIStub(STORAGE_KEYS, balance) {
+            const el = document.getElementById('tm-coin-balance');
+            if (!el) return;
+            const value = balance != null ? balance : (typeof GM_getValue === 'function'
+                ? GM_getValue(STORAGE_KEYS?.USER_COINS || 'tm_user_coins', 0)
+                : 0);
+            el.innerHTML = `🪙 ${value}`;
+            el.style.display = '';
+        };
+    }
+    if (typeof window.updateShopButtonVisibility !== 'function') {
+        window.updateShopButtonVisibility = function updateShopButtonVisibilityStub() { /* filled by gamification */ };
+    }
+    if (typeof window.initXpBarWidget !== 'function') {
+        window.initXpBarWidget = function initXpBarWidgetStub() { /* filled by gamification */ };
+    }
 
     // ===================================================================
     // === MAIN SCRIPT INITIALIZATION

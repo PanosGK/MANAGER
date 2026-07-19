@@ -1,6 +1,26 @@
 (function() {
     'use strict';
 
+    // Safe stubs until gamification (or a newer core cache) is present.
+    // Prevents footer/settings from aborting init when an old deferred split is cached.
+    if (typeof window.updateCoinBalanceUI !== 'function') {
+        window.updateCoinBalanceUI = function updateCoinBalanceUIStub(STORAGE_KEYS, balance) {
+            const el = document.getElementById('tm-coin-balance');
+            if (!el) return;
+            const value = balance != null ? balance : (typeof GM_getValue === 'function'
+                ? GM_getValue(STORAGE_KEYS?.USER_COINS || 'tm_user_coins', 0)
+                : 0);
+            el.innerHTML = `🪙 ${value}`;
+            el.style.display = '';
+        };
+    }
+    if (typeof window.updateShopButtonVisibility !== 'function') {
+        window.updateShopButtonVisibility = function updateShopButtonVisibilityStub() { /* filled by gamification */ };
+    }
+    if (typeof window.initXpBarWidget !== 'function') {
+        window.initXpBarWidget = function initXpBarWidgetStub() { /* filled by gamification */ };
+    }
+
     // ===================================================================
     // === MAIN SCRIPT INITIALIZATION
     // ===================================================================

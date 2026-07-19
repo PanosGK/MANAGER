@@ -318,7 +318,8 @@ function buildInlineBootstrap({ localCoreUrl = null, localDeferUrl = null } = {}
 
     var BUNDLE_IDB_NAME = 'tm_mms_bundle_cache';
     var BUNDLE_IDB_STORE = 'bundles';
-    var BUNDLE_IDB_VERSION = 2;
+    var BUNDLE_IDB_VERSION = 3;
+    var BUNDLE_CACHE_SCHEMA = 's3';
 
     function withBundleIdb(onReady, onError) {
         try {
@@ -341,7 +342,7 @@ function buildInlineBootstrap({ localCoreUrl = null, localDeferUrl = null } = {}
     }
 
     function cacheKey(part, versionTag) {
-        return String(part) + ':' + String(versionTag);
+        return BUNDLE_CACHE_SCHEMA + ':' + String(part) + ':' + String(versionTag);
     }
 
     function readCachedBundle(part, versionTag, onHit, onMiss) {
@@ -437,6 +438,12 @@ function buildInlineBootstrap({ localCoreUrl = null, localDeferUrl = null } = {}
 
     function loadCachedOrDownload(part, versionTag, onAfterCacheHit) {
         readCachedBundle(part, versionTag, function (code) {
+            // Reject incomplete cores from older defer splits (missing shop/XP helpers).
+            if (part === 'core' && code.indexOf('window.updateCoinBalanceUI = updateCoinBalanceUI') === -1) {
+                console.warn('[MMS] Stale core cache (no gamification) — re-downloading v' + versionTag);
+                downloadBundlePart(part, versionTag, { cacheOnly: false });
+                return;
+            }
             console.log('[MMS] ' + part + ' cache hit v' + versionTag);
             try {
                 runBundle(code);

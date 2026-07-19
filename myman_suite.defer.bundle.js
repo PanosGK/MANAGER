@@ -1,4 +1,4 @@
-/* MyManager Suite defer v238 / Custom Ver. 23.1 — generated, do not edit */
+/* MyManager Suite defer v239 / Custom Ver. 24.0 — generated, do not edit */
 
 
 // ----- myman_scratchpad.js -----

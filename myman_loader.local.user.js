@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite (Local Dev)
 // @namespace    http://tampermonkey.net/
-// @version      23
+// @version      24
 // @description  Local development — async file:// core+defer bundles. Enable "Allow access to local file URLs". Run: npm run build.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -22,12 +22,12 @@
 (function tmMmsLoaderBootstrap() {
     'use strict';
 
-    var LOADER_VERSION = "23";
+    var LOADER_VERSION = "24";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var CORE_BUNDLE_FILE = "myman_suite.core.bundle.js";
     var DEFER_BUNDLE_FILE = "myman_suite.defer.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "238";
+    var FALLBACK_BUNDLE_VERSION = "239";
     var LOCAL_CORE_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.core.bundle.js";
     var LOCAL_DEFER_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.defer.bundle.js";
 
@@ -300,7 +300,8 @@
 
     var BUNDLE_IDB_NAME = 'tm_mms_bundle_cache';
     var BUNDLE_IDB_STORE = 'bundles';
-    var BUNDLE_IDB_VERSION = 2;
+    var BUNDLE_IDB_VERSION = 3;
+    var BUNDLE_CACHE_SCHEMA = 's3';
 
     function withBundleIdb(onReady, onError) {
         try {
@@ -323,7 +324,7 @@
     }
 
     function cacheKey(part, versionTag) {
-        return String(part) + ':' + String(versionTag);
+        return BUNDLE_CACHE_SCHEMA + ':' + String(part) + ':' + String(versionTag);
     }
 
     function readCachedBundle(part, versionTag, onHit, onMiss) {
@@ -419,6 +420,12 @@
 
     function loadCachedOrDownload(part, versionTag, onAfterCacheHit) {
         readCachedBundle(part, versionTag, function (code) {
+            // Reject incomplete cores from older defer splits (missing shop/XP helpers).
+            if (part === 'core' && code.indexOf('window.updateCoinBalanceUI = updateCoinBalanceUI') === -1) {
+                console.warn('[MMS] Stale core cache (no gamification) — re-downloading v' + versionTag);
+                downloadBundlePart(part, versionTag, { cacheOnly: false });
+                return;
+            }
             console.log('[MMS] ' + part + ' cache hit v' + versionTag);
             try {
                 runBundle(code);

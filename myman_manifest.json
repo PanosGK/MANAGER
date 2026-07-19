@@ -1,11 +1,11 @@
 {
-  "version": "238",
-  "loaderVersion": "23",
-  "silentVersion": "1",
-  "displayVersion": "23.1",
+  "version": "239",
+  "loaderVersion": "24",
+  "silentVersion": "0",
+  "displayVersion": "24.0",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "fix shop/coins when deferring mascot; keep gamification in core",
+  "releaseNotes": "invalidate stale core cache; stub coins/XP until gamification ready",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
