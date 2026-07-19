@@ -1,11 +1,11 @@
 {
-  "version": "245",
-  "loaderVersion": "29",
+  "version": "246",
+  "loaderVersion": "30",
   "silentVersion": "0",
-  "displayVersion": "29.0",
+  "displayVersion": "30.0",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "FOUC: Chrome document_start extension (TM cannot beat first paint)",
+  "releaseNotes": "single one-click Tampermonkey install only (no extension/companion)",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
