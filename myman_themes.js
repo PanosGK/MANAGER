@@ -2350,6 +2350,12 @@ function tmApplyThemeColors(themeId, options = {}) {
         window.tmInjectPerformanceStyles();
     }
 
+    if (typeof window.tmRevealThemeReady === 'function') {
+        window.tmRevealThemeReady();
+    } else {
+        root.classList.add('tm-mms-theme-ready');
+    }
+
     return theme;
 }
 

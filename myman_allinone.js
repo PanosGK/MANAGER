@@ -191,6 +191,12 @@
                 updatedAt: Date.now(),
             }));
         } catch (_) { /* ignore */ }
+
+        if (typeof window.tmRevealThemeReady === 'function') {
+            window.tmRevealThemeReady();
+        } else {
+            document.documentElement.classList.add('tm-mms-theme-ready');
+        }
     }
     
     // Make applyTheme globally accessible for external scripts
@@ -5037,6 +5043,11 @@
             window.tmRevealThemedPageIfReady();
         }
         document.documentElement.classList.add('tm-mms-menu-ready');
+        if (typeof window.tmRevealThemeReady === 'function') {
+            window.tmRevealThemeReady();
+        } else {
+            document.documentElement.classList.add('tm-mms-theme-ready');
+        }
     }
 
     function scheduleScriptInitialization() {

@@ -1,11 +1,11 @@
 {
-  "version": "240",
-  "loaderVersion": "25",
+  "version": "242",
+  "loaderVersion": "26",
   "silentVersion": "0",
-  "displayVersion": "25.0",
+  "displayVersion": "26.0",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "revert core/defer split; bump loader so Tampermonkey upgrades past v23/v24",
+  "releaseNotes": "integrate theme FOUC guard into main loader (hide until theme ready, 5s failsafe)",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

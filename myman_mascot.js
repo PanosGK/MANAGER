@@ -11650,7 +11650,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="60%" style="stop-color:#ff6d00;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#7f0000;stop-opacity:1" />
                         </linearGradient>
-                        <radialGradient id="phoenix-mid-ash" cx="50%" cy="50%" r="50%>
+                        <radialGradient id="phoenix-mid-ash" cx="50%" cy="50%" r="50%">
                             <stop offset="0%" style="stop-color:#90a4ae;stop-opacity:0.65" />
                             <stop offset="100%" style="stop-color:#37474f;stop-opacity:0.25" />
                         </radialGradient>

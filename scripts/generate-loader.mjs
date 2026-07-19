@@ -260,9 +260,9 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
     function applyCachedThemeColors() {
         try {
             var raw = readProfileScoped('tm_theme_colors_cache', null);
-            if (!raw) return;
+            if (!raw) return false;
             var cache = typeof raw === 'string' ? JSON.parse(raw) : raw;
-            if (!cache || !cache.colors) return;
+            if (!cache || !cache.colors) return false;
             var root = document.documentElement;
             Object.keys(cache.colors).forEach(function (variable) {
                 root.style.setProperty(variable, cache.colors[variable]);
@@ -271,12 +271,55 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
             if (bg) {
                 root.style.backgroundColor = bg;
             }
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    var THEME_READY_CLASS = 'tm-mms-theme-ready';
+    var FOUC_FAILSAFE_MS = 5000;
+
+    function tmRevealThemeReady() {
+        var root = document.documentElement;
+        if (root.classList.contains(THEME_READY_CLASS)) return;
+        root.classList.add(THEME_READY_CLASS);
+        try {
+            root.style.removeProperty('visibility');
+            root.style.removeProperty('opacity');
         } catch (e) { /* ignore */ }
+        root.classList.add('tm-mms-menu-ready');
+    }
+    window.tmRevealThemeReady = tmRevealThemeReady;
+
+    function installThemeFoucGuard() {
+        var root = document.documentElement;
+        try {
+            root.style.setProperty('visibility', 'hidden', 'important');
+            root.style.setProperty('opacity', '0', 'important');
+            root.style.backgroundColor = root.style.backgroundColor || '#121212';
+        } catch (e) { /* ignore */ }
+
+        if (document.getElementById('tm-mms-fouc-guard')) return;
+        var style = document.createElement('style');
+        style.id = 'tm-mms-fouc-guard';
+        style.textContent = [
+            'html:not(.' + THEME_READY_CLASS + '){',
+            'visibility:hidden!important;',
+            'opacity:0!important;',
+            '}',
+            'html:not(.' + THEME_READY_CLASS + ') body{',
+            'visibility:hidden!important;',
+            'opacity:0!important;',
+            '}',
+        ].join('');
+        (document.head || root).appendChild(style);
+        setTimeout(tmRevealThemeReady, FOUC_FAILSAFE_MS);
     }
 
     function onBundleFailure(reason) {
         console.error('[MMS] Bundle load failed:', reason || 'unknown');
-        document.documentElement.classList.add('tm-mms-menu-ready');
+        tmRevealThemeReady();
     }
 
     function exposeTampermonkeyApisForBundle() {
@@ -484,6 +527,7 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
 
     if (shouldSkip()) {
         document.documentElement.classList.add('tm-mms-menu-ready');
+        document.documentElement.classList.add('tm-mms-theme-ready');
         return;
     }
 
@@ -498,11 +542,18 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
     var loginPath = (window.location && window.location.pathname) || '';
     if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {
         document.documentElement.classList.add('tm-mms-menu-ready');
+        document.documentElement.classList.add('tm-mms-theme-ready');
         runStatus40InlineAutoLogin();
         return;
     }
 
-    applyCachedThemeColors();
+    installThemeFoucGuard();
+    var hadThemeCache = applyCachedThemeColors();
+    var equippedTheme = String(readProfileScoped('tm_equipped_theme', 'default') || 'default');
+    // Default theme, or cached colors already painted → show page; otherwise wait for suite theme apply.
+    if (equippedTheme === 'default' || hadThemeCache) {
+        tmRevealThemeReady();
+    }
     startBundleLoad();
 })();`;
 }

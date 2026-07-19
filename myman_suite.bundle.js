@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v240 / Custom Ver. 25.0 — generated, do not edit */
+/* MyManager Suite bundle v242 / Custom Ver. 26.0 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -492,6 +492,7 @@ img[src='images/smsdelivered.png'] {
     try {
         if (GM_getValue('tm_script_enabled', true) === false) {
             root.classList.add('tm-mms-menu-ready');
+            root.classList.add('tm-mms-theme-ready');
             return;
         }
     } catch (_) { /* ignore */ }
@@ -568,6 +569,13 @@ img[src='images/smsdelivered.png'] {
     }
 
     window.__tmEarlyThemeId = themeId;
+
+    if (typeof window.tmRevealThemeReady === 'function') {
+        // Cached/default colors are on the root — safe to show the page.
+        if (themeId === 'default' || (cache && cache.colors)) {
+            window.tmRevealThemeReady();
+        }
+    }
 
     const HIDDEN_MENU_KEY = 'tm_hidden_menu_items';
     const menuFeatureEnabled = readProfileScoped('hiddenMenuItemsEnabled', true) !== false;
@@ -646,6 +654,11 @@ window.tmRevealThemedPageIfReady = function tmRevealThemedPageIfReady() {
         return;
     }
     document.documentElement.classList.add('tm-mms-menu-ready');
+    if (typeof window.tmRevealThemeReady === 'function') {
+        window.tmRevealThemeReady();
+    } else {
+        document.documentElement.classList.add('tm-mms-theme-ready');
+    }
 };
 
 
@@ -3158,6 +3171,12 @@ function tmApplyThemeColors(themeId, options = {}) {
         window.tmInjectPerformanceStyles();
     }
 
+    if (typeof window.tmRevealThemeReady === 'function') {
+        window.tmRevealThemeReady();
+    } else {
+        root.classList.add('tm-mms-theme-ready');
+    }
+
     return theme;
 }
 
@@ -3200,10 +3219,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '236',
-        loaderVersion: '22',
+        version: '242',
+        loaderVersion: '26',
         silentVersion: '0',
-        displayVersion: '22.0',
+        displayVersion: '26.0',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -28694,7 +28713,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="60%" style="stop-color:#ff6d00;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#7f0000;stop-opacity:1" />
                         </linearGradient>
-                        <radialGradient id="phoenix-mid-ash" cx="50%" cy="50%" r="50%>
+                        <radialGradient id="phoenix-mid-ash" cx="50%" cy="50%" r="50%">
                             <stop offset="0%" style="stop-color:#90a4ae;stop-opacity:0.65" />
                             <stop offset="100%" style="stop-color:#37474f;stop-opacity:0.25" />
                         </radialGradient>
@@ -53566,6 +53585,12 @@ if (typeof window !== 'undefined') {
                 updatedAt: Date.now(),
             }));
         } catch (_) { /* ignore */ }
+
+        if (typeof window.tmRevealThemeReady === 'function') {
+            window.tmRevealThemeReady();
+        } else {
+            document.documentElement.classList.add('tm-mms-theme-ready');
+        }
     }
     
     // Make applyTheme globally accessible for external scripts
@@ -58412,6 +58437,11 @@ if (typeof window !== 'undefined') {
             window.tmRevealThemedPageIfReady();
         }
         document.documentElement.classList.add('tm-mms-menu-ready');
+        if (typeof window.tmRevealThemeReady === 'function') {
+            window.tmRevealThemeReady();
+        } else {
+            document.documentElement.classList.add('tm-mms-theme-ready');
+        }
     }
 
     function scheduleScriptInitialization() {
