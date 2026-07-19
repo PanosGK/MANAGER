@@ -1,11 +1,11 @@
 {
-  "version": "243",
-  "loaderVersion": "27",
+  "version": "244",
+  "loaderVersion": "28",
   "silentVersion": "0",
-  "displayVersion": "27.0",
+  "displayVersion": "28.0",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "FOUC: keep page blank until theme apply (stop instant reveal on cache)",
+  "releaseNotes": "FOUC: hide before GM calls; optional grant-none instant guard for zero glimpse",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

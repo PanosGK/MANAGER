@@ -38,6 +38,35 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
     return `(function tmMmsLoaderBootstrap() {
     'use strict';
 
+    var THEME_READY_CLASS = 'tm-mms-theme-ready';
+    var FOUC_FAILSAFE_MS = 8000;
+
+    // Hide BEFORE any GM_* calls — those delay injection paint and cause a page glimpse.
+    (function hidePageInstantly() {
+        try {
+            var path = (window.location && window.location.pathname) || '';
+            if (path.indexOf('login.php') !== -1) return;
+            if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
+            var root = document.documentElement;
+            if (!root) return;
+            root.classList.remove(THEME_READY_CLASS);
+            root.setAttribute('data-tm-mms-fouc', '1');
+            root.style.setProperty('display', 'none', 'important');
+            root.style.setProperty('visibility', 'hidden', 'important');
+            root.style.setProperty('opacity', '0', 'important');
+            root.style.setProperty('background', '#121212', 'important');
+            var css = 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + '),'
+                + 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + ') body{'
+                + 'display:none!important;visibility:hidden!important;opacity:0!important;}'
+                + 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + '){'
+                + 'background:#121212!important;}';
+            var style = document.createElement('style');
+            style.id = 'tm-mms-fouc-guard';
+            style.textContent = css;
+            root.appendChild(style);
+        } catch (e) { /* ignore */ }
+    })();
+
     var LOADER_VERSION = ${JSON.stringify(String(loaderVersion))};
     var UPDATE_BASE = ${JSON.stringify(updateBase)};
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
@@ -277,52 +306,46 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
         }
     }
 
-    var THEME_READY_CLASS = 'tm-mms-theme-ready';
-    var FOUC_FAILSAFE_MS = 8000;
-
     function tmRevealThemeReady() {
         var root = document.documentElement;
         if (root.classList.contains(THEME_READY_CLASS)) return;
         root.classList.add(THEME_READY_CLASS);
         try {
+            root.removeAttribute('data-tm-mms-fouc');
+            root.style.removeProperty('display');
             root.style.removeProperty('visibility');
             root.style.removeProperty('opacity');
+            root.style.removeProperty('background');
         } catch (e) { /* ignore */ }
         root.classList.add('tm-mms-menu-ready');
     }
     window.tmRevealThemeReady = tmRevealThemeReady;
 
     function installThemeFoucGuard() {
-        var root = document.documentElement;
-        // Keep page blank until the suite applies theme (or failsafe).
-        try {
-            root.classList.remove(THEME_READY_CLASS);
-            root.style.setProperty('visibility', 'hidden', 'important');
-            root.style.setProperty('opacity', '0', 'important');
-            if (!root.style.backgroundColor) root.style.backgroundColor = '#121212';
-        } catch (e) { /* ignore */ }
-
-        var css = [
-            'html:not(.' + THEME_READY_CLASS + '),',
-            'html:not(.' + THEME_READY_CLASS + ') body{',
-            'visibility:hidden!important;',
-            'opacity:0!important;',
-            '}',
-            'html:not(.' + THEME_READY_CLASS + '){',
-            'background:#121212!important;',
-            '}',
-        ].join('');
-
+        // Instant hide already ran at bootstrap start; ensure failsafe + GM style backup.
+        var css = 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + '),'
+            + 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + ') body{'
+            + 'display:none!important;visibility:hidden!important;opacity:0!important;}'
+            + 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + '){'
+            + 'background:#121212!important;}';
         if (typeof GM_addStyle === 'function') {
-            try { GM_addStyle(css); } catch (e2) { /* ignore */ }
+            try { GM_addStyle(css); } catch (e) { /* ignore */ }
         }
-
         if (!document.getElementById('tm-mms-fouc-guard')) {
             var style = document.createElement('style');
             style.id = 'tm-mms-fouc-guard';
             style.textContent = css;
             (document.documentElement || document.head || document).appendChild(style);
         }
+        try {
+            var root = document.documentElement;
+            if (root && !root.classList.contains(THEME_READY_CLASS)) {
+                root.setAttribute('data-tm-mms-fouc', '1');
+                root.style.setProperty('display', 'none', 'important');
+                root.style.setProperty('visibility', 'hidden', 'important');
+                root.style.setProperty('opacity', '0', 'important');
+            }
+        } catch (e2) { /* ignore */ }
         setTimeout(tmRevealThemeReady, FOUC_FAILSAFE_MS);
     }
 
@@ -535,8 +558,11 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
     }
 
     if (shouldSkip()) {
-        document.documentElement.classList.add('tm-mms-menu-ready');
-        document.documentElement.classList.add('tm-mms-theme-ready');
+        if (typeof tmRevealThemeReady === 'function') tmRevealThemeReady();
+        else {
+            document.documentElement.classList.add('tm-mms-menu-ready');
+            document.documentElement.classList.add('tm-mms-theme-ready');
+        }
         return;
     }
 
@@ -550,8 +576,11 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
 
     var loginPath = (window.location && window.location.pathname) || '';
     if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {
-        document.documentElement.classList.add('tm-mms-menu-ready');
-        document.documentElement.classList.add('tm-mms-theme-ready');
+        if (typeof tmRevealThemeReady === 'function') tmRevealThemeReady();
+        else {
+            document.documentElement.classList.add('tm-mms-menu-ready');
+            document.documentElement.classList.add('tm-mms-theme-ready');
+        }
         runStatus40InlineAutoLogin();
         return;
     }
