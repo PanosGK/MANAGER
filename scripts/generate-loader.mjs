@@ -312,6 +312,7 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
         root.classList.add(THEME_READY_CLASS);
         try {
             root.removeAttribute('data-tm-mms-fouc');
+            root.classList.remove('tm-mms-fouc-ext');
             root.style.removeProperty('display');
             root.style.removeProperty('visibility');
             root.style.removeProperty('opacity');

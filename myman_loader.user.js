@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite
 // @namespace    http://tampermonkey.net/
-// @version      28
+// @version      29
 // @description  An all-in-one suite for mymanager.gr. Auto-updates from GitHub — install this file once.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -53,11 +53,11 @@
         } catch (e) { /* ignore */ }
     })();
 
-    var LOADER_VERSION = "28";
+    var LOADER_VERSION = "29";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "244";
+    var FALLBACK_BUNDLE_VERSION = "245";
     var LOCAL_BUNDLE_URL = null;
 
     try {
@@ -298,6 +298,7 @@
         root.classList.add(THEME_READY_CLASS);
         try {
             root.removeAttribute('data-tm-mms-fouc');
+            root.classList.remove('tm-mms-fouc-ext');
             root.style.removeProperty('display');
             root.style.removeProperty('visibility');
             root.style.removeProperty('opacity');
