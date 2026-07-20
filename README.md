@@ -11,9 +11,9 @@ Tampermonkey userscript suite that enhances [MyManager](https://thefixers.mymana
     - Tampermonkey should offer to install it  
     - Or: Tampermonkey → Create new script → paste the loader contents → Save
 4. Install the FOUC companion (stops the unthemed flash before the suite loads):
-    - Open `myman_fouc.user.js` on GitHub → **Raw** → install
-    - Keep it enabled alongside the main loader
-5. In Tampermonkey: **Settings → Experimental → Inject Mode → Instant** (required so the FOUC script can hide the page before Chrome paints).
+    - Open `myman_fouc.user.js` on GitHub → **Raw** → install (reinstall/update if you already have an older copy)
+    - Keep it enabled alongside the main loader (Dashboard: drag it above the suite if order is available)
+5. In Tampermonkey: **Settings → Experimental → Inject Mode → Instant** (required so the FOUC script can hide the page before Chrome paints). Without Instant mode, Chrome will still flash the unthemed page.
 6. Enable **Check for userscript updates** in Tampermonkey settings (daily or on browser start).
 
 Tampermonkey will check `@updateURL` and pull new versions automatically. You do **not** need to copy files manually.

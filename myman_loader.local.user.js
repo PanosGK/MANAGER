@@ -26,7 +26,8 @@
     var FOUC_FAILSAFE_MS = 8000;
 
     // Hide BEFORE any GM_* calls — those delay injection paint and cause a page glimpse.
-    // Prefer myman_fouc.user.js (@grant none) for earliest hide; this reinforces if missing.
+    // Prefer myman_fouc.user.js for earliest hide; this reinforces if missing.
+    // Hide by class alone (no data-attr race). Do NOT reveal until themes.js.
     (function hidePageInstantly() {
         try {
             var path = (window.location && window.location.pathname) || '';
@@ -48,11 +49,14 @@
             root.style.setProperty('visibility', 'hidden', 'important');
             root.style.setProperty('opacity', '0', 'important');
             root.style.setProperty('background', bg, 'important');
-            var css = 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + '),'
-                + 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + ') body{'
+            var css = 'html:not(.' + THEME_READY_CLASS + '),'
+                + 'html:not(.' + THEME_READY_CLASS + ') body{'
                 + 'display:none!important;visibility:hidden!important;opacity:0!important;}'
-                + 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + '){'
+                + 'html:not(.' + THEME_READY_CLASS + '){'
                 + 'background:' + bg + '!important;}';
+            if (typeof GM_addStyle === 'function') {
+                try { GM_addStyle(css); } catch (eGm) { /* ignore */ }
+            }
             var style = document.getElementById('tm-mms-fouc-guard');
             if (!style) {
                 style = document.createElement('style');
@@ -340,11 +344,19 @@
 
     function installThemeFoucGuard() {
         // Instant hide already ran at bootstrap start; ensure failsafe + GM style backup.
-        var css = 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + '),'
-            + 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + ') body{'
+        var bg = '#121212';
+        try {
+            var rawFouc = localStorage.getItem('tm_mms_fouc_theme');
+            if (rawFouc) {
+                var foucTheme = JSON.parse(rawFouc);
+                if (foucTheme && foucTheme.bg) bg = String(foucTheme.bg);
+            }
+        } catch (eBg) { /* ignore */ }
+        var css = 'html:not(.' + THEME_READY_CLASS + '),'
+            + 'html:not(.' + THEME_READY_CLASS + ') body{'
             + 'display:none!important;visibility:hidden!important;opacity:0!important;}'
-            + 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + '){'
-            + 'background:#121212!important;}';
+            + 'html:not(.' + THEME_READY_CLASS + '){'
+            + 'background:' + bg + '!important;}';
         if (typeof GM_addStyle === 'function') {
             try { GM_addStyle(css); } catch (e) { /* ignore */ }
         }
@@ -603,11 +615,8 @@
     }
 
     installThemeFoucGuard();
-    var hadThemeCache = applyCachedThemeColors();
-    // Reveal early when GM theme cache exists so blank is not waiting on the full bundle.
-    // Cache miss: stay blank until themes.js (or failsafe).
-    if (hadThemeCache) {
-        tmRevealThemeReady();
-    }
+    applyCachedThemeColors();
+    // Stay blank until themes.js applies the real theme (or failsafe).
+    // Do NOT reveal on cache hit — CSS vars alone still look unthemed.
     startBundleLoad();
 })();
