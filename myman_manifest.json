@@ -1,11 +1,11 @@
 {
-  "version": "263",
+  "version": "264",
   "loaderVersion": "35",
-  "silentVersion": "1",
-  "displayVersion": "35.1",
+  "silentVersion": "2",
+  "displayVersion": "35.2",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix dual suite inject: DOM claim across TM sandboxes; harder mascot dedupe",
+  "releaseNotes": "Warm egg button advances hatch (~3 clicks)",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
