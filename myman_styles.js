@@ -4637,15 +4637,21 @@
             #tm-mascot-container.mascot-moving.mascot-char-aether:not(.mascot-parked) .tm-animate-wing-right {
                 animation: tm-mythic-wing-flap-move-right 0.36s ease-in-out infinite !important;
             }
-            /* Parked: wings stay still (beat character-specific idle flaps) */
-            #tm-mascot-container.mascot-parked .tm-animate-wing-left,
-            #tm-mascot-container.mascot-parked .tm-animate-wing-right,
-            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-left,
-            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-right,
+            /* Parked: no travel flap — Aether keeps a soft sovereign breathe instead */
+            #tm-mascot-container.mascot-parked:not(.mascot-char-aether) .tm-animate-wing-left,
+            #tm-mascot-container.mascot-parked:not(.mascot-char-aether) .tm-animate-wing-right,
             #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-left,
             #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-right {
                 animation: none !important;
                 transform: none !important;
+            }
+            #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-left {
+                animation: tm-mythic-wing-breathe 5.5s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-right {
+                animation: tm-mythic-wing-breathe-right 5.5s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-idle .mascot-char-phoenix .tm-animate-tail {
                 animation: tm-legendary-tail-wag 1.6s ease-in-out infinite !important;
@@ -4936,6 +4942,126 @@
                     opacity: 0;
                     transform: translate(var(--tx, 0px), var(--ty, -48px)) scale(0.15) rotate(var(--rot, 120deg));
                 }
+            }
+            @keyframes tm-mythic-wing-breathe {
+                0%, 100% { transform: rotate(1deg) scaleY(1); }
+                50% { transform: rotate(-5deg) scaleY(1.03); }
+            }
+            @keyframes tm-mythic-wing-breathe-right {
+                0%, 100% { transform: rotate(-1deg) scaleY(1); }
+                50% { transform: rotate(5deg) scaleY(1.03); }
+            }
+            @keyframes tm-aether-trail-fade {
+                0% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%, 12px) scale(0.2); }
+            }
+            @keyframes tm-aether-stage-flash-in {
+                0% { opacity: 0; }
+                12% { opacity: 1; }
+                70% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+            @keyframes tm-aether-veil-sweep {
+                0% { transform: scale(0.4) rotate(0deg); opacity: 0.9; }
+                100% { transform: scale(2.4) rotate(40deg); opacity: 0; }
+            }
+            @keyframes tm-aether-card-rise {
+                0% { opacity: 0; transform: translate(-50%, -40%) scale(0.85); }
+                18% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%, -58%) scale(1.04); }
+            }
+            /* Sovereign idle — soft breath when still (including parked) */
+            #tm-mascot-container.mascot-char-aether.tm-aether-sovereign:not(.mascot-moving) .tm-animate-wing-left {
+                animation: tm-mythic-wing-breathe 5.2s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-sovereign:not(.mascot-moving) .tm-animate-wing-right {
+                animation: tm-mythic-wing-breathe-right 5.2s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-sovereign .tm-aether-core {
+                animation: tm-mythic-core-pulse 3.4s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-sovereign .tm-aether-fx[data-fx="sigil"].tm-fx-on .tm-aether-sigil {
+                animation: tm-mythic-sigil-pulse 3.4s ease-in-out infinite;
+            }
+            .tm-aether-trail-dot {
+                position: absolute;
+                width: 5px;
+                height: 5px;
+                margin: -2.5px 0 0 -2.5px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9996;
+                opacity: 0;
+            }
+            #tm-mascot-container.tm-aether-react .tm-mascot-robot.mascot-char-aether {
+                filter:
+                    drop-shadow(0 8px 18px rgba(18,0,31,0.4))
+                    drop-shadow(0 0 28px rgba(77,208,225,0.45))
+                    drop-shadow(0 0 56px rgba(124,77,255,0.5)) !important;
+            }
+            #tm-mascot-container.tm-aether-blade-spin .tm-aether-fx[data-fx="orbits"] {
+                animation: tm-mythic-orbit-spin-svg 2.2s linear infinite !important;
+            }
+            #tm-mascot-container.tm-aether-awaken::before {
+                opacity: 0.95 !important;
+                filter: blur(14px) !important;
+                animation: tm-mythic-aura-pulse 1.8s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.tm-aether-awaken .tm-aether-fx {
+                opacity: 0.7 !important;
+            }
+            .tm-aether-stage-flash {
+                position: fixed;
+                inset: 0;
+                z-index: 2147483000;
+                pointer-events: none;
+                animation: tm-aether-stage-flash-in 3.1s ease forwards;
+            }
+            .tm-aether-stage-flash-veil {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(circle at 50% 45%, rgba(124,77,255,0.35), transparent 55%),
+                    radial-gradient(circle at 50% 50%, rgba(38,198,218,0.18), transparent 70%),
+                    rgba(5,1,12,0.55);
+            }
+            .tm-aether-stage-flash-burst {
+                position: absolute;
+                left: 50%; top: 46%;
+                width: 120px; height: 120px;
+                margin: -60px 0 0 -60px;
+                border-radius: 50%;
+                border: 2px solid rgba(255,213,79,0.55);
+                box-shadow: 0 0 40px rgba(124,77,255,0.5), inset 0 0 30px rgba(38,198,218,0.35);
+                animation: tm-aether-veil-sweep 1.6s ease-out forwards;
+            }
+            .tm-aether-stage-flash-card {
+                position: absolute;
+                left: 50%; top: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                color: #e8e0f0;
+                font-family: Georgia, 'Times New Roman', serif;
+                animation: tm-aether-card-rise 3s ease forwards;
+                text-shadow: 0 0 18px rgba(124,77,255,0.65);
+            }
+            .tm-aether-stage-flash-kicker {
+                font-size: 11px;
+                letter-spacing: 0.28em;
+                color: #c9a227;
+                margin-bottom: 8px;
+            }
+            .tm-aether-stage-flash-title {
+                font-size: 28px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                margin-bottom: 6px;
+            }
+            .tm-aether-stage-flash-sub {
+                font-size: 13px;
+                opacity: 0.75;
+                letter-spacing: 0.12em;
             }
 
             /* Mascot States */

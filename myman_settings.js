@@ -901,6 +901,7 @@
                             <button type="button" id="tm-mascot-test-bubble" class="tm-settings-ghost-btn">Bubble</button>
                             <button type="button" id="tm-mascot-test-dodge" class="tm-settings-ghost-btn">Dodge</button>
                             <button type="button" id="tm-mascot-test-confetti" class="tm-settings-ghost-btn">Confetti</button>
+                            <button type="button" id="tm-mascot-test-awaken" class="tm-settings-ghost-btn">Awaken 🌌</button>
                             <button type="button" id="tm-mascot-reset" class="tm-settings-ghost-btn">Reset</button>
                         </div>
                     </div>
@@ -2171,6 +2172,16 @@
                     showPositiveMessage('🎉 Confetti triggered!');
                 } else {
                     showPositiveMessage('❌ Confetti function not available');
+                }
+            });
+
+            // Aether Awaken preview
+            document.getElementById('tm-mascot-test-awaken')?.addEventListener('click', () => {
+                if (typeof window.awakenAetherMythicFx === 'function') {
+                    const ok = window.awakenAetherMythicFx(7000);
+                    showPositiveMessage(ok ? '🌌 Aether Awaken!' : 'Set character to Aether first.');
+                } else {
+                    showPositiveMessage('❌ Awaken not available');
                 }
             });
             

@@ -1,11 +1,11 @@
 {
-  "version": "278",
+  "version": "279",
   "loaderVersion": "35",
-  "silentVersion": "16",
-  "displayVersion": "35.16",
+  "silentVersion": "17",
+  "displayVersion": "35.17",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Legendary multi-layer mythical Aether wings",
+  "releaseNotes": "Aether epic package: sovereign idle, evo flash, reactions, trail, regalia, Awaken",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

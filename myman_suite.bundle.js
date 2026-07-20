@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v278 / Custom Ver. 35.16 — generated, do not edit */
+/* MyManager Suite bundle v279 / Custom Ver. 35.17 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '278',
+        version: '279',
         loaderVersion: '35',
-        silentVersion: '16',
-        displayVersion: '35.16',
+        silentVersion: '17',
+        displayVersion: '35.17',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -10583,15 +10583,21 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-mascot-container.mascot-moving.mascot-char-aether:not(.mascot-parked) .tm-animate-wing-right {
                 animation: tm-mythic-wing-flap-move-right 0.36s ease-in-out infinite !important;
             }
-            /* Parked: wings stay still (beat character-specific idle flaps) */
-            #tm-mascot-container.mascot-parked .tm-animate-wing-left,
-            #tm-mascot-container.mascot-parked .tm-animate-wing-right,
-            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-left,
-            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-right,
+            /* Parked: no travel flap — Aether keeps a soft sovereign breathe instead */
+            #tm-mascot-container.mascot-parked:not(.mascot-char-aether) .tm-animate-wing-left,
+            #tm-mascot-container.mascot-parked:not(.mascot-char-aether) .tm-animate-wing-right,
             #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-left,
             #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-right {
                 animation: none !important;
                 transform: none !important;
+            }
+            #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-left {
+                animation: tm-mythic-wing-breathe 5.5s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-right {
+                animation: tm-mythic-wing-breathe-right 5.5s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-idle .mascot-char-phoenix .tm-animate-tail {
                 animation: tm-legendary-tail-wag 1.6s ease-in-out infinite !important;
@@ -10882,6 +10888,126 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     opacity: 0;
                     transform: translate(var(--tx, 0px), var(--ty, -48px)) scale(0.15) rotate(var(--rot, 120deg));
                 }
+            }
+            @keyframes tm-mythic-wing-breathe {
+                0%, 100% { transform: rotate(1deg) scaleY(1); }
+                50% { transform: rotate(-5deg) scaleY(1.03); }
+            }
+            @keyframes tm-mythic-wing-breathe-right {
+                0%, 100% { transform: rotate(-1deg) scaleY(1); }
+                50% { transform: rotate(5deg) scaleY(1.03); }
+            }
+            @keyframes tm-aether-trail-fade {
+                0% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%, 12px) scale(0.2); }
+            }
+            @keyframes tm-aether-stage-flash-in {
+                0% { opacity: 0; }
+                12% { opacity: 1; }
+                70% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+            @keyframes tm-aether-veil-sweep {
+                0% { transform: scale(0.4) rotate(0deg); opacity: 0.9; }
+                100% { transform: scale(2.4) rotate(40deg); opacity: 0; }
+            }
+            @keyframes tm-aether-card-rise {
+                0% { opacity: 0; transform: translate(-50%, -40%) scale(0.85); }
+                18% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%, -58%) scale(1.04); }
+            }
+            /* Sovereign idle — soft breath when still (including parked) */
+            #tm-mascot-container.mascot-char-aether.tm-aether-sovereign:not(.mascot-moving) .tm-animate-wing-left {
+                animation: tm-mythic-wing-breathe 5.2s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-sovereign:not(.mascot-moving) .tm-animate-wing-right {
+                animation: tm-mythic-wing-breathe-right 5.2s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-sovereign .tm-aether-core {
+                animation: tm-mythic-core-pulse 3.4s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-sovereign .tm-aether-fx[data-fx="sigil"].tm-fx-on .tm-aether-sigil {
+                animation: tm-mythic-sigil-pulse 3.4s ease-in-out infinite;
+            }
+            .tm-aether-trail-dot {
+                position: absolute;
+                width: 5px;
+                height: 5px;
+                margin: -2.5px 0 0 -2.5px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9996;
+                opacity: 0;
+            }
+            #tm-mascot-container.tm-aether-react .tm-mascot-robot.mascot-char-aether {
+                filter:
+                    drop-shadow(0 8px 18px rgba(18,0,31,0.4))
+                    drop-shadow(0 0 28px rgba(77,208,225,0.45))
+                    drop-shadow(0 0 56px rgba(124,77,255,0.5)) !important;
+            }
+            #tm-mascot-container.tm-aether-blade-spin .tm-aether-fx[data-fx="orbits"] {
+                animation: tm-mythic-orbit-spin-svg 2.2s linear infinite !important;
+            }
+            #tm-mascot-container.tm-aether-awaken::before {
+                opacity: 0.95 !important;
+                filter: blur(14px) !important;
+                animation: tm-mythic-aura-pulse 1.8s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.tm-aether-awaken .tm-aether-fx {
+                opacity: 0.7 !important;
+            }
+            .tm-aether-stage-flash {
+                position: fixed;
+                inset: 0;
+                z-index: 2147483000;
+                pointer-events: none;
+                animation: tm-aether-stage-flash-in 3.1s ease forwards;
+            }
+            .tm-aether-stage-flash-veil {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(circle at 50% 45%, rgba(124,77,255,0.35), transparent 55%),
+                    radial-gradient(circle at 50% 50%, rgba(38,198,218,0.18), transparent 70%),
+                    rgba(5,1,12,0.55);
+            }
+            .tm-aether-stage-flash-burst {
+                position: absolute;
+                left: 50%; top: 46%;
+                width: 120px; height: 120px;
+                margin: -60px 0 0 -60px;
+                border-radius: 50%;
+                border: 2px solid rgba(255,213,79,0.55);
+                box-shadow: 0 0 40px rgba(124,77,255,0.5), inset 0 0 30px rgba(38,198,218,0.35);
+                animation: tm-aether-veil-sweep 1.6s ease-out forwards;
+            }
+            .tm-aether-stage-flash-card {
+                position: absolute;
+                left: 50%; top: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                color: #e8e0f0;
+                font-family: Georgia, 'Times New Roman', serif;
+                animation: tm-aether-card-rise 3s ease forwards;
+                text-shadow: 0 0 18px rgba(124,77,255,0.65);
+            }
+            .tm-aether-stage-flash-kicker {
+                font-size: 11px;
+                letter-spacing: 0.28em;
+                color: #c9a227;
+                margin-bottom: 8px;
+            }
+            .tm-aether-stage-flash-title {
+                font-size: 28px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                margin-bottom: 6px;
+            }
+            .tm-aether-stage-flash-sub {
+                font-size: 13px;
+                opacity: 0.75;
+                letter-spacing: 0.12em;
             }
 
             /* Mascot States */
@@ -13540,6 +13666,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <button type="button" id="tm-mascot-test-bubble" class="tm-settings-ghost-btn">Bubble</button>
                             <button type="button" id="tm-mascot-test-dodge" class="tm-settings-ghost-btn">Dodge</button>
                             <button type="button" id="tm-mascot-test-confetti" class="tm-settings-ghost-btn">Confetti</button>
+                            <button type="button" id="tm-mascot-test-awaken" class="tm-settings-ghost-btn">Awaken 🌌</button>
                             <button type="button" id="tm-mascot-reset" class="tm-settings-ghost-btn">Reset</button>
                         </div>
                     </div>
@@ -14810,6 +14937,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     showPositiveMessage('🎉 Confetti triggered!');
                 } else {
                     showPositiveMessage('❌ Confetti function not available');
+                }
+            });
+
+            // Aether Awaken preview
+            document.getElementById('tm-mascot-test-awaken')?.addEventListener('click', () => {
+                if (typeof window.awakenAetherMythicFx === 'function') {
+                    const ok = window.awakenAetherMythicFx(7000);
+                    showPositiveMessage(ok ? '🌌 Aether Awaken!' : 'Set character to Aether first.');
+                } else {
+                    showPositiveMessage('❌ Awaken not available');
                 }
             });
             
@@ -18977,6 +19114,10 @@ function setMascotMood(mood, durationMs = 8000) {
         });
         el.classList.add(`mascot-mood-${mood}`);
     }
+    if ((mood === 'happy' || mood === 'proud' || mood === 'playful')
+        && tamagotchiCharacterType === 'aether') {
+        playAetherReactionFx(mood === 'proud' ? 'blade' : 'constellation');
+    }
     if (mascotMoodTimeout) {
         clearTimeout(mascotMoodTimeout);
         mascotMoodTimeout = null;
@@ -20974,6 +21115,9 @@ function runTamagotchiHatchSequence(characterType, container) {
             updateMascotAppearanceByStage('baby');
             tamaCinematicLock = false;
             showMascotBubble(mascotHatchMsg(lockedType), 3000);
+            if (lockedType === 'aether') {
+                setTimeout(() => playAetherStageCinematic('baby', { hatch: true }), 400);
+            }
             if (typeof window.STORAGE_KEYS !== 'undefined') {
                 saveTamagotchiData(window.STORAGE_KEYS);
                 updatePetStateByStats(config, window.STORAGE_KEYS);
@@ -23497,8 +23641,12 @@ function checkTamagotchiEvolution(container) {
         } else if (tamagotchiStage === 'old' && oldStage !== 'old') {
             const oldMessages = MASCOT_MESSAGES.becameOld;
             showMascotBubble(oldMessages[Math.floor(Math.random() * oldMessages.length)], 3000);
+            if (tamagotchiCharacterType === 'aether') playAetherStageCinematic('old');
         } else if (oldStage !== tamagotchiStage) {
             showMascotBubble(evolutionMessages[Math.floor(Math.random() * evolutionMessages.length)], 3000);
+            if (tamagotchiCharacterType === 'aether' && tamagotchiStage !== 'egg') {
+                playAetherStageCinematic(tamagotchiStage);
+            }
         }
         updateTamagotchiStats(container);
         saveTamagotchiData(getTamagotchiStorageKeys(
@@ -23663,10 +23811,14 @@ function createPoopParticles(container, count) {
     }
 }
 
-// ─── Aether mythical FX: random auras + particle bursts ───
+// ─── Aether mythical FX: random auras + particles + sovereign presence ───
 let aetherMythFxTimer = null;
 let aetherMythParticleTimer = null;
+let aetherSolemnBubbleTimer = null;
+let aetherTrailTimer = null;
 let aetherMythFxActive = false;
+let aetherAwakenUntil = 0;
+let aetherLastStageCinematic = '';
 
 const AETHER_FX_BY_STAGE = {
     baby: ['sparks'],
@@ -23681,6 +23833,15 @@ const AETHER_STAGE_TIER = {
     baby: 1, kid: 2, teen: 3, adult: 4, middleage: 5, old: 6,
 };
 
+const AETHER_STAGE_TITLES = {
+    baby: 'Voidseed',
+    kid: 'Veilspawn',
+    teen: 'Astral Warden',
+    adult: 'Starveil Sovereign',
+    middleage: 'Eclipse Sovereign',
+    old: 'Primordial Absolute',
+};
+
 const AETHER_PARTICLE_COLORS = {
     baby: ['#7ec8c3', '#c9a0dc', '#ffe082'],
     kid: ['#4db6ac', '#9575cd', '#ffb74d'],
@@ -23689,6 +23850,25 @@ const AETHER_PARTICLE_COLORS = {
     middleage: ['#ef5350', '#bf8f2e', '#6a1b9a'],
     old: ['#8b0000', '#c9b896', '#5d4037'],
 };
+
+const AETHER_SOLEMN_LINES = [
+    'The veil holds.',
+    'Between stars… judgment.',
+    'Silence is older than gods.',
+    'Orbit unbroken.',
+    'I do not play.',
+    'First fire remembers.',
+    'Collapse into light.',
+    'Name the dark… carefully.',
+    'Το πέπλο κρατά.',
+    'Μεταξύ αστεριών… κρίση.',
+    'Η σιωπή είναι παλαιότερη.',
+    'Δεν παίζω.',
+];
+
+function isAetherAwakened() {
+    return Date.now() < aetherAwakenUntil;
+}
 
 function stopAetherMythicFx() {
     aetherMythFxActive = false;
@@ -23700,11 +23880,22 @@ function stopAetherMythicFx() {
         clearTimeout(aetherMythParticleTimer);
         aetherMythParticleTimer = null;
     }
+    if (aetherSolemnBubbleTimer) {
+        clearTimeout(aetherSolemnBubbleTimer);
+        aetherSolemnBubbleTimer = null;
+    }
+    if (aetherTrailTimer) {
+        clearTimeout(aetherTrailTimer);
+        aetherTrailTimer = null;
+    }
     const container = document.getElementById('tm-mascot-container');
     if (!container) return;
-    container.classList.remove('tm-aether-glow-on', 'tm-aether-ring-on');
+    container.classList.remove(
+        'tm-aether-glow-on', 'tm-aether-ring-on', 'tm-aether-sovereign',
+        'tm-aether-react', 'tm-aether-awaken', 'tm-aether-blade-spin'
+    );
     container.querySelectorAll('.tm-aether-fx.tm-fx-on').forEach((el) => el.classList.remove('tm-fx-on'));
-    container.querySelectorAll('.tm-aether-myth-particle').forEach((el) => el.remove());
+    container.querySelectorAll('.tm-aether-myth-particle, .tm-aether-trail-dot').forEach((el) => el.remove());
 }
 
 function pickRandomSubset(list, minCount, maxCount) {
@@ -23714,7 +23905,6 @@ function pickRandomSubset(list, minCount, maxCount) {
         list.length,
         Math.max(minCount, Math.floor(Math.random() * (maxCount - minCount + 1)) + minCount)
     );
-    // Chance of empty / near-empty so auras aren't always on
     if (Math.random() < 0.22) return shuffled.slice(0, Math.min(1, n));
     if (Math.random() < 0.12) return [];
     return shuffled.slice(0, n);
@@ -23723,27 +23913,42 @@ function pickRandomSubset(list, minCount, maxCount) {
 function rollAetherAuraLayers(container, stage) {
     const pool = AETHER_FX_BY_STAGE[stage] || AETHER_FX_BY_STAGE.baby;
     const tier = AETHER_STAGE_TIER[stage] || 1;
-    const minOn = tier <= 2 ? 0 : 1;
-    const maxOn = Math.min(pool.length, Math.max(1, Math.ceil(tier * 0.9)));
-    const active = new Set(pickRandomSubset(pool, minOn, maxOn));
+    const awakened = isAetherAwakened();
+    let active;
+    if (awakened) {
+        active = new Set(pool);
+    } else {
+        const minOn = tier <= 2 ? 0 : 1;
+        const maxOn = Math.min(pool.length, Math.max(1, Math.ceil(tier * 0.9)));
+        active = new Set(pickRandomSubset(pool, minOn, maxOn));
+        // Sovereign idle presence — keep a faint signature layer when still
+        const moving = container.classList.contains('mascot-moving');
+        if (!moving) {
+            if (tier >= 2) active.add('corona');
+            if (tier >= 3) active.add('orbits');
+            if (tier >= 3 && Math.random() < 0.55) active.add('sigil');
+        }
+    }
 
     container.querySelectorAll('.tm-aether-fx').forEach((el) => {
         const name = el.getAttribute('data-fx');
         el.classList.toggle('tm-fx-on', active.has(name));
     });
 
-    // Container glow / orbit ring — rare early, common later, still random
-    const glowChance = 0.12 + tier * 0.1;
-    const ringChance = tier >= 3 ? 0.1 + (tier - 2) * 0.1 : 0;
-    container.classList.toggle('tm-aether-glow-on', Math.random() < glowChance);
-    container.classList.toggle('tm-aether-ring-on', Math.random() < ringChance);
+    const glowChance = awakened ? 1 : 0.12 + tier * 0.1;
+    const ringChance = awakened ? 1 : (tier >= 3 ? 0.1 + (tier - 2) * 0.1 : 0);
+    container.classList.toggle('tm-aether-glow-on', Math.random() < glowChance || awakened);
+    container.classList.toggle('tm-aether-ring-on', Math.random() < ringChance || awakened);
+    container.classList.add('tm-aether-sovereign');
 }
 
-function emitAetherMythParticles(container, stage) {
+function emitAetherMythParticles(container, stage, forceCount = null) {
     if (!container || tamagotchiIsDead) return;
     const tier = AETHER_STAGE_TIER[stage] || 1;
     const colors = AETHER_PARTICLE_COLORS[stage] || AETHER_PARTICLE_COLORS.adult;
-    const count = Math.min(3 + tier * 2 + Math.floor(Math.random() * (2 + tier)), 16);
+    const count = forceCount != null
+        ? forceCount
+        : Math.min(3 + tier * 2 + Math.floor(Math.random() * (2 + tier)), 16);
     const types = ['orb'];
     if (tier >= 2) types.push('star');
     if (tier >= 4) types.push('shard');
@@ -23783,10 +23988,32 @@ function emitAetherMythParticles(container, stage) {
     }
 }
 
+function emitAetherVeilTrail(container, stage) {
+    if (!container || !container.classList.contains('mascot-moving')) return;
+    if (container.classList.contains('mascot-parked') || mascotPositionLocked) return;
+    const colors = AETHER_PARTICLE_COLORS[stage] || AETHER_PARTICLE_COLORS.adult;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const el = document.createElement('div');
+    el.className = 'tm-aether-trail-dot';
+    const ox = (Math.random() * 18) - 9;
+    const oy = 8 + Math.random() * 14;
+    el.style.cssText = `
+        left: calc(50% + ${ox.toFixed(1)}px);
+        top: calc(50% + ${oy.toFixed(1)}px);
+        background: ${color};
+        box-shadow: 0 0 10px ${color};
+        animation: tm-aether-trail-fade 0.85s ease-out forwards;
+    `;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+}
+
 function scheduleAetherAuraRoll(container, stage) {
     if (!aetherMythFxActive) return;
     const tier = AETHER_STAGE_TIER[stage] || 1;
-    const holdMs = 1800 + Math.random() * (2200 + tier * 400);
+    const holdMs = isAetherAwakened()
+        ? 1200
+        : 1800 + Math.random() * (2200 + tier * 400);
     aetherMythFxTimer = setTimeout(() => {
         if (!aetherMythFxActive) return;
         rollAetherAuraLayers(container, stage);
@@ -23797,16 +24024,45 @@ function scheduleAetherAuraRoll(container, stage) {
 function scheduleAetherParticleBurst(container, stage) {
     if (!aetherMythFxActive) return;
     const tier = AETHER_STAGE_TIER[stage] || 1;
-    // Random quiet gaps — particles are bursts, not constant
-    const waitMs = 2500 + Math.random() * (5000 - tier * 400);
+    const waitMs = isAetherAwakened()
+        ? 900 + Math.random() * 800
+        : 2500 + Math.random() * (5000 - tier * 400);
     aetherMythParticleTimer = setTimeout(() => {
         if (!aetherMythFxActive) return;
-        // Skip some rolls so it feels sporadic
-        if (Math.random() > 0.28) {
-            emitAetherMythParticles(container, stage);
+        if (isAetherAwakened() || Math.random() > 0.28) {
+            emitAetherMythParticles(container, stage, isAetherAwakened() ? 14 + tier : null);
         }
         scheduleAetherParticleBurst(container, stage);
-    }, Math.max(1600, waitMs));
+    }, Math.max(900, waitMs));
+}
+
+function scheduleAetherSolemnBubble() {
+    if (!aetherMythFxActive) return;
+    const waitMs = 28000 + Math.random() * 45000;
+    aetherSolemnBubbleTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        if (tamagotchiCharacterType === 'aether'
+            && !tamagotchiIsDead
+            && tamagotchiStage !== 'egg'
+            && !isMascotFocusQuiet()
+            && Math.random() < 0.7) {
+            const line = AETHER_SOLEMN_LINES[Math.floor(Math.random() * AETHER_SOLEMN_LINES.length)];
+            showMascotBubble(line, 2600);
+        }
+        scheduleAetherSolemnBubble();
+    }, waitMs);
+}
+
+function scheduleAetherVeilTrail(container, stage) {
+    if (!aetherMythFxActive) return;
+    aetherTrailTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        if (container.classList.contains('mascot-moving')) {
+            emitAetherVeilTrail(container, stage);
+            if (Math.random() < 0.55) emitAetherVeilTrail(container, stage);
+        }
+        scheduleAetherVeilTrail(container, stage);
+    }, 140 + Math.random() * 180);
 }
 
 function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : 'baby') {
@@ -23818,17 +24074,96 @@ function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tam
     if (!container || !container.classList.contains('mascot-char-aether')) return;
 
     aetherMythFxActive = true;
-    // Initial quiet beat, then first roll
+    container.classList.add('tm-aether-sovereign');
     aetherMythFxTimer = setTimeout(() => {
         if (!aetherMythFxActive) return;
         rollAetherAuraLayers(container, stage);
         scheduleAetherAuraRoll(container, stage);
     }, 600 + Math.random() * 900);
     scheduleAetherParticleBurst(container, stage);
+    scheduleAetherSolemnBubble();
+    scheduleAetherVeilTrail(container, stage);
+}
+
+function playAetherReactionFx(kind = 'constellation') {
+    if (tamagotchiCharacterType !== 'aether' || tamagotchiIsDead) return;
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return;
+    const stage = tamagotchiStage || 'baby';
+    container.classList.add('tm-aether-react');
+    if (kind === 'blade' || kind === 'energized') {
+        container.classList.add('tm-aether-blade-spin');
+        const orbits = container.querySelector('.tm-aether-fx[data-fx="orbits"]');
+        orbits?.classList.add('tm-fx-on');
+    }
+    emitAetherMythParticles(container, stage, 12 + (AETHER_STAGE_TIER[stage] || 1));
+    setTimeout(() => {
+        container.classList.remove('tm-aether-react', 'tm-aether-blade-spin');
+    }, 1800);
+}
+
+function awakenAetherMythicFx(durationMs = 6000) {
+    if (tamagotchiCharacterType !== 'aether') {
+        showMascotBubble('Awaken needs Aether.', 1600);
+        return false;
+    }
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return false;
+    const stage = tamagotchiStage === 'egg' ? 'adult' : (tamagotchiStage || 'adult');
+    aetherAwakenUntil = Date.now() + durationMs;
+    container.classList.add('tm-aether-awaken', 'tm-aether-glow-on', 'tm-aether-ring-on', 'tm-aether-sovereign');
+    const pool = AETHER_FX_BY_STAGE[stage] || AETHER_FX_BY_STAGE.adult;
+    container.querySelectorAll('.tm-aether-fx').forEach((el) => {
+        const name = el.getAttribute('data-fx');
+        el.classList.toggle('tm-fx-on', pool.includes(name) || !name);
+    });
+    // Turn every fx group on during awaken
+    container.querySelectorAll('.tm-aether-fx').forEach((el) => el.classList.add('tm-fx-on'));
+    emitAetherMythParticles(container, stage, 20);
+    playAetherReactionFx('blade');
+    showMascotBubble('Awaken.', 1800);
+    setTimeout(() => {
+        container.classList.remove('tm-aether-awaken');
+        if (aetherMythFxActive) rollAetherAuraLayers(container, tamagotchiStage || stage);
+    }, durationMs);
+    return true;
+}
+
+function playAetherStageCinematic(stage, { hatch = false } = {}) {
+    if (tamagotchiCharacterType !== 'aether') return;
+    const title = AETHER_STAGE_TITLES[stage] || stage;
+    const key = `${hatch ? 'hatch' : 'evo'}:${stage}`;
+    if (aetherLastStageCinematic === key && !hatch) return;
+    aetherLastStageCinematic = key;
+
+    document.getElementById('tm-aether-stage-flash')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'tm-aether-stage-flash';
+    overlay.className = 'tm-aether-stage-flash';
+    overlay.innerHTML = `
+        <div class="tm-aether-stage-flash-veil"></div>
+        <div class="tm-aether-stage-flash-burst"></div>
+        <div class="tm-aether-stage-flash-card">
+            <div class="tm-aether-stage-flash-kicker">${hatch ? 'MYTHICAL HATCH' : 'EVOLUTION'}</div>
+            <div class="tm-aether-stage-flash-title">${title}</div>
+            <div class="tm-aether-stage-flash-sub">Starveil Aether</div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    const container = document.getElementById('tm-mascot-container');
+    if (container) {
+        emitAetherMythParticles(container, stage, 18);
+        container.classList.add('tm-aether-react');
+        setTimeout(() => container.classList.remove('tm-aether-react'), 2000);
+    }
+    setTimeout(() => overlay.remove(), 3200);
 }
 
 window.syncAetherMythicFx = syncAetherMythicFx;
 window.stopAetherMythicFx = stopAetherMythicFx;
+window.playAetherReactionFx = playAetherReactionFx;
+window.awakenAetherMythicFx = awakenAetherMythicFx;
+window.playAetherStageCinematic = playAetherStageCinematic;
 
 // Remove poop particles
 function removePoopParticles(container) {
@@ -31023,7 +31358,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path class="tm-mascot-mouth-happy" d="M 45 36 L 50 41 L 55 36" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                         <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 40 L 50 35 L 55 40" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                 </g>
-                                                                                                                                                <!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v5 · stage color progression) -->
+                                                                                                                                                                <!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v5 · stage color progression) -->
                 <!-- Voidseed → Veilspawn → Astral Warden → Sovereign → Eclipse → Primordial -->
                 <!-- ═══════════════════════════════════════ -->
 
@@ -31136,6 +31471,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle class="tm-aether-core-ring" cx="50" cy="58" r="8" fill="none" stroke="#7ec8c3" stroke-width="0.6" opacity="0.4" stroke-dasharray="2 2"/>
                             <path d="M 50 42 L 50 74" stroke="#7ec8c3" stroke-width="0.55" opacity="0.35"/>
                             <path d="M 40 50 L 60 66" stroke="#c9a0dc" stroke-width="0.45" opacity="0.25"/>
+                        </g>
+                        <g class="tm-aether-regalia">
+                            <circle cx="50" cy="42" r="3.2" fill="url(#aether-baby-core)" opacity="0.85"/>
+                            <circle cx="50" cy="42" r="5.5" fill="none" stroke="#7ec8c3" stroke-width="0.55" opacity="0.45" stroke-dasharray="1.5 2"/>
                         </g>
                         <g class="tm-animate-arm-left">
                             <ellipse cx="32" cy="62" rx="3" ry="5" fill="url(#aether-baby-body)" stroke="#6a5a82" stroke-width="0.9" opacity="0.7"/>
@@ -31287,11 +31626,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle class="tm-aether-core-ring" cx="50" cy="58" r="8.5" fill="none" stroke="#9575cd" stroke-width="0.6" opacity="0.4" stroke-dasharray="2 2"/>
                             <!-- Round head -->
                             <ellipse cx="50" cy="32" rx="13" ry="13" fill="url(#aether-kid-body)" stroke="#4a3a6a" stroke-width="1.45"/>
-                            <!-- Horn nubs -->
-                            <path d="M 40 24 L 36 16" stroke="#4db6ac" stroke-width="2" stroke-linecap="round"/>
-                            <path d="M 60 24 L 64 16" stroke="#9575cd" stroke-width="2" stroke-linecap="round"/>
-                            <circle cx="36" cy="16" r="1.5" fill="#4db6ac" opacity="0.7"/>
-                            <circle cx="64" cy="16" r="1.5" fill="#9575cd" opacity="0.7"/>
+                        </g>
+                        <g class="tm-aether-regalia">
+                            <path d="M 40 22 L 36 12 L 38 22" fill="#4db6ac" opacity="0.55"/>
+                            <path d="M 60 22 L 64 12 L 62 22" fill="#9575cd" opacity="0.55"/>
+                            <path d="M 44 18 Q 50 12 56 18" fill="none" stroke="#9575cd" stroke-width="0.9" opacity="0.6"/>
                         </g>
                         <g class="tm-animate-arm-left">
                             <path d="M 36 58 L 26 64 L 28 70 L 36 64 Z" fill="url(#aether-kid-body)" stroke="#4a3a6a" stroke-width="1"/>
@@ -31460,11 +31799,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 50 44 L 50 66" stroke="#00acc1" stroke-width="0.55" opacity="0.4"/>
                             <!-- Head -->
                             <ellipse cx="50" cy="26" rx="12.5" ry="13" fill="url(#aether-teen-body)" stroke="#2a1848" stroke-width="1.5"/>
-                            <!-- Crescent horns -->
-                            <path d="M 38 20 Q 28 8 34 4" fill="none" stroke="#00acc1" stroke-width="2.2" stroke-linecap="round"/>
-                            <path d="M 62 20 Q 72 8 66 4" fill="none" stroke="#5c6bc0" stroke-width="2.2" stroke-linecap="round"/>
-                            <circle cx="34" cy="4" r="1.7" fill="#00acc1"/>
-                            <circle cx="66" cy="4" r="1.7" fill="#5c6bc0"/>
+                        </g>
+                        <g class="tm-aether-regalia">
+                            <path d="M 38 18 Q 28 4 36 0" fill="none" stroke="#00acc1" stroke-width="2.3" stroke-linecap="round"/>
+                            <path d="M 62 18 Q 72 4 64 0" fill="none" stroke="#5c6bc0" stroke-width="2.3" stroke-linecap="round"/>
+                            <path d="M 42 10 Q 50 4 58 10" fill="none" stroke="#c0a060" stroke-width="0.8" opacity="0.55"/>
+                            <circle cx="36" cy="0" r="1.8" fill="#00acc1"/>
+                            <circle cx="64" cy="0" r="1.8" fill="#5c6bc0"/>
                         </g>
                         <g class="tm-animate-arm-left">
                             <path d="M 38 52 L 24 58 L 26 68 L 38 60 Z" fill="url(#aether-teen-body)" stroke="#2a1848" stroke-width="1.1"/>
@@ -31667,14 +32008,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 50 38 L 50 68" stroke="#26c6da" stroke-width="0.6" opacity="0.4"/>
                             <!-- Head -->
                             <path d="M 38 24 Q 38 10 50 8 Q 62 10 62 24 Q 60 34 50 36 Q 40 34 38 24 Z" fill="url(#aether-adult-body)" stroke="#1a0a30" stroke-width="1.55"/>
-                            <!-- Diadem + antlers -->
-                            <ellipse class="tm-aether-halo" cx="50" cy="8" rx="14" ry="3" fill="none" stroke="#ffd54f" stroke-width="1.3" opacity="0.75"/>
-                            <path d="M 40 14 L 50 0 L 60 14" fill="#12001f" stroke="#ffd54f" stroke-width="1.1"/>
-                            <path d="M 36 18 L 24 2" stroke="#26c6da" stroke-width="2.1" stroke-linecap="round"/>
-                            <path d="M 64 18 L 76 2" stroke="#ffd54f" stroke-width="2.1" stroke-linecap="round"/>
-                            <circle cx="24" cy="2" r="1.8" fill="#26c6da"/>
-                            <circle cx="76" cy="2" r="1.8" fill="#ffd54f"/>
-                            <circle cx="50" cy="0" r="1.6" fill="#e8e0f0"/>
+                        </g>
+                        <g class="tm-aether-regalia">
+                            <ellipse class="tm-aether-halo" cx="50" cy="6" rx="15" ry="3.2" fill="none" stroke="#ffd54f" stroke-width="1.35" opacity="0.8"/>
+                            <path d="M 40 12 L 50 -2 L 60 12" fill="#12001f" stroke="#ffd54f" stroke-width="1.15"/>
+                            <path d="M 36 16 L 22 0" stroke="#26c6da" stroke-width="2.2" stroke-linecap="round"/>
+                            <path d="M 64 16 L 78 0" stroke="#ffd54f" stroke-width="2.2" stroke-linecap="round"/>
+                            <circle cx="22" cy="0" r="1.9" fill="#26c6da"/>
+                            <circle cx="78" cy="0" r="1.9" fill="#ffd54f"/>
+                            <circle cx="50" cy="-2" r="1.7" fill="#e8e0f0"/>
                         </g>
                         <g class="tm-animate-arm-left">
                             <path d="M 36 48 L 18 54 L 20 68 L 36 58 Z" fill="url(#aether-adult-body)" stroke="#1a0a30" stroke-width="1.2"/>
@@ -31831,6 +32173,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="25" ry="22" fill="none" stroke="#6a1b9a" stroke-width="0.75" stroke-dasharray="2 4" transform="rotate(-24 50 52)"/>
                             <circle class="tm-aether-orbit-node" cx="92" cy="52" r="1.8" fill="#bf8f2e"/>
                             <circle class="tm-aether-orbit-node" cx="28.3" cy="41.55" r="1.4" fill="#ef5350"/>
+                            <ellipse class="tm-aether-orbit tm-aether-orbit-broken" cx="50" cy="52" rx="43" ry="12" fill="none" stroke="#f5e6e6" stroke-width="0.6" stroke-dasharray="6 22" transform="rotate(12 50 52)" opacity="0.55"/>
+                            <path class="tm-aether-orbit-scar" d="M 78 48 Q 86 40 90 52" fill="none" stroke="#bf8f2e" stroke-width="0.7" opacity="0.4"/>
                         </g>
                         <g class="tm-aether-fx tm-aether-runes" data-fx="runes" opacity="0">
                             <circle class="tm-aether-rune-ring" cx="50" cy="54" r="16" fill="none" stroke="#bf8f2e" stroke-width="0.7" stroke-dasharray="2 3"/>
@@ -31849,11 +32193,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path class="tm-aether-shard" d="M 24 68 L 18 64 L 26 62 Z" fill="#6a1b9a"/>
                             <path class="tm-aether-shard" d="M 76 68 L 82 64 L 74 62 Z" fill="#ef5350"/>
                         </g>
-                            <!-- Eclipse disk behind head -->
-                        <circle class="tm-aether-eclipse" cx="50" cy="22" r="16" fill="#05010c" opacity="0.55"/>
-                        <circle class="tm-aether-eclipse" cx="50" cy="22" r="16" fill="none" stroke="#bf8f2e" stroke-width="1.4" opacity="0.55"/>
-                        <circle class="tm-aether-eclipse" cx="54" cy="20" r="12" fill="url(#aether-mid-aura)" opacity="0.35"/>
-                        <g class="tm-animate-wing-left">
+                        <g class="tm-animate-wing-left" transform="translate(50 52) scale(0.94) translate(-50 -52)">
                             <path d="M 32 46 L 8 14 L -2 24 L 2 40 L -4 52 L 2 66 L 14 70 L 24 62 L 30 52 Z" fill="url(#aether-mid-wing)" stroke="#1a0508" stroke-width="1.3"/>
                             <path d="M 28 48 L 10 28 L 4 42 L 8 58 L 22 58 Z" fill="url(#aether-mid-wing2)" opacity="0.7"/>
                             <path d="M 26 50 L 12 44 L 14 58 L 24 54 Z" fill="url(#aether-mid-plate)" stroke="#1a0508" stroke-width="0.75" opacity="0.75"/>
@@ -31865,7 +32205,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle class="tm-aether-wing-star" cx="-2" cy="64" r="1.4" fill="#bf8f2e" opacity="0.85"/>
                             <circle class="tm-aether-wing-star" cx="-2" cy="64" r="3.1" fill="#bf8f2e" opacity="0.18"/>
                         </g>
-                        <g class="tm-animate-wing-right">
+                        <g class="tm-animate-wing-right" transform="translate(50 52) scale(1.14) translate(-50 -52)">
                             <path d="M 68 46 L 92 14 L 102 24 L 98 40 L 104 52 L 98 66 L 86 70 L 76 62 L 70 52 Z" fill="url(#aether-mid-wing)" stroke="#1a0508" stroke-width="1.3"/>
                             <path d="M 72 48 L 90 28 L 96 42 L 92 58 L 78 58 Z" fill="url(#aether-mid-wing2)" opacity="0.7"/>
                             <path d="M 74 50 L 88 44 L 86 58 L 76 54 Z" fill="url(#aether-mid-plate)" stroke="#1a0508" stroke-width="0.75" opacity="0.75"/>
@@ -31889,11 +32229,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle class="tm-aether-core" cx="50" cy="54" r="6.5" fill="url(#aether-mid-core)"/>
                             <!-- Heavier head -->
                             <ellipse cx="50" cy="22" rx="13" ry="13.5" fill="url(#aether-mid-body)" stroke="#1a0508" stroke-width="1.55"/>
-                            <path d="M 38 16 L 28 4" stroke="#bf8f2e" stroke-width="2.3" stroke-linecap="round"/>
-                            <path d="M 62 16 L 72 4" stroke="#bf8f2e" stroke-width="2.3" stroke-linecap="round"/>
-                            <path d="M 44 10 L 50 2 L 56 10" fill="#05010c" stroke="#bf8f2e" stroke-width="1"/>
-                            <circle cx="28" cy="4" r="1.6" fill="#bf8f2e" opacity="0.7"/>
-                            <circle cx="72" cy="4" r="1.6" fill="#bf8f2e" opacity="0.7"/>
+                        </g>
+                        <g class="tm-aether-regalia">
+                            <circle class="tm-aether-eclipse" cx="50" cy="20" r="17" fill="#05010c" opacity="0.5"/>
+                            <circle class="tm-aether-eclipse" cx="50" cy="20" r="17" fill="none" stroke="#bf8f2e" stroke-width="1.5" opacity="0.6"/>
+                            <circle class="tm-aether-eclipse" cx="55" cy="18" r="12" fill="url(#aether-mid-aura)" opacity="0.4"/>
+                            <path d="M 38 14 L 26 0" stroke="#bf8f2e" stroke-width="2.4" stroke-linecap="round"/>
+                            <path d="M 62 14 L 78 2" stroke="#bf8f2e" stroke-width="2.1" stroke-linecap="round" opacity="0.75"/>
+                            <path d="M 44 8 L 50 0 L 56 8" fill="#05010c" stroke="#bf8f2e" stroke-width="1"/>
+                            <circle cx="26" cy="0" r="1.7" fill="#bf8f2e"/>
                         </g>
                         <g class="tm-animate-arm-left">
                             <path d="M 34 50 L 16 56 L 18 72 L 34 62 Z" fill="url(#aether-mid-body)" stroke="#1a0508" stroke-width="1.25"/>
@@ -32054,7 +32398,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="26" ry="22.4" fill="none" stroke="#5d4037" stroke-width="0.75" stroke-dasharray="2 4" transform="rotate(-24 50 52)"/>
                             <circle class="tm-aether-orbit-node" cx="94" cy="52" r="1.8" fill="#c9b896"/>
                             <circle class="tm-aether-orbit-node" cx="27.6" cy="41.22" r="1.4" fill="#8b0000"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="44" ry="12.4" fill="none" stroke="#efe6d8" stroke-width="0.6" stroke-dasharray="1 7" transform="rotate(12 50 52)"/>
+                            <ellipse class="tm-aether-orbit tm-aether-orbit-broken" cx="50" cy="52" rx="44" ry="12.4" fill="none" stroke="#efe6d8" stroke-width="0.6" stroke-dasharray="6 22" transform="rotate(12 50 52)" opacity="0.55"/>
+                            <path class="tm-aether-orbit-scar" d="M 78 48 Q 86 40 90 52" fill="none" stroke="#c9b896" stroke-width="0.7" opacity="0.4"/>
                         </g>
                         <g class="tm-aether-fx tm-aether-runes" data-fx="runes" opacity="0">
                             <circle class="tm-aether-rune-ring" cx="50" cy="54" r="17" fill="none" stroke="#c9b896" stroke-width="0.7" stroke-dasharray="2 3"/>
@@ -32078,10 +32423,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path class="tm-aether-shard" d="M 8 52 L 4 48 L 10 46 Z" fill="#c9b896"/>
                             <path class="tm-aether-shard" d="M 92 52 L 96 48 L 90 46 Z" fill="#8b0000"/>
                         </g>
-                        <ellipse class="tm-aether-halo" cx="50" cy="14" rx="22" ry="5" fill="none" stroke="#c9b896" stroke-width="1.5" opacity="0.7"/>
-                        <ellipse class="tm-aether-halo" cx="50" cy="14" rx="16" ry="3.5" fill="none" stroke="#8b0000" stroke-width="0.8" opacity="0.45"/>
-                        <ellipse class="tm-aether-halo" cx="50" cy="14" rx="28" ry="7" fill="none" stroke="#5d4037" stroke-width="0.55" opacity="0.35" stroke-dasharray="3 4"/>
-                        <g class="tm-animate-wing-left">
+                        <g class="tm-animate-wing-left" transform="translate(50 52) scale(0.94) translate(-50 -52)">
                             <path d="M 32 42 Q -4 -2 -14 28 Q -16 56 -6 76 Q 10 82 24 70 Q 30 56 32 46 Z" fill="url(#aether-old-wing)" stroke="#2a1810" stroke-width="1.15" opacity="0.82"/>
                             <path d="M 28 44 Q 2 10 -6 34 Q -4 60 16 66 Q 26 56 28 48 Z" fill="url(#aether-old-wing2)" opacity="0.55"/>
                             <path d="M 26 46 Q 8 28 2 46 Q 6 62 22 58" fill="url(#aether-old-wingveil)" opacity="0.55"/>
@@ -32097,7 +32439,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle class="tm-aether-wing-star" cx="4" cy="14" r="1.2" fill="#c9b896" opacity="0.85"/>
                             <circle class="tm-aether-wing-star" cx="4" cy="14" r="2.6" fill="#c9b896" opacity="0.18"/>
                         </g>
-                        <g class="tm-animate-wing-right">
+                        <g class="tm-animate-wing-right" transform="translate(50 52) scale(1.14) translate(-50 -52)">
                             <path d="M 68 42 Q 104 -2 114 28 Q 116 56 106 76 Q 90 82 76 70 Q 70 56 68 46 Z" fill="url(#aether-old-wing)" stroke="#2a1810" stroke-width="1.15" opacity="0.82"/>
                             <path d="M 72 44 Q 98 10 106 34 Q 104 60 84 66 Q 74 56 72 48 Z" fill="url(#aether-old-wing2)" opacity="0.55"/>
                             <path d="M 74 46 Q 92 28 98 46 Q 94 62 78 58" fill="url(#aether-old-wingveil)" opacity="0.55"/>
@@ -32127,12 +32469,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 50 34 L 50 64" stroke="#c9b896" stroke-width="0.55" opacity="0.4"/>
                             <!-- Elongated serene head -->
                             <ellipse cx="50" cy="18" rx="12" ry="13" fill="url(#aether-old-body)" stroke="#2a1810" stroke-width="1.45"/>
-                            <path d="M 38 12 L 28 -2" stroke="#c9b896" stroke-width="1.8" stroke-linecap="round" opacity="0.85"/>
-                            <path d="M 62 12 L 72 -2" stroke="#c9b896" stroke-width="1.8" stroke-linecap="round" opacity="0.85"/>
-                            <path d="M 46 6 L 50 -4 L 54 6" fill="none" stroke="#8b0000" stroke-width="1.1"/>
-                            <circle cx="28" cy="-2" r="1.7" fill="#c9b896" opacity="0.75"/>
-                            <circle cx="72" cy="-2" r="1.7" fill="#c9b896" opacity="0.75"/>
-                            <circle cx="50" cy="-4" r="1.4" fill="#e8e0f0" opacity="0.85"/>
+                        </g>
+                        <g class="tm-aether-regalia">
+                            <ellipse class="tm-aether-halo" cx="50" cy="12" rx="24" ry="5.5" fill="none" stroke="#c9b896" stroke-width="1.55" opacity="0.75"/>
+                            <ellipse class="tm-aether-halo" cx="50" cy="12" rx="17" ry="3.8" fill="none" stroke="#8b0000" stroke-width="0.85" opacity="0.5"/>
+                            <ellipse class="tm-aether-halo" cx="50" cy="12" rx="30" ry="7.5" fill="none" stroke="#5d4037" stroke-width="0.55" opacity="0.35" stroke-dasharray="3 4"/>
+                            <path d="M 38 10 L 26 -4" stroke="#c9b896" stroke-width="1.9" stroke-linecap="round" opacity="0.9"/>
+                            <path d="M 62 10 L 78 -2" stroke="#c9b896" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/>
+                            <path d="M 46 4 L 50 -6 L 54 4" fill="none" stroke="#8b0000" stroke-width="1.15"/>
+                            <circle cx="26" cy="-4" r="1.8" fill="#c9b896" opacity="0.8"/>
+                            <circle cx="78" cy="-2" r="1.4" fill="#8b0000" opacity="0.65"/>
                         </g>
                         <g class="tm-animate-arm-left">
                             <path d="M 38 46 L 20 50 L 22 64 L 38 56 Z" fill="url(#aether-old-body)" stroke="#2a1810" stroke-width="1.1" opacity="0.85"/>
@@ -33208,6 +33554,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             showMascotBubble(msg, 2000);
             setMascotState(config, 'happy', 2000);
             applyMascotCarePreference('praise', config, STORAGE_KEYS);
+            if (tamagotchiCharacterType === 'aether') playAetherReactionFx('blade');
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
             updateModalStats();
@@ -34436,6 +34783,10 @@ function triggerEnergizedState(config, STORAGE_KEYS, duration) {
 
     setMascotState(config, 'energized', duration);
     
+    if (tamagotchiCharacterType === 'aether') {
+        playAetherReactionFx('energized');
+    }
+
     // Create electric particle effects
     const mascotContainer = document.getElementById('tm-mascot-container');
     if (mascotContainer) {
