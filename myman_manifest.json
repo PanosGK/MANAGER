@@ -1,11 +1,11 @@
 {
-  "version": "267",
+  "version": "268",
   "loaderVersion": "35",
-  "silentVersion": "5",
-  "displayVersion": "35.5",
+  "silentVersion": "6",
+  "displayVersion": "35.6",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Equal hatch odds for all mascots; Aether stays rare (~2%)",
+  "releaseNotes": "Reimagine Starveil Aether as mythical star-god with blade wings, sacred orbits, and epic auras",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
