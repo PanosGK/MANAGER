@@ -61,7 +61,7 @@
                     css: '',
                 }));
                 return true;
-            } catch (_)2 {
+            } catch (_2) {
                 return false;
             }
         }

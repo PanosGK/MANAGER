@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite
 // @namespace    http://tampermonkey.net/
-// @version      32
+// @version      33
 // @description  An all-in-one suite for mymanager.gr. Auto-updates from GitHub — install this file once.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -69,11 +69,11 @@
         } catch (e) { /* ignore */ }
     })();
 
-    var LOADER_VERSION = "32";
+    var LOADER_VERSION = "33";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "248";
+    var FALLBACK_BUNDLE_VERSION = "253";
     var LOCAL_BUNDLE_URL = null;
 
     try {
@@ -331,7 +331,7 @@
             var surface = colors['--tm-shop-item-bg'] || dark;
             var text = colors['--tm-primary-color'] || '#e8e8e8';
             function luminance(c) {
-                var m = String(c).match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+                var m = String(c).match(/^#?([a-fd]{2})([a-fd]{2})([a-fd]{2})$/i);
                 if (!m) return 0;
                 var r = parseInt(m[1], 16), g = parseInt(m[2], 16), b = parseInt(m[3], 16);
                 return (0.299 * r + 0.587 * g + 0.114 * b) / 255;

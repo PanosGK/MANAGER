@@ -1,11 +1,11 @@
 {
-  "version": "252",
-  "loaderVersion": "32",
-  "silentVersion": "5",
-  "displayVersion": "32.5",
+  "version": "253",
+  "loaderVersion": "33",
+  "silentVersion": "1",
+  "displayVersion": "33.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Exact footer container snapshot with baked styles + values",
+  "releaseNotes": "Fix footer shell syntax error; bump loader after FOUC/footer changes",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
