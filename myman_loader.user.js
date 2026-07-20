@@ -28,6 +28,7 @@
     var FOUC_FAILSAFE_MS = 8000;
 
     // Hide BEFORE any GM_* calls — those delay injection paint and cause a page glimpse.
+    // Prefer myman_fouc.user.js (@grant none) for earliest hide; this reinforces if missing.
     (function hidePageInstantly() {
         try {
             var path = (window.location && window.location.pathname) || '';
@@ -35,21 +36,32 @@
             if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
             var root = document.documentElement;
             if (!root) return;
+            var bg = '#121212';
+            try {
+                var rawFouc = localStorage.getItem('tm_mms_fouc_theme');
+                if (rawFouc) {
+                    var foucTheme = JSON.parse(rawFouc);
+                    if (foucTheme && foucTheme.bg) bg = String(foucTheme.bg);
+                }
+            } catch (eBg) { /* ignore */ }
             root.classList.remove(THEME_READY_CLASS);
             root.setAttribute('data-tm-mms-fouc', '1');
             root.style.setProperty('display', 'none', 'important');
             root.style.setProperty('visibility', 'hidden', 'important');
             root.style.setProperty('opacity', '0', 'important');
-            root.style.setProperty('background', '#121212', 'important');
+            root.style.setProperty('background', bg, 'important');
             var css = 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + '),'
                 + 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + ') body{'
                 + 'display:none!important;visibility:hidden!important;opacity:0!important;}'
                 + 'html[data-tm-mms-fouc="1"]:not(.' + THEME_READY_CLASS + '){'
-                + 'background:#121212!important;}';
-            var style = document.createElement('style');
-            style.id = 'tm-mms-fouc-guard';
+                + 'background:' + bg + '!important;}';
+            var style = document.getElementById('tm-mms-fouc-guard');
+            if (!style) {
+                style = document.createElement('style');
+                style.id = 'tm-mms-fouc-guard';
+                root.appendChild(style);
+            }
             style.textContent = css;
-            root.appendChild(style);
         } catch (e) { /* ignore */ }
     })();
 
@@ -272,6 +284,25 @@
         return defaultValue;
     }
 
+    function seedFoucThemeLocalStorage(themeId, colors) {
+        try {
+            if (!colors || themeId === 'default') {
+                localStorage.setItem('tm_mms_fouc_theme', JSON.stringify({
+                    themeId: 'default',
+                    colors: null,
+                    bg: '#ffffff',
+                }));
+                return;
+            }
+            var bg = colors['--tm-dark-color'] || colors['--tm-shop-item-bg'] || '#121212';
+            localStorage.setItem('tm_mms_fouc_theme', JSON.stringify({
+                themeId: themeId || 'custom',
+                colors: colors,
+                bg: bg,
+            }));
+        } catch (e) { /* ignore */ }
+    }
+
     function applyCachedThemeColors() {
         try {
             var raw = readProfileScoped('tm_theme_colors_cache', null);
@@ -286,6 +317,7 @@
             if (bg) {
                 root.style.backgroundColor = bg;
             }
+            seedFoucThemeLocalStorage(cache.themeId || 'custom', cache.colors);
             return true;
         } catch (e) {
             return false;
@@ -573,7 +605,11 @@
     }
 
     installThemeFoucGuard();
-    applyCachedThemeColors();
-    // Do NOT reveal here — stay blank until themes.js applies the theme (or failsafe).
+    var hadThemeCache = applyCachedThemeColors();
+    // Reveal early when GM theme cache exists so blank is not waiting on the full bundle.
+    // Cache miss: stay blank until themes.js (or failsafe).
+    if (hadThemeCache) {
+        tmRevealThemeReady();
+    }
     startBundleLoad();
 })();

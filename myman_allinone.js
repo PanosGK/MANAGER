@@ -185,11 +185,26 @@
         config.equippedTheme = themeId;
 
         try {
+            const cacheColors = themeId === 'default' ? null : (theme.appliedColors || theme.colors);
             GM_setValue(STORAGE_KEYS.THEME_COLORS_CACHE, JSON.stringify({
                 themeId,
-                colors: themeId === 'default' ? null : (theme.appliedColors || theme.colors),
+                colors: cacheColors,
                 updatedAt: Date.now(),
             }));
+            if (typeof window.tmSyncFoucThemeLocalStorage === 'function') {
+                window.tmSyncFoucThemeLocalStorage(themeId, cacheColors);
+            } else {
+                try {
+                    const bg = cacheColors
+                        ? (cacheColors['--tm-dark-color'] || cacheColors['--tm-shop-item-bg'] || '#121212')
+                        : '#ffffff';
+                    localStorage.setItem('tm_mms_fouc_theme', JSON.stringify({
+                        themeId,
+                        colors: cacheColors,
+                        bg,
+                    }));
+                } catch (_) { /* ignore */ }
+            }
         } catch (_) { /* ignore */ }
 
         if (typeof window.tmRevealThemeReady === 'function') {

@@ -486,6 +486,33 @@ img[src='images/smsdelivered.png'] {
     if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
 
     const root = document.documentElement;
+    const LS_THEME = 'tm_mms_fouc_theme';
+    const LS_MENU = 'tm_mms_fouc_menu_css';
+
+    function syncFoucThemeLocalStorage(themeId, colors) {
+        try {
+            if (!colors || themeId === 'default') {
+                localStorage.setItem(LS_THEME, JSON.stringify({
+                    themeId: 'default',
+                    colors: null,
+                    bg: '#ffffff',
+                }));
+                return;
+            }
+            const bg = colors['--tm-dark-color'] || colors['--tm-shop-item-bg'] || '#121212';
+            localStorage.setItem(LS_THEME, JSON.stringify({ themeId, colors, bg }));
+        } catch (_) { /* ignore */ }
+    }
+
+    function syncFoucMenuLocalStorage(cssText) {
+        try {
+            if (cssText) localStorage.setItem(LS_MENU, cssText);
+            else localStorage.removeItem(LS_MENU);
+        } catch (_) { /* ignore */ }
+    }
+
+    window.tmSyncFoucThemeLocalStorage = syncFoucThemeLocalStorage;
+    window.tmSyncFoucMenuLocalStorage = syncFoucMenuLocalStorage;
 
     if (typeof GM_getValue !== 'function') return;
 
@@ -566,6 +593,9 @@ img[src='images/smsdelivered.png'] {
 
     if (themeId !== 'default' && cache && cache.colors) {
         applyColors(cache.colors);
+        syncFoucThemeLocalStorage(themeId, cache.colors);
+    } else {
+        syncFoucThemeLocalStorage(themeId, null);
     }
 
     window.__tmEarlyThemeId = themeId;
@@ -623,6 +653,7 @@ img[src='images/smsdelivered.png'] {
             (document.head || root).appendChild(style);
         }
         style.textContent = cssText;
+        syncFoucMenuLocalStorage(cssText || '');
     }
 
     window.tmRefreshMenuEarlyCss = function tmRefreshMenuEarlyCss(items) {
@@ -639,6 +670,7 @@ img[src='images/smsdelivered.png'] {
     if (window.__tmMenuGuardActive) {
         injectMenuGuardCss(buildMenuHideCss(hiddenMenuItems));
     } else {
+        syncFoucMenuLocalStorage('');
         root.classList.add('tm-mms-menu-ready');
     }
 })();
@@ -3132,6 +3164,17 @@ function tmApplyThemeColors(themeId, options = {}) {
         tmClearInlineThemeProperties(root);
         root.dataset.tmTheme = 'default';
         theme.appliedColors = {};
+        if (typeof window.tmSyncFoucThemeLocalStorage === 'function') {
+            window.tmSyncFoucThemeLocalStorage('default', null);
+        } else {
+            try {
+                localStorage.setItem('tm_mms_fouc_theme', JSON.stringify({
+                    themeId: 'default',
+                    colors: null,
+                    bg: '#ffffff',
+                }));
+            } catch (_) { /* ignore */ }
+        }
     } else {
         const appliedColors = tmBuildDerivedThemeTokens(theme.colors);
 
@@ -3149,6 +3192,17 @@ function tmApplyThemeColors(themeId, options = {}) {
         }
         root.dataset.tmTheme = themeId;
         theme.appliedColors = appliedColors;
+        if (typeof window.tmSyncFoucThemeLocalStorage === 'function') {
+            window.tmSyncFoucThemeLocalStorage(themeId, appliedColors);
+        } else {
+            try {
+                localStorage.setItem('tm_mms_fouc_theme', JSON.stringify({
+                    themeId,
+                    colors: appliedColors,
+                    bg: bg || '#121212',
+                }));
+            } catch (_) { /* ignore */ }
+        }
     }
 
     tmInjectExtendedThemeStyles(themeId);
@@ -3214,10 +3268,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '245',
-        loaderVersion: '29',
+        version: '246',
+        loaderVersion: '30',
         silentVersion: '0',
-        displayVersion: '29.0',
+        displayVersion: '30.0',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -53574,11 +53628,26 @@ if (typeof window !== 'undefined') {
         config.equippedTheme = themeId;
 
         try {
+            const cacheColors = themeId === 'default' ? null : (theme.appliedColors || theme.colors);
             GM_setValue(STORAGE_KEYS.THEME_COLORS_CACHE, JSON.stringify({
                 themeId,
-                colors: themeId === 'default' ? null : (theme.appliedColors || theme.colors),
+                colors: cacheColors,
                 updatedAt: Date.now(),
             }));
+            if (typeof window.tmSyncFoucThemeLocalStorage === 'function') {
+                window.tmSyncFoucThemeLocalStorage(themeId, cacheColors);
+            } else {
+                try {
+                    const bg = cacheColors
+                        ? (cacheColors['--tm-dark-color'] || cacheColors['--tm-shop-item-bg'] || '#121212')
+                        : '#ffffff';
+                    localStorage.setItem('tm_mms_fouc_theme', JSON.stringify({
+                        themeId,
+                        colors: cacheColors,
+                        bg,
+                    }));
+                } catch (_) { /* ignore */ }
+            }
         } catch (_) { /* ignore */ }
 
         if (typeof window.tmRevealThemeReady === 'function') {

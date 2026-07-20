@@ -2316,6 +2316,17 @@ function tmApplyThemeColors(themeId, options = {}) {
         tmClearInlineThemeProperties(root);
         root.dataset.tmTheme = 'default';
         theme.appliedColors = {};
+        if (typeof window.tmSyncFoucThemeLocalStorage === 'function') {
+            window.tmSyncFoucThemeLocalStorage('default', null);
+        } else {
+            try {
+                localStorage.setItem('tm_mms_fouc_theme', JSON.stringify({
+                    themeId: 'default',
+                    colors: null,
+                    bg: '#ffffff',
+                }));
+            } catch (_) { /* ignore */ }
+        }
     } else {
         const appliedColors = tmBuildDerivedThemeTokens(theme.colors);
 
@@ -2333,6 +2344,17 @@ function tmApplyThemeColors(themeId, options = {}) {
         }
         root.dataset.tmTheme = themeId;
         theme.appliedColors = appliedColors;
+        if (typeof window.tmSyncFoucThemeLocalStorage === 'function') {
+            window.tmSyncFoucThemeLocalStorage(themeId, appliedColors);
+        } else {
+            try {
+                localStorage.setItem('tm_mms_fouc_theme', JSON.stringify({
+                    themeId,
+                    colors: appliedColors,
+                    bg: bg || '#121212',
+                }));
+            } catch (_) { /* ignore */ }
+        }
     }
 
     tmInjectExtendedThemeStyles(themeId);
