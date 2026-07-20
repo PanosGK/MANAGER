@@ -443,10 +443,12 @@ function mythicWingSide(p, stroke, A, B, C, stage, side) {
   const tip = side < 0 ? A : B;
   const tip2 = side < 0 ? B : A;
   const X = (x) => (side < 0 ? x : 100 - x);
-  const asym = (stage === 'evo4' || stage === 'evo5') ? (side < 0 ? 0.94 : 1.14) : 1;
+  const asym = stage === 'evo5'
+    ? (side < 0 ? 0.78 : 1.28)
+    : (stage === 'evo4' ? (side < 0 ? 0.94 : 1.14) : 1);
   const wrapOpen = asym === 1
     ? `${I3}<g class="${cls}">`
-    : `${I3}<g class="${cls}" transform="translate(50 52) scale(${asym.toFixed(2)}) translate(-50 -52)">`;
+    : `${I3}<g class="${cls}${stage === 'evo5' ? (side < 0 ? ' tm-aether-wing-broken' : ' tm-aether-wing-dominant') : ''}" transform="translate(50 52) scale(${asym.toFixed(2)}) translate(-50 -52)">`;
 
   const claw = (x, y, fill = tip) =>
     `${I4}<path class="tm-aether-wing-claw" d="M ${X(x)} ${y} L ${X(x - 3)} ${y - 5} L ${X(x + 1)} ${y - 2} Z" fill="${fill}" opacity="0.9"/>`;
@@ -538,7 +540,25 @@ ${claw(-12, 56, B)}
 ${I3}</g>`;
   }
 
-  // evo5 — vast tattered dragon wings
+  // evo5 — Primordial Absolute: dominant right blade + broken left wing
+  if (stage === 'evo5' && side < 0) {
+    return `${wrapOpen}
+${I4}<path class="tm-aether-wing-membrane" d="M ${X(32)} 46 L ${X(10)} 14 L ${X(0)} 22 L ${X(6)} 38 L ${X(-4)} 48 L ${X(4)} 58 L ${X(2)} 70 L ${X(14)} 68 L ${X(26)} 56 L ${X(30)} 48 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.15" opacity="0.75"/>
+${I4}<path d="M ${X(28)} 48 L ${X(12)} 28 L ${X(4)} 40 L ${X(10)} 54 L ${X(22)} 52 Z" fill="url(#${p}-wing2)" opacity="0.45"/>
+${I4}<path class="tm-aether-wing-break" d="M ${X(8)} 20 L ${X(2)} 28 L ${X(10)} 34" fill="none" stroke="${tip}" stroke-width="1.1" stroke-dasharray="2 1.5" opacity="0.7"/>
+${I4}<path class="tm-aether-wing-break" d="M ${X(-2)} 50 L ${X(6)} 56 L ${X(0)} 64" fill="none" stroke="${C}" stroke-width="0.85" stroke-dasharray="1.5 1.2" opacity="0.55"/>
+${vein(`M ${X(30)} 46 L ${X(12)} 22 L ${X(2)} 26`, tip, 0)}
+${vein(`M ${X(26)} 54 L ${X(8)} 52 L ${X(0)} 60`, tip2, 0.4)}
+${crack(`M ${X(16)} 30 L ${X(10)} 40 L ${X(14)} 50`, tip, 0.1)}
+${crack(`M ${X(8)} 44 L ${X(2)} 52 L ${X(8)} 60`, C, 0.5)}
+${claw(-2, 20, tip)}
+${claw(0, 68, C)}
+${I4}<!-- Missing mid claw — scar stub -->
+${I4}<path d="M ${X(-6)} 42 L ${X(-2)} 46" stroke="${stroke}" stroke-width="1.2" opacity="0.5"/>
+${I3}</g>`;
+  }
+
+  // evo5 — vast dominant dragon wing (right)
   return `${wrapOpen}
 ${I4}<path d="M ${X(32)} 44 L ${X(6)} 2 L ${X(-10)} 8 L ${X(-4)} 28 L ${X(-18)} 36 L ${X(-8)} 50 L ${X(-20)} 58 L ${X(-10)} 72 L ${X(-14)} 84 L ${X(6)} 82 L ${X(20)} 70 L ${X(28)} 54 L ${X(32)} 46 Z" class="tm-aether-wing-membrane" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2" opacity="0.88"/>
 ${I4}<path d="M ${X(28)} 46 L ${X(4)} 14 L ${X(-6)} 30 L ${X(0)} 52 L ${X(14)} 60 L ${X(24)} 50 Z" fill="url(#${p}-wing2)" opacity="0.6"/>

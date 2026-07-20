@@ -1,11 +1,11 @@
 {
-  "version": "285",
+  "version": "286",
   "loaderVersion": "35",
-  "silentVersion": "23",
-  "displayVersion": "35.23",
+  "silentVersion": "24",
+  "displayVersion": "35.24",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Soften Aether auras — less void black, lighter stage bloom",
+  "releaseNotes": "Aether boss pack II: asymmetric old wings, shadow twin, metal sheen, heartbeat, ambient tint, poses, judgment frame, domain, eclipse, nameplate, mythic shimmer",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

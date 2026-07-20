@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v285 / Custom Ver. 35.23 — generated, do not edit */
+/* MyManager Suite bundle v286 / Custom Ver. 35.24 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '285',
+        version: '286',
         loaderVersion: '35',
-        silentVersion: '23',
-        displayVersion: '35.23',
+        silentVersion: '24',
+        displayVersion: '35.24',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -11491,6 +11491,287 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 0% { opacity: 0; transform: scale(0.6) translateY(8px); }
                 30% { opacity: 0.85; transform: scale(1) translateY(0); }
                 100% { opacity: 0; transform: scale(1.1) translateY(-6px); }
+            }
+
+            /* ─── Aether boss pack II: twin / sheen / domain / eclipse / rarity ─── */
+            .mascot-char-aether.mascot-old .tm-aether-wing-broken {
+                opacity: 0.82;
+                filter: saturate(0.85);
+            }
+            .mascot-char-aether.mascot-old .tm-aether-wing-dominant {
+                filter: contrast(1.05);
+            }
+            .mascot-char-aether .tm-aether-wing-break {
+                animation: tm-aether-crack-pulse 2.8s ease-in-out infinite;
+            }
+
+            /* Specular star-metal sheen */
+            .tm-mascot-robot.mascot-char-aether {
+                position: relative;
+            }
+            #tm-mascot-container.mascot-char-aether .tm-mascot-robot.mascot-char-aether::after {
+                content: '';
+                position: absolute;
+                inset: -6%;
+                pointer-events: none;
+                z-index: 4;
+                background: linear-gradient(
+                    115deg,
+                    transparent 28%,
+                    rgba(255,255,255,0.0) 38%,
+                    rgba(232,224,240,0.22) 48%,
+                    rgba(201,162,39,0.14) 52%,
+                    transparent 62%
+                );
+                mix-blend-mode: soft-light;
+                opacity: 0.55;
+                transform: translateX(-120%);
+                animation: tm-aether-metal-sheen 7.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+            }
+            @keyframes tm-aether-metal-sheen {
+                0%, 12% { transform: translateX(-120%); opacity: 0; }
+                18% { opacity: 0.65; }
+                42% { transform: translateX(120%); opacity: 0.2; }
+                100% { transform: translateX(120%); opacity: 0; }
+            }
+            #tm-mascot-container.mascot-char-aether .tm-aether-core {
+                transform-box: fill-box;
+                transform-origin: center;
+            }
+            #tm-mascot-container.tm-aether-heartbeat .tm-aether-core {
+                animation: tm-aether-core-flare 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            #tm-mascot-container.tm-aether-heartbeat .tm-aether-wing-vein {
+                animation: tm-aether-vein-flare 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+            }
+            #tm-mascot-container.tm-aether-heartbeat .tm-aether-core-ring {
+                opacity: 0.95 !important;
+                stroke-width: 1.2 !important;
+            }
+            @keyframes tm-aether-core-flare {
+                0% { transform: scale(1); filter: brightness(1); }
+                35% { transform: scale(1.35); filter: brightness(1.55); }
+                100% { transform: scale(1); filter: brightness(1); }
+            }
+            @keyframes tm-aether-vein-flare {
+                0% { opacity: 0.35; stroke-width: 0.9; }
+                40% { opacity: 1; stroke-width: 1.6; }
+                100% { opacity: 0.4; stroke-width: 0.9; }
+            }
+
+            /* Shadow twin afterimages while moving */
+            .tm-aether-shadow-twin {
+                position: absolute;
+                left: 50%; top: 50%;
+                width: 72%; height: 72%;
+                margin: -36% 0 0 -36%;
+                border-radius: 42% 42% 38% 38%;
+                pointer-events: none;
+                z-index: 1;
+                background: radial-gradient(ellipse at 50% 45%, rgba(5,1,12,0.45), rgba(18,0,31,0.18) 55%, transparent 72%);
+                filter: blur(1.5px);
+                animation: tm-aether-twin-fade 0.38s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            }
+            @keyframes tm-aether-twin-fade {
+                0% { opacity: 0.55; transform: scale(1); }
+                100% { opacity: 0; transform: scale(0.92) translateY(2px); }
+            }
+
+            /* Stage-colored ambient chrome tint */
+            #tm-aether-ambient-tint {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 2147481500;
+                opacity: 0;
+                transition: opacity 1.2s ease, background 1.2s ease;
+                mix-blend-mode: soft-light;
+            }
+            #tm-aether-ambient-tint.tm-aether-ambient-on {
+                opacity: 1;
+            }
+            body.tm-aether-ambient-baby #tm-aether-ambient-tint {
+                background: radial-gradient(ellipse 55% 45% at var(--ax, 50%) var(--ay, 50%), rgba(126,200,195,0.12), transparent 70%);
+            }
+            body.tm-aether-ambient-kid #tm-aether-ambient-tint {
+                background: radial-gradient(ellipse 55% 45% at var(--ax, 50%) var(--ay, 50%), rgba(77,182,172,0.12), transparent 70%);
+            }
+            body.tm-aether-ambient-teen #tm-aether-ambient-tint {
+                background: radial-gradient(ellipse 55% 45% at var(--ax, 50%) var(--ay, 50%), rgba(0,172,193,0.12), transparent 70%);
+            }
+            body.tm-aether-ambient-adult #tm-aether-ambient-tint {
+                background: radial-gradient(ellipse 55% 45% at var(--ax, 50%) var(--ay, 50%), rgba(124,77,255,0.11), transparent 70%);
+            }
+            body.tm-aether-ambient-middleage #tm-aether-ambient-tint {
+                background: radial-gradient(ellipse 55% 45% at var(--ax, 50%) var(--ay, 50%), rgba(198,40,40,0.1), transparent 70%);
+            }
+            body.tm-aether-ambient-old #tm-aether-ambient-tint {
+                background: radial-gradient(ellipse 55% 45% at var(--ax, 50%) var(--ay, 50%), rgba(122,0,0,0.1), transparent 70%);
+            }
+            body.tm-aether-ambient-on #tm-coin-balance,
+            body.tm-aether-ambient-on .tm-panel-header,
+            body.tm-aether-ambient-on #tm-settings-btn {
+                filter: drop-shadow(0 0 6px color-mix(in srgb, var(--aether-ambient, #7c4dff) 35%, transparent));
+                transition: filter 1s ease;
+            }
+
+            /* Idle micro-threat poses */
+            #tm-mascot-container.tm-aether-pose-tilt .tm-mascot-robot.mascot-char-aether {
+                animation: tm-aether-pose-tilt 1.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards !important;
+            }
+            #tm-mascot-container.tm-aether-pose-shift .tm-mascot-robot.mascot-char-aether {
+                animation: tm-aether-pose-shift 1.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards !important;
+            }
+            #tm-mascot-container.tm-aether-pose-flare .tm-animate-wing-left {
+                animation: tm-aether-pose-flare-l 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+            }
+            #tm-mascot-container.tm-aether-pose-flare .tm-animate-wing-right {
+                animation: tm-aether-pose-flare-r 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+            }
+            @keyframes tm-aether-pose-tilt {
+                0%, 100% { transform: rotate(0deg) translateY(0); }
+                40% { transform: rotate(-4deg) translateY(-2px); }
+                70% { transform: rotate(2deg) translateY(-1px); }
+            }
+            @keyframes tm-aether-pose-shift {
+                0%, 100% { transform: translate(0, 0); }
+                45% { transform: translate(5px, -3px); }
+            }
+            @keyframes tm-aether-pose-flare-l {
+                0%, 100% { transform: rotate(0deg); }
+                40% { transform: rotate(-22deg); }
+            }
+            @keyframes tm-aether-pose-flare-r {
+                0%, 100% { transform: rotate(0deg); }
+                40% { transform: rotate(22deg); }
+            }
+
+            /* Judgment frame — freeze page motion briefly */
+            html.tm-aether-judgment-frame *,
+            html.tm-aether-judgment-frame *::before,
+            html.tm-aether-judgment-frame *::after {
+                animation-play-state: paused !important;
+            }
+            html.tm-aether-judgment-frame #tm-mascot-container,
+            html.tm-aether-judgment-frame #tm-mascot-container * {
+                animation-play-state: running !important;
+            }
+
+            /* Domain circle when parked (adult+) */
+            .tm-aether-domain-circle {
+                position: absolute;
+                left: 50%; bottom: 2%;
+                width: 78px; height: 22px;
+                margin-left: -39px;
+                border-radius: 50%;
+                border: 1.5px solid rgba(201,162,39,0.55);
+                box-shadow:
+                    0 0 10px rgba(124,77,255,0.25),
+                    inset 0 0 8px rgba(77,208,225,0.15);
+                pointer-events: none;
+                z-index: 2;
+                opacity: 0;
+                transform: scale(0.6) rotate(0deg);
+            }
+            #tm-mascot-container.tm-aether-domain-on .tm-aether-domain-circle {
+                animation: tm-aether-domain-seal 2.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            @keyframes tm-aether-domain-seal {
+                0% { opacity: 0; transform: scale(0.55) rotate(0deg); }
+                25% { opacity: 0.95; transform: scale(1) rotate(40deg); }
+                70% { opacity: 0.85; transform: scale(1.02) rotate(200deg); }
+                100% { opacity: 0.55; transform: scale(1) rotate(360deg); }
+            }
+
+            /* Daily eclipse event */
+            #tm-aether-eclipse-event {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 2147482800;
+                opacity: 0;
+                background: radial-gradient(ellipse at 50% 30%, rgba(5,1,12,0.45), rgba(5,1,12,0.2) 50%, transparent 75%);
+                animation: tm-aether-eclipse-sky 4s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            }
+            .tm-aether-eclipse-crescent-pass {
+                position: absolute;
+                left: -10%;
+                top: 28%;
+                width: 120px; height: 120px;
+                border-radius: 50%;
+                background: radial-gradient(circle at 35% 40%, rgba(201,162,39,0.55), rgba(5,1,12,0.9) 58%);
+                box-shadow: 0 0 40px rgba(201,162,39,0.25);
+                animation: tm-aether-crescent-pass 4s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+            }
+            @keyframes tm-aether-eclipse-sky {
+                0% { opacity: 0; }
+                15% { opacity: 1; }
+                75% { opacity: 0.85; }
+                100% { opacity: 0; }
+            }
+            @keyframes tm-aether-crescent-pass {
+                0% { transform: translateX(0) scale(0.8); opacity: 0; }
+                20% { opacity: 1; }
+                100% { transform: translateX(110vw) scale(1.1); opacity: 0.4; }
+            }
+
+            /* Nameplate drip */
+            .tm-aether-nameplate {
+                position: absolute;
+                left: 50%;
+                bottom: -14%;
+                transform: translateX(-50%);
+                white-space: nowrap;
+                pointer-events: none;
+                z-index: 12;
+                font-family: 'Palatino Linotype', Palatino, Georgia, serif;
+                font-size: 10px;
+                letter-spacing: 0.16em;
+                text-transform: uppercase;
+                color: rgba(232,224,240,0.92);
+                text-shadow: 0 0 8px rgba(124,77,255,0.55);
+                opacity: 0;
+                animation: tm-aether-nameplate-drip 3.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            .tm-aether-nameplate::before {
+                content: '';
+                position: absolute;
+                left: 50%; top: -8px;
+                width: 1px; height: 8px;
+                background: linear-gradient(to bottom, rgba(201,162,39,0.7), transparent);
+            }
+            @keyframes tm-aether-nameplate-drip {
+                0% { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+                18% { opacity: 1; transform: translateX(-50%) translateY(0); }
+                75% { opacity: 0.9; }
+                100% { opacity: 0; transform: translateX(-50%) translateY(4px); }
+            }
+
+            /* Mythic rarity edge chrome */
+            #tm-mascot-container.mascot-char-aether.tm-aether-mythic-frame::before {
+                /* keep glow, add chrome ring via box-shadow boost */
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-mythic-shimmer {
+                outline: 1px solid transparent;
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-mythic-shimmer .tm-mascot-robot.mascot-char-aether {
+                filter:
+                    drop-shadow(0 0 1px rgba(255,255,255,0.7))
+                    drop-shadow(0 0 6px rgba(201,162,39,0.45))
+                    drop-shadow(0 0 14px rgba(124,77,255,0.35))
+                    drop-shadow(0 8px 16px rgba(18,0,31,0.18)) !important;
+                animation: tm-aether-rarity-chrome 2.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards !important;
+            }
+            @keyframes tm-aether-rarity-chrome {
+                0%, 100% { filter:
+                    drop-shadow(0 0 1px rgba(255,255,255,0.2))
+                    drop-shadow(0 0 4px rgba(201,162,39,0.2))
+                    drop-shadow(0 8px 16px rgba(18,0,31,0.18)); }
+                40% { filter:
+                    drop-shadow(0 0 2px rgba(255,255,255,0.85))
+                    drop-shadow(0 0 10px rgba(201,162,39,0.55))
+                    drop-shadow(0 0 22px rgba(124,77,255,0.4))
+                    drop-shadow(0 8px 16px rgba(18,0,31,0.18)); }
             }
 
             .tm-aether-stage-flash {
@@ -24360,10 +24641,17 @@ let aetherBlinkTimer = null;
 let aetherMeteorTimer = null;
 let aetherOmenTimer = null;
 let aetherTrueFormTimer = null;
+let aetherHeartbeatTimer = null;
+let aetherPoseTimer = null;
+let aetherTwinTimer = null;
+let aetherShimmerTimer = null;
+let aetherEclipseTimer = null;
 let aetherMythFxActive = false;
 let aetherAwakenUntil = 0;
 let aetherLastStageCinematic = '';
 let aetherDailyOmenKey = '';
+let aetherDailyEclipseKey = '';
+let aetherAmbientStage = '';
 
 const AETHER_FX_BY_STAGE = {
     baby: ['sparks'],
@@ -24428,11 +24716,17 @@ function clearAetherTimer(refName) {
     if (refName === 'meteor' && aetherMeteorTimer) { clearTimeout(aetherMeteorTimer); aetherMeteorTimer = null; }
     if (refName === 'omen' && aetherOmenTimer) { clearTimeout(aetherOmenTimer); aetherOmenTimer = null; }
     if (refName === 'true' && aetherTrueFormTimer) { clearTimeout(aetherTrueFormTimer); aetherTrueFormTimer = null; }
+    if (refName === 'heartbeat' && aetherHeartbeatTimer) { clearTimeout(aetherHeartbeatTimer); aetherHeartbeatTimer = null; }
+    if (refName === 'pose' && aetherPoseTimer) { clearTimeout(aetherPoseTimer); aetherPoseTimer = null; }
+    if (refName === 'twin' && aetherTwinTimer) { clearTimeout(aetherTwinTimer); aetherTwinTimer = null; }
+    if (refName === 'shimmer' && aetherShimmerTimer) { clearTimeout(aetherShimmerTimer); aetherShimmerTimer = null; }
+    if (refName === 'eclipse' && aetherEclipseTimer) { clearTimeout(aetherEclipseTimer); aetherEclipseTimer = null; }
 }
 
 function stopAetherMythicFx() {
     aetherMythFxActive = false;
-    ['fx', 'particle', 'bubble', 'trail', 'gaze', 'dim', 'blink', 'meteor', 'omen', 'true']
+    ['fx', 'particle', 'bubble', 'trail', 'gaze', 'dim', 'blink', 'meteor', 'omen', 'true',
+        'heartbeat', 'pose', 'twin', 'shimmer', 'eclipse']
         .forEach(clearAetherTimer);
     const container = document.getElementById('tm-mascot-container');
     if (container) {
@@ -24441,16 +24735,22 @@ function stopAetherMythicFx() {
             'tm-aether-react', 'tm-aether-awaken', 'tm-aether-blade-spin', 'tm-aether-gaze-on',
             'tm-aether-judgment-blink', 'tm-aether-inhale', 'tm-aether-chromatic',
             'tm-aether-scold-backlash', 'tm-aether-focus-seal', 'tm-aether-sigil-lock',
-            'tm-aether-true-form', 'tm-aether-hitstop', 'tm-aether-stare'
+            'tm-aether-true-form', 'tm-aether-hitstop', 'tm-aether-stare',
+            'tm-aether-heartbeat', 'tm-aether-pose-tilt', 'tm-aether-pose-shift', 'tm-aether-pose-flare',
+            'tm-aether-domain-on', 'tm-aether-mythic-shimmer', 'tm-aether-mythic-frame'
         );
         container.querySelectorAll('.tm-aether-fx.tm-fx-on').forEach((el) => el.classList.remove('tm-fx-on'));
         container.querySelectorAll(
-            '.tm-aether-myth-particle, .tm-aether-trail-dot, .tm-aether-gaze-beam, .tm-aether-crack-spark, .tm-aether-meteor-drip, .tm-aether-pet-constellation, .tm-aether-coronation-beam, .tm-aether-eye-afterimage, .tm-aether-daily-omen'
+            '.tm-aether-myth-particle, .tm-aether-trail-dot, .tm-aether-gaze-beam, .tm-aether-crack-spark, .tm-aether-meteor-drip, .tm-aether-pet-constellation, .tm-aether-coronation-beam, .tm-aether-eye-afterimage, .tm-aether-daily-omen, .tm-aether-shadow-twin, .tm-aether-domain-circle, .tm-aether-nameplate'
         ).forEach((el) => el.remove());
     }
     document.getElementById('tm-aether-world-dim')?.remove();
     document.getElementById('tm-aether-gravity-lens')?.remove();
     document.getElementById('tm-aether-mythic-weather')?.remove();
+    document.getElementById('tm-aether-ambient-tint')?.remove();
+    document.getElementById('tm-aether-eclipse-event')?.remove();
+    document.documentElement.classList.remove('tm-aether-judgment-frame');
+    clearAetherAmbientTint();
 }
 
 function pickRandomSubset(list, minCount, maxCount) {
@@ -24575,6 +24875,7 @@ function emitAetherVeilTrail(container, stage) {
     container.appendChild(el);
     setTimeout(() => el.remove(), 900);
     if (Math.random() < 0.55) emitAetherWingCrackSparks(container, stage, 1 + Math.floor(Math.random() * 2));
+    if (Math.random() < 0.7) emitAetherShadowTwin(container);
 }
 
 /** Spawn sparks from wing vein/crack geometry (SVG → container-local coords). */
@@ -24678,6 +24979,7 @@ function playAetherGazeBeam(container, stage) {
         container.appendChild(ghost);
         setTimeout(() => ghost.remove(), 900);
     });
+    playAetherJudgmentFrame(90);
     setTimeout(() => container.classList.remove('tm-aether-gaze-on', 'tm-aether-stare'), 1700);
 }
 
@@ -24759,8 +25061,10 @@ function updateAetherGravityLens(container, stage) {
 
 function scheduleAetherWorldDim(container, stage) {
     if (!aetherMythFxActive) return;
-    updateAetherWorldDim(container, typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : stage);
-    updateAetherGravityLens(container, typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : stage);
+    const live = typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : stage;
+    updateAetherWorldDim(container, live);
+    updateAetherGravityLens(container, live);
+    updateAetherAmbientTint(container, live);
     aetherDimRaf = setTimeout(() => {
         if (!aetherMythFxActive) return;
         scheduleAetherWorldDim(container, stage);
@@ -24894,6 +25198,10 @@ function syncAetherSigilLock(container = document.getElementById('tm-mascot-cont
     if (locked) {
         const sigil = container.querySelector('.tm-aether-fx[data-fx="sigil"]');
         sigil?.classList.add('tm-fx-on');
+        ensureAetherDomainCircle(container, tamagotchiStage || 'adult');
+    } else {
+        container.classList.remove('tm-aether-domain-on');
+        container.querySelectorAll('.tm-aether-domain-circle').forEach((el) => el.remove());
     }
 }
 
@@ -24981,6 +25289,179 @@ function playAetherHitStop(container, ms = 110) {
     setTimeout(() => container.classList.remove('tm-aether-hitstop'), ms);
 }
 
+function emitAetherShadowTwin(container) {
+    if (!container || !container.classList.contains('mascot-moving')) return;
+    if (container.classList.contains('mascot-parked')) return;
+    const twin = document.createElement('div');
+    twin.className = 'tm-aether-shadow-twin';
+    const ox = (Math.random() * 6) - 3;
+    const oy = (Math.random() * 4) - 1;
+    twin.style.cssText = `transform: translate(${ox.toFixed(1)}px, ${oy.toFixed(1)}px);`;
+    container.appendChild(twin);
+    setTimeout(() => twin.remove(), 420);
+}
+
+function playAetherCoreHeartbeat(container) {
+    if (!container) return;
+    container.classList.add('tm-aether-heartbeat');
+    setTimeout(() => container.classList.remove('tm-aether-heartbeat'), 950);
+}
+
+function scheduleAetherHeartbeat(container, stage) {
+    if (!aetherMythFxActive) return;
+    const tier = AETHER_STAGE_TIER[stage] || 1;
+    aetherHeartbeatTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        if (tier >= 2 && !isMascotFocusQuiet() && Math.random() < (0.22 + tier * 0.06)) {
+            playAetherCoreHeartbeat(container);
+        }
+        scheduleAetherHeartbeat(container, stage);
+    }, 14000 + Math.random() * (28000 - tier * 2000));
+}
+
+function clearAetherAmbientTint() {
+    document.body.classList.remove(
+        'tm-aether-ambient-on',
+        'tm-aether-ambient-baby', 'tm-aether-ambient-kid', 'tm-aether-ambient-teen',
+        'tm-aether-ambient-adult', 'tm-aether-ambient-middleage', 'tm-aether-ambient-old'
+    );
+    aetherAmbientStage = '';
+    document.getElementById('tm-aether-ambient-tint')?.classList.remove('tm-aether-ambient-on');
+}
+
+function updateAetherAmbientTint(container, stage) {
+    if (!aetherMythFxActive || !container || tamagotchiCharacterType !== 'aether') {
+        clearAetherAmbientTint();
+        return;
+    }
+    let tint = document.getElementById('tm-aether-ambient-tint');
+    if (!tint) {
+        tint = document.createElement('div');
+        tint.id = 'tm-aether-ambient-tint';
+        document.body.appendChild(tint);
+    }
+    if (aetherAmbientStage && aetherAmbientStage !== stage) {
+        document.body.classList.remove(`tm-aether-ambient-${aetherAmbientStage}`);
+    }
+    aetherAmbientStage = stage;
+    document.body.classList.add('tm-aether-ambient-on', `tm-aether-ambient-${stage}`);
+    const colors = AETHER_PARTICLE_COLORS[stage] || AETHER_PARTICLE_COLORS.adult;
+    document.body.style.setProperty('--aether-ambient', colors[1] || colors[0]);
+    const rect = container.getBoundingClientRect();
+    document.body.style.setProperty('--ax', `${((rect.left + rect.width / 2) / window.innerWidth) * 100}%`);
+    document.body.style.setProperty('--ay', `${((rect.top + rect.height / 2) / window.innerHeight) * 100}%`);
+    tint.classList.add('tm-aether-ambient-on');
+}
+
+function playAetherMicroPose(container) {
+    if (!container || container.classList.contains('mascot-moving')) return;
+    const poses = ['tm-aether-pose-tilt', 'tm-aether-pose-shift', 'tm-aether-pose-flare'];
+    const pose = poses[Math.floor(Math.random() * poses.length)];
+    container.classList.remove('tm-aether-pose-tilt', 'tm-aether-pose-shift', 'tm-aether-pose-flare');
+    container.classList.add(pose);
+    setTimeout(() => container.classList.remove(pose), 1500);
+}
+
+function scheduleAetherMicroPose(container, stage) {
+    if (!aetherMythFxActive) return;
+    const tier = AETHER_STAGE_TIER[stage] || 1;
+    aetherPoseTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        if (!isMascotFocusQuiet() && !container.classList.contains('mascot-moving')
+            && Math.random() < (0.3 + tier * 0.05)) {
+            playAetherMicroPose(container);
+        }
+        scheduleAetherMicroPose(container, stage);
+    }, 16000 + Math.random() * 28000);
+}
+
+function playAetherJudgmentFrame(ms = 90) {
+    document.documentElement.classList.add('tm-aether-judgment-frame');
+    setTimeout(() => document.documentElement.classList.remove('tm-aether-judgment-frame'), ms);
+}
+
+function ensureAetherDomainCircle(container, stage) {
+    const tier = AETHER_STAGE_TIER[stage] || 1;
+    if (tier < 4) return;
+    if (!container.classList.contains('mascot-parked') && !mascotPositionLocked) return;
+    let ring = container.querySelector('.tm-aether-domain-circle');
+    if (!ring) {
+        ring = document.createElement('div');
+        ring.className = 'tm-aether-domain-circle';
+        container.appendChild(ring);
+    }
+    container.classList.remove('tm-aether-domain-on');
+    // reflow to restart animation
+    void ring.offsetWidth;
+    container.classList.add('tm-aether-domain-on');
+}
+
+function playAetherNameplate(container, stage) {
+    if (!container) return;
+    container.querySelectorAll('.tm-aether-nameplate').forEach((el) => el.remove());
+    const plate = document.createElement('div');
+    plate.className = 'tm-aether-nameplate';
+    plate.textContent = AETHER_STAGE_TITLES[stage] || 'Starveil Aether';
+    container.appendChild(plate);
+    setTimeout(() => plate.remove(), 3300);
+}
+
+function maybePlayAetherEclipseEvent(container) {
+    if (!container || tamagotchiCharacterType !== 'aether') return;
+    const dayKey = new Date().toISOString().slice(0, 10);
+    let stored = '';
+    try { stored = String(GM_getValue('tm_aether_daily_eclipse', '') || ''); } catch (_) { /* ignore */ }
+    if (stored === dayKey || aetherDailyEclipseKey === dayKey) return;
+    aetherDailyEclipseKey = dayKey;
+    try { GM_setValue('tm_aether_daily_eclipse', dayKey); } catch (_) { /* ignore */ }
+
+    document.getElementById('tm-aether-eclipse-event')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'tm-aether-eclipse-event';
+    overlay.innerHTML = '<div class="tm-aether-eclipse-crescent-pass"></div>';
+    document.body.appendChild(overlay);
+    showMascotBubble('Eclipse.', 1600);
+    setTimeout(() => overlay.remove(), 4200);
+}
+
+function scheduleAetherEclipseEvent(container) {
+    if (!aetherMythFxActive) return;
+    aetherEclipseTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        maybePlayAetherEclipseEvent(container);
+        scheduleAetherEclipseEvent(container);
+    }, 60000 + Math.random() * 120000);
+}
+
+function playAetherMythicShimmer(container) {
+    if (!container) return;
+    container.classList.add('tm-aether-mythic-shimmer', 'tm-aether-mythic-frame');
+    setTimeout(() => container.classList.remove('tm-aether-mythic-shimmer'), 2500);
+}
+
+function scheduleAetherMythicShimmer(container, stage) {
+    if (!aetherMythFxActive) return;
+    aetherShimmerTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        // Ultra-rare edge chrome (~1.2% per check)
+        if (Math.random() < 0.012) playAetherMythicShimmer(container);
+        scheduleAetherMythicShimmer(container, stage);
+    }, 22000 + Math.random() * 35000);
+}
+
+function scheduleAetherShadowTwin(container) {
+    if (!aetherMythFxActive) return;
+    aetherTwinTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        if (container.classList.contains('mascot-moving')) {
+            emitAetherShadowTwin(container);
+            if (Math.random() < 0.55) setTimeout(() => emitAetherShadowTwin(container), 70);
+            if (Math.random() < 0.35) setTimeout(() => emitAetherShadowTwin(container), 140);
+        }
+        scheduleAetherShadowTwin(container);
+    }, 90 + Math.random() * 70);
+}
+
 function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : 'baby') {
     stopAetherMythicFx();
     if (tamagotchiIsDead || stage === 'egg') return;
@@ -24990,8 +25471,9 @@ function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tam
     if (!container || !container.classList.contains('mascot-char-aether')) return;
 
     aetherMythFxActive = true;
-    container.classList.add('tm-aether-sovereign');
+    container.classList.add('tm-aether-sovereign', 'tm-aether-mythic-frame');
     syncAetherSigilLock(container);
+    updateAetherAmbientTint(container, stage);
     aetherMythFxTimer = setTimeout(() => {
         if (!aetherMythFxActive) return;
         rollAetherAuraLayers(container, stage);
@@ -25006,6 +25488,11 @@ function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tam
     scheduleAetherTrueFormPeek(container, stage);
     scheduleAetherDailyOmen(container);
     scheduleAetherWorldDim(container, stage);
+    scheduleAetherHeartbeat(container, stage);
+    scheduleAetherMicroPose(container, stage);
+    scheduleAetherShadowTwin(container);
+    scheduleAetherMythicShimmer(container, stage);
+    scheduleAetherEclipseEvent(container);
 }
 
 function playAetherReactionFx(kind = 'constellation') {
@@ -25050,6 +25537,8 @@ function awakenAetherMythicFx(durationMs = 6000) {
     emitAetherWingCrackSparks(container, stage, 10);
     playAetherGazeBeam(container, stage);
     playAetherMythicWeather(5000);
+    playAetherNameplate(container, stage);
+    playAetherMythicShimmer(container);
     updateAetherWorldDim(container, stage);
     playAetherReactionFx('blade');
     showMascotBubble('Awaken.', 1800);
@@ -25109,6 +25598,7 @@ function playAetherStageCinematic(stage, { hatch = false } = {}) {
     if (container) {
         emitAetherMythParticles(container, stage, 18);
         playAetherBlackHoleInhale(container, stage);
+        playAetherNameplate(container, stage);
         container.classList.add('tm-aether-react');
         setTimeout(() => container.classList.remove('tm-aether-react'), 2000);
     }
@@ -32393,7 +32883,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path class="tm-mascot-mouth-happy" d="M 45 36 L 50 41 L 55 36" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                         <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 40 L 50 35 L 55 40" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                 </g>
-                                                                                                                                                                                                <!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v5 · stage color progression) -->
+                                                                                                                                                                                                                <!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v5 · stage color progression) -->
                 <!-- Voidseed → Veilspawn → Astral Warden → Sovereign → Eclipse → Primordial -->
                 <!-- ═══════════════════════════════════════ -->
 
@@ -33595,28 +34085,21 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <g class="tm-aether-ghost-wing-right" opacity="0.28" transform="translate(4 3) scale(1.1)">
                             <path d="M 68 48 L 92 16 L 104 28 L 98 52 L 86 62 L 72 52 Z" fill="url(#aether-old-wingveil)" stroke="#c9b896" stroke-width="0.6"/>
                         </g>
-                        <g class="tm-animate-wing-left" transform="translate(50 52) scale(0.94) translate(-50 -52)">
-                            <path d="M 32 44 L 6 2 L -10 8 L -4 28 L -18 36 L -8 50 L -20 58 L -10 72 L -14 84 L 6 82 L 20 70 L 28 54 L 32 46 Z" class="tm-aether-wing-membrane" fill="url(#aether-old-wing)" stroke="#1a100c" stroke-width="1.2" opacity="0.88"/>
-                            <path d="M 28 46 L 4 14 L -6 30 L 0 52 L 14 60 L 24 50 Z" fill="url(#aether-old-wing2)" opacity="0.6"/>
-                            <path d="M 26 48 L 10 28 L 2 42 L 8 56 L 20 54 Z" fill="url(#aether-old-wingveil)" opacity="0.4"/>
-                            <path d="M 30 42 L 8 6 L -8 10" fill="none" stroke="#1a100c" stroke-width="1.25" opacity="0.65"/>
-                            <path d="M 28 48 L 6 30 L -14 36" fill="none" stroke="#1a100c" stroke-width="1.1" opacity="0.55"/>
-                            <path d="M 26 54 L 6 50 L -14 56" fill="none" stroke="#1a100c" stroke-width="0.95" opacity="0.45"/>
-                            <path d="M 24 60 L 8 66 L -8 74" fill="none" stroke="#1a100c" stroke-width="0.8" opacity="0.4"/>
-                            <path class="tm-aether-wing-vein" d="M 30 42 L 8 6 L -8 10" fill="none" stroke="#7a0000" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
-                            <path class="tm-aether-wing-vein" d="M 28 48 L 6 32 L -14 36" fill="none" stroke="#c9b896" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.25s"/>
-                            <path class="tm-aether-wing-vein" d="M 26 54 L 4 52 L -16 58" fill="none" stroke="#c9b896" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.5s"/>
-                            <path class="tm-aether-wing-vein" d="M 24 60 L 6 68 L -10 78" fill="none" stroke="#3e2723" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.75s"/>
-                            <path class="tm-aether-wing-crack" d="M 16 18 L 10 30 L 16 40" fill="none" stroke="#7a0000" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.1s"/>
-                            <path class="tm-aether-wing-crack" d="M 12 40 L 2 46 L 10 56" fill="none" stroke="#3e2723" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.4s"/>
-                            <path class="tm-aether-wing-crack" d="M 8 24 L -2 34 L 4 44" fill="none" stroke="#c9b896" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.7s"/>
-                            <path class="tm-aether-wing-crack" d="M 6 58 L -4 64 L 2 74" fill="none" stroke="#c9b896" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:1s"/>
-                            <path class="tm-aether-wing-claw" d="M -10 6 L -13 1 L -9 4 Z" fill="#7a0000" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M -18 34 L -21 29 L -17 32 Z" fill="#c9b896" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M -20 56 L -23 51 L -19 54 Z" fill="#c9b896" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M -14 82 L -17 77 L -13 80 Z" fill="#3e2723" opacity="0.9"/>
+                        <g class="tm-animate-wing-left tm-aether-wing-broken" transform="translate(50 52) scale(0.78) translate(-50 -52)">
+                            <path class="tm-aether-wing-membrane" d="M 32 46 L 10 14 L 0 22 L 6 38 L -4 48 L 4 58 L 2 70 L 14 68 L 26 56 L 30 48 Z" fill="url(#aether-old-wing)" stroke="#1a100c" stroke-width="1.15" opacity="0.75"/>
+                            <path d="M 28 48 L 12 28 L 4 40 L 10 54 L 22 52 Z" fill="url(#aether-old-wing2)" opacity="0.45"/>
+                            <path class="tm-aether-wing-break" d="M 8 20 L 2 28 L 10 34" fill="none" stroke="#7a0000" stroke-width="1.1" stroke-dasharray="2 1.5" opacity="0.7"/>
+                            <path class="tm-aether-wing-break" d="M -2 50 L 6 56 L 0 64" fill="none" stroke="#3e2723" stroke-width="0.85" stroke-dasharray="1.5 1.2" opacity="0.55"/>
+                            <path class="tm-aether-wing-vein" d="M 30 46 L 12 22 L 2 26" fill="none" stroke="#7a0000" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
+                            <path class="tm-aether-wing-vein" d="M 26 54 L 8 52 L 0 60" fill="none" stroke="#c9b896" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.4s"/>
+                            <path class="tm-aether-wing-crack" d="M 16 30 L 10 40 L 14 50" fill="none" stroke="#7a0000" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.1s"/>
+                            <path class="tm-aether-wing-crack" d="M 8 44 L 2 52 L 8 60" fill="none" stroke="#3e2723" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.5s"/>
+                            <path class="tm-aether-wing-claw" d="M -2 20 L -5 15 L -1 18 Z" fill="#7a0000" opacity="0.9"/>
+                            <path class="tm-aether-wing-claw" d="M 0 68 L -3 63 L 1 66 Z" fill="#3e2723" opacity="0.9"/>
+                            <!-- Missing mid claw — scar stub -->
+                            <path d="M -6 42 L -2 46" stroke="#1a100c" stroke-width="1.2" opacity="0.5"/>
                         </g>
-                        <g class="tm-animate-wing-right" transform="translate(50 52) scale(1.14) translate(-50 -52)">
+                        <g class="tm-animate-wing-right tm-aether-wing-dominant" transform="translate(50 52) scale(1.28) translate(-50 -52)">
                             <path d="M 68 44 L 94 2 L 110 8 L 104 28 L 118 36 L 108 50 L 120 58 L 110 72 L 114 84 L 94 82 L 80 70 L 72 54 L 68 46 Z" class="tm-aether-wing-membrane" fill="url(#aether-old-wing)" stroke="#1a100c" stroke-width="1.2" opacity="0.88"/>
                             <path d="M 72 46 L 96 14 L 106 30 L 100 52 L 86 60 L 76 50 Z" fill="url(#aether-old-wing2)" opacity="0.6"/>
                             <path d="M 74 48 L 90 28 L 98 42 L 92 56 L 80 54 Z" fill="url(#aether-old-wingveil)" opacity="0.4"/>
