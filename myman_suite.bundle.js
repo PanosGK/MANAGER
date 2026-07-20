@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v279 / Custom Ver. 35.17 — generated, do not edit */
+/* MyManager Suite bundle v280 / Custom Ver. 35.18 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '279',
+        version: '280',
         loaderVersion: '35',
-        silentVersion: '17',
-        displayVersion: '35.17',
+        silentVersion: '18',
+        displayVersion: '35.18',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -35120,7 +35120,10 @@ function updateMascotAppearanceByStage(stage) {
 
     const robot = container.querySelector('.tm-mascot-robot');
     if (robot) {
-        robot.classList.remove('mascot-baby', 'mascot-child', 'mascot-adult', 'mascot-egg', 'mascot-teen', 'mascot-middleage', 'mascot-old');
+        robot.classList.remove(
+            'mascot-baby', 'mascot-kid', 'mascot-child', 'mascot-adult', 'mascot-egg',
+            'mascot-teen', 'mascot-middleage', 'mascot-old'
+        );
         allCharacterTypes.forEach((charType) => {
             robot.classList.remove(`mascot-char-${charType}`);
         });

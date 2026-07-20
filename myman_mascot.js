@@ -16957,7 +16957,10 @@ function updateMascotAppearanceByStage(stage) {
 
     const robot = container.querySelector('.tm-mascot-robot');
     if (robot) {
-        robot.classList.remove('mascot-baby', 'mascot-child', 'mascot-adult', 'mascot-egg', 'mascot-teen', 'mascot-middleage', 'mascot-old');
+        robot.classList.remove(
+            'mascot-baby', 'mascot-kid', 'mascot-child', 'mascot-adult', 'mascot-egg',
+            'mascot-teen', 'mascot-middleage', 'mascot-old'
+        );
         allCharacterTypes.forEach((charType) => {
             robot.classList.remove(`mascot-char-${charType}`);
         });
