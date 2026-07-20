@@ -192,54 +192,42 @@
     installBridge(themeColors, themeBg);
   }
 
-  // ---- Cached footer shell (icons + last coins/XP/badge) ----
+  // ---- Full footer chrome shell (all widgets; live vars cleared) ----
   var LS_FOOTER = 'tm_mms_footer_shell';
   var SHELL_ATTR = 'data-tm-footer-shell';
 
-  function esc(str) {
-    return String(str == null ? '' : str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  function buildFooterShellHTML(data) {
-    var dash = data.showDashboard
-      ? '<div id="tm-daily-dashboard-widget" class="tm-footer-widget" style="font-size:11px;display:flex;align-items:center;gap:6px;padding:0 14px;">'
-        + (data.dashboardHtml || '<span>Σήμερα</span>') + '</div>'
-      : '';
-    var titleStyle = data.titleColor ? ' style="color:' + esc(data.titleColor) + '"' : '';
-    var xp = data.showXp
-      ? '<div id="tm-xp-bar-container" class="tm-footer-widget tm-xp-bar-widget">'
-        + '<div class="tm-xp-bar-header"><span id="tm-level-text">Lv.' + esc(data.level) + '</span>'
-        + '<span class="tm-xp-bar-sep">·</span><span id="tm-user-title-text"' + titleStyle + '>'
-        + esc(data.title) + '</span></div>'
-        + '<div class="tm-xp-bar-track-row"><div class="tm-xp-bar"><div id="tm-xp-bar-fill" style="width:'
-        + (Number(data.xpPct) || 0) + '%;"></div><div id="tm-xp-text">'
-        + esc(data.xpLeftText || '') + '</div></div></div></div>'
-      : '';
-    var bell = data.showBell !== false
-      ? '<div id="tm-notification-bell-wrapper"><button id="tm-notification-bell-btn" class="tm-footer-widget tm-footer-icon-btn" type="button" tabindex="-1">🔔</button>'
-        + '<span id="tm-notification-unread-count">' + (data.unread > 0 ? esc(data.unread) : '') + '</span></div>'
-      : '';
-    var settings = data.showSettings !== false
-      ? '<button id="tm-settings-btn" type="button" class="tm-footer-widget tm-footer-icon-btn" tabindex="-1">⚙️</button>'
-      : '';
-    var coins = data.showCoins
-      ? '<div id="tm-coin-balance" class="tm-footer-widget">🪙 ' + esc(data.coins) + '</div>'
-      : '';
-    return '<div id="tm-footer-controls-row">'
-      + '<div id="tm-footer-controls-left"><div id="tm-buff-timers-container"></div>' + dash + xp + '</div>'
-      + '<div id="tm-footer-controls-middle"></div>'
-      + '<div id="tm-footer-controls-right">' + bell + settings + coins + '</div></div>';
+  function stripFooterLiveVars(root) {
+    if (!root) return;
+    var coin = root.querySelector('#tm-coin-balance');
+    if (coin) coin.innerHTML = '🪙 —';
+    var unread = root.querySelector('#tm-notification-unread-count');
+    if (unread) { unread.textContent = ''; unread.classList.remove('visible'); }
+    var level = root.querySelector('#tm-level-text');
+    if (level) level.textContent = 'Lv.—';
+    var title = root.querySelector('#tm-user-title-text');
+    if (title) title.textContent = '…';
+    var xpFill = root.querySelector('#tm-xp-bar-fill');
+    if (xpFill) xpFill.style.width = '0%';
+    var xpText = root.querySelector('#tm-xp-text');
+    if (xpText) xpText.textContent = '—';
+    var weatherTemp = root.querySelector('#tm-weather-temp');
+    if (weatherTemp) weatherTemp.textContent = '—';
+    var refreshText = root.querySelector('#tm-refresh-countdown-text');
+    if (refreshText) refreshText.textContent = '--:--';
+    var dash = root.querySelector('#tm-daily-dashboard-widget');
+    if (dash) {
+      dash.innerHTML = '<span style="font-weight:bold;font-size:10px;">Σήμερα:</span>'
+        + '<span>📝 —</span><span style="opacity:.5;">|</span><span>🛠️ —</span>'
+        + '<span style="opacity:.5;">|</span><span>🔍 —</span>';
+    }
+    root.querySelectorAll('#tm-buff-timers-container').forEach(function (el) { el.innerHTML = ''; });
   }
 
   function ensureFooterShellCss() {
     if (document.getElementById('tm-mms-footer-shell-css')) return;
     var style = document.createElement('style');
     style.id = 'tm-mms-footer-shell-css';
-    style.textContent = '#tm-footer-controls-container[' + SHELL_ATTR + '="1"]{pointer-events:none;opacity:.92;width:100%;}'
+    style.textContent = '#tm-footer-controls-container[' + SHELL_ATTR + '="1"]{pointer-events:none;opacity:.94;width:100%;}'
       + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}'
       + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-left,'
       + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-middle,'
@@ -254,7 +242,7 @@
       var raw = localStorage.getItem(LS_FOOTER);
       if (!raw) return false;
       var data = JSON.parse(raw);
-      if (!data || data.v !== 1) return false;
+      if (!data || data.v !== 2 || typeof data.html !== 'string' || data.html.length < 40) return false;
       var cell = document.querySelector('#footer-outterwrap table td[width="60%"]')
         || document.querySelector('#footer-outterwrap table td:nth-child(2)');
       if (!cell) return false;
@@ -264,7 +252,8 @@
       wrapper.id = 'tm-footer-controls-container';
       wrapper.setAttribute(SHELL_ATTR, '1');
       wrapper.className = 'tm-footer-shell';
-      wrapper.innerHTML = buildFooterShellHTML(data);
+      wrapper.innerHTML = data.html;
+      stripFooterLiveVars(wrapper);
       cell.appendChild(wrapper);
       return true;
     } catch (eFoot) {

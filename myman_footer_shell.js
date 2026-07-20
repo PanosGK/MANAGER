@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         MyMANAGER Footer Shell Cache (module)
 // @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Cache footer UI shell + last-known coins/XP/badge; mount early, hydrate when suite loads.
+// @version      1.1
+// @description  Cache full footer UI chrome; mount early without live vars; hydrate when suite loads.
 // @author       Gkorogias
 // @match        *://thesellers.mymanager.gr/*
 // @grant        none
@@ -13,21 +13,16 @@
 
     const LS_FOOTER = 'tm_mms_footer_shell';
     const SHELL_ATTR = 'data-tm-footer-shell';
-
-    function escapeHtml(str) {
-        return String(str ?? '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
-    }
+    const CACHE_VERSION = 2;
 
     function readCache() {
         try {
             const raw = localStorage.getItem(LS_FOOTER);
             if (!raw) return null;
             const data = JSON.parse(raw);
-            if (!data || data.v !== 1) return null;
+            if (!data || data.v !== CACHE_VERSION || typeof data.html !== 'string' || data.html.length < 40) {
+                return null;
+            }
             return data;
         } catch (_) {
             return null;
@@ -37,113 +32,83 @@
     function writeCache(data) {
         try {
             localStorage.setItem(LS_FOOTER, JSON.stringify(data));
-        } catch (_) { /* ignore */ }
+        } catch (_) { /* ignore quota */ }
     }
 
-    function collectSnapshot(config, STORAGE_KEYS) {
-        const coinsEl = document.getElementById('tm-coin-balance');
-        const unreadEl = document.getElementById('tm-notification-unread-count');
-        const levelEl = document.getElementById('tm-level-text');
-        const titleEl = document.getElementById('tm-user-title-text');
-        const xpFill = document.getElementById('tm-xp-bar-fill');
-        const xpText = document.getElementById('tm-xp-text');
-        const dash = document.getElementById('tm-daily-dashboard-widget');
+    /** Clear live numbers/text so the shell shows structure/icons only. */
+    function stripLiveVars(root) {
+        if (!root) return;
 
-        let coins = 0;
-        try {
-            if (typeof GM_getValue === 'function' && STORAGE_KEYS?.USER_COINS) {
-                coins = Number(GM_getValue(STORAGE_KEYS.USER_COINS, 0)) || 0;
-            } else if (coinsEl) {
-                const m = String(coinsEl.textContent || '').match(/(\d+)/);
-                coins = m ? Number(m[1]) : 0;
-            }
-        } catch (_) { /* ignore */ }
+        const coin = root.querySelector('#tm-coin-balance');
+        if (coin) coin.innerHTML = '🪙 —';
 
-        let unread = 0;
-        if (unreadEl) {
-            unread = Number(String(unreadEl.textContent || '').replace(/\D/g, '')) || 0;
+        const unread = root.querySelector('#tm-notification-unread-count');
+        if (unread) {
+            unread.textContent = '';
+            unread.classList.remove('visible');
         }
 
-        const xpPct = (() => {
-            const w = xpFill?.style?.width || '';
-            const n = parseFloat(w);
-            return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : 0;
-        })();
+        const level = root.querySelector('#tm-level-text');
+        if (level) level.textContent = 'Lv.—';
 
-        const levelText = levelEl?.textContent || 'Lv.1';
-        const level = Number(String(levelText).replace(/\D/g, '')) || 1;
+        const title = root.querySelector('#tm-user-title-text');
+        if (title) title.textContent = '…';
 
-        return {
-            v: 1,
-            updatedAt: Date.now(),
-            coins,
-            unread,
-            level,
-            title: titleEl?.textContent || '',
-            titleColor: titleEl?.style?.color || '',
-            xpPct,
-            xpLeftText: xpText?.textContent || '',
-            dashboardHtml: dash ? dash.innerHTML : '',
-            showCoins: !!(coinsEl && coinsEl.style.display !== 'none' && config?.shopEnabled !== false),
-            showXp: !!document.getElementById('tm-xp-bar-container') && config?.levelUpSystemEnabled !== false,
-            showDashboard: !!dash && config?.dashboardWidgetEnabled !== false,
-            showBell: !!document.getElementById('tm-notification-bell-wrapper'),
-            showSettings: !!document.getElementById('tm-settings-btn'),
-        };
+        const xpFill = root.querySelector('#tm-xp-bar-fill');
+        if (xpFill) xpFill.style.width = '0%';
+
+        const xpText = root.querySelector('#tm-xp-text');
+        if (xpText) xpText.textContent = '—';
+
+        const weatherTemp = root.querySelector('#tm-weather-temp');
+        if (weatherTemp) weatherTemp.textContent = '—';
+
+        const refreshText = root.querySelector('#tm-refresh-countdown-text');
+        if (refreshText) refreshText.textContent = '--:--';
+
+        const dash = root.querySelector('#tm-daily-dashboard-widget');
+        if (dash) {
+            dash.innerHTML = `
+                <span style="font-weight: bold; font-size: 10px;">Σήμερα:</span>
+                <span>📝 —</span>
+                <span style="opacity: 0.5;">|</span>
+                <span>🛠️ —</span>
+                <span style="opacity: 0.5;">|</span>
+                <span>🔍 —</span>
+            `;
+        }
+
+        // Buff timers / dynamic labels inside left column
+        root.querySelectorAll('#tm-buff-timers-container').forEach((el) => {
+            el.innerHTML = '';
+        });
+
+        // Recent-repairs label often includes a count — keep icon/button chrome if present
+        root.querySelectorAll('[id^="tm-"][id*="count"], .tm-footer-count, .tm-badge').forEach((el) => {
+            if (el.id === 'tm-notification-unread-count') return;
+            if (/^\d+$/.test(String(el.textContent || '').trim())) {
+                el.textContent = '—';
+            }
+        });
+
+        // Remove open panels / menus accidentally snapshotted
+        root.querySelectorAll(
+            '#tm-notification-panel, #tm-notification-backdrop, .tm-modal-overlay, [data-tm-dropdown-open="1"]'
+        ).forEach((el) => el.remove());
     }
 
-    function buildShellHTML(data) {
-        const dash = data.showDashboard
-            ? `<div id="tm-daily-dashboard-widget" class="tm-footer-widget" style="font-size:11px;display:flex;align-items:center;gap:6px;padding:0 14px;">${data.dashboardHtml || '<span>Σήμερα</span>'}</div>`
-            : '';
+    function collectSnapshot() {
+        const container = document.getElementById('tm-footer-controls-container');
+        if (!container || container.getAttribute(SHELL_ATTR) === '1') return null;
 
-        const titleStyle = data.titleColor ? ` style="color:${escapeHtml(data.titleColor)}"` : '';
-        const xp = data.showXp
-            ? `<div id="tm-xp-bar-container" class="tm-footer-widget tm-xp-bar-widget">
-                <div class="tm-xp-bar-header">
-                    <span id="tm-level-text">Lv.${escapeHtml(data.level)}</span>
-                    <span class="tm-xp-bar-sep">·</span>
-                    <span id="tm-user-title-text"${titleStyle}>${escapeHtml(data.title)}</span>
-                </div>
-                <div class="tm-xp-bar-track-row">
-                    <div class="tm-xp-bar" title="Loading…">
-                        <div id="tm-xp-bar-fill" style="width:${Number(data.xpPct) || 0}%;"></div>
-                        <div id="tm-xp-text">${escapeHtml(data.xpLeftText || '')}</div>
-                    </div>
-                </div>
-            </div>`
-            : '';
+        const clone = container.cloneNode(true);
+        stripLiveVars(clone);
 
-        const bell = data.showBell !== false
-            ? `<div id="tm-notification-bell-wrapper">
-                <button id="tm-notification-bell-btn" class="tm-footer-widget tm-footer-icon-btn" type="button" title="Κέντρο ειδοποιήσεων" tabindex="-1">🔔</button>
-                <span id="tm-notification-unread-count">${data.unread > 0 ? escapeHtml(data.unread) : ''}</span>
-            </div>`
-            : '';
-
-        const settings = data.showSettings !== false
-            ? `<button id="tm-settings-btn" type="button" class="tm-footer-widget tm-footer-icon-btn" title="Ρυθμίσεις" tabindex="-1">⚙️</button>`
-            : '';
-
-        const coins = data.showCoins
-            ? `<div id="tm-coin-balance" class="tm-footer-widget" title="Fixer-Coins">🪙 ${escapeHtml(data.coins)}</div>`
-            : '';
-
-        return `
-            <div id="tm-footer-controls-row">
-                <div id="tm-footer-controls-left">
-                    <div id="tm-buff-timers-container"></div>
-                    ${dash}
-                    ${xp}
-                </div>
-                <div id="tm-footer-controls-middle"></div>
-                <div id="tm-footer-controls-right">
-                    ${bell}
-                    ${settings}
-                    ${coins}
-                </div>
-            </div>
-        `;
+        return {
+            v: CACHE_VERSION,
+            updatedAt: Date.now(),
+            html: clone.innerHTML,
+        };
     }
 
     function ensureShellCss() {
@@ -153,7 +118,7 @@
         style.textContent = `
             #tm-footer-controls-container[${SHELL_ATTR}="1"] {
                 pointer-events: none;
-                opacity: 0.92;
+                opacity: 0.94;
                 width: 100%;
             }
             #tm-footer-controls-container[${SHELL_ATTR}="1"] #tm-footer-controls-row {
@@ -205,7 +170,8 @@
             wrapper.id = 'tm-footer-controls-container';
             wrapper.setAttribute(SHELL_ATTR, '1');
             wrapper.className = 'tm-footer-shell';
-            wrapper.innerHTML = buildShellHTML(data);
+            wrapper.innerHTML = data.html;
+            stripLiveVars(wrapper);
             cell.appendChild(wrapper);
             return true;
         } catch (_) {
@@ -227,11 +193,11 @@
         return !!(existing && existing.getAttribute(SHELL_ATTR) === '1');
     }
 
-    function syncFooterShellCache(config, STORAGE_KEYS) {
+    function syncFooterShellCache() {
         try {
             if (isFooterShellMounted()) return;
-            if (!document.getElementById('tm-footer-controls-container')) return;
-            writeCache(collectSnapshot(config || window.config, STORAGE_KEYS || window.STORAGE_KEYS));
+            const snap = collectSnapshot();
+            if (snap) writeCache(snap);
         } catch (_) { /* ignore */ }
     }
 

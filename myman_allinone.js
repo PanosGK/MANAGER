@@ -5186,9 +5186,10 @@
         }
 
         if (typeof window.tmSyncFooterShellCache === 'function') {
-            // Defer so coins/badge/XP widgets finish their first paint.
+            // Defer so weather / repairs / delayed widgets are included in the full chrome snapshot.
             setTimeout(() => window.tmSyncFooterShellCache(config, STORAGE_KEYS), 0);
             setTimeout(() => window.tmSyncFooterShellCache(config, STORAGE_KEYS), 800);
+            setTimeout(() => window.tmSyncFooterShellCache(config, STORAGE_KEYS), 2500);
         }
 
         return true;
