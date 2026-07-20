@@ -1,11 +1,11 @@
 {
-  "version": "286",
+  "version": "287",
   "loaderVersion": "35",
-  "silentVersion": "24",
-  "displayVersion": "35.24",
+  "silentVersion": "25",
+  "displayVersion": "35.25",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Aether boss pack II: asymmetric old wings, shadow twin, metal sheen, heartbeat, ambient tint, poses, judgment frame, domain, eclipse, nameplate, mythic shimmer",
+  "releaseNotes": "Aether epic pack III: moonshard, apotheosis, echo forms, charge ring, throne, stances, footprint, true name, border tiers, killfeed, star map, oath seal",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

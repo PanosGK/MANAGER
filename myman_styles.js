@@ -5828,6 +5828,363 @@
                     drop-shadow(0 8px 16px rgba(18,0,31,0.18)); }
             }
 
+            /* ─── Aether boss pack III: moonshard / apotheosis / echo / charge / prestige ─── */
+            .tm-aether-moonshard-orbit {
+                position: absolute;
+                left: 50%; top: 50%;
+                width: 0; height: 0;
+                pointer-events: none;
+                z-index: 5;
+                animation: tm-aether-moon-spin 9.5s linear infinite;
+            }
+            .tm-aether-moonshard {
+                position: absolute;
+                left: 0; top: 0;
+                width: 10px; height: 10px;
+                margin: -5px 0 0 -5px;
+                transform: translateX(48px);
+                border-radius: 2px 60% 2px 60%;
+                background: linear-gradient(135deg, #e8e0f0, #c9a227 45%, #4a148c);
+                box-shadow: 0 0 8px rgba(201,162,39,0.55), 0 0 14px rgba(124,77,255,0.3);
+            }
+            .tm-aether-moonshard::after {
+                content: '';
+                position: absolute;
+                inset: 2px;
+                border-radius: inherit;
+                background: rgba(255,255,255,0.35);
+                opacity: 0.5;
+            }
+            @keyframes tm-aether-moon-spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+
+            .tm-aether-charge-ring {
+                position: absolute;
+                left: 50%; top: 50%;
+                width: 110px; height: 110px;
+                margin: -55px 0 0 -55px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 3;
+                opacity: 0;
+                border: 2px solid rgba(201,162,39,0.35);
+                box-shadow:
+                    0 0 16px rgba(124,77,255,0.25),
+                    inset 0 0 12px rgba(201,162,39,0.15);
+            }
+            .tm-aether-charge-ring::before {
+                content: '';
+                position: absolute;
+                inset: -3px;
+                border-radius: 50%;
+                border: 2px solid transparent;
+                border-top-color: rgba(201,162,39,0.95);
+                border-right-color: rgba(124,77,255,0.55);
+                opacity: 0;
+            }
+            #tm-mascot-container.tm-aether-awaken .tm-aether-charge-ring {
+                opacity: 1;
+                animation: tm-aether-charge-pulse 5.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            #tm-mascot-container.tm-aether-awaken .tm-aether-charge-ring::before {
+                opacity: 1;
+                animation: tm-aether-charge-spin 5.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            @keyframes tm-aether-charge-pulse {
+                0% { transform: scale(0.75); opacity: 0.35; }
+                55% { transform: scale(1.08); opacity: 1; }
+                100% { transform: scale(1.25); opacity: 0; }
+            }
+            @keyframes tm-aether-charge-spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(540deg); }
+            }
+
+            .tm-aether-echo-stack {
+                position: absolute;
+                left: 50%; top: 50%;
+                width: 90%; height: 90%;
+                margin: -45% 0 0 -45%;
+                pointer-events: none;
+                z-index: 1;
+            }
+            .tm-aether-echo-form {
+                position: absolute;
+                inset: 0;
+                border-radius: 40%;
+                background: radial-gradient(ellipse at 50% 45%, rgba(232,224,240,0.18), transparent 65%);
+                border: 1px solid rgba(124,77,255,0.25);
+                opacity: 0;
+                animation: tm-aether-echo-rise 1.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            .tm-aether-echo-form:nth-child(1) { transform: scale(0.55); animation-delay: 0s; }
+            .tm-aether-echo-form:nth-child(2) { transform: scale(0.7); animation-delay: 0.08s; border-color: rgba(77,208,225,0.3); }
+            .tm-aether-echo-form:nth-child(3) { transform: scale(0.85); animation-delay: 0.16s; border-color: rgba(201,162,39,0.3); }
+            .tm-aether-echo-form:nth-child(4) { transform: scale(1); animation-delay: 0.24s; border-color: rgba(198,40,40,0.3); }
+            .tm-aether-echo-form:nth-child(5) { transform: scale(1.12); animation-delay: 0.32s; border-color: rgba(122,0,0,0.35); }
+            @keyframes tm-aether-echo-rise {
+                0% { opacity: 0; }
+                30% { opacity: 0.7; }
+                100% { opacity: 0; transform: scale(1.25); }
+            }
+
+            #tm-aether-apotheosis-sky {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 2147482700;
+                opacity: 0;
+                background:
+                    radial-gradient(ellipse at 50% 20%, rgba(122,0,0,0.35), transparent 55%),
+                    radial-gradient(ellipse at 50% 80%, rgba(18,0,31,0.45), transparent 60%),
+                    linear-gradient(180deg, rgba(5,1,12,0.55), rgba(5,1,12,0.15) 70%, transparent);
+                animation: tm-aether-apotheosis 6.5s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            }
+            .tm-aether-apotheosis-ray {
+                position: absolute;
+                left: 50%; top: 0;
+                width: 2px; height: 55%;
+                margin-left: -1px;
+                background: linear-gradient(to bottom, rgba(201,162,39,0.7), transparent);
+                transform-origin: top center;
+                animation: tm-aether-apo-ray 6.5s ease forwards;
+            }
+            .tm-aether-apotheosis-ray:nth-child(2) { transform: rotate(-18deg); animation-delay: 0.1s; }
+            .tm-aether-apotheosis-ray:nth-child(3) { transform: rotate(18deg); animation-delay: 0.15s; }
+            .tm-aether-apotheosis-ray:nth-child(4) { transform: rotate(-32deg); opacity: 0.6; }
+            .tm-aether-apotheosis-ray:nth-child(5) { transform: rotate(32deg); opacity: 0.6; }
+            @keyframes tm-aether-apotheosis {
+                0% { opacity: 0; }
+                12% { opacity: 1; }
+                70% { opacity: 0.85; }
+                100% { opacity: 0; }
+            }
+            @keyframes tm-aether-apo-ray {
+                0% { opacity: 0; height: 20%; }
+                20% { opacity: 1; height: 55%; }
+                100% { opacity: 0; height: 70%; }
+            }
+
+            .tm-aether-throne {
+                position: absolute;
+                left: 50%; top: 8%;
+                width: 70px; height: 54px;
+                margin-left: -35px;
+                pointer-events: none;
+                z-index: 0;
+                opacity: 0;
+                background:
+                    linear-gradient(180deg, transparent 0%, rgba(18,0,31,0.35) 30%, rgba(5,1,12,0.5) 100%);
+                clip-path: polygon(10% 100%, 18% 35%, 30% 20%, 50% 8%, 70% 20%, 82% 35%, 90% 100%, 72% 100%, 68% 55%, 50% 42%, 32% 55%, 28% 100%);
+                box-shadow: 0 0 20px rgba(122,0,0,0.25);
+                animation: tm-aether-throne-in 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            @keyframes tm-aether-throne-in {
+                0% { opacity: 0; transform: translateY(10px) scale(0.9); }
+                25% { opacity: 0.75; transform: translateY(0) scale(1); }
+                75% { opacity: 0.55; }
+                100% { opacity: 0; transform: translateY(-4px) scale(1.05); }
+            }
+
+            #tm-mascot-container.tm-aether-stance-guard .tm-mascot-robot.mascot-char-aether {
+                transform: translateY(2px) scale(0.98, 1.02);
+            }
+            #tm-mascot-container.tm-aether-stance-guard .tm-animate-wing-left {
+                transform: rotate(-8deg) !important;
+            }
+            #tm-mascot-container.tm-aether-stance-guard .tm-animate-wing-right {
+                transform: rotate(8deg) !important;
+            }
+            #tm-mascot-container.tm-aether-stance-judgment .tm-mascot-robot.mascot-char-aether {
+                transform: translateY(-3px) rotate(-2deg);
+            }
+            #tm-mascot-container.tm-aether-stance-judgment .tm-animate-wing-left {
+                transform: rotate(-26deg) !important;
+            }
+            #tm-mascot-container.tm-aether-stance-judgment .tm-animate-wing-right {
+                transform: rotate(26deg) !important;
+            }
+            #tm-mascot-container.tm-aether-stance-absolute .tm-mascot-robot.mascot-char-aether {
+                transform: translateY(-6px) scale(1.04);
+                filter: brightness(1.08) drop-shadow(0 0 18px rgba(122,0,0,0.28)) !important;
+            }
+            #tm-mascot-container.tm-aether-stance-absolute .tm-animate-wing-left {
+                transform: rotate(-14deg) scaleY(1.08) !important;
+            }
+            #tm-mascot-container.tm-aether-stance-absolute .tm-animate-wing-right {
+                transform: rotate(18deg) scaleY(1.12) !important;
+            }
+
+            .tm-aether-mythic-footprint {
+                position: fixed;
+                width: 64px; height: 28px;
+                margin: -14px 0 0 -32px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9988;
+                border: 1px solid rgba(122,0,0,0.45);
+                box-shadow: inset 0 0 12px rgba(18,0,31,0.35), 0 0 10px rgba(122,0,0,0.2);
+                background:
+                    radial-gradient(ellipse at 50% 50%, rgba(5,1,12,0.35), transparent 70%);
+                animation: tm-aether-footprint-fade 8s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            }
+            .tm-aether-mythic-footprint::before,
+            .tm-aether-mythic-footprint::after {
+                content: '';
+                position: absolute;
+                left: 50%; top: 50%;
+                width: 18px; height: 1px;
+                background: rgba(201,162,39,0.4);
+            }
+            .tm-aether-mythic-footprint::before { transform: translate(-50%,-50%) rotate(28deg); }
+            .tm-aether-mythic-footprint::after { transform: translate(-50%,-50%) rotate(-28deg); }
+            @keyframes tm-aether-footprint-fade {
+                0% { opacity: 0; transform: scale(0.6); }
+                12% { opacity: 0.85; transform: scale(1); }
+                100% { opacity: 0; transform: scale(1.15); }
+            }
+
+            .tm-aether-true-name {
+                position: absolute;
+                left: 50%;
+                top: -18%;
+                transform: translateX(-50%);
+                pointer-events: none;
+                z-index: 14;
+                font-family: 'Palatino Linotype', Palatino, Georgia, serif;
+                font-size: 9px;
+                letter-spacing: 0.22em;
+                color: rgba(201,162,39,0.9);
+                text-shadow: 0 0 10px rgba(124,77,255,0.45);
+                white-space: nowrap;
+                opacity: 0;
+                animation: tm-aether-true-name 4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            @keyframes tm-aether-true-name {
+                0% { opacity: 0; letter-spacing: 0.4em; }
+                20% { opacity: 1; letter-spacing: 0.22em; }
+                75% { opacity: 0.85; }
+                100% { opacity: 0; }
+            }
+
+            /* Mythic border tiers by age */
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t1 .tm-mascot-robot {
+                outline: 1px solid rgba(232,224,240,0.15);
+                outline-offset: 4px;
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t2 .tm-mascot-robot {
+                outline: 1px solid rgba(77,208,225,0.28);
+                outline-offset: 5px;
+                box-shadow: 0 0 0 1px rgba(201,162,39,0.12);
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t3 .tm-mascot-robot {
+                outline: 1px solid rgba(201,162,39,0.4);
+                outline-offset: 6px;
+                box-shadow: 0 0 0 2px rgba(124,77,255,0.15);
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t4 .tm-mascot-robot {
+                outline: 1px solid rgba(201,162,39,0.55);
+                outline-offset: 6px;
+                box-shadow:
+                    0 0 0 2px rgba(124,77,255,0.22),
+                    0 0 12px rgba(201,162,39,0.18);
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t5 .tm-mascot-robot {
+                outline: 1px solid rgba(198,40,40,0.5);
+                outline-offset: 7px;
+                box-shadow:
+                    0 0 0 2px rgba(201,162,39,0.25),
+                    0 0 14px rgba(106,27,154,0.2);
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t6 .tm-mascot-robot {
+                outline: 1px solid rgba(122,0,0,0.65);
+                outline-offset: 8px;
+                box-shadow:
+                    0 0 0 2px rgba(201,184,150,0.28),
+                    0 0 0 4px rgba(5,1,12,0.35),
+                    0 0 18px rgba(122,0,0,0.25);
+            }
+
+            .tm-aether-killfeed {
+                position: fixed;
+                right: 18px;
+                top: 72px;
+                z-index: 2147482900;
+                pointer-events: none;
+                font-family: 'Palatino Linotype', Palatino, Georgia, serif;
+                font-size: 12px;
+                letter-spacing: 0.08em;
+                color: #e8e0f0;
+                padding: 8px 14px;
+                background: linear-gradient(90deg, transparent, rgba(18,0,31,0.72) 20%, rgba(18,0,31,0.72));
+                border-right: 2px solid rgba(201,162,39,0.7);
+                text-shadow: 0 0 8px rgba(124,77,255,0.45);
+                opacity: 0;
+                animation: tm-aether-killfeed 3.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            .tm-aether-killfeed small {
+                display: block;
+                font-size: 9px;
+                opacity: 0.7;
+                letter-spacing: 0.18em;
+                margin-bottom: 2px;
+                color: #c9a227;
+            }
+            @keyframes tm-aether-killfeed {
+                0% { opacity: 0; transform: translateX(24px); }
+                15% { opacity: 1; transform: translateX(0); }
+                75% { opacity: 1; }
+                100% { opacity: 0; transform: translateX(8px); }
+            }
+
+            .tm-aether-constellation-map {
+                position: absolute;
+                left: 50%; top: 50%;
+                width: 100px; height: 100px;
+                margin: -50px 0 0 -50px;
+                pointer-events: none;
+                z-index: 6;
+                opacity: 0;
+                animation: tm-aether-star-map 1.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            .tm-aether-constellation-map svg {
+                width: 100%; height: 100%;
+                overflow: visible;
+            }
+            @keyframes tm-aether-star-map {
+                0% { opacity: 0; transform: scale(0.8); }
+                25% { opacity: 0.95; transform: scale(1); }
+                100% { opacity: 0; transform: scale(1.15); }
+            }
+
+            .tm-aether-oath-seal {
+                position: absolute;
+                left: 50%; bottom: 0;
+                width: 36px; height: 36px;
+                margin-left: -18px;
+                pointer-events: none;
+                z-index: 4;
+                border: 1.5px solid rgba(201,162,39,0.75);
+                border-radius: 4px;
+                transform: rotate(45deg) scale(0.4);
+                box-shadow: 0 0 12px rgba(124,77,255,0.35);
+                animation: tm-aether-oath-burn 2.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            .tm-aether-oath-seal::before {
+                content: '';
+                position: absolute;
+                inset: 6px;
+                border: 1px solid rgba(77,208,225,0.55);
+                transform: rotate(0deg);
+            }
+            @keyframes tm-aether-oath-burn {
+                0% { opacity: 0; transform: rotate(45deg) scale(0.3); }
+                30% { opacity: 1; transform: rotate(45deg) scale(1); }
+                100% { opacity: 0.35; transform: rotate(45deg) scale(0.9); }
+            }
+
             .tm-aether-stage-flash {
                 position: fixed;
                 inset: 0;

@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v286 / Custom Ver. 35.24 — generated, do not edit */
+/* MyManager Suite bundle v287 / Custom Ver. 35.25 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '286',
+        version: '287',
         loaderVersion: '35',
-        silentVersion: '24',
-        displayVersion: '35.24',
+        silentVersion: '25',
+        displayVersion: '35.25',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -11772,6 +11772,363 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     drop-shadow(0 0 10px rgba(201,162,39,0.55))
                     drop-shadow(0 0 22px rgba(124,77,255,0.4))
                     drop-shadow(0 8px 16px rgba(18,0,31,0.18)); }
+            }
+
+            /* ─── Aether boss pack III: moonshard / apotheosis / echo / charge / prestige ─── */
+            .tm-aether-moonshard-orbit {
+                position: absolute;
+                left: 50%; top: 50%;
+                width: 0; height: 0;
+                pointer-events: none;
+                z-index: 5;
+                animation: tm-aether-moon-spin 9.5s linear infinite;
+            }
+            .tm-aether-moonshard {
+                position: absolute;
+                left: 0; top: 0;
+                width: 10px; height: 10px;
+                margin: -5px 0 0 -5px;
+                transform: translateX(48px);
+                border-radius: 2px 60% 2px 60%;
+                background: linear-gradient(135deg, #e8e0f0, #c9a227 45%, #4a148c);
+                box-shadow: 0 0 8px rgba(201,162,39,0.55), 0 0 14px rgba(124,77,255,0.3);
+            }
+            .tm-aether-moonshard::after {
+                content: '';
+                position: absolute;
+                inset: 2px;
+                border-radius: inherit;
+                background: rgba(255,255,255,0.35);
+                opacity: 0.5;
+            }
+            @keyframes tm-aether-moon-spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+
+            .tm-aether-charge-ring {
+                position: absolute;
+                left: 50%; top: 50%;
+                width: 110px; height: 110px;
+                margin: -55px 0 0 -55px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 3;
+                opacity: 0;
+                border: 2px solid rgba(201,162,39,0.35);
+                box-shadow:
+                    0 0 16px rgba(124,77,255,0.25),
+                    inset 0 0 12px rgba(201,162,39,0.15);
+            }
+            .tm-aether-charge-ring::before {
+                content: '';
+                position: absolute;
+                inset: -3px;
+                border-radius: 50%;
+                border: 2px solid transparent;
+                border-top-color: rgba(201,162,39,0.95);
+                border-right-color: rgba(124,77,255,0.55);
+                opacity: 0;
+            }
+            #tm-mascot-container.tm-aether-awaken .tm-aether-charge-ring {
+                opacity: 1;
+                animation: tm-aether-charge-pulse 5.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            #tm-mascot-container.tm-aether-awaken .tm-aether-charge-ring::before {
+                opacity: 1;
+                animation: tm-aether-charge-spin 5.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            @keyframes tm-aether-charge-pulse {
+                0% { transform: scale(0.75); opacity: 0.35; }
+                55% { transform: scale(1.08); opacity: 1; }
+                100% { transform: scale(1.25); opacity: 0; }
+            }
+            @keyframes tm-aether-charge-spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(540deg); }
+            }
+
+            .tm-aether-echo-stack {
+                position: absolute;
+                left: 50%; top: 50%;
+                width: 90%; height: 90%;
+                margin: -45% 0 0 -45%;
+                pointer-events: none;
+                z-index: 1;
+            }
+            .tm-aether-echo-form {
+                position: absolute;
+                inset: 0;
+                border-radius: 40%;
+                background: radial-gradient(ellipse at 50% 45%, rgba(232,224,240,0.18), transparent 65%);
+                border: 1px solid rgba(124,77,255,0.25);
+                opacity: 0;
+                animation: tm-aether-echo-rise 1.15s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            .tm-aether-echo-form:nth-child(1) { transform: scale(0.55); animation-delay: 0s; }
+            .tm-aether-echo-form:nth-child(2) { transform: scale(0.7); animation-delay: 0.08s; border-color: rgba(77,208,225,0.3); }
+            .tm-aether-echo-form:nth-child(3) { transform: scale(0.85); animation-delay: 0.16s; border-color: rgba(201,162,39,0.3); }
+            .tm-aether-echo-form:nth-child(4) { transform: scale(1); animation-delay: 0.24s; border-color: rgba(198,40,40,0.3); }
+            .tm-aether-echo-form:nth-child(5) { transform: scale(1.12); animation-delay: 0.32s; border-color: rgba(122,0,0,0.35); }
+            @keyframes tm-aether-echo-rise {
+                0% { opacity: 0; }
+                30% { opacity: 0.7; }
+                100% { opacity: 0; transform: scale(1.25); }
+            }
+
+            #tm-aether-apotheosis-sky {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 2147482700;
+                opacity: 0;
+                background:
+                    radial-gradient(ellipse at 50% 20%, rgba(122,0,0,0.35), transparent 55%),
+                    radial-gradient(ellipse at 50% 80%, rgba(18,0,31,0.45), transparent 60%),
+                    linear-gradient(180deg, rgba(5,1,12,0.55), rgba(5,1,12,0.15) 70%, transparent);
+                animation: tm-aether-apotheosis 6.5s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            }
+            .tm-aether-apotheosis-ray {
+                position: absolute;
+                left: 50%; top: 0;
+                width: 2px; height: 55%;
+                margin-left: -1px;
+                background: linear-gradient(to bottom, rgba(201,162,39,0.7), transparent);
+                transform-origin: top center;
+                animation: tm-aether-apo-ray 6.5s ease forwards;
+            }
+            .tm-aether-apotheosis-ray:nth-child(2) { transform: rotate(-18deg); animation-delay: 0.1s; }
+            .tm-aether-apotheosis-ray:nth-child(3) { transform: rotate(18deg); animation-delay: 0.15s; }
+            .tm-aether-apotheosis-ray:nth-child(4) { transform: rotate(-32deg); opacity: 0.6; }
+            .tm-aether-apotheosis-ray:nth-child(5) { transform: rotate(32deg); opacity: 0.6; }
+            @keyframes tm-aether-apotheosis {
+                0% { opacity: 0; }
+                12% { opacity: 1; }
+                70% { opacity: 0.85; }
+                100% { opacity: 0; }
+            }
+            @keyframes tm-aether-apo-ray {
+                0% { opacity: 0; height: 20%; }
+                20% { opacity: 1; height: 55%; }
+                100% { opacity: 0; height: 70%; }
+            }
+
+            .tm-aether-throne {
+                position: absolute;
+                left: 50%; top: 8%;
+                width: 70px; height: 54px;
+                margin-left: -35px;
+                pointer-events: none;
+                z-index: 0;
+                opacity: 0;
+                background:
+                    linear-gradient(180deg, transparent 0%, rgba(18,0,31,0.35) 30%, rgba(5,1,12,0.5) 100%);
+                clip-path: polygon(10% 100%, 18% 35%, 30% 20%, 50% 8%, 70% 20%, 82% 35%, 90% 100%, 72% 100%, 68% 55%, 50% 42%, 32% 55%, 28% 100%);
+                box-shadow: 0 0 20px rgba(122,0,0,0.25);
+                animation: tm-aether-throne-in 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            @keyframes tm-aether-throne-in {
+                0% { opacity: 0; transform: translateY(10px) scale(0.9); }
+                25% { opacity: 0.75; transform: translateY(0) scale(1); }
+                75% { opacity: 0.55; }
+                100% { opacity: 0; transform: translateY(-4px) scale(1.05); }
+            }
+
+            #tm-mascot-container.tm-aether-stance-guard .tm-mascot-robot.mascot-char-aether {
+                transform: translateY(2px) scale(0.98, 1.02);
+            }
+            #tm-mascot-container.tm-aether-stance-guard .tm-animate-wing-left {
+                transform: rotate(-8deg) !important;
+            }
+            #tm-mascot-container.tm-aether-stance-guard .tm-animate-wing-right {
+                transform: rotate(8deg) !important;
+            }
+            #tm-mascot-container.tm-aether-stance-judgment .tm-mascot-robot.mascot-char-aether {
+                transform: translateY(-3px) rotate(-2deg);
+            }
+            #tm-mascot-container.tm-aether-stance-judgment .tm-animate-wing-left {
+                transform: rotate(-26deg) !important;
+            }
+            #tm-mascot-container.tm-aether-stance-judgment .tm-animate-wing-right {
+                transform: rotate(26deg) !important;
+            }
+            #tm-mascot-container.tm-aether-stance-absolute .tm-mascot-robot.mascot-char-aether {
+                transform: translateY(-6px) scale(1.04);
+                filter: brightness(1.08) drop-shadow(0 0 18px rgba(122,0,0,0.28)) !important;
+            }
+            #tm-mascot-container.tm-aether-stance-absolute .tm-animate-wing-left {
+                transform: rotate(-14deg) scaleY(1.08) !important;
+            }
+            #tm-mascot-container.tm-aether-stance-absolute .tm-animate-wing-right {
+                transform: rotate(18deg) scaleY(1.12) !important;
+            }
+
+            .tm-aether-mythic-footprint {
+                position: fixed;
+                width: 64px; height: 28px;
+                margin: -14px 0 0 -32px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9988;
+                border: 1px solid rgba(122,0,0,0.45);
+                box-shadow: inset 0 0 12px rgba(18,0,31,0.35), 0 0 10px rgba(122,0,0,0.2);
+                background:
+                    radial-gradient(ellipse at 50% 50%, rgba(5,1,12,0.35), transparent 70%);
+                animation: tm-aether-footprint-fade 8s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            }
+            .tm-aether-mythic-footprint::before,
+            .tm-aether-mythic-footprint::after {
+                content: '';
+                position: absolute;
+                left: 50%; top: 50%;
+                width: 18px; height: 1px;
+                background: rgba(201,162,39,0.4);
+            }
+            .tm-aether-mythic-footprint::before { transform: translate(-50%,-50%) rotate(28deg); }
+            .tm-aether-mythic-footprint::after { transform: translate(-50%,-50%) rotate(-28deg); }
+            @keyframes tm-aether-footprint-fade {
+                0% { opacity: 0; transform: scale(0.6); }
+                12% { opacity: 0.85; transform: scale(1); }
+                100% { opacity: 0; transform: scale(1.15); }
+            }
+
+            .tm-aether-true-name {
+                position: absolute;
+                left: 50%;
+                top: -18%;
+                transform: translateX(-50%);
+                pointer-events: none;
+                z-index: 14;
+                font-family: 'Palatino Linotype', Palatino, Georgia, serif;
+                font-size: 9px;
+                letter-spacing: 0.22em;
+                color: rgba(201,162,39,0.9);
+                text-shadow: 0 0 10px rgba(124,77,255,0.45);
+                white-space: nowrap;
+                opacity: 0;
+                animation: tm-aether-true-name 4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            @keyframes tm-aether-true-name {
+                0% { opacity: 0; letter-spacing: 0.4em; }
+                20% { opacity: 1; letter-spacing: 0.22em; }
+                75% { opacity: 0.85; }
+                100% { opacity: 0; }
+            }
+
+            /* Mythic border tiers by age */
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t1 .tm-mascot-robot {
+                outline: 1px solid rgba(232,224,240,0.15);
+                outline-offset: 4px;
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t2 .tm-mascot-robot {
+                outline: 1px solid rgba(77,208,225,0.28);
+                outline-offset: 5px;
+                box-shadow: 0 0 0 1px rgba(201,162,39,0.12);
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t3 .tm-mascot-robot {
+                outline: 1px solid rgba(201,162,39,0.4);
+                outline-offset: 6px;
+                box-shadow: 0 0 0 2px rgba(124,77,255,0.15);
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t4 .tm-mascot-robot {
+                outline: 1px solid rgba(201,162,39,0.55);
+                outline-offset: 6px;
+                box-shadow:
+                    0 0 0 2px rgba(124,77,255,0.22),
+                    0 0 12px rgba(201,162,39,0.18);
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t5 .tm-mascot-robot {
+                outline: 1px solid rgba(198,40,40,0.5);
+                outline-offset: 7px;
+                box-shadow:
+                    0 0 0 2px rgba(201,162,39,0.25),
+                    0 0 14px rgba(106,27,154,0.2);
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t6 .tm-mascot-robot {
+                outline: 1px solid rgba(122,0,0,0.65);
+                outline-offset: 8px;
+                box-shadow:
+                    0 0 0 2px rgba(201,184,150,0.28),
+                    0 0 0 4px rgba(5,1,12,0.35),
+                    0 0 18px rgba(122,0,0,0.25);
+            }
+
+            .tm-aether-killfeed {
+                position: fixed;
+                right: 18px;
+                top: 72px;
+                z-index: 2147482900;
+                pointer-events: none;
+                font-family: 'Palatino Linotype', Palatino, Georgia, serif;
+                font-size: 12px;
+                letter-spacing: 0.08em;
+                color: #e8e0f0;
+                padding: 8px 14px;
+                background: linear-gradient(90deg, transparent, rgba(18,0,31,0.72) 20%, rgba(18,0,31,0.72));
+                border-right: 2px solid rgba(201,162,39,0.7);
+                text-shadow: 0 0 8px rgba(124,77,255,0.45);
+                opacity: 0;
+                animation: tm-aether-killfeed 3.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            .tm-aether-killfeed small {
+                display: block;
+                font-size: 9px;
+                opacity: 0.7;
+                letter-spacing: 0.18em;
+                margin-bottom: 2px;
+                color: #c9a227;
+            }
+            @keyframes tm-aether-killfeed {
+                0% { opacity: 0; transform: translateX(24px); }
+                15% { opacity: 1; transform: translateX(0); }
+                75% { opacity: 1; }
+                100% { opacity: 0; transform: translateX(8px); }
+            }
+
+            .tm-aether-constellation-map {
+                position: absolute;
+                left: 50%; top: 50%;
+                width: 100px; height: 100px;
+                margin: -50px 0 0 -50px;
+                pointer-events: none;
+                z-index: 6;
+                opacity: 0;
+                animation: tm-aether-star-map 1.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            .tm-aether-constellation-map svg {
+                width: 100%; height: 100%;
+                overflow: visible;
+            }
+            @keyframes tm-aether-star-map {
+                0% { opacity: 0; transform: scale(0.8); }
+                25% { opacity: 0.95; transform: scale(1); }
+                100% { opacity: 0; transform: scale(1.15); }
+            }
+
+            .tm-aether-oath-seal {
+                position: absolute;
+                left: 50%; bottom: 0;
+                width: 36px; height: 36px;
+                margin-left: -18px;
+                pointer-events: none;
+                z-index: 4;
+                border: 1.5px solid rgba(201,162,39,0.75);
+                border-radius: 4px;
+                transform: rotate(45deg) scale(0.4);
+                box-shadow: 0 0 12px rgba(124,77,255,0.35);
+                animation: tm-aether-oath-burn 2.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            .tm-aether-oath-seal::before {
+                content: '';
+                position: absolute;
+                inset: 6px;
+                border: 1px solid rgba(77,208,225,0.55);
+                transform: rotate(0deg);
+            }
+            @keyframes tm-aether-oath-burn {
+                0% { opacity: 0; transform: rotate(45deg) scale(0.3); }
+                30% { opacity: 1; transform: rotate(45deg) scale(1); }
+                100% { opacity: 0.35; transform: rotate(45deg) scale(0.9); }
             }
 
             .tm-aether-stage-flash {
@@ -24646,12 +25003,25 @@ let aetherPoseTimer = null;
 let aetherTwinTimer = null;
 let aetherShimmerTimer = null;
 let aetherEclipseTimer = null;
+let aetherThroneTimer = null;
+let aetherStanceTimer = null;
+let aetherTrueNameTimer = null;
+let aetherStarMapTimer = null;
 let aetherMythFxActive = false;
 let aetherAwakenUntil = 0;
 let aetherLastStageCinematic = '';
 let aetherDailyOmenKey = '';
 let aetherDailyEclipseKey = '';
+let aetherDailyTrueNameKey = '';
+let aetherDailyOathKey = '';
 let aetherAmbientStage = '';
+const AETHER_TRUE_NAMES = [
+    '…the First Veil',
+    '…Silence Before Stars',
+    '…Name Unspoken',
+    '…the Hollow Crown',
+    '…Between Judgments',
+];
 
 const AETHER_FX_BY_STAGE = {
     baby: ['sparks'],
@@ -24721,12 +25091,16 @@ function clearAetherTimer(refName) {
     if (refName === 'twin' && aetherTwinTimer) { clearTimeout(aetherTwinTimer); aetherTwinTimer = null; }
     if (refName === 'shimmer' && aetherShimmerTimer) { clearTimeout(aetherShimmerTimer); aetherShimmerTimer = null; }
     if (refName === 'eclipse' && aetherEclipseTimer) { clearTimeout(aetherEclipseTimer); aetherEclipseTimer = null; }
+    if (refName === 'throne' && aetherThroneTimer) { clearTimeout(aetherThroneTimer); aetherThroneTimer = null; }
+    if (refName === 'stance' && aetherStanceTimer) { clearTimeout(aetherStanceTimer); aetherStanceTimer = null; }
+    if (refName === 'truename' && aetherTrueNameTimer) { clearTimeout(aetherTrueNameTimer); aetherTrueNameTimer = null; }
+    if (refName === 'starmap' && aetherStarMapTimer) { clearTimeout(aetherStarMapTimer); aetherStarMapTimer = null; }
 }
 
 function stopAetherMythicFx() {
     aetherMythFxActive = false;
     ['fx', 'particle', 'bubble', 'trail', 'gaze', 'dim', 'blink', 'meteor', 'omen', 'true',
-        'heartbeat', 'pose', 'twin', 'shimmer', 'eclipse']
+        'heartbeat', 'pose', 'twin', 'shimmer', 'eclipse', 'throne', 'stance', 'truename', 'starmap']
         .forEach(clearAetherTimer);
     const container = document.getElementById('tm-mascot-container');
     if (container) {
@@ -24737,11 +25111,14 @@ function stopAetherMythicFx() {
             'tm-aether-scold-backlash', 'tm-aether-focus-seal', 'tm-aether-sigil-lock',
             'tm-aether-true-form', 'tm-aether-hitstop', 'tm-aether-stare',
             'tm-aether-heartbeat', 'tm-aether-pose-tilt', 'tm-aether-pose-shift', 'tm-aether-pose-flare',
-            'tm-aether-domain-on', 'tm-aether-mythic-shimmer', 'tm-aether-mythic-frame'
+            'tm-aether-domain-on', 'tm-aether-mythic-shimmer', 'tm-aether-mythic-frame',
+            'tm-aether-stance-guard', 'tm-aether-stance-judgment', 'tm-aether-stance-absolute',
+            'tm-aether-border-t1', 'tm-aether-border-t2', 'tm-aether-border-t3',
+            'tm-aether-border-t4', 'tm-aether-border-t5', 'tm-aether-border-t6'
         );
         container.querySelectorAll('.tm-aether-fx.tm-fx-on').forEach((el) => el.classList.remove('tm-fx-on'));
         container.querySelectorAll(
-            '.tm-aether-myth-particle, .tm-aether-trail-dot, .tm-aether-gaze-beam, .tm-aether-crack-spark, .tm-aether-meteor-drip, .tm-aether-pet-constellation, .tm-aether-coronation-beam, .tm-aether-eye-afterimage, .tm-aether-daily-omen, .tm-aether-shadow-twin, .tm-aether-domain-circle, .tm-aether-nameplate'
+            '.tm-aether-myth-particle, .tm-aether-trail-dot, .tm-aether-gaze-beam, .tm-aether-crack-spark, .tm-aether-meteor-drip, .tm-aether-pet-constellation, .tm-aether-coronation-beam, .tm-aether-eye-afterimage, .tm-aether-daily-omen, .tm-aether-shadow-twin, .tm-aether-domain-circle, .tm-aether-nameplate, .tm-aether-moonshard-orbit, .tm-aether-charge-ring, .tm-aether-echo-stack, .tm-aether-throne, .tm-aether-true-name, .tm-aether-constellation-map, .tm-aether-oath-seal'
         ).forEach((el) => el.remove());
     }
     document.getElementById('tm-aether-world-dim')?.remove();
@@ -24749,6 +25126,8 @@ function stopAetherMythicFx() {
     document.getElementById('tm-aether-mythic-weather')?.remove();
     document.getElementById('tm-aether-ambient-tint')?.remove();
     document.getElementById('tm-aether-eclipse-event')?.remove();
+    document.getElementById('tm-aether-apotheosis-sky')?.remove();
+    document.querySelectorAll('.tm-aether-killfeed, .tm-aether-mythic-footprint').forEach((el) => el.remove());
     document.documentElement.classList.remove('tm-aether-judgment-frame');
     clearAetherAmbientTint();
 }
@@ -25199,10 +25578,213 @@ function syncAetherSigilLock(container = document.getElementById('tm-mascot-cont
         const sigil = container.querySelector('.tm-aether-fx[data-fx="sigil"]');
         sigil?.classList.add('tm-fx-on');
         ensureAetherDomainCircle(container, tamagotchiStage || 'adult');
+        if ((tamagotchiStage === 'old' || (AETHER_STAGE_TIER[tamagotchiStage] || 0) >= 6)) {
+            playAetherMythicFootprint(container);
+        }
     } else {
         container.classList.remove('tm-aether-domain-on');
         container.querySelectorAll('.tm-aether-domain-circle').forEach((el) => el.remove());
     }
+}
+
+function syncAetherBorderTier(container, stage) {
+    if (!container) return;
+    const tier = AETHER_STAGE_TIER[stage] || 1;
+    for (let i = 1; i <= 6; i++) container.classList.remove(`tm-aether-border-t${i}`);
+    container.classList.add(`tm-aether-border-t${tier}`);
+}
+
+function ensureAetherMoonshard(container, stage) {
+    if (!container) return;
+    const tier = AETHER_STAGE_TIER[stage] || 1;
+    container.querySelectorAll('.tm-aether-moonshard-orbit').forEach((el) => el.remove());
+    if (tier < 4) return;
+    const orbit = document.createElement('div');
+    orbit.className = 'tm-aether-moonshard-orbit';
+    orbit.innerHTML = '<div class="tm-aether-moonshard"></div>';
+    container.appendChild(orbit);
+}
+
+function ensureAetherChargeRing(container) {
+    if (!container) return;
+    let ring = container.querySelector('.tm-aether-charge-ring');
+    if (!ring) {
+        ring = document.createElement('div');
+        ring.className = 'tm-aether-charge-ring';
+        container.appendChild(ring);
+    }
+    return ring;
+}
+
+function playAetherEchoOfForms(container, stage) {
+    if (!container) return;
+    container.querySelectorAll('.tm-aether-echo-stack').forEach((el) => el.remove());
+    const stack = document.createElement('div');
+    stack.className = 'tm-aether-echo-stack';
+    const idx = Math.max(1, AETHER_STAGE_ORDER.indexOf(stage) + 1);
+    const count = Math.min(5, idx);
+    for (let i = 0; i < count; i++) {
+        const form = document.createElement('div');
+        form.className = 'tm-aether-echo-form';
+        stack.appendChild(form);
+    }
+    container.appendChild(stack);
+    setTimeout(() => stack.remove(), 1300);
+}
+
+function playAetherApotheosisSky() {
+    let done = false;
+    try { done = !!GM_getValue('tm_aether_apotheosis_done', false); } catch (_) { /* ignore */ }
+    if (done) return;
+    try { GM_setValue('tm_aether_apotheosis_done', true); } catch (_) { /* ignore */ }
+    document.getElementById('tm-aether-apotheosis-sky')?.remove();
+    const sky = document.createElement('div');
+    sky.id = 'tm-aether-apotheosis-sky';
+    sky.innerHTML = `
+        <div class="tm-aether-apotheosis-ray"></div>
+        <div class="tm-aether-apotheosis-ray"></div>
+        <div class="tm-aether-apotheosis-ray"></div>
+        <div class="tm-aether-apotheosis-ray"></div>
+        <div class="tm-aether-apotheosis-ray"></div>
+    `;
+    document.body.appendChild(sky);
+    showMascotBubble('Apotheosis.', 2200);
+    setTimeout(() => sky.remove(), 6800);
+}
+
+function playAetherThroneSilhouette(container) {
+    if (!container || tamagotchiStage !== 'old') return;
+    container.querySelectorAll('.tm-aether-throne').forEach((el) => el.remove());
+    const throne = document.createElement('div');
+    throne.className = 'tm-aether-throne';
+    container.appendChild(throne);
+    setTimeout(() => throne.remove(), 2900);
+}
+
+function scheduleAetherThrone(container, stage) {
+    if (!aetherMythFxActive) return;
+    aetherThroneTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        if (stage === 'old' && !isMascotFocusQuiet() && Math.random() < 0.22) {
+            playAetherThroneSilhouette(container);
+        }
+        scheduleAetherThrone(container, stage);
+    }, 28000 + Math.random() * 45000);
+}
+
+function playAetherPhaseStance(container) {
+    if (!container || container.classList.contains('mascot-moving')) return;
+    const stances = ['tm-aether-stance-guard', 'tm-aether-stance-judgment', 'tm-aether-stance-absolute'];
+    container.classList.remove(...stances);
+    const stance = stances[Math.floor(Math.random() * stances.length)];
+    container.classList.add(stance);
+    setTimeout(() => container.classList.remove(stance), 3200);
+}
+
+function scheduleAetherPhaseStance(container, stage) {
+    if (!aetherMythFxActive) return;
+    const tier = AETHER_STAGE_TIER[stage] || 1;
+    aetherStanceTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        if (tier >= 3 && !isMascotFocusQuiet() && !container.classList.contains('mascot-moving')
+            && Math.random() < (0.28 + tier * 0.05)) {
+            playAetherPhaseStance(container);
+        }
+        scheduleAetherPhaseStance(container, stage);
+    }, 20000 + Math.random() * 32000);
+}
+
+function playAetherMythicFootprint(container) {
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const mark = document.createElement('div');
+    mark.className = 'tm-aether-mythic-footprint';
+    mark.style.left = `${rect.left + rect.width / 2}px`;
+    mark.style.top = `${rect.top + rect.height * 0.88}px`;
+    document.body.appendChild(mark);
+    setTimeout(() => mark.remove(), 8200);
+}
+
+function maybePlayAetherTrueName(container) {
+    if (!container || tamagotchiCharacterType !== 'aether') return;
+    const dayKey = new Date().toISOString().slice(0, 10);
+    let stored = '';
+    try { stored = String(GM_getValue('tm_aether_true_name_day', '') || ''); } catch (_) { /* ignore */ }
+    if (stored === dayKey || aetherDailyTrueNameKey === dayKey) return;
+    aetherDailyTrueNameKey = dayKey;
+    try { GM_setValue('tm_aether_true_name_day', dayKey); } catch (_) { /* ignore */ }
+    container.querySelectorAll('.tm-aether-true-name').forEach((el) => el.remove());
+    const el = document.createElement('div');
+    el.className = 'tm-aether-true-name';
+    el.textContent = AETHER_TRUE_NAMES[Math.floor(Math.random() * AETHER_TRUE_NAMES.length)];
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 4200);
+}
+
+function scheduleAetherTrueName(container) {
+    if (!aetherMythFxActive) return;
+    aetherTrueNameTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        if (!isMascotFocusQuiet() && Math.random() < 0.55) maybePlayAetherTrueName(container);
+        scheduleAetherTrueName(container);
+    }, 50000 + Math.random() * 90000);
+}
+
+function playAetherKillfeed(stage, { hatch = false } = {}) {
+    document.querySelectorAll('.tm-aether-killfeed').forEach((el) => el.remove());
+    const toast = document.createElement('div');
+    toast.className = 'tm-aether-killfeed';
+    toast.innerHTML = `<small>${hatch ? 'MYTHICAL HATCH' : 'FORM ASCENDED'}</small>Starveil Aether — ${AETHER_STAGE_TITLES[stage] || stage}`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3600);
+}
+
+function playAetherConstellationMap(container) {
+    if (!container) return;
+    container.querySelectorAll('.tm-aether-constellation-map').forEach((el) => el.remove());
+    const map = document.createElement('div');
+    map.className = 'tm-aether-constellation-map';
+    map.innerHTML = `
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="52" r="2.2" fill="#ffd54f"/>
+            <circle cx="28" cy="40" r="1.5" fill="#4dd0e1"/>
+            <circle cx="72" cy="38" r="1.5" fill="#7c4dff"/>
+            <circle cx="50" cy="18" r="1.8" fill="#c9a227"/>
+            <circle cx="36" cy="70" r="1.2" fill="#4dd0e1"/>
+            <circle cx="64" cy="72" r="1.2" fill="#7c4dff"/>
+            <path d="M50 18 L28 40 L50 52 L72 38 Z" fill="none" stroke="rgba(232,224,240,0.55)" stroke-width="0.7"/>
+            <path d="M50 52 L36 70 M50 52 L64 72" fill="none" stroke="rgba(201,162,39,0.45)" stroke-width="0.6"/>
+        </svg>
+    `;
+    container.appendChild(map);
+    setTimeout(() => map.remove(), 1900);
+}
+
+function scheduleAetherConstellationMap(container, stage) {
+    if (!aetherMythFxActive) return;
+    const tier = AETHER_STAGE_TIER[stage] || 1;
+    aetherStarMapTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        if (tier >= 3 && !isMascotFocusQuiet() && Math.random() < 0.35) {
+            playAetherConstellationMap(container);
+        }
+        scheduleAetherConstellationMap(container, stage);
+    }, 24000 + Math.random() * 40000);
+}
+
+function playAetherOathSeal(container) {
+    if (!container || tamagotchiCharacterType !== 'aether') return;
+    const dayKey = new Date().toISOString().slice(0, 10);
+    let stored = '';
+    try { stored = String(GM_getValue('tm_aether_oath_day', '') || ''); } catch (_) { /* ignore */ }
+    if (stored === dayKey || aetherDailyOathKey === dayKey) return;
+    aetherDailyOathKey = dayKey;
+    try { GM_setValue('tm_aether_oath_day', dayKey); } catch (_) { /* ignore */ }
+    container.querySelectorAll('.tm-aether-oath-seal').forEach((el) => el.remove());
+    const seal = document.createElement('div');
+    seal.className = 'tm-aether-oath-seal';
+    container.appendChild(seal);
+    setTimeout(() => seal.remove(), 2800);
 }
 
 function playAetherPetTheVoid(clientX, clientY) {
@@ -25228,6 +25810,7 @@ function playAetherPraiseCoronation() {
     beam.className = 'tm-aether-coronation-beam';
     container.appendChild(beam);
     setTimeout(() => beam.remove(), 1600);
+    playAetherOathSeal(container);
     playAetherReactionFx('blade');
 }
 
@@ -25472,6 +26055,8 @@ function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tam
 
     aetherMythFxActive = true;
     container.classList.add('tm-aether-sovereign', 'tm-aether-mythic-frame');
+    syncAetherBorderTier(container, stage);
+    ensureAetherMoonshard(container, stage);
     syncAetherSigilLock(container);
     updateAetherAmbientTint(container, stage);
     aetherMythFxTimer = setTimeout(() => {
@@ -25493,6 +26078,10 @@ function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tam
     scheduleAetherShadowTwin(container);
     scheduleAetherMythicShimmer(container, stage);
     scheduleAetherEclipseEvent(container);
+    scheduleAetherThrone(container, stage);
+    scheduleAetherPhaseStance(container, stage);
+    scheduleAetherTrueName(container);
+    scheduleAetherConstellationMap(container, stage);
 }
 
 function playAetherReactionFx(kind = 'constellation') {
@@ -25527,6 +26116,7 @@ function awakenAetherMythicFx(durationMs = 6000) {
     const stage = tamagotchiStage === 'egg' ? 'adult' : (tamagotchiStage || 'adult');
     aetherAwakenUntil = Date.now() + durationMs;
     playAetherHitStop(container, 120);
+    ensureAetherChargeRing(container);
     container.classList.add(
         'tm-aether-awaken', 'tm-aether-glow-on', 'tm-aether-ring-on',
         'tm-aether-sovereign', 'tm-aether-chromatic'
@@ -25539,6 +26129,7 @@ function awakenAetherMythicFx(durationMs = 6000) {
     playAetherMythicWeather(5000);
     playAetherNameplate(container, stage);
     playAetherMythicShimmer(container);
+    playAetherConstellationMap(container);
     updateAetherWorldDim(container, stage);
     playAetherReactionFx('blade');
     showMascotBubble('Awaken.', 1800);
@@ -25599,9 +26190,13 @@ function playAetherStageCinematic(stage, { hatch = false } = {}) {
         emitAetherMythParticles(container, stage, 18);
         playAetherBlackHoleInhale(container, stage);
         playAetherNameplate(container, stage);
+        playAetherEchoOfForms(container, stage);
+        playAetherConstellationMap(container);
         container.classList.add('tm-aether-react');
         setTimeout(() => container.classList.remove('tm-aether-react'), 2000);
     }
+    playAetherKillfeed(stage, { hatch });
+    if (stage === 'old' && !hatch) playAetherApotheosisSky();
     if (!hatch && Math.random() < 0.7) playAetherMythicWeather(4200);
     setTimeout(() => overlay.remove(), 3400);
 }
