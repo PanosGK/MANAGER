@@ -658,6 +658,30 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
 })();`;
 }
 
+// Sync SCRIPT_META into config BEFORE bundling so the suite shows the current Custom Ver.
+const configPath = path.join(root, 'myman_config.js');
+let config = fs.readFileSync(configPath, 'utf8');
+const metaBlock = `const SCRIPT_META = {
+        version: '${version}',
+        loaderVersion: '${loaderVersion}',
+        silentVersion: '${silentVersion}',
+        displayVersion: '${displayVersion}',
+        updateBase: '${updateBase}',
+        manifestUrl: '${updateBase}/myman_manifest.json',
+        loaderUrl: '${loaderUrl}'
+    };`;
+
+if (config.includes('const SCRIPT_META = {')) {
+    config = config.replace(/const SCRIPT_META = \{[\s\S]*?\};/, metaBlock);
+} else {
+    config = config.replace(
+        /(const STORAGE_KEYS = \{)/,
+        `${metaBlock}\n\n    $1`
+    );
+}
+
+fs.writeFileSync(configPath, config);
+
 const bundleFiles = [...modules, 'myman_allinone.js'];
 let bundle = `/* MyManager Suite bundle v${version} / Custom Ver. ${displayVersion} — generated, do not edit */\n`;
 
@@ -754,27 +778,5 @@ ${buildInlineBootstrap({ localBundleUrl })}
 
 fs.writeFileSync(path.join(root, 'myman_loader.local.user.js'), localLoader);
 
-const configPath = path.join(root, 'myman_config.js');
-let config = fs.readFileSync(configPath, 'utf8');
-const metaBlock = `const SCRIPT_META = {
-        version: '${version}',
-        loaderVersion: '${loaderVersion}',
-        silentVersion: '${silentVersion}',
-        displayVersion: '${displayVersion}',
-        updateBase: '${updateBase}',
-        manifestUrl: '${updateBase}/myman_manifest.json',
-        loaderUrl: '${loaderUrl}'
-    };`;
-
-if (config.includes('const SCRIPT_META = {')) {
-    config = config.replace(/const SCRIPT_META = \{[\s\S]*?\};/, metaBlock);
-} else {
-    config = config.replace(
-        /(const STORAGE_KEYS = \{)/,
-        `${metaBlock}\n\n    $1`
-    );
-}
-
-fs.writeFileSync(configPath, config);
 console.log(`Generated ${bundleFileName}, local loader — bundle v${version}, Custom Ver. ${displayVersion}, loader v${loaderVersion}${shouldWriteProductionLoader ? ', production loader written' : ''}`);
 console.log('Silent updates: node scripts/release.mjs "notes"  |  Loader (Tampermonkey) updates: node scripts/release.mjs --loader "notes"');

@@ -640,7 +640,14 @@
 
     function getSuiteDisplayVersion() {
         const meta = window.SCRIPT_META || {};
-        const local = meta.displayVersion
+        // Prefer the actually installed loader @version over stale bundle SCRIPT_META.
+        const installedLoader = getInstalledLoaderVersion();
+        const silent = meta.silentVersion != null ? meta.silentVersion : '0';
+        const fromInstalled = installedLoader && installedLoader !== '0'
+            ? formatCustomVer(installedLoader, silent)
+            : null;
+        const local = fromInstalled
+            || meta.displayVersion
             || (meta.loaderVersion != null && meta.silentVersion != null
                 ? formatCustomVer(meta.loaderVersion, meta.silentVersion)
                 : meta.version || '?');

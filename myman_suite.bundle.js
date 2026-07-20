@@ -3268,10 +3268,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '246',
-        loaderVersion: '30',
-        silentVersion: '0',
-        displayVersion: '30.0',
+        version: '247',
+        loaderVersion: '31',
+        silentVersion: '1',
+        displayVersion: '31.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -4762,7 +4762,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function getSuiteDisplayVersion() {
         const meta = window.SCRIPT_META || {};
-        const local = meta.displayVersion
+        // Prefer the actually installed loader @version over stale bundle SCRIPT_META.
+        const installedLoader = getInstalledLoaderVersion();
+        const silent = meta.silentVersion != null ? meta.silentVersion : '0';
+        const fromInstalled = installedLoader && installedLoader !== '0'
+            ? formatCustomVer(installedLoader, silent)
+            : null;
+        const local = fromInstalled
+            || meta.displayVersion
             || (meta.loaderVersion != null && meta.silentVersion != null
                 ? formatCustomVer(meta.loaderVersion, meta.silentVersion)
                 : meta.version || '?');
