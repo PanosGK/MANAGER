@@ -3297,13 +3297,33 @@
                 padding: 0;
                 max-width: min(560px, 100%);
             }
+            /* Keep undermenu row stable when accounts show Extra buttons (Εξαγωγή, etc.). */
+            .rnr-c-hmenu:has(.tm-qs-host--header) {
+                display: flex !important;
+                align-items: center;
+                flex-wrap: nowrap;
+                gap: 6px;
+                min-width: 0;
+            }
+            .rnr-c-hmenu:has(.tm-qs-host--header) > .rnr-bl,
+            .rnr-c-hmenu:has(.tm-qs-host--header) > .rnr-br {
+                float: none !important;
+                flex: 0 0 auto;
+            }
             .rnr-hfiller:has(.tm-qs-host--header) {
                 display: flex !important;
                 align-items: center;
                 justify-content: flex-start !important;
                 gap: 8px;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
+                flex: 1 1 auto;
                 min-width: 0;
+            }
+            .rnr-hfiller .tm-header-orphan-btn {
+                flex: 0 0 auto;
+                align-self: center;
+                margin: 0;
+                white-space: nowrap;
             }
             .tm-repair-edit-header-with-search {
                 display: block !important;

@@ -1,11 +1,11 @@
 {
-  "version": "254",
+  "version": "255",
   "loaderVersion": "33",
-  "silentVersion": "2",
-  "displayVersion": "33.2",
+  "silentVersion": "3",
+  "displayVersion": "33.3",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix shop themes: stop migrateAccessoryStorage from wiping purchased theme IDs; allow equipping themes from dashboard",
+  "releaseNotes": "Relocate header Export (Εξαγωγή) orphan button into rnr-hfiller so quick search layout stays intact",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

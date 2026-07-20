@@ -51,6 +51,40 @@
             || document.querySelector('.rnr-hfiller');
     }
 
+    /** Loose header actions (e.g. Εξαγωγή) that sit outside search/loggedas bricks and break the row. */
+    function isHeaderOrphanAction(el) {
+        if (!el || el.nodeType !== 1) return false;
+        if (el.classList.contains('rnr-bl')
+            || el.classList.contains('rnr-br')
+            || el.classList.contains('rnr-hfiller')
+            || el.classList.contains('tm-qs-host')) {
+            return false;
+        }
+        if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return false;
+        if (el.tagName === 'A' && el.getAttribute('name') === 'skipsearch') return false;
+        if (el.id === 'export_1' || el.matches?.('a[href*="service_export.php"]')) return true;
+        return el.matches?.('a.rnr-button, button.rnr-button') === true;
+    }
+
+    function relocateHeaderOrphanButtons(hfiller) {
+        if (!hfiller) return;
+        const menu = hfiller.closest('.rnr-c-hmenu') || hfiller.parentElement;
+        if (!menu) return;
+
+        const orphans = [...menu.children].filter(isHeaderOrphanAction);
+        if (!orphans.length) return;
+
+        const host = document.getElementById('tm-header-quick-search-host');
+        orphans.forEach((btn) => {
+            btn.classList.add('tm-header-orphan-btn');
+            if (host && host.parentElement === hfiller) {
+                hfiller.insertBefore(btn, host);
+            } else if (!hfiller.contains(btn)) {
+                hfiller.prepend(btn);
+            }
+        });
+    }
+
     function getNativeSearchBlocks() {
         const exact = document.querySelectorAll(NATIVE_SEARCH_SELECTOR);
         if (exact.length) return exact;
@@ -257,15 +291,17 @@
 
     function ensureHeaderSearchHost() {
         let host = document.getElementById('tm-header-quick-search-host');
-        if (host) return host;
+        const hfiller = host?.closest('.rnr-hfiller') || findHeaderFiller();
+        if (!hfiller) return host || null;
 
-        const hfiller = findHeaderFiller();
-        if (!hfiller) return null;
+        if (!host) {
+            host = document.createElement('div');
+            host.id = 'tm-header-quick-search-host';
+            host.className = 'tm-qs-host tm-qs-host--header';
+            hfiller.prepend(host);
+        }
 
-        host = document.createElement('div');
-        host.id = 'tm-header-quick-search-host';
-        host.className = 'tm-qs-host tm-qs-host--header';
-        hfiller.prepend(host);
+        relocateHeaderOrphanButtons(hfiller);
         return host;
     }
 

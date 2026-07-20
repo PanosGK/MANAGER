@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v254 / Custom Ver. 33.2 — generated, do not edit */
+/* MyManager Suite bundle v255 / Custom Ver. 33.3 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '254',
+        version: '255',
         loaderVersion: '33',
-        silentVersion: '2',
-        displayVersion: '33.2',
+        silentVersion: '3',
+        displayVersion: '33.3',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -9207,13 +9207,33 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 padding: 0;
                 max-width: min(560px, 100%);
             }
+            /* Keep undermenu row stable when accounts show Extra buttons (Εξαγωγή, etc.). */
+            .rnr-c-hmenu:has(.tm-qs-host--header) {
+                display: flex !important;
+                align-items: center;
+                flex-wrap: nowrap;
+                gap: 6px;
+                min-width: 0;
+            }
+            .rnr-c-hmenu:has(.tm-qs-host--header) > .rnr-bl,
+            .rnr-c-hmenu:has(.tm-qs-host--header) > .rnr-br {
+                float: none !important;
+                flex: 0 0 auto;
+            }
             .rnr-hfiller:has(.tm-qs-host--header) {
                 display: flex !important;
                 align-items: center;
                 justify-content: flex-start !important;
                 gap: 8px;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
+                flex: 1 1 auto;
                 min-width: 0;
+            }
+            .rnr-hfiller .tm-header-orphan-btn {
+                flex: 0 0 auto;
+                align-self: center;
+                margin: 0;
+                white-space: nowrap;
             }
             .tm-repair-edit-header-with-search {
                 display: block !important;
@@ -53519,6 +53539,40 @@ if (typeof window !== 'undefined') {
             || document.querySelector('.rnr-hfiller');
     }
 
+    /** Loose header actions (e.g. Εξαγωγή) that sit outside search/loggedas bricks and break the row. */
+    function isHeaderOrphanAction(el) {
+        if (!el || el.nodeType !== 1) return false;
+        if (el.classList.contains('rnr-bl')
+            || el.classList.contains('rnr-br')
+            || el.classList.contains('rnr-hfiller')
+            || el.classList.contains('tm-qs-host')) {
+            return false;
+        }
+        if (el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return false;
+        if (el.tagName === 'A' && el.getAttribute('name') === 'skipsearch') return false;
+        if (el.id === 'export_1' || el.matches?.('a[href*="service_export.php"]')) return true;
+        return el.matches?.('a.rnr-button, button.rnr-button') === true;
+    }
+
+    function relocateHeaderOrphanButtons(hfiller) {
+        if (!hfiller) return;
+        const menu = hfiller.closest('.rnr-c-hmenu') || hfiller.parentElement;
+        if (!menu) return;
+
+        const orphans = [...menu.children].filter(isHeaderOrphanAction);
+        if (!orphans.length) return;
+
+        const host = document.getElementById('tm-header-quick-search-host');
+        orphans.forEach((btn) => {
+            btn.classList.add('tm-header-orphan-btn');
+            if (host && host.parentElement === hfiller) {
+                hfiller.insertBefore(btn, host);
+            } else if (!hfiller.contains(btn)) {
+                hfiller.prepend(btn);
+            }
+        });
+    }
+
     function getNativeSearchBlocks() {
         const exact = document.querySelectorAll(NATIVE_SEARCH_SELECTOR);
         if (exact.length) return exact;
@@ -53725,15 +53779,17 @@ if (typeof window !== 'undefined') {
 
     function ensureHeaderSearchHost() {
         let host = document.getElementById('tm-header-quick-search-host');
-        if (host) return host;
+        const hfiller = host?.closest('.rnr-hfiller') || findHeaderFiller();
+        if (!hfiller) return host || null;
 
-        const hfiller = findHeaderFiller();
-        if (!hfiller) return null;
+        if (!host) {
+            host = document.createElement('div');
+            host.id = 'tm-header-quick-search-host';
+            host.className = 'tm-qs-host tm-qs-host--header';
+            hfiller.prepend(host);
+        }
 
-        host = document.createElement('div');
-        host.id = 'tm-header-quick-search-host';
-        host.className = 'tm-qs-host tm-qs-host--header';
-        hfiller.prepend(host);
+        relocateHeaderOrphanButtons(hfiller);
         return host;
     }
 
