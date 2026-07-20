@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite (Local Dev)
 // @namespace    http://tampermonkey.net/
-// @version      33
+// @version      35
 // @description  Local development — async file:// bundle. Enable "Allow access to local file URLs". Run: npm run build.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -67,11 +67,11 @@
         } catch (e) { /* ignore */ }
     })();
 
-    var LOADER_VERSION = "33";
+    var LOADER_VERSION = "35";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "256";
+    var FALLBACK_BUNDLE_VERSION = "263";
     var LOCAL_BUNDLE_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.bundle.js";
 
     try {
@@ -654,13 +654,44 @@
         return;
     }
 
-    // Prevent prod + local loaders from both owning the same page (separate TM storage worlds).
-    if (window.__TMMS_SUITE_CLAIMED) {
+    // Prevent prod + local loaders from both owning the same page.
+    // Tampermonkey sandboxes isolate window, so a plain window flag does NOT
+    // cross scripts — use a shared DOM attribute (+ unsafeWindow when available).
+    function isSuiteAlreadyClaimed() {
+        try {
+            if (document.documentElement.getAttribute('data-tm-mms-suite') === '1') return true;
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof unsafeWindow !== 'undefined' && unsafeWindow && unsafeWindow.__TMMS_SUITE_CLAIMED) return true;
+        } catch (_) { /* ignore */ }
+        try {
+            if (window.__TMMS_SUITE_CLAIMED) return true;
+        } catch (_) { /* ignore */ }
+        return false;
+    }
+    function claimSuitePage() {
+        if (isSuiteAlreadyClaimed()) return false;
+        var loaderName = LOCAL_BUNDLE_URL ? 'local' : 'production';
+        try {
+            document.documentElement.setAttribute('data-tm-mms-suite', '1');
+            document.documentElement.setAttribute('data-tm-mms-loader', loaderName);
+        } catch (_) { /* ignore */ }
+        try {
+            window.__TMMS_SUITE_CLAIMED = true;
+            window.__TMMS_SUITE_LOADER = loaderName;
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof unsafeWindow !== 'undefined' && unsafeWindow) {
+                unsafeWindow.__TMMS_SUITE_CLAIMED = true;
+                unsafeWindow.__TMMS_SUITE_LOADER = loaderName;
+            }
+        } catch (_) { /* ignore */ }
+        return true;
+    }
+    if (!claimSuitePage()) {
         console.warn('[MMS] Another MyManager loader already claimed this page — skipping duplicate suite');
         return;
     }
-    window.__TMMS_SUITE_CLAIMED = true;
-    window.__TMMS_SUITE_LOADER = LOCAL_BUNDLE_URL ? 'local' : 'production';
 
     var loginPath = (window.location && window.location.pathname) || '';
     if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {

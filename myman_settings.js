@@ -2269,7 +2269,7 @@
             const bellWrapper = document.createElement('div');
             bellWrapper.id = 'tm-notification-bell-wrapper';
             bellWrapper.innerHTML = `
-                <button id="tm-notification-bell-btn" class="tm-footer-widget tm-footer-icon-btn" type="button" title="Κέντρο ειδοποιήσεων">🔔</button>
+                <button id="tm-notification-bell-btn" class="tm-footer-widget tm-footer-icon-btn" type="button" title="Κέντρο ειδοποιήσεων">${typeof window.getBellIconHTML === 'function' ? window.getBellIconHTML(18) : '!'}</button>
                 <span id="tm-notification-unread-count">0</span>
             `;
             parentContainer.appendChild(bellWrapper);
@@ -2286,7 +2286,7 @@
             button.id = 'tm-settings-btn';
             button.type = 'button';
             button.className = 'tm-footer-widget tm-footer-icon-btn';
-            button.innerHTML = '⚙️'; // Settings gear icon
+            button.innerHTML = typeof window.getGearIconHTML === 'function' ? window.getGearIconHTML(18) : '⚙'; // Settings gear icon
             button.title = 'Ρυθμίσεις MyManager Suite';
             button.addEventListener('click', createSettingsModal);
             parentContainer.appendChild(button);
@@ -2386,7 +2386,7 @@
                                     justify-content: space-between;
                                     align-items: center;
                                 ">
-                                    <span style="color: #00ffff;">🪙 +${entry.amount}${bonus}</span>
+                                    <span style="color: #00ffff; display:inline-flex; align-items:center; gap:4px;">${typeof window.getCoinIconHTML === 'function' ? window.getCoinIconHTML(12) : 'FC'} +${entry.amount}${bonus}</span>
                                     <span style="color: #888; font-size: 11px;">${formatTime(entry.timestamp)}</span>
                                 </div>
                             `;
@@ -2438,7 +2438,16 @@
             });
             
             parentContainer.appendChild(coinBalance);
-            window.updateCoinBalanceUI(STORAGE_KEYS, GM_getValue(STORAGE_KEYS.USER_COINS, 0));
+            if (typeof window.ensureStarterCoins === 'function') {
+                window.ensureStarterCoins(config, STORAGE_KEYS);
+            }
+            window.updateCoinBalanceUI(
+                STORAGE_KEYS,
+                typeof window.readCoinBalance === 'function'
+                    ? window.readCoinBalance(STORAGE_KEYS)
+                    : GM_getValue(STORAGE_KEYS.USER_COINS, 0),
+                config,
+            );
         }
 
         // Initializer for settings

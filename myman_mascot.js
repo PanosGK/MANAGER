@@ -912,7 +912,11 @@ function trySpendMascotCareCoins(STORAGE_KEYS, actionId, config) {
         window.updateCoinBalanceUI(keys, next, config || window.config);
     } else {
         const coinDisplay = document.getElementById('tm-coin-balance');
-        if (coinDisplay) coinDisplay.innerHTML = `🪙 ${next}`;
+        if (coinDisplay) {
+            coinDisplay.innerHTML = (typeof window.formatCoinAmountHTML === 'function')
+                ? window.formatCoinAmountHTML(next, 16)
+                : `FC ${next}`;
+        }
     }
 
     return { ok: true, cost, paidWith: 'coins' };
@@ -2894,26 +2898,43 @@ function showTamagotchiDeathCinematic(onComplete) {
 
 function runTamagotchiHatchSequence(characterType, container) {
     if (tamaCinematicLock || tamagotchiIsDead || tamagotchiEggHatchCinematicDone) return;
+
+    // Lock the rolled character for this life — never re-roll mid-cinematic
+    const lockedType = (characterType && TAMA_CHARACTER_TYPES.includes(characterType))
+        ? characterType
+        : (tamagotchiCharacterType && TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)
+            ? tamagotchiCharacterType
+            : TAMA_CHARACTER_TYPES[Math.floor(Math.random() * TAMA_CHARACTER_TYPES.length)]);
+    tamagotchiCharacterType = lockedType;
+
     tamaCinematicLock = true;
     tamagotchiEggHatchCinematicDone = true;
     const hatchGen = tamaCinematicGeneration;
     const config = typeof window.config !== 'undefined' ? window.config : {};
     stopRoaming(config);
 
+    // Persist immediately so a tab refresh / visibility sync can't replace the roll
+    if (typeof window.STORAGE_KEYS !== 'undefined') {
+        saveTamagotchiData(window.STORAGE_KEYS);
+    }
+
     showEggHatchAnimation(() => {
         if (hatchGen !== tamaCinematicGeneration || tamagotchiIsDead || tamagotchiStage !== 'baby') {
             tamaCinematicLock = false;
             return;
         }
-        updateMascotAppearanceByStage('baby');
-        showLuckyCharacterReveal(characterType, () => {
+        // Keep egg/hidden until the lottery finishes — avoids "shows type A then becomes B"
+        showLuckyCharacterReveal(lockedType, () => {
             if (hatchGen !== tamaCinematicGeneration || tamagotchiIsDead) {
                 tamaCinematicLock = false;
                 return;
             }
+            tamagotchiCharacterType = lockedType;
+            updateMascotAppearanceByStage('baby');
             tamaCinematicLock = false;
-            showMascotBubble(mascotHatchMsg(characterType), 3000);
+            showMascotBubble(mascotHatchMsg(lockedType), 3000);
             if (typeof window.STORAGE_KEYS !== 'undefined') {
+                saveTamagotchiData(window.STORAGE_KEYS);
                 updatePetStateByStats(config, window.STORAGE_KEYS);
             }
         });
@@ -3961,6 +3982,86 @@ function setSvgSpriteVisible(element, visible) {
     }
 }
 
+/**
+ * Duplicate #tm-mascot-container nodes break sprite updates (getElementById hits the first
+ * copy only) and look like the mascot "changing type". Keep exactly one container + panel.
+ */
+function ensureSingleMascotDom(reason = '') {
+    const containers = [...document.querySelectorAll('#tm-mascot-container, .tm-mascot-container')];
+    const uniqueContainers = [...new Set(containers)];
+    let removed = 0;
+
+    if (uniqueContainers.length > 1) {
+        // Prefer the newest node (last in document) — older copies are usually stale leftovers
+        const keep = uniqueContainers[uniqueContainers.length - 1];
+        uniqueContainers.forEach((el) => {
+            if (el === keep) return;
+            try { el.remove(); removed += 1; } catch (_) { /* ignore */ }
+        });
+        console.warn(`[MMS Mascot] Removed ${removed} duplicate mascot container(s)${reason ? ` (${reason})` : ''}`);
+    }
+
+    const panels = [...document.querySelectorAll('#tm-mascot-interaction-panel')];
+    if (panels.length > 1) {
+        const keepPanel = panels[panels.length - 1];
+        panels.forEach((el) => {
+            if (el === keepPanel) return;
+            try { el.remove(); removed += 1; } catch (_) { /* ignore */ }
+        });
+        console.warn(`[MMS Mascot] Removed duplicate interaction panel(s)${reason ? ` (${reason})` : ''}`);
+    }
+
+    // Strip conflicting sprite IDs from memory-game / cinematic clones outside the live root
+    const live = document.getElementById('tm-mascot-container');
+    if (live) {
+        document.querySelectorAll('.tm-mascot-robot').forEach((robot) => {
+            if (live.contains(robot)) return;
+            robot.querySelectorAll('[id]').forEach((node) => {
+                if (String(node.id || '').startsWith('tm-mascot-')) {
+                    node.removeAttribute('id');
+                }
+            });
+        });
+    }
+
+    return document.getElementById('tm-mascot-container');
+}
+
+function getMascotSpriteById(container, id) {
+    if (!container || !id) return null;
+    try {
+        return container.querySelector(`#${CSS.escape(id)}`);
+    } catch (_) {
+        return container.querySelector(`[id="${id}"]`);
+    }
+}
+
+function countMascotDomInstances() {
+    const containers = new Set(document.querySelectorAll('#tm-mascot-container, .tm-mascot-container'));
+    const panels = document.querySelectorAll('#tm-mascot-interaction-panel').length;
+    return { containers: containers.size, panels };
+}
+
+function installMascotDomDeduper() {
+    if (window.__tmMascotDomObserver || typeof MutationObserver !== 'function') return;
+    window.__tmMascotDomObserver = true;
+    const run = () => {
+        const { containers, panels } = countMascotDomInstances();
+        if (containers > 1 || panels > 1) ensureSingleMascotDom('mutation');
+    };
+    const obs = new MutationObserver(() => {
+        if (window.__tmMascotDedupScheduled) return;
+        window.__tmMascotDedupScheduled = true;
+        requestAnimationFrame(() => {
+            window.__tmMascotDedupScheduled = false;
+            run();
+        });
+    });
+    obs.observe(document.documentElement, { childList: true, subtree: true });
+    // Periodic safety net (covers cases MutationObserver misses)
+    setInterval(run, 4000);
+}
+
 function ensureTamagotchiCharacterType(options = {}) {
     const { allowRandom = false, clearForEgg = false } = options;
 
@@ -4976,15 +5077,16 @@ function saveTamagotchiData(STORAGE_KEYS) {
 
             const storedChar = stored.characterType;
             const storedCharOk = storedChar && storedChar !== 'none' && TAMA_CHARACTER_TYPES.includes(storedChar);
+            const memoryCharOk = tamagotchiCharacterType && tamagotchiCharacterType !== 'none'
+                && TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType);
 
-            // Sticky character: never replace a real stored character with none while hatched
+            // Sticky character: never replace a real character while hatched.
+            // Prefer in-memory if already rolled this session (hatch); else adopt storage.
             if (tamagotchiLifeMinutes >= TAMA_STAGE_MINUTES.baby) {
-                if (storedCharOk && (!tamagotchiCharacterType || tamagotchiCharacterType === 'none')) {
+                if (memoryCharOk) {
+                    // Keep the rolled character — don't let stale storage overwrite it
+                } else if (storedCharOk) {
                     tamagotchiCharacterType = storedChar;
-                }
-                // Also refuse to clobber a different in-memory character with none — keep memory if valid
-                if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none') {
-                    if (storedCharOk) tamagotchiCharacterType = storedChar;
                 }
             }
         }
@@ -4996,10 +5098,14 @@ function saveTamagotchiData(STORAGE_KEYS) {
         tamagotchiCharacterType = 'none';
     } else {
         tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
-        // Still missing after merge — assign once so refresh stays stable
+        // Still missing after merge — recover from storage only.
+        // NEVER random-roll here (that caused hatch type A → save re-roll → type B).
         if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none'
             || !TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)) {
-            ensureTamagotchiCharacterType({ allowRandom: true });
+            const storedChar = stored?.characterType;
+            if (storedChar && storedChar !== 'none' && TAMA_CHARACTER_TYPES.includes(storedChar)) {
+                tamagotchiCharacterType = storedChar;
+            }
         }
     }
 
@@ -5089,12 +5195,17 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
         window.__tmTamagotchiFocusSyncBound = true;
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState !== 'visible') return;
+            // Don't clobber an in-progress hatch lottery with a stale storage reload
+            if (tamaCinematicLock) return;
             const keys = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
             if (!keys?.TAMAGOTCHI_DATA) return;
             const prevStage = tamagotchiStage;
             const prevLife = tamagotchiLifeMinutes;
+            const prevChar = tamagotchiCharacterType;
             loadTamagotchiData(keys);
-            if (tamagotchiStage !== prevStage || Math.abs(tamagotchiLifeMinutes - prevLife) > 0.01) {
+            if (tamagotchiStage !== prevStage
+                || Math.abs(tamagotchiLifeMinutes - prevLife) > 0.01
+                || tamagotchiCharacterType !== prevChar) {
                 const el = document.getElementById('tm-mascot-container');
                 updateMascotAppearanceByStage(tamagotchiStage);
                 if (el) updateTamagotchiStats(el);
@@ -6006,12 +6117,27 @@ function resetIdleTimer(config) {
 function initInteractiveMascot(config, STORAGE_KEYS) {
     if (!config || !config.interactiveMascotEnabled) return;
 
-    // Prevent duplicate mascot + interaction panel (double death/revive UI)
-    if (document.getElementById('tm-mascot-container')) {
-        console.warn('[MMS Mascot] Already initialized — skipping duplicate init');
+    // Atomic guard against concurrent double-init (two callers before DOM append)
+    if (window.__tmMascotInitializing) {
+        console.warn('[MMS Mascot] Init already in progress — skipping');
         return;
     }
 
+    const existingCount = countMascotDomInstances();
+    if (existingCount.containers > 0 || window.__tmMascotInitialized) {
+        ensureSingleMascotDom('init-skip');
+        if (existingCount.containers > 1) {
+            console.warn('[MMS Mascot] Duplicate mascots found at init — cleaned up, not re-creating');
+        } else {
+            console.warn('[MMS Mascot] Already initialized — skipping duplicate init');
+        }
+        return;
+    }
+
+    window.__tmMascotInitializing = true;
+
+    try {
+    installMascotDomDeduper();
     // Add mascot animation styles to document
     if (!document.getElementById('tm-mascot-animations')) {
         const animStyle = document.createElement('style');
@@ -14719,6 +14845,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         console.log('[MMS Mascot] Lights are off or sleeping, mascot will not move.');
         setMascotState(config, 'powersave');
     }
+
+    window.__tmMascotInitialized = true;
+    ensureSingleMascotDom('post-init');
+    } finally {
+        window.__tmMascotInitializing = false;
+    }
 }
 
 /** Triggers the "Eureka!" animation for the mascot. */
@@ -15110,21 +15242,27 @@ function initMascotPageReactions(config) {
 function updateMascotAppearanceByStage(stage) {
     console.log(`[MMS Mascot] 🔄 Updating mascot appearance for stage: ${stage}, character: ${tamagotchiCharacterType}...`);
 
-    const eggSprite = document.getElementById('tm-mascot-base');
+    const container = ensureSingleMascotDom('appearance');
+    if (!container) {
+        console.warn('[MMS Mascot] No mascot container — skip appearance update');
+        return;
+    }
+
+    const eggSprite = getMascotSpriteById(container, 'tm-mascot-base');
     const allCharacterTypes = TAMA_CHARACTER_TYPES;
     const allStages = ['base', 'baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
 
     allStages.forEach((stageId) => {
         allCharacterTypes.forEach((charType) => {
-            setSvgSpriteVisible(document.getElementById(`tm-mascot-${stageId}-${charType}`), false);
+            setSvgSpriteVisible(getMascotSpriteById(container, `tm-mascot-${stageId}-${charType}`), false);
         });
-        setSvgSpriteVisible(document.getElementById(`tm-mascot-${stageId}`), false);
+        setSvgSpriteVisible(getMascotSpriteById(container, `tm-mascot-${stageId}`), false);
     });
     setSvgSpriteVisible(eggSprite, false);
 
     if (stage === 'egg') {
         setSvgSpriteVisible(eggSprite, true);
-        const robot = document.querySelector('.tm-mascot-robot');
+        const robot = container.querySelector('.tm-mascot-robot');
         if (robot) {
             TAMA_CHARACTER_TYPES.forEach((charType) => robot.classList.remove(`mascot-char-${charType}`));
             robot.classList.remove('mascot-baby', 'mascot-kid', 'mascot-teen', 'mascot-adult', 'mascot-middleage', 'mascot-old', 'mascot-child');
@@ -15139,9 +15277,15 @@ function updateMascotAppearanceByStage(stage) {
         return;
     }
 
-    const previewCharacter = tamagotchiCharacterType && tamagotchiCharacterType !== 'none'
-        ? tamagotchiCharacterType
-        : 'dragon';
+    // Never invent a "dragon" placeholder — that looked like the mascot changing type after hatch
+    if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none'
+        || !TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)) {
+        setSvgSpriteVisible(eggSprite, true);
+        console.log('[MMS Mascot] Character not locked yet — keeping egg sprite');
+        return;
+    }
+
+    const previewCharacter = tamagotchiCharacterType;
     let stageId = '';
 
     switch (stage) {
@@ -15154,13 +15298,13 @@ function updateMascotAppearanceByStage(stage) {
         default: stageId = 'baby';
     }
 
-    const element = document.getElementById(`tm-mascot-${stageId}-${previewCharacter}`);
+    const element = getMascotSpriteById(container, `tm-mascot-${stageId}-${previewCharacter}`);
     if (element) {
         setSvgSpriteVisible(element, true);
         console.log(`[MMS Mascot] ✅ Updated to ${stage.toUpperCase()} stage as ${previewCharacter.toUpperCase()}`);
     } else {
         console.warn(`[MMS Mascot] ⚠️ Character element not found: tm-mascot-${stageId}-${previewCharacter}. Using fallback.`);
-        setSvgSpriteVisible(document.getElementById(`tm-mascot-${stageId}`), true);
+        setSvgSpriteVisible(getMascotSpriteById(container, `tm-mascot-${stageId}`), true);
     }
 
     if (typeof window.STORAGE_KEYS !== 'undefined') {
@@ -15170,7 +15314,7 @@ function updateMascotAppearanceByStage(stage) {
     }
     requestAnimationFrame(() => updateMascotAccessoryLayout(stage));
 
-    const robot = document.querySelector('.tm-mascot-robot');
+    const robot = container.querySelector('.tm-mascot-robot');
     if (robot) {
         robot.classList.remove('mascot-baby', 'mascot-child', 'mascot-adult', 'mascot-egg', 'mascot-teen', 'mascot-middleage', 'mascot-old');
         allCharacterTypes.forEach((charType) => {
@@ -15213,6 +15357,9 @@ window.getMascotCharacterType = getMascotCharacterType;
 window.MASCOT_CHARACTERS = MASCOT_CHARACTERS;
 window.TAMA_CHARACTER_TYPES = TAMA_CHARACTER_TYPES;
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
+window.ensureSingleMascotDom = ensureSingleMascotDom;
+window.countMascotDomInstances = countMascotDomInstances;
+window.installMascotDomDeduper = installMascotDomDeduper;
 window.setMascotState = setMascotState;
 window.setMascotMood = setMascotMood;
 window.notifyMascotWorkEvent = notifyMascotWorkEvent;

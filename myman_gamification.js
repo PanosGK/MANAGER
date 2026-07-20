@@ -850,9 +850,10 @@ function getDiscountedShopCost(baseCost, STORAGE_KEYS, config) {
 
 function formatShopCostHTML(baseCost, STORAGE_KEYS, config) {
     const { base, final, hasDiscount } = getDiscountedShopCost(baseCost, STORAGE_KEYS, config);
-    if (config?.debugEnabled) return '🪙 0 (Free)';
-    if (!hasDiscount) return `🪙 ${base}`;
-    return `<span class="tm-shop-price-original">🪙 ${base}</span> <span class="tm-shop-price-sale">🪙 ${final}</span>`;
+    const icon = typeof window.getCoinIconHTML === 'function' ? window.getCoinIconHTML(13) : 'FC';
+    if (config?.debugEnabled) return `${icon} 0 (Free)`;
+    if (!hasDiscount) return `${icon} ${base}`;
+    return `<span class="tm-shop-price-original">${icon} ${base}</span> <span class="tm-shop-price-sale">${icon} ${final}</span>`;
 }
 
 function describeLevelRewardLines(level) {
@@ -962,17 +963,65 @@ function showLevelLootBox(config, STORAGE_KEYS, level) {
     });
 }
 
+function readCoinBalance(STORAGE_KEYS) {
+    const raw = GM_getValue(STORAGE_KEYS.USER_COINS, 0);
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function writeCoinBalance(STORAGE_KEYS, balance) {
+    const n = Math.max(0, Math.floor(Number(balance) || 0));
+    GM_setValue(STORAGE_KEYS.USER_COINS, n);
+    return n;
+}
+
+/** Fresh installs had 0 coins and no stipend until Lv.10 — shop was unusable. */
+function ensureStarterCoins(config, STORAGE_KEYS) {
+    if (!STORAGE_KEYS?.USER_COINS) return readCoinBalance(STORAGE_KEYS);
+    const flagKey = STORAGE_KEYS.STARTER_COINS_GRANTED || 'tm_starter_coins_granted';
+    if (GM_getValue(flagKey, false)) return readCoinBalance(STORAGE_KEYS);
+
+    // Distinguish "never set" from "spent down to 0"
+    const raw = GM_getValue(STORAGE_KEYS.USER_COINS, undefined);
+    if (raw !== undefined && raw !== null && raw !== '') {
+        GM_setValue(flagKey, true);
+        return readCoinBalance(STORAGE_KEYS);
+    }
+
+    const starter = 750; // enough for a mid-tier theme on day one
+    writeCoinBalance(STORAGE_KEYS, starter);
+    GM_setValue(flagKey, true);
+
+    try {
+        const coinHistory = JSON.parse(GM_getValue(STORAGE_KEYS.COIN_HISTORY, '[]'));
+        coinHistory.unshift({
+            amount: starter,
+            baseAmount: starter,
+            timestamp: Date.now(),
+            source: 'starter_pack',
+        });
+        if (coinHistory.length > 50) coinHistory.length = 50;
+        GM_setValue(STORAGE_KEYS.COIN_HISTORY, JSON.stringify(coinHistory));
+    } catch (_) { /* ignore */ }
+
+    if (typeof window.createNotification === 'function') {
+        window.createNotification(`Καλωσήρθες! +${starter} Fixer-Coins για το shop.`, 'welcome');
+    }
+    return starter;
+}
+
 function tryGrantDailyStipend(config, STORAGE_KEYS) {
-    if (!config?.levelUpSystemEnabled) return;
+    if (!config?.levelUpSystemEnabled && config?.shopEnabled === false) return;
     const today = new Date().toISOString().slice(0, 10);
     if (GM_getValue('tm_daily_stipend_date', '') === today) return;
-    const level = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
-    const stipend = Math.floor(level / 10) * 5;
+    const level = Math.max(1, Number(GM_getValue(STORAGE_KEYS.USER_LEVEL, 1)) || 1);
+    // Always grant a small daily purse; scales up every 10 levels
+    const stipend = Math.max(25, Math.floor(level / 10) * 25);
     GM_setValue('tm_daily_stipend_date', today);
     if (stipend <= 0) return;
     grantCoins(config, STORAGE_KEYS, stipend, 'daily_stipend');
     if (typeof window.createNotification === 'function') {
-        window.createNotification(`Daily stipend: +${stipend} coins (Lv.${level})`, '🪙');
+        window.createNotification(`Daily stipend: +${stipend} coins (Lv.${level})`, 'FC');
     }
 }
 
@@ -1492,8 +1541,9 @@ function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
 }
 
 function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
-    if (!config.levelUpSystemEnabled) return;
-    let currentCoins = GM_getValue(STORAGE_KEYS.USER_COINS, 0);
+    // Allow coin economy whenever shop or level-up is on
+    if (config && config.levelUpSystemEnabled === false && config.shopEnabled === false) return;
+    let currentCoins = readCoinBalance(STORAGE_KEYS);
 
     // Apply coin talent bonus
     const unlockedTalents = JSON.parse(GM_getValue(STORAGE_KEYS.UNLOCKED_TALENTS, '[]'));
@@ -1515,8 +1565,7 @@ function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
     }
 
     const finalAmount = Math.ceil(amount * coinMultiplier);
-    currentCoins += finalAmount;
-    GM_setValue(STORAGE_KEYS.USER_COINS, currentCoins);
+    currentCoins = writeCoinBalance(STORAGE_KEYS, currentCoins + finalAmount);
     
     // Track coin history
     const coinHistory = JSON.parse(GM_getValue(STORAGE_KEYS.COIN_HISTORY, '[]'));
@@ -1601,7 +1650,9 @@ function updateCoinBalanceUI(STORAGE_KEYS, balance, config) {
         return;
     }
 
-    coinDisplay.innerHTML = `🪙 ${balance}`;
+    coinDisplay.innerHTML = (typeof window.formatCoinAmountHTML === 'function')
+        ? window.formatCoinAmountHTML(balance, 16)
+        : `FC ${balance}`;
     coinDisplay.style.display = '';
     if (typeof window.tmSyncFooterShellCache === 'function'
         && !(typeof window.tmIsFooterShellMounted === 'function' && window.tmIsFooterShellMounted())) {
@@ -2689,7 +2740,7 @@ function showShopModal(config, STORAGE_KEYS) {
     overlay.innerHTML = `
         <div class="tm-modal-content" style="max-width: 700px; height: 85vh; display: flex; flex-direction: column;">
             <div class="tm-modal-header">
-                <h2 class="tm-modal-title">🪙 Cosmetics Shop</h2>
+                <h2 class="tm-modal-title">${typeof window.getCoinIconHTML === 'function' ? window.getCoinIconHTML(22) : 'FC'} Cosmetics Shop</h2>
                 <button class="tm-modal-close">&times;</button>
             </div>
             <div id="tm-shop-content-container" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 10px; padding-right: 10px;">
@@ -2727,51 +2778,50 @@ function showShopModal(config, STORAGE_KEYS) {
 
     // --- Shop Logic ---
     overlay.querySelector('#tm-shop-items-wrapper').addEventListener('click', (e) => {
-        if (e.target.matches('.tm-shop-item-btn')) {
-            if (e.target.classList.contains('buy')) {
-                handleShopPurchase(e.target, config, STORAGE_KEYS); // This function is already defined and handles purchases
-            } else if (e.target.classList.contains('equip') || e.target.classList.contains('equipped')) {
-                const button = e.target;
-                const itemId = button.dataset.itemId;
-                const itemType = button.dataset.itemType;
+        const button = e.target.closest('.tm-shop-item-btn');
+        if (!button) return;
+        if (button.classList.contains('buy')) {
+            handleShopPurchase(button, config, STORAGE_KEYS);
+        } else if (button.classList.contains('equip') || button.classList.contains('equipped')) {
+            const itemId = button.dataset.itemId;
+            const itemType = button.dataset.itemType;
 
-                // Equip/Unequip logic
-                if (itemType === 'accessory') {
-                    const normalizedId = typeof window.normalizeAccessoryId === 'function'
-                        ? window.normalizeAccessoryId(itemId)
-                        : itemId;
+            // Equip/Unequip logic
+            if (itemType === 'accessory') {
+                const normalizedId = typeof window.normalizeAccessoryId === 'function'
+                    ? window.normalizeAccessoryId(itemId)
+                    : itemId;
 
-                    if (!normalizedId) {
-                        console.warn(`[MMS Shop] Accessory "${itemId}" is no longer available.`);
-                        return;
-                    }
-
-                    const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'))
-                        .map((id) => (typeof window.normalizeAccessoryId === 'function' ? window.normalizeAccessoryId(id) : id))
-                        .filter(Boolean);
-                    const isEquipped = equippedItems.includes(normalizedId);
-
-                    if (isEquipped) {
-                        window.unequipMascotAccessory?.(STORAGE_KEYS, normalizedId);
-                        console.log(`[MMS Shop] Unequipped ${normalizedId}`);
-                    } else {
-                        window.equipMascotAccessory?.(config, STORAGE_KEYS, normalizedId);
-                        console.log(`[MMS Shop] Equipped ${normalizedId}`);
-                    }
-
-                } else if (itemType === 'theme') {
-                    if (typeof window.applyTheme === 'function') {
-                        window.applyTheme(itemId);
-                    }
-                } else if (itemType === 'feature') {
-                    // Debug mode "Equip" click — add to purchased and activate immediately
-                    let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
-                    if (!purchased.includes(itemId)) purchased.push(itemId);
-                    GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
-                    activateFeature(itemId, config, STORAGE_KEYS);
+                if (!normalizedId) {
+                    console.warn(`[MMS Shop] Accessory "${itemId}" is no longer available.`);
+                    return;
                 }
-                populateShop(config, STORAGE_KEYS); // Re-render shop to update buttons
+
+                const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'))
+                    .map((id) => (typeof window.normalizeAccessoryId === 'function' ? window.normalizeAccessoryId(id) : id))
+                    .filter(Boolean);
+                const isEquipped = equippedItems.includes(normalizedId);
+
+                if (isEquipped) {
+                    window.unequipMascotAccessory?.(STORAGE_KEYS, normalizedId);
+                    console.log(`[MMS Shop] Unequipped ${normalizedId}`);
+                } else {
+                    window.equipMascotAccessory?.(config, STORAGE_KEYS, normalizedId);
+                    console.log(`[MMS Shop] Equipped ${normalizedId}`);
+                }
+
+            } else if (itemType === 'theme') {
+                if (typeof window.applyTheme === 'function') {
+                    window.applyTheme(itemId);
+                }
+            } else if (itemType === 'feature') {
+                // Debug mode "Equip" click — add to purchased and activate immediately
+                let purchased = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'));
+                if (!purchased.includes(itemId)) purchased.push(itemId);
+                GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
+                activateFeature(itemId, config, STORAGE_KEYS);
             }
+            populateShop(config, STORAGE_KEYS); // Re-render shop to update buttons
         }
     });
 }
@@ -2821,7 +2871,7 @@ function populateShop(config, STORAGE_KEYS) {
     const equippedItems = JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]'))
         .map((id) => window.normalizeAccessoryId?.(id) || id)
         .filter(Boolean);
-    let currentCoins = GM_getValue(STORAGE_KEYS.USER_COINS, 0);
+    let currentCoins = readCoinBalance(STORAGE_KEYS);
 
     itemsWrapper.innerHTML = ''; // Clear previous items
 
@@ -2854,15 +2904,14 @@ function handleShopPurchase(button, config, STORAGE_KEYS) {
     const itemType = button.dataset.itemType;
 
     const { final: finalCost } = getDiscountedShopCost(itemCost, STORAGE_KEYS, config);
-    let currentCoins = GM_getValue(STORAGE_KEYS.USER_COINS, 0);
+    let currentCoins = readCoinBalance(STORAGE_KEYS);
 
     if (currentCoins < finalCost) {
         alert('Δεν έχετε αρκετά Fixer-Coins!');
         return;
     }
 
-    currentCoins -= finalCost;
-    GM_setValue(STORAGE_KEYS.USER_COINS, currentCoins);
+    currentCoins = writeCoinBalance(STORAGE_KEYS, currentCoins - finalCost);
     updateCoinBalanceUI(STORAGE_KEYS, currentCoins, config);
 
     if (itemType === 'consumable' && itemId === 'reroll_token') {
@@ -2965,8 +3014,19 @@ function initDailyDashboardWidget(config, parentContainer, STORAGE_KEYS) {
  */
 function initXpBarWidget(parentContainer, STORAGE_KEYS) {
     const cfg = window.config || {};
-    if (!cfg.levelUpSystemEnabled) return;
+    if (!cfg.levelUpSystemEnabled) {
+        // Still seed coins / stipend when shop is on without the XP bar
+        if (cfg.shopEnabled !== false) {
+            ensureStarterCoins(cfg, STORAGE_KEYS);
+            tryGrantDailyStipend(cfg, STORAGE_KEYS);
+            if (typeof window.updateCoinBalanceUI === 'function') {
+                window.updateCoinBalanceUI(STORAGE_KEYS, readCoinBalance(STORAGE_KEYS), cfg);
+            }
+        }
+        return;
+    }
 
+    ensureStarterCoins(cfg, STORAGE_KEYS);
     tryGrantDailyStipend(cfg, STORAGE_KEYS);
 
     const currentLevel = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
@@ -4391,7 +4451,7 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
     // Get stats
     const level = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
     const xp = GM_getValue(STORAGE_KEYS.USER_XP, 0);
-    const coins = GM_getValue(STORAGE_KEYS.USER_COINS, 0);
+    const coins = readCoinBalance(STORAGE_KEYS);
     const dailyStats = JSON.parse(GM_getValue(STORAGE_KEYS.DAILY_STATS, '{}'));
     
     // Get achievements with fallback handling
@@ -4438,7 +4498,7 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                 
                 <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; ${config.shopEnabled ? 'cursor: pointer;' : ''}" ${config.shopEnabled ? 'id="tm-dashboard-coin-balance"' : ''} ${config.shopEnabled ? 'title="Click to open Shop"' : ''}>
                     <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Balance</div>
-                    <div style="font-size: 42px; font-weight: bold;">🪙</div>
+                    <div style="font-size: 42px; font-weight: bold; line-height: 1;">${typeof window.getCoinIconHTML === 'function' ? window.getCoinIconHTML(42) : 'FC'}</div>
                     <div style="font-size: 20px; margin-top: 6px; font-weight: 600;">${coins}</div>
                 </div>
             </div>
@@ -4736,7 +4796,7 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
         if (!config.shopEnabled) {
             container.innerHTML = `
                 <div style="text-align: center; padding: 60px 20px; color: var(--tm-secondary-hover);">
-                    <div style="font-size: 64px; margin-bottom: 16px;">🪙</div>
+                    <div style="font-size: 64px; margin-bottom: 16px; line-height: 1;">${typeof window.getCoinIconHTML === 'function' ? window.getCoinIconHTML(64) : 'FC'}</div>
                     <h3 style="color: var(--tm-primary-color); margin-bottom: 12px;">Shop is Disabled</h3>
                     <p style="color: var(--tm-secondary-hover);">Enable the shop in Settings to access the shop.</p>
                 </div>
@@ -4840,7 +4900,7 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 4px;">${bounty.task}</div>
-                                <div style="font-size: 12px; color: var(--tm-secondary-hover);">Reward: ${bounty.xpReward} XP, ${bounty.coinReward} 🪙</div>
+                                <div style="font-size: 12px; color: var(--tm-secondary-hover); display:inline-flex; align-items:center; gap:4px; flex-wrap:wrap;">Reward: ${bounty.xpReward} XP, ${bounty.coinReward} ${typeof window.getCoinIconHTML === 'function' ? window.getCoinIconHTML(12) : 'FC'}</div>
                             </div>
                             <div style="font-size: 24px;">${bounty.completed ? '✅' : '⏳'}</div>
                         </div>
@@ -5054,7 +5114,7 @@ function populateShopDashboard(config, STORAGE_KEYS) {
     
     window.migrateAccessoryStorage?.(STORAGE_KEYS);
 
-    const coins = GM_getValue(STORAGE_KEYS.USER_COINS, 0);
+    const coins = readCoinBalance(STORAGE_KEYS);
     const purchasedItems = JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]'))
         .map((id) => window.normalizeAccessoryId?.(id) || id)
         .filter(Boolean);
@@ -5076,6 +5136,7 @@ function populateShopDashboard(config, STORAGE_KEYS) {
     const themesContainer = wrapper.querySelector('#tm-shop-category-themes');
     const equippedThemeId = config?.equippedTheme
         || (typeof GM_getValue === 'function' ? GM_getValue(STORAGE_KEYS.EQUIPPED_THEME, 'default') : 'default');
+    const coinIcon = typeof window.getCoinIconHTML === 'function' ? window.getCoinIconHTML(13) : 'FC';
     themesContainer.innerHTML = Object.keys(UI_THEMES).map(id => {
         const theme = { id, ...UI_THEMES[id] };
         const isPurchased = purchasedItems.includes(theme.id) || theme.cost === 0;
@@ -5085,7 +5146,7 @@ function populateShopDashboard(config, STORAGE_KEYS) {
             : '';
         const btnClass = !isPurchased ? 'buy' : (isEquipped ? 'equipped' : 'equip');
         const btnLabel = !isPurchased
-            ? `Buy ${theme.cost} 🪙`
+            ? `Buy ${theme.cost} ${coinIcon}`
             : (isEquipped ? '✓ Equipped' : 'Equip');
         const btnBg = !isPurchased
             ? 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)'
@@ -5140,7 +5201,7 @@ function populateShopDashboard(config, STORAGE_KEYS) {
                                 background: ${!isPurchased ? 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)' : isEquipped ? 'linear-gradient(135deg, #66bb6a 0%, #4caf50 100%)' : 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'};
                                 color: white;
                             ">
-                        ${!isPurchased ? `Buy ${accessory.cost} 🪙` : isEquipped ? '✓ Equipped' : 'Equip'}
+                        ${!isPurchased ? `Buy ${accessory.cost} ${coinIcon}` : isEquipped ? '✓ Equipped' : 'Equip'}
                     </button>
                 </div>
             `;
@@ -5176,7 +5237,7 @@ function populateShopDashboard(config, STORAGE_KEYS) {
                                 color: ${isOwned ? '#94a3b8' : 'white'};
                             "
                             ${isOwned ? 'disabled' : ''}>
-                        ${isOwned ? '✓ Owned' : `Buy ${consumable.cost} 🪙`}
+                        ${isOwned ? '✓ Owned' : `Buy ${consumable.cost} ${coinIcon}`}
                     </button>
                 </div>
             `;
@@ -5186,54 +5247,58 @@ function populateShopDashboard(config, STORAGE_KEYS) {
     
     // Add event listeners for shop buttons
     wrapper.addEventListener('click', (e) => {
-        if (e.target.matches('.tm-shop-item-btn')) {
-            if (e.target.classList.contains('buy')) {
-                handleShopPurchase(e.target, config, STORAGE_KEYS, () => {
-                    populateShopDashboard(config, STORAGE_KEYS);
-                });
-            } else if (e.target.classList.contains('equip') || e.target.classList.contains('equipped')) {
-                const button = e.target;
-                const itemId = button.dataset.itemId;
-                const itemType = button.dataset.itemType;
+        const button = e.target.closest('.tm-shop-item-btn');
+        if (!button) return;
+        if (button.classList.contains('buy')) {
+            handleShopPurchase(button, config, STORAGE_KEYS, () => {
+                populateShopDashboard(config, STORAGE_KEYS);
+            });
+        } else if (button.classList.contains('equip') || button.classList.contains('equipped')) {
+            const itemId = button.dataset.itemId;
+            const itemType = button.dataset.itemType;
 
-                if (itemType === 'accessory') {
-                    const normalizedId = window.normalizeAccessoryId?.(itemId) || itemId;
-                    if (!normalizedId) {
-                        console.warn(`[MMS Shop] Accessory "${itemId}" is no longer available.`);
-                        return;
-                    }
-                    window.toggleMascotAccessory?.(config, STORAGE_KEYS, normalizedId);
-                    populateShopDashboard(config, STORAGE_KEYS);
-                } else if (itemType === 'theme') {
-                    if (typeof window.applyTheme === 'function') {
-                        window.applyTheme(itemId);
-                    }
-                    populateShopDashboard(config, STORAGE_KEYS);
-                }
-            } else if (e.target.classList.contains('use')) {
-                const button = e.target;
-                const itemId = button.dataset.itemId;
-                const price = parseInt(button.dataset.itemPrice, 10);
-                const coins = GM_getValue(STORAGE_KEYS.USER_COINS, 0);
-                
-                if (coins < price) {
-                    if (typeof window.showNotification === 'function') {
-                        window.showNotification('error', 'Not enough coins!');
-                    }
+            if (itemType === 'accessory') {
+                const normalizedId = window.normalizeAccessoryId?.(itemId) || itemId;
+                if (!normalizedId) {
+                    console.warn(`[MMS Shop] Accessory "${itemId}" is no longer available.`);
                     return;
                 }
-                
-                GM_setValue(STORAGE_KEYS.USER_COINS, coins - price);
-                
-                if (typeof window.applyConsumableEffect === 'function') {
-                    window.applyConsumableEffect(itemId, config, STORAGE_KEYS);
-                }
-                
+                window.toggleMascotAccessory?.(config, STORAGE_KEYS, normalizedId);
                 populateShopDashboard(config, STORAGE_KEYS);
-                
-                if (typeof window.showNotification === 'function') {
-                    window.showNotification('success', `Consumable used!`);
+            } else if (itemType === 'theme') {
+                if (typeof window.applyTheme === 'function') {
+                    window.applyTheme(itemId);
                 }
+                populateShopDashboard(config, STORAGE_KEYS);
+            }
+        } else if (button.classList.contains('use')) {
+            const itemId = button.dataset.itemId;
+            const price = parseInt(button.dataset.itemPrice, 10);
+            const coins = typeof window.readCoinBalance === 'function'
+                ? window.readCoinBalance(STORAGE_KEYS)
+                : (Number(GM_getValue(STORAGE_KEYS.USER_COINS, 0)) || 0);
+
+            if (coins < price) {
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification('error', 'Not enough coins!');
+                }
+                return;
+            }
+
+            if (typeof window.writeCoinBalance === 'function') {
+                window.writeCoinBalance(STORAGE_KEYS, coins - price);
+            } else {
+                GM_setValue(STORAGE_KEYS.USER_COINS, coins - price);
+            }
+
+            if (typeof window.applyConsumableEffect === 'function') {
+                window.applyConsumableEffect(itemId, config, STORAGE_KEYS);
+            }
+
+            populateShopDashboard(config, STORAGE_KEYS);
+
+            if (typeof window.showNotification === 'function') {
+                window.showNotification('success', `Consumable used!`);
             }
         }
     });
@@ -5618,6 +5683,10 @@ window.populateQuestsModal = populateQuestsModal;
 window.trackDailyStat = trackDailyStat;
 window.grantXp = grantXp;
 window.grantCoins = grantCoins;
+window.readCoinBalance = readCoinBalance;
+window.writeCoinBalance = writeCoinBalance;
+window.ensureStarterCoins = ensureStarterCoins;
+window.tryGrantDailyStipend = tryGrantDailyStipend;
 window.checkAchievements = checkAchievements;
 window.updateQuestProgress = updateQuestProgress;
 window.generateDailyQuests = generateDailyQuests;

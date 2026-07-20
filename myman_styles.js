@@ -5687,6 +5687,23 @@
                 align-items: center;
                 gap: 6px;
             }
+            #tm-coin-balance .tm-coin-icon,
+            .tm-modal-title .tm-coin-icon,
+            .tm-shop-item-cost .tm-coin-icon,
+            .tm-shop-item-btn .tm-coin-icon,
+            .tm-shop-price-original .tm-coin-icon,
+            .tm-shop-price-sale .tm-coin-icon {
+                display: inline-block;
+                flex-shrink: 0;
+                vertical-align: -0.2em;
+            }
+            #tm-coin-balance .tm-coin-amount {
+                line-height: 1;
+            }
+            .tm-footer-icon-btn .tm-ui-icon {
+                display: block;
+                color: inherit;
+            }
             #tm-coin-balance:hover {
                 background: linear-gradient(145deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%) !important;
                 backdrop-filter: blur(10px) !important;

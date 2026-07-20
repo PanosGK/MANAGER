@@ -2842,10 +2842,20 @@
         overlay.id = 'tm-memory-game-overlay';
         document.body.appendChild(overlay);
 
+        // Clone robot WITHOUT sprite IDs — duplicate IDs make the live mascot update the wrong SVG
+        let robotHtml = '';
+        const liveRobot = document.getElementById('tm-mascot-container')?.querySelector('.tm-mascot-robot');
+        if (liveRobot) {
+            const clone = liveRobot.cloneNode(true);
+            clone.removeAttribute('id');
+            clone.querySelectorAll('[id]').forEach((node) => node.removeAttribute('id'));
+            robotHtml = clone.outerHTML;
+        }
+
         overlay.innerHTML = `
             <div id="tm-memory-game-status">Get Ready...</div>
             <div id="tm-memory-game-mascot-container">
-                ${document.getElementById('tm-mascot-container').querySelector('.tm-mascot-robot').outerHTML}
+                ${robotHtml}
                 <div class="tm-memory-game-pad" data-pad="0" style="top: 15%; left: 30%; width: 20%; height: 20%;"></div>
                 <div class="tm-memory-game-pad" data-pad="1" style="top: 15%; left: 50%; width: 20%; height: 20%;"></div>
                 <div class="tm-memory-game-pad" data-pad="2" style="bottom: 15%; left: 30%; width: 20%; height: 20%;"></div>
@@ -5199,6 +5209,16 @@
 
     function initializeScript() {
         try {
+        // Shared across Tampermonkey sandboxes (local + prod loaders)
+        if (document.documentElement.getAttribute('data-tm-mms-boot') === '1') {
+            console.warn('[MMS] Suite already booted on this page — skipping duplicate initializeScript');
+            if (typeof window.ensureSingleMascotDom === 'function') {
+                window.ensureSingleMascotDom('boot-skip');
+            }
+            return;
+        }
+        document.documentElement.setAttribute('data-tm-mms-boot', '1');
+
         // Do nothing on the login page — no buttons, no UI, no features
         if (window.location.pathname.includes('login.php')) {
             return;

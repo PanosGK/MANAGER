@@ -16,10 +16,10 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '256',
-        loaderVersion: '33',
-        silentVersion: '4',
-        displayVersion: '33.4',
+        version: '263',
+        loaderVersion: '35',
+        silentVersion: '1',
+        displayVersion: '35.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -31,6 +31,7 @@
         USER_LEVEL: 'tm_user_level',
         ACHIEVEMENTS: 'tm_achievements_unlocked',
         USER_COINS: 'tm_user_coins',
+        STARTER_COINS_GRANTED: 'tm_starter_coins_granted',
         USER_TITLE: 'tm_user_title', // New: For cosmetic titles
         PURCHASED_ITEMS: 'tm_purchased_items',
         EQUIPPED_ITEMS: 'tm_equipped_items', // Changed from singular to plural

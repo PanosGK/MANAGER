@@ -70,4 +70,26 @@ if (!src.includes('getOfficeMinutesBetween') || !src.includes('TAMA_OFFICE_HOUR_
   issues.push('office-hours life clock missing');
 }
 
+// Duplicate-instance / type-flip guards
+const initGuards = {
+  ensureSingleMascotDom: src.includes('function ensureSingleMascotDom'),
+  initLock: src.includes('__tmMascotInitializing'),
+  initFlag: src.includes('__tmMascotInitialized'),
+  scopedSprites: src.includes('getMascotSpriteById'),
+  noDragonFallback: !/previewCharacter = tamagotchiCharacterType && tamagotchiCharacterType !== 'none'\s*\n\s*\? tamagotchiCharacterType\s*\n\s*: 'dragon'/.test(src)
+    && !src.includes(": 'dragon';"),
+  noSaveReroll: !src.includes("ensureTamagotchiCharacterType({ allowRandom: true })")
+    || (src.match(/ensureTamagotchiCharacterType\(\{\s*allowRandom:\s*true\s*\}\)/g) || []).length <= 1,
+};
+
+console.log('\nDuplicate mascot / type-flip guards:');
+for (const [name, ok] of Object.entries(initGuards)) {
+  console.log(`  ${ok ? 'OK ' : 'MISSING '} ${name}`);
+  if (!ok) issues.push(`guard missing: ${name}`);
+}
+
+const initCallSites = (src.match(/initInteractiveMascot\s*\(/g) || []).length;
+console.log(`\ninitInteractiveMascot call sites in myman_mascot.js: ${initCallSites} (definition only expected)`);
+
 console.log('\nPotential code issues:', issues.length ? issues.join('; ') : 'none detected by static scan');
+if (issues.length) process.exitCode = 1;

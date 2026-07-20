@@ -690,13 +690,44 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
         return;
     }
 
-    // Prevent prod + local loaders from both owning the same page (separate TM storage worlds).
-    if (window.__TMMS_SUITE_CLAIMED) {
+    // Prevent prod + local loaders from both owning the same page.
+    // Tampermonkey sandboxes isolate window, so a plain window flag does NOT
+    // cross scripts — use a shared DOM attribute (+ unsafeWindow when available).
+    function isSuiteAlreadyClaimed() {
+        try {
+            if (document.documentElement.getAttribute('data-tm-mms-suite') === '1') return true;
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof unsafeWindow !== 'undefined' && unsafeWindow && unsafeWindow.__TMMS_SUITE_CLAIMED) return true;
+        } catch (_) { /* ignore */ }
+        try {
+            if (window.__TMMS_SUITE_CLAIMED) return true;
+        } catch (_) { /* ignore */ }
+        return false;
+    }
+    function claimSuitePage() {
+        if (isSuiteAlreadyClaimed()) return false;
+        var loaderName = LOCAL_BUNDLE_URL ? 'local' : 'production';
+        try {
+            document.documentElement.setAttribute('data-tm-mms-suite', '1');
+            document.documentElement.setAttribute('data-tm-mms-loader', loaderName);
+        } catch (_) { /* ignore */ }
+        try {
+            window.__TMMS_SUITE_CLAIMED = true;
+            window.__TMMS_SUITE_LOADER = loaderName;
+        } catch (_) { /* ignore */ }
+        try {
+            if (typeof unsafeWindow !== 'undefined' && unsafeWindow) {
+                unsafeWindow.__TMMS_SUITE_CLAIMED = true;
+                unsafeWindow.__TMMS_SUITE_LOADER = loaderName;
+            }
+        } catch (_) { /* ignore */ }
+        return true;
+    }
+    if (!claimSuitePage()) {
         console.warn('[MMS] Another MyManager loader already claimed this page — skipping duplicate suite');
         return;
     }
-    window.__TMMS_SUITE_CLAIMED = true;
-    window.__TMMS_SUITE_LOADER = LOCAL_BUNDLE_URL ? 'local' : 'production';
 
     var loginPath = (window.location && window.location.pathname) || '';
     if (loginPath.indexOf('login.php') !== -1 && isStatus40LoginPending()) {

@@ -1,11 +1,11 @@
 {
-  "version": "256",
-  "loaderVersion": "33",
-  "silentVersion": "4",
-  "displayVersion": "33.4",
+  "version": "263",
+  "loaderVersion": "35",
+  "silentVersion": "1",
+  "displayVersion": "35.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Remove duplicate mascot Death Options revive UI; guard against double mascot init",
+  "releaseNotes": "Fix dual suite inject: DOM claim across TM sandboxes; harder mascot dedupe",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
