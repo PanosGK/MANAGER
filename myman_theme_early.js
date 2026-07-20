@@ -50,9 +50,17 @@
         } catch (_) { /* ignore */ }
     }
 
+    function clearFoucBridge() {
+        try {
+            document.documentElement.classList.remove('tm-mms-fouc-bridging');
+            document.getElementById('tm-mms-fouc-bridge')?.remove();
+        } catch (_) { /* ignore */ }
+    }
+
     window.tmSyncFoucThemeLocalStorage = syncFoucThemeLocalStorage;
     window.tmSyncFoucMenuLocalStorage = syncFoucMenuLocalStorage;
     window.tmSyncFoucPageCssLocalStorage = syncFoucPageCssLocalStorage;
+    window.tmClearFoucBridge = clearFoucBridge;
 
     if (typeof GM_getValue !== 'function') return;
 

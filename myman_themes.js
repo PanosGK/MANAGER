@@ -2383,6 +2383,16 @@ function tmApplyThemeColors(themeId, options = {}) {
         }
     } catch (_) { /* ignore */ }
 
+    // Real theme CSS is on — drop the temporary dark cover over native white panels.
+    if (typeof window.tmClearFoucBridge === 'function') {
+        window.tmClearFoucBridge();
+    } else {
+        try {
+            root.classList.remove('tm-mms-fouc-bridging');
+            document.getElementById('tm-mms-fouc-bridge')?.remove();
+        } catch (_) { /* ignore */ }
+    }
+
     if (typeof window.tmInjectPerformanceStyles === 'function') {
         window.tmInjectPerformanceStyles();
     }

@@ -519,9 +519,17 @@ img[src='images/smsdelivered.png'] {
         } catch (_) { /* ignore */ }
     }
 
+    function clearFoucBridge() {
+        try {
+            document.documentElement.classList.remove('tm-mms-fouc-bridging');
+            document.getElementById('tm-mms-fouc-bridge')?.remove();
+        } catch (_) { /* ignore */ }
+    }
+
     window.tmSyncFoucThemeLocalStorage = syncFoucThemeLocalStorage;
     window.tmSyncFoucMenuLocalStorage = syncFoucMenuLocalStorage;
     window.tmSyncFoucPageCssLocalStorage = syncFoucPageCssLocalStorage;
+    window.tmClearFoucBridge = clearFoucBridge;
 
     if (typeof GM_getValue !== 'function') return;
 
@@ -3239,6 +3247,16 @@ function tmApplyThemeColors(themeId, options = {}) {
             localStorage.setItem('tm_mms_fouc_page_css', pageCss);
         }
     } catch (_) { /* ignore */ }
+
+    // Real theme CSS is on — drop the temporary dark cover over native white panels.
+    if (typeof window.tmClearFoucBridge === 'function') {
+        window.tmClearFoucBridge();
+    } else {
+        try {
+            root.classList.remove('tm-mms-fouc-bridging');
+            document.getElementById('tm-mms-fouc-bridge')?.remove();
+        } catch (_) { /* ignore */ }
+    }
 
     if (typeof window.tmInjectPerformanceStyles === 'function') {
         window.tmInjectPerformanceStyles();

@@ -322,6 +322,46 @@
         }
     }
 
+    function installFoucBridgeFromColors(colors) {
+        try {
+            if (!colors) return;
+            var dark = colors['--tm-dark-color'] || colors['--tm-shop-item-bg'] || '#121212';
+            var surface = colors['--tm-shop-item-bg'] || dark;
+            var text = colors['--tm-primary-color'] || '#e8e8e8';
+            function luminance(c) {
+                var m = String(c).match(/^#?([a-fd]{2})([a-fd]{2})([a-fd]{2})$/i);
+                if (!m) return 0;
+                var r = parseInt(m[1], 16), g = parseInt(m[2], 16), b = parseInt(m[3], 16);
+                return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            }
+            if (luminance(dark) >= 0.55 && luminance(surface) >= 0.55) return;
+            var root = document.documentElement;
+            root.classList.add('tm-mms-fouc-bridging');
+            var css = 'html.tm-mms-fouc-bridging,html.tm-mms-fouc-bridging body{'
+                + 'background:' + dark + '!important;background-color:' + dark + '!important;color:' + text + '!important;}'
+                + 'html.tm-mms-fouc-bridging body,html.tm-mms-fouc-bridging .rnr-page,html.tm-mms-fouc-bridging .rnr-pagewrapper,'
+                + 'html.tm-mms-fouc-bridging .rnr-middle,html.tm-mms-fouc-bridging .rnr-left,html.tm-mms-fouc-bridging .rnr-center,'
+                + 'html.tm-mms-fouc-bridging .rnr-right,html.tm-mms-fouc-bridging .rnr-top,html.tm-mms-fouc-bridging #head-outter,'
+                + 'html.tm-mms-fouc-bridging #footer-outter,html.tm-mms-fouc-bridging .rnr-s-grid,html.tm-mms-fouc-bridging .rnr-c-grid,'
+                + 'html.tm-mms-fouc-bridging .rnr-s-1,html.tm-mms-fouc-bridging .rnr-s-2,html.tm-mms-fouc-bridging .rnr-s-3,'
+                + 'html.tm-mms-fouc-bridging .rnr-c-1,html.tm-mms-fouc-bridging .rnr-c-2,html.tm-mms-fouc-bridging .rnr-c-3,'
+                + 'html.tm-mms-fouc-bridging .rnr-s-fields,html.tm-mms-fouc-bridging .rnr-c-fields,html.tm-mms-fouc-bridging .rnr-wrapper,'
+                + 'html.tm-mms-fouc-bridging .rnr-brickcontents,html.tm-mms-fouc-bridging .MyMANAGERWhite_label1,'
+                + 'html.tm-mms-fouc-bridging .rnr-scrollgrid-inner,html.tm-mms-fouc-bridging .fieldGrid,'
+                + 'html.tm-mms-fouc-bridging table,html.tm-mms-fouc-bridging tr,html.tm-mms-fouc-bridging td,html.tm-mms-fouc-bridging th{'
+                + 'background-color:' + dark + '!important;background-image:none!important;color:' + text + '!important;}'
+                + 'html.tm-mms-fouc-bridging .rnr-top,html.tm-mms-fouc-bridging #head-outter,html.tm-mms-fouc-bridging .rnr-s-menu,'
+                + 'html.tm-mms-fouc-bridging .rnr-b-vmenu li > div{background-color:' + surface + '!important;}';
+            var style = document.getElementById('tm-mms-fouc-bridge');
+            if (!style) {
+                style = document.createElement('style');
+                style.id = 'tm-mms-fouc-bridge';
+                root.appendChild(style);
+            }
+            style.textContent = css;
+        } catch (e) { /* ignore */ }
+    }
+
     function applyCachedThemeColors() {
         try {
             var raw = readProfileScoped('tm_theme_colors_cache', null);
@@ -338,6 +378,7 @@
             }
             seedFoucThemeLocalStorage(cache.themeId || 'custom', cache.colors);
             applyCachedPageCssFromLocalStorage();
+            installFoucBridgeFromColors(cache.colors);
             return true;
         } catch (e) {
             return false;
