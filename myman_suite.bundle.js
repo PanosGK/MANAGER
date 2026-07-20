@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v255 / Custom Ver. 33.3 — generated, do not edit */
+/* MyManager Suite bundle v256 / Custom Ver. 33.4 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '255',
+        version: '256',
         loaderVersion: '33',
-        silentVersion: '3',
-        displayVersion: '33.3',
+        silentVersion: '4',
+        displayVersion: '33.4',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -11266,10 +11266,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             .tm-btn-kill-restart:hover {
                 background: linear-gradient(135deg, rgba(220, 53, 69, 0.35), rgba(220, 53, 69, 0.22));
                 border-color: rgba(220, 53, 69, 0.7);
-            }
-
-            #tm-pet-revive-btn-container {
-                padding: 12px 16px;
             }
 
             /* Mascot Speech Bubble */
@@ -23254,17 +23250,20 @@ function recordTamagotchiUserKill(STORAGE_KEYS) {
     return tamagotchiKilledByUserCount;
 }
 
-// Update death options button visibility
+// Keep death counters in sync (revive UI lives only on the memorial overlay)
 function updateDeathOptionsButton() {
-    const reviveContainer = document.getElementById('tm-pet-revive-btn-container');
-    if (reviveContainer) {
-        reviveContainer.style.display = tamagotchiIsDead ? 'block' : 'none';
-    }
     const line = formatMascotDeathCountersLine();
     const petCounters = document.getElementById('tm-pet-death-counters');
     if (petCounters) petCounters.textContent = line;
     const modalCounters = document.getElementById('tm-modal-death-counters');
     if (modalCounters) modalCounters.textContent = line;
+
+    // While dead, hide the in-panel "Νέο αυγό" — overlay already offers revive/restart
+    const panelRestart = document.getElementById('tm-pet-kill-restart-btn');
+    const panelRestartSection = panelRestart?.closest('.tm-panel-section-danger');
+    if (panelRestartSection) {
+        panelRestartSection.style.display = tamagotchiIsDead ? 'none' : '';
+    }
 }
 
 // Show death screen with revival option (after cinematic)
@@ -23277,44 +23276,51 @@ function showTamagotchiDeathScreen(STORAGE_KEYS, skipCinematic = false) {
     
     const config = typeof window.config !== 'undefined' ? window.config : null;
     
-    const existingOverlay = document.getElementById('tm-tamagotchi-death-overlay');
-    if (existingOverlay) return;
+    if (document.getElementById('tm-tamagotchi-death-overlay') || window.__tmDeathScreenLock) return;
 
     if (!skipCinematic) {
         runTamagotchiDeathSequence(STORAGE_KEYS);
         return;
     }
 
-    ensureTamaCinematicStyles();
-    
-    const charName = tamagotchiCharacterType && MASCOT_CHARACTERS[tamagotchiCharacterType]
-        ? (MASCOT_CHARACTERS[tamagotchiCharacterType].nameGr || MASCOT_CHARACTERS[tamagotchiCharacterType].name)
-        : 'Φίλε';
-    
-    const overlay = document.createElement('div');
-    overlay.id = 'tm-tamagotchi-death-overlay';
-    overlay.className = 'tm-tama-cinematic-overlay';
-    overlay.innerHTML = `
-        <div class="tm-tama-cinematic-panel" style="border-color:#4a4a5a; background:linear-gradient(180deg,#1a1a2a,#0a0a14); max-width:420px;">
-            <div class="tm-tama-lcd-title" style="color:#888">● Μνημόσυνο ●</div>
-            <h2 class="tm-tama-cinematic-title" style="color:#e8a0a0;text-shadow:none">Σε ανάμνηση του ${charName}</h2>
-            <div class="tm-tama-death-options visible">
-                <p class="tm-tama-death-stat">Ηλικία: ${Math.floor(tamagotchiAge)} χρόνια</p>
-                <p class="tm-tama-death-stat">Χαρακτήρας: ${MASCOT_PERSONALITY_GR[tamagotchiPersonality] || tamagotchiPersonality}</p>
-                <p class="tm-tama-death-stat">Λάθη φροντίδας: ${tamagotchiCareMistakes}</p>
-                <p class="tm-tama-death-stat">${formatMascotDeathCountersLine()}</p>
-                <div style="margin-top:20px">
-                    <button class="tm-tama-btn tm-tama-btn-revive" id="tm-revive-btn">♻ Αναζωογόνηση (${tamagotchiReviveCount + 1}η φορά)</button>
-                    <button class="tm-tama-btn tm-tama-btn-restart" id="tm-restart-btn">🥚 Νέο αυγό</button>
+    window.__tmDeathScreenLock = true;
+    let overlay = null;
+    try {
+        ensureTamaCinematicStyles();
+
+        const charName = tamagotchiCharacterType && MASCOT_CHARACTERS[tamagotchiCharacterType]
+            ? (MASCOT_CHARACTERS[tamagotchiCharacterType].nameGr || MASCOT_CHARACTERS[tamagotchiCharacterType].name)
+            : 'Φίλε';
+
+        overlay = document.createElement('div');
+        overlay.id = 'tm-tamagotchi-death-overlay';
+        overlay.className = 'tm-tama-cinematic-overlay';
+        overlay.innerHTML = `
+            <div class="tm-tama-cinematic-panel" style="border-color:#4a4a5a; background:linear-gradient(180deg,#1a1a2a,#0a0a14); max-width:420px;">
+                <div class="tm-tama-lcd-title" style="color:#888">● Μνημόσυνο ●</div>
+                <h2 class="tm-tama-cinematic-title" style="color:#e8a0a0;text-shadow:none">Σε ανάμνηση του ${charName}</h2>
+                <div class="tm-tama-death-options visible">
+                    <p class="tm-tama-death-stat">Ηλικία: ${Math.floor(tamagotchiAge)} χρόνια</p>
+                    <p class="tm-tama-death-stat">Χαρακτήρας: ${MASCOT_PERSONALITY_GR[tamagotchiPersonality] || tamagotchiPersonality}</p>
+                    <p class="tm-tama-death-stat">Λάθη φροντίδας: ${tamagotchiCareMistakes}</p>
+                    <p class="tm-tama-death-stat">${formatMascotDeathCountersLine()}</p>
+                    <div style="margin-top:20px">
+                        <button class="tm-tama-btn tm-tama-btn-revive" id="tm-revive-btn">♻ Αναζωογόνηση (${tamagotchiReviveCount + 1}η φορά)</button>
+                        <button class="tm-tama-btn tm-tama-btn-restart" id="tm-restart-btn">🥚 Νέο αυγό</button>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
-    
-    document.body.appendChild(overlay);
-    
+        `;
+
+        document.body.appendChild(overlay);
+    } finally {
+        window.__tmDeathScreenLock = false;
+    }
+
+    if (!overlay) return;
+
     // Revive button
-    document.getElementById('tm-revive-btn')?.addEventListener('click', () => {
+    overlay.querySelector('#tm-revive-btn')?.addEventListener('click', () => {
         tamagotchiIsDead = false;
         tamagotchiHealth = 50;
         petStats.hunger = 50;
@@ -23322,14 +23328,14 @@ function showTamagotchiDeathScreen(STORAGE_KEYS, skipCinematic = false) {
         tamagotchiReviveCount++;
         tamagotchiLifeMinutes = Math.max(TAMA_STAGE_MINUTES.baby, tamagotchiLifeMinutes - TAMA_MINUTES_PER_YEAR);
         validateTamagotchiState();
-        
+
         // Save both tamagotchi data and pet stats
         saveTamagotchiData(STORAGE_KEYS);
         GM_setValue(STORAGE_KEYS.PET_STATS, JSON.stringify(petStats));
-        
-        document.body.removeChild(overlay);
+
+        overlay.remove();
         updateDeathOptionsButton();
-        
+
         if (container) {
             updateMascotAppearanceByStage(tamagotchiStage);
             updateTamagotchiStats(container);
@@ -23339,14 +23345,15 @@ function showTamagotchiDeathScreen(STORAGE_KEYS, skipCinematic = false) {
                 setMascotState(config, 'idle');
             }
         }
-        
+
         showMascotBubble(MASCOT_MESSAGES.revived, 2000);
     });
-    
+
     // Restart button (already dead — skip shoot cinematic)
-    document.getElementById('tm-restart-btn')?.addEventListener('click', async () => {
+    overlay.querySelector('#tm-restart-btn')?.addEventListener('click', async () => {
         if (await restartTamagotchiAsEgg(config, STORAGE_KEYS, { skipConfirm: true, skipExecution: true })) {
             overlay.remove();
+            updateDeathOptionsButton();
         }
     });
 }
@@ -23439,6 +23446,12 @@ function resetIdleTimer(config) {
 
 function initInteractiveMascot(config, STORAGE_KEYS) {
     if (!config || !config.interactiveMascotEnabled) return;
+
+    // Prevent duplicate mascot + interaction panel (double death/revive UI)
+    if (document.getElementById('tm-mascot-container')) {
+        console.warn('[MMS Mascot] Already initialized — skipping duplicate init');
+        return;
+    }
 
     // Add mascot animation styles to document
     if (!document.getElementById('tm-mascot-animations')) {
@@ -23695,15 +23708,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 </div>
             </div>
 
-            <!-- Death Options (Hidden by default) -->
-            <div id="tm-pet-revive-btn-container" style="display: none;">
-                <button id="tm-pet-revive-btn" class="tm-action-btn tm-btn-death" title="Revive or restart">
-                    <span class="tm-btn-icon">💀</span>
-                    <span class="tm-btn-label">Death Options</span>
-                </button>
-            </div>
-
-            <!-- Kill & restart -->
+            <!-- Kill & restart (hidden while dead — memorial overlay handles revive/restart) -->
             <div class="tm-panel-section tm-panel-section-danger">
                 <div class="tm-section-title">Επαναφορά</div>
                 <p class="tm-section-death-stats" id="tm-pet-death-counters" style="margin:0 0 8px;font-size:11px;opacity:0.8;line-height:1.4;">${formatMascotDeathCountersLine()}</p>
@@ -31843,12 +31848,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     // Close panel button
     getButton('#tm-panel-close-btn')?.addEventListener('click', () => {
         interactionPanel.style.display = 'none';
-    });
-
-    getButton('#tm-pet-revive-btn')?.addEventListener('click', () => {
-        if (typeof window.STORAGE_KEYS !== 'undefined') {
-            showTamagotchiDeathScreen(window.STORAGE_KEYS, true);
-        }
     });
 
     getButton('#tm-pet-kill-restart-btn')?.addEventListener('click', async (e) => {

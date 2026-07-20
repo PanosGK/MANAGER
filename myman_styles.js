@@ -5358,10 +5358,6 @@
                 border-color: rgba(220, 53, 69, 0.7);
             }
 
-            #tm-pet-revive-btn-container {
-                padding: 12px 16px;
-            }
-
             /* Mascot Speech Bubble */
             .tm-mascot-speech-bubble {
                 position: absolute;

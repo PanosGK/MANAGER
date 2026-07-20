@@ -1,11 +1,11 @@
 {
-  "version": "255",
+  "version": "256",
   "loaderVersion": "33",
-  "silentVersion": "3",
-  "displayVersion": "33.3",
+  "silentVersion": "4",
+  "displayVersion": "33.4",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Relocate header Export (Εξαγωγή) orphan button into rnr-hfiller so quick search layout stays intact",
+  "releaseNotes": "Remove duplicate mascot Death Options revive UI; guard against double mascot init",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
