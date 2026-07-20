@@ -3268,10 +3268,10 @@ function getOfficeMinutesBetween(startMs, endMs) {
 
 const TAMA_CHARACTER_TYPES = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether'];
 
-/** Hatch weights — Mythical is intentionally rarer (legendary Pokémon odds feel). */
+/** Hatch weights — all equal except Mythical Aether (low spawn rate). */
 const TAMA_CHARACTER_HATCH_WEIGHTS = {
-    dragon: 14, robot: 14, slime: 14, plant: 14, ghost: 12, cat: 12,
-    crystal: 8, phoenix: 7, aether: 3,
+    dragon: 10, robot: 10, slime: 10, plant: 10, ghost: 10, cat: 10,
+    crystal: 10, phoenix: 10, aether: 2,
 };
 
 function pickWeightedCharacterType(types = TAMA_CHARACTER_TYPES) {

@@ -1,11 +1,11 @@
 {
-  "version": "266",
+  "version": "267",
   "loaderVersion": "35",
-  "silentVersion": "4",
-  "displayVersion": "35.4",
+  "silentVersion": "5",
+  "displayVersion": "35.5",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Add Starveil Aether mythical mascot with legendary Pokemon-style auras and animations",
+  "releaseNotes": "Equal hatch odds for all mascots; Aether stays rare (~2%)",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
