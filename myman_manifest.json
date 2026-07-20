@@ -1,11 +1,11 @@
 {
-  "version": "250",
+  "version": "252",
   "loaderVersion": "32",
-  "silentVersion": "3",
-  "displayVersion": "32.3",
+  "silentVersion": "5",
+  "displayVersion": "32.5",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Full footer chrome shell cache (vars hydrate later)",
+  "releaseNotes": "Exact footer container snapshot with baked styles + values",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

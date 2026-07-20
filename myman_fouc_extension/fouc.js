@@ -192,49 +192,39 @@
     installBridge(themeColors, themeBg);
   }
 
-  // ---- Full footer chrome shell (all widgets; live vars cleared) ----
+  // ---- Exact #tm-footer-controls-container snapshot (baked styles + last values) ----
   var LS_FOOTER = 'tm_mms_footer_shell';
   var SHELL_ATTR = 'data-tm-footer-shell';
-
-  function stripFooterLiveVars(root) {
-    if (!root) return;
-    var coin = root.querySelector('#tm-coin-balance');
-    if (coin) coin.innerHTML = '🪙 —';
-    var unread = root.querySelector('#tm-notification-unread-count');
-    if (unread) { unread.textContent = ''; unread.classList.remove('visible'); }
-    var level = root.querySelector('#tm-level-text');
-    if (level) level.textContent = 'Lv.—';
-    var title = root.querySelector('#tm-user-title-text');
-    if (title) title.textContent = '…';
-    var xpFill = root.querySelector('#tm-xp-bar-fill');
-    if (xpFill) xpFill.style.width = '0%';
-    var xpText = root.querySelector('#tm-xp-text');
-    if (xpText) xpText.textContent = '—';
-    var weatherTemp = root.querySelector('#tm-weather-temp');
-    if (weatherTemp) weatherTemp.textContent = '—';
-    var refreshText = root.querySelector('#tm-refresh-countdown-text');
-    if (refreshText) refreshText.textContent = '--:--';
-    var dash = root.querySelector('#tm-daily-dashboard-widget');
-    if (dash) {
-      dash.innerHTML = '<span style="font-weight:bold;font-size:10px;">Σήμερα:</span>'
-        + '<span>📝 —</span><span style="opacity:.5;">|</span><span>🛠️ —</span>'
-        + '<span style="opacity:.5;">|</span><span>🔍 —</span>';
-    }
-    root.querySelectorAll('#tm-buff-timers-container').forEach(function (el) { el.innerHTML = ''; });
-  }
 
   function ensureFooterShellCss() {
     if (document.getElementById('tm-mms-footer-shell-css')) return;
     var style = document.createElement('style');
     style.id = 'tm-mms-footer-shell-css';
-    style.textContent = '#tm-footer-controls-container[' + SHELL_ATTR + '="1"]{pointer-events:none;opacity:.94;width:100%;}'
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}'
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-left,'
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-middle,'
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}'
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-notification-unread-count:empty{display:none;}';
+    style.textContent = '#tm-footer-controls-container[' + SHELL_ATTR + '="1"]{pointer-events:none;width:100%;}';
     (document.documentElement || document).appendChild(style);
   }
+
+  function injectFooterShellCachedCss(cssText) {
+    if (!cssText) return;
+    var style = document.getElementById('tm-mms-footer-shell-css-cache');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'tm-mms-footer-shell-css-cache';
+      (document.documentElement || document).appendChild(style);
+    }
+    style.textContent = cssText;
+  }
+
+  // Inject cached footer CSS as early as possible (before the footer cell exists).
+  try {
+    var earlyFooterRaw = localStorage.getItem(LS_FOOTER);
+    if (earlyFooterRaw) {
+      var earlyFooter = JSON.parse(earlyFooterRaw);
+      if (earlyFooter && earlyFooter.v === 4 && earlyFooter.css) {
+        injectFooterShellCachedCss(earlyFooter.css);
+      }
+    }
+  } catch (eEarlyCss) { /* ignore */ }
 
   function mountFooterShell() {
     try {
@@ -242,19 +232,18 @@
       var raw = localStorage.getItem(LS_FOOTER);
       if (!raw) return false;
       var data = JSON.parse(raw);
-      if (!data || data.v !== 2 || typeof data.html !== 'string' || data.html.length < 40) return false;
+      if (!data || data.v !== 4 || typeof data.html !== 'string' || data.html.length < 80) return false;
       var cell = document.querySelector('#footer-outterwrap table td[width="60%"]')
         || document.querySelector('#footer-outterwrap table td:nth-child(2)');
       if (!cell) return false;
       ensureFooterShellCss();
+      injectFooterShellCachedCss(data.css || '');
       while (cell.firstChild) cell.removeChild(cell.firstChild);
-      var wrapper = document.createElement('div');
-      wrapper.id = 'tm-footer-controls-container';
-      wrapper.setAttribute(SHELL_ATTR, '1');
-      wrapper.className = 'tm-footer-shell';
-      wrapper.innerHTML = data.html;
-      stripFooterLiveVars(wrapper);
-      cell.appendChild(wrapper);
+      cell.insertAdjacentHTML('beforeend', data.html);
+      var mounted = cell.querySelector('#tm-footer-controls-container');
+      if (!mounted) return false;
+      mounted.setAttribute(SHELL_ATTR, '1');
+      mounted.classList.add('tm-footer-shell');
       return true;
     } catch (eFoot) {
       return false;
