@@ -15,10 +15,70 @@
     // ===================================================================
     // === 1. STYLING (ALL FEATURES)
     // ===================================================================
+    function tmAddStyleChunks(css, maxChunk) {
+        const limit = Math.max(24000, maxChunk || 90000);
+        if (!css || typeof GM_addStyle !== 'function') return;
+        if (css.length <= limit) {
+            GM_addStyle(css);
+            return;
+        }
+
+        const chunks = [];
+        let start = 0;
+        let depth = 0;
+        let inStr = null;
+        let inComment = false;
+        let lastSafe = 0;
+
+        for (let i = 0; i < css.length; i++) {
+            const c = css[i];
+            const n = css[i + 1];
+            if (inComment) {
+                if (c === '*' && n === '/') {
+                    inComment = false;
+                    i++;
+                }
+                continue;
+            }
+            if (inStr) {
+                if (c === '\\') {
+                    i++;
+                    continue;
+                }
+                if (c === inStr) inStr = null;
+                continue;
+            }
+            if (c === '/' && n === '*') {
+                inComment = true;
+                i++;
+                continue;
+            }
+            if (c === '"' || c === "'") {
+                inStr = c;
+                continue;
+            }
+            if (c === '{') depth++;
+            else if (c === '}') {
+                depth = Math.max(0, depth - 1);
+                if (depth === 0) {
+                    lastSafe = i + 1;
+                    if (lastSafe - start >= limit) {
+                        chunks.push(css.slice(start, lastSafe));
+                        start = lastSafe;
+                    }
+                }
+            }
+        }
+        if (start < css.length) chunks.push(css.slice(start));
+        chunks.forEach((chunk) => {
+            if (chunk && chunk.trim()) GM_addStyle(chunk);
+        });
+    }
+
     function addGlobalStyles() {
         if (window.__tmGlobalStylesApplied) return;
         window.__tmGlobalStylesApplied = true;
-        GM_addStyle(`
+        const css = `
             /* --- Footer Height and Positioning Adjustment --- */
             #footer-outterwrap {
                 height: calc(100% + 20px) !important;
@@ -4161,7 +4221,8 @@
                 cursor: grabbing;
                 animation: none !important;
             }
-            #tm-mascot-container.mascot-parked::after {
+            #tm-mascot-container.mascot-parked::after,
+            #tm-mascot-container.mascot-parked.mascot-char-aether::after {
                 content: '📌';
                 position: absolute;
                 top: -2px;
@@ -4170,7 +4231,16 @@
                 line-height: 1;
                 opacity: 0.85;
                 pointer-events: none;
+                width: auto;
+                height: auto;
+                margin: 0;
+                border: none;
+                border-radius: 0;
+                background: none;
+                box-shadow: none;
                 filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35));
+                animation: none;
+                z-index: 6;
             }
             #tm-mascot-container.mascot-focus-quiet {
                 opacity: 0.88;
@@ -4480,50 +4550,57 @@
             }
             #tm-mascot-container.mascot-char-aether:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
                 background:
-                    radial-gradient(ellipse 70% 65% at 50% 55%,
-                        rgba(232,224,240,0.14) 0%,
-                        rgba(77,208,225,0.10) 28%,
-                        rgba(90,61,154,0.08) 52%,
-                        rgba(201,162,39,0.04) 72%,
+                    radial-gradient(ellipse 78% 72% at 50% 55%,
+                        rgba(232,224,240,0.22) 0%,
+                        rgba(77,208,225,0.14) 26%,
+                        rgba(124,77,255,0.1) 48%,
+                        rgba(201,162,39,0.05) 68%,
                         transparent 100%);
                 box-shadow:
-                    0 10px 40px rgba(18,0,31,0.08),
-                    0 0 60px rgba(77,208,225,0.16),
-                    0 0 100px rgba(90,61,154,0.12),
+                    0 0 48px rgba(77,208,225,0.18),
+                    0 0 96px rgba(124,77,255,0.14),
                     0 0 140px rgba(201,162,39,0.08);
                 opacity: 0;
-                width: 280px; height: 280px;
-                filter: blur(10px);
+                width: 320px; height: 320px;
+                margin-left: -160px; margin-top: -160px;
+                left: 50%; top: 50%;
+                border-radius: 50%;
+                filter: blur(18px);
                 animation: none;
-                transition: opacity 0.9s ease;
-                will-change: opacity, transform;
+                transition: opacity 1.2s ease;
+                will-change: opacity;
+                border: none;
+                outline: none;
             }
             #tm-mascot-container.mascot-char-aether.tm-aether-glow-on:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
-                opacity: 0.85;
-                animation: tm-mythic-aura-pulse 3.8s ease-in-out infinite;
+                opacity: 0.9;
+                animation: tm-mythic-aura-pulse 5.5s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-char-aether::after {
+            /* Secondary bloom — soft fade only (no hard ring / spin). Skip parked so 📌 pin wins ::after. */
+            #tm-mascot-container.mascot-char-aether:not(.mascot-parked)::after {
                 content: '';
                 position: absolute;
                 top: 50%; left: 50%;
-                width: 170px; height: 170px;
-                margin: -85px 0 0 -85px;
+                width: 210px; height: 210px;
+                margin: -105px 0 0 -105px;
                 border-radius: 50%;
-                border: 1px solid rgba(201,162,39,0.22);
-                box-shadow:
-                    inset 0 0 28px rgba(77,208,225,0.08),
-                    0 0 28px rgba(90,61,154,0.12),
-                    0 0 0 18px rgba(77,208,225,0.03);
+                border: none;
+                background: radial-gradient(circle,
+                    rgba(201,162,39,0.12) 0%,
+                    rgba(77,208,225,0.08) 35%,
+                    rgba(124,77,255,0.05) 55%,
+                    transparent 72%);
+                box-shadow: none;
                 z-index: -1;
                 pointer-events: none;
                 opacity: 0;
-                filter: blur(1.5px);
+                filter: blur(16px);
                 animation: none;
-                transition: opacity 0.9s ease;
+                transition: opacity 1.2s ease;
             }
-            #tm-mascot-container.mascot-char-aether.tm-aether-ring-on::after {
-                opacity: 0.7;
-                animation: tm-mythic-orbit-spin 14s linear infinite;
+            #tm-mascot-container.mascot-char-aether.tm-aether-ring-on:not(.mascot-parked)::after {
+                opacity: 0.75;
+                animation: tm-mythic-aura-pulse 7s ease-in-out infinite;
             }
             .tm-mascot-robot.mascot-char-phoenix {
                 filter: drop-shadow(0 0 6px rgba(255,109,0,0.75)) drop-shadow(0 0 14px rgba(255,234,0,0.4));
@@ -4617,19 +4694,19 @@
                 animation: tm-mythic-wing-flap-right 2.4s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-wing-star {
-                animation: tm-mythic-sparkle 2.8s ease-in-out infinite;
+                animation: tm-mythic-sparkle 5.5s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-wing-star:nth-child(odd) {
-                animation-delay: 0.7s;
+                animation-delay: 1.4s;
             }
             /* Pulsing dragon wing veins / cracks */
             .mascot-char-aether .tm-aether-wing-vein {
-                opacity: 0.4;
-                animation: tm-aether-vein-pulse 2.6s ease-in-out infinite;
+                opacity: 0.35;
+                animation: tm-aether-vein-pulse 5.2s ease-in-out infinite;
             }
             .mascot-char-aether .tm-aether-wing-crack {
-                opacity: 0.3;
-                animation: tm-aether-crack-pulse 3.4s ease-in-out infinite;
+                opacity: 0.25;
+                animation: tm-aether-crack-pulse 6.4s ease-in-out infinite;
             }
             .mascot-char-aether .tm-aether-wing-claw {
                 animation: tm-aether-claw-glow 2.8s ease-in-out infinite;
@@ -4687,109 +4764,127 @@
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-animate-tail {
                 animation: tm-mythic-tail-flow 3.2s ease-in-out infinite !important;
             }
-            /* Random FX layers — off until JS adds .tm-fx-on */
+            /* Random FX layers — soft godsend blooms (blur + fade, no harsh lines) */
             .mascot-char-aether .tm-aether-fx {
                 opacity: 0 !important;
-                transition: opacity 0.85s ease;
+                transition: opacity 1.1s ease;
                 pointer-events: none;
+                filter: blur(2.4px);
             }
             .mascot-char-aether .tm-aether-fx.tm-fx-on {
                 opacity: 1 !important;
             }
             .mascot-char-aether .tm-aether-fx[data-fx="aura"].tm-fx-on,
             .mascot-char-aether .tm-aether-fx[data-fx="corona"].tm-fx-on {
-                opacity: 0.38 !important;
+                opacity: 0.55 !important;
+                filter: blur(3.5px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="aura-outer"].tm-fx-on {
-                opacity: 0.28 !important;
+                opacity: 0.4 !important;
+                filter: blur(5px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="beams"].tm-fx-on {
-                opacity: 0.42 !important;
+                opacity: 0.45 !important;
+                filter: blur(3px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="sigil"].tm-fx-on,
             .mascot-char-aether .tm-aether-fx[data-fx="runes"].tm-fx-on,
             .mascot-char-aether .tm-aether-fx[data-fx="ribbons"].tm-fx-on {
-                opacity: 0.55 !important;
+                opacity: 0.5 !important;
+                filter: blur(2.8px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="orbits"].tm-fx-on {
-                opacity: 0.7 !important;
+                opacity: 0.55 !important;
+                filter: blur(3.2px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="shards"].tm-fx-on {
-                opacity: 0.5 !important;
+                opacity: 0.45 !important;
+                filter: blur(2.5px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="fracture"].tm-fx-on {
-                opacity: 0.65 !important;
+                opacity: 0.5 !important;
+                filter: blur(2.2px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="haze"].tm-fx-on {
-                opacity: 0.9 !important;
+                opacity: 0.75 !important;
+                filter: blur(4.5px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="sparks"].tm-fx-on {
-                opacity: 0.85 !important;
+                opacity: 0.55 !important;
+                filter: blur(1.8px);
+            }
+            .mascot-char-aether .tm-aether-halo,
+            .mascot-char-aether .tm-aether-core-ring,
+            .mascot-char-aether .tm-aether-rune-tattoos {
+                filter: blur(1.6px);
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-spark {
-                animation: tm-mythic-sparkle 3.5s ease-in-out infinite;
+                animation: tm-mythic-sparkle 5.5s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-spark:nth-child(odd) {
-                animation-delay: 0.8s;
+                animation-delay: 1.2s;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-spark:nth-child(3n) {
-                animation-delay: 1.6s;
+                animation-delay: 2.4s;
             }
+            /* Soft blooms breathe — no orbit spins */
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on.tm-aether-orbit-group {
                 transform-origin: 50px 52px;
-                animation: tm-mythic-orbit-spin-svg 18s linear infinite;
+                animation: tm-mythic-corona-breathe 8s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-orbit:nth-of-type(2) {
-                animation: tm-mythic-orbit-spin-svg-rev 22s linear infinite;
+                animation: tm-mythic-corona-breathe 9.5s ease-in-out infinite;
+                animation-delay: 1s;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-corona {
-                animation: tm-mythic-corona-breathe 4s ease-in-out infinite;
+                animation: tm-mythic-corona-breathe 6.5s ease-in-out infinite;
                 transform-origin: 50px 50px;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-core {
-                animation: tm-mythic-core-pulse 3.2s ease-in-out infinite;
+                animation: tm-mythic-core-pulse 5s ease-in-out infinite;
                 transform-origin: center;
                 transform-box: fill-box;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-core-ring {
-                animation: tm-mythic-orbit-spin-svg 12s linear infinite;
+                animation: tm-mythic-corona-breathe 7s ease-in-out infinite;
                 transform-origin: center;
                 transform-box: fill-box;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-halo {
-                animation: tm-mythic-halo-glow 4s ease-in-out infinite;
+                animation: tm-mythic-halo-glow 7s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-veins {
-                animation: tm-mythic-vein-shimmer 4.5s ease-in-out infinite;
+                animation: tm-mythic-vein-shimmer 6.5s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-aura-outer {
-                animation: tm-mythic-corona-breathe 3.4s ease-in-out infinite;
+                animation: tm-mythic-corona-breathe 7s ease-in-out infinite;
                 transform-origin: 50px 50px;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on.tm-aether-beams {
-                animation: tm-mythic-beam-pulse 2.8s ease-in-out infinite;
+                animation: tm-mythic-beam-pulse 5.5s ease-in-out infinite;
                 transform-origin: 50px 50px;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-sigil {
-                animation: tm-mythic-sigil-pulse 3.6s ease-in-out infinite;
+                animation: tm-mythic-sigil-pulse 6s ease-in-out infinite;
                 transform-origin: 50px 94px;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on.tm-aether-runes,
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-rune-ring {
-                animation: tm-mythic-orbit-spin-svg 16s linear infinite;
+                animation: tm-mythic-corona-breathe 8s ease-in-out infinite;
                 transform-origin: 50px 54px;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-shard {
-                animation: tm-mythic-shard-drift 3.2s ease-in-out infinite;
+                animation: tm-mythic-shard-drift 5.5s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-shard:nth-child(even) {
-                animation-delay: 0.6s;
+                animation-delay: 1.1s;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-ribbon {
-                animation: tm-mythic-ribbon-flow 4s ease-in-out infinite;
+                animation: tm-mythic-corona-breathe 7s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-eclipse {
-                animation: tm-mythic-halo-glow 5s ease-in-out infinite;
+                animation: tm-mythic-halo-glow 8s ease-in-out infinite;
+                filter: blur(1.2px);
             }
             /* Mythical particle bursts emitted from Aether */
             .tm-aether-myth-particle {
@@ -5081,12 +5176,13 @@
                     drop-shadow(0 0 56px rgba(124,77,255,0.5)) !important;
             }
             #tm-mascot-container.tm-aether-blade-spin .tm-aether-fx[data-fx="orbits"] {
-                animation: tm-mythic-orbit-spin-svg 2.2s linear infinite !important;
+                animation: tm-mythic-corona-breathe 2.4s ease-in-out infinite !important;
+                filter: blur(3.5px) !important;
             }
             #tm-mascot-container.tm-aether-awaken::before {
-                opacity: 0.95 !important;
-                filter: blur(14px) !important;
-                animation: tm-mythic-aura-pulse 1.8s ease-in-out infinite !important;
+                opacity: 1 !important;
+                filter: blur(22px) !important;
+                animation: tm-mythic-aura-pulse 3.2s ease-in-out infinite !important;
             }
             #tm-mascot-container.tm-aether-awaken .tm-aether-fx {
                 opacity: 0.7 !important;
@@ -5128,21 +5224,22 @@
                 position: absolute;
                 left: 50%;
                 top: 50%;
-                width: 3px;
+                width: 14px;
                 height: 0;
-                margin-left: -1.5px;
+                margin-left: -7px;
                 transform-origin: 50% 0%;
                 pointer-events: none;
                 z-index: 9998;
-                border-radius: 2px;
+                border-radius: 50%;
                 opacity: 0;
-                background: linear-gradient(to bottom, rgba(232,224,240,0.95), rgba(124,77,255,0.55), transparent);
-                box-shadow: 0 0 8px rgba(124,77,255,0.8), 0 0 16px rgba(38,198,218,0.45);
+                background: radial-gradient(ellipse at 50% 0%, rgba(232,224,240,0.55), rgba(124,77,255,0.2), transparent 70%);
+                box-shadow: none;
+                filter: blur(4px);
                 animation: tm-aether-gaze-fire 1.6s ease-out forwards;
             }
             .tm-aether-gaze-beam.is-right {
-                background: linear-gradient(to bottom, rgba(255,213,79,0.9), rgba(239,83,80,0.5), transparent);
-                box-shadow: 0 0 8px rgba(239,83,80,0.75), 0 0 14px rgba(201,162,39,0.4);
+                background: radial-gradient(ellipse at 50% 0%, rgba(255,213,79,0.45), rgba(239,83,80,0.18), transparent 70%);
+                box-shadow: none;
             }
             @keyframes tm-aether-gaze-fire {
                 0% { opacity: 0; height: 0; }
@@ -5212,22 +5309,18 @@
                 0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.75; }
                 50% { transform: translate(0.6px, -1.2px) scale(1.25); opacity: 1; }
             }
-            /* Parallax orbits — near rings faster when drifting */
+            /* Soft bloom pulse while moving — no hard orbit spins */
             #tm-mascot-container.mascot-moving.mascot-char-aether .tm-aether-fx.tm-fx-on.tm-aether-orbit-group {
-                animation-duration: 9s !important;
+                animation: tm-mythic-corona-breathe 6s ease-in-out infinite !important;
             }
-            #tm-mascot-container.mascot-moving.mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-orbit:nth-of-type(1) {
-                animation: tm-mythic-orbit-spin-svg 7s linear infinite;
-            }
-            #tm-mascot-container.mascot-moving.mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-orbit:nth-of-type(2) {
-                animation: tm-mythic-orbit-spin-svg-rev 14s linear infinite;
-            }
+            #tm-mascot-container.mascot-moving.mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-orbit:nth-of-type(1),
+            #tm-mascot-container.mascot-moving.mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-orbit:nth-of-type(2),
             #tm-mascot-container.mascot-moving.mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-orbit:nth-of-type(3) {
-                animation: tm-mythic-orbit-spin-svg 20s linear infinite;
+                animation: tm-mythic-corona-breathe 7.5s ease-in-out infinite;
             }
             .mascot-char-aether .tm-aether-fx[data-fx="haze"].tm-fx-on .tm-aether-haze-blob {
-                animation: tm-aether-haze-shimmer 3.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-                filter: blur(1.2px);
+                animation: tm-aether-haze-shimmer 5.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+                filter: blur(2.5px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="haze"].tm-fx-on .tm-aether-haze-blob:nth-child(2) {
                 animation-delay: -1.2s;
@@ -5649,9 +5742,10 @@
                 transform: none !important;
             }
 
-            /* Metal sheen — slower / rarer to cut GPU cost */
+            /* Metal sheen — rare sweep, mostly still */
             #tm-mascot-container.mascot-char-aether .tm-mascot-robot.mascot-char-aether::after {
-                animation: tm-aether-metal-sheen 14s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+                animation: tm-aether-metal-sheen 28s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+                animation-delay: 8s;
             }
 
             /* ─── Pack IV (optimized): nameplate / tear / blade / crest / ledger ─── */
@@ -5723,9 +5817,10 @@
                 margin: -35% 0 0 -35%;
                 pointer-events: none;
                 z-index: 2;
-                border-radius: 40%;
-                background: radial-gradient(ellipse at 50% 45%, rgba(124,77,255,0.25), transparent 70%);
-                border: 1px solid rgba(201,162,39,0.35);
+                border-radius: 50%;
+                background: radial-gradient(ellipse at 50% 45%, rgba(124,77,255,0.22), transparent 70%);
+                border: none;
+                filter: blur(4px);
                 opacity: 0;
                 animation: tm-aether-clone-duel 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             }
@@ -5747,14 +5842,16 @@
 
             .tm-aether-spectral-blade {
                 position: absolute;
-                left: 62%; top: 34%;
-                width: 4px; height: 38%;
+                left: 58%; top: 30%;
+                width: 18px; height: 42%;
                 pointer-events: none;
                 z-index: 5;
-                background: linear-gradient(to bottom, rgba(232,224,240,0.9), rgba(77,208,225,0.4), transparent);
-                box-shadow: 0 0 8px rgba(201,162,39,0.45);
+                background: radial-gradient(ellipse at 50% 20%, rgba(232,224,240,0.55), rgba(77,208,225,0.2), transparent 70%);
+                box-shadow: none;
+                border-radius: 50%;
+                filter: blur(3px);
                 transform-origin: 50% 100%;
-                transform: rotate(18deg) scaleY(0);
+                transform: rotate(12deg) scaleY(0);
                 animation: tm-aether-blade 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             }
             @keyframes tm-aether-blade {
@@ -5832,21 +5929,24 @@
 
             .tm-aether-form-crest {
                 position: absolute;
-                left: 50%; bottom: -10%;
-                width: 18px; height: 18px;
-                margin-left: -9px;
+                left: 50%; bottom: -8%;
+                width: 28px; height: 14px;
+                margin-left: -14px;
                 pointer-events: none;
                 z-index: 3;
-                opacity: 0.7;
-                border: 1px solid rgba(201,162,39,0.5);
-                transform: rotate(45deg);
-                box-shadow: inset 0 0 6px rgba(124,77,255,0.25);
+                opacity: 0.55;
+                border: none;
+                border-radius: 50%;
+                transform: none;
+                background: radial-gradient(ellipse at 50% 50%, rgba(201,162,39,0.35), transparent 70%);
+                box-shadow: 0 0 12px rgba(124,77,255,0.2);
+                filter: blur(2px);
             }
             #tm-mascot-container.mascot-char-aether:has(.mascot-old) .tm-aether-form-crest {
-                border-color: rgba(122,0,0,0.65);
+                background: radial-gradient(ellipse at 50% 50%, rgba(122,0,0,0.4), transparent 70%);
             }
             #tm-mascot-container.mascot-char-aether:has(.mascot-middleage) .tm-aether-form-crest {
-                border-color: rgba(198,40,40,0.55);
+                background: radial-gradient(ellipse at 50% 50%, rgba(198,40,40,0.35), transparent 70%);
             }
 
             .tm-aether-trail-ink {
@@ -5886,30 +5986,28 @@
                 100% { opacity: 0; }
             }
 
-            .tm-aether-stage-flash {
             .tm-aether-domain-circle {
                 position: absolute;
                 left: 50%; bottom: 2%;
-                width: 78px; height: 22px;
-                margin-left: -39px;
+                width: 88px; height: 28px;
+                margin-left: -44px;
                 border-radius: 50%;
-                border: 1.5px solid rgba(201,162,39,0.55);
-                box-shadow:
-                    0 0 10px rgba(124,77,255,0.25),
-                    inset 0 0 8px rgba(77,208,225,0.15);
+                border: none;
+                background: radial-gradient(ellipse at 50% 50%, rgba(201,162,39,0.28), rgba(124,77,255,0.12), transparent 70%);
+                box-shadow: 0 0 18px rgba(77,208,225,0.15);
+                filter: blur(3px);
                 pointer-events: none;
                 z-index: 2;
                 opacity: 0;
-                transform: scale(0.6) rotate(0deg);
+                transform: scale(0.7);
             }
             #tm-mascot-container.tm-aether-domain-on .tm-aether-domain-circle {
-                animation: tm-aether-domain-seal 2.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                animation: tm-aether-domain-seal 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             }
             @keyframes tm-aether-domain-seal {
-                0% { opacity: 0; transform: scale(0.55) rotate(0deg); }
-                25% { opacity: 0.95; transform: scale(1) rotate(40deg); }
-                70% { opacity: 0.85; transform: scale(1.02) rotate(200deg); }
-                100% { opacity: 0.55; transform: scale(1) rotate(360deg); }
+                0% { opacity: 0; transform: scale(0.55); }
+                30% { opacity: 0.85; transform: scale(1.05); }
+                100% { opacity: 0.4; transform: scale(1); }
             }
 
             /* Daily eclipse — mascot-local only */
@@ -6010,25 +6108,21 @@
                 width: 0; height: 0;
                 pointer-events: none;
                 z-index: 5;
-                animation: tm-aether-moon-spin 9.5s linear infinite;
+                animation: tm-aether-moon-spin 22s linear infinite;
             }
             .tm-aether-moonshard {
                 position: absolute;
                 left: 0; top: 0;
-                width: 10px; height: 10px;
-                margin: -5px 0 0 -5px;
+                width: 14px; height: 14px;
+                margin: -7px 0 0 -7px;
                 transform: translateX(48px);
-                border-radius: 2px 60% 2px 60%;
-                background: linear-gradient(135deg, #e8e0f0, #c9a227 45%, #4a148c);
-                box-shadow: 0 0 8px rgba(201,162,39,0.55), 0 0 14px rgba(124,77,255,0.3);
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(232,224,240,0.55), rgba(201,162,39,0.25), transparent 70%);
+                box-shadow: 0 0 12px rgba(124,77,255,0.25);
+                filter: blur(1.5px);
             }
             .tm-aether-moonshard::after {
-                content: '';
-                position: absolute;
-                inset: 2px;
-                border-radius: inherit;
-                background: rgba(255,255,255,0.35);
-                opacity: 0.5;
+                display: none;
             }
             @keyframes tm-aether-moon-spin {
                 from { transform: rotate(0deg); }
@@ -6038,26 +6132,29 @@
             .tm-aether-charge-ring {
                 position: absolute;
                 left: 50%; top: 50%;
-                width: 110px; height: 110px;
-                margin: -55px 0 0 -55px;
+                width: 130px; height: 130px;
+                margin: -65px 0 0 -65px;
                 border-radius: 50%;
                 pointer-events: none;
                 z-index: 3;
                 opacity: 0;
-                border: 2px solid rgba(201,162,39,0.35);
-                box-shadow:
-                    0 0 16px rgba(124,77,255,0.25),
-                    inset 0 0 12px rgba(201,162,39,0.15);
+                border: none;
+                background: radial-gradient(circle,
+                    rgba(201,162,39,0.2) 0%,
+                    rgba(124,77,255,0.12) 40%,
+                    transparent 70%);
+                box-shadow: none;
+                filter: blur(8px);
             }
             .tm-aether-charge-ring::before {
                 content: '';
                 position: absolute;
-                inset: -3px;
+                inset: 12%;
                 border-radius: 50%;
-                border: 2px solid transparent;
-                border-top-color: rgba(201,162,39,0.95);
-                border-right-color: rgba(124,77,255,0.55);
+                border: none;
+                background: radial-gradient(circle, rgba(232,224,240,0.18), transparent 65%);
                 opacity: 0;
+                filter: blur(4px);
             }
             #tm-mascot-container.tm-aether-awaken .tm-aether-charge-ring {
                 opacity: 1;
@@ -6065,7 +6162,7 @@
             }
             #tm-mascot-container.tm-aether-awaken .tm-aether-charge-ring::before {
                 opacity: 1;
-                animation: tm-aether-charge-spin 5.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                animation: tm-mythic-aura-pulse 2.8s ease-in-out infinite;
             }
             @keyframes tm-aether-charge-pulse {
                 0% { transform: scale(0.75); opacity: 0.35; }
@@ -6244,42 +6341,38 @@
                 100% { opacity: 0; }
             }
 
-            /* Mythic border tiers by age */
-            #tm-mascot-container.mascot-char-aether.tm-aether-border-t1 .tm-mascot-robot {
-                outline: 1px solid rgba(232,224,240,0.15);
-                outline-offset: 4px;
-            }
-            #tm-mascot-container.mascot-char-aether.tm-aether-border-t2 .tm-mascot-robot {
-                outline: 1px solid rgba(77,208,225,0.28);
-                outline-offset: 5px;
-                box-shadow: 0 0 0 1px rgba(201,162,39,0.12);
+            /* Mythic border tiers — soft glow only (no rectangular dual outline) */
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t1 .tm-mascot-robot,
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t2 .tm-mascot-robot,
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t3 .tm-mascot-robot,
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t4 .tm-mascot-robot,
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t5 .tm-mascot-robot,
+            #tm-mascot-container.mascot-char-aether.tm-aether-border-t6 .tm-mascot-robot {
+                outline: none;
+                box-shadow: none;
             }
             #tm-mascot-container.mascot-char-aether.tm-aether-border-t3 .tm-mascot-robot {
-                outline: 1px solid rgba(201,162,39,0.4);
-                outline-offset: 6px;
-                box-shadow: 0 0 0 2px rgba(124,77,255,0.15);
+                filter:
+                    drop-shadow(0 8px 16px rgba(18,0,31,0.18))
+                    drop-shadow(0 0 14px rgba(201,162,39,0.12));
             }
             #tm-mascot-container.mascot-char-aether.tm-aether-border-t4 .tm-mascot-robot {
-                outline: 1px solid rgba(201,162,39,0.55);
-                outline-offset: 6px;
-                box-shadow:
-                    0 0 0 2px rgba(124,77,255,0.22),
-                    0 0 12px rgba(201,162,39,0.18);
+                filter:
+                    drop-shadow(0 8px 16px rgba(18,0,31,0.18))
+                    drop-shadow(0 0 16px rgba(124,77,255,0.14))
+                    drop-shadow(0 0 10px rgba(201,162,39,0.1));
             }
             #tm-mascot-container.mascot-char-aether.tm-aether-border-t5 .tm-mascot-robot {
-                outline: 1px solid rgba(198,40,40,0.5);
-                outline-offset: 7px;
-                box-shadow:
-                    0 0 0 2px rgba(201,162,39,0.25),
-                    0 0 14px rgba(106,27,154,0.2);
+                filter:
+                    drop-shadow(0 8px 16px rgba(18,0,31,0.18))
+                    drop-shadow(0 0 16px rgba(198,40,40,0.14))
+                    drop-shadow(0 0 12px rgba(201,162,39,0.1));
             }
             #tm-mascot-container.mascot-char-aether.tm-aether-border-t6 .tm-mascot-robot {
-                outline: 1px solid rgba(122,0,0,0.65);
-                outline-offset: 8px;
-                box-shadow:
-                    0 0 0 2px rgba(201,184,150,0.28),
-                    0 0 0 4px rgba(5,1,12,0.35),
-                    0 0 18px rgba(122,0,0,0.25);
+                filter:
+                    drop-shadow(0 8px 16px rgba(18,0,31,0.2))
+                    drop-shadow(0 0 18px rgba(122,0,0,0.16))
+                    drop-shadow(0 0 10px rgba(201,184,150,0.1));
             }
 
             .tm-aether-killfeed {
@@ -7711,6 +7804,10 @@
             }
 
             /* --- Feature: Shop --- */
+            #tm-shop-modal.tm-modal-overlay {
+                z-index: 2147483600;
+                background: rgba(0, 0, 0, 0.62);
+            }
             #tm-shop-items-wrapper {
                 padding: 10px 0;
                 overflow-y: auto; /* Allow scrolling if needed */
@@ -8149,7 +8246,18 @@
                 pointer-events: none;
             }
 
-        `);
+        `;
+        tmAddStyleChunks(css);
+
+        // Shop + interaction panel live near the end of the mega-sheet. Re-inject
+        // them last so a truncated/aborted earlier chunk cannot leave the shop unstyled.
+        const criticalStart = css.indexOf('/* Mascot Interaction Panel */');
+        const shopStart = css.indexOf('/* --- Feature: Shop --- */');
+        if (criticalStart >= 0) {
+            GM_addStyle(css.slice(criticalStart));
+        } else if (shopStart >= 0) {
+            GM_addStyle(css.slice(shopStart));
+        }
     }
     // Make the function globally accessible
     window.addGlobalStyles = addGlobalStyles;

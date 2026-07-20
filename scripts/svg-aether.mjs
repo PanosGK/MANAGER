@@ -153,9 +153,9 @@ function makeDefs(p, pal) {
     grad(`${p}-wingglow`, [['0%', pal.b, 0.35], ['55%', pal.a, 0.1], ['100%', DEEP, 0]], 'radial', 'cx="40%" cy="40%" r="60%"'),
     grad(`${p}-core`, [['0%', pal.pale], ['30%', pal.a], ['70%', pal.c], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
     grad(`${p}-iris`, pal.iris, 'radial', 'cx="40%" cy="35%" r="65%"'),
-    grad(`${p}-aura`, [['0%', pal.aura0, 0.12], ['28%', pal.aura1, 0.1], ['58%', pal.aura2, 0.05], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="52%" r="78%"'),
-    grad(`${p}-aura2`, [['0%', pal.aura2, 0.08], ['35%', pal.aura0, 0.06], ['100%', pal.aura1, 0]], 'radial', 'cx="50%" cy="55%" r="72%"'),
-    grad(`${p}-corona`, [['0%', pal.aura2, 0.1], ['45%', pal.aura0, 0.05], ['100%', pal.aura1, 0]], 'radial', 'cx="50%" cy="55%" r="70%"'),
+    grad(`${p}-aura`, [['0%', pal.aura0, 0.16], ['32%', pal.aura1, 0.1], ['62%', pal.aura2, 0.04], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="52%" r="82%"'),
+    grad(`${p}-aura2`, [['0%', pal.aura2, 0.1], ['40%', pal.aura0, 0.06], ['100%', pal.aura1, 0]], 'radial', 'cx="50%" cy="55%" r="78%"'),
+    grad(`${p}-corona`, [['0%', pal.aura2, 0.14], ['48%', pal.aura0, 0.06], ['100%', pal.aura1, 0]], 'radial', 'cx="50%" cy="55%" r="74%"'),
     grad(`${p}-tail`, [['0%', pal.wing0], ['55%', pal.c], ['100%', INK]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
     grad(`${p}-plate`, [['0%', '#3a2a55'], ['100%', INK]], 'linear', 'x1="0%" y1="0%" x2="0%" y2="100%"'),
     grad(`${p}-sigil`, [['0%', pal.b, 0.55], ['100%', pal.a, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
@@ -226,94 +226,87 @@ ${I4}</g>`));
       `${I4}<ellipse class="tm-aether-aura-outer" cx="50" cy="56" rx="${(auraR * 1.32).toFixed(1)}" ry="${(auraR * 1.08).toFixed(1)}" fill="url(#${p}-aura2)"/>`));
   }
 
-  // Energy beams — teen+
+  // Soft ray blooms — teen+ (no hard triangular beams)
   if (tier >= 3) {
-    let beams = `${I4}<path d="M 50 8 L 46 48 L 54 48 Z" fill="url(#${p}-beam)"/>
-${I4}<path d="M 18 28 L 44 52 L 50 46 Z" fill="url(#${p}-beam)" opacity="0.7"/>
-${I4}<path d="M 82 28 L 56 52 L 50 46 Z" fill="url(#${p}-beam)" opacity="0.7"/>`;
+    let beams = `${I4}<ellipse class="tm-aether-beam-glow" cx="50" cy="28" rx="7" ry="22" fill="url(#${p}-beam)" opacity="0.55"/>
+${I4}<ellipse class="tm-aether-beam-glow" cx="32" cy="40" rx="10" ry="16" fill="url(#${p}-beam)" opacity="0.35" transform="rotate(-28 32 40)"/>
+${I4}<ellipse class="tm-aether-beam-glow" cx="68" cy="40" rx="10" ry="16" fill="url(#${p}-beam)" opacity="0.35" transform="rotate(28 68 40)"/>`;
     if (tier >= 5) {
       beams += `
-${I4}<path d="M 12 60 L 44 56 L 48 50 Z" fill="url(#${p}-beam)" opacity="0.55"/>
-${I4}<path d="M 88 60 L 56 56 L 52 50 Z" fill="url(#${p}-beam)" opacity="0.55"/>`;
+${I4}<ellipse class="tm-aether-beam-glow" cx="28" cy="58" rx="12" ry="10" fill="url(#${p}-beam)" opacity="0.28" transform="rotate(-55 28 58)"/>
+${I4}<ellipse class="tm-aether-beam-glow" cx="72" cy="58" rx="12" ry="10" fill="url(#${p}-beam)" opacity="0.28" transform="rotate(55 72 58)"/>`;
     }
     parts.push(fxGroup('beams', beams, 'tm-aether-beams'));
   }
 
-  // Ground / foot sigil — teen+
+  // Soft foot bloom — teen+
   if (tier >= 3) {
     parts.push(fxGroup('sigil',
-      `${I4}<ellipse class="tm-aether-sigil" cx="50" cy="94" rx="${14 + tier}" ry="${3 + tier * 0.3}" fill="url(#${p}-sigil)"/>
-${I4}<ellipse class="tm-aether-sigil" cx="50" cy="94" rx="${10 + tier * 0.6}" ry="2.2" fill="none" stroke="${GOLD}" stroke-width="0.7"/>`));
+      `${I4}<ellipse class="tm-aether-sigil" cx="50" cy="94" rx="${16 + tier}" ry="${4.5 + tier * 0.35}" fill="url(#${p}-sigil)" opacity="0.85"/>
+${I4}<ellipse class="tm-aether-sigil" cx="50" cy="94" rx="${10 + tier * 0.5}" ry="${2.4 + tier * 0.15}" fill="${GOLD}" opacity="0.18"/>`));
   }
 
-  // Ground fracture under older forms
+  // Soft ground bloom under older forms (no crack lines)
   if (tier >= 4) {
     parts.push(fxGroup('fracture',
       `${I4}<g class="tm-aether-ground-fracture">
-${I4}<path d="M 50 94 L 38 92 L 32 96" fill="none" stroke="${CYAN}" stroke-width="0.7" opacity="0.55"/>
-${I4}<path d="M 50 94 L 62 91 L 70 96" fill="none" stroke="${GOLD}" stroke-width="0.7" opacity="0.5"/>
-${I4}<path d="M 44 95 L 40 98 L 48 97" fill="none" stroke="${VIOLET}" stroke-width="0.55" opacity="0.45"/>
-${I4}<path d="M 56 95 L 64 98 L 58 97" fill="none" stroke="${CYAN}" stroke-width="0.55" opacity="0.4"/>
-${tier >= 5 ? `${I4}<path d="M 50 94 L 50 99" fill="none" stroke="${GOLD}" stroke-width="0.8" opacity="0.5"/>
-${I4}<path d="M 28 96 L 35 94" fill="none" stroke="${VIOLET}" stroke-width="0.5" opacity="0.35"/>
-${I4}<path d="M 72 96 L 65 94" fill="none" stroke="${CYAN}" stroke-width="0.5" opacity="0.35"/>` : ''}
+${I4}<ellipse cx="50" cy="95" rx="${18 + tier}" ry="4.5" fill="url(#${p}-sigil)" opacity="0.35"/>
+${I4}<ellipse cx="40" cy="96" rx="8" ry="2.5" fill="${CYAN}" opacity="0.12"/>
+${I4}<ellipse cx="60" cy="96" rx="8" ry="2.5" fill="${GOLD}" opacity="0.1"/>
+${tier >= 5 ? `${I4}<ellipse cx="50" cy="97" rx="22" ry="3" fill="${VIOLET}" opacity="0.08"/>` : ''}
 ${I4}</g>`));
   }
 
-  // Orbit rings — teen+ (more rings as it ages)
+  // Soft orbit blooms — teen+ (filled haze rings, no dashed strokes)
   if (tier >= 3) {
     const rings = [
-      `${I4}<ellipse class="tm-aether-orbit" cx="50" cy="52" rx="${32 + tier * 2}" ry="${12 + tier}" fill="none" stroke="${CYAN}" stroke-width="1.15" stroke-dasharray="5 4"/>`,
+      `${I4}<ellipse class="tm-aether-orbit" cx="50" cy="52" rx="${32 + tier * 2}" ry="${12 + tier}" fill="url(#${p}-aura)" opacity="0.28"/>`,
     ];
     if (tier >= 4) {
-      rings.push(`${I4}<ellipse class="tm-aether-orbit" cx="50" cy="52" rx="${26 + tier}" ry="${16 + tier * 0.6}" fill="none" stroke="${GOLD}" stroke-width="0.9" stroke-dasharray="3 5" transform="rotate(32 50 52)"/>`);
+      rings.push(`${I4}<ellipse class="tm-aether-orbit" cx="50" cy="52" rx="${26 + tier}" ry="${16 + tier * 0.6}" fill="url(#${p}-aura2)" opacity="0.22" transform="rotate(32 50 52)"/>`);
     }
     if (tier >= 5) {
-      rings.push(`${I4}<ellipse class="tm-aether-orbit" cx="50" cy="52" rx="${20 + tier}" ry="${20 + tier * 0.4}" fill="none" stroke="${VIOLET}" stroke-width="0.75" stroke-dasharray="2 4" transform="rotate(-24 50 52)"/>`);
-      rings.push(`${I4}<circle class="tm-aether-orbit-node" cx="${50 + 32 + tier * 2}" cy="52" r="1.8" fill="${GOLD}"/>`);
-      rings.push(`${I4}<circle class="tm-aether-orbit-node" cx="${50 - (26 + tier) * 0.7}" cy="${52 - (16 + tier * 0.6) * 0.55}" r="1.4" fill="${CYAN}"/>`);
+      rings.push(`${I4}<ellipse class="tm-aether-orbit" cx="50" cy="52" rx="${22 + tier}" ry="${18 + tier * 0.35}" fill="url(#${p}-corona)" opacity="0.18" transform="rotate(-18 50 52)"/>`);
+      rings.push(`${I4}<circle class="tm-aether-orbit-node" cx="${50 + 28 + tier}" cy="52" r="3.2" fill="${GOLD}" opacity="0.35"/>`);
+      rings.push(`${I4}<circle class="tm-aether-orbit-node" cx="${50 - (24 + tier) * 0.7}" cy="${52 - (14 + tier * 0.5) * 0.55}" r="2.6" fill="${CYAN}" opacity="0.3"/>`);
     }
-    if (tier >= 5) {
-      rings.push(`${I4}<ellipse class="tm-aether-orbit tm-aether-orbit-broken" cx="50" cy="52" rx="${38 + tier}" ry="${10 + tier * 0.4}" fill="none" stroke="${PALE_L}" stroke-width="0.6" stroke-dasharray="6 22" transform="rotate(12 50 52)" opacity="0.55"/>`);
-      rings.push(`${I4}<path class="tm-aether-orbit-scar" d="M 78 48 Q 86 40 90 52" fill="none" stroke="${GOLD}" stroke-width="0.7" opacity="0.4"/>`);
+    if (tier >= 6) {
+      rings.push(`${I4}<ellipse class="tm-aether-orbit" cx="50" cy="52" rx="${40 + tier}" ry="${14 + tier * 0.3}" fill="url(#${p}-aura)" opacity="0.12" transform="rotate(8 50 52)"/>`);
     }
     parts.push(fxGroup('orbits', rings.join('\n'), 'tm-aether-orbit-group'));
   }
 
-  // Rune circle — adult+
+  // Soft rune halo — adult+
   if (tier >= 4) {
     parts.push(fxGroup('runes',
-      `${I4}<circle class="tm-aether-rune-ring" cx="50" cy="54" r="${11 + tier}" fill="none" stroke="${GOLD}" stroke-width="0.7" stroke-dasharray="2 3"/>
-${I4}<path d="M 50 ${(54 - 11 - tier).toFixed(1)} L ${(50 + 3).toFixed(1)} ${(54 - 6 - tier * 0.4).toFixed(1)}" stroke="${CYAN}" stroke-width="0.7"/>
-${I4}<path d="M ${(50 + 11 + tier).toFixed(1)} 54 L ${(50 + 7 + tier * 0.4).toFixed(1)} ${(54 + 3).toFixed(1)}" stroke="${GOLD}" stroke-width="0.7"/>
-${I4}<path d="M 50 ${(54 + 11 + tier).toFixed(1)} L ${(50 - 3).toFixed(1)} ${(54 + 6 + tier * 0.4).toFixed(1)}" stroke="${CYAN}" stroke-width="0.7"/>
-${I4}<path d="M ${(50 - 11 - tier).toFixed(1)} 54 L ${(50 - 7 - tier * 0.4).toFixed(1)} ${(54 - 3).toFixed(1)}" stroke="${GOLD}" stroke-width="0.7"/>`,
+      `${I4}<circle class="tm-aether-rune-ring" cx="50" cy="54" r="${12 + tier}" fill="url(#${p}-corona)" opacity="0.32"/>
+${I4}<circle class="tm-aether-rune-ring" cx="50" cy="54" r="${7 + tier * 0.5}" fill="${GOLD}" opacity="0.08"/>`,
       'tm-aether-runes'));
   }
 
-  // Ribbons — adult+
+  // Soft ribbon blooms — adult+
   if (tier >= 4) {
-    let ribbons = `${I4}<path class="tm-aether-ribbon" d="M 34 40 Q 18 30 10 48 Q 16 42 30 46" fill="none" stroke="${CYAN}" stroke-width="1.2"/>
-${I4}<path class="tm-aether-ribbon" d="M 66 40 Q 82 30 90 48 Q 84 42 70 46" fill="none" stroke="${GOLD}" stroke-width="1.2"/>`;
+    let ribbons = `${I4}<ellipse class="tm-aether-ribbon" cx="22" cy="44" rx="14" ry="8" fill="${CYAN}" opacity="0.14" transform="rotate(-25 22 44)"/>
+${I4}<ellipse class="tm-aether-ribbon" cx="78" cy="44" rx="14" ry="8" fill="${GOLD}" opacity="0.14" transform="rotate(25 78 44)"/>`;
     if (tier >= 6) {
       ribbons += `
-${I4}<path class="tm-aether-ribbon" d="M 40 72 Q 28 84 16 78" fill="none" stroke="${VIOLET}" stroke-width="1"/>
-${I4}<path class="tm-aether-ribbon" d="M 60 72 Q 72 84 84 78" fill="none" stroke="${GOLD}" stroke-width="1"/>`;
+${I4}<ellipse class="tm-aether-ribbon" cx="28" cy="74" rx="12" ry="6" fill="${VIOLET}" opacity="0.12" transform="rotate(20 28 74)"/>
+${I4}<ellipse class="tm-aether-ribbon" cx="72" cy="74" rx="12" ry="6" fill="${GOLD}" opacity="0.12" transform="rotate(-20 72 74)"/>`;
     }
     parts.push(fxGroup('ribbons', ribbons, 'tm-aether-ribbons'));
   }
 
-  // Glyph shards — middleage+
+  // Soft mote blooms — middleage+ (no hard shard triangles)
   if (tier >= 5) {
-    let shards = `${I4}<path class="tm-aether-shard" d="M 16 44 L 12 38 L 20 40 Z" fill="${CYAN}"/>
-${I4}<path class="tm-aether-shard" d="M 84 44 L 88 38 L 80 40 Z" fill="${GOLD}"/>
-${I4}<path class="tm-aether-shard" d="M 24 68 L 18 64 L 26 62 Z" fill="${VIOLET}"/>
-${I4}<path class="tm-aether-shard" d="M 76 68 L 82 64 L 74 62 Z" fill="${CYAN}"/>`;
+    let shards = `${I4}<circle class="tm-aether-shard" cx="16" cy="42" r="4.5" fill="${CYAN}" opacity="0.35"/>
+${I4}<circle class="tm-aether-shard" cx="84" cy="42" r="4.5" fill="${GOLD}" opacity="0.35"/>
+${I4}<circle class="tm-aether-shard" cx="24" cy="66" r="3.5" fill="${VIOLET}" opacity="0.28"/>
+${I4}<circle class="tm-aether-shard" cx="76" cy="66" r="3.5" fill="${CYAN}" opacity="0.28"/>`;
     if (tier >= 6) {
       shards += `
-${I4}<path class="tm-aether-shard" d="M 50 6 L 46 12 L 54 12 Z" fill="${GOLD}"/>
-${I4}<path class="tm-aether-shard" d="M 8 52 L 4 48 L 10 46 Z" fill="${GOLD}"/>
-${I4}<path class="tm-aether-shard" d="M 92 52 L 96 48 L 90 46 Z" fill="${CYAN}"/>`;
+${I4}<circle class="tm-aether-shard" cx="50" cy="10" r="4" fill="${GOLD}" opacity="0.3"/>
+${I4}<circle class="tm-aether-shard" cx="8" cy="52" r="3.2" fill="${GOLD}" opacity="0.22"/>
+${I4}<circle class="tm-aether-shard" cx="92" cy="52" r="3.2" fill="${CYAN}" opacity="0.22"/>`;
     }
     parts.push(fxGroup('shards', shards, 'tm-aether-shards'));
   }
@@ -344,13 +337,13 @@ function runeTattoos(p, stroke, pal, tier = 3) {
   const A = pal.a;
   const B = pal.b;
   const C = pal.c;
-  return `${I3}<g class="tm-aether-rune-tattoos" opacity="0.55">
-${I4}<path class="tm-aether-rune-glyph" d="M 44 48 L 46 54 L 42 54 Z" fill="none" stroke="${A}" stroke-width="0.7"/>
-${I4}<path class="tm-aether-rune-glyph" d="M 56 48 L 54 54 L 58 54 Z" fill="none" stroke="${B}" stroke-width="0.7"/>
-${I4}<path class="tm-aether-rune-glyph" d="M 50 44 L 50 58" stroke="${C}" stroke-width="0.55"/>
-${tier >= 4 ? `${I4}<circle class="tm-aether-rune-glyph" cx="46" cy="60" r="1.2" fill="none" stroke="${A}" stroke-width="0.5"/>
-${I4}<circle class="tm-aether-rune-glyph" cx="54" cy="60" r="1.2" fill="none" stroke="${B}" stroke-width="0.5"/>` : ''}
-${tier >= 5 ? `${I4}<path class="tm-aether-rune-glyph" d="M 42 52 Q 50 56 58 52" fill="none" stroke="${GOLD}" stroke-width="0.5"/>` : ''}
+  return `${I3}<g class="tm-aether-rune-tattoos" opacity="0.4">
+${I4}<circle class="tm-aether-rune-glyph" cx="45" cy="52" r="2.2" fill="${A}" opacity="0.45"/>
+${I4}<circle class="tm-aether-rune-glyph" cx="55" cy="52" r="2.2" fill="${B}" opacity="0.45"/>
+${I4}<ellipse class="tm-aether-rune-glyph" cx="50" cy="50" rx="1.5" ry="6" fill="${C}" opacity="0.25"/>
+${tier >= 4 ? `${I4}<circle class="tm-aether-rune-glyph" cx="46" cy="60" r="1.8" fill="${A}" opacity="0.3"/>
+${I4}<circle class="tm-aether-rune-glyph" cx="54" cy="60" r="1.8" fill="${B}" opacity="0.3"/>` : ''}
+${tier >= 5 ? `${I4}<ellipse class="tm-aether-rune-glyph" cx="50" cy="54" rx="8" ry="2.2" fill="${GOLD}" opacity="0.18"/>` : ''}
 ${I3}</g>`;
 }
 
@@ -383,7 +376,7 @@ ${I3}</g>`;
   }
   if (stage === 'evo3') {
     return `${I3}<g class="tm-aether-regalia">
-${I4}<ellipse class="tm-aether-halo" cx="50" cy="6" rx="15" ry="3.2" fill="none" stroke="${B}" stroke-width="1.35" opacity="0.8"/>
+${I4}<ellipse class="tm-aether-halo" cx="50" cy="6" rx="15" ry="3.2" fill="${B}" opacity="0.22"/>
 ${I4}<g class="tm-aether-crown-constellation">
 ${I4}<circle class="tm-aether-crown-star" cx="42" cy="2" r="1.1" fill="${A}"/>
 ${I4}<circle class="tm-aether-crown-star" cx="50" cy="-2" r="1.4" fill="${B}"/>
@@ -418,9 +411,9 @@ ${I4}<circle cx="26" cy="0" r="1.7" fill="${B}"/>
 ${I3}</g>`;
   }
   return `${I3}<g class="tm-aether-regalia">
-${I4}<ellipse class="tm-aether-halo" cx="50" cy="12" rx="24" ry="5.5" fill="none" stroke="${B}" stroke-width="1.55" opacity="0.75"/>
-${I4}<ellipse class="tm-aether-halo" cx="50" cy="12" rx="17" ry="3.8" fill="none" stroke="${A}" stroke-width="0.85" opacity="0.5"/>
-${I4}<ellipse class="tm-aether-halo" cx="50" cy="12" rx="30" ry="7.5" fill="none" stroke="${C}" stroke-width="0.55" opacity="0.35" stroke-dasharray="3 4"/>
+${I4}<ellipse class="tm-aether-halo" cx="50" cy="12" rx="24" ry="5.5" fill="${B}" opacity="0.2"/>
+${I4}<ellipse class="tm-aether-halo" cx="50" cy="12" rx="17" ry="3.8" fill="${A}" opacity="0.16"/>
+${I4}<ellipse class="tm-aether-halo" cx="50" cy="12" rx="30" ry="7.5" fill="${C}" opacity="0.1"/>
 ${I4}<g class="tm-aether-crown-constellation">
 ${I4}<circle class="tm-aether-crown-star" cx="38" cy="6" r="1.2" fill="${B}"/>
 ${I4}<circle class="tm-aether-crown-star" cx="50" cy="-2" r="1.6" fill="${A}"/>
@@ -598,7 +591,7 @@ ${I4}<!-- Seed orb -->
 ${I4}<ellipse cx="50" cy="58" rx="18" ry="20" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5"/>
 ${I4}<ellipse cx="50" cy="60" rx="10" ry="12" fill="url(#${p}-belly)" opacity="0.7"/>
 ${I4}<circle class="tm-aether-core" cx="50" cy="58" r="5" fill="url(#${p}-core)"/>
-${I4}<circle class="tm-aether-core-ring" cx="50" cy="58" r="8" fill="none" stroke="${CYAN}" stroke-width="0.6" opacity="0.4" stroke-dasharray="2 2"/>
+${I4}<circle class="tm-aether-core-ring" cx="50" cy="58" r="8" fill="${CYAN}" opacity="0.12"/>
 ${I4}<path d="M 50 42 L 50 74" stroke="${CYAN}" stroke-width="0.55" opacity="0.35"/>
 ${I4}<path d="M 40 50 L 60 66" stroke="${GOLD}" stroke-width="0.45" opacity="0.25"/>
 ${I3}</g>
@@ -635,7 +628,7 @@ ${I4}<!-- Pear torso -->
 ${I4}<path d="M 36 48 Q 34 70 42 80 L 58 80 Q 66 70 64 48 Q 58 38 50 36 Q 42 38 36 48 Z" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5"/>
 ${I4}<ellipse cx="50" cy="62" rx="9" ry="11" fill="url(#${p}-belly)"/>
 ${I4}<circle class="tm-aether-core" cx="50" cy="58" r="5.5" fill="url(#${p}-core)"/>
-${I4}<circle class="tm-aether-core-ring" cx="50" cy="58" r="8.5" fill="none" stroke="${GOLD}" stroke-width="0.6" opacity="0.4" stroke-dasharray="2 2"/>
+${I4}<circle class="tm-aether-core-ring" cx="50" cy="58" r="8.5" fill="${GOLD}" opacity="0.12"/>
 ${I4}<!-- Round head -->
 ${I4}<ellipse cx="50" cy="32" rx="13" ry="13" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.45"/>
 ${I3}</g>
@@ -716,7 +709,7 @@ ${I4}<!-- Tall angular sovereign torso -->
 ${I4}<path d="M 36 40 Q 34 64 38 78 L 62 78 Q 66 64 64 40 Q 58 30 50 28 Q 42 30 36 40 Z" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.65"/>
 ${I4}<ellipse cx="50" cy="56" rx="8" ry="14" fill="url(#${p}-belly)"/>
 ${I4}<circle class="tm-aether-core" cx="50" cy="52" r="7" fill="url(#${p}-core)"/>
-${I4}<circle class="tm-aether-core-ring" cx="50" cy="52" r="10" fill="none" stroke="${GOLD}" stroke-width="0.7" opacity="0.4"/>
+${I4}<circle class="tm-aether-core-ring" cx="50" cy="52" r="10" fill="${GOLD}" opacity="0.12"/>
 ${I4}<path d="M 50 38 L 50 68" stroke="${CYAN}" stroke-width="0.6" opacity="0.4"/>
 ${runeTattoos(p, stroke, pal, 4)}
 ${I4}<!-- Head -->
@@ -804,7 +797,7 @@ ${I4}<!-- Elongated ethereal form -->
 ${I4}<path d="M 38 38 Q 36 62 40 76 L 60 76 Q 64 62 62 38 Q 56 26 50 24 Q 44 26 38 38 Z" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5" opacity="0.92"/>
 ${I4}<ellipse cx="50" cy="52" rx="7" ry="14" fill="url(#${p}-belly)" opacity="0.75"/>
 ${I4}<circle class="tm-aether-core" cx="50" cy="48" r="7.5" fill="url(#${p}-core)"/>
-${I4}<circle class="tm-aether-core-ring" cx="50" cy="48" r="11" fill="none" stroke="${GOLD}" stroke-width="0.65" opacity="0.45"/>
+${I4}<circle class="tm-aether-core-ring" cx="50" cy="48" r="11" fill="${GOLD}" opacity="0.14"/>
 ${I4}<path d="M 50 34 L 50 64" stroke="${GOLD}" stroke-width="0.55" opacity="0.4"/>
 ${runeTattoos(p, stroke, pal, 6)}
 ${I4}<!-- Elongated serene head -->

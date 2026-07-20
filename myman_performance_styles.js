@@ -44,9 +44,9 @@ a:hover, .rnr-orderlink:hover,
     text-shadow: none !important;
 }
 
-/* Modal overlays: solid dim, no blur */
+/* Modal overlays: solid dim, no blur — never reuse panel/shop card bg (that flattens the shop) */
 .jconfirm { background: rgba(0, 0, 0, 0.82) !important; }
-.tm-modal-overlay { background: var(--tm-shop-item-bg) !important; }
+.tm-modal-overlay { background: rgba(0, 0, 0, 0.62) !important; }
 
 /* Level-up screen (rare) — skip heavy blur */
 #tm-level-up-overlay,

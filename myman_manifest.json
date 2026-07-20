@@ -1,11 +1,11 @@
 {
-  "version": "290",
+  "version": "293",
   "loaderVersion": "35",
-  "silentVersion": "28",
-  "displayVersion": "35.28",
+  "silentVersion": "31",
+  "displayVersion": "35.31",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Aether sanity: stop footprint/domain spam on aura roll; split spectacle timer; wire omen/blink into beat; witness on awaken; fix ledger text",
+  "releaseNotes": "Fix shop panel: restore modal dim, chunk/re-inject late CSS, park pin vs aether bloom",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
