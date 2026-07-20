@@ -880,6 +880,15 @@
                             <button type="button" class="tm-mascot-char-btn" data-character="crystal">Crystal</button>
                             <button type="button" class="tm-mascot-char-btn" data-character="aether">Aether 🌌</button>
                         </div>
+                        ${(() => {
+                            try {
+                                const day = new Date().toISOString().slice(0, 10);
+                                if (String(GM_getValue('tm_aether_witness_day', '') || '') === day) {
+                                    return '<div class="tm-aether-witness-sigil">Witnessed an Ascension today</div>';
+                                }
+                            } catch (_) { /* ignore */ }
+                            return '';
+                        })()}
                     </div>
 
                     <div class="tm-setting-row tm-setting-row--stack">

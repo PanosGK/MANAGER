@@ -5091,64 +5091,37 @@
             #tm-mascot-container.tm-aether-awaken .tm-aether-fx {
                 opacity: 0.7 !important;
             }
-            /* Local world dim — soft veil (age ramp kept, much lighter) */
-            #tm-aether-world-dim {
-                position: fixed;
-                left: 0; top: 0;
-                width: 420px; height: 420px;
-                margin: -210px 0 0 -210px;
+            /* Local world dim — confined to mascot (no page overlay / mix-blend) */
+            .tm-aether-world-dim-local {
+                position: absolute;
+                left: 50%; top: 50%;
+                width: 140%; height: 140%;
+                margin: -70% 0 0 -70%;
                 border-radius: 50%;
                 pointer-events: none;
-                z-index: 9990;
+                z-index: 0;
                 opacity: 0;
-                transition: opacity 0.9s ease, width 0.9s ease, height 0.9s ease, margin 0.9s ease;
-                background:
-                    radial-gradient(circle,
-                        rgba(18,0,31,0.22) 0%,
-                        rgba(90,61,154,0.1) 38%,
-                        transparent 70%);
-                mix-blend-mode: soft-light;
+                background: radial-gradient(circle,
+                    rgba(18,0,31,0.28) 0%,
+                    rgba(90,61,154,0.12) 42%,
+                    transparent 72%);
             }
-            #tm-aether-world-dim.tm-aether-dim-t3 {
-                width: 280px; height: 280px;
-                margin: -140px 0 0 -140px;
-                background:
-                    radial-gradient(circle,
-                        rgba(18,0,31,0.12) 0%,
-                        rgba(90,61,154,0.06) 40%,
-                        transparent 68%);
+            .tm-aether-world-dim-local.tm-aether-dim-t3 { opacity: 0.1; }
+            .tm-aether-world-dim-local.tm-aether-dim-t4 { opacity: 0.16; }
+            .tm-aether-world-dim-local.tm-aether-dim-t5 { opacity: 0.22; }
+            .tm-aether-world-dim-local.tm-aether-dim-t6,
+            .tm-aether-world-dim-local.tm-aether-dim-strong {
+                opacity: 0.32;
+                background: radial-gradient(circle,
+                    rgba(5,1,12,0.35) 0%,
+                    rgba(40,0,20,0.16) 40%,
+                    transparent 74%);
             }
-            #tm-aether-world-dim.tm-aether-dim-t4 {
-                width: 340px; height: 340px;
-                margin: -170px 0 0 -170px;
-                background:
-                    radial-gradient(circle,
-                        rgba(18,0,31,0.16) 0%,
-                        rgba(90,61,154,0.08) 40%,
-                        transparent 70%);
-            }
-            #tm-aether-world-dim.tm-aether-dim-t5 {
-                width: 400px; height: 400px;
-                margin: -200px 0 0 -200px;
-                background:
-                    radial-gradient(circle,
-                        rgba(40,0,20,0.2) 0%,
-                        rgba(106,27,154,0.1) 40%,
-                        transparent 72%);
-            }
-            #tm-aether-world-dim.tm-aether-dim-on {
-                /* opacity set per-stage in JS */
-            }
-            #tm-aether-world-dim.tm-aether-dim-strong,
-            #tm-aether-world-dim.tm-aether-dim-t6 {
-                width: 460px; height: 460px;
-                margin: -230px 0 0 -230px;
-                background:
-                    radial-gradient(circle,
-                        rgba(5,1,12,0.28) 0%,
-                        rgba(40,0,20,0.14) 34%,
-                        rgba(90,61,154,0.08) 55%,
-                        transparent 74%);
+            /* Legacy page dim/lens disabled */
+            #tm-aether-world-dim,
+            #tm-aether-gravity-lens,
+            #tm-aether-ambient-tint {
+                display: none !important;
             }
             /* Primordial gaze beams */
             .tm-aether-gaze-beam {
@@ -5319,28 +5292,8 @@
                 50% { filter: drop-shadow(1.5px 0 0 rgba(239,83,80,0.45)) drop-shadow(-1.5px 0 0 rgba(38,198,218,0.55)); }
                 100% { filter: drop-shadow(-1px 0 0 rgba(239,83,80,0.4)) drop-shadow(1px 0 0 rgba(38,198,218,0.4)); }
             }
-            #tm-aether-gravity-lens {
-                position: fixed;
-                width: 220px; height: 220px;
-                margin: -110px 0 0 -110px;
-                border-radius: 50%;
-                pointer-events: none;
-                z-index: 2147482500;
-                backdrop-filter: blur(0.6px);
-                -webkit-backdrop-filter: blur(0.6px);
-                box-shadow: inset 0 0 40px rgba(5,1,12,0.12);
-                opacity: 0;
-                transition: opacity 0.8s ease;
-                mix-blend-mode: soft-light;
-            }
-            #tm-aether-gravity-lens.tm-aether-lens-on {
-                opacity: 0.55;
-                animation: tm-aether-lens-warp 4.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
-            }
-            @keyframes tm-aether-lens-warp {
-                0%, 100% { transform: scale(1); }
-                50% { transform: scale(1.015); }
-            }
+            /* Gravity lens disabled (backdrop-filter was glitching the site) */
+            #tm-aether-gravity-lens { display: none !important; }
             #tm-mascot-container.mascot-parked.mascot-char-aether .tm-aether-fx[data-fx="sigil"],
             #tm-mascot-container.mascot-parked .mascot-char-aether .tm-aether-fx[data-fx="sigil"] {
                 opacity: 0.95 !important;
@@ -5418,16 +5371,16 @@
                 0% { transform: scale(1.35); opacity: 0.3; }
                 100% { transform: scale(0.72); opacity: 0.9; }
             }
-            #tm-aether-mythic-weather {
-                position: fixed;
-                inset: 0;
+            #tm-aether-mythic-weather,
+            .tm-aether-mythic-weather-local {
+                position: absolute;
+                inset: -20%;
                 pointer-events: none;
-                z-index: 2147482000;
+                z-index: 3;
                 opacity: 0;
                 background:
-                    linear-gradient(115deg, transparent 20%, rgba(77,208,225,0.08) 35%, transparent 50%),
-                    linear-gradient(250deg, transparent 30%, rgba(124,77,255,0.07) 48%, transparent 65%),
-                    linear-gradient(40deg, transparent 40%, rgba(201,162,39,0.05) 55%, transparent 70%);
+                    linear-gradient(115deg, transparent 20%, rgba(77,208,225,0.12) 35%, transparent 50%),
+                    linear-gradient(250deg, transparent 30%, rgba(124,77,255,0.1) 48%, transparent 65%);
                 animation: tm-aether-weather-sweep 5s cubic-bezier(0.4, 0, 0.6, 1) forwards;
             }
             @keyframes tm-aether-weather-sweep {
@@ -5631,42 +5584,12 @@
                 100% { opacity: 0; transform: scale(0.92) translateY(2px); }
             }
 
-            /* Stage-colored ambient chrome tint */
-            #tm-aether-ambient-tint {
-                position: fixed;
-                inset: 0;
-                pointer-events: none;
-                z-index: 2147481500;
-                opacity: 0;
-                transition: opacity 1.2s ease, background 1.2s ease;
-                mix-blend-mode: soft-light;
-            }
-            #tm-aether-ambient-tint.tm-aether-ambient-on {
-                opacity: 1;
-            }
-            body.tm-aether-ambient-baby #tm-aether-ambient-tint {
-                background: radial-gradient(ellipse 55% 45% at var(--ax, 50%) var(--ay, 50%), rgba(126,200,195,0.12), transparent 70%);
-            }
-            body.tm-aether-ambient-kid #tm-aether-ambient-tint {
-                background: radial-gradient(ellipse 55% 45% at var(--ax, 50%) var(--ay, 50%), rgba(77,182,172,0.12), transparent 70%);
-            }
-            body.tm-aether-ambient-teen #tm-aether-ambient-tint {
-                background: radial-gradient(ellipse 55% 45% at var(--ax, 50%) var(--ay, 50%), rgba(0,172,193,0.12), transparent 70%);
-            }
-            body.tm-aether-ambient-adult #tm-aether-ambient-tint {
-                background: radial-gradient(ellipse 55% 45% at var(--ax, 50%) var(--ay, 50%), rgba(124,77,255,0.11), transparent 70%);
-            }
-            body.tm-aether-ambient-middleage #tm-aether-ambient-tint {
-                background: radial-gradient(ellipse 55% 45% at var(--ax, 50%) var(--ay, 50%), rgba(198,40,40,0.1), transparent 70%);
-            }
-            body.tm-aether-ambient-old #tm-aether-ambient-tint {
-                background: radial-gradient(ellipse 55% 45% at var(--ax, 50%) var(--ay, 50%), rgba(122,0,0,0.1), transparent 70%);
-            }
+            /* Ambient tint disabled — was full-page mix-blend + UI filters */
+            #tm-aether-ambient-tint { display: none !important; }
             body.tm-aether-ambient-on #tm-coin-balance,
             body.tm-aether-ambient-on .tm-panel-header,
             body.tm-aether-ambient-on #tm-settings-btn {
-                filter: drop-shadow(0 0 6px color-mix(in srgb, var(--aether-ambient, #7c4dff) 35%, transparent));
-                transition: filter 1s ease;
+                filter: none !important;
             }
 
             /* Idle micro-threat poses */
@@ -5700,18 +5623,270 @@
                 40% { transform: rotate(22deg); }
             }
 
-            /* Judgment frame — freeze page motion briefly */
-            html.tm-aether-judgment-frame *,
-            html.tm-aether-judgment-frame *::before,
-            html.tm-aether-judgment-frame *::after {
-                animation-play-state: paused !important;
+            /* Judgment / kneel — mascot-local only */
+            #tm-mascot-container.tm-aether-judgment-local::after {
+                content: '';
+                position: absolute;
+                inset: -8%;
+                pointer-events: none;
+                z-index: 20;
+                background: rgba(5,1,12,0.2);
+                border-radius: 50%;
+                animation: tm-aether-judgment-flash 0.08s steps(1, end) forwards;
             }
-            html.tm-aether-judgment-frame #tm-mascot-container,
-            html.tm-aether-judgment-frame #tm-mascot-container * {
-                animation-play-state: running !important;
+            html.tm-aether-judgment-frame::after { display: none !important; }
+            @keyframes tm-aether-judgment-flash {
+                0% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+            #tm-mascot-container.tm-aether-kneel-local .tm-mascot-robot.mascot-char-aether {
+                transform: translateY(3px);
+                transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            body.tm-aether-kneel .tm-floating-widget,
+            body.tm-aether-kneel #tm-coin-balance,
+            body.tm-aether-kneel #tm-settings-btn {
+                transform: none !important;
             }
 
-            /* Domain circle when parked (adult+) */
+            /* Metal sheen — slower / rarer to cut GPU cost */
+            #tm-mascot-container.mascot-char-aether .tm-mascot-robot.mascot-char-aether::after {
+                animation: tm-aether-metal-sheen 14s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+            }
+
+            /* ─── Pack IV (optimized): nameplate / tear / blade / crest / ledger ─── */
+            .tm-aether-world-nameplate {
+                position: fixed;
+                left: 0; right: 0; top: 12%;
+                z-index: 2147482950;
+                pointer-events: none;
+                text-align: center;
+                font-family: 'Palatino Linotype', Palatino, Georgia, serif;
+                font-size: 13px;
+                letter-spacing: 0.28em;
+                color: #e8e0f0;
+                text-shadow: 0 0 12px rgba(124,77,255,0.45);
+                padding: 10px 0;
+                background: linear-gradient(90deg, transparent, rgba(18,0,31,0.72) 20%, rgba(18,0,31,0.72) 80%, transparent);
+                border-top: 1px solid rgba(201,162,39,0.35);
+                border-bottom: 1px solid rgba(201,162,39,0.35);
+                opacity: 0;
+                animation: tm-aether-world-plate 3.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            @keyframes tm-aether-world-plate {
+                0% { opacity: 0; transform: scaleX(0.6); }
+                18% { opacity: 1; transform: scaleX(1); }
+                75% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+
+            #tm-mascot-container.tm-aether-eclipse-iris .tm-aether-eclipse-pupil,
+            #tm-mascot-container.tm-aether-eclipse-iris .tm-mascot-eye-open circle:nth-of-type(2) {
+                opacity: 0.35;
+            }
+            #tm-mascot-container.tm-aether-eclipse-iris .tm-aether-eclipse-crescent {
+                opacity: 1 !important;
+            }
+
+            .tm-aether-reality-tear,
+            .tm-aether-astral-clone,
+            .tm-aether-spectral-blade,
+            .tm-aether-finisher-slash,
+            .tm-aether-codex-scrap,
+            .tm-aether-trail-ink,
+            .tm-aether-rarity-ledger,
+            .tm-aether-form-crest {
+                contain: layout style paint;
+            }
+
+            .tm-aether-reality-tear {
+                position: absolute;
+                left: 42%; top: 8%;
+                width: 16%; height: 78%;
+                pointer-events: none;
+                z-index: 0;
+                background: linear-gradient(180deg, transparent, rgba(5,1,12,0.75), transparent);
+                clip-path: polygon(40% 0, 70% 8%, 55% 35%, 80% 55%, 45% 78%, 60% 100%, 20% 92%, 35% 60%, 10% 40%, 30% 18%);
+                opacity: 0;
+                animation: tm-aether-tear 1.1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            @keyframes tm-aether-tear {
+                0% { opacity: 0; transform: scaleY(0.4); }
+                30% { opacity: 0.9; transform: scaleY(1); }
+                100% { opacity: 0; transform: scaleY(1.1); }
+            }
+
+            .tm-aether-astral-clone {
+                position: absolute;
+                left: 50%; top: 50%;
+                width: 70%; height: 70%;
+                margin: -35% 0 0 -35%;
+                pointer-events: none;
+                z-index: 2;
+                border-radius: 40%;
+                background: radial-gradient(ellipse at 50% 45%, rgba(124,77,255,0.25), transparent 70%);
+                border: 1px solid rgba(201,162,39,0.35);
+                opacity: 0;
+                animation: tm-aether-clone-duel 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            .tm-aether-astral-clone.is-mirror {
+                animation-name: tm-aether-clone-duel-mirror;
+            }
+            @keyframes tm-aether-clone-duel {
+                0% { opacity: 0; transform: translateX(-28px) scale(0.9); }
+                35% { opacity: 0.8; transform: translateX(-8px) scale(1); }
+                55% { opacity: 0.9; transform: translateX(4px); }
+                100% { opacity: 0; transform: translateX(18px) scale(0.95); }
+            }
+            @keyframes tm-aether-clone-duel-mirror {
+                0% { opacity: 0; transform: translateX(28px) scale(0.9); }
+                35% { opacity: 0.8; transform: translateX(8px) scale(1); }
+                55% { opacity: 0.9; transform: translateX(-4px); }
+                100% { opacity: 0; transform: translateX(-18px) scale(0.95); }
+            }
+
+            .tm-aether-spectral-blade {
+                position: absolute;
+                left: 62%; top: 34%;
+                width: 4px; height: 38%;
+                pointer-events: none;
+                z-index: 5;
+                background: linear-gradient(to bottom, rgba(232,224,240,0.9), rgba(77,208,225,0.4), transparent);
+                box-shadow: 0 0 8px rgba(201,162,39,0.45);
+                transform-origin: 50% 100%;
+                transform: rotate(18deg) scaleY(0);
+                animation: tm-aether-blade 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            @keyframes tm-aether-blade {
+                0% { transform: rotate(18deg) scaleY(0); opacity: 0; }
+                25% { transform: rotate(12deg) scaleY(1); opacity: 1; }
+                75% { opacity: 0.85; }
+                100% { transform: rotate(22deg) scaleY(0.2); opacity: 0; }
+            }
+
+            body.tm-aether-kneel .tm-floating-widget,
+            body.tm-aether-kneel #tm-coin-balance,
+            body.tm-aether-kneel #tm-settings-btn {
+                transform: none !important;
+            }
+
+            #tm-mascot-container.tm-aether-counter-glint .tm-mascot-robot.mascot-char-aether {
+                filter: brightness(1.25) drop-shadow(0 0 10px rgba(255,255,255,0.45)) !important;
+                transition: filter 0.15s ease;
+            }
+
+            .tm-aether-finisher-slash {
+                position: absolute;
+                left: 18%; top: 22%;
+                width: 64%; height: 2px;
+                pointer-events: none;
+                z-index: 8;
+                background: linear-gradient(90deg, transparent, rgba(139,0,0,0.85), transparent);
+                transform: rotate(-28deg);
+                animation: tm-aether-finisher 0.28s steps(2, end) forwards;
+            }
+            @keyframes tm-aether-finisher {
+                0% { opacity: 0; transform: rotate(-28deg) scaleX(0.2); }
+                40% { opacity: 1; transform: rotate(-28deg) scaleX(1); }
+                100% { opacity: 0; }
+            }
+
+            .tm-aether-codex-scrap {
+                position: absolute;
+                left: 8%; top: 30%;
+                width: 42px; height: 28px;
+                pointer-events: none;
+                z-index: 4;
+                background: rgba(232,224,240,0.08);
+                border: 1px solid rgba(201,162,39,0.35);
+                font-size: 7px;
+                color: rgba(232,224,240,0.7);
+                padding: 3px;
+                letter-spacing: 0.04em;
+                animation: tm-aether-codex 3.2s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            }
+            @keyframes tm-aether-codex {
+                0% { opacity: 0; transform: translateY(8px) rotate(-4deg); }
+                20% { opacity: 0.85; }
+                100% { opacity: 0; transform: translateY(-18px) rotate(6deg); }
+            }
+
+            .tm-aether-witness-sigil {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                margin-top: 8px;
+                padding: 4px 8px;
+                border: 1px solid rgba(201,162,39,0.45);
+                border-radius: 4px;
+                font-size: 11px;
+                color: #c9a227;
+                background: rgba(18,0,31,0.35);
+            }
+            .tm-aether-witness-sigil::before {
+                content: '';
+                width: 8px; height: 8px;
+                border: 1px solid rgba(77,208,225,0.7);
+                transform: rotate(45deg);
+            }
+
+            .tm-aether-form-crest {
+                position: absolute;
+                left: 50%; bottom: -10%;
+                width: 18px; height: 18px;
+                margin-left: -9px;
+                pointer-events: none;
+                z-index: 3;
+                opacity: 0.7;
+                border: 1px solid rgba(201,162,39,0.5);
+                transform: rotate(45deg);
+                box-shadow: inset 0 0 6px rgba(124,77,255,0.25);
+            }
+            #tm-mascot-container.mascot-char-aether:has(.mascot-old) .tm-aether-form-crest {
+                border-color: rgba(122,0,0,0.65);
+            }
+            #tm-mascot-container.mascot-char-aether:has(.mascot-middleage) .tm-aether-form-crest {
+                border-color: rgba(198,40,40,0.55);
+            }
+
+            .tm-aether-trail-ink {
+                position: absolute;
+                width: 18px; height: 2px;
+                pointer-events: none;
+                z-index: 1;
+                background: linear-gradient(90deg, transparent, rgba(124,77,255,0.45), transparent);
+                animation: tm-aether-ink-fade 0.9s ease forwards;
+            }
+            @keyframes tm-aether-ink-fade {
+                0% { opacity: 0.7; transform: scaleX(0.4) rotate(-12deg); }
+                100% { opacity: 0; transform: scaleX(1.2) rotate(8deg); }
+            }
+
+            .tm-aether-rarity-ledger {
+                position: absolute;
+                left: 50%;
+                top: -22%;
+                transform: translateX(-50%);
+                pointer-events: none;
+                z-index: 15;
+                white-space: nowrap;
+                font-size: 9px;
+                letter-spacing: 0.12em;
+                color: rgba(232,224,240,0.85);
+                background: rgba(18,0,31,0.65);
+                padding: 3px 8px;
+                border: 1px solid rgba(201,162,39,0.35);
+                opacity: 0;
+                animation: tm-aether-ledger 2.4s ease forwards;
+            }
+            @keyframes tm-aether-ledger {
+                0% { opacity: 0; transform: translateX(-50%) translateY(4px); }
+                20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+                80% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+
+            .tm-aether-stage-flash {
             .tm-aether-domain-circle {
                 position: absolute;
                 left: 50%; bottom: 2%;
@@ -5737,24 +5912,24 @@
                 100% { opacity: 0.55; transform: scale(1) rotate(360deg); }
             }
 
-            /* Daily eclipse event */
-            #tm-aether-eclipse-event {
-                position: fixed;
-                inset: 0;
+            /* Daily eclipse — mascot-local only */
+            #tm-aether-eclipse-event,
+            .tm-aether-eclipse-event-local {
+                position: absolute;
+                inset: -30%;
                 pointer-events: none;
-                z-index: 2147482800;
+                z-index: 6;
                 opacity: 0;
-                background: radial-gradient(ellipse at 50% 30%, rgba(5,1,12,0.45), rgba(5,1,12,0.2) 50%, transparent 75%);
+                background: radial-gradient(ellipse at 50% 30%, rgba(5,1,12,0.35), transparent 70%);
                 animation: tm-aether-eclipse-sky 4s cubic-bezier(0.4, 0, 0.6, 1) forwards;
             }
             .tm-aether-eclipse-crescent-pass {
                 position: absolute;
                 left: -10%;
                 top: 28%;
-                width: 120px; height: 120px;
+                width: 48px; height: 48px;
                 border-radius: 50%;
                 background: radial-gradient(circle at 35% 40%, rgba(201,162,39,0.55), rgba(5,1,12,0.9) 58%);
-                box-shadow: 0 0 40px rgba(201,162,39,0.25);
                 animation: tm-aether-crescent-pass 4s cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
             }
             @keyframes tm-aether-eclipse-sky {
@@ -5766,7 +5941,7 @@
             @keyframes tm-aether-crescent-pass {
                 0% { transform: translateX(0) scale(0.8); opacity: 0; }
                 20% { opacity: 1; }
-                100% { transform: translateX(110vw) scale(1.1); opacity: 0.4; }
+                100% { transform: translateX(160%) scale(1.1); opacity: 0.4; }
             }
 
             /* Nameplate drip */
@@ -5930,16 +6105,16 @@
                 100% { opacity: 0; transform: scale(1.25); }
             }
 
-            #tm-aether-apotheosis-sky {
-                position: fixed;
-                inset: 0;
+            #tm-aether-apotheosis-sky,
+            .tm-aether-apotheosis-local {
+                position: absolute;
+                inset: -40%;
                 pointer-events: none;
-                z-index: 2147482700;
+                z-index: 5;
                 opacity: 0;
                 background:
                     radial-gradient(ellipse at 50% 20%, rgba(122,0,0,0.35), transparent 55%),
-                    radial-gradient(ellipse at 50% 80%, rgba(18,0,31,0.45), transparent 60%),
-                    linear-gradient(180deg, rgba(5,1,12,0.55), rgba(5,1,12,0.15) 70%, transparent);
+                    radial-gradient(ellipse at 50% 80%, rgba(18,0,31,0.35), transparent 60%);
                 animation: tm-aether-apotheosis 6.5s cubic-bezier(0.4, 0, 0.6, 1) forwards;
             }
             .tm-aether-apotheosis-ray {

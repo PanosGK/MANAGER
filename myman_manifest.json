@@ -1,11 +1,11 @@
 {
-  "version": "287",
+  "version": "289",
   "loaderVersion": "35",
-  "silentVersion": "25",
-  "displayVersion": "35.25",
+  "silentVersion": "27",
+  "displayVersion": "35.27",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Aether epic pack III: moonshard, apotheosis, echo forms, charge ring, throne, stances, footprint, true name, border tiers, killfeed, star map, oath seal",
+  "releaseNotes": "Fix Aether site glitch: remove page overlays (ambient/dim/lens/weather/eclipse/apotheosis/judgment), keep FX mascot-local",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
