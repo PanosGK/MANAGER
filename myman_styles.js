@@ -4547,6 +4547,43 @@
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether {
                 animation: tm-mythic-idle-float 4.5s ease-in-out infinite !important;
             }
+            /* Stage aura tint — meaner as it ages */
+            #tm-mascot-container.mascot-char-aether:has(.mascot-baby)::before {
+                background: radial-gradient(circle, rgba(126,200,195,0.35) 0%, rgba(201,160,220,0.28) 40%, transparent 72%) !important;
+                box-shadow: 0 0 24px rgba(126,200,195,0.45), 0 0 48px rgba(201,160,220,0.35) !important;
+            }
+            #tm-mascot-container.mascot-char-aether:has(.mascot-kid)::before {
+                background: radial-gradient(circle, rgba(77,182,172,0.35) 0%, rgba(149,117,205,0.3) 42%, transparent 72%) !important;
+                box-shadow: 0 0 26px rgba(77,182,172,0.5), 0 0 50px rgba(149,117,205,0.4) !important;
+            }
+            #tm-mascot-container.mascot-char-aether:has(.mascot-teen)::before {
+                background: radial-gradient(circle, rgba(0,172,193,0.35) 0%, rgba(92,107,192,0.32) 42%, transparent 72%) !important;
+                box-shadow: 0 0 28px rgba(0,172,193,0.55), 0 0 52px rgba(92,107,192,0.45) !important;
+            }
+            #tm-mascot-container.mascot-char-aether:has(.mascot-adult)::before {
+                background: radial-gradient(circle, rgba(38,198,218,0.35) 0%, rgba(124,77,255,0.32) 40%, rgba(255,213,79,0.15) 58%, transparent 74%) !important;
+                box-shadow: 0 0 30px rgba(38,198,218,0.55), 0 0 56px rgba(124,77,255,0.5) !important;
+            }
+            #tm-mascot-container.mascot-char-aether:has(.mascot-middleage)::before {
+                background: radial-gradient(circle, rgba(239,83,80,0.4) 0%, rgba(106,27,154,0.35) 40%, rgba(191,143,46,0.18) 60%, transparent 74%) !important;
+                box-shadow: 0 0 28px rgba(239,83,80,0.55), 0 0 58px rgba(106,27,154,0.5), 0 0 40px rgba(191,143,46,0.25) !important;
+            }
+            #tm-mascot-container.mascot-char-aether:has(.mascot-old)::before {
+                background: radial-gradient(circle, rgba(139,0,0,0.42) 0%, rgba(93,64,55,0.38) 38%, rgba(201,184,150,0.16) 58%, transparent 74%) !important;
+                box-shadow: 0 0 26px rgba(139,0,0,0.65), 0 0 54px rgba(93,64,55,0.55), 0 0 36px rgba(201,184,150,0.25) !important;
+            }
+            .tm-mascot-robot.mascot-char-aether.mascot-middleage {
+                filter:
+                    drop-shadow(0 0 6px rgba(239,83,80,0.75))
+                    drop-shadow(0 0 16px rgba(106,27,154,0.8))
+                    drop-shadow(0 0 28px rgba(191,143,46,0.35)) !important;
+            }
+            .tm-mascot-robot.mascot-char-aether.mascot-old {
+                filter:
+                    drop-shadow(0 0 6px rgba(139,0,0,0.85))
+                    drop-shadow(0 0 16px rgba(93,64,55,0.8))
+                    drop-shadow(0 0 30px rgba(201,184,150,0.35)) !important;
+            }
             #tm-mascot-container.mascot-idle .mascot-char-phoenix .tm-animate-wing-left {
                 animation: tm-legendary-wing-flap 1.15s ease-in-out infinite !important;
             }

@@ -21,6 +21,65 @@ const DEEP = '#12001f';
 const INK = '#05010c';
 const PALE = '#e8e0f0';
 
+/** Per-evo colors — softer young → colder adult → cruel eclipse/primordial */
+const STAGE_PALETTES = {
+  baby: {
+    a: '#7ec8c3', b: '#c9a0dc', c: '#ffe082',
+    stroke: '#6a5a82', pale: '#f3e5f5',
+    body: [['0%', '#e1bee7'], ['45%', '#b39ddb'], ['100%', '#7e57c2']],
+    belly: [['0%', '#f8eafc', 0.9], ['100%', '#5e35b1', 0.9]],
+    wing0: '#b2dfdb', wing1: '#ce93d8',
+    iris: [['0%', '#e0f7fa'], ['55%', '#80cbc4'], ['100%', '#1a0033']],
+    aura0: '#80cbc4', aura1: '#ce93d8', aura2: '#ffe082',
+  },
+  evo1: {
+    a: '#4db6ac', b: '#9575cd', c: '#ffb74d',
+    stroke: '#4a3a6a', pale: '#ede7f6',
+    body: [['0%', '#b39ddb'], ['40%', '#7e57c2'], ['100%', '#4527a0']],
+    belly: [['0%', '#d1c4e9', 0.85], ['100%', '#311b92', 0.95]],
+    wing0: '#80cbc4', wing1: '#7e57c2',
+    iris: [['0%', '#b2ebf2'], ['50%', '#26a69a'], ['100%', '#0a0018']],
+    aura0: '#4db6ac', aura1: '#9575cd', aura2: '#ffb74d',
+  },
+  evo2: {
+    a: '#00acc1', b: '#5c6bc0', c: '#c0a060',
+    stroke: '#2a1848', pale: '#e8e0f0',
+    body: [['0%', '#7986cb'], ['40%', '#5e35b1'], ['100%', '#1a237e']],
+    belly: [['0%', '#5c6bc0', 0.85], ['100%', '#0d0220', 0.95]],
+    wing0: '#4dd0e1', wing1: '#3949ab',
+    iris: [['0%', '#84ffff'], ['45%', '#00acc1'], ['100%', '#05010c']],
+    aura0: '#00acc1', aura1: '#5c6bc0', aura2: '#c0a060',
+  },
+  evo3: {
+    a: '#26c6da', b: '#ffd54f', c: '#7c4dff',
+    stroke: '#1a0a30', pale: '#e8e0f0',
+    body: [['0%', '#9575cd'], ['30%', '#651fff'], ['65%', '#311b92'], ['100%', '#0a0018']],
+    belly: [['0%', '#4a3a68', 0.85], ['100%', '#05010c', 0.95]],
+    wing0: '#4dd0e1', wing1: '#7c4dff',
+    iris: [['0%', '#a8e6f0'], ['45%', '#26c6da'], ['100%', '#05010c']],
+    aura0: '#26c6da', aura1: '#7c4dff', aura2: '#ffd54f',
+  },
+  evo4: {
+    a: '#ef5350', b: '#bf8f2e', c: '#6a1b9a',
+    stroke: '#1a0508', pale: '#f5e6e6',
+    body: [['0%', '#6a3a4a'], ['30%', '#4a1028'], ['60%', '#2a0830'], ['100%', '#050008']],
+    belly: [['0%', '#3a1520', 0.9], ['100%', '#050008', 0.98]],
+    wing0: '#8d4a4a', wing1: '#4a148c',
+    iris: [['0%', '#ffcdd2'], ['40%', '#e53935'], ['100%', '#1a0000']],
+    aura0: '#ef5350', aura1: '#6a1b9a', aura2: '#bf8f2e',
+  },
+  evo5: {
+    a: '#8b0000', b: '#c9b896', c: '#5d4037',
+    stroke: '#2a1810', pale: '#efe6d8',
+    body: [['0%', '#c4b49a'], ['25%', '#6a5040'], ['55%', '#2a1818'], ['80%', '#1a0808'], ['100%', '#050202']],
+    belly: [['0%', '#4a3028', 0.85], ['100%', '#050202', 0.98]],
+    wing0: '#8d6e63', wing1: '#5d4037',
+    iris: [['0%', '#efebe9'], ['35%', '#a1887f'], ['70%', '#8b0000'], ['100%', '#1a0000']],
+    aura0: '#8b0000', aura1: '#5d4037', aura2: '#c9b896',
+  },
+};
+
+
 function grad(id, stops, type = 'radial', attrs) {
   const tag = type === 'linear' ? 'linearGradient' : 'radialGradient';
   const defAttrs = attrs
@@ -30,17 +89,17 @@ function grad(id, stops, type = 'radial', attrs) {
   return `${I3}<${tag} id="${id}" ${defAttrs}>\n${stopLines}\n${I3}</${tag}>`;
 }
 
-function solemnEyes(lx, rx, cy, rxE, ryE, irisRef, stroke, { slit = false, glow = false } = {}) {
+function solemnEyes(lx, rx, cy, rxE, ryE, irisRef, stroke, { slit = false, glow = false, glowA = CYAN, glowB = GOLD, sclera = PALE } = {}) {
   const irisRx = slit ? rxE * 0.32 : rxE * 0.48;
   const irisRy = slit ? ryE * 0.75 : ryE * 0.55;
   const glowEl = glow
-    ? `${I4}<ellipse cx="${lx}" cy="${cy}" rx="${(rxE * 1.55).toFixed(1)}" ry="${(ryE * 1.3).toFixed(1)}" fill="${CYAN}" opacity="0.1"/>
-${I4}<ellipse cx="${rx}" cy="${cy}" rx="${(rxE * 1.55).toFixed(1)}" ry="${(ryE * 1.3).toFixed(1)}" fill="${GOLD}" opacity="0.08"/>`
+    ? `${I4}<ellipse cx="${lx}" cy="${cy}" rx="${(rxE * 1.55).toFixed(1)}" ry="${(ryE * 1.3).toFixed(1)}" fill="${glowA}" opacity="0.12"/>
+${I4}<ellipse cx="${rx}" cy="${cy}" rx="${(rxE * 1.55).toFixed(1)}" ry="${(ryE * 1.3).toFixed(1)}" fill="${glowB}" opacity="0.1"/>`
     : '';
   return `${I3}<g class="tm-mascot-eye-open">
 ${glowEl}
-${I4}<ellipse cx="${lx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="${PALE}" stroke="${stroke}" stroke-width="1.35" opacity="0.92"/>
-${I4}<ellipse cx="${rx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="${PALE}" stroke="${stroke}" stroke-width="1.35" opacity="0.92"/>
+${I4}<ellipse cx="${lx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="${sclera}" stroke="${stroke}" stroke-width="1.35" opacity="0.92"/>
+${I4}<ellipse cx="${rx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="${sclera}" stroke="${stroke}" stroke-width="1.35" opacity="0.92"/>
 ${I4}<ellipse cx="${lx}" cy="${cy}" rx="${irisRx.toFixed(1)}" ry="${irisRy.toFixed(1)}" fill="${irisRef}"/>
 ${I4}<ellipse cx="${rx}" cy="${cy}" rx="${irisRx.toFixed(1)}" ry="${irisRy.toFixed(1)}" fill="${irisRef}"/>
 ${I4}<ellipse cx="${lx}" cy="${cy}" rx="${(irisRx * 0.35).toFixed(1)}" ry="${(irisRy * 0.55).toFixed(1)}" fill="${INK}"/>
@@ -74,26 +133,29 @@ ${I}</g>
 `;
 }
 
-function makeDefs(p, bodyStops, stroke) {
+function makeDefs(p, pal) {
   return [
-    grad(`${p}-body`, bodyStops, 'radial', 'cx="38%" cy="22%" r="80%"'),
-    grad(`${p}-belly`, [['0%', '#4a3a68', 0.85], ['100%', DEEP, 0.95]], 'radial', 'cx="50%" cy="40%" r="60%"'),
-    grad(`${p}-wing`, [['0%', '#6a90a8', 0.85], ['40%', VIOLET, 0.7], ['100%', DEEP, 0.8]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
-    grad(`${p}-wing2`, [['0%', GOLD, 0.4], ['100%', DEEP, 0.55]], 'linear', 'x1="100%" y1="0%" x2="0%" y2="100%"'),
-    grad(`${p}-core`, [['0%', PALE], ['30%', CYAN], ['70%', VIOLET], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
-    grad(`${p}-iris`, [['0%', '#a8e6f0'], ['50%', CYAN], ['100%', INK]], 'radial', 'cx="40%" cy="35%" r="65%"'),
-    grad(`${p}-aura`, [['0%', CYAN, 0.22], ['35%', VIOLET, 0.2], ['70%', GOLD, 0.08], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="48%" r="55%"'),
-    grad(`${p}-aura2`, [['0%', GOLD, 0.2], ['40%', CYAN, 0.12], ['100%', VIOLET, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
-    grad(`${p}-corona`, [['0%', GOLD, 0.28], ['40%', CYAN, 0.14], ['100%', VIOLET, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
-    grad(`${p}-tail`, [['0%', '#5a4a78'], ['55%', VIOLET], ['100%', INK]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
+    grad(`${p}-body`, pal.body, 'radial', 'cx="38%" cy="22%" r="80%"'),
+    grad(`${p}-belly`, pal.belly, 'radial', 'cx="50%" cy="40%" r="60%"'),
+    grad(`${p}-wing`, [['0%', pal.wing0, 0.85], ['40%', pal.wing1, 0.7], ['100%', DEEP, 0.8]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
+    grad(`${p}-wing2`, [['0%', pal.b, 0.45], ['100%', DEEP, 0.55]], 'linear', 'x1="100%" y1="0%" x2="0%" y2="100%"'),
+    grad(`${p}-core`, [['0%', pal.pale], ['30%', pal.a], ['70%', pal.c], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
+    grad(`${p}-iris`, pal.iris, 'radial', 'cx="40%" cy="35%" r="65%"'),
+    grad(`${p}-aura`, [['0%', pal.aura0, 0.26], ['35%', pal.aura1, 0.22], ['70%', pal.aura2, 0.1], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="48%" r="55%"'),
+    grad(`${p}-aura2`, [['0%', pal.aura2, 0.22], ['40%', pal.aura0, 0.14], ['100%', pal.aura1, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
+    grad(`${p}-corona`, [['0%', pal.aura2, 0.3], ['40%', pal.aura0, 0.14], ['100%', pal.aura1, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
+    grad(`${p}-tail`, [['0%', pal.wing0], ['55%', pal.c], ['100%', INK]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
     grad(`${p}-plate`, [['0%', '#3a2a55'], ['100%', INK]], 'linear', 'x1="0%" y1="0%" x2="0%" y2="100%"'),
-    grad(`${p}-sigil`, [['0%', GOLD, 0.55], ['100%', CYAN, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
-    grad(`${p}-beam`, [['0%', PALE, 0.55], ['50%', CYAN, 0.2], ['100%', VIOLET, 0]], 'linear', 'x1="0%" y1="0%" x2="0%" y2="100%"'),
+    grad(`${p}-sigil`, [['0%', pal.b, 0.55], ['100%', pal.a, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
+    grad(`${p}-beam`, [['0%', pal.pale, 0.55], ['50%', pal.a, 0.22], ['100%', pal.c, 0]], 'linear', 'x1="0%" y1="0%" x2="0%" y2="100%"'),
   ].join('\n');
 }
 
 /** Layered aura + addons. tier 1=baby … 6=old */
-function epicAddons(p, tier = 1) {
+function epicAddons(p, tier = 1, pal = STAGE_PALETTES.evo3) {
+  const CYAN = pal.a;
+  const GOLD = pal.b;
+  const VIOLET = pal.c;
   const sparks = [
     [12, 16], [88, 14], [6, 40], [94, 42], [18, 70], [82, 72],
     [28, 8], [72, 6], [4, 58], [96, 56], [40, 4], [60, 4],
@@ -193,9 +255,12 @@ ${sparkSvg}`;
 }
 
 /** BABY — Voidseed: floating orb chrysalis, stub fins, no real limbs yet */
-function babyBody(p, stroke) {
+function babyBody(p, stroke, pal = STAGE_PALETTES.evo3) {
+  const CYAN = pal.a;
+  const GOLD = pal.b;
+  const VIOLET = pal.c;
   return `${shadow(18, 0.28)}
-${epicAddons(p, 1)}
+${epicAddons(p, 1, pal)}
 ${I3}<g class="tm-animate-wing-left">
 ${I4}<path d="M 34 58 L 22 50 L 24 62 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1"/>
 ${I3}</g>
@@ -231,9 +296,12 @@ ${solemnMouth(60, stroke, 4)}`;
 }
 
 /** KID — Veilspawn: pear body, stub legs, horn nubs, triangle wing stubs */
-function kidBody(p, stroke) {
+function kidBody(p, stroke, pal = STAGE_PALETTES.evo3) {
+  const CYAN = pal.a;
+  const GOLD = pal.b;
+  const VIOLET = pal.c;
   return `${shadow(22, 0.3)}
-${epicAddons(p, 2)}
+${epicAddons(p, 2, pal)}
 ${I3}<g class="tm-animate-wing-left">
 ${I4}<path d="M 32 52 L 14 40 L 18 56 L 30 58 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.15"/>
 ${I4}<circle cx="14" cy="40" r="1.3" fill="${CYAN}" opacity="0.55"/>
@@ -276,9 +344,12 @@ ${solemnMouth(40, stroke, 4.5)}`;
 }
 
 /** TEEN — Astral Warden: bipedal, scythe wings, crescent horns, 1 orbit */
-function teenBody(p, stroke) {
+function teenBody(p, stroke, pal = STAGE_PALETTES.evo3) {
+  const CYAN = pal.a;
+  const GOLD = pal.b;
+  const VIOLET = pal.c;
   return `${shadow(24, 0.32)}
-${epicAddons(p, 3)}
+${epicAddons(p, 3, pal)}
 ${I3}<g class="tm-animate-wing-left">
 ${I4}<path d="M 30 48 L 8 28 L 4 44 L 12 58 L 28 56 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.25"/>
 ${I4}<path d="M 26 50 L 10 40" stroke="${CYAN}" stroke-width="0.7" opacity="0.5"/>
@@ -328,9 +399,12 @@ ${solemnMouth(36, stroke, 5)}`;
 }
 
 /** ADULT — Starveil Sovereign: tall, multi-blade wings, diadem, triple orbits, mantle */
-function adultBody(p, stroke) {
+function adultBody(p, stroke, pal = STAGE_PALETTES.evo3) {
+  const CYAN = pal.a;
+  const GOLD = pal.b;
+  const VIOLET = pal.c;
   return `${shadow(28, 0.38)}
-${epicAddons(p, 4)}
+${epicAddons(p, 4, pal)}
 ${I3}<g class="tm-animate-wing-left">
 ${I4}<path d="M 28 46 L 2 18 L -4 36 L 6 58 L 16 64 L 28 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.35"/>
 ${I4}<path d="M 26 50 L 6 42 L 10 60 L 24 56 Z" fill="url(#${p}-wing2)" stroke="${stroke}" stroke-width="0.9" opacity="0.65"/>
@@ -382,14 +456,17 @@ ${I3}<g class="tm-animate-leg-right">
 ${I4}<path d="M 58 78 L 52 94 L 64 94 Z" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.2"/>
 ${I4}<ellipse cx="58" cy="94" rx="6" ry="1.8" fill="${INK}" opacity="0.55"/>
 ${I3}</g>
-${solemnEyes(41, 59, 20, 4.6, 6, `url(#${p}-iris)`, stroke, { slit: true, glow: true })}
+${solemnEyes(41, 59, 20, 4.6, 6, `url(#${p}-iris)`, stroke, { slit: true, glow: true, glowA: CYAN, glowB: GOLD, sclera: pal.pale })}
 ${solemnMouth(30, stroke, 5.5)}`;
 }
 
 /** MID — Eclipse Sovereign: armored plates, jagged wings, eclipse disk, heavier */
-function midBody(p, stroke) {
+function midBody(p, stroke, pal = STAGE_PALETTES.evo3) {
+  const CYAN = pal.a;
+  const GOLD = pal.b;
+  const VIOLET = pal.c;
   return `${shadow(28, 0.42)}
-${epicAddons(p, 5)}
+${epicAddons(p, 5, pal)}
 ${I4}<!-- Eclipse disk behind head -->
 ${I3}<circle class="tm-aether-eclipse" cx="50" cy="22" r="16" fill="${INK}" opacity="0.55"/>
 ${I3}<circle class="tm-aether-eclipse" cx="50" cy="22" r="16" fill="none" stroke="${GOLD}" stroke-width="1.4" opacity="0.55"/>
@@ -437,14 +514,17 @@ ${I3}<g class="tm-animate-leg-right">
 ${I4}<path d="M 58 80 L 52 94 L 64 94 Z" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.25"/>
 ${I4}<rect x="52" y="90" width="12" height="3" rx="1" fill="url(#${p}-plate)" opacity="0.7"/>
 ${I3}</g>
-${solemnEyes(41, 59, 20, 4.5, 5.8, `url(#${p}-iris)`, stroke, { slit: true, glow: true })}
+${solemnEyes(41, 59, 20, 4.5, 5.8, `url(#${p}-iris)`, stroke, { slit: true, glow: true, glowA: CYAN, glowB: GOLD, sclera: pal.pale })}
 ${solemnMouth(32, stroke, 5)}`;
 }
 
 /** OLD — Primordial Absolute: elongated ethereal, huge translucent wings, thin halo */
-function oldBody(p, stroke) {
+function oldBody(p, stroke, pal = STAGE_PALETTES.evo3) {
+  const CYAN = pal.a;
+  const GOLD = pal.b;
+  const VIOLET = pal.c;
   return `${shadow(30, 0.3)}
-${epicAddons(p, 6)}
+${epicAddons(p, 6, pal)}
 ${I3}<ellipse class="tm-aether-halo" cx="50" cy="14" rx="22" ry="5" fill="none" stroke="${GOLD}" stroke-width="1.5" opacity="0.7"/>
 ${I3}<ellipse class="tm-aether-halo" cx="50" cy="14" rx="16" ry="3.5" fill="none" stroke="${CYAN}" stroke-width="0.8" opacity="0.45"/>
 ${I3}<ellipse class="tm-aether-halo" cx="50" cy="14" rx="28" ry="7" fill="none" stroke="${VIOLET}" stroke-width="0.55" opacity="0.35" stroke-dasharray="3 4"/>
@@ -494,7 +574,7 @@ ${I3}</g>
 ${I3}<g class="tm-animate-leg-right">
 ${I4}<path d="M 58 76 L 52 90 L 62 92 Z" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.1" opacity="0.8"/>
 ${I3}</g>
-${solemnEyes(41, 59, 16, 4.4, 5.8, `url(#${p}-iris)`, stroke, { slit: true, glow: true })}
+${solemnEyes(41, 59, 16, 4.4, 5.8, `url(#${p}-iris)`, stroke, { slit: true, glow: true, glowA: CYAN, glowB: GOLD, sclera: pal.pale })}
 ${solemnMouth(28, stroke, 5)}`;
 }
 
@@ -509,24 +589,9 @@ function aetherStage(stage) {
     evo5: 'Primordial Absolute',
   };
 
-  const bodyStops = stage === 'evo5'
-    ? [['0%', '#e8dcc8'], ['30%', '#b8a078'], ['60%', '#7a6898'], ['100%', '#2a1848']]
-    : stage === 'evo4'
-      ? [['0%', '#5a4a70'], ['40%', '#2a1840'], ['100%', INK]]
-      : stage === 'evo3'
-        ? [['0%', '#8b7bb8'], ['35%', '#5a3d9a'], ['70%', '#2a1550'], ['100%', DEEP]]
-        : stage === 'evo2'
-          ? [['0%', '#7a6a9a'], ['50%', '#4a3580'], ['100%', '#1e1038']]
-          : stage === 'evo1'
-            ? [['0%', '#8a7aaa'], ['55%', '#554080'], ['100%', '#2a1848']]
-            : [['0%', '#9a8ab0'], ['55%', '#5a4880'], ['100%', '#322050']];
-
-  const stroke = stage === 'evo5' ? '#a89060'
-    : stage === 'evo4' ? '#3a2060'
-      : stage === 'evo3' ? '#2a1848'
-        : '#3a2860';
-
-  const defs = makeDefs(p, bodyStops, stroke);
+  const pal = STAGE_PALETTES[stage] || STAGE_PALETTES.evo3;
+  const stroke = pal.stroke;
+  const defs = makeDefs(p, pal);
   const builders = {
     baby: babyBody,
     evo1: kidBody,
@@ -536,11 +601,11 @@ function aetherStage(stage) {
     evo5: oldBody,
   };
 
-  return wrapStage(stage, titles[stage], defs, builders[stage](p, stroke));
+  return wrapStage(stage, titles[stage], defs, builders[stage](p, stroke, pal));
 }
 
 export const aetherSvg = [
-  `${I}<!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v4 · Pokémon-style) -->`,
+  `${I}<!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v5 · stage color progression) -->`,
   `${I}<!-- Voidseed → Veilspawn → Astral Warden → Sovereign → Eclipse → Primordial -->`,
   `${I}<!-- ═══════════════════════════════════════ -->`,
   '',
