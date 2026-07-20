@@ -2368,6 +2368,21 @@ function tmApplyThemeColors(themeId, options = {}) {
         }
     }
 
+    // Seed localStorage so the FOUC extension can paint + reveal before the suite loads.
+    try {
+        const extendedEl = document.getElementById('tm-extended-theme-styles');
+        const pageEl = document.getElementById('tm-page-theme-styles');
+        const pageCss = [
+            extendedEl ? extendedEl.textContent : '',
+            pageEl ? pageEl.textContent : (theme.pageStyles || ''),
+        ].filter(Boolean).join('\n');
+        if (typeof window.tmSyncFoucPageCssLocalStorage === 'function') {
+            window.tmSyncFoucPageCssLocalStorage(pageCss);
+        } else if (pageCss) {
+            localStorage.setItem('tm_mms_fouc_page_css', pageCss);
+        }
+    } catch (_) { /* ignore */ }
+
     if (typeof window.tmInjectPerformanceStyles === 'function') {
         window.tmInjectPerformanceStyles();
     }

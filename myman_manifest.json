@@ -1,11 +1,11 @@
 {
-  "version": "247",
-  "loaderVersion": "31",
+  "version": "248",
+  "loaderVersion": "32",
   "silentVersion": "1",
-  "displayVersion": "31.1",
+  "displayVersion": "32.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "FOUC: stay blank until themes; hardened companion hide",
+  "releaseNotes": "Faster FOUC reveal from cached theme CSS",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

@@ -10,11 +10,11 @@ Tampermonkey userscript suite that enhances [MyManager](https://thefixers.mymana
     - Open `myman_loader.user.js` on GitHub → **Raw**
     - Tampermonkey should offer to install it  
     - Or: Tampermonkey → Create new script → paste the loader contents → Save
-4. Install the FOUC companion (stops the unthemed flash before the suite loads):
-    - Open `myman_fouc.user.js` on GitHub → **Raw** → install (reinstall/update if you already have an older copy)
-    - Keep it enabled alongside the main loader (Dashboard: drag it above the suite if order is available)
-5. In Tampermonkey: **Settings → Experimental → Inject Mode → Instant** (required so the FOUC script can hide the page before Chrome paints). Without Instant mode, Chrome will still flash the unthemed page.
-6. Enable **Check for userscript updates** in Tampermonkey settings (daily or on browser start).
+4. **Install the FOUC Chrome extension** (required on Chrome — Tampermonkey alone cannot blank the page before first paint):
+    - Open `chrome://extensions` → enable **Developer mode**
+    - **Load unpacked** → select the [`myman_fouc_extension`](myman_fouc_extension) folder
+    - You can disable the Tampermonkey `myman_fouc.user.js` script; the extension replaces it
+5. Enable **Check for userscript updates** in Tampermonkey settings (daily or on browser start).
 
 Tampermonkey will check `@updateURL` and pull new versions automatically. You do **not** need to copy files manually.
 
@@ -52,7 +52,8 @@ Regenerate without a version bump: `npm run build` (does not rewrite the product
 | File | Purpose |
 |------|---------|
 | `myman_loader.user.js` | **Production** — install this; auto-updates from GitHub |
-| `myman_fouc.user.js` | **FOUC companion** — tiny `@grant none` blank-screen guard (install with the loader) |
+| `myman_fouc_extension/` | **FOUC Chrome extension** — blanks page before paint (Load unpacked) |
+| `myman_fouc.user.js` | Optional TM FOUC fallback (Chrome usually too late; extension preferred) |
 | `myman_loader.local.user.js` | **Local dev** — loads bundle from disk (async) |
 | `myman_manifest.json` | Version + module list for updates |
 | `myman_allinone.js` | Main app logic |
@@ -61,8 +62,7 @@ Regenerate without a version bump: `npm run build` (does not rewrite the product
 
 ## Tampermonkey notes
 
-- Install **both** `myman_loader.user.js` and `myman_fouc.user.js`. The FOUC script blanks the page before first paint; the loader reveals it once a cached theme is available (or when the suite finishes).
-- Set **Inject Mode → Instant** under Tampermonkey experimental settings, or Chrome can still flash unthemed content.
+- Use the **`myman_fouc_extension`** for the blank screen. Userscripts cannot reliably run before Chrome paints (MV3).
 - `@require` modules are cached; bumping the loader `@version` forces Tampermonkey to re-fetch all modules.
 - The repo must be **public** (or users need access) for `raw.githubusercontent.com` URLs to work.
 - If your default branch is not `main`, change `updateBase` in the manifest.

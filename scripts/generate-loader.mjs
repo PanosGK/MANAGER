@@ -341,6 +341,23 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
         } catch (e) { /* ignore */ }
     }
 
+    function applyCachedPageCssFromLocalStorage() {
+        try {
+            var pageCss = localStorage.getItem('tm_mms_fouc_page_css');
+            if (!pageCss) return false;
+            var style = document.getElementById('tm-mms-fouc-page-css');
+            if (!style) {
+                style = document.createElement('style');
+                style.id = 'tm-mms-fouc-page-css';
+                (document.documentElement || document.head || document).appendChild(style);
+            }
+            style.textContent = pageCss;
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
     function applyCachedThemeColors() {
         try {
             var raw = readProfileScoped('tm_theme_colors_cache', null);
@@ -356,6 +373,7 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
                 root.style.backgroundColor = bg;
             }
             seedFoucThemeLocalStorage(cache.themeId || 'custom', cache.colors);
+            applyCachedPageCssFromLocalStorage();
             return true;
         } catch (e) {
             return false;
@@ -651,9 +669,13 @@ function buildInlineBootstrap({ localBundleUrl = null } = {}) {
     }
 
     installThemeFoucGuard();
-    applyCachedThemeColors();
-    // Stay blank until themes.js applies the real theme (or failsafe).
-    // Do NOT reveal on cache hit — CSS vars alone still look unthemed.
+    var hadThemeCache = applyCachedThemeColors();
+    var hadPageCss = applyCachedPageCssFromLocalStorage();
+    // Reveal as soon as cached theme/CSS exists — do not wait for the full bundle.
+    // First visit (no cache): stay blank until themes.js (or failsafe).
+    if (hadThemeCache || hadPageCss) {
+        tmRevealThemeReady();
+    }
     startBundleLoad();
 })();`;
 }

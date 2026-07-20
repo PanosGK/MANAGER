@@ -1,0 +1,12 @@
+/* Injected at true document_start by Chrome — before first paint.
+   Suite / loader reveal by adding class tm-mms-theme-ready on <html>. */
+html:not(.tm-mms-theme-ready),
+html:not(.tm-mms-theme-ready) body {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+html:not(.tm-mms-theme-ready) {
+  background: #121212 !important;
+}

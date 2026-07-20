@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v247 / Custom Ver. 31.1 — generated, do not edit */
+/* MyManager Suite bundle v248 / Custom Ver. 32.1 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -488,6 +488,7 @@ img[src='images/smsdelivered.png'] {
     const root = document.documentElement;
     const LS_THEME = 'tm_mms_fouc_theme';
     const LS_MENU = 'tm_mms_fouc_menu_css';
+    const LS_PAGE = 'tm_mms_fouc_page_css';
 
     function syncFoucThemeLocalStorage(themeId, colors) {
         try {
@@ -511,8 +512,16 @@ img[src='images/smsdelivered.png'] {
         } catch (_) { /* ignore */ }
     }
 
+    function syncFoucPageCssLocalStorage(cssText) {
+        try {
+            if (cssText) localStorage.setItem(LS_PAGE, cssText);
+            else localStorage.removeItem(LS_PAGE);
+        } catch (_) { /* ignore */ }
+    }
+
     window.tmSyncFoucThemeLocalStorage = syncFoucThemeLocalStorage;
     window.tmSyncFoucMenuLocalStorage = syncFoucMenuLocalStorage;
+    window.tmSyncFoucPageCssLocalStorage = syncFoucPageCssLocalStorage;
 
     if (typeof GM_getValue !== 'function') return;
 
@@ -3216,6 +3225,21 @@ function tmApplyThemeColors(themeId, options = {}) {
         }
     }
 
+    // Seed localStorage so the FOUC extension can paint + reveal before the suite loads.
+    try {
+        const extendedEl = document.getElementById('tm-extended-theme-styles');
+        const pageEl = document.getElementById('tm-page-theme-styles');
+        const pageCss = [
+            extendedEl ? extendedEl.textContent : '',
+            pageEl ? pageEl.textContent : (theme.pageStyles || ''),
+        ].filter(Boolean).join('\n');
+        if (typeof window.tmSyncFoucPageCssLocalStorage === 'function') {
+            window.tmSyncFoucPageCssLocalStorage(pageCss);
+        } else if (pageCss) {
+            localStorage.setItem('tm_mms_fouc_page_css', pageCss);
+        }
+    } catch (_) { /* ignore */ }
+
     if (typeof window.tmInjectPerformanceStyles === 'function') {
         window.tmInjectPerformanceStyles();
     }
@@ -3268,10 +3292,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '247',
-        loaderVersion: '31',
+        version: '248',
+        loaderVersion: '32',
         silentVersion: '1',
-        displayVersion: '31.1',
+        displayVersion: '32.1',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'

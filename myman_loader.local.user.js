@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite (Local Dev)
 // @namespace    http://tampermonkey.net/
-// @version      31
+// @version      32
 // @description  Local development — async file:// bundle. Enable "Allow access to local file URLs". Run: npm run build.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -67,11 +67,11 @@
         } catch (e) { /* ignore */ }
     })();
 
-    var LOADER_VERSION = "31";
+    var LOADER_VERSION = "32";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "247";
+    var FALLBACK_BUNDLE_VERSION = "248";
     var LOCAL_BUNDLE_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.bundle.js";
 
     try {
@@ -305,6 +305,23 @@
         } catch (e) { /* ignore */ }
     }
 
+    function applyCachedPageCssFromLocalStorage() {
+        try {
+            var pageCss = localStorage.getItem('tm_mms_fouc_page_css');
+            if (!pageCss) return false;
+            var style = document.getElementById('tm-mms-fouc-page-css');
+            if (!style) {
+                style = document.createElement('style');
+                style.id = 'tm-mms-fouc-page-css';
+                (document.documentElement || document.head || document).appendChild(style);
+            }
+            style.textContent = pageCss;
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
     function applyCachedThemeColors() {
         try {
             var raw = readProfileScoped('tm_theme_colors_cache', null);
@@ -320,6 +337,7 @@
                 root.style.backgroundColor = bg;
             }
             seedFoucThemeLocalStorage(cache.themeId || 'custom', cache.colors);
+            applyCachedPageCssFromLocalStorage();
             return true;
         } catch (e) {
             return false;
@@ -615,8 +633,12 @@
     }
 
     installThemeFoucGuard();
-    applyCachedThemeColors();
-    // Stay blank until themes.js applies the real theme (or failsafe).
-    // Do NOT reveal on cache hit — CSS vars alone still look unthemed.
+    var hadThemeCache = applyCachedThemeColors();
+    var hadPageCss = applyCachedPageCssFromLocalStorage();
+    // Reveal as soon as cached theme/CSS exists — do not wait for the full bundle.
+    // First visit (no cache): stay blank until themes.js (or failsafe).
+    if (hadThemeCache || hadPageCss) {
+        tmRevealThemeReady();
+    }
     startBundleLoad();
 })();

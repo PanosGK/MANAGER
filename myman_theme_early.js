@@ -19,6 +19,7 @@
     const root = document.documentElement;
     const LS_THEME = 'tm_mms_fouc_theme';
     const LS_MENU = 'tm_mms_fouc_menu_css';
+    const LS_PAGE = 'tm_mms_fouc_page_css';
 
     function syncFoucThemeLocalStorage(themeId, colors) {
         try {
@@ -42,8 +43,16 @@
         } catch (_) { /* ignore */ }
     }
 
+    function syncFoucPageCssLocalStorage(cssText) {
+        try {
+            if (cssText) localStorage.setItem(LS_PAGE, cssText);
+            else localStorage.removeItem(LS_PAGE);
+        } catch (_) { /* ignore */ }
+    }
+
     window.tmSyncFoucThemeLocalStorage = syncFoucThemeLocalStorage;
     window.tmSyncFoucMenuLocalStorage = syncFoucMenuLocalStorage;
+    window.tmSyncFoucPageCssLocalStorage = syncFoucPageCssLocalStorage;
 
     if (typeof GM_getValue !== 'function') return;
 
