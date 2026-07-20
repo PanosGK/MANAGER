@@ -1,11 +1,11 @@
 {
-  "version": "273",
+  "version": "275",
   "loaderVersion": "35",
-  "silentVersion": "11",
-  "displayVersion": "35.11",
+  "silentVersion": "13",
+  "displayVersion": "35.13",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Aether evo palettes: soft young colors to crimson eclipse and bone-blood primordial",
+  "releaseNotes": "Wing flap kicks in when mascot starts moving",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v273 / Custom Ver. 35.11 — generated, do not edit */
+/* MyManager Suite bundle v275 / Custom Ver. 35.13 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '273',
+        version: '275',
         loaderVersion: '35',
-        silentVersion: '11',
-        displayVersion: '35.11',
+        silentVersion: '13',
+        displayVersion: '35.13',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -10437,10 +10437,15 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     0 0 28px rgba(77,208,225,0.55),
                     0 0 48px rgba(90,61,154,0.55),
                     0 0 80px rgba(201,162,39,0.28);
-                opacity: 1;
+                opacity: 0;
                 width: 210px; height: 210px;
-                animation: tm-mythic-aura-pulse 2.6s ease-in-out infinite;
+                animation: none;
+                transition: opacity 0.7s ease;
                 will-change: opacity, transform;
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-glow-on:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
+                opacity: 1;
+                animation: tm-mythic-aura-pulse 2.6s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-char-aether::after {
                 content: '';
@@ -10456,6 +10461,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     0 0 0 10px rgba(77,208,225,0.08);
                 z-index: -1;
                 pointer-events: none;
+                opacity: 0;
+                animation: none;
+                transition: opacity 0.8s ease;
+            }
+            #tm-mascot-container.mascot-char-aether.tm-aether-ring-on::after {
+                opacity: 1;
                 animation: tm-mythic-orbit-spin 11s linear infinite;
             }
             .tm-mascot-robot.mascot-char-phoenix {
@@ -10542,29 +10553,85 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-animate-wing-right {
                 animation: tm-mythic-wing-flap-right 2.4s ease-in-out infinite !important;
             }
+            /* Active travel flap — kicks in as soon as the mascot starts moving */
+            #tm-mascot-container.mascot-moving .tm-animate-wing-left {
+                animation: tm-wing-flap-move 0.4s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-moving .tm-animate-wing-right {
+                animation: tm-wing-flap-move-right 0.4s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-moving .mascot-char-phoenix .tm-animate-wing-left,
+            #tm-mascot-container.mascot-moving.mascot-char-phoenix .tm-animate-wing-left {
+                animation: tm-legendary-wing-flap-move 0.32s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-moving .mascot-char-phoenix .tm-animate-wing-right,
+            #tm-mascot-container.mascot-moving.mascot-char-phoenix .tm-animate-wing-right {
+                animation: tm-legendary-wing-flap-move-right 0.32s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-moving .mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.mascot-moving.mascot-char-aether .tm-animate-wing-left {
+                animation: tm-mythic-wing-flap-move 0.36s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-moving .mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.mascot-moving.mascot-char-aether .tm-animate-wing-right {
+                animation: tm-mythic-wing-flap-move-right 0.36s ease-in-out infinite !important;
+            }
             #tm-mascot-container.mascot-idle .mascot-char-phoenix .tm-animate-tail {
                 animation: tm-legendary-tail-wag 1.6s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-animate-tail {
                 animation: tm-mythic-tail-flow 3.2s ease-in-out infinite !important;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-spark {
+            /* Random FX layers — off until JS adds .tm-fx-on */
+            .mascot-char-aether .tm-aether-fx {
+                opacity: 0 !important;
+                transition: opacity 0.85s ease;
+                pointer-events: none;
+            }
+            .mascot-char-aether .tm-aether-fx.tm-fx-on {
+                opacity: 1 !important;
+            }
+            .mascot-char-aether .tm-aether-fx[data-fx="aura"].tm-fx-on,
+            .mascot-char-aether .tm-aether-fx[data-fx="corona"].tm-fx-on {
+                opacity: 0.72 !important;
+            }
+            .mascot-char-aether .tm-aether-fx[data-fx="aura-outer"].tm-fx-on {
+                opacity: 0.65 !important;
+            }
+            .mascot-char-aether .tm-aether-fx[data-fx="beams"].tm-fx-on {
+                opacity: 0.42 !important;
+            }
+            .mascot-char-aether .tm-aether-fx[data-fx="sigil"].tm-fx-on,
+            .mascot-char-aether .tm-aether-fx[data-fx="runes"].tm-fx-on,
+            .mascot-char-aether .tm-aether-fx[data-fx="ribbons"].tm-fx-on {
+                opacity: 0.55 !important;
+            }
+            .mascot-char-aether .tm-aether-fx[data-fx="orbits"].tm-fx-on {
+                opacity: 0.7 !important;
+            }
+            .mascot-char-aether .tm-aether-fx[data-fx="shards"].tm-fx-on {
+                opacity: 0.5 !important;
+            }
+            .mascot-char-aether .tm-aether-fx[data-fx="sparks"].tm-fx-on {
+                opacity: 0.85 !important;
+            }
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-spark {
                 animation: tm-mythic-sparkle 3.5s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-spark:nth-child(odd) {
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-spark:nth-child(odd) {
                 animation-delay: 0.8s;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-spark:nth-child(3n) {
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-spark:nth-child(3n) {
                 animation-delay: 1.6s;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-orbit-group {
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on.tm-aether-orbit-group {
                 transform-origin: 50px 52px;
                 animation: tm-mythic-orbit-spin-svg 18s linear infinite;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-orbit:nth-of-type(2) {
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-orbit:nth-of-type(2) {
                 animation: tm-mythic-orbit-spin-svg-rev 22s linear infinite;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-corona {
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-corona {
                 animation: tm-mythic-corona-breathe 4s ease-in-out infinite;
                 transform-origin: 50px 50px;
             }
@@ -10584,34 +10651,82 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-veins {
                 animation: tm-mythic-vein-shimmer 4.5s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-aura-outer {
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-aura-outer {
                 animation: tm-mythic-corona-breathe 3.4s ease-in-out infinite;
                 transform-origin: 50px 50px;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-beams {
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on.tm-aether-beams {
                 animation: tm-mythic-beam-pulse 2.8s ease-in-out infinite;
                 transform-origin: 50px 50px;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-sigil {
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-sigil {
                 animation: tm-mythic-sigil-pulse 3.6s ease-in-out infinite;
                 transform-origin: 50px 94px;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-runes,
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-rune-ring {
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on.tm-aether-runes,
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-rune-ring {
                 animation: tm-mythic-orbit-spin-svg 16s linear infinite;
                 transform-origin: 50px 54px;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-shard {
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-shard {
                 animation: tm-mythic-shard-drift 3.2s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-shard:nth-child(even) {
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-shard:nth-child(even) {
                 animation-delay: 0.6s;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-ribbon {
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-ribbon {
                 animation: tm-mythic-ribbon-flow 4s ease-in-out infinite;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-eclipse {
                 animation: tm-mythic-halo-glow 5s ease-in-out infinite;
+            }
+            /* Mythical particle bursts emitted from Aether */
+            .tm-aether-myth-particle {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                width: 6px;
+                height: 6px;
+                margin: -3px 0 0 -3px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9997;
+                opacity: 0;
+                will-change: transform, opacity;
+            }
+            .tm-aether-myth-particle.is-star {
+                width: 0; height: 0; margin: 0;
+                border-radius: 0;
+                background: transparent !important;
+                box-shadow: none !important;
+            }
+            .tm-aether-myth-particle.is-star::before,
+            .tm-aether-myth-particle.is-star::after {
+                content: '';
+                position: absolute;
+                left: 50%; top: 50%;
+                background: currentColor;
+                box-shadow: 0 0 6px currentColor;
+            }
+            .tm-aether-myth-particle.is-star::before {
+                width: 2px; height: 10px;
+                margin: -5px 0 0 -1px;
+            }
+            .tm-aether-myth-particle.is-star::after {
+                width: 10px; height: 2px;
+                margin: -1px 0 0 -5px;
+            }
+            .tm-aether-myth-particle.is-shard {
+                width: 5px; height: 9px;
+                border-radius: 1px;
+                transform: rotate(25deg);
+            }
+            .tm-aether-myth-particle.is-rune {
+                width: 8px; height: 8px;
+                border-radius: 2px;
+                background: transparent !important;
+                border: 1.5px solid currentColor;
+                box-shadow: 0 0 8px currentColor;
             }
             #tm-mascot-container.mascot-energized .tm-mascot-robot.mascot-char-aether,
             #tm-mascot-container.mascot-happy .tm-mascot-robot.mascot-char-aether {
@@ -10671,6 +10786,30 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 0%, 100% { transform: rotate(0deg); }
                 50% { transform: rotate(10deg); }
             }
+            @keyframes tm-wing-flap-move {
+                0%, 100% { transform: rotate(4deg); }
+                50% { transform: rotate(-28deg); }
+            }
+            @keyframes tm-wing-flap-move-right {
+                0%, 100% { transform: rotate(-4deg); }
+                50% { transform: rotate(28deg); }
+            }
+            @keyframes tm-legendary-wing-flap-move {
+                0%, 100% { transform: rotate(6deg); }
+                50% { transform: rotate(-36deg); }
+            }
+            @keyframes tm-legendary-wing-flap-move-right {
+                0%, 100% { transform: rotate(-6deg); }
+                50% { transform: rotate(36deg); }
+            }
+            @keyframes tm-mythic-wing-flap-move {
+                0%, 100% { transform: rotate(5deg); }
+                50% { transform: rotate(-32deg); }
+            }
+            @keyframes tm-mythic-wing-flap-move-right {
+                0%, 100% { transform: rotate(-5deg); }
+                50% { transform: rotate(32deg); }
+            }
             @keyframes tm-legendary-tail-wag {
                 0%, 100% { transform: rotate(0deg); }
                 25% { transform: rotate(-10deg); }
@@ -10715,6 +10854,17 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             @keyframes tm-mythic-ribbon-flow {
                 0%, 100% { opacity: 0.35; }
                 50% { opacity: 0.7; }
+            }
+            @keyframes tm-aether-myth-emit {
+                0% {
+                    opacity: 0;
+                    transform: translate(var(--mx, 0px), var(--my, 0px)) scale(0.35) rotate(0deg);
+                }
+                12% { opacity: 1; }
+                100% {
+                    opacity: 0;
+                    transform: translate(var(--tx, 0px), var(--ty, -48px)) scale(0.15) rotate(var(--rot, 120deg));
+                }
             }
 
             /* Mascot States */
@@ -17874,7 +18024,7 @@ const MASCOT_MODIFIER_CLASSES = ['mascot-needs-toilet', 'mascot-needs-cleaning',
 const MASCOT_INTERACTION_CLASSES = [
     'mascot-parked', 'mascot-dragging', 'mascot-focus-quiet',
     'mascot-chasing', 'mascot-chase-tired', 'mascot-hiding', 'mascot-hide-hint', 'mascot-hide-found',
-    'mascot-jetpack-boost',
+    'mascot-jetpack-boost', 'mascot-moving',
 ];
 // Mood classes are preserved separately (mascot-mood-*) in applyMascotBehaviorState.
 
@@ -22152,13 +22302,16 @@ function updateLimbPhysics() {
     // Calculate speed
     const speed = Math.sqrt(mascotVelocityX * mascotVelocityX + mascotVelocityY * mascotVelocityY);
     const isMoving = speed > 0.3;
+    mascotContainer.classList.toggle('mascot-moving', isMoving);
 
     if (isMoving) {
         // Calculate rotation based on horizontal velocity (momentum effect)
         const armSwing = Math.max(-25, Math.min(25, mascotVelocityX * 0.5));
         const legKick = Math.abs(mascotVelocityX) > 0.5 ? Math.sin(Date.now() * 0.01) * 15 : 0;
         const tailSwing = Math.max(-30, Math.min(30, -mascotVelocityX * 0.8));
-        const wingFlap = speed > 1 ? Math.sin(Date.now() * 0.008) * 20 : 0;
+        // Wings use CSS .mascot-moving flap — clear inline transforms so animation wins
+        if (leftWing) leftWing.style.transform = '';
+        if (rightWing) rightWing.style.transform = '';
 
         // Apply physics transformations
         if (leftArm) {
@@ -22177,12 +22330,6 @@ function updateLimbPhysics() {
         }
         if (tail) {
             tail.style.transform = `rotate(${tailSwing}deg)`;
-        }
-        if (leftWing) {
-            leftWing.style.transform = `rotate(${-wingFlap}deg)`;
-        }
-        if (rightWing) {
-            rightWing.style.transform = `rotate(${wingFlap}deg)`;
         }
 
         if ((hasEquippedMascotAccessories() || hasActiveStateAccessories()) && limbPhysicsFrameCount % 6 === 0) {
@@ -23495,6 +23642,173 @@ function createPoopParticles(container, count) {
         container.appendChild(particle);
     }
 }
+
+// ─── Aether mythical FX: random auras + particle bursts ───
+let aetherMythFxTimer = null;
+let aetherMythParticleTimer = null;
+let aetherMythFxActive = false;
+
+const AETHER_FX_BY_STAGE = {
+    baby: ['sparks'],
+    kid: ['sparks', 'corona', 'aura'],
+    teen: ['sparks', 'corona', 'aura', 'beams', 'sigil', 'orbits'],
+    adult: ['sparks', 'corona', 'aura', 'aura-outer', 'beams', 'sigil', 'orbits', 'runes', 'ribbons'],
+    middleage: ['sparks', 'corona', 'aura', 'aura-outer', 'beams', 'sigil', 'orbits', 'runes', 'ribbons', 'shards'],
+    old: ['sparks', 'corona', 'aura', 'aura-outer', 'beams', 'sigil', 'orbits', 'runes', 'ribbons', 'shards'],
+};
+
+const AETHER_STAGE_TIER = {
+    baby: 1, kid: 2, teen: 3, adult: 4, middleage: 5, old: 6,
+};
+
+const AETHER_PARTICLE_COLORS = {
+    baby: ['#7ec8c3', '#c9a0dc', '#ffe082'],
+    kid: ['#4db6ac', '#9575cd', '#ffb74d'],
+    teen: ['#00acc1', '#5c6bc0', '#c0a060'],
+    adult: ['#26c6da', '#ffd54f', '#7c4dff'],
+    middleage: ['#ef5350', '#bf8f2e', '#6a1b9a'],
+    old: ['#8b0000', '#c9b896', '#5d4037'],
+};
+
+function stopAetherMythicFx() {
+    aetherMythFxActive = false;
+    if (aetherMythFxTimer) {
+        clearTimeout(aetherMythFxTimer);
+        aetherMythFxTimer = null;
+    }
+    if (aetherMythParticleTimer) {
+        clearTimeout(aetherMythParticleTimer);
+        aetherMythParticleTimer = null;
+    }
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return;
+    container.classList.remove('tm-aether-glow-on', 'tm-aether-ring-on');
+    container.querySelectorAll('.tm-aether-fx.tm-fx-on').forEach((el) => el.classList.remove('tm-fx-on'));
+    container.querySelectorAll('.tm-aether-myth-particle').forEach((el) => el.remove());
+}
+
+function pickRandomSubset(list, minCount, maxCount) {
+    if (!list.length) return [];
+    const shuffled = list.slice().sort(() => Math.random() - 0.5);
+    const n = Math.min(
+        list.length,
+        Math.max(minCount, Math.floor(Math.random() * (maxCount - minCount + 1)) + minCount)
+    );
+    // Chance of empty / near-empty so auras aren't always on
+    if (Math.random() < 0.22) return shuffled.slice(0, Math.min(1, n));
+    if (Math.random() < 0.12) return [];
+    return shuffled.slice(0, n);
+}
+
+function rollAetherAuraLayers(container, stage) {
+    const pool = AETHER_FX_BY_STAGE[stage] || AETHER_FX_BY_STAGE.baby;
+    const tier = AETHER_STAGE_TIER[stage] || 1;
+    const minOn = tier <= 2 ? 0 : 1;
+    const maxOn = Math.min(pool.length, Math.max(1, Math.ceil(tier * 0.9)));
+    const active = new Set(pickRandomSubset(pool, minOn, maxOn));
+
+    container.querySelectorAll('.tm-aether-fx').forEach((el) => {
+        const name = el.getAttribute('data-fx');
+        el.classList.toggle('tm-fx-on', active.has(name));
+    });
+
+    // Container glow / orbit ring — rare early, common later, still random
+    const glowChance = 0.12 + tier * 0.1;
+    const ringChance = tier >= 3 ? 0.1 + (tier - 2) * 0.1 : 0;
+    container.classList.toggle('tm-aether-glow-on', Math.random() < glowChance);
+    container.classList.toggle('tm-aether-ring-on', Math.random() < ringChance);
+}
+
+function emitAetherMythParticles(container, stage) {
+    if (!container || tamagotchiIsDead) return;
+    const tier = AETHER_STAGE_TIER[stage] || 1;
+    const colors = AETHER_PARTICLE_COLORS[stage] || AETHER_PARTICLE_COLORS.adult;
+    const count = Math.min(3 + tier * 2 + Math.floor(Math.random() * (2 + tier)), 16);
+    const types = ['orb'];
+    if (tier >= 2) types.push('star');
+    if (tier >= 4) types.push('shard');
+    if (tier >= 5) types.push('rune');
+
+    for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        const kind = types[Math.floor(Math.random() * types.length)];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        el.className = `tm-aether-myth-particle is-${kind === 'orb' ? 'orb' : kind}`;
+        const angle = Math.random() * Math.PI * 2;
+        const startR = 4 + Math.random() * 14;
+        const endR = 28 + Math.random() * (28 + tier * 8);
+        const mx = Math.cos(angle) * startR;
+        const my = Math.sin(angle) * startR - 8;
+        const tx = Math.cos(angle) * endR + (Math.random() * 20 - 10);
+        const ty = Math.sin(angle) * endR - (30 + Math.random() * 40);
+        const dur = 0.9 + Math.random() * (0.7 + tier * 0.15);
+        const size = kind === 'star' ? 0 : 3 + Math.random() * (3 + tier * 0.4);
+        el.style.cssText = `
+            --mx: ${mx.toFixed(1)}px;
+            --my: ${my.toFixed(1)}px;
+            --tx: ${tx.toFixed(1)}px;
+            --ty: ${ty.toFixed(1)}px;
+            --rot: ${(80 + Math.random() * 200).toFixed(0)}deg;
+            width: ${size}px;
+            height: ${size}px;
+            margin: ${(-size / 2).toFixed(1)}px 0 0 ${(-size / 2).toFixed(1)}px;
+            background: ${kind === 'rune' ? 'transparent' : color};
+            color: ${color};
+            box-shadow: 0 0 ${6 + tier}px ${color};
+            animation: tm-aether-myth-emit ${dur.toFixed(2)}s ease-out forwards;
+            animation-delay: ${(Math.random() * 0.25).toFixed(2)}s;
+        `;
+        container.appendChild(el);
+        setTimeout(() => el.remove(), (dur + 0.4) * 1000);
+    }
+}
+
+function scheduleAetherAuraRoll(container, stage) {
+    if (!aetherMythFxActive) return;
+    const tier = AETHER_STAGE_TIER[stage] || 1;
+    const holdMs = 1800 + Math.random() * (2200 + tier * 400);
+    aetherMythFxTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        rollAetherAuraLayers(container, stage);
+        scheduleAetherAuraRoll(container, stage);
+    }, holdMs);
+}
+
+function scheduleAetherParticleBurst(container, stage) {
+    if (!aetherMythFxActive) return;
+    const tier = AETHER_STAGE_TIER[stage] || 1;
+    // Random quiet gaps — particles are bursts, not constant
+    const waitMs = 2500 + Math.random() * (5000 - tier * 400);
+    aetherMythParticleTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        // Skip some rolls so it feels sporadic
+        if (Math.random() > 0.28) {
+            emitAetherMythParticles(container, stage);
+        }
+        scheduleAetherParticleBurst(container, stage);
+    }, Math.max(1600, waitMs));
+}
+
+function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : 'baby') {
+    stopAetherMythicFx();
+    if (tamagotchiIsDead || stage === 'egg') return;
+    if (tamagotchiCharacterType !== 'aether') return;
+
+    const container = document.getElementById('tm-mascot-container');
+    if (!container || !container.classList.contains('mascot-char-aether')) return;
+
+    aetherMythFxActive = true;
+    // Initial quiet beat, then first roll
+    aetherMythFxTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        rollAetherAuraLayers(container, stage);
+        scheduleAetherAuraRoll(container, stage);
+    }, 600 + Math.random() * 900);
+    scheduleAetherParticleBurst(container, stage);
+}
+
+window.syncAetherMythicFx = syncAetherMythicFx;
+window.stopAetherMythicFx = stopAetherMythicFx;
 
 // Remove poop particles
 function removePoopParticles(container) {
@@ -30684,7 +30998,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path class="tm-mascot-mouth-happy" d="M 45 36 L 50 41 L 55 36" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                         <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 40 L 50 35 L 55 40" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                 </g>
-                                                                                                <!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v5 · stage color progression) -->
+                                                                                                                <!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v5 · stage color progression) -->
                 <!-- Voidseed → Veilspawn → Astral Warden → Sovereign → Eclipse → Primordial -->
                 <!-- ═══════════════════════════════════════ -->
 
@@ -30756,15 +31070,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </linearGradient>
                     </defs>
                         <ellipse cx="50" cy="96" rx="18" ry="4.2" fill="#05010c" opacity="0.28"/>
-                        <ellipse class="tm-aether-aura" cx="50" cy="50" rx="29.2" ry="26.3" fill="url(#aether-baby-aura)"/>
-                        <ellipse class="tm-aether-aura-outer" cx="50" cy="50" rx="34.5" ry="30.7" fill="url(#aether-baby-aura2)" opacity="0.7"/>
-                        <ellipse class="tm-aether-corona" cx="50" cy="52" rx="18.1" ry="16.1" fill="url(#aether-baby-corona)" opacity="0.65"/>
-                        <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#c9a0dc" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#7ec8c3" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#ffe082" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#c9a0dc" opacity="0.65"/>
-                        <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#7ec8c3" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#ffe082" opacity="0.44999999999999996"/>
+                        <g class="tm-aether-fx " data-fx="sparks" opacity="0">
+                            <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#c9a0dc"/>
+                            <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#7ec8c3"/>
+                        </g>
                         <g class="tm-animate-wing-left">
                             <path d="M 34 58 L 22 50 L 24 62 Z" fill="url(#aether-baby-wing)" stroke="#6a5a82" stroke-width="1"/>
                         </g>
@@ -30882,28 +31191,18 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </linearGradient>
                     </defs>
                         <ellipse cx="50" cy="96" rx="22" ry="4.2" fill="#05010c" opacity="0.3"/>
-                        <ellipse class="tm-aether-aura" cx="50" cy="50" rx="32.4" ry="29.2" fill="url(#aether-kid-aura)"/>
-                        <ellipse class="tm-aether-aura-outer" cx="50" cy="50" rx="38.2" ry="34.0" fill="url(#aether-kid-aura2)" opacity="0.7"/>
-                        <ellipse class="tm-aether-corona" cx="50" cy="52" rx="20.1" ry="17.8" fill="url(#aether-kid-corona)" opacity="0.65"/>
-                        <g class="tm-aether-beams" opacity="0.33">
-                            <path d="M 50 8 L 46 48 L 54 48 Z" fill="url(#aether-kid-beam)"/>
-                            <path d="M 18 28 L 44 52 L 50 46 Z" fill="url(#aether-kid-beam)" opacity="0.7"/>
-                            <path d="M 82 28 L 56 52 L 50 46 Z" fill="url(#aether-kid-beam)" opacity="0.7"/>
-
+                        <g class="tm-aether-fx " data-fx="sparks" opacity="0">
+                            <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#9575cd"/>
+                            <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#4db6ac"/>
+                            <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#ffb74d"/>
+                            <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#9575cd"/>
                         </g>
-                        <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="16" ry="3.6" fill="url(#aether-kid-sigil)" opacity="0.55"/>
-                        <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="11.2" ry="2.2" fill="none" stroke="#9575cd" stroke-width="0.7" opacity="0.5"/>
-                        <g class="tm-aether-orbit-group">
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="36" ry="14" fill="none" stroke="#4db6ac" stroke-width="1.15" opacity="0.5" stroke-dasharray="5 4"/>
+                        <g class="tm-aether-fx " data-fx="corona" opacity="0">
+                            <ellipse class="tm-aether-corona" cx="50" cy="52" rx="20.1" ry="17.8" fill="url(#aether-kid-corona)"/>
                         </g>
-                        <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#9575cd" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#4db6ac" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#ffb74d" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#9575cd" opacity="0.65"/>
-                        <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#4db6ac" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#ffb74d" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="28" cy="8" r="1.35" fill="#9575cd" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="72" cy="6" r="1" fill="#4db6ac" opacity="0.65"/>
+                        <g class="tm-aether-fx " data-fx="aura" opacity="0">
+                            <ellipse class="tm-aether-aura" cx="50" cy="50" rx="32.4" ry="29.2" fill="url(#aether-kid-aura)"/>
+                        </g>
                         <g class="tm-animate-wing-left">
                             <path d="M 32 52 L 14 40 L 18 56 L 30 58 Z" fill="url(#aether-kid-wing)" stroke="#4a3a6a" stroke-width="1.15"/>
                             <circle cx="14" cy="40" r="1.3" fill="#4db6ac" opacity="0.55"/>
@@ -31028,43 +31327,32 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </linearGradient>
                     </defs>
                         <ellipse cx="50" cy="96" rx="24" ry="4.2" fill="#05010c" opacity="0.32"/>
-                        <ellipse class="tm-aether-aura" cx="50" cy="50" rx="35.6" ry="32.0" fill="url(#aether-teen-aura)"/>
-                        <ellipse class="tm-aether-aura-outer" cx="50" cy="50" rx="42.0" ry="37.4" fill="url(#aether-teen-aura2)" opacity="0.7"/>
-                        <ellipse class="tm-aether-corona" cx="50" cy="52" rx="22.1" ry="19.6" fill="url(#aether-teen-corona)" opacity="0.65"/>
-                        <g class="tm-aether-beams" opacity="0.37">
+                        <g class="tm-aether-fx " data-fx="sparks" opacity="0">
+                            <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#5c6bc0"/>
+                            <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#00acc1"/>
+                            <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#c0a060"/>
+                            <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#5c6bc0"/>
+                            <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#00acc1"/>
+                            <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#c0a060"/>
+                        </g>
+                        <g class="tm-aether-fx " data-fx="corona" opacity="0">
+                            <ellipse class="tm-aether-corona" cx="50" cy="52" rx="22.1" ry="19.6" fill="url(#aether-teen-corona)"/>
+                        </g>
+                        <g class="tm-aether-fx " data-fx="aura" opacity="0">
+                            <ellipse class="tm-aether-aura" cx="50" cy="50" rx="35.6" ry="32.0" fill="url(#aether-teen-aura)"/>
+                        </g>
+                        <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
                             <path d="M 50 8 L 46 48 L 54 48 Z" fill="url(#aether-teen-beam)"/>
                             <path d="M 18 28 L 44 52 L 50 46 Z" fill="url(#aether-teen-beam)" opacity="0.7"/>
                             <path d="M 82 28 L 56 52 L 50 46 Z" fill="url(#aether-teen-beam)" opacity="0.7"/>
-
                         </g>
-                        <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="17" ry="3.9" fill="url(#aether-teen-sigil)" opacity="0.55"/>
-                        <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="11.8" ry="2.2" fill="none" stroke="#5c6bc0" stroke-width="0.7" opacity="0.5"/>
-                        <g class="tm-aether-orbit-group">
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="38" ry="15" fill="none" stroke="#00acc1" stroke-width="1.15" opacity="0.5" stroke-dasharray="5 4"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="29" ry="17.8" fill="none" stroke="#5c6bc0" stroke-width="0.9" opacity="0.4" stroke-dasharray="3 5" transform="rotate(32 50 52)"/>
+                        <g class="tm-aether-fx " data-fx="sigil" opacity="0">
+                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="17" ry="3.9" fill="url(#aether-teen-sigil)"/>
+                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="11.8" ry="2.2" fill="none" stroke="#5c6bc0" stroke-width="0.7"/>
                         </g>
-                        <g class="tm-aether-runes" opacity="0.45">
-                            <circle class="tm-aether-rune-ring" cx="50" cy="54" r="14" fill="none" stroke="#5c6bc0" stroke-width="0.7" stroke-dasharray="2 3"/>
-                            <path d="M 50 40.0 L 53.0 46.8" stroke="#00acc1" stroke-width="0.7"/>
-                            <path d="M 64.0 54 L 58.2 57.0" stroke="#5c6bc0" stroke-width="0.7"/>
-                            <path d="M 50 68.0 L 47.0 61.2" stroke="#00acc1" stroke-width="0.7"/>
-                            <path d="M 36.0 54 L 41.8 51.0" stroke="#5c6bc0" stroke-width="0.7"/>
+                        <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
+                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="38" ry="15" fill="none" stroke="#00acc1" stroke-width="1.15" stroke-dasharray="5 4"/>
                         </g>
-                        <g class="tm-aether-ribbons" opacity="0.5">
-                            <path class="tm-aether-ribbon" d="M 34 40 Q 18 30 10 48 Q 16 42 30 46" fill="none" stroke="#00acc1" stroke-width="1.2"/>
-                            <path class="tm-aether-ribbon" d="M 66 40 Q 82 30 90 48 Q 84 42 70 46" fill="none" stroke="#5c6bc0" stroke-width="1.2"/>
-
-                        </g>
-                        <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#5c6bc0" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#00acc1" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#c0a060" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#5c6bc0" opacity="0.65"/>
-                        <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#00acc1" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#c0a060" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="28" cy="8" r="1.35" fill="#5c6bc0" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="72" cy="6" r="1" fill="#00acc1" opacity="0.65"/>
-                        <circle class="tm-aether-spark" cx="4" cy="58" r="1.8" fill="#c0a060" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="96" cy="56" r="1" fill="#5c6bc0" opacity="0.44999999999999996"/>
                         <g class="tm-animate-wing-left">
                             <path d="M 30 48 L 8 28 L 4 44 L 12 58 L 28 56 Z" fill="url(#aether-teen-wing)" stroke="#2a1848" stroke-width="1.25"/>
                             <path d="M 26 50 L 10 40" stroke="#00acc1" stroke-width="0.7" opacity="0.5"/>
@@ -31197,56 +31485,49 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </linearGradient>
                     </defs>
                         <ellipse cx="50" cy="96" rx="28" ry="4.2" fill="#05010c" opacity="0.38"/>
-                        <ellipse class="tm-aether-aura" cx="50" cy="50" rx="38.8" ry="34.9" fill="url(#aether-adult-aura)"/>
-                        <ellipse class="tm-aether-aura-outer" cx="50" cy="50" rx="45.8" ry="40.7" fill="url(#aether-adult-aura2)" opacity="0.7"/>
-                        <ellipse class="tm-aether-corona" cx="50" cy="52" rx="24.1" ry="21.3" fill="url(#aether-adult-corona)" opacity="0.65"/>
-                        <g class="tm-aether-beams" opacity="0.41000000000000003">
+                        <g class="tm-aether-fx " data-fx="sparks" opacity="0">
+                            <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#ffd54f"/>
+                            <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#26c6da"/>
+                            <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#7c4dff"/>
+                            <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#ffd54f"/>
+                            <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#26c6da"/>
+                            <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#7c4dff"/>
+                            <circle class="tm-aether-spark" cx="28" cy="8" r="1.35" fill="#ffd54f"/>
+                            <circle class="tm-aether-spark" cx="72" cy="6" r="1" fill="#26c6da"/>
+                        </g>
+                        <g class="tm-aether-fx " data-fx="corona" opacity="0">
+                            <ellipse class="tm-aether-corona" cx="50" cy="52" rx="24.1" ry="21.3" fill="url(#aether-adult-corona)"/>
+                        </g>
+                        <g class="tm-aether-fx " data-fx="aura" opacity="0">
+                            <ellipse class="tm-aether-aura" cx="50" cy="50" rx="38.8" ry="34.9" fill="url(#aether-adult-aura)"/>
+                        </g>
+                        <g class="tm-aether-fx " data-fx="aura-outer" opacity="0">
+                            <ellipse class="tm-aether-aura-outer" cx="50" cy="50" rx="45.8" ry="40.7" fill="url(#aether-adult-aura2)"/>
+                        </g>
+                        <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
                             <path d="M 50 8 L 46 48 L 54 48 Z" fill="url(#aether-adult-beam)"/>
                             <path d="M 18 28 L 44 52 L 50 46 Z" fill="url(#aether-adult-beam)" opacity="0.7"/>
                             <path d="M 82 28 L 56 52 L 50 46 Z" fill="url(#aether-adult-beam)" opacity="0.7"/>
-                            <path d="M 12 60 L 44 56 L 48 50 Z" fill="url(#aether-adult-beam)" opacity="0.55"/>
-                            <path d="M 88 60 L 56 56 L 52 50 Z" fill="url(#aether-adult-beam)" opacity="0.55"/>
                         </g>
-                        <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="18" ry="4.2" fill="url(#aether-adult-sigil)" opacity="0.55"/>
-                        <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="12.4" ry="2.2" fill="none" stroke="#ffd54f" stroke-width="0.7" opacity="0.5"/>
-                        <g class="tm-aether-orbit-group">
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="40" ry="16" fill="none" stroke="#26c6da" stroke-width="1.15" opacity="0.5" stroke-dasharray="5 4"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="30" ry="18.4" fill="none" stroke="#ffd54f" stroke-width="0.9" opacity="0.4" stroke-dasharray="3 5" transform="rotate(32 50 52)"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="24" ry="21.6" fill="none" stroke="#7c4dff" stroke-width="0.75" opacity="0.35" stroke-dasharray="2 4" transform="rotate(-24 50 52)"/>
-                            <circle class="tm-aether-orbit-node" cx="90" cy="52" r="1.8" fill="#ffd54f" opacity="0.75"/>
-                            <circle class="tm-aether-orbit-node" cx="29" cy="41.88" r="1.4" fill="#26c6da" opacity="0.7"/>
+                        <g class="tm-aether-fx " data-fx="sigil" opacity="0">
+                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="18" ry="4.2" fill="url(#aether-adult-sigil)"/>
+                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="12.4" ry="2.2" fill="none" stroke="#ffd54f" stroke-width="0.7"/>
                         </g>
-                        <g class="tm-aether-runes" opacity="0.45">
+                        <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
+                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="40" ry="16" fill="none" stroke="#26c6da" stroke-width="1.15" stroke-dasharray="5 4"/>
+                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="30" ry="18.4" fill="none" stroke="#ffd54f" stroke-width="0.9" stroke-dasharray="3 5" transform="rotate(32 50 52)"/>
+                        </g>
+                        <g class="tm-aether-fx tm-aether-runes" data-fx="runes" opacity="0">
                             <circle class="tm-aether-rune-ring" cx="50" cy="54" r="15" fill="none" stroke="#ffd54f" stroke-width="0.7" stroke-dasharray="2 3"/>
                             <path d="M 50 39.0 L 53.0 46.4" stroke="#26c6da" stroke-width="0.7"/>
                             <path d="M 65.0 54 L 58.6 57.0" stroke="#ffd54f" stroke-width="0.7"/>
                             <path d="M 50 69.0 L 47.0 61.6" stroke="#26c6da" stroke-width="0.7"/>
                             <path d="M 35.0 54 L 41.4 51.0" stroke="#ffd54f" stroke-width="0.7"/>
                         </g>
-                        <g class="tm-aether-shards">
-                            <path class="tm-aether-shard" d="M 16 44 L 12 38 L 20 40 Z" fill="#26c6da" opacity="0.45"/>
-                            <path class="tm-aether-shard" d="M 84 44 L 88 38 L 80 40 Z" fill="#ffd54f" opacity="0.45"/>
-                            <path class="tm-aether-shard" d="M 24 68 L 18 64 L 26 62 Z" fill="#7c4dff" opacity="0.4"/>
-                            <path class="tm-aether-shard" d="M 76 68 L 82 64 L 74 62 Z" fill="#26c6da" opacity="0.4"/>
-
-                        </g>
-                        <g class="tm-aether-ribbons" opacity="0.5">
+                        <g class="tm-aether-fx tm-aether-ribbons" data-fx="ribbons" opacity="0">
                             <path class="tm-aether-ribbon" d="M 34 40 Q 18 30 10 48 Q 16 42 30 46" fill="none" stroke="#26c6da" stroke-width="1.2"/>
                             <path class="tm-aether-ribbon" d="M 66 40 Q 82 30 90 48 Q 84 42 70 46" fill="none" stroke="#ffd54f" stroke-width="1.2"/>
-
                         </g>
-                        <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#ffd54f" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#26c6da" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#7c4dff" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#ffd54f" opacity="0.65"/>
-                        <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#26c6da" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#7c4dff" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="28" cy="8" r="1.35" fill="#ffd54f" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="72" cy="6" r="1" fill="#26c6da" opacity="0.65"/>
-                        <circle class="tm-aether-spark" cx="4" cy="58" r="1.8" fill="#7c4dff" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="96" cy="56" r="1" fill="#ffd54f" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="40" cy="4" r="1.35" fill="#26c6da" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="60" cy="4" r="1" fill="#7c4dff" opacity="0.65"/>
                         <g class="tm-animate-wing-left">
                             <path d="M 28 46 L 2 18 L -4 36 L 6 58 L 16 64 L 28 54 Z" fill="url(#aether-adult-wing)" stroke="#1a0a30" stroke-width="1.35"/>
                             <path d="M 26 50 L 6 42 L 10 60 L 24 56 Z" fill="url(#aether-adult-wing2)" stroke="#1a0a30" stroke-width="0.9" opacity="0.65"/>
@@ -31387,62 +31668,62 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </linearGradient>
                     </defs>
                         <ellipse cx="50" cy="96" rx="28" ry="4.2" fill="#05010c" opacity="0.42"/>
-                        <ellipse class="tm-aether-aura" cx="50" cy="50" rx="42.0" ry="37.8" fill="url(#aether-mid-aura)"/>
-                        <ellipse class="tm-aether-aura-outer" cx="50" cy="50" rx="49.6" ry="44.1" fill="url(#aether-mid-aura2)" opacity="0.7"/>
-                        <ellipse class="tm-aether-corona" cx="50" cy="52" rx="26.0" ry="23.1" fill="url(#aether-mid-corona)" opacity="0.65"/>
-                        <g class="tm-aether-beams" opacity="0.45">
+                        <g class="tm-aether-fx " data-fx="sparks" opacity="0">
+                            <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#bf8f2e"/>
+                            <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#ef5350"/>
+                            <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#6a1b9a"/>
+                            <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#bf8f2e"/>
+                            <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#ef5350"/>
+                            <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#6a1b9a"/>
+                            <circle class="tm-aether-spark" cx="28" cy="8" r="1.35" fill="#bf8f2e"/>
+                            <circle class="tm-aether-spark" cx="72" cy="6" r="1" fill="#ef5350"/>
+                            <circle class="tm-aether-spark" cx="4" cy="58" r="1.8" fill="#6a1b9a"/>
+                            <circle class="tm-aether-spark" cx="96" cy="56" r="1" fill="#bf8f2e"/>
+                        </g>
+                        <g class="tm-aether-fx " data-fx="corona" opacity="0">
+                            <ellipse class="tm-aether-corona" cx="50" cy="52" rx="26.0" ry="23.1" fill="url(#aether-mid-corona)"/>
+                        </g>
+                        <g class="tm-aether-fx " data-fx="aura" opacity="0">
+                            <ellipse class="tm-aether-aura" cx="50" cy="50" rx="42.0" ry="37.8" fill="url(#aether-mid-aura)"/>
+                        </g>
+                        <g class="tm-aether-fx " data-fx="aura-outer" opacity="0">
+                            <ellipse class="tm-aether-aura-outer" cx="50" cy="50" rx="49.6" ry="44.1" fill="url(#aether-mid-aura2)"/>
+                        </g>
+                        <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
                             <path d="M 50 8 L 46 48 L 54 48 Z" fill="url(#aether-mid-beam)"/>
                             <path d="M 18 28 L 44 52 L 50 46 Z" fill="url(#aether-mid-beam)" opacity="0.7"/>
                             <path d="M 82 28 L 56 52 L 50 46 Z" fill="url(#aether-mid-beam)" opacity="0.7"/>
                             <path d="M 12 60 L 44 56 L 48 50 Z" fill="url(#aether-mid-beam)" opacity="0.55"/>
                             <path d="M 88 60 L 56 56 L 52 50 Z" fill="url(#aether-mid-beam)" opacity="0.55"/>
                         </g>
-                        <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="19" ry="4.5" fill="url(#aether-mid-sigil)" opacity="0.55"/>
-                        <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="13" ry="2.2" fill="none" stroke="#bf8f2e" stroke-width="0.7" opacity="0.5"/>
-                        <g class="tm-aether-orbit-group">
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="42" ry="17" fill="none" stroke="#ef5350" stroke-width="1.15" opacity="0.5" stroke-dasharray="5 4"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="31" ry="19" fill="none" stroke="#bf8f2e" stroke-width="0.9" opacity="0.4" stroke-dasharray="3 5" transform="rotate(32 50 52)"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="25" ry="22" fill="none" stroke="#6a1b9a" stroke-width="0.75" opacity="0.35" stroke-dasharray="2 4" transform="rotate(-24 50 52)"/>
-                            <circle class="tm-aether-orbit-node" cx="92" cy="52" r="1.8" fill="#bf8f2e" opacity="0.75"/>
-                            <circle class="tm-aether-orbit-node" cx="28.3" cy="41.55" r="1.4" fill="#ef5350" opacity="0.7"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="43" ry="12" fill="none" stroke="#e8e0f0" stroke-width="0.6" opacity="0.3" stroke-dasharray="1 7" transform="rotate(12 50 52)"/>
+                        <g class="tm-aether-fx " data-fx="sigil" opacity="0">
+                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="19" ry="4.5" fill="url(#aether-mid-sigil)"/>
+                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="13" ry="2.2" fill="none" stroke="#bf8f2e" stroke-width="0.7"/>
                         </g>
-                        <g class="tm-aether-runes" opacity="0.45">
+                        <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
+                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="42" ry="17" fill="none" stroke="#ef5350" stroke-width="1.15" stroke-dasharray="5 4"/>
+                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="31" ry="19" fill="none" stroke="#bf8f2e" stroke-width="0.9" stroke-dasharray="3 5" transform="rotate(32 50 52)"/>
+                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="25" ry="22" fill="none" stroke="#6a1b9a" stroke-width="0.75" stroke-dasharray="2 4" transform="rotate(-24 50 52)"/>
+                            <circle class="tm-aether-orbit-node" cx="92" cy="52" r="1.8" fill="#bf8f2e"/>
+                            <circle class="tm-aether-orbit-node" cx="28.3" cy="41.55" r="1.4" fill="#ef5350"/>
+                        </g>
+                        <g class="tm-aether-fx tm-aether-runes" data-fx="runes" opacity="0">
                             <circle class="tm-aether-rune-ring" cx="50" cy="54" r="16" fill="none" stroke="#bf8f2e" stroke-width="0.7" stroke-dasharray="2 3"/>
                             <path d="M 50 38.0 L 53.0 46.0" stroke="#ef5350" stroke-width="0.7"/>
                             <path d="M 66.0 54 L 59.0 57.0" stroke="#bf8f2e" stroke-width="0.7"/>
                             <path d="M 50 70.0 L 47.0 62.0" stroke="#ef5350" stroke-width="0.7"/>
                             <path d="M 34.0 54 L 41.0 51.0" stroke="#bf8f2e" stroke-width="0.7"/>
                         </g>
-                        <g class="tm-aether-shards">
-                            <path class="tm-aether-shard" d="M 16 44 L 12 38 L 20 40 Z" fill="#ef5350" opacity="0.45"/>
-                            <path class="tm-aether-shard" d="M 84 44 L 88 38 L 80 40 Z" fill="#bf8f2e" opacity="0.45"/>
-                            <path class="tm-aether-shard" d="M 24 68 L 18 64 L 26 62 Z" fill="#6a1b9a" opacity="0.4"/>
-                            <path class="tm-aether-shard" d="M 76 68 L 82 64 L 74 62 Z" fill="#ef5350" opacity="0.4"/>
-                            <path class="tm-aether-shard" d="M 50 6 L 46 12 L 54 12 Z" fill="#bf8f2e" opacity="0.5"/>
-                            <path class="tm-aether-shard" d="M 8 52 L 4 48 L 10 46 Z" fill="#bf8f2e" opacity="0.35"/>
-                            <path class="tm-aether-shard" d="M 92 52 L 96 48 L 90 46 Z" fill="#ef5350" opacity="0.35"/>
-                        </g>
-                        <g class="tm-aether-ribbons" opacity="0.5">
+                        <g class="tm-aether-fx tm-aether-ribbons" data-fx="ribbons" opacity="0">
                             <path class="tm-aether-ribbon" d="M 34 40 Q 18 30 10 48 Q 16 42 30 46" fill="none" stroke="#ef5350" stroke-width="1.2"/>
                             <path class="tm-aether-ribbon" d="M 66 40 Q 82 30 90 48 Q 84 42 70 46" fill="none" stroke="#bf8f2e" stroke-width="1.2"/>
-                            <path class="tm-aether-ribbon" d="M 40 72 Q 28 84 16 78" fill="none" stroke="#6a1b9a" stroke-width="1"/>
-                            <path class="tm-aether-ribbon" d="M 60 72 Q 72 84 84 78" fill="none" stroke="#bf8f2e" stroke-width="1"/>
                         </g>
-                        <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#bf8f2e" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#ef5350" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#6a1b9a" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#bf8f2e" opacity="0.65"/>
-                        <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#ef5350" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#6a1b9a" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="28" cy="8" r="1.35" fill="#bf8f2e" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="72" cy="6" r="1" fill="#ef5350" opacity="0.65"/>
-                        <circle class="tm-aether-spark" cx="4" cy="58" r="1.8" fill="#6a1b9a" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="96" cy="56" r="1" fill="#bf8f2e" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="40" cy="4" r="1.35" fill="#ef5350" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="60" cy="4" r="1" fill="#6a1b9a" opacity="0.65"/>
-                        <circle class="tm-aether-spark" cx="22" cy="84" r="1.8" fill="#bf8f2e" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="78" cy="86" r="1" fill="#ef5350" opacity="0.44999999999999996"/>
+                        <g class="tm-aether-fx tm-aether-shards" data-fx="shards" opacity="0">
+                            <path class="tm-aether-shard" d="M 16 44 L 12 38 L 20 40 Z" fill="#ef5350"/>
+                            <path class="tm-aether-shard" d="M 84 44 L 88 38 L 80 40 Z" fill="#bf8f2e"/>
+                            <path class="tm-aether-shard" d="M 24 68 L 18 64 L 26 62 Z" fill="#6a1b9a"/>
+                            <path class="tm-aether-shard" d="M 76 68 L 82 64 L 74 62 Z" fill="#ef5350"/>
+                        </g>
                             <!-- Eclipse disk behind head -->
                         <circle class="tm-aether-eclipse" cx="50" cy="22" r="16" fill="#05010c" opacity="0.55"/>
                         <circle class="tm-aether-eclipse" cx="50" cy="22" r="16" fill="none" stroke="#bf8f2e" stroke-width="1.4" opacity="0.55"/>
@@ -31581,64 +31862,70 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </linearGradient>
                     </defs>
                         <ellipse cx="50" cy="96" rx="30" ry="4.2" fill="#05010c" opacity="0.3"/>
-                        <ellipse class="tm-aether-aura" cx="50" cy="50" rx="45.2" ry="40.7" fill="url(#aether-old-aura)"/>
-                        <ellipse class="tm-aether-aura-outer" cx="50" cy="50" rx="53.3" ry="47.5" fill="url(#aether-old-aura2)" opacity="0.7"/>
-                        <ellipse class="tm-aether-corona" cx="50" cy="52" rx="28.0" ry="24.9" fill="url(#aether-old-corona)" opacity="0.65"/>
-                        <g class="tm-aether-beams" opacity="0.49">
+                        <g class="tm-aether-fx " data-fx="sparks" opacity="0">
+                            <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#c9b896"/>
+                            <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#8b0000"/>
+                            <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#5d4037"/>
+                            <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#c9b896"/>
+                            <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#8b0000"/>
+                            <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#5d4037"/>
+                            <circle class="tm-aether-spark" cx="28" cy="8" r="1.35" fill="#c9b896"/>
+                            <circle class="tm-aether-spark" cx="72" cy="6" r="1" fill="#8b0000"/>
+                            <circle class="tm-aether-spark" cx="4" cy="58" r="1.8" fill="#5d4037"/>
+                            <circle class="tm-aether-spark" cx="96" cy="56" r="1" fill="#c9b896"/>
+                            <circle class="tm-aether-spark" cx="40" cy="4" r="1.35" fill="#8b0000"/>
+                            <circle class="tm-aether-spark" cx="60" cy="4" r="1" fill="#5d4037"/>
+                        </g>
+                        <g class="tm-aether-fx " data-fx="corona" opacity="0">
+                            <ellipse class="tm-aether-corona" cx="50" cy="52" rx="28.0" ry="24.9" fill="url(#aether-old-corona)"/>
+                        </g>
+                        <g class="tm-aether-fx " data-fx="aura" opacity="0">
+                            <ellipse class="tm-aether-aura" cx="50" cy="50" rx="45.2" ry="40.7" fill="url(#aether-old-aura)"/>
+                        </g>
+                        <g class="tm-aether-fx " data-fx="aura-outer" opacity="0">
+                            <ellipse class="tm-aether-aura-outer" cx="50" cy="50" rx="53.3" ry="47.5" fill="url(#aether-old-aura2)"/>
+                        </g>
+                        <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
                             <path d="M 50 8 L 46 48 L 54 48 Z" fill="url(#aether-old-beam)"/>
                             <path d="M 18 28 L 44 52 L 50 46 Z" fill="url(#aether-old-beam)" opacity="0.7"/>
                             <path d="M 82 28 L 56 52 L 50 46 Z" fill="url(#aether-old-beam)" opacity="0.7"/>
                             <path d="M 12 60 L 44 56 L 48 50 Z" fill="url(#aether-old-beam)" opacity="0.55"/>
                             <path d="M 88 60 L 56 56 L 52 50 Z" fill="url(#aether-old-beam)" opacity="0.55"/>
                         </g>
-                        <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="20" ry="4.8" fill="url(#aether-old-sigil)" opacity="0.55"/>
-                        <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="13.6" ry="2.2" fill="none" stroke="#c9b896" stroke-width="0.7" opacity="0.5"/>
-                        <g class="tm-aether-orbit-group">
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="44" ry="18" fill="none" stroke="#8b0000" stroke-width="1.15" opacity="0.5" stroke-dasharray="5 4"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="32" ry="19.6" fill="none" stroke="#c9b896" stroke-width="0.9" opacity="0.4" stroke-dasharray="3 5" transform="rotate(32 50 52)"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="26" ry="22.4" fill="none" stroke="#5d4037" stroke-width="0.75" opacity="0.35" stroke-dasharray="2 4" transform="rotate(-24 50 52)"/>
-                            <circle class="tm-aether-orbit-node" cx="94" cy="52" r="1.8" fill="#c9b896" opacity="0.75"/>
-                            <circle class="tm-aether-orbit-node" cx="27.6" cy="41.22" r="1.4" fill="#8b0000" opacity="0.7"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="44" ry="12.4" fill="none" stroke="#e8e0f0" stroke-width="0.6" opacity="0.3" stroke-dasharray="1 7" transform="rotate(12 50 52)"/>
+                        <g class="tm-aether-fx " data-fx="sigil" opacity="0">
+                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="20" ry="4.8" fill="url(#aether-old-sigil)"/>
+                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="13.6" ry="2.2" fill="none" stroke="#c9b896" stroke-width="0.7"/>
                         </g>
-                        <g class="tm-aether-runes" opacity="0.45">
+                        <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
+                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="44" ry="18" fill="none" stroke="#8b0000" stroke-width="1.15" stroke-dasharray="5 4"/>
+                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="32" ry="19.6" fill="none" stroke="#c9b896" stroke-width="0.9" stroke-dasharray="3 5" transform="rotate(32 50 52)"/>
+                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="26" ry="22.4" fill="none" stroke="#5d4037" stroke-width="0.75" stroke-dasharray="2 4" transform="rotate(-24 50 52)"/>
+                            <circle class="tm-aether-orbit-node" cx="94" cy="52" r="1.8" fill="#c9b896"/>
+                            <circle class="tm-aether-orbit-node" cx="27.6" cy="41.22" r="1.4" fill="#8b0000"/>
+                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="44" ry="12.4" fill="none" stroke="#efe6d8" stroke-width="0.6" stroke-dasharray="1 7" transform="rotate(12 50 52)"/>
+                        </g>
+                        <g class="tm-aether-fx tm-aether-runes" data-fx="runes" opacity="0">
                             <circle class="tm-aether-rune-ring" cx="50" cy="54" r="17" fill="none" stroke="#c9b896" stroke-width="0.7" stroke-dasharray="2 3"/>
                             <path d="M 50 37.0 L 53.0 45.6" stroke="#8b0000" stroke-width="0.7"/>
                             <path d="M 67.0 54 L 59.4 57.0" stroke="#c9b896" stroke-width="0.7"/>
                             <path d="M 50 71.0 L 47.0 62.4" stroke="#8b0000" stroke-width="0.7"/>
                             <path d="M 33.0 54 L 40.6 51.0" stroke="#c9b896" stroke-width="0.7"/>
                         </g>
-                        <g class="tm-aether-shards">
-                            <path class="tm-aether-shard" d="M 16 44 L 12 38 L 20 40 Z" fill="#8b0000" opacity="0.45"/>
-                            <path class="tm-aether-shard" d="M 84 44 L 88 38 L 80 40 Z" fill="#c9b896" opacity="0.45"/>
-                            <path class="tm-aether-shard" d="M 24 68 L 18 64 L 26 62 Z" fill="#5d4037" opacity="0.4"/>
-                            <path class="tm-aether-shard" d="M 76 68 L 82 64 L 74 62 Z" fill="#8b0000" opacity="0.4"/>
-                            <path class="tm-aether-shard" d="M 50 6 L 46 12 L 54 12 Z" fill="#c9b896" opacity="0.5"/>
-                            <path class="tm-aether-shard" d="M 8 52 L 4 48 L 10 46 Z" fill="#c9b896" opacity="0.35"/>
-                            <path class="tm-aether-shard" d="M 92 52 L 96 48 L 90 46 Z" fill="#8b0000" opacity="0.35"/>
-                        </g>
-                        <g class="tm-aether-ribbons" opacity="0.5">
+                        <g class="tm-aether-fx tm-aether-ribbons" data-fx="ribbons" opacity="0">
                             <path class="tm-aether-ribbon" d="M 34 40 Q 18 30 10 48 Q 16 42 30 46" fill="none" stroke="#8b0000" stroke-width="1.2"/>
                             <path class="tm-aether-ribbon" d="M 66 40 Q 82 30 90 48 Q 84 42 70 46" fill="none" stroke="#c9b896" stroke-width="1.2"/>
                             <path class="tm-aether-ribbon" d="M 40 72 Q 28 84 16 78" fill="none" stroke="#5d4037" stroke-width="1"/>
                             <path class="tm-aether-ribbon" d="M 60 72 Q 72 84 84 78" fill="none" stroke="#c9b896" stroke-width="1"/>
                         </g>
-                        <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#c9b896" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#8b0000" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#5d4037" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#c9b896" opacity="0.65"/>
-                        <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#8b0000" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#5d4037" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="28" cy="8" r="1.35" fill="#c9b896" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="72" cy="6" r="1" fill="#8b0000" opacity="0.65"/>
-                        <circle class="tm-aether-spark" cx="4" cy="58" r="1.8" fill="#5d4037" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="96" cy="56" r="1" fill="#c9b896" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="40" cy="4" r="1.35" fill="#8b0000" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="60" cy="4" r="1" fill="#5d4037" opacity="0.65"/>
-                        <circle class="tm-aether-spark" cx="22" cy="84" r="1.8" fill="#c9b896" opacity="0.35"/>
-                        <circle class="tm-aether-spark" cx="78" cy="86" r="1" fill="#8b0000" opacity="0.44999999999999996"/>
-                        <circle class="tm-aether-spark" cx="48" cy="2" r="1.35" fill="#5d4037" opacity="0.55"/>
-                        <circle class="tm-aether-spark" cx="52" cy="90" r="1" fill="#c9b896" opacity="0.65"/>
+                        <g class="tm-aether-fx tm-aether-shards" data-fx="shards" opacity="0">
+                            <path class="tm-aether-shard" d="M 16 44 L 12 38 L 20 40 Z" fill="#8b0000"/>
+                            <path class="tm-aether-shard" d="M 84 44 L 88 38 L 80 40 Z" fill="#c9b896"/>
+                            <path class="tm-aether-shard" d="M 24 68 L 18 64 L 26 62 Z" fill="#5d4037"/>
+                            <path class="tm-aether-shard" d="M 76 68 L 82 64 L 74 62 Z" fill="#8b0000"/>
+                            <path class="tm-aether-shard" d="M 50 6 L 46 12 L 54 12 Z" fill="#c9b896"/>
+                            <path class="tm-aether-shard" d="M 8 52 L 4 48 L 10 46 Z" fill="#c9b896"/>
+                            <path class="tm-aether-shard" d="M 92 52 L 96 48 L 90 46 Z" fill="#8b0000"/>
+                        </g>
                         <ellipse class="tm-aether-halo" cx="50" cy="14" rx="22" ry="5" fill="none" stroke="#c9b896" stroke-width="1.5" opacity="0.7"/>
                         <ellipse class="tm-aether-halo" cx="50" cy="14" rx="16" ry="3.5" fill="none" stroke="#8b0000" stroke-width="0.8" opacity="0.45"/>
                         <ellipse class="tm-aether-halo" cx="50" cy="14" rx="28" ry="7" fill="none" stroke="#5d4037" stroke-width="0.55" opacity="0.35" stroke-dasharray="3 4"/>
@@ -34261,6 +34548,7 @@ function updateMascotAppearanceByStage(stage) {
         }
         TAMA_CHARACTER_TYPES.forEach((charType) => container.classList.remove(`mascot-char-${charType}`));
         console.log('[MMS Mascot] ✅ Updated to EGG stage');
+        stopAetherMythicFx();
         if (typeof window.STORAGE_KEYS !== 'undefined') {
             applyEquippedMascotAccessories(window.STORAGE_KEYS, 'egg');
         } else {
@@ -34317,6 +34605,11 @@ function updateMascotAppearanceByStage(stage) {
     }
     allCharacterTypes.forEach((charType) => container.classList.remove(`mascot-char-${charType}`));
     container.classList.add(`mascot-char-${previewCharacter}`);
+    if (previewCharacter === 'aether') {
+        syncAetherMythicFx(stage);
+    } else {
+        stopAetherMythicFx();
+    }
 }
 
 // Legacy function - now does nothing (level-based evolution disabled)
