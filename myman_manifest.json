@@ -1,11 +1,11 @@
 {
-  "version": "270",
+  "version": "271",
   "loaderVersion": "35",
-  "silentVersion": "8",
-  "displayVersion": "35.8",
+  "silentVersion": "9",
+  "displayVersion": "35.9",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Pulse shop/coin button green on gain and red on spend with floating delta",
+  "releaseNotes": "Aether Pokemon-style evo line: distinct silhouette per stage (Voidseed to Primordial)",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
