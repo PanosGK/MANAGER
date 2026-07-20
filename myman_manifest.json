@@ -1,11 +1,11 @@
 {
-  "version": "264",
+  "version": "265",
   "loaderVersion": "35",
-  "silentVersion": "2",
-  "displayVersion": "35.2",
+  "silentVersion": "3",
+  "displayVersion": "35.3",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Warm egg button advances hatch (~3 clicks)",
+  "releaseNotes": "Always play hatch cinematic when warm spam crosses hatch threshold",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

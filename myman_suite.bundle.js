@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v264 / Custom Ver. 35.2 — generated, do not edit */
+/* MyManager Suite bundle v265 / Custom Ver. 35.3 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '264',
+        version: '265',
         loaderVersion: '35',
-        silentVersion: '2',
-        displayVersion: '35.2',
+        silentVersion: '3',
+        displayVersion: '35.3',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -21473,6 +21473,9 @@ function getMinutesUntilHatch() {
 /** Clicking «Ζέστανε» advances egg life toward hatch (needs lights on). */
 function warmTamagotchiEgg(config, STORAGE_KEYS) {
     if (tamagotchiIsDead) return { ok: false, reason: 'dead' };
+    if (tamaCinematicLock || tamagotchiEggHatchCinematicDone) {
+        return { ok: false, reason: 'hatching' };
+    }
     if (tamagotchiStage !== 'egg') return { ok: false, reason: 'hatched' };
     if (!tamagotchiLightsOn) return { ok: false, reason: 'lights' };
 
@@ -21480,24 +21483,42 @@ function warmTamagotchiEgg(config, STORAGE_KEYS) {
     // ~3 warm clicks to hatch from a fresh egg
     const boost = Math.max(need * 0.34, 0.34);
     const before = Number(tamagotchiLifeMinutes) || 0;
-    tamagotchiLifeMinutes = Math.min(need, before + boost);
+    const nextLife = Math.min(need, before + boost);
+    const crossedHatch = before < need && nextLife >= need;
+    tamagotchiLifeMinutes = nextLife;
     tamagotchiLastUpdate = Date.now();
     syncTamagotchiAgeFromLife();
 
+    const container = document.getElementById('tm-mascot-container');
+    // IMPORTANT: do not saveTamagotchiData before evolution — save mutates stage to baby
+    // and then checkTamagotchiEvolution thinks we weren't an egg (skips hatch cinematic).
+    if (container) {
+        checkTamagotchiEvolution(container);
+    }
+
+    // Spam / race safety: if we crossed the hatch threshold, always play the cinematic
+    if (crossedHatch && container && !tamagotchiEggHatchCinematicDone && !tamaCinematicLock) {
+        if (tamagotchiStage === 'egg') {
+            tamagotchiStage = 'baby';
+        }
+        if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none'
+            || !TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)) {
+            ensureTamagotchiCharacterType({ allowRandom: true });
+        }
+        runTamagotchiHatchSequence(tamagotchiCharacterType, container);
+    }
+
     const keys = getTamagotchiStorageKeys(STORAGE_KEYS);
     if (keys) saveTamagotchiData(keys);
-
-    const container = document.getElementById('tm-mascot-container');
-    if (container) {
+    if (container && !tamaCinematicLock) {
         updateTamagotchiStats(container);
-        checkTamagotchiEvolution(container);
     }
 
     const progress = Math.round(getEggHatchProgress());
     return {
         ok: true,
         progress,
-        hatched: tamagotchiStage !== 'egg' || tamagotchiLifeMinutes >= need,
+        hatched: crossedHatch || tamagotchiStage !== 'egg' || tamagotchiEggHatchCinematicDone,
         boost,
         before,
     };
@@ -22909,11 +22930,15 @@ function checkTamagotchiEvolution(container) {
         const evolutionMessages = MASCOT_MESSAGES.evolution;
         if (oldStage === 'egg' && tamagotchiStage !== 'egg') {
             tamagotchiLastPoopTime = Date.now();
-            if (tamagotchiStage === 'baby' && !tamagotchiEggHatchCinematicDone) {
+            if (tamagotchiStage === 'baby' && !tamagotchiEggHatchCinematicDone && !tamaCinematicLock) {
                 runTamagotchiHatchSequence(tamagotchiCharacterType, container);
             } else if (!tamaCinematicLock && !mascotStagePreviewLock) {
                 updateMascotAppearanceByStage(tamagotchiStage);
             }
+        } else if (tamagotchiStage === 'baby' && !tamagotchiEggHatchCinematicDone && !tamaCinematicLock
+            && (oldCharacterType === 'none' || !oldCharacterType)) {
+            // Recover hatch cinematic when stage was already baby (e.g. save raced ahead)
+            runTamagotchiHatchSequence(tamagotchiCharacterType, container);
         } else if (tamagotchiStage === 'old' && oldStage !== 'old') {
             const oldMessages = MASCOT_MESSAGES.becameOld;
             showMascotBubble(oldMessages[Math.floor(Math.random() * oldMessages.length)], 3000);
@@ -31116,23 +31141,26 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }, 5000);
         }
 
-        modal.querySelector('#tm-action-egg-warm')?.addEventListener('click', () => {
+        modal.querySelector('#tm-action-egg-warm')?.addEventListener('click', (e) => {
+            const btn = e.currentTarget;
+            if (btn?.disabled || tamaCinematicLock || tamagotchiEggHatchCinematicDone) return;
+
             const result = warmTamagotchiEgg(config, STORAGE_KEYS);
             if (result.reason === 'lights') {
                 showMascotBubble(MASCOT_MESSAGES.eggWarmLights, 2000);
                 return;
             }
+            if (result.reason === 'hatching' || result.reason === 'hatched') return;
             if (!result.ok) return;
 
             updateModalStats();
-            if (result.hatched || tamagotchiStage !== 'egg') {
+            if (result.hatched) {
+                if (btn) btn.disabled = true;
                 showMascotBubble('Σπάει το αυγό! 🥚✨', 2500);
-                // Refresh modal into baby care view after hatch cinematic starts
+                // Close care modal so hatch cinematic is visible; reopen later as baby
                 setTimeout(() => {
-                    if (document.getElementById('tm-mascot-stats-modal')) {
-                        showMascotStatsModal(config, STORAGE_KEYS);
-                    }
-                }, 800);
+                    document.getElementById('tm-mascot-stats-modal')?.remove();
+                }, 200);
                 return;
             }
 
