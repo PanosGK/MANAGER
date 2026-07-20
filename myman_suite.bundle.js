@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v269 / Custom Ver. 35.7 — generated, do not edit */
+/* MyManager Suite bundle v270 / Custom Ver. 35.8 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '269',
+        version: '270',
         loaderVersion: '35',
-        silentVersion: '7',
-        displayVersion: '35.7',
+        silentVersion: '8',
+        displayVersion: '35.8',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -11882,6 +11882,51 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 transform: translateY(-3px) scale(1.05);
                 box-shadow: 0 6px 16px rgba(0,0,0,0.3);
                 border-color: rgba(255,255,255,0.4) !important;
+            }
+            #tm-coin-balance.tm-coin-pulse-gain,
+            #tm-dashboard-coin-balance.tm-coin-pulse-gain {
+                animation: tm-coin-shop-pulse-gain 0.85s ease-out;
+                border-color: rgba(46, 204, 113, 0.85) !important;
+                box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.35), 0 0 18px rgba(46, 204, 113, 0.45) !important;
+            }
+            #tm-coin-balance.tm-coin-pulse-loss,
+            #tm-dashboard-coin-balance.tm-coin-pulse-loss {
+                animation: tm-coin-shop-pulse-loss 0.85s ease-out;
+                border-color: rgba(231, 76, 60, 0.9) !important;
+                box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.35), 0 0 18px rgba(231, 76, 60, 0.45) !important;
+            }
+            .tm-coin-delta-float {
+                position: absolute;
+                left: 50%;
+                top: -2px;
+                transform: translate(-50%, -100%);
+                font-size: 12px;
+                font-weight: 800;
+                line-height: 1;
+                pointer-events: none;
+                white-space: nowrap;
+                z-index: 20;
+                text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+                animation: tm-coin-delta-rise 1.05s ease-out forwards;
+            }
+            .tm-coin-delta-gain { color: #2ecc71; }
+            .tm-coin-delta-loss { color: #e74c3c; }
+            @keyframes tm-coin-shop-pulse-gain {
+                0% { transform: scale(1); filter: brightness(1); }
+                35% { transform: scale(1.12); filter: brightness(1.15); }
+                100% { transform: scale(1); filter: brightness(1); }
+            }
+            @keyframes tm-coin-shop-pulse-loss {
+                0% { transform: scale(1) translateX(0); filter: brightness(1); }
+                20% { transform: scale(1.08) translateX(-2px); filter: brightness(1.05); }
+                40% { transform: scale(1.08) translateX(2px); }
+                60% { transform: scale(1.05) translateX(-1px); }
+                100% { transform: scale(1) translateX(0); filter: brightness(1); }
+            }
+            @keyframes tm-coin-delta-rise {
+                0% { opacity: 0; transform: translate(-50%, -40%) scale(0.7); }
+                18% { opacity: 1; transform: translate(-50%, -110%) scale(1.1); }
+                100% { opacity: 0; transform: translate(-50%, -220%) scale(0.95); }
             }
 
             /* --- Feature: Shop --- */
@@ -36844,14 +36889,66 @@ function updateCoinBalanceUI(STORAGE_KEYS, balance, config) {
         return;
     }
 
+    const nextBalance = Math.max(0, Math.floor(Number(balance) || 0));
+    const prevRaw = coinDisplay.dataset.tmCoinBalance;
+    const prevBalance = prevRaw !== undefined && prevRaw !== ''
+        ? Math.max(0, Math.floor(Number(prevRaw) || 0))
+        : null;
+    const delta = prevBalance === null ? 0 : nextBalance - prevBalance;
+
     coinDisplay.innerHTML = (typeof window.formatCoinAmountHTML === 'function')
-        ? window.formatCoinAmountHTML(balance, 16)
-        : `FC ${balance}`;
+        ? window.formatCoinAmountHTML(nextBalance, 16)
+        : `FC ${nextBalance}`;
     coinDisplay.style.display = '';
+    coinDisplay.dataset.tmCoinBalance = String(nextBalance);
+
+    if (delta !== 0) {
+        pulseCoinShopButton(coinDisplay, delta);
+    }
+
+    // Keep dashboard coin card in sync when open
+    const dashCoin = document.getElementById('tm-dashboard-coin-balance');
+    if (dashCoin) {
+        const amountEl = dashCoin.querySelector('.tm-dashboard-coin-amount, .tm-coin-amount, [data-tm-coin-amount]');
+        if (amountEl) {
+            amountEl.textContent = String(nextBalance);
+        }
+        if (delta !== 0) {
+            pulseCoinShopButton(dashCoin, delta);
+        }
+    }
+
     if (typeof window.tmSyncFooterShellCache === 'function'
         && !(typeof window.tmIsFooterShellMounted === 'function' && window.tmIsFooterShellMounted())) {
         window.tmSyncFooterShellCache(config || window.config, STORAGE_KEYS);
     }
+}
+
+/** Flash the shop/coin widget green (+coins) or red (−coins) with a floating delta. */
+function pulseCoinShopButton(el, delta) {
+    if (!el || !delta) return;
+    const gain = delta > 0;
+    el.classList.remove('tm-coin-pulse-gain', 'tm-coin-pulse-loss');
+    // Restart CSS animation
+    void el.offsetWidth;
+    el.classList.add(gain ? 'tm-coin-pulse-gain' : 'tm-coin-pulse-loss');
+
+    const float = document.createElement('span');
+    float.className = `tm-coin-delta-float ${gain ? 'tm-coin-delta-gain' : 'tm-coin-delta-loss'}`;
+    float.textContent = `${gain ? '+' : '−'}${Math.abs(delta)}`;
+    float.setAttribute('aria-hidden', 'true');
+
+    const host = el;
+    const prevPos = host.style.position;
+    if (!prevPos || prevPos === 'static') {
+        host.style.position = 'relative';
+    }
+    host.appendChild(float);
+
+    window.setTimeout(() => {
+        float.remove();
+        el.classList.remove('tm-coin-pulse-gain', 'tm-coin-pulse-loss');
+    }, 1100);
 }
 
 /**
@@ -39693,7 +39790,7 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                 <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; ${config.shopEnabled ? 'cursor: pointer;' : ''}" ${config.shopEnabled ? 'id="tm-dashboard-coin-balance"' : ''} ${config.shopEnabled ? 'title="Click to open Shop"' : ''}>
                     <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Balance</div>
                     <div style="font-size: 42px; font-weight: bold; line-height: 1;">${typeof window.getCoinIconHTML === 'function' ? window.getCoinIconHTML(42) : 'FC'}</div>
-                    <div style="font-size: 20px; margin-top: 6px; font-weight: 600;">${coins}</div>
+                    <div class="tm-dashboard-coin-amount" style="font-size: 20px; margin-top: 6px; font-weight: 600;">${coins}</div>
                 </div>
             </div>
             
@@ -40483,6 +40580,10 @@ function populateShopDashboard(config, STORAGE_KEYS) {
                 window.writeCoinBalance(STORAGE_KEYS, coins - price);
             } else {
                 GM_setValue(STORAGE_KEYS.USER_COINS, coins - price);
+            }
+
+            if (typeof window.updateCoinBalanceUI === 'function') {
+                window.updateCoinBalanceUI(STORAGE_KEYS, coins - price, config);
             }
 
             if (typeof window.applyConsumableEffect === 'function') {

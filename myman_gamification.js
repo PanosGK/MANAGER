@@ -1650,14 +1650,66 @@ function updateCoinBalanceUI(STORAGE_KEYS, balance, config) {
         return;
     }
 
+    const nextBalance = Math.max(0, Math.floor(Number(balance) || 0));
+    const prevRaw = coinDisplay.dataset.tmCoinBalance;
+    const prevBalance = prevRaw !== undefined && prevRaw !== ''
+        ? Math.max(0, Math.floor(Number(prevRaw) || 0))
+        : null;
+    const delta = prevBalance === null ? 0 : nextBalance - prevBalance;
+
     coinDisplay.innerHTML = (typeof window.formatCoinAmountHTML === 'function')
-        ? window.formatCoinAmountHTML(balance, 16)
-        : `FC ${balance}`;
+        ? window.formatCoinAmountHTML(nextBalance, 16)
+        : `FC ${nextBalance}`;
     coinDisplay.style.display = '';
+    coinDisplay.dataset.tmCoinBalance = String(nextBalance);
+
+    if (delta !== 0) {
+        pulseCoinShopButton(coinDisplay, delta);
+    }
+
+    // Keep dashboard coin card in sync when open
+    const dashCoin = document.getElementById('tm-dashboard-coin-balance');
+    if (dashCoin) {
+        const amountEl = dashCoin.querySelector('.tm-dashboard-coin-amount, .tm-coin-amount, [data-tm-coin-amount]');
+        if (amountEl) {
+            amountEl.textContent = String(nextBalance);
+        }
+        if (delta !== 0) {
+            pulseCoinShopButton(dashCoin, delta);
+        }
+    }
+
     if (typeof window.tmSyncFooterShellCache === 'function'
         && !(typeof window.tmIsFooterShellMounted === 'function' && window.tmIsFooterShellMounted())) {
         window.tmSyncFooterShellCache(config || window.config, STORAGE_KEYS);
     }
+}
+
+/** Flash the shop/coin widget green (+coins) or red (−coins) with a floating delta. */
+function pulseCoinShopButton(el, delta) {
+    if (!el || !delta) return;
+    const gain = delta > 0;
+    el.classList.remove('tm-coin-pulse-gain', 'tm-coin-pulse-loss');
+    // Restart CSS animation
+    void el.offsetWidth;
+    el.classList.add(gain ? 'tm-coin-pulse-gain' : 'tm-coin-pulse-loss');
+
+    const float = document.createElement('span');
+    float.className = `tm-coin-delta-float ${gain ? 'tm-coin-delta-gain' : 'tm-coin-delta-loss'}`;
+    float.textContent = `${gain ? '+' : '−'}${Math.abs(delta)}`;
+    float.setAttribute('aria-hidden', 'true');
+
+    const host = el;
+    const prevPos = host.style.position;
+    if (!prevPos || prevPos === 'static') {
+        host.style.position = 'relative';
+    }
+    host.appendChild(float);
+
+    window.setTimeout(() => {
+        float.remove();
+        el.classList.remove('tm-coin-pulse-gain', 'tm-coin-pulse-loss');
+    }, 1100);
 }
 
 /**
@@ -4499,7 +4551,7 @@ function populateDashboard(config, STORAGE_KEYS, activeTab = 'overview', overlay
                 <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; ${config.shopEnabled ? 'cursor: pointer;' : ''}" ${config.shopEnabled ? 'id="tm-dashboard-coin-balance"' : ''} ${config.shopEnabled ? 'title="Click to open Shop"' : ''}>
                     <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Balance</div>
                     <div style="font-size: 42px; font-weight: bold; line-height: 1;">${typeof window.getCoinIconHTML === 'function' ? window.getCoinIconHTML(42) : 'FC'}</div>
-                    <div style="font-size: 20px; margin-top: 6px; font-weight: 600;">${coins}</div>
+                    <div class="tm-dashboard-coin-amount" style="font-size: 20px; margin-top: 6px; font-weight: 600;">${coins}</div>
                 </div>
             </div>
             
@@ -5289,6 +5341,10 @@ function populateShopDashboard(config, STORAGE_KEYS) {
                 window.writeCoinBalance(STORAGE_KEYS, coins - price);
             } else {
                 GM_setValue(STORAGE_KEYS.USER_COINS, coins - price);
+            }
+
+            if (typeof window.updateCoinBalanceUI === 'function') {
+                window.updateCoinBalanceUI(STORAGE_KEYS, coins - price, config);
             }
 
             if (typeof window.applyConsumableEffect === 'function') {

@@ -1,11 +1,11 @@
 {
-  "version": "269",
+  "version": "270",
   "loaderVersion": "35",
-  "silentVersion": "7",
-  "displayVersion": "35.7",
+  "silentVersion": "8",
+  "displayVersion": "35.8",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Remake Aether as serious austere mythical sovereign — angular form, muted aura",
+  "releaseNotes": "Pulse shop/coin button green on gain and red on spend with floating delta",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

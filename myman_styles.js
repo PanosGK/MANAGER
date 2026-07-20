@@ -5937,6 +5937,51 @@
                 box-shadow: 0 6px 16px rgba(0,0,0,0.3);
                 border-color: rgba(255,255,255,0.4) !important;
             }
+            #tm-coin-balance.tm-coin-pulse-gain,
+            #tm-dashboard-coin-balance.tm-coin-pulse-gain {
+                animation: tm-coin-shop-pulse-gain 0.85s ease-out;
+                border-color: rgba(46, 204, 113, 0.85) !important;
+                box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.35), 0 0 18px rgba(46, 204, 113, 0.45) !important;
+            }
+            #tm-coin-balance.tm-coin-pulse-loss,
+            #tm-dashboard-coin-balance.tm-coin-pulse-loss {
+                animation: tm-coin-shop-pulse-loss 0.85s ease-out;
+                border-color: rgba(231, 76, 60, 0.9) !important;
+                box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.35), 0 0 18px rgba(231, 76, 60, 0.45) !important;
+            }
+            .tm-coin-delta-float {
+                position: absolute;
+                left: 50%;
+                top: -2px;
+                transform: translate(-50%, -100%);
+                font-size: 12px;
+                font-weight: 800;
+                line-height: 1;
+                pointer-events: none;
+                white-space: nowrap;
+                z-index: 20;
+                text-shadow: 0 1px 2px rgba(0,0,0,0.45);
+                animation: tm-coin-delta-rise 1.05s ease-out forwards;
+            }
+            .tm-coin-delta-gain { color: #2ecc71; }
+            .tm-coin-delta-loss { color: #e74c3c; }
+            @keyframes tm-coin-shop-pulse-gain {
+                0% { transform: scale(1); filter: brightness(1); }
+                35% { transform: scale(1.12); filter: brightness(1.15); }
+                100% { transform: scale(1); filter: brightness(1); }
+            }
+            @keyframes tm-coin-shop-pulse-loss {
+                0% { transform: scale(1) translateX(0); filter: brightness(1); }
+                20% { transform: scale(1.08) translateX(-2px); filter: brightness(1.05); }
+                40% { transform: scale(1.08) translateX(2px); }
+                60% { transform: scale(1.05) translateX(-1px); }
+                100% { transform: scale(1) translateX(0); filter: brightness(1); }
+            }
+            @keyframes tm-coin-delta-rise {
+                0% { opacity: 0; transform: translate(-50%, -40%) scale(0.7); }
+                18% { opacity: 1; transform: translate(-50%, -110%) scale(1.1); }
+                100% { opacity: 0; transform: translate(-50%, -220%) scale(0.95); }
+            }
 
             /* --- Feature: Shop --- */
             #tm-shop-items-wrapper {
