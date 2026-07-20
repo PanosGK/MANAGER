@@ -1,11 +1,11 @@
 {
-  "version": "275",
+  "version": "278",
   "loaderVersion": "35",
-  "silentVersion": "13",
-  "displayVersion": "35.13",
+  "silentVersion": "16",
+  "displayVersion": "35.16",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Wing flap kicks in when mascot starts moving",
+  "releaseNotes": "Legendary multi-layer mythical Aether wings",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

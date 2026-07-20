@@ -1,5 +1,5 @@
 /**
- * Starveil Aether — MYTHICAL evo line v6 (progressive random auras + particles)
+ * Starveil Aether — MYTHICAL evo line v7 (legendary multi-layer wings)
  * Same species DNA (void / cyan / gold / rune-core / blades) but
  * EACH stage has a clearly different silhouette — like a real evo line.
  * Export for apply-aether-svg.mjs → myman_mascot.js
@@ -137,13 +137,15 @@ function makeDefs(p, pal) {
   return [
     grad(`${p}-body`, pal.body, 'radial', 'cx="38%" cy="22%" r="80%"'),
     grad(`${p}-belly`, pal.belly, 'radial', 'cx="50%" cy="40%" r="60%"'),
-    grad(`${p}-wing`, [['0%', pal.wing0, 0.85], ['40%', pal.wing1, 0.7], ['100%', DEEP, 0.8]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
-    grad(`${p}-wing2`, [['0%', pal.b, 0.45], ['100%', DEEP, 0.55]], 'linear', 'x1="100%" y1="0%" x2="0%" y2="100%"'),
+    grad(`${p}-wing`, [['0%', pal.wing0, 0.92], ['28%', pal.a, 0.55], ['55%', pal.wing1, 0.72], ['100%', DEEP, 0.88]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
+    grad(`${p}-wing2`, [['0%', pal.b, 0.55], ['45%', pal.c, 0.35], ['100%', DEEP, 0.2]], 'linear', 'x1="100%" y1="0%" x2="0%" y2="100%"'),
+    grad(`${p}-wingveil`, [['0%', pal.pale, 0.35], ['40%', pal.a, 0.18], ['100%', pal.c, 0]], 'radial', 'cx="35%" cy="30%" r="75%"'),
+    grad(`${p}-wingglow`, [['0%', pal.b, 0.55], ['50%', pal.a, 0.18], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="40%" r="65%"'),
     grad(`${p}-core`, [['0%', pal.pale], ['30%', pal.a], ['70%', pal.c], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
     grad(`${p}-iris`, pal.iris, 'radial', 'cx="40%" cy="35%" r="65%"'),
-    grad(`${p}-aura`, [['0%', pal.aura0, 0.26], ['35%', pal.aura1, 0.22], ['70%', pal.aura2, 0.1], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="48%" r="55%"'),
-    grad(`${p}-aura2`, [['0%', pal.aura2, 0.22], ['40%', pal.aura0, 0.14], ['100%', pal.aura1, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
-    grad(`${p}-corona`, [['0%', pal.aura2, 0.3], ['40%', pal.aura0, 0.14], ['100%', pal.aura1, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
+    grad(`${p}-aura`, [['0%', pal.aura0, 0.12], ['28%', pal.aura1, 0.1], ['58%', pal.aura2, 0.05], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="52%" r="78%"'),
+    grad(`${p}-aura2`, [['0%', pal.aura2, 0.08], ['35%', pal.aura0, 0.06], ['100%', pal.aura1, 0]], 'radial', 'cx="50%" cy="55%" r="72%"'),
+    grad(`${p}-corona`, [['0%', pal.aura2, 0.1], ['45%', pal.aura0, 0.05], ['100%', pal.aura1, 0]], 'radial', 'cx="50%" cy="55%" r="70%"'),
     grad(`${p}-tail`, [['0%', pal.wing0], ['55%', pal.c], ['100%', INK]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
     grad(`${p}-plate`, [['0%', '#3a2a55'], ['100%', INK]], 'linear', 'x1="0%" y1="0%" x2="0%" y2="100%"'),
     grad(`${p}-sigil`, [['0%', pal.b, 0.55], ['100%', pal.a, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
@@ -184,24 +186,24 @@ function epicAddons(p, tier = 1, pal = STAGE_PALETTES.evo3) {
   }).join('\n');
   parts.push(fxGroup('sparks', sparkSvg));
 
-  const auraR = 26 + tier * 3.2;
+  const auraR = 34 + tier * 4.2;
 
   // Soft inner corona — kid+
   if (tier >= 2) {
     parts.push(fxGroup('corona',
-      `${I4}<ellipse class="tm-aether-corona" cx="50" cy="52" rx="${(auraR * 0.62).toFixed(1)}" ry="${(auraR * 0.55).toFixed(1)}" fill="url(#${p}-corona)"/>`));
+      `${I4}<ellipse class="tm-aether-corona" cx="50" cy="56" rx="${(auraR * 0.78).toFixed(1)}" ry="${(auraR * 0.62).toFixed(1)}" fill="url(#${p}-corona)"/>`));
   }
 
   // Soft body aura — kid+
   if (tier >= 2) {
     parts.push(fxGroup('aura',
-      `${I4}<ellipse class="tm-aether-aura" cx="50" cy="50" rx="${auraR.toFixed(1)}" ry="${(auraR * 0.9).toFixed(1)}" fill="url(#${p}-aura)"/>`));
+      `${I4}<ellipse class="tm-aether-aura" cx="50" cy="54" rx="${auraR.toFixed(1)}" ry="${(auraR * 0.82).toFixed(1)}" fill="url(#${p}-aura)"/>`));
   }
 
   // Outer aura bloom — adult+
   if (tier >= 4) {
     parts.push(fxGroup('aura-outer',
-      `${I4}<ellipse class="tm-aether-aura-outer" cx="50" cy="50" rx="${(auraR * 1.18).toFixed(1)}" ry="${(auraR * 1.05).toFixed(1)}" fill="url(#${p}-aura2)"/>`));
+      `${I4}<ellipse class="tm-aether-aura-outer" cx="50" cy="56" rx="${(auraR * 1.32).toFixed(1)}" ry="${(auraR * 1.08).toFixed(1)}" fill="url(#${p}-aura2)"/>`));
   }
 
   // Energy beams — teen+
@@ -284,6 +286,99 @@ ${I4}<path class="tm-aether-shard" d="M 92 52 L 96 48 L 90 46 Z" fill="${CYAN}"/
   return parts.join('\n');
 }
 
+/** Legendary / mythical wing pairs — layered sails, veins, star tips. Side: -1 left, 1 right. */
+function mythicWingPair(p, stroke, pal, stage) {
+  const A = pal.a;
+  const B = pal.b;
+  const C = pal.c;
+  const left = mythicWingSide(p, stroke, A, B, C, stage, -1);
+  const right = mythicWingSide(p, stroke, A, B, C, stage, 1);
+  return `${left}\n${right}`;
+}
+
+function mythicWingSide(p, stroke, A, B, C, stage, side) {
+  const cls = side < 0 ? 'tm-animate-wing-left' : 'tm-animate-wing-right';
+  const tip = side < 0 ? A : B;
+  const tip2 = side < 0 ? B : A;
+  const X = (x) => (side < 0 ? x : 100 - x);
+
+  const star = (x, y, r = 1.6, fill = tip) =>
+    `${I4}<circle class="tm-aether-wing-star" cx="${X(x)}" cy="${y}" r="${r}" fill="${fill}" opacity="0.85"/>
+${I4}<circle class="tm-aether-wing-star" cx="${X(x)}" cy="${y}" r="${(r * 2.2).toFixed(1)}" fill="${fill}" opacity="0.18"/>`;
+
+  if (stage === 'baby') {
+    return `${I3}<g class="${cls}">
+${I4}<path d="M ${X(36)} 56 Q ${X(18)} 42 ${X(14)} 54 Q ${X(18)} 66 ${X(34)} 62 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.05"/>
+${I4}<path d="M ${X(34)} 56 Q ${X(22)} 48 ${X(20)} 56 Q ${X(22)} 62 ${X(32)} 60" fill="url(#${p}-wingveil)" opacity="0.7"/>
+${I4}<path d="M ${X(32)} 54 L ${X(18)} 50" stroke="${tip}" stroke-width="0.7" opacity="0.55"/>
+${star(14, 52, 1.4, tip)}
+${I3}</g>`;
+  }
+
+  if (stage === 'evo1') {
+    return `${I3}<g class="${cls}">
+${I4}<path d="M ${X(34)} 50 Q ${X(10)} 28 ${X(4)} 46 Q ${X(6)} 62 ${X(22)} 64 Q ${X(30)} 58 ${X(34)} 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.15"/>
+${I4}<path d="M ${X(32)} 52 Q ${X(14)} 38 ${X(10)} 50 Q ${X(14)} 60 ${X(28)} 58" fill="url(#${p}-wingveil)" opacity="0.65"/>
+${I4}<path d="M ${X(30)} 48 Q ${X(16)} 40 ${X(8)} 46" fill="none" stroke="${tip}" stroke-width="0.75" opacity="0.55"/>
+${I4}<path d="M ${X(28)} 54 Q ${X(16)} 52 ${X(10)} 56" fill="none" stroke="${tip2}" stroke-width="0.55" opacity="0.4"/>
+${star(5, 44, 1.5, tip)}
+${I3}</g>`;
+  }
+
+  if (stage === 'evo2') {
+    return `${I3}<g class="${cls}">
+${I4}<path d="M ${X(32)} 46 Q ${X(6)} 16 ${X(-2)} 34 Q ${X(-4)} 52 ${X(8)} 64 Q ${X(20)} 62 ${X(30)} 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.25"/>
+${I4}<path d="M ${X(28)} 48 Q ${X(8)} 28 ${X(2)} 44 Q ${X(6)} 58 ${X(22)} 56" fill="url(#${p}-wing2)" opacity="0.7"/>
+${I4}<path d="M ${X(26)} 46 Q ${X(10)} 34 ${X(0)} 38" fill="none" stroke="${tip}" stroke-width="0.85" opacity="0.6"/>
+${I4}<path d="M ${X(24)} 52 Q ${X(12)} 50 ${X(4)} 54" fill="none" stroke="${C}" stroke-width="0.55" opacity="0.45"/>
+${I4}<path d="M ${X(8)} 28 L ${X(2)} 22 L ${X(6)} 26 Z" fill="${tip}" opacity="0.75"/>
+${star(-1, 32, 1.7, tip)}
+${I3}</g>`;
+  }
+
+  if (stage === 'evo3') {
+    return `${I3}<g class="${cls}">
+${I4}<path d="M ${X(30)} 44 Q ${X(2)} 8 ${X(-8)} 28 Q ${X(-12)} 48 ${X(-2)} 66 Q ${X(10)} 72 ${X(22)} 64 Q ${X(28)} 54 ${X(30)} 48 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.3"/>
+${I4}<path d="M ${X(28)} 48 Q ${X(8)} 24 ${X(0)} 40 Q ${X(2)} 58 ${X(18)} 60 Q ${X(26)} 54 ${X(28)} 50 Z" fill="url(#${p}-wing2)" stroke="${stroke}" stroke-width="0.85" opacity="0.75"/>
+${I4}<path d="M ${X(26)} 50 Q ${X(12)} 36 ${X(8)} 48 Q ${X(12)} 58 ${X(24)} 56" fill="url(#${p}-wingveil)" opacity="0.7"/>
+${I4}<ellipse cx="${X(12)}" cy="40" rx="7" ry="10" fill="url(#${p}-wingglow)" opacity="0.45"/>
+${I4}<path d="M ${X(24)} 42 Q ${X(8)} 28 ${X(-4)} 32" fill="none" stroke="${tip}" stroke-width="0.9" opacity="0.65"/>
+${I4}<path d="M ${X(22)} 50 Q ${X(8)} 46 ${X(-2)} 52" fill="none" stroke="${B}" stroke-width="0.65" opacity="0.5"/>
+${I4}<path d="M ${X(20)} 56 Q ${X(10)} 58 ${X(2)} 62" fill="none" stroke="${C}" stroke-width="0.55" opacity="0.4"/>
+${I4}<path d="M ${X(2)} 14 L ${X(-4)} 6 L ${X(2)} 10 Z" fill="${tip}" opacity="0.8"/>
+${star(-8, 26, 2, tip)}
+${star(0, 64, 1.3, tip2)}
+${I3}</g>`;
+  }
+
+  if (stage === 'evo4') {
+    return `${I3}<g class="${cls}">
+${I4}<path d="M ${X(32)} 46 L ${X(8)} 14 L ${X(-2)} 24 L ${X(2)} 40 L ${X(-4)} 52 L ${X(2)} 66 L ${X(14)} 70 L ${X(24)} 62 L ${X(30)} 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.3"/>
+${I4}<path d="M ${X(28)} 48 L ${X(10)} 28 L ${X(4)} 42 L ${X(8)} 58 L ${X(22)} 58 Z" fill="url(#${p}-wing2)" opacity="0.7"/>
+${I4}<path d="M ${X(26)} 50 L ${X(12)} 44 L ${X(14)} 58 L ${X(24)} 54 Z" fill="url(#${p}-plate)" stroke="${stroke}" stroke-width="0.75" opacity="0.75"/>
+${I4}<path d="M ${X(22)} 40 L ${X(6)} 22" stroke="${tip}" stroke-width="0.9" opacity="0.55"/>
+${I4}<path d="M ${X(20)} 52 L ${X(4)} 50" stroke="${B}" stroke-width="0.7" opacity="0.45"/>
+${I4}<path d="M ${X(8)} 16 L ${X(0)} 8 L ${X(6)} 12 Z" fill="${tip}" opacity="0.8"/>
+${star(-2, 22, 1.8, tip)}
+${star(-2, 64, 1.4, B)}
+${I3}</g>`;
+  }
+
+  return `${I3}<g class="${cls}">
+${I4}<path d="M ${X(32)} 42 Q ${X(-4)} -2 ${X(-14)} 28 Q ${X(-16)} 56 ${X(-6)} 76 Q ${X(10)} 82 ${X(24)} 70 Q ${X(30)} 56 ${X(32)} 46 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.15" opacity="0.82"/>
+${I4}<path d="M ${X(28)} 44 Q ${X(2)} 10 ${X(-6)} 34 Q ${X(-4)} 60 ${X(16)} 66 Q ${X(26)} 56 ${X(28)} 48 Z" fill="url(#${p}-wing2)" opacity="0.55"/>
+${I4}<path d="M ${X(26)} 46 Q ${X(8)} 28 ${X(2)} 46 Q ${X(6)} 62 ${X(22)} 58" fill="url(#${p}-wingveil)" opacity="0.55"/>
+${I4}<ellipse cx="${X(6)}" cy="36" rx="10" ry="14" fill="url(#${p}-wingglow)" opacity="0.35"/>
+${I4}<path d="M ${X(24)} 36 Q ${X(4)} 16 ${X(-8)} 24" fill="none" stroke="${tip}" stroke-width="0.85" opacity="0.55"/>
+${I4}<path d="M ${X(22)} 48 Q ${X(4)} 42 ${X(-8)} 48" fill="none" stroke="${B}" stroke-width="0.7" opacity="0.45"/>
+${I4}<path d="M ${X(20)} 58 Q ${X(6)} 60 ${X(-4)} 66" fill="none" stroke="${C}" stroke-width="0.55" opacity="0.4"/>
+${I4}<path d="M ${X(6)} 8 L ${X(-2)} -2 L ${X(4)} 4 Z" fill="${tip}" opacity="0.75"/>
+${star(-12, 26, 2.1, tip)}
+${star(-8, 72, 1.5, B)}
+${star(4, 14, 1.2, tip2)}
+${I3}</g>`;
+}
+
 /** BABY — Voidseed: floating orb chrysalis, stub fins, no real limbs yet */
 function babyBody(p, stroke, pal = STAGE_PALETTES.evo3) {
   const CYAN = pal.a;
@@ -291,12 +386,7 @@ function babyBody(p, stroke, pal = STAGE_PALETTES.evo3) {
   const VIOLET = pal.c;
   return `${shadow(18, 0.28)}
 ${epicAddons(p, 1, pal)}
-${I3}<g class="tm-animate-wing-left">
-${I4}<path d="M 34 58 L 22 50 L 24 62 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 66 58 L 78 50 L 76 62 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1"/>
-${I3}</g>
+${mythicWingPair(p, stroke, pal, 'baby')}
 ${I3}<g class="tm-animate-tail">
 ${I4}<path d="M 58 70 L 68 78 L 62 68 Z" fill="url(#${p}-tail)" stroke="${stroke}" stroke-width="0.9" opacity="0.7"/>
 ${I3}</g>
@@ -332,14 +422,7 @@ function kidBody(p, stroke, pal = STAGE_PALETTES.evo3) {
   const VIOLET = pal.c;
   return `${shadow(22, 0.3)}
 ${epicAddons(p, 2, pal)}
-${I3}<g class="tm-animate-wing-left">
-${I4}<path d="M 32 52 L 14 40 L 18 56 L 30 58 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.15"/>
-${I4}<circle cx="14" cy="40" r="1.3" fill="${CYAN}" opacity="0.55"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 68 52 L 86 40 L 82 56 L 70 58 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.15"/>
-${I4}<circle cx="86" cy="40" r="1.3" fill="${GOLD}" opacity="0.55"/>
-${I3}</g>
+${mythicWingPair(p, stroke, pal, 'evo1')}
 ${I3}<g class="tm-animate-tail">
 ${I4}<path d="M 60 70 L 76 80 L 70 66 Z" fill="url(#${p}-tail)" stroke="${stroke}" stroke-width="1"/>
 ${I3}</g>
@@ -380,16 +463,7 @@ function teenBody(p, stroke, pal = STAGE_PALETTES.evo3) {
   const VIOLET = pal.c;
   return `${shadow(24, 0.32)}
 ${epicAddons(p, 3, pal)}
-${I3}<g class="tm-animate-wing-left">
-${I4}<path d="M 30 48 L 8 28 L 4 44 L 12 58 L 28 56 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.25"/>
-${I4}<path d="M 26 50 L 10 40" stroke="${CYAN}" stroke-width="0.7" opacity="0.5"/>
-${I4}<circle cx="6" cy="30" r="1.5" fill="${CYAN}" opacity="0.6"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 70 48 L 92 28 L 96 44 L 88 58 L 72 56 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.25"/>
-${I4}<path d="M 74 50 L 90 40" stroke="${GOLD}" stroke-width="0.7" opacity="0.5"/>
-${I4}<circle cx="94" cy="30" r="1.5" fill="${GOLD}" opacity="0.6"/>
-${I3}</g>
+${mythicWingPair(p, stroke, pal, 'evo2')}
 ${I3}<g class="tm-animate-tail">
 ${I4}<path d="M 58 68 L 80 76 L 74 60 L 62 64 Z" fill="url(#${p}-tail)" stroke="${stroke}" stroke-width="1.1"/>
 ${I4}<circle cx="80" cy="74" r="1.6" fill="${GOLD}" opacity="0.55"/>
@@ -435,18 +509,7 @@ function adultBody(p, stroke, pal = STAGE_PALETTES.evo3) {
   const VIOLET = pal.c;
   return `${shadow(28, 0.38)}
 ${epicAddons(p, 4, pal)}
-${I3}<g class="tm-animate-wing-left">
-${I4}<path d="M 28 46 L 2 18 L -4 36 L 6 58 L 16 64 L 28 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.35"/>
-${I4}<path d="M 26 50 L 6 42 L 10 60 L 24 56 Z" fill="url(#${p}-wing2)" stroke="${stroke}" stroke-width="0.9" opacity="0.65"/>
-${I4}<path d="M 20 40 L 0 22" stroke="${CYAN}" stroke-width="0.75" opacity="0.5"/>
-${I4}<circle cx="0" cy="20" r="1.8" fill="${CYAN}" opacity="0.65"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 72 46 L 98 18 L 104 36 L 94 58 L 84 64 L 72 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.35"/>
-${I4}<path d="M 74 50 L 94 42 L 90 60 L 76 56 Z" fill="url(#${p}-wing2)" stroke="${stroke}" stroke-width="0.9" opacity="0.65"/>
-${I4}<path d="M 80 40 L 100 22" stroke="${GOLD}" stroke-width="0.75" opacity="0.5"/>
-${I4}<circle cx="100" cy="20" r="1.8" fill="${GOLD}" opacity="0.65"/>
-${I3}</g>
+${mythicWingPair(p, stroke, pal, 'evo3')}
 ${I3}<g class="tm-animate-tail">
 ${I4}<path d="M 56 70 L 82 78 L 92 52 L 84 72 L 64 68 Z" fill="url(#${p}-tail)" stroke="${stroke}" stroke-width="1.15"/>
 ${I4}<path d="M 70 72 L 88 84" stroke="${CYAN}" stroke-width="0.7" opacity="0.4"/>
@@ -501,15 +564,7 @@ ${I4}<!-- Eclipse disk behind head -->
 ${I3}<circle class="tm-aether-eclipse" cx="50" cy="22" r="16" fill="${INK}" opacity="0.55"/>
 ${I3}<circle class="tm-aether-eclipse" cx="50" cy="22" r="16" fill="none" stroke="${GOLD}" stroke-width="1.4" opacity="0.55"/>
 ${I3}<circle class="tm-aether-eclipse" cx="54" cy="20" r="12" fill="url(#${p}-aura)" opacity="0.35"/>
-${I3}<g class="tm-animate-wing-left">
-${I4}<!-- Jagged eclipse wing -->
-${I4}<path d="M 30 48 L 6 22 L 0 34 L 4 50 L 2 62 L 14 58 L 28 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.3"/>
-${I4}<path d="M 24 50 L 8 44 L 12 58 Z" fill="url(#${p}-plate)" stroke="${stroke}" stroke-width="0.8" opacity="0.8"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 70 48 L 94 22 L 100 34 L 96 50 L 98 62 L 86 58 L 72 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.3"/>
-${I4}<path d="M 76 50 L 92 44 L 88 58 Z" fill="url(#${p}-plate)" stroke="${stroke}" stroke-width="0.8" opacity="0.8"/>
-${I3}</g>
+${mythicWingPair(p, stroke, pal, 'evo4')}
 ${I3}<g class="tm-animate-tail">
 ${I4}<path d="M 58 70 L 84 82 L 90 58 L 78 74 L 62 68 Z" fill="url(#${p}-tail)" stroke="${stroke}" stroke-width="1.1"/>
 ${I4}<path d="M 72 74 L 86 88" stroke="${GOLD}" stroke-width="0.8" opacity="0.4"/>
@@ -558,17 +613,7 @@ ${epicAddons(p, 6, pal)}
 ${I3}<ellipse class="tm-aether-halo" cx="50" cy="14" rx="22" ry="5" fill="none" stroke="${GOLD}" stroke-width="1.5" opacity="0.7"/>
 ${I3}<ellipse class="tm-aether-halo" cx="50" cy="14" rx="16" ry="3.5" fill="none" stroke="${CYAN}" stroke-width="0.8" opacity="0.45"/>
 ${I3}<ellipse class="tm-aether-halo" cx="50" cy="14" rx="28" ry="7" fill="none" stroke="${VIOLET}" stroke-width="0.55" opacity="0.35" stroke-dasharray="3 4"/>
-${I3}<g class="tm-animate-wing-left">
-${I4}<!-- Vast ethereal wing -->
-${I4}<path d="M 30 44 Q -8 8 -10 40 Q -6 72 18 68 Q 26 56 32 48 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2" opacity="0.75"/>
-${I4}<path d="M 26 46 Q 2 24 0 46 Q 2 64 20 60" fill="url(#${p}-wing2)" opacity="0.45"/>
-${I4}<path d="M 14 30 Q 4 38 8 54" stroke="${GOLD}" stroke-width="0.7" fill="none" opacity="0.45"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 70 44 Q 108 8 110 40 Q 106 72 82 68 Q 74 56 68 48 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2" opacity="0.75"/>
-${I4}<path d="M 74 46 Q 98 24 100 46 Q 98 64 80 60" fill="url(#${p}-wing2)" opacity="0.45"/>
-${I4}<path d="M 86 30 Q 96 38 92 54" stroke="${CYAN}" stroke-width="0.7" fill="none" opacity="0.45"/>
-${I3}</g>
+${mythicWingPair(p, stroke, pal, 'evo5')}
 ${I3}<g class="tm-animate-tail">
 ${I4}<path d="M 56 68 Q 78 78 96 48 Q 86 72 68 70 Z" fill="url(#${p}-tail)" stroke="${stroke}" stroke-width="1" opacity="0.8"/>
 ${I4}<path d="M 64 70 Q 84 86 98 60" fill="none" stroke="${GOLD}" stroke-width="0.8" opacity="0.4"/>
