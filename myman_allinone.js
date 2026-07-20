@@ -549,6 +549,10 @@
 
         badge.textContent = unreadCount;
         badge.classList.toggle('visible', unreadCount > 0);
+        if (typeof window.tmSyncFooterShellCache === 'function'
+            && !(typeof window.tmIsFooterShellMounted === 'function' && window.tmIsFooterShellMounted())) {
+            window.tmSyncFooterShellCache(config, STORAGE_KEYS);
+        }
     }
     
     // Make updateNotificationBadge globally accessible for external scripts
@@ -5106,8 +5110,14 @@
     scheduleScriptInitialization();
     
     function setupFooterControls(config, STORAGE_KEYS) {
-        if (document.getElementById('tm-footer-controls-container')) {
-            return true;
+        const existingFooter = document.getElementById('tm-footer-controls-container');
+        if (existingFooter) {
+            // Cached shell from FOUC extension — replace with the live suite footer.
+            if (existingFooter.getAttribute('data-tm-footer-shell') === '1') {
+                existingFooter.remove();
+            } else {
+                return true;
+            }
         }
 
         const footerCenterCell = document.querySelector('#footer-outterwrap table td[width="60%"]');
@@ -5173,6 +5183,12 @@
 
         if (typeof window.initEODChecklist === 'function') {
             window.initEODChecklist(config, STORAGE_KEYS);
+        }
+
+        if (typeof window.tmSyncFooterShellCache === 'function') {
+            // Defer so coins/badge/XP widgets finish their first paint.
+            setTimeout(() => window.tmSyncFooterShellCache(config, STORAGE_KEYS), 0);
+            setTimeout(() => window.tmSyncFooterShellCache(config, STORAGE_KEYS), 800);
         }
 
         return true;
@@ -5268,6 +5284,11 @@
             window.addGlobalStyles();
         } else {
             console.warn('[MMS] myman_styles.js did not load — styles skipped. Use the local loader or check @require URLs.');
+        }
+
+        // Show cached footer icons/values ASAP while the rest of init continues.
+        if (typeof window.tmWatchAndMountFooterShell === 'function') {
+            window.tmWatchAndMountFooterShell();
         }
 
         // Create a shared container for bottom controls

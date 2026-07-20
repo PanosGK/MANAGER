@@ -1,11 +1,11 @@
 {
-  "version": "248",
+  "version": "249",
   "loaderVersion": "32",
-  "silentVersion": "1",
-  "displayVersion": "32.1",
+  "silentVersion": "2",
+  "displayVersion": "32.2",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Faster FOUC reveal from cached theme CSS",
+  "releaseNotes": "Cache footer shell (icons, coins, XP, badge) then hydrate",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
@@ -14,6 +14,7 @@
     "myman_config.js",
     "myman_profiles.js",
     "myman_utils.js",
+    "myman_footer_shell.js",
     "myman_print.js",
     "myman_styles.js",
     "myman_settings.js",

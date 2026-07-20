@@ -1593,16 +1593,20 @@ function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
 function updateCoinBalanceUI(STORAGE_KEYS, balance, config) {
     const coinDisplay = document.getElementById('tm-coin-balance');
     if (!coinDisplay) return;
-    
+
     // Only update if shop is enabled (the element should only exist if shop is enabled)
     const shopEnabled = config?.shopEnabled !== false; // Default to true if config not provided
     if (!shopEnabled) {
         coinDisplay.style.display = 'none';
         return;
     }
-    
+
     coinDisplay.innerHTML = `🪙 ${balance}`;
     coinDisplay.style.display = '';
+    if (typeof window.tmSyncFooterShellCache === 'function'
+        && !(typeof window.tmIsFooterShellMounted === 'function' && window.tmIsFooterShellMounted())) {
+        window.tmSyncFooterShellCache(config || window.config, STORAGE_KEYS);
+    }
 }
 
 /**
@@ -3052,6 +3056,10 @@ function updateXpBarUI(STORAGE_KEYS, level, xp, xpForNext) {
     }
     updateBuffInventoryUI(STORAGE_KEYS);
     updateLevelPerksLine(STORAGE_KEYS);
+    if (typeof window.tmSyncFooterShellCache === 'function'
+        && !(typeof window.tmIsFooterShellMounted === 'function' && window.tmIsFooterShellMounted())) {
+        window.tmSyncFooterShellCache(window.config, STORAGE_KEYS);
+    }
 }
 
 /**

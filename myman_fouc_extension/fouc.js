@@ -192,6 +192,99 @@
     installBridge(themeColors, themeBg);
   }
 
+  // ---- Cached footer shell (icons + last coins/XP/badge) ----
+  var LS_FOOTER = 'tm_mms_footer_shell';
+  var SHELL_ATTR = 'data-tm-footer-shell';
+
+  function esc(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function buildFooterShellHTML(data) {
+    var dash = data.showDashboard
+      ? '<div id="tm-daily-dashboard-widget" class="tm-footer-widget" style="font-size:11px;display:flex;align-items:center;gap:6px;padding:0 14px;">'
+        + (data.dashboardHtml || '<span>Σήμερα</span>') + '</div>'
+      : '';
+    var titleStyle = data.titleColor ? ' style="color:' + esc(data.titleColor) + '"' : '';
+    var xp = data.showXp
+      ? '<div id="tm-xp-bar-container" class="tm-footer-widget tm-xp-bar-widget">'
+        + '<div class="tm-xp-bar-header"><span id="tm-level-text">Lv.' + esc(data.level) + '</span>'
+        + '<span class="tm-xp-bar-sep">·</span><span id="tm-user-title-text"' + titleStyle + '>'
+        + esc(data.title) + '</span></div>'
+        + '<div class="tm-xp-bar-track-row"><div class="tm-xp-bar"><div id="tm-xp-bar-fill" style="width:'
+        + (Number(data.xpPct) || 0) + '%;"></div><div id="tm-xp-text">'
+        + esc(data.xpLeftText || '') + '</div></div></div></div>'
+      : '';
+    var bell = data.showBell !== false
+      ? '<div id="tm-notification-bell-wrapper"><button id="tm-notification-bell-btn" class="tm-footer-widget tm-footer-icon-btn" type="button" tabindex="-1">🔔</button>'
+        + '<span id="tm-notification-unread-count">' + (data.unread > 0 ? esc(data.unread) : '') + '</span></div>'
+      : '';
+    var settings = data.showSettings !== false
+      ? '<button id="tm-settings-btn" type="button" class="tm-footer-widget tm-footer-icon-btn" tabindex="-1">⚙️</button>'
+      : '';
+    var coins = data.showCoins
+      ? '<div id="tm-coin-balance" class="tm-footer-widget">🪙 ' + esc(data.coins) + '</div>'
+      : '';
+    return '<div id="tm-footer-controls-row">'
+      + '<div id="tm-footer-controls-left"><div id="tm-buff-timers-container"></div>' + dash + xp + '</div>'
+      + '<div id="tm-footer-controls-middle"></div>'
+      + '<div id="tm-footer-controls-right">' + bell + settings + coins + '</div></div>';
+  }
+
+  function ensureFooterShellCss() {
+    if (document.getElementById('tm-mms-footer-shell-css')) return;
+    var style = document.createElement('style');
+    style.id = 'tm-mms-footer-shell-css';
+    style.textContent = '#tm-footer-controls-container[' + SHELL_ATTR + '="1"]{pointer-events:none;opacity:.92;width:100%;}'
+      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}'
+      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-left,'
+      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-middle,'
+      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}'
+      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-notification-unread-count:empty{display:none;}';
+    (document.documentElement || document).appendChild(style);
+  }
+
+  function mountFooterShell() {
+    try {
+      if (document.getElementById('tm-footer-controls-container')) return false;
+      var raw = localStorage.getItem(LS_FOOTER);
+      if (!raw) return false;
+      var data = JSON.parse(raw);
+      if (!data || data.v !== 1) return false;
+      var cell = document.querySelector('#footer-outterwrap table td[width="60%"]')
+        || document.querySelector('#footer-outterwrap table td:nth-child(2)');
+      if (!cell) return false;
+      ensureFooterShellCss();
+      while (cell.firstChild) cell.removeChild(cell.firstChild);
+      var wrapper = document.createElement('div');
+      wrapper.id = 'tm-footer-controls-container';
+      wrapper.setAttribute(SHELL_ATTR, '1');
+      wrapper.className = 'tm-footer-shell';
+      wrapper.innerHTML = buildFooterShellHTML(data);
+      cell.appendChild(wrapper);
+      return true;
+    } catch (eFoot) {
+      return false;
+    }
+  }
+
+  function watchFooterShell() {
+    if (mountFooterShell()) return;
+    try {
+      var obs = new MutationObserver(function () {
+        if (mountFooterShell()) obs.disconnect();
+      });
+      obs.observe(document.documentElement || document, { childList: true, subtree: true });
+      setTimeout(function () { try { obs.disconnect(); } catch (e) { /* ignore */ } }, 15000);
+    } catch (eObs) { /* ignore */ }
+  }
+
+  watchFooterShell();
+
   if (canRevealEarly) {
     reveal();
   }

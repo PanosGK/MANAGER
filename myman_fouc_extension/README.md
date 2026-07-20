@@ -18,6 +18,7 @@ You can disable the Tampermonkey `myman_fouc.user.js` script — this extension 
 
 - `fouc.css` hides `html` until class `tm-mms-theme-ready` is present
 - On **repeat visits**, `fouc.js` applies cached theme CSS from `localStorage` and reveals immediately (no waiting for Tampermonkey)
+- Also mounts a **cached footer shell** (icons + last coins / XP / notification badge); the suite replaces it with live widgets when ready
 - First visit stays blank until the suite seeds the cache once
 - Login / quickview pages are revealed immediately
 - 8s failsafe if anything goes wrong
