@@ -1139,6 +1139,7 @@ function syncMascotInteractionClasses(container = document.getElementById('tm-ma
 }
 
 function setMascotParked(locked, x = null, y = null, STORAGE_KEYS = window.STORAGE_KEYS) {
+    const wasLocked = !!mascotPositionLocked;
     mascotPositionLocked = !!locked;
     if (locked) {
         const pos = (Number.isFinite(x) && Number.isFinite(y))
@@ -1157,6 +1158,12 @@ function setMascotParked(locked, x = null, y = null, STORAGE_KEYS = window.STORA
     }
     syncMascotInteractionClasses();
     if (typeof syncAetherSigilLock === 'function') syncAetherSigilLock();
+    // Footprint only on park edge — never from aura rolls / sync spam
+    if (!wasLocked && locked && tamagotchiCharacterType === 'aether'
+        && (tamagotchiStage === 'old' || (AETHER_STAGE_TIER[tamagotchiStage] || 0) >= 6)
+        && typeof playAetherMythicFootprint === 'function') {
+        playAetherMythicFootprint(document.getElementById('tm-mascot-container'));
+    }
     if (STORAGE_KEYS && typeof saveTamagotchiData === 'function') {
         saveTamagotchiData(STORAGE_KEYS);
     }
@@ -5670,6 +5677,7 @@ let aetherThroneTimer = null;
 let aetherStanceTimer = null;
 let aetherTrueNameTimer = null;
 let aetherStarMapTimer = null;
+let aetherSpectacleTimer = null;
 let aetherMythFxActive = false;
 let aetherAwakenUntil = 0;
 let aetherLastStageCinematic = '';
@@ -5678,6 +5686,7 @@ let aetherDailyEclipseKey = '';
 let aetherDailyTrueNameKey = '';
 let aetherDailyOathKey = '';
 let aetherAmbientStage = '';
+let aetherLastFootprintAt = 0;
 const AETHER_TRUE_NAMES = [
     '…the First Veil',
     '…Silence Before Stars',
@@ -5776,12 +5785,13 @@ function clearAetherTimer(refName) {
     if (refName === 'stance' && aetherStanceTimer) { clearTimeout(aetherStanceTimer); aetherStanceTimer = null; }
     if (refName === 'truename' && aetherTrueNameTimer) { clearTimeout(aetherTrueNameTimer); aetherTrueNameTimer = null; }
     if (refName === 'starmap' && aetherStarMapTimer) { clearTimeout(aetherStarMapTimer); aetherStarMapTimer = null; }
+    if (refName === 'spectacle' && aetherSpectacleTimer) { clearTimeout(aetherSpectacleTimer); aetherSpectacleTimer = null; }
 }
 
 function stopAetherMythicFx() {
     aetherMythFxActive = false;
     ['fx', 'particle', 'bubble', 'trail', 'gaze', 'dim', 'blink', 'meteor', 'omen', 'true',
-        'heartbeat', 'pose', 'twin', 'shimmer', 'eclipse', 'throne', 'stance', 'truename', 'starmap']
+        'heartbeat', 'pose', 'twin', 'shimmer', 'eclipse', 'throne', 'stance', 'truename', 'starmap', 'spectacle']
         .forEach(clearAetherTimer);
     const container = document.getElementById('tm-mascot-container');
     if (container) {
@@ -6220,9 +6230,6 @@ function syncAetherSigilLock(container = document.getElementById('tm-mascot-cont
         const sigil = container.querySelector('.tm-aether-fx[data-fx="sigil"]');
         sigil?.classList.add('tm-fx-on');
         ensureAetherDomainCircle(container, tamagotchiStage || 'adult');
-        if ((tamagotchiStage === 'old' || (AETHER_STAGE_TIER[tamagotchiStage] || 0) >= 6)) {
-            playAetherMythicFootprint(container);
-        }
     } else {
         container.classList.remove('tm-aether-domain-on');
         container.querySelectorAll('.tm-aether-domain-circle').forEach((el) => el.remove());
@@ -6339,6 +6346,9 @@ function scheduleAetherPhaseStance(container, stage) {
 
 function playAetherMythicFootprint(container) {
     if (!container) return;
+    const now = Date.now();
+    if (now - aetherLastFootprintAt < 12000) return;
+    aetherLastFootprintAt = now;
     const rect = container.getBoundingClientRect();
     const mark = document.createElement('div');
     mark.className = 'tm-aether-mythic-footprint';
@@ -6572,7 +6582,7 @@ function playAetherRarityLedger(container, stage) {
     const form = AETHER_STAGE_ORDER.indexOf(stage) + 1;
     const el = document.createElement('div');
     el.className = 'tm-aether-rarity-ledger';
-    el.textContent = `Hatch 2 · Forms ${Math.max(1, form)} · Awakens ${awakens}`;
+    el.textContent = `Mythical · Forms ${Math.max(1, form)} · Awakens ${awakens}`;
     container.appendChild(el);
     setTimeout(() => el.remove(), 2500);
 }
@@ -6580,20 +6590,26 @@ function playAetherRarityLedger(container, stage) {
 function scheduleAetherSpectacleBeat(container, stage) {
     if (!aetherMythFxActive) return;
     const tier = AETHER_STAGE_TIER[stage] || 1;
-    aetherStarMapTimer = setTimeout(() => {
+    aetherSpectacleTimer = setTimeout(() => {
         if (!aetherMythFxActive) return;
         if (!document.hidden && !isMascotFocusQuiet() && !container.classList.contains('mascot-moving')) {
+            const liveStage = (typeof tamagotchiStage !== 'undefined' && tamagotchiStage) ? tamagotchiStage : stage;
+            const liveTier = AETHER_STAGE_TIER[liveStage] || tier;
             const roll = Math.random();
-            if (roll < 0.12 && tier >= 4) playAetherSpectralBlade(container);
-            else if (roll < 0.2 && tier >= 3) playAetherKneelCommand();
-            else if (roll < 0.3) playAetherCodexDrift(container);
-            else if (roll < 0.36 && tier >= 5) playAetherAstralCloneDuel(container);
-            else if (roll < 0.42) maybePlayAetherProphecy();
-            else if (roll < 0.48 && tier >= 4) playAetherLegacyCalendar();
-            else if (roll < 0.58 && tier >= 3) playAetherConstellationMap(container);
-            else if (roll < 0.66 && stage === 'old') playAetherThroneSilhouette(container);
-            else if (roll < 0.78) playAetherPhaseStance(container);
-            else if (roll < 0.86) playAetherCoreHeartbeat(container);
+            if (roll < 0.1 && liveTier >= 4) playAetherSpectralBlade(container);
+            else if (roll < 0.18 && liveTier >= 3) playAetherKneelCommand();
+            else if (roll < 0.28) playAetherCodexDrift(container);
+            else if (roll < 0.34 && liveTier >= 5) playAetherAstralCloneDuel(container);
+            else if (roll < 0.4) maybePlayAetherProphecy();
+            else if (roll < 0.46 && liveTier >= 4) playAetherLegacyCalendar();
+            else if (roll < 0.54 && liveTier >= 3) playAetherConstellationMap(container);
+            else if (roll < 0.6 && liveStage === 'old') playAetherThroneSilhouette(container);
+            else if (roll < 0.68) playAetherPhaseStance(container);
+            else if (roll < 0.76) playAetherCoreHeartbeat(container);
+            else if (roll < 0.84) maybePlayAetherDailyOmen(container);
+            else if (roll < 0.9 && liveTier >= 3) playAetherBlinkOfJudgment(container, liveStage);
+            else if (roll < 0.95) playAetherMythicShimmer(container);
+            else if (liveTier >= 4) emitAetherMeteorDrip(container, liveStage);
         }
         scheduleAetherSpectacleBeat(container, stage);
     }, 18000 + Math.random() * 22000);
@@ -6789,11 +6805,14 @@ function ensureAetherDomainCircle(container, stage) {
         ring = document.createElement('div');
         ring.className = 'tm-aether-domain-circle';
         container.appendChild(ring);
+        container.classList.remove('tm-aether-domain-on');
+        void ring.offsetWidth;
+        container.classList.add('tm-aether-domain-on');
+        return;
     }
-    container.classList.remove('tm-aether-domain-on');
-    // reflow to restart animation
-    void ring.offsetWidth;
-    container.classList.add('tm-aether-domain-on');
+    if (!container.classList.contains('tm-aether-domain-on')) {
+        container.classList.add('tm-aether-domain-on');
+    }
 }
 
 function playAetherNameplate(container, stage) {
@@ -6935,6 +6954,7 @@ function awakenAetherMythicFx(durationMs = 6000) {
     playAetherMythicShimmer(container);
     playAetherSpectralBlade(container);
     updateAetherWorldDim(container, stage);
+    markAetherWitness();
     showMascotBubble('Awaken.', 1800);
     setTimeout(() => container.classList.remove('tm-aether-chromatic'), 1800);
     setTimeout(() => {

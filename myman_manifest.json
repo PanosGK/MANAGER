@@ -1,11 +1,11 @@
 {
-  "version": "289",
+  "version": "290",
   "loaderVersion": "35",
-  "silentVersion": "27",
-  "displayVersion": "35.27",
+  "silentVersion": "28",
+  "displayVersion": "35.28",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix Aether site glitch: remove page overlays (ambient/dim/lens/weather/eclipse/apotheosis/judgment), keep FX mascot-local",
+  "releaseNotes": "Aether sanity: stop footprint/domain spam on aura roll; split spectacle timer; wire omen/blink into beat; witness on awaken; fix ledger text",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
