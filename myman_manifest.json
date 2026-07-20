@@ -1,11 +1,11 @@
 {
-  "version": "282",
+  "version": "284",
   "loaderVersion": "35",
-  "silentVersion": "20",
-  "displayVersion": "35.20",
+  "silentVersion": "22",
+  "displayVersion": "35.22",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Aether boss scale, wing-crack sparks, gaze beams, world dim",
+  "releaseNotes": "Aether dark aura ramps with age: none young → full void only at old",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

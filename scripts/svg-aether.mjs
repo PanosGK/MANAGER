@@ -60,22 +60,24 @@ const STAGE_PALETTES = {
     aura0: '#26c6da', aura1: '#7c4dff', aura2: '#ffd54f',
   },
   evo4: {
-    a: '#ef5350', b: '#bf8f2e', c: '#6a1b9a',
-    stroke: '#1a0508', pale: '#f5e6e6',
-    body: [['0%', '#6a3a4a'], ['30%', '#4a1028'], ['60%', '#2a0830'], ['100%', '#050008']],
-    belly: [['0%', '#3a1520', 0.9], ['100%', '#050008', 0.98]],
-    wing0: '#8d4a4a', wing1: '#4a148c',
-    iris: [['0%', '#ffcdd2'], ['40%', '#e53935'], ['100%', '#1a0000']],
-    aura0: '#ef5350', aura1: '#6a1b9a', aura2: '#bf8f2e',
+    // Color discipline: blood / bone-gold / void-purple only
+    a: '#c62828', b: '#b8963a', c: '#4a148c',
+    stroke: '#120208', pale: '#f0e4e4',
+    body: [['0%', '#5a2830'], ['30%', '#3a0c1c'], ['60%', '#1a0618'], ['100%', '#050008']],
+    belly: [['0%', '#2a1018', 0.9], ['100%', '#050008', 0.98]],
+    wing0: '#7a3038', wing1: '#3a0a5c',
+    iris: [['0%', '#ffcdd2'], ['40%', '#c62828'], ['100%', '#1a0000']],
+    aura0: '#c62828', aura1: '#4a148c', aura2: '#b8963a',
   },
   evo5: {
-    a: '#8b0000', b: '#c9b896', c: '#5d4037',
-    stroke: '#2a1810', pale: '#efe6d8',
-    body: [['0%', '#c4b49a'], ['25%', '#6a5040'], ['55%', '#2a1818'], ['80%', '#1a0808'], ['100%', '#050202']],
-    belly: [['0%', '#4a3028', 0.85], ['100%', '#050202', 0.98]],
-    wing0: '#8d6e63', wing1: '#5d4037',
-    iris: [['0%', '#efebe9'], ['35%', '#a1887f'], ['70%', '#8b0000'], ['100%', '#1a0000']],
-    aura0: '#8b0000', aura1: '#5d4037', aura2: '#c9b896',
+    // Color discipline: abyss-red / bone / void-brown
+    a: '#7a0000', b: '#c9b896', c: '#3e2723',
+    stroke: '#1a100c', pale: '#efe6d8',
+    body: [['0%', '#c4b49a'], ['25%', '#5a4038'], ['55%', '#241414'], ['80%', '#140606'], ['100%', '#050202']],
+    belly: [['0%', '#3a2820', 0.85], ['100%', '#050202', 0.98]],
+    wing0: '#6d4c41', wing1: '#3e2723',
+    iris: [['0%', '#efebe9'], ['35%', '#a1887f'], ['70%', '#7a0000'], ['100%', '#1a0000']],
+    aura0: '#7a0000', aura1: '#3e2723', aura2: '#c9b896',
   },
 };
 
@@ -89,21 +91,29 @@ function grad(id, stops, type = 'radial', attrs) {
   return `${I3}<${tag} id="${id}" ${defAttrs}>\n${stopLines}\n${I3}</${tag}>`;
 }
 
-function solemnEyes(lx, rx, cy, rxE, ryE, irisRef, stroke, { slit = false, glow = false, glowA = CYAN, glowB = GOLD, sclera = PALE } = {}) {
-  const irisRx = slit ? rxE * 0.32 : rxE * 0.48;
-  const irisRy = slit ? ryE * 0.75 : ryE * 0.55;
+function solemnEyes(lx, rx, cy, rxE, ryE, irisRef, stroke, { slit = false, glow = false, glowA = CYAN, glowB = GOLD, sclera = PALE, eclipse = false } = {}) {
+  const irisRx = eclipse ? rxE * 0.55 : (slit ? rxE * 0.32 : rxE * 0.48);
+  const irisRy = eclipse ? ryE * 0.55 : (slit ? ryE * 0.75 : ryE * 0.55);
   const glowEl = glow
     ? `${I4}<ellipse cx="${lx}" cy="${cy}" rx="${(rxE * 1.55).toFixed(1)}" ry="${(ryE * 1.3).toFixed(1)}" fill="${glowA}" opacity="0.12"/>
 ${I4}<ellipse cx="${rx}" cy="${cy}" rx="${(rxE * 1.55).toFixed(1)}" ry="${(ryE * 1.3).toFixed(1)}" fill="${glowB}" opacity="0.1"/>`
     : '';
-  return `${I3}<g class="tm-mascot-eye-open">
+  const pupilL = eclipse
+    ? `${I4}<circle class="tm-aether-eclipse-pupil" cx="${lx}" cy="${cy}" r="${(irisRx * 0.85).toFixed(1)}" fill="${INK}"/>
+${I4}<path class="tm-aether-eclipse-crescent" d="M ${lx - irisRx * 0.15} ${cy - irisRy * 0.7} A ${irisRx * 0.55} ${irisRy * 0.55} 0 1 1 ${lx - irisRx * 0.15} ${cy + irisRy * 0.7}" fill="${glowB}" opacity="0.85"/>`
+    : `${I4}<ellipse cx="${lx}" cy="${cy}" rx="${(irisRx * 0.35).toFixed(1)}" ry="${(irisRy * 0.55).toFixed(1)}" fill="${INK}"/>`;
+  const pupilR = eclipse
+    ? `${I4}<circle class="tm-aether-eclipse-pupil" cx="${rx}" cy="${cy}" r="${(irisRx * 0.85).toFixed(1)}" fill="${INK}"/>
+${I4}<path class="tm-aether-eclipse-crescent" d="M ${rx + irisRx * 0.15} ${cy - irisRy * 0.7} A ${irisRx * 0.55} ${irisRy * 0.55} 0 1 0 ${rx + irisRx * 0.15} ${cy + irisRy * 0.7}" fill="${glowA}" opacity="0.75"/>`
+    : `${I4}<ellipse cx="${rx}" cy="${cy}" rx="${(irisRx * 0.35).toFixed(1)}" ry="${(irisRy * 0.55).toFixed(1)}" fill="${INK}"/>`;
+  return `${I3}<g class="tm-mascot-eye-open tm-aether-eyes${eclipse ? ' tm-aether-eyes-eclipse' : ''}">
 ${glowEl}
-${I4}<ellipse cx="${lx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="${sclera}" stroke="${stroke}" stroke-width="1.35" opacity="0.92"/>
-${I4}<ellipse cx="${rx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="${sclera}" stroke="${stroke}" stroke-width="1.35" opacity="0.92"/>
-${I4}<ellipse cx="${lx}" cy="${cy}" rx="${irisRx.toFixed(1)}" ry="${irisRy.toFixed(1)}" fill="${irisRef}"/>
-${I4}<ellipse cx="${rx}" cy="${cy}" rx="${irisRx.toFixed(1)}" ry="${irisRy.toFixed(1)}" fill="${irisRef}"/>
-${I4}<ellipse cx="${lx}" cy="${cy}" rx="${(irisRx * 0.35).toFixed(1)}" ry="${(irisRy * 0.55).toFixed(1)}" fill="${INK}"/>
-${I4}<ellipse cx="${rx}" cy="${cy}" rx="${(irisRx * 0.35).toFixed(1)}" ry="${(irisRy * 0.55).toFixed(1)}" fill="${INK}"/>
+${I4}<ellipse class="tm-aether-eye-sclera" cx="${lx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="${sclera}" stroke="${stroke}" stroke-width="1.35" opacity="0.92"/>
+${I4}<ellipse class="tm-aether-eye-sclera" cx="${rx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="${sclera}" stroke="${stroke}" stroke-width="1.35" opacity="0.92"/>
+${I4}<ellipse class="tm-aether-iris" cx="${lx}" cy="${cy}" rx="${irisRx.toFixed(1)}" ry="${irisRy.toFixed(1)}" fill="${irisRef}"/>
+${I4}<ellipse class="tm-aether-iris" cx="${rx}" cy="${cy}" rx="${irisRx.toFixed(1)}" ry="${irisRy.toFixed(1)}" fill="${irisRef}"/>
+${pupilL}
+${pupilR}
 ${I4}<line x1="${(lx - rxE * 0.85).toFixed(1)}" y1="${(cy - ryE * 0.85).toFixed(1)}" x2="${(lx + rxE * 0.65).toFixed(1)}" y2="${(cy - ryE * 0.5).toFixed(1)}" stroke="${stroke}" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
 ${I4}<line x1="${(rx + rxE * 0.85).toFixed(1)}" y1="${(cy - ryE * 0.85).toFixed(1)}" x2="${(rx - rxE * 0.65).toFixed(1)}" y2="${(cy - ryE * 0.5).toFixed(1)}" stroke="${stroke}" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
 ${I3}</g>
@@ -200,6 +210,16 @@ function epicAddons(p, tier = 1, pal = STAGE_PALETTES.evo3) {
       `${I4}<ellipse class="tm-aether-aura" cx="50" cy="54" rx="${auraR.toFixed(1)}" ry="${(auraR * 0.82).toFixed(1)}" fill="url(#${p}-aura)"/>`));
   }
 
+  // Atmospheric haze / heat shimmer — teen+
+  if (tier >= 3) {
+    parts.push(fxGroup('haze',
+      `${I4}<g class="tm-aether-haze">
+${I4}<ellipse class="tm-aether-haze-blob" cx="50" cy="58" rx="${(auraR * 1.05).toFixed(1)}" ry="${(auraR * 0.9).toFixed(1)}" fill="url(#${p}-aura)" opacity="0.18"/>
+${I4}<ellipse class="tm-aether-haze-blob" cx="42" cy="50" rx="${(auraR * 0.45).toFixed(1)}" ry="${(auraR * 0.7).toFixed(1)}" fill="${CYAN}" opacity="0.06"/>
+${I4}<ellipse class="tm-aether-haze-blob" cx="58" cy="52" rx="${(auraR * 0.4).toFixed(1)}" ry="${(auraR * 0.65).toFixed(1)}" fill="${GOLD}" opacity="0.05"/>
+${I4}</g>`));
+  }
+
   // Outer aura bloom — adult+
   if (tier >= 4) {
     parts.push(fxGroup('aura-outer',
@@ -219,11 +239,25 @@ ${I4}<path d="M 88 60 L 56 56 L 52 50 Z" fill="url(#${p}-beam)" opacity="0.55"/>
     parts.push(fxGroup('beams', beams, 'tm-aether-beams'));
   }
 
-  // Ground sigil — teen+
+  // Ground / foot sigil — teen+
   if (tier >= 3) {
     parts.push(fxGroup('sigil',
       `${I4}<ellipse class="tm-aether-sigil" cx="50" cy="94" rx="${14 + tier}" ry="${3 + tier * 0.3}" fill="url(#${p}-sigil)"/>
 ${I4}<ellipse class="tm-aether-sigil" cx="50" cy="94" rx="${10 + tier * 0.6}" ry="2.2" fill="none" stroke="${GOLD}" stroke-width="0.7"/>`));
+  }
+
+  // Ground fracture under older forms
+  if (tier >= 4) {
+    parts.push(fxGroup('fracture',
+      `${I4}<g class="tm-aether-ground-fracture">
+${I4}<path d="M 50 94 L 38 92 L 32 96" fill="none" stroke="${CYAN}" stroke-width="0.7" opacity="0.55"/>
+${I4}<path d="M 50 94 L 62 91 L 70 96" fill="none" stroke="${GOLD}" stroke-width="0.7" opacity="0.5"/>
+${I4}<path d="M 44 95 L 40 98 L 48 97" fill="none" stroke="${VIOLET}" stroke-width="0.55" opacity="0.45"/>
+${I4}<path d="M 56 95 L 64 98 L 58 97" fill="none" stroke="${CYAN}" stroke-width="0.55" opacity="0.4"/>
+${tier >= 5 ? `${I4}<path d="M 50 94 L 50 99" fill="none" stroke="${GOLD}" stroke-width="0.8" opacity="0.5"/>
+${I4}<path d="M 28 96 L 35 94" fill="none" stroke="${VIOLET}" stroke-width="0.5" opacity="0.35"/>
+${I4}<path d="M 72 96 L 65 94" fill="none" stroke="${CYAN}" stroke-width="0.5" opacity="0.35"/>` : ''}
+${I4}</g>`));
   }
 
   // Orbit rings — teen+ (more rings as it ages)
@@ -294,7 +328,30 @@ function mythicWingPair(p, stroke, pal, stage) {
   const C = pal.c;
   const left = mythicWingSide(p, stroke, A, B, C, stage, -1);
   const right = mythicWingSide(p, stroke, A, B, C, stage, 1);
-  return `${left}\n${right}`;
+  // Ghost wing stack — mid/old only (layered ethereal afterimage)
+  if (stage !== 'evo4' && stage !== 'evo5') return `${left}\n${right}`;
+  const ghost = (side) => {
+    const cls = side < 0 ? 'tm-aether-ghost-wing-left' : 'tm-aether-ghost-wing-right';
+    const X = (x) => (side < 0 ? x : 100 - x);
+    return `${I3}<g class="${cls}" opacity="0.28" transform="translate(${side < 0 ? -4 : 4} 3) scale(1.1)">
+${I4}<path d="M ${X(32)} 48 L ${X(8)} 16 L ${X(-4)} 28 L ${X(2)} 52 L ${X(14)} 62 L ${X(28)} 52 Z" fill="url(#${p}-wingveil)" stroke="${side < 0 ? A : B}" stroke-width="0.6"/>
+${I3}</g>`;
+  };
+  return `${ghost(-1)}\n${ghost(1)}\n${left}\n${right}`;
+}
+
+function runeTattoos(p, stroke, pal, tier = 3) {
+  const A = pal.a;
+  const B = pal.b;
+  const C = pal.c;
+  return `${I3}<g class="tm-aether-rune-tattoos" opacity="0.55">
+${I4}<path class="tm-aether-rune-glyph" d="M 44 48 L 46 54 L 42 54 Z" fill="none" stroke="${A}" stroke-width="0.7"/>
+${I4}<path class="tm-aether-rune-glyph" d="M 56 48 L 54 54 L 58 54 Z" fill="none" stroke="${B}" stroke-width="0.7"/>
+${I4}<path class="tm-aether-rune-glyph" d="M 50 44 L 50 58" stroke="${C}" stroke-width="0.55"/>
+${tier >= 4 ? `${I4}<circle class="tm-aether-rune-glyph" cx="46" cy="60" r="1.2" fill="none" stroke="${A}" stroke-width="0.5"/>
+${I4}<circle class="tm-aether-rune-glyph" cx="54" cy="60" r="1.2" fill="none" stroke="${B}" stroke-width="0.5"/>` : ''}
+${tier >= 5 ? `${I4}<path class="tm-aether-rune-glyph" d="M 42 52 Q 50 56 58 52" fill="none" stroke="${GOLD}" stroke-width="0.5"/>` : ''}
+${I3}</g>`;
 }
 
 /** Stage-unique crown / core regalia — readable silhouette per evo */
@@ -327,12 +384,19 @@ ${I3}</g>`;
   if (stage === 'evo3') {
     return `${I3}<g class="tm-aether-regalia">
 ${I4}<ellipse class="tm-aether-halo" cx="50" cy="6" rx="15" ry="3.2" fill="none" stroke="${B}" stroke-width="1.35" opacity="0.8"/>
-${I4}<path d="M 40 12 L 50 -2 L 60 12" fill="${DEEP}" stroke="${B}" stroke-width="1.15"/>
+${I4}<g class="tm-aether-crown-constellation">
+${I4}<circle class="tm-aether-crown-star" cx="42" cy="2" r="1.1" fill="${A}"/>
+${I4}<circle class="tm-aether-crown-star" cx="50" cy="-2" r="1.4" fill="${B}"/>
+${I4}<circle class="tm-aether-crown-star" cx="58" cy="2" r="1.1" fill="${A}"/>
+${I4}<circle class="tm-aether-crown-star" cx="36" cy="8" r="0.8" fill="${C}"/>
+${I4}<circle class="tm-aether-crown-star" cx="64" cy="8" r="0.8" fill="${C}"/>
+${I4}<path d="M 42 2 L 50 -2 L 58 2" fill="none" stroke="${B}" stroke-width="0.45" opacity="0.55"/>
+${I4}</g>
+${I4}<path d="M 40 12 L 50 -2 L 60 12" fill="${DEEP}" stroke="${B}" stroke-width="1.15" opacity="0.85"/>
 ${I4}<path d="M 36 16 L 22 0" stroke="${A}" stroke-width="2.2" stroke-linecap="round"/>
 ${I4}<path d="M 64 16 L 78 0" stroke="${B}" stroke-width="2.2" stroke-linecap="round"/>
 ${I4}<circle cx="22" cy="0" r="1.9" fill="${A}"/>
 ${I4}<circle cx="78" cy="0" r="1.9" fill="${B}"/>
-${I4}<circle cx="50" cy="-2" r="1.7" fill="${pal.pale}"/>
 ${I3}</g>`;
   }
   if (stage === 'evo4') {
@@ -340,6 +404,13 @@ ${I3}</g>`;
 ${I4}<circle class="tm-aether-eclipse" cx="50" cy="20" r="17" fill="${INK}" opacity="0.5"/>
 ${I4}<circle class="tm-aether-eclipse" cx="50" cy="20" r="17" fill="none" stroke="${B}" stroke-width="1.5" opacity="0.6"/>
 ${I4}<circle class="tm-aether-eclipse" cx="55" cy="18" r="12" fill="url(#${p}-aura)" opacity="0.4"/>
+${I4}<g class="tm-aether-crown-constellation">
+${I4}<circle class="tm-aether-crown-star" cx="40" cy="4" r="1.1" fill="${B}"/>
+${I4}<circle class="tm-aether-crown-star" cx="50" cy="-2" r="1.5" fill="${A}"/>
+${I4}<circle class="tm-aether-crown-star" cx="60" cy="4" r="1.1" fill="${B}"/>
+${I4}<circle class="tm-aether-crown-star" cx="34" cy="10" r="0.75" fill="${C}"/>
+${I4}<circle class="tm-aether-crown-star" cx="66" cy="10" r="0.75" fill="${C}"/>
+${I4}</g>
 ${I4}<path d="M 38 14 L 26 0" stroke="${B}" stroke-width="2.4" stroke-linecap="round"/>
 ${I4}<path d="M 62 14 L 78 2" stroke="${B}" stroke-width="2.1" stroke-linecap="round" opacity="0.75"/>
 ${I4}<path d="M 44 8 L 50 0 L 56 8" fill="${INK}" stroke="${B}" stroke-width="1"/>
@@ -350,6 +421,15 @@ ${I3}</g>`;
 ${I4}<ellipse class="tm-aether-halo" cx="50" cy="12" rx="24" ry="5.5" fill="none" stroke="${B}" stroke-width="1.55" opacity="0.75"/>
 ${I4}<ellipse class="tm-aether-halo" cx="50" cy="12" rx="17" ry="3.8" fill="none" stroke="${A}" stroke-width="0.85" opacity="0.5"/>
 ${I4}<ellipse class="tm-aether-halo" cx="50" cy="12" rx="30" ry="7.5" fill="none" stroke="${C}" stroke-width="0.55" opacity="0.35" stroke-dasharray="3 4"/>
+${I4}<g class="tm-aether-crown-constellation">
+${I4}<circle class="tm-aether-crown-star" cx="38" cy="6" r="1.2" fill="${B}"/>
+${I4}<circle class="tm-aether-crown-star" cx="50" cy="-2" r="1.6" fill="${A}"/>
+${I4}<circle class="tm-aether-crown-star" cx="62" cy="6" r="1.2" fill="${B}"/>
+${I4}<circle class="tm-aether-crown-star" cx="30" cy="12" r="0.9" fill="${C}"/>
+${I4}<circle class="tm-aether-crown-star" cx="70" cy="12" r="0.9" fill="${C}"/>
+${I4}<circle class="tm-aether-crown-star" cx="44" cy="2" r="0.7" fill="${pal.pale}"/>
+${I4}<circle class="tm-aether-crown-star" cx="56" cy="2" r="0.7" fill="${pal.pale}"/>
+${I4}</g>
 ${I4}<path d="M 38 10 L 26 -4" stroke="${B}" stroke-width="1.9" stroke-linecap="round" opacity="0.9"/>
 ${I4}<path d="M 62 10 L 78 -2" stroke="${B}" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/>
 ${I4}<path d="M 46 4 L 50 -6 L 54 4" fill="none" stroke="${A}" stroke-width="1.15"/>
@@ -378,7 +458,7 @@ function mythicWingSide(p, stroke, A, B, C, stage, side) {
   // Dragon / void-blade wings — angular membranes, finger bones, pulsing cracks (not butterfly sails)
   if (stage === 'baby') {
     return `${wrapOpen}
-${I4}<path d="M ${X(36)} 58 L ${X(20)} 46 L ${X(16)} 54 L ${X(22)} 64 L ${X(34)} 62 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.1"/>
+${I4}<path d="M ${X(36)} 58 L ${X(20)} 46 L ${X(16)} 54 L ${X(22)} 64 L ${X(34)} 62 Z" class="tm-aether-wing-membrane" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.1"/>
 ${I4}<path d="M ${X(34)} 58 L ${X(24)} 52 L ${X(22)} 58 L ${X(28)} 62 Z" fill="url(#${p}-wing2)" opacity="0.65"/>
 ${vein(`M ${X(34)} 58 L ${X(22)} 50 L ${X(18)} 56`, tip, 0)}
 ${claw(16, 48, tip)}
@@ -387,7 +467,7 @@ ${I3}</g>`;
 
   if (stage === 'evo1') {
     return `${wrapOpen}
-${I4}<path d="M ${X(34)} 52 L ${X(14)} 30 L ${X(4)} 36 L ${X(8)} 48 L ${X(2)} 56 L ${X(12)} 62 L ${X(24)} 60 L ${X(32)} 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2"/>
+${I4}<path d="M ${X(34)} 52 L ${X(14)} 30 L ${X(4)} 36 L ${X(8)} 48 L ${X(2)} 56 L ${X(12)} 62 L ${X(24)} 60 L ${X(32)} 54 Z" class="tm-aether-wing-membrane" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2"/>
 ${I4}<path d="M ${X(32)} 52 L ${X(16)} 38 L ${X(12)} 48 L ${X(18)} 56 L ${X(28)} 54 Z" fill="url(#${p}-wing2)" opacity="0.7"/>
 ${I4}<path d="M ${X(30)} 50 L ${X(18)} 36 L ${X(10)} 40" fill="none" stroke="${stroke}" stroke-width="1.05" opacity="0.55"/>
 ${I4}<path d="M ${X(28)} 54 L ${X(14)} 50 L ${X(8)} 54" fill="none" stroke="${stroke}" stroke-width="0.85" opacity="0.45"/>
@@ -401,7 +481,7 @@ ${I3}</g>`;
 
   if (stage === 'evo2') {
     return `${wrapOpen}
-${I4}<path d="M ${X(32)} 48 L ${X(10)} 18 L ${X(-2)} 24 L ${X(2)} 40 L ${X(-6)} 50 L ${X(2)} 62 L ${X(14)} 66 L ${X(26)} 58 L ${X(30)} 50 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.25"/>
+${I4}<path d="M ${X(32)} 48 L ${X(10)} 18 L ${X(-2)} 24 L ${X(2)} 40 L ${X(-6)} 50 L ${X(2)} 62 L ${X(14)} 66 L ${X(26)} 58 L ${X(30)} 50 Z" class="tm-aether-wing-membrane" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.25"/>
 ${I4}<path d="M ${X(28)} 48 L ${X(10)} 28 L ${X(4)} 40 L ${X(8)} 56 L ${X(22)} 56 Z" fill="url(#${p}-wing2)" opacity="0.72"/>
 ${I4}<path d="M ${X(30)} 46 L ${X(12)} 22 L ${X(2)} 28" fill="none" stroke="${stroke}" stroke-width="1.15" opacity="0.6"/>
 ${I4}<path d="M ${X(28)} 50 L ${X(12)} 42 L ${X(0)} 46" fill="none" stroke="${stroke}" stroke-width="0.95" opacity="0.5"/>
@@ -418,7 +498,7 @@ ${I3}</g>`;
 
   if (stage === 'evo3') {
     return `${wrapOpen}
-${I4}<path d="M ${X(30)} 46 L ${X(8)} 10 L ${X(-6)} 16 L ${X(-2)} 34 L ${X(-12)} 44 L ${X(-4)} 58 L ${X(-8)} 70 L ${X(8)} 72 L ${X(20)} 64 L ${X(28)} 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.3"/>
+${I4}<path d="M ${X(30)} 46 L ${X(8)} 10 L ${X(-6)} 16 L ${X(-2)} 34 L ${X(-12)} 44 L ${X(-4)} 58 L ${X(-8)} 70 L ${X(8)} 72 L ${X(20)} 64 L ${X(28)} 52 Z" class="tm-aether-wing-membrane" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.3"/>
 ${I4}<path d="M ${X(28)} 48 L ${X(8)} 22 L ${X(0)} 36 L ${X(4)} 54 L ${X(18)} 58 L ${X(26)} 50 Z" fill="url(#${p}-wing2)" opacity="0.75"/>
 ${I4}<path d="M ${X(26)} 50 L ${X(12)} 36 L ${X(6)} 48 L ${X(12)} 58 L ${X(22)} 54 Z" fill="url(#${p}-wingveil)" opacity="0.45"/>
 ${I4}<path d="M ${X(28)} 44 L ${X(10)} 14 L ${X(-4)} 18" fill="none" stroke="${stroke}" stroke-width="1.2" opacity="0.65"/>
@@ -440,7 +520,7 @@ ${I3}</g>`;
 
   if (stage === 'evo4') {
     return `${wrapOpen}
-${I4}<path d="M ${X(32)} 48 L ${X(10)} 8 L ${X(-4)} 14 L ${X(2)} 30 L ${X(-10)} 38 L ${X(-2)} 50 L ${X(-12)} 58 L ${X(-2)} 70 L ${X(12)} 74 L ${X(24)} 64 L ${X(30)} 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.3"/>
+${I4}<path d="M ${X(32)} 48 L ${X(10)} 8 L ${X(-4)} 14 L ${X(2)} 30 L ${X(-10)} 38 L ${X(-2)} 50 L ${X(-12)} 58 L ${X(-2)} 70 L ${X(12)} 74 L ${X(24)} 64 L ${X(30)} 52 Z" class="tm-aether-wing-membrane" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.3"/>
 ${I4}<path d="M ${X(28)} 48 L ${X(10)} 22 L ${X(2)} 36 L ${X(6)} 54 L ${X(20)} 58 Z" fill="url(#${p}-wing2)" opacity="0.7"/>
 ${I4}<path d="M ${X(26)} 50 L ${X(14)} 40 L ${X(10)} 52 L ${X(18)} 56 Z" fill="url(#${p}-plate)" stroke="${stroke}" stroke-width="0.7" opacity="0.8"/>
 ${I4}<path d="M ${X(30)} 44 L ${X(12)} 12 L ${X(-2)} 16" fill="none" stroke="${stroke}" stroke-width="1.25" opacity="0.65"/>
@@ -460,7 +540,7 @@ ${I3}</g>`;
 
   // evo5 — vast tattered dragon wings
   return `${wrapOpen}
-${I4}<path d="M ${X(32)} 44 L ${X(6)} 2 L ${X(-10)} 8 L ${X(-4)} 28 L ${X(-18)} 36 L ${X(-8)} 50 L ${X(-20)} 58 L ${X(-10)} 72 L ${X(-14)} 84 L ${X(6)} 82 L ${X(20)} 70 L ${X(28)} 54 L ${X(32)} 46 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2" opacity="0.88"/>
+${I4}<path d="M ${X(32)} 44 L ${X(6)} 2 L ${X(-10)} 8 L ${X(-4)} 28 L ${X(-18)} 36 L ${X(-8)} 50 L ${X(-20)} 58 L ${X(-10)} 72 L ${X(-14)} 84 L ${X(6)} 82 L ${X(20)} 70 L ${X(28)} 54 L ${X(32)} 46 Z" class="tm-aether-wing-membrane" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2" opacity="0.88"/>
 ${I4}<path d="M ${X(28)} 46 L ${X(4)} 14 L ${X(-6)} 30 L ${X(0)} 52 L ${X(14)} 60 L ${X(24)} 50 Z" fill="url(#${p}-wing2)" opacity="0.6"/>
 ${I4}<path d="M ${X(26)} 48 L ${X(10)} 28 L ${X(2)} 42 L ${X(8)} 56 L ${X(20)} 54 Z" fill="url(#${p}-wingveil)" opacity="0.4"/>
 ${I4}<path d="M ${X(30)} 42 L ${X(8)} 6 L ${X(-8)} 10" fill="none" stroke="${stroke}" stroke-width="1.25" opacity="0.65"/>
@@ -618,6 +698,7 @@ ${I4}<ellipse cx="50" cy="56" rx="8" ry="14" fill="url(#${p}-belly)"/>
 ${I4}<circle class="tm-aether-core" cx="50" cy="52" r="7" fill="url(#${p}-core)"/>
 ${I4}<circle class="tm-aether-core-ring" cx="50" cy="52" r="10" fill="none" stroke="${GOLD}" stroke-width="0.7" opacity="0.4"/>
 ${I4}<path d="M 50 38 L 50 68" stroke="${CYAN}" stroke-width="0.6" opacity="0.4"/>
+${runeTattoos(p, stroke, pal, 4)}
 ${I4}<!-- Head -->
 ${I4}<path d="M 38 24 Q 38 10 50 8 Q 62 10 62 24 Q 60 34 50 36 Q 40 34 38 24 Z" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.55"/>
 ${I3}</g>
@@ -660,6 +741,7 @@ ${I4}<path d="M 34 42 Q 32 66 38 80 L 62 80 Q 68 66 66 42 Q 58 32 50 30 Q 42 32 
 ${I4}<path d="M 40 44 L 40 72 L 60 72 L 60 44 Z" fill="url(#${p}-plate)" opacity="0.55"/>
 ${I4}<ellipse cx="50" cy="58" rx="8" ry="12" fill="url(#${p}-belly)"/>
 ${I4}<circle class="tm-aether-core" cx="50" cy="54" r="6.5" fill="url(#${p}-core)"/>
+${runeTattoos(p, stroke, pal, 5)}
 ${I4}<!-- Heavier head -->
 ${I4}<ellipse cx="50" cy="22" rx="13" ry="13.5" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.55"/>
 ${I3}</g>
@@ -680,7 +762,7 @@ ${I3}<g class="tm-animate-leg-right">
 ${I4}<path d="M 58 80 L 52 94 L 64 94 Z" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.25"/>
 ${I4}<rect x="52" y="90" width="12" height="3" rx="1" fill="url(#${p}-plate)" opacity="0.7"/>
 ${I3}</g>
-${solemnEyes(41, 59, 20, 4.5, 5.8, `url(#${p}-iris)`, stroke, { slit: true, glow: true, glowA: CYAN, glowB: GOLD, sclera: pal.pale })}
+${solemnEyes(41, 59, 20, 4.5, 5.8, `url(#${p}-iris)`, stroke, { slit: true, glow: true, glowA: CYAN, glowB: GOLD, sclera: pal.pale, eclipse: true })}
 ${solemnMouth(32, stroke, 5)}`;
 }
 
@@ -704,6 +786,7 @@ ${I4}<ellipse cx="50" cy="52" rx="7" ry="14" fill="url(#${p}-belly)" opacity="0.
 ${I4}<circle class="tm-aether-core" cx="50" cy="48" r="7.5" fill="url(#${p}-core)"/>
 ${I4}<circle class="tm-aether-core-ring" cx="50" cy="48" r="11" fill="none" stroke="${GOLD}" stroke-width="0.65" opacity="0.45"/>
 ${I4}<path d="M 50 34 L 50 64" stroke="${GOLD}" stroke-width="0.55" opacity="0.4"/>
+${runeTattoos(p, stroke, pal, 6)}
 ${I4}<!-- Elongated serene head -->
 ${I4}<ellipse cx="50" cy="18" rx="12" ry="13" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.45"/>
 ${I3}</g>
@@ -722,7 +805,7 @@ ${I3}</g>
 ${I3}<g class="tm-animate-leg-right">
 ${I4}<path d="M 58 76 L 52 90 L 62 92 Z" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.1" opacity="0.8"/>
 ${I3}</g>
-${solemnEyes(41, 59, 16, 4.4, 5.8, `url(#${p}-iris)`, stroke, { slit: true, glow: true, glowA: CYAN, glowB: GOLD, sclera: pal.pale })}
+${solemnEyes(41, 59, 16, 4.4, 5.8, `url(#${p}-iris)`, stroke, { slit: true, glow: true, glowA: CYAN, glowB: GOLD, sclera: pal.pale, eclipse: true })}
 ${solemnMouth(28, stroke, 5)}`;
 }
 

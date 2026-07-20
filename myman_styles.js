@@ -4559,30 +4559,30 @@
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether {
                 animation: tm-mythic-idle-float 4.5s ease-in-out infinite !important;
             }
-            /* Stage aura tint — soft shadow bloom, meaner hues as it ages */
+            /* Stage aura tint — soft when young, void-dark only as it ages */
             #tm-mascot-container.mascot-char-aether:has(.mascot-baby)::before {
-                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(126,200,195,0.16) 0%, rgba(201,160,220,0.1) 45%, transparent 100%) !important;
-                box-shadow: 0 10px 48px rgba(126,200,195,0.18), 0 0 90px rgba(201,160,220,0.14) !important;
+                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(126,200,195,0.12) 0%, rgba(201,160,220,0.06) 50%, transparent 100%) !important;
+                box-shadow: 0 6px 28px rgba(126,200,195,0.08), 0 0 40px rgba(201,160,220,0.05) !important;
             }
             #tm-mascot-container.mascot-char-aether:has(.mascot-kid)::before {
-                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(77,182,172,0.16) 0%, rgba(149,117,205,0.1) 45%, transparent 100%) !important;
-                box-shadow: 0 10px 50px rgba(77,182,172,0.18), 0 0 96px rgba(149,117,205,0.14) !important;
+                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(77,182,172,0.13) 0%, rgba(149,117,205,0.07) 50%, transparent 100%) !important;
+                box-shadow: 0 8px 34px rgba(77,182,172,0.1), 0 0 52px rgba(149,117,205,0.07) !important;
             }
             #tm-mascot-container.mascot-char-aether:has(.mascot-teen)::before {
-                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(0,172,193,0.15) 0%, rgba(92,107,192,0.1) 45%, transparent 100%) !important;
-                box-shadow: 0 10px 52px rgba(0,172,193,0.18), 0 0 100px rgba(92,107,192,0.14) !important;
+                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(0,172,193,0.14) 0%, rgba(92,107,192,0.08) 48%, rgba(18,0,31,0.04) 70%, transparent 100%) !important;
+                box-shadow: 0 10px 42px rgba(0,172,193,0.14), 0 0 70px rgba(92,107,192,0.1) !important;
             }
             #tm-mascot-container.mascot-char-aether:has(.mascot-adult)::before {
-                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(38,198,218,0.14) 0%, rgba(124,77,255,0.1) 40%, rgba(255,213,79,0.05) 65%, transparent 100%) !important;
-                box-shadow: 0 10px 54px rgba(38,198,218,0.16), 0 0 110px rgba(124,77,255,0.14) !important;
+                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(38,198,218,0.14) 0%, rgba(124,77,255,0.1) 40%, rgba(18,0,31,0.1) 68%, transparent 100%) !important;
+                box-shadow: 0 10px 50px rgba(18,0,31,0.16), 0 0 90px rgba(124,77,255,0.12) !important;
             }
             #tm-mascot-container.mascot-char-aether:has(.mascot-middleage)::before {
-                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(239,83,80,0.16) 0%, rgba(106,27,154,0.12) 42%, rgba(191,143,46,0.05) 68%, transparent 100%) !important;
-                box-shadow: 0 12px 56px rgba(239,83,80,0.18), 0 0 110px rgba(106,27,154,0.16) !important;
+                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(239,83,80,0.16) 0%, rgba(106,27,154,0.12) 42%, rgba(18,0,31,0.18) 68%, transparent 100%) !important;
+                box-shadow: 0 12px 56px rgba(18,0,31,0.28), 0 0 110px rgba(106,27,154,0.16) !important;
             }
             #tm-mascot-container.mascot-char-aether:has(.mascot-old)::before {
-                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(139,0,0,0.16) 0%, rgba(93,64,55,0.12) 40%, rgba(201,184,150,0.05) 68%, transparent 100%) !important;
-                box-shadow: 0 12px 58px rgba(139,0,0,0.2), 0 0 115px rgba(93,64,55,0.16) !important;
+                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(139,0,0,0.16) 0%, rgba(93,64,55,0.12) 40%, rgba(5,1,12,0.28) 68%, transparent 100%) !important;
+                box-shadow: 0 12px 58px rgba(5,1,12,0.4), 0 0 115px rgba(93,64,55,0.16) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-middleage {
                 zoom: 1.14;
@@ -4716,6 +4716,12 @@
             }
             .mascot-char-aether .tm-aether-fx[data-fx="shards"].tm-fx-on {
                 opacity: 0.5 !important;
+            }
+            .mascot-char-aether .tm-aether-fx[data-fx="fracture"].tm-fx-on {
+                opacity: 0.65 !important;
+            }
+            .mascot-char-aether .tm-aether-fx[data-fx="haze"].tm-fx-on {
+                opacity: 0.9 !important;
             }
             .mascot-char-aether .tm-aether-fx[data-fx="sparks"].tm-fx-on {
                 opacity: 0.85 !important;
@@ -4874,6 +4880,28 @@
             @keyframes tm-mythic-idle-float {
                 0%, 100% { transform: translateY(0) scale(1); }
                 50% { transform: translateY(-8px) scale(1.015); }
+            }
+            /* Height bob by power — older forms hover higher */
+            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether.mascot-adult {
+                animation: tm-aether-hover-adult 5.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite !important;
+            }
+            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether.mascot-middleage {
+                animation: tm-aether-hover-mid 5.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite !important;
+            }
+            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether.mascot-old {
+                animation: tm-aether-hover-old 6.2s cubic-bezier(0.4, 0.02, 0.6, 0.98) infinite !important;
+            }
+            @keyframes tm-aether-hover-adult {
+                0%, 100% { transform: translateY(-2px) scale(1); }
+                50% { transform: translateY(-12px) scale(1.012); }
+            }
+            @keyframes tm-aether-hover-mid {
+                0%, 100% { transform: translateY(-4px) scale(1); }
+                50% { transform: translateY(-16px) scale(1.01); }
+            }
+            @keyframes tm-aether-hover-old {
+                0%, 100% { transform: translateY(-6px) scale(1); }
+                50% { transform: translateY(-20px) scale(1.008); }
             }
             @keyframes tm-legendary-wing-flap {
                 0%, 100% { transform: rotate(0deg); }
@@ -5063,7 +5091,7 @@
             #tm-mascot-container.tm-aether-awaken .tm-aether-fx {
                 opacity: 0.7 !important;
             }
-            /* Local world dim — void pressure around Aether */
+            /* Local world dim — void pressure grows with age (none → full at old) */
             #tm-aether-world-dim {
                 position: fixed;
                 left: 0; top: 0;
@@ -5073,7 +5101,7 @@
                 pointer-events: none;
                 z-index: 9990;
                 opacity: 0;
-                transition: opacity 0.9s ease;
+                transition: opacity 0.9s ease, width 0.9s ease, height 0.9s ease, margin 0.9s ease;
                 background:
                     radial-gradient(circle,
                         rgba(5,1,12,0.55) 0%,
@@ -5082,10 +5110,40 @@
                         transparent 72%);
                 mix-blend-mode: multiply;
             }
-            #tm-aether-world-dim.tm-aether-dim-on {
-                opacity: 1;
+            #tm-aether-world-dim.tm-aether-dim-t3 {
+                width: 300px; height: 300px;
+                margin: -150px 0 0 -150px;
+                background:
+                    radial-gradient(circle,
+                        rgba(5,1,12,0.28) 0%,
+                        rgba(18,0,31,0.14) 36%,
+                        transparent 68%);
             }
-            #tm-aether-world-dim.tm-aether-dim-strong {
+            #tm-aether-world-dim.tm-aether-dim-t4 {
+                width: 360px; height: 360px;
+                margin: -180px 0 0 -180px;
+                background:
+                    radial-gradient(circle,
+                        rgba(5,1,12,0.4) 0%,
+                        rgba(18,0,31,0.22) 34%,
+                        rgba(90,61,154,0.08) 55%,
+                        transparent 70%);
+            }
+            #tm-aether-world-dim.tm-aether-dim-t5 {
+                width: 440px; height: 440px;
+                margin: -220px 0 0 -220px;
+                background:
+                    radial-gradient(circle,
+                        rgba(5,1,12,0.58) 0%,
+                        rgba(40,0,20,0.3) 32%,
+                        rgba(90,61,154,0.12) 54%,
+                        transparent 72%);
+            }
+            #tm-aether-world-dim.tm-aether-dim-on {
+                /* opacity set per-stage in JS (0 young → 1 old) */
+            }
+            #tm-aether-world-dim.tm-aether-dim-strong,
+            #tm-aether-world-dim.tm-aether-dim-t6 {
                 width: 520px; height: 520px;
                 margin: -260px 0 0 -260px;
                 background:
@@ -5135,6 +5193,361 @@
             @keyframes tm-aether-crack-emit {
                 0% { opacity: 0.9; transform: translate(0,0) scale(1); }
                 100% { opacity: 0; transform: translate(var(--cx, 8px), var(--cy, -18px)) scale(0.2); }
+            }
+
+            /* ─── Aether epic FX pack (parallax / haze / cinematics / interactions) ─── */
+            .mascot-char-aether .tm-aether-wing-membrane {
+                opacity: 0.78;
+            }
+            .mascot-char-aether.mascot-adult .tm-aether-wing-membrane,
+            .mascot-char-aether .mascot-adult .tm-aether-wing-membrane {
+                opacity: 0.7;
+            }
+            .mascot-char-aether.mascot-middleage .tm-aether-wing-membrane,
+            .mascot-char-aether .mascot-middleage .tm-aether-wing-membrane,
+            .mascot-char-aether.mascot-old .tm-aether-wing-membrane,
+            .mascot-char-aether .mascot-old .tm-aether-wing-membrane {
+                opacity: 0.58;
+            }
+            .mascot-char-aether .tm-aether-ghost-wing-left,
+            .mascot-char-aether .tm-aether-ghost-wing-right {
+                animation: tm-aether-ghost-drift 4.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+                pointer-events: none;
+            }
+            .mascot-char-aether .tm-aether-ghost-wing-right {
+                animation-delay: -2.2s;
+            }
+            @keyframes tm-aether-ghost-drift {
+                0%, 100% { opacity: 0.18; transform: translate(0, 0) scale(1.08); }
+                50% { opacity: 0.32; transform: translate(0, -2px) scale(1.12); }
+            }
+            .mascot-char-aether .tm-aether-rune-tattoos .tm-aether-rune-glyph {
+                animation: tm-aether-rune-crawl 7s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            .mascot-char-aether .tm-aether-rune-tattoos .tm-aether-rune-glyph:nth-child(2) { animation-delay: -1.4s; }
+            .mascot-char-aether .tm-aether-rune-tattoos .tm-aether-rune-glyph:nth-child(3) { animation-delay: -2.8s; }
+            @keyframes tm-aether-rune-crawl {
+                0%, 100% { opacity: 0.35; }
+                40% { opacity: 0.75; }
+                70% { opacity: 0.5; }
+            }
+            .mascot-char-aether .tm-aether-crown-star {
+                animation: tm-aether-crown-orbit 5.5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+                transform-box: fill-box;
+                transform-origin: center;
+            }
+            .mascot-char-aether .tm-aether-crown-star:nth-child(2n) { animation-duration: 7s; animation-delay: -1s; }
+            .mascot-char-aether .tm-aether-crown-star:nth-child(3n) { animation-duration: 4.2s; animation-delay: -2.1s; }
+            @keyframes tm-aether-crown-orbit {
+                0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.75; }
+                50% { transform: translate(0.6px, -1.2px) scale(1.25); opacity: 1; }
+            }
+            /* Parallax orbits — near rings faster when drifting */
+            #tm-mascot-container.mascot-moving.mascot-char-aether .tm-aether-fx.tm-fx-on.tm-aether-orbit-group {
+                animation-duration: 9s !important;
+            }
+            #tm-mascot-container.mascot-moving.mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-orbit:nth-of-type(1) {
+                animation: tm-mythic-orbit-spin-svg 7s linear infinite;
+            }
+            #tm-mascot-container.mascot-moving.mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-orbit:nth-of-type(2) {
+                animation: tm-mythic-orbit-spin-svg-rev 14s linear infinite;
+            }
+            #tm-mascot-container.mascot-moving.mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-orbit:nth-of-type(3) {
+                animation: tm-mythic-orbit-spin-svg 20s linear infinite;
+            }
+            .mascot-char-aether .tm-aether-fx[data-fx="haze"].tm-fx-on .tm-aether-haze-blob {
+                animation: tm-aether-haze-shimmer 3.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+                filter: blur(1.2px);
+            }
+            .mascot-char-aether .tm-aether-fx[data-fx="haze"].tm-fx-on .tm-aether-haze-blob:nth-child(2) {
+                animation-delay: -1.2s;
+            }
+            .mascot-char-aether .tm-aether-fx[data-fx="haze"].tm-fx-on .tm-aether-haze-blob:nth-child(3) {
+                animation-delay: -2.4s;
+            }
+            @keyframes tm-aether-haze-shimmer {
+                0%, 100% { opacity: 0.08; transform: translate(0, 0) scale(1); }
+                50% { opacity: 0.22; transform: translate(1.5px, -1px) scale(1.04); }
+            }
+            .mascot-char-aether .tm-aether-fx[data-fx="fracture"].tm-fx-on .tm-aether-ground-fracture path {
+                animation: tm-aether-fracture-pulse 4.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            @keyframes tm-aether-fracture-pulse {
+                0%, 100% { opacity: 0.35; stroke-width: 0.55; }
+                50% { opacity: 0.75; stroke-width: 0.85; }
+            }
+            /* Eclipse pupils + after-image stare */
+            .mascot-char-aether .tm-aether-eyes-eclipse .tm-aether-eclipse-crescent {
+                animation: tm-aether-crescent-breathe 3.6s ease-in-out infinite;
+            }
+            @keyframes tm-aether-crescent-breathe {
+                0%, 100% { opacity: 0.7; }
+                50% { opacity: 0.95; }
+            }
+            #tm-mascot-container.tm-aether-stare .tm-aether-eyes::after {
+                content: '';
+            }
+            .tm-aether-eye-afterimage {
+                position: absolute;
+                width: 10px; height: 12px;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(201,162,39,0.55), transparent 70%);
+                pointer-events: none;
+                z-index: 6;
+                animation: tm-aether-afterimage 0.85s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            }
+            @keyframes tm-aether-afterimage {
+                0% { opacity: 0.7; transform: scale(1); }
+                100% { opacity: 0; transform: scale(1.6) translateX(var(--dx, 8px)); }
+            }
+            #tm-mascot-container.tm-aether-judgment-blink .tm-aether-fx {
+                opacity: 1 !important;
+                filter: brightness(1.35);
+                transition: filter 0.15s ease;
+            }
+            #tm-mascot-container.tm-aether-inhale .tm-aether-myth-particle {
+                animation-name: tm-aether-inhale-pull !important;
+            }
+            @keyframes tm-aether-inhale-pull {
+                0% { opacity: 0.9; transform: translate(var(--tx), var(--ty)) scale(1); }
+                45% { opacity: 1; transform: translate(calc(var(--tx) * 0.15), calc(var(--ty) * 0.15)) scale(0.55); }
+                100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(1.4); }
+            }
+            #tm-mascot-container.tm-aether-awaken .tm-mascot-robot.mascot-char-aether,
+            #tm-mascot-container.tm-aether-chromatic .tm-mascot-robot.mascot-char-aether {
+                animation: tm-aether-chromatic-tear 0.55s steps(2, end) infinite;
+            }
+            @keyframes tm-aether-chromatic-tear {
+                0% { filter: drop-shadow(-1.5px 0 0 rgba(239,83,80,0.55)) drop-shadow(1.5px 0 0 rgba(38,198,218,0.45)); }
+                50% { filter: drop-shadow(1.5px 0 0 rgba(239,83,80,0.45)) drop-shadow(-1.5px 0 0 rgba(38,198,218,0.55)); }
+                100% { filter: drop-shadow(-1px 0 0 rgba(239,83,80,0.4)) drop-shadow(1px 0 0 rgba(38,198,218,0.4)); }
+            }
+            #tm-aether-gravity-lens {
+                position: fixed;
+                width: 220px; height: 220px;
+                margin: -110px 0 0 -110px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 2147482500;
+                backdrop-filter: blur(0.6px);
+                -webkit-backdrop-filter: blur(0.6px);
+                box-shadow: inset 0 0 40px rgba(5,1,12,0.12);
+                opacity: 0;
+                transition: opacity 0.8s ease;
+                mix-blend-mode: soft-light;
+            }
+            #tm-aether-gravity-lens.tm-aether-lens-on {
+                opacity: 0.55;
+                animation: tm-aether-lens-warp 4.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+            }
+            @keyframes tm-aether-lens-warp {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.015); }
+            }
+            #tm-mascot-container.mascot-parked.mascot-char-aether .tm-aether-fx[data-fx="sigil"],
+            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-aether-fx[data-fx="sigil"] {
+                opacity: 0.95 !important;
+            }
+            #tm-mascot-container.mascot-parked.tm-aether-sigil-lock .tm-aether-fx[data-fx="sigil"] .tm-aether-sigil {
+                animation: tm-aether-sigil-seal 1.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            @keyframes tm-aether-sigil-seal {
+                0% { transform: scale(1.35); opacity: 0.2; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+            .tm-aether-meteor-drip {
+                position: absolute;
+                width: 3px; height: 10px;
+                border-radius: 2px;
+                pointer-events: none;
+                z-index: 7;
+                animation: tm-aether-meteor-fall 1.1s cubic-bezier(0.4, 0, 0.7, 1) forwards;
+            }
+            @keyframes tm-aether-meteor-fall {
+                0% { opacity: 0.9; transform: translateY(0) scaleY(1); }
+                100% { opacity: 0; transform: translateY(48px) scaleY(1.6); }
+            }
+            .tm-aether-pet-constellation {
+                position: absolute;
+                width: 36px; height: 36px;
+                margin: -18px 0 0 -18px;
+                pointer-events: none;
+                z-index: 8;
+                background:
+                    radial-gradient(circle at 30% 40%, #ffd54f 0 1.5px, transparent 2px),
+                    radial-gradient(circle at 55% 28%, #4dd0e1 0 1.2px, transparent 2px),
+                    radial-gradient(circle at 70% 55%, #7c4dff 0 1.4px, transparent 2px),
+                    radial-gradient(circle at 40% 70%, #ffd54f 0 1px, transparent 1.8px),
+                    radial-gradient(circle at 22% 60%, #4dd0e1 0 1px, transparent 1.8px);
+                animation: tm-aether-pet-fade 1.4s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            }
+            @keyframes tm-aether-pet-fade {
+                0% { opacity: 0.95; transform: scale(0.7); }
+                40% { opacity: 1; transform: scale(1.1); }
+                100% { opacity: 0; transform: scale(1.4); }
+            }
+            .tm-aether-coronation-beam {
+                position: absolute;
+                left: 50%; top: -40%;
+                width: 6px; height: 70%;
+                margin-left: -3px;
+                background: linear-gradient(to bottom, rgba(255,213,79,0.85), rgba(255,213,79,0.15), transparent);
+                pointer-events: none;
+                z-index: 9;
+                transform-origin: top center;
+                animation: tm-aether-coronation 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                box-shadow: 0 0 14px rgba(255,213,79,0.55);
+            }
+            @keyframes tm-aether-coronation {
+                0% { opacity: 0; transform: scaleY(0.2); }
+                30% { opacity: 1; transform: scaleY(1); }
+                100% { opacity: 0; transform: scaleY(1.05); }
+            }
+            #tm-mascot-container.tm-aether-scold-backlash::before {
+                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(139,0,0,0.35) 0%, rgba(60,0,0,0.2) 50%, transparent 100%) !important;
+                box-shadow: 0 0 60px rgba(139,0,0,0.45), 0 0 100px rgba(80,0,0,0.3) !important;
+                opacity: 1 !important;
+                animation: tm-aether-backlash-crack 2s cubic-bezier(0.4, 0, 0.6, 1) forwards !important;
+            }
+            @keyframes tm-aether-backlash-crack {
+                0% { filter: brightness(1.4); }
+                40% { filter: brightness(0.85); }
+                100% { filter: brightness(1); opacity: 0.4; }
+            }
+            #tm-mascot-container.tm-aether-focus-seal .tm-aether-fx[data-fx="orbits"] {
+                animation: tm-aether-vault-close 1.6s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+            }
+            @keyframes tm-aether-vault-close {
+                0% { transform: scale(1.35); opacity: 0.3; }
+                100% { transform: scale(0.72); opacity: 0.9; }
+            }
+            #tm-aether-mythic-weather {
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                z-index: 2147482000;
+                opacity: 0;
+                background:
+                    linear-gradient(115deg, transparent 20%, rgba(77,208,225,0.08) 35%, transparent 50%),
+                    linear-gradient(250deg, transparent 30%, rgba(124,77,255,0.07) 48%, transparent 65%),
+                    linear-gradient(40deg, transparent 40%, rgba(201,162,39,0.05) 55%, transparent 70%);
+                animation: tm-aether-weather-sweep 5s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            }
+            @keyframes tm-aether-weather-sweep {
+                0% { opacity: 0; }
+                15% { opacity: 1; }
+                75% { opacity: 0.7; }
+                100% { opacity: 0; }
+            }
+            .tm-aether-daily-omen {
+                position: absolute;
+                left: 50%; top: -8%;
+                width: 28px; height: 28px;
+                margin-left: -14px;
+                pointer-events: none;
+                z-index: 10;
+                border: 1.5px solid rgba(201,162,39,0.7);
+                border-radius: 4px;
+                transform: rotate(45deg);
+                box-shadow: 0 0 12px rgba(124,77,255,0.45);
+                animation: tm-aether-omen-rise 4.5s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            }
+            .tm-aether-daily-omen::before {
+                content: '';
+                position: absolute;
+                inset: 5px;
+                border: 1px solid rgba(77,208,225,0.6);
+                transform: rotate(45deg);
+            }
+            @keyframes tm-aether-omen-rise {
+                0% { opacity: 0; transform: rotate(45deg) translateY(12px) scale(0.6); }
+                20% { opacity: 1; transform: rotate(45deg) translateY(0) scale(1); }
+                80% { opacity: 0.85; }
+                100% { opacity: 0; transform: rotate(45deg) translateY(-10px) scale(1.1); }
+            }
+            #tm-mascot-container.tm-aether-true-form .tm-mascot-robot.mascot-char-aether {
+                animation: tm-aether-true-peek 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+                filter: brightness(1.15) drop-shadow(0 0 30px rgba(139,0,0,0.45)) !important;
+            }
+            @keyframes tm-aether-true-peek {
+                0% { transform: scale(1); opacity: 1; }
+                35% { transform: scale(1.35); opacity: 0.85; }
+                70% { transform: scale(1.4); opacity: 0.7; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+            #tm-mascot-container.tm-aether-hitstop {
+                animation: tm-aether-hitstop-freeze 0.12s steps(1, end) forwards;
+            }
+            @keyframes tm-aether-hitstop-freeze {
+                0%, 100% { filter: brightness(1.6) contrast(1.15); }
+            }
+            .tm-aether-stage-flash.is-epic .tm-aether-stage-flash-title {
+                font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
+                font-size: 32px;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                background: linear-gradient(180deg, #f5e6c8 0%, #c9a227 45%, #7c4dff 100%);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                text-shadow: none;
+                filter: drop-shadow(0 0 12px rgba(124,77,255,0.45));
+            }
+            .tm-aether-stage-flash-cutin {
+                position: absolute;
+                right: 6%;
+                top: 18%;
+                width: 160px;
+                height: 200px;
+                background:
+                    radial-gradient(ellipse at 50% 40%, rgba(124,77,255,0.35), transparent 70%),
+                    linear-gradient(160deg, rgba(5,1,12,0.2), rgba(18,0,31,0.75));
+                border-left: 3px solid rgba(201,162,39,0.65);
+                clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+                animation: tm-aether-cutin 2.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                overflow: hidden;
+            }
+            .tm-aether-stage-flash-cutin svg {
+                width: 140%;
+                height: 140%;
+                margin: -10% 0 0 -20%;
+                opacity: 0.9;
+            }
+            @keyframes tm-aether-cutin {
+                0% { opacity: 0; transform: translateX(40px); }
+                20% { opacity: 1; transform: translateX(0); }
+                75% { opacity: 1; }
+                100% { opacity: 0; transform: translateX(-10px); }
+            }
+            .tm-aether-stage-flash-timeline {
+                position: absolute;
+                left: 50%;
+                bottom: 14%;
+                transform: translateX(-50%);
+                display: flex;
+                gap: 10px;
+                align-items: center;
+            }
+            .tm-aether-timeline-sil {
+                width: 28px; height: 36px;
+                border-radius: 4px;
+                background: rgba(232,224,240,0.18);
+                box-shadow: inset 0 0 8px rgba(77,208,225,0.25);
+                opacity: 0.35;
+                animation: tm-aether-timeline-pop 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            .tm-aether-timeline-sil.is-prev {
+                animation-delay: 0.15s;
+            }
+            .tm-aether-timeline-sil.is-next {
+                opacity: 0.9;
+                background: linear-gradient(180deg, rgba(201,162,39,0.45), rgba(124,77,255,0.35));
+                animation-delay: 0.55s;
+            }
+            @keyframes tm-aether-timeline-pop {
+                0% { opacity: 0; transform: scale(0.6) translateY(8px); }
+                30% { opacity: 0.85; transform: scale(1) translateY(0); }
+                100% { opacity: 0; transform: scale(1.1) translateY(-6px); }
             }
 
             .tm-aether-stage-flash {
