@@ -6,15 +6,18 @@
  * (or the file is missing). Silent/small builds leave it untouched so Tampermonkey
  * @version does not change.
  *
+ * --write-loader ALWAYS bumps loaderVersion (Tampermonkey @version) unless you pass
+ * --no-bump-loader (used by release.mjs after it already bumped).
+ *
  * Silent release (bumps bundle + Custom Ver., does NOT rewrite production loader):
  *   node scripts/release.mjs "Short release note"
  *
  * Loader release (bumps Tampermonkey @version and rewrites myman_loader.user.js):
  *   node scripts/release.mjs --loader "Loader change"
  *
- * Regenerate only (no version bump):
+ * Regenerate only:
  *   node scripts/generate-loader.mjs
- *   node scripts/generate-loader.mjs --write-loader   # rewrite production loader
+ *   node scripts/generate-loader.mjs --write-loader   # rewrite loader + bump @version
  */
 import fs from 'fs';
 import path from 'path';
@@ -22,13 +25,30 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
-const manifest = JSON.parse(fs.readFileSync(path.join(root, 'myman_manifest.json'), 'utf8'));
+const manifestPath = path.join(root, 'myman_manifest.json');
+const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+const forceWriteLoader = process.argv.includes('--write-loader');
+const noBumpLoader = process.argv.includes('--no-bump-loader');
+
+function bumpNumericVersion(value) {
+    const n = parseInt(String(value).replace(/\D/g, ''), 10);
+    return String(Number.isFinite(n) ? n + 1 : 1);
+}
+
+// Rewriting the production loader must bump Tampermonkey @version.
+if (forceWriteLoader && !noBumpLoader) {
+    manifest.loaderVersion = bumpNumericVersion(manifest.loaderVersion || '1');
+    manifest.silentVersion = '1';
+    manifest.displayVersion = `${manifest.loaderVersion}.${manifest.silentVersion}`;
+    fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+    console.log(`Bumped loaderVersion → ${manifest.loaderVersion} (Custom Ver. ${manifest.displayVersion})`);
+}
+
 const { version, loaderVersion = '1', silentVersion = '1', updateBase, modules } = manifest;
 const displayVersion = manifest.displayVersion || `${loaderVersion}.${silentVersion}`;
 const loaderUrl = `${updateBase}/myman_loader.user.js`;
 const bundleFileName = 'myman_suite.bundle.js';
 const bundleUrl = `${updateBase}/${bundleFileName}?v=${version}`;
-const forceWriteLoader = process.argv.includes('--write-loader');
 
 function stripUserScriptHeader(content) {
     return content.replace(/^\/\/ ==UserScript==[\s\S]*?^\/\/ ==\/UserScript==\r?\n?/m, '');

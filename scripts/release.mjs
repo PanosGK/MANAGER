@@ -48,7 +48,10 @@ if (notes) manifest.releaseNotes = notes;
 fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 
 const genArgs = [path.join(__dirname, 'generate-loader.mjs')];
-if (bumpLoader) genArgs.push('--write-loader');
+if (bumpLoader) {
+    // release.mjs already bumped loaderVersion — tell generate not to bump again.
+    genArgs.push('--write-loader', '--no-bump-loader');
+}
 
 const gen = spawnSync(process.execPath, genArgs, {
     cwd: root,

@@ -1,11 +1,11 @@
 {
-  "version": "246",
-  "loaderVersion": "30",
-  "silentVersion": "0",
-  "displayVersion": "30.0",
+  "version": "247",
+  "loaderVersion": "31",
+  "silentVersion": "1",
+  "displayVersion": "31.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "single one-click Tampermonkey install only (no extension/companion)",
+  "releaseNotes": "FOUC: stay blank until themes; hardened companion hide",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

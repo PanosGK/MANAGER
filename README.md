@@ -43,6 +43,8 @@ node scripts/release.mjs --loader "Why the loader changed"
 ```
 Bumps Tampermonkey `@version` — users need Dashboard → Check for userscript updates.
 
+Whenever the loader bootstrap changes, the loader `@version` must go up (`release --loader`, or `generate-loader.mjs --write-loader` which auto-bumps). Do not rewrite the loader without a version bump.
+
 Regenerate without a version bump: `npm run build` (does not rewrite the production loader unless you pass `--write-loader` or the loader version changed).
 
 ## File structure
