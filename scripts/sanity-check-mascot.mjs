@@ -1,7 +1,7 @@
 import fs from 'fs';
 
 const src = fs.readFileSync('myman_mascot.js', 'utf8');
-const chars = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal'];
+const chars = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether'];
 const stages = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
 const missing = [];
 for (const s of stages) {

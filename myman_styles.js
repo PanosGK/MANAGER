@@ -4461,6 +4461,176 @@
                 cursor: grab;
             }
 
+            /* ═══ Legendary / Mythical Pokémon-style auras (container HTML ::before) ═══ */
+            #tm-mascot-container.mascot-char-phoenix:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
+                background:
+                    radial-gradient(circle, rgba(255,234,0,0.45) 0%, rgba(255,61,0,0.22) 42%, transparent 70%);
+                box-shadow: 0 0 28px rgba(255,109,0,0.55), 0 0 56px rgba(255,61,0,0.28);
+                opacity: 1;
+                animation: tm-legendary-aura-pulse 2.2s ease-in-out infinite;
+                will-change: opacity, transform;
+            }
+            #tm-mascot-container.mascot-char-crystal:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
+                background:
+                    radial-gradient(circle, rgba(77,208,225,0.4) 0%, rgba(118,255,3,0.15) 45%, transparent 70%);
+                box-shadow: 0 0 24px rgba(77,208,225,0.5), 0 0 48px rgba(0,150,136,0.25);
+                opacity: 1;
+                animation: tm-legendary-aura-pulse 2.6s ease-in-out infinite;
+                will-change: opacity, transform;
+            }
+            #tm-mascot-container.mascot-char-aether:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
+                background:
+                    radial-gradient(circle, rgba(255,215,64,0.4) 0%, rgba(0,229,255,0.28) 28%, rgba(179,136,255,0.32) 52%, transparent 72%);
+                box-shadow:
+                    0 0 18px rgba(0,229,255,0.65),
+                    0 0 36px rgba(179,136,255,0.55),
+                    0 0 64px rgba(255,215,64,0.35);
+                opacity: 1;
+                animation: tm-mythic-aura-pulse 1.8s ease-in-out infinite;
+                will-change: opacity, transform;
+            }
+            #tm-mascot-container.mascot-char-aether::after {
+                content: '';
+                position: absolute;
+                top: 50%; left: 50%;
+                width: 118px; height: 118px;
+                margin: -59px 0 0 -59px;
+                border-radius: 50%;
+                border: 1.5px dashed rgba(0,229,255,0.55);
+                box-shadow: inset 0 0 12px rgba(255,215,64,0.25);
+                z-index: -1;
+                pointer-events: none;
+                animation: tm-mythic-orbit-spin 8s linear infinite;
+            }
+
+            .tm-mascot-robot.mascot-char-phoenix {
+                filter: drop-shadow(0 0 6px rgba(255,109,0,0.75)) drop-shadow(0 0 14px rgba(255,234,0,0.4));
+            }
+            .tm-mascot-robot.mascot-char-crystal {
+                filter: drop-shadow(0 0 6px rgba(77,208,225,0.7)) drop-shadow(0 0 12px rgba(118,255,3,0.3));
+            }
+            .tm-mascot-robot.mascot-char-aether {
+                filter:
+                    drop-shadow(0 0 5px rgba(0,229,255,0.9))
+                    drop-shadow(0 0 12px rgba(179,136,255,0.75))
+                    drop-shadow(0 0 22px rgba(255,215,64,0.45));
+            }
+            #tm-mascot-container:hover .tm-mascot-robot.mascot-char-phoenix {
+                filter: brightness(1.12) drop-shadow(0 0 8px rgba(255,109,0,0.9)) drop-shadow(0 0 18px rgba(255,234,0,0.55));
+            }
+            #tm-mascot-container:hover .tm-mascot-robot.mascot-char-crystal {
+                filter: brightness(1.12) drop-shadow(0 0 8px rgba(77,208,225,0.85)) drop-shadow(0 0 16px rgba(118,255,3,0.4));
+            }
+            #tm-mascot-container:hover .tm-mascot-robot.mascot-char-aether {
+                filter: brightness(1.15)
+                    drop-shadow(0 0 8px rgba(0,229,255,1))
+                    drop-shadow(0 0 16px rgba(179,136,255,0.9))
+                    drop-shadow(0 0 28px rgba(255,215,64,0.6));
+            }
+
+            /* Legendary idle float — bigger bob, soft scale (Pokémon battle sway) */
+            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-phoenix,
+            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-crystal {
+                animation: tm-legendary-idle-float 3.2s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether {
+                animation: tm-mythic-idle-float 2.6s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-idle .mascot-char-phoenix .tm-animate-wing-left,
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-animate-wing-left {
+                animation: tm-legendary-wing-flap 1.15s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-idle .mascot-char-phoenix .tm-animate-wing-right,
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-animate-wing-right {
+                animation: tm-legendary-wing-flap-right 1.15s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-idle .mascot-char-phoenix .tm-animate-tail,
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-animate-tail {
+                animation: tm-legendary-tail-wag 1.6s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-spark {
+                animation: tm-mythic-sparkle 1.8s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-spark:nth-child(odd) {
+                animation-delay: 0.4s;
+            }
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-orbit {
+                transform-origin: 50px 54px;
+                animation: tm-mythic-orbit-spin-svg 10s linear infinite;
+            }
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-corona {
+                animation: tm-mythic-corona-breathe 2.4s ease-in-out infinite;
+                transform-origin: 50px 52px;
+            }
+            #tm-mascot-container.mascot-energized .tm-mascot-robot.mascot-char-aether,
+            #tm-mascot-container.mascot-happy .tm-mascot-robot.mascot-char-aether {
+                filter:
+                    drop-shadow(0 0 10px rgba(0,229,255,1))
+                    drop-shadow(0 0 20px rgba(255,215,64,0.85))
+                    drop-shadow(0 0 34px rgba(224,64,251,0.55));
+            }
+
+            @keyframes tm-legendary-aura-pulse {
+                0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+                50% { opacity: 0.95; transform: translate(-50%, -50%) scale(1.08); }
+            }
+            @keyframes tm-mythic-aura-pulse {
+                0%, 100% {
+                    opacity: 0.65;
+                    transform: translate(-50%, -50%) scale(1);
+                    filter: hue-rotate(0deg);
+                }
+                33% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.1);
+                    filter: hue-rotate(12deg);
+                }
+                66% {
+                    opacity: 0.8;
+                    transform: translate(-50%, -50%) scale(1.04);
+                    filter: hue-rotate(-8deg);
+                }
+            }
+            @keyframes tm-mythic-orbit-spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            @keyframes tm-mythic-orbit-spin-svg {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            @keyframes tm-legendary-idle-float {
+                0%, 100% { transform: translateY(0) scale(1); }
+                50% { transform: translateY(-14px) scale(1.04); }
+            }
+            @keyframes tm-mythic-idle-float {
+                0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+                25% { transform: translateY(-10px) scale(1.03) rotate(-2deg); }
+                50% { transform: translateY(-16px) scale(1.06) rotate(0deg); }
+                75% { transform: translateY(-8px) scale(1.03) rotate(2deg); }
+            }
+            @keyframes tm-legendary-wing-flap {
+                0%, 100% { transform: rotate(0deg); }
+                50% { transform: rotate(-18deg); }
+            }
+            @keyframes tm-legendary-wing-flap-right {
+                0%, 100% { transform: rotate(0deg); }
+                50% { transform: rotate(18deg); }
+            }
+            @keyframes tm-legendary-tail-wag {
+                0%, 100% { transform: rotate(0deg); }
+                25% { transform: rotate(-10deg); }
+                75% { transform: rotate(10deg); }
+            }
+            @keyframes tm-mythic-sparkle {
+                0%, 100% { opacity: 0.25; transform: scale(0.7); }
+                50% { opacity: 1; transform: scale(1.35); }
+            }
+            @keyframes tm-mythic-corona-breathe {
+                0%, 100% { opacity: 0.55; transform: scale(1); }
+                50% { opacity: 0.95; transform: scale(1.12); }
+            }
+
             /* Mascot States */
             #tm-mascot-container.mascot-idle .tm-animate-body,
             #tm-mascot-container.mascot-idle .tm-mascot-robot { animation: tm-mascot-idle-float 4s ease-in-out infinite; }

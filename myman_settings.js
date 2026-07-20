@@ -878,6 +878,7 @@
                             <button type="button" class="tm-mascot-char-btn" data-character="cat">Cat</button>
                             <button type="button" class="tm-mascot-char-btn" data-character="phoenix">Phoenix</button>
                             <button type="button" class="tm-mascot-char-btn" data-character="crystal">Crystal</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="aether">Aether 🌌</button>
                         </div>
                     </div>
 

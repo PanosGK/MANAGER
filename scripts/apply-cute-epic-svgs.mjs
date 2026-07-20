@@ -15,7 +15,8 @@ const jobs = [
   { file: 'scripts/svg-ghost.mjs', exportName: 'ghostSvg', startRe: /[ \t]*<!-- GHOST CHARACTER - All Life Stages/, endRe: /[ \t]*<!-- CAT CHARACTER - All Life Stages/ },
   { file: 'scripts/svg-cat.mjs', exportName: 'catSvg', startRe: /[ \t]*<!-- CAT CHARACTER - All Life Stages/, endRe: /[ \t]*<!-- PHOENIX CHARACTER - All Life Stages/ },
   { file: 'scripts/svg-phoenix.mjs', exportName: 'phoenixSvg', startRe: /[ \t]*<!-- PHOENIX CHARACTER - All Life Stages/, endRe: /[ \t]*<!-- CRYSTAL CHARACTER - All Life Stages/ },
-  { file: 'scripts/svg-crystal.mjs', exportName: 'crystalSvg', startRe: /[ \t]*<!-- CRYSTAL CHARACTER - All Life Stages/, endRe: /[ \t]*<!-- Integrated accessories/ },
+  { file: 'scripts/svg-crystal.mjs', exportName: 'crystalSvg', startRe: /[ \t]*<!-- CRYSTAL CHARACTER - All Life Stages/, endRe: /[ \t]*<!-- AETHER CHARACTER - All Life Stages/ },
+  { file: 'scripts/svg-aether.mjs', exportName: 'aetherSvg', startRe: /[ \t]*<!-- AETHER CHARACTER - All Life Stages/, endRe: /[ \t]*<!-- Integrated accessories/ },
 ];
 
 const HOOKS = [
@@ -61,7 +62,7 @@ for (const job of jobs) {
   console.log('applied', job.file, `(${end - start} → ${normalize(svg).length})`);
 }
 
-const chars = ['robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal'];
+const chars = ['robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether'];
 const stages = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
 const issues = [];
 for (const c of chars) {
