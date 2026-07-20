@@ -6018,8 +6018,8 @@ function updateAetherWorldDim(container, stage) {
     // baby/kid = 0, teen faint, adult building, mid strong, old = full
     const tier = AETHER_STAGE_TIER[stage] || 1;
     const awakened = isAetherAwakened();
-    const strengthByTier = { 1: 0, 2: 0, 3: 0.18, 4: 0.4, 5: 0.72, 6: 1 };
-    const strength = awakened ? 1 : (strengthByTier[tier] ?? 0);
+    const strengthByTier = { 1: 0, 2: 0, 3: 0.08, 4: 0.16, 5: 0.28, 6: 0.4 };
+    const strength = awakened ? 0.55 : (strengthByTier[tier] ?? 0);
 
     const dim = ensureAetherWorldDim();
     const rect = container.getBoundingClientRect();

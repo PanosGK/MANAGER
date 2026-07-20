@@ -4487,9 +4487,9 @@
                         rgba(201,162,39,0.04) 72%,
                         transparent 100%);
                 box-shadow:
-                    0 10px 40px rgba(18,0,31,0.18),
+                    0 10px 40px rgba(18,0,31,0.08),
                     0 0 60px rgba(77,208,225,0.16),
-                    0 0 100px rgba(90,61,154,0.14),
+                    0 0 100px rgba(90,61,154,0.12),
                     0 0 140px rgba(201,162,39,0.08);
                 opacity: 0;
                 width: 280px; height: 280px;
@@ -4533,9 +4533,9 @@
             }
             .tm-mascot-robot.mascot-char-aether {
                 filter:
-                    drop-shadow(0 8px 18px rgba(18,0,31,0.35))
-                    drop-shadow(0 0 22px rgba(77,208,225,0.22))
-                    drop-shadow(0 0 48px rgba(90,61,154,0.28));
+                    drop-shadow(0 8px 16px rgba(18,0,31,0.18))
+                    drop-shadow(0 0 20px rgba(77,208,225,0.18))
+                    drop-shadow(0 0 40px rgba(90,61,154,0.16));
             }
             #tm-mascot-container:hover .tm-mascot-robot.mascot-char-phoenix {
                 filter: brightness(1.12) drop-shadow(0 0 8px rgba(255,109,0,0.9)) drop-shadow(0 0 18px rgba(255,234,0,0.55));
@@ -4559,44 +4559,44 @@
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether {
                 animation: tm-mythic-idle-float 4.5s ease-in-out infinite !important;
             }
-            /* Stage aura tint — soft when young, void-dark only as it ages */
+            /* Stage aura tint — soft colored bloom (avoid heavy void black) */
             #tm-mascot-container.mascot-char-aether:has(.mascot-baby)::before {
-                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(126,200,195,0.12) 0%, rgba(201,160,220,0.06) 50%, transparent 100%) !important;
-                box-shadow: 0 6px 28px rgba(126,200,195,0.08), 0 0 40px rgba(201,160,220,0.05) !important;
+                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(126,200,195,0.14) 0%, rgba(201,160,220,0.08) 50%, transparent 100%) !important;
+                box-shadow: 0 6px 28px rgba(126,200,195,0.12), 0 0 48px rgba(201,160,220,0.08) !important;
             }
             #tm-mascot-container.mascot-char-aether:has(.mascot-kid)::before {
-                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(77,182,172,0.13) 0%, rgba(149,117,205,0.07) 50%, transparent 100%) !important;
-                box-shadow: 0 8px 34px rgba(77,182,172,0.1), 0 0 52px rgba(149,117,205,0.07) !important;
+                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(77,182,172,0.15) 0%, rgba(149,117,205,0.09) 50%, transparent 100%) !important;
+                box-shadow: 0 8px 34px rgba(77,182,172,0.14), 0 0 56px rgba(149,117,205,0.1) !important;
             }
             #tm-mascot-container.mascot-char-aether:has(.mascot-teen)::before {
-                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(0,172,193,0.14) 0%, rgba(92,107,192,0.08) 48%, rgba(18,0,31,0.04) 70%, transparent 100%) !important;
-                box-shadow: 0 10px 42px rgba(0,172,193,0.14), 0 0 70px rgba(92,107,192,0.1) !important;
+                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(0,172,193,0.15) 0%, rgba(92,107,192,0.1) 50%, transparent 100%) !important;
+                box-shadow: 0 10px 42px rgba(0,172,193,0.16), 0 0 72px rgba(92,107,192,0.12) !important;
             }
             #tm-mascot-container.mascot-char-aether:has(.mascot-adult)::before {
-                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(38,198,218,0.14) 0%, rgba(124,77,255,0.1) 40%, rgba(18,0,31,0.1) 68%, transparent 100%) !important;
-                box-shadow: 0 10px 50px rgba(18,0,31,0.16), 0 0 90px rgba(124,77,255,0.12) !important;
+                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(38,198,218,0.14) 0%, rgba(124,77,255,0.1) 45%, rgba(255,213,79,0.05) 70%, transparent 100%) !important;
+                box-shadow: 0 10px 48px rgba(38,198,218,0.14), 0 0 90px rgba(124,77,255,0.12) !important;
             }
             #tm-mascot-container.mascot-char-aether:has(.mascot-middleage)::before {
-                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(239,83,80,0.16) 0%, rgba(106,27,154,0.12) 42%, rgba(18,0,31,0.18) 68%, transparent 100%) !important;
-                box-shadow: 0 12px 56px rgba(18,0,31,0.28), 0 0 110px rgba(106,27,154,0.16) !important;
+                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(239,83,80,0.14) 0%, rgba(106,27,154,0.1) 45%, rgba(191,143,46,0.05) 70%, transparent 100%) !important;
+                box-shadow: 0 12px 50px rgba(239,83,80,0.14), 0 0 96px rgba(106,27,154,0.12) !important;
             }
             #tm-mascot-container.mascot-char-aether:has(.mascot-old)::before {
-                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(139,0,0,0.16) 0%, rgba(93,64,55,0.12) 40%, rgba(5,1,12,0.28) 68%, transparent 100%) !important;
-                box-shadow: 0 12px 58px rgba(5,1,12,0.4), 0 0 115px rgba(93,64,55,0.16) !important;
+                background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(139,0,0,0.12) 0%, rgba(93,64,55,0.1) 42%, rgba(201,184,150,0.05) 70%, transparent 100%) !important;
+                box-shadow: 0 12px 52px rgba(139,0,0,0.14), 0 0 100px rgba(93,64,55,0.12) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-middleage {
                 zoom: 1.14;
                 filter:
-                    drop-shadow(0 8px 18px rgba(18,0,31,0.4))
-                    drop-shadow(0 0 28px rgba(239,83,80,0.22))
-                    drop-shadow(0 0 52px rgba(106,27,154,0.26)) !important;
+                    drop-shadow(0 8px 16px rgba(18,0,31,0.22))
+                    drop-shadow(0 0 24px rgba(239,83,80,0.18))
+                    drop-shadow(0 0 44px rgba(106,27,154,0.18)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-old {
                 zoom: 1.24;
                 filter:
-                    drop-shadow(0 8px 18px rgba(10,2,2,0.45))
-                    drop-shadow(0 0 28px rgba(139,0,0,0.24))
-                    drop-shadow(0 0 54px rgba(93,64,55,0.26)) !important;
+                    drop-shadow(0 8px 16px rgba(10,2,2,0.24))
+                    drop-shadow(0 0 24px rgba(139,0,0,0.18))
+                    drop-shadow(0 0 46px rgba(93,64,55,0.18)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-adult {
                 zoom: 1.07;
@@ -5091,7 +5091,7 @@
             #tm-mascot-container.tm-aether-awaken .tm-aether-fx {
                 opacity: 0.7 !important;
             }
-            /* Local world dim — void pressure grows with age (none → full at old) */
+            /* Local world dim — soft veil (age ramp kept, much lighter) */
             #tm-aether-world-dim {
                 position: fixed;
                 left: 0; top: 0;
@@ -5104,53 +5104,50 @@
                 transition: opacity 0.9s ease, width 0.9s ease, height 0.9s ease, margin 0.9s ease;
                 background:
                     radial-gradient(circle,
-                        rgba(5,1,12,0.55) 0%,
-                        rgba(18,0,31,0.32) 32%,
-                        rgba(90,61,154,0.12) 55%,
-                        transparent 72%);
-                mix-blend-mode: multiply;
+                        rgba(18,0,31,0.22) 0%,
+                        rgba(90,61,154,0.1) 38%,
+                        transparent 70%);
+                mix-blend-mode: soft-light;
             }
             #tm-aether-world-dim.tm-aether-dim-t3 {
-                width: 300px; height: 300px;
-                margin: -150px 0 0 -150px;
+                width: 280px; height: 280px;
+                margin: -140px 0 0 -140px;
                 background:
                     radial-gradient(circle,
-                        rgba(5,1,12,0.28) 0%,
-                        rgba(18,0,31,0.14) 36%,
+                        rgba(18,0,31,0.12) 0%,
+                        rgba(90,61,154,0.06) 40%,
                         transparent 68%);
             }
             #tm-aether-world-dim.tm-aether-dim-t4 {
-                width: 360px; height: 360px;
-                margin: -180px 0 0 -180px;
+                width: 340px; height: 340px;
+                margin: -170px 0 0 -170px;
                 background:
                     radial-gradient(circle,
-                        rgba(5,1,12,0.4) 0%,
-                        rgba(18,0,31,0.22) 34%,
-                        rgba(90,61,154,0.08) 55%,
+                        rgba(18,0,31,0.16) 0%,
+                        rgba(90,61,154,0.08) 40%,
                         transparent 70%);
             }
             #tm-aether-world-dim.tm-aether-dim-t5 {
-                width: 440px; height: 440px;
-                margin: -220px 0 0 -220px;
+                width: 400px; height: 400px;
+                margin: -200px 0 0 -200px;
                 background:
                     radial-gradient(circle,
-                        rgba(5,1,12,0.58) 0%,
-                        rgba(40,0,20,0.3) 32%,
-                        rgba(90,61,154,0.12) 54%,
+                        rgba(40,0,20,0.2) 0%,
+                        rgba(106,27,154,0.1) 40%,
                         transparent 72%);
             }
             #tm-aether-world-dim.tm-aether-dim-on {
-                /* opacity set per-stage in JS (0 young → 1 old) */
+                /* opacity set per-stage in JS */
             }
             #tm-aether-world-dim.tm-aether-dim-strong,
             #tm-aether-world-dim.tm-aether-dim-t6 {
-                width: 520px; height: 520px;
-                margin: -260px 0 0 -260px;
+                width: 460px; height: 460px;
+                margin: -230px 0 0 -230px;
                 background:
                     radial-gradient(circle,
-                        rgba(5,1,12,0.72) 0%,
-                        rgba(40,0,20,0.42) 30%,
-                        rgba(90,61,154,0.16) 52%,
+                        rgba(5,1,12,0.28) 0%,
+                        rgba(40,0,20,0.14) 34%,
+                        rgba(90,61,154,0.08) 55%,
                         transparent 74%);
             }
             /* Primordial gaze beams */
