@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v253 / Custom Ver. 33.1 — generated, do not edit */
+/* MyManager Suite bundle v254 / Custom Ver. 33.2 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '253',
+        version: '254',
         loaderVersion: '33',
-        silentVersion: '1',
-        displayVersion: '33.1',
+        silentVersion: '2',
+        displayVersion: '33.2',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -17545,14 +17545,38 @@ function showMascotAccessory(itemId) {
 function migrateAccessoryStorage(STORAGE_KEYS) {
     if (!STORAGE_KEYS?.PURCHASED_ITEMS || !STORAGE_KEYS?.EQUIPPED_ITEMS) return;
 
-    const migrateList = (list) => [...new Set(
+    // PURCHASED_ITEMS holds accessories AND themes/features.
+    // Only normalize/drop accessory IDs — never strip theme/feature IDs.
+    const migratePurchased = (list) => {
+        const out = [];
+        const seen = new Set();
+        for (const rawId of (Array.isArray(list) ? list : [])) {
+            if (!rawId) continue;
+            const asAccessory = normalizeAccessoryId(rawId);
+            let next = rawId;
+            if (asAccessory) {
+                next = asAccessory;
+            } else if (Object.prototype.hasOwnProperty.call(MASCOT_ACCESSORY_ID_ALIASES, rawId)) {
+                // Known removed accessory alias → drop
+                continue;
+            }
+            // else keep themes / features / other non-accessory ids
+            if (seen.has(next)) continue;
+            seen.add(next);
+            out.push(next);
+        }
+        return out;
+    };
+
+    // EQUIPPED_ITEMS is accessories-only.
+    const migrateEquipped = (list) => [...new Set(
         (Array.isArray(list) ? list : [])
             .map(normalizeAccessoryId)
             .filter(Boolean)
     )];
 
-    const purchased = migrateList(JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]')));
-    const equipped = migrateList(JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]')));
+    const purchased = migratePurchased(JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]')));
+    const equipped = migrateEquipped(JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]')));
 
     GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
     GM_setValue(STORAGE_KEYS.EQUIPPED_ITEMS, JSON.stringify(equipped));
@@ -36595,8 +36619,14 @@ function handleShopPurchase(button, config, STORAGE_KEYS) {
         if (!purchased.includes(itemId)) purchased.push(itemId);
         GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
 
-        // Immediately activate the feature without requiring a page reload
-        activateFeature(itemId, config, STORAGE_KEYS);
+        if (itemType === 'theme') {
+            if (typeof window.applyTheme === 'function') {
+                window.applyTheme(itemId);
+            }
+        } else {
+            // Immediately activate the feature without requiring a page reload
+            activateFeature(itemId, config, STORAGE_KEYS);
+        }
     }
 
     if (typeof window.showPositiveMessage === 'function') {
@@ -38785,18 +38815,28 @@ function populateShopDashboard(config, STORAGE_KEYS) {
     
     // Populate themes
     const themesContainer = wrapper.querySelector('#tm-shop-category-themes');
+    const equippedThemeId = config?.equippedTheme
+        || (typeof GM_getValue === 'function' ? GM_getValue(STORAGE_KEYS.EQUIPPED_THEME, 'default') : 'default');
     themesContainer.innerHTML = Object.keys(UI_THEMES).map(id => {
         const theme = { id, ...UI_THEMES[id] };
         const isPurchased = purchasedItems.includes(theme.id) || theme.cost === 0;
+        const isEquipped = String(equippedThemeId) === String(theme.id);
         const paletteSource = (typeof UI_PALETTE_SOURCES !== 'undefined' && UI_PALETTE_SOURCES[id])
             ? `<div style="font-size: 10px; color: var(--tm-secondary-color); margin-bottom: 8px; line-height: 1.3; opacity: 0.9;">${UI_PALETTE_SOURCES[id]}</div>`
             : '';
+        const btnClass = !isPurchased ? 'buy' : (isEquipped ? 'equipped' : 'equip');
+        const btnLabel = !isPurchased
+            ? `Buy ${theme.cost} 🪙`
+            : (isEquipped ? '✓ Equipped' : 'Equip');
+        const btnBg = !isPurchased
+            ? 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)'
+            : (isEquipped ? 'linear-gradient(135deg, #66bb6a 0%, #4caf50 100%)' : 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)');
         return `
             <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
                 <div style="font-size: 48px; margin-bottom: 12px;">${theme.icon}</div>
                 <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${theme.name}</div>
                 ${paletteSource}
-                <button class="tm-shop-item-btn ${isPurchased ? 'purchased' : 'buy'}" 
+                <button class="tm-shop-item-btn ${btnClass}" 
                         data-item-id="${theme.id}" 
                         data-item-type="theme"
                         data-item-cost="${theme.cost}"
@@ -38806,12 +38846,12 @@ function populateShopDashboard(config, STORAGE_KEYS) {
                             border: none;
                             border-radius: 8px;
                             font-weight: 600;
-                            cursor: ${isPurchased ? 'not-allowed' : 'pointer'};
-                            background: ${isPurchased ? '#e2e8f0' : 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)'};
-                            color: ${isPurchased ? '#94a3b8' : 'white'};
+                            cursor: ${isEquipped ? 'default' : 'pointer'};
+                            background: ${btnBg};
+                            color: white;
                         "
-                        ${isPurchased ? 'disabled' : ''}>
-                    ${isPurchased ? '✓ Owned' : `Buy ${theme.cost} 🪙`}
+                        ${isEquipped ? 'disabled' : ''}>
+                    ${btnLabel}
                 </button>
             </div>
         `;
@@ -38904,6 +38944,11 @@ function populateShopDashboard(config, STORAGE_KEYS) {
                         return;
                     }
                     window.toggleMascotAccessory?.(config, STORAGE_KEYS, normalizedId);
+                    populateShopDashboard(config, STORAGE_KEYS);
+                } else if (itemType === 'theme') {
+                    if (typeof window.applyTheme === 'function') {
+                        window.applyTheme(itemId);
+                    }
                     populateShopDashboard(config, STORAGE_KEYS);
                 }
             } else if (e.target.classList.contains('use')) {

@@ -120,14 +120,38 @@ function showMascotAccessory(itemId) {
 function migrateAccessoryStorage(STORAGE_KEYS) {
     if (!STORAGE_KEYS?.PURCHASED_ITEMS || !STORAGE_KEYS?.EQUIPPED_ITEMS) return;
 
-    const migrateList = (list) => [...new Set(
+    // PURCHASED_ITEMS holds accessories AND themes/features.
+    // Only normalize/drop accessory IDs — never strip theme/feature IDs.
+    const migratePurchased = (list) => {
+        const out = [];
+        const seen = new Set();
+        for (const rawId of (Array.isArray(list) ? list : [])) {
+            if (!rawId) continue;
+            const asAccessory = normalizeAccessoryId(rawId);
+            let next = rawId;
+            if (asAccessory) {
+                next = asAccessory;
+            } else if (Object.prototype.hasOwnProperty.call(MASCOT_ACCESSORY_ID_ALIASES, rawId)) {
+                // Known removed accessory alias → drop
+                continue;
+            }
+            // else keep themes / features / other non-accessory ids
+            if (seen.has(next)) continue;
+            seen.add(next);
+            out.push(next);
+        }
+        return out;
+    };
+
+    // EQUIPPED_ITEMS is accessories-only.
+    const migrateEquipped = (list) => [...new Set(
         (Array.isArray(list) ? list : [])
             .map(normalizeAccessoryId)
             .filter(Boolean)
     )];
 
-    const purchased = migrateList(JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]')));
-    const equipped = migrateList(JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]')));
+    const purchased = migratePurchased(JSON.parse(GM_getValue(STORAGE_KEYS.PURCHASED_ITEMS, '[]')));
+    const equipped = migrateEquipped(JSON.parse(GM_getValue(STORAGE_KEYS.EQUIPPED_ITEMS, '[]')));
 
     GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
     GM_setValue(STORAGE_KEYS.EQUIPPED_ITEMS, JSON.stringify(equipped));

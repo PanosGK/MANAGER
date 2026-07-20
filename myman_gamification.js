@@ -2878,8 +2878,14 @@ function handleShopPurchase(button, config, STORAGE_KEYS) {
         if (!purchased.includes(itemId)) purchased.push(itemId);
         GM_setValue(STORAGE_KEYS.PURCHASED_ITEMS, JSON.stringify(purchased));
 
-        // Immediately activate the feature without requiring a page reload
-        activateFeature(itemId, config, STORAGE_KEYS);
+        if (itemType === 'theme') {
+            if (typeof window.applyTheme === 'function') {
+                window.applyTheme(itemId);
+            }
+        } else {
+            // Immediately activate the feature without requiring a page reload
+            activateFeature(itemId, config, STORAGE_KEYS);
+        }
     }
 
     if (typeof window.showPositiveMessage === 'function') {
@@ -5068,18 +5074,28 @@ function populateShopDashboard(config, STORAGE_KEYS) {
     
     // Populate themes
     const themesContainer = wrapper.querySelector('#tm-shop-category-themes');
+    const equippedThemeId = config?.equippedTheme
+        || (typeof GM_getValue === 'function' ? GM_getValue(STORAGE_KEYS.EQUIPPED_THEME, 'default') : 'default');
     themesContainer.innerHTML = Object.keys(UI_THEMES).map(id => {
         const theme = { id, ...UI_THEMES[id] };
         const isPurchased = purchasedItems.includes(theme.id) || theme.cost === 0;
+        const isEquipped = String(equippedThemeId) === String(theme.id);
         const paletteSource = (typeof UI_PALETTE_SOURCES !== 'undefined' && UI_PALETTE_SOURCES[id])
             ? `<div style="font-size: 10px; color: var(--tm-secondary-color); margin-bottom: 8px; line-height: 1.3; opacity: 0.9;">${UI_PALETTE_SOURCES[id]}</div>`
             : '';
+        const btnClass = !isPurchased ? 'buy' : (isEquipped ? 'equipped' : 'equip');
+        const btnLabel = !isPurchased
+            ? `Buy ${theme.cost} 🪙`
+            : (isEquipped ? '✓ Equipped' : 'Equip');
+        const btnBg = !isPurchased
+            ? 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)'
+            : (isEquipped ? 'linear-gradient(135deg, #66bb6a 0%, #4caf50 100%)' : 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)');
         return `
             <div style="padding: 16px; background: var(--tm-shop-item-bg); border: 1px solid var(--tm-shop-item-border); border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center;">
                 <div style="font-size: 48px; margin-bottom: 12px;">${theme.icon}</div>
                 <div style="font-weight: 600; color: var(--tm-primary-color); margin-bottom: 6px;">${theme.name}</div>
                 ${paletteSource}
-                <button class="tm-shop-item-btn ${isPurchased ? 'purchased' : 'buy'}" 
+                <button class="tm-shop-item-btn ${btnClass}" 
                         data-item-id="${theme.id}" 
                         data-item-type="theme"
                         data-item-cost="${theme.cost}"
@@ -5089,12 +5105,12 @@ function populateShopDashboard(config, STORAGE_KEYS) {
                             border: none;
                             border-radius: 8px;
                             font-weight: 600;
-                            cursor: ${isPurchased ? 'not-allowed' : 'pointer'};
-                            background: ${isPurchased ? '#e2e8f0' : 'linear-gradient(135deg, #ffd700 0%, #ffaa00 100%)'};
-                            color: ${isPurchased ? '#94a3b8' : 'white'};
+                            cursor: ${isEquipped ? 'default' : 'pointer'};
+                            background: ${btnBg};
+                            color: white;
                         "
-                        ${isPurchased ? 'disabled' : ''}>
-                    ${isPurchased ? '✓ Owned' : `Buy ${theme.cost} 🪙`}
+                        ${isEquipped ? 'disabled' : ''}>
+                    ${btnLabel}
                 </button>
             </div>
         `;
@@ -5187,6 +5203,11 @@ function populateShopDashboard(config, STORAGE_KEYS) {
                         return;
                     }
                     window.toggleMascotAccessory?.(config, STORAGE_KEYS, normalizedId);
+                    populateShopDashboard(config, STORAGE_KEYS);
+                } else if (itemType === 'theme') {
+                    if (typeof window.applyTheme === 'function') {
+                        window.applyTheme(itemId);
+                    }
                     populateShopDashboard(config, STORAGE_KEYS);
                 }
             } else if (e.target.classList.contains('use')) {
