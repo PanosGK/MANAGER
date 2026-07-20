@@ -4585,16 +4585,24 @@
                 box-shadow: 0 12px 58px rgba(139,0,0,0.2), 0 0 115px rgba(93,64,55,0.16) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-middleage {
+                zoom: 1.14;
                 filter:
                     drop-shadow(0 8px 18px rgba(18,0,31,0.4))
                     drop-shadow(0 0 28px rgba(239,83,80,0.22))
                     drop-shadow(0 0 52px rgba(106,27,154,0.26)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-old {
+                zoom: 1.24;
                 filter:
                     drop-shadow(0 8px 18px rgba(10,2,2,0.45))
                     drop-shadow(0 0 28px rgba(139,0,0,0.24))
                     drop-shadow(0 0 54px rgba(93,64,55,0.26)) !important;
+            }
+            .tm-mascot-robot.mascot-char-aether.mascot-adult {
+                zoom: 1.07;
+            }
+            .tm-mascot-robot.mascot-char-aether.mascot-teen {
+                zoom: 1.03;
             }
             #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-left {
                 animation: tm-legendary-wing-flap 1.15s ease-in-out infinite !important;
@@ -5055,6 +5063,80 @@
             #tm-mascot-container.tm-aether-awaken .tm-aether-fx {
                 opacity: 0.7 !important;
             }
+            /* Local world dim — void pressure around Aether */
+            #tm-aether-world-dim {
+                position: fixed;
+                left: 0; top: 0;
+                width: 420px; height: 420px;
+                margin: -210px 0 0 -210px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9990;
+                opacity: 0;
+                transition: opacity 0.9s ease;
+                background:
+                    radial-gradient(circle,
+                        rgba(5,1,12,0.55) 0%,
+                        rgba(18,0,31,0.32) 32%,
+                        rgba(90,61,154,0.12) 55%,
+                        transparent 72%);
+                mix-blend-mode: multiply;
+            }
+            #tm-aether-world-dim.tm-aether-dim-on {
+                opacity: 1;
+            }
+            #tm-aether-world-dim.tm-aether-dim-strong {
+                width: 520px; height: 520px;
+                margin: -260px 0 0 -260px;
+                background:
+                    radial-gradient(circle,
+                        rgba(5,1,12,0.72) 0%,
+                        rgba(40,0,20,0.42) 30%,
+                        rgba(90,61,154,0.16) 52%,
+                        transparent 74%);
+            }
+            /* Primordial gaze beams */
+            .tm-aether-gaze-beam {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                width: 3px;
+                height: 0;
+                margin-left: -1.5px;
+                transform-origin: 50% 0%;
+                pointer-events: none;
+                z-index: 9998;
+                border-radius: 2px;
+                opacity: 0;
+                background: linear-gradient(to bottom, rgba(232,224,240,0.95), rgba(124,77,255,0.55), transparent);
+                box-shadow: 0 0 8px rgba(124,77,255,0.8), 0 0 16px rgba(38,198,218,0.45);
+                animation: tm-aether-gaze-fire 1.6s ease-out forwards;
+            }
+            .tm-aether-gaze-beam.is-right {
+                background: linear-gradient(to bottom, rgba(255,213,79,0.9), rgba(239,83,80,0.5), transparent);
+                box-shadow: 0 0 8px rgba(239,83,80,0.75), 0 0 14px rgba(201,162,39,0.4);
+            }
+            @keyframes tm-aether-gaze-fire {
+                0% { opacity: 0; height: 0; }
+                18% { opacity: 1; height: 58px; }
+                70% { opacity: 0.85; height: 92px; }
+                100% { opacity: 0; height: 110px; }
+            }
+            .tm-aether-crack-spark {
+                position: absolute;
+                width: 4px; height: 4px;
+                margin: -2px 0 0 -2px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 9997;
+                opacity: 0;
+                animation: tm-aether-crack-emit 0.75s ease-out forwards;
+            }
+            @keyframes tm-aether-crack-emit {
+                0% { opacity: 0.9; transform: translate(0,0) scale(1); }
+                100% { opacity: 0; transform: translate(var(--cx, 8px), var(--cy, -18px)) scale(0.2); }
+            }
+
             .tm-aether-stage-flash {
                 position: fixed;
                 inset: 0;

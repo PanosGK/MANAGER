@@ -5653,6 +5653,8 @@ let aetherMythFxTimer = null;
 let aetherMythParticleTimer = null;
 let aetherSolemnBubbleTimer = null;
 let aetherTrailTimer = null;
+let aetherGazeTimer = null;
+let aetherDimRaf = null;
 let aetherMythFxActive = false;
 let aetherAwakenUntil = 0;
 let aetherLastStageCinematic = '';
@@ -5725,14 +5727,26 @@ function stopAetherMythicFx() {
         clearTimeout(aetherTrailTimer);
         aetherTrailTimer = null;
     }
+    if (aetherGazeTimer) {
+        clearTimeout(aetherGazeTimer);
+        aetherGazeTimer = null;
+    }
+    if (aetherDimRaf) {
+        clearTimeout(aetherDimRaf);
+        aetherDimRaf = null;
+    }
     const container = document.getElementById('tm-mascot-container');
-    if (!container) return;
-    container.classList.remove(
-        'tm-aether-glow-on', 'tm-aether-ring-on', 'tm-aether-sovereign',
-        'tm-aether-react', 'tm-aether-awaken', 'tm-aether-blade-spin'
-    );
-    container.querySelectorAll('.tm-aether-fx.tm-fx-on').forEach((el) => el.classList.remove('tm-fx-on'));
-    container.querySelectorAll('.tm-aether-myth-particle, .tm-aether-trail-dot').forEach((el) => el.remove());
+    if (container) {
+        container.classList.remove(
+            'tm-aether-glow-on', 'tm-aether-ring-on', 'tm-aether-sovereign',
+            'tm-aether-react', 'tm-aether-awaken', 'tm-aether-blade-spin', 'tm-aether-gaze-on'
+        );
+        container.querySelectorAll('.tm-aether-fx.tm-fx-on').forEach((el) => el.classList.remove('tm-fx-on'));
+        container.querySelectorAll(
+            '.tm-aether-myth-particle, .tm-aether-trail-dot, .tm-aether-gaze-beam, .tm-aether-crack-spark'
+        ).forEach((el) => el.remove());
+    }
+    document.getElementById('tm-aether-world-dim')?.remove();
 }
 
 function pickRandomSubset(list, minCount, maxCount) {
@@ -5843,6 +5857,109 @@ function emitAetherVeilTrail(container, stage) {
     `;
     container.appendChild(el);
     setTimeout(() => el.remove(), 900);
+    if (Math.random() < 0.55) emitAetherWingCrackSparks(container, stage, 1 + Math.floor(Math.random() * 2));
+}
+
+/** Spawn sparks from wing vein/crack geometry (SVG → container-local coords). */
+function emitAetherWingCrackSparks(container, stage, count = 3) {
+    if (!container) return;
+    const sources = [
+        ...container.querySelectorAll('.tm-aether-wing-crack, .tm-aether-wing-vein, .tm-aether-wing-claw'),
+    ];
+    if (!sources.length) return;
+    const colors = AETHER_PARTICLE_COLORS[stage] || AETHER_PARTICLE_COLORS.adult;
+    const cRect = container.getBoundingClientRect();
+    const n = Math.min(count, 8);
+    for (let i = 0; i < n; i++) {
+        const src = sources[Math.floor(Math.random() * sources.length)];
+        let sx = 50;
+        let sy = 48;
+        try {
+            const r = src.getBoundingClientRect();
+            if (r.width || r.height) {
+                sx = ((r.left + r.width / 2) - cRect.left) / (cRect.width || 1) * 100;
+                sy = ((r.top + r.height / 2) - cRect.top) / (cRect.height || 1) * 100;
+            }
+        } catch (_) { /* ignore */ }
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const el = document.createElement('div');
+        el.className = 'tm-aether-crack-spark';
+        const cx = (Math.random() * 28) - 8;
+        const cy = -10 - Math.random() * 28;
+        el.style.cssText = `
+            left: ${sx.toFixed(1)}%;
+            top: ${sy.toFixed(1)}%;
+            background: ${color};
+            box-shadow: 0 0 8px ${color};
+            --cx: ${cx.toFixed(1)}px;
+            --cy: ${cy.toFixed(1)}px;
+        `;
+        container.appendChild(el);
+        setTimeout(() => el.remove(), 800);
+    }
+}
+
+function playAetherGazeBeam(container, stage) {
+    if (!container) return;
+    container.querySelectorAll('.tm-aether-gaze-beam').forEach((el) => el.remove());
+    container.classList.add('tm-aether-gaze-on');
+    const colors = AETHER_PARTICLE_COLORS[stage] || AETHER_PARTICLE_COLORS.adult;
+    // Approximate eye positions in the 100×100 sprite (varies by stage; center-upper)
+    const eyeY = stage === 'baby' ? 42 : stage === 'old' ? 28 : 32;
+    const leftX = 42;
+    const rightX = 58;
+    const angles = [-18 - Math.random() * 10, 18 + Math.random() * 10];
+    [
+        { x: leftX, cls: '' },
+        { x: rightX, cls: 'is-right' },
+    ].forEach((eye, i) => {
+        const beam = document.createElement('div');
+        beam.className = `tm-aether-gaze-beam ${eye.cls}`.trim();
+        beam.style.cssText = `
+            left: ${eye.x}%;
+            top: ${eyeY}%;
+            transform: rotate(${angles[i].toFixed(1)}deg);
+            background: linear-gradient(to bottom, ${colors[0]}, ${colors[2] || colors[1]}, transparent);
+        `;
+        container.appendChild(beam);
+        setTimeout(() => beam.remove(), 1700);
+    });
+    setTimeout(() => container.classList.remove('tm-aether-gaze-on'), 1700);
+}
+
+function ensureAetherWorldDim() {
+    let dim = document.getElementById('tm-aether-world-dim');
+    if (!dim) {
+        dim = document.createElement('div');
+        dim.id = 'tm-aether-world-dim';
+        document.body.appendChild(dim);
+    }
+    return dim;
+}
+
+function updateAetherWorldDim(container, stage) {
+    if (!aetherMythFxActive || !container) {
+        document.getElementById('tm-aether-world-dim')?.classList.remove('tm-aether-dim-on', 'tm-aether-dim-strong');
+        return;
+    }
+    const show = stage === 'old' || stage === 'middleage' || isAetherAwakened();
+    const dim = ensureAetherWorldDim();
+    const rect = container.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    dim.style.left = `${cx}px`;
+    dim.style.top = `${cy}px`;
+    dim.classList.toggle('tm-aether-dim-on', !!show);
+    dim.classList.toggle('tm-aether-dim-strong', isAetherAwakened() || stage === 'old');
+}
+
+function scheduleAetherWorldDim(container, stage) {
+    if (!aetherMythFxActive) return;
+    updateAetherWorldDim(container, typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : stage);
+    aetherDimRaf = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        scheduleAetherWorldDim(container, stage);
+    }, 100);
 }
 
 function scheduleAetherAuraRoll(container, stage) {
@@ -5868,6 +5985,9 @@ function scheduleAetherParticleBurst(container, stage) {
         if (!aetherMythFxActive) return;
         if (isAetherAwakened() || Math.random() > 0.28) {
             emitAetherMythParticles(container, stage, isAetherAwakened() ? 14 + tier : null);
+            if (isAetherAwakened() || Math.random() < 0.4) {
+                emitAetherWingCrackSparks(container, stage, 3 + tier);
+            }
         }
         scheduleAetherParticleBurst(container, stage);
     }, Math.max(900, waitMs));
@@ -5902,6 +6022,20 @@ function scheduleAetherVeilTrail(container, stage) {
     }, 140 + Math.random() * 180);
 }
 
+function scheduleAetherGaze(container, stage) {
+    if (!aetherMythFxActive) return;
+    const tier = AETHER_STAGE_TIER[stage] || 1;
+    // Rare gaze — more often on older forms
+    const waitMs = 18000 + Math.random() * (42000 - tier * 4000);
+    aetherGazeTimer = setTimeout(() => {
+        if (!aetherMythFxActive) return;
+        if (!isMascotFocusQuiet() && Math.random() < (0.35 + tier * 0.08)) {
+            playAetherGazeBeam(container, stage);
+        }
+        scheduleAetherGaze(container, stage);
+    }, Math.max(12000, waitMs));
+}
+
 function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : 'baby') {
     stopAetherMythicFx();
     if (tamagotchiIsDead || stage === 'egg') return;
@@ -5920,6 +6054,8 @@ function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tam
     scheduleAetherParticleBurst(container, stage);
     scheduleAetherSolemnBubble();
     scheduleAetherVeilTrail(container, stage);
+    scheduleAetherGaze(container, stage);
+    scheduleAetherWorldDim(container, stage);
 }
 
 function playAetherReactionFx(kind = 'constellation') {
@@ -5934,6 +6070,10 @@ function playAetherReactionFx(kind = 'constellation') {
         orbits?.classList.add('tm-fx-on');
     }
     emitAetherMythParticles(container, stage, 12 + (AETHER_STAGE_TIER[stage] || 1));
+    emitAetherWingCrackSparks(container, stage, 5 + (AETHER_STAGE_TIER[stage] || 1));
+    if (kind === 'blade' || kind === 'energized' || Math.random() < 0.45) {
+        playAetherGazeBeam(container, stage);
+    }
     setTimeout(() => {
         container.classList.remove('tm-aether-react', 'tm-aether-blade-spin');
     }, 1800);
@@ -5949,19 +6089,19 @@ function awakenAetherMythicFx(durationMs = 6000) {
     const stage = tamagotchiStage === 'egg' ? 'adult' : (tamagotchiStage || 'adult');
     aetherAwakenUntil = Date.now() + durationMs;
     container.classList.add('tm-aether-awaken', 'tm-aether-glow-on', 'tm-aether-ring-on', 'tm-aether-sovereign');
-    const pool = AETHER_FX_BY_STAGE[stage] || AETHER_FX_BY_STAGE.adult;
-    container.querySelectorAll('.tm-aether-fx').forEach((el) => {
-        const name = el.getAttribute('data-fx');
-        el.classList.toggle('tm-fx-on', pool.includes(name) || !name);
-    });
-    // Turn every fx group on during awaken
     container.querySelectorAll('.tm-aether-fx').forEach((el) => el.classList.add('tm-fx-on'));
     emitAetherMythParticles(container, stage, 20);
+    emitAetherWingCrackSparks(container, stage, 10);
+    playAetherGazeBeam(container, stage);
+    updateAetherWorldDim(container, stage);
     playAetherReactionFx('blade');
     showMascotBubble('Awaken.', 1800);
     setTimeout(() => {
         container.classList.remove('tm-aether-awaken');
-        if (aetherMythFxActive) rollAetherAuraLayers(container, tamagotchiStage || stage);
+        if (aetherMythFxActive) {
+            rollAetherAuraLayers(container, tamagotchiStage || stage);
+            updateAetherWorldDim(container, tamagotchiStage || stage);
+        }
     }, durationMs);
     return true;
 }

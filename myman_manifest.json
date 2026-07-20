@@ -1,11 +1,11 @@
 {
-  "version": "281",
+  "version": "282",
   "loaderVersion": "35",
-  "silentVersion": "19",
-  "displayVersion": "35.19",
+  "silentVersion": "20",
+  "displayVersion": "35.20",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Aether dragon-blade wings with pulsing crack veins",
+  "releaseNotes": "Aether boss scale, wing-crack sparks, gaze beams, world dim",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
