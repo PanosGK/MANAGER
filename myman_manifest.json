@@ -1,11 +1,11 @@
 {
-  "version": "271",
+  "version": "272",
   "loaderVersion": "35",
-  "silentVersion": "9",
-  "displayVersion": "35.9",
+  "silentVersion": "10",
+  "displayVersion": "35.10",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Aether Pokemon-style evo line: distinct silhouette per stage (Voidseed to Primordial)",
+  "releaseNotes": "Amp Aether epic auras: beams, runes, shards, sigils, dual glow rings",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

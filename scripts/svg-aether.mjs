@@ -82,19 +82,120 @@ function makeDefs(p, bodyStops, stroke) {
     grad(`${p}-wing2`, [['0%', GOLD, 0.4], ['100%', DEEP, 0.55]], 'linear', 'x1="100%" y1="0%" x2="0%" y2="100%"'),
     grad(`${p}-core`, [['0%', PALE], ['30%', CYAN], ['70%', VIOLET], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
     grad(`${p}-iris`, [['0%', '#a8e6f0'], ['50%', CYAN], ['100%', INK]], 'radial', 'cx="40%" cy="35%" r="65%"'),
-    grad(`${p}-aura`, [['0%', CYAN, 0.16], ['45%', VIOLET, 0.14], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="48%" r="55%"'),
-    grad(`${p}-corona`, [['0%', GOLD, 0.16], ['100%', CYAN, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
+    grad(`${p}-aura`, [['0%', CYAN, 0.22], ['35%', VIOLET, 0.2], ['70%', GOLD, 0.08], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="48%" r="55%"'),
+    grad(`${p}-aura2`, [['0%', GOLD, 0.2], ['40%', CYAN, 0.12], ['100%', VIOLET, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
+    grad(`${p}-corona`, [['0%', GOLD, 0.28], ['40%', CYAN, 0.14], ['100%', VIOLET, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
     grad(`${p}-tail`, [['0%', '#5a4a78'], ['55%', VIOLET], ['100%', INK]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
     grad(`${p}-plate`, [['0%', '#3a2a55'], ['100%', INK]], 'linear', 'x1="0%" y1="0%" x2="0%" y2="100%"'),
+    grad(`${p}-sigil`, [['0%', GOLD, 0.55], ['100%', CYAN, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
+    grad(`${p}-beam`, [['0%', PALE, 0.55], ['50%', CYAN, 0.2], ['100%', VIOLET, 0]], 'linear', 'x1="0%" y1="0%" x2="0%" y2="100%"'),
   ].join('\n');
+}
+
+/** Layered aura + addons. tier 1=baby … 6=old */
+function epicAddons(p, tier = 1) {
+  const sparks = [
+    [12, 16], [88, 14], [6, 40], [94, 42], [18, 70], [82, 72],
+    [28, 8], [72, 6], [4, 58], [96, 56], [40, 4], [60, 4],
+    [22, 84], [78, 86], [48, 2], [52, 90],
+  ].slice(0, 4 + tier * 2);
+
+  const sparkSvg = sparks.map(([x, y], i) => {
+    const fill = i % 3 === 0 ? GOLD : i % 3 === 1 ? CYAN : VIOLET;
+    const r = i % 4 === 0 ? 1.8 : i % 2 ? 1.0 : 1.35;
+    return `${I3}<circle class="tm-aether-spark" cx="${x}" cy="${y}" r="${r}" fill="${fill}" opacity="${0.35 + (i % 4) * 0.1}"/>`;
+  }).join('\n');
+
+  const auraR = 26 + tier * 3.2;
+  let layers = `${I3}<ellipse class="tm-aether-aura" cx="50" cy="50" rx="${auraR.toFixed(1)}" ry="${(auraR * 0.9).toFixed(1)}" fill="url(#${p}-aura)"/>
+${I3}<ellipse class="tm-aether-aura-outer" cx="50" cy="50" rx="${(auraR * 1.18).toFixed(1)}" ry="${(auraR * 1.05).toFixed(1)}" fill="url(#${p}-aura2)" opacity="0.7"/>
+${I3}<ellipse class="tm-aether-corona" cx="50" cy="52" rx="${(auraR * 0.62).toFixed(1)}" ry="${(auraR * 0.55).toFixed(1)}" fill="url(#${p}-corona)" opacity="0.65"/>`;
+
+  // Energy beam rays behind body
+  if (tier >= 2) {
+    layers += `
+${I3}<g class="tm-aether-beams" opacity="${0.25 + tier * 0.04}">
+${I4}<path d="M 50 8 L 46 48 L 54 48 Z" fill="url(#${p}-beam)"/>
+${I4}<path d="M 18 28 L 44 52 L 50 46 Z" fill="url(#${p}-beam)" opacity="0.7"/>
+${I4}<path d="M 82 28 L 56 52 L 50 46 Z" fill="url(#${p}-beam)" opacity="0.7"/>
+${tier >= 4 ? `${I4}<path d="M 12 60 L 44 56 L 48 50 Z" fill="url(#${p}-beam)" opacity="0.55"/>
+${I4}<path d="M 88 60 L 56 56 L 52 50 Z" fill="url(#${p}-beam)" opacity="0.55"/>` : ''}
+${I3}</g>`;
+  }
+
+  // Ground / foot sigil
+  if (tier >= 2) {
+    layers += `
+${I3}<ellipse class="tm-aether-sigil" cx="50" cy="94" rx="${14 + tier}" ry="${3 + tier * 0.3}" fill="url(#${p}-sigil)" opacity="0.55"/>
+${I3}<ellipse class="tm-aether-sigil" cx="50" cy="94" rx="${10 + tier * 0.6}" ry="2.2" fill="none" stroke="${GOLD}" stroke-width="0.7" opacity="0.5"/>`;
+  }
+
+  // Orbit rings
+  if (tier >= 2) {
+    const rings = [];
+    rings.push(`${I4}<ellipse class="tm-aether-orbit" cx="50" cy="52" rx="${32 + tier * 2}" ry="${12 + tier}" fill="none" stroke="${CYAN}" stroke-width="1.15" opacity="0.5" stroke-dasharray="5 4"/>`);
+    if (tier >= 3) {
+      rings.push(`${I4}<ellipse class="tm-aether-orbit" cx="50" cy="52" rx="${26 + tier}" ry="${16 + tier * 0.6}" fill="none" stroke="${GOLD}" stroke-width="0.9" opacity="0.4" stroke-dasharray="3 5" transform="rotate(32 50 52)"/>`);
+    }
+    if (tier >= 4) {
+      rings.push(`${I4}<ellipse class="tm-aether-orbit" cx="50" cy="52" rx="${20 + tier}" ry="${20 + tier * 0.4}" fill="none" stroke="${VIOLET}" stroke-width="0.75" opacity="0.35" stroke-dasharray="2 4" transform="rotate(-24 50 52)"/>`);
+      rings.push(`${I4}<circle class="tm-aether-orbit-node" cx="${50 + 32 + tier * 2}" cy="52" r="1.8" fill="${GOLD}" opacity="0.75"/>`);
+      rings.push(`${I4}<circle class="tm-aether-orbit-node" cx="${50 - (26 + tier) * 0.7}" cy="${52 - (16 + tier * 0.6) * 0.55}" r="1.4" fill="${CYAN}" opacity="0.7"/>`);
+    }
+    if (tier >= 5) {
+      rings.push(`${I4}<ellipse class="tm-aether-orbit" cx="50" cy="52" rx="${38 + tier}" ry="${10 + tier * 0.4}" fill="none" stroke="${PALE}" stroke-width="0.6" opacity="0.3" stroke-dasharray="1 7" transform="rotate(12 50 52)"/>`);
+    }
+    layers += `
+${I3}<g class="tm-aether-orbit-group">
+${rings.join('\n')}
+${I3}</g>`;
+  }
+
+  // Rune circle around core area
+  if (tier >= 3) {
+    layers += `
+${I3}<g class="tm-aether-runes" opacity="0.45">
+${I4}<circle class="tm-aether-rune-ring" cx="50" cy="54" r="${11 + tier}" fill="none" stroke="${GOLD}" stroke-width="0.7" stroke-dasharray="2 3"/>
+${I4}<path d="M 50 ${(54 - 11 - tier).toFixed(1)} L ${(50 + 3).toFixed(1)} ${(54 - 6 - tier * 0.4).toFixed(1)}" stroke="${CYAN}" stroke-width="0.7"/>
+${I4}<path d="M ${(50 + 11 + tier).toFixed(1)} 54 L ${(50 + 7 + tier * 0.4).toFixed(1)} ${(54 + 3).toFixed(1)}" stroke="${GOLD}" stroke-width="0.7"/>
+${I4}<path d="M 50 ${(54 + 11 + tier).toFixed(1)} L ${(50 - 3).toFixed(1)} ${(54 + 6 + tier * 0.4).toFixed(1)}" stroke="${CYAN}" stroke-width="0.7"/>
+${I4}<path d="M ${(50 - 11 - tier).toFixed(1)} 54 L ${(50 - 7 - tier * 0.4).toFixed(1)} ${(54 - 3).toFixed(1)}" stroke="${GOLD}" stroke-width="0.7"/>
+${I3}</g>`;
+  }
+
+  // Floating glyph shards
+  if (tier >= 4) {
+    layers += `
+${I3}<g class="tm-aether-shards">
+${I4}<path class="tm-aether-shard" d="M 16 44 L 12 38 L 20 40 Z" fill="${CYAN}" opacity="0.45"/>
+${I4}<path class="tm-aether-shard" d="M 84 44 L 88 38 L 80 40 Z" fill="${GOLD}" opacity="0.45"/>
+${I4}<path class="tm-aether-shard" d="M 24 68 L 18 64 L 26 62 Z" fill="${VIOLET}" opacity="0.4"/>
+${I4}<path class="tm-aether-shard" d="M 76 68 L 82 64 L 74 62 Z" fill="${CYAN}" opacity="0.4"/>
+${tier >= 5 ? `${I4}<path class="tm-aether-shard" d="M 50 6 L 46 12 L 54 12 Z" fill="${GOLD}" opacity="0.5"/>
+${I4}<path class="tm-aether-shard" d="M 8 52 L 4 48 L 10 46 Z" fill="${GOLD}" opacity="0.35"/>
+${I4}<path class="tm-aether-shard" d="M 92 52 L 96 48 L 90 46 Z" fill="${CYAN}" opacity="0.35"/>` : ''}
+${I3}</g>`;
+  }
+
+  // Energy ribbons (mantle trails)
+  if (tier >= 3) {
+    layers += `
+${I3}<g class="tm-aether-ribbons" opacity="0.5">
+${I4}<path class="tm-aether-ribbon" d="M 34 40 Q 18 30 10 48 Q 16 42 30 46" fill="none" stroke="${CYAN}" stroke-width="1.2"/>
+${I4}<path class="tm-aether-ribbon" d="M 66 40 Q 82 30 90 48 Q 84 42 70 46" fill="none" stroke="${GOLD}" stroke-width="1.2"/>
+${tier >= 5 ? `${I4}<path class="tm-aether-ribbon" d="M 40 72 Q 28 84 16 78" fill="none" stroke="${VIOLET}" stroke-width="1"/>
+${I4}<path class="tm-aether-ribbon" d="M 60 72 Q 72 84 84 78" fill="none" stroke="${GOLD}" stroke-width="1"/>` : ''}
+${I3}</g>`;
+  }
+
+  return `${layers}
+${sparkSvg}`;
 }
 
 /** BABY — Voidseed: floating orb chrysalis, stub fins, no real limbs yet */
 function babyBody(p, stroke) {
   return `${shadow(18, 0.28)}
-${I3}<ellipse class="tm-aether-aura" cx="50" cy="56" rx="28" ry="26" fill="url(#${p}-aura)"/>
-${I3}<circle class="tm-aether-spark" cx="28" cy="34" r="1.1" fill="${CYAN}" opacity="0.45"/>
-${I3}<circle class="tm-aether-spark" cx="74" cy="38" r="0.9" fill="${GOLD}" opacity="0.4"/>
+${epicAddons(p, 1)}
 ${I3}<g class="tm-animate-wing-left">
 ${I4}<path d="M 34 58 L 22 50 L 24 62 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1"/>
 ${I3}</g>
@@ -109,6 +210,7 @@ ${I4}<!-- Seed orb -->
 ${I4}<ellipse cx="50" cy="58" rx="18" ry="20" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5"/>
 ${I4}<ellipse cx="50" cy="60" rx="10" ry="12" fill="url(#${p}-belly)" opacity="0.7"/>
 ${I4}<circle class="tm-aether-core" cx="50" cy="58" r="5" fill="url(#${p}-core)"/>
+${I4}<circle class="tm-aether-core-ring" cx="50" cy="58" r="8" fill="none" stroke="${CYAN}" stroke-width="0.6" opacity="0.4" stroke-dasharray="2 2"/>
 ${I4}<path d="M 50 42 L 50 74" stroke="${CYAN}" stroke-width="0.55" opacity="0.35"/>
 ${I4}<path d="M 40 50 L 60 66" stroke="${GOLD}" stroke-width="0.45" opacity="0.25"/>
 ${I3}</g>
@@ -131,9 +233,7 @@ ${solemnMouth(60, stroke, 4)}`;
 /** KID — Veilspawn: pear body, stub legs, horn nubs, triangle wing stubs */
 function kidBody(p, stroke) {
   return `${shadow(22, 0.3)}
-${I3}<ellipse class="tm-aether-aura" cx="50" cy="52" rx="32" ry="30" fill="url(#${p}-aura)"/>
-${I3}<circle class="tm-aether-spark" cx="20" cy="30" r="1.2" fill="${CYAN}" opacity="0.4"/>
-${I3}<circle class="tm-aether-spark" cx="82" cy="34" r="1" fill="${GOLD}" opacity="0.4"/>
+${epicAddons(p, 2)}
 ${I3}<g class="tm-animate-wing-left">
 ${I4}<path d="M 32 52 L 14 40 L 18 56 L 30 58 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.15"/>
 ${I4}<circle cx="14" cy="40" r="1.3" fill="${CYAN}" opacity="0.55"/>
@@ -150,6 +250,7 @@ ${I4}<!-- Pear torso -->
 ${I4}<path d="M 36 48 Q 34 70 42 80 L 58 80 Q 66 70 64 48 Q 58 38 50 36 Q 42 38 36 48 Z" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5"/>
 ${I4}<ellipse cx="50" cy="62" rx="9" ry="11" fill="url(#${p}-belly)"/>
 ${I4}<circle class="tm-aether-core" cx="50" cy="58" r="5.5" fill="url(#${p}-core)"/>
+${I4}<circle class="tm-aether-core-ring" cx="50" cy="58" r="8.5" fill="none" stroke="${GOLD}" stroke-width="0.6" opacity="0.4" stroke-dasharray="2 2"/>
 ${I4}<!-- Round head -->
 ${I4}<ellipse cx="50" cy="32" rx="13" ry="13" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.45"/>
 ${I4}<!-- Horn nubs -->
@@ -177,11 +278,7 @@ ${solemnMouth(40, stroke, 4.5)}`;
 /** TEEN — Astral Warden: bipedal, scythe wings, crescent horns, 1 orbit */
 function teenBody(p, stroke) {
   return `${shadow(24, 0.32)}
-${I3}<ellipse class="tm-aether-aura" cx="50" cy="48" rx="36" ry="34" fill="url(#${p}-aura)"/>
-${I3}<ellipse class="tm-aether-orbit" cx="50" cy="52" rx="36" ry="14" fill="none" stroke="${CYAN}" stroke-width="1.1" opacity="0.45" stroke-dasharray="5 4"/>
-${I3}<circle class="tm-aether-spark" cx="14" cy="24" r="1.2" fill="${CYAN}" opacity="0.4"/>
-${I3}<circle class="tm-aether-spark" cx="88" cy="28" r="1.1" fill="${GOLD}" opacity="0.4"/>
-${I3}<circle class="tm-aether-spark" cx="10" cy="56" r="0.9" fill="${VIOLET}" opacity="0.35"/>
+${epicAddons(p, 3)}
 ${I3}<g class="tm-animate-wing-left">
 ${I4}<path d="M 30 48 L 8 28 L 4 44 L 12 58 L 28 56 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.25"/>
 ${I4}<path d="M 26 50 L 10 40" stroke="${CYAN}" stroke-width="0.7" opacity="0.5"/>
@@ -233,18 +330,7 @@ ${solemnMouth(36, stroke, 5)}`;
 /** ADULT — Starveil Sovereign: tall, multi-blade wings, diadem, triple orbits, mantle */
 function adultBody(p, stroke) {
   return `${shadow(28, 0.38)}
-${I3}<ellipse class="tm-aether-aura" cx="50" cy="46" rx="42" ry="40" fill="url(#${p}-aura)"/>
-${I3}<ellipse class="tm-aether-corona" cx="50" cy="48" rx="28" ry="26" fill="url(#${p}-corona)" opacity="0.55"/>
-${I3}<g class="tm-aether-orbit-group">
-${I4}<ellipse class="tm-aether-orbit" cx="50" cy="50" rx="42" ry="16" fill="none" stroke="${CYAN}" stroke-width="1.2" opacity="0.5" stroke-dasharray="6 4"/>
-${I4}<ellipse class="tm-aether-orbit" cx="50" cy="50" rx="34" ry="20" fill="none" stroke="${GOLD}" stroke-width="0.9" opacity="0.4" stroke-dasharray="3 5" transform="rotate(30 50 50)"/>
-${I4}<ellipse class="tm-aether-orbit" cx="50" cy="50" rx="24" ry="24" fill="none" stroke="${VIOLET}" stroke-width="0.7" opacity="0.3" stroke-dasharray="2 4" transform="rotate(-20 50 50)"/>
-${I4}<circle class="tm-aether-orbit-node" cx="92" cy="50" r="1.6" fill="${GOLD}" opacity="0.7"/>
-${I3}</g>
-${I3}<circle class="tm-aether-spark" cx="12" cy="18" r="1.3" fill="${CYAN}" opacity="0.4"/>
-${I3}<circle class="tm-aether-spark" cx="90" cy="16" r="1.1" fill="${GOLD}" opacity="0.4"/>
-${I3}<circle class="tm-aether-spark" cx="6" cy="48" r="1" fill="${VIOLET}" opacity="0.35"/>
-${I3}<circle class="tm-aether-spark" cx="94" cy="52" r="1" fill="${CYAN}" opacity="0.35"/>
+${epicAddons(p, 4)}
 ${I3}<g class="tm-animate-wing-left">
 ${I4}<path d="M 28 46 L 2 18 L -4 36 L 6 58 L 16 64 L 28 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.35"/>
 ${I4}<path d="M 26 50 L 6 42 L 10 60 L 24 56 Z" fill="url(#${p}-wing2)" stroke="${stroke}" stroke-width="0.9" opacity="0.65"/>
@@ -303,14 +389,11 @@ ${solemnMouth(30, stroke, 5.5)}`;
 /** MID — Eclipse Sovereign: armored plates, jagged wings, eclipse disk, heavier */
 function midBody(p, stroke) {
   return `${shadow(28, 0.42)}
-${I3}<ellipse class="tm-aether-aura" cx="50" cy="46" rx="40" ry="38" fill="url(#${p}-aura)" opacity="0.85"/>
+${epicAddons(p, 5)}
 ${I4}<!-- Eclipse disk behind head -->
-${I3}<circle cx="50" cy="22" r="16" fill="${INK}" opacity="0.55"/>
-${I3}<circle cx="50" cy="22" r="16" fill="none" stroke="${GOLD}" stroke-width="1.4" opacity="0.55"/>
-${I3}<circle cx="54" cy="20" r="12" fill="url(#${p}-aura)" opacity="0.35"/>
-${I3}<ellipse class="tm-aether-orbit" cx="50" cy="52" rx="38" ry="14" fill="none" stroke="${GOLD}" stroke-width="1" opacity="0.35" stroke-dasharray="4 5"/>
-${I3}<circle class="tm-aether-spark" cx="14" cy="30" r="1" fill="${GOLD}" opacity="0.35"/>
-${I3}<circle class="tm-aether-spark" cx="88" cy="34" r="1" fill="${CYAN}" opacity="0.3"/>
+${I3}<circle class="tm-aether-eclipse" cx="50" cy="22" r="16" fill="${INK}" opacity="0.55"/>
+${I3}<circle class="tm-aether-eclipse" cx="50" cy="22" r="16" fill="none" stroke="${GOLD}" stroke-width="1.4" opacity="0.55"/>
+${I3}<circle class="tm-aether-eclipse" cx="54" cy="20" r="12" fill="url(#${p}-aura)" opacity="0.35"/>
 ${I3}<g class="tm-animate-wing-left">
 ${I4}<!-- Jagged eclipse wing -->
 ${I4}<path d="M 30 48 L 6 22 L 0 34 L 4 50 L 2 62 L 14 58 L 28 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.3"/>
@@ -361,20 +444,10 @@ ${solemnMouth(32, stroke, 5)}`;
 /** OLD — Primordial Absolute: elongated ethereal, huge translucent wings, thin halo */
 function oldBody(p, stroke) {
   return `${shadow(30, 0.3)}
-${I3}<ellipse class="tm-aether-aura" cx="50" cy="44" rx="44" ry="42" fill="url(#${p}-aura)"/>
-${I3}<ellipse class="tm-aether-corona" cx="50" cy="46" rx="30" ry="28" fill="url(#${p}-corona)" opacity="0.65"/>
+${epicAddons(p, 6)}
 ${I3}<ellipse class="tm-aether-halo" cx="50" cy="14" rx="22" ry="5" fill="none" stroke="${GOLD}" stroke-width="1.5" opacity="0.7"/>
 ${I3}<ellipse class="tm-aether-halo" cx="50" cy="14" rx="16" ry="3.5" fill="none" stroke="${CYAN}" stroke-width="0.8" opacity="0.45"/>
-${I3}<g class="tm-aether-orbit-group">
-${I4}<ellipse class="tm-aether-orbit" cx="50" cy="48" rx="44" ry="18" fill="none" stroke="${GOLD}" stroke-width="1" opacity="0.4" stroke-dasharray="5 5"/>
-${I4}<ellipse class="tm-aether-orbit" cx="50" cy="48" rx="30" ry="28" fill="none" stroke="${CYAN}" stroke-width="0.7" opacity="0.3" stroke-dasharray="2 6" transform="rotate(40 50 48)"/>
-${I3}</g>
-${I3}<circle class="tm-aether-spark" cx="10" cy="16" r="1.4" fill="${GOLD}" opacity="0.45"/>
-${I3}<circle class="tm-aether-spark" cx="92" cy="14" r="1.2" fill="${CYAN}" opacity="0.4"/>
-${I3}<circle class="tm-aether-spark" cx="6" cy="44" r="1" fill="${GOLD}" opacity="0.35"/>
-${I3}<circle class="tm-aether-spark" cx="96" cy="48" r="1" fill="${CYAN}" opacity="0.35"/>
-${I3}<circle class="tm-aether-spark" cx="20" cy="78" r="0.9" fill="${GOLD}" opacity="0.3"/>
-${I3}<circle class="tm-aether-spark" cx="80" cy="80" r="0.9" fill="${CYAN}" opacity="0.3"/>
+${I3}<ellipse class="tm-aether-halo" cx="50" cy="14" rx="28" ry="7" fill="none" stroke="${VIOLET}" stroke-width="0.55" opacity="0.35" stroke-dasharray="3 4"/>
 ${I3}<g class="tm-animate-wing-left">
 ${I4}<!-- Vast ethereal wing -->
 ${I4}<path d="M 30 44 Q -8 8 -10 40 Q -6 72 18 68 Q 26 56 32 48 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2" opacity="0.75"/>
