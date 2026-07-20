@@ -1,5 +1,5 @@
 /**
- * Starveil Aether — MYTHICAL evo line v8 (sovereign presence package)
+ * Starveil Aether — MYTHICAL evo line v9 (dragon-blade wings + pulsing veins)
  * Same species DNA (void / cyan / gold / rune-core / blades) but
  * EACH stage has a clearly different silhouette — like a real evo line.
  * Export for apply-aether-svg.mjs → myman_mascot.js
@@ -137,10 +137,10 @@ function makeDefs(p, pal) {
   return [
     grad(`${p}-body`, pal.body, 'radial', 'cx="38%" cy="22%" r="80%"'),
     grad(`${p}-belly`, pal.belly, 'radial', 'cx="50%" cy="40%" r="60%"'),
-    grad(`${p}-wing`, [['0%', pal.wing0, 0.92], ['28%', pal.a, 0.55], ['55%', pal.wing1, 0.72], ['100%', DEEP, 0.88]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
-    grad(`${p}-wing2`, [['0%', pal.b, 0.55], ['45%', pal.c, 0.35], ['100%', DEEP, 0.2]], 'linear', 'x1="100%" y1="0%" x2="0%" y2="100%"'),
-    grad(`${p}-wingveil`, [['0%', pal.pale, 0.35], ['40%', pal.a, 0.18], ['100%', pal.c, 0]], 'radial', 'cx="35%" cy="30%" r="75%"'),
-    grad(`${p}-wingglow`, [['0%', pal.b, 0.55], ['50%', pal.a, 0.18], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="40%" r="65%"'),
+    grad(`${p}-wing`, [['0%', pal.wing0, 0.75], ['25%', DEEP, 0.55], ['55%', pal.wing1, 0.8], ['100%', INK, 0.95]], 'linear', 'x1="15%" y1="10%" x2="90%" y2="90%"'),
+    grad(`${p}-wing2`, [['0%', pal.a, 0.35], ['40%', pal.c, 0.45], ['100%', INK, 0.7]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
+    grad(`${p}-wingveil`, [['0%', pal.a, 0.22], ['50%', pal.c, 0.12], ['100%', INK, 0]], 'radial', 'cx="30%" cy="35%" r="70%"'),
+    grad(`${p}-wingglow`, [['0%', pal.b, 0.35], ['55%', pal.a, 0.1], ['100%', DEEP, 0]], 'radial', 'cx="40%" cy="40%" r="60%"'),
     grad(`${p}-core`, [['0%', pal.pale], ['30%', pal.a], ['70%', pal.c], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
     grad(`${p}-iris`, pal.iris, 'radial', 'cx="40%" cy="35%" r="65%"'),
     grad(`${p}-aura`, [['0%', pal.aura0, 0.12], ['28%', pal.aura1, 0.1], ['58%', pal.aura2, 0.05], ['100%', DEEP, 0]], 'radial', 'cx="50%" cy="52%" r="78%"'),
@@ -368,80 +368,117 @@ function mythicWingSide(p, stroke, A, B, C, stage, side) {
     ? `${I3}<g class="${cls}">`
     : `${I3}<g class="${cls}" transform="translate(50 52) scale(${asym.toFixed(2)}) translate(-50 -52)">`;
 
-  const star = (x, y, r = 1.6, fill = tip) =>
-    `${I4}<circle class="tm-aether-wing-star" cx="${X(x)}" cy="${y}" r="${r}" fill="${fill}" opacity="0.85"/>
-${I4}<circle class="tm-aether-wing-star" cx="${X(x)}" cy="${y}" r="${(r * 2.2).toFixed(1)}" fill="${fill}" opacity="0.18"/>`;
+  const claw = (x, y, fill = tip) =>
+    `${I4}<path class="tm-aether-wing-claw" d="M ${X(x)} ${y} L ${X(x - 3)} ${y - 5} L ${X(x + 1)} ${y - 2} Z" fill="${fill}" opacity="0.9"/>`;
+  const vein = (d, color, delay = 0) =>
+    `${I4}<path class="tm-aether-wing-vein" d="${d}" fill="none" stroke="${color}" stroke-width="0.9" stroke-linecap="round" style="animation-delay:${delay}s"/>`;
+  const crack = (d, color, delay = 0.4) =>
+    `${I4}<path class="tm-aether-wing-crack" d="${d}" fill="none" stroke="${color}" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:${delay}s"/>`;
 
+  // Dragon / void-blade wings — angular membranes, finger bones, pulsing cracks (not butterfly sails)
   if (stage === 'baby') {
     return `${wrapOpen}
-${I4}<path d="M ${X(36)} 56 Q ${X(18)} 42 ${X(14)} 54 Q ${X(18)} 66 ${X(34)} 62 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.05"/>
-${I4}<path d="M ${X(34)} 56 Q ${X(22)} 48 ${X(20)} 56 Q ${X(22)} 62 ${X(32)} 60" fill="url(#${p}-wingveil)" opacity="0.7"/>
-${I4}<path d="M ${X(32)} 54 L ${X(18)} 50" stroke="${tip}" stroke-width="0.7" opacity="0.55"/>
-${star(14, 52, 1.4, tip)}
+${I4}<path d="M ${X(36)} 58 L ${X(20)} 46 L ${X(16)} 54 L ${X(22)} 64 L ${X(34)} 62 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.1"/>
+${I4}<path d="M ${X(34)} 58 L ${X(24)} 52 L ${X(22)} 58 L ${X(28)} 62 Z" fill="url(#${p}-wing2)" opacity="0.65"/>
+${vein(`M ${X(34)} 58 L ${X(22)} 50 L ${X(18)} 56`, tip, 0)}
+${claw(16, 48, tip)}
 ${I3}</g>`;
   }
 
   if (stage === 'evo1') {
     return `${wrapOpen}
-${I4}<path d="M ${X(34)} 50 Q ${X(10)} 28 ${X(4)} 46 Q ${X(6)} 62 ${X(22)} 64 Q ${X(30)} 58 ${X(34)} 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.15"/>
-${I4}<path d="M ${X(32)} 52 Q ${X(14)} 38 ${X(10)} 50 Q ${X(14)} 60 ${X(28)} 58" fill="url(#${p}-wingveil)" opacity="0.65"/>
-${I4}<path d="M ${X(30)} 48 Q ${X(16)} 40 ${X(8)} 46" fill="none" stroke="${tip}" stroke-width="0.75" opacity="0.55"/>
-${I4}<path d="M ${X(28)} 54 Q ${X(16)} 52 ${X(10)} 56" fill="none" stroke="${tip2}" stroke-width="0.55" opacity="0.4"/>
-${star(5, 44, 1.5, tip)}
+${I4}<path d="M ${X(34)} 52 L ${X(14)} 30 L ${X(4)} 36 L ${X(8)} 48 L ${X(2)} 56 L ${X(12)} 62 L ${X(24)} 60 L ${X(32)} 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2"/>
+${I4}<path d="M ${X(32)} 52 L ${X(16)} 38 L ${X(12)} 48 L ${X(18)} 56 L ${X(28)} 54 Z" fill="url(#${p}-wing2)" opacity="0.7"/>
+${I4}<path d="M ${X(30)} 50 L ${X(18)} 36 L ${X(10)} 40" fill="none" stroke="${stroke}" stroke-width="1.05" opacity="0.55"/>
+${I4}<path d="M ${X(28)} 54 L ${X(14)} 50 L ${X(8)} 54" fill="none" stroke="${stroke}" stroke-width="0.85" opacity="0.45"/>
+${vein(`M ${X(32)} 50 L ${X(16)} 36 L ${X(6)} 38`, tip, 0)}
+${vein(`M ${X(30)} 54 L ${X(16)} 52 L ${X(6)} 56`, tip2, 0.35)}
+${crack(`M ${X(22)} 44 L ${X(18)} 50 L ${X(20)} 56`, C, 0.2)}
+${claw(4, 34, tip)}
+${claw(2, 54, tip2)}
 ${I3}</g>`;
   }
 
   if (stage === 'evo2') {
     return `${wrapOpen}
-${I4}<path d="M ${X(32)} 46 Q ${X(6)} 16 ${X(-2)} 34 Q ${X(-4)} 52 ${X(8)} 64 Q ${X(20)} 62 ${X(30)} 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.25"/>
-${I4}<path d="M ${X(28)} 48 Q ${X(8)} 28 ${X(2)} 44 Q ${X(6)} 58 ${X(22)} 56" fill="url(#${p}-wing2)" opacity="0.7"/>
-${I4}<path d="M ${X(26)} 46 Q ${X(10)} 34 ${X(0)} 38" fill="none" stroke="${tip}" stroke-width="0.85" opacity="0.6"/>
-${I4}<path d="M ${X(24)} 52 Q ${X(12)} 50 ${X(4)} 54" fill="none" stroke="${C}" stroke-width="0.55" opacity="0.45"/>
-${I4}<path d="M ${X(8)} 28 L ${X(2)} 22 L ${X(6)} 26 Z" fill="${tip}" opacity="0.75"/>
-${star(-1, 32, 1.7, tip)}
+${I4}<path d="M ${X(32)} 48 L ${X(10)} 18 L ${X(-2)} 24 L ${X(2)} 40 L ${X(-6)} 50 L ${X(2)} 62 L ${X(14)} 66 L ${X(26)} 58 L ${X(30)} 50 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.25"/>
+${I4}<path d="M ${X(28)} 48 L ${X(10)} 28 L ${X(4)} 40 L ${X(8)} 56 L ${X(22)} 56 Z" fill="url(#${p}-wing2)" opacity="0.72"/>
+${I4}<path d="M ${X(30)} 46 L ${X(12)} 22 L ${X(2)} 28" fill="none" stroke="${stroke}" stroke-width="1.15" opacity="0.6"/>
+${I4}<path d="M ${X(28)} 50 L ${X(12)} 42 L ${X(0)} 46" fill="none" stroke="${stroke}" stroke-width="0.95" opacity="0.5"/>
+${I4}<path d="M ${X(26)} 56 L ${X(14)} 58 L ${X(4)} 62" fill="none" stroke="${stroke}" stroke-width="0.8" opacity="0.4"/>
+${vein(`M ${X(30)} 46 L ${X(12)} 24 L ${X(0)} 26`, tip, 0)}
+${vein(`M ${X(28)} 52 L ${X(10)} 46 L ${X(-2)} 50`, B, 0.4)}
+${vein(`M ${X(26)} 56 L ${X(12)} 60 L ${X(4)} 64`, C, 0.7)}
+${crack(`M ${X(18)} 36 L ${X(14)} 44 L ${X(18)} 52`, tip, 0.15)}
+${crack(`M ${X(16)} 50 L ${X(10)} 54 L ${X(14)} 60`, C, 0.55)}
+${claw(-2, 22, tip)}
+${claw(-6, 48, tip2)}
 ${I3}</g>`;
   }
 
   if (stage === 'evo3') {
     return `${wrapOpen}
-${I4}<path d="M ${X(30)} 44 Q ${X(2)} 8 ${X(-8)} 28 Q ${X(-12)} 48 ${X(-2)} 66 Q ${X(10)} 72 ${X(22)} 64 Q ${X(28)} 54 ${X(30)} 48 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.3"/>
-${I4}<path d="M ${X(28)} 48 Q ${X(8)} 24 ${X(0)} 40 Q ${X(2)} 58 ${X(18)} 60 Q ${X(26)} 54 ${X(28)} 50 Z" fill="url(#${p}-wing2)" stroke="${stroke}" stroke-width="0.85" opacity="0.75"/>
-${I4}<path d="M ${X(26)} 50 Q ${X(12)} 36 ${X(8)} 48 Q ${X(12)} 58 ${X(24)} 56" fill="url(#${p}-wingveil)" opacity="0.7"/>
-${I4}<ellipse cx="${X(12)}" cy="40" rx="7" ry="10" fill="url(#${p}-wingglow)" opacity="0.45"/>
-${I4}<path d="M ${X(24)} 42 Q ${X(8)} 28 ${X(-4)} 32" fill="none" stroke="${tip}" stroke-width="0.9" opacity="0.65"/>
-${I4}<path d="M ${X(22)} 50 Q ${X(8)} 46 ${X(-2)} 52" fill="none" stroke="${B}" stroke-width="0.65" opacity="0.5"/>
-${I4}<path d="M ${X(20)} 56 Q ${X(10)} 58 ${X(2)} 62" fill="none" stroke="${C}" stroke-width="0.55" opacity="0.4"/>
-${I4}<path d="M ${X(2)} 14 L ${X(-4)} 6 L ${X(2)} 10 Z" fill="${tip}" opacity="0.8"/>
-${star(-8, 26, 2, tip)}
-${star(0, 64, 1.3, tip2)}
+${I4}<path d="M ${X(30)} 46 L ${X(8)} 10 L ${X(-6)} 16 L ${X(-2)} 34 L ${X(-12)} 44 L ${X(-4)} 58 L ${X(-8)} 70 L ${X(8)} 72 L ${X(20)} 64 L ${X(28)} 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.3"/>
+${I4}<path d="M ${X(28)} 48 L ${X(8)} 22 L ${X(0)} 36 L ${X(4)} 54 L ${X(18)} 58 L ${X(26)} 50 Z" fill="url(#${p}-wing2)" opacity="0.75"/>
+${I4}<path d="M ${X(26)} 50 L ${X(12)} 36 L ${X(6)} 48 L ${X(12)} 58 L ${X(22)} 54 Z" fill="url(#${p}-wingveil)" opacity="0.45"/>
+${I4}<path d="M ${X(28)} 44 L ${X(10)} 14 L ${X(-4)} 18" fill="none" stroke="${stroke}" stroke-width="1.2" opacity="0.65"/>
+${I4}<path d="M ${X(26)} 48 L ${X(8)} 36 L ${X(-8)} 42" fill="none" stroke="${stroke}" stroke-width="1" opacity="0.55"/>
+${I4}<path d="M ${X(24)} 54 L ${X(8)} 52 L ${X(-4)} 58" fill="none" stroke="${stroke}" stroke-width="0.9" opacity="0.45"/>
+${I4}<path d="M ${X(22)} 60 L ${X(10)} 64 L ${X(0)} 70" fill="none" stroke="${stroke}" stroke-width="0.75" opacity="0.4"/>
+${vein(`M ${X(28)} 44 L ${X(10)} 16 L ${X(-4)} 18`, tip, 0)}
+${vein(`M ${X(26)} 50 L ${X(8)} 40 L ${X(-8)} 44`, B, 0.3)}
+${vein(`M ${X(24)} 56 L ${X(8)} 56 L ${X(-4)} 62`, tip2, 0.6)}
+${vein(`M ${X(22)} 60 L ${X(10)} 66 L ${X(0)} 70`, C, 0.9)}
+${crack(`M ${X(16)} 28 L ${X(12)} 38 L ${X(16)} 46`, tip, 0.1)}
+${crack(`M ${X(14)} 48 L ${X(6)} 52 L ${X(12)} 60`, C, 0.5)}
+${crack(`M ${X(10)} 34 L ${X(4)} 42 L ${X(8)} 50`, B, 0.8)}
+${claw(-6, 14, tip)}
+${claw(-12, 42, tip2)}
+${claw(-8, 68, C)}
 ${I3}</g>`;
   }
 
   if (stage === 'evo4') {
     return `${wrapOpen}
-${I4}<path d="M ${X(32)} 46 L ${X(8)} 14 L ${X(-2)} 24 L ${X(2)} 40 L ${X(-4)} 52 L ${X(2)} 66 L ${X(14)} 70 L ${X(24)} 62 L ${X(30)} 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.3"/>
-${I4}<path d="M ${X(28)} 48 L ${X(10)} 28 L ${X(4)} 42 L ${X(8)} 58 L ${X(22)} 58 Z" fill="url(#${p}-wing2)" opacity="0.7"/>
-${I4}<path d="M ${X(26)} 50 L ${X(12)} 44 L ${X(14)} 58 L ${X(24)} 54 Z" fill="url(#${p}-plate)" stroke="${stroke}" stroke-width="0.75" opacity="0.75"/>
-${I4}<path d="M ${X(22)} 40 L ${X(6)} 22" stroke="${tip}" stroke-width="0.9" opacity="0.55"/>
-${I4}<path d="M ${X(20)} 52 L ${X(4)} 50" stroke="${B}" stroke-width="0.7" opacity="0.45"/>
-${I4}<path d="M ${X(8)} 16 L ${X(0)} 8 L ${X(6)} 12 Z" fill="${tip}" opacity="0.8"/>
-${star(-2, 22, 1.8, tip)}
-${star(-2, 64, 1.4, B)}
+${I4}<path d="M ${X(32)} 48 L ${X(10)} 8 L ${X(-4)} 14 L ${X(2)} 30 L ${X(-10)} 38 L ${X(-2)} 50 L ${X(-12)} 58 L ${X(-2)} 70 L ${X(12)} 74 L ${X(24)} 64 L ${X(30)} 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.3"/>
+${I4}<path d="M ${X(28)} 48 L ${X(10)} 22 L ${X(2)} 36 L ${X(6)} 54 L ${X(20)} 58 Z" fill="url(#${p}-wing2)" opacity="0.7"/>
+${I4}<path d="M ${X(26)} 50 L ${X(14)} 40 L ${X(10)} 52 L ${X(18)} 56 Z" fill="url(#${p}-plate)" stroke="${stroke}" stroke-width="0.7" opacity="0.8"/>
+${I4}<path d="M ${X(30)} 44 L ${X(12)} 12 L ${X(-2)} 16" fill="none" stroke="${stroke}" stroke-width="1.25" opacity="0.65"/>
+${I4}<path d="M ${X(28)} 50 L ${X(10)} 38 L ${X(-8)} 42" fill="none" stroke="${stroke}" stroke-width="1.05" opacity="0.55"/>
+${I4}<path d="M ${X(26)} 56 L ${X(10)} 56 L ${X(-8)} 62" fill="none" stroke="${stroke}" stroke-width="0.9" opacity="0.45"/>
+${vein(`M ${X(30)} 44 L ${X(12)} 12 L ${X(-2)} 14`, tip, 0)}
+${vein(`M ${X(28)} 50 L ${X(10)} 40 L ${X(-8)} 42`, B, 0.35)}
+${vein(`M ${X(26)} 56 L ${X(8)} 58 L ${X(-6)} 64`, tip2, 0.7)}
+${crack(`M ${X(18)} 24 L ${X(12)} 34 L ${X(18)} 44`, tip, 0.1)}
+${crack(`M ${X(14)} 46 L ${X(4)} 50 L ${X(10)} 60`, C, 0.45)}
+${crack(`M ${X(8)} 28 L ${X(0)} 36 L ${X(6)} 46`, B, 0.85)}
+${claw(-4, 12, tip)}
+${claw(-10, 36, tip2)}
+${claw(-12, 56, B)}
 ${I3}</g>`;
   }
 
+  // evo5 — vast tattered dragon wings
   return `${wrapOpen}
-${I4}<path d="M ${X(32)} 42 Q ${X(-4)} -2 ${X(-14)} 28 Q ${X(-16)} 56 ${X(-6)} 76 Q ${X(10)} 82 ${X(24)} 70 Q ${X(30)} 56 ${X(32)} 46 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.15" opacity="0.82"/>
-${I4}<path d="M ${X(28)} 44 Q ${X(2)} 10 ${X(-6)} 34 Q ${X(-4)} 60 ${X(16)} 66 Q ${X(26)} 56 ${X(28)} 48 Z" fill="url(#${p}-wing2)" opacity="0.55"/>
-${I4}<path d="M ${X(26)} 46 Q ${X(8)} 28 ${X(2)} 46 Q ${X(6)} 62 ${X(22)} 58" fill="url(#${p}-wingveil)" opacity="0.55"/>
-${I4}<ellipse cx="${X(6)}" cy="36" rx="10" ry="14" fill="url(#${p}-wingglow)" opacity="0.35"/>
-${I4}<path d="M ${X(24)} 36 Q ${X(4)} 16 ${X(-8)} 24" fill="none" stroke="${tip}" stroke-width="0.85" opacity="0.55"/>
-${I4}<path d="M ${X(22)} 48 Q ${X(4)} 42 ${X(-8)} 48" fill="none" stroke="${B}" stroke-width="0.7" opacity="0.45"/>
-${I4}<path d="M ${X(20)} 58 Q ${X(6)} 60 ${X(-4)} 66" fill="none" stroke="${C}" stroke-width="0.55" opacity="0.4"/>
-${I4}<path d="M ${X(6)} 8 L ${X(-2)} -2 L ${X(4)} 4 Z" fill="${tip}" opacity="0.75"/>
-${star(-12, 26, 2.1, tip)}
-${star(-8, 72, 1.5, B)}
-${star(4, 14, 1.2, tip2)}
+${I4}<path d="M ${X(32)} 44 L ${X(6)} 2 L ${X(-10)} 8 L ${X(-4)} 28 L ${X(-18)} 36 L ${X(-8)} 50 L ${X(-20)} 58 L ${X(-10)} 72 L ${X(-14)} 84 L ${X(6)} 82 L ${X(20)} 70 L ${X(28)} 54 L ${X(32)} 46 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2" opacity="0.88"/>
+${I4}<path d="M ${X(28)} 46 L ${X(4)} 14 L ${X(-6)} 30 L ${X(0)} 52 L ${X(14)} 60 L ${X(24)} 50 Z" fill="url(#${p}-wing2)" opacity="0.6"/>
+${I4}<path d="M ${X(26)} 48 L ${X(10)} 28 L ${X(2)} 42 L ${X(8)} 56 L ${X(20)} 54 Z" fill="url(#${p}-wingveil)" opacity="0.4"/>
+${I4}<path d="M ${X(30)} 42 L ${X(8)} 6 L ${X(-8)} 10" fill="none" stroke="${stroke}" stroke-width="1.25" opacity="0.65"/>
+${I4}<path d="M ${X(28)} 48 L ${X(6)} 30 L ${X(-14)} 36" fill="none" stroke="${stroke}" stroke-width="1.1" opacity="0.55"/>
+${I4}<path d="M ${X(26)} 54 L ${X(6)} 50 L ${X(-14)} 56" fill="none" stroke="${stroke}" stroke-width="0.95" opacity="0.45"/>
+${I4}<path d="M ${X(24)} 60 L ${X(8)} 66 L ${X(-8)} 74" fill="none" stroke="${stroke}" stroke-width="0.8" opacity="0.4"/>
+${vein(`M ${X(30)} 42 L ${X(8)} 6 L ${X(-8)} 10`, tip, 0)}
+${vein(`M ${X(28)} 48 L ${X(6)} 32 L ${X(-14)} 36`, B, 0.25)}
+${vein(`M ${X(26)} 54 L ${X(4)} 52 L ${X(-16)} 58`, tip2, 0.5)}
+${vein(`M ${X(24)} 60 L ${X(6)} 68 L ${X(-10)} 78`, C, 0.75)}
+${crack(`M ${X(16)} 18 L ${X(10)} 30 L ${X(16)} 40`, tip, 0.1)}
+${crack(`M ${X(12)} 40 L ${X(2)} 46 L ${X(10)} 56`, C, 0.4)}
+${crack(`M ${X(8)} 24 L ${X(-2)} 34 L ${X(4)} 44`, B, 0.7)}
+${crack(`M ${X(6)} 58 L ${X(-4)} 64 L ${X(2)} 74`, tip2, 1.0)}
+${claw(-10, 6, tip)}
+${claw(-18, 34, tip2)}
+${claw(-20, 56, B)}
+${claw(-14, 82, C)}
 ${I3}</g>`;
 }
 

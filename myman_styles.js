@@ -4614,6 +4614,26 @@
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-wing-star:nth-child(odd) {
                 animation-delay: 0.7s;
             }
+            /* Pulsing dragon wing veins / cracks */
+            .mascot-char-aether .tm-aether-wing-vein {
+                opacity: 0.4;
+                animation: tm-aether-vein-pulse 2.6s ease-in-out infinite;
+            }
+            .mascot-char-aether .tm-aether-wing-crack {
+                opacity: 0.3;
+                animation: tm-aether-crack-pulse 3.4s ease-in-out infinite;
+            }
+            .mascot-char-aether .tm-aether-wing-claw {
+                animation: tm-aether-claw-glow 2.8s ease-in-out infinite;
+            }
+            #tm-mascot-container.tm-aether-awaken .tm-aether-wing-vein,
+            #tm-mascot-container.tm-aether-react .tm-aether-wing-vein {
+                animation-duration: 1.1s;
+            }
+            #tm-mascot-container.tm-aether-awaken .tm-aether-wing-crack,
+            #tm-mascot-container.tm-aether-react .tm-aether-wing-crack {
+                animation-duration: 1.4s;
+            }
             /* Active travel flap — kicks in as soon as the mascot starts moving */
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .tm-animate-wing-left {
                 animation: tm-wing-flap-move 0.4s ease-in-out infinite !important;
@@ -4950,6 +4970,30 @@
             @keyframes tm-mythic-wing-breathe-right {
                 0%, 100% { transform: rotate(-1deg) scaleY(1); }
                 50% { transform: rotate(5deg) scaleY(1.03); }
+            }
+            @keyframes tm-aether-vein-pulse {
+                0%, 100% {
+                    opacity: 0.28;
+                    stroke-opacity: 0.35;
+                    filter: drop-shadow(0 0 0 transparent);
+                }
+                45% {
+                    opacity: 0.95;
+                    stroke-opacity: 1;
+                    filter: drop-shadow(0 0 3px currentColor);
+                }
+                55% {
+                    opacity: 0.7;
+                }
+            }
+            @keyframes tm-aether-crack-pulse {
+                0%, 100% { opacity: 0.18; }
+                40% { opacity: 0.85; }
+                60% { opacity: 0.45; }
+            }
+            @keyframes tm-aether-claw-glow {
+                0%, 100% { opacity: 0.7; }
+                50% { opacity: 1; }
             }
             @keyframes tm-aether-trail-fade {
                 0% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }

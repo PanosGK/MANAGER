@@ -1,11 +1,11 @@
 {
-  "version": "280",
+  "version": "281",
   "loaderVersion": "35",
-  "silentVersion": "18",
-  "displayVersion": "35.18",
+  "silentVersion": "19",
+  "displayVersion": "35.19",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix kid stage class sticking on all mascots after stage change",
+  "releaseNotes": "Aether dragon-blade wings with pulsing crack veins",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
