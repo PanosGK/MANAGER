@@ -98,6 +98,11 @@
 
         // 2. Find or create the main search button container and add the toggle button there.
         let rightSideContainer = document.getElementById('tm-search-container');
+        if (rightSideContainer && (rightSideContainer.getAttribute('data-tm-ui-shell') === '1'
+            || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(rightSideContainer)))) {
+            rightSideContainer.remove();
+            rightSideContainer = null;
+        }
         if (!rightSideContainer) {
             rightSideContainer = document.createElement('div');
             rightSideContainer.id = 'tm-search-container';
@@ -105,6 +110,11 @@
         }
 
         let toggleButton = document.getElementById('tm-scratchpad-toggle-btn');
+        if (toggleButton && (toggleButton.getAttribute('data-tm-ui-shell') === '1'
+            || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(toggleButton)))) {
+            toggleButton.remove();
+            toggleButton = null;
+        }
         if (!toggleButton) {
             toggleButton = document.createElement('button');
             toggleButton.id = 'tm-scratchpad-toggle-btn';

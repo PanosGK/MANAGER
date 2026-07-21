@@ -36,7 +36,16 @@
          * This is called early to ensure the container exists for other features.
          */
         function createRightSidePanel() {
-            if (document.getElementById('tm-search-container')) return; // Already exists
+            const existing = document.getElementById('tm-search-container');
+            if (existing) {
+                // Cached FOUC/UI shell — replace with live rail so handlers can attach.
+                if (existing.getAttribute('data-tm-ui-shell') === '1'
+                    || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(existing))) {
+                    existing.remove();
+                } else {
+                    return; // Already exists (live)
+                }
+            }
 
             const container = document.createElement('div');
             container.id = 'tm-search-container';

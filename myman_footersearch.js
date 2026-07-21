@@ -291,6 +291,11 @@
 
     function ensureHeaderSearchHost() {
         let host = document.getElementById('tm-header-quick-search-host');
+        if (host && (host.getAttribute('data-tm-ui-shell') === '1'
+            || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(host)))) {
+            host.remove();
+            host = null;
+        }
         const hfiller = host?.closest('.rnr-hfiller') || findHeaderFiller();
         if (!hfiller) return host || null;
 

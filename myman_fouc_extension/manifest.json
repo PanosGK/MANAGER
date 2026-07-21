@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "MyManager FOUC Guard",
-  "version": "1.4.0",
-  "description": "Blanks thefixers.mymanager.gr before first paint until the Tampermonkey suite applies themes. Required because userscripts inject too late on Chrome.",
+  "version": "1.5.0",
+  "description": "Blanks thesellers.mymanager.gr before first paint and mounts cached UI chrome (footer, mascot, rail, header) until the suite hydrates live values.",
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",
@@ -10,7 +10,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://thefixers.mymanager.gr/*"],
+      "matches": ["*://thesellers.mymanager.gr/*"],
       "css": ["fouc.css"],
       "js": ["fouc.js"],
       "run_at": "document_start",

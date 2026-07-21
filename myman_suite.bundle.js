@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v293 / Custom Ver. 35.31 — generated, do not edit */
+/* MyManager Suite bundle v295 / Custom Ver. 35.33 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '293',
+        version: '295',
         loaderVersion: '35',
-        silentVersion: '31',
-        displayVersion: '35.31',
+        silentVersion: '33',
+        displayVersion: '35.33',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -5211,7 +5211,15 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function setupFooterSuiteBranding() {
-        if (document.getElementById('tm-footer-suite-brand')) return true;
+        const existingBrand = document.getElementById('tm-footer-suite-brand');
+        if (existingBrand) {
+            if (existingBrand.getAttribute('data-tm-ui-shell') === '1'
+                || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(existingBrand))) {
+                existingBrand.remove();
+            } else {
+                return true;
+            }
+        }
 
         const cell = findFooterRightCell();
         if (!cell) return false;
@@ -5329,13 +5337,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
 // ----- myman_footer_shell.js -----
 
-(function tmMmsFooterShell() {
+(function tmMmsUiShell() {
     'use strict';
 
-    const LS_FOOTER = 'tm_mms_footer_shell';
-    const SHELL_ATTR = 'data-tm-footer-shell';
-    const CACHE_VERSION = 4;
-    const FOOTER_CSS_RE = /#tm-footer|#tm-xp-bar|#tm-coin-balance|#tm-notification-bell|#tm-weather|#tm-refresh|#tm-daily-dashboard|#tm-settings-btn|#tm-buff-timers|#tm-eod|#tm-recent-repairs|tm-footer-widget|tm-xp-bar|tm-footer-icon|\.tm-refresh-/i;
+    const LS_UI = 'tm_mms_ui_shells';
+    const LS_FOOTER_LEGACY = 'tm_mms_footer_shell';
+    const SHELL_ATTR = 'data-tm-ui-shell';
+    const FOOTER_SHELL_ATTR = 'data-tm-footer-shell'; // legacy (footer)
+    const CACHE_VERSION = 5;
+
+    const CSS_RE = /#tm-footer|#tm-xp-bar|#tm-coin-balance|#tm-notification-bell|#tm-weather|#tm-refresh|#tm-daily-dashboard|#tm-settings-btn|#tm-buff-timers|#tm-eod|#tm-recent-repairs|tm-footer-widget|tm-xp-bar|tm-footer-icon|\.tm-refresh-|#tm-mascot|#tm-search-container|#tm-scratchpad-toggle|#tm-quests-btn|#tm-slide-out|#tm-header-quick-search|#tm-footer-quick-search|#tm-footer-suite-brand|#tm-scroll-to-top|\.tm-qs-|\.tm-slide-out/i;
 
     const BAKE_PROPS = [
         'box-sizing', 'display', 'position', 'top', 'right', 'bottom', 'left',
@@ -5351,38 +5362,241 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         'font-size', 'font-weight', 'font-family', 'line-height', 'letter-spacing', 'text-align',
         'text-shadow', 'box-shadow', 'opacity', 'overflow', 'overflow-x', 'overflow-y',
         'cursor', 'z-index', 'white-space', 'text-overflow', 'visibility',
+        'transform', 'transform-origin',
         'stroke', 'stroke-width', 'stroke-dasharray', 'stroke-dashoffset', 'fill',
     ];
 
+    /** @type {Record<string, {id:string, maxHtml?:number, findParent:()=>(Element|null), mount:(html:string, parent:Element)=>boolean, slim?:(clone:Element)=>void, skipIf?:()=>boolean}>} */
+    const SHELL_DEFS = {
+        footer: {
+            id: 'tm-footer-controls-container',
+            maxHtml: 220000,
+            findParent() {
+                return document.querySelector('#footer-outterwrap table td[width="60%"]')
+                    || document.querySelector('#footer-outterwrap table td:nth-child(2)');
+            },
+            mount(html, parent) {
+                while (parent.firstChild) parent.removeChild(parent.firstChild);
+                parent.insertAdjacentHTML('beforeend', html);
+                const mounted = parent.querySelector('#' + this.id);
+                if (!mounted) return false;
+                markShell(mounted);
+                mounted.setAttribute(FOOTER_SHELL_ATTR, '1');
+                mounted.classList.add('tm-footer-shell');
+                return true;
+            },
+            slim(clone) {
+                const menu = clone.querySelector('#tm-recent-repairs-menu');
+                if (menu) {
+                    menu.style.display = 'none';
+                    menu.innerHTML = '';
+                }
+                clone.querySelectorAll(
+                    '#tm-notification-panel, #tm-notification-backdrop, .tm-modal-overlay, #tm-coin-history-tooltip'
+                ).forEach((el) => el.remove());
+            },
+        },
+        mascot: {
+            id: 'tm-mascot-container',
+            maxHtml: 350000,
+            findParent() {
+                return document.body || document.documentElement;
+            },
+            mount(html, parent) {
+                if (document.getElementById(this.id)) return false;
+                parent.insertAdjacentHTML('beforeend', html);
+                const mounted = document.getElementById(this.id);
+                if (!mounted) return false;
+                markShell(mounted);
+                mounted.style.pointerEvents = 'none';
+                return true;
+            },
+            slim(clone) {
+                clone.querySelectorAll(
+                    '#tm-mascot-interaction-panel, #tm-mascot-speech-bubble, .tm-modal-overlay,'
+                    + ' .tm-aether-myth-particle, .tm-aether-trail-dot, .tm-aether-gaze-beam,'
+                    + ' .tm-aether-crack-spark, .tm-aether-domain-circle, .tm-aether-world-dim-local,'
+                    + ' .tm-aether-mythic-weather-local, .tm-aether-form-crest, .tm-aether-spectral-blade,'
+                    + ' .tm-aether-reality-tear, .tm-aether-astral-clone, .tm-aether-codex-scrap,'
+                    + ' .tm-aether-trail-ink, .tm-aether-rarity-ledger, .tm-aether-nameplate'
+                ).forEach((el) => el.remove());
+                // Drop hidden stage/character SVG groups — keep only what's currently painted.
+                clone.querySelectorAll('[style*="display: none"], [style*="display:none"]').forEach((el) => {
+                    if (el.id === 'tm-mascot-container') return;
+                    el.remove();
+                });
+            },
+            skipIf() {
+                try {
+                    const cfg = window.config;
+                    if (cfg && cfg.interactiveMascotEnabled === false) return true;
+                } catch (_) { /* ignore */ }
+                return false;
+            },
+        },
+        search: {
+            id: 'tm-search-container',
+            maxHtml: 80000,
+            findParent() {
+                return document.body || document.documentElement;
+            },
+            mount(html, parent) {
+                if (document.getElementById(this.id)) return false;
+                parent.insertAdjacentHTML('beforeend', html);
+                const mounted = document.getElementById(this.id);
+                if (!mounted) return false;
+                markShell(mounted);
+                mounted.style.pointerEvents = 'none';
+                return true;
+            },
+            slim(clone) {
+                clone.querySelectorAll('.tm-modal-overlay, #tm-scratchpad-container').forEach((el) => el.remove());
+            },
+        },
+        headerQs: {
+            id: 'tm-header-quick-search-host',
+            maxHtml: 120000,
+            findParent() {
+                return document.querySelector('#head-outterwrap .rnr-hfiller')
+                    || document.querySelector('#head-outter .rnr-hfiller')
+                    || document.querySelector('.rnr-top .rnr-hfiller')
+                    || document.querySelector('.rnr-hfiller');
+            },
+            mount(html, parent) {
+                if (document.getElementById(this.id)) return false;
+                parent.insertAdjacentHTML('afterbegin', html);
+                const mounted = document.getElementById(this.id);
+                if (!mounted) return false;
+                markShell(mounted);
+                mounted.style.pointerEvents = 'none';
+                return true;
+            },
+            slim(clone) {
+                clone.querySelectorAll('.tm-modal-overlay').forEach((el) => el.remove());
+            },
+        },
+        suiteBrand: {
+            id: 'tm-footer-suite-brand',
+            maxHtml: 20000,
+            findParent() {
+                const table = document.querySelector('#footer-outterwrap table');
+                if (!table) return null;
+                let cell = table.querySelector('td[width="40%"]');
+                if (!cell) {
+                    const cells = table.querySelectorAll('td');
+                    if (cells.length) cell = cells[cells.length - 1];
+                }
+                return cell;
+            },
+            mount(html, parent) {
+                if (document.getElementById(this.id)) return false;
+                parent.innerHTML = '';
+                parent.insertAdjacentHTML('beforeend', html);
+                const mounted = document.getElementById(this.id);
+                if (!mounted) return false;
+                markShell(mounted);
+                mounted.style.pointerEvents = 'none';
+                return true;
+            },
+        },
+        scrollTop: {
+            id: 'tm-scroll-to-top-btn',
+            maxHtml: 4000,
+            findParent() {
+                return document.body || document.documentElement;
+            },
+            mount(html, parent) {
+                if (document.getElementById(this.id)) return false;
+                parent.insertAdjacentHTML('beforeend', html);
+                const mounted = document.getElementById(this.id);
+                if (!mounted) return false;
+                markShell(mounted);
+                mounted.style.pointerEvents = 'none';
+                // Keep hidden until user scrolls — shell shouldn't flash mid-page.
+                if (!mounted.style.display) mounted.style.display = 'none';
+                return true;
+            },
+        },
+    };
+
+    function markShell(el) {
+        if (!el) return;
+        el.setAttribute(SHELL_ATTR, '1');
+    }
+
+    function isShellEl(el) {
+        return !!(el && (el.getAttribute(SHELL_ATTR) === '1' || el.getAttribute(FOOTER_SHELL_ATTR) === '1'));
+    }
+
+    function removeShellById(id) {
+        const el = document.getElementById(id);
+        if (el && isShellEl(el)) {
+            el.remove();
+            return true;
+        }
+        return false;
+    }
+
     function readCache() {
         try {
-            const raw = localStorage.getItem(LS_FOOTER);
-            if (!raw) return null;
-            const data = JSON.parse(raw);
-            if (!data || data.v !== CACHE_VERSION || typeof data.html !== 'string' || data.html.length < 80) {
-                return null;
+            const raw = localStorage.getItem(LS_UI);
+            if (raw) {
+                const data = JSON.parse(raw);
+                if (data && data.v === CACHE_VERSION && data.shells && typeof data.shells === 'object') {
+                    return data;
+                }
             }
-            return data;
+        } catch (_) { /* ignore */ }
+
+        // Migrate legacy footer-only cache (v4).
+        try {
+            const legacy = localStorage.getItem(LS_FOOTER_LEGACY);
+            if (!legacy) return null;
+            const old = JSON.parse(legacy);
+            if (!old || old.v !== 4 || typeof old.html !== 'string' || old.html.length < 80) return null;
+            return {
+                v: CACHE_VERSION,
+                updatedAt: old.updatedAt || Date.now(),
+                css: old.css || '',
+                shells: {
+                    footer: { html: old.html },
+                },
+            };
         } catch (_) {
             return null;
         }
     }
 
     function writeCache(data) {
+        const payload = {
+            v: CACHE_VERSION,
+            updatedAt: Date.now(),
+            css: data.css || '',
+            shells: data.shells || {},
+        };
         try {
-            localStorage.setItem(LS_FOOTER, JSON.stringify(data));
+            localStorage.setItem(LS_UI, JSON.stringify(payload));
+            try { localStorage.removeItem(LS_FOOTER_LEGACY); } catch (_) { /* ignore */ }
             return true;
         } catch (_) {
+            // Quota: drop CSS first, then largest shells.
             try {
-                // Quota: drop CSS, keep baked HTML (styles are inline)
-                localStorage.setItem(LS_FOOTER, JSON.stringify({
-                    v: CACHE_VERSION,
-                    updatedAt: data.updatedAt,
-                    html: data.html,
-                    css: '',
-                }));
+                payload.css = '';
+                localStorage.setItem(LS_UI, JSON.stringify(payload));
                 return true;
             } catch (_2) {
+                try {
+                    const shells = { ...(payload.shells || {}) };
+                    const keys = Object.keys(shells).sort((a, b) =>
+                        String(shells[b]?.html || '').length - String(shells[a]?.html || '').length);
+                    for (const key of keys) {
+                        delete shells[key];
+                        try {
+                            localStorage.setItem(LS_UI, JSON.stringify({ ...payload, shells }));
+                            return true;
+                        } catch (_3) { /* keep dropping */ }
+                    }
+                } catch (_4) { /* ignore */ }
                 return false;
             }
         }
@@ -5404,6 +5618,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     if (!val || val === 'auto' || val === 'normal' || val === 'none') continue;
                     if (val === 'rgba(0, 0, 0, 0)' || val === 'transparent') continue;
                     if (prop === 'background-image' && val.length > 180) continue;
+                    if (prop === 'transform' && val === 'none') continue;
                     bits.push(`${prop}:${val}`);
                 }
                 const prev = clone.getAttribute('style');
@@ -5421,19 +5636,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
     }
 
-    function slimHeavyMenus(clone) {
-        if (!clone) return;
-        // Keep the recent-repairs button + label; drop bulky menu body (rebuilt by suite).
-        const menu = clone.querySelector('#tm-recent-repairs-menu');
-        if (menu) {
-            menu.style.display = 'none';
-            menu.innerHTML = '';
-        }
-        clone.querySelectorAll(
-            '#tm-notification-panel, #tm-notification-backdrop, .tm-modal-overlay, #tm-coin-history-tooltip'
-        ).forEach((el) => el.remove());
-    }
-
     function collectSuiteCssForShell() {
         const parts = [];
         const seen = new Set();
@@ -5443,6 +5645,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             'tm-page-theme-styles',
             'tm-mms-fouc-page-css',
             'tm-liquid-glass-styles',
+            'tm-mascot-animations',
         ];
 
         preferIds.forEach((id) => {
@@ -5455,11 +5658,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         });
 
         document.querySelectorAll('style').forEach((el) => {
-            if (el.id === 'tm-mms-footer-shell-css' || el.id === 'tm-mms-footer-shell-css-cache') return;
+            if (el.id === 'tm-mms-footer-shell-css' || el.id === 'tm-mms-footer-shell-css-cache'
+                || el.id === 'tm-mms-ui-shell-css' || el.id === 'tm-mms-ui-shell-css-cache') return;
             if (preferIds.includes(el.id)) return;
             const text = el.textContent || '';
             if (!text || seen.has(text)) return;
-            if (FOOTER_CSS_RE.test(text)) {
+            if (CSS_RE.test(text)) {
                 seen.add(text);
                 parts.push(text);
             }
@@ -5468,33 +5672,18 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return parts.join('\n');
     }
 
-    function collectSnapshot() {
-        const container = document.getElementById('tm-footer-controls-container');
-        if (!container || container.getAttribute(SHELL_ATTR) === '1') return null;
-
-        // Need layout to bake accurate computed styles
-        const clone = container.cloneNode(true);
-        bakeStyles(container, clone);
-        slimHeavyMenus(clone);
-        clone.setAttribute(SHELL_ATTR, '0');
-        clone.classList.add('tm-footer-shell');
-
-        return {
-            v: CACHE_VERSION,
-            updatedAt: Date.now(),
-            html: clone.outerHTML,
-            css: collectSuiteCssForShell(),
-        };
-    }
-
     function ensureShellLayoutCss() {
-        if (document.getElementById('tm-mms-footer-shell-css')) return;
+        if (document.getElementById('tm-mms-ui-shell-css')) return;
         const style = document.createElement('style');
-        style.id = 'tm-mms-footer-shell-css';
+        style.id = 'tm-mms-ui-shell-css';
         style.textContent = `
-            #tm-footer-controls-container[${SHELL_ATTR}="1"] {
+            #tm-footer-controls-container[${SHELL_ATTR}="1"],
+            #tm-footer-controls-container[${FOOTER_SHELL_ATTR}="1"] {
                 pointer-events: none;
                 width: 100%;
+            }
+            [${SHELL_ATTR}="1"] {
+                pointer-events: none !important;
             }
         `;
         (document.documentElement || document.head || document).appendChild(style);
@@ -5502,79 +5691,100 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
     function injectCachedShellCss(cssText) {
         if (!cssText) return;
-        let style = document.getElementById('tm-mms-footer-shell-css-cache');
+        let style = document.getElementById('tm-mms-ui-shell-css-cache');
         if (!style) {
             style = document.createElement('style');
-            style.id = 'tm-mms-footer-shell-css-cache';
+            style.id = 'tm-mms-ui-shell-css-cache';
             (document.documentElement || document.head || document).appendChild(style);
         }
         style.textContent = cssText;
     }
 
-    function findFooterCenterCell() {
-        return document.querySelector('#footer-outterwrap table td[width="60%"]')
-            || document.querySelector('#footer-outterwrap table td:nth-child(2)');
+    function snapshotOne(key, def) {
+        if (def.skipIf && def.skipIf()) return null;
+        const live = document.getElementById(def.id);
+        if (!live || isShellEl(live)) return null;
+
+        const clone = live.cloneNode(true);
+        bakeStyles(live, clone);
+        if (typeof def.slim === 'function') def.slim(clone);
+        clone.removeAttribute(SHELL_ATTR);
+        clone.removeAttribute(FOOTER_SHELL_ATTR);
+        if (key === 'footer') clone.classList.add('tm-footer-shell');
+
+        let html = clone.outerHTML;
+        const maxHtml = def.maxHtml || 200000;
+        if (html.length > maxHtml) {
+            // Last-resort shrink: drop nested SVG defs / hidden leftovers.
+            clone.querySelectorAll('svg title, svg desc, svg metadata').forEach((el) => el.remove());
+            html = clone.outerHTML;
+            if (html.length > maxHtml) {
+                console.warn(`[MMS UI Shell] ${key} snapshot too large (${html.length}), skipped`);
+                return null;
+            }
+        }
+        if (html.length < 40) return null;
+        return { html };
     }
 
-    function mountFooterShellFromCache() {
+    function collectAllSnapshots() {
+        const shells = {};
+        Object.keys(SHELL_DEFS).forEach((key) => {
+            const snap = snapshotOne(key, SHELL_DEFS[key]);
+            if (snap) shells[key] = snap;
+        });
+        return {
+            css: collectSuiteCssForShell(),
+            shells,
+        };
+    }
+
+    function mountOne(key, def, cache) {
         try {
             const path = window.location.pathname || '';
             if (path.includes('login.php')) return false;
             if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return false;
+            if (def.skipIf && def.skipIf()) return false;
+            if (document.getElementById(def.id)) return false;
 
-            const existing = document.getElementById('tm-footer-controls-container');
-            if (existing) return false;
+            const entry = cache?.shells?.[key];
+            if (!entry || typeof entry.html !== 'string' || entry.html.length < 40) return false;
 
-            const data = readCache();
-            if (!data) return false;
-
-            const cell = findFooterCenterCell();
-            if (!cell) return false;
+            const parent = def.findParent();
+            if (!parent) return false;
 
             ensureShellLayoutCss();
-            injectCachedShellCss(data.css || '');
-
-            while (cell.firstChild) cell.removeChild(cell.firstChild);
-            cell.insertAdjacentHTML('beforeend', data.html);
-
-            const mounted = cell.querySelector('#tm-footer-controls-container');
-            if (!mounted) return false;
-            mounted.setAttribute(SHELL_ATTR, '1');
-            mounted.classList.add('tm-footer-shell');
-            return true;
+            injectCachedShellCss(cache.css || '');
+            return !!def.mount(entry.html, parent);
         } catch (_) {
             return false;
         }
     }
 
-    function removeFooterShellIfPresent() {
-        const existing = document.getElementById('tm-footer-controls-container');
-        if (existing && existing.getAttribute(SHELL_ATTR) === '1') {
-            existing.remove();
-            return true;
-        }
-        return false;
+    function mountAllFromCache() {
+        const cache = readCache();
+        if (!cache) return false;
+        let any = false;
+        Object.keys(SHELL_DEFS).forEach((key) => {
+            if (mountOne(key, SHELL_DEFS[key], cache)) any = true;
+        });
+        return any;
     }
 
-    function isFooterShellMounted() {
-        const existing = document.getElementById('tm-footer-controls-container');
-        return !!(existing && existing.getAttribute(SHELL_ATTR) === '1');
-    }
-
-    function syncFooterShellCache() {
-        try {
-            if (isFooterShellMounted()) return;
-            const snap = collectSnapshot();
-            if (snap) writeCache(snap);
-        } catch (_) { /* ignore */ }
-    }
-
-    function watchAndMountFooterShell() {
-        if (mountFooterShellFromCache()) return;
+    function watchAndMountAll() {
+        mountAllFromCache();
+        const pending = new Set(Object.keys(SHELL_DEFS));
         const obs = new MutationObserver(() => {
-            if (mountFooterShellFromCache()) {
-                obs.disconnect();
-            }
+            const cache = readCache();
+            if (!cache) return;
+            pending.forEach((key) => {
+                if (document.getElementById(SHELL_DEFS[key].id)) {
+                    pending.delete(key);
+                    return;
+                }
+                if (mountOne(key, SHELL_DEFS[key], cache)) pending.delete(key);
+            });
+            if (!pending.size) obs.disconnect();
         });
         try {
             obs.observe(document.documentElement || document, { childList: true, subtree: true });
@@ -5582,12 +5792,66 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         } catch (_) { /* ignore */ }
     }
 
+    function syncAllUiShells() {
+        try {
+            // Don't overwrite cache while shells are still on screen.
+            const shellMounted = Object.keys(SHELL_DEFS).some((key) => {
+                const el = document.getElementById(SHELL_DEFS[key].id);
+                return isShellEl(el);
+            });
+            if (shellMounted) return;
+
+            const prev = readCache() || { shells: {}, css: '' };
+            const next = collectAllSnapshots();
+            // Merge: keep previous shells if this page didn't have that widget yet.
+            const shells = { ...(prev.shells || {}) };
+            Object.keys(next.shells || {}).forEach((key) => {
+                shells[key] = next.shells[key];
+            });
+            writeCache({
+                css: next.css || prev.css || '',
+                shells,
+            });
+        } catch (_) { /* ignore */ }
+    }
+
+    // ---- Legacy footer API (aliases) ----
+    function syncFooterShellCache() {
+        syncAllUiShells();
+    }
+
+    function mountFooterShellFromCache() {
+        const cache = readCache();
+        if (!cache) return false;
+        return mountOne('footer', SHELL_DEFS.footer, cache);
+    }
+
+    function removeFooterShellIfPresent() {
+        return removeShellById('tm-footer-controls-container');
+    }
+
+    function isFooterShellMounted() {
+        const existing = document.getElementById('tm-footer-controls-container');
+        return isShellEl(existing);
+    }
+
+    function watchAndMountFooterShell() {
+        watchAndMountAll();
+    }
+
+    window.tmSyncAllUiShells = syncAllUiShells;
+    window.tmWatchAndMountAllUiShells = watchAndMountAll;
+    window.tmRemoveUiShellById = removeShellById;
+    window.tmIsUiShellEl = isShellEl;
+
     window.tmSyncFooterShellCache = syncFooterShellCache;
     window.tmMountFooterShellFromCache = mountFooterShellFromCache;
     window.tmRemoveFooterShellIfPresent = removeFooterShellIfPresent;
     window.tmWatchAndMountFooterShell = watchAndMountFooterShell;
     window.tmIsFooterShellMounted = isFooterShellMounted;
-    window.TM_FOOTER_SHELL_LS_KEY = LS_FOOTER;
+    window.TM_FOOTER_SHELL_LS_KEY = LS_FOOTER_LEGACY;
+    window.TM_UI_SHELL_LS_KEY = LS_UI;
+    window.TM_UI_SHELL_ATTR = SHELL_ATTR;
 })();
 
 
@@ -15044,6 +15308,22 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
+                            <label for="tm-debug-mascot-lifespan-days">Mascot lifespan (office days → old)</label>
+                            <p class="tm-setting-description">Default <strong>15</strong> office-days (09:00–21:00) to reach old age. Lower = faster growth &amp; death. Death stays ~3.3× that.</p>
+                        </div>
+                        <div class="tm-setting-control tm-setting-control--wrap">
+                            <input type="number" id="tm-debug-mascot-lifespan-days" class="tm-settings-input" min="0.05" max="365" step="0.05" value="${(() => {
+                                try {
+                                    if (typeof window.getMascotLifespanDays === 'function') return window.getMascotLifespanDays();
+                                    return GM_getValue('tm_mascot_lifespan_days', 15);
+                                } catch (_) { return 15; }
+                            })()}">
+                            <button type="button" id="tm-debug-mascot-lifespan-apply" class="tm-settings-ghost-btn">Apply</button>
+                            <button type="button" id="tm-debug-mascot-lifespan-reset" class="tm-settings-ghost-btn">Reset 15</button>
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
                             <label for="tm-debug-natural-death-cause">Natural death</label>
                             <p class="tm-setting-description">Θάνατος από πείνα / υγεία / ηλικία (όχι το shooting cinematic).</p>
                         </div>
@@ -16282,7 +16562,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             document.getElementById('tm-debug-age-up-btn')?.addEventListener('click', () => {
                 const tamaData = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
                 if (tamaData) {
-                    const minutesPerYear = 450;
+                    const minutesPerYear = (typeof window.refreshTamaLifespanScale === 'function'
+                        ? window.refreshTamaLifespanScale().minutesPerYear
+                        : null)
+                        || (window.TAMA_STAGE_MINUTES && typeof window.getMascotLifespanDays === 'function'
+                            ? Math.max(1, Math.round(450 * (window.getMascotLifespanDays() / 15)))
+                            : 450);
                     const currentLife = Number(tamaData.lifeMinutes);
                     const life = Number.isFinite(currentLife) ? currentLife : 0;
                     tamaData.lifeMinutes = life + (10 * minutesPerYear);
@@ -16294,6 +16579,30 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 } else {
                     showPositiveMessage('❌ Mascot data not found. Enable mascot first.');
                 }
+            });
+
+            const applyLifespan = (days) => {
+                if (typeof window.setMascotLifespanDays !== 'function') {
+                    showPositiveMessage('❌ Lifespan control not available');
+                    return;
+                }
+                const applied = window.setMascotLifespanDays(days);
+                const info = typeof window.refreshTamaLifespanScale === 'function'
+                    ? window.refreshTamaLifespanScale()
+                    : null;
+                const input = document.getElementById('tm-debug-mascot-lifespan-days');
+                if (input) input.value = String(applied);
+                const oldDays = info ? (info.stages.old / 720).toFixed(2) : applied;
+                const deathDays = info ? (info.stages.death / 720).toFixed(2) : '—';
+                showPositiveMessage(`⏱️ Lifespan set: ~${oldDays} office-days to old, ~${deathDays} to death`);
+            };
+
+            document.getElementById('tm-debug-mascot-lifespan-apply')?.addEventListener('click', () => {
+                const raw = parseFloat(document.getElementById('tm-debug-mascot-lifespan-days')?.value);
+                applyLifespan(raw);
+            });
+            document.getElementById('tm-debug-mascot-lifespan-reset')?.addEventListener('click', () => {
+                applyLifespan(15);
             });
 
             document.getElementById('tm-debug-natural-death-btn')?.addEventListener('click', () => {
@@ -17373,7 +17682,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
          * This is called early to ensure the container exists for other features.
          */
         function createRightSidePanel() {
-            if (document.getElementById('tm-search-container')) return; // Already exists
+            const existing = document.getElementById('tm-search-container');
+            if (existing) {
+                // Cached FOUC/UI shell — replace with live rail so handlers can attach.
+                if (existing.getAttribute('data-tm-ui-shell') === '1'
+                    || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(existing))) {
+                    existing.remove();
+                } else {
+                    return; // Already exists (live)
+                }
+            }
 
             const container = document.createElement('div');
             container.id = 'tm-search-container';
@@ -18639,6 +18957,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
         // 2. Find or create the main search button container and add the toggle button there.
         let rightSideContainer = document.getElementById('tm-search-container');
+        if (rightSideContainer && (rightSideContainer.getAttribute('data-tm-ui-shell') === '1'
+            || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(rightSideContainer)))) {
+            rightSideContainer.remove();
+            rightSideContainer = null;
+        }
         if (!rightSideContainer) {
             rightSideContainer = document.createElement('div');
             rightSideContainer.id = 'tm-search-container';
@@ -18646,6 +18969,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         }
 
         let toggleButton = document.getElementById('tm-scratchpad-toggle-btn');
+        if (toggleButton && (toggleButton.getAttribute('data-tm-ui-shell') === '1'
+            || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(toggleButton)))) {
+            toggleButton.remove();
+            toggleButton = null;
+        }
         if (!toggleButton) {
             toggleButton = document.createElement('button');
             toggleButton.id = 'tm-scratchpad-toggle-btn';
@@ -22878,8 +23206,8 @@ let mascotStagePreviewTimeout = null;
 const TAMA_OFFICE_HOUR_START = 9;  // inclusive
 const TAMA_OFFICE_HOUR_END = 21;   // exclusive (stops at 21:00)
 
-// Stage thresholds in office-minutes. ~15 office-days (12h/day) to reach old.
-const TAMA_STAGE_MINUTES = {
+// Stage thresholds in office-minutes. Baseline ≈15 office-days (12h/day) to reach old.
+const TAMA_STAGE_MINUTES_BASE = {
     egg: 0,
     baby: 1,          // 1 office-min — hatch
     kid: 488,         // ~0.7 office-days
@@ -22889,8 +23217,67 @@ const TAMA_STAGE_MINUTES = {
     old: 10800,       // ~15 office-days
     death: 36000,     // ~50 office-days (~80 display-years)
 };
-// Display age pacing: old ≈ 24 years, death ≈ 80 years
-const TAMA_MINUTES_PER_YEAR = 450;
+const TAMA_DEFAULT_DAYS_TO_OLD = 15;
+const TAMA_OFFICE_MINUTES_PER_DAY = (TAMA_OFFICE_HOUR_END - TAMA_OFFICE_HOUR_START) * 60; // 720
+const TAMA_LIFESPAN_DAYS_KEY = 'tm_mascot_lifespan_days';
+// Display age pacing (baseline): old ≈ 24 years, death ≈ 80 years
+const TAMA_MINUTES_PER_YEAR_BASE = 450;
+
+/** Live thresholds — mutated by debug lifespan scale (keep same object ref). */
+const TAMA_STAGE_MINUTES = { ...TAMA_STAGE_MINUTES_BASE };
+let TAMA_MINUTES_PER_YEAR = TAMA_MINUTES_PER_YEAR_BASE;
+
+function getMascotLifespanDays() {
+    try {
+        if (typeof GM_getValue === 'function') {
+            const raw = Number(GM_getValue(TAMA_LIFESPAN_DAYS_KEY, TAMA_DEFAULT_DAYS_TO_OLD));
+            if (Number.isFinite(raw) && raw > 0) {
+                return Math.min(365, Math.max(0.05, raw));
+            }
+        }
+    } catch (_) { /* ignore */ }
+    return TAMA_DEFAULT_DAYS_TO_OLD;
+}
+
+function setMascotLifespanDays(days) {
+    const next = Number(days);
+    const clamped = Number.isFinite(next) && next > 0
+        ? Math.min(365, Math.max(0.05, next))
+        : TAMA_DEFAULT_DAYS_TO_OLD;
+    try {
+        if (typeof GM_setValue === 'function') {
+            GM_setValue(TAMA_LIFESPAN_DAYS_KEY, clamped);
+        }
+    } catch (_) { /* ignore */ }
+    refreshTamaLifespanScale();
+    return clamped;
+}
+
+function refreshTamaLifespanScale() {
+    const days = getMascotLifespanDays();
+    const targetOldMinutes = days * TAMA_OFFICE_MINUTES_PER_DAY;
+    const scale = targetOldMinutes / TAMA_STAGE_MINUTES_BASE.old;
+    const order = ['baby', 'kid', 'teen', 'adult', 'middleage', 'old', 'death'];
+    TAMA_STAGE_MINUTES.egg = 0;
+    let prev = 0;
+    order.forEach((key) => {
+        const base = TAMA_STAGE_MINUTES_BASE[key];
+        let value = key === 'baby'
+            ? Math.max(1, Math.round(base * Math.max(scale, 0.0001)))
+            : Math.max(prev + 1, Math.round(base * scale));
+        TAMA_STAGE_MINUTES[key] = value;
+        prev = value;
+    });
+    TAMA_MINUTES_PER_YEAR = Math.max(1, Math.round(TAMA_MINUTES_PER_YEAR_BASE * scale));
+    return {
+        days,
+        scale,
+        stages: { ...TAMA_STAGE_MINUTES },
+        minutesPerYear: TAMA_MINUTES_PER_YEAR,
+    };
+}
+
+refreshTamaLifespanScale();
 
 /** Minutes between two timestamps that fall inside office hours (09:00–21:00 local). */
 function getOfficeMinutesBetween(startMs, endMs) {
@@ -27234,6 +27621,16 @@ function resetIdleTimer(config) {
 
 function initInteractiveMascot(config, STORAGE_KEYS) {
     if (!config || !config.interactiveMascotEnabled) return;
+
+    // Cached FOUC/UI shell — remove so live mascot can replace it.
+    if (typeof window.tmRemoveUiShellById === 'function') {
+        window.tmRemoveUiShellById('tm-mascot-container');
+    } else {
+        const shell = document.getElementById('tm-mascot-container');
+        if (shell && (shell.getAttribute('data-tm-ui-shell') === '1' || shell.getAttribute('data-tm-footer-shell') === '1')) {
+            shell.remove();
+        }
+    }
 
     // Atomic guard against concurrent double-init (two callers before DOM append)
     if (window.__tmMascotInitializing) {
@@ -37826,6 +38223,10 @@ window.previewMascotStage = previewMascotStage;
 window.clearMascotStagePreview = clearMascotStagePreview;
 window.debugSetMascotCharacter = debugSetMascotCharacter;
 window.debugKillTamagotchiNatural = debugKillTamagotchiNatural;
+window.getMascotLifespanDays = getMascotLifespanDays;
+window.setMascotLifespanDays = setMascotLifespanDays;
+window.refreshTamaLifespanScale = refreshTamaLifespanScale;
+window.TAMA_STAGE_MINUTES = TAMA_STAGE_MINUTES;
 window.getMascotCharacterType = getMascotCharacterType;
 window.MASCOT_CHARACTERS = MASCOT_CHARACTERS;
 window.TAMA_CHARACTER_TYPES = TAMA_CHARACTER_TYPES;
@@ -59083,6 +59484,11 @@ if (typeof window !== 'undefined') {
 
     function ensureHeaderSearchHost() {
         let host = document.getElementById('tm-header-quick-search-host');
+        if (host && (host.getAttribute('data-tm-ui-shell') === '1'
+            || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(host)))) {
+            host.remove();
+            host = null;
+        }
         const hfiller = host?.closest('.rnr-hfiller') || findHeaderFiller();
         if (!hfiller) return host || null;
 
@@ -60526,6 +60932,16 @@ if (typeof window !== 'undefined') {
      */
     function initScrollToTopFeature() {
         if (!config.scrollToTopEnabled) return;
+
+        const existingBtn = document.getElementById('tm-scroll-to-top-btn');
+        if (existingBtn) {
+            if (existingBtn.getAttribute('data-tm-ui-shell') === '1'
+                || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(existingBtn))) {
+                existingBtn.remove();
+            } else {
+                return;
+            }
+        }
 
         const btn = document.createElement('button');
         btn.id = 'tm-scroll-to-top-btn';
@@ -64292,7 +64708,9 @@ if (typeof window !== 'undefined') {
         const existingFooter = document.getElementById('tm-footer-controls-container');
         if (existingFooter) {
             // Cached shell from FOUC extension — replace with the live suite footer.
-            if (existingFooter.getAttribute('data-tm-footer-shell') === '1') {
+            if (existingFooter.getAttribute('data-tm-footer-shell') === '1'
+                || existingFooter.getAttribute('data-tm-ui-shell') === '1'
+                || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(existingFooter))) {
                 existingFooter.remove();
             } else {
                 return true;
@@ -64365,8 +64783,11 @@ if (typeof window !== 'undefined') {
         }
 
         if (typeof window.tmSyncFooterShellCache === 'function') {
-            // Snapshot the live #tm-footer-controls-container after widgets finish painting.
-            const syncShell = () => window.tmSyncFooterShellCache(config, STORAGE_KEYS);
+            // Snapshot all UI chrome after widgets finish painting (footer + mascot + rail + …).
+            const syncShell = () => {
+                if (typeof window.tmSyncAllUiShells === 'function') window.tmSyncAllUiShells();
+                else window.tmSyncFooterShellCache(config, STORAGE_KEYS);
+            };
             setTimeout(syncShell, 0);
             setTimeout(syncShell, 800);
             setTimeout(syncShell, 2500);
@@ -64478,8 +64899,10 @@ if (typeof window !== 'undefined') {
             console.warn('[MMS] myman_styles.js did not load — styles skipped. Use the local loader or check @require URLs.');
         }
 
-        // Show cached footer icons/values ASAP while the rest of init continues.
-        if (typeof window.tmWatchAndMountFooterShell === 'function') {
+        // Show cached UI chrome ASAP (footer, mascot, rail, header QS, brand) while init continues.
+        if (typeof window.tmWatchAndMountAllUiShells === 'function') {
+            window.tmWatchAndMountAllUiShells();
+        } else if (typeof window.tmWatchAndMountFooterShell === 'function') {
             window.tmWatchAndMountFooterShell();
         }
 

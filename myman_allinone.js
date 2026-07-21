@@ -1358,6 +1358,16 @@
     function initScrollToTopFeature() {
         if (!config.scrollToTopEnabled) return;
 
+        const existingBtn = document.getElementById('tm-scroll-to-top-btn');
+        if (existingBtn) {
+            if (existingBtn.getAttribute('data-tm-ui-shell') === '1'
+                || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(existingBtn))) {
+                existingBtn.remove();
+            } else {
+                return;
+            }
+        }
+
         const btn = document.createElement('button');
         btn.id = 'tm-scroll-to-top-btn';
         btn.innerHTML = '&#9650;'; // Up arrow
@@ -5123,7 +5133,9 @@
         const existingFooter = document.getElementById('tm-footer-controls-container');
         if (existingFooter) {
             // Cached shell from FOUC extension — replace with the live suite footer.
-            if (existingFooter.getAttribute('data-tm-footer-shell') === '1') {
+            if (existingFooter.getAttribute('data-tm-footer-shell') === '1'
+                || existingFooter.getAttribute('data-tm-ui-shell') === '1'
+                || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(existingFooter))) {
                 existingFooter.remove();
             } else {
                 return true;
@@ -5196,8 +5208,11 @@
         }
 
         if (typeof window.tmSyncFooterShellCache === 'function') {
-            // Snapshot the live #tm-footer-controls-container after widgets finish painting.
-            const syncShell = () => window.tmSyncFooterShellCache(config, STORAGE_KEYS);
+            // Snapshot all UI chrome after widgets finish painting (footer + mascot + rail + …).
+            const syncShell = () => {
+                if (typeof window.tmSyncAllUiShells === 'function') window.tmSyncAllUiShells();
+                else window.tmSyncFooterShellCache(config, STORAGE_KEYS);
+            };
             setTimeout(syncShell, 0);
             setTimeout(syncShell, 800);
             setTimeout(syncShell, 2500);
@@ -5309,8 +5324,10 @@
             console.warn('[MMS] myman_styles.js did not load — styles skipped. Use the local loader or check @require URLs.');
         }
 
-        // Show cached footer icons/values ASAP while the rest of init continues.
-        if (typeof window.tmWatchAndMountFooterShell === 'function') {
+        // Show cached UI chrome ASAP (footer, mascot, rail, header QS, brand) while init continues.
+        if (typeof window.tmWatchAndMountAllUiShells === 'function') {
+            window.tmWatchAndMountAllUiShells();
+        } else if (typeof window.tmWatchAndMountFooterShell === 'function') {
             window.tmWatchAndMountFooterShell();
         }
 

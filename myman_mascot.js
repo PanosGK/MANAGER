@@ -3249,8 +3249,8 @@ let mascotStagePreviewTimeout = null;
 const TAMA_OFFICE_HOUR_START = 9;  // inclusive
 const TAMA_OFFICE_HOUR_END = 21;   // exclusive (stops at 21:00)
 
-// Stage thresholds in office-minutes. ~15 office-days (12h/day) to reach old.
-const TAMA_STAGE_MINUTES = {
+// Stage thresholds in office-minutes. Baseline ≈15 office-days (12h/day) to reach old.
+const TAMA_STAGE_MINUTES_BASE = {
     egg: 0,
     baby: 1,          // 1 office-min — hatch
     kid: 488,         // ~0.7 office-days
@@ -3260,8 +3260,67 @@ const TAMA_STAGE_MINUTES = {
     old: 10800,       // ~15 office-days
     death: 36000,     // ~50 office-days (~80 display-years)
 };
-// Display age pacing: old ≈ 24 years, death ≈ 80 years
-const TAMA_MINUTES_PER_YEAR = 450;
+const TAMA_DEFAULT_DAYS_TO_OLD = 15;
+const TAMA_OFFICE_MINUTES_PER_DAY = (TAMA_OFFICE_HOUR_END - TAMA_OFFICE_HOUR_START) * 60; // 720
+const TAMA_LIFESPAN_DAYS_KEY = 'tm_mascot_lifespan_days';
+// Display age pacing (baseline): old ≈ 24 years, death ≈ 80 years
+const TAMA_MINUTES_PER_YEAR_BASE = 450;
+
+/** Live thresholds — mutated by debug lifespan scale (keep same object ref). */
+const TAMA_STAGE_MINUTES = { ...TAMA_STAGE_MINUTES_BASE };
+let TAMA_MINUTES_PER_YEAR = TAMA_MINUTES_PER_YEAR_BASE;
+
+function getMascotLifespanDays() {
+    try {
+        if (typeof GM_getValue === 'function') {
+            const raw = Number(GM_getValue(TAMA_LIFESPAN_DAYS_KEY, TAMA_DEFAULT_DAYS_TO_OLD));
+            if (Number.isFinite(raw) && raw > 0) {
+                return Math.min(365, Math.max(0.05, raw));
+            }
+        }
+    } catch (_) { /* ignore */ }
+    return TAMA_DEFAULT_DAYS_TO_OLD;
+}
+
+function setMascotLifespanDays(days) {
+    const next = Number(days);
+    const clamped = Number.isFinite(next) && next > 0
+        ? Math.min(365, Math.max(0.05, next))
+        : TAMA_DEFAULT_DAYS_TO_OLD;
+    try {
+        if (typeof GM_setValue === 'function') {
+            GM_setValue(TAMA_LIFESPAN_DAYS_KEY, clamped);
+        }
+    } catch (_) { /* ignore */ }
+    refreshTamaLifespanScale();
+    return clamped;
+}
+
+function refreshTamaLifespanScale() {
+    const days = getMascotLifespanDays();
+    const targetOldMinutes = days * TAMA_OFFICE_MINUTES_PER_DAY;
+    const scale = targetOldMinutes / TAMA_STAGE_MINUTES_BASE.old;
+    const order = ['baby', 'kid', 'teen', 'adult', 'middleage', 'old', 'death'];
+    TAMA_STAGE_MINUTES.egg = 0;
+    let prev = 0;
+    order.forEach((key) => {
+        const base = TAMA_STAGE_MINUTES_BASE[key];
+        let value = key === 'baby'
+            ? Math.max(1, Math.round(base * Math.max(scale, 0.0001)))
+            : Math.max(prev + 1, Math.round(base * scale));
+        TAMA_STAGE_MINUTES[key] = value;
+        prev = value;
+    });
+    TAMA_MINUTES_PER_YEAR = Math.max(1, Math.round(TAMA_MINUTES_PER_YEAR_BASE * scale));
+    return {
+        days,
+        scale,
+        stages: { ...TAMA_STAGE_MINUTES },
+        minutesPerYear: TAMA_MINUTES_PER_YEAR,
+    };
+}
+
+refreshTamaLifespanScale();
 
 /** Minutes between two timestamps that fall inside office hours (09:00–21:00 local). */
 function getOfficeMinutesBetween(startMs, endMs) {
@@ -7605,6 +7664,16 @@ function resetIdleTimer(config) {
 
 function initInteractiveMascot(config, STORAGE_KEYS) {
     if (!config || !config.interactiveMascotEnabled) return;
+
+    // Cached FOUC/UI shell — remove so live mascot can replace it.
+    if (typeof window.tmRemoveUiShellById === 'function') {
+        window.tmRemoveUiShellById('tm-mascot-container');
+    } else {
+        const shell = document.getElementById('tm-mascot-container');
+        if (shell && (shell.getAttribute('data-tm-ui-shell') === '1' || shell.getAttribute('data-tm-footer-shell') === '1')) {
+            shell.remove();
+        }
+    }
 
     // Atomic guard against concurrent double-init (two callers before DOM append)
     if (window.__tmMascotInitializing) {
@@ -18197,6 +18266,10 @@ window.previewMascotStage = previewMascotStage;
 window.clearMascotStagePreview = clearMascotStagePreview;
 window.debugSetMascotCharacter = debugSetMascotCharacter;
 window.debugKillTamagotchiNatural = debugKillTamagotchiNatural;
+window.getMascotLifespanDays = getMascotLifespanDays;
+window.setMascotLifespanDays = setMascotLifespanDays;
+window.refreshTamaLifespanScale = refreshTamaLifespanScale;
+window.TAMA_STAGE_MINUTES = TAMA_STAGE_MINUTES;
 window.getMascotCharacterType = getMascotCharacterType;
 window.MASCOT_CHARACTERS = MASCOT_CHARACTERS;
 window.TAMA_CHARACTER_TYPES = TAMA_CHARACTER_TYPES;

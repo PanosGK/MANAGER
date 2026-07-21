@@ -1046,7 +1046,15 @@
     }
 
     function setupFooterSuiteBranding() {
-        if (document.getElementById('tm-footer-suite-brand')) return true;
+        const existingBrand = document.getElementById('tm-footer-suite-brand');
+        if (existingBrand) {
+            if (existingBrand.getAttribute('data-tm-ui-shell') === '1'
+                || (typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(existingBrand))) {
+                existingBrand.remove();
+            } else {
+                return true;
+            }
+        }
 
         const cell = findFooterRightCell();
         if (!cell) return false;

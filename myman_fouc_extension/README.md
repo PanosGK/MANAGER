@@ -1,6 +1,6 @@
 # MyManager FOUC Guard (Chrome extension)
 
-Blanks [thefixers.mymanager.gr](https://thefixers.mymanager.gr/) **before first paint** until the Tampermonkey suite adds `tm-mms-theme-ready`.
+Blanks [thesellers.mymanager.gr](https://thesellers.mymanager.gr/) **before first paint** until the Tampermonkey suite adds `tm-mms-theme-ready`.
 
 Tampermonkey alone cannot do this reliably on Chrome (MV3) — scripts often run 1–2 seconds late. This extension uses a real `document_start` CSS content script.
 
@@ -18,7 +18,19 @@ You can disable the Tampermonkey `myman_fouc.user.js` script — this extension 
 
 - `fouc.css` hides `html` until class `tm-mms-theme-ready` is present
 - On **repeat visits**, `fouc.js` applies cached theme CSS from `localStorage` and reveals immediately (no waiting for Tampermonkey)
-- Also mounts an **exact snapshot of `#tm-footer-controls-container`** (baked styles + last values); the suite replaces it and refreshes live vars when ready
+- Mounts **cached UI chrome shells** so the page looks fully painted while the suite hydrates live values:
+  - Footer controls (icons, XP, coins, weather, settings, …)
+  - Mascot (last visible sprite + position)
+  - Right-side rail (scratchpad / quests buttons)
+  - Header quick-search host
+  - Footer suite brand / version
+  - Scroll-to-top button
 - First visit stays blank until the suite seeds the cache once
 - Login / quickview pages are revealed immediately
 - 8s failsafe if anything goes wrong
+
+## After updating
+
+1. Chrome → Extensions → **Reload** this extension (v1.5.0+)
+2. Open MyManager once and wait ~5s (seeds `tm_mms_ui_shells`)
+3. Navigate again — chrome should appear instantly; coins / badge / XP / weather refresh when the suite loads

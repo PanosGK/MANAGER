@@ -822,6 +822,22 @@
                     </div>
                     <div class="tm-setting-row">
                         <div class="tm-setting-label">
+                            <label for="tm-debug-mascot-lifespan-days">Mascot lifespan (office days → old)</label>
+                            <p class="tm-setting-description">Default <strong>15</strong> office-days (09:00–21:00) to reach old age. Lower = faster growth &amp; death. Death stays ~3.3× that.</p>
+                        </div>
+                        <div class="tm-setting-control tm-setting-control--wrap">
+                            <input type="number" id="tm-debug-mascot-lifespan-days" class="tm-settings-input" min="0.05" max="365" step="0.05" value="${(() => {
+                                try {
+                                    if (typeof window.getMascotLifespanDays === 'function') return window.getMascotLifespanDays();
+                                    return GM_getValue('tm_mascot_lifespan_days', 15);
+                                } catch (_) { return 15; }
+                            })()}">
+                            <button type="button" id="tm-debug-mascot-lifespan-apply" class="tm-settings-ghost-btn">Apply</button>
+                            <button type="button" id="tm-debug-mascot-lifespan-reset" class="tm-settings-ghost-btn">Reset 15</button>
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
                             <label for="tm-debug-natural-death-cause">Natural death</label>
                             <p class="tm-setting-description">Θάνατος από πείνα / υγεία / ηλικία (όχι το shooting cinematic).</p>
                         </div>
@@ -2060,7 +2076,12 @@
             document.getElementById('tm-debug-age-up-btn')?.addEventListener('click', () => {
                 const tamaData = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
                 if (tamaData) {
-                    const minutesPerYear = 450;
+                    const minutesPerYear = (typeof window.refreshTamaLifespanScale === 'function'
+                        ? window.refreshTamaLifespanScale().minutesPerYear
+                        : null)
+                        || (window.TAMA_STAGE_MINUTES && typeof window.getMascotLifespanDays === 'function'
+                            ? Math.max(1, Math.round(450 * (window.getMascotLifespanDays() / 15)))
+                            : 450);
                     const currentLife = Number(tamaData.lifeMinutes);
                     const life = Number.isFinite(currentLife) ? currentLife : 0;
                     tamaData.lifeMinutes = life + (10 * minutesPerYear);
@@ -2072,6 +2093,30 @@
                 } else {
                     showPositiveMessage('❌ Mascot data not found. Enable mascot first.');
                 }
+            });
+
+            const applyLifespan = (days) => {
+                if (typeof window.setMascotLifespanDays !== 'function') {
+                    showPositiveMessage('❌ Lifespan control not available');
+                    return;
+                }
+                const applied = window.setMascotLifespanDays(days);
+                const info = typeof window.refreshTamaLifespanScale === 'function'
+                    ? window.refreshTamaLifespanScale()
+                    : null;
+                const input = document.getElementById('tm-debug-mascot-lifespan-days');
+                if (input) input.value = String(applied);
+                const oldDays = info ? (info.stages.old / 720).toFixed(2) : applied;
+                const deathDays = info ? (info.stages.death / 720).toFixed(2) : '—';
+                showPositiveMessage(`⏱️ Lifespan set: ~${oldDays} office-days to old, ~${deathDays} to death`);
+            };
+
+            document.getElementById('tm-debug-mascot-lifespan-apply')?.addEventListener('click', () => {
+                const raw = parseFloat(document.getElementById('tm-debug-mascot-lifespan-days')?.value);
+                applyLifespan(raw);
+            });
+            document.getElementById('tm-debug-mascot-lifespan-reset')?.addEventListener('click', () => {
+                applyLifespan(15);
             });
 
             document.getElementById('tm-debug-natural-death-btn')?.addEventListener('click', () => {

@@ -1,11 +1,11 @@
 {
-  "version": "293",
+  "version": "295",
   "loaderVersion": "35",
-  "silentVersion": "31",
-  "displayVersion": "35.31",
+  "silentVersion": "33",
+  "displayVersion": "35.33",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix shop panel: restore modal dim, chunk/re-inject late CSS, park pin vs aether bloom",
+  "releaseNotes": "Debug: mascot lifespan days control (scale growth/death from 15 office-day baseline)",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
