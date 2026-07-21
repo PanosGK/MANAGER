@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v295 / Custom Ver. 35.33 — generated, do not edit */
+/* MyManager Suite bundle v296 / Custom Ver. 35.34 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '295',
+        version: '296',
         loaderVersion: '35',
-        silentVersion: '33',
-        displayVersion: '35.33',
+        silentVersion: '34',
+        displayVersion: '35.34',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -5340,13 +5340,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 (function tmMmsUiShell() {
     'use strict';
 
-    const LS_UI = 'tm_mms_ui_shells';
+    const LS_INDEX = 'tm_mms_ui_shells';
     const LS_FOOTER_LEGACY = 'tm_mms_footer_shell';
+    const LS_PREFIX = 'tm_mms_ui_shell__';
     const SHELL_ATTR = 'data-tm-ui-shell';
-    const FOOTER_SHELL_ATTR = 'data-tm-footer-shell'; // legacy (footer)
-    const CACHE_VERSION = 5;
-
-    const CSS_RE = /#tm-footer|#tm-xp-bar|#tm-coin-balance|#tm-notification-bell|#tm-weather|#tm-refresh|#tm-daily-dashboard|#tm-settings-btn|#tm-buff-timers|#tm-eod|#tm-recent-repairs|tm-footer-widget|tm-xp-bar|tm-footer-icon|\.tm-refresh-|#tm-mascot|#tm-search-container|#tm-scratchpad-toggle|#tm-quests-btn|#tm-slide-out|#tm-header-quick-search|#tm-footer-quick-search|#tm-footer-suite-brand|#tm-scroll-to-top|\.tm-qs-|\.tm-slide-out/i;
+    const FOOTER_SHELL_ATTR = 'data-tm-footer-shell';
+    const CACHE_VERSION = 6;
+    const MAX_CSS_CHARS = 12000;
+    const MAX_TOTAL_CHARS = 1800000; // soft budget across all shells
 
     const BAKE_PROPS = [
         'box-sizing', 'display', 'position', 'top', 'right', 'bottom', 'left',
@@ -5366,11 +5367,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         'stroke', 'stroke-width', 'stroke-dasharray', 'stroke-dashoffset', 'fill',
     ];
 
-    /** @type {Record<string, {id:string, maxHtml?:number, findParent:()=>(Element|null), mount:(html:string, parent:Element)=>boolean, slim?:(clone:Element)=>void, skipIf?:()=>boolean}>} */
     const SHELL_DEFS = {
         footer: {
             id: 'tm-footer-controls-container',
-            maxHtml: 220000,
+            maxHtml: 180000,
             findParent() {
                 return document.querySelector('#footer-outterwrap table td[width="60%"]')
                     || document.querySelector('#footer-outterwrap table td:nth-child(2)');
@@ -5398,9 +5398,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         },
         mascot: {
             id: 'tm-mascot-container',
-            maxHtml: 350000,
+            maxHtml: 220000,
             findParent() {
-                return document.body || document.documentElement;
+                return document.body || null; // never mount on <html>
             },
             mount(html, parent) {
                 if (document.getElementById(this.id)) return false;
@@ -5418,13 +5418,38 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     + ' .tm-aether-crack-spark, .tm-aether-domain-circle, .tm-aether-world-dim-local,'
                     + ' .tm-aether-mythic-weather-local, .tm-aether-form-crest, .tm-aether-spectral-blade,'
                     + ' .tm-aether-reality-tear, .tm-aether-astral-clone, .tm-aether-codex-scrap,'
-                    + ' .tm-aether-trail-ink, .tm-aether-rarity-ledger, .tm-aether-nameplate'
+                    + ' .tm-aether-trail-ink, .tm-aether-rarity-ledger, .tm-aether-nameplate,'
+                    + ' .tm-aether-fx'
                 ).forEach((el) => el.remove());
-                // Drop hidden stage/character SVG groups — keep only what's currently painted.
                 clone.querySelectorAll('[style*="display: none"], [style*="display:none"]').forEach((el) => {
-                    if (el.id === 'tm-mascot-container') return;
+                    if (el === clone) return;
                     el.remove();
                 });
+            },
+            fallback(live) {
+                // Tiny stub if full SVG won't fit — keeps position/size until suite hydrates.
+                const cs = window.getComputedStyle(live);
+                const stub = document.createElement('div');
+                stub.id = 'tm-mascot-container';
+                stub.className = live.className || 'tm-mascot-container';
+                stub.setAttribute('title', '…');
+                stub.style.cssText = [
+                    `position:${cs.position || 'fixed'}`,
+                    `left:${cs.left}`,
+                    `top:${cs.top}`,
+                    `right:${cs.right}`,
+                    `bottom:${cs.bottom}`,
+                    `width:${cs.width}`,
+                    `height:${cs.height}`,
+                    `z-index:${cs.zIndex || '9990'}`,
+                    'pointer-events:none',
+                    'display:flex',
+                    'align-items:center',
+                    'justify-content:center',
+                    'opacity:0.85',
+                ].join(';');
+                stub.innerHTML = '<div style="font-size:42px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))">🐾</div>';
+                return stub.outerHTML;
             },
             skipIf() {
                 try {
@@ -5436,9 +5461,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         },
         search: {
             id: 'tm-search-container',
-            maxHtml: 80000,
+            maxHtml: 60000,
             findParent() {
-                return document.body || document.documentElement;
+                return document.body || null;
             },
             mount(html, parent) {
                 if (document.getElementById(this.id)) return false;
@@ -5455,7 +5480,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         },
         headerQs: {
             id: 'tm-header-quick-search-host',
-            maxHtml: 120000,
+            maxHtml: 100000,
             findParent() {
                 return document.querySelector('#head-outterwrap .rnr-hfiller')
                     || document.querySelector('#head-outter .rnr-hfiller')
@@ -5471,13 +5496,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 mounted.style.pointerEvents = 'none';
                 return true;
             },
-            slim(clone) {
-                clone.querySelectorAll('.tm-modal-overlay').forEach((el) => el.remove());
-            },
         },
         suiteBrand: {
             id: 'tm-footer-suite-brand',
-            maxHtml: 20000,
+            maxHtml: 16000,
             findParent() {
                 const table = document.querySelector('#footer-outterwrap table');
                 if (!table) return null;
@@ -5499,25 +5521,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 return true;
             },
         },
-        scrollTop: {
-            id: 'tm-scroll-to-top-btn',
-            maxHtml: 4000,
-            findParent() {
-                return document.body || document.documentElement;
-            },
-            mount(html, parent) {
-                if (document.getElementById(this.id)) return false;
-                parent.insertAdjacentHTML('beforeend', html);
-                const mounted = document.getElementById(this.id);
-                if (!mounted) return false;
-                markShell(mounted);
-                mounted.style.pointerEvents = 'none';
-                // Keep hidden until user scrolls — shell shouldn't flash mid-page.
-                if (!mounted.style.display) mounted.style.display = 'none';
-                return true;
-            },
-        },
+        // scroll-top intentionally omitted — often left as a dormant shell and blocked syncing
     };
+
+    function shellKey(name) {
+        return LS_PREFIX + name;
+    }
 
     function markShell(el) {
         if (!el) return;
@@ -5537,18 +5546,117 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return false;
     }
 
-    function readCache() {
+    function removeAllUiShells() {
+        let n = 0;
+        Object.keys(SHELL_DEFS).forEach((key) => {
+            if (removeShellById(SHELL_DEFS[key].id)) n++;
+        });
+        // Also clear any leftover scroll shell from older cache versions
+        if (removeShellById('tm-scroll-to-top-btn')) n++;
+        document.querySelectorAll(`[${SHELL_ATTR}="1"], [${FOOTER_SHELL_ATTR}="1"]`).forEach((el) => {
+            el.remove();
+            n++;
+        });
+        return n;
+    }
+
+    function readShellEntry(name) {
         try {
-            const raw = localStorage.getItem(LS_UI);
+            const raw = localStorage.getItem(shellKey(name));
+            if (!raw) return null;
+            const data = JSON.parse(raw);
+            if (!data || data.v !== CACHE_VERSION || typeof data.html !== 'string' || data.html.length < 40) {
+                return null;
+            }
+            return data;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function writeShellEntry(name, html) {
+        const payload = JSON.stringify({
+            v: CACHE_VERSION,
+            updatedAt: Date.now(),
+            html,
+        });
+        try {
+            localStorage.setItem(shellKey(name), payload);
+            return true;
+        } catch (_) {
+            try {
+                localStorage.removeItem(shellKey(name));
+                localStorage.setItem(shellKey(name), payload);
+                return true;
+            } catch (_2) {
+                return false;
+            }
+        }
+    }
+
+    function readIndex() {
+        try {
+            const raw = localStorage.getItem(LS_INDEX);
+            if (!raw) return null;
+            const data = JSON.parse(raw);
+            if (!data || (data.v !== CACHE_VERSION && data.v !== 5)) return null;
+            return data;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function writeIndex(partial) {
+        const prev = readIndex() || {};
+        const next = {
+            v: CACHE_VERSION,
+            updatedAt: Date.now(),
+            css: partial.css != null ? partial.css : (prev.css || ''),
+            keys: partial.keys || prev.keys || Object.keys(SHELL_DEFS),
+        };
+        try {
+            localStorage.setItem(LS_INDEX, JSON.stringify(next));
+            return true;
+        } catch (_) {
+            try {
+                next.css = '';
+                localStorage.setItem(LS_INDEX, JSON.stringify(next));
+                return true;
+            } catch (_2) {
+                return false;
+            }
+        }
+    }
+
+    /** Unified cache shape used by FOUC extension + suite. */
+    function readCache() {
+        // v6: split keys
+        const shells = {};
+        let any = false;
+        Object.keys(SHELL_DEFS).forEach((key) => {
+            const entry = readShellEntry(key);
+            if (entry) {
+                shells[key] = { html: entry.html };
+                any = true;
+            }
+        });
+        if (any) {
+            const idx = readIndex() || {};
+            return { v: CACHE_VERSION, css: idx.css || '', shells };
+        }
+
+        // v5 monolithic
+        try {
+            const raw = localStorage.getItem(LS_INDEX);
             if (raw) {
                 const data = JSON.parse(raw);
-                if (data && data.v === CACHE_VERSION && data.shells && typeof data.shells === 'object') {
+                if (data && data.v === 5 && data.shells && typeof data.shells === 'object') {
                     return data;
                 }
             }
         } catch (_) { /* ignore */ }
 
-        // Migrate legacy footer-only cache (v4).
+        // Legacy footer-only v4
         try {
             const legacy = localStorage.getItem(LS_FOOTER_LEGACY);
             if (!legacy) return null;
@@ -5556,49 +5664,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             if (!old || old.v !== 4 || typeof old.html !== 'string' || old.html.length < 80) return null;
             return {
                 v: CACHE_VERSION,
-                updatedAt: old.updatedAt || Date.now(),
                 css: old.css || '',
-                shells: {
-                    footer: { html: old.html },
-                },
+                shells: { footer: { html: old.html } },
             };
         } catch (_) {
             return null;
-        }
-    }
-
-    function writeCache(data) {
-        const payload = {
-            v: CACHE_VERSION,
-            updatedAt: Date.now(),
-            css: data.css || '',
-            shells: data.shells || {},
-        };
-        try {
-            localStorage.setItem(LS_UI, JSON.stringify(payload));
-            try { localStorage.removeItem(LS_FOOTER_LEGACY); } catch (_) { /* ignore */ }
-            return true;
-        } catch (_) {
-            // Quota: drop CSS first, then largest shells.
-            try {
-                payload.css = '';
-                localStorage.setItem(LS_UI, JSON.stringify(payload));
-                return true;
-            } catch (_2) {
-                try {
-                    const shells = { ...(payload.shells || {}) };
-                    const keys = Object.keys(shells).sort((a, b) =>
-                        String(shells[b]?.html || '').length - String(shells[a]?.html || '').length);
-                    for (const key of keys) {
-                        delete shells[key];
-                        try {
-                            localStorage.setItem(LS_UI, JSON.stringify({ ...payload, shells }));
-                            return true;
-                        } catch (_3) { /* keep dropping */ }
-                    }
-                } catch (_4) { /* ignore */ }
-                return false;
-            }
         }
     }
 
@@ -5631,45 +5701,21 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         const liveNodes = liveRoot.querySelectorAll('*');
         const cloneNodes = cloneRoot.querySelectorAll('*');
         const n = Math.min(liveNodes.length, cloneNodes.length);
-        for (let i = 0; i < n; i++) {
-            bakeOne(liveNodes[i], cloneNodes[i]);
-        }
+        for (let i = 0; i < n; i++) bakeOne(liveNodes[i], cloneNodes[i]);
     }
 
-    function collectSuiteCssForShell() {
+    function collectCompactCss() {
+        // Prefer baked inline styles; only keep a tiny theme bridge if present.
         const parts = [];
-        const seen = new Set();
-        const preferIds = [
-            'tm-performance-styles',
-            'tm-extended-theme-styles',
-            'tm-page-theme-styles',
-            'tm-mms-fouc-page-css',
-            'tm-liquid-glass-styles',
-            'tm-mascot-animations',
-        ];
-
-        preferIds.forEach((id) => {
+        const ids = ['tm-mms-fouc-page-css', 'tm-page-theme-styles'];
+        ids.forEach((id) => {
             const el = document.getElementById(id);
             const text = el?.textContent || '';
-            if (text && !seen.has(text)) {
-                seen.add(text);
-                parts.push(text);
-            }
+            if (text) parts.push(text.slice(0, MAX_CSS_CHARS));
         });
-
-        document.querySelectorAll('style').forEach((el) => {
-            if (el.id === 'tm-mms-footer-shell-css' || el.id === 'tm-mms-footer-shell-css-cache'
-                || el.id === 'tm-mms-ui-shell-css' || el.id === 'tm-mms-ui-shell-css-cache') return;
-            if (preferIds.includes(el.id)) return;
-            const text = el.textContent || '';
-            if (!text || seen.has(text)) return;
-            if (CSS_RE.test(text)) {
-                seen.add(text);
-                parts.push(text);
-            }
-        });
-
-        return parts.join('\n');
+        let css = parts.join('\n');
+        if (css.length > MAX_CSS_CHARS) css = css.slice(0, MAX_CSS_CHARS);
+        return css;
     }
 
     function ensureShellLayoutCss() {
@@ -5682,9 +5728,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 pointer-events: none;
                 width: 100%;
             }
-            [${SHELL_ATTR}="1"] {
-                pointer-events: none !important;
-            }
+            [${SHELL_ATTR}="1"] { pointer-events: none !important; }
         `;
         (document.documentElement || document.head || document).appendChild(style);
     }
@@ -5705,38 +5749,79 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         const live = document.getElementById(def.id);
         if (!live || isShellEl(live)) return null;
 
-        const clone = live.cloneNode(true);
-        bakeStyles(live, clone);
-        if (typeof def.slim === 'function') def.slim(clone);
-        clone.removeAttribute(SHELL_ATTR);
-        clone.removeAttribute(FOOTER_SHELL_ATTR);
-        if (key === 'footer') clone.classList.add('tm-footer-shell');
+        try {
+            const clone = live.cloneNode(true);
+            bakeStyles(live, clone);
+            if (typeof def.slim === 'function') def.slim(clone);
+            clone.removeAttribute(SHELL_ATTR);
+            clone.removeAttribute(FOOTER_SHELL_ATTR);
+            if (key === 'footer') clone.classList.add('tm-footer-shell');
 
-        let html = clone.outerHTML;
-        const maxHtml = def.maxHtml || 200000;
-        if (html.length > maxHtml) {
-            // Last-resort shrink: drop nested SVG defs / hidden leftovers.
-            clone.querySelectorAll('svg title, svg desc, svg metadata').forEach((el) => el.remove());
-            html = clone.outerHTML;
+            let html = clone.outerHTML;
+            const maxHtml = def.maxHtml || 120000;
             if (html.length > maxHtml) {
-                console.warn(`[MMS UI Shell] ${key} snapshot too large (${html.length}), skipped`);
+                clone.querySelectorAll('svg title, svg desc, svg metadata, script').forEach((el) => el.remove());
+                html = clone.outerHTML;
+            }
+            if (html.length > maxHtml && typeof def.fallback === 'function') {
+                html = def.fallback(live);
+            }
+            if (!html || html.length < 40 || html.length > maxHtml) {
+                console.warn(`[MMS UI Shell] skip ${key}: len=${html ? html.length : 0}`);
                 return null;
             }
+            return { html };
+        } catch (err) {
+            console.warn(`[MMS UI Shell] snapshot ${key} failed`, err);
+            return null;
         }
-        if (html.length < 40) return null;
-        return { html };
     }
 
-    function collectAllSnapshots() {
-        const shells = {};
-        Object.keys(SHELL_DEFS).forEach((key) => {
-            const snap = snapshotOne(key, SHELL_DEFS[key]);
-            if (snap) shells[key] = snap;
-        });
-        return {
-            css: collectSuiteCssForShell(),
-            shells,
-        };
+    function syncAllUiShells() {
+        try {
+            const path = window.location.pathname || '';
+            if (path.includes('login.php')) return;
+            if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return;
+
+            const savedKeys = [];
+            let total = 0;
+            Object.keys(SHELL_DEFS).forEach((key) => {
+                const snap = snapshotOne(key, SHELL_DEFS[key]);
+                if (!snap) return;
+                if (total + snap.html.length > MAX_TOTAL_CHARS) {
+                    console.warn(`[MMS UI Shell] budget hit, skip ${key}`);
+                    return;
+                }
+                if (writeShellEntry(key, snap.html)) {
+                    savedKeys.push(key);
+                    total += snap.html.length;
+                } else {
+                    console.warn(`[MMS UI Shell] write failed for ${key}`);
+                }
+            });
+
+            const css = collectCompactCss();
+            writeIndex({ css, keys: savedKeys.length ? savedKeys : Object.keys(SHELL_DEFS) });
+
+            // Keep legacy footer key so older FOUC builds still work.
+            const footer = readShellEntry('footer');
+            if (footer) {
+                try {
+                    localStorage.setItem(LS_FOOTER_LEGACY, JSON.stringify({
+                        v: 4,
+                        updatedAt: Date.now(),
+                        html: footer.html,
+                        css: '',
+                    }));
+                } catch (_) { /* ignore */ }
+            }
+
+            if (savedKeys.length) {
+                console.log(`[MMS UI Shell] cached: ${savedKeys.join(', ')} (~${Math.round(total / 1024)}KB)`);
+            }
+        } catch (err) {
+            console.warn('[MMS UI Shell] sync failed', err);
+        }
     }
 
     function mountOne(key, def, cache) {
@@ -5747,15 +5832,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             if (def.skipIf && def.skipIf()) return false;
             if (document.getElementById(def.id)) return false;
 
-            const entry = cache?.shells?.[key];
-            if (!entry || typeof entry.html !== 'string' || entry.html.length < 40) return false;
+            const entry = cache?.shells?.[key] || readShellEntry(key);
+            const htmlStr = entry && typeof entry.html === 'string' ? entry.html : null;
+            if (!htmlStr || htmlStr.length < 40) return false;
 
             const parent = def.findParent();
             if (!parent) return false;
 
             ensureShellLayoutCss();
-            injectCachedShellCss(cache.css || '');
-            return !!def.mount(entry.html, parent);
+            injectCachedShellCss(cache?.css || (readIndex()?.css || ''));
+            return !!def.mount(htmlStr, parent);
         } catch (_) {
             return false;
         }
@@ -5792,30 +5878,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         } catch (_) { /* ignore */ }
     }
 
-    function syncAllUiShells() {
-        try {
-            // Don't overwrite cache while shells are still on screen.
-            const shellMounted = Object.keys(SHELL_DEFS).some((key) => {
-                const el = document.getElementById(SHELL_DEFS[key].id);
-                return isShellEl(el);
-            });
-            if (shellMounted) return;
-
-            const prev = readCache() || { shells: {}, css: '' };
-            const next = collectAllSnapshots();
-            // Merge: keep previous shells if this page didn't have that widget yet.
-            const shells = { ...(prev.shells || {}) };
-            Object.keys(next.shells || {}).forEach((key) => {
-                shells[key] = next.shells[key];
-            });
-            writeCache({
-                css: next.css || prev.css || '',
-                shells,
-            });
-        } catch (_) { /* ignore */ }
-    }
-
-    // ---- Legacy footer API (aliases) ----
+    // ---- Legacy footer API ----
     function syncFooterShellCache() {
         syncAllUiShells();
     }
@@ -5831,8 +5894,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function isFooterShellMounted() {
-        const existing = document.getElementById('tm-footer-controls-container');
-        return isShellEl(existing);
+        return isShellEl(document.getElementById('tm-footer-controls-container'));
     }
 
     function watchAndMountFooterShell() {
@@ -5842,7 +5904,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     window.tmSyncAllUiShells = syncAllUiShells;
     window.tmWatchAndMountAllUiShells = watchAndMountAll;
     window.tmRemoveUiShellById = removeShellById;
+    window.tmRemoveAllUiShells = removeAllUiShells;
     window.tmIsUiShellEl = isShellEl;
+    window.tmReadUiShellCache = readCache;
 
     window.tmSyncFooterShellCache = syncFooterShellCache;
     window.tmMountFooterShellFromCache = mountFooterShellFromCache;
@@ -5850,7 +5914,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     window.tmWatchAndMountFooterShell = watchAndMountFooterShell;
     window.tmIsFooterShellMounted = isFooterShellMounted;
     window.TM_FOOTER_SHELL_LS_KEY = LS_FOOTER_LEGACY;
-    window.TM_UI_SHELL_LS_KEY = LS_UI;
+    window.TM_UI_SHELL_LS_KEY = LS_INDEX;
     window.TM_UI_SHELL_ATTR = SHELL_ATTR;
 })();
 
@@ -64783,7 +64847,7 @@ if (typeof window !== 'undefined') {
         }
 
         if (typeof window.tmSyncFooterShellCache === 'function') {
-            // Snapshot all UI chrome after widgets finish painting (footer + mascot + rail + …).
+            // Snapshot live UI chrome after widgets finish painting (per-shell; never blocked by leftover shells).
             const syncShell = () => {
                 if (typeof window.tmSyncAllUiShells === 'function') window.tmSyncAllUiShells();
                 else window.tmSyncFooterShellCache(config, STORAGE_KEYS);
@@ -64792,6 +64856,7 @@ if (typeof window !== 'undefined') {
             setTimeout(syncShell, 800);
             setTimeout(syncShell, 2500);
             setTimeout(syncShell, 5000);
+            setTimeout(syncShell, 12000);
         }
 
         return true;
@@ -64899,7 +64964,8 @@ if (typeof window !== 'undefined') {
             console.warn('[MMS] myman_styles.js did not load — styles skipped. Use the local loader or check @require URLs.');
         }
 
-        // Show cached UI chrome ASAP (footer, mascot, rail, header QS, brand) while init continues.
+        // FOUC may already have mounted shells; keep them until each live widget replaces its own.
+        // Also remount any missing chrome if the extension did not run.
         if (typeof window.tmWatchAndMountAllUiShells === 'function') {
             window.tmWatchAndMountAllUiShells();
         } else if (typeof window.tmWatchAndMountFooterShell === 'function') {

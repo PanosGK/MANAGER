@@ -24,13 +24,17 @@ You can disable the Tampermonkey `myman_fouc.user.js` script — this extension 
   - Right-side rail (scratchpad / quests buttons)
   - Header quick-search host
   - Footer suite brand / version
-  - Scroll-to-top button
 - First visit stays blank until the suite seeds the cache once
 - Login / quickview pages are revealed immediately
 - 8s failsafe if anything goes wrong
 
+Cache keys (localStorage): `tm_mms_ui_shell__footer`, `tm_mms_ui_shell__mascot`, … plus index `tm_mms_ui_shells`.
+
 ## After updating
 
-1. Chrome → Extensions → **Reload** this extension (v1.5.0+)
-2. Open MyManager once and wait ~5s (seeds `tm_mms_ui_shells`)
-3. Navigate again — chrome should appear instantly; coins / badge / XP / weather refresh when the suite loads
+1. Chrome → Extensions → **Reload** this extension (**v1.5.1+**)
+2. Open MyManager once and wait ~12s (seeds `tm_mms_ui_shell__*` keys)
+3. In DevTools console check: `Object.keys(localStorage).filter(k => k.includes('tm_mms_ui'))`
+4. Navigate again — chrome should appear instantly; coins / badge / XP refresh when the suite loads
+
+If cache is empty after step 2, look for `[MMS UI Shell] cached:` in the console.

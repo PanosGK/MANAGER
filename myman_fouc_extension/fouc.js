@@ -3,7 +3,7 @@
  * - Skips login / quickview (reveal immediately)
  * - On repeat visits: apply cached theme/CSS, cover native white panels with a
  *   dark "bridge" layer, then reveal so users do not see white flashes
- * - Mounts cached UI chrome shells (footer, mascot, rail, header QS, brand, scroll)
+ * - Mounts cached UI chrome shells (footer, mascot, rail, header QS, brand)
  *   so only live variables hydrate when the Tampermonkey suite loads
  */
 (function tmMmsFoucExtension() {
@@ -14,11 +14,12 @@
   var LS_THEME = 'tm_mms_fouc_theme';
   var LS_MENU = 'tm_mms_fouc_menu_css';
   var LS_PAGE = 'tm_mms_fouc_page_css';
-  var LS_UI = 'tm_mms_ui_shells';
+  var LS_INDEX = 'tm_mms_ui_shells';
+  var LS_PREFIX = 'tm_mms_ui_shell__';
   var LS_FOOTER_LEGACY = 'tm_mms_footer_shell';
   var SHELL_ATTR = 'data-tm-ui-shell';
   var FOOTER_SHELL_ATTR = 'data-tm-footer-shell';
-  var UI_CACHE_VERSION = 5;
+  var UI_CACHE_VERSION = 6;
 
   function parseRgb(color) {
     var s = String(color || '').trim();
@@ -194,20 +195,53 @@
     }
   } catch (eMenu) { /* ignore */ }
 
-  // Cover native white MyManager panels until the suite finishes painting.
   if (canRevealEarly && themeColors) {
     installBridge(themeColors, themeBg);
   }
 
-  // ---- Cached UI chrome shells (footer / mascot / rail / header QS / brand / scroll) ----
-  function readUiCache() {
+  // ---- Cached UI chrome shells ----
+  function readShellHtml(name) {
     try {
-      var rawUi = localStorage.getItem(LS_UI);
-      if (rawUi) {
-        var data = JSON.parse(rawUi);
-        if (data && data.v === UI_CACHE_VERSION && data.shells) return data;
+      var raw = localStorage.getItem(LS_PREFIX + name);
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      if (!data || (data.v !== UI_CACHE_VERSION && data.v !== 5) || typeof data.html !== 'string') return null;
+      if (data.html.length < 40) return null;
+      return data.html;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function readUiCache() {
+    var shells = {};
+    var keys = ['footer', 'mascot', 'search', 'headerQs', 'suiteBrand'];
+    var any = false;
+    keys.forEach(function (key) {
+      var html = readShellHtml(key);
+      if (html) {
+        shells[key] = { html: html };
+        any = true;
       }
-    } catch (eUi) { /* ignore */ }
+    });
+
+    var css = '';
+    try {
+      var idxRaw = localStorage.getItem(LS_INDEX);
+      if (idxRaw) {
+        var idx = JSON.parse(idxRaw);
+        if (idx && idx.css) css = String(idx.css);
+        // v5 monolithic fallback
+        if (!any && idx && idx.v === 5 && idx.shells) {
+          return idx;
+        }
+      }
+    } catch (eIdx) { /* ignore */ }
+
+    if (any) {
+      return { v: UI_CACHE_VERSION, css: css, shells: shells };
+    }
+
     try {
       var legacy = localStorage.getItem(LS_FOOTER_LEGACY);
       if (!legacy) return null;
@@ -293,7 +327,7 @@
     },
     mascot: {
       id: 'tm-mascot-container',
-      parent: function () { return document.body || document.documentElement; },
+      parent: function () { return document.body || null; },
       mount: function (html, parent) {
         parent.insertAdjacentHTML('beforeend', html);
         var mounted = document.getElementById('tm-mascot-container');
@@ -304,7 +338,7 @@
     },
     search: {
       id: 'tm-search-container',
-      parent: function () { return document.body || document.documentElement; },
+      parent: function () { return document.body || null; },
       mount: function (html, parent) {
         parent.insertAdjacentHTML('beforeend', html);
         var mounted = document.getElementById('tm-search-container');
@@ -336,18 +370,6 @@
         return true;
       },
     },
-    scrollTop: {
-      id: 'tm-scroll-to-top-btn',
-      parent: function () { return document.body || document.documentElement; },
-      mount: function (html, parent) {
-        parent.insertAdjacentHTML('beforeend', html);
-        var mounted = document.getElementById('tm-scroll-to-top-btn');
-        if (!mounted) return false;
-        markShell(mounted, false);
-        if (!mounted.style.display) mounted.style.display = 'none';
-        return true;
-      },
-    },
   };
 
   function mountShell(key, cache) {
@@ -376,7 +398,6 @@
     return any;
   }
 
-  // Inject shared shell CSS as early as possible.
   try {
     var earlyCache = readUiCache();
     if (earlyCache && earlyCache.css) injectUiShellCachedCss(earlyCache.css);
@@ -400,7 +421,7 @@
         if (!Object.keys(pending).length) obs.disconnect();
       });
       obs.observe(document.documentElement || document, { childList: true, subtree: true });
-      setTimeout(function () { try { obs.disconnect(); } catch (e) { /* ignore */ } }, 15000);
+      setTimeout(function () { try { obs.disconnect(); } catch (e) { /* ignore */ } }, 20000);
     } catch (eObs) { /* ignore */ }
   }
 

@@ -5208,7 +5208,7 @@
         }
 
         if (typeof window.tmSyncFooterShellCache === 'function') {
-            // Snapshot all UI chrome after widgets finish painting (footer + mascot + rail + …).
+            // Snapshot live UI chrome after widgets finish painting (per-shell; never blocked by leftover shells).
             const syncShell = () => {
                 if (typeof window.tmSyncAllUiShells === 'function') window.tmSyncAllUiShells();
                 else window.tmSyncFooterShellCache(config, STORAGE_KEYS);
@@ -5217,6 +5217,7 @@
             setTimeout(syncShell, 800);
             setTimeout(syncShell, 2500);
             setTimeout(syncShell, 5000);
+            setTimeout(syncShell, 12000);
         }
 
         return true;
@@ -5324,7 +5325,8 @@
             console.warn('[MMS] myman_styles.js did not load — styles skipped. Use the local loader or check @require URLs.');
         }
 
-        // Show cached UI chrome ASAP (footer, mascot, rail, header QS, brand) while init continues.
+        // FOUC may already have mounted shells; keep them until each live widget replaces its own.
+        // Also remount any missing chrome if the extension did not run.
         if (typeof window.tmWatchAndMountAllUiShells === 'function') {
             window.tmWatchAndMountAllUiShells();
         } else if (typeof window.tmWatchAndMountFooterShell === 'function') {
