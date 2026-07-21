@@ -5208,16 +5208,10 @@
         }
 
         if (typeof window.tmSyncFooterShellCache === 'function') {
-            // Snapshot live UI chrome after widgets finish painting (per-shell; never blocked by leftover shells).
-            const syncShell = () => {
-                if (typeof window.tmSyncAllUiShells === 'function') window.tmSyncAllUiShells();
-                else window.tmSyncFooterShellCache(config, STORAGE_KEYS);
-            };
-            setTimeout(syncShell, 0);
-            setTimeout(syncShell, 800);
-            setTimeout(syncShell, 2500);
-            setTimeout(syncShell, 5000);
-            setTimeout(syncShell, 12000);
+            // One idle snapshot after footer paints — do not spam (was freezing load).
+            const syncShell = () => window.tmSyncFooterShellCache(config, STORAGE_KEYS);
+            setTimeout(syncShell, 1500);
+            setTimeout(syncShell, 4000);
         }
 
         return true;
@@ -5325,12 +5319,11 @@
             console.warn('[MMS] myman_styles.js did not load — styles skipped. Use the local loader or check @require URLs.');
         }
 
-        // FOUC may already have mounted shells; keep them until each live widget replaces its own.
-        // Also remount any missing chrome if the extension did not run.
-        if (typeof window.tmWatchAndMountAllUiShells === 'function') {
-            window.tmWatchAndMountAllUiShells();
-        } else if (typeof window.tmWatchAndMountFooterShell === 'function') {
+        // Mount cached footer early if FOUC did not (suite-side fallback).
+        if (typeof window.tmWatchAndMountFooterShell === 'function') {
             window.tmWatchAndMountFooterShell();
+        } else if (typeof window.tmWatchAndMountAllUiShells === 'function') {
+            window.tmWatchAndMountAllUiShells();
         }
 
         // Create a shared container for bottom controls

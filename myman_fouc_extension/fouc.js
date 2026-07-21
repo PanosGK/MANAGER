@@ -1,10 +1,8 @@
 /**
  * Runs at document_start with the CSS content script.
  * - Skips login / quickview (reveal immediately)
- * - On repeat visits: apply cached theme/CSS, cover native white panels with a
- *   dark "bridge" layer, then reveal so users do not see white flashes
- * - Mounts cached UI chrome shells (footer, mascot, rail, header QS, brand)
- *   so only live variables hydrate when the Tampermonkey suite loads
+ * - On repeat visits: apply cached theme/CSS, then reveal
+ * - Mounts cached #tm-footer-controls-container; suite replaces + hydrates vars
  */
 (function tmMmsFoucExtension() {
   'use strict';
@@ -14,12 +12,6 @@
   var LS_THEME = 'tm_mms_fouc_theme';
   var LS_MENU = 'tm_mms_fouc_menu_css';
   var LS_PAGE = 'tm_mms_fouc_page_css';
-  var LS_INDEX = 'tm_mms_ui_shells';
-  var LS_PREFIX = 'tm_mms_ui_shell__';
-  var LS_FOOTER_LEGACY = 'tm_mms_footer_shell';
-  var SHELL_ATTR = 'data-tm-ui-shell';
-  var FOOTER_SHELL_ATTR = 'data-tm-footer-shell';
-  var UI_CACHE_VERSION = 6;
 
   function parseRgb(color) {
     var s = String(color || '').trim();
@@ -199,233 +191,88 @@
     installBridge(themeColors, themeBg);
   }
 
-  // ---- Cached UI chrome shells ----
-  function readShellHtml(name) {
-    try {
-      var raw = localStorage.getItem(LS_PREFIX + name);
-      if (!raw) return null;
-      var data = JSON.parse(raw);
-      if (!data || (data.v !== UI_CACHE_VERSION && data.v !== 5) || typeof data.html !== 'string') return null;
-      if (data.html.length < 40) return null;
-      return data.html;
-    } catch (e) {
-      return null;
-    }
-  }
+  // ---- Footer shell only (#tm-footer-controls-container) ----
+  var LS_FOOTER = 'tm_mms_footer_shell';
+  var SHELL_ATTR = 'data-tm-footer-shell';
+  var FOOTER_CACHE_VERSION = 7;
 
-  function readUiCache() {
-    var shells = {};
-    var keys = ['footer', 'mascot', 'search', 'headerQs', 'suiteBrand'];
-    var any = false;
-    keys.forEach(function (key) {
-      var html = readShellHtml(key);
-      if (html) {
-        shells[key] = { html: html };
-        any = true;
-      }
-    });
-
-    var css = '';
-    try {
-      var idxRaw = localStorage.getItem(LS_INDEX);
-      if (idxRaw) {
-        var idx = JSON.parse(idxRaw);
-        if (idx && idx.css) css = String(idx.css);
-        // v5 monolithic fallback
-        if (!any && idx && idx.v === 5 && idx.shells) {
-          return idx;
-        }
-      }
-    } catch (eIdx) { /* ignore */ }
-
-    if (any) {
-      return { v: UI_CACHE_VERSION, css: css, shells: shells };
-    }
-
-    try {
-      var legacy = localStorage.getItem(LS_FOOTER_LEGACY);
-      if (!legacy) return null;
-      var old = JSON.parse(legacy);
-      if (!old || old.v !== 4 || typeof old.html !== 'string' || old.html.length < 80) return null;
-      return {
-        v: UI_CACHE_VERSION,
-        css: old.css || '',
-        shells: { footer: { html: old.html } },
-      };
-    } catch (eLeg) {
-      return null;
-    }
-  }
-
-  function ensureUiShellCss() {
-    if (document.getElementById('tm-mms-ui-shell-css')) return;
+  function ensureFooterShellCss() {
+    if (document.getElementById('tm-mms-footer-shell-css')) return;
     var style = document.createElement('style');
-    style.id = 'tm-mms-ui-shell-css';
+    style.id = 'tm-mms-footer-shell-css';
     style.textContent = ''
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"],'
-      + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"]{pointer-events:none;width:100%;}'
-      + '[' + SHELL_ATTR + '="1"]{pointer-events:none!important;}';
+      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"]{pointer-events:none;width:100%;}'
+      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}'
+      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-left,'
+      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-middle,'
+      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}';
     (document.documentElement || document).appendChild(style);
   }
 
-  function injectUiShellCachedCss(cssText) {
+  function injectFooterShellCachedCss(cssText) {
     if (!cssText) return;
-    var style = document.getElementById('tm-mms-ui-shell-css-cache');
+    var style = document.getElementById('tm-mms-footer-shell-css-cache');
     if (!style) {
       style = document.createElement('style');
-      style.id = 'tm-mms-ui-shell-css-cache';
+      style.id = 'tm-mms-footer-shell-css-cache';
       (document.documentElement || document).appendChild(style);
     }
     style.textContent = cssText;
   }
 
-  function markShell(el, isFooter) {
-    if (!el) return;
-    el.setAttribute(SHELL_ATTR, '1');
-    if (isFooter) {
-      el.setAttribute(FOOTER_SHELL_ATTR, '1');
-      el.classList.add('tm-footer-shell');
-    }
-    try { el.style.pointerEvents = 'none'; } catch (e) { /* ignore */ }
-  }
-
-  function findFooterCenter() {
-    return document.querySelector('#footer-outterwrap table td[width="60%"]')
-      || document.querySelector('#footer-outterwrap table td:nth-child(2)');
-  }
-
-  function findFooterRight() {
-    var table = document.querySelector('#footer-outterwrap table');
-    if (!table) return null;
-    var cell = table.querySelector('td[width="40%"]');
-    if (!cell) {
-      var cells = table.querySelectorAll('td');
-      if (cells.length) cell = cells[cells.length - 1];
-    }
-    return cell;
-  }
-
-  function findHeaderFiller() {
-    return document.querySelector('#head-outterwrap .rnr-hfiller')
-      || document.querySelector('#head-outter .rnr-hfiller')
-      || document.querySelector('.rnr-top .rnr-hfiller')
-      || document.querySelector('.rnr-hfiller');
-  }
-
-  var shellMounts = {
-    footer: {
-      id: 'tm-footer-controls-container',
-      parent: findFooterCenter,
-      mount: function (html, parent) {
-        while (parent.firstChild) parent.removeChild(parent.firstChild);
-        parent.insertAdjacentHTML('beforeend', html);
-        var mounted = parent.querySelector('#tm-footer-controls-container');
-        if (!mounted) return false;
-        markShell(mounted, true);
-        return true;
-      },
-    },
-    mascot: {
-      id: 'tm-mascot-container',
-      parent: function () { return document.body || null; },
-      mount: function (html, parent) {
-        parent.insertAdjacentHTML('beforeend', html);
-        var mounted = document.getElementById('tm-mascot-container');
-        if (!mounted) return false;
-        markShell(mounted, false);
-        return true;
-      },
-    },
-    search: {
-      id: 'tm-search-container',
-      parent: function () { return document.body || null; },
-      mount: function (html, parent) {
-        parent.insertAdjacentHTML('beforeend', html);
-        var mounted = document.getElementById('tm-search-container');
-        if (!mounted) return false;
-        markShell(mounted, false);
-        return true;
-      },
-    },
-    headerQs: {
-      id: 'tm-header-quick-search-host',
-      parent: findHeaderFiller,
-      mount: function (html, parent) {
-        parent.insertAdjacentHTML('afterbegin', html);
-        var mounted = document.getElementById('tm-header-quick-search-host');
-        if (!mounted) return false;
-        markShell(mounted, false);
-        return true;
-      },
-    },
-    suiteBrand: {
-      id: 'tm-footer-suite-brand',
-      parent: findFooterRight,
-      mount: function (html, parent) {
-        parent.innerHTML = '';
-        parent.insertAdjacentHTML('beforeend', html);
-        var mounted = document.getElementById('tm-footer-suite-brand');
-        if (!mounted) return false;
-        markShell(mounted, false);
-        return true;
-      },
-    },
-  };
-
-  function mountShell(key, cache) {
+  function readFooterCache() {
     try {
-      var def = shellMounts[key];
-      var entry = cache && cache.shells && cache.shells[key];
-      if (!def || !entry || typeof entry.html !== 'string' || entry.html.length < 40) return false;
-      if (document.getElementById(def.id)) return false;
-      var parent = def.parent();
-      if (!parent) return false;
-      ensureUiShellCss();
-      injectUiShellCachedCss(cache.css || '');
-      return !!def.mount(entry.html, parent);
-    } catch (eMount) {
+      var raw = localStorage.getItem(LS_FOOTER);
+      if (!raw) return null;
+      var data = JSON.parse(raw);
+      // Accept current v7 and previous v4 snapshots
+      if (!data || typeof data.html !== 'string' || data.html.length < 80) return null;
+      if (data.v !== FOOTER_CACHE_VERSION && data.v !== 4) return null;
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  try {
+    var earlyFooter = readFooterCache();
+    if (earlyFooter && earlyFooter.css) injectFooterShellCachedCss(earlyFooter.css);
+  } catch (eEarlyCss) { /* ignore */ }
+
+  function mountFooterShell() {
+    try {
+      if (document.getElementById('tm-footer-controls-container')) return false;
+      var data = readFooterCache();
+      if (!data) return false;
+      var cell = document.querySelector('#footer-outterwrap table td[width="60%"]')
+        || document.querySelector('#footer-outterwrap table td:nth-child(2)');
+      if (!cell) return false;
+      ensureFooterShellCss();
+      injectFooterShellCachedCss(data.css || '');
+      while (cell.firstChild) cell.removeChild(cell.firstChild);
+      cell.insertAdjacentHTML('beforeend', data.html);
+      var mounted = cell.querySelector('#tm-footer-controls-container');
+      if (!mounted) return false;
+      mounted.setAttribute(SHELL_ATTR, '1');
+      mounted.classList.add('tm-footer-shell');
+      return true;
+    } catch (eFoot) {
       return false;
     }
   }
 
-  function mountAllShells() {
-    var cache = readUiCache();
-    if (!cache) return false;
-    var any = false;
-    Object.keys(shellMounts).forEach(function (key) {
-      if (mountShell(key, cache)) any = true;
-    });
-    return any;
-  }
-
-  try {
-    var earlyCache = readUiCache();
-    if (earlyCache && earlyCache.css) injectUiShellCachedCss(earlyCache.css);
-  } catch (eEarlyCss) { /* ignore */ }
-
-  function watchUiShells() {
-    mountAllShells();
+  function watchFooterShell() {
+    if (mountFooterShell()) return;
     try {
-      var pending = {};
-      Object.keys(shellMounts).forEach(function (k) { pending[k] = true; });
       var obs = new MutationObserver(function () {
-        var cache = readUiCache();
-        if (!cache) return;
-        Object.keys(pending).forEach(function (key) {
-          if (document.getElementById(shellMounts[key].id)) {
-            delete pending[key];
-            return;
-          }
-          if (mountShell(key, cache)) delete pending[key];
-        });
-        if (!Object.keys(pending).length) obs.disconnect();
+        if (mountFooterShell()) obs.disconnect();
       });
       obs.observe(document.documentElement || document, { childList: true, subtree: true });
-      setTimeout(function () { try { obs.disconnect(); } catch (e) { /* ignore */ } }, 20000);
+      setTimeout(function () { try { obs.disconnect(); } catch (e) { /* ignore */ } }, 12000);
     } catch (eObs) { /* ignore */ }
   }
 
-  watchUiShells();
+  watchFooterShell();
 
   if (canRevealEarly) {
     reveal();

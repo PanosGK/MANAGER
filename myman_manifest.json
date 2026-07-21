@@ -1,11 +1,11 @@
 {
-  "version": "296",
+  "version": "297",
   "loaderVersion": "35",
-  "silentVersion": "34",
-  "displayVersion": "35.34",
+  "silentVersion": "35",
+  "displayVersion": "35.35",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix UI shell cache: split localStorage keys, stop quota/sync blockers, FOUC 1.5.1",
+  "releaseNotes": "Simplify FOUC cache to footer-only; remove slow multi-shell bake (fix load)",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
