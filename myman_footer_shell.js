@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyMANAGER Footer Shell Cache (module)
 // @namespace    http://tampermonkey.net/
-// @version      2.2
+// @version      2.3
 // @description  Fast snapshot of #tm-footer-controls-container; FOUC mounts early; suite replaces + hydrates vars.
 // @author       Gkorogias
 // @match        *://thesellers.mymanager.gr/*
@@ -19,10 +19,73 @@
 
     let syncTimer = 0;
     let syncing = false;
+    let shellWatchObs = null;
+    let lastOkAt = 0;
+
+    /** Page-origin localStorage (shared with the FOUC Chrome extension). */
+    function pageLocalStorage() {
+        try {
+            if (typeof unsafeWindow !== 'undefined'
+                && unsafeWindow
+                && unsafeWindow.localStorage) {
+                return unsafeWindow.localStorage;
+            }
+        } catch (_) { /* ignore */ }
+        return localStorage;
+    }
+
+    /**
+     * Write into the real page localStorage.
+     * Tampermonkey sandbox localStorage is usually the page's, but we also
+     * inject a one-shot page script so the FOUC extension always sees the key.
+     */
+    function pageLsSet(key, value) {
+        const str = String(value);
+        let ok = false;
+        try {
+            pageLocalStorage().setItem(key, str);
+            ok = true;
+        } catch (_) { /* quota / denied */ }
+        try {
+            if (localStorage !== pageLocalStorage()) {
+                localStorage.setItem(key, str);
+                ok = true;
+            }
+        } catch (_) { /* ignore */ }
+
+        // Page-context write (CSP may block; ignore failures).
+        try {
+            const s = document.createElement('script');
+            s.textContent = 'try{localStorage.setItem('
+                + JSON.stringify(key) + ',' + JSON.stringify(str)
+                + ');}catch(e){}';
+            (document.documentElement || document.head || document).appendChild(s);
+            s.remove();
+        } catch (_) { /* CSP */ }
+
+        return ok;
+    }
+
+    function pageLsGet(key) {
+        try {
+            const a = pageLocalStorage().getItem(key);
+            if (a != null) return a;
+        } catch (_) { /* ignore */ }
+        try {
+            return localStorage.getItem(key);
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function pageLsRemove(key) {
+        try { pageLocalStorage().removeItem(key); } catch (_) { /* ignore */ }
+        try { localStorage.removeItem(key); } catch (_) { /* ignore */ }
+    }
 
     function readCache() {
         try {
-            const raw = localStorage.getItem(LS_FOOTER);
+            const raw = pageLsGet(LS_FOOTER);
             if (!raw) return null;
             const data = JSON.parse(raw);
             if (!data || data.v !== CACHE_VERSION || typeof data.html !== 'string' || data.html.length < 80) {
@@ -35,21 +98,26 @@
     }
 
     function writeCache(data) {
-        try {
-            localStorage.setItem(LS_FOOTER, JSON.stringify(data));
-            return true;
-        } catch (_) {
+        const payload = JSON.stringify(data);
+        if (pageLsSet(LS_FOOTER, payload)) {
+            // Verify the FOUC extension can read what we wrote.
             try {
-                localStorage.setItem(LS_FOOTER, JSON.stringify({
-                    v: CACHE_VERSION,
-                    updatedAt: data.updatedAt,
-                    html: data.html,
-                    css: '',
-                }));
-                return true;
-            } catch (_2) {
-                return false;
-            }
+                const check = pageLsGet(LS_FOOTER);
+                if (check && check.length > 80) return true;
+            } catch (_) { /* ignore */ }
+            return true;
+        }
+        // Quota: retry HTML only.
+        try {
+            const slim = JSON.stringify({
+                v: CACHE_VERSION,
+                updatedAt: data.updatedAt,
+                html: data.html,
+                css: '',
+            });
+            return pageLsSet(LS_FOOTER, slim);
+        } catch (_) {
+            return false;
         }
     }
 
@@ -87,12 +155,11 @@
 
     function collectSnapshot() {
         const container = document.getElementById('tm-footer-controls-container');
-        if (!container || container.getAttribute(SHELL_ATTR) === '1') return null;
+        if (!container) return null;
+        if (container.getAttribute(SHELL_ATTR) === '1') return null;
 
         const clone = container.cloneNode(true);
         slimClone(clone);
-        // Do NOT bake computed styles — that walks every node and freezes the page.
-        // Suite CSS + theme vars already cover look; FOUC injects theme CSS early.
         clone.removeAttribute(SHELL_ATTR);
         clone.classList.add('tm-footer-shell');
 
@@ -200,53 +267,113 @@
         return !!(existing && existing.getAttribute(SHELL_ATTR) === '1');
     }
 
-    function syncFooterShellCacheNow() {
-        if (syncing) return;
-        if (isFooterShellMounted()) return;
+    function purgeLegacyShellKeys() {
+        try {
+            const ls = pageLocalStorage();
+            const keys = [];
+            for (let i = 0; i < ls.length; i++) {
+                const k = ls.key(i);
+                if (k && k.indexOf('tm_mms_ui_shell') === 0) keys.push(k);
+            }
+            keys.forEach((k) => {
+                try { ls.removeItem(k); } catch (_) { /* ignore */ }
+            });
+        } catch (_) { /* ignore */ }
+    }
+
+    /**
+     * @param {{ force?: boolean, reason?: string }} [opts]
+     */
+    function syncFooterShellCacheNow(opts) {
+        const reason = (opts && opts.reason) || 'sync';
+        if (syncing) return false;
+        if (isFooterShellMounted()) {
+            console.warn('[MMS Footer Shell] skip (' + reason + '): shell still mounted');
+            return false;
+        }
+        const live = document.getElementById('tm-footer-controls-container');
+        if (!live) {
+            console.warn('[MMS Footer Shell] skip (' + reason + '): no live footer yet');
+            return false;
+        }
+
         syncing = true;
         try {
-            // Drop failed multi-shell experiment keys so quota is free.
-            try {
-                Object.keys(localStorage).forEach((k) => {
-                    if (k.indexOf('tm_mms_ui_shell') === 0) localStorage.removeItem(k);
-                });
-            } catch (_) { /* ignore */ }
-
+            purgeLegacyShellKeys();
             const snap = collectSnapshot();
-            if (snap && writeCache(snap)) {
-                console.log(`[MMS Footer Shell] cached (~${Math.round(snap.html.length / 1024)}KB)`);
+            if (!snap) {
+                console.warn('[MMS Footer Shell] skip (' + reason + '): empty snapshot');
+                return false;
             }
+            if (writeCache(snap)) {
+                lastOkAt = Date.now();
+                console.log(
+                    `[MMS Footer Shell] cached (~${Math.round(snap.html.length / 1024)}KB) via ${reason}`
+                );
+                return true;
+            }
+            console.warn('[MMS Footer Shell] write failed (' + reason + ') — localStorage quota?');
+            return false;
         } catch (err) {
             console.warn('[MMS Footer Shell] sync failed', err);
+            return false;
         } finally {
             syncing = false;
         }
     }
 
-    /** Debounced + idle — never blocks page load / coin updates. */
-    function syncFooterShellCache() {
+    /** Debounced (for coin/xp tweaks). Pass true to run immediately. */
+    function syncFooterShellCache(forceOrConfig, maybeKeys) {
+        // Call sites pass (config, STORAGE_KEYS) — treat non-boolean first arg as soft sync.
+        const force = forceOrConfig === true
+            || (forceOrConfig && typeof forceOrConfig === 'object' && forceOrConfig.force === true);
+
+        if (force) {
+            if (syncTimer) {
+                clearTimeout(syncTimer);
+                syncTimer = 0;
+            }
+            return syncFooterShellCacheNow({
+                force: true,
+                reason: (forceOrConfig && forceOrConfig.reason) || 'force',
+            });
+        }
+
         if (syncTimer) clearTimeout(syncTimer);
         syncTimer = setTimeout(() => {
             syncTimer = 0;
-            const run = () => syncFooterShellCacheNow();
-            if (typeof requestIdleCallback === 'function') {
-                requestIdleCallback(run, { timeout: 2000 });
-            } else {
-                setTimeout(run, 0);
-            }
-        }, 400);
+            syncFooterShellCacheNow({ reason: 'debounced' });
+        }, 600);
+    }
+
+    function stopFooterShellWatch() {
+        if (shellWatchObs) {
+            try { shellWatchObs.disconnect(); } catch (_) { /* ignore */ }
+            shellWatchObs = null;
+        }
     }
 
     function watchAndMountFooterShell() {
         if (mountFooterShellFromCache()) return;
-        const obs = new MutationObserver(() => {
-            if (mountFooterShellFromCache()) obs.disconnect();
-        });
+        stopFooterShellWatch();
         try {
-            obs.observe(document.documentElement || document, { childList: true, subtree: true });
-            setTimeout(() => obs.disconnect(), 12000);
+            shellWatchObs = new MutationObserver(() => {
+                if (mountFooterShellFromCache()) stopFooterShellWatch();
+                // Live footer appeared — stop trying to mount a shell over it.
+                const live = document.getElementById('tm-footer-controls-container');
+                if (live && live.getAttribute(SHELL_ATTR) !== '1') stopFooterShellWatch();
+            });
+            shellWatchObs.observe(document.documentElement || document, { childList: true, subtree: true });
+            setTimeout(() => stopFooterShellWatch(), 12000);
         } catch (_) { /* ignore */ }
     }
+
+    // Cache once more right before unload so the next visit has a snapshot.
+    try {
+        window.addEventListener('pagehide', () => {
+            syncFooterShellCacheNow({ reason: 'pagehide' });
+        });
+    } catch (_) { /* ignore */ }
 
     // Keep no-op aliases so older call sites don't break.
     function syncAllUiShells() { syncFooterShellCache(); }
@@ -261,11 +388,26 @@
     }
 
     window.tmSyncFooterShellCache = syncFooterShellCache;
+    window.tmSyncFooterShellCacheNow = syncFooterShellCacheNow;
     window.tmMountFooterShellFromCache = mountFooterShellFromCache;
     window.tmRemoveFooterShellIfPresent = removeFooterShellIfPresent;
     window.tmWatchAndMountFooterShell = watchAndMountFooterShell;
+    window.tmStopFooterShellWatch = stopFooterShellWatch;
     window.tmIsFooterShellMounted = isFooterShellMounted;
     window.TM_FOOTER_SHELL_LS_KEY = LS_FOOTER;
+    window.tmDebugFooterShell = function tmDebugFooterShell() {
+        const raw = pageLsGet(LS_FOOTER);
+        const live = document.getElementById('tm-footer-controls-container');
+        return {
+            key: LS_FOOTER,
+            bytes: raw ? raw.length : 0,
+            lastOkAt,
+            hasLive: !!live,
+            isShell: !!(live && live.getAttribute(SHELL_ATTR) === '1'),
+            cell: !!findFooterCenterCell(),
+            parsed: readCache(),
+        };
+    };
 
     window.tmSyncAllUiShells = syncAllUiShells;
     window.tmWatchAndMountAllUiShells = watchAndMountAllUiShells;

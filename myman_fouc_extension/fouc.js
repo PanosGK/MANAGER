@@ -237,6 +237,11 @@
   try {
     var earlyFooter = readFooterCache();
     if (earlyFooter && earlyFooter.css) injectFooterShellCachedCss(earlyFooter.css);
+    if (earlyFooter) {
+      console.log('[FOUC] footer cache ready (~' + Math.round(earlyFooter.html.length / 1024) + 'KB)');
+    } else {
+      console.log('[FOUC] footer cache empty — open MyManager once with the suite, wait ~5s, reload');
+    }
   } catch (eEarlyCss) { /* ignore */ }
 
   function mountFooterShell() {
@@ -255,6 +260,7 @@
       if (!mounted) return false;
       mounted.setAttribute(SHELL_ATTR, '1');
       mounted.classList.add('tm-footer-shell');
+      console.log('[FOUC] mounted footer shell');
       return true;
     } catch (eFoot) {
       return false;

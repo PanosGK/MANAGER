@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MyManager FOUC Guard",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Blanks thesellers before first paint; mounts cached footer chrome until the suite hydrates live values.",
   "icons": {
     "16": "icon16.png",

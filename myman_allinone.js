@@ -5142,7 +5142,8 @@
             }
         }
 
-        const footerCenterCell = document.querySelector('#footer-outterwrap table td[width="60%"]');
+        const footerCenterCell = document.querySelector('#footer-outterwrap table td[width="60%"]')
+            || document.querySelector('#footer-outterwrap table td:nth-child(2)');
         if (!footerCenterCell) {
             return false;
         }
@@ -5207,12 +5208,20 @@
             window.initEODChecklist(config, STORAGE_KEYS);
         }
 
-        if (typeof window.tmSyncFooterShellCache === 'function') {
-            // One idle snapshot after footer paints — do not spam (was freezing load).
-            const syncShell = () => window.tmSyncFooterShellCache(config, STORAGE_KEYS);
-            setTimeout(syncShell, 1500);
-            setTimeout(syncShell, 4000);
+        if (typeof window.tmStopFooterShellWatch === 'function') {
+            window.tmStopFooterShellWatch();
         }
+
+        // Force writes into page localStorage (FOUC extension reads the same origin).
+        const forceShellSync = (reason) => {
+            if (typeof window.tmSyncFooterShellCacheNow === 'function') {
+                window.tmSyncFooterShellCacheNow({ force: true, reason });
+            } else if (typeof window.tmSyncFooterShellCache === 'function') {
+                window.tmSyncFooterShellCache(true);
+            }
+        };
+        setTimeout(() => forceShellSync('footer+2s'), 2000);
+        setTimeout(() => forceShellSync('footer+5s'), 5000);
 
         return true;
     }

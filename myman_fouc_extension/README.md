@@ -18,7 +18,7 @@ Mascot / other widgets are **not** cached (that made the suite too slow).
 
 ## After updating
 
-1. Reload this extension (**v1.6.0**)
-2. Open MyManager ~5s once — console: `[MMS Footer Shell] cached …`
-3. Check: `localStorage.getItem('tm_mms_footer_shell')?.length`
-4. Navigate again — footer should appear immediately, then go live
+1. Reload this extension (**v1.6.1**)
+2. Open MyManager ~5s once — console: `[MMS Footer Shell] cached … via footer+2s`
+3. Check: `tmDebugFooterShell()` or `localStorage.getItem('tm_mms_footer_shell')?.length`
+4. Navigate again — console: `[FOUC] mounted footer shell`
