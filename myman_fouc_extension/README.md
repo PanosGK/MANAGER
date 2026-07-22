@@ -12,13 +12,14 @@ Blanks [thesellers.mymanager.gr](https://thesellers.mymanager.gr/) **before firs
 
 ## What it caches
 
-Only `#tm-footer-controls-container` (icons + last coins/XP/weather/etc.).  
-Theme CSS variables are applied early from localStorage.  
-Mascot / other widgets are **not** cached (that made the suite too slow).
+Only `#tm-footer-controls-container` (footer icons / coins / XP / weather chrome).
+
+**Storage:** the suite `postMessage`s a snapshot → extension saves it in **`chrome.storage.local`** (not Tampermonkey sandbox localStorage). That is what makes early mount reliable.
 
 ## After updating
 
-1. Reload this extension (**v1.6.1**)
-2. Open MyManager ~5s once — console: `[MMS Footer Shell] cached … via footer+2s`
-3. Check: `tmDebugFooterShell()` or `localStorage.getItem('tm_mms_footer_shell')?.length`
-4. Navigate again — console: `[FOUC] mounted footer shell`
+1. Chrome → Extensions → **Reload** this extension (**v1.7.0** — needs `storage` permission; confirm if prompted)
+2. Open MyManager, wait ~5s — console should show:
+   - `[MMS Footer Shell] cached (~NKB) via footer+2s`
+   - `[FOUC] footer saved to extension storage (~NKB)`
+3. Hard-refresh / navigate — console: `[FOUC] mounted footer shell`
