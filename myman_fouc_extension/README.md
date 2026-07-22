@@ -1,25 +1,35 @@
 # MyManager FOUC Guard (Chrome extension)
 
-Blanks [thesellers.mymanager.gr](https://thesellers.mymanager.gr/) **before first paint** until the Tampermonkey suite adds `tm-mms-theme-ready`.
+Blanks [thesellers.mymanager.gr](https://thesellers.mymanager.gr/) **before first paint**, then remounts a cached footer until the suite hydrates.
 
-## Install (unpacked)
+## Install / update
 
-1. Open Chrome → `chrome://extensions`
-2. Enable **Developer mode**
-3. **Load unpacked** → `myman_fouc_extension`
-4. Keep the MyManager Tampermonkey loader installed
-5. Hard-refresh MyManager
+1. `chrome://extensions` → Developer mode
+2. **Load unpacked** → this `myman_fouc_extension` folder  
+   (or **Reload** if already loaded)
+3. Confirm version **1.8.0** and accept **storage** permission
+4. Hard-refresh MyManager
 
-## What it caches
+## How footer caching works (v1.8)
 
-Only `#tm-footer-controls-container` (footer icons / coins / XP / weather chrome).
+The extension is **self-contained** — it does **not** need Tampermonkey to write the cache:
 
-**Storage:** the suite `postMessage`s a snapshot → extension saves it in **`chrome.storage.local`** (not Tampermonkey sandbox localStorage). That is what makes early mount reliable.
+1. Suite builds the live footer
+2. Extension snapshots `#tm-footer-controls-container` → `chrome.storage.local`
+3. Next visit: extension mounts that snapshot as soon as `#footer-outterwrap` exists
+4. Suite replaces the placeholder with the live footer
 
-## After updating
+## Console checks
 
-1. Chrome → Extensions → **Reload** this extension (**v1.7.0** — needs `storage` permission; confirm if prompted)
-2. Open MyManager, wait ~5s — console should show:
-   - `[MMS Footer Shell] cached (~NKB) via footer+2s`
-   - `[FOUC] footer saved to extension storage (~NKB)`
-3. Hard-refresh / navigate — console: `[FOUC] mounted footer shell`
+**First visit after reload (wait ~6s):**
+```
+[FOUC] guard v1.8.0 ready
+[FOUC] no footer cache yet — will snapshot after suite paints
+[FOUC] cached footer (~NKB) from live-dom
+```
+
+**Second visit:**
+```
+[FOUC] footer cache hit (chrome.storage)
+[FOUC] mounted cached footer
+```

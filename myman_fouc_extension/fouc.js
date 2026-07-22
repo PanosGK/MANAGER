@@ -1,9 +1,9 @@
 /**
- * Runs at document_start with the CSS content script.
- * - Skips login / quickview (reveal immediately)
- * - On repeat visits: apply cached theme/CSS, then reveal
- * - Mounts cached #tm-footer-controls-container from chrome.storage (primary)
- *   or localStorage (fallback); suite replaces + hydrates vars
+ * MyManager FOUC Guard — content script (document_start)
+ *
+ * Self-contained footer cache:
+ * 1) On load: mount last snapshot from chrome.storage (no Tampermonkey bridge needed)
+ * 2) After suite builds the live footer: snapshot it into chrome.storage
  */
 (function tmMmsFoucExtension() {
   'use strict';
@@ -13,11 +13,10 @@
   var LS_THEME = 'tm_mms_fouc_theme';
   var LS_MENU = 'tm_mms_fouc_menu_css';
   var LS_PAGE = 'tm_mms_fouc_page_css';
-  var LS_FOOTER = 'tm_mms_footer_shell';
   var SHELL_ATTR = 'data-tm-footer-shell';
-  var FOOTER_CACHE_VERSION = 8;
-  var MSG_TYPE = 'TM_MMS_FOOTER_CACHE';
   var EXT_STORE_KEY = 'tm_mms_footer_shell';
+  var CACHE_VERSION = 9;
+  var XFER_ID = 'tm-mms-footer-xfer';
 
   function parseRgb(color) {
     var s = String(color || '').trim();
@@ -125,9 +124,7 @@
       reveal();
       return;
     }
-  } catch (eSkip) {
-    /* continue hidden */
-  }
+  } catch (eSkip) { /* continue */ }
 
   var root = document.documentElement;
   if (!root) return;
@@ -145,9 +142,7 @@
     var raw = localStorage.getItem(LS_THEME);
     if (raw) {
       var theme = JSON.parse(raw);
-      if (theme && theme.themeId === 'default') {
-        canRevealEarly = true;
-      }
+      if (theme && theme.themeId === 'default') canRevealEarly = true;
       themeBg = theme && theme.bg ? String(theme.bg) : themeBg;
       if (themeBg) {
         root.style.setProperty('background', themeBg, 'important');
@@ -197,7 +192,7 @@
     installBridge(themeColors, themeBg);
   }
 
-  // ---- Footer shell (chrome.storage primary — survives TM sandbox isolation) ----
+  // ---------- Footer shell: self-cache in chrome.storage ----------
 
   function ensureFooterShellCss() {
     if (document.getElementById('tm-mms-footer-shell-css')) return;
@@ -212,81 +207,70 @@
     (document.documentElement || document).appendChild(style);
   }
 
-  function isValidFooterData(data) {
-    if (!data || typeof data.html !== 'string' || data.html.length < 80) return false;
-    if (data.v !== FOOTER_CACHE_VERSION && data.v !== 7 && data.v !== 4) return false;
-    return true;
+  function findFooterCell() {
+    return document.querySelector('#footer-outterwrap table td[width="60%"]')
+      || document.querySelector('#footer-outterwrap table td:nth-child(2)')
+      || document.querySelector('#footer-outterwrap td');
   }
 
-  function readFooterFromLocalStorage() {
+  function isValidFooterData(data) {
+    return !!(data && typeof data.html === 'string' && data.html.length >= 80
+      && (data.v === CACHE_VERSION || data.v === 8 || data.v === 7 || data.v === 4));
+  }
+
+  function slimFooterHtml(container) {
     try {
-      var raw = localStorage.getItem(LS_FOOTER);
-      if (!raw) return null;
-      var data = JSON.parse(raw);
-      return isValidFooterData(data) ? data : null;
+      var clone = container.cloneNode(true);
+      clone.removeAttribute(SHELL_ATTR);
+      clone.classList.add('tm-footer-shell');
+      var menu = clone.querySelector('#tm-recent-repairs-menu');
+      if (menu) {
+        menu.style.display = 'none';
+        menu.innerHTML = '';
+      }
+      var kill = clone.querySelectorAll(
+        '#tm-notification-panel, #tm-notification-backdrop, .tm-modal-overlay, #tm-coin-history-tooltip'
+      );
+      for (var i = 0; i < kill.length; i++) kill[i].remove();
+      var svgs = clone.querySelectorAll('svg');
+      for (var s = 0; s < svgs.length; s++) {
+        var mark = document.createElement('span');
+        mark.className = 'tm-footer-shell-icon';
+        svgs[s].replaceWith(mark);
+      }
+      var html = clone.outerHTML;
+      if (html.length < 80 || html.length > 250000) return null;
+      return html;
     } catch (e) {
       return null;
     }
   }
 
-  function saveFooterToExtensionStore(data) {
-    if (!isValidFooterData(data)) return;
+  function saveFooterSnapshot(html, source) {
+    if (!html || html.length < 80) return;
+    var data = { v: CACHE_VERSION, updatedAt: Date.now(), html: html };
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         var packet = {};
-        packet[EXT_STORE_KEY] = {
-          v: data.v,
-          updatedAt: data.updatedAt || Date.now(),
-          html: data.html,
-        };
+        packet[EXT_STORE_KEY] = data;
         chrome.storage.local.set(packet, function () {
-          console.log('[FOUC] footer saved to extension storage (~'
-            + Math.round(data.html.length / 1024) + 'KB)');
+          console.log('[FOUC] cached footer (~' + Math.round(html.length / 1024)
+            + 'KB) from ' + source);
         });
       }
     } catch (eSave) {
-      console.warn('[FOUC] extension storage write failed', eSave);
+      console.warn('[FOUC] cache write failed', eSave);
     }
-    // Mirror to page localStorage for suite-side fallback mounts.
     try {
-      localStorage.setItem(LS_FOOTER, JSON.stringify({
-        v: data.v,
-        updatedAt: data.updatedAt || Date.now(),
-        html: data.html,
-        css: '',
-      }));
-    } catch (eLs) { /* quota */ }
+      localStorage.setItem('tm_mms_footer_shell', JSON.stringify(data));
+    } catch (eLs) { /* ignore */ }
   }
-
-  // Receive snapshots from the Tampermonkey suite (sandbox-safe bridge).
-  try {
-    window.addEventListener('message', function (ev) {
-      try {
-        var d = ev && ev.data;
-        if (!d || d.type !== MSG_TYPE) return;
-        if (!isValidFooterData(d)) return;
-        saveFooterToExtensionStore(d);
-      } catch (eMsg) { /* ignore */ }
-    }, true);
-    document.documentElement.addEventListener('tm-mms-footer-cache', function (ev) {
-      try {
-        var d = ev && ev.detail;
-        if (!d || d.type !== MSG_TYPE) return;
-        if (!isValidFooterData(d)) return;
-        saveFooterToExtensionStore(d);
-      } catch (eEv) { /* ignore */ }
-    }, true);
-  } catch (eListen) { /* ignore */ }
-
-  var cachedFooter = null;
-  var footerMountAttempted = false;
 
   function mountFooterShell(data) {
     try {
       if (document.getElementById('tm-footer-controls-container')) return false;
       if (!isValidFooterData(data)) return false;
-      var cell = document.querySelector('#footer-outterwrap table td[width="60%"]')
-        || document.querySelector('#footer-outterwrap table td:nth-child(2)');
+      var cell = findFooterCell();
       if (!cell) return false;
       ensureFooterShellCss();
       while (cell.firstChild) cell.removeChild(cell.firstChild);
@@ -295,78 +279,125 @@
       if (!mounted) return false;
       mounted.setAttribute(SHELL_ATTR, '1');
       mounted.classList.add('tm-footer-shell');
-      console.log('[FOUC] mounted footer shell');
+      console.log('[FOUC] mounted cached footer');
       return true;
     } catch (eFoot) {
       return false;
     }
   }
 
-  function watchFooterShell(data) {
-    cachedFooter = data || cachedFooter;
-    if (mountFooterShell(cachedFooter)) return;
+  var pendingMount = null;
+  var mountObs = null;
+
+  function watchMount(data) {
+    pendingMount = data;
+    if (mountFooterShell(pendingMount)) return;
+    if (mountObs) return;
     try {
-      var obs = new MutationObserver(function () {
-        if (mountFooterShell(cachedFooter)) obs.disconnect();
+      mountObs = new MutationObserver(function () {
+        if (mountFooterShell(pendingMount)) {
+          try { mountObs.disconnect(); } catch (e) { /* ignore */ }
+          mountObs = null;
+        }
       });
-      obs.observe(document.documentElement || document, { childList: true, subtree: true });
-      setTimeout(function () { try { obs.disconnect(); } catch (e) { /* ignore */ } }, 15000);
+      mountObs.observe(document.documentElement || document, { childList: true, subtree: true });
+      setTimeout(function () {
+        if (mountObs) {
+          try { mountObs.disconnect(); } catch (e2) { /* ignore */ }
+          mountObs = null;
+        }
+      }, 20000);
     } catch (eObs) { /* ignore */ }
   }
 
-  function startFooterFromData(data, source) {
-    if (footerMountAttempted) {
-      if (data) cachedFooter = data;
-      return;
+  // Load cache ASAP (async chrome.storage + sync localStorage fallback)
+  try {
+    var lsRaw = localStorage.getItem('tm_mms_footer_shell');
+    if (lsRaw) {
+      var lsData = JSON.parse(lsRaw);
+      if (isValidFooterData(lsData)) {
+        console.log('[FOUC] footer cache hit (localStorage)');
+        watchMount(lsData);
+      }
     }
-    footerMountAttempted = true;
-    if (data) {
-      console.log('[FOUC] footer cache ready from ' + source + ' (~'
-        + Math.round(data.html.length / 1024) + 'KB)');
-      watchFooterShell(data);
-    } else {
-      console.log('[FOUC] footer cache empty — wait for suite sync, then reload');
-      watchFooterShell(null);
-    }
-  }
+  } catch (eLsRead) { /* ignore */ }
 
-  // 1) Fast path: page localStorage (same origin as content script)
-  var lsFooter = readFooterFromLocalStorage();
-  if (lsFooter) {
-    startFooterFromData(lsFooter, 'localStorage');
-  }
-
-  // 2) Reliable path: extension chrome.storage (written via postMessage from suite)
   try {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
       chrome.storage.local.get([EXT_STORE_KEY], function (result) {
         var data = result && result[EXT_STORE_KEY];
         if (isValidFooterData(data)) {
-          if (!footerMountAttempted) {
-            startFooterFromData(data, 'chrome.storage');
-          } else if (!document.getElementById('tm-footer-controls-container')) {
-            watchFooterShell(data);
-          }
-        } else if (!footerMountAttempted) {
-          startFooterFromData(null, 'chrome.storage');
+          console.log('[FOUC] footer cache hit (chrome.storage)');
+          watchMount(data);
+        } else if (!pendingMount) {
+          console.log('[FOUC] no footer cache yet — will snapshot after suite paints');
         }
       });
-    } else if (!footerMountAttempted) {
-      startFooterFromData(null, 'no-storage-api');
+    } else {
+      console.warn('[FOUC] chrome.storage unavailable — reload extension v1.8+');
     }
   } catch (eStore) {
-    if (!footerMountAttempted) startFooterFromData(lsFooter, 'localStorage-fallback');
+    console.warn('[FOUC] storage read failed', eStore);
   }
 
-  if (canRevealEarly) {
-    reveal();
+  // Snapshot the LIVE footer once the suite builds it (no TM bridge required).
+  var lastSnapHash = '';
+  var snapTimer = 0;
+
+  function trySnapshotLiveFooter() {
+    var el = document.getElementById('tm-footer-controls-container');
+    if (!el) return;
+    if (el.getAttribute(SHELL_ATTR) === '1') return; // still the placeholder
+    // Need some real widgets, not an empty shell.
+    if (!el.querySelector('#tm-footer-controls-row')) return;
+    var html = slimFooterHtml(el);
+    if (!html) return;
+    if (html === lastSnapHash) return;
+    lastSnapHash = html;
+    saveFooterSnapshot(html, 'live-dom');
   }
+
+  function scheduleSnapshot() {
+    if (snapTimer) clearTimeout(snapTimer);
+    snapTimer = setTimeout(function () {
+      snapTimer = 0;
+      trySnapshotLiveFooter();
+    }, 500);
+  }
+
+  function startLiveFooterWatcher() {
+    try {
+      var obs = new MutationObserver(function () {
+        scheduleSnapshot();
+        // Also accept suite DOM transfer node if present.
+        var xfer = document.getElementById(XFER_ID);
+        if (xfer && xfer.textContent) {
+          try {
+            var parsed = JSON.parse(xfer.textContent);
+            if (isValidFooterData(parsed)) {
+              saveFooterSnapshot(parsed.html, 'dom-xfer');
+              xfer.remove();
+            }
+          } catch (eX) { /* ignore */ }
+        }
+      });
+      obs.observe(document.documentElement || document, { childList: true, subtree: true });
+      // Timed backups after suite typically finishes.
+      setTimeout(trySnapshotLiveFooter, 3000);
+      setTimeout(trySnapshotLiveFooter, 6000);
+      setTimeout(trySnapshotLiveFooter, 12000);
+    } catch (eWatch) { /* ignore */ }
+  }
+
+  startLiveFooterWatcher();
+
+  if (canRevealEarly) reveal();
 
   setTimeout(function () {
     try {
-      if (!document.documentElement.classList.contains(READY)) {
-        reveal();
-      }
+      if (!document.documentElement.classList.contains(READY)) reveal();
     } catch (eFail) { /* ignore */ }
   }, 8000);
+
+  console.log('[FOUC] guard v1.8.0 ready');
 })();
