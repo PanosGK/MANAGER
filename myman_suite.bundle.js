@@ -5764,105 +5764,328 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 (function() {
     'use strict';
 
-    const PRINT_ACCENT_COLOR = '#00bcd4';
-    const PRINT_MUTED_COLOR = '#f5f7fa';
+    const PRINT_FONT = "'IBM Plex Sans', 'Segoe UI', sans-serif";
+    const PRINT_MONO = "'IBM Plex Mono', 'Consolas', monospace";
+
+    function prepareFields(fields) {
+        const barcodeField = fields.find(f =>
+            /barcode|κωδικ/i.test(f.label)
+        );
+        const filtered = fields.filter(f =>
+            f !== barcodeField &&
+            !/περιγραφ|description/i.test(f.label)
+        );
+        return {
+            barcode: barcodeField || null,
+            fields: barcodeField ? [barcodeField, ...filtered] : filtered
+        };
+    }
+
+    function escapeHtml(text) {
+        return String(text ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
 
     const PRINT_TEMPLATES = [
         {
             id: 'classic',
             name: 'Κλασικό A4',
-            description: 'Απλό, καθαρό πρότυπο για το πάνω μισό της σελίδας.',
-            pageStyle: '@page { size: A4; margin: 12mm; }',
+            description: 'Πλήρης ασπρόμαυρη κάρτα για το πάνω μισό της σελίδας.',
+            pageStyle: '@page { size: A4; margin: 14mm; }',
             styles: `
-                .print-surface.classic { max-width: 400px; margin: 0 auto; font-family: 'Inter', 'Segoe UI', sans-serif; }
-                .print-surface.classic .print-header { text-align: center; padding-bottom: 12px; margin-bottom: 12px; border-bottom: 2px solid ${PRINT_ACCENT_COLOR}; }
-                .print-surface.classic .print-title { font-size: 18px; font-weight: 800; color: #0f172a; margin: 0; text-align: center; }
-                .print-surface.classic .fields-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border: 1px solid #e2e8f0; }
-                .print-surface.classic .field-item { display: flex; flex-direction: column; padding: 10px 12px; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; min-height: 60px; justify-content: center; align-items: center; text-align: center; }
-                .print-surface.classic .field-item:nth-child(2n) { border-right: none; }
-                .print-surface.classic .field-item.full { grid-column: span 2; border-right: none; }
-                .print-surface.classic .field-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; text-align: center; }
-                .print-surface.classic .field-value { font-size: 12px; font-weight: 600; color: #0f172a; line-height: 1.5; white-space: pre-wrap; word-break: break-word; text-align: center; }
-                .print-surface.classic .field-value:empty::after { content: '—'; color: #cbd5e1; }
-                .print-surface.classic .print-footer { margin-top: 12px; padding-top: 8px; text-align: center; border-top: 1px solid #e2e8f0; }
-                .print-surface.classic .footer-timestamp { font-size: 10px; color: #94a3b8; font-weight: 600; text-align: center; }
+                .print-surface.classic {
+                    width: 100%;
+                    max-width: 420px;
+                    margin: 0 auto;
+                    font-family: ${PRINT_FONT};
+                    color: #000;
+                    background: #fff;
+                    border: 2px solid #000;
+                }
+                .print-surface.classic .print-header {
+                    background: #000;
+                    color: #fff;
+                    padding: 14px 16px 12px;
+                    text-align: left;
+                }
+                .print-surface.classic .print-eyebrow {
+                    font-size: 9px;
+                    font-weight: 600;
+                    letter-spacing: 0.14em;
+                    text-transform: uppercase;
+                    opacity: 0.7;
+                    margin-bottom: 4px;
+                }
+                .print-surface.classic .print-title {
+                    font-size: 17px;
+                    font-weight: 700;
+                    line-height: 1.25;
+                    margin: 0;
+                    letter-spacing: -0.01em;
+                }
+                .print-surface.classic .barcode-block {
+                    border-bottom: 2px solid #000;
+                    padding: 12px 16px;
+                    background: #fff;
+                }
+                .print-surface.classic .barcode-label {
+                    font-size: 9px;
+                    font-weight: 700;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                    color: #000;
+                    margin-bottom: 4px;
+                }
+                .print-surface.classic .barcode-value {
+                    font-family: ${PRINT_MONO};
+                    font-size: 18px;
+                    font-weight: 600;
+                    letter-spacing: 0.06em;
+                    line-height: 1.2;
+                }
+                .print-surface.classic .fields-list {
+                    display: flex;
+                    flex-direction: column;
+                }
+                .print-surface.classic .field-row {
+                    display: grid;
+                    grid-template-columns: 38% 62%;
+                    gap: 0;
+                    border-bottom: 1px solid #000;
+                    min-height: 36px;
+                }
+                .print-surface.classic .field-row:last-child {
+                    border-bottom: none;
+                }
+                .print-surface.classic .field-row.full {
+                    grid-template-columns: 1fr;
+                }
+                .print-surface.classic .field-label {
+                    font-size: 9px;
+                    font-weight: 700;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    padding: 8px 12px;
+                    border-right: 1px solid #000;
+                    display: flex;
+                    align-items: center;
+                    background: #f2f2f2;
+                }
+                .print-surface.classic .field-row.full .field-label {
+                    border-right: none;
+                    border-bottom: 1px solid #000;
+                    padding-bottom: 4px;
+                }
+                .print-surface.classic .field-value {
+                    font-size: 12px;
+                    font-weight: 500;
+                    line-height: 1.4;
+                    padding: 8px 12px;
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                    display: flex;
+                    align-items: center;
+                }
+                .print-surface.classic .field-value:empty::after {
+                    content: '—';
+                    color: #999;
+                }
+                .print-surface.classic .print-footer {
+                    border-top: 2px solid #000;
+                    padding: 8px 16px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    background: #fff;
+                }
+                .print-surface.classic .footer-mark {
+                    font-size: 9px;
+                    font-weight: 700;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                }
+                .print-surface.classic .footer-timestamp {
+                    font-size: 10px;
+                    font-weight: 500;
+                    font-family: ${PRINT_MONO};
+                }
             `,
             render: (details, fields, nowText) => {
-                // Filter out description field and reorder: put barcode first
-                const barcodeField = fields.find(f => f.label.toLowerCase().includes('barcode') || f.label.toLowerCase().includes('κωδικ'));
-                const filteredFields = fields.filter(f => 
-                    f !== barcodeField && 
-                    !f.label.toLowerCase().includes('περιγραφ') && 
-                    !f.label.toLowerCase().includes('description')
-                );
-                
-                const reorderedFields = barcodeField ? [barcodeField, ...filteredFields] : filteredFields;
-                
+                const { barcode, fields: rows } = prepareFields(fields);
+                const bodyFields = barcode ? rows.slice(1) : rows;
+
                 return `
                 <div class="print-surface classic">
                     <div class="print-header">
-                        <div class="print-title">${details.title}</div>
+                        <div class="print-eyebrow">Παραγγελία</div>
+                        <h1 class="print-title">${escapeHtml(details.title)}</h1>
                     </div>
-                    <div class="fields-grid">
-                        ${reorderedFields.map(field => {
+                    ${barcode ? `
+                    <div class="barcode-block">
+                        <div class="barcode-label">${escapeHtml(barcode.label)}</div>
+                        <div class="barcode-value">${escapeHtml(barcode.value)}</div>
+                    </div>` : ''}
+                    <div class="fields-list">
+                        ${bodyFields.map(field => {
                             const isLong = field.value.length > 60;
                             return `
-                                <div class="field-item ${isLong ? 'full' : ''}">
-                                    <div class="field-label">${field.label}</div>
-                                    <div class="field-value">${field.value}</div>
+                                <div class="field-row ${isLong ? 'full' : ''}">
+                                    <div class="field-label">${escapeHtml(field.label)}</div>
+                                    <div class="field-value">${escapeHtml(field.value)}</div>
                                 </div>
                             `;
                         }).join('')}
                     </div>
                     <div class="print-footer">
-                        <div class="footer-timestamp">${nowText}</div>
+                        <div class="footer-mark">MyManager</div>
+                        <div class="footer-timestamp">${escapeHtml(nowText)}</div>
                     </div>
                 </div>
                 `;
             }
         },
-        
+
         {
             id: 'quarter_top_right',
             name: 'Πάνω Δεξιά 1/4',
-            description: 'Μίνιμαλ καρτέλα πάνω δεξιά.',
-            pageStyle: '@page { size: A4; margin: 12mm; }',
+            description: 'Συμπαγής ασπρόμαυρη κάρτα πάνω δεξιά.',
+            pageStyle: '@page { size: A4; margin: 10mm; }',
             styles: `
-                .print-surface.quarter { width: 48%; max-width: 48%; margin-left: auto; margin-right: 0; align-self: flex-start; border: 1px solid #e6e9ee; border-radius: 8px; padding: 5px 6px; box-shadow: none; background: #ffffff; font-family: 'Inter', 'Segoe UI', Arial, sans-serif; font-size: 12px; text-align: center; float: right; box-sizing: border-box; page-break-inside: avoid; }
-                .print-surface.quarter .print-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 3px; padding: 2px 0 4px; border-bottom: 1px solid #e6e9ee; text-align: center; }
-                .print-surface.quarter .print-left { display: flex; flex-direction: column; gap: 1px; align-items: center; }
-                .print-surface.quarter .print-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; text-transform: uppercase; color: #6b7280; text-align: center; }
-                .print-surface.quarter .print-title { font-size: 13px; font-weight: 800; color: #0f172a; line-height: 1.08; text-align: center; }
-                .print-surface.quarter .print-meta { font-size: 10.5px; padding: 2px 6px; border-radius: 6px; background: #f3f4f6; border: 1px solid #e5e7eb; color: #0f172a; white-space: nowrap; text-align: center; display: inline-block; }
-                .print-surface.quarter .print-body { margin-top: 3px; padding: 0; }
-                .print-surface.quarter .kv-list { display: flex; flex-direction: column; gap: 0; }
-                .print-surface.quarter .kv-row { display: grid; grid-template-columns: 38% 62%; gap: 2px; align-items: center; justify-items: center; padding: 3px 0; border-bottom: 1px dashed #e6e9ee; text-align: center; }
-                .print-surface.quarter .kv-row:last-child { border-bottom: none; }
-                .print-surface.quarter .kv-row .label { font-size: 11px; font-weight: 700; color: #4b5563; letter-spacing: 0.02px; text-align: center; }
-                .print-surface.quarter .kv-row .value { font-size: 12px; color: #0f172a; line-height: 1.2; white-space: pre-wrap; word-break: break-word; text-align: center; }
+                .print-surface.quarter {
+                    width: 48%;
+                    max-width: 48%;
+                    margin-left: auto;
+                    margin-right: 0;
+                    float: right;
+                    box-sizing: border-box;
+                    page-break-inside: avoid;
+                    font-family: ${PRINT_FONT};
+                    color: #000;
+                    background: #fff;
+                    border: 2px solid #000;
+                    font-size: 11px;
+                }
+                .print-surface.quarter .print-header {
+                    background: #000;
+                    color: #fff;
+                    padding: 8px 10px;
+                }
+                .print-surface.quarter .print-eyebrow {
+                    font-size: 8px;
+                    font-weight: 600;
+                    letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                    opacity: 0.7;
+                    margin-bottom: 2px;
+                }
+                .print-surface.quarter .print-title {
+                    font-size: 12px;
+                    font-weight: 700;
+                    line-height: 1.2;
+                    margin: 0;
+                }
+                .print-surface.quarter .barcode-block {
+                    border-bottom: 1.5px solid #000;
+                    padding: 7px 10px;
+                }
+                .print-surface.quarter .barcode-label {
+                    font-size: 8px;
+                    font-weight: 700;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                    margin-bottom: 2px;
+                }
+                .print-surface.quarter .barcode-value {
+                    font-family: ${PRINT_MONO};
+                    font-size: 13px;
+                    font-weight: 600;
+                    letter-spacing: 0.04em;
+                }
+                .print-surface.quarter .kv-list {
+                    display: flex;
+                    flex-direction: column;
+                }
+                .print-surface.quarter .kv-row {
+                    display: grid;
+                    grid-template-columns: 36% 64%;
+                    border-bottom: 1px solid #000;
+                }
+                .print-surface.quarter .kv-row:last-child {
+                    border-bottom: none;
+                }
+                .print-surface.quarter .kv-row .label {
+                    font-size: 8px;
+                    font-weight: 700;
+                    letter-spacing: 0.06em;
+                    text-transform: uppercase;
+                    padding: 5px 8px;
+                    border-right: 1px solid #000;
+                    background: #f2f2f2;
+                    display: flex;
+                    align-items: center;
+                }
+                .print-surface.quarter .kv-row .value {
+                    font-size: 11px;
+                    font-weight: 500;
+                    line-height: 1.25;
+                    padding: 5px 8px;
+                    white-space: pre-wrap;
+                    word-break: break-word;
+                    display: flex;
+                    align-items: center;
+                }
+                .print-surface.quarter .print-footer {
+                    border-top: 1.5px solid #000;
+                    padding: 5px 10px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                .print-surface.quarter .footer-mark {
+                    font-size: 8px;
+                    font-weight: 700;
+                    letter-spacing: 0.1em;
+                    text-transform: uppercase;
+                }
+                .print-surface.quarter .print-meta {
+                    font-size: 9px;
+                    font-family: ${PRINT_MONO};
+                    font-weight: 500;
+                }
             `,
-            render: (details, fields, nowText) => `
+            render: (details, fields, nowText) => {
+                const { barcode, fields: rows } = prepareFields(fields);
+                const bodyFields = barcode ? rows.slice(1) : rows;
+
+                return `
                 <div class="print-surface quarter">
                     <div class="print-header">
-                        <div class="print-left">
-                            <div class="print-title">${details.title}</div>
-                        </div>
+                        <div class="print-eyebrow">Παραγγελία</div>
+                        <div class="print-title">${escapeHtml(details.title)}</div>
                     </div>
-                    <div class="print-body">
-                        <div class="kv-list">
-                            ${fields.map(field => `
-                                <div class="kv-row">
-                                    <div class="label">${field.label}</div>
-                                    <div class="value">${field.value}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div style="padding: 8px 0 0; text-align: center;">
-                            <span class="print-meta">${nowText}</span>
-                        </div>
+                    ${barcode ? `
+                    <div class="barcode-block">
+                        <div class="barcode-label">${escapeHtml(barcode.label)}</div>
+                        <div class="barcode-value">${escapeHtml(barcode.value)}</div>
+                    </div>` : ''}
+                    <div class="kv-list">
+                        ${bodyFields.map(field => `
+                            <div class="kv-row">
+                                <div class="label">${escapeHtml(field.label)}</div>
+                                <div class="value">${escapeHtml(field.value)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="print-footer">
+                        <div class="footer-mark">MyManager</div>
+                        <span class="print-meta">${escapeHtml(nowText)}</span>
                     </div>
                 </div>
-            `
+                `;
+            }
         }
     ];
 
@@ -5874,36 +6097,111 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-print-template-modal {
                 position: fixed;
                 inset: 0;
-                background: rgba(0,0,0,0.35);
+                background: rgba(0, 0, 0, 0.55);
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 z-index: 10001;
             }
             .tm-pt-card {
-                background: #0f172a;
-                color: #e2e8f0;
-                border: 1px solid #1e293b;
-                border-radius: 10px;
-                width: min(520px, 92vw);
-                box-shadow: 0 10px 40px rgba(0,0,0,0.35);
-                padding: 16px;
-                font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+                background: #fff;
+                color: #000;
+                border: 2px solid #000;
+                border-radius: 0;
+                width: min(480px, 92vw);
+                box-shadow: 8px 8px 0 #000;
+                padding: 18px;
+                font-family: ${PRINT_FONT};
             }
-            .tm-pt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-            .tm-pt-title { font-size: 16px; font-weight: 700; color: #e2e8f0; }
-            .tm-pt-subtitle { font-size: 12px; color: #94a3b8; }
-            .tm-pt-close { background: none; border: 0; color: #cbd5e1; font-size: 20px; cursor: pointer; }
-            .tm-pt-options { display: grid; gap: 8px; margin-bottom: 12px; }
-            .tm-pt-option { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border: 1px solid #1f2937; border-radius: 8px; background: #111827; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
-            .tm-pt-option:hover { border-color: ${PRINT_ACCENT_COLOR}; background: #0b1220; }
-            .tm-pt-option input { margin-top: 3px; accent-color: ${PRINT_ACCENT_COLOR}; }
-            .tm-pt-option .tm-pt-name { font-weight: 700; color: #e2e8f0; }
-            .tm-pt-option .tm-pt-desc { font-size: 12px; color: #94a3b8; }
-            .tm-pt-actions { display: flex; justify-content: flex-end; gap: 8px; }
-            .tm-pt-actions button { border: 0; border-radius: 6px; padding: 8px 12px; font-weight: 600; cursor: pointer; font-family: inherit; }
-            .tm-pt-secondary { background: #1f2937; color: #e2e8f0; }
-            .tm-pt-primary { background: ${PRINT_ACCENT_COLOR}; color: #082f49; }
+            .tm-pt-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 14px;
+                padding-bottom: 12px;
+                border-bottom: 2px solid #000;
+            }
+            .tm-pt-title {
+                font-size: 16px;
+                font-weight: 700;
+                letter-spacing: -0.01em;
+                color: #000;
+            }
+            .tm-pt-subtitle {
+                font-size: 11px;
+                color: #444;
+                margin-top: 3px;
+                letter-spacing: 0.02em;
+            }
+            .tm-pt-close {
+                background: #000;
+                border: 0;
+                color: #fff;
+                width: 28px;
+                height: 28px;
+                font-size: 18px;
+                line-height: 1;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .tm-pt-options { display: grid; gap: 8px; margin-bottom: 14px; }
+            .tm-pt-option {
+                display: flex;
+                gap: 10px;
+                align-items: flex-start;
+                padding: 12px;
+                border: 1.5px solid #000;
+                background: #fff;
+                cursor: pointer;
+                transition: background 0.12s ease;
+            }
+            .tm-pt-option:hover,
+            .tm-pt-option:has(input:checked) {
+                background: #f2f2f2;
+            }
+            .tm-pt-option input {
+                margin-top: 2px;
+                accent-color: #000;
+            }
+            .tm-pt-option .tm-pt-name {
+                font-weight: 700;
+                color: #000;
+                font-size: 13px;
+            }
+            .tm-pt-option .tm-pt-desc {
+                font-size: 11px;
+                color: #444;
+                margin-top: 2px;
+            }
+            .tm-pt-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 8px;
+                padding-top: 4px;
+            }
+            .tm-pt-actions button {
+                border: 1.5px solid #000;
+                border-radius: 0;
+                padding: 9px 14px;
+                font-weight: 700;
+                cursor: pointer;
+                font-family: inherit;
+                font-size: 12px;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+            .tm-pt-secondary {
+                background: #fff;
+                color: #000;
+            }
+            .tm-pt-secondary:hover { background: #f2f2f2; }
+            .tm-pt-primary {
+                background: #000;
+                color: #fff;
+            }
+            .tm-pt-primary:hover { background: #222; }
         `;
         document.head.appendChild(style);
     }
@@ -6086,20 +6384,24 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
         const printWindow = window.open('', '_blank');
         printWindow.document.write(`
-            <html><head><title>Εκτύπωση - ${details.title}</title>
+            <html><head><title>Εκτύπωση - ${escapeHtml(details.title)}</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@500;600;700&display=swap" rel="stylesheet">
             <style>
-                ${template.pageStyle || '@page { size: A4; margin: 12mm; }'}
-                :root { --print-accent: ${PRINT_ACCENT_COLOR}; --print-muted: ${PRINT_MUTED_COLOR}; }
+                ${template.pageStyle || '@page { size: A4; margin: 14mm; }'}
                 * { box-sizing: border-box; }
                 body {
-                    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+                    font-family: ${PRINT_FONT};
                     font-size: 11px;
-                    color: #0f172a;
+                    color: #000;
                     display: flex;
                     justify-content: center;
                     align-items: flex-start;
                     margin: 0;
-                    background: white;
+                    background: #fff;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
                 }
                 .print-shell { width: 100%; display: flex; justify-content: center; }
                 .print-shell.quarter-mode { justify-content: flex-end; align-items: flex-start; padding-top: 0; }
@@ -6110,14 +6412,23 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 ${template.render(details, fields, nowText)}
             </div>
             <script>
-                window.onload = function() { window.print(); window.onafterprint = function() { window.close(); }; }
+                function runPrint() {
+                    window.print();
+                    window.onafterprint = function() { window.close(); };
+                }
+                window.onload = function() {
+                    if (document.fonts && document.fonts.ready) {
+                        document.fonts.ready.then(runPrint).catch(runPrint);
+                    } else {
+                        setTimeout(runPrint, 250);
+                    }
+                };
             </script>
             </body></html>
         `);
         printWindow.document.close();
     }
 })();
-
 
 
 // ----- myman_styles.js -----
@@ -45238,8 +45549,12 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-shell.tm-sl-view--network .tm-sl-toolbar {
             padding: 6px 10px; border-bottom: 1px solid var(--tm-shop-item-border);
         }
+        /* Network model grid must scroll; only the stores board locks overflow. */
         .tm-sl-shell.tm-sl-view--network .tm-sl-body {
-            padding: 0; overflow: hidden; display: flex; flex-direction: column; min-height: 0;
+            padding: 0; overflow-y: auto; display: flex; flex-direction: column; min-height: 0;
+        }
+        .tm-sl-shell.tm-sl-view--network.tm-sl-step--stores .tm-sl-body {
+            overflow: hidden;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-body .tm-sl-network-board {
             flex: 1; min-height: 0;
@@ -45855,7 +46170,8 @@ window.initOrderTracking = initOrderTracking;
             transition: max-height 0.28s ease, opacity 0.2s ease, padding 0.2s ease, border-color 0.2s;
         }
         .tm-sl-store-row.is-open .tm-sl-store-units {
-            max-height: 2400px; opacity: 1;
+            max-height: min(60vh, 2400px); opacity: 1;
+            overflow-y: auto;
             border-top-color: var(--tm-shop-item-border);
             padding: 10px 10px 12px;
             display: flex; flex-direction: column; gap: 8px;

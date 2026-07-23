@@ -218,8 +218,12 @@
         .tm-sl-shell.tm-sl-view--network .tm-sl-toolbar {
             padding: 6px 10px; border-bottom: 1px solid var(--tm-shop-item-border);
         }
+        /* Network model grid must scroll; only the stores board locks overflow. */
         .tm-sl-shell.tm-sl-view--network .tm-sl-body {
-            padding: 0; overflow: hidden; display: flex; flex-direction: column; min-height: 0;
+            padding: 0; overflow-y: auto; display: flex; flex-direction: column; min-height: 0;
+        }
+        .tm-sl-shell.tm-sl-view--network.tm-sl-step--stores .tm-sl-body {
+            overflow: hidden;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-body .tm-sl-network-board {
             flex: 1; min-height: 0;
@@ -835,7 +839,8 @@
             transition: max-height 0.28s ease, opacity 0.2s ease, padding 0.2s ease, border-color 0.2s;
         }
         .tm-sl-store-row.is-open .tm-sl-store-units {
-            max-height: 2400px; opacity: 1;
+            max-height: min(60vh, 2400px); opacity: 1;
+            overflow-y: auto;
             border-top-color: var(--tm-shop-item-border);
             padding: 10px 10px 12px;
             display: flex; flex-direction: column; gap: 8px;
