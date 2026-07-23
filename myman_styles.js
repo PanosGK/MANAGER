@@ -8258,6 +8258,13 @@
         } else if (shopStart >= 0) {
             GM_addStyle(css.slice(shopStart));
         }
+
+        // Persist suite CSS (+ shells) for FOUC early paint on next visit.
+        try {
+            if (typeof window.tmSyncAllUiShells === 'function') {
+                setTimeout(() => window.tmSyncAllUiShells({ force: true, reason: 'styles' }), 1200);
+            }
+        } catch (_) { /* ignore */ }
     }
     // Make the function globally accessible
     window.addGlobalStyles = addGlobalStyles;

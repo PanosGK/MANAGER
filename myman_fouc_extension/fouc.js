@@ -18,8 +18,10 @@
   var SHELL_ATTR = 'data-tm-ui-shell';
   var FOOTER_SHELL_ATTR = 'data-tm-footer-shell'; // legacy
   var EXT_STORE_KEY = 'tm_mms_ui_shells';
+  var EXT_CSS_KEY = 'tm_mms_suite_css';
+  var MAX_CSS = 1500000;
   var LEGACY_FOOTER_KEY = 'tm_mms_footer_shell';
-  var CACHE_VERSION = 10;
+  var CACHE_VERSION = 11;
   var MAX_HTML = 180000;
 
   var SHELL_SPECS = [
@@ -232,6 +234,100 @@
 
   // ---------- Multi-shell UI cache ----------
 
+  var SKIP_STYLE_IDS = {
+    'tm-mms-fouc-guard': 1,
+    'tm-mms-fouc-bridge': 1,
+    'tm-mms-fouc-ext-bg': 1,
+    'tm-mms-fouc-page-css': 1,
+    'tm-mms-menu-early-guard': 1,
+    'tm-mms-ui-shell-css': 1,
+    'tm-mms-suite-css-cache': 1,
+    'tm-mms-footer-shell-css': 1,
+    'tm-mms-footer-shell-css-cache': 1
+  };
+
+  function collectSuiteCss() {
+    var parts = [];
+    var seen = Object.create(null);
+    var nodes = document.querySelectorAll('style');
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      var id = el.id || '';
+      if (id && SKIP_STYLE_IDS[id]) continue;
+      if (id.indexOf('tm-mms-fouc') === 0) continue;
+      var text = el.textContent || '';
+      if (!text || text.length < 20) continue;
+      var isSuite = (id && id.indexOf('tm-') === 0)
+        || text.indexOf('#tm-') !== -1
+        || text.indexOf('.tm-') !== -1
+        || text.indexOf('--tm-') !== -1
+        || text.indexOf('tm-mms-') !== -1;
+      if (!isSuite) continue;
+      var key = id || ('anon:' + text.length + ':' + text.slice(0, 40));
+      if (seen[key]) continue;
+      seen[key] = 1;
+      parts.push(text);
+    }
+    var css = parts.join('\n\n');
+    if (css.length > MAX_CSS) css = css.slice(0, MAX_CSS);
+    return css;
+  }
+
+  function injectSuiteCss(cssText) {
+    if (!cssText) return;
+    var style = document.getElementById('tm-mms-suite-css-cache');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'tm-mms-suite-css-cache';
+      (document.documentElement || document.head || document).appendChild(style);
+    }
+    style.textContent = cssText;
+  }
+
+  function saveSuiteCss(cssText, source) {
+    if (!cssText || cssText.length < 40) return;
+    var packet = { v: CACHE_VERSION, updatedAt: Date.now(), css: cssText };
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        var store = {};
+        store[EXT_CSS_KEY] = packet;
+        chrome.storage.local.set(store, function () {
+          console.log('[FOUC] cached suite CSS (~' + Math.round(cssText.length / 1024) + 'KB) from ' + source);
+        });
+      }
+    } catch (e) { /* ignore */ }
+    try {
+      localStorage.setItem(EXT_CSS_KEY, JSON.stringify(packet));
+    } catch (eLs) {
+      try {
+        // Quota: keep a smaller chrome-critical slice
+        var slim = cssText.slice(0, 200000);
+        localStorage.setItem(EXT_CSS_KEY, JSON.stringify({
+          v: CACHE_VERSION,
+          updatedAt: Date.now(),
+          css: slim
+        }));
+      } catch (e2) { /* ignore */ }
+    }
+    // Also keep legacy page-css key warm for older loaders
+    try {
+      if (cssText.length < 900000) localStorage.setItem('tm_mms_fouc_page_css', cssText);
+    } catch (ePage) { /* ignore */ }
+  }
+
+
+  // Early suite CSS inject (sync localStorage first)
+  try {
+    var earlyCssRaw = localStorage.getItem(EXT_CSS_KEY);
+    if (earlyCssRaw) {
+      var earlyCssPkt = JSON.parse(earlyCssRaw);
+      if (earlyCssPkt && earlyCssPkt.css) {
+        injectSuiteCss(earlyCssPkt.css);
+        console.log('[FOUC] suite CSS applied early (~' + Math.round(earlyCssPkt.css.length / 1024) + 'KB)');
+      }
+    }
+  } catch (eEarlyCss) { /* ignore */ }
+
   function ensureShellCss() {
     if (document.getElementById('tm-mms-ui-shell-css')) return;
     var style = document.createElement('style');
@@ -369,7 +465,7 @@
         packet[EXT_STORE_KEY] = cache;
         chrome.storage.local.set(packet, function () {
           var n = Object.keys(cache.shells).length;
-          console.log('[FOUC] cached ' + n + ' UI shell(s) from ' + source);
+          console.log('[FOUC] cached ' + n + ' UI shell(s)' + (cache.css ? (' + CSS ~' + Math.round(cache.css.length / 1024) + 'KB') : '') + ' from ' + source);
         });
       }
     } catch (eSave) {
@@ -459,6 +555,7 @@
     if (lsRaw) {
       var lsData = normalizeCache(JSON.parse(lsRaw));
       if (lsData) {
+        if (lsData.css) injectSuiteCss(lsData.css);
         console.log('[FOUC] UI shell cache hit (localStorage)');
         watchMount(lsData);
       }
@@ -467,10 +564,15 @@
 
   try {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get([EXT_STORE_KEY, LEGACY_FOOTER_KEY], function (result) {
+      chrome.storage.local.get([EXT_STORE_KEY, LEGACY_FOOTER_KEY, EXT_CSS_KEY], function (result) {
         var data = normalizeCache(result && result[EXT_STORE_KEY])
           || normalizeCache(result && result[LEGACY_FOOTER_KEY]);
+        if (result && result[EXT_CSS_KEY] && result[EXT_CSS_KEY].css) {
+          injectSuiteCss(result[EXT_CSS_KEY].css);
+          console.log('[FOUC] suite CSS from chrome.storage (~' + Math.round(result[EXT_CSS_KEY].css.length / 1024) + 'KB)');
+        }
         if (data) {
+          if (data.css) injectSuiteCss(data.css);
           console.log('[FOUC] UI shell cache hit (chrome.storage)');
           watchMount(data);
         } else if (!pendingCache) {
@@ -506,6 +608,13 @@
       };
       changed = true;
     });
+    var css = collectSuiteCss();
+    if (css && css !== lastHashes.__css) {
+      lastHashes.__css = css;
+      memoryCache.css = css;
+      saveSuiteCss(css, source || 'live-dom');
+      changed = true;
+    }
     if (changed) {
       saveCache(memoryCache, source || 'live-dom');
     }
@@ -543,6 +652,11 @@
         Object.keys(normalized.shells || {}).forEach(function (id) {
           lastHashes[id] = normalized.shells[id].html;
         });
+        if (normalized.css) {
+          lastHashes.__css = normalized.css;
+          saveSuiteCss(normalized.css, 'suite-msg');
+          injectSuiteCss(normalized.css);
+        }
         saveCache(normalized, 'suite-msg');
       } catch (eMsg) { /* ignore */ }
     }, true);
@@ -558,5 +672,5 @@
     } catch (eFail) { /* ignore */ }
   }, 8000);
 
-  console.log('[FOUC] guard v1.9.0 ready (' + location.hostname + ') — multi-UI shell cache');
+  console.log('[FOUC] guard v1.10.0 ready (' + location.hostname + ') — multi-UI shell cache');
 })();

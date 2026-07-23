@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "MyManager FOUC Guard",
-  "version": "1.9.0",
-  "description": "Blanks MyManager before first paint; caches all suite UI chrome and remounts shells until vars hydrate.",
+  "version": "1.10.0",
+  "description": "Blanks MyManager before first paint; caches suite UI shells + full CSS until vars hydrate.",
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",

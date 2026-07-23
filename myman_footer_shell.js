@@ -15,7 +15,7 @@
     const LS_FOOTER_LEGACY = 'tm_mms_footer_shell';
     const SHELL_ATTR = 'data-tm-ui-shell';
     const FOOTER_SHELL_ATTR = 'data-tm-footer-shell';
-    const CACHE_VERSION = 10;
+    const CACHE_VERSION = 11;
     const MSG_TYPE = 'TM_MMS_UI_SHELLS';
     const MAX_HTML = 180000;
 
@@ -88,6 +88,39 @@
         return html;
     }
 
+    
+    const SKIP_STYLE_IDS = new Set([
+        'tm-mms-fouc-guard', 'tm-mms-fouc-bridge', 'tm-mms-fouc-ext-bg',
+        'tm-mms-fouc-page-css', 'tm-mms-menu-early-guard', 'tm-mms-ui-shell-css',
+        'tm-mms-suite-css-cache', 'tm-mms-footer-shell-css', 'tm-mms-footer-shell-css-cache',
+    ]);
+    const MAX_CSS = 1500000;
+
+    function collectSuiteCss() {
+        const parts = [];
+        const seen = new Set();
+        document.querySelectorAll('style').forEach((el) => {
+            const id = el.id || '';
+            if (id && SKIP_STYLE_IDS.has(id)) return;
+            if (id.startsWith('tm-mms-fouc')) return;
+            const text = el.textContent || '';
+            if (text.length < 20) return;
+            const isSuite = (id && id.startsWith('tm-'))
+                || text.includes('#tm-')
+                || text.includes('.tm-')
+                || text.includes('--tm-')
+                || text.includes('tm-mms-');
+            if (!isSuite) return;
+            const key = id || `anon:${text.length}:${text.slice(0, 40)}`;
+            if (seen.has(key)) return;
+            seen.add(key);
+            parts.push(text);
+        });
+        let css = parts.join('\n\n');
+        if (css.length > MAX_CSS) css = css.slice(0, MAX_CSS);
+        return css;
+    }
+
     function collectAllShells() {
         const shells = {};
         SHELL_SPECS.forEach((spec) => {
@@ -101,7 +134,13 @@
     }
 
     function writeLocal(cache) {
-        const json = JSON.stringify(cache);
+        // Keep CSS out of the shells blob — stored separately under tm_mms_suite_css.
+        const shellOnly = {
+            v: cache.v,
+            updatedAt: cache.updatedAt,
+            shells: cache.shells || {},
+        };
+        const json = JSON.stringify(shellOnly);
         let ok = false;
         try {
             pageLocalStorage().setItem(LS_KEY, json);
@@ -153,19 +192,31 @@
         syncing = true;
         try {
             const shells = collectAllShells();
+            const css = collectSuiteCss();
             const ids = Object.keys(shells);
-            if (!ids.length) {
-                lastError = 'no live shells yet';
+            if (!ids.length && !css) {
+                lastError = 'no live shells/css yet';
                 console.warn('[MMS UI Shell] skip (' + reason + '): ' + lastError);
                 return false;
             }
-            const cache = { v: CACHE_VERSION, updatedAt: Date.now(), shells };
+            const cache = { v: CACHE_VERSION, updatedAt: Date.now(), shells, css: css || '' };
             const lsOk = writeLocal(cache);
             publishToExtension(cache);
+            try {
+                if (css) {
+                    pageLocalStorage().setItem('tm_mms_suite_css', JSON.stringify({
+                        v: CACHE_VERSION,
+                        updatedAt: Date.now(),
+                        css,
+                    }));
+                }
+            } catch (_) { /* quota */ }
             lastOkAt = Date.now();
             lastError = '';
             console.log(
-                `[MMS UI Shell] cached ${ids.length} shell(s) (~${Math.round(JSON.stringify(shells).length / 1024)}KB) via ${reason}`
+                `[MMS UI Shell] cached ${ids.length} shell(s)`
+                + (css ? ` + CSS ~${Math.round(css.length / 1024)}KB` : '')
+                + ` via ${reason}`
                 + (lsOk ? '' : ' [ext-msg]')
             );
             return true;
