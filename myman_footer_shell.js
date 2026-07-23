@@ -15,7 +15,7 @@
     const LS_FOOTER_LEGACY = 'tm_mms_footer_shell';
     const SHELL_ATTR = 'data-tm-ui-shell';
     const FOOTER_SHELL_ATTR = 'data-tm-footer-shell';
-    const CACHE_VERSION = 12;
+    const CACHE_VERSION = 13;
     const MSG_TYPE = 'TM_MMS_UI_SHELLS';
     const MAX_HTML = 180000;
 
@@ -91,22 +91,22 @@
     }
 
     function capturePlacement(el, fallbackKind) {
-        const parent = el.parentElement;
-        const next = el.nextElementSibling;
-        const prev = el.previousElementSibling;
-        let childIndex = -1;
-        if (parent) {
-            childIndex = Array.from(parent.children).indexOf(el);
-        }
+        const kind = fallbackKind || 'body';
+        let insertMode = 'append';
+        if (kind === 'footer-center' || kind === 'footer-right') insertMode = 'replace';
+        else if (kind === 'header-filler') insertMode = 'prepend';
+
         return {
-            kind: fallbackKind || 'body',
-            parentId: parent?.id || '',
-            parentPath: parent ? cssPath(parent) : 'body',
-            childIndex,
-            beforeId: next?.id || '',
-            afterId: prev?.id || '',
+            kind,
+            insertMode,
             inlineStyle: el.getAttribute('style') || '',
-            replaceParentChildren: fallbackKind === 'footer-center' || fallbackKind === 'footer-right',
+            parentSelector: kind === 'footer-center'
+                ? '#footer-outterwrap table td[width="60%"]'
+                : kind === 'footer-right'
+                    ? '#footer-outterwrap table td[width="40%"]'
+                    : kind === 'header-filler'
+                        ? '#head-outterwrap .rnr-hfiller, .rnr-hfiller'
+                        : 'body',
         };
     }
 

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MyManager FOUC Guard",
-  "version": "1.10.1",
+  "version": "1.10.2",
   "description": "Blanks MyManager before first paint; remounts suite UI exactly where live nodes were + CSS.",
   "icons": {
     "16": "icon16.png",

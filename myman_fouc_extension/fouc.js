@@ -21,7 +21,7 @@
   var EXT_CSS_KEY = 'tm_mms_suite_css';
   var MAX_CSS = 1500000;
   var LEGACY_FOOTER_KEY = 'tm_mms_footer_shell';
-  var CACHE_VERSION = 12;
+  var CACHE_VERSION = 13;
   var MAX_HTML = 180000;
 
   var SHELL_SPECS = [
@@ -375,8 +375,9 @@
 
   function findHeaderFiller() {
     return document.querySelector('#head-outterwrap .rnr-hfiller')
-      || document.querySelector('.rnr-hfiller')
-      || document.querySelector('#head-outterwrap');
+      || document.querySelector('#head-outter .rnr-hfiller')
+      || document.querySelector('.rnr-top .rnr-hfiller')
+      || document.querySelector('.rnr-hfiller');
   }
 
   function cssPath(el) {
@@ -419,81 +420,61 @@
   }
 
   function capturePlacement(el, fallbackKind) {
-    var parent = el.parentElement;
-    var next = el.nextElementSibling;
-    var prev = el.previousElementSibling;
-    var childIndex = -1;
-    if (parent) {
-      var kids = parent.children;
-      for (var i = 0; i < kids.length; i++) {
-        if (kids[i] === el) { childIndex = i; break; }
-      }
-    }
+    var kind = fallbackKind || 'body';
+    var insertMode = 'append';
+    if (kind === 'footer-center' || kind === 'footer-right') insertMode = 'replace';
+    else if (kind === 'header-filler') insertMode = 'prepend';
+    else insertMode = 'append'; // body floaters: always append; position via CSS/inline
+
     return {
-      kind: fallbackKind || 'body',
-      parentId: parent && parent.id ? parent.id : '',
-      parentPath: parent ? cssPath(parent) : 'body',
-      childIndex: childIndex,
-      beforeId: next && next.id ? next.id : '',
-      afterId: prev && prev.id ? prev.id : '',
-      // Exact live styles the suite applied (positioned widgets)
+      kind: kind,
+      insertMode: insertMode,
+      // Keep exact live inline styles (fixed mascot / scroll button position)
       inlineStyle: el.getAttribute('style') || '',
-      replaceParentChildren: !!(fallbackKind === 'footer-center' || fallbackKind === 'footer-right'),
+      // Stable anchors the suite itself uses — never fragile nth-of-type paths
+      parentSelector: kind === 'footer-center'
+        ? '#footer-outterwrap table td[width="60%"]'
+        : kind === 'footer-right'
+          ? '#footer-outterwrap table td[width="40%"]'
+          : kind === 'header-filler'
+            ? '#head-outterwrap .rnr-hfiller, .rnr-hfiller'
+            : 'body',
     };
   }
 
   function resolveExactParent(placement) {
     if (!placement) return null;
-    if (placement.parentId) {
-      var byId = document.getElementById(placement.parentId);
-      if (byId) return byId;
-    }
-    if (placement.parentPath) {
+    // Prefer kind-based finders (same as suite) — most reliable across reloads
+    var byKind = resolveParent(placement.kind || 'body');
+    if (byKind) return byKind;
+
+    if (placement.parentSelector) {
       try {
-        var byPath = document.querySelector(placement.parentPath);
-        if (byPath) return byPath;
+        var bySel = document.querySelector(placement.parentSelector);
+        if (bySel) return bySel;
       } catch (e) { /* ignore */ }
     }
-    return resolveParent(placement.kind || 'body');
+    return null;
   }
 
   function insertAtExactPlace(parent, html, placement) {
     if (!parent) return null;
     ensureShellCss();
 
-    if (placement && placement.replaceParentChildren) {
+    var mode = (placement && placement.insertMode)
+      || (placement && (placement.kind === 'footer-center' || placement.kind === 'footer-right')
+        ? 'replace'
+        : (placement && placement.kind === 'header-filler' ? 'prepend' : 'append'));
+
+    if (mode === 'replace') {
       while (parent.firstChild) parent.removeChild(parent.firstChild);
       parent.insertAdjacentHTML('beforeend', html);
       return parent.lastElementChild;
     }
-
-    // Prefer: before the same next sibling the live node had
-    if (placement && placement.beforeId) {
-      var beforeEl = document.getElementById(placement.beforeId);
-      if (beforeEl && beforeEl.parentElement === parent) {
-        beforeEl.insertAdjacentHTML('beforebegin', html);
-        return beforeEl.previousElementSibling;
-      }
+    if (mode === 'prepend') {
+      parent.insertAdjacentHTML('afterbegin', html);
+      return parent.firstElementChild;
     }
-
-    // Or after the previous sibling
-    if (placement && placement.afterId) {
-      var afterEl = document.getElementById(placement.afterId);
-      if (afterEl && afterEl.parentElement === parent) {
-        afterEl.insertAdjacentHTML('afterend', html);
-        return afterEl.nextElementSibling;
-      }
-    }
-
-    // Or at the same child index
-    if (placement && typeof placement.childIndex === 'number' && placement.childIndex >= 0) {
-      var ref = parent.children[placement.childIndex];
-      if (ref) {
-        ref.insertAdjacentHTML('beforebegin', html);
-        return ref.previousElementSibling;
-      }
-    }
-
     parent.insertAdjacentHTML('beforeend', html);
     return parent.lastElementChild;
   }
@@ -560,8 +541,31 @@
 
   function normalizeCache(raw) {
     if (!raw || typeof raw !== 'object') return null;
-    if ((raw.v === CACHE_VERSION || raw.v === 11 || raw.v === 10 || raw.v === 9)
+    if ((raw.v === CACHE_VERSION || raw.v === 12 || raw.v === 11 || raw.v === 10 || raw.v === 9)
       && raw.shells && typeof raw.shells === 'object') {
+      // Normalize legacy placements → suite-matched insert modes
+      Object.keys(raw.shells).forEach(function (id) {
+        var entry = raw.shells[id];
+        if (!entry) return;
+        var kind = (entry.placement && entry.placement.kind) || entry.parent || 'body';
+        if (!entry.placement || !entry.placement.insertMode) {
+          entry.placement = {
+            kind: kind,
+            insertMode: (kind === 'footer-center' || kind === 'footer-right')
+              ? 'replace'
+              : (kind === 'header-filler' ? 'prepend' : 'append'),
+            inlineStyle: (entry.placement && entry.placement.inlineStyle) || '',
+            parentSelector: kind === 'footer-center'
+              ? '#footer-outterwrap table td[width="60%"]'
+              : kind === 'footer-right'
+                ? '#footer-outterwrap table td[width="40%"]'
+                : kind === 'header-filler'
+                  ? '#head-outterwrap .rnr-hfiller, .rnr-hfiller'
+                  : 'body',
+          };
+        }
+        entry.parent = kind;
+      });
       return raw;
     }
     if (raw.html && typeof raw.html === 'string' && raw.html.length >= 80) {
@@ -728,7 +732,7 @@
       var html = slimCloneHtml(el, spec);
       if (!html) return;
       var placement = capturePlacement(el, spec.parent);
-      var hash = html + '|' + (placement.parentPath || '') + '|' + placement.childIndex + '|' + (placement.inlineStyle || '');
+      var hash = html + '|' + placement.kind + '|' + placement.insertMode + '|' + (placement.inlineStyle || '');
       if (lastHashes[spec.id] === hash) return;
       lastHashes[spec.id] = hash;
       memoryCache.shells[spec.id] = {
@@ -803,5 +807,5 @@
     } catch (eFail) { /* ignore */ }
   }, 8000);
 
-  console.log('[FOUC] guard v1.10.1 ready (' + location.hostname + ') — exact-placement UI shells');
+  console.log('[FOUC] guard v1.10.2 ready (' + location.hostname + ') — suite-matched placement');
 })();
