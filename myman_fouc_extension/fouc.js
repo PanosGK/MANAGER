@@ -399,5 +399,5 @@
     } catch (eFail) { /* ignore */ }
   }, 8000);
 
-  console.log('[FOUC] guard v1.8.0 ready');
+  console.log('[FOUC] guard v1.8.1 ready (' + location.hostname + ')');
 })();

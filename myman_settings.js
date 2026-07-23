@@ -138,7 +138,7 @@
         status40_admin: {
             title: 'Admin (Status 40)',
             what: 'Username/κωδικός admin για το flow logo / κουμπί 40 (logout → login ως admin → επιστροφή στην επισκευή).',
-            where: 'Αποθηκεύονται τοπικά στο Tampermonkey (όχι ανά προφίλ χρήστη).',
+            where: 'Ρυθμίσεις → Ανάπτυξη (μόνο με ενεργή λειτουργία debug). Αποθηκεύονται τοπικά στο Tampermonkey.',
             when: 'Χρησιμοποιούνται όταν κάνετε κλικ στο logo ή στο κουμπί «40».',
         },
         autorefresh: {
@@ -783,7 +783,45 @@
         }
 
         function getDebugSettingsHTML() {
+            const info = tmSettingsInfoBtn;
+            const status40AdminUser = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_USERNAME, '');
+            const status40AdminPass = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_PASSWORD, '');
             return `
+                <div class="tm-settings-section">
+                    <header class="tm-settings-section-head">
+                        <div class="tm-setting-label-row">
+                            <h3>Status 40 (admin)</h3>
+                            ${info('status40_admin')}
+                        </div>
+                        <p class="tm-settings-section-desc">Μόνο σε λειτουργία ανάπτυξης — κουμπί «40» και διαπιστευτήρια admin login.</p>
+                    </header>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-return-to-40-enabled">Κουμπί «40» (65/100)</label>
+                                ${info('return_to_40')}
+                            </div>
+                            <p class="tm-setting-description">Επιστροφή σε status 40 μέσω admin login.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-return-to-40-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-status40-admin-username">Username</label>
+                        </div>
+                        <div class="tm-setting-control">
+                            <input type="text" id="tm-setting-status40-admin-username" class="tm-settings-input" value="${String(status40AdminUser).replace(/"/g, '&quot;')}" autocomplete="off" spellcheck="false">
+                        </div>
+                    </div>
+                    <div class="tm-setting-row">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-status40-admin-password">Κωδικός</label>
+                        </div>
+                        <div class="tm-setting-control">
+                            <input type="password" id="tm-setting-status40-admin-password" class="tm-settings-input" value="${String(status40AdminPass).replace(/"/g, '&quot;')}" autocomplete="new-password">
+                        </div>
+                    </div>
+                </div>
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
                         <h3>Εργαλεία debug</h3>
@@ -946,8 +984,6 @@
 
         function getSearchSettingsHTML() {
             const info = tmSettingsInfoBtn;
-            const status40AdminUser = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_USERNAME, '');
-            const status40AdminPass = GM_getValue(STORAGE_KEYS.STATUS40_ADMIN_PASSWORD, '');
             return `
                 <div class="tm-settings-section">
                     <header class="tm-settings-section-head">
@@ -1090,41 +1126,6 @@
                             <p class="tm-setting-description">Κλικ στο badge για αναζήτηση παραγγελιών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-link-enabled"></div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <div class="tm-setting-label-row">
-                                <label for="tm-setting-return-to-40-enabled">Κουμπί «40» (65/100)</label>
-                                ${info('return_to_40')}
-                            </div>
-                            <p class="tm-setting-description">Επιστροφή σε status 40 μέσω admin login.</p>
-                        </div>
-                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-return-to-40-enabled"></div>
-                    </div>
-                </div>
-                <div class="tm-settings-section">
-                    <header class="tm-settings-section-head">
-                        <div class="tm-setting-label-row">
-                            <h3>Admin (Status 40)</h3>
-                            ${info('status40_admin')}
-                        </div>
-                        <p class="tm-settings-section-desc">Διαπιστευτήρια για logo → admin login. Αποθηκεύονται τοπικά.</p>
-                    </header>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <label for="tm-setting-status40-admin-username">Username</label>
-                        </div>
-                        <div class="tm-setting-control">
-                            <input type="text" id="tm-setting-status40-admin-username" class="tm-settings-input" value="${String(status40AdminUser).replace(/"/g, '&quot;')}" autocomplete="off" spellcheck="false">
-                        </div>
-                    </div>
-                    <div class="tm-setting-row">
-                        <div class="tm-setting-label">
-                            <label for="tm-setting-status40-admin-password">Κωδικός</label>
-                        </div>
-                        <div class="tm-setting-control">
-                            <input type="password" id="tm-setting-status40-admin-password" class="tm-settings-input" value="${String(status40AdminPass).replace(/"/g, '&quot;')}" autocomplete="new-password">
-                        </div>
                     </div>
                 </div>`;
         }
@@ -1682,6 +1683,10 @@
                     // Save the value
                     GM_setValue('debugEnabled', e.target.checked);
                     config.debugEnabled = e.target.checked;
+                    const debugTabNav = overlay.querySelector('[data-debug-only="true"]');
+                    if (debugTabNav) {
+                        debugTabNav.style.display = e.target.checked ? 'block' : 'none';
+                    }
                 });
             }
             

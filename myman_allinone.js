@@ -2375,6 +2375,7 @@
      * Click triggers the shared admin login flow and auto-applies status 40 after return.
      */
     function injectReturnTo40Button() {
+        if (!config?.debugEnabled) return;
         if (config?.returnTo40ButtonEnabled === false) return;
         if (!window.location.pathname.includes('service_edit.php')) return;
 
@@ -5409,7 +5410,7 @@
         if (config?.statusTrackingEnabled !== false) {
             initStatusCounterTracking(); // Status transfer counters
         }
-        if (config?.returnTo40ButtonEnabled !== false) {
+        if (config?.debugEnabled && config?.returnTo40ButtonEnabled !== false) {
             injectReturnTo40Button(); // Red "40" shortcut button on status-65 and status-100 repairs
         }
         initFunFeatures(config); // Handles confetti and other event-based interactions
@@ -5427,7 +5428,8 @@
         initRepairListQuickView();      // Add 👁 quick-view buttons to every list row
         
         // Ensure Status 40 button is initialized on repair edit pages
-        if (window.location.pathname.includes('service_edit.php') && typeof window.initStatus40Button === 'function') {
+        if (window.location.pathname.includes('service_edit.php') && config?.debugEnabled
+            && typeof window.initStatus40Button === 'function') {
             // Call twice with slight delay to handle late DOM elements
             setTimeout(() => window.initStatus40Button(), 200);
             setTimeout(() => window.initStatus40Button(), 1200);

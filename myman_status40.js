@@ -29,7 +29,7 @@
         const { applyStatus40 = false } = options;
         const { username, password } = getStatus40AdminCredentials();
         if (!username || !password) {
-            alert('Ορίστε username και κωδικό admin στις Ρυθμίσεις → Αναζήτηση & Εργαλεία → Λογαριασμός Admin (Status 40).');
+            alert('Ορίστε username και κωδικό admin στις Ρυθμίσεις → Ανάπτυξη → Status 40 (admin).');
             return false;
         }
 
@@ -342,6 +342,9 @@
      * and returns to the same page.
      */
     function initStatus40Button() {
+        const cfg = window.config || {};
+        if (!cfg.debugEnabled) return;
+
         // Only render on repair edit page
         if (!window.location.pathname.includes('service_edit.php')) {
             return;

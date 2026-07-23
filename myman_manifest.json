@@ -1,11 +1,11 @@
 {
-  "version": "299",
+  "version": "300",
   "loaderVersion": "35",
-  "silentVersion": "37",
-  "displayVersion": "35.37",
+  "silentVersion": "38",
+  "displayVersion": "35.38",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Footer cache via extension chrome.storage bridge (fix TM sandbox isolation)",
+  "releaseNotes": "Move Status 40 admin settings to debug tab only",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

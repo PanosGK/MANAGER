@@ -4,6 +4,7 @@
 // @version      2.4
 // @description  Snapshot #tm-footer-controls-container for FOUC early mount.
 // @author       Gkorogias
+// @match        *://thefixers.mymanager.gr/*
 // @match        *://thesellers.mymanager.gr/*
 // @grant        none
 // ==/UserScript==

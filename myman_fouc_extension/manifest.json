@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "MyManager FOUC Guard",
-  "version": "1.8.0",
-  "description": "Blanks thesellers before first paint; self-caches and remounts the footer chrome.",
+  "version": "1.8.1",
+  "description": "Blanks MyManager before first paint; self-caches and remounts the footer chrome.",
   "icons": {
     "16": "icon16.png",
     "48": "icon48.png",
@@ -12,9 +12,9 @@
   "content_scripts": [
     {
       "matches": [
+        "*://thefixers.mymanager.gr/*",
         "*://thesellers.mymanager.gr/*",
-        "https://thesellers.mymanager.gr/*",
-        "http://thesellers.mymanager.gr/*"
+        "*://*.mymanager.gr/*"
       ],
       "css": ["fouc.css"],
       "js": ["fouc.js"],

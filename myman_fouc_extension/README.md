@@ -1,18 +1,18 @@
 # MyManager FOUC Guard (Chrome extension)
 
-Blanks [thesellers.mymanager.gr](https://thesellers.mymanager.gr/) **before first paint**, then remounts a cached footer until the suite hydrates.
+Blanks **MyManager** (`thefixers.mymanager.gr`) **before first paint**, then remounts a cached footer until the suite hydrates.
 
 ## Install / update
 
 1. `chrome://extensions` → Developer mode
 2. **Load unpacked** → this `myman_fouc_extension` folder  
    (or **Reload** if already loaded)
-3. Confirm version **1.8.0** and accept **storage** permission
-4. Hard-refresh MyManager
+3. Confirm version **1.8.1** and accept **storage** permission
+4. Hard-refresh MyManager on **thefixers.mymanager.gr**
 
-## How footer caching works (v1.8)
+> **Important:** v1.8.0 only matched `thesellers.mymanager.gr` — the suite runs on **`thefixers.mymanager.gr`**, so the addon did nothing until 1.8.1.
 
-The extension is **self-contained** — it does **not** need Tampermonkey to write the cache:
+## How footer caching works
 
 1. Suite builds the live footer
 2. Extension snapshots `#tm-footer-controls-container` → `chrome.storage.local`
@@ -23,7 +23,7 @@ The extension is **self-contained** — it does **not** need Tampermonkey to wri
 
 **First visit after reload (wait ~6s):**
 ```
-[FOUC] guard v1.8.0 ready
+[FOUC] guard v1.8.1 ready (thefixers.mymanager.gr)
 [FOUC] no footer cache yet — will snapshot after suite paints
 [FOUC] cached footer (~NKB) from live-dom
 ```
