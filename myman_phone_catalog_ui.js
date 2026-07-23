@@ -226,7 +226,9 @@
             overflow: hidden;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-body .tm-sl-network-board {
-            flex: 1; min-height: 0;
+            flex: 1 1 0;
+            min-height: 0;
+            overflow: hidden;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-search { height: 34px; font-size: 13px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-chips { gap: 4px; margin-top: 0; }
@@ -242,15 +244,20 @@
         .tm-sl-network-board {
             display: grid;
             grid-template-columns: minmax(220px, 30%) minmax(0, 1fr);
+            grid-template-rows: minmax(0, 1fr);
             height: 100%;
             min-height: 0;
+            overflow: hidden;
             background: var(--tm-shop-item-bg);
         }
         .tm-sl-network-stores {
-            display: flex; flex-direction: column; min-height: 0;
+            display: flex; flex-direction: column; min-height: 0; max-height: 100%;
             border-right: 1px solid var(--tm-shop-item-border);
             background: color-mix(in srgb, var(--tm-shop-item-border) 8%, var(--tm-shop-item-bg));
+            overflow-x: hidden;
             overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
         }
         .tm-sl-network-stores__label {
             padding: 8px 10px 6px;
@@ -268,6 +275,7 @@
             color: var(--tm-shop-item-text);
             cursor: pointer;
             transition: background 0.12s, border-color 0.12s;
+            flex-shrink: 0;
         }
         .tm-sl-network-store:hover {
             background: var(--tm-shop-item-hover-bg);
@@ -296,7 +304,7 @@
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .tm-sl-network-detail {
-            display: flex; flex-direction: column; min-height: 0; min-width: 0;
+            display: flex; flex-direction: column; min-height: 0; min-width: 0; max-height: 100%;
             overflow: hidden;
         }
         .tm-sl-network-detail-head {
@@ -334,7 +342,7 @@
             display: flex; flex-direction: column;
         }
         #tm-sl-network-table-root .tm-sl-network-detail-table-wrap {
-            flex: 1; min-height: 0;
+            flex: 1; min-height: 0; overflow: auto;
         }
         .tm-sl-unit-table {
             width: 100%; border-collapse: collapse;
