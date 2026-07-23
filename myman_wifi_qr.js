@@ -234,6 +234,8 @@
     }
 
     function initWifiQrFeature() {
+        const cfg = window.config || {};
+        if (cfg.wifiQrEnabled === false) return;
         if (!isServiceListPage()) return;
         bindFooterLogo(12);
         setTimeout(() => bindFooterLogo(0), 1200);

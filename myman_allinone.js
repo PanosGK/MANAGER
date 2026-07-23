@@ -147,6 +147,7 @@
         orderHistoryEnabled: true,
         orderLinkEnabled: true,
         returnTo40ButtonEnabled: true,
+        wifiQrEnabled: true,
         eodChecklistEnabled: true,
         autoUpdateCheckEnabled: true,
         notificationsEnabled: true,
@@ -5442,7 +5443,7 @@
         }
 
         // WiFi QR on service_list footer logo (not on service_edit)
-        if (typeof window.initWifiQrFeature === 'function') {
+        if (config?.wifiQrEnabled !== false && typeof window.initWifiQrFeature === 'function') {
             setTimeout(() => window.initWifiQrFeature(), 200);
             setTimeout(() => window.initWifiQrFeature(), 1200);
         }

@@ -14858,14 +14858,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         },
         wifi_qr: {
             title: 'WiFi QR',
-            what: 'Όνομα και κωδικός WiFi για QR σύνδεσης. Κλικ στο logo στο footer ανοίγει το QR.',
-            where: 'Footer logo στη λίστα επισκευών (service_list) — όχι στη σελίδα επεξεργασίας επισκευής.',
+            what: 'Όνομα και κωδικός WiFi για QR σύνδεσης. Με ενεργή ρύθμιση, κλικ στο logo στο footer ανοίγει το QR.',
+            where: 'Ρυθμίσεις → Εργαλεία · footer logo στη λίστα επισκευών (service_list) — όχι στη σελίδα επεξεργασίας.',
             when: 'Όταν ο πελάτης χρειάζεται να συνδεθεί στο WiFi του καταστήματος.',
         },
         autorefresh: {
             title: 'Αυτόματη ανανέωση',
             what: 'Ανανεώνει αυτόματα τις σελίδες λίστας ώστε να βλέπετε νέες εγγραφές χωρίς F5.',
-            where: 'Σελίδες λίστας (π.χ. λίστα επισκευών).',
+            where: 'Ρυθμίσεις → Εργαλεία · εφαρμόζεται σε σελίδες λίστας (π.χ. λίστα επισκευών).',
             when: 'Μόνο μέσα στο ορισμένο ωράριο και τις επιλεγμένες ημέρες.',
         },
         refresh_interval: {
@@ -15285,6 +15285,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             saveCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             saveCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
             saveCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
+            saveCheckbox('tm-setting-wifi-qr-enabled', 'wifiQrEnabled');
             saveCheckbox('tm-setting-auto-update-check-enabled', 'autoUpdateCheckEnabled');
 
             // --- Save Auto-Refresh settings ---
@@ -15860,13 +15861,19 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     </div>
 
                     <h4 class="tm-settings-subgroup">WiFi QR</h4>
-                    <div class="tm-setting-row tm-setting-row--stack">
+                    <div class="tm-setting-row">
                         <div class="tm-setting-label">
                             <div class="tm-setting-label-row">
-                                <label for="tm-setting-wifi-ssid">Όνομα δικτύου (SSID)</label>
+                                <label for="tm-setting-wifi-qr-enabled">Ενεργοποίηση WiFi QR</label>
                                 ${info('wifi_qr')}
                             </div>
                             <p class="tm-setting-description">Κλικ στο footer logo στη λίστα επισκευών εμφανίζει το QR.</p>
+                        </div>
+                        <div class="tm-setting-control"><input type="checkbox" id="tm-setting-wifi-qr-enabled"></div>
+                    </div>
+                    <div class="tm-setting-row tm-setting-row--stack">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-wifi-ssid">Όνομα δικτύου (SSID)</label>
                         </div>
                         <div class="tm-setting-control" style="flex:1;min-width:180px;">
                             <input type="text" id="tm-setting-wifi-ssid" class="tm-settings-input" autocomplete="off" spellcheck="false" placeholder="π.χ. TheFixers-Guest">
@@ -16294,7 +16301,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <ul class="tm-nav">
                                 <li><a href="#sec-general"><span class="tm-nav-icon" aria-hidden="true">⚙️</span><span class="tm-nav-label">Γενικές</span></a></li>
                                 <li><a href="#sec-search"><span class="tm-nav-icon" aria-hidden="true">🔍</span><span class="tm-nav-label">Εργαλεία</span></a></li>
-                                <li><a href="#sec-autorefresh"><span class="tm-nav-icon" aria-hidden="true">🔄</span><span class="tm-nav-label">Ανανέωση</span></a></li>
                                 <li><a href="#sec-scratchpad"><span class="tm-nav-icon" aria-hidden="true">📝</span><span class="tm-nav-label">Σημειωματάριο</span></a></li>
                                 <li><a href="#sec-gamification"><span class="tm-nav-icon" aria-hidden="true">🎮</span><span class="tm-nav-label">Παιχνίδι</span></a></li>
                                 <li><a href="#sec-updates"><span class="tm-nav-icon" aria-hidden="true">↻</span><span class="tm-nav-label">Ενημερώσεις</span></a></li>
@@ -16304,8 +16310,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         </aside>
                         <main class="tm-settings-main" id="tm-settings-content">
                             <section id="sec-general">${getGeneralUISettingsHTML()}</section>
-                            <section id="sec-search">${getSearchSettingsHTML()}${getQuickSearchEditorHTML()}${getPriceOptionsEditorHTML()}</section>
-                            <section id="sec-autorefresh">${getAutoRefreshSettingsHTML()}</section>
+                            <section id="sec-search">${getSearchSettingsHTML()}${getQuickSearchEditorHTML()}${getPriceOptionsEditorHTML()}${getAutoRefreshSettingsHTML()}</section>
                             <section id="sec-scratchpad">${getScratchpadSettingsHTML()}</section>
                             <section id="sec-gamification">${window.getGamificationSettingsHTML(STORAGE_KEYS)}</section>
                             <section id="sec-debug">${getDebugSettingsHTML()}</section>
@@ -16464,6 +16469,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             populateCheckbox('tm-setting-order-history-enabled', 'orderHistoryEnabled');
             populateCheckbox('tm-setting-order-link-enabled', 'orderLinkEnabled');
             populateCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
+            populateCheckbox('tm-setting-wifi-qr-enabled', 'wifiQrEnabled');
             populateCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
             populateCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
             populateCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
@@ -56546,6 +56552,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }
 
     function initWifiQrFeature() {
+        const cfg = window.config || {};
+        if (cfg.wifiQrEnabled === false) return;
         if (!isServiceListPage()) return;
         bindFooterLogo(12);
         setTimeout(() => bindFooterLogo(0), 1200);
@@ -60276,6 +60284,7 @@ if (typeof window !== 'undefined') {
         orderHistoryEnabled: true,
         orderLinkEnabled: true,
         returnTo40ButtonEnabled: true,
+        wifiQrEnabled: true,
         eodChecklistEnabled: true,
         autoUpdateCheckEnabled: true,
         notificationsEnabled: true,
@@ -65571,7 +65580,7 @@ if (typeof window !== 'undefined') {
         }
 
         // WiFi QR on service_list footer logo (not on service_edit)
-        if (typeof window.initWifiQrFeature === 'function') {
+        if (config?.wifiQrEnabled !== false && typeof window.initWifiQrFeature === 'function') {
             setTimeout(() => window.initWifiQrFeature(), 200);
             setTimeout(() => window.initWifiQrFeature(), 1200);
         }
