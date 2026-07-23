@@ -5440,6 +5440,12 @@
             setTimeout(() => window.initStatus40Button(), 200);
             setTimeout(() => window.initStatus40Button(), 1200);
         }
+
+        // WiFi QR on service_list footer logo (not on service_edit)
+        if (typeof window.initWifiQrFeature === 'function') {
+            setTimeout(() => window.initWifiQrFeature(), 200);
+            setTimeout(() => window.initWifiQrFeature(), 1200);
+        }
         
         // Initialize suggested price transfer button on repair edit pages
         initSuggestedPriceTransfer();

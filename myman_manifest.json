@@ -32,6 +32,8 @@
     "myman_technicianstats.js",
     "myman_orderhistory.js",
     "myman_status40.js",
+    "myman_qrcode_lib.js",
+    "myman_wifi_qr.js",
     "myman_pricetransfer.js",
     "myman_statushover.js",
     "myman_orderlink.js",

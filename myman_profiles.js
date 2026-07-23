@@ -185,6 +185,8 @@
             // Status transfer counters (extra statuses beyond STORAGE_KEYS)
             'tm_status_30_transfers', 'tm_status_55_transfers', 'tm_status_70_transfers', 'tm_status_75_transfers',
             'tm_status_90_transfers', 'tm_status_105_transfers', 'TM_FORM_CREATING',
+            // WiFi QR
+            'tm_wifi_ssid', 'tm_wifi_password', 'tm_wifi_security',
             // Phone catalog (user data + caches)
             'tm_phone_colors_v2', 'tm_phone_color_display_aliases', 'tm_phone_custom_colors',
             'tm_phone_list_cache', 'tm_phone_list_cache_timestamp',

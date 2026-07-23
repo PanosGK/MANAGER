@@ -119,6 +119,11 @@
         STATUS40_ADMIN_USERNAME: 'tm_status40_admin_username',
         STATUS40_ADMIN_PASSWORD: 'tm_status40_admin_password',
 
+        // WiFi QR (footer logo on service_list)
+        WIFI_SSID: 'tm_wifi_ssid',
+        WIFI_PASSWORD: 'tm_wifi_password',
+        WIFI_SECURITY: 'tm_wifi_security',
+
         // Add other keys here as needed
         EOD_CHECKLIST_DISMISSED: 'tm_eod_checklist_dismissed',
 

@@ -141,6 +141,12 @@
             where: 'Ρυθμίσεις → Ανάπτυξη (μόνο με ενεργή λειτουργία debug). Αποθηκεύονται τοπικά στο Tampermonkey.',
             when: 'Χρησιμοποιούνται όταν κάνετε κλικ στο logo ή στο κουμπί «40».',
         },
+        wifi_qr: {
+            title: 'WiFi QR',
+            what: 'Όνομα και κωδικός WiFi για QR σύνδεσης. Κλικ στο logo στο footer ανοίγει το QR.',
+            where: 'Footer logo στη λίστα επισκευών (service_list) — όχι στη σελίδα επεξεργασίας επισκευής.',
+            when: 'Όταν ο πελάτης χρειάζεται να συνδεθεί στο WiFi του καταστήματος.',
+        },
         autorefresh: {
             title: 'Αυτόματη ανανέωση',
             what: 'Ανανεώνει αυτόματα τις σελίδες λίστας ώστε να βλέπετε νέες εγγραφές χωρίς F5.',
@@ -694,6 +700,16 @@
                 GM_setValue(STORAGE_KEYS.STATUS40_ADMIN_PASSWORD, status40PassEl.value);
             }
 
+            const wifiSsidEl = document.getElementById('tm-setting-wifi-ssid');
+            const wifiPassEl = document.getElementById('tm-setting-wifi-password');
+            if (wifiSsidEl) {
+                GM_setValue(STORAGE_KEYS.WIFI_SSID, wifiSsidEl.value.trim());
+            }
+            if (wifiPassEl) {
+                GM_setValue(STORAGE_KEYS.WIFI_PASSWORD, wifiPassEl.value);
+            }
+            GM_setValue(STORAGE_KEYS.WIFI_SECURITY || 'tm_wifi_security', 'WPA');
+
             console.log('[MMS] Settings saved:', config);
             // Reload the page so settings apply immediately
             showPositiveMessage('Οι ρυθμίσεις αποθηκεύτηκαν επιτυχώς!');
@@ -1126,6 +1142,28 @@
                             <p class="tm-setting-description">Κλικ στο badge για αναζήτηση παραγγελιών.</p>
                         </div>
                         <div class="tm-setting-control"><input type="checkbox" id="tm-setting-order-link-enabled"></div>
+                    </div>
+
+                    <h4 class="tm-settings-subgroup">WiFi QR</h4>
+                    <div class="tm-setting-row tm-setting-row--stack">
+                        <div class="tm-setting-label">
+                            <div class="tm-setting-label-row">
+                                <label for="tm-setting-wifi-ssid">Όνομα δικτύου (SSID)</label>
+                                ${info('wifi_qr')}
+                            </div>
+                            <p class="tm-setting-description">Κλικ στο footer logo στη λίστα επισκευών εμφανίζει το QR.</p>
+                        </div>
+                        <div class="tm-setting-control" style="flex:1;min-width:180px;">
+                            <input type="text" id="tm-setting-wifi-ssid" class="tm-settings-input" autocomplete="off" spellcheck="false" placeholder="π.χ. TheFixers-Guest">
+                        </div>
+                    </div>
+                    <div class="tm-setting-row tm-setting-row--stack">
+                        <div class="tm-setting-label">
+                            <label for="tm-setting-wifi-password">Κωδικός WiFi</label>
+                        </div>
+                        <div class="tm-setting-control" style="flex:1;min-width:180px;">
+                            <input type="password" id="tm-setting-wifi-password" class="tm-settings-input" autocomplete="new-password" placeholder="Κωδικός δικτύου">
+                        </div>
                     </div>
                 </div>`;
         }
@@ -1716,6 +1754,15 @@
             populateCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
             populateCheckbox('tm-setting-achievements-enabled', 'achievementsEnabled');
             populateCheckbox('tm-setting-customer-history-enabled', 'customerHistoryEnabled');
+
+            const wifiSsidInput = document.getElementById('tm-setting-wifi-ssid');
+            const wifiPassInput = document.getElementById('tm-setting-wifi-password');
+            if (wifiSsidInput) {
+                wifiSsidInput.value = GM_getValue(STORAGE_KEYS.WIFI_SSID, '') || '';
+            }
+            if (wifiPassInput) {
+                wifiPassInput.value = GM_getValue(STORAGE_KEYS.WIFI_PASSWORD, '') || '';
+            }
             
             // Populate new feature checkboxes
             populateCheckbox('tm-setting-random-events-enabled', 'randomEventsEnabled');
