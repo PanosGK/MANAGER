@@ -1,31 +1,24 @@
 # MyManager FOUC Guard (Chrome extension)
 
-Blanks **MyManager** before first paint, then remounts **suite UI chrome + CSS** until the Tampermonkey suite hydrates live values.
+Shows a **carbon copy** of the last suite UI (CSS + buttons + last values) as fast as possible, then Tampermonkey replaces shells and hydrates fresh values.
 
 ## Install / update
 
 1. `chrome://extensions` → Developer mode  
-2. **Load unpacked** → `myman_fouc_extension` (or **Reload**)  
-3. Confirm version **1.10.0** + **storage** permission  
-4. Hard-refresh MyManager
+2. **Load unpacked** / **Reload** → `myman_fouc_extension`  
+3. Confirm **1.11.0** + storage permission  
+4. Hard-refresh MyManager, wait ~12s once to seed, then reload again
 
-## What is cached (v1.10.1)
+## What is cached
 
-**HTML shells** remounted at the **exact parent + sibling index** (and inline `style`) they had when the suite painted them — not guessed into a generic slot.
+- **CSS** — full suite chrome/theme styles  
+- **HTML shells** — footer, brand, header search, right rail, mascot, scroll button  
+- **Last values** — coins, XP, weather, labels, icons (SVGs kept)  
+- **Placement** — same parents the suite uses (`td[width=60%/40%]`, `.rnr-hfiller`, `body`)
 
-**CSS:** all suite styles (`#tm-*` / `.tm-*` / `--tm-*`) via `tm_mms_suite_css`.
+Open panels / dropdown lists are not cached (too ephemeral).
 
-## Console checks
+## Console
 
-**Seed:**
-```
-[FOUC] guard v1.10.1 ready (thefixers.mymanager.gr) — exact-placement UI shells
-[FOUC] cached suite CSS (~NKB) from live-dom
-[FOUC] cached N UI shell(s) … from live-dom
-```
-
-**Next visit:**
-```
-[FOUC] suite CSS applied early (~NKB)
-[FOUC] mounted N UI shell(s)
-```
+**Seed:** `[FOUC] carbon-copy cached N shell(s) (~…KB) + CSS …`  
+**Next visit:** `[FOUC] suite CSS applied early` → `[FOUC] mounted N UI shell(s)` → suite boots and hydrates

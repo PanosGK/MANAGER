@@ -21,8 +21,9 @@
   var EXT_CSS_KEY = 'tm_mms_suite_css';
   var MAX_CSS = 1500000;
   var LEGACY_FOOTER_KEY = 'tm_mms_footer_shell';
-  var CACHE_VERSION = 13;
-  var MAX_HTML = 180000;
+  var CACHE_VERSION = 14;
+  var MAX_HTML = 900000;
+  var MAX_SHELL_HTML = 600000;
 
   var SHELL_SPECS = [
     {
@@ -49,7 +50,8 @@
       id: 'tm-mascot-container',
       parent: 'body',
       minLen: 20,
-      silhouette: true,
+      silhouette: false, // full carbon-copy when possible
+      maxHtml: 500000,
     },
     {
       id: 'tm-scroll-to-top-btn',
@@ -335,7 +337,7 @@
     style.textContent = ''
       + '[' + SHELL_ATTR + '="1"],[' + FOOTER_SHELL_ATTR + '="1"]{pointer-events:none!important;}'
       + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"],'
-      + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"]{width:100%;opacity:.92;}'
+      + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"]{width:100%;}'
       + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-row,'
       + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"] #tm-footer-controls-row{'
       + 'display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}'
@@ -346,13 +348,10 @@
       + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"] #tm-footer-controls-middle,'
       + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"] #tm-footer-controls-right{'
       + 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;}'
-      + '#tm-mascot-container[' + SHELL_ATTR + '="1"]{'
-      + 'position:fixed;z-index:99990;width:88px;height:88px;border-radius:18px;'
+      + '#tm-mascot-container[' + SHELL_ATTR + '="1"].tm-ui-shell-mascot{'
+      + 'position:fixed;z-index:99990;border-radius:18px;'
       + 'background:rgba(120,120,140,.18);backdrop-filter:blur(4px);'
-      + 'box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);opacity:.85;}'
-      + '#tm-search-container[' + SHELL_ATTR + '="1"]{opacity:.9;}'
-      + '#tm-scroll-to-top-btn[' + SHELL_ATTR + '="1"]{opacity:.7;}'
-      + '#tm-header-quick-search-host[' + SHELL_ATTR + '="1"]{opacity:.9;}';
+      + 'box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);}';
     (document.documentElement || document).appendChild(style);
   }
 
@@ -493,20 +492,8 @@
 
   function slimCloneHtml(el, spec) {
     try {
-      if (spec.silhouette) {
-        var style = el.getAttribute('style') || '';
-        if (!style) {
-          var rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
-          var left = (el.style && el.style.left) || (rect ? Math.round(rect.left) + 'px' : '24px');
-          var top = (el.style && el.style.top) || (rect ? Math.round(rect.top) + 'px' : '120px');
-          var w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
-          var h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
-          style = 'position:fixed;left:' + left + ';top:' + top + ';width:' + w + 'px;height:' + h + 'px;';
-        }
-        return '<div id="tm-mascot-container" class="tm-footer-shell tm-ui-shell-mascot" style="'
-          + style.replace(/"/g, '&quot;') + '"></div>';
-      }
-
+      // Carbon copy of the live suite node: keep icons, text values, inline styles.
+      // Only strip ephemeral open panels (not the always-visible chrome).
       var clone = el.cloneNode(true);
       clone.removeAttribute(SHELL_ATTR);
       clone.removeAttribute(FOOTER_SHELL_ATTR);
@@ -518,21 +505,65 @@
         menu.innerHTML = '';
       }
       var kill = clone.querySelectorAll(
-        '#tm-notification-panel,#tm-notification-backdrop,.tm-modal-overlay,#tm-coin-history-tooltip,#tm-mascot-interaction-panel'
+        '#tm-notification-panel,#tm-notification-backdrop,.tm-modal-overlay,#tm-coin-history-tooltip,#tm-mascot-interaction-panel,#tm-notification-panel *'
       );
-      for (var i = 0; i < kill.length; i++) kill[i].remove();
+      for (var i = 0; i < kill.length; i++) {
+        try { kill[i].remove(); } catch (eKill) { /* ignore */ }
+      }
+      // Drop open dropdown lists only — keep the button labels/counts
+      var openMenus = clone.querySelectorAll('[id$="-menu"]:not(#tm-recent-repairs-menu)');
+      for (var m = 0; m < openMenus.length; m++) {
+        openMenus[m].style.display = 'none';
+      }
 
-      // Strip heavy SVGs — keep layout with placeholders
-      var svgs = clone.querySelectorAll('svg');
-      for (var s = 0; s < svgs.length; s++) {
-        var mark = document.createElement('span');
-        mark.className = 'tm-ui-shell-icon';
-        mark.setAttribute('aria-hidden', 'true');
-        svgs[s].replaceWith(mark);
+      // Preserve live form field values (cloneNode keeps defaultValue, not current .value)
+      var liveFields = el.querySelectorAll('input, textarea, select');
+      var cloneFields = clone.querySelectorAll('input, textarea, select');
+      for (var f = 0; f < liveFields.length && f < cloneFields.length; f++) {
+        try {
+          var lv = liveFields[f];
+          var cv = cloneFields[f];
+          if (lv.tagName === 'TEXTAREA') {
+            cv.textContent = lv.value;
+          } else if (lv.tagName === 'SELECT') {
+            cv.value = lv.value;
+            var opts = cv.options;
+            for (var o = 0; o < opts.length; o++) {
+              if (opts[o].value === lv.value) opts[o].selected = true;
+            }
+          } else {
+            cv.setAttribute('value', lv.value);
+            if (lv.type === 'checkbox' || lv.type === 'radio') {
+              if (lv.checked) cv.setAttribute('checked', 'checked');
+              else cv.removeAttribute('checked');
+            }
+          }
+        } catch (eField) { /* ignore */ }
       }
 
       var html = clone.outerHTML;
-      if (!html || html.length < (spec.minLen || 20) || html.length > MAX_HTML) return null;
+      var cap = (spec && spec.maxHtml) || MAX_SHELL_HTML || MAX_HTML;
+      if (!html || html.length < (spec.minLen || 20)) return null;
+
+      // Mascot SVG can be huge — fall back to positioned silhouette only if over budget
+      if (html.length > cap && spec && spec.id === 'tm-mascot-container') {
+        var style = el.getAttribute('style') || '';
+        if (!style) {
+          var rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+          var left = (el.style && el.style.left) || (rect ? Math.round(rect.left) + 'px' : '24px');
+          var top = (el.style && el.style.top) || (rect ? Math.round(rect.top) + 'px' : '120px');
+          var w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
+          var h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
+          style = 'position:fixed;left:' + left + ';top:' + top + ';width:' + w + 'px;height:' + h + 'px;';
+        }
+        return '<div id="tm-mascot-container" class="tm-ui-shell tm-ui-shell-mascot" style="'
+          + style.replace(/"/g, '&quot;') + '"></div>';
+      }
+
+      if (html.length > cap) {
+        console.warn('[FOUC] shell too large, truncated skip', spec && spec.id, html.length);
+        return null;
+      }
       return html;
     } catch (e) {
       return null;
@@ -541,7 +572,7 @@
 
   function normalizeCache(raw) {
     if (!raw || typeof raw !== 'object') return null;
-    if ((raw.v === CACHE_VERSION || raw.v === 12 || raw.v === 11 || raw.v === 10 || raw.v === 9)
+    if ((raw.v === CACHE_VERSION || raw.v === 13 || raw.v === 12 || raw.v === 11 || raw.v === 10 || raw.v === 9)
       && raw.shells && typeof raw.shells === 'object') {
       // Normalize legacy placements → suite-matched insert modes
       Object.keys(raw.shells).forEach(function (id) {
@@ -594,21 +625,57 @@
     if (!cache || !cache.shells) return;
     cache.v = CACHE_VERSION;
     cache.updatedAt = Date.now();
+    var n = Object.keys(cache.shells).length;
+    var bytes = 0;
+    try { bytes = JSON.stringify(cache).length; } catch (eB) { /* ignore */ }
+
+    function okLog(where) {
+      console.log('[FOUC] carbon-copy cached ' + n + ' shell(s) (~'
+        + Math.round(bytes / 1024) + 'KB)'
+        + (cache.css ? (' + CSS ~' + Math.round(cache.css.length / 1024) + 'KB') : '')
+        + ' from ' + source + ' via ' + where);
+    }
+
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         var packet = {};
         packet[EXT_STORE_KEY] = cache;
         chrome.storage.local.set(packet, function () {
-          var n = Object.keys(cache.shells).length;
-          console.log('[FOUC] cached ' + n + ' UI shell(s)' + (cache.css ? (' + CSS ~' + Math.round(cache.css.length / 1024) + 'KB') : '') + ' from ' + source);
+          var err = chrome.runtime && chrome.runtime.lastError;
+          if (err) {
+            console.warn('[FOUC] chrome.storage full, retry without mascot', err.message);
+            var slim = JSON.parse(JSON.stringify(cache));
+            if (slim.shells) delete slim.shells['tm-mascot-container'];
+            packet[EXT_STORE_KEY] = slim;
+            chrome.storage.local.set(packet, function () {
+              okLog('chrome.storage-slim');
+            });
+            return;
+          }
+          okLog('chrome.storage');
         });
       }
     } catch (eSave) {
       console.warn('[FOUC] cache write failed', eSave);
     }
     try {
-      localStorage.setItem(EXT_STORE_KEY, JSON.stringify(cache));
-    } catch (eLs) { /* ignore */ }
+      localStorage.setItem(EXT_STORE_KEY, JSON.stringify({
+        v: cache.v,
+        updatedAt: cache.updatedAt,
+        shells: cache.shells,
+        // css stored separately
+      }));
+    } catch (eLs) {
+      try {
+        // Quota: keep footer + brand + header only
+        var essential = { v: cache.v, updatedAt: cache.updatedAt, shells: {} };
+        ['tm-footer-controls-container', 'tm-footer-suite-brand', 'tm-header-quick-search-host']
+          .forEach(function (id) {
+            if (cache.shells && cache.shells[id]) essential.shells[id] = cache.shells[id];
+          });
+        localStorage.setItem(EXT_STORE_KEY, JSON.stringify(essential));
+      } catch (e2) { /* ignore */ }
+    }
   }
 
   function mountOne(entry) {
@@ -807,5 +874,5 @@
     } catch (eFail) { /* ignore */ }
   }, 8000);
 
-  console.log('[FOUC] guard v1.10.2 ready (' + location.hostname + ') — suite-matched placement');
+  console.log('[FOUC] guard v1.11.0 ready (' + location.hostname + ') — carbon-copy shells + CSS');
 })();

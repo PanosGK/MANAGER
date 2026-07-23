@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v304 / Custom Ver. 35.42 — generated, do not edit */
+/* MyManager Suite bundle v305 / Custom Ver. 35.43 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '304',
+        version: '305',
         loaderVersion: '35',
-        silentVersion: '42',
-        displayVersion: '35.42',
+        silentVersion: '43',
+        displayVersion: '35.43',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -5344,16 +5344,17 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     const LS_FOOTER_LEGACY = 'tm_mms_footer_shell';
     const SHELL_ATTR = 'data-tm-ui-shell';
     const FOOTER_SHELL_ATTR = 'data-tm-footer-shell';
-    const CACHE_VERSION = 13;
+    const CACHE_VERSION = 14;
     const MSG_TYPE = 'TM_MMS_UI_SHELLS';
-    const MAX_HTML = 180000;
+    const MAX_HTML = 900000;
+    const MAX_SHELL_HTML = 600000;
 
     const SHELL_SPECS = [
-        { id: 'tm-footer-controls-container', parent: 'footer-center', minLen: 80 },
+        { id: 'tm-footer-controls-container', parent: 'footer-center', minLen: 80, maxHtml: 600000 },
         { id: 'tm-footer-suite-brand', parent: 'footer-right', minLen: 40 },
         { id: 'tm-header-quick-search-host', parent: 'header-filler', minLen: 40 },
         { id: 'tm-search-container', parent: 'body', minLen: 20 },
-        { id: 'tm-mascot-container', parent: 'body', minLen: 20, silhouette: true },
+        { id: 'tm-mascot-container', parent: 'body', minLen: 20, maxHtml: 500000 },
         { id: 'tm-scroll-to-top-btn', parent: 'body', minLen: 10 },
     ];
 
@@ -5440,19 +5441,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     }
 
     function slimCloneHtml(el, spec) {
-        if (spec.silhouette) {
-            let style = el.getAttribute('style') || '';
-            if (!style) {
-                const rect = el.getBoundingClientRect?.() || null;
-                const left = el.style?.left || (rect ? `${Math.round(rect.left)}px` : '24px');
-                const top = el.style?.top || (rect ? `${Math.round(rect.top)}px` : '120px');
-                const w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
-                const h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
-                style = `position:fixed;left:${left};top:${top};width:${w}px;height:${h}px;`;
-            }
-            return `<div id="tm-mascot-container" class="tm-ui-shell tm-ui-shell-mascot" style="${style.replace(/"/g, '&quot;')}"></div>`;
-        }
-
+        // Carbon copy: keep icons, coin/XP/weather text, inline styles.
         const clone = el.cloneNode(true);
         clone.removeAttribute(SHELL_ATTR);
         clone.removeAttribute(FOOTER_SHELL_ATTR);
@@ -5467,15 +5456,46 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             '#tm-notification-panel, #tm-notification-backdrop, .tm-modal-overlay, #tm-coin-history-tooltip, #tm-mascot-interaction-panel'
         ).forEach((n) => n.remove());
 
-        clone.querySelectorAll('svg').forEach((svg) => {
-            const mark = document.createElement('span');
-            mark.className = 'tm-ui-shell-icon';
-            mark.setAttribute('aria-hidden', 'true');
-            svg.replaceWith(mark);
-        });
+        // Preserve live input values (cloneNode keeps defaultValue, not .value)
+        const liveFields = el.querySelectorAll('input, textarea, select');
+        const cloneFields = clone.querySelectorAll('input, textarea, select');
+        for (let f = 0; f < liveFields.length && f < cloneFields.length; f++) {
+            const lv = liveFields[f];
+            const cv = cloneFields[f];
+            if (lv.tagName === 'TEXTAREA') {
+                cv.textContent = lv.value;
+            } else if (lv.tagName === 'SELECT') {
+                cv.value = lv.value;
+            } else {
+                cv.setAttribute('value', lv.value);
+                if (lv.type === 'checkbox' || lv.type === 'radio') {
+                    if (lv.checked) cv.setAttribute('checked', 'checked');
+                    else cv.removeAttribute('checked');
+                }
+            }
+        }
 
-        const html = clone.outerHTML;
-        if (!html || html.length < (spec.minLen || 20) || html.length > MAX_HTML) return null;
+        let html = clone.outerHTML;
+        const cap = spec.maxHtml || MAX_SHELL_HTML || MAX_HTML;
+        if (!html || html.length < (spec.minLen || 20)) return null;
+
+        if (html.length > cap && spec.id === 'tm-mascot-container') {
+            let style = el.getAttribute('style') || '';
+            if (!style) {
+                const rect = el.getBoundingClientRect?.() || null;
+                const left = el.style?.left || (rect ? `${Math.round(rect.left)}px` : '24px');
+                const top = el.style?.top || (rect ? `${Math.round(rect.top)}px` : '120px');
+                const w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
+                const h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
+                style = `position:fixed;left:${left};top:${top};width:${w}px;height:${h}px;`;
+            }
+            return `<div id="tm-mascot-container" class="tm-ui-shell tm-ui-shell-mascot" style="${style.replace(/"/g, '&quot;')}"></div>`;
+        }
+
+        if (html.length > cap) {
+            console.warn('[MMS UI Shell] too large, skip', spec.id, html.length);
+            return null;
+        }
         return html;
     }
 
