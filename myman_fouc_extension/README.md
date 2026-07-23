@@ -6,7 +6,7 @@ Shows a **carbon copy** of the last suite UI (CSS + buttons + last values) as fa
 
 1. `chrome://extensions` → Developer mode  
 2. **Load unpacked** / **Reload** → `myman_fouc_extension`  
-3. Confirm **1.11.0** + storage permission  
+3. Confirm **1.11.1** + storage permission  
 4. Hard-refresh MyManager, wait ~12s once to seed, then reload again
 
 ## What is cached
