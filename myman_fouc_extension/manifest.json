@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MyManager FOUC Guard",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "description": "Carbon-copy FOUC: suite UI+CSS+last values, then Tampermonkey hydrates.",
   "icons": {
     "16": "icon16.png",

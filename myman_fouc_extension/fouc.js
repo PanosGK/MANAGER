@@ -330,30 +330,82 @@
     }
   } catch (eEarlyCss) { /* ignore */ }
 
+  // Critical footer chrome layout — always injected at document_start so carbon-copy
+  // shells don't scatter before suite CSS arrives from chrome.storage.
+  var FOOTER_CRITICAL_CSS = ''
+    + '#tm-footer-controls-container{'
+    + 'display:flex!important;align-items:center!important;justify-content:center!important;'
+    + 'width:100%!important;max-width:1400px!important;margin:0 auto!important;'
+    + 'gap:8px!important;padding:2px 8px 4px!important;box-sizing:border-box!important;'
+    + '--tm-footer-control-height:40px;}'
+    + '#tm-footer-controls-row{'
+    + 'display:flex!important;align-items:center!important;justify-content:center!important;'
+    + 'width:100%!important;gap:8px!important;flex-wrap:nowrap!important;}'
+    + '#tm-footer-controls-left{'
+    + 'display:flex!important;align-items:center!important;justify-content:flex-end!important;'
+    + 'gap:8px!important;flex-wrap:nowrap!important;flex:1 1 0!important;min-width:0!important;}'
+    + '#tm-footer-controls-middle{'
+    + 'display:flex!important;align-items:center!important;justify-content:center!important;'
+    + 'gap:6px!important;flex-wrap:nowrap!important;flex:0 1 auto!important;'
+    + 'max-width:min(100%,340px)!important;min-width:0!important;}'
+    + '#tm-footer-controls-right{'
+    + 'display:flex!important;align-items:center!important;justify-content:flex-start!important;'
+    + 'gap:8px!important;flex-wrap:nowrap!important;flex:1 1 0!important;min-width:0!important;}'
+    + '#tm-buff-timers-container{display:flex!important;align-items:center!important;gap:8px!important;'
+    + 'height:var(--tm-footer-control-height)!important;}'
+    + '#tm-recent-repairs-dropdown{display:inline-flex!important;align-items:center!important;'
+    + 'height:var(--tm-footer-control-height)!important;margin:0!important;}'
+    + '#tm-footer-controls-container .tm-footer-widget,'
+    + '#tm-footer-controls-container .tm-footer-icon-btn,'
+    + '#tm-footer-controls-container #tm-notification-bell-btn,'
+    + '#tm-footer-controls-container #tm-settings-btn,'
+    + '#tm-footer-controls-container #tm-refresh-timer-container,'
+    + '#tm-footer-controls-container #tm-recent-repairs-btn,'
+    + '#tm-footer-controls-container #tm-eod-btn,'
+    + '#tm-footer-controls-container #tm-daily-dashboard-widget,'
+    + '#tm-footer-controls-container #tm-xp-bar-container,'
+    + '#tm-footer-controls-container #tm-coin-balance,'
+    + '#tm-footer-controls-container #tm-weather-widget,'
+    + '#tm-footer-controls-container .tm-buff-timer,'
+    + '#tm-footer-controls-container button{'
+    + 'height:var(--tm-footer-control-height)!important;min-height:var(--tm-footer-control-height)!important;'
+    + 'max-height:var(--tm-footer-control-height)!important;box-sizing:border-box!important;'
+    + 'display:inline-flex!important;align-items:center!important;justify-content:center!important;'
+    + 'flex-shrink:0!important;white-space:nowrap!important;}'
+    + '#tm-footer-controls-container .tm-footer-icon-btn{'
+    + 'width:var(--tm-footer-control-height)!important;min-width:var(--tm-footer-control-height)!important;'
+    + 'padding:0!important;}'
+    + '#tm-footer-controls-container .tm-footer-widget{'
+    + 'border-radius:12px!important;padding:0 10px!important;font-weight:600!important;font-size:13px!important;}'
+    + '#tm-footer-controls-container #tm-coin-balance{padding:0 14px!important;gap:6px!important;}'
+    + '#tm-footer-controls-container #tm-recent-repairs-btn{padding:0 14px!important;font-size:12px!important;}'
+    + '#tm-footer-controls-container #tm-eod-btn{'
+    + 'width:var(--tm-footer-control-height)!important;min-width:var(--tm-footer-control-height)!important;'
+    + 'padding:0!important;position:relative!important;}'
+    + '#tm-footer-controls-container #tm-recent-repairs-menu{display:none!important;}'
+    + '#tm-footer-suite-brand{display:inline-flex!important;align-items:center!important;'
+    + 'justify-content:flex-end!important;gap:6px!important;width:100%!important;padding:0 8px!important;'
+    + 'box-sizing:border-box!important;}'
+    + '[' + SHELL_ATTR + '="1"],[' + FOOTER_SHELL_ATTR + '="1"]{pointer-events:none!important;}'
+    + '#tm-mascot-container[' + SHELL_ATTR + '="1"].tm-ui-shell-mascot{'
+    + 'position:fixed;z-index:99990;border-radius:18px;'
+    + 'background:rgba(120,120,140,.18);backdrop-filter:blur(4px);'
+    + 'box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);}'
+    + '#tm-search-container[' + SHELL_ATTR + '="1"]{position:fixed!important;}'
+    + '#tm-scroll-to-top-btn[' + SHELL_ATTR + '="1"]{position:fixed!important;}';
+
   function ensureShellCss() {
-    if (document.getElementById('tm-mms-ui-shell-css')) return;
-    var style = document.createElement('style');
-    style.id = 'tm-mms-ui-shell-css';
-    style.textContent = ''
-      + '[' + SHELL_ATTR + '="1"],[' + FOOTER_SHELL_ATTR + '="1"]{pointer-events:none!important;}'
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"],'
-      + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"]{width:100%;}'
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-row,'
-      + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"] #tm-footer-controls-row{'
-      + 'display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}'
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-left,'
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-middle,'
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-right,'
-      + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"] #tm-footer-controls-left,'
-      + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"] #tm-footer-controls-middle,'
-      + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"] #tm-footer-controls-right{'
-      + 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;}'
-      + '#tm-mascot-container[' + SHELL_ATTR + '="1"].tm-ui-shell-mascot{'
-      + 'position:fixed;z-index:99990;border-radius:18px;'
-      + 'background:rgba(120,120,140,.18);backdrop-filter:blur(4px);'
-      + 'box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);}';
-    (document.documentElement || document).appendChild(style);
+    var style = document.getElementById('tm-mms-ui-shell-css');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'tm-mms-ui-shell-css';
+      (document.documentElement || document.head || document).appendChild(style);
+    }
+    style.textContent = FOOTER_CRITICAL_CSS;
   }
+
+  // Inject layout CSS immediately — before any shell mount / async storage read
+  try { ensureShellCss(); } catch (eCrit) { /* ignore */ }
 
   function findFooterCenter() {
     return document.querySelector('#footer-outterwrap table td[width="60%"]')
@@ -874,5 +926,5 @@
     } catch (eFail) { /* ignore */ }
   }, 8000);
 
-  console.log('[FOUC] guard v1.11.0 ready (' + location.hostname + ') — carbon-copy shells + CSS');
+  console.log('[FOUC] guard v1.11.1 ready (' + location.hostname + ') — carbon-copy + footer layout lock');
 })();
