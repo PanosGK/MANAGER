@@ -1,9 +1,11 @@
 /**
  * MyManager FOUC Guard — content script (document_start)
  *
- * Self-contained footer cache:
- * 1) On load: mount last snapshot from chrome.storage (no Tampermonkey bridge needed)
- * 2) After suite builds the live footer: snapshot it into chrome.storage
+ * Caches ALL suite UI chrome as HTML shells; on next visit mounts shells early.
+ * Suite then replaces each shell and hydrates live values (coins, XP, weather, etc.).
+ *
+ * Shells: footer controls, suite brand, header quick-search, right rail,
+ *         mascot silhouette, scroll-to-top.
  */
 (function tmMmsFoucExtension() {
   'use strict';
@@ -13,10 +15,46 @@
   var LS_THEME = 'tm_mms_fouc_theme';
   var LS_MENU = 'tm_mms_fouc_menu_css';
   var LS_PAGE = 'tm_mms_fouc_page_css';
-  var SHELL_ATTR = 'data-tm-footer-shell';
-  var EXT_STORE_KEY = 'tm_mms_footer_shell';
-  var CACHE_VERSION = 9;
-  var XFER_ID = 'tm-mms-footer-xfer';
+  var SHELL_ATTR = 'data-tm-ui-shell';
+  var FOOTER_SHELL_ATTR = 'data-tm-footer-shell'; // legacy
+  var EXT_STORE_KEY = 'tm_mms_ui_shells';
+  var LEGACY_FOOTER_KEY = 'tm_mms_footer_shell';
+  var CACHE_VERSION = 10;
+  var MAX_HTML = 180000;
+
+  var SHELL_SPECS = [
+    {
+      id: 'tm-footer-controls-container',
+      parent: 'footer-center',
+      minLen: 80,
+    },
+    {
+      id: 'tm-footer-suite-brand',
+      parent: 'footer-right',
+      minLen: 40,
+    },
+    {
+      id: 'tm-header-quick-search-host',
+      parent: 'header-filler',
+      minLen: 40,
+    },
+    {
+      id: 'tm-search-container',
+      parent: 'body',
+      minLen: 20,
+    },
+    {
+      id: 'tm-mascot-container',
+      parent: 'body',
+      minLen: 20,
+      silhouette: true,
+    },
+    {
+      id: 'tm-scroll-to-top-btn',
+      parent: 'body',
+      minLen: 10,
+    },
+  ];
 
   function parseRgb(color) {
     var s = String(color || '').trim();
@@ -192,131 +230,236 @@
     installBridge(themeColors, themeBg);
   }
 
-  // ---------- Footer shell: self-cache in chrome.storage ----------
+  // ---------- Multi-shell UI cache ----------
 
-  function ensureFooterShellCss() {
-    if (document.getElementById('tm-mms-footer-shell-css')) return;
+  function ensureShellCss() {
+    if (document.getElementById('tm-mms-ui-shell-css')) return;
     var style = document.createElement('style');
-    style.id = 'tm-mms-footer-shell-css';
+    style.id = 'tm-mms-ui-shell-css';
     style.textContent = ''
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"]{pointer-events:none;width:100%;opacity:.92;}'
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-row{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}'
+      + '[' + SHELL_ATTR + '="1"],[' + FOOTER_SHELL_ATTR + '="1"]{pointer-events:none!important;}'
+      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"],'
+      + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"]{width:100%;opacity:.92;}'
+      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-row,'
+      + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"] #tm-footer-controls-row{'
+      + 'display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;}'
       + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-left,'
       + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-middle,'
-      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}';
+      + '#tm-footer-controls-container[' + SHELL_ATTR + '="1"] #tm-footer-controls-right,'
+      + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"] #tm-footer-controls-left,'
+      + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"] #tm-footer-controls-middle,'
+      + '#tm-footer-controls-container[' + FOOTER_SHELL_ATTR + '="1"] #tm-footer-controls-right{'
+      + 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;}'
+      + '#tm-mascot-container[' + SHELL_ATTR + '="1"]{'
+      + 'position:fixed;z-index:99990;width:88px;height:88px;border-radius:18px;'
+      + 'background:rgba(120,120,140,.18);backdrop-filter:blur(4px);'
+      + 'box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);opacity:.85;}'
+      + '#tm-search-container[' + SHELL_ATTR + '="1"]{opacity:.9;}'
+      + '#tm-scroll-to-top-btn[' + SHELL_ATTR + '="1"]{opacity:.7;}'
+      + '#tm-header-quick-search-host[' + SHELL_ATTR + '="1"]{opacity:.9;}';
     (document.documentElement || document).appendChild(style);
   }
 
-  function findFooterCell() {
+  function findFooterCenter() {
     return document.querySelector('#footer-outterwrap table td[width="60%"]')
       || document.querySelector('#footer-outterwrap table td:nth-child(2)')
       || document.querySelector('#footer-outterwrap td');
   }
 
-  function isValidFooterData(data) {
-    return !!(data && typeof data.html === 'string' && data.html.length >= 80
-      && (data.v === CACHE_VERSION || data.v === 8 || data.v === 7 || data.v === 4));
+  function findFooterRight() {
+    var table = document.querySelector('#footer-outterwrap table');
+    if (!table) return null;
+    var cell = table.querySelector('td[width="40%"]');
+    if (!cell) {
+      var cells = table.querySelectorAll('td');
+      if (cells.length) cell = cells[cells.length - 1];
+    }
+    return cell;
   }
 
-  function slimFooterHtml(container) {
+  function findHeaderFiller() {
+    return document.querySelector('#head-outterwrap .rnr-hfiller')
+      || document.querySelector('.rnr-hfiller')
+      || document.querySelector('#head-outterwrap');
+  }
+
+  function resolveParent(kind) {
+    if (kind === 'footer-center') return findFooterCenter();
+    if (kind === 'footer-right') return findFooterRight();
+    if (kind === 'header-filler') return findHeaderFiller();
+    if (kind === 'body') return document.body || document.documentElement;
+    return null;
+  }
+
+  function isShellEl(el) {
+    return !!(el && (el.getAttribute(SHELL_ATTR) === '1' || el.getAttribute(FOOTER_SHELL_ATTR) === '1'));
+  }
+
+  function slimCloneHtml(el, spec) {
     try {
-      var clone = container.cloneNode(true);
+      if (spec.silhouette) {
+        var rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+        var left = (el.style && el.style.left) || (rect ? Math.round(rect.left) + 'px' : '24px');
+        var top = (el.style && el.style.top) || (rect ? Math.round(rect.top) + 'px' : '120px');
+        var w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
+        var h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
+        return '<div id="tm-mascot-container" class="tm-footer-shell tm-ui-shell-mascot" style="left:'
+          + left + ';top:' + top + ';width:' + w + 'px;height:' + h + 'px;"></div>';
+      }
+
+      var clone = el.cloneNode(true);
       clone.removeAttribute(SHELL_ATTR);
-      clone.classList.add('tm-footer-shell');
+      clone.removeAttribute(FOOTER_SHELL_ATTR);
+      clone.classList.add('tm-ui-shell');
+
       var menu = clone.querySelector('#tm-recent-repairs-menu');
       if (menu) {
         menu.style.display = 'none';
         menu.innerHTML = '';
       }
       var kill = clone.querySelectorAll(
-        '#tm-notification-panel, #tm-notification-backdrop, .tm-modal-overlay, #tm-coin-history-tooltip'
+        '#tm-notification-panel,#tm-notification-backdrop,.tm-modal-overlay,#tm-coin-history-tooltip,#tm-mascot-interaction-panel'
       );
       for (var i = 0; i < kill.length; i++) kill[i].remove();
+
+      // Strip heavy SVGs — keep layout with placeholders
       var svgs = clone.querySelectorAll('svg');
       for (var s = 0; s < svgs.length; s++) {
         var mark = document.createElement('span');
-        mark.className = 'tm-footer-shell-icon';
+        mark.className = 'tm-ui-shell-icon';
+        mark.setAttribute('aria-hidden', 'true');
         svgs[s].replaceWith(mark);
       }
+
       var html = clone.outerHTML;
-      if (html.length < 80 || html.length > 250000) return null;
+      if (!html || html.length < (spec.minLen || 20) || html.length > MAX_HTML) return null;
       return html;
     } catch (e) {
       return null;
     }
   }
 
-  function saveFooterSnapshot(html, source) {
-    if (!html || html.length < 80) return;
-    var data = { v: CACHE_VERSION, updatedAt: Date.now(), html: html };
+  function normalizeCache(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    if (raw.v === CACHE_VERSION && raw.shells && typeof raw.shells === 'object') return raw;
+    // Migrate legacy single-footer cache
+    if (raw.html && typeof raw.html === 'string' && raw.html.length >= 80) {
+      return {
+        v: CACHE_VERSION,
+        updatedAt: raw.updatedAt || Date.now(),
+        shells: {
+          'tm-footer-controls-container': {
+            id: 'tm-footer-controls-container',
+            parent: 'footer-center',
+            html: raw.html,
+          },
+        },
+      };
+    }
+    return null;
+  }
+
+  function saveCache(cache, source) {
+    if (!cache || !cache.shells) return;
+    cache.v = CACHE_VERSION;
+    cache.updatedAt = Date.now();
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         var packet = {};
-        packet[EXT_STORE_KEY] = data;
+        packet[EXT_STORE_KEY] = cache;
         chrome.storage.local.set(packet, function () {
-          console.log('[FOUC] cached footer (~' + Math.round(html.length / 1024)
-            + 'KB) from ' + source);
+          var n = Object.keys(cache.shells).length;
+          console.log('[FOUC] cached ' + n + ' UI shell(s) from ' + source);
         });
       }
     } catch (eSave) {
       console.warn('[FOUC] cache write failed', eSave);
     }
     try {
-      localStorage.setItem('tm_mms_footer_shell', JSON.stringify(data));
+      localStorage.setItem(EXT_STORE_KEY, JSON.stringify(cache));
     } catch (eLs) { /* ignore */ }
   }
 
-  function mountFooterShell(data) {
+  function mountOne(entry) {
     try {
-      if (document.getElementById('tm-footer-controls-container')) return false;
-      if (!isValidFooterData(data)) return false;
-      var cell = findFooterCell();
-      if (!cell) return false;
-      ensureFooterShellCss();
-      while (cell.firstChild) cell.removeChild(cell.firstChild);
-      cell.insertAdjacentHTML('beforeend', data.html);
-      var mounted = cell.querySelector('#tm-footer-controls-container');
+      if (!entry || !entry.html || !entry.id) return false;
+      if (document.getElementById(entry.id)) return false;
+      var parent = resolveParent(entry.parent || 'body');
+      if (!parent) return false;
+
+      ensureShellCss();
+
+      if (entry.parent === 'footer-center' || entry.parent === 'footer-right') {
+        // Replace cell contents for footer shells only
+        while (parent.firstChild) parent.removeChild(parent.firstChild);
+        parent.insertAdjacentHTML('beforeend', entry.html);
+      } else if (entry.parent === 'header-filler') {
+        parent.insertAdjacentHTML('afterbegin', entry.html);
+      } else {
+        parent.insertAdjacentHTML('beforeend', entry.html);
+      }
+
+      var mounted = document.getElementById(entry.id);
       if (!mounted) return false;
       mounted.setAttribute(SHELL_ATTR, '1');
-      mounted.classList.add('tm-footer-shell');
-      console.log('[FOUC] mounted cached footer');
+      if (entry.id === 'tm-footer-controls-container') {
+        mounted.setAttribute(FOOTER_SHELL_ATTR, '1');
+      }
+      mounted.classList.add('tm-ui-shell');
       return true;
-    } catch (eFoot) {
+    } catch (e) {
       return false;
     }
   }
 
-  var pendingMount = null;
+  var pendingCache = null;
   var mountObs = null;
 
-  function watchMount(data) {
-    pendingMount = data;
-    if (mountFooterShell(pendingMount)) return;
+  function tryMountAll(cache) {
+    if (!cache || !cache.shells) return 0;
+    pendingCache = cache;
+    ensureShellCss();
+    var mounted = 0;
+    SHELL_SPECS.forEach(function (spec) {
+      var entry = cache.shells[spec.id];
+      if (entry && mountOne(entry)) mounted++;
+    });
+    return mounted;
+  }
+
+  function watchMount(cache) {
+    pendingCache = cache;
+    var n = tryMountAll(cache);
+    if (n > 0) {
+      console.log('[FOUC] mounted ' + n + ' UI shell(s)');
+    }
     if (mountObs) return;
     try {
       mountObs = new MutationObserver(function () {
-        if (mountFooterShell(pendingMount)) {
-          try { mountObs.disconnect(); } catch (e) { /* ignore */ }
-          mountObs = null;
+        var more = tryMountAll(pendingCache);
+        if (more > 0) console.log('[FOUC] mounted +' + more + ' UI shell(s)');
+        // Stop when body+footer exist and we've tried everything we have
+        if (document.body && findFooterCenter()) {
+          // keep observing briefly for late header filler
         }
       });
       mountObs.observe(document.documentElement || document, { childList: true, subtree: true });
       setTimeout(function () {
         if (mountObs) {
-          try { mountObs.disconnect(); } catch (e2) { /* ignore */ }
+          try { mountObs.disconnect(); } catch (e) { /* ignore */ }
           mountObs = null;
         }
       }, 20000);
     } catch (eObs) { /* ignore */ }
   }
 
-  // Load cache ASAP (async chrome.storage + sync localStorage fallback)
+  // Load cache
   try {
-    var lsRaw = localStorage.getItem('tm_mms_footer_shell');
+    var lsRaw = localStorage.getItem(EXT_STORE_KEY) || localStorage.getItem(LEGACY_FOOTER_KEY);
     if (lsRaw) {
-      var lsData = JSON.parse(lsRaw);
-      if (isValidFooterData(lsData)) {
-        console.log('[FOUC] footer cache hit (localStorage)');
+      var lsData = normalizeCache(JSON.parse(lsRaw));
+      if (lsData) {
+        console.log('[FOUC] UI shell cache hit (localStorage)');
         watchMount(lsData);
       }
     }
@@ -324,72 +467,88 @@
 
   try {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      chrome.storage.local.get([EXT_STORE_KEY], function (result) {
-        var data = result && result[EXT_STORE_KEY];
-        if (isValidFooterData(data)) {
-          console.log('[FOUC] footer cache hit (chrome.storage)');
+      chrome.storage.local.get([EXT_STORE_KEY, LEGACY_FOOTER_KEY], function (result) {
+        var data = normalizeCache(result && result[EXT_STORE_KEY])
+          || normalizeCache(result && result[LEGACY_FOOTER_KEY]);
+        if (data) {
+          console.log('[FOUC] UI shell cache hit (chrome.storage)');
           watchMount(data);
-        } else if (!pendingMount) {
-          console.log('[FOUC] no footer cache yet — will snapshot after suite paints');
+        } else if (!pendingCache) {
+          console.log('[FOUC] no UI shell cache yet — will snapshot after suite paints');
         }
       });
     } else {
-      console.warn('[FOUC] chrome.storage unavailable — reload extension v1.8+');
+      console.warn('[FOUC] chrome.storage unavailable — reload extension');
     }
   } catch (eStore) {
     console.warn('[FOUC] storage read failed', eStore);
   }
 
-  // Snapshot the LIVE footer once the suite builds it (no TM bridge required).
-  var lastSnapHash = '';
+  // Snapshot live suite UI (not shells)
+  var lastHashes = {};
   var snapTimer = 0;
+  var memoryCache = pendingCache || { v: CACHE_VERSION, shells: {}, updatedAt: 0 };
 
-  function trySnapshotLiveFooter() {
-    var el = document.getElementById('tm-footer-controls-container');
-    if (!el) return;
-    if (el.getAttribute(SHELL_ATTR) === '1') return; // still the placeholder
-    // Need some real widgets, not an empty shell.
-    if (!el.querySelector('#tm-footer-controls-row')) return;
-    var html = slimFooterHtml(el);
-    if (!html) return;
-    if (html === lastSnapHash) return;
-    lastSnapHash = html;
-    saveFooterSnapshot(html, 'live-dom');
+  function snapshotLiveShells(source) {
+    var changed = false;
+    SHELL_SPECS.forEach(function (spec) {
+      var el = document.getElementById(spec.id);
+      if (!el) return;
+      if (isShellEl(el)) return;
+      var html = slimCloneHtml(el, spec);
+      if (!html) return;
+      if (lastHashes[spec.id] === html) return;
+      lastHashes[spec.id] = html;
+      memoryCache.shells[spec.id] = {
+        id: spec.id,
+        parent: spec.parent,
+        html: html,
+      };
+      changed = true;
+    });
+    if (changed) {
+      saveCache(memoryCache, source || 'live-dom');
+    }
   }
 
   function scheduleSnapshot() {
     if (snapTimer) clearTimeout(snapTimer);
     snapTimer = setTimeout(function () {
       snapTimer = 0;
-      trySnapshotLiveFooter();
-    }, 500);
+      snapshotLiveShells('live-dom');
+    }, 600);
   }
 
-  function startLiveFooterWatcher() {
+  function startLiveWatcher() {
     try {
       var obs = new MutationObserver(function () {
         scheduleSnapshot();
-        // Also accept suite DOM transfer node if present.
-        var xfer = document.getElementById(XFER_ID);
-        if (xfer && xfer.textContent) {
-          try {
-            var parsed = JSON.parse(xfer.textContent);
-            if (isValidFooterData(parsed)) {
-              saveFooterSnapshot(parsed.html, 'dom-xfer');
-              xfer.remove();
-            }
-          } catch (eX) { /* ignore */ }
-        }
       });
       obs.observe(document.documentElement || document, { childList: true, subtree: true });
-      // Timed backups after suite typically finishes.
-      setTimeout(trySnapshotLiveFooter, 3000);
-      setTimeout(trySnapshotLiveFooter, 6000);
-      setTimeout(trySnapshotLiveFooter, 12000);
+      setTimeout(function () { snapshotLiveShells('t+3s'); }, 3000);
+      setTimeout(function () { snapshotLiveShells('t+6s'); }, 6000);
+      setTimeout(function () { snapshotLiveShells('t+12s'); }, 12000);
     } catch (eWatch) { /* ignore */ }
   }
 
-  startLiveFooterWatcher();
+  // Accept suite postMessage / DOM transfer (optional bridge)
+  try {
+    window.addEventListener('message', function (ev) {
+      try {
+        var d = ev && ev.data;
+        if (!d || d.type !== 'TM_MMS_UI_SHELLS') return;
+        var normalized = normalizeCache(d.cache || d);
+        if (!normalized) return;
+        memoryCache = normalized;
+        Object.keys(normalized.shells || {}).forEach(function (id) {
+          lastHashes[id] = normalized.shells[id].html;
+        });
+        saveCache(normalized, 'suite-msg');
+      } catch (eMsg) { /* ignore */ }
+    }, true);
+  } catch (eListen) { /* ignore */ }
+
+  startLiveWatcher();
 
   if (canRevealEarly) reveal();
 
@@ -399,5 +558,5 @@
     } catch (eFail) { /* ignore */ }
   }, 8000);
 
-  console.log('[FOUC] guard v1.8.1 ready (' + location.hostname + ')');
+  console.log('[FOUC] guard v1.9.0 ready (' + location.hostname + ') — multi-UI shell cache');
 })();

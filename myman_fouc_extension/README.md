@@ -1,35 +1,37 @@
 # MyManager FOUC Guard (Chrome extension)
 
-Blanks **MyManager** (`thefixers.mymanager.gr`) **before first paint**, then remounts a cached footer until the suite hydrates.
+Blanks **MyManager** before first paint, then remounts **all suite UI chrome** as shells until the Tampermonkey suite hydrates live values.
 
 ## Install / update
 
-1. `chrome://extensions` → Developer mode
-2. **Load unpacked** → this `myman_fouc_extension` folder  
-   (or **Reload** if already loaded)
-3. Confirm version **1.8.1** and accept **storage** permission
-4. Hard-refresh MyManager on **thefixers.mymanager.gr**
+1. `chrome://extensions` → Developer mode  
+2. **Load unpacked** → `myman_fouc_extension` (or **Reload**)  
+3. Confirm version **1.9.0** + **storage** permission  
+4. Hard-refresh MyManager (`thefixers.mymanager.gr`)
 
-> **Important:** v1.8.0 only matched `thesellers.mymanager.gr` — the suite runs on **`thefixers.mymanager.gr`**, so the addon did nothing until 1.8.1.
+## What is cached (v1.9)
 
-## How footer caching works
+| Shell | Purpose |
+|-------|---------|
+| `#tm-footer-controls-container` | XP, coins, weather, settings, EOD, recent, bell… |
+| `#tm-footer-suite-brand` | Custom Ver. label |
+| `#tm-header-quick-search-host` | Header quick search |
+| `#tm-search-container` | Right-rail buttons |
+| `#tm-mascot-container` | Silhouette placeholder (no heavy SVG) |
+| `#tm-scroll-to-top-btn` | Scroll button |
 
-1. Suite builds the live footer
-2. Extension snapshots `#tm-footer-controls-container` → `chrome.storage.local`
-3. Next visit: extension mounts that snapshot as soon as `#footer-outterwrap` exists
-4. Suite replaces the placeholder with the live footer
+On the next visit the extension mounts these shells immediately. The suite then **replaces** each shell and fills **variables** (coins, XP, weather temp, unread count, etc.).
 
 ## Console checks
 
-**First visit after reload (wait ~6s):**
+**Seed (wait ~6–10s):**
 ```
-[FOUC] guard v1.8.1 ready (thefixers.mymanager.gr)
-[FOUC] no footer cache yet — will snapshot after suite paints
-[FOUC] cached footer (~NKB) from live-dom
+[FOUC] guard v1.9.0 ready (thefixers.mymanager.gr) — multi-UI shell cache
+[FOUC] cached N UI shell(s) from live-dom
 ```
 
-**Second visit:**
+**Next visit:**
 ```
-[FOUC] footer cache hit (chrome.storage)
-[FOUC] mounted cached footer
+[FOUC] UI shell cache hit (chrome.storage)
+[FOUC] mounted N UI shell(s)
 ```

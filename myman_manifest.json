@@ -1,11 +1,11 @@
 {
-  "version": "300",
+  "version": "301",
   "loaderVersion": "35",
-  "silentVersion": "38",
-  "displayVersion": "35.38",
+  "silentVersion": "39",
+  "displayVersion": "35.39",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Move Status 40 admin settings to debug tab only",
+  "releaseNotes": "Cache all suite UI shells; FOUC remounts chrome, suite hydrates vars",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

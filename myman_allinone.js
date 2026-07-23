@@ -549,7 +549,10 @@
 
         badge.textContent = unreadCount;
         badge.classList.toggle('visible', unreadCount > 0);
-        if (typeof window.tmSyncFooterShellCache === 'function'
+        if (typeof window.tmSyncAllUiShells === 'function'
+            && !(typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(document.getElementById('tm-footer-controls-container')))) {
+            window.tmSyncAllUiShells(config, STORAGE_KEYS);
+        } else if (typeof window.tmSyncFooterShellCache === 'function'
             && !(typeof window.tmIsFooterShellMounted === 'function' && window.tmIsFooterShellMounted())) {
             window.tmSyncFooterShellCache(config, STORAGE_KEYS);
         }
@@ -5213,16 +5216,19 @@
             window.tmStopFooterShellWatch();
         }
 
-        // Force writes into page localStorage (FOUC extension reads the same origin).
+        // Snapshot all suite UI shells for FOUC early mount (footer + rail + QS + mascot + …).
         const forceShellSync = (reason) => {
-            if (typeof window.tmSyncFooterShellCacheNow === 'function') {
+            if (typeof window.tmSyncAllUiShellsNow === 'function') {
+                window.tmSyncAllUiShellsNow({ force: true, reason });
+            } else if (typeof window.tmSyncFooterShellCacheNow === 'function') {
                 window.tmSyncFooterShellCacheNow({ force: true, reason });
             } else if (typeof window.tmSyncFooterShellCache === 'function') {
                 window.tmSyncFooterShellCache(true);
             }
         };
-        setTimeout(() => forceShellSync('footer+2s'), 2000);
-        setTimeout(() => forceShellSync('footer+5s'), 5000);
+        setTimeout(() => forceShellSync('ui+2s'), 2000);
+        setTimeout(() => forceShellSync('ui+5s'), 5000);
+        setTimeout(() => forceShellSync('ui+10s'), 10000);
 
         return true;
     }

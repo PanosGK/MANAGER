@@ -1679,7 +1679,10 @@ function updateCoinBalanceUI(STORAGE_KEYS, balance, config) {
         }
     }
 
-    if (typeof window.tmSyncFooterShellCache === 'function'
+    if (typeof window.tmSyncAllUiShells === 'function'
+        && !(typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(document.getElementById('tm-footer-controls-container')))) {
+        window.tmSyncAllUiShells(config || window.config, STORAGE_KEYS);
+    } else if (typeof window.tmSyncFooterShellCache === 'function'
         && !(typeof window.tmIsFooterShellMounted === 'function' && window.tmIsFooterShellMounted())) {
         window.tmSyncFooterShellCache(config || window.config, STORAGE_KEYS);
     }
@@ -3174,7 +3177,10 @@ function updateXpBarUI(STORAGE_KEYS, level, xp, xpForNext) {
     }
     updateBuffInventoryUI(STORAGE_KEYS);
     updateLevelPerksLine(STORAGE_KEYS);
-    if (typeof window.tmSyncFooterShellCache === 'function'
+    if (typeof window.tmSyncAllUiShells === 'function'
+        && !(typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(document.getElementById('tm-footer-controls-container')))) {
+        window.tmSyncAllUiShells(window.config, STORAGE_KEYS);
+    } else if (typeof window.tmSyncFooterShellCache === 'function'
         && !(typeof window.tmIsFooterShellMounted === 'function' && window.tmIsFooterShellMounted())) {
         window.tmSyncFooterShellCache(window.config, STORAGE_KEYS);
     }

@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v300 / Custom Ver. 35.38 — generated, do not edit */
+/* MyManager Suite bundle v301 / Custom Ver. 35.39 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '300',
+        version: '301',
         loaderVersion: '35',
-        silentVersion: '38',
-        displayVersion: '35.38',
+        silentVersion: '39',
+        displayVersion: '35.39',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -5337,18 +5337,28 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
 // ----- myman_footer_shell.js -----
 
-(function tmMmsFooterShell() {
+(function tmMmsUiShell() {
     'use strict';
 
-    const LS_FOOTER = 'tm_mms_footer_shell';
-    const SHELL_ATTR = 'data-tm-footer-shell';
-    const CACHE_VERSION = 8;
-    const MSG_TYPE = 'TM_MMS_FOOTER_CACHE';
-    const MAX_HTML = 200000;
+    const LS_KEY = 'tm_mms_ui_shells';
+    const LS_FOOTER_LEGACY = 'tm_mms_footer_shell';
+    const SHELL_ATTR = 'data-tm-ui-shell';
+    const FOOTER_SHELL_ATTR = 'data-tm-footer-shell';
+    const CACHE_VERSION = 10;
+    const MSG_TYPE = 'TM_MMS_UI_SHELLS';
+    const MAX_HTML = 180000;
+
+    const SHELL_SPECS = [
+        { id: 'tm-footer-controls-container', parent: 'footer-center', minLen: 80 },
+        { id: 'tm-footer-suite-brand', parent: 'footer-right', minLen: 40 },
+        { id: 'tm-header-quick-search-host', parent: 'header-filler', minLen: 40 },
+        { id: 'tm-search-container', parent: 'body', minLen: 20 },
+        { id: 'tm-mascot-container', parent: 'body', minLen: 20, silhouette: true },
+        { id: 'tm-scroll-to-top-btn', parent: 'body', minLen: 10 },
+    ];
 
     let syncTimer = 0;
     let syncing = false;
-    let shellWatchObs = null;
     let lastOkAt = 0;
     let lastError = '';
 
@@ -5367,21 +5377,96 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         return localStorage;
     }
 
-    function publishToExtension(data) {
-        const payload = {
-            type: MSG_TYPE,
-            v: CACHE_VERSION,
-            updatedAt: data.updatedAt,
-            html: data.html,
-        };
-        // 1) Page-context postMessage — Chrome extension content scripts always hear this.
+    function isShellEl(el) {
+        return !!(el && (el.getAttribute(SHELL_ATTR) === '1' || el.getAttribute(FOOTER_SHELL_ATTR) === '1'));
+    }
+
+    function slimCloneHtml(el, spec) {
+        if (spec.silhouette) {
+            const rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+            const left = (el.style && el.style.left) || (rect ? `${Math.round(rect.left)}px` : '24px');
+            const top = (el.style && el.style.top) || (rect ? `${Math.round(rect.top)}px` : '120px');
+            const w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
+            const h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
+            return `<div id="tm-mascot-container" class="tm-ui-shell tm-ui-shell-mascot" style="left:${left};top:${top};width:${w}px;height:${h}px;"></div>`;
+        }
+
+        const clone = el.cloneNode(true);
+        clone.removeAttribute(SHELL_ATTR);
+        clone.removeAttribute(FOOTER_SHELL_ATTR);
+        clone.classList.add('tm-ui-shell');
+
+        const menu = clone.querySelector('#tm-recent-repairs-menu');
+        if (menu) {
+            menu.style.display = 'none';
+            menu.innerHTML = '';
+        }
+        clone.querySelectorAll(
+            '#tm-notification-panel, #tm-notification-backdrop, .tm-modal-overlay, #tm-coin-history-tooltip, #tm-mascot-interaction-panel'
+        ).forEach((n) => n.remove());
+
+        clone.querySelectorAll('svg').forEach((svg) => {
+            const mark = document.createElement('span');
+            mark.className = 'tm-ui-shell-icon';
+            mark.setAttribute('aria-hidden', 'true');
+            svg.replaceWith(mark);
+        });
+
+        const html = clone.outerHTML;
+        if (!html || html.length < (spec.minLen || 20) || html.length > MAX_HTML) return null;
+        return html;
+    }
+
+    function collectAllShells() {
+        const shells = {};
+        SHELL_SPECS.forEach((spec) => {
+            const el = document.getElementById(spec.id);
+            if (!el || isShellEl(el)) return;
+            const html = slimCloneHtml(el, spec);
+            if (!html) return;
+            shells[spec.id] = { id: spec.id, parent: spec.parent, html };
+        });
+        return shells;
+    }
+
+    function writeLocal(cache) {
+        const json = JSON.stringify(cache);
+        let ok = false;
+        try {
+            pageLocalStorage().setItem(LS_KEY, json);
+            ok = true;
+        } catch (err) {
+            lastError = 'localStorage: ' + (err && err.message ? err.message : String(err));
+        }
+        try {
+            if (localStorage !== pageLocalStorage()) {
+                localStorage.setItem(LS_KEY, json);
+                ok = true;
+            }
+        } catch (_) { /* ignore */ }
+        // Keep legacy footer key for older extension builds
+        try {
+            const foot = cache.shells && cache.shells['tm-footer-controls-container'];
+            if (foot) {
+                pageLocalStorage().setItem(LS_FOOTER_LEGACY, JSON.stringify({
+                    v: 9,
+                    updatedAt: cache.updatedAt,
+                    html: foot.html,
+                    css: '',
+                }));
+            }
+        } catch (_) { /* ignore */ }
+        return ok;
+    }
+
+    function publishToExtension(cache) {
+        const payload = { type: MSG_TYPE, cache, v: CACHE_VERSION };
         try {
             const s = document.createElement('script');
             s.textContent = 'try{window.postMessage(' + JSON.stringify(payload) + ',"*");}catch(e){}';
             (document.documentElement || document.head || document).appendChild(s);
             s.remove();
         } catch (_) { /* CSP */ }
-        // 2) Direct / unsafeWindow fallbacks
         try {
             window.postMessage(payload, '*');
         } catch (_) { /* ignore */ }
@@ -5389,211 +5474,40 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const uw = getUnsafe();
             if (uw && typeof uw.postMessage === 'function') uw.postMessage(payload, '*');
         } catch (_) { /* ignore */ }
-        try {
-            document.documentElement.dispatchEvent(new CustomEvent('tm-mms-footer-cache', {
-                detail: payload,
-                bubbles: true,
-            }));
-        } catch (_) { /* ignore */ }
     }
 
-    function writeLocal(data) {
-        const json = JSON.stringify({
-            v: CACHE_VERSION,
-            updatedAt: data.updatedAt,
-            html: data.html,
-            css: '',
-        });
-        let ok = false;
-        try {
-            pageLocalStorage().setItem(LS_FOOTER, json);
-            ok = true;
-        } catch (err) {
-            lastError = 'localStorage: ' + (err && err.message ? err.message : String(err));
-        }
-        try {
-            if (localStorage !== pageLocalStorage()) {
-                localStorage.setItem(LS_FOOTER, json);
-                ok = true;
-            }
-        } catch (_) { /* ignore */ }
-        return ok;
-    }
-
-    function readLocal() {
-        try {
-            const raw = pageLocalStorage().getItem(LS_FOOTER) || localStorage.getItem(LS_FOOTER);
-            if (!raw) return null;
-            const data = JSON.parse(raw);
-            if (!data || typeof data.html !== 'string' || data.html.length < 80) return null;
-            if (data.v !== CACHE_VERSION && data.v !== 7 && data.v !== 4) return null;
-            return data;
-        } catch (_) {
-            return null;
-        }
-    }
-
-    function slimClone(clone) {
-        if (!clone) return;
-        const menu = clone.querySelector('#tm-recent-repairs-menu');
-        if (menu) {
-            menu.style.display = 'none';
-            menu.innerHTML = '';
-        }
-        clone.querySelectorAll(
-            '#tm-notification-panel, #tm-notification-backdrop, .tm-modal-overlay, #tm-coin-history-tooltip'
-        ).forEach((el) => el.remove());
-        // Drop heavy SVG icons — keep structure + text so mount is cheap.
-        clone.querySelectorAll('svg').forEach((svg) => {
-            const mark = document.createElement('span');
-            mark.className = 'tm-footer-shell-icon';
-            mark.textContent = svg.getAttribute('aria-label') || '';
-            svg.replaceWith(mark);
-        });
-    }
-
-    function collectSnapshot() {
-        const container = document.getElementById('tm-footer-controls-container');
-        if (!container) return null;
-        if (container.getAttribute(SHELL_ATTR) === '1') return null;
-
-        const clone = container.cloneNode(true);
-        slimClone(clone);
-        clone.removeAttribute(SHELL_ATTR);
-        clone.classList.add('tm-footer-shell');
-
-        let html = clone.outerHTML;
-        if (html.length > MAX_HTML) {
-            lastError = 'snapshot too large: ' + html.length;
-            console.warn('[MMS Footer Shell]', lastError);
-            return null;
-        }
-        if (html.length < 80) {
-            lastError = 'snapshot too small';
-            return null;
-        }
-
-        return {
-            v: CACHE_VERSION,
-            updatedAt: Date.now(),
-            html,
-        };
-    }
-
-    function ensureShellLayoutCss() {
-        if (document.getElementById('tm-mms-footer-shell-css')) return;
-        const style = document.createElement('style');
-        style.id = 'tm-mms-footer-shell-css';
-        style.textContent = `
-            #tm-footer-controls-container[${SHELL_ATTR}="1"] {
-                pointer-events: none;
-                width: 100%;
-                opacity: 0.92;
-            }
-            #tm-footer-controls-container[${SHELL_ATTR}="1"] #tm-footer-controls-row {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 8px;
-                width: 100%;
-            }
-            #tm-footer-controls-container[${SHELL_ATTR}="1"] #tm-footer-controls-left,
-            #tm-footer-controls-container[${SHELL_ATTR}="1"] #tm-footer-controls-middle,
-            #tm-footer-controls-container[${SHELL_ATTR}="1"] #tm-footer-controls-right {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                flex-wrap: wrap;
-            }
-        `;
-        (document.documentElement || document.head || document).appendChild(style);
-    }
-
-    function findFooterCenterCell() {
-        return document.querySelector('#footer-outterwrap table td[width="60%"]')
-            || document.querySelector('#footer-outterwrap table td:nth-child(2)');
-    }
-
-    function mountFooterShellFromCache() {
-        try {
-            const path = window.location.pathname || '';
-            if (path.includes('login.php')) return false;
-            if (new URLSearchParams(window.location.search).get('tm_quickview') === '1') return false;
-            if (document.getElementById('tm-footer-controls-container')) return false;
-
-            const data = readLocal();
-            if (!data) return false;
-            const cell = findFooterCenterCell();
-            if (!cell) return false;
-
-            ensureShellLayoutCss();
-            while (cell.firstChild) cell.removeChild(cell.firstChild);
-            cell.insertAdjacentHTML('beforeend', data.html);
-            const mounted = cell.querySelector('#tm-footer-controls-container');
-            if (!mounted) return false;
-            mounted.setAttribute(SHELL_ATTR, '1');
-            mounted.classList.add('tm-footer-shell');
-            return true;
-        } catch (_) {
-            return false;
-        }
-    }
-
-    function removeFooterShellIfPresent() {
-        const existing = document.getElementById('tm-footer-controls-container');
-        if (existing && existing.getAttribute(SHELL_ATTR) === '1') {
-            existing.remove();
-            return true;
-        }
-        return false;
-    }
-
-    function isFooterShellMounted() {
-        const existing = document.getElementById('tm-footer-controls-container');
-        return !!(existing && existing.getAttribute(SHELL_ATTR) === '1');
-    }
-
-    function syncFooterShellCacheNow(opts) {
+    function syncAllUiShellsNow(opts) {
         const reason = (opts && opts.reason) || 'sync';
         if (syncing) return false;
-        if (isFooterShellMounted()) {
-            lastError = 'shell still mounted';
-            console.warn('[MMS Footer Shell] skip (' + reason + '): ' + lastError);
-            return false;
-        }
-        if (!document.getElementById('tm-footer-controls-container')) {
-            lastError = 'no live footer';
-            console.warn('[MMS Footer Shell] skip (' + reason + '): ' + lastError);
-            return false;
-        }
-
         syncing = true;
         try {
-            const snap = collectSnapshot();
-            if (!snap) {
-                console.warn('[MMS Footer Shell] skip (' + reason + '): ' + (lastError || 'no snapshot'));
+            const shells = collectAllShells();
+            const ids = Object.keys(shells);
+            if (!ids.length) {
+                lastError = 'no live shells yet';
+                console.warn('[MMS UI Shell] skip (' + reason + '): ' + lastError);
                 return false;
             }
-
-            const lsOk = writeLocal(snap);
-            publishToExtension(snap);
+            const cache = { v: CACHE_VERSION, updatedAt: Date.now(), shells };
+            const lsOk = writeLocal(cache);
+            publishToExtension(cache);
             lastOkAt = Date.now();
             lastError = '';
             console.log(
-                `[MMS Footer Shell] cached (~${Math.round(snap.html.length / 1024)}KB) via ${reason}`
-                + (lsOk ? '' : ' [ext-only]')
+                `[MMS UI Shell] cached ${ids.length} shell(s) (~${Math.round(JSON.stringify(shells).length / 1024)}KB) via ${reason}`
+                + (lsOk ? '' : ' [ext-msg]')
             );
             return true;
         } catch (err) {
             lastError = String(err && err.message ? err.message : err);
-            console.warn('[MMS Footer Shell] sync failed', err);
+            console.warn('[MMS UI Shell] sync failed', err);
             return false;
         } finally {
             syncing = false;
         }
     }
 
-    function syncFooterShellCache(forceOrConfig) {
+    function syncAllUiShells(forceOrConfig) {
         const force = forceOrConfig === true
             || (forceOrConfig && typeof forceOrConfig === 'object' && forceOrConfig.force === true);
 
@@ -5602,7 +5516,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 clearTimeout(syncTimer);
                 syncTimer = 0;
             }
-            return syncFooterShellCacheNow({
+            return syncAllUiShellsNow({
                 reason: (forceOrConfig && forceOrConfig.reason) || 'force',
             });
         }
@@ -5610,63 +5524,70 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         if (syncTimer) clearTimeout(syncTimer);
         syncTimer = setTimeout(() => {
             syncTimer = 0;
-            syncFooterShellCacheNow({ reason: 'debounced' });
+            syncAllUiShellsNow({ reason: 'debounced' });
         }, 800);
     }
 
-    function stopFooterShellWatch() {
-        if (shellWatchObs) {
-            try { shellWatchObs.disconnect(); } catch (_) { /* ignore */ }
-            shellWatchObs = null;
-        }
+    // Footer-only aliases (compat)
+    function syncFooterShellCache(forceOrConfig) {
+        return syncAllUiShells(forceOrConfig);
+    }
+    function syncFooterShellCacheNow(opts) {
+        return syncAllUiShellsNow(opts);
     }
 
-    function watchAndMountFooterShell() {
-        if (mountFooterShellFromCache()) return;
-        stopFooterShellWatch();
-        try {
-            shellWatchObs = new MutationObserver(() => {
-                if (mountFooterShellFromCache()) stopFooterShellWatch();
-                const live = document.getElementById('tm-footer-controls-container');
-                if (live && live.getAttribute(SHELL_ATTR) !== '1') stopFooterShellWatch();
-            });
-            shellWatchObs.observe(document.documentElement || document, { childList: true, subtree: true });
-            setTimeout(() => stopFooterShellWatch(), 12000);
-        } catch (_) { /* ignore */ }
+    function removeUiShellById(id) {
+        const el = document.getElementById(id);
+        if (el && isShellEl(el)) {
+            el.remove();
+            return true;
+        }
+        return false;
     }
+
+    function removeAllUiShells() {
+        let n = 0;
+        SHELL_SPECS.forEach((spec) => {
+            if (removeUiShellById(spec.id)) n++;
+        });
+        return n;
+    }
+
+    function removeFooterShellIfPresent() {
+        return removeUiShellById('tm-footer-controls-container');
+    }
+
+    function isFooterShellMounted() {
+        const el = document.getElementById('tm-footer-controls-container');
+        return isShellEl(el);
+    }
+
+    function stopFooterShellWatch() { /* no-op — FOUC extension owns early mount */ }
+    function watchAndMountFooterShell() { /* no-op */ }
+    function watchAndMountAllUiShells() { /* no-op */ }
+    function mountFooterShellFromCache() { return false; }
 
     try {
         window.addEventListener('pagehide', () => {
-            syncFooterShellCacheNow({ reason: 'pagehide' });
+            syncAllUiShellsNow({ reason: 'pagehide' });
         });
     } catch (_) { /* ignore */ }
 
-    function syncAllUiShells() { syncFooterShellCache(); }
-    function watchAndMountAllUiShells() { watchAndMountFooterShell(); }
-    function removeAllUiShells() { return removeFooterShellIfPresent() ? 1 : 0; }
-    function removeUiShellById(id) {
-        if (id === 'tm-footer-controls-container') return removeFooterShellIfPresent();
-        return false;
-    }
-    function isUiShellEl(el) {
-        return !!(el && el.getAttribute(SHELL_ATTR) === '1');
-    }
-
-    function debugFooterShell() {
-        const raw = (() => {
-            try { return pageLocalStorage().getItem(LS_FOOTER); } catch (_) { return null; }
-        })();
-        const live = document.getElementById('tm-footer-controls-container');
+    function debugUiShells() {
+        let raw = null;
+        try { raw = pageLocalStorage().getItem(LS_KEY); } catch (_) { /* ignore */ }
+        const live = {};
+        SHELL_SPECS.forEach((spec) => {
+            const el = document.getElementById(spec.id);
+            live[spec.id] = el ? (isShellEl(el) ? 'shell' : 'live') : 'missing';
+        });
         return {
-            key: LS_FOOTER,
+            key: LS_KEY,
             version: CACHE_VERSION,
             bytes: raw ? raw.length : 0,
             lastOkAt,
             lastError,
-            hasLive: !!live,
-            isShell: !!(live && live.getAttribute(SHELL_ATTR) === '1'),
-            cell: !!findFooterCenterCell(),
-            api: typeof window.tmSyncFooterShellCacheNow === 'function',
+            live,
         };
     }
 
@@ -5678,23 +5599,25 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         } catch (_) { /* ignore */ }
     }
 
+    expose('tmSyncAllUiShells', syncAllUiShells);
+    expose('tmSyncAllUiShellsNow', syncAllUiShellsNow);
     expose('tmSyncFooterShellCache', syncFooterShellCache);
     expose('tmSyncFooterShellCacheNow', syncFooterShellCacheNow);
     expose('tmMountFooterShellFromCache', mountFooterShellFromCache);
     expose('tmRemoveFooterShellIfPresent', removeFooterShellIfPresent);
     expose('tmWatchAndMountFooterShell', watchAndMountFooterShell);
+    expose('tmWatchAndMountAllUiShells', watchAndMountAllUiShells);
     expose('tmStopFooterShellWatch', stopFooterShellWatch);
     expose('tmIsFooterShellMounted', isFooterShellMounted);
-    expose('tmDebugFooterShell', debugFooterShell);
-    expose('TM_FOOTER_SHELL_LS_KEY', LS_FOOTER);
-
-    expose('tmSyncAllUiShells', syncAllUiShells);
-    expose('tmWatchAndMountAllUiShells', watchAndMountAllUiShells);
     expose('tmRemoveAllUiShells', removeAllUiShells);
     expose('tmRemoveUiShellById', removeUiShellById);
-    expose('tmIsUiShellEl', isUiShellEl);
+    expose('tmIsUiShellEl', isShellEl);
+    expose('tmDebugFooterShell', debugUiShells);
+    expose('tmDebugUiShells', debugUiShells);
+    expose('TM_FOOTER_SHELL_LS_KEY', LS_FOOTER_LEGACY);
+    expose('TM_UI_SHELLS_LS_KEY', LS_KEY);
 
-    console.log('[MMS Footer Shell] module ready (v' + CACHE_VERSION + ')');
+    console.log('[MMS UI Shell] module ready (v' + CACHE_VERSION + ', multi-shell)');
 })();
 
 
@@ -40868,7 +40791,10 @@ function updateCoinBalanceUI(STORAGE_KEYS, balance, config) {
         }
     }
 
-    if (typeof window.tmSyncFooterShellCache === 'function'
+    if (typeof window.tmSyncAllUiShells === 'function'
+        && !(typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(document.getElementById('tm-footer-controls-container')))) {
+        window.tmSyncAllUiShells(config || window.config, STORAGE_KEYS);
+    } else if (typeof window.tmSyncFooterShellCache === 'function'
         && !(typeof window.tmIsFooterShellMounted === 'function' && window.tmIsFooterShellMounted())) {
         window.tmSyncFooterShellCache(config || window.config, STORAGE_KEYS);
     }
@@ -42363,7 +42289,10 @@ function updateXpBarUI(STORAGE_KEYS, level, xp, xpForNext) {
     }
     updateBuffInventoryUI(STORAGE_KEYS);
     updateLevelPerksLine(STORAGE_KEYS);
-    if (typeof window.tmSyncFooterShellCache === 'function'
+    if (typeof window.tmSyncAllUiShells === 'function'
+        && !(typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(document.getElementById('tm-footer-controls-container')))) {
+        window.tmSyncAllUiShells(window.config, STORAGE_KEYS);
+    } else if (typeof window.tmSyncFooterShellCache === 'function'
         && !(typeof window.tmIsFooterShellMounted === 'function' && window.tmIsFooterShellMounted())) {
         window.tmSyncFooterShellCache(window.config, STORAGE_KEYS);
     }
@@ -59975,7 +59904,10 @@ if (typeof window !== 'undefined') {
 
         badge.textContent = unreadCount;
         badge.classList.toggle('visible', unreadCount > 0);
-        if (typeof window.tmSyncFooterShellCache === 'function'
+        if (typeof window.tmSyncAllUiShells === 'function'
+            && !(typeof window.tmIsUiShellEl === 'function' && window.tmIsUiShellEl(document.getElementById('tm-footer-controls-container')))) {
+            window.tmSyncAllUiShells(config, STORAGE_KEYS);
+        } else if (typeof window.tmSyncFooterShellCache === 'function'
             && !(typeof window.tmIsFooterShellMounted === 'function' && window.tmIsFooterShellMounted())) {
             window.tmSyncFooterShellCache(config, STORAGE_KEYS);
         }
@@ -64639,16 +64571,19 @@ if (typeof window !== 'undefined') {
             window.tmStopFooterShellWatch();
         }
 
-        // Force writes into page localStorage (FOUC extension reads the same origin).
+        // Snapshot all suite UI shells for FOUC early mount (footer + rail + QS + mascot + …).
         const forceShellSync = (reason) => {
-            if (typeof window.tmSyncFooterShellCacheNow === 'function') {
+            if (typeof window.tmSyncAllUiShellsNow === 'function') {
+                window.tmSyncAllUiShellsNow({ force: true, reason });
+            } else if (typeof window.tmSyncFooterShellCacheNow === 'function') {
                 window.tmSyncFooterShellCacheNow({ force: true, reason });
             } else if (typeof window.tmSyncFooterShellCache === 'function') {
                 window.tmSyncFooterShellCache(true);
             }
         };
-        setTimeout(() => forceShellSync('footer+2s'), 2000);
-        setTimeout(() => forceShellSync('footer+5s'), 5000);
+        setTimeout(() => forceShellSync('ui+2s'), 2000);
+        setTimeout(() => forceShellSync('ui+5s'), 5000);
+        setTimeout(() => forceShellSync('ui+10s'), 10000);
 
         return true;
     }
