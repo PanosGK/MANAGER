@@ -21,7 +21,7 @@
   var EXT_CSS_KEY = 'tm_mms_suite_css';
   var MAX_CSS = 1500000;
   var LEGACY_FOOTER_KEY = 'tm_mms_footer_shell';
-  var CACHE_VERSION = 11;
+  var CACHE_VERSION = 12;
   var MAX_HTML = 180000;
 
   var SHELL_SPECS = [
@@ -379,6 +379,125 @@
       || document.querySelector('#head-outterwrap');
   }
 
+  function cssPath(el) {
+    if (!el || el.nodeType !== 1) return '';
+    function esc(id) {
+      try {
+        if (typeof CSS !== 'undefined' && CSS.escape) return CSS.escape(id);
+      } catch (e) { /* ignore */ }
+      return String(id).replace(/([ !"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+    }
+    if (el.id) return '#' + esc(el.id);
+    var parts = [];
+    var node = el;
+    var depth = 0;
+    while (node && node.nodeType === 1 && depth < 12) {
+      if (node.id) {
+        parts.unshift('#' + esc(node.id));
+        break;
+      }
+      var tag = (node.tagName || '').toLowerCase();
+      var parent = node.parentElement;
+      if (!parent) {
+        parts.unshift(tag);
+        break;
+      }
+      var same = parent.children;
+      var idx = 1;
+      var total = 0;
+      for (var i = 0; i < same.length; i++) {
+        if ((same[i].tagName || '').toLowerCase() === tag) {
+          total++;
+          if (same[i] === node) idx = total;
+        }
+      }
+      parts.unshift(total > 1 ? (tag + ':nth-of-type(' + idx + ')') : tag);
+      node = parent;
+      depth++;
+    }
+    return parts.join(' > ');
+  }
+
+  function capturePlacement(el, fallbackKind) {
+    var parent = el.parentElement;
+    var next = el.nextElementSibling;
+    var prev = el.previousElementSibling;
+    var childIndex = -1;
+    if (parent) {
+      var kids = parent.children;
+      for (var i = 0; i < kids.length; i++) {
+        if (kids[i] === el) { childIndex = i; break; }
+      }
+    }
+    return {
+      kind: fallbackKind || 'body',
+      parentId: parent && parent.id ? parent.id : '',
+      parentPath: parent ? cssPath(parent) : 'body',
+      childIndex: childIndex,
+      beforeId: next && next.id ? next.id : '',
+      afterId: prev && prev.id ? prev.id : '',
+      // Exact live styles the suite applied (positioned widgets)
+      inlineStyle: el.getAttribute('style') || '',
+      replaceParentChildren: !!(fallbackKind === 'footer-center' || fallbackKind === 'footer-right'),
+    };
+  }
+
+  function resolveExactParent(placement) {
+    if (!placement) return null;
+    if (placement.parentId) {
+      var byId = document.getElementById(placement.parentId);
+      if (byId) return byId;
+    }
+    if (placement.parentPath) {
+      try {
+        var byPath = document.querySelector(placement.parentPath);
+        if (byPath) return byPath;
+      } catch (e) { /* ignore */ }
+    }
+    return resolveParent(placement.kind || 'body');
+  }
+
+  function insertAtExactPlace(parent, html, placement) {
+    if (!parent) return null;
+    ensureShellCss();
+
+    if (placement && placement.replaceParentChildren) {
+      while (parent.firstChild) parent.removeChild(parent.firstChild);
+      parent.insertAdjacentHTML('beforeend', html);
+      return parent.lastElementChild;
+    }
+
+    // Prefer: before the same next sibling the live node had
+    if (placement && placement.beforeId) {
+      var beforeEl = document.getElementById(placement.beforeId);
+      if (beforeEl && beforeEl.parentElement === parent) {
+        beforeEl.insertAdjacentHTML('beforebegin', html);
+        return beforeEl.previousElementSibling;
+      }
+    }
+
+    // Or after the previous sibling
+    if (placement && placement.afterId) {
+      var afterEl = document.getElementById(placement.afterId);
+      if (afterEl && afterEl.parentElement === parent) {
+        afterEl.insertAdjacentHTML('afterend', html);
+        return afterEl.nextElementSibling;
+      }
+    }
+
+    // Or at the same child index
+    if (placement && typeof placement.childIndex === 'number' && placement.childIndex >= 0) {
+      var ref = parent.children[placement.childIndex];
+      if (ref) {
+        ref.insertAdjacentHTML('beforebegin', html);
+        return ref.previousElementSibling;
+      }
+    }
+
+    parent.insertAdjacentHTML('beforeend', html);
+    return parent.lastElementChild;
+  }
+
   function resolveParent(kind) {
     if (kind === 'footer-center') return findFooterCenter();
     if (kind === 'footer-right') return findFooterRight();
@@ -394,13 +513,17 @@
   function slimCloneHtml(el, spec) {
     try {
       if (spec.silhouette) {
-        var rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
-        var left = (el.style && el.style.left) || (rect ? Math.round(rect.left) + 'px' : '24px');
-        var top = (el.style && el.style.top) || (rect ? Math.round(rect.top) + 'px' : '120px');
-        var w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
-        var h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
-        return '<div id="tm-mascot-container" class="tm-footer-shell tm-ui-shell-mascot" style="left:'
-          + left + ';top:' + top + ';width:' + w + 'px;height:' + h + 'px;"></div>';
+        var style = el.getAttribute('style') || '';
+        if (!style) {
+          var rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+          var left = (el.style && el.style.left) || (rect ? Math.round(rect.left) + 'px' : '24px');
+          var top = (el.style && el.style.top) || (rect ? Math.round(rect.top) + 'px' : '120px');
+          var w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
+          var h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
+          style = 'position:fixed;left:' + left + ';top:' + top + ';width:' + w + 'px;height:' + h + 'px;';
+        }
+        return '<div id="tm-mascot-container" class="tm-footer-shell tm-ui-shell-mascot" style="'
+          + style.replace(/"/g, '&quot;') + '"></div>';
       }
 
       var clone = el.cloneNode(true);
@@ -437,16 +560,24 @@
 
   function normalizeCache(raw) {
     if (!raw || typeof raw !== 'object') return null;
-    if (raw.v === CACHE_VERSION && raw.shells && typeof raw.shells === 'object') return raw;
-    // Migrate legacy single-footer cache
+    if ((raw.v === CACHE_VERSION || raw.v === 11 || raw.v === 10 || raw.v === 9)
+      && raw.shells && typeof raw.shells === 'object') {
+      return raw;
+    }
     if (raw.html && typeof raw.html === 'string' && raw.html.length >= 80) {
       return {
         v: CACHE_VERSION,
         updatedAt: raw.updatedAt || Date.now(),
+        css: raw.css || '',
         shells: {
           'tm-footer-controls-container': {
             id: 'tm-footer-controls-container',
             parent: 'footer-center',
+            placement: {
+              kind: 'footer-center',
+              parentPath: '#footer-outterwrap table td[width="60%"]',
+              replaceParentChildren: true,
+            },
             html: raw.html,
           },
         },
@@ -480,23 +611,20 @@
     try {
       if (!entry || !entry.html || !entry.id) return false;
       if (document.getElementById(entry.id)) return false;
-      var parent = resolveParent(entry.parent || 'body');
+
+      var placement = entry.placement || { kind: entry.parent || 'body' };
+      var parent = resolveExactParent(placement);
       if (!parent) return false;
 
-      ensureShellCss();
+      var mountedHint = insertAtExactPlace(parent, entry.html, placement);
+      var mounted = document.getElementById(entry.id) || mountedHint;
+      if (!mounted) return false;
 
-      if (entry.parent === 'footer-center' || entry.parent === 'footer-right') {
-        // Replace cell contents for footer shells only
-        while (parent.firstChild) parent.removeChild(parent.firstChild);
-        parent.insertAdjacentHTML('beforeend', entry.html);
-      } else if (entry.parent === 'header-filler') {
-        parent.insertAdjacentHTML('afterbegin', entry.html);
-      } else {
-        parent.insertAdjacentHTML('beforeend', entry.html);
+      // Restore exact inline styles from when the suite painted the live node
+      if (placement.inlineStyle) {
+        try { mounted.setAttribute('style', placement.inlineStyle); } catch (eSt) { /* ignore */ }
       }
 
-      var mounted = document.getElementById(entry.id);
-      if (!mounted) return false;
       mounted.setAttribute(SHELL_ATTR, '1');
       if (entry.id === 'tm-footer-controls-container') {
         mounted.setAttribute(FOOTER_SHELL_ATTR, '1');
@@ -599,11 +727,14 @@
       if (isShellEl(el)) return;
       var html = slimCloneHtml(el, spec);
       if (!html) return;
-      if (lastHashes[spec.id] === html) return;
-      lastHashes[spec.id] = html;
+      var placement = capturePlacement(el, spec.parent);
+      var hash = html + '|' + (placement.parentPath || '') + '|' + placement.childIndex + '|' + (placement.inlineStyle || '');
+      if (lastHashes[spec.id] === hash) return;
+      lastHashes[spec.id] = hash;
       memoryCache.shells[spec.id] = {
         id: spec.id,
         parent: spec.parent,
+        placement: placement,
         html: html,
       };
       changed = true;
@@ -672,5 +803,5 @@
     } catch (eFail) { /* ignore */ }
   }, 8000);
 
-  console.log('[FOUC] guard v1.10.0 ready (' + location.hostname + ') — multi-UI shell cache');
+  console.log('[FOUC] guard v1.10.1 ready (' + location.hostname + ') — exact-placement UI shells');
 })();

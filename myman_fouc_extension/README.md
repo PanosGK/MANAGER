@@ -9,19 +9,17 @@ Blanks **MyManager** before first paint, then remounts **suite UI chrome + CSS**
 3. Confirm version **1.10.0** + **storage** permission  
 4. Hard-refresh MyManager
 
-## What is cached (v1.10)
+## What is cached (v1.10.1)
 
-**HTML shells:** footer, brand, header QS, right rail, mascot silhouette, scroll-to-top  
+**HTML shells** remounted at the **exact parent + sibling index** (and inline `style`) they had when the suite painted them — not guessed into a generic slot.
 
-**CSS:** all suite styles (`#tm-*` / `.tm-*` / `--tm-*`, theme extended styles, global chrome CSS) via `chrome.storage` + `localStorage` (`tm_mms_suite_css`)
-
-On the next visit the extension injects CSS first, then mounts shells. The suite replaces shells and fills variables (coins, XP, weather, etc.).
+**CSS:** all suite styles (`#tm-*` / `.tm-*` / `--tm-*`) via `tm_mms_suite_css`.
 
 ## Console checks
 
-**Seed (wait ~6–12s):**
+**Seed:**
 ```
-[FOUC] guard v1.10.0 ready (thefixers.mymanager.gr) — multi-UI shell cache
+[FOUC] guard v1.10.1 ready (thefixers.mymanager.gr) — exact-placement UI shells
 [FOUC] cached suite CSS (~NKB) from live-dom
 [FOUC] cached N UI shell(s) … from live-dom
 ```

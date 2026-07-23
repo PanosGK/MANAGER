@@ -15,7 +15,7 @@
     const LS_FOOTER_LEGACY = 'tm_mms_footer_shell';
     const SHELL_ATTR = 'data-tm-ui-shell';
     const FOOTER_SHELL_ATTR = 'data-tm-footer-shell';
-    const CACHE_VERSION = 11;
+    const CACHE_VERSION = 12;
     const MSG_TYPE = 'TM_MMS_UI_SHELLS';
     const MAX_HTML = 180000;
 
@@ -52,14 +52,76 @@
         return !!(el && (el.getAttribute(SHELL_ATTR) === '1' || el.getAttribute(FOOTER_SHELL_ATTR) === '1'));
     }
 
+    function cssPath(el) {
+        if (!el || el.nodeType !== 1) return '';
+        const esc = (id) => {
+            try {
+                if (typeof CSS !== 'undefined' && CSS.escape) return CSS.escape(id);
+            } catch (_) { /* ignore */ }
+            return String(id).replace(/([ !"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+        };
+        if (el.id) return `#${esc(el.id)}`;
+        const parts = [];
+        let node = el;
+        let depth = 0;
+        while (node && node.nodeType === 1 && depth < 12) {
+            if (node.id) {
+                parts.unshift(`#${esc(node.id)}`);
+                break;
+            }
+            const tag = (node.tagName || '').toLowerCase();
+            const parent = node.parentElement;
+            if (!parent) {
+                parts.unshift(tag);
+                break;
+            }
+            let idx = 1;
+            let total = 0;
+            Array.from(parent.children).forEach((sib) => {
+                if ((sib.tagName || '').toLowerCase() === tag) {
+                    total += 1;
+                    if (sib === node) idx = total;
+                }
+            });
+            parts.unshift(total > 1 ? `${tag}:nth-of-type(${idx})` : tag);
+            node = parent;
+            depth += 1;
+        }
+        return parts.join(' > ');
+    }
+
+    function capturePlacement(el, fallbackKind) {
+        const parent = el.parentElement;
+        const next = el.nextElementSibling;
+        const prev = el.previousElementSibling;
+        let childIndex = -1;
+        if (parent) {
+            childIndex = Array.from(parent.children).indexOf(el);
+        }
+        return {
+            kind: fallbackKind || 'body',
+            parentId: parent?.id || '',
+            parentPath: parent ? cssPath(parent) : 'body',
+            childIndex,
+            beforeId: next?.id || '',
+            afterId: prev?.id || '',
+            inlineStyle: el.getAttribute('style') || '',
+            replaceParentChildren: fallbackKind === 'footer-center' || fallbackKind === 'footer-right',
+        };
+    }
+
     function slimCloneHtml(el, spec) {
         if (spec.silhouette) {
-            const rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
-            const left = (el.style && el.style.left) || (rect ? `${Math.round(rect.left)}px` : '24px');
-            const top = (el.style && el.style.top) || (rect ? `${Math.round(rect.top)}px` : '120px');
-            const w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
-            const h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
-            return `<div id="tm-mascot-container" class="tm-ui-shell tm-ui-shell-mascot" style="left:${left};top:${top};width:${w}px;height:${h}px;"></div>`;
+            let style = el.getAttribute('style') || '';
+            if (!style) {
+                const rect = el.getBoundingClientRect?.() || null;
+                const left = el.style?.left || (rect ? `${Math.round(rect.left)}px` : '24px');
+                const top = el.style?.top || (rect ? `${Math.round(rect.top)}px` : '120px');
+                const w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
+                const h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
+                style = `position:fixed;left:${left};top:${top};width:${w}px;height:${h}px;`;
+            }
+            return `<div id="tm-mascot-container" class="tm-ui-shell tm-ui-shell-mascot" style="${style.replace(/"/g, '&quot;')}"></div>`;
         }
 
         const clone = el.cloneNode(true);
@@ -128,7 +190,12 @@
             if (!el || isShellEl(el)) return;
             const html = slimCloneHtml(el, spec);
             if (!html) return;
-            shells[spec.id] = { id: spec.id, parent: spec.parent, html };
+            shells[spec.id] = {
+                id: spec.id,
+                parent: spec.parent,
+                placement: capturePlacement(el, spec.parent),
+                html,
+            };
         });
         return shells;
     }
