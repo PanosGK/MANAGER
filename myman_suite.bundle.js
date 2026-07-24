@@ -24809,14 +24809,33 @@ function setSvgSpriteVisible(element, visible) {
  * Duplicate #tm-mascot-container nodes break sprite updates (getElementById hits the first
  * copy only) and look like the mascot "changing type". Keep exactly one container + panel.
  */
+function isMascotUiShellNode(el) {
+    if (!el || el.nodeType !== 1) return false;
+    return el.getAttribute('data-tm-ui-shell') === '1'
+        || el.getAttribute('data-tm-footer-shell') === '1';
+}
+
+function purgeMascotUiShellNodes() {
+    let removed = 0;
+    document.querySelectorAll('#tm-mascot-container, .tm-mascot-container').forEach((el) => {
+        if (!isMascotUiShellNode(el)) return;
+        try { el.remove(); removed += 1; } catch (_) { /* ignore */ }
+    });
+    return removed;
+}
+
 function ensureSingleMascotDom(reason = '') {
+    purgeMascotUiShellNodes();
     const containers = [...document.querySelectorAll('#tm-mascot-container, .tm-mascot-container')];
     const uniqueContainers = [...new Set(containers)];
     let removed = 0;
 
     if (uniqueContainers.length > 1) {
-        // Prefer the newest node (last in document) — older copies are usually stale leftovers
-        const keep = uniqueContainers[uniqueContainers.length - 1];
+        // Prefer a live (non-shell) node; among lives, prefer the newest
+        const liveNodes = uniqueContainers.filter((el) => !isMascotUiShellNode(el));
+        const keep = liveNodes.length
+            ? liveNodes[liveNodes.length - 1]
+            : uniqueContainers[uniqueContainers.length - 1];
         uniqueContainers.forEach((el) => {
             if (el === keep) return;
             try { el.remove(); removed += 1; } catch (_) { /* ignore */ }
@@ -24869,6 +24888,8 @@ function installMascotDomDeduper() {
     if (window.__tmMascotDomObserver || typeof MutationObserver !== 'function') return;
     window.__tmMascotDomObserver = true;
     const run = () => {
+        // FOUC may remount a stale shell after live init — always drop shells first
+        purgeMascotUiShellNodes();
         const { containers, panels } = countMascotDomInstances();
         if (containers > 1 || panels > 1) ensureSingleMascotDom('mutation');
     };
@@ -25107,14 +25128,13 @@ function stopPhysicsAnimation() {
 
 const MASCOT_EDGE_PAD = 8;
 /** Minimum painted overflow beyond the 100×100 box (shadow, jetpack flames, bubble). */
-const MASCOT_OVERFLOW_SLACK = { top: 42, right: 20, bottom: 28, left: 20 };
+const MASCOT_OVERFLOW_SLACK = { top: 36, right: 16, bottom: 20, left: 16 };
 /** Extra keep-inside padding for Aether wings / glow (CSS paint is not in getBoundingClientRect). */
-const MASCOT_AETHER_OVERFLOW_SLACK = { top: 56, right: 72, bottom: 40, left: 72 };
+const MASCOT_AETHER_OVERFLOW_SLACK = { top: 48, right: 52, bottom: 28, left: 52 };
 
 function cacheMascotScreenInfo() {
     const scr = window.screen;
     const dpr = window.devicePixelRatio || 1;
-    // Prefer CSS-pixel work area; fall back to inner window if screen APIs are odd/missing.
     const screenWidth = Math.max(1, Math.round(scr?.width || window.innerWidth || 1));
     const screenHeight = Math.max(1, Math.round(scr?.height || window.innerHeight || 1));
     const availWidth = Math.max(1, Math.round(scr?.availWidth || screenWidth));
@@ -25128,9 +25148,9 @@ function cacheMascotScreenInfo() {
         availHeight,
         innerWidth: innerW,
         innerHeight: innerH,
-        // Playable monitor work-area capped to the browser window (fixed positioning space)
-        playWidth: Math.max(1, Math.min(innerW, availWidth, screenWidth)),
-        playHeight: Math.max(1, Math.min(innerH, availHeight, screenHeight)),
+        // Fixed-position space is the browser window; screen avail is only a sanity cap
+        playWidth: Math.max(1, Math.min(innerW, availWidth || innerW)),
+        playHeight: Math.max(1, Math.min(innerH, availHeight || innerH)),
         devicePixelRatio: dpr,
         screenLeft: Math.round(window.screenLeft ?? window.screenX ?? 0),
         screenTop: Math.round(window.screenTop ?? window.screenY ?? 0),
@@ -25139,68 +25159,61 @@ function cacheMascotScreenInfo() {
     return info;
 }
 
-/** Pixels to reserve at the bottom (footer bar, taskbar overlap, safe area). */
-function getMascotBottomInset(playHeight = null) {
+/**
+ * Reserve only compact fixed/sticky chrome at the bottom (footer bar / XP).
+ * Never treat tall page wrappers as insets — that pinned the mascot to the bottom.
+ */
+function getMascotBottomInset() {
     const screen = window.__tmMascotScreen || cacheMascotScreenInfo();
     const vv = window.visualViewport;
     const vTop = vv?.offsetTop ?? 0;
     const vHeight = vv?.height ?? screen.innerHeight;
-    const vBottom = Math.min(vTop + vHeight, screen.innerHeight, screen.playHeight);
-    const maxH = playHeight ?? Math.max(1, vBottom - vTop);
+    const vBottom = Math.min(vTop + vHeight, screen.innerHeight);
 
     let inset = 12;
-    // Reserve OS taskbar strip when availHeight is shorter than full screen
-    const taskbar = Math.max(0, screen.screenHeight - screen.availHeight);
-    if (taskbar > 0 && taskbar < maxH * 0.25) {
-        inset = Math.max(inset, Math.min(taskbar, 48));
-    }
-
     const selectors = [
         '#tm-footer-controls-container',
+        '#tm-xp-bar-container',
         '#footer-outterwrap',
         '#footer-outter',
-        '#tm-xp-bar-container',
     ];
     for (const sel of selectors) {
         const el = document.querySelector(sel);
         if (!el) continue;
+        const style = window.getComputedStyle(el);
+        const pos = style.position;
+        // Only fixed/sticky bars — ignore in-flow page footers that span the document
+        if (pos !== 'fixed' && pos !== 'sticky') continue;
         const r = el.getBoundingClientRect();
         if (r.height <= 0 || r.width <= 0) continue;
-        if (r.bottom <= vTop || r.top >= vBottom) continue;
-        const lowerBandTop = vBottom - Math.min(180, vHeight * 0.28);
-        if (r.bottom > lowerBandTop) {
-            inset = Math.max(inset, vBottom - r.top + MASCOT_EDGE_PAD);
-        }
+        if (r.height > 140) continue; // not a compact chrome bar
+        if (r.bottom < vBottom - 8 || r.top > vBottom) continue;
+        if (r.top < vBottom - Math.min(160, vHeight * 0.3)) continue;
+        inset = Math.max(inset, Math.ceil(vBottom - r.top) + MASCOT_EDGE_PAD);
     }
-    return Math.min(inset, Math.floor(maxH * 0.35));
+    return Math.min(inset, 100);
 }
 
 /**
- * Visible playfield for the mascot: browser viewport ∩ monitor work area (screen resolution).
+ * Visible playfield for the mascot: browser viewport, capped to the monitor work area.
  * Coordinates match position:fixed / CSS transform space.
  */
 function getMascotViewportRect() {
     const screen = cacheMascotScreenInfo();
     const vv = window.visualViewport;
 
-    // Start from the visible browser viewport in CSS pixels
     let left = Number(vv?.offsetLeft) || 0;
     let top = Number(vv?.offsetTop) || 0;
     let right = left + (Number(vv?.width) || screen.innerWidth);
     let bottom = top + (Number(vv?.height) || screen.innerHeight);
 
-    // Clip to the layout window
     left = Math.max(0, left);
     top = Math.max(0, top);
-    right = Math.min(right, screen.innerWidth);
-    bottom = Math.min(bottom, screen.innerHeight);
+    right = Math.min(right, screen.innerWidth, screen.playWidth);
+    bottom = Math.min(bottom, screen.innerHeight, screen.playHeight);
 
-    // Hard cap to the monitor work area (screen resolution / avail size)
-    right = Math.min(right, screen.playWidth);
-    bottom = Math.min(bottom, screen.playHeight);
-
-    const bottomInset = getMascotBottomInset(Math.max(1, bottom - top));
-    bottom = Math.max(top, bottom - bottomInset);
+    const bottomInset = getMascotBottomInset();
+    bottom = Math.max(top + 120, bottom - bottomInset); // keep a usable vertical band
 
     const width = Math.max(0, right - left);
     const height = Math.max(0, bottom - top);
@@ -25374,29 +25387,6 @@ function ensureMascotInBounds(container = document.getElementById('tm-mascot-con
     cacheMascotScreenInfo();
     const { x, y } = getMascotTranslate(container);
     applyMascotPosition(container, x, y);
-
-    // Second pass: if the live box still spills past the playfield (zoom/DPR), nudge by delta.
-    try {
-        const vp = getMascotViewportRect();
-        const rect = container.getBoundingClientRect();
-        const slack = getMascotKeepInsideSlack(container);
-        let dx = 0;
-        let dy = 0;
-        const leftEdge = rect.left - slack.left;
-        const topEdge = rect.top - slack.top;
-        const rightEdge = rect.right + slack.right;
-        const bottomEdge = rect.bottom + slack.bottom;
-        if (leftEdge < vp.left) dx += vp.left - leftEdge;
-        if (topEdge < vp.top) dy += vp.top - topEdge;
-        if (rightEdge > vp.right) dx -= rightEdge - vp.right;
-        if (bottomEdge > vp.bottom) dy -= bottomEdge - vp.bottom;
-        if (dx || dy) {
-            const cur = getMascotTranslate(container);
-            applyMascotPosition(container, cur.x + dx, cur.y + dy);
-        }
-    } catch {
-        /* ignore */
-    }
 }
 
 function randomMascotPosition(container = document.getElementById('tm-mascot-container'), metrics = getMascotRoamingMetrics(container)) {
@@ -28855,15 +28845,11 @@ function resetIdleTimer(config) {
 function initInteractiveMascot(config, STORAGE_KEYS) {
     if (!config || !config.interactiveMascotEnabled) return;
 
-    // Cached FOUC/UI shell — remove so live mascot can replace it.
+    // Cached FOUC/UI shell — always purge so a stale snapshot can't pretend to be the live pet.
     if (typeof window.tmRemoveUiShellById === 'function') {
         window.tmRemoveUiShellById('tm-mascot-container');
-    } else {
-        const shell = document.getElementById('tm-mascot-container');
-        if (shell && (shell.getAttribute('data-tm-ui-shell') === '1' || shell.getAttribute('data-tm-footer-shell') === '1')) {
-            shell.remove();
-        }
     }
+    purgeMascotUiShellNodes();
 
     // Atomic guard against concurrent double-init (two callers before DOM append)
     if (window.__tmMascotInitializing) {
@@ -28871,15 +28857,26 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         return;
     }
 
+    const existingLive = document.getElementById('tm-mascot-container');
+    const existingIsShell = isMascotUiShellNode(existingLive);
+    if (existingIsShell) {
+        try { existingLive.remove(); } catch (_) { /* ignore */ }
+    }
+
     const existingCount = countMascotDomInstances();
-    if (existingCount.containers > 0 || window.__tmMascotInitialized) {
+    // Only skip when a real live mascot already exists from this session.
+    // FOUC shells used to trip this path and skip loadTamagotchiData → wrong character on edit pages.
+    if (window.__tmMascotInitialized && existingCount.containers > 0 && !existingIsShell) {
         ensureSingleMascotDom('init-skip');
         if (existingCount.containers > 1) {
             console.warn('[MMS Mascot] Duplicate mascots found at init — cleaned up, not re-creating');
-        } else {
-            console.warn('[MMS Mascot] Already initialized — skipping duplicate init');
         }
         return;
+    }
+
+    // Stale flag with no live DOM (navigation / shell wipe) — allow a full re-init
+    if (window.__tmMascotInitialized && existingCount.containers === 0) {
+        window.__tmMascotInitialized = false;
     }
 
     window.__tmMascotInitializing = true;
