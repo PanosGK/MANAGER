@@ -10989,15 +10989,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                         rgba(201,162,39,0.05) 68%,
                         transparent 100%);
                 box-shadow:
-                    0 0 48px rgba(77,208,225,0.18),
-                    0 0 96px rgba(124,77,255,0.14),
-                    0 0 140px rgba(201,162,39,0.08);
+                    0 0 28px rgba(77,208,225,0.16),
+                    0 0 56px rgba(124,77,255,0.1);
                 opacity: 0;
-                width: 320px; height: 320px;
-                margin-left: -160px; margin-top: -160px;
+                width: 260px; height: 260px;
+                margin-left: -130px; margin-top: -130px;
                 left: 50%; top: 50%;
                 border-radius: 50%;
-                filter: blur(18px);
+                filter: blur(8px);
                 animation: none;
                 transition: opacity 1.2s ease;
                 will-change: opacity;
@@ -11013,8 +11012,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 content: '';
                 position: absolute;
                 top: 50%; left: 50%;
-                width: 210px; height: 210px;
-                margin: -105px 0 0 -105px;
+                width: 180px; height: 180px;
+                margin: -90px 0 0 -90px;
                 border-radius: 50%;
                 border: none;
                 background: radial-gradient(circle,
@@ -11026,7 +11025,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 z-index: -1;
                 pointer-events: none;
                 opacity: 0;
-                filter: blur(16px);
+                filter: blur(6px);
                 animation: none;
                 transition: opacity 1.2s ease;
             }
@@ -11042,9 +11041,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             .tm-mascot-robot.mascot-char-aether {
                 filter:
-                    drop-shadow(0 8px 16px rgba(18,0,31,0.18))
-                    drop-shadow(0 0 20px rgba(77,208,225,0.18))
-                    drop-shadow(0 0 40px rgba(90,61,154,0.16));
+                    drop-shadow(0 6px 12px rgba(18,0,31,0.2))
+                    drop-shadow(0 0 16px rgba(77,208,225,0.16));
             }
             #tm-mascot-container:hover .tm-mascot-robot.mascot-char-phoenix {
                 filter: brightness(1.12) drop-shadow(0 0 8px rgba(255,109,0,0.9)) drop-shadow(0 0 18px rgba(255,234,0,0.55));
@@ -11054,9 +11052,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             #tm-mascot-container:hover .tm-mascot-robot.mascot-char-aether {
                 filter: brightness(1.04)
-                    drop-shadow(0 8px 20px rgba(18,0,31,0.38))
-                    drop-shadow(0 0 26px rgba(77,208,225,0.28))
-                    drop-shadow(0 0 52px rgba(90,61,154,0.32));
+                    drop-shadow(0 6px 14px rgba(18,0,31,0.32))
+                    drop-shadow(0 0 22px rgba(77,208,225,0.24));
             }
 
             /* Legendary idle float — bigger bob, soft scale (Pokémon battle sway) */
@@ -11096,16 +11093,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             .tm-mascot-robot.mascot-char-aether.mascot-middleage {
                 zoom: 1.14;
                 filter:
-                    drop-shadow(0 8px 16px rgba(18,0,31,0.22))
-                    drop-shadow(0 0 24px rgba(239,83,80,0.18))
-                    drop-shadow(0 0 44px rgba(106,27,154,0.18)) !important;
+                    drop-shadow(0 6px 12px rgba(18,0,31,0.22))
+                    drop-shadow(0 0 18px rgba(239,83,80,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-old {
                 zoom: 1.24;
                 filter:
-                    drop-shadow(0 8px 16px rgba(10,2,2,0.24))
-                    drop-shadow(0 0 24px rgba(139,0,0,0.18))
-                    drop-shadow(0 0 46px rgba(93,64,55,0.18)) !important;
+                    drop-shadow(0 6px 12px rgba(10,2,2,0.24))
+                    drop-shadow(0 0 18px rgba(139,0,0,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-adult {
                 zoom: 1.07;
@@ -11131,25 +11126,34 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-wing-star:nth-child(odd) {
                 animation-delay: 1.4s;
             }
-            /* Pulsing dragon wing veins / cracks */
+            /* Pulsing dragon wing veins / cracks — only while idle (not parked) */
             .mascot-char-aether .tm-aether-wing-vein {
                 opacity: 0.35;
-                animation: tm-aether-vein-pulse 5.2s ease-in-out infinite;
+                animation: none;
             }
             .mascot-char-aether .tm-aether-wing-crack {
                 opacity: 0.25;
-                animation: tm-aether-crack-pulse 6.4s ease-in-out infinite;
+                animation: none;
             }
             .mascot-char-aether .tm-aether-wing-claw {
+                animation: none;
+            }
+            #tm-mascot-container.mascot-idle:not(.mascot-parked):not(.mascot-focus-quiet) .mascot-char-aether .tm-aether-wing-vein {
+                animation: tm-aether-vein-pulse 5.2s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-idle:not(.mascot-parked):not(.mascot-focus-quiet) .mascot-char-aether .tm-aether-wing-crack {
+                animation: tm-aether-crack-pulse 6.4s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-idle:not(.mascot-parked):not(.mascot-focus-quiet) .mascot-char-aether .tm-aether-wing-claw {
                 animation: tm-aether-claw-glow 2.8s ease-in-out infinite;
             }
             #tm-mascot-container.tm-aether-awaken .tm-aether-wing-vein,
             #tm-mascot-container.tm-aether-react .tm-aether-wing-vein {
-                animation-duration: 1.1s;
+                animation: tm-aether-vein-pulse 1.1s ease-in-out infinite;
             }
             #tm-mascot-container.tm-aether-awaken .tm-aether-wing-crack,
             #tm-mascot-container.tm-aether-react .tm-aether-wing-crack {
-                animation-duration: 1.4s;
+                animation: tm-aether-crack-pulse 1.4s ease-in-out infinite;
             }
             /* Active travel flap — kicks in as soon as the mascot starts moving */
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .tm-animate-wing-left {
@@ -11201,54 +11205,212 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 opacity: 0 !important;
                 transition: opacity 1.1s ease;
                 pointer-events: none;
-                filter: blur(2.4px);
+                filter: none;
             }
             .mascot-char-aether .tm-aether-fx.tm-fx-on {
                 opacity: 1 !important;
+                filter: blur(1.2px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="aura"].tm-fx-on,
             .mascot-char-aether .tm-aether-fx[data-fx="corona"].tm-fx-on {
                 opacity: 0.55 !important;
-                filter: blur(3.5px);
+                filter: blur(1.8px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="aura-outer"].tm-fx-on {
                 opacity: 0.4 !important;
-                filter: blur(5px);
+                filter: blur(2.4px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="beams"].tm-fx-on {
                 opacity: 0.45 !important;
-                filter: blur(3px);
+                filter: blur(1.5px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="sigil"].tm-fx-on,
             .mascot-char-aether .tm-aether-fx[data-fx="runes"].tm-fx-on,
             .mascot-char-aether .tm-aether-fx[data-fx="ribbons"].tm-fx-on {
                 opacity: 0.5 !important;
-                filter: blur(2.8px);
+                filter: blur(1.4px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="orbits"].tm-fx-on {
                 opacity: 0.55 !important;
-                filter: blur(3.2px);
+                filter: blur(1.6px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="shards"].tm-fx-on {
                 opacity: 0.45 !important;
-                filter: blur(2.5px);
+                filter: blur(1.2px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="fracture"].tm-fx-on {
                 opacity: 0.5 !important;
-                filter: blur(2.2px);
+                filter: blur(1.1px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="haze"].tm-fx-on {
                 opacity: 0.75 !important;
-                filter: blur(4.5px);
+                filter: blur(2.2px);
             }
             .mascot-char-aether .tm-aether-fx[data-fx="sparks"].tm-fx-on {
                 opacity: 0.55 !important;
-                filter: blur(1.8px);
+                filter: blur(0.8px);
             }
             .mascot-char-aether .tm-aether-halo,
             .mascot-char-aether .tm-aether-core-ring,
             .mascot-char-aether .tm-aether-rune-tattoos {
-                filter: blur(1.6px);
+                filter: none;
+            }
+
+            /* ── Aether lite / ultra: old-PC friendly (auto-applied by JS) ── */
+            #tm-mascot-container.tm-aether-lite.mascot-char-aether::before,
+            #tm-mascot-container.tm-aether-lite.mascot-char-aether::after {
+                filter: none !important;
+                box-shadow: none !important;
+                animation: none !important;
+                width: 160px !important;
+                height: 160px !important;
+                margin-left: -80px !important;
+                margin-top: -80px !important;
+                transition: opacity 0.4s ease !important;
+            }
+            #tm-mascot-container.tm-aether-lite.mascot-char-aether.tm-aether-glow-on::before {
+                opacity: 0.55 !important;
+                background: radial-gradient(circle, rgba(77,208,225,0.22) 0%, transparent 70%) !important;
+            }
+            #tm-mascot-container.tm-aether-lite.mascot-char-aether.tm-aether-ring-on::after {
+                opacity: 0 !important;
+            }
+            #tm-mascot-container.tm-aether-lite .tm-mascot-robot.mascot-char-aether,
+            #tm-mascot-container.tm-aether-lite:hover .tm-mascot-robot.mascot-char-aether,
+            #tm-mascot-container.tm-aether-lite .tm-mascot-robot.mascot-char-aether.mascot-middleage,
+            #tm-mascot-container.tm-aether-lite .tm-mascot-robot.mascot-char-aether.mascot-old {
+                filter: drop-shadow(0 4px 8px rgba(18,0,31,0.28)) !important;
+            }
+            #tm-mascot-container.tm-aether-lite .tm-aether-fx {
+                filter: none !important;
+                transition: opacity 0.35s ease !important;
+            }
+            #tm-mascot-container.tm-aether-lite .tm-aether-fx:not([data-fx="corona"]):not([data-fx="aura"]):not([data-fx="sparks"]) {
+                display: none !important;
+            }
+            #tm-mascot-container.tm-aether-lite .tm-aether-fx[data-fx="sparks"] {
+                display: none !important;
+            }
+            #tm-mascot-container.tm-aether-lite .tm-aether-wing-vein,
+            #tm-mascot-container.tm-aether-lite .tm-aether-wing-crack,
+            #tm-mascot-container.tm-aether-lite .tm-aether-wing-claw,
+            #tm-mascot-container.tm-aether-lite .tm-aether-wing-star,
+            #tm-mascot-container.tm-aether-lite .tm-aether-core,
+            #tm-mascot-container.tm-aether-lite .tm-aether-core-ring,
+            #tm-mascot-container.tm-aether-lite .tm-aether-halo,
+            #tm-mascot-container.tm-aether-lite .tm-aether-veins,
+            #tm-mascot-container.tm-aether-lite .tm-aether-eclipse,
+            #tm-mascot-container.tm-aether-lite .tm-aether-moonshard-orbit,
+            #tm-mascot-container.tm-aether-lite .tm-aether-charge-ring,
+            #tm-mascot-container.tm-aether-lite .tm-aether-form-crest,
+            #tm-mascot-container.tm-aether-lite .tm-aether-world-dim-local,
+            #tm-mascot-container.tm-aether-lite .tm-aether-myth-particle.is-star,
+            #tm-mascot-container.tm-aether-lite .tm-aether-myth-particle.is-shard {
+                animation: none !important;
+            }
+            #tm-mascot-container.tm-aether-lite .tm-aether-moonshard-orbit,
+            #tm-mascot-container.tm-aether-lite .tm-aether-charge-ring,
+            #tm-mascot-container.tm-aether-lite .tm-aether-world-dim-local,
+            #tm-mascot-container.tm-aether-lite .tm-aether-mythic-weather-local {
+                display: none !important;
+            }
+            #tm-mascot-container.tm-aether-lite.mascot-idle .tm-mascot-robot.mascot-char-aether {
+                animation: tm-mythic-idle-float 6s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.tm-aether-lite.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left {
+                animation: tm-mythic-wing-flap 3.2s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.tm-aether-lite.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right {
+                animation: tm-mythic-wing-flap-right 3.2s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.tm-aether-lite.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.tm-aether-lite.mascot-moving.mascot-char-aether:not(.mascot-parked) .tm-animate-wing-left {
+                animation: tm-mythic-wing-flap-move 0.55s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.tm-aether-lite.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.tm-aether-lite.mascot-moving.mascot-char-aether:not(.mascot-parked) .tm-animate-wing-right {
+                animation: tm-mythic-wing-flap-move-right 0.55s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.tm-aether-lite .tm-aether-fx.tm-fx-on .tm-aether-spark,
+            #tm-mascot-container.tm-aether-lite .tm-aether-fx.tm-fx-on.tm-aether-orbit-group,
+            #tm-mascot-container.tm-aether-lite .tm-aether-fx.tm-fx-on .tm-aether-orbit,
+            #tm-mascot-container.tm-aether-lite .tm-aether-fx.tm-fx-on .tm-aether-corona,
+            #tm-mascot-container.tm-aether-lite .tm-aether-fx.tm-fx-on .tm-aether-aura-outer,
+            #tm-mascot-container.tm-aether-lite .tm-aether-fx.tm-fx-on.tm-aether-beams,
+            #tm-mascot-container.tm-aether-lite .tm-aether-fx.tm-fx-on .tm-aether-sigil,
+            #tm-mascot-container.tm-aether-lite .tm-aether-fx.tm-fx-on.tm-aether-runes,
+            #tm-mascot-container.tm-aether-lite .tm-aether-fx.tm-fx-on .tm-aether-shard,
+            #tm-mascot-container.tm-aether-lite .tm-aether-fx.tm-fx-on .tm-aether-ribbon {
+                animation: none !important;
+            }
+
+            /* Ultra: sprite + slow float only */
+            #tm-mascot-container.tm-aether-ultra.mascot-char-aether::before,
+            #tm-mascot-container.tm-aether-ultra.mascot-char-aether::after,
+            #tm-mascot-container.tm-aether-ultra .tm-aether-fx {
+                display: none !important;
+            }
+            #tm-mascot-container.tm-aether-ultra .tm-mascot-robot.mascot-char-aether {
+                filter: none !important;
+            }
+            #tm-mascot-container.tm-aether-ultra.mascot-idle .tm-mascot-robot.mascot-char-aether {
+                animation: tm-mythic-idle-float 7s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.tm-aether-ultra .tm-animate-wing-left,
+            #tm-mascot-container.tm-aether-ultra .tm-animate-wing-right,
+            #tm-mascot-container.tm-aether-ultra .tm-animate-tail {
+                animation: none !important;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                #tm-mascot-container.mascot-char-aether::before,
+                #tm-mascot-container.mascot-char-aether::after,
+                #tm-mascot-container.mascot-char-aether .tm-aether-fx,
+                #tm-mascot-container.mascot-char-aether .tm-aether-wing-vein,
+                #tm-mascot-container.mascot-char-aether .tm-aether-wing-crack,
+                #tm-mascot-container.mascot-char-aether .tm-aether-wing-claw,
+                #tm-mascot-container.mascot-char-aether .tm-aether-wing-star {
+                    animation: none !important;
+                    filter: none !important;
+                }
+                #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether {
+                    animation: none !important;
+                }
+                #tm-aether-screen-aura *,
+                #tm-aether-world-dim,
+                #tm-aether-mythic-weather {
+                    animation: none !important;
+                }
+            }
+
+            /* Pause continuous Aether paint when tab hidden or focus quiet */
+            #tm-mascot-container.mascot-focus-quiet.mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.mascot-focus-quiet.mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.mascot-focus-quiet.mascot-char-aether .tm-animate-tail,
+            #tm-mascot-container.mascot-focus-quiet .tm-mascot-robot.mascot-char-aether,
+            #tm-mascot-container.mascot-focus-quiet .tm-aether-fx,
+            #tm-mascot-container.mascot-focus-quiet .tm-aether-wing-vein,
+            #tm-mascot-container.mascot-focus-quiet .tm-aether-wing-crack,
+            #tm-mascot-container.mascot-focus-quiet .tm-aether-wing-claw,
+            #tm-mascot-container.mascot-focus-quiet .tm-aether-wing-star,
+            body.tm-aether-tab-hidden #tm-mascot-container.mascot-char-aether .tm-animate-wing-left,
+            body.tm-aether-tab-hidden #tm-mascot-container.mascot-char-aether .tm-animate-wing-right,
+            body.tm-aether-tab-hidden #tm-mascot-container.mascot-char-aether .tm-animate-tail,
+            body.tm-aether-tab-hidden #tm-mascot-container .tm-mascot-robot.mascot-char-aether,
+            body.tm-aether-tab-hidden #tm-mascot-container .tm-aether-fx,
+            body.tm-aether-tab-hidden #tm-mascot-container .tm-aether-wing-vein,
+            body.tm-aether-tab-hidden #tm-mascot-container .tm-aether-wing-crack,
+            body.tm-aether-tab-hidden #tm-mascot-container .tm-aether-wing-claw,
+            body.tm-aether-tab-hidden #tm-mascot-container .tm-aether-wing-star,
+            body.tm-aether-tab-hidden #tm-aether-screen-aura .tm-aether-screen-bloom,
+            body.tm-aether-tab-hidden #tm-aether-screen-aura .tm-aether-screen-ring,
+            body.tm-aether-tab-hidden #tm-aether-screen-aura .tm-aether-screen-haze,
+            body.tm-aether-tab-hidden #tm-aether-screen-aura .tm-aether-screen-rays {
+                animation: none !important;
+            }
+            body.tm-aether-tab-hidden #tm-aether-screen-aura,
+            body.tm-aether-tab-hidden #tm-aether-world-dim {
+                transition: none !important;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-fx.tm-fx-on .tm-aether-spark {
                 animation: tm-mythic-sparkle 5.5s ease-in-out infinite;
@@ -11619,34 +11781,150 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-mascot-container.tm-aether-awaken .tm-aether-fx {
                 opacity: 0.7 !important;
             }
-            /* Local world dim — confined to mascot (no page overlay / mix-blend) */
+            /* Local world dim — kept as fallback; primary veil is #tm-aether-world-dim fullscreen */
             .tm-aether-world-dim-local {
-                position: absolute;
-                left: 50%; top: 50%;
-                width: 140%; height: 140%;
-                margin: -70% 0 0 -70%;
-                border-radius: 50%;
-                pointer-events: none;
-                z-index: 0;
+                display: none !important;
+            }
+            /* Fullscreen Aether aura field (pointer-events none — never blocks UI) */
+            #tm-aether-screen-aura {
+                position: fixed;
+                inset: 0;
+                z-index: 9980;
+                pointer-events: none !important;
+                overflow: hidden;
                 opacity: 0;
-                background: radial-gradient(circle,
-                    rgba(18,0,31,0.28) 0%,
-                    rgba(90,61,154,0.12) 42%,
-                    transparent 72%);
+                transition: opacity 1.1s ease;
+                contain: strict;
             }
-            .tm-aether-world-dim-local.tm-aether-dim-t3 { opacity: 0.1; }
-            .tm-aether-world-dim-local.tm-aether-dim-t4 { opacity: 0.16; }
-            .tm-aether-world-dim-local.tm-aether-dim-t5 { opacity: 0.22; }
-            .tm-aether-world-dim-local.tm-aether-dim-t6,
-            .tm-aether-world-dim-local.tm-aether-dim-strong {
-                opacity: 0.32;
-                background: radial-gradient(circle,
-                    rgba(5,1,12,0.35) 0%,
-                    rgba(40,0,20,0.16) 40%,
-                    transparent 74%);
+            #tm-aether-screen-aura.is-on {
+                opacity: 1;
             }
-            /* Legacy page dim/lens disabled */
-            #tm-aether-world-dim,
+            #tm-aether-screen-aura .tm-aether-screen-veil,
+            #tm-aether-screen-aura .tm-aether-screen-bloom,
+            #tm-aether-screen-aura .tm-aether-screen-ring,
+            #tm-aether-screen-aura .tm-aether-screen-haze,
+            #tm-aether-screen-aura .tm-aether-screen-rays {
+                position: absolute;
+                inset: 0;
+                pointer-events: none;
+                opacity: 0;
+                transition: opacity 1s ease;
+            }
+            #tm-aether-screen-aura .tm-aether-screen-veil {
+                background:
+                    radial-gradient(ellipse 95% 85% at var(--axp, 50%) var(--ayp, 45%),
+                        rgba(var(--ac2, 124,77,255), calc(0.16 * var(--aura-strength, 0.4))) 0%,
+                        rgba(18, 0, 31, calc(0.18 * var(--aura-strength, 0.4))) 42%,
+                        rgba(5, 2, 12, calc(0.22 * var(--aura-strength, 0.4))) 100%);
+                opacity: 1;
+            }
+            #tm-aether-screen-aura .tm-aether-screen-bloom {
+                background:
+                    radial-gradient(circle 55vmax at var(--ax, 50%) var(--ay, 45%),
+                        rgba(var(--ac1, 38,198,218), calc(0.34 * var(--aura-strength, 0.4))) 0%,
+                        rgba(var(--ac2, 124,77,255), calc(0.18 * var(--aura-strength, 0.4))) 32%,
+                        rgba(var(--ac3, 255,213,79), calc(0.08 * var(--aura-strength, 0.4))) 52%,
+                        transparent 72%);
+                opacity: 1;
+                animation: tm-aether-screen-bloom-pulse 7s ease-in-out infinite;
+            }
+            #tm-aether-screen-aura.has-ring .tm-aether-screen-ring {
+                background:
+                    radial-gradient(circle 38vmax at var(--ax, 50%) var(--ay, 45%),
+                        transparent 42%,
+                        rgba(var(--ac3, 255,213,79), calc(0.14 * var(--aura-strength, 0.4))) 52%,
+                        rgba(var(--ac1, 38,198,218), calc(0.1 * var(--aura-strength, 0.4))) 62%,
+                        transparent 74%);
+                opacity: 1;
+                animation: tm-aether-screen-ring-pulse 9s ease-in-out infinite;
+            }
+            #tm-aether-screen-aura.has-haze .tm-aether-screen-haze {
+                background:
+                    linear-gradient(115deg,
+                        transparent 10%,
+                        rgba(var(--ac1, 38,198,218), calc(0.08 * var(--aura-strength, 0.4))) 35%,
+                        transparent 55%),
+                    linear-gradient(250deg,
+                        transparent 20%,
+                        rgba(var(--ac2, 124,77,255), calc(0.07 * var(--aura-strength, 0.4))) 48%,
+                        transparent 70%);
+                opacity: 1;
+                animation: tm-aether-screen-haze-drift 14s ease-in-out infinite;
+            }
+            #tm-aether-screen-aura.has-rays .tm-aether-screen-rays {
+                background:
+                    conic-gradient(from 210deg at var(--axp, 50%) var(--ayp, 45%),
+                        transparent 0deg,
+                        rgba(var(--ac3, 255,213,79), calc(0.07 * var(--aura-strength, 0.4))) 18deg,
+                        transparent 36deg,
+                        transparent 120deg,
+                        rgba(var(--ac1, 38,198,218), calc(0.06 * var(--aura-strength, 0.4))) 145deg,
+                        transparent 170deg,
+                        transparent 360deg);
+                opacity: 0.85;
+                animation: tm-aether-screen-rays-spin 48s linear infinite;
+            }
+            #tm-aether-screen-aura.is-strong .tm-aether-screen-bloom {
+                animation-duration: 5.2s;
+            }
+            #tm-aether-screen-aura.is-awaken .tm-aether-screen-bloom {
+                animation-duration: 3.4s;
+            }
+            #tm-aether-screen-aura.is-awaken .tm-aether-screen-veil {
+                background:
+                    radial-gradient(ellipse 100% 90% at var(--axp, 50%) var(--ayp, 45%),
+                        rgba(var(--ac1, 38,198,218), 0.22) 0%,
+                        rgba(var(--ac2, 124,77,255), 0.18) 35%,
+                        rgba(8, 0, 18, 0.38) 100%);
+            }
+            #tm-aether-screen-aura.is-lite .tm-aether-screen-rays,
+            #tm-aether-screen-aura.is-lite .tm-aether-screen-haze {
+                display: none !important;
+            }
+            #tm-aether-screen-aura.is-lite .tm-aether-screen-bloom,
+            #tm-aether-screen-aura.is-lite .tm-aether-screen-ring {
+                animation: none !important;
+            }
+            @keyframes tm-aether-screen-bloom-pulse {
+                0%, 100% { opacity: 0.82; transform: scale(1); }
+                50% { opacity: 1; transform: scale(1.04); }
+            }
+            @keyframes tm-aether-screen-ring-pulse {
+                0%, 100% { opacity: 0.55; transform: scale(0.96); }
+                50% { opacity: 0.95; transform: scale(1.05); }
+            }
+            @keyframes tm-aether-screen-haze-drift {
+                0%, 100% { opacity: 0.7; transform: translate3d(0, 0, 0); }
+                50% { opacity: 1; transform: translate3d(-1.5%, 1%, 0); }
+            }
+            @keyframes tm-aether-screen-rays-spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+
+            #tm-aether-world-dim {
+                position: fixed;
+                inset: 0;
+                z-index: 9978;
+                pointer-events: none !important;
+                opacity: 0;
+                transition: opacity 1.2s ease;
+                background:
+                    radial-gradient(ellipse 90% 80% at var(--axp, 50%) var(--ayp, 45%),
+                        rgba(18, 0, 31, 0.08) 0%,
+                        rgba(10, 0, 20, 0.22) 55%,
+                        rgba(4, 1, 10, 0.34) 100%);
+            }
+            #tm-aether-world-dim.tm-aether-dim-strong {
+                background:
+                    radial-gradient(ellipse 95% 85% at var(--axp, 50%) var(--ayp, 45%),
+                        rgba(40, 0, 20, 0.12) 0%,
+                        rgba(8, 0, 14, 0.3) 50%,
+                        rgba(2, 0, 6, 0.42) 100%);
+            }
+            #tm-aether-world-dim.is-lite {
+                transition: opacity 0.6s ease;
+            }
             #tm-aether-gravity-lens,
             #tm-aether-ambient-tint {
                 display: none !important;
@@ -11896,7 +12174,22 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 0% { transform: scale(1.35); opacity: 0.3; }
                 100% { transform: scale(0.72); opacity: 0.9; }
             }
-            #tm-aether-mythic-weather,
+            #tm-aether-mythic-weather {
+                position: fixed;
+                inset: 0;
+                pointer-events: none !important;
+                z-index: 9982;
+                opacity: 0;
+                background:
+                    linear-gradient(115deg, transparent 15%, rgba(77,208,225,0.14) 38%, transparent 58%),
+                    linear-gradient(250deg, transparent 22%, rgba(124,77,255,0.12) 50%, transparent 72%),
+                    radial-gradient(ellipse 80% 70% at 50% 40%, rgba(255,213,79,0.08), transparent 70%);
+                animation: tm-aether-weather-sweep 5s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            }
+            #tm-aether-mythic-weather.is-lite {
+                background:
+                    linear-gradient(115deg, transparent 20%, rgba(77,208,225,0.1) 40%, transparent 60%);
+            }
             .tm-aether-mythic-weather-local {
                 position: absolute;
                 inset: -20%;
@@ -24697,7 +24990,15 @@ function updateLimbPhysics() {
 
     // Keep mascot on-screen (every few frames; CSS idle float / jetpack can extend painted bounds).
     limbPhysicsFrameCount += 1;
-    if (limbPhysicsFrameCount % 6 === 0) {
+
+    // Aether lite/ultra: throttle — CSS wings handle motion; skip per-limb DOM writes
+    const aetherLitePhysics = tamagotchiCharacterType === 'aether' && isAetherLiteMode();
+    if (aetherLitePhysics && limbPhysicsFrameCount % 3 !== 0) {
+        physicsAnimationFrame = requestAnimationFrame(updateLimbPhysics);
+        return;
+    }
+
+    if (limbPhysicsFrameCount % (aetherLitePhysics ? 18 : 6) === 0) {
         ensureMascotInBounds(mascotContainer);
     }
 
@@ -24716,6 +25017,17 @@ function updateLimbPhysics() {
     lastMascotX = currentX;
     lastMascotY = currentY;
 
+    // Calculate speed
+    const speed = Math.sqrt(mascotVelocityX * mascotVelocityX + mascotVelocityY * mascotVelocityY);
+    const isParked = !!mascotPositionLocked || mascotContainer.classList.contains('mascot-parked');
+    const isMoving = !isParked && speed > 0.3;
+    mascotContainer.classList.toggle('mascot-moving', isMoving);
+
+    if (aetherLitePhysics) {
+        physicsAnimationFrame = requestAnimationFrame(updateLimbPhysics);
+        return;
+    }
+
     // Apply physics to limbs based on velocity (visible sprite only)
     const sprite = getVisibleMascotSpriteRoot();
     const leftArm = sprite?.querySelector('.tm-animate-arm-left');
@@ -24725,12 +25037,6 @@ function updateLimbPhysics() {
     const tail = sprite?.querySelector('.tm-animate-tail');
     const leftWing = sprite?.querySelector('.tm-animate-wing-left');
     const rightWing = sprite?.querySelector('.tm-animate-wing-right');
-
-    // Calculate speed
-    const speed = Math.sqrt(mascotVelocityX * mascotVelocityX + mascotVelocityY * mascotVelocityY);
-    const isParked = !!mascotPositionLocked || mascotContainer.classList.contains('mascot-parked');
-    const isMoving = !isParked && speed > 0.3;
-    mascotContainer.classList.toggle('mascot-moving', isMoving);
 
     if (isMoving) {
         // Calculate rotation based on horizontal velocity (momentum effect)
@@ -25105,29 +25411,35 @@ async function moveToNewPosition() {
     }
 
     const tilt = Math.max(-10, Math.min(10, (newX - current.x) * 0.03));
-    if (body) {
+    if (body && !(tamagotchiCharacterType === 'aether' && isAetherLiteMode())) {
         body.style.transition = 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)';
         body.style.transform = `rotate(${tilt}deg)`;
     }
 
+    const aetherLiteMove = tamagotchiCharacterType === 'aether' && isAetherLiteMode();
     const speed = (config && config.mascotRoamingSpeed) || 100;
     const distance = Math.sqrt(Math.pow(newX - current.x, 2) + Math.pow(newY - current.y, 2));
-    const duration = Math.max(2, distance / speed);
+    const duration = Math.max(aetherLiteMove ? 2.8 : 2, distance / (aetherLiteMove ? speed * 0.72 : speed));
 
     const midX = (current.x + newX) / 2;
     const midY = (current.y + newY) / 2;
     const dx = newX - current.x;
     const dy = newY - current.y;
-    const bulge = (Math.random() - 0.5) * 0.15;
+    const bulge = aetherLiteMove ? 0 : (Math.random() - 0.5) * 0.15;
     const roughControl = clampMascotPosition(midX - dy * bulge, midY + dx * bulge, metrics);
     const control = clampMascotPositionToViewport(roughControl.x, roughControl.y, mascotContainer);
     const end = clampMascotPositionToViewport(newX, newY, mascotContainer);
 
-    const keyframes = sampleClampedBezierPath(current, control, end, mascotContainer);
+    const keyframes = aetherLiteMove
+        ? [
+            { transform: `translate(${current.x}px, ${current.y}px)` },
+            { transform: `translate(${end.x}px, ${end.y}px)` },
+        ]
+        : sampleClampedBezierPath(current, control, end, mascotContainer);
 
     const animation = mascotContainer.animate(keyframes, {
         duration: duration * 1000,
-        easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)',
+        easing: aetherLiteMove ? 'linear' : 'cubic-bezier(0.4, 0.0, 0.2, 1)',
         fill: 'forwards',
         composite: 'replace'
     });
@@ -25164,7 +25476,11 @@ async function moveToNewPosition() {
     }
 
     schedulePlayfulAction();
-    scheduleRoamingMove(2000 + Math.random() * 3000);
+    scheduleRoamingMove(
+        tamagotchiCharacterType === 'aether' && isAetherLiteMode()
+            ? 4500 + Math.random() * 5000
+            : 2000 + Math.random() * 3000
+    );
 }
 
 function ensureRoamingWatchdog(config) {
@@ -26171,6 +26487,96 @@ const AETHER_SOLEMN_LINES = [
     'Δεν παίζω.',
 ];
 
+/** 'full' | 'lite' | 'ultra' — auto-detected for old PCs; GM override: tm_aether_perf_mode */
+let aetherPerfModeCached = null;
+let aetherPerfProbeStarted = false;
+let aetherPerfForcedLite = false;
+
+function detectAetherPerfMode() {
+    try {
+        const forced = String(GM_getValue('tm_aether_perf_mode', '') || '').toLowerCase();
+        if (forced === 'full' || forced === 'lite' || forced === 'ultra') return forced;
+    } catch (_) { /* ignore */ }
+
+    if (aetherPerfForcedLite) return 'lite';
+
+    let reducedMotion = false;
+    try {
+        reducedMotion = !!window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    } catch (_) { /* ignore */ }
+    if (reducedMotion) return 'ultra';
+
+    const cores = Number(navigator.hardwareConcurrency) || 4;
+    const mem = Number(navigator.deviceMemory) || 8;
+    const saveData = !!(navigator.connection && navigator.connection.saveData);
+    const dpr = Number(window.devicePixelRatio) || 1;
+    const lowEnd = cores <= 4 || mem <= 4 || saveData || dpr >= 2.5 && cores <= 6;
+    if (lowEnd) return mem <= 2 || cores <= 2 ? 'ultra' : 'lite';
+    return 'full';
+}
+
+function getAetherPerfMode() {
+    if (!aetherPerfModeCached) aetherPerfModeCached = detectAetherPerfMode();
+    return aetherPerfModeCached;
+}
+
+function isAetherLiteMode() {
+    const mode = getAetherPerfMode();
+    return mode === 'lite' || mode === 'ultra';
+}
+
+function isAetherUltraMode() {
+    return getAetherPerfMode() === 'ultra';
+}
+
+function applyAetherPerfClass(container = document.getElementById('tm-mascot-container')) {
+    if (!container) return getAetherPerfMode();
+    const mode = getAetherPerfMode();
+    container.classList.toggle('tm-aether-lite', mode === 'lite' || mode === 'ultra');
+    container.classList.toggle('tm-aether-ultra', mode === 'ultra');
+    return mode;
+}
+
+/** If frames stay slow, lock into lite for this session and re-sync FX. */
+function maybeStartAetherPerfProbe() {
+    if (aetherPerfProbeStarted || getAetherPerfMode() !== 'full') return;
+    aetherPerfProbeStarted = true;
+    let frames = 0;
+    let slow = 0;
+    let last = performance.now();
+    const tick = (now) => {
+        const dt = now - last;
+        last = now;
+        frames += 1;
+        if (dt > 40) slow += 1;
+        if (frames < 90) {
+            requestAnimationFrame(tick);
+            return;
+        }
+        if (slow / frames > 0.35) {
+            aetherPerfForcedLite = true;
+            aetherPerfModeCached = 'lite';
+            const container = document.getElementById('tm-mascot-container');
+            applyAetherPerfClass(container);
+            if (tamagotchiCharacterType === 'aether' && aetherMythFxActive) {
+                syncAetherMythicFx(tamagotchiStage || 'baby');
+            }
+            console.log('[MMS Mascot] Aether FX switched to lite mode (slow frames).');
+        }
+    };
+    requestAnimationFrame(tick);
+}
+
+function ensureAetherVisibilityPauseBound() {
+    if (window.__tmAetherVisibilityBound) return;
+    window.__tmAetherVisibilityBound = true;
+    const syncHidden = () => {
+        document.body.classList.toggle('tm-aether-tab-hidden', !!document.hidden);
+    };
+    syncHidden();
+    document.addEventListener('visibilitychange', syncHidden);
+}
+
 function isAetherAwakened() {
     return Date.now() < aetherAwakenUntil;
 }
@@ -26179,18 +26585,21 @@ function isAetherAwakened() {
 function isAetherFxBudgetOk(container, maxNodes = 10) {
     if (typeof document !== 'undefined' && document.hidden) return false;
     if (!container) return false;
+    if (isAetherUltraMode()) return false;
+    const cap = isAetherLiteMode() ? Math.min(maxNodes, 4) : maxNodes;
     return container.querySelectorAll(
         '.tm-aether-myth-particle, .tm-aether-trail-dot, .tm-aether-shadow-twin, .tm-aether-crack-spark, .tm-aether-meteor-drip'
-    ).length < maxNodes;
+    ).length < cap;
 }
 
 function pruneAetherEphemera(container, keep = 8) {
     if (!container) return;
+    const keepN = isAetherLiteMode() ? Math.min(keep, 3) : keep;
     const nodes = [...container.querySelectorAll(
         '.tm-aether-myth-particle, .tm-aether-trail-dot, .tm-aether-shadow-twin, .tm-aether-crack-spark'
     )];
-    if (nodes.length <= keep) return;
-    nodes.slice(0, nodes.length - keep).forEach((el) => el.remove());
+    if (nodes.length <= keepN) return;
+    nodes.slice(0, nodes.length - keepN).forEach((el) => el.remove());
 }
 
 function clearAetherTimer(refName) {
@@ -26251,6 +26660,7 @@ function stopAetherMythicFx() {
     document.getElementById('tm-aether-eclipse-event')?.remove();
     document.getElementById('tm-aether-apotheosis-sky')?.remove();
     document.getElementById('tm-aether-world-nameplate')?.remove();
+    clearAetherScreenAura();
     document.querySelectorAll('.tm-aether-killfeed, .tm-aether-mythic-footprint').forEach((el) => el.remove());
     document.documentElement.classList.remove('tm-aether-judgment-frame');
     document.body.classList.remove('tm-aether-kneel');
@@ -26270,27 +26680,39 @@ function pickRandomSubset(list, minCount, maxCount) {
 }
 
 function rollAetherAuraLayers(container, stage) {
-    const pool = AETHER_FX_BY_STAGE[stage] || AETHER_FX_BY_STAGE.baby;
+    const lite = isAetherLiteMode();
+    const ultra = isAetherUltraMode();
+    const fullPool = AETHER_FX_BY_STAGE[stage] || AETHER_FX_BY_STAGE.baby;
+    // Lite: only soft corona/aura; ultra: no SVG FX layers
+    const pool = ultra
+        ? []
+        : lite
+            ? fullPool.filter((name) => name === 'corona' || name === 'aura' || name === 'sparks')
+            : fullPool;
     const tier = AETHER_STAGE_TIER[stage] || 1;
-    const awakened = isAetherAwakened();
+    const awakened = isAetherAwakened() && !lite;
     let active;
-    if (awakened) {
+    if (ultra) {
+        active = new Set();
+    } else if (awakened) {
         active = new Set(pool);
     } else {
-        const minOn = tier <= 2 ? 0 : 0;
-        const maxOn = Math.min(pool.length, Math.max(1, Math.ceil(tier * 0.55)));
-        active = new Set(pickRandomSubset(pool, minOn, maxOn));
+        const maxOn = lite
+            ? Math.min(pool.length, 1)
+            : Math.min(pool.length, Math.max(1, Math.ceil(tier * 0.55)));
+        active = new Set(pickRandomSubset(pool, 0, maxOn));
         const moving = container.classList.contains('mascot-moving');
-        if (!moving) {
+        if (!moving && !lite) {
             if (tier >= 3 && Math.random() < 0.55) active.add('corona');
             if (tier >= 4 && Math.random() < 0.4) active.add('orbits');
             if (tier >= 3 && Math.random() < 0.35) active.add('sigil');
             if (tier >= 4 && Math.random() < 0.25) active.add('haze');
             if (tier >= 5 && Math.random() < 0.25) active.add('fracture');
         }
-        if (container.classList.contains('mascot-parked') && tier >= 3) {
+        if (!lite && container.classList.contains('mascot-parked') && tier >= 3) {
             active.add('sigil');
         }
+        if (lite && pool.includes('corona') && Math.random() < 0.55) active.add('corona');
     }
 
     container.querySelectorAll('.tm-aether-fx').forEach((el) => {
@@ -26298,28 +26720,32 @@ function rollAetherAuraLayers(container, stage) {
         el.classList.toggle('tm-fx-on', active.has(name));
     });
 
-    const glowChance = awakened ? 1 : 0.12 + tier * 0.1;
-    const ringChance = awakened ? 1 : (tier >= 3 ? 0.1 + (tier - 2) * 0.1 : 0);
+    const glowChance = ultra ? 0 : (awakened ? 1 : (lite ? 0.08 + tier * 0.04 : 0.12 + tier * 0.1));
+    const ringChance = ultra || lite ? 0 : (awakened ? 1 : (tier >= 3 ? 0.1 + (tier - 2) * 0.1 : 0));
     container.classList.toggle('tm-aether-glow-on', Math.random() < glowChance || awakened);
     container.classList.toggle('tm-aether-ring-on', Math.random() < ringChance || awakened);
     container.classList.add('tm-aether-sovereign');
-    syncAetherSigilLock(container);
+    if (!lite) syncAetherSigilLock(container);
+    syncAetherScreenAura(container, stage, active);
+    updateAetherWorldDim(container, stage);
 }
 
 function emitAetherMythParticles(container, stage, forceCount = null, { inhale = false } = {}) {
     if (!container || tamagotchiIsDead) return;
-    if (!isAetherFxBudgetOk(container, 12)) return;
-    pruneAetherEphemera(container, 6);
+    if (isAetherUltraMode()) return;
+    if (!isAetherFxBudgetOk(container, isAetherLiteMode() ? 4 : 12)) return;
+    pruneAetherEphemera(container, isAetherLiteMode() ? 2 : 6);
+    const lite = isAetherLiteMode();
     const tier = AETHER_STAGE_TIER[stage] || 1;
     const colors = AETHER_PARTICLE_COLORS[stage] || AETHER_PARTICLE_COLORS.adult;
     const count = forceCount != null
-        ? Math.min(forceCount, 8)
-        : Math.min(2 + Math.ceil(tier * 0.8) + Math.floor(Math.random() * 2), 7);
+        ? Math.min(forceCount, lite ? 3 : 8)
+        : Math.min(lite ? 2 : (2 + Math.ceil(tier * 0.8) + Math.floor(Math.random() * 2)), lite ? 3 : 7);
     const types = ['orb'];
-    if (tier >= 2) types.push('star');
-    if (tier >= 4) types.push('shard');
+    if (!lite && tier >= 2) types.push('star');
+    if (!lite && tier >= 4) types.push('shard');
 
-    if (inhale) container.classList.add('tm-aether-inhale');
+    if (inhale && !lite) container.classList.add('tm-aether-inhale');
 
     for (let i = 0; i < count; i++) {
         const el = document.createElement('div');
@@ -26335,6 +26761,7 @@ function emitAetherMythParticles(container, stage, forceCount = null, { inhale =
         const ty = Math.sin(angle) * endR - (24 + Math.random() * 28);
         const dur = 0.75 + Math.random() * 0.55;
         const size = kind === 'star' ? 0 : 3 + Math.random() * (2 + tier * 0.25);
+        const glow = lite ? 'none' : `0 0 ${4 + tier}px ${color}`;
         el.style.cssText = `
             --mx: ${mx.toFixed(1)}px;
             --my: ${my.toFixed(1)}px;
@@ -26346,13 +26773,13 @@ function emitAetherMythParticles(container, stage, forceCount = null, { inhale =
             margin: ${(-size / 2).toFixed(1)}px 0 0 ${(-size / 2).toFixed(1)}px;
             background: ${color};
             color: ${color};
-            box-shadow: 0 0 ${4 + tier}px ${color};
-            animation: ${inhale ? 'tm-aether-inhale-pull' : 'tm-aether-myth-emit'} ${dur.toFixed(2)}s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+            box-shadow: ${glow};
+            animation: ${inhale && !lite ? 'tm-aether-inhale-pull' : 'tm-aether-myth-emit'} ${dur.toFixed(2)}s cubic-bezier(0.4, 0, 0.6, 1) forwards;
         `;
         container.appendChild(el);
         setTimeout(() => el.remove(), (dur + 0.35) * 1000);
     }
-    if (inhale) setTimeout(() => container.classList.remove('tm-aether-inhale'), 1000);
+    if (inhale && !lite) setTimeout(() => container.classList.remove('tm-aether-inhale'), 1000);
 }
 
 function playAetherBlackHoleInhale(container, stage) {
@@ -26408,27 +26835,20 @@ function emitAetherWingCrackSparks(container, stage, count = 2) {
 }
 
 function emitAetherMeteorDrip(container, stage) {
-    if (!container) return;
-    const tips = [...container.querySelectorAll('.tm-aether-wing-claw')];
-    if (!tips.length) return;
+    if (!container || !isAetherFxBudgetOk(container, isAetherLiteMode() ? 4 : 10)) return;
+    // Cheap random wing-side drip — avoid getBoundingClientRect layout thrash
     const colors = AETHER_PARTICLE_COLORS[stage] || AETHER_PARTICLE_COLORS.adult;
-    const cRect = container.getBoundingClientRect();
-    const tip = tips[Math.floor(Math.random() * tips.length)];
-    let sx = 50;
-    let sy = 40;
-    try {
-        const r = tip.getBoundingClientRect();
-        sx = ((r.left + r.width / 2) - cRect.left) / (cRect.width || 1) * 100;
-        sy = ((r.top + r.height / 2) - cRect.top) / (cRect.height || 1) * 100;
-    } catch (_) { /* ignore */ }
     const el = document.createElement('div');
     el.className = 'tm-aether-meteor-drip';
     const color = colors[Math.floor(Math.random() * colors.length)];
+    const leftSide = Math.random() < 0.5;
+    const sx = leftSide ? (12 + Math.random() * 18) : (70 + Math.random() * 18);
+    const sy = 22 + Math.random() * 28;
     el.style.cssText = `
         left: ${sx.toFixed(1)}%;
         top: ${sy.toFixed(1)}%;
         background: linear-gradient(to bottom, ${color}, transparent);
-        box-shadow: 0 0 8px ${color};
+        box-shadow: ${isAetherLiteMode() ? 'none' : `0 0 8px ${color}`};
     `;
     container.appendChild(el);
     setTimeout(() => el.remove(), 1200);
@@ -26478,45 +26898,185 @@ function playAetherGazeBeam(container, stage) {
 
 function playAetherBlinkOfJudgment(container, stage) {
     if (!container) return;
-    container.classList.add('tm-aether-judgment-blink');
-    container.querySelectorAll('.tm-aether-fx').forEach((el) => el.classList.add('tm-fx-on'));
-    emitAetherMythParticles(container, stage, 8);
-    setTimeout(() => container.classList.remove('tm-aether-judgment-blink'), 700);
+    container.classList.add('tm-aether-judgment-blink', 'tm-aether-glow-on');
+    // Peak set only — never force every blurred FX layer on
+    const peak = new Set(['corona', 'aura', 'sparks', 'sigil']);
+    if (!isAetherLiteMode() && (AETHER_STAGE_TIER[stage] || 1) >= 4) peak.add('haze');
+    container.querySelectorAll('.tm-aether-fx').forEach((el) => {
+        const name = el.getAttribute('data-fx');
+        el.classList.toggle('tm-fx-on', peak.has(name));
+    });
+    emitAetherMythParticles(container, stage, isAetherLiteMode() ? 3 : 5);
+    syncAetherScreenAura(container, stage, peak);
+    setTimeout(() => {
+        container.classList.remove('tm-aether-judgment-blink');
+        if (aetherMythFxActive) rollAetherAuraLayers(container, stage || tamagotchiStage || 'adult');
+    }, 700);
 }
 
-/** Local veil inside the mascot only — never a page-fixed overlay. */
-function updateAetherWorldDim(container, stage) {
-    // Kill any legacy page-level overlays that were glitching the site
+const AETHER_SCREEN_AURA_STAGE = {
+    baby: { c1: '126,200,195', c2: '201,160,220', c3: '255,224,130' },
+    kid: { c1: '77,182,172', c2: '149,117,205', c3: '255,183,77' },
+    teen: { c1: '0,172,193', c2: '92,107,192', c3: '192,160,96' },
+    adult: { c1: '38,198,218', c2: '124,77,255', c3: '255,213,79' },
+    middleage: { c1: '239,83,80', c2: '106,27,154', c3: '191,143,46' },
+    old: { c1: '139,0,0', c2: '93,64,55', c3: '201,184,150' },
+};
+
+let aetherScreenAuraOriginTimer = null;
+
+function clearAetherScreenAura() {
+    if (aetherScreenAuraOriginTimer) {
+        clearTimeout(aetherScreenAuraOriginTimer);
+        aetherScreenAuraOriginTimer = null;
+    }
+    document.getElementById('tm-aether-screen-aura')?.remove();
     document.getElementById('tm-aether-world-dim')?.remove();
     document.getElementById('tm-aether-gravity-lens')?.remove();
+    document.body.classList.remove('tm-aether-screen-aura-on');
+}
 
-    if (!aetherMythFxActive || !container) {
-        container?.querySelectorAll('.tm-aether-world-dim-local').forEach((el) => el.remove());
+function ensureAetherScreenAura() {
+    let root = document.getElementById('tm-aether-screen-aura');
+    if (root) return root;
+    root = document.createElement('div');
+    root.id = 'tm-aether-screen-aura';
+    root.setAttribute('aria-hidden', 'true');
+    root.innerHTML = `
+        <div class="tm-aether-screen-veil"></div>
+        <div class="tm-aether-screen-bloom"></div>
+        <div class="tm-aether-screen-ring"></div>
+        <div class="tm-aether-screen-haze"></div>
+        <div class="tm-aether-screen-rays"></div>
+    `;
+    document.body.appendChild(root);
+    return root;
+}
+
+function updateAetherScreenAuraOrigin(container = document.getElementById('tm-mascot-container')) {
+    const root = document.getElementById('tm-aether-screen-aura');
+    if (!root || !container) return;
+    const r = container.getBoundingClientRect();
+    const ax = Math.round(r.left + r.width / 2);
+    const ay = Math.round(r.top + r.height / 2);
+    root.style.setProperty('--ax', `${ax}px`);
+    root.style.setProperty('--ay', `${ay}px`);
+    root.style.setProperty('--axp', `${((ax / Math.max(1, window.innerWidth)) * 100).toFixed(2)}%`);
+    root.style.setProperty('--ayp', `${((ay / Math.max(1, window.innerHeight)) * 100).toFixed(2)}%`);
+}
+
+function scheduleAetherScreenAuraOrigin(container) {
+    if (aetherScreenAuraOriginTimer) return;
+    const tick = () => {
+        aetherScreenAuraOriginTimer = null;
+        if (!aetherMythFxActive || !document.getElementById('tm-aether-screen-aura')) return;
+        updateAetherScreenAuraOrigin(container);
+        aetherScreenAuraOriginTimer = setTimeout(tick, document.hidden ? 4000 : 700);
+    };
+    aetherScreenAuraOriginTimer = setTimeout(tick, 120);
+}
+
+/**
+ * Fullscreen aura field — soft radial washes from the mascot, no backdrop-filter.
+ * Driven by active SVG FX layers + stage tier.
+ */
+function syncAetherScreenAura(container, stage, activeFx = null) {
+    if (!aetherMythFxActive || !container || tamagotchiCharacterType !== 'aether' || tamagotchiIsDead) {
+        clearAetherScreenAura();
+        return;
+    }
+    if (isAetherUltraMode()) {
+        clearAetherScreenAura();
         return;
     }
 
-    const tier = AETHER_STAGE_TIER[stage] || 1;
+    const liveStage = stage || tamagotchiStage || 'adult';
+    const tier = AETHER_STAGE_TIER[liveStage] || 1;
+    const lite = isAetherLiteMode();
     const awakened = isAetherAwakened();
-    const strengthByTier = { 1: 0, 2: 0, 3: 0.1, 4: 0.16, 5: 0.22, 6: 0.28 };
-    const strength = awakened ? 0.4 : (strengthByTier[tier] ?? 0);
+    const colors = AETHER_SCREEN_AURA_STAGE[liveStage] || AETHER_SCREEN_AURA_STAGE.adult;
 
-    let dim = container.querySelector('.tm-aether-world-dim-local');
-    if (strength <= 0.01) {
-        dim?.remove();
+    const fx = activeFx || new Set(
+        [...container.querySelectorAll('.tm-aether-fx.tm-fx-on')]
+            .map((el) => el.getAttribute('data-fx'))
+            .filter(Boolean)
+    );
+    const glowOn = container.classList.contains('tm-aether-glow-on');
+    const ringOn = container.classList.contains('tm-aether-ring-on');
+    const hasAura = fx.has('aura') || fx.has('corona') || fx.has('aura-outer') || glowOn || awakened;
+    const hasHaze = fx.has('haze') || fx.has('aura-outer') || awakened;
+    const hasBeams = !lite && (fx.has('beams') || fx.has('orbits') || awakened);
+
+    const root = ensureAetherScreenAura();
+    root.dataset.stage = liveStage;
+    root.style.setProperty('--ac1', colors.c1);
+    root.style.setProperty('--ac2', colors.c2);
+    root.style.setProperty('--ac3', colors.c3);
+
+    const strength = Math.min(
+        1,
+        (lite ? 0.22 : 0.18)
+            + tier * (lite ? 0.04 : 0.06)
+            + (hasAura ? 0.1 : 0)
+            + (glowOn ? 0.12 : 0)
+            + (fx.has('aura') ? 0.1 : 0)
+            + (fx.has('corona') ? 0.08 : 0)
+            + (fx.has('aura-outer') ? 0.1 : 0)
+            + (awakened ? 0.22 : 0)
+    );
+    root.style.setProperty('--aura-strength', strength.toFixed(3));
+
+    root.classList.toggle('is-lite', lite);
+    root.classList.toggle('is-strong', strength > 0.55 || tier >= 5);
+    root.classList.toggle('is-awaken', awakened);
+    root.classList.toggle('has-ring', ringOn || fx.has('corona'));
+    root.classList.toggle('has-haze', hasHaze);
+    root.classList.toggle('has-rays', hasBeams);
+    root.classList.add('is-on');
+    document.body.classList.add('tm-aether-screen-aura-on');
+
+    updateAetherScreenAuraOrigin(container);
+    scheduleAetherScreenAuraOrigin(container);
+}
+
+/** Soft fullscreen veil + vignette (replaces old local-only dim). */
+function updateAetherWorldDim(container, stage) {
+    document.getElementById('tm-aether-gravity-lens')?.remove();
+    container?.querySelectorAll('.tm-aether-world-dim-local').forEach((el) => el.remove());
+
+    if (!aetherMythFxActive || !container || isAetherUltraMode()) {
+        document.getElementById('tm-aether-world-dim')?.remove();
         return;
     }
+
+    const liveStage = stage || tamagotchiStage || 'adult';
+    const tier = AETHER_STAGE_TIER[liveStage] || 1;
+    const awakened = isAetherAwakened();
+    const lite = isAetherLiteMode();
+    const strengthByTier = { 1: 0.08, 2: 0.1, 3: 0.14, 4: 0.18, 5: 0.24, 6: 0.3 };
+    const strength = awakened ? (lite ? 0.32 : 0.42) : (strengthByTier[tier] ?? 0.12) * (lite ? 0.75 : 1);
+
+    let dim = document.getElementById('tm-aether-world-dim');
     if (!dim) {
         dim = document.createElement('div');
-        dim.className = 'tm-aether-world-dim-local';
-        container.appendChild(dim);
+        dim.id = 'tm-aether-world-dim';
+        dim.setAttribute('aria-hidden', 'true');
+        document.body.appendChild(dim);
     }
-    dim.className = `tm-aether-world-dim-local tm-aether-dim-t${awakened ? 6 : tier} tm-aether-dim-on`;
-    if (awakened || tier >= 6) dim.classList.add('tm-aether-dim-strong');
+    dim.className = `tm-aether-dim-t${awakened ? 6 : tier}${awakened || tier >= 6 ? ' tm-aether-dim-strong' : ''}${lite ? ' is-lite' : ''}`;
     dim.style.opacity = String(strength);
+    updateAetherScreenAuraOrigin(container);
+    const root = document.getElementById('tm-aether-screen-aura');
+    if (root) {
+        dim.style.setProperty('--ax', root.style.getPropertyValue('--ax') || '50%');
+        dim.style.setProperty('--ay', root.style.getPropertyValue('--ay') || '45%');
+        dim.style.setProperty('--axp', root.style.getPropertyValue('--axp') || '50%');
+        dim.style.setProperty('--ayp', root.style.getPropertyValue('--ayp') || '45%');
+    }
 }
 
 function updateAetherGravityLens() {
-    // Disabled: backdrop-filter over the page was glitching/repainting the whole site
+    // Still disabled — backdrop-filter over the whole page is too expensive / glitchy
     document.getElementById('tm-aether-gravity-lens')?.remove();
 }
 
@@ -26534,36 +27094,39 @@ function scheduleAetherWorldDim(container, stage) {
 function scheduleAetherAuraRoll(container, stage) {
     if (!aetherMythFxActive) return;
     const tier = AETHER_STAGE_TIER[stage] || 1;
-    const holdMs = isAetherAwakened()
+    const lite = isAetherLiteMode();
+    const holdMs = isAetherAwakened() && !lite
         ? 2200
-        : 4200 + Math.random() * (3800 + tier * 500);
+        : (lite ? 9000 : 4200) + Math.random() * (lite ? 8000 : (3800 + tier * 500));
     aetherMythFxTimer = setTimeout(() => {
         if (!aetherMythFxActive) return;
-        rollAetherAuraLayers(container, stage);
+        if (!document.hidden) rollAetherAuraLayers(container, stage);
         scheduleAetherAuraRoll(container, stage);
     }, holdMs);
 }
 
 function scheduleAetherParticleBurst(container, stage) {
     if (!aetherMythFxActive) return;
+    if (isAetherUltraMode()) return;
     const tier = AETHER_STAGE_TIER[stage] || 1;
-    const waitMs = isAetherAwakened()
+    const lite = isAetherLiteMode();
+    const waitMs = isAetherAwakened() && !lite
         ? 2800 + Math.random() * 1800
-        : 7000 + Math.random() * (9000 - tier * 300);
+        : (lite ? 14000 : 7000) + Math.random() * (lite ? 16000 : (9000 - tier * 300));
     aetherMythParticleTimer = setTimeout(() => {
         if (!aetherMythFxActive) return;
-        if (!document.hidden && (isAetherAwakened() || Math.random() > 0.62)) {
-            if (tier >= 4 && Math.random() < 0.12) {
+        if (!document.hidden && (isAetherAwakened() || Math.random() > (lite ? 0.78 : 0.62))) {
+            if (!lite && tier >= 4 && Math.random() < 0.12) {
                 playAetherBlackHoleInhale(container, stage);
             } else {
-                emitAetherMythParticles(container, stage, isAetherAwakened() ? 4 + Math.min(2, tier) : null);
+                emitAetherMythParticles(container, stage, isAetherAwakened() && !lite ? 4 + Math.min(2, tier) : null);
             }
-            if (isAetherAwakened() || Math.random() < 0.12) {
+            if (!lite && (isAetherAwakened() || Math.random() < 0.12)) {
                 emitAetherWingCrackSparks(container, stage, 1);
             }
         }
         scheduleAetherParticleBurst(container, stage);
-    }, Math.max(2400, waitMs));
+    }, Math.max(lite ? 8000 : 2400, waitMs));
 }
 
 function scheduleAetherSolemnBubble() {
@@ -26584,7 +27147,7 @@ function scheduleAetherSolemnBubble() {
 }
 
 function scheduleAetherVeilTrail(container, stage) {
-    if (!aetherMythFxActive) return;
+    if (!aetherMythFxActive || isAetherLiteMode()) return;
     aetherTrailTimer = setTimeout(() => {
         if (!aetherMythFxActive) return;
         // Much rarer trail dots while moving
@@ -27093,14 +27656,13 @@ function playAetherFocusQuietSeal() {
 
 function playAetherMythicWeather(durationMs = 5000) {
     if (tamagotchiCharacterType !== 'aether') return;
-    // Keep weather on the mascot — full-page weather was tinting/glitching the site
+    if (isAetherUltraMode()) return;
     document.getElementById('tm-aether-mythic-weather')?.remove();
-    const container = document.getElementById('tm-mascot-container');
-    if (!container) return;
     const weather = document.createElement('div');
     weather.id = 'tm-aether-mythic-weather';
-    weather.className = 'tm-aether-mythic-weather-local';
-    container.appendChild(weather);
+    weather.className = isAetherLiteMode() ? 'is-lite' : '';
+    weather.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(weather);
     setTimeout(() => weather.remove(), durationMs);
 }
 
@@ -27189,9 +27751,22 @@ function clearAetherAmbientTint() {
     } catch (_) { /* ignore */ }
 }
 
-function updateAetherAmbientTint() {
-    // Disabled: full-page mix-blend tint + UI filters were glitching the site
-    clearAetherAmbientTint();
+function updateAetherAmbientTint(container, stage) {
+    if (!aetherMythFxActive || !container || isAetherUltraMode()) {
+        clearAetherAmbientTint();
+        return;
+    }
+    const liveStage = stage || tamagotchiStage || 'adult';
+    const stages = ['baby', 'kid', 'teen', 'adult', 'middleage', 'old'];
+    document.body.classList.remove(
+        'tm-aether-ambient-baby', 'tm-aether-ambient-kid', 'tm-aether-ambient-teen',
+        'tm-aether-ambient-adult', 'tm-aether-ambient-middleage', 'tm-aether-ambient-old'
+    );
+    if (stages.includes(liveStage)) {
+        document.body.classList.add('tm-aether-ambient-on', `tm-aether-ambient-${liveStage}`);
+        aetherAmbientStage = liveStage;
+    }
+    syncAetherScreenAura(container, liveStage);
 }
 
 function playAetherMicroPose(container) {
@@ -27307,11 +27882,25 @@ function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tam
     if (!container || !container.classList.contains('mascot-char-aether')) return;
 
     aetherMythFxActive = true;
+    aetherPerfModeCached = null; // re-detect in case override / probe changed
+    const mode = applyAetherPerfClass(container);
+    maybeStartAetherPerfProbe();
     container.classList.add('tm-aether-sovereign', 'tm-aether-mythic-frame');
     syncAetherBorderTier(container, stage);
-    ensureAetherMoonshard(container, stage);
-    syncAetherSigilLock(container);
+
+    if (mode === 'ultra') {
+        // Presence only — no FX loops, particles, or ambient overlays
+        scheduleAetherSolemnBubble();
+        console.log('[MMS Mascot] Aether ultra-lite mode (reduced motion / very low-end).');
+        return;
+    }
+
+    if (mode !== 'lite') {
+        ensureAetherMoonshard(container, stage);
+        syncAetherSigilLock(container);
+    }
     updateAetherAmbientTint(container, stage);
+
     aetherMythFxTimer = setTimeout(() => {
         if (!aetherMythFxActive) return;
         rollAetherAuraLayers(container, stage);
@@ -27319,9 +27908,17 @@ function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tam
     }, 600 + Math.random() * 900);
     scheduleAetherParticleBurst(container, stage);
     scheduleAetherSolemnBubble();
+    scheduleAetherWorldDim(container, stage);
+
+    if (mode === 'lite') {
+        // Soft fullscreen aura + wings; skip spectacle / trails / heavy particles
+        ensureAetherFormCrest(container, stage);
+        console.log('[MMS Mascot] Aether lite mode (optimized for older PCs).');
+        return;
+    }
+
     scheduleAetherVeilTrail(container, stage);
     scheduleAetherGaze(container, stage);
-    scheduleAetherWorldDim(container, stage);
     scheduleAetherMicroPose(container, stage);
     scheduleAetherShadowTwin(container);
     scheduleAetherEclipseEvent(container);
@@ -27336,21 +27933,22 @@ function playAetherReactionFx(kind = 'constellation') {
     const container = document.getElementById('tm-mascot-container');
     if (!container) return;
     const stage = tamagotchiStage || 'baby';
+    const lite = isAetherLiteMode();
     container.classList.add('tm-aether-react');
-    if (kind === 'blade' || kind === 'energized') {
+    if (!lite && (kind === 'blade' || kind === 'energized')) {
         container.classList.add('tm-aether-blade-spin');
         const orbits = container.querySelector('.tm-aether-fx[data-fx="orbits"]');
         orbits?.classList.add('tm-fx-on');
     }
-    emitAetherMythParticles(container, stage, 6 + Math.min(4, AETHER_STAGE_TIER[stage] || 1));
-    emitAetherWingCrackSparks(container, stage, 2);
-    if (kind === 'blade' || kind === 'energized' || Math.random() < 0.35) {
+    emitAetherMythParticles(container, stage, lite ? 3 : (6 + Math.min(4, AETHER_STAGE_TIER[stage] || 1)));
+    if (!lite) emitAetherWingCrackSparks(container, stage, 2);
+    if (!lite && (kind === 'blade' || kind === 'energized' || Math.random() < 0.35)) {
         playAetherGazeBeam(container, stage);
     }
-    if (Math.random() < 0.15) playAetherMythicWeather(2800);
+    if (!lite && Math.random() < 0.15) playAetherMythicWeather(2800);
     setTimeout(() => {
         container.classList.remove('tm-aether-react', 'tm-aether-blade-spin');
-    }, 1800);
+    }, lite ? 900 : 1800);
 }
 
 function awakenAetherMythicFx(durationMs = 6000) {
@@ -27361,28 +27959,41 @@ function awakenAetherMythicFx(durationMs = 6000) {
     const container = document.getElementById('tm-mascot-container');
     if (!container) return false;
     const stage = tamagotchiStage === 'egg' ? 'adult' : (tamagotchiStage || 'adult');
-    aetherAwakenUntil = Date.now() + durationMs;
+    const lite = isAetherLiteMode();
+    aetherAwakenUntil = Date.now() + (lite ? Math.min(durationMs, 3200) : durationMs);
     try {
         const n = Number(GM_getValue('tm_aether_awaken_count', 0) || 0) + 1;
         GM_setValue('tm_aether_awaken_count', n);
     } catch (_) { /* ignore */ }
-    playAetherHitStop(container, 80);
-    ensureAetherChargeRing(container);
-    playAetherWorldNameplate();
+    if (!lite) {
+        playAetherHitStop(container, 80);
+        ensureAetherChargeRing(container);
+        playAetherWorldNameplate();
+    }
     container.classList.add(
-        'tm-aether-awaken', 'tm-aether-glow-on', 'tm-aether-ring-on',
-        'tm-aether-sovereign', 'tm-aether-chromatic'
+        'tm-aether-awaken', 'tm-aether-glow-on',
+        'tm-aether-sovereign'
     );
-    container.querySelectorAll('.tm-aether-fx').forEach((el) => el.classList.add('tm-fx-on'));
-    emitAetherMythParticles(container, stage, 8);
-    playAetherBlackHoleInhale(container, stage);
-    emitAetherWingCrackSparks(container, stage, 3);
-    playAetherGazeBeam(container, stage);
-    playAetherMythicWeather(4000);
-    playAetherNameplate(container, stage);
-    playAetherMythicShimmer(container);
-    playAetherSpectralBlade(container);
+    if (!lite) {
+        container.classList.add('tm-aether-ring-on', 'tm-aether-chromatic');
+        container.querySelectorAll('.tm-aether-fx').forEach((el) => el.classList.add('tm-fx-on'));
+        emitAetherMythParticles(container, stage, 8);
+        playAetherBlackHoleInhale(container, stage);
+    } else {
+        rollAetherAuraLayers(container, stage);
+        emitAetherMythParticles(container, stage, 3);
+    }
+    syncAetherScreenAura(container, stage);
     updateAetherWorldDim(container, stage);
+    if (!lite) {
+        emitAetherWingCrackSparks(container, stage, 3);
+        playAetherGazeBeam(container, stage);
+        playAetherMythicWeather(4000);
+        playAetherNameplate(container, stage);
+        playAetherMythicShimmer(container);
+        playAetherSpectralBlade(container);
+        updateAetherWorldDim(container, stage);
+    }
     markAetherWitness();
     showMascotBubble('Awaken.', 1800);
     setTimeout(() => container.classList.remove('tm-aether-chromatic'), 1800);
@@ -27390,9 +28001,9 @@ function awakenAetherMythicFx(durationMs = 6000) {
         container.classList.remove('tm-aether-awaken');
         if (aetherMythFxActive) {
             rollAetherAuraLayers(container, tamagotchiStage || stage);
-            updateAetherWorldDim(container, tamagotchiStage || stage);
+            if (!isAetherLiteMode()) updateAetherWorldDim(container, tamagotchiStage || stage);
         }
-    }, durationMs);
+    }, lite ? Math.min(durationMs, 3200) : durationMs);
     return true;
 }
 
@@ -27463,6 +28074,7 @@ window.playAetherPraiseCoronation = playAetherPraiseCoronation;
 window.playAetherScoldBacklash = playAetherScoldBacklash;
 window.playAetherFocusQuietSeal = playAetherFocusQuietSeal;
 window.syncAetherSigilLock = syncAetherSigilLock;
+window.getAetherPerfMode = getAetherPerfMode;
 
 // Remove poop particles
 function removePoopParticles(container) {
