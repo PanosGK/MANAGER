@@ -21596,6 +21596,8 @@ let tamaCinematicGeneration = 0;
 const tamaCinematicTimeouts = [];
 /** Prevents duplicate egg→baby hatch cinematics for the same egg cycle. */
 let tamagotchiEggHatchCinematicDone = false;
+/** Bumps when a death memorial sequence starts/cancels — orphans delayed death callbacks. */
+let tamaDeathSequenceGen = 0;
 
 function scheduleTamagotchiCinematic(fn, delayMs) {
     const gen = tamaCinematicGeneration;
@@ -21609,6 +21611,8 @@ function scheduleTamagotchiCinematic(fn, delayMs) {
 
 function cancelTamagotchiCinematics() {
     tamaCinematicGeneration += 1;
+    tamaDeathSequenceGen += 1;
+    window.__tmDeathSequenceActive = false;
     tamaCinematicTimeouts.forEach((id) => clearTimeout(id));
     tamaCinematicTimeouts.length = 0;
     tamaCinematicLock = false;
@@ -23105,10 +23109,14 @@ function showEggHatchAnimation(onComplete) {
 
 function showTamagotchiDeathCinematic(onComplete) {
     ensureTamaCinematicStyles();
+    // Already playing — do NOT fire onComplete again (that stacked revive windows)
     if (document.getElementById('tm-tama-death-cinematic')) {
-        if (typeof onComplete === 'function') onComplete();
         return;
     }
+
+    const myGen = tamaDeathSequenceGen;
+    const stillValid = () => myGen === tamaDeathSequenceGen
+        && document.getElementById('tm-tama-death-cinematic');
 
     const mascotContainer = document.getElementById('tm-mascot-container');
     mascotContainer?.classList.add('mascot-dying');
@@ -23146,6 +23154,7 @@ function showTamagotchiDeathCinematic(onComplete) {
 
     // Let the live mascot collapse first, then fade the cinematic in
     setTimeout(() => {
+        if (!stillValid()) return;
         overlay.style.transition = 'opacity 0.7s ease';
         overlay.style.opacity = '1';
     }, 900);
@@ -23153,19 +23162,52 @@ function showTamagotchiDeathCinematic(onComplete) {
     const msgs = MASCOT_MESSAGES.deathCinematic;
     let mi = 0;
     const msgInterval = setInterval(() => {
+        if (!stillValid()) {
+            clearInterval(msgInterval);
+            return;
+        }
         const el = overlay.querySelector('#tm-death-cine-msg');
         if (el && mi < msgs.length) el.textContent = msgs[mi++];
     }, 1000);
 
     setTimeout(() => {
         clearInterval(msgInterval);
+        if (myGen !== tamaDeathSequenceGen) {
+            overlay.remove();
+            return;
+        }
         mascotContainer?.classList.remove('mascot-dying');
         overlay.style.opacity = '0';
         setTimeout(() => {
             overlay.remove();
+            if (myGen !== tamaDeathSequenceGen) return;
             if (typeof onComplete === 'function') onComplete();
         }, 550);
     }, 5200);
+}
+
+function runTamagotchiDeathSequence(STORAGE_KEYS) {
+    if (window.__tmDeathSequenceActive
+        || document.getElementById('tm-tamagotchi-death-overlay')
+        || document.getElementById('tm-tama-death-cinematic')) {
+        return;
+    }
+
+    window.__tmDeathSequenceActive = true;
+    tamaDeathSequenceGen += 1;
+    const deathGen = tamaDeathSequenceGen;
+
+    // Only one revive UI — close care panel if open
+    document.getElementById('tm-mascot-stats-modal')?.remove();
+
+    showTamagotchiDeathCinematic(() => {
+        if (deathGen !== tamaDeathSequenceGen) {
+            window.__tmDeathSequenceActive = false;
+            return;
+        }
+        showTamagotchiDeathScreen(STORAGE_KEYS, true);
+        window.__tmDeathSequenceActive = false;
+    });
 }
 
 function runTamagotchiHatchSequence(characterType, container) {
@@ -23213,14 +23255,6 @@ function runTamagotchiHatchSequence(characterType, container) {
                 updatePetStateByStats(config, window.STORAGE_KEYS);
             }
         });
-    });
-}
-
-function runTamagotchiDeathSequence(STORAGE_KEYS) {
-    if (document.getElementById('tm-tamagotchi-death-overlay')) return;
-    cancelTamagotchiCinematics();
-    showTamagotchiDeathCinematic(() => {
-        showTamagotchiDeathScreen(STORAGE_KEYS, true);
     });
 }
 
@@ -25575,8 +25609,13 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
     
     // Check if mascot is already dead and show death screen
     if (tamagotchiIsDead) {
-        // Small delay to ensure DOM is ready
+        // Small delay to ensure DOM is ready — skip if a death sequence is already running
         setTimeout(() => {
+            if (window.__tmDeathSequenceActive
+                || document.getElementById('tm-tamagotchi-death-overlay')
+                || document.getElementById('tm-tama-death-cinematic')) {
+                return;
+            }
             showTamagotchiDeathScreen(STORAGE_KEYS, true);
         }, 500);
     }
@@ -27737,8 +27776,15 @@ function showTamagotchiDeathScreen(STORAGE_KEYS, skipCinematic = false) {
     }
     
     const config = typeof window.config !== 'undefined' ? window.config : null;
+
+    // Collapse any accidental duplicate memorials from older races
+    const existingOverlays = document.querySelectorAll('#tm-tamagotchi-death-overlay');
+    if (existingOverlays.length > 0) {
+        for (let i = 1; i < existingOverlays.length; i++) existingOverlays[i].remove();
+        return;
+    }
     
-    if (document.getElementById('tm-tamagotchi-death-overlay') || window.__tmDeathScreenLock) return;
+    if (window.__tmDeathScreenLock) return;
 
     if (!skipCinematic) {
         runTamagotchiDeathSequence(STORAGE_KEYS);
@@ -36051,6 +36097,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
     // Function to show mascot stats in a modal window
     function showMascotStatsModal(config, STORAGE_KEYS) {
+        // Don't interrupt hatch / lucky character selection with the care panel
+        if (tamaCinematicLock
+            || document.getElementById('tm-tama-hatch-panel')
+            || document.getElementById('tm-tama-lucky-panel')) {
+            return;
+        }
+
         const existingModal = document.getElementById('tm-mascot-stats-modal');
         if (existingModal) existingModal.remove();
 
@@ -36659,8 +36712,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 clearInterval(eggModalInterval);
                 eggModalInterval = null;
             }
-            modal.querySelector('.tm-mascot-modal-backdrop').style.animation = 'tmCareFadeIn 0.2s ease-out reverse';
-            modal.querySelector('.tm-mascot-modal-container').style.animation = 'tmCareSlideIn 0.2s ease-out reverse';
+            if (!modal.isConnected) return;
+            const backdrop = modal.querySelector('.tm-mascot-modal-backdrop');
+            const shell = modal.querySelector('.tm-mascot-modal-container');
+            if (backdrop) backdrop.style.animation = 'tmCareFadeIn 0.2s ease-out reverse';
+            if (shell) shell.style.animation = 'tmCareSlideIn 0.2s ease-out reverse';
             setTimeout(() => modal.remove(), 200);
         };
         closeBtn?.addEventListener('click', () => {
@@ -36674,10 +36730,21 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
         if (isEgg) {
             eggModalInterval = setInterval(() => {
+                // Never reopen care UI while hatch / lucky reel is running
+                if (tamaCinematicLock
+                    || document.getElementById('tm-tama-hatch-panel')
+                    || document.getElementById('tm-tama-lucky-panel')) {
+                    return;
+                }
                 updateModalStats();
                 if (tamagotchiStage !== 'egg') {
                     closeModal();
-                    showMascotStatsModal(config, STORAGE_KEYS);
+                    // Reopen baby care only after cinematic has finished
+                    if (!tamaCinematicLock
+                        && !document.getElementById('tm-tama-hatch-panel')
+                        && !document.getElementById('tm-tama-lucky-panel')) {
+                        showMascotStatsModal(config, STORAGE_KEYS);
+                    }
                 }
             }, 5000);
         }
@@ -36686,28 +36753,34 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             const btn = e.currentTarget;
             if (btn?.disabled || tamaCinematicLock || tamagotchiEggHatchCinematicDone) return;
 
+            // Lock immediately so spam clicks can't race the hatch cinematic
+            btn.disabled = true;
+
             const result = warmTamagotchiEgg(config, STORAGE_KEYS);
             if (result.reason === 'lights') {
+                btn.disabled = false;
                 showMascotBubble(MASCOT_MESSAGES.eggWarmLights, 2000);
                 return;
             }
-            if (result.reason === 'hatching' || result.reason === 'hatched') return;
-            if (!result.ok) return;
-
-            updateModalStats();
-            if (result.hatched) {
-                if (btn) btn.disabled = true;
+            if (result.reason === 'hatching' || result.reason === 'hatched' || result.hatched) {
                 showMascotBubble('Σπάει το αυγό! 🥚✨', 2500);
-                // Close care modal so hatch cinematic is visible; reopen later as baby
-                setTimeout(() => {
-                    document.getElementById('tm-mascot-stats-modal')?.remove();
-                }, 200);
+                closeModal();
+                return;
+            }
+            if (!result.ok) {
+                btn.disabled = false;
                 return;
             }
 
+            updateModalStats();
             const warmMessages = MASCOT_MESSAGES.eggWarm;
             const msg = warmMessages[Math.floor(Math.random() * warmMessages.length)];
             showMascotBubble(`${msg} (${result.progress}%)`, 2200);
+            setTimeout(() => {
+                if (btn.isConnected && !tamaCinematicLock && !tamagotchiEggHatchCinematicDone) {
+                    btn.disabled = false;
+                }
+            }, 450);
         });
 
         modal.querySelector('#tm-action-egg-watch')?.addEventListener('click', () => {
@@ -37251,6 +37324,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     const openCareFromClick = (e) => {
         if (e?.target?.closest?.('button')) return;
         if (Date.now() < mascotSuppressClickUntil) return;
+        if (tamaCinematicLock
+            || document.getElementById('tm-tama-hatch-panel')
+            || document.getElementById('tm-tama-lucky-panel')) {
+            return;
+        }
         if (tamagotchiCharacterType === 'aether') {
             playAetherCounterGlint(document.getElementById('tm-mascot-container'));
         }
