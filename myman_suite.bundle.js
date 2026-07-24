@@ -25105,30 +25105,55 @@ function stopPhysicsAnimation() {
     }
 }
 
-const MASCOT_EDGE_PAD = 6;
+const MASCOT_EDGE_PAD = 8;
 /** Minimum painted overflow beyond the 100×100 box (shadow, jetpack flames, bubble). */
-const MASCOT_OVERFLOW_SLACK = { top: 42, right: 16, bottom: 24, left: 16 };
+const MASCOT_OVERFLOW_SLACK = { top: 42, right: 20, bottom: 28, left: 20 };
+/** Extra keep-inside padding for Aether wings / glow (CSS paint is not in getBoundingClientRect). */
+const MASCOT_AETHER_OVERFLOW_SLACK = { top: 56, right: 72, bottom: 40, left: 72 };
 
 function cacheMascotScreenInfo() {
+    const scr = window.screen;
+    const dpr = window.devicePixelRatio || 1;
+    // Prefer CSS-pixel work area; fall back to inner window if screen APIs are odd/missing.
+    const screenWidth = Math.max(1, Math.round(scr?.width || window.innerWidth || 1));
+    const screenHeight = Math.max(1, Math.round(scr?.height || window.innerHeight || 1));
+    const availWidth = Math.max(1, Math.round(scr?.availWidth || screenWidth));
+    const availHeight = Math.max(1, Math.round(scr?.availHeight || screenHeight));
+    const innerW = Math.max(1, Math.round(window.innerWidth || document.documentElement?.clientWidth || availWidth));
+    const innerH = Math.max(1, Math.round(window.innerHeight || document.documentElement?.clientHeight || availHeight));
     const info = {
-        screenWidth: window.screen?.width ?? window.innerWidth,
-        screenHeight: window.screen?.height ?? window.innerHeight,
-        availWidth: window.screen?.availWidth ?? window.innerWidth,
-        availHeight: window.screen?.availHeight ?? window.innerHeight,
-        devicePixelRatio: window.devicePixelRatio ?? 1,
+        screenWidth,
+        screenHeight,
+        availWidth,
+        availHeight,
+        innerWidth: innerW,
+        innerHeight: innerH,
+        // Playable monitor work-area capped to the browser window (fixed positioning space)
+        playWidth: Math.max(1, Math.min(innerW, availWidth, screenWidth)),
+        playHeight: Math.max(1, Math.min(innerH, availHeight, screenHeight)),
+        devicePixelRatio: dpr,
+        screenLeft: Math.round(window.screenLeft ?? window.screenX ?? 0),
+        screenTop: Math.round(window.screenTop ?? window.screenY ?? 0),
     };
     window.__tmMascotScreen = info;
     return info;
 }
 
 /** Pixels to reserve at the bottom (footer bar, taskbar overlap, safe area). */
-function getMascotBottomInset() {
+function getMascotBottomInset(playHeight = null) {
+    const screen = window.__tmMascotScreen || cacheMascotScreenInfo();
     const vv = window.visualViewport;
     const vTop = vv?.offsetTop ?? 0;
-    const vHeight = vv?.height ?? window.innerHeight;
-    const vBottom = Math.min(vTop + vHeight, window.innerHeight);
+    const vHeight = vv?.height ?? screen.innerHeight;
+    const vBottom = Math.min(vTop + vHeight, screen.innerHeight, screen.playHeight);
+    const maxH = playHeight ?? Math.max(1, vBottom - vTop);
 
     let inset = 12;
+    // Reserve OS taskbar strip when availHeight is shorter than full screen
+    const taskbar = Math.max(0, screen.screenHeight - screen.availHeight);
+    if (taskbar > 0 && taskbar < maxH * 0.25) {
+        inset = Math.max(inset, Math.min(taskbar, 48));
+    }
 
     const selectors = [
         '#tm-footer-controls-container',
@@ -25147,47 +25172,67 @@ function getMascotBottomInset() {
             inset = Math.max(inset, vBottom - r.top + MASCOT_EDGE_PAD);
         }
     }
-    return Math.min(inset, Math.floor(vHeight * 0.4));
+    return Math.min(inset, Math.floor(maxH * 0.35));
 }
 
-/** Visible browser viewport clipped to the monitor's available screen area. */
+/**
+ * Visible playfield for the mascot: browser viewport ∩ monitor work area (screen resolution).
+ * Coordinates match position:fixed / CSS transform space.
+ */
 function getMascotViewportRect() {
-    const screen = window.__tmMascotScreen || cacheMascotScreenInfo();
+    const screen = cacheMascotScreenInfo();
     const vv = window.visualViewport;
-    const availW = screen.availWidth ?? window.innerWidth;
-    const availH = screen.availHeight ?? window.innerHeight;
 
-    let left = vv?.offsetLeft ?? 0;
-    let top = vv?.offsetTop ?? 0;
-    let width = vv?.width ?? document.documentElement.clientWidth ?? window.innerWidth;
-    let height = vv?.height ?? document.documentElement.clientHeight ?? window.innerHeight;
+    // Start from the visible browser viewport in CSS pixels
+    let left = Number(vv?.offsetLeft) || 0;
+    let top = Number(vv?.offsetTop) || 0;
+    let right = left + (Number(vv?.width) || screen.innerWidth);
+    let bottom = top + (Number(vv?.height) || screen.innerHeight);
 
-    if (left < 0) { width += left; left = 0; }
-    if (top < 0) { height += top; top = 0; }
-    if (left + width > availW) width = Math.max(0, availW - left);
-    if (top + height > availH) height = Math.max(0, availH - top);
+    // Clip to the layout window
+    left = Math.max(0, left);
+    top = Math.max(0, top);
+    right = Math.min(right, screen.innerWidth);
+    bottom = Math.min(bottom, screen.innerHeight);
 
-    const bottomInset = getMascotBottomInset();
-    const rawBottom = top + height;
-    const visibleBottom = Math.min(rawBottom, window.innerHeight, top + availH) - bottomInset;
-    const visibleHeight = Math.max(0, visibleBottom - top);
+    // Hard cap to the monitor work area (screen resolution / avail size)
+    right = Math.min(right, screen.playWidth);
+    bottom = Math.min(bottom, screen.playHeight);
+
+    const bottomInset = getMascotBottomInset(Math.max(1, bottom - top));
+    bottom = Math.max(top, bottom - bottomInset);
+
+    const width = Math.max(0, right - left);
+    const height = Math.max(0, bottom - top);
 
     return {
         left,
         top,
         width,
-        height: visibleHeight,
-        right: left + width,
-        bottom: visibleBottom,
+        height,
+        right,
+        bottom,
         bottomInset,
         screenWidth: screen.screenWidth,
         screenHeight: screen.screenHeight,
+        availWidth: screen.availWidth,
+        availHeight: screen.availHeight,
+        playWidth: screen.playWidth,
+        playHeight: screen.playHeight,
     };
+}
+
+/** Character-aware minimum overflow so painted FX stay inside the monitor frame. */
+function getMascotKeepInsideSlack(container = document.getElementById('tm-mascot-container')) {
+    const isAether = !!(container?.classList?.contains('mascot-char-aether')
+        || tamagotchiCharacterType === 'aether');
+    return { ...(isAether ? MASCOT_AETHER_OVERFLOW_SLACK : MASCOT_OVERFLOW_SLACK) };
 }
 
 /** How far painted content (bubble, hats, flames) extends beyond the 100×100 box. */
 function getMascotPaintOverflow(container = document.getElementById('tm-mascot-container')) {
-    if (!container) return { ...MASCOT_OVERFLOW_SLACK };
+    const slack = getMascotKeepInsideSlack(container);
+    if (!container) return { ...slack };
 
     const { x, y } = getMascotTranslate(container);
     const w = container.offsetWidth || 100;
@@ -25196,14 +25241,15 @@ function getMascotPaintOverflow(container = document.getElementById('tm-mascot-c
     try {
         rect = container.getBoundingClientRect();
     } catch {
-        return { ...MASCOT_OVERFLOW_SLACK };
+        return { ...slack };
     }
 
+    // Prefer measured overflow, but never less than character slack (SVG overflow often measures as 0).
     return {
-        left: Math.max(MASCOT_OVERFLOW_SLACK.left, x - rect.left),
-        top: Math.max(MASCOT_OVERFLOW_SLACK.top, y - rect.top),
-        right: Math.max(MASCOT_OVERFLOW_SLACK.right, rect.right - (x + w)),
-        bottom: Math.max(MASCOT_OVERFLOW_SLACK.bottom, rect.bottom - (y + h)),
+        left: Math.max(slack.left, x - rect.left),
+        top: Math.max(slack.top, y - rect.top),
+        right: Math.max(slack.right, rect.right - (x + w)),
+        bottom: Math.max(slack.bottom, rect.bottom - (y + h)),
     };
 }
 
@@ -25212,35 +25258,86 @@ function getMascotBoundsOffset(container = document.getElementById('tm-mascot-co
     return getMascotPaintOverflow(container);
 }
 
-function getMascotRoamingMetrics(container = document.getElementById('tm-mascot-container')) {
+/**
+ * Build a clamp box that always fits inside the playfield.
+ * If overflow padding is too large for the screen, shrink padding evenly — never unpin to 0,0 edges.
+ */
+function getMascotClampBox(container = document.getElementById('tm-mascot-container'), offsets = null) {
     const vp = getMascotViewportRect();
+    const pad = MASCOT_EDGE_PAD;
     const width = Math.max(container?.offsetWidth || 0, 100);
     const height = Math.max(container?.offsetHeight || 0, 100);
-    const overflow = getMascotBoundsOffset(container);
-    const pad = MASCOT_EDGE_PAD;
+    const off = offsets || getMascotBoundsOffset(container);
 
-    const minX = vp.left + pad + overflow.left;
-    const minY = vp.top + pad + overflow.top;
-    const maxX = vp.right - pad - width - overflow.right;
-    const maxY = vp.bottom - pad - height - overflow.bottom;
-    const centerX = vp.left + Math.max(0, (vp.width - width) / 2);
-    const centerY = vp.top + Math.max(0, (vp.height - height) / 2);
+    const availW = Math.max(0, vp.width - 2 * pad - width);
+    const availH = Math.max(0, vp.height - 2 * pad - height);
+
+    let leftPad = pad + Math.max(0, off.left);
+    let rightPad = pad + Math.max(0, off.right);
+    let topPad = pad + Math.max(0, off.top);
+    let bottomPad = pad + Math.max(0, off.bottom);
+
+    const hPad = leftPad + rightPad - 2 * pad;
+    const vPad = topPad + bottomPad - 2 * pad;
+    if (hPad > availW && hPad > 0) {
+        const scale = availW / hPad;
+        leftPad = pad + (leftPad - pad) * scale;
+        rightPad = pad + (rightPad - pad) * scale;
+    }
+    if (vPad > availH && vPad > 0) {
+        const scale = availH / vPad;
+        topPad = pad + (topPad - pad) * scale;
+        bottomPad = pad + (bottomPad - pad) * scale;
+    }
+
+    let minX = vp.left + leftPad;
+    let minY = vp.top + topPad;
+    let maxX = vp.right - rightPad - width;
+    let maxY = vp.bottom - bottomPad - height;
+
+    if (!(minX <= maxX)) {
+        const cx = vp.left + Math.max(0, (vp.width - width) / 2);
+        minX = maxX = cx;
+    }
+    if (!(minY <= maxY)) {
+        const cy = vp.top + Math.max(0, (vp.height - height) / 2);
+        minY = maxY = cy;
+    }
+
+    return { minX, minY, maxX, maxY, width, height, viewport: vp };
+}
+
+function getMascotRoamingMetrics(container = document.getElementById('tm-mascot-container')) {
+    const box = getMascotClampBox(container);
+    const centerX = (box.minX + box.maxX) / 2;
+    const centerY = (box.minY + box.maxY) / 2;
 
     return {
-        width,
-        height,
-        minX: Math.min(minX, maxX, centerX),
-        minY: Math.min(minY, maxY, centerY),
-        maxX: Math.max(minX, maxX, centerX),
-        maxY: Math.max(minY, maxY, centerY),
-        viewport: vp,
+        width: box.width,
+        height: box.height,
+        minX: box.minX,
+        minY: box.minY,
+        maxX: box.maxX,
+        maxY: box.maxY,
+        viewport: box.viewport,
+        centerX,
+        centerY,
     };
 }
 
 function getMascotTranslate(container = document.getElementById('tm-mascot-container')) {
     if (!container) return { x: 0, y: 0 };
-    const matrix = new DOMMatrix(window.getComputedStyle(container).transform);
-    return { x: matrix.m41, y: matrix.m42 };
+    try {
+        const matrix = new DOMMatrix(window.getComputedStyle(container).transform);
+        const x = Number(matrix.m41);
+        const y = Number(matrix.m42);
+        return {
+            x: Number.isFinite(x) ? x : 0,
+            y: Number.isFinite(y) ? y : 0,
+        };
+    } catch {
+        return { x: 0, y: 0 };
+    }
 }
 
 function clampMascotPosition(x, y, metrics = getMascotRoamingMetrics()) {
@@ -25250,71 +25347,56 @@ function clampMascotPosition(x, y, metrics = getMascotRoamingMetrics()) {
     };
 }
 
-/** Clamps using the full painted bounds (mascot + bubble + accessories) against the live viewport. */
+/** Clamps using painted + character slack against the monitor playfield. */
 function clampMascotPositionToViewport(x, y, container = document.getElementById('tm-mascot-container'), offsets = null) {
     if (!container) return { x, y };
-
-    const vp = getMascotViewportRect();
-    const pad = MASCOT_EDGE_PAD;
-    const off = offsets || getMascotBoundsOffset(container);
-    const width = container.offsetWidth || 100;
-    const height = container.offsetHeight || 100;
-
-    let minX = vp.left + pad + off.left;
-    let minY = vp.top + pad + off.top;
-    let maxX = vp.right - pad - off.right - width;
-    let maxY = vp.bottom - pad - off.bottom - height;
-
-    // If paint overflow is wider than the viewport, fall back to a loose box so drag/roam aren't pinned.
-    if (!(minX <= maxX) || !(minY <= maxY)) {
-        minX = vp.left + pad;
-        minY = vp.top + pad;
-        maxX = Math.max(minX, vp.right - pad - width);
-        maxY = Math.max(minY, vp.bottom - pad - height);
-    }
-
+    const box = getMascotClampBox(container, offsets);
     return {
-        x: Math.min(Math.max(minX, x), maxX),
-        y: Math.min(Math.max(minY, y), maxY),
-    };
-}
-
-/** Soft clamp for live dragging — ignores painted FX overflow so the mascot can follow the cursor. */
-function clampMascotDragPosition(x, y, container = document.getElementById('tm-mascot-container')) {
-    if (!container) return { x, y };
-    const vp = getMascotViewportRect();
-    const pad = MASCOT_EDGE_PAD;
-    const width = container.offsetWidth || 100;
-    const height = container.offsetHeight || 100;
-    const minX = vp.left + pad;
-    const minY = vp.top + pad;
-    const maxX = Math.max(minX, vp.right - pad - width);
-    const maxY = Math.max(minY, vp.bottom - pad - height);
-    return {
-        x: Math.min(Math.max(minX, x), maxX),
-        y: Math.min(Math.max(minY, y), maxY),
+        x: Math.min(Math.max(box.minX, x), box.maxX),
+        y: Math.min(Math.max(box.minY, y), box.maxY),
     };
 }
 
 function applyMascotPosition(container, x, y) {
     if (!container) return { x, y };
-    let clamped = clampMascotPositionToViewport(x, y, container);
-    clamped = clampMascotPositionToViewport(clamped.x, clamped.y, container);
+    const clamped = clampMascotPositionToViewport(x, y, container);
     container.style.transform = `translate(${clamped.x}px, ${clamped.y}px)`;
     return clamped;
 }
 
+/** Drag uses the same hard screen clamp so the mascot cannot leave the monitor frame. */
 function applyMascotDragPosition(container, x, y) {
-    if (!container) return { x, y };
-    const clamped = clampMascotDragPosition(x, y, container);
-    container.style.transform = `translate(${clamped.x}px, ${clamped.y}px)`;
-    return clamped;
+    return applyMascotPosition(container, x, y);
 }
 
 function ensureMascotInBounds(container = document.getElementById('tm-mascot-container')) {
     if (!container) return;
+    cacheMascotScreenInfo();
     const { x, y } = getMascotTranslate(container);
     applyMascotPosition(container, x, y);
+
+    // Second pass: if the live box still spills past the playfield (zoom/DPR), nudge by delta.
+    try {
+        const vp = getMascotViewportRect();
+        const rect = container.getBoundingClientRect();
+        const slack = getMascotKeepInsideSlack(container);
+        let dx = 0;
+        let dy = 0;
+        const leftEdge = rect.left - slack.left;
+        const topEdge = rect.top - slack.top;
+        const rightEdge = rect.right + slack.right;
+        const bottomEdge = rect.bottom + slack.bottom;
+        if (leftEdge < vp.left) dx += vp.left - leftEdge;
+        if (topEdge < vp.top) dy += vp.top - topEdge;
+        if (rightEdge > vp.right) dx -= rightEdge - vp.right;
+        if (bottomEdge > vp.bottom) dy -= bottomEdge - vp.bottom;
+        if (dx || dy) {
+            const cur = getMascotTranslate(container);
+            applyMascotPosition(container, cur.x + dx, cur.y + dy);
+        }
+    } catch {
+        /* ignore */
+    }
 }
 
 function randomMascotPosition(container = document.getElementById('tm-mascot-container'), metrics = getMascotRoamingMetrics(container)) {
@@ -36861,11 +36943,22 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         window.addEventListener('scroll', onViewportChange, { passive: true });
         window.visualViewport?.addEventListener('resize', onViewportChange);
         window.visualViewport?.addEventListener('scroll', onViewportChange);
+        // Monitor / DPI / window-move changes (Firefox + Chromium where supported)
+        try {
+            window.screen?.addEventListener?.('change', onViewportChange);
+            window.matchMedia?.(`(resolution: ${window.devicePixelRatio || 1}dppx)`)
+                ?.addEventListener?.('change', onViewportChange);
+        } catch (_) { /* ignore */ }
     }
 
     const screen = cacheMascotScreenInfo();
     const vp = getMascotViewportRect();
-    console.log(`[MMS Mascot] Screen ${screen.screenWidth}×${screen.screenHeight} (avail ${screen.availWidth}×${screen.availHeight}), viewport ${Math.round(vp.width)}×${Math.round(vp.height)}`);
+    console.log(
+        `[MMS Mascot] Screen ${screen.screenWidth}×${screen.screenHeight}`
+        + ` (avail ${screen.availWidth}×${screen.availHeight},`
+        + ` play ${screen.playWidth}×${screen.playHeight}),`
+        + ` viewport ${Math.round(vp.width)}×${Math.round(vp.height)}`
+    );
     // Position is applied after load (parked restore or random spawn) — do not pin to 0,0 here.
     initMascotAccessoryLayers();
 
