@@ -825,8 +825,8 @@ const MASCOT_CHARACTERS = {
 
 /** Coin cost when using care actions from the care panel (0 = free). */
 const MASCOT_CARE_COIN_COSTS = {
-    meal: 25,
-    snack: 15,
+    meal: 8,
+    snack: 4,
     medicine: 35,
     clean: 20,
     pet: 0,
