@@ -4738,6 +4738,13 @@ function randomMascotPosition(container = document.getElementById('tm-mascot-con
     return clampMascotPositionToViewport(rough.x, rough.y, container);
 }
 
+/** Place mascot at a random on-screen spot (used on page load when not parked). */
+function placeMascotAtRandomStart(container = document.getElementById('tm-mascot-container')) {
+    if (!container) return null;
+    const start = randomMascotPosition(container);
+    return applyMascotPosition(container, start.x, start.y);
+}
+
 function sampleClampedBezierPath(from, control, to, container, steps = 8) {
     const offsets = getMascotBoundsOffset(container);
     const keyframes = [];
@@ -4952,9 +4959,7 @@ function startRoaming(config) {
     startPhysicsAnimation();
 
     if (!mascotContainer.style.transform) {
-        const metrics = getMascotRoamingMetrics(mascotContainer);
-        const start = randomMascotPosition(mascotContainer, metrics);
-        mascotContainer.style.transform = `translate(${start.x}px, ${start.y}px)`;
+        placeMascotAtRandomStart(mascotContainer);
     } else {
         ensureMascotInBounds(mascotContainer);
     }
@@ -15885,7 +15890,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     const screen = cacheMascotScreenInfo();
     const vp = getMascotViewportRect();
     console.log(`[MMS Mascot] Screen ${screen.screenWidth}×${screen.screenHeight} (avail ${screen.availWidth}×${screen.availHeight}), viewport ${Math.round(vp.width)}×${Math.round(vp.height)}`);
-    ensureMascotInBounds(container);
+    // Position is applied after load (parked restore or random spawn) — do not pin to 0,0 here.
     initMascotAccessoryLayers();
 
     // Move interaction panel out of container to make it fixed
@@ -17617,6 +17622,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
     // Restore parked position + focus quiet after load
     restoreMascotParkedPosition();
+    if (!(mascotPositionLocked && Number.isFinite(mascotParkedX) && Number.isFinite(mascotParkedY))) {
+        placeMascotAtRandomStart(container);
+    }
     scheduleMascotFocusQuietResume(config, STORAGE_KEYS);
     if (mascotPositionLocked || isMascotFocusQuiet()) {
         stopRoaming(config);
