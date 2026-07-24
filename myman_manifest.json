@@ -1,11 +1,11 @@
 {
-  "version": "305",
+  "version": "306",
   "loaderVersion": "35",
-  "silentVersion": "43",
-  "displayVersion": "35.43",
+  "silentVersion": "44",
+  "displayVersion": "35.44",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Carbon-copy FOUC cache: keep last values+icons+CSS until suite hydrates",
+  "releaseNotes": "Separate XP and Daily Bounties toggles; coin-only bounty rewards when XP is off; daily free coins in pet care",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
