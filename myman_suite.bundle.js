@@ -5351,7 +5351,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     const LS_FOOTER_LEGACY = 'tm_mms_footer_shell';
     const SHELL_ATTR = 'data-tm-ui-shell';
     const FOOTER_SHELL_ATTR = 'data-tm-footer-shell';
-    const CACHE_VERSION = 14;
+    const CACHE_VERSION = 15;
     const MSG_TYPE = 'TM_MMS_UI_SHELLS';
     const MAX_HTML = 900000;
     const MAX_SHELL_HTML = 600000;
@@ -5361,7 +5361,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         { id: 'tm-footer-suite-brand', parent: 'footer-right', minLen: 40 },
         { id: 'tm-header-quick-search-host', parent: 'header-filler', minLen: 40 },
         { id: 'tm-search-container', parent: 'body', minLen: 20 },
-        { id: 'tm-mascot-container', parent: 'body', minLen: 20, maxHtml: 500000 },
+        { id: 'tm-mascot-container', parent: 'body', minLen: 20, maxHtml: 2000, silhouetteOnly: true },
         { id: 'tm-scroll-to-top-btn', parent: 'body', minLen: 10 },
     ];
 
@@ -5447,7 +5447,36 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         };
     }
 
+    function mascotSilhouetteHtml(el) {
+        let style = '';
+        try { style = (el && el.getAttribute('style')) || ''; } catch (_) { /* ignore */ }
+        if (!style && el) {
+            try {
+                const rect = el.getBoundingClientRect?.() || null;
+                const transform = el.style?.transform || '';
+                const w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
+                const h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
+                if (transform && transform.includes('translate')) {
+                    style = `position:fixed;top:0;left:0;width:${w}px;height:${h}px;transform:${transform};`;
+                } else {
+                    const left = el.style?.left || (rect ? `${Math.round(rect.left)}px` : '24px');
+                    const top = el.style?.top || (rect ? `${Math.round(rect.top)}px` : '120px');
+                    style = `position:fixed;left:${left};top:${top};width:${w}px;height:${h}px;`;
+                }
+            } catch (_) {
+                style = 'position:fixed;left:24px;top:120px;width:88px;height:88px;';
+            }
+        }
+        if (!style) style = 'position:fixed;left:24px;top:120px;width:88px;height:88px;';
+        return `<div id="tm-mascot-container" class="tm-ui-shell tm-ui-shell-mascot" style="${style.replace(/"/g, '&quot;')}"></div>`;
+    }
+
     function slimCloneHtml(el, spec) {
+        // Never snapshot the live mascot SVG — it baked the wrong character onto other pages
+        if (spec?.id === 'tm-mascot-container') {
+            return mascotSilhouetteHtml(el);
+        }
+
         // Carbon copy: keep icons, coin/XP/weather text, inline styles.
         const clone = el.cloneNode(true);
         clone.removeAttribute(SHELL_ATTR);
@@ -5485,19 +5514,6 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         let html = clone.outerHTML;
         const cap = spec.maxHtml || MAX_SHELL_HTML || MAX_HTML;
         if (!html || html.length < (spec.minLen || 20)) return null;
-
-        if (html.length > cap && spec.id === 'tm-mascot-container') {
-            let style = el.getAttribute('style') || '';
-            if (!style) {
-                const rect = el.getBoundingClientRect?.() || null;
-                const left = el.style?.left || (rect ? `${Math.round(rect.left)}px` : '24px');
-                const top = el.style?.top || (rect ? `${Math.round(rect.top)}px` : '120px');
-                const w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
-                const h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
-                style = `position:fixed;left:${left};top:${top};width:${w}px;height:${h}px;`;
-            }
-            return `<div id="tm-mascot-container" class="tm-ui-shell tm-ui-shell-mascot" style="${style.replace(/"/g, '&quot;')}"></div>`;
-        }
 
         if (html.length > cap) {
             console.warn('[MMS UI Shell] too large, skip', spec.id, html.length);
@@ -5761,6 +5777,23 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     expose('tmDebugUiShells', debugUiShells);
     expose('TM_FOOTER_SHELL_LS_KEY', LS_FOOTER_LEGACY);
     expose('TM_UI_SHELLS_LS_KEY', LS_KEY);
+
+    // One-shot: strip legacy full-SVG mascot snapshots from localStorage (wrong character per page)
+    try {
+        const ls = pageLocalStorage();
+        const raw = ls.getItem(LS_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            const html = parsed?.shells?.['tm-mascot-container']?.html;
+            if (html && String(html).includes('<svg')) {
+                delete parsed.shells['tm-mascot-container'];
+                parsed.v = CACHE_VERSION;
+                parsed.updatedAt = Date.now();
+                ls.setItem(LS_KEY, JSON.stringify(parsed));
+                console.log('[MMS UI Shell] Cleared stale full-SVG mascot FOUC cache');
+            }
+        }
+    } catch (_) { /* ignore */ }
 
     console.log('[MMS UI Shell] module ready (v' + CACHE_VERSION + ', multi-shell)');
 })();
@@ -24811,8 +24844,17 @@ function setSvgSpriteVisible(element, visible) {
  */
 function isMascotUiShellNode(el) {
     if (!el || el.nodeType !== 1) return false;
-    return el.getAttribute('data-tm-ui-shell') === '1'
-        || el.getAttribute('data-tm-footer-shell') === '1';
+    if (el.getAttribute('data-tm-ui-shell') === '1'
+        || el.getAttribute('data-tm-footer-shell') === '1') {
+        return true;
+    }
+    // Empty FOUC silhouette without live hydration
+    if (el.id === 'tm-mascot-container'
+        && el.getAttribute('data-tm-mascot-live') !== '1'
+        && !el.querySelector('.tm-mascot-robot')) {
+        return true;
+    }
+    return false;
 }
 
 function purgeMascotUiShellNodes() {
@@ -26318,10 +26360,25 @@ function checkTamagotchiEvolution(container) {
         tamagotchiCharacterType = 'none';
     } else if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none'
         || !TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)) {
-        // Hatch / recover: assign once only when missing
-        ensureTamagotchiCharacterType({ allowRandom: true });
+        // Only roll a new type when actually hatching out of the egg.
+        // Otherwise recover from storage — never invent a different character per page.
         if (oldStage === 'egg') {
+            ensureTamagotchiCharacterType({ allowRandom: true });
             console.log(`[Mascot] 🎉 EPIC HATCH: ${tamagotchiCharacterType}!`);
+        } else {
+            ensureTamagotchiCharacterType({ allowRandom: false });
+            if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none') {
+                const keys = getTamagotchiStorageKeys(
+                    typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null
+                );
+                try {
+                    const stored = parseTamagotchiStorageValue(GM_getValue(keys.TAMAGOTCHI_DATA, 'null'));
+                    const sc = stored?.characterType;
+                    if (sc && sc !== 'none' && TAMA_CHARACTER_TYPES.includes(sc)) {
+                        tamagotchiCharacterType = sc;
+                    }
+                } catch (_) { /* ignore */ }
+            }
         }
     }
     
@@ -28842,6 +28899,41 @@ function resetIdleTimer(config) {
     }, 3 * 60 * 1000);
 }
 
+function markMascotContainerLive(container = document.getElementById('tm-mascot-container')) {
+    if (!container) return;
+    try {
+        container.setAttribute('data-tm-mascot-live', '1');
+        container.removeAttribute('data-tm-ui-shell');
+        container.removeAttribute('data-tm-footer-shell');
+        container.classList.remove('tm-ui-shell', 'tm-ui-shell-mascot');
+    } catch (_) { /* ignore */ }
+}
+
+/** Always re-read saved pet + paint sprites — keeps list/edit pages on the same character. */
+function resyncMascotAppearanceFromStorage(STORAGE_KEYS = window.STORAGE_KEYS) {
+    const keys = getTamagotchiStorageKeys(STORAGE_KEYS);
+    if (!keys?.TAMAGOTCHI_DATA) return false;
+    try {
+        purgeMascotUiShellNodes();
+        loadTamagotchiData(keys);
+        const container = ensureSingleMascotDom('resync');
+        if (!container) return false;
+        markMascotContainerLive(container);
+        if (!tamaCinematicLock && !mascotStagePreviewLock) {
+            updateMascotAppearanceByStage(tamagotchiStage);
+        }
+        updateTamagotchiStats(container);
+        syncMascotInteractionClasses(container);
+        console.log(
+            `[MMS Mascot] Resynced from storage → stage=${tamagotchiStage} character=${tamagotchiCharacterType}`
+        );
+        return true;
+    } catch (err) {
+        console.warn('[MMS Mascot] Resync failed:', err);
+        return false;
+    }
+}
+
 function initInteractiveMascot(config, STORAGE_KEYS) {
     if (!config || !config.interactiveMascotEnabled) return;
 
@@ -28865,9 +28957,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
     const existingCount = countMascotDomInstances();
     // Only skip when a real live mascot already exists from this session.
-    // FOUC shells used to trip this path and skip loadTamagotchiData → wrong character on edit pages.
+    // Still force a storage→sprite resync so edit/list never diverge.
     if (window.__tmMascotInitialized && existingCount.containers > 0 && !existingIsShell) {
         ensureSingleMascotDom('init-skip');
+        markMascotContainerLive();
+        resyncMascotAppearanceFromStorage(STORAGE_KEYS);
         if (existingCount.containers > 1) {
             console.warn('[MMS Mascot] Duplicate mascots found at init — cleaned up, not re-creating');
         }
@@ -36928,6 +37022,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         </svg>
     `;
     document.body.appendChild(container);
+    markMascotContainerLive(container);
 
     if (!window.__tmMascotBoundsListener) {
         window.__tmMascotBoundsListener = true;
@@ -38998,6 +39093,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
     window.__tmMascotInitialized = true;
     ensureSingleMascotDom('post-init');
+    markMascotContainerLive();
+    // Final paint from the loaded save — defeats any FOUC race that swapped nodes mid-init
+    if (!tamaCinematicLock && !mascotStagePreviewLock) {
+        updateMascotAppearanceByStage(tamagotchiStage);
+    }
     } finally {
         window.__tmMascotInitializing = false;
     }
@@ -39529,6 +39629,8 @@ window.MASCOT_CHARACTERS = MASCOT_CHARACTERS;
 window.TAMA_CHARACTER_TYPES = TAMA_CHARACTER_TYPES;
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
 window.ensureSingleMascotDom = ensureSingleMascotDom;
+window.resyncMascotAppearanceFromStorage = resyncMascotAppearanceFromStorage;
+window.markMascotContainerLive = markMascotContainerLive;
 window.countMascotDomInstances = countMascotDomInstances;
 window.installMascotDomDeduper = installMascotDomDeduper;
 window.setMascotState = setMascotState;

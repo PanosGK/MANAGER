@@ -21,7 +21,7 @@
   var EXT_CSS_KEY = 'tm_mms_suite_css';
   var MAX_CSS = 1500000;
   var LEGACY_FOOTER_KEY = 'tm_mms_footer_shell';
-  var CACHE_VERSION = 14;
+  var CACHE_VERSION = 15;
   var MAX_HTML = 900000;
   var MAX_SHELL_HTML = 600000;
 
@@ -50,8 +50,9 @@
       id: 'tm-mascot-container',
       parent: 'body',
       minLen: 20,
-      silhouette: false, // full carbon-copy when possible
-      maxHtml: 500000,
+      // NEVER carbon-copy the live SVG — that baked the wrong character across pages.
+      silhouetteOnly: true,
+      maxHtml: 2000,
     },
     {
       id: 'tm-scroll-to-top-btn',
@@ -551,8 +552,39 @@
     return !!(el && (el.getAttribute(SHELL_ATTR) === '1' || el.getAttribute(FOOTER_SHELL_ATTR) === '1'));
   }
 
+  function mascotSilhouetteHtml(el) {
+    var style = '';
+    try { style = (el && el.getAttribute('style')) || ''; } catch (e0) { /* ignore */ }
+    if (!style && el) {
+      try {
+        var rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
+        var left = (el.style && el.style.left) || (rect ? Math.round(rect.left) + 'px' : '24px');
+        var top = (el.style && el.style.top) || (rect ? Math.round(rect.top) + 'px' : '120px');
+        var w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
+        var h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
+        // Prefer transform-based placement when the live mascot uses translate()
+        var transform = (el.style && el.style.transform) || '';
+        if (transform && transform.indexOf('translate') !== -1) {
+          style = 'position:fixed;top:0;left:0;width:' + w + 'px;height:' + h + 'px;transform:' + transform + ';';
+        } else {
+          style = 'position:fixed;left:' + left + ';top:' + top + ';width:' + w + 'px;height:' + h + 'px;';
+        }
+      } catch (e1) {
+        style = 'position:fixed;left:24px;top:120px;width:88px;height:88px;';
+      }
+    }
+    if (!style) style = 'position:fixed;left:24px;top:120px;width:88px;height:88px;';
+    return '<div id="tm-mascot-container" class="tm-ui-shell tm-ui-shell-mascot" style="'
+      + String(style).replace(/"/g, '&quot;') + '"></div>';
+  }
+
   function slimCloneHtml(el, spec) {
     try {
+      // Mascot: placeholder only — never snapshot sprites (wrong character on other pages)
+      if (spec && spec.id === 'tm-mascot-container') {
+        return mascotSilhouetteHtml(el);
+      }
+
       // Carbon copy of the live suite node: keep icons, text values, inline styles.
       // Only strip ephemeral open panels (not the always-visible chrome).
       var clone = el.cloneNode(true);
@@ -606,21 +638,6 @@
       var cap = (spec && spec.maxHtml) || MAX_SHELL_HTML || MAX_HTML;
       if (!html || html.length < (spec.minLen || 20)) return null;
 
-      // Mascot SVG can be huge — fall back to positioned silhouette only if over budget
-      if (html.length > cap && spec && spec.id === 'tm-mascot-container') {
-        var style = el.getAttribute('style') || '';
-        if (!style) {
-          var rect = el.getBoundingClientRect ? el.getBoundingClientRect() : null;
-          var left = (el.style && el.style.left) || (rect ? Math.round(rect.left) + 'px' : '24px');
-          var top = (el.style && el.style.top) || (rect ? Math.round(rect.top) + 'px' : '120px');
-          var w = (rect && rect.width > 40) ? Math.round(rect.width) : 88;
-          var h = (rect && rect.height > 40) ? Math.round(rect.height) : 88;
-          style = 'position:fixed;left:' + left + ';top:' + top + ';width:' + w + 'px;height:' + h + 'px;';
-        }
-        return '<div id="tm-mascot-container" class="tm-ui-shell tm-ui-shell-mascot" style="'
-          + style.replace(/"/g, '&quot;') + '"></div>';
-      }
-
       if (html.length > cap) {
         console.warn('[FOUC] shell too large, truncated skip', spec && spec.id, html.length);
         return null;
@@ -633,8 +650,15 @@
 
   function normalizeCache(raw) {
     if (!raw || typeof raw !== 'object') return null;
-    if ((raw.v === CACHE_VERSION || raw.v === 13 || raw.v === 12 || raw.v === 11 || raw.v === 10 || raw.v === 9)
+    if ((raw.v === CACHE_VERSION || raw.v === 14 || raw.v === 13 || raw.v === 12 || raw.v === 11 || raw.v === 10 || raw.v === 9)
       && raw.shells && typeof raw.shells === 'object') {
+      // Drop legacy full-SVG mascot snapshots (caused different characters per page)
+      try {
+        var m = raw.shells['tm-mascot-container'];
+        if (m && m.html && String(m.html).indexOf('<svg') !== -1) {
+          delete raw.shells['tm-mascot-container'];
+        }
+      } catch (eMascot) { /* ignore */ }
       // Normalize legacy placements → suite-matched insert modes
       Object.keys(raw.shells).forEach(function (id) {
         var entry = raw.shells[id];
@@ -742,18 +766,29 @@
   function mountOne(entry) {
     try {
       if (!entry || !entry.html || !entry.id) return false;
+      // Never cover a live hydrated mascot with a FOUC shell
+      if (entry.id === 'tm-mascot-container'
+        && document.querySelector('#tm-mascot-container[data-tm-mascot-live="1"]')) {
+        return false;
+      }
       if (document.getElementById(entry.id)) return false;
 
       var placement = entry.placement || { kind: entry.parent || 'body' };
       var parent = resolveExactParent(placement);
       if (!parent) return false;
 
-      var mountedHint = insertAtExactPlace(parent, entry.html, placement);
+      // Force silhouette if a stale full-SVG snapshot somehow remains in cache
+      var html = entry.html;
+      if (entry.id === 'tm-mascot-container' && String(html).indexOf('<svg') !== -1) {
+        html = mascotSilhouetteHtml(null);
+      }
+
+      var mountedHint = insertAtExactPlace(parent, html, placement);
       var mounted = document.getElementById(entry.id) || mountedHint;
       if (!mounted) return false;
 
       // Restore exact inline styles from when the suite painted the live node
-      if (placement.inlineStyle) {
+      if (placement.inlineStyle && entry.id !== 'tm-mascot-container') {
         try { mounted.setAttribute('style', placement.inlineStyle); } catch (eSt) { /* ignore */ }
       }
 

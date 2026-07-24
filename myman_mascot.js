@@ -4266,8 +4266,17 @@ function setSvgSpriteVisible(element, visible) {
  */
 function isMascotUiShellNode(el) {
     if (!el || el.nodeType !== 1) return false;
-    return el.getAttribute('data-tm-ui-shell') === '1'
-        || el.getAttribute('data-tm-footer-shell') === '1';
+    if (el.getAttribute('data-tm-ui-shell') === '1'
+        || el.getAttribute('data-tm-footer-shell') === '1') {
+        return true;
+    }
+    // Empty FOUC silhouette without live hydration
+    if (el.id === 'tm-mascot-container'
+        && el.getAttribute('data-tm-mascot-live') !== '1'
+        && !el.querySelector('.tm-mascot-robot')) {
+        return true;
+    }
+    return false;
 }
 
 function purgeMascotUiShellNodes() {
@@ -5773,10 +5782,25 @@ function checkTamagotchiEvolution(container) {
         tamagotchiCharacterType = 'none';
     } else if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none'
         || !TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)) {
-        // Hatch / recover: assign once only when missing
-        ensureTamagotchiCharacterType({ allowRandom: true });
+        // Only roll a new type when actually hatching out of the egg.
+        // Otherwise recover from storage — never invent a different character per page.
         if (oldStage === 'egg') {
+            ensureTamagotchiCharacterType({ allowRandom: true });
             console.log(`[Mascot] 🎉 EPIC HATCH: ${tamagotchiCharacterType}!`);
+        } else {
+            ensureTamagotchiCharacterType({ allowRandom: false });
+            if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none') {
+                const keys = getTamagotchiStorageKeys(
+                    typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null
+                );
+                try {
+                    const stored = parseTamagotchiStorageValue(GM_getValue(keys.TAMAGOTCHI_DATA, 'null'));
+                    const sc = stored?.characterType;
+                    if (sc && sc !== 'none' && TAMA_CHARACTER_TYPES.includes(sc)) {
+                        tamagotchiCharacterType = sc;
+                    }
+                } catch (_) { /* ignore */ }
+            }
         }
     }
     
@@ -8297,6 +8321,41 @@ function resetIdleTimer(config) {
     }, 3 * 60 * 1000);
 }
 
+function markMascotContainerLive(container = document.getElementById('tm-mascot-container')) {
+    if (!container) return;
+    try {
+        container.setAttribute('data-tm-mascot-live', '1');
+        container.removeAttribute('data-tm-ui-shell');
+        container.removeAttribute('data-tm-footer-shell');
+        container.classList.remove('tm-ui-shell', 'tm-ui-shell-mascot');
+    } catch (_) { /* ignore */ }
+}
+
+/** Always re-read saved pet + paint sprites — keeps list/edit pages on the same character. */
+function resyncMascotAppearanceFromStorage(STORAGE_KEYS = window.STORAGE_KEYS) {
+    const keys = getTamagotchiStorageKeys(STORAGE_KEYS);
+    if (!keys?.TAMAGOTCHI_DATA) return false;
+    try {
+        purgeMascotUiShellNodes();
+        loadTamagotchiData(keys);
+        const container = ensureSingleMascotDom('resync');
+        if (!container) return false;
+        markMascotContainerLive(container);
+        if (!tamaCinematicLock && !mascotStagePreviewLock) {
+            updateMascotAppearanceByStage(tamagotchiStage);
+        }
+        updateTamagotchiStats(container);
+        syncMascotInteractionClasses(container);
+        console.log(
+            `[MMS Mascot] Resynced from storage → stage=${tamagotchiStage} character=${tamagotchiCharacterType}`
+        );
+        return true;
+    } catch (err) {
+        console.warn('[MMS Mascot] Resync failed:', err);
+        return false;
+    }
+}
+
 function initInteractiveMascot(config, STORAGE_KEYS) {
     if (!config || !config.interactiveMascotEnabled) return;
 
@@ -8320,9 +8379,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
     const existingCount = countMascotDomInstances();
     // Only skip when a real live mascot already exists from this session.
-    // FOUC shells used to trip this path and skip loadTamagotchiData → wrong character on edit pages.
+    // Still force a storage→sprite resync so edit/list never diverge.
     if (window.__tmMascotInitialized && existingCount.containers > 0 && !existingIsShell) {
         ensureSingleMascotDom('init-skip');
+        markMascotContainerLive();
+        resyncMascotAppearanceFromStorage(STORAGE_KEYS);
         if (existingCount.containers > 1) {
             console.warn('[MMS Mascot] Duplicate mascots found at init — cleaned up, not re-creating');
         }
@@ -16383,6 +16444,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         </svg>
     `;
     document.body.appendChild(container);
+    markMascotContainerLive(container);
 
     if (!window.__tmMascotBoundsListener) {
         window.__tmMascotBoundsListener = true;
@@ -18453,6 +18515,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
     window.__tmMascotInitialized = true;
     ensureSingleMascotDom('post-init');
+    markMascotContainerLive();
+    // Final paint from the loaded save — defeats any FOUC race that swapped nodes mid-init
+    if (!tamaCinematicLock && !mascotStagePreviewLock) {
+        updateMascotAppearanceByStage(tamagotchiStage);
+    }
     } finally {
         window.__tmMascotInitializing = false;
     }
@@ -18984,6 +19051,8 @@ window.MASCOT_CHARACTERS = MASCOT_CHARACTERS;
 window.TAMA_CHARACTER_TYPES = TAMA_CHARACTER_TYPES;
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
 window.ensureSingleMascotDom = ensureSingleMascotDom;
+window.resyncMascotAppearanceFromStorage = resyncMascotAppearanceFromStorage;
+window.markMascotContainerLive = markMascotContainerLive;
 window.countMascotDomInstances = countMascotDomInstances;
 window.installMascotDomDeduper = installMascotDomDeduper;
 window.setMascotState = setMascotState;
