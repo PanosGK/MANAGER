@@ -10647,11 +10647,16 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-mascot-container.mascot-dragging {
                 cursor: grabbing;
                 z-index: 10050;
+                /* Container is normally pointer-events:none — must accept capture during drag */
+                pointer-events: auto !important;
+                touch-action: none;
                 transition: none !important;
+                user-select: none;
             }
             #tm-mascot-container.mascot-dragging .tm-mascot-robot {
                 cursor: grabbing;
                 animation: none !important;
+                pointer-events: all !important;
             }
             #tm-mascot-container.mascot-parked::after,
             #tm-mascot-container.mascot-parked.mascot-char-aether::after {
@@ -10903,9 +10908,11 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 border-color: color-mix(in srgb, #16a34a 45%, transparent);
                 background: color-mix(in srgb, #16a34a 10%, transparent);
             }
-            /* ...but the robot and its panel inside are. */
-            #tm-mascot-container > svg {
-                pointer-events: auto;
+            /* ...but the robot and its panel inside are.
+               pointer-events:all makes the full 100x100 SVG viewport grabbable (not only painted pixels). */
+            #tm-mascot-container > svg,
+            #tm-mascot-container .tm-mascot-robot {
+                pointer-events: all;
             }
             .tm-mascot-robot {
                 width: 100%; height: 100%;
@@ -11793,7 +11800,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 pointer-events: none !important;
                 overflow: hidden;
                 opacity: 0;
-                transition: opacity 1.1s ease;
+                transition: opacity 0.45s ease;
                 contain: strict;
             }
             #tm-aether-screen-aura.is-on {
@@ -11908,7 +11915,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 z-index: 9978;
                 pointer-events: none !important;
                 opacity: 0;
-                transition: opacity 1.2s ease;
+                transition: opacity 0.45s ease;
                 background:
                     radial-gradient(ellipse 90% 80% at var(--axp, 50%) var(--ayp, 45%),
                         rgba(18, 0, 31, 0.08) 0%,
@@ -14145,6 +14152,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 z-index: 9992;
                 box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
                 opacity: 0;
+                pointer-events: none;
                 transition: opacity 0.3s ease-out, top 0.3s ease-out;
             }
             .tm-mascot-speech-bubble.show {
@@ -24998,7 +25006,7 @@ function updateLimbPhysics() {
         return;
     }
 
-    if (limbPhysicsFrameCount % (aetherLitePhysics ? 18 : 6) === 0) {
+    if (!mascotIsDragging && limbPhysicsFrameCount % (aetherLitePhysics ? 18 : 6) === 0) {
         ensureMascotInBounds(mascotContainer);
     }
 
@@ -25252,11 +25260,36 @@ function clampMascotPositionToViewport(x, y, container = document.getElementById
     const width = container.offsetWidth || 100;
     const height = container.offsetHeight || 100;
 
-    const minX = vp.left + pad + off.left;
-    const minY = vp.top + pad + off.top;
-    const maxX = vp.right - pad - off.right - width;
-    const maxY = vp.bottom - pad - off.bottom - height;
+    let minX = vp.left + pad + off.left;
+    let minY = vp.top + pad + off.top;
+    let maxX = vp.right - pad - off.right - width;
+    let maxY = vp.bottom - pad - off.bottom - height;
 
+    // If paint overflow is wider than the viewport, fall back to a loose box so drag/roam aren't pinned.
+    if (!(minX <= maxX) || !(minY <= maxY)) {
+        minX = vp.left + pad;
+        minY = vp.top + pad;
+        maxX = Math.max(minX, vp.right - pad - width);
+        maxY = Math.max(minY, vp.bottom - pad - height);
+    }
+
+    return {
+        x: Math.min(Math.max(minX, x), maxX),
+        y: Math.min(Math.max(minY, y), maxY),
+    };
+}
+
+/** Soft clamp for live dragging — ignores painted FX overflow so the mascot can follow the cursor. */
+function clampMascotDragPosition(x, y, container = document.getElementById('tm-mascot-container')) {
+    if (!container) return { x, y };
+    const vp = getMascotViewportRect();
+    const pad = MASCOT_EDGE_PAD;
+    const width = container.offsetWidth || 100;
+    const height = container.offsetHeight || 100;
+    const minX = vp.left + pad;
+    const minY = vp.top + pad;
+    const maxX = Math.max(minX, vp.right - pad - width);
+    const maxY = Math.max(minY, vp.bottom - pad - height);
     return {
         x: Math.min(Math.max(minX, x), maxX),
         y: Math.min(Math.max(minY, y), maxY),
@@ -25267,6 +25300,13 @@ function applyMascotPosition(container, x, y) {
     if (!container) return { x, y };
     let clamped = clampMascotPositionToViewport(x, y, container);
     clamped = clampMascotPositionToViewport(clamped.x, clamped.y, container);
+    container.style.transform = `translate(${clamped.x}px, ${clamped.y}px)`;
+    return clamped;
+}
+
+function applyMascotDragPosition(container, x, y) {
+    if (!container) return { x, y };
+    const clamped = clampMascotDragPosition(x, y, container);
     container.style.transform = `translate(${clamped.x}px, ${clamped.y}px)`;
     return clamped;
 }
@@ -26623,12 +26663,15 @@ function clearAetherTimer(refName) {
     if (refName === 'truename' && aetherTrueNameTimer) { clearTimeout(aetherTrueNameTimer); aetherTrueNameTimer = null; }
     if (refName === 'starmap' && aetherStarMapTimer) { clearTimeout(aetherStarMapTimer); aetherStarMapTimer = null; }
     if (refName === 'spectacle' && aetherSpectacleTimer) { clearTimeout(aetherSpectacleTimer); aetherSpectacleTimer = null; }
+    if (refName === 'screen' && aetherScreenAuraTimer) { clearTimeout(aetherScreenAuraTimer); aetherScreenAuraTimer = null; }
+    if (refName === 'screenEnd' && aetherScreenAuraEndTimer) { clearTimeout(aetherScreenAuraEndTimer); aetherScreenAuraEndTimer = null; }
 }
 
 function stopAetherMythicFx() {
     aetherMythFxActive = false;
     ['fx', 'particle', 'bubble', 'trail', 'gaze', 'dim', 'blink', 'meteor', 'omen', 'true',
-        'heartbeat', 'pose', 'twin', 'shimmer', 'eclipse', 'throne', 'stance', 'truename', 'starmap', 'spectacle']
+        'heartbeat', 'pose', 'twin', 'shimmer', 'eclipse', 'throne', 'stance', 'truename', 'starmap', 'spectacle',
+        'screen', 'screenEnd']
         .forEach(clearAetherTimer);
     const container = document.getElementById('tm-mascot-container');
     if (container) {
@@ -26726,8 +26769,6 @@ function rollAetherAuraLayers(container, stage) {
     container.classList.toggle('tm-aether-ring-on', Math.random() < ringChance || awakened);
     container.classList.add('tm-aether-sovereign');
     if (!lite) syncAetherSigilLock(container);
-    syncAetherScreenAura(container, stage, active);
-    updateAetherWorldDim(container, stage);
 }
 
 function emitAetherMythParticles(container, stage, forceCount = null, { inhale = false } = {}) {
@@ -26924,16 +26965,46 @@ const AETHER_SCREEN_AURA_STAGE = {
 };
 
 let aetherScreenAuraOriginTimer = null;
+let aetherScreenAuraTimer = null;
+let aetherScreenAuraEndTimer = null;
+let aetherScreenAuraUntil = 0;
 
 function clearAetherScreenAura() {
     if (aetherScreenAuraOriginTimer) {
         clearTimeout(aetherScreenAuraOriginTimer);
         aetherScreenAuraOriginTimer = null;
     }
+    if (aetherScreenAuraEndTimer) {
+        clearTimeout(aetherScreenAuraEndTimer);
+        aetherScreenAuraEndTimer = null;
+    }
+    aetherScreenAuraUntil = 0;
     document.getElementById('tm-aether-screen-aura')?.remove();
     document.getElementById('tm-aether-world-dim')?.remove();
     document.getElementById('tm-aether-gravity-lens')?.remove();
     document.body.classList.remove('tm-aether-screen-aura-on');
+}
+
+function hideAetherScreenAura() {
+    aetherScreenAuraUntil = 0;
+    if (aetherScreenAuraEndTimer) {
+        clearTimeout(aetherScreenAuraEndTimer);
+        aetherScreenAuraEndTimer = null;
+    }
+    if (aetherScreenAuraOriginTimer) {
+        clearTimeout(aetherScreenAuraOriginTimer);
+        aetherScreenAuraOriginTimer = null;
+    }
+    const root = document.getElementById('tm-aether-screen-aura');
+    const dim = document.getElementById('tm-aether-world-dim');
+    root?.classList.remove('is-on', 'is-strong', 'is-awaken', 'has-ring', 'has-haze', 'has-rays');
+    document.body.classList.remove('tm-aether-screen-aura-on');
+    if (dim) dim.style.opacity = '0';
+    setTimeout(() => {
+        if (Date.now() < aetherScreenAuraUntil) return;
+        document.getElementById('tm-aether-screen-aura')?.remove();
+        document.getElementById('tm-aether-world-dim')?.remove();
+    }, 700);
 }
 
 function ensureAetherScreenAura() {
@@ -26959,93 +27030,41 @@ function updateAetherScreenAuraOrigin(container = document.getElementById('tm-ma
     const r = container.getBoundingClientRect();
     const ax = Math.round(r.left + r.width / 2);
     const ay = Math.round(r.top + r.height / 2);
+    const axp = `${((ax / Math.max(1, window.innerWidth)) * 100).toFixed(2)}%`;
+    const ayp = `${((ay / Math.max(1, window.innerHeight)) * 100).toFixed(2)}%`;
     root.style.setProperty('--ax', `${ax}px`);
     root.style.setProperty('--ay', `${ay}px`);
-    root.style.setProperty('--axp', `${((ax / Math.max(1, window.innerWidth)) * 100).toFixed(2)}%`);
-    root.style.setProperty('--ayp', `${((ay / Math.max(1, window.innerHeight)) * 100).toFixed(2)}%`);
+    root.style.setProperty('--axp', axp);
+    root.style.setProperty('--ayp', ayp);
+    const dim = document.getElementById('tm-aether-world-dim');
+    if (dim) {
+        dim.style.setProperty('--ax', `${ax}px`);
+        dim.style.setProperty('--ay', `${ay}px`);
+        dim.style.setProperty('--axp', axp);
+        dim.style.setProperty('--ayp', ayp);
+    }
 }
 
 function scheduleAetherScreenAuraOrigin(container) {
     if (aetherScreenAuraOriginTimer) return;
     const tick = () => {
         aetherScreenAuraOriginTimer = null;
-        if (!aetherMythFxActive || !document.getElementById('tm-aether-screen-aura')) return;
+        if (!aetherMythFxActive || Date.now() >= aetherScreenAuraUntil) return;
+        if (!document.getElementById('tm-aether-screen-aura')) return;
         updateAetherScreenAuraOrigin(container);
-        aetherScreenAuraOriginTimer = setTimeout(tick, document.hidden ? 4000 : 700);
+        aetherScreenAuraOriginTimer = setTimeout(tick, document.hidden ? 2500 : 700);
     };
-    aetherScreenAuraOriginTimer = setTimeout(tick, 120);
+    aetherScreenAuraOriginTimer = setTimeout(tick, 80);
 }
 
-/**
- * Fullscreen aura field — soft radial washes from the mascot, no backdrop-filter.
- * Driven by active SVG FX layers + stage tier.
- */
-function syncAetherScreenAura(container, stage, activeFx = null) {
-    if (!aetherMythFxActive || !container || tamagotchiCharacterType !== 'aether' || tamagotchiIsDead) {
-        clearAetherScreenAura();
-        return;
-    }
-    if (isAetherUltraMode()) {
-        clearAetherScreenAura();
-        return;
-    }
-
-    const liveStage = stage || tamagotchiStage || 'adult';
-    const tier = AETHER_STAGE_TIER[liveStage] || 1;
-    const lite = isAetherLiteMode();
-    const awakened = isAetherAwakened();
-    const colors = AETHER_SCREEN_AURA_STAGE[liveStage] || AETHER_SCREEN_AURA_STAGE.adult;
-
-    const fx = activeFx || new Set(
-        [...container.querySelectorAll('.tm-aether-fx.tm-fx-on')]
-            .map((el) => el.getAttribute('data-fx'))
-            .filter(Boolean)
-    );
-    const glowOn = container.classList.contains('tm-aether-glow-on');
-    const ringOn = container.classList.contains('tm-aether-ring-on');
-    const hasAura = fx.has('aura') || fx.has('corona') || fx.has('aura-outer') || glowOn || awakened;
-    const hasHaze = fx.has('haze') || fx.has('aura-outer') || awakened;
-    const hasBeams = !lite && (fx.has('beams') || fx.has('orbits') || awakened);
-
-    const root = ensureAetherScreenAura();
-    root.dataset.stage = liveStage;
-    root.style.setProperty('--ac1', colors.c1);
-    root.style.setProperty('--ac2', colors.c2);
-    root.style.setProperty('--ac3', colors.c3);
-
-    const strength = Math.min(
-        1,
-        (lite ? 0.22 : 0.18)
-            + tier * (lite ? 0.04 : 0.06)
-            + (hasAura ? 0.1 : 0)
-            + (glowOn ? 0.12 : 0)
-            + (fx.has('aura') ? 0.1 : 0)
-            + (fx.has('corona') ? 0.08 : 0)
-            + (fx.has('aura-outer') ? 0.1 : 0)
-            + (awakened ? 0.22 : 0)
-    );
-    root.style.setProperty('--aura-strength', strength.toFixed(3));
-
-    root.classList.toggle('is-lite', lite);
-    root.classList.toggle('is-strong', strength > 0.55 || tier >= 5);
-    root.classList.toggle('is-awaken', awakened);
-    root.classList.toggle('has-ring', ringOn || fx.has('corona'));
-    root.classList.toggle('has-haze', hasHaze);
-    root.classList.toggle('has-rays', hasBeams);
-    root.classList.add('is-on');
-    document.body.classList.add('tm-aether-screen-aura-on');
-
-    updateAetherScreenAuraOrigin(container);
-    scheduleAetherScreenAuraOrigin(container);
-}
-
-/** Soft fullscreen veil + vignette (replaces old local-only dim). */
-function updateAetherWorldDim(container, stage) {
+/** Soft vignette only while a screen-aura burst is live. */
+function updateAetherWorldDim(container, stage, { strengthOverride = null } = {}) {
     document.getElementById('tm-aether-gravity-lens')?.remove();
     container?.querySelectorAll('.tm-aether-world-dim-local').forEach((el) => el.remove());
 
-    if (!aetherMythFxActive || !container || isAetherUltraMode()) {
-        document.getElementById('tm-aether-world-dim')?.remove();
+    if (!aetherMythFxActive || !container || isAetherUltraMode() || Date.now() >= aetherScreenAuraUntil) {
+        const dim = document.getElementById('tm-aether-world-dim');
+        if (dim) dim.style.opacity = '0';
         return;
     }
 
@@ -27053,8 +27072,10 @@ function updateAetherWorldDim(container, stage) {
     const tier = AETHER_STAGE_TIER[liveStage] || 1;
     const awakened = isAetherAwakened();
     const lite = isAetherLiteMode();
-    const strengthByTier = { 1: 0.08, 2: 0.1, 3: 0.14, 4: 0.18, 5: 0.24, 6: 0.3 };
-    const strength = awakened ? (lite ? 0.32 : 0.42) : (strengthByTier[tier] ?? 0.12) * (lite ? 0.75 : 1);
+    const strengthByTier = { 1: 0.1, 2: 0.12, 3: 0.14, 4: 0.16, 5: 0.2, 6: 0.24 };
+    const strength = strengthOverride != null
+        ? strengthOverride
+        : (awakened ? (lite ? 0.26 : 0.32) : (strengthByTier[tier] ?? 0.12) * (lite ? 0.7 : 1));
 
     let dim = document.getElementById('tm-aether-world-dim');
     if (!dim) {
@@ -27066,29 +27087,130 @@ function updateAetherWorldDim(container, stage) {
     dim.className = `tm-aether-dim-t${awakened ? 6 : tier}${awakened || tier >= 6 ? ' tm-aether-dim-strong' : ''}${lite ? ' is-lite' : ''}`;
     dim.style.opacity = String(strength);
     updateAetherScreenAuraOrigin(container);
-    const root = document.getElementById('tm-aether-screen-aura');
-    if (root) {
-        dim.style.setProperty('--ax', root.style.getPropertyValue('--ax') || '50%');
-        dim.style.setProperty('--ay', root.style.getPropertyValue('--ay') || '45%');
-        dim.style.setProperty('--axp', root.style.getPropertyValue('--axp') || '50%');
-        dim.style.setProperty('--ayp', root.style.getPropertyValue('--ayp') || '45%');
-    }
 }
 
 function updateAetherGravityLens() {
-    // Still disabled — backdrop-filter over the whole page is too expensive / glitchy
     document.getElementById('tm-aether-gravity-lens')?.remove();
 }
 
-function scheduleAetherWorldDim(container, stage) {
-    if (!aetherMythFxActive) return;
-    // No continuous layout loop — refresh on awaken tick only (rare)
-    const live = typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : stage;
-    updateAetherWorldDim(container, live);
-    aetherDimRaf = setTimeout(() => {
+/**
+ * Short random fullscreen aura flash (~1.2–2.6s). Not always on.
+ */
+function playAetherScreenAuraBurst(container, stage, {
+    activeFx = null,
+    durationMs = null,
+    force = false,
+} = {}) {
+    if (!aetherMythFxActive || !container || tamagotchiCharacterType !== 'aether' || tamagotchiIsDead) {
+        return false;
+    }
+    if (isAetherUltraMode()) return false;
+    if (document.hidden && !force) return false;
+
+    const liveStage = stage || tamagotchiStage || 'adult';
+    const tier = AETHER_STAGE_TIER[liveStage] || 1;
+    const lite = isAetherLiteMode();
+    const awakened = isAetherAwakened();
+    const colors = AETHER_SCREEN_AURA_STAGE[liveStage] || AETHER_SCREEN_AURA_STAGE.adult;
+
+    const hold = Math.max(
+        900,
+        Math.min(
+            force || awakened ? 3000 : 2400,
+            durationMs != null
+                ? durationMs
+                : (lite ? 1000 + Math.random() * 800 : 1200 + Math.random() * 1200)
+                    + (awakened ? 350 : 0)
+        )
+    );
+
+    const fx = activeFx || new Set(
+        [...container.querySelectorAll('.tm-aether-fx.tm-fx-on')]
+            .map((el) => el.getAttribute('data-fx'))
+            .filter(Boolean)
+    );
+    const glowOn = container.classList.contains('tm-aether-glow-on') || force || awakened;
+    const ringOn = container.classList.contains('tm-aether-ring-on')
+        || fx.has('corona')
+        || (!lite && Math.random() < 0.45);
+    const hasHaze = !lite && (fx.has('haze') || fx.has('aura-outer') || awakened || Math.random() < 0.35);
+    const hasBeams = !lite && (fx.has('beams') || fx.has('orbits') || awakened || Math.random() < 0.25);
+
+    const root = ensureAetherScreenAura();
+    root.dataset.stage = liveStage;
+    root.style.setProperty('--ac1', colors.c1);
+    root.style.setProperty('--ac2', colors.c2);
+    root.style.setProperty('--ac3', colors.c3);
+
+    const strength = Math.min(
+        1,
+        (lite ? 0.28 : 0.32)
+            + tier * 0.04
+            + (glowOn ? 0.1 : 0)
+            + (fx.has('aura') ? 0.08 : 0)
+            + (fx.has('corona') ? 0.06 : 0)
+            + (awakened ? 0.18 : 0)
+            + (force ? 0.12 : 0)
+    );
+    root.style.setProperty('--aura-strength', strength.toFixed(3));
+
+    root.classList.toggle('is-lite', lite);
+    root.classList.toggle('is-strong', strength > 0.5 || tier >= 5 || force);
+    root.classList.toggle('is-awaken', awakened || force);
+    root.classList.toggle('has-ring', ringOn);
+    root.classList.toggle('has-haze', hasHaze);
+    root.classList.toggle('has-rays', hasBeams);
+    root.classList.add('is-on');
+    document.body.classList.add('tm-aether-screen-aura-on');
+
+    aetherScreenAuraUntil = Date.now() + hold;
+    updateAetherScreenAuraOrigin(container);
+    scheduleAetherScreenAuraOrigin(container);
+    updateAetherWorldDim(container, liveStage, { strengthOverride: strength * 0.55 });
+
+    if (aetherScreenAuraEndTimer) clearTimeout(aetherScreenAuraEndTimer);
+    aetherScreenAuraEndTimer = setTimeout(() => {
+        aetherScreenAuraEndTimer = null;
+        hideAetherScreenAura();
+    }, hold);
+
+    return true;
+}
+
+/** Alias used by blink/awaken — always a short burst. */
+function syncAetherScreenAura(container, stage, activeFx = null) {
+    playAetherScreenAuraBurst(container, stage, {
+        activeFx,
+        durationMs: 1600 + Math.random() * 600,
+        force: true,
+    });
+}
+
+function scheduleAetherScreenAuraBursts(container, stage) {
+    if (!aetherMythFxActive || isAetherUltraMode()) return;
+    clearAetherTimer('screen');
+    const lite = isAetherLiteMode();
+    const tier = AETHER_STAGE_TIER[stage] || 1;
+    const waitMs = (lite ? 18000 : 12000)
+        + Math.random() * (lite ? 22000 : 18000)
+        - Math.min(4000, tier * 500);
+
+    aetherScreenAuraTimer = setTimeout(() => {
+        aetherScreenAuraTimer = null;
         if (!aetherMythFxActive) return;
-        scheduleAetherWorldDim(container, stage);
-    }, 4000);
+        const live = document.getElementById('tm-mascot-container') || container;
+        const liveStage = (typeof tamagotchiStage !== 'undefined' && tamagotchiStage) ? tamagotchiStage : stage;
+        const chance = lite ? 0.4 : (0.48 + tier * 0.04);
+        if (!document.hidden && !isMascotFocusQuiet() && Math.random() < chance) {
+            playAetherScreenAuraBurst(live, liveStage);
+        }
+        scheduleAetherScreenAuraBursts(live, liveStage);
+    }, Math.max(9000, waitMs));
+}
+
+function scheduleAetherWorldDim() {
+    // World dim only rides along with short screen-aura bursts
+    clearAetherTimer('dim');
 }
 
 function scheduleAetherAuraRoll(container, stage) {
@@ -27766,7 +27888,7 @@ function updateAetherAmbientTint(container, stage) {
         document.body.classList.add('tm-aether-ambient-on', `tm-aether-ambient-${liveStage}`);
         aetherAmbientStage = liveStage;
     }
-    syncAetherScreenAura(container, liveStage);
+    // Fullscreen wash is random/short — do not keep it on from ambient sync
 }
 
 function playAetherMicroPose(container) {
@@ -27885,6 +28007,7 @@ function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tam
     aetherPerfModeCached = null; // re-detect in case override / probe changed
     const mode = applyAetherPerfClass(container);
     maybeStartAetherPerfProbe();
+    ensureAetherVisibilityPauseBound();
     container.classList.add('tm-aether-sovereign', 'tm-aether-mythic-frame');
     syncAetherBorderTier(container, stage);
 
@@ -27908,10 +28031,10 @@ function syncAetherMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tam
     }, 600 + Math.random() * 900);
     scheduleAetherParticleBurst(container, stage);
     scheduleAetherSolemnBubble();
-    scheduleAetherWorldDim(container, stage);
+    scheduleAetherScreenAuraBursts(container, stage);
 
     if (mode === 'lite') {
-        // Soft fullscreen aura + wings; skip spectacle / trails / heavy particles
+        // Soft random fullscreen bursts + wings; skip spectacle / trails / heavy particles
         ensureAetherFormCrest(container, stage);
         console.log('[MMS Mascot] Aether lite mode (optimized for older PCs).');
         return;
@@ -27984,7 +28107,6 @@ function awakenAetherMythicFx(durationMs = 6000) {
         emitAetherMythParticles(container, stage, 3);
     }
     syncAetherScreenAura(container, stage);
-    updateAetherWorldDim(container, stage);
     if (!lite) {
         emitAetherWingCrackSparks(container, stage, 3);
         playAetherGazeBeam(container, stage);
@@ -27992,7 +28114,6 @@ function awakenAetherMythicFx(durationMs = 6000) {
         playAetherNameplate(container, stage);
         playAetherMythicShimmer(container);
         playAetherSpectralBlade(container);
-        updateAetherWorldDim(container, stage);
     }
     markAetherWitness();
     showMascotBubble('Awaken.', 1800);
@@ -28001,7 +28122,6 @@ function awakenAetherMythicFx(durationMs = 6000) {
         container.classList.remove('tm-aether-awaken');
         if (aetherMythFxActive) {
             rollAetherAuraLayers(container, tamagotchiStage || stage);
-            if (!isAetherLiteMode()) updateAetherWorldDim(container, tamagotchiStage || stage);
         }
     }, lite ? Math.min(durationMs, 3200) : durationMs);
     return true;
@@ -38093,11 +38213,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         if (tamagotchiIsDead || tamaCinematicLock) return;
         if (isMascotFocusQuiet()) return; // stay put during focus
 
-        const startX = e.clientX;
-        const startY = e.clientY;
-        const origin = getMascotTranslate(container);
+        // Prefer the painted robot for hit-testing / capture (container is pointer-events:none).
+        const captureTarget = e.target.closest?.('.tm-mascot-robot') || container.querySelector('.tm-mascot-robot') || container;
+        let startX = e.clientX;
+        let startY = e.clientY;
+        let origin = getMascotTranslate(container);
         let dragging = false;
+        let captureId = null;
 
+        // document + capture phase: reliable under Tampermonkey sandbox (window listeners can miss page events)
         const onMove = (ev) => {
             const dx = ev.clientX - startX;
             const dy = ev.clientY - startY;
@@ -38110,18 +38234,34 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     clearTimeout(mascotClickOpenTimer);
                     mascotClickOpenTimer = null;
                 }
+                // Kill leftover dodge/CSS transition so position tracks the cursor 1:1
+                container.style.transition = 'none';
                 stopRoaming(config);
+                // Re-sync after WAAPI cancel — animation may have moved since pointerdown
+                origin = getMascotTranslate(container);
+                startX = ev.clientX;
+                startY = ev.clientY;
                 syncMascotInteractionClasses(container);
-                try { container.setPointerCapture(ev.pointerId); } catch (_) {}
+                try {
+                    captureTarget.setPointerCapture(ev.pointerId);
+                    captureId = ev.pointerId;
+                } catch (_) { /* ignore */ }
+                try { ev.preventDefault(); } catch (_) { /* ignore */ }
+                applyMascotDragPosition(container, origin.x, origin.y);
+                return;
             }
-            applyMascotPosition(container, origin.x + dx, origin.y + dy);
+            try { ev.preventDefault(); } catch (_) { /* ignore */ }
+            applyMascotDragPosition(container, origin.x + dx, origin.y + dy);
         };
 
         const onUp = (ev) => {
-            window.removeEventListener('pointermove', onMove);
-            window.removeEventListener('pointerup', onUp);
-            window.removeEventListener('pointercancel', onUp);
-            try { container.releasePointerCapture(ev.pointerId); } catch (_) {}
+            document.removeEventListener('pointermove', onMove, true);
+            document.removeEventListener('pointerup', onUp, true);
+            document.removeEventListener('pointercancel', onUp, true);
+            const pid = ev?.pointerId ?? captureId;
+            if (pid != null) {
+                try { captureTarget.releasePointerCapture(pid); } catch (_) { /* ignore */ }
+            }
 
             if (!dragging) {
                 mascotIsDragging = false;
@@ -38139,9 +38279,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             syncMascotInteractionClasses(container);
         };
 
-        window.addEventListener('pointermove', onMove);
-        window.addEventListener('pointerup', onUp);
-        window.addEventListener('pointercancel', onUp);
+        try { e.preventDefault(); } catch (_) { /* ignore */ }
+        document.addEventListener('pointermove', onMove, { capture: true, passive: false });
+        document.addEventListener('pointerup', onUp, true);
+        document.addEventListener('pointercancel', onUp, true);
     });
 
     // Meal button (proper meal)

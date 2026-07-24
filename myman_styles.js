@@ -4215,11 +4215,16 @@
             #tm-mascot-container.mascot-dragging {
                 cursor: grabbing;
                 z-index: 10050;
+                /* Container is normally pointer-events:none — must accept capture during drag */
+                pointer-events: auto !important;
+                touch-action: none;
                 transition: none !important;
+                user-select: none;
             }
             #tm-mascot-container.mascot-dragging .tm-mascot-robot {
                 cursor: grabbing;
                 animation: none !important;
+                pointer-events: all !important;
             }
             #tm-mascot-container.mascot-parked::after,
             #tm-mascot-container.mascot-parked.mascot-char-aether::after {
@@ -4471,9 +4476,11 @@
                 border-color: color-mix(in srgb, #16a34a 45%, transparent);
                 background: color-mix(in srgb, #16a34a 10%, transparent);
             }
-            /* ...but the robot and its panel inside are. */
-            #tm-mascot-container > svg {
-                pointer-events: auto;
+            /* ...but the robot and its panel inside are.
+               pointer-events:all makes the full 100x100 SVG viewport grabbable (not only painted pixels). */
+            #tm-mascot-container > svg,
+            #tm-mascot-container .tm-mascot-robot {
+                pointer-events: all;
             }
             .tm-mascot-robot {
                 width: 100%; height: 100%;
@@ -5361,7 +5368,7 @@
                 pointer-events: none !important;
                 overflow: hidden;
                 opacity: 0;
-                transition: opacity 1.1s ease;
+                transition: opacity 0.45s ease;
                 contain: strict;
             }
             #tm-aether-screen-aura.is-on {
@@ -5476,7 +5483,7 @@
                 z-index: 9978;
                 pointer-events: none !important;
                 opacity: 0;
-                transition: opacity 1.2s ease;
+                transition: opacity 0.45s ease;
                 background:
                     radial-gradient(ellipse 90% 80% at var(--axp, 50%) var(--ayp, 45%),
                         rgba(18, 0, 31, 0.08) 0%,
@@ -7713,6 +7720,7 @@
                 z-index: 9992;
                 box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
                 opacity: 0;
+                pointer-events: none;
                 transition: opacity 0.3s ease-out, top 0.3s ease-out;
             }
             .tm-mascot-speech-bubble.show {
