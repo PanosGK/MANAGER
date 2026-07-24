@@ -363,8 +363,18 @@
 
         let countdownInterval = null;
 
+        function isPhoneCatalogOpen() {
+            return !!document.querySelector('.tm-sl-overlay');
+        }
+
         function isRefreshBlocked() {
+            if (isPhoneCatalogOpen()) return true;
             return typeof window.isMmsNotificationActive === 'function' && window.isMmsNotificationActive();
+        }
+
+        function getRefreshPausedReason() {
+            if (isPhoneCatalogOpen()) return 'Auto-refresh paused (phone catalog open)';
+            return 'Auto-refresh paused (notification showing)';
         }
 
         // --- UI Creation - Circular Countdown Design ---
@@ -422,7 +432,7 @@
                             return;
                         }
                     } else {
-                        container.title = 'Auto-refresh paused (notification showing)';
+                        container.title = getRefreshPausedReason();
                     }
 
                     // Use smart time formatting if available
@@ -463,7 +473,7 @@
 
         // --- Logic ---
         createTimerUI();
-        console.log(`Page will auto-refresh in ${REFRESH_INTERVAL_MINUTES} minutes (pauses during script notifications).`);
+        console.log(`Page will auto-refresh in ${REFRESH_INTERVAL_MINUTES} minutes (pauses during phone catalog / script notifications).`);
     }
 
     

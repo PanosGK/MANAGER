@@ -22103,7 +22103,7 @@ function ensureTamaCinematicStyles() {
 }
 
 function ensureMascotExecutionStyles() {
-    const STYLE_VER = 'inplace-v5';
+    const STYLE_VER = 'inplace-v6-ak47';
     const existing = document.getElementById('tm-tama-execution-styles');
     if (existing?.dataset.tmVer === STYLE_VER) return;
     existing?.remove();
@@ -22146,14 +22146,14 @@ function ensureMascotExecutionStyles() {
         }
         .tm-exec-gun-wrap {
             position: fixed;
-            width: 240px;
-            height: 100px;
+            width: 300px;
+            height: 130px;
             z-index: 8;
-            transform: translate3d(40px, 8px, 0) rotate(-4deg);
+            transform: translate3d(40px, 8px, 0) rotate(-3deg);
             opacity: 0;
-            transform-origin: 88% 65%;
+            transform-origin: 90% 58%;
             will-change: transform, opacity;
-            filter: drop-shadow(0 8px 14px rgba(0,0,0,0.45));
+            filter: drop-shadow(0 10px 16px rgba(0,0,0,0.5));
             left: var(--tm-exec-gun-left, 0px);
             top: var(--tm-exec-gun-top, 0px);
             margin: 0;
@@ -22162,10 +22162,10 @@ function ensureMascotExecutionStyles() {
         }
         .tm-exec-gun-wrap.on-stage {
             opacity: 1;
-            transform: translate3d(0, 0, 0) rotate(-2deg);
+            transform: translate3d(0, 0, 0) rotate(-1deg);
         }
         .tm-exec-gun-wrap.on-stage.aimed {
-            transform: translate3d(-18px, -2px, 0) rotate(-8deg);
+            transform: translate3d(-18px, -2px, 0) rotate(-7deg);
         }
         .tm-exec-gun-wrap.enter {
             animation: tm-exec-gun-enter 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -22176,13 +22176,13 @@ function ensureMascotExecutionStyles() {
         .tm-exec-gun-wrap.recoil {
             animation: tm-exec-gun-recoil 0.12s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
         }
-        .tm-exec-gun { width: 100%; height: 100%; display: block; }
+        .tm-exec-gun { width: 100%; height: 100%; display: block; overflow: visible; }
         .tm-exec-muzzle {
             position: absolute;
-            left: -4px;
-            top: 18px;
-            width: 64px;
-            height: 64px;
+            left: -10px;
+            top: 8px;
+            width: 72px;
+            height: 72px;
             pointer-events: none;
             opacity: 0;
         }
@@ -22497,18 +22497,18 @@ function ensureMascotExecutionStyles() {
             100% { transform: translate(0, 54px) rotate(-92deg) scale(0.78); filter: grayscale(1) brightness(0.2) blur(3px); opacity: 0.08; }
         }
         @keyframes tm-exec-gun-enter {
-            0% { transform: translate3d(80px, 8px, 0) rotate(-4deg); opacity: 0; }
+            0% { transform: translate3d(80px, 8px, 0) rotate(-3deg); opacity: 0; }
             60% { opacity: 1; }
-            100% { transform: translate3d(0, 0, 0) rotate(-2deg); opacity: 1; }
+            100% { transform: translate3d(0, 0, 0) rotate(-1deg); opacity: 1; }
         }
         @keyframes tm-exec-gun-aim {
-            0% { transform: translate3d(0, 0, 0) rotate(-2deg); }
-            100% { transform: translate3d(-18px, -2px, 0) rotate(-8deg); }
+            0% { transform: translate3d(0, 0, 0) rotate(-1deg); }
+            100% { transform: translate3d(-18px, -2px, 0) rotate(-7deg); }
         }
         @keyframes tm-exec-gun-recoil {
-            0% { transform: translate3d(-18px, -2px, 0) rotate(-8deg); }
-            35% { transform: translate3d(10px, 3px, 0) rotate(2deg); }
-            100% { transform: translate3d(-18px, -2px, 0) rotate(-8deg); }
+            0% { transform: translate3d(-18px, -2px, 0) rotate(-7deg); }
+            35% { transform: translate3d(12px, 3px, 0) rotate(3deg); }
+            100% { transform: translate3d(-18px, -2px, 0) rotate(-7deg); }
         }
         @keyframes tm-exec-muzzle-flash {
             0% { opacity: 0; transform: scale(0.4) rotate(0deg); }
@@ -22797,11 +22797,11 @@ function showMascotExecutionCinematic() {
     const aimX = rect.left + rect.width / 2;
     const aimY = rect.top + rect.height * 0.55;
 
-    // Gun sits to the right of the mascot, barrel pointing left
-    const gunW = 240;
-    const gunH = 100;
-    let gunLeft = rect.right + 12;
-    let gunTop = aimY - gunH * 0.45;
+    // Gun sits to the right of the mascot, barrel pointing left (classic AK silhouette)
+    const gunW = 300;
+    const gunH = 130;
+    let gunLeft = rect.right + 10;
+    let gunTop = aimY - gunH * 0.38;
     // Keep gun on-screen
     if (gunLeft + gunW > window.innerWidth - 8) {
         gunLeft = Math.max(8, window.innerWidth - gunW - 8);
@@ -22809,8 +22809,9 @@ function showMascotExecutionCinematic() {
     if (gunTop < 8) gunTop = 8;
     if (gunTop + gunH > window.innerHeight - 8) gunTop = window.innerHeight - gunH - 8;
 
-    const muzzleX = gunLeft + 4; // barrel tip near left of SVG
-    const muzzleY = gunTop + 34;
+    // Muzzle tip ≈ left edge of SVG, ~barrel centerline in viewBox
+    const muzzleX = gunLeft + 6;
+    const muzzleY = gunTop + 42;
     const tracerSpan = Math.max(40, muzzleX - aimX);
     const tracerLeft = aimX;
     const tracerTop = aimY;
@@ -22834,46 +22835,126 @@ function showMascotExecutionCinematic() {
         <div class="tm-exec-inplace-vignette" aria-hidden="true"></div>
         <div class="tm-exec-blood-layer" id="tm-exec-blood" aria-hidden="true"></div>
         <div class="tm-exec-gun-wrap" id="tm-exec-gun">
-            <svg class="tm-exec-gun" viewBox="0 0 260 110" aria-hidden="true">
+            <svg class="tm-exec-gun" viewBox="0 0 320 140" aria-hidden="true">
                 <defs>
                     <linearGradient id="tm-ak-metal" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#6a727c"/>
-                        <stop offset="50%" stop-color="#3a424c"/>
-                        <stop offset="100%" stop-color="#1c2228"/>
+                        <stop offset="0%" stop-color="#7a8490"/>
+                        <stop offset="35%" stop-color="#4a5560"/>
+                        <stop offset="70%" stop-color="#2a323a"/>
+                        <stop offset="100%" stop-color="#12161a"/>
+                    </linearGradient>
+                    <linearGradient id="tm-ak-metal-side" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#1a1e24"/>
+                        <stop offset="40%" stop-color="#4a545e"/>
+                        <stop offset="100%" stop-color="#2a3238"/>
                     </linearGradient>
                     <linearGradient id="tm-ak-wood" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stop-color="#a0673a"/>
-                        <stop offset="55%" stop-color="#6b3d22"/>
-                        <stop offset="100%" stop-color="#3a1f12"/>
+                        <stop offset="0%" stop-color="#b87848"/>
+                        <stop offset="40%" stop-color="#8a4e28"/>
+                        <stop offset="100%" stop-color="#3e2010"/>
+                    </linearGradient>
+                    <linearGradient id="tm-ak-wood-grain" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="rgba(255,210,160,0.18)"/>
+                        <stop offset="50%" stop-color="rgba(0,0,0,0)"/>
+                        <stop offset="100%" stop-color="rgba(0,0,0,0.22)"/>
                     </linearGradient>
                     <linearGradient id="tm-ak-mag" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#4a525c"/>
-                        <stop offset="100%" stop-color="#1a1e24"/>
+                        <stop offset="0%" stop-color="#5a646e"/>
+                        <stop offset="55%" stop-color="#2a3038"/>
+                        <stop offset="100%" stop-color="#0e1216"/>
                     </linearGradient>
+                    <filter id="tm-ak-shade" x="-5%" y="-5%" width="110%" height="110%">
+                        <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#000" flood-opacity="0.35"/>
+                    </filter>
                 </defs>
-                <path d="M208 34 L248 28 L255 42 L248 70 L214 62 L208 48 Z" fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.2"/>
-                <path d="M214 38 L246 33" stroke="rgba(255,220,180,0.15)" stroke-width="2"/>
-                <rect x="118" y="30" width="96" height="28" rx="2" fill="url(#tm-ak-metal)" stroke="#0e1216" stroke-width="1.2"/>
-                <rect x="122" y="33" width="88" height="5" fill="rgba(255,255,255,0.1)"/>
-                <rect x="130" y="26" width="70" height="6" rx="1" fill="#2e363e" stroke="#111" stroke-width="0.8"/>
-                <path d="M168 56 L176 56 L184 92 L168 96 Z" fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.1"/>
-                <path d="M158 56 h22 v10 h-8 v-4 h-6 v4 h-8 Z" fill="none" stroke="#222" stroke-width="1.6"/>
-                <rect x="168" y="58" width="3" height="8" rx="1" fill="#111"/>
-                <path d="M148 56 C146 72 142 88 150 100 C158 102 166 90 168 72 L168 56 Z"
-                      fill="url(#tm-ak-mag)" stroke="#0a0c10" stroke-width="1.3"/>
-                <path d="M152 62 C151 76 149 88 154 96" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
-                <rect x="58" y="32" width="62" height="22" rx="2" fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.1"/>
-                <path d="M64 38 H114 M64 44 H114 M64 50 H114" stroke="rgba(0,0,0,0.25)" stroke-width="1"/>
-                <rect x="52" y="24" width="78" height="7" rx="2" fill="#3a444e" stroke="#111" stroke-width="0.9"/>
-                <rect x="126" y="20" width="10" height="8" rx="1" fill="#2a3038"/>
-                <rect x="28" y="18" width="5" height="12" rx="1" fill="#2a3038"/>
-                <rect x="26" y="16" width="9" height="3" rx="1" fill="#3a424c"/>
-                <rect x="8" y="34" width="52" height="8" rx="2" fill="url(#tm-ak-metal)" stroke="#0e1216" stroke-width="1"/>
-                <rect x="8" y="36" width="52" height="2" fill="rgba(255,255,255,0.12)"/>
-                <rect x="2" y="32" width="10" height="12" rx="1" fill="#2a3038" stroke="#111" stroke-width="1"/>
-                <rect x="3" y="34" width="3" height="8" fill="#111"/>
-                <rect x="7" y="34" width="3" height="8" fill="#111"/>
-                <path d="M2 32 L0 38 L2 44" fill="#1a1e24"/>
+
+                <!-- Buttstock (wood) -->
+                <path d="M248 28
+                         C252 24 268 20 292 22
+                         L312 26 L316 34 L312 78 L296 92
+                         C278 96 262 88 252 72
+                         L246 58 L248 40 Z"
+                      fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.4" filter="url(#tm-ak-shade)"/>
+                <path d="M256 34 C270 30 290 32 308 36" fill="none" stroke="url(#tm-ak-wood-grain)" stroke-width="2.2"/>
+                <path d="M254 48 C272 46 292 52 306 62" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1.4"/>
+                <rect x="250" y="42" width="8" height="14" rx="1" fill="#2a3038" stroke="#111" stroke-width="0.8"/>
+
+                <!-- Receiver -->
+                <path d="M148 30 L248 28 L250 36 L248 62 L152 64 L146 56 Z"
+                      fill="url(#tm-ak-metal)" stroke="#0e1216" stroke-width="1.3" filter="url(#tm-ak-shade)"/>
+                <path d="M152 34 L244 32" stroke="rgba(255,255,255,0.14)" stroke-width="2.5"/>
+                <path d="M154 52 L242 50" stroke="rgba(0,0,0,0.28)" stroke-width="1.5"/>
+                <!-- Dust cover ridge -->
+                <rect x="158" y="26" width="78" height="7" rx="1.5" fill="#3a444e" stroke="#111" stroke-width="0.9"/>
+                <rect x="160" y="27.5" width="74" height="2" fill="rgba(255,255,255,0.12)"/>
+                <!-- Rear sight -->
+                <path d="M168 20 L172 20 L174 28 L166 28 Z" fill="#2a3038" stroke="#111" stroke-width="0.8"/>
+                <rect x="169" y="16" width="4" height="5" rx="0.5" fill="#1a1e24"/>
+                <!-- Selector / charging handle hint -->
+                <rect x="196" y="22" width="18" height="5" rx="1" fill="#2e363e" stroke="#111" stroke-width="0.7"/>
+                <circle cx="214" cy="24.5" r="2.2" fill="#1a1e24"/>
+
+                <!-- Pistol grip -->
+                <path d="M198 62 L210 62 L218 108 L204 114 L192 78 Z"
+                      fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.2"/>
+                <path d="M200 70 L210 72 M199 82 L211 86 M200 94 L210 98"
+                      fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="1.3"/>
+
+                <!-- Trigger guard + trigger -->
+                <path d="M184 62 h28 v12 h-10 v-5 h-8 v5 h-10 Z"
+                      fill="none" stroke="#1a1e24" stroke-width="2.2" stroke-linejoin="round"/>
+                <path d="M196 64 L198 74 L202 74 L200 64 Z" fill="#111"/>
+
+                <!-- Classic curved AK magazine -->
+                <path d="M168 62
+                         C164 78 158 96 166 114
+                         C172 120 184 118 190 108
+                         C196 92 198 76 196 62 Z"
+                      fill="url(#tm-ak-mag)" stroke="#0a0c10" stroke-width="1.4" filter="url(#tm-ak-shade)"/>
+                <path d="M174 70 C171 86 168 100 174 110" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="2"/>
+                <path d="M182 68 C180 84 178 100 184 110" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="1.4"/>
+                <path d="M170 78 Q180 76 188 80 M169 92 Q180 90 189 94 M171 104 Q180 102 187 106"
+                      fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+
+                <!-- Lower handguard (wood) -->
+                <path d="M72 38 L150 34 L152 58 L74 60 Z"
+                      fill="url(#tm-ak-wood)" stroke="#2a160c" stroke-width="1.2"/>
+                <path d="M78 44 H146 M78 50 H146 M78 55 H146"
+                      stroke="rgba(0,0,0,0.22)" stroke-width="1.1"/>
+                <path d="M80 42 H144" stroke="rgba(255,200,140,0.12)" stroke-width="1.5"/>
+
+                <!-- Gas tube above barrel -->
+                <rect x="54" y="22" width="100" height="8" rx="2.5"
+                      fill="url(#tm-ak-metal-side)" stroke="#0e1216" stroke-width="1"/>
+                <rect x="56" y="23.5" width="96" height="2" fill="rgba(255,255,255,0.14)"/>
+                <!-- Gas block -->
+                <rect x="54" y="18" width="14" height="14" rx="1.5" fill="#2a3038" stroke="#111" stroke-width="0.9"/>
+                <rect x="57" y="20" width="8" height="3" fill="#1a1e24"/>
+
+                <!-- Upper handguard / retaining bracket -->
+                <path d="M68 18 L150 16 L150 24 L68 26 Z" fill="#3a444e" stroke="#111" stroke-width="0.9"/>
+                <path d="M76 20 H142 M76 23 H142" stroke="rgba(0,0,0,0.3)" stroke-width="0.8"/>
+
+                <!-- Front sight post -->
+                <path d="M48 10 L54 10 L56 28 L46 28 Z" fill="#2a3038" stroke="#111" stroke-width="0.9"/>
+                <rect x="49.5" y="4" width="3.5" height="8" rx="0.5" fill="#1a1e24"/>
+                <rect x="48" y="3" width="6.5" height="2" rx="0.5" fill="#3a424c"/>
+
+                <!-- Barrel -->
+                <rect x="14" y="32" width="60" height="9" rx="2.5"
+                      fill="url(#tm-ak-metal)" stroke="#0e1216" stroke-width="1.1"/>
+                <rect x="14" y="33.5" width="60" height="2.2" fill="rgba(255,255,255,0.13)"/>
+                <!-- Cleaning rod under barrel -->
+                <rect x="22" y="42" width="48" height="2.2" rx="1" fill="#2a3038"/>
+
+                <!-- Muzzle / flash hider (multi-baffle AK style) -->
+                <rect x="2" y="29" width="14" height="14" rx="1.5" fill="#2a3038" stroke="#111" stroke-width="1"/>
+                <rect x="3.5" y="31" width="2.2" height="10" fill="#0a0c10"/>
+                <rect x="7" y="31" width="2.2" height="10" fill="#0a0c10"/>
+                <rect x="10.5" y="31" width="2.2" height="10" fill="#0a0c10"/>
+                <path d="M2 29 L0 36 L2 43" fill="#1a1e24"/>
+                <!-- Muzzle ring -->
+                <rect x="14" y="30" width="4" height="12" rx="0.5" fill="#3a444e" stroke="#111" stroke-width="0.6"/>
             </svg>
             <div class="tm-exec-muzzle" id="tm-exec-muzzle"></div>
         </div>
@@ -60578,8 +60659,18 @@ if (typeof window !== 'undefined') {
 
         let countdownInterval = null;
 
+        function isPhoneCatalogOpen() {
+            return !!document.querySelector('.tm-sl-overlay');
+        }
+
         function isRefreshBlocked() {
+            if (isPhoneCatalogOpen()) return true;
             return typeof window.isMmsNotificationActive === 'function' && window.isMmsNotificationActive();
+        }
+
+        function getRefreshPausedReason() {
+            if (isPhoneCatalogOpen()) return 'Auto-refresh paused (phone catalog open)';
+            return 'Auto-refresh paused (notification showing)';
         }
 
         // --- UI Creation - Circular Countdown Design ---
@@ -60637,7 +60728,7 @@ if (typeof window !== 'undefined') {
                             return;
                         }
                     } else {
-                        container.title = 'Auto-refresh paused (notification showing)';
+                        container.title = getRefreshPausedReason();
                     }
 
                     // Use smart time formatting if available
@@ -60678,7 +60769,7 @@ if (typeof window !== 'undefined') {
 
         // --- Logic ---
         createTimerUI();
-        console.log(`Page will auto-refresh in ${REFRESH_INTERVAL_MINUTES} minutes (pauses during script notifications).`);
+        console.log(`Page will auto-refresh in ${REFRESH_INTERVAL_MINUTES} minutes (pauses during phone catalog / script notifications).`);
     }
 
     
