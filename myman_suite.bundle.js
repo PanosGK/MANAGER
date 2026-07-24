@@ -3326,6 +3326,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         ACHIEVEMENTS: 'tm_achievements_unlocked',
         USER_COINS: 'tm_user_coins',
         STARTER_COINS_GRANTED: 'tm_starter_coins_granted',
+        DAILY_CARE_COINS_DATE: 'tm_daily_care_coins_date',
         USER_TITLE: 'tm_user_title', // New: For cosmetic titles
         PURCHASED_ITEMS: 'tm_purchased_items',
         EQUIPPED_ITEMS: 'tm_equipped_items', // Changed from singular to plural
@@ -3693,6 +3694,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             // Search + dashboard history
             'tm_search_history', 'tm_favorite_searches', 'tm_daily_stats_history', 'tm_stats_history_7days',
             'tm_daily_stipend_date',
+            'tm_daily_care_coins_date',
             'tm_search_include_merchandise_history', 'tm_search_include_parts_history',
             'tm_native_search_hidden', 'tm_quick_search_hidden',
             // Status transfer counters (extra statuses beyond STORAGE_KEYS)
@@ -5558,6 +5560,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     function collectAllShells() {
         const shells = {};
         SHELL_SPECS.forEach((spec) => {
+            // Never cache the mascot — colliding snapshots made list/edit look like different pets
+            if (spec.id === 'tm-mascot-container') return;
             const el = document.getElementById(spec.id);
             if (!el || isShellEl(el)) return;
             const html = slimCloneHtml(el, spec);
@@ -15256,6 +15260,12 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             where: 'UI επιπέδου / XP στο suite (footer ή σχετικά panels).',
             when: 'Μετά από επιτυχημένες εργασίες όσο είναι ενεργό.',
         },
+        daily_bounties: {
+            title: 'Daily Bounties',
+            what: 'Ημερήσιες αποστολές με ανταμοιβές. Αν το σύστημα επιπέδων είναι off, δίνουν μόνο coins (όχι XP).',
+            where: 'Κουμπί «Daily Bounties» στο search slide-out.',
+            when: 'Όσο είναι ενεργό — πρόοδος από εργασίες και claim στο modal.',
+        },
         confetti: {
             title: 'Εφέ κομφετί',
             what: 'Οπτικά εφέ κομφετί σε επιτυχίες και milestones.',
@@ -15659,6 +15669,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
             // --- Save Gamification/Fun Settings ---
             saveCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
+            saveCheckbox('tm-setting-daily-bounties-enabled', 'dailyBountiesEnabled');
             saveCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
             saveCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
             saveCheckbox('tm-setting-achievements-enabled', 'achievementsEnabled');
@@ -15736,6 +15747,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
             // --- Save Gamification/Fun Settings ---
             saveCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
+            saveCheckbox('tm-setting-daily-bounties-enabled', 'dailyBountiesEnabled');
             saveCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
             saveCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
             saveCheckbox('tm-setting-achievements-enabled', 'achievementsEnabled');
@@ -16805,6 +16817,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             populateCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
             populateCheckbox('tm-setting-wifi-qr-enabled', 'wifiQrEnabled');
             populateCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
+            populateCheckbox('tm-setting-daily-bounties-enabled', 'dailyBountiesEnabled');
             populateCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
             populateCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
             populateCheckbox('tm-setting-achievements-enabled', 'achievementsEnabled');
@@ -18934,7 +18947,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             const container = document.getElementById('tm-search-container');
             if (!container) return;
 
-            if (config.levelUpSystemEnabled && !document.getElementById('tm-quests-btn')) {
+            if (config.dailyBountiesEnabled !== false && !document.getElementById('tm-quests-btn')) {
                 const questsButton = document.createElement('button');
                 questsButton.id = 'tm-quests-btn';
                 questsButton.className = 'tm-slide-out-btn';
@@ -20670,19 +20683,27 @@ function getAccessoryCatalogItem(itemId) {
     return MASCOT_ACCESSORY_CATALOG.find((item) => item.id === normalized) || null;
 }
 
+function getMascotLiveRoot() {
+    return document.querySelector('#tm-mascot-container[data-tm-mascot-live="1"]')
+        || document.querySelector('#tm-mascot-container:not([data-tm-ui-shell="1"])')
+        || document.getElementById('tm-mascot-container');
+}
+
 function setMascotAccessoryVisible(el, visible) {
     if (!el) return;
+    // Never touch page DOM outside the live mascot (service_edit has colliding #book/#shield/etc.)
+    const root = getMascotLiveRoot();
+    if (root && !root.contains(el)) return;
     if (visible) el.style.removeProperty('display');
     else el.style.display = 'none';
 }
 
 function hideAllMascotAccessories() {
-    MASCOT_ACCESSORY_CATALOG.forEach(({ id }) => {
-        const el = document.getElementById(id);
-        if (el) {
-            setMascotAccessoryVisible(el, false);
-            el.classList.remove('tm-accessory-equipped');
-        }
+    const root = getMascotLiveRoot();
+    if (!root) return;
+    root.querySelectorAll('.tm-mascot-accessory').forEach((el) => {
+        setMascotAccessoryVisible(el, false);
+        el.classList.remove('tm-accessory-equipped');
     });
 }
 
@@ -20996,7 +21017,7 @@ function getVisibleMascotSpriteRoot() {
         }
         return child;
     }
-    return fallback || document.getElementById('tm-mascot-base');
+    return fallback || getMascotSpriteById(getMascotLiveRoot(), 'tm-mascot-base');
 }
 
 function getSpriteEyeElement(sprite) {
@@ -21151,16 +21172,16 @@ function getMascotStageAnchors(stage = getEffectiveMascotStage()) {
 }
 
 function hasEquippedMascotAccessories() {
-    return MASCOT_ACCESSORY_CATALOG.some(({ id }) => document.getElementById(id)?.classList.contains('tm-accessory-equipped'));
+    return MASCOT_ACCESSORY_CATALOG.some(({ id }) => getAccessoryElement(id)?.classList.contains('tm-accessory-equipped'));
 }
 
 function hasActiveStateAccessories() {
-    const container = document.getElementById('tm-mascot-container');
+    const container = getMascotLiveRoot();
     if (!container) return false;
     return Object.entries(STATE_FORCED_ACCESSORIES).some(([state, ids]) =>
         container.classList.contains(`mascot-${state}`)
         && ids.some((id) => {
-            const el = document.getElementById(id);
+            const el = getAccessoryElement(id);
             return el && window.getComputedStyle(el).display !== 'none';
         }),
     );
@@ -21221,13 +21242,13 @@ function syncStateAccessoryLayout(state, previousState) {
 
 function updateMascotAccessoryLayout(stage = getEffectiveMascotStage()) {
     MASCOT_ACCESSORY_CATALOG.forEach(({ id }) => {
-        const el = document.getElementById(id);
+        const el = getAccessoryElement(id);
         if (el?.classList.contains('tm-accessory-equipped')) {
             layoutMascotAccessory(id, stage);
         }
     });
 
-    const container = document.getElementById('tm-mascot-container');
+    const container = getMascotLiveRoot();
     if (!container) return;
     Object.entries(STATE_FORCED_ACCESSORIES).forEach(([state, ids]) => {
         if (!container.classList.contains(`mascot-${state}`)) return;
@@ -21236,11 +21257,12 @@ function updateMascotAccessoryLayout(stage = getEffectiveMascotStage()) {
 }
 
 function initMascotAccessoryLayers() {
-    const flipper = document.querySelector('.tm-mascot-flipper');
+    const root = getMascotLiveRoot();
+    const flipper = root?.querySelector?.('.tm-mascot-flipper') || document.querySelector('#tm-mascot-container .tm-mascot-flipper');
     if (!flipper) return;
 
-    const legacyBackLayer = document.getElementById('tm-mascot-acc-back');
-    let frontLayer = document.getElementById('tm-mascot-acc-front');
+    const legacyBackLayer = flipper.querySelector('#tm-mascot-acc-back');
+    let frontLayer = flipper.querySelector('#tm-mascot-acc-front');
 
     if (frontLayer && legacyBackLayer) {
         while (legacyBackLayer.firstChild) {
@@ -21260,8 +21282,9 @@ function initMascotAccessoryLayers() {
 
     const prependFront = [];
     MASCOT_ACCESSORY_CATALOG.forEach(({ id }) => {
-        const el = document.getElementById(id);
-        if (!el) return;
+        // Must stay inside the live mascot SVG — never document.getElementById
+        const el = getAccessoryElement(id) || flipper.querySelector(`#${CSS.escape(id)}`);
+        if (!el || !flipper.contains(el)) return;
         if (ACCESSORY_PREPEND_FRONT.has(id)) {
             el.setAttribute('data-tm-back-slot', 'true');
             prependFront.push(el);
@@ -25006,14 +25029,22 @@ function getTamagotchiStorageKeys(STORAGE_KEYS) {
 }
 
 /**
- * Helper function to get the correct accessory element from the DOM, handling special cases.
- * @param {string} itemId The ID of the accessory.
- * @returns {HTMLElement|null} The DOM element for the accessory.
+ * Accessory nodes live inside #tm-mascot-container. Never use document.getElementById —
+ * service_edit.php has colliding host IDs (book, shield, umbrella, …) that steal the lookup
+ * and make the mascot look like a different pet on repair pages.
  */
 function getAccessoryElement(itemId) {
     const normalized = normalizeAccessoryId(itemId);
     if (!normalized) return null;
-    return document.getElementById(normalized);
+    const root = getMascotLiveRoot();
+    if (!root) return null;
+    try {
+        return root.querySelector(`.tm-mascot-accessory#${CSS.escape(normalized)}`)
+            || root.querySelector(`#${CSS.escape(normalized)}`);
+    } catch (_) {
+        return root.querySelector(`.tm-mascot-accessory[id="${normalized}"]`)
+            || root.querySelector(`[id="${normalized}"]`);
+    }
 }
 
 function stopRoaming(config) {
@@ -29262,14 +29293,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="100%" style="stop-color:#d35400;stop-opacity:0.5" />
                         </linearGradient>
                 <!-- Glow filters for magical effects -->
-                <filter id="glow">
+                <filter id="tm-mascot-glow">
                     <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                     <feMerge>
                         <feMergeNode in="coloredBlur"/>
                         <feMergeNode in="SourceGraphic"/>
                     </feMerge>
                 </filter>
-                <filter id="strong-glow">
+                <filter id="tm-mascot-strong-glow">
                     <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
                     <feMerge>
                         <feMergeNode in="coloredBlur"/>
@@ -29299,7 +29330,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <!-- Cosmic glow aura -->
                     <ellipse cx="50" cy="52" rx="42" ry="48" fill="url(#egg-glow)" class="tm-cosmic-aura"/>
                     <!-- Main egg body -->
-                    <ellipse cx="50" cy="52" rx="33" ry="38" fill="url(#egg-shell)" stroke="#4ecdc4" stroke-width="2.5" filter="url(#glow)"/>
+                    <ellipse cx="50" cy="52" rx="33" ry="38" fill="url(#egg-shell)" stroke="#4ecdc4" stroke-width="2.5" filter="url(#tm-mascot-glow)"/>
                     <!-- Magical crack patterns (animated) -->
                     <path d="M 50 20 L 48 28 L 52 35 L 49 42" stroke="#26a69a" stroke-width="1.5" fill="none" opacity="0.6" stroke-linecap="round" class="tm-egg-crack"/>
                     <path d="M 30 40 L 35 45 L 32 52" stroke="#26a69a" stroke-width="1.5" fill="none" opacity="0.5" stroke-linecap="round" class="tm-egg-crack"/>
@@ -37174,6 +37205,19 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         const feedUrgent = !isEgg && petStats.hunger < 35;
         const praiseUrgent = !isEgg && !!tamagotchiNeedsPraise;
         const scoldUrgent = !isEgg && !!tamagotchiNeedsScold;
+        const dailyCoinsState = (typeof getDailyCareCoinsButtonState === 'function')
+            ? getDailyCareCoinsButtonState(STORAGE_KEYS)
+            : { claimed: false, amount: 50, label: 'Δωρεάν coins', hint: '+50 κάθε μέρα', title: 'Πάρε 50 δωρεάν coins (1×/μέρα)' };
+        const dailyCoinsRowHtml = `
+                <div class="tm-mascot-daily-coins-row">
+                    <button type="button" class="tm-action-btn tm-action-daily-coins ${dailyCoinsState.claimed ? 'tm-daily-claimed' : 'tm-action-urgent'}" id="tm-action-daily-coins" title="${dailyCoinsState.title}" ${dailyCoinsState.claimed ? 'disabled' : ''}>
+                        <span class="tm-action-icon">🪙</span>
+                        <span class="tm-action-copy">
+                            <span class="tm-action-label">${dailyCoinsState.label}</span>
+                            <span class="tm-action-hint">${dailyCoinsState.hint}</span>
+                        </span>
+                    </button>
+                </div>`;
 
         const modal = document.createElement('div');
         modal.id = 'tm-mascot-stats-modal';
@@ -37199,6 +37243,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <span class="tm-tip-icon">${tip.icon}</span>
                     <span class="tm-tip-text">${tip.text}</span>
                 </div>
+
+                ${dailyCoinsRowHtml}
 
                 ${isEgg ? `
                 <div class="tm-mascot-stats-block">
@@ -37459,6 +37505,39 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 background: color-mix(in srgb, #ef4444 12%, var(--tm-shop-item-bg, #fef2f2));
                 border: 1px solid color-mix(in srgb, #ef4444 30%, transparent); color: #991b1b;
             }
+            #tm-mascot-stats-modal .tm-mascot-daily-coins-row {
+                margin: 0 18px 12px;
+            }
+            #tm-mascot-stats-modal .tm-action-daily-coins {
+                width: 100%;
+                flex-direction: row;
+                justify-content: flex-start;
+                gap: 12px;
+                padding: 12px 14px;
+                text-align: left;
+            }
+            #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-copy {
+                display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0;
+            }
+            #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-label,
+            #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-hint {
+                text-align: left;
+            }
+            #tm-mascot-stats-modal .tm-action-daily-coins.tm-daily-claimed {
+                opacity: 0.72;
+                cursor: default;
+                box-shadow: none;
+                border-color: var(--tm-shop-item-border, #e2e8f0);
+                background: var(--tm-shop-item-bg, #f8fafc);
+            }
+            #tm-mascot-stats-modal .tm-action-daily-coins.tm-daily-claimed:hover {
+                border-color: var(--tm-shop-item-border, #e2e8f0);
+                background: var(--tm-shop-item-bg, #f8fafc);
+                box-shadow: none;
+            }
+            #tm-mascot-stats-modal .tm-action-daily-coins:disabled {
+                pointer-events: none;
+            }
             #tm-mascot-stats-modal .tm-mascot-alerts {
                 padding: 0 18px; display: flex; flex-direction: column; gap: 8px;
                 margin-bottom: 4px;
@@ -37632,6 +37711,22 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             tipEl.innerHTML = '<span class="tm-tip-icon">' + next.icon + '</span><span class="tm-tip-text">' + next.text + '</span>';
         }
 
+        function refreshDailyCoinsButton() {
+            const btn = modal.querySelector('#tm-action-daily-coins');
+            if (!btn) return;
+            const state = (typeof getDailyCareCoinsButtonState === 'function')
+                ? getDailyCareCoinsButtonState(STORAGE_KEYS)
+                : { claimed: false, label: 'Δωρεάν coins', hint: '+50 κάθε μέρα', title: 'Πάρε 50 δωρεάν coins (1×/μέρα)' };
+            btn.classList.toggle('tm-daily-claimed', !!state.claimed);
+            btn.classList.toggle('tm-action-urgent', !state.claimed);
+            btn.disabled = !!state.claimed;
+            btn.title = state.title || '';
+            const label = btn.querySelector('.tm-action-label');
+            const hint = btn.querySelector('.tm-action-hint');
+            if (label) label.textContent = state.label;
+            if (hint) hint.textContent = state.hint;
+        }
+
         function updateModalStats() {
             if (tamagotchiStage === 'egg') {
                 const progress = Math.round(getEggHatchProgress());
@@ -37648,6 +37743,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     if (icon) icon.textContent = tamagotchiLightsOn ? '💡' : '🌙';
                     if (label) label.textContent = tamagotchiLightsOn ? 'Φώτα' : 'Άνοιξε φώτα';
                 }
+                refreshDailyCoinsButton();
                 return;
             }
 
@@ -37704,6 +37800,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             modal.querySelector('#tm-action-praise')?.classList.toggle('tm-action-urgent', !!tamagotchiNeedsPraise);
             modal.querySelector('#tm-action-scold')?.classList.toggle('tm-action-urgent', !!tamagotchiNeedsScold);
 
+            refreshDailyCoinsButton();
             refreshCareTip();
         }
 
@@ -37729,6 +37826,24 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             if (Math.random() < 0.5) {
                 showMascotBubble(byeMessages[Math.floor(Math.random() * byeMessages.length)], 1500);
             }
+        });
+
+        modal.querySelector('#tm-action-daily-coins')?.addEventListener('click', () => {
+            if (typeof claimDailyCareCoins !== 'function') {
+                showMascotBubble('Δεν είναι διαθέσιμο τώρα.', 1800);
+                return;
+            }
+            const result = claimDailyCareCoins(config, STORAGE_KEYS);
+            refreshDailyCoinsButton();
+            if (result?.ok) {
+                showMascotBubble(`+${result.amount} coins! Ευχαριστώ!`, 2200);
+                return;
+            }
+            if (result?.reason === 'already') {
+                showMascotBubble('Τα πήρες ήδη σήμερα — ξανά αύριο!', 2200);
+                return;
+            }
+            showMascotBubble('Το shop/level-up είναι κλειστό.', 2200);
         });
 
         if (isEgg) {
@@ -39098,6 +39213,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     if (!tamaCinematicLock && !mascotStagePreviewLock) {
         updateMascotAppearanceByStage(tamagotchiStage);
     }
+    // Edit pages run extra reactions; re-assert storage character after they settle
+    setTimeout(() => resyncMascotAppearanceFromStorage(STORAGE_KEYS), 400);
+    setTimeout(() => resyncMascotAppearanceFromStorage(STORAGE_KEYS), 1600);
     } finally {
         window.__tmMascotInitializing = false;
     }
@@ -39501,6 +39619,11 @@ function updateMascotAppearanceByStage(stage) {
         console.warn('[MMS Mascot] No mascot container — skip appearance update');
         return;
     }
+    markMascotContainerLive(container);
+    try {
+        container.dataset.tmChar = String(tamagotchiCharacterType || 'none');
+        container.dataset.tmStage = String(stage || tamagotchiStage || 'egg');
+    } catch (_) { /* ignore */ }
 
     const eggSprite = getMascotSpriteById(container, 'tm-mascot-base');
     const allCharacterTypes = TAMA_CHARACTER_TYPES;
@@ -41044,14 +41167,54 @@ function filterQuestPool(config) {
     const mascotEnabled = config?.interactiveMascotEnabled !== false;
     const phoneCatalogEnabled = config?.phoneCatalogEnabled !== false;
     const eodEnabled = config?.eodChecklistEnabled !== false;
+    const xpEnabled = config?.levelUpSystemEnabled !== false;
 
     return QUEST_POOL.filter((q) => {
         if (q.requiresFeature === 'mascot' && !mascotEnabled) return false;
         if (q.requiresFeature === 'phoneCatalog' && !phoneCatalogEnabled) return false;
         if (q.requiresFeature === 'eod' && !eodEnabled) return false;
         if (!mascotEnabled && (q.targetStat === 'petMascot' || q.targetStat === 'feedMascot')) return false;
+        // XP-gated quests cannot be completed when leveling is off
+        if (!xpEnabled && (q.targetStat === 'xpEarned' || q.id === 'earn_100_xp')) return false;
         return true;
     });
+}
+
+function isDailyBountiesEnabled(config) {
+    return config?.dailyBountiesEnabled !== false;
+}
+
+function isLevelUpSystemEnabled(config) {
+    return config?.levelUpSystemEnabled !== false;
+}
+
+/** Grant bounty rewards — XP only when leveling is on; always coins when economy allows. */
+function grantBountyClaimRewards(config, STORAGE_KEYS, quest) {
+    const bountyMult = getBountyRewardMultiplier(STORAGE_KEYS);
+    const rewardCoins = Math.ceil((Number(quest.rewardCoins) || 0) * bountyMult);
+    let rewardXp = 0;
+    if (isLevelUpSystemEnabled(config)) {
+        rewardXp = Math.ceil((Number(quest.rewardXp) || 0) * bountyMult);
+        if (rewardXp > 0) grantXp(config, STORAGE_KEYS, rewardXp);
+    }
+    if (rewardCoins > 0) grantCoins(config, STORAGE_KEYS, rewardCoins, 'quest');
+    return { rewardXp, rewardCoins, bountyMult };
+}
+
+function formatBountyRewardLines(quest, config, STORAGE_KEYS) {
+    const bountyMult = getBountyRewardMultiplier(STORAGE_KEYS);
+    const rewardXp = Math.ceil((Number(quest.rewardXp) || 0) * bountyMult);
+    const rewardCoins = Math.ceil((Number(quest.rewardCoins) || 0) * bountyMult);
+    const xpOn = isLevelUpSystemEnabled(config);
+    const lines = [];
+    if (xpOn) lines.push(`XP: ${rewardXp}`);
+    lines.push(`Coins: ${rewardCoins}`);
+    const note = !xpOn
+        ? `<div class="tm-quest-bounty-bonus">Μόνο coins (XP off)</div>`
+        : (bountyMult > 1
+            ? `<div class="tm-quest-bounty-bonus">+${Math.round((bountyMult - 1) * 100)}% level bonus</div>`
+            : '');
+    return { html: `${lines.join('<br>')}${note}`, rewardXp, rewardCoins, bountyMult };
 }
 
 // Unified constant for all ranks and titles.
@@ -41710,20 +41873,46 @@ function readCoinBalance(STORAGE_KEYS) {
 }
 
 function writeCoinBalance(STORAGE_KEYS, balance) {
-    const n = Math.max(0, Math.floor(Number(balance) || 0));
-    GM_setValue(STORAGE_KEYS.USER_COINS, n);
-    return n;
+    const n = Number(balance);
+    // Never wipe a real balance with NaN/undefined via `|| 0`
+    if (!Number.isFinite(n)) {
+        console.warn('[MMS] Refusing non-finite coin write:', balance);
+        return readCoinBalance(STORAGE_KEYS);
+    }
+    const safe = Math.max(0, Math.floor(n));
+    GM_setValue(STORAGE_KEYS.USER_COINS, safe);
+    return safe;
 }
 
 /** Fresh installs had 0 coins and no stipend until Lv.10 — shop was unusable. */
 function ensureStarterCoins(config, STORAGE_KEYS) {
     if (!STORAGE_KEYS?.USER_COINS) return readCoinBalance(STORAGE_KEYS);
     const flagKey = STORAGE_KEYS.STARTER_COINS_GRANTED || 'tm_starter_coins_granted';
+    let balance = readCoinBalance(STORAGE_KEYS);
+    let flag = !!GM_getValue(flagKey, false);
+
+    // Heal stuck accounts: starter flag set but never earned/spent anything (balance stuck at 0)
+    if (flag && balance === 0) {
+        let history = [];
+        try { history = JSON.parse(GM_getValue(STORAGE_KEYS.COIN_HISTORY, '[]')); } catch (_) { history = []; }
+        const hasEconomyActivity = Array.isArray(history) && history.some((h) => {
+            const amt = Number(h?.amount);
+            const base = Number(h?.baseAmount);
+            return (Number.isFinite(amt) && amt !== 0) || (Number.isFinite(base) && base !== 0);
+        });
+        if (!hasEconomyActivity) {
+            console.warn('[MMS] Healing stuck 0-coin account — re-granting starter pack');
+            GM_setValue(flagKey, false);
+            flag = false;
+        }
+    }
+
     if (GM_getValue(flagKey, false)) return readCoinBalance(STORAGE_KEYS);
 
-    // Distinguish "never set" from "spent down to 0"
+    // Distinguish "never set / locked at 0" from "already has coins"
     const raw = GM_getValue(STORAGE_KEYS.USER_COINS, undefined);
-    if (raw !== undefined && raw !== null && raw !== '') {
+    const rawNum = Number(raw);
+    if (raw !== undefined && raw !== null && raw !== '' && Number.isFinite(rawNum) && rawNum > 0) {
         GM_setValue(flagKey, true);
         return readCoinBalance(STORAGE_KEYS);
     }
@@ -41747,11 +41936,14 @@ function ensureStarterCoins(config, STORAGE_KEYS) {
     if (typeof window.createNotification === 'function') {
         window.createNotification(`Καλωσήρθες! +${starter} Fixer-Coins για το shop.`, 'welcome');
     }
+    if (typeof window.updateCoinBalanceUI === 'function') {
+        window.updateCoinBalanceUI(STORAGE_KEYS, starter, config);
+    }
     return starter;
 }
 
 function tryGrantDailyStipend(config, STORAGE_KEYS) {
-    if (!config?.levelUpSystemEnabled && config?.shopEnabled === false) return;
+    if (!config?.levelUpSystemEnabled && config?.shopEnabled === false && config?.dailyBountiesEnabled === false) return;
     const today = new Date().toISOString().slice(0, 10);
     if (GM_getValue('tm_daily_stipend_date', '') === today) return;
     const level = Math.max(1, Number(GM_getValue(STORAGE_KEYS.USER_LEVEL, 1)) || 1);
@@ -41763,6 +41955,61 @@ function tryGrantDailyStipend(config, STORAGE_KEYS) {
     if (typeof window.createNotification === 'function') {
         window.createNotification(`Daily stipend: +${stipend} coins (Lv.${level})`, 'FC');
     }
+}
+
+const DAILY_CARE_COINS_AMOUNT = 50;
+
+function getLocalCalendarDateKey() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+function getDailyCareCoinsDateKey(STORAGE_KEYS) {
+    return STORAGE_KEYS?.DAILY_CARE_COINS_DATE || 'tm_daily_care_coins_date';
+}
+
+function hasClaimedDailyCareCoins(STORAGE_KEYS) {
+    return GM_getValue(getDailyCareCoinsDateKey(STORAGE_KEYS), '') === getLocalCalendarDateKey();
+}
+
+/** Manual +50 coins once per local calendar day from the pet care menu. */
+function claimDailyCareCoins(config, STORAGE_KEYS) {
+    if (config
+        && config.levelUpSystemEnabled === false
+        && config.shopEnabled === false
+        && config.dailyBountiesEnabled === false) {
+        return { ok: false, reason: 'disabled', amount: 0 };
+    }
+    const dateKey = getDailyCareCoinsDateKey(STORAGE_KEYS);
+    const today = getLocalCalendarDateKey();
+    if (GM_getValue(dateKey, '') === today) {
+        return { ok: false, reason: 'already', amount: 0 };
+    }
+    const granted = grantCoins(config, STORAGE_KEYS, DAILY_CARE_COINS_AMOUNT, 'daily_care_claim');
+    if (!granted) {
+        return { ok: false, reason: 'disabled', amount: 0 };
+    }
+    GM_setValue(dateKey, today);
+    if (typeof window.createNotification === 'function') {
+        window.createNotification(`Ημερήσιο δώρο: +${granted} coins!`, 'FC');
+    }
+    return { ok: true, reason: 'claimed', amount: granted };
+}
+
+function getDailyCareCoinsButtonState(STORAGE_KEYS) {
+    const claimed = hasClaimedDailyCareCoins(STORAGE_KEYS);
+    return {
+        claimed,
+        amount: DAILY_CARE_COINS_AMOUNT,
+        label: claimed ? 'Πήρες σήμερα' : 'Δωρεάν coins',
+        hint: claimed ? 'Ξανά αύριο' : `+${DAILY_CARE_COINS_AMOUNT} κάθε μέρα`,
+        title: claimed
+            ? 'Ήδη πήρες τα δωρεάν coins σήμερα'
+            : `Πάρε ${DAILY_CARE_COINS_AMOUNT} δωρεάν coins (1×/μέρα)`,
+    };
 }
 
 function updateBuffInventoryUI(STORAGE_KEYS) {
@@ -42150,7 +42397,7 @@ function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
     // Apply permanent XP Boost from level rewards
     const permanentXpBoost = GM_getValue(STORAGE_KEYS.PERMANENT_XP_BOOST, 0);
     if (typeof updateQuestProgress === 'function') {
-        updateQuestProgress(STORAGE_KEYS, 'xpEarned', points);
+        updateQuestProgress(STORAGE_KEYS, 'xpEarned', points, config);
     }
 
 
@@ -42281,8 +42528,14 @@ function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
 }
 
 function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
-    // Allow coin economy whenever shop or level-up is on
-    if (config && config.levelUpSystemEnabled === false && config.shopEnabled === false) return;
+    // Allow coin economy whenever shop, level-up, or daily bounties is on
+    if (config
+        && config.levelUpSystemEnabled === false
+        && config.shopEnabled === false
+        && config.dailyBountiesEnabled === false) return 0;
+    const baseAmount = Number(amount);
+    if (!Number.isFinite(baseAmount) || baseAmount <= 0) return 0;
+
     let currentCoins = readCoinBalance(STORAGE_KEYS);
 
     // Apply coin talent bonus
@@ -42295,7 +42548,7 @@ function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
     
     // Apply permanent coin multiplier from level rewards
     const permanentCoinMultiplier = GM_getValue(STORAGE_KEYS.COIN_MULTIPLIER, 0);
-    coinMultiplier += permanentCoinMultiplier;
+    coinMultiplier += Number(permanentCoinMultiplier) || 0;
 
     // Apply "Double Coins" buff if active
     const doubleCoinsExpires = GM_getValue(STORAGE_KEYS.DOUBLE_COINS_BUFF_EXPIRES, 0);
@@ -42304,14 +42557,18 @@ function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
         coinMultiplier += 1.0; // Add 100% bonus
     }
 
-    const finalAmount = Math.ceil(amount * coinMultiplier);
+    if (!Number.isFinite(coinMultiplier) || coinMultiplier <= 0) coinMultiplier = 1;
+
+    const finalAmount = Math.ceil(baseAmount * coinMultiplier);
+    if (!Number.isFinite(finalAmount) || finalAmount <= 0) return 0;
+
     currentCoins = writeCoinBalance(STORAGE_KEYS, currentCoins + finalAmount);
     
     // Track coin history
     const coinHistory = JSON.parse(GM_getValue(STORAGE_KEYS.COIN_HISTORY, '[]'));
     coinHistory.unshift({
         amount: finalAmount,
-        baseAmount: amount,
+        baseAmount: baseAmount,
         timestamp: Date.now(),
         source: source
     });
@@ -42339,7 +42596,7 @@ function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
             pointer-events: none;
             animation: tm-coin-bonus-popup 1.5s ease-out forwards;
         `;
-        coinIndicator.textContent = `💰 +${finalAmount - amount} BONUS!`;
+        coinIndicator.textContent = `💰 +${finalAmount - baseAmount} BONUS!`;
         document.body.appendChild(coinIndicator);
         
         // Create CSS animation if it doesn't exist
@@ -42374,9 +42631,10 @@ function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
     
     // Update quest progress for earning coins
     if (typeof updateQuestProgress === 'function') {
-        updateQuestProgress(STORAGE_KEYS, 'coinsEarned', amount);
+        updateQuestProgress(STORAGE_KEYS, 'coinsEarned', baseAmount, config);
     }
     updateCoinBalanceUI(STORAGE_KEYS, currentCoins, config);
+    return finalAmount;
 }
 
 function updateCoinBalanceUI(STORAGE_KEYS, balance, config) {
@@ -42537,13 +42795,13 @@ function trackDailyStat(config, STORAGE_KEYS, statName, value = 1) {
 
     // Update quest progress for all stats
     if (typeof updateQuestProgress === 'function') {
-        updateQuestProgress(STORAGE_KEYS, statName, value);
+        updateQuestProgress(STORAGE_KEYS, statName, value, config);
     }
     
     // Handle combined stats like 'anyGamePlayed'
     if (statName === 'memoryGame' || statName === 'bugSquishGame') {
         stats['anyGamePlayed'] = (stats['anyGamePlayed'] || 0) + value;
-        updateQuestProgress(STORAGE_KEYS, 'anyGamePlayed', value);
+        updateQuestProgress(STORAGE_KEYS, 'anyGamePlayed', value, config);
     }
 
     // Grant XP for the action
@@ -42667,6 +42925,7 @@ function checkAchievements(config, STORAGE_KEYS, statName, currentCount) {
 // === DAILY BOUNTIES / QUESTS SYSTEM
 // ===================================================================
 function generateDailyQuests(STORAGE_KEYS, config) {
+    if (!isDailyBountiesEnabled(config)) return;
     const pool = filterQuestPool(config);
     const shuffled = pool.sort(() => 0.5 - Math.random());
     const dailyQuests = shuffled.slice(0, 3).map(quest => ({
@@ -42678,7 +42937,10 @@ function generateDailyQuests(STORAGE_KEYS, config) {
     console.log('[MMS] New daily quests generated!');
 }
 
-function updateQuestProgress(STORAGE_KEYS, statName, value = 1) {
+function updateQuestProgress(STORAGE_KEYS, statName, value = 1, config) {
+    const cfg = config || (typeof window !== 'undefined' ? window.config : null);
+    if (cfg && !isDailyBountiesEnabled(cfg)) return;
+
     let quests = JSON.parse(GM_getValue(STORAGE_KEYS.DAILY_QUESTS, '[]'));
     if (quests.length === 0) return;
 
@@ -42712,6 +42974,12 @@ function updateQuestProgress(STORAGE_KEYS, statName, value = 1) {
 }
 
 function showQuestsModal(config, STORAGE_KEYS) {
+    if (!isDailyBountiesEnabled(config)) {
+        if (typeof showPositiveMessage === 'function') {
+            showPositiveMessage('Τα Daily Bounties είναι απενεργοποιημένα στις ρυθμίσεις.');
+        }
+        return;
+    }
     if (document.querySelector('.tm-modal-overlay')) return; // Prevent multiple modals
 
     const overlay = document.createElement('div');
@@ -42767,12 +43035,7 @@ function populateQuestsModal(config, STORAGE_KEYS) {
         const progressPercent = (quest.progress / quest.targetCount) * 100;
         const canReroll = !quest.claimed && !isComplete && rerollTokens > 0;
         const canUseToken = !quest.claimed && !isComplete && bountyTokens > 0;
-        const bountyMult = getBountyRewardMultiplier(STORAGE_KEYS);
-        const rewardXp = Math.ceil(quest.rewardXp * bountyMult);
-        const rewardCoins = Math.ceil(quest.rewardCoins * bountyMult);
-        const bountyBonusNote = bountyMult > 1
-            ? `<div class="tm-quest-bounty-bonus">+${Math.round((bountyMult - 1) * 100)}% level bonus</div>`
-            : '';
+        const rewardLines = formatBountyRewardLines(quest, config, STORAGE_KEYS);
 
         return `
             <div class="tm-quest-item ${quest.claimed ? 'completed' : ''}">
@@ -42785,8 +43048,7 @@ function populateQuestsModal(config, STORAGE_KEYS) {
                     <div class="tm-quest-progress-text">${quest.progress} / ${quest.targetCount}</div>
                 </div>
                 <div class="tm-quest-reward">
-                    XP: ${rewardXp}<br>Coins: ${rewardCoins}
-                    ${bountyBonusNote}
+                    ${rewardLines.html}
                 </div>
                 <div class="tm-quest-actions">
                     <button class="tm-quest-claim-btn" data-quest-id="${quest.id}" ${(!isComplete || quest.claimed) ? 'disabled' : ''}>
@@ -42805,9 +43067,7 @@ function populateQuestsModal(config, STORAGE_KEYS) {
             let quests = JSON.parse(GM_getValue(STORAGE_KEYS.DAILY_QUESTS, '[]'));
             const quest = quests.find(q => q.id === questId);
             if (quest && !quest.claimed && quest.progress >= quest.targetCount) {
-                const bountyMult = getBountyRewardMultiplier(STORAGE_KEYS);
-                grantXp(config, STORAGE_KEYS, Math.ceil(quest.rewardXp * bountyMult));
-                grantCoins(config, STORAGE_KEYS, Math.ceil(quest.rewardCoins * bountyMult), 'quest');
+                grantBountyClaimRewards(config, STORAGE_KEYS, quest);
                 quest.claimed = true;
                 // New: Chance to trigger Energized state on bounty completion
                 if (Math.random() < 0.33 && typeof window.triggerEnergizedState === 'function') {
@@ -44131,6 +44391,16 @@ function getLevelUpSettingsHTML() {
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
                     <div class="tm-setting-label-row">
+                        <label for="tm-setting-daily-bounties-enabled">Daily Bounties</label>
+                        ${info('daily_bounties')}
+                    </div>
+                    <p class="tm-setting-description">Ημερήσιες αποστολές. Χωρίς XP system → μόνο coins.</p>
+                </div>
+                <div class="tm-setting-control"><input type="checkbox" id="tm-setting-daily-bounties-enabled"></div>
+            </div>
+            <div class="tm-setting-row">
+                <div class="tm-setting-label">
+                    <div class="tm-setting-label-row">
                         <label for="tm-setting-confetti-enabled">Εφέ κομφετί</label>
                         ${info('confetti')}
                     </div>
@@ -44232,6 +44502,7 @@ function initGamificationSettings(config, STORAGE_KEYS) {
         if (checkbox) checkbox.checked = config[key];
     };
     populateCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
+    populateCheckbox('tm-setting-daily-bounties-enabled', 'dailyBountiesEnabled');
     populateCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
     populateCheckbox('tm-setting-achievements-enabled', 'achievementsEnabled');
     populateCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
@@ -44263,6 +44534,15 @@ function initGamificationSettings(config, STORAGE_KEYS) {
         levelUpCheckbox.addEventListener('change', () => {
             config.levelUpSystemEnabled = levelUpCheckbox.checked;
             GM_setValue('levelUpSystemEnabled', levelUpCheckbox.checked);
+            updateGamificationLayerVisibility(config);
+        });
+    }
+
+    const dailyBountiesCheckbox = document.getElementById('tm-setting-daily-bounties-enabled');
+    if (dailyBountiesCheckbox) {
+        dailyBountiesCheckbox.addEventListener('change', () => {
+            config.dailyBountiesEnabled = dailyBountiesCheckbox.checked;
+            GM_setValue('dailyBountiesEnabled', dailyBountiesCheckbox.checked);
             updateGamificationLayerVisibility(config);
         });
     }
@@ -44326,6 +44606,7 @@ function updateShopButtonVisibility(config) {
 
 const GAMIFICATION_PRESET_KEYS = [
     'levelUpSystemEnabled',
+    'dailyBountiesEnabled',
     'shopEnabled',
     'interactiveMascotEnabled',
     'achievementsEnabled',
@@ -44336,6 +44617,7 @@ const GAMIFICATION_PRESET_KEYS = [
 
 const GAMIFICATION_PRESET_CHECKBOX_IDS = {
     levelUpSystemEnabled: 'tm-setting-levelup-enabled',
+    dailyBountiesEnabled: 'tm-setting-daily-bounties-enabled',
     shopEnabled: 'tm-setting-shop-enabled',
     interactiveMascotEnabled: 'tm-setting-mascot-enabled',
     achievementsEnabled: 'tm-setting-achievements-enabled',
@@ -44363,7 +44645,7 @@ function updateGamificationLayerVisibility(config) {
 
     const questsBtn = document.getElementById('tm-quests-btn');
     if (questsBtn) {
-        questsBtn.style.display = config.levelUpSystemEnabled !== false ? '' : 'none';
+        questsBtn.style.display = isDailyBountiesEnabled(config) ? '' : 'none';
     }
 }
 
@@ -44371,6 +44653,7 @@ function applyGamificationPreset(preset, config, STORAGE_KEYS) {
     const values = preset === 'professional'
         ? {
             levelUpSystemEnabled: false,
+            dailyBountiesEnabled: false,
             shopEnabled: false,
             interactiveMascotEnabled: false,
             achievementsEnabled: false,
@@ -44380,6 +44663,7 @@ function applyGamificationPreset(preset, config, STORAGE_KEYS) {
         }
         : {
             levelUpSystemEnabled: true,
+            dailyBountiesEnabled: true,
             shopEnabled: true,
             interactiveMascotEnabled: true,
             achievementsEnabled: true,
@@ -44432,6 +44716,7 @@ function saveGamificationSettings() {
 
     // --- Save Gamification/Fun Settings ---
     saveCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
+    saveCheckbox('tm-setting-daily-bounties-enabled', 'dailyBountiesEnabled');
     saveCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
     saveCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
     saveCheckbox('tm-setting-random-events-enabled', 'randomEventsEnabled');
@@ -46489,6 +46774,9 @@ window.readCoinBalance = readCoinBalance;
 window.writeCoinBalance = writeCoinBalance;
 window.ensureStarterCoins = ensureStarterCoins;
 window.tryGrantDailyStipend = tryGrantDailyStipend;
+window.hasClaimedDailyCareCoins = hasClaimedDailyCareCoins;
+window.claimDailyCareCoins = claimDailyCareCoins;
+window.getDailyCareCoinsButtonState = getDailyCareCoinsButtonState;
 window.checkAchievements = checkAchievements;
 window.updateQuestProgress = updateQuestProgress;
 window.generateDailyQuests = generateDailyQuests;
@@ -61372,6 +61660,7 @@ if (typeof window !== 'undefined') {
         customerHistoryEnabled: true,
         dashboardWidgetEnabled: true,
         levelUpSystemEnabled: true,
+        dailyBountiesEnabled: true,
         interactiveMascotEnabled: true,
         confettiEnabled: true,
         mascotRoamingSpeed: 100,
@@ -64183,14 +64472,22 @@ if (typeof window !== 'undefined') {
 
         function endGame(isWin) {
             canPlayerClick = false;
-            const finalRound = round - 1;
+            const finalRound = Math.max(0, round - 1);
             const bonusXp = finalRound * 5; // 5 XP per successful round
             grantXp(config, STORAGE_KEYS, bonusXp);
 
+            // Shop economy: games must pay coins (XP-only left the balance stuck at 0)
+            const coinReward = Math.max(5, finalRound * 3);
+            let coinsGranted = 0;
+            if (typeof grantCoins === 'function' && (config.shopEnabled !== false || config.levelUpSystemEnabled !== false || config.dailyBountiesEnabled !== false)) {
+                coinsGranted = grantCoins(config, STORAGE_KEYS, coinReward, 'memoryGame') || coinReward;
+            }
+
             statusEl.innerHTML = `
                 Game Over! You reached round ${finalRound}.<br>
-                You earned ${XP_CONFIG.memoryGame + bonusXp} XP!
-            `;
+                You earned ${XP_CONFIG.memoryGame + bonusXp} XP`
+                + (coinsGranted ? ` and ${coinsGranted} coins!` : '!')
+                + `<br><small style="opacity:.8">(Click to close)</small>`;
             overlay.style.cursor = 'pointer';
             overlay.addEventListener('click', () => overlay.remove());
         }
@@ -64285,11 +64582,21 @@ if (typeof window !== 'undefined') {
                 grantXp(config, STORAGE_KEYS, bonusXp);
             }
 
+            // Shop economy: pay coins for score (was XP-only → 0 coins for many users)
+            const coinReward = Math.max(5, score * 2);
+            let coinsGranted = 0;
+            if (typeof grantCoins === 'function' && score > 0
+                && (config.shopEnabled !== false || config.levelUpSystemEnabled !== false || config.dailyBountiesEnabled !== false)) {
+                coinsGranted = grantCoins(config, STORAGE_KEYS, coinReward, 'bugSquishGame') || coinReward;
+            }
+
             overlay.innerHTML = `
                 <div id="tm-game-end-screen">
                     <h1>Game Over!</h1>
                     <h2>Final Score: ${score}</h2>
-                    <p>You earned ${XP_CONFIG.bugSquishGame + bonusXp} XP!</p>
+                    <p>You earned ${XP_CONFIG.bugSquishGame + bonusXp} XP`
+                    + (coinsGranted ? ` and ${coinsGranted} coins!` : '!')
+                    + `</p>
                     <p>(Click to close)</p>
                 </div>
             `;

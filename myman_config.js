@@ -32,6 +32,7 @@
         ACHIEVEMENTS: 'tm_achievements_unlocked',
         USER_COINS: 'tm_user_coins',
         STARTER_COINS_GRANTED: 'tm_starter_coins_granted',
+        DAILY_CARE_COINS_DATE: 'tm_daily_care_coins_date',
         USER_TITLE: 'tm_user_title', // New: For cosmetic titles
         PURCHASED_ITEMS: 'tm_purchased_items',
         EQUIPPED_ITEMS: 'tm_equipped_items', // Changed from singular to plural

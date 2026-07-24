@@ -207,6 +207,12 @@
             where: 'UI επιπέδου / XP στο suite (footer ή σχετικά panels).',
             when: 'Μετά από επιτυχημένες εργασίες όσο είναι ενεργό.',
         },
+        daily_bounties: {
+            title: 'Daily Bounties',
+            what: 'Ημερήσιες αποστολές με ανταμοιβές. Αν το σύστημα επιπέδων είναι off, δίνουν μόνο coins (όχι XP).',
+            where: 'Κουμπί «Daily Bounties» στο search slide-out.',
+            when: 'Όσο είναι ενεργό — πρόοδος από εργασίες και claim στο modal.',
+        },
         confetti: {
             title: 'Εφέ κομφετί',
             what: 'Οπτικά εφέ κομφετί σε επιτυχίες και milestones.',
@@ -610,6 +616,7 @@
 
             // --- Save Gamification/Fun Settings ---
             saveCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
+            saveCheckbox('tm-setting-daily-bounties-enabled', 'dailyBountiesEnabled');
             saveCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
             saveCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
             saveCheckbox('tm-setting-achievements-enabled', 'achievementsEnabled');
@@ -687,6 +694,7 @@
 
             // --- Save Gamification/Fun Settings ---
             saveCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
+            saveCheckbox('tm-setting-daily-bounties-enabled', 'dailyBountiesEnabled');
             saveCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
             saveCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
             saveCheckbox('tm-setting-achievements-enabled', 'achievementsEnabled');
@@ -1756,6 +1764,7 @@
             populateCheckbox('tm-setting-return-to-40-enabled', 'returnTo40ButtonEnabled');
             populateCheckbox('tm-setting-wifi-qr-enabled', 'wifiQrEnabled');
             populateCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
+            populateCheckbox('tm-setting-daily-bounties-enabled', 'dailyBountiesEnabled');
             populateCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
             populateCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
             populateCheckbox('tm-setting-achievements-enabled', 'achievementsEnabled');

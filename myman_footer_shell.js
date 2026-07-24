@@ -222,6 +222,8 @@
     function collectAllShells() {
         const shells = {};
         SHELL_SPECS.forEach((spec) => {
+            // Never cache the mascot — colliding snapshots made list/edit look like different pets
+            if (spec.id === 'tm-mascot-container') return;
             const el = document.getElementById(spec.id);
             if (!el || isShellEl(el)) return;
             const html = slimCloneHtml(el, spec);

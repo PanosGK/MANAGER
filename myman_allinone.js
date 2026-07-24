@@ -123,6 +123,7 @@
         customerHistoryEnabled: true,
         dashboardWidgetEnabled: true,
         levelUpSystemEnabled: true,
+        dailyBountiesEnabled: true,
         interactiveMascotEnabled: true,
         confettiEnabled: true,
         mascotRoamingSpeed: 100,
@@ -2934,14 +2935,22 @@
 
         function endGame(isWin) {
             canPlayerClick = false;
-            const finalRound = round - 1;
+            const finalRound = Math.max(0, round - 1);
             const bonusXp = finalRound * 5; // 5 XP per successful round
             grantXp(config, STORAGE_KEYS, bonusXp);
 
+            // Shop economy: games must pay coins (XP-only left the balance stuck at 0)
+            const coinReward = Math.max(5, finalRound * 3);
+            let coinsGranted = 0;
+            if (typeof grantCoins === 'function' && (config.shopEnabled !== false || config.levelUpSystemEnabled !== false || config.dailyBountiesEnabled !== false)) {
+                coinsGranted = grantCoins(config, STORAGE_KEYS, coinReward, 'memoryGame') || coinReward;
+            }
+
             statusEl.innerHTML = `
                 Game Over! You reached round ${finalRound}.<br>
-                You earned ${XP_CONFIG.memoryGame + bonusXp} XP!
-            `;
+                You earned ${XP_CONFIG.memoryGame + bonusXp} XP`
+                + (coinsGranted ? ` and ${coinsGranted} coins!` : '!')
+                + `<br><small style="opacity:.8">(Click to close)</small>`;
             overlay.style.cursor = 'pointer';
             overlay.addEventListener('click', () => overlay.remove());
         }
@@ -3036,11 +3045,21 @@
                 grantXp(config, STORAGE_KEYS, bonusXp);
             }
 
+            // Shop economy: pay coins for score (was XP-only → 0 coins for many users)
+            const coinReward = Math.max(5, score * 2);
+            let coinsGranted = 0;
+            if (typeof grantCoins === 'function' && score > 0
+                && (config.shopEnabled !== false || config.levelUpSystemEnabled !== false || config.dailyBountiesEnabled !== false)) {
+                coinsGranted = grantCoins(config, STORAGE_KEYS, coinReward, 'bugSquishGame') || coinReward;
+            }
+
             overlay.innerHTML = `
                 <div id="tm-game-end-screen">
                     <h1>Game Over!</h1>
                     <h2>Final Score: ${score}</h2>
-                    <p>You earned ${XP_CONFIG.bugSquishGame + bonusXp} XP!</p>
+                    <p>You earned ${XP_CONFIG.bugSquishGame + bonusXp} XP`
+                    + (coinsGranted ? ` and ${coinsGranted} coins!` : '!')
+                    + `</p>
                     <p>(Click to close)</p>
                 </div>
             `;

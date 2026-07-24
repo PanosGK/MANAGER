@@ -304,14 +304,54 @@ function filterQuestPool(config) {
     const mascotEnabled = config?.interactiveMascotEnabled !== false;
     const phoneCatalogEnabled = config?.phoneCatalogEnabled !== false;
     const eodEnabled = config?.eodChecklistEnabled !== false;
+    const xpEnabled = config?.levelUpSystemEnabled !== false;
 
     return QUEST_POOL.filter((q) => {
         if (q.requiresFeature === 'mascot' && !mascotEnabled) return false;
         if (q.requiresFeature === 'phoneCatalog' && !phoneCatalogEnabled) return false;
         if (q.requiresFeature === 'eod' && !eodEnabled) return false;
         if (!mascotEnabled && (q.targetStat === 'petMascot' || q.targetStat === 'feedMascot')) return false;
+        // XP-gated quests cannot be completed when leveling is off
+        if (!xpEnabled && (q.targetStat === 'xpEarned' || q.id === 'earn_100_xp')) return false;
         return true;
     });
+}
+
+function isDailyBountiesEnabled(config) {
+    return config?.dailyBountiesEnabled !== false;
+}
+
+function isLevelUpSystemEnabled(config) {
+    return config?.levelUpSystemEnabled !== false;
+}
+
+/** Grant bounty rewards — XP only when leveling is on; always coins when economy allows. */
+function grantBountyClaimRewards(config, STORAGE_KEYS, quest) {
+    const bountyMult = getBountyRewardMultiplier(STORAGE_KEYS);
+    const rewardCoins = Math.ceil((Number(quest.rewardCoins) || 0) * bountyMult);
+    let rewardXp = 0;
+    if (isLevelUpSystemEnabled(config)) {
+        rewardXp = Math.ceil((Number(quest.rewardXp) || 0) * bountyMult);
+        if (rewardXp > 0) grantXp(config, STORAGE_KEYS, rewardXp);
+    }
+    if (rewardCoins > 0) grantCoins(config, STORAGE_KEYS, rewardCoins, 'quest');
+    return { rewardXp, rewardCoins, bountyMult };
+}
+
+function formatBountyRewardLines(quest, config, STORAGE_KEYS) {
+    const bountyMult = getBountyRewardMultiplier(STORAGE_KEYS);
+    const rewardXp = Math.ceil((Number(quest.rewardXp) || 0) * bountyMult);
+    const rewardCoins = Math.ceil((Number(quest.rewardCoins) || 0) * bountyMult);
+    const xpOn = isLevelUpSystemEnabled(config);
+    const lines = [];
+    if (xpOn) lines.push(`XP: ${rewardXp}`);
+    lines.push(`Coins: ${rewardCoins}`);
+    const note = !xpOn
+        ? `<div class="tm-quest-bounty-bonus">Μόνο coins (XP off)</div>`
+        : (bountyMult > 1
+            ? `<div class="tm-quest-bounty-bonus">+${Math.round((bountyMult - 1) * 100)}% level bonus</div>`
+            : '');
+    return { html: `${lines.join('<br>')}${note}`, rewardXp, rewardCoins, bountyMult };
 }
 
 // Unified constant for all ranks and titles.
@@ -970,20 +1010,46 @@ function readCoinBalance(STORAGE_KEYS) {
 }
 
 function writeCoinBalance(STORAGE_KEYS, balance) {
-    const n = Math.max(0, Math.floor(Number(balance) || 0));
-    GM_setValue(STORAGE_KEYS.USER_COINS, n);
-    return n;
+    const n = Number(balance);
+    // Never wipe a real balance with NaN/undefined via `|| 0`
+    if (!Number.isFinite(n)) {
+        console.warn('[MMS] Refusing non-finite coin write:', balance);
+        return readCoinBalance(STORAGE_KEYS);
+    }
+    const safe = Math.max(0, Math.floor(n));
+    GM_setValue(STORAGE_KEYS.USER_COINS, safe);
+    return safe;
 }
 
 /** Fresh installs had 0 coins and no stipend until Lv.10 — shop was unusable. */
 function ensureStarterCoins(config, STORAGE_KEYS) {
     if (!STORAGE_KEYS?.USER_COINS) return readCoinBalance(STORAGE_KEYS);
     const flagKey = STORAGE_KEYS.STARTER_COINS_GRANTED || 'tm_starter_coins_granted';
+    let balance = readCoinBalance(STORAGE_KEYS);
+    let flag = !!GM_getValue(flagKey, false);
+
+    // Heal stuck accounts: starter flag set but never earned/spent anything (balance stuck at 0)
+    if (flag && balance === 0) {
+        let history = [];
+        try { history = JSON.parse(GM_getValue(STORAGE_KEYS.COIN_HISTORY, '[]')); } catch (_) { history = []; }
+        const hasEconomyActivity = Array.isArray(history) && history.some((h) => {
+            const amt = Number(h?.amount);
+            const base = Number(h?.baseAmount);
+            return (Number.isFinite(amt) && amt !== 0) || (Number.isFinite(base) && base !== 0);
+        });
+        if (!hasEconomyActivity) {
+            console.warn('[MMS] Healing stuck 0-coin account — re-granting starter pack');
+            GM_setValue(flagKey, false);
+            flag = false;
+        }
+    }
+
     if (GM_getValue(flagKey, false)) return readCoinBalance(STORAGE_KEYS);
 
-    // Distinguish "never set" from "spent down to 0"
+    // Distinguish "never set / locked at 0" from "already has coins"
     const raw = GM_getValue(STORAGE_KEYS.USER_COINS, undefined);
-    if (raw !== undefined && raw !== null && raw !== '') {
+    const rawNum = Number(raw);
+    if (raw !== undefined && raw !== null && raw !== '' && Number.isFinite(rawNum) && rawNum > 0) {
         GM_setValue(flagKey, true);
         return readCoinBalance(STORAGE_KEYS);
     }
@@ -1007,11 +1073,14 @@ function ensureStarterCoins(config, STORAGE_KEYS) {
     if (typeof window.createNotification === 'function') {
         window.createNotification(`Καλωσήρθες! +${starter} Fixer-Coins για το shop.`, 'welcome');
     }
+    if (typeof window.updateCoinBalanceUI === 'function') {
+        window.updateCoinBalanceUI(STORAGE_KEYS, starter, config);
+    }
     return starter;
 }
 
 function tryGrantDailyStipend(config, STORAGE_KEYS) {
-    if (!config?.levelUpSystemEnabled && config?.shopEnabled === false) return;
+    if (!config?.levelUpSystemEnabled && config?.shopEnabled === false && config?.dailyBountiesEnabled === false) return;
     const today = new Date().toISOString().slice(0, 10);
     if (GM_getValue('tm_daily_stipend_date', '') === today) return;
     const level = Math.max(1, Number(GM_getValue(STORAGE_KEYS.USER_LEVEL, 1)) || 1);
@@ -1023,6 +1092,61 @@ function tryGrantDailyStipend(config, STORAGE_KEYS) {
     if (typeof window.createNotification === 'function') {
         window.createNotification(`Daily stipend: +${stipend} coins (Lv.${level})`, 'FC');
     }
+}
+
+const DAILY_CARE_COINS_AMOUNT = 50;
+
+function getLocalCalendarDateKey() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+function getDailyCareCoinsDateKey(STORAGE_KEYS) {
+    return STORAGE_KEYS?.DAILY_CARE_COINS_DATE || 'tm_daily_care_coins_date';
+}
+
+function hasClaimedDailyCareCoins(STORAGE_KEYS) {
+    return GM_getValue(getDailyCareCoinsDateKey(STORAGE_KEYS), '') === getLocalCalendarDateKey();
+}
+
+/** Manual +50 coins once per local calendar day from the pet care menu. */
+function claimDailyCareCoins(config, STORAGE_KEYS) {
+    if (config
+        && config.levelUpSystemEnabled === false
+        && config.shopEnabled === false
+        && config.dailyBountiesEnabled === false) {
+        return { ok: false, reason: 'disabled', amount: 0 };
+    }
+    const dateKey = getDailyCareCoinsDateKey(STORAGE_KEYS);
+    const today = getLocalCalendarDateKey();
+    if (GM_getValue(dateKey, '') === today) {
+        return { ok: false, reason: 'already', amount: 0 };
+    }
+    const granted = grantCoins(config, STORAGE_KEYS, DAILY_CARE_COINS_AMOUNT, 'daily_care_claim');
+    if (!granted) {
+        return { ok: false, reason: 'disabled', amount: 0 };
+    }
+    GM_setValue(dateKey, today);
+    if (typeof window.createNotification === 'function') {
+        window.createNotification(`Ημερήσιο δώρο: +${granted} coins!`, 'FC');
+    }
+    return { ok: true, reason: 'claimed', amount: granted };
+}
+
+function getDailyCareCoinsButtonState(STORAGE_KEYS) {
+    const claimed = hasClaimedDailyCareCoins(STORAGE_KEYS);
+    return {
+        claimed,
+        amount: DAILY_CARE_COINS_AMOUNT,
+        label: claimed ? 'Πήρες σήμερα' : 'Δωρεάν coins',
+        hint: claimed ? 'Ξανά αύριο' : `+${DAILY_CARE_COINS_AMOUNT} κάθε μέρα`,
+        title: claimed
+            ? 'Ήδη πήρες τα δωρεάν coins σήμερα'
+            : `Πάρε ${DAILY_CARE_COINS_AMOUNT} δωρεάν coins (1×/μέρα)`,
+    };
 }
 
 function updateBuffInventoryUI(STORAGE_KEYS) {
@@ -1410,7 +1534,7 @@ function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
     // Apply permanent XP Boost from level rewards
     const permanentXpBoost = GM_getValue(STORAGE_KEYS.PERMANENT_XP_BOOST, 0);
     if (typeof updateQuestProgress === 'function') {
-        updateQuestProgress(STORAGE_KEYS, 'xpEarned', points);
+        updateQuestProgress(STORAGE_KEYS, 'xpEarned', points, config);
     }
 
 
@@ -1541,8 +1665,14 @@ function grantXp(config, STORAGE_KEYS, points, sourceStat = null) {
 }
 
 function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
-    // Allow coin economy whenever shop or level-up is on
-    if (config && config.levelUpSystemEnabled === false && config.shopEnabled === false) return;
+    // Allow coin economy whenever shop, level-up, or daily bounties is on
+    if (config
+        && config.levelUpSystemEnabled === false
+        && config.shopEnabled === false
+        && config.dailyBountiesEnabled === false) return 0;
+    const baseAmount = Number(amount);
+    if (!Number.isFinite(baseAmount) || baseAmount <= 0) return 0;
+
     let currentCoins = readCoinBalance(STORAGE_KEYS);
 
     // Apply coin talent bonus
@@ -1555,7 +1685,7 @@ function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
     
     // Apply permanent coin multiplier from level rewards
     const permanentCoinMultiplier = GM_getValue(STORAGE_KEYS.COIN_MULTIPLIER, 0);
-    coinMultiplier += permanentCoinMultiplier;
+    coinMultiplier += Number(permanentCoinMultiplier) || 0;
 
     // Apply "Double Coins" buff if active
     const doubleCoinsExpires = GM_getValue(STORAGE_KEYS.DOUBLE_COINS_BUFF_EXPIRES, 0);
@@ -1564,14 +1694,18 @@ function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
         coinMultiplier += 1.0; // Add 100% bonus
     }
 
-    const finalAmount = Math.ceil(amount * coinMultiplier);
+    if (!Number.isFinite(coinMultiplier) || coinMultiplier <= 0) coinMultiplier = 1;
+
+    const finalAmount = Math.ceil(baseAmount * coinMultiplier);
+    if (!Number.isFinite(finalAmount) || finalAmount <= 0) return 0;
+
     currentCoins = writeCoinBalance(STORAGE_KEYS, currentCoins + finalAmount);
     
     // Track coin history
     const coinHistory = JSON.parse(GM_getValue(STORAGE_KEYS.COIN_HISTORY, '[]'));
     coinHistory.unshift({
         amount: finalAmount,
-        baseAmount: amount,
+        baseAmount: baseAmount,
         timestamp: Date.now(),
         source: source
     });
@@ -1599,7 +1733,7 @@ function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
             pointer-events: none;
             animation: tm-coin-bonus-popup 1.5s ease-out forwards;
         `;
-        coinIndicator.textContent = `💰 +${finalAmount - amount} BONUS!`;
+        coinIndicator.textContent = `💰 +${finalAmount - baseAmount} BONUS!`;
         document.body.appendChild(coinIndicator);
         
         // Create CSS animation if it doesn't exist
@@ -1634,9 +1768,10 @@ function grantCoins(config, STORAGE_KEYS, amount, source = 'unknown') {
     
     // Update quest progress for earning coins
     if (typeof updateQuestProgress === 'function') {
-        updateQuestProgress(STORAGE_KEYS, 'coinsEarned', amount);
+        updateQuestProgress(STORAGE_KEYS, 'coinsEarned', baseAmount, config);
     }
     updateCoinBalanceUI(STORAGE_KEYS, currentCoins, config);
+    return finalAmount;
 }
 
 function updateCoinBalanceUI(STORAGE_KEYS, balance, config) {
@@ -1797,13 +1932,13 @@ function trackDailyStat(config, STORAGE_KEYS, statName, value = 1) {
 
     // Update quest progress for all stats
     if (typeof updateQuestProgress === 'function') {
-        updateQuestProgress(STORAGE_KEYS, statName, value);
+        updateQuestProgress(STORAGE_KEYS, statName, value, config);
     }
     
     // Handle combined stats like 'anyGamePlayed'
     if (statName === 'memoryGame' || statName === 'bugSquishGame') {
         stats['anyGamePlayed'] = (stats['anyGamePlayed'] || 0) + value;
-        updateQuestProgress(STORAGE_KEYS, 'anyGamePlayed', value);
+        updateQuestProgress(STORAGE_KEYS, 'anyGamePlayed', value, config);
     }
 
     // Grant XP for the action
@@ -1927,6 +2062,7 @@ function checkAchievements(config, STORAGE_KEYS, statName, currentCount) {
 // === DAILY BOUNTIES / QUESTS SYSTEM
 // ===================================================================
 function generateDailyQuests(STORAGE_KEYS, config) {
+    if (!isDailyBountiesEnabled(config)) return;
     const pool = filterQuestPool(config);
     const shuffled = pool.sort(() => 0.5 - Math.random());
     const dailyQuests = shuffled.slice(0, 3).map(quest => ({
@@ -1938,7 +2074,10 @@ function generateDailyQuests(STORAGE_KEYS, config) {
     console.log('[MMS] New daily quests generated!');
 }
 
-function updateQuestProgress(STORAGE_KEYS, statName, value = 1) {
+function updateQuestProgress(STORAGE_KEYS, statName, value = 1, config) {
+    const cfg = config || (typeof window !== 'undefined' ? window.config : null);
+    if (cfg && !isDailyBountiesEnabled(cfg)) return;
+
     let quests = JSON.parse(GM_getValue(STORAGE_KEYS.DAILY_QUESTS, '[]'));
     if (quests.length === 0) return;
 
@@ -1972,6 +2111,12 @@ function updateQuestProgress(STORAGE_KEYS, statName, value = 1) {
 }
 
 function showQuestsModal(config, STORAGE_KEYS) {
+    if (!isDailyBountiesEnabled(config)) {
+        if (typeof showPositiveMessage === 'function') {
+            showPositiveMessage('Τα Daily Bounties είναι απενεργοποιημένα στις ρυθμίσεις.');
+        }
+        return;
+    }
     if (document.querySelector('.tm-modal-overlay')) return; // Prevent multiple modals
 
     const overlay = document.createElement('div');
@@ -2027,12 +2172,7 @@ function populateQuestsModal(config, STORAGE_KEYS) {
         const progressPercent = (quest.progress / quest.targetCount) * 100;
         const canReroll = !quest.claimed && !isComplete && rerollTokens > 0;
         const canUseToken = !quest.claimed && !isComplete && bountyTokens > 0;
-        const bountyMult = getBountyRewardMultiplier(STORAGE_KEYS);
-        const rewardXp = Math.ceil(quest.rewardXp * bountyMult);
-        const rewardCoins = Math.ceil(quest.rewardCoins * bountyMult);
-        const bountyBonusNote = bountyMult > 1
-            ? `<div class="tm-quest-bounty-bonus">+${Math.round((bountyMult - 1) * 100)}% level bonus</div>`
-            : '';
+        const rewardLines = formatBountyRewardLines(quest, config, STORAGE_KEYS);
 
         return `
             <div class="tm-quest-item ${quest.claimed ? 'completed' : ''}">
@@ -2045,8 +2185,7 @@ function populateQuestsModal(config, STORAGE_KEYS) {
                     <div class="tm-quest-progress-text">${quest.progress} / ${quest.targetCount}</div>
                 </div>
                 <div class="tm-quest-reward">
-                    XP: ${rewardXp}<br>Coins: ${rewardCoins}
-                    ${bountyBonusNote}
+                    ${rewardLines.html}
                 </div>
                 <div class="tm-quest-actions">
                     <button class="tm-quest-claim-btn" data-quest-id="${quest.id}" ${(!isComplete || quest.claimed) ? 'disabled' : ''}>
@@ -2065,9 +2204,7 @@ function populateQuestsModal(config, STORAGE_KEYS) {
             let quests = JSON.parse(GM_getValue(STORAGE_KEYS.DAILY_QUESTS, '[]'));
             const quest = quests.find(q => q.id === questId);
             if (quest && !quest.claimed && quest.progress >= quest.targetCount) {
-                const bountyMult = getBountyRewardMultiplier(STORAGE_KEYS);
-                grantXp(config, STORAGE_KEYS, Math.ceil(quest.rewardXp * bountyMult));
-                grantCoins(config, STORAGE_KEYS, Math.ceil(quest.rewardCoins * bountyMult), 'quest');
+                grantBountyClaimRewards(config, STORAGE_KEYS, quest);
                 quest.claimed = true;
                 // New: Chance to trigger Energized state on bounty completion
                 if (Math.random() < 0.33 && typeof window.triggerEnergizedState === 'function') {
@@ -3391,6 +3528,16 @@ function getLevelUpSettingsHTML() {
             <div class="tm-setting-row">
                 <div class="tm-setting-label">
                     <div class="tm-setting-label-row">
+                        <label for="tm-setting-daily-bounties-enabled">Daily Bounties</label>
+                        ${info('daily_bounties')}
+                    </div>
+                    <p class="tm-setting-description">Ημερήσιες αποστολές. Χωρίς XP system → μόνο coins.</p>
+                </div>
+                <div class="tm-setting-control"><input type="checkbox" id="tm-setting-daily-bounties-enabled"></div>
+            </div>
+            <div class="tm-setting-row">
+                <div class="tm-setting-label">
+                    <div class="tm-setting-label-row">
                         <label for="tm-setting-confetti-enabled">Εφέ κομφετί</label>
                         ${info('confetti')}
                     </div>
@@ -3492,6 +3639,7 @@ function initGamificationSettings(config, STORAGE_KEYS) {
         if (checkbox) checkbox.checked = config[key];
     };
     populateCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
+    populateCheckbox('tm-setting-daily-bounties-enabled', 'dailyBountiesEnabled');
     populateCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
     populateCheckbox('tm-setting-achievements-enabled', 'achievementsEnabled');
     populateCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
@@ -3523,6 +3671,15 @@ function initGamificationSettings(config, STORAGE_KEYS) {
         levelUpCheckbox.addEventListener('change', () => {
             config.levelUpSystemEnabled = levelUpCheckbox.checked;
             GM_setValue('levelUpSystemEnabled', levelUpCheckbox.checked);
+            updateGamificationLayerVisibility(config);
+        });
+    }
+
+    const dailyBountiesCheckbox = document.getElementById('tm-setting-daily-bounties-enabled');
+    if (dailyBountiesCheckbox) {
+        dailyBountiesCheckbox.addEventListener('change', () => {
+            config.dailyBountiesEnabled = dailyBountiesCheckbox.checked;
+            GM_setValue('dailyBountiesEnabled', dailyBountiesCheckbox.checked);
             updateGamificationLayerVisibility(config);
         });
     }
@@ -3586,6 +3743,7 @@ function updateShopButtonVisibility(config) {
 
 const GAMIFICATION_PRESET_KEYS = [
     'levelUpSystemEnabled',
+    'dailyBountiesEnabled',
     'shopEnabled',
     'interactiveMascotEnabled',
     'achievementsEnabled',
@@ -3596,6 +3754,7 @@ const GAMIFICATION_PRESET_KEYS = [
 
 const GAMIFICATION_PRESET_CHECKBOX_IDS = {
     levelUpSystemEnabled: 'tm-setting-levelup-enabled',
+    dailyBountiesEnabled: 'tm-setting-daily-bounties-enabled',
     shopEnabled: 'tm-setting-shop-enabled',
     interactiveMascotEnabled: 'tm-setting-mascot-enabled',
     achievementsEnabled: 'tm-setting-achievements-enabled',
@@ -3623,7 +3782,7 @@ function updateGamificationLayerVisibility(config) {
 
     const questsBtn = document.getElementById('tm-quests-btn');
     if (questsBtn) {
-        questsBtn.style.display = config.levelUpSystemEnabled !== false ? '' : 'none';
+        questsBtn.style.display = isDailyBountiesEnabled(config) ? '' : 'none';
     }
 }
 
@@ -3631,6 +3790,7 @@ function applyGamificationPreset(preset, config, STORAGE_KEYS) {
     const values = preset === 'professional'
         ? {
             levelUpSystemEnabled: false,
+            dailyBountiesEnabled: false,
             shopEnabled: false,
             interactiveMascotEnabled: false,
             achievementsEnabled: false,
@@ -3640,6 +3800,7 @@ function applyGamificationPreset(preset, config, STORAGE_KEYS) {
         }
         : {
             levelUpSystemEnabled: true,
+            dailyBountiesEnabled: true,
             shopEnabled: true,
             interactiveMascotEnabled: true,
             achievementsEnabled: true,
@@ -3692,6 +3853,7 @@ function saveGamificationSettings() {
 
     // --- Save Gamification/Fun Settings ---
     saveCheckbox('tm-setting-levelup-enabled', 'levelUpSystemEnabled');
+    saveCheckbox('tm-setting-daily-bounties-enabled', 'dailyBountiesEnabled');
     saveCheckbox('tm-setting-mascot-enabled', 'interactiveMascotEnabled');
     saveCheckbox('tm-setting-confetti-enabled', 'confettiEnabled');
     saveCheckbox('tm-setting-random-events-enabled', 'randomEventsEnabled');
@@ -5749,6 +5911,9 @@ window.readCoinBalance = readCoinBalance;
 window.writeCoinBalance = writeCoinBalance;
 window.ensureStarterCoins = ensureStarterCoins;
 window.tryGrantDailyStipend = tryGrantDailyStipend;
+window.hasClaimedDailyCareCoins = hasClaimedDailyCareCoins;
+window.claimDailyCareCoins = claimDailyCareCoins;
+window.getDailyCareCoinsButtonState = getDailyCareCoinsButtonState;
 window.checkAchievements = checkAchievements;
 window.updateQuestProgress = updateQuestProgress;
 window.generateDailyQuests = generateDailyQuests;

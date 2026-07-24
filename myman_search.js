@@ -667,7 +667,7 @@
             const container = document.getElementById('tm-search-container');
             if (!container) return;
 
-            if (config.levelUpSystemEnabled && !document.getElementById('tm-quests-btn')) {
+            if (config.dailyBountiesEnabled !== false && !document.getElementById('tm-quests-btn')) {
                 const questsButton = document.createElement('button');
                 questsButton.id = 'tm-quests-btn';
                 questsButton.className = 'tm-slide-out-btn';

@@ -180,6 +180,7 @@
             // Search + dashboard history
             'tm_search_history', 'tm_favorite_searches', 'tm_daily_stats_history', 'tm_stats_history_7days',
             'tm_daily_stipend_date',
+            'tm_daily_care_coins_date',
             'tm_search_include_merchandise_history', 'tm_search_include_parts_history',
             'tm_native_search_hidden', 'tm_quick_search_hidden',
             // Status transfer counters (extra statuses beyond STORAGE_KEYS)

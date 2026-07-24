@@ -92,19 +92,27 @@ function getAccessoryCatalogItem(itemId) {
     return MASCOT_ACCESSORY_CATALOG.find((item) => item.id === normalized) || null;
 }
 
+function getMascotLiveRoot() {
+    return document.querySelector('#tm-mascot-container[data-tm-mascot-live="1"]')
+        || document.querySelector('#tm-mascot-container:not([data-tm-ui-shell="1"])')
+        || document.getElementById('tm-mascot-container');
+}
+
 function setMascotAccessoryVisible(el, visible) {
     if (!el) return;
+    // Never touch page DOM outside the live mascot (service_edit has colliding #book/#shield/etc.)
+    const root = getMascotLiveRoot();
+    if (root && !root.contains(el)) return;
     if (visible) el.style.removeProperty('display');
     else el.style.display = 'none';
 }
 
 function hideAllMascotAccessories() {
-    MASCOT_ACCESSORY_CATALOG.forEach(({ id }) => {
-        const el = document.getElementById(id);
-        if (el) {
-            setMascotAccessoryVisible(el, false);
-            el.classList.remove('tm-accessory-equipped');
-        }
+    const root = getMascotLiveRoot();
+    if (!root) return;
+    root.querySelectorAll('.tm-mascot-accessory').forEach((el) => {
+        setMascotAccessoryVisible(el, false);
+        el.classList.remove('tm-accessory-equipped');
     });
 }
 
@@ -418,7 +426,7 @@ function getVisibleMascotSpriteRoot() {
         }
         return child;
     }
-    return fallback || document.getElementById('tm-mascot-base');
+    return fallback || getMascotSpriteById(getMascotLiveRoot(), 'tm-mascot-base');
 }
 
 function getSpriteEyeElement(sprite) {
@@ -573,16 +581,16 @@ function getMascotStageAnchors(stage = getEffectiveMascotStage()) {
 }
 
 function hasEquippedMascotAccessories() {
-    return MASCOT_ACCESSORY_CATALOG.some(({ id }) => document.getElementById(id)?.classList.contains('tm-accessory-equipped'));
+    return MASCOT_ACCESSORY_CATALOG.some(({ id }) => getAccessoryElement(id)?.classList.contains('tm-accessory-equipped'));
 }
 
 function hasActiveStateAccessories() {
-    const container = document.getElementById('tm-mascot-container');
+    const container = getMascotLiveRoot();
     if (!container) return false;
     return Object.entries(STATE_FORCED_ACCESSORIES).some(([state, ids]) =>
         container.classList.contains(`mascot-${state}`)
         && ids.some((id) => {
-            const el = document.getElementById(id);
+            const el = getAccessoryElement(id);
             return el && window.getComputedStyle(el).display !== 'none';
         }),
     );
@@ -643,13 +651,13 @@ function syncStateAccessoryLayout(state, previousState) {
 
 function updateMascotAccessoryLayout(stage = getEffectiveMascotStage()) {
     MASCOT_ACCESSORY_CATALOG.forEach(({ id }) => {
-        const el = document.getElementById(id);
+        const el = getAccessoryElement(id);
         if (el?.classList.contains('tm-accessory-equipped')) {
             layoutMascotAccessory(id, stage);
         }
     });
 
-    const container = document.getElementById('tm-mascot-container');
+    const container = getMascotLiveRoot();
     if (!container) return;
     Object.entries(STATE_FORCED_ACCESSORIES).forEach(([state, ids]) => {
         if (!container.classList.contains(`mascot-${state}`)) return;
@@ -658,11 +666,12 @@ function updateMascotAccessoryLayout(stage = getEffectiveMascotStage()) {
 }
 
 function initMascotAccessoryLayers() {
-    const flipper = document.querySelector('.tm-mascot-flipper');
+    const root = getMascotLiveRoot();
+    const flipper = root?.querySelector?.('.tm-mascot-flipper') || document.querySelector('#tm-mascot-container .tm-mascot-flipper');
     if (!flipper) return;
 
-    const legacyBackLayer = document.getElementById('tm-mascot-acc-back');
-    let frontLayer = document.getElementById('tm-mascot-acc-front');
+    const legacyBackLayer = flipper.querySelector('#tm-mascot-acc-back');
+    let frontLayer = flipper.querySelector('#tm-mascot-acc-front');
 
     if (frontLayer && legacyBackLayer) {
         while (legacyBackLayer.firstChild) {
@@ -682,8 +691,9 @@ function initMascotAccessoryLayers() {
 
     const prependFront = [];
     MASCOT_ACCESSORY_CATALOG.forEach(({ id }) => {
-        const el = document.getElementById(id);
-        if (!el) return;
+        // Must stay inside the live mascot SVG — never document.getElementById
+        const el = getAccessoryElement(id) || flipper.querySelector(`#${CSS.escape(id)}`);
+        if (!el || !flipper.contains(el)) return;
         if (ACCESSORY_PREPEND_FRONT.has(id)) {
             el.setAttribute('data-tm-back-slot', 'true');
             prependFront.push(el);
@@ -4428,14 +4438,22 @@ function getTamagotchiStorageKeys(STORAGE_KEYS) {
 }
 
 /**
- * Helper function to get the correct accessory element from the DOM, handling special cases.
- * @param {string} itemId The ID of the accessory.
- * @returns {HTMLElement|null} The DOM element for the accessory.
+ * Accessory nodes live inside #tm-mascot-container. Never use document.getElementById —
+ * service_edit.php has colliding host IDs (book, shield, umbrella, …) that steal the lookup
+ * and make the mascot look like a different pet on repair pages.
  */
 function getAccessoryElement(itemId) {
     const normalized = normalizeAccessoryId(itemId);
     if (!normalized) return null;
-    return document.getElementById(normalized);
+    const root = getMascotLiveRoot();
+    if (!root) return null;
+    try {
+        return root.querySelector(`.tm-mascot-accessory#${CSS.escape(normalized)}`)
+            || root.querySelector(`#${CSS.escape(normalized)}`);
+    } catch (_) {
+        return root.querySelector(`.tm-mascot-accessory[id="${normalized}"]`)
+            || root.querySelector(`[id="${normalized}"]`);
+    }
 }
 
 function stopRoaming(config) {
@@ -8684,14 +8702,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="100%" style="stop-color:#d35400;stop-opacity:0.5" />
                         </linearGradient>
                 <!-- Glow filters for magical effects -->
-                <filter id="glow">
+                <filter id="tm-mascot-glow">
                     <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                     <feMerge>
                         <feMergeNode in="coloredBlur"/>
                         <feMergeNode in="SourceGraphic"/>
                     </feMerge>
                 </filter>
-                <filter id="strong-glow">
+                <filter id="tm-mascot-strong-glow">
                     <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
                     <feMerge>
                         <feMergeNode in="coloredBlur"/>
@@ -8721,7 +8739,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <!-- Cosmic glow aura -->
                     <ellipse cx="50" cy="52" rx="42" ry="48" fill="url(#egg-glow)" class="tm-cosmic-aura"/>
                     <!-- Main egg body -->
-                    <ellipse cx="50" cy="52" rx="33" ry="38" fill="url(#egg-shell)" stroke="#4ecdc4" stroke-width="2.5" filter="url(#glow)"/>
+                    <ellipse cx="50" cy="52" rx="33" ry="38" fill="url(#egg-shell)" stroke="#4ecdc4" stroke-width="2.5" filter="url(#tm-mascot-glow)"/>
                     <!-- Magical crack patterns (animated) -->
                     <path d="M 50 20 L 48 28 L 52 35 L 49 42" stroke="#26a69a" stroke-width="1.5" fill="none" opacity="0.6" stroke-linecap="round" class="tm-egg-crack"/>
                     <path d="M 30 40 L 35 45 L 32 52" stroke="#26a69a" stroke-width="1.5" fill="none" opacity="0.5" stroke-linecap="round" class="tm-egg-crack"/>
@@ -16596,6 +16614,19 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         const feedUrgent = !isEgg && petStats.hunger < 35;
         const praiseUrgent = !isEgg && !!tamagotchiNeedsPraise;
         const scoldUrgent = !isEgg && !!tamagotchiNeedsScold;
+        const dailyCoinsState = (typeof getDailyCareCoinsButtonState === 'function')
+            ? getDailyCareCoinsButtonState(STORAGE_KEYS)
+            : { claimed: false, amount: 50, label: 'Δωρεάν coins', hint: '+50 κάθε μέρα', title: 'Πάρε 50 δωρεάν coins (1×/μέρα)' };
+        const dailyCoinsRowHtml = `
+                <div class="tm-mascot-daily-coins-row">
+                    <button type="button" class="tm-action-btn tm-action-daily-coins ${dailyCoinsState.claimed ? 'tm-daily-claimed' : 'tm-action-urgent'}" id="tm-action-daily-coins" title="${dailyCoinsState.title}" ${dailyCoinsState.claimed ? 'disabled' : ''}>
+                        <span class="tm-action-icon">🪙</span>
+                        <span class="tm-action-copy">
+                            <span class="tm-action-label">${dailyCoinsState.label}</span>
+                            <span class="tm-action-hint">${dailyCoinsState.hint}</span>
+                        </span>
+                    </button>
+                </div>`;
 
         const modal = document.createElement('div');
         modal.id = 'tm-mascot-stats-modal';
@@ -16621,6 +16652,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <span class="tm-tip-icon">${tip.icon}</span>
                     <span class="tm-tip-text">${tip.text}</span>
                 </div>
+
+                ${dailyCoinsRowHtml}
 
                 ${isEgg ? `
                 <div class="tm-mascot-stats-block">
@@ -16881,6 +16914,39 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 background: color-mix(in srgb, #ef4444 12%, var(--tm-shop-item-bg, #fef2f2));
                 border: 1px solid color-mix(in srgb, #ef4444 30%, transparent); color: #991b1b;
             }
+            #tm-mascot-stats-modal .tm-mascot-daily-coins-row {
+                margin: 0 18px 12px;
+            }
+            #tm-mascot-stats-modal .tm-action-daily-coins {
+                width: 100%;
+                flex-direction: row;
+                justify-content: flex-start;
+                gap: 12px;
+                padding: 12px 14px;
+                text-align: left;
+            }
+            #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-copy {
+                display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0;
+            }
+            #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-label,
+            #tm-mascot-stats-modal .tm-action-daily-coins .tm-action-hint {
+                text-align: left;
+            }
+            #tm-mascot-stats-modal .tm-action-daily-coins.tm-daily-claimed {
+                opacity: 0.72;
+                cursor: default;
+                box-shadow: none;
+                border-color: var(--tm-shop-item-border, #e2e8f0);
+                background: var(--tm-shop-item-bg, #f8fafc);
+            }
+            #tm-mascot-stats-modal .tm-action-daily-coins.tm-daily-claimed:hover {
+                border-color: var(--tm-shop-item-border, #e2e8f0);
+                background: var(--tm-shop-item-bg, #f8fafc);
+                box-shadow: none;
+            }
+            #tm-mascot-stats-modal .tm-action-daily-coins:disabled {
+                pointer-events: none;
+            }
             #tm-mascot-stats-modal .tm-mascot-alerts {
                 padding: 0 18px; display: flex; flex-direction: column; gap: 8px;
                 margin-bottom: 4px;
@@ -17054,6 +17120,22 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             tipEl.innerHTML = '<span class="tm-tip-icon">' + next.icon + '</span><span class="tm-tip-text">' + next.text + '</span>';
         }
 
+        function refreshDailyCoinsButton() {
+            const btn = modal.querySelector('#tm-action-daily-coins');
+            if (!btn) return;
+            const state = (typeof getDailyCareCoinsButtonState === 'function')
+                ? getDailyCareCoinsButtonState(STORAGE_KEYS)
+                : { claimed: false, label: 'Δωρεάν coins', hint: '+50 κάθε μέρα', title: 'Πάρε 50 δωρεάν coins (1×/μέρα)' };
+            btn.classList.toggle('tm-daily-claimed', !!state.claimed);
+            btn.classList.toggle('tm-action-urgent', !state.claimed);
+            btn.disabled = !!state.claimed;
+            btn.title = state.title || '';
+            const label = btn.querySelector('.tm-action-label');
+            const hint = btn.querySelector('.tm-action-hint');
+            if (label) label.textContent = state.label;
+            if (hint) hint.textContent = state.hint;
+        }
+
         function updateModalStats() {
             if (tamagotchiStage === 'egg') {
                 const progress = Math.round(getEggHatchProgress());
@@ -17070,6 +17152,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     if (icon) icon.textContent = tamagotchiLightsOn ? '💡' : '🌙';
                     if (label) label.textContent = tamagotchiLightsOn ? 'Φώτα' : 'Άνοιξε φώτα';
                 }
+                refreshDailyCoinsButton();
                 return;
             }
 
@@ -17126,6 +17209,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             modal.querySelector('#tm-action-praise')?.classList.toggle('tm-action-urgent', !!tamagotchiNeedsPraise);
             modal.querySelector('#tm-action-scold')?.classList.toggle('tm-action-urgent', !!tamagotchiNeedsScold);
 
+            refreshDailyCoinsButton();
             refreshCareTip();
         }
 
@@ -17151,6 +17235,24 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             if (Math.random() < 0.5) {
                 showMascotBubble(byeMessages[Math.floor(Math.random() * byeMessages.length)], 1500);
             }
+        });
+
+        modal.querySelector('#tm-action-daily-coins')?.addEventListener('click', () => {
+            if (typeof claimDailyCareCoins !== 'function') {
+                showMascotBubble('Δεν είναι διαθέσιμο τώρα.', 1800);
+                return;
+            }
+            const result = claimDailyCareCoins(config, STORAGE_KEYS);
+            refreshDailyCoinsButton();
+            if (result?.ok) {
+                showMascotBubble(`+${result.amount} coins! Ευχαριστώ!`, 2200);
+                return;
+            }
+            if (result?.reason === 'already') {
+                showMascotBubble('Τα πήρες ήδη σήμερα — ξανά αύριο!', 2200);
+                return;
+            }
+            showMascotBubble('Το shop/level-up είναι κλειστό.', 2200);
         });
 
         if (isEgg) {
@@ -18520,6 +18622,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     if (!tamaCinematicLock && !mascotStagePreviewLock) {
         updateMascotAppearanceByStage(tamagotchiStage);
     }
+    // Edit pages run extra reactions; re-assert storage character after they settle
+    setTimeout(() => resyncMascotAppearanceFromStorage(STORAGE_KEYS), 400);
+    setTimeout(() => resyncMascotAppearanceFromStorage(STORAGE_KEYS), 1600);
     } finally {
         window.__tmMascotInitializing = false;
     }
@@ -18923,6 +19028,11 @@ function updateMascotAppearanceByStage(stage) {
         console.warn('[MMS Mascot] No mascot container — skip appearance update');
         return;
     }
+    markMascotContainerLive(container);
+    try {
+        container.dataset.tmChar = String(tamagotchiCharacterType || 'none');
+        container.dataset.tmStage = String(stage || tamagotchiStage || 'egg');
+    } catch (_) { /* ignore */ }
 
     const eggSprite = getMascotSpriteById(container, 'tm-mascot-base');
     const allCharacterTypes = TAMA_CHARACTER_TYPES;
