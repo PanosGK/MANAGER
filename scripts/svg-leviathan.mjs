@@ -1,15 +1,15 @@
 /**
- * Storm Leviathan — "Eclipse Maelstrom" evo line (v6 · boss-intimidation pass)
- * Distinct silhouette per stage (Pokémon-evolution style) PLUS an escalating
- * "barely contained fury" layer on adult+ forms: bigger/sharper shrapnel,
- * hotter slit-pupil eye, jagged red wrath-cracks breaking through the cold void.
- *   baby  → tiny round fracture seed (calm)
- *   evo1  → seed cracked into a 3-chunk drifting cluster
- *   evo2  → chunks fused into a tall jagged monolith/spine (first wrath hint)
- *   evo3  → BOSS: void core + twin broken halo-rings, slit eye, wrath cracks
- *   evo4  → tighter triple-ring gyroscope, denser + angrier
- *   evo5  → radiating mandala/dark-sun spikes, largest and most intense form
- * Export for apply-leviathan-svg.mjs → myman_mascot.js
+ * Storm Leviathan — v7 "actual sea-serpent" redesign
+ *
+ * v6 was an abstract void/shard "Eclipse Maelstrom" — epic, but did not read
+ * as a Leviathan at all. v7 replaces it with a real coiled sea-serpent/dragon
+ * anatomy: a tapering serpentine body ribbon, a horned reptilian head with a
+ * fanged jaw and two glowing slit eyes, a dorsal fin-spike ridge running the
+ * length of the spine, small clawed fin-limbs, a finned tail, a storm mane
+ * around the neck, and lightning cracking over the hide (heaviest on the
+ * boss-tier adult+ forms). Each stage still gets a distinct silhouette
+ * (Pokémon-evolution style): the coil tightens, the horn crown grows, and the
+ * storm intensifies as it evolves.
  */
 const I = '                ';
 const I2 = I + '    ';
@@ -20,29 +20,41 @@ const STAGES = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
 const STAGE_LABEL = {
   baby: 'BABY', evo1: 'KID', evo2: 'TEEN', evo3: 'ADULT', evo4: 'MIDDLE AGE', evo5: 'OLD',
 };
-
-const INK = '#00010a';
-
-const STAGE_PALETTES = {
-  baby: { stroke: '#1a3a5c', rim: '#7dd3fc', accent: '#38bdf8', shard: '#33507a', wrath: null },
-  evo1: { stroke: '#0f2744', rim: '#67e8f9', accent: '#0ea5e9', shard: '#26456c', wrath: null },
-  evo2: { stroke: '#0a1e36', rim: '#22d3ee', accent: '#06b6d4', shard: '#1a3350', wrath: '#fbbf24' },
-  evo3: { stroke: '#050e18', rim: '#a5f3fc', accent: '#38bdf8', shard: '#14283f', wrath: '#ef4444' },
-  evo4: { stroke: '#040810', rim: '#cbd5e1', accent: '#64748b', shard: '#1c2530', wrath: '#dc2626' },
-  evo5: { stroke: '#020406', rim: '#f8fafc', accent: '#94a3b8', shard: '#23282f', wrath: '#fecaca' },
+const STAGE_SLUG = {
+  baby: 'baby', evo1: 'kid', evo2: 'teen', evo3: 'adult', evo4: 'mid', evo5: 'old',
+};
+const STAGE_TITLE = {
+  baby: 'Storm Hatchling',
+  evo1: 'Squall Serpent',
+  evo2: 'Gale Drake',
+  evo3: 'Storm Leviathan — BOSS',
+  evo4: 'Tempest Leviathan',
+  evo5: 'Primordial Leviathan',
 };
 
-function grad(id, stops, type = 'radial', attrs) {
-  const tag = type === 'linear' ? 'linearGradient' : 'radialGradient';
+const INK = '#01040a';
+const LEVI_DEBUG = false;
+
+const STAGE_PALETTES = {
+  baby: { scale: '#2f5a78', deep: '#0e2338', rim: '#8fe0ff', accent: '#3fb6ea', horn: '#cbd9de', wrath: null },
+  evo1: { scale: '#2a5270', deep: '#0b1f34', rim: '#7fd6f5', accent: '#2ea9d8', horn: '#c3d3da', wrath: null },
+  evo2: { scale: '#234a68', deep: '#081a2c', rim: '#63c9ef', accent: '#1f96c4', horn: '#b7c9d2', wrath: '#fbbf24' },
+  evo3: { scale: '#173650', deep: '#050f1c', rim: '#55c3ec', accent: '#1b84b3', horn: '#a9bdc8', wrath: '#ef4444' },
+  evo4: { scale: '#112938', deep: '#030a12', rim: '#8fd3ea', accent: '#3f7f97', horn: '#93a7b3', wrath: '#dc2626' },
+  evo5: { scale: '#0b1c26', deep: '#02060a', rim: '#dff3fa', accent: '#5c8a99', horn: '#7f929e', wrath: '#fecaca' },
+};
+
+function grad(id, stops, type = 'linear', attrs) {
+  const tag = type === 'radial' ? 'radialGradient' : 'linearGradient';
   const defAttrs = attrs
-    || (type === 'linear' ? 'x1="0%" y1="0%" x2="100%" y2="100%"' : 'cx="40%" cy="28%" r="78%"');
+    || (type === 'radial' ? 'cx="35%" cy="30%" r="75%"' : 'x1="15%" y1="0%" x2="85%" y2="100%"');
   const stopLines = stops.map(([o, c, a = 1]) =>
     `${I4}<stop offset="${o}" style="stop-color:${c};stop-opacity:${a}" />`).join('\n');
   return `${I3}<${tag} id="${id}" ${defAttrs}>\n${stopLines}\n${I3}</${tag}>`;
 }
 
-function wrapStage(stage, title, defs, body) {
-  return `${I}<!-- LEVIATHAN ${STAGE_LABEL[stage]} — ${title} -->
+function wrapStage(stage, defs, body) {
+  return `${I}<!-- LEVIATHAN ${STAGE_LABEL[stage]} — ${STAGE_TITLE[stage]} -->
 ${I}<g id="tm-mascot-${stage}-leviathan" style="display: none;">
 ${I2}<defs>
 ${defs}
@@ -54,120 +66,305 @@ ${I}</g>
 
 function makeDefs(p, pal) {
   return [
-    grad(`${p}-void`, [['0%', INK], ['56%', INK], ['82%', pal.rim, 0.6], ['100%', INK, 0]], 'radial', 'cx="45%" cy="42%" r="65%"'),
-    grad(`${p}-shard`, [['0%', pal.rim], ['45%', pal.shard], ['100%', INK]], 'linear', 'x1="10%" y1="0%" x2="90%" y2="100%"'),
-    grad(`${p}-iris`, [['0%', pal.rim], ['40%', pal.accent], ['100%', '#000']], 'radial', 'cx="35%" cy="30%" r="70%"'),
-    grad(`${p}-aura`, [['0%', pal.accent, 0.26], ['45%', pal.rim, 0.12], ['100%', INK, 0]], 'radial', 'cx="50%" cy="48%" r="55%"'),
+    grad(`${p}-scale`, [['0%', pal.rim], ['38%', pal.scale], ['100%', pal.deep]], 'linear'),
+    grad(`${p}-belly`, [['0%', pal.accent, 0.9], ['100%', pal.deep]], 'linear'),
+    grad(`${p}-horn`, [['0%', '#fff'], ['55%', pal.horn], ['100%', pal.deep]], 'linear'),
+    grad(`${p}-iris`, [['0%', '#f0feff'], ['35%', pal.rim], ['100%', pal.accent]], 'radial'),
+    grad(`${p}-mist`, [['0%', pal.accent, 0.28], ['55%', pal.rim, 0.1], ['100%', pal.deep, 0]], 'radial', 'cx="50%" cy="55%" r="60%"'),
     `${I3}<filter id="${p}-glow" x="-60%" y="-60%" width="220%" height="220%">
-${I4}<feGaussianBlur stdDeviation="1.3" result="b"/>
+${I4}<feGaussianBlur stdDeviation="1.1" result="b"/>
 ${I4}<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
 ${I3}</filter>`,
   ].join('\n');
 }
 
-/** Elongated shard/shrapnel polygon oriented along angleDeg, tip pointing outward. */
-function shardPolygon(cx, cy, angleDeg, len, wid) {
+/* ---------- geometry helpers ---------- */
+
+/**
+ * A wavy S-curve spine of {x,y} points — a real slithering serpent, not a spiral shell.
+ * Head sits at t=0 (headX,headY) facing back along `dirDeg`; the body undulates side to
+ * side (amplitude eases in near the head so the neck stays straight) as it travels the
+ * `length` toward the tail at t=1. A gentle tail-hook curl is blended in at the very end.
+ */
+function serpentSpine({
+  headX, headY, dirDeg, length, amplitude, waves, segments, ampEase = 0.16, hookFrac = 0.12,
+}) {
+  const rad = (dirDeg * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const pts = [];
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    const lx = t * length;
+    const easeIn = Math.min(1, t / ampEase);
+    let ly = Math.sin(t * waves * Math.PI * 2) * amplitude * easeIn;
+    if (t > 1 - hookFrac) {
+      const hookT = (t - (1 - hookFrac)) / hookFrac;
+      ly += Math.sin(hookT * Math.PI * 0.9) * amplitude * 0.55;
+    }
+    pts.push({ x: headX + lx * cos - ly * sin, y: headY + lx * sin + ly * cos });
+  }
+  return pts;
+}
+
+/** Per-point outward unit normal (perpendicular to local tangent), consistently on the "left" side. */
+function spineNormals(points) {
+  const n = points.length;
+  const normals = [];
+  for (let i = 0; i < n; i++) {
+    const prev = points[Math.max(0, i - 1)];
+    const next = points[Math.min(n - 1, i + 1)];
+    const dx = next.x - prev.x;
+    const dy = next.y - prev.y;
+    const len = Math.hypot(dx, dy) || 1;
+    normals.push({ x: -dy / len, y: dx / len });
+  }
+  return normals;
+}
+
+/** Tapered ribbon body through the spine — straight segments read cleanly at icon scale. */
+function ribbonPath(points, normals, halfWidths) {
+  const left = points.map((pt, i) => ({ x: pt.x + normals[i].x * halfWidths[i], y: pt.y + normals[i].y * halfWidths[i] }));
+  const right = points.map((pt, i) => ({ x: pt.x - normals[i].x * halfWidths[i], y: pt.y - normals[i].y * halfWidths[i] }));
+  const leftStr = left.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`).join(' ');
+  const rightStr = right.slice().reverse().map((pt) => `L ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`).join(' ');
+  return `${leftStr} ${rightStr} Z`;
+}
+
+/** Thin belly-plate stripes across the underside of the ribbon (storm-serpent scute line). */
+function bellyStripes(points, normals, halfWidths, every, stroke) {
+  const parts = [];
+  for (let i = 2; i < points.length - 2; i += every) {
+    const pt = points[i];
+    const n = normals[i];
+    const hw = halfWidths[i] * 0.82;
+    const x1 = pt.x + n.x * hw;
+    const y1 = pt.y + n.y * hw;
+    const x2 = pt.x - n.x * hw;
+    const y2 = pt.y - n.y * hw;
+    parts.push(`${I4}<path d="M ${x1.toFixed(1)} ${y1.toFixed(1)} L ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${stroke}" stroke-width="0.6" opacity="0.28"/>`);
+  }
+  return parts.join('\n');
+}
+
+/** Row of dorsal fin-spikes along one continuous edge of the ribbon — the sea-serpent's spine ridge. */
+function dorsalRidge(points, normals, halfWidths, indices, spikeLen, hornColor, stroke) {
+  return indices.map((i, k) => {
+    const pt = points[i];
+    const n = normals[i];
+    const hw = halfWidths[i];
+    const baseX = pt.x + n.x * hw * 0.7;
+    const baseY = pt.y + n.y * hw * 0.7;
+    const len = spikeLen * (0.7 + (k % 3) * 0.22);
+    const tipX = baseX + n.x * len;
+    const tipY = baseY + n.y * len;
+    const tx = points[Math.min(points.length - 1, i + 1)].x - points[Math.max(0, i - 1)].x;
+    const ty = points[Math.min(points.length - 1, i + 1)].y - points[Math.max(0, i - 1)].y;
+    const tl = Math.hypot(tx, ty) || 1;
+    const backX = baseX - (tx / tl) * len * 0.4;
+    const backY = baseY - (ty / tl) * len * 0.4;
+    const frontX = baseX + (tx / tl) * len * 0.4;
+    const frontY = baseY + (ty / tl) * len * 0.4;
+    return `${I4}<path d="M ${backX.toFixed(1)} ${backY.toFixed(1)} L ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${frontX.toFixed(1)} ${frontY.toFixed(1)} Z" fill="${hornColor}" stroke="${stroke}" stroke-width="0.7" opacity="${(0.72 + (k % 3) * 0.08).toFixed(2)}"/>`;
+  }).join('\n');
+}
+
+/** Small clawed fin-limb sprouting sideways from a spine point. */
+function finLimb(pt, normal, side, size, fillId, stroke) {
+  const nx = normal.x * side;
+  const ny = normal.y * side;
+  const tipX = pt.x + nx * size;
+  const tipY = pt.y + ny * size;
+  const px = -ny;
+  const py = nx;
+  const baseLX = pt.x + px * size * 0.35;
+  const baseLY = pt.y + py * size * 0.35;
+  const baseRX = pt.x - px * size * 0.35;
+  const baseRY = pt.y - py * size * 0.35;
+  const claw1X = tipX + px * size * 0.32;
+  const claw1Y = tipY + py * size * 0.32;
+  const claw2X = tipX - px * size * 0.32;
+  const claw2Y = tipY - py * size * 0.32;
+  return `${I4}<path d="M ${baseLX.toFixed(1)} ${baseLY.toFixed(1)} Q ${(tipX - nx * size * 0.15).toFixed(1)} ${(tipY - ny * size * 0.15).toFixed(1)} ${claw1X.toFixed(1)} ${claw1Y.toFixed(1)} L ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${claw2X.toFixed(1)} ${claw2Y.toFixed(1)} Q ${(tipX - nx * size * 0.15).toFixed(1)} ${(tipY - ny * size * 0.15).toFixed(1)} ${baseRX.toFixed(1)} ${baseRY.toFixed(1)} Z" fill="url(#${fillId})" stroke="${stroke}" stroke-width="0.9" opacity="0.85"/>`;
+}
+
+/** Curved horn sweeping back from a base point — solid pale fill so it stays readable against a dark hide. */
+function hornShape(baseX, baseY, angleDeg, len, baseWidth, hornColor, stroke) {
   const a = (angleDeg * Math.PI) / 180;
   const dx = Math.cos(a);
   const dy = Math.sin(a);
   const px = -dy;
   const py = dx;
-  const tipX = cx + dx * len;
-  const tipY = cy + dy * len;
-  const backX = cx - dx * len * 0.42;
-  const backY = cy - dy * len * 0.42;
-  const leftX = cx + px * wid;
-  const leftY = cy + py * wid;
-  const rightX = cx - px * wid;
-  const rightY = cy - py * wid;
-  return `M ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${leftX.toFixed(1)} ${leftY.toFixed(1)} L ${backX.toFixed(1)} ${backY.toFixed(1)} L ${rightX.toFixed(1)} ${rightY.toFixed(1)} Z`;
+  const tipX = baseX + dx * len;
+  const tipY = baseY + dy * len;
+  const curveX = baseX + dx * len * 0.55 + px * len * 0.4;
+  const curveY = baseY + dy * len * 0.55 + py * len * 0.4;
+  const leftX = baseX + px * baseWidth;
+  const leftY = baseY + py * baseWidth;
+  const rightX = baseX - px * baseWidth;
+  const rightY = baseY - py * baseWidth;
+  return `${I4}<path d="M ${leftX.toFixed(1)} ${leftY.toFixed(1)} Q ${curveX.toFixed(1)} ${curveY.toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)} Q ${(curveX - px * baseWidth * 0.5).toFixed(1)} ${(curveY - py * baseWidth * 0.5).toFixed(1)} ${rightX.toFixed(1)} ${rightY.toFixed(1)} Z" fill="${hornColor}" stroke="${stroke}" stroke-width="0.9" opacity="0.96"/>`;
 }
 
-function shardAtEllipseAngle(cx, cy, rx, ry, angleDeg, rotDeg) {
+/**
+ * Reptilian head wedge capping the front of the ribbon, oriented along facing angleDeg.
+ * Deliberately flares wider than the neck ribbon (like a cobra hood) and carries its own
+ * bold outline + brow/nostril marks so it reads as a distinct head, not a blob continuing
+ * the body's silhouette.
+ */
+function headWedge(hx, hy, angleDeg, size, fillId, faceId, stroke) {
   const a = (angleDeg * Math.PI) / 180;
-  const x0 = rx * Math.cos(a);
-  const y0 = ry * Math.sin(a);
-  const r = (rotDeg * Math.PI) / 180;
-  const x = cx + (x0 * Math.cos(r) - y0 * Math.sin(r));
-  const y = cy + (x0 * Math.sin(r) + y0 * Math.cos(r));
-  const tangent = angleDeg + rotDeg + 90;
-  return [x, y, tangent];
+  const dx = Math.cos(a);
+  const dy = Math.sin(a);
+  const px = -dy;
+  const py = dx;
+  const tipX = hx + dx * size * 1.3;
+  const tipY = hy + dy * size * 1.3;
+  const jawLX = hx + dx * size * 0.3 + px * size * 0.6;
+  const jawLY = hy + dy * size * 0.3 + py * size * 0.6;
+  const jawRX = hx + dx * size * 0.3 - px * size * 0.6;
+  const jawRY = hy + dy * size * 0.3 - py * size * 0.6;
+  const browLX = hx - dx * size * 0.68 + px * size * 1;
+  const browLY = hy - dy * size * 0.68 + py * size * 1;
+  const browRX = hx - dx * size * 0.68 - px * size * 1;
+  const browRY = hy - dy * size * 0.68 - py * size * 1;
+  const wedge = `${I4}<path d="M ${tipX.toFixed(1)} ${tipY.toFixed(1)} Q ${jawLX.toFixed(1)} ${jawLY.toFixed(1)} ${browLX.toFixed(1)} ${browLY.toFixed(1)} L ${browRX.toFixed(1)} ${browRY.toFixed(1)} Q ${jawRX.toFixed(1)} ${jawRY.toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)} Z" fill="url(#${fillId})" stroke="${stroke}" stroke-width="1.1" stroke-linejoin="round"/>`;
+  const snoutX = hx + dx * size * 0.62;
+  const snoutY = hy + dy * size * 0.62;
+  const snoutLX = hx + dx * size * 0.02 + px * size * 0.5;
+  const snoutLY = hy + dy * size * 0.02 + py * size * 0.5;
+  const snoutRX = hx + dx * size * 0.02 - px * size * 0.5;
+  const snoutRY = hy + dy * size * 0.02 - py * size * 0.5;
+  const snoutPatch = `${I4}<path d="M ${snoutX.toFixed(1)} ${snoutY.toFixed(1)} L ${snoutLX.toFixed(1)} ${snoutLY.toFixed(1)} Q ${(hx - dx * size * 0.25 + px * size * 0.28).toFixed(1)} ${(hy - dy * size * 0.25 + py * size * 0.28).toFixed(1)} ${(hx - dx * size * 0.35).toFixed(1)} ${(hy - dy * size * 0.35).toFixed(1)} Q ${(hx - dx * size * 0.25 - px * size * 0.28).toFixed(1)} ${(hy - dy * size * 0.25 - py * size * 0.28).toFixed(1)} ${snoutRX.toFixed(1)} ${snoutRY.toFixed(1)} Z" fill="url(#${faceId})" opacity="0.85"/>`;
+  const nostrilLX = hx + dx * size * 0.95 + px * size * 0.16;
+  const nostrilLY = hy + dy * size * 0.95 + py * size * 0.16;
+  const nostrilRX = hx + dx * size * 0.95 - px * size * 0.16;
+  const nostrilRY = hy + dy * size * 0.95 - py * size * 0.16;
+  const nostrils = `${I4}<circle cx="${nostrilLX.toFixed(1)}" cy="${nostrilLY.toFixed(1)}" r="${Math.max(0.5, size * 0.06).toFixed(1)}" fill="${stroke}" opacity="0.75"/>
+${I4}<circle cx="${nostrilRX.toFixed(1)}" cy="${nostrilRY.toFixed(1)}" r="${Math.max(0.5, size * 0.06).toFixed(1)}" fill="${stroke}" opacity="0.75"/>`;
+  const browRidge = `${I4}<path d="M ${browLX.toFixed(1)} ${browLY.toFixed(1)} Q ${(hx - dx * size * 0.5).toFixed(1)} ${(hy - dy * size * 0.5).toFixed(1)} ${browRX.toFixed(1)} ${browRY.toFixed(1)}" stroke="${stroke}" stroke-width="1" fill="none" opacity="0.55"/>`;
+  return `${wedge}\n${snoutPatch}\n${nostrils}\n${browRidge}`;
 }
 
-/** widthRatio smaller = sharper/more blade-like. Boss tiers use tighter ratios. */
-function arcOfShards(cx, cy, rx, ry, angles, rotDeg, size, fillId, stroke, glowId, widthRatio = 0.3) {
-  return angles.map((angle, i) => {
-    const [x, y, tangent] = shardAtEllipseAngle(cx, cy, rx, ry, angle, rotDeg);
-    const s = size * (0.74 + (i % 3) * 0.18);
-    const op = (0.62 + (i % 4) * 0.09).toFixed(2);
-    return `${I4}<path d="${shardPolygon(x, y, tangent, s, s * widthRatio)}" fill="url(#${fillId})" stroke="${stroke}" stroke-width="0.9" opacity="${op}" filter="url(#${glowId})"/>`;
-  }).join('\n');
-}
-
-/** A broken ring of orbiting shrapnel — gaps in gapIdx make it read as fractured, not a clean halo. */
-function ringOfShards(cx, cy, rx, ry, count, rotDeg, gapIdx, size, fillId, stroke, glowId, widthRatio = 0.3) {
-  const angles = [];
-  for (let i = 0; i < count; i++) if (!gapIdx.includes(i)) angles.push((360 / count) * i);
-  return arcOfShards(cx, cy, rx, ry, angles, rotDeg, size, fillId, stroke, glowId, widthRatio);
-}
-
-/** Only a partial arc of shrapnel — used for rings still "forming" on younger stages. */
-function partialRing(cx, cy, rx, ry, startDeg, endDeg, count, rotDeg, size, fillId, stroke, glowId) {
-  const angles = [];
-  for (let i = 0; i < count; i++) {
-    const t = count <= 1 ? 0 : i / (count - 1);
-    angles.push(startDeg + (endDeg - startDeg) * t);
-  }
-  return arcOfShards(cx, cy, rx, ry, angles, rotDeg, size, fillId, stroke, glowId);
-}
-
-/** Small drifting fragment cluster — used where limbs would be; nothing is attached to the core. */
-function fragmentCluster(cx, cy, count, size, fillId, stroke, seedAngle) {
+/** A row of bold, always-visible fang triangles along the upper jaw — a permanent feature, not mood-dependent. */
+function fangRow(hx, hy, angleDeg, size, fangCount, stroke) {
+  if (fangCount <= 0) return '';
+  const a = (angleDeg * Math.PI) / 180;
+  const dx = Math.cos(a);
+  const dy = Math.sin(a);
+  const px = -dy;
+  const py = dx;
   const parts = [];
-  for (let i = 0; i < count; i++) {
-    const angle = seedAngle + i * 47;
-    const dist = size * 0.9 + (i % 2) * size * 0.45;
-    const rad = (angle * Math.PI) / 180;
-    const x = cx + Math.cos(rad) * dist;
-    const y = cy + Math.sin(rad) * dist * 0.6;
-    const len = size * (0.82 + (i % 3) * 0.18);
-    const op = (0.62 + (i % 3) * 0.1).toFixed(2);
-    parts.push(`${I4}<path d="${shardPolygon(x, y, angle + 90, len, len * 0.32)}" fill="url(#${fillId})" stroke="${stroke}" stroke-width="0.8" opacity="${op}"/>`);
+  for (let i = 0; i < fangCount; i++) {
+    const t = fangCount <= 1 ? 0.5 : i / (fangCount - 1);
+    const lateral = size * 0.42 * (t * 2 - 1);
+    const baseX = hx + dx * size * 0.92 + px * lateral;
+    const baseY = hy + dy * size * 0.92 + py * lateral;
+    const len = size * (0.26 + (i % 2) * 0.07);
+    const tipX = baseX + dx * len;
+    const tipY = baseY + dy * len;
+    const w = size * 0.07;
+    const lX = baseX + px * w;
+    const lY = baseY + py * w;
+    const rX = baseX - px * w;
+    const rY = baseY - py * w;
+    parts.push(`${I4}<path d="M ${lX.toFixed(1)} ${lY.toFixed(1)} L ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${rX.toFixed(1)} ${rY.toFixed(1)} Z" fill="#f4fbfd" stroke="${stroke}" stroke-width="0.4" opacity="0.95"/>`);
   }
   return parts.join('\n');
 }
 
-/** Comet-debris tail trailing downward, shrinking and fading. */
-function cometTail(cx, cy, count, size, fillId, stroke) {
+/** Mood mouth line — a clear pale stroke so it reads against the dark hide, "happy" vs a downturned "sad". */
+function moodMouth(hx, hy, angleDeg, size, pal) {
+  const a = (angleDeg * Math.PI) / 180;
+  const dx = Math.cos(a);
+  const dy = Math.sin(a);
+  const px = -dy;
+  const py = dx;
+  const leftX = hx + dx * size * 0.78 + px * size * 0.44;
+  const leftY = hy + dy * size * 0.78 + py * size * 0.44;
+  const rightX = hx + dx * size * 0.78 - px * size * 0.44;
+  const rightY = hy + dy * size * 0.78 - py * size * 0.44;
+  const happyChinX = hx + dx * size * 1.22;
+  const happyChinY = hy + dy * size * 1.22;
+  const sadChinX = hx + dx * size * 0.98;
+  const sadChinY = hy + dy * size * 0.98;
+  return `${I3}<path class="tm-mascot-mouth-happy" d="M ${leftX.toFixed(1)} ${leftY.toFixed(1)} Q ${happyChinX.toFixed(1)} ${happyChinY.toFixed(1)} ${rightX.toFixed(1)} ${rightY.toFixed(1)}" stroke="${pal.rim}" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.85"/>
+${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="M ${leftX.toFixed(1)} ${leftY.toFixed(1)} Q ${sadChinX.toFixed(1)} ${sadChinY.toFixed(1)} ${rightX.toFixed(1)} ${rightY.toFixed(1)}" stroke="${pal.rim}" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.7"/>`;
+}
+
+/** Two glowing reptilian slit-eyes placed either side of the head's facing axis. */
+function serpentEyes(hx, hy, angleDeg, size, r, p, pal, stroke, boss) {
+  const a = (angleDeg * Math.PI) / 180;
+  const dx = Math.cos(a);
+  const dy = Math.sin(a);
+  const px = -dy;
+  const py = dx;
+  const ex = hx - dx * size * 0.32;
+  const ey = hy - dy * size * 0.32;
+  const spread = size * 0.36;
+  const eyes = [
+    { x: ex + px * spread, y: ey + py * spread },
+    { x: ex - px * spread, y: ey - py * spread },
+  ];
+  const glowMul = boss ? 2.5 : 1.7;
+  const glowOp = boss ? 0.32 : 0.16;
+  const open = eyes.map((eye) => `${I4}<circle cx="${eye.x.toFixed(1)}" cy="${eye.y.toFixed(1)}" r="${(r * glowMul).toFixed(1)}" fill="${pal.rim}" opacity="${glowOp}" filter="url(#${p}-glow)"/>
+${I4}<ellipse cx="${eye.x.toFixed(1)}" cy="${eye.y.toFixed(1)}" rx="${(r * 0.92).toFixed(1)}" ry="${r.toFixed(1)}" fill="url(#${p}-iris)" stroke="${stroke}" stroke-width="${boss ? 1.1 : 0.8}"/>
+${I4}<ellipse class="tm-leviathan-pupil" cx="${eye.x.toFixed(1)}" cy="${eye.y.toFixed(1)}" rx="${(r * 0.16).toFixed(1)}" ry="${(r * 0.72).toFixed(1)}" fill="#000"/>
+${I4}<circle cx="${(eye.x - r * 0.28).toFixed(1)}" cy="${(eye.y - r * 0.32).toFixed(1)}" r="${Math.max(0.5, r * 0.16).toFixed(1)}" fill="#fff" opacity="0.6"/>`).join('\n');
+  const closed = eyes.map((eye) => `${I4}<path d="M ${(eye.x - r).toFixed(1)} ${eye.y.toFixed(1)} Q ${eye.x.toFixed(1)} ${(eye.y - r * 0.4).toFixed(1)} ${(eye.x + r).toFixed(1)} ${eye.y.toFixed(1)}" stroke="${stroke}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`).join('\n');
+  return `${I3}<g class="tm-mascot-eye-open tm-leviathan-eye">
+${open}
+${I3}</g>
+${I3}<g class="tm-mascot-eye-closed" style="display:none;">
+${closed}
+${I3}</g>`;
+}
+
+/** Cloud-tendril storm mane collar flaring from the neck (also used as the animated wing groups). */
+function stormMane(cx, cy, angleDeg, count, size, fillId, stroke) {
   const parts = [];
   for (let i = 0; i < count; i++) {
-    const t = i / Math.max(1, count - 1);
-    const y = cy + t * 30;
-    const x = cx + Math.sin(t * 6) * 4 * (1 - t);
-    const s = size * (1 - t * 0.7);
-    const op = (0.74 * (1 - t * 0.8)).toFixed(2);
-    parts.push(`${I4}<path d="${shardPolygon(x, y, 90, s, s * 0.32)}" fill="url(#${fillId})" stroke="${stroke}" stroke-width="0.75" opacity="${op}"/>`);
+    const spread = -36 + (72 / Math.max(1, count - 1)) * i;
+    const a = ((angleDeg + spread) * Math.PI) / 180;
+    const len = size * (0.75 + (i % 3) * 0.22);
+    const dx = Math.cos(a);
+    const dy = Math.sin(a);
+    const px = -dy;
+    const py = dx;
+    const tipX = cx + dx * len;
+    const tipY = cy + dy * len;
+    const cX = cx + dx * len * 0.55 + px * len * 0.32;
+    const cY = cy + dy * len * 0.55 + py * len * 0.32;
+    const baseLX = cx + px * len * 0.16;
+    const baseLY = cy + py * len * 0.16;
+    const baseRX = cx - px * len * 0.16;
+    const baseRY = cy - py * len * 0.16;
+    parts.push(`${I4}<path d="M ${baseLX.toFixed(1)} ${baseLY.toFixed(1)} Q ${cX.toFixed(1)} ${cY.toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)} Q ${(cX - px * len * 0.1).toFixed(1)} ${(cY - py * len * 0.1).toFixed(1)} ${baseRX.toFixed(1)} ${baseRY.toFixed(1)} Z" fill="url(#${fillId})" stroke="${stroke}" stroke-width="0.6" opacity="${(0.5 + (i % 3) * 0.12).toFixed(2)}"/>`);
   }
   return parts.join('\n');
 }
 
-/** Zigzag lightning crack connecting two chunks (used to visually bind fractured pieces). */
-function crackLine(x1, y1, x2, y2, vein) {
-  const mx = (x1 + x2) / 2;
-  const my = (y1 + y2) / 2;
-  const dx = x2 - x1;
-  const dy = y2 - y1;
+/** Finned tail tip capping the last spine point. */
+function tailFin(pt, prevPt, size, fillId, stroke) {
+  const dx = pt.x - prevPt.x;
+  const dy = pt.y - prevPt.y;
   const len = Math.hypot(dx, dy) || 1;
-  const px = -dy / len;
-  const py = dx / len;
-  const off = 3.5;
-  const kx = mx + px * off;
-  const ky = my + py * off;
-  return `${I4}<path d="M ${x1.toFixed(1)} ${y1.toFixed(1)} L ${kx.toFixed(1)} ${ky.toFixed(1)} L ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${vein}" stroke-width="1" fill="none" opacity="0.55" class="tm-leviathan-vein"/>`;
+  const ux = dx / len;
+  const uy = dy / len;
+  const px = -uy;
+  const py = ux;
+  const tipX = pt.x + ux * size * 1.4;
+  const tipY = pt.y + uy * size * 1.4;
+  const finLX = pt.x + ux * size * 0.3 + px * size * 1.1;
+  const finLY = pt.y + uy * size * 0.3 + py * size * 1.1;
+  const finRX = pt.x + ux * size * 0.3 - px * size * 1.1;
+  const finRY = pt.y + uy * size * 0.3 - py * size * 1.1;
+  return `${I4}<path d="M ${(pt.x - px * size * 0.5).toFixed(1)} ${(pt.y - py * size * 0.5).toFixed(1)} L ${finLX.toFixed(1)} ${finLY.toFixed(1)} L ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${finRX.toFixed(1)} ${finRY.toFixed(1)} L ${(pt.x + px * size * 0.5).toFixed(1)} ${(pt.y + py * size * 0.5).toFixed(1)} Z" fill="url(#${fillId})" stroke="${stroke}" stroke-width="0.8" opacity="0.9"/>`;
 }
 
-/** Jagged fork of raw power radiating outward — the "barely contained fury" breaking through the void. */
-function wrathBolt(cx, cy, angleDeg, len, color, glowId, weight = 1.3) {
+/** Jagged fork of storm energy — used as lightning crackling over the hide. */
+function lightningCrack(cx, cy, angleDeg, len, color, glowId, weight = 1) {
   const a = (angleDeg * Math.PI) / 180;
   const dx = Math.cos(a);
   const dy = Math.sin(a);
@@ -179,357 +376,197 @@ function wrathBolt(cx, cy, angleDeg, len, color, glowId, weight = 1.3) {
   const my = cy + dy * midLen + py * kink;
   const endX = cx + dx * len - px * kink * 0.6;
   const endY = cy + dy * len - py * kink * 0.6;
-  return `${I4}<path d="M ${cx.toFixed(1)} ${cy.toFixed(1)} L ${mx.toFixed(1)} ${my.toFixed(1)} L ${endX.toFixed(1)} ${endY.toFixed(1)}" stroke="${color}" stroke-width="${weight}" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#${glowId})"/>`;
+  return `${I4}<path d="M ${cx.toFixed(1)} ${cy.toFixed(1)} L ${mx.toFixed(1)} ${my.toFixed(1)} L ${endX.toFixed(1)} ${endY.toFixed(1)}" stroke="${color}" stroke-width="${weight}" fill="none" stroke-linecap="round" opacity="0.82" filter="url(#${glowId})" class="tm-leviathan-vein"/>`;
 }
 
-function wrathBolts(cx, cy, angles, len, color, glowId, weight) {
-  if (!color) return '';
-  return angles.map((a) => wrathBolt(cx, cy, a, len, color, glowId, weight)).join('\n');
-}
-
-/** Tall jagged stack of angular plates — the teen "monolith/spine" silhouette. */
-function stackedSpine(cx, topY, plateCount, plateW, plateH, gap, fillId, stroke) {
+/** Broken swirling water rings at the base — the leviathan rising from a storm-tossed sea. */
+function maelstromRings(cx, cy, count, rimColor, glowId) {
   const parts = [];
-  for (let i = 0; i < plateCount; i++) {
-    const y = topY + i * (plateH + gap);
-    const w = plateW * (0.55 + i * 0.11);
-    const skew = (i % 2 === 0 ? 1 : -1) * 2;
-    const x = cx + skew;
-    parts.push(`${I4}<path d="M ${(x - w).toFixed(1)} ${(y - plateH * 0.5).toFixed(1)} L ${(x + w).toFixed(1)} ${(y - plateH * 0.35).toFixed(1)} L ${(x + w * 0.8).toFixed(1)} ${(y + plateH * 0.5).toFixed(1)} L ${(x - w * 0.8).toFixed(1)} ${(y + plateH * 0.4).toFixed(1)} Z" fill="url(#${fillId})" stroke="${stroke}" stroke-width="1" opacity="${(0.72 + i * 0.04).toFixed(2)}"/>`);
+  for (let i = 0; i < count; i++) {
+    const rx = 16 + i * 8;
+    const ry = 3.4 + i * 1.4;
+    const gapStart = 40 + i * 35;
+    parts.push(`${I4}<path d="M ${(cx - rx).toFixed(1)} ${cy.toFixed(1)} A ${rx.toFixed(1)} ${ry.toFixed(1)} 0 1 1 ${(cx + rx).toFixed(1)} ${cy.toFixed(1)}" fill="none" stroke="${rimColor}" stroke-width="1" opacity="${(0.4 - i * 0.06).toFixed(2)}" filter="url(#${glowId})" stroke-dasharray="${(rx * 0.9).toFixed(0)} ${(gapStart % 20 + 6).toFixed(0)}"/>`);
   }
   return parts.join('\n');
-}
-
-/** Faint swirl arcs inside the void, hinting at rotation. */
-function swirlArcs(cx, cy, r, rimColor, glowId) {
-  return `${I4}<path d="M ${(cx - r * 0.7).toFixed(1)} ${(cy - r * 0.1).toFixed(1)} A ${(r * 0.75).toFixed(1)} ${(r * 0.45).toFixed(1)} 20 1 1 ${(cx + r * 0.65).toFixed(1)} ${(cy + r * 0.25).toFixed(1)}" fill="none" stroke="${rimColor}" stroke-width="1.1" opacity="0.42" class="tm-leviathan-vein" filter="url(#${glowId})"/>
-${I4}<path d="M ${(cx - r * 0.5).toFixed(1)} ${(cy + r * 0.35).toFixed(1)} A ${(r * 0.55).toFixed(1)} ${(r * 0.3).toFixed(1)} -25 1 0 ${(cx + r * 0.45).toFixed(1)} ${(cy - r * 0.3).toFixed(1)}" fill="none" stroke="${rimColor}" stroke-width="0.85" opacity="0.32" class="tm-leviathan-vein"/>`;
-}
-
-function voidCore(cx, cy, r, p, pal, glowId) {
-  return `${I4}<circle cx="${cx}" cy="${cy}" r="${(r * 1.35).toFixed(1)}" fill="url(#${p}-void)" opacity="0.93"/>
-${I4}<circle cx="${cx}" cy="${cy}" r="${r.toFixed(1)}" fill="${INK}" opacity="0.97"/>
-${swirlArcs(cx, cy, r, pal.rim, glowId)}
-${I4}<circle cx="${cx}" cy="${cy}" r="${r.toFixed(1)}" fill="none" stroke="${pal.rim}" stroke-width="1" opacity="0.5" filter="url(#${glowId})"/>`;
-}
-
-/** slit=true gives a predatory vertical-slit pupil instead of a round one (boss tiers). */
-function maelstromEye(cx, cy, r, p, pal, stroke, boss, slit = false) {
-  const glowMul = boss ? 2.7 : 1.8;
-  const glowOp = boss ? 0.3 : 0.13;
-  const pupil = slit
-    ? `${I4}<ellipse class="tm-leviathan-pupil" cx="${cx}" cy="${cy}" rx="${(r * 0.15).toFixed(1)}" ry="${(r * 0.52).toFixed(1)}" fill="#000"/>`
-    : `${I4}<circle class="tm-leviathan-pupil" cx="${cx}" cy="${cy}" r="${(r * 0.26).toFixed(1)}" fill="#000"/>`;
-  return `${I3}<g class="tm-mascot-eye-open tm-leviathan-eye">
-${I4}<circle cx="${cx}" cy="${cy}" r="${(r * glowMul).toFixed(1)}" fill="${pal.rim}" opacity="${glowOp}" filter="url(#${p}-glow)"/>
-${I4}<circle cx="${cx}" cy="${cy}" r="${r.toFixed(1)}" fill="#000" stroke="${pal.rim}" stroke-width="${boss ? 1.9 : 1.25}"/>
-${I4}<ellipse class="tm-leviathan-iris" cx="${cx}" cy="${cy}" rx="${(r * 0.7).toFixed(1)}" ry="${(r * (slit ? 0.78 : 0.62)).toFixed(1)}" fill="url(#${p}-iris)"/>
-${pupil}
-${I4}<path d="M ${(cx - r * 1.1).toFixed(1)} ${(cy - r * 0.3).toFixed(1)} L ${(cx - r * 2.6).toFixed(1)} ${(cy - r * 1.1).toFixed(1)}" stroke="${stroke}" stroke-width="1" opacity="0.5" class="tm-leviathan-vein"/>
-${I4}<path d="M ${(cx + r * 1.1).toFixed(1)} ${(cy + r * 0.4).toFixed(1)} L ${(cx + r * 2.4).toFixed(1)} ${(cy + r * 1.3).toFixed(1)}" stroke="${stroke}" stroke-width="0.8" opacity="0.4" class="tm-leviathan-vein"/>
-${I4}<circle cx="${(cx - r * 0.25).toFixed(1)}" cy="${(cy - r * 0.3).toFixed(1)}" r="${Math.max(0.7, r * 0.14).toFixed(1)}" fill="#fff" opacity="0.5"/>
-${I3}</g>
-${I3}<g class="tm-mascot-eye-closed" style="display:none;">
-${I4}<path d="M ${(cx - r).toFixed(1)} ${cy} Q ${cx} ${(cy - r * 0.5).toFixed(1)} ${(cx + r).toFixed(1)} ${cy}" stroke="${stroke}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-${I3}</g>`;
-}
-
-function fractureMouth(cx, cy, len, stroke) {
-  return `${I3}<path class="tm-mascot-mouth-happy" d="M ${(cx - len).toFixed(1)} ${cy} L ${(cx - len * 0.3).toFixed(1)} ${(cy + len * 0.4).toFixed(1)} L ${cx} ${cy} L ${(cx + len * 0.3).toFixed(1)} ${(cy + len * 0.4).toFixed(1)} L ${(cx + len).toFixed(1)} ${cy}" stroke="${stroke}" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7"/>
-${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="M ${(cx - len * 1.3).toFixed(1)} ${(cy - len * 0.2).toFixed(1)} L ${(cx - len * 0.4).toFixed(1)} ${(cy + len * 0.6).toFixed(1)} L ${cx} ${(cy - len * 0.1).toFixed(1)} L ${(cx + len * 0.4).toFixed(1)} ${(cy + len * 0.6).toFixed(1)} L ${(cx + len * 1.3).toFixed(1)} ${(cy - len * 0.2).toFixed(1)}" stroke="${stroke}" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.8"/>`;
 }
 
 function stormSparks(pal, count) {
   const pts = [
     [8, 16], [92, 14], [4, 40], [96, 42], [12, 66], [88, 68],
     [20, 6], [80, 4], [2, 54], [98, 52], [38, 2], [62, 2],
-    [14, 84], [86, 86], [50, 0],
   ].slice(0, count);
   return pts.map(([x, y], i) => {
-    const fill = i % 3 === 0 ? pal.rim : i % 2 ? pal.accent : '#f0f9ff';
-    return `${I3}<circle cx="${x}" cy="${y}" r="${i % 4 === 0 ? 1.7 : 1.1}" fill="${fill}" opacity="${0.32 + (i % 4) * 0.09}"/>`;
+    const fill = i % 3 === 0 ? pal.rim : i % 2 ? pal.accent : '#eaf7fb';
+    return `${I3}<circle cx="${x}" cy="${y}" r="${i % 4 === 0 ? 1.5 : 1}" fill="${fill}" opacity="${0.28 + (i % 4) * 0.08}"/>`;
   }).join('\n');
 }
 
-/** BABY — Fracture Seed: a tiny round void orb, minimal debris, calm. */
-function stageBaby(p, pal, stroke) {
-  const coreR = 9;
-  const eyeX = 52;
-  const eyeY = 46;
-  const eyeR = 3.2;
-  return `${I3}<ellipse cx="50" cy="88" rx="14" ry="3" fill="${INK}" opacity="0.35"/>
-${I3}<ellipse cx="50" cy="50" rx="24" ry="22" fill="url(#${p}-aura)" opacity="0.22"/>
-${stormSparks(pal, 4)}
+/* ---------- stage builder ---------- */
+
+function buildStage(stage, p, pal, stroke, cfg) {
+  const points = serpentSpine(cfg.spine);
+  const normals = spineNormals(points);
+  const n = points.length;
+  const halfWidths = points.map((_, i) => {
+    const t = i / (n - 1);
+    const eased = 1 - Math.pow(1 - t, 1.6);
+    return cfg.headHW + (cfg.tailHW - cfg.headHW) * eased;
+  });
+
+  const head = points[0];
+  const maneIdx = Math.max(2, Math.round(n * 0.12));
+  const manePt = points[maneIdx];
+  // Derived directly from the spine's travel direction (not a finite-difference of the
+  // first two points) so the head orientation stays clean regardless of wave easing.
+  const headAngle = cfg.spine.dirDeg + 180;
+  const headRad = (headAngle * Math.PI) / 180;
+  const faceDx = Math.cos(headRad);
+  const faceDy = Math.sin(headRad);
+  const facePx = -faceDy;
+  const facePy = faceDx;
+  const backX = -faceDx;
+  const backY = -faceDy;
+
+  const armIdx = Math.round(n * cfg.armT);
+  const legIdx = Math.round(n * cfg.legT);
+  const armPt = points[armIdx];
+  const armN = normals[armIdx];
+  const legPt = points[legIdx];
+  const legN = normals[legIdx];
+
+  const tailPt = points[n - 1];
+  const tailPrev = points[n - 2];
+
+  const dorsalIdx = [];
+  for (let i = Math.round(n * 0.26); i < n - Math.round(n * 0.1); i += cfg.dorsalEvery) dorsalIdx.push(i);
+
+  const browDist = cfg.headSize * 0.62;
+  const hornSpread = cfg.hornCount <= 1 ? [0] : Array.from({ length: cfg.hornCount }, (_, i) => -1 + (2 / (cfg.hornCount - 1)) * i);
+  const horns = hornSpread.map((s, i) => {
+    const lateral = s * cfg.headSize * 0.85;
+    const baseX = head.x + backX * browDist + facePx * lateral;
+    const baseY = head.y + backY * browDist + facePy * lateral;
+    const dirX = backX * 0.7 + facePx * s;
+    const dirY = backY * 0.7 + facePy * s;
+    const hornAngle = (Math.atan2(dirY, dirX) * 180) / Math.PI;
+    const len = cfg.hornLen * (1 - Math.abs(s) * 0.15) * (1 + (i % 2) * 0.08);
+    return hornShape(baseX, baseY, hornAngle, len, cfg.headSize * 0.15, pal.horn, stroke);
+  }).join('\n');
+
+  // Confined to a ~170° arc on the back/lateral side of the head so cracks
+  // radiate away from the horn crown instead of slashing across the face.
+  const wrathAngles = cfg.wrathCount > 0
+    ? Array.from({ length: cfg.wrathCount }, (_, i) => {
+      const t = cfg.wrathCount <= 1 ? 0.5 : i / (cfg.wrathCount - 1);
+      return headAngle + 95 + 170 * t;
+    })
+    : [];
+  const wrathOriginX = head.x + backX * cfg.headSize * 0.55;
+  const wrathOriginY = head.y + backY * cfg.headSize * 0.55;
+
+  const groundCx = (head.x + tailPt.x) / 2;
+  const mistCx = groundCx;
+  const mistCy = (head.y + tailPt.y) / 2;
+  const mistR = Math.max(cfg.spine.length * 0.62, 34);
+
+  return `${I3}<ellipse cx="${groundCx.toFixed(1)}" cy="96" rx="${(cfg.spine.amplitude * 1.7 + 10).toFixed(1)}" ry="${cfg.boss ? 4.6 : 3}" fill="${INK}" opacity="0.4"/>
+${I3}<ellipse cx="${mistCx.toFixed(1)}" cy="${mistCy.toFixed(1)}" rx="${mistR.toFixed(1)}" ry="${(mistR * 0.92).toFixed(1)}" fill="url(#${p}-mist)" opacity="${cfg.boss ? 0.55 : 0.28}"/>
+${stormSparks(pal, cfg.sparkCount)}
+${cfg.maelstromCount > 0 ? maelstromRings(tailPt.x, Math.min(94, tailPt.y + 6), cfg.maelstromCount, pal.rim, `${p}-glow`) : ''}
 ${I3}<g class="tm-animate-wing-left">
-${I4}<path d="${shardPolygon(38, 44, 200, 4, 1.4)}" fill="url(#${p}-shard)" stroke="${stroke}" stroke-width="0.7" opacity="0.6"/>
+${stormMane(manePt.x, manePt.y, headAngle + 150, cfg.maneCount, cfg.maneSize, `${p}-belly`, stroke)}
 ${I3}</g>
 ${I3}<g class="tm-animate-wing-right">
-${I4}<path d="${shardPolygon(64, 46, -20, 4, 1.4)}" fill="url(#${p}-shard)" stroke="${stroke}" stroke-width="0.7" opacity="0.6"/>
-${I3}</g>
-${I3}<g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-${voidCore(50, 50, coreR, p, pal, `${p}-glow`)}
+${stormMane(manePt.x, manePt.y, headAngle - 150, cfg.maneCount, cfg.maneSize, `${p}-belly`, stroke)}
 ${I3}</g>
 ${I3}<g class="tm-animate-arm-left">
-${fragmentCluster(38, 58, 1, 2.6, `${p}-shard`, stroke, 200)}
+${finLimb(armPt, armN, 1, cfg.limbSize, `${p}-scale`, stroke)}
 ${I3}</g>
 ${I3}<g class="tm-animate-arm-right">
-${fragmentCluster(62, 58, 1, 2.6, `${p}-shard`, stroke, 20)}
+${finLimb(armPt, armN, -1, cfg.limbSize, `${p}-scale`, stroke)}
 ${I3}</g>
 ${I3}<g class="tm-animate-leg-left">
-${fragmentCluster(42, 68, 1, 2.2, `${p}-shard`, stroke, 260)}
+${finLimb(legPt, legN, 1, cfg.limbSize * 0.88, `${p}-scale`, stroke)}
 ${I3}</g>
 ${I3}<g class="tm-animate-leg-right">
-${fragmentCluster(58, 68, 1, 2.2, `${p}-shard`, stroke, 80)}
+${finLimb(legPt, legN, -1, cfg.limbSize * 0.88, `${p}-scale`, stroke)}
 ${I3}</g>
 ${I3}<g class="tm-animate-tail">
-${cometTail(50, 66, 2, 2, `${p}-shard`, stroke)}
-${I3}</g>
-${maelstromEye(eyeX, eyeY, eyeR, p, pal, stroke, false, false)}
-${fractureMouth(eyeX - 1, eyeY + coreR * 0.7, 2.4, stroke)}`;
-}
-
-/** EVO1 (kid) — Drifting Rift: the seed cracked into 3 loose chunks. */
-function stageEvo1(p, pal, stroke) {
-  const mainR = 9;
-  const satR1 = 5;
-  const satR2 = 4;
-  const mainX = 48;
-  const mainY = 48;
-  const sat1X = 66;
-  const sat1Y = 40;
-  const sat2X = 40;
-  const sat2Y = 68;
-  const eyeX = 50;
-  const eyeY = 44;
-  const eyeR = 3.6;
-  return `${I3}<ellipse cx="50" cy="90" rx="20" ry="3.4" fill="${INK}" opacity="0.35"/>
-${I3}<ellipse cx="50" cy="52" rx="34" ry="30" fill="url(#${p}-aura)" opacity="0.26"/>
-${stormSparks(pal, 6)}
-${I3}<g class="tm-animate-wing-left">
-${partialRing(mainX, mainY, 20, 9, 140, 220, 3, -10, 3.4, `${p}-shard`, stroke, `${p}-glow`)}
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${partialRing(mainX, mainY, 18, 8, -40, 30, 3, 14, 3.2, `${p}-shard`, stroke, `${p}-glow`)}
+${tailFin(tailPt, tailPrev, cfg.tailFinSize, `${p}-scale`, stroke)}
 ${I3}</g>
 ${I3}<g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-${voidCore(mainX, mainY, mainR, p, pal, `${p}-glow`)}
-${crackLine(mainX + mainR * 0.6, mainY - mainR * 0.3, sat1X - satR1 * 0.4, sat1Y + satR1 * 0.3, pal.rim)}
-${crackLine(mainX - mainR * 0.5, mainY + mainR * 0.5, sat2X + satR2 * 0.3, sat2Y - satR2 * 0.4, pal.rim)}
-${voidCore(sat1X, sat1Y, satR1, p, pal, `${p}-glow`)}
-${voidCore(sat2X, sat2Y, satR2, p, pal, `${p}-glow`)}
+${I4}<path d="${ribbonPath(points, normals, halfWidths)}" fill="url(#${p}-scale)" stroke="${stroke}" stroke-width="1"/>
+${bellyStripes(points, normals, halfWidths, cfg.dorsalEvery, stroke)}
+${dorsalRidge(points, normals, halfWidths, dorsalIdx, cfg.dorsalLen, pal.horn, stroke)}
+${horns}
+${headWedge(head.x, head.y, headAngle, cfg.headSize, `${p}-scale`, `${p}-belly`, stroke)}
+${fangRow(head.x, head.y, headAngle, cfg.headSize, cfg.fangCount, stroke)}
+${wrathAngles.map((ang) => lightningCrack(wrathOriginX, wrathOriginY, ang, cfg.wrathLen, pal.wrath, `${p}-glow`, cfg.boss ? 1.5 : 1)).join('\n')}
 ${I3}</g>
-${I3}<g class="tm-animate-arm-left">
-${fragmentCluster(30, 54, 2, 3, `${p}-shard`, stroke, 200)}
-${I3}</g>
-${I3}<g class="tm-animate-arm-right">
-${fragmentCluster(74, 50, 2, 3, `${p}-shard`, stroke, 20)}
-${I3}</g>
-${I3}<g class="tm-animate-leg-left">
-${fragmentCluster(38, 74, 1, 2.6, `${p}-shard`, stroke, 260)}
-${I3}</g>
-${I3}<g class="tm-animate-leg-right">
-${fragmentCluster(60, 72, 1, 2.6, `${p}-shard`, stroke, 80)}
-${I3}</g>
-${I3}<g class="tm-animate-tail">
-${cometTail(45, 76, 3, 2.4, `${p}-shard`, stroke)}
-${I3}</g>
-${maelstromEye(eyeX, eyeY, eyeR, p, pal, stroke, false, false)}
-${fractureMouth(eyeX - 1, eyeY + mainR * 0.7, 2.8, stroke)}`;
+${moodMouth(head.x, head.y, headAngle, cfg.headSize, pal)}
+${serpentEyes(head.x, head.y, headAngle, cfg.headSize, cfg.eyeR, p, pal, stroke, cfg.boss)}
+${LEVI_DEBUG ? `
+<circle cx="${head.x.toFixed(1)}" cy="${head.y.toFixed(1)}" r="1" fill="red"/>
+<circle cx="${(head.x + faceDx * cfg.headSize * 0.45).toFixed(1)}" cy="${(head.y + faceDy * cfg.headSize * 0.45).toFixed(1)}" r="1" fill="lime"/>
+<circle cx="${(head.x + backX * browDist).toFixed(1)}" cy="${(head.y + backY * browDist).toFixed(1)}" r="1" fill="yellow"/>
+<line x1="${head.x.toFixed(1)}" y1="${head.y.toFixed(1)}" x2="${(head.x + faceDx * cfg.headSize * 1.3).toFixed(1)}" y2="${(head.y + faceDy * cfg.headSize * 1.3).toFixed(1)}" stroke="magenta" stroke-width="0.3"/>
+` : ''}`;
 }
 
-/** EVO2 (teen) — Storm Maelstrom: fused into a tall jagged monolith/spine. First hint of wrath. */
-function stageEvo2(p, pal, stroke) {
-  const cx = 50;
-  const eyeX = 52;
-  const eyeY = 24;
-  const eyeR = 4.2;
-  return `${I3}<ellipse cx="50" cy="94" rx="24" ry="4" fill="${INK}" opacity="0.4"/>
-${I3}<ellipse cx="50" cy="52" rx="38" ry="36" fill="url(#${p}-aura)" opacity="0.32"/>
-${stormSparks(pal, 8)}
-${I3}<g class="tm-animate-wing-left">
-${partialRing(cx, 60, 26, 11, 150, 260, 5, -16, 3.8, `${p}-shard`, stroke, `${p}-glow`)}
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${partialRing(cx, 60, 15, 7, -30, 20, 2, 16, 3, `${p}-shard`, stroke, `${p}-glow`)}
-${I3}</g>
-${I3}<g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-${stackedSpine(cx, 20, 5, 11, 13, 2, `${p}-shard`, stroke)}
-${I4}<circle cx="${cx}" cy="60" r="10" fill="url(#${p}-void)" opacity="0.85"/>
-${swirlArcs(cx, 60, 10, pal.rim, `${p}-glow`)}
-${wrathBolts(eyeX, eyeY, [-70, 230], 9, pal.wrath, `${p}-glow`, 1)}
-${I3}</g>
-${I3}<g class="tm-animate-arm-left">
-${fragmentCluster(26, 56, 3, 3.6, `${p}-shard`, stroke, 200)}
-${I3}</g>
-${I3}<g class="tm-animate-arm-right">
-${fragmentCluster(74, 56, 3, 3.6, `${p}-shard`, stroke, 20)}
-${I3}</g>
-${I3}<g class="tm-animate-leg-left">
-${fragmentCluster(36, 78, 2, 3.2, `${p}-shard`, stroke, 260)}
-${I3}</g>
-${I3}<g class="tm-animate-leg-right">
-${fragmentCluster(64, 78, 2, 3.2, `${p}-shard`, stroke, 80)}
-${I3}</g>
-${I3}<g class="tm-animate-tail">
-${cometTail(50, 82, 6, 3, `${p}-shard`, stroke)}
-${I3}</g>
-${maelstromEye(eyeX, eyeY, eyeR, p, pal, stroke, false, false)}
-${fractureMouth(eyeX - 2, eyeY + 8, 3.6, stroke)}`;
-}
-
-/** EVO3 (adult) — BOSS: void core + twin broken halo-rings, slit eye, wrath cracks. */
-function stageEvo3(p, pal, stroke) {
-  const coreR = 22.5;
-  const eyeX = 58;
-  const eyeY = 26.5;
-  const eyeR = 6.5;
-  const shardSize = 7.6;
-  const ringLeft = { cx: 39, cy: 47, rx: 43, ry: 17, rot: -23, count: 11, gaps: [5] };
-  const ringRight = { cx: 63, cy: 53, rx: 41.5, ry: 16, rot: 29, count: 10, gaps: [1] };
-  return `${I3}<ellipse cx="50" cy="97" rx="34" ry="4.6" fill="${INK}" opacity="0.42"/>
-${I3}<ellipse cx="50" cy="50" rx="53" ry="50" fill="url(#${p}-aura)" opacity="0.62"/>
-${stormSparks(pal, 14)}
-${I3}<g class="tm-animate-wing-left">
-${ringOfShards(ringLeft.cx, ringLeft.cy, ringLeft.rx, ringLeft.ry, ringLeft.count, ringLeft.rot, ringLeft.gaps, shardSize, `${p}-shard`, stroke, `${p}-glow`, 0.24)}
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${ringOfShards(ringRight.cx, ringRight.cy, ringRight.rx, ringRight.ry, ringRight.count, ringRight.rot, ringRight.gaps, shardSize, `${p}-shard`, stroke, `${p}-glow`, 0.24)}
-${I3}</g>
-${I3}<g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-${voidCore(50, 50, coreR, p, pal, `${p}-glow`)}
-${wrathBolts(eyeX, eyeY, [-75, -15, 165, 205], 16, pal.wrath, `${p}-glow`, 1.5)}
-${I3}</g>
-${I3}<g class="tm-animate-arm-left">
-${fragmentCluster(24, 56, 4, shardSize, `${p}-shard`, stroke, 200)}
-${I3}</g>
-${I3}<g class="tm-animate-arm-right">
-${fragmentCluster(76, 56, 4, shardSize, `${p}-shard`, stroke, 20)}
-${I3}</g>
-${I3}<g class="tm-animate-leg-left">
-${fragmentCluster(34, 78, 3, shardSize * 0.85, `${p}-shard`, stroke, 260)}
-${I3}</g>
-${I3}<g class="tm-animate-leg-right">
-${fragmentCluster(66, 78, 3, shardSize * 0.85, `${p}-shard`, stroke, 80)}
-${I3}</g>
-${I3}<g class="tm-animate-tail">
-${cometTail(50, 82, 7, shardSize * 0.9, `${p}-shard`, stroke)}
-${I3}</g>
-${maelstromEye(eyeX, eyeY, eyeR, p, pal, stroke, true, true)}
-${fractureMouth(eyeX - 2, eyeY + coreR * 0.72, 5.6, stroke)}`;
-}
-
-/** EVO4 (middle age) — Abyssal Eclipse: tighter triple-ring gyroscope, denser + angrier. */
-function stageEvo4(p, pal, stroke) {
-  const coreR = 17.2;
-  const eyeX = 58;
-  const eyeY = 29;
-  const eyeR = 6.8;
-  const shardSize = 8.2;
-  return `${I3}<ellipse cx="50" cy="96" rx="33" ry="4.9" fill="${INK}" opacity="0.45"/>
-${I3}<ellipse cx="50" cy="50" rx="50" ry="46" fill="url(#${p}-aura)" opacity="0.6"/>
-${stormSparks(pal, 13)}
-${I3}<g class="tm-animate-wing-left">
-${ringOfShards(45, 47, 26, 23, 10, -30, [4], shardSize * 0.9, `${p}-shard`, stroke, `${p}-glow`, 0.24)}
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${ringOfShards(55, 52, 24, 10.5, 12, 42, [2], shardSize * 0.9, `${p}-shard`, stroke, `${p}-glow`, 0.24)}
-${I3}</g>
-${I3}<g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-${voidCore(50, 50, coreR, p, pal, `${p}-glow`)}
-${I4}<!-- Third gyroscope ring, near-vertical, crossing the other two -->
-${ringOfShards(50, 50, 9.5, 27, 8, 82, [3], shardSize * 0.75, `${p}-shard`, stroke, `${p}-glow`, 0.24)}
-${wrathBolts(eyeX, eyeY, [-80, -25, 150, 200, 260], 18, pal.wrath, `${p}-glow`, 1.6)}
-${I3}</g>
-${I3}<g class="tm-animate-arm-left">
-${fragmentCluster(28, 52, 3, shardSize * 0.75, `${p}-shard`, stroke, 200)}
-${I3}</g>
-${I3}<g class="tm-animate-arm-right">
-${fragmentCluster(72, 52, 3, shardSize * 0.75, `${p}-shard`, stroke, 20)}
-${I3}</g>
-${I3}<g class="tm-animate-leg-left">
-${fragmentCluster(36, 76, 2, shardSize * 0.65, `${p}-shard`, stroke, 260)}
-${I3}</g>
-${I3}<g class="tm-animate-leg-right">
-${fragmentCluster(64, 76, 2, shardSize * 0.65, `${p}-shard`, stroke, 80)}
-${I3}</g>
-${I3}<g class="tm-animate-tail">
-${cometTail(50, 80, 7, shardSize * 0.6, `${p}-shard`, stroke)}
-${I3}</g>
-${maelstromEye(eyeX, eyeY, eyeR, p, pal, stroke, true, true)}
-${fractureMouth(eyeX - 2, eyeY + coreR * 0.68, 4.6, stroke)}`;
-}
-
-/** EVO5 (old) — Primordial Void-Storm: radiating mandala/dark-sun spikes, largest and most intense. */
-function stageEvo5(p, pal, stroke) {
-  const coreR = 24.5;
-  const eyeX = 59;
-  const eyeY = 25.5;
-  const eyeR = 7.4;
-  const shardSize = 9;
-  const spikeCount = 14;
-  const spikes = [];
-  for (let i = 0; i < spikeCount; i++) {
-    const angle = (360 / spikeCount) * i;
-    const a = (angle * Math.PI) / 180;
-    const ix = 50 + Math.cos(a) * (coreR * 0.9);
-    const iy = 50 + Math.sin(a) * (coreR * 0.9);
-    const op = (0.55 + (i % 3) * 0.13).toFixed(2);
-    spikes.push(`${I4}<path d="${shardPolygon(ix, iy, angle, coreR * 0.98, coreR * 0.15)}" fill="url(#${p}-shard)" stroke="${stroke}" stroke-width="1" opacity="${op}" filter="url(#${p}-glow)"/>`);
-  }
-  return `${I3}<ellipse cx="50" cy="97" rx="39" ry="5.4" fill="${INK}" opacity="0.48"/>
-${I3}<ellipse cx="50" cy="50" rx="57" ry="53" fill="url(#${p}-aura)" opacity="0.68"/>
-${stormSparks(pal, 15)}
-${I3}<g class="tm-animate-wing-left">
-${ringOfShards(38, 47, 39, 16, 13, -26, [6], shardSize, `${p}-shard`, stroke, `${p}-glow`, 0.24)}
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${ringOfShards(64, 54, 37, 15, 12, 32, [1], shardSize, `${p}-shard`, stroke, `${p}-glow`, 0.24)}
-${I3}</g>
-${I3}<g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-${voidCore(50, 50, coreR, p, pal, `${p}-glow`)}
-${spikes.join('\n')}
-${wrathBolts(eyeX, eyeY, [-85, -35, -5, 140, 185, 235, 280], 22, pal.wrath, `${p}-glow`, 1.8)}
-${I3}</g>
-${I3}<g class="tm-animate-arm-left">
-${fragmentCluster(16, 58, 4, shardSize * 0.8, `${p}-shard`, stroke, 200)}
-${I3}</g>
-${I3}<g class="tm-animate-arm-right">
-${fragmentCluster(84, 58, 4, shardSize * 0.8, `${p}-shard`, stroke, 20)}
-${I3}</g>
-${I3}<g class="tm-animate-leg-left">
-${fragmentCluster(30, 82, 3, shardSize * 0.7, `${p}-shard`, stroke, 260)}
-${I3}</g>
-${I3}<g class="tm-animate-leg-right">
-${fragmentCluster(70, 82, 3, shardSize * 0.7, `${p}-shard`, stroke, 80)}
-${I3}</g>
-${I3}<g class="tm-animate-tail">
-${cometTail(50, 86, 9, shardSize * 0.65, `${p}-shard`, stroke)}
-${I3}</g>
-${maelstromEye(eyeX, eyeY, eyeR, p, pal, stroke, true, true)}
-${fractureMouth(eyeX - 2, eyeY + coreR * 0.62, 5, stroke)}`;
-}
-
-const STAGE_BUILDERS = {
-  baby: stageBaby, evo1: stageEvo1, evo2: stageEvo2,
-  evo3: stageEvo3, evo4: stageEvo4, evo5: stageEvo5,
+const STAGE_CFG = {
+  baby: {
+    spine: { headX: 52, headY: 30, dirDeg: 102, length: 36, amplitude: 8, waves: 1, segments: 16, ampEase: 0.2, hookFrac: 0.18 },
+    headHW: 5, tailHW: 1.3, headSize: 9.2, hornCount: 1, hornLen: 3,
+    maneCount: 2, maneSize: 3.6, limbSize: 2.1, armT: 0.24, legT: 0.6,
+    dorsalEvery: 3, dorsalLen: 1.5, tailFinSize: 1.9, eyeR: 3.4, fangCount: 0,
+    wrathCount: 0, wrathLen: 0, maelstromCount: 0, sparkCount: 3, boss: false,
+  },
+  evo1: {
+    spine: { headX: 52, headY: 27, dirDeg: 101, length: 45, amplitude: 11, waves: 1.1, segments: 18, ampEase: 0.18, hookFrac: 0.17 },
+    headHW: 5.7, tailHW: 1.5, headSize: 10.6, hornCount: 2, hornLen: 4.8,
+    maneCount: 3, maneSize: 4.6, limbSize: 2.6, armT: 0.22, legT: 0.58,
+    dorsalEvery: 3, dorsalLen: 2, tailFinSize: 2.3, eyeR: 4, fangCount: 2,
+    wrathCount: 0, wrathLen: 0, maelstromCount: 0, sparkCount: 4, boss: false,
+  },
+  evo2: {
+    spine: { headX: 53, headY: 24, dirDeg: 99, length: 55, amplitude: 14, waves: 1.25, segments: 22, ampEase: 0.16, hookFrac: 0.16 },
+    headHW: 6.8, tailHW: 1.8, headSize: 12.9, hornCount: 2, hornLen: 7.6,
+    maneCount: 4, maneSize: 5.8, limbSize: 3.3, armT: 0.2, legT: 0.57,
+    dorsalEvery: 2, dorsalLen: 2.9, tailFinSize: 2.8, eyeR: 4.9, fangCount: 2,
+    wrathCount: 2, wrathLen: 10, maelstromCount: 0, sparkCount: 6, boss: false,
+  },
+  evo3: {
+    spine: { headX: 54, headY: 21, dirDeg: 97, length: 63, amplitude: 18, waves: 1.4, segments: 28, ampEase: 0.14, hookFrac: 0.14 },
+    headHW: 8.6, tailHW: 2.2, headSize: 16.4, hornCount: 4, hornLen: 12,
+    maneCount: 6, maneSize: 8.4, limbSize: 4.4, armT: 0.18, legT: 0.56,
+    dorsalEvery: 2, dorsalLen: 4.2, tailFinSize: 3.6, eyeR: 6.2, fangCount: 4,
+    wrathCount: 4, wrathLen: 16, maelstromCount: 2, sparkCount: 9, boss: true,
+  },
+  evo4: {
+    spine: { headX: 54, headY: 20, dirDeg: 96, length: 67, amplitude: 20, waves: 1.5, segments: 30, ampEase: 0.13, hookFrac: 0.13 },
+    headHW: 9.1, tailHW: 2.4, headSize: 17.4, hornCount: 6, hornLen: 13,
+    maneCount: 7, maneSize: 9, limbSize: 4.8, armT: 0.17, legT: 0.55,
+    dorsalEvery: 2, dorsalLen: 4.8, tailFinSize: 4, eyeR: 6.6, fangCount: 4,
+    wrathCount: 5, wrathLen: 18, maelstromCount: 3, sparkCount: 10, boss: true,
+  },
+  evo5: {
+    spine: { headX: 55, headY: 19, dirDeg: 95, length: 70, amplitude: 22, waves: 1.6, segments: 34, ampEase: 0.12, hookFrac: 0.13 },
+    headHW: 9.6, tailHW: 2.6, headSize: 18.4, hornCount: 6, hornLen: 15,
+    maneCount: 8, maneSize: 9.6, limbSize: 5.1, armT: 0.16, legT: 0.54,
+    dorsalEvery: 2, dorsalLen: 5.4, tailFinSize: 4.4, eyeR: 7, fangCount: 6,
+    wrathCount: 7, wrathLen: 21, maelstromCount: 4, sparkCount: 12, boss: true,
+  },
 };
 
 function leviathanStage(stage) {
-  const p = `leviathan-${stage === 'evo1' ? 'kid' : stage === 'evo2' ? 'teen' : stage === 'evo3' ? 'adult' : stage === 'evo4' ? 'mid' : stage === 'evo5' ? 'old' : 'baby'}`;
-  const titles = {
-    baby: 'Fracture Seed',
-    evo1: 'Drifting Rift',
-    evo2: 'Storm Maelstrom',
-    evo3: 'Eclipse Maelstrom — BOSS',
-    evo4: 'Abyssal Eclipse',
-    evo5: 'Primordial Void-Storm',
-  };
+  const p = `leviathan-${STAGE_SLUG[stage]}`;
   const pal = STAGE_PALETTES[stage];
-  const stroke = pal.stroke;
+  const stroke = pal.deep;
   const defs = makeDefs(p, pal);
-  const body = STAGE_BUILDERS[stage](p, pal, stroke);
-  return wrapStage(stage, titles[stage], defs, body);
+  const body = buildStage(stage, p, pal, stroke, STAGE_CFG[stage]);
+  return wrapStage(stage, defs, body);
 }
 
-export const leviathanSvg = `${I}<!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · Eclipse Maelstrom v6 · boss-intimidation pass) -->
+export const leviathanSvg = `${I}<!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · sea-serpent redesign v7) -->
 ${STAGES.map(leviathanStage).join('\n')}`;
