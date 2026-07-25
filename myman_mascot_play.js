@@ -444,6 +444,9 @@ function endMascotHideAndSeek(config, STORAGE_KEYS, { found = false, timedOut = 
         setMascotState(config || window.config || {}, 'happy', 3000);
         setMascotMood('proud', 8000);
         showMascotBubble('Με βρήκες! Μπράβο {nickname}!', 2500);
+        if (typeof burnTamagotchiWeightFromActivity === 'function') {
+            burnTamagotchiWeightFromActivity(1.6, STORAGE_KEYS, { announce: false });
+        }
         if (typeof window.grantCoins === 'function') {
             window.grantCoins(config, STORAGE_KEYS, 5, 'mascotHideSeek');
         }
@@ -593,13 +596,20 @@ function openMascotPlayOverlay({ title, subtitle, bodyHtml, onReady }) {
     return overlay;
 }
 
-function rewardMascotMiniGame(config, STORAGE_KEYS, { happiness = 8, xp = 12, coins = 6, source = 'mascotMiniGame' } = {}) {
+function rewardMascotMiniGame(config, STORAGE_KEYS, { happiness = 8, xp = 12, coins = 6, source = 'mascotMiniGame', weightBurn = 1.2 } = {}) {
     updatePetStats(config, STORAGE_KEYS, happiness, 0);
     if (typeof window.grantXp === 'function' && xp > 0) window.grantXp(config, STORAGE_KEYS, xp, source);
     if (typeof window.grantCoins === 'function' && coins > 0) window.grantCoins(config, STORAGE_KEYS, coins, source);
+    let weightResult = null;
+    if (typeof burnTamagotchiWeightFromActivity === 'function' && weightBurn > 0) {
+        weightResult = burnTamagotchiWeightFromActivity(weightBurn, STORAGE_KEYS, { announce: false });
+    } else if (typeof window.burnTamagotchiWeightFromActivity === 'function' && weightBurn > 0) {
+        weightResult = window.burnTamagotchiWeightFromActivity(weightBurn, STORAGE_KEYS, { announce: false });
+    }
     setMascotState(config || window.config || {}, 'happy', 3000);
     setMascotMood('proud', 8000);
     if (STORAGE_KEYS) saveTamagotchiData(STORAGE_KEYS);
+    return { weightResult };
 }
 
 // ── Rhythm tap ────────────────────────────────────────────────────
@@ -700,15 +710,18 @@ function showMascotRhythmGame(config, STORAGE_KEYS) {
                 const foot = root.querySelector('#tm-mascot-play-foot');
                 const coins = Math.min(20, 3 + Math.floor(score / 4));
                 const xp = Math.min(30, 8 + Math.floor(score / 3));
-                rewardMascotMiniGame(config, STORAGE_KEYS, {
+                const burn = Math.max(0.8, Math.min(4.5, 0.7 + score * 0.08));
+                const reward = rewardMascotMiniGame(config, STORAGE_KEYS, {
                     happiness: Math.min(20, 6 + Math.floor(score / 5)),
                     xp,
                     coins,
                     source: 'mascotRhythm',
+                    weightBurn: burn,
                 });
-                showMascotBubble(`Rhythm: ${score} πόντοι!`, 2200);
+                const lost = Math.abs(Math.round((reward?.weightResult?.delta || 0) * 10) / 10);
+                showMascotBubble(`Rhythm: ${score} πόντοι!${lost ? ` −${lost} kg` : ''}`, 2200);
                 if (foot) {
-                    foot.innerHTML = `<p class="tm-mascot-play-result">Σκορ ${score} · +${coins}🪙 · +${xp} XP</p>
+                    foot.innerHTML = `<p class="tm-mascot-play-result">Σκορ ${score} · +${coins}🪙 · +${xp} XP${lost ? ` · −${lost} kg` : ''}</p>
                         <button type="button" class="tm-mascot-play-done">Κλείσιμο</button>`;
                     foot.querySelector('.tm-mascot-play-done')?.addEventListener('click', () => closeMascotPlayOverlay());
                 }
@@ -776,15 +789,17 @@ function showMascotShadowMatchGame(config, STORAGE_KEYS) {
                     btn.classList.add(ok ? 'correct' : 'wrong');
                     const foot = root.querySelector('#tm-mascot-play-foot');
                     if (ok) {
-                        rewardMascotMiniGame(config, STORAGE_KEYS, {
+                        const reward = rewardMascotMiniGame(config, STORAGE_KEYS, {
                             happiness: 10,
                             xp: 18,
                             coins: 10,
                             source: 'mascotShadow',
+                            weightBurn: 1.4,
                         });
-                        showMascotBubble('Σωστή σκιά!', 2000);
+                        const lost = Math.abs(Math.round((reward?.weightResult?.delta || 0) * 10) / 10);
+                        showMascotBubble(`Σωστή σκιά!${lost ? ` −${lost} kg` : ''}`, 2000);
                         if (foot) {
-                            foot.innerHTML = `<p class="tm-mascot-play-result">Μπράβο! +10🪙 · +18 XP</p>
+                            foot.innerHTML = `<p class="tm-mascot-play-result">Μπράβο! +10🪙 · +18 XP${lost ? ` · −${lost} kg` : ''}</p>
                                 <button type="button" class="tm-mascot-play-done">Κλείσιμο</button>`;
                         }
                     } else {
@@ -891,15 +906,17 @@ function showMascotOrderScrambleGame(config, STORAGE_KEYS) {
                 const foot = root.querySelector('#tm-mascot-play-foot');
                 root.querySelector('#tm-scramble-check').disabled = true;
                 if (ok) {
-                    rewardMascotMiniGame(config, STORAGE_KEYS, {
+                    const reward = rewardMascotMiniGame(config, STORAGE_KEYS, {
                         happiness: 12,
                         xp: 20,
                         coins: 15,
                         source: 'mascotScramble',
+                        weightBurn: 1.5,
                     });
-                    showMascotBubble('Tickets εντάξει!', 2000);
+                    const lost = Math.abs(Math.round((reward?.weightResult?.delta || 0) * 10) / 10);
+                    showMascotBubble(`Tickets εντάξει!${lost ? ` −${lost} kg` : ''}`, 2000);
                     if (foot) {
-                        foot.innerHTML = `<p class="tm-mascot-play-result">Σωστή σειρά! +15🪙 · +20 XP</p>
+                        foot.innerHTML = `<p class="tm-mascot-play-result">Σωστή σειρά! +15🪙 · +20 XP${lost ? ` · −${lost} kg` : ''}</p>
                             <button type="button" class="tm-mascot-play-done">Κλείσιμο</button>`;
                     }
                 } else {
@@ -914,6 +931,105 @@ function showMascotOrderScrambleGame(config, STORAGE_KEYS) {
             });
         },
     });
+}
+
+// ── Gym workout (burn kg) ─────────────────────────────────────────
+function showMascotGymGame(config, STORAGE_KEYS) {
+    if (tamagotchiIsDead || tamagotchiStage === 'egg') return;
+    let taps = 0;
+    let running = true;
+    let timerId = null;
+    const startWeight = typeof formatTamagotchiWeightKg === 'function'
+        ? formatTamagotchiWeightKg()
+        : `${Math.round(tamagotchiWeight)} kg`;
+
+    const overlay = openMascotPlayOverlay({
+        title: 'Gym',
+        subtitle: 'Πάτα γρήγορα για να κάψει κιλά!',
+        bodyHtml: `
+            <div class="tm-gym-stage">
+                <div class="tm-gym-mascot" id="tm-gym-pulse" aria-hidden="true">🏋️</div>
+                <div class="tm-gym-hit" id="tm-gym-hit">Πάτα!</div>
+                <div class="tm-gym-stats">
+                    <span>Reps: <strong id="tm-gym-reps">0</strong></span>
+                    <span>Χρόνος: <strong id="tm-gym-time">15</strong>s</span>
+                    <span>Τώρα: <strong id="tm-gym-weight">${startWeight}</strong></span>
+                </div>
+                <div class="tm-gym-bar"><div class="tm-gym-bar-fill" id="tm-gym-bar-fill" style="width:0%"></div></div>
+                <button type="button" class="tm-rhythm-pad tm-gym-pad" id="tm-gym-pad">REP!</button>
+            </div>
+        `,
+        onReady(root) {
+            const pulse = root.querySelector('#tm-gym-pulse');
+            const hitEl = root.querySelector('#tm-gym-hit');
+            const repsEl = root.querySelector('#tm-gym-reps');
+            const timeEl = root.querySelector('#tm-gym-time');
+            const barFill = root.querySelector('#tm-gym-bar-fill');
+            const pad = root.querySelector('#tm-gym-pad');
+            let timeLeft = 15;
+
+            timerId = setInterval(() => {
+                if (!running) return;
+                timeLeft -= 1;
+                if (timeEl) timeEl.textContent = String(timeLeft);
+                if (timeLeft <= 0) {
+                    running = false;
+                    clearInterval(timerId);
+                    finish();
+                }
+            }, 1000);
+
+            const onTap = () => {
+                if (!running) return;
+                taps += 1;
+                if (repsEl) repsEl.textContent = String(taps);
+                if (barFill) barFill.style.width = `${Math.min(100, taps * 2.2)}%`;
+                pulse?.classList.remove('pump');
+                void pulse?.offsetWidth;
+                pulse?.classList.add('pump');
+                hitEl.textContent = taps % 5 === 0 ? 'Δυνατά!' : 'Άλλο ένα!';
+                hitEl.className = 'tm-gym-hit good';
+                pad.classList.add('good');
+                setTimeout(() => pad.classList.remove('good'), 90);
+            };
+
+            pad?.addEventListener('click', onTap);
+            root.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' || e.key === ' ') {
+                    e.preventDefault();
+                    onTap();
+                }
+            });
+
+            function finish() {
+                const foot = root.querySelector('#tm-mascot-play-foot');
+                const burn = Math.max(1.5, Math.min(8, 1.2 + taps * 0.12));
+                const coins = Math.min(18, 2 + Math.floor(taps / 6));
+                const xp = Math.min(28, 6 + Math.floor(taps / 4));
+                const reward = rewardMascotMiniGame(config, STORAGE_KEYS, {
+                    happiness: Math.min(22, 8 + Math.floor(taps / 5)),
+                    xp,
+                    coins,
+                    source: 'mascotGym',
+                    weightBurn: burn,
+                });
+                // Light hunger from workout
+                updatePetStats(config, STORAGE_KEYS, 0, -Math.min(12, 3 + Math.floor(taps / 8)));
+                const lost = Math.abs(Math.round((reward?.weightResult?.delta || 0) * 10) / 10);
+                const weightNow = typeof formatTamagotchiWeightKg === 'function'
+                    ? formatTamagotchiWeightKg()
+                    : `${Math.round(tamagotchiWeight)} kg`;
+                showMascotBubble(`Gym: ${taps} reps · −${lost} kg!`, 2400);
+                setMascotState(config, 'happy', 3500);
+                if (foot) {
+                    foot.innerHTML = `<p class="tm-mascot-play-result">${taps} reps · −${lost} kg · τώρα ${weightNow} · +${coins}🪙 · +${xp} XP</p>
+                        <button type="button" class="tm-mascot-play-done">Κλείσιμο</button>`;
+                    foot.querySelector('.tm-mascot-play-done')?.addEventListener('click', () => closeMascotPlayOverlay());
+                }
+            }
+        },
+    });
+    return overlay;
 }
 
 // ── Care modal helpers ────────────────────────────────────────────
@@ -951,6 +1067,11 @@ function getMascotPlayCareSectionHTML(STORAGE_KEYS) {
                 <button type="button" class="tm-action-btn" id="tm-action-rhythm" title="Rhythm tap">
                     <span class="tm-action-icon">🥁</span>
                     <span class="tm-action-label">Rhythm</span>
+                </button>
+                <button type="button" class="tm-action-btn" id="tm-action-gym-extra" title="Gym — κάψε κιλά">
+                    <span class="tm-action-icon">🏋️</span>
+                    <span class="tm-action-label">Gym</span>
+                    <span class="tm-action-hint">−kg</span>
                 </button>
                 <button type="button" class="tm-action-btn" id="tm-action-shadow" title="Shadow match">
                     <span class="tm-action-icon">🌑</span>
@@ -992,6 +1113,11 @@ function wireMascotPlayCareHandlers(modal, config, STORAGE_KEYS, { closeModal })
     modal.querySelector('#tm-action-rhythm')?.addEventListener('click', () => {
         closeModal?.();
         showMascotRhythmGame(config, STORAGE_KEYS);
+    });
+
+    modal.querySelector('#tm-action-gym-extra')?.addEventListener('click', () => {
+        closeModal?.();
+        showMascotGymGame(config, STORAGE_KEYS);
     });
 
     modal.querySelector('#tm-action-shadow')?.addEventListener('click', () => {
@@ -1058,6 +1184,7 @@ window.setMascotChaseEnabled = setMascotChaseEnabled;
 window.startMascotHideAndSeek = startMascotHideAndSeek;
 window.tryRevealMascotHideAndSeek = tryRevealMascotHideAndSeek;
 window.showMascotRhythmGame = showMascotRhythmGame;
+window.showMascotGymGame = showMascotGymGame;
 window.showMascotShadowMatchGame = showMascotShadowMatchGame;
 window.showMascotOrderScrambleGame = showMascotOrderScrambleGame;
 window.getMascotPlayCareSectionHTML = getMascotPlayCareSectionHTML;

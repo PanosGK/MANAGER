@@ -10861,6 +10861,24 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             .tm-rhythm-pad { width: 100%; font-size: 1.2rem; padding: 18px !important; }
             .tm-rhythm-pad.good { background: #16a34a !important; color: #fff !important; border-color: #16a34a !important; }
             .tm-rhythm-pad.miss { background: #dc2626 !important; color: #fff !important; border-color: #dc2626 !important; }
+            .tm-gym-stage { text-align: center; }
+            .tm-gym-mascot { font-size: 48px; margin: 6px 0; display: inline-block; }
+            .tm-gym-mascot.pump { animation: tm-gym-pump 0.18s ease-out; }
+            @keyframes tm-gym-pump {
+                0% { transform: scale(1) rotate(0deg); }
+                50% { transform: scale(1.18) rotate(-6deg); }
+                100% { transform: scale(1) rotate(0deg); }
+            }
+            .tm-gym-hit { font-size: 18px; font-weight: 700; min-height: 28px; margin-bottom: 8px; }
+            .tm-gym-hit.good { color: #0284c7; }
+            .tm-gym-stats { display: flex; justify-content: center; gap: 12px; font-size: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+            .tm-gym-bar {
+                height: 10px; border-radius: 999px; background: #e2e8f0; overflow: hidden; margin: 0 0 12px;
+            }
+            .tm-gym-bar-fill {
+                height: 100%; width: 0; background: linear-gradient(90deg, #38bdf8, #0284c7); transition: width 0.12s ease-out;
+            }
+            .tm-gym-pad { width: 100%; font-size: 1.25rem; padding: 20px !important; }
             .tm-shadow-silhouette {
                 width: 100px; height: 100px; margin: 0 auto 10px;
                 background: #0f172a;
@@ -23924,7 +23942,15 @@ let tamagotchiDiscipline = 0;
 let tamagotchiLightsOn = true;
 let tamagotchiLastUpdate = Date.now();
 // Enhanced Tamagotchi variables
-let tamagotchiWeight = 30; // Base weight (affects health)
+let tamagotchiWeight = 30; // kg — feeding raises it, games/gym burn it
+const TAMA_WEIGHT_BOUNDS = {
+    min: 12,
+    max: 99,
+    under: 18,
+    overweight: 55,
+    obese: 70,
+    critical: 85,
+};
 let tamagotchiPoopCount = 0; // Number of poops on screen
 let tamagotchiIsSick = false;
 let tamagotchiSickType = 'none'; // none, cold, fever, upset_stomach
@@ -24169,6 +24195,16 @@ const MASCOT_MESSAGES = {
         'Νόστιμο πολύ!', 'Κόλλησα!', 'Θα φάω!', 'Ωραία φάση!'
     ],
     full: ['Χόρτασα!', 'Γεμάτος!', 'Όχι άλλο!', 'Θα σκάσω!', 'Αρκετά!'],
+    overfeed: [
+        'Χόρτασα… αλλά εντάξει!', 'Θα παχύνω!', 'Άλλο ένα;', 'Μμμ… βαρύς!',
+        'Το στομάχι μου!', 'Πολύ φαΐ!', 'Θέλω γυμναστήριο…'
+    ],
+    overweight: [
+        'Νιώθω βαρύς…', 'Χρειάζομαι γυμναστήριο!', 'Πάμε για τρέξιμο;', 'Τα κιλά ανεβαίνουν…'
+    ],
+    workout: [
+        'Ίδρωσα!', 'Καίω θερμίδες!', 'Δυνατός!', 'Πάμε κι άλλο!', 'Νιώθω ελαφρύτερος!'
+    ],
     snack: ['Γλυκό!', 'Νόστιμο σνακ!', 'Ωραίο!', 'Μμμ!', 'Τέλεια!'],
     snackPanel: ['Σνακ!', 'Νόστιμο!', 'Γλυκό!', 'Ωραίο!', 'Ευχαριστώ!', 'Τέλεια!'],
     notHungrySnack: 'Δεν πεινάω για σνακ!',
@@ -24896,8 +24932,11 @@ function ensureSingleMascotDom(reason = '') {
     let removed = 0;
 
     if (uniqueContainers.length > 1) {
-        // Prefer a live (non-shell) node; among lives, prefer the newest
-        const liveNodes = uniqueContainers.filter((el) => !isMascotUiShellNode(el));
+        // Prefer marked-live, then any non-shell; among those, prefer the newest
+        const markedLive = uniqueContainers.filter((el) => el.getAttribute('data-tm-mascot-live') === '1');
+        const liveNodes = markedLive.length
+            ? markedLive
+            : uniqueContainers.filter((el) => !isMascotUiShellNode(el));
         const keep = liveNodes.length
             ? liveNodes[liveNodes.length - 1]
             : uniqueContainers[uniqueContainers.length - 1];
@@ -24919,7 +24958,7 @@ function ensureSingleMascotDom(reason = '') {
     }
 
     // Strip conflicting sprite IDs from memory-game / cinematic clones outside the live root
-    const live = document.getElementById('tm-mascot-container');
+    const live = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
     if (live) {
         document.querySelectorAll('.tm-mascot-robot').forEach((robot) => {
             if (live.contains(robot)) return;
@@ -24929,9 +24968,10 @@ function ensureSingleMascotDom(reason = '') {
                 }
             });
         });
+        markMascotContainerLive(live);
     }
 
-    return document.getElementById('tm-mascot-container');
+    return getMascotLiveRoot() || document.getElementById('tm-mascot-container');
 }
 
 function getMascotSpriteById(container, id) {
@@ -26185,7 +26225,6 @@ function saveTamagotchiData(STORAGE_KEYS) {
 
 function initTamagotchiSystem(config, STORAGE_KEYS, container) {
     validateTamagotchiState();
-    updateMascotAppearanceByStage(tamagotchiStage);
     updateWeightDisplay();
     updatePoopIndicator();
     updateSickIndicator();
@@ -26207,9 +26246,12 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
         }, 500);
     }
     
-    // Update display initially
+    // Catch up office minutes first, then evolve + paint (avoids list/edit stage mismatch)
     updateTamagotchiStats(container);
     checkTamagotchiEvolution(container);
+    if (!tamaCinematicLock && !mascotStagePreviewLock) {
+        updateMascotAppearanceByStage(tamagotchiStage);
+    }
     
     // Periodic updates every minute (single interval — avoid duplicate timers on re-init)
     if (tamagotchiTickIntervalId) {
@@ -26224,24 +26266,39 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
 
     if (!window.__tmTamagotchiFocusSyncBound) {
         window.__tmTamagotchiFocusSyncBound = true;
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState !== 'visible') return;
-            // Don't clobber an in-progress hatch lottery with a stale storage reload
-            if (tamaCinematicLock) return;
+        const flushTamagotchiLife = () => {
+            if (tamaCinematicLock || !tamagotchiDataLoaded) return;
             const keys = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
             if (!keys?.TAMAGOTCHI_DATA) return;
-            const prevStage = tamagotchiStage;
-            const prevLife = tamagotchiLifeMinutes;
-            const prevChar = tamagotchiCharacterType;
-            loadTamagotchiData(keys);
-            if (tamagotchiStage !== prevStage
-                || Math.abs(tamagotchiLifeMinutes - prevLife) > 0.01
-                || tamagotchiCharacterType !== prevChar) {
-                const el = document.getElementById('tm-mascot-container');
-                updateMascotAppearanceByStage(tamagotchiStage);
+            try {
+                const el = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
                 if (el) updateTamagotchiStats(el);
+                saveTamagotchiData(keys);
+            } catch (_) { /* ignore */ }
+        };
+        document.addEventListener('visibilitychange', () => {
+            const keys = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
+            if (!keys?.TAMAGOTCHI_DATA) return;
+
+            // Leaving the page — persist caught-up life so the next page loads the same stage
+            if (document.visibilityState === 'hidden') {
+                flushTamagotchiLife();
+                return;
+            }
+
+            // Don't clobber an in-progress hatch lottery with a stale storage reload
+            if (tamaCinematicLock) return;
+            loadTamagotchiData(keys);
+            const el = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+            if (el) {
+                updateTamagotchiStats(el);
+                checkTamagotchiEvolution(el);
+            }
+            if (!tamaCinematicLock && !mascotStagePreviewLock) {
+                updateMascotAppearanceByStage(tamagotchiStage);
             }
         });
+        window.addEventListener('pagehide', flushTamagotchiLife);
     }
 }
 
@@ -26277,7 +26334,13 @@ function updateTamagotchiStats(container) {
         if (tamagotchiIsSick) {
             tamagotchiHealth = Math.max(0, tamagotchiHealth - (timeDiff * 0.3));
         }
-        if (tamagotchiWeight > 80) {
+        if (tamagotchiWeight >= TAMA_WEIGHT_BOUNDS.critical) {
+            tamagotchiHealth = Math.max(0, tamagotchiHealth - (timeDiff * 0.25));
+        } else if (tamagotchiWeight >= TAMA_WEIGHT_BOUNDS.obese) {
+            tamagotchiHealth = Math.max(0, tamagotchiHealth - (timeDiff * 0.15));
+        } else if (tamagotchiWeight >= TAMA_WEIGHT_BOUNDS.overweight) {
+            tamagotchiHealth = Math.max(0, tamagotchiHealth - (timeDiff * 0.08));
+        } else if (tamagotchiWeight < TAMA_WEIGHT_BOUNDS.under) {
             tamagotchiHealth = Math.max(0, tamagotchiHealth - (timeDiff * 0.1));
         }
         
@@ -28447,44 +28510,163 @@ function updateTamagotchiPersonality() {
     }
 }
 
-// Weight management system
-function updateTamagotchiWeight(foodType = 'meal') {
-    if (foodType === 'meal') {
-        // Meals: slight weight gain, but necessary
-        tamagotchiWeight = Math.min(99, tamagotchiWeight + 1);
-        tamagotchiMealCount++;
-    } else if (foodType === 'snack') {
-        // Snacks: more weight gain, but boosts happiness
-        tamagotchiWeight = Math.min(99, tamagotchiWeight + 2);
-        tamagotchiSnackCount++;
+// Weight management system (kg)
+function getTamagotchiWeightBand(weight = tamagotchiWeight) {
+    const w = Number(weight);
+    if (!Number.isFinite(w) || w < TAMA_WEIGHT_BOUNDS.under) {
+        return { id: 'under', label: 'Λιποβαρές', icon: '⚠️', danger: true };
     }
-    
+    if (w < TAMA_WEIGHT_BOUNDS.overweight) {
+        return { id: 'ok', label: 'Κανονικό', icon: '✅', danger: false };
+    }
+    if (w < TAMA_WEIGHT_BOUNDS.obese) {
+        return { id: 'over', label: 'Υπέρβαρο', icon: '⚖️', danger: true };
+    }
+    if (w < TAMA_WEIGHT_BOUNDS.critical) {
+        return { id: 'obese', label: 'Παχύσαρκο', icon: '🍔', danger: true };
+    }
+    return { id: 'critical', label: 'Πολύ υπέρβαρο', icon: '🚨', danger: true };
+}
+
+function formatTamagotchiWeightKg(weight = tamagotchiWeight) {
+    const w = Number(weight);
+    const n = Number.isFinite(w) ? Math.round(w * 10) / 10 : 0;
+    return `${n.toFixed(1)} kg`;
+}
+
+function applyTamagotchiWeightHealthEffects() {
+    if (tamagotchiWeight >= TAMA_WEIGHT_BOUNDS.critical) {
+        tamagotchiHealth = Math.max(0, tamagotchiHealth - 1.2);
+    } else if (tamagotchiWeight >= TAMA_WEIGHT_BOUNDS.obese) {
+        tamagotchiHealth = Math.max(0, tamagotchiHealth - 0.7);
+    } else if (tamagotchiWeight >= TAMA_WEIGHT_BOUNDS.overweight) {
+        tamagotchiHealth = Math.max(0, tamagotchiHealth - 0.35);
+    } else if (tamagotchiWeight < TAMA_WEIGHT_BOUNDS.under) {
+        tamagotchiHealth = Math.max(0, tamagotchiHealth - 0.3);
+    }
+}
+
+function adjustTamagotchiWeight(delta, { silent = false } = {}) {
+    const before = tamagotchiWeight;
+    const change = Number(delta);
+    if (!Number.isFinite(change) || change === 0) {
+        return { before, after: before, delta: 0, band: getTamagotchiWeightBand() };
+    }
+    tamagotchiWeight = Math.max(
+        TAMA_WEIGHT_BOUNDS.min,
+        Math.min(TAMA_WEIGHT_BOUNDS.max, tamagotchiWeight + change)
+    );
+    applyTamagotchiWeightHealthEffects();
+    updateWeightDisplay();
+    const band = getTamagotchiWeightBand();
+    if (!silent && change > 0 && band.id !== 'ok' && band.id !== 'under' && Math.random() < 0.45) {
+        const msgs = MASCOT_MESSAGES.overweight || MASCOT_MESSAGES.full;
+        showMascotBubble(msgs[Math.floor(Math.random() * msgs.length)], 1800);
+    }
+    return { before, after: tamagotchiWeight, delta: tamagotchiWeight - before, band };
+}
+
+function burnTamagotchiWeightFromActivity(intensity = 1, STORAGE_KEYS = null, options = {}) {
+    const { announce = true } = options;
+    const raw = Number(intensity);
+    const burn = Math.max(0.4, Math.min(8, Number.isFinite(raw) ? raw : 1));
+    const result = adjustTamagotchiWeight(-burn, { silent: true });
+    if (announce && result.delta < 0) {
+        const lost = Math.abs(Math.round(result.delta * 10) / 10);
+        const msgs = MASCOT_MESSAGES.workout || ['Ίδρωσα!'];
+        showMascotBubble(`${msgs[Math.floor(Math.random() * msgs.length)]} −${lost} kg`, 2000);
+    }
+    if (STORAGE_KEYS && typeof saveTamagotchiData === 'function') {
+        saveTamagotchiData(STORAGE_KEYS);
+    }
+    return result;
+}
+
+function updateTamagotchiWeight(foodType = 'meal') {
+    const wasFull = petStats.hunger >= 90;
+    const stuffed = petStats.hunger >= 100;
+    let gain = foodType === 'snack' ? 2 : 1.2;
+    if (wasFull) gain += foodType === 'snack' ? 2.4 : 1.8;
+    if (stuffed) gain += 1.2;
+    if (tamagotchiWeight >= TAMA_WEIGHT_BOUNDS.overweight) gain *= 1.12;
+    if (foodType === 'meal') tamagotchiMealCount++;
+    else if (foodType === 'snack') tamagotchiSnackCount++;
+
     // Reset daily counts at midnight
     const now = new Date();
     const lastFedDate = new Date(tamagotchiLastFed);
     if (now.getDate() !== lastFedDate.getDate()) {
-        tamagotchiMealCount = 0;
-        tamagotchiSnackCount = 0;
+        tamagotchiMealCount = foodType === 'meal' ? 1 : 0;
+        tamagotchiSnackCount = foodType === 'snack' ? 1 : 0;
     }
-    
-    // Weight affects health
-    if (tamagotchiWeight > 80) {
-        // Overweight: health decreases slowly
-        tamagotchiHealth = Math.max(0, tamagotchiHealth - 0.5);
-    } else if (tamagotchiWeight < 20) {
-        // Underweight: also unhealthy
-        tamagotchiHealth = Math.max(0, tamagotchiHealth - 0.3);
-    }
-    
-    updateWeightDisplay();
+
+    return adjustTamagotchiWeight(gain, { silent: !wasFull });
 }
 
 // Update weight display
 function updateWeightDisplay() {
     const weightValue = document.getElementById('tm-weight-value');
     if (weightValue) {
-        weightValue.textContent = Math.round(tamagotchiWeight);
+        weightValue.textContent = formatTamagotchiWeightKg();
     }
+    const modalWeight = document.getElementById('tm-modal-val-weight');
+    if (modalWeight) {
+        const band = getTamagotchiWeightBand();
+        modalWeight.textContent = `${formatTamagotchiWeightKg()} · ${band.label}`;
+    }
+    const weightFill = document.getElementById('tm-modal-fill-weight');
+    if (weightFill) {
+        const pct = Math.max(0, Math.min(100, ((tamagotchiWeight - TAMA_WEIGHT_BOUNDS.min)
+            / (TAMA_WEIGHT_BOUNDS.max - TAMA_WEIGHT_BOUNDS.min)) * 100));
+        weightFill.style.width = `${pct}%`;
+        weightFill.dataset.band = getTamagotchiWeightBand().id;
+    }
+}
+
+/** Feed even when full — overfeeding adds extra kg. */
+function feedMascotCareAction(config, STORAGE_KEYS, foodType = 'meal') {
+    if (tamagotchiIsDead) {
+        showMascotBubble(MASCOT_MESSAGES.dead, 2000);
+        return { ok: false, reason: 'dead' };
+    }
+    if (tamagotchiStage === 'egg') {
+        showMascotBubble('Ακόμα αυγό…', 1500);
+        return { ok: false, reason: 'egg' };
+    }
+    const actionId = foodType === 'snack' ? 'snack' : 'meal';
+    const pay = tryPayForMascotCare(STORAGE_KEYS, actionId, config);
+    if (!pay.ok) return { ok: false, reason: 'pay', pay };
+
+    const wasFull = petStats.hunger >= 95;
+    if (foodType === 'snack') {
+        updatePetStats(config, STORAGE_KEYS, 20, 10);
+    } else {
+        updatePetStats(config, STORAGE_KEYS, 0, 30);
+        if (typeof trackDailyStat === 'function') {
+            trackDailyStat(config, STORAGE_KEYS, 'feedMascot');
+        }
+    }
+    const weightResult = updateTamagotchiWeight(foodType);
+    tamagotchiLastFed = Date.now();
+    setMascotState(config, 'eating', 2000);
+
+    if (wasFull) {
+        const msgs = MASCOT_MESSAGES.overfeed || MASCOT_MESSAGES.full;
+        showMascotBubble(msgs[Math.floor(Math.random() * msgs.length)], 1800);
+        const band = weightResult.band || getTamagotchiWeightBand();
+        if (band.id === 'over' || band.id === 'obese' || band.id === 'critical') {
+            setTimeout(() => {
+                const warn = MASCOT_MESSAGES.overweight || msgs;
+                showMascotBubble(`${warn[Math.floor(Math.random() * warn.length)]} (${formatTamagotchiWeightKg()})`, 2000);
+            }, 1600);
+        }
+    } else {
+        const fallback = foodType === 'snack' ? MASCOT_MESSAGES.snack : MASCOT_MESSAGES.feed;
+        announceMascotCarePayment(pay, fallback);
+    }
+    applyMascotCarePreference(actionId, config, STORAGE_KEYS);
+    saveTamagotchiData(STORAGE_KEYS);
+    return { ok: true, wasFull, pay, weightResult };
 }
 
 // Death system
@@ -28940,7 +29122,7 @@ function markMascotContainerLive(container = document.getElementById('tm-mascot-
     } catch (_) { /* ignore */ }
 }
 
-/** Always re-read saved pet + paint sprites — keeps list/edit pages on the same character. */
+/** Always re-read saved pet + catch up life + evolve + paint — keeps list/edit in sync. */
 function resyncMascotAppearanceFromStorage(STORAGE_KEYS = window.STORAGE_KEYS) {
     const keys = getTamagotchiStorageKeys(STORAGE_KEYS);
     if (!keys?.TAMAGOTCHI_DATA) return false;
@@ -28950,13 +29132,17 @@ function resyncMascotAppearanceFromStorage(STORAGE_KEYS = window.STORAGE_KEYS) {
         const container = ensureSingleMascotDom('resync');
         if (!container) return false;
         markMascotContainerLive(container);
+        // Catch up office minutes BEFORE painting — otherwise sprites stick on the pre-gap stage
+        updateTamagotchiStats(container);
+        if (!tamaCinematicLock) {
+            checkTamagotchiEvolution(container);
+        }
         if (!tamaCinematicLock && !mascotStagePreviewLock) {
             updateMascotAppearanceByStage(tamagotchiStage);
         }
-        updateTamagotchiStats(container);
         syncMascotInteractionClasses(container);
         console.log(
-            `[MMS Mascot] Resynced from storage → stage=${tamagotchiStage} character=${tamagotchiCharacterType}`
+            `[MMS Mascot] Resynced from storage → stage=${tamagotchiStage} character=${tamagotchiCharacterType} life=${Math.round(tamagotchiLifeMinutes)}`
         );
         return true;
     } catch (err) {
@@ -37179,6 +37365,28 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             if (petStats.hunger < 35) {
                 return { level: 'warn', icon: '🍖', text: 'Πεινάει — δώσε Γεύμα ή Σνακ.' };
             }
+            const weightBand = getTamagotchiWeightBand();
+            if (weightBand.id === 'critical' || weightBand.id === 'obese') {
+                return {
+                    level: 'danger',
+                    icon: '🏋️',
+                    text: `${weightBand.label} (${formatTamagotchiWeightKg()}) — παίξε Gym / παιχνίδια για αδυνάτισμα.`,
+                };
+            }
+            if (weightBand.id === 'over') {
+                return {
+                    level: 'warn',
+                    icon: '⚖️',
+                    text: `Υπέρβαρο (${formatTamagotchiWeightKg()}) — λιγότερα σνακ ή Gym.`,
+                };
+            }
+            if (weightBand.id === 'under') {
+                return {
+                    level: 'warn',
+                    icon: '⚠️',
+                    text: `Λιποβαρές (${formatTamagotchiWeightKg()}) — τάισέ το λίγο.`,
+                };
+            }
             if (tamagotchiNeedsPraise) {
                 return { level: 'info', icon: '👍', text: 'Θέλει έπαινο — πάτα Έπαινος για πειθαρχία.' };
             }
@@ -37232,7 +37440,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <p class="tm-mascot-meta">
                                 <span class="tm-mascot-stage-pill">${stageGr}</span>
                                 <span>${isEgg ? `Εκκόλαψη ~${minutesToHatch} λεπτά` : `Ηλικία ${Math.floor(tamagotchiAge)}`}</span>
-                                ${isEgg ? '' : `<span>·</span><span>${Math.round(tamagotchiWeight * 10) / 10}g</span>`}
+                                ${isEgg ? '' : `<span>·</span><span id="tm-mascot-meta-weight">${formatTamagotchiWeightKg()}</span>`}
                             </p>
                         </div>
                     </div>
@@ -37302,6 +37510,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </div>
                         <div class="tm-stat-bar">
                             <div class="tm-stat-fill tm-fill-health" id="tm-modal-fill-health" style="width: ${tamagotchiHealth}%;"></div>
+                        </div>
+                    </div>
+                    <div class="tm-stat-row" data-stat="weight">
+                        <div class="tm-stat-row-top">
+                            <span class="tm-stat-label">⚖️ Βάρος</span>
+                            <span class="tm-stat-value" id="tm-modal-val-weight">${formatTamagotchiWeightKg()} · ${getTamagotchiWeightBand().label}</span>
+                        </div>
+                        <div class="tm-stat-bar">
+                            <div class="tm-stat-fill tm-fill-weight" id="tm-modal-fill-weight" data-band="${getTamagotchiWeightBand().id}" style="width: ${Math.max(0, Math.min(100, ((tamagotchiWeight - TAMA_WEIGHT_BOUNDS.min) / (TAMA_WEIGHT_BOUNDS.max - TAMA_WEIGHT_BOUNDS.min)) * 100))}%;"></div>
                         </div>
                     </div>
                     <div class="tm-stat-row" data-stat="discipline">
@@ -37390,6 +37607,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <button type="button" class="tm-action-btn tm-action-bug-game" id="tm-action-bug-game" title="Bug Squish">
                             <span class="tm-action-icon">🐛</span>
                             <span class="tm-action-label">Bug Squish</span>
+                        </button>
+                        <button type="button" class="tm-action-btn tm-action-gym" id="tm-action-gym" title="Gym — κάψε κιλά">
+                            <span class="tm-action-icon">🏋️</span>
+                            <span class="tm-action-label">Gym</span>
+                            <span class="tm-action-hint">−kg</span>
                         </button>
                     </div>
                     ${typeof getMascotPlayCareSectionHTML === 'function' ? getMascotPlayCareSectionHTML(STORAGE_KEYS) : ''}
@@ -37582,6 +37804,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             #tm-mascot-stats-modal .tm-fill-happy { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
             #tm-mascot-stats-modal .tm-fill-food { background: linear-gradient(90deg, #4ade80, #16a34a); }
             #tm-mascot-stats-modal .tm-fill-health { background: linear-gradient(90deg, #f87171, #dc2626); }
+            #tm-mascot-stats-modal .tm-fill-weight { background: linear-gradient(90deg, #38bdf8, #0284c7); }
+            #tm-mascot-stats-modal .tm-fill-weight[data-band="over"] { background: linear-gradient(90deg, #fbbf24, #d97706); }
+            #tm-mascot-stats-modal .tm-fill-weight[data-band="obese"],
+            #tm-mascot-stats-modal .tm-fill-weight[data-band="critical"] { background: linear-gradient(90deg, #fb7185, #e11d48); }
+            #tm-mascot-stats-modal .tm-fill-weight[data-band="under"] { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
             #tm-mascot-stats-modal .tm-fill-disc { background: linear-gradient(90deg, #a78bfa, #7c3aed); }
             #tm-mascot-stats-modal .tm-fill-hatch { background: linear-gradient(90deg, #2dd4bf, #0d9488); }
             #tm-mascot-stats-modal .tm-mascot-status-chips {
@@ -37758,6 +37985,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             setStat('#tm-modal-fill-food', '#tm-modal-val-food', petStats.hunger);
             setStat('#tm-modal-fill-health', '#tm-modal-val-health', tamagotchiHealth);
             setStat('#tm-modal-fill-discipline', '#tm-modal-val-discipline', tamagotchiDiscipline);
+            updateWeightDisplay();
+            const metaWeight = modal.querySelector('#tm-mascot-meta-weight');
+            if (metaWeight) metaWeight.textContent = formatTamagotchiWeightKg();
 
             const chips = modal.querySelector('#tm-mascot-status-chips');
             if (chips) {
@@ -37920,49 +38150,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             closeBtn?.click();
         });
 
-        // Meal button
+        // Meal button — can feed even when full (extra kg)
         modal.querySelector('#tm-action-meal')?.addEventListener('click', () => {
-            if (tamagotchiIsDead) {
-                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
-                return;
-            }
-            if (petStats.hunger < 100) {
-                const pay = tryPayForMascotCare(STORAGE_KEYS, 'meal', config);
-                if (!pay.ok) return;
-                updatePetStats(config, STORAGE_KEYS, 0, 30);
-                updateTamagotchiWeight('meal');
-                tamagotchiLastFed = Date.now();
-                trackDailyStat(config, STORAGE_KEYS, 'feedMascot');
-                setMascotState(config, 'eating', 2000);
-                announceMascotCarePayment(pay, MASCOT_MESSAGES.feed);
-                applyMascotCarePreference('meal', config, STORAGE_KEYS);
-                saveTamagotchiData(STORAGE_KEYS);
-                updateModalStats();
-            } else {
-                showMascotBubble(mascotMsg('full'), 1500);
-            }
+            const result = feedMascotCareAction(config, STORAGE_KEYS, 'meal');
+            if (result.ok) updateModalStats();
         });
 
-        // Snack button
+        // Snack button — can snack even when full (extra kg)
         modal.querySelector('#tm-action-snack')?.addEventListener('click', () => {
-            if (tamagotchiIsDead) {
-                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
-                return;
-            }
-            if (petStats.hunger < 95 && petStats.happiness < 95) {
-                const pay = tryPayForMascotCare(STORAGE_KEYS, 'snack', config);
-                if (!pay.ok) return;
-                updatePetStats(config, STORAGE_KEYS, 20, 10);
-                updateTamagotchiWeight('snack');
-                tamagotchiLastFed = Date.now();
-                setMascotState(config, 'eating', 2000);
-                announceMascotCarePayment(pay, MASCOT_MESSAGES.snack);
-                applyMascotCarePreference('snack', config, STORAGE_KEYS);
-                saveTamagotchiData(STORAGE_KEYS);
-                updateModalStats();
-            } else {
-                showMascotBubble(mascotMsg('full'), 1500);
-            }
+            const result = feedMascotCareAction(config, STORAGE_KEYS, 'snack');
+            if (result.ok) updateModalStats();
         });
 
         // Pet button
@@ -38145,6 +38342,24 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 startBugSquishGame();
             } else {
                 showMascotBubble('Το Bug Squish δεν είναι διαθέσιμο…', 2000);
+            }
+        });
+
+        // Gym mini-game — burn kg
+        modal.querySelector('#tm-action-gym')?.addEventListener('click', () => {
+            if (tamagotchiIsDead) {
+                showMascotBubble(MASCOT_MESSAGES.dead, 2000);
+                return;
+            }
+            if (tamagotchiStage === 'egg') {
+                showMascotBubble('Ακόμα αυγό…', 1500);
+                return;
+            }
+            closeModal();
+            if (typeof window.showMascotGymGame === 'function') {
+                window.showMascotGymGame(config, STORAGE_KEYS);
+            } else {
+                showMascotBubble('Το Gym δεν είναι διαθέσιμο…', 2000);
             }
         });
 
@@ -38392,6 +38607,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             // Calculate rewards
             const happinessGain = Math.min(30, score * 2);
             updatePetStats(config, STORAGE_KEYS, happinessGain, 0);
+            const burn = Math.max(0.8, Math.min(5, 0.6 + score * 0.18));
+            const weightResult = burnTamagotchiWeightFromActivity(burn, STORAGE_KEYS, { announce: false });
+            const lostKg = Math.abs(Math.round((weightResult.delta || 0) * 10) / 10);
             
             gameArea.innerHTML = `
                 <div style="
@@ -38407,6 +38625,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <h2 style="font-size: 36px; margin: 0 0 20px 0;">${timeUp ? 'Τέλος Παιχνιδιού!' : 'Τέλειωσαν οι ευκαιρίες!'}</h2>
                     <div style="font-size: 24px; margin-bottom: 10px;">Πόντοι: <span style="color: #4caf50; font-weight: bold;">${score}</span></div>
                     <div style="font-size: 20px; color: #ffeb3b;">Ευτυχία: +${happinessGain}!</div>
+                    ${lostKg > 0 ? `<div style="font-size: 18px; color: #7dd3fc; margin-top: 8px;">Βάρος: −${lostKg} kg</div>` : ''}
                 </div>
             `;
             
@@ -38585,48 +38804,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         document.addEventListener('pointercancel', onUp, true);
     });
 
-    // Meal button (proper meal)
+    // Meal button (proper meal) — allowed even when full
     getButton('#tm-pet-meal-btn')?.addEventListener('click', () => {
-        if (tamagotchiIsDead) {
-            showMascotBubble(MASCOT_MESSAGES.dead, 2000);
-            return;
-        }
-        if (petStats.hunger < 100) {
-            const pay = tryPayForMascotCare(STORAGE_KEYS, 'meal', config);
-            if (!pay.ok) return;
-            updatePetStats(config, STORAGE_KEYS, 0, 30);
-            updateTamagotchiWeight('meal');
-            tamagotchiLastFed = Date.now();
-            trackDailyStat(config, STORAGE_KEYS, 'feedMascot');
-            setMascotState(config, 'eating', 2000);
-            announceMascotCarePayment(pay, MASCOT_MESSAGES.feedPanel);
-            applyMascotCarePreference('meal', config, STORAGE_KEYS);
-            saveTamagotchiData(STORAGE_KEYS);
-        } else {
-            const fullMessages = MASCOT_MESSAGES.full;
-            showMascotBubble(fullMessages[Math.floor(Math.random() * fullMessages.length)], 1500);
-        }
+        feedMascotCareAction(config, STORAGE_KEYS, 'meal');
     });
 
-    // Snack button (snacks boost happiness but increase weight)
+    // Snack button — allowed even when full (extra weight)
     getButton('#tm-pet-snack-btn')?.addEventListener('click', () => {
-        if (tamagotchiIsDead) {
-            showMascotBubble(MASCOT_MESSAGES.dead, 2000);
-            return;
-        }
-        if (petStats.hunger < 95 && petStats.happiness < 95) {
-            const pay = tryPayForMascotCare(STORAGE_KEYS, 'snack', config);
-            if (!pay.ok) return;
-            updatePetStats(config, STORAGE_KEYS, 20, 10); // Happiness +20, Hunger +10
-            updateTamagotchiWeight('snack');
-            tamagotchiLastFed = Date.now();
-            setMascotState(config, 'eating', 2000);
-            announceMascotCarePayment(pay, MASCOT_MESSAGES.snackPanel);
-            applyMascotCarePreference('snack', config, STORAGE_KEYS);
-            saveTamagotchiData(STORAGE_KEYS);
-        } else {
-            showMascotBubble(MASCOT_MESSAGES.notHungrySnack, 1500);
-        }
+        feedMascotCareAction(config, STORAGE_KEYS, 'snack');
     });
 
     getButton('#tm-pet-pet-btn')?.addEventListener('click', () => {
@@ -39659,9 +39844,25 @@ function updateMascotAppearanceByStage(stage) {
     // Never invent a "dragon" placeholder — that looked like the mascot changing type after hatch
     if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none'
         || !TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)) {
-        setSvgSpriteVisible(eggSprite, true);
-        console.log('[MMS Mascot] Character not locked yet — keeping egg sprite');
-        return;
+        // Hatched pet missing character: try recover from storage once before egg fallback
+        if (stage !== 'egg') {
+            try {
+                const keys = getTamagotchiStorageKeys(
+                    typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null
+                );
+                const stored = parseTamagotchiStorageValue(GM_getValue(keys.TAMAGOTCHI_DATA, 'null'));
+                const sc = stored?.characterType;
+                if (sc && sc !== 'none' && TAMA_CHARACTER_TYPES.includes(sc)) {
+                    tamagotchiCharacterType = sc;
+                }
+            } catch (_) { /* ignore */ }
+        }
+        if (!tamagotchiCharacterType || tamagotchiCharacterType === 'none'
+            || !TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)) {
+            setSvgSpriteVisible(eggSprite, true);
+            console.log('[MMS Mascot] Character not locked yet — keeping egg sprite');
+            return;
+        }
     }
 
     const previewCharacter = tamagotchiCharacterType;
@@ -39765,6 +39966,13 @@ window.applyMascotCarePreference = applyMascotCarePreference;
 window.applyMascotShopCareEffect = applyMascotShopCareEffect;
 window.getMascotInventoryCounts = getMascotInventoryCounts;
 window.tryPayForMascotCare = tryPayForMascotCare;
+window.feedMascotCareAction = feedMascotCareAction;
+window.adjustTamagotchiWeight = adjustTamagotchiWeight;
+window.burnTamagotchiWeightFromActivity = burnTamagotchiWeightFromActivity;
+window.getTamagotchiWeightBand = getTamagotchiWeightBand;
+window.formatTamagotchiWeightKg = formatTamagotchiWeightKg;
+window.updateTamagotchiWeight = updateTamagotchiWeight;
+window.updateWeightDisplay = updateWeightDisplay;
 window.setMascotParked = setMascotParked;
 window.startMascotFocusQuiet = startMascotFocusQuiet;
 window.endMascotFocusQuiet = endMascotFocusQuiet;
@@ -40237,6 +40445,9 @@ function endMascotHideAndSeek(config, STORAGE_KEYS, { found = false, timedOut = 
         setMascotState(config || window.config || {}, 'happy', 3000);
         setMascotMood('proud', 8000);
         showMascotBubble('Με βρήκες! Μπράβο {nickname}!', 2500);
+        if (typeof burnTamagotchiWeightFromActivity === 'function') {
+            burnTamagotchiWeightFromActivity(1.6, STORAGE_KEYS, { announce: false });
+        }
         if (typeof window.grantCoins === 'function') {
             window.grantCoins(config, STORAGE_KEYS, 5, 'mascotHideSeek');
         }
@@ -40386,13 +40597,20 @@ function openMascotPlayOverlay({ title, subtitle, bodyHtml, onReady }) {
     return overlay;
 }
 
-function rewardMascotMiniGame(config, STORAGE_KEYS, { happiness = 8, xp = 12, coins = 6, source = 'mascotMiniGame' } = {}) {
+function rewardMascotMiniGame(config, STORAGE_KEYS, { happiness = 8, xp = 12, coins = 6, source = 'mascotMiniGame', weightBurn = 1.2 } = {}) {
     updatePetStats(config, STORAGE_KEYS, happiness, 0);
     if (typeof window.grantXp === 'function' && xp > 0) window.grantXp(config, STORAGE_KEYS, xp, source);
     if (typeof window.grantCoins === 'function' && coins > 0) window.grantCoins(config, STORAGE_KEYS, coins, source);
+    let weightResult = null;
+    if (typeof burnTamagotchiWeightFromActivity === 'function' && weightBurn > 0) {
+        weightResult = burnTamagotchiWeightFromActivity(weightBurn, STORAGE_KEYS, { announce: false });
+    } else if (typeof window.burnTamagotchiWeightFromActivity === 'function' && weightBurn > 0) {
+        weightResult = window.burnTamagotchiWeightFromActivity(weightBurn, STORAGE_KEYS, { announce: false });
+    }
     setMascotState(config || window.config || {}, 'happy', 3000);
     setMascotMood('proud', 8000);
     if (STORAGE_KEYS) saveTamagotchiData(STORAGE_KEYS);
+    return { weightResult };
 }
 
 // ── Rhythm tap ────────────────────────────────────────────────────
@@ -40493,15 +40711,18 @@ function showMascotRhythmGame(config, STORAGE_KEYS) {
                 const foot = root.querySelector('#tm-mascot-play-foot');
                 const coins = Math.min(20, 3 + Math.floor(score / 4));
                 const xp = Math.min(30, 8 + Math.floor(score / 3));
-                rewardMascotMiniGame(config, STORAGE_KEYS, {
+                const burn = Math.max(0.8, Math.min(4.5, 0.7 + score * 0.08));
+                const reward = rewardMascotMiniGame(config, STORAGE_KEYS, {
                     happiness: Math.min(20, 6 + Math.floor(score / 5)),
                     xp,
                     coins,
                     source: 'mascotRhythm',
+                    weightBurn: burn,
                 });
-                showMascotBubble(`Rhythm: ${score} πόντοι!`, 2200);
+                const lost = Math.abs(Math.round((reward?.weightResult?.delta || 0) * 10) / 10);
+                showMascotBubble(`Rhythm: ${score} πόντοι!${lost ? ` −${lost} kg` : ''}`, 2200);
                 if (foot) {
-                    foot.innerHTML = `<p class="tm-mascot-play-result">Σκορ ${score} · +${coins}🪙 · +${xp} XP</p>
+                    foot.innerHTML = `<p class="tm-mascot-play-result">Σκορ ${score} · +${coins}🪙 · +${xp} XP${lost ? ` · −${lost} kg` : ''}</p>
                         <button type="button" class="tm-mascot-play-done">Κλείσιμο</button>`;
                     foot.querySelector('.tm-mascot-play-done')?.addEventListener('click', () => closeMascotPlayOverlay());
                 }
@@ -40569,15 +40790,17 @@ function showMascotShadowMatchGame(config, STORAGE_KEYS) {
                     btn.classList.add(ok ? 'correct' : 'wrong');
                     const foot = root.querySelector('#tm-mascot-play-foot');
                     if (ok) {
-                        rewardMascotMiniGame(config, STORAGE_KEYS, {
+                        const reward = rewardMascotMiniGame(config, STORAGE_KEYS, {
                             happiness: 10,
                             xp: 18,
                             coins: 10,
                             source: 'mascotShadow',
+                            weightBurn: 1.4,
                         });
-                        showMascotBubble('Σωστή σκιά!', 2000);
+                        const lost = Math.abs(Math.round((reward?.weightResult?.delta || 0) * 10) / 10);
+                        showMascotBubble(`Σωστή σκιά!${lost ? ` −${lost} kg` : ''}`, 2000);
                         if (foot) {
-                            foot.innerHTML = `<p class="tm-mascot-play-result">Μπράβο! +10🪙 · +18 XP</p>
+                            foot.innerHTML = `<p class="tm-mascot-play-result">Μπράβο! +10🪙 · +18 XP${lost ? ` · −${lost} kg` : ''}</p>
                                 <button type="button" class="tm-mascot-play-done">Κλείσιμο</button>`;
                         }
                     } else {
@@ -40684,15 +40907,17 @@ function showMascotOrderScrambleGame(config, STORAGE_KEYS) {
                 const foot = root.querySelector('#tm-mascot-play-foot');
                 root.querySelector('#tm-scramble-check').disabled = true;
                 if (ok) {
-                    rewardMascotMiniGame(config, STORAGE_KEYS, {
+                    const reward = rewardMascotMiniGame(config, STORAGE_KEYS, {
                         happiness: 12,
                         xp: 20,
                         coins: 15,
                         source: 'mascotScramble',
+                        weightBurn: 1.5,
                     });
-                    showMascotBubble('Tickets εντάξει!', 2000);
+                    const lost = Math.abs(Math.round((reward?.weightResult?.delta || 0) * 10) / 10);
+                    showMascotBubble(`Tickets εντάξει!${lost ? ` −${lost} kg` : ''}`, 2000);
                     if (foot) {
-                        foot.innerHTML = `<p class="tm-mascot-play-result">Σωστή σειρά! +15🪙 · +20 XP</p>
+                        foot.innerHTML = `<p class="tm-mascot-play-result">Σωστή σειρά! +15🪙 · +20 XP${lost ? ` · −${lost} kg` : ''}</p>
                             <button type="button" class="tm-mascot-play-done">Κλείσιμο</button>`;
                     }
                 } else {
@@ -40707,6 +40932,105 @@ function showMascotOrderScrambleGame(config, STORAGE_KEYS) {
             });
         },
     });
+}
+
+// ── Gym workout (burn kg) ─────────────────────────────────────────
+function showMascotGymGame(config, STORAGE_KEYS) {
+    if (tamagotchiIsDead || tamagotchiStage === 'egg') return;
+    let taps = 0;
+    let running = true;
+    let timerId = null;
+    const startWeight = typeof formatTamagotchiWeightKg === 'function'
+        ? formatTamagotchiWeightKg()
+        : `${Math.round(tamagotchiWeight)} kg`;
+
+    const overlay = openMascotPlayOverlay({
+        title: 'Gym',
+        subtitle: 'Πάτα γρήγορα για να κάψει κιλά!',
+        bodyHtml: `
+            <div class="tm-gym-stage">
+                <div class="tm-gym-mascot" id="tm-gym-pulse" aria-hidden="true">🏋️</div>
+                <div class="tm-gym-hit" id="tm-gym-hit">Πάτα!</div>
+                <div class="tm-gym-stats">
+                    <span>Reps: <strong id="tm-gym-reps">0</strong></span>
+                    <span>Χρόνος: <strong id="tm-gym-time">15</strong>s</span>
+                    <span>Τώρα: <strong id="tm-gym-weight">${startWeight}</strong></span>
+                </div>
+                <div class="tm-gym-bar"><div class="tm-gym-bar-fill" id="tm-gym-bar-fill" style="width:0%"></div></div>
+                <button type="button" class="tm-rhythm-pad tm-gym-pad" id="tm-gym-pad">REP!</button>
+            </div>
+        `,
+        onReady(root) {
+            const pulse = root.querySelector('#tm-gym-pulse');
+            const hitEl = root.querySelector('#tm-gym-hit');
+            const repsEl = root.querySelector('#tm-gym-reps');
+            const timeEl = root.querySelector('#tm-gym-time');
+            const barFill = root.querySelector('#tm-gym-bar-fill');
+            const pad = root.querySelector('#tm-gym-pad');
+            let timeLeft = 15;
+
+            timerId = setInterval(() => {
+                if (!running) return;
+                timeLeft -= 1;
+                if (timeEl) timeEl.textContent = String(timeLeft);
+                if (timeLeft <= 0) {
+                    running = false;
+                    clearInterval(timerId);
+                    finish();
+                }
+            }, 1000);
+
+            const onTap = () => {
+                if (!running) return;
+                taps += 1;
+                if (repsEl) repsEl.textContent = String(taps);
+                if (barFill) barFill.style.width = `${Math.min(100, taps * 2.2)}%`;
+                pulse?.classList.remove('pump');
+                void pulse?.offsetWidth;
+                pulse?.classList.add('pump');
+                hitEl.textContent = taps % 5 === 0 ? 'Δυνατά!' : 'Άλλο ένα!';
+                hitEl.className = 'tm-gym-hit good';
+                pad.classList.add('good');
+                setTimeout(() => pad.classList.remove('good'), 90);
+            };
+
+            pad?.addEventListener('click', onTap);
+            root.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' || e.key === ' ') {
+                    e.preventDefault();
+                    onTap();
+                }
+            });
+
+            function finish() {
+                const foot = root.querySelector('#tm-mascot-play-foot');
+                const burn = Math.max(1.5, Math.min(8, 1.2 + taps * 0.12));
+                const coins = Math.min(18, 2 + Math.floor(taps / 6));
+                const xp = Math.min(28, 6 + Math.floor(taps / 4));
+                const reward = rewardMascotMiniGame(config, STORAGE_KEYS, {
+                    happiness: Math.min(22, 8 + Math.floor(taps / 5)),
+                    xp,
+                    coins,
+                    source: 'mascotGym',
+                    weightBurn: burn,
+                });
+                // Light hunger from workout
+                updatePetStats(config, STORAGE_KEYS, 0, -Math.min(12, 3 + Math.floor(taps / 8)));
+                const lost = Math.abs(Math.round((reward?.weightResult?.delta || 0) * 10) / 10);
+                const weightNow = typeof formatTamagotchiWeightKg === 'function'
+                    ? formatTamagotchiWeightKg()
+                    : `${Math.round(tamagotchiWeight)} kg`;
+                showMascotBubble(`Gym: ${taps} reps · −${lost} kg!`, 2400);
+                setMascotState(config, 'happy', 3500);
+                if (foot) {
+                    foot.innerHTML = `<p class="tm-mascot-play-result">${taps} reps · −${lost} kg · τώρα ${weightNow} · +${coins}🪙 · +${xp} XP</p>
+                        <button type="button" class="tm-mascot-play-done">Κλείσιμο</button>`;
+                    foot.querySelector('.tm-mascot-play-done')?.addEventListener('click', () => closeMascotPlayOverlay());
+                }
+            }
+        },
+    });
+    return overlay;
 }
 
 // ── Care modal helpers ────────────────────────────────────────────
@@ -40744,6 +41068,11 @@ function getMascotPlayCareSectionHTML(STORAGE_KEYS) {
                 <button type="button" class="tm-action-btn" id="tm-action-rhythm" title="Rhythm tap">
                     <span class="tm-action-icon">🥁</span>
                     <span class="tm-action-label">Rhythm</span>
+                </button>
+                <button type="button" class="tm-action-btn" id="tm-action-gym-extra" title="Gym — κάψε κιλά">
+                    <span class="tm-action-icon">🏋️</span>
+                    <span class="tm-action-label">Gym</span>
+                    <span class="tm-action-hint">−kg</span>
                 </button>
                 <button type="button" class="tm-action-btn" id="tm-action-shadow" title="Shadow match">
                     <span class="tm-action-icon">🌑</span>
@@ -40785,6 +41114,11 @@ function wireMascotPlayCareHandlers(modal, config, STORAGE_KEYS, { closeModal })
     modal.querySelector('#tm-action-rhythm')?.addEventListener('click', () => {
         closeModal?.();
         showMascotRhythmGame(config, STORAGE_KEYS);
+    });
+
+    modal.querySelector('#tm-action-gym-extra')?.addEventListener('click', () => {
+        closeModal?.();
+        showMascotGymGame(config, STORAGE_KEYS);
     });
 
     modal.querySelector('#tm-action-shadow')?.addEventListener('click', () => {
@@ -40851,6 +41185,7 @@ window.setMascotChaseEnabled = setMascotChaseEnabled;
 window.startMascotHideAndSeek = startMascotHideAndSeek;
 window.tryRevealMascotHideAndSeek = tryRevealMascotHideAndSeek;
 window.showMascotRhythmGame = showMascotRhythmGame;
+window.showMascotGymGame = showMascotGymGame;
 window.showMascotShadowMatchGame = showMascotShadowMatchGame;
 window.showMascotOrderScrambleGame = showMascotOrderScrambleGame;
 window.getMascotPlayCareSectionHTML = getMascotPlayCareSectionHTML;
@@ -64482,6 +64817,9 @@ if (typeof window !== 'undefined') {
             if (typeof grantCoins === 'function' && (config.shopEnabled !== false || config.levelUpSystemEnabled !== false || config.dailyBountiesEnabled !== false)) {
                 coinsGranted = grantCoins(config, STORAGE_KEYS, coinReward, 'memoryGame') || coinReward;
             }
+            if (typeof window.burnTamagotchiWeightFromActivity === 'function') {
+                window.burnTamagotchiWeightFromActivity(Math.max(1, Math.min(5, 0.8 + finalRound * 0.35)), STORAGE_KEYS, { announce: true });
+            }
 
             statusEl.innerHTML = `
                 Game Over! You reached round ${finalRound}.<br>
@@ -64588,6 +64926,9 @@ if (typeof window !== 'undefined') {
             if (typeof grantCoins === 'function' && score > 0
                 && (config.shopEnabled !== false || config.levelUpSystemEnabled !== false || config.dailyBountiesEnabled !== false)) {
                 coinsGranted = grantCoins(config, STORAGE_KEYS, coinReward, 'bugSquishGame') || coinReward;
+            }
+            if (typeof window.burnTamagotchiWeightFromActivity === 'function' && score > 0) {
+                window.burnTamagotchiWeightFromActivity(Math.max(0.8, Math.min(6, 0.6 + score * 0.08)), STORAGE_KEYS, { announce: true });
             }
 
             overlay.innerHTML = `

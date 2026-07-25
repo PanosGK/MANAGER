@@ -4392,6 +4392,24 @@
             .tm-rhythm-pad { width: 100%; font-size: 1.2rem; padding: 18px !important; }
             .tm-rhythm-pad.good { background: #16a34a !important; color: #fff !important; border-color: #16a34a !important; }
             .tm-rhythm-pad.miss { background: #dc2626 !important; color: #fff !important; border-color: #dc2626 !important; }
+            .tm-gym-stage { text-align: center; }
+            .tm-gym-mascot { font-size: 48px; margin: 6px 0; display: inline-block; }
+            .tm-gym-mascot.pump { animation: tm-gym-pump 0.18s ease-out; }
+            @keyframes tm-gym-pump {
+                0% { transform: scale(1) rotate(0deg); }
+                50% { transform: scale(1.18) rotate(-6deg); }
+                100% { transform: scale(1) rotate(0deg); }
+            }
+            .tm-gym-hit { font-size: 18px; font-weight: 700; min-height: 28px; margin-bottom: 8px; }
+            .tm-gym-hit.good { color: #0284c7; }
+            .tm-gym-stats { display: flex; justify-content: center; gap: 12px; font-size: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+            .tm-gym-bar {
+                height: 10px; border-radius: 999px; background: #e2e8f0; overflow: hidden; margin: 0 0 12px;
+            }
+            .tm-gym-bar-fill {
+                height: 100%; width: 0; background: linear-gradient(90deg, #38bdf8, #0284c7); transition: width 0.12s ease-out;
+            }
+            .tm-gym-pad { width: 100%; font-size: 1.25rem; padding: 20px !important; }
             .tm-shadow-silhouette {
                 width: 100px; height: 100px; margin: 0 auto 10px;
                 background: #0f172a;

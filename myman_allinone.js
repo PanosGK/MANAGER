@@ -2945,6 +2945,9 @@
             if (typeof grantCoins === 'function' && (config.shopEnabled !== false || config.levelUpSystemEnabled !== false || config.dailyBountiesEnabled !== false)) {
                 coinsGranted = grantCoins(config, STORAGE_KEYS, coinReward, 'memoryGame') || coinReward;
             }
+            if (typeof window.burnTamagotchiWeightFromActivity === 'function') {
+                window.burnTamagotchiWeightFromActivity(Math.max(1, Math.min(5, 0.8 + finalRound * 0.35)), STORAGE_KEYS, { announce: true });
+            }
 
             statusEl.innerHTML = `
                 Game Over! You reached round ${finalRound}.<br>
@@ -3051,6 +3054,9 @@
             if (typeof grantCoins === 'function' && score > 0
                 && (config.shopEnabled !== false || config.levelUpSystemEnabled !== false || config.dailyBountiesEnabled !== false)) {
                 coinsGranted = grantCoins(config, STORAGE_KEYS, coinReward, 'bugSquishGame') || coinReward;
+            }
+            if (typeof window.burnTamagotchiWeightFromActivity === 'function' && score > 0) {
+                window.burnTamagotchiWeightFromActivity(Math.max(0.8, Math.min(6, 0.6 + score * 0.08)), STORAGE_KEYS, { announce: true });
             }
 
             overlay.innerHTML = `
