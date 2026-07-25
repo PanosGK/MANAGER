@@ -1,15 +1,14 @@
 /**
- * Storm Leviathan — v7 "actual sea-serpent" redesign
+ * Storm Leviathan — v8 "Storm-Breaker" redesign
  *
- * v6 was an abstract void/shard "Eclipse Maelstrom" — epic, but did not read
- * as a Leviathan at all. v7 replaces it with a real coiled sea-serpent/dragon
- * anatomy: a tapering serpentine body ribbon, a horned reptilian head with a
- * fanged jaw and two glowing slit eyes, a dorsal fin-spike ridge running the
- * length of the spine, small clawed fin-limbs, a finned tail, a storm mane
- * around the neck, and lightning cracking over the hide (heaviest on the
- * boss-tier adult+ forms). Each stage still gets a distinct silhouette
- * (Pokémon-evolution style): the coil tightens, the horn crown grows, and the
- * storm intensifies as it evolves.
+ * Reference: a colossal sea monster breaching stormy waves, back arched high
+ * above the water, lightning striking the sky around it (not a coiled snake,
+ * not an abstract void). This rebuild composes each stage as a creature
+ * emerging from the sea: a whale/shark-like head with an open, toothed jaw
+ * breaking the surface, a smooth dorsal hump arching up behind it into a
+ * curved fin, and a dark wave-line "cutting" the lower body off to sell the
+ * half-submerged silhouette. Menace comes from scale, darkness and teeth —
+ * not big cartoon eyes — and jagged lightning bolts crack the sky around it.
  */
 const I = '                ';
 const I2 = I + '    ';
@@ -24,30 +23,29 @@ const STAGE_SLUG = {
   baby: 'baby', evo1: 'kid', evo2: 'teen', evo3: 'adult', evo4: 'mid', evo5: 'old',
 };
 const STAGE_TITLE = {
-  baby: 'Storm Hatchling',
-  evo1: 'Squall Serpent',
-  evo2: 'Gale Drake',
+  baby: 'Ripple Hatchling',
+  evo1: 'Squall Breaker',
+  evo2: 'Gale Breaker',
   evo3: 'Storm Leviathan — BOSS',
-  evo4: 'Tempest Leviathan',
-  evo5: 'Primordial Leviathan',
+  evo4: 'Tempest Colossus',
+  evo5: 'Primordial Storm-Breaker',
 };
 
-const INK = '#01040a';
-const LEVI_DEBUG = false;
+const INK = '#010306';
 
 const STAGE_PALETTES = {
-  baby: { scale: '#2f5a78', deep: '#0e2338', rim: '#8fe0ff', accent: '#3fb6ea', horn: '#cbd9de', wrath: null },
-  evo1: { scale: '#2a5270', deep: '#0b1f34', rim: '#7fd6f5', accent: '#2ea9d8', horn: '#c3d3da', wrath: null },
-  evo2: { scale: '#234a68', deep: '#081a2c', rim: '#63c9ef', accent: '#1f96c4', horn: '#b7c9d2', wrath: '#fbbf24' },
-  evo3: { scale: '#173650', deep: '#050f1c', rim: '#55c3ec', accent: '#1b84b3', horn: '#a9bdc8', wrath: '#ef4444' },
-  evo4: { scale: '#112938', deep: '#030a12', rim: '#8fd3ea', accent: '#3f7f97', horn: '#93a7b3', wrath: '#dc2626' },
-  evo5: { scale: '#0b1c26', deep: '#02060a', rim: '#dff3fa', accent: '#5c8a99', horn: '#7f929e', wrath: '#fecaca' },
+  baby: { body: '#25445c', deep: '#0f1f2c', rim: '#82cbe8', eye: '#a9e4ff', bolt: '#cfe9ff', water: '#0a1420', foam: '#bfe6f5' },
+  evo1: { body: '#213e54', deep: '#0d1c28', rim: '#79c3e3', eye: '#a4e0fb', bolt: '#d3ecff', water: '#08121c', foam: '#b9e2f2' },
+  evo2: { body: '#1c3448', deep: '#0a1720', rim: '#6fb9dc', eye: '#9edcf9', bolt: '#dcf0ff', water: '#071019', foam: '#aedcee' },
+  evo3: { body: '#152736', deep: '#070f16', rim: '#69b6dd', eye: '#a8e7fc', bolt: '#eaf6ff', water: '#050b11', foam: '#a3d6ec' },
+  evo4: { body: '#101d28', deep: '#04090d', rim: '#5fa6cb', eye: '#a0e2fa', bolt: '#e3f2ff', water: '#04080c', foam: '#98cde6' },
+  evo5: { body: '#0a1319', deep: '#020608', rim: '#9fc4d6', eye: '#d8f3ff', bolt: '#ffffff', water: '#03060a', foam: '#8fc0d9' },
 };
 
 function grad(id, stops, type = 'linear', attrs) {
   const tag = type === 'radial' ? 'radialGradient' : 'linearGradient';
   const defAttrs = attrs
-    || (type === 'radial' ? 'cx="35%" cy="30%" r="75%"' : 'x1="15%" y1="0%" x2="85%" y2="100%"');
+    || (type === 'radial' ? 'cx="50%" cy="30%" r="75%"' : 'x1="20%" y1="0%" x2="80%" y2="100%"');
   const stopLines = stops.map(([o, c, a = 1]) =>
     `${I4}<stop offset="${o}" style="stop-color:${c};stop-opacity:${a}" />`).join('\n');
   return `${I3}<${tag} id="${id}" ${defAttrs}>\n${stopLines}\n${I3}</${tag}>`;
@@ -66,12 +64,11 @@ ${I}</g>
 
 function makeDefs(p, pal) {
   return [
-    grad(`${p}-scale`, [['0%', pal.rim], ['38%', pal.scale], ['100%', pal.deep]], 'linear'),
-    grad(`${p}-belly`, [['0%', pal.accent, 0.9], ['100%', pal.deep]], 'linear'),
-    grad(`${p}-horn`, [['0%', '#fff'], ['55%', pal.horn], ['100%', pal.deep]], 'linear'),
-    grad(`${p}-iris`, [['0%', '#f0feff'], ['35%', pal.rim], ['100%', pal.accent]], 'radial'),
-    grad(`${p}-mist`, [['0%', pal.accent, 0.28], ['55%', pal.rim, 0.1], ['100%', pal.deep, 0]], 'radial', 'cx="50%" cy="55%" r="60%"'),
-    `${I3}<filter id="${p}-glow" x="-60%" y="-60%" width="220%" height="220%">
+    grad(`${p}-body`, [['0%', pal.rim], ['42%', pal.body], ['100%', pal.deep]], 'linear', 'x1="20%" y1="0%" x2="65%" y2="100%"'),
+    grad(`${p}-fin`, [['0%', pal.rim], ['60%', pal.body], ['100%', pal.deep]], 'linear'),
+    grad(`${p}-eye`, [['0%', '#f4fdff'], ['40%', pal.eye], ['100%', pal.rim]], 'radial'),
+    grad(`${p}-water`, [['0%', pal.water, 0.94], ['100%', pal.water, 0.98]], 'linear', 'x1="0%" y1="0%" x2="0%" y2="100%"'),
+    `${I3}<filter id="${p}-glow" x="-80%" y="-80%" width="260%" height="260%">
 ${I4}<feGaussianBlur stdDeviation="1.1" result="b"/>
 ${I4}<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
 ${I3}</filter>`,
@@ -80,482 +77,282 @@ ${I3}</filter>`,
 
 /* ---------- geometry helpers ---------- */
 
-/**
- * A wavy S-curve spine of {x,y} points — a real slithering serpent, not a spiral shell.
- * Head sits at t=0 (headX,headY) facing back along `dirDeg`; the body undulates side to
- * side (amplitude eases in near the head so the neck stays straight) as it travels the
- * `length` toward the tail at t=1. A gentle tail-hook curl is blended in at the very end.
- */
-function serpentSpine({
-  headX, headY, dirDeg, length, amplitude, waves, segments, ampEase = 0.16, hookFrac = 0.12,
-}) {
-  const rad = (dirDeg * Math.PI) / 180;
-  const cos = Math.cos(rad);
-  const sin = Math.sin(rad);
-  const pts = [];
-  for (let i = 0; i <= segments; i++) {
-    const t = i / segments;
-    const lx = t * length;
-    const easeIn = Math.min(1, t / ampEase);
-    let ly = Math.sin(t * waves * Math.PI * 2) * amplitude * easeIn;
-    if (t > 1 - hookFrac) {
-      const hookT = (t - (1 - hookFrac)) / hookFrac;
-      ly += Math.sin(hookT * Math.PI * 0.9) * amplitude * 0.55;
-    }
-    pts.push({ x: headX + lx * cos - ly * sin, y: headY + lx * sin + ly * cos });
+function rot(dx, dy) { return { dx, dy, px: -dy, py: dx }; }
+
+/** Multi-segment jagged lightning bolt with a short secondary fork, striking down through the sky. */
+function skyBolt(x, yTop, yBottom, jitter, color, glowId, weight = 1.1) {
+  const segs = 5;
+  const pts = [{ x, y: yTop }];
+  for (let i = 1; i <= segs; i++) {
+    const t = i / segs;
+    const y = yTop + (yBottom - yTop) * t;
+    const jx = x + (Math.sin(i * 2.4) * jitter) * (1 - t * 0.3);
+    pts.push({ x: jx, y });
   }
-  return pts;
+  const d = pts.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`).join(' ');
+  const forkStart = pts[2];
+  const forkEnd = { x: forkStart.x + jitter * 1.4, y: forkStart.y + (yBottom - yTop) * 0.22 };
+  return `${I3}<path d="${d}" stroke="${color}" stroke-width="${weight}" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.85" filter="url(#${glowId})"/>
+${I3}<path d="M ${forkStart.x.toFixed(1)} ${forkStart.y.toFixed(1)} L ${forkEnd.x.toFixed(1)} ${forkEnd.y.toFixed(1)}" stroke="${color}" stroke-width="${(weight * 0.7).toFixed(1)}" fill="none" stroke-linecap="round" opacity="0.6" filter="url(#${glowId})"/>`;
 }
 
-/** Per-point outward unit normal (perpendicular to local tangent), consistently on the "left" side. */
-function spineNormals(points) {
-  const n = points.length;
-  const normals = [];
-  for (let i = 0; i < n; i++) {
-    const prev = points[Math.max(0, i - 1)];
-    const next = points[Math.min(n - 1, i + 1)];
-    const dx = next.x - prev.x;
-    const dy = next.y - prev.y;
-    const len = Math.hypot(dx, dy) || 1;
-    normals.push({ x: -dy / len, y: dx / len });
+/** Head wedge (skull + upper jaw roofline) — blunt, massive, whale/shark-like, facing along (dx,dy). */
+function headSkull(hx, hy, dir, s, fillId, stroke) {
+  const { dx, dy, px, py } = dir;
+  const snoutTip = { x: hx + dx * s * 1.12, y: hy + dy * s * 1.12 - s * 0.02 };
+  const browTop = { x: hx - dx * s * 0.15 + px * s * 1.0, y: hy - dy * s * 0.15 + py * s * 1.0 };
+  const backTop = { x: hx - dx * s * 1.1 + px * s * 0.72, y: hy - dy * s * 1.1 + py * s * 0.72 };
+  const jawHinge = { x: hx - dx * s * 1.0 - px * s * 0.32, y: hy - dy * s * 1.0 - py * s * 0.32 };
+  const upperJawFront = { x: hx + dx * s * 0.95 - px * s * 0.38, y: hy + dy * s * 0.95 - py * s * 0.38 };
+  const browCtrl = { x: hx - dx * s * 0.75 + px * s * 1.12, y: hy - dy * s * 0.75 + py * s * 1.12 };
+  const snoutCtrl = { x: hx + dx * s * 0.65 + px * s * 0.62, y: hy + dy * s * 0.65 + py * s * 0.62 };
+  const d = `M ${backTop.x.toFixed(1)} ${backTop.y.toFixed(1)} Q ${browCtrl.x.toFixed(1)} ${browCtrl.y.toFixed(1)} ${browTop.x.toFixed(1)} ${browTop.y.toFixed(1)} Q ${snoutCtrl.x.toFixed(1)} ${snoutCtrl.y.toFixed(1)} ${snoutTip.x.toFixed(1)} ${snoutTip.y.toFixed(1)} L ${upperJawFront.x.toFixed(1)} ${upperJawFront.y.toFixed(1)} L ${jawHinge.x.toFixed(1)} ${jawHinge.y.toFixed(1)} Z`;
+  return {
+    svg: `${I4}<path d="${d}" fill="url(#${fillId})" stroke="${stroke}" stroke-width="1" stroke-linejoin="round"/>`,
+    snoutTip, browTop, backTop, jawHinge, upperJawFront,
+  };
+}
+
+/** Lower jaw — open (mouth-happy, dark maw + interlocking teeth) vs shut (mouth-sad). */
+function jawAndTeeth(hx, hy, dir, s, jawHinge, upperJawFront, snoutTip, toothCount, fillId, stroke, toothColor) {
+  const { dx, dy, px, py } = dir;
+  const hinge = { x: hx - dx * s * 1.0 - px * s * 0.5, y: hy - dy * s * 1.0 - py * s * 0.5 };
+  const openChin = { x: hx + dx * s * 0.8 - px * s * 1.35, y: hy + dy * s * 0.8 - py * s * 1.35 };
+  const openTip = { x: hx + dx * s * 1.08 - px * s * 0.62, y: hy + dy * s * 1.08 - py * s * 0.62 };
+  const shutChin = { x: hx + dx * s * 0.92 - px * s * 0.5, y: hy + dy * s * 0.92 - py * s * 0.5 };
+
+  const openPath = `M ${hinge.x.toFixed(1)} ${hinge.y.toFixed(1)} Q ${openChin.x.toFixed(1)} ${openChin.y.toFixed(1)} ${openTip.x.toFixed(1)} ${openTip.y.toFixed(1)} L ${snoutTip.x.toFixed(1)} ${snoutTip.y.toFixed(1)} L ${upperJawFront.x.toFixed(1)} ${upperJawFront.y.toFixed(1)} Z`;
+  const shutPath = `M ${hinge.x.toFixed(1)} ${hinge.y.toFixed(1)} Q ${((hinge.x + shutChin.x) / 2).toFixed(1)} ${((hinge.y + shutChin.y) / 2 + 1).toFixed(1)} ${shutChin.x.toFixed(1)} ${shutChin.y.toFixed(1)} L ${upperJawFront.x.toFixed(1)} ${upperJawFront.y.toFixed(1)} Z`;
+
+  // dark maw cavity behind the teeth, sunk slightly inward from the jaw edges
+  const cavity = `M ${(hinge.x + (upperJawFront.x - hinge.x) * 0.15).toFixed(1)} ${(hinge.y + (upperJawFront.y - hinge.y) * 0.15).toFixed(1)} L ${(upperJawFront.x + (snoutTip.x - upperJawFront.x) * 0.12).toFixed(1)} ${(upperJawFront.y + (snoutTip.y - upperJawFront.y) * 0.12).toFixed(1)} L ${(openTip.x + (snoutTip.x - openTip.x) * 0.1).toFixed(1)} ${(openTip.y + (snoutTip.y - openTip.y) * 0.1).toFixed(1)} L ${(openChin.x + (openTip.x - openChin.x) * 0.25).toFixed(1)} ${(openChin.y + (openTip.y - openChin.y) * 0.25).toFixed(1)} Z`;
+
+  const teeth = [];
+  const upperLine = { ax: upperJawFront.x, ay: upperJawFront.y, bx: snoutTip.x, by: snoutTip.y };
+  const lowerLine = { ax: hinge.x, ay: hinge.y, bx: openTip.x, by: openTip.y };
+  for (let i = 0; i < toothCount; i++) {
+    const t = toothCount <= 1 ? 0.5 : 0.08 + (i / (toothCount - 1)) * 0.82;
+    const bx = upperLine.ax + (upperLine.bx - upperLine.ax) * t;
+    const by = upperLine.ay + (upperLine.by - upperLine.ay) * t;
+    const len = s * 0.3;
+    const tipX = bx - py * len;
+    const tipY = by + px * len;
+    const w = s * 0.05;
+    teeth.push(`${I4}<path d="M ${(bx + px * w).toFixed(1)} ${(by + py * w).toFixed(1)} L ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${(bx - px * w).toFixed(1)} ${(by - py * w).toFixed(1)} Z" fill="${toothColor}"/>`);
+    const lt = toothCount <= 1 ? 0.5 : 0.15 + (i / (toothCount - 1)) * 0.7;
+    const lbx = lowerLine.ax + (lowerLine.bx - lowerLine.ax) * lt;
+    const lby = lowerLine.ay + (lowerLine.by - lowerLine.ay) * lt;
+    const lTipX = lbx + py * len * 0.85;
+    const lTipY = lby - px * len * 0.85;
+    teeth.push(`${I4}<path d="M ${(lbx + px * w).toFixed(1)} ${(lby + py * w).toFixed(1)} L ${lTipX.toFixed(1)} ${lTipY.toFixed(1)} L ${(lbx - px * w).toFixed(1)} ${(lby - py * w).toFixed(1)} Z" fill="${toothColor}" opacity="0.92"/>`);
   }
-  return normals;
+
+  return `${I3}<g class="tm-mascot-mouth-happy">
+${I4}<path d="${openPath}" fill="url(#${fillId})" stroke="${stroke}" stroke-width="0.9"/>
+${I4}<path d="${cavity}" fill="#02040a" opacity="0.92"/>
+${teeth.join('\n')}
+${I3}</g>
+${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="${shutPath}" fill="url(#${fillId})" stroke="${stroke}" stroke-width="0.9"/>`;
 }
 
-/** Tapered ribbon body through the spine — straight segments read cleanly at icon scale. */
-function ribbonPath(points, normals, halfWidths) {
-  const left = points.map((pt, i) => ({ x: pt.x + normals[i].x * halfWidths[i], y: pt.y + normals[i].y * halfWidths[i] }));
-  const right = points.map((pt, i) => ({ x: pt.x - normals[i].x * halfWidths[i], y: pt.y - normals[i].y * halfWidths[i] }));
-  const leftStr = left.map((pt, i) => `${i === 0 ? 'M' : 'L'} ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`).join(' ');
-  const rightStr = right.slice().reverse().map((pt) => `L ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`).join(' ');
-  return `${leftStr} ${rightStr} Z`;
-}
-
-/** Thin belly-plate stripes across the underside of the ribbon (storm-serpent scute line). */
-function bellyStripes(points, normals, halfWidths, every, stroke) {
-  const parts = [];
-  for (let i = 2; i < points.length - 2; i += every) {
-    const pt = points[i];
-    const n = normals[i];
-    const hw = halfWidths[i] * 0.82;
-    const x1 = pt.x + n.x * hw;
-    const y1 = pt.y + n.y * hw;
-    const x2 = pt.x - n.x * hw;
-    const y2 = pt.y - n.y * hw;
-    parts.push(`${I4}<path d="M ${x1.toFixed(1)} ${y1.toFixed(1)} L ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${stroke}" stroke-width="0.6" opacity="0.28"/>`);
-  }
-  return parts.join('\n');
-}
-
-/** Row of dorsal fin-spikes along one continuous edge of the ribbon — the sea-serpent's spine ridge. */
-function dorsalRidge(points, normals, halfWidths, indices, spikeLen, hornColor, stroke) {
-  return indices.map((i, k) => {
-    const pt = points[i];
-    const n = normals[i];
-    const hw = halfWidths[i];
-    const baseX = pt.x + n.x * hw * 0.7;
-    const baseY = pt.y + n.y * hw * 0.7;
-    const len = spikeLen * (0.7 + (k % 3) * 0.22);
-    const tipX = baseX + n.x * len;
-    const tipY = baseY + n.y * len;
-    const tx = points[Math.min(points.length - 1, i + 1)].x - points[Math.max(0, i - 1)].x;
-    const ty = points[Math.min(points.length - 1, i + 1)].y - points[Math.max(0, i - 1)].y;
-    const tl = Math.hypot(tx, ty) || 1;
-    const backX = baseX - (tx / tl) * len * 0.4;
-    const backY = baseY - (ty / tl) * len * 0.4;
-    const frontX = baseX + (tx / tl) * len * 0.4;
-    const frontY = baseY + (ty / tl) * len * 0.4;
-    return `${I4}<path d="M ${backX.toFixed(1)} ${backY.toFixed(1)} L ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${frontX.toFixed(1)} ${frontY.toFixed(1)} Z" fill="${hornColor}" stroke="${stroke}" stroke-width="0.7" opacity="${(0.72 + (k % 3) * 0.08).toFixed(2)}"/>`;
-  }).join('\n');
-}
-
-/** Small clawed fin-limb sprouting sideways from a spine point. */
-function finLimb(pt, normal, side, size, fillId, stroke) {
-  const nx = normal.x * side;
-  const ny = normal.y * side;
-  const tipX = pt.x + nx * size;
-  const tipY = pt.y + ny * size;
-  const px = -ny;
-  const py = nx;
-  const baseLX = pt.x + px * size * 0.35;
-  const baseLY = pt.y + py * size * 0.35;
-  const baseRX = pt.x - px * size * 0.35;
-  const baseRY = pt.y - py * size * 0.35;
-  const claw1X = tipX + px * size * 0.32;
-  const claw1Y = tipY + py * size * 0.32;
-  const claw2X = tipX - px * size * 0.32;
-  const claw2Y = tipY - py * size * 0.32;
-  return `${I4}<path d="M ${baseLX.toFixed(1)} ${baseLY.toFixed(1)} Q ${(tipX - nx * size * 0.15).toFixed(1)} ${(tipY - ny * size * 0.15).toFixed(1)} ${claw1X.toFixed(1)} ${claw1Y.toFixed(1)} L ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${claw2X.toFixed(1)} ${claw2Y.toFixed(1)} Q ${(tipX - nx * size * 0.15).toFixed(1)} ${(tipY - ny * size * 0.15).toFixed(1)} ${baseRX.toFixed(1)} ${baseRY.toFixed(1)} Z" fill="url(#${fillId})" stroke="${stroke}" stroke-width="0.9" opacity="0.85"/>`;
-}
-
-/** Curved horn sweeping back from a base point — solid pale fill so it stays readable against a dark hide. */
-function hornShape(baseX, baseY, angleDeg, len, baseWidth, hornColor, stroke) {
-  const a = (angleDeg * Math.PI) / 180;
-  const dx = Math.cos(a);
-  const dy = Math.sin(a);
-  const px = -dy;
-  const py = dx;
-  const tipX = baseX + dx * len;
-  const tipY = baseY + dy * len;
-  const curveX = baseX + dx * len * 0.55 + px * len * 0.4;
-  const curveY = baseY + dy * len * 0.55 + py * len * 0.4;
-  const leftX = baseX + px * baseWidth;
-  const leftY = baseY + py * baseWidth;
-  const rightX = baseX - px * baseWidth;
-  const rightY = baseY - py * baseWidth;
-  return `${I4}<path d="M ${leftX.toFixed(1)} ${leftY.toFixed(1)} Q ${curveX.toFixed(1)} ${curveY.toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)} Q ${(curveX - px * baseWidth * 0.5).toFixed(1)} ${(curveY - py * baseWidth * 0.5).toFixed(1)} ${rightX.toFixed(1)} ${rightY.toFixed(1)} Z" fill="${hornColor}" stroke="${stroke}" stroke-width="0.9" opacity="0.96"/>`;
-}
-
-/**
- * Reptilian head wedge capping the front of the ribbon, oriented along facing angleDeg.
- * Deliberately flares wider than the neck ribbon (like a cobra hood) and carries its own
- * bold outline + brow/nostril marks so it reads as a distinct head, not a blob continuing
- * the body's silhouette.
- */
-function headWedge(hx, hy, angleDeg, size, fillId, faceId, stroke) {
-  const a = (angleDeg * Math.PI) / 180;
-  const dx = Math.cos(a);
-  const dy = Math.sin(a);
-  const px = -dy;
-  const py = dx;
-  const tipX = hx + dx * size * 1.3;
-  const tipY = hy + dy * size * 1.3;
-  const jawLX = hx + dx * size * 0.3 + px * size * 0.6;
-  const jawLY = hy + dy * size * 0.3 + py * size * 0.6;
-  const jawRX = hx + dx * size * 0.3 - px * size * 0.6;
-  const jawRY = hy + dy * size * 0.3 - py * size * 0.6;
-  const browLX = hx - dx * size * 0.68 + px * size * 1;
-  const browLY = hy - dy * size * 0.68 + py * size * 1;
-  const browRX = hx - dx * size * 0.68 - px * size * 1;
-  const browRY = hy - dy * size * 0.68 - py * size * 1;
-  const wedge = `${I4}<path d="M ${tipX.toFixed(1)} ${tipY.toFixed(1)} Q ${jawLX.toFixed(1)} ${jawLY.toFixed(1)} ${browLX.toFixed(1)} ${browLY.toFixed(1)} L ${browRX.toFixed(1)} ${browRY.toFixed(1)} Q ${jawRX.toFixed(1)} ${jawRY.toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)} Z" fill="url(#${fillId})" stroke="${stroke}" stroke-width="1.1" stroke-linejoin="round"/>`;
-  const snoutX = hx + dx * size * 0.62;
-  const snoutY = hy + dy * size * 0.62;
-  const snoutLX = hx + dx * size * 0.02 + px * size * 0.5;
-  const snoutLY = hy + dy * size * 0.02 + py * size * 0.5;
-  const snoutRX = hx + dx * size * 0.02 - px * size * 0.5;
-  const snoutRY = hy + dy * size * 0.02 - py * size * 0.5;
-  const snoutPatch = `${I4}<path d="M ${snoutX.toFixed(1)} ${snoutY.toFixed(1)} L ${snoutLX.toFixed(1)} ${snoutLY.toFixed(1)} Q ${(hx - dx * size * 0.25 + px * size * 0.28).toFixed(1)} ${(hy - dy * size * 0.25 + py * size * 0.28).toFixed(1)} ${(hx - dx * size * 0.35).toFixed(1)} ${(hy - dy * size * 0.35).toFixed(1)} Q ${(hx - dx * size * 0.25 - px * size * 0.28).toFixed(1)} ${(hy - dy * size * 0.25 - py * size * 0.28).toFixed(1)} ${snoutRX.toFixed(1)} ${snoutRY.toFixed(1)} Z" fill="url(#${faceId})" opacity="0.85"/>`;
-  const nostrilLX = hx + dx * size * 0.95 + px * size * 0.16;
-  const nostrilLY = hy + dy * size * 0.95 + py * size * 0.16;
-  const nostrilRX = hx + dx * size * 0.95 - px * size * 0.16;
-  const nostrilRY = hy + dy * size * 0.95 - py * size * 0.16;
-  const nostrils = `${I4}<circle cx="${nostrilLX.toFixed(1)}" cy="${nostrilLY.toFixed(1)}" r="${Math.max(0.5, size * 0.06).toFixed(1)}" fill="${stroke}" opacity="0.75"/>
-${I4}<circle cx="${nostrilRX.toFixed(1)}" cy="${nostrilRY.toFixed(1)}" r="${Math.max(0.5, size * 0.06).toFixed(1)}" fill="${stroke}" opacity="0.75"/>`;
-  const browRidge = `${I4}<path d="M ${browLX.toFixed(1)} ${browLY.toFixed(1)} Q ${(hx - dx * size * 0.5).toFixed(1)} ${(hy - dy * size * 0.5).toFixed(1)} ${browRX.toFixed(1)} ${browRY.toFixed(1)}" stroke="${stroke}" stroke-width="1" fill="none" opacity="0.55"/>`;
-  return `${wedge}\n${snoutPatch}\n${nostrils}\n${browRidge}`;
-}
-
-/** A row of bold, always-visible fang triangles along the upper jaw — a permanent feature, not mood-dependent. */
-function fangRow(hx, hy, angleDeg, size, fangCount, stroke) {
-  if (fangCount <= 0) return '';
-  const a = (angleDeg * Math.PI) / 180;
-  const dx = Math.cos(a);
-  const dy = Math.sin(a);
-  const px = -dy;
-  const py = dx;
-  const parts = [];
-  for (let i = 0; i < fangCount; i++) {
-    const t = fangCount <= 1 ? 0.5 : i / (fangCount - 1);
-    const lateral = size * 0.42 * (t * 2 - 1);
-    const baseX = hx + dx * size * 0.92 + px * lateral;
-    const baseY = hy + dy * size * 0.92 + py * lateral;
-    const len = size * (0.26 + (i % 2) * 0.07);
-    const tipX = baseX + dx * len;
-    const tipY = baseY + dy * len;
-    const w = size * 0.07;
-    const lX = baseX + px * w;
-    const lY = baseY + py * w;
-    const rX = baseX - px * w;
-    const rY = baseY - py * w;
-    parts.push(`${I4}<path d="M ${lX.toFixed(1)} ${lY.toFixed(1)} L ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${rX.toFixed(1)} ${rY.toFixed(1)} Z" fill="#f4fbfd" stroke="${stroke}" stroke-width="0.4" opacity="0.95"/>`);
-  }
-  return parts.join('\n');
-}
-
-/** Mood mouth line — a clear pale stroke so it reads against the dark hide, "happy" vs a downturned "sad". */
-function moodMouth(hx, hy, angleDeg, size, pal) {
-  const a = (angleDeg * Math.PI) / 180;
-  const dx = Math.cos(a);
-  const dy = Math.sin(a);
-  const px = -dy;
-  const py = dx;
-  const leftX = hx + dx * size * 0.78 + px * size * 0.44;
-  const leftY = hy + dy * size * 0.78 + py * size * 0.44;
-  const rightX = hx + dx * size * 0.78 - px * size * 0.44;
-  const rightY = hy + dy * size * 0.78 - py * size * 0.44;
-  const happyChinX = hx + dx * size * 1.22;
-  const happyChinY = hy + dy * size * 1.22;
-  const sadChinX = hx + dx * size * 0.98;
-  const sadChinY = hy + dy * size * 0.98;
-  return `${I3}<path class="tm-mascot-mouth-happy" d="M ${leftX.toFixed(1)} ${leftY.toFixed(1)} Q ${happyChinX.toFixed(1)} ${happyChinY.toFixed(1)} ${rightX.toFixed(1)} ${rightY.toFixed(1)}" stroke="${pal.rim}" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.85"/>
-${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="M ${leftX.toFixed(1)} ${leftY.toFixed(1)} Q ${sadChinX.toFixed(1)} ${sadChinY.toFixed(1)} ${rightX.toFixed(1)} ${rightY.toFixed(1)}" stroke="${pal.rim}" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.7"/>`;
-}
-
-/** Two glowing reptilian slit-eyes placed either side of the head's facing axis. */
-function serpentEyes(hx, hy, angleDeg, size, r, p, pal, stroke, boss) {
-  const a = (angleDeg * Math.PI) / 180;
-  const dx = Math.cos(a);
-  const dy = Math.sin(a);
-  const px = -dy;
-  const py = dx;
-  const ex = hx - dx * size * 0.32;
-  const ey = hy - dy * size * 0.32;
-  const spread = size * 0.36;
-  const eyes = [
-    { x: ex + px * spread, y: ey + py * spread },
-    { x: ex - px * spread, y: ey - py * spread },
-  ];
-  const glowMul = boss ? 2.5 : 1.7;
+/** Single deep-set slit eye in 3/4 profile — a narrow glowing sliver, menacing rather than cute. */
+function browEye(hx, hy, dir, s, r, p, pal, stroke, boss) {
+  const { dx, dy, px, py } = dir;
+  const ex = hx - dx * s * 0.06 + px * s * 0.42;
+  const ey = hy - dy * s * 0.06 + py * s * 0.42;
+  const glowMul = boss ? 2.4 : 1.6;
   const glowOp = boss ? 0.32 : 0.16;
-  const open = eyes.map((eye) => `${I4}<circle cx="${eye.x.toFixed(1)}" cy="${eye.y.toFixed(1)}" r="${(r * glowMul).toFixed(1)}" fill="${pal.rim}" opacity="${glowOp}" filter="url(#${p}-glow)"/>
-${I4}<ellipse cx="${eye.x.toFixed(1)}" cy="${eye.y.toFixed(1)}" rx="${(r * 0.92).toFixed(1)}" ry="${r.toFixed(1)}" fill="url(#${p}-iris)" stroke="${stroke}" stroke-width="${boss ? 1.1 : 0.8}"/>
-${I4}<ellipse class="tm-leviathan-pupil" cx="${eye.x.toFixed(1)}" cy="${eye.y.toFixed(1)}" rx="${(r * 0.16).toFixed(1)}" ry="${(r * 0.72).toFixed(1)}" fill="#000"/>
-${I4}<circle cx="${(eye.x - r * 0.28).toFixed(1)}" cy="${(eye.y - r * 0.32).toFixed(1)}" r="${Math.max(0.5, r * 0.16).toFixed(1)}" fill="#fff" opacity="0.6"/>`).join('\n');
-  const closed = eyes.map((eye) => `${I4}<path d="M ${(eye.x - r).toFixed(1)} ${eye.y.toFixed(1)} Q ${eye.x.toFixed(1)} ${(eye.y - r * 0.4).toFixed(1)} ${(eye.x + r).toFixed(1)} ${eye.y.toFixed(1)}" stroke="${stroke}" stroke-width="1.4" fill="none" stroke-linecap="round"/>`).join('\n');
+  const socketRx = r * 1.7;
+  const socketRy = r * 1.15;
+  const angleDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
   return `${I3}<g class="tm-mascot-eye-open tm-leviathan-eye">
-${open}
+${I4}<ellipse cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" rx="${socketRx.toFixed(1)}" ry="${socketRy.toFixed(1)}" fill="#02050a" opacity="0.75" transform="rotate(${angleDeg.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)})"/>
+${I4}<ellipse cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" rx="${(r * 1.3).toFixed(1)}" ry="${(r * 0.55).toFixed(1)}" fill="${pal.eye}" opacity="${glowOp}" filter="url(#${p}-glow)" transform="rotate(${angleDeg.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)})"/>
+${I4}<ellipse class="tm-leviathan-iris" cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" rx="${r.toFixed(1)}" ry="${(r * 0.34).toFixed(1)}" fill="url(#${p}-eye)" stroke="${stroke}" stroke-width="0.4" transform="rotate(${angleDeg.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)})"/>
+${I4}<ellipse cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" rx="${(r * 0.16).toFixed(1)}" ry="${(r * 0.3).toFixed(1)}" fill="#000" transform="rotate(${angleDeg.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)})"/>
 ${I3}</g>
 ${I3}<g class="tm-mascot-eye-closed" style="display:none;">
-${closed}
+${I4}<path d="M ${(ex - r).toFixed(1)} ${ey.toFixed(1)} Q ${ex.toFixed(1)} ${(ey + r * 0.3).toFixed(1)} ${(ex + r).toFixed(1)} ${ey.toFixed(1)}" stroke="${stroke}" stroke-width="1" fill="none" stroke-linecap="round"/>
 ${I3}</g>`;
 }
 
-/** Cloud-tendril storm mane collar flaring from the neck (also used as the animated wing groups). */
-function stormMane(cx, cy, angleDeg, count, size, fillId, stroke) {
+/**
+ * Smooth, rounded dorsal hump arching from the base of the head's neck, over
+ * a broad crest (where the fin roots), back down into the water — a whale-
+ * like breaching back, not a sharp mountain.
+ */
+function dorsalHump(neckPt, crest, submergeX, baseY, fillId, stroke) {
+  const riseX = neckPt.x - (neckPt.x - crest.x) * 0.55;
+  const riseY = neckPt.y + (crest.y - neckPt.y) * 0.7;
+  const nearPeakL = { x: crest.x + (neckPt.x - crest.x) * 0.42, y: crest.y };
+  const nearPeakR = { x: crest.x - (crest.x - submergeX) * 0.32, y: crest.y };
+  const fallX = crest.x - (crest.x - submergeX) * 0.62;
+  const fallY = crest.y + (baseY - crest.y) * 0.4;
+  const d = `M ${neckPt.x.toFixed(1)} ${baseY.toFixed(1)} L ${neckPt.x.toFixed(1)} ${neckPt.y.toFixed(1)} C ${riseX.toFixed(1)} ${riseY.toFixed(1)} ${nearPeakL.x.toFixed(1)} ${nearPeakL.y.toFixed(1)} ${crest.x.toFixed(1)} ${crest.y.toFixed(1)} C ${nearPeakR.x.toFixed(1)} ${crest.y.toFixed(1)} ${fallX.toFixed(1)} ${fallY.toFixed(1)} ${submergeX.toFixed(1)} ${baseY.toFixed(1)} Z`;
+  return `${I4}<path d="${d}" fill="url(#${fillId})" stroke="${stroke}" stroke-width="1" stroke-linejoin="round"/>`;
+}
+
+/** Slender, swept-back shark/sail dorsal fin, rooted directly on the hump's crest. */
+function dorsalFin(crest, height, width, fillId, stroke, torn) {
+  const baseL = { x: crest.x + width * 0.32, y: crest.y + 0.5 };
+  const baseR = { x: crest.x - width * 0.28, y: crest.y + 1 };
+  const tip = { x: crest.x - width * 0.16, y: crest.y - height };
+  const leadCtrl1 = { x: crest.x + width * 0.26, y: crest.y - height * 0.4 };
+  const leadCtrl2 = { x: crest.x + width * 0.06, y: crest.y - height * 0.82 };
+  const backCtrl = { x: crest.x - width * 0.22, y: crest.y - height * 0.22 };
+  const tornNotch = torn ? ` L ${(tip.x + width * 0.22).toFixed(1)} ${(tip.y + height * 0.22).toFixed(1)} L ${(tip.x + width * 0.08).toFixed(1)} ${(tip.y + height * 0.16).toFixed(1)}` : '';
+  const d = `M ${baseL.x.toFixed(1)} ${baseL.y.toFixed(1)} C ${leadCtrl1.x.toFixed(1)} ${leadCtrl1.y.toFixed(1)} ${leadCtrl2.x.toFixed(1)} ${leadCtrl2.y.toFixed(1)} ${tip.x.toFixed(1)} ${tip.y.toFixed(1)}${tornNotch} Q ${backCtrl.x.toFixed(1)} ${backCtrl.y.toFixed(1)} ${baseR.x.toFixed(1)} ${baseR.y.toFixed(1)} Z`;
+  return `${I4}<path d="${d}" fill="url(#${fillId})" stroke="${stroke}" stroke-width="1" stroke-linejoin="round"/>`;
+}
+
+/** Weathered barnacle bumps for the ancient stage. */
+function barnacles(neckPt, submergeX, baseY, count, stroke) {
   const parts = [];
   for (let i = 0; i < count; i++) {
-    const spread = -36 + (72 / Math.max(1, count - 1)) * i;
-    const a = ((angleDeg + spread) * Math.PI) / 180;
-    const len = size * (0.75 + (i % 3) * 0.22);
-    const dx = Math.cos(a);
-    const dy = Math.sin(a);
-    const px = -dy;
-    const py = dx;
-    const tipX = cx + dx * len;
-    const tipY = cy + dy * len;
-    const cX = cx + dx * len * 0.55 + px * len * 0.32;
-    const cY = cy + dy * len * 0.55 + py * len * 0.32;
-    const baseLX = cx + px * len * 0.16;
-    const baseLY = cy + py * len * 0.16;
-    const baseRX = cx - px * len * 0.16;
-    const baseRY = cy - py * len * 0.16;
-    parts.push(`${I4}<path d="M ${baseLX.toFixed(1)} ${baseLY.toFixed(1)} Q ${cX.toFixed(1)} ${cY.toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)} Q ${(cX - px * len * 0.1).toFixed(1)} ${(cY - py * len * 0.1).toFixed(1)} ${baseRX.toFixed(1)} ${baseRY.toFixed(1)} Z" fill="url(#${fillId})" stroke="${stroke}" stroke-width="0.6" opacity="${(0.5 + (i % 3) * 0.12).toFixed(2)}"/>`);
+    const t = 0.15 + (0.7 / Math.max(1, count - 1)) * i;
+    const x = neckPt.x + (submergeX - neckPt.x) * t;
+    const y = baseY - 2 - (i % 2) * 1.5;
+    parts.push(`${I4}<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${0.9 + (i % 2) * 0.4}" fill="${stroke}" opacity="0.55"/>`);
   }
   return parts.join('\n');
 }
 
-/** Finned tail tip capping the last spine point. */
-function tailFin(pt, prevPt, size, fillId, stroke) {
-  const dx = pt.x - prevPt.x;
-  const dy = pt.y - prevPt.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const ux = dx / len;
-  const uy = dy / len;
-  const px = -uy;
-  const py = ux;
-  const tipX = pt.x + ux * size * 1.4;
-  const tipY = pt.y + uy * size * 1.4;
-  const finLX = pt.x + ux * size * 0.3 + px * size * 1.1;
-  const finLY = pt.y + uy * size * 0.3 + py * size * 1.1;
-  const finRX = pt.x + ux * size * 0.3 - px * size * 1.1;
-  const finRY = pt.y + uy * size * 0.3 - py * size * 1.1;
-  return `${I4}<path d="M ${(pt.x - px * size * 0.5).toFixed(1)} ${(pt.y - py * size * 0.5).toFixed(1)} L ${finLX.toFixed(1)} ${finLY.toFixed(1)} L ${tipX.toFixed(1)} ${tipY.toFixed(1)} L ${finRX.toFixed(1)} ${finRY.toFixed(1)} L ${(pt.x + px * size * 0.5).toFixed(1)} ${(pt.y + py * size * 0.5).toFixed(1)} Z" fill="url(#${fillId})" stroke="${stroke}" stroke-width="0.8" opacity="0.9"/>`;
+/** Faint glowing power-veins along the hump for the ancient stage. */
+function ancientVeins(neckPt, crest, submergeX, baseY, color, glowId) {
+  const midX = (neckPt.x + crest.x) / 2;
+  const midY = Math.min(neckPt.y, crest.y) + 4;
+  return `${I4}<path d="M ${neckPt.x.toFixed(1)} ${(neckPt.y + 2).toFixed(1)} Q ${midX.toFixed(1)} ${midY.toFixed(1)} ${crest.x.toFixed(1)} ${(crest.y + 4).toFixed(1)} Q ${((crest.x + submergeX) / 2).toFixed(1)} ${(baseY - 6).toFixed(1)} ${submergeX.toFixed(1)} ${(baseY - 1).toFixed(1)}" fill="none" stroke="${color}" stroke-width="0.7" opacity="0.55" filter="url(#${glowId})" class="tm-leviathan-vein"/>`;
 }
 
-/** Jagged fork of storm energy — used as lightning crackling over the hide. */
-function lightningCrack(cx, cy, angleDeg, len, color, glowId, weight = 1) {
+/** The wavy sea surface, drawn last to "cut off" the lower body and sell the half-submerged look. */
+function seaCutoff(baseY, waveAmp, p, pal, foamXs) {
+  const wave = `M 0 ${baseY.toFixed(1)} Q 15 ${(baseY - waveAmp).toFixed(1)} 30 ${baseY.toFixed(1)} Q 45 ${(baseY + waveAmp).toFixed(1)} 60 ${baseY.toFixed(1)} Q 75 ${(baseY - waveAmp).toFixed(1)} 90 ${baseY.toFixed(1)} Q 97 ${(baseY + waveAmp * 0.6).toFixed(1)} 100 ${baseY.toFixed(1)} L 100 100 L 0 100 Z`;
+  const foam = foamXs.map((x) => `${I3}<ellipse cx="${x.toFixed(1)}" cy="${(baseY - 0.5).toFixed(1)}" rx="${3 + Math.random() * 0}" ry="0.9" fill="${pal.foam}" opacity="0.5"/>`).join('\n');
+  return `${I3}<path d="${wave}" fill="url(#${p}-water)"/>
+${I3}<path d="M 0 ${baseY.toFixed(1)} Q 15 ${(baseY - waveAmp).toFixed(1)} 30 ${baseY.toFixed(1)} Q 45 ${(baseY + waveAmp).toFixed(1)} 60 ${baseY.toFixed(1)} Q 75 ${(baseY - waveAmp).toFixed(1)} 90 ${baseY.toFixed(1)} Q 97 ${(baseY + waveAmp * 0.6).toFixed(1)} 100 ${baseY.toFixed(1)}" fill="none" stroke="${pal.foam}" stroke-width="0.8" opacity="0.55"/>
+${foam}`;
+}
+
+/** Small fin-tip triangle poking through the water — used sparingly for the tail hint. */
+function finTip(x, y, angleDeg, size, fillId, stroke, opacity = 0.85) {
   const a = (angleDeg * Math.PI) / 180;
   const dx = Math.cos(a);
   const dy = Math.sin(a);
   const px = -dy;
   const py = dx;
-  const midLen = len * 0.55;
-  const kink = len * 0.2;
-  const mx = cx + dx * midLen + px * kink;
-  const my = cy + dy * midLen + py * kink;
-  const endX = cx + dx * len - px * kink * 0.6;
-  const endY = cy + dy * len - py * kink * 0.6;
-  return `${I4}<path d="M ${cx.toFixed(1)} ${cy.toFixed(1)} L ${mx.toFixed(1)} ${my.toFixed(1)} L ${endX.toFixed(1)} ${endY.toFixed(1)}" stroke="${color}" stroke-width="${weight}" fill="none" stroke-linecap="round" opacity="0.82" filter="url(#${glowId})" class="tm-leviathan-vein"/>`;
+  const tip = { x: x + dx * size, y: y + dy * size };
+  const baseL = { x: x + px * size * 0.4, y: y + py * size * 0.4 };
+  const baseR = { x: x - px * size * 0.4, y: y - py * size * 0.4 };
+  return `${I4}<path d="M ${baseL.x.toFixed(1)} ${baseL.y.toFixed(1)} L ${tip.x.toFixed(1)} ${tip.y.toFixed(1)} L ${baseR.x.toFixed(1)} ${baseR.y.toFixed(1)} Z" fill="url(#${fillId})" stroke="${stroke}" stroke-width="0.7" opacity="${opacity}"/>`;
 }
 
-/** Broken swirling water rings at the base — the leviathan rising from a storm-tossed sea. */
-function maelstromRings(cx, cy, count, rimColor, glowId) {
-  const parts = [];
-  for (let i = 0; i < count; i++) {
-    const rx = 16 + i * 8;
-    const ry = 3.4 + i * 1.4;
-    const gapStart = 40 + i * 35;
-    parts.push(`${I4}<path d="M ${(cx - rx).toFixed(1)} ${cy.toFixed(1)} A ${rx.toFixed(1)} ${ry.toFixed(1)} 0 1 1 ${(cx + rx).toFixed(1)} ${cy.toFixed(1)}" fill="none" stroke="${rimColor}" stroke-width="1" opacity="${(0.4 - i * 0.06).toFixed(2)}" filter="url(#${glowId})" stroke-dasharray="${(rx * 0.9).toFixed(0)} ${(gapStart % 20 + 6).toFixed(0)}"/>`);
-  }
-  return parts.join('\n');
-}
-
-function stormSparks(pal, count) {
-  const pts = [
-    [8, 16], [92, 14], [4, 40], [96, 42], [12, 66], [88, 68],
-    [20, 6], [80, 4], [2, 54], [98, 52], [38, 2], [62, 2],
-  ].slice(0, count);
-  return pts.map(([x, y], i) => {
-    const fill = i % 3 === 0 ? pal.rim : i % 2 ? pal.accent : '#eaf7fb';
-    return `${I3}<circle cx="${x}" cy="${y}" r="${i % 4 === 0 ? 1.5 : 1}" fill="${fill}" opacity="${0.28 + (i % 4) * 0.08}"/>`;
+/** Soft spray/foam burst where the body breaks the surface — used for the wing/arm animation anchors. */
+function splashBurst(x, y, size, pal) {
+  const droplets = [-0.6, 0, 0.6].map((off, i) => {
+    const dx = off * size;
+    const dy = -size * (0.5 + Math.abs(off) * 0.3);
+    return `${I4}<circle cx="${(x + dx).toFixed(1)}" cy="${(y + dy).toFixed(1)}" r="${(size * (0.32 - i * 0.05)).toFixed(2)}" fill="${pal.foam}" opacity="${0.5 - i * 0.08}"/>`;
   }).join('\n');
+  return `${I4}<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="${(size * 1.1).toFixed(1)}" ry="${(size * 0.32).toFixed(1)}" fill="${pal.foam}" opacity="0.28"/>
+${droplets}`;
 }
 
 /* ---------- stage builder ---------- */
 
-function buildStage(stage, p, pal, stroke, cfg) {
-  const points = serpentSpine(cfg.spine);
-  const normals = spineNormals(points);
-  const n = points.length;
-  const halfWidths = points.map((_, i) => {
-    const t = i / (n - 1);
-    const eased = 1 - Math.pow(1 - t, 1.6);
-    return cfg.headHW + (cfg.tailHW - cfg.headHW) * eased;
-  });
+function buildStage(p, pal, stroke, cfg) {
+  const dir = rot(Math.cos((cfg.headTiltDeg * Math.PI) / 180), Math.sin((cfg.headTiltDeg * Math.PI) / 180));
+  const head = headSkull(cfg.headCX, cfg.headCY, dir, cfg.headSize, `${p}-body`, stroke);
+  const neckPt = head.backTop;
+  const crest = { x: cfg.crestX, y: cfg.crestY };
 
-  const head = points[0];
-  const maneIdx = Math.max(2, Math.round(n * 0.12));
-  const manePt = points[maneIdx];
-  // Derived directly from the spine's travel direction (not a finite-difference of the
-  // first two points) so the head orientation stays clean regardless of wave easing.
-  const headAngle = cfg.spine.dirDeg + 180;
-  const headRad = (headAngle * Math.PI) / 180;
-  const faceDx = Math.cos(headRad);
-  const faceDy = Math.sin(headRad);
-  const facePx = -faceDy;
-  const facePy = faceDx;
-  const backX = -faceDx;
-  const backY = -faceDy;
+  const jawTeeth = jawAndTeeth(cfg.headCX, cfg.headCY, dir, cfg.headSize, head.jawHinge, head.upperJawFront, head.snoutTip, cfg.teeth, `${p}-body`, stroke, '#f4fbfd');
+  const eye = browEye(cfg.headCX, cfg.headCY, dir, cfg.headSize, cfg.eyeR, p, pal, stroke, cfg.boss);
+  // The hump stays a modest, rounded whale-back rise; the tall dramatic
+  // height comes from the slender fin rooted on top of it, not a pointy hill.
+  const desiredTipY = crest.y - cfg.finHeight;
+  const humpPeak = { x: crest.x, y: neckPt.y - (neckPt.y - crest.y) * 0.4 };
+  const hump = dorsalHump(neckPt, humpPeak, cfg.submergeX, cfg.baseY, `${p}-body`, stroke);
+  const fin = dorsalFin(humpPeak, humpPeak.y - desiredTipY, cfg.headSize * 1.3, `${p}-fin`, stroke, cfg.ancient);
+  const auxFin = cfg.auxFin
+    ? dorsalFin({ x: (humpPeak.x + cfg.submergeX) / 2 + 3, y: (humpPeak.y + cfg.baseY) / 2 + 3 }, (humpPeak.y - desiredTipY) * 0.35, cfg.headSize * 0.65, `${p}-fin`, stroke, false)
+    : '';
 
-  const armIdx = Math.round(n * cfg.armT);
-  const legIdx = Math.round(n * cfg.legT);
-  const armPt = points[armIdx];
-  const armN = normals[armIdx];
-  const legPt = points[legIdx];
-  const legN = normals[legIdx];
+  const lightningXs = [];
+  for (let i = 0; i < cfg.lightningCount; i++) {
+    const leftSide = i % 2 === 0;
+    const spread = 6 + Math.floor(i / 2) * 14;
+    lightningXs.push(leftSide ? Math.max(4, cfg.submergeX - 8 - spread) : Math.min(96, cfg.headCX + 14 + spread));
+  }
 
-  const tailPt = points[n - 1];
-  const tailPrev = points[n - 2];
+  const wingLeftPt = { x: (neckPt.x + crest.x) / 2 - 2, y: cfg.baseY - 0.4 };
+  const wingRightPt = { x: (crest.x + cfg.submergeX) / 2 + 2, y: cfg.baseY - 0.4 };
+  const tailPt = { x: Math.max(3, cfg.submergeX - 10), y: cfg.baseY };
 
-  const dorsalIdx = [];
-  for (let i = Math.round(n * 0.26); i < n - Math.round(n * 0.1); i += cfg.dorsalEvery) dorsalIdx.push(i);
-
-  const browDist = cfg.headSize * 0.62;
-  const hornSpread = cfg.hornCount <= 1 ? [0] : Array.from({ length: cfg.hornCount }, (_, i) => -1 + (2 / (cfg.hornCount - 1)) * i);
-  const horns = hornSpread.map((s, i) => {
-    const lateral = s * cfg.headSize * 0.85;
-    const baseX = head.x + backX * browDist + facePx * lateral;
-    const baseY = head.y + backY * browDist + facePy * lateral;
-    const dirX = backX * 0.7 + facePx * s;
-    const dirY = backY * 0.7 + facePy * s;
-    const hornAngle = (Math.atan2(dirY, dirX) * 180) / Math.PI;
-    const len = cfg.hornLen * (1 - Math.abs(s) * 0.15) * (1 + (i % 2) * 0.08);
-    return hornShape(baseX, baseY, hornAngle, len, cfg.headSize * 0.15, pal.horn, stroke);
-  }).join('\n');
-
-  // Confined to a ~170° arc on the back/lateral side of the head so cracks
-  // radiate away from the horn crown instead of slashing across the face.
-  const wrathAngles = cfg.wrathCount > 0
-    ? Array.from({ length: cfg.wrathCount }, (_, i) => {
-      const t = cfg.wrathCount <= 1 ? 0.5 : i / (cfg.wrathCount - 1);
-      return headAngle + 95 + 170 * t;
-    })
-    : [];
-  const wrathOriginX = head.x + backX * cfg.headSize * 0.55;
-  const wrathOriginY = head.y + backY * cfg.headSize * 0.55;
-
-  const groundCx = (head.x + tailPt.x) / 2;
-  const mistCx = groundCx;
-  const mistCy = (head.y + tailPt.y) / 2;
-  const mistR = Math.max(cfg.spine.length * 0.62, 34);
-
-  return `${I3}<ellipse cx="${groundCx.toFixed(1)}" cy="96" rx="${(cfg.spine.amplitude * 1.7 + 10).toFixed(1)}" ry="${cfg.boss ? 4.6 : 3}" fill="${INK}" opacity="0.4"/>
-${I3}<ellipse cx="${mistCx.toFixed(1)}" cy="${mistCy.toFixed(1)}" rx="${mistR.toFixed(1)}" ry="${(mistR * 0.92).toFixed(1)}" fill="url(#${p}-mist)" opacity="${cfg.boss ? 0.55 : 0.28}"/>
-${stormSparks(pal, cfg.sparkCount)}
-${cfg.maelstromCount > 0 ? maelstromRings(tailPt.x, Math.min(94, tailPt.y + 6), cfg.maelstromCount, pal.rim, `${p}-glow`) : ''}
-${I3}<g class="tm-animate-wing-left">
-${stormMane(manePt.x, manePt.y, headAngle + 150, cfg.maneCount, cfg.maneSize, `${p}-belly`, stroke)}
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${stormMane(manePt.x, manePt.y, headAngle - 150, cfg.maneCount, cfg.maneSize, `${p}-belly`, stroke)}
-${I3}</g>
-${I3}<g class="tm-animate-arm-left">
-${finLimb(armPt, armN, 1, cfg.limbSize, `${p}-scale`, stroke)}
-${I3}</g>
-${I3}<g class="tm-animate-arm-right">
-${finLimb(armPt, armN, -1, cfg.limbSize, `${p}-scale`, stroke)}
-${I3}</g>
-${I3}<g class="tm-animate-leg-left">
-${finLimb(legPt, legN, 1, cfg.limbSize * 0.88, `${p}-scale`, stroke)}
-${I3}</g>
-${I3}<g class="tm-animate-leg-right">
-${finLimb(legPt, legN, -1, cfg.limbSize * 0.88, `${p}-scale`, stroke)}
-${I3}</g>
-${I3}<g class="tm-animate-tail">
-${tailFin(tailPt, tailPrev, cfg.tailFinSize, `${p}-scale`, stroke)}
+  return `${lightningXs.map((x, i) => skyBolt(x, 0, cfg.baseY - 14 - (i % 2) * 6, 4 + (i % 3) * 1.5, pal.bolt, `${p}-glow`, cfg.boss ? 1.3 : 1)).join('\n')}
+${I3}<g class="tm-animate-tail" opacity="0.5">
+${finTip(tailPt.x, tailPt.y, -55, cfg.headSize * 0.4, `${p}-fin`, stroke, 0.55)}
 ${I3}</g>
 ${I3}<g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-${I4}<path d="${ribbonPath(points, normals, halfWidths)}" fill="url(#${p}-scale)" stroke="${stroke}" stroke-width="1"/>
-${bellyStripes(points, normals, halfWidths, cfg.dorsalEvery, stroke)}
-${dorsalRidge(points, normals, halfWidths, dorsalIdx, cfg.dorsalLen, pal.horn, stroke)}
-${horns}
-${headWedge(head.x, head.y, headAngle, cfg.headSize, `${p}-scale`, `${p}-belly`, stroke)}
-${fangRow(head.x, head.y, headAngle, cfg.headSize, cfg.fangCount, stroke)}
-${wrathAngles.map((ang) => lightningCrack(wrathOriginX, wrathOriginY, ang, cfg.wrathLen, pal.wrath, `${p}-glow`, cfg.boss ? 1.5 : 1)).join('\n')}
+${hump}
+${cfg.ancient ? ancientVeins(neckPt, humpPeak, cfg.submergeX, cfg.baseY, pal.eye, `${p}-glow`) : ''}
+${cfg.ancient ? barnacles(neckPt, cfg.submergeX, cfg.baseY, 4, stroke) : ''}
+${auxFin}
+${fin}
+${head.svg}
+${jawTeeth}
+${eye}
 ${I3}</g>
-${moodMouth(head.x, head.y, headAngle, cfg.headSize, pal)}
-${serpentEyes(head.x, head.y, headAngle, cfg.headSize, cfg.eyeR, p, pal, stroke, cfg.boss)}
-${LEVI_DEBUG ? `
-<circle cx="${head.x.toFixed(1)}" cy="${head.y.toFixed(1)}" r="1" fill="red"/>
-<circle cx="${(head.x + faceDx * cfg.headSize * 0.45).toFixed(1)}" cy="${(head.y + faceDy * cfg.headSize * 0.45).toFixed(1)}" r="1" fill="lime"/>
-<circle cx="${(head.x + backX * browDist).toFixed(1)}" cy="${(head.y + backY * browDist).toFixed(1)}" r="1" fill="yellow"/>
-<line x1="${head.x.toFixed(1)}" y1="${head.y.toFixed(1)}" x2="${(head.x + faceDx * cfg.headSize * 1.3).toFixed(1)}" y2="${(head.y + faceDy * cfg.headSize * 1.3).toFixed(1)}" stroke="magenta" stroke-width="0.3"/>
-` : ''}`;
+${I3}<g class="tm-animate-wing-left">
+${splashBurst(wingLeftPt.x, wingLeftPt.y, cfg.headSize * 0.32, pal)}
+${I3}</g>
+${I3}<g class="tm-animate-wing-right">
+${splashBurst(wingRightPt.x, wingRightPt.y, cfg.headSize * 0.26, pal)}
+${I3}</g>
+${I3}<g class="tm-animate-arm-left" opacity="0.001">
+${I4}<circle cx="${cfg.submergeX.toFixed(1)}" cy="${cfg.baseY.toFixed(1)}" r="0.5" fill="${stroke}"/>
+${I3}</g>
+${I3}<g class="tm-animate-arm-right" opacity="0.001">
+${I4}<circle cx="${(cfg.headCX + cfg.headSize * 0.2).toFixed(1)}" cy="${cfg.baseY.toFixed(1)}" r="0.5" fill="${stroke}"/>
+${I3}</g>
+${I3}<g class="tm-animate-leg-left" opacity="0.001">
+${I4}<circle cx="${cfg.submergeX.toFixed(1)}" cy="${cfg.baseY.toFixed(1)}" r="0.5" fill="${stroke}"/>
+${I3}</g>
+${I3}<g class="tm-animate-leg-right" opacity="0.001">
+${I4}<circle cx="${(cfg.headCX + cfg.headSize * 0.2).toFixed(1)}" cy="${cfg.baseY.toFixed(1)}" r="0.5" fill="${stroke}"/>
+${I3}</g>
+${seaCutoff(cfg.baseY, cfg.waveAmp, p, pal, [neckPt.x - 3, crest.x, cfg.submergeX + 2])}`;
 }
 
 const STAGE_CFG = {
   baby: {
-    spine: { headX: 52, headY: 30, dirDeg: 102, length: 36, amplitude: 8, waves: 1, segments: 16, ampEase: 0.2, hookFrac: 0.18 },
-    headHW: 5, tailHW: 1.3, headSize: 9.2, hornCount: 1, hornLen: 3,
-    maneCount: 2, maneSize: 3.6, limbSize: 2.1, armT: 0.24, legT: 0.6,
-    dorsalEvery: 3, dorsalLen: 1.5, tailFinSize: 1.9, eyeR: 3.4, fangCount: 0,
-    wrathCount: 0, wrathLen: 0, maelstromCount: 0, sparkCount: 3, boss: false,
+    headCX: 56, headCY: 79, headSize: 6.5, headTiltDeg: -8, eyeR: 1.5,
+    crestX: 44, crestY: 77, submergeX: 34, finHeight: 2, auxFin: false, ancient: false,
+    baseY: 82, waveAmp: 1.2, teeth: 0, lightningCount: 0, boss: false,
   },
   evo1: {
-    spine: { headX: 52, headY: 27, dirDeg: 101, length: 45, amplitude: 11, waves: 1.1, segments: 18, ampEase: 0.18, hookFrac: 0.17 },
-    headHW: 5.7, tailHW: 1.5, headSize: 10.6, hornCount: 2, hornLen: 4.8,
-    maneCount: 3, maneSize: 4.6, limbSize: 2.6, armT: 0.22, legT: 0.58,
-    dorsalEvery: 3, dorsalLen: 2, tailFinSize: 2.3, eyeR: 4, fangCount: 2,
-    wrathCount: 0, wrathLen: 0, maelstromCount: 0, sparkCount: 4, boss: false,
+    headCX: 58, headCY: 72, headSize: 8.5, headTiltDeg: -9, eyeR: 1.9,
+    crestX: 44, crestY: 68, submergeX: 30, finHeight: 4, auxFin: false, ancient: false,
+    baseY: 78, waveAmp: 1.4, teeth: 0, lightningCount: 1, boss: false,
   },
   evo2: {
-    spine: { headX: 53, headY: 24, dirDeg: 99, length: 55, amplitude: 14, waves: 1.25, segments: 22, ampEase: 0.16, hookFrac: 0.16 },
-    headHW: 6.8, tailHW: 1.8, headSize: 12.9, hornCount: 2, hornLen: 7.6,
-    maneCount: 4, maneSize: 5.8, limbSize: 3.3, armT: 0.2, legT: 0.57,
-    dorsalEvery: 2, dorsalLen: 2.9, tailFinSize: 2.8, eyeR: 4.9, fangCount: 2,
-    wrathCount: 2, wrathLen: 10, maelstromCount: 0, sparkCount: 6, boss: false,
+    headCX: 62, headCY: 62, headSize: 11, headTiltDeg: -10, eyeR: 2.4,
+    crestX: 42, crestY: 54, submergeX: 24, finHeight: 8, auxFin: false, ancient: false,
+    baseY: 74, waveAmp: 1.6, teeth: 3, lightningCount: 2, boss: false,
   },
   evo3: {
-    spine: { headX: 54, headY: 21, dirDeg: 97, length: 63, amplitude: 18, waves: 1.4, segments: 28, ampEase: 0.14, hookFrac: 0.14 },
-    headHW: 8.6, tailHW: 2.2, headSize: 16.4, hornCount: 4, hornLen: 12,
-    maneCount: 6, maneSize: 8.4, limbSize: 4.4, armT: 0.18, legT: 0.56,
-    dorsalEvery: 2, dorsalLen: 4.2, tailFinSize: 3.6, eyeR: 6.2, fangCount: 4,
-    wrathCount: 4, wrathLen: 16, maelstromCount: 2, sparkCount: 9, boss: true,
+    headCX: 67, headCY: 52, headSize: 13.5, headTiltDeg: -11, eyeR: 3,
+    crestX: 40, crestY: 38, submergeX: 18, finHeight: 13, auxFin: false, ancient: false,
+    baseY: 71, waveAmp: 1.9, teeth: 6, lightningCount: 4, boss: true,
   },
   evo4: {
-    spine: { headX: 54, headY: 20, dirDeg: 96, length: 67, amplitude: 20, waves: 1.5, segments: 30, ampEase: 0.13, hookFrac: 0.13 },
-    headHW: 9.1, tailHW: 2.4, headSize: 17.4, hornCount: 6, hornLen: 13,
-    maneCount: 7, maneSize: 9, limbSize: 4.8, armT: 0.17, legT: 0.55,
-    dorsalEvery: 2, dorsalLen: 4.8, tailFinSize: 4, eyeR: 6.6, fangCount: 4,
-    wrathCount: 5, wrathLen: 18, maelstromCount: 3, sparkCount: 10, boss: true,
+    headCX: 69, headCY: 47, headSize: 14.5, headTiltDeg: -12, eyeR: 3.3,
+    crestX: 39, crestY: 30, submergeX: 15, finHeight: 16, auxFin: true, ancient: false,
+    baseY: 70, waveAmp: 2.1, teeth: 7, lightningCount: 5, boss: true,
   },
   evo5: {
-    spine: { headX: 55, headY: 19, dirDeg: 95, length: 70, amplitude: 22, waves: 1.6, segments: 34, ampEase: 0.12, hookFrac: 0.13 },
-    headHW: 9.6, tailHW: 2.6, headSize: 18.4, hornCount: 6, hornLen: 15,
-    maneCount: 8, maneSize: 9.6, limbSize: 5.1, armT: 0.16, legT: 0.54,
-    dorsalEvery: 2, dorsalLen: 5.4, tailFinSize: 4.4, eyeR: 7, fangCount: 6,
-    wrathCount: 7, wrathLen: 21, maelstromCount: 4, sparkCount: 12, boss: true,
+    headCX: 71, headCY: 42, headSize: 15.5, headTiltDeg: -13, eyeR: 3.5,
+    crestX: 38, crestY: 24, submergeX: 12, finHeight: 18, auxFin: true, ancient: true,
+    baseY: 69, waveAmp: 2.3, teeth: 8, lightningCount: 6, boss: true,
   },
 };
 
@@ -564,9 +361,9 @@ function leviathanStage(stage) {
   const pal = STAGE_PALETTES[stage];
   const stroke = pal.deep;
   const defs = makeDefs(p, pal);
-  const body = buildStage(stage, p, pal, stroke, STAGE_CFG[stage]);
+  const body = buildStage(p, pal, stroke, STAGE_CFG[stage]);
   return wrapStage(stage, defs, body);
 }
 
-export const leviathanSvg = `${I}<!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · sea-serpent redesign v7) -->
+export const leviathanSvg = `${I}<!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · Storm-Breaker v8 · breaching-colossus redesign) -->
 ${STAGES.map(leviathanStage).join('\n')}`;
