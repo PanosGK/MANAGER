@@ -24579,14 +24579,182 @@ function mascotRepairUrgencyScore(statusId, count) {
 }
 
 function mascotRepairOpinion(statusIdMap, totalRepairs) {
-    if (totalRepairs === 0) return mascotMsg('repairEmpty');
+    return mascotRepairOpinionDetail(statusIdMap, totalRepairs).text;
+}
+
+function mascotRepairOpinionDetail(statusIdMap, totalRepairs) {
+    if (totalRepairs === 0) {
+        return { text: mascotMsg('repairEmpty'), statusId: null, count: 0 };
+    }
 
     const activeIds = ['30', '40', '65', '90'].filter(id => statusIdMap[id]?.count > 0);
-    if (activeIds.length === 0) return mascotMsg('repairEmpty');
+    if (activeIds.length === 0) {
+        return { text: mascotMsg('repairEmpty'), statusId: null, count: 0 };
+    }
 
     const pickId = activeIds[Math.floor(Math.random() * activeIds.length)];
     const { count, name } = statusIdMap[pickId];
-    return mascotRepairOpinionForStatus(pickId, count, name);
+    return {
+        text: mascotRepairOpinionForStatus(pickId, count, name),
+        statusId: pickId,
+        count,
+    };
+}
+
+function findRepairStatusMenuLink(statusId, root = document) {
+    const id = String(statusId || '');
+    if (!id) return null;
+    const menuLinks = root.querySelectorAll(
+        '.rnr-b-vmenu a[href*="statusid"], .menuLeaf a[href*="statusid"], a[href*="statusid="]'
+    );
+    for (const link of menuLinks) {
+        const href = link.getAttribute('href') || '';
+        const match = href.match(/statusid=(\d+)/);
+        if (match && match[1] === id) return link;
+    }
+    return null;
+}
+
+/** Phoenix: throw a small firebolt from the mascot to a status menu row and briefly "burn" it. */
+function playPhoenixStatusBurn(statusId, options = {}) {
+    if (tamagotchiCharacterType !== 'phoenix') return false;
+    if (tamagotchiIsDead || tamagotchiStage === 'egg' || tamaCinematicLock) return false;
+    const target = options.targetEl || findRepairStatusMenuLink(statusId);
+    const mascot = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+    if (!target || !mascot) return false;
+
+    const from = mascot.getBoundingClientRect();
+    const to = target.getBoundingClientRect();
+    if (!(from.width > 0) || !(to.width > 0)) return false;
+
+    const startX = from.left + from.width * 0.55;
+    const startY = from.top + from.height * 0.35;
+    const endX = to.left + to.width * 0.55;
+    const endY = to.top + to.height * 0.5;
+    const dx = endX - startX;
+    const dy = endY - startY;
+    const dist = Math.hypot(dx, dy);
+    const duration = Math.max(420, Math.min(900, dist * 0.85));
+
+    ensurePhoenixBurnStyles();
+
+    const bolt = document.createElement('div');
+    bolt.className = 'tm-phoenix-firebolt';
+    bolt.setAttribute('aria-hidden', 'true');
+    bolt.style.left = `${startX}px`;
+    bolt.style.top = `${startY}px`;
+    document.body.appendChild(bolt);
+
+    // Face travel direction
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    bolt.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+
+    const anim = bolt.animate(
+        [
+            { transform: `translate(-50%, -50%) rotate(${angle}deg) scale(0.55)`, opacity: 0.2, offset: 0 },
+            { transform: `translate(calc(-50% + ${dx * 0.55}px), calc(-50% + ${dy * 0.55}px)) rotate(${angle}deg) scale(1.15)`, opacity: 1, offset: 0.55 },
+            { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) rotate(${angle}deg) scale(0.85)`, opacity: 0.95, offset: 1 },
+        ],
+        { duration, easing: 'cubic-bezier(0.22, 0.9, 0.3, 1)', fill: 'forwards' }
+    );
+
+    const finish = () => {
+        try { bolt.remove(); } catch (_) { /* ignore */ }
+        target.classList.add('tm-phoenix-status-burn');
+        const spark = document.createElement('div');
+        spark.className = 'tm-phoenix-status-impact';
+        spark.style.left = `${endX}px`;
+        spark.style.top = `${endY}px`;
+        document.body.appendChild(spark);
+        setTimeout(() => {
+            try { spark.remove(); } catch (_) { /* ignore */ }
+        }, 700);
+        setTimeout(() => {
+            target.classList.remove('tm-phoenix-status-burn');
+        }, 1100);
+    };
+
+    anim.finished.then(finish).catch(finish);
+    setMascotMood('playful', 5000);
+    setMascotState(window.config || {}, 'happy', 1800);
+    return true;
+}
+
+function ensurePhoenixBurnStyles() {
+    if (document.getElementById('tm-phoenix-burn-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'tm-phoenix-burn-styles';
+    style.textContent = `
+        .tm-phoenix-firebolt {
+            position: fixed;
+            z-index: 120050;
+            width: 22px;
+            height: 22px;
+            pointer-events: none;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 35% 30%, #fff7ed 0%, #fdba74 28%, #f97316 58%, #ea580c 78%, transparent 82%),
+                radial-gradient(circle at 70% 70%, rgba(239, 68, 68, 0.85) 0%, transparent 55%);
+            box-shadow:
+                0 0 10px 3px rgba(249, 115, 22, 0.75),
+                0 0 22px 8px rgba(239, 68, 68, 0.35),
+                -8px 0 14px 2px rgba(251, 146, 60, 0.45);
+            filter: saturate(1.2);
+        }
+        .tm-phoenix-firebolt::after {
+            content: '';
+            position: absolute;
+            inset: -6px 10px -6px -14px;
+            border-radius: 40%;
+            background: linear-gradient(90deg, rgba(251, 146, 60, 0.0), rgba(249, 115, 22, 0.55), rgba(239, 68, 68, 0.15));
+            filter: blur(1px);
+            transform: translateX(-6px);
+        }
+        .tm-phoenix-status-impact {
+            position: fixed;
+            z-index: 120051;
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            pointer-events: none;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, #fff7ed 0%, #fb923c 40%, transparent 70%);
+            box-shadow: 0 0 18px 8px rgba(249, 115, 22, 0.55);
+            animation: tm-phoenix-impact 0.65s ease-out forwards;
+        }
+        @keyframes tm-phoenix-impact {
+            0% { transform: translate(-50%, -50%) scale(0.4); opacity: 1; }
+            70% { transform: translate(-50%, -50%) scale(2.2); opacity: 0.85; }
+            100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0; }
+        }
+        .tm-phoenix-status-burn {
+            position: relative !important;
+            animation: tm-phoenix-scorch 1.05s ease-out;
+            box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.55), 0 0 18px rgba(239, 68, 68, 0.35) !important;
+            border-radius: 6px;
+        }
+        .tm-phoenix-status-burn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background: linear-gradient(110deg, transparent 20%, rgba(255, 237, 213, 0.35) 45%, rgba(249, 115, 22, 0.28) 55%, transparent 80%);
+            animation: tm-phoenix-heat-sweep 0.9s ease-out;
+        }
+        @keyframes tm-phoenix-scorch {
+            0% { filter: brightness(1); }
+            25% { filter: brightness(1.25) saturate(1.35); }
+            100% { filter: brightness(1); }
+        }
+        @keyframes tm-phoenix-heat-sweep {
+            0% { opacity: 0; transform: translateX(-30%); }
+            35% { opacity: 1; }
+            100% { opacity: 0; transform: translateX(35%); }
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 function mascotRepairIsUrgent(statusIdMap) {
@@ -25693,8 +25861,13 @@ async function moveToNewPosition() {
         const statusMenu = document.querySelector('.rnr-b-vmenu.simple.main, .rnr-b-vmenu');
         const parsed = statusMenu ? parseRepairStatusMenu(statusMenu) : null;
         if (parsed?.totalRepairs > 0) {
-            showMascotBubble(mascotRepairOpinion(parsed.statusIdMap, parsed.totalRepairs), 2500);
+            const opinion = mascotRepairOpinionDetail(parsed.statusIdMap, parsed.totalRepairs);
+            showMascotBubble(opinion.text, 2500);
             setMascotMood(petStats.hunger < 35 ? 'hungry' : 'curious', 7000);
+            if (opinion.statusId && tamagotchiCharacterType === 'phoenix') {
+                // Slight delay so the bubble appears first, then the firebolt flies
+                setTimeout(() => playPhoenixStatusBurn(opinion.statusId), 280);
+            }
         } else {
             notifyMascotWorkEvent('idle', roamingConfig || window.config);
         }
@@ -28569,9 +28742,11 @@ function adjustTamagotchiWeight(delta, { silent = false } = {}) {
 function burnTamagotchiWeightFromActivity(intensity = 1, STORAGE_KEYS = null, options = {}) {
     const { announce = true } = options;
     const raw = Number(intensity);
-    const burn = Math.max(0.4, Math.min(8, Number.isFinite(raw) ? raw : 1));
+    // Games burn slowly — intensity is scaled down hard
+    const scaled = (Number.isFinite(raw) ? raw : 1) * 0.22;
+    const burn = Math.max(0.1, Math.min(2.2, scaled));
     const result = adjustTamagotchiWeight(-burn, { silent: true });
-    if (announce && result.delta < 0) {
+    if (announce && result.delta < -0.05) {
         const lost = Math.abs(Math.round(result.delta * 10) / 10);
         const msgs = MASCOT_MESSAGES.workout || ['Ίδρωσα!'];
         showMascotBubble(`${msgs[Math.floor(Math.random() * msgs.length)]} −${lost} kg`, 2000);
@@ -28582,13 +28757,17 @@ function burnTamagotchiWeightFromActivity(intensity = 1, STORAGE_KEYS = null, op
     return result;
 }
 
-function updateTamagotchiWeight(foodType = 'meal') {
-    const wasFull = petStats.hunger >= 90;
-    const stuffed = petStats.hunger >= 100;
-    let gain = foodType === 'snack' ? 2 : 1.2;
-    if (wasFull) gain += foodType === 'snack' ? 2.4 : 1.8;
-    if (stuffed) gain += 1.2;
-    if (tamagotchiWeight >= TAMA_WEIGHT_BOUNDS.overweight) gain *= 1.12;
+/**
+ * Weight from food — slow + probabilistic.
+ * @param {'meal'|'snack'} foodType
+ * @param {{ hungerBefore?: number }} [opts] hunger BEFORE this feed (critical for full vs hungry)
+ */
+function updateTamagotchiWeight(foodType = 'meal', opts = {}) {
+    const hungerBefore = Number.isFinite(Number(opts.hungerBefore))
+        ? Number(opts.hungerBefore)
+        : Number(petStats.hunger) || 0;
+    const isFull = hungerBefore >= 100;
+
     if (foodType === 'meal') tamagotchiMealCount++;
     else if (foodType === 'snack') tamagotchiSnackCount++;
 
@@ -28600,7 +28779,48 @@ function updateTamagotchiWeight(foodType = 'meal') {
         tamagotchiSnackCount = foodType === 'snack' ? 1 : 0;
     }
 
-    return adjustTamagotchiWeight(gain, { silent: !wasFull });
+    let gain = 0;
+    let rolled = false;
+
+    if (foodType === 'meal') {
+        // Meals only add weight when already full — still slow, not a huge jump
+        if (isFull) {
+            rolled = true;
+            // ~75% chance; small bump (faster than hungry-snack gains)
+            if (Math.random() < 0.75) {
+                gain = 0.35 + Math.random() * 0.35; // ~0.35–0.70 kg
+            }
+        }
+        // under 100%: meals never add kg
+    } else if (foodType === 'snack') {
+        rolled = true;
+        if (isFull) {
+            // Full + snack: gains a bit more often / slightly more
+            if (Math.random() < 0.55) {
+                gain = 0.25 + Math.random() * 0.3; // ~0.25–0.55 kg
+            }
+        } else {
+            // Hungry/partial: snacks only, rare + tiny
+            if (Math.random() < 0.22) {
+                gain = 0.1 + Math.random() * 0.15; // ~0.10–0.25 kg
+            }
+        }
+    }
+
+    if (!(gain > 0)) {
+        return {
+            before: tamagotchiWeight,
+            after: tamagotchiWeight,
+            delta: 0,
+            band: getTamagotchiWeightBand(),
+            gained: false,
+            rolled,
+            isFull,
+        };
+    }
+
+    const result = adjustTamagotchiWeight(gain, { silent: !isFull });
+    return { ...result, gained: true, rolled, isFull };
 }
 
 // Update weight display
@@ -28623,7 +28843,7 @@ function updateWeightDisplay() {
     }
 }
 
-/** Feed even when full — overfeeding adds extra kg. */
+/** Feed even when full — weight only climbs when already full (meals) or rare snacks. */
 function feedMascotCareAction(config, STORAGE_KEYS, foodType = 'meal') {
     if (tamagotchiIsDead) {
         showMascotBubble(MASCOT_MESSAGES.dead, 2000);
@@ -28637,7 +28857,8 @@ function feedMascotCareAction(config, STORAGE_KEYS, foodType = 'meal') {
     const pay = tryPayForMascotCare(STORAGE_KEYS, actionId, config);
     if (!pay.ok) return { ok: false, reason: 'pay', pay };
 
-    const wasFull = petStats.hunger >= 95;
+    const hungerBefore = Number(petStats.hunger) || 0;
+    const wasFull = hungerBefore >= 100;
     if (foodType === 'snack') {
         updatePetStats(config, STORAGE_KEYS, 20, 10);
     } else {
@@ -28646,23 +28867,35 @@ function feedMascotCareAction(config, STORAGE_KEYS, foodType = 'meal') {
             trackDailyStat(config, STORAGE_KEYS, 'feedMascot');
         }
     }
-    const weightResult = updateTamagotchiWeight(foodType);
+    const weightResult = updateTamagotchiWeight(foodType, { hungerBefore });
     tamagotchiLastFed = Date.now();
     setMascotState(config, 'eating', 2000);
 
     if (wasFull) {
         const msgs = MASCOT_MESSAGES.overfeed || MASCOT_MESSAGES.full;
         showMascotBubble(msgs[Math.floor(Math.random() * msgs.length)], 1800);
-        const band = weightResult.band || getTamagotchiWeightBand();
-        if (band.id === 'over' || band.id === 'obese' || band.id === 'critical') {
+        if (weightResult?.gained) {
+            const gained = Math.round((weightResult.delta || 0) * 10) / 10;
             setTimeout(() => {
-                const warn = MASCOT_MESSAGES.overweight || msgs;
-                showMascotBubble(`${warn[Math.floor(Math.random() * warn.length)]} (${formatTamagotchiWeightKg()})`, 2000);
-            }, 1600);
+                showMascotBubble(`+${gained} kg (${formatTamagotchiWeightKg()})`, 1800);
+            }, 1500);
+            const band = weightResult.band || getTamagotchiWeightBand();
+            if (band.id === 'over' || band.id === 'obese' || band.id === 'critical') {
+                setTimeout(() => {
+                    const warn = MASCOT_MESSAGES.overweight || msgs;
+                    showMascotBubble(`${warn[Math.floor(Math.random() * warn.length)]} (${formatTamagotchiWeightKg()})`, 2000);
+                }, 2800);
+            }
         }
     } else {
         const fallback = foodType === 'snack' ? MASCOT_MESSAGES.snack : MASCOT_MESSAGES.feed;
         announceMascotCarePayment(pay, fallback);
+        if (foodType === 'snack' && weightResult?.gained) {
+            const gained = Math.round((weightResult.delta || 0) * 10) / 10;
+            setTimeout(() => {
+                showMascotBubble(`Λίγο βάρος… +${gained} kg`, 1600);
+            }, 1600);
+        }
     }
     applyMascotCarePreference(actionId, config, STORAGE_KEYS);
     saveTamagotchiData(STORAGE_KEYS);
@@ -39983,6 +40216,9 @@ window.mascotMsg = mascotMsg;
 window.mascotMsgFmt = mascotMsgFmt;
 window.mascotRepairMsgs = mascotRepairMsgs;
 window.mascotRepairOpinion = mascotRepairOpinion;
+window.mascotRepairOpinionDetail = mascotRepairOpinionDetail;
+window.playPhoenixStatusBurn = playPhoenixStatusBurn;
+window.findRepairStatusMenuLink = findRepairStatusMenuLink;
 window.mascotRepairIsUrgent = mascotRepairIsUrgent;
 window.parseRepairStatusMenu = parseRepairStatusMenu;
 window.getRepairTotalAmountElement = getRepairTotalAmountElement;
