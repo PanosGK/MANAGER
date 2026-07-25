@@ -4434,6 +4434,8 @@
             .tm-shadow-silhouette[data-char="cat"]::after { content: '🐱'; }
             .tm-shadow-silhouette[data-char="phoenix"]::after { content: '🔥'; }
             .tm-shadow-silhouette[data-char="crystal"]::after { content: '💎'; }
+            .tm-shadow-silhouette[data-char="aether"]::after { content: '🌌'; }
+            .tm-shadow-silhouette[data-char="leviathan"]::after { content: '🐋'; }
             .tm-shadow-options { display: grid; gap: 8px; }
             .tm-shadow-opt {
                 display: flex; align-items: center; gap: 10px;
@@ -4657,6 +4659,9 @@
             /* Aether: slow, dignified hover — not bouncy */
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether {
                 animation: tm-mythic-idle-float 4.5s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-leviathan {
+                animation: tm-mythic-idle-float 5.2s ease-in-out infinite !important;
             }
             /* Stage aura tint — soft colored bloom (avoid heavy void black) */
             #tm-mascot-container.mascot-char-aether:has(.mascot-baby)::before {

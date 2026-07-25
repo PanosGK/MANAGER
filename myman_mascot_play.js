@@ -30,6 +30,24 @@ const MASCOT_TEACHABLE_TRICKS = {
         practiceNeeded: 6,
         chars: ['phoenix', 'dragon'],
     },
+    firebolt: {
+        id: 'firebolt',
+        name: 'Βολίδα',
+        nameEn: 'Firebolt',
+        state: 'firebreath',
+        practiceNeeded: 5,
+        chars: ['phoenix'],
+        desc: 'Ρίχνει φωτιά στο status του μενού όταν μιλάει για επισκευές.',
+    },
+    tempest: {
+        id: 'tempest',
+        name: 'Καταιγίδα',
+        nameEn: 'Tempest',
+        state: 'energized',
+        practiceNeeded: 5,
+        chars: ['leviathan'],
+        desc: 'Χτυπά αστραπή στο status του μενού όταν μιλάει για επισκευές.',
+    },
 };
 
 const MASCOT_TEACH_PRACTICE_KEY = 'practice'; // nested in taughtTricks.practice[trickId]
@@ -141,9 +159,38 @@ function performTaughtTrick(trickId, config, STORAGE_KEYS) {
         spin: ['Γύρω γύρω!', 'Στροβιλισμός!', 'Whee!'],
         bow: ['Υπόκλιση!', 'Με τιμή!', 'Χαχα…'],
         fire_breath: ['Φωτιά!', 'Καίγομαι!', 'Φλογερό!'],
+        firebolt: ['Βολίδα!', 'Κάψε το!', 'Φωτιά στο status!'],
+        tempest: ['Καταιγίδα!', 'Αστραπή!', 'Σφραγίδα θύελλας!'],
     };
     const pool = lines[trickId] || ['Τα-δα!'];
     showMascotBubble(pool[Math.floor(Math.random() * pool.length)], 2000);
+
+    if (trickId === 'firebolt' && typeof playPhoenixStatusBurn === 'function') {
+        const parsed = typeof parseRepairStatusMenu === 'function'
+            ? parseRepairStatusMenu()
+            : null;
+        const activeIds = parsed?.statusIdMap
+            ? Object.keys(parsed.statusIdMap).filter((id) => (parsed.statusIdMap[id]?.count || 0) > 0)
+            : [];
+        const targetId = activeIds.length
+            ? activeIds[Math.floor(Math.random() * activeIds.length)]
+            : '30';
+        setTimeout(() => playPhoenixStatusBurn(targetId, { requireUnlock: false }), 220);
+    }
+
+    if (trickId === 'tempest' && typeof playLeviathanStatusStorm === 'function') {
+        const parsed = typeof parseRepairStatusMenu === 'function'
+            ? parseRepairStatusMenu()
+            : null;
+        const activeIds = parsed?.statusIdMap
+            ? Object.keys(parsed.statusIdMap).filter((id) => (parsed.statusIdMap[id]?.count || 0) > 0)
+            : [];
+        const targetId = activeIds.length
+            ? activeIds[Math.floor(Math.random() * activeIds.length)]
+            : '30';
+        setTimeout(() => playLeviathanStatusStorm(targetId, { requireUnlock: false }), 220);
+    }
+
     if (STORAGE_KEYS) saveTamagotchiData(STORAGE_KEYS);
     return true;
 }
@@ -1041,8 +1088,8 @@ function getMascotPlayCareSectionHTML(STORAGE_KEYS) {
         const unlocked = taught.unlocked.includes(t.id);
         const prac = Number(taught.practice[t.id]) || 0;
         const label = unlocked ? `✓ ${t.name}` : `${t.name} ${prac}/${t.practiceNeeded}`;
-        return `<button type="button" class="tm-action-btn tm-teach-trick-btn ${unlocked ? 'tm-trick-unlocked' : ''}" data-trick="${t.id}" title="${t.nameEn}">
-            <span class="tm-action-icon">${t.id === 'fire_breath' ? '🔥' : t.id === 'bow' ? '🙇' : '🌀'}</span>
+        return `<button type="button" class="tm-action-btn tm-teach-trick-btn ${unlocked ? 'tm-trick-unlocked' : ''}" data-trick="${t.id}" title="${t.nameEn}${t.desc ? ` — ${t.desc}` : ''}">
+            <span class="tm-action-icon">${t.id === 'tempest' ? '⛈️' : t.id === 'firebolt' ? '☄️' : t.id === 'fire_breath' ? '🔥' : t.id === 'bow' ? '🙇' : '🌀'}</span>
             <span class="tm-action-label">${t.name}</span>
             <span class="tm-action-hint">${label}</span>
         </button>`;

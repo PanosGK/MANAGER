@@ -958,6 +958,7 @@
                             <button type="button" class="tm-mascot-char-btn" data-character="phoenix">Phoenix</button>
                             <button type="button" class="tm-mascot-char-btn" data-character="crystal">Crystal</button>
                             <button type="button" class="tm-mascot-char-btn" data-character="aether">Aether 🌌</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="leviathan">Leviathan 🐋</button>
                         </div>
                         ${(() => {
                             try {
@@ -2091,7 +2092,7 @@
                 const tamaData = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
                 if (tamaData) {
                     // Randomly select a character
-                    const characterTypes = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal'];
+                    const characterTypes = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether', 'leviathan'];
                     const selectedCharacter = characterTypes[Math.floor(Math.random() * characterTypes.length)];
                     
                     tamaData.age = 0;

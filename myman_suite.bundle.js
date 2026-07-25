@@ -10903,6 +10903,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             .tm-shadow-silhouette[data-char="cat"]::after { content: '🐱'; }
             .tm-shadow-silhouette[data-char="phoenix"]::after { content: '🔥'; }
             .tm-shadow-silhouette[data-char="crystal"]::after { content: '💎'; }
+            .tm-shadow-silhouette[data-char="aether"]::after { content: '🌌'; }
+            .tm-shadow-silhouette[data-char="leviathan"]::after { content: '🐋'; }
             .tm-shadow-options { display: grid; gap: 8px; }
             .tm-shadow-opt {
                 display: flex; align-items: center; gap: 10px;
@@ -11126,6 +11128,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             /* Aether: slow, dignified hover — not bouncy */
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether {
                 animation: tm-mythic-idle-float 4.5s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-leviathan {
+                animation: tm-mythic-idle-float 5.2s ease-in-out infinite !important;
             }
             /* Stage aura tint — soft colored bloom (avoid heavy void black) */
             #tm-mascot-container.mascot-char-aether:has(.mascot-baby)::before {
@@ -16029,6 +16034,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                             <button type="button" class="tm-mascot-char-btn" data-character="phoenix">Phoenix</button>
                             <button type="button" class="tm-mascot-char-btn" data-character="crystal">Crystal</button>
                             <button type="button" class="tm-mascot-char-btn" data-character="aether">Aether 🌌</button>
+                            <button type="button" class="tm-mascot-char-btn" data-character="leviathan">Leviathan 🐋</button>
                         </div>
                         ${(() => {
                             try {
@@ -17162,7 +17168,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 const tamaData = JSON.parse(GM_getValue(STORAGE_KEYS.TAMAGOTCHI_DATA, 'null'));
                 if (tamaData) {
                     // Randomly select a character
-                    const characterTypes = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal'];
+                    const characterTypes = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether', 'leviathan'];
                     const selectedCharacter = characterTypes[Math.floor(Math.random() * characterTypes.length)];
                     
                     tamaData.age = 0;
@@ -21317,7 +21323,7 @@ let petStats = { happiness: 100, hunger: 100, lastUpdate: Date.now() };
 // Tamagotchi state variables
 let tamagotchiAge = 0;
 let tamagotchiStage = 'egg'; // egg, baby, kid, teen, adult, middleage, old
-let tamagotchiCharacterType = 'none'; // none (egg), dragon, robot, slime, plant, ghost, cat, phoenix, crystal
+let tamagotchiCharacterType = 'none'; // none (egg), dragon, robot, slime, plant, ghost, cat, phoenix, crystal, aether, leviathan
 let tamagotchiHealth = 100;
 
 // Epic Character Data with lore and traits
@@ -21429,6 +21435,18 @@ const MASCOT_CHARACTERS = {
         traits: ['🌌 Veil Dominion', '⚔️ Blade Orbit', '🔮 Absolute Seal', '👁 Primordial Gaze'],
         traitsGr: ['🌌 Κυριαρχία Πέπλου', '⚔️ Τροχιά Λεπίδας', '🔮 Απόλυτη Σφραγίδα', '👁 Πρωταρχικό Βλέμμα'],
         prefs: { likes: ['praise', 'pet', 'lights_on'], dislikes: ['scold', 'lights_off'], favorite: 'praise' }
+    },
+    leviathan: {
+        name: 'Storm Leviathan', nameGr: 'Καταιγίδα Λεβιάθαν',
+        emoji: '🐋', color: '#0ea5e9', rarity: 'Mythical', rarityGr: 'Μυθικό',
+        element: 'Tempest & Depth', elementGr: 'Καταιγίδα & Βάθος',
+        description: 'Sky-whale god of pressure, lightning, and silent judgment',
+        descriptionGr: 'Θεός-φάλαινα του ουρανού — πίεση, αστραπή, σιωπηλή κρίση',
+        lore: 'Older than coastlines. A sky-whale armored in storm-plate, veins of living lightning, one hollow eye that freezes the air. It does not roar for sport — when the horizon splits, it has already decided.',
+        loreGr: 'Παλαιότερο από ακτές. Φάλαινα ουρανού με θώρακα καταιγίδας, φλέβες αστραπής, ένα κενό μάτι που παγώνει τον αέρα. Δεν βρυχάται για θέαμα — όταν σχίζεται ο ορίζοντας, έχει ήδη αποφασίσει.',
+        traits: ['⛈️ Tempest Crown', '👁 Apocalypse Eye', '🌊 Depth Call', '⚡ Split Sky'],
+        traitsGr: ['⛈️ Στέμμα Καταιγίδας', '👁 Μάτι Αποκάλυψης', '🌊 Κλήση Βάθους', '⚡ Σχισμένος Ουρανός'],
+        prefs: { likes: ['praise', 'lights_on', 'play'], dislikes: ['scold', 'lights_off', 'snack'], favorite: 'praise' }
     }
 };
 
@@ -21497,6 +21515,7 @@ const MASCOT_TRICK_BY_CHARACTER = {
     phoenix: 'energized',
     crystal: 'eureka',
     aether: 'energized',
+    leviathan: 'energized',
 };
 
 function getMascotCareCoinCost(actionId) {
@@ -21880,6 +21899,8 @@ function playMascotTrick(config, STORAGE_KEYS) {
         cat: ['Νιάου!', 'Περπατώ κομψά!', 'Γουργούρ!'],
         phoenix: ['Φτερούγες!', 'Αναγέννηση!', 'Φωτιά!'],
         crystal: ['Λάμψη!', 'Prism!', 'Κρύσταλλο!'],
+        aether: ['Σφραγίδα.', 'Το πέπλο.', 'Κρίνω.'],
+        leviathan: ['Η πίεση πέφτει.', 'Ο ορίζοντας σχίζεται.', 'Μην με δοκιμάζεις.'],
     };
     const pool = lines[tamagotchiCharacterType] || ['Τα-δα!', 'Κοίτα!', 'Τρικ!'];
     showMascotBubble(pool[Math.floor(Math.random() * pool.length)], 1800);
@@ -24085,12 +24106,12 @@ function getOfficeMinutesBetween(startMs, endMs) {
     return totalMs / 60000;
 }
 
-const TAMA_CHARACTER_TYPES = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether'];
+const TAMA_CHARACTER_TYPES = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether', 'leviathan'];
 
-/** Hatch weights — all equal except Mythical Aether (low spawn rate). */
+/** Hatch weights — Mythical Aether / Leviathan are rare. */
 const TAMA_CHARACTER_HATCH_WEIGHTS = {
     dragon: 10, robot: 10, slime: 10, plant: 10, ghost: 10, cat: 10,
-    crystal: 10, phoenix: 10, aether: 2,
+    crystal: 10, phoenix: 10, aether: 2, leviathan: 2,
 };
 
 function pickWeightedCharacterType(types = TAMA_CHARACTER_TYPES) {
@@ -24108,7 +24129,7 @@ function pickWeightedCharacterType(types = TAMA_CHARACTER_TYPES) {
 const MASCOT_CHAR_NAMES_GR = {
     dragon: 'Ember Sovereign', robot: 'Neon Colossus', slime: 'Abyssal Ooze', plant: 'Worldroot Warden',
     ghost: 'Veil Wraith', cat: 'Moonfang Oracle', phoenix: 'Ashborn Phoenix', crystal: 'Prism Titan',
-    aether: 'Starveil Aether'
+    aether: 'Starveil Aether', leviathan: 'Καταιγίδα Λεβιάθαν'
 };
 
 const MASCOT_MESSAGES = {
@@ -24615,10 +24636,20 @@ function findRepairStatusMenuLink(statusId, root = document) {
     return null;
 }
 
-/** Phoenix: throw a small firebolt from the mascot to a status menu row and briefly "burn" it. */
+/** Phoenix: throw a small firebolt from the mascot to a status menu row and briefly "burn" it.
+ *  Requires the unlockable «Βολίδα» (firebolt) trick unless options.requireUnlock === false (manual cast).
+ */
+function isPhoenixFireboltUnlocked() {
+    if (typeof isTrickUnlocked === 'function') return isTrickUnlocked('firebolt');
+    const unlocked = tamagotchiTaughtTricks?.unlocked;
+    return Array.isArray(unlocked) && unlocked.includes('firebolt');
+}
+
 function playPhoenixStatusBurn(statusId, options = {}) {
     if (tamagotchiCharacterType !== 'phoenix') return false;
     if (tamagotchiIsDead || tamagotchiStage === 'egg' || tamaCinematicLock) return false;
+    const requireUnlock = options.requireUnlock !== false;
+    if (requireUnlock && !isPhoenixFireboltUnlocked()) return false;
     const target = options.targetEl || findRepairStatusMenuLink(statusId);
     const mascot = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
     if (!target || !mascot) return false;
@@ -24755,6 +24786,420 @@ function ensurePhoenixBurnStyles() {
         }
     `;
     document.head.appendChild(style);
+}
+
+// ─── Storm Leviathan FX (random bursts + epic events — NOT always-on) ───
+let leviathanPresenceTimer = null;
+let leviathanEventTimer = null;
+let leviathanFxActive = false;
+
+const LEVIATHAN_EPIC_EVENTS = [
+    'godshadow',
+    'split_sky',
+    'eye_of_storm',
+    'apocalypse_glance',
+    'ascension_drift',
+    'depth_call',
+];
+
+function isLeviathanTempestUnlocked() {
+    if (typeof isTrickUnlocked === 'function') return isTrickUnlocked('tempest');
+    const unlocked = tamagotchiTaughtTricks?.unlocked;
+    return Array.isArray(unlocked) && unlocked.includes('tempest');
+}
+
+function ensureLeviathanStormStyles() {
+    if (document.getElementById('tm-leviathan-storm-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'tm-leviathan-storm-styles';
+    style.textContent = `
+        #tm-mascot-container.mascot-char-leviathan.tm-levi-aura-burst::before {
+            content: '';
+            position: absolute;
+            inset: -18px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+            background: radial-gradient(circle, rgba(14,165,233,0.28) 0%, rgba(2,6,23,0.15) 45%, transparent 72%);
+            box-shadow: 0 0 28px rgba(56,189,248,0.35), inset 0 0 20px rgba(14,165,233,0.15);
+            animation: tm-levi-aura-fade 2.4s ease-out forwards;
+        }
+        #tm-mascot-container.mascot-char-leviathan.tm-levi-aura-burst::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            pointer-events: none;
+            border: 1.5px solid rgba(125,211,252,0.35);
+            animation: tm-levi-ring-spin 2.2s linear forwards;
+        }
+        @keyframes tm-levi-aura-fade {
+            0% { opacity: 0; transform: scale(0.85); }
+            20% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.15); }
+        }
+        @keyframes tm-levi-ring-spin {
+            0% { opacity: 0; transform: rotate(0deg) scale(0.9); }
+            15% { opacity: 0.9; }
+            100% { opacity: 0; transform: rotate(160deg) scale(1.2); }
+        }
+        .tm-levi-particle {
+            position: fixed;
+            width: 3px;
+            height: 8px;
+            border-radius: 1px;
+            background: linear-gradient(180deg, #e0f2fe, #38bdf8 50%, transparent);
+            pointer-events: none;
+            z-index: 99990;
+            animation: tm-levi-rain-fall 1.4s ease-in forwards;
+        }
+        .tm-levi-particle.spark {
+            width: 4px; height: 4px; border-radius: 50%;
+            background: #7dd3fc;
+            box-shadow: 0 0 6px #38bdf8;
+            animation: tm-levi-spark 1.1s ease-out forwards;
+        }
+        @keyframes tm-levi-rain-fall {
+            0% { opacity: 0.9; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(48px); }
+        }
+        @keyframes tm-levi-spark {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.2) translateY(-18px); }
+        }
+        .tm-leviathan-vein {
+            animation: tm-levi-vein-pulse 2.8s ease-in-out infinite;
+        }
+        @keyframes tm-levi-vein-pulse {
+            0%, 100% { opacity: 0.35; }
+            50% { opacity: 0.85; }
+        }
+        .tm-levi-godshadow {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 99980;
+            background:
+                radial-gradient(ellipse 70% 28% at 50% 42%, rgba(2,12,28,0.55) 0%, transparent 70%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 120'%3E%3Cpath d='M20 70 Q80 30 160 55 Q240 20 320 50 Q360 60 380 70 Q300 95 200 85 Q100 100 20 70Z' fill='rgba(8,20,40,0.45)'/%3E%3C/svg%3E") center 38% / min(920px, 90vw) no-repeat;
+            animation: tm-levi-godshadow 4.2s ease-in-out forwards;
+        }
+        @keyframes tm-levi-godshadow {
+            0% { opacity: 0; transform: translateX(-8%); }
+            25% { opacity: 1; }
+            75% { opacity: 0.85; }
+            100% { opacity: 0; transform: translateX(10%); }
+        }
+        .tm-levi-split-sky {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 42vh;
+            pointer-events: none;
+            z-index: 99981;
+            background: linear-gradient(180deg, rgba(186,230,253,0.12), transparent 80%);
+            overflow: hidden;
+        }
+        .tm-levi-split-sky::before {
+            content: '';
+            position: absolute;
+            left: 48%;
+            top: -4%;
+            width: 3px;
+            height: 110%;
+            background: linear-gradient(180deg, #e0f2fe, #38bdf8 40%, transparent);
+            box-shadow: 0 0 18px #7dd3fc, 0 0 40px rgba(14,165,233,0.5);
+            transform: rotate(-8deg);
+            animation: tm-levi-split 2.8s ease-out forwards;
+        }
+        @keyframes tm-levi-split {
+            0% { opacity: 0; clip-path: inset(0 0 100% 0); }
+            20% { opacity: 1; clip-path: inset(0 0 0 0); }
+            70% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        #tm-mascot-container.tm-levi-eye-storm {
+            filter: drop-shadow(0 0 12px rgba(56,189,248,0.55));
+        }
+        #tm-mascot-container.tm-levi-eye-storm::before {
+            content: '';
+            position: absolute;
+            inset: -36px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+            background: radial-gradient(circle, transparent 38%, rgba(8,20,40,0.35) 62%, transparent 78%);
+            animation: tm-levi-calm 3s ease-in-out forwards;
+        }
+        @keyframes tm-levi-calm {
+            0%, 100% { opacity: 0; transform: scale(0.9); }
+            40% { opacity: 1; transform: scale(1); }
+        }
+        #tm-mascot-container.tm-levi-apocalypse .tm-leviathan-iris,
+        #tm-mascot-container.tm-levi-apocalypse .tm-leviathan-pupil {
+            filter: drop-shadow(0 0 8px #7dd3fc) brightness(1.6);
+        }
+        #tm-mascot-container.tm-levi-apocalypse {
+            animation: tm-levi-glance 2.4s ease-in-out;
+        }
+        @keyframes tm-levi-glance {
+            0%, 100% { filter: none; }
+            40% { filter: brightness(1.15) contrast(1.1); }
+        }
+        #tm-mascot-container.tm-levi-ascension {
+            animation: tm-levi-ascend 3.2s ease-in-out;
+            z-index: 99995 !important;
+        }
+        @keyframes tm-levi-ascend {
+            0%, 100% { margin-top: 0; }
+            40% { margin-top: -28px; }
+            55% { margin-top: -28px; }
+        }
+        .tm-levi-depth-call {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 99979;
+            background:
+                radial-gradient(ellipse 55% 40% at 50% 100%, rgba(14,165,233,0.22) 0%, transparent 60%),
+                linear-gradient(0deg, rgba(2,6,23,0.35) 0%, transparent 45%);
+            animation: tm-levi-depth 3.5s ease-in-out forwards;
+        }
+        .tm-levi-depth-call::before,
+        .tm-levi-depth-call::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            width: 2px;
+            height: 55%;
+            background: linear-gradient(0deg, transparent, rgba(125,211,252,0.55));
+            left: 35%;
+            animation: tm-levi-ray 3.2s ease-out forwards;
+        }
+        .tm-levi-depth-call::after { left: 62%; animation-delay: 0.15s; }
+        @keyframes tm-levi-depth {
+            0%, 100% { opacity: 0; }
+            30% { opacity: 1; }
+            70% { opacity: 1; }
+        }
+        @keyframes tm-levi-ray {
+            0% { opacity: 0; transform: scaleY(0.2); transform-origin: bottom; }
+            40% { opacity: 1; transform: scaleY(1); }
+            100% { opacity: 0; }
+        }
+        .tm-leviathan-status-storm {
+            position: relative !important;
+            animation: tm-levi-scorch 1.1s ease-out;
+            box-shadow: 0 0 0 2px rgba(56,189,248,0.5), 0 0 16px rgba(14,165,233,0.35) !important;
+            border-radius: 6px;
+        }
+        @keyframes tm-levi-scorch {
+            0% { filter: brightness(1); }
+            30% { filter: brightness(1.3) saturate(1.4); }
+            100% { filter: brightness(1); }
+        }
+        .tm-leviathan-bolt {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #e0f2fe;
+            box-shadow: 0 0 10px #38bdf8, 0 0 20px #0ea5e9;
+            pointer-events: none;
+            z-index: 99998;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function clearLeviathanPresenceBurst(container) {
+    if (!container) return;
+    container.classList.remove('tm-levi-aura-burst', 'tm-levi-eye-storm', 'tm-levi-apocalypse', 'tm-levi-ascension');
+}
+
+function spawnLeviathanParticles(mascot, count = 8) {
+    const rect = mascot.getBoundingClientRect();
+    if (!(rect.width > 0)) return;
+    for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'tm-levi-particle' + (i % 3 === 0 ? ' spark' : '');
+        el.style.left = `${rect.left + Math.random() * rect.width}px`;
+        el.style.top = `${rect.top + Math.random() * rect.height * 0.7}px`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1500);
+    }
+}
+
+function burstLeviathanPresence() {
+    if (tamagotchiCharacterType !== 'leviathan') return;
+    if (tamagotchiIsDead || tamagotchiStage === 'egg' || tamaCinematicLock) return;
+    if (tamagotchiIsSleeping || !tamagotchiLightsOn) return;
+    const mascot = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+    if (!mascot) return;
+    ensureLeviathanStormStyles();
+    clearLeviathanPresenceBurst(mascot);
+    const roll = Math.random();
+    if (roll < 0.55) {
+        mascot.classList.add('tm-levi-aura-burst');
+        setTimeout(() => mascot.classList.remove('tm-levi-aura-burst'), 2500);
+    }
+    if (roll > 0.3) {
+        spawnLeviathanParticles(mascot, 6 + Math.floor(Math.random() * 6));
+    }
+}
+
+function scheduleLeviathanPresenceBurst() {
+    if (leviathanPresenceTimer) clearTimeout(leviathanPresenceTimer);
+    if (!leviathanFxActive) return;
+    // Sparse: every 18–45s, not continuous
+    const delay = 18000 + Math.random() * 27000;
+    leviathanPresenceTimer = setTimeout(() => {
+        burstLeviathanPresence();
+        scheduleLeviathanPresenceBurst();
+    }, delay);
+}
+
+function playLeviathanEpicEvent(eventId) {
+    if (tamagotchiCharacterType !== 'leviathan') return false;
+    if (tamagotchiIsDead || tamagotchiStage === 'egg' || tamaCinematicLock) return false;
+    ensureLeviathanStormStyles();
+    const mascot = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+    const id = eventId || LEVIATHAN_EPIC_EVENTS[Math.floor(Math.random() * LEVIATHAN_EPIC_EVENTS.length)];
+
+    if (id === 'godshadow') {
+        const el = document.createElement('div');
+        el.className = 'tm-levi-godshadow';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 4300);
+        showMascotBubble('Η σκιά του ουρανού…', 2200);
+        return true;
+    }
+    if (id === 'split_sky') {
+        const el = document.createElement('div');
+        el.className = 'tm-levi-split-sky';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 2900);
+        showMascotBubble('Ο ορίζοντας σχίζεται.', 2200);
+        return true;
+    }
+    if (id === 'eye_of_storm' && mascot) {
+        mascot.classList.add('tm-levi-eye-storm');
+        setTimeout(() => mascot.classList.remove('tm-levi-eye-storm'), 3200);
+        showMascotBubble('Το μάτι της καταιγίδας.', 2000);
+        return true;
+    }
+    if (id === 'apocalypse_glance' && mascot) {
+        mascot.classList.add('tm-levi-apocalypse');
+        spawnLeviathanParticles(mascot, 4);
+        setTimeout(() => mascot.classList.remove('tm-levi-apocalypse'), 2500);
+        showMascotBubble('…', 1600);
+        return true;
+    }
+    if (id === 'ascension_drift' && mascot) {
+        mascot.classList.add('tm-levi-ascension');
+        setTimeout(() => mascot.classList.remove('tm-levi-ascension'), 3300);
+        showMascotBubble('Ανέρχομαι.', 2000);
+        return true;
+    }
+    if (id === 'depth_call') {
+        const el = document.createElement('div');
+        el.className = 'tm-levi-depth-call';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3600);
+        showMascotBubble('Βάθος και ουρανός.', 2200);
+        return true;
+    }
+    return false;
+}
+
+function scheduleLeviathanEpicEvent() {
+    if (leviathanEventTimer) clearTimeout(leviathanEventTimer);
+    if (!leviathanFxActive) return;
+    // Rare set-pieces: every 55–140s
+    const delay = 55000 + Math.random() * 85000;
+    leviathanEventTimer = setTimeout(() => {
+        if (tamagotchiCharacterType === 'leviathan'
+            && !tamagotchiIsDead && tamagotchiStage !== 'egg'
+            && tamagotchiLightsOn && !tamagotchiIsSleeping
+            && !tamaCinematicLock) {
+            playLeviathanEpicEvent();
+        }
+        scheduleLeviathanEpicEvent();
+    }, delay);
+}
+
+function stopLeviathanStormFx() {
+    leviathanFxActive = false;
+    if (leviathanPresenceTimer) {
+        clearTimeout(leviathanPresenceTimer);
+        leviathanPresenceTimer = null;
+    }
+    if (leviathanEventTimer) {
+        clearTimeout(leviathanEventTimer);
+        leviathanEventTimer = null;
+    }
+    const mascot = document.getElementById('tm-mascot-container');
+    clearLeviathanPresenceBurst(mascot);
+    document.querySelectorAll('.tm-levi-godshadow, .tm-levi-split-sky, .tm-levi-depth-call, .tm-levi-particle')
+        .forEach((el) => el.remove());
+}
+
+function syncLeviathanStormFx(stage) {
+    if (tamagotchiCharacterType !== 'leviathan' || tamagotchiIsDead || stage === 'egg') {
+        stopLeviathanStormFx();
+        return;
+    }
+    ensureLeviathanStormStyles();
+    if (leviathanFxActive) return;
+    leviathanFxActive = true;
+    // First presence after a short delay — never always-on
+    if (leviathanPresenceTimer) clearTimeout(leviathanPresenceTimer);
+    leviathanPresenceTimer = setTimeout(() => {
+        burstLeviathanPresence();
+        scheduleLeviathanPresenceBurst();
+    }, 8000 + Math.random() * 10000);
+    scheduleLeviathanEpicEvent();
+}
+
+/** Leviathan tempest bolt — lightning brand on a status row (teachable trick). */
+function playLeviathanStatusStorm(statusId, options = {}) {
+    if (tamagotchiCharacterType !== 'leviathan') return false;
+    if (tamagotchiIsDead || tamagotchiStage === 'egg' || tamaCinematicLock) return false;
+    const requireUnlock = options.requireUnlock !== false;
+    if (requireUnlock && !isLeviathanTempestUnlocked()) return false;
+    const target = options.targetEl || findRepairStatusMenuLink(statusId);
+    const mascot = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+    if (!target || !mascot) return false;
+
+    ensureLeviathanStormStyles();
+    const from = mascot.getBoundingClientRect();
+    const to = target.getBoundingClientRect();
+    if (!(from.width > 0) || !(to.width > 0)) return false;
+
+    const startX = from.left + from.width * 0.55;
+    const startY = from.top + from.height * 0.35;
+    const endX = to.left + to.width * 0.55;
+    const endY = to.top + to.height * 0.5;
+    const dx = endX - startX;
+    const dy = endY - startY;
+    const dist = Math.hypot(dx, dy);
+    const duration = Math.max(380, Math.min(850, dist * 0.8));
+
+    const bolt = document.createElement('div');
+    bolt.className = 'tm-leviathan-bolt';
+    bolt.style.left = `${startX}px`;
+    bolt.style.top = `${startY}px`;
+    document.body.appendChild(bolt);
+    const anim = bolt.animate([
+        { transform: 'translate(0,0) scale(1)', offset: 0 },
+        { transform: `translate(${dx * 0.5}px, ${dy * 0.45 - 18}px) scale(1.4)`, offset: 0.45 },
+        { transform: `translate(${dx}px, ${dy}px) scale(0.6)`, offset: 1 },
+    ], { duration, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', fill: 'forwards' });
+    anim.onfinish = () => {
+        bolt.remove();
+        target.classList.add('tm-leviathan-status-storm');
+        setTimeout(() => target.classList.remove('tm-leviathan-status-storm'), 1100);
+    };
+    return true;
 }
 
 function mascotRepairIsUrgent(statusIdMap) {
@@ -25412,6 +25857,7 @@ const MASCOT_EDGE_PAD = 8;
 const MASCOT_OVERFLOW_SLACK = { top: 36, right: 16, bottom: 20, left: 16 };
 /** Extra keep-inside padding for Aether wings / glow (CSS paint is not in getBoundingClientRect). */
 const MASCOT_AETHER_OVERFLOW_SLACK = { top: 48, right: 52, bottom: 28, left: 52 };
+const MASCOT_LEVIATHAN_OVERFLOW_SLACK = { top: 44, right: 36, bottom: 28, left: 36 };
 
 function cacheMascotScreenInfo() {
     const scr = window.screen;
@@ -25518,9 +25964,13 @@ function getMascotViewportRect() {
 
 /** Character-aware minimum overflow so painted FX stay inside the monitor frame. */
 function getMascotKeepInsideSlack(container = document.getElementById('tm-mascot-container')) {
-    const isAether = !!(container?.classList?.contains('mascot-char-aether')
-        || tamagotchiCharacterType === 'aether');
-    return { ...(isAether ? MASCOT_AETHER_OVERFLOW_SLACK : MASCOT_OVERFLOW_SLACK) };
+    if (container?.classList?.contains('mascot-char-aether') || tamagotchiCharacterType === 'aether') {
+        return { ...MASCOT_AETHER_OVERFLOW_SLACK };
+    }
+    if (container?.classList?.contains('mascot-char-leviathan') || tamagotchiCharacterType === 'leviathan') {
+        return { ...MASCOT_LEVIATHAN_OVERFLOW_SLACK };
+    }
+    return { ...MASCOT_OVERFLOW_SLACK };
 }
 
 /** How far painted content (bubble, hats, flames) extends beyond the 100×100 box. */
@@ -25864,9 +26314,12 @@ async function moveToNewPosition() {
             const opinion = mascotRepairOpinionDetail(parsed.statusIdMap, parsed.totalRepairs);
             showMascotBubble(opinion.text, 2500);
             setMascotMood(petStats.hunger < 35 ? 'hungry' : 'curious', 7000);
-            if (opinion.statusId && tamagotchiCharacterType === 'phoenix') {
+            if (opinion.statusId && tamagotchiCharacterType === 'phoenix' && isPhoenixFireboltUnlocked()) {
                 // Slight delay so the bubble appears first, then the firebolt flies
                 setTimeout(() => playPhoenixStatusBurn(opinion.statusId), 280);
+            }
+            if (opinion.statusId && tamagotchiCharacterType === 'leviathan' && isLeviathanTempestUnlocked()) {
+                setTimeout(() => playLeviathanStatusStorm(opinion.statusId), 280);
             }
         } else {
             notifyMascotWorkEvent('idle', roamingConfig || window.config);
@@ -28742,9 +29195,9 @@ function adjustTamagotchiWeight(delta, { silent = false } = {}) {
 function burnTamagotchiWeightFromActivity(intensity = 1, STORAGE_KEYS = null, options = {}) {
     const { announce = true } = options;
     const raw = Number(intensity);
-    // Games burn slowly — intensity is scaled down hard
-    const scaled = (Number.isFinite(raw) ? raw : 1) * 0.22;
-    const burn = Math.max(0.1, Math.min(2.2, scaled));
+    // Loss outpaces food gains so overweight pets can slim down quickly
+    const scaled = (Number.isFinite(raw) ? raw : 1) * 0.62;
+    const burn = Math.max(0.25, Math.min(5.5, scaled));
     const result = adjustTamagotchiWeight(-burn, { silent: true });
     if (announce && result.delta < -0.05) {
         const lost = Math.abs(Math.round(result.delta * 10) / 10);
@@ -28783,26 +29236,24 @@ function updateTamagotchiWeight(foodType = 'meal', opts = {}) {
     let rolled = false;
 
     if (foodType === 'meal') {
-        // Meals only add weight when already full — still slow, not a huge jump
+        // Meals only add weight when already full — slow vs games/gym burn
         if (isFull) {
             rolled = true;
-            // ~75% chance; small bump (faster than hungry-snack gains)
-            if (Math.random() < 0.75) {
-                gain = 0.35 + Math.random() * 0.35; // ~0.35–0.70 kg
+            if (Math.random() < 0.55) {
+                gain = 0.18 + Math.random() * 0.22; // ~0.18–0.40 kg
             }
         }
         // under 100%: meals never add kg
     } else if (foodType === 'snack') {
         rolled = true;
         if (isFull) {
-            // Full + snack: gains a bit more often / slightly more
-            if (Math.random() < 0.55) {
-                gain = 0.25 + Math.random() * 0.3; // ~0.25–0.55 kg
+            if (Math.random() < 0.4) {
+                gain = 0.12 + Math.random() * 0.2; // ~0.12–0.32 kg
             }
         } else {
             // Hungry/partial: snacks only, rare + tiny
-            if (Math.random() < 0.22) {
-                gain = 0.1 + Math.random() * 0.15; // ~0.10–0.25 kg
+            if (Math.random() < 0.18) {
+                gain = 0.06 + Math.random() * 0.1; // ~0.06–0.16 kg
             }
         }
     }
@@ -37324,6 +37775,494 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path class="tm-mascot-mouth-happy" d="M 45 28 Q 50 30.0 55 28" stroke="#1a100c" stroke-width="1.5" fill="none" stroke-linecap="round"/>
                         <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 30.0 Q 50 27.0 55 30.0" stroke="#1a100c" stroke-width="1.5" fill="none" stroke-linecap="round"/>
                 </g>
+                <!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · sky-whale) -->
+                <!-- LEVIATHAN BABY — Storm Calf -->
+                <g id="tm-mascot-baby-leviathan" style="display: none;">
+                    <defs>
+                        <radialGradient id="leviathan-baby-body" cx="42%" cy="30%" r="78%">
+                            <stop offset="0%" style="stop-color:#3d5a80;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#1b2a44;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#0a1424;stop-opacity:1" />
+                        </radialGradient>
+                        <radialGradient id="leviathan-baby-belly" cx="50%" cy="45%" r="55%">
+                            <stop offset="0%" style="stop-color:#4a6a8a;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#0c1828;stop-opacity:0.95" />
+                        </radialGradient>
+                        <radialGradient id="leviathan-baby-iris" cx="40%" cy="35%" r="70%">
+                            <stop offset="0%" style="stop-color:#e0f2fe;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#38bdf8;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#020617;stop-opacity:1" />
+                        </radialGradient>
+                        <linearGradient id="leviathan-baby-fin" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#1e3a5f;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#02060c;stop-opacity:1" />
+                        </linearGradient>
+                        <filter id="leviathan-baby-glow" x="-40%" y="-40%" width="180%" height="180%">
+                            <feGaussianBlur stdDeviation="1.2" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                    </defs>
+                        <ellipse cx="50" cy="96" rx="18" ry="4.5" fill="#02060c" opacity="0.4"/>
+                        <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
+                            <!-- Sky-whale torso -->
+                            <ellipse cx="50" cy="52" rx="16" ry="20" fill="url(#leviathan-baby-body)" stroke="#1e3a5f" stroke-width="1.5"/>
+                            <ellipse cx="50" cy="56" rx="9.9" ry="11.0" fill="url(#leviathan-baby-belly)" opacity="0.85"/>
+                            <ellipse cx="50" cy="40" rx="14" ry="3.2" fill="#243b55" stroke="#1e3a5f" stroke-width="0.8" opacity="0.55"/>
+                            <path class="tm-leviathan-vein" d="M 28 42 Q 40 48 55 44" stroke="#7dd3fc" stroke-width="1.1" fill="none" opacity="0.45" filter="url(#leviathan-baby-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 45 38 Q 58 50 72 46" stroke="#7dd3fc" stroke-width="1.25" fill="none" opacity="0.53" filter="url(#leviathan-baby-glow)"/>
+                            <!-- Head / snout -->
+                            <ellipse cx="50" cy="28" rx="11" ry="10" fill="url(#leviathan-baby-body)" stroke="#1e3a5f" stroke-width="1.45"/>
+                            <path d="M 53.85 30 Q 65 32 55.5 36" fill="url(#leviathan-baby-body)" stroke="#1e3a5f" stroke-width="1.1" opacity="0.9"/>
+                        </g>
+                        <g class="tm-animate-wing-left">
+                            <path d="M 32 48 Q 12 40 8 55 Q 18 62 32 56 Z" fill="url(#leviathan-baby-fin)" stroke="#1e3a5f" stroke-width="1.2" opacity="0.92"/>
+                            <path d="M 28 50 L 14 48" stroke="#7dd3fc" stroke-width="0.8" opacity="0.5"/>
+                        </g>
+                        <g class="tm-animate-wing-right">
+                            <path d="M 68 48 Q 88 40 92 55 Q 82 62 68 56 Z" fill="url(#leviathan-baby-fin)" stroke="#1e3a5f" stroke-width="1.2" opacity="0.92"/>
+                            <path d="M 72 50 L 86 48" stroke="#7dd3fc" stroke-width="0.8" opacity="0.5"/>
+                        </g>
+                        <g class="tm-animate-arm-left">
+                            <path d="M 36 62 Q 22 68 24 78 Q 34 76 40 70 Z" fill="url(#leviathan-baby-fin)" stroke="#1e3a5f" stroke-width="1.1" opacity="0.88"/>
+                        </g>
+                        <g class="tm-animate-arm-right">
+                            <path d="M 64 62 Q 78 68 76 78 Q 66 76 60 70 Z" fill="url(#leviathan-baby-fin)" stroke="#1e3a5f" stroke-width="1.1" opacity="0.88"/>
+                        </g>
+                        <g class="tm-animate-leg-left">
+                            <path d="M 42 78 Q 36 90 44 92 Q 48 86 46 80 Z" fill="url(#leviathan-baby-body)" stroke="#1e3a5f" stroke-width="1" opacity="0.8"/>
+                        </g>
+                        <g class="tm-animate-leg-right">
+                            <path d="M 58 78 Q 64 90 56 92 Q 52 86 54 80 Z" fill="url(#leviathan-baby-body)" stroke="#1e3a5f" stroke-width="1" opacity="0.8"/>
+                        </g>
+                        <g class="tm-animate-tail">
+                            <path d="M 50 78 Q 50 90 42 96 Q 50 92 58 96 Q 50 90 50 78" fill="url(#leviathan-baby-fin)" stroke="#1e3a5f" stroke-width="1.2" opacity="0.9"/>
+                            <path d="M 50 82 L 50 94" stroke="#7dd3fc" stroke-width="0.9" opacity="0.55"/>
+                        </g>
+                        <g class="tm-mascot-eye-open tm-leviathan-eye">
+                            <ellipse cx="56" cy="26" rx="5.1" ry="5.0" fill="#7dd3fc" opacity="0.1"/>
+                            <ellipse cx="56" cy="26" rx="3.8" ry="4.2" fill="#e0f2fe" stroke="#1e3a5f" stroke-width="1.4" opacity="0.9"/>
+                            <ellipse class="tm-leviathan-iris" cx="56" cy="26" rx="2.4" ry="2.6" fill="url(#leviathan-baby-iris)"/>
+                            <circle class="tm-leviathan-pupil" cx="56" cy="26" r="1.1" fill="#02060c"/>
+                            <circle cx="55.2" cy="24.9" r="0.8" fill="#fff" opacity="0.35"/>
+                        </g>
+                        <g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 52.2 26 Q 56 24 59.8 26" stroke="#1e3a5f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+                        </g>
+                        <path class="tm-mascot-mouth-happy" d="M 43 34 Q 50 35.5 57 34" stroke="#1e3a5f" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 36.0 Q 50 33.0 57 36.0" stroke="#1e3a5f" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                </g>
+
+                <!-- LEVIATHAN KID — Gale Spawn -->
+                <g id="tm-mascot-evo1-leviathan" style="display: none;">
+                    <defs>
+                        <radialGradient id="leviathan-kid-body" cx="42%" cy="30%" r="78%">
+                            <stop offset="0%" style="stop-color:#2a4a6e;stop-opacity:1" />
+                            <stop offset="40%" style="stop-color:#132438;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#060e18;stop-opacity:1" />
+                        </radialGradient>
+                        <radialGradient id="leviathan-kid-belly" cx="50%" cy="45%" r="55%">
+                            <stop offset="0%" style="stop-color:#3a5570;stop-opacity:0.88" />
+                            <stop offset="100%" style="stop-color:#081018;stop-opacity:0.96" />
+                        </radialGradient>
+                        <radialGradient id="leviathan-kid-iris" cx="40%" cy="35%" r="70%">
+                            <stop offset="0%" style="stop-color:#bae6fd;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#0ea5e9;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#020617;stop-opacity:1" />
+                        </radialGradient>
+                        <linearGradient id="leviathan-kid-fin" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#152a44;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#02060c;stop-opacity:1" />
+                        </linearGradient>
+                        <filter id="leviathan-kid-glow" x="-40%" y="-40%" width="180%" height="180%">
+                            <feGaussianBlur stdDeviation="1.2" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                    </defs>
+                        <ellipse cx="50" cy="96" rx="20" ry="4.5" fill="#02060c" opacity="0.4"/>
+                        <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
+                            <!-- Sky-whale torso -->
+                            <ellipse cx="50" cy="52" rx="18" ry="24" fill="url(#leviathan-kid-body)" stroke="#0f2744" stroke-width="1.5"/>
+                            <ellipse cx="50" cy="56" rx="11.2" ry="13.2" fill="url(#leviathan-kid-belly)" opacity="0.85"/>
+                            <ellipse cx="50" cy="40" rx="14" ry="3.2" fill="#1a3050" stroke="#0f2744" stroke-width="0.8" opacity="0.55"/>
+                            <ellipse cx="50" cy="50" rx="12.5" ry="3.2" fill="#1a3050" stroke="#0f2744" stroke-width="0.8" opacity="0.55"/>
+                            <path class="tm-leviathan-vein" d="M 28 42 Q 40 48 55 44" stroke="#67e8f9" stroke-width="1.1" fill="none" opacity="0.45" filter="url(#leviathan-kid-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 45 38 Q 58 50 72 46" stroke="#67e8f9" stroke-width="1.25" fill="none" opacity="0.53" filter="url(#leviathan-kid-glow)"/>
+                            <!-- Head / snout -->
+                            <ellipse cx="50" cy="24" rx="12" ry="11" fill="url(#leviathan-kid-body)" stroke="#0f2744" stroke-width="1.45"/>
+                            <path d="M 54.2 26 Q 66 28 56 32" fill="url(#leviathan-kid-body)" stroke="#0f2744" stroke-width="1.1" opacity="0.9"/>
+                        </g>
+                        <g class="tm-animate-wing-left">
+                            <path d="M 32 48 Q 12 40 8 55 Q 18 62 32 56 Z" fill="url(#leviathan-kid-fin)" stroke="#0f2744" stroke-width="1.2" opacity="0.92"/>
+                            <path d="M 28 50 L 14 48" stroke="#67e8f9" stroke-width="0.8" opacity="0.5"/>
+                        </g>
+                        <g class="tm-animate-wing-right">
+                            <path d="M 68 48 Q 88 40 92 55 Q 82 62 68 56 Z" fill="url(#leviathan-kid-fin)" stroke="#0f2744" stroke-width="1.2" opacity="0.92"/>
+                            <path d="M 72 50 L 86 48" stroke="#67e8f9" stroke-width="0.8" opacity="0.5"/>
+                        </g>
+                        <g class="tm-animate-arm-left">
+                            <path d="M 36 62 Q 22 68 24 78 Q 34 76 40 70 Z" fill="url(#leviathan-kid-fin)" stroke="#0f2744" stroke-width="1.1" opacity="0.88"/>
+                        </g>
+                        <g class="tm-animate-arm-right">
+                            <path d="M 64 62 Q 78 68 76 78 Q 66 76 60 70 Z" fill="url(#leviathan-kid-fin)" stroke="#0f2744" stroke-width="1.1" opacity="0.88"/>
+                        </g>
+                        <g class="tm-animate-leg-left">
+                            <path d="M 42 78 Q 36 90 44 92 Q 48 86 46 80 Z" fill="url(#leviathan-kid-body)" stroke="#0f2744" stroke-width="1" opacity="0.8"/>
+                        </g>
+                        <g class="tm-animate-leg-right">
+                            <path d="M 58 78 Q 64 90 56 92 Q 52 86 54 80 Z" fill="url(#leviathan-kid-body)" stroke="#0f2744" stroke-width="1" opacity="0.8"/>
+                        </g>
+                        <g class="tm-animate-tail">
+                            <path d="M 50 78 Q 50 90 42 96 Q 50 92 58 96 Q 50 90 50 78" fill="url(#leviathan-kid-fin)" stroke="#0f2744" stroke-width="1.2" opacity="0.9"/>
+                            <path d="M 50 82 L 50 94" stroke="#67e8f9" stroke-width="0.9" opacity="0.55"/>
+                        </g>
+                        <g class="tm-mascot-eye-open tm-leviathan-eye">
+                            <ellipse cx="57" cy="22" rx="5.7" ry="5.5" fill="#67e8f9" opacity="0.1"/>
+                            <ellipse cx="57" cy="22" rx="4.2" ry="4.6" fill="#e0f2fe" stroke="#0f2744" stroke-width="1.4" opacity="0.9"/>
+                            <ellipse class="tm-leviathan-iris" cx="57" cy="22" rx="2.6" ry="2.9" fill="url(#leviathan-kid-iris)"/>
+                            <circle class="tm-leviathan-pupil" cx="57" cy="22" r="1.2" fill="#02060c"/>
+                            <circle cx="56.2" cy="20.9" r="0.8" fill="#fff" opacity="0.35"/>
+                        </g>
+                        <g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 52.8 22 Q 57 20 61.2 22" stroke="#0f2744" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+                        </g>
+                        <path class="tm-mascot-mouth-happy" d="M 43 32 Q 50 33.5 57 32" stroke="#0f2744" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 34.0 Q 50 31.0 57 34.0" stroke="#0f2744" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                </g>
+
+                <!-- LEVIATHAN TEEN — Thunderback -->
+                <g id="tm-mascot-evo2-leviathan" style="display: none;">
+                    <defs>
+                        <radialGradient id="leviathan-teen-body" cx="42%" cy="30%" r="78%">
+                            <stop offset="0%" style="stop-color:#1e3a5a;stop-opacity:1" />
+                            <stop offset="35%" style="stop-color:#0c1a2c;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#050c16;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#02060c;stop-opacity:1" />
+                        </radialGradient>
+                        <radialGradient id="leviathan-teen-belly" cx="50%" cy="45%" r="55%">
+                            <stop offset="0%" style="stop-color:#2a4058;stop-opacity:0.85" />
+                            <stop offset="100%" style="stop-color:#040a12;stop-opacity:0.97" />
+                        </radialGradient>
+                        <radialGradient id="leviathan-teen-iris" cx="40%" cy="35%" r="70%">
+                            <stop offset="0%" style="stop-color:#a5f3fc;stop-opacity:1" />
+                            <stop offset="40%" style="stop-color:#06b6d4;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
+                        </radialGradient>
+                        <linearGradient id="leviathan-teen-fin" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#0e2038;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#02060c;stop-opacity:1" />
+                        </linearGradient>
+                        <filter id="leviathan-teen-glow" x="-40%" y="-40%" width="180%" height="180%">
+                            <feGaussianBlur stdDeviation="1.2" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                    </defs>
+                        <ellipse cx="50" cy="96" rx="24" ry="4.5" fill="#02060c" opacity="0.4"/>
+                        <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
+                            <!-- Sky-whale torso -->
+                            <ellipse cx="50" cy="52" rx="20" ry="26" fill="url(#leviathan-teen-body)" stroke="#0a1e36" stroke-width="1.5"/>
+                            <ellipse cx="50" cy="56" rx="12.4" ry="14.3" fill="url(#leviathan-teen-belly)" opacity="0.85"/>
+                            <ellipse cx="50" cy="40" rx="14" ry="3.2" fill="#152840" stroke="#0a1e36" stroke-width="0.8" opacity="0.55"/>
+                            <ellipse cx="50" cy="50" rx="12.5" ry="3.2" fill="#152840" stroke="#0a1e36" stroke-width="0.8" opacity="0.55"/>
+                            <ellipse cx="50" cy="60" rx="11" ry="3.2" fill="#152840" stroke="#0a1e36" stroke-width="0.8" opacity="0.55"/>
+                            <path class="tm-leviathan-vein" d="M 28 42 Q 40 48 55 44" stroke="#22d3ee" stroke-width="1.1" fill="none" opacity="0.45" filter="url(#leviathan-teen-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 45 38 Q 58 50 72 46" stroke="#22d3ee" stroke-width="1.25" fill="none" opacity="0.53" filter="url(#leviathan-teen-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 32 58 Q 50 62 68 56" stroke="#22d3ee" stroke-width="1.4000000000000001" fill="none" opacity="0.61" filter="url(#leviathan-teen-glow)"/>
+                            <!-- Head / snout -->
+                            <ellipse cx="50" cy="22" rx="13" ry="11.5" fill="url(#leviathan-teen-body)" stroke="#0a1e36" stroke-width="1.45"/>
+                            <path d="M 54.55 24 Q 67 26 56.5 30" fill="url(#leviathan-teen-body)" stroke="#0a1e36" stroke-width="1.1" opacity="0.9"/>
+                        </g>
+                        <g class="tm-animate-wing-left">
+                            <path d="M 32 48 Q 12 40 8 55 Q 18 62 32 56 Z" fill="url(#leviathan-teen-fin)" stroke="#0a1e36" stroke-width="1.2" opacity="0.92"/>
+                            <path d="M 28 50 L 14 48" stroke="#22d3ee" stroke-width="0.8" opacity="0.5"/>
+                        </g>
+                        <g class="tm-animate-wing-right">
+                            <path d="M 68 48 Q 88 40 92 55 Q 82 62 68 56 Z" fill="url(#leviathan-teen-fin)" stroke="#0a1e36" stroke-width="1.2" opacity="0.92"/>
+                            <path d="M 72 50 L 86 48" stroke="#22d3ee" stroke-width="0.8" opacity="0.5"/>
+                        </g>
+                        <g class="tm-animate-arm-left">
+                            <path d="M 36 62 Q 22 68 24 78 Q 34 76 40 70 Z" fill="url(#leviathan-teen-fin)" stroke="#0a1e36" stroke-width="1.1" opacity="0.88"/>
+                        </g>
+                        <g class="tm-animate-arm-right">
+                            <path d="M 64 62 Q 78 68 76 78 Q 66 76 60 70 Z" fill="url(#leviathan-teen-fin)" stroke="#0a1e36" stroke-width="1.1" opacity="0.88"/>
+                        </g>
+                        <g class="tm-animate-leg-left">
+                            <path d="M 42 78 Q 36 90 44 92 Q 48 86 46 80 Z" fill="url(#leviathan-teen-body)" stroke="#0a1e36" stroke-width="1" opacity="0.8"/>
+                        </g>
+                        <g class="tm-animate-leg-right">
+                            <path d="M 58 78 Q 64 90 56 92 Q 52 86 54 80 Z" fill="url(#leviathan-teen-body)" stroke="#0a1e36" stroke-width="1" opacity="0.8"/>
+                        </g>
+                        <g class="tm-animate-tail">
+                            <path d="M 50 78 Q 50 90 42 96 Q 50 92 58 96 Q 50 90 50 78" fill="url(#leviathan-teen-fin)" stroke="#0a1e36" stroke-width="1.2" opacity="0.9"/>
+                            <path d="M 50 82 L 50 94" stroke="#22d3ee" stroke-width="0.9" opacity="0.55"/>
+                        </g>
+                        <g class="tm-mascot-eye-open tm-leviathan-eye">
+                            <ellipse cx="58" cy="20" rx="7.8" ry="7.8" fill="#22d3ee" opacity="0.18"/>
+                            <ellipse cx="58" cy="20" rx="5.8" ry="6.0" fill="#22d3ee" opacity="0.12"/>
+                            <ellipse cx="58" cy="20" rx="4.6" ry="5.2" fill="#f0f9ff" stroke="#0a1e36" stroke-width="1.4" opacity="0.9"/>
+                            <ellipse class="tm-leviathan-iris" cx="58" cy="20" rx="2.9" ry="3.2" fill="url(#leviathan-teen-iris)"/>
+                            <circle class="tm-leviathan-pupil" cx="58" cy="20" r="1.3" fill="#02060c"/>
+                            <circle cx="57.1" cy="18.7" r="0.8" fill="#fff" opacity="0.35"/>
+                        </g>
+                        <g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 53.4 20 Q 58 18 62.6 20" stroke="#0a1e36" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+                        </g>
+                        <path class="tm-mascot-mouth-happy" d="M 41 30 Q 50 31.5 59 30" stroke="#0a1e36" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 32.0 Q 50 29.0 59 32.0" stroke="#0a1e36" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                </g>
+
+                <!-- LEVIATHAN ADULT — Storm Leviathan -->
+                <g id="tm-mascot-evo3-leviathan" style="display: none;">
+                    <defs>
+                        <radialGradient id="leviathan-adult-body" cx="42%" cy="30%" r="78%">
+                            <stop offset="0%" style="stop-color:#1a3350;stop-opacity:1" />
+                            <stop offset="25%" style="stop-color:#0a1828;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#040a14;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#010408;stop-opacity:1" />
+                        </radialGradient>
+                        <radialGradient id="leviathan-adult-belly" cx="50%" cy="45%" r="55%">
+                            <stop offset="0%" style="stop-color:#1e3048;stop-opacity:0.85" />
+                            <stop offset="100%" style="stop-color:#02060c;stop-opacity:0.98" />
+                        </radialGradient>
+                        <radialGradient id="leviathan-adult-iris" cx="40%" cy="35%" r="70%">
+                            <stop offset="0%" style="stop-color:#ecfeff;stop-opacity:1" />
+                            <stop offset="35%" style="stop-color:#22d3ee;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
+                        </radialGradient>
+                        <linearGradient id="leviathan-adult-fin" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#0a1830;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#02060c;stop-opacity:1" />
+                        </linearGradient>
+                        <filter id="leviathan-adult-glow" x="-40%" y="-40%" width="180%" height="180%">
+                            <feGaussianBlur stdDeviation="1.2" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                    </defs>
+                        <ellipse cx="50" cy="96" rx="28" ry="4.5" fill="#02060c" opacity="0.4"/>
+                        <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
+                            <!-- Sky-whale torso -->
+                            <ellipse cx="50" cy="52" rx="22" ry="28" fill="url(#leviathan-adult-body)" stroke="#061018" stroke-width="1.5"/>
+                            <ellipse cx="50" cy="56" rx="13.6" ry="15.4" fill="url(#leviathan-adult-belly)" opacity="0.85"/>
+                            <ellipse cx="50" cy="40" rx="14" ry="3.2" fill="#0e2038" stroke="#061018" stroke-width="0.8" opacity="0.55"/>
+                            <ellipse cx="50" cy="50" rx="12.5" ry="3.2" fill="#0e2038" stroke="#061018" stroke-width="0.8" opacity="0.55"/>
+                            <ellipse cx="50" cy="60" rx="11" ry="3.2" fill="#0e2038" stroke="#061018" stroke-width="0.8" opacity="0.55"/>
+                            <ellipse cx="50" cy="70" rx="9.5" ry="3.2" fill="#0e2038" stroke="#061018" stroke-width="0.8" opacity="0.55"/>
+                            <path class="tm-leviathan-vein" d="M 28 42 Q 40 48 55 44" stroke="#67e8f9" stroke-width="1.1" fill="none" opacity="0.45" filter="url(#leviathan-adult-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 45 38 Q 58 50 72 46" stroke="#67e8f9" stroke-width="1.25" fill="none" opacity="0.53" filter="url(#leviathan-adult-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 32 58 Q 50 62 68 56" stroke="#67e8f9" stroke-width="1.4000000000000001" fill="none" opacity="0.61" filter="url(#leviathan-adult-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 38 70 Q 52 74 64 68" stroke="#67e8f9" stroke-width="1.55" fill="none" opacity="0.69" filter="url(#leviathan-adult-glow)"/>
+                            <!-- Head / snout -->
+                            <ellipse cx="50" cy="20" rx="14" ry="12" fill="url(#leviathan-adult-body)" stroke="#061018" stroke-width="1.45"/>
+                            <path d="M 54.9 22 Q 68 24 57 28" fill="url(#leviathan-adult-body)" stroke="#061018" stroke-width="1.1" opacity="0.9"/>
+                        </g>
+                        <g class="tm-animate-wing-left">
+                            <path d="M 32 48 Q 12 40 8 55 Q 18 62 32 56 Z" fill="url(#leviathan-adult-fin)" stroke="#061018" stroke-width="1.2" opacity="0.92"/>
+                            <path d="M 28 50 L 14 48" stroke="#67e8f9" stroke-width="0.8" opacity="0.5"/>
+                        </g>
+                        <g class="tm-animate-wing-right">
+                            <path d="M 68 48 Q 88 40 92 55 Q 82 62 68 56 Z" fill="url(#leviathan-adult-fin)" stroke="#061018" stroke-width="1.2" opacity="0.92"/>
+                            <path d="M 72 50 L 86 48" stroke="#67e8f9" stroke-width="0.8" opacity="0.5"/>
+                        </g>
+                        <g class="tm-animate-arm-left">
+                            <path d="M 36 62 Q 22 68 24 78 Q 34 76 40 70 Z" fill="url(#leviathan-adult-fin)" stroke="#061018" stroke-width="1.1" opacity="0.88"/>
+                        </g>
+                        <g class="tm-animate-arm-right">
+                            <path d="M 64 62 Q 78 68 76 78 Q 66 76 60 70 Z" fill="url(#leviathan-adult-fin)" stroke="#061018" stroke-width="1.1" opacity="0.88"/>
+                        </g>
+                        <g class="tm-animate-leg-left">
+                            <path d="M 42 78 Q 36 90 44 92 Q 48 86 46 80 Z" fill="url(#leviathan-adult-body)" stroke="#061018" stroke-width="1" opacity="0.8"/>
+                        </g>
+                        <g class="tm-animate-leg-right">
+                            <path d="M 58 78 Q 64 90 56 92 Q 52 86 54 80 Z" fill="url(#leviathan-adult-body)" stroke="#061018" stroke-width="1" opacity="0.8"/>
+                        </g>
+                        <g class="tm-animate-tail">
+                            <path d="M 50 78 Q 50 90 42 96 Q 50 92 58 96 Q 50 90 50 78" fill="url(#leviathan-adult-fin)" stroke="#061018" stroke-width="1.2" opacity="0.9"/>
+                            <path d="M 50 82 L 50 94" stroke="#67e8f9" stroke-width="0.9" opacity="0.55"/>
+                        </g>
+                        <g class="tm-mascot-eye-open tm-leviathan-eye">
+                            <ellipse cx="58" cy="18" rx="8.8" ry="8.7" fill="#67e8f9" opacity="0.18"/>
+                            <ellipse cx="58" cy="18" rx="6.5" ry="6.7" fill="#67e8f9" opacity="0.12"/>
+                            <ellipse cx="58" cy="18" rx="5.2" ry="5.8" fill="#f0f9ff" stroke="#061018" stroke-width="1.4" opacity="0.9"/>
+                            <ellipse class="tm-leviathan-iris" cx="58" cy="18" rx="3.2" ry="3.6" fill="url(#leviathan-adult-iris)"/>
+                            <circle class="tm-leviathan-pupil" cx="58" cy="18" r="1.5" fill="#02060c"/>
+                            <circle cx="57.0" cy="16.6" r="0.8" fill="#fff" opacity="0.35"/>
+                        </g>
+                        <g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 52.8 18 Q 58 16 63.2 18" stroke="#061018" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+                        </g>
+                        <path class="tm-mascot-mouth-happy" d="M 41 29 Q 50 30.5 59 29" stroke="#061018" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 31.0 Q 50 28.0 59 31.0" stroke="#061018" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                </g>
+
+                <!-- LEVIATHAN MIDDLE AGE — Abyss Gale -->
+                <g id="tm-mascot-evo4-leviathan" style="display: none;">
+                    <defs>
+                        <radialGradient id="leviathan-mid-body" cx="42%" cy="30%" r="78%">
+                            <stop offset="0%" style="stop-color:#243040;stop-opacity:1" />
+                            <stop offset="30%" style="stop-color:#0c141c;stop-opacity:1" />
+                            <stop offset="60%" style="stop-color:#05080e;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#010204;stop-opacity:1" />
+                        </radialGradient>
+                        <radialGradient id="leviathan-mid-belly" cx="50%" cy="45%" r="55%">
+                            <stop offset="0%" style="stop-color:#1a2430;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#010204;stop-opacity:0.98" />
+                        </radialGradient>
+                        <radialGradient id="leviathan-mid-iris" cx="40%" cy="35%" r="70%">
+                            <stop offset="0%" style="stop-color:#f1f5f9;stop-opacity:1" />
+                            <stop offset="40%" style="stop-color:#64748b;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#0ea5e9;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
+                        </radialGradient>
+                        <linearGradient id="leviathan-mid-fin" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#0a1018;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#02060c;stop-opacity:1" />
+                        </linearGradient>
+                        <filter id="leviathan-mid-glow" x="-40%" y="-40%" width="180%" height="180%">
+                            <feGaussianBlur stdDeviation="1.2" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                    </defs>
+                        <ellipse cx="50" cy="96" rx="30" ry="4.5" fill="#02060c" opacity="0.4"/>
+                        <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
+                            <!-- Sky-whale torso -->
+                            <ellipse cx="50" cy="52" rx="23" ry="29" fill="url(#leviathan-mid-body)" stroke="#040810" stroke-width="1.5"/>
+                            <ellipse cx="50" cy="56" rx="14.3" ry="16.0" fill="url(#leviathan-mid-belly)" opacity="0.85"/>
+                            <ellipse cx="50" cy="40" rx="14" ry="3.2" fill="#121820" stroke="#040810" stroke-width="0.8" opacity="0.55"/>
+                            <ellipse cx="50" cy="50" rx="12.5" ry="3.2" fill="#121820" stroke="#040810" stroke-width="0.8" opacity="0.55"/>
+                            <ellipse cx="50" cy="60" rx="11" ry="3.2" fill="#121820" stroke="#040810" stroke-width="0.8" opacity="0.55"/>
+                            <ellipse cx="50" cy="70" rx="9.5" ry="3.2" fill="#121820" stroke="#040810" stroke-width="0.8" opacity="0.55"/>
+                            <path class="tm-leviathan-vein" d="M 28 42 Q 40 48 55 44" stroke="#94a3b8" stroke-width="1.1" fill="none" opacity="0.45" filter="url(#leviathan-mid-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 45 38 Q 58 50 72 46" stroke="#94a3b8" stroke-width="1.25" fill="none" opacity="0.53" filter="url(#leviathan-mid-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 32 58 Q 50 62 68 56" stroke="#94a3b8" stroke-width="1.4000000000000001" fill="none" opacity="0.61" filter="url(#leviathan-mid-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 38 70 Q 52 74 64 68" stroke="#94a3b8" stroke-width="1.55" fill="none" opacity="0.69" filter="url(#leviathan-mid-glow)"/>
+                            <!-- Head / snout -->
+                            <ellipse cx="50" cy="19" rx="14.5" ry="12.5" fill="url(#leviathan-mid-body)" stroke="#040810" stroke-width="1.45"/>
+                            <path d="M 55.075 21 Q 68.5 23 57.25 27" fill="url(#leviathan-mid-body)" stroke="#040810" stroke-width="1.1" opacity="0.9"/>
+                        </g>
+                        <g class="tm-animate-wing-left">
+                            <path d="M 32 48 Q 12 40 8 55 Q 18 62 32 56 Z" fill="url(#leviathan-mid-fin)" stroke="#040810" stroke-width="1.2" opacity="0.92"/>
+                            <path d="M 28 50 L 14 48" stroke="#94a3b8" stroke-width="0.8" opacity="0.5"/>
+                        </g>
+                        <g class="tm-animate-wing-right">
+                            <path d="M 68 48 Q 88 40 92 55 Q 82 62 68 56 Z" fill="url(#leviathan-mid-fin)" stroke="#040810" stroke-width="1.2" opacity="0.92"/>
+                            <path d="M 72 50 L 86 48" stroke="#94a3b8" stroke-width="0.8" opacity="0.5"/>
+                        </g>
+                        <g class="tm-animate-arm-left">
+                            <path d="M 36 62 Q 22 68 24 78 Q 34 76 40 70 Z" fill="url(#leviathan-mid-fin)" stroke="#040810" stroke-width="1.1" opacity="0.88"/>
+                        </g>
+                        <g class="tm-animate-arm-right">
+                            <path d="M 64 62 Q 78 68 76 78 Q 66 76 60 70 Z" fill="url(#leviathan-mid-fin)" stroke="#040810" stroke-width="1.1" opacity="0.88"/>
+                        </g>
+                        <g class="tm-animate-leg-left">
+                            <path d="M 42 78 Q 36 90 44 92 Q 48 86 46 80 Z" fill="url(#leviathan-mid-body)" stroke="#040810" stroke-width="1" opacity="0.8"/>
+                        </g>
+                        <g class="tm-animate-leg-right">
+                            <path d="M 58 78 Q 64 90 56 92 Q 52 86 54 80 Z" fill="url(#leviathan-mid-body)" stroke="#040810" stroke-width="1" opacity="0.8"/>
+                        </g>
+                        <g class="tm-animate-tail">
+                            <path d="M 50 78 Q 50 90 42 96 Q 50 92 58 96 Q 50 90 50 78" fill="url(#leviathan-mid-fin)" stroke="#040810" stroke-width="1.2" opacity="0.9"/>
+                            <path d="M 50 82 L 50 94" stroke="#94a3b8" stroke-width="0.9" opacity="0.55"/>
+                        </g>
+                        <g class="tm-mascot-eye-open tm-leviathan-eye">
+                            <ellipse cx="59" cy="17" rx="9.2" ry="9.0" fill="#94a3b8" opacity="0.18"/>
+                            <ellipse cx="59" cy="17" rx="6.8" ry="6.9" fill="#94a3b8" opacity="0.12"/>
+                            <ellipse cx="59" cy="17" rx="5.4" ry="6" fill="#e2e8f0" stroke="#040810" stroke-width="1.4" opacity="0.9"/>
+                            <ellipse class="tm-leviathan-iris" cx="59" cy="17" rx="3.3" ry="3.7" fill="url(#leviathan-mid-iris)"/>
+                            <circle class="tm-leviathan-pupil" cx="59" cy="17" r="1.5" fill="#02060c"/>
+                            <circle cx="57.9" cy="15.5" r="0.8" fill="#fff" opacity="0.35"/>
+                        </g>
+                        <g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 53.6 17 Q 59 15 64.4 17" stroke="#040810" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+                        </g>
+                        <path class="tm-mascot-mouth-happy" d="M 41 28 Q 50 29.5 59 28" stroke="#040810" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 30.0 Q 50 27.0 59 30.0" stroke="#040810" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                </g>
+
+                <!-- LEVIATHAN OLD — Primordial Tempest -->
+                <g id="tm-mascot-evo5-leviathan" style="display: none;">
+                    <defs>
+                        <radialGradient id="leviathan-old-body" cx="42%" cy="30%" r="78%">
+                            <stop offset="0%" style="stop-color:#2a3038;stop-opacity:1" />
+                            <stop offset="25%" style="stop-color:#14181e;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#080a0e;stop-opacity:1" />
+                            <stop offset="80%" style="stop-color:#030406;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
+                        </radialGradient>
+                        <radialGradient id="leviathan-old-belly" cx="50%" cy="45%" r="55%">
+                            <stop offset="0%" style="stop-color:#1a1e24;stop-opacity:0.9" />
+                            <stop offset="100%" style="stop-color:#000;stop-opacity:0.99" />
+                        </radialGradient>
+                        <radialGradient id="leviathan-old-iris" cx="40%" cy="35%" r="70%">
+                            <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+                            <stop offset="30%" style="stop-color:#94a3b8;stop-opacity:1" />
+                            <stop offset="65%" style="stop-color:#0369a1;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
+                        </radialGradient>
+                        <linearGradient id="leviathan-old-fin" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#06080c;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#02060c;stop-opacity:1" />
+                        </linearGradient>
+                        <filter id="leviathan-old-glow" x="-40%" y="-40%" width="180%" height="180%">
+                            <feGaussianBlur stdDeviation="1.2" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                    </defs>
+                        <ellipse cx="50" cy="96" rx="32" ry="4.5" fill="#02060c" opacity="0.4"/>
+                        <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
+                            <!-- Sky-whale torso -->
+                            <ellipse cx="50" cy="52" rx="24" ry="30" fill="url(#leviathan-old-body)" stroke="#020406" stroke-width="1.5"/>
+                            <ellipse cx="50" cy="56" rx="14.9" ry="16.5" fill="url(#leviathan-old-belly)" opacity="0.85"/>
+                            <ellipse cx="50" cy="40" rx="14" ry="3.2" fill="#0e1014" stroke="#020406" stroke-width="0.8" opacity="0.55"/>
+                            <ellipse cx="50" cy="50" rx="12.5" ry="3.2" fill="#0e1014" stroke="#020406" stroke-width="0.8" opacity="0.55"/>
+                            <ellipse cx="50" cy="60" rx="11" ry="3.2" fill="#0e1014" stroke="#020406" stroke-width="0.8" opacity="0.55"/>
+                            <ellipse cx="50" cy="70" rx="9.5" ry="3.2" fill="#0e1014" stroke="#020406" stroke-width="0.8" opacity="0.55"/>
+                            <ellipse cx="50" cy="80" rx="8" ry="3.2" fill="#0e1014" stroke="#020406" stroke-width="0.8" opacity="0.55"/>
+                            <path class="tm-leviathan-vein" d="M 28 42 Q 40 48 55 44" stroke="#cbd5e1" stroke-width="1.1" fill="none" opacity="0.45" filter="url(#leviathan-old-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 45 38 Q 58 50 72 46" stroke="#cbd5e1" stroke-width="1.25" fill="none" opacity="0.53" filter="url(#leviathan-old-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 32 58 Q 50 62 68 56" stroke="#cbd5e1" stroke-width="1.4000000000000001" fill="none" opacity="0.61" filter="url(#leviathan-old-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 38 70 Q 52 74 64 68" stroke="#cbd5e1" stroke-width="1.55" fill="none" opacity="0.69" filter="url(#leviathan-old-glow)"/>
+                            <path class="tm-leviathan-vein" d="M 22 50 Q 35 55 48 52" stroke="#cbd5e1" stroke-width="1.7000000000000002" fill="none" opacity="0.77" filter="url(#leviathan-old-glow)"/>
+                            <!-- Head / snout -->
+                            <ellipse cx="50" cy="18" rx="15" ry="13" fill="url(#leviathan-old-body)" stroke="#020406" stroke-width="1.45"/>
+                            <path d="M 55.25 20 Q 69 22 57.5 26" fill="url(#leviathan-old-body)" stroke="#020406" stroke-width="1.1" opacity="0.9"/>
+                        </g>
+                        <g class="tm-animate-wing-left">
+                            <path d="M 32 48 Q 12 40 8 55 Q 18 62 32 56 Z" fill="url(#leviathan-old-fin)" stroke="#020406" stroke-width="1.2" opacity="0.92"/>
+                            <path d="M 28 50 L 14 48" stroke="#cbd5e1" stroke-width="0.8" opacity="0.5"/>
+                        </g>
+                        <g class="tm-animate-wing-right">
+                            <path d="M 68 48 Q 88 40 92 55 Q 82 62 68 56 Z" fill="url(#leviathan-old-fin)" stroke="#020406" stroke-width="1.2" opacity="0.92"/>
+                            <path d="M 72 50 L 86 48" stroke="#cbd5e1" stroke-width="0.8" opacity="0.5"/>
+                        </g>
+                        <g class="tm-animate-arm-left">
+                            <path d="M 36 62 Q 22 68 24 78 Q 34 76 40 70 Z" fill="url(#leviathan-old-fin)" stroke="#020406" stroke-width="1.1" opacity="0.88"/>
+                        </g>
+                        <g class="tm-animate-arm-right">
+                            <path d="M 64 62 Q 78 68 76 78 Q 66 76 60 70 Z" fill="url(#leviathan-old-fin)" stroke="#020406" stroke-width="1.1" opacity="0.88"/>
+                        </g>
+                        <g class="tm-animate-leg-left">
+                            <path d="M 42 78 Q 36 90 44 92 Q 48 86 46 80 Z" fill="url(#leviathan-old-body)" stroke="#020406" stroke-width="1" opacity="0.8"/>
+                        </g>
+                        <g class="tm-animate-leg-right">
+                            <path d="M 58 78 Q 64 90 56 92 Q 52 86 54 80 Z" fill="url(#leviathan-old-body)" stroke="#020406" stroke-width="1" opacity="0.8"/>
+                        </g>
+                        <g class="tm-animate-tail">
+                            <path d="M 50 78 Q 50 90 42 96 Q 50 92 58 96 Q 50 90 50 78" fill="url(#leviathan-old-fin)" stroke="#020406" stroke-width="1.2" opacity="0.9"/>
+                            <path d="M 50 82 L 50 94" stroke="#cbd5e1" stroke-width="0.9" opacity="0.55"/>
+                        </g>
+                        <g class="tm-mascot-eye-open tm-leviathan-eye">
+                            <ellipse cx="59" cy="16" rx="9.9" ry="9.6" fill="#cbd5e1" opacity="0.18"/>
+                            <ellipse cx="59" cy="16" rx="7.3" ry="7.4" fill="#cbd5e1" opacity="0.12"/>
+                            <ellipse cx="59" cy="16" rx="5.8" ry="6.4" fill="#e2e8f0" stroke="#020406" stroke-width="1.4" opacity="0.9"/>
+                            <ellipse class="tm-leviathan-iris" cx="59" cy="16" rx="3.6" ry="4.0" fill="url(#leviathan-old-iris)"/>
+                            <circle class="tm-leviathan-pupil" cx="59" cy="16" r="1.6" fill="#02060c"/>
+                            <circle cx="57.8" cy="14.4" r="0.8" fill="#fff" opacity="0.35"/>
+                        </g>
+                        <g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 53.2 16 Q 59 14 64.8 16" stroke="#020406" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+                        </g>
+                        <path class="tm-mascot-mouth-happy" d="M 41 27 Q 50 28.5 59 27" stroke="#020406" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 29.0 Q 50 26.0 59 29.0" stroke="#020406" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                </g>
                 <!-- Integrated accessories (anchor-local art, positioned by layoutMascotAccessory) -->
                 <g id="digital_headphones" class="tm-mascot-accessory" style="display: none;">
                     <g class="tm-accessory-art">
@@ -40146,6 +41085,11 @@ function updateMascotAppearanceByStage(stage) {
     } else {
         stopAetherMythicFx();
     }
+    if (previewCharacter === 'leviathan') {
+        syncLeviathanStormFx(stage);
+    } else {
+        stopLeviathanStormFx();
+    }
 }
 
 // Legacy function - now does nothing (level-based evolution disabled)
@@ -40218,6 +41162,12 @@ window.mascotRepairMsgs = mascotRepairMsgs;
 window.mascotRepairOpinion = mascotRepairOpinion;
 window.mascotRepairOpinionDetail = mascotRepairOpinionDetail;
 window.playPhoenixStatusBurn = playPhoenixStatusBurn;
+window.isPhoenixFireboltUnlocked = isPhoenixFireboltUnlocked;
+window.playLeviathanStatusStorm = playLeviathanStatusStorm;
+window.isLeviathanTempestUnlocked = isLeviathanTempestUnlocked;
+window.playLeviathanEpicEvent = playLeviathanEpicEvent;
+window.syncLeviathanStormFx = syncLeviathanStormFx;
+window.stopLeviathanStormFx = stopLeviathanStormFx;
 window.findRepairStatusMenuLink = findRepairStatusMenuLink;
 window.mascotRepairIsUrgent = mascotRepairIsUrgent;
 window.parseRepairStatusMenu = parseRepairStatusMenu;
@@ -40266,6 +41216,24 @@ const MASCOT_TEACHABLE_TRICKS = {
         state: 'firebreath',
         practiceNeeded: 6,
         chars: ['phoenix', 'dragon'],
+    },
+    firebolt: {
+        id: 'firebolt',
+        name: 'Βολίδα',
+        nameEn: 'Firebolt',
+        state: 'firebreath',
+        practiceNeeded: 5,
+        chars: ['phoenix'],
+        desc: 'Ρίχνει φωτιά στο status του μενού όταν μιλάει για επισκευές.',
+    },
+    tempest: {
+        id: 'tempest',
+        name: 'Καταιγίδα',
+        nameEn: 'Tempest',
+        state: 'energized',
+        practiceNeeded: 5,
+        chars: ['leviathan'],
+        desc: 'Χτυπά αστραπή στο status του μενού όταν μιλάει για επισκευές.',
     },
 };
 
@@ -40378,9 +41346,38 @@ function performTaughtTrick(trickId, config, STORAGE_KEYS) {
         spin: ['Γύρω γύρω!', 'Στροβιλισμός!', 'Whee!'],
         bow: ['Υπόκλιση!', 'Με τιμή!', 'Χαχα…'],
         fire_breath: ['Φωτιά!', 'Καίγομαι!', 'Φλογερό!'],
+        firebolt: ['Βολίδα!', 'Κάψε το!', 'Φωτιά στο status!'],
+        tempest: ['Καταιγίδα!', 'Αστραπή!', 'Σφραγίδα θύελλας!'],
     };
     const pool = lines[trickId] || ['Τα-δα!'];
     showMascotBubble(pool[Math.floor(Math.random() * pool.length)], 2000);
+
+    if (trickId === 'firebolt' && typeof playPhoenixStatusBurn === 'function') {
+        const parsed = typeof parseRepairStatusMenu === 'function'
+            ? parseRepairStatusMenu()
+            : null;
+        const activeIds = parsed?.statusIdMap
+            ? Object.keys(parsed.statusIdMap).filter((id) => (parsed.statusIdMap[id]?.count || 0) > 0)
+            : [];
+        const targetId = activeIds.length
+            ? activeIds[Math.floor(Math.random() * activeIds.length)]
+            : '30';
+        setTimeout(() => playPhoenixStatusBurn(targetId, { requireUnlock: false }), 220);
+    }
+
+    if (trickId === 'tempest' && typeof playLeviathanStatusStorm === 'function') {
+        const parsed = typeof parseRepairStatusMenu === 'function'
+            ? parseRepairStatusMenu()
+            : null;
+        const activeIds = parsed?.statusIdMap
+            ? Object.keys(parsed.statusIdMap).filter((id) => (parsed.statusIdMap[id]?.count || 0) > 0)
+            : [];
+        const targetId = activeIds.length
+            ? activeIds[Math.floor(Math.random() * activeIds.length)]
+            : '30';
+        setTimeout(() => playLeviathanStatusStorm(targetId, { requireUnlock: false }), 220);
+    }
+
     if (STORAGE_KEYS) saveTamagotchiData(STORAGE_KEYS);
     return true;
 }
@@ -41278,8 +42275,8 @@ function getMascotPlayCareSectionHTML(STORAGE_KEYS) {
         const unlocked = taught.unlocked.includes(t.id);
         const prac = Number(taught.practice[t.id]) || 0;
         const label = unlocked ? `✓ ${t.name}` : `${t.name} ${prac}/${t.practiceNeeded}`;
-        return `<button type="button" class="tm-action-btn tm-teach-trick-btn ${unlocked ? 'tm-trick-unlocked' : ''}" data-trick="${t.id}" title="${t.nameEn}">
-            <span class="tm-action-icon">${t.id === 'fire_breath' ? '🔥' : t.id === 'bow' ? '🙇' : '🌀'}</span>
+        return `<button type="button" class="tm-action-btn tm-teach-trick-btn ${unlocked ? 'tm-trick-unlocked' : ''}" data-trick="${t.id}" title="${t.nameEn}${t.desc ? ` — ${t.desc}` : ''}">
+            <span class="tm-action-icon">${t.id === 'tempest' ? '⛈️' : t.id === 'firebolt' ? '☄️' : t.id === 'fire_breath' ? '🔥' : t.id === 'bow' ? '🙇' : '🌀'}</span>
             <span class="tm-action-label">${t.name}</span>
             <span class="tm-action-hint">${label}</span>
         </button>`;
