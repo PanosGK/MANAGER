@@ -5242,7 +5242,7 @@ const MASCOT_EDGE_PAD = 8;
 const MASCOT_OVERFLOW_SLACK = { top: 36, right: 16, bottom: 20, left: 16 };
 /** Extra keep-inside padding for Aether wings / glow (CSS paint is not in getBoundingClientRect). */
 const MASCOT_AETHER_OVERFLOW_SLACK = { top: 48, right: 52, bottom: 28, left: 52 };
-const MASCOT_LEVIATHAN_OVERFLOW_SLACK = { top: 44, right: 36, bottom: 28, left: 36 };
+const MASCOT_LEVIATHAN_OVERFLOW_SLACK = { top: 58, right: 46, bottom: 34, left: 46 };
 
 function cacheMascotScreenInfo() {
     const scr = window.screen;
@@ -17160,14 +17160,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path class="tm-mascot-mouth-happy" d="M 45 28 Q 50 30.0 55 28" stroke="#1a100c" stroke-width="1.5" fill="none" stroke-linecap="round"/>
                         <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 30.0 Q 50 27.0 55 30.0" stroke="#1a100c" stroke-width="1.5" fill="none" stroke-linecap="round"/>
                 </g>
-                                                                                <!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · Eclipse Maelstrom v5 · distinct silhouette per stage) -->
+                                                                                                <!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · Eclipse Maelstrom v6 · boss-intimidation pass) -->
                 <!-- LEVIATHAN BABY — Fracture Seed -->
                 <g id="tm-mascot-baby-leviathan" style="display: none;">
                     <defs>
                         <radialGradient id="leviathan-baby-void" cx="45%" cy="42%" r="65%">
                             <stop offset="0%" style="stop-color:#00010a;stop-opacity:1" />
-                            <stop offset="58%" style="stop-color:#00010a;stop-opacity:1" />
-                            <stop offset="84%" style="stop-color:#7dd3fc;stop-opacity:0.5" />
+                            <stop offset="56%" style="stop-color:#00010a;stop-opacity:1" />
+                            <stop offset="82%" style="stop-color:#7dd3fc;stop-opacity:0.6" />
                             <stop offset="100%" style="stop-color:#00010a;stop-opacity:0" />
                         </radialGradient>
                         <linearGradient id="leviathan-baby-shard" x1="10%" y1="0%" x2="90%" y2="100%">
@@ -17181,8 +17181,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="leviathan-baby-aura" cx="50%" cy="48%" r="55%">
-                            <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:0.24" />
-                            <stop offset="45%" style="stop-color:#7dd3fc;stop-opacity:0.1" />
+                            <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:0.26" />
+                            <stop offset="45%" style="stop-color:#7dd3fc;stop-opacity:0.12" />
                             <stop offset="100%" style="stop-color:#00010a;stop-opacity:0" />
                         </radialGradient>
                         <filter id="leviathan-baby-glow" x="-60%" y="-60%" width="220%" height="220%">
@@ -17197,38 +17197,38 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="4" cy="40" r="1.1" fill="#f0f9ff" opacity="0.5"/>
                         <circle cx="96" cy="42" r="1.1" fill="#7dd3fc" opacity="0.5900000000000001"/>
                         <g class="tm-animate-wing-left">
-                            <path d="M 34.2 42.6 L 38.5 42.5 L 39.7 44.6 L 37.5 45.5 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.7" opacity="0.6"/>
+                            <path d="M 34.2 42.6 L 38.5 42.7 L 39.6 44.6 L 37.5 45.3 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.7" opacity="0.6"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 67.8 44.6 L 64.5 47.5 L 62.3 46.6 L 63.5 44.5 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.7" opacity="0.6"/>
+                            <path d="M 67.8 44.6 L 64.5 47.3 L 62.4 46.6 L 63.5 44.7 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.7" opacity="0.6"/>
                         </g>
                         <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-                            <circle cx="50" cy="50" r="12.2" fill="url(#leviathan-baby-void)" opacity="0.92"/>
+                            <circle cx="50" cy="50" r="12.2" fill="url(#leviathan-baby-void)" opacity="0.93"/>
                             <circle cx="50" cy="50" r="9.0" fill="#00010a" opacity="0.97"/>
                             <path d="M 43.7 49.1 A 6.8 4.0 20 1 1 55.9 52.3" fill="none" stroke="#7dd3fc" stroke-width="1.1" opacity="0.42" class="tm-leviathan-vein" filter="url(#leviathan-baby-glow)"/>
                             <path d="M 45.5 53.1 A 5.0 2.7 -25 1 0 54.0 47.3" fill="none" stroke="#7dd3fc" stroke-width="0.85" opacity="0.32" class="tm-leviathan-vein"/>
                             <circle cx="50" cy="50" r="9.0" fill="none" stroke="#7dd3fc" stroke-width="1" opacity="0.5" filter="url(#leviathan-baby-glow)"/>
                         </g>
                         <g class="tm-animate-arm-left">
-                            <path d="M 36.5 55.6 L 36.6 57.8 L 35.5 58.4 L 35.0 57.2 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.75" opacity="0.60"/>
+                            <path d="M 36.5 55.5 L 36.4 57.8 L 35.5 58.4 L 35.2 57.3 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.8" opacity="0.62"/>
                         </g>
                         <g class="tm-animate-arm-right">
-                            <path d="M 63.5 60.4 L 63.4 58.2 L 64.5 57.6 L 65.0 58.8 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.75" opacity="0.60"/>
+                            <path d="M 63.5 60.5 L 63.6 58.2 L 64.5 57.6 L 64.8 58.7 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.8" opacity="0.62"/>
                         </g>
                         <g class="tm-animate-leg-left">
-                            <path d="M 43.4 66.5 L 41.8 67.5 L 40.9 67.0 L 41.5 66.1 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.75" opacity="0.60"/>
+                            <path d="M 43.4 66.5 L 41.8 67.4 L 40.9 67.0 L 41.6 66.3 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.8" opacity="0.62"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <path d="M 56.6 69.5 L 58.2 68.5 L 59.1 69.0 L 58.5 69.9 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.75" opacity="0.60"/>
+                            <path d="M 56.6 69.5 L 58.2 68.6 L 59.1 69.0 L 58.4 69.7 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.8" opacity="0.62"/>
                         </g>
                         <g class="tm-animate-tail">
-                            <path d="M 50.0 68.0 L 49.3 66.0 L 50.0 65.1 L 50.7 66.0 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.7" opacity="0.72"/>
-                            <path d="M 50.0 96.6 L 49.8 96.0 L 50.0 95.7 L 50.2 96.0 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.7" opacity="0.14"/>
+                            <path d="M 50.0 68.0 L 49.4 66.0 L 50.0 65.2 L 50.6 66.0 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.75" opacity="0.74"/>
+                            <path d="M 50.0 96.6 L 49.8 96.0 L 50.0 95.7 L 50.2 96.0 Z" fill="url(#leviathan-baby-shard)" stroke="#1a3a5c" stroke-width="0.75" opacity="0.15"/>
                         </g>
                         <g class="tm-mascot-eye-open tm-leviathan-eye">
                             <circle cx="52" cy="46" r="5.8" fill="#7dd3fc" opacity="0.13" filter="url(#leviathan-baby-glow)"/>
                             <circle cx="52" cy="46" r="3.2" fill="#000" stroke="#7dd3fc" stroke-width="1.25"/>
-                            <circle class="tm-leviathan-iris" cx="52" cy="46" r="2.0" fill="url(#leviathan-baby-iris)"/>
+                            <ellipse class="tm-leviathan-iris" cx="52" cy="46" rx="2.2" ry="2.0" fill="url(#leviathan-baby-iris)"/>
                             <circle class="tm-leviathan-pupil" cx="52" cy="46" r="0.8" fill="#000"/>
                             <path d="M 48.5 45.0 L 43.7 42.5" stroke="#1a3a5c" stroke-width="1" opacity="0.5" class="tm-leviathan-vein"/>
                             <path d="M 55.5 47.3 L 59.7 50.2" stroke="#1a3a5c" stroke-width="0.8" opacity="0.4" class="tm-leviathan-vein"/>
@@ -17246,8 +17246,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <defs>
                         <radialGradient id="leviathan-kid-void" cx="45%" cy="42%" r="65%">
                             <stop offset="0%" style="stop-color:#00010a;stop-opacity:1" />
-                            <stop offset="58%" style="stop-color:#00010a;stop-opacity:1" />
-                            <stop offset="84%" style="stop-color:#67e8f9;stop-opacity:0.5" />
+                            <stop offset="56%" style="stop-color:#00010a;stop-opacity:1" />
+                            <stop offset="82%" style="stop-color:#67e8f9;stop-opacity:0.6" />
                             <stop offset="100%" style="stop-color:#00010a;stop-opacity:0" />
                         </radialGradient>
                         <linearGradient id="leviathan-kid-shard" x1="10%" y1="0%" x2="90%" y2="100%">
@@ -17261,8 +17261,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="leviathan-kid-aura" cx="50%" cy="48%" r="55%">
-                            <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:0.24" />
-                            <stop offset="45%" style="stop-color:#67e8f9;stop-opacity:0.1" />
+                            <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:0.26" />
+                            <stop offset="45%" style="stop-color:#67e8f9;stop-opacity:0.12" />
                             <stop offset="100%" style="stop-color:#00010a;stop-opacity:0" />
                         </radialGradient>
                         <filter id="leviathan-kid-glow" x="-60%" y="-60%" width="220%" height="220%">
@@ -17279,57 +17279,57 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="12" cy="66" r="1.7" fill="#f0f9ff" opacity="0.32"/>
                         <circle cx="88" cy="68" r="1.1" fill="#0ea5e9" opacity="0.41000000000000003"/>
                         <g class="tm-animate-wing-left">
-                            <path d="M 32.0 54.8 L 34.5 55.6 L 34.8 57.1 L 33.3 57.1 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-kid-glow)"/>
-                            <path d="M 27.8 48.5 L 29.4 51.3 L 28.5 52.8 L 27.2 51.7 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-kid-glow)"/>
-                            <path d="M 33.7 41.9 L 33.1 45.6 L 31.1 46.3 L 30.7 44.3 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-kid-glow)"/>
+                            <path d="M 32.0 54.7 L 34.4 55.8 L 34.7 57.0 L 33.4 56.9 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-kid-glow)"/>
+                            <path d="M 27.8 48.4 L 29.2 51.3 L 28.5 52.8 L 27.4 51.6 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-kid-glow)"/>
+                            <path d="M 33.8 41.7 L 32.9 45.5 L 31.1 46.3 L 30.9 44.4 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-kid-glow)"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 63.6 48.4 L 61.8 46.7 L 62.2 45.4 L 63.4 46.0 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-kid-glow)"/>
-                            <path d="M 65.1 54.4 L 64.5 51.5 L 65.8 50.4 L 66.6 51.8 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-kid-glow)"/>
-                            <path d="M 59.8 58.0 L 61.2 54.8 L 63.2 54.6 L 63.1 56.5 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-kid-glow)"/>
+                            <path d="M 63.7 48.5 L 62.0 46.7 L 62.2 45.5 L 63.3 46.0 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-kid-glow)"/>
+                            <path d="M 65.1 54.6 L 64.7 51.5 L 65.8 50.4 L 66.4 51.8 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-kid-glow)"/>
+                            <path d="M 59.7 58.2 L 61.4 54.9 L 63.2 54.6 L 62.9 56.4 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-kid-glow)"/>
                         </g>
                         <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-                            <circle cx="48" cy="48" r="12.2" fill="url(#leviathan-kid-void)" opacity="0.92"/>
+                            <circle cx="48" cy="48" r="12.2" fill="url(#leviathan-kid-void)" opacity="0.93"/>
                             <circle cx="48" cy="48" r="9.0" fill="#00010a" opacity="0.97"/>
                             <path d="M 41.7 47.1 A 6.8 4.0 20 1 1 53.9 50.3" fill="none" stroke="#67e8f9" stroke-width="1.1" opacity="0.42" class="tm-leviathan-vein" filter="url(#leviathan-kid-glow)"/>
                             <path d="M 43.5 51.1 A 5.0 2.7 -25 1 0 52.0 45.3" fill="none" stroke="#67e8f9" stroke-width="0.85" opacity="0.32" class="tm-leviathan-vein"/>
                             <circle cx="48" cy="48" r="9.0" fill="none" stroke="#67e8f9" stroke-width="1" opacity="0.5" filter="url(#leviathan-kid-glow)"/>
                             <path d="M 53.4 45.3 L 59.9 46.7 L 64.0 41.5" stroke="#67e8f9" stroke-width="1" fill="none" opacity="0.55" class="tm-leviathan-vein"/>
                             <path d="M 43.5 52.5 L 38.9 58.9 L 41.2 66.4" stroke="#67e8f9" stroke-width="1" fill="none" opacity="0.55" class="tm-leviathan-vein"/>
-                            <circle cx="66" cy="40" r="6.8" fill="url(#leviathan-kid-void)" opacity="0.92"/>
+                            <circle cx="66" cy="40" r="6.8" fill="url(#leviathan-kid-void)" opacity="0.93"/>
                             <circle cx="66" cy="40" r="5.0" fill="#00010a" opacity="0.97"/>
                             <path d="M 62.5 39.5 A 3.8 2.3 20 1 1 69.3 41.3" fill="none" stroke="#67e8f9" stroke-width="1.1" opacity="0.42" class="tm-leviathan-vein" filter="url(#leviathan-kid-glow)"/>
                             <path d="M 63.5 41.8 A 2.8 1.5 -25 1 0 68.3 38.5" fill="none" stroke="#67e8f9" stroke-width="0.85" opacity="0.32" class="tm-leviathan-vein"/>
                             <circle cx="66" cy="40" r="5.0" fill="none" stroke="#67e8f9" stroke-width="1" opacity="0.5" filter="url(#leviathan-kid-glow)"/>
-                            <circle cx="40" cy="68" r="5.4" fill="url(#leviathan-kid-void)" opacity="0.92"/>
+                            <circle cx="40" cy="68" r="5.4" fill="url(#leviathan-kid-void)" opacity="0.93"/>
                             <circle cx="40" cy="68" r="4.0" fill="#00010a" opacity="0.97"/>
                             <path d="M 37.2 67.6 A 3.0 1.8 20 1 1 42.6 69.0" fill="none" stroke="#67e8f9" stroke-width="1.1" opacity="0.42" class="tm-leviathan-vein" filter="url(#leviathan-kid-glow)"/>
                             <path d="M 38.0 69.4 A 2.2 1.2 -25 1 0 41.8 66.8" fill="none" stroke="#67e8f9" stroke-width="0.85" opacity="0.32" class="tm-leviathan-vein"/>
                             <circle cx="40" cy="68" r="4.0" fill="none" stroke="#67e8f9" stroke-width="1" opacity="0.5" filter="url(#leviathan-kid-glow)"/>
                         </g>
                         <g class="tm-animate-arm-left">
-                            <path d="M 28.3 51.2 L 28.4 53.8 L 27.1 54.5 L 26.6 53.1 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 31.1 50.6 L 28.9 52.8 L 27.2 52.3 L 28.0 50.7 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.75" opacity="0.70"/>
+                            <path d="M 28.3 51.1 L 28.2 53.7 L 27.1 54.4 L 26.7 53.2 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 31.2 50.6 L 28.8 52.6 L 27.3 52.3 L 28.0 50.9 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.8" opacity="0.72"/>
                         </g>
                         <g class="tm-animate-arm-right">
-                            <path d="M 75.7 52.8 L 75.6 50.2 L 76.9 49.5 L 77.4 50.9 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 72.9 53.4 L 75.1 51.2 L 76.8 51.7 L 76.0 53.3 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.75" opacity="0.70"/>
+                            <path d="M 75.7 52.9 L 75.8 50.3 L 76.9 49.6 L 77.3 50.8 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 72.8 53.4 L 75.2 51.4 L 76.7 51.7 L 76.0 53.1 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.8" opacity="0.72"/>
                         </g>
                         <g class="tm-animate-leg-left">
-                            <path d="M 39.6 72.3 L 37.7 73.4 L 36.7 72.8 L 37.4 71.8 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.75" opacity="0.60"/>
+                            <path d="M 39.7 72.2 L 37.7 73.3 L 36.7 72.8 L 37.5 71.9 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.8" opacity="0.62"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <path d="M 58.4 73.7 L 60.3 72.6 L 61.3 73.2 L 60.6 74.2 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.75" opacity="0.60"/>
+                            <path d="M 58.3 73.8 L 60.3 72.7 L 61.3 73.2 L 60.5 74.1 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.8" opacity="0.62"/>
                         </g>
                         <g class="tm-animate-tail">
-                            <path d="M 45.0 78.4 L 44.2 76.0 L 45.0 74.9 L 45.8 76.0 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.7" opacity="0.72"/>
-                            <path d="M 45.3 92.6 L 44.7 91.0 L 45.3 90.3 L 45.8 91.0 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.7" opacity="0.43"/>
-                            <path d="M 45.0 106.7 L 44.7 106.0 L 45.0 105.7 L 45.3 106.0 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.7" opacity="0.14"/>
+                            <path d="M 45.0 78.4 L 44.2 76.0 L 45.0 75.0 L 45.8 76.0 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.75" opacity="0.74"/>
+                            <path d="M 45.3 92.6 L 44.8 91.0 L 45.3 90.3 L 45.8 91.0 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.75" opacity="0.44"/>
+                            <path d="M 45.0 106.7 L 44.8 106.0 L 45.0 105.7 L 45.2 106.0 Z" fill="url(#leviathan-kid-shard)" stroke="#0f2744" stroke-width="0.75" opacity="0.15"/>
                         </g>
                         <g class="tm-mascot-eye-open tm-leviathan-eye">
                             <circle cx="50" cy="44" r="6.5" fill="#67e8f9" opacity="0.13" filter="url(#leviathan-kid-glow)"/>
                             <circle cx="50" cy="44" r="3.6" fill="#000" stroke="#67e8f9" stroke-width="1.25"/>
-                            <circle class="tm-leviathan-iris" cx="50" cy="44" r="2.2" fill="url(#leviathan-kid-iris)"/>
+                            <ellipse class="tm-leviathan-iris" cx="50" cy="44" rx="2.5" ry="2.2" fill="url(#leviathan-kid-iris)"/>
                             <circle class="tm-leviathan-pupil" cx="50" cy="44" r="0.9" fill="#000"/>
                             <path d="M 46.0 42.9 L 40.6 40.0" stroke="#0f2744" stroke-width="1" opacity="0.5" class="tm-leviathan-vein"/>
                             <path d="M 54.0 45.4 L 58.6 48.7" stroke="#0f2744" stroke-width="0.8" opacity="0.4" class="tm-leviathan-vein"/>
@@ -17347,8 +17347,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <defs>
                         <radialGradient id="leviathan-teen-void" cx="45%" cy="42%" r="65%">
                             <stop offset="0%" style="stop-color:#00010a;stop-opacity:1" />
-                            <stop offset="58%" style="stop-color:#00010a;stop-opacity:1" />
-                            <stop offset="84%" style="stop-color:#22d3ee;stop-opacity:0.5" />
+                            <stop offset="56%" style="stop-color:#00010a;stop-opacity:1" />
+                            <stop offset="82%" style="stop-color:#22d3ee;stop-opacity:0.6" />
                             <stop offset="100%" style="stop-color:#00010a;stop-opacity:0" />
                         </radialGradient>
                         <linearGradient id="leviathan-teen-shard" x1="10%" y1="0%" x2="90%" y2="100%">
@@ -17362,8 +17362,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="leviathan-teen-aura" cx="50%" cy="48%" r="55%">
-                            <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:0.24" />
-                            <stop offset="45%" style="stop-color:#22d3ee;stop-opacity:0.1" />
+                            <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:0.26" />
+                            <stop offset="45%" style="stop-color:#22d3ee;stop-opacity:0.12" />
                             <stop offset="100%" style="stop-color:#00010a;stop-opacity:0" />
                         </radialGradient>
                         <filter id="leviathan-teen-glow" x="-60%" y="-60%" width="220%" height="220%">
@@ -17372,7 +17372,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </filter>
                     </defs>
                         <ellipse cx="50" cy="94" rx="24" ry="4" fill="#00010a" opacity="0.4"/>
-                        <ellipse cx="50" cy="52" rx="38" ry="36" fill="url(#leviathan-teen-aura)" opacity="0.3"/>
+                        <ellipse cx="50" cy="52" rx="38" ry="36" fill="url(#leviathan-teen-aura)" opacity="0.32"/>
                         <circle cx="8" cy="16" r="1.7" fill="#22d3ee" opacity="0.32"/>
                         <circle cx="92" cy="14" r="1.1" fill="#06b6d4" opacity="0.41000000000000003"/>
                         <circle cx="4" cy="40" r="1.1" fill="#f0f9ff" opacity="0.5"/>
@@ -17382,15 +17382,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="20" cy="6" r="1.1" fill="#22d3ee" opacity="0.5"/>
                         <circle cx="80" cy="4" r="1.1" fill="#06b6d4" opacity="0.5900000000000001"/>
                         <g class="tm-animate-wing-left">
-                            <path d="M 27.9 69.6 L 30.6 70.7 L 30.8 72.3 L 29.1 72.2 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-teen-glow)"/>
-                            <path d="M 24.1 64.4 L 26.4 67.2 L 25.6 69.0 L 24.0 68.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-teen-glow)"/>
-                            <path d="M 26.7 58.1 L 27.6 62.3 L 25.8 63.8 L 24.6 61.8 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-teen-glow)"/>
-                            <path d="M 34.0 53.8 L 33.2 56.6 L 31.6 57.0 L 31.5 55.4 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.85" opacity="0.85" filter="url(#leviathan-teen-glow)"/>
-                            <path d="M 45.7 49.4 L 43.2 52.0 L 41.3 51.5 L 42.1 49.7 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-teen-glow)"/>
+                            <path d="M 27.8 69.5 L 30.5 70.9 L 30.7 72.3 L 29.3 72.1 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-teen-glow)"/>
+                            <path d="M 24.1 64.3 L 26.2 67.3 L 25.6 69.0 L 24.2 68.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-teen-glow)"/>
+                            <path d="M 26.7 57.9 L 27.3 62.2 L 25.8 63.8 L 24.8 61.8 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-teen-glow)"/>
+                            <path d="M 34.1 53.7 L 33.1 56.5 L 31.7 56.9 L 31.7 55.5 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-teen-glow)"/>
+                            <path d="M 45.8 49.3 L 43.1 51.8 L 41.4 51.5 L 42.2 49.9 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-teen-glow)"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 64.0 62.3 L 62.7 60.4 L 63.2 59.3 L 64.2 60.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-teen-glow)"/>
-                            <path d="M 61.3 68.3 L 62.1 65.6 L 63.6 65.2 L 63.7 66.8 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-teen-glow)"/>
+                            <path d="M 64.0 62.4 L 62.8 60.4 L 63.2 59.3 L 64.1 60.1 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-teen-glow)"/>
+                            <path d="M 61.3 68.4 L 62.2 65.7 L 63.6 65.2 L 63.6 66.7 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-teen-glow)"/>
                         </g>
                         <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
                             <path d="M 46.0 13.5 L 58.0 15.4 L 56.8 26.5 L 47.2 25.2 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="1" opacity="0.72"/>
@@ -17401,37 +17401,39 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="50" cy="60" r="10" fill="url(#leviathan-teen-void)" opacity="0.85"/>
                             <path d="M 43.0 59.0 A 7.5 4.5 20 1 1 56.5 62.5" fill="none" stroke="#22d3ee" stroke-width="1.1" opacity="0.42" class="tm-leviathan-vein" filter="url(#leviathan-teen-glow)"/>
                             <path d="M 45.0 63.5 A 5.5 3.0 -25 1 0 54.5 57.0" fill="none" stroke="#22d3ee" stroke-width="0.85" opacity="0.32" class="tm-leviathan-vein"/>
+                            <path d="M 52.0 24.0 L 55.4 20.0 L 54.1 15.2" stroke="#fbbf24" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-teen-glow)"/>
+                            <path d="M 52.0 24.0 L 50.2 19.1 L 45.4 17.8" stroke="#fbbf24" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-teen-glow)"/>
                         </g>
                         <g class="tm-animate-arm-left">
-                            <path d="M 23.9 52.6 L 24.0 55.7 L 22.5 56.6 L 21.9 54.9 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 27.3 52.0 L 24.6 54.6 L 22.7 53.9 L 23.6 52.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.70"/>
-                            <path d="M 31.0 55.9 L 26.7 55.7 L 25.7 53.5 L 28.0 52.8 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.80"/>
+                            <path d="M 24.0 52.6 L 23.8 55.7 L 22.5 56.5 L 22.1 55.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 27.4 51.9 L 24.6 54.4 L 22.7 53.9 L 23.7 52.3 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.8" opacity="0.72"/>
+                            <path d="M 31.2 56.0 L 26.8 55.5 L 25.7 53.5 L 27.9 53.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.8" opacity="0.82"/>
                         </g>
                         <g class="tm-animate-arm-right">
-                            <path d="M 76.1 59.4 L 76.0 56.3 L 77.5 55.4 L 78.1 57.1 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 72.7 60.0 L 75.4 57.4 L 77.3 58.1 L 76.4 60.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.70"/>
-                            <path d="M 69.0 56.1 L 73.3 56.3 L 74.3 58.5 L 72.0 59.2 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.80"/>
+                            <path d="M 76.0 59.4 L 76.2 56.3 L 77.5 55.5 L 77.9 57.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 72.6 60.1 L 75.4 57.6 L 77.3 58.1 L 76.3 59.7 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.8" opacity="0.72"/>
+                            <path d="M 68.8 56.0 L 73.2 56.5 L 74.3 58.5 L 72.1 59.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.8" opacity="0.82"/>
                         </g>
                         <g class="tm-animate-leg-left">
-                            <path d="M 38.0 75.9 L 35.7 77.3 L 34.4 76.5 L 35.3 75.3 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 41.1 77.8 L 37.9 76.9 L 37.5 75.1 L 39.3 74.9 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.70"/>
+                            <path d="M 38.1 75.8 L 35.6 77.1 L 34.4 76.5 L 35.4 75.5 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 41.2 77.9 L 38.0 76.7 L 37.5 75.1 L 39.2 75.1 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.8" opacity="0.72"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <path d="M 62.0 80.1 L 64.3 78.7 L 65.6 79.5 L 64.7 80.7 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 58.9 78.2 L 62.1 79.1 L 62.5 80.9 L 60.7 81.1 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.70"/>
+                            <path d="M 61.9 80.2 L 64.4 78.9 L 65.6 79.5 L 64.6 80.5 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 58.8 78.1 L 62.0 79.3 L 62.5 80.9 L 60.8 80.9 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.8" opacity="0.72"/>
                         </g>
                         <g class="tm-animate-tail">
-                            <path d="M 50.0 85.0 L 49.0 82.0 L 50.0 80.7 L 51.0 82.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.7" opacity="0.72"/>
-                            <path d="M 53.0 90.6 L 52.1 88.0 L 53.0 86.8 L 53.9 88.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.7" opacity="0.60"/>
-                            <path d="M 51.6 96.2 L 50.9 94.0 L 51.6 93.0 L 52.4 94.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.7" opacity="0.49"/>
-                            <path d="M 49.3 101.7 L 48.7 100.0 L 49.3 99.2 L 49.9 100.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.7" opacity="0.37"/>
-                            <path d="M 49.2 107.3 L 48.7 106.0 L 49.2 105.4 L 49.7 106.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.7" opacity="0.26"/>
-                            <path d="M 50.0 112.9 L 49.7 112.0 L 50.0 111.6 L 50.3 112.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.7" opacity="0.14"/>
+                            <path d="M 50.0 85.0 L 49.0 82.0 L 50.0 80.7 L 51.0 82.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.74"/>
+                            <path d="M 53.0 90.6 L 52.2 88.0 L 53.0 86.9 L 53.8 88.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.62"/>
+                            <path d="M 51.6 96.2 L 50.9 94.0 L 51.6 93.1 L 52.3 94.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.50"/>
+                            <path d="M 49.3 101.7 L 48.7 100.0 L 49.3 99.3 L 49.8 100.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.38"/>
+                            <path d="M 49.2 107.3 L 48.8 106.0 L 49.2 105.4 L 49.6 106.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.27"/>
+                            <path d="M 50.0 112.9 L 49.7 112.0 L 50.0 111.6 L 50.3 112.0 Z" fill="url(#leviathan-teen-shard)" stroke="#0a1e36" stroke-width="0.75" opacity="0.15"/>
                         </g>
                         <g class="tm-mascot-eye-open tm-leviathan-eye">
                             <circle cx="52" cy="24" r="7.6" fill="#22d3ee" opacity="0.13" filter="url(#leviathan-teen-glow)"/>
                             <circle cx="52" cy="24" r="4.2" fill="#000" stroke="#22d3ee" stroke-width="1.25"/>
-                            <circle class="tm-leviathan-iris" cx="52" cy="24" r="2.6" fill="url(#leviathan-teen-iris)"/>
+                            <ellipse class="tm-leviathan-iris" cx="52" cy="24" rx="2.9" ry="2.6" fill="url(#leviathan-teen-iris)"/>
                             <circle class="tm-leviathan-pupil" cx="52" cy="24" r="1.1" fill="#000"/>
                             <path d="M 47.4 22.7 L 41.1 19.4" stroke="#0a1e36" stroke-width="1" opacity="0.5" class="tm-leviathan-vein"/>
                             <path d="M 56.6 25.7 L 62.1 29.5" stroke="#0a1e36" stroke-width="0.8" opacity="0.4" class="tm-leviathan-vein"/>
@@ -17449,8 +17451,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <defs>
                         <radialGradient id="leviathan-adult-void" cx="45%" cy="42%" r="65%">
                             <stop offset="0%" style="stop-color:#00010a;stop-opacity:1" />
-                            <stop offset="58%" style="stop-color:#00010a;stop-opacity:1" />
-                            <stop offset="84%" style="stop-color:#a5f3fc;stop-opacity:0.5" />
+                            <stop offset="56%" style="stop-color:#00010a;stop-opacity:1" />
+                            <stop offset="82%" style="stop-color:#a5f3fc;stop-opacity:0.6" />
                             <stop offset="100%" style="stop-color:#00010a;stop-opacity:0" />
                         </radialGradient>
                         <linearGradient id="leviathan-adult-shard" x1="10%" y1="0%" x2="90%" y2="100%">
@@ -17464,8 +17466,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="leviathan-adult-aura" cx="50%" cy="48%" r="55%">
-                            <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:0.24" />
-                            <stop offset="45%" style="stop-color:#a5f3fc;stop-opacity:0.1" />
+                            <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:0.26" />
+                            <stop offset="45%" style="stop-color:#a5f3fc;stop-opacity:0.12" />
                             <stop offset="100%" style="stop-color:#00010a;stop-opacity:0" />
                         </radialGradient>
                         <filter id="leviathan-adult-glow" x="-60%" y="-60%" width="220%" height="220%">
@@ -17473,8 +17475,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                         </filter>
                     </defs>
-                        <ellipse cx="50" cy="97" rx="31.6" ry="4.4" fill="#00010a" opacity="0.4"/>
-                        <ellipse cx="50" cy="50" rx="46.4" ry="43.9" fill="url(#leviathan-adult-aura)" opacity="0.5"/>
+                        <ellipse cx="50" cy="97" rx="34" ry="4.6" fill="#00010a" opacity="0.42"/>
+                        <ellipse cx="50" cy="50" rx="53" ry="50" fill="url(#leviathan-adult-aura)" opacity="0.62"/>
                         <circle cx="8" cy="16" r="1.7" fill="#a5f3fc" opacity="0.32"/>
                         <circle cx="92" cy="14" r="1.1" fill="#38bdf8" opacity="0.41000000000000003"/>
                         <circle cx="4" cy="40" r="1.1" fill="#f0f9ff" opacity="0.5"/>
@@ -17488,79 +17490,86 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="38" cy="2" r="1.1" fill="#f0f9ff" opacity="0.5"/>
                         <circle cx="62" cy="2" r="1.1" fill="#38bdf8" opacity="0.5900000000000001"/>
                         <circle cx="14" cy="84" r="1.7" fill="#a5f3fc" opacity="0.32"/>
+                        <circle cx="86" cy="86" r="1.1" fill="#38bdf8" opacity="0.41000000000000003"/>
                         <g class="tm-animate-wing-left">
-                            <path d="M 76.9 38.1 L 73.6 34.5 L 74.4 31.9 L 76.8 33.2 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 70.6 49.9 L 69.8 44.0 L 72.5 42.0 L 74.0 45.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 51.7 60.8 L 55.1 54.5 L 59.0 54.5 L 58.4 58.4 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 30.9 65.6 L 35.3 63.5 L 37.5 65.1 L 35.6 67.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.85" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 11.4 64.5 L 17.4 65.6 L 18.4 68.7 L 15.1 69.2 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 11.3 45.1 L 12.2 52.1 L 9.0 54.4 L 7.2 50.9 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 28.4 36.6 L 26.0 40.9 L 23.3 40.9 L 23.7 38.2 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 51.8 30.3 L 46.3 32.9 L 43.6 31.0 L 46.0 28.6 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.85" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 71.0 32.1 L 64.0 30.8 L 62.8 27.0 L 66.7 26.4 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 80.8 35.4 L 77.3 30.7 L 77.7 28.0 L 79.8 29.7 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 74.7 48.2 L 74.2 41.0 L 76.4 38.4 L 77.5 41.6 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 55.8 60.4 L 60.0 52.9 L 63.9 51.7 L 63.0 55.6 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 34.5 66.3 L 39.6 63.6 L 42.2 64.3 L 40.3 66.2 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 11.4 67.7 L 18.6 68.2 L 20.9 70.7 L 17.6 71.4 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M -1.8 50.4 L 1.1 58.5 L -0.4 62.2 L -2.8 58.9 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 10.5 41.1 L 9.3 46.8 L 7.0 48.3 L 6.8 45.6 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 32.8 30.3 L 27.7 35.3 L 24.3 35.4 L 25.9 32.5 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 57.8 26.0 L 49.3 27.8 L 45.9 25.7 L 49.5 23.8 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 73.4 27.6 L 67.9 25.5 L 66.8 23.1 L 69.5 23.3 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-adult-glow)"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 92.2 74.5 L 92.8 69.6 L 95.3 68.6 L 95.9 71.2 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 56.2 66.7 L 62.2 66.4 L 63.9 69.2 L 60.9 70.5 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 37.2 49.9 L 42.9 54.2 L 42.4 58.1 L 38.6 56.9 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 30.8 37.1 L 31.9 41.9 L 29.8 43.7 L 28.4 41.4 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.85" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 38.8 29.5 L 36.0 34.8 L 32.7 34.9 L 33.2 31.6 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 58.7 34.0 L 52.2 36.8 L 49.1 34.4 L 52.0 31.7 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 78.0 47.1 L 73.3 45.6 L 72.7 43.0 L 75.5 42.9 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 92.3 64.0 L 89.0 59.0 L 90.6 56.1 L 93.2 58.1 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.85" opacity="0.85" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 96.6 78.0 L 98.1 72.5 L 100.4 71.1 L 100.5 73.8 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 60.0 71.2 L 67.2 70.9 L 69.7 73.1 L 66.5 74.2 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 38.7 54.0 L 45.9 58.7 L 46.8 62.7 L 42.9 61.5 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 28.4 39.4 L 30.4 44.8 L 29.4 47.3 L 27.7 45.1 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 30.1 26.8 L 28.2 33.7 L 25.3 35.4 L 25.2 32.1 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 45.8 25.0 L 39.0 30.3 L 35.0 30.0 L 37.3 26.7 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 64.7 34.5 L 58.9 34.8 L 56.8 33.0 L 59.4 32.1 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 86.4 51.0 L 80.4 47.1 L 79.6 43.8 L 82.8 44.8 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 97.9 69.3 L 94.9 61.3 L 96.5 57.6 L 98.9 60.8 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-adult-glow)"/>
                         </g>
                         <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-                            <circle cx="50" cy="50" r="25.5" fill="url(#leviathan-adult-void)" opacity="0.92"/>
-                            <circle cx="50" cy="50" r="18.9" fill="#00010a" opacity="0.97"/>
-                            <path d="M 36.8 48.1 A 14.2 8.5 20 1 1 62.3 54.7" fill="none" stroke="#a5f3fc" stroke-width="1.1" opacity="0.42" class="tm-leviathan-vein" filter="url(#leviathan-adult-glow)"/>
-                            <path d="M 40.5 56.6 A 10.4 5.7 -25 1 0 58.5 44.3" fill="none" stroke="#a5f3fc" stroke-width="0.85" opacity="0.32" class="tm-leviathan-vein"/>
-                            <circle cx="50" cy="50" r="18.9" fill="none" stroke="#a5f3fc" stroke-width="1" opacity="0.5" filter="url(#leviathan-adult-glow)"/>
+                            <circle cx="50" cy="50" r="30.4" fill="url(#leviathan-adult-void)" opacity="0.93"/>
+                            <circle cx="50" cy="50" r="22.5" fill="#00010a" opacity="0.97"/>
+                            <path d="M 34.3 47.8 A 16.9 10.1 20 1 1 64.6 55.6" fill="none" stroke="#a5f3fc" stroke-width="1.1" opacity="0.42" class="tm-leviathan-vein" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 38.8 57.9 A 12.4 6.8 -25 1 0 60.1 43.3" fill="none" stroke="#a5f3fc" stroke-width="0.85" opacity="0.32" class="tm-leviathan-vein"/>
+                            <circle cx="50" cy="50" r="22.5" fill="none" stroke="#a5f3fc" stroke-width="1" opacity="0.5" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 58.0 26.5 L 63.4 18.8 L 60.3 10.5" stroke="#ef4444" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 58.0 26.5 L 67.3 27.3 L 73.0 20.5" stroke="#ef4444" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 58.0 26.5 L 48.7 25.7 L 43.0 32.5" stroke="#ef4444" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-adult-glow)"/>
+                            <path d="M 58.0 26.5 L 51.4 19.9 L 42.7 21.5" stroke="#ef4444" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-adult-glow)"/>
                         </g>
                         <g class="tm-animate-arm-left">
-                            <path d="M 22.3 50.0 L 22.5 55.5 L 19.8 57.0 L 18.7 54.1 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 28.3 48.8 L 23.6 53.5 L 20.1 52.3 L 21.7 49.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.70"/>
-                            <path d="M 34.9 55.8 L 27.2 55.5 L 25.4 51.5 L 29.5 50.2 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.80"/>
-                            <path d="M 35.8 59.2 L 32.2 55.0 L 33.4 52.1 L 36.1 53.6 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.60"/>
+                            <path d="M 19.7 48.7 L 19.4 55.3 L 16.7 57.1 L 15.7 53.9 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 27.0 47.4 L 20.9 52.6 L 17.1 51.6 L 19.0 48.1 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.72"/>
+                            <path d="M 35.0 55.9 L 25.6 54.9 L 23.3 50.7 L 27.9 49.6 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.82"/>
+                            <path d="M 35.7 59.9 L 31.8 54.6 L 32.8 51.5 L 35.6 53.3 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.62"/>
                         </g>
                         <g class="tm-animate-arm-right">
-                            <path d="M 77.7 62.0 L 77.5 56.5 L 80.2 55.0 L 81.3 57.9 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 71.7 63.2 L 76.4 58.5 L 79.9 59.7 L 78.3 63.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.70"/>
-                            <path d="M 65.1 56.2 L 72.8 56.5 L 74.6 60.5 L 70.5 61.8 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.80"/>
-                            <path d="M 64.2 52.8 L 67.8 57.0 L 66.6 59.9 L 63.9 58.4 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.60"/>
+                            <path d="M 80.3 63.3 L 80.6 56.7 L 83.3 54.9 L 84.3 58.1 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 73.0 64.6 L 79.1 59.4 L 82.9 60.4 L 81.0 63.9 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.72"/>
+                            <path d="M 65.0 56.1 L 74.4 57.1 L 76.7 61.3 L 72.1 62.4 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.82"/>
+                            <path d="M 64.3 52.1 L 68.2 57.4 L 67.2 60.5 L 64.4 58.7 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.62"/>
                         </g>
                         <g class="tm-animate-leg-left">
-                            <path d="M 39.4 72.4 L 35.5 74.8 L 33.2 73.4 L 34.8 71.4 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 44.6 75.6 L 39.2 74.1 L 38.5 71.1 L 41.7 70.8 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.70"/>
-                            <path d="M 41.5 81.8 L 38.4 75.9 L 40.6 73.0 L 43.3 75.4 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.80"/>
+                            <path d="M 38.2 73.6 L 33.3 76.2 L 30.8 75.0 L 32.7 72.9 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 44.4 77.7 L 38.0 75.5 L 37.1 72.2 L 40.5 72.2 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.72"/>
+                            <path d="M 40.6 85.2 L 37.4 77.9 L 39.4 74.5 L 42.2 77.4 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.82"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <path d="M 60.6 79.6 L 64.5 77.2 L 66.8 78.6 L 65.2 80.6 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 55.4 76.4 L 60.8 77.9 L 61.5 80.9 L 58.3 81.2 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.70"/>
-                            <path d="M 58.5 70.2 L 61.6 76.1 L 59.4 79.0 L 56.7 76.6 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.80"/>
+                            <path d="M 61.8 82.4 L 66.7 79.8 L 69.2 81.0 L 67.3 83.1 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 55.6 78.3 L 62.0 80.5 L 62.9 83.8 L 59.5 83.8 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.72"/>
+                            <path d="M 59.4 70.8 L 62.6 78.1 L 60.6 81.5 L 57.8 78.6 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.8" opacity="0.82"/>
                         </g>
                         <g class="tm-animate-tail">
-                            <path d="M 50.0 85.8 L 48.0 80.0 L 50.0 77.4 L 52.0 80.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.7" opacity="0.72"/>
-                            <path d="M 52.8 90.1 L 51.0 85.0 L 52.8 82.7 L 54.6 85.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.7" opacity="0.62"/>
-                            <path d="M 52.4 94.4 L 50.9 90.0 L 52.4 88.0 L 54.0 90.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.7" opacity="0.53"/>
-                            <path d="M 50.3 98.7 L 49.0 95.0 L 50.3 93.3 L 51.6 95.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.7" opacity="0.43"/>
-                            <path d="M 49.0 103.1 L 47.9 100.0 L 49.0 98.6 L 50.1 100.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.7" opacity="0.34"/>
-                            <path d="M 49.4 107.4 L 48.5 105.0 L 49.4 103.9 L 50.2 105.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.7" opacity="0.24"/>
-                            <path d="M 50.0 111.7 L 49.4 110.0 L 50.0 109.2 L 50.6 110.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.7" opacity="0.14"/>
+                            <path d="M 50.0 88.8 L 47.8 82.0 L 50.0 79.1 L 52.2 82.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.74"/>
+                            <path d="M 52.8 93.0 L 50.9 87.0 L 52.8 84.5 L 54.7 87.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.64"/>
+                            <path d="M 52.4 97.2 L 50.7 92.0 L 52.4 89.8 L 54.1 92.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.54"/>
+                            <path d="M 50.3 101.4 L 48.9 97.0 L 50.3 95.1 L 51.7 97.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.44"/>
+                            <path d="M 49.0 105.6 L 47.8 102.0 L 49.0 100.5 L 50.2 102.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.35"/>
+                            <path d="M 49.4 109.8 L 48.4 107.0 L 49.4 105.8 L 50.3 107.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.25"/>
+                            <path d="M 50.0 114.1 L 49.3 112.0 L 50.0 111.1 L 50.7 112.0 Z" fill="url(#leviathan-adult-shard)" stroke="#050e18" stroke-width="0.75" opacity="0.15"/>
                         </g>
                         <g class="tm-mascot-eye-open tm-leviathan-eye">
-                            <circle cx="57" cy="27.6" r="13.0" fill="#a5f3fc" opacity="0.22" filter="url(#leviathan-adult-glow)"/>
-                            <circle cx="57" cy="27.6" r="5.4" fill="#000" stroke="#a5f3fc" stroke-width="1.7"/>
-                            <circle class="tm-leviathan-iris" cx="57" cy="27.6" r="3.3" fill="url(#leviathan-adult-iris)"/>
-                            <circle class="tm-leviathan-pupil" cx="57" cy="27.6" r="1.4" fill="#000"/>
-                            <path d="M 51.1 26.0 L 43.0 21.7" stroke="#050e18" stroke-width="1" opacity="0.5" class="tm-leviathan-vein"/>
-                            <path d="M 62.9 29.8 L 70.0 34.6" stroke="#050e18" stroke-width="0.8" opacity="0.4" class="tm-leviathan-vein"/>
-                            <circle cx="55.6" cy="26.0" r="0.8" fill="#fff" opacity="0.5"/>
+                            <circle cx="58" cy="26.5" r="17.6" fill="#a5f3fc" opacity="0.3" filter="url(#leviathan-adult-glow)"/>
+                            <circle cx="58" cy="26.5" r="6.5" fill="#000" stroke="#a5f3fc" stroke-width="1.9"/>
+                            <ellipse class="tm-leviathan-iris" cx="58" cy="26.5" rx="4.5" ry="5.1" fill="url(#leviathan-adult-iris)"/>
+                            <ellipse class="tm-leviathan-pupil" cx="58" cy="26.5" rx="1.0" ry="3.4" fill="#000"/>
+                            <path d="M 50.9 24.6 L 41.1 19.4" stroke="#050e18" stroke-width="1" opacity="0.5" class="tm-leviathan-vein"/>
+                            <path d="M 65.2 29.1 L 73.6 35.0" stroke="#050e18" stroke-width="0.8" opacity="0.4" class="tm-leviathan-vein"/>
+                            <circle cx="56.4" cy="24.6" r="0.9" fill="#fff" opacity="0.5"/>
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 51.6 27.6 Q 57 24.9 62.4 27.6" stroke="#050e18" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                            <path d="M 51.5 26.5 Q 58 23.3 64.5 26.5" stroke="#050e18" stroke-width="1.8" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 49.8 41.775 L 53.4 43.9 L 55 41.775 L 56.6 43.9 L 60.2 41.775" stroke="#050e18" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 48.2 40.7 L 52.9 44.9 L 55 41.3 L 57.1 44.9 L 61.8 40.7" stroke="#050e18" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.8"/>
+                        <path class="tm-mascot-mouth-happy" d="M 50.4 42.7 L 54.3 44.9 L 56 42.7 L 57.7 44.9 L 61.6 42.7" stroke="#050e18" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 48.7 41.6 L 53.8 46.1 L 56 42.1 L 58.2 46.1 L 63.3 41.6" stroke="#050e18" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.8"/>
                 </g>
 
                 <!-- LEVIATHAN MIDDLE AGE — Abyssal Eclipse -->
@@ -17568,8 +17577,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <defs>
                         <radialGradient id="leviathan-mid-void" cx="45%" cy="42%" r="65%">
                             <stop offset="0%" style="stop-color:#00010a;stop-opacity:1" />
-                            <stop offset="58%" style="stop-color:#00010a;stop-opacity:1" />
-                            <stop offset="84%" style="stop-color:#cbd5e1;stop-opacity:0.5" />
+                            <stop offset="56%" style="stop-color:#00010a;stop-opacity:1" />
+                            <stop offset="82%" style="stop-color:#cbd5e1;stop-opacity:0.6" />
                             <stop offset="100%" style="stop-color:#00010a;stop-opacity:0" />
                         </radialGradient>
                         <linearGradient id="leviathan-mid-shard" x1="10%" y1="0%" x2="90%" y2="100%">
@@ -17583,8 +17592,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="leviathan-mid-aura" cx="50%" cy="48%" r="55%">
-                            <stop offset="0%" style="stop-color:#64748b;stop-opacity:0.24" />
-                            <stop offset="45%" style="stop-color:#cbd5e1;stop-opacity:0.1" />
+                            <stop offset="0%" style="stop-color:#64748b;stop-opacity:0.26" />
+                            <stop offset="45%" style="stop-color:#cbd5e1;stop-opacity:0.12" />
                             <stop offset="100%" style="stop-color:#00010a;stop-opacity:0" />
                         </radialGradient>
                         <filter id="leviathan-mid-glow" x="-60%" y="-60%" width="220%" height="220%">
@@ -17592,8 +17601,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                         </filter>
                     </defs>
-                        <ellipse cx="50" cy="96" rx="30" ry="4.6" fill="#00010a" opacity="0.42"/>
-                        <ellipse cx="50" cy="50" rx="44" ry="40" fill="url(#leviathan-mid-aura)" opacity="0.5"/>
+                        <ellipse cx="50" cy="96" rx="33" ry="4.9" fill="#00010a" opacity="0.45"/>
+                        <ellipse cx="50" cy="50" rx="50" ry="46" fill="url(#leviathan-mid-aura)" opacity="0.6"/>
                         <circle cx="8" cy="16" r="1.7" fill="#cbd5e1" opacity="0.32"/>
                         <circle cx="92" cy="14" r="1.1" fill="#64748b" opacity="0.41000000000000003"/>
                         <circle cx="4" cy="40" r="1.1" fill="#f0f9ff" opacity="0.5"/>
@@ -17606,80 +17615,92 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="98" cy="52" r="1.1" fill="#cbd5e1" opacity="0.41000000000000003"/>
                         <circle cx="38" cy="2" r="1.1" fill="#f0f9ff" opacity="0.5"/>
                         <circle cx="62" cy="2" r="1.1" fill="#64748b" opacity="0.5900000000000001"/>
+                        <circle cx="14" cy="84" r="1.7" fill="#cbd5e1" opacity="0.32"/>
                         <g class="tm-animate-wing-left">
-                            <path d="M 67.1 40.6 L 63.7 37.8 L 64.1 35.4 L 66.4 36.2 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 66.1 55.7 L 65.1 50.4 L 67.4 48.5 L 68.9 51.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 54.6 67.0 L 57.7 61.4 L 61.2 61.4 L 60.6 64.9 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 41.0 68.5 L 45.1 66.9 L 47.0 68.5 L 45.1 70.1 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.85" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 23.8 47.4 L 26.6 52.1 L 25.1 54.7 L 22.8 52.7 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 30.8 33.3 L 29.8 39.6 L 26.5 40.8 L 25.8 37.4 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 43.4 27.6 L 40.0 30.5 L 37.7 29.7 L 38.9 27.5 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 58.9 30.2 L 53.5 30.3 L 52.0 27.7 L 54.8 26.6 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.85" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 70.2 38.7 L 66.4 34.7 L 66.4 32.0 L 68.7 33.3 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 69.3 54.9 L 68.4 48.0 L 70.3 45.4 L 71.6 48.4 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 57.5 68.0 L 61.4 60.6 L 65.2 59.4 L 64.3 63.2 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 43.6 71.1 L 48.7 68.7 L 51.2 69.5 L 49.3 71.2 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 19.1 54.1 L 23.9 59.2 L 23.9 62.5 L 21.1 60.8 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 20.9 37.7 L 22.0 46.0 L 19.7 49.2 L 18.1 45.6 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 30.8 28.0 L 28.1 33.0 L 25.6 33.8 L 26.1 31.2 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 47.7 22.6 L 41.4 25.6 L 38.2 24.6 L 40.7 22.4 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 63.9 28.1 L 55.7 26.6 L 53.3 23.4 L 57.2 23.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-mid-glow)"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 66.6 68.0 L 68.1 63.8 L 70.5 63.4 L 70.5 65.9 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 55.7 66.4 L 60.6 64.0 L 63.0 65.8 L 60.9 67.9 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 38.6 41.8 L 41.4 47.6 L 39.3 50.5 L 36.8 48.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 41.4 36.0 L 39.9 40.2 L 37.5 40.6 L 37.5 38.1 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.85" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 52.3 37.6 L 47.4 40.0 L 45.0 38.2 L 47.1 36.1 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 64.4 49.0 L 58.3 46.9 L 57.7 43.4 L 61.3 43.4 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 69.3 60.4 L 67.3 56.4 L 68.8 54.3 L 70.5 56.1 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 69.2 72.1 L 71.9 67.2 L 74.4 66.4 L 73.8 68.9 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 60.5 71.9 L 66.4 68.3 L 69.6 68.9 L 67.4 71.4 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 41.9 54.4 L 49.3 58.4 L 50.5 62.1 L 46.7 61.3 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 38.3 45.5 L 41.2 50.3 L 40.7 52.9 L 38.8 51.1 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 37.5 35.4 L 37.6 42.3 L 35.4 44.8 L 34.4 41.7 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 42.6 29.9 L 38.6 37.2 L 34.9 38.5 L 35.7 34.6 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 48.3 32.5 L 43.5 35.4 L 40.9 34.9 L 42.7 32.9 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 58.8 38.6 L 51.8 38.8 L 49.4 36.6 L 52.5 35.6 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 68.1 49.6 L 60.7 45.6 L 59.5 41.9 L 63.3 42.7 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 71.7 58.5 L 68.8 53.7 L 69.3 51.1 L 71.2 52.9 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 72.5 68.6 L 72.4 61.7 L 74.6 59.2 L 75.6 62.3 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-mid-glow)"/>
                         </g>
                         <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-                            <circle cx="50" cy="50" r="18.9" fill="url(#leviathan-mid-void)" opacity="0.92"/>
-                            <circle cx="50" cy="50" r="14.0" fill="#00010a" opacity="0.97"/>
-                            <path d="M 40.2 48.6 A 10.5 6.3 20 1 1 59.1 53.5" fill="none" stroke="#cbd5e1" stroke-width="1.1" opacity="0.42" class="tm-leviathan-vein" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 43.0 54.9 A 7.7 4.2 -25 1 0 56.3 45.8" fill="none" stroke="#cbd5e1" stroke-width="0.85" opacity="0.32" class="tm-leviathan-vein"/>
-                            <circle cx="50" cy="50" r="14.0" fill="none" stroke="#cbd5e1" stroke-width="1" opacity="0.5" filter="url(#leviathan-mid-glow)"/>
+                            <circle cx="50" cy="50" r="23.2" fill="url(#leviathan-mid-void)" opacity="0.93"/>
+                            <circle cx="50" cy="50" r="17.2" fill="#00010a" opacity="0.97"/>
+                            <path d="M 38.0 48.3 A 12.9 7.7 20 1 1 61.2 54.3" fill="none" stroke="#cbd5e1" stroke-width="1.1" opacity="0.42" class="tm-leviathan-vein" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 41.4 56.0 A 9.5 5.2 -25 1 0 57.7 44.8" fill="none" stroke="#cbd5e1" stroke-width="0.85" opacity="0.32" class="tm-leviathan-vein"/>
+                            <circle cx="50" cy="50" r="17.2" fill="none" stroke="#cbd5e1" stroke-width="1" opacity="0.5" filter="url(#leviathan-mid-glow)"/>
                             <!-- Third gyroscope ring, near-vertical, crossing the other two -->
-                            <path d="M 48.0 58.5 L 51.2 56.6 L 52.9 57.6 L 51.6 59.2 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 29.2 55.4 L 33.4 57.0 L 33.8 59.4 L 31.3 59.4 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 26.9 47.4 L 28.5 52.4 L 26.5 54.5 L 24.8 52.2 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 62.3 42.0 L 58.7 42.3 L 57.5 40.7 L 59.4 39.8 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.85" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 74.4 48.0 L 71.3 44.8 L 72.0 42.4 L 74.2 43.6 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-mid-glow)"/>
-                            <path d="M 67.0 56.0 L 67.7 50.8 L 70.4 49.7 L 71.0 52.6 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 46.8 60.0 L 51.2 58.3 L 53.2 59.1 L 51.5 60.5 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 27.5 55.9 L 32.8 58.2 L 33.9 60.7 L 31.2 60.4 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 22.3 47.1 L 24.9 53.5 L 23.7 56.6 L 21.7 54.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 53.2 40.0 L 48.8 41.7 L 46.8 40.9 L 48.5 39.5 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 72.5 44.1 L 67.2 41.8 L 66.1 39.3 L 68.8 39.6 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 77.7 52.9 L 75.1 46.5 L 76.3 43.4 L 78.3 46.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 67.1 57.6 L 69.0 53.3 L 71.0 52.5 L 70.7 54.7 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 58.0 29.0 L 63.3 19.9 L 59.0 10.9" stroke="#dc2626" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 58.0 29.0 L 68.5 28.1 L 73.4 19.4" stroke="#dc2626" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 58.0 29.0 L 47.6 30.8 L 43.5 39.9" stroke="#dc2626" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 58.0 29.0 L 49.9 22.2 L 40.3 24.9" stroke="#dc2626" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-mid-glow)"/>
+                            <path d="M 58.0 29.0 L 59.8 18.6 L 52.7 11.6" stroke="#dc2626" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-mid-glow)"/>
                         </g>
                         <g class="tm-animate-arm-left">
-                            <path d="M 27.3 47.5 L 27.4 51.6 L 25.4 52.7 L 24.5 50.6 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 31.7 46.7 L 28.2 50.1 L 25.6 49.3 L 26.8 46.8 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.70"/>
-                            <path d="M 36.6 51.8 L 30.9 51.6 L 29.6 48.7 L 32.6 47.7 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.80"/>
+                            <path d="M 24.5 46.1 L 24.3 51.4 L 22.1 52.9 L 21.3 50.3 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 30.4 45.0 L 25.5 49.2 L 22.4 48.4 L 24.0 45.6 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.8" opacity="0.72"/>
+                            <path d="M 36.9 51.9 L 29.3 51.1 L 27.5 47.7 L 31.2 46.8 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.8" opacity="0.82"/>
                         </g>
                         <g class="tm-animate-arm-right">
-                            <path d="M 72.7 56.5 L 72.6 52.4 L 74.6 51.3 L 75.5 53.4 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 68.3 57.3 L 71.8 53.9 L 74.4 54.7 L 73.2 57.2 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.70"/>
-                            <path d="M 63.4 52.2 L 69.1 52.4 L 70.4 55.3 L 67.4 56.3 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.80"/>
+                            <path d="M 75.5 57.9 L 75.7 52.6 L 77.9 51.1 L 78.7 53.7 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 69.6 59.0 L 74.5 54.8 L 77.6 55.6 L 76.0 58.4 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.8" opacity="0.72"/>
+                            <path d="M 63.1 52.1 L 70.7 52.9 L 72.5 56.3 L 68.8 57.2 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.8" opacity="0.82"/>
                         </g>
                         <g class="tm-animate-leg-left">
-                            <path d="M 40.6 71.3 L 37.6 73.1 L 35.9 72.1 L 37.1 70.5 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 44.4 73.7 L 40.4 72.6 L 39.9 70.3 L 42.3 70.1 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.70"/>
+                            <path d="M 39.5 72.4 L 35.4 74.5 L 33.4 73.5 L 34.9 71.8 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 44.6 75.8 L 39.3 73.9 L 38.5 71.2 L 41.4 71.2 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.8" opacity="0.72"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <path d="M 59.4 76.7 L 62.4 74.9 L 64.1 75.9 L 62.9 77.5 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 55.6 74.3 L 59.6 75.4 L 60.1 77.7 L 57.7 77.9 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.70"/>
+                            <path d="M 60.5 79.6 L 64.6 77.5 L 66.6 78.5 L 65.1 80.2 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 55.4 76.2 L 60.7 78.1 L 61.5 80.8 L 58.6 80.8 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.8" opacity="0.72"/>
                         </g>
                         <g class="tm-animate-tail">
-                            <path d="M 50.0 81.7 L 48.7 78.0 L 50.0 76.3 L 51.3 78.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.7" opacity="0.72"/>
-                            <path d="M 52.8 86.3 L 51.6 83.0 L 52.8 81.5 L 54.0 83.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.7" opacity="0.62"/>
-                            <path d="M 52.4 90.9 L 51.4 88.0 L 52.4 86.7 L 53.4 88.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.7" opacity="0.53"/>
-                            <path d="M 50.3 95.4 L 49.4 93.0 L 50.3 91.9 L 51.1 93.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.7" opacity="0.43"/>
-                            <path d="M 49.0 100.0 L 48.3 98.0 L 49.0 97.1 L 49.7 98.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.7" opacity="0.34"/>
-                            <path d="M 49.4 104.6 L 48.8 103.0 L 49.4 102.3 L 49.9 103.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.7" opacity="0.24"/>
-                            <path d="M 50.0 109.1 L 49.6 108.0 L 50.0 107.5 L 50.4 108.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.7" opacity="0.14"/>
+                            <path d="M 50.0 84.9 L 48.4 80.0 L 50.0 77.9 L 51.6 80.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.74"/>
+                            <path d="M 52.8 89.3 L 51.4 85.0 L 52.8 83.2 L 54.2 85.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.64"/>
+                            <path d="M 52.4 93.8 L 51.2 90.0 L 52.4 88.4 L 53.6 90.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.54"/>
+                            <path d="M 50.3 98.2 L 49.3 95.0 L 50.3 93.7 L 51.3 95.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.44"/>
+                            <path d="M 49.0 102.6 L 48.2 100.0 L 49.0 98.9 L 49.8 100.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.35"/>
+                            <path d="M 49.4 107.0 L 48.7 105.0 L 49.4 104.1 L 50.0 105.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.25"/>
+                            <path d="M 50.0 111.5 L 49.5 110.0 L 50.0 109.4 L 50.5 110.0 Z" fill="url(#leviathan-mid-shard)" stroke="#040810" stroke-width="0.75" opacity="0.15"/>
                         </g>
                         <g class="tm-mascot-eye-open tm-leviathan-eye">
-                            <circle cx="57" cy="30" r="13.4" fill="#cbd5e1" opacity="0.22" filter="url(#leviathan-mid-glow)"/>
-                            <circle cx="57" cy="30" r="5.6" fill="#000" stroke="#cbd5e1" stroke-width="1.7"/>
-                            <circle class="tm-leviathan-iris" cx="57" cy="30" r="3.5" fill="url(#leviathan-mid-iris)"/>
-                            <circle class="tm-leviathan-pupil" cx="57" cy="30" r="1.5" fill="#000"/>
-                            <path d="M 50.8 28.3 L 42.4 23.8" stroke="#040810" stroke-width="1" opacity="0.5" class="tm-leviathan-vein"/>
-                            <path d="M 63.2 32.2 L 70.4 37.3" stroke="#040810" stroke-width="0.8" opacity="0.4" class="tm-leviathan-vein"/>
-                            <circle cx="55.6" cy="28.3" r="0.8" fill="#fff" opacity="0.5"/>
+                            <circle cx="58" cy="29" r="18.4" fill="#cbd5e1" opacity="0.3" filter="url(#leviathan-mid-glow)"/>
+                            <circle cx="58" cy="29" r="6.8" fill="#000" stroke="#cbd5e1" stroke-width="1.9"/>
+                            <ellipse class="tm-leviathan-iris" cx="58" cy="29" rx="4.8" ry="5.3" fill="url(#leviathan-mid-iris)"/>
+                            <ellipse class="tm-leviathan-pupil" cx="58" cy="29" rx="1.0" ry="3.5" fill="#000"/>
+                            <path d="M 50.5 27.0 L 40.3 21.5" stroke="#040810" stroke-width="1" opacity="0.5" class="tm-leviathan-vein"/>
+                            <path d="M 65.5 31.7 L 74.3 37.8" stroke="#040810" stroke-width="0.8" opacity="0.4" class="tm-leviathan-vein"/>
+                            <circle cx="56.3" cy="27.0" r="1.0" fill="#fff" opacity="0.5"/>
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 51.4 30 Q 57 27.2 62.6 30" stroke="#040810" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                            <path d="M 51.2 29 Q 58 25.6 64.8 29" stroke="#040810" stroke-width="1.8" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 50.8 39.8 L 53.7 41.5 L 55 39.8 L 56.3 41.5 L 59.2 39.8" stroke="#040810" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 49.5 39.0 L 53.3 42.3 L 55 39.4 L 56.7 42.3 L 60.5 39.0" stroke="#040810" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.8"/>
+                        <path class="tm-mascot-mouth-happy" d="M 51.4 40.696 L 54.6 42.5 L 56 40.696 L 57.4 42.5 L 60.6 40.696" stroke="#040810" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 50.0 39.8 L 54.2 43.5 L 56 40.2 L 57.8 43.5 L 62.0 39.8" stroke="#040810" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.8"/>
                 </g>
 
                 <!-- LEVIATHAN OLD — Primordial Void-Storm -->
@@ -17687,8 +17708,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <defs>
                         <radialGradient id="leviathan-old-void" cx="45%" cy="42%" r="65%">
                             <stop offset="0%" style="stop-color:#00010a;stop-opacity:1" />
-                            <stop offset="58%" style="stop-color:#00010a;stop-opacity:1" />
-                            <stop offset="84%" style="stop-color:#f8fafc;stop-opacity:0.5" />
+                            <stop offset="56%" style="stop-color:#00010a;stop-opacity:1" />
+                            <stop offset="82%" style="stop-color:#f8fafc;stop-opacity:0.6" />
                             <stop offset="100%" style="stop-color:#00010a;stop-opacity:0" />
                         </radialGradient>
                         <linearGradient id="leviathan-old-shard" x1="10%" y1="0%" x2="90%" y2="100%">
@@ -17702,8 +17723,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="100%" style="stop-color:#000;stop-opacity:1" />
                         </radialGradient>
                         <radialGradient id="leviathan-old-aura" cx="50%" cy="48%" r="55%">
-                            <stop offset="0%" style="stop-color:#94a3b8;stop-opacity:0.24" />
-                            <stop offset="45%" style="stop-color:#f8fafc;stop-opacity:0.1" />
+                            <stop offset="0%" style="stop-color:#94a3b8;stop-opacity:0.26" />
+                            <stop offset="45%" style="stop-color:#f8fafc;stop-opacity:0.12" />
                             <stop offset="100%" style="stop-color:#00010a;stop-opacity:0" />
                         </radialGradient>
                         <filter id="leviathan-old-glow" x="-60%" y="-60%" width="220%" height="220%">
@@ -17711,8 +17732,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
                         </filter>
                     </defs>
-                        <ellipse cx="50" cy="97" rx="36" ry="5" fill="#00010a" opacity="0.45"/>
-                        <ellipse cx="50" cy="50" rx="50" ry="46" fill="url(#leviathan-old-aura)" opacity="0.55"/>
+                        <ellipse cx="50" cy="97" rx="39" ry="5.4" fill="#00010a" opacity="0.48"/>
+                        <ellipse cx="50" cy="50" rx="57" ry="53" fill="url(#leviathan-old-aura)" opacity="0.68"/>
                         <circle cx="8" cy="16" r="1.7" fill="#f8fafc" opacity="0.32"/>
                         <circle cx="92" cy="14" r="1.1" fill="#94a3b8" opacity="0.41000000000000003"/>
                         <circle cx="4" cy="40" r="1.1" fill="#f0f9ff" opacity="0.5"/>
@@ -17727,97 +17748,109 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="62" cy="2" r="1.1" fill="#94a3b8" opacity="0.5900000000000001"/>
                         <circle cx="14" cy="84" r="1.7" fill="#f8fafc" opacity="0.32"/>
                         <circle cx="86" cy="86" r="1.1" fill="#94a3b8" opacity="0.41000000000000003"/>
+                        <circle cx="50" cy="0" r="1.1" fill="#f0f9ff" opacity="0.5"/>
                         <g class="tm-animate-wing-left">
-                            <path d="M 73.2 39.0 L 69.2 35.0 L 70.1 32.0 L 72.9 33.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 69.1 48.9 L 67.3 42.2 L 70.1 39.5 L 72.2 42.7 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 55.9 58.4 L 58.1 50.4 L 62.5 49.4 L 62.8 53.9 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 40.8 63.0 L 44.9 58.9 L 47.9 59.8 L 46.5 62.6 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.85" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 22.9 65.3 L 29.7 63.5 L 32.3 66.3 L 29.1 68.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 9.7 61.8 L 17.7 64.0 L 18.7 68.4 L 14.2 68.7 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 10.8 48.3 L 12.3 53.8 L 10.0 56.0 L 8.2 53.4 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 23.4 38.6 L 21.5 45.3 L 17.8 46.2 L 17.5 42.4 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.85" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 41.3 32.1 L 35.5 37.9 L 31.1 36.6 L 33.1 32.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 55.9 30.6 L 50.4 32.0 L 48.2 29.8 L 50.8 28.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 69.3 33.5 L 62.6 31.6 L 61.7 27.9 L 65.5 27.6 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 76.0 35.9 L 71.6 30.6 L 71.8 27.4 L 74.5 29.2 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 72.1 46.8 L 70.3 38.5 L 72.4 35.1 L 74.3 38.6 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 58.8 57.7 L 61.6 48.0 L 65.7 45.5 L 65.8 50.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 43.6 62.8 L 48.3 57.9 L 51.5 57.7 L 50.1 60.6 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 23.9 67.3 L 31.9 64.5 L 35.6 66.2 L 32.3 68.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 7.3 65.6 L 17.3 67.1 L 20.3 70.9 L 15.5 71.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 0.9 53.6 L 3.8 59.8 L 2.9 62.9 L 0.7 60.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 9.3 42.3 L 9.0 50.8 L 6.2 53.6 L 5.2 49.7 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 25.8 32.4 L 20.7 41.2 L 16.2 42.6 L 17.3 38.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 41.6 28.5 L 35.8 32.2 L 32.6 31.6 L 34.7 29.2 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 60.3 26.7 L 51.8 27.4 L 48.7 24.9 L 52.4 23.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 73.8 31.0 L 64.4 27.1 L 62.4 22.7 L 67.2 23.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-old-glow)"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 87.0 74.6 L 88.0 69.0 L 90.9 67.9 L 91.5 71.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 61.1 70.3 L 67.8 68.4 L 70.5 71.2 L 67.4 73.4 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 45.6 58.1 L 53.4 60.6 L 54.3 65.0 L 49.8 65.2 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 37.2 47.0 L 40.9 51.4 L 39.7 54.3 L 37.0 52.7 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.85" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 35.1 35.5 L 36.0 42.4 L 32.9 44.7 L 31.2 41.2 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 42.8 30.2 L 39.3 37.6 L 34.7 37.9 L 35.2 33.4 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 54.0 34.0 L 49.1 37.0 L 46.4 35.5 L 48.4 33.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.76" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 70.5 43.0 L 63.6 42.9 L 61.8 39.5 L 65.4 38.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.85" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 83.9 56.7 L 77.0 52.1 L 77.4 47.6 L 81.8 48.7 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.58" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 89.1 66.7 L 86.8 61.5 L 88.7 59.0 L 90.9 61.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.85" opacity="0.67" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 91.8 79.3 L 94.0 72.8 L 96.9 71.2 L 96.7 74.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 64.5 74.5 L 72.9 72.8 L 76.3 74.9 L 72.7 76.8 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 47.7 61.5 L 57.3 64.7 L 59.6 68.9 L 54.8 68.7 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 38.3 49.3 L 42.8 54.5 L 42.7 57.7 L 40.0 56.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 33.1 35.1 L 34.8 43.4 L 32.7 46.9 L 30.9 43.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 37.9 26.0 L 34.6 35.7 L 30.4 37.9 L 30.6 33.1 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 46.7 27.5 L 41.6 32.1 L 38.3 32.0 L 40.1 29.2 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 63.5 33.5 L 55.1 35.2 L 51.7 33.1 L 55.3 31.2 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.89" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 80.3 46.5 L 70.7 43.3 L 68.4 39.1 L 73.2 39.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 89.7 58.7 L 85.2 53.5 L 85.3 50.3 L 88.0 52.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.71" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 94.9 72.9 L 93.2 64.6 L 95.3 61.1 L 97.1 64.7 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.80" filter="url(#leviathan-old-glow)"/>
                         </g>
                         <g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
-                            <circle cx="50" cy="50" r="27.0" fill="url(#leviathan-old-void)" opacity="0.92"/>
-                            <circle cx="50" cy="50" r="20.0" fill="#00010a" opacity="0.97"/>
-                            <path d="M 36.0 48.0 A 15.0 9.0 20 1 1 63.0 55.0" fill="none" stroke="#f8fafc" stroke-width="1.1" opacity="0.42" class="tm-leviathan-vein" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 40.0 57.0 A 11.0 6.0 -25 1 0 59.0 44.0" fill="none" stroke="#f8fafc" stroke-width="0.85" opacity="0.32" class="tm-leviathan-vein"/>
-                            <circle cx="50" cy="50" r="20.0" fill="none" stroke="#f8fafc" stroke-width="1" opacity="0.5" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 85.0 50.0 L 68.0 52.8 L 60.4 50.0 L 68.0 47.2 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.50" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 80.3 67.5 L 64.2 61.4 L 59.0 55.2 L 67.0 56.6 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 67.5 80.3 L 56.6 67.0 L 55.2 59.0 L 61.4 64.2 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.74" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 50.0 85.0 L 47.2 68.0 L 50.0 60.4 L 52.8 68.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.50" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 32.5 80.3 L 38.6 64.2 L 44.8 59.0 L 43.4 67.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 19.7 67.5 L 33.0 56.6 L 41.0 55.2 L 35.8 61.4 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.74" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 15.0 50.0 L 32.0 47.2 L 39.6 50.0 L 32.0 52.8 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.50" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 19.7 32.5 L 35.8 38.6 L 41.0 44.8 L 33.0 43.4 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 32.5 19.7 L 43.4 33.0 L 44.8 41.0 L 38.6 35.8 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.74" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 50.0 15.0 L 52.8 32.0 L 50.0 39.6 L 47.2 32.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.50" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 67.5 19.7 L 61.4 35.8 L 55.2 41.0 L 56.6 33.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.62" filter="url(#leviathan-old-glow)"/>
-                            <path d="M 80.3 32.5 L 67.0 43.4 L 59.0 44.8 L 64.2 38.6 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.9" opacity="0.74" filter="url(#leviathan-old-glow)"/>
+                            <circle cx="50" cy="50" r="33.1" fill="url(#leviathan-old-void)" opacity="0.93"/>
+                            <circle cx="50" cy="50" r="24.5" fill="#00010a" opacity="0.97"/>
+                            <path d="M 32.9 47.5 A 18.4 11.0 20 1 1 65.9 56.1" fill="none" stroke="#f8fafc" stroke-width="1.1" opacity="0.42" class="tm-leviathan-vein" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 37.8 58.6 A 13.5 7.3 -25 1 0 61.0 42.6" fill="none" stroke="#f8fafc" stroke-width="0.85" opacity="0.32" class="tm-leviathan-vein"/>
+                            <circle cx="50" cy="50" r="24.5" fill="none" stroke="#f8fafc" stroke-width="1" opacity="0.5" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 96.1 50.0 L 72.0 53.7 L 62.0 50.0 L 72.0 46.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.55" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 91.5 70.0 L 68.3 62.9 L 60.8 55.2 L 71.5 56.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.68" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 78.7 86.0 L 60.9 69.5 L 57.5 59.4 L 66.6 64.9 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.81" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 60.2 94.9 L 51.3 72.3 L 52.7 61.7 L 58.5 70.7 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.55" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 39.8 94.9 L 41.5 70.7 L 47.3 61.7 L 48.7 72.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.68" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 21.3 86.0 L 33.4 64.9 L 42.5 59.4 L 39.1 69.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.81" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 8.5 70.0 L 28.5 56.3 L 39.2 55.2 L 31.7 62.9 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.55" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 3.9 50.0 L 27.9 46.3 L 38.0 50.0 L 27.9 53.7 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.68" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 8.5 30.0 L 31.7 37.1 L 39.2 44.8 L 28.5 43.7 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.81" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 21.3 14.0 L 39.1 30.5 L 42.5 40.6 L 33.4 35.1 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.55" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 39.8 5.1 L 48.7 27.7 L 47.3 38.3 L 41.5 29.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.68" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 60.2 5.1 L 58.5 29.3 L 52.7 38.3 L 51.3 27.7 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.81" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 78.7 14.0 L 66.6 35.1 L 57.5 40.6 L 60.9 30.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.55" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 91.5 30.0 L 71.5 43.7 L 60.8 44.8 L 68.3 37.1 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="1" opacity="0.68" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 59.0 25.5 L 64.4 13.8 L 58.3 3.4" stroke="#fecaca" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 59.0 25.5 L 71.4 22.2 L 75.5 10.7" stroke="#fecaca" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 59.0 25.5 L 71.4 28.8 L 80.7 21.0" stroke="#fecaca" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 59.0 25.5 L 46.9 29.9 L 43.8 41.7" stroke="#fecaca" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 59.0 25.5 L 47.3 20.1 L 36.9 26.2" stroke="#fecaca" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 59.0 25.5 L 55.7 13.1 L 44.2 9.0" stroke="#fecaca" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-old-glow)"/>
+                            <path d="M 59.0 25.5 L 65.4 14.3 L 60.2 3.4" stroke="#fecaca" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.8" filter="url(#leviathan-old-glow)"/>
                         </g>
                         <g class="tm-animate-arm-left">
-                            <path d="M 16.8 52.8 L 17.0 57.6 L 14.6 58.9 L 13.6 56.4 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 22.0 51.8 L 17.9 55.8 L 14.9 54.8 L 16.2 51.9 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.70"/>
-                            <path d="M 27.7 57.8 L 21.0 57.5 L 19.5 54.1 L 23.0 53.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.80"/>
-                            <path d="M 28.5 60.7 L 25.4 57.1 L 26.4 54.6 L 28.8 56.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.60"/>
+                            <path d="M 11.9 51.1 L 11.7 57.3 L 9.1 59.0 L 8.1 56.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 18.8 49.8 L 13.1 54.8 L 9.4 53.8 L 11.3 50.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.72"/>
+                            <path d="M 26.4 57.9 L 17.5 56.9 L 15.4 53.0 L 19.7 52.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.82"/>
+                            <path d="M 27.1 61.7 L 23.4 56.7 L 24.4 53.8 L 27.0 55.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.62"/>
                         </g>
                         <g class="tm-animate-arm-right">
-                            <path d="M 83.2 63.2 L 83.0 58.4 L 85.4 57.1 L 86.4 59.6 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 78.0 64.2 L 82.1 60.2 L 85.1 61.2 L 83.8 64.1 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.70"/>
-                            <path d="M 72.3 58.2 L 79.0 58.5 L 80.5 61.9 L 77.0 63.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.80"/>
-                            <path d="M 71.5 55.3 L 74.6 58.9 L 73.6 61.4 L 71.2 60.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.60"/>
+                            <path d="M 88.1 64.9 L 88.3 58.7 L 90.9 57.0 L 91.9 60.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 81.2 66.2 L 86.9 61.2 L 90.6 62.2 L 88.7 65.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.72"/>
+                            <path d="M 73.6 58.1 L 82.5 59.1 L 84.6 63.0 L 80.3 64.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.82"/>
+                            <path d="M 72.9 54.3 L 76.6 59.3 L 75.6 62.2 L 73.0 60.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.62"/>
                         </g>
                         <g class="tm-animate-leg-left">
-                            <path d="M 37.0 76.8 L 33.5 79.0 L 31.5 77.7 L 33.0 75.9 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 41.6 79.7 L 36.8 78.4 L 36.2 75.6 L 39.0 75.4 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.70"/>
-                            <path d="M 38.9 85.1 L 36.2 80.0 L 38.1 77.3 L 40.4 79.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.80"/>
+                            <path d="M 34.1 77.8 L 29.3 80.3 L 26.9 79.0 L 28.7 77.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 40.1 81.7 L 33.9 79.5 L 33.0 76.3 L 36.3 76.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.72"/>
+                            <path d="M 36.4 89.0 L 33.3 81.9 L 35.3 78.5 L 38.0 81.4 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.82"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <path d="M 63.0 83.2 L 66.5 81.0 L 68.5 82.3 L 67.0 84.1 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.60"/>
-                            <path d="M 58.4 80.3 L 63.2 81.6 L 63.8 84.4 L 61.0 84.6 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.70"/>
-                            <path d="M 61.1 74.9 L 63.8 80.0 L 61.9 82.7 L 59.6 80.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.80"/>
+                            <path d="M 65.9 86.2 L 70.7 83.7 L 73.1 85.0 L 71.3 87.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.62"/>
+                            <path d="M 59.9 82.3 L 66.1 84.5 L 67.0 87.7 L 63.7 87.7 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.72"/>
+                            <path d="M 63.6 75.0 L 66.7 82.1 L 64.7 85.5 L 62.0 82.6 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.8" opacity="0.82"/>
                         </g>
                         <g class="tm-animate-tail">
-                            <path d="M 50.0 88.4 L 48.4 84.0 L 50.0 82.0 L 51.6 84.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.7" opacity="0.72"/>
-                            <path d="M 52.4 91.8 L 51.0 87.8 L 52.4 85.9 L 53.8 87.8 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.7" opacity="0.65"/>
-                            <path d="M 53.0 95.2 L 51.7 91.5 L 53.0 89.9 L 54.3 91.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.7" opacity="0.58"/>
-                            <path d="M 51.9 98.5 L 50.8 95.3 L 51.9 93.8 L 53.1 95.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.7" opacity="0.50"/>
-                            <path d="M 50.3 101.9 L 49.3 99.0 L 50.3 97.7 L 51.3 99.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.7" opacity="0.43"/>
-                            <path d="M 49.1 105.2 L 48.3 102.8 L 49.1 101.6 L 50.0 102.8 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.7" opacity="0.36"/>
-                            <path d="M 49.0 108.6 L 48.3 106.5 L 49.0 105.6 L 49.8 106.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.7" opacity="0.29"/>
-                            <path d="M 49.6 112.0 L 49.0 110.3 L 49.6 109.5 L 50.2 110.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.7" opacity="0.22"/>
-                            <path d="M 50.0 115.3 L 49.5 114.0 L 50.0 113.4 L 50.5 114.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.7" opacity="0.14"/>
+                            <path d="M 50.0 91.8 L 48.1 86.0 L 50.0 83.5 L 51.9 86.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.74"/>
+                            <path d="M 52.4 95.1 L 50.7 89.8 L 52.4 87.5 L 54.1 89.8 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.67"/>
+                            <path d="M 53.0 98.3 L 51.4 93.5 L 53.0 91.5 L 54.5 93.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.59"/>
+                            <path d="M 51.9 101.6 L 50.6 97.3 L 51.9 95.4 L 53.3 97.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.52"/>
+                            <path d="M 50.3 104.8 L 49.1 101.0 L 50.3 99.4 L 51.5 101.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.44"/>
+                            <path d="M 49.1 108.0 L 48.1 104.8 L 49.1 103.4 L 50.2 104.8 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.37"/>
+                            <path d="M 49.0 111.3 L 48.1 108.5 L 49.0 107.3 L 49.9 108.5 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.30"/>
+                            <path d="M 49.6 114.5 L 48.8 112.3 L 49.6 111.3 L 50.3 112.3 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.22"/>
+                            <path d="M 50.0 117.8 L 49.4 116.0 L 50.0 115.3 L 50.6 116.0 Z" fill="url(#leviathan-old-shard)" stroke="#020406" stroke-width="0.75" opacity="0.15"/>
                         </g>
                         <g class="tm-mascot-eye-open tm-leviathan-eye">
-                            <circle cx="58" cy="26" r="14.9" fill="#f8fafc" opacity="0.22" filter="url(#leviathan-old-glow)"/>
-                            <circle cx="58" cy="26" r="6.2" fill="#000" stroke="#f8fafc" stroke-width="1.7"/>
-                            <circle class="tm-leviathan-iris" cx="58" cy="26" r="3.8" fill="url(#leviathan-old-iris)"/>
-                            <circle class="tm-leviathan-pupil" cx="58" cy="26" r="1.6" fill="#000"/>
-                            <path d="M 51.2 24.1 L 41.9 19.2" stroke="#020406" stroke-width="1" opacity="0.5" class="tm-leviathan-vein"/>
-                            <path d="M 64.8 28.5 L 72.9 34.1" stroke="#020406" stroke-width="0.8" opacity="0.4" class="tm-leviathan-vein"/>
-                            <circle cx="56.5" cy="24.1" r="0.9" fill="#fff" opacity="0.5"/>
+                            <circle cx="59" cy="25.5" r="20.0" fill="#f8fafc" opacity="0.3" filter="url(#leviathan-old-glow)"/>
+                            <circle cx="59" cy="25.5" r="7.4" fill="#000" stroke="#f8fafc" stroke-width="1.9"/>
+                            <ellipse class="tm-leviathan-iris" cx="59" cy="25.5" rx="5.2" ry="5.8" fill="url(#leviathan-old-iris)"/>
+                            <ellipse class="tm-leviathan-pupil" cx="59" cy="25.5" rx="1.1" ry="3.8" fill="#000"/>
+                            <path d="M 50.9 23.3 L 39.8 17.4" stroke="#020406" stroke-width="1" opacity="0.5" class="tm-leviathan-vein"/>
+                            <path d="M 67.1 28.5 L 76.8 35.1" stroke="#020406" stroke-width="0.8" opacity="0.4" class="tm-leviathan-vein"/>
+                            <circle cx="57.1" cy="23.3" r="1.0" fill="#fff" opacity="0.5"/>
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 51.8 26 Q 58 22.9 64.2 26" stroke="#020406" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                            <path d="M 51.6 25.5 Q 59 21.8 66.4 25.5" stroke="#020406" stroke-width="1.8" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 51.4 39 L 54.6 40.8 L 56 39 L 57.4 40.8 L 60.6 39" stroke="#020406" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 50.0 38.1 L 54.2 41.8 L 56 38.5 L 57.8 41.8 L 62.0 38.1" stroke="#020406" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.8"/>
+                        <path class="tm-mascot-mouth-happy" d="M 52.0 40.69 L 55.5 42.7 L 57 40.69 L 58.5 42.7 L 62.0 40.69" stroke="#020406" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.7"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 50.5 39.7 L 55.0 43.7 L 57 40.2 L 59.0 43.7 L 63.5 39.7" stroke="#020406" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.8"/>
                 </g>
                 <!-- Integrated accessories (anchor-local art, positioned by layoutMascotAccessory) -->
                 <g id="digital_headphones" class="tm-mascot-accessory" style="display: none;">

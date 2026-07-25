@@ -4663,15 +4663,21 @@
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-leviathan {
                 animation: tm-mythic-idle-float 5.2s ease-in-out infinite !important;
             }
-            .tm-mascot-robot.mascot-char-leviathan.mascot-adult,
-            .tm-mascot-robot.mascot-char-leviathan.mascot-middleage,
-            .tm-mascot-robot.mascot-char-leviathan.mascot-old {
-                transform: scale(1.12);
+            .tm-mascot-robot.mascot-char-leviathan.mascot-teen {
+                transform: scale(1.1);
                 transform-origin: 50% 70%;
             }
-            .tm-mascot-robot.mascot-char-leviathan.mascot-teen {
-                transform: scale(1.06);
-                transform-origin: 50% 70%;
+            .tm-mascot-robot.mascot-char-leviathan.mascot-adult {
+                transform: scale(1.24);
+                transform-origin: 50% 68%;
+            }
+            .tm-mascot-robot.mascot-char-leviathan.mascot-middleage {
+                transform: scale(1.34);
+                transform-origin: 50% 66%;
+            }
+            .tm-mascot-robot.mascot-char-leviathan.mascot-old {
+                transform: scale(1.46);
+                transform-origin: 50% 64%;
             }
             #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-leviathan .tm-animate-wing-left {
                 animation: tm-wing-flap 2.8s ease-in-out infinite !important;
