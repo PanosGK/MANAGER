@@ -17,6 +17,7 @@ const cards = stageBlocks.map(([, stage, inner]) => {
     <div class="card">
       <div class="label">${stage}</div>
       <svg viewBox="0 0 100 100" width="420" height="420">
+        <rect x="0" y="0" width="100" height="100" fill="#04070d"/>
         <g>${inner}</g>
       </svg>
     </div>`;
@@ -28,17 +29,10 @@ const html = `<!DOCTYPE html>
 <meta charset="utf-8">
 <title>Leviathan Preview</title>
 <style>
-  body { background:#3a6b9c; margin:0; padding:24px; font-family: sans-serif; }
+  body { background:#000; margin:0; padding:24px; font-family: sans-serif; }
   .grid { display:flex; flex-wrap:wrap; gap:20px; }
-  svg {
-    background-image:
-      linear-gradient(45deg, #ffffff 25%, transparent 25%), linear-gradient(-45deg, #ffffff 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, #ffffff 75%), linear-gradient(-45deg, transparent 75%, #ffffff 75%);
-    background-size: 20px 20px;
-    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-    background-color: #b8c4cc;
-  }
-  .card { background:#3a6b9c; border:1px solid #234; border-radius:12px; padding:10px; text-align:center; }
+  svg { background:#04070d; }
+  .card { background:#0a0e14; border:1px solid #223; border-radius:12px; padding:10px; text-align:center; }
   .label { color:#9cf; font-size:13px; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; }
 </style>
 </head>
