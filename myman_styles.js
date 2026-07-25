@@ -4679,9 +4679,6 @@
             #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-leviathan .tm-animate-wing-right {
                 animation: tm-wing-flap-right 2.8s ease-in-out infinite 0.15s !important;
             }
-            .mascot-char-leviathan .tm-leviathan-crown path {
-                filter: drop-shadow(0 0 2px rgba(125, 211, 252, 0.55));
-            }
             /* Stage aura tint — soft colored bloom (avoid heavy void black) */
             #tm-mascot-container.mascot-char-aether:has(.mascot-baby)::before {
                 background: radial-gradient(ellipse 70% 65% at 50% 55%, rgba(126,200,195,0.14) 0%, rgba(201,160,220,0.08) 50%, transparent 100%) !important;
