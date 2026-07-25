@@ -485,17 +485,22 @@ function pectoral(ribbon, p, stroke, size, morph) {
   const idx = Math.floor(ribbon.centers.length * (morph === 'tadpole' ? 0.2 : 0.12));
   const [x, y] = ribbon.bots[idx];
 
+  const shoulder = `${I4}<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="0.4" fill="${stroke}" opacity="0.001"/>`;
+
   if (morph === 'tadpole') {
     return `${I3}<g class="tm-animate-wing-left">
+${shoulder}
 ${I4}<ellipse cx="${(x - 1).toFixed(1)}" cy="${(y + 2.5).toFixed(1)}" rx="${(size * 0.55).toFixed(1)}" ry="${(size * 0.35).toFixed(1)}" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.7" opacity="0.9"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-wing-right">
+${shoulder}
 ${I4}<ellipse cx="${(x + 4).toFixed(1)}" cy="${(y + 1.5).toFixed(1)}" rx="${(size * 0.4).toFixed(1)}" ry="${(size * 0.25).toFixed(1)}" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.6" opacity="0.75"/>
 ${I3}</g>`;
   }
 
   if (morph === 'eel') {
     return `${I3}<g class="tm-animate-wing-left">
+${shoulder}
 ${I4}<path d="M ${x.toFixed(1)} ${y.toFixed(1)} Q ${(x - size * 0.4).toFixed(1)} ${(y + size * 0.9).toFixed(1)} ${(x - size * 0.9).toFixed(1)} ${(y + size * 0.55).toFixed(1)} Q ${(x - size * 0.3).toFixed(1)} ${(y + size * 0.35).toFixed(1)} ${(x + 1).toFixed(1)} ${(y + 0.3).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.85"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-wing-right" opacity="0.001"><circle cx="${(x + 3).toFixed(1)}" cy="${y.toFixed(1)}" r="0.4" fill="${stroke}"/></g>`;
@@ -505,10 +510,12 @@ ${I3}<g class="tm-animate-wing-right" opacity="0.001"><circle cx="${(x + 3).toFi
   const span = morph === 'chaos' ? 1.35 : morph === 'sovereign' ? 1.25 : morph === 'leviathan' ? 1.15 : 1;
   const sz = size * span;
   return `${I3}<g class="tm-animate-wing-left">
+${shoulder}
 ${I4}<path d="M ${x.toFixed(1)} ${y.toFixed(1)} C ${(x - sz * 0.15).toFixed(1)} ${(y + sz * 0.7).toFixed(1)} ${(x - sz * 0.7).toFixed(1)} ${(y + sz * 1.1).toFixed(1)} ${(x - sz * 1.1).toFixed(1)} ${(y + sz * 0.85).toFixed(1)} C ${(x - sz * 0.45).toFixed(1)} ${(y + sz * 0.55).toFixed(1)} ${(x - sz * 0.1).toFixed(1)} ${(y + sz * 0.25).toFixed(1)} ${(x + 1).toFixed(1)} ${(y + 0.5).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.95" opacity="0.95"/>
 ${I4}<path d="M ${(x - 1).toFixed(1)} ${(y + 1).toFixed(1)} Q ${(x - sz * 0.5).toFixed(1)} ${(y + sz * 0.55).toFixed(1)} ${(x - sz * 0.85).toFixed(1)} ${(y + sz * 0.7).toFixed(1)}" fill="none" stroke="${stroke}" stroke-width="0.45" opacity="0.4"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-wing-right">
+${shoulder}
 ${I4}<path d="M ${(x + 5).toFixed(1)} ${(y - 1).toFixed(1)} C ${(x + 3).toFixed(1)} ${(y + sz * 0.55).toFixed(1)} ${(x - sz * 0.25).toFixed(1)} ${(y + sz * 0.85).toFixed(1)} ${(x - sz * 0.55).toFixed(1)} ${(y + sz * 0.7).toFixed(1)} C ${(x + 1).toFixed(1)} ${(y + sz * 0.35).toFixed(1)} ${(x + 4).toFixed(1)} ${(y + sz * 0.15).toFixed(1)} ${(x + 6).toFixed(1)} ${y.toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.85" opacity="0.85"/>
 ${I3}</g>`;
 }
@@ -525,8 +532,13 @@ function fluke(ribbon, p, stroke, size, morph, pal) {
   const last = ribbon.centers.length - 1;
   const [x, y] = ribbon.centers[last];
 
+  // Invisible joint pin at body tip — keeps fill-box right edge on the attachment
+  // so CSS transform-origin: right center wags from the spine, not the tip.
+  const joint = `${I4}<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="0.4" fill="${stroke}" opacity="0.001"/>`;
+
   if (morph === 'tadpole') {
     return `${I3}<g class="tm-animate-tail">
+${joint}
 ${I4}<ellipse cx="${(x - size * 0.35).toFixed(1)}" cy="${y.toFixed(1)}" rx="${(size * 0.7).toFixed(1)}" ry="${(size * 0.55).toFixed(1)}" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.95"/>
 ${I4}<ellipse cx="${(x - size * 0.45).toFixed(1)}" cy="${(y - 0.5).toFixed(1)}" rx="${(size * 0.25).toFixed(1)}" ry="${(size * 0.18).toFixed(1)}" fill="${stroke}" opacity="0.15"/>
 ${I3}</g>`;
@@ -534,6 +546,7 @@ ${I3}</g>`;
 
   if (morph === 'eel') {
     return `${I3}<g class="tm-animate-tail">
+${joint}
 ${I4}<path d="M ${x.toFixed(1)} ${y.toFixed(1)} Q ${(x - size * 0.4).toFixed(1)} ${(y - size * 0.85).toFixed(1)} ${(x - size * 1.15).toFixed(1)} ${(y - size * 0.15).toFixed(1)} Q ${(x - size * 0.55).toFixed(1)} ${y.toFixed(1)} ${(x - size * 1.1).toFixed(1)} ${(y + size * 0.2).toFixed(1)} Q ${(x - size * 0.35).toFixed(1)} ${(y + size * 0.7).toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.95"/>
 ${I3}</g>`;
   }
@@ -541,6 +554,7 @@ ${I3}</g>`;
   if (morph === 'chaos') {
     // Clearly forked final-form fluke (two separate blades)
     return `${I3}<g class="tm-animate-tail">
+${joint}
 ${I4}<path d="M ${x.toFixed(1)} ${(y - 1).toFixed(1)} L ${(x - size * 0.55).toFixed(1)} ${(y - size * 1.35).toFixed(1)} L ${(x - size * 1.45).toFixed(1)} ${(y - size * 0.75).toFixed(1)} L ${(x - size * 0.45).toFixed(1)} ${(y - 0.3).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="1.05" stroke-linejoin="round"/>
 ${I4}<path d="M ${x.toFixed(1)} ${(y + 1).toFixed(1)} L ${(x - size * 0.55).toFixed(1)} ${(y + size * 1.35).toFixed(1)} L ${(x - size * 1.45).toFixed(1)} ${(y + size * 0.75).toFixed(1)} L ${(x - size * 0.45).toFixed(1)} ${(y + 0.3).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="1.05" stroke-linejoin="round"/>
 ${I4}<path d="M ${(x - size * 0.3).toFixed(1)} ${(y - size * 0.7).toFixed(1)} L ${(x - size * 1.2).toFixed(1)} ${y.toFixed(1)} L ${(x - size * 0.3).toFixed(1)} ${(y + size * 0.7).toFixed(1)}" fill="none" stroke="${pal.vein}" stroke-width="0.85" opacity="0.8" filter="url(#${p}-glowf)" class="tm-leviathan-vein"/>
@@ -551,6 +565,7 @@ ${I3}</g>`;
   const tip = x - size * (morph === 'sovereign' ? 1.2 : 1.05);
   const spread = morph === 'sovereign' ? 1.15 : 0.95;
   return `${I3}<g class="tm-animate-tail">
+${joint}
 ${I4}<path d="M ${x.toFixed(1)} ${(y - size * 0.15).toFixed(1)} L ${(x - size * 0.25).toFixed(1)} ${(y - size * spread).toFixed(1)} L ${tip.toFixed(1)} ${y.toFixed(1)} L ${(x - size * 0.25).toFixed(1)} ${(y + size * spread).toFixed(1)} L ${x.toFixed(1)} ${(y + size * 0.15).toFixed(1)} Q ${(x - size * 0.35).toFixed(1)} ${y.toFixed(1)} ${x.toFixed(1)} ${(y - size * 0.15).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="1.05" stroke-linejoin="round"/>
 ${I4}<path d="M ${(x - size * 0.2).toFixed(1)} ${(y - size * 0.55).toFixed(1)} L ${(tip + size * 0.25).toFixed(1)} ${y.toFixed(1)} L ${(x - size * 0.2).toFixed(1)} ${(y + size * 0.55).toFixed(1)}" fill="none" stroke="${stroke}" stroke-width="0.45" opacity="0.35"/>
 ${I3}</g>`;
@@ -680,12 +695,14 @@ function buildStage(stage, p, pal, stroke, cfg) {
     sprayParts.push(`${I3}<circle cx="${x}" cy="${y}" r="${0.55 + (i % 3) * 0.25}" fill="${pal.spray}" opacity="${0.28 + (i % 4) * 0.07}" filter="url(#${p}-soft)"/>`);
   }
 
+  // Fluke + pectorals MUST live inside tm-animate-body so the breathe/bob
+  // transform keeps them attached. Tail/wing classes still do secondary wag/flap.
   return `${shadow(cfg.shadowRx, cfg.boss ? 0.4 : 0.3)}
 ${aura(p, !!cfg.auraR, cfg.auraR)}
 ${bolts(pal, `${p}-glowf`, cfg.bolts)}
 ${sprayParts.join('\n')}
-${fluke(ribbon, p, stroke, cfg.fluke, cfg.morph, pal)}
 ${I3}<g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
+${fluke(ribbon, p, stroke, cfg.fluke, cfg.morph, pal)}
 ${bodyFill(ribbon, p, stroke, cfg.scaleOp)}
 ${bellyStripe(ribbon, p)}
 ${armorPlates(ribbon, stroke, cfg.plates)}
@@ -695,9 +712,9 @@ ${h.svg}
 ${jawAndTeeth(h, p, pal, stroke, cfg.fangs)}
 ${stormEye(h, p, pal, stroke, cfg.eyeR, cfg.boss)}
 ${microDetails(ribbon, pal, stroke, cfg.scars)}
-${I3}</g>
 ${pectoral(ribbon, p, stroke, cfg.pec, cfg.morph)}
-${limbAnchors(ribbon, stroke)}`;
+${limbAnchors(ribbon, stroke)}
+${I3}</g>`;
 }
 
 function leviathanStage(stage) {
