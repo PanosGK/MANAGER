@@ -17160,7 +17160,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path class="tm-mascot-mouth-happy" d="M 45 28 Q 50 30.0 55 28" stroke="#1a100c" stroke-width="1.5" fill="none" stroke-linecap="round"/>
                         <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 30.0 Q 50 27.0 55 30.0" stroke="#1a100c" stroke-width="1.5" fill="none" stroke-linecap="round"/>
                 </g>
-                                                                                                                <!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · sea-serpent redesign v7) -->
+                                                                                                                                <!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · sea-serpent redesign v7) -->
                 <!-- LEVIATHAN BABY — Storm Hatchling -->
                 <g id="tm-mascot-baby-leviathan" style="display: none;">
                     <defs>
