@@ -822,15 +822,15 @@ const MASCOT_CHARACTERS = {
         prefs: { likes: ['praise', 'pet', 'lights_on'], dislikes: ['scold', 'lights_off'], favorite: 'praise' }
     },
     leviathan: {
-        name: 'Storm Leviathan', nameGr: 'Καταιγίδα Λεβιάθαν',
+        name: 'Storm Leviathan', nameGr: 'Λεβιάθαν της Καταιγίδας',
         emoji: '🐋', color: '#0ea5e9', rarity: 'Mythical', rarityGr: 'Μυθικό',
-        element: 'Tempest & Depth', elementGr: 'Καταιγίδα & Βάθος',
+        element: 'Tempest & Depth', elementGr: 'Θύελλα & Άβυσσος',
         description: 'Sky-whale god of pressure, lightning, and silent judgment',
-        descriptionGr: 'Θεός-φάλαινα του ουρανού — πίεση, αστραπή, σιωπηλή κρίση',
+        descriptionGr: 'Ουράνια θεϊκή φάλαινα — πίεση, κεραυνοί και σιωπηλή κρίση',
         lore: 'Older than coastlines. A sky-whale armored in storm-plate, veins of living lightning, one hollow eye that freezes the air. It does not roar for sport — when the horizon splits, it has already decided.',
-        loreGr: 'Παλαιότερο από ακτές. Φάλαινα ουρανού με θώρακα καταιγίδας, φλέβες αστραπής, ένα κενό μάτι που παγώνει τον αέρα. Δεν βρυχάται για θέαμα — όταν σχίζεται ο ορίζοντας, έχει ήδη αποφασίσει.',
+        loreGr: 'Αρχαιότερο από τις ακτές. Ουράνια φάλαινα με θώρακα καταιγίδας, φλέβες κεραυνών και ένα κοίλο μάτι που παγώνει τον αέρα. Δεν βρυχάται για επίδειξη — όταν ραγίζει ο ορίζοντας, έχει ήδη αποφασίσει.',
         traits: ['⛈️ Tempest Crown', '👁 Apocalypse Eye', '🌊 Depth Call', '⚡ Split Sky'],
-        traitsGr: ['⛈️ Στέμμα Καταιγίδας', '👁 Μάτι Αποκάλυψης', '🌊 Κλήση Βάθους', '⚡ Σχισμένος Ουρανός'],
+        traitsGr: ['⛈️ Στέμμα της Θύελλας', '👁 Μάτι της Αποκάλυψης', '🌊 Κλήση της Αβύσσου', '⚡ Σχίσιμο Ουρανού'],
         prefs: { likes: ['praise', 'lights_on', 'play'], dislikes: ['scold', 'lights_off', 'snack'], favorite: 'praise' }
     }
 };
@@ -1285,7 +1285,7 @@ function playMascotTrick(config, STORAGE_KEYS) {
         phoenix: ['Φτερούγες!', 'Αναγέννηση!', 'Φωτιά!'],
         crystal: ['Λάμψη!', 'Prism!', 'Κρύσταλλο!'],
         aether: ['Σφραγίδα.', 'Το πέπλο.', 'Κρίνω.'],
-        leviathan: ['Η πίεση πέφτει.', 'Ο ορίζοντας σχίζεται.', 'Μην με δοκιμάζεις.'],
+        leviathan: ['Η πίεση πέφτει.', 'Ο ορίζοντας ραγίζει.', 'Μην με προκαλείς.'],
     };
     const pool = lines[tamagotchiCharacterType] || ['Τα-δα!', 'Κοίτα!', 'Τρικ!'];
     showMascotBubble(pool[Math.floor(Math.random() * pool.length)], 1800);
@@ -3514,7 +3514,7 @@ function pickWeightedCharacterType(types = TAMA_CHARACTER_TYPES) {
 const MASCOT_CHAR_NAMES_GR = {
     dragon: 'Ember Sovereign', robot: 'Neon Colossus', slime: 'Abyssal Ooze', plant: 'Worldroot Warden',
     ghost: 'Veil Wraith', cat: 'Moonfang Oracle', phoenix: 'Ashborn Phoenix', crystal: 'Prism Titan',
-    aether: 'Starveil Aether', leviathan: 'Καταιγίδα Λεβιάθαν'
+    aether: 'Starveil Aether', leviathan: 'Λεβιάθαν της Καταιγίδας'
 };
 
 const MASCOT_MESSAGES = {
@@ -4455,7 +4455,7 @@ function playLeviathanEpicEvent(eventId) {
         el.className = 'tm-levi-godshadow';
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 4300);
-        showMascotBubble('Η σκιά του ουρανού…', 2200);
+        showMascotBubble('Σκιά στον ουρανό…', 2200);
         return true;
     }
     if (id === 'split_sky') {
@@ -4463,13 +4463,13 @@ function playLeviathanEpicEvent(eventId) {
         el.className = 'tm-levi-split-sky';
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 2900);
-        showMascotBubble('Ο ορίζοντας σχίζεται.', 2200);
+        showMascotBubble('Ο ορίζοντας ραγίζει.', 2200);
         return true;
     }
     if (id === 'eye_of_storm' && mascot) {
         mascot.classList.add('tm-levi-eye-storm');
         setTimeout(() => mascot.classList.remove('tm-levi-eye-storm'), 3200);
-        showMascotBubble('Το μάτι της καταιγίδας.', 2000);
+        showMascotBubble('Το μάτι του κυκλώνα.', 2000);
         return true;
     }
     if (id === 'apocalypse_glance' && mascot) {
@@ -4482,7 +4482,7 @@ function playLeviathanEpicEvent(eventId) {
     if (id === 'ascension_drift' && mascot) {
         mascot.classList.add('tm-levi-ascension');
         setTimeout(() => mascot.classList.remove('tm-levi-ascension'), 3300);
-        showMascotBubble('Ανέρχομαι.', 2000);
+        showMascotBubble('Υψώνομαι.', 2000);
         return true;
     }
     if (id === 'depth_call') {
@@ -4490,7 +4490,7 @@ function playLeviathanEpicEvent(eventId) {
         el.className = 'tm-levi-depth-call';
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 3600);
-        showMascotBubble('Βάθος και ουρανός.', 2200);
+        showMascotBubble('Άβυσσος κι ουρανός.', 2200);
         return true;
     }
     return false;

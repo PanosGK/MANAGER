@@ -41,12 +41,12 @@ const MASCOT_TEACHABLE_TRICKS = {
     },
     tempest: {
         id: 'tempest',
-        name: 'Καταιγίδα',
+        name: 'Θύελλα',
         nameEn: 'Tempest',
         state: 'energized',
         practiceNeeded: 5,
         chars: ['leviathan'],
-        desc: 'Χτυπά αστραπή στο status του μενού όταν μιλάει για επισκευές.',
+        desc: 'Ρίχνει κεραυνό στο status του μενού όταν μιλάει για επισκευές.',
     },
 };
 
@@ -160,7 +160,7 @@ function performTaughtTrick(trickId, config, STORAGE_KEYS) {
         bow: ['Υπόκλιση!', 'Με τιμή!', 'Χαχα…'],
         fire_breath: ['Φωτιά!', 'Καίγομαι!', 'Φλογερό!'],
         firebolt: ['Βολίδα!', 'Κάψε το!', 'Φωτιά στο status!'],
-        tempest: ['Καταιγίδα!', 'Αστραπή!', 'Σφραγίδα θύελλας!'],
+        tempest: ['Θύελλα!', 'Κεραυνός!', 'Σφραγίδα της θύελλας!'],
     };
     const pool = lines[trickId] || ['Τα-δα!'];
     showMascotBubble(pool[Math.floor(Math.random() * pool.length)], 2000);
