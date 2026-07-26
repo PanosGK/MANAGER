@@ -1,15 +1,16 @@
 /**
- * Storm Leviathan — v12 "Evolution Morph Line"
+ * Storm Leviathan — v13 "Sovereign Presence"
  *
- * Pokémon-style stage morphs (distinct silhouettes, not just bigger + more spikes):
- *   baby  — Tide Serpentling: chubby tadpole-eel, big soft head, paddle tail
- *   evo1  — Squall Serpent: slim juvenile eel, first fangs + whiskers
- *   evo2  — Thunder Serpent: true sea-serpent S-curve, armor, crescent fluke
- *   evo3  — Storm Leviathan: BOSS morph — armored dragon-head, horn crest, sail spines
- *   evo4  — Tempest Sovereign: crowned dual-horn sovereign, frill + sail
- *   evo5  — Primordial Chaos: ancient final form — torn plates, chaos mane, forked lightning fluke
+ * Same Pokémon-style morph line as v12, with adult+ stages pushed toward
+ * commanding / respected boss presence: colder regal palette, stern slit eyes,
+ * heavier brow & jaw armor, crown circlet, thicker mass, authority halo.
  *
- * Dense HD SVG layering kept; transparent floating mascot (no water box).
+ *   baby  — Tide Serpentling: chubby tadpole-eel
+ *   evo1  — Squall Serpent: slim juvenile eel
+ *   evo2  — Thunder Serpent: armored sea-serpent (first authority cues)
+ *   evo3  — Storm Leviathan BOSS: horned dragon-head, crown plate, thick mid-body
+ *   evo4  — Tempest Sovereign: dual-horn crown, frill, sail, regal mass
+ *   evo5  — Primordial Chaos: ancient final sovereign — triple horns, forked fluke
  */
 const I = '                ';
 const I2 = I + '    ';
@@ -44,24 +45,25 @@ const STAGE_PALETTES = {
     fang: '#eef8fc', spray: '#aed6e8',
   },
   evo2: {
-    hi: '#4a7c96', mid: '#1c3546', deep: '#060e16', abyss: '#010508',
-    belly: '#2c4a5c', rim: '#7bb8d4', eye: '#a6e4fb', vein: '#22d3ee',
-    fang: '#f2fafc', spray: '#a0cedf',
+    hi: '#3a6a82', mid: '#152838', deep: '#040a12', abyss: '#010306',
+    belly: '#243e50', rim: '#6aa8c8', eye: '#9ad8f0', vein: '#38bdf8',
+    fang: '#eef6fa', spray: '#8ebed4', steel: '#8aa4b4',
   },
+  // Adult+ — colder steel / abyss (regal, not playful cyan)
   evo3: {
-    hi: '#3d6e88', mid: '#152838', deep: '#040a10', abyss: '#010306',
-    belly: '#243e50', rim: '#6eb4d4', eye: '#a8e7fc', vein: '#38bdf8',
-    fang: '#f6fcff', spray: '#98c8dc',
+    hi: '#2f5a72', mid: '#0e1c28', deep: '#02060a', abyss: '#000204',
+    belly: '#1a3040', rim: '#7ec8e8', eye: '#e8f7ff', vein: '#7dd3fc',
+    fang: '#f8fcff', spray: '#8ab4c8', steel: '#9eb4c4',
   },
   evo4: {
-    hi: '#355a70', mid: '#101e28', deep: '#02070b', abyss: '#000204',
-    belly: '#1a3240', rim: '#5fa6cb', eye: '#a0e2fa', vein: '#7dd3fc',
-    fang: '#f0f6fa', spray: '#8cbcce',
+    hi: '#284858', mid: '#0a141c', deep: '#010408', abyss: '#000102',
+    belly: '#142838', rim: '#8ad0f0', eye: '#f0faff', vein: '#a5e6ff',
+    fang: '#ffffff', spray: '#7aa8bc', steel: '#b0c4d0',
   },
   evo5: {
-    hi: '#4a6570', mid: '#0c1418', deep: '#010305', abyss: '#000102',
-    belly: '#1a2428', rim: '#c0d8e4', eye: '#f0faff', vein: '#ffffff',
-    fang: '#ffffff', spray: '#a8c4d0',
+    hi: '#3a5058', mid: '#080e12', deep: '#000204', abyss: '#000000',
+    belly: '#121c22', rim: '#d0e8f4', eye: '#ffffff', vein: '#ffffff',
+    fang: '#ffffff', spray: '#90a8b4', steel: '#d8e8f0',
   },
 };
 
@@ -174,11 +176,12 @@ function serpentRibbon(cfg) {
     if (morph === 'tadpole') flare *= 1 + Math.sin(t * Math.PI) * 0.55;
     // Juvenile eel stays slender
     if (morph === 'eel') flare *= 0.85 + Math.sin(t * Math.PI) * 0.12;
-    // Boss+ forms thicken mid-body like armored dragons
+    // Boss+ forms thicken mid-body — commanding mass, not a skinny eel
     if (morph === 'leviathan' || morph === 'sovereign') {
-      flare *= 1 + Math.sin(Math.min(1, t * 1.4) * Math.PI) * 0.45;
+      flare *= 1 + Math.sin(Math.min(1, t * 1.35) * Math.PI) * 0.62;
     }
-    if (morph === 'chaos') flare *= 1 + Math.sin(t * Math.PI) * 0.35 + (t > 0.55 ? 0.15 : 0);
+    if (morph === 'chaos') flare *= 1 + Math.sin(t * Math.PI) * 0.5 + (t > 0.55 ? 0.2 : 0);
+    if (morph === 'serpent') flare *= 1 + Math.sin(Math.min(1, t * 1.2) * Math.PI) * 0.28;
 
     const w = (headW * (1 - t) + tailW * t) * flare;
     const x2 = hx - length * Math.min(1, t + 0.02);
@@ -266,65 +269,74 @@ ${I4}<path d="M ${(hx + s * 0.85).toFixed(1)} ${(hy + s * 0.4).toFixed(1)} Q ${(
       L ${(hx + s * 0.9).toFixed(1)} ${(hy + s * 0.55).toFixed(1)}
       L ${(hx - s * 0.85).toFixed(1)} ${(hy + s * 0.85).toFixed(1)}
       Q ${(hx - s * 1.25).toFixed(1)} ${(hy + s * 0.2).toFixed(1)} ${(hx - s * 1.1).toFixed(1)} ${(hy - s * 0.95).toFixed(1)} Z`;
-    brow = `M ${(hx - s * 0.55).toFixed(1)} ${(hy - s * 0.85).toFixed(1)}
-      Q ${(hx + s * 0.15).toFixed(1)} ${(hy - s * 1.15).toFixed(1)} ${(hx + s * 0.7).toFixed(1)} ${(hy - s * 0.55).toFixed(1)}
-      Q ${(hx + s * 0.2).toFixed(1)} ${(hy - s * 0.7).toFixed(1)} ${(hx - s * 0.4).toFixed(1)} ${(hy - s * 0.55).toFixed(1)} Z`;
+    brow = `M ${(hx - s * 0.6).toFixed(1)} ${(hy - s * 0.9).toFixed(1)}
+      Q ${(hx + s * 0.1).toFixed(1)} ${(hy - s * 1.25).toFixed(1)} ${(hx + s * 0.75).toFixed(1)} ${(hy - s * 0.6).toFixed(1)}
+      L ${(hx + s * 0.45).toFixed(1)} ${(hy - s * 0.35).toFixed(1)}
+      Q ${(hx).toFixed(1)} ${(hy - s * 0.7).toFixed(1)} ${(hx - s * 0.45).toFixed(1)} ${(hy - s * 0.5).toFixed(1)} Z`;
+    // First authority cue — small brow crest plate
+    extras = `${I4}<path d="M ${(hx - s * 0.1).toFixed(1)} ${(hy - s * 1.0).toFixed(1)} L ${(hx - s * 0.35).toFixed(1)} ${(hy - s * 1.45).toFixed(1)} L ${(hx + s * 0.3).toFixed(1)} ${(hy - s * 0.95).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.75"/>`;
   } else if (morph === 'leviathan') {
-    // Armored dragon head — longer snout, heavy brow, single horn crest (big evo morph)
-    skull = `M ${(hx - s * 1.25).toFixed(1)} ${(hy - s * 1.05).toFixed(1)}
-      C ${(hx - s * 0.3).toFixed(1)} ${(hy - s * 1.55).toFixed(1)} ${(hx + s * 0.7).toFixed(1)} ${(hy - s * 0.95).toFixed(1)} ${(hx + s * 1.55).toFixed(1)} ${(hy - s * 0.25).toFixed(1)}
-      Q ${(hx + s * 1.7).toFixed(1)} ${(hy + s * 0.05).toFixed(1)} ${(hx + s * 1.5).toFixed(1)} ${(hy + s * 0.4).toFixed(1)}
-      L ${(hx + s * 0.85).toFixed(1)} ${(hy + s * 0.7).toFixed(1)}
-      L ${(hx - s * 0.95).toFixed(1)} ${(hy + s * 1.0).toFixed(1)}
-      Q ${(hx - s * 1.4).toFixed(1)} ${(hy + s * 0.15).toFixed(1)} ${(hx - s * 1.25).toFixed(1)} ${(hy - s * 1.05).toFixed(1)} Z`;
-    brow = `M ${(hx - s * 0.7).toFixed(1)} ${(hy - s * 0.95).toFixed(1)}
-      Q ${(hx + s * 0.1).toFixed(1)} ${(hy - s * 1.35).toFixed(1)} ${(hx + s * 0.85).toFixed(1)} ${(hy - s * 0.65).toFixed(1)}
-      L ${(hx + s * 0.55).toFixed(1)} ${(hy - s * 0.4).toFixed(1)}
-      Q ${(hx - s * 0.1).toFixed(1)} ${(hy - s * 0.75).toFixed(1)} ${(hx - s * 0.55).toFixed(1)} ${(hy - s * 0.55).toFixed(1)} Z`;
-    // Single backward horn crest
-    extras = `${I4}<path d="M ${(hx - s * 0.15).toFixed(1)} ${(hy - s * 1.05).toFixed(1)} L ${(hx - s * 0.55).toFixed(1)} ${(hy - s * 1.85).toFixed(1)} L ${(hx + s * 0.25).toFixed(1)} ${(hy - s * 1.0).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.85"/>
-${I4}<path d="M ${(hx - s * 0.2).toFixed(1)} ${(hy - s * 1.15).toFixed(1)} L ${(hx - s * 0.45).toFixed(1)} ${(hy - s * 1.65).toFixed(1)}" stroke="${pal.vein}" stroke-width="0.55" opacity="0.7" filter="url(#${p}-glowf)" class="tm-leviathan-vein"/>`;
-  } else if (morph === 'sovereign') {
-    // Dual-horn crowned head + cheek armor
+    // Commanding boss head — heavy brow ridge, thick horn, jaw armor, chin plate
     skull = `M ${(hx - s * 1.3).toFixed(1)} ${(hy - s * 1.1).toFixed(1)}
-      C ${(hx - s * 0.25).toFixed(1)} ${(hy - s * 1.6).toFixed(1)} ${(hx + s * 0.75).toFixed(1)} ${(hy - s * 1.05).toFixed(1)} ${(hx + s * 1.6).toFixed(1)} ${(hy - s * 0.3).toFixed(1)}
+      C ${(hx - s * 0.25).toFixed(1)} ${(hy - s * 1.65).toFixed(1)} ${(hx + s * 0.65).toFixed(1)} ${(hy - s * 1.05).toFixed(1)} ${(hx + s * 1.6).toFixed(1)} ${(hy - s * 0.3).toFixed(1)}
       Q ${(hx + s * 1.75).toFixed(1)} ${hy.toFixed(1)} ${(hx + s * 1.55).toFixed(1)} ${(hy + s * 0.45).toFixed(1)}
       L ${(hx + s * 0.9).toFixed(1)} ${(hy + s * 0.75).toFixed(1)}
-      L ${(hx - s * 1.0).toFixed(1)} ${(hy + s * 1.05).toFixed(1)}
-      Q ${(hx - s * 1.45).toFixed(1)} ${(hy + s * 0.1).toFixed(1)} ${(hx - s * 1.3).toFixed(1)} ${(hy - s * 1.1).toFixed(1)} Z`;
-    brow = `M ${(hx - s * 0.75).toFixed(1)} ${(hy - s * 1.0).toFixed(1)}
-      Q ${(hx + s * 0.15).toFixed(1)} ${(hy - s * 1.4).toFixed(1)} ${(hx + s * 0.9).toFixed(1)} ${(hy - s * 0.7).toFixed(1)}
-      L ${(hx + s * 0.6).toFixed(1)} ${(hy - s * 0.4).toFixed(1)}
-      Q ${(hx).toFixed(1)} ${(hy - s * 0.8).toFixed(1)} ${(hx - s * 0.6).toFixed(1)} ${(hy - s * 0.55).toFixed(1)} Z`;
-    // Tall dual crown horns + neck frill — readable at preview size
-    extras = `${I4}<path d="M ${(hx - s * 0.4).toFixed(1)} ${(hy - s * 1.15).toFixed(1)} L ${(hx - s * 1.05).toFixed(1)} ${(hy - s * 2.35).toFixed(1)} L ${(hx + s * 0.1).toFixed(1)} ${(hy - s * 1.1).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.9"/>
-${I4}<path d="M ${(hx + s * 0.2).toFixed(1)} ${(hy - s * 1.0).toFixed(1)} L ${(hx - s * 0.15).toFixed(1)} ${(hy - s * 2.05).toFixed(1)} L ${(hx + s * 0.6).toFixed(1)} ${(hy - s * 0.9).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.85"/>
-${I4}<path d="M ${(hx - s * 0.95).toFixed(1)} ${(hy + s * 0.2).toFixed(1)} Q ${(hx - s * 1.75).toFixed(1)} ${(hy + s * 0.1).toFixed(1)} ${(hx - s * 1.95).toFixed(1)} ${(hy - s * 0.55).toFixed(1)} L ${(hx - s * 1.2).toFixed(1)} ${(hy - s * 0.65).toFixed(1)} Q ${(hx - s * 1.25).toFixed(1)} ${(hy + s * 0.05).toFixed(1)} ${(hx - s * 0.8).toFixed(1)} ${(hy + s * 0.3).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.75" opacity="0.95"/>
-${I4}<path d="M ${(hx - s * 0.7).toFixed(1)} ${(hy - s * 1.2).toFixed(1)} L ${(hx - s * 0.95).toFixed(1)} ${(hy - s * 2.1).toFixed(1)}" stroke="${pal.vein}" stroke-width="0.6" opacity="0.75" filter="url(#${p}-glowf)" class="tm-leviathan-vein"/>`;
-  } else {
-    // chaos — ancient scarred skull, triple horn ridge, jagged jawline
-    skull = `M ${(hx - s * 1.35).toFixed(1)} ${(hy - s * 1.15).toFixed(1)}
-      C ${(hx - s * 0.2).toFixed(1)} ${(hy - s * 1.7).toFixed(1)} ${(hx + s * 0.8).toFixed(1)} ${(hy - s * 1.15).toFixed(1)} ${(hx + s * 1.7).toFixed(1)} ${(hy - s * 0.35).toFixed(1)}
-      Q ${(hx + s * 1.9).toFixed(1)} ${(hy + s * 0.05).toFixed(1)} ${(hx + s * 1.6).toFixed(1)} ${(hy + s * 0.5).toFixed(1)}
-      L ${(hx + s * 1.15).toFixed(1)} ${(hy + s * 0.55).toFixed(1)}
-      L ${(hx + s * 0.95).toFixed(1)} ${(hy + s * 0.85).toFixed(1)}
-      L ${(hx - s * 1.05).toFixed(1)} ${(hy + s * 1.15).toFixed(1)}
-      Q ${(hx - s * 1.5).toFixed(1)} ${(hy + s * 0.2).toFixed(1)} ${(hx - s * 1.35).toFixed(1)} ${(hy - s * 1.15).toFixed(1)} Z`;
+      L ${(hx - s * 1.0).toFixed(1)} ${(hy + s * 1.1).toFixed(1)}
+      Q ${(hx - s * 1.45).toFixed(1)} ${(hy + s * 0.2).toFixed(1)} ${(hx - s * 1.3).toFixed(1)} ${(hy - s * 1.1).toFixed(1)} Z`;
     brow = `M ${(hx - s * 0.8).toFixed(1)} ${(hy - s * 1.05).toFixed(1)}
-      Q ${(hx + s * 0.2).toFixed(1)} ${(hy - s * 1.5).toFixed(1)} ${(hx + s * 1.0).toFixed(1)} ${(hy - s * 0.75).toFixed(1)}
-      L ${(hx + s * 0.65).toFixed(1)} ${(hy - s * 0.4).toFixed(1)}
-      Q ${(hx).toFixed(1)} ${(hy - s * 0.85).toFixed(1)} ${(hx - s * 0.65).toFixed(1)} ${(hy - s * 0.55).toFixed(1)} Z`;
-    extras = `${I4}<path d="M ${(hx - s * 0.55).toFixed(1)} ${(hy - s * 1.2).toFixed(1)} L ${(hx - s * 1.2).toFixed(1)} ${(hy - s * 2.55).toFixed(1)} L ${(hx - s * 0.05).toFixed(1)} ${(hy - s * 1.15).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.9"/>
-${I4}<path d="M ${(hx).toFixed(1)} ${(hy - s * 1.1).toFixed(1)} L ${(hx - s * 0.35).toFixed(1)} ${(hy - s * 2.25).toFixed(1)} L ${(hx + s * 0.45).toFixed(1)} ${(hy - s * 1.0).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.85"/>
-${I4}<path d="M ${(hx + s * 0.4).toFixed(1)} ${(hy - s * 0.95).toFixed(1)} L ${(hx + s * 0.1).toFixed(1)} ${(hy - s * 1.85).toFixed(1)} L ${(hx + s * 0.75).toFixed(1)} ${(hy - s * 0.85).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.8"/>
-${I4}<path d="M ${(hx - s * 0.4).toFixed(1)} ${(hy - s * 0.2).toFixed(1)} L ${(hx + s * 0.3).toFixed(1)} ${(hy + s * 0.15).toFixed(1)}" stroke="${pal.abyss}" stroke-width="0.9" opacity="0.7" stroke-linecap="round"/>
-${I4}<path d="M ${(hx - s * 1.0).toFixed(1)} ${(hy + s * 0.25).toFixed(1)} Q ${(hx - s * 1.9).toFixed(1)} ${(hy + s * 0.05).toFixed(1)} ${(hx - s * 2.1).toFixed(1)} ${(hy - s * 0.65).toFixed(1)} L ${(hx - s * 1.3).toFixed(1)} ${(hy - s * 0.7).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.75" opacity="0.95"/>
-${I4}<path d="M ${(hx - s * 0.85).toFixed(1)} ${(hy - s * 1.3).toFixed(1)} L ${(hx - s * 1.1).toFixed(1)} ${(hy - s * 2.3).toFixed(1)}" stroke="${pal.vein}" stroke-width="0.7" opacity="0.85" filter="url(#${p}-glowf)" class="tm-leviathan-vein"/>`;
+      Q ${(hx + s * 0.05).toFixed(1)} ${(hy - s * 1.5).toFixed(1)} ${(hx + s * 0.95).toFixed(1)} ${(hy - s * 0.7).toFixed(1)}
+      L ${(hx + s * 0.6).toFixed(1)} ${(hy - s * 0.35).toFixed(1)}
+      Q ${(hx - s * 0.05).toFixed(1)} ${(hy - s * 0.8).toFixed(1)} ${(hx - s * 0.6).toFixed(1)} ${(hy - s * 0.5).toFixed(1)} Z`;
+    extras = `${I4}<path d="M ${(hx - s * 0.2).toFixed(1)} ${(hy - s * 1.15).toFixed(1)} L ${(hx - s * 0.7).toFixed(1)} ${(hy - s * 2.15).toFixed(1)} L ${(hx + s * 0.3).toFixed(1)} ${(hy - s * 1.05).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.95"/>
+${I4}<path d="M ${(hx - s * 0.25).toFixed(1)} ${(hy - s * 1.25).toFixed(1)} L ${(hx - s * 0.6).toFixed(1)} ${(hy - s * 1.9).toFixed(1)}" stroke="${pal.vein}" stroke-width="0.7" opacity="0.8" filter="url(#${p}-glowf)" class="tm-leviathan-vein"/>
+${I4}<path d="M ${(hx - s * 0.85).toFixed(1)} ${(hy + s * 0.35).toFixed(1)} Q ${(hx - s * 1.55).toFixed(1)} ${(hy + s * 0.15).toFixed(1)} ${(hx - s * 1.65).toFixed(1)} ${(hy - s * 0.4).toFixed(1)} L ${(hx - s * 1.15).toFixed(1)} ${(hy - s * 0.5).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.75" opacity="0.95"/>
+${I4}<path d="M ${(hx + s * 0.55).toFixed(1)} ${(hy + s * 0.55).toFixed(1)} L ${(hx + s * 0.85).toFixed(1)} ${(hy + s * 0.95).toFixed(1)} L ${(hx + s * 0.35).toFixed(1)} ${(hy + s * 0.75).toFixed(1)} Z" fill="${pal.deep}" stroke="${stroke}" stroke-width="0.55"/>
+${I4}<path d="M ${(hx - s * 0.55).toFixed(1)} ${(hy - s * 1.05).toFixed(1)} Q ${hx.toFixed(1)} ${(hy - s * 1.35).toFixed(1)} ${(hx + s * 0.55).toFixed(1)} ${(hy - s * 0.85).toFixed(1)}" fill="none" stroke="${pal.steel || pal.rim}" stroke-width="0.85" opacity="0.7"/>`;
+  } else if (morph === 'sovereign') {
+    // Regal dual-horn crown + heavy cheek/jaw armor + steel circlet
+    skull = `M ${(hx - s * 1.35).toFixed(1)} ${(hy - s * 1.15).toFixed(1)}
+      C ${(hx - s * 0.2).toFixed(1)} ${(hy - s * 1.7).toFixed(1)} ${(hx + s * 0.7).toFixed(1)} ${(hy - s * 1.15).toFixed(1)} ${(hx + s * 1.65).toFixed(1)} ${(hy - s * 0.35).toFixed(1)}
+      Q ${(hx + s * 1.8).toFixed(1)} ${hy.toFixed(1)} ${(hx + s * 1.6).toFixed(1)} ${(hy + s * 0.5).toFixed(1)}
+      L ${(hx + s * 0.95).toFixed(1)} ${(hy + s * 0.8).toFixed(1)}
+      L ${(hx - s * 1.05).toFixed(1)} ${(hy + s * 1.15).toFixed(1)}
+      Q ${(hx - s * 1.5).toFixed(1)} ${(hy + s * 0.15).toFixed(1)} ${(hx - s * 1.35).toFixed(1)} ${(hy - s * 1.15).toFixed(1)} Z`;
+    brow = `M ${(hx - s * 0.85).toFixed(1)} ${(hy - s * 1.1).toFixed(1)}
+      Q ${(hx + s * 0.1).toFixed(1)} ${(hy - s * 1.55).toFixed(1)} ${(hx + s * 1.0).toFixed(1)} ${(hy - s * 0.75).toFixed(1)}
+      L ${(hx + s * 0.65).toFixed(1)} ${(hy - s * 0.35).toFixed(1)}
+      Q ${(hx).toFixed(1)} ${(hy - s * 0.85).toFixed(1)} ${(hx - s * 0.65).toFixed(1)} ${(hy - s * 0.5).toFixed(1)} Z`;
+    extras = `${I4}<path d="M ${(hx - s * 0.45).toFixed(1)} ${(hy - s * 1.2).toFixed(1)} L ${(hx - s * 1.15).toFixed(1)} ${(hy - s * 2.55).toFixed(1)} L ${(hx + s * 0.05).toFixed(1)} ${(hy - s * 1.15).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="1"/>
+${I4}<path d="M ${(hx + s * 0.15).toFixed(1)} ${(hy - s * 1.05).toFixed(1)} L ${(hx - s * 0.2).toFixed(1)} ${(hy - s * 2.25).toFixed(1)} L ${(hx + s * 0.65).toFixed(1)} ${(hy - s * 0.95).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.9"/>
+${I4}<path d="M ${(hx - s * 1.0).toFixed(1)} ${(hy + s * 0.25).toFixed(1)} Q ${(hx - s * 1.85).toFixed(1)} ${(hy + s * 0.1).toFixed(1)} ${(hx - s * 2.05).toFixed(1)} ${(hy - s * 0.6).toFixed(1)} L ${(hx - s * 1.25).toFixed(1)} ${(hy - s * 0.7).toFixed(1)} Q ${(hx - s * 1.3).toFixed(1)} ${(hy + s * 0.05).toFixed(1)} ${(hx - s * 0.85).toFixed(1)} ${(hy + s * 0.35).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.8" opacity="0.95"/>
+${I4}<path d="M ${(hx + s * 0.5).toFixed(1)} ${(hy + s * 0.55).toFixed(1)} L ${(hx + s * 0.9).toFixed(1)} ${(hy + s * 1.05).toFixed(1)} L ${(hx + s * 0.3).toFixed(1)} ${(hy + s * 0.8).toFixed(1)} Z" fill="${pal.deep}" stroke="${stroke}" stroke-width="0.6"/>
+${I4}<path d="M ${(hx - s * 0.7).toFixed(1)} ${(hy - s * 1.15).toFixed(1)} Q ${hx.toFixed(1)} ${(hy - s * 1.5).toFixed(1)} ${(hx + s * 0.7).toFixed(1)} ${(hy - s * 0.95).toFixed(1)}" fill="none" stroke="${pal.steel || pal.rim}" stroke-width="1.05" opacity="0.85"/>
+${I4}<path d="M ${(hx - s * 0.75).toFixed(1)} ${(hy - s * 1.25).toFixed(1)} L ${(hx - s * 1.05).toFixed(1)} ${(hy - s * 2.3).toFixed(1)}" stroke="${pal.vein}" stroke-width="0.65" opacity="0.8" filter="url(#${p}-glowf)" class="tm-leviathan-vein"/>`;
+  } else {
+    // chaos — ancient scarred sovereign skull, triple horn ridge, heavy jaw plate
+    skull = `M ${(hx - s * 1.4).toFixed(1)} ${(hy - s * 1.2).toFixed(1)}
+      C ${(hx - s * 0.15).toFixed(1)} ${(hy - s * 1.8).toFixed(1)} ${(hx + s * 0.75).toFixed(1)} ${(hy - s * 1.25).toFixed(1)} ${(hx + s * 1.75).toFixed(1)} ${(hy - s * 0.4).toFixed(1)}
+      Q ${(hx + s * 1.95).toFixed(1)} ${hy.toFixed(1)} ${(hx + s * 1.65).toFixed(1)} ${(hy + s * 0.55).toFixed(1)}
+      L ${(hx + s * 1.15).toFixed(1)} ${(hy + s * 0.6).toFixed(1)}
+      L ${(hx + s * 0.95).toFixed(1)} ${(hy + s * 0.95).toFixed(1)}
+      L ${(hx - s * 1.1).toFixed(1)} ${(hy + s * 1.25).toFixed(1)}
+      Q ${(hx - s * 1.55).toFixed(1)} ${(hy + s * 0.25).toFixed(1)} ${(hx - s * 1.4).toFixed(1)} ${(hy - s * 1.2).toFixed(1)} Z`;
+    brow = `M ${(hx - s * 0.9).toFixed(1)} ${(hy - s * 1.15).toFixed(1)}
+      Q ${(hx + s * 0.15).toFixed(1)} ${(hy - s * 1.65).toFixed(1)} ${(hx + s * 1.05).toFixed(1)} ${(hy - s * 0.8).toFixed(1)}
+      L ${(hx + s * 0.7).toFixed(1)} ${(hy - s * 0.35).toFixed(1)}
+      Q ${(hx).toFixed(1)} ${(hy - s * 0.9).toFixed(1)} ${(hx - s * 0.7).toFixed(1)} ${(hy - s * 0.5).toFixed(1)} Z`;
+    extras = `${I4}<path d="M ${(hx - s * 0.55).toFixed(1)} ${(hy - s * 1.25).toFixed(1)} L ${(hx - s * 1.25).toFixed(1)} ${(hy - s * 2.7).toFixed(1)} L ${(hx - s * 0.05).toFixed(1)} ${(hy - s * 1.2).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="1"/>
+${I4}<path d="M ${(hx).toFixed(1)} ${(hy - s * 1.15).toFixed(1)} L ${(hx - s * 0.4).toFixed(1)} ${(hy - s * 2.4).toFixed(1)} L ${(hx + s * 0.5).toFixed(1)} ${(hy - s * 1.05).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.9"/>
+${I4}<path d="M ${(hx + s * 0.4).toFixed(1)} ${(hy - s * 1.0).toFixed(1)} L ${(hx + s * 0.05).toFixed(1)} ${(hy - s * 2.0).toFixed(1)} L ${(hx + s * 0.8).toFixed(1)} ${(hy - s * 0.9).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.85"/>
+${I4}<path d="M ${(hx - s * 0.45).toFixed(1)} ${(hy - s * 0.25).toFixed(1)} L ${(hx + s * 0.35).toFixed(1)} ${(hy + s * 0.2).toFixed(1)}" stroke="${pal.abyss}" stroke-width="1" opacity="0.75" stroke-linecap="round"/>
+${I4}<path d="M ${(hx - s * 1.05).toFixed(1)} ${(hy + s * 0.3).toFixed(1)} Q ${(hx - s * 2.0).toFixed(1)} ${(hy + s * 0.05).toFixed(1)} ${(hx - s * 2.2).toFixed(1)} ${(hy - s * 0.7).toFixed(1)} L ${(hx - s * 1.35).toFixed(1)} ${(hy - s * 0.75).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.8" opacity="0.95"/>
+${I4}<path d="M ${(hx + s * 0.55).toFixed(1)} ${(hy + s * 0.6).toFixed(1)} L ${(hx + s * 0.95).toFixed(1)} ${(hy + s * 1.15).toFixed(1)} L ${(hx + s * 0.3).toFixed(1)} ${(hy + s * 0.85).toFixed(1)} Z" fill="${pal.deep}" stroke="${stroke}" stroke-width="0.65"/>
+${I4}<path d="M ${(hx - s * 0.8).toFixed(1)} ${(hy - s * 1.2).toFixed(1)} Q ${hx.toFixed(1)} ${(hy - s * 1.6).toFixed(1)} ${(hx + s * 0.75).toFixed(1)} ${(hy - s * 1.0).toFixed(1)}" fill="none" stroke="${pal.steel || pal.rim}" stroke-width="1.15" opacity="0.9"/>
+${I4}<path d="M ${(hx - s * 0.9).toFixed(1)} ${(hy - s * 1.35).toFixed(1)} L ${(hx - s * 1.15).toFixed(1)} ${(hy - s * 2.45).toFixed(1)}" stroke="${pal.vein}" stroke-width="0.75" opacity="0.9" filter="url(#${p}-glowf)" class="tm-leviathan-vein"/>`;
   }
 
-  const snoutMul = morph === 'tadpole' ? 1.0 : morph === 'eel' ? 1.45 : morph === 'serpent' ? 1.3 : 1.55;
-  const eyeMulX = morph === 'tadpole' ? 0.05 : 0.15;
-  const eyeMulY = morph === 'tadpole' ? -0.1 : -0.25;
+  const snoutMul = morph === 'tadpole' ? 1.0 : morph === 'eel' ? 1.45 : morph === 'serpent' ? 1.35 : 1.6;
+  const eyeMulX = morph === 'tadpole' ? 0.05 : morph === 'eel' ? 0.15 : 0.12;
+  // Heavier brow sits over a lower, sterner eye on adult forms
+  const eyeMulY = morph === 'tadpole' ? -0.1 : morph === 'eel' ? -0.25 : -0.18;
 
   const nostril = morph === 'tadpole'
     ? `${I4}<circle cx="${(hx + s * 0.75).toFixed(1)}" cy="${(hy + s * 0.05).toFixed(1)}" r="${(s * 0.08).toFixed(1)}" fill="${pal.abyss}" opacity="0.7"/>`
@@ -336,7 +348,7 @@ ${I4}<path d="M ${(hx - s * 0.85).toFixed(1)} ${(hy - s * 1.3).toFixed(1)} L ${(
   return {
     svg: `${I4}<path d="${skull}" fill="url(#${p}-skin-rad)" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"/>
 ${I4}<path d="${skull}" fill="url(#${p}-scales)" opacity="${scaleOp}"/>
-${brow ? `${I4}<path d="${brow}" fill="${pal.deep}" opacity="0.55"/>` : ''}
+${brow ? `${I4}<path d="${brow}" fill="${pal.deep}" opacity="${['leviathan', 'sovereign', 'chaos'].includes(morph) ? 0.78 : 0.55}"/>` : ''}
 ${I4}<path d="${gloss}" fill="none" stroke="${pal.rim}" stroke-width="0.7" opacity="0.45" stroke-linecap="round"/>
 ${nostril}
 ${extras}`,
@@ -364,7 +376,9 @@ ${I3}</g>
 ${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="${shut}" fill="none" stroke="${stroke}" stroke-width="1.1" stroke-linecap="round"/>`;
   }
 
-  const openMul = morph === 'leviathan' || morph === 'sovereign' || morph === 'chaos' ? 0.95 : 0.75;
+  // Boss forms: controlled commanding gape (not a goofy wide grin) + fewer, thicker fangs
+  const bossJaw = morph === 'leviathan' || morph === 'sovereign' || morph === 'chaos';
+  const openMul = bossJaw ? 0.72 : morph === 'serpent' ? 0.8 : 0.75;
   const openChinY = upperJawY + s * openMul;
   const openTipX = snoutX - s * 0.15;
   const openPath = `M ${jawHingeX.toFixed(1)} ${jawHingeY.toFixed(1)} Q ${((jawHingeX + openTipX) / 2).toFixed(1)} ${(openChinY + 1).toFixed(1)} ${openTipX.toFixed(1)} ${openChinY.toFixed(1)} L ${snoutX.toFixed(1)} ${snoutY.toFixed(1)} L ${(snoutX - s * 0.35).toFixed(1)} ${upperJawY.toFixed(1)} Z`;
@@ -372,16 +386,19 @@ ${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="${shut}" fill="n
   const cavity = `M ${(jawHingeX + s * 0.15).toFixed(1)} ${(jawHingeY + s * 0.1).toFixed(1)} L ${(snoutX - s * 0.4).toFixed(1)} ${(upperJawY + s * 0.05).toFixed(1)} L ${(openTipX - s * 0.1).toFixed(1)} ${(openChinY - s * 0.15).toFixed(1)} Z`;
 
   const teeth = [];
-  for (let i = 0; i < fangCount; i++) {
-    const t = fangCount <= 1 ? 0.5 : 0.1 + (i / (fangCount - 1)) * 0.75;
+  const shownFangs = bossJaw ? Math.min(fangCount, 5) : fangCount;
+  for (let i = 0; i < shownFangs; i++) {
+    const t = shownFangs <= 1 ? 0.5 : 0.12 + (i / (shownFangs - 1)) * 0.7;
     const ux = jawHingeX + (snoutX - jawHingeX) * t;
     const uy = jawHingeY + (snoutY - jawHingeY) * t * 0.35 + s * 0.15;
-    const len = s * (0.28 + (i % 3 === 1 ? 0.1 : 0) + (morph === 'chaos' ? 0.08 : 0));
-    const w = s * (morph === 'chaos' ? 0.07 : 0.055);
+    const len = s * (bossJaw ? 0.38 + (i === 1 || i === 2 ? 0.12 : 0) : 0.28 + (i % 3 === 1 ? 0.1 : 0));
+    const w = s * (bossJaw ? 0.08 : 0.055);
     teeth.push(`${I4}<path d="M ${(ux - w).toFixed(1)} ${uy.toFixed(1)} L ${ux.toFixed(1)} ${(uy + len).toFixed(1)} L ${(ux + w).toFixed(1)} ${uy.toFixed(1)} Z" fill="${pal.fang}"/>`);
-    const lx = jawHingeX + (openTipX - jawHingeX) * (0.15 + t * 0.7);
-    const ly = jawHingeY + (openChinY - jawHingeY) * (0.55 + t * 0.25);
-    teeth.push(`${I4}<path d="M ${(lx - w * 0.85).toFixed(1)} ${ly.toFixed(1)} L ${lx.toFixed(1)} ${(ly - len * 0.8).toFixed(1)} L ${(lx + w * 0.85).toFixed(1)} ${ly.toFixed(1)} Z" fill="${pal.fang}" opacity="0.9"/>`);
+    if (!bossJaw || i % 2 === 0) {
+      const lx = jawHingeX + (openTipX - jawHingeX) * (0.2 + t * 0.65);
+      const ly = jawHingeY + (openChinY - jawHingeY) * (0.55 + t * 0.25);
+      teeth.push(`${I4}<path d="M ${(lx - w * 0.85).toFixed(1)} ${ly.toFixed(1)} L ${lx.toFixed(1)} ${(ly - len * 0.75).toFixed(1)} L ${(lx + w * 0.85).toFixed(1)} ${ly.toFixed(1)} Z" fill="${pal.fang}" opacity="0.9"/>`);
+    }
   }
 
   return `${I3}<g class="tm-mascot-mouth-happy">
@@ -394,19 +411,28 @@ ${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="${shutPath}" fil
 
 function stormEye(h, p, pal, stroke, eyeR, boss) {
   const { eyeX, eyeY, morph } = h;
-  const glow = boss ? 2.6 : morph === 'tadpole' ? 1.3 : 1.7;
-  const pupilRx = morph === 'tadpole' ? eyeR * 0.4 : eyeR * 0.26;
-  const pupilRy = morph === 'tadpole' ? eyeR * 0.4 : eyeR * 0.58;
+  const stern = boss || morph === 'serpent' || morph === 'leviathan' || morph === 'sovereign' || morph === 'chaos';
+  const glow = boss ? 3.0 : morph === 'tadpole' ? 1.3 : 1.7;
+  // Stern adult eye: wide horizontal iris, thin vertical slit pupil (judging, not cute)
+  const irisRx = stern ? eyeR * 1.15 : eyeR;
+  const irisRy = stern ? eyeR * 0.62 : eyeR * 0.88;
+  const pupilRx = morph === 'tadpole' ? eyeR * 0.4 : stern ? eyeR * 0.14 : eyeR * 0.26;
+  const pupilRy = morph === 'tadpole' ? eyeR * 0.4 : stern ? eyeR * 0.72 : eyeR * 0.58;
+  const lid = stern
+    ? `${I4}<path d="M ${(eyeX - irisRx * 1.15).toFixed(1)} ${(eyeY - irisRy * 0.15).toFixed(1)} Q ${eyeX.toFixed(1)} ${(eyeY - irisRy * 1.35).toFixed(1)} ${(eyeX + irisRx * 1.15).toFixed(1)} ${(eyeY - irisRy * 0.25).toFixed(1)}" fill="none" stroke="${stroke}" stroke-width="1.35" opacity="0.9" stroke-linecap="round"/>
+${I4}<path d="M ${(eyeX - irisRx).toFixed(1)} ${(eyeY + irisRy * 0.55).toFixed(1)} Q ${eyeX.toFixed(1)} ${(eyeY + irisRy * 0.95).toFixed(1)} ${(eyeX + irisRx).toFixed(1)} ${(eyeY + irisRy * 0.5).toFixed(1)}" fill="none" stroke="${stroke}" stroke-width="0.7" opacity="0.45"/>`
+    : '';
   return `${I3}<g class="tm-mascot-eye-open tm-leviathan-eye">
-${I4}<ellipse cx="${eyeX.toFixed(1)}" cy="${eyeY.toFixed(1)}" rx="${(eyeR * glow * 1.3).toFixed(1)}" ry="${(eyeR * glow).toFixed(1)}" fill="${pal.eye}" opacity="${boss ? 0.3 : 0.14}" filter="url(#${p}-glowf)"/>
-${I4}<ellipse cx="${eyeX.toFixed(1)}" cy="${eyeY.toFixed(1)}" rx="${(eyeR * 1.4).toFixed(1)}" ry="${(eyeR * 1.15).toFixed(1)}" fill="${pal.abyss}" opacity="0.8"/>
-${I4}<ellipse class="tm-leviathan-iris" cx="${eyeX.toFixed(1)}" cy="${eyeY.toFixed(1)}" rx="${eyeR.toFixed(1)}" ry="${(eyeR * 0.88).toFixed(1)}" fill="url(#${p}-eye)" stroke="${stroke}" stroke-width="0.65"/>
-${I4}<ellipse class="tm-leviathan-pupil" cx="${(eyeX + eyeR * 0.08).toFixed(1)}" cy="${eyeY.toFixed(1)}" rx="${pupilRx.toFixed(1)}" ry="${pupilRy.toFixed(1)}" fill="#000"/>
-${I4}<ellipse cx="${(eyeX - eyeR * 0.32).toFixed(1)}" cy="${(eyeY - eyeR * 0.28).toFixed(1)}" rx="${(eyeR * 0.22).toFixed(1)}" ry="${(eyeR * 0.14).toFixed(1)}" fill="#fff" opacity="0.75"/>
-${boss ? `${I4}<circle cx="${(eyeX + eyeR * 0.2).toFixed(1)}" cy="${(eyeY + eyeR * 0.25).toFixed(1)}" r="${Math.max(0.3, eyeR * 0.1).toFixed(1)}" fill="${pal.vein}" opacity="0.45"/>` : ''}
+${I4}<ellipse cx="${eyeX.toFixed(1)}" cy="${eyeY.toFixed(1)}" rx="${(irisRx * glow * 1.15).toFixed(1)}" ry="${(irisRy * glow * 1.35).toFixed(1)}" fill="${pal.eye}" opacity="${boss ? 0.38 : 0.14}" filter="url(#${p}-glowf)"/>
+${I4}<ellipse cx="${eyeX.toFixed(1)}" cy="${eyeY.toFixed(1)}" rx="${(irisRx * 1.35).toFixed(1)}" ry="${(irisRy * 1.25).toFixed(1)}" fill="${pal.abyss}" opacity="0.88"/>
+${I4}<ellipse class="tm-leviathan-iris" cx="${eyeX.toFixed(1)}" cy="${eyeY.toFixed(1)}" rx="${irisRx.toFixed(1)}" ry="${irisRy.toFixed(1)}" fill="url(#${p}-eye)" stroke="${stroke}" stroke-width="0.7"/>
+${I4}<ellipse class="tm-leviathan-pupil" cx="${(eyeX + irisRx * 0.06).toFixed(1)}" cy="${eyeY.toFixed(1)}" rx="${pupilRx.toFixed(1)}" ry="${pupilRy.toFixed(1)}" fill="#000"/>
+${I4}<ellipse cx="${(eyeX - irisRx * 0.35).toFixed(1)}" cy="${(eyeY - irisRy * 0.25).toFixed(1)}" rx="${(irisRx * 0.18).toFixed(1)}" ry="${(irisRy * 0.2).toFixed(1)}" fill="#fff" opacity="${stern ? 0.55 : 0.75}"/>
+${lid}
+${boss ? `${I4}<circle cx="${(eyeX + irisRx * 0.25).toFixed(1)}" cy="${(eyeY + irisRy * 0.2).toFixed(1)}" r="${Math.max(0.35, eyeR * 0.12).toFixed(1)}" fill="${pal.vein}" opacity="0.55"/>` : ''}
 ${I3}</g>
 ${I3}<g class="tm-mascot-eye-closed" style="display:none;">
-${I4}<path d="M ${(eyeX - eyeR).toFixed(1)} ${eyeY.toFixed(1)} Q ${eyeX.toFixed(1)} ${(eyeY - eyeR * 0.55).toFixed(1)} ${(eyeX + eyeR).toFixed(1)} ${eyeY.toFixed(1)}" stroke="${stroke}" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+${I4}<path d="M ${(eyeX - irisRx).toFixed(1)} ${eyeY.toFixed(1)} Q ${eyeX.toFixed(1)} ${(eyeY - irisRy * 0.55).toFixed(1)} ${(eyeX + irisRx).toFixed(1)} ${eyeY.toFixed(1)}" stroke="${stroke}" stroke-width="1.4" fill="none" stroke-linecap="round"/>
 ${I3}</g>`;
 }
 
@@ -483,40 +509,46 @@ function dorsalFeatures(ribbon, p, pal, stroke, cfg) {
 /** Pectoral fin morphs: stub → fin → wing-fin → storm sails. */
 function pectoral(ribbon, p, stroke, size, morph) {
   const idx = Math.floor(ribbon.centers.length * (morph === 'tadpole' ? 0.2 : 0.12));
-  const [x, y] = ribbon.bots[idx];
+  // Seat fin into the belly edge (overlap body) so it reads as attached, not floating
+  const [bx, by] = ribbon.bots[idx];
+  const [cx, cy] = ribbon.centers[idx];
+  const x = bx * 0.55 + cx * 0.45;
+  const y = by * 0.7 + cy * 0.3;
 
   const shoulder = `${I4}<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="0.4" fill="${stroke}" opacity="0.001"/>`;
+  // Root pad that visually welds fin into the torso
+  const rootPad = `${I4}<ellipse cx="${x.toFixed(1)}" cy="${(y + 0.6).toFixed(1)}" rx="2.4" ry="1.6" fill="url(#${p}-fin)" opacity="0.85"/>`;
 
   if (morph === 'tadpole') {
     return `${I3}<g class="tm-animate-wing-left">
-${shoulder}
-${I4}<ellipse cx="${(x - 1).toFixed(1)}" cy="${(y + 2.5).toFixed(1)}" rx="${(size * 0.55).toFixed(1)}" ry="${(size * 0.35).toFixed(1)}" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.7" opacity="0.9"/>
+${shoulder}${rootPad}
+${I4}<ellipse cx="${(x - 1).toFixed(1)}" cy="${(y + 2.2).toFixed(1)}" rx="${(size * 0.55).toFixed(1)}" ry="${(size * 0.35).toFixed(1)}" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.7" opacity="0.9"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-wing-right">
 ${shoulder}
-${I4}<ellipse cx="${(x + 4).toFixed(1)}" cy="${(y + 1.5).toFixed(1)}" rx="${(size * 0.4).toFixed(1)}" ry="${(size * 0.25).toFixed(1)}" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.6" opacity="0.75"/>
+${I4}<ellipse cx="${(x + 4).toFixed(1)}" cy="${(y + 1.2).toFixed(1)}" rx="${(size * 0.4).toFixed(1)}" ry="${(size * 0.25).toFixed(1)}" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.6" opacity="0.75"/>
 ${I3}</g>`;
   }
 
   if (morph === 'eel') {
     return `${I3}<g class="tm-animate-wing-left">
-${shoulder}
+${shoulder}${rootPad}
 ${I4}<path d="M ${x.toFixed(1)} ${y.toFixed(1)} Q ${(x - size * 0.4).toFixed(1)} ${(y + size * 0.9).toFixed(1)} ${(x - size * 0.9).toFixed(1)} ${(y + size * 0.55).toFixed(1)} Q ${(x - size * 0.3).toFixed(1)} ${(y + size * 0.35).toFixed(1)} ${(x + 1).toFixed(1)} ${(y + 0.3).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.85"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-wing-right" opacity="0.001"><circle cx="${(x + 3).toFixed(1)}" cy="${y.toFixed(1)}" r="0.4" fill="${stroke}"/></g>`;
   }
 
-  // serpent / leviathan / sovereign / chaos — larger wing-fins
+  // serpent / leviathan / sovereign / chaos — larger wing-fins rooted into belly
   const span = morph === 'chaos' ? 1.35 : morph === 'sovereign' ? 1.25 : morph === 'leviathan' ? 1.15 : 1;
   const sz = size * span;
   return `${I3}<g class="tm-animate-wing-left">
-${shoulder}
-${I4}<path d="M ${x.toFixed(1)} ${y.toFixed(1)} C ${(x - sz * 0.15).toFixed(1)} ${(y + sz * 0.7).toFixed(1)} ${(x - sz * 0.7).toFixed(1)} ${(y + sz * 1.1).toFixed(1)} ${(x - sz * 1.1).toFixed(1)} ${(y + sz * 0.85).toFixed(1)} C ${(x - sz * 0.45).toFixed(1)} ${(y + sz * 0.55).toFixed(1)} ${(x - sz * 0.1).toFixed(1)} ${(y + sz * 0.25).toFixed(1)} ${(x + 1).toFixed(1)} ${(y + 0.5).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.95" opacity="0.95"/>
-${I4}<path d="M ${(x - 1).toFixed(1)} ${(y + 1).toFixed(1)} Q ${(x - sz * 0.5).toFixed(1)} ${(y + sz * 0.55).toFixed(1)} ${(x - sz * 0.85).toFixed(1)} ${(y + sz * 0.7).toFixed(1)}" fill="none" stroke="${stroke}" stroke-width="0.45" opacity="0.4"/>
+${shoulder}${rootPad}
+${I4}<path d="M ${(x - 1.5).toFixed(1)} ${(y - 0.8).toFixed(1)} L ${(x + 2).toFixed(1)} ${(y - 0.2).toFixed(1)} C ${(x + 1).toFixed(1)} ${(y + sz * 0.35).toFixed(1)} ${(x - sz * 0.35).toFixed(1)} ${(y + sz * 0.95).toFixed(1)} ${(x - sz * 1.05).toFixed(1)} ${(y + sz * 0.8).toFixed(1)} C ${(x - sz * 0.4).toFixed(1)} ${(y + sz * 0.5).toFixed(1)} ${(x - 0.5).toFixed(1)} ${(y + sz * 0.2).toFixed(1)} ${(x - 1.5).toFixed(1)} ${(y - 0.8).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.95" opacity="0.95"/>
+${I4}<path d="M ${x.toFixed(1)} ${(y + 0.8).toFixed(1)} Q ${(x - sz * 0.45).toFixed(1)} ${(y + sz * 0.5).toFixed(1)} ${(x - sz * 0.8).toFixed(1)} ${(y + sz * 0.65).toFixed(1)}" fill="none" stroke="${stroke}" stroke-width="0.45" opacity="0.4"/>
 ${I3}</g>
 ${I3}<g class="tm-animate-wing-right">
 ${shoulder}
-${I4}<path d="M ${(x + 5).toFixed(1)} ${(y - 1).toFixed(1)} C ${(x + 3).toFixed(1)} ${(y + sz * 0.55).toFixed(1)} ${(x - sz * 0.25).toFixed(1)} ${(y + sz * 0.85).toFixed(1)} ${(x - sz * 0.55).toFixed(1)} ${(y + sz * 0.7).toFixed(1)} C ${(x + 1).toFixed(1)} ${(y + sz * 0.35).toFixed(1)} ${(x + 4).toFixed(1)} ${(y + sz * 0.15).toFixed(1)} ${(x + 6).toFixed(1)} ${y.toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.85" opacity="0.85"/>
+${I4}<path d="M ${(x + 3).toFixed(1)} ${(y - 0.5).toFixed(1)} C ${(x + 2).toFixed(1)} ${(y + sz * 0.5).toFixed(1)} ${(x - sz * 0.15).toFixed(1)} ${(y + sz * 0.8).toFixed(1)} ${(x - sz * 0.45).toFixed(1)} ${(y + sz * 0.65).toFixed(1)} C ${(x + 0.5).toFixed(1)} ${(y + sz * 0.3).toFixed(1)} ${(x + 2.5).toFixed(1)} ${(y + 0.1).toFixed(1)} ${(x + 3).toFixed(1)} ${(y - 0.5).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.85" opacity="0.85"/>
 ${I3}</g>`;
 }
 
@@ -529,16 +561,22 @@ ${I3}</g>`;
  *   chaos — forked lightning fluke
  */
 function fluke(ribbon, p, stroke, size, morph, pal) {
+  // Anchor slightly INTO the body tip so the fluke overlaps the taper (no gap)
   const last = ribbon.centers.length - 1;
-  const [x, y] = ribbon.centers[last];
+  const inset = Math.max(1, Math.floor(ribbon.centers.length * 0.04));
+  const [x, y] = ribbon.centers[last - inset];
+  const [tx, ty] = ribbon.tops[last - inset];
+  const [bx, by] = ribbon.bots[last - inset];
+  const rootH = Math.hypot(tx - bx, ty - by) * 0.55;
 
   // Invisible joint pin at body tip — keeps fill-box right edge on the attachment
   // so CSS transform-origin: right center wags from the spine, not the tip.
   const joint = `${I4}<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="0.4" fill="${stroke}" opacity="0.001"/>`;
+  const rootSleeve = `${I4}<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="2.8" ry="${Math.max(2.2, rootH).toFixed(1)}" fill="url(#${p}-fin)" opacity="0.9"/>`;
 
   if (morph === 'tadpole') {
     return `${I3}<g class="tm-animate-tail">
-${joint}
+${joint}${rootSleeve}
 ${I4}<ellipse cx="${(x - size * 0.35).toFixed(1)}" cy="${y.toFixed(1)}" rx="${(size * 0.7).toFixed(1)}" ry="${(size * 0.55).toFixed(1)}" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.95"/>
 ${I4}<ellipse cx="${(x - size * 0.45).toFixed(1)}" cy="${(y - 0.5).toFixed(1)}" rx="${(size * 0.25).toFixed(1)}" ry="${(size * 0.18).toFixed(1)}" fill="${stroke}" opacity="0.15"/>
 ${I3}</g>`;
@@ -546,28 +584,28 @@ ${I3}</g>`;
 
   if (morph === 'eel') {
     return `${I3}<g class="tm-animate-tail">
-${joint}
-${I4}<path d="M ${x.toFixed(1)} ${y.toFixed(1)} Q ${(x - size * 0.4).toFixed(1)} ${(y - size * 0.85).toFixed(1)} ${(x - size * 1.15).toFixed(1)} ${(y - size * 0.15).toFixed(1)} Q ${(x - size * 0.55).toFixed(1)} ${y.toFixed(1)} ${(x - size * 1.1).toFixed(1)} ${(y + size * 0.2).toFixed(1)} Q ${(x - size * 0.35).toFixed(1)} ${(y + size * 0.7).toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.95"/>
+${joint}${rootSleeve}
+${I4}<path d="M ${(x + 1.5).toFixed(1)} ${(y - rootH * 0.35).toFixed(1)} Q ${(x - size * 0.35).toFixed(1)} ${(y - size * 0.85).toFixed(1)} ${(x - size * 1.15).toFixed(1)} ${(y - size * 0.15).toFixed(1)} Q ${(x - size * 0.55).toFixed(1)} ${y.toFixed(1)} ${(x - size * 1.1).toFixed(1)} ${(y + size * 0.2).toFixed(1)} Q ${(x - size * 0.3).toFixed(1)} ${(y + size * 0.7).toFixed(1)} ${(x + 1.5).toFixed(1)} ${(y + rootH * 0.35).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="0.95"/>
 ${I3}</g>`;
   }
 
   if (morph === 'chaos') {
-    // Clearly forked final-form fluke (two separate blades)
+    // Clearly forked final-form fluke (two separate blades), sleeved into body tip
     return `${I3}<g class="tm-animate-tail">
-${joint}
-${I4}<path d="M ${x.toFixed(1)} ${(y - 1).toFixed(1)} L ${(x - size * 0.55).toFixed(1)} ${(y - size * 1.35).toFixed(1)} L ${(x - size * 1.45).toFixed(1)} ${(y - size * 0.75).toFixed(1)} L ${(x - size * 0.45).toFixed(1)} ${(y - 0.3).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="1.05" stroke-linejoin="round"/>
-${I4}<path d="M ${x.toFixed(1)} ${(y + 1).toFixed(1)} L ${(x - size * 0.55).toFixed(1)} ${(y + size * 1.35).toFixed(1)} L ${(x - size * 1.45).toFixed(1)} ${(y + size * 0.75).toFixed(1)} L ${(x - size * 0.45).toFixed(1)} ${(y + 0.3).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="1.05" stroke-linejoin="round"/>
-${I4}<path d="M ${(x - size * 0.3).toFixed(1)} ${(y - size * 0.7).toFixed(1)} L ${(x - size * 1.2).toFixed(1)} ${y.toFixed(1)} L ${(x - size * 0.3).toFixed(1)} ${(y + size * 0.7).toFixed(1)}" fill="none" stroke="${pal.vein}" stroke-width="0.85" opacity="0.8" filter="url(#${p}-glowf)" class="tm-leviathan-vein"/>
+${joint}${rootSleeve}
+${I4}<path d="M ${(x + 2).toFixed(1)} ${(y - 1).toFixed(1)} L ${(x - size * 0.55).toFixed(1)} ${(y - size * 1.35).toFixed(1)} L ${(x - size * 1.45).toFixed(1)} ${(y - size * 0.75).toFixed(1)} L ${(x - size * 0.35).toFixed(1)} ${(y - 0.3).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="1.05" stroke-linejoin="round"/>
+${I4}<path d="M ${(x + 2).toFixed(1)} ${(y + 1).toFixed(1)} L ${(x - size * 0.55).toFixed(1)} ${(y + size * 1.35).toFixed(1)} L ${(x - size * 1.45).toFixed(1)} ${(y + size * 0.75).toFixed(1)} L ${(x - size * 0.35).toFixed(1)} ${(y + 0.3).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="1.05" stroke-linejoin="round"/>
+${I4}<path d="M ${(x - size * 0.2).toFixed(1)} ${(y - size * 0.7).toFixed(1)} L ${(x - size * 1.15).toFixed(1)} ${y.toFixed(1)} L ${(x - size * 0.2).toFixed(1)} ${(y + size * 0.7).toFixed(1)}" fill="none" stroke="${pal.vein}" stroke-width="0.85" opacity="0.8" filter="url(#${p}-glowf)" class="tm-leviathan-vein"/>
 ${I3}</g>`;
   }
 
-  // Crescent (serpent / leviathan / sovereign)
+  // Crescent (serpent / leviathan / sovereign) — wide root overlaps body tip
   const tip = x - size * (morph === 'sovereign' ? 1.2 : 1.05);
   const spread = morph === 'sovereign' ? 1.15 : 0.95;
   return `${I3}<g class="tm-animate-tail">
-${joint}
-${I4}<path d="M ${x.toFixed(1)} ${(y - size * 0.15).toFixed(1)} L ${(x - size * 0.25).toFixed(1)} ${(y - size * spread).toFixed(1)} L ${tip.toFixed(1)} ${y.toFixed(1)} L ${(x - size * 0.25).toFixed(1)} ${(y + size * spread).toFixed(1)} L ${x.toFixed(1)} ${(y + size * 0.15).toFixed(1)} Q ${(x - size * 0.35).toFixed(1)} ${y.toFixed(1)} ${x.toFixed(1)} ${(y - size * 0.15).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="1.05" stroke-linejoin="round"/>
-${I4}<path d="M ${(x - size * 0.2).toFixed(1)} ${(y - size * 0.55).toFixed(1)} L ${(tip + size * 0.25).toFixed(1)} ${y.toFixed(1)} L ${(x - size * 0.2).toFixed(1)} ${(y + size * 0.55).toFixed(1)}" fill="none" stroke="${stroke}" stroke-width="0.45" opacity="0.35"/>
+${joint}${rootSleeve}
+${I4}<path d="M ${(x + 2.5).toFixed(1)} ${(y - Math.max(rootH * 0.4, size * 0.2)).toFixed(1)} L ${(x - size * 0.2).toFixed(1)} ${(y - size * spread).toFixed(1)} L ${tip.toFixed(1)} ${y.toFixed(1)} L ${(x - size * 0.2).toFixed(1)} ${(y + size * spread).toFixed(1)} L ${(x + 2.5).toFixed(1)} ${(y + Math.max(rootH * 0.4, size * 0.2)).toFixed(1)} Q ${(x - size * 0.15).toFixed(1)} ${y.toFixed(1)} ${(x + 2.5).toFixed(1)} ${(y - Math.max(rootH * 0.4, size * 0.2)).toFixed(1)} Z" fill="url(#${p}-fin)" stroke="${stroke}" stroke-width="1.05" stroke-linejoin="round"/>
+${I4}<path d="M ${(x - size * 0.1).toFixed(1)} ${(y - size * 0.55).toFixed(1)} L ${(tip + size * 0.25).toFixed(1)} ${y.toFixed(1)} L ${(x - size * 0.1).toFixed(1)} ${(y + size * 0.55).toFixed(1)}" fill="none" stroke="${stroke}" stroke-width="0.45" opacity="0.35"/>
 ${I3}</g>`;
 }
 
@@ -616,8 +654,14 @@ function shadow(rx, op = 0.32) {
   return `${I3}<ellipse cx="48" cy="93" rx="${rx}" ry="4.2" fill="#010408" opacity="${op}"/>`;
 }
 
-function aura(p, show, r) {
+function aura(p, show, r, boss = false) {
   if (!show) return '';
+  // Boss: denser authority halo (vertical presence), not a soft cute glow blob
+  if (boss) {
+    return `${I3}<ellipse cx="52" cy="48" rx="${(r * 1.05).toFixed(1)}" ry="${(r * 0.72).toFixed(1)}" fill="url(#${p}-glow)" opacity="0.95"/>
+${I3}<ellipse cx="52" cy="48" rx="${(r * 0.55).toFixed(1)}" ry="${(r * 0.38).toFixed(1)}" fill="url(#${p}-glow)" opacity="0.7"/>
+${I3}<ellipse cx="52" cy="48" rx="${(r * 1.12).toFixed(1)}" ry="${(r * 0.78).toFixed(1)}" fill="none" stroke="url(#${p}-glow)" stroke-width="0.8" opacity="0.45"/>`;
+  }
   return `${I3}<ellipse cx="52" cy="50" rx="${r}" ry="${(r * 0.62).toFixed(1)}" fill="url(#${p}-glow)"/>`;
 }
 
@@ -655,33 +699,33 @@ const STAGE_CFG = {
     eyeR: 2.4, fangs: 2, plates: 0, spines: 1, veins: 0, bolts: 1, scars: 0, spray: 3,
     pec: 8, fluke: 10, boss: false, shadowRx: 28, auraR: 0, scaleOp: 0.35,
   },
-  // True sea-serpent — armor, crescent fluke, dorsal spines
+  // True sea-serpent — armor + first authority brow crest
   evo2: {
     morph: 'serpent',
-    hx: 78, hy: 46, segs: 28, length: 62, amp: 10, waves: 1.8, headW: 10, tailW: 2.2,
-    eyeR: 2.9, fangs: 4, plates: 6, spines: 5, veins: 1, bolts: 2, scars: 1, spray: 4,
-    pec: 11, fluke: 13, boss: false, shadowRx: 34, auraR: 34, scaleOp: 0.55,
+    hx: 78, hy: 46, segs: 28, length: 62, amp: 9, waves: 1.7, headW: 11, tailW: 2.2,
+    eyeR: 2.8, fangs: 4, plates: 7, spines: 6, veins: 1, bolts: 2, scars: 1, spray: 4,
+    pec: 11, fluke: 14, boss: false, shadowRx: 34, auraR: 36, scaleOp: 0.58,
   },
-  // BIG EVO — armored dragon-head + horn crest + thick mid-body
+  // BOSS — commanding mass, heavy horn, denser armor, authority halo
   evo3: {
     morph: 'leviathan',
-    hx: 82, hy: 44, segs: 32, length: 68, amp: 11, waves: 1.9, headW: 12.5, tailW: 2.3,
-    eyeR: 3.5, fangs: 7, plates: 9, spines: 8, veins: 2, bolts: 4, scars: 2, spray: 6,
-    pec: 14, fluke: 16, boss: true, shadowRx: 38, auraR: 42, scaleOp: 0.65,
+    hx: 80, hy: 45, segs: 32, length: 66, amp: 9.5, waves: 1.75, headW: 14, tailW: 2.5,
+    eyeR: 3.3, fangs: 5, plates: 11, spines: 9, veins: 3, bolts: 4, scars: 2, spray: 5,
+    pec: 15, fluke: 17, boss: true, shadowRx: 40, auraR: 46, scaleOp: 0.72,
   },
-  // Sovereign morph — dual horns, frill, sail membrane
+  // Sovereign — thicker regal mass, dual crown, denser steel presence
   evo4: {
     morph: 'sovereign',
-    hx: 84, hy: 42, segs: 34, length: 72, amp: 12, waves: 2.0, headW: 13.5, tailW: 2.4,
-    eyeR: 3.7, fangs: 8, plates: 10, spines: 9, veins: 3, bolts: 5, scars: 4, spray: 7,
-    pec: 15, fluke: 18, boss: true, shadowRx: 40, auraR: 44, scaleOp: 0.7,
+    hx: 82, hy: 43, segs: 34, length: 70, amp: 10, waves: 1.85, headW: 15, tailW: 2.6,
+    eyeR: 3.5, fangs: 5, plates: 12, spines: 10, veins: 3, bolts: 5, scars: 3, spray: 6,
+    pec: 16, fluke: 19, boss: true, shadowRx: 42, auraR: 50, scaleOp: 0.78,
   },
-  // Final legendary — chaos mane, triple horns, forked lightning fluke, torn
+  // Final legendary sovereign — maximum presence
   evo5: {
     morph: 'chaos',
-    hx: 86, hy: 40, segs: 36, length: 76, amp: 14, waves: 2.2, headW: 14.5, tailW: 2.5,
-    eyeR: 3.9, fangs: 9, plates: 11, spines: 11, veins: 4, bolts: 6, scars: 6, spray: 8,
-    pec: 16, fluke: 19, boss: true, shadowRx: 42, auraR: 48, torn: true, scaleOp: 0.75,
+    hx: 84, hy: 41, segs: 36, length: 74, amp: 11, waves: 2.0, headW: 16, tailW: 2.7,
+    eyeR: 3.7, fangs: 5, plates: 13, spines: 12, veins: 4, bolts: 6, scars: 5, spray: 7,
+    pec: 17, fluke: 20, boss: true, shadowRx: 44, auraR: 54, torn: true, scaleOp: 0.82,
   },
 };
 
@@ -697,8 +741,8 @@ function buildStage(stage, p, pal, stroke, cfg) {
 
   // Fluke + pectorals MUST live inside tm-animate-body so the breathe/bob
   // transform keeps them attached. Tail/wing classes still do secondary wag/flap.
-  return `${shadow(cfg.shadowRx, cfg.boss ? 0.4 : 0.3)}
-${aura(p, !!cfg.auraR, cfg.auraR)}
+  return `${shadow(cfg.shadowRx, cfg.boss ? 0.48 : 0.3)}
+${aura(p, !!cfg.auraR, cfg.auraR, cfg.boss)}
 ${bolts(pal, `${p}-glowf`, cfg.bolts)}
 ${sprayParts.join('\n')}
 ${I3}<g class="tm-animate-body tm-mascot-main-body tm-leviathan-body">
@@ -726,5 +770,5 @@ function leviathanStage(stage) {
   return wrapStage(stage, defs, body);
 }
 
-export const leviathanSvg = `${I}<!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · Evolution Morph Line v12 · Pokémon-style stage morphs) -->
+export const leviathanSvg = `${I}<!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · Sovereign Presence v13 · commanding boss morphs) -->
 ${STAGES.map(leviathanStage).join('\n')}`;
