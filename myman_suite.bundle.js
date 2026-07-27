@@ -25942,6 +25942,61 @@ function snapshotTamagotchiProgress() {
     return { lifeMinutes: tamagotchiLifeMinutes, lastUpdate: tamagotchiLastUpdate };
 }
 
+/** Persist caught-up office minutes — call before leaving a page or after hydrate. */
+function flushTamagotchiLifeToStorage(STORAGE_KEYS) {
+    if (tamaCinematicLock || !tamagotchiDataLoaded) return;
+    const keys = getTamagotchiStorageKeys(STORAGE_KEYS);
+    if (!keys?.TAMAGOTCHI_DATA) return;
+    try {
+        const el = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+        if (el) updateTamagotchiStats(el);
+        saveTamagotchiData(keys);
+    } catch (_) { /* ignore */ }
+}
+
+/**
+ * Reload storage, merge in-memory progress, catch up office minutes, optionally save.
+ * Keeps service_list and service_edit on the same age/stage.
+ */
+function hydrateTamagotchiFromStorage(STORAGE_KEYS, container = null, options = {}) {
+    const { mergeMemory = true, saveAfter = false, evolve = true } = options;
+    const keys = getTamagotchiStorageKeys(STORAGE_KEYS);
+    if (!keys?.TAMAGOTCHI_DATA) return false;
+
+    const memorySnap = mergeMemory ? snapshotTamagotchiProgress() : null;
+    loadTamagotchiData(keys);
+    if (memorySnap) applyTamagotchiProgress(memorySnap);
+
+    const el = container || getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+    if (el) {
+        updateTamagotchiStats(el);
+        if (evolve && !tamaCinematicLock) checkTamagotchiEvolution(el);
+    }
+    syncTamagotchiAgeFromLife();
+    if (saveAfter) saveTamagotchiData(keys);
+    return true;
+}
+
+function installTamagotchiNavigationFlush(STORAGE_KEYS) {
+    if (window.__tmTamagotchiNavFlushBound) return;
+    window.__tmTamagotchiNavFlushBound = true;
+    document.addEventListener('click', (e) => {
+        if (tamaCinematicLock || !tamagotchiDataLoaded) return;
+        const link = e.target.closest?.('a[href]');
+        if (!link) return;
+        if (link.target && link.target !== '_self') return;
+        const href = String(link.getAttribute('href') || '');
+        if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+        try {
+            const url = new URL(href, window.location.href);
+            if (url.origin !== window.location.origin) return;
+        } catch {
+            return;
+        }
+        flushTamagotchiLifeToStorage(STORAGE_KEYS);
+    }, true);
+}
+
 /** Recover lifeMinutes when storage has a hatched pet but life clock was wiped to 0. */
 function resolveLifeMinutesFromSave(savedData) {
     const stage = savedData.stage || 'egg';
@@ -27421,6 +27476,8 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
     if (!tamaCinematicLock && !mascotStagePreviewLock) {
         updateMascotAppearanceByStage(tamagotchiStage);
     }
+    // Write caught-up age/life before the user navigates to another page (list ↔ edit)
+    saveTamagotchiData(STORAGE_KEYS);
     
     // Periodic updates every minute (single interval — avoid duplicate timers on re-init)
     if (tamagotchiTickIntervalId) {
@@ -27435,45 +27492,34 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
 
     if (!window.__tmTamagotchiFocusSyncBound) {
         window.__tmTamagotchiFocusSyncBound = true;
-        const flushTamagotchiLife = () => {
-            if (tamaCinematicLock || !tamagotchiDataLoaded) return;
-            const keys = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
-            if (!keys?.TAMAGOTCHI_DATA) return;
-            try {
-                const el = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
-                if (el) updateTamagotchiStats(el);
-                saveTamagotchiData(keys);
-            } catch (_) { /* ignore */ }
-        };
+        const keysForFlush = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
+        installTamagotchiNavigationFlush(keysForFlush);
         document.addEventListener('visibilitychange', () => {
             const keys = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
             if (!keys?.TAMAGOTCHI_DATA) return;
 
             // Leaving the page — persist caught-up life so the next page loads the same stage
             if (document.visibilityState === 'hidden') {
-                flushTamagotchiLife();
+                flushTamagotchiLifeToStorage(keys);
                 return;
             }
 
             // Don't clobber an in-progress hatch lottery with a stale storage reload
             if (tamaCinematicLock) return;
-            const memorySnap = snapshotTamagotchiProgress();
-            loadTamagotchiData(keys);
-            applyTamagotchiProgress(memorySnap);
-            const el = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
-            if (el) {
-                updateTamagotchiStats(el);
-                checkTamagotchiEvolution(el);
-            }
+            hydrateTamagotchiFromStorage(keys, getMascotLiveRoot() || document.getElementById('tm-mascot-container'), {
+                mergeMemory: true,
+                saveAfter: true,
+                evolve: true,
+            });
             if (!tamaCinematicLock && !mascotStagePreviewLock) {
                 updateMascotAppearanceByStage(tamagotchiStage);
             }
         });
-        window.addEventListener('pagehide', flushTamagotchiLife);
-        window.addEventListener('beforeunload', flushTamagotchiLife);
+        window.addEventListener('pagehide', () => flushTamagotchiLifeToStorage(keysForFlush));
+        window.addEventListener('beforeunload', () => flushTamagotchiLifeToStorage(keysForFlush));
         window.addEventListener('pageshow', (event) => {
             if (!event.persisted || tamaCinematicLock) return;
-            resyncMascotAppearanceFromStorage(keys);
+            resyncMascotAppearanceFromStorage(keysForFlush);
         });
     }
 }
@@ -30378,17 +30424,14 @@ function resyncMascotAppearanceFromStorage(STORAGE_KEYS = window.STORAGE_KEYS) {
     if (!keys?.TAMAGOTCHI_DATA) return false;
     try {
         purgeMascotUiShellNodes();
-        const memorySnap = snapshotTamagotchiProgress();
-        loadTamagotchiData(keys);
-        applyTamagotchiProgress(memorySnap);
         const container = ensureSingleMascotDom('resync');
         if (!container) return false;
         markMascotContainerLive(container);
-        // Catch up office minutes BEFORE painting — otherwise sprites stick on the pre-gap stage
-        updateTamagotchiStats(container);
-        if (!tamaCinematicLock) {
-            checkTamagotchiEvolution(container);
-        }
+        hydrateTamagotchiFromStorage(keys, container, {
+            mergeMemory: true,
+            saveAfter: true,
+            evolve: true,
+        });
         if (!tamaCinematicLock && !mascotStagePreviewLock) {
             updateMascotAppearanceByStage(tamagotchiStage);
         }
@@ -39582,14 +39625,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         if (existingModal) existingModal.remove();
 
         // Re-merge storage + in-memory clock so list/edit always show the same age
-        const memorySnap = snapshotTamagotchiProgress();
-        loadTamagotchiData(STORAGE_KEYS);
-        applyTamagotchiProgress(memorySnap);
-        const liveContainer = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
-        if (liveContainer) {
-            updateTamagotchiStats(liveContainer);
-            if (!tamaCinematicLock) checkTamagotchiEvolution(liveContainer);
-        }
+        hydrateTamagotchiFromStorage(STORAGE_KEYS, getMascotLiveRoot() || document.getElementById('tm-mascot-container'), {
+            mergeMemory: true,
+            saveAfter: true,
+            evolve: !tamaCinematicLock,
+        });
 
         const isEgg = tamagotchiStage === 'egg';
         const hatchProgress = Math.round(getEggHatchProgress());
@@ -41334,6 +41374,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             showMascotBubble(MASCOT_MESSAGES.dead, 2000);
             return;
         }
+        hydrateTamagotchiFromStorage(STORAGE_KEYS, container, {
+            mergeMemory: true,
+            saveAfter: true,
+            evolve: false,
+        });
         const statsMsg = formatTamagotchiStatsBubble();
         
         // Show in a modal or longer bubble
@@ -42228,6 +42273,8 @@ window.TAMA_CHARACTER_TYPES = TAMA_CHARACTER_TYPES;
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
 window.ensureSingleMascotDom = ensureSingleMascotDom;
 window.resyncMascotAppearanceFromStorage = resyncMascotAppearanceFromStorage;
+window.hydrateTamagotchiFromStorage = hydrateTamagotchiFromStorage;
+window.flushTamagotchiLifeToStorage = flushTamagotchiLifeToStorage;
 window.markMascotContainerLive = markMascotContainerLive;
 window.countMascotDomInstances = countMascotDomInstances;
 window.installMascotDomDeduper = installMascotDomDeduper;
