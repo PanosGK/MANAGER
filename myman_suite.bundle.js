@@ -27494,6 +27494,22 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
         window.__tmTamagotchiFocusSyncBound = true;
         const keysForFlush = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
         installTamagotchiNavigationFlush(keysForFlush);
+        if (!window.__tmTamagotchiProfileSyncBound) {
+            window.__tmTamagotchiProfileSyncBound = true;
+            window.addEventListener('mms-profile-changed', (event) => {
+                const { previousProfileId, profileId } = event.detail || {};
+                if (!previousProfileId || !profileId || previousProfileId === profileId) return;
+                const keys = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
+                hydrateTamagotchiFromStorage(keys, getMascotLiveRoot() || document.getElementById('tm-mascot-container'), {
+                    mergeMemory: false,
+                    saveAfter: true,
+                    evolve: true,
+                });
+                if (!tamaCinematicLock && !mascotStagePreviewLock) {
+                    updateMascotAppearanceByStage(tamagotchiStage);
+                }
+            });
+        }
         document.addEventListener('visibilitychange', () => {
             const keys = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
             if (!keys?.TAMAGOTCHI_DATA) return;
@@ -41402,7 +41418,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     
     // --- Initialization ---
     // Load tamagotchi BEFORE pet stats so early ticks cannot clobber character/life with defaults
-    loadTamagotchiData(STORAGE_KEYS);
+    hydrateTamagotchiFromStorage(STORAGE_KEYS, container, {
+        mergeMemory: false,
+        saveAfter: false,
+        evolve: false,
+    });
     loadPetStats(config, STORAGE_KEYS);
     
     // Restore lights state based on loaded data
@@ -69553,13 +69573,27 @@ if (typeof window !== 'undefined') {
             if (fromId && toId && fromId !== toId) {
                 try {
                     const marker = `${fromId}->${toId}`;
-                    if (sessionStorage.getItem('tm_mms_profile_reload') !== marker) {
+                    // Leaving _unknown always reloads — mascot may have inited on the wrong bucket.
+                    const mustReload = fromId === '_unknown'
+                        || sessionStorage.getItem('tm_mms_profile_reload') !== marker;
+                    if (mustReload) {
                         sessionStorage.setItem('tm_mms_profile_reload', marker);
                         console.log(`[MMS] Profile switched ${fromId} → ${toId}; reloading…`);
                         location.reload();
                         return;
                     }
                 } catch (_) { /* ignore */ }
+                // Reload skipped (same session marker) — still re-read mascot from the new profile bucket.
+                if (typeof window.hydrateTamagotchiFromStorage === 'function') {
+                    window.hydrateTamagotchiFromStorage(window.STORAGE_KEYS, null, {
+                        mergeMemory: false,
+                        saveAfter: true,
+                        evolve: true,
+                    });
+                }
+                if (typeof window.resyncMascotAppearanceFromStorage === 'function') {
+                    window.resyncMascotAppearanceFromStorage(window.STORAGE_KEYS);
+                }
             }
             loadSettings();
             if (config?.debugEnabled) {
@@ -69631,7 +69665,29 @@ if (typeof window !== 'undefined') {
         // const bottomControlsContainer = document.createElement('div');
         // bottomControlsContainer.id = 'tm-bottom-center-container';
         // document.body.appendChild(bottomControlsContainer);
-        initInteractiveMascot(config, STORAGE_KEYS);
+        // Mascot: wait for a real user profile when login_block1 loads late (common on service_edit).
+        const initMascotWhenProfileReady = () => {
+            const profileId = window.MMS_PROFILES?.getActiveProfileId?.()
+                || window.config?.profileId;
+            if (profileId && profileId !== '_unknown') {
+                initInteractiveMascot(config, STORAGE_KEYS);
+                return true;
+            }
+            return false;
+        };
+        if (!initMascotWhenProfileReady()) {
+            const onProfileReady = () => {
+                if (initMascotWhenProfileReady()) {
+                    window.removeEventListener('mms-profile-changed', onProfileReady);
+                }
+            };
+            window.addEventListener('mms-profile-changed', onProfileReady);
+            setTimeout(() => {
+                if (!window.__tmMascotInitialized) {
+                    initInteractiveMascot(config, STORAGE_KEYS);
+                }
+            }, 2500);
+        }
 
         const trySetupFooter = (attempt = 0) => {
             if (setupFooterControls(config, STORAGE_KEYS)) return;

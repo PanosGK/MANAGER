@@ -6856,6 +6856,22 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
         window.__tmTamagotchiFocusSyncBound = true;
         const keysForFlush = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
         installTamagotchiNavigationFlush(keysForFlush);
+        if (!window.__tmTamagotchiProfileSyncBound) {
+            window.__tmTamagotchiProfileSyncBound = true;
+            window.addEventListener('mms-profile-changed', (event) => {
+                const { previousProfileId, profileId } = event.detail || {};
+                if (!previousProfileId || !profileId || previousProfileId === profileId) return;
+                const keys = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
+                hydrateTamagotchiFromStorage(keys, getMascotLiveRoot() || document.getElementById('tm-mascot-container'), {
+                    mergeMemory: false,
+                    saveAfter: true,
+                    evolve: true,
+                });
+                if (!tamaCinematicLock && !mascotStagePreviewLock) {
+                    updateMascotAppearanceByStage(tamagotchiStage);
+                }
+            });
+        }
         document.addEventListener('visibilitychange', () => {
             const keys = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
             if (!keys?.TAMAGOTCHI_DATA) return;
@@ -20764,7 +20780,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     
     // --- Initialization ---
     // Load tamagotchi BEFORE pet stats so early ticks cannot clobber character/life with defaults
-    loadTamagotchiData(STORAGE_KEYS);
+    hydrateTamagotchiFromStorage(STORAGE_KEYS, container, {
+        mergeMemory: false,
+        saveAfter: false,
+        evolve: false,
+    });
     loadPetStats(config, STORAGE_KEYS);
     
     // Restore lights state based on loaded data

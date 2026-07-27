@@ -5304,13 +5304,27 @@
             if (fromId && toId && fromId !== toId) {
                 try {
                     const marker = `${fromId}->${toId}`;
-                    if (sessionStorage.getItem('tm_mms_profile_reload') !== marker) {
+                    // Leaving _unknown always reloads — mascot may have inited on the wrong bucket.
+                    const mustReload = fromId === '_unknown'
+                        || sessionStorage.getItem('tm_mms_profile_reload') !== marker;
+                    if (mustReload) {
                         sessionStorage.setItem('tm_mms_profile_reload', marker);
                         console.log(`[MMS] Profile switched ${fromId} → ${toId}; reloading…`);
                         location.reload();
                         return;
                     }
                 } catch (_) { /* ignore */ }
+                // Reload skipped (same session marker) — still re-read mascot from the new profile bucket.
+                if (typeof window.hydrateTamagotchiFromStorage === 'function') {
+                    window.hydrateTamagotchiFromStorage(window.STORAGE_KEYS, null, {
+                        mergeMemory: false,
+                        saveAfter: true,
+                        evolve: true,
+                    });
+                }
+                if (typeof window.resyncMascotAppearanceFromStorage === 'function') {
+                    window.resyncMascotAppearanceFromStorage(window.STORAGE_KEYS);
+                }
             }
             loadSettings();
             if (config?.debugEnabled) {
@@ -5382,7 +5396,29 @@
         // const bottomControlsContainer = document.createElement('div');
         // bottomControlsContainer.id = 'tm-bottom-center-container';
         // document.body.appendChild(bottomControlsContainer);
-        initInteractiveMascot(config, STORAGE_KEYS);
+        // Mascot: wait for a real user profile when login_block1 loads late (common on service_edit).
+        const initMascotWhenProfileReady = () => {
+            const profileId = window.MMS_PROFILES?.getActiveProfileId?.()
+                || window.config?.profileId;
+            if (profileId && profileId !== '_unknown') {
+                initInteractiveMascot(config, STORAGE_KEYS);
+                return true;
+            }
+            return false;
+        };
+        if (!initMascotWhenProfileReady()) {
+            const onProfileReady = () => {
+                if (initMascotWhenProfileReady()) {
+                    window.removeEventListener('mms-profile-changed', onProfileReady);
+                }
+            };
+            window.addEventListener('mms-profile-changed', onProfileReady);
+            setTimeout(() => {
+                if (!window.__tmMascotInitialized) {
+                    initInteractiveMascot(config, STORAGE_KEYS);
+                }
+            }, 2500);
+        }
 
         const trySetupFooter = (attempt = 0) => {
             if (setupFooterControls(config, STORAGE_KEYS)) return;
