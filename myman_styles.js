@@ -7333,7 +7333,6 @@
             }
             #tm-mascot-container.mascot-needs-cleaning {
                 animation: tm-needs-cleaning-pulse 2s ease-in-out infinite;
-                position: relative;
             }
             #tm-mascot-container.mascot-needs-cleaning::before {
                 content: '';
@@ -7364,9 +7363,6 @@
                     opacity: 1;
                     transform: scale(1.05);
                 }
-            }
-            #tm-mascot-container.mascot-needs-toilet {
-                position: relative;
             }
             .tm-toilet-urgency-indicator {
                 position: absolute;
