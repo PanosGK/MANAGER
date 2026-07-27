@@ -7333,6 +7333,8 @@
             }
             #tm-mascot-container.mascot-needs-cleaning {
                 animation: tm-needs-cleaning-pulse 2s ease-in-out infinite;
+                /* Must stay fixed — relative pins the mascot to document flow (bottom of page) */
+                position: fixed !important;
             }
             #tm-mascot-container.mascot-needs-cleaning::before {
                 content: '';
@@ -7363,6 +7365,9 @@
                     opacity: 1;
                     transform: scale(1.05);
                 }
+            }
+            #tm-mascot-container.mascot-needs-toilet {
+                position: fixed !important;
             }
             .tm-toilet-urgency-indicator {
                 position: absolute;

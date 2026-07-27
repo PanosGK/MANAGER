@@ -13802,7 +13802,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
             #tm-mascot-container.mascot-needs-cleaning {
                 animation: tm-needs-cleaning-pulse 2s ease-in-out infinite;
-                position: relative;
+                /* Must stay fixed — relative pins the mascot to document flow (bottom of page) */
+                position: fixed !important;
             }
             #tm-mascot-container.mascot-needs-cleaning::before {
                 content: '';
@@ -13835,7 +13836,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 }
             }
             #tm-mascot-container.mascot-needs-toilet {
-                position: relative;
+                position: fixed !important;
             }
             .tm-toilet-urgency-indicator {
                 position: absolute;
@@ -25907,6 +25908,40 @@ function syncTamagotchiAgeFromLife() {
     tamagotchiAge = Math.floor(tamagotchiLifeMinutes / TAMA_MINUTES_PER_YEAR);
 }
 
+/**
+ * Merge two life clocks. lifeMinutes is authoritative for age; lastUpdate must stay
+ * paired with whichever record supplied the higher lifeMinutes (avoids list/edit drift).
+ */
+function mergeTamagotchiProgress(a, b) {
+    const aLife = Number(a?.lifeMinutes);
+    const bLife = Number(b?.lifeMinutes);
+    const lifeA = Number.isFinite(aLife) ? Math.max(0, aLife) : 0;
+    const lifeB = Number.isFinite(bLife) ? Math.max(0, bLife) : 0;
+    const aUp = Number(a?.lastUpdate);
+    const bUp = Number(b?.lastUpdate);
+    const upA = Number.isFinite(aUp) ? aUp : 0;
+    const upB = Number.isFinite(bUp) ? bUp : 0;
+
+    if (lifeA > lifeB) return { lifeMinutes: lifeA, lastUpdate: upA };
+    if (lifeB > lifeA) return { lifeMinutes: lifeB, lastUpdate: upB };
+    return { lifeMinutes: lifeA, lastUpdate: Math.max(upA, upB) };
+}
+
+function applyTamagotchiProgress(snapshot) {
+    if (!snapshot) return;
+    const merged = mergeTamagotchiProgress(
+        { lifeMinutes: tamagotchiLifeMinutes, lastUpdate: tamagotchiLastUpdate },
+        snapshot,
+    );
+    tamagotchiLifeMinutes = merged.lifeMinutes;
+    tamagotchiLastUpdate = merged.lastUpdate;
+    validateTamagotchiState();
+}
+
+function snapshotTamagotchiProgress() {
+    return { lifeMinutes: tamagotchiLifeMinutes, lastUpdate: tamagotchiLastUpdate };
+}
+
 /** Recover lifeMinutes when storage has a hatched pet but life clock was wiped to 0. */
 function resolveLifeMinutesFromSave(savedData) {
     const stage = savedData.stage || 'egg';
@@ -26482,7 +26517,11 @@ function getMascotPaintOverflow(container = document.getElementById('tm-mascot-c
     const h = container.offsetHeight || 100;
     let rect;
     try {
-        rect = container.getBoundingClientRect();
+        // Poop / toilet FX are decorative — don't shrink drag/roam bounds (invisible floor).
+        const measureEl = container.querySelector('.tm-mascot-robot')
+            || container.querySelector('.tm-mascot-flipper')
+            || container;
+        rect = measureEl.getBoundingClientRect();
     } catch {
         return { ...slack };
     }
@@ -26607,9 +26646,13 @@ function applyMascotPosition(container, x, y) {
     return clamped;
 }
 
-/** Drag uses the same hard screen clamp so the mascot cannot leave the monitor frame. */
+/** Drag uses stable slack — care FX must not create a phantom clamp line. */
 function applyMascotDragPosition(container, x, y) {
-    return applyMascotPosition(container, x, y);
+    if (!container) return { x, y };
+    const offsets = getMascotKeepInsideSlack(container);
+    const clamped = clampMascotPositionToViewport(x, y, container, offsets);
+    container.style.transform = `translate(${clamped.x}px, ${clamped.y}px)`;
+    return clamped;
 }
 
 function ensureMascotInBounds(container = document.getElementById('tm-mascot-container')) {
@@ -27156,8 +27199,6 @@ function loadTamagotchiData(STORAGE_KEYS) {
     const keys = getTamagotchiStorageKeys(STORAGE_KEYS);
     const savedData = parseTamagotchiStorageValue(GM_getValue(keys.TAMAGOTCHI_DATA, 'null'));
     if (savedData) {
-        tamagotchiAge = savedData.age || 0;
-        tamagotchiStage = savedData.stage || 'egg';
         const loadedChar = savedData.characterType;
         tamagotchiCharacterType = (loadedChar && loadedChar !== 'none' && TAMA_CHARACTER_TYPES.includes(loadedChar))
             ? loadedChar
@@ -27250,11 +27291,14 @@ function saveTamagotchiData(STORAGE_KEYS) {
         }
 
         if (storedGen === ourGen) {
-            const storedLife = Number(stored.lifeMinutes);
-            if (Number.isFinite(storedLife) && storedLife > tamagotchiLifeMinutes) {
-                tamagotchiLifeMinutes = storedLife;
-                tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
-            }
+            const merged = mergeTamagotchiProgress(stored, {
+                lifeMinutes: tamagotchiLifeMinutes,
+                lastUpdate: tamagotchiLastUpdate,
+            });
+            tamagotchiLifeMinutes = merged.lifeMinutes;
+            tamagotchiLastUpdate = merged.lastUpdate;
+            tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
+            syncTamagotchiAgeFromLife();
 
             // Lifetime death tallies: keep the higher count across tabs
             tamagotchiKilledByUserCount = Math.max(
@@ -27413,7 +27457,9 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
 
             // Don't clobber an in-progress hatch lottery with a stale storage reload
             if (tamaCinematicLock) return;
+            const memorySnap = snapshotTamagotchiProgress();
             loadTamagotchiData(keys);
+            applyTamagotchiProgress(memorySnap);
             const el = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
             if (el) {
                 updateTamagotchiStats(el);
@@ -27424,6 +27470,11 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
             }
         });
         window.addEventListener('pagehide', flushTamagotchiLife);
+        window.addEventListener('beforeunload', flushTamagotchiLife);
+        window.addEventListener('pageshow', (event) => {
+            if (!event.persisted || tamaCinematicLock) return;
+            resyncMascotAppearanceFromStorage(keys);
+        });
     }
 }
 
@@ -27706,6 +27757,7 @@ function updatePoopIndicator() {
     if (mascotContainer) {
         if (tamagotchiPoopCount > 0) {
             mascotContainer.classList.add('mascot-needs-cleaning');
+            ensureMascotViewportFixed(mascotContainer);
             // Add poop particles
             createPoopParticles(mascotContainer, tamagotchiPoopCount);
         } else {
@@ -27739,6 +27791,7 @@ function updateToiletNeedIndicator() {
     
     if (needsToilet) {
         mascotContainer.classList.add('mascot-needs-toilet');
+        ensureMascotViewportFixed(mascotContainer);
         // Add urgency animation
         if (!mascotContainer.querySelector('.tm-toilet-urgency-indicator')) {
             createToiletUrgencyIndicator(mascotContainer);
@@ -30305,13 +30358,29 @@ function markMascotContainerLive(container = document.getElementById('tm-mascot-
     } catch (_) { /* ignore */ }
 }
 
+/** Care-state CSS once used position:relative and pinned the mascot to the page bottom. */
+function ensureMascotViewportFixed(container = getMascotLiveRoot()) {
+    if (!container) return;
+    try {
+        container.style.setProperty('position', 'fixed', 'important');
+        container.style.setProperty('top', '0', 'important');
+        container.style.setProperty('left', '0', 'important');
+    } catch (_) {
+        container.style.position = 'fixed';
+        container.style.top = '0';
+        container.style.left = '0';
+    }
+}
+
 /** Always re-read saved pet + catch up life + evolve + paint — keeps list/edit in sync. */
 function resyncMascotAppearanceFromStorage(STORAGE_KEYS = window.STORAGE_KEYS) {
     const keys = getTamagotchiStorageKeys(STORAGE_KEYS);
     if (!keys?.TAMAGOTCHI_DATA) return false;
     try {
         purgeMascotUiShellNodes();
+        const memorySnap = snapshotTamagotchiProgress();
         loadTamagotchiData(keys);
+        applyTamagotchiProgress(memorySnap);
         const container = ensureSingleMascotDom('resync');
         if (!container) return false;
         markMascotContainerLive(container);
@@ -30325,7 +30394,7 @@ function resyncMascotAppearanceFromStorage(STORAGE_KEYS = window.STORAGE_KEYS) {
         }
         syncMascotInteractionClasses(container);
         console.log(
-            `[MMS Mascot] Resynced from storage → stage=${tamagotchiStage} character=${tamagotchiCharacterType} life=${Math.round(tamagotchiLifeMinutes)}`
+            `[MMS Mascot] Resynced from storage → stage=${tamagotchiStage} character=${tamagotchiCharacterType} life=${Math.round(tamagotchiLifeMinutes)} age=${Math.floor(tamagotchiAge)}`
         );
         return true;
     } catch (err) {
@@ -39512,6 +39581,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         const existingModal = document.getElementById('tm-mascot-stats-modal');
         if (existingModal) existingModal.remove();
 
+        // Re-merge storage + in-memory clock so list/edit always show the same age
+        const memorySnap = snapshotTamagotchiProgress();
+        loadTamagotchiData(STORAGE_KEYS);
+        applyTamagotchiProgress(memorySnap);
+        const liveContainer = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+        if (liveContainer) {
+            updateTamagotchiStats(liveContainer);
+            if (!tamaCinematicLock) checkTamagotchiEvolution(liveContainer);
+        }
+
         const isEgg = tamagotchiStage === 'egg';
         const hatchProgress = Math.round(getEggHatchProgress());
         const minutesToHatch = getMinutesUntilHatch();
@@ -39624,7 +39703,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <h2 class="tm-mascot-name" id="tm-mascot-care-title">${characterName}</h2>
                             <p class="tm-mascot-meta">
                                 <span class="tm-mascot-stage-pill">${stageGr}</span>
-                                <span>${isEgg ? `Εκκόλαψη ~${minutesToHatch} λεπτά` : `Ηλικία ${Math.floor(tamagotchiAge)}`}</span>
+                                <span id="tm-mascot-meta-age">${isEgg ? `Εκκόλαψη ~${minutesToHatch} λεπτά` : `Ηλικία ${Math.floor(tamagotchiAge)}`}</span>
                                 ${isEgg ? '' : `<span>·</span><span id="tm-mascot-meta-weight">${formatTamagotchiWeightKg()}</span>`}
                             </p>
                         </div>
@@ -40173,6 +40252,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             updateWeightDisplay();
             const metaWeight = modal.querySelector('#tm-mascot-meta-weight');
             if (metaWeight) metaWeight.textContent = formatTamagotchiWeightKg();
+            const metaAge = modal.querySelector('#tm-mascot-meta-age');
+            if (metaAge) metaAge.textContent = `Ηλικία ${Math.floor(tamagotchiAge)}`;
+            const stagePill = modal.querySelector('.tm-mascot-stage-pill');
+            if (stagePill) stagePill.textContent = MASCOT_STAGE_GR[tamagotchiStage] || tamagotchiStage;
 
             const chips = modal.querySelector('#tm-mascot-status-chips');
             if (chips) {
@@ -40943,6 +41026,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 stopRoaming(config);
                 // Re-sync after WAAPI cancel — animation may have moved since pointerdown
                 origin = getMascotTranslate(container);
+                ensureMascotViewportFixed(container);
                 startX = ev.clientX;
                 startY = ev.clientY;
                 syncMascotInteractionClasses(container);

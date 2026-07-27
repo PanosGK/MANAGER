@@ -5879,7 +5879,11 @@ function getMascotPaintOverflow(container = document.getElementById('tm-mascot-c
     const h = container.offsetHeight || 100;
     let rect;
     try {
-        rect = container.getBoundingClientRect();
+        // Poop / toilet FX are decorative — don't shrink drag/roam bounds (invisible floor).
+        const measureEl = container.querySelector('.tm-mascot-robot')
+            || container.querySelector('.tm-mascot-flipper')
+            || container;
+        rect = measureEl.getBoundingClientRect();
     } catch {
         return { ...slack };
     }
@@ -6004,9 +6008,13 @@ function applyMascotPosition(container, x, y) {
     return clamped;
 }
 
-/** Drag uses the same hard screen clamp so the mascot cannot leave the monitor frame. */
+/** Drag uses stable slack — care FX must not create a phantom clamp line. */
 function applyMascotDragPosition(container, x, y) {
-    return applyMascotPosition(container, x, y);
+    if (!container) return { x, y };
+    const offsets = getMascotKeepInsideSlack(container);
+    const clamped = clampMascotPositionToViewport(x, y, container, offsets);
+    container.style.transform = `translate(${clamped.x}px, ${clamped.y}px)`;
+    return clamped;
 }
 
 function ensureMascotInBounds(container = document.getElementById('tm-mascot-container')) {
@@ -7111,6 +7119,7 @@ function updatePoopIndicator() {
     if (mascotContainer) {
         if (tamagotchiPoopCount > 0) {
             mascotContainer.classList.add('mascot-needs-cleaning');
+            ensureMascotViewportFixed(mascotContainer);
             // Add poop particles
             createPoopParticles(mascotContainer, tamagotchiPoopCount);
         } else {
@@ -7144,6 +7153,7 @@ function updateToiletNeedIndicator() {
     
     if (needsToilet) {
         mascotContainer.classList.add('mascot-needs-toilet');
+        ensureMascotViewportFixed(mascotContainer);
         // Add urgency animation
         if (!mascotContainer.querySelector('.tm-toilet-urgency-indicator')) {
             createToiletUrgencyIndicator(mascotContainer);
@@ -9708,6 +9718,20 @@ function markMascotContainerLive(container = document.getElementById('tm-mascot-
         container.removeAttribute('data-tm-footer-shell');
         container.classList.remove('tm-ui-shell', 'tm-ui-shell-mascot');
     } catch (_) { /* ignore */ }
+}
+
+/** Care-state CSS once used position:relative and pinned the mascot to the page bottom. */
+function ensureMascotViewportFixed(container = getMascotLiveRoot()) {
+    if (!container) return;
+    try {
+        container.style.setProperty('position', 'fixed', 'important');
+        container.style.setProperty('top', '0', 'important');
+        container.style.setProperty('left', '0', 'important');
+    } catch (_) {
+        container.style.position = 'fixed';
+        container.style.top = '0';
+        container.style.left = '0';
+    }
 }
 
 /** Always re-read saved pet + catch up life + evolve + paint — keeps list/edit in sync. */
@@ -20364,6 +20388,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 stopRoaming(config);
                 // Re-sync after WAAPI cancel — animation may have moved since pointerdown
                 origin = getMascotTranslate(container);
+                ensureMascotViewportFixed(container);
                 startX = ev.clientX;
                 startY = ev.clientY;
                 syncMascotInteractionClasses(container);
