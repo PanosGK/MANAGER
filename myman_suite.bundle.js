@@ -37354,1300 +37354,1301 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path class="tm-mascot-mouth-happy" d="M 45 36 L 50 41 L 55 36" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                         <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 40 L 50 35 L 55 40" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                 </g>
-                                                                                                                                                                                                                                <!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v5 · stage color progression) -->
-                <!-- Voidseed → Veilspawn → Astral Warden → Sovereign → Eclipse → Primordial -->
+                <!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v6 · celestial void deity) -->
+                <!-- Voidseed → Veilspawn → Astral Warden → Star Sovereign → Eclipse Tyrant → Primordial -->
                 <!-- ═══════════════════════════════════════ -->
 
                 <!-- AETHER BABY — Voidseed -->
                 <g id="tm-mascot-baby-aether" style="display: none;">
                     <defs>
-                        <radialGradient id="aether-baby-body" cx="38%" cy="22%" r="80%">
-                            <stop offset="0%" style="stop-color:#e1bee7;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#b39ddb;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#7e57c2;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="aether-baby-belly" cx="50%" cy="40%" r="60%">
-                            <stop offset="0%" style="stop-color:#f8eafc;stop-opacity:0.9" />
-                            <stop offset="100%" style="stop-color:#5e35b1;stop-opacity:0.9" />
-                        </radialGradient>
-                        <linearGradient id="aether-baby-wing" x1="15%" y1="10%" x2="90%" y2="90%">
-                            <stop offset="0%" style="stop-color:#b2dfdb;stop-opacity:0.75" />
-                            <stop offset="25%" style="stop-color:#12001f;stop-opacity:0.55" />
-                            <stop offset="55%" style="stop-color:#ce93d8;stop-opacity:0.8" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0.95" />
-                        </linearGradient>
-                        <linearGradient id="aether-baby-wing2" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#7ec8c3;stop-opacity:0.35" />
-                            <stop offset="40%" style="stop-color:#ffe082;stop-opacity:0.45" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0.7" />
-                        </linearGradient>
-                        <radialGradient id="aether-baby-wingveil" cx="30%" cy="35%" r="70%">
-                            <stop offset="0%" style="stop-color:#7ec8c3;stop-opacity:0.22" />
-                            <stop offset="50%" style="stop-color:#ffe082;stop-opacity:0.12" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-baby-wingglow" cx="40%" cy="40%" r="60%">
-                            <stop offset="0%" style="stop-color:#c9a0dc;stop-opacity:0.35" />
-                            <stop offset="55%" style="stop-color:#7ec8c3;stop-opacity:0.1" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-baby-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#7ec8c3;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#ffe082;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-baby-iris" cx="40%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#e0f7fa;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#80cbc4;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1a0033;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="aether-baby-aura" cx="50%" cy="52%" r="82%">
-                            <stop offset="0%" style="stop-color:#80cbc4;stop-opacity:0.16" />
-                            <stop offset="32%" style="stop-color:#ce93d8;stop-opacity:0.1" />
-                            <stop offset="62%" style="stop-color:#ffe082;stop-opacity:0.04" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-baby-aura2" cx="50%" cy="55%" r="78%">
-                            <stop offset="0%" style="stop-color:#ffe082;stop-opacity:0.1" />
-                            <stop offset="40%" style="stop-color:#80cbc4;stop-opacity:0.06" />
-                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-baby-corona" cx="50%" cy="55%" r="74%">
-                            <stop offset="0%" style="stop-color:#ffe082;stop-opacity:0.14" />
-                            <stop offset="48%" style="stop-color:#80cbc4;stop-opacity:0.06" />
-                            <stop offset="100%" style="stop-color:#ce93d8;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="aether-baby-tail" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#b2dfdb;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#ffe082;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="aether-baby-plate" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#3a2a55;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="aether-baby-sigil" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#c9a0dc;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#7ec8c3;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="aether-baby-beam" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:0.55" />
-                            <stop offset="50%" style="stop-color:#7ec8c3;stop-opacity:0.22" />
-                            <stop offset="100%" style="stop-color:#ffe082;stop-opacity:0" />
-                        </linearGradient>
+                    <radialGradient id="aether-baby-body" cx="38%" cy="24%" r="85%">
+                        <stop offset="0%" style="stop-color:#e6d6f7;stop-opacity:1" />
+                        <stop offset="42%" style="stop-color:#b39ddb;stop-opacity:1" />
+                        <stop offset="78%" style="stop-color:#7e57c2;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#4527a0;stop-opacity:1" />
+                    </radialGradient>
+                    <linearGradient id="aether-baby-cloak" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#7e57c2;stop-opacity:1" />
+                        <stop offset="55%" style="stop-color:#4527a0;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#12001f;stop-opacity:1" />
+                    </linearGradient>
+                    <radialGradient id="aether-baby-core" cx="50%" cy="45%" r="55%">
+                        <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                        <stop offset="32%" style="stop-color:#7ec8c3;stop-opacity:1" />
+                        <stop offset="70%" style="stop-color:#ffe082;stop-opacity:.85" />
+                        <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
+                    </radialGradient>
+                    <linearGradient id="aether-baby-wing" x1="10%" y1="0%" x2="95%" y2="95%">
+                        <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:.95" />
+                        <stop offset="45%" style="stop-color:#12001f;stop-opacity:.92" />
+                        <stop offset="82%" style="stop-color:#7e57c2;stop-opacity:.9" />
+                        <stop offset="100%" style="stop-color:#12001f;stop-opacity:.98" />
+                    </linearGradient>
+                    <linearGradient id="aether-baby-blade" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#7ec8c3;stop-opacity:.9" />
+                        <stop offset="55%" style="stop-color:#b39ddb;stop-opacity:.75" />
+                        <stop offset="100%" style="stop-color:#12001f;stop-opacity:.95" />
+                    </linearGradient>
+                    <radialGradient id="aether-baby-iris" cx="40%" cy="35%" r="65%">
+                        <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
+                        <stop offset="55%" style="stop-color:#7ec8c3;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#12001f;stop-opacity:1" />
+                    </radialGradient>
+                    <radialGradient id="aether-baby-aura" cx="50%" cy="52%" r="70%">
+                        <stop offset="0%" style="stop-color:#7ec8c3;stop-opacity:.2" />
+                        <stop offset="45%" style="stop-color:#b39ddb;stop-opacity:.1" />
+                        <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
+                    </radialGradient>
+                    <linearGradient id="aether-baby-goldrim" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#7e57c2;stop-opacity:1" />
+                    </linearGradient>
+                    <filter id="aether-baby-glow" x="-80%" y="-80%" width="260%" height="260%">
+                        <feGaussianBlur stdDeviation="1.1" result="b"/>
+                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
                     </defs>
-                        <ellipse cx="50" cy="96" rx="18" ry="4.2" fill="#05010c" opacity="0.28"/>
-                        <g class="tm-aether-fx " data-fx="sparks" opacity="0">
-                            <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#c9a0dc"/>
-                            <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#7ec8c3"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 36 58 L 20 46 L 16 54 L 22 64 L 34 62 Z" class="tm-aether-wing-membrane" fill="url(#aether-baby-wing)" stroke="#6a5a82" stroke-width="1.1"/>
-                            <path d="M 34 58 L 24 52 L 22 58 L 28 62 Z" fill="url(#aether-baby-wing2)" opacity="0.65"/>
-                            <path class="tm-aether-wing-vein" d="M 34 58 L 22 50 L 18 56" fill="none" stroke="#7ec8c3" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
-                            <path class="tm-aether-wing-claw" d="M 16 48 L 13 43 L 17 46 Z" fill="#7ec8c3" opacity="0.9"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 64 58 L 80 46 L 84 54 L 78 64 L 66 62 Z" class="tm-aether-wing-membrane" fill="url(#aether-baby-wing)" stroke="#6a5a82" stroke-width="1.1"/>
-                            <path d="M 66 58 L 76 52 L 78 58 L 72 62 Z" fill="url(#aether-baby-wing2)" opacity="0.65"/>
-                            <path class="tm-aether-wing-vein" d="M 66 58 L 78 50 L 82 56" fill="none" stroke="#c9a0dc" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
-                            <path class="tm-aether-wing-claw" d="M 84 48 L 87 43 L 83 46 Z" fill="#c9a0dc" opacity="0.9"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 58 70 L 68 78 L 62 68 Z" fill="url(#aether-baby-tail)" stroke="#6a5a82" stroke-width="0.9" opacity="0.7"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Seed orb -->
-                            <ellipse cx="50" cy="58" rx="18" ry="20" fill="url(#aether-baby-body)" stroke="#6a5a82" stroke-width="1.5"/>
-                            <ellipse cx="50" cy="60" rx="10" ry="12" fill="url(#aether-baby-belly)" opacity="0.7"/>
-                            <circle class="tm-aether-core" cx="50" cy="58" r="5" fill="url(#aether-baby-core)"/>
-                            <circle class="tm-aether-core-ring" cx="50" cy="58" r="8" fill="#7ec8c3" opacity="0.12"/>
-                            <path d="M 50 42 L 50 74" stroke="#7ec8c3" stroke-width="0.55" opacity="0.35"/>
-                            <path d="M 40 50 L 60 66" stroke="#c9a0dc" stroke-width="0.45" opacity="0.25"/>
-                        </g>
-                        <g class="tm-aether-regalia">
-                            <circle cx="50" cy="42" r="3.2" fill="url(#aether-baby-core)" opacity="0.85"/>
-                            <circle cx="50" cy="42" r="5.5" fill="none" stroke="#7ec8c3" stroke-width="0.55" opacity="0.45" stroke-dasharray="1.5 2"/>
-                        </g>
-                        <g class="tm-animate-arm-left">
-                            <ellipse cx="32" cy="62" rx="3" ry="5" fill="url(#aether-baby-body)" stroke="#6a5a82" stroke-width="0.9" opacity="0.7"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <ellipse cx="68" cy="62" rx="3" ry="5" fill="url(#aether-baby-body)" stroke="#6a5a82" stroke-width="0.9" opacity="0.7"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="44" cy="78" rx="4" ry="3" fill="url(#aether-baby-body)" stroke="#6a5a82" stroke-width="0.9" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="56" cy="78" rx="4" ry="3" fill="url(#aether-baby-body)" stroke="#6a5a82" stroke-width="0.9" opacity="0.55"/>
-                        </g>
-                        <g class="tm-mascot-eye-open tm-aether-eyes">
-
-                            <ellipse class="tm-aether-eye-sclera" cx="43" cy="50" rx="4" ry="4.8" fill="#e8e0f0" stroke="#6a5a82" stroke-width="1.35" opacity="0.92"/>
-                            <ellipse class="tm-aether-eye-sclera" cx="57" cy="50" rx="4" ry="4.8" fill="#e8e0f0" stroke="#6a5a82" stroke-width="1.35" opacity="0.92"/>
-                            <ellipse class="tm-aether-iris" cx="43" cy="50" rx="1.9" ry="2.6" fill="url(#aether-baby-iris)"/>
-                            <ellipse class="tm-aether-iris" cx="57" cy="50" rx="1.9" ry="2.6" fill="url(#aether-baby-iris)"/>
-                            <ellipse cx="43" cy="50" rx="0.7" ry="1.5" fill="#05010c"/>
-                            <ellipse cx="57" cy="50" rx="0.7" ry="1.5" fill="#05010c"/>
-                            <line x1="39.6" y1="45.9" x2="45.6" y2="47.6" stroke="#6a5a82" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
-                            <line x1="60.4" y1="45.9" x2="54.4" y2="47.6" stroke="#6a5a82" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 39 50 L 47 50" stroke="#6a5a82" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                            <path d="M 53 50 L 61 50" stroke="#6a5a82" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 46 60 Q 50 62.0 54 60" stroke="#6a5a82" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 46 62.0 Q 50 59.0 54 62.0" stroke="#6a5a82" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="50" cy="96" rx="16" ry="3.6" fill="#05010c" opacity="0.25"/>
+                    <ellipse cx="50" cy="92" rx="11" ry="2.2" fill="#7ec8c3" opacity="0.18"/>
+                    <g class="tm-aether-fx " data-fx="sparks" opacity="0">
+                    <circle class="tm-aether-spark" cx="62.56" cy="64.15" r="1.7" fill="#7ec8c3"/>
+                    <circle class="tm-aether-spark" cx="18.14" cy="64.71" r="1.17" fill="#ffe082"/>
+                    <circle class="tm-aether-spark" cx="13.65" cy="59.05" r="0.77" fill="#e6d6f7"/>
+                    <circle class="tm-aether-spark" cx="69.17" cy="11.25" r="1.89" fill="#7ec8c3"/>
+                    </g>
+                    <g class="tm-animate-wing-left">
+                    <path class="tm-aether-wing-membrane" d="M 36 58 C 29.25 49.3 22.8 48.7 21 51.7 C 22.2 56.2 22.8 61.3 23.7 63.1 C 28.2 64.3 31.8 60.7 36 58 Z" fill="url(#aether-baby-wing)" stroke="#6a5a82" stroke-width="0.8"/>
+                    <path d="M 35.43 57.38 Q 30.96 56.09 26.36 55.12 Q 29.88 56.86 34.77 59.22 Z" fill="url(#aether-baby-blade)" opacity="0.85"/>
+                    <path d="M 34.95 57.34 Q 27.88 58.77 20.88 60.55 Q 26.92 60.03 35.25 59.26 Z" fill="url(#aether-baby-blade)" opacity="0.85"/>
+                    <path d="M 34.5 57.53 Q 31.03 60.64 27.77 64.03 Q 31.11 61.96 35.7 59.07 Z" fill="url(#aether-baby-blade)" opacity="0.85"/>
+                    <circle cx="30.41" cy="57.66" r="0.37" fill="#ffe082" opacity="0.7"/>
+                    <circle cx="29.59" cy="56.79" r="0.6" fill="#ffe082" opacity="0.75"/>
+                    <path class="tm-aether-wing-vein" d="M 36 58 C 30 50.5 23.25 49.9 21 51.7" fill="none" stroke="#7ec8c3" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-claw" d="M 21 51.7 L 18.4 48.3 L 22.4 50.7 Z" fill="#7ec8c3" opacity="0.95"/>
+                    </g>
+                    <g class="tm-animate-wing-right">
+                    <g transform="translate(100,0) scale(-1,1)">
+                    <path class="tm-aether-wing-membrane" d="M 36 58 C 29.25 49.3 22.8 48.7 21 51.7 C 22.2 56.2 22.8 61.3 23.7 63.1 C 28.2 64.3 31.8 60.7 36 58 Z" fill="url(#aether-baby-wing)" stroke="#6a5a82" stroke-width="0.8"/>
+                    <path d="M 35.43 57.38 Q 30.96 56.09 26.36 55.12 Q 29.88 56.86 34.77 59.22 Z" fill="url(#aether-baby-blade)" opacity="0.85"/>
+                    <path d="M 34.95 57.34 Q 27.88 58.77 20.88 60.55 Q 26.92 60.03 35.25 59.26 Z" fill="url(#aether-baby-blade)" opacity="0.85"/>
+                    <path d="M 34.5 57.53 Q 31.03 60.64 27.77 64.03 Q 31.11 61.96 35.7 59.07 Z" fill="url(#aether-baby-blade)" opacity="0.85"/>
+                    <circle cx="25.58" cy="58.27" r="0.5" fill="#ffe082" opacity="0.64"/>
+                    <circle cx="31.15" cy="57.26" r="0.46" fill="#ffe082" opacity="0.43"/>
+                    <path class="tm-aether-wing-vein" d="M 36 58 C 30 50.5 23.25 49.9 21 51.7" fill="none" stroke="#7ec8c3" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-claw" d="M 21 51.7 L 18.4 48.3 L 22.4 50.7 Z" fill="#7ec8c3" opacity="0.95"/>
+                    </g>
+                    </g>
+                    <g class="tm-animate-tail">
+                    <path d="M 58 72 Q 66 76 70 84 Q 63 79 57 75 Z" fill="url(#aether-baby-blade)" opacity="0.65"/>
+                    <circle cx="69" cy="83" r="1" fill="#ffe082" opacity="0.8"/>
+                    </g>
+                    <g class="tm-animate-body">
+                    <circle cx="50" cy="58" r="18" fill="url(#aether-baby-body)" stroke="#6a5a82" stroke-width="1.4"/>
+                    <circle cx="50" cy="58" r="18" fill="none" stroke="#e6d6f7" stroke-width="0.5" opacity="0.5"/>
+                    <path d="M 40 52 Q 50 44 62 52 Q 54 48 46 50 Q 42 51 40 52 Z" fill="#ffffff" opacity="0.18"/>
+                    <path d="M 38 62 Q 46 70 60 66 Q 52 74 42 70 Q 38 66 38 62 Z" fill="url(#aether-baby-cloak)" opacity="0.55"/>
+                    <path d="M 41 64 Q 50 57 59 64 Q 55 60 50 60 Q 45 60 41 64 Z" fill="#b39ddb" opacity="0.4"/>
+                    <circle cx="43.08" cy="52.94" r="0.33" fill="#ffe082" opacity="0.94"/>
+                    <circle cx="47.18" cy="66.94" r="0.56" fill="#ffe082" opacity="0.76"/>
+                    <circle cx="48.86" cy="52.07" r="0.57" fill="#ffe082" opacity="0.51"/>
+                    <circle cx="51.45" cy="60.15" r="0.77" fill="#ffe082" opacity="0.36"/>
+                    <circle cx="57.53" cy="53.41" r="0.44" fill="#ffe082" opacity="0.66"/>
+                    <circle cx="54.78" cy="57.08" r="0.72" fill="#ffe082" opacity="0.69"/>
+                    <circle cx="53.89" cy="60.33" r="0.71" fill="#ffe082" opacity="0.4"/>
+                    <circle class="tm-aether-core" cx="50" cy="68" r="3.2" fill="url(#aether-baby-core)"/>
+                    <circle class="tm-aether-core-ring" cx="50" cy="68" r="5.2" fill="none" stroke="#7ec8c3" stroke-width="0.5" opacity="0.35"/>
+                    </g>
+                    <g class="tm-aether-regalia">
+                    <circle cx="50" cy="34" r="2.4" fill="url(#aether-baby-core)" opacity="0.9" filter="url(#aether-baby-glow)"/>
+                    <circle cx="50" cy="34" r="4.6" fill="none" stroke="#7ec8c3" stroke-width="0.5" opacity="0.5" stroke-dasharray="1.4 1.8"/>
+                    </g>
+                    <g class="tm-animate-arm-left">
+                    <path d="M 33 60 Q 28 63 30 68 Q 33 65 35 63 Z" fill="url(#aether-baby-body)" stroke="#6a5a82" stroke-width="0.7" opacity="0.85"/>
+                    </g>
+                    <g class="tm-animate-arm-right">
+                    <path d="M 67 60 Q 72 63 70 68 Q 67 65 65 63 Z" fill="url(#aether-baby-body)" stroke="#6a5a82" stroke-width="0.7" opacity="0.85"/>
+                    </g>
+                    <g class="tm-animate-leg-left">
+                    <ellipse cx="44" cy="78" rx="3.4" ry="2.4" fill="#b39ddb" opacity="0.5"/>
+                    </g>
+                    <g class="tm-animate-leg-right">
+                    <ellipse cx="56" cy="78" rx="3.4" ry="2.4" fill="#b39ddb" opacity="0.5"/>
+                    </g>
+                    <g class="tm-mascot-eye-open tm-aether-eyes">
+                    <ellipse class="tm-aether-eye-sclera" cx="43.5" cy="52" rx="3.6" ry="4.6" fill="#ece5f5" stroke="#6a5a82" stroke-width="1.1" opacity="0.94"/>
+                    <ellipse class="tm-aether-eye-sclera" cx="56.5" cy="52" rx="3.6" ry="4.6" fill="#ece5f5" stroke="#6a5a82" stroke-width="1.1" opacity="0.94"/>
+                    <ellipse class="tm-aether-iris" cx="43.5" cy="52" rx="1.87" ry="2.76" fill="url(#aether-baby-iris)"/>
+                    <ellipse class="tm-aether-iris" cx="56.5" cy="52" rx="1.87" ry="2.76" fill="url(#aether-baby-iris)"/>
+                    <ellipse cx="43.5" cy="52" rx="0.72" ry="1.56" fill="#05010c"/>
+                    <ellipse cx="56.5" cy="52" rx="0.72" ry="1.56" fill="#05010c"/>
+                    <circle cx="42.6" cy="50.62" r="0.55" fill="#ffffff" opacity="0.9"/>
+                    <circle cx="55.6" cy="50.62" r="0.55" fill="#ffffff" opacity="0.9"/>
+                    <line x1="39.9" y1="46.6" x2="46.02" y2="47.6" stroke="#6a5a82" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+                    <line x1="60.1" y1="46.6" x2="53.98" y2="47.6" stroke="#6a5a82" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                    <path d="M 39.9 52 Q 43.5 53.4 47.1 52" stroke="#6a5a82" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path d="M 52.9 52 Q 56.5 53.4 60.1 52" stroke="#6a5a82" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <path class="tm-mascot-mouth-happy" d="M 47 60 Q 50 62 53 60" stroke="#6a5a82" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47 61.5 Q 50 59 53 61.5" stroke="#6a5a82" stroke-width="1.3" fill="none" stroke-linecap="round"/>
                 </g>
 
                 <!-- AETHER KID — Veilspawn -->
                 <g id="tm-mascot-evo1-aether" style="display: none;">
                     <defs>
-                        <radialGradient id="aether-kid-body" cx="38%" cy="22%" r="80%">
-                            <stop offset="0%" style="stop-color:#b39ddb;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#7e57c2;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4527a0;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="aether-kid-belly" cx="50%" cy="40%" r="60%">
-                            <stop offset="0%" style="stop-color:#d1c4e9;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#311b92;stop-opacity:0.95" />
-                        </radialGradient>
-                        <linearGradient id="aether-kid-wing" x1="15%" y1="10%" x2="90%" y2="90%">
-                            <stop offset="0%" style="stop-color:#80cbc4;stop-opacity:0.75" />
-                            <stop offset="25%" style="stop-color:#12001f;stop-opacity:0.55" />
-                            <stop offset="55%" style="stop-color:#7e57c2;stop-opacity:0.8" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0.95" />
-                        </linearGradient>
-                        <linearGradient id="aether-kid-wing2" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#4db6ac;stop-opacity:0.35" />
-                            <stop offset="40%" style="stop-color:#ffb74d;stop-opacity:0.45" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0.7" />
-                        </linearGradient>
-                        <radialGradient id="aether-kid-wingveil" cx="30%" cy="35%" r="70%">
-                            <stop offset="0%" style="stop-color:#4db6ac;stop-opacity:0.22" />
-                            <stop offset="50%" style="stop-color:#ffb74d;stop-opacity:0.12" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-kid-wingglow" cx="40%" cy="40%" r="60%">
-                            <stop offset="0%" style="stop-color:#9575cd;stop-opacity:0.35" />
-                            <stop offset="55%" style="stop-color:#4db6ac;stop-opacity:0.1" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-kid-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ede7f6;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#4db6ac;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#ffb74d;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-kid-iris" cx="40%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#b2ebf2;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#26a69a;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#0a0018;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="aether-kid-aura" cx="50%" cy="52%" r="82%">
-                            <stop offset="0%" style="stop-color:#4db6ac;stop-opacity:0.16" />
-                            <stop offset="32%" style="stop-color:#9575cd;stop-opacity:0.1" />
-                            <stop offset="62%" style="stop-color:#ffb74d;stop-opacity:0.04" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-kid-aura2" cx="50%" cy="55%" r="78%">
-                            <stop offset="0%" style="stop-color:#ffb74d;stop-opacity:0.1" />
-                            <stop offset="40%" style="stop-color:#4db6ac;stop-opacity:0.06" />
-                            <stop offset="100%" style="stop-color:#9575cd;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-kid-corona" cx="50%" cy="55%" r="74%">
-                            <stop offset="0%" style="stop-color:#ffb74d;stop-opacity:0.14" />
-                            <stop offset="48%" style="stop-color:#4db6ac;stop-opacity:0.06" />
-                            <stop offset="100%" style="stop-color:#9575cd;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="aether-kid-tail" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#80cbc4;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#ffb74d;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="aether-kid-plate" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#3a2a55;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="aether-kid-sigil" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#9575cd;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#4db6ac;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="aether-kid-beam" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ede7f6;stop-opacity:0.55" />
-                            <stop offset="50%" style="stop-color:#4db6ac;stop-opacity:0.22" />
-                            <stop offset="100%" style="stop-color:#ffb74d;stop-opacity:0" />
-                        </linearGradient>
+                    <radialGradient id="aether-kid-body" cx="38%" cy="24%" r="85%">
+                        <stop offset="0%" style="stop-color:#d3bff0;stop-opacity:1" />
+                        <stop offset="42%" style="stop-color:#9575cd;stop-opacity:1" />
+                        <stop offset="78%" style="stop-color:#673ab7;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#38206b;stop-opacity:1" />
+                    </radialGradient>
+                    <linearGradient id="aether-kid-cloak" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#673ab7;stop-opacity:1" />
+                        <stop offset="55%" style="stop-color:#38206b;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#0d0018;stop-opacity:1" />
+                    </linearGradient>
+                    <radialGradient id="aether-kid-core" cx="50%" cy="45%" r="55%">
+                        <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                        <stop offset="32%" style="stop-color:#6fc4be;stop-opacity:1" />
+                        <stop offset="70%" style="stop-color:#ffd54f;stop-opacity:.85" />
+                        <stop offset="100%" style="stop-color:#0d0018;stop-opacity:0" />
+                    </radialGradient>
+                    <linearGradient id="aether-kid-wing" x1="10%" y1="0%" x2="95%" y2="95%">
+                        <stop offset="0%" style="stop-color:#9575cd;stop-opacity:.95" />
+                        <stop offset="45%" style="stop-color:#0d0018;stop-opacity:.92" />
+                        <stop offset="82%" style="stop-color:#673ab7;stop-opacity:.9" />
+                        <stop offset="100%" style="stop-color:#0d0018;stop-opacity:.98" />
+                    </linearGradient>
+                    <linearGradient id="aether-kid-blade" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#6fc4be;stop-opacity:.9" />
+                        <stop offset="55%" style="stop-color:#9575cd;stop-opacity:.75" />
+                        <stop offset="100%" style="stop-color:#0d0018;stop-opacity:.95" />
+                    </linearGradient>
+                    <radialGradient id="aether-kid-iris" cx="40%" cy="35%" r="65%">
+                        <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
+                        <stop offset="55%" style="stop-color:#6fc4be;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#0d0018;stop-opacity:1" />
+                    </radialGradient>
+                    <radialGradient id="aether-kid-aura" cx="50%" cy="52%" r="70%">
+                        <stop offset="0%" style="stop-color:#6fc4be;stop-opacity:.2" />
+                        <stop offset="45%" style="stop-color:#9575cd;stop-opacity:.1" />
+                        <stop offset="100%" style="stop-color:#0d0018;stop-opacity:0" />
+                    </radialGradient>
+                    <linearGradient id="aether-kid-goldrim" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ffd54f;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#673ab7;stop-opacity:1" />
+                    </linearGradient>
+                    <filter id="aether-kid-glow" x="-80%" y="-80%" width="260%" height="260%">
+                        <feGaussianBlur stdDeviation="1.1" result="b"/>
+                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
                     </defs>
-                        <ellipse cx="50" cy="96" rx="22" ry="4.2" fill="#05010c" opacity="0.3"/>
-                        <g class="tm-aether-fx " data-fx="sparks" opacity="0">
-                            <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#9575cd"/>
-                            <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#4db6ac"/>
-                            <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#ffb74d"/>
-                            <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#9575cd"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="corona" opacity="0">
-                            <ellipse class="tm-aether-corona" cx="50" cy="56" rx="33.1" ry="26.3" fill="url(#aether-kid-corona)"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="aura" opacity="0">
-                            <ellipse class="tm-aether-aura" cx="50" cy="54" rx="42.4" ry="34.8" fill="url(#aether-kid-aura)"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 34 52 L 14 30 L 4 36 L 8 48 L 2 56 L 12 62 L 24 60 L 32 54 Z" class="tm-aether-wing-membrane" fill="url(#aether-kid-wing)" stroke="#4a3a6a" stroke-width="1.2"/>
-                            <path d="M 32 52 L 16 38 L 12 48 L 18 56 L 28 54 Z" fill="url(#aether-kid-wing2)" opacity="0.7"/>
-                            <path d="M 30 50 L 18 36 L 10 40" fill="none" stroke="#4a3a6a" stroke-width="1.05" opacity="0.55"/>
-                            <path d="M 28 54 L 14 50 L 8 54" fill="none" stroke="#4a3a6a" stroke-width="0.85" opacity="0.45"/>
-                            <path class="tm-aether-wing-vein" d="M 32 50 L 16 36 L 6 38" fill="none" stroke="#4db6ac" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
-                            <path class="tm-aether-wing-vein" d="M 30 54 L 16 52 L 6 56" fill="none" stroke="#9575cd" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.35s"/>
-                            <path class="tm-aether-wing-crack" d="M 22 44 L 18 50 L 20 56" fill="none" stroke="#ffb74d" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.2s"/>
-                            <path class="tm-aether-wing-claw" d="M 4 34 L 1 29 L 5 32 Z" fill="#4db6ac" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M 2 54 L -1 49 L 3 52 Z" fill="#9575cd" opacity="0.9"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 66 52 L 86 30 L 96 36 L 92 48 L 98 56 L 88 62 L 76 60 L 68 54 Z" class="tm-aether-wing-membrane" fill="url(#aether-kid-wing)" stroke="#4a3a6a" stroke-width="1.2"/>
-                            <path d="M 68 52 L 84 38 L 88 48 L 82 56 L 72 54 Z" fill="url(#aether-kid-wing2)" opacity="0.7"/>
-                            <path d="M 70 50 L 82 36 L 90 40" fill="none" stroke="#4a3a6a" stroke-width="1.05" opacity="0.55"/>
-                            <path d="M 72 54 L 86 50 L 92 54" fill="none" stroke="#4a3a6a" stroke-width="0.85" opacity="0.45"/>
-                            <path class="tm-aether-wing-vein" d="M 68 50 L 84 36 L 94 38" fill="none" stroke="#9575cd" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
-                            <path class="tm-aether-wing-vein" d="M 70 54 L 84 52 L 94 56" fill="none" stroke="#4db6ac" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.35s"/>
-                            <path class="tm-aether-wing-crack" d="M 78 44 L 82 50 L 80 56" fill="none" stroke="#ffb74d" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.2s"/>
-                            <path class="tm-aether-wing-claw" d="M 96 34 L 99 29 L 95 32 Z" fill="#9575cd" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M 98 54 L 101 49 L 97 52 Z" fill="#4db6ac" opacity="0.9"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 60 70 L 76 80 L 70 66 Z" fill="url(#aether-kid-tail)" stroke="#4a3a6a" stroke-width="1"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Pear torso -->
-                            <path d="M 36 48 Q 34 70 42 80 L 58 80 Q 66 70 64 48 Q 58 38 50 36 Q 42 38 36 48 Z" fill="url(#aether-kid-body)" stroke="#4a3a6a" stroke-width="1.5"/>
-                            <ellipse cx="50" cy="62" rx="9" ry="11" fill="url(#aether-kid-belly)"/>
-                            <circle class="tm-aether-core" cx="50" cy="58" r="5.5" fill="url(#aether-kid-core)"/>
-                            <circle class="tm-aether-core-ring" cx="50" cy="58" r="8.5" fill="#9575cd" opacity="0.12"/>
-                            <!-- Round head -->
-                            <ellipse cx="50" cy="32" rx="13" ry="13" fill="url(#aether-kid-body)" stroke="#4a3a6a" stroke-width="1.45"/>
-                        </g>
-                        <g class="tm-aether-regalia">
-                            <path d="M 40 22 L 36 12 L 38 22" fill="#4db6ac" opacity="0.55"/>
-                            <path d="M 60 22 L 64 12 L 62 22" fill="#9575cd" opacity="0.55"/>
-                            <path d="M 44 18 Q 50 12 56 18" fill="none" stroke="#9575cd" stroke-width="0.9" opacity="0.6"/>
-                        </g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 36 58 L 26 64 L 28 70 L 36 64 Z" fill="url(#aether-kid-body)" stroke="#4a3a6a" stroke-width="1"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 64 58 L 74 64 L 72 70 L 64 64 Z" fill="url(#aether-kid-body)" stroke="#4a3a6a" stroke-width="1"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 44 80 L 40 92 L 48 92 Z" fill="url(#aether-kid-body)" stroke="#4a3a6a" stroke-width="1.1"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 56 80 L 52 92 L 60 92 Z" fill="url(#aether-kid-body)" stroke="#4a3a6a" stroke-width="1.1"/>
-                        </g>
-                        <g class="tm-mascot-eye-open tm-aether-eyes">
-
-                            <ellipse class="tm-aether-eye-sclera" cx="43" cy="30" rx="4.2" ry="5.2" fill="#e8e0f0" stroke="#4a3a6a" stroke-width="1.35" opacity="0.92"/>
-                            <ellipse class="tm-aether-eye-sclera" cx="57" cy="30" rx="4.2" ry="5.2" fill="#e8e0f0" stroke="#4a3a6a" stroke-width="1.35" opacity="0.92"/>
-                            <ellipse class="tm-aether-iris" cx="43" cy="30" rx="2.0" ry="2.9" fill="url(#aether-kid-iris)"/>
-                            <ellipse class="tm-aether-iris" cx="57" cy="30" rx="2.0" ry="2.9" fill="url(#aether-kid-iris)"/>
-                            <ellipse cx="43" cy="30" rx="0.7" ry="1.6" fill="#05010c"/>
-                            <ellipse cx="57" cy="30" rx="0.7" ry="1.6" fill="#05010c"/>
-                            <line x1="39.4" y1="25.6" x2="45.7" y2="27.4" stroke="#4a3a6a" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
-                            <line x1="60.6" y1="25.6" x2="54.3" y2="27.4" stroke="#4a3a6a" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 38.8 30 L 47.2 30" stroke="#4a3a6a" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.8 30 L 61.2 30" stroke="#4a3a6a" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45.5 40 Q 50 42.0 54.5 40" stroke="#4a3a6a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45.5 42.0 Q 50 39.0 54.5 42.0" stroke="#4a3a6a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="50" cy="96" rx="17" ry="3.6" fill="#05010c" opacity="0.25"/>
+                    <g class="tm-aether-fx " data-fx="aura" opacity="0">
+                    <ellipse class="tm-aether-aura" cx="50" cy="52" rx="38" ry="34" fill="url(#aether-kid-aura)"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="corona" opacity="0">
+                    <circle class="tm-aether-corona" cx="50" cy="50" r="30" fill="none" stroke="#6fc4be" stroke-width="0.8" opacity="0.5" stroke-dasharray="3 4"/>
+                    <circle class="tm-aether-corona" cx="50" cy="50" r="36" fill="none" stroke="#ffd54f" stroke-width="0.5" opacity="0.35" stroke-dasharray="1.5 5"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="sparks" opacity="0">
+                    <circle class="tm-aether-spark" cx="55.34" cy="41.31" r="1.57" fill="#6fc4be"/>
+                    <circle class="tm-aether-spark" cx="47.82" cy="21.2" r="0.72" fill="#ffd54f"/>
+                    <circle class="tm-aether-spark" cx="46.02" cy="27.18" r="1.75" fill="#d3bff0"/>
+                    <circle class="tm-aether-spark" cx="12.88" cy="33.59" r="1.79" fill="#6fc4be"/>
+                    <circle class="tm-aether-spark" cx="34.86" cy="57.42" r="0.72" fill="#ffd54f"/>
+                    </g>
+                    <g class="tm-animate-wing-left">
+                    <path class="tm-aether-wing-membrane" d="M 36 52 C 26.1 37.24 16.64 36.36 14 40.76 C 15.76 47.36 16.64 56.84 17.96 59.48 C 24.56 61.24 29.84 55.96 36 52 Z" fill="url(#aether-kid-wing)" stroke="#5d4a80" stroke-width="0.8"/>
+                    <path d="M 35.17 51.1 Q 28.6 49.19 21.86 47.77 Q 27.03 50.33 34.19 53.78 Z" fill="url(#aether-kid-blade)" opacity="0.85"/>
+                    <path d="M 34.67 51.01 Q 24.61 51.54 14.56 52.58 Q 23.02 53.15 34.69 53.87 Z" fill="url(#aether-kid-blade)" opacity="0.85"/>
+                    <path d="M 34.17 51.1 Q 24.93 55.1 15.87 59.58 Q 24 57.17 35.19 53.78 Z" fill="url(#aether-kid-blade)" opacity="0.85"/>
+                    <path d="M 33.74 51.36 Q 28.91 56.2 24.42 61.42 Q 29.14 58.12 35.62 53.52 Z" fill="url(#aether-kid-blade)" opacity="0.85"/>
+                    <circle cx="19.38" cy="48.25" r="0.26" fill="#ffd54f" opacity="0.48"/>
+                    <circle cx="31.55" cy="51.71" r="0.62" fill="#ffd54f" opacity="0.36"/>
+                    <circle cx="18.36" cy="51.66" r="0.37" fill="#ffd54f" opacity="0.84"/>
+                    <path class="tm-aether-wing-vein" d="M 36 52 C 27.2 39 17.3 38.12 14 40.76" fill="none" stroke="#6fc4be" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-crack" d="M 29.4 49.8 L 25.44 52.88 L 22.36 50.24" fill="none" stroke="#ffd54f" stroke-width="0.6" stroke-dasharray="1.6 1.2" opacity="0.75"/>
+                    <path class="tm-aether-wing-claw" d="M 14 40.76 L 11.4 37.36 L 15.4 39.76 Z" fill="#6fc4be" opacity="0.95"/>
+                    </g>
+                    <g class="tm-animate-wing-right">
+                    <g transform="translate(100,0) scale(-1,1)">
+                    <path class="tm-aether-wing-membrane" d="M 36 52 C 26.1 37.24 16.64 36.36 14 40.76 C 15.76 47.36 16.64 56.84 17.96 59.48 C 24.56 61.24 29.84 55.96 36 52 Z" fill="url(#aether-kid-wing)" stroke="#5d4a80" stroke-width="0.8"/>
+                    <path d="M 35.17 51.1 Q 28.6 49.19 21.86 47.77 Q 27.03 50.33 34.19 53.78 Z" fill="url(#aether-kid-blade)" opacity="0.85"/>
+                    <path d="M 34.67 51.01 Q 24.61 51.54 14.56 52.58 Q 23.02 53.15 34.69 53.87 Z" fill="url(#aether-kid-blade)" opacity="0.85"/>
+                    <path d="M 34.17 51.1 Q 24.93 55.1 15.87 59.58 Q 24 57.17 35.19 53.78 Z" fill="url(#aether-kid-blade)" opacity="0.85"/>
+                    <path d="M 33.74 51.36 Q 28.91 56.2 24.42 61.42 Q 29.14 58.12 35.62 53.52 Z" fill="url(#aether-kid-blade)" opacity="0.85"/>
+                    <circle cx="20.03" cy="50.42" r="0.38" fill="#ffd54f" opacity="0.71"/>
+                    <circle cx="19.69" cy="50.72" r="0.61" fill="#ffd54f" opacity="0.8"/>
+                    <circle cx="24.19" cy="50.11" r="0.28" fill="#ffd54f" opacity="0.94"/>
+                    <path class="tm-aether-wing-vein" d="M 36 52 C 27.2 39 17.3 38.12 14 40.76" fill="none" stroke="#6fc4be" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-crack" d="M 29.4 49.8 L 25.44 52.88 L 22.36 50.24" fill="none" stroke="#ffd54f" stroke-width="0.6" stroke-dasharray="1.6 1.2" opacity="0.75"/>
+                    <path class="tm-aether-wing-claw" d="M 14 40.76 L 11.4 37.36 L 15.4 39.76 Z" fill="#6fc4be" opacity="0.95"/>
+                    </g>
+                    </g>
+                    <g class="tm-animate-tail">
+                    <path d="M 56 78 Q 66 82 68 92 Q 60 88 54 82 Z" fill="url(#aether-kid-blade)" opacity="0.6"/>
+                    <circle cx="67" cy="90" r="1.1" fill="#ffd54f" opacity="0.8"/>
+                    </g>
+                    <g class="tm-animate-body">
+                    <path d="M 50 26 C 62 26 68 36 68 50 C 68 62 66 72 68 82 L 62 77 L 58 84 L 52 78 L 46 85 L 41 78 L 34 83 C 35 72 32 62 32 50 C 32 36 38 26 50 26 Z" fill="url(#aether-kid-body)" stroke="#5d4a80" stroke-width="1.3"/>
+                    <path d="M 50 30 C 59 30 64 38 64 50 C 64 60 63 68 64 76 L 50 70 L 36 76 C 37 68 36 60 36 50 C 36 38 41 30 50 30 Z" fill="url(#aether-kid-cloak)" opacity="0.5"/>
+                    <circle cx="38.52" cy="62.33" r="0.54" fill="#ffd54f" opacity="0.39"/>
+                    <circle cx="41.27" cy="65.24" r="0.26" fill="#ffd54f" opacity="0.84"/>
+                    <circle cx="47.98" cy="47.1" r="0.4" fill="#ffd54f" opacity="0.47"/>
+                    <circle cx="58.12" cy="47.18" r="0.55" fill="#ffd54f" opacity="0.87"/>
+                    <circle cx="54.83" cy="49.8" r="0.3" fill="#ffd54f" opacity="0.83"/>
+                    <circle cx="50.1" cy="45.66" r="0.43" fill="#ffd54f" opacity="0.44"/>
+                    <circle cx="50.04" cy="44.34" r="0.52" fill="#ffd54f" opacity="0.69"/>
+                    <circle cx="59.41" cy="47.6" r="0.53" fill="#ffd54f" opacity="0.53"/>
+                    <circle cx="46.69" cy="69.75" r="0.66" fill="#ffd54f" opacity="0.43"/>
+                    <path d="M 40 30 Q 35 24 37 19 Q 41 23 42 28 Z" fill="url(#aether-kid-goldrim)" stroke="#5d4a80" stroke-width="0.6"/>
+                    <path d="M 60 30 Q 65 24 63 19 Q 59 23 58 28 Z" fill="url(#aether-kid-goldrim)" stroke="#5d4a80" stroke-width="0.6"/>
+                    <circle class="tm-aether-core" cx="50" cy="62" r="4" fill="url(#aether-kid-core)"/>
+                    <circle class="tm-aether-core-ring" cx="50" cy="62" r="6.4" fill="none" stroke="#6fc4be" stroke-width="0.55" opacity="0.4"/>
+                    </g>
+                    <g class="tm-aether-regalia">
+                    <path d="M 44 21 Q 50 17 56 21" fill="none" stroke="#6fc4be" stroke-width="0.7" opacity="0.6" stroke-dasharray="1.6 1.4"/>
+                    <circle cx="50" cy="18.5" r="1.4" fill="#ffd54f" opacity="0.9" filter="url(#aether-kid-glow)"/>
+                    </g>
+                    <g class="tm-animate-arm-left">
+                    <path d="M 34 54 Q 27 58 26 66 Q 31 62 35 59 Z" fill="url(#aether-kid-body)" stroke="#5d4a80" stroke-width="0.8" opacity="0.9"/>
+                    </g>
+                    <g class="tm-animate-arm-right">
+                    <path d="M 66 54 Q 73 58 74 66 Q 69 62 65 59 Z" fill="url(#aether-kid-body)" stroke="#5d4a80" stroke-width="0.8" opacity="0.9"/>
+                    </g>
+                    <g class="tm-animate-leg-left">
+                    <path d="M 43 84 Q 42 89 44 92 Q 46 89 45 84 Z" fill="#9575cd" opacity="0.45"/>
+                    </g>
+                    <g class="tm-animate-leg-right">
+                    <path d="M 57 84 Q 58 89 56 92 Q 54 89 55 84 Z" fill="#9575cd" opacity="0.45"/>
+                    </g>
+                    <g class="tm-mascot-eye-open tm-aether-eyes">
+                    <ellipse class="tm-aether-eye-sclera" cx="44" cy="44" rx="3.2" ry="4.2" fill="#ece5f5" stroke="#5d4a80" stroke-width="1.1" opacity="0.94"/>
+                    <ellipse class="tm-aether-eye-sclera" cx="56" cy="44" rx="3.2" ry="4.2" fill="#ece5f5" stroke="#5d4a80" stroke-width="1.1" opacity="0.94"/>
+                    <ellipse class="tm-aether-iris" cx="44" cy="44" rx="1.66" ry="2.52" fill="url(#aether-kid-iris)"/>
+                    <ellipse class="tm-aether-iris" cx="56" cy="44" rx="1.66" ry="2.52" fill="url(#aether-kid-iris)"/>
+                    <ellipse cx="44" cy="44" rx="0.64" ry="1.43" fill="#05010c"/>
+                    <ellipse cx="56" cy="44" rx="0.64" ry="1.43" fill="#05010c"/>
+                    <circle cx="43.2" cy="42.74" r="0.55" fill="#ffffff" opacity="0.9"/>
+                    <circle cx="55.2" cy="42.74" r="0.55" fill="#ffffff" opacity="0.9"/>
+                    <line x1="40.8" y1="39" x2="46.24" y2="40" stroke="#5d4a80" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+                    <line x1="59.2" y1="39" x2="53.76" y2="40" stroke="#5d4a80" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                    <path d="M 40.8 44 Q 44 45.4 47.2 44" stroke="#5d4a80" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path d="M 52.8 44 Q 56 45.4 59.2 44" stroke="#5d4a80" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <path class="tm-mascot-mouth-happy" d="M 46.8 53 Q 50 55 53.2 53" stroke="#5d4a80" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 46.8 54.5 Q 50 52 53.2 54.5" stroke="#5d4a80" stroke-width="1.3" fill="none" stroke-linecap="round"/>
                 </g>
 
                 <!-- AETHER TEEN — Astral Warden -->
                 <g id="tm-mascot-evo2-aether" style="display: none;">
                     <defs>
-                        <radialGradient id="aether-teen-body" cx="38%" cy="22%" r="80%">
-                            <stop offset="0%" style="stop-color:#7986cb;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#5e35b1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1a237e;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="aether-teen-belly" cx="50%" cy="40%" r="60%">
-                            <stop offset="0%" style="stop-color:#5c6bc0;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#0d0220;stop-opacity:0.95" />
-                        </radialGradient>
-                        <linearGradient id="aether-teen-wing" x1="15%" y1="10%" x2="90%" y2="90%">
-                            <stop offset="0%" style="stop-color:#4dd0e1;stop-opacity:0.75" />
-                            <stop offset="25%" style="stop-color:#12001f;stop-opacity:0.55" />
-                            <stop offset="55%" style="stop-color:#3949ab;stop-opacity:0.8" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0.95" />
-                        </linearGradient>
-                        <linearGradient id="aether-teen-wing2" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#00acc1;stop-opacity:0.35" />
-                            <stop offset="40%" style="stop-color:#c0a060;stop-opacity:0.45" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0.7" />
-                        </linearGradient>
-                        <radialGradient id="aether-teen-wingveil" cx="30%" cy="35%" r="70%">
-                            <stop offset="0%" style="stop-color:#00acc1;stop-opacity:0.22" />
-                            <stop offset="50%" style="stop-color:#c0a060;stop-opacity:0.12" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-teen-wingglow" cx="40%" cy="40%" r="60%">
-                            <stop offset="0%" style="stop-color:#5c6bc0;stop-opacity:0.35" />
-                            <stop offset="55%" style="stop-color:#00acc1;stop-opacity:0.1" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-teen-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#e8e0f0;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#00acc1;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#c0a060;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-teen-iris" cx="40%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#84ffff;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#00acc1;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="aether-teen-aura" cx="50%" cy="52%" r="82%">
-                            <stop offset="0%" style="stop-color:#00acc1;stop-opacity:0.16" />
-                            <stop offset="32%" style="stop-color:#5c6bc0;stop-opacity:0.1" />
-                            <stop offset="62%" style="stop-color:#c0a060;stop-opacity:0.04" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-teen-aura2" cx="50%" cy="55%" r="78%">
-                            <stop offset="0%" style="stop-color:#c0a060;stop-opacity:0.1" />
-                            <stop offset="40%" style="stop-color:#00acc1;stop-opacity:0.06" />
-                            <stop offset="100%" style="stop-color:#5c6bc0;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-teen-corona" cx="50%" cy="55%" r="74%">
-                            <stop offset="0%" style="stop-color:#c0a060;stop-opacity:0.14" />
-                            <stop offset="48%" style="stop-color:#00acc1;stop-opacity:0.06" />
-                            <stop offset="100%" style="stop-color:#5c6bc0;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="aether-teen-tail" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#4dd0e1;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#c0a060;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="aether-teen-plate" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#3a2a55;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="aether-teen-sigil" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#5c6bc0;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#00acc1;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="aether-teen-beam" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e8e0f0;stop-opacity:0.55" />
-                            <stop offset="50%" style="stop-color:#00acc1;stop-opacity:0.22" />
-                            <stop offset="100%" style="stop-color:#c0a060;stop-opacity:0" />
-                        </linearGradient>
+                    <radialGradient id="aether-teen-body" cx="38%" cy="24%" r="85%">
+                        <stop offset="0%" style="stop-color:#c0a8ea;stop-opacity:1" />
+                        <stop offset="42%" style="stop-color:#7e57c2;stop-opacity:1" />
+                        <stop offset="78%" style="stop-color:#512da8;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#26124d;stop-opacity:1" />
+                    </radialGradient>
+                    <linearGradient id="aether-teen-cloak" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#512da8;stop-opacity:1" />
+                        <stop offset="55%" style="stop-color:#26124d;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#0a0114;stop-opacity:1" />
+                    </linearGradient>
+                    <radialGradient id="aether-teen-core" cx="50%" cy="45%" r="55%">
+                        <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                        <stop offset="32%" style="stop-color:#5fd0c7;stop-opacity:1" />
+                        <stop offset="70%" style="stop-color:#ffca28;stop-opacity:.85" />
+                        <stop offset="100%" style="stop-color:#0a0114;stop-opacity:0" />
+                    </radialGradient>
+                    <linearGradient id="aether-teen-wing" x1="10%" y1="0%" x2="95%" y2="95%">
+                        <stop offset="0%" style="stop-color:#7e57c2;stop-opacity:.95" />
+                        <stop offset="45%" style="stop-color:#0a0114;stop-opacity:.92" />
+                        <stop offset="82%" style="stop-color:#512da8;stop-opacity:.9" />
+                        <stop offset="100%" style="stop-color:#0a0114;stop-opacity:.98" />
+                    </linearGradient>
+                    <linearGradient id="aether-teen-blade" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#5fd0c7;stop-opacity:.9" />
+                        <stop offset="55%" style="stop-color:#7e57c2;stop-opacity:.75" />
+                        <stop offset="100%" style="stop-color:#0a0114;stop-opacity:.95" />
+                    </linearGradient>
+                    <radialGradient id="aether-teen-iris" cx="40%" cy="35%" r="65%">
+                        <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
+                        <stop offset="55%" style="stop-color:#5fd0c7;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#0a0114;stop-opacity:1" />
+                    </radialGradient>
+                    <radialGradient id="aether-teen-aura" cx="50%" cy="52%" r="70%">
+                        <stop offset="0%" style="stop-color:#5fd0c7;stop-opacity:.2" />
+                        <stop offset="45%" style="stop-color:#7e57c2;stop-opacity:.1" />
+                        <stop offset="100%" style="stop-color:#0a0114;stop-opacity:0" />
+                    </radialGradient>
+                    <linearGradient id="aether-teen-goldrim" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ffca28;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#512da8;stop-opacity:1" />
+                    </linearGradient>
+                    <filter id="aether-teen-glow" x="-80%" y="-80%" width="260%" height="260%">
+                        <feGaussianBlur stdDeviation="1.1" result="b"/>
+                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
                     </defs>
-                        <ellipse cx="50" cy="96" rx="24" ry="4.2" fill="#05010c" opacity="0.32"/>
-                        <g class="tm-aether-fx " data-fx="sparks" opacity="0">
-                            <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#5c6bc0"/>
-                            <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#00acc1"/>
-                            <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#c0a060"/>
-                            <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#5c6bc0"/>
-                            <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#00acc1"/>
-                            <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#c0a060"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="corona" opacity="0">
-                            <ellipse class="tm-aether-corona" cx="50" cy="56" rx="36.3" ry="28.9" fill="url(#aether-teen-corona)"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="aura" opacity="0">
-                            <ellipse class="tm-aether-aura" cx="50" cy="54" rx="46.6" ry="38.2" fill="url(#aether-teen-aura)"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="haze" opacity="0">
-                            <g class="tm-aether-haze">
-                            <ellipse class="tm-aether-haze-blob" cx="50" cy="58" rx="48.9" ry="41.9" fill="url(#aether-teen-aura)" opacity="0.18"/>
-                            <ellipse class="tm-aether-haze-blob" cx="42" cy="50" rx="21.0" ry="32.6" fill="#00acc1" opacity="0.06"/>
-                            <ellipse class="tm-aether-haze-blob" cx="58" cy="52" rx="18.6" ry="30.3" fill="#5c6bc0" opacity="0.05"/>
-                            </g>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
-                            <ellipse class="tm-aether-beam-glow" cx="50" cy="28" rx="7" ry="22" fill="url(#aether-teen-beam)" opacity="0.55"/>
-                            <ellipse class="tm-aether-beam-glow" cx="32" cy="40" rx="10" ry="16" fill="url(#aether-teen-beam)" opacity="0.35" transform="rotate(-28 32 40)"/>
-                            <ellipse class="tm-aether-beam-glow" cx="68" cy="40" rx="10" ry="16" fill="url(#aether-teen-beam)" opacity="0.35" transform="rotate(28 68 40)"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="sigil" opacity="0">
-                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="19" ry="5.55" fill="url(#aether-teen-sigil)" opacity="0.85"/>
-                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="11.5" ry="2.8499999999999996" fill="#5c6bc0" opacity="0.18"/>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="38" ry="15" fill="url(#aether-teen-aura)" opacity="0.28"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 32 48 L 10 18 L -2 24 L 2 40 L -6 50 L 2 62 L 14 66 L 26 58 L 30 50 Z" class="tm-aether-wing-membrane" fill="url(#aether-teen-wing)" stroke="#2a1848" stroke-width="1.25"/>
-                            <path d="M 28 48 L 10 28 L 4 40 L 8 56 L 22 56 Z" fill="url(#aether-teen-wing2)" opacity="0.72"/>
-                            <path d="M 30 46 L 12 22 L 2 28" fill="none" stroke="#2a1848" stroke-width="1.15" opacity="0.6"/>
-                            <path d="M 28 50 L 12 42 L 0 46" fill="none" stroke="#2a1848" stroke-width="0.95" opacity="0.5"/>
-                            <path d="M 26 56 L 14 58 L 4 62" fill="none" stroke="#2a1848" stroke-width="0.8" opacity="0.4"/>
-                            <path class="tm-aether-wing-vein" d="M 30 46 L 12 24 L 0 26" fill="none" stroke="#00acc1" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
-                            <path class="tm-aether-wing-vein" d="M 28 52 L 10 46 L -2 50" fill="none" stroke="#5c6bc0" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.4s"/>
-                            <path class="tm-aether-wing-vein" d="M 26 56 L 12 60 L 4 64" fill="none" stroke="#c0a060" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.7s"/>
-                            <path class="tm-aether-wing-crack" d="M 18 36 L 14 44 L 18 52" fill="none" stroke="#00acc1" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.15s"/>
-                            <path class="tm-aether-wing-crack" d="M 16 50 L 10 54 L 14 60" fill="none" stroke="#c0a060" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.55s"/>
-                            <path class="tm-aether-wing-claw" d="M -2 22 L -5 17 L -1 20 Z" fill="#00acc1" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M -6 48 L -9 43 L -5 46 Z" fill="#5c6bc0" opacity="0.9"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 68 48 L 90 18 L 102 24 L 98 40 L 106 50 L 98 62 L 86 66 L 74 58 L 70 50 Z" class="tm-aether-wing-membrane" fill="url(#aether-teen-wing)" stroke="#2a1848" stroke-width="1.25"/>
-                            <path d="M 72 48 L 90 28 L 96 40 L 92 56 L 78 56 Z" fill="url(#aether-teen-wing2)" opacity="0.72"/>
-                            <path d="M 70 46 L 88 22 L 98 28" fill="none" stroke="#2a1848" stroke-width="1.15" opacity="0.6"/>
-                            <path d="M 72 50 L 88 42 L 100 46" fill="none" stroke="#2a1848" stroke-width="0.95" opacity="0.5"/>
-                            <path d="M 74 56 L 86 58 L 96 62" fill="none" stroke="#2a1848" stroke-width="0.8" opacity="0.4"/>
-                            <path class="tm-aether-wing-vein" d="M 70 46 L 88 24 L 100 26" fill="none" stroke="#5c6bc0" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
-                            <path class="tm-aether-wing-vein" d="M 72 52 L 90 46 L 102 50" fill="none" stroke="#5c6bc0" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.4s"/>
-                            <path class="tm-aether-wing-vein" d="M 74 56 L 88 60 L 96 64" fill="none" stroke="#c0a060" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.7s"/>
-                            <path class="tm-aether-wing-crack" d="M 82 36 L 86 44 L 82 52" fill="none" stroke="#5c6bc0" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.15s"/>
-                            <path class="tm-aether-wing-crack" d="M 84 50 L 90 54 L 86 60" fill="none" stroke="#c0a060" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.55s"/>
-                            <path class="tm-aether-wing-claw" d="M 102 22 L 105 17 L 101 20 Z" fill="#5c6bc0" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M 106 48 L 109 43 L 105 46 Z" fill="#00acc1" opacity="0.9"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 58 68 L 80 76 L 74 60 L 62 64 Z" fill="url(#aether-teen-tail)" stroke="#2a1848" stroke-width="1.1"/>
-                            <circle cx="80" cy="74" r="1.6" fill="#5c6bc0" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Slim torso -->
-                            <path d="M 38 44 Q 36 66 40 78 L 60 78 Q 64 66 62 44 Q 56 36 50 34 Q 44 36 38 44 Z" fill="url(#aether-teen-body)" stroke="#2a1848" stroke-width="1.55"/>
-                            <ellipse cx="50" cy="58" rx="8" ry="12" fill="url(#aether-teen-belly)"/>
-                            <circle class="tm-aether-core" cx="50" cy="54" r="6" fill="url(#aether-teen-core)"/>
-                            <path d="M 50 44 L 50 66" stroke="#00acc1" stroke-width="0.55" opacity="0.4"/>
-                            <!-- Head -->
-                            <ellipse cx="50" cy="26" rx="12.5" ry="13" fill="url(#aether-teen-body)" stroke="#2a1848" stroke-width="1.5"/>
-                        </g>
-                        <g class="tm-aether-regalia">
-                            <path d="M 38 18 Q 28 4 36 0" fill="none" stroke="#00acc1" stroke-width="2.3" stroke-linecap="round"/>
-                            <path d="M 62 18 Q 72 4 64 0" fill="none" stroke="#5c6bc0" stroke-width="2.3" stroke-linecap="round"/>
-                            <path d="M 42 10 Q 50 4 58 10" fill="none" stroke="#c0a060" stroke-width="0.8" opacity="0.55"/>
-                            <circle cx="36" cy="0" r="1.8" fill="#00acc1"/>
-                            <circle cx="64" cy="0" r="1.8" fill="#5c6bc0"/>
-                        </g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 38 52 L 24 58 L 26 68 L 38 60 Z" fill="url(#aether-teen-body)" stroke="#2a1848" stroke-width="1.1"/>
-                            <circle cx="24" cy="66" r="1.4" fill="#00acc1" opacity="0.5"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 62 52 L 76 58 L 74 68 L 62 60 Z" fill="url(#aether-teen-body)" stroke="#2a1848" stroke-width="1.1"/>
-                            <circle cx="76" cy="66" r="1.4" fill="#5c6bc0" opacity="0.5"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 42 78 L 38 92 L 48 92 Z" fill="url(#aether-teen-body)" stroke="#2a1848" stroke-width="1.15"/>
-                            <ellipse cx="43" cy="92" rx="5" ry="1.6" fill="#05010c" opacity="0.5"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 58 78 L 52 92 L 62 92 Z" fill="url(#aether-teen-body)" stroke="#2a1848" stroke-width="1.15"/>
-                            <ellipse cx="57" cy="92" rx="5" ry="1.6" fill="#05010c" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-open tm-aether-eyes">
-
-                            <ellipse class="tm-aether-eye-sclera" cx="42" cy="24" rx="4.4" ry="5.6" fill="#e8e0f0" stroke="#2a1848" stroke-width="1.35" opacity="0.92"/>
-                            <ellipse class="tm-aether-eye-sclera" cx="58" cy="24" rx="4.4" ry="5.6" fill="#e8e0f0" stroke="#2a1848" stroke-width="1.35" opacity="0.92"/>
-                            <ellipse class="tm-aether-iris" cx="42" cy="24" rx="1.4" ry="4.2" fill="url(#aether-teen-iris)"/>
-                            <ellipse class="tm-aether-iris" cx="58" cy="24" rx="1.4" ry="4.2" fill="url(#aether-teen-iris)"/>
-                            <ellipse cx="42" cy="24" rx="0.5" ry="2.3" fill="#05010c"/>
-                            <ellipse cx="58" cy="24" rx="0.5" ry="2.3" fill="#05010c"/>
-                            <line x1="38.3" y1="19.2" x2="44.9" y2="21.2" stroke="#2a1848" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
-                            <line x1="61.7" y1="19.2" x2="55.1" y2="21.2" stroke="#2a1848" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 37.6 24 L 46.4 24" stroke="#2a1848" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.6 24 L 62.4 24" stroke="#2a1848" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45 36 Q 50 38.0 55 36" stroke="#2a1848" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 38.0 Q 50 35.0 55 38.0" stroke="#2a1848" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="50" cy="96" rx="19" ry="3.8" fill="#05010c" opacity="0.28"/>
+                    <g class="tm-aether-fx " data-fx="aura" opacity="0">
+                    <ellipse class="tm-aether-aura" cx="50" cy="52" rx="38" ry="34" fill="url(#aether-teen-aura)"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="corona" opacity="0">
+                    <circle class="tm-aether-corona" cx="50" cy="50" r="30" fill="none" stroke="#5fd0c7" stroke-width="0.8" opacity="0.5" stroke-dasharray="3 4"/>
+                    <circle class="tm-aether-corona" cx="50" cy="50" r="36" fill="none" stroke="#ffca28" stroke-width="0.5" opacity="0.35" stroke-dasharray="1.5 5"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="haze" opacity="0">
+                    <g class="tm-aether-haze">
+                        <ellipse class="tm-aether-haze-blob" cx="30" cy="40" rx="12" ry="7" fill="#7e57c2" opacity="0.2"/>
+                        <ellipse class="tm-aether-haze-blob" cx="68" cy="58" rx="14" ry="8" fill="#5fd0c7" opacity="0.14"/>
+                        <ellipse class="tm-aether-haze-blob" cx="50" cy="26" rx="10" ry="6" fill="#ffca28" opacity="0.12"/>
+                    </g>
+                    </g>
+                    <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
+                    <path class="tm-aether-beam-glow" d="M 46 6 L 54 6 L 52 46 L 48 46 Z" fill="#ffca28" opacity="0.18"/>
+                    <path d="M 30 12 L 34 12 L 33 44 L 31 44 Z" fill="#5fd0c7" opacity="0.14"/>
+                    <path d="M 66 12 L 70 12 L 69 44 L 67 44 Z" fill="#5fd0c7" opacity="0.14"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="sigil" opacity="0">
+                    <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="22" ry="4.5" fill="none" stroke="#5fd0c7" stroke-width="0.8" opacity="0.6"/>
+                    <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="15" ry="3" fill="none" stroke="#ffca28" stroke-width="0.5" opacity="0.5" stroke-dasharray="2 2"/>
+                    <path class="tm-aether-sigil" d="M 50 90 L 54 94 L 50 98 L 46 94 Z" fill="none" stroke="#c0a8ea" stroke-width="0.5" opacity="0.55"/>
+                    </g>
+                    <g class="tm-animate-wing-left">
+                    <path class="tm-aether-wing-membrane" d="M 35 46 C 22.4 23.76 10.36 22.64 7 28.24 C 9.24 36.64 10.36 52.16 12.04 55.52 C 20.44 57.76 27.16 51.04 35 46 Z" fill="url(#aether-teen-wing)" stroke="#4a3670" stroke-width="0.8"/>
+                    <path d="M 33.94 44.85 Q 25.59 42.43 17.01 40.62 Q 23.58 43.87 32.7 48.27 Z" fill="url(#aether-teen-blade)" opacity="0.85"/>
+                    <path d="M 33.42 44.74 Q 21.36 44.67 9.26 45.26 Q 19.32 46.6 33.22 48.38 Z" fill="url(#aether-teen-blade)" opacity="0.85"/>
+                    <path d="M 32.89 44.79 Q 19.97 48.56 7.22 52.97 Q 18.37 51.06 33.75 48.33 Z" fill="url(#aether-teen-blade)" opacity="0.85"/>
+                    <path d="M 32.39 45 Q 22.33 51.65 12.6 58.86 Q 21.71 54.38 34.25 48.12 Z" fill="url(#aether-teen-blade)" opacity="0.85"/>
+                    <path d="M 31.98 45.33 Q 26.55 52.14 21.61 59.38 Q 27.12 54.54 34.66 47.79 Z" fill="url(#aether-teen-blade)" opacity="0.85"/>
+                    <circle cx="25.05" cy="37" r="0.61" fill="#ffca28" opacity="0.43"/>
+                    <circle cx="28.12" cy="39.12" r="0.3" fill="#ffca28" opacity="0.68"/>
+                    <circle cx="19.13" cy="39.73" r="0.58" fill="#ffca28" opacity="0.56"/>
+                    <circle cx="26.96" cy="43.86" r="0.25" fill="#ffca28" opacity="0.71"/>
+                    <path class="tm-aether-wing-vein" d="M 35 46 C 23.8 26 11.2 24.88 7 28.24" fill="none" stroke="#5fd0c7" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-crack" d="M 26.6 43.2 L 21.56 47.12 L 17.64 43.76" fill="none" stroke="#ffca28" stroke-width="0.6" stroke-dasharray="1.6 1.2" opacity="0.75"/>
+                    <path class="tm-aether-wing-claw" d="M 7 28.24 L 4.4 24.84 L 8.4 27.24 Z" fill="#5fd0c7" opacity="0.95"/>
+                    </g>
+                    <g class="tm-animate-wing-right">
+                    <g transform="translate(100,0) scale(-1,1)">
+                    <path class="tm-aether-wing-membrane" d="M 35 46 C 22.4 23.76 10.36 22.64 7 28.24 C 9.24 36.64 10.36 52.16 12.04 55.52 C 20.44 57.76 27.16 51.04 35 46 Z" fill="url(#aether-teen-wing)" stroke="#4a3670" stroke-width="0.8"/>
+                    <path d="M 33.94 44.85 Q 25.59 42.43 17.01 40.62 Q 23.58 43.87 32.7 48.27 Z" fill="url(#aether-teen-blade)" opacity="0.85"/>
+                    <path d="M 33.42 44.74 Q 21.36 44.67 9.26 45.26 Q 19.32 46.6 33.22 48.38 Z" fill="url(#aether-teen-blade)" opacity="0.85"/>
+                    <path d="M 32.89 44.79 Q 19.97 48.56 7.22 52.97 Q 18.37 51.06 33.75 48.33 Z" fill="url(#aether-teen-blade)" opacity="0.85"/>
+                    <path d="M 32.39 45 Q 22.33 51.65 12.6 58.86 Q 21.71 54.38 34.25 48.12 Z" fill="url(#aether-teen-blade)" opacity="0.85"/>
+                    <path d="M 31.98 45.33 Q 26.55 52.14 21.61 59.38 Q 27.12 54.54 34.66 47.79 Z" fill="url(#aether-teen-blade)" opacity="0.85"/>
+                    <circle cx="16.32" cy="38.5" r="0.26" fill="#ffca28" opacity="0.66"/>
+                    <circle cx="20.36" cy="39.07" r="0.55" fill="#ffca28" opacity="0.52"/>
+                    <circle cx="27.83" cy="39.66" r="0.64" fill="#ffca28" opacity="0.56"/>
+                    <circle cx="26.25" cy="44.38" r="0.29" fill="#ffca28" opacity="0.7"/>
+                    <path class="tm-aether-wing-vein" d="M 35 46 C 23.8 26 11.2 24.88 7 28.24" fill="none" stroke="#5fd0c7" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-crack" d="M 26.6 43.2 L 21.56 47.12 L 17.64 43.76" fill="none" stroke="#ffca28" stroke-width="0.6" stroke-dasharray="1.6 1.2" opacity="0.75"/>
+                    <path class="tm-aether-wing-claw" d="M 7 28.24 L 4.4 24.84 L 8.4 27.24 Z" fill="#5fd0c7" opacity="0.95"/>
+                    </g>
+                    </g>
+                    <g class="tm-animate-tail">
+                    <path d="M 54 80 C 62 84 64 92 60 97 C 59 91 55 86 51 83 Z" fill="url(#aether-teen-cloak)" stroke="#4a3670" stroke-width="0.7" opacity="0.8"/>
+                    </g>
+                    <g class="tm-animate-body">
+                    <path d="M 50 14 L 58 24 L 60 34 L 63 52 L 61 74 L 66 88 L 54 84 L 50 90 L 46 84 L 34 88 L 39 74 L 37 52 L 40 34 L 42 24 Z" fill="url(#aether-teen-body)" stroke="#4a3670" stroke-width="1.3"/>
+                    <path d="M 50 18 L 55 26 L 57 35 L 59 52 L 57 72 L 50 76 L 43 72 L 41 52 L 43 35 L 45 26 Z" fill="url(#aether-teen-cloak)" opacity="0.62"/>
+                    <line x1="44" y1="48" x2="48" y2="55" stroke="#ffca28" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="48" y1="55" x2="45" y2="62" stroke="#ffca28" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="45" y1="62" x2="52" y2="66" stroke="#ffca28" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="52" y1="66" x2="56" y2="58" stroke="#ffca28" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="56" y1="58" x2="53" y2="50" stroke="#ffca28" stroke-width="0.3" opacity="0.4"/>
+                    <circle cx="44" cy="48" r="0.87" fill="#ffca28" opacity="0.9"/>
+                    <circle cx="48" cy="55" r="0.95" fill="#ffca28" opacity="0.9"/>
+                    <circle cx="45" cy="62" r="0.51" fill="#ffca28" opacity="0.9"/>
+                    <circle cx="52" cy="66" r="0.57" fill="#ffca28" opacity="0.9"/>
+                    <circle cx="56" cy="58" r="0.85" fill="#ffca28" opacity="0.9"/>
+                    <circle cx="53" cy="50" r="0.63" fill="#ffca28" opacity="0.9"/>
+                    <circle cx="55.25" cy="50.66" r="0.66" fill="#c0a8ea" opacity="0.76"/>
+                    <circle cx="54.66" cy="49.7" r="0.38" fill="#c0a8ea" opacity="0.51"/>
+                    <circle cx="50.04" cy="52.95" r="0.26" fill="#c0a8ea" opacity="0.36"/>
+                    <circle cx="50.01" cy="52.59" r="0.58" fill="#c0a8ea" opacity="0.66"/>
+                    <circle cx="56.19" cy="50.82" r="0.43" fill="#c0a8ea" opacity="0.69"/>
+                    <circle cx="47.47" cy="67.41" r="0.64" fill="#c0a8ea" opacity="0.4"/>
+                    <path d="M 41 34 C 34 28 27 28 23 34 C 29 32 35 36 40 41 Z" fill="url(#aether-teen-goldrim)" stroke="#4a3670" stroke-width="0.7"/>
+                    <path d="M 59 34 C 66 28 73 28 77 34 C 71 32 65 36 60 41 Z" fill="url(#aether-teen-goldrim)" stroke="#4a3670" stroke-width="0.7"/>
+                    <path d="M 41 37 C 36 34 31 34 28 37" fill="none" stroke="#ffca28" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 59 37 C 64 34 69 34 72 37" fill="none" stroke="#ffca28" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 42 24 L 36 14 L 44 19 Z" fill="url(#aether-teen-cloak)" stroke="#4a3670" stroke-width="0.7"/>
+                    <path d="M 58 24 L 64 14 L 56 19 Z" fill="url(#aether-teen-cloak)" stroke="#4a3670" stroke-width="0.7"/>
+                    <path d="M 43 66 L 57 66 L 55 70 L 45 70 Z" fill="url(#aether-teen-goldrim)" opacity="0.85"/>
+                    <g class="tm-aether-rune-tattoos">
+                        <path class="tm-aether-rune-glyph" d="M 44 60 l 1.6 -2 l 1.6 2 l -1.6 2 Z" fill="none" stroke="#5fd0c7" stroke-width="0.5" opacity="0.8"/>
+                        <path class="tm-aether-rune-glyph" d="M 54.5 59 v 3.4 m -1.4 -1.7 h 2.8" fill="none" stroke="#ffca28" stroke-width="0.5" opacity="0.8"/>
+                        <path class="tm-aether-rune-glyph" d="M 49 65 l 1.2 -2.2 l 1.2 2.2 Z" fill="none" stroke="#c0a8ea" stroke-width="0.5" opacity="0.75"/>
+                    </g>
+                    <circle class="tm-aether-core" cx="50" cy="46" r="4" fill="url(#aether-teen-core)"/>
+                    </g>
+                    <g class="tm-aether-regalia">
+                    <path d="M 47 27 L 50 24 L 53 27 L 50 30 Z" fill="#ffca28" opacity="0.95" filter="url(#aether-teen-glow)"/>
+                    <path d="M 44 21 Q 50 16 56 21" fill="none" stroke="#5fd0c7" stroke-width="0.6" opacity="0.55" stroke-dasharray="1.4 1.6"/>
+                    </g>
+                    <g class="tm-animate-arm-left">
+                    <path d="M 38 50 Q 30 56 29 66 L 32 64 L 31 70 L 35 66 Q 37 58 40 54 Z" fill="url(#aether-teen-body)" stroke="#4a3670" stroke-width="0.9"/>
+                    <path d="M 27 65 L 25 70 M 30 66 L 29 71 M 33 65 L 33 70" fill="none" stroke="#5fd0c7" stroke-width="0.8" stroke-linecap="round" opacity="0.85"/>
+                    </g>
+                    <g class="tm-animate-arm-right">
+                    <path d="M 62 50 Q 70 56 71 66 L 68 64 L 69 70 L 65 66 Q 63 58 60 54 Z" fill="url(#aether-teen-body)" stroke="#4a3670" stroke-width="0.9"/>
+                    <path d="M 73 65 L 75 70 M 70 66 L 71 71 M 67 65 L 67 70" fill="none" stroke="#5fd0c7" stroke-width="0.8" stroke-linecap="round" opacity="0.85"/>
+                    </g>
+                    <g class="tm-animate-leg-left">
+                    <path d="M 43 86 L 41 94 L 46 94 L 47 87 Z" fill="url(#aether-teen-cloak)" stroke="#4a3670" stroke-width="0.8"/>
+                    </g>
+                    <g class="tm-animate-leg-right">
+                    <path d="M 57 86 L 59 94 L 54 94 L 53 87 Z" fill="url(#aether-teen-cloak)" stroke="#4a3670" stroke-width="0.8"/>
+                    </g>
+                    <g class="tm-mascot-eye-open tm-aether-eyes">
+                    <ellipse class="tm-aether-eye-sclera" cx="45" cy="36" rx="2.9" ry="3.4" fill="#ece5f5" stroke="#4a3670" stroke-width="1.1" opacity="0.94"/>
+                    <ellipse class="tm-aether-eye-sclera" cx="55" cy="36" rx="2.9" ry="3.4" fill="#ece5f5" stroke="#4a3670" stroke-width="1.1" opacity="0.94"/>
+                    <ellipse class="tm-aether-iris" cx="45" cy="36" rx="1.51" ry="2.04" fill="url(#aether-teen-iris)"/>
+                    <ellipse class="tm-aether-iris" cx="55" cy="36" rx="1.51" ry="2.04" fill="url(#aether-teen-iris)"/>
+                    <ellipse cx="45" cy="36" rx="0.58" ry="1.16" fill="#05010c"/>
+                    <ellipse cx="55" cy="36" rx="0.58" ry="1.16" fill="#05010c"/>
+                    <circle cx="44.27" cy="34.98" r="0.55" fill="#ffffff" opacity="0.9"/>
+                    <circle cx="54.27" cy="34.98" r="0.55" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 42.1 32.73 L 47.9 35.83 L 47.9 31.6 L 42.1 31.6 Z" fill="url(#aether-teen-cloak)"/>
+                    <path d="M 57.9 32.73 L 52.1 35.83 L 52.1 31.6 L 57.9 31.6 Z" fill="url(#aether-teen-cloak)"/>
+                    <line x1="41.5" y1="32.56" x2="48.3" y2="35.93" stroke="#4a3670" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="58.5" y1="32.56" x2="51.7" y2="35.93" stroke="#4a3670" stroke-width="1.2" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                    <path d="M 42.1 36 Q 45 37.4 47.9 36" stroke="#4a3670" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path d="M 52.1 36 Q 55 37.4 57.9 36" stroke="#4a3670" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <path class="tm-mascot-mouth-happy" d="M 47.2 44 L 49.16 44.7 L 50.84 44.7 L 52.8 44" stroke="#4a3670" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.2 45.5 Q 50 43 52.8 45.5" stroke="#4a3670" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                    <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
+                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="32" ry="10" fill="none" stroke="#5fd0c7" stroke-width="0.55" opacity="0.5" transform="rotate(-14 50 52)"/>
+                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="36" ry="13" fill="none" stroke="#7e57c2" stroke-width="0.45" opacity="0.4" transform="rotate(12 50 52)"/>
+                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="28" ry="8" fill="none" stroke="#ffca28" stroke-width="0.4" opacity="0.45" transform="rotate(-30 50 52)"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="sparks" opacity="0">
+                    <circle class="tm-aether-spark" cx="67.29" cy="49.26" r="1.75" fill="#5fd0c7"/>
+                    <circle class="tm-aether-spark" cx="84.04" cy="61.54" r="1.6" fill="#ffca28"/>
+                    <circle class="tm-aether-spark" cx="85.27" cy="64.32" r="1.6" fill="#c0a8ea"/>
+                    <circle class="tm-aether-spark" cx="9.92" cy="23.95" r="1.79" fill="#5fd0c7"/>
+                    <circle class="tm-aether-spark" cx="86.85" cy="57.13" r="1.08" fill="#ffca28"/>
+                    <circle class="tm-aether-spark" cx="71" cy="52.5" r="0.88" fill="#c0a8ea"/>
+                    </g>
                 </g>
 
-                <!-- AETHER ADULT — Starveil Sovereign -->
+                <!-- AETHER ADULT — Star Sovereign -->
                 <g id="tm-mascot-evo3-aether" style="display: none;">
                     <defs>
-                        <radialGradient id="aether-adult-body" cx="38%" cy="22%" r="80%">
-                            <stop offset="0%" style="stop-color:#9575cd;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#651fff;stop-opacity:1" />
-                            <stop offset="65%" style="stop-color:#311b92;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#0a0018;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="aether-adult-belly" cx="50%" cy="40%" r="60%">
-                            <stop offset="0%" style="stop-color:#4a3a68;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0.95" />
-                        </radialGradient>
-                        <linearGradient id="aether-adult-wing" x1="15%" y1="10%" x2="90%" y2="90%">
-                            <stop offset="0%" style="stop-color:#4dd0e1;stop-opacity:0.75" />
-                            <stop offset="25%" style="stop-color:#12001f;stop-opacity:0.55" />
-                            <stop offset="55%" style="stop-color:#7c4dff;stop-opacity:0.8" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0.95" />
-                        </linearGradient>
-                        <linearGradient id="aether-adult-wing2" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#26c6da;stop-opacity:0.35" />
-                            <stop offset="40%" style="stop-color:#7c4dff;stop-opacity:0.45" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0.7" />
-                        </linearGradient>
-                        <radialGradient id="aether-adult-wingveil" cx="30%" cy="35%" r="70%">
-                            <stop offset="0%" style="stop-color:#26c6da;stop-opacity:0.22" />
-                            <stop offset="50%" style="stop-color:#7c4dff;stop-opacity:0.12" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-adult-wingglow" cx="40%" cy="40%" r="60%">
-                            <stop offset="0%" style="stop-color:#ffd54f;stop-opacity:0.35" />
-                            <stop offset="55%" style="stop-color:#26c6da;stop-opacity:0.1" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-adult-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#e8e0f0;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#26c6da;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#7c4dff;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-adult-iris" cx="40%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#a8e6f0;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#26c6da;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="aether-adult-aura" cx="50%" cy="52%" r="82%">
-                            <stop offset="0%" style="stop-color:#26c6da;stop-opacity:0.16" />
-                            <stop offset="32%" style="stop-color:#7c4dff;stop-opacity:0.1" />
-                            <stop offset="62%" style="stop-color:#ffd54f;stop-opacity:0.04" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-adult-aura2" cx="50%" cy="55%" r="78%">
-                            <stop offset="0%" style="stop-color:#ffd54f;stop-opacity:0.1" />
-                            <stop offset="40%" style="stop-color:#26c6da;stop-opacity:0.06" />
-                            <stop offset="100%" style="stop-color:#7c4dff;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-adult-corona" cx="50%" cy="55%" r="74%">
-                            <stop offset="0%" style="stop-color:#ffd54f;stop-opacity:0.14" />
-                            <stop offset="48%" style="stop-color:#26c6da;stop-opacity:0.06" />
-                            <stop offset="100%" style="stop-color:#7c4dff;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="aether-adult-tail" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#4dd0e1;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#7c4dff;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="aether-adult-plate" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#3a2a55;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="aether-adult-sigil" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ffd54f;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#26c6da;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="aether-adult-beam" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#e8e0f0;stop-opacity:0.55" />
-                            <stop offset="50%" style="stop-color:#26c6da;stop-opacity:0.22" />
-                            <stop offset="100%" style="stop-color:#7c4dff;stop-opacity:0" />
-                        </linearGradient>
+                    <radialGradient id="aether-adult-body" cx="38%" cy="24%" r="85%">
+                        <stop offset="0%" style="stop-color:#cdb5f2;stop-opacity:1" />
+                        <stop offset="42%" style="stop-color:#8455cf;stop-opacity:1" />
+                        <stop offset="78%" style="stop-color:#4a2a96;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#1d0d40;stop-opacity:1" />
+                    </radialGradient>
+                    <linearGradient id="aether-adult-cloak" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#4a2a96;stop-opacity:1" />
+                        <stop offset="55%" style="stop-color:#1d0d40;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#080110;stop-opacity:1" />
+                    </linearGradient>
+                    <radialGradient id="aether-adult-core" cx="50%" cy="45%" r="55%">
+                        <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                        <stop offset="32%" style="stop-color:#66e0d5;stop-opacity:1" />
+                        <stop offset="70%" style="stop-color:#ffc107;stop-opacity:.85" />
+                        <stop offset="100%" style="stop-color:#080110;stop-opacity:0" />
+                    </radialGradient>
+                    <linearGradient id="aether-adult-wing" x1="10%" y1="0%" x2="95%" y2="95%">
+                        <stop offset="0%" style="stop-color:#8455cf;stop-opacity:.95" />
+                        <stop offset="45%" style="stop-color:#080110;stop-opacity:.92" />
+                        <stop offset="82%" style="stop-color:#4a2a96;stop-opacity:.9" />
+                        <stop offset="100%" style="stop-color:#080110;stop-opacity:.98" />
+                    </linearGradient>
+                    <linearGradient id="aether-adult-blade" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#66e0d5;stop-opacity:.9" />
+                        <stop offset="55%" style="stop-color:#8455cf;stop-opacity:.75" />
+                        <stop offset="100%" style="stop-color:#080110;stop-opacity:.95" />
+                    </linearGradient>
+                    <radialGradient id="aether-adult-iris" cx="40%" cy="35%" r="65%">
+                        <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
+                        <stop offset="55%" style="stop-color:#66e0d5;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#080110;stop-opacity:1" />
+                    </radialGradient>
+                    <radialGradient id="aether-adult-aura" cx="50%" cy="52%" r="70%">
+                        <stop offset="0%" style="stop-color:#66e0d5;stop-opacity:.2" />
+                        <stop offset="45%" style="stop-color:#8455cf;stop-opacity:.1" />
+                        <stop offset="100%" style="stop-color:#080110;stop-opacity:0" />
+                    </radialGradient>
+                    <linearGradient id="aether-adult-goldrim" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ffc107;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#4a2a96;stop-opacity:1" />
+                    </linearGradient>
+                    <filter id="aether-adult-glow" x="-80%" y="-80%" width="260%" height="260%">
+                        <feGaussianBlur stdDeviation="1.1" result="b"/>
+                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
                     </defs>
-                        <ellipse cx="50" cy="96" rx="28" ry="4.2" fill="#05010c" opacity="0.38"/>
-                        <g class="tm-aether-fx " data-fx="sparks" opacity="0">
-                            <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#ffd54f"/>
-                            <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#26c6da"/>
-                            <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#7c4dff"/>
-                            <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#ffd54f"/>
-                            <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#26c6da"/>
-                            <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#7c4dff"/>
-                            <circle class="tm-aether-spark" cx="28" cy="8" r="1.35" fill="#ffd54f"/>
-                            <circle class="tm-aether-spark" cx="72" cy="6" r="1" fill="#26c6da"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="corona" opacity="0">
-                            <ellipse class="tm-aether-corona" cx="50" cy="56" rx="39.6" ry="31.5" fill="url(#aether-adult-corona)"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="aura" opacity="0">
-                            <ellipse class="tm-aether-aura" cx="50" cy="54" rx="50.8" ry="41.7" fill="url(#aether-adult-aura)"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="haze" opacity="0">
-                            <g class="tm-aether-haze">
-                            <ellipse class="tm-aether-haze-blob" cx="50" cy="58" rx="53.3" ry="45.7" fill="url(#aether-adult-aura)" opacity="0.18"/>
-                            <ellipse class="tm-aether-haze-blob" cx="42" cy="50" rx="22.9" ry="35.6" fill="#26c6da" opacity="0.06"/>
-                            <ellipse class="tm-aether-haze-blob" cx="58" cy="52" rx="20.3" ry="33.0" fill="#ffd54f" opacity="0.05"/>
-                            </g>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="aura-outer" opacity="0">
-                            <ellipse class="tm-aether-aura-outer" cx="50" cy="56" rx="67.1" ry="54.9" fill="url(#aether-adult-aura2)"/>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
-                            <ellipse class="tm-aether-beam-glow" cx="50" cy="28" rx="7" ry="22" fill="url(#aether-adult-beam)" opacity="0.55"/>
-                            <ellipse class="tm-aether-beam-glow" cx="32" cy="40" rx="10" ry="16" fill="url(#aether-adult-beam)" opacity="0.35" transform="rotate(-28 32 40)"/>
-                            <ellipse class="tm-aether-beam-glow" cx="68" cy="40" rx="10" ry="16" fill="url(#aether-adult-beam)" opacity="0.35" transform="rotate(28 68 40)"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="sigil" opacity="0">
-                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="20" ry="5.9" fill="url(#aether-adult-sigil)" opacity="0.85"/>
-                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="12" ry="3" fill="#ffd54f" opacity="0.18"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="fracture" opacity="0">
-                            <g class="tm-aether-ground-fracture">
-                            <ellipse cx="50" cy="95" rx="22" ry="4.5" fill="url(#aether-adult-sigil)" opacity="0.35"/>
-                            <ellipse cx="40" cy="96" rx="8" ry="2.5" fill="#26c6da" opacity="0.12"/>
-                            <ellipse cx="60" cy="96" rx="8" ry="2.5" fill="#ffd54f" opacity="0.1"/>
-
-                            </g>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="40" ry="16" fill="url(#aether-adult-aura)" opacity="0.28"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="30" ry="18.4" fill="url(#aether-adult-aura2)" opacity="0.22" transform="rotate(32 50 52)"/>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-runes" data-fx="runes" opacity="0">
-                            <circle class="tm-aether-rune-ring" cx="50" cy="54" r="16" fill="url(#aether-adult-corona)" opacity="0.32"/>
-                            <circle class="tm-aether-rune-ring" cx="50" cy="54" r="9" fill="#ffd54f" opacity="0.08"/>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-ribbons" data-fx="ribbons" opacity="0">
-                            <ellipse class="tm-aether-ribbon" cx="22" cy="44" rx="14" ry="8" fill="#26c6da" opacity="0.14" transform="rotate(-25 22 44)"/>
-                            <ellipse class="tm-aether-ribbon" cx="78" cy="44" rx="14" ry="8" fill="#ffd54f" opacity="0.14" transform="rotate(25 78 44)"/>
-                        </g>
-                        <g class="tm-animate-wing-left">
-                            <path d="M 30 46 L 8 10 L -6 16 L -2 34 L -12 44 L -4 58 L -8 70 L 8 72 L 20 64 L 28 52 Z" class="tm-aether-wing-membrane" fill="url(#aether-adult-wing)" stroke="#1a0a30" stroke-width="1.3"/>
-                            <path d="M 28 48 L 8 22 L 0 36 L 4 54 L 18 58 L 26 50 Z" fill="url(#aether-adult-wing2)" opacity="0.75"/>
-                            <path d="M 26 50 L 12 36 L 6 48 L 12 58 L 22 54 Z" fill="url(#aether-adult-wingveil)" opacity="0.45"/>
-                            <path d="M 28 44 L 10 14 L -4 18" fill="none" stroke="#1a0a30" stroke-width="1.2" opacity="0.65"/>
-                            <path d="M 26 48 L 8 36 L -8 42" fill="none" stroke="#1a0a30" stroke-width="1" opacity="0.55"/>
-                            <path d="M 24 54 L 8 52 L -4 58" fill="none" stroke="#1a0a30" stroke-width="0.9" opacity="0.45"/>
-                            <path d="M 22 60 L 10 64 L 0 70" fill="none" stroke="#1a0a30" stroke-width="0.75" opacity="0.4"/>
-                            <path class="tm-aether-wing-vein" d="M 28 44 L 10 16 L -4 18" fill="none" stroke="#26c6da" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
-                            <path class="tm-aether-wing-vein" d="M 26 50 L 8 40 L -8 44" fill="none" stroke="#ffd54f" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.3s"/>
-                            <path class="tm-aether-wing-vein" d="M 24 56 L 8 56 L -4 62" fill="none" stroke="#ffd54f" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.6s"/>
-                            <path class="tm-aether-wing-vein" d="M 22 60 L 10 66 L 0 70" fill="none" stroke="#7c4dff" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.9s"/>
-                            <path class="tm-aether-wing-crack" d="M 16 28 L 12 38 L 16 46" fill="none" stroke="#26c6da" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.1s"/>
-                            <path class="tm-aether-wing-crack" d="M 14 48 L 6 52 L 12 60" fill="none" stroke="#7c4dff" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.5s"/>
-                            <path class="tm-aether-wing-crack" d="M 10 34 L 4 42 L 8 50" fill="none" stroke="#ffd54f" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.8s"/>
-                            <path class="tm-aether-wing-claw" d="M -6 14 L -9 9 L -5 12 Z" fill="#26c6da" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M -12 42 L -15 37 L -11 40 Z" fill="#ffd54f" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M -8 68 L -11 63 L -7 66 Z" fill="#7c4dff" opacity="0.9"/>
-                        </g>
-                        <g class="tm-animate-wing-right">
-                            <path d="M 70 46 L 92 10 L 106 16 L 102 34 L 112 44 L 104 58 L 108 70 L 92 72 L 80 64 L 72 52 Z" class="tm-aether-wing-membrane" fill="url(#aether-adult-wing)" stroke="#1a0a30" stroke-width="1.3"/>
-                            <path d="M 72 48 L 92 22 L 100 36 L 96 54 L 82 58 L 74 50 Z" fill="url(#aether-adult-wing2)" opacity="0.75"/>
-                            <path d="M 74 50 L 88 36 L 94 48 L 88 58 L 78 54 Z" fill="url(#aether-adult-wingveil)" opacity="0.45"/>
-                            <path d="M 72 44 L 90 14 L 104 18" fill="none" stroke="#1a0a30" stroke-width="1.2" opacity="0.65"/>
-                            <path d="M 74 48 L 92 36 L 108 42" fill="none" stroke="#1a0a30" stroke-width="1" opacity="0.55"/>
-                            <path d="M 76 54 L 92 52 L 104 58" fill="none" stroke="#1a0a30" stroke-width="0.9" opacity="0.45"/>
-                            <path d="M 78 60 L 90 64 L 100 70" fill="none" stroke="#1a0a30" stroke-width="0.75" opacity="0.4"/>
-                            <path class="tm-aether-wing-vein" d="M 72 44 L 90 16 L 104 18" fill="none" stroke="#ffd54f" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
-                            <path class="tm-aether-wing-vein" d="M 74 50 L 92 40 L 108 44" fill="none" stroke="#ffd54f" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.3s"/>
-                            <path class="tm-aether-wing-vein" d="M 76 56 L 92 56 L 104 62" fill="none" stroke="#26c6da" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.6s"/>
-                            <path class="tm-aether-wing-vein" d="M 78 60 L 90 66 L 100 70" fill="none" stroke="#7c4dff" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.9s"/>
-                            <path class="tm-aether-wing-crack" d="M 84 28 L 88 38 L 84 46" fill="none" stroke="#ffd54f" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.1s"/>
-                            <path class="tm-aether-wing-crack" d="M 86 48 L 94 52 L 88 60" fill="none" stroke="#7c4dff" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.5s"/>
-                            <path class="tm-aether-wing-crack" d="M 90 34 L 96 42 L 92 50" fill="none" stroke="#ffd54f" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.8s"/>
-                            <path class="tm-aether-wing-claw" d="M 106 14 L 109 9 L 105 12 Z" fill="#ffd54f" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M 112 42 L 115 37 L 111 40 Z" fill="#26c6da" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M 108 68 L 111 63 L 107 66 Z" fill="#7c4dff" opacity="0.9"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 56 70 L 82 78 L 92 52 L 84 72 L 64 68 Z" fill="url(#aether-adult-tail)" stroke="#1a0a30" stroke-width="1.15"/>
-                            <path d="M 70 72 L 88 84" stroke="#26c6da" stroke-width="0.7" opacity="0.4"/>
-                            <circle cx="92" cy="52" r="2" fill="#ffd54f" opacity="0.7"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Tall angular sovereign torso -->
-                            <path d="M 36 40 Q 34 64 38 78 L 62 78 Q 66 64 64 40 Q 58 30 50 28 Q 42 30 36 40 Z" fill="url(#aether-adult-body)" stroke="#1a0a30" stroke-width="1.65"/>
-                            <ellipse cx="50" cy="56" rx="8" ry="14" fill="url(#aether-adult-belly)"/>
-                            <circle class="tm-aether-core" cx="50" cy="52" r="7" fill="url(#aether-adult-core)"/>
-                            <circle class="tm-aether-core-ring" cx="50" cy="52" r="10" fill="#ffd54f" opacity="0.12"/>
-                            <path d="M 50 38 L 50 68" stroke="#26c6da" stroke-width="0.6" opacity="0.4"/>
-                        <g class="tm-aether-rune-tattoos" opacity="0.4">
-                            <circle class="tm-aether-rune-glyph" cx="45" cy="52" r="2.2" fill="#26c6da" opacity="0.45"/>
-                            <circle class="tm-aether-rune-glyph" cx="55" cy="52" r="2.2" fill="#ffd54f" opacity="0.45"/>
-                            <ellipse class="tm-aether-rune-glyph" cx="50" cy="50" rx="1.5" ry="6" fill="#7c4dff" opacity="0.25"/>
-                            <circle class="tm-aether-rune-glyph" cx="46" cy="60" r="1.8" fill="#26c6da" opacity="0.3"/>
-                            <circle class="tm-aether-rune-glyph" cx="54" cy="60" r="1.8" fill="#ffd54f" opacity="0.3"/>
-
-                        </g>
-                            <!-- Head -->
-                            <path d="M 38 24 Q 38 10 50 8 Q 62 10 62 24 Q 60 34 50 36 Q 40 34 38 24 Z" fill="url(#aether-adult-body)" stroke="#1a0a30" stroke-width="1.55"/>
-                        </g>
-                        <g class="tm-aether-regalia">
-                            <ellipse class="tm-aether-halo" cx="50" cy="6" rx="15" ry="3.2" fill="#ffd54f" opacity="0.22"/>
-                            <g class="tm-aether-crown-constellation">
-                            <circle class="tm-aether-crown-star" cx="42" cy="2" r="1.1" fill="#26c6da"/>
-                            <circle class="tm-aether-crown-star" cx="50" cy="-2" r="1.4" fill="#ffd54f"/>
-                            <circle class="tm-aether-crown-star" cx="58" cy="2" r="1.1" fill="#26c6da"/>
-                            <circle class="tm-aether-crown-star" cx="36" cy="8" r="0.8" fill="#7c4dff"/>
-                            <circle class="tm-aether-crown-star" cx="64" cy="8" r="0.8" fill="#7c4dff"/>
-                            <path d="M 42 2 L 50 -2 L 58 2" fill="none" stroke="#ffd54f" stroke-width="0.45" opacity="0.55"/>
-                            </g>
-                            <path d="M 40 12 L 50 -2 L 60 12" fill="#12001f" stroke="#ffd54f" stroke-width="1.15" opacity="0.85"/>
-                            <path d="M 36 16 L 22 0" stroke="#26c6da" stroke-width="2.2" stroke-linecap="round"/>
-                            <path d="M 64 16 L 78 0" stroke="#ffd54f" stroke-width="2.2" stroke-linecap="round"/>
-                            <circle cx="22" cy="0" r="1.9" fill="#26c6da"/>
-                            <circle cx="78" cy="0" r="1.9" fill="#ffd54f"/>
-                        </g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 36 48 L 18 54 L 20 68 L 36 58 Z" fill="url(#aether-adult-body)" stroke="#1a0a30" stroke-width="1.2"/>
-                            <circle cx="18" cy="66" r="1.6" fill="#26c6da" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 64 48 L 82 54 L 80 68 L 64 58 Z" fill="url(#aether-adult-body)" stroke="#1a0a30" stroke-width="1.2"/>
-                            <circle cx="82" cy="66" r="1.6" fill="#ffd54f" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 42 78 L 36 94 L 48 94 Z" fill="url(#aether-adult-body)" stroke="#1a0a30" stroke-width="1.2"/>
-                            <ellipse cx="42" cy="94" rx="6" ry="1.8" fill="#05010c" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 58 78 L 52 94 L 64 94 Z" fill="url(#aether-adult-body)" stroke="#1a0a30" stroke-width="1.2"/>
-                            <ellipse cx="58" cy="94" rx="6" ry="1.8" fill="#05010c" opacity="0.55"/>
-                        </g>
-                        <g class="tm-mascot-eye-open tm-aether-eyes">
-                            <ellipse cx="41" cy="20" rx="7.1" ry="7.8" fill="#26c6da" opacity="0.12"/>
-                            <ellipse cx="59" cy="20" rx="7.1" ry="7.8" fill="#ffd54f" opacity="0.1"/>
-                            <ellipse class="tm-aether-eye-sclera" cx="41" cy="20" rx="4.6" ry="6" fill="#e8e0f0" stroke="#1a0a30" stroke-width="1.35" opacity="0.92"/>
-                            <ellipse class="tm-aether-eye-sclera" cx="59" cy="20" rx="4.6" ry="6" fill="#e8e0f0" stroke="#1a0a30" stroke-width="1.35" opacity="0.92"/>
-                            <ellipse class="tm-aether-iris" cx="41" cy="20" rx="1.5" ry="4.5" fill="url(#aether-adult-iris)"/>
-                            <ellipse class="tm-aether-iris" cx="59" cy="20" rx="1.5" ry="4.5" fill="url(#aether-adult-iris)"/>
-                            <ellipse cx="41" cy="20" rx="0.5" ry="2.5" fill="#05010c"/>
-                            <ellipse cx="59" cy="20" rx="0.5" ry="2.5" fill="#05010c"/>
-                            <line x1="37.1" y1="14.9" x2="44.0" y2="17.0" stroke="#1a0a30" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
-                            <line x1="62.9" y1="14.9" x2="56.0" y2="17.0" stroke="#1a0a30" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 36.4 20 L 45.6 20" stroke="#1a0a30" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                            <path d="M 54.4 20 L 63.6 20" stroke="#1a0a30" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44.5 30 Q 50 32.0 55.5 30" stroke="#1a0a30" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44.5 32.0 Q 50 29.0 55.5 32.0" stroke="#1a0a30" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="50" cy="96" rx="21" ry="4" fill="#05010c" opacity="0.3"/>
+                    <g class="tm-aether-fx " data-fx="aura" opacity="0">
+                    <ellipse class="tm-aether-aura" cx="50" cy="52" rx="38" ry="34" fill="url(#aether-adult-aura)"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="aura-outer" opacity="0">
+                    <ellipse class="tm-aether-aura-outer" cx="50" cy="52" rx="46" ry="42" fill="none" stroke="#8455cf" stroke-width="1.6" opacity="0.3"/>
+                    <ellipse class="tm-aether-aura-outer" cx="50" cy="52" rx="43" ry="39" fill="url(#aether-adult-aura)" opacity="0.5"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="corona" opacity="0">
+                    <circle class="tm-aether-corona" cx="50" cy="50" r="30" fill="none" stroke="#66e0d5" stroke-width="0.8" opacity="0.5" stroke-dasharray="3 4"/>
+                    <circle class="tm-aether-corona" cx="50" cy="50" r="36" fill="none" stroke="#ffc107" stroke-width="0.5" opacity="0.35" stroke-dasharray="1.5 5"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="haze" opacity="0">
+                    <g class="tm-aether-haze">
+                        <ellipse class="tm-aether-haze-blob" cx="30" cy="40" rx="12" ry="7" fill="#8455cf" opacity="0.2"/>
+                        <ellipse class="tm-aether-haze-blob" cx="68" cy="58" rx="14" ry="8" fill="#66e0d5" opacity="0.14"/>
+                        <ellipse class="tm-aether-haze-blob" cx="50" cy="26" rx="10" ry="6" fill="#ffc107" opacity="0.12"/>
+                    </g>
+                    </g>
+                    <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
+                    <path class="tm-aether-beam-glow" d="M 46 6 L 54 6 L 52 46 L 48 46 Z" fill="#ffc107" opacity="0.18"/>
+                    <path d="M 30 12 L 34 12 L 33 44 L 31 44 Z" fill="#66e0d5" opacity="0.14"/>
+                    <path d="M 66 12 L 70 12 L 69 44 L 67 44 Z" fill="#66e0d5" opacity="0.14"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="sigil" opacity="0">
+                    <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="22" ry="4.5" fill="none" stroke="#66e0d5" stroke-width="0.8" opacity="0.6"/>
+                    <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="15" ry="3" fill="none" stroke="#ffc107" stroke-width="0.5" opacity="0.5" stroke-dasharray="2 2"/>
+                    <path class="tm-aether-sigil" d="M 50 90 L 54 94 L 50 98 L 46 94 Z" fill="none" stroke="#cdb5f2" stroke-width="0.5" opacity="0.55"/>
+                    </g>
+                    <g class="tm-aether-fx tm-aether-runes" data-fx="runes" opacity="0">
+                    <circle class="tm-aether-rune-ring" cx="50" cy="54" r="30" fill="none" stroke="#ffc107" stroke-width="0.6" opacity="0.55" stroke-dasharray="4 3"/>
+                    <path d="M 48.6 26.4 L 51.4 26.4 L 50 29.8 Z M 50 26.4 L 50 29.8" fill="none" stroke="#ffc107" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 77.13 44.37 L 79.93 44.37 L 78.53 47.77 Z M 78.53 44.37 L 78.53 47.77" fill="none" stroke="#ffc107" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 66.23 73.43 L 69.03 73.43 L 67.63 76.83 Z M 67.63 73.43 L 67.63 76.83" fill="none" stroke="#ffc107" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 30.97 73.43 L 33.77 73.43 L 32.37 76.83 Z M 32.37 73.43 L 32.37 76.83" fill="none" stroke="#ffc107" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 20.07 44.37 L 22.87 44.37 L 21.47 47.77 Z M 21.47 44.37 L 21.47 47.77" fill="none" stroke="#ffc107" stroke-width="0.5" opacity="0.7"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="fracture" opacity="0">
+                    <g class="tm-aether-ground-fracture">
+                        <path d="M 50 93 L 38 95 L 30 99" fill="none" stroke="#66e0d5" stroke-width="0.7" stroke-dasharray="2 1.4" opacity="0.7"/>
+                        <path d="M 50 93 L 62 96 L 72 99" fill="none" stroke="#ffc107" stroke-width="0.6" stroke-dasharray="1.8 1.2" opacity="0.65"/>
+                        <path d="M 50 93 L 48 98" fill="none" stroke="#cdb5f2" stroke-width="0.5" stroke-dasharray="1.2 1" opacity="0.55"/>
+                    </g>
+                    </g>
+                    <circle class="tm-aether-halo" cx="50" cy="26" r="14" fill="none" stroke="#ffc107" stroke-width="1.1" opacity="0.55"/>
+                    <circle class="tm-aether-halo" cx="50" cy="26" r="17.5" fill="none" stroke="#66e0d5" stroke-width="0.5" opacity="0.35" stroke-dasharray="2.5 3"/>
+                    <g class="tm-animate-wing-left">
+                    <path class="tm-aether-wing-membrane" d="M 34 44 C 19.15 12.86 4.96 11.54 1 18.14 C 3.64 28.04 4.96 51.26 6.94 55.22 C 16.84 57.86 24.76 49.94 34 44 Z" fill="url(#aether-adult-wing)" stroke="#3d2a63" stroke-width="0.8"/>
+                    <path d="M 32.75 42.64 Q 22.91 39.79 12.79 37.66 Q 20.55 41.49 31.29 46.68 Z" fill="url(#aether-adult-blade)" opacity="0.85"/>
+                    <path d="M 32.19 42.52 Q 18.65 42.13 5.05 42.51 Q 16.3 44.35 31.85 46.8 Z" fill="url(#aether-adult-blade)" opacity="0.85"/>
+                    <path d="M 31.62 42.55 Q 16.46 46.17 1.45 50.54 Q 14.47 48.99 32.42 46.77 Z" fill="url(#aether-adult-blade)" opacity="0.85"/>
+                    <path d="M 31.07 42.74 Q 17.42 50.25 4.12 58.46 Q 16.25 53.51 32.97 46.58 Z" fill="url(#aether-adult-blade)" opacity="0.85"/>
+                    <path d="M 30.59 43.06 Q 20.96 52.58 11.84 62.68 Q 20.94 55.81 33.45 46.26 Z" fill="url(#aether-adult-blade)" opacity="0.85"/>
+                    <path d="M 30.22 43.5 Q 25.25 52.47 20.94 61.86 Q 26.38 55.15 33.82 45.82 Z" fill="url(#aether-adult-blade)" opacity="0.85"/>
+                    <circle cx="27.23" cy="40.53" r="0.36" fill="#ffc107" opacity="0.76"/>
+                    <circle cx="17.5" cy="36.59" r="0.26" fill="#ffc107" opacity="0.63"/>
+                    <circle cx="19.03" cy="38.16" r="0.39" fill="#ffc107" opacity="0.78"/>
+                    <circle cx="12" cy="37.44" r="0.59" fill="#ffc107" opacity="0.49"/>
+                    <path class="tm-aether-wing-vein" d="M 34 44 C 20.8 15.5 5.95 14.18 1 18.14" fill="none" stroke="#66e0d5" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-crack" d="M 24.1 40.7 L 18.16 45.32 L 13.54 41.36" fill="none" stroke="#ffc107" stroke-width="0.6" stroke-dasharray="1.6 1.2" opacity="0.75"/>
+                    <path class="tm-aether-wing-claw" d="M 1 18.14 L -1.6 14.74 L 2.4 17.14 Z" fill="#66e0d5" opacity="0.95"/>
+                    </g>
+                    <g class="tm-animate-wing-right">
+                    <g transform="translate(100,0) scale(-1,1)">
+                    <path class="tm-aether-wing-membrane" d="M 34 44 C 19.15 12.86 4.96 11.54 1 18.14 C 3.64 28.04 4.96 51.26 6.94 55.22 C 16.84 57.86 24.76 49.94 34 44 Z" fill="url(#aether-adult-wing)" stroke="#3d2a63" stroke-width="0.8"/>
+                    <path d="M 32.75 42.64 Q 22.91 39.79 12.79 37.66 Q 20.55 41.49 31.29 46.68 Z" fill="url(#aether-adult-blade)" opacity="0.85"/>
+                    <path d="M 32.19 42.52 Q 18.65 42.13 5.05 42.51 Q 16.3 44.35 31.85 46.8 Z" fill="url(#aether-adult-blade)" opacity="0.85"/>
+                    <path d="M 31.62 42.55 Q 16.46 46.17 1.45 50.54 Q 14.47 48.99 32.42 46.77 Z" fill="url(#aether-adult-blade)" opacity="0.85"/>
+                    <path d="M 31.07 42.74 Q 17.42 50.25 4.12 58.46 Q 16.25 53.51 32.97 46.58 Z" fill="url(#aether-adult-blade)" opacity="0.85"/>
+                    <path d="M 30.59 43.06 Q 20.96 52.58 11.84 62.68 Q 20.94 55.81 33.45 46.26 Z" fill="url(#aether-adult-blade)" opacity="0.85"/>
+                    <path d="M 30.22 43.5 Q 25.25 52.47 20.94 61.86 Q 26.38 55.15 33.82 45.82 Z" fill="url(#aether-adult-blade)" opacity="0.85"/>
+                    <circle cx="28.26" cy="41.89" r="0.55" fill="#ffc107" opacity="0.36"/>
+                    <circle cx="6.83" cy="41.11" r="0.58" fill="#ffc107" opacity="0.84"/>
+                    <circle cx="7.18" cy="39.19" r="0.39" fill="#ffc107" opacity="0.61"/>
+                    <circle cx="11.92" cy="43.77" r="0.45" fill="#ffc107" opacity="0.39"/>
+                    <path class="tm-aether-wing-vein" d="M 34 44 C 20.8 15.5 5.95 14.18 1 18.14" fill="none" stroke="#66e0d5" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-crack" d="M 24.1 40.7 L 18.16 45.32 L 13.54 41.36" fill="none" stroke="#ffc107" stroke-width="0.6" stroke-dasharray="1.6 1.2" opacity="0.75"/>
+                    <path class="tm-aether-wing-claw" d="M 1 18.14 L -1.6 14.74 L 2.4 17.14 Z" fill="#66e0d5" opacity="0.95"/>
+                    </g>
+                    </g>
+                    <g class="tm-animate-tail">
+                    <path d="M 50 82 C 56 88 58 94 54 99 C 52 94 49 90 45 87 Z" fill="url(#aether-adult-cloak)" stroke="#3d2a63" stroke-width="0.7" opacity="0.85"/>
+                    <path d="M 46 84 C 42 89 41 95 44 99 C 45 94 47 90 50 87 Z" fill="url(#aether-adult-cloak)" stroke="#3d2a63" stroke-width="0.6" opacity="0.7"/>
+                    </g>
+                    <g class="tm-animate-body">
+                    <path d="M 50 12 C 58 12 62 18 62 26 L 68 38 L 66 60 L 70 84 L 58 79 L 50 88 L 42 79 L 30 84 L 34 60 L 32 38 L 38 26 C 38 18 42 12 50 12 Z" fill="url(#aether-adult-body)" stroke="#3d2a63" stroke-width="1.4"/>
+                    <path d="M 50 20 C 55 20 58 24 58 30 L 62 40 L 60 60 L 62 76 L 50 70 L 38 76 L 40 60 L 38 40 L 42 30 C 42 24 45 20 50 20 Z" fill="url(#aether-adult-cloak)" opacity="0.66"/>
+                    <line x1="42" y1="44" x2="47" y2="50" stroke="#ffc107" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="47" y1="50" x2="44" y2="58" stroke="#ffc107" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="44" y1="58" x2="50" y2="64" stroke="#ffc107" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="50" y1="64" x2="56" y2="57" stroke="#ffc107" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="56" y1="57" x2="53" y2="49" stroke="#ffc107" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="53" y1="49" x2="58" y2="44" stroke="#ffc107" stroke-width="0.3" opacity="0.4"/>
+                    <circle cx="42" cy="44" r="0.75" fill="#ffc107" opacity="0.9"/>
+                    <circle cx="47" cy="50" r="0.63" fill="#ffc107" opacity="0.9"/>
+                    <circle cx="44" cy="58" r="0.88" fill="#ffc107" opacity="0.9"/>
+                    <circle cx="50" cy="64" r="0.98" fill="#ffc107" opacity="0.9"/>
+                    <circle cx="56" cy="57" r="0.81" fill="#ffc107" opacity="0.9"/>
+                    <circle cx="53" cy="49" r="0.59" fill="#ffc107" opacity="0.9"/>
+                    <circle cx="58" cy="44" r="0.91" fill="#ffc107" opacity="0.9"/>
+                    <circle cx="49.21" cy="69.15" r="0.32" fill="#cdb5f2" opacity="0.84"/>
+                    <circle cx="51.13" cy="70.51" r="0.66" fill="#cdb5f2" opacity="0.47"/>
+                    <circle cx="49.07" cy="58.02" r="0.26" fill="#cdb5f2" opacity="0.87"/>
+                    <circle cx="56.43" cy="43.74" r="0.41" fill="#cdb5f2" opacity="0.83"/>
+                    <circle cx="51.74" cy="42.08" r="0.49" fill="#cdb5f2" opacity="0.44"/>
+                    <circle cx="52.02" cy="50.7" r="0.37" fill="#cdb5f2" opacity="0.69"/>
+                    <circle cx="52.39" cy="43.08" r="0.75" fill="#cdb5f2" opacity="0.53"/>
+                    <circle cx="51.44" cy="42.85" r="0.37" fill="#cdb5f2" opacity="0.43"/>
+                    <circle cx="41.51" cy="57.37" r="0.36" fill="#cdb5f2" opacity="0.92"/>
+                    <circle cx="49.49" cy="59.74" r="0.6" fill="#cdb5f2" opacity="0.51"/>
+                    <path d="M 40 32 C 31 24 22 24 17 31 C 24 29 32 34 39 40 Z" fill="url(#aether-adult-goldrim)" stroke="#3d2a63" stroke-width="0.8"/>
+                    <path d="M 60 32 C 69 24 78 24 83 31 C 76 29 68 34 61 40 Z" fill="url(#aether-adult-goldrim)" stroke="#3d2a63" stroke-width="0.8"/>
+                    <path d="M 40 36 C 34 31 27 31 23 35" fill="none" stroke="#ffc107" stroke-width="0.6" opacity="0.75"/>
+                    <path d="M 60 36 C 66 31 73 31 77 35" fill="none" stroke="#ffc107" stroke-width="0.6" opacity="0.75"/>
+                    <path d="M 44 66 L 56 66 L 54 71 L 46 71 Z" fill="url(#aether-adult-goldrim)" opacity="0.9"/>
+                    <g class="tm-aether-rune-tattoos">
+                        <path class="tm-aether-rune-glyph" d="M 44 58 l 1.6 -2 l 1.6 2 l -1.6 2 Z" fill="none" stroke="#66e0d5" stroke-width="0.5" opacity="0.8"/>
+                        <path class="tm-aether-rune-glyph" d="M 54.5 57 v 3.4 m -1.4 -1.7 h 2.8" fill="none" stroke="#ffc107" stroke-width="0.5" opacity="0.8"/>
+                        <path class="tm-aether-rune-glyph" d="M 49 63 l 1.2 -2.2 l 1.2 2.2 Z" fill="none" stroke="#cdb5f2" stroke-width="0.5" opacity="0.75"/>
+                    </g>
+                    <circle class="tm-aether-core" cx="50" cy="44" r="5" fill="url(#aether-adult-core)" filter="url(#aether-adult-glow)"/>
+                    <circle class="tm-aether-core-ring" cx="50" cy="44" r="8" fill="none" stroke="#ffc107" stroke-width="0.7" opacity="0.5"/>
+                    </g>
+                    <g class="tm-aether-regalia">
+                    <g class="tm-aether-crown-constellation">
+                        <line x1="37" y1="10" x2="43.5" y2="6.82" stroke="#ffc107" stroke-width="0.35" opacity="0.5"/>
+                        <line x1="43.5" y1="6.82" x2="50" y2="5.5" stroke="#ffc107" stroke-width="0.35" opacity="0.5"/>
+                        <line x1="50" y1="5.5" x2="56.5" y2="6.82" stroke="#ffc107" stroke-width="0.35" opacity="0.5"/>
+                        <line x1="56.5" y1="6.82" x2="63" y2="10" stroke="#ffc107" stroke-width="0.35" opacity="0.5"/>
+                        <circle class="tm-aether-crown-star" cx="37" cy="10" r="0.94" fill="#ffc107"/>
+                        <circle class="tm-aether-crown-star" cx="43.5" cy="6.82" r="1.21" fill="#66e0d5"/>
+                        <circle class="tm-aether-crown-star" cx="50" cy="5.5" r="1.5" fill="#ffc107"/>
+                        <circle class="tm-aether-crown-star" cx="56.5" cy="6.82" r="1.2" fill="#66e0d5"/>
+                        <circle class="tm-aether-crown-star" cx="63" cy="10" r="1.27" fill="#ffc107"/>
+                    </g>
+                    <path d="M 42 16 L 40 8 L 45 13 Z" fill="url(#aether-adult-goldrim)" stroke="#3d2a63" stroke-width="0.6"/>
+                    <path d="M 58 16 L 60 8 L 55 13 Z" fill="url(#aether-adult-goldrim)" stroke="#3d2a63" stroke-width="0.6"/>
+                    </g>
+                    <g class="tm-animate-arm-left">
+                    <path d="M 36 46 Q 26 52 24 64 L 28 61 L 27 68 L 32 63 Q 34 54 38 50 Z" fill="url(#aether-adult-body)" stroke="#3d2a63" stroke-width="1"/>
+                    <path d="M 22 63 L 19 69 M 26 64 L 24 70 M 29 63 L 29 69" fill="none" stroke="#ffc107" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    </g>
+                    <g class="tm-animate-arm-right">
+                    <path d="M 64 46 Q 74 52 76 64 L 72 61 L 73 68 L 68 63 Q 66 54 62 50 Z" fill="url(#aether-adult-body)" stroke="#3d2a63" stroke-width="1"/>
+                    <path d="M 78 63 L 81 69 M 74 64 L 76 70 M 71 63 L 71 69" fill="none" stroke="#ffc107" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    </g>
+                    <g class="tm-animate-leg-left">
+                    <path d="M 43 85 L 40 94 L 46 94 L 47 86 Z" fill="url(#aether-adult-cloak)" stroke="#3d2a63" stroke-width="0.8"/>
+                    </g>
+                    <g class="tm-animate-leg-right">
+                    <path d="M 57 85 L 60 94 L 54 94 L 53 86 Z" fill="url(#aether-adult-cloak)" stroke="#3d2a63" stroke-width="0.8"/>
+                    </g>
+                    <g class="tm-mascot-eye-open tm-aether-eyes">
+                    <ellipse class="tm-aether-eye-sclera" cx="44.8" cy="30" rx="3" ry="3.4" fill="#ece5f5" stroke="#3d2a63" stroke-width="1.1" opacity="0.94"/>
+                    <ellipse class="tm-aether-eye-sclera" cx="55.2" cy="30" rx="3" ry="3.4" fill="#ece5f5" stroke="#3d2a63" stroke-width="1.1" opacity="0.94"/>
+                    <ellipse class="tm-aether-iris" cx="44.8" cy="30" rx="1.56" ry="2.04" fill="#ffc107"/>
+                    <ellipse class="tm-aether-iris" cx="55.2" cy="30" rx="1.56" ry="2.04" fill="#ffc107"/>
+                    <ellipse cx="44.8" cy="30" rx="0.6" ry="1.16" fill="#05010c"/>
+                    <ellipse cx="55.2" cy="30" rx="0.6" ry="1.16" fill="#05010c"/>
+                    <circle cx="44.05" cy="28.98" r="0.55" fill="#ffffff" opacity="0.9"/>
+                    <circle cx="54.45" cy="28.98" r="0.55" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 41.8 26.53 L 47.8 29.83 L 47.8 25.6 L 41.8 25.6 Z" fill="url(#aether-adult-cloak)"/>
+                    <path d="M 58.2 26.53 L 52.2 29.83 L 52.2 25.6 L 58.2 25.6 Z" fill="url(#aether-adult-cloak)"/>
+                    <line x1="41.2" y1="26.36" x2="48.2" y2="29.93" stroke="#3d2a63" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="58.8" y1="26.36" x2="51.8" y2="29.93" stroke="#3d2a63" stroke-width="1.2" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                    <path d="M 41.8 30 Q 44.8 31.4 47.8 30" stroke="#3d2a63" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path d="M 52.2 30 Q 55.2 31.4 58.2 30" stroke="#3d2a63" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <path class="tm-mascot-mouth-happy" d="M 47.2 38.5 L 49.16 39.2 L 50.84 39.2 L 52.8 38.5" stroke="#3d2a63" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.2 40 Q 50 37.5 52.8 40" stroke="#3d2a63" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                    <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
+                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="32" ry="10" fill="none" stroke="#66e0d5" stroke-width="0.55" opacity="0.5" transform="rotate(-14 50 52)"/>
+                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="36" ry="13" fill="none" stroke="#8455cf" stroke-width="0.45" opacity="0.4" transform="rotate(12 50 52)"/>
+                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="28" ry="8" fill="none" stroke="#ffc107" stroke-width="0.4" opacity="0.45" transform="rotate(-30 50 52)"/>
+                    </g>
+                    <g class="tm-aether-fx tm-aether-ribbons" data-fx="ribbons" opacity="0">
+                    <path class="tm-aether-ribbon" d="M 18 30 C 10 44 14 62 24 74 C 18 60 20 44 26 34 Z" fill="#66e0d5" opacity="0.3"/>
+                    <path class="tm-aether-ribbon" d="M 82 30 C 90 44 86 62 76 74 C 82 60 80 44 74 34 Z" fill="#8455cf" opacity="0.3"/>
+                    <path class="tm-aether-ribbon" d="M 30 16 C 40 8 60 8 70 16 C 58 12 42 12 30 16 Z" fill="#ffc107" opacity="0.25"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="sparks" opacity="0">
+                    <circle class="tm-aether-spark" cx="60.45" cy="57.13" r="0.98" fill="#66e0d5"/>
+                    <circle class="tm-aether-spark" cx="52.53" cy="52.5" r="1.1" fill="#ffc107"/>
+                    <circle class="tm-aether-spark" cx="18.95" cy="27.19" r="1.75" fill="#cdb5f2"/>
+                    <circle class="tm-aether-spark" cx="58.82" cy="14.37" r="1.65" fill="#66e0d5"/>
+                    <circle class="tm-aether-spark" cx="34.87" cy="39.67" r="1.73" fill="#ffc107"/>
+                    <circle class="tm-aether-spark" cx="32.47" cy="58.16" r="1.67" fill="#cdb5f2"/>
+                    <circle class="tm-aether-spark" cx="81.69" cy="59.72" r="1.64" fill="#66e0d5"/>
+                    </g>
                 </g>
 
-                <!-- AETHER MIDDLE AGE — Eclipse Sovereign -->
+                <!-- AETHER MIDDLEAGE — Eclipse Tyrant -->
                 <g id="tm-mascot-evo4-aether" style="display: none;">
                     <defs>
-                        <radialGradient id="aether-mid-body" cx="38%" cy="22%" r="80%">
-                            <stop offset="0%" style="stop-color:#5a2830;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#3a0c1c;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#1a0618;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#050008;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="aether-mid-belly" cx="50%" cy="40%" r="60%">
-                            <stop offset="0%" style="stop-color:#2a1018;stop-opacity:0.9" />
-                            <stop offset="100%" style="stop-color:#050008;stop-opacity:0.98" />
-                        </radialGradient>
-                        <linearGradient id="aether-mid-wing" x1="15%" y1="10%" x2="90%" y2="90%">
-                            <stop offset="0%" style="stop-color:#7a3038;stop-opacity:0.75" />
-                            <stop offset="25%" style="stop-color:#12001f;stop-opacity:0.55" />
-                            <stop offset="55%" style="stop-color:#3a0a5c;stop-opacity:0.8" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0.95" />
-                        </linearGradient>
-                        <linearGradient id="aether-mid-wing2" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#c62828;stop-opacity:0.35" />
-                            <stop offset="40%" style="stop-color:#4a148c;stop-opacity:0.45" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0.7" />
-                        </linearGradient>
-                        <radialGradient id="aether-mid-wingveil" cx="30%" cy="35%" r="70%">
-                            <stop offset="0%" style="stop-color:#c62828;stop-opacity:0.22" />
-                            <stop offset="50%" style="stop-color:#4a148c;stop-opacity:0.12" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-mid-wingglow" cx="40%" cy="40%" r="60%">
-                            <stop offset="0%" style="stop-color:#b8963a;stop-opacity:0.35" />
-                            <stop offset="55%" style="stop-color:#c62828;stop-opacity:0.1" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-mid-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#f0e4e4;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#c62828;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#4a148c;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-mid-iris" cx="40%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#ffcdd2;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#c62828;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1a0000;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="aether-mid-aura" cx="50%" cy="52%" r="82%">
-                            <stop offset="0%" style="stop-color:#c62828;stop-opacity:0.16" />
-                            <stop offset="32%" style="stop-color:#4a148c;stop-opacity:0.1" />
-                            <stop offset="62%" style="stop-color:#b8963a;stop-opacity:0.04" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-mid-aura2" cx="50%" cy="55%" r="78%">
-                            <stop offset="0%" style="stop-color:#b8963a;stop-opacity:0.1" />
-                            <stop offset="40%" style="stop-color:#c62828;stop-opacity:0.06" />
-                            <stop offset="100%" style="stop-color:#4a148c;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-mid-corona" cx="50%" cy="55%" r="74%">
-                            <stop offset="0%" style="stop-color:#b8963a;stop-opacity:0.14" />
-                            <stop offset="48%" style="stop-color:#c62828;stop-opacity:0.06" />
-                            <stop offset="100%" style="stop-color:#4a148c;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="aether-mid-tail" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#7a3038;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#4a148c;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="aether-mid-plate" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#3a2a55;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="aether-mid-sigil" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#b8963a;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#c62828;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="aether-mid-beam" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#f0e4e4;stop-opacity:0.55" />
-                            <stop offset="50%" style="stop-color:#c62828;stop-opacity:0.22" />
-                            <stop offset="100%" style="stop-color:#4a148c;stop-opacity:0" />
-                        </linearGradient>
+                    <radialGradient id="aether-mid-body" cx="38%" cy="24%" r="85%">
+                        <stop offset="0%" style="stop-color:#8a6aa8;stop-opacity:1" />
+                        <stop offset="42%" style="stop-color:#503468;stop-opacity:1" />
+                        <stop offset="78%" style="stop-color:#2c1840;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#120822;stop-opacity:1" />
+                    </radialGradient>
+                    <linearGradient id="aether-mid-cloak" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#2c1840;stop-opacity:1" />
+                        <stop offset="55%" style="stop-color:#120822;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
+                    </linearGradient>
+                    <radialGradient id="aether-mid-core" cx="50%" cy="45%" r="55%">
+                        <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                        <stop offset="32%" style="stop-color:#4dd0c4;stop-opacity:1" />
+                        <stop offset="70%" style="stop-color:#b8963a;stop-opacity:.85" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:0" />
+                    </radialGradient>
+                    <linearGradient id="aether-mid-wing" x1="10%" y1="0%" x2="95%" y2="95%">
+                        <stop offset="0%" style="stop-color:#503468;stop-opacity:.95" />
+                        <stop offset="45%" style="stop-color:#05010c;stop-opacity:.92" />
+                        <stop offset="82%" style="stop-color:#2c1840;stop-opacity:.9" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:.98" />
+                    </linearGradient>
+                    <linearGradient id="aether-mid-blade" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#4dd0c4;stop-opacity:.9" />
+                        <stop offset="55%" style="stop-color:#503468;stop-opacity:.75" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:.95" />
+                    </linearGradient>
+                    <radialGradient id="aether-mid-iris" cx="40%" cy="35%" r="65%">
+                        <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
+                        <stop offset="55%" style="stop-color:#4dd0c4;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
+                    </radialGradient>
+                    <radialGradient id="aether-mid-aura" cx="50%" cy="52%" r="70%">
+                        <stop offset="0%" style="stop-color:#4dd0c4;stop-opacity:.2" />
+                        <stop offset="45%" style="stop-color:#503468;stop-opacity:.1" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:0" />
+                    </radialGradient>
+                    <linearGradient id="aether-mid-goldrim" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#b8963a;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#2c1840;stop-opacity:1" />
+                    </linearGradient>
+                    <filter id="aether-mid-glow" x="-80%" y="-80%" width="260%" height="260%">
+                        <feGaussianBlur stdDeviation="1.1" result="b"/>
+                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
                     </defs>
-                        <ellipse cx="50" cy="96" rx="28" ry="4.2" fill="#05010c" opacity="0.42"/>
-                        <g class="tm-aether-fx " data-fx="sparks" opacity="0">
-                            <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#b8963a"/>
-                            <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#c62828"/>
-                            <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#4a148c"/>
-                            <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#b8963a"/>
-                            <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#c62828"/>
-                            <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#4a148c"/>
-                            <circle class="tm-aether-spark" cx="28" cy="8" r="1.35" fill="#b8963a"/>
-                            <circle class="tm-aether-spark" cx="72" cy="6" r="1" fill="#c62828"/>
-                            <circle class="tm-aether-spark" cx="4" cy="58" r="1.8" fill="#4a148c"/>
-                            <circle class="tm-aether-spark" cx="96" cy="56" r="1" fill="#b8963a"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="corona" opacity="0">
-                            <ellipse class="tm-aether-corona" cx="50" cy="56" rx="42.9" ry="34.1" fill="url(#aether-mid-corona)"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="aura" opacity="0">
-                            <ellipse class="tm-aether-aura" cx="50" cy="54" rx="55.0" ry="45.1" fill="url(#aether-mid-aura)"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="haze" opacity="0">
-                            <g class="tm-aether-haze">
-                            <ellipse class="tm-aether-haze-blob" cx="50" cy="58" rx="57.8" ry="49.5" fill="url(#aether-mid-aura)" opacity="0.18"/>
-                            <ellipse class="tm-aether-haze-blob" cx="42" cy="50" rx="24.8" ry="38.5" fill="#c62828" opacity="0.06"/>
-                            <ellipse class="tm-aether-haze-blob" cx="58" cy="52" rx="22.0" ry="35.8" fill="#b8963a" opacity="0.05"/>
-                            </g>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="aura-outer" opacity="0">
-                            <ellipse class="tm-aether-aura-outer" cx="50" cy="56" rx="72.6" ry="59.4" fill="url(#aether-mid-aura2)"/>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
-                            <ellipse class="tm-aether-beam-glow" cx="50" cy="28" rx="7" ry="22" fill="url(#aether-mid-beam)" opacity="0.55"/>
-                            <ellipse class="tm-aether-beam-glow" cx="32" cy="40" rx="10" ry="16" fill="url(#aether-mid-beam)" opacity="0.35" transform="rotate(-28 32 40)"/>
-                            <ellipse class="tm-aether-beam-glow" cx="68" cy="40" rx="10" ry="16" fill="url(#aether-mid-beam)" opacity="0.35" transform="rotate(28 68 40)"/>
-                            <ellipse class="tm-aether-beam-glow" cx="28" cy="58" rx="12" ry="10" fill="url(#aether-mid-beam)" opacity="0.28" transform="rotate(-55 28 58)"/>
-                            <ellipse class="tm-aether-beam-glow" cx="72" cy="58" rx="12" ry="10" fill="url(#aether-mid-beam)" opacity="0.28" transform="rotate(55 72 58)"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="sigil" opacity="0">
-                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="21" ry="6.25" fill="url(#aether-mid-sigil)" opacity="0.85"/>
-                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="12.5" ry="3.15" fill="#b8963a" opacity="0.18"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="fracture" opacity="0">
-                            <g class="tm-aether-ground-fracture">
-                            <ellipse cx="50" cy="95" rx="23" ry="4.5" fill="url(#aether-mid-sigil)" opacity="0.35"/>
-                            <ellipse cx="40" cy="96" rx="8" ry="2.5" fill="#c62828" opacity="0.12"/>
-                            <ellipse cx="60" cy="96" rx="8" ry="2.5" fill="#b8963a" opacity="0.1"/>
-                            <ellipse cx="50" cy="97" rx="22" ry="3" fill="#4a148c" opacity="0.08"/>
-                            </g>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="42" ry="17" fill="url(#aether-mid-aura)" opacity="0.28"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="31" ry="19" fill="url(#aether-mid-aura2)" opacity="0.22" transform="rotate(32 50 52)"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="27" ry="19.75" fill="url(#aether-mid-corona)" opacity="0.18" transform="rotate(-18 50 52)"/>
-                            <circle class="tm-aether-orbit-node" cx="83" cy="52" r="3.2" fill="#b8963a" opacity="0.35"/>
-                            <circle class="tm-aether-orbit-node" cx="29.700000000000003" cy="42.925" r="2.6" fill="#c62828" opacity="0.3"/>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-runes" data-fx="runes" opacity="0">
-                            <circle class="tm-aether-rune-ring" cx="50" cy="54" r="17" fill="url(#aether-mid-corona)" opacity="0.32"/>
-                            <circle class="tm-aether-rune-ring" cx="50" cy="54" r="9.5" fill="#b8963a" opacity="0.08"/>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-ribbons" data-fx="ribbons" opacity="0">
-                            <ellipse class="tm-aether-ribbon" cx="22" cy="44" rx="14" ry="8" fill="#c62828" opacity="0.14" transform="rotate(-25 22 44)"/>
-                            <ellipse class="tm-aether-ribbon" cx="78" cy="44" rx="14" ry="8" fill="#b8963a" opacity="0.14" transform="rotate(25 78 44)"/>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-shards" data-fx="shards" opacity="0">
-                            <circle class="tm-aether-shard" cx="16" cy="42" r="4.5" fill="#c62828" opacity="0.35"/>
-                            <circle class="tm-aether-shard" cx="84" cy="42" r="4.5" fill="#b8963a" opacity="0.35"/>
-                            <circle class="tm-aether-shard" cx="24" cy="66" r="3.5" fill="#4a148c" opacity="0.28"/>
-                            <circle class="tm-aether-shard" cx="76" cy="66" r="3.5" fill="#c62828" opacity="0.28"/>
-                        </g>
-                        <g class="tm-aether-ghost-wing-left" opacity="0.28" transform="translate(-4 3) scale(1.1)">
-                            <path d="M 32 48 L 8 16 L -4 28 L 2 52 L 14 62 L 28 52 Z" fill="url(#aether-mid-wingveil)" stroke="#c62828" stroke-width="0.6"/>
-                        </g>
-                        <g class="tm-aether-ghost-wing-right" opacity="0.28" transform="translate(4 3) scale(1.1)">
-                            <path d="M 68 48 L 92 16 L 104 28 L 98 52 L 86 62 L 72 52 Z" fill="url(#aether-mid-wingveil)" stroke="#b8963a" stroke-width="0.6"/>
-                        </g>
-                        <g class="tm-animate-wing-left" transform="translate(50 52) scale(0.94) translate(-50 -52)">
-                            <path d="M 32 48 L 10 8 L -4 14 L 2 30 L -10 38 L -2 50 L -12 58 L -2 70 L 12 74 L 24 64 L 30 52 Z" class="tm-aether-wing-membrane" fill="url(#aether-mid-wing)" stroke="#120208" stroke-width="1.3"/>
-                            <path d="M 28 48 L 10 22 L 2 36 L 6 54 L 20 58 Z" fill="url(#aether-mid-wing2)" opacity="0.7"/>
-                            <path d="M 26 50 L 14 40 L 10 52 L 18 56 Z" fill="url(#aether-mid-plate)" stroke="#120208" stroke-width="0.7" opacity="0.8"/>
-                            <path d="M 30 44 L 12 12 L -2 16" fill="none" stroke="#120208" stroke-width="1.25" opacity="0.65"/>
-                            <path d="M 28 50 L 10 38 L -8 42" fill="none" stroke="#120208" stroke-width="1.05" opacity="0.55"/>
-                            <path d="M 26 56 L 10 56 L -8 62" fill="none" stroke="#120208" stroke-width="0.9" opacity="0.45"/>
-                            <path class="tm-aether-wing-vein" d="M 30 44 L 12 12 L -2 14" fill="none" stroke="#c62828" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
-                            <path class="tm-aether-wing-vein" d="M 28 50 L 10 40 L -8 42" fill="none" stroke="#b8963a" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.35s"/>
-                            <path class="tm-aether-wing-vein" d="M 26 56 L 8 58 L -6 64" fill="none" stroke="#b8963a" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.7s"/>
-                            <path class="tm-aether-wing-crack" d="M 18 24 L 12 34 L 18 44" fill="none" stroke="#c62828" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.1s"/>
-                            <path class="tm-aether-wing-crack" d="M 14 46 L 4 50 L 10 60" fill="none" stroke="#4a148c" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.45s"/>
-                            <path class="tm-aether-wing-crack" d="M 8 28 L 0 36 L 6 46" fill="none" stroke="#b8963a" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.85s"/>
-                            <path class="tm-aether-wing-claw" d="M -4 12 L -7 7 L -3 10 Z" fill="#c62828" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M -10 36 L -13 31 L -9 34 Z" fill="#b8963a" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M -12 56 L -15 51 L -11 54 Z" fill="#b8963a" opacity="0.9"/>
-                        </g>
-                        <g class="tm-animate-wing-right" transform="translate(50 52) scale(1.14) translate(-50 -52)">
-                            <path d="M 68 48 L 90 8 L 104 14 L 98 30 L 110 38 L 102 50 L 112 58 L 102 70 L 88 74 L 76 64 L 70 52 Z" class="tm-aether-wing-membrane" fill="url(#aether-mid-wing)" stroke="#120208" stroke-width="1.3"/>
-                            <path d="M 72 48 L 90 22 L 98 36 L 94 54 L 80 58 Z" fill="url(#aether-mid-wing2)" opacity="0.7"/>
-                            <path d="M 74 50 L 86 40 L 90 52 L 82 56 Z" fill="url(#aether-mid-plate)" stroke="#120208" stroke-width="0.7" opacity="0.8"/>
-                            <path d="M 70 44 L 88 12 L 102 16" fill="none" stroke="#120208" stroke-width="1.25" opacity="0.65"/>
-                            <path d="M 72 50 L 90 38 L 108 42" fill="none" stroke="#120208" stroke-width="1.05" opacity="0.55"/>
-                            <path d="M 74 56 L 90 56 L 108 62" fill="none" stroke="#120208" stroke-width="0.9" opacity="0.45"/>
-                            <path class="tm-aether-wing-vein" d="M 70 44 L 88 12 L 102 14" fill="none" stroke="#b8963a" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
-                            <path class="tm-aether-wing-vein" d="M 72 50 L 90 40 L 108 42" fill="none" stroke="#b8963a" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.35s"/>
-                            <path class="tm-aether-wing-vein" d="M 74 56 L 92 58 L 106 64" fill="none" stroke="#c62828" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.7s"/>
-                            <path class="tm-aether-wing-crack" d="M 82 24 L 88 34 L 82 44" fill="none" stroke="#b8963a" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.1s"/>
-                            <path class="tm-aether-wing-crack" d="M 86 46 L 96 50 L 90 60" fill="none" stroke="#4a148c" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.45s"/>
-                            <path class="tm-aether-wing-crack" d="M 92 28 L 100 36 L 94 46" fill="none" stroke="#b8963a" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.85s"/>
-                            <path class="tm-aether-wing-claw" d="M 104 12 L 107 7 L 103 10 Z" fill="#b8963a" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M 110 36 L 113 31 L 109 34 Z" fill="#c62828" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M 112 56 L 115 51 L 111 54 Z" fill="#b8963a" opacity="0.9"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 58 70 L 84 82 L 90 58 L 78 74 L 62 68 Z" fill="url(#aether-mid-tail)" stroke="#120208" stroke-width="1.1"/>
-                            <path d="M 72 74 L 86 88" stroke="#b8963a" stroke-width="0.8" opacity="0.4"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Armored wider torso -->
-                            <path d="M 34 42 Q 32 66 38 80 L 62 80 Q 68 66 66 42 Q 58 32 50 30 Q 42 32 34 42 Z" fill="url(#aether-mid-body)" stroke="#120208" stroke-width="1.7"/>
-                            <path d="M 40 44 L 40 72 L 60 72 L 60 44 Z" fill="url(#aether-mid-plate)" opacity="0.55"/>
-                            <ellipse cx="50" cy="58" rx="8" ry="12" fill="url(#aether-mid-belly)"/>
-                            <circle class="tm-aether-core" cx="50" cy="54" r="6.5" fill="url(#aether-mid-core)"/>
-                        <g class="tm-aether-rune-tattoos" opacity="0.4">
-                            <circle class="tm-aether-rune-glyph" cx="45" cy="52" r="2.2" fill="#c62828" opacity="0.45"/>
-                            <circle class="tm-aether-rune-glyph" cx="55" cy="52" r="2.2" fill="#b8963a" opacity="0.45"/>
-                            <ellipse class="tm-aether-rune-glyph" cx="50" cy="50" rx="1.5" ry="6" fill="#4a148c" opacity="0.25"/>
-                            <circle class="tm-aether-rune-glyph" cx="46" cy="60" r="1.8" fill="#c62828" opacity="0.3"/>
-                            <circle class="tm-aether-rune-glyph" cx="54" cy="60" r="1.8" fill="#b8963a" opacity="0.3"/>
-                            <ellipse class="tm-aether-rune-glyph" cx="50" cy="54" rx="8" ry="2.2" fill="#c9a227" opacity="0.18"/>
-                        </g>
-                            <!-- Heavier head -->
-                            <ellipse cx="50" cy="22" rx="13" ry="13.5" fill="url(#aether-mid-body)" stroke="#120208" stroke-width="1.55"/>
-                        </g>
-                        <g class="tm-aether-regalia">
-                            <circle class="tm-aether-eclipse" cx="50" cy="20" r="17" fill="#05010c" opacity="0.5"/>
-                            <circle class="tm-aether-eclipse" cx="50" cy="20" r="17" fill="none" stroke="#b8963a" stroke-width="1.5" opacity="0.6"/>
-                            <circle class="tm-aether-eclipse" cx="55" cy="18" r="12" fill="url(#aether-mid-aura)" opacity="0.4"/>
-                            <g class="tm-aether-crown-constellation">
-                            <circle class="tm-aether-crown-star" cx="40" cy="4" r="1.1" fill="#b8963a"/>
-                            <circle class="tm-aether-crown-star" cx="50" cy="-2" r="1.5" fill="#c62828"/>
-                            <circle class="tm-aether-crown-star" cx="60" cy="4" r="1.1" fill="#b8963a"/>
-                            <circle class="tm-aether-crown-star" cx="34" cy="10" r="0.75" fill="#4a148c"/>
-                            <circle class="tm-aether-crown-star" cx="66" cy="10" r="0.75" fill="#4a148c"/>
-                            </g>
-                            <path d="M 38 14 L 26 0" stroke="#b8963a" stroke-width="2.4" stroke-linecap="round"/>
-                            <path d="M 62 14 L 78 2" stroke="#b8963a" stroke-width="2.1" stroke-linecap="round" opacity="0.75"/>
-                            <path d="M 44 8 L 50 0 L 56 8" fill="#05010c" stroke="#b8963a" stroke-width="1"/>
-                            <circle cx="26" cy="0" r="1.7" fill="#b8963a"/>
-                        </g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 34 50 L 16 56 L 18 72 L 34 62 Z" fill="url(#aether-mid-body)" stroke="#120208" stroke-width="1.25"/>
-                            <path d="M 20 60 L 18 70" stroke="#b8963a" stroke-width="1.2"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 66 50 L 84 56 L 82 72 L 66 62 Z" fill="url(#aether-mid-body)" stroke="#120208" stroke-width="1.25"/>
-                            <path d="M 80 60 L 82 70" stroke="#b8963a" stroke-width="1.2"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 42 80 L 36 94 L 48 94 Z" fill="url(#aether-mid-body)" stroke="#120208" stroke-width="1.25"/>
-                            <rect x="36" y="90" width="12" height="3" rx="1" fill="url(#aether-mid-plate)" opacity="0.7"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 58 80 L 52 94 L 64 94 Z" fill="url(#aether-mid-body)" stroke="#120208" stroke-width="1.25"/>
-                            <rect x="52" y="90" width="12" height="3" rx="1" fill="url(#aether-mid-plate)" opacity="0.7"/>
-                        </g>
-                        <g class="tm-mascot-eye-open tm-aether-eyes tm-aether-eyes-eclipse">
-                            <ellipse cx="41" cy="20" rx="7.0" ry="7.5" fill="#c62828" opacity="0.12"/>
-                            <ellipse cx="59" cy="20" rx="7.0" ry="7.5" fill="#b8963a" opacity="0.1"/>
-                            <ellipse class="tm-aether-eye-sclera" cx="41" cy="20" rx="4.5" ry="5.8" fill="#f0e4e4" stroke="#120208" stroke-width="1.35" opacity="0.92"/>
-                            <ellipse class="tm-aether-eye-sclera" cx="59" cy="20" rx="4.5" ry="5.8" fill="#f0e4e4" stroke="#120208" stroke-width="1.35" opacity="0.92"/>
-                            <ellipse class="tm-aether-iris" cx="41" cy="20" rx="2.5" ry="3.2" fill="url(#aether-mid-iris)"/>
-                            <ellipse class="tm-aether-iris" cx="59" cy="20" rx="2.5" ry="3.2" fill="url(#aether-mid-iris)"/>
-                            <circle class="tm-aether-eclipse-pupil" cx="41" cy="20" r="2.1" fill="#05010c"/>
-                            <path class="tm-aether-eclipse-crescent" d="M 40.62875 17.767 A 1.36125 1.7545000000000002 0 1 1 40.62875 22.233" fill="#b8963a" opacity="0.85"/>
-                            <circle class="tm-aether-eclipse-pupil" cx="59" cy="20" r="2.1" fill="#05010c"/>
-                            <path class="tm-aether-eclipse-crescent" d="M 59.37125 17.767 A 1.36125 1.7545000000000002 0 1 0 59.37125 22.233" fill="#c62828" opacity="0.75"/>
-                            <line x1="37.2" y1="15.1" x2="43.9" y2="17.1" stroke="#120208" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
-                            <line x1="62.8" y1="15.1" x2="56.1" y2="17.1" stroke="#120208" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 36.5 20 L 45.5 20" stroke="#120208" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                            <path d="M 54.5 20 L 63.5 20" stroke="#120208" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45 32 Q 50 34.0 55 32" stroke="#120208" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 34.0 Q 50 31.0 55 34.0" stroke="#120208" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="50" cy="96" rx="22" ry="4" fill="#05010c" opacity="0.35"/>
+                    <g class="tm-aether-fx " data-fx="aura" opacity="0">
+                    <ellipse class="tm-aether-aura" cx="50" cy="52" rx="38" ry="34" fill="url(#aether-mid-aura)"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="aura-outer" opacity="0">
+                    <ellipse class="tm-aether-aura-outer" cx="50" cy="52" rx="46" ry="42" fill="none" stroke="#503468" stroke-width="1.6" opacity="0.3"/>
+                    <ellipse class="tm-aether-aura-outer" cx="50" cy="52" rx="43" ry="39" fill="url(#aether-mid-aura)" opacity="0.5"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="corona" opacity="0">
+                    <circle class="tm-aether-corona" cx="50" cy="50" r="30" fill="none" stroke="#4dd0c4" stroke-width="0.8" opacity="0.5" stroke-dasharray="3 4"/>
+                    <circle class="tm-aether-corona" cx="50" cy="50" r="36" fill="none" stroke="#b8963a" stroke-width="0.5" opacity="0.35" stroke-dasharray="1.5 5"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="haze" opacity="0">
+                    <g class="tm-aether-haze">
+                        <ellipse class="tm-aether-haze-blob" cx="30" cy="40" rx="12" ry="7" fill="#503468" opacity="0.2"/>
+                        <ellipse class="tm-aether-haze-blob" cx="68" cy="58" rx="14" ry="8" fill="#4dd0c4" opacity="0.14"/>
+                        <ellipse class="tm-aether-haze-blob" cx="50" cy="26" rx="10" ry="6" fill="#b8963a" opacity="0.12"/>
+                    </g>
+                    </g>
+                    <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
+                    <path class="tm-aether-beam-glow" d="M 46 6 L 54 6 L 52 46 L 48 46 Z" fill="#b8963a" opacity="0.18"/>
+                    <path d="M 30 12 L 34 12 L 33 44 L 31 44 Z" fill="#4dd0c4" opacity="0.14"/>
+                    <path d="M 66 12 L 70 12 L 69 44 L 67 44 Z" fill="#4dd0c4" opacity="0.14"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="sigil" opacity="0">
+                    <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="22" ry="4.5" fill="none" stroke="#4dd0c4" stroke-width="0.8" opacity="0.6"/>
+                    <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="15" ry="3" fill="none" stroke="#b8963a" stroke-width="0.5" opacity="0.5" stroke-dasharray="2 2"/>
+                    <path class="tm-aether-sigil" d="M 50 90 L 54 94 L 50 98 L 46 94 Z" fill="none" stroke="#8a6aa8" stroke-width="0.5" opacity="0.55"/>
+                    </g>
+                    <g class="tm-aether-fx tm-aether-runes" data-fx="runes" opacity="0">
+                    <circle class="tm-aether-rune-ring" cx="50" cy="54" r="30" fill="none" stroke="#b8963a" stroke-width="0.6" opacity="0.55" stroke-dasharray="4 3"/>
+                    <path d="M 48.6 26.4 L 51.4 26.4 L 50 29.8 Z M 50 26.4 L 50 29.8" fill="none" stroke="#b8963a" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 77.13 44.37 L 79.93 44.37 L 78.53 47.77 Z M 78.53 44.37 L 78.53 47.77" fill="none" stroke="#b8963a" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 66.23 73.43 L 69.03 73.43 L 67.63 76.83 Z M 67.63 73.43 L 67.63 76.83" fill="none" stroke="#b8963a" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 30.97 73.43 L 33.77 73.43 L 32.37 76.83 Z M 32.37 73.43 L 32.37 76.83" fill="none" stroke="#b8963a" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 20.07 44.37 L 22.87 44.37 L 21.47 47.77 Z M 21.47 44.37 L 21.47 47.77" fill="none" stroke="#b8963a" stroke-width="0.5" opacity="0.7"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="fracture" opacity="0">
+                    <g class="tm-aether-ground-fracture">
+                        <path d="M 50 93 L 38 95 L 30 99" fill="none" stroke="#4dd0c4" stroke-width="0.7" stroke-dasharray="2 1.4" opacity="0.7"/>
+                        <path d="M 50 93 L 62 96 L 72 99" fill="none" stroke="#b8963a" stroke-width="0.6" stroke-dasharray="1.8 1.2" opacity="0.65"/>
+                        <path d="M 50 93 L 48 98" fill="none" stroke="#8a6aa8" stroke-width="0.5" stroke-dasharray="1.2 1" opacity="0.55"/>
+                    </g>
+                    </g>
+                    <g class="tm-aether-regalia">
+                    <circle class="tm-aether-eclipse" cx="50" cy="22" r="17" fill="#05010c" opacity="0.6"/>
+                    <circle class="tm-aether-eclipse" cx="50" cy="22" r="17" fill="none" stroke="#b8963a" stroke-width="1.4" opacity="0.75"/>
+                    <circle class="tm-aether-eclipse" cx="50" cy="22" r="20" fill="none" stroke="#c62828" stroke-width="0.6" opacity="0.4" stroke-dasharray="1 3"/>
+                    <g class="tm-aether-crown-constellation">
+                        <line x1="38" y1="8" x2="44" y2="4.82" stroke="#b8963a" stroke-width="0.35" opacity="0.5"/>
+                        <line x1="44" y1="4.82" x2="50" y2="3.5" stroke="#b8963a" stroke-width="0.35" opacity="0.5"/>
+                        <line x1="50" y1="3.5" x2="56" y2="4.82" stroke="#b8963a" stroke-width="0.35" opacity="0.5"/>
+                        <line x1="56" y1="4.82" x2="62" y2="8" stroke="#b8963a" stroke-width="0.35" opacity="0.5"/>
+                        <circle class="tm-aether-crown-star" cx="38" cy="8" r="0.94" fill="#b8963a"/>
+                        <circle class="tm-aether-crown-star" cx="44" cy="4.82" r="1.21" fill="#4dd0c4"/>
+                        <circle class="tm-aether-crown-star" cx="50" cy="3.5" r="1.5" fill="#b8963a"/>
+                        <circle class="tm-aether-crown-star" cx="56" cy="4.82" r="1.2" fill="#4dd0c4"/>
+                        <circle class="tm-aether-crown-star" cx="62" cy="8" r="1.27" fill="#b8963a"/>
+                    </g>
+                    </g>
+                    <g class="tm-aether-ghost-wing-left" opacity="0.28" transform="translate(-5 4) scale(1.12)">
+                    <path class="tm-aether-wing-membrane" d="M 35 44 C 23.3 20.92 12.12 19.88 9 25.08 C 11.08 32.88 12.12 49.72 13.68 52.84 C 21.48 54.92 27.72 48.68 35 44 Z" fill="url(#aether-mid-wing)" stroke="#241236" stroke-width="0.8"/>
+                    <path d="M 34.02 42.93 Q 26.26 40.68 18.29 39.01 Q 24.4 42.02 32.86 46.11 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 33.33 42.83 Q 21.5 44.12 9.71 46.01 Q 19.72 46.13 33.55 46.21 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 32.67 43.02 Q 22.34 48.93 12.29 55.39 Q 21.51 51.48 34.21 46.02 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 32.13 43.45 Q 27.46 50.04 23.25 57.01 Q 28.11 52.24 34.75 45.59 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <circle cx="26.32" cy="43.44" r="0.29" fill="#b8963a" opacity="0.8"/>
+                    <circle cx="20.6" cy="45.43" r="0.56" fill="#b8963a" opacity="0.53"/>
+                    <circle cx="16.05" cy="40.59" r="0.54" fill="#b8963a" opacity="0.66"/>
+                    <path class="tm-aether-wing-vein" d="M 35 44 C 24.6 23 12.9 21.96 9 25.08" fill="none" stroke="#4dd0c4" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-claw" d="M 9 25.08 L 6.4 21.68 L 10.4 24.08 Z" fill="#4dd0c4" opacity="0.95"/>
+                    </g>
+                    <g class="tm-aether-ghost-wing-right" opacity="0.28" transform="translate(5 4) scale(1.12)">
+                    <g transform="translate(100,0) scale(-1,1)">
+                    <path class="tm-aether-wing-membrane" d="M 35 44 C 23.3 20.92 12.12 19.88 9 25.08 C 11.08 32.88 12.12 49.72 13.68 52.84 C 21.48 54.92 27.72 48.68 35 44 Z" fill="url(#aether-mid-wing)" stroke="#241236" stroke-width="0.8"/>
+                    <path d="M 34.02 42.93 Q 26.26 40.68 18.29 39.01 Q 24.4 42.02 32.86 46.11 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 33.33 42.83 Q 21.5 44.12 9.71 46.01 Q 19.72 46.13 33.55 46.21 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 32.67 43.02 Q 22.34 48.93 12.29 55.39 Q 21.51 51.48 34.21 46.02 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 32.13 43.45 Q 27.46 50.04 23.25 57.01 Q 28.11 52.24 34.75 45.59 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <circle cx="26.32" cy="43.44" r="0.29" fill="#b8963a" opacity="0.8"/>
+                    <circle cx="20.6" cy="45.43" r="0.56" fill="#b8963a" opacity="0.53"/>
+                    <circle cx="16.05" cy="40.59" r="0.54" fill="#b8963a" opacity="0.66"/>
+                    <path class="tm-aether-wing-vein" d="M 35 44 C 24.6 23 12.9 21.96 9 25.08" fill="none" stroke="#4dd0c4" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-claw" d="M 9 25.08 L 6.4 21.68 L 10.4 24.08 Z" fill="#4dd0c4" opacity="0.95"/>
+                    </g>
+                    </g>
+                    <g class="tm-animate-wing-left">
+                    <path class="tm-aether-wing-membrane" d="M 35 44 C 19.7 16.28 5.08 14.92 1 21.72 C 3.72 31.92 5.08 51.48 7.12 55.56 C 17.32 58.28 25.48 50.12 35 44 Z" fill="url(#aether-mid-wing)" stroke="#241236" stroke-width="0.8"/>
+                    <path d="M 33.72 42.6 Q 23.57 39.66 13.15 37.47 Q 21.14 41.41 32.2 46.76 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 33.18 42.48 Q 19.25 41.77 5.23 41.84 Q 16.78 44 32.74 46.88 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 32.64 42.49 Q 16.87 45.51 1.22 49.32 Q 14.69 48.33 33.28 46.87 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 32.11 42.64 Q 17.57 49.42 3.32 56.94 Q 16.14 52.69 33.81 46.72 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 31.64 42.91 Q 20.88 51.79 10.59 61.32 Q 20.57 55.11 34.28 46.45 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 31.25 43.28 Q 25.13 51.9 19.64 61.02 Q 25.99 54.77 34.67 46.08 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <circle cx="9.85" cy="45.09" r="0.31" fill="#b8963a" opacity="0.52"/>
+                    <circle cx="19.74" cy="41.65" r="0.46" fill="#b8963a" opacity="0.56"/>
+                    <circle cx="10.4" cy="46" r="0.36" fill="#b8963a" opacity="0.7"/>
+                    <circle cx="11.92" cy="45.19" r="0.49" fill="#b8963a" opacity="0.63"/>
+                    <path class="tm-aether-wing-vein" d="M 35 44 C 21.4 19 6.1 17.64 1 21.72" fill="none" stroke="#4dd0c4" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-crack" d="M 24.8 40.6 L 18.68 45.36 L 13.92 41.28" fill="none" stroke="#b8963a" stroke-width="0.6" stroke-dasharray="1.6 1.2" opacity="0.75"/>
+                    <path class="tm-aether-wing-claw" d="M 1 21.72 L -1.6 18.32 L 2.4 20.72 Z" fill="#4dd0c4" opacity="0.95"/>
+                    </g>
+                    <g class="tm-animate-wing-right">
+                    <g transform="translate(100,0) scale(-1,1)">
+                    <path class="tm-aether-wing-membrane" d="M 35 44 C 19.7 16.28 5.08 14.92 1 21.72 C 3.72 31.92 5.08 51.48 7.12 55.56 C 17.32 58.28 25.48 50.12 35 44 Z" fill="url(#aether-mid-wing)" stroke="#241236" stroke-width="0.8"/>
+                    <path d="M 33.72 42.6 Q 23.57 39.66 13.15 37.47 Q 21.14 41.41 32.2 46.76 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 33.18 42.48 Q 19.25 41.77 5.23 41.84 Q 16.78 44 32.74 46.88 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 32.64 42.49 Q 16.87 45.51 1.22 49.32 Q 14.69 48.33 33.28 46.87 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 32.11 42.64 Q 17.57 49.42 3.32 56.94 Q 16.14 52.69 33.81 46.72 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 31.64 42.91 Q 20.88 51.79 10.59 61.32 Q 20.57 55.11 34.28 46.45 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <path d="M 31.25 43.28 Q 25.13 51.9 19.64 61.02 Q 25.99 54.77 34.67 46.08 Z" fill="url(#aether-mid-blade)" opacity="0.85"/>
+                    <circle cx="13.84" cy="46.36" r="0.46" fill="#b8963a" opacity="0.4"/>
+                    <circle cx="25.58" cy="34.97" r="0.3" fill="#b8963a" opacity="0.57"/>
+                    <circle cx="20.6" cy="32.41" r="0.45" fill="#b8963a" opacity="0.82"/>
+                    <circle cx="23.15" cy="35.95" r="0.54" fill="#b8963a" opacity="0.65"/>
+                    <path class="tm-aether-wing-vein" d="M 35 44 C 21.4 19 6.1 17.64 1 21.72" fill="none" stroke="#4dd0c4" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-crack" d="M 24.8 40.6 L 18.68 45.36 L 13.92 41.28" fill="none" stroke="#b8963a" stroke-width="0.6" stroke-dasharray="1.6 1.2" opacity="0.75"/>
+                    <path class="tm-aether-wing-claw" d="M 1 21.72 L -1.6 18.32 L 2.4 20.72 Z" fill="#4dd0c4" opacity="0.95"/>
+                    </g>
+                    </g>
+                    <g class="tm-animate-tail">
+                    <path d="M 50 82 C 58 87 61 94 57 99 C 54 94 50 90 45 87 Z" fill="url(#aether-mid-cloak)" stroke="#241236" stroke-width="0.7" opacity="0.85"/>
+                    </g>
+                    <g class="tm-animate-body">
+                    <path d="M 50 10 L 57 16 L 64 22 L 62 34 L 69 42 L 66 62 L 72 86 L 59 80 L 50 90 L 41 80 L 28 86 L 34 62 L 31 42 L 38 34 L 36 22 L 43 16 Z" fill="url(#aether-mid-body)" stroke="#241236" stroke-width="1.4"/>
+                    <path d="M 50 16 L 55 21 L 59 26 L 58 36 L 62 44 L 60 62 L 63 78 L 50 71 L 37 78 L 40 62 L 38 44 L 42 36 L 41 26 L 45 21 Z" fill="url(#aether-mid-cloak)" opacity="0.72"/>
+                    <line x1="43" y1="42" x2="48" y2="48" stroke="#c62828" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="48" y1="48" x2="45" y2="56" stroke="#c62828" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="45" y1="56" x2="51" y2="62" stroke="#c62828" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="51" y1="62" x2="57" y2="55" stroke="#c62828" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="57" y1="55" x2="54" y2="47" stroke="#c62828" stroke-width="0.3" opacity="0.4"/>
+                    <circle cx="43" cy="42" r="0.54" fill="#c62828" opacity="0.9"/>
+                    <circle cx="48" cy="48" r="0.55" fill="#c62828" opacity="0.9"/>
+                    <circle cx="45" cy="56" r="0.94" fill="#c62828" opacity="0.9"/>
+                    <circle cx="51" cy="62" r="0.57" fill="#c62828" opacity="0.9"/>
+                    <circle cx="57" cy="55" r="0.77" fill="#c62828" opacity="0.9"/>
+                    <circle cx="54" cy="47" r="0.74" fill="#c62828" opacity="0.9"/>
+                    <circle cx="55.17" cy="59.24" r="0.27" fill="#b8963a" opacity="0.67"/>
+                    <circle cx="44.03" cy="61.86" r="0.41" fill="#b8963a" opacity="0.6"/>
+                    <circle cx="44.33" cy="61.95" r="0.64" fill="#b8963a" opacity="0.79"/>
+                    <circle cx="53.62" cy="63.45" r="0.68" fill="#b8963a" opacity="0.8"/>
+                    <circle cx="47.27" cy="50.37" r="0.4" fill="#b8963a" opacity="0.4"/>
+                    <circle cx="43.96" cy="48.84" r="0.53" fill="#b8963a" opacity="0.36"/>
+                    <circle cx="46.36" cy="39.4" r="0.55" fill="#b8963a" opacity="0.61"/>
+                    <circle cx="49.04" cy="40.53" r="0.41" fill="#b8963a" opacity="0.41"/>
+                    <path d="M 39 28 C 31 20 21 20 15 27 C 20 25 25 28 28 26 C 31 30 35 33 38 36 Z" fill="url(#aether-mid-cloak)" stroke="#b8963a" stroke-width="0.7"/>
+                    <path d="M 61 28 C 69 20 79 20 85 27 C 80 25 75 28 72 26 C 69 30 65 33 62 36 Z" fill="url(#aether-mid-cloak)" stroke="#b8963a" stroke-width="0.7"/>
+                    <path d="M 24 24 L 21 18 L 27 22 Z" fill="#c62828" opacity="0.75"/>
+                    <path d="M 76 24 L 79 18 L 73 22 Z" fill="#c62828" opacity="0.75"/>
+                    <path d="M 44 64 L 56 64 L 54 69 L 46 69 Z" fill="url(#aether-mid-goldrim)" opacity="0.8"/>
+                    <g class="tm-aether-rune-tattoos">
+                        <path class="tm-aether-rune-glyph" d="M 44 56 l 1.6 -2 l 1.6 2 l -1.6 2 Z" fill="none" stroke="#4dd0c4" stroke-width="0.5" opacity="0.8"/>
+                        <path class="tm-aether-rune-glyph" d="M 54.5 55 v 3.4 m -1.4 -1.7 h 2.8" fill="none" stroke="#b8963a" stroke-width="0.5" opacity="0.8"/>
+                        <path class="tm-aether-rune-glyph" d="M 49 61 l 1.2 -2.2 l 1.2 2.2 Z" fill="none" stroke="#8a6aa8" stroke-width="0.5" opacity="0.75"/>
+                    </g>
+                    <circle class="tm-aether-core" cx="50" cy="42" r="4.6" fill="url(#aether-mid-core)" filter="url(#aether-mid-glow)"/>
+                    </g>
+                    <g class="tm-animate-arm-left">
+                    <path d="M 37 46 Q 26 52 23 66 L 28 62 L 27 70 L 33 64 Q 35 54 39 50 Z" fill="url(#aether-mid-body)" stroke="#241236" stroke-width="1"/>
+                    <path d="M 21 65 L 17 72 M 25 66 L 23 73 M 29 65 L 29 71" fill="none" stroke="#c62828" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
+                    </g>
+                    <g class="tm-animate-arm-right">
+                    <path d="M 63 46 Q 74 52 77 66 L 72 62 L 73 70 L 67 64 Q 65 54 61 50 Z" fill="url(#aether-mid-body)" stroke="#241236" stroke-width="1"/>
+                    <path d="M 79 65 L 83 72 M 75 66 L 77 73 M 71 65 L 71 71" fill="none" stroke="#c62828" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
+                    </g>
+                    <g class="tm-animate-leg-left">
+                    <path d="M 43 86 L 39 95 L 46 95 L 47 87 Z" fill="url(#aether-mid-cloak)" stroke="#241236" stroke-width="0.8"/>
+                    </g>
+                    <g class="tm-animate-leg-right">
+                    <path d="M 57 86 L 61 95 L 54 95 L 53 87 Z" fill="url(#aether-mid-cloak)" stroke="#241236" stroke-width="0.8"/>
+                    </g>
+                    <g class="tm-mascot-eye-open tm-aether-eyes tm-aether-eyes-eclipse">
+                    <ellipse class="tm-aether-eye-sclera" cx="44.6" cy="27" rx="3" ry="3.2" fill="#05010c" stroke="#241236" stroke-width="1.1" opacity="0.94"/>
+                    <ellipse class="tm-aether-eye-sclera" cx="55.4" cy="27" rx="3" ry="3.2" fill="#05010c" stroke="#241236" stroke-width="1.1" opacity="0.94"/>
+                    <ellipse class="tm-aether-iris" cx="44.6" cy="27" rx="2.4" ry="2.72" fill="url(#aether-mid-iris)" opacity="0.5"/>
+                    <ellipse class="tm-aether-iris" cx="55.4" cy="27" rx="2.4" ry="2.72" fill="url(#aether-mid-iris)" opacity="0.5"/>
+                    <circle class="tm-aether-eclipse-pupil" cx="44.6" cy="27" r="1.86" fill="#05010c"/>
+                    <path class="tm-aether-eclipse-crescent" d="M 44.24 25.21 A 1.26 1.76 0 1 1 44.24 28.79" fill="#b8963a" opacity="0.9"/>
+                    <circle class="tm-aether-eclipse-pupil" cx="55.4" cy="27" r="1.86" fill="#05010c"/>
+                    <path class="tm-aether-eclipse-crescent" d="M 55.76 25.21 A 1.26 1.76 0 1 0 55.76 28.79" fill="#c62828" opacity="0.8"/>
+                    <path d="M 41.6 23.44 L 47.6 26.84 L 47.6 22.8 L 41.6 22.8 Z" fill="url(#aether-mid-cloak)"/>
+                    <path d="M 58.4 23.44 L 52.4 26.84 L 52.4 22.8 L 58.4 22.8 Z" fill="url(#aether-mid-cloak)"/>
+                    <line x1="41" y1="23.28" x2="48" y2="26.94" stroke="#241236" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="59" y1="23.28" x2="52" y2="26.94" stroke="#241236" stroke-width="1.2" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                    <path d="M 41.6 27 Q 44.6 28.4 47.6 27" stroke="#241236" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path d="M 52.4 27 Q 55.4 28.4 58.4 27" stroke="#241236" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <path class="tm-mascot-mouth-happy" d="M 47.4 36 L 49.22 36.7 L 50.78 36.7 L 52.6 36" stroke="#241236" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.4 37.5 Q 50 35 52.6 37.5" stroke="#241236" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                    <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
+                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="32" ry="10" fill="none" stroke="#4dd0c4" stroke-width="0.55" opacity="0.5" transform="rotate(-14 50 52)"/>
+                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="36" ry="13" fill="none" stroke="#503468" stroke-width="0.45" opacity="0.4" transform="rotate(12 50 52)"/>
+                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="28" ry="8" fill="none" stroke="#b8963a" stroke-width="0.4" opacity="0.45" transform="rotate(-30 50 52)"/>
+                    <circle class="tm-aether-orbit-node" cx="18" cy="52" r="1.4" fill="#b8963a" opacity="0.9"/>
+                    <circle class="tm-aether-orbit-node" cx="82" cy="52" r="1.1" fill="#4dd0c4" opacity="0.9"/>
+                    <circle class="tm-aether-orbit-node" cx="50" cy="24" r="1.2" fill="#8a6aa8" opacity="0.85"/>
+                    </g>
+                    <g class="tm-aether-fx tm-aether-ribbons" data-fx="ribbons" opacity="0">
+                    <path class="tm-aether-ribbon" d="M 18 30 C 10 44 14 62 24 74 C 18 60 20 44 26 34 Z" fill="#4dd0c4" opacity="0.3"/>
+                    <path class="tm-aether-ribbon" d="M 82 30 C 90 44 86 62 76 74 C 82 60 80 44 74 34 Z" fill="#503468" opacity="0.3"/>
+                    <path class="tm-aether-ribbon" d="M 30 16 C 40 8 60 8 70 16 C 58 12 42 12 30 16 Z" fill="#b8963a" opacity="0.25"/>
+                    </g>
+                    <g class="tm-aether-fx tm-aether-shards" data-fx="shards" opacity="0">
+                    <path class="tm-aether-shard" d="M 16 34 L 20 30 L 21 37 Z" fill="#4dd0c4" opacity="0.8"/>
+                    <path class="tm-aether-shard" d="M 84 32 L 80 27 L 78 35 Z" fill="#503468" opacity="0.8"/>
+                    <path class="tm-aether-shard" d="M 12 58 L 16 55 L 15 62 Z" fill="#b8963a" opacity="0.7"/>
+                    <path class="tm-aether-shard" d="M 88 56 L 84 52 L 83 60 Z" fill="#8a6aa8" opacity="0.7"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="sparks" opacity="0">
+                    <circle class="tm-aether-spark" cx="52.98" cy="39.67" r="1.16" fill="#4dd0c4"/>
+                    <circle class="tm-aether-spark" cx="30.61" cy="58.16" r="1.15" fill="#b8963a"/>
+                    <circle class="tm-aether-spark" cx="11.09" cy="59.72" r="0.9" fill="#8a6aa8"/>
+                    <circle class="tm-aether-spark" cx="39.32" cy="36.01" r="1.36" fill="#4dd0c4"/>
+                    <circle class="tm-aether-spark" cx="80.4" cy="24.86" r="1.35" fill="#b8963a"/>
+                    <circle class="tm-aether-spark" cx="76.89" cy="27.7" r="1.51" fill="#8a6aa8"/>
+                    <circle class="tm-aether-spark" cx="22.15" cy="40.73" r="1.57" fill="#4dd0c4"/>
+                    <circle class="tm-aether-spark" cx="33.8" cy="29.72" r="1.58" fill="#b8963a"/>
+                    </g>
                 </g>
 
-                <!-- AETHER OLD — Primordial Absolute -->
+                <!-- AETHER OLD — Primordial -->
                 <g id="tm-mascot-evo5-aether" style="display: none;">
                     <defs>
-                        <radialGradient id="aether-old-body" cx="38%" cy="22%" r="80%">
-                            <stop offset="0%" style="stop-color:#c4b49a;stop-opacity:1" />
-                            <stop offset="25%" style="stop-color:#5a4038;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#241414;stop-opacity:1" />
-                            <stop offset="80%" style="stop-color:#140606;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#050202;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="aether-old-belly" cx="50%" cy="40%" r="60%">
-                            <stop offset="0%" style="stop-color:#3a2820;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#050202;stop-opacity:0.98" />
-                        </radialGradient>
-                        <linearGradient id="aether-old-wing" x1="15%" y1="10%" x2="90%" y2="90%">
-                            <stop offset="0%" style="stop-color:#6d4c41;stop-opacity:0.75" />
-                            <stop offset="25%" style="stop-color:#12001f;stop-opacity:0.55" />
-                            <stop offset="55%" style="stop-color:#3e2723;stop-opacity:0.8" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0.95" />
-                        </linearGradient>
-                        <linearGradient id="aether-old-wing2" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#7a0000;stop-opacity:0.35" />
-                            <stop offset="40%" style="stop-color:#3e2723;stop-opacity:0.45" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0.7" />
-                        </linearGradient>
-                        <radialGradient id="aether-old-wingveil" cx="30%" cy="35%" r="70%">
-                            <stop offset="0%" style="stop-color:#7a0000;stop-opacity:0.22" />
-                            <stop offset="50%" style="stop-color:#3e2723;stop-opacity:0.12" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-old-wingglow" cx="40%" cy="40%" r="60%">
-                            <stop offset="0%" style="stop-color:#c9b896;stop-opacity:0.35" />
-                            <stop offset="55%" style="stop-color:#7a0000;stop-opacity:0.1" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-old-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#efe6d8;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#7a0000;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#3e2723;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-old-iris" cx="40%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#efebe9;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#a1887f;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#7a0000;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1a0000;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="aether-old-aura" cx="50%" cy="52%" r="82%">
-                            <stop offset="0%" style="stop-color:#7a0000;stop-opacity:0.16" />
-                            <stop offset="32%" style="stop-color:#3e2723;stop-opacity:0.1" />
-                            <stop offset="62%" style="stop-color:#c9b896;stop-opacity:0.04" />
-                            <stop offset="100%" style="stop-color:#12001f;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-old-aura2" cx="50%" cy="55%" r="78%">
-                            <stop offset="0%" style="stop-color:#c9b896;stop-opacity:0.1" />
-                            <stop offset="40%" style="stop-color:#7a0000;stop-opacity:0.06" />
-                            <stop offset="100%" style="stop-color:#3e2723;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="aether-old-corona" cx="50%" cy="55%" r="74%">
-                            <stop offset="0%" style="stop-color:#c9b896;stop-opacity:0.14" />
-                            <stop offset="48%" style="stop-color:#7a0000;stop-opacity:0.06" />
-                            <stop offset="100%" style="stop-color:#3e2723;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="aether-old-tail" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#6d4c41;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#3e2723;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </linearGradient>
-                        <linearGradient id="aether-old-plate" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#3a2a55;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="aether-old-sigil" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#c9b896;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#7a0000;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="aether-old-beam" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#efe6d8;stop-opacity:0.55" />
-                            <stop offset="50%" style="stop-color:#7a0000;stop-opacity:0.22" />
-                            <stop offset="100%" style="stop-color:#3e2723;stop-opacity:0" />
-                        </linearGradient>
+                    <radialGradient id="aether-old-body" cx="38%" cy="24%" r="85%">
+                        <stop offset="0%" style="stop-color:#f4ecd0;stop-opacity:1" />
+                        <stop offset="42%" style="stop-color:#8a72b0;stop-opacity:1" />
+                        <stop offset="78%" style="stop-color:#3a2358;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#160a2c;stop-opacity:1" />
+                    </radialGradient>
+                    <linearGradient id="aether-old-cloak" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#3a2358;stop-opacity:1" />
+                        <stop offset="55%" style="stop-color:#160a2c;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
+                    </linearGradient>
+                    <radialGradient id="aether-old-core" cx="50%" cy="45%" r="55%">
+                        <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+                        <stop offset="32%" style="stop-color:#7af0e4;stop-opacity:1" />
+                        <stop offset="70%" style="stop-color:#ffe27a;stop-opacity:.85" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:0" />
+                    </radialGradient>
+                    <linearGradient id="aether-old-wing" x1="10%" y1="0%" x2="95%" y2="95%">
+                        <stop offset="0%" style="stop-color:#8a72b0;stop-opacity:.95" />
+                        <stop offset="45%" style="stop-color:#05010c;stop-opacity:.92" />
+                        <stop offset="82%" style="stop-color:#3a2358;stop-opacity:.9" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:.98" />
+                    </linearGradient>
+                    <linearGradient id="aether-old-blade" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#7af0e4;stop-opacity:.9" />
+                        <stop offset="55%" style="stop-color:#8a72b0;stop-opacity:.75" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:.95" />
+                    </linearGradient>
+                    <radialGradient id="aether-old-iris" cx="40%" cy="35%" r="65%">
+                        <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
+                        <stop offset="55%" style="stop-color:#7af0e4;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
+                    </radialGradient>
+                    <radialGradient id="aether-old-aura" cx="50%" cy="52%" r="70%">
+                        <stop offset="0%" style="stop-color:#7af0e4;stop-opacity:.2" />
+                        <stop offset="45%" style="stop-color:#8a72b0;stop-opacity:.1" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:0" />
+                    </radialGradient>
+                    <linearGradient id="aether-old-goldrim" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ffe27a;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#3a2358;stop-opacity:1" />
+                    </linearGradient>
+                    <filter id="aether-old-glow" x="-80%" y="-80%" width="260%" height="260%">
+                        <feGaussianBlur stdDeviation="1.1" result="b"/>
+                        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
                     </defs>
-                        <ellipse cx="50" cy="96" rx="30" ry="4.2" fill="#05010c" opacity="0.3"/>
-                        <g class="tm-aether-fx " data-fx="sparks" opacity="0">
-                            <circle class="tm-aether-spark" cx="12" cy="16" r="1.8" fill="#c9b896"/>
-                            <circle class="tm-aether-spark" cx="88" cy="14" r="1" fill="#7a0000"/>
-                            <circle class="tm-aether-spark" cx="6" cy="40" r="1.35" fill="#3e2723"/>
-                            <circle class="tm-aether-spark" cx="94" cy="42" r="1" fill="#c9b896"/>
-                            <circle class="tm-aether-spark" cx="18" cy="70" r="1.8" fill="#7a0000"/>
-                            <circle class="tm-aether-spark" cx="82" cy="72" r="1" fill="#3e2723"/>
-                            <circle class="tm-aether-spark" cx="28" cy="8" r="1.35" fill="#c9b896"/>
-                            <circle class="tm-aether-spark" cx="72" cy="6" r="1" fill="#7a0000"/>
-                            <circle class="tm-aether-spark" cx="4" cy="58" r="1.8" fill="#3e2723"/>
-                            <circle class="tm-aether-spark" cx="96" cy="56" r="1" fill="#c9b896"/>
-                            <circle class="tm-aether-spark" cx="40" cy="4" r="1.35" fill="#7a0000"/>
-                            <circle class="tm-aether-spark" cx="60" cy="4" r="1" fill="#3e2723"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="corona" opacity="0">
-                            <ellipse class="tm-aether-corona" cx="50" cy="56" rx="46.2" ry="36.7" fill="url(#aether-old-corona)"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="aura" opacity="0">
-                            <ellipse class="tm-aether-aura" cx="50" cy="54" rx="59.2" ry="48.5" fill="url(#aether-old-aura)"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="haze" opacity="0">
-                            <g class="tm-aether-haze">
-                            <ellipse class="tm-aether-haze-blob" cx="50" cy="58" rx="62.2" ry="53.3" fill="url(#aether-old-aura)" opacity="0.18"/>
-                            <ellipse class="tm-aether-haze-blob" cx="42" cy="50" rx="26.6" ry="41.4" fill="#7a0000" opacity="0.06"/>
-                            <ellipse class="tm-aether-haze-blob" cx="58" cy="52" rx="23.7" ry="38.5" fill="#c9b896" opacity="0.05"/>
-                            </g>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="aura-outer" opacity="0">
-                            <ellipse class="tm-aether-aura-outer" cx="50" cy="56" rx="78.1" ry="63.9" fill="url(#aether-old-aura2)"/>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
-                            <ellipse class="tm-aether-beam-glow" cx="50" cy="28" rx="7" ry="22" fill="url(#aether-old-beam)" opacity="0.55"/>
-                            <ellipse class="tm-aether-beam-glow" cx="32" cy="40" rx="10" ry="16" fill="url(#aether-old-beam)" opacity="0.35" transform="rotate(-28 32 40)"/>
-                            <ellipse class="tm-aether-beam-glow" cx="68" cy="40" rx="10" ry="16" fill="url(#aether-old-beam)" opacity="0.35" transform="rotate(28 68 40)"/>
-                            <ellipse class="tm-aether-beam-glow" cx="28" cy="58" rx="12" ry="10" fill="url(#aether-old-beam)" opacity="0.28" transform="rotate(-55 28 58)"/>
-                            <ellipse class="tm-aether-beam-glow" cx="72" cy="58" rx="12" ry="10" fill="url(#aether-old-beam)" opacity="0.28" transform="rotate(55 72 58)"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="sigil" opacity="0">
-                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="22" ry="6.6" fill="url(#aether-old-sigil)" opacity="0.85"/>
-                            <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="13" ry="3.3" fill="#c9b896" opacity="0.18"/>
-                        </g>
-                        <g class="tm-aether-fx " data-fx="fracture" opacity="0">
-                            <g class="tm-aether-ground-fracture">
-                            <ellipse cx="50" cy="95" rx="24" ry="4.5" fill="url(#aether-old-sigil)" opacity="0.35"/>
-                            <ellipse cx="40" cy="96" rx="8" ry="2.5" fill="#7a0000" opacity="0.12"/>
-                            <ellipse cx="60" cy="96" rx="8" ry="2.5" fill="#c9b896" opacity="0.1"/>
-                            <ellipse cx="50" cy="97" rx="22" ry="3" fill="#3e2723" opacity="0.08"/>
-                            </g>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="44" ry="18" fill="url(#aether-old-aura)" opacity="0.28"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="32" ry="19.6" fill="url(#aether-old-aura2)" opacity="0.22" transform="rotate(32 50 52)"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="28" ry="20.1" fill="url(#aether-old-corona)" opacity="0.18" transform="rotate(-18 50 52)"/>
-                            <circle class="tm-aether-orbit-node" cx="84" cy="52" r="3.2" fill="#c9b896" opacity="0.35"/>
-                            <circle class="tm-aether-orbit-node" cx="29" cy="42.65" r="2.6" fill="#7a0000" opacity="0.3"/>
-                            <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="46" ry="15.8" fill="url(#aether-old-aura)" opacity="0.12" transform="rotate(8 50 52)"/>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-runes" data-fx="runes" opacity="0">
-                            <circle class="tm-aether-rune-ring" cx="50" cy="54" r="18" fill="url(#aether-old-corona)" opacity="0.32"/>
-                            <circle class="tm-aether-rune-ring" cx="50" cy="54" r="10" fill="#c9b896" opacity="0.08"/>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-ribbons" data-fx="ribbons" opacity="0">
-                            <ellipse class="tm-aether-ribbon" cx="22" cy="44" rx="14" ry="8" fill="#7a0000" opacity="0.14" transform="rotate(-25 22 44)"/>
-                            <ellipse class="tm-aether-ribbon" cx="78" cy="44" rx="14" ry="8" fill="#c9b896" opacity="0.14" transform="rotate(25 78 44)"/>
-                            <ellipse class="tm-aether-ribbon" cx="28" cy="74" rx="12" ry="6" fill="#3e2723" opacity="0.12" transform="rotate(20 28 74)"/>
-                            <ellipse class="tm-aether-ribbon" cx="72" cy="74" rx="12" ry="6" fill="#c9b896" opacity="0.12" transform="rotate(-20 72 74)"/>
-                        </g>
-                        <g class="tm-aether-fx tm-aether-shards" data-fx="shards" opacity="0">
-                            <circle class="tm-aether-shard" cx="16" cy="42" r="4.5" fill="#7a0000" opacity="0.35"/>
-                            <circle class="tm-aether-shard" cx="84" cy="42" r="4.5" fill="#c9b896" opacity="0.35"/>
-                            <circle class="tm-aether-shard" cx="24" cy="66" r="3.5" fill="#3e2723" opacity="0.28"/>
-                            <circle class="tm-aether-shard" cx="76" cy="66" r="3.5" fill="#7a0000" opacity="0.28"/>
-                            <circle class="tm-aether-shard" cx="50" cy="10" r="4" fill="#c9b896" opacity="0.3"/>
-                            <circle class="tm-aether-shard" cx="8" cy="52" r="3.2" fill="#c9b896" opacity="0.22"/>
-                            <circle class="tm-aether-shard" cx="92" cy="52" r="3.2" fill="#7a0000" opacity="0.22"/>
-                        </g>
-                        <g class="tm-aether-ghost-wing-left" opacity="0.28" transform="translate(-4 3) scale(1.1)">
-                            <path d="M 32 48 L 8 16 L -4 28 L 2 52 L 14 62 L 28 52 Z" fill="url(#aether-old-wingveil)" stroke="#7a0000" stroke-width="0.6"/>
-                        </g>
-                        <g class="tm-aether-ghost-wing-right" opacity="0.28" transform="translate(4 3) scale(1.1)">
-                            <path d="M 68 48 L 92 16 L 104 28 L 98 52 L 86 62 L 72 52 Z" fill="url(#aether-old-wingveil)" stroke="#c9b896" stroke-width="0.6"/>
-                        </g>
-                        <g class="tm-animate-wing-left tm-aether-wing-broken" transform="translate(50 52) scale(0.78) translate(-50 -52)">
-                            <path class="tm-aether-wing-membrane" d="M 32 46 L 10 14 L 0 22 L 6 38 L -4 48 L 4 58 L 2 70 L 14 68 L 26 56 L 30 48 Z" fill="url(#aether-old-wing)" stroke="#1a100c" stroke-width="1.15" opacity="0.75"/>
-                            <path d="M 28 48 L 12 28 L 4 40 L 10 54 L 22 52 Z" fill="url(#aether-old-wing2)" opacity="0.45"/>
-                            <path class="tm-aether-wing-break" d="M 8 20 L 2 28 L 10 34" fill="none" stroke="#7a0000" stroke-width="1.1" stroke-dasharray="2 1.5" opacity="0.7"/>
-                            <path class="tm-aether-wing-break" d="M -2 50 L 6 56 L 0 64" fill="none" stroke="#3e2723" stroke-width="0.85" stroke-dasharray="1.5 1.2" opacity="0.55"/>
-                            <path class="tm-aether-wing-vein" d="M 30 46 L 12 22 L 2 26" fill="none" stroke="#7a0000" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
-                            <path class="tm-aether-wing-vein" d="M 26 54 L 8 52 L 0 60" fill="none" stroke="#c9b896" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.4s"/>
-                            <path class="tm-aether-wing-crack" d="M 16 30 L 10 40 L 14 50" fill="none" stroke="#7a0000" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.1s"/>
-                            <path class="tm-aether-wing-crack" d="M 8 44 L 2 52 L 8 60" fill="none" stroke="#3e2723" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.5s"/>
-                            <path class="tm-aether-wing-claw" d="M -2 20 L -5 15 L -1 18 Z" fill="#7a0000" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M 0 68 L -3 63 L 1 66 Z" fill="#3e2723" opacity="0.9"/>
-                            <!-- Missing mid claw — scar stub -->
-                            <path d="M -6 42 L -2 46" stroke="#1a100c" stroke-width="1.2" opacity="0.5"/>
-                        </g>
-                        <g class="tm-animate-wing-right tm-aether-wing-dominant" transform="translate(50 52) scale(1.28) translate(-50 -52)">
-                            <path d="M 68 44 L 94 2 L 110 8 L 104 28 L 118 36 L 108 50 L 120 58 L 110 72 L 114 84 L 94 82 L 80 70 L 72 54 L 68 46 Z" class="tm-aether-wing-membrane" fill="url(#aether-old-wing)" stroke="#1a100c" stroke-width="1.2" opacity="0.88"/>
-                            <path d="M 72 46 L 96 14 L 106 30 L 100 52 L 86 60 L 76 50 Z" fill="url(#aether-old-wing2)" opacity="0.6"/>
-                            <path d="M 74 48 L 90 28 L 98 42 L 92 56 L 80 54 Z" fill="url(#aether-old-wingveil)" opacity="0.4"/>
-                            <path d="M 70 42 L 92 6 L 108 10" fill="none" stroke="#1a100c" stroke-width="1.25" opacity="0.65"/>
-                            <path d="M 72 48 L 94 30 L 114 36" fill="none" stroke="#1a100c" stroke-width="1.1" opacity="0.55"/>
-                            <path d="M 74 54 L 94 50 L 114 56" fill="none" stroke="#1a100c" stroke-width="0.95" opacity="0.45"/>
-                            <path d="M 76 60 L 92 66 L 108 74" fill="none" stroke="#1a100c" stroke-width="0.8" opacity="0.4"/>
-                            <path class="tm-aether-wing-vein" d="M 70 42 L 92 6 L 108 10" fill="none" stroke="#c9b896" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0s"/>
-                            <path class="tm-aether-wing-vein" d="M 72 48 L 94 32 L 114 36" fill="none" stroke="#c9b896" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.25s"/>
-                            <path class="tm-aether-wing-vein" d="M 74 54 L 96 52 L 116 58" fill="none" stroke="#7a0000" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.5s"/>
-                            <path class="tm-aether-wing-vein" d="M 76 60 L 94 68 L 110 78" fill="none" stroke="#3e2723" stroke-width="0.9" stroke-linecap="round" style="animation-delay:0.75s"/>
-                            <path class="tm-aether-wing-crack" d="M 84 18 L 90 30 L 84 40" fill="none" stroke="#c9b896" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.1s"/>
-                            <path class="tm-aether-wing-crack" d="M 88 40 L 98 46 L 90 56" fill="none" stroke="#3e2723" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.4s"/>
-                            <path class="tm-aether-wing-crack" d="M 92 24 L 102 34 L 96 44" fill="none" stroke="#c9b896" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:0.7s"/>
-                            <path class="tm-aether-wing-crack" d="M 94 58 L 104 64 L 98 74" fill="none" stroke="#7a0000" stroke-width="0.55" stroke-linecap="round" stroke-dasharray="1.8 1.4" style="animation-delay:1s"/>
-                            <path class="tm-aether-wing-claw" d="M 110 6 L 113 1 L 109 4 Z" fill="#c9b896" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M 118 34 L 121 29 L 117 32 Z" fill="#7a0000" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M 120 56 L 123 51 L 119 54 Z" fill="#c9b896" opacity="0.9"/>
-                            <path class="tm-aether-wing-claw" d="M 114 82 L 117 77 L 113 80 Z" fill="#3e2723" opacity="0.9"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 56 68 Q 78 78 96 48 Q 86 72 68 70 Z" fill="url(#aether-old-tail)" stroke="#1a100c" stroke-width="1" opacity="0.8"/>
-                            <path d="M 64 70 Q 84 86 98 60" fill="none" stroke="#c9b896" stroke-width="0.8" opacity="0.4"/>
-                            <circle cx="96" cy="48" r="2" fill="#c9b896" opacity="0.65"/>
-                        </g>
-                        <g class="tm-animate-body">
-                            <!-- Elongated ethereal form -->
-                            <path d="M 38 38 Q 36 62 40 76 L 60 76 Q 64 62 62 38 Q 56 26 50 24 Q 44 26 38 38 Z" fill="url(#aether-old-body)" stroke="#1a100c" stroke-width="1.5" opacity="0.92"/>
-                            <ellipse cx="50" cy="52" rx="7" ry="14" fill="url(#aether-old-belly)" opacity="0.75"/>
-                            <circle class="tm-aether-core" cx="50" cy="48" r="7.5" fill="url(#aether-old-core)"/>
-                            <circle class="tm-aether-core-ring" cx="50" cy="48" r="11" fill="#c9b896" opacity="0.14"/>
-                            <path d="M 50 34 L 50 64" stroke="#c9b896" stroke-width="0.55" opacity="0.4"/>
-                        <g class="tm-aether-rune-tattoos" opacity="0.4">
-                            <circle class="tm-aether-rune-glyph" cx="45" cy="52" r="2.2" fill="#7a0000" opacity="0.45"/>
-                            <circle class="tm-aether-rune-glyph" cx="55" cy="52" r="2.2" fill="#c9b896" opacity="0.45"/>
-                            <ellipse class="tm-aether-rune-glyph" cx="50" cy="50" rx="1.5" ry="6" fill="#3e2723" opacity="0.25"/>
-                            <circle class="tm-aether-rune-glyph" cx="46" cy="60" r="1.8" fill="#7a0000" opacity="0.3"/>
-                            <circle class="tm-aether-rune-glyph" cx="54" cy="60" r="1.8" fill="#c9b896" opacity="0.3"/>
-                            <ellipse class="tm-aether-rune-glyph" cx="50" cy="54" rx="8" ry="2.2" fill="#c9a227" opacity="0.18"/>
-                        </g>
-                            <!-- Elongated serene head -->
-                            <ellipse cx="50" cy="18" rx="12" ry="13" fill="url(#aether-old-body)" stroke="#1a100c" stroke-width="1.45"/>
-                        </g>
-                        <g class="tm-aether-regalia">
-                            <ellipse class="tm-aether-halo" cx="50" cy="12" rx="24" ry="5.5" fill="#c9b896" opacity="0.2"/>
-                            <ellipse class="tm-aether-halo" cx="50" cy="12" rx="17" ry="3.8" fill="#7a0000" opacity="0.16"/>
-                            <ellipse class="tm-aether-halo" cx="50" cy="12" rx="30" ry="7.5" fill="#3e2723" opacity="0.1"/>
-                            <g class="tm-aether-crown-constellation">
-                            <circle class="tm-aether-crown-star" cx="38" cy="6" r="1.2" fill="#c9b896"/>
-                            <circle class="tm-aether-crown-star" cx="50" cy="-2" r="1.6" fill="#7a0000"/>
-                            <circle class="tm-aether-crown-star" cx="62" cy="6" r="1.2" fill="#c9b896"/>
-                            <circle class="tm-aether-crown-star" cx="30" cy="12" r="0.9" fill="#3e2723"/>
-                            <circle class="tm-aether-crown-star" cx="70" cy="12" r="0.9" fill="#3e2723"/>
-                            <circle class="tm-aether-crown-star" cx="44" cy="2" r="0.7" fill="#efe6d8"/>
-                            <circle class="tm-aether-crown-star" cx="56" cy="2" r="0.7" fill="#efe6d8"/>
-                            </g>
-                            <path d="M 38 10 L 26 -4" stroke="#c9b896" stroke-width="1.9" stroke-linecap="round" opacity="0.9"/>
-                            <path d="M 62 10 L 78 -2" stroke="#c9b896" stroke-width="1.6" stroke-linecap="round" opacity="0.7"/>
-                            <path d="M 46 4 L 50 -6 L 54 4" fill="none" stroke="#7a0000" stroke-width="1.15"/>
-                            <circle cx="26" cy="-4" r="1.8" fill="#c9b896" opacity="0.8"/>
-                            <circle cx="78" cy="-2" r="1.4" fill="#7a0000" opacity="0.65"/>
-                        </g>
-                        <g class="tm-animate-arm-left">
-                            <path d="M 38 46 L 20 50 L 22 64 L 38 56 Z" fill="url(#aether-old-body)" stroke="#1a100c" stroke-width="1.1" opacity="0.85"/>
-                            <circle cx="20" cy="62" r="1.5" fill="#c9b896" opacity="0.5"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <path d="M 62 46 L 80 50 L 78 64 L 62 56 Z" fill="url(#aether-old-body)" stroke="#1a100c" stroke-width="1.1" opacity="0.85"/>
-                            <circle cx="80" cy="62" r="1.5" fill="#7a0000" opacity="0.5"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <path d="M 42 76 L 38 92 L 48 90 Z" fill="url(#aether-old-body)" stroke="#1a100c" stroke-width="1.1" opacity="0.8"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <path d="M 58 76 L 52 90 L 62 92 Z" fill="url(#aether-old-body)" stroke="#1a100c" stroke-width="1.1" opacity="0.8"/>
-                        </g>
-                        <g class="tm-mascot-eye-open tm-aether-eyes tm-aether-eyes-eclipse">
-                            <ellipse cx="41" cy="16" rx="6.8" ry="7.5" fill="#7a0000" opacity="0.12"/>
-                            <ellipse cx="59" cy="16" rx="6.8" ry="7.5" fill="#c9b896" opacity="0.1"/>
-                            <ellipse class="tm-aether-eye-sclera" cx="41" cy="16" rx="4.4" ry="5.8" fill="#efe6d8" stroke="#1a100c" stroke-width="1.35" opacity="0.92"/>
-                            <ellipse class="tm-aether-eye-sclera" cx="59" cy="16" rx="4.4" ry="5.8" fill="#efe6d8" stroke="#1a100c" stroke-width="1.35" opacity="0.92"/>
-                            <ellipse class="tm-aether-iris" cx="41" cy="16" rx="2.4" ry="3.2" fill="url(#aether-old-iris)"/>
-                            <ellipse class="tm-aether-iris" cx="59" cy="16" rx="2.4" ry="3.2" fill="url(#aether-old-iris)"/>
-                            <circle class="tm-aether-eclipse-pupil" cx="41" cy="16" r="2.1" fill="#05010c"/>
-                            <path class="tm-aether-eclipse-crescent" d="M 40.637 13.767 A 1.3310000000000004 1.7545000000000002 0 1 1 40.637 18.233" fill="#c9b896" opacity="0.85"/>
-                            <circle class="tm-aether-eclipse-pupil" cx="59" cy="16" r="2.1" fill="#05010c"/>
-                            <path class="tm-aether-eclipse-crescent" d="M 59.363 13.767 A 1.3310000000000004 1.7545000000000002 0 1 0 59.363 18.233" fill="#7a0000" opacity="0.75"/>
-                            <line x1="37.3" y1="11.1" x2="43.9" y2="13.1" stroke="#1a100c" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
-                            <line x1="62.7" y1="11.1" x2="56.1" y2="13.1" stroke="#1a100c" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 36.6 16 L 45.4 16" stroke="#1a100c" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                            <path d="M 54.6 16 L 63.4 16" stroke="#1a100c" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45 28 Q 50 30.0 55 28" stroke="#1a100c" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 30.0 Q 50 27.0 55 30.0" stroke="#1a100c" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    <ellipse cx="50" cy="96" rx="23" ry="4.2" fill="#05010c" opacity="0.38"/>
+                    <g class="tm-aether-fx " data-fx="aura" opacity="0">
+                    <ellipse class="tm-aether-aura" cx="50" cy="52" rx="38" ry="34" fill="url(#aether-old-aura)"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="aura-outer" opacity="0">
+                    <ellipse class="tm-aether-aura-outer" cx="50" cy="52" rx="46" ry="42" fill="none" stroke="#8a72b0" stroke-width="1.6" opacity="0.3"/>
+                    <ellipse class="tm-aether-aura-outer" cx="50" cy="52" rx="43" ry="39" fill="url(#aether-old-aura)" opacity="0.5"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="corona" opacity="0">
+                    <circle class="tm-aether-corona" cx="50" cy="50" r="30" fill="none" stroke="#7af0e4" stroke-width="0.8" opacity="0.5" stroke-dasharray="3 4"/>
+                    <circle class="tm-aether-corona" cx="50" cy="50" r="36" fill="none" stroke="#ffe27a" stroke-width="0.5" opacity="0.35" stroke-dasharray="1.5 5"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="haze" opacity="0">
+                    <g class="tm-aether-haze">
+                        <ellipse class="tm-aether-haze-blob" cx="30" cy="40" rx="12" ry="7" fill="#8a72b0" opacity="0.2"/>
+                        <ellipse class="tm-aether-haze-blob" cx="68" cy="58" rx="14" ry="8" fill="#7af0e4" opacity="0.14"/>
+                        <ellipse class="tm-aether-haze-blob" cx="50" cy="26" rx="10" ry="6" fill="#ffe27a" opacity="0.12"/>
+                    </g>
+                    </g>
+                    <g class="tm-aether-fx tm-aether-beams" data-fx="beams" opacity="0">
+                    <path class="tm-aether-beam-glow" d="M 46 6 L 54 6 L 52 46 L 48 46 Z" fill="#ffe27a" opacity="0.18"/>
+                    <path d="M 30 12 L 34 12 L 33 44 L 31 44 Z" fill="#7af0e4" opacity="0.14"/>
+                    <path d="M 66 12 L 70 12 L 69 44 L 67 44 Z" fill="#7af0e4" opacity="0.14"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="sigil" opacity="0">
+                    <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="22" ry="4.5" fill="none" stroke="#7af0e4" stroke-width="0.8" opacity="0.6"/>
+                    <ellipse class="tm-aether-sigil" cx="50" cy="94" rx="15" ry="3" fill="none" stroke="#ffe27a" stroke-width="0.5" opacity="0.5" stroke-dasharray="2 2"/>
+                    <path class="tm-aether-sigil" d="M 50 90 L 54 94 L 50 98 L 46 94 Z" fill="none" stroke="#f4ecd0" stroke-width="0.5" opacity="0.55"/>
+                    </g>
+                    <g class="tm-aether-fx tm-aether-runes" data-fx="runes" opacity="0">
+                    <circle class="tm-aether-rune-ring" cx="50" cy="54" r="30" fill="none" stroke="#ffe27a" stroke-width="0.6" opacity="0.55" stroke-dasharray="4 3"/>
+                    <path d="M 48.6 26.4 L 51.4 26.4 L 50 29.8 Z M 50 26.4 L 50 29.8" fill="none" stroke="#ffe27a" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 77.13 44.37 L 79.93 44.37 L 78.53 47.77 Z M 78.53 44.37 L 78.53 47.77" fill="none" stroke="#ffe27a" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 66.23 73.43 L 69.03 73.43 L 67.63 76.83 Z M 67.63 73.43 L 67.63 76.83" fill="none" stroke="#ffe27a" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 30.97 73.43 L 33.77 73.43 L 32.37 76.83 Z M 32.37 73.43 L 32.37 76.83" fill="none" stroke="#ffe27a" stroke-width="0.5" opacity="0.7"/>
+                    <path d="M 20.07 44.37 L 22.87 44.37 L 21.47 47.77 Z M 21.47 44.37 L 21.47 47.77" fill="none" stroke="#ffe27a" stroke-width="0.5" opacity="0.7"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="fracture" opacity="0">
+                    <g class="tm-aether-ground-fracture">
+                        <path d="M 50 93 L 38 95 L 30 99" fill="none" stroke="#7af0e4" stroke-width="0.7" stroke-dasharray="2 1.4" opacity="0.7"/>
+                        <path d="M 50 93 L 62 96 L 72 99" fill="none" stroke="#ffe27a" stroke-width="0.6" stroke-dasharray="1.8 1.2" opacity="0.65"/>
+                        <path d="M 50 93 L 48 98" fill="none" stroke="#f4ecd0" stroke-width="0.5" stroke-dasharray="1.2 1" opacity="0.55"/>
+                    </g>
+                    </g>
+                    <circle class="tm-aether-halo" cx="50" cy="22" r="16" fill="none" stroke="#ffe27a" stroke-width="1.3" opacity="0.6"/>
+                    <circle class="tm-aether-halo" cx="50" cy="22" r="20" fill="none" stroke="#7af0e4" stroke-width="0.6" opacity="0.4" stroke-dasharray="3 3.5"/>
+                    <g class="tm-aether-ghost-wing-left" opacity="0.28" transform="translate(-5 4) scale(1.14)">
+                    <path class="tm-aether-wing-membrane" d="M 35 42 C 22.4 15.76 10.36 14.64 7 20.24 C 9.24 28.64 10.36 48.16 12.04 51.52 C 20.44 53.76 27.16 47.04 35 42 Z" fill="url(#aether-old-wing)" stroke="#2c1a45" stroke-width="0.8"/>
+                    <path d="M 33.94 40.85 Q 25.59 38.43 17.01 36.62 Q 23.58 39.87 32.7 44.27 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 33.17 40.75 Q 20.46 42.37 7.8 44.64 Q 18.58 44.57 33.47 44.37 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 32.43 40.97 Q 21.55 47.75 11 55.1 Q 20.77 50.53 34.21 44.15 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 31.85 41.49 Q 27.22 48.85 23.12 56.6 Q 28.05 51.18 34.79 43.63 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <circle cx="26.47" cy="40.77" r="0.44" fill="#ffe27a" opacity="0.84"/>
+                    <circle cx="21.46" cy="38.45" r="0.54" fill="#ffe27a" opacity="0.57"/>
+                    <circle cx="19.89" cy="43.5" r="0.46" fill="#ffe27a" opacity="0.84"/>
+                    <circle cx="23.32" cy="40.97" r="0.35" fill="#ffe27a" opacity="0.6"/>
+                    <path class="tm-aether-wing-vein" d="M 35 42 C 23.8 18 11.2 16.88 7 20.24" fill="none" stroke="#7af0e4" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-claw" d="M 7 20.24 L 4.4 16.84 L 8.4 19.24 Z" fill="#7af0e4" opacity="0.95"/>
+                    </g>
+                    <g class="tm-aether-ghost-wing-right" opacity="0.28" transform="translate(5 4) scale(1.14)">
+                    <g transform="translate(100,0) scale(-1,1)">
+                    <path class="tm-aether-wing-membrane" d="M 35 42 C 22.4 15.76 10.36 14.64 7 20.24 C 9.24 28.64 10.36 48.16 12.04 51.52 C 20.44 53.76 27.16 47.04 35 42 Z" fill="url(#aether-old-wing)" stroke="#2c1a45" stroke-width="0.8"/>
+                    <path d="M 33.94 40.85 Q 25.59 38.43 17.01 36.62 Q 23.58 39.87 32.7 44.27 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 33.17 40.75 Q 20.46 42.37 7.8 44.64 Q 18.58 44.57 33.47 44.37 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 32.43 40.97 Q 21.55 47.75 11 55.1 Q 20.77 50.53 34.21 44.15 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 31.85 41.49 Q 27.22 48.85 23.12 56.6 Q 28.05 51.18 34.79 43.63 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <circle cx="26.47" cy="40.77" r="0.44" fill="#ffe27a" opacity="0.84"/>
+                    <circle cx="21.46" cy="38.45" r="0.54" fill="#ffe27a" opacity="0.57"/>
+                    <circle cx="19.89" cy="43.5" r="0.46" fill="#ffe27a" opacity="0.84"/>
+                    <circle cx="23.32" cy="40.97" r="0.35" fill="#ffe27a" opacity="0.6"/>
+                    <path class="tm-aether-wing-vein" d="M 35 42 C 23.8 18 11.2 16.88 7 20.24" fill="none" stroke="#7af0e4" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-claw" d="M 7 20.24 L 4.4 16.84 L 8.4 19.24 Z" fill="#7af0e4" opacity="0.95"/>
+                    </g>
+                    </g>
+                    <g class="tm-animate-wing-left tm-aether-wing-broken" transform="translate(50 52) scale(0.74) translate(-50 -52)">
+                    <path class="tm-aether-wing-membrane" d="M 36 46 C 22.5 22.6 9.6 21.4 6 27.4 C 8.4 36.4 9.6 52.6 11.4 56.2 C 20.4 58.6 27.6 51.4 36 46 Z" fill="url(#aether-old-wing)" stroke="#2c1a45" stroke-width="0.8"/>
+                    <path d="M 34.87 44.77 Q 25.91 42.17 16.72 40.24 Q 23.77 43.72 33.53 48.43 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 34.11 44.65 Q 20.44 45.88 6.79 47.81 Q 18.34 48.16 34.29 48.55 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 33.37 44.83 Q 21.21 51.21 9.35 58.22 Q 20.15 54.12 35.03 48.37 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 32.76 45.29 Q 26.95 52.57 21.66 60.34 Q 27.56 55.15 35.64 47.91 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <circle cx="14.1" cy="47.7" r="0.57" fill="#ffe27a" opacity="0.84"/>
+                    <circle cx="12.17" cy="44.43" r="0.5" fill="#ffe27a" opacity="0.61"/>
+                    <circle cx="29.35" cy="43.52" r="0.48" fill="#ffe27a" opacity="0.39"/>
+                    <circle cx="24.26" cy="43.21" r="0.61" fill="#ffe27a" opacity="0.39"/>
+                    <path class="tm-aether-wing-vein" d="M 36 46 C 24 25 10.5 23.8 6 27.4" fill="none" stroke="#7af0e4" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-crack" d="M 27 43 L 21.6 47.2 L 17.4 43.6" fill="none" stroke="#ffe27a" stroke-width="0.6" stroke-dasharray="1.6 1.2" opacity="0.75"/>
+                    <path class="tm-aether-wing-claw" d="M 6 27.4 L 3.4 24 L 7.4 26.4 Z" fill="#7af0e4" opacity="0.95"/>
+                    <path class="tm-aether-wing-break" d="M 12 32 L 5 40 L 14 46" fill="none" stroke="#ff8a65" stroke-width="1.1" stroke-dasharray="2 1.5" opacity="0.75"/>
+                    <path class="tm-aether-wing-break" d="M 4 56 L 12 62 L 6 70" fill="none" stroke="#ffe27a" stroke-width="0.85" stroke-dasharray="1.5 1.2" opacity="0.6"/>
+                    <path d="M 6 30 L 10 25 L 12 31 Z" fill="url(#aether-old-blade)" opacity="0.7"/>
+                    <path d="M 0 46 L 5 42 L 6 49 Z" fill="url(#aether-old-blade)" opacity="0.6"/>
+                    <path d="M 8 64 L 13 61 L 13 68 Z" fill="url(#aether-old-blade)" opacity="0.55"/>
+                    </g>
+                    <g class="tm-animate-wing-right tm-aether-wing-dominant" transform="translate(50 52) scale(1.3) translate(-50 -52)">
+                    <g transform="translate(100,0) scale(-1,1)">
+                    <path class="tm-aether-wing-membrane" d="M 36 45 C 20.7 13.28 6.08 11.92 2 18.72 C 4.72 28.92 6.08 52.48 8.12 56.56 C 18.32 59.28 26.48 51.12 36 45 Z" fill="url(#aether-old-wing)" stroke="#2c1a45" stroke-width="0.8"/>
+                    <path d="M 34.72 43.6 Q 24.57 40.66 14.15 38.47 Q 22.14 42.41 33.2 47.76 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 34.23 43.49 Q 20.82 42.52 7.31 42.34 Q 18.38 44.71 33.69 47.87 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 33.74 43.48 Q 18.34 45.74 3.02 48.79 Q 16.11 48.45 34.18 47.88 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 33.26 43.59 Q 18.01 49.46 3.02 56.09 Q 16.33 52.64 34.66 47.77 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 32.81 43.79 Q 19.92 52.51 7.44 61.91 Q 19.09 55.92 35.11 47.57 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 32.42 44.1 Q 23.3 53.99 14.75 64.45 Q 23.5 57.26 35.5 47.26 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <path d="M 32.1 44.48 Q 26.99 53.73 22.54 63.4 Q 28.15 56.48 35.82 46.88 Z" fill="url(#aether-old-blade)" opacity="0.85"/>
+                    <circle cx="13.39" cy="45.84" r="0.61" fill="#ffe27a" opacity="0.94"/>
+                    <circle cx="22.25" cy="46.02" r="0.41" fill="#ffe27a" opacity="0.51"/>
+                    <circle cx="13.19" cy="40.11" r="0.56" fill="#ffe27a" opacity="0.46"/>
+                    <circle cx="9.5" cy="39.46" r="0.51" fill="#ffe27a" opacity="0.39"/>
+                    <path class="tm-aether-wing-vein" d="M 36 45 C 22.4 16 7.1 14.64 2 18.72" fill="none" stroke="#7af0e4" stroke-width="0.9" stroke-linecap="round" opacity="0.9"/>
+                    <path class="tm-aether-wing-crack" d="M 25.8 41.6 L 19.68 46.36 L 14.92 42.28" fill="none" stroke="#ffe27a" stroke-width="0.6" stroke-dasharray="1.6 1.2" opacity="0.75"/>
+                    <path class="tm-aether-wing-claw" d="M 2 18.72 L -0.6 15.32 L 3.4 17.72 Z" fill="#7af0e4" opacity="0.95"/>
+                    </g>
+                    </g>
+                    <g class="tm-animate-tail">
+                    <path d="M 50 82 C 59 87 62 94 58 99 C 55 94 50 90 45 87 Z" fill="url(#aether-old-cloak)" stroke="#2c1a45" stroke-width="0.7" opacity="0.85"/>
+                    <path d="M 46 84 C 40 89 39 96 43 99 C 44 94 46 90 49 87 Z" fill="url(#aether-old-cloak)" stroke="#2c1a45" stroke-width="0.6" opacity="0.7"/>
+                    </g>
+                    <g class="tm-animate-body">
+                    <path d="M 50 8 C 59 8 64 15 64 24 L 70 36 L 67 60 L 74 88 L 60 81 L 50 92 L 40 81 L 26 88 L 33 60 L 30 36 L 36 24 C 36 15 41 8 50 8 Z" fill="url(#aether-old-body)" stroke="#2c1a45" stroke-width="1.5"/>
+                    <path d="M 50 15 C 56 15 60 20 60 28 L 64 38 L 61 60 L 64 78 L 50 71 L 36 78 L 39 60 L 36 38 L 40 28 C 40 20 44 15 50 15 Z" fill="url(#aether-old-cloak)" opacity="0.72"/>
+                    <line x1="42" y1="40" x2="47" y2="46" stroke="#ffe27a" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="47" y1="46" x2="44" y2="54" stroke="#ffe27a" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="44" y1="54" x2="50" y2="61" stroke="#ffe27a" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="50" y1="61" x2="56" y2="53" stroke="#ffe27a" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="56" y1="53" x2="53" y2="45" stroke="#ffe27a" stroke-width="0.3" opacity="0.4"/>
+                    <line x1="53" y1="45" x2="58" y2="40" stroke="#ffe27a" stroke-width="0.3" opacity="0.4"/>
+                    <circle cx="42" cy="40" r="0.99" fill="#ffe27a" opacity="0.9"/>
+                    <circle cx="47" cy="46" r="0.73" fill="#ffe27a" opacity="0.9"/>
+                    <circle cx="44" cy="54" r="0.58" fill="#ffe27a" opacity="0.9"/>
+                    <circle cx="50" cy="61" r="0.9" fill="#ffe27a" opacity="0.9"/>
+                    <circle cx="56" cy="53" r="0.95" fill="#ffe27a" opacity="0.9"/>
+                    <circle cx="53" cy="45" r="0.65" fill="#ffe27a" opacity="0.9"/>
+                    <circle cx="58" cy="40" r="0.64" fill="#ffe27a" opacity="0.9"/>
+                    <circle cx="40.67" cy="55.55" r="0.68" fill="#f4ecd0" opacity="0.52"/>
+                    <circle cx="56.87" cy="53.01" r="0.64" fill="#f4ecd0" opacity="0.55"/>
+                    <circle cx="58.49" cy="53.29" r="0.66" fill="#f4ecd0" opacity="0.51"/>
+                    <circle cx="58.32" cy="56.1" r="0.33" fill="#f4ecd0" opacity="0.48"/>
+                    <circle cx="55.15" cy="58.55" r="0.3" fill="#f4ecd0" opacity="0.88"/>
+                    <circle cx="55.78" cy="59.82" r="0.66" fill="#f4ecd0" opacity="0.39"/>
+                    <circle cx="49.85" cy="44.25" r="0.33" fill="#f4ecd0" opacity="0.7"/>
+                    <circle cx="58.93" cy="57.1" r="0.3" fill="#f4ecd0" opacity="0.36"/>
+                    <circle cx="47" cy="63.35" r="0.74" fill="#f4ecd0" opacity="0.65"/>
+                    <circle cx="57.58" cy="40.58" r="0.65" fill="#f4ecd0" opacity="0.43"/>
+                    <circle cx="48.7" cy="37.16" r="0.25" fill="#f4ecd0" opacity="0.66"/>
+                    <circle cx="51.88" cy="42.16" r="0.58" fill="#f4ecd0" opacity="0.4"/>
+                    <path d="M 39 27 C 30 18 18 18 12 26 C 18 24 24 27 27 25 C 30 29 34 33 38 36 Z" fill="url(#aether-old-cloak)" stroke="#ffe27a" stroke-width="0.8"/>
+                    <path d="M 61 27 C 70 18 82 18 88 26 C 82 24 76 27 73 25 C 70 29 66 33 62 36 Z" fill="url(#aether-old-cloak)" stroke="#ffe27a" stroke-width="0.8"/>
+                    <path d="M 22 22 L 18 15 L 26 20 Z" fill="#ffe27a" opacity="0.8"/>
+                    <path d="M 78 22 L 82 15 L 74 20 Z" fill="#ffe27a" opacity="0.8"/>
+                    <path d="M 49 34 L 51 34 L 50.6 58 L 49.4 58 Z" fill="#ffffff" opacity="0.85" filter="url(#aether-old-glow)"/>
+                    <circle class="tm-aether-core" cx="50" cy="44" r="5.4" fill="url(#aether-old-core)" filter="url(#aether-old-glow)"/>
+                    <circle class="tm-aether-core-ring" cx="50" cy="44" r="8.6" fill="none" stroke="#ffe27a" stroke-width="0.8" opacity="0.55"/>
+                    <path d="M 44 64 L 56 64 L 54 69 L 46 69 Z" fill="url(#aether-old-goldrim)" opacity="0.9"/>
+                    <g class="tm-aether-rune-tattoos">
+                        <path class="tm-aether-rune-glyph" d="M 44 57 l 1.6 -2 l 1.6 2 l -1.6 2 Z" fill="none" stroke="#7af0e4" stroke-width="0.5" opacity="0.8"/>
+                        <path class="tm-aether-rune-glyph" d="M 54.5 56 v 3.4 m -1.4 -1.7 h 2.8" fill="none" stroke="#ffe27a" stroke-width="0.5" opacity="0.8"/>
+                        <path class="tm-aether-rune-glyph" d="M 49 62 l 1.2 -2.2 l 1.2 2.2 Z" fill="none" stroke="#f4ecd0" stroke-width="0.5" opacity="0.75"/>
+                    </g>
+                    </g>
+                    <g class="tm-aether-regalia">
+                    <g class="tm-aether-crown-constellation">
+                        <line x1="35" y1="6" x2="40" y2="2.5" stroke="#ffe27a" stroke-width="0.35" opacity="0.5"/>
+                        <line x1="40" y1="2.5" x2="45" y2="-0.06" stroke="#ffe27a" stroke-width="0.35" opacity="0.5"/>
+                        <line x1="45" y1="-0.06" x2="50" y2="-1" stroke="#ffe27a" stroke-width="0.35" opacity="0.5"/>
+                        <line x1="50" y1="-1" x2="55" y2="-0.06" stroke="#ffe27a" stroke-width="0.35" opacity="0.5"/>
+                        <line x1="55" y1="-0.06" x2="60" y2="2.5" stroke="#ffe27a" stroke-width="0.35" opacity="0.5"/>
+                        <line x1="60" y1="2.5" x2="65" y2="6" stroke="#ffe27a" stroke-width="0.35" opacity="0.5"/>
+                        <circle class="tm-aether-crown-star" cx="35" cy="6" r="0.94" fill="#ffe27a"/>
+                        <circle class="tm-aether-crown-star" cx="40" cy="2.5" r="1.21" fill="#7af0e4"/>
+                        <circle class="tm-aether-crown-star" cx="45" cy="-0.06" r="1.27" fill="#ffe27a"/>
+                        <circle class="tm-aether-crown-star" cx="50" cy="-1" r="1.5" fill="#7af0e4"/>
+                        <circle class="tm-aether-crown-star" cx="55" cy="-0.06" r="1.27" fill="#ffe27a"/>
+                        <circle class="tm-aether-crown-star" cx="60" cy="2.5" r="0.97" fill="#7af0e4"/>
+                        <circle class="tm-aether-crown-star" cx="65" cy="6" r="0.98" fill="#ffe27a"/>
+                        <path d="M 40.4 8 Q 50 3 59.6 8" fill="none" stroke="#ffe27a" stroke-width="0.5" opacity="0.6"/>
+                    </g>
+                    <path d="M 41 14 L 38 4 L 44 10 Z" fill="url(#aether-old-goldrim)" stroke="#2c1a45" stroke-width="0.6"/>
+                    <path d="M 59 14 L 62 4 L 56 10 Z" fill="url(#aether-old-goldrim)" stroke="#2c1a45" stroke-width="0.6"/>
+                    <path d="M 50 12 L 48 3 L 52 3 Z" fill="#ffe27a" opacity="0.9" filter="url(#aether-old-glow)"/>
+                    </g>
+                    <g class="tm-animate-arm-left">
+                    <path d="M 36 44 Q 24 51 21 66 L 27 61 L 26 70 L 32 63 Q 34 53 38 48 Z" fill="url(#aether-old-body)" stroke="#2c1a45" stroke-width="1.1"/>
+                    <path d="M 19 65 L 14 73 M 24 66 L 22 74 M 28 65 L 28 72" fill="none" stroke="#7af0e4" stroke-width="1.1" stroke-linecap="round" opacity="0.95"/>
+                    </g>
+                    <g class="tm-animate-arm-right">
+                    <path d="M 64 44 Q 76 51 79 66 L 73 61 L 74 70 L 68 63 Q 66 53 62 48 Z" fill="url(#aether-old-body)" stroke="#2c1a45" stroke-width="1.1"/>
+                    <path d="M 81 65 L 86 73 M 76 66 L 78 74 M 72 65 L 72 72" fill="none" stroke="#7af0e4" stroke-width="1.1" stroke-linecap="round" opacity="0.95"/>
+                    </g>
+                    <g class="tm-animate-leg-left">
+                    <path d="M 43 88 L 38 96 L 46 96 L 47 89 Z" fill="url(#aether-old-cloak)" stroke="#2c1a45" stroke-width="0.8"/>
+                    </g>
+                    <g class="tm-animate-leg-right">
+                    <path d="M 57 88 L 62 96 L 54 96 L 53 89 Z" fill="url(#aether-old-cloak)" stroke="#2c1a45" stroke-width="0.8"/>
+                    </g>
+                    <g class="tm-mascot-eye-open tm-aether-eyes tm-aether-eyes-eclipse">
+                    <ellipse class="tm-aether-eye-sclera" cx="44.6" cy="26" rx="3.1" ry="3.3" fill="#05010c" stroke="#2c1a45" stroke-width="1.1" opacity="0.94"/>
+                    <ellipse class="tm-aether-eye-sclera" cx="55.4" cy="26" rx="3.1" ry="3.3" fill="#05010c" stroke="#2c1a45" stroke-width="1.1" opacity="0.94"/>
+                    <ellipse class="tm-aether-iris" cx="44.6" cy="26" rx="2.48" ry="2.8" fill="url(#aether-old-iris)" opacity="0.5"/>
+                    <ellipse class="tm-aether-iris" cx="55.4" cy="26" rx="2.48" ry="2.8" fill="url(#aether-old-iris)" opacity="0.5"/>
+                    <circle class="tm-aether-eclipse-pupil" cx="44.6" cy="26" r="1.92" fill="#05010c"/>
+                    <path class="tm-aether-eclipse-crescent" d="M 44.23 24.15 A 1.3 1.81 0 1 1 44.23 27.85" fill="#f4ecd0" opacity="0.9"/>
+                    <circle class="tm-aether-eclipse-pupil" cx="55.4" cy="26" r="1.92" fill="#05010c"/>
+                    <path class="tm-aether-eclipse-crescent" d="M 55.77 24.15 A 1.3 1.81 0 1 0 55.77 27.85" fill="#ff8a65" opacity="0.8"/>
+                    <path d="M 41.5 22.38 L 47.7 25.84 L 47.7 21.7 L 41.5 21.7 Z" fill="url(#aether-old-cloak)"/>
+                    <path d="M 58.5 22.38 L 52.3 25.84 L 52.3 21.7 L 58.5 21.7 Z" fill="url(#aether-old-cloak)"/>
+                    <line x1="40.9" y1="22.22" x2="48.1" y2="25.93" stroke="#2c1a45" stroke-width="1.2" stroke-linecap="round"/>
+                    <line x1="59.1" y1="22.22" x2="51.9" y2="25.93" stroke="#2c1a45" stroke-width="1.2" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                    <path d="M 41.5 26 Q 44.6 27.4 47.7 26" stroke="#2c1a45" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path d="M 52.3 26 Q 55.4 27.4 58.5 26" stroke="#2c1a45" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    </g>
+                    <path class="tm-mascot-mouth-happy" d="M 47.4 34.5 L 49.22 35.2 L 50.78 35.2 L 52.6 34.5" stroke="#2c1a45" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.4 36 Q 50 33.5 52.6 36" stroke="#2c1a45" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                    <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
+                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="32" ry="10" fill="none" stroke="#7af0e4" stroke-width="0.55" opacity="0.5" transform="rotate(-14 50 52)"/>
+                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="36" ry="13" fill="none" stroke="#8a72b0" stroke-width="0.45" opacity="0.4" transform="rotate(12 50 52)"/>
+                    <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="28" ry="8" fill="none" stroke="#ffe27a" stroke-width="0.4" opacity="0.45" transform="rotate(-30 50 52)"/>
+                    <circle class="tm-aether-orbit-node" cx="18" cy="52" r="1.4" fill="#ffe27a" opacity="0.9"/>
+                    <circle class="tm-aether-orbit-node" cx="82" cy="52" r="1.1" fill="#7af0e4" opacity="0.9"/>
+                    <circle class="tm-aether-orbit-node" cx="50" cy="24" r="1.2" fill="#f4ecd0" opacity="0.85"/>
+                    </g>
+                    <g class="tm-aether-fx tm-aether-ribbons" data-fx="ribbons" opacity="0">
+                    <path class="tm-aether-ribbon" d="M 18 30 C 10 44 14 62 24 74 C 18 60 20 44 26 34 Z" fill="#7af0e4" opacity="0.3"/>
+                    <path class="tm-aether-ribbon" d="M 82 30 C 90 44 86 62 76 74 C 82 60 80 44 74 34 Z" fill="#8a72b0" opacity="0.3"/>
+                    <path class="tm-aether-ribbon" d="M 30 16 C 40 8 60 8 70 16 C 58 12 42 12 30 16 Z" fill="#ffe27a" opacity="0.25"/>
+                    </g>
+                    <g class="tm-aether-fx tm-aether-shards" data-fx="shards" opacity="0">
+                    <path class="tm-aether-shard" d="M 16 34 L 20 30 L 21 37 Z" fill="#7af0e4" opacity="0.8"/>
+                    <path class="tm-aether-shard" d="M 84 32 L 80 27 L 78 35 Z" fill="#8a72b0" opacity="0.8"/>
+                    <path class="tm-aether-shard" d="M 12 58 L 16 55 L 15 62 Z" fill="#ffe27a" opacity="0.7"/>
+                    <path class="tm-aether-shard" d="M 88 56 L 84 52 L 83 60 Z" fill="#f4ecd0" opacity="0.7"/>
+                    </g>
+                    <g class="tm-aether-fx " data-fx="sparks" opacity="0">
+                    <circle class="tm-aether-spark" cx="84.39" cy="24.86" r="0.72" fill="#7af0e4"/>
+                    <circle class="tm-aether-spark" cx="25.5" cy="27.7" r="0.72" fill="#ffe27a"/>
+                    <circle class="tm-aether-spark" cx="73.81" cy="40.73" r="0.75" fill="#f4ecd0"/>
+                    <circle class="tm-aether-spark" cx="18.49" cy="29.72" r="0.82" fill="#7af0e4"/>
+                    <circle class="tm-aether-spark" cx="53.82" cy="50.84" r="0.82" fill="#ffe27a"/>
+                    <circle class="tm-aether-spark" cx="37.8" cy="22.12" r="1.59" fill="#f4ecd0"/>
+                    <circle class="tm-aether-spark" cx="11.57" cy="14.16" r="0.76" fill="#7af0e4"/>
+                    <circle class="tm-aether-spark" cx="34.78" cy="24.42" r="1.08" fill="#ffe27a"/>
+                    <circle class="tm-aether-spark" cx="8.86" cy="62.83" r="1.77" fill="#f4ecd0"/>
+                    </g>
                 </g>
                                                                                                                                                                                                                                                                                                                                                                                 <!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · Sovereign Presence v13 · commanding boss morphs) -->
                 <!-- LEVIATHAN BABY — Tide Serpentling -->
