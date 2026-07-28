@@ -1,7 +1,13 @@
 /**
- * Ashborn Phoenix — dense cute epic v4 · BOSS MYTHICAL
- * Huge angry beautiful firebird for boss-battle presence.
- * Export for apply scripts → myman_mascot.js
+ * Ashborn Phoenix — v12 "Evolution Line"
+ *
+ * Pokémon-style evolution: every stage has its own silhouette and pose.
+ *   baby  — chubby standing chick with stub wings and a tail puff
+ *   evo1  — slim standing fledgling testing half-open wings
+ *   evo2  — full flight raptor with spread wing fans
+ *   evo3  — BOSS: giant wings, flowing tail streamers, sun-ray aura
+ *   evo4  — charred warlord: jagged angular wings, glowing body cracks
+ *   evo5  — solar seraph: double wing layers, halo, long divine streamers
  */
 const I = '                ';
 const I2 = I + '    ';
@@ -9,396 +15,331 @@ const I3 = I2 + '    ';
 const I4 = I3 + '    ';
 
 const STAGES = ['baby', 'evo1', 'evo2', 'evo3', 'evo4', 'evo5'];
-const STAGE_LABEL = {
-  baby: 'BABY', evo1: 'KID', evo2: 'TEEN', evo3: 'ADULT', evo4: 'MIDDLE AGE', evo5: 'OLD',
+const TITLES = {
+  baby: 'Ember Chick', evo1: 'Flame Fledgling', evo2: 'Blaze Raptor',
+  evo3: 'Ashborn Phoenix — BOSS', evo4: 'Cinder Warlord', evo5: 'Solar Seraph',
 };
 
-function grad(id, stops, type = 'radial', attrs) {
-  const tag = type === 'linear' ? 'linearGradient' : 'radialGradient';
-  const defAttrs = attrs
-    || (type === 'linear' ? 'x1="0%" y1="0%" x2="100%" y2="100%"' : 'cx="40%" cy="30%" r="75%"');
-  const stopLines = stops.map(([o, c, a = 1]) =>
-    `${I4}<stop offset="${o}" style="stop-color:${c};stop-opacity:${a}" />`).join('\n');
-  return `${I3}<${tag} id="${id}" ${defAttrs}>\n${stopLines}\n${I3}</${tag}>`;
+const CFG = {
+  baby: { form: 'chick', scale: .8, crest: 3, tail: 3, aura: 0, embers: 3, rays: 0 },
+  evo1: { form: 'fledgling', scale: .88, crest: 4, tail: 4, aura: 20, embers: 5, rays: 0 },
+  evo2: { form: 'flyer', scale: .95, crest: 5, tail: 5, aura: 30, embers: 7, rays: 0, wingMult: 1, crestMult: 1.1 },
+  evo3: { form: 'flyer', scale: 1.1, crest: 7, tail: 7, aura: 48, embers: 12, rays: 8, boss: true, wingMult: 1.24, wingLift: 6, crestMult: 1.5, streamers: 3 },
+  evo4: { form: 'flyer', scale: 1.02, crest: 6, tail: 6, aura: 40, embers: 10, rays: 6, boss: true, charred: true, wingMult: 1.12, wingLift: 8, crestMult: 1.4, jagged: true },
+  evo5: { form: 'flyer', scale: 1.12, crest: 9, tail: 8, aura: 56, embers: 15, rays: 12, boss: true, divine: true, wingMult: 1.18, wingLift: 6, crestMult: 1.5, streamers: 4, doubleWings: true, halo: true },
+};
+
+const PAL = {
+  baby: { hi: '#ffd98f', mid: '#ffa73e', deep: '#e8651a', dark: '#8a2708' },
+  evo1: { hi: '#ffc355', mid: '#ff8c1a', deep: '#dd3f09', dark: '#6b1504' },
+  evo2: { hi: '#ffb63f', mid: '#ff7a10', deep: '#cf3206', dark: '#571003' },
+  evo3: { hi: '#ffb300', mid: '#ff6f00', deep: '#c62815', dark: '#4a0a02' },
+  evo4: { hi: '#d98e4a', mid: '#a84a12', deep: '#5d1e0a', dark: '#200705' },
+  evo5: { hi: '#fff6d0', mid: '#ffe27a', deep: '#ffb300', dark: '#8a5a00' },
+};
+
+function defs(p, pal) {
+  return `${I3}<linearGradient id="${p}-plum" x1="0%" y1="0%" x2="100%" y2="100%">
+${I4}<stop offset="0%" style="stop-color:${pal.hi};stop-opacity:1" />
+${I4}<stop offset="35%" style="stop-color:${pal.mid};stop-opacity:1" />
+${I4}<stop offset="70%" style="stop-color:${pal.deep};stop-opacity:1" />
+${I4}<stop offset="100%" style="stop-color:${pal.dark};stop-opacity:1" />
+${I3}</linearGradient>
+${I3}<linearGradient id="${p}-fire" x1="0%" y1="0%" x2="0%" y2="100%">
+${I4}<stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
+${I4}<stop offset="30%" style="stop-color:#ffd740;stop-opacity:1" />
+${I4}<stop offset="65%" style="stop-color:#ff6d00;stop-opacity:1" />
+${I4}<stop offset="100%" style="stop-color:#b71c1c;stop-opacity:1" />
+${I3}</linearGradient>
+${I3}<radialGradient id="${p}-core" cx="50%" cy="42%" r="60%">
+${I4}<stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
+${I4}<stop offset="30%" style="stop-color:#ffd740;stop-opacity:.95" />
+${I4}<stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
+${I4}<stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
+${I3}</radialGradient>
+${I3}<linearGradient id="${p}-beak" x1="0%" y1="0%" x2="0%" y2="100%">
+${I4}<stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
+${I4}<stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
+${I3}</linearGradient>
+${I3}<filter id="${p}-glow" x="-100%" y="-100%" width="300%" height="300%">
+${I4}<feGaussianBlur stdDeviation="1.5" result="b"/>
+${I4}<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+${I3}</filter>
+${I3}<filter id="${p}-soft" x="-60%" y="-60%" width="220%" height="220%">
+${I4}<feGaussianBlur stdDeviation=".6" result="b"/>
+${I4}<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+${I3}</filter>`;
 }
 
-/** Fierce phoenix eyes — glowing gold/crimson, angled angry brows */
-function fierceEyes(lx, rx, cy, rxE, ryE, irisRef, stroke, {
-  angry = false, sclera = '#fff8e1', glow = '#fffde7',
-} = {}) {
-  const brow = angry
-    ? `${I4}<path d="M ${lx - rxE - 1} ${cy - ryE - 1.5} Q ${lx} ${cy - ryE - 4.5} ${lx + rxE + 0.5} ${cy - ryE + 0.5}" stroke="${stroke}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-${I4}<path d="M ${rx + rxE + 1} ${cy - ryE - 1.5} Q ${rx} ${cy - ryE - 4.5} ${rx - rxE - 0.5} ${cy - ryE + 0.5}" stroke="${stroke}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-${I4}<path d="M ${lx - rxE} ${cy - ryE - 0.2} Q ${lx} ${cy - ryE - 2.2} ${lx + rxE} ${cy - ryE + 1}" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>
-${I4}<path d="M ${rx + rxE} ${cy - ryE - 0.2} Q ${rx} ${cy - ryE - 2.2} ${rx - rxE} ${cy - ryE + 1}" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>`
-    : '';
-  return `${I3}<g class="tm-mascot-eye-open">
-${brow}
-${I4}<ellipse cx="${lx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="${sclera}" stroke="${stroke}" stroke-width="1.6"/>
-${I4}<ellipse cx="${rx}" cy="${cy}" rx="${rxE}" ry="${ryE}" fill="${sclera}" stroke="${stroke}" stroke-width="1.6"/>
-${I4}<ellipse cx="${lx + 0.4}" cy="${cy + 0.3}" rx="${(rxE * 0.58).toFixed(1)}" ry="${(ryE * 0.62).toFixed(1)}" fill="${irisRef}"/>
-${I4}<ellipse cx="${rx + 0.4}" cy="${cy + 0.3}" rx="${(rxE * 0.58).toFixed(1)}" ry="${(ryE * 0.62).toFixed(1)}" fill="${irisRef}"/>
-${I4}<ellipse cx="${lx + 0.5}" cy="${cy + 0.6}" rx="${(rxE * 0.26).toFixed(1)}" ry="${(ryE * 0.4).toFixed(1)}" fill="#1a0500"/>
-${I4}<ellipse cx="${rx + 0.5}" cy="${cy + 0.6}" rx="${(rxE * 0.26).toFixed(1)}" ry="${(ryE * 0.4).toFixed(1)}" fill="#1a0500"/>
-${I4}<circle cx="${(lx + 1.5).toFixed(1)}" cy="${(cy - ryE * 0.32).toFixed(1)}" r="${Math.max(1.3, rxE * 0.3).toFixed(1)}" fill="${glow}" opacity="0.95"/>
-${I4}<circle cx="${(rx + 1.5).toFixed(1)}" cy="${(cy - ryE * 0.32).toFixed(1)}" r="${Math.max(1.3, rxE * 0.3).toFixed(1)}" fill="${glow}" opacity="0.95"/>
-${I4}<circle cx="${(lx - rxE * 0.3).toFixed(1)}" cy="${(cy + ryE * 0.28).toFixed(1)}" r="${Math.max(0.7, rxE * 0.14).toFixed(1)}" fill="#ffab40" opacity="0.7"/>
-${I4}<circle cx="${(rx - rxE * 0.3).toFixed(1)}" cy="${(cy + ryE * 0.28).toFixed(1)}" r="${Math.max(0.7, rxE * 0.14).toFixed(1)}" fill="#ffab40" opacity="0.7"/>
-${I3}</g>
-${I3}<g class="tm-mascot-eye-closed" style="display:none;">
-${I4}<path d="M ${lx - rxE} ${cy} Q ${lx} ${cy - 3.2} ${lx + rxE} ${cy}" stroke="${stroke}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-${I4}<path d="M ${rx - rxE} ${cy} Q ${rx} ${cy - 3.2} ${rx + rxE} ${cy}" stroke="${stroke}" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-${I3}</g>`;
+/** Tapered feather: base at (x,y), pointing along `angle` degrees. */
+function feather(x, y, angle, length, width, p, fill, opacity = 1, jagged = false) {
+  const rad = angle * Math.PI / 180;
+  const dx = Math.cos(rad), dy = Math.sin(rad), nx = -dy, ny = dx;
+  const P = (px, py) => `${px.toFixed(1)} ${py.toFixed(1)}`;
+  const tip = P(x + dx * length, y + dy * length);
+  let d;
+  if (jagged) {
+    // Angular, torn silhouette: straight segments with an inward notch.
+    d = `M ${P(x + nx * width * .5, y + ny * width * .5)} L ${P(x + dx * length * .42 + nx * width * .38, y + dy * length * .42 + ny * width * .38)} L ${P(x + dx * length * .55 + nx * width * .16, y + dy * length * .55 + ny * width * .16)} L ${P(x + dx * length * .74 + nx * width * .3, y + dy * length * .74 + ny * width * .3)} L ${tip} L ${P(x + dx * length * .5 - nx * width * .3, y + dy * length * .5 - ny * width * .3)} L ${P(x - nx * width * .5, y - ny * width * .5)} Z`;
+  } else {
+    d = `M ${P(x + nx * width * .5, y + ny * width * .5)} Q ${P(x + dx * length * .55 + nx * width * .28, y + dy * length * .55 + ny * width * .28)} ${tip} Q ${P(x + dx * length * .55 - nx * width * .28, y + dy * length * .55 - ny * width * .28)} ${P(x - nx * width * .5, y - ny * width * .5)} Z`;
+  }
+  return `${I4}<path d="${d}" fill="${fill}" stroke="#7b1308" stroke-width=".4" opacity="${opacity}" filter="url(#${p}-soft)"/>`;
 }
 
-/** Predatory hooked beak — happy / open-rage sad swap */
-function hookedBeak(y, stroke, fill = '#ff6d00', size = 1) {
-  const s = Number(size) || 1;
-  const tip = 3.6 * s;
-  const depth = 4.8 * s;
-  const x0 = (50 - tip).toFixed(1);
-  const x1 = (50 + tip).toFixed(1);
-  const yTip = (y + depth).toFixed(1);
-  const yCurve = (y + 1.8 * s).toFixed(1);
-  const x0s = (50 - tip - 0.8).toFixed(1);
-  const x1s = (50 + tip + 0.8).toFixed(1);
-  const yTipSad = (y + depth + 1.2).toFixed(1);
-  return `${I3}<path class="tm-mascot-mouth-happy" d="M ${x0} ${y} L 50 ${yTip} L ${x1} ${y} Q 50 ${yCurve} ${x0} ${y}" fill="${fill}" stroke="${stroke}" stroke-width="1.4" stroke-linejoin="round"/>
-${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="M ${x0s} ${y + 1} L 50 ${yTipSad} L ${x1s} ${y + 1} Q 50 ${y - 0.8} ${x0s} ${y + 1}" fill="${fill}" stroke="${stroke}" stroke-width="1.4" stroke-linejoin="round"/>
-${I4}<path d="M 50 ${y + 0.8} L 50 ${(y + depth - 0.8).toFixed(1)}" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>`;
+function mirrored(inner) {
+  return `${I4}<g transform="translate(100,0) scale(-1,1)">
+${inner}
+${I4}</g>`;
 }
 
-function shadow(rx = 30, opacity = 0.28) {
-  return `${I3}<ellipse cx="50" cy="96" rx="${rx}" ry="5.5" fill="#1a0500" opacity="${opacity}"/>`;
+function crest(p, cx, cy, count, sizeMult = 1, jagged = false) {
+  const parts = [];
+  for (let i = 0; i < count; i++) {
+    const t = count <= 1 ? .5 : i / (count - 1);
+    const angle = -132 + t * 84;
+    const len = (7 + (1 - Math.abs(t - .5) * 2) * 6) * sizeMult;
+    parts.push(feather(cx, cy, angle, len, 2.1 * sizeMult, p, `url(#${p}-fire)`, .96, jagged));
+  }
+  return parts.join('\n');
 }
 
-function emberSparks(count = 6) {
-  const pts = [
-    [18, 28], [82, 24], [12, 48], [88, 50], [22, 70], [78, 72],
-    [8, 38], [92, 40], [30, 18], [70, 16], [16, 62], [84, 64],
-  ].slice(0, count);
-  return pts.map(([x, y], i) =>
-    `${I3}<circle cx="${x}" cy="${y}" r="${i % 3 === 0 ? 1.8 : 1.2}" fill="${i % 2 ? '#fff59d' : '#ff6d00'}" opacity="${0.35 + (i % 4) * 0.1}"/>`
+function tailFan(p, cx, cy, count, baseLen, peak, width, jagged = false) {
+  const parts = [];
+  for (let i = 0; i < count; i++) {
+    const t = count <= 1 ? .5 : i / (count - 1);
+    const angle = 56 + t * 68;
+    const len = baseLen + (1 - Math.abs(t - .5) * 2) * peak;
+    parts.push(feather(cx, cy, angle, len, width, p, i % 2 ? `url(#${p}-fire)` : `url(#${p}-plum)`, .95, jagged));
+  }
+  return parts.join('\n');
+}
+
+function aura(cfg, p, cy) {
+  if (!cfg.aura) return '';
+  const rays = Array.from({ length: cfg.rays }, (_, i) => {
+    const rad = ((360 / cfg.rays) * i - 90) * Math.PI / 180;
+    const x1 = 50 + Math.cos(rad) * cfg.aura * .42;
+    const y1 = cy + Math.sin(rad) * cfg.aura * .36;
+    const x2 = 50 + Math.cos(rad) * cfg.aura;
+    const y2 = cy + Math.sin(rad) * cfg.aura * .85;
+    return `${I3}<path d="M ${x1.toFixed(1)} ${y1.toFixed(1)} L ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="#ffb300" stroke-width="${i % 2 ? .7 : 1.1}" opacity="${cfg.boss ? .5 : .3}" filter="url(#${p}-glow)"/>`;
+  }).join('\n');
+  // Boss stages: fire tongues erupt from the aura rim.
+  const tongues = cfg.boss ? Array.from({ length: 9 }, (_, i) => {
+    const a = -160 + i * 20;
+    const rad = a * Math.PI / 180;
+    const x = 50 + Math.cos(rad) * cfg.aura * .88;
+    const y = cy + Math.sin(rad) * cfg.aura * .68;
+    return feather(x, y, a, 8 + (i % 3) * 3, 3.4, p, `url(#${p}-fire)`, .5);
+  }).join('\n') + '\n' : '';
+  return `${I3}<ellipse cx="50" cy="${cy}" rx="${cfg.aura}" ry="${(cfg.aura * .78).toFixed(1)}" fill="url(#${p}-core)" opacity="${cfg.boss ? .55 : .32}" filter="url(#${p}-glow)"/>
+${tongues}${rays}`;
+}
+
+function embers(cfg, p) {
+  const pts = [[13, 24], [20, 48], [85, 21], [91, 47], [24, 75], [80, 72], [35, 11], [73, 9], [9, 61], [93, 62], [42, 5], [66, 6], [17, 35], [87, 35], [31, 86]];
+  return pts.slice(0, cfg.embers).map(([x, y], i) =>
+    `${I3}<circle cx="${x}" cy="${y}" r="${i % 3 ? .75 : 1.2}" fill="${i % 2 ? '#ff6d00' : '#ffd740'}" opacity="${.32 + (i % 3) * .12}" filter="url(#${p}-soft)"/>`
   ).join('\n');
 }
 
-function wrapStage(stage, title, defs, body) {
-  return `${I}<!-- PHOENIX ${STAGE_LABEL[stage]} — ${title} -->
+/** Front-facing eyes + beak. opts: eyeY, eyeDx, eyeR, browAngry, beakY, glow, fierce, iris */
+function face(p, o) {
+  const lx = 50 - o.eyeDx, rx = 50 + o.eyeDx;
+  const iris = o.iris || '#ffd740';
+  const brow = o.fierce
+    // Heavy eyelid wedges cutting across the eyes = predator glare.
+    ? `${I4}<path d="M ${lx - 2.8} ${o.eyeY - 3} L ${lx + 2.4} ${o.eyeY - .7} L ${lx - 2.8} ${o.eyeY - 1} Z" fill="#4a0a02"/>
+${I4}<path d="M ${rx + 2.8} ${o.eyeY - 3} L ${rx - 2.4} ${o.eyeY - .7} L ${rx + 2.8} ${o.eyeY - 1} Z" fill="#4a0a02"/>
+${I4}<path d="M ${lx - 3} ${o.eyeY - 3.2} L ${lx + 2.6} ${o.eyeY - .9}" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>
+${I4}<path d="M ${rx + 3} ${o.eyeY - 3.2} L ${rx - 2.6} ${o.eyeY - .9}" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>`
+    : o.browAngry
+      ? `${I4}<path d="M ${lx - 2.4} ${o.eyeY - 3.6} L ${lx + 2.2} ${o.eyeY - 1.4}" fill="none" stroke="#751406" stroke-width="1" stroke-linecap="round"/>
+${I4}<path d="M ${rx + 2.4} ${o.eyeY - 3.6} L ${rx - 2.2} ${o.eyeY - 1.4}" fill="none" stroke="#751406" stroke-width="1" stroke-linecap="round"/>`
+      : `${I4}<path d="M ${lx - 1.8} ${o.eyeY - 2.6} Q ${lx} ${o.eyeY - 3.2} ${lx + 1.8} ${o.eyeY - 2.6}" fill="none" stroke="#8a3a10" stroke-width=".5" stroke-linecap="round" opacity=".7"/>
+${I4}<path d="M ${rx - 1.8} ${o.eyeY - 2.6} Q ${rx} ${o.eyeY - 3.2} ${rx + 1.8} ${o.eyeY - 2.6}" fill="none" stroke="#8a3a10" stroke-width=".5" stroke-linecap="round" opacity=".7"/>`;
+  const b = o.beakY;
+  const bw = o.fierce ? 2.9 : o.eyeR > 2.2 ? 2 : 2.4;
+  const pupil = o.fierce
+    // Narrow vertical slit pupils.
+    ? `${I4}<ellipse cx="${lx + .1}" cy="${o.eyeY + .15}" rx="${(o.eyeR * .24).toFixed(2)}" ry="${(o.eyeR * .85).toFixed(2)}" fill="#1b0502"/>
+${I4}<ellipse cx="${rx + .1}" cy="${o.eyeY + .15}" rx="${(o.eyeR * .24).toFixed(2)}" ry="${(o.eyeR * .85).toFixed(2)}" fill="#1b0502"/>`
+    : `${I4}<ellipse cx="${lx + .1}" cy="${o.eyeY + .1}" rx="${(o.eyeR * .4).toFixed(2)}" ry="${(o.eyeR * .72).toFixed(2)}" fill="#1b0502"/>
+${I4}<ellipse cx="${rx + .1}" cy="${o.eyeY + .1}" rx="${(o.eyeR * .4).toFixed(2)}" ry="${(o.eyeR * .72).toFixed(2)}" fill="#1b0502"/>`;
+  return `${I3}<g class="tm-mascot-eye-open">
+${o.glow ? `${I4}<circle cx="${lx}" cy="${o.eyeY}" r="${o.eyeR + 1.2}" fill="${o.iris || '#ff6d00'}" opacity=".5" filter="url(#${p}-glow)"/>
+${I4}<circle cx="${rx}" cy="${o.eyeY}" r="${o.eyeR + 1.2}" fill="${o.iris || '#ff6d00'}" opacity=".5" filter="url(#${p}-glow)"/>
+` : ''}${I4}<circle cx="${lx}" cy="${o.eyeY}" r="${o.eyeR}" fill="${iris}" stroke="#5d1306" stroke-width=".45"/>
+${I4}<circle cx="${rx}" cy="${o.eyeY}" r="${o.eyeR}" fill="${iris}" stroke="#5d1306" stroke-width=".45"/>
+${pupil}
+${I4}<circle cx="${lx - o.eyeR * .3}" cy="${o.eyeY - o.eyeR * .35}" r="${(o.eyeR * .22).toFixed(2)}" fill="#fffde7"/>
+${I4}<circle cx="${rx - o.eyeR * .3}" cy="${o.eyeY - o.eyeR * .35}" r="${(o.eyeR * .22).toFixed(2)}" fill="#fffde7"/>
+${brow}
+${I3}</g>
+${I3}<g class="tm-mascot-eye-closed" style="display:none;">
+${I4}<path d="M ${lx - 1.5} ${o.eyeY} Q ${lx} ${o.eyeY - 1.2} ${lx + 1.5} ${o.eyeY}" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
+${I4}<path d="M ${rx - 1.5} ${o.eyeY} Q ${rx} ${o.eyeY - 1.2} ${rx + 1.5} ${o.eyeY}" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
+${I3}</g>
+${I3}<path class="tm-mascot-mouth-happy" d="M ${50 - bw} ${b} Q 50 ${b - .8} ${50 + bw} ${b} L ${50 + bw * .5} ${b + 3.2} Q 50 ${b + 5.4} ${50 - .2} ${b + 6} Q ${50 - bw * .55} ${b + 4.6} ${50 - bw * .6} ${b + 3.2} Z" fill="url(#${p}-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
+${I3}<path class="tm-mascot-mouth-sad" style="display:none;" d="M ${50 - bw} ${b + .5} Q 50 ${b - .3} ${50 + bw} ${b + .5} L ${50 + bw * .45} ${b + 4} Q 50 ${b + 6.2} ${50 - .3} ${b + 6.8} Q ${50 - bw * .5} ${b + 5.2} ${50 - bw * .55} ${b + 4} Z" fill="url(#${p}-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>`;
+}
+
+/* ============================== BABY: chubby chick ============================== */
+function buildChick(cfg, p) {
+  const stubL = `${I4}<path d="M 38 48 Q 30 50 29 57 Q 33 61 39 58 Q 40.5 52 38 48 Z" fill="url(#${p}-plum)" stroke="#7b1308" stroke-width=".9"/>
+${I4}<path d="M 37 51 Q 33 53 32.5 56.5" fill="none" stroke="#ffd98f" stroke-width=".6" opacity=".7"/>`;
+  return `${I3}<g class="tm-animate-tail">
+${tailFan(p, 50, 71, cfg.tail, 6, 3, 3)}
+${I3}</g>
+${I3}<g class="tm-animate-wing-left">
+${stubL}
+${I3}</g>
+${I3}<g class="tm-animate-wing-right">
+${mirrored(stubL)}
+${I3}</g>
+${I3}<g class="tm-animate-body">
+${I4}<path d="M 50 34 C 40 35 36 44 36 54 C 36 66 42 73 50 74 C 58 73 64 66 64 54 C 64 44 60 35 50 34 Z" fill="url(#${p}-plum)" stroke="#7b1308" stroke-width="1.1"/>
+${I4}<ellipse cx="50" cy="59" rx="7.5" ry="8" fill="url(#${p}-core)" opacity=".5" filter="url(#${p}-glow)"/>
+${I4}<path d="M 44 62 Q 50 60 56 62 M 45.5 66.5 Q 50 64.8 54.5 66.5" fill="none" stroke="#8a2708" stroke-width=".45" opacity=".3"/>
+${crest(p, 50, 34.5, cfg.crest, .8)}
+${I3}</g>
+${I3}<g class="tm-animate-arm-left" opacity=".001"><circle cx="38" cy="52" r=".4"/></g>
+${I3}<g class="tm-animate-arm-right" opacity=".001"><circle cx="62" cy="52" r=".4"/></g>
+${I3}<g class="tm-animate-leg-left">
+${I4}<path d="M 46 73.5 L 46 78 M 46 78 L 44 81 M 46 78 L 46.3 81.4 M 46 78 L 48 81" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
+${I3}</g>
+${I3}<g class="tm-animate-leg-right">
+${I4}<path d="M 54 73.5 L 54 78 M 54 78 L 56 81 M 54 78 L 53.7 81.4 M 54 78 L 52 81" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
+${I3}</g>
+${face(p, { eyeY: 46, eyeDx: 4.5, eyeR: 2.6, browAngry: true, beakY: 50.5, glow: false })}`;
+}
+
+/* ========================= EVO1: standing fledgling ========================= */
+function buildFledgling(cfg, p) {
+  const fan = [[205, 14, 6], [190, 16, 6.5], [175, 17, 6.5], [160, 15, 6]];
+  const wingL = `${fan.map(([a, len, w]) => feather(41, 48, a, len, w, p, `url(#${p}-plum)`, .97)).join('\n')}
+${fan.slice(0, 3).map(([a, len, w]) => feather(41, 48, a + 4, len * .58, w * .85, p, `url(#${p}-fire)`, .85)).join('\n')}`;
+  return `${I3}<g class="tm-animate-tail">
+${tailFan(p, 50, 68, cfg.tail, 10, 5, 3.6)}
+${I3}</g>
+${I3}<g class="tm-animate-wing-left">
+${wingL}
+${I3}</g>
+${I3}<g class="tm-animate-wing-right">
+${mirrored(wingL)}
+${I3}</g>
+${I3}<g class="tm-animate-body">
+${I4}<path d="M 50 34 C 43 36 40 44 41 54 C 42 63 46 69 50 70 C 54 69 58 63 59 54 C 60 44 57 36 50 34 Z" fill="url(#${p}-plum)" stroke="#7b1308" stroke-width="1.1"/>
+${I4}<ellipse cx="50" cy="55" rx="6" ry="7" fill="url(#${p}-core)" opacity=".55" filter="url(#${p}-glow)"/>
+${I4}<path d="M 45 50 Q 50 48 55 50 M 45.5 57 Q 50 55 54.5 57" fill="none" stroke="#6b1504" stroke-width=".45" opacity=".3"/>
+${crest(p, 50, 34, cfg.crest, .9)}
+${I3}</g>
+${I3}<g class="tm-animate-arm-left" opacity=".001"><circle cx="41" cy="48" r=".4"/></g>
+${I3}<g class="tm-animate-arm-right" opacity=".001"><circle cx="59" cy="48" r=".4"/></g>
+${I3}<g class="tm-animate-leg-left">
+${I4}<path d="M 46.5 69.5 L 46.2 74.5 M 46.2 74.5 L 44.2 77.4 M 46.2 74.5 L 46.5 77.8 M 46.2 74.5 L 48.2 77.4" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
+${I3}</g>
+${I3}<g class="tm-animate-leg-right">
+${I4}<path d="M 53.5 69.5 L 53.8 74.5 M 53.8 74.5 L 55.8 77.4 M 53.8 74.5 L 53.5 77.8 M 53.8 74.5 L 51.8 77.4" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
+${I3}</g>
+${face(p, { eyeY: 43.5, eyeDx: 4, eyeR: 2.1, browAngry: true, beakY: 48, glow: false })}`;
+}
+
+/* ===================== EVO2-5: flying raptor variants ===================== */
+function flyerWingArt(cfg, p) {
+  const m = cfg.wingMult || 1;
+  const lift = cfg.wingLift || 0;
+  const fan = [
+    [213 + lift, 35, 11], [202 + lift, 36, 11.5], [191 + lift, 35, 11],
+    [180 + lift, 33, 10.5], [169 + lift, 30, 10], [158 + lift, 26, 9], [147 + lift, 21, 8],
+  ];
+  const layer = (lenMult, opacity, fill) => fan.map(([a, len, w]) =>
+    feather(43, 43, a, len * m * lenMult, w * lenMult, p, fill, opacity, cfg.jagged)).join('\n');
+  const back = cfg.doubleWings
+    ? fan.map(([a, len, w]) =>
+      feather(45, 45, a + 8, len * m * 1.16, w * 1.05, p, `url(#${p}-fire)`, .55, false)).join('\n') + '\n'
+    : '';
+  const coverts = fan.slice(0, 6).map(([a, len, w]) =>
+    feather(43, 43, a + 4, len * m * .58, w * .85, p, `url(#${p}-fire)`, .85, cfg.jagged)).join('\n');
+  return `${back}${layer(1, .97, `url(#${p}-plum)`)}
+${coverts}
+${I4}<path d="M 47 40 Q 41 39 37.5 43.5 Q 40 49 46 50 Q 48.5 45 47 40 Z" fill="url(#${p}-plum)" stroke="#7b1308" stroke-width=".8"/>`;
+}
+
+function buildFlyer(cfg, p) {
+  const stroke = cfg.charred ? '#2b100d' : '#7b1308';
+  const wingL = flyerWingArt(cfg, p);
+  const streamers = cfg.streamers
+    ? (cfg.streamers === 3 ? [[74, 26], [90, 32], [106, 26]] : [[70, 26], [83, 33], [97, 33], [110, 26]])
+      .map(([a, len]) => feather(50, 63, a, len, 2.4, p, `url(#${p}-fire)`, .92)).join('\n') + '\n'
+    : '';
+  const cracks = cfg.charred
+    ? `${I4}<path d="M 47 45 L 48.8 49.5 L 47.4 54 M 53.2 47 L 51.6 51.5 L 53 56 M 50 58 L 49 61.5" fill="none" stroke="#ff6d00" stroke-width=".55" opacity=".85" filter="url(#${p}-glow)"/>
+` : '';
+  const halo = cfg.halo
+    ? `${I3}<ellipse cx="50" cy="18.5" rx="7.5" ry="2.2" fill="none" stroke="#ffd740" stroke-width="1.1" opacity=".85" filter="url(#${p}-glow)"/>
+` : '';
+  return `${I3}<g class="tm-animate-tail">
+${streamers}${tailFan(p, 50, 62, cfg.tail, 16, 12, 4.6, cfg.jagged)}
+${I3}</g>
+${I3}<g class="tm-animate-wing-left">
+${wingL}
+${I3}</g>
+${I3}<g class="tm-animate-wing-right">
+${mirrored(wingL)}
+${I3}</g>
+${halo}${I3}<g class="tm-animate-body">
+${I4}<path d="M 50 35 C 42.5 38.5 40.5 46 42 54 C 43.5 61 47 65.5 50 66.5 C 53 65.5 56.5 61 58 54 C 59.5 46 57.5 38.5 50 35 Z" fill="url(#${p}-plum)" stroke="${stroke}" stroke-width="1.1"/>
+${I4}<path d="M 44.5 45 Q 50 42.8 55.5 45 M 44 52 Q 50 49.8 56 52 M 46 59 Q 50 57 54 59" fill="none" stroke="${stroke}" stroke-width=".45" opacity=".3"/>
+${I4}<ellipse cx="50" cy="51" rx="6.5" ry="8" fill="url(#${p}-core)" opacity="${cfg.boss ? .9 : .6}" filter="url(#${p}-glow)"/>
+${cracks}${I4}<path d="M 43 30 Q 43 23 50 22 Q 57 23 57 30 Q 56 36 50 37 Q 44 36 43 30 Z" fill="url(#${p}-plum)" stroke="${stroke}" stroke-width="1"/>
+${crest(p, 50, 23, cfg.crest, cfg.crestMult || 1, !!cfg.boss)}
+${I3}</g>
+${I3}<g class="tm-animate-arm-left" opacity=".001"><circle cx="44" cy="48" r=".4"/></g>
+${I3}<g class="tm-animate-arm-right" opacity=".001"><circle cx="56" cy="48" r=".4"/></g>
+${cfg.boss ? `${I3}<g class="tm-animate-leg-left">
+${I4}<path d="M 46.5 63 Q 44.3 65.5 44.7 68.5 M 44.7 68.5 Q 42.2 70 41 72.8 L 40.4 74.2 M 44.7 68.5 Q 44.9 71.6 44.2 74 L 43.9 75.4 M 44.7 68.5 Q 47 70.6 48.2 73 L 48.8 74.4" fill="none" stroke="#d4a54a" stroke-width="1.6" stroke-linecap="round"/>
+${I3}</g>
+${I3}<g class="tm-animate-leg-right">
+${I4}<path d="M 53.5 63 Q 55.7 65.5 55.3 68.5 M 55.3 68.5 Q 57.8 70 59 72.8 L 59.6 74.2 M 55.3 68.5 Q 55.1 71.6 55.8 74 L 56.1 75.4 M 55.3 68.5 Q 53 70.6 51.8 73 L 51.2 74.4" fill="none" stroke="#d4a54a" stroke-width="1.6" stroke-linecap="round"/>
+${I3}</g>` : `${I3}<g class="tm-animate-leg-left">
+${I4}<path d="M 47 64 Q 45.5 66 45.8 68 M 45.8 68 L 43.8 69.8 M 45.8 68 L 46 70.6 M 45.8 68 L 47.8 69.6" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
+${I3}</g>
+${I3}<g class="tm-animate-leg-right">
+${I4}<path d="M 53 64 Q 54.5 66 54.2 68 M 54.2 68 L 56.2 69.8 M 54.2 68 L 54 70.6 M 54.2 68 L 52.2 69.6" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
+${I3}</g>`}
+${face(p, { eyeY: 28.8, eyeDx: 3.2, eyeR: 1.7, fierce: true, iris: cfg.charred ? '#ff5252' : '#ffab00', beakY: 32.8, glow: true })}`;
+}
+
+const BUILDERS = { chick: buildChick, fledgling: buildFledgling, flyer: buildFlyer };
+
+function stageSvg(stage) {
+  const cfg = CFG[stage];
+  const pal = PAL[stage];
+  const p = `phoenix-${stage}`;
+  const standing = cfg.form !== 'flyer';
+  const shadowY = standing ? 84 : 94;
+  const auraCy = standing ? 52 : 46;
+  const svg = `${I3}<ellipse cx="50" cy="${shadowY}" rx="${cfg.boss ? 40 : standing ? 17 : 28}" ry="4.4" fill="#120303" opacity="${cfg.boss ? .45 : .26}"/>
+${aura(cfg, p, auraCy)}
+${embers(cfg, p)}
+${I3}<g transform="translate(50 50) scale(${cfg.scale}) translate(-50 -50)">
+${BUILDERS[cfg.form](cfg, p)}
+${I3}</g>`;
+  return `${I}<!-- PHOENIX ${stage.toUpperCase()} — ${TITLES[stage]} -->
 ${I}<g id="tm-mascot-${stage}-phoenix" style="display: none;">
 ${I2}<defs>
-${defs}
+${defs(p, pal)}
 ${I2}</defs>
-${body}
+${svg}
 ${I}</g>
 `;
 }
 
-function phoenixStage(stage) {
-  const p = `phoenix-${stage === 'evo1' ? 'kid' : stage === 'evo2' ? 'teen' : stage === 'evo3' ? 'adult' : stage === 'evo4' ? 'mid' : stage === 'evo5' ? 'old' : 'baby'}`;
-  const titles = {
-    baby: 'ember hatchling',
-    evo1: 'wrath fledgling',
-    evo2: 'solar ravager',
-    evo3: 'Ashborn Phoenix — BOSS',
-    evo4: 'crimson ash tyrant',
-    evo5: 'immortal sun god',
-  };
-
-  const plumage = stage === 'evo5'
-    ? [['0%', '#fffde7'], ['20%', '#fff59d'], ['45%', '#ffd54f'], ['70%', '#ff8a65'], ['100%', '#ff6d00']]
-    : stage === 'evo4'
-      ? [['0%', '#ff8a65'], ['20%', '#e64a19'], ['45%', '#bf360c'], ['70%', '#4e342e'], ['100%', '#1a0a00']]
-      : stage === 'evo3'
-        ? [['0%', '#fff59d'], ['18%', '#ffea00'], ['40%', '#ff6d00'], ['65%', '#dd2c00'], ['100%', '#4a0000']]
-        : stage === 'evo2'
-          ? [['0%', '#fff176'], ['30%', '#ff9100'], ['60%', '#e64a19'], ['100%', '#bf360c']]
-          : stage === 'evo1'
-            ? [['0%', '#fff59d'], ['40%', '#ff9800'], ['100%', '#ef6c00']]
-            : [['0%', '#fff9c4'], ['40%', '#ffb74d'], ['100%', '#ff7043']];
-
-  const stroke = stage === 'evo5' ? '#ff6f00'
-    : stage === 'evo4' ? '#3e2723'
-      : stage === 'evo3' ? '#3d0000'
-        : '#bf360c';
-  const accent = stage === 'evo5' ? '#fff59d' : stage === 'evo4' ? '#ffab40' : '#ffea00';
-  const flame = stage === 'evo5' ? '#ffcc80' : stage === 'evo4' ? '#ff5722' : '#ff3d00';
-  const boss = stage === 'evo3' || stage === 'evo4' || stage === 'evo5';
-  const angry = stage !== 'baby';
-
-  const defs = [
-    grad(`${p}-body`, plumage, 'radial', 'cx="36%" cy="26%" r="80%"'),
-    grad(`${p}-belly`, [['0%', '#fffde7'], ['50%', '#ffe082'], ['100%', '#ffab40']], 'radial', 'cx="50%" cy="35%" r="65%"'),
-    grad(`${p}-wing`, [['0%', '#fffde7', 0.98], ['25%', accent, 0.95], ['55%', '#ff6d00', 0.92], ['85%', flame, 0.88], ['100%', '#bf360c', 0.8]], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
-    grad(`${p}-wing2`, [['0%', '#ffea00', 0.9], ['50%', '#ff3d00', 0.85], ['100%', '#7f0000', 0.75]], 'linear', 'x1="100%" y1="0%" x2="0%" y2="100%"'),
-    grad(`${p}-core`, [['0%', '#fff'], ['25%', '#fff59d'], ['55%', '#ff6d00'], ['100%', '#ff3d00', 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
-    grad(`${p}-iris`, stage === 'evo5'
-      ? [['0%', '#fffde7'], ['40%', '#ffd54f'], ['100%', '#e65100']]
-      : [['0%', '#fff59d'], ['35%', '#ff9100'], ['70%', '#dd2c00'], ['100%', '#4a0000']], 'radial', 'cx="35%" cy="28%" r="68%"'),
-    grad(`${p}-cheek`, [['0%', '#ff8a80', 0.55], ['100%', '#ff8a80', 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
-    grad(`${p}-aura`, [['0%', '#fff59d', boss ? 0.55 : 0.35], ['40%', '#ff6d00', 0.28], ['100%', '#bf360c', 0]], 'radial', 'cx="50%" cy="48%" r="55%"'),
-    grad(`${p}-corona`, [['0%', '#fffde7', 0.5], ['35%', '#ffea00', 0.3], ['100%', '#ff3d00', 0]], 'radial', 'cx="50%" cy="50%" r="50%"'),
-    grad(`${p}-tail`, [['0%', '#fffde7'], ['30%', accent], ['60%', '#ff6d00'], ['100%', '#7f0000']], 'linear', 'x1="0%" y1="0%" x2="100%" y2="100%"'),
-    ...(stage === 'evo4' ? [grad(`${p}-ash`, [['0%', '#90a4ae', 0.65], ['100%', '#37474f', 0.25]], 'radial', 'cx="50%" cy="50%" r="50%')] : []),
-  ].join('\n');
-
-  // Shared geometry knobs
-  const cfg = {
-    baby: {
-      shadowRx: 26, auraR: 38, bodyY: 66, bodyRx: 23, bodyRy: 19, headY: 36, headRx: 18, headRy: 16,
-      eyeY: 34, eyeRx: 7, eyeRy: 8.5, beakY: 47, beakSize: 0.85, sparks: 5, crest: 'sm', wings: 'sm',
-    },
-    evo1: {
-      shadowRx: 30, auraR: 42, bodyY: 64, bodyRx: 22, bodyRy: 18, headY: 34, headRx: 16.5, headRy: 14.5,
-      eyeY: 32, eyeRx: 6.5, eyeRy: 7.8, beakY: 45, beakSize: 0.9, sparks: 7, crest: 'md', wings: 'md',
-    },
-    evo2: {
-      shadowRx: 34, auraR: 46, bodyY: 62, bodyRx: 23, bodyRy: 19, headY: 30, headRx: 17, headRy: 15,
-      eyeY: 28, eyeRx: 6.8, eyeRy: 8, beakY: 43, beakSize: 0.95, sparks: 9, crest: 'lg', wings: 'lg',
-    },
-    evo3: {
-      shadowRx: 38, auraR: 50, bodyY: 60, bodyRx: 25, bodyRy: 21, headY: 26, headRx: 19, headRy: 17,
-      eyeY: 24, eyeRx: 7.5, eyeRy: 8.8, beakY: 41, beakSize: 1.05, sparks: 12, crest: 'boss', wings: 'boss',
-    },
-    evo4: {
-      shadowRx: 36, auraR: 46, bodyY: 62, bodyRx: 24, bodyRy: 20, headY: 28, headRx: 18, headRy: 16,
-      eyeY: 26, eyeRx: 7, eyeRy: 8.2, beakY: 43, beakSize: 1, sparks: 10, crest: 'lg', wings: 'lg',
-    },
-    evo5: {
-      shadowRx: 40, auraR: 52, bodyY: 58, bodyRx: 24, bodyRy: 20, headY: 24, headRx: 18.5, headRy: 16.5,
-      eyeY: 22, eyeRx: 7.2, eyeRy: 8.5, beakY: 39, beakSize: 1.05, sparks: 12, crest: 'divine', wings: 'boss',
-    },
-  }[stage];
-
-  const c = cfg;
-
-  // ── Wings (huge for boss) ──
-  let wings;
-  if (c.wings === 'boss') {
-    wings = `${I3}<g class="tm-animate-wing-left">
-${I4}<!-- Outer flame wing -->
-${I4}<path d="M 30 48 Q -6 8 -8 40 Q -4 72 16 68 Q 26 58 32 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="2.2"/>
-${I4}<path d="M 26 50 Q 2 22 0 46 Q 2 66 18 62 Q 24 56 28 52 Z" fill="url(#${p}-wing2)" opacity="0.85" stroke="${flame}" stroke-width="1.1"/>
-${I4}<path d="M 8 28 Q 0 36 4 52" stroke="${accent}" stroke-width="1.3" fill="none" opacity="0.7"/>
-${I4}<path d="M 4 36 Q -2 42 2 56" stroke="#ff8a65" stroke-width="1.1" fill="none" opacity="0.55"/>
-${I4}<path d="M 2 46 Q -4 50 0 62" stroke="#ff3d00" stroke-width="0.95" fill="none" opacity="0.5"/>
-${I4}<path d="M 12 54 Q 18 60 24 64" stroke="#fff59d" stroke-width="0.85" fill="none" opacity="0.45"/>
-${I4}<path d="M -2 22 L -8 12" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round"/>
-${I4}<path d="M 4 18 L 0 8" stroke="${flame}" stroke-width="1.4" stroke-linecap="round"/>
-${I4}<path d="M 10 16 L 8 6" stroke="${accent}" stroke-width="1.2" stroke-linecap="round"/>
-${I4}<circle cx="-4" cy="30" r="2" fill="#fffde7" opacity="0.55"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 70 48 Q 106 8 108 40 Q 104 72 84 68 Q 74 58 68 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="2.2"/>
-${I4}<path d="M 74 50 Q 98 22 100 46 Q 98 66 82 62 Q 76 56 72 52 Z" fill="url(#${p}-wing2)" opacity="0.85" stroke="${flame}" stroke-width="1.1"/>
-${I4}<path d="M 92 28 Q 100 36 96 52" stroke="${accent}" stroke-width="1.3" fill="none" opacity="0.7"/>
-${I4}<path d="M 96 36 Q 102 42 98 56" stroke="#ff8a65" stroke-width="1.1" fill="none" opacity="0.55"/>
-${I4}<path d="M 98 46 Q 104 50 100 62" stroke="#ff3d00" stroke-width="0.95" fill="none" opacity="0.5"/>
-${I4}<path d="M 88 54 Q 82 60 76 64" stroke="#fff59d" stroke-width="0.85" fill="none" opacity="0.45"/>
-${I4}<path d="M 102 22 L 108 12" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round"/>
-${I4}<path d="M 96 18 L 100 8" stroke="${flame}" stroke-width="1.4" stroke-linecap="round"/>
-${I4}<path d="M 90 16 L 92 6" stroke="${accent}" stroke-width="1.2" stroke-linecap="round"/>
-${I4}<circle cx="104" cy="30" r="2" fill="#fffde7" opacity="0.55"/>
-${I3}</g>`;
-  } else if (c.wings === 'lg') {
-    wings = `${I3}<g class="tm-animate-wing-left">
-${I4}<path d="M 28 50 Q 0 22 -2 46 Q 0 68 16 64 Q 24 56 30 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.9"/>
-${I4}<path d="M 12 36 Q 4 44 8 58" stroke="${accent}" stroke-width="1.1" fill="none" opacity="0.6"/>
-${I4}<path d="M 8 44 Q 2 50 6 62" stroke="#ff8a65" stroke-width="0.9" fill="none" opacity="0.5"/>
-${I4}<path d="M 4 28 L -2 20" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round"/>
-${I4}<path d="M 10 24 L 6 16" stroke="${flame}" stroke-width="1.2" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 72 50 Q 100 22 102 46 Q 100 68 84 64 Q 76 56 70 52 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.9"/>
-${I4}<path d="M 88 36 Q 96 44 92 58" stroke="${accent}" stroke-width="1.1" fill="none" opacity="0.6"/>
-${I4}<path d="M 92 44 Q 98 50 94 62" stroke="#ff8a65" stroke-width="0.9" fill="none" opacity="0.5"/>
-${I4}<path d="M 96 28 L 102 20" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round"/>
-${I4}<path d="M 90 24 L 94 16" stroke="${flame}" stroke-width="1.2" stroke-linecap="round"/>
-${I3}</g>`;
-  } else if (c.wings === 'md') {
-    wings = `${I3}<g class="tm-animate-wing-left">
-${I4}<path d="M 30 52 Q 10 36 8 52 Q 10 68 22 64 Q 28 58 32 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.5"/>
-${I4}<path d="M 18 44 Q 12 50 16 60" stroke="${accent}" stroke-width="0.9" fill="none" opacity="0.55"/>
-${I4}<path d="M 12 32 L 6 24" stroke="${stroke}" stroke-width="1.3" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<path d="M 70 52 Q 90 36 92 52 Q 90 68 78 64 Q 72 58 68 54 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.5"/>
-${I4}<path d="M 82 44 Q 88 50 84 60" stroke="${accent}" stroke-width="0.9" fill="none" opacity="0.55"/>
-${I4}<path d="M 88 32 L 94 24" stroke="${stroke}" stroke-width="1.3" stroke-linecap="round"/>
-${I3}</g>`;
-  } else {
-    wings = `${I3}<g class="tm-animate-wing-left">
-${I4}<ellipse cx="24" cy="58" rx="8" ry="12" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2" transform="rotate(-28 24 58)"/>
-${I4}<path d="M 20 50 Q 14 54 18 62" stroke="${accent}" stroke-width="0.8" fill="none" opacity="0.55"/>
-${I4}<circle cx="18" cy="52" r="1.3" fill="#fff" opacity="0.45"/>
-${I3}</g>
-${I3}<g class="tm-animate-wing-right">
-${I4}<ellipse cx="76" cy="58" rx="8" ry="12" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.2" transform="rotate(28 76 58)"/>
-${I4}<path d="M 80 50 Q 86 54 82 62" stroke="${accent}" stroke-width="0.8" fill="none" opacity="0.55"/>
-${I4}<circle cx="82" cy="52" r="1.3" fill="#fff" opacity="0.45"/>
-${I3}</g>`;
-  }
-
-  // ── Tail of living flame ──
-  let tail;
-  if (boss) {
-    tail = `${I3}<g class="tm-animate-tail">
-${I4}<path d="M 58 68 Q 78 102 98 52 Q 104 28 90 24 Q 74 36 58 68 Z" fill="url(#${p}-tail)" stroke="${stroke}" stroke-width="1.8"/>
-${I4}<path d="M 62 70 Q 80 108 100 60" fill="url(#${p}-wing)" opacity="0.7" stroke="${flame}" stroke-width="1.1"/>
-${I4}<path d="M 66 66 Q 84 98 102 56" fill="none" stroke="${accent}" stroke-width="1.3" opacity="0.65"/>
-${I4}<path d="M 70 62 Q 86 90 96 50" fill="none" stroke="#ff8a65" stroke-width="1" opacity="0.5"/>
-${I4}<path d="M 74 58 Q 88 82 94 48" fill="none" stroke="#fff59d" stroke-width="0.85" opacity="0.45"/>
-${I4}<ellipse cx="96" cy="40" rx="6" ry="8" fill="${accent}" opacity="0.75"/>
-${I4}<circle cx="95" cy="38" r="2.2" fill="#fff" opacity="0.7"/>
-${I4}<circle cx="100" cy="48" r="1.6" fill="#ff3d00" opacity="0.55"/>
-${I3}</g>`;
-  } else if (stage === 'evo2') {
-    tail = `${I3}<g class="tm-animate-tail">
-${I4}<path d="M 60 70 Q 78 96 92 58 Q 96 40 86 38 Q 72 48 60 70 Z" fill="url(#${p}-tail)" stroke="${stroke}" stroke-width="1.5"/>
-${I4}<path d="M 66 72 Q 80 100 94 64" fill="url(#${p}-wing)" opacity="0.65" stroke="${flame}" stroke-width="0.95"/>
-${I4}<circle cx="90" cy="50" r="3" fill="${accent}" opacity="0.8"/>
-${I3}</g>`;
-  } else if (stage === 'evo1') {
-    tail = `${I3}<g class="tm-animate-tail">
-${I4}<path d="M 64 70 Q 80 88 90 60 Q 94 46 84 44 Q 72 52 64 70 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.35"/>
-${I4}<path d="M 70 72 Q 82 92 92 64" fill="none" stroke="${accent}" stroke-width="1" opacity="0.55"/>
-${I4}<circle cx="88" cy="54" r="2.4" fill="${accent}" opacity="0.75"/>
-${I3}</g>`;
-  } else {
-    tail = `${I3}<g class="tm-animate-tail">
-${I4}<ellipse cx="68" cy="72" rx="9" ry="7" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.3"/>
-${I4}<ellipse cx="76" cy="66" rx="6" ry="5" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.9"/>
-${I4}<circle cx="80" cy="62" r="2.6" fill="${accent}" opacity="0.75"/>
-${I3}</g>`;
-  }
-
-  // ── Crest ──
-  let crest;
-  if (c.crest === 'boss') {
-    crest = `${I4}<!-- Mythic solar crown -->
-${I4}<ellipse cx="50" cy="6" rx="22" ry="5" fill="url(#${p}-corona)" opacity="0.85"/>
-${I4}<path d="M 28 18 L 18 -2 L 34 14 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.1"/>
-${I4}<path d="M 36 14 L 30 -6 L 42 12 Z" fill="${flame}" stroke="${stroke}" stroke-width="1.05"/>
-${I4}<path d="M 44 10 L 40 -10 L 50 8 Z" fill="${accent}" stroke="${stroke}" stroke-width="1.1"/>
-${I4}<path d="M 56 10 L 60 -10 L 50 8 Z" fill="${accent}" stroke="${stroke}" stroke-width="1.1"/>
-${I4}<path d="M 64 14 L 70 -6 L 58 12 Z" fill="${flame}" stroke="${stroke}" stroke-width="1.05"/>
-${I4}<path d="M 72 18 L 82 -2 L 66 14 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1.1"/>
-${I4}<path d="M 22 12 L 12 0 L 26 10 Z" fill="#ff8a65" opacity="0.85"/>
-${I4}<path d="M 78 12 L 88 0 L 74 10 Z" fill="#ff8a65" opacity="0.85"/>
-${I4}<circle cx="50" cy="-6" r="2.8" fill="#fffde7" opacity="0.9"/>
-${I4}<circle cx="50" cy="2" r="1.6" fill="#ff3d00" opacity="0.55"/>`;
-  } else if (c.crest === 'divine') {
-    crest = `${I4}<!-- Immortal sun halo -->
-${I4}<ellipse cx="50" cy="4" rx="24" ry="5.5" fill="none" stroke="#fff59d" stroke-width="1.6" opacity="0.7"/>
-${I4}<ellipse cx="50" cy="4" rx="18" ry="3.5" fill="url(#${p}-corona)" opacity="0.8"/>
-${I4}<path d="M 30 16 L 22 -4 L 36 14 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1"/>
-${I4}<path d="M 40 12 L 36 -8 L 48 10 Z" fill="#fff59d" stroke="${stroke}" stroke-width="1"/>
-${I4}<path d="M 50 8 L 50 -12 L 56 8 Z" fill="#fffde7" stroke="${stroke}" stroke-width="1.05"/>
-${I4}<path d="M 60 12 L 64 -8 L 52 10 Z" fill="#fff59d" stroke="${stroke}" stroke-width="1"/>
-${I4}<path d="M 70 16 L 78 -4 L 64 14 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="1"/>
-${I4}<circle cx="50" cy="-8" r="3" fill="#fff" opacity="0.9"/>
-${I4}<circle cx="24" cy="8" r="1.8" fill="#fff" opacity="0.55"/>
-${I4}<circle cx="76" cy="8" r="1.8" fill="#fff" opacity="0.55"/>`;
-  } else if (c.crest === 'lg') {
-    crest = `${I4}<path d="M 36 18 L 28 2 L 40 16 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.95"/>
-${I4}<path d="M 44 14 L 40 -2 L 50 12 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.95"/>
-${I4}<path d="M 56 14 L 60 -2 L 50 12 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.95"/>
-${I4}<path d="M 64 18 L 72 2 L 60 16 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.95"/>
-${I4}<path d="M 32 12 L 24 0 L 34 10 Z" fill="#ff8a65" opacity="0.8"/>
-${I4}<path d="M 68 12 L 76 0 L 66 10 Z" fill="#ff8a65" opacity="0.8"/>
-${I4}<circle cx="50" cy="0" r="2" fill="#fffde7" opacity="0.75"/>`;
-  } else if (c.crest === 'md') {
-    crest = `${I4}<path d="M 40 22 L 36 8 L 44 20 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.85"/>
-${I4}<path d="M 50 18 L 50 4 L 54 16 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.85"/>
-${I4}<path d="M 60 22 L 64 8 L 56 20 Z" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.85"/>`;
-  } else {
-    crest = `${I4}<ellipse cx="36" cy="32" rx="4" ry="6" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="0.85" transform="rotate(-16 36 32)"/>
-${I4}<ellipse cx="64" cy="32" rx="4" ry="6" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="0.85" transform="rotate(16 64 32)"/>
-${I4}<ellipse cx="50" cy="26" rx="3.2" ry="5" fill="url(#${p}-wing)" stroke="${stroke}" stroke-width="0.7"/>`;
-  }
-
-  // Stage extras
-  let bodyExtra = '';
-  let auraExtra = '';
-  if (stage === 'evo3') {
-    auraExtra = `${I3}<ellipse cx="50" cy="46" rx="42" ry="40" fill="url(#${p}-corona)" opacity="0.55"/>
-${I3}<ellipse cx="50" cy="46" rx="34" ry="32" fill="none" stroke="#ffea00" stroke-width="1.2" opacity="0.35"/>
-${I3}<ellipse cx="50" cy="46" rx="26" ry="24" fill="none" stroke="#ff3d00" stroke-width="0.8" opacity="0.25"/>`;
-    bodyExtra = `${I4}<!-- Armor-like flame plates -->
-${I4}<path d="M 38 48 L 36 56 L 42 54 Z" fill="#ff8a65" stroke="${stroke}" stroke-width="0.75"/>
-${I4}<path d="M 50 46 L 48 54 L 52 54 Z" fill="${accent}" stroke="${stroke}" stroke-width="0.8"/>
-${I4}<path d="M 62 48 L 58 54 L 64 56 Z" fill="#ff8a65" stroke="${stroke}" stroke-width="0.75"/>
-${I4}<path d="M 34 58 Q 50 62 66 58" stroke="#ffe082" stroke-width="1.15" fill="none" opacity="0.65"/>
-${I4}<path d="M 36 64 Q 50 68 64 64" stroke="#ffe082" stroke-width="1" fill="none" opacity="0.55"/>
-${I4}<path d="M 38 70 Q 50 74 62 70" stroke="#ffab40" stroke-width="0.9" fill="none" opacity="0.45"/>`;
-  } else if (stage === 'evo4') {
-    bodyExtra = `${I4}<!-- Ash scars -->
-${I4}<ellipse cx="36" cy="58" rx="6" ry="5" fill="url(#${p}-ash)" opacity="0.55"/>
-${I4}<ellipse cx="64" cy="62" rx="5" ry="4" fill="url(#${p}-ash)" opacity="0.5"/>
-${I4}<path d="M 54 32 L 58 38 L 56 42" stroke="#90a4ae" stroke-width="1.3" fill="none" opacity="0.7"/>
-${I4}<path d="M 34 56 Q 50 60 66 56" stroke="#ffab40" stroke-width="1" fill="none" opacity="0.45"/>`;
-  } else if (stage === 'evo5') {
-    auraExtra = `${I3}<ellipse cx="50" cy="44" rx="44" ry="42" fill="url(#${p}-corona)" opacity="0.65"/>
-${I3}<ellipse cx="50" cy="44" rx="36" ry="34" fill="none" stroke="#fffde7" stroke-width="1.4" opacity="0.4"/>
-${I3}<ellipse cx="50" cy="44" rx="28" ry="26" fill="none" stroke="#ffd54f" stroke-width="0.9" opacity="0.3"/>`;
-    bodyExtra = `${I4}<path d="M 36 52 Q 50 54 64 52" stroke="#fffde7" stroke-width="1.1" fill="none" opacity="0.55"/>
-${I4}<circle cx="28" cy="40" r="2.2" fill="#fff" opacity="0.55"/>
-${I4}<circle cx="72" cy="38" r="2.2" fill="#fff" opacity="0.5"/>`;
-  } else if (stage === 'evo2') {
-    bodyExtra = `${I4}<path d="M 38 56 Q 50 58 62 56" stroke="#ffe082" stroke-width="0.95" fill="none" opacity="0.55"/>
-${I4}<path d="M 40 62 Q 50 64 60 62" stroke="#ffe082" stroke-width="0.85" fill="none" opacity="0.45"/>`;
-  }
-
-  const armY = stage === 'baby' ? 64 : 58;
-  const legY = boss ? 88 : 86;
-
-  const body = `${shadow(c.shadowRx, boss ? 0.32 : 0.24)}
-${I3}<ellipse cx="50" cy="48" rx="${c.auraR}" ry="${(c.auraR * 0.94).toFixed(0)}" fill="url(#${p}-aura)"/>
-${auraExtra}
-${emberSparks(c.sparks)}
-${wings}
-${tail}
-${I3}<g class="tm-animate-body">
-${I4}<ellipse cx="50" cy="${c.bodyY}" rx="${c.bodyRx}" ry="${c.bodyRy}" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="${boss ? 2.5 : 1.8}"/>
-${I4}<ellipse cx="${(50 - c.bodyRx + 8).toFixed(1)}" cy="${c.bodyY - 8}" rx="9" ry="5" fill="#fff" opacity="0.16"/>
-${I4}<ellipse cx="50" cy="${c.bodyY + 2}" rx="${(c.bodyRx - 8).toFixed(1)}" ry="${(c.bodyRy - 6).toFixed(1)}" fill="url(#${p}-belly)"/>
-${bodyExtra}
-${I4}<circle cx="50" cy="${c.bodyY}" r="${boss ? 10 : 7.5}" fill="url(#${p}-core)"/>
-${I4}<circle cx="50" cy="${c.bodyY}" r="${boss ? 4.5 : 3.2}" fill="#fffde7" opacity="${boss ? 0.85 : 0.7}"/>
-${I4}<!-- Head -->
-${I4}<ellipse cx="50" cy="${c.headY}" rx="${c.headRx}" ry="${c.headRy}" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="${boss ? 2.3 : 1.7}"/>
-${I4}<ellipse cx="${(50 - c.headRx + 7).toFixed(1)}" cy="${c.headY - 5}" rx="7" ry="4" fill="#fff" opacity="0.15"/>
-${crest}
-${I4}<circle cx="34" cy="${c.headY + 6}" r="${boss ? 4.5 : 3.8}" fill="url(#${p}-cheek)"/>
-${I4}<circle cx="66" cy="${c.headY + 6}" r="${boss ? 4.5 : 3.8}" fill="url(#${p}-cheek)"/>
-${I3}</g>
-${I3}<g class="tm-animate-arm-left">
-${I4}<ellipse cx="26" cy="${armY}" rx="${boss ? 7.5 : 6}" ry="${boss ? 12 : 9}" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.4" transform="rotate(-20 26 ${armY})"/>
-${I4}<path d="M 22 ${armY + 10} L 16 ${armY + 18} M 24 ${armY + 12} L 22 ${armY + 20} M 26 ${armY + 10} L 30 ${armY + 18}" stroke="${flame}" stroke-width="${boss ? 1.6 : 1.3}" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-arm-right">
-${I4}<ellipse cx="74" cy="${armY}" rx="${boss ? 7.5 : 6}" ry="${boss ? 12 : 9}" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.4" transform="rotate(20 74 ${armY})"/>
-${I4}<path d="M 74 ${armY + 10} L 70 ${armY + 18} M 76 ${armY + 12} L 78 ${armY + 20} M 78 ${armY + 10} L 84 ${armY + 18}" stroke="${flame}" stroke-width="${boss ? 1.6 : 1.3}" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-leg-left">
-${I4}<ellipse cx="38" cy="${legY}" rx="${boss ? 8 : 6.5}" ry="${boss ? 6 : 5}" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5"/>
-${I4}<path d="M 32 ${legY + 2} L 26 ${legY + 8} M 37 ${legY + 3} L 37 ${legY + 10} M 42 ${legY + 3} L 42 ${legY + 10} M 46 ${legY + 2} L 52 ${legY + 8}" stroke="${stroke}" stroke-width="${boss ? 1.7 : 1.4}" stroke-linecap="round"/>
-${I3}</g>
-${I3}<g class="tm-animate-leg-right">
-${I4}<ellipse cx="62" cy="${legY}" rx="${boss ? 8 : 6.5}" ry="${boss ? 6 : 5}" fill="url(#${p}-body)" stroke="${stroke}" stroke-width="1.5"/>
-${I4}<path d="M 54 ${legY + 2} L 48 ${legY + 8} M 59 ${legY + 3} L 59 ${legY + 10} M 64 ${legY + 3} L 64 ${legY + 10} M 68 ${legY + 2} L 74 ${legY + 8}" stroke="${stroke}" stroke-width="${boss ? 1.7 : 1.4}" stroke-linecap="round"/>
-${I3}</g>
-${fierceEyes(40, 60, c.eyeY, c.eyeRx, c.eyeRy, `url(#${p}-iris)`, stroke, {
-    angry, sclera: stage === 'evo5' ? '#fffde7' : '#fff8e1', glow: stage === 'evo5' ? '#fff' : '#fffde7',
-  })}
-${hookedBeak(c.beakY, stroke, stage === 'evo5' ? '#ffcc80' : stage === 'evo4' ? '#d84315' : '#ff6d00', c.beakSize)}`;
-
-  return wrapStage(stage, titles[stage], defs, body);
-}
-
 export const phoenixSvg = [
-  `${I}<!-- PHOENIX CHARACTER - All Life Stages (dense cute epic v4 · BOSS MYTHICAL) -->`,
-  `${I}<!-- Solar Flame • Legendary Rarity • Ashborn Phoenix -->`,
-  `${I}<!-- ═══════════════════════════════════════ -->`,
+  `${I}<!-- PHOENIX CHARACTER - All Life Stages (evolution line v12 · distinct silhouettes per stage) -->`,
+  `${I}<!-- chick > fledgling > blaze raptor > BOSS streamers > charred warlord > solar seraph -->`,
   '',
-  ...STAGES.map(phoenixStage),
+  ...STAGES.map(stageSvg),
 ].join('\n');

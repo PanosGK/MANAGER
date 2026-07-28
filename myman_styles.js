@@ -4679,6 +4679,52 @@
                 transform: scale(1.46);
                 transform-origin: 50% 64%;
             }
+            /* Phoenix — legendary boss presence scales up through evolution */
+            .tm-mascot-robot.mascot-char-phoenix.mascot-teen {
+                transform: scale(1.08);
+                transform-origin: 50% 68%;
+            }
+            .tm-mascot-robot.mascot-char-phoenix.mascot-adult {
+                transform: scale(1.22);
+                transform-origin: 50% 66%;
+            }
+            .tm-mascot-robot.mascot-char-phoenix.mascot-middleage {
+                transform: scale(1.32);
+                transform-origin: 50% 64%;
+            }
+            .tm-mascot-robot.mascot-char-phoenix.mascot-old {
+                transform: scale(1.42);
+                transform-origin: 50% 62%;
+            }
+            #tm-mascot-container.mascot-char-phoenix:has(.mascot-teen)::before {
+                background: radial-gradient(ellipse 72% 68% at 50% 55%, rgba(255,120,0,0.22) 0%, rgba(255,40,0,0.12) 45%, transparent 72%) !important;
+                box-shadow: 0 0 32px rgba(255,80,0,0.35), 0 0 64px rgba(255,40,0,0.18) !important;
+            }
+            #tm-mascot-container.mascot-char-phoenix:has(.mascot-adult)::before {
+                background: radial-gradient(ellipse 78% 72% at 50% 52%,
+                    rgba(255,213,79,0.35) 0%,
+                    rgba(156,39,176,0.18) 35%,
+                    rgba(255,40,0,0.18) 55%,
+                    transparent 78%) !important;
+                box-shadow: 0 0 42px rgba(255,193,7,0.45), 0 0 80px rgba(156,39,176,0.22), 0 0 100px rgba(255,60,0,0.2) !important;
+                animation: tm-legendary-aura-pulse 1.8s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-char-phoenix:has(.mascot-middleage)::before,
+            #tm-mascot-container.mascot-char-phoenix:has(.mascot-old)::before {
+                background: radial-gradient(ellipse 82% 76% at 50% 50%,
+                    rgba(255,248,225,0.38) 0%,
+                    rgba(255,213,79,0.28) 25%,
+                    rgba(156,39,176,0.15) 45%,
+                    rgba(255,80,0,0.12) 60%,
+                    transparent 78%) !important;
+                box-shadow: 0 0 48px rgba(255,248,225,0.35), 0 0 96px rgba(255,193,7,0.3), 0 0 120px rgba(156,39,176,0.15) !important;
+                animation: tm-legendary-aura-pulse 1.6s ease-in-out infinite !important;
+            }
+            .tm-mascot-robot.mascot-char-phoenix.mascot-adult,
+            .tm-mascot-robot.mascot-char-phoenix.mascot-middleage,
+            .tm-mascot-robot.mascot-char-phoenix.mascot-old {
+                filter: drop-shadow(0 0 8px rgba(255,193,7,0.8)) drop-shadow(0 0 16px rgba(156,39,176,0.35)) drop-shadow(0 0 24px rgba(255,60,0,0.25));
+            }
             #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-leviathan .tm-animate-wing-left {
                 animation: tm-wing-flap 2.8s ease-in-out infinite !important;
             }

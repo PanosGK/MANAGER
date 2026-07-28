@@ -11148,6 +11148,52 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 transform: scale(1.46);
                 transform-origin: 50% 64%;
             }
+            /* Phoenix — legendary boss presence scales up through evolution */
+            .tm-mascot-robot.mascot-char-phoenix.mascot-teen {
+                transform: scale(1.08);
+                transform-origin: 50% 68%;
+            }
+            .tm-mascot-robot.mascot-char-phoenix.mascot-adult {
+                transform: scale(1.22);
+                transform-origin: 50% 66%;
+            }
+            .tm-mascot-robot.mascot-char-phoenix.mascot-middleage {
+                transform: scale(1.32);
+                transform-origin: 50% 64%;
+            }
+            .tm-mascot-robot.mascot-char-phoenix.mascot-old {
+                transform: scale(1.42);
+                transform-origin: 50% 62%;
+            }
+            #tm-mascot-container.mascot-char-phoenix:has(.mascot-teen)::before {
+                background: radial-gradient(ellipse 72% 68% at 50% 55%, rgba(255,120,0,0.22) 0%, rgba(255,40,0,0.12) 45%, transparent 72%) !important;
+                box-shadow: 0 0 32px rgba(255,80,0,0.35), 0 0 64px rgba(255,40,0,0.18) !important;
+            }
+            #tm-mascot-container.mascot-char-phoenix:has(.mascot-adult)::before {
+                background: radial-gradient(ellipse 78% 72% at 50% 52%,
+                    rgba(255,213,79,0.35) 0%,
+                    rgba(156,39,176,0.18) 35%,
+                    rgba(255,40,0,0.18) 55%,
+                    transparent 78%) !important;
+                box-shadow: 0 0 42px rgba(255,193,7,0.45), 0 0 80px rgba(156,39,176,0.22), 0 0 100px rgba(255,60,0,0.2) !important;
+                animation: tm-legendary-aura-pulse 1.8s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-char-phoenix:has(.mascot-middleage)::before,
+            #tm-mascot-container.mascot-char-phoenix:has(.mascot-old)::before {
+                background: radial-gradient(ellipse 82% 76% at 50% 50%,
+                    rgba(255,248,225,0.38) 0%,
+                    rgba(255,213,79,0.28) 25%,
+                    rgba(156,39,176,0.15) 45%,
+                    rgba(255,80,0,0.12) 60%,
+                    transparent 78%) !important;
+                box-shadow: 0 0 48px rgba(255,248,225,0.35), 0 0 96px rgba(255,193,7,0.3), 0 0 120px rgba(156,39,176,0.15) !important;
+                animation: tm-legendary-aura-pulse 1.6s ease-in-out infinite !important;
+            }
+            .tm-mascot-robot.mascot-char-phoenix.mascot-adult,
+            .tm-mascot-robot.mascot-char-phoenix.mascot-middleage,
+            .tm-mascot-robot.mascot-char-phoenix.mascot-old {
+                filter: drop-shadow(0 0 8px rgba(255,193,7,0.8)) drop-shadow(0 0 16px rgba(156,39,176,0.35)) drop-shadow(0 0 24px rgba(255,60,0,0.25));
+            }
             #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-leviathan .tm-animate-wing-left {
                 animation: tm-wing-flap 2.8s ease-in-out infinite !important;
             }
@@ -35581,963 +35627,816 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 43 Q 50 37.5 56.2 43" stroke="#546e7a" stroke-width="1.9" fill="none" stroke-linecap="round"/>
                 </g>
 
-                <!-- PHOENIX CHARACTER - All Life Stages (dense cute epic v4 · BOSS MYTHICAL) -->
-                <!-- Solar Flame • Legendary Rarity • Ashborn Phoenix -->
-                <!-- ═══════════════════════════════════════ -->
+                <!-- PHOENIX CHARACTER - All Life Stages (evolution line v12 · distinct silhouettes per stage) -->
+                <!-- chick > fledgling > blaze raptor > BOSS streamers > charred warlord > solar seraph -->
 
-                <!-- PHOENIX BABY — ember hatchling -->
+                <!-- PHOENIX BABY — Ember Chick -->
                 <g id="tm-mascot-baby-phoenix" style="display: none;">
                     <defs>
-                        <radialGradient id="phoenix-baby-body" cx="36%" cy="26%" r="80%">
-                            <stop offset="0%" style="stop-color:#fff9c4;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#ffb74d;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff7043;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-baby-belly" cx="50%" cy="35%" r="65%">
+                        <linearGradient id="phoenix-baby-plum" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffd98f;stop-opacity:1" />
+                            <stop offset="35%" style="stop-color:#ffa73e;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#e8651a;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#8a2708;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="phoenix-baby-fire" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#ffe082;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffab40;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-baby-wing" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:0.98" />
-                            <stop offset="25%" style="stop-color:#ffea00;stop-opacity:0.95" />
-                            <stop offset="55%" style="stop-color:#ff6d00;stop-opacity:0.92" />
-                            <stop offset="85%" style="stop-color:#ff3d00;stop-opacity:0.88" />
-                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:0.8" />
+                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:1" />
+                            <stop offset="65%" style="stop-color:#ff6d00;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b71c1c;stop-opacity:1" />
                         </linearGradient>
-                        <linearGradient id="phoenix-baby-wing2" x1="100%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffea00;stop-opacity:0.9" />
-                            <stop offset="50%" style="stop-color:#ff3d00;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#7f0000;stop-opacity:0.75" />
-                        </linearGradient>
-                        <radialGradient id="phoenix-baby-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="25%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-baby-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#ff9100;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#dd2c00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4a0000;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-baby-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a80;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#ff8a80;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-baby-aura" cx="50%" cy="48%" r="55%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:0.35" />
-                            <stop offset="40%" style="stop-color:#ff6d00;stop-opacity:0.28" />
-                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-baby-corona" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:0.5" />
-                            <stop offset="35%" style="stop-color:#ffea00;stop-opacity:0.3" />
-                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-baby-tail" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <radialGradient id="phoenix-baby-core" cx="50%" cy="42%" r="60%">
                             <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffea00;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#7f0000;stop-opacity:1" />
+                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:.95" />
+                            <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
+                            <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
+                        </radialGradient>
+                        <linearGradient id="phoenix-baby-beak" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
                         </linearGradient>
+                        <filter id="phoenix-baby-glow" x="-100%" y="-100%" width="300%" height="300%">
+                            <feGaussianBlur stdDeviation="1.5" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <filter id="phoenix-baby-soft" x="-60%" y="-60%" width="220%" height="220%">
+                            <feGaussianBlur stdDeviation=".6" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
                     </defs>
-                        <ellipse cx="50" cy="96" rx="26" ry="5.5" fill="#1a0500" opacity="0.24"/>
-                        <ellipse cx="50" cy="48" rx="38" ry="36" fill="url(#phoenix-baby-aura)"/>
+                        <ellipse cx="50" cy="84" rx="17" ry="4.4" fill="#120303" opacity="0.26"/>
 
-                        <circle cx="18" cy="28" r="1.8" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="82" cy="24" r="1.2" fill="#fff59d" opacity="0.44999999999999996"/>
-                        <circle cx="12" cy="48" r="1.2" fill="#ff6d00" opacity="0.55"/>
-                        <circle cx="88" cy="50" r="1.8" fill="#fff59d" opacity="0.65"/>
-                        <circle cx="22" cy="70" r="1.2" fill="#ff6d00" opacity="0.35"/>
+                        <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-baby-soft)"/>
+                        <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-baby-soft)"/>
+                        <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-baby-soft)"/>
+                        <g transform="translate(50 50) scale(0.8) translate(-50 -50)">
+                        <g class="tm-animate-tail">
+                            <path d="M 48.8 71.8 Q 51.1 74.2 53.4 76.0 Q 52.5 73.3 51.2 70.2 Z" fill="url(#phoenix-baby-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-baby-soft)"/>
+                            <path d="M 48.5 71.0 Q 49.2 76.0 50.0 80.0 Q 50.8 76.0 51.5 71.0 Z" fill="url(#phoenix-baby-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-baby-soft)"/>
+                            <path d="M 48.8 70.2 Q 47.5 73.3 46.6 76.0 Q 48.9 74.2 51.2 71.8 Z" fill="url(#phoenix-baby-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-baby-soft)"/>
+                        </g>
                         <g class="tm-animate-wing-left">
-                            <ellipse cx="24" cy="58" rx="8" ry="12" fill="url(#phoenix-baby-wing)" stroke="#bf360c" stroke-width="1.2" transform="rotate(-28 24 58)"/>
-                            <path d="M 20 50 Q 14 54 18 62" stroke="#ffea00" stroke-width="0.8" fill="none" opacity="0.55"/>
-                            <circle cx="18" cy="52" r="1.3" fill="#fff" opacity="0.45"/>
+                            <path d="M 38 48 Q 30 50 29 57 Q 33 61 39 58 Q 40.5 52 38 48 Z" fill="url(#phoenix-baby-plum)" stroke="#7b1308" stroke-width=".9"/>
+                            <path d="M 37 51 Q 33 53 32.5 56.5" fill="none" stroke="#ffd98f" stroke-width=".6" opacity=".7"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <ellipse cx="76" cy="58" rx="8" ry="12" fill="url(#phoenix-baby-wing)" stroke="#bf360c" stroke-width="1.2" transform="rotate(28 76 58)"/>
-                            <path d="M 80 50 Q 86 54 82 62" stroke="#ffea00" stroke-width="0.8" fill="none" opacity="0.55"/>
-                            <circle cx="82" cy="52" r="1.3" fill="#fff" opacity="0.45"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <ellipse cx="68" cy="72" rx="9" ry="7" fill="url(#phoenix-baby-body)" stroke="#bf360c" stroke-width="1.3"/>
-                            <ellipse cx="76" cy="66" rx="6" ry="5" fill="url(#phoenix-baby-wing)" stroke="#bf360c" stroke-width="0.9"/>
-                            <circle cx="80" cy="62" r="2.6" fill="#ffea00" opacity="0.75"/>
+                            <g transform="translate(100,0) scale(-1,1)">
+                            <path d="M 38 48 Q 30 50 29 57 Q 33 61 39 58 Q 40.5 52 38 48 Z" fill="url(#phoenix-baby-plum)" stroke="#7b1308" stroke-width=".9"/>
+                            <path d="M 37 51 Q 33 53 32.5 56.5" fill="none" stroke="#ffd98f" stroke-width=".6" opacity=".7"/>
+                            </g>
                         </g>
                         <g class="tm-animate-body">
-                            <ellipse cx="50" cy="66" rx="23" ry="19" fill="url(#phoenix-baby-body)" stroke="#bf360c" stroke-width="1.8"/>
-                            <ellipse cx="35.0" cy="58" rx="9" ry="5" fill="#fff" opacity="0.16"/>
-                            <ellipse cx="50" cy="68" rx="15.0" ry="13.0" fill="url(#phoenix-baby-belly)"/>
-
-                            <circle cx="50" cy="66" r="7.5" fill="url(#phoenix-baby-core)"/>
-                            <circle cx="50" cy="66" r="3.2" fill="#fffde7" opacity="0.7"/>
-                            <!-- Head -->
-                            <ellipse cx="50" cy="36" rx="18" ry="16" fill="url(#phoenix-baby-body)" stroke="#bf360c" stroke-width="1.7"/>
-                            <ellipse cx="39.0" cy="31" rx="7" ry="4" fill="#fff" opacity="0.15"/>
-                            <ellipse cx="36" cy="32" rx="4" ry="6" fill="url(#phoenix-baby-body)" stroke="#bf360c" stroke-width="0.85" transform="rotate(-16 36 32)"/>
-                            <ellipse cx="64" cy="32" rx="4" ry="6" fill="url(#phoenix-baby-body)" stroke="#bf360c" stroke-width="0.85" transform="rotate(16 64 32)"/>
-                            <ellipse cx="50" cy="26" rx="3.2" ry="5" fill="url(#phoenix-baby-wing)" stroke="#bf360c" stroke-width="0.7"/>
-                            <circle cx="34" cy="42" r="3.8" fill="url(#phoenix-baby-cheek)"/>
-                            <circle cx="66" cy="42" r="3.8" fill="url(#phoenix-baby-cheek)"/>
+                            <path d="M 50 34 C 40 35 36 44 36 54 C 36 66 42 73 50 74 C 58 73 64 66 64 54 C 64 44 60 35 50 34 Z" fill="url(#phoenix-baby-plum)" stroke="#7b1308" stroke-width="1.1"/>
+                            <ellipse cx="50" cy="59" rx="7.5" ry="8" fill="url(#phoenix-baby-core)" opacity=".5" filter="url(#phoenix-baby-glow)"/>
+                            <path d="M 44 62 Q 50 60 56 62 M 45.5 66.5 Q 50 64.8 54.5 66.5" fill="none" stroke="#8a2708" stroke-width=".45" opacity=".3"/>
+                            <path d="M 50.6 33.9 Q 48.3 31.9 46.3 30.3 Q 47.6 32.5 49.4 35.1 Z" fill="url(#phoenix-baby-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-baby-soft)"/>
+                            <path d="M 50.8 34.5 Q 50.5 28.8 50.0 24.1 Q 49.5 28.8 49.2 34.5 Z" fill="url(#phoenix-baby-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-baby-soft)"/>
+                            <path d="M 50.6 35.1 Q 52.4 32.5 53.7 30.3 Q 51.7 31.9 49.4 33.9 Z" fill="url(#phoenix-baby-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-baby-soft)"/>
                         </g>
-                        <g class="tm-animate-arm-left">
-                            <ellipse cx="26" cy="64" rx="6" ry="9" fill="url(#phoenix-baby-body)" stroke="#bf360c" stroke-width="1.4" transform="rotate(-20 26 64)"/>
-                            <path d="M 22 74 L 16 82 M 24 76 L 22 84 M 26 74 L 30 82" stroke="#ff3d00" stroke-width="1.3" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <ellipse cx="74" cy="64" rx="6" ry="9" fill="url(#phoenix-baby-body)" stroke="#bf360c" stroke-width="1.4" transform="rotate(20 74 64)"/>
-                            <path d="M 74 74 L 70 82 M 76 76 L 78 84 M 78 74 L 84 82" stroke="#ff3d00" stroke-width="1.3" stroke-linecap="round"/>
-                        </g>
+                        <g class="tm-animate-arm-left" opacity=".001"><circle cx="38" cy="52" r=".4"/></g>
+                        <g class="tm-animate-arm-right" opacity=".001"><circle cx="62" cy="52" r=".4"/></g>
                         <g class="tm-animate-leg-left">
-                            <ellipse cx="38" cy="86" rx="6.5" ry="5" fill="url(#phoenix-baby-body)" stroke="#bf360c" stroke-width="1.5"/>
-                            <path d="M 32 88 L 26 94 M 37 89 L 37 96 M 42 89 L 42 96 M 46 88 L 52 94" stroke="#bf360c" stroke-width="1.4" stroke-linecap="round"/>
+                            <path d="M 46 73.5 L 46 78 M 46 78 L 44 81 M 46 78 L 46.3 81.4 M 46 78 L 48 81" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <ellipse cx="62" cy="86" rx="6.5" ry="5" fill="url(#phoenix-baby-body)" stroke="#bf360c" stroke-width="1.5"/>
-                            <path d="M 54 88 L 48 94 M 59 89 L 59 96 M 64 89 L 64 96 M 68 88 L 74 94" stroke="#bf360c" stroke-width="1.4" stroke-linecap="round"/>
+                            <path d="M 54 73.5 L 54 78 M 54 78 L 56 81 M 54 78 L 53.7 81.4 M 54 78 L 52 81" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
                         </g>
                         <g class="tm-mascot-eye-open">
-
-                            <ellipse cx="40" cy="34" rx="7" ry="8.5" fill="#fff8e1" stroke="#bf360c" stroke-width="1.6"/>
-                            <ellipse cx="60" cy="34" rx="7" ry="8.5" fill="#fff8e1" stroke="#bf360c" stroke-width="1.6"/>
-                            <ellipse cx="40.4" cy="34.3" rx="4.1" ry="5.3" fill="url(#phoenix-baby-iris)"/>
-                            <ellipse cx="60.4" cy="34.3" rx="4.1" ry="5.3" fill="url(#phoenix-baby-iris)"/>
-                            <ellipse cx="40.5" cy="34.6" rx="1.8" ry="3.4" fill="#1a0500"/>
-                            <ellipse cx="60.5" cy="34.6" rx="1.8" ry="3.4" fill="#1a0500"/>
-                            <circle cx="41.5" cy="31.3" r="2.1" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="61.5" cy="31.3" r="2.1" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="37.9" cy="36.4" r="1.0" fill="#ffab40" opacity="0.7"/>
-                            <circle cx="57.9" cy="36.4" r="1.0" fill="#ffab40" opacity="0.7"/>
+                            <circle cx="45.5" cy="46" r="2.6" fill="#ffd740" stroke="#5d1306" stroke-width=".45"/>
+                            <circle cx="54.5" cy="46" r="2.6" fill="#ffd740" stroke="#5d1306" stroke-width=".45"/>
+                            <ellipse cx="45.6" cy="46.1" rx="1.04" ry="1.87" fill="#1b0502"/>
+                            <ellipse cx="54.6" cy="46.1" rx="1.04" ry="1.87" fill="#1b0502"/>
+                            <circle cx="44.72" cy="45.09" r="0.57" fill="#fffde7"/>
+                            <circle cx="53.72" cy="45.09" r="0.57" fill="#fffde7"/>
+                            <path d="M 43.1 42.4 L 47.7 44.6" fill="none" stroke="#751406" stroke-width="1" stroke-linecap="round"/>
+                            <path d="M 56.9 42.4 L 52.3 44.6" fill="none" stroke="#751406" stroke-width="1" stroke-linecap="round"/>
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33 34 Q 40 30.8 47 34" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 53 34 Q 60 30.8 67 34" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 44 46 Q 45.5 44.8 47 46" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
+                            <path d="M 53 46 Q 54.5 44.8 56 46" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 46.9 47 L 50 51.1 L 53.1 47 Q 50 48.5 46.9 47" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 46.1 48 L 50 52.3 L 53.9 48 Q 50 46.2 46.1 48" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
-                            <path d="M 50 47.8 L 50 50.3" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
+                        <path class="tm-mascot-mouth-happy" d="M 48 50.5 Q 50 49.7 52 50.5 L 51 53.7 Q 50 55.9 49.8 56.5 Q 48.9 55.1 48.8 53.7 Z" fill="url(#phoenix-baby-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 48 51 Q 50 50.2 52 51 L 50.9 54.5 Q 50 56.7 49.7 57.3 Q 49 55.7 48.9 54.5 Z" fill="url(#phoenix-baby-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
+                        </g>
                 </g>
 
-                <!-- PHOENIX KID — wrath fledgling -->
+                <!-- PHOENIX EVO1 — Flame Fledgling -->
                 <g id="tm-mascot-evo1-phoenix" style="display: none;">
                     <defs>
-                        <radialGradient id="phoenix-kid-body" cx="36%" cy="26%" r="80%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#ff9800;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ef6c00;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-kid-belly" cx="50%" cy="35%" r="65%">
+                        <linearGradient id="phoenix-evo1-plum" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffc355;stop-opacity:1" />
+                            <stop offset="35%" style="stop-color:#ff8c1a;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#dd3f09;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#6b1504;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="phoenix-evo1-fire" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#ffe082;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffab40;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-kid-wing" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:0.98" />
-                            <stop offset="25%" style="stop-color:#ffea00;stop-opacity:0.95" />
-                            <stop offset="55%" style="stop-color:#ff6d00;stop-opacity:0.92" />
-                            <stop offset="85%" style="stop-color:#ff3d00;stop-opacity:0.88" />
-                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:0.8" />
+                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:1" />
+                            <stop offset="65%" style="stop-color:#ff6d00;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b71c1c;stop-opacity:1" />
                         </linearGradient>
-                        <linearGradient id="phoenix-kid-wing2" x1="100%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffea00;stop-opacity:0.9" />
-                            <stop offset="50%" style="stop-color:#ff3d00;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#7f0000;stop-opacity:0.75" />
-                        </linearGradient>
-                        <radialGradient id="phoenix-kid-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="25%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-kid-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#ff9100;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#dd2c00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4a0000;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-kid-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a80;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#ff8a80;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-kid-aura" cx="50%" cy="48%" r="55%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:0.35" />
-                            <stop offset="40%" style="stop-color:#ff6d00;stop-opacity:0.28" />
-                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-kid-corona" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:0.5" />
-                            <stop offset="35%" style="stop-color:#ffea00;stop-opacity:0.3" />
-                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-kid-tail" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <radialGradient id="phoenix-evo1-core" cx="50%" cy="42%" r="60%">
                             <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffea00;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#7f0000;stop-opacity:1" />
+                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:.95" />
+                            <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
+                            <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
+                        </radialGradient>
+                        <linearGradient id="phoenix-evo1-beak" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
                         </linearGradient>
+                        <filter id="phoenix-evo1-glow" x="-100%" y="-100%" width="300%" height="300%">
+                            <feGaussianBlur stdDeviation="1.5" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <filter id="phoenix-evo1-soft" x="-60%" y="-60%" width="220%" height="220%">
+                            <feGaussianBlur stdDeviation=".6" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
                     </defs>
-                        <ellipse cx="50" cy="96" rx="30" ry="5.5" fill="#1a0500" opacity="0.24"/>
-                        <ellipse cx="50" cy="48" rx="42" ry="39" fill="url(#phoenix-kid-aura)"/>
+                        <ellipse cx="50" cy="84" rx="17" ry="4.4" fill="#120303" opacity="0.26"/>
+                        <ellipse cx="50" cy="52" rx="20" ry="15.6" fill="url(#phoenix-evo1-core)" opacity="0.32" filter="url(#phoenix-evo1-glow)"/>
 
-                        <circle cx="18" cy="28" r="1.8" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="82" cy="24" r="1.2" fill="#fff59d" opacity="0.44999999999999996"/>
-                        <circle cx="12" cy="48" r="1.2" fill="#ff6d00" opacity="0.55"/>
-                        <circle cx="88" cy="50" r="1.8" fill="#fff59d" opacity="0.65"/>
-                        <circle cx="22" cy="70" r="1.2" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="78" cy="72" r="1.2" fill="#fff59d" opacity="0.44999999999999996"/>
-                        <circle cx="8" cy="38" r="1.8" fill="#ff6d00" opacity="0.55"/>
+                        <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo1-soft)"/>
+                        <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo1-soft)"/>
+                        <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo1-soft)"/>
+                        <circle cx="91" cy="47" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo1-soft)"/>
+                        <circle cx="24" cy="75" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo1-soft)"/>
+                        <g transform="translate(50 50) scale(0.88) translate(-50 -50)">
+                        <g class="tm-animate-tail">
+                            <path d="M 48.5 69.0 Q 52.2 73.1 55.6 76.3 Q 53.9 72.0 51.5 67.0 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 48.2 68.4 Q 50.5 75.4 52.6 81.1 Q 52.4 75.0 51.8 67.6 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 48.2 67.6 Q 47.6 75.0 47.4 81.1 Q 49.5 75.4 51.8 68.4 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 48.5 67.0 Q 46.1 72.0 44.4 76.3 Q 47.8 73.1 51.5 69.0 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo1-soft)"/>
+                        </g>
                         <g class="tm-animate-wing-left">
-                            <path d="M 30 52 Q 10 36 8 52 Q 10 68 22 64 Q 28 58 32 54 Z" fill="url(#phoenix-kid-wing)" stroke="#bf360c" stroke-width="1.5"/>
-                            <path d="M 18 44 Q 12 50 16 60" stroke="#ffea00" stroke-width="0.9" fill="none" opacity="0.55"/>
-                            <path d="M 12 32 L 6 24" stroke="#bf360c" stroke-width="1.3" stroke-linecap="round"/>
+                            <path d="M 42.3 45.3 Q 34.7 43.2 28.3 42.1 Q 33.3 46.3 39.7 50.7 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 41.6 44.8 Q 32.6 44.7 25.2 45.2 Q 32.0 48.3 40.4 51.2 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 40.7 44.8 Q 31.5 47.0 24.1 49.5 Q 31.8 50.6 41.3 51.2 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 40.0 45.2 Q 32.7 49.2 26.9 53.1 Q 33.8 52.4 42.0 50.8 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 42.2 45.8 Q 37.8 44.6 33.9 44.1 Q 36.4 47.1 39.8 50.2 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 41.7 45.3 Q 36.4 45.3 32.0 45.8 Q 35.7 48.3 40.3 50.7 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 41.0 45.2 Q 35.6 46.5 31.1 48.2 Q 35.6 49.6 41.0 50.8 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo1-soft)"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 70 52 Q 90 36 92 52 Q 90 68 78 64 Q 72 58 68 54 Z" fill="url(#phoenix-kid-wing)" stroke="#bf360c" stroke-width="1.5"/>
-                            <path d="M 82 44 Q 88 50 84 60" stroke="#ffea00" stroke-width="0.9" fill="none" opacity="0.55"/>
-                            <path d="M 88 32 L 94 24" stroke="#bf360c" stroke-width="1.3" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 64 70 Q 80 88 90 60 Q 94 46 84 44 Q 72 52 64 70 Z" fill="url(#phoenix-kid-wing)" stroke="#bf360c" stroke-width="1.35"/>
-                            <path d="M 70 72 Q 82 92 92 64" fill="none" stroke="#ffea00" stroke-width="1" opacity="0.55"/>
-                            <circle cx="88" cy="54" r="2.4" fill="#ffea00" opacity="0.75"/>
+                            <g transform="translate(100,0) scale(-1,1)">
+                            <path d="M 42.3 45.3 Q 34.7 43.2 28.3 42.1 Q 33.3 46.3 39.7 50.7 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 41.6 44.8 Q 32.6 44.7 25.2 45.2 Q 32.0 48.3 40.4 51.2 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 40.7 44.8 Q 31.5 47.0 24.1 49.5 Q 31.8 50.6 41.3 51.2 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 40.0 45.2 Q 32.7 49.2 26.9 53.1 Q 33.8 52.4 42.0 50.8 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 42.2 45.8 Q 37.8 44.6 33.9 44.1 Q 36.4 47.1 39.8 50.2 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 41.7 45.3 Q 36.4 45.3 32.0 45.8 Q 35.7 48.3 40.3 50.7 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 41.0 45.2 Q 35.6 46.5 31.1 48.2 Q 35.6 49.6 41.0 50.8 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo1-soft)"/>
+                            </g>
                         </g>
                         <g class="tm-animate-body">
-                            <ellipse cx="50" cy="64" rx="22" ry="18" fill="url(#phoenix-kid-body)" stroke="#bf360c" stroke-width="1.8"/>
-                            <ellipse cx="36.0" cy="56" rx="9" ry="5" fill="#fff" opacity="0.16"/>
-                            <ellipse cx="50" cy="66" rx="14.0" ry="12.0" fill="url(#phoenix-kid-belly)"/>
-
-                            <circle cx="50" cy="64" r="7.5" fill="url(#phoenix-kid-core)"/>
-                            <circle cx="50" cy="64" r="3.2" fill="#fffde7" opacity="0.7"/>
-                            <!-- Head -->
-                            <ellipse cx="50" cy="34" rx="16.5" ry="14.5" fill="url(#phoenix-kid-body)" stroke="#bf360c" stroke-width="1.7"/>
-                            <ellipse cx="40.5" cy="29" rx="7" ry="4" fill="#fff" opacity="0.15"/>
-                            <path d="M 40 22 L 36 8 L 44 20 Z" fill="url(#phoenix-kid-wing)" stroke="#bf360c" stroke-width="0.85"/>
-                            <path d="M 50 18 L 50 4 L 54 16 Z" fill="#ffea00" stroke="#bf360c" stroke-width="0.85"/>
-                            <path d="M 60 22 L 64 8 L 56 20 Z" fill="url(#phoenix-kid-wing)" stroke="#bf360c" stroke-width="0.85"/>
-                            <circle cx="34" cy="40" r="3.8" fill="url(#phoenix-kid-cheek)"/>
-                            <circle cx="66" cy="40" r="3.8" fill="url(#phoenix-kid-cheek)"/>
+                            <path d="M 50 34 C 43 36 40 44 41 54 C 42 63 46 69 50 70 C 54 69 58 63 59 54 C 60 44 57 36 50 34 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width="1.1"/>
+                            <ellipse cx="50" cy="55" rx="6" ry="7" fill="url(#phoenix-evo1-core)" opacity=".55" filter="url(#phoenix-evo1-glow)"/>
+                            <path d="M 45 50 Q 50 48 55 50 M 45.5 57 Q 50 55 54.5 57" fill="none" stroke="#6b1504" stroke-width=".45" opacity=".3"/>
+                            <path d="M 50.7 33.4 Q 48.1 31.1 45.8 29.3 Q 47.3 31.8 49.3 34.6 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 50.9 33.8 Q 49.2 28.6 47.6 24.4 Q 48.2 28.8 49.1 34.2 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 50.9 34.2 Q 51.8 28.8 52.4 24.4 Q 50.8 28.6 49.1 33.8 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo1-soft)"/>
+                            <path d="M 50.7 34.6 Q 52.7 31.8 54.2 29.3 Q 51.9 31.1 49.3 33.4 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo1-soft)"/>
                         </g>
-                        <g class="tm-animate-arm-left">
-                            <ellipse cx="26" cy="58" rx="6" ry="9" fill="url(#phoenix-kid-body)" stroke="#bf360c" stroke-width="1.4" transform="rotate(-20 26 58)"/>
-                            <path d="M 22 68 L 16 76 M 24 70 L 22 78 M 26 68 L 30 76" stroke="#ff3d00" stroke-width="1.3" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <ellipse cx="74" cy="58" rx="6" ry="9" fill="url(#phoenix-kid-body)" stroke="#bf360c" stroke-width="1.4" transform="rotate(20 74 58)"/>
-                            <path d="M 74 68 L 70 76 M 76 70 L 78 78 M 78 68 L 84 76" stroke="#ff3d00" stroke-width="1.3" stroke-linecap="round"/>
-                        </g>
+                        <g class="tm-animate-arm-left" opacity=".001"><circle cx="41" cy="48" r=".4"/></g>
+                        <g class="tm-animate-arm-right" opacity=".001"><circle cx="59" cy="48" r=".4"/></g>
                         <g class="tm-animate-leg-left">
-                            <ellipse cx="38" cy="86" rx="6.5" ry="5" fill="url(#phoenix-kid-body)" stroke="#bf360c" stroke-width="1.5"/>
-                            <path d="M 32 88 L 26 94 M 37 89 L 37 96 M 42 89 L 42 96 M 46 88 L 52 94" stroke="#bf360c" stroke-width="1.4" stroke-linecap="round"/>
+                            <path d="M 46.5 69.5 L 46.2 74.5 M 46.2 74.5 L 44.2 77.4 M 46.2 74.5 L 46.5 77.8 M 46.2 74.5 L 48.2 77.4" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <ellipse cx="62" cy="86" rx="6.5" ry="5" fill="url(#phoenix-kid-body)" stroke="#bf360c" stroke-width="1.5"/>
-                            <path d="M 54 88 L 48 94 M 59 89 L 59 96 M 64 89 L 64 96 M 68 88 L 74 94" stroke="#bf360c" stroke-width="1.4" stroke-linecap="round"/>
+                            <path d="M 53.5 69.5 L 53.8 74.5 M 53.8 74.5 L 55.8 77.4 M 53.8 74.5 L 53.5 77.8 M 53.8 74.5 L 51.8 77.4" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
                         </g>
                         <g class="tm-mascot-eye-open">
-                            <path d="M 32.5 22.7 Q 40 19.7 47 24.7" stroke="#bf360c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 67.5 22.7 Q 60 19.7 53 24.7" stroke="#bf360c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 33.5 24 Q 40 22 46.5 25.2" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>
-                            <path d="M 66.5 24 Q 60 22 53.5 25.2" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>
-                            <ellipse cx="40" cy="32" rx="6.5" ry="7.8" fill="#fff8e1" stroke="#bf360c" stroke-width="1.6"/>
-                            <ellipse cx="60" cy="32" rx="6.5" ry="7.8" fill="#fff8e1" stroke="#bf360c" stroke-width="1.6"/>
-                            <ellipse cx="40.4" cy="32.3" rx="3.8" ry="4.8" fill="url(#phoenix-kid-iris)"/>
-                            <ellipse cx="60.4" cy="32.3" rx="3.8" ry="4.8" fill="url(#phoenix-kid-iris)"/>
-                            <ellipse cx="40.5" cy="32.6" rx="1.7" ry="3.1" fill="#1a0500"/>
-                            <ellipse cx="60.5" cy="32.6" rx="1.7" ry="3.1" fill="#1a0500"/>
-                            <circle cx="41.5" cy="29.5" r="1.9" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="61.5" cy="29.5" r="1.9" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="38.0" cy="34.2" r="0.9" fill="#ffab40" opacity="0.7"/>
-                            <circle cx="58.0" cy="34.2" r="0.9" fill="#ffab40" opacity="0.7"/>
+                            <circle cx="46" cy="43.5" r="2.1" fill="#ffd740" stroke="#5d1306" stroke-width=".45"/>
+                            <circle cx="54" cy="43.5" r="2.1" fill="#ffd740" stroke="#5d1306" stroke-width=".45"/>
+                            <ellipse cx="46.1" cy="43.6" rx="0.84" ry="1.51" fill="#1b0502"/>
+                            <ellipse cx="54.1" cy="43.6" rx="0.84" ry="1.51" fill="#1b0502"/>
+                            <circle cx="45.37" cy="42.765" r="0.46" fill="#fffde7"/>
+                            <circle cx="53.37" cy="42.765" r="0.46" fill="#fffde7"/>
+                            <path d="M 43.6 39.9 L 48.2 42.1" fill="none" stroke="#751406" stroke-width="1" stroke-linecap="round"/>
+                            <path d="M 56.4 39.9 L 51.8 42.1" fill="none" stroke="#751406" stroke-width="1" stroke-linecap="round"/>
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33.5 32 Q 40 28.8 46.5 32" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.5 32 Q 60 28.8 66.5 32" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 44.5 43.5 Q 46 42.3 47.5 43.5" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
+                            <path d="M 52.5 43.5 Q 54 42.3 55.5 43.5" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 46.8 45 L 50 49.3 L 53.2 45 Q 50 46.6 46.8 45" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 46.0 46 L 50 50.5 L 54.0 46 Q 50 44.2 46.0 46" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
-                            <path d="M 50 45.8 L 50 48.5" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
+                        <path class="tm-mascot-mouth-happy" d="M 47.6 48 Q 50 47.2 52.4 48 L 51.2 51.2 Q 50 53.4 49.8 54 Q 48.68 52.6 48.56 51.2 Z" fill="url(#phoenix-evo1-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.6 48.5 Q 50 47.7 52.4 48.5 L 51.08 52 Q 50 54.2 49.7 54.8 Q 48.8 53.2 48.68 52 Z" fill="url(#phoenix-evo1-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
+                        </g>
                 </g>
 
-                <!-- PHOENIX TEEN — solar ravager -->
+                <!-- PHOENIX EVO2 — Blaze Raptor -->
                 <g id="tm-mascot-evo2-phoenix" style="display: none;">
                     <defs>
-                        <radialGradient id="phoenix-teen-body" cx="36%" cy="26%" r="80%">
-                            <stop offset="0%" style="stop-color:#fff176;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ff9100;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#e64a19;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-teen-belly" cx="50%" cy="35%" r="65%">
+                        <linearGradient id="phoenix-evo2-plum" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffb63f;stop-opacity:1" />
+                            <stop offset="35%" style="stop-color:#ff7a10;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#cf3206;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#571003;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="phoenix-evo2-fire" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#ffe082;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffab40;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-teen-wing" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:0.98" />
-                            <stop offset="25%" style="stop-color:#ffea00;stop-opacity:0.95" />
-                            <stop offset="55%" style="stop-color:#ff6d00;stop-opacity:0.92" />
-                            <stop offset="85%" style="stop-color:#ff3d00;stop-opacity:0.88" />
-                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:0.8" />
+                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:1" />
+                            <stop offset="65%" style="stop-color:#ff6d00;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b71c1c;stop-opacity:1" />
                         </linearGradient>
-                        <linearGradient id="phoenix-teen-wing2" x1="100%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffea00;stop-opacity:0.9" />
-                            <stop offset="50%" style="stop-color:#ff3d00;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#7f0000;stop-opacity:0.75" />
-                        </linearGradient>
-                        <radialGradient id="phoenix-teen-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="25%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-teen-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#ff9100;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#dd2c00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4a0000;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-teen-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a80;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#ff8a80;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-teen-aura" cx="50%" cy="48%" r="55%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:0.35" />
-                            <stop offset="40%" style="stop-color:#ff6d00;stop-opacity:0.28" />
-                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-teen-corona" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:0.5" />
-                            <stop offset="35%" style="stop-color:#ffea00;stop-opacity:0.3" />
-                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-teen-tail" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <radialGradient id="phoenix-evo2-core" cx="50%" cy="42%" r="60%">
                             <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffea00;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#7f0000;stop-opacity:1" />
+                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:.95" />
+                            <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
+                            <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
+                        </radialGradient>
+                        <linearGradient id="phoenix-evo2-beak" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
                         </linearGradient>
+                        <filter id="phoenix-evo2-glow" x="-100%" y="-100%" width="300%" height="300%">
+                            <feGaussianBlur stdDeviation="1.5" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <filter id="phoenix-evo2-soft" x="-60%" y="-60%" width="220%" height="220%">
+                            <feGaussianBlur stdDeviation=".6" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
                     </defs>
-                        <ellipse cx="50" cy="96" rx="34" ry="5.5" fill="#1a0500" opacity="0.24"/>
-                        <ellipse cx="50" cy="48" rx="46" ry="43" fill="url(#phoenix-teen-aura)"/>
+                        <ellipse cx="50" cy="94" rx="28" ry="4.4" fill="#120303" opacity="0.26"/>
+                        <ellipse cx="50" cy="46" rx="30" ry="23.4" fill="url(#phoenix-evo2-core)" opacity="0.32" filter="url(#phoenix-evo2-glow)"/>
 
-                        <circle cx="18" cy="28" r="1.8" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="82" cy="24" r="1.2" fill="#fff59d" opacity="0.44999999999999996"/>
-                        <circle cx="12" cy="48" r="1.2" fill="#ff6d00" opacity="0.55"/>
-                        <circle cx="88" cy="50" r="1.8" fill="#fff59d" opacity="0.65"/>
-                        <circle cx="22" cy="70" r="1.2" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="78" cy="72" r="1.2" fill="#fff59d" opacity="0.44999999999999996"/>
-                        <circle cx="8" cy="38" r="1.8" fill="#ff6d00" opacity="0.55"/>
-                        <circle cx="92" cy="40" r="1.2" fill="#fff59d" opacity="0.65"/>
-                        <circle cx="30" cy="18" r="1.2" fill="#ff6d00" opacity="0.35"/>
+                        <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo2-soft)"/>
+                        <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo2-soft)"/>
+                        <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo2-soft)"/>
+                        <circle cx="91" cy="47" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo2-soft)"/>
+                        <circle cx="24" cy="75" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo2-soft)"/>
+                        <circle cx="80" cy="72" r="0.75" fill="#ff6d00" opacity="0.56" filter="url(#phoenix-evo2-soft)"/>
+                        <circle cx="35" cy="11" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo2-soft)"/>
+                        <g transform="translate(50 50) scale(0.95) translate(-50 -50)">
+                        <g class="tm-animate-tail">
+                            <path d="M 48.1 63.3 Q 53.9 70.0 58.9 75.3 Q 56.0 68.6 51.9 60.7 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 47.8 62.7 Q 52.3 73.9 56.4 83.0 Q 54.8 73.2 52.2 61.3 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 47.7 62.0 Q 48.7 77.4 50.0 90.0 Q 51.3 77.4 52.3 62.0 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 47.8 61.3 Q 45.2 73.2 43.6 83.0 Q 47.7 73.9 52.2 62.7 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 48.1 60.7 Q 44.0 68.6 41.1 75.3 Q 46.1 70.0 51.9 63.3 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
+                        </g>
                         <g class="tm-animate-wing-left">
-                            <path d="M 28 50 Q 0 22 -2 46 Q 0 68 16 64 Q 24 56 30 52 Z" fill="url(#phoenix-teen-wing)" stroke="#bf360c" stroke-width="1.9"/>
-                            <path d="M 12 36 Q 4 44 8 58" stroke="#ffea00" stroke-width="1.1" fill="none" opacity="0.6"/>
-                            <path d="M 8 44 Q 2 50 6 62" stroke="#ff8a65" stroke-width="0.9" fill="none" opacity="0.5"/>
-                            <path d="M 4 28 L -2 20" stroke="#bf360c" stroke-width="1.5" stroke-linecap="round"/>
-                            <path d="M 10 24 L 6 16" stroke="#ff3d00" stroke-width="1.2" stroke-linecap="round"/>
+                            <path d="M 46.0 38.4 Q 28.5 29.9 13.6 23.9 Q 25.2 35.1 40.0 47.6 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 45.2 37.7 Q 25.8 32.6 9.6 29.5 Q 23.4 38.6 40.8 48.3 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 44.0 37.6 Q 24.7 36.3 8.6 36.3 Q 23.5 42.4 42.0 48.4 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 43.0 37.8 Q 24.8 40.1 10.0 43.0 Q 24.8 45.9 43.0 48.3 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 42.0 38.1 Q 26.3 43.4 13.6 48.7 Q 27.3 48.9 44.0 47.9 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 41.3 38.8 Q 28.8 46.0 18.9 52.7 Q 30.7 50.7 44.7 47.2 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 40.8 39.6 Q 32.1 47.4 25.4 54.4 Q 34.5 51.2 45.2 46.4 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 45.8 39.3 Q 35.7 34.2 26.8 30.8 Q 32.5 38.4 40.2 46.7 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 45.1 38.6 Q 33.9 35.5 24.2 33.8 Q 31.5 40.4 40.9 47.4 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 44.2 38.5 Q 32.9 37.6 23.4 37.7 Q 31.5 42.6 41.8 47.5 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 43.3 38.5 Q 32.7 39.8 23.9 41.7 Q 32.3 44.8 42.7 47.5 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 42.5 38.8 Q 33.2 41.8 25.7 45.1 Q 33.8 46.5 43.5 47.2 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 41.8 39.4 Q 34.5 43.5 28.7 47.7 Q 35.8 47.6 44.2 46.6 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 47 40 Q 41 39 37.5 43.5 Q 40 49 46 50 Q 48.5 45 47 40 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".8"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 72 50 Q 100 22 102 46 Q 100 68 84 64 Q 76 56 70 52 Z" fill="url(#phoenix-teen-wing)" stroke="#bf360c" stroke-width="1.9"/>
-                            <path d="M 88 36 Q 96 44 92 58" stroke="#ffea00" stroke-width="1.1" fill="none" opacity="0.6"/>
-                            <path d="M 92 44 Q 98 50 94 62" stroke="#ff8a65" stroke-width="0.9" fill="none" opacity="0.5"/>
-                            <path d="M 96 28 L 102 20" stroke="#bf360c" stroke-width="1.5" stroke-linecap="round"/>
-                            <path d="M 90 24 L 94 16" stroke="#ff3d00" stroke-width="1.2" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 60 70 Q 78 96 92 58 Q 96 40 86 38 Q 72 48 60 70 Z" fill="url(#phoenix-teen-tail)" stroke="#bf360c" stroke-width="1.5"/>
-                            <path d="M 66 72 Q 80 100 94 64" fill="url(#phoenix-teen-wing)" opacity="0.65" stroke="#ff3d00" stroke-width="0.95"/>
-                            <circle cx="90" cy="50" r="3" fill="#ffea00" opacity="0.8"/>
+                            <g transform="translate(100,0) scale(-1,1)">
+                            <path d="M 46.0 38.4 Q 28.5 29.9 13.6 23.9 Q 25.2 35.1 40.0 47.6 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 45.2 37.7 Q 25.8 32.6 9.6 29.5 Q 23.4 38.6 40.8 48.3 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 44.0 37.6 Q 24.7 36.3 8.6 36.3 Q 23.5 42.4 42.0 48.4 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 43.0 37.8 Q 24.8 40.1 10.0 43.0 Q 24.8 45.9 43.0 48.3 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 42.0 38.1 Q 26.3 43.4 13.6 48.7 Q 27.3 48.9 44.0 47.9 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 41.3 38.8 Q 28.8 46.0 18.9 52.7 Q 30.7 50.7 44.7 47.2 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 40.8 39.6 Q 32.1 47.4 25.4 54.4 Q 34.5 51.2 45.2 46.4 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 45.8 39.3 Q 35.7 34.2 26.8 30.8 Q 32.5 38.4 40.2 46.7 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 45.1 38.6 Q 33.9 35.5 24.2 33.8 Q 31.5 40.4 40.9 47.4 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 44.2 38.5 Q 32.9 37.6 23.4 37.7 Q 31.5 42.6 41.8 47.5 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 43.3 38.5 Q 32.7 39.8 23.9 41.7 Q 32.3 44.8 42.7 47.5 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 42.5 38.8 Q 33.2 41.8 25.7 45.1 Q 33.8 46.5 43.5 47.2 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 41.8 39.4 Q 34.5 43.5 28.7 47.7 Q 35.8 47.6 44.2 46.6 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 47 40 Q 41 39 37.5 43.5 Q 40 49 46 50 Q 48.5 45 47 40 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".8"/>
+                            </g>
                         </g>
                         <g class="tm-animate-body">
-                            <ellipse cx="50" cy="62" rx="23" ry="19" fill="url(#phoenix-teen-body)" stroke="#bf360c" stroke-width="1.8"/>
-                            <ellipse cx="35.0" cy="54" rx="9" ry="5" fill="#fff" opacity="0.16"/>
-                            <ellipse cx="50" cy="64" rx="15.0" ry="13.0" fill="url(#phoenix-teen-belly)"/>
-                            <path d="M 38 56 Q 50 58 62 56" stroke="#ffe082" stroke-width="0.95" fill="none" opacity="0.55"/>
-                            <path d="M 40 62 Q 50 64 60 62" stroke="#ffe082" stroke-width="0.85" fill="none" opacity="0.45"/>
-                            <circle cx="50" cy="62" r="7.5" fill="url(#phoenix-teen-core)"/>
-                            <circle cx="50" cy="62" r="3.2" fill="#fffde7" opacity="0.7"/>
-                            <!-- Head -->
-                            <ellipse cx="50" cy="30" rx="17" ry="15" fill="url(#phoenix-teen-body)" stroke="#bf360c" stroke-width="1.7"/>
-                            <ellipse cx="40.0" cy="25" rx="7" ry="4" fill="#fff" opacity="0.15"/>
-                            <path d="M 36 18 L 28 2 L 40 16 Z" fill="url(#phoenix-teen-wing)" stroke="#bf360c" stroke-width="0.95"/>
-                            <path d="M 44 14 L 40 -2 L 50 12 Z" fill="#ffea00" stroke="#bf360c" stroke-width="0.95"/>
-                            <path d="M 56 14 L 60 -2 L 50 12 Z" fill="#ffea00" stroke="#bf360c" stroke-width="0.95"/>
-                            <path d="M 64 18 L 72 2 L 60 16 Z" fill="url(#phoenix-teen-wing)" stroke="#bf360c" stroke-width="0.95"/>
-                            <path d="M 32 12 L 24 0 L 34 10 Z" fill="#ff8a65" opacity="0.8"/>
-                            <path d="M 68 12 L 76 0 L 66 10 Z" fill="#ff8a65" opacity="0.8"/>
-                            <circle cx="50" cy="0" r="2" fill="#fffde7" opacity="0.75"/>
-                            <circle cx="34" cy="36" r="3.8" fill="url(#phoenix-teen-cheek)"/>
-                            <circle cx="66" cy="36" r="3.8" fill="url(#phoenix-teen-cheek)"/>
+                            <path d="M 50 35 C 42.5 38.5 40.5 46 42 54 C 43.5 61 47 65.5 50 66.5 C 53 65.5 56.5 61 58 54 C 59.5 46 57.5 38.5 50 35 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width="1.1"/>
+                            <path d="M 44.5 45 Q 50 42.8 55.5 45 M 44 52 Q 50 49.8 56 52 M 46 59 Q 50 57 54 59" fill="none" stroke="#7b1308" stroke-width=".45" opacity=".3"/>
+                            <ellipse cx="50" cy="51" rx="6.5" ry="8" fill="url(#phoenix-evo2-core)" opacity="0.6" filter="url(#phoenix-evo2-glow)"/>
+                            <path d="M 43 30 Q 43 23 50 22 Q 57 23 57 30 Q 56 36 50 37 Q 44 36 43 30 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width="1"/>
+                            <path d="M 50.9 22.2 Q 47.6 19.4 44.8 17.3 Q 46.7 20.3 49.1 23.8 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 51.1 22.6 Q 48.4 17.1 46.1 12.7 Q 47.2 17.6 48.9 23.4 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 51.2 23.0 Q 50.6 15.1 50.0 8.7 Q 49.4 15.1 48.8 23.0 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 51.1 23.4 Q 52.8 17.6 53.9 12.7 Q 51.6 17.1 48.9 22.6 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo2-soft)"/>
+                            <path d="M 50.9 23.8 Q 53.3 20.3 55.2 17.3 Q 52.4 19.4 49.1 22.2 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo2-soft)"/>
                         </g>
-                        <g class="tm-animate-arm-left">
-                            <ellipse cx="26" cy="58" rx="6" ry="9" fill="url(#phoenix-teen-body)" stroke="#bf360c" stroke-width="1.4" transform="rotate(-20 26 58)"/>
-                            <path d="M 22 68 L 16 76 M 24 70 L 22 78 M 26 68 L 30 76" stroke="#ff3d00" stroke-width="1.3" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <ellipse cx="74" cy="58" rx="6" ry="9" fill="url(#phoenix-teen-body)" stroke="#bf360c" stroke-width="1.4" transform="rotate(20 74 58)"/>
-                            <path d="M 74 68 L 70 76 M 76 70 L 78 78 M 78 68 L 84 76" stroke="#ff3d00" stroke-width="1.3" stroke-linecap="round"/>
-                        </g>
+                        <g class="tm-animate-arm-left" opacity=".001"><circle cx="44" cy="48" r=".4"/></g>
+                        <g class="tm-animate-arm-right" opacity=".001"><circle cx="56" cy="48" r=".4"/></g>
                         <g class="tm-animate-leg-left">
-                            <ellipse cx="38" cy="86" rx="6.5" ry="5" fill="url(#phoenix-teen-body)" stroke="#bf360c" stroke-width="1.5"/>
-                            <path d="M 32 88 L 26 94 M 37 89 L 37 96 M 42 89 L 42 96 M 46 88 L 52 94" stroke="#bf360c" stroke-width="1.4" stroke-linecap="round"/>
+                            <path d="M 47 64 Q 45.5 66 45.8 68 M 45.8 68 L 43.8 69.8 M 45.8 68 L 46 70.6 M 45.8 68 L 47.8 69.6" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <ellipse cx="62" cy="86" rx="6.5" ry="5" fill="url(#phoenix-teen-body)" stroke="#bf360c" stroke-width="1.5"/>
-                            <path d="M 54 88 L 48 94 M 59 89 L 59 96 M 64 89 L 64 96 M 68 88 L 74 94" stroke="#bf360c" stroke-width="1.4" stroke-linecap="round"/>
+                            <path d="M 53 64 Q 54.5 66 54.2 68 M 54.2 68 L 56.2 69.8 M 54.2 68 L 54 70.6 M 54.2 68 L 52.2 69.6" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
                         </g>
                         <g class="tm-mascot-eye-open">
-                            <path d="M 32.2 18.5 Q 40 15.5 47.3 20.5" stroke="#bf360c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 67.8 18.5 Q 60 15.5 52.7 20.5" stroke="#bf360c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 33.2 19.8 Q 40 17.8 46.8 21" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>
-                            <path d="M 66.8 19.8 Q 60 17.8 53.2 21" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>
-                            <ellipse cx="40" cy="28" rx="6.8" ry="8" fill="#fff8e1" stroke="#bf360c" stroke-width="1.6"/>
-                            <ellipse cx="60" cy="28" rx="6.8" ry="8" fill="#fff8e1" stroke="#bf360c" stroke-width="1.6"/>
-                            <ellipse cx="40.4" cy="28.3" rx="3.9" ry="5.0" fill="url(#phoenix-teen-iris)"/>
-                            <ellipse cx="60.4" cy="28.3" rx="3.9" ry="5.0" fill="url(#phoenix-teen-iris)"/>
-                            <ellipse cx="40.5" cy="28.6" rx="1.8" ry="3.2" fill="#1a0500"/>
-                            <ellipse cx="60.5" cy="28.6" rx="1.8" ry="3.2" fill="#1a0500"/>
-                            <circle cx="41.5" cy="25.4" r="2.0" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="61.5" cy="25.4" r="2.0" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="38.0" cy="30.2" r="1.0" fill="#ffab40" opacity="0.7"/>
-                            <circle cx="58.0" cy="30.2" r="1.0" fill="#ffab40" opacity="0.7"/>
+                            <circle cx="46.8" cy="28.8" r="2.9" fill="#ffab00" opacity=".5" filter="url(#phoenix-evo2-glow)"/>
+                            <circle cx="53.2" cy="28.8" r="2.9" fill="#ffab00" opacity=".5" filter="url(#phoenix-evo2-glow)"/>
+                            <circle cx="46.8" cy="28.8" r="1.7" fill="#ffab00" stroke="#5d1306" stroke-width=".45"/>
+                            <circle cx="53.2" cy="28.8" r="1.7" fill="#ffab00" stroke="#5d1306" stroke-width=".45"/>
+                            <ellipse cx="46.9" cy="28.95" rx="0.41" ry="1.44" fill="#1b0502"/>
+                            <ellipse cx="53.300000000000004" cy="28.95" rx="0.41" ry="1.44" fill="#1b0502"/>
+                            <circle cx="46.29" cy="28.205000000000002" r="0.37" fill="#fffde7"/>
+                            <circle cx="52.690000000000005" cy="28.205000000000002" r="0.37" fill="#fffde7"/>
+                            <path d="M 44 25.8 L 49.199999999999996 28.1 L 44 27.8 Z" fill="#4a0a02"/>
+                            <path d="M 56 25.8 L 50.800000000000004 28.1 L 56 27.8 Z" fill="#4a0a02"/>
+                            <path d="M 43.8 25.6 L 49.4 27.900000000000002" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>
+                            <path d="M 56.2 25.6 L 50.6 27.900000000000002" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33.2 28 Q 40 24.8 46.8 28" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.2 28 Q 60 24.8 66.8 28" stroke="#bf360c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 45.3 28.8 Q 46.8 27.6 48.3 28.8" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
+                            <path d="M 51.7 28.8 Q 53.2 27.6 54.7 28.8" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 46.6 43 L 50 47.6 L 53.4 43 Q 50 44.7 46.6 43" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45.8 44 L 50 48.8 L 54.2 44 Q 50 42.2 45.8 44" fill="#ff6d00" stroke="#bf360c" stroke-width="1.4" stroke-linejoin="round"/>
-                            <path d="M 50 43.8 L 50 46.8" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
+                        <path class="tm-mascot-mouth-happy" d="M 47.1 32.8 Q 50 31.999999999999996 52.9 32.8 L 51.45 36 Q 50 38.199999999999996 49.8 38.8 Q 48.405 37.4 48.26 36 Z" fill="url(#phoenix-evo2-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.1 33.3 Q 50 32.5 52.9 33.3 L 51.305 36.8 Q 50 39 49.7 39.599999999999994 Q 48.55 38 48.405 36.8 Z" fill="url(#phoenix-evo2-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
+                        </g>
                 </g>
 
-                <!-- PHOENIX ADULT — Ashborn Phoenix — BOSS -->
+                <!-- PHOENIX EVO3 — Ashborn Phoenix — BOSS -->
                 <g id="tm-mascot-evo3-phoenix" style="display: none;">
                     <defs>
-                        <radialGradient id="phoenix-adult-body" cx="36%" cy="26%" r="80%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="18%" style="stop-color:#ffea00;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="65%" style="stop-color:#dd2c00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4a0000;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-adult-belly" cx="50%" cy="35%" r="65%">
+                        <linearGradient id="phoenix-evo3-plum" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffb300;stop-opacity:1" />
+                            <stop offset="35%" style="stop-color:#ff6f00;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#c62815;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#4a0a02;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="phoenix-evo3-fire" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#ffe082;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffab40;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-adult-wing" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:0.98" />
-                            <stop offset="25%" style="stop-color:#ffea00;stop-opacity:0.95" />
-                            <stop offset="55%" style="stop-color:#ff6d00;stop-opacity:0.92" />
-                            <stop offset="85%" style="stop-color:#ff3d00;stop-opacity:0.88" />
-                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:0.8" />
+                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:1" />
+                            <stop offset="65%" style="stop-color:#ff6d00;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b71c1c;stop-opacity:1" />
                         </linearGradient>
-                        <linearGradient id="phoenix-adult-wing2" x1="100%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffea00;stop-opacity:0.9" />
-                            <stop offset="50%" style="stop-color:#ff3d00;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#7f0000;stop-opacity:0.75" />
-                        </linearGradient>
-                        <radialGradient id="phoenix-adult-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="25%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-adult-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#ff9100;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#dd2c00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4a0000;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-adult-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a80;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#ff8a80;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-adult-aura" cx="50%" cy="48%" r="55%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:0.55" />
-                            <stop offset="40%" style="stop-color:#ff6d00;stop-opacity:0.28" />
-                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-adult-corona" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:0.5" />
-                            <stop offset="35%" style="stop-color:#ffea00;stop-opacity:0.3" />
-                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-adult-tail" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <radialGradient id="phoenix-evo3-core" cx="50%" cy="42%" r="60%">
                             <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffea00;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#7f0000;stop-opacity:1" />
+                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:.95" />
+                            <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
+                            <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
+                        </radialGradient>
+                        <linearGradient id="phoenix-evo3-beak" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
                         </linearGradient>
+                        <filter id="phoenix-evo3-glow" x="-100%" y="-100%" width="300%" height="300%">
+                            <feGaussianBlur stdDeviation="1.5" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <filter id="phoenix-evo3-soft" x="-60%" y="-60%" width="220%" height="220%">
+                            <feGaussianBlur stdDeviation=".6" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
                     </defs>
-                        <ellipse cx="50" cy="96" rx="38" ry="5.5" fill="#1a0500" opacity="0.32"/>
-                        <ellipse cx="50" cy="48" rx="50" ry="47" fill="url(#phoenix-adult-aura)"/>
-                        <ellipse cx="50" cy="46" rx="42" ry="40" fill="url(#phoenix-adult-corona)" opacity="0.55"/>
-                        <ellipse cx="50" cy="46" rx="34" ry="32" fill="none" stroke="#ffea00" stroke-width="1.2" opacity="0.35"/>
-                        <ellipse cx="50" cy="46" rx="26" ry="24" fill="none" stroke="#ff3d00" stroke-width="0.8" opacity="0.25"/>
-                        <circle cx="18" cy="28" r="1.8" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="82" cy="24" r="1.2" fill="#fff59d" opacity="0.44999999999999996"/>
-                        <circle cx="12" cy="48" r="1.2" fill="#ff6d00" opacity="0.55"/>
-                        <circle cx="88" cy="50" r="1.8" fill="#fff59d" opacity="0.65"/>
-                        <circle cx="22" cy="70" r="1.2" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="78" cy="72" r="1.2" fill="#fff59d" opacity="0.44999999999999996"/>
-                        <circle cx="8" cy="38" r="1.8" fill="#ff6d00" opacity="0.55"/>
-                        <circle cx="92" cy="40" r="1.2" fill="#fff59d" opacity="0.65"/>
-                        <circle cx="30" cy="18" r="1.2" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="70" cy="16" r="1.8" fill="#fff59d" opacity="0.44999999999999996"/>
-                        <circle cx="16" cy="62" r="1.2" fill="#ff6d00" opacity="0.55"/>
-                        <circle cx="84" cy="64" r="1.2" fill="#fff59d" opacity="0.65"/>
+                        <ellipse cx="50" cy="94" rx="40" ry="4.4" fill="#120303" opacity="0.45"/>
+                        <ellipse cx="50" cy="46" rx="48" ry="37.4" fill="url(#phoenix-evo3-core)" opacity="0.55" filter="url(#phoenix-evo3-glow)"/>
+                            <path d="M 10.9 33.2 Q 6.5 32.4 2.8 32.1 Q 5.8 34.2 9.7 36.4 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 18.7 23.7 Q 13.6 20.4 9.2 17.9 Q 12.4 21.9 16.5 26.3 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 30.4 16.9 Q 25.9 10.6 21.9 5.6 Q 24.2 11.5 27.4 18.6 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 44.3 13.6 Q 42.8 9.4 41.3 6.0 Q 41.0 9.7 41.0 14.2 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 59.0 14.2 Q 59.3 8.1 59.2 3.0 Q 57.4 7.7 55.7 13.6 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 72.6 18.6 Q 75.8 11.5 78.1 5.6 Q 74.1 10.6 69.6 16.9 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 83.5 26.3 Q 86.3 22.9 88.5 19.9 Q 85.1 21.5 81.3 23.7 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 90.3 36.4 Q 95.7 33.7 100.0 31.1 Q 95.1 31.9 89.1 33.2 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 92.2 47.7 Q 99.9 47.0 106.2 46.0 Q 99.9 45.0 92.2 44.3 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 50.0 28.7 L 50.0 5.2" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
+                        <path d="M 64.3 33.8 L 83.9 17.2" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
+                        <path d="M 70.2 46.0 L 98.0 46.0" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
+                        <path d="M 64.3 58.2 L 83.9 74.8" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
+                        <path d="M 50.0 63.3 L 50.0 86.8" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
+                        <path d="M 35.7 58.2 L 16.1 74.8" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
+                        <path d="M 29.8 46.0 L 2.0 46.0" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
+                        <path d="M 35.7 33.8 L 16.1 17.2" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
+                        <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo3-soft)"/>
+                        <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo3-soft)"/>
+                        <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo3-soft)"/>
+                        <circle cx="91" cy="47" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo3-soft)"/>
+                        <circle cx="24" cy="75" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo3-soft)"/>
+                        <circle cx="80" cy="72" r="0.75" fill="#ff6d00" opacity="0.56" filter="url(#phoenix-evo3-soft)"/>
+                        <circle cx="35" cy="11" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo3-soft)"/>
+                        <circle cx="73" cy="9" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo3-soft)"/>
+                        <circle cx="9" cy="61" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo3-soft)"/>
+                        <circle cx="93" cy="62" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo3-soft)"/>
+                        <circle cx="42" cy="5" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo3-soft)"/>
+                        <circle cx="66" cy="6" r="0.75" fill="#ff6d00" opacity="0.56" filter="url(#phoenix-evo3-soft)"/>
+                        <g transform="translate(50 50) scale(1.1) translate(-50 -50)">
+                        <g class="tm-animate-tail">
+                            <path d="M 48.8 63.3 Q 53.3 76.9 57.2 88.0 Q 54.6 76.6 51.2 62.7 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 48.8 63.0 Q 49.3 80.6 50.0 95.0 Q 50.7 80.6 51.2 63.0 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 48.8 62.7 Q 45.4 76.6 42.8 88.0 Q 46.7 76.9 51.2 63.3 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 48.1 63.3 Q 53.9 70.0 58.9 75.3 Q 56.0 68.6 51.9 60.7 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 47.9 62.9 Q 53.1 72.6 57.7 80.5 Q 55.4 71.7 52.1 61.1 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 47.7 62.5 Q 51.3 75.2 54.7 85.5 Q 53.9 74.7 52.3 61.5 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 47.7 62.0 Q 48.7 77.4 50.0 90.0 Q 51.3 77.4 52.3 62.0 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 47.7 61.5 Q 46.1 74.7 45.3 85.5 Q 48.7 75.2 52.3 62.5 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 47.9 61.1 Q 44.6 71.7 42.3 80.5 Q 46.9 72.6 52.1 62.9 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 48.1 60.7 Q 44.0 68.6 41.1 75.3 Q 46.1 70.0 51.9 63.3 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo3-soft)"/>
+                        </g>
                         <g class="tm-animate-wing-left">
-                            <!-- Outer flame wing -->
-                            <path d="M 30 48 Q -6 8 -8 40 Q -4 72 16 68 Q 26 58 32 52 Z" fill="url(#phoenix-adult-wing)" stroke="#3d0000" stroke-width="2.2"/>
-                            <path d="M 26 50 Q 2 22 0 46 Q 2 66 18 62 Q 24 56 28 52 Z" fill="url(#phoenix-adult-wing2)" opacity="0.85" stroke="#ff3d00" stroke-width="1.1"/>
-                            <path d="M 8 28 Q 0 36 4 52" stroke="#ffea00" stroke-width="1.3" fill="none" opacity="0.7"/>
-                            <path d="M 4 36 Q -2 42 2 56" stroke="#ff8a65" stroke-width="1.1" fill="none" opacity="0.55"/>
-                            <path d="M 2 46 Q -4 50 0 62" stroke="#ff3d00" stroke-width="0.95" fill="none" opacity="0.5"/>
-                            <path d="M 12 54 Q 18 60 24 64" stroke="#fff59d" stroke-width="0.85" fill="none" opacity="0.45"/>
-                            <path d="M -2 22 L -8 12" stroke="#3d0000" stroke-width="1.8" stroke-linecap="round"/>
-                            <path d="M 4 18 L 0 8" stroke="#ff3d00" stroke-width="1.4" stroke-linecap="round"/>
-                            <path d="M 10 16 L 8 6" stroke="#ffea00" stroke-width="1.2" stroke-linecap="round"/>
-                            <circle cx="-4" cy="30" r="2" fill="#fffde7" opacity="0.55"/>
+                            <path d="M 46.5 38.7 Q 26.4 25.6 9.3 15.7 Q 22.5 30.4 39.5 47.3 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 45.7 37.9 Q 22.8 28.6 3.6 22.0 Q 19.8 34.3 40.3 48.1 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 44.6 37.7 Q 21.1 33.1 1.5 30.3 Q 19.3 39.0 41.4 48.3 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 43.5 37.8 Q 20.9 37.7 2.3 38.7 Q 20.3 43.6 42.5 48.2 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 42.6 38.0 Q 22.4 42.0 5.9 46.2 Q 22.9 47.6 43.4 48.0 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 41.8 38.7 Q 25.3 45.5 12.0 51.9 Q 26.6 50.3 44.2 47.3 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 41.2 39.4 Q 29.2 47.5 19.8 54.8 Q 31.3 51.5 44.8 46.6 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 46.2 39.6 Q 34.7 31.6 24.6 25.8 Q 31.1 35.5 39.8 46.4 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 45.6 38.9 Q 32.4 33.1 21.0 29.3 Q 29.5 37.8 40.4 47.1 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 44.7 38.6 Q 31.0 35.6 19.5 34.0 Q 29.1 40.5 41.3 47.4 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 43.8 38.6 Q 30.6 38.3 19.6 38.9 Q 29.7 43.2 42.2 47.4 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 42.9 38.8 Q 31.1 40.8 21.4 43.4 Q 31.2 45.6 43.1 47.2 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 42.2 39.3 Q 32.5 43.0 24.7 46.9 Q 33.4 47.2 43.8 46.7 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 47 40 Q 41 39 37.5 43.5 Q 40 49 46 50 Q 48.5 45 47 40 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".8"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 70 48 Q 106 8 108 40 Q 104 72 84 68 Q 74 58 68 52 Z" fill="url(#phoenix-adult-wing)" stroke="#3d0000" stroke-width="2.2"/>
-                            <path d="M 74 50 Q 98 22 100 46 Q 98 66 82 62 Q 76 56 72 52 Z" fill="url(#phoenix-adult-wing2)" opacity="0.85" stroke="#ff3d00" stroke-width="1.1"/>
-                            <path d="M 92 28 Q 100 36 96 52" stroke="#ffea00" stroke-width="1.3" fill="none" opacity="0.7"/>
-                            <path d="M 96 36 Q 102 42 98 56" stroke="#ff8a65" stroke-width="1.1" fill="none" opacity="0.55"/>
-                            <path d="M 98 46 Q 104 50 100 62" stroke="#ff3d00" stroke-width="0.95" fill="none" opacity="0.5"/>
-                            <path d="M 88 54 Q 82 60 76 64" stroke="#fff59d" stroke-width="0.85" fill="none" opacity="0.45"/>
-                            <path d="M 102 22 L 108 12" stroke="#3d0000" stroke-width="1.8" stroke-linecap="round"/>
-                            <path d="M 96 18 L 100 8" stroke="#ff3d00" stroke-width="1.4" stroke-linecap="round"/>
-                            <path d="M 90 16 L 92 6" stroke="#ffea00" stroke-width="1.2" stroke-linecap="round"/>
-                            <circle cx="104" cy="30" r="2" fill="#fffde7" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 58 68 Q 78 102 98 52 Q 104 28 90 24 Q 74 36 58 68 Z" fill="url(#phoenix-adult-tail)" stroke="#3d0000" stroke-width="1.8"/>
-                            <path d="M 62 70 Q 80 108 100 60" fill="url(#phoenix-adult-wing)" opacity="0.7" stroke="#ff3d00" stroke-width="1.1"/>
-                            <path d="M 66 66 Q 84 98 102 56" fill="none" stroke="#ffea00" stroke-width="1.3" opacity="0.65"/>
-                            <path d="M 70 62 Q 86 90 96 50" fill="none" stroke="#ff8a65" stroke-width="1" opacity="0.5"/>
-                            <path d="M 74 58 Q 88 82 94 48" fill="none" stroke="#fff59d" stroke-width="0.85" opacity="0.45"/>
-                            <ellipse cx="96" cy="40" rx="6" ry="8" fill="#ffea00" opacity="0.75"/>
-                            <circle cx="95" cy="38" r="2.2" fill="#fff" opacity="0.7"/>
-                            <circle cx="100" cy="48" r="1.6" fill="#ff3d00" opacity="0.55"/>
+                            <g transform="translate(100,0) scale(-1,1)">
+                            <path d="M 46.5 38.7 Q 26.4 25.6 9.3 15.7 Q 22.5 30.4 39.5 47.3 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 45.7 37.9 Q 22.8 28.6 3.6 22.0 Q 19.8 34.3 40.3 48.1 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 44.6 37.7 Q 21.1 33.1 1.5 30.3 Q 19.3 39.0 41.4 48.3 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 43.5 37.8 Q 20.9 37.7 2.3 38.7 Q 20.3 43.6 42.5 48.2 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 42.6 38.0 Q 22.4 42.0 5.9 46.2 Q 22.9 47.6 43.4 48.0 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 41.8 38.7 Q 25.3 45.5 12.0 51.9 Q 26.6 50.3 44.2 47.3 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 41.2 39.4 Q 29.2 47.5 19.8 54.8 Q 31.3 51.5 44.8 46.6 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 46.2 39.6 Q 34.7 31.6 24.6 25.8 Q 31.1 35.5 39.8 46.4 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 45.6 38.9 Q 32.4 33.1 21.0 29.3 Q 29.5 37.8 40.4 47.1 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 44.7 38.6 Q 31.0 35.6 19.5 34.0 Q 29.1 40.5 41.3 47.4 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 43.8 38.6 Q 30.6 38.3 19.6 38.9 Q 29.7 43.2 42.2 47.4 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 42.9 38.8 Q 31.1 40.8 21.4 43.4 Q 31.2 45.6 43.1 47.2 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 42.2 39.3 Q 32.5 43.0 24.7 46.9 Q 33.4 47.2 43.8 46.7 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 47 40 Q 41 39 37.5 43.5 Q 40 49 46 50 Q 48.5 45 47 40 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width=".8"/>
+                            </g>
                         </g>
                         <g class="tm-animate-body">
-                            <ellipse cx="50" cy="60" rx="25" ry="21" fill="url(#phoenix-adult-body)" stroke="#3d0000" stroke-width="2.5"/>
-                            <ellipse cx="33.0" cy="52" rx="9" ry="5" fill="#fff" opacity="0.16"/>
-                            <ellipse cx="50" cy="62" rx="17.0" ry="15.0" fill="url(#phoenix-adult-belly)"/>
-                            <!-- Armor-like flame plates -->
-                            <path d="M 38 48 L 36 56 L 42 54 Z" fill="#ff8a65" stroke="#3d0000" stroke-width="0.75"/>
-                            <path d="M 50 46 L 48 54 L 52 54 Z" fill="#ffea00" stroke="#3d0000" stroke-width="0.8"/>
-                            <path d="M 62 48 L 58 54 L 64 56 Z" fill="#ff8a65" stroke="#3d0000" stroke-width="0.75"/>
-                            <path d="M 34 58 Q 50 62 66 58" stroke="#ffe082" stroke-width="1.15" fill="none" opacity="0.65"/>
-                            <path d="M 36 64 Q 50 68 64 64" stroke="#ffe082" stroke-width="1" fill="none" opacity="0.55"/>
-                            <path d="M 38 70 Q 50 74 62 70" stroke="#ffab40" stroke-width="0.9" fill="none" opacity="0.45"/>
-                            <circle cx="50" cy="60" r="10" fill="url(#phoenix-adult-core)"/>
-                            <circle cx="50" cy="60" r="4.5" fill="#fffde7" opacity="0.85"/>
-                            <!-- Head -->
-                            <ellipse cx="50" cy="26" rx="19" ry="17" fill="url(#phoenix-adult-body)" stroke="#3d0000" stroke-width="2.3"/>
-                            <ellipse cx="38.0" cy="21" rx="7" ry="4" fill="#fff" opacity="0.15"/>
-                            <!-- Mythic solar crown -->
-                            <ellipse cx="50" cy="6" rx="22" ry="5" fill="url(#phoenix-adult-corona)" opacity="0.85"/>
-                            <path d="M 28 18 L 18 -2 L 34 14 Z" fill="url(#phoenix-adult-wing)" stroke="#3d0000" stroke-width="1.1"/>
-                            <path d="M 36 14 L 30 -6 L 42 12 Z" fill="#ff3d00" stroke="#3d0000" stroke-width="1.05"/>
-                            <path d="M 44 10 L 40 -10 L 50 8 Z" fill="#ffea00" stroke="#3d0000" stroke-width="1.1"/>
-                            <path d="M 56 10 L 60 -10 L 50 8 Z" fill="#ffea00" stroke="#3d0000" stroke-width="1.1"/>
-                            <path d="M 64 14 L 70 -6 L 58 12 Z" fill="#ff3d00" stroke="#3d0000" stroke-width="1.05"/>
-                            <path d="M 72 18 L 82 -2 L 66 14 Z" fill="url(#phoenix-adult-wing)" stroke="#3d0000" stroke-width="1.1"/>
-                            <path d="M 22 12 L 12 0 L 26 10 Z" fill="#ff8a65" opacity="0.85"/>
-                            <path d="M 78 12 L 88 0 L 74 10 Z" fill="#ff8a65" opacity="0.85"/>
-                            <circle cx="50" cy="-6" r="2.8" fill="#fffde7" opacity="0.9"/>
-                            <circle cx="50" cy="2" r="1.6" fill="#ff3d00" opacity="0.55"/>
-                            <circle cx="34" cy="32" r="4.5" fill="url(#phoenix-adult-cheek)"/>
-                            <circle cx="66" cy="32" r="4.5" fill="url(#phoenix-adult-cheek)"/>
+                            <path d="M 50 35 C 42.5 38.5 40.5 46 42 54 C 43.5 61 47 65.5 50 66.5 C 53 65.5 56.5 61 58 54 C 59.5 46 57.5 38.5 50 35 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width="1.1"/>
+                            <path d="M 44.5 45 Q 50 42.8 55.5 45 M 44 52 Q 50 49.8 56 52 M 46 59 Q 50 57 54 59" fill="none" stroke="#7b1308" stroke-width=".45" opacity=".3"/>
+                            <ellipse cx="50" cy="51" rx="6.5" ry="8" fill="url(#phoenix-evo3-core)" opacity="0.9" filter="url(#phoenix-evo3-glow)"/>
+                            <path d="M 43 30 Q 43 23 50 22 Q 57 23 57 30 Q 56 36 50 37 Q 44 36 43 30 Z" fill="url(#phoenix-evo3-plum)" stroke="#7b1308" stroke-width="1"/>
+                            <path d="M 51.2 21.9 L 47.9 18.9 L 46.5 18.4 L 45.5 16.6 L 43.0 15.2 L 45.8 19.7 L 48.8 24.1 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 51.4 22.3 L 48.4 17.4 L 47.0 16.2 L 46.1 13.7 L 43.7 11.1 L 46.0 17.5 L 48.6 23.7 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 51.5 22.6 L 49.5 16.0 L 48.3 14.1 L 48.0 10.9 L 46.0 7.0 L 47.1 15.2 L 48.5 23.4 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 51.6 23.0 L 51.2 14.8 L 50.5 12.3 L 50.9 8.6 L 50.0 3.5 L 49.1 13.3 L 48.4 23.0 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 51.5 23.4 L 52.8 16.6 L 52.7 14.3 L 53.9 11.4 L 54.0 7.0 L 51.1 14.8 L 48.5 22.6 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 51.4 23.7 L 53.7 18.6 L 53.9 16.7 L 55.5 14.6 L 56.3 11.1 L 52.3 16.6 L 48.6 22.3 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo3-soft)"/>
+                            <path d="M 51.2 24.1 L 53.8 20.5 L 54.2 19.0 L 55.9 17.9 L 57.0 15.2 L 52.8 18.5 L 48.8 21.9 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo3-soft)"/>
                         </g>
-                        <g class="tm-animate-arm-left">
-                            <ellipse cx="26" cy="58" rx="7.5" ry="12" fill="url(#phoenix-adult-body)" stroke="#3d0000" stroke-width="1.4" transform="rotate(-20 26 58)"/>
-                            <path d="M 22 68 L 16 76 M 24 70 L 22 78 M 26 68 L 30 76" stroke="#ff3d00" stroke-width="1.6" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <ellipse cx="74" cy="58" rx="7.5" ry="12" fill="url(#phoenix-adult-body)" stroke="#3d0000" stroke-width="1.4" transform="rotate(20 74 58)"/>
-                            <path d="M 74 68 L 70 76 M 76 70 L 78 78 M 78 68 L 84 76" stroke="#ff3d00" stroke-width="1.6" stroke-linecap="round"/>
-                        </g>
+                        <g class="tm-animate-arm-left" opacity=".001"><circle cx="44" cy="48" r=".4"/></g>
+                        <g class="tm-animate-arm-right" opacity=".001"><circle cx="56" cy="48" r=".4"/></g>
                         <g class="tm-animate-leg-left">
-                            <ellipse cx="38" cy="88" rx="8" ry="6" fill="url(#phoenix-adult-body)" stroke="#3d0000" stroke-width="1.5"/>
-                            <path d="M 32 90 L 26 96 M 37 91 L 37 98 M 42 91 L 42 98 M 46 90 L 52 96" stroke="#3d0000" stroke-width="1.7" stroke-linecap="round"/>
+                            <path d="M 46.5 63 Q 44.3 65.5 44.7 68.5 M 44.7 68.5 Q 42.2 70 41 72.8 L 40.4 74.2 M 44.7 68.5 Q 44.9 71.6 44.2 74 L 43.9 75.4 M 44.7 68.5 Q 47 70.6 48.2 73 L 48.8 74.4" fill="none" stroke="#d4a54a" stroke-width="1.6" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <ellipse cx="62" cy="88" rx="8" ry="6" fill="url(#phoenix-adult-body)" stroke="#3d0000" stroke-width="1.5"/>
-                            <path d="M 54 90 L 48 96 M 59 91 L 59 98 M 64 91 L 64 98 M 68 90 L 74 96" stroke="#3d0000" stroke-width="1.7" stroke-linecap="round"/>
+                            <path d="M 53.5 63 Q 55.7 65.5 55.3 68.5 M 55.3 68.5 Q 57.8 70 59 72.8 L 59.6 74.2 M 55.3 68.5 Q 55.1 71.6 55.8 74 L 56.1 75.4 M 55.3 68.5 Q 53 70.6 51.8 73 L 51.2 74.4" fill="none" stroke="#d4a54a" stroke-width="1.6" stroke-linecap="round"/>
                         </g>
                         <g class="tm-mascot-eye-open">
-                            <path d="M 31.5 13.7 Q 40 10.7 48 15.7" stroke="#3d0000" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 68.5 13.7 Q 60 10.7 52 15.7" stroke="#3d0000" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 32.5 15 Q 40 13 47.5 16.2" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>
-                            <path d="M 67.5 15 Q 60 13 52.5 16.2" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>
-                            <ellipse cx="40" cy="24" rx="7.5" ry="8.8" fill="#fff8e1" stroke="#3d0000" stroke-width="1.6"/>
-                            <ellipse cx="60" cy="24" rx="7.5" ry="8.8" fill="#fff8e1" stroke="#3d0000" stroke-width="1.6"/>
-                            <ellipse cx="40.4" cy="24.3" rx="4.3" ry="5.5" fill="url(#phoenix-adult-iris)"/>
-                            <ellipse cx="60.4" cy="24.3" rx="4.3" ry="5.5" fill="url(#phoenix-adult-iris)"/>
-                            <ellipse cx="40.5" cy="24.6" rx="2.0" ry="3.5" fill="#1a0500"/>
-                            <ellipse cx="60.5" cy="24.6" rx="2.0" ry="3.5" fill="#1a0500"/>
-                            <circle cx="41.5" cy="21.2" r="2.3" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="61.5" cy="21.2" r="2.3" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="37.8" cy="26.5" r="1.1" fill="#ffab40" opacity="0.7"/>
-                            <circle cx="57.8" cy="26.5" r="1.1" fill="#ffab40" opacity="0.7"/>
+                            <circle cx="46.8" cy="28.8" r="2.9" fill="#ffab00" opacity=".5" filter="url(#phoenix-evo3-glow)"/>
+                            <circle cx="53.2" cy="28.8" r="2.9" fill="#ffab00" opacity=".5" filter="url(#phoenix-evo3-glow)"/>
+                            <circle cx="46.8" cy="28.8" r="1.7" fill="#ffab00" stroke="#5d1306" stroke-width=".45"/>
+                            <circle cx="53.2" cy="28.8" r="1.7" fill="#ffab00" stroke="#5d1306" stroke-width=".45"/>
+                            <ellipse cx="46.9" cy="28.95" rx="0.41" ry="1.44" fill="#1b0502"/>
+                            <ellipse cx="53.300000000000004" cy="28.95" rx="0.41" ry="1.44" fill="#1b0502"/>
+                            <circle cx="46.29" cy="28.205000000000002" r="0.37" fill="#fffde7"/>
+                            <circle cx="52.690000000000005" cy="28.205000000000002" r="0.37" fill="#fffde7"/>
+                            <path d="M 44 25.8 L 49.199999999999996 28.1 L 44 27.8 Z" fill="#4a0a02"/>
+                            <path d="M 56 25.8 L 50.800000000000004 28.1 L 56 27.8 Z" fill="#4a0a02"/>
+                            <path d="M 43.8 25.6 L 49.4 27.900000000000002" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>
+                            <path d="M 56.2 25.6 L 50.6 27.900000000000002" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 32.5 24 Q 40 20.8 47.5 24" stroke="#3d0000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.5 24 Q 60 20.8 67.5 24" stroke="#3d0000" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 45.3 28.8 Q 46.8 27.6 48.3 28.8" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
+                            <path d="M 51.7 28.8 Q 53.2 27.6 54.7 28.8" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 46.2 41 L 50 46.0 L 53.8 41 Q 50 42.9 46.2 41" fill="#ff6d00" stroke="#3d0000" stroke-width="1.4" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45.4 42 L 50 47.2 L 54.6 42 Q 50 40.2 45.4 42" fill="#ff6d00" stroke="#3d0000" stroke-width="1.4" stroke-linejoin="round"/>
-                            <path d="M 50 41.8 L 50 45.2" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
+                        <path class="tm-mascot-mouth-happy" d="M 47.1 32.8 Q 50 31.999999999999996 52.9 32.8 L 51.45 36 Q 50 38.199999999999996 49.8 38.8 Q 48.405 37.4 48.26 36 Z" fill="url(#phoenix-evo3-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.1 33.3 Q 50 32.5 52.9 33.3 L 51.305 36.8 Q 50 39 49.7 39.599999999999994 Q 48.55 38 48.405 36.8 Z" fill="url(#phoenix-evo3-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
+                        </g>
                 </g>
 
-                <!-- PHOENIX MIDDLE AGE — crimson ash tyrant -->
+                <!-- PHOENIX EVO4 — Cinder Warlord -->
                 <g id="tm-mascot-evo4-phoenix" style="display: none;">
                     <defs>
-                        <radialGradient id="phoenix-mid-body" cx="36%" cy="26%" r="80%">
-                            <stop offset="0%" style="stop-color:#ff8a65;stop-opacity:1" />
-                            <stop offset="20%" style="stop-color:#e64a19;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#bf360c;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#4e342e;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#1a0a00;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-mid-belly" cx="50%" cy="35%" r="65%">
+                        <linearGradient id="phoenix-evo4-plum" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#d98e4a;stop-opacity:1" />
+                            <stop offset="35%" style="stop-color:#a84a12;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#5d1e0a;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#200705;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="phoenix-evo4-fire" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#ffe082;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffab40;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-mid-wing" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:0.98" />
-                            <stop offset="25%" style="stop-color:#ffab40;stop-opacity:0.95" />
-                            <stop offset="55%" style="stop-color:#ff6d00;stop-opacity:0.92" />
-                            <stop offset="85%" style="stop-color:#ff5722;stop-opacity:0.88" />
-                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:0.8" />
+                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:1" />
+                            <stop offset="65%" style="stop-color:#ff6d00;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b71c1c;stop-opacity:1" />
                         </linearGradient>
-                        <linearGradient id="phoenix-mid-wing2" x1="100%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffea00;stop-opacity:0.9" />
-                            <stop offset="50%" style="stop-color:#ff3d00;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#7f0000;stop-opacity:0.75" />
-                        </linearGradient>
-                        <radialGradient id="phoenix-mid-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="25%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-mid-iris" cx="35%" cy="28%" r="68%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="35%" style="stop-color:#ff9100;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#dd2c00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#4a0000;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-mid-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a80;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#ff8a80;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-mid-aura" cx="50%" cy="48%" r="55%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:0.55" />
-                            <stop offset="40%" style="stop-color:#ff6d00;stop-opacity:0.28" />
-                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-mid-corona" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:0.5" />
-                            <stop offset="35%" style="stop-color:#ffea00;stop-opacity:0.3" />
-                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-mid-tail" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <radialGradient id="phoenix-evo4-core" cx="50%" cy="42%" r="60%">
                             <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#ffab40;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#7f0000;stop-opacity:1" />
-                        </linearGradient>
-                        <radialGradient id="phoenix-mid-ash" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#90a4ae;stop-opacity:0.65" />
-                            <stop offset="100%" style="stop-color:#37474f;stop-opacity:0.25" />
+                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:.95" />
+                            <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
+                            <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
                         </radialGradient>
+                        <linearGradient id="phoenix-evo4-beak" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
+                        </linearGradient>
+                        <filter id="phoenix-evo4-glow" x="-100%" y="-100%" width="300%" height="300%">
+                            <feGaussianBlur stdDeviation="1.5" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <filter id="phoenix-evo4-soft" x="-60%" y="-60%" width="220%" height="220%">
+                            <feGaussianBlur stdDeviation=".6" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
                     </defs>
-                        <ellipse cx="50" cy="96" rx="36" ry="5.5" fill="#1a0500" opacity="0.32"/>
-                        <ellipse cx="50" cy="48" rx="46" ry="43" fill="url(#phoenix-mid-aura)"/>
-
-                        <circle cx="18" cy="28" r="1.8" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="82" cy="24" r="1.2" fill="#fff59d" opacity="0.44999999999999996"/>
-                        <circle cx="12" cy="48" r="1.2" fill="#ff6d00" opacity="0.55"/>
-                        <circle cx="88" cy="50" r="1.8" fill="#fff59d" opacity="0.65"/>
-                        <circle cx="22" cy="70" r="1.2" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="78" cy="72" r="1.2" fill="#fff59d" opacity="0.44999999999999996"/>
-                        <circle cx="8" cy="38" r="1.8" fill="#ff6d00" opacity="0.55"/>
-                        <circle cx="92" cy="40" r="1.2" fill="#fff59d" opacity="0.65"/>
-                        <circle cx="30" cy="18" r="1.2" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="70" cy="16" r="1.8" fill="#fff59d" opacity="0.44999999999999996"/>
+                        <ellipse cx="50" cy="94" rx="40" ry="4.4" fill="#120303" opacity="0.45"/>
+                        <ellipse cx="50" cy="46" rx="40" ry="31.2" fill="url(#phoenix-evo4-core)" opacity="0.55" filter="url(#phoenix-evo4-glow)"/>
+                            <path d="M 17.5 35.1 Q 13.1 34.3 9.4 34.0 Q 12.5 36.1 16.3 38.3 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 24.1 27.2 Q 19.0 23.9 14.6 21.4 Q 17.8 25.4 21.9 29.8 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 33.9 21.6 Q 29.4 15.3 25.4 10.3 Q 27.7 16.3 30.9 23.3 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 45.6 18.9 Q 44.1 14.7 42.5 11.3 Q 42.2 15.0 42.2 19.5 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 57.8 19.5 Q 58.1 13.4 58.0 8.4 Q 56.2 13.1 54.4 18.9 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 69.1 23.3 Q 72.3 16.3 74.6 10.3 Q 70.6 15.3 66.1 21.6 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 78.1 29.8 Q 80.9 26.4 83.1 23.4 Q 79.7 25.0 75.9 27.2 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 83.7 38.3 Q 89.1 35.5 93.4 32.9 Q 88.4 33.7 82.5 35.1 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 85.2 47.7 Q 92.9 47.0 99.2 46.0 Q 92.9 45.0 85.2 44.3 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 50.0 31.6 L 50.0 12.0" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo4-glow)"/>
+                        <path d="M 64.5 38.8 L 84.6 29.0" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo4-glow)"/>
+                        <path d="M 64.5 53.2 L 84.6 63.0" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo4-glow)"/>
+                        <path d="M 50.0 60.4 L 50.0 80.0" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo4-glow)"/>
+                        <path d="M 35.5 53.2 L 15.4 63.0" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo4-glow)"/>
+                        <path d="M 35.5 38.8 L 15.4 29.0" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo4-glow)"/>
+                        <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo4-soft)"/>
+                        <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo4-soft)"/>
+                        <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo4-soft)"/>
+                        <circle cx="91" cy="47" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo4-soft)"/>
+                        <circle cx="24" cy="75" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo4-soft)"/>
+                        <circle cx="80" cy="72" r="0.75" fill="#ff6d00" opacity="0.56" filter="url(#phoenix-evo4-soft)"/>
+                        <circle cx="35" cy="11" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo4-soft)"/>
+                        <circle cx="73" cy="9" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo4-soft)"/>
+                        <circle cx="9" cy="61" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo4-soft)"/>
+                        <circle cx="93" cy="62" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo4-soft)"/>
+                        <g transform="translate(50 50) scale(1.02) translate(-50 -50)">
+                        <g class="tm-animate-tail">
+                            <path d="M 48.1 63.3 L 52.3 68.5 L 54.3 69.7 L 55.5 72.6 L 58.9 75.3 L 55.6 67.9 L 51.9 60.7 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 47.8 62.8 L 51.4 70.8 L 53.3 73.0 L 54.1 76.9 L 57.3 81.5 L 54.9 71.3 L 52.2 61.2 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 47.7 62.3 L 49.5 72.9 L 50.9 76.1 L 50.9 81.0 L 53.0 87.4 L 52.9 74.5 L 52.3 61.7 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 47.7 61.7 L 47.0 72.5 L 47.6 75.9 L 46.4 80.6 L 47.0 87.4 L 49.9 74.9 L 52.3 62.3 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 47.8 61.2 L 45.3 69.6 L 45.3 72.5 L 43.3 75.9 L 42.7 81.5 L 47.7 72.2 L 52.2 62.8 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 48.1 60.7 L 44.8 66.6 L 44.5 68.9 L 42.2 71.0 L 41.1 75.3 L 46.7 69.4 L 51.9 63.3 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo4-soft)"/>
+                        </g>
                         <g class="tm-animate-wing-left">
-                            <path d="M 28 50 Q 0 22 -2 46 Q 0 68 16 64 Q 24 56 30 52 Z" fill="url(#phoenix-mid-wing)" stroke="#3e2723" stroke-width="1.9"/>
-                            <path d="M 12 36 Q 4 44 8 58" stroke="#ffab40" stroke-width="1.1" fill="none" opacity="0.6"/>
-                            <path d="M 8 44 Q 2 50 6 62" stroke="#ff8a65" stroke-width="0.9" fill="none" opacity="0.5"/>
-                            <path d="M 4 28 L -2 20" stroke="#3e2723" stroke-width="1.5" stroke-linecap="round"/>
-                            <path d="M 10 24 L 6 16" stroke="#ff5722" stroke-width="1.2" stroke-linecap="round"/>
+                            <path d="M 46.6 38.8 L 33.3 29.0 L 27.9 27.5 L 23.3 21.5 L 13.4 17.3 L 26.0 32.6 L 39.4 47.2 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 45.9 38.0 L 30.5 30.7 L 24.7 30.3 L 18.9 25.1 L 8.1 22.8 L 23.8 35.9 L 40.1 48.0 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 44.8 37.8 L 28.8 33.7 L 23.2 34.3 L 16.6 30.4 L 5.9 30.2 L 23.4 39.7 L 41.2 48.2 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 43.7 37.8 L 28.2 36.9 L 23.1 38.5 L 16.4 36.1 L 6.4 37.9 L 24.3 43.5 L 42.3 48.2 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 42.7 38.0 L 28.7 39.9 L 24.5 42.4 L 18.0 41.3 L 9.4 44.8 L 26.4 46.9 L 43.3 48.0 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 41.9 38.6 L 30.3 42.6 L 27.1 45.5 L 21.4 45.6 L 14.7 50.0 L 29.5 49.1 L 44.1 47.4 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 41.3 39.4 L 32.8 44.4 L 30.7 47.3 L 26.2 48.2 L 21.7 52.9 L 33.4 50.1 L 44.7 46.6 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 46.3 39.7 L 38.8 33.7 L 35.2 33.1 L 33.1 29.1 L 26.9 26.9 L 33.0 36.9 L 39.7 46.3 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 45.7 38.9 L 36.9 34.4 L 33.2 34.5 L 30.3 30.9 L 23.6 29.9 L 31.7 38.9 L 40.3 47.1 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 44.8 38.7 L 35.6 36.0 L 32.1 36.7 L 28.6 33.8 L 22.1 34.1 L 31.4 41.1 L 41.2 47.3 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 43.9 38.6 L 34.9 37.8 L 31.8 39.2 L 28.0 37.1 L 22.0 38.5 L 32.0 43.4 L 42.1 47.4 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 43.1 38.8 L 34.9 39.6 L 32.3 41.5 L 28.6 40.2 L 23.5 42.7 L 33.2 45.4 L 42.9 47.2 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 42.3 39.2 L 35.5 41.4 L 33.6 43.4 L 30.3 42.9 L 26.4 45.9 L 35.1 46.7 L 43.7 46.8 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 47 40 Q 41 39 37.5 43.5 Q 40 49 46 50 Q 48.5 45 47 40 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".8"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 72 50 Q 100 22 102 46 Q 100 68 84 64 Q 76 56 70 52 Z" fill="url(#phoenix-mid-wing)" stroke="#3e2723" stroke-width="1.9"/>
-                            <path d="M 88 36 Q 96 44 92 58" stroke="#ffab40" stroke-width="1.1" fill="none" opacity="0.6"/>
-                            <path d="M 92 44 Q 98 50 94 62" stroke="#ff8a65" stroke-width="0.9" fill="none" opacity="0.5"/>
-                            <path d="M 96 28 L 102 20" stroke="#3e2723" stroke-width="1.5" stroke-linecap="round"/>
-                            <path d="M 90 24 L 94 16" stroke="#ff5722" stroke-width="1.2" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 58 68 Q 78 102 98 52 Q 104 28 90 24 Q 74 36 58 68 Z" fill="url(#phoenix-mid-tail)" stroke="#3e2723" stroke-width="1.8"/>
-                            <path d="M 62 70 Q 80 108 100 60" fill="url(#phoenix-mid-wing)" opacity="0.7" stroke="#ff5722" stroke-width="1.1"/>
-                            <path d="M 66 66 Q 84 98 102 56" fill="none" stroke="#ffab40" stroke-width="1.3" opacity="0.65"/>
-                            <path d="M 70 62 Q 86 90 96 50" fill="none" stroke="#ff8a65" stroke-width="1" opacity="0.5"/>
-                            <path d="M 74 58 Q 88 82 94 48" fill="none" stroke="#fff59d" stroke-width="0.85" opacity="0.45"/>
-                            <ellipse cx="96" cy="40" rx="6" ry="8" fill="#ffab40" opacity="0.75"/>
-                            <circle cx="95" cy="38" r="2.2" fill="#fff" opacity="0.7"/>
-                            <circle cx="100" cy="48" r="1.6" fill="#ff3d00" opacity="0.55"/>
+                            <g transform="translate(100,0) scale(-1,1)">
+                            <path d="M 46.6 38.8 L 33.3 29.0 L 27.9 27.5 L 23.3 21.5 L 13.4 17.3 L 26.0 32.6 L 39.4 47.2 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 45.9 38.0 L 30.5 30.7 L 24.7 30.3 L 18.9 25.1 L 8.1 22.8 L 23.8 35.9 L 40.1 48.0 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 44.8 37.8 L 28.8 33.7 L 23.2 34.3 L 16.6 30.4 L 5.9 30.2 L 23.4 39.7 L 41.2 48.2 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 43.7 37.8 L 28.2 36.9 L 23.1 38.5 L 16.4 36.1 L 6.4 37.9 L 24.3 43.5 L 42.3 48.2 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 42.7 38.0 L 28.7 39.9 L 24.5 42.4 L 18.0 41.3 L 9.4 44.8 L 26.4 46.9 L 43.3 48.0 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 41.9 38.6 L 30.3 42.6 L 27.1 45.5 L 21.4 45.6 L 14.7 50.0 L 29.5 49.1 L 44.1 47.4 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 41.3 39.4 L 32.8 44.4 L 30.7 47.3 L 26.2 48.2 L 21.7 52.9 L 33.4 50.1 L 44.7 46.6 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 46.3 39.7 L 38.8 33.7 L 35.2 33.1 L 33.1 29.1 L 26.9 26.9 L 33.0 36.9 L 39.7 46.3 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 45.7 38.9 L 36.9 34.4 L 33.2 34.5 L 30.3 30.9 L 23.6 29.9 L 31.7 38.9 L 40.3 47.1 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 44.8 38.7 L 35.6 36.0 L 32.1 36.7 L 28.6 33.8 L 22.1 34.1 L 31.4 41.1 L 41.2 47.3 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 43.9 38.6 L 34.9 37.8 L 31.8 39.2 L 28.0 37.1 L 22.0 38.5 L 32.0 43.4 L 42.1 47.4 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 43.1 38.8 L 34.9 39.6 L 32.3 41.5 L 28.6 40.2 L 23.5 42.7 L 33.2 45.4 L 42.9 47.2 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 42.3 39.2 L 35.5 41.4 L 33.6 43.4 L 30.3 42.9 L 26.4 45.9 L 35.1 46.7 L 43.7 46.8 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 47 40 Q 41 39 37.5 43.5 Q 40 49 46 50 Q 48.5 45 47 40 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".8"/>
+                            </g>
                         </g>
                         <g class="tm-animate-body">
-                            <ellipse cx="50" cy="62" rx="24" ry="20" fill="url(#phoenix-mid-body)" stroke="#3e2723" stroke-width="2.5"/>
-                            <ellipse cx="34.0" cy="54" rx="9" ry="5" fill="#fff" opacity="0.16"/>
-                            <ellipse cx="50" cy="64" rx="16.0" ry="14.0" fill="url(#phoenix-mid-belly)"/>
-                            <!-- Ash scars -->
-                            <ellipse cx="36" cy="58" rx="6" ry="5" fill="url(#phoenix-mid-ash)" opacity="0.55"/>
-                            <ellipse cx="64" cy="62" rx="5" ry="4" fill="url(#phoenix-mid-ash)" opacity="0.5"/>
-                            <path d="M 54 32 L 58 38 L 56 42" stroke="#90a4ae" stroke-width="1.3" fill="none" opacity="0.7"/>
-                            <path d="M 34 56 Q 50 60 66 56" stroke="#ffab40" stroke-width="1" fill="none" opacity="0.45"/>
-                            <circle cx="50" cy="62" r="10" fill="url(#phoenix-mid-core)"/>
-                            <circle cx="50" cy="62" r="4.5" fill="#fffde7" opacity="0.85"/>
-                            <!-- Head -->
-                            <ellipse cx="50" cy="28" rx="18" ry="16" fill="url(#phoenix-mid-body)" stroke="#3e2723" stroke-width="2.3"/>
-                            <ellipse cx="39.0" cy="23" rx="7" ry="4" fill="#fff" opacity="0.15"/>
-                            <path d="M 36 18 L 28 2 L 40 16 Z" fill="url(#phoenix-mid-wing)" stroke="#3e2723" stroke-width="0.95"/>
-                            <path d="M 44 14 L 40 -2 L 50 12 Z" fill="#ffab40" stroke="#3e2723" stroke-width="0.95"/>
-                            <path d="M 56 14 L 60 -2 L 50 12 Z" fill="#ffab40" stroke="#3e2723" stroke-width="0.95"/>
-                            <path d="M 64 18 L 72 2 L 60 16 Z" fill="url(#phoenix-mid-wing)" stroke="#3e2723" stroke-width="0.95"/>
-                            <path d="M 32 12 L 24 0 L 34 10 Z" fill="#ff8a65" opacity="0.8"/>
-                            <path d="M 68 12 L 76 0 L 66 10 Z" fill="#ff8a65" opacity="0.8"/>
-                            <circle cx="50" cy="0" r="2" fill="#fffde7" opacity="0.75"/>
-                            <circle cx="34" cy="34" r="4.5" fill="url(#phoenix-mid-cheek)"/>
-                            <circle cx="66" cy="34" r="4.5" fill="url(#phoenix-mid-cheek)"/>
+                            <path d="M 50 35 C 42.5 38.5 40.5 46 42 54 C 43.5 61 47 65.5 50 66.5 C 53 65.5 56.5 61 58 54 C 59.5 46 57.5 38.5 50 35 Z" fill="url(#phoenix-evo4-plum)" stroke="#2b100d" stroke-width="1.1"/>
+                            <path d="M 44.5 45 Q 50 42.8 55.5 45 M 44 52 Q 50 49.8 56 52 M 46 59 Q 50 57 54 59" fill="none" stroke="#2b100d" stroke-width=".45" opacity=".3"/>
+                            <ellipse cx="50" cy="51" rx="6.5" ry="8" fill="url(#phoenix-evo4-core)" opacity="0.9" filter="url(#phoenix-evo4-glow)"/>
+                            <path d="M 47 45 L 48.8 49.5 L 47.4 54 M 53.2 47 L 51.6 51.5 L 53 56 M 50 58 L 49 61.5" fill="none" stroke="#ff6d00" stroke-width=".55" opacity=".85" filter="url(#phoenix-evo4-glow)"/>
+                            <path d="M 43 30 Q 43 23 50 22 Q 57 23 57 30 Q 56 36 50 37 Q 44 36 43 30 Z" fill="url(#phoenix-evo4-plum)" stroke="#2b100d" stroke-width="1"/>
+                            <path d="M 51.1 22.0 L 48.1 19.2 L 46.7 18.7 L 45.8 17.0 L 43.4 15.7 L 46.1 19.9 L 48.9 24.0 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 51.3 22.4 L 48.7 17.5 L 47.3 16.3 L 46.7 13.8 L 44.4 11.1 L 46.4 17.4 L 48.7 23.6 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 51.5 22.8 L 50.1 16.0 L 49.1 13.9 L 49.1 10.8 L 47.6 6.7 L 47.9 15.0 L 48.5 23.2 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 51.5 23.2 L 52.1 16.3 L 51.8 14.1 L 52.7 11.0 L 52.4 6.7 L 50.3 14.7 L 48.5 22.8 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 51.3 23.6 L 53.4 18.5 L 53.5 16.7 L 54.9 14.6 L 55.6 11.1 L 52.0 16.7 L 48.7 22.4 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo4-soft)"/>
+                            <path d="M 51.1 24.0 L 53.6 20.7 L 54.0 19.3 L 55.5 18.2 L 56.6 15.7 L 52.6 18.8 L 48.9 22.0 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo4-soft)"/>
                         </g>
-                        <g class="tm-animate-arm-left">
-                            <ellipse cx="26" cy="58" rx="7.5" ry="12" fill="url(#phoenix-mid-body)" stroke="#3e2723" stroke-width="1.4" transform="rotate(-20 26 58)"/>
-                            <path d="M 22 68 L 16 76 M 24 70 L 22 78 M 26 68 L 30 76" stroke="#ff5722" stroke-width="1.6" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <ellipse cx="74" cy="58" rx="7.5" ry="12" fill="url(#phoenix-mid-body)" stroke="#3e2723" stroke-width="1.4" transform="rotate(20 74 58)"/>
-                            <path d="M 74 68 L 70 76 M 76 70 L 78 78 M 78 68 L 84 76" stroke="#ff5722" stroke-width="1.6" stroke-linecap="round"/>
-                        </g>
+                        <g class="tm-animate-arm-left" opacity=".001"><circle cx="44" cy="48" r=".4"/></g>
+                        <g class="tm-animate-arm-right" opacity=".001"><circle cx="56" cy="48" r=".4"/></g>
                         <g class="tm-animate-leg-left">
-                            <ellipse cx="38" cy="88" rx="8" ry="6" fill="url(#phoenix-mid-body)" stroke="#3e2723" stroke-width="1.5"/>
-                            <path d="M 32 90 L 26 96 M 37 91 L 37 98 M 42 91 L 42 98 M 46 90 L 52 96" stroke="#3e2723" stroke-width="1.7" stroke-linecap="round"/>
+                            <path d="M 46.5 63 Q 44.3 65.5 44.7 68.5 M 44.7 68.5 Q 42.2 70 41 72.8 L 40.4 74.2 M 44.7 68.5 Q 44.9 71.6 44.2 74 L 43.9 75.4 M 44.7 68.5 Q 47 70.6 48.2 73 L 48.8 74.4" fill="none" stroke="#d4a54a" stroke-width="1.6" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <ellipse cx="62" cy="88" rx="8" ry="6" fill="url(#phoenix-mid-body)" stroke="#3e2723" stroke-width="1.5"/>
-                            <path d="M 54 90 L 48 96 M 59 91 L 59 98 M 64 91 L 64 98 M 68 90 L 74 96" stroke="#3e2723" stroke-width="1.7" stroke-linecap="round"/>
+                            <path d="M 53.5 63 Q 55.7 65.5 55.3 68.5 M 55.3 68.5 Q 57.8 70 59 72.8 L 59.6 74.2 M 55.3 68.5 Q 55.1 71.6 55.8 74 L 56.1 75.4 M 55.3 68.5 Q 53 70.6 51.8 73 L 51.2 74.4" fill="none" stroke="#d4a54a" stroke-width="1.6" stroke-linecap="round"/>
                         </g>
                         <g class="tm-mascot-eye-open">
-                            <path d="M 32 16.3 Q 40 13.3 47.5 18.3" stroke="#3e2723" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 68 16.3 Q 60 13.3 52.5 18.3" stroke="#3e2723" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 33 17.6 Q 40 15.600000000000001 47 18.8" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>
-                            <path d="M 67 17.6 Q 60 15.600000000000001 53 18.8" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>
-                            <ellipse cx="40" cy="26" rx="7" ry="8.2" fill="#fff8e1" stroke="#3e2723" stroke-width="1.6"/>
-                            <ellipse cx="60" cy="26" rx="7" ry="8.2" fill="#fff8e1" stroke="#3e2723" stroke-width="1.6"/>
-                            <ellipse cx="40.4" cy="26.3" rx="4.1" ry="5.1" fill="url(#phoenix-mid-iris)"/>
-                            <ellipse cx="60.4" cy="26.3" rx="4.1" ry="5.1" fill="url(#phoenix-mid-iris)"/>
-                            <ellipse cx="40.5" cy="26.6" rx="1.8" ry="3.3" fill="#1a0500"/>
-                            <ellipse cx="60.5" cy="26.6" rx="1.8" ry="3.3" fill="#1a0500"/>
-                            <circle cx="41.5" cy="23.4" r="2.1" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="61.5" cy="23.4" r="2.1" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="37.9" cy="28.3" r="1.0" fill="#ffab40" opacity="0.7"/>
-                            <circle cx="57.9" cy="28.3" r="1.0" fill="#ffab40" opacity="0.7"/>
+                            <circle cx="46.8" cy="28.8" r="2.9" fill="#ff5252" opacity=".5" filter="url(#phoenix-evo4-glow)"/>
+                            <circle cx="53.2" cy="28.8" r="2.9" fill="#ff5252" opacity=".5" filter="url(#phoenix-evo4-glow)"/>
+                            <circle cx="46.8" cy="28.8" r="1.7" fill="#ff5252" stroke="#5d1306" stroke-width=".45"/>
+                            <circle cx="53.2" cy="28.8" r="1.7" fill="#ff5252" stroke="#5d1306" stroke-width=".45"/>
+                            <ellipse cx="46.9" cy="28.95" rx="0.41" ry="1.44" fill="#1b0502"/>
+                            <ellipse cx="53.300000000000004" cy="28.95" rx="0.41" ry="1.44" fill="#1b0502"/>
+                            <circle cx="46.29" cy="28.205000000000002" r="0.37" fill="#fffde7"/>
+                            <circle cx="52.690000000000005" cy="28.205000000000002" r="0.37" fill="#fffde7"/>
+                            <path d="M 44 25.8 L 49.199999999999996 28.1 L 44 27.8 Z" fill="#4a0a02"/>
+                            <path d="M 56 25.8 L 50.800000000000004 28.1 L 56 27.8 Z" fill="#4a0a02"/>
+                            <path d="M 43.8 25.6 L 49.4 27.900000000000002" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>
+                            <path d="M 56.2 25.6 L 50.6 27.900000000000002" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33 26 Q 40 22.8 47 26" stroke="#3e2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 53 26 Q 60 22.8 67 26" stroke="#3e2723" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 45.3 28.8 Q 46.8 27.6 48.3 28.8" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
+                            <path d="M 51.7 28.8 Q 53.2 27.6 54.7 28.8" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 46.4 43 L 50 47.8 L 53.6 43 Q 50 44.8 46.4 43" fill="#d84315" stroke="#3e2723" stroke-width="1.4" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45.6 44 L 50 49.0 L 54.4 44 Q 50 42.2 45.6 44" fill="#d84315" stroke="#3e2723" stroke-width="1.4" stroke-linejoin="round"/>
-                            <path d="M 50 43.8 L 50 47.0" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
+                        <path class="tm-mascot-mouth-happy" d="M 47.1 32.8 Q 50 31.999999999999996 52.9 32.8 L 51.45 36 Q 50 38.199999999999996 49.8 38.8 Q 48.405 37.4 48.26 36 Z" fill="url(#phoenix-evo4-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.1 33.3 Q 50 32.5 52.9 33.3 L 51.305 36.8 Q 50 39 49.7 39.599999999999994 Q 48.55 38 48.405 36.8 Z" fill="url(#phoenix-evo4-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
+                        </g>
                 </g>
 
-                <!-- PHOENIX OLD — immortal sun god -->
+                <!-- PHOENIX EVO5 — Solar Seraph -->
                 <g id="tm-mascot-evo5-phoenix" style="display: none;">
                     <defs>
-                        <radialGradient id="phoenix-old-body" cx="36%" cy="26%" r="80%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="20%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="45%" style="stop-color:#ffd54f;stop-opacity:1" />
-                            <stop offset="70%" style="stop-color:#ff8a65;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff6d00;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-old-belly" cx="50%" cy="35%" r="65%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="50%" style="stop-color:#ffe082;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ffab40;stop-opacity:1" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-old-wing" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:0.98" />
-                            <stop offset="25%" style="stop-color:#fff59d;stop-opacity:0.95" />
-                            <stop offset="55%" style="stop-color:#ff6d00;stop-opacity:0.92" />
-                            <stop offset="85%" style="stop-color:#ffcc80;stop-opacity:0.88" />
-                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:0.8" />
+                        <linearGradient id="phoenix-evo5-plum" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#fff6d0;stop-opacity:1" />
+                            <stop offset="35%" style="stop-color:#ffe27a;stop-opacity:1" />
+                            <stop offset="70%" style="stop-color:#ffb300;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#8a5a00;stop-opacity:1" />
                         </linearGradient>
-                        <linearGradient id="phoenix-old-wing2" x1="100%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#ffea00;stop-opacity:0.9" />
-                            <stop offset="50%" style="stop-color:#ff3d00;stop-opacity:0.85" />
-                            <stop offset="100%" style="stop-color:#7f0000;stop-opacity:0.75" />
-                        </linearGradient>
-                        <radialGradient id="phoenix-old-core" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fff;stop-opacity:1" />
-                            <stop offset="25%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="55%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-old-iris" cx="35%" cy="28%" r="68%">
+                        <linearGradient id="phoenix-evo5-fire" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="40%" style="stop-color:#ffd54f;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#e65100;stop-opacity:1" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-old-cheek" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#ff8a80;stop-opacity:0.55" />
-                            <stop offset="100%" style="stop-color:#ff8a80;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-old-aura" cx="50%" cy="48%" r="55%">
-                            <stop offset="0%" style="stop-color:#fff59d;stop-opacity:0.55" />
-                            <stop offset="40%" style="stop-color:#ff6d00;stop-opacity:0.28" />
-                            <stop offset="100%" style="stop-color:#bf360c;stop-opacity:0" />
-                        </radialGradient>
-                        <radialGradient id="phoenix-old-corona" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:0.5" />
-                            <stop offset="35%" style="stop-color:#ffea00;stop-opacity:0.3" />
-                            <stop offset="100%" style="stop-color:#ff3d00;stop-opacity:0" />
-                        </radialGradient>
-                        <linearGradient id="phoenix-old-tail" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
-                            <stop offset="30%" style="stop-color:#fff59d;stop-opacity:1" />
-                            <stop offset="60%" style="stop-color:#ff6d00;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#7f0000;stop-opacity:1" />
+                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:1" />
+                            <stop offset="65%" style="stop-color:#ff6d00;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b71c1c;stop-opacity:1" />
                         </linearGradient>
+                        <radialGradient id="phoenix-evo5-core" cx="50%" cy="42%" r="60%">
+                            <stop offset="0%" style="stop-color:#fffde7;stop-opacity:1" />
+                            <stop offset="30%" style="stop-color:#ffd740;stop-opacity:.95" />
+                            <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
+                            <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
+                        </radialGradient>
+                        <linearGradient id="phoenix-evo5-beak" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
+                        </linearGradient>
+                        <filter id="phoenix-evo5-glow" x="-100%" y="-100%" width="300%" height="300%">
+                            <feGaussianBlur stdDeviation="1.5" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <filter id="phoenix-evo5-soft" x="-60%" y="-60%" width="220%" height="220%">
+                            <feGaussianBlur stdDeviation=".6" result="b"/>
+                            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
                     </defs>
-                        <ellipse cx="50" cy="96" rx="40" ry="5.5" fill="#1a0500" opacity="0.32"/>
-                        <ellipse cx="50" cy="48" rx="52" ry="49" fill="url(#phoenix-old-aura)"/>
-                        <ellipse cx="50" cy="44" rx="44" ry="42" fill="url(#phoenix-old-corona)" opacity="0.65"/>
-                        <ellipse cx="50" cy="44" rx="36" ry="34" fill="none" stroke="#fffde7" stroke-width="1.4" opacity="0.4"/>
-                        <ellipse cx="50" cy="44" rx="28" ry="26" fill="none" stroke="#ffd54f" stroke-width="0.9" opacity="0.3"/>
-                        <circle cx="18" cy="28" r="1.8" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="82" cy="24" r="1.2" fill="#fff59d" opacity="0.44999999999999996"/>
-                        <circle cx="12" cy="48" r="1.2" fill="#ff6d00" opacity="0.55"/>
-                        <circle cx="88" cy="50" r="1.8" fill="#fff59d" opacity="0.65"/>
-                        <circle cx="22" cy="70" r="1.2" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="78" cy="72" r="1.2" fill="#fff59d" opacity="0.44999999999999996"/>
-                        <circle cx="8" cy="38" r="1.8" fill="#ff6d00" opacity="0.55"/>
-                        <circle cx="92" cy="40" r="1.2" fill="#fff59d" opacity="0.65"/>
-                        <circle cx="30" cy="18" r="1.2" fill="#ff6d00" opacity="0.35"/>
-                        <circle cx="70" cy="16" r="1.8" fill="#fff59d" opacity="0.44999999999999996"/>
-                        <circle cx="16" cy="62" r="1.2" fill="#ff6d00" opacity="0.55"/>
-                        <circle cx="84" cy="64" r="1.2" fill="#fff59d" opacity="0.65"/>
+                        <ellipse cx="50" cy="94" rx="40" ry="4.4" fill="#120303" opacity="0.45"/>
+                        <ellipse cx="50" cy="46" rx="56" ry="43.7" fill="url(#phoenix-evo5-core)" opacity="0.55" filter="url(#phoenix-evo5-glow)"/>
+                            <path d="M 4.3 31.4 Q -0.1 30.6 -3.8 30.2 Q -0.8 32.4 3.1 34.6 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 13.3 20.2 Q 8.2 16.9 3.8 14.5 Q 7.0 18.4 11.2 22.8 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 26.8 12.2 Q 22.3 5.9 18.4 0.9 Q 20.7 6.8 23.9 13.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 43.1 8.2 Q 41.6 4.0 40.1 0.6 Q 39.7 4.3 39.8 8.8 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 60.2 8.8 Q 60.5 2.7 60.5 -2.3 Q 58.7 2.4 56.9 8.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 76.1 13.9 Q 79.3 6.8 81.6 0.9 Q 77.7 5.9 73.2 12.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 88.8 22.8 Q 91.7 19.4 93.9 16.4 Q 90.5 18.0 86.7 20.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 96.9 34.6 Q 102.3 31.8 106.6 29.2 Q 101.7 30.0 95.7 31.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 99.3 47.7 Q 107.0 47.0 113.3 46.0 Q 107.0 45.0 99.3 44.3 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 50.0 25.8 L 50.0 -1.6" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
+                        <path d="M 61.8 28.5 L 78.0 4.8" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
+                        <path d="M 70.4 35.9 L 98.5 22.2" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
+                        <path d="M 73.5 46.0 L 106.0 46.0" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
+                        <path d="M 70.4 56.1 L 98.5 69.8" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
+                        <path d="M 61.8 63.5 L 78.0 87.2" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
+                        <path d="M 50.0 66.2 L 50.0 93.6" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
+                        <path d="M 38.2 63.5 L 22.0 87.2" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
+                        <path d="M 29.6 56.1 L 1.5 69.8" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
+                        <path d="M 26.5 46.0 L -6.0 46.0" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
+                        <path d="M 29.6 35.9 L 1.5 22.2" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
+                        <path d="M 38.2 28.5 L 22.0 4.8" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
+                        <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="91" cy="47" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="24" cy="75" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="80" cy="72" r="0.75" fill="#ff6d00" opacity="0.56" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="35" cy="11" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="73" cy="9" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="9" cy="61" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="93" cy="62" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="42" cy="5" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="66" cy="6" r="0.75" fill="#ff6d00" opacity="0.56" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="17" cy="35" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="87" cy="35" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="31" cy="86" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo5-soft)"/>
+                        <g transform="translate(50 50) scale(1.12) translate(-50 -50)">
+                        <g class="tm-animate-tail">
+                            <path d="M 48.9 63.4 Q 54.3 76.7 58.9 87.4 Q 55.5 76.2 51.1 62.6 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 48.8 63.1 Q 51.5 81.1 54.0 95.8 Q 52.9 80.9 51.2 62.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 48.8 62.9 Q 47.1 80.9 46.0 95.8 Q 48.5 81.1 51.2 63.1 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 48.9 62.6 Q 44.5 76.2 41.1 87.4 Q 45.7 76.7 51.1 63.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 48.1 63.3 Q 53.9 70.0 58.9 75.3 Q 56.0 68.6 51.9 60.7 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 47.9 62.9 Q 53.2 72.3 58.0 79.7 Q 55.6 71.2 52.1 61.1 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 47.8 62.6 Q 51.9 74.5 55.8 84.1 Q 54.4 73.8 52.2 61.4 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 47.7 62.2 Q 49.9 76.5 52.2 88.2 Q 52.5 76.3 52.3 61.8 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 47.7 61.8 Q 47.5 76.3 47.8 88.2 Q 50.1 76.5 52.3 62.2 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 47.8 61.4 Q 45.6 73.8 44.2 84.1 Q 48.1 74.5 52.2 62.6 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 47.9 61.1 Q 44.4 71.2 42.0 79.7 Q 46.8 72.3 52.1 62.9 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 48.1 60.7 Q 44.0 68.6 41.1 75.3 Q 46.1 70.0 51.9 63.3 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo5-soft)"/>
+                        </g>
                         <g class="tm-animate-wing-left">
-                            <!-- Outer flame wing -->
-                            <path d="M 30 48 Q -6 8 -8 40 Q -4 72 16 68 Q 26 58 32 52 Z" fill="url(#phoenix-old-wing)" stroke="#ff6f00" stroke-width="2.2"/>
-                            <path d="M 26 50 Q 2 22 0 46 Q 2 66 18 62 Q 24 56 28 52 Z" fill="url(#phoenix-old-wing2)" opacity="0.85" stroke="#ffcc80" stroke-width="1.1"/>
-                            <path d="M 8 28 Q 0 36 4 52" stroke="#fff59d" stroke-width="1.3" fill="none" opacity="0.7"/>
-                            <path d="M 4 36 Q -2 42 2 56" stroke="#ff8a65" stroke-width="1.1" fill="none" opacity="0.55"/>
-                            <path d="M 2 46 Q -4 50 0 62" stroke="#ff3d00" stroke-width="0.95" fill="none" opacity="0.5"/>
-                            <path d="M 12 54 Q 18 60 24 64" stroke="#fff59d" stroke-width="0.85" fill="none" opacity="0.45"/>
-                            <path d="M -2 22 L -8 12" stroke="#ff6f00" stroke-width="1.8" stroke-linecap="round"/>
-                            <path d="M 4 18 L 0 8" stroke="#ffcc80" stroke-width="1.4" stroke-linecap="round"/>
-                            <path d="M 10 16 L 8 6" stroke="#fff59d" stroke-width="1.2" stroke-linecap="round"/>
-                            <circle cx="-4" cy="30" r="2" fill="#fffde7" opacity="0.55"/>
+                            <path d="M 49.2 41.1 Q 29.4 23.5 12.3 10.0 Q 24.7 27.9 40.8 48.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 48.5 40.1 Q 25.1 26.3 5.1 16.0 Q 21.1 31.8 41.5 49.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 47.4 39.8 Q 22.5 30.9 1.6 24.8 Q 19.8 36.8 42.6 50.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 46.3 39.7 Q 21.6 36.0 1.2 34.1 Q 20.1 42.0 43.7 50.3 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 45.3 39.8 Q 22.6 40.9 4.0 42.9 Q 22.3 46.8 44.7 50.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 44.3 40.3 Q 25.2 45.1 9.8 50.0 Q 26.0 50.3 45.7 49.7 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 43.6 41.0 Q 29.3 47.9 17.8 54.4 Q 30.8 52.4 46.4 49.0 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 46.5 38.7 Q 27.3 26.3 10.9 17.0 Q 23.4 31.1 39.5 47.3 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 45.7 37.9 Q 23.9 29.2 5.5 23.1 Q 20.9 34.9 40.3 48.1 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 44.6 37.7 Q 22.2 33.4 3.5 30.9 Q 20.4 39.3 41.4 48.3 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 43.5 37.8 Q 22.0 37.8 4.3 38.9 Q 21.4 43.7 42.5 48.2 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 42.6 38.0 Q 23.4 41.9 7.7 46.1 Q 23.8 47.5 43.4 48.0 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 41.8 38.7 Q 26.1 45.2 13.5 51.5 Q 27.5 50.1 44.2 47.3 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 41.2 39.4 Q 29.8 47.2 20.9 54.2 Q 31.9 51.2 44.8 46.6 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 46.2 39.6 Q 35.2 32.1 25.5 26.7 Q 31.6 35.9 39.8 46.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 45.6 38.9 Q 33.0 33.5 22.1 29.9 Q 30.1 38.1 40.4 47.1 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 44.7 38.6 Q 31.6 35.8 20.6 34.4 Q 29.8 40.7 41.3 47.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 43.8 38.6 Q 31.2 38.4 20.8 39.1 Q 30.3 43.3 42.2 47.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 42.9 38.8 Q 31.7 40.8 22.5 43.4 Q 31.8 45.6 43.1 47.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 42.2 39.3 Q 33.0 42.9 25.6 46.7 Q 33.9 47.1 43.8 46.7 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 47 40 Q 41 39 37.5 43.5 Q 40 49 46 50 Q 48.5 45 47 40 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".8"/>
                         </g>
                         <g class="tm-animate-wing-right">
-                            <path d="M 70 48 Q 106 8 108 40 Q 104 72 84 68 Q 74 58 68 52 Z" fill="url(#phoenix-old-wing)" stroke="#ff6f00" stroke-width="2.2"/>
-                            <path d="M 74 50 Q 98 22 100 46 Q 98 66 82 62 Q 76 56 72 52 Z" fill="url(#phoenix-old-wing2)" opacity="0.85" stroke="#ffcc80" stroke-width="1.1"/>
-                            <path d="M 92 28 Q 100 36 96 52" stroke="#fff59d" stroke-width="1.3" fill="none" opacity="0.7"/>
-                            <path d="M 96 36 Q 102 42 98 56" stroke="#ff8a65" stroke-width="1.1" fill="none" opacity="0.55"/>
-                            <path d="M 98 46 Q 104 50 100 62" stroke="#ff3d00" stroke-width="0.95" fill="none" opacity="0.5"/>
-                            <path d="M 88 54 Q 82 60 76 64" stroke="#fff59d" stroke-width="0.85" fill="none" opacity="0.45"/>
-                            <path d="M 102 22 L 108 12" stroke="#ff6f00" stroke-width="1.8" stroke-linecap="round"/>
-                            <path d="M 96 18 L 100 8" stroke="#ffcc80" stroke-width="1.4" stroke-linecap="round"/>
-                            <path d="M 90 16 L 92 6" stroke="#fff59d" stroke-width="1.2" stroke-linecap="round"/>
-                            <circle cx="104" cy="30" r="2" fill="#fffde7" opacity="0.55"/>
+                            <g transform="translate(100,0) scale(-1,1)">
+                            <path d="M 49.2 41.1 Q 29.4 23.5 12.3 10.0 Q 24.7 27.9 40.8 48.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 48.5 40.1 Q 25.1 26.3 5.1 16.0 Q 21.1 31.8 41.5 49.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 47.4 39.8 Q 22.5 30.9 1.6 24.8 Q 19.8 36.8 42.6 50.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 46.3 39.7 Q 21.6 36.0 1.2 34.1 Q 20.1 42.0 43.7 50.3 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 45.3 39.8 Q 22.6 40.9 4.0 42.9 Q 22.3 46.8 44.7 50.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 44.3 40.3 Q 25.2 45.1 9.8 50.0 Q 26.0 50.3 45.7 49.7 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 43.6 41.0 Q 29.3 47.9 17.8 54.4 Q 30.8 52.4 46.4 49.0 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.55" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 46.5 38.7 Q 27.3 26.3 10.9 17.0 Q 23.4 31.1 39.5 47.3 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 45.7 37.9 Q 23.9 29.2 5.5 23.1 Q 20.9 34.9 40.3 48.1 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 44.6 37.7 Q 22.2 33.4 3.5 30.9 Q 20.4 39.3 41.4 48.3 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 43.5 37.8 Q 22.0 37.8 4.3 38.9 Q 21.4 43.7 42.5 48.2 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 42.6 38.0 Q 23.4 41.9 7.7 46.1 Q 23.8 47.5 43.4 48.0 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 41.8 38.7 Q 26.1 45.2 13.5 51.5 Q 27.5 50.1 44.2 47.3 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 41.2 39.4 Q 29.8 47.2 20.9 54.2 Q 31.9 51.2 44.8 46.6 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.97" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 46.2 39.6 Q 35.2 32.1 25.5 26.7 Q 31.6 35.9 39.8 46.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 45.6 38.9 Q 33.0 33.5 22.1 29.9 Q 30.1 38.1 40.4 47.1 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 44.7 38.6 Q 31.6 35.8 20.6 34.4 Q 29.8 40.7 41.3 47.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 43.8 38.6 Q 31.2 38.4 20.8 39.1 Q 30.3 43.3 42.2 47.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 42.9 38.8 Q 31.7 40.8 22.5 43.4 Q 31.8 45.6 43.1 47.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 42.2 39.3 Q 33.0 42.9 25.6 46.7 Q 33.9 47.1 43.8 46.7 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 47 40 Q 41 39 37.5 43.5 Q 40 49 46 50 Q 48.5 45 47 40 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width=".8"/>
+                            </g>
                         </g>
-                        <g class="tm-animate-tail">
-                            <path d="M 58 68 Q 78 102 98 52 Q 104 28 90 24 Q 74 36 58 68 Z" fill="url(#phoenix-old-tail)" stroke="#ff6f00" stroke-width="1.8"/>
-                            <path d="M 62 70 Q 80 108 100 60" fill="url(#phoenix-old-wing)" opacity="0.7" stroke="#ffcc80" stroke-width="1.1"/>
-                            <path d="M 66 66 Q 84 98 102 56" fill="none" stroke="#fff59d" stroke-width="1.3" opacity="0.65"/>
-                            <path d="M 70 62 Q 86 90 96 50" fill="none" stroke="#ff8a65" stroke-width="1" opacity="0.5"/>
-                            <path d="M 74 58 Q 88 82 94 48" fill="none" stroke="#fff59d" stroke-width="0.85" opacity="0.45"/>
-                            <ellipse cx="96" cy="40" rx="6" ry="8" fill="#fff59d" opacity="0.75"/>
-                            <circle cx="95" cy="38" r="2.2" fill="#fff" opacity="0.7"/>
-                            <circle cx="100" cy="48" r="1.6" fill="#ff3d00" opacity="0.55"/>
-                        </g>
+                        <ellipse cx="50" cy="18.5" rx="7.5" ry="2.2" fill="none" stroke="#ffd740" stroke-width="1.1" opacity=".85" filter="url(#phoenix-evo5-glow)"/>
                         <g class="tm-animate-body">
-                            <ellipse cx="50" cy="58" rx="24" ry="20" fill="url(#phoenix-old-body)" stroke="#ff6f00" stroke-width="2.5"/>
-                            <ellipse cx="34.0" cy="50" rx="9" ry="5" fill="#fff" opacity="0.16"/>
-                            <ellipse cx="50" cy="60" rx="16.0" ry="14.0" fill="url(#phoenix-old-belly)"/>
-                            <path d="M 36 52 Q 50 54 64 52" stroke="#fffde7" stroke-width="1.1" fill="none" opacity="0.55"/>
-                            <circle cx="28" cy="40" r="2.2" fill="#fff" opacity="0.55"/>
-                            <circle cx="72" cy="38" r="2.2" fill="#fff" opacity="0.5"/>
-                            <circle cx="50" cy="58" r="10" fill="url(#phoenix-old-core)"/>
-                            <circle cx="50" cy="58" r="4.5" fill="#fffde7" opacity="0.85"/>
-                            <!-- Head -->
-                            <ellipse cx="50" cy="24" rx="18.5" ry="16.5" fill="url(#phoenix-old-body)" stroke="#ff6f00" stroke-width="2.3"/>
-                            <ellipse cx="38.5" cy="19" rx="7" ry="4" fill="#fff" opacity="0.15"/>
-                            <!-- Immortal sun halo -->
-                            <ellipse cx="50" cy="4" rx="24" ry="5.5" fill="none" stroke="#fff59d" stroke-width="1.6" opacity="0.7"/>
-                            <ellipse cx="50" cy="4" rx="18" ry="3.5" fill="url(#phoenix-old-corona)" opacity="0.8"/>
-                            <path d="M 30 16 L 22 -4 L 36 14 Z" fill="url(#phoenix-old-wing)" stroke="#ff6f00" stroke-width="1"/>
-                            <path d="M 40 12 L 36 -8 L 48 10 Z" fill="#fff59d" stroke="#ff6f00" stroke-width="1"/>
-                            <path d="M 50 8 L 50 -12 L 56 8 Z" fill="#fffde7" stroke="#ff6f00" stroke-width="1.05"/>
-                            <path d="M 60 12 L 64 -8 L 52 10 Z" fill="#fff59d" stroke="#ff6f00" stroke-width="1"/>
-                            <path d="M 70 16 L 78 -4 L 64 14 Z" fill="url(#phoenix-old-wing)" stroke="#ff6f00" stroke-width="1"/>
-                            <circle cx="50" cy="-8" r="3" fill="#fff" opacity="0.9"/>
-                            <circle cx="24" cy="8" r="1.8" fill="#fff" opacity="0.55"/>
-                            <circle cx="76" cy="8" r="1.8" fill="#fff" opacity="0.55"/>
-                            <circle cx="34" cy="30" r="4.5" fill="url(#phoenix-old-cheek)"/>
-                            <circle cx="66" cy="30" r="4.5" fill="url(#phoenix-old-cheek)"/>
+                            <path d="M 50 35 C 42.5 38.5 40.5 46 42 54 C 43.5 61 47 65.5 50 66.5 C 53 65.5 56.5 61 58 54 C 59.5 46 57.5 38.5 50 35 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width="1.1"/>
+                            <path d="M 44.5 45 Q 50 42.8 55.5 45 M 44 52 Q 50 49.8 56 52 M 46 59 Q 50 57 54 59" fill="none" stroke="#7b1308" stroke-width=".45" opacity=".3"/>
+                            <ellipse cx="50" cy="51" rx="6.5" ry="8" fill="url(#phoenix-evo5-core)" opacity="0.9" filter="url(#phoenix-evo5-glow)"/>
+                            <path d="M 43 30 Q 43 23 50 22 Q 57 23 57 30 Q 56 36 50 37 Q 44 36 43 30 Z" fill="url(#phoenix-evo5-plum)" stroke="#7b1308" stroke-width="1"/>
+                            <path d="M 51.2 21.9 L 47.9 18.9 L 46.5 18.4 L 45.5 16.6 L 43.0 15.2 L 45.8 19.7 L 48.8 24.1 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 51.3 22.2 L 48.2 17.8 L 46.8 16.8 L 45.9 14.5 L 43.3 12.1 L 45.9 18.1 L 48.7 23.8 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 51.5 22.4 L 48.9 16.7 L 47.5 15.1 L 46.9 12.3 L 44.6 9.0 L 46.4 16.3 L 48.5 23.6 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 51.5 22.7 L 49.9 15.7 L 48.8 13.6 L 48.6 10.3 L 46.9 6.0 L 47.5 14.7 L 48.5 23.3 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 51.6 23.0 L 51.2 14.8 L 50.5 12.3 L 50.9 8.6 L 50.0 3.5 L 49.1 13.3 L 48.4 23.0 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 51.5 23.3 L 52.5 16.1 L 52.2 13.8 L 53.3 10.6 L 53.1 6.0 L 50.6 14.3 L 48.5 22.7 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 51.5 23.6 L 53.4 17.5 L 53.4 15.5 L 54.9 13.0 L 55.4 9.0 L 51.8 15.7 L 48.5 22.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 51.3 23.8 L 53.8 19.1 L 54.1 17.3 L 55.7 15.4 L 56.7 12.1 L 52.5 17.1 L 48.7 22.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
+                            <path d="M 51.2 24.1 L 53.8 20.5 L 54.2 19.0 L 55.9 17.9 L 57.0 15.2 L 52.8 18.5 L 48.8 21.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.96" filter="url(#phoenix-evo5-soft)"/>
                         </g>
-                        <g class="tm-animate-arm-left">
-                            <ellipse cx="26" cy="58" rx="7.5" ry="12" fill="url(#phoenix-old-body)" stroke="#ff6f00" stroke-width="1.4" transform="rotate(-20 26 58)"/>
-                            <path d="M 22 68 L 16 76 M 24 70 L 22 78 M 26 68 L 30 76" stroke="#ffcc80" stroke-width="1.6" stroke-linecap="round"/>
-                        </g>
-                        <g class="tm-animate-arm-right">
-                            <ellipse cx="74" cy="58" rx="7.5" ry="12" fill="url(#phoenix-old-body)" stroke="#ff6f00" stroke-width="1.4" transform="rotate(20 74 58)"/>
-                            <path d="M 74 68 L 70 76 M 76 70 L 78 78 M 78 68 L 84 76" stroke="#ffcc80" stroke-width="1.6" stroke-linecap="round"/>
-                        </g>
+                        <g class="tm-animate-arm-left" opacity=".001"><circle cx="44" cy="48" r=".4"/></g>
+                        <g class="tm-animate-arm-right" opacity=".001"><circle cx="56" cy="48" r=".4"/></g>
                         <g class="tm-animate-leg-left">
-                            <ellipse cx="38" cy="88" rx="8" ry="6" fill="url(#phoenix-old-body)" stroke="#ff6f00" stroke-width="1.5"/>
-                            <path d="M 32 90 L 26 96 M 37 91 L 37 98 M 42 91 L 42 98 M 46 90 L 52 96" stroke="#ff6f00" stroke-width="1.7" stroke-linecap="round"/>
+                            <path d="M 46.5 63 Q 44.3 65.5 44.7 68.5 M 44.7 68.5 Q 42.2 70 41 72.8 L 40.4 74.2 M 44.7 68.5 Q 44.9 71.6 44.2 74 L 43.9 75.4 M 44.7 68.5 Q 47 70.6 48.2 73 L 48.8 74.4" fill="none" stroke="#d4a54a" stroke-width="1.6" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-leg-right">
-                            <ellipse cx="62" cy="88" rx="8" ry="6" fill="url(#phoenix-old-body)" stroke="#ff6f00" stroke-width="1.5"/>
-                            <path d="M 54 90 L 48 96 M 59 91 L 59 98 M 64 91 L 64 98 M 68 90 L 74 96" stroke="#ff6f00" stroke-width="1.7" stroke-linecap="round"/>
+                            <path d="M 53.5 63 Q 55.7 65.5 55.3 68.5 M 55.3 68.5 Q 57.8 70 59 72.8 L 59.6 74.2 M 55.3 68.5 Q 55.1 71.6 55.8 74 L 56.1 75.4 M 55.3 68.5 Q 53 70.6 51.8 73 L 51.2 74.4" fill="none" stroke="#d4a54a" stroke-width="1.6" stroke-linecap="round"/>
                         </g>
                         <g class="tm-mascot-eye-open">
-                            <path d="M 31.799999999999997 12 Q 40 9 47.7 14" stroke="#ff6f00" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 68.2 12 Q 60 9 52.3 14" stroke="#ff6f00" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 32.8 13.3 Q 40 11.3 47.2 14.5" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>
-                            <path d="M 67.2 13.3 Q 60 11.3 52.8 14.5" stroke="#ff3d00" stroke-width="1.1" fill="none" opacity="0.65"/>
-                            <ellipse cx="40" cy="22" rx="7.2" ry="8.5" fill="#fffde7" stroke="#ff6f00" stroke-width="1.6"/>
-                            <ellipse cx="60" cy="22" rx="7.2" ry="8.5" fill="#fffde7" stroke="#ff6f00" stroke-width="1.6"/>
-                            <ellipse cx="40.4" cy="22.3" rx="4.2" ry="5.3" fill="url(#phoenix-old-iris)"/>
-                            <ellipse cx="60.4" cy="22.3" rx="4.2" ry="5.3" fill="url(#phoenix-old-iris)"/>
-                            <ellipse cx="40.5" cy="22.6" rx="1.9" ry="3.4" fill="#1a0500"/>
-                            <ellipse cx="60.5" cy="22.6" rx="1.9" ry="3.4" fill="#1a0500"/>
-                            <circle cx="41.5" cy="19.3" r="2.2" fill="#fff" opacity="0.95"/>
-                            <circle cx="61.5" cy="19.3" r="2.2" fill="#fff" opacity="0.95"/>
-                            <circle cx="37.8" cy="24.4" r="1.0" fill="#ffab40" opacity="0.7"/>
-                            <circle cx="57.8" cy="24.4" r="1.0" fill="#ffab40" opacity="0.7"/>
+                            <circle cx="46.8" cy="28.8" r="2.9" fill="#ffab00" opacity=".5" filter="url(#phoenix-evo5-glow)"/>
+                            <circle cx="53.2" cy="28.8" r="2.9" fill="#ffab00" opacity=".5" filter="url(#phoenix-evo5-glow)"/>
+                            <circle cx="46.8" cy="28.8" r="1.7" fill="#ffab00" stroke="#5d1306" stroke-width=".45"/>
+                            <circle cx="53.2" cy="28.8" r="1.7" fill="#ffab00" stroke="#5d1306" stroke-width=".45"/>
+                            <ellipse cx="46.9" cy="28.95" rx="0.41" ry="1.44" fill="#1b0502"/>
+                            <ellipse cx="53.300000000000004" cy="28.95" rx="0.41" ry="1.44" fill="#1b0502"/>
+                            <circle cx="46.29" cy="28.205000000000002" r="0.37" fill="#fffde7"/>
+                            <circle cx="52.690000000000005" cy="28.205000000000002" r="0.37" fill="#fffde7"/>
+                            <path d="M 44 25.8 L 49.199999999999996 28.1 L 44 27.8 Z" fill="#4a0a02"/>
+                            <path d="M 56 25.8 L 50.800000000000004 28.1 L 56 27.8 Z" fill="#4a0a02"/>
+                            <path d="M 43.8 25.6 L 49.4 27.900000000000002" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>
+                            <path d="M 56.2 25.6 L 50.6 27.900000000000002" fill="none" stroke="#2b0501" stroke-width=".7" stroke-linecap="round"/>
                         </g>
                         <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 32.8 22 Q 40 18.8 47.2 22" stroke="#ff6f00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.8 22 Q 60 18.8 67.2 22" stroke="#ff6f00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 45.3 28.8 Q 46.8 27.6 48.3 28.8" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
+                            <path d="M 51.7 28.8 Q 53.2 27.6 54.7 28.8" fill="none" stroke="#5d1306" stroke-width=".9" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 46.2 39 L 50 44.0 L 53.8 39 Q 50 40.9 46.2 39" fill="#ffcc80" stroke="#ff6f00" stroke-width="1.4" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45.4 40 L 50 45.2 L 54.6 40 Q 50 38.2 45.4 40" fill="#ffcc80" stroke="#ff6f00" stroke-width="1.4" stroke-linejoin="round"/>
-                            <path d="M 50 39.8 L 50 43.2" stroke="#bf360c" stroke-width="0.6" opacity="0.4"/>
+                        <path class="tm-mascot-mouth-happy" d="M 47.1 32.8 Q 50 31.999999999999996 52.9 32.8 L 51.45 36 Q 50 38.199999999999996 49.8 38.8 Q 48.405 37.4 48.26 36 Z" fill="url(#phoenix-evo5-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.1 33.3 Q 50 32.5 52.9 33.3 L 51.305 36.8 Q 50 39 49.7 39.599999999999994 Q 48.55 38 48.405 36.8 Z" fill="url(#phoenix-evo5-beak)" stroke="#8a5a00" stroke-width=".55" stroke-linejoin="round"/>
+                        </g>
                 </g>
                 <!-- CRYSTAL CHARACTER - All Life Stages (dense cute epic v3) -->
                 <!-- Aether & Stone • Epic Rarity • Prism Titan -->
