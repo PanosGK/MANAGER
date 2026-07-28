@@ -4815,16 +4815,14 @@
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-leviathan {
                 animation: tm-mythic-idle-float 5.2s ease-in-out infinite !important;
             }
-            /* Legendary & Mythical tier — 15% larger presence on every evolution form */
-            .tm-mascot-robot.mascot-char-dragon,
-            .tm-mascot-robot.mascot-char-phoenix,
-            .tm-mascot-robot.mascot-char-leviathan {
-                zoom: 1.15;
-            }
-            .tm-mascot-robot.mascot-char-aether.mascot-baby,
-            .tm-mascot-robot.mascot-char-aether.mascot-kid,
-            .tm-mascot-robot.mascot-char-aether.mascot-child {
-                zoom: 1.15;
+            /* Legendary & Mythical tier — container grows (zoom on SVG is unreliable); size set in JS too */
+            #tm-mascot-container.tm-mascot-elite-size,
+            #tm-mascot-container.mascot-char-dragon,
+            #tm-mascot-container.mascot-char-phoenix,
+            #tm-mascot-container.mascot-char-leviathan,
+            #tm-mascot-container.mascot-char-aether {
+                width: 125px;
+                height: 125px;
             }
             .tm-mascot-robot.mascot-char-leviathan.mascot-teen {
                 transform: scale(1.1);
@@ -4925,22 +4923,22 @@
                 box-shadow: 0 12px 52px rgba(139,0,0,0.14), 0 0 100px rgba(93,64,55,0.12) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-middleage {
-                zoom: 1.311;
+                zoom: 1.14;
                 filter:
                     drop-shadow(0 6px 12px rgba(18,0,31,0.22))
                     drop-shadow(0 0 18px rgba(239,83,80,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-old {
-                zoom: 1.426;
+                zoom: 1.24;
                 filter:
                     drop-shadow(0 6px 12px rgba(10,2,2,0.24))
                     drop-shadow(0 0 18px rgba(139,0,0,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-adult {
-                zoom: 1.2305;
+                zoom: 1.07;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-teen {
-                zoom: 1.1845;
+                zoom: 1.03;
             }
             #tm-mascot-container.mascot-char-phoenix.tm-phoenix-glow-on:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
                 opacity: 1;

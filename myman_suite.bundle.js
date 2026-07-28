@@ -11286,16 +11286,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-leviathan {
                 animation: tm-mythic-idle-float 5.2s ease-in-out infinite !important;
             }
-            /* Legendary & Mythical tier — 15% larger presence on every evolution form */
-            .tm-mascot-robot.mascot-char-dragon,
-            .tm-mascot-robot.mascot-char-phoenix,
-            .tm-mascot-robot.mascot-char-leviathan {
-                zoom: 1.15;
-            }
-            .tm-mascot-robot.mascot-char-aether.mascot-baby,
-            .tm-mascot-robot.mascot-char-aether.mascot-kid,
-            .tm-mascot-robot.mascot-char-aether.mascot-child {
-                zoom: 1.15;
+            /* Legendary & Mythical tier — container grows (zoom on SVG is unreliable); size set in JS too */
+            #tm-mascot-container.tm-mascot-elite-size,
+            #tm-mascot-container.mascot-char-dragon,
+            #tm-mascot-container.mascot-char-phoenix,
+            #tm-mascot-container.mascot-char-leviathan,
+            #tm-mascot-container.mascot-char-aether {
+                width: 125px;
+                height: 125px;
             }
             .tm-mascot-robot.mascot-char-leviathan.mascot-teen {
                 transform: scale(1.1);
@@ -11396,22 +11394,22 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 box-shadow: 0 12px 52px rgba(139,0,0,0.14), 0 0 100px rgba(93,64,55,0.12) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-middleage {
-                zoom: 1.311;
+                zoom: 1.14;
                 filter:
                     drop-shadow(0 6px 12px rgba(18,0,31,0.22))
                     drop-shadow(0 0 18px rgba(239,83,80,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-old {
-                zoom: 1.426;
+                zoom: 1.24;
                 filter:
                     drop-shadow(0 6px 12px rgba(10,2,2,0.24))
                     drop-shadow(0 0 18px rgba(139,0,0,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-adult {
-                zoom: 1.2305;
+                zoom: 1.07;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-teen {
-                zoom: 1.1845;
+                zoom: 1.03;
             }
             #tm-mascot-container.mascot-char-phoenix.tm-phoenix-glow-on:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
                 opacity: 1;
@@ -24644,9 +24642,22 @@ function installTamagotchiOfficeHoursReload(STORAGE_KEYS) {
 const TAMA_CHARACTER_TYPES = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether', 'leviathan'];
 const TAMA_LEGENDARY_TYPES = ['dragon'];
 const TAMA_MYTHICAL_TYPES = ['phoenix', 'aether', 'leviathan'];
-/** Legendary + Mythical mascots — uniform 15% size boost on all evolution forms (CSS zoom). */
+/** Legendary + Mythical mascots — uniform size boost on all evolution forms. */
 const TAMA_ELITE_MASCOT_TYPES = [...TAMA_LEGENDARY_TYPES, ...TAMA_MYTHICAL_TYPES];
-const MASCOT_ELITE_SIZE_MULT = 1.15;
+const MASCOT_BASE_SIZE_PX = 100;
+const MASCOT_ELITE_SIZE_MULT = 1.25;
+
+function syncEliteMascotContainerSize(
+    container = document.getElementById('tm-mascot-container'),
+    characterType = tamagotchiCharacterType,
+) {
+    if (!container) return;
+    const isElite = TAMA_ELITE_MASCOT_TYPES.includes(characterType);
+    const sizePx = Math.round(MASCOT_BASE_SIZE_PX * (isElite ? MASCOT_ELITE_SIZE_MULT : 1));
+    container.style.width = `${sizePx}px`;
+    container.style.height = `${sizePx}px`;
+    container.classList.toggle('tm-mascot-elite-size', isElite);
+}
 
 const PHOENIX_STAGE_TIER = {
     baby: 1, kid: 2, teen: 3, adult: 4, middleage: 5, old: 6,
@@ -27093,13 +27104,13 @@ const MASCOT_EDGE_PAD = 8;
 /** Minimum painted overflow beyond the 100×100 box (shadow, jetpack flames, bubble). */
 const MASCOT_OVERFLOW_SLACK = { top: 36, right: 16, bottom: 20, left: 16 };
 /** Extra keep-inside padding for Phoenix wings / solar corona (CSS paint extends beyond box). */
-const MASCOT_PHOENIX_OVERFLOW_SLACK = { top: 51, right: 55, bottom: 30, left: 55 };
+const MASCOT_PHOENIX_OVERFLOW_SLACK = { top: 55, right: 60, bottom: 33, left: 60 };
 /** Extra keep-inside padding for Aether wings / glow (CSS paint is not in getBoundingClientRect). */
-const MASCOT_AETHER_OVERFLOW_SLACK = { top: 55, right: 60, bottom: 32, left: 60 };
+const MASCOT_AETHER_OVERFLOW_SLACK = { top: 60, right: 65, bottom: 35, left: 65 };
 /** Tempest Serpent v11 — long swimming body, dorsal spines, fluke, bolt accents. */
-const MASCOT_LEVIATHAN_OVERFLOW_SLACK = { top: 46, right: 41, bottom: 28, left: 46 };
+const MASCOT_LEVIATHAN_OVERFLOW_SLACK = { top: 50, right: 45, bottom: 30, left: 50 };
 /** Ember Sovereign dragon — wing tips / tail need slack after elite size boost. */
-const MASCOT_DRAGON_OVERFLOW_SLACK = { top: 39, right: 35, bottom: 26, left: 35 };
+const MASCOT_DRAGON_OVERFLOW_SLACK = { top: 42, right: 38, bottom: 28, left: 38 };
 
 function cacheMascotScreenInfo() {
     const scr = window.screen;
@@ -42987,6 +42998,7 @@ function updateMascotAppearanceByStage(stage) {
             robot.classList.add('mascot-egg');
         }
         TAMA_CHARACTER_TYPES.forEach((charType) => container.classList.remove(`mascot-char-${charType}`));
+        syncEliteMascotContainerSize(container, 'none');
         console.log('[MMS Mascot] ✅ Updated to EGG stage');
         stopAetherMythicFx();
         stopPhoenixMythicFx();
@@ -43065,6 +43077,7 @@ function updateMascotAppearanceByStage(stage) {
     }
     allCharacterTypes.forEach((charType) => container.classList.remove(`mascot-char-${charType}`));
     container.classList.add(`mascot-char-${previewCharacter}`);
+    syncEliteMascotContainerSize(container, previewCharacter);
     if (previewCharacter === 'aether') {
         syncAetherMythicFx(stage);
     } else {
@@ -43121,6 +43134,8 @@ window.TAMA_CHARACTER_TYPES = TAMA_CHARACTER_TYPES;
 window.TAMA_LEGENDARY_TYPES = TAMA_LEGENDARY_TYPES;
 window.TAMA_MYTHICAL_TYPES = TAMA_MYTHICAL_TYPES;
 window.TAMA_ELITE_MASCOT_TYPES = TAMA_ELITE_MASCOT_TYPES;
+window.MASCOT_ELITE_SIZE_MULT = MASCOT_ELITE_SIZE_MULT;
+window.syncEliteMascotContainerSize = syncEliteMascotContainerSize;
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
 window.ensureSingleMascotDom = ensureSingleMascotDom;
 window.resyncMascotAppearanceFromStorage = resyncMascotAppearanceFromStorage;
