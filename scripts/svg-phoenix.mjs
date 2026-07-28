@@ -242,6 +242,7 @@ ${I4}<path d="M 50 34 C 40 35 36 44 36 54 C 36 66 42 73 50 74 C 58 73 64 66 64 5
 ${I4}<ellipse cx="50" cy="59" rx="7.5" ry="8" fill="url(#${p}-core)" opacity=".5" filter="url(#${p}-glow)"/>
 ${I4}<path d="M 44 62 Q 50 60 56 62 M 45.5 66.5 Q 50 64.8 54.5 66.5" fill="none" stroke="#8a2708" stroke-width=".45" opacity=".3"/>
 ${crest(p, 50, 34.5, cfg.crest, .8)}
+${face(p, { eyeY: 46, eyeDx: 4.5, eyeR: 2.6, browAngry: true, beakY: 50.5, glow: false })}
 ${I3}</g>
 ${I3}<g class="tm-animate-arm-left" opacity=".001"><circle cx="38" cy="52" r=".4"/></g>
 ${I3}<g class="tm-animate-arm-right" opacity=".001"><circle cx="62" cy="52" r=".4"/></g>
@@ -250,8 +251,7 @@ ${I4}<path d="M 46 73.5 L 46 78 M 46 78 L 44 81 M 46 78 L 46.3 81.4 M 46 78 L 48
 ${I3}</g>
 ${I3}<g class="tm-animate-leg-right">
 ${I4}<path d="M 54 73.5 L 54 78 M 54 78 L 56 81 M 54 78 L 53.7 81.4 M 54 78 L 52 81" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
-${I3}</g>
-${face(p, { eyeY: 46, eyeDx: 4.5, eyeR: 2.6, browAngry: true, beakY: 50.5, glow: false })}`;
+${I3}</g>`;
 }
 
 /* ========================= EVO1: standing fledgling ========================= */
@@ -273,6 +273,7 @@ ${I4}<path d="M 50 34 C 43 36 40 44 41 54 C 42 63 46 69 50 70 C 54 69 58 63 59 5
 ${I4}<ellipse cx="50" cy="55" rx="6" ry="7" fill="url(#${p}-core)" opacity=".55" filter="url(#${p}-glow)"/>
 ${I4}<path d="M 45 50 Q 50 48 55 50 M 45.5 57 Q 50 55 54.5 57" fill="none" stroke="#6b1504" stroke-width=".45" opacity=".3"/>
 ${crest(p, 50, 34, cfg.crest, .9)}
+${face(p, { eyeY: 43.5, eyeDx: 4, eyeR: 2.1, browAngry: true, beakY: 48, glow: false })}
 ${I3}</g>
 ${I3}<g class="tm-animate-arm-left" opacity=".001"><circle cx="41" cy="48" r=".4"/></g>
 ${I3}<g class="tm-animate-arm-right" opacity=".001"><circle cx="59" cy="48" r=".4"/></g>
@@ -281,8 +282,7 @@ ${I4}<path d="M 46.5 69.5 L 46.2 74.5 M 46.2 74.5 L 44.2 77.4 M 46.2 74.5 L 46.5
 ${I3}</g>
 ${I3}<g class="tm-animate-leg-right">
 ${I4}<path d="M 53.5 69.5 L 53.8 74.5 M 53.8 74.5 L 55.8 77.4 M 53.8 74.5 L 53.5 77.8 M 53.8 74.5 L 51.8 77.4" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
-${I3}</g>
-${face(p, { eyeY: 43.5, eyeDx: 4, eyeR: 2.1, browAngry: true, beakY: 48, glow: false })}`;
+${I3}</g>`;
 }
 
 /* ===================== EVO2-5: flying raptor variants ===================== */
@@ -334,6 +334,7 @@ ${I4}<path d="M 44.5 45 Q 50 42.8 55.5 45 M 44 52 Q 50 49.8 56 52 M 46 59 Q 50 5
 ${I4}<ellipse cx="50" cy="51" rx="6.5" ry="8" fill="url(#${p}-core)" opacity="${cfg.boss ? .9 : .6}" filter="url(#${p}-glow)"/>
 ${cracks}${I4}<path d="M 43 30 Q 43 23 50 22 Q 57 23 57 30 Q 56 36 50 37 Q 44 36 43 30 Z" fill="url(#${p}-plum)" stroke="${stroke}" stroke-width="1"/>
 ${crest(p, 50, 23, cfg.crest, cfg.crestMult || 1, !!cfg.boss)}
+${face(p, { eyeY: 28.8, eyeDx: 3.2, eyeR: 1.7, fierce: true, iris: cfg.charred ? '#ff5252' : '#ffab00', beakY: 32.8, glow: true })}
 ${I3}</g>
 ${I3}<g class="tm-animate-arm-left" opacity=".001"><circle cx="44" cy="48" r=".4"/></g>
 ${I3}<g class="tm-animate-arm-right" opacity=".001"><circle cx="56" cy="48" r=".4"/></g>
@@ -347,8 +348,7 @@ ${I4}<path d="M 47 64 Q 45.5 66 45.8 68 M 45.8 68 L 43.8 69.8 M 45.8 68 L 46 70.
 ${I3}</g>
 ${I3}<g class="tm-animate-leg-right">
 ${I4}<path d="M 53 64 Q 54.5 66 54.2 68 M 54.2 68 L 56.2 69.8 M 54.2 68 L 54 70.6 M 54.2 68 L 52.2 69.6" fill="none" stroke="#d4a54a" stroke-width="1.3" stroke-linecap="round"/>
-${I3}</g>`}
-${face(p, { eyeY: 28.8, eyeDx: 3.2, eyeR: 1.7, fierce: true, iris: cfg.charred ? '#ff5252' : '#ffab00', beakY: 32.8, glow: true })}`;
+${I3}</g>`}`;
 }
 
 const BUILDERS = { chick: buildChick, fledgling: buildFledgling, flyer: buildFlyer };
