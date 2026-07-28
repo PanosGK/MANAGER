@@ -14995,7 +14995,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-baby-soft)"/>
                         <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-baby-soft)"/>
                         <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-baby-soft)"/>
-                        <g transform="translate(50 50) scale(0.8) translate(-50 -50)">
+                        <g transform="translate(50 50) scale(0.896) translate(-50 -50)">
                         <g class="tm-animate-tail">
                             <path d="M 48.8 71.8 Q 51.1 74.2 53.4 76.0 Q 52.5 73.3 51.2 70.2 Z" fill="url(#phoenix-baby-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-baby-soft)"/>
                             <path d="M 48.5 71.0 Q 49.2 76.0 50.0 80.0 Q 50.8 76.0 51.5 71.0 Z" fill="url(#phoenix-baby-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-baby-soft)"/>
@@ -15115,7 +15115,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo1-soft)"/>
                         <circle cx="91" cy="47" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo1-soft)"/>
                         <circle cx="24" cy="75" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo1-soft)"/>
-                        <g transform="translate(50 50) scale(0.88) translate(-50 -50)">
+                        <g transform="translate(50 50) scale(0.986) translate(-50 -50)">
                         <g class="tm-animate-tail">
                             <path d="M 48.5 69.0 Q 52.2 73.1 55.6 76.3 Q 53.9 72.0 51.5 67.0 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo1-soft)"/>
                             <path d="M 48.2 68.4 Q 50.5 75.4 52.6 81.1 Q 52.4 75.0 51.8 67.6 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo1-soft)"/>
@@ -15250,7 +15250,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="24" cy="75" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo2-soft)"/>
                         <circle cx="80" cy="72" r="0.75" fill="#ff6d00" opacity="0.56" filter="url(#phoenix-evo2-soft)"/>
                         <circle cx="35" cy="11" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo2-soft)"/>
-                        <g transform="translate(50 50) scale(0.95) translate(-50 -50)">
+                        <g transform="translate(50 50) scale(1.064) translate(-50 -50)">
                         <g class="tm-animate-tail">
                             <path d="M 48.1 63.3 Q 53.9 70.0 58.9 75.3 Q 56.0 68.6 51.9 60.7 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
                             <path d="M 47.8 62.7 Q 52.3 73.9 56.4 83.0 Q 54.8 73.2 52.2 61.3 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
@@ -15422,7 +15422,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="93" cy="62" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo3-soft)"/>
                         <circle cx="42" cy="5" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo3-soft)"/>
                         <circle cx="66" cy="6" r="0.75" fill="#ff6d00" opacity="0.56" filter="url(#phoenix-evo3-soft)"/>
-                        <g transform="translate(50 50) scale(1.1) translate(-50 -50)">
+                        <g transform="translate(50 50) scale(1.232) translate(-50 -50)">
                         <g class="tm-animate-tail">
                             <path d="M 48.8 63.3 Q 53.3 76.9 57.2 88.0 Q 54.6 76.6 51.2 62.7 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo3-soft)"/>
                             <path d="M 48.8 63.0 Q 49.3 80.6 50.0 95.0 Q 50.7 80.6 51.2 63.0 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo3-soft)"/>
@@ -15596,7 +15596,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="73" cy="9" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo4-soft)"/>
                         <circle cx="9" cy="61" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo4-soft)"/>
                         <circle cx="93" cy="62" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo4-soft)"/>
-                        <g transform="translate(50 50) scale(1.02) translate(-50 -50)">
+                        <g transform="translate(50 50) scale(1.142) translate(-50 -50)">
                         <g class="tm-animate-tail">
                             <path d="M 48.1 63.3 L 52.3 68.5 L 54.3 69.7 L 55.5 72.6 L 58.9 75.3 L 55.6 67.9 L 51.9 60.7 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo4-soft)"/>
                             <path d="M 47.8 62.8 L 51.4 70.8 L 53.3 73.0 L 54.1 76.9 L 57.3 81.5 L 54.9 71.3 L 52.2 61.2 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo4-soft)"/>
@@ -15781,7 +15781,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="17" cy="35" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo5-soft)"/>
                         <circle cx="87" cy="35" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo5-soft)"/>
                         <circle cx="31" cy="86" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo5-soft)"/>
-                        <g transform="translate(50 50) scale(1.12) translate(-50 -50)">
+                        <g transform="translate(50 50) scale(1.254) translate(-50 -50)">
                         <g class="tm-animate-tail">
                             <path d="M 48.9 63.4 Q 54.3 76.7 58.9 87.4 Q 55.5 76.2 51.1 62.6 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo5-soft)"/>
                             <path d="M 48.8 63.1 Q 51.5 81.1 54.0 95.8 Q 52.9 80.9 51.2 62.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo5-soft)"/>

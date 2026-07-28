@@ -21,12 +21,12 @@ const TITLES = {
 };
 
 const CFG = {
-  baby: { form: 'chick', scale: .8, crest: 3, tail: 3, aura: 0, embers: 3, rays: 0 },
-  evo1: { form: 'fledgling', scale: .88, crest: 4, tail: 4, aura: 20, embers: 5, rays: 0 },
-  evo2: { form: 'flyer', scale: .95, crest: 5, tail: 5, aura: 30, embers: 7, rays: 0, wingMult: 1, crestMult: 1.1 },
-  evo3: { form: 'flyer', scale: 1.1, crest: 7, tail: 7, aura: 48, embers: 12, rays: 8, boss: true, wingMult: 1.24, wingLift: 6, crestMult: 1.5, streamers: 3 },
-  evo4: { form: 'flyer', scale: 1.02, crest: 6, tail: 6, aura: 40, embers: 10, rays: 6, boss: true, charred: true, wingMult: 1.12, wingLift: 8, crestMult: 1.4, jagged: true },
-  evo5: { form: 'flyer', scale: 1.12, crest: 9, tail: 8, aura: 56, embers: 15, rays: 12, boss: true, divine: true, wingMult: 1.18, wingLift: 6, crestMult: 1.5, streamers: 4, doubleWings: true, halo: true },
+  baby: { form: 'chick', scale: .896, crest: 3, tail: 3, aura: 0, embers: 3, rays: 0 },
+  evo1: { form: 'fledgling', scale: .986, crest: 4, tail: 4, aura: 20, embers: 5, rays: 0 },
+  evo2: { form: 'flyer', scale: 1.064, crest: 5, tail: 5, aura: 30, embers: 7, rays: 0, wingMult: 1, crestMult: 1.1 },
+  evo3: { form: 'flyer', scale: 1.232, crest: 7, tail: 7, aura: 48, embers: 12, rays: 8, boss: true, wingMult: 1.24, wingLift: 6, crestMult: 1.5, streamers: 3 },
+  evo4: { form: 'flyer', scale: 1.142, crest: 6, tail: 6, aura: 40, embers: 10, rays: 6, boss: true, charred: true, wingMult: 1.12, wingLift: 8, crestMult: 1.4, jagged: true },
+  evo5: { form: 'flyer', scale: 1.254, crest: 9, tail: 8, aura: 56, embers: 15, rays: 12, boss: true, divine: true, wingMult: 1.18, wingLift: 6, crestMult: 1.5, streamers: 4, doubleWings: true, halo: true },
 };
 
 const PAL = {
