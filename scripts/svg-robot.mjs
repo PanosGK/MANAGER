@@ -118,6 +118,8 @@ ${I4}<circle cx="50" cy="12" r="3.5" fill="#76ff03" stroke="#00e5ff" stroke-widt
 ${I4}<circle cx="49" cy="11" r="1.2" fill="#fff" opacity="0.7"/>
 ${I4}<circle cx="36" cy="30" r="1.5" fill="#90a4ae" stroke="#546e7a" stroke-width="0.6"/>
 ${I4}<circle cx="64" cy="30" r="1.5" fill="#90a4ae" stroke="#546e7a" stroke-width="0.6"/>
+${eyes(41, 59, 40, 6.5, 7.5, 'url(#robot-baby-iris)', '#546e7a')}
+${mouths(48, '#00e5ff', 6)}
 ${I3}</g>
 ${I3}<g class="tm-animate-arm-left">
 ${I4}<ellipse cx="26" cy="64" rx="5" ry="7" fill="url(#robot-baby-chassis)" stroke="#546e7a" stroke-width="1.4"/>
@@ -142,11 +144,7 @@ ${I3}<g class="tm-animate-leg-right">
 ${I4}<ellipse cx="60" cy="84" rx="6" ry="5" fill="url(#robot-baby-chassis)" stroke="#546e7a" stroke-width="1.4"/>
 ${I4}<ellipse cx="60" cy="88" rx="7" ry="3" fill="#37474f" stroke="#546e7a" stroke-width="1.2"/>
 ${I4}<rect x="56" y="87" width="8" height="2" rx="1" fill="#00e5ff" opacity="0.4"/>
-${I3}</g>
-${eyes(41, 59, 40, 6.5, 7.5, 'url(#robot-baby-iris)', '#546e7a')}
-${mouths(48, '#00e5ff', 6)}`;
-
-/* ─── EVO1 KID — tread scout ─── */
+${I3}</g>`;
 const evo1Defs = [
   grad('robot-kid-chassis', [['0%', '#b0bec5'], ['35%', '#607d8b'], ['100%', '#263238']], 'linear'),
   grad('robot-kid-panel', [['0%', '#e1f5fe'], ['100%', '#29b6f6']], 'linear', 'x1="0%" y1="0%" x2="0%" y2="100%"'),
@@ -196,6 +194,8 @@ ${I4}<rect x="38" y="26" width="24" height="12" rx="2" fill="#1a237e" opacity="0
 ${I4}<rect x="42" y="42" width="16" height="4" rx="1" fill="#263238" stroke="#29b6f6" stroke-width="0.6"/>
 ${I4}<path d="M 44 44 L 48 44 L 46 46 Z" fill="#ffee58" opacity="0.8"/>
 ${I4}<path d="M 52 44 L 56 44 L 54 46 Z" fill="#ffee58" opacity="0.8"/>
+${eyes(41, 59, 32, 6, 7, 'url(#robot-kid-iris)', '#607d8b')}
+${mouths(44, '#29b6f6', 7)}
 ${I3}</g>
 ${I3}<g class="tm-animate-arm-left">
 ${I4}<rect x="18" y="52" width="10" height="18" rx="2.5" fill="url(#robot-kid-chassis)" stroke="#607d8b" stroke-width="1.3" transform="rotate(-14 23 61)"/>
@@ -224,9 +224,7 @@ ${I4}<circle cx="54" cy="88" r="2.5" fill="#37474f" stroke="#78909c" stroke-widt
 ${I4}<circle cx="60" cy="88" r="2.5" fill="#37474f" stroke="#78909c" stroke-width="0.8"/>
 ${I4}<circle cx="66" cy="88" r="2.5" fill="#37474f" stroke="#78909c" stroke-width="0.8"/>
 ${I4}<rect x="52" y="86" width="16" height="2" rx="1" fill="#455a64"/>
-${I3}</g>
-${eyes(41, 59, 32, 6, 7, 'url(#robot-kid-iris)', '#607d8b')}
-${mouths(44, '#29b6f6', 7)}`;
+${I3}</g>`;
 
 /* ─── EVO2 TEEN — sleek visor mecha ─── */
 const evo2Defs = [
@@ -276,6 +274,8 @@ ${I4}<ellipse cx="50" cy="30" rx="14" ry="8" fill="url(#robot-teen-visor)" strok
 ${I4}<ellipse cx="42" cy="28" rx="5" ry="2.5" fill="#fff" opacity="0.2"/>
 ${I4}<line x1="50" y1="16" x2="50" y2="10" stroke="#78909c" stroke-width="1.5"/>
 ${I4}<circle cx="50" cy="9" r="2" fill="#e040fb" stroke="#00e5ff" stroke-width="0.8"/>
+${eyes(42, 58, 30, 5.5, 6.5, 'url(#robot-teen-iris)', '#455a64')}
+${mouths(38, '#00bcd4', 6)}
 ${I3}</g>
 ${I3}<g class="tm-animate-arm-left">
 ${I4}<rect x="16" y="48" width="11" height="22" rx="2" fill="url(#robot-teen-chassis)" stroke="#455a64" stroke-width="1.4" transform="rotate(-18 21.5 59)"/>
@@ -302,9 +302,7 @@ ${I4}<rect x="56" y="76" width="10" height="14" rx="2" fill="url(#robot-teen-cha
 ${I4}<ellipse cx="61" cy="94" rx="10" ry="3" fill="url(#robot-teen-hover)"/>
 ${I4}<ellipse cx="61" cy="92" rx="8" ry="2.5" fill="#263238" stroke="#00bcd4" stroke-width="1.2"/>
 ${I4}<circle cx="61" cy="94" r="2" fill="#00e5ff" opacity="0.6"/>
-${I3}</g>
-${eyes(42, 58, 30, 5.5, 6.5, 'url(#robot-teen-iris)', '#455a64')}
-${mouths(38, '#00bcd4', 6)}`;
+${I3}</g>`;
 
 /* ─── EVO3 ADULT — Neon Colossus ─── */
 const evo3Defs = [
@@ -366,6 +364,8 @@ ${I4}<circle cx="50" cy="10" r="3" fill="#76ff03" stroke="#00e5ff" stroke-width=
 ${I4}<circle cx="49" cy="9" r="1" fill="#fff" opacity="0.7"/>
 ${I4}<rect x="32" y="42" width="8" height="6" rx="1" fill="#607d8b" stroke="#37474f" stroke-width="0.8"/>
 ${I4}<rect x="60" y="42" width="8" height="6" rx="1" fill="#607d8b" stroke="#37474f" stroke-width="0.8"/>
+${eyes(42, 58, 30, 5.5, 6.5, 'url(#robot-adult-iris)', '#263238')}
+${mouths(38, '#00e5ff', 8)}
 ${I3}</g>
 ${I3}<g class="tm-animate-arm-left">
 ${I4}<ellipse cx="20" cy="58" rx="7" ry="12" fill="url(#robot-adult-armor)" stroke="#263238" stroke-width="1.8"/>
@@ -390,9 +390,7 @@ ${I3}<g class="tm-animate-leg-right">
 ${I4}<rect x="54" y="78" width="14" height="14" rx="2" fill="url(#robot-adult-armor)" stroke="#263238" stroke-width="1.6"/>
 ${I4}<ellipse cx="61" cy="94" rx="10" ry="5" fill="#1a237e" stroke="#00e5ff" stroke-width="1.5"/>
 ${I4}<rect x="56" y="90" width="10" height="3" rx="1" fill="#00e5ff" opacity="0.4"/>
-${I3}</g>
-${eyes(42, 58, 30, 5.5, 6.5, 'url(#robot-adult-iris)', '#263238')}
-${mouths(38, '#00e5ff', 8)}`;
+${I3}</g>`;
 
 /* ─── EVO4 MIDDLE — battle-scarred engineer ─── */
 const evo4Defs = [
@@ -451,6 +449,8 @@ ${I4}<ellipse cx="58" cy="22" rx="3" ry="2" fill="#ffab40" opacity="0.4"/>
 ${I4}<!-- Scratch marks -->
 ${I4}<path d="M 36 30 L 40 34" stroke="#757575" stroke-width="0.8" opacity="0.5"/>
 ${I4}<path d="M 60 32 L 64 36" stroke="#757575" stroke-width="0.8" opacity="0.5"/>
+${eyes(42, 58, 33, 5, 6, 'url(#robot-mid-iris)', '#424242')}
+${mouths(40, '#ffab40', 7)}
 ${I3}</g>
 ${I3}<g class="tm-animate-arm-left">
 ${I4}<rect x="18" y="52" width="11" height="20" rx="2" fill="url(#robot-mid-steel)" stroke="#424242" stroke-width="1.3" transform="rotate(-14 23.5 62)"/>
@@ -473,9 +473,7 @@ ${I3}<g class="tm-animate-leg-right">
 ${I4}<rect x="54" y="80" width="12" height="12" rx="2" fill="url(#robot-mid-steel)" stroke="#424242" stroke-width="1.3"/>
 ${I4}<ellipse cx="60" cy="94" rx="9" ry="4" fill="#37474f" stroke="#616161" stroke-width="1.2"/>
 ${I4}<path d="M 56 92 Q 60 90 64 92" stroke="#757575" stroke-width="0.8" fill="none"/>
-${I3}</g>
-${eyes(42, 58, 33, 5, 6, 'url(#robot-mid-iris)', '#424242')}
-${mouths(40, '#ffab40', 7)}`;
+${I3}</g>`;
 
 /* ─── EVO5 OLD — ancient sage unit ─── */
 const evo5Defs = [
@@ -530,6 +528,25 @@ ${I4}<path d="M 60 44 Q 68 54 64 62 L 60 58 Q 62 50 60 46 Z" fill="#90a4ae" stro
 ${I4}<line x1="38" y1="50" x2="34" y2="58" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
 ${I4}<line x1="50" y1="52" x2="49" y2="62" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
 ${I4}<line x1="62" y1="50" x2="66" y2="58" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
+${I3}<g class="tm-mascot-eye-open">
+${I4}<ellipse cx="43" cy="34" rx="4.5" ry="5" fill="#fff" stroke="#5d4037" stroke-width="1.2"/>
+${I4}<ellipse cx="57" cy="34" rx="4.5" ry="5" fill="#fff" stroke="#5d4037" stroke-width="1.2"/>
+${I4}<ellipse cx="43.5" cy="34.5" rx="2.5" ry="2.8" fill="url(#robot-old-iris)"/>
+${I4}<ellipse cx="57.5" cy="34.5" rx="2.5" ry="2.8" fill="url(#robot-old-iris)"/>
+${I4}<ellipse cx="43.5" cy="35" rx="1.2" ry="1.5" fill="#1a0a2e"/>
+${I4}<ellipse cx="57.5" cy="35" rx="1.2" ry="1.5" fill="#1a0a2e"/>
+${I4}<circle cx="44.5" cy="32.5" r="1" fill="#fff" opacity="0.9"/>
+${I4}<circle cx="58.5" cy="32.5" r="1" fill="#fff" opacity="0.9"/>
+${I4}<!-- Monocle LED on right eye -->
+${I4}<circle cx="57" cy="34" r="6" fill="none" stroke="url(#robot-old-monocle)" stroke-width="1.2"/>
+${I4}<line x1="63" cy="34" x2="68" cy="32" stroke="#8d6e63" stroke-width="1" stroke-linecap="round"/>
+${I4}<circle cx="68" cy="32" r="1" fill="#ce93d8"/>
+${I3}</g>
+${I3}<g class="tm-mascot-eye-closed" style="display:none;">
+${I4}<path d="M 39 34 Q 43 31 47 34" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+${I4}<path d="M 53 34 Q 57 31 61 34" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+${I3}</g>
+${mouths(42, '#7b1fa2', 6)}
 ${I3}</g>
 ${I3}<g class="tm-animate-arm-left">
 ${I4}<ellipse cx="30" cy="66" rx="5" ry="9" fill="url(#robot-old-bronze)" stroke="#5d4037" stroke-width="1.2"/>
@@ -551,26 +568,7 @@ ${I4}<line x1="64" y1="72" x2="70" y2="96" stroke="#bcaaa4" stroke-width="1" str
 ${I4}<circle cx="63" cy="70" r="3.5" fill="#4db6ac" stroke="#00695c" stroke-width="1"/>
 ${I4}<circle cx="63.5" cy="69.5" r="1.2" fill="#ce93d8" opacity="0.75"/>
 ${I4}<ellipse cx="58" cy="94" rx="5" ry="2.5" fill="#4db6ac" opacity="0.5"/>
-${I3}</g>
-${I3}<g class="tm-mascot-eye-open">
-${I4}<ellipse cx="43" cy="34" rx="4.5" ry="5" fill="#fff" stroke="#5d4037" stroke-width="1.2"/>
-${I4}<ellipse cx="57" cy="34" rx="4.5" ry="5" fill="#fff" stroke="#5d4037" stroke-width="1.2"/>
-${I4}<ellipse cx="43.5" cy="34.5" rx="2.5" ry="2.8" fill="url(#robot-old-iris)"/>
-${I4}<ellipse cx="57.5" cy="34.5" rx="2.5" ry="2.8" fill="url(#robot-old-iris)"/>
-${I4}<ellipse cx="43.5" cy="35" rx="1.2" ry="1.5" fill="#1a0a2e"/>
-${I4}<ellipse cx="57.5" cy="35" rx="1.2" ry="1.5" fill="#1a0a2e"/>
-${I4}<circle cx="44.5" cy="32.5" r="1" fill="#fff" opacity="0.9"/>
-${I4}<circle cx="58.5" cy="32.5" r="1" fill="#fff" opacity="0.9"/>
-${I4}<!-- Monocle LED on right eye -->
-${I4}<circle cx="57" cy="34" r="6" fill="none" stroke="url(#robot-old-monocle)" stroke-width="1.2"/>
-${I4}<line x1="63" cy="34" x2="68" cy="32" stroke="#8d6e63" stroke-width="1" stroke-linecap="round"/>
-${I4}<circle cx="68" cy="32" r="1" fill="#ce93d8"/>
-${I3}</g>
-${I3}<g class="tm-mascot-eye-closed" style="display:none;">
-${I4}<path d="M 39 34 Q 43 31 47 34" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-${I4}<path d="M 53 34 Q 57 31 61 34" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-${I3}</g>
-${mouths(42, '#7b1fa2', 6)}`;
+${I3}</g>`;
 
 export const robotSvg = `${I}<!-- ROBOT CHARACTER - All Life Stages (dense cute epic v3) -->
 ${I}<!-- Plasma & Code • Epic Rarity • Neon Colossus -->

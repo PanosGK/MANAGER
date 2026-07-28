@@ -10641,6 +10641,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 transform: translate(-50%, -50%); width: 200px; height: 200px;
                 border-radius: 50%; z-index: -1; transition: all 0.8s ease-in-out;
                 opacity: 0;
+                pointer-events: none;
             }
             #tm-mascot-container.mascot-happy::before {
                 background: radial-gradient(circle, rgba(255,223,186,0.6) 0%, rgba(255,223,186,0) 70%);
@@ -10696,6 +10697,25 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 cursor: grabbing;
                 animation: none !important;
                 pointer-events: all !important;
+            }
+            /* Parked mascots stay grabbable — reposition without unparking first */
+            #tm-mascot-container.mascot-parked .tm-mascot-robot,
+            #tm-mascot-container.mascot-parked > svg.tm-mascot-robot {
+                pointer-events: all !important;
+                cursor: grab;
+                touch-action: none;
+            }
+            #tm-mascot-container.mascot-parked.mascot-dragging {
+                pointer-events: auto !important;
+            }
+            #tm-mascot-container.mascot-dragging.mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.mascot-dragging.mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.mascot-dragging.mascot-char-aether .tm-animate-tail,
+            #tm-mascot-container.mascot-dragging.mascot-char-phoenix .tm-animate-wing-left,
+            #tm-mascot-container.mascot-dragging.mascot-char-phoenix .tm-animate-wing-right,
+            #tm-mascot-container.mascot-dragging.mascot-char-phoenix .tm-animate-tail {
+                animation: none !important;
+                transform: none !important;
             }
             #tm-mascot-container.mascot-parked::after,
             #tm-mascot-container.mascot-parked.mascot-char-aether::after {
@@ -11199,6 +11219,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 will-change: opacity;
                 border: none;
                 outline: none;
+                pointer-events: none;
             }
             #tm-mascot-container.mascot-char-aether.tm-aether-glow-on:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
                 opacity: 0.9;
@@ -11253,17 +11274,28 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     drop-shadow(0 0 22px rgba(77,208,225,0.24));
             }
 
-            /* Legendary idle float — bigger bob, soft scale (Pokémon battle sway) */
-            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-phoenix,
+            /* Legendary idle float — crystal tier */
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-crystal {
                 animation: tm-legendary-idle-float 3.2s ease-in-out infinite !important;
             }
-            /* Aether: slow, dignified hover — not bouncy */
+            /* Mythical idle float — slow sovereign hover */
+            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-phoenix,
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether {
                 animation: tm-mythic-idle-float 4.5s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-leviathan {
                 animation: tm-mythic-idle-float 5.2s ease-in-out infinite !important;
+            }
+            /* Legendary & Mythical tier — 25% larger presence on every evolution form */
+            .tm-mascot-robot.mascot-char-dragon,
+            .tm-mascot-robot.mascot-char-phoenix,
+            .tm-mascot-robot.mascot-char-leviathan {
+                zoom: 1.25;
+            }
+            .tm-mascot-robot.mascot-char-aether.mascot-baby,
+            .tm-mascot-robot.mascot-char-aether.mascot-kid,
+            .tm-mascot-robot.mascot-char-aether.mascot-child {
+                zoom: 1.25;
             }
             .tm-mascot-robot.mascot-char-leviathan.mascot-teen {
                 transform: scale(1.1);
@@ -11281,7 +11313,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 transform: scale(1.46);
                 transform-origin: 50% 64%;
             }
-            /* Phoenix — legendary boss presence scales up through evolution */
+            /* Phoenix — mythical solar sovereign scales up through evolution */
             .tm-mascot-robot.mascot-char-phoenix.mascot-teen {
                 transform: scale(1.08);
                 transform-origin: 50% 68%;
@@ -11364,32 +11396,57 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 box-shadow: 0 12px 52px rgba(139,0,0,0.14), 0 0 100px rgba(93,64,55,0.12) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-middleage {
-                zoom: 1.14;
+                zoom: 1.425;
                 filter:
                     drop-shadow(0 6px 12px rgba(18,0,31,0.22))
                     drop-shadow(0 0 18px rgba(239,83,80,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-old {
-                zoom: 1.24;
+                zoom: 1.55;
                 filter:
                     drop-shadow(0 6px 12px rgba(10,2,2,0.24))
                     drop-shadow(0 0 18px rgba(139,0,0,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-adult {
-                zoom: 1.07;
+                zoom: 1.3375;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-teen {
-                zoom: 1.03;
+                zoom: 1.2875;
             }
-            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-left {
-                animation: tm-legendary-wing-flap 1.15s ease-in-out infinite !important;
+            #tm-mascot-container.mascot-char-phoenix.tm-phoenix-glow-on:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
+                opacity: 1;
             }
+            /* Secondary solar bloom — skip parked so 📌 pin wins ::after */
+            #tm-mascot-container.mascot-char-phoenix:not(.mascot-parked)::after {
+                content: '';
+                position: absolute;
+                top: 50%; left: 50%;
+                width: 200px; height: 200px;
+                margin: -100px 0 0 -100px;
+                border-radius: 50%;
+                border: none;
+                background: radial-gradient(circle,
+                    rgba(255,213,79,0.14) 0%,
+                    rgba(255,109,0,0.1) 35%,
+                    rgba(183,28,28,0.06) 55%,
+                    transparent 72%);
+                box-shadow: none;
+                z-index: -1;
+                pointer-events: none;
+                opacity: 0;
+                filter: blur(6px);
+                animation: none;
+                transition: opacity 1.2s ease;
+            }
+            #tm-mascot-container.mascot-char-phoenix.tm-phoenix-ring-on:not(.mascot-parked)::after {
+                opacity: 0.8;
+                animation: tm-mythic-aura-pulse 6.5s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-left,
             #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left {
                 animation: tm-mythic-wing-flap 2.4s ease-in-out infinite !important;
             }
-            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-right {
-                animation: tm-legendary-wing-flap-right 1.15s ease-in-out infinite !important;
-            }
+            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-right,
             #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right {
                 animation: tm-mythic-wing-flap-right 2.4s ease-in-out infinite !important;
             }
@@ -11436,40 +11493,36 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 animation: tm-wing-flap-move-right 0.4s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-left,
-            #tm-mascot-container.mascot-moving.mascot-char-phoenix:not(.mascot-parked) .tm-animate-wing-left {
-                animation: tm-legendary-wing-flap-move 0.32s ease-in-out infinite !important;
-            }
-            #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-right,
-            #tm-mascot-container.mascot-moving.mascot-char-phoenix:not(.mascot-parked) .tm-animate-wing-right {
-                animation: tm-legendary-wing-flap-move-right 0.32s ease-in-out infinite !important;
-            }
+            #tm-mascot-container.mascot-moving.mascot-char-phoenix:not(.mascot-parked) .tm-animate-wing-left,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left,
             #tm-mascot-container.mascot-moving.mascot-char-aether:not(.mascot-parked) .tm-animate-wing-left {
                 animation: tm-mythic-wing-flap-move 0.36s ease-in-out infinite !important;
             }
+            #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-right,
+            #tm-mascot-container.mascot-moving.mascot-char-phoenix:not(.mascot-parked) .tm-animate-wing-right,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right,
             #tm-mascot-container.mascot-moving.mascot-char-aether:not(.mascot-parked) .tm-animate-wing-right {
                 animation: tm-mythic-wing-flap-move-right 0.36s ease-in-out infinite !important;
             }
-            /* Parked: no travel flap — Aether keeps a soft sovereign breathe instead */
-            #tm-mascot-container.mascot-parked:not(.mascot-char-aether) .tm-animate-wing-left,
-            #tm-mascot-container.mascot-parked:not(.mascot-char-aether) .tm-animate-wing-right,
-            #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-left,
-            #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-right {
+            /* Parked: no travel flap — mythicals keep a soft sovereign breathe */
+            #tm-mascot-container.mascot-parked:not(.mascot-char-aether):not(.mascot-char-phoenix) .tm-animate-wing-left,
+            #tm-mascot-container.mascot-parked:not(.mascot-char-aether):not(.mascot-char-phoenix) .tm-animate-wing-right {
                 animation: none !important;
                 transform: none !important;
             }
             #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-left,
-            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-left {
+            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.mascot-parked.mascot-char-phoenix .tm-animate-wing-left,
+            #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-left {
                 animation: tm-mythic-wing-breathe 5.5s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-right,
-            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-right {
+            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.mascot-parked.mascot-char-phoenix .tm-animate-wing-right,
+            #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-right {
                 animation: tm-mythic-wing-breathe-right 5.5s ease-in-out infinite !important;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-phoenix .tm-animate-tail {
-                animation: tm-legendary-tail-wag 1.6s ease-in-out infinite !important;
-            }
+            #tm-mascot-container.mascot-idle .mascot-char-phoenix .tm-animate-tail,
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-animate-tail {
                 animation: tm-mythic-tail-flow 3.2s ease-in-out infinite !important;
             }
@@ -13504,8 +13557,125 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 letter-spacing: 0.12em;
             }
 
+            /* Phoenix mythical stage cinematic */
+            .tm-phoenix-stage-flash {
+                position: fixed;
+                inset: 0;
+                z-index: 2147483000;
+                pointer-events: none;
+                animation: tm-aether-stage-flash-in 3s ease forwards;
+            }
+            .tm-phoenix-stage-flash-veil {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(circle at 50% 45%, rgba(255,109,0,0.38), transparent 55%),
+                    radial-gradient(circle at 50% 50%, rgba(255,213,79,0.2), transparent 70%),
+                    rgba(40,8,0,0.52);
+            }
+            .tm-phoenix-stage-flash-burst {
+                position: absolute;
+                left: 50%; top: 46%;
+                width: 120px; height: 120px;
+                margin: -60px 0 0 -60px;
+                border-radius: 50%;
+                border: 2px solid rgba(255,213,79,0.65);
+                box-shadow: 0 0 44px rgba(255,109,0,0.55), inset 0 0 28px rgba(255,193,7,0.35);
+                animation: tm-aether-veil-sweep 1.5s ease-out forwards;
+            }
+            .tm-phoenix-stage-flash-card {
+                position: absolute;
+                left: 50%; top: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                color: #fff8e1;
+                font-family: Georgia, 'Times New Roman', serif;
+                animation: tm-aether-card-rise 2.8s ease forwards;
+                text-shadow: 0 0 18px rgba(255,109,0,0.65);
+            }
+            .tm-phoenix-stage-flash-kicker {
+                font-size: 11px;
+                letter-spacing: 0.28em;
+                color: #ffd54f;
+                margin-bottom: 8px;
+            }
+            .tm-phoenix-stage-flash-title {
+                font-size: 28px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                margin-bottom: 6px;
+            }
+            .tm-phoenix-stage-flash-sub {
+                font-size: 13px;
+                opacity: 0.8;
+                letter-spacing: 0.12em;
+            }
+            .tm-phoenix-stage-flash-cutin {
+                position: absolute;
+                left: 50%; top: 38%;
+                width: 110px; height: 110px;
+                margin: -55px 0 0 -55px;
+                opacity: 0;
+                animation: tm-aether-card-rise 2.6s ease forwards;
+                filter: drop-shadow(0 0 22px rgba(255,109,0,0.55));
+            }
+            .tm-phoenix-stage-flash-cutin svg {
+                width: 100%; height: 100%;
+            }
+            .tm-phoenix-stage-flash-timeline {
+                position: absolute;
+                left: 50%; bottom: 18%;
+                transform: translateX(-50%);
+                display: flex;
+                gap: 10px;
+            }
+            .tm-phoenix-timeline-sil {
+                width: 28px; height: 28px;
+                border-radius: 50%;
+                border: 1px solid rgba(255,213,79,0.45);
+                background: radial-gradient(circle, rgba(255,109,0,0.35), transparent 70%);
+                opacity: 0.7;
+            }
+            .tm-phoenix-timeline-sil.is-next {
+                opacity: 1;
+                box-shadow: 0 0 14px rgba(255,109,0,0.45);
+            }
+            .tm-phoenix-mythic-footprint {
+                position: absolute;
+                left: 50%; bottom: 2%;
+                width: 92px; height: 30px;
+                margin-left: -46px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 2;
+                background: radial-gradient(ellipse at 50% 50%,
+                    rgba(255,193,7,0.35),
+                    rgba(255,87,34,0.18),
+                    transparent 72%);
+                box-shadow: 0 0 20px rgba(255,109,0,0.25);
+                filter: blur(2px);
+                opacity: 0;
+                animation: tm-aether-domain-seal 2.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            .tm-phoenix-stage-ember {
+                position: absolute;
+                width: 8px; height: 8px;
+                margin: -4px 0 0 -4px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 8;
+                background: radial-gradient(circle, #ffd54f, #ff6d00);
+                box-shadow: 0 0 10px rgba(255,109,0,0.75);
+                animation: tm-phoenix-burst-rise 1.2s ease-out forwards;
+            }
+            #tm-mascot-container.tm-phoenix-react .tm-mascot-robot.mascot-char-phoenix {
+                filter: brightness(1.12) drop-shadow(0 0 14px rgba(255,109,0,0.85)) drop-shadow(0 0 24px rgba(255,213,79,0.45));
+            }
+            #tm-mascot-container.tm-phoenix-sovereign.mascot-char-phoenix:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
+                opacity: 0.95;
+            }
+
             /* Mascot States */
-            #tm-mascot-container.mascot-idle .tm-animate-body,
             #tm-mascot-container.mascot-idle .tm-mascot-robot { animation: tm-mascot-idle-float 4s ease-in-out infinite; }
             #tm-mascot-container.mascot-idle .tm-mascot-eye-open,
             #tm-mascot-container.mascot-happy .tm-mascot-eye-open,
@@ -14008,29 +14178,108 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 user-select: none;
             }
             
-            /* Visual effects for mascot needing toilet */
-            @keyframes tm-toilet-urgency-subtle {
-                0%, 100% { 
-                    opacity: 0.7;
-                    transform: scale(1);
+            /* Visual effects for mascot needing toilet — water ripple + rising bubbles */
+            @keyframes tm-toilet-ripple-expand {
+                0% {
+                    transform: translate(-50%, -50%) scale(0.55);
+                    opacity: 0.65;
+                    border-width: 2.5px;
                 }
-                50% { 
-                    opacity: 1;
-                    transform: scale(1.05);
+                100% {
+                    transform: translate(-50%, -50%) scale(1.35);
+                    opacity: 0;
+                    border-width: 1px;
                 }
+            }
+            @keyframes tm-toilet-puddle-pulse {
+                0%, 100% {
+                    opacity: 0.42;
+                    transform: translateX(-50%) scale(1);
+                }
+                50% {
+                    opacity: 0.72;
+                    transform: translateX(-50%) scale(1.1);
+                }
+            }
+            @keyframes tm-toilet-bubble-rise {
+                0% {
+                    transform: translateY(0) scale(0.45);
+                    opacity: 0;
+                }
+                12% {
+                    opacity: 0.9;
+                }
+                100% {
+                    transform: translateY(-46px) scale(1.05);
+                    opacity: 0;
+                }
+            }
+            @keyframes tm-toilet-sign-bob {
+                0%, 100% {
+                    transform: translateX(-50%) translateY(0) rotate(-6deg);
+                }
+                50% {
+                    transform: translateX(-50%) translateY(-5px) rotate(6deg);
+                }
+            }
+            @keyframes tm-toilet-leg-fidget {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-1.5px); }
+                75% { transform: translateX(1.5px); }
             }
             #tm-mascot-container.mascot-needs-toilet {
                 position: fixed !important;
             }
-            .tm-toilet-urgency-indicator {
+            #tm-mascot-container.mascot-needs-toilet .tm-animate-leg-left,
+            #tm-mascot-container.mascot-needs-toilet .tm-animate-leg-right {
+                animation: tm-toilet-leg-fidget 0.82s ease-in-out infinite;
+            }
+            .tm-toilet-fx {
                 position: absolute;
+                inset: 0;
                 pointer-events: none;
-                z-index: 9999;
-                user-select: none;
+                z-index: 9998;
+                overflow: visible;
+            }
+            .tm-toilet-fx__ripple {
+                position: absolute;
+                left: 50%;
+                bottom: 10px;
+                width: 70px;
+                height: 70px;
+                border: 2px solid rgba(64, 196, 255, 0.55);
+                border-radius: 50%;
+                box-shadow: 0 0 10px rgba(41, 182, 246, 0.25);
+                animation: tm-toilet-ripple-expand 1.7s ease-out infinite;
+            }
+            .tm-toilet-fx__puddle {
+                position: absolute;
+                left: 50%;
+                bottom: 6px;
+                width: 58px;
+                height: 16px;
+                border-radius: 50%;
+                background: radial-gradient(ellipse, rgba(64, 196, 255, 0.5) 0%, rgba(41, 182, 246, 0.22) 52%, transparent 78%);
+                animation: tm-toilet-puddle-pulse 1.25s ease-in-out infinite;
+            }
+            .tm-toilet-fx__bubble {
+                position: absolute;
+                bottom: 16px;
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95), rgba(64, 196, 255, 0.45));
+                box-shadow: 0 0 5px rgba(64, 196, 255, 0.45);
+                animation: tm-toilet-bubble-rise 2.1s ease-in infinite;
+            }
+            .tm-toilet-fx__sign {
+                position: absolute;
+                top: -8px;
+                left: 50%;
+                font-size: 15px;
                 line-height: 1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                filter: drop-shadow(0 2px 4px rgba(0, 72, 120, 0.45));
+                animation: tm-toilet-sign-bob 1.35s ease-in-out infinite;
             }
 
 
@@ -21609,14 +21858,14 @@ const MASCOT_CHARACTERS = {
     },
     phoenix: {
         name: 'Ashborn Phoenix', nameGr: 'Ashborn Phoenix',
-        emoji: '🔥', color: '#ff3d00', rarity: 'Legendary', rarityGr: 'Θρύλος',
+        emoji: '🔥', color: '#ff3d00', rarity: 'Mythical', rarityGr: 'Μυθικό',
         element: 'Solar Flame', elementGr: 'Φλόγα & Αναγέννηση',
-        description: 'Mythic boss firebird of solar wrath',
-        descriptionGr: 'Μυθικό πουλί-φωτιά της ηλιακής οργής',
-        lore: 'Born of sacred pyres and boss-battle suns, this immortal rises in fury — a living corona of beauty, rage, and rebirth.',
-        loreGr: 'Γεννημένος από ιερές φλόγες — αναγεννιέται αιώνια με οργή και μεγαλοπρέπεια.',
-        traits: ['🔥 Eternal Pyre', '⚔️ Boss Wrath', '☀️ Solar Corona'],
-        traitsGr: ['🔥 Αιώνια φλόγα', '⚔️ Οργή Boss', '☀️ Ηλιακή κορώνα'],
+        description: 'Mythic solar firebird — boss wrath incarnate',
+        descriptionGr: 'Μυθικό πουλί-φωτιά — ηλιακή οργή και αιώνια αναγέννηση',
+        lore: 'Born of sacred pyres and collapsed suns, this immortal rises in sovereign fury — a living corona of beauty, rage, and rebirth that scorches the veil between life and ash.',
+        loreGr: 'Γεννημένος από ιερές φλόγες και καταρρεύσαντες ήλιους — αναγεννιέται αιώνια με κυριαρχική οργή και μεγαλοπρέπεια.',
+        traits: ['🔥 Eternal Pyre', '☀️ Solar Sovereign', '♻️ Ash Rebirth', '⚔️ Boss Wrath'],
+        traitsGr: ['🔥 Αιώνια φλόγα', '☀️ Ηλιακός κυρίαρχος', '♻️ Αναγέννηση από τη στάχτη', '⚔️ Οργή Boss'],
         prefs: { likes: ['play', 'praise', 'lights_on'], dislikes: ['lights_off', 'scold'], favorite: 'praise' }
     },
     crystal: {
@@ -22008,6 +22257,11 @@ function setMascotParked(locked, x = null, y = null, STORAGE_KEYS = window.STORA
         && (tamagotchiStage === 'old' || (AETHER_STAGE_TIER[tamagotchiStage] || 0) >= 6)
         && typeof playAetherMythicFootprint === 'function') {
         playAetherMythicFootprint(document.getElementById('tm-mascot-container'));
+    }
+    if (!wasLocked && locked && tamagotchiCharacterType === 'phoenix'
+        && (tamagotchiStage === 'old' || (PHOENIX_STAGE_TIER[tamagotchiStage] || 0) >= 4)
+        && typeof playPhoenixMythicFootprint === 'function') {
+        playPhoenixMythicFootprint(document.getElementById('tm-mascot-container'));
     }
     if (STORAGE_KEYS && typeof saveTamagotchiData === 'function') {
         saveTamagotchiData(STORAGE_KEYS);
@@ -23934,6 +24188,9 @@ function runTamagotchiHatchSequence(characterType, container) {
             if (lockedType === 'aether') {
                 setTimeout(() => playAetherStageCinematic('baby', { hatch: true }), 400);
             }
+            if (lockedType === 'phoenix') {
+                setTimeout(() => playPhoenixStageCinematic('baby', { hatch: true }), 400);
+            }
             if (typeof window.STORAGE_KEYS !== 'undefined') {
                 saveTamagotchiData(window.STORAGE_KEYS);
                 updatePetStateByStats(config, window.STORAGE_KEYS);
@@ -24385,11 +24642,29 @@ function installTamagotchiOfficeHoursReload(STORAGE_KEYS) {
 }
 
 const TAMA_CHARACTER_TYPES = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether', 'leviathan'];
+const TAMA_LEGENDARY_TYPES = ['dragon'];
+const TAMA_MYTHICAL_TYPES = ['phoenix', 'aether', 'leviathan'];
+/** Legendary + Mythical mascots — uniform 25% size boost on all evolution forms (CSS zoom). */
+const TAMA_ELITE_MASCOT_TYPES = [...TAMA_LEGENDARY_TYPES, ...TAMA_MYTHICAL_TYPES];
+const MASCOT_ELITE_SIZE_MULT = 1.25;
 
-/** Hatch weights — Mythical Aether / Leviathan are rare. */
+const PHOENIX_STAGE_TIER = {
+    baby: 1, kid: 2, teen: 3, adult: 4, middleage: 5, old: 6,
+};
+const PHOENIX_STAGE_TITLES = {
+    baby: 'Ember Chick',
+    kid: 'Flame Fledgling',
+    teen: 'Blaze Raptor',
+    adult: 'Ashborn Phoenix',
+    middleage: 'Cinder Warlord',
+    old: 'Solar Seraph',
+};
+const PHOENIX_STAGE_ORDER = ['baby', 'kid', 'teen', 'adult', 'middleage', 'old'];
+
+/** Hatch weights — Mythical Phoenix / Aether / Leviathan are rare. */
 const TAMA_CHARACTER_HATCH_WEIGHTS = {
     dragon: 10, robot: 10, slime: 10, plant: 10, ghost: 10, cat: 10,
-    crystal: 10, phoenix: 10, aether: 2, leviathan: 2,
+    crystal: 10, phoenix: 2, aether: 2, leviathan: 2,
 };
 
 function pickWeightedCharacterType(types = TAMA_CHARACTER_TYPES) {
@@ -25064,6 +25339,130 @@ function ensurePhoenixBurnStyles() {
         }
     `;
     document.head.appendChild(style);
+}
+
+// ─── Phoenix mythical FX: solar sovereign presence (lighter than Aether) ───
+let phoenixMythFxActive = false;
+let phoenixMythFxTimer = null;
+let phoenixLastStageCinematic = '';
+let phoenixLastFootprintAt = 0;
+
+function stopPhoenixMythicFx() {
+    phoenixMythFxActive = false;
+    if (phoenixMythFxTimer) {
+        clearTimeout(phoenixMythFxTimer);
+        phoenixMythFxTimer = null;
+    }
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return;
+    container.classList.remove('tm-phoenix-sovereign', 'tm-phoenix-glow-on', 'tm-phoenix-ring-on', 'tm-phoenix-react');
+    container.querySelectorAll('.tm-phoenix-mythic-footprint, .tm-phoenix-stage-ember').forEach((el) => el.remove());
+    document.getElementById('tm-phoenix-stage-flash')?.remove();
+}
+
+function rollPhoenixAuraLayers(container, stage) {
+    if (!container || !phoenixMythFxActive) return;
+    const tier = PHOENIX_STAGE_TIER[stage] || 1;
+    const parked = container.classList.contains('mascot-parked') || !!mascotPositionLocked;
+    container.classList.toggle('tm-phoenix-glow-on', parked && tier >= 3
+        ? true
+        : Math.random() < (0.1 + tier * 0.09));
+    container.classList.toggle('tm-phoenix-ring-on', tier >= 3 && (parked || Math.random() < (0.06 + (tier - 2) * 0.07)));
+}
+
+function schedulePhoenixAuraRoll(container, stage) {
+    if (!phoenixMythFxActive) return;
+    phoenixMythFxTimer = setTimeout(() => {
+        if (!phoenixMythFxActive) return;
+        rollPhoenixAuraLayers(container, stage);
+        schedulePhoenixAuraRoll(container, stage);
+    }, 9000 + Math.random() * 14000);
+}
+
+function syncPhoenixMythicFx(stage = typeof tamagotchiStage !== 'undefined' ? tamagotchiStage : 'baby') {
+    stopPhoenixMythicFx();
+    if (tamagotchiIsDead || stage === 'egg') return;
+    if (tamagotchiCharacterType !== 'phoenix') return;
+    const container = document.getElementById('tm-mascot-container');
+    if (!container || !container.classList.contains('mascot-char-phoenix')) return;
+    phoenixMythFxActive = true;
+    container.classList.add('tm-phoenix-sovereign');
+    rollPhoenixAuraLayers(container, stage);
+    phoenixMythFxTimer = setTimeout(() => {
+        if (!phoenixMythFxActive) return;
+        rollPhoenixAuraLayers(container, stage);
+        schedulePhoenixAuraRoll(container, stage);
+    }, 500 + Math.random() * 900);
+}
+
+function playPhoenixMythicFootprint(container) {
+    if (!container || tamagotchiCharacterType !== 'phoenix') return;
+    const now = Date.now();
+    if (now - phoenixLastFootprintAt < 4000) return;
+    phoenixLastFootprintAt = now;
+    container.querySelectorAll('.tm-phoenix-mythic-footprint').forEach((el) => el.remove());
+    const mark = document.createElement('div');
+    mark.className = 'tm-phoenix-mythic-footprint';
+    container.appendChild(mark);
+    setTimeout(() => mark.remove(), 3200);
+}
+
+function playPhoenixStageCinematic(stage, { hatch = false } = {}) {
+    if (tamagotchiCharacterType !== 'phoenix') return;
+    const title = PHOENIX_STAGE_TITLES[stage] || stage;
+    const key = `${hatch ? 'hatch' : 'evo'}:${stage}`;
+    if (phoenixLastStageCinematic === key && !hatch) return;
+    phoenixLastStageCinematic = key;
+
+    const stageIdx = PHOENIX_STAGE_ORDER.indexOf(stage);
+    const prevStage = stageIdx > 0 ? PHOENIX_STAGE_ORDER[stageIdx - 1] : null;
+    document.getElementById('tm-phoenix-stage-flash')?.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tm-phoenix-stage-flash';
+    overlay.className = 'tm-phoenix-stage-flash is-epic';
+    overlay.innerHTML = `
+        <div class="tm-phoenix-stage-flash-veil"></div>
+        <div class="tm-phoenix-stage-flash-burst"></div>
+        <div class="tm-phoenix-stage-flash-cutin" id="tm-phoenix-cutin-host"></div>
+        <div class="tm-phoenix-stage-flash-card">
+            <div class="tm-phoenix-stage-flash-kicker">${hatch ? 'MYTHICAL HATCH' : 'EVOLUTION'}</div>
+            <div class="tm-phoenix-stage-flash-title">${title}</div>
+            <div class="tm-phoenix-stage-flash-sub">Ashborn Phoenix</div>
+        </div>
+        <div class="tm-phoenix-stage-flash-timeline">
+            ${prevStage ? `<div class="tm-phoenix-timeline-sil is-prev" title="${PHOENIX_STAGE_TITLES[prevStage]}"></div>` : ''}
+            <div class="tm-phoenix-timeline-sil is-next" title="${title}"></div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    try {
+        const host = overlay.querySelector('#tm-phoenix-cutin-host');
+        const liveSvg = document.querySelector('#tm-mascot-container .tm-mascot-robot.mascot-char-phoenix');
+        if (host && liveSvg) {
+            const clone = liveSvg.cloneNode(true);
+            clone.removeAttribute('id');
+            clone.style.cssText = 'width:100%;height:100%;';
+            host.appendChild(clone);
+        }
+    } catch (_) { /* ignore */ }
+
+    const container = document.getElementById('tm-mascot-container');
+    if (container) {
+        for (let i = 0; i < 6; i++) {
+            const ember = document.createElement('div');
+            ember.className = 'tm-phoenix-stage-ember';
+            ember.style.left = `${42 + Math.random() * 16}%`;
+            ember.style.top = `${38 + Math.random() * 18}%`;
+            ember.style.animationDelay = `${(i * 0.08).toFixed(2)}s`;
+            container.appendChild(ember);
+            setTimeout(() => ember.remove(), 1600);
+        }
+        container.classList.add('tm-phoenix-react');
+        setTimeout(() => container.classList.remove('tm-phoenix-react'), 1800);
+    }
+    setTimeout(() => overlay.remove(), 3000);
 }
 
 // ─── Storm Leviathan FX — real atmospheric phenomena (sparse random, NOT always-on) ───
@@ -26541,6 +26940,18 @@ function getAccessoryElement(itemId) {
     }
 }
 
+/** Freeze WAAPI/CSS motion and return the clamped on-screen position. */
+function commitMascotMotionPosition(container = document.getElementById('tm-mascot-container'), forDrag = false) {
+    if (!container) return { x: 0, y: 0 };
+    const animations = container.getAnimations?.() || [];
+    const pos = getMascotTranslate(container);
+    if (animations.length === 0) return pos;
+    animations.forEach((anim) => anim.cancel());
+    container.style.transition = 'none';
+    const applyFn = forDrag ? applyMascotDragPosition : applyMascotPosition;
+    return applyFn(container, pos.x, pos.y);
+}
+
 function stopRoaming(config) {
     clearRoamingMoveTimeout();
     if (playfulTimeout) clearTimeout(playfulTimeout);
@@ -26550,22 +26961,7 @@ function stopRoaming(config) {
 
     const mascotContainer = document.getElementById('tm-mascot-container');
     if (mascotContainer) {
-        // Commit the current animated position before canceling
-        const animations = mascotContainer.getAnimations();
-        if (animations.length > 0) {
-            // Get the current computed position during animation
-        const computedStyle = window.getComputedStyle(mascotContainer);
-            const matrix = new DOMMatrix(computedStyle.transform);
-            const currentX = matrix.m41;
-            const currentY = matrix.m42;
-            
-            // Cancel all animations
-            animations.forEach(anim => anim.cancel());
-            
-            // Set the final position explicitly
-            const clamped = clampMascotPosition(currentX, currentY, getMascotRoamingMetrics(mascotContainer));
-            applyMascotPosition(mascotContainer, clamped.x, clamped.y);
-        }
+        commitMascotMotionPosition(mascotContainer, false);
     }
 
     roamingTimeout = null;
@@ -26696,12 +27092,14 @@ function stopPhysicsAnimation() {
 const MASCOT_EDGE_PAD = 8;
 /** Minimum painted overflow beyond the 100×100 box (shadow, jetpack flames, bubble). */
 const MASCOT_OVERFLOW_SLACK = { top: 36, right: 16, bottom: 20, left: 16 };
+/** Extra keep-inside padding for Phoenix wings / solar corona (CSS paint extends beyond box). */
+const MASCOT_PHOENIX_OVERFLOW_SLACK = { top: 55, right: 60, bottom: 33, left: 60 };
 /** Extra keep-inside padding for Aether wings / glow (CSS paint is not in getBoundingClientRect). */
-const MASCOT_AETHER_OVERFLOW_SLACK = { top: 48, right: 52, bottom: 28, left: 52 };
-/** Abyssal Storm Whale v9 — full-body floating silhouette; CSS scale() on later
- * stages plus dorsal fin / fluke / bolt accents need modest keep-inside slack. */
+const MASCOT_AETHER_OVERFLOW_SLACK = { top: 60, right: 65, bottom: 35, left: 65 };
 /** Tempest Serpent v11 — long swimming body, dorsal spines, fluke, bolt accents. */
-const MASCOT_LEVIATHAN_OVERFLOW_SLACK = { top: 40, right: 36, bottom: 24, left: 40 };
+const MASCOT_LEVIATHAN_OVERFLOW_SLACK = { top: 50, right: 45, bottom: 30, left: 50 };
+/** Ember Sovereign dragon — wing tips / tail need slack after elite size boost. */
+const MASCOT_DRAGON_OVERFLOW_SLACK = { top: 42, right: 38, bottom: 28, left: 38 };
 
 function cacheMascotScreenInfo() {
     const scr = window.screen;
@@ -26811,8 +27209,14 @@ function getMascotKeepInsideSlack(container = document.getElementById('tm-mascot
     if (container?.classList?.contains('mascot-char-aether') || tamagotchiCharacterType === 'aether') {
         return { ...MASCOT_AETHER_OVERFLOW_SLACK };
     }
+    if (container?.classList?.contains('mascot-char-phoenix') || tamagotchiCharacterType === 'phoenix') {
+        return { ...MASCOT_PHOENIX_OVERFLOW_SLACK };
+    }
     if (container?.classList?.contains('mascot-char-leviathan') || tamagotchiCharacterType === 'leviathan') {
         return { ...MASCOT_LEVIATHAN_OVERFLOW_SLACK };
+    }
+    if (container?.classList?.contains('mascot-char-dragon') || tamagotchiCharacterType === 'dragon') {
+        return { ...MASCOT_DRAGON_OVERFLOW_SLACK };
     }
     return { ...MASCOT_OVERFLOW_SLACK };
 }
@@ -26966,8 +27370,12 @@ function applyMascotDragPosition(container, x, y) {
 }
 
 function ensureMascotInBounds(container = document.getElementById('tm-mascot-container')) {
-    if (!container) return;
+    if (!container || mascotIsDragging) return;
     cacheMascotScreenInfo();
+    if (mascotPositionLocked && Number.isFinite(mascotParkedX) && Number.isFinite(mascotParkedY)) {
+        applyMascotDragPosition(container, mascotParkedX, mascotParkedY);
+        return;
+    }
     const { x, y } = getMascotTranslate(container);
     applyMascotPosition(container, x, y);
 }
@@ -27990,10 +28398,14 @@ function checkTamagotchiEvolution(container) {
             const oldMessages = MASCOT_MESSAGES.becameOld;
             showMascotBubble(oldMessages[Math.floor(Math.random() * oldMessages.length)], 3000);
             if (tamagotchiCharacterType === 'aether') playAetherStageCinematic('old');
+            if (tamagotchiCharacterType === 'phoenix') playPhoenixStageCinematic('old');
         } else if (oldStage !== tamagotchiStage) {
             showMascotBubble(evolutionMessages[Math.floor(Math.random() * evolutionMessages.length)], 3000);
             if (tamagotchiCharacterType === 'aether' && tamagotchiStage !== 'egg') {
                 playAetherStageCinematic(tamagotchiStage);
+            }
+            if (tamagotchiCharacterType === 'phoenix' && tamagotchiStage !== 'egg') {
+                playPhoenixStageCinematic(tamagotchiStage);
             }
         }
         updateTamagotchiStats(container);
@@ -30836,7 +31248,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 transition: transform 0.3s ease-out;
             }
             .tm-animate-body {
-                animation: tm-body-breathe 3s ease-in-out infinite;
                 transform-origin: center center;
                 transform-box: fill-box;
             }
@@ -30870,15 +31281,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
 
             /* Short-lived moods tweak idle motion */
-            .mascot-mood-happy .tm-animate-body { animation-duration: 2.2s; }
             .mascot-mood-playful .tm-animate-tail { animation-duration: 1.2s; }
             .mascot-mood-playful .tm-animate-arm-left,
             .mascot-mood-playful .tm-animate-arm-right { animation-duration: 1.1s; }
-            .mascot-mood-sleepy .tm-animate-body { animation-duration: 4.5s; }
             .mascot-mood-sleepy .tm-animate-arm-left,
             .mascot-mood-sleepy .tm-animate-arm-right { animation-duration: 3.5s; }
             .mascot-mood-grumpy .tm-animate-tail { animation-duration: 3.2s; }
-            .mascot-mood-hungry .tm-animate-body { animation: tm-body-breathe 1.6s ease-in-out infinite; }
             .mascot-mood-proud .tm-animate-wing-left,
             .mascot-mood-proud .tm-animate-wing-right { animation-duration: 1.2s; }
             .mascot-mood-curious #tm-mascot-container,
@@ -31190,18 +31598,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="54" cy="52" r="2.6" fill="#ff80ab" stroke="#e91e63" stroke-width="0.7"/>
                         <circle cx="44" cy="59" r="2" fill="#ff6090" stroke="#e91e63" stroke-width="0.6"/>
                         <circle cx="56" cy="59" r="2" fill="#ff6090" stroke="#e91e63" stroke-width="0.6"/>
-                    </g>
-                    <!-- Arms -->
-                    <g class="tm-animate-arm-left">
-                        <ellipse cx="27" cy="62" rx="6.5" ry="8.5" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.4"/>
-                        <ellipse cx="25" cy="58" rx="2.5" ry="1.8" fill="#fff" opacity="0.25"/>
-                        <path d="M 23 68 L 21 71 M 26 69 L 25 72 M 29 68 L 29 71" stroke="#558b2f" stroke-width="1.3" stroke-linecap="round"/>
-                    </g>
-                    <g class="tm-animate-arm-right">
-                        <ellipse cx="73" cy="62" rx="6.5" ry="8.5" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.4"/>
-                        <ellipse cx="75" cy="58" rx="2.5" ry="1.8" fill="#fff" opacity="0.25"/>
-                        <path d="M 71 68 L 71 71 M 74 69 L 75 72 M 77 68 L 79 71" stroke="#558b2f" stroke-width="1.3" stroke-linecap="round"/>
-                    </g>
                     <!-- Head (oversized) -->
                     <ellipse cx="50" cy="37" rx="19" ry="17" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="2"/>
                     <ellipse cx="42" cy="30" rx="7" ry="4" fill="#fff" opacity="0.2"/>
@@ -31219,7 +31615,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <!-- Cheeks -->
                     <circle cx="34" cy="42" r="4" fill="url(#baby-dragon-cheek)"/>
                     <circle cx="66" cy="42" r="4" fill="url(#baby-dragon-cheek)"/>
-                    <!-- Eyes -->
                     <g class="tm-mascot-eye-open">
                         <ellipse cx="41" cy="35" rx="7.5" ry="9.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
                         <ellipse cx="59" cy="35" rx="7.5" ry="9.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
@@ -31238,6 +31633,22 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <path class="tm-mascot-mouth-happy" d="M 44 49 Q 50 53.5 56 49" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
                     <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 51 Q 50 47 56 51" stroke="#558b2f" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
+                    <!-- Arms -->
+                    <g class="tm-animate-arm-left">
+                        <ellipse cx="27" cy="62" rx="6.5" ry="8.5" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.4"/>
+                        <ellipse cx="25" cy="58" rx="2.5" ry="1.8" fill="#fff" opacity="0.25"/>
+                        <path d="M 23 68 L 21 71 M 26 69 L 25 72 M 29 68 L 29 71" stroke="#558b2f" stroke-width="1.3" stroke-linecap="round"/>
+                    </g>
+                    <g class="tm-animate-arm-right">
+                        <ellipse cx="73" cy="62" rx="6.5" ry="8.5" fill="url(#baby-dragon-scales)" stroke="#558b2f" stroke-width="1.4"/>
+                        <ellipse cx="75" cy="58" rx="2.5" ry="1.8" fill="#fff" opacity="0.25"/>
+                        <path d="M 71 68 L 71 71 M 74 69 L 75 72 M 77 68 L 79 71" stroke="#558b2f" stroke-width="1.3" stroke-linecap="round"/>
+                    </g>
+
+
+
+
                     <!-- Feet -->
                     <g class="tm-animate-leg-left">
                         <ellipse cx="40" cy="85" rx="6.5" ry="4.2" fill="url(#baby-dragon-scales-dark)" stroke="#558b2f" stroke-width="1.4"/>
@@ -31327,18 +31738,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path d="M 52 48 L 50 55 L 54 55 Z" fill="#ff6090" stroke="#c2185b" stroke-width="0.8"/>
                         <path d="M 44 56 L 42 62 L 46 62 Z" fill="#ff80ab" stroke="#e91e63" stroke-width="0.7"/>
                         <path d="M 56 56 L 54 62 L 58 62 Z" fill="#ff80ab" stroke="#e91e63" stroke-width="0.7"/>
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="41" cy="31" rx="7.2" ry="8.2" fill="#fff" stroke="#00bfa5" stroke-width="1.4"/>
+                        <ellipse cx="59" cy="31" rx="7.2" ry="8.2" fill="#fff" stroke="#00bfa5" stroke-width="1.4"/>
+                        <ellipse cx="42" cy="32.2" rx="4" ry="5" fill="url(#dragon-iris-kid)"/>
+                        <ellipse cx="60" cy="32.2" rx="4" ry="5" fill="url(#dragon-iris-kid)"/>
+                        <ellipse cx="42" cy="32.5" rx="2" ry="2.8" fill="#001a16"/>
+                        <ellipse cx="60" cy="32.5" rx="2" ry="2.8" fill="#001a16"/>
+                        <circle cx="43.6" cy="29.5" r="2.1" fill="#fff"/>
+                        <circle cx="61.6" cy="29.5" r="2.1" fill="#fff"/>
+                        <circle cx="39.8" cy="34.5" r="0.9" fill="#4dd0e1" opacity="0.7"/>
+                        <circle cx="57.8" cy="34.5" r="0.9" fill="#4dd0e1" opacity="0.7"/>
                     </g>
-                    <!-- Arms -->
-                    <g class="tm-animate-arm-left">
-                        <ellipse cx="25" cy="62" rx="7.5" ry="10" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.7"/>
-                        <ellipse cx="23" cy="57" rx="2.8" ry="2" fill="#fff" opacity="0.22"/>
-                        <path d="M 21 70 L 18 74 M 24 71 L 23 75 M 28 70 L 28 74" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 34 32 Q 41 28 48 32" stroke="#00897b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 32 Q 59 28 66 32" stroke="#00897b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                     </g>
-                    <g class="tm-animate-arm-right">
-                        <ellipse cx="75" cy="62" rx="7.5" ry="10" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.7"/>
-                        <ellipse cx="77" cy="57" rx="2.8" ry="2" fill="#fff" opacity="0.22"/>
-                        <path d="M 72 70 L 72 74 M 75 71 L 76 75 M 79 70 L 82 74" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
-                    </g>
+<path class="tm-mascot-mouth-happy" d="M 42 49 Q 50 54 58 49" stroke="#00897b" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 51 Q 50 46 58 51" stroke="#00897b" stroke-width="2" fill="none" stroke-linecap="round"/>
+
                     <!-- Head -->
                     <ellipse cx="50" cy="34" rx="22" ry="20" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="2.4"/>
                     <ellipse cx="42" cy="26" rx="8" ry="4.5" fill="#fff" opacity="0.18"/>
@@ -31356,25 +31774,22 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="53.5" cy="43.4" r="0.55" fill="#fff" opacity="0.45"/>
                     <circle cx="33" cy="40" r="4.5" fill="url(#dragon-cheek-kid)"/>
                     <circle cx="67" cy="40" r="4.5" fill="url(#dragon-cheek-kid)"/>
-                    <!-- Eyes -->
-                    <g class="tm-mascot-eye-open">
-                        <ellipse cx="41" cy="31" rx="7.2" ry="8.2" fill="#fff" stroke="#00bfa5" stroke-width="1.4"/>
-                        <ellipse cx="59" cy="31" rx="7.2" ry="8.2" fill="#fff" stroke="#00bfa5" stroke-width="1.4"/>
-                        <ellipse cx="42" cy="32.2" rx="4" ry="5" fill="url(#dragon-iris-kid)"/>
-                        <ellipse cx="60" cy="32.2" rx="4" ry="5" fill="url(#dragon-iris-kid)"/>
-                        <ellipse cx="42" cy="32.5" rx="2" ry="2.8" fill="#001a16"/>
-                        <ellipse cx="60" cy="32.5" rx="2" ry="2.8" fill="#001a16"/>
-                        <circle cx="43.6" cy="29.5" r="2.1" fill="#fff"/>
-                        <circle cx="61.6" cy="29.5" r="2.1" fill="#fff"/>
-                        <circle cx="39.8" cy="34.5" r="0.9" fill="#4dd0e1" opacity="0.7"/>
-                        <circle cx="57.8" cy="34.5" r="0.9" fill="#4dd0e1" opacity="0.7"/>
+</g>
+                    <!-- Arms -->
+                    <g class="tm-animate-arm-left">
+                        <ellipse cx="25" cy="62" rx="7.5" ry="10" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.7"/>
+                        <ellipse cx="23" cy="57" rx="2.8" ry="2" fill="#fff" opacity="0.22"/>
+                        <path d="M 21 70 L 18 74 M 24 71 L 23 75 M 28 70 L 28 74" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
                     </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 34 32 Q 41 28 48 32" stroke="#00897b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        <path d="M 52 32 Q 59 28 66 32" stroke="#00897b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                    <g class="tm-animate-arm-right">
+                        <ellipse cx="75" cy="62" rx="7.5" ry="10" fill="url(#dragon-scales)" stroke="#00bfa5" stroke-width="1.7"/>
+                        <ellipse cx="77" cy="57" rx="2.8" ry="2" fill="#fff" opacity="0.22"/>
+                        <path d="M 72 70 L 72 74 M 75 71 L 76 75 M 79 70 L 82 74" stroke="#00897b" stroke-width="1.5" stroke-linecap="round"/>
                     </g>
-                    <path class="tm-mascot-mouth-happy" d="M 42 49 Q 50 54 58 49" stroke="#00897b" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 51 Q 50 46 58 51" stroke="#00897b" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+
+
+
                     <!-- Feet -->
                     <g class="tm-animate-leg-left">
                         <ellipse cx="39" cy="87" rx="7.5" ry="5" fill="url(#dragon-scales-shade)" stroke="#00bfa5" stroke-width="1.6"/>
@@ -31468,16 +31883,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path d="M 54 50 L 52 58 L 56 58 Z" fill="#ff6090" stroke="#ad1457" stroke-width="0.9"/>
                         <path d="M 42 60 L 40 66 L 44 66 Z" fill="#ff80ab" stroke="#c2185b" stroke-width="0.7"/>
                         <path d="M 58 60 L 56 66 L 60 66 Z" fill="#ff80ab" stroke="#c2185b" stroke-width="0.7"/>
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="41" cy="29" rx="6.5" ry="7.5" fill="#fff" stroke="#00838f" stroke-width="1.4"/>
+                        <ellipse cx="59" cy="29" rx="6.5" ry="7.5" fill="#fff" stroke="#00838f" stroke-width="1.4"/>
+                        <ellipse cx="41.8" cy="30" rx="3.6" ry="4.6" fill="url(#teen-dragon-iris)"/>
+                        <ellipse cx="59.8" cy="30" rx="3.6" ry="4.6" fill="url(#teen-dragon-iris)"/>
+                        <ellipse cx="42" cy="30.3" rx="1.8" ry="2.6" fill="#001416"/>
+                        <ellipse cx="60" cy="30.3" rx="1.8" ry="2.6" fill="#001416"/>
+                        <circle cx="43.4" cy="27.5" r="1.9" fill="#fff"/>
+                        <circle cx="61.4" cy="27.5" r="1.9" fill="#fff"/>
+                        <circle cx="39.6" cy="32.5" r="0.85" fill="#4dd0e1" opacity="0.75"/>
+                        <circle cx="57.6" cy="32.5" r="0.85" fill="#4dd0e1" opacity="0.75"/>
                     </g>
-                    <!-- Arms -->
-                    <g class="tm-animate-arm-left">
-                        <ellipse cx="26" cy="64" rx="7.5" ry="11" fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="1.7"/>
-                        <path d="M 22 72 L 19 77 M 25 73 L 24 78 M 29 72 L 29 77" stroke="#006064" stroke-width="1.6" stroke-linecap="round"/>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 35 29 Q 41 25 47 29" stroke="#006064" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 29 Q 59 25 65 29" stroke="#006064" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                     </g>
-                    <g class="tm-animate-arm-right">
-                        <ellipse cx="74" cy="64" rx="7.5" ry="11" fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="1.7"/>
-                        <path d="M 71 72 L 71 77 M 75 73 L 76 78 M 78 72 L 81 77" stroke="#006064" stroke-width="1.6" stroke-linecap="round"/>
-                    </g>
+<path class="tm-mascot-mouth-happy" d="M 41 46 Q 50 51 59 46" stroke="#006064" stroke-width="2.1" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 48 Q 50 43 59 48" stroke="#006064" stroke-width="2.1" fill="none" stroke-linecap="round"/>
+
                     <!-- Head -->
                     <ellipse cx="50" cy="31" rx="21" ry="18.5" fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="2.4"/>
                     <ellipse cx="42" cy="24" rx="7" ry="4" fill="#fff" opacity="0.16"/>
@@ -31492,27 +31916,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <path d="M 65 22 Q 72 14 78 10 Q 80 8 76 11 L 66 20 Z" fill="url(#teen-dragon-horn)" stroke="#ad1457" stroke-width="1.4"/>
                     <path d="M 26 12 L 29 16" stroke="#fff" stroke-width="1.1" opacity="0.4" stroke-linecap="round"/>
                     <path d="M 74 12 L 71 16" stroke="#fff" stroke-width="1.1" opacity="0.4" stroke-linecap="round"/>
-                    <!-- Eyes -->
-                    <g class="tm-mascot-eye-open">
-                        <ellipse cx="41" cy="29" rx="6.5" ry="7.5" fill="#fff" stroke="#00838f" stroke-width="1.4"/>
-                        <ellipse cx="59" cy="29" rx="6.5" ry="7.5" fill="#fff" stroke="#00838f" stroke-width="1.4"/>
-                        <ellipse cx="41.8" cy="30" rx="3.6" ry="4.6" fill="url(#teen-dragon-iris)"/>
-                        <ellipse cx="59.8" cy="30" rx="3.6" ry="4.6" fill="url(#teen-dragon-iris)"/>
-                        <ellipse cx="42" cy="30.3" rx="1.8" ry="2.6" fill="#001416"/>
-                        <ellipse cx="60" cy="30.3" rx="1.8" ry="2.6" fill="#001416"/>
-                        <circle cx="43.4" cy="27.5" r="1.9" fill="#fff"/>
-                        <circle cx="61.4" cy="27.5" r="1.9" fill="#fff"/>
-                        <circle cx="39.6" cy="32.5" r="0.85" fill="#4dd0e1" opacity="0.75"/>
-                        <circle cx="57.6" cy="32.5" r="0.85" fill="#4dd0e1" opacity="0.75"/>
+<path d="M 46 47 L 45 50" stroke="#e0f7fa" stroke-width="1.6" stroke-linecap="round"/>
+                    <path d="M 54 47 L 55 50" stroke="#e0f7fa" stroke-width="1.6" stroke-linecap="round"/></g>
+                    <!-- Arms -->
+                    <g class="tm-animate-arm-left">
+                        <ellipse cx="26" cy="64" rx="7.5" ry="11" fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="1.7"/>
+                        <path d="M 22 72 L 19 77 M 25 73 L 24 78 M 29 72 L 29 77" stroke="#006064" stroke-width="1.6" stroke-linecap="round"/>
                     </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 35 29 Q 41 25 47 29" stroke="#006064" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        <path d="M 53 29 Q 59 25 65 29" stroke="#006064" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                    <g class="tm-animate-arm-right">
+                        <ellipse cx="74" cy="64" rx="7.5" ry="11" fill="url(#teen-dragon-scales)" stroke="#00838f" stroke-width="1.7"/>
+                        <path d="M 71 72 L 71 77 M 75 73 L 76 78 M 78 72 L 81 77" stroke="#006064" stroke-width="1.6" stroke-linecap="round"/>
                     </g>
-                    <path class="tm-mascot-mouth-happy" d="M 41 46 Q 50 51 59 46" stroke="#006064" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 48 Q 50 43 59 48" stroke="#006064" stroke-width="2.1" fill="none" stroke-linecap="round"/>
-                    <path d="M 46 47 L 45 50" stroke="#e0f7fa" stroke-width="1.6" stroke-linecap="round"/>
-                    <path d="M 54 47 L 55 50" stroke="#e0f7fa" stroke-width="1.6" stroke-linecap="round"/>
                     <!-- Feet -->
                     <g class="tm-animate-leg-left">
                         <ellipse cx="39" cy="88" rx="7.5" ry="5.2" fill="url(#teen-dragon-shade)" stroke="#00838f" stroke-width="1.6"/>
@@ -31612,18 +32026,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path d="M 56 48 L 54 56 L 58 56 Z" fill="#c2185b" stroke="#880e4f" stroke-width="1"/>
                         <path d="M 40 58 L 38 65 L 42 65 Z" fill="#ec407a" stroke="#ad1457" stroke-width="0.8"/>
                         <path d="M 60 58 L 58 65 L 62 65 Z" fill="#ec407a" stroke="#ad1457" stroke-width="0.8"/>
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="40" cy="26" rx="6.5" ry="7.5" fill="#fff8e1" stroke="#00332c" stroke-width="1.5"/>
+                        <ellipse cx="60" cy="26" rx="6.5" ry="7.5" fill="#fff8e1" stroke="#00332c" stroke-width="1.5"/>
+                        <ellipse cx="40.5" cy="26.5" rx="3.4" ry="4.5" fill="url(#adult-dragon-iris)"/>
+                        <ellipse cx="60.5" cy="26.5" rx="3.4" ry="4.5" fill="url(#adult-dragon-iris)"/>
+                        <ellipse cx="40.5" cy="27" rx="1.6" ry="2.6" fill="#1a0a00"/>
+                        <ellipse cx="60.5" cy="27" rx="1.6" ry="2.6" fill="#1a0a00"/>
+                        <circle cx="42" cy="24" r="1.7" fill="#fffde7"/>
+                        <circle cx="62" cy="24" r="1.7" fill="#fffde7"/>
+                        <circle cx="38.8" cy="29.2" r="0.7" fill="#ffecb3" opacity="0.8"/>
+                        <circle cx="58.8" cy="29.2" r="0.7" fill="#ffecb3" opacity="0.8"/>
                     </g>
-                    <!-- Arms -->
-                    <g class="tm-animate-arm-left">
-                        <ellipse cx="24" cy="62" rx="8.5" ry="12.5" fill="url(#adult-dragon-scales)" stroke="#00332c" stroke-width="2"/>
-                        <ellipse cx="22" cy="56" rx="3" ry="2" fill="#fff" opacity="0.12"/>
-                        <path d="M 19 72 L 16 78 M 23 73 L 22 79 M 27 73 L 27 79 M 30 72 L 32 78" stroke="#00251a" stroke-width="1.8" stroke-linecap="round"/>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 34 26 Q 40 22 46 26" stroke="#00332c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        <path d="M 54 26 Q 60 22 66 26" stroke="#00332c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                     </g>
-                    <g class="tm-animate-arm-right">
-                        <ellipse cx="76" cy="62" rx="8.5" ry="12.5" fill="url(#adult-dragon-scales)" stroke="#00332c" stroke-width="2"/>
-                        <ellipse cx="78" cy="56" rx="3" ry="2" fill="#fff" opacity="0.12"/>
-                        <path d="M 70 72 L 68 78 M 73 73 L 74 79 M 77 73 L 77 79 M 81 72 L 84 78" stroke="#00251a" stroke-width="1.8" stroke-linecap="round"/>
-                    </g>
+<path class="tm-mascot-mouth-happy" d="M 39 44 Q 50 49 61 44" stroke="#00332c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 39 46 Q 50 41 61 46" stroke="#00332c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+
                     <!-- Head -->
                     <ellipse cx="50" cy="28" rx="22" ry="20" fill="url(#adult-dragon-scales)" stroke="#00332c" stroke-width="2.5"/>
                     <ellipse cx="42" cy="20" rx="8" ry="4.5" fill="#fff" opacity="0.12"/>
@@ -31639,27 +32060,19 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <path d="M 78 5 L 74 10" stroke="#fff" stroke-width="1.2" opacity="0.4" stroke-linecap="round"/>
                     <path d="M 36 14 L 34 10 L 38 12 Z" fill="#f48fb1" opacity="0.8"/>
                     <path d="M 64 14 L 66 10 L 62 12 Z" fill="#f48fb1" opacity="0.8"/>
-                    <!-- Eyes -->
-                    <g class="tm-mascot-eye-open">
-                        <ellipse cx="40" cy="26" rx="6.5" ry="7.5" fill="#fff8e1" stroke="#00332c" stroke-width="1.5"/>
-                        <ellipse cx="60" cy="26" rx="6.5" ry="7.5" fill="#fff8e1" stroke="#00332c" stroke-width="1.5"/>
-                        <ellipse cx="40.5" cy="26.5" rx="3.4" ry="4.5" fill="url(#adult-dragon-iris)"/>
-                        <ellipse cx="60.5" cy="26.5" rx="3.4" ry="4.5" fill="url(#adult-dragon-iris)"/>
-                        <ellipse cx="40.5" cy="27" rx="1.6" ry="2.6" fill="#1a0a00"/>
-                        <ellipse cx="60.5" cy="27" rx="1.6" ry="2.6" fill="#1a0a00"/>
-                        <circle cx="42" cy="24" r="1.7" fill="#fffde7"/>
-                        <circle cx="62" cy="24" r="1.7" fill="#fffde7"/>
-                        <circle cx="38.8" cy="29.2" r="0.7" fill="#ffecb3" opacity="0.8"/>
-                        <circle cx="58.8" cy="29.2" r="0.7" fill="#ffecb3" opacity="0.8"/>
+<path d="M 46 45 L 45 49" stroke="#e0f2f1" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M 54 45 L 55 49" stroke="#e0f2f1" stroke-width="2" stroke-linecap="round"/></g>
+                    <!-- Arms -->
+                    <g class="tm-animate-arm-left">
+                        <ellipse cx="24" cy="62" rx="8.5" ry="12.5" fill="url(#adult-dragon-scales)" stroke="#00332c" stroke-width="2"/>
+                        <ellipse cx="22" cy="56" rx="3" ry="2" fill="#fff" opacity="0.12"/>
+                        <path d="M 19 72 L 16 78 M 23 73 L 22 79 M 27 73 L 27 79 M 30 72 L 32 78" stroke="#00251a" stroke-width="1.8" stroke-linecap="round"/>
                     </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 34 26 Q 40 22 46 26" stroke="#00332c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                        <path d="M 54 26 Q 60 22 66 26" stroke="#00332c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <g class="tm-animate-arm-right">
+                        <ellipse cx="76" cy="62" rx="8.5" ry="12.5" fill="url(#adult-dragon-scales)" stroke="#00332c" stroke-width="2"/>
+                        <ellipse cx="78" cy="56" rx="3" ry="2" fill="#fff" opacity="0.12"/>
+                        <path d="M 70 72 L 68 78 M 73 73 L 74 79 M 77 73 L 77 79 M 81 72 L 84 78" stroke="#00251a" stroke-width="1.8" stroke-linecap="round"/>
                     </g>
-                    <path class="tm-mascot-mouth-happy" d="M 39 44 Q 50 49 61 44" stroke="#00332c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 39 46 Q 50 41 61 46" stroke="#00332c" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                    <path d="M 46 45 L 45 49" stroke="#e0f2f1" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M 54 45 L 55 49" stroke="#e0f2f1" stroke-width="2" stroke-linecap="round"/>
                     <!-- Feet -->
                     <g class="tm-animate-leg-left">
                         <ellipse cx="38" cy="89" rx="8.5" ry="6" fill="url(#adult-dragon-shade)" stroke="#00332c" stroke-width="1.8"/>
@@ -31746,7 +32159,23 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="50" cy="65.8" r="3" fill="#a1887f" stroke="#5d4037" stroke-width="0.7"/>
                         <circle cx="58" cy="65.8" r="2.4" fill="#6d4c41" stroke="#3e2723" stroke-width="0.6"/>
                         <circle cx="50" cy="65.5" r="1.1" fill="#ffd54f"/>
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="43" cy="35" rx="5.2" ry="5.5" fill="#fff" stroke="#00695c" stroke-width="1.1"/>
+                        <ellipse cx="57" cy="35" rx="5.2" ry="5.5" fill="#fff" stroke="#00695c" stroke-width="1.1"/>
+                        <ellipse cx="43.5" cy="35.8" rx="2.8" ry="3.1" fill="url(#mid-dragon-iris)"/>
+                        <ellipse cx="57.5" cy="35.8" rx="2.8" ry="3.1" fill="url(#mid-dragon-iris)"/>
+                        <ellipse cx="43.5" cy="36" rx="1.3" ry="1.7" fill="#12052a"/>
+                        <ellipse cx="57.5" cy="36" rx="1.3" ry="1.7" fill="#12052a"/>
+                        <circle cx="44.6" cy="34" r="1.2" fill="#fff"/>
+                        <circle cx="58.6" cy="34" r="1.2" fill="#fff"/>
                     </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 38 35 Q 43 32 48 35" stroke="#004d40" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path d="M 52 35 Q 57 32 62 35" stroke="#004d40" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    </g>
+<path class="tm-mascot-mouth-happy" d="M 44 48 Q 50 51 56 48" stroke="#004d40" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 50 Q 50 46 56 50" stroke="#004d40" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+</g>
                     <!-- Staff -->
                     <line x1="20" y1="60" x2="16" y2="22" stroke="#6d4c41" stroke-width="3.2" stroke-linecap="round"/>
                     <line x1="20" y1="60" x2="16" y2="22" stroke="#a1887f" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
@@ -31789,22 +32218,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <path d="M 56 44 Q 64 46 68 43" stroke="#5d4037" stroke-width="1.6" fill="none" stroke-linecap="round"/>
                     <path d="M 46 47 Q 50 50 54 47 L 53 52 Q 50 54 47 52 Z" fill="#6d4c41" stroke="#4e342e" stroke-width="0.7"/>
                     <!-- Eyes -->
-                    <g class="tm-mascot-eye-open">
-                        <ellipse cx="43" cy="35" rx="5.2" ry="5.5" fill="#fff" stroke="#00695c" stroke-width="1.1"/>
-                        <ellipse cx="57" cy="35" rx="5.2" ry="5.5" fill="#fff" stroke="#00695c" stroke-width="1.1"/>
-                        <ellipse cx="43.5" cy="35.8" rx="2.8" ry="3.1" fill="url(#mid-dragon-iris)"/>
-                        <ellipse cx="57.5" cy="35.8" rx="2.8" ry="3.1" fill="url(#mid-dragon-iris)"/>
-                        <ellipse cx="43.5" cy="36" rx="1.3" ry="1.7" fill="#12052a"/>
-                        <ellipse cx="57.5" cy="36" rx="1.3" ry="1.7" fill="#12052a"/>
-                        <circle cx="44.6" cy="34" r="1.2" fill="#fff"/>
-                        <circle cx="58.6" cy="34" r="1.2" fill="#fff"/>
-                    </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 38 35 Q 43 32 48 35" stroke="#004d40" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path d="M 52 35 Q 57 32 62 35" stroke="#004d40" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    </g>
-                    <path class="tm-mascot-mouth-happy" d="M 44 48 Q 50 51 56 48" stroke="#004d40" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 50 Q 50 46 56 50" stroke="#004d40" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+
+
+
+
                     <!-- Feet under robe -->
                     <g class="tm-animate-leg-left">
                         <ellipse cx="40" cy="95" rx="6" ry="3.2" fill="url(#mid-dragon-scales)" stroke="#00695c" stroke-width="1.1"/>
@@ -31887,7 +32304,23 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="44" cy="66" r="1.6" fill="#90a4ae" opacity="0.55"/>
                         <circle cx="56" cy="78" r="1.4" fill="#90a4ae" opacity="0.45"/>
                         <path d="M 48 82 L 50 86 L 52 82" fill="none" stroke="#90a4ae" stroke-width="0.9" opacity="0.5"/>
+                    <g class="tm-mascot-eye-open">
+                        <ellipse cx="43" cy="31" rx="4.4" ry="4.6" fill="#fff" stroke="#607d8b" stroke-width="1"/>
+                        <ellipse cx="57" cy="31" rx="4.4" ry="4.6" fill="#fff" stroke="#607d8b" stroke-width="1"/>
+                        <ellipse cx="43.3" cy="31.6" rx="2.2" ry="2.4" fill="url(#old-dragon-iris)"/>
+                        <ellipse cx="57.3" cy="31.6" rx="2.2" ry="2.4" fill="url(#old-dragon-iris)"/>
+                        <ellipse cx="43.3" cy="31.8" rx="1" ry="1.3" fill="#012a4a"/>
+                        <ellipse cx="57.3" cy="31.8" rx="1" ry="1.3" fill="#012a4a"/>
+                        <circle cx="44.2" cy="30.2" r="0.95" fill="#fff" opacity="0.9"/>
+                        <circle cx="58.2" cy="30.2" r="0.95" fill="#fff" opacity="0.9"/>
                     </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                        <path d="M 39 31 Q 43 28 47 31" stroke="#546e7a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                        <path d="M 53 31 Q 57 28 61 31" stroke="#546e7a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+                    </g>
+<path class="tm-mascot-mouth-happy" d="M 44 40 Q 50 42.5 56 40" stroke="#546e7a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 42 Q 50 38.5 56 42" stroke="#546e7a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+</g>
                     <!-- Arms + scroll -->
                     <g class="tm-animate-arm-left">
                         <ellipse cx="30" cy="64" rx="6.2" ry="10" fill="url(#sage-robe)" stroke="#607d8b" stroke-width="1.3"/>
@@ -31938,22 +32371,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <line x1="50" y1="50" x2="49" y2="60" stroke="#cfd8dc" stroke-width="0.55" opacity="0.7"/>
                     <line x1="60" y1="48" x2="62" y2="56" stroke="#cfd8dc" stroke-width="0.55" opacity="0.7"/>
                     <!-- Eyes -->
-                    <g class="tm-mascot-eye-open">
-                        <ellipse cx="43" cy="31" rx="4.4" ry="4.6" fill="#fff" stroke="#607d8b" stroke-width="1"/>
-                        <ellipse cx="57" cy="31" rx="4.4" ry="4.6" fill="#fff" stroke="#607d8b" stroke-width="1"/>
-                        <ellipse cx="43.3" cy="31.6" rx="2.2" ry="2.4" fill="url(#old-dragon-iris)"/>
-                        <ellipse cx="57.3" cy="31.6" rx="2.2" ry="2.4" fill="url(#old-dragon-iris)"/>
-                        <ellipse cx="43.3" cy="31.8" rx="1" ry="1.3" fill="#012a4a"/>
-                        <ellipse cx="57.3" cy="31.8" rx="1" ry="1.3" fill="#012a4a"/>
-                        <circle cx="44.2" cy="30.2" r="0.95" fill="#fff" opacity="0.9"/>
-                        <circle cx="58.2" cy="30.2" r="0.95" fill="#fff" opacity="0.9"/>
-                    </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                        <path d="M 39 31 Q 43 28 47 31" stroke="#546e7a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-                        <path d="M 53 31 Q 57 28 61 31" stroke="#546e7a" stroke-width="1.6" fill="none" stroke-linecap="round"/>
-                    </g>
-                    <path class="tm-mascot-mouth-happy" d="M 44 40 Q 50 42.5 56 40" stroke="#546e7a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 42 Q 50 38.5 56 42" stroke="#546e7a" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+
+
+
                     <!-- Feet -->
                     <g class="tm-animate-leg-left">
                         <ellipse cx="40" cy="96" rx="5.5" ry="2.8" fill="url(#old-dragon-scales)" stroke="#546e7a" stroke-width="1"/>
@@ -32051,6 +32472,24 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="49" cy="11" r="1.2" fill="#fff" opacity="0.7"/>
                             <circle cx="36" cy="30" r="1.5" fill="#90a4ae" stroke="#546e7a" stroke-width="0.6"/>
                             <circle cx="64" cy="30" r="1.5" fill="#90a4ae" stroke="#546e7a" stroke-width="0.6"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="41" cy="40" rx="6.5" ry="7.5" fill="#fff" stroke="#546e7a" stroke-width="1.6"/>
+                            <ellipse cx="59" cy="40" rx="6.5" ry="7.5" fill="#fff" stroke="#546e7a" stroke-width="1.6"/>
+                            <ellipse cx="42" cy="41" rx="3.6" ry="4.3" fill="url(#robot-baby-iris)"/>
+                            <ellipse cx="60" cy="41" rx="3.6" ry="4.3" fill="url(#robot-baby-iris)"/>
+                            <ellipse cx="42" cy="41.5" rx="1.9" ry="2.5" fill="#0a1628"/>
+                            <ellipse cx="60" cy="41.5" rx="1.9" ry="2.5" fill="#0a1628"/>
+                            <circle cx="43.5" cy="37.4" r="2.1" fill="#fff" opacity="0.95"/>
+                            <circle cx="61.5" cy="37.4" r="2.1" fill="#fff" opacity="0.95"/>
+                            <circle cx="40.2" cy="42.3" r="0.8" fill="#fff" opacity="0.5"/>
+                            <circle cx="58.2" cy="42.3" r="0.8" fill="#fff" opacity="0.5"/>
+                        </g>
+                        <g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 34.5 40 Q 41 37 47.5 40" stroke="#546e7a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 52.5 40 Q 59 37 65.5 40" stroke="#546e7a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+                        <path class="tm-mascot-mouth-happy" d="M 44 48 Q 50 53 56 48" stroke="#00e5ff" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 50 Q 50 44 56 50" stroke="#00e5ff" stroke-width="2" fill="none" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-arm-left">
                             <ellipse cx="26" cy="64" rx="5" ry="7" fill="url(#robot-baby-chassis)" stroke="#546e7a" stroke-width="1.4"/>
@@ -32076,24 +32515,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse cx="60" cy="88" rx="7" ry="3" fill="#37474f" stroke="#546e7a" stroke-width="1.2"/>
                             <rect x="56" y="87" width="8" height="2" rx="1" fill="#00e5ff" opacity="0.4"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="40" rx="6.5" ry="7.5" fill="#fff" stroke="#546e7a" stroke-width="1.6"/>
-                            <ellipse cx="59" cy="40" rx="6.5" ry="7.5" fill="#fff" stroke="#546e7a" stroke-width="1.6"/>
-                            <ellipse cx="42" cy="41" rx="3.6" ry="4.3" fill="url(#robot-baby-iris)"/>
-                            <ellipse cx="60" cy="41" rx="3.6" ry="4.3" fill="url(#robot-baby-iris)"/>
-                            <ellipse cx="42" cy="41.5" rx="1.9" ry="2.5" fill="#0a1628"/>
-                            <ellipse cx="60" cy="41.5" rx="1.9" ry="2.5" fill="#0a1628"/>
-                            <circle cx="43.5" cy="37.4" r="2.1" fill="#fff" opacity="0.95"/>
-                            <circle cx="61.5" cy="37.4" r="2.1" fill="#fff" opacity="0.95"/>
-                            <circle cx="40.2" cy="42.3" r="0.8" fill="#fff" opacity="0.5"/>
-                            <circle cx="58.2" cy="42.3" r="0.8" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 34.5 40 Q 41 37 47.5 40" stroke="#546e7a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.5 40 Q 59 37 65.5 40" stroke="#546e7a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44 48 Q 50 53 56 48" stroke="#00e5ff" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 50 Q 50 44 56 50" stroke="#00e5ff" stroke-width="2" fill="none" stroke-linecap="round"/>
                 </g>
                 <!-- ROBOT KID — tread scout -->
                 <g id="tm-mascot-evo1-robot" style="display: none;">
@@ -32169,6 +32590,24 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <rect x="42" y="42" width="16" height="4" rx="1" fill="#263238" stroke="#29b6f6" stroke-width="0.6"/>
                             <path d="M 44 44 L 48 44 L 46 46 Z" fill="#ffee58" opacity="0.8"/>
                             <path d="M 52 44 L 56 44 L 54 46 Z" fill="#ffee58" opacity="0.8"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="41" cy="32" rx="6" ry="7" fill="#fff" stroke="#607d8b" stroke-width="1.6"/>
+                            <ellipse cx="59" cy="32" rx="6" ry="7" fill="#fff" stroke="#607d8b" stroke-width="1.6"/>
+                            <ellipse cx="42" cy="33" rx="3.4" ry="4.1" fill="url(#robot-kid-iris)"/>
+                            <ellipse cx="60" cy="33" rx="3.4" ry="4.1" fill="url(#robot-kid-iris)"/>
+                            <ellipse cx="42" cy="33.5" rx="1.7" ry="2.3" fill="#0a1628"/>
+                            <ellipse cx="60" cy="33.5" rx="1.7" ry="2.3" fill="#0a1628"/>
+                            <circle cx="43.5" cy="29.6" r="1.9" fill="#fff" opacity="0.95"/>
+                            <circle cx="61.5" cy="29.6" r="1.9" fill="#fff" opacity="0.95"/>
+                            <circle cx="40.2" cy="34.1" r="0.8" fill="#fff" opacity="0.5"/>
+                            <circle cx="58.2" cy="34.1" r="0.8" fill="#fff" opacity="0.5"/>
+                        </g>
+                        <g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 35 32 Q 41 29 47 32" stroke="#607d8b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 53 32 Q 59 29 65 32" stroke="#607d8b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+                        <path class="tm-mascot-mouth-happy" d="M 43 44 Q 50 49 57 44" stroke="#29b6f6" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 46 Q 50 40 57 46" stroke="#29b6f6" stroke-width="2" fill="none" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-arm-left">
                             <rect x="18" y="52" width="10" height="18" rx="2.5" fill="url(#robot-kid-chassis)" stroke="#607d8b" stroke-width="1.3" transform="rotate(-14 23 61)"/>
@@ -32198,24 +32637,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="66" cy="88" r="2.5" fill="#37474f" stroke="#78909c" stroke-width="0.8"/>
                             <rect x="52" y="86" width="16" height="2" rx="1" fill="#455a64"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="32" rx="6" ry="7" fill="#fff" stroke="#607d8b" stroke-width="1.6"/>
-                            <ellipse cx="59" cy="32" rx="6" ry="7" fill="#fff" stroke="#607d8b" stroke-width="1.6"/>
-                            <ellipse cx="42" cy="33" rx="3.4" ry="4.1" fill="url(#robot-kid-iris)"/>
-                            <ellipse cx="60" cy="33" rx="3.4" ry="4.1" fill="url(#robot-kid-iris)"/>
-                            <ellipse cx="42" cy="33.5" rx="1.7" ry="2.3" fill="#0a1628"/>
-                            <ellipse cx="60" cy="33.5" rx="1.7" ry="2.3" fill="#0a1628"/>
-                            <circle cx="43.5" cy="29.6" r="1.9" fill="#fff" opacity="0.95"/>
-                            <circle cx="61.5" cy="29.6" r="1.9" fill="#fff" opacity="0.95"/>
-                            <circle cx="40.2" cy="34.1" r="0.8" fill="#fff" opacity="0.5"/>
-                            <circle cx="58.2" cy="34.1" r="0.8" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 35 32 Q 41 29 47 32" stroke="#607d8b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 53 32 Q 59 29 65 32" stroke="#607d8b" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 44 Q 50 49 57 44" stroke="#29b6f6" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 46 Q 50 40 57 46" stroke="#29b6f6" stroke-width="2" fill="none" stroke-linecap="round"/>
                 </g>
                 <!-- ROBOT TEEN — sleek visor mecha -->
                 <g id="tm-mascot-evo2-robot" style="display: none;">
@@ -32294,6 +32715,24 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse cx="42" cy="28" rx="5" ry="2.5" fill="#fff" opacity="0.2"/>
                             <line x1="50" y1="16" x2="50" y2="10" stroke="#78909c" stroke-width="1.5"/>
                             <circle cx="50" cy="9" r="2" fill="#e040fb" stroke="#00e5ff" stroke-width="0.8"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="42" cy="30" rx="5.5" ry="6.5" fill="#fff" stroke="#455a64" stroke-width="1.6"/>
+                            <ellipse cx="58" cy="30" rx="5.5" ry="6.5" fill="#fff" stroke="#455a64" stroke-width="1.6"/>
+                            <ellipse cx="43" cy="31" rx="3.1" ry="3.8" fill="url(#robot-teen-iris)"/>
+                            <ellipse cx="59" cy="31" rx="3.1" ry="3.8" fill="url(#robot-teen-iris)"/>
+                            <ellipse cx="43" cy="31.5" rx="1.6" ry="2.1" fill="#0a1628"/>
+                            <ellipse cx="59" cy="31.5" rx="1.6" ry="2.1" fill="#0a1628"/>
+                            <circle cx="44.5" cy="27.7" r="1.8" fill="#fff" opacity="0.95"/>
+                            <circle cx="60.5" cy="27.7" r="1.8" fill="#fff" opacity="0.95"/>
+                            <circle cx="41.2" cy="31.9" r="0.7" fill="#fff" opacity="0.5"/>
+                            <circle cx="57.2" cy="31.9" r="0.7" fill="#fff" opacity="0.5"/>
+                        </g>
+                        <g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 36.5 30 Q 42 27 47.5 30" stroke="#455a64" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 52.5 30 Q 58 27 63.5 30" stroke="#455a64" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+                        <path class="tm-mascot-mouth-happy" d="M 44 38 Q 50 43 56 38" stroke="#00bcd4" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 40 Q 50 34 56 40" stroke="#00bcd4" stroke-width="2" fill="none" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-arm-left">
                             <rect x="16" y="48" width="11" height="22" rx="2" fill="url(#robot-teen-chassis)" stroke="#455a64" stroke-width="1.4" transform="rotate(-18 21.5 59)"/>
@@ -32321,24 +32760,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse cx="61" cy="92" rx="8" ry="2.5" fill="#263238" stroke="#00bcd4" stroke-width="1.2"/>
                             <circle cx="61" cy="94" r="2" fill="#00e5ff" opacity="0.6"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="42" cy="30" rx="5.5" ry="6.5" fill="#fff" stroke="#455a64" stroke-width="1.6"/>
-                            <ellipse cx="58" cy="30" rx="5.5" ry="6.5" fill="#fff" stroke="#455a64" stroke-width="1.6"/>
-                            <ellipse cx="43" cy="31" rx="3.1" ry="3.8" fill="url(#robot-teen-iris)"/>
-                            <ellipse cx="59" cy="31" rx="3.1" ry="3.8" fill="url(#robot-teen-iris)"/>
-                            <ellipse cx="43" cy="31.5" rx="1.6" ry="2.1" fill="#0a1628"/>
-                            <ellipse cx="59" cy="31.5" rx="1.6" ry="2.1" fill="#0a1628"/>
-                            <circle cx="44.5" cy="27.7" r="1.8" fill="#fff" opacity="0.95"/>
-                            <circle cx="60.5" cy="27.7" r="1.8" fill="#fff" opacity="0.95"/>
-                            <circle cx="41.2" cy="31.9" r="0.7" fill="#fff" opacity="0.5"/>
-                            <circle cx="57.2" cy="31.9" r="0.7" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 36.5 30 Q 42 27 47.5 30" stroke="#455a64" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.5 30 Q 58 27 63.5 30" stroke="#455a64" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44 38 Q 50 43 56 38" stroke="#00bcd4" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 40 Q 50 34 56 40" stroke="#00bcd4" stroke-width="2" fill="none" stroke-linecap="round"/>
                 </g>
                 <!-- ROBOT ADULT — Neon Colossus -->
                 <g id="tm-mascot-evo3-robot" style="display: none;">
@@ -32431,6 +32852,24 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="49" cy="9" r="1" fill="#fff" opacity="0.7"/>
                             <rect x="32" y="42" width="8" height="6" rx="1" fill="#607d8b" stroke="#37474f" stroke-width="0.8"/>
                             <rect x="60" y="42" width="8" height="6" rx="1" fill="#607d8b" stroke="#37474f" stroke-width="0.8"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="42" cy="30" rx="5.5" ry="6.5" fill="#fff" stroke="#263238" stroke-width="1.6"/>
+                            <ellipse cx="58" cy="30" rx="5.5" ry="6.5" fill="#fff" stroke="#263238" stroke-width="1.6"/>
+                            <ellipse cx="43" cy="31" rx="3.1" ry="3.8" fill="url(#robot-adult-iris)"/>
+                            <ellipse cx="59" cy="31" rx="3.1" ry="3.8" fill="url(#robot-adult-iris)"/>
+                            <ellipse cx="43" cy="31.5" rx="1.6" ry="2.1" fill="#0a1628"/>
+                            <ellipse cx="59" cy="31.5" rx="1.6" ry="2.1" fill="#0a1628"/>
+                            <circle cx="44.5" cy="27.7" r="1.8" fill="#fff" opacity="0.95"/>
+                            <circle cx="60.5" cy="27.7" r="1.8" fill="#fff" opacity="0.95"/>
+                            <circle cx="41.2" cy="31.9" r="0.7" fill="#fff" opacity="0.5"/>
+                            <circle cx="57.2" cy="31.9" r="0.7" fill="#fff" opacity="0.5"/>
+                        </g>
+                        <g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 36.5 30 Q 42 27 47.5 30" stroke="#263238" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 52.5 30 Q 58 27 63.5 30" stroke="#263238" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+                        <path class="tm-mascot-mouth-happy" d="M 42 38 Q 50 43 58 38" stroke="#00e5ff" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 40 Q 50 34 58 40" stroke="#00e5ff" stroke-width="2" fill="none" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-arm-left">
                             <ellipse cx="20" cy="58" rx="7" ry="12" fill="url(#robot-adult-armor)" stroke="#263238" stroke-width="1.8"/>
@@ -32456,24 +32895,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse cx="61" cy="94" rx="10" ry="5" fill="#1a237e" stroke="#00e5ff" stroke-width="1.5"/>
                             <rect x="56" y="90" width="10" height="3" rx="1" fill="#00e5ff" opacity="0.4"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="42" cy="30" rx="5.5" ry="6.5" fill="#fff" stroke="#263238" stroke-width="1.6"/>
-                            <ellipse cx="58" cy="30" rx="5.5" ry="6.5" fill="#fff" stroke="#263238" stroke-width="1.6"/>
-                            <ellipse cx="43" cy="31" rx="3.1" ry="3.8" fill="url(#robot-adult-iris)"/>
-                            <ellipse cx="59" cy="31" rx="3.1" ry="3.8" fill="url(#robot-adult-iris)"/>
-                            <ellipse cx="43" cy="31.5" rx="1.6" ry="2.1" fill="#0a1628"/>
-                            <ellipse cx="59" cy="31.5" rx="1.6" ry="2.1" fill="#0a1628"/>
-                            <circle cx="44.5" cy="27.7" r="1.8" fill="#fff" opacity="0.95"/>
-                            <circle cx="60.5" cy="27.7" r="1.8" fill="#fff" opacity="0.95"/>
-                            <circle cx="41.2" cy="31.9" r="0.7" fill="#fff" opacity="0.5"/>
-                            <circle cx="57.2" cy="31.9" r="0.7" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 36.5 30 Q 42 27 47.5 30" stroke="#263238" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.5 30 Q 58 27 63.5 30" stroke="#263238" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 42 38 Q 50 43 58 38" stroke="#00e5ff" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 40 Q 50 34 58 40" stroke="#00e5ff" stroke-width="2" fill="none" stroke-linecap="round"/>
                 </g>
                 <!-- ROBOT MIDDLE AGE — battle-scarred engineer -->
                 <g id="tm-mascot-evo4-robot" style="display: none;">
@@ -32559,6 +32980,24 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <!-- Scratch marks -->
                             <path d="M 36 30 L 40 34" stroke="#757575" stroke-width="0.8" opacity="0.5"/>
                             <path d="M 60 32 L 64 36" stroke="#757575" stroke-width="0.8" opacity="0.5"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="42" cy="33" rx="5" ry="6" fill="#fff" stroke="#424242" stroke-width="1.6"/>
+                            <ellipse cx="58" cy="33" rx="5" ry="6" fill="#fff" stroke="#424242" stroke-width="1.6"/>
+                            <ellipse cx="43" cy="34" rx="2.8" ry="3.5" fill="url(#robot-mid-iris)"/>
+                            <ellipse cx="59" cy="34" rx="2.8" ry="3.5" fill="url(#robot-mid-iris)"/>
+                            <ellipse cx="43" cy="34.5" rx="1.4" ry="2" fill="#0a1628"/>
+                            <ellipse cx="59" cy="34.5" rx="1.4" ry="2" fill="#0a1628"/>
+                            <circle cx="44.5" cy="30.9" r="1.6" fill="#fff" opacity="0.95"/>
+                            <circle cx="60.5" cy="30.9" r="1.6" fill="#fff" opacity="0.95"/>
+                            <circle cx="41.2" cy="34.8" r="0.7" fill="#fff" opacity="0.5"/>
+                            <circle cx="57.2" cy="34.8" r="0.7" fill="#fff" opacity="0.5"/>
+                        </g>
+                        <g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 37 33 Q 42 30 47 33" stroke="#424242" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 53 33 Q 58 30 63 33" stroke="#424242" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+                        <path class="tm-mascot-mouth-happy" d="M 43 40 Q 50 45 57 40" stroke="#ffab40" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 42 Q 50 36 57 42" stroke="#ffab40" stroke-width="2" fill="none" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-arm-left">
                             <rect x="18" y="52" width="11" height="20" rx="2" fill="url(#robot-mid-steel)" stroke="#424242" stroke-width="1.3" transform="rotate(-14 23.5 62)"/>
@@ -32582,24 +33021,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse cx="60" cy="94" rx="9" ry="4" fill="#37474f" stroke="#616161" stroke-width="1.2"/>
                             <path d="M 56 92 Q 60 90 64 92" stroke="#757575" stroke-width="0.8" fill="none"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="42" cy="33" rx="5" ry="6" fill="#fff" stroke="#424242" stroke-width="1.6"/>
-                            <ellipse cx="58" cy="33" rx="5" ry="6" fill="#fff" stroke="#424242" stroke-width="1.6"/>
-                            <ellipse cx="43" cy="34" rx="2.8" ry="3.5" fill="url(#robot-mid-iris)"/>
-                            <ellipse cx="59" cy="34" rx="2.8" ry="3.5" fill="url(#robot-mid-iris)"/>
-                            <ellipse cx="43" cy="34.5" rx="1.4" ry="2" fill="#0a1628"/>
-                            <ellipse cx="59" cy="34.5" rx="1.4" ry="2" fill="#0a1628"/>
-                            <circle cx="44.5" cy="30.9" r="1.6" fill="#fff" opacity="0.95"/>
-                            <circle cx="60.5" cy="30.9" r="1.6" fill="#fff" opacity="0.95"/>
-                            <circle cx="41.2" cy="34.8" r="0.7" fill="#fff" opacity="0.5"/>
-                            <circle cx="57.2" cy="34.8" r="0.7" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 37 33 Q 42 30 47 33" stroke="#424242" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 53 33 Q 58 30 63 33" stroke="#424242" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 40 Q 50 45 57 40" stroke="#ffab40" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 42 Q 50 36 57 42" stroke="#ffab40" stroke-width="2" fill="none" stroke-linecap="round"/>
                 </g>
                 <!-- ROBOT OLD — ancient sage unit -->
                 <g id="tm-mascot-evo5-robot" style="display: none;">
@@ -32683,6 +33104,26 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <line x1="38" y1="50" x2="34" y2="58" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
                             <line x1="50" y1="52" x2="49" y2="62" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
                             <line x1="62" y1="50" x2="66" y2="58" stroke="#cfd8dc" stroke-width="0.5" opacity="0.6"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="43" cy="34" rx="4.5" ry="5" fill="#fff" stroke="#5d4037" stroke-width="1.2"/>
+                            <ellipse cx="57" cy="34" rx="4.5" ry="5" fill="#fff" stroke="#5d4037" stroke-width="1.2"/>
+                            <ellipse cx="43.5" cy="34.5" rx="2.5" ry="2.8" fill="url(#robot-old-iris)"/>
+                            <ellipse cx="57.5" cy="34.5" rx="2.5" ry="2.8" fill="url(#robot-old-iris)"/>
+                            <ellipse cx="43.5" cy="35" rx="1.2" ry="1.5" fill="#1a0a2e"/>
+                            <ellipse cx="57.5" cy="35" rx="1.2" ry="1.5" fill="#1a0a2e"/>
+                            <circle cx="44.5" cy="32.5" r="1" fill="#fff" opacity="0.9"/>
+                            <circle cx="58.5" cy="32.5" r="1" fill="#fff" opacity="0.9"/>
+                            <!-- Monocle LED on right eye -->
+                            <circle cx="57" cy="34" r="6" fill="none" stroke="url(#robot-old-monocle)" stroke-width="1.2"/>
+                            <line x1="63" cy="34" x2="68" cy="32" stroke="#8d6e63" stroke-width="1" stroke-linecap="round"/>
+                            <circle cx="68" cy="32" r="1" fill="#ce93d8"/>
+                        </g>
+                        <g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 39 34 Q 43 31 47 34" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                            <path d="M 53 34 Q 57 31 61 34" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                        </g>
+                        <path class="tm-mascot-mouth-happy" d="M 44 42 Q 50 47 56 42" stroke="#7b1fa2" stroke-width="2" fill="none" stroke-linecap="round"/>
+                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 44 Q 50 38 56 44" stroke="#7b1fa2" stroke-width="2" fill="none" stroke-linecap="round"/>
                         </g>
                         <g class="tm-animate-arm-left">
                             <ellipse cx="30" cy="66" rx="5" ry="9" fill="url(#robot-old-bronze)" stroke="#5d4037" stroke-width="1.2"/>
@@ -32705,26 +33146,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="63.5" cy="69.5" r="1.2" fill="#ce93d8" opacity="0.75"/>
                             <ellipse cx="58" cy="94" rx="5" ry="2.5" fill="#4db6ac" opacity="0.5"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="43" cy="34" rx="4.5" ry="5" fill="#fff" stroke="#5d4037" stroke-width="1.2"/>
-                            <ellipse cx="57" cy="34" rx="4.5" ry="5" fill="#fff" stroke="#5d4037" stroke-width="1.2"/>
-                            <ellipse cx="43.5" cy="34.5" rx="2.5" ry="2.8" fill="url(#robot-old-iris)"/>
-                            <ellipse cx="57.5" cy="34.5" rx="2.5" ry="2.8" fill="url(#robot-old-iris)"/>
-                            <ellipse cx="43.5" cy="35" rx="1.2" ry="1.5" fill="#1a0a2e"/>
-                            <ellipse cx="57.5" cy="35" rx="1.2" ry="1.5" fill="#1a0a2e"/>
-                            <circle cx="44.5" cy="32.5" r="1" fill="#fff" opacity="0.9"/>
-                            <circle cx="58.5" cy="32.5" r="1" fill="#fff" opacity="0.9"/>
-                            <!-- Monocle LED on right eye -->
-                            <circle cx="57" cy="34" r="6" fill="none" stroke="url(#robot-old-monocle)" stroke-width="1.2"/>
-                            <line x1="63" cy="34" x2="68" cy="32" stroke="#8d6e63" stroke-width="1" stroke-linecap="round"/>
-                            <circle cx="68" cy="32" r="1" fill="#ce93d8"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 39 34 Q 43 31 47 34" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                            <path d="M 53 34 Q 57 31 61 34" stroke="#5d4037" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44 42 Q 50 47 56 42" stroke="#7b1fa2" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 44 Q 50 38 56 44" stroke="#7b1fa2" stroke-width="2" fill="none" stroke-linecap="round"/>
                 </g>
 
                 <!-- SLIME CHARACTER - All Life Stages (dense cute epic goo v4) -->
@@ -32791,18 +33212,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="38" cy="68" r="2.4" fill="#b2ff59" opacity="0.38"/>
                             <circle cx="62" cy="70" r="1.8" fill="#69f0ae" opacity="0.32"/>
                             <ellipse cx="47" cy="82" rx="1.8" ry="3" fill="#1b5e20" opacity="0.6"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="42" cy="84" rx="4.5" ry="2.8" fill="#0d3b1e" stroke="#1b5e20" stroke-width="1.1"/>
-                            <path d="M 42 86 Q 41 90 42 92" stroke="#143d22" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.75"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="58" cy="85" rx="4" ry="2.5" fill="#0d3b1e" stroke="#1b5e20" stroke-width="1.1"/>
-                            <path d="M 58 87 Q 59 91 58 93" stroke="#143d22" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/>
-                        </g>
-                        <!-- Cheeks -->
-                        <circle cx="34" cy="53" r="4.2" fill="url(#slime-baby-cheek)"/>
-                        <circle cx="66" cy="53" r="4.2" fill="url(#slime-baby-cheek)"/>
                         <g class="tm-mascot-eye-open">
                             <ellipse cx="41" cy="46" rx="7.5" ry="8.5" fill="#fff" stroke="#1b5e20" stroke-width="1.5"/>
                             <ellipse cx="59" cy="46" rx="7.5" ry="8.5" fill="#fff" stroke="#1b5e20" stroke-width="1.5"/>
@@ -32815,12 +33224,28 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="39.8" cy="48.975" r="1.05" fill="#fff" opacity="0.45"/>
                             <circle cx="57.8" cy="48.975" r="1.05" fill="#fff" opacity="0.45"/>
                         </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
+<g class="tm-mascot-eye-closed" style="display:none;">
                             <path d="M 33.5 46 Q 41 42.5 48.5 46" stroke="#1b5e20" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                             <path d="M 51.5 46 Q 59 42.5 66.5 46" stroke="#1b5e20" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 64 Q 50 69.5 57 64" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 66 Q 50 59 57 66" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-happy" d="M 43 64 Q 50 69.5 57 64" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 66 Q 50 59 57 66" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+</g>
+                        <g class="tm-animate-leg-left">
+                            <ellipse cx="42" cy="84" rx="4.5" ry="2.8" fill="#0d3b1e" stroke="#1b5e20" stroke-width="1.1"/>
+                            <path d="M 42 86 Q 41 90 42 92" stroke="#143d22" stroke-width="2.2" fill="none" stroke-linecap="round" opacity="0.75"/>
+                        </g>
+                        <g class="tm-animate-leg-right">
+                            <ellipse cx="58" cy="85" rx="4" ry="2.5" fill="#0d3b1e" stroke="#1b5e20" stroke-width="1.1"/>
+                            <path d="M 58 87 Q 59 91 58 93" stroke="#143d22" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/>
+                        </g>
+                        <!-- Cheeks -->
+                        <circle cx="34" cy="53" r="4.2" fill="url(#slime-baby-cheek)"/>
+                        <circle cx="66" cy="53" r="4.2" fill="url(#slime-baby-cheek)"/>
+
+
+
+
                         <g class="tm-animate-wing-left" opacity="0"><circle cx="18" cy="48" r="1"/></g>
                         <g class="tm-animate-wing-right" opacity="0"><circle cx="82" cy="48" r="1"/></g>
                 </g>
@@ -32881,18 +33306,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 44 88 Q 42 96 44 98" stroke="#1b5e20" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.72"/>
                             <path d="M 54 90 Q 56 98 54 100" stroke="#143d22" stroke-width="2.8" fill="none" stroke-linecap="round" opacity="0.68"/>
                             <ellipse cx="44" cy="98" rx="2.2" ry="1.8" fill="#0d3b1e" opacity="0.7"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="40" cy="86" rx="7" ry="3.8" fill="#0a2416" stroke="#2e7d32" stroke-width="1.2"/>
-                            <path d="M 38 88 Q 36 94 38 96" stroke="#143d22" stroke-width="2.8" fill="none" stroke-linecap="round" opacity="0.72"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="60" cy="87" rx="6.5" ry="3.5" fill="#0a2416" stroke="#2e7d32" stroke-width="1.2"/>
-                            <path d="M 62 89 Q 64 95 62 97" stroke="#143d22" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.68"/>
-                        </g>
-                        <!-- Cheeks -->
-                        <circle cx="33" cy="51" r="4.2" fill="url(#slime-kid-cheek)"/>
-                        <circle cx="67" cy="51" r="4.2" fill="url(#slime-kid-cheek)"/>
                         <g class="tm-mascot-eye-open">
                             <ellipse cx="40" cy="44" rx="7.2" ry="8.2" fill="#fff" stroke="#2e7d32" stroke-width="1.5"/>
                             <ellipse cx="60" cy="44" rx="7.2" ry="8.2" fill="#fff" stroke="#2e7d32" stroke-width="1.5"/>
@@ -32905,12 +33318,28 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="38.8" cy="46.87" r="1.0080000000000002" fill="#fff" opacity="0.45"/>
                             <circle cx="58.8" cy="46.87" r="1.0080000000000002" fill="#fff" opacity="0.45"/>
                         </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
+<g class="tm-mascot-eye-closed" style="display:none;">
                             <path d="M 32.8 44 Q 40 40.5 47.2 44" stroke="#2e7d32" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                             <path d="M 52.8 44 Q 60 40.5 67.2 44" stroke="#2e7d32" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 41 62 Q 50 69 59 62" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 64 Q 50 57 59 64" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-happy" d="M 41 62 Q 50 69 59 62" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 64 Q 50 57 59 64" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+</g>
+                        <g class="tm-animate-leg-left">
+                            <ellipse cx="40" cy="86" rx="7" ry="3.8" fill="#0a2416" stroke="#2e7d32" stroke-width="1.2"/>
+                            <path d="M 38 88 Q 36 94 38 96" stroke="#143d22" stroke-width="2.8" fill="none" stroke-linecap="round" opacity="0.72"/>
+                        </g>
+                        <g class="tm-animate-leg-right">
+                            <ellipse cx="60" cy="87" rx="6.5" ry="3.5" fill="#0a2416" stroke="#2e7d32" stroke-width="1.2"/>
+                            <path d="M 62 89 Q 64 95 62 97" stroke="#143d22" stroke-width="2.6" fill="none" stroke-linecap="round" opacity="0.68"/>
+                        </g>
+                        <!-- Cheeks -->
+                        <circle cx="33" cy="51" r="4.2" fill="url(#slime-kid-cheek)"/>
+                        <circle cx="67" cy="51" r="4.2" fill="url(#slime-kid-cheek)"/>
+
+
+
+
                         <g class="tm-animate-wing-left" opacity="0"><circle cx="18" cy="46" r="1"/></g>
                         <g class="tm-animate-wing-right" opacity="0"><circle cx="82" cy="46" r="1"/></g>
                 </g>
@@ -32980,18 +33409,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 42 90 Q 40 100 42 102" stroke="#1b5e20" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.76"/>
                             <path d="M 52 92 Q 54 102 52 104" stroke="#0d3b1e" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.72"/>
                             <ellipse cx="42" cy="102" rx="2.5" ry="2" fill="#143d22" opacity="0.72"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="36" cy="88" rx="9" ry="5" fill="#0a2416" stroke="#1b5e20" stroke-width="1.3"/>
-                            <path d="M 34 90 Q 32 98 34 100" stroke="#143d22" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.74"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="64" cy="88" rx="9" ry="5" fill="#0a2416" stroke="#1b5e20" stroke-width="1.3"/>
-                            <path d="M 66 90 Q 68 98 66 100" stroke="#143d22" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.7"/>
-                        </g>
-                        <!-- Cheeks -->
-                        <circle cx="32" cy="47" r="4.2" fill="url(#slime-teen-cheek)"/>
-                        <circle cx="68" cy="47" r="4.2" fill="url(#slime-teen-cheek)"/>
                         <g class="tm-mascot-eye-open">
                             <ellipse cx="39" cy="40" rx="6.8" ry="7.8" fill="#fff" stroke="#1b5e20" stroke-width="1.5"/>
                             <ellipse cx="61" cy="40" rx="6.8" ry="7.8" fill="#fff" stroke="#1b5e20" stroke-width="1.5"/>
@@ -33004,12 +33421,28 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="37.8" cy="42.73" r="0.9520000000000001" fill="#fff" opacity="0.45"/>
                             <circle cx="59.8" cy="42.73" r="0.9520000000000001" fill="#fff" opacity="0.45"/>
                         </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
+<g class="tm-mascot-eye-closed" style="display:none;">
                             <path d="M 32.2 40 Q 39 36.5 45.8 40" stroke="#1b5e20" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                             <path d="M 54.2 40 Q 61 36.5 67.8 40" stroke="#1b5e20" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 40 58 Q 50 66 60 58" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 40 60 Q 50 53 60 60" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-happy" d="M 40 58 Q 50 66 60 58" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 40 60 Q 50 53 60 60" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+</g>
+                        <g class="tm-animate-leg-left">
+                            <ellipse cx="36" cy="88" rx="9" ry="5" fill="#0a2416" stroke="#1b5e20" stroke-width="1.3"/>
+                            <path d="M 34 90 Q 32 98 34 100" stroke="#143d22" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.74"/>
+                        </g>
+                        <g class="tm-animate-leg-right">
+                            <ellipse cx="64" cy="88" rx="9" ry="5" fill="#0a2416" stroke="#1b5e20" stroke-width="1.3"/>
+                            <path d="M 66 90 Q 68 98 66 100" stroke="#143d22" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.7"/>
+                        </g>
+                        <!-- Cheeks -->
+                        <circle cx="32" cy="47" r="4.2" fill="url(#slime-teen-cheek)"/>
+                        <circle cx="68" cy="47" r="4.2" fill="url(#slime-teen-cheek)"/>
+
+
+
+
                         <path d="M 44 57 L 43 61 M 56 57 L 57 61" stroke="#eeff41" stroke-width="1.8" stroke-linecap="round" opacity="0.65"/>
                         <g class="tm-animate-wing-left" opacity="0"><circle cx="18" cy="42" r="1"/></g>
                         <g class="tm-animate-wing-right" opacity="0"><circle cx="82" cy="42" r="1"/></g>
@@ -33085,18 +33518,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 50 94 Q 52 106 50 110" stroke="#0d3b1e" stroke-width="3.8" fill="none" stroke-linecap="round" opacity="0.74"/>
                             <path d="M 60 92 Q 62 100 60 104" stroke="#143d22" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.68"/>
                             <ellipse cx="38" cy="108" rx="3.2" ry="2.5" fill="#0a2416" opacity="0.78"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="36" cy="90" rx="10" ry="5.5" fill="#0a2416" stroke="#0d2818" stroke-width="1.5"/>
-                            <path d="M 34 92 Q 32 100 34 104" stroke="#143d22" stroke-width="3.6" fill="none" stroke-linecap="round" opacity="0.76"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="64" cy="90" rx="10" ry="5.5" fill="#0a2416" stroke="#0d2818" stroke-width="1.5"/>
-                            <path d="M 66 92 Q 68 100 66 104" stroke="#143d22" stroke-width="3.6" fill="none" stroke-linecap="round" opacity="0.72"/>
-                        </g>
-                        <!-- Cheeks -->
-                        <circle cx="31" cy="45" r="4.2" fill="url(#slime-adult-cheek)"/>
-                        <circle cx="69" cy="45" r="4.2" fill="url(#slime-adult-cheek)"/>
                         <g class="tm-mascot-eye-open">
                             <ellipse cx="38" cy="38" rx="6.8" ry="7.8" fill="#fff" stroke="#0d2818" stroke-width="1.5"/>
                             <ellipse cx="62" cy="38" rx="6.8" ry="7.8" fill="#fff" stroke="#0d2818" stroke-width="1.5"/>
@@ -33109,12 +33530,28 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="36.8" cy="40.73" r="0.9520000000000001" fill="#fff" opacity="0.45"/>
                             <circle cx="60.8" cy="40.73" r="0.9520000000000001" fill="#fff" opacity="0.45"/>
                         </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
+<g class="tm-mascot-eye-closed" style="display:none;">
                             <path d="M 31.2 38 Q 38 34.5 44.8 38" stroke="#0d2818" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                             <path d="M 55.2 38 Q 62 34.5 68.8 38" stroke="#0d2818" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 39 56 Q 50 64 61 56" stroke="#1b5e20" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 39 58 Q 50 51 61 58" stroke="#1b5e20" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-happy" d="M 39 56 Q 50 64 61 56" stroke="#1b5e20" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 39 58 Q 50 51 61 58" stroke="#1b5e20" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+</g>
+                        <g class="tm-animate-leg-left">
+                            <ellipse cx="36" cy="90" rx="10" ry="5.5" fill="#0a2416" stroke="#0d2818" stroke-width="1.5"/>
+                            <path d="M 34 92 Q 32 100 34 104" stroke="#143d22" stroke-width="3.6" fill="none" stroke-linecap="round" opacity="0.76"/>
+                        </g>
+                        <g class="tm-animate-leg-right">
+                            <ellipse cx="64" cy="90" rx="10" ry="5.5" fill="#0a2416" stroke="#0d2818" stroke-width="1.5"/>
+                            <path d="M 66 92 Q 68 100 66 104" stroke="#143d22" stroke-width="3.6" fill="none" stroke-linecap="round" opacity="0.72"/>
+                        </g>
+                        <!-- Cheeks -->
+                        <circle cx="31" cy="45" r="4.2" fill="url(#slime-adult-cheek)"/>
+                        <circle cx="69" cy="45" r="4.2" fill="url(#slime-adult-cheek)"/>
+
+
+
+
                         <g class="tm-animate-wing-left" opacity="0"><circle cx="18" cy="44" r="1"/></g>
                         <g class="tm-animate-wing-right" opacity="0"><circle cx="82" cy="44" r="1"/></g>
                 </g>
@@ -33181,18 +33618,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 54 92 Q 56 104 54 108" stroke="#1b5e20" stroke-width="4.4" fill="none" stroke-linecap="round" opacity="0.78"/>
                             <ellipse cx="42" cy="106" rx="3.5" ry="2.5" fill="#0a2416" opacity="0.82"/>
                             <ellipse cx="54" cy="108" rx="3" ry="2" fill="#0a2416" opacity="0.78"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="38" cy="90" rx="10" ry="6" fill="#0a2416" stroke="#33691e" stroke-width="1.4"/>
-                            <ellipse cx="36" cy="94" rx="4" ry="3" fill="#1b5e20" opacity="0.55"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="62" cy="90" rx="10" ry="6" fill="#0a2416" stroke="#33691e" stroke-width="1.4"/>
-                            <ellipse cx="64" cy="94" rx="4" ry="3" fill="#1b5e20" opacity="0.5"/>
-                        </g>
-                        <!-- Cheeks -->
-                        <circle cx="34" cy="51" r="4.2" fill="url(#slime-middle-cheek)"/>
-                        <circle cx="66" cy="51" r="4.2" fill="url(#slime-middle-cheek)"/>
                         <g class="tm-mascot-eye-open">
                             <ellipse cx="41" cy="44" rx="6.2" ry="6.8" fill="#fff8e1" stroke="#33691e" stroke-width="1.5"/>
                             <ellipse cx="59" cy="44" rx="6.2" ry="6.8" fill="#fff8e1" stroke="#33691e" stroke-width="1.5"/>
@@ -33205,12 +33630,28 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="39.8" cy="46.38" r="0.8680000000000001" fill="#fff" opacity="0.45"/>
                             <circle cx="57.8" cy="46.38" r="0.8680000000000001" fill="#fff" opacity="0.45"/>
                         </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
+<g class="tm-mascot-eye-closed" style="display:none;">
                             <path d="M 34.8 44 Q 41 40.5 47.2 44" stroke="#33691e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                             <path d="M 52.8 44 Q 59 40.5 65.2 44" stroke="#33691e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 42 56 Q 50 61 58 56" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 58 Q 50 51 58 58" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-happy" d="M 42 56 Q 50 61 58 56" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 58 Q 50 51 58 58" stroke="#558b2f" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+</g>
+                        <g class="tm-animate-leg-left">
+                            <ellipse cx="38" cy="90" rx="10" ry="6" fill="#0a2416" stroke="#33691e" stroke-width="1.4"/>
+                            <ellipse cx="36" cy="94" rx="4" ry="3" fill="#1b5e20" opacity="0.55"/>
+                        </g>
+                        <g class="tm-animate-leg-right">
+                            <ellipse cx="62" cy="90" rx="10" ry="6" fill="#0a2416" stroke="#33691e" stroke-width="1.4"/>
+                            <ellipse cx="64" cy="94" rx="4" ry="3" fill="#1b5e20" opacity="0.5"/>
+                        </g>
+                        <!-- Cheeks -->
+                        <circle cx="34" cy="51" r="4.2" fill="url(#slime-middle-cheek)"/>
+                        <circle cx="66" cy="51" r="4.2" fill="url(#slime-middle-cheek)"/>
+
+
+
+
                         <g class="tm-animate-wing-left" opacity="0"><circle cx="18" cy="48" r="1"/></g>
                         <g class="tm-animate-wing-right" opacity="0"><circle cx="82" cy="48" r="1"/></g>
                 </g>
@@ -33293,18 +33734,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 68 90 Q 70 100 68 102" stroke="#0d2818" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.68"/>
                             <path d="M 36 88 Q 34 94 36 96" stroke="#33691e" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.6"/>
                             <path d="M 62 88 Q 64 94 62 96" stroke="#33691e" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.58"/>
-                        </g>
-                        <g class="tm-animate-leg-left">
-                            <ellipse cx="38" cy="92" rx="11" ry="5" fill="#02140c" stroke="#0d2818" stroke-width="1.4"/>
-                            <path d="M 34 94 Q 30 102 32 104" stroke="#0d2818" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.72"/>
-                        </g>
-                        <g class="tm-animate-leg-right">
-                            <ellipse cx="62" cy="92" rx="11" ry="5" fill="#02140c" stroke="#0d2818" stroke-width="1.4"/>
-                            <path d="M 66 94 Q 70 102 68 104" stroke="#0d2818" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.68"/>
-                        </g>
-                        <!-- Cheeks -->
-                        <circle cx="32" cy="59" r="4.2" fill="url(#slime-old-cheek)"/>
-                        <circle cx="68" cy="59" r="4.2" fill="url(#slime-old-cheek)"/>
                         <g class="tm-mascot-eye-open">
                             <ellipse cx="39" cy="52" rx="5.8" ry="6.5" fill="#fff" stroke="#0d2818" stroke-width="1.5"/>
                             <ellipse cx="61" cy="52" rx="5.8" ry="6.5" fill="#fff" stroke="#0d2818" stroke-width="1.5"/>
@@ -33317,12 +33746,28 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="37.8" cy="54.275" r="0.812" fill="#fff" opacity="0.45"/>
                             <circle cx="59.8" cy="54.275" r="0.812" fill="#fff" opacity="0.45"/>
                         </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
+<g class="tm-mascot-eye-closed" style="display:none;">
                             <path d="M 33.2 52 Q 39 48.5 44.8 52" stroke="#0d2818" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                             <path d="M 55.2 52 Q 61 48.5 66.8 52" stroke="#0d2818" stroke-width="2.4" fill="none" stroke-linecap="round"/>
                         </g>
-                        <path class="tm-mascot-mouth-happy" d="M 41 64 Q 50 69.5 59 64" stroke="#69f0ae" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 66 Q 50 59 59 66" stroke="#69f0ae" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-happy" d="M 41 64 Q 50 69.5 59 64" stroke="#69f0ae" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 41 66 Q 50 59 59 66" stroke="#69f0ae" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+</g>
+                        <g class="tm-animate-leg-left">
+                            <ellipse cx="38" cy="92" rx="11" ry="5" fill="#02140c" stroke="#0d2818" stroke-width="1.4"/>
+                            <path d="M 34 94 Q 30 102 32 104" stroke="#0d2818" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.72"/>
+                        </g>
+                        <g class="tm-animate-leg-right">
+                            <ellipse cx="62" cy="92" rx="11" ry="5" fill="#02140c" stroke="#0d2818" stroke-width="1.4"/>
+                            <path d="M 66 94 Q 70 102 68 104" stroke="#0d2818" stroke-width="3.2" fill="none" stroke-linecap="round" opacity="0.68"/>
+                        </g>
+                        <!-- Cheeks -->
+                        <circle cx="32" cy="59" r="4.2" fill="url(#slime-old-cheek)"/>
+                        <circle cx="68" cy="59" r="4.2" fill="url(#slime-old-cheek)"/>
+
+
+
+
                         <g class="tm-animate-wing-left" opacity="0"><circle cx="18" cy="54" r="1"/></g>
                         <g class="tm-animate-wing-right" opacity="0"><circle cx="82" cy="54" r="1"/></g>
                 </g>
@@ -33425,7 +33870,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <!-- Tiny stem -->
                             <rect x="47" y="62" width="6" ry="1" height="16" rx="2" fill="url(#plant-baby-bark-shade)" stroke="#4e342e" stroke-width="0.9"/>
                             <path d="M 48 68 Q 50 69 52 68" stroke="#5d4037" stroke-width="0.6" fill="none" opacity="0.45"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="40" cy="38" rx="7.5" ry="9.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
+                            <ellipse cx="60" cy="38" rx="7.5" ry="9.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
+                            <ellipse cx="41" cy="39.5" rx="4.2" ry="5.427999999999999" fill="url(#plant-baby-iris)"/>
+                            <ellipse cx="61" cy="39.5" rx="4.2" ry="5.427999999999999" fill="url(#plant-baby-iris)"/>
+                            <ellipse cx="41" cy="39.8" rx="2.175" ry="3.036" fill="#0d1a08"/>
+                            <ellipse cx="61" cy="39.8" rx="2.175" ry="3.036" fill="#0d1a08"/>
+                            <circle cx="42.5" cy="35.976" r="2.4" fill="#fff" opacity="0.95"/>
+                            <circle cx="62.5" cy="35.976" r="2.4" fill="#fff" opacity="0.95"/>
+                            <circle cx="39.2" cy="41.036" r="0.9750000000000001" fill="#fff" opacity="0.5"/>
+                            <circle cx="59.2" cy="41.036" r="0.9750000000000001" fill="#fff" opacity="0.5"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 32.5 39 Q 40 34.78 47.5 39" stroke="#558b2f" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 52.5 39 Q 60 34.78 67.5 39" stroke="#558b2f" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 43 50 Q 50 55.5 57 50" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 52 Q 50 46 57 52" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
                         <!-- Tiny leaf arms -->
                         <g class="tm-animate-arm-left">
                             <path d="M 34 66 Q 22 64 18 58 Q 16 54 20 54" fill="none" stroke="#558b2f" stroke-width="2.8" stroke-linecap="round"/>
@@ -33460,24 +33923,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="46" cy="52" r="1.1" fill="#33691e" opacity="0.2"/>
                         <circle cx="34" cy="46" r="4" fill="url(#plant-baby-cheek)"/>
                         <circle cx="66" cy="46" r="4" fill="url(#plant-baby-cheek)"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="38" rx="7.5" ry="9.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
-                            <ellipse cx="60" cy="38" rx="7.5" ry="9.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
-                            <ellipse cx="41" cy="39.5" rx="4.2" ry="5.427999999999999" fill="url(#plant-baby-iris)"/>
-                            <ellipse cx="61" cy="39.5" rx="4.2" ry="5.427999999999999" fill="url(#plant-baby-iris)"/>
-                            <ellipse cx="41" cy="39.8" rx="2.175" ry="3.036" fill="#0d1a08"/>
-                            <ellipse cx="61" cy="39.8" rx="2.175" ry="3.036" fill="#0d1a08"/>
-                            <circle cx="42.5" cy="35.976" r="2.4" fill="#fff" opacity="0.95"/>
-                            <circle cx="62.5" cy="35.976" r="2.4" fill="#fff" opacity="0.95"/>
-                            <circle cx="39.2" cy="41.036" r="0.9750000000000001" fill="#fff" opacity="0.5"/>
-                            <circle cx="59.2" cy="41.036" r="0.9750000000000001" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 32.5 39 Q 40 34.78 47.5 39" stroke="#558b2f" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.5 39 Q 60 34.78 67.5 39" stroke="#558b2f" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 50 Q 50 55.5 57 50" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 52 Q 50 46 57 52" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+
+
+
                 </g>
 
                 <!-- PLANT KID — sapling scout -->
@@ -33580,7 +34029,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="44" cy="44" r="0.8" fill="#33691e" opacity="0.28"/>
                             <circle cx="58" cy="43" r="0.85" fill="#33691e" opacity="0.28"/>
                             <circle cx="52" cy="48" r="0.9" fill="#33691e" opacity="0.25"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="41" cy="36" rx="7" ry="8.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
+                            <ellipse cx="59" cy="36" rx="7" ry="8.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
+                            <ellipse cx="42" cy="37.5" rx="3.9200000000000004" ry="4.837999999999999" fill="url(#plant-kid-iris)"/>
+                            <ellipse cx="60" cy="37.5" rx="3.9200000000000004" ry="4.837999999999999" fill="url(#plant-kid-iris)"/>
+                            <ellipse cx="42" cy="37.8" rx="2.03" ry="2.706" fill="#0d1a08"/>
+                            <ellipse cx="60" cy="37.8" rx="2.03" ry="2.706" fill="#0d1a08"/>
+                            <circle cx="43.5" cy="34.196" r="2.24" fill="#fff" opacity="0.95"/>
+                            <circle cx="61.5" cy="34.196" r="2.24" fill="#fff" opacity="0.95"/>
+                            <circle cx="40.2" cy="38.706" r="0.91" fill="#fff" opacity="0.5"/>
+                            <circle cx="58.2" cy="38.706" r="0.91" fill="#fff" opacity="0.5"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 34 37 Q 41 33.13 48 37" stroke="#558b2f" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 52 37 Q 59 33.13 66 37" stroke="#558b2f" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 43 48 Q 50 53.5 57 48" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 50 Q 50 44 57 50" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 42 54 Q 28 52 20 46 Q 16 42 22 40" fill="none" stroke="url(#plant-kid-bark)" stroke-width="3.5" stroke-linecap="round"/>
                             <path d="M 24 44 Q 18 42 16 46" fill="none" stroke="url(#plant-kid-bark)" stroke-width="2.5" stroke-linecap="round"/>
@@ -33603,24 +34070,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 54 89 Q 58 95 56 99" stroke="url(#plant-kid-bark-shade)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <ellipse cx="63" cy="99" rx="4.5" ry="2.2" fill="#3e2723"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="36" rx="7" ry="8.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
-                            <ellipse cx="59" cy="36" rx="7" ry="8.2" fill="#fff" stroke="#558b2f" stroke-width="1.4"/>
-                            <ellipse cx="42" cy="37.5" rx="3.9200000000000004" ry="4.837999999999999" fill="url(#plant-kid-iris)"/>
-                            <ellipse cx="60" cy="37.5" rx="3.9200000000000004" ry="4.837999999999999" fill="url(#plant-kid-iris)"/>
-                            <ellipse cx="42" cy="37.8" rx="2.03" ry="2.706" fill="#0d1a08"/>
-                            <ellipse cx="60" cy="37.8" rx="2.03" ry="2.706" fill="#0d1a08"/>
-                            <circle cx="43.5" cy="34.196" r="2.24" fill="#fff" opacity="0.95"/>
-                            <circle cx="61.5" cy="34.196" r="2.24" fill="#fff" opacity="0.95"/>
-                            <circle cx="40.2" cy="38.706" r="0.91" fill="#fff" opacity="0.5"/>
-                            <circle cx="58.2" cy="38.706" r="0.91" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 34 37 Q 41 33.13 48 37" stroke="#558b2f" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52 37 Q 59 33.13 66 37" stroke="#558b2f" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 48 Q 50 53.5 57 48" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 50 Q 50 44 57 50" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+
+
+
                 </g>
 
                 <!-- PLANT TEEN — blooming youth -->
@@ -33725,7 +34178,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="62" cy="39" r="2.2" fill="#f48fb1" opacity="0.85"/>
                             <circle cx="33.5" cy="31.5" r="1" fill="#fff" opacity="0.55"/>
                             <circle cx="65.5" cy="32.5" r="1" fill="#fff" opacity="0.55"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="41" cy="32" rx="6.8" ry="7.8" fill="#fff" stroke="#2e7d32" stroke-width="1.4"/>
+                            <ellipse cx="59" cy="32" rx="6.8" ry="7.8" fill="#fff" stroke="#2e7d32" stroke-width="1.4"/>
+                            <ellipse cx="42" cy="33.5" rx="3.8080000000000003" ry="4.601999999999999" fill="url(#plant-teen-iris)"/>
+                            <ellipse cx="60" cy="33.5" rx="3.8080000000000003" ry="4.601999999999999" fill="url(#plant-teen-iris)"/>
+                            <ellipse cx="42" cy="33.8" rx="1.9719999999999998" ry="2.574" fill="#0d1a08"/>
+                            <ellipse cx="60" cy="33.8" rx="1.9719999999999998" ry="2.574" fill="#0d1a08"/>
+                            <circle cx="43.5" cy="30.284" r="2.176" fill="#fff" opacity="0.95"/>
+                            <circle cx="61.5" cy="30.284" r="2.176" fill="#fff" opacity="0.95"/>
+                            <circle cx="40.2" cy="34.574" r="0.884" fill="#fff" opacity="0.5"/>
+                            <circle cx="58.2" cy="34.574" r="0.884" fill="#fff" opacity="0.5"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 34.2 33 Q 41 29.27 47.8 33" stroke="#2e7d32" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 52.2 33 Q 59 29.27 65.8 33" stroke="#2e7d32" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 42 44 Q 50 49.5 58 44" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 46 Q 50 40 58 46" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 40 52 Q 24 50 16 44 Q 12 40 18 38" fill="none" stroke="url(#plant-teen-bark)" stroke-width="3.8" stroke-linecap="round"/>
                             <!-- Thorn-soft gauntlet -->
@@ -33749,24 +34220,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 54 89 Q 58 95 56 99" stroke="url(#plant-teen-bark-shade)" stroke-width="2.8" fill="none" stroke-linecap="round"/>
                             <ellipse cx="63" cy="99" rx="5" ry="2.5" fill="#3e2723"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="32" rx="6.8" ry="7.8" fill="#fff" stroke="#2e7d32" stroke-width="1.4"/>
-                            <ellipse cx="59" cy="32" rx="6.8" ry="7.8" fill="#fff" stroke="#2e7d32" stroke-width="1.4"/>
-                            <ellipse cx="42" cy="33.5" rx="3.8080000000000003" ry="4.601999999999999" fill="url(#plant-teen-iris)"/>
-                            <ellipse cx="60" cy="33.5" rx="3.8080000000000003" ry="4.601999999999999" fill="url(#plant-teen-iris)"/>
-                            <ellipse cx="42" cy="33.8" rx="1.9719999999999998" ry="2.574" fill="#0d1a08"/>
-                            <ellipse cx="60" cy="33.8" rx="1.9719999999999998" ry="2.574" fill="#0d1a08"/>
-                            <circle cx="43.5" cy="30.284" r="2.176" fill="#fff" opacity="0.95"/>
-                            <circle cx="61.5" cy="30.284" r="2.176" fill="#fff" opacity="0.95"/>
-                            <circle cx="40.2" cy="34.574" r="0.884" fill="#fff" opacity="0.5"/>
-                            <circle cx="58.2" cy="34.574" r="0.884" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 34.2 33 Q 41 29.27 47.8 33" stroke="#2e7d32" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.2 33 Q 59 29.27 65.8 33" stroke="#2e7d32" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 42 44 Q 50 49.5 58 44" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 46 Q 50 40 58 46" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+
+
+
                 </g>
 
                 <!-- PLANT ADULT — Worldroot Warden -->
@@ -33874,7 +34331,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse cx="50" cy="30" rx="12" ry="10" fill="url(#plant-adult-bark-shade)" stroke="#3e2723" stroke-width="1.2"/>
                             <path d="M 42 28 Q 50 26 58 28" stroke="#4e342e" stroke-width="0.8" fill="none" opacity="0.45"/>
                             <path d="M 43 34 Q 50 36 57 34" stroke="#4e342e" stroke-width="0.75" fill="none" opacity="0.4"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="43" cy="30" rx="6.5" ry="7.5" fill="#fff" stroke="#33691e" stroke-width="1.4"/>
+                            <ellipse cx="57" cy="30" rx="6.5" ry="7.5" fill="#fff" stroke="#33691e" stroke-width="1.4"/>
+                            <ellipse cx="44" cy="31.5" rx="3.6400000000000006" ry="4.425" fill="url(#plant-adult-iris)"/>
+                            <ellipse cx="58" cy="31.5" rx="3.6400000000000006" ry="4.425" fill="url(#plant-adult-iris)"/>
+                            <ellipse cx="44" cy="31.8" rx="1.8849999999999998" ry="2.475" fill="#1a2e0f"/>
+                            <ellipse cx="58" cy="31.8" rx="1.8849999999999998" ry="2.475" fill="#1a2e0f"/>
+                            <circle cx="45.5" cy="28.35" r="2.08" fill="#fff" opacity="0.95"/>
+                            <circle cx="59.5" cy="28.35" r="2.08" fill="#fff" opacity="0.95"/>
+                            <circle cx="42.2" cy="32.475" r="0.845" fill="#fff" opacity="0.5"/>
+                            <circle cx="56.2" cy="32.475" r="0.845" fill="#fff" opacity="0.5"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 36.5 31 Q 43 27.375 49.5 31" stroke="#33691e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 50.5 31 Q 57 27.375 63.5 31" stroke="#33691e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 42 38 Q 50 43.5 58 38" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 40 Q 50 34 58 40" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <ellipse cx="26" cy="58" rx="7.5" ry="11" fill="url(#plant-adult-bark)" stroke="#4e342e" stroke-width="1.6"/>
                             <ellipse cx="22" cy="52" rx="2.8" ry="2" fill="#fff" opacity="0.12"/>
@@ -33899,24 +34374,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 52 92 Q 50 98 52 102" stroke="url(#plant-adult-bark-shade)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
                             <ellipse cx="69" cy="101" rx="5" ry="2.5" fill="#3e2723"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="43" cy="30" rx="6.5" ry="7.5" fill="#fff" stroke="#33691e" stroke-width="1.4"/>
-                            <ellipse cx="57" cy="30" rx="6.5" ry="7.5" fill="#fff" stroke="#33691e" stroke-width="1.4"/>
-                            <ellipse cx="44" cy="31.5" rx="3.6400000000000006" ry="4.425" fill="url(#plant-adult-iris)"/>
-                            <ellipse cx="58" cy="31.5" rx="3.6400000000000006" ry="4.425" fill="url(#plant-adult-iris)"/>
-                            <ellipse cx="44" cy="31.8" rx="1.8849999999999998" ry="2.475" fill="#1a2e0f"/>
-                            <ellipse cx="58" cy="31.8" rx="1.8849999999999998" ry="2.475" fill="#1a2e0f"/>
-                            <circle cx="45.5" cy="28.35" r="2.08" fill="#fff" opacity="0.95"/>
-                            <circle cx="59.5" cy="28.35" r="2.08" fill="#fff" opacity="0.95"/>
-                            <circle cx="42.2" cy="32.475" r="0.845" fill="#fff" opacity="0.5"/>
-                            <circle cx="56.2" cy="32.475" r="0.845" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 36.5 31 Q 43 27.375 49.5 31" stroke="#33691e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 50.5 31 Q 57 27.375 63.5 31" stroke="#33691e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 42 38 Q 50 43.5 58 38" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 42 40 Q 50 34 58 40" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+
+
+
+
                 </g>
 
                 <!-- PLANT MIDDLE AGE — ancient oak -->
@@ -34026,7 +34487,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse cx="68" cy="38" rx="2.2" ry="3" fill="#795548" stroke="#4e342e" stroke-width="0.7"/>
                             <path d="M 68 35 Q 68 33 70 34 Q 68 33 66 34 Q 68 33 68 35" fill="#558b2f" stroke="#33691e" stroke-width="0.5"/>
                             <ellipse cx="50" cy="18" rx="2" ry="2.8" fill="#6d4c41" stroke="#4e342e" stroke-width="0.6"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="42" cy="32" rx="5.8" ry="6.5" fill="#fff" stroke="#33691e" stroke-width="1.3"/>
+                            <ellipse cx="58" cy="32" rx="5.8" ry="6.5" fill="#fff" stroke="#33691e" stroke-width="1.3"/>
+                            <ellipse cx="43" cy="33.5" rx="3.248" ry="3.835" fill="url(#plant-mid-iris)"/>
+                            <ellipse cx="59" cy="33.5" rx="3.248" ry="3.835" fill="url(#plant-mid-iris)"/>
+                            <ellipse cx="43" cy="33.8" rx="1.682" ry="2.145" fill="#1a2e0f"/>
+                            <ellipse cx="59" cy="33.8" rx="1.682" ry="2.145" fill="#1a2e0f"/>
+                            <circle cx="44.5" cy="30.57" r="1.8559999999999999" fill="#fff" opacity="0.95"/>
+                            <circle cx="60.5" cy="30.57" r="1.8559999999999999" fill="#fff" opacity="0.95"/>
+                            <circle cx="41.2" cy="34.145" r="0.754" fill="#fff" opacity="0.5"/>
+                            <circle cx="57.2" cy="34.145" r="0.754" fill="#fff" opacity="0.5"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 36.2 33 Q 42 29.725 47.8 33" stroke="#33691e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 52.2 33 Q 58 29.725 63.8 33" stroke="#33691e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 43 40 Q 50 45.5 57 40" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 42 Q 50 36 57 42" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 36 56 Q 22 54 14 48 Q 10 44 16 42" fill="none" stroke="url(#plant-mid-bark)" stroke-width="4" stroke-linecap="round"/>
                             <ellipse cx="12" cy="44" rx="5.5" ry="7" fill="url(#plant-mid-leaf-dark)" stroke="#33691e" stroke-width="1.1"/>
@@ -34047,24 +34526,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 56 95 Q 62 102 60 106" stroke="url(#plant-mid-bark-shade)" stroke-width="3.2" fill="none" stroke-linecap="round"/>
                             <ellipse cx="69" cy="105" rx="5.5" ry="2.8" fill="#3e2723"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="42" cy="32" rx="5.8" ry="6.5" fill="#fff" stroke="#33691e" stroke-width="1.3"/>
-                            <ellipse cx="58" cy="32" rx="5.8" ry="6.5" fill="#fff" stroke="#33691e" stroke-width="1.3"/>
-                            <ellipse cx="43" cy="33.5" rx="3.248" ry="3.835" fill="url(#plant-mid-iris)"/>
-                            <ellipse cx="59" cy="33.5" rx="3.248" ry="3.835" fill="url(#plant-mid-iris)"/>
-                            <ellipse cx="43" cy="33.8" rx="1.682" ry="2.145" fill="#1a2e0f"/>
-                            <ellipse cx="59" cy="33.8" rx="1.682" ry="2.145" fill="#1a2e0f"/>
-                            <circle cx="44.5" cy="30.57" r="1.8559999999999999" fill="#fff" opacity="0.95"/>
-                            <circle cx="60.5" cy="30.57" r="1.8559999999999999" fill="#fff" opacity="0.95"/>
-                            <circle cx="41.2" cy="34.145" r="0.754" fill="#fff" opacity="0.5"/>
-                            <circle cx="57.2" cy="34.145" r="0.754" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 36.2 33 Q 42 29.725 47.8 33" stroke="#33691e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.2 33 Q 58 29.725 63.8 33" stroke="#33691e" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 40 Q 50 45.5 57 40" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 42 Q 50 36 57 42" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+
+
+
                 </g>
 
                 <!-- PLANT OLD — World Tree -->
@@ -34185,7 +34650,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 42 28 Q 50 26 58 28" stroke="#5d4037" stroke-width="0.85" fill="none" opacity="0.45"/>
                             <path d="M 40 34 Q 44 32 48 34" stroke="#5d4037" stroke-width="0.7" fill="none" opacity="0.35"/>
                             <path d="M 52 34 Q 56 32 60 34" stroke="#5d4037" stroke-width="0.7" fill="none" opacity="0.35"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="42" cy="30" rx="5.2" ry="6" fill="#fff" stroke="#33691e" stroke-width="1.2"/>
+                            <ellipse cx="58" cy="30" rx="5.2" ry="6" fill="#fff" stroke="#33691e" stroke-width="1.2"/>
+                            <ellipse cx="43" cy="31.5" rx="2.9120000000000004" ry="3.54" fill="url(#plant-old-iris)"/>
+                            <ellipse cx="59" cy="31.5" rx="2.9120000000000004" ry="3.54" fill="url(#plant-old-iris)"/>
+                            <ellipse cx="43" cy="31.8" rx="1.508" ry="1.98" fill="#1a2e0f"/>
+                            <ellipse cx="59" cy="31.8" rx="1.508" ry="1.98" fill="#1a2e0f"/>
+                            <circle cx="44.5" cy="28.68" r="1.6640000000000001" fill="#fff" opacity="0.95"/>
+                            <circle cx="60.5" cy="28.68" r="1.6640000000000001" fill="#fff" opacity="0.95"/>
+                            <circle cx="41.2" cy="31.98" r="0.676" fill="#fff" opacity="0.5"/>
+                            <circle cx="57.2" cy="31.98" r="0.676" fill="#fff" opacity="0.5"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 36.8 31 Q 42 27.9 47.2 31" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+                            <path d="M 52.8 31 Q 58 27.9 63.2 31" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 43 38 Q 50 43.5 57 38" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 40 Q 50 34 57 40" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 34 54 Q 18 50 10 42 Q 6 38 12 36" fill="none" stroke="url(#plant-old-bark)" stroke-width="4.5" stroke-linecap="round"/>
                             <ellipse cx="8" cy="38" rx="6" ry="7.5" fill="url(#plant-old-leaf)" stroke="#33691e" stroke-width="1.2"/>
@@ -34208,24 +34691,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 54 98 Q 52 105 54 110" stroke="url(#plant-old-bark-shade)" stroke-width="3" fill="none" stroke-linecap="round"/>
                             <ellipse cx="75" cy="107" rx="6" ry="3" fill="#3e2723"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="42" cy="30" rx="5.2" ry="6" fill="#fff" stroke="#33691e" stroke-width="1.2"/>
-                            <ellipse cx="58" cy="30" rx="5.2" ry="6" fill="#fff" stroke="#33691e" stroke-width="1.2"/>
-                            <ellipse cx="43" cy="31.5" rx="2.9120000000000004" ry="3.54" fill="url(#plant-old-iris)"/>
-                            <ellipse cx="59" cy="31.5" rx="2.9120000000000004" ry="3.54" fill="url(#plant-old-iris)"/>
-                            <ellipse cx="43" cy="31.8" rx="1.508" ry="1.98" fill="#1a2e0f"/>
-                            <ellipse cx="59" cy="31.8" rx="1.508" ry="1.98" fill="#1a2e0f"/>
-                            <circle cx="44.5" cy="28.68" r="1.6640000000000001" fill="#fff" opacity="0.95"/>
-                            <circle cx="60.5" cy="28.68" r="1.6640000000000001" fill="#fff" opacity="0.95"/>
-                            <circle cx="41.2" cy="31.98" r="0.676" fill="#fff" opacity="0.5"/>
-                            <circle cx="57.2" cy="31.98" r="0.676" fill="#fff" opacity="0.5"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 36.8 31 Q 42 27.9 47.2 31" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.8 31 Q 58 27.9 63.2 31" stroke="#33691e" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 38 Q 50 43.5 57 38" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 40 Q 50 34 57 40" stroke="#33691e" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+
+
+
                 </g>
                 <!-- GHOST CHARACTER - All Life Stages (dense cute epic v3) -->
                 <!-- Spirit & Void • Epic Rarity • Veil Wraith -->
@@ -34303,7 +34772,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 40 82 Q 38 88 42 90" stroke="url(#ghost-baby-wisp)" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.65"/>
                             <path d="M 50 84 Q 50 92 52 94" stroke="url(#ghost-baby-wisp)" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
                             <path d="M 60 82 Q 62 88 58 90" stroke="url(#ghost-baby-wisp)" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.65"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="40" cy="40" rx="7.5" ry="9" fill="#faf8ff" stroke="#7e57c2" stroke-width="1.5"/>
+                            <ellipse cx="60" cy="40" rx="7.5" ry="9" fill="#faf8ff" stroke="#7e57c2" stroke-width="1.5"/>
+                            <ellipse cx="40.6" cy="40.4" rx="3.9" ry="5" fill="url(#ghost-baby-iris)"/>
+                            <ellipse cx="60.6" cy="40.4" rx="3.9" ry="5" fill="url(#ghost-baby-iris)"/>
+                            <ellipse cx="40.6" cy="40.7" rx="2" ry="3.1" fill="#060612"/>
+                            <ellipse cx="60.6" cy="40.7" rx="2" ry="3.1" fill="#060612"/>
+                            <circle cx="42" cy="37.12" r="2.3" fill="#fff" opacity="0.96"/>
+                            <circle cx="62" cy="37.12" r="2.3" fill="#fff" opacity="0.96"/>
+                            <circle cx="39.2" cy="42.2" r="1.1" fill="#e1bee7" opacity="0.6"/>
+                            <circle cx="59.2" cy="42.2" r="1.1" fill="#e1bee7" opacity="0.6"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 32.5 40 Q 40 36.5 47.5 40" stroke="#7e57c2" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 52.5 40 Q 60 36.5 67.5 40" stroke="#7e57c2" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 44 52 Q 50 57.5 56 52" stroke="#7e57c2" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 54 Q 50 48 56 54" stroke="#7e57c2" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <ellipse cx="28" cy="58" rx="5.5" ry="7" fill="url(#ghost-baby-body)" stroke="#7e57c2" stroke-width="1.3"/>
                             <ellipse cx="26" cy="54" rx="2" ry="1.5" fill="#fff" opacity="0.22"/>
@@ -34322,24 +34809,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse cx="60" cy="86" rx="5.5" ry="3.5" fill="url(#ghost-baby-wisp)" stroke="#7e57c2" stroke-width="1" opacity="0.8"/>
                             <circle cx="62" cy="88" r="0.9" fill="#fff" opacity="0.25"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="40" rx="7.5" ry="9" fill="#faf8ff" stroke="#7e57c2" stroke-width="1.5"/>
-                            <ellipse cx="60" cy="40" rx="7.5" ry="9" fill="#faf8ff" stroke="#7e57c2" stroke-width="1.5"/>
-                            <ellipse cx="40.6" cy="40.4" rx="3.9" ry="5" fill="url(#ghost-baby-iris)"/>
-                            <ellipse cx="60.6" cy="40.4" rx="3.9" ry="5" fill="url(#ghost-baby-iris)"/>
-                            <ellipse cx="40.6" cy="40.7" rx="2" ry="3.1" fill="#060612"/>
-                            <ellipse cx="60.6" cy="40.7" rx="2" ry="3.1" fill="#060612"/>
-                            <circle cx="42" cy="37.12" r="2.3" fill="#fff" opacity="0.96"/>
-                            <circle cx="62" cy="37.12" r="2.3" fill="#fff" opacity="0.96"/>
-                            <circle cx="39.2" cy="42.2" r="1.1" fill="#e1bee7" opacity="0.6"/>
-                            <circle cx="59.2" cy="42.2" r="1.1" fill="#e1bee7" opacity="0.6"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 32.5 40 Q 40 36.5 47.5 40" stroke="#7e57c2" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.5 40 Q 60 36.5 67.5 40" stroke="#7e57c2" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44 52 Q 50 57.5 56 52" stroke="#7e57c2" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 54 Q 50 48 56 54" stroke="#7e57c2" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+
+
+
                 </g>
                 <!-- GHOST KID — sheet wraith -->
                 <g id="tm-mascot-evo1-ghost" style="display: none;">
@@ -34412,7 +34885,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="30" cy="70" r="1.5" fill="#b39ddb" opacity="0.25"/>
                             <circle cx="70" cy="72" r="1.3" fill="#b39ddb" opacity="0.22"/>
                             <ellipse cx="50" cy="44" rx="8" ry="5" fill="#fff" opacity="0.07"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="40" cy="38" rx="6.8" ry="8" fill="#faf8ff" stroke="#6a1b9a" stroke-width="1.5"/>
+                            <ellipse cx="60" cy="38" rx="6.8" ry="8" fill="#faf8ff" stroke="#6a1b9a" stroke-width="1.5"/>
+                            <ellipse cx="40.6" cy="38.4" rx="3.5" ry="4.5" fill="url(#ghost-kid-iris)"/>
+                            <ellipse cx="60.6" cy="38.4" rx="3.5" ry="4.5" fill="url(#ghost-kid-iris)"/>
+                            <ellipse cx="40.6" cy="38.7" rx="1.8" ry="2.7" fill="#060612"/>
+                            <ellipse cx="60.6" cy="38.7" rx="1.8" ry="2.7" fill="#060612"/>
+                            <circle cx="42" cy="35.44" r="2.0" fill="#fff" opacity="0.96"/>
+                            <circle cx="62" cy="35.44" r="2.0" fill="#fff" opacity="0.96"/>
+                            <circle cx="39.2" cy="40.2" r="1.0" fill="#e1bee7" opacity="0.6"/>
+                            <circle cx="59.2" cy="40.2" r="1.0" fill="#e1bee7" opacity="0.6"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 33.2 38 Q 40 34.5 46.8 38" stroke="#6a1b9a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 53.2 38 Q 60 34.5 66.8 38" stroke="#6a1b9a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 43 50 Q 50 55.5 57 50" stroke="#6a1b9a" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 52 Q 50 46 57 52" stroke="#6a1b9a" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 28 58 Q 12 62 8 50 Q 6 42 14 44" fill="none" stroke="url(#ghost-kid-body)" stroke-width="5.5" stroke-linecap="round" opacity="0.9"/>
                             <path d="M 10 44 L 4 38 M 10 46 L 2 46 M 12 48 L 6 52" stroke="#b39ddb" stroke-width="1.4" stroke-linecap="round"/>
@@ -34429,24 +34920,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse cx="62" cy="92" rx="6.5" ry="4" fill="url(#ghost-kid-wisp)" opacity="0.75"/>
                             <circle cx="64" cy="93" r="1" fill="#fff" opacity="0.22"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="38" rx="6.8" ry="8" fill="#faf8ff" stroke="#6a1b9a" stroke-width="1.5"/>
-                            <ellipse cx="60" cy="38" rx="6.8" ry="8" fill="#faf8ff" stroke="#6a1b9a" stroke-width="1.5"/>
-                            <ellipse cx="40.6" cy="38.4" rx="3.5" ry="4.5" fill="url(#ghost-kid-iris)"/>
-                            <ellipse cx="60.6" cy="38.4" rx="3.5" ry="4.5" fill="url(#ghost-kid-iris)"/>
-                            <ellipse cx="40.6" cy="38.7" rx="1.8" ry="2.7" fill="#060612"/>
-                            <ellipse cx="60.6" cy="38.7" rx="1.8" ry="2.7" fill="#060612"/>
-                            <circle cx="42" cy="35.44" r="2.0" fill="#fff" opacity="0.96"/>
-                            <circle cx="62" cy="35.44" r="2.0" fill="#fff" opacity="0.96"/>
-                            <circle cx="39.2" cy="40.2" r="1.0" fill="#e1bee7" opacity="0.6"/>
-                            <circle cx="59.2" cy="40.2" r="1.0" fill="#e1bee7" opacity="0.6"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33.2 38 Q 40 34.5 46.8 38" stroke="#6a1b9a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.2 38 Q 60 34.5 66.8 38" stroke="#6a1b9a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 50 Q 50 55.5 57 50" stroke="#6a1b9a" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 52 Q 50 46 57 52" stroke="#6a1b9a" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+
+
+
                 </g>
                 <!-- GHOST TEEN — veiled stalker -->
                 <g id="tm-mascot-evo2-ghost" style="display: none;">
@@ -34518,7 +34995,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 44 30 L 46 34 M 54 30 L 52 34" stroke="#9575cd" stroke-width="0.7" opacity="0.4"/>
                             <circle cx="50" cy="50" r="1.3" fill="#fff" opacity="0.18"/>
                             <path d="M 42 60 Q 46 62 50 60" stroke="#9575cd" stroke-width="0.6" fill="none" opacity="0.3"/>
+                        <g class="tm-mascot-eye-open">
+                            <path d="M 35 38 Q 41 28 47 38 Q 41 40 35 38" fill="#faf8ff" stroke="#4527a0" stroke-width="1.4"/>
+                            <path d="M 53 38 Q 59 28 65 38 Q 59 40 53 38" fill="#faf8ff" stroke="#4527a0" stroke-width="1.4"/>
+                            <ellipse cx="41.5" cy="35.5" rx="3.2" ry="3.8" fill="url(#ghost-teen-iris)"/>
+                            <ellipse cx="59.5" cy="35.5" rx="3.2" ry="3.8" fill="url(#ghost-teen-iris)"/>
+                            <ellipse cx="41.5" cy="36" rx="1.6" ry="2.2" fill="#060612"/>
+                            <ellipse cx="59.5" cy="36" rx="1.6" ry="2.2" fill="#060612"/>
+                            <circle cx="42.8" cy="33.2" r="1.5" fill="#fff" opacity="0.95"/>
+                            <circle cx="60.8" cy="33.2" r="1.5" fill="#fff" opacity="0.95"/>
+                            <circle cx="39.8" cy="36.5" r="0.75" fill="#b39ddb" opacity="0.55"/>
+                            <circle cx="57.8" cy="36.5" r="0.75" fill="#b39ddb" opacity="0.55"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 36 36 Q 41 34 46 36" stroke="#4527a0" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+                            <path d="M 54 36 Q 59 34 64 36" stroke="#4527a0" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 44 48 Q 50 53.5 56 48" stroke="#4527a0" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 50 Q 50 44 56 50" stroke="#4527a0" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 26 58 Q 10 64 6 50 Q 4 42 12 44" fill="none" stroke="url(#ghost-teen-body)" stroke-width="5" stroke-linecap="round" opacity="0.88"/>
                             <path d="M 8 44 L 2 38 M 8 46 L 0 46 M 10 48 L 4 52" stroke="#9575cd" stroke-width="1.3" stroke-linecap="round"/>
@@ -34533,24 +35028,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <g class="tm-animate-leg-right">
                             <ellipse cx="62" cy="94" rx="6" ry="3.8" fill="url(#ghost-teen-wisp)" opacity="0.7"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <path d="M 35 38 Q 41 28 47 38 Q 41 40 35 38" fill="#faf8ff" stroke="#4527a0" stroke-width="1.4"/>
-                            <path d="M 53 38 Q 59 28 65 38 Q 59 40 53 38" fill="#faf8ff" stroke="#4527a0" stroke-width="1.4"/>
-                            <ellipse cx="41.5" cy="35.5" rx="3.2" ry="3.8" fill="url(#ghost-teen-iris)"/>
-                            <ellipse cx="59.5" cy="35.5" rx="3.2" ry="3.8" fill="url(#ghost-teen-iris)"/>
-                            <ellipse cx="41.5" cy="36" rx="1.6" ry="2.2" fill="#060612"/>
-                            <ellipse cx="59.5" cy="36" rx="1.6" ry="2.2" fill="#060612"/>
-                            <circle cx="42.8" cy="33.2" r="1.5" fill="#fff" opacity="0.95"/>
-                            <circle cx="60.8" cy="33.2" r="1.5" fill="#fff" opacity="0.95"/>
-                            <circle cx="39.8" cy="36.5" r="0.75" fill="#b39ddb" opacity="0.55"/>
-                            <circle cx="57.8" cy="36.5" r="0.75" fill="#b39ddb" opacity="0.55"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 36 36 Q 41 34 46 36" stroke="#4527a0" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                            <path d="M 54 36 Q 59 34 64 36" stroke="#4527a0" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44 48 Q 50 53.5 56 48" stroke="#4527a0" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 50 Q 50 44 56 50" stroke="#4527a0" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+
+
+
                 </g>
                 <!-- GHOST ADULT — Veil Wraith -->
                 <g id="tm-mascot-evo3-ghost" style="display: none;">
@@ -34635,7 +35116,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="36" cy="76" r="1.3" fill="#7c4dff" opacity="0.35"/>
                             <circle cx="64" cy="78" r="1.2" fill="#b39ddb" opacity="0.3"/>
                             <path d="M 40 52 Q 50 50 60 52" stroke="#651fff" stroke-width="0.7" fill="none" opacity="0.4"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="40" cy="42" rx="6.5" ry="7.5" fill="#f3e8ff" stroke="#120338" stroke-width="1.5"/>
+                            <ellipse cx="60" cy="42" rx="6.5" ry="7.5" fill="#f3e8ff" stroke="#120338" stroke-width="1.5"/>
+                            <ellipse cx="40.6" cy="42.4" rx="3.4" ry="4.2" fill="url(#ghost-adult-iris)"/>
+                            <ellipse cx="60.6" cy="42.4" rx="3.4" ry="4.2" fill="url(#ghost-adult-iris)"/>
+                            <ellipse cx="40.6" cy="42.7" rx="1.7" ry="2.6" fill="#060612"/>
+                            <ellipse cx="60.6" cy="42.7" rx="1.7" ry="2.6" fill="#060612"/>
+                            <circle cx="42" cy="39.6" r="1.9" fill="#fff" opacity="0.96"/>
+                            <circle cx="62" cy="39.6" r="1.9" fill="#fff" opacity="0.96"/>
+                            <circle cx="39.2" cy="44.2" r="0.9" fill="#e1bee7" opacity="0.6"/>
+                            <circle cx="59.2" cy="44.2" r="0.9" fill="#e1bee7" opacity="0.6"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 33.5 42 Q 40 38.5 46.5 42" stroke="#120338" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 53.5 42 Q 60 38.5 66.5 42" stroke="#120338" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 43 52 Q 50 57.5 57 52" stroke="#7c4dff" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 54 Q 50 48 57 54" stroke="#7c4dff" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 24 58 Q 8 62 4 48 Q 2 40 10 42" fill="none" stroke="url(#ghost-adult-claw)" stroke-width="5.5" stroke-linecap="round" opacity="0.92"/>
                             <path d="M 6 40 L 0 34 M 6 42 L -2 42 M 8 44 L 2 48" stroke="#7c4dff" stroke-width="1.5" stroke-linecap="round"/>
@@ -34652,24 +35151,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <g class="tm-animate-leg-right">
                             <ellipse cx="62" cy="96" rx="7" ry="4.5" fill="url(#ghost-adult-wisp)" stroke="#120338" stroke-width="1" opacity="0.65"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="42" rx="6.5" ry="7.5" fill="#f3e8ff" stroke="#120338" stroke-width="1.5"/>
-                            <ellipse cx="60" cy="42" rx="6.5" ry="7.5" fill="#f3e8ff" stroke="#120338" stroke-width="1.5"/>
-                            <ellipse cx="40.6" cy="42.4" rx="3.4" ry="4.2" fill="url(#ghost-adult-iris)"/>
-                            <ellipse cx="60.6" cy="42.4" rx="3.4" ry="4.2" fill="url(#ghost-adult-iris)"/>
-                            <ellipse cx="40.6" cy="42.7" rx="1.7" ry="2.6" fill="#060612"/>
-                            <ellipse cx="60.6" cy="42.7" rx="1.7" ry="2.6" fill="#060612"/>
-                            <circle cx="42" cy="39.6" r="1.9" fill="#fff" opacity="0.96"/>
-                            <circle cx="62" cy="39.6" r="1.9" fill="#fff" opacity="0.96"/>
-                            <circle cx="39.2" cy="44.2" r="0.9" fill="#e1bee7" opacity="0.6"/>
-                            <circle cx="59.2" cy="44.2" r="0.9" fill="#e1bee7" opacity="0.6"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33.5 42 Q 40 38.5 46.5 42" stroke="#120338" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.5 42 Q 60 38.5 66.5 42" stroke="#120338" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43 52 Q 50 57.5 57 52" stroke="#7c4dff" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43 54 Q 50 48 57 54" stroke="#7c4dff" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+
+
+
                 </g>
                 <!-- GHOST MIDDLE AGE — chain phantom -->
                 <g id="tm-mascot-evo4-ghost" style="display: none;">
@@ -34740,7 +35225,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse cx="58" cy="62" rx="2" ry="1.5" fill="none" stroke="url(#ghost-mid-chain)" stroke-width="0.95"/>
                             <circle cx="50" cy="52" r="1.2" fill="#cfd8dc" opacity="0.25"/>
                             <path d="M 38 74 Q 40 78 42 74" stroke="#b0bec5" stroke-width="0.6" fill="none" opacity="0.3"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="41" cy="40" rx="5.5" ry="6.2" fill="#f5f5f5" stroke="#78909c" stroke-width="1.5"/>
+                            <ellipse cx="59" cy="40" rx="5.5" ry="6.2" fill="#f5f5f5" stroke="#78909c" stroke-width="1.5"/>
+                            <ellipse cx="41.6" cy="40.4" rx="2.9" ry="3.5" fill="url(#ghost-mid-iris)"/>
+                            <ellipse cx="59.6" cy="40.4" rx="2.9" ry="3.5" fill="url(#ghost-mid-iris)"/>
+                            <ellipse cx="41.6" cy="40.7" rx="1.4" ry="2.1" fill="#060612"/>
+                            <ellipse cx="59.6" cy="40.7" rx="1.4" ry="2.1" fill="#060612"/>
+                            <circle cx="43" cy="38.016" r="1.6" fill="#fff" opacity="0.96"/>
+                            <circle cx="61" cy="38.016" r="1.6" fill="#fff" opacity="0.96"/>
+                            <circle cx="40.2" cy="42.2" r="0.8" fill="#e1bee7" opacity="0.6"/>
+                            <circle cx="58.2" cy="42.2" r="0.8" fill="#e1bee7" opacity="0.6"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 35.5 40 Q 41 36.5 46.5 40" stroke="#78909c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 53.5 40 Q 59 36.5 64.5 40" stroke="#78909c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 44 50 Q 50 55.5 56 50" stroke="#78909c" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 52 Q 50 46 56 52" stroke="#78909c" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 28 58 Q 14 62 10 50 Q 8 44 14 46" fill="none" stroke="url(#ghost-mid-body)" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
                             <path d="M 10 46 L 4 40 M 10 48 L 2 48" stroke="#b0bec5" stroke-width="1.3" stroke-linecap="round"/>
@@ -34755,24 +35258,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <g class="tm-animate-leg-right">
                             <ellipse cx="60" cy="94" rx="6" ry="3.8" fill="url(#ghost-mid-wisp)" opacity="0.65"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="41" cy="40" rx="5.5" ry="6.2" fill="#f5f5f5" stroke="#78909c" stroke-width="1.5"/>
-                            <ellipse cx="59" cy="40" rx="5.5" ry="6.2" fill="#f5f5f5" stroke="#78909c" stroke-width="1.5"/>
-                            <ellipse cx="41.6" cy="40.4" rx="2.9" ry="3.5" fill="url(#ghost-mid-iris)"/>
-                            <ellipse cx="59.6" cy="40.4" rx="2.9" ry="3.5" fill="url(#ghost-mid-iris)"/>
-                            <ellipse cx="41.6" cy="40.7" rx="1.4" ry="2.1" fill="#060612"/>
-                            <ellipse cx="59.6" cy="40.7" rx="1.4" ry="2.1" fill="#060612"/>
-                            <circle cx="43" cy="38.016" r="1.6" fill="#fff" opacity="0.96"/>
-                            <circle cx="61" cy="38.016" r="1.6" fill="#fff" opacity="0.96"/>
-                            <circle cx="40.2" cy="42.2" r="0.8" fill="#e1bee7" opacity="0.6"/>
-                            <circle cx="58.2" cy="42.2" r="0.8" fill="#e1bee7" opacity="0.6"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 35.5 40 Q 41 36.5 46.5 40" stroke="#78909c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.5 40 Q 59 36.5 64.5 40" stroke="#78909c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44 50 Q 50 55.5 56 50" stroke="#78909c" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44 52 Q 50 46 56 52" stroke="#78909c" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+
+
+
                 </g>
                 <!-- GHOST OLD — eternal phantom -->
                 <g id="tm-mascot-evo5-ghost" style="display: none;">
@@ -34847,7 +35336,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="76" cy="80" r="1.6" fill="#4dd0e1" opacity="0.28"/>
                             <path d="M 44 38 Q 50 36 56 38" stroke="#b0bec5" stroke-width="0.65" fill="none" opacity="0.35"/>
                             <line x1="46" y1="26" x2="54" y2="26" stroke="#80deea" stroke-width="0.6" opacity="0.35"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="42" cy="36" rx="4.8" ry="5.2" fill="#fafafa" stroke="#546e7a" stroke-width="1.5"/>
+                            <ellipse cx="58" cy="36" rx="4.8" ry="5.2" fill="#fafafa" stroke="#546e7a" stroke-width="1.5"/>
+                            <ellipse cx="42.6" cy="36.4" rx="2.5" ry="2.9" fill="url(#ghost-old-iris)"/>
+                            <ellipse cx="58.6" cy="36.4" rx="2.5" ry="2.9" fill="url(#ghost-old-iris)"/>
+                            <ellipse cx="42.6" cy="36.7" rx="1.2" ry="1.8" fill="#060612"/>
+                            <ellipse cx="58.6" cy="36.7" rx="1.2" ry="1.8" fill="#060612"/>
+                            <circle cx="44" cy="34.336" r="1.4" fill="#fff" opacity="0.96"/>
+                            <circle cx="60" cy="34.336" r="1.4" fill="#fff" opacity="0.96"/>
+                            <circle cx="41.2" cy="38.2" r="0.7" fill="#e1bee7" opacity="0.6"/>
+                            <circle cx="57.2" cy="38.2" r="0.7" fill="#e1bee7" opacity="0.6"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 37.2 36 Q 42 32.5 46.8 36" stroke="#546e7a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            <path d="M 53.2 36 Q 58 32.5 62.8 36" stroke="#546e7a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 45 46 Q 50 51.5 55 46" stroke="#546e7a" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 48 Q 50 42 55 48" stroke="#546e7a" stroke-width="2" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 26 58 Q 10 64 6 50 Q 4 44 12 46" fill="none" stroke="url(#ghost-old-body)" stroke-width="4.5" stroke-linecap="round" opacity="0.85"/>
                             <path d="M 8 44 L 2 38 M 8 46 L 0 46 M 10 48 L 4 52" stroke="#80deea" stroke-width="1.2" stroke-linecap="round"/>
@@ -34865,24 +35372,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="50" cy="28" r="2.8" fill="url(#ghost-old-third)" stroke="#546e7a" stroke-width="0.9" opacity="0.75"/>
                         <circle cx="50" cy="28" r="1.4" fill="#4dd0e1" opacity="0.85"/>
                         <circle cx="50.5" cy="27.2" r="0.55" fill="#fff"/>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="42" cy="36" rx="4.8" ry="5.2" fill="#fafafa" stroke="#546e7a" stroke-width="1.5"/>
-                            <ellipse cx="58" cy="36" rx="4.8" ry="5.2" fill="#fafafa" stroke="#546e7a" stroke-width="1.5"/>
-                            <ellipse cx="42.6" cy="36.4" rx="2.5" ry="2.9" fill="url(#ghost-old-iris)"/>
-                            <ellipse cx="58.6" cy="36.4" rx="2.5" ry="2.9" fill="url(#ghost-old-iris)"/>
-                            <ellipse cx="42.6" cy="36.7" rx="1.2" ry="1.8" fill="#060612"/>
-                            <ellipse cx="58.6" cy="36.7" rx="1.2" ry="1.8" fill="#060612"/>
-                            <circle cx="44" cy="34.336" r="1.4" fill="#fff" opacity="0.96"/>
-                            <circle cx="60" cy="34.336" r="1.4" fill="#fff" opacity="0.96"/>
-                            <circle cx="41.2" cy="38.2" r="0.7" fill="#e1bee7" opacity="0.6"/>
-                            <circle cx="57.2" cy="38.2" r="0.7" fill="#e1bee7" opacity="0.6"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 37.2 36 Q 42 32.5 46.8 36" stroke="#546e7a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.2 36 Q 58 32.5 62.8 36" stroke="#546e7a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45 46 Q 50 51.5 55 46" stroke="#546e7a" stroke-width="2" fill="none" stroke-linecap="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 48 Q 50 42 55 48" stroke="#546e7a" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+
+
+
                 </g>
                 <!-- CAT CHARACTER - All Life Stages (dense cute epic v4 · feline boss) -->
                 <!-- Fate & Shadow • Rare Rarity • Moonfang Oracle -->
@@ -34974,7 +35467,26 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <!-- Whiskers -->
                             <path d="M 41 39 L 28 37 M 41 41 L 29 41 M 41 43 L 29 45" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
                             <path d="M 59 39 L 72 37 M 59 41 L 71 41 M 59 43 L 71 45" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="40" cy="32" rx="7.2" ry="8.8" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
+                            <ellipse cx="40.3" cy="32.4" rx="3.7" ry="6.3" fill="url(#cat-baby-iris)"/>
+                            <ellipse cx="40.35" cy="32.5" rx="1.6" ry="3.7" fill="#0a0614"/>
+                            <circle cx="41.4" cy="29.5" r="2.0" fill="#f3e5f5" opacity="0.95"/>
+                            <circle cx="39.1" cy="34.6" r="0.9" fill="#f3e5f5" opacity="0.5"/>
+                            <ellipse cx="60" cy="32" rx="7.2" ry="8.8" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
+                            <ellipse cx="60.3" cy="32.4" rx="3.7" ry="6.3" fill="url(#cat-baby-iris)"/>
+                            <ellipse cx="60.35" cy="32.5" rx="1.6" ry="3.7" fill="#0a0614"/>
+                            <circle cx="61.4" cy="29.5" r="2.0" fill="#f3e5f5" opacity="0.95"/>
+                            <circle cx="59.1" cy="34.6" r="0.9" fill="#f3e5f5" opacity="0.5"/>
+
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 32.8 32 Q 40 28.8 47.2 32" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                            <path d="M 52.8 32 Q 60 28.8 67.2 32" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 44.5 46 Q 47.25 50.5 50 47.5 Q 52.75 50.5 55.5 46" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 44.5 49 Q 50 43.5 55.5 49" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <ellipse cx="27" cy="62" rx="6.2" ry="9.2" fill="url(#cat-baby-fur)" stroke="#4a148c" stroke-width="1.2" transform="rotate(-24 27 62)"/>
                             <ellipse cx="23" cy="72" rx="5.4" ry="4.4" fill="url(#cat-baby-belly)" stroke="#4a148c" stroke-width="0.9"/>
@@ -35007,25 +35519,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="61" cy="87" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
                             <circle cx="63.205" cy="87.315" r="0.9974999999999999" fill="#ff6090" opacity="0.8"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="32" rx="7.2" ry="8.8" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
-                            <ellipse cx="40.3" cy="32.4" rx="3.7" ry="6.3" fill="url(#cat-baby-iris)"/>
-                            <ellipse cx="40.35" cy="32.5" rx="1.6" ry="3.7" fill="#0a0614"/>
-                            <circle cx="41.4" cy="29.5" r="2.0" fill="#f3e5f5" opacity="0.95"/>
-                            <circle cx="39.1" cy="34.6" r="0.9" fill="#f3e5f5" opacity="0.5"/>
-                            <ellipse cx="60" cy="32" rx="7.2" ry="8.8" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
-                            <ellipse cx="60.3" cy="32.4" rx="3.7" ry="6.3" fill="url(#cat-baby-iris)"/>
-                            <ellipse cx="60.35" cy="32.5" rx="1.6" ry="3.7" fill="#0a0614"/>
-                            <circle cx="61.4" cy="29.5" r="2.0" fill="#f3e5f5" opacity="0.95"/>
-                            <circle cx="59.1" cy="34.6" r="0.9" fill="#f3e5f5" opacity="0.5"/>
 
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 32.8 32 Q 40 28.8 47.2 32" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                            <path d="M 52.8 32 Q 60 28.8 67.2 32" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 44.5 46 Q 47.25 50.5 50 47.5 Q 52.75 50.5 55.5 46" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 44.5 49 Q 50 43.5 55.5 49" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+
+
+
                 </g>
 
                 <!-- CAT KID — shadow cub -->
@@ -35115,7 +35612,26 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <!-- Whiskers -->
                             <path d="M 41 37 L 28 35 M 41 39 L 29 39 M 41 41 L 29 43" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
                             <path d="M 59 37 L 72 35 M 59 39 L 71 39 M 59 41 L 71 43" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="40" cy="30" rx="6.8" ry="8.2" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
+                            <ellipse cx="40.3" cy="30.4" rx="3.5" ry="5.9" fill="url(#cat-kid-iris)"/>
+                            <ellipse cx="40.35" cy="30.5" rx="1.5" ry="3.4" fill="#0a0614"/>
+                            <circle cx="41.4" cy="27.7" r="1.9" fill="#f3e5f5" opacity="0.95"/>
+                            <circle cx="39.1" cy="32.5" r="0.8" fill="#f3e5f5" opacity="0.5"/>
+                            <ellipse cx="60" cy="30" rx="6.8" ry="8.2" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
+                            <ellipse cx="60.3" cy="30.4" rx="3.5" ry="5.9" fill="url(#cat-kid-iris)"/>
+                            <ellipse cx="60.35" cy="30.5" rx="1.5" ry="3.4" fill="#0a0614"/>
+                            <circle cx="61.4" cy="27.7" r="1.9" fill="#f3e5f5" opacity="0.95"/>
+                            <circle cx="59.1" cy="32.5" r="0.8" fill="#f3e5f5" opacity="0.5"/>
+
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 33.2 30 Q 40 26.8 46.8 30" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                            <path d="M 53.2 30 Q 60 26.8 66.8 30" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 43.8 44 Q 46.9 48.5 50 45.5 Q 53.1 48.5 56.2 44" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 47 Q 50 41.5 56.2 47" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <ellipse cx="27" cy="60" rx="6.2" ry="9.2" fill="url(#cat-kid-fur)" stroke="#4a148c" stroke-width="1.2" transform="rotate(-24 27 60)"/>
                             <ellipse cx="23" cy="70" rx="5.4" ry="4.4" fill="url(#cat-kid-belly)" stroke="#4a148c" stroke-width="0.9"/>
@@ -35148,25 +35664,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="61" cy="87" r="0.95" fill="#ff6090" opacity="0.8"/>
                             <circle cx="63.1" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="30" rx="6.8" ry="8.2" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
-                            <ellipse cx="40.3" cy="30.4" rx="3.5" ry="5.9" fill="url(#cat-kid-iris)"/>
-                            <ellipse cx="40.35" cy="30.5" rx="1.5" ry="3.4" fill="#0a0614"/>
-                            <circle cx="41.4" cy="27.7" r="1.9" fill="#f3e5f5" opacity="0.95"/>
-                            <circle cx="39.1" cy="32.5" r="0.8" fill="#f3e5f5" opacity="0.5"/>
-                            <ellipse cx="60" cy="30" rx="6.8" ry="8.2" fill="#f8fbff" stroke="#4a148c" stroke-width="1.45"/>
-                            <ellipse cx="60.3" cy="30.4" rx="3.5" ry="5.9" fill="url(#cat-kid-iris)"/>
-                            <ellipse cx="60.35" cy="30.5" rx="1.5" ry="3.4" fill="#0a0614"/>
-                            <circle cx="61.4" cy="27.7" r="1.9" fill="#f3e5f5" opacity="0.95"/>
-                            <circle cx="59.1" cy="32.5" r="0.8" fill="#f3e5f5" opacity="0.5"/>
 
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33.2 30 Q 40 26.8 46.8 30" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.2 30 Q 60 26.8 66.8 30" stroke="#4a148c" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43.8 44 Q 46.9 48.5 50 45.5 Q 53.1 48.5 56.2 44" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 47 Q 50 41.5 56.2 47" stroke="#4a148c" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+
+
+
                 </g>
 
                 <!-- CAT TEEN — omen stalker -->
@@ -35257,7 +35758,26 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <!-- Whiskers -->
                             <path d="M 41 35 L 28 33 M 41 37 L 29 37 M 41 39 L 29 41" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
                             <path d="M 59 35 L 72 33 M 59 37 L 71 37 M 59 39 L 71 41" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="40" cy="28" rx="6.4" ry="7.6" fill="#f8fbff" stroke="#311b92" stroke-width="1.45"/>
+                            <ellipse cx="40.3" cy="28.4" rx="3.3" ry="5.5" fill="url(#cat-teen-iris)"/>
+                            <ellipse cx="40.35" cy="28.5" rx="0.9" ry="4.7" fill="#0a0614"/>
+                            <circle cx="41.4" cy="25.9" r="1.8" fill="#f3e5f5" opacity="0.95"/>
+                            <circle cx="39.1" cy="30.3" r="0.8" fill="#f3e5f5" opacity="0.5"/>
+                            <ellipse cx="60" cy="28" rx="6.4" ry="7.6" fill="#f8fbff" stroke="#311b92" stroke-width="1.45"/>
+                            <ellipse cx="60.3" cy="28.4" rx="3.3" ry="5.5" fill="url(#cat-teen-iris)"/>
+                            <ellipse cx="60.35" cy="28.5" rx="0.9" ry="4.7" fill="#0a0614"/>
+                            <circle cx="61.4" cy="25.9" r="1.8" fill="#f3e5f5" opacity="0.95"/>
+                            <circle cx="59.1" cy="30.3" r="0.8" fill="#f3e5f5" opacity="0.5"/>
+
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 33.6 28 Q 40 24.8 46.4 28" stroke="#311b92" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                            <path d="M 53.6 28 Q 60 24.8 66.4 28" stroke="#311b92" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 43.8 42 Q 46.9 46.5 50 43.5 Q 53.1 46.5 56.2 42" stroke="#311b92" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 45 Q 50 39.5 56.2 45" stroke="#311b92" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <ellipse cx="27" cy="60" rx="6.2" ry="9.2" fill="url(#cat-teen-fur)" stroke="#311b92" stroke-width="1.2" transform="rotate(-24 27 60)"/>
                             <ellipse cx="23" cy="70" rx="5.4" ry="4.4" fill="url(#cat-teen-belly)" stroke="#311b92" stroke-width="0.9"/>
@@ -35290,25 +35810,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="61" cy="87" r="0.9025" fill="#ff6090" opacity="0.8"/>
                             <circle cx="62.995" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="28" rx="6.4" ry="7.6" fill="#f8fbff" stroke="#311b92" stroke-width="1.45"/>
-                            <ellipse cx="40.3" cy="28.4" rx="3.3" ry="5.5" fill="url(#cat-teen-iris)"/>
-                            <ellipse cx="40.35" cy="28.5" rx="0.9" ry="4.7" fill="#0a0614"/>
-                            <circle cx="41.4" cy="25.9" r="1.8" fill="#f3e5f5" opacity="0.95"/>
-                            <circle cx="39.1" cy="30.3" r="0.8" fill="#f3e5f5" opacity="0.5"/>
-                            <ellipse cx="60" cy="28" rx="6.4" ry="7.6" fill="#f8fbff" stroke="#311b92" stroke-width="1.45"/>
-                            <ellipse cx="60.3" cy="28.4" rx="3.3" ry="5.5" fill="url(#cat-teen-iris)"/>
-                            <ellipse cx="60.35" cy="28.5" rx="0.9" ry="4.7" fill="#0a0614"/>
-                            <circle cx="61.4" cy="25.9" r="1.8" fill="#f3e5f5" opacity="0.95"/>
-                            <circle cx="59.1" cy="30.3" r="0.8" fill="#f3e5f5" opacity="0.5"/>
 
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33.6 28 Q 40 24.8 46.4 28" stroke="#311b92" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.6 28 Q 60 24.8 66.4 28" stroke="#311b92" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43.8 42 Q 46.9 46.5 50 43.5 Q 53.1 46.5 56.2 42" stroke="#311b92" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 45 Q 50 39.5 56.2 45" stroke="#311b92" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+
+
+
                 </g>
 
                 <!-- CAT ADULT — Moonfang Oracle -->
@@ -35420,7 +35925,26 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <!-- Whiskers -->
                             <path d="M 41 31 L 24 29 M 41 33 L 26 33 M 41 35 L 25 37" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
                             <path d="M 59 31 L 76 29 M 59 33 L 74 33 M 59 35 L 75 37" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="40" cy="24" rx="7" ry="8.4" fill="#f8fbff" stroke="#12002b" stroke-width="1.45"/>
+                            <ellipse cx="40.3" cy="24.4" rx="3.6" ry="6.0" fill="url(#cat-adult-iris)"/>
+                            <ellipse cx="40.35" cy="24.5" rx="1.0" ry="5.2" fill="#0a0614"/>
+                            <circle cx="41.4" cy="21.6" r="2.0" fill="#fffde7" opacity="0.95"/>
+                            <circle cx="39.1" cy="26.5" r="0.8" fill="#fffde7" opacity="0.5"/>
+                            <ellipse cx="60" cy="24" rx="7" ry="8.4" fill="#f8fbff" stroke="#12002b" stroke-width="1.45"/>
+                            <ellipse cx="60.3" cy="24.4" rx="3.6" ry="6.0" fill="url(#cat-adult-iris)"/>
+                            <ellipse cx="60.35" cy="24.5" rx="1.0" ry="5.2" fill="#0a0614"/>
+                            <circle cx="61.4" cy="21.6" r="2.0" fill="#fffde7" opacity="0.95"/>
+                            <circle cx="59.1" cy="26.5" r="0.8" fill="#fffde7" opacity="0.5"/>
+
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 33 24 Q 40 20.8 47 24" stroke="#12002b" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                            <path d="M 53 24 Q 60 20.8 67 24" stroke="#12002b" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 43.8 40 Q 46.9 44.5 50 41.5 Q 53.1 44.5 56.2 40" stroke="#12002b" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 43 Q 50 37.5 56.2 43" stroke="#12002b" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <ellipse cx="27" cy="60" rx="6.2" ry="9.2" fill="url(#cat-adult-fur)" stroke="#12002b" stroke-width="1.2" transform="rotate(-24 27 60)"/>
                             <ellipse cx="23" cy="70" rx="5.4" ry="4.4" fill="url(#cat-adult-belly)" stroke="#12002b" stroke-width="0.9"/>
@@ -35453,25 +35977,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="61" cy="85" r="0.95" fill="#ff6090" opacity="0.8"/>
                             <circle cx="63.1" cy="85.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="24" rx="7" ry="8.4" fill="#f8fbff" stroke="#12002b" stroke-width="1.45"/>
-                            <ellipse cx="40.3" cy="24.4" rx="3.6" ry="6.0" fill="url(#cat-adult-iris)"/>
-                            <ellipse cx="40.35" cy="24.5" rx="1.0" ry="5.2" fill="#0a0614"/>
-                            <circle cx="41.4" cy="21.6" r="2.0" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="39.1" cy="26.5" r="0.8" fill="#fffde7" opacity="0.5"/>
-                            <ellipse cx="60" cy="24" rx="7" ry="8.4" fill="#f8fbff" stroke="#12002b" stroke-width="1.45"/>
-                            <ellipse cx="60.3" cy="24.4" rx="3.6" ry="6.0" fill="url(#cat-adult-iris)"/>
-                            <ellipse cx="60.35" cy="24.5" rx="1.0" ry="5.2" fill="#0a0614"/>
-                            <circle cx="61.4" cy="21.6" r="2.0" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="59.1" cy="26.5" r="0.8" fill="#fffde7" opacity="0.5"/>
 
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33 24 Q 40 20.8 47 24" stroke="#12002b" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                            <path d="M 53 24 Q 60 20.8 67 24" stroke="#12002b" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43.8 40 Q 46.9 44.5 50 41.5 Q 53.1 44.5 56.2 40" stroke="#12002b" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 43 Q 50 37.5 56.2 43" stroke="#12002b" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+
+
+
                 </g>
 
                 <!-- CAT MIDDLE AGE — scarred omen lord -->
@@ -35564,7 +36073,26 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <!-- Whiskers -->
                             <path d="M 41 35 L 28 33 M 41 37 L 29 37 M 41 39 L 29 41" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
                             <path d="M 59 35 L 72 33 M 59 37 L 71 37 M 59 39 L 71 41" stroke="#e8eaf6" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="40" cy="28" rx="6.6" ry="7.8" fill="#f8fbff" stroke="#1a237e" stroke-width="1.45"/>
+                            <ellipse cx="40.3" cy="28.4" rx="3.4" ry="5.6" fill="url(#cat-mid-iris)"/>
+                            <ellipse cx="40.35" cy="28.5" rx="0.9" ry="4.8" fill="#0a0614"/>
+                            <circle cx="41.4" cy="25.8" r="1.8" fill="#fffde7" opacity="0.95"/>
+                            <circle cx="39.1" cy="30.3" r="0.8" fill="#fffde7" opacity="0.5"/>
+                            <ellipse cx="60" cy="28" rx="6.6" ry="7.8" fill="#f8fbff" stroke="#1a237e" stroke-width="1.45"/>
+                            <ellipse cx="60.3" cy="28.4" rx="3.4" ry="5.6" fill="url(#cat-mid-iris)"/>
+                            <ellipse cx="60.35" cy="28.5" rx="0.9" ry="4.8" fill="#0a0614"/>
+                            <circle cx="61.4" cy="25.8" r="1.8" fill="#fffde7" opacity="0.95"/>
+                            <circle cx="59.1" cy="30.3" r="0.8" fill="#fffde7" opacity="0.5"/>
+
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 33.4 28 Q 40 24.8 46.6 28" stroke="#1a237e" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                            <path d="M 53.4 28 Q 60 24.8 66.6 28" stroke="#1a237e" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 43.8 42 Q 46.9 46.5 50 43.5 Q 53.1 46.5 56.2 42" stroke="#1a237e" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 45 Q 50 39.5 56.2 45" stroke="#1a237e" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <ellipse cx="27" cy="60" rx="6.2" ry="9.2" fill="url(#cat-mid-fur)" stroke="#1a237e" stroke-width="1.2" transform="rotate(-24 27 60)"/>
                             <ellipse cx="23" cy="70" rx="5.4" ry="4.4" fill="url(#cat-mid-belly)" stroke="#1a237e" stroke-width="0.9"/>
@@ -35597,25 +36125,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="61" cy="87" r="0.95" fill="#ff6090" opacity="0.8"/>
                             <circle cx="63.1" cy="87.3" r="0.95" fill="#ff6090" opacity="0.8"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="28" rx="6.6" ry="7.8" fill="#f8fbff" stroke="#1a237e" stroke-width="1.45"/>
-                            <ellipse cx="40.3" cy="28.4" rx="3.4" ry="5.6" fill="url(#cat-mid-iris)"/>
-                            <ellipse cx="40.35" cy="28.5" rx="0.9" ry="4.8" fill="#0a0614"/>
-                            <circle cx="41.4" cy="25.8" r="1.8" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="39.1" cy="30.3" r="0.8" fill="#fffde7" opacity="0.5"/>
-                            <ellipse cx="60" cy="28" rx="6.6" ry="7.8" fill="#f8fbff" stroke="#1a237e" stroke-width="1.45"/>
-                            <ellipse cx="60.3" cy="28.4" rx="3.4" ry="5.6" fill="url(#cat-mid-iris)"/>
-                            <ellipse cx="60.35" cy="28.5" rx="0.9" ry="4.8" fill="#0a0614"/>
-                            <circle cx="61.4" cy="25.8" r="1.8" fill="#fffde7" opacity="0.95"/>
-                            <circle cx="59.1" cy="30.3" r="0.8" fill="#fffde7" opacity="0.5"/>
 
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33.4 28 Q 40 24.8 46.6 28" stroke="#1a237e" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                            <path d="M 53.4 28 Q 60 24.8 66.6 28" stroke="#1a237e" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43.8 42 Q 46.9 46.5 50 43.5 Q 53.1 46.5 56.2 42" stroke="#1a237e" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 45 Q 50 39.5 56.2 45" stroke="#1a237e" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+
+
+
                 </g>
 
                 <!-- CAT OLD — silver moon sage -->
@@ -35710,7 +36223,27 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <!-- Whiskers -->
                             <path d="M 41 33 L 24 31 M 41 35 L 26 35 M 41 37 L 25 39" stroke="#eceff1" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
                             <path d="M 59 33 L 76 31 M 59 35 L 74 35 M 59 37 L 75 39" stroke="#eceff1" stroke-width="0.85" opacity="0.75" stroke-linecap="round"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="40" cy="26" rx="7" ry="8.2" fill="#f8fbff" stroke="#546e7a" stroke-width="1.45"/>
+                            <ellipse cx="40.3" cy="26.4" rx="3.6" ry="5.9" fill="url(#cat-old-iris)"/>
+                            <ellipse cx="40.35" cy="26.5" rx="1.0" ry="5.1" fill="#0a0614"/>
+                            <circle cx="41.4" cy="23.7" r="2.0" fill="#e0f7fa" opacity="0.95"/>
+                            <circle cx="39.1" cy="28.5" r="0.8" fill="#e0f7fa" opacity="0.5"/>
+                            <ellipse cx="60" cy="26" rx="7" ry="8.2" fill="#f8fbff" stroke="#546e7a" stroke-width="1.45"/>
+                            <ellipse cx="60.3" cy="26.4" rx="3.6" ry="5.9" fill="url(#cat-old-iris)"/>
+                            <ellipse cx="60.35" cy="26.5" rx="1.0" ry="5.1" fill="#0a0614"/>
+                            <circle cx="61.4" cy="23.7" r="2.0" fill="#e0f7fa" opacity="0.95"/>
+                            <circle cx="59.1" cy="28.5" r="0.8" fill="#e0f7fa" opacity="0.5"/>
+                            <path d="M 32.6 25.5 Q 40 20.26 47.4 25.5" fill="#546e7a" opacity="0.78"/>
+                            <path d="M 52.6 25.5 Q 60 20.26 67.4 25.5" fill="#546e7a" opacity="0.78"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 33 26 Q 40 22.8 47 26" stroke="#546e7a" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                            <path d="M 53 26 Q 60 22.8 67 26" stroke="#546e7a" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 43.8 40 Q 46.9 44.5 50 41.5 Q 53.1 44.5 56.2 40" stroke="#546e7a" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 43 Q 50 37.5 56.2 43" stroke="#546e7a" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <ellipse cx="27" cy="60" rx="6.2" ry="9.2" fill="url(#cat-old-fur)" stroke="#546e7a" stroke-width="1.2" transform="rotate(-24 27 60)"/>
                             <ellipse cx="23" cy="70" rx="5.4" ry="4.4" fill="url(#cat-old-belly)" stroke="#546e7a" stroke-width="0.9"/>
@@ -35743,26 +36276,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="61" cy="87" r="0.9025" fill="#ff6090" opacity="0.8"/>
                             <circle cx="62.995" cy="87.285" r="0.9025" fill="#ff6090" opacity="0.8"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="40" cy="26" rx="7" ry="8.2" fill="#f8fbff" stroke="#546e7a" stroke-width="1.45"/>
-                            <ellipse cx="40.3" cy="26.4" rx="3.6" ry="5.9" fill="url(#cat-old-iris)"/>
-                            <ellipse cx="40.35" cy="26.5" rx="1.0" ry="5.1" fill="#0a0614"/>
-                            <circle cx="41.4" cy="23.7" r="2.0" fill="#e0f7fa" opacity="0.95"/>
-                            <circle cx="39.1" cy="28.5" r="0.8" fill="#e0f7fa" opacity="0.5"/>
-                            <ellipse cx="60" cy="26" rx="7" ry="8.2" fill="#f8fbff" stroke="#546e7a" stroke-width="1.45"/>
-                            <ellipse cx="60.3" cy="26.4" rx="3.6" ry="5.9" fill="url(#cat-old-iris)"/>
-                            <ellipse cx="60.35" cy="26.5" rx="1.0" ry="5.1" fill="#0a0614"/>
-                            <circle cx="61.4" cy="23.7" r="2.0" fill="#e0f7fa" opacity="0.95"/>
-                            <circle cx="59.1" cy="28.5" r="0.8" fill="#e0f7fa" opacity="0.5"/>
-                            <path d="M 32.6 25.5 Q 40 20.26 47.4 25.5" fill="#546e7a" opacity="0.78"/>
-                            <path d="M 52.6 25.5 Q 60 20.26 67.4 25.5" fill="#546e7a" opacity="0.78"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 33 26 Q 40 22.8 47 26" stroke="#546e7a" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                            <path d="M 53 26 Q 60 22.8 67 26" stroke="#546e7a" stroke-width="2.3" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 43.8 40 Q 46.9 44.5 50 41.5 Q 53.1 44.5 56.2 40" stroke="#546e7a" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 43.8 43 Q 50 37.5 56.2 43" stroke="#546e7a" stroke-width="1.9" fill="none" stroke-linecap="round"/>
+
+
+
+
                 </g>
 
                 <!-- PHOENIX CHARACTER - All Life Stages (evolution line v12 · distinct silhouettes per stage) -->
@@ -35817,7 +36334,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-baby-soft)"/>
                         <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-baby-soft)"/>
                         <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-baby-soft)"/>
-                        <g transform="translate(50 50) scale(0.8) translate(-50 -50)">
+                        <g transform="translate(50 50) scale(0.896) translate(-50 -50)">
                         <g class="tm-animate-tail">
                             <path d="M 48.8 71.8 Q 51.1 74.2 53.4 76.0 Q 52.5 73.3 51.2 70.2 Z" fill="url(#phoenix-baby-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-baby-soft)"/>
                             <path d="M 48.5 71.0 Q 49.2 76.0 50.0 80.0 Q 50.8 76.0 51.5 71.0 Z" fill="url(#phoenix-baby-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-baby-soft)"/>
@@ -35937,7 +36454,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo1-soft)"/>
                         <circle cx="91" cy="47" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo1-soft)"/>
                         <circle cx="24" cy="75" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo1-soft)"/>
-                        <g transform="translate(50 50) scale(0.88) translate(-50 -50)">
+                        <g transform="translate(50 50) scale(0.986) translate(-50 -50)">
                         <g class="tm-animate-tail">
                             <path d="M 48.5 69.0 Q 52.2 73.1 55.6 76.3 Q 53.9 72.0 51.5 67.0 Z" fill="url(#phoenix-evo1-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo1-soft)"/>
                             <path d="M 48.2 68.4 Q 50.5 75.4 52.6 81.1 Q 52.4 75.0 51.8 67.6 Z" fill="url(#phoenix-evo1-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo1-soft)"/>
@@ -36072,7 +36589,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="24" cy="75" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo2-soft)"/>
                         <circle cx="80" cy="72" r="0.75" fill="#ff6d00" opacity="0.56" filter="url(#phoenix-evo2-soft)"/>
                         <circle cx="35" cy="11" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo2-soft)"/>
-                        <g transform="translate(50 50) scale(0.95) translate(-50 -50)">
+                        <g transform="translate(50 50) scale(1.064) translate(-50 -50)">
                         <g class="tm-animate-tail">
                             <path d="M 48.1 63.3 Q 53.9 70.0 58.9 75.3 Q 56.0 68.6 51.9 60.7 Z" fill="url(#phoenix-evo2-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
                             <path d="M 47.8 62.7 Q 52.3 73.9 56.4 83.0 Q 54.8 73.2 52.2 61.3 Z" fill="url(#phoenix-evo2-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo2-soft)"/>
@@ -36244,7 +36761,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="93" cy="62" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo3-soft)"/>
                         <circle cx="42" cy="5" r="0.75" fill="#ffd740" opacity="0.44" filter="url(#phoenix-evo3-soft)"/>
                         <circle cx="66" cy="6" r="0.75" fill="#ff6d00" opacity="0.56" filter="url(#phoenix-evo3-soft)"/>
-                        <g transform="translate(50 50) scale(1.1) translate(-50 -50)">
+                        <g transform="translate(50 50) scale(1.232) translate(-50 -50)">
                         <g class="tm-animate-tail">
                             <path d="M 48.8 63.3 Q 53.3 76.9 57.2 88.0 Q 54.6 76.6 51.2 62.7 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo3-soft)"/>
                             <path d="M 48.8 63.0 Q 49.3 80.6 50.0 95.0 Q 50.7 80.6 51.2 63.0 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo3-soft)"/>
@@ -36418,7 +36935,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="73" cy="9" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo4-soft)"/>
                         <circle cx="9" cy="61" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo4-soft)"/>
                         <circle cx="93" cy="62" r="1.2" fill="#ff6d00" opacity="0.32" filter="url(#phoenix-evo4-soft)"/>
-                        <g transform="translate(50 50) scale(1.02) translate(-50 -50)">
+                        <g transform="translate(50 50) scale(1.142) translate(-50 -50)">
                         <g class="tm-animate-tail">
                             <path d="M 48.1 63.3 L 52.3 68.5 L 54.3 69.7 L 55.5 72.6 L 58.9 75.3 L 55.6 67.9 L 51.9 60.7 Z" fill="url(#phoenix-evo4-plum)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo4-soft)"/>
                             <path d="M 47.8 62.8 L 51.4 70.8 L 53.3 73.0 L 54.1 76.9 L 57.3 81.5 L 54.9 71.3 L 52.2 61.2 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.95" filter="url(#phoenix-evo4-soft)"/>
@@ -36603,7 +37120,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <circle cx="17" cy="35" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo5-soft)"/>
                         <circle cx="87" cy="35" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo5-soft)"/>
                         <circle cx="31" cy="86" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo5-soft)"/>
-                        <g transform="translate(50 50) scale(1.12) translate(-50 -50)">
+                        <g transform="translate(50 50) scale(1.254) translate(-50 -50)">
                         <g class="tm-animate-tail">
                             <path d="M 48.9 63.4 Q 54.3 76.7 58.9 87.4 Q 55.5 76.2 51.1 62.6 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo5-soft)"/>
                             <path d="M 48.8 63.1 Q 51.5 81.1 54.0 95.8 Q 52.9 80.9 51.2 62.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.92" filter="url(#phoenix-evo5-soft)"/>
@@ -36784,7 +37301,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="50" cy="40" r="1.2" fill="#76ff03" opacity="0.35"/>
                             <circle cx="40" cy="68" r="1.1" fill="#fff" opacity="0.2"/>
                             <circle cx="60" cy="70" r="1.1" fill="#fff" opacity="0.19"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="42" cy="38" rx="6.5" ry="7.5" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
+                            <ellipse cx="58" cy="38" rx="6.5" ry="7.5" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
+                            <ellipse cx="42.5" cy="38.5" rx="3.575" ry="4.35" fill="url(#crystal-baby-iris)"/>
+                            <ellipse cx="58.5" cy="38.5" rx="3.575" ry="4.35" fill="url(#crystal-baby-iris)"/>
+                            <ellipse cx="42.5" cy="38.8" rx="1.8200000000000003" ry="2.625" fill="#050508"/>
+                            <ellipse cx="58.5" cy="38.8" rx="1.8200000000000003" ry="2.625" fill="#050508"/>
+                            <circle cx="43.5" cy="35.375" r="1.8200000000000003" fill="#fff"/>
+                            <circle cx="59.5" cy="35.375" r="1.8200000000000003" fill="#fff"/>
+                            <circle cx="39.725" cy="40.625" r="0.78" fill="#b2ebf2" opacity="0.75"/>
+                            <circle cx="55.725" cy="40.625" r="0.78" fill="#b2ebf2" opacity="0.75"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 35.5 38 Q 42 35 48.5 38" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 51.5 38 Q 58 35 64.5 38" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 45 46 L 50 51 L 55 46" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 50 L 50 45 L 55 50" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 34 58 L 24 52 L 26 66 L 32 64 Z" fill="url(#crystal-baby-body)" stroke="#4dd0e1" stroke-width="1"/>
                             <circle cx="24" cy="54" r="1.2" fill="#fff" opacity="0.35"/>
@@ -36801,24 +37336,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 58 76 L 54 88 L 62 88 Z" fill="url(#crystal-baby-body)" stroke="#4dd0e1" stroke-width="1"/>
                             <ellipse cx="58" cy="88" rx="5" ry="2" fill="#006064"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="42" cy="38" rx="6.5" ry="7.5" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
-                            <ellipse cx="58" cy="38" rx="6.5" ry="7.5" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
-                            <ellipse cx="42.5" cy="38.5" rx="3.575" ry="4.35" fill="url(#crystal-baby-iris)"/>
-                            <ellipse cx="58.5" cy="38.5" rx="3.575" ry="4.35" fill="url(#crystal-baby-iris)"/>
-                            <ellipse cx="42.5" cy="38.8" rx="1.8200000000000003" ry="2.625" fill="#050508"/>
-                            <ellipse cx="58.5" cy="38.8" rx="1.8200000000000003" ry="2.625" fill="#050508"/>
-                            <circle cx="43.5" cy="35.375" r="1.8200000000000003" fill="#fff"/>
-                            <circle cx="59.5" cy="35.375" r="1.8200000000000003" fill="#fff"/>
-                            <circle cx="39.725" cy="40.625" r="0.78" fill="#b2ebf2" opacity="0.75"/>
-                            <circle cx="55.725" cy="40.625" r="0.78" fill="#b2ebf2" opacity="0.75"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 35.5 38 Q 42 35 48.5 38" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 51.5 38 Q 58 35 64.5 38" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45 46 L 50 51 L 55 46" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 50 L 50 45 L 55 50" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+
+
+
                 </g>
 
                 <!-- CRYSTAL KID — prism cluster -->
@@ -36888,7 +37409,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <circle cx="50" cy="38" r="1.3" fill="#76ff03" opacity="0.38"/>
                             <circle cx="34" cy="60" r="1.1" fill="#fff" opacity="0.22"/>
                             <circle cx="66" cy="62" r="1.1" fill="#fff" opacity="0.21"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="43" cy="36" rx="6" ry="6.8" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
+                            <ellipse cx="57" cy="36" rx="6" ry="6.8" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
+                            <ellipse cx="43.5" cy="36.5" rx="3.3000000000000003" ry="3.9439999999999995" fill="url(#crystal-kid-iris)"/>
+                            <ellipse cx="57.5" cy="36.5" rx="3.3000000000000003" ry="3.9439999999999995" fill="url(#crystal-kid-iris)"/>
+                            <ellipse cx="43.5" cy="36.8" rx="1.6800000000000002" ry="2.38" fill="#050508"/>
+                            <ellipse cx="57.5" cy="36.8" rx="1.6800000000000002" ry="2.38" fill="#050508"/>
+                            <circle cx="44.5" cy="33.62" r="1.6800000000000002" fill="#fff"/>
+                            <circle cx="58.5" cy="33.62" r="1.6800000000000002" fill="#fff"/>
+                            <circle cx="40.9" cy="38.38" r="0.72" fill="#b2ebf2" opacity="0.75"/>
+                            <circle cx="54.9" cy="38.38" r="0.72" fill="#b2ebf2" opacity="0.75"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 37 36 Q 43 33 49 36" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 51 36 Q 57 33 63 36" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 45 44 L 50 49 L 55 44" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 48 L 50 43 L 55 48" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 32 58 L 18 50 L 20 68 L 28 66 Z" fill="url(#crystal-kid-body)" stroke="#4dd0e1" stroke-width="1.1"/>
                             <path d="M 20 68 L 14 76 L 18 74 L 22 78 Z" fill="url(#crystal-kid-body)" stroke="#76ff03" stroke-width="0.85"/>
@@ -36905,24 +37444,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 60 78 L 56 90 L 64 90 Z" fill="url(#crystal-kid-body)" stroke="#4dd0e1" stroke-width="1.1"/>
                             <ellipse cx="60" cy="90" rx="6" ry="2.5" fill="#006064"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="43" cy="36" rx="6" ry="6.8" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
-                            <ellipse cx="57" cy="36" rx="6" ry="6.8" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
-                            <ellipse cx="43.5" cy="36.5" rx="3.3000000000000003" ry="3.9439999999999995" fill="url(#crystal-kid-iris)"/>
-                            <ellipse cx="57.5" cy="36.5" rx="3.3000000000000003" ry="3.9439999999999995" fill="url(#crystal-kid-iris)"/>
-                            <ellipse cx="43.5" cy="36.8" rx="1.6800000000000002" ry="2.38" fill="#050508"/>
-                            <ellipse cx="57.5" cy="36.8" rx="1.6800000000000002" ry="2.38" fill="#050508"/>
-                            <circle cx="44.5" cy="33.62" r="1.6800000000000002" fill="#fff"/>
-                            <circle cx="58.5" cy="33.62" r="1.6800000000000002" fill="#fff"/>
-                            <circle cx="40.9" cy="38.38" r="0.72" fill="#b2ebf2" opacity="0.75"/>
-                            <circle cx="54.9" cy="38.38" r="0.72" fill="#b2ebf2" opacity="0.75"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 37 36 Q 43 33 49 36" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 51 36 Q 57 33 63 36" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45 44 L 50 49 L 55 44" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 48 L 50 43 L 55 48" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+
+
+
                 </g>
 
                 <!-- CRYSTAL TEEN — facet warrior -->
@@ -36993,7 +37518,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse cx="58" cy="62" rx="2.2" ry="1.5" fill="#fff" opacity="0.16"/>
                             <circle cx="32" cy="50" r="1.1" fill="#fff" opacity="0.2"/>
                             <circle cx="68" cy="52" r="1.1" fill="#fff" opacity="0.19"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="43" cy="30" rx="6" ry="6.8" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
+                            <ellipse cx="57" cy="30" rx="6" ry="6.8" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
+                            <ellipse cx="43.5" cy="30.5" rx="3.3000000000000003" ry="3.9439999999999995" fill="url(#crystal-teen-iris)"/>
+                            <ellipse cx="57.5" cy="30.5" rx="3.3000000000000003" ry="3.9439999999999995" fill="url(#crystal-teen-iris)"/>
+                            <ellipse cx="43.5" cy="30.8" rx="1.6800000000000002" ry="2.38" fill="#050508"/>
+                            <ellipse cx="57.5" cy="30.8" rx="1.6800000000000002" ry="2.38" fill="#050508"/>
+                            <circle cx="44.5" cy="27.62" r="1.6800000000000002" fill="#fff"/>
+                            <circle cx="58.5" cy="27.62" r="1.6800000000000002" fill="#fff"/>
+                            <circle cx="40.9" cy="32.38" r="0.72" fill="#b2ebf2" opacity="0.75"/>
+                            <circle cx="54.9" cy="32.38" r="0.72" fill="#b2ebf2" opacity="0.75"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 37 30 Q 43 27 49 30" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 51 30 Q 57 27 63 30" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 45 40 L 50 45 L 55 40" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 44 L 50 39 L 55 44" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 32 56 L 16 48 L 18 68 L 28 66 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1.2"/>
                             <path d="M 18 68 L 12 76 L 16 74 L 20 78 Z" fill="url(#crystal-teen-body)" stroke="#76ff03" stroke-width="0.95"/>
@@ -37010,24 +37553,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 60 78 L 54 92 L 66 92 Z" fill="url(#crystal-teen-body)" stroke="#4dd0e1" stroke-width="1.2"/>
                             <ellipse cx="60" cy="92" rx="7" ry="2.5" fill="#006064"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="43" cy="30" rx="6" ry="6.8" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
-                            <ellipse cx="57" cy="30" rx="6" ry="6.8" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
-                            <ellipse cx="43.5" cy="30.5" rx="3.3000000000000003" ry="3.9439999999999995" fill="url(#crystal-teen-iris)"/>
-                            <ellipse cx="57.5" cy="30.5" rx="3.3000000000000003" ry="3.9439999999999995" fill="url(#crystal-teen-iris)"/>
-                            <ellipse cx="43.5" cy="30.8" rx="1.6800000000000002" ry="2.38" fill="#050508"/>
-                            <ellipse cx="57.5" cy="30.8" rx="1.6800000000000002" ry="2.38" fill="#050508"/>
-                            <circle cx="44.5" cy="27.62" r="1.6800000000000002" fill="#fff"/>
-                            <circle cx="58.5" cy="27.62" r="1.6800000000000002" fill="#fff"/>
-                            <circle cx="40.9" cy="32.38" r="0.72" fill="#b2ebf2" opacity="0.75"/>
-                            <circle cx="54.9" cy="32.38" r="0.72" fill="#b2ebf2" opacity="0.75"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 37 30 Q 43 27 49 30" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 51 30 Q 57 27 63 30" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45 40 L 50 45 L 55 40" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 44 L 50 39 L 55 44" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+
+
+
                 </g>
 
                 <!-- CRYSTAL ADULT — Prism Titan -->
@@ -37099,7 +37628,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse cx="40" cy="58" rx="2.5" ry="1.6" fill="#fff" opacity="0.18"/>
                             <ellipse cx="60" cy="60" rx="2.5" ry="1.6" fill="#fff" opacity="0.17"/>
                             <line x1="50" y1="38" x2="50" y2="44" stroke="#fff" stroke-width="0.6" opacity="0.25"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="43" cy="28" rx="5.5" ry="6.2" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
+                            <ellipse cx="57" cy="28" rx="5.5" ry="6.2" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
+                            <ellipse cx="43.5" cy="28.5" rx="3.0250000000000004" ry="3.5959999999999996" fill="url(#crystal-adult-iris)"/>
+                            <ellipse cx="57.5" cy="28.5" rx="3.0250000000000004" ry="3.5959999999999996" fill="url(#crystal-adult-iris)"/>
+                            <ellipse cx="43.5" cy="28.8" rx="1.54" ry="2.17" fill="#050508"/>
+                            <ellipse cx="57.5" cy="28.8" rx="1.54" ry="2.17" fill="#050508"/>
+                            <circle cx="44.5" cy="25.83" r="1.54" fill="#fff"/>
+                            <circle cx="58.5" cy="25.83" r="1.54" fill="#fff"/>
+                            <circle cx="41.075" cy="30.17" r="0.6599999999999999" fill="#b2ebf2" opacity="0.75"/>
+                            <circle cx="55.075" cy="30.17" r="0.6599999999999999" fill="#b2ebf2" opacity="0.75"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 37.5 28 Q 43 25 48.5 28" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 51.5 28 Q 57 25 62.5 28" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 45 38 L 50 43 L 55 38" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 42 L 50 37 L 55 42" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 28 54 L 10 44 L 12 68 L 24 66 Z" fill="url(#crystal-adult-body)" stroke="#4dd0e1" stroke-width="1.3"/>
                             <path d="M 12 68 L 6 78 L 10 76 L 14 80 Z" fill="url(#crystal-adult-body)" stroke="#76ff03" stroke-width="1"/>
@@ -37116,24 +37663,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 62 84 L 56 96 L 68 96 Z" fill="url(#crystal-adult-body)" stroke="#4dd0e1" stroke-width="1.3"/>
                             <ellipse cx="62" cy="96" rx="8" ry="3" fill="#006064"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="43" cy="28" rx="5.5" ry="6.2" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
-                            <ellipse cx="57" cy="28" rx="5.5" ry="6.2" fill="#e0f7fa" stroke="#4dd0e1" stroke-width="1.5"/>
-                            <ellipse cx="43.5" cy="28.5" rx="3.0250000000000004" ry="3.5959999999999996" fill="url(#crystal-adult-iris)"/>
-                            <ellipse cx="57.5" cy="28.5" rx="3.0250000000000004" ry="3.5959999999999996" fill="url(#crystal-adult-iris)"/>
-                            <ellipse cx="43.5" cy="28.8" rx="1.54" ry="2.17" fill="#050508"/>
-                            <ellipse cx="57.5" cy="28.8" rx="1.54" ry="2.17" fill="#050508"/>
-                            <circle cx="44.5" cy="25.83" r="1.54" fill="#fff"/>
-                            <circle cx="58.5" cy="25.83" r="1.54" fill="#fff"/>
-                            <circle cx="41.075" cy="30.17" r="0.6599999999999999" fill="#b2ebf2" opacity="0.75"/>
-                            <circle cx="55.075" cy="30.17" r="0.6599999999999999" fill="#b2ebf2" opacity="0.75"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 37.5 28 Q 43 25 48.5 28" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 51.5 28 Q 57 25 62.5 28" stroke="#4dd0e1" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45 38 L 50 43 L 55 38" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 42 L 50 37 L 55 42" stroke="#4dd0e1" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+
+
+
                 </g>
 
                 <!-- CRYSTAL MIDDLE AGE — veined colossus -->
@@ -37209,7 +37742,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 44 46 L 50 50 L 56 46" stroke="url(#crystal-mid-vein)" stroke-width="0.85" fill="none" opacity="0.5"/>
                             <ellipse cx="42" cy="62" rx="2" ry="1.4" fill="#fff" opacity="0.14"/>
                             <ellipse cx="58" cy="64" rx="2" ry="1.4" fill="#fff" opacity="0.13"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="43" cy="30" rx="5" ry="5.8" fill="#eceff1" stroke="#ffab40" stroke-width="1.5"/>
+                            <ellipse cx="57" cy="30" rx="5" ry="5.8" fill="#eceff1" stroke="#ffab40" stroke-width="1.5"/>
+                            <ellipse cx="43.5" cy="30.5" rx="2.75" ry="3.364" fill="url(#crystal-mid-iris)"/>
+                            <ellipse cx="57.5" cy="30.5" rx="2.75" ry="3.364" fill="url(#crystal-mid-iris)"/>
+                            <ellipse cx="43.5" cy="30.8" rx="1.4000000000000001" ry="2.03" fill="#050508"/>
+                            <ellipse cx="57.5" cy="30.8" rx="1.4000000000000001" ry="2.03" fill="#050508"/>
+                            <circle cx="44.5" cy="27.97" r="1.4000000000000001" fill="#fff"/>
+                            <circle cx="58.5" cy="27.97" r="1.4000000000000001" fill="#fff"/>
+                            <circle cx="41.25" cy="32.03" r="0.6" fill="#b2ebf2" opacity="0.75"/>
+                            <circle cx="55.25" cy="32.03" r="0.6" fill="#b2ebf2" opacity="0.75"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 38 30 Q 43 27 48 30" stroke="#ffab40" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 52 30 Q 57 27 62 30" stroke="#ffab40" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 45 40 L 50 45 L 55 40" stroke="#ffab40" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 44 L 50 39 L 55 44" stroke="#ffab40" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 30 56 L 16 48 L 18 68 L 28 66 Z" fill="url(#crystal-mid-body)" stroke="#ffab40" stroke-width="1.2"/>
                             <path d="M 22 52 L 18 48" stroke="url(#crystal-mid-vein)" stroke-width="0.9" opacity="0.5"/>
@@ -37228,24 +37779,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 60 80 L 54 94 L 66 94 Z" fill="url(#crystal-mid-body)" stroke="#ffab40" stroke-width="1.2"/>
                             <ellipse cx="60" cy="94" rx="7" ry="2.5" fill="#37474f"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="43" cy="30" rx="5" ry="5.8" fill="#eceff1" stroke="#ffab40" stroke-width="1.5"/>
-                            <ellipse cx="57" cy="30" rx="5" ry="5.8" fill="#eceff1" stroke="#ffab40" stroke-width="1.5"/>
-                            <ellipse cx="43.5" cy="30.5" rx="2.75" ry="3.364" fill="url(#crystal-mid-iris)"/>
-                            <ellipse cx="57.5" cy="30.5" rx="2.75" ry="3.364" fill="url(#crystal-mid-iris)"/>
-                            <ellipse cx="43.5" cy="30.8" rx="1.4000000000000001" ry="2.03" fill="#050508"/>
-                            <ellipse cx="57.5" cy="30.8" rx="1.4000000000000001" ry="2.03" fill="#050508"/>
-                            <circle cx="44.5" cy="27.97" r="1.4000000000000001" fill="#fff"/>
-                            <circle cx="58.5" cy="27.97" r="1.4000000000000001" fill="#fff"/>
-                            <circle cx="41.25" cy="32.03" r="0.6" fill="#b2ebf2" opacity="0.75"/>
-                            <circle cx="55.25" cy="32.03" r="0.6" fill="#b2ebf2" opacity="0.75"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 38 30 Q 43 27 48 30" stroke="#ffab40" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 52 30 Q 57 27 62 30" stroke="#ffab40" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45 40 L 50 45 L 55 40" stroke="#ffab40" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 44 L 50 39 L 55 44" stroke="#ffab40" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+
+
+
                 </g>
 
                 <!-- CRYSTAL OLD — eternal crystal -->
@@ -37318,7 +37855,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <ellipse cx="40" cy="56" rx="2.2" ry="1.5" fill="#fff" opacity="0.2"/>
                             <ellipse cx="60" cy="58" rx="2.2" ry="1.5" fill="#fff" opacity="0.19"/>
                             <line x1="50" y1="36" x2="50" y2="42" stroke="#e1bee7" stroke-width="0.65" opacity="0.35"/>
+                        <g class="tm-mascot-eye-open">
+                            <ellipse cx="43" cy="26" rx="5.5" ry="6.2" fill="#f3e5f5" stroke="#ce93d8" stroke-width="1.5"/>
+                            <ellipse cx="57" cy="26" rx="5.5" ry="6.2" fill="#f3e5f5" stroke="#ce93d8" stroke-width="1.5"/>
+                            <ellipse cx="43.5" cy="26.5" rx="3.0250000000000004" ry="3.5959999999999996" fill="url(#crystal-old-iris)"/>
+                            <ellipse cx="57.5" cy="26.5" rx="3.0250000000000004" ry="3.5959999999999996" fill="url(#crystal-old-iris)"/>
+                            <ellipse cx="43.5" cy="26.8" rx="1.54" ry="2.17" fill="#050508"/>
+                            <ellipse cx="57.5" cy="26.8" rx="1.54" ry="2.17" fill="#050508"/>
+                            <circle cx="44.5" cy="23.83" r="1.54" fill="#fff"/>
+                            <circle cx="58.5" cy="23.83" r="1.54" fill="#fff"/>
+                            <circle cx="41.075" cy="28.17" r="0.6599999999999999" fill="#b2ebf2" opacity="0.75"/>
+                            <circle cx="55.075" cy="28.17" r="0.6599999999999999" fill="#b2ebf2" opacity="0.75"/>
                         </g>
+<g class="tm-mascot-eye-closed" style="display:none;">
+                            <path d="M 37.5 26 Q 43 23 48.5 26" stroke="#ce93d8" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                            <path d="M 51.5 26 Q 57 23 62.5 26" stroke="#ce93d8" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+                        </g>
+<path class="tm-mascot-mouth-happy" d="M 45 36 L 50 41 L 55 36" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 40 L 50 35 L 55 40" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
                         <g class="tm-animate-arm-left">
                             <path d="M 30 52 L 14 44 L 16 66 L 26 64 Z" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="1.2" opacity="0.9"/>
                             <path d="M 16 66 L 10 74 L 14 72 L 18 76 Z" fill="url(#crystal-old-body)" stroke="#ea80fc" stroke-width="0.9"/>
@@ -37335,24 +37890,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <path d="M 60 76 L 56 88 L 64 86 Z" fill="url(#crystal-old-body)" stroke="#ce93d8" stroke-width="1.1" opacity="0.75"/>
                             <ellipse cx="60" cy="88" rx="5" ry="2" fill="#7b1fa2" opacity="0.6"/>
                         </g>
-                        <g class="tm-mascot-eye-open">
-                            <ellipse cx="43" cy="26" rx="5.5" ry="6.2" fill="#f3e5f5" stroke="#ce93d8" stroke-width="1.5"/>
-                            <ellipse cx="57" cy="26" rx="5.5" ry="6.2" fill="#f3e5f5" stroke="#ce93d8" stroke-width="1.5"/>
-                            <ellipse cx="43.5" cy="26.5" rx="3.0250000000000004" ry="3.5959999999999996" fill="url(#crystal-old-iris)"/>
-                            <ellipse cx="57.5" cy="26.5" rx="3.0250000000000004" ry="3.5959999999999996" fill="url(#crystal-old-iris)"/>
-                            <ellipse cx="43.5" cy="26.8" rx="1.54" ry="2.17" fill="#050508"/>
-                            <ellipse cx="57.5" cy="26.8" rx="1.54" ry="2.17" fill="#050508"/>
-                            <circle cx="44.5" cy="23.83" r="1.54" fill="#fff"/>
-                            <circle cx="58.5" cy="23.83" r="1.54" fill="#fff"/>
-                            <circle cx="41.075" cy="28.17" r="0.6599999999999999" fill="#b2ebf2" opacity="0.75"/>
-                            <circle cx="55.075" cy="28.17" r="0.6599999999999999" fill="#b2ebf2" opacity="0.75"/>
-                        </g>
-                        <g class="tm-mascot-eye-closed" style="display:none;">
-                            <path d="M 37.5 26 Q 43 23 48.5 26" stroke="#ce93d8" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                            <path d="M 51.5 26 Q 57 23 62.5 26" stroke="#ce93d8" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-                        </g>
-                        <path class="tm-mascot-mouth-happy" d="M 45 36 L 50 41 L 55 36" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path class="tm-mascot-mouth-sad" style="display:none;" d="M 45 40 L 50 35 L 55 40" stroke="#ce93d8" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+
+
+
                 </g>
                 <!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v6 · celestial void deity) -->
                 <!-- Voidseed → Veilspawn → Astral Warden → Star Sovereign → Eclipse Tyrant → Primordial -->
@@ -37457,7 +37998,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="53.89" cy="60.33" r="0.71" fill="#ffe082" opacity="0.4"/>
                     <circle class="tm-aether-core" cx="50" cy="68" r="3.2" fill="url(#aether-baby-core)"/>
                     <circle class="tm-aether-core-ring" cx="50" cy="68" r="5.2" fill="none" stroke="#7ec8c3" stroke-width="0.5" opacity="0.35"/>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                    <path d="M 39.9 52 Q 43.5 53.4 47.1 52" stroke="#6a5a82" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path d="M 52.9 52 Q 56.5 53.4 60.1 52" stroke="#6a5a82" stroke-width="1.8" fill="none" stroke-linecap="round"/>
                     </g>
+<path class="tm-mascot-mouth-happy" d="M 47 60 Q 50 62 53 60" stroke="#6a5a82" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 47 61.5 Q 50 59 53 61.5" stroke="#6a5a82" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+</g>
                     <g class="tm-aether-regalia">
                     <circle cx="50" cy="34" r="2.4" fill="url(#aether-baby-core)" opacity="0.9" filter="url(#aether-baby-glow)"/>
                     <circle cx="50" cy="34" r="4.6" fill="none" stroke="#7ec8c3" stroke-width="0.5" opacity="0.5" stroke-dasharray="1.4 1.8"/>
@@ -37486,12 +38033,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <line x1="39.9" y1="46.6" x2="46.02" y2="47.6" stroke="#6a5a82" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
                     <line x1="60.1" y1="46.6" x2="53.98" y2="47.6" stroke="#6a5a82" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
                     </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                    <path d="M 39.9 52 Q 43.5 53.4 47.1 52" stroke="#6a5a82" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    <path d="M 52.9 52 Q 56.5 53.4 60.1 52" stroke="#6a5a82" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    </g>
-                    <path class="tm-mascot-mouth-happy" d="M 47 60 Q 50 62 53 60" stroke="#6a5a82" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47 61.5 Q 50 59 53 61.5" stroke="#6a5a82" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+
+
+
                 </g>
 
                 <!-- AETHER KID — Veilspawn -->
@@ -37607,7 +38151,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <path d="M 60 30 Q 65 24 63 19 Q 59 23 58 28 Z" fill="url(#aether-kid-goldrim)" stroke="#5d4a80" stroke-width="0.6"/>
                     <circle class="tm-aether-core" cx="50" cy="62" r="4" fill="url(#aether-kid-core)"/>
                     <circle class="tm-aether-core-ring" cx="50" cy="62" r="6.4" fill="none" stroke="#6fc4be" stroke-width="0.55" opacity="0.4"/>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                    <path d="M 40.8 44 Q 44 45.4 47.2 44" stroke="#5d4a80" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path d="M 52.8 44 Q 56 45.4 59.2 44" stroke="#5d4a80" stroke-width="1.8" fill="none" stroke-linecap="round"/>
                     </g>
+<path class="tm-mascot-mouth-happy" d="M 46.8 53 Q 50 55 53.2 53" stroke="#5d4a80" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 46.8 54.5 Q 50 52 53.2 54.5" stroke="#5d4a80" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+</g>
                     <g class="tm-aether-regalia">
                     <path d="M 44 21 Q 50 17 56 21" fill="none" stroke="#6fc4be" stroke-width="0.7" opacity="0.6" stroke-dasharray="1.6 1.4"/>
                     <circle cx="50" cy="18.5" r="1.4" fill="#ffd54f" opacity="0.9" filter="url(#aether-kid-glow)"/>
@@ -37636,12 +38186,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <line x1="40.8" y1="39" x2="46.24" y2="40" stroke="#5d4a80" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
                     <line x1="59.2" y1="39" x2="53.76" y2="40" stroke="#5d4a80" stroke-width="1" stroke-linecap="round" opacity="0.7"/>
                     </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                    <path d="M 40.8 44 Q 44 45.4 47.2 44" stroke="#5d4a80" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    <path d="M 52.8 44 Q 56 45.4 59.2 44" stroke="#5d4a80" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    </g>
-                    <path class="tm-mascot-mouth-happy" d="M 46.8 53 Q 50 55 53.2 53" stroke="#5d4a80" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 46.8 54.5 Q 50 52 53.2 54.5" stroke="#5d4a80" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+
+
+
                 </g>
 
                 <!-- AETHER TEEN — Astral Warden -->
@@ -37787,7 +38334,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path class="tm-aether-rune-glyph" d="M 49 65 l 1.2 -2.2 l 1.2 2.2 Z" fill="none" stroke="#c0a8ea" stroke-width="0.5" opacity="0.75"/>
                     </g>
                     <circle class="tm-aether-core" cx="50" cy="46" r="4" fill="url(#aether-teen-core)"/>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                    <path d="M 42.1 36 Q 45 37.4 47.9 36" stroke="#4a3670" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path d="M 52.1 36 Q 55 37.4 57.9 36" stroke="#4a3670" stroke-width="1.8" fill="none" stroke-linecap="round"/>
                     </g>
+<path class="tm-mascot-mouth-happy" d="M 47.2 44 L 49.16 44.7 L 50.84 44.7 L 52.8 44" stroke="#4a3670" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.2 45.5 Q 50 43 52.8 45.5" stroke="#4a3670" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+</g>
                     <g class="tm-aether-regalia">
                     <path d="M 47 27 L 50 24 L 53 27 L 50 30 Z" fill="#ffca28" opacity="0.95" filter="url(#aether-teen-glow)"/>
                     <path d="M 44 21 Q 50 16 56 21" fill="none" stroke="#5fd0c7" stroke-width="0.6" opacity="0.55" stroke-dasharray="1.4 1.6"/>
@@ -37820,12 +38373,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <line x1="41.5" y1="32.56" x2="48.3" y2="35.93" stroke="#4a3670" stroke-width="1.2" stroke-linecap="round"/>
                     <line x1="58.5" y1="32.56" x2="51.7" y2="35.93" stroke="#4a3670" stroke-width="1.2" stroke-linecap="round"/>
                     </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                    <path d="M 42.1 36 Q 45 37.4 47.9 36" stroke="#4a3670" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    <path d="M 52.1 36 Q 55 37.4 57.9 36" stroke="#4a3670" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    </g>
-                    <path class="tm-mascot-mouth-happy" d="M 47.2 44 L 49.16 44.7 L 50.84 44.7 L 52.8 44" stroke="#4a3670" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.2 45.5 Q 50 43 52.8 45.5" stroke="#4a3670" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+
+
+
                     <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
                     <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="32" ry="10" fill="none" stroke="#5fd0c7" stroke-width="0.55" opacity="0.5" transform="rotate(-14 50 52)"/>
                     <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="36" ry="13" fill="none" stroke="#7e57c2" stroke-width="0.45" opacity="0.4" transform="rotate(12 50 52)"/>
@@ -38013,7 +38563,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <circle class="tm-aether-core" cx="50" cy="44" r="5" fill="url(#aether-adult-core)" filter="url(#aether-adult-glow)"/>
                     <circle class="tm-aether-core-ring" cx="50" cy="44" r="8" fill="none" stroke="#ffc107" stroke-width="0.7" opacity="0.5"/>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                    <path d="M 41.8 30 Q 44.8 31.4 47.8 30" stroke="#3d2a63" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path d="M 52.2 30 Q 55.2 31.4 58.2 30" stroke="#3d2a63" stroke-width="1.8" fill="none" stroke-linecap="round"/>
                     </g>
+<path class="tm-mascot-mouth-happy" d="M 47.2 38.5 L 49.16 39.2 L 50.84 39.2 L 52.8 38.5" stroke="#3d2a63" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.2 40 Q 50 37.5 52.8 40" stroke="#3d2a63" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+</g>
                     <g class="tm-aether-regalia">
                     <g class="tm-aether-crown-constellation">
                         <line x1="37" y1="10" x2="43.5" y2="6.82" stroke="#ffc107" stroke-width="0.35" opacity="0.5"/>
@@ -38057,12 +38613,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <line x1="41.2" y1="26.36" x2="48.2" y2="29.93" stroke="#3d2a63" stroke-width="1.2" stroke-linecap="round"/>
                     <line x1="58.8" y1="26.36" x2="51.8" y2="29.93" stroke="#3d2a63" stroke-width="1.2" stroke-linecap="round"/>
                     </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                    <path d="M 41.8 30 Q 44.8 31.4 47.8 30" stroke="#3d2a63" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    <path d="M 52.2 30 Q 55.2 31.4 58.2 30" stroke="#3d2a63" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    </g>
-                    <path class="tm-mascot-mouth-happy" d="M 47.2 38.5 L 49.16 39.2 L 50.84 39.2 L 52.8 38.5" stroke="#3d2a63" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.2 40 Q 50 37.5 52.8 40" stroke="#3d2a63" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+
+
+
                     <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
                     <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="32" ry="10" fill="none" stroke="#66e0d5" stroke-width="0.55" opacity="0.5" transform="rotate(-14 50 52)"/>
                     <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="36" ry="13" fill="none" stroke="#8455cf" stroke-width="0.45" opacity="0.4" transform="rotate(12 50 52)"/>
@@ -38290,7 +38843,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path class="tm-aether-rune-glyph" d="M 49 61 l 1.2 -2.2 l 1.2 2.2 Z" fill="none" stroke="#8a6aa8" stroke-width="0.5" opacity="0.75"/>
                     </g>
                     <circle class="tm-aether-core" cx="50" cy="42" r="4.6" fill="url(#aether-mid-core)" filter="url(#aether-mid-glow)"/>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                    <path d="M 41.6 27 Q 44.6 28.4 47.6 27" stroke="#241236" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path d="M 52.4 27 Q 55.4 28.4 58.4 27" stroke="#241236" stroke-width="1.8" fill="none" stroke-linecap="round"/>
                     </g>
+<path class="tm-mascot-mouth-happy" d="M 47.4 36 L 49.22 36.7 L 50.78 36.7 L 52.6 36" stroke="#241236" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.4 37.5 Q 50 35 52.6 37.5" stroke="#241236" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+</g>
                     <g class="tm-animate-arm-left">
                     <path d="M 37 46 Q 26 52 23 66 L 28 62 L 27 70 L 33 64 Q 35 54 39 50 Z" fill="url(#aether-mid-body)" stroke="#241236" stroke-width="1"/>
                     <path d="M 21 65 L 17 72 M 25 66 L 23 73 M 29 65 L 29 71" fill="none" stroke="#c62828" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
@@ -38319,12 +38878,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <line x1="41" y1="23.28" x2="48" y2="26.94" stroke="#241236" stroke-width="1.2" stroke-linecap="round"/>
                     <line x1="59" y1="23.28" x2="52" y2="26.94" stroke="#241236" stroke-width="1.2" stroke-linecap="round"/>
                     </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                    <path d="M 41.6 27 Q 44.6 28.4 47.6 27" stroke="#241236" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    <path d="M 52.4 27 Q 55.4 28.4 58.4 27" stroke="#241236" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    </g>
-                    <path class="tm-mascot-mouth-happy" d="M 47.4 36 L 49.22 36.7 L 50.78 36.7 L 52.6 36" stroke="#241236" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.4 37.5 Q 50 35 52.6 37.5" stroke="#241236" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+
+
+
                     <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
                     <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="32" ry="10" fill="none" stroke="#4dd0c4" stroke-width="0.55" opacity="0.5" transform="rotate(-14 50 52)"/>
                     <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="36" ry="13" fill="none" stroke="#503468" stroke-width="0.45" opacity="0.4" transform="rotate(12 50 52)"/>
@@ -38563,7 +39119,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <path class="tm-aether-rune-glyph" d="M 54.5 56 v 3.4 m -1.4 -1.7 h 2.8" fill="none" stroke="#ffe27a" stroke-width="0.5" opacity="0.8"/>
                         <path class="tm-aether-rune-glyph" d="M 49 62 l 1.2 -2.2 l 1.2 2.2 Z" fill="none" stroke="#f4ecd0" stroke-width="0.5" opacity="0.75"/>
                     </g>
+                    <g class="tm-mascot-eye-closed" style="display:none;">
+                    <path d="M 41.5 26 Q 44.6 27.4 47.7 26" stroke="#2c1a45" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <path d="M 52.3 26 Q 55.4 27.4 58.5 26" stroke="#2c1a45" stroke-width="1.8" fill="none" stroke-linecap="round"/>
                     </g>
+<path class="tm-mascot-mouth-happy" d="M 47.4 34.5 L 49.22 35.2 L 50.78 35.2 L 52.6 34.5" stroke="#2c1a45" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+<path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.4 36 Q 50 33.5 52.6 36" stroke="#2c1a45" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+</g>
                     <g class="tm-aether-regalia">
                     <g class="tm-aether-crown-constellation">
                         <line x1="35" y1="6" x2="40" y2="2.5" stroke="#ffe27a" stroke-width="0.35" opacity="0.5"/>
@@ -38613,12 +39175,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <line x1="40.9" y1="22.22" x2="48.1" y2="25.93" stroke="#2c1a45" stroke-width="1.2" stroke-linecap="round"/>
                     <line x1="59.1" y1="22.22" x2="51.9" y2="25.93" stroke="#2c1a45" stroke-width="1.2" stroke-linecap="round"/>
                     </g>
-                    <g class="tm-mascot-eye-closed" style="display:none;">
-                    <path d="M 41.5 26 Q 44.6 27.4 47.7 26" stroke="#2c1a45" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    <path d="M 52.3 26 Q 55.4 27.4 58.5 26" stroke="#2c1a45" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    </g>
-                    <path class="tm-mascot-mouth-happy" d="M 47.4 34.5 L 49.22 35.2 L 50.78 35.2 L 52.6 34.5" stroke="#2c1a45" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                    <path class="tm-mascot-mouth-sad" style="display:none;" d="M 47.4 36 Q 50 33.5 52.6 36" stroke="#2c1a45" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+
+
+
                     <g class="tm-aether-fx tm-aether-orbit-group" data-fx="orbits" opacity="0">
                     <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="32" ry="10" fill="none" stroke="#7af0e4" stroke-width="0.55" opacity="0.5" transform="rotate(-14 50 52)"/>
                     <ellipse class="tm-aether-orbit" cx="50" cy="52" rx="36" ry="13" fill="none" stroke="#8a72b0" stroke-width="0.45" opacity="0.4" transform="rotate(12 50 52)"/>
@@ -38650,7 +39209,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle class="tm-aether-spark" cx="8.86" cy="62.83" r="1.77" fill="#f4ecd0"/>
                     </g>
                 </g>
-                                                                                                                                                                                                                                                                                                                                                                                <!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · Sovereign Presence v13 · commanding boss morphs) -->
+                <!-- LEVIATHAN CHARACTER - All Life Stages (MYTHICAL Storm Leviathan · Sovereign Presence v13 · commanding boss morphs) -->
                 <!-- LEVIATHAN BABY — Tide Serpentling -->
                 <g id="tm-mascot-baby-leviathan" style="display: none;">
                     <defs>
@@ -41254,6 +41813,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
     container.addEventListener('click', (e) => {
         if (e.target.closest('button')) return;
+        if (mascotDragMoved) {
+            mascotDragMoved = false;
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
         if (Date.now() < mascotSuppressClickUntil) {
             e.preventDefault();
             e.stopPropagation();
@@ -41297,8 +41862,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         }
     });
 
-    // Drag to park
-    container.addEventListener('pointerdown', (e) => {
+    // Drag to park (or reposition while already parked)
+    const bindMascotDragPointerDown = (e) => {
         if (e.button !== 0) return;
         if (e.target.closest('button')) return;
         if (tamagotchiIsDead || tamaCinematicLock) return;
@@ -41311,6 +41876,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         let origin = getMascotTranslate(container);
         let dragging = false;
         let captureId = null;
+        const wasParked = !!mascotPositionLocked;
+        mascotDragMoved = false;
+
+        const syncDragPosition = (x, y) => {
+            const clamped = applyMascotDragPosition(container, x, y);
+            if (mascotPositionLocked) {
+                mascotParkedX = clamped.x;
+                mascotParkedY = clamped.y;
+            }
+            return clamped;
+        };
 
         // document + capture phase: reliable under Tampermonkey sandbox (window listeners can miss page events)
         const onMove = (ev) => {
@@ -41325,12 +41901,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     clearTimeout(mascotClickOpenTimer);
                     mascotClickOpenTimer = null;
                 }
-                // Kill leftover dodge/CSS transition so position tracks the cursor 1:1
-                container.style.transition = 'none';
                 stopRoaming(config);
-                // Re-sync after WAAPI cancel — animation may have moved since pointerdown
-                origin = getMascotTranslate(container);
                 ensureMascotViewportFixed(container);
+                container.style.transition = 'none';
+                // Commit roam/WAAPI motion before tracking pointer deltas (fixes Aether jump/snap)
+                origin = commitMascotMotionPosition(container, true);
                 startX = ev.clientX;
                 startY = ev.clientY;
                 syncMascotInteractionClasses(container);
@@ -41339,11 +41914,11 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     captureId = ev.pointerId;
                 } catch (_) { /* ignore */ }
                 try { ev.preventDefault(); } catch (_) { /* ignore */ }
-                applyMascotDragPosition(container, origin.x, origin.y);
+                syncDragPosition(origin.x, origin.y);
                 return;
             }
             try { ev.preventDefault(); } catch (_) { /* ignore */ }
-            applyMascotDragPosition(container, origin.x + dx, origin.y + dy);
+            syncDragPosition(origin.x + dx, origin.y + dy);
         };
 
         const onUp = (ev) => {
@@ -41357,6 +41932,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
             if (!dragging) {
                 mascotIsDragging = false;
+                mascotDragMoved = false;
                 syncMascotInteractionClasses(container);
                 return;
             }
@@ -41365,7 +41941,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             mascotIsDragging = false;
             mascotSuppressClickUntil = Date.now() + 450;
             setMascotParked(true, pos.x, pos.y, STORAGE_KEYS);
-            if (!isMascotFocusQuiet()) {
+            if (!wasParked && !isMascotFocusQuiet()) {
                 showMascotBubble('Σταθμεύτηκα!', 1400);
             }
             syncMascotInteractionClasses(container);
@@ -41375,7 +41951,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         document.addEventListener('pointermove', onMove, { capture: true, passive: false });
         document.addEventListener('pointerup', onUp, true);
         document.addEventListener('pointercancel', onUp, true);
-    });
+    };
+    const dragTarget = container.querySelector('.tm-mascot-robot') || container;
+    dragTarget.addEventListener('pointerdown', bindMascotDragPointerDown, { capture: true });
 
     // Meal button (proper meal) — allowed even when full
     getButton('#tm-pet-meal-btn')?.addEventListener('click', () => {
@@ -42411,6 +42989,7 @@ function updateMascotAppearanceByStage(stage) {
         TAMA_CHARACTER_TYPES.forEach((charType) => container.classList.remove(`mascot-char-${charType}`));
         console.log('[MMS Mascot] ✅ Updated to EGG stage');
         stopAetherMythicFx();
+        stopPhoenixMythicFx();
         if (typeof window.STORAGE_KEYS !== 'undefined') {
             applyEquippedMascotAccessories(window.STORAGE_KEYS, 'egg');
         } else {
@@ -42491,6 +43070,11 @@ function updateMascotAppearanceByStage(stage) {
     } else {
         stopAetherMythicFx();
     }
+    if (previewCharacter === 'phoenix') {
+        syncPhoenixMythicFx(stage);
+    } else {
+        stopPhoenixMythicFx();
+    }
     if (previewCharacter === 'leviathan') {
         syncLeviathanStormFx(stage);
     } else {
@@ -42534,6 +43118,9 @@ window.TAMA_STAGE_MINUTES = TAMA_STAGE_MINUTES;
 window.getMascotCharacterType = getMascotCharacterType;
 window.MASCOT_CHARACTERS = MASCOT_CHARACTERS;
 window.TAMA_CHARACTER_TYPES = TAMA_CHARACTER_TYPES;
+window.TAMA_LEGENDARY_TYPES = TAMA_LEGENDARY_TYPES;
+window.TAMA_MYTHICAL_TYPES = TAMA_MYTHICAL_TYPES;
+window.TAMA_ELITE_MASCOT_TYPES = TAMA_ELITE_MASCOT_TYPES;
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
 window.ensureSingleMascotDom = ensureSingleMascotDom;
 window.resyncMascotAppearanceFromStorage = resyncMascotAppearanceFromStorage;
@@ -42571,6 +43158,10 @@ window.mascotRepairOpinion = mascotRepairOpinion;
 window.mascotRepairOpinionDetail = mascotRepairOpinionDetail;
 window.playPhoenixStatusBurn = playPhoenixStatusBurn;
 window.isPhoenixFireboltUnlocked = isPhoenixFireboltUnlocked;
+window.syncPhoenixMythicFx = syncPhoenixMythicFx;
+window.stopPhoenixMythicFx = stopPhoenixMythicFx;
+window.playPhoenixStageCinematic = playPhoenixStageCinematic;
+window.playPhoenixMythicFootprint = playPhoenixMythicFootprint;
 window.playLeviathanStatusStorm = playLeviathanStatusStorm;
 window.isLeviathanTempestUnlocked = isLeviathanTempestUnlocked;
 window.playLeviathanEpicEvent = playLeviathanEpicEvent;

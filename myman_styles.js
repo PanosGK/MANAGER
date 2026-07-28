@@ -4170,6 +4170,7 @@
                 transform: translate(-50%, -50%); width: 200px; height: 200px;
                 border-radius: 50%; z-index: -1; transition: all 0.8s ease-in-out;
                 opacity: 0;
+                pointer-events: none;
             }
             #tm-mascot-container.mascot-happy::before {
                 background: radial-gradient(circle, rgba(255,223,186,0.6) 0%, rgba(255,223,186,0) 70%);
@@ -4225,6 +4226,25 @@
                 cursor: grabbing;
                 animation: none !important;
                 pointer-events: all !important;
+            }
+            /* Parked mascots stay grabbable — reposition without unparking first */
+            #tm-mascot-container.mascot-parked .tm-mascot-robot,
+            #tm-mascot-container.mascot-parked > svg.tm-mascot-robot {
+                pointer-events: all !important;
+                cursor: grab;
+                touch-action: none;
+            }
+            #tm-mascot-container.mascot-parked.mascot-dragging {
+                pointer-events: auto !important;
+            }
+            #tm-mascot-container.mascot-dragging.mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.mascot-dragging.mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.mascot-dragging.mascot-char-aether .tm-animate-tail,
+            #tm-mascot-container.mascot-dragging.mascot-char-phoenix .tm-animate-wing-left,
+            #tm-mascot-container.mascot-dragging.mascot-char-phoenix .tm-animate-wing-right,
+            #tm-mascot-container.mascot-dragging.mascot-char-phoenix .tm-animate-tail {
+                animation: none !important;
+                transform: none !important;
             }
             #tm-mascot-container.mascot-parked::after,
             #tm-mascot-container.mascot-parked.mascot-char-aether::after {
@@ -4728,6 +4748,7 @@
                 will-change: opacity;
                 border: none;
                 outline: none;
+                pointer-events: none;
             }
             #tm-mascot-container.mascot-char-aether.tm-aether-glow-on:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
                 opacity: 0.9;
@@ -4782,17 +4803,28 @@
                     drop-shadow(0 0 22px rgba(77,208,225,0.24));
             }
 
-            /* Legendary idle float — bigger bob, soft scale (Pokémon battle sway) */
-            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-phoenix,
+            /* Legendary idle float — crystal tier */
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-crystal {
                 animation: tm-legendary-idle-float 3.2s ease-in-out infinite !important;
             }
-            /* Aether: slow, dignified hover — not bouncy */
+            /* Mythical idle float — slow sovereign hover */
+            #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-phoenix,
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-aether {
                 animation: tm-mythic-idle-float 4.5s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-leviathan {
                 animation: tm-mythic-idle-float 5.2s ease-in-out infinite !important;
+            }
+            /* Legendary & Mythical tier — 25% larger presence on every evolution form */
+            .tm-mascot-robot.mascot-char-dragon,
+            .tm-mascot-robot.mascot-char-phoenix,
+            .tm-mascot-robot.mascot-char-leviathan {
+                zoom: 1.25;
+            }
+            .tm-mascot-robot.mascot-char-aether.mascot-baby,
+            .tm-mascot-robot.mascot-char-aether.mascot-kid,
+            .tm-mascot-robot.mascot-char-aether.mascot-child {
+                zoom: 1.25;
             }
             .tm-mascot-robot.mascot-char-leviathan.mascot-teen {
                 transform: scale(1.1);
@@ -4810,7 +4842,7 @@
                 transform: scale(1.46);
                 transform-origin: 50% 64%;
             }
-            /* Phoenix — legendary boss presence scales up through evolution */
+            /* Phoenix — mythical solar sovereign scales up through evolution */
             .tm-mascot-robot.mascot-char-phoenix.mascot-teen {
                 transform: scale(1.08);
                 transform-origin: 50% 68%;
@@ -4893,32 +4925,57 @@
                 box-shadow: 0 12px 52px rgba(139,0,0,0.14), 0 0 100px rgba(93,64,55,0.12) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-middleage {
-                zoom: 1.14;
+                zoom: 1.425;
                 filter:
                     drop-shadow(0 6px 12px rgba(18,0,31,0.22))
                     drop-shadow(0 0 18px rgba(239,83,80,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-old {
-                zoom: 1.24;
+                zoom: 1.55;
                 filter:
                     drop-shadow(0 6px 12px rgba(10,2,2,0.24))
                     drop-shadow(0 0 18px rgba(139,0,0,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-adult {
-                zoom: 1.07;
+                zoom: 1.3375;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-teen {
-                zoom: 1.03;
+                zoom: 1.2875;
             }
-            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-left {
-                animation: tm-legendary-wing-flap 1.15s ease-in-out infinite !important;
+            #tm-mascot-container.mascot-char-phoenix.tm-phoenix-glow-on:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
+                opacity: 1;
             }
+            /* Secondary solar bloom — skip parked so 📌 pin wins ::after */
+            #tm-mascot-container.mascot-char-phoenix:not(.mascot-parked)::after {
+                content: '';
+                position: absolute;
+                top: 50%; left: 50%;
+                width: 200px; height: 200px;
+                margin: -100px 0 0 -100px;
+                border-radius: 50%;
+                border: none;
+                background: radial-gradient(circle,
+                    rgba(255,213,79,0.14) 0%,
+                    rgba(255,109,0,0.1) 35%,
+                    rgba(183,28,28,0.06) 55%,
+                    transparent 72%);
+                box-shadow: none;
+                z-index: -1;
+                pointer-events: none;
+                opacity: 0;
+                filter: blur(6px);
+                animation: none;
+                transition: opacity 1.2s ease;
+            }
+            #tm-mascot-container.mascot-char-phoenix.tm-phoenix-ring-on:not(.mascot-parked)::after {
+                opacity: 0.8;
+                animation: tm-mythic-aura-pulse 6.5s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-left,
             #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left {
                 animation: tm-mythic-wing-flap 2.4s ease-in-out infinite !important;
             }
-            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-right {
-                animation: tm-legendary-wing-flap-right 1.15s ease-in-out infinite !important;
-            }
+            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-right,
             #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right {
                 animation: tm-mythic-wing-flap-right 2.4s ease-in-out infinite !important;
             }
@@ -4965,40 +5022,36 @@
                 animation: tm-wing-flap-move-right 0.4s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-left,
-            #tm-mascot-container.mascot-moving.mascot-char-phoenix:not(.mascot-parked) .tm-animate-wing-left {
-                animation: tm-legendary-wing-flap-move 0.32s ease-in-out infinite !important;
-            }
-            #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-right,
-            #tm-mascot-container.mascot-moving.mascot-char-phoenix:not(.mascot-parked) .tm-animate-wing-right {
-                animation: tm-legendary-wing-flap-move-right 0.32s ease-in-out infinite !important;
-            }
+            #tm-mascot-container.mascot-moving.mascot-char-phoenix:not(.mascot-parked) .tm-animate-wing-left,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left,
             #tm-mascot-container.mascot-moving.mascot-char-aether:not(.mascot-parked) .tm-animate-wing-left {
                 animation: tm-mythic-wing-flap-move 0.36s ease-in-out infinite !important;
             }
+            #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-right,
+            #tm-mascot-container.mascot-moving.mascot-char-phoenix:not(.mascot-parked) .tm-animate-wing-right,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right,
             #tm-mascot-container.mascot-moving.mascot-char-aether:not(.mascot-parked) .tm-animate-wing-right {
                 animation: tm-mythic-wing-flap-move-right 0.36s ease-in-out infinite !important;
             }
-            /* Parked: no travel flap — Aether keeps a soft sovereign breathe instead */
-            #tm-mascot-container.mascot-parked:not(.mascot-char-aether) .tm-animate-wing-left,
-            #tm-mascot-container.mascot-parked:not(.mascot-char-aether) .tm-animate-wing-right,
-            #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-left,
-            #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-right {
+            /* Parked: no travel flap — mythicals keep a soft sovereign breathe */
+            #tm-mascot-container.mascot-parked:not(.mascot-char-aether):not(.mascot-char-phoenix) .tm-animate-wing-left,
+            #tm-mascot-container.mascot-parked:not(.mascot-char-aether):not(.mascot-char-phoenix) .tm-animate-wing-right {
                 animation: none !important;
                 transform: none !important;
             }
             #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-left,
-            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-left {
+            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.mascot-parked.mascot-char-phoenix .tm-animate-wing-left,
+            #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-left {
                 animation: tm-mythic-wing-breathe 5.5s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-right,
-            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-right {
+            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.mascot-parked.mascot-char-phoenix .tm-animate-wing-right,
+            #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-right {
                 animation: tm-mythic-wing-breathe-right 5.5s ease-in-out infinite !important;
             }
-            #tm-mascot-container.mascot-idle .mascot-char-phoenix .tm-animate-tail {
-                animation: tm-legendary-tail-wag 1.6s ease-in-out infinite !important;
-            }
+            #tm-mascot-container.mascot-idle .mascot-char-phoenix .tm-animate-tail,
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-animate-tail {
                 animation: tm-mythic-tail-flow 3.2s ease-in-out infinite !important;
             }
@@ -7033,8 +7086,125 @@
                 letter-spacing: 0.12em;
             }
 
+            /* Phoenix mythical stage cinematic */
+            .tm-phoenix-stage-flash {
+                position: fixed;
+                inset: 0;
+                z-index: 2147483000;
+                pointer-events: none;
+                animation: tm-aether-stage-flash-in 3s ease forwards;
+            }
+            .tm-phoenix-stage-flash-veil {
+                position: absolute;
+                inset: 0;
+                background:
+                    radial-gradient(circle at 50% 45%, rgba(255,109,0,0.38), transparent 55%),
+                    radial-gradient(circle at 50% 50%, rgba(255,213,79,0.2), transparent 70%),
+                    rgba(40,8,0,0.52);
+            }
+            .tm-phoenix-stage-flash-burst {
+                position: absolute;
+                left: 50%; top: 46%;
+                width: 120px; height: 120px;
+                margin: -60px 0 0 -60px;
+                border-radius: 50%;
+                border: 2px solid rgba(255,213,79,0.65);
+                box-shadow: 0 0 44px rgba(255,109,0,0.55), inset 0 0 28px rgba(255,193,7,0.35);
+                animation: tm-aether-veil-sweep 1.5s ease-out forwards;
+            }
+            .tm-phoenix-stage-flash-card {
+                position: absolute;
+                left: 50%; top: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                color: #fff8e1;
+                font-family: Georgia, 'Times New Roman', serif;
+                animation: tm-aether-card-rise 2.8s ease forwards;
+                text-shadow: 0 0 18px rgba(255,109,0,0.65);
+            }
+            .tm-phoenix-stage-flash-kicker {
+                font-size: 11px;
+                letter-spacing: 0.28em;
+                color: #ffd54f;
+                margin-bottom: 8px;
+            }
+            .tm-phoenix-stage-flash-title {
+                font-size: 28px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                margin-bottom: 6px;
+            }
+            .tm-phoenix-stage-flash-sub {
+                font-size: 13px;
+                opacity: 0.8;
+                letter-spacing: 0.12em;
+            }
+            .tm-phoenix-stage-flash-cutin {
+                position: absolute;
+                left: 50%; top: 38%;
+                width: 110px; height: 110px;
+                margin: -55px 0 0 -55px;
+                opacity: 0;
+                animation: tm-aether-card-rise 2.6s ease forwards;
+                filter: drop-shadow(0 0 22px rgba(255,109,0,0.55));
+            }
+            .tm-phoenix-stage-flash-cutin svg {
+                width: 100%; height: 100%;
+            }
+            .tm-phoenix-stage-flash-timeline {
+                position: absolute;
+                left: 50%; bottom: 18%;
+                transform: translateX(-50%);
+                display: flex;
+                gap: 10px;
+            }
+            .tm-phoenix-timeline-sil {
+                width: 28px; height: 28px;
+                border-radius: 50%;
+                border: 1px solid rgba(255,213,79,0.45);
+                background: radial-gradient(circle, rgba(255,109,0,0.35), transparent 70%);
+                opacity: 0.7;
+            }
+            .tm-phoenix-timeline-sil.is-next {
+                opacity: 1;
+                box-shadow: 0 0 14px rgba(255,109,0,0.45);
+            }
+            .tm-phoenix-mythic-footprint {
+                position: absolute;
+                left: 50%; bottom: 2%;
+                width: 92px; height: 30px;
+                margin-left: -46px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 2;
+                background: radial-gradient(ellipse at 50% 50%,
+                    rgba(255,193,7,0.35),
+                    rgba(255,87,34,0.18),
+                    transparent 72%);
+                box-shadow: 0 0 20px rgba(255,109,0,0.25);
+                filter: blur(2px);
+                opacity: 0;
+                animation: tm-aether-domain-seal 2.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            }
+            .tm-phoenix-stage-ember {
+                position: absolute;
+                width: 8px; height: 8px;
+                margin: -4px 0 0 -4px;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 8;
+                background: radial-gradient(circle, #ffd54f, #ff6d00);
+                box-shadow: 0 0 10px rgba(255,109,0,0.75);
+                animation: tm-phoenix-burst-rise 1.2s ease-out forwards;
+            }
+            #tm-mascot-container.tm-phoenix-react .tm-mascot-robot.mascot-char-phoenix {
+                filter: brightness(1.12) drop-shadow(0 0 14px rgba(255,109,0,0.85)) drop-shadow(0 0 24px rgba(255,213,79,0.45));
+            }
+            #tm-mascot-container.tm-phoenix-sovereign.mascot-char-phoenix:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
+                opacity: 0.95;
+            }
+
             /* Mascot States */
-            #tm-mascot-container.mascot-idle .tm-animate-body,
             #tm-mascot-container.mascot-idle .tm-mascot-robot { animation: tm-mascot-idle-float 4s ease-in-out infinite; }
             #tm-mascot-container.mascot-idle .tm-mascot-eye-open,
             #tm-mascot-container.mascot-happy .tm-mascot-eye-open,
@@ -7537,29 +7707,108 @@
                 user-select: none;
             }
             
-            /* Visual effects for mascot needing toilet */
-            @keyframes tm-toilet-urgency-subtle {
-                0%, 100% { 
-                    opacity: 0.7;
-                    transform: scale(1);
+            /* Visual effects for mascot needing toilet — water ripple + rising bubbles */
+            @keyframes tm-toilet-ripple-expand {
+                0% {
+                    transform: translate(-50%, -50%) scale(0.55);
+                    opacity: 0.65;
+                    border-width: 2.5px;
                 }
-                50% { 
-                    opacity: 1;
-                    transform: scale(1.05);
+                100% {
+                    transform: translate(-50%, -50%) scale(1.35);
+                    opacity: 0;
+                    border-width: 1px;
                 }
+            }
+            @keyframes tm-toilet-puddle-pulse {
+                0%, 100% {
+                    opacity: 0.42;
+                    transform: translateX(-50%) scale(1);
+                }
+                50% {
+                    opacity: 0.72;
+                    transform: translateX(-50%) scale(1.1);
+                }
+            }
+            @keyframes tm-toilet-bubble-rise {
+                0% {
+                    transform: translateY(0) scale(0.45);
+                    opacity: 0;
+                }
+                12% {
+                    opacity: 0.9;
+                }
+                100% {
+                    transform: translateY(-46px) scale(1.05);
+                    opacity: 0;
+                }
+            }
+            @keyframes tm-toilet-sign-bob {
+                0%, 100% {
+                    transform: translateX(-50%) translateY(0) rotate(-6deg);
+                }
+                50% {
+                    transform: translateX(-50%) translateY(-5px) rotate(6deg);
+                }
+            }
+            @keyframes tm-toilet-leg-fidget {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-1.5px); }
+                75% { transform: translateX(1.5px); }
             }
             #tm-mascot-container.mascot-needs-toilet {
                 position: fixed !important;
             }
-            .tm-toilet-urgency-indicator {
+            #tm-mascot-container.mascot-needs-toilet .tm-animate-leg-left,
+            #tm-mascot-container.mascot-needs-toilet .tm-animate-leg-right {
+                animation: tm-toilet-leg-fidget 0.82s ease-in-out infinite;
+            }
+            .tm-toilet-fx {
                 position: absolute;
+                inset: 0;
                 pointer-events: none;
-                z-index: 9999;
-                user-select: none;
+                z-index: 9998;
+                overflow: visible;
+            }
+            .tm-toilet-fx__ripple {
+                position: absolute;
+                left: 50%;
+                bottom: 10px;
+                width: 70px;
+                height: 70px;
+                border: 2px solid rgba(64, 196, 255, 0.55);
+                border-radius: 50%;
+                box-shadow: 0 0 10px rgba(41, 182, 246, 0.25);
+                animation: tm-toilet-ripple-expand 1.7s ease-out infinite;
+            }
+            .tm-toilet-fx__puddle {
+                position: absolute;
+                left: 50%;
+                bottom: 6px;
+                width: 58px;
+                height: 16px;
+                border-radius: 50%;
+                background: radial-gradient(ellipse, rgba(64, 196, 255, 0.5) 0%, rgba(41, 182, 246, 0.22) 52%, transparent 78%);
+                animation: tm-toilet-puddle-pulse 1.25s ease-in-out infinite;
+            }
+            .tm-toilet-fx__bubble {
+                position: absolute;
+                bottom: 16px;
+                width: 7px;
+                height: 7px;
+                border-radius: 50%;
+                background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95), rgba(64, 196, 255, 0.45));
+                box-shadow: 0 0 5px rgba(64, 196, 255, 0.45);
+                animation: tm-toilet-bubble-rise 2.1s ease-in infinite;
+            }
+            .tm-toilet-fx__sign {
+                position: absolute;
+                top: -8px;
+                left: 50%;
+                font-size: 15px;
                 line-height: 1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                filter: drop-shadow(0 2px 4px rgba(0, 72, 120, 0.45));
+                animation: tm-toilet-sign-bob 1.35s ease-in-out infinite;
             }
 
 

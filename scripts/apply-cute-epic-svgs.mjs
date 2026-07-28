@@ -16,7 +16,7 @@ const jobs = [
   { file: 'scripts/svg-cat.mjs', exportName: 'catSvg', startRe: /[ \t]*<!-- CAT CHARACTER - All Life Stages/, endRe: /[ \t]*<!-- PHOENIX CHARACTER - All Life Stages/ },
   { file: 'scripts/svg-phoenix.mjs', exportName: 'phoenixSvg', startRe: /[ \t]*<!-- PHOENIX CHARACTER - All Life Stages/, endRe: /[ \t]*<!-- CRYSTAL CHARACTER - All Life Stages/ },
   { file: 'scripts/svg-crystal.mjs', exportName: 'crystalSvg', startRe: /[ \t]*<!-- CRYSTAL CHARACTER - All Life Stages/, endRe: /[ \t]*<!-- AETHER CHARACTER - All Life Stages/ },
-  { file: 'scripts/svg-aether.mjs', exportName: 'aetherSvg', startRe: /[ \t]*<!-- AETHER CHARACTER - All Life Stages/, endRe: /[ \t]*<!-- Integrated accessories/ },
+  { file: 'scripts/svg-aether.mjs', exportName: 'aetherSvg', startRe: /[ \t]*<!-- AETHER CHARACTER - All Life Stages/, endRe: /[ \t]*<!-- LEVIATHAN CHARACTER - All Life Stages/ },
 ];
 
 const HOOKS = [
