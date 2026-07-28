@@ -4815,16 +4815,16 @@
             #tm-mascot-container.mascot-idle .tm-mascot-robot.mascot-char-leviathan {
                 animation: tm-mythic-idle-float 5.2s ease-in-out infinite !important;
             }
-            /* Legendary & Mythical tier — 25% larger presence on every evolution form */
+            /* Legendary & Mythical tier — 15% larger presence on every evolution form */
             .tm-mascot-robot.mascot-char-dragon,
             .tm-mascot-robot.mascot-char-phoenix,
             .tm-mascot-robot.mascot-char-leviathan {
-                zoom: 1.25;
+                zoom: 1.15;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-baby,
             .tm-mascot-robot.mascot-char-aether.mascot-kid,
             .tm-mascot-robot.mascot-char-aether.mascot-child {
-                zoom: 1.25;
+                zoom: 1.15;
             }
             .tm-mascot-robot.mascot-char-leviathan.mascot-teen {
                 transform: scale(1.1);
@@ -4925,22 +4925,22 @@
                 box-shadow: 0 12px 52px rgba(139,0,0,0.14), 0 0 100px rgba(93,64,55,0.12) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-middleage {
-                zoom: 1.425;
+                zoom: 1.311;
                 filter:
                     drop-shadow(0 6px 12px rgba(18,0,31,0.22))
                     drop-shadow(0 0 18px rgba(239,83,80,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-old {
-                zoom: 1.55;
+                zoom: 1.426;
                 filter:
                     drop-shadow(0 6px 12px rgba(10,2,2,0.24))
                     drop-shadow(0 0 18px rgba(139,0,0,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-adult {
-                zoom: 1.3375;
+                zoom: 1.2305;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-teen {
-                zoom: 1.2875;
+                zoom: 1.1845;
             }
             #tm-mascot-container.mascot-char-phoenix.tm-phoenix-glow-on:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
                 opacity: 1;

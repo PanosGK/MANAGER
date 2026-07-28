@@ -3573,9 +3573,9 @@ function installTamagotchiOfficeHoursReload(STORAGE_KEYS) {
 const TAMA_CHARACTER_TYPES = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether', 'leviathan'];
 const TAMA_LEGENDARY_TYPES = ['dragon'];
 const TAMA_MYTHICAL_TYPES = ['phoenix', 'aether', 'leviathan'];
-/** Legendary + Mythical mascots — uniform 25% size boost on all evolution forms (CSS zoom). */
+/** Legendary + Mythical mascots — uniform 15% size boost on all evolution forms (CSS zoom). */
 const TAMA_ELITE_MASCOT_TYPES = [...TAMA_LEGENDARY_TYPES, ...TAMA_MYTHICAL_TYPES];
-const MASCOT_ELITE_SIZE_MULT = 1.25;
+const MASCOT_ELITE_SIZE_MULT = 1.15;
 
 const PHOENIX_STAGE_TIER = {
     baby: 1, kid: 2, teen: 3, adult: 4, middleage: 5, old: 6,
@@ -6022,13 +6022,13 @@ const MASCOT_EDGE_PAD = 8;
 /** Minimum painted overflow beyond the 100×100 box (shadow, jetpack flames, bubble). */
 const MASCOT_OVERFLOW_SLACK = { top: 36, right: 16, bottom: 20, left: 16 };
 /** Extra keep-inside padding for Phoenix wings / solar corona (CSS paint extends beyond box). */
-const MASCOT_PHOENIX_OVERFLOW_SLACK = { top: 55, right: 60, bottom: 33, left: 60 };
+const MASCOT_PHOENIX_OVERFLOW_SLACK = { top: 51, right: 55, bottom: 30, left: 55 };
 /** Extra keep-inside padding for Aether wings / glow (CSS paint is not in getBoundingClientRect). */
-const MASCOT_AETHER_OVERFLOW_SLACK = { top: 60, right: 65, bottom: 35, left: 65 };
+const MASCOT_AETHER_OVERFLOW_SLACK = { top: 55, right: 60, bottom: 32, left: 60 };
 /** Tempest Serpent v11 — long swimming body, dorsal spines, fluke, bolt accents. */
-const MASCOT_LEVIATHAN_OVERFLOW_SLACK = { top: 50, right: 45, bottom: 30, left: 50 };
+const MASCOT_LEVIATHAN_OVERFLOW_SLACK = { top: 46, right: 41, bottom: 28, left: 46 };
 /** Ember Sovereign dragon — wing tips / tail need slack after elite size boost. */
-const MASCOT_DRAGON_OVERFLOW_SLACK = { top: 42, right: 38, bottom: 28, left: 38 };
+const MASCOT_DRAGON_OVERFLOW_SLACK = { top: 39, right: 35, bottom: 26, left: 35 };
 
 function cacheMascotScreenInfo() {
     const scr = window.screen;
