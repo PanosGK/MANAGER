@@ -111,6 +111,8 @@
         SHOP_DISCOUNT: 'tm_shop_discount', // Cumulative shop discount from levels
         MASCOT_FOOD_ITEMS: 'tm_mascot_food_items', // Mascot food inventory
         MASCOT_TREAT_ITEMS: 'tm_mascot_treat_items', // Mascot treat inventory
+        MASCOT_FEATHERS: 'tm_mascot_feather_set', // Phoenix molted feather collection (JSON per color)
+        PHOENIX_LAST_REBIRTH: 'tm_phoenix_last_rebirth', // Timestamp of last phoenix rebirth event
         ENERGIZED_BUFF_COUNT: 'tm_energized_buff_count', // Number of energized buffs in inventory
         DOUBLE_COINS_BUFF_COUNT: 'tm_double_coins_buff_count', // Number of double coins buffs in inventory
         ASCENDED_STATUS: 'tm_ascended_status', // Level 200 status unlock

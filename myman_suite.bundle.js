@@ -3405,6 +3405,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         SHOP_DISCOUNT: 'tm_shop_discount', // Cumulative shop discount from levels
         MASCOT_FOOD_ITEMS: 'tm_mascot_food_items', // Mascot food inventory
         MASCOT_TREAT_ITEMS: 'tm_mascot_treat_items', // Mascot treat inventory
+        MASCOT_FEATHERS: 'tm_mascot_feather_set', // Phoenix molted feather collection (JSON per color)
+        PHOENIX_LAST_REBIRTH: 'tm_phoenix_last_rebirth', // Timestamp of last phoenix rebirth event
         ENERGIZED_BUFF_COUNT: 'tm_energized_buff_count', // Number of energized buffs in inventory
         DOUBLE_COINS_BUFF_COUNT: 'tm_double_coins_buff_count', // Number of double coins buffs in inventory
         ASCENDED_STATUS: 'tm_ascended_status', // Level 200 status unlock
@@ -10945,6 +10947,121 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             @keyframes tm-toy-bubble-pop {
                 to { transform: scale(1.6); opacity: 0; }
             }
+            /* ── Phoenix random events ─────────────────────────── */
+            .tm-phoenix-ember {
+                position: fixed; width: 22px; height: 22px; border-radius: 50%;
+                border: none; padding: 0; cursor: pointer; z-index: 100120;
+                background: radial-gradient(circle at 35% 30%, #fffde7 0%, #ffd740 35%, #ff6d00 70%, #b71c1c 100%);
+                box-shadow: 0 0 12px 4px rgba(255, 109, 0, 0.55);
+                animation: tm-phoenix-ember-drop 0.55s ease-in, tm-phoenix-ember-pulse 1.1s ease-in-out 0.55s infinite alternate;
+            }
+            .tm-phoenix-ember-golden {
+                width: 26px; height: 26px;
+                background: radial-gradient(circle at 35% 30%, #fffde7 0%, #ffee9c 30%, #ffd740 60%, #ff8f00 100%);
+                box-shadow: 0 0 18px 7px rgba(255, 215, 64, 0.8);
+            }
+            .tm-phoenix-ember.fizzled { animation: tm-phoenix-ember-fizzle 0.65s ease-out forwards; pointer-events: none; }
+            .tm-phoenix-ember.collected { animation: tm-phoenix-ember-collect 0.45s ease-out forwards; pointer-events: none; }
+            @keyframes tm-phoenix-ember-drop {
+                from { transform: translateY(-48px) scale(0.4); opacity: 0.3; }
+                to { transform: translateY(0) scale(1); opacity: 1; }
+            }
+            @keyframes tm-phoenix-ember-pulse {
+                from { filter: brightness(1); transform: scale(1); }
+                to { filter: brightness(1.5); transform: scale(1.12); }
+            }
+            @keyframes tm-phoenix-ember-fizzle {
+                40% { filter: grayscale(0.4) brightness(0.8); }
+                to { transform: scale(0.2); opacity: 0; filter: grayscale(1) brightness(0.4); }
+            }
+            @keyframes tm-phoenix-ember-collect {
+                to { transform: scale(1.9); opacity: 0; }
+            }
+            .tm-phoenix-float-label {
+                position: fixed; z-index: 100130; pointer-events: none;
+                font-weight: 700; font-size: 14px; color: #ffb300;
+                text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+                animation: tm-phoenix-float-up 1.4s ease-out forwards;
+            }
+            .tm-phoenix-float-label.golden { font-size: 17px; color: #ffd740; }
+            @keyframes tm-phoenix-float-up {
+                to { transform: translateY(-48px); opacity: 0; }
+            }
+            .tm-phoenix-feather {
+                position: fixed; z-index: 100120; width: 26px; height: 26px; pointer-events: none;
+                filter: drop-shadow(0 0 5px rgba(255, 179, 0, 0.5));
+                animation: tm-phoenix-feather-fall 2s ease-in forwards;
+            }
+            @keyframes tm-phoenix-feather-fall {
+                0% { transform: translate(0, 0) rotate(-14deg); opacity: 0; }
+                12% { opacity: 1; }
+                35% { transform: translate(14px, 26px) rotate(16deg); }
+                65% { transform: translate(-10px, 54px) rotate(-12deg); }
+                92% { opacity: 1; }
+                100% { transform: translate(8px, 80px) rotate(10deg); opacity: 0; }
+            }
+            #tm-mascot-container.mascot-ember-shake svg.tm-mascot-robot {
+                animation: tm-phoenix-shake 0.5s ease-in-out 0s 2;
+            }
+            @keyframes tm-phoenix-shake {
+                0%, 100% { transform: rotate(0deg); }
+                25% { transform: rotate(-5deg); }
+                75% { transform: rotate(5deg); }
+            }
+            #tm-mascot-container.mascot-flyby svg.tm-mascot-robot {
+                animation: tm-phoenix-flyby-bob 0.5s ease-in-out infinite alternate;
+                filter: drop-shadow(0 0 10px rgba(255, 109, 0, 0.65));
+            }
+            @keyframes tm-phoenix-flyby-bob {
+                from { transform: translateY(0) rotate(-4deg); }
+                to { transform: translateY(-7px) rotate(4deg); }
+            }
+            .tm-phoenix-trail-dot {
+                position: fixed; width: 10px; height: 10px; border-radius: 50%;
+                z-index: 100090; pointer-events: none;
+                background: radial-gradient(circle, #ffd740 0%, #ff6d00 60%, transparent 100%);
+                animation: tm-phoenix-trail-fade 0.9s ease-out forwards;
+            }
+            @keyframes tm-phoenix-trail-fade {
+                to { transform: scale(0.25) translateY(10px); opacity: 0; }
+            }
+            .tm-phoenix-burst-ember {
+                position: fixed; width: 7px; height: 7px; border-radius: 50%;
+                z-index: 100125; pointer-events: none;
+                background: radial-gradient(circle, #fffde7 0%, #ffd740 45%, #ff6d00 100%);
+                box-shadow: 0 0 8px 2px rgba(255, 109, 0, 0.6);
+                animation: tm-phoenix-burst-rise 1.3s ease-out forwards;
+            }
+            @keyframes tm-phoenix-burst-rise {
+                to { transform: translate(var(--tm-burst-dx, 0px), var(--tm-burst-dy, -70px)) scale(0.3); opacity: 0; }
+            }
+            #tm-mascot-container.mascot-rebirth-burn svg.tm-mascot-robot {
+                animation: tm-phoenix-rebirth-burn 1.9s ease-in forwards;
+            }
+            @keyframes tm-phoenix-rebirth-burn {
+                0% { filter: brightness(1); transform: scale(1); }
+                40% { filter: brightness(1.7) saturate(1.6) drop-shadow(0 0 16px rgba(255, 109, 0, 0.9)); }
+                100% { filter: brightness(0.15) saturate(0.2); transform: scale(0.55) translateY(14px); }
+            }
+            #tm-mascot-container.mascot-rebirth-rise svg.tm-mascot-robot {
+                animation: tm-phoenix-rebirth-rise 1.4s cubic-bezier(0.2, 0.9, 0.3, 1.15) forwards;
+            }
+            @keyframes tm-phoenix-rebirth-rise {
+                0% { filter: brightness(2.4) saturate(1.8); transform: scale(0.5) translateY(12px); }
+                100% { filter: brightness(1); transform: scale(1) translateY(0); }
+            }
+            .tm-phoenix-rebirth-glow {
+                position: fixed; inset: 0; z-index: 100140; pointer-events: none;
+                background: radial-gradient(circle at var(--tm-rebirth-x, 50%) var(--tm-rebirth-y, 60%),
+                    rgba(255, 244, 214, 0.95) 0%, rgba(255, 179, 0, 0.5) 30%,
+                    rgba(255, 109, 0, 0.18) 55%, transparent 75%);
+                animation: tm-phoenix-rebirth-flash 1.6s ease-out forwards;
+            }
+            @keyframes tm-phoenix-rebirth-flash {
+                0% { opacity: 0; }
+                22% { opacity: 1; }
+                100% { opacity: 0; }
+            }
             #tm-mascot-stats-modal .tm-mascot-nickname-row {
                 display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
                 margin: 0 0 12px; padding: 8px 10px;
@@ -11029,12 +11146,28 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
 
             /* ═══ Legendary / Mythical Pokémon-style auras (container HTML ::before) ═══ */
             #tm-mascot-container.mascot-char-phoenix:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
+                /* Fire-shaped: bright at the base, red tips licking upward */
                 background:
-                    radial-gradient(circle, rgba(255,234,0,0.45) 0%, rgba(255,61,0,0.22) 42%, transparent 70%);
-                box-shadow: 0 0 28px rgba(255,109,0,0.55), 0 0 56px rgba(255,61,0,0.28);
+                    radial-gradient(ellipse 55% 72% at 50% 68%,
+                        rgba(255,244,214,0.5) 0%,
+                        rgba(255,193,7,0.38) 22%,
+                        rgba(255,87,0,0.26) 48%,
+                        rgba(183,28,28,0.12) 68%,
+                        transparent 80%);
+                box-shadow: 0 0 26px rgba(255,109,0,0.5), 0 0 52px rgba(255,61,0,0.25);
                 opacity: 1;
-                animation: tm-legendary-aura-pulse 2.2s ease-in-out infinite;
+                filter: blur(1.5px);
+                animation: tm-phoenix-fire-flicker 1.1s linear infinite;
                 will-change: opacity, transform;
+            }
+            @keyframes tm-phoenix-fire-flicker {
+                0% { opacity: 0.8; transform: translate(-50%, -50%) scale(1, 1); }
+                18% { opacity: 1; transform: translate(-50%, -52%) scale(1.05, 1.1); }
+                36% { opacity: 0.72; transform: translate(-50%, -50%) scale(0.96, 0.94); }
+                54% { opacity: 0.95; transform: translate(-50%, -53%) scale(1.03, 1.13); }
+                72% { opacity: 0.78; transform: translate(-50%, -50%) scale(0.98, 0.97); }
+                88% { opacity: 1; transform: translate(-50%, -52%) scale(1.06, 1.08); }
+                100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1, 1); }
             }
             #tm-mascot-container.mascot-char-crystal:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
                 background:
@@ -11166,28 +11299,33 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 transform-origin: 50% 62%;
             }
             #tm-mascot-container.mascot-char-phoenix:has(.mascot-teen)::before {
-                background: radial-gradient(ellipse 72% 68% at 50% 55%, rgba(255,120,0,0.22) 0%, rgba(255,40,0,0.12) 45%, transparent 72%) !important;
+                background: radial-gradient(ellipse 58% 74% at 50% 66%,
+                    rgba(255,213,79,0.32) 0%,
+                    rgba(255,120,0,0.24) 40%,
+                    rgba(183,28,28,0.12) 62%,
+                    transparent 78%) !important;
                 box-shadow: 0 0 32px rgba(255,80,0,0.35), 0 0 64px rgba(255,40,0,0.18) !important;
             }
             #tm-mascot-container.mascot-char-phoenix:has(.mascot-adult)::before {
-                background: radial-gradient(ellipse 78% 72% at 50% 52%,
-                    rgba(255,213,79,0.35) 0%,
-                    rgba(156,39,176,0.18) 35%,
-                    rgba(255,40,0,0.18) 55%,
-                    transparent 78%) !important;
-                box-shadow: 0 0 42px rgba(255,193,7,0.45), 0 0 80px rgba(156,39,176,0.22), 0 0 100px rgba(255,60,0,0.2) !important;
-                animation: tm-legendary-aura-pulse 1.8s ease-in-out infinite !important;
+                background: radial-gradient(ellipse 62% 78% at 50% 64%,
+                    rgba(255,244,214,0.45) 0%,
+                    rgba(255,193,7,0.35) 25%,
+                    rgba(255,60,0,0.22) 50%,
+                    rgba(156,39,176,0.12) 66%,
+                    transparent 80%) !important;
+                box-shadow: 0 0 42px rgba(255,193,7,0.45), 0 0 80px rgba(255,60,0,0.25), 0 0 100px rgba(156,39,176,0.15) !important;
+                animation: tm-phoenix-fire-flicker 0.95s linear infinite !important;
             }
             #tm-mascot-container.mascot-char-phoenix:has(.mascot-middleage)::before,
             #tm-mascot-container.mascot-char-phoenix:has(.mascot-old)::before {
-                background: radial-gradient(ellipse 82% 76% at 50% 50%,
-                    rgba(255,248,225,0.38) 0%,
-                    rgba(255,213,79,0.28) 25%,
-                    rgba(156,39,176,0.15) 45%,
-                    rgba(255,80,0,0.12) 60%,
-                    transparent 78%) !important;
-                box-shadow: 0 0 48px rgba(255,248,225,0.35), 0 0 96px rgba(255,193,7,0.3), 0 0 120px rgba(156,39,176,0.15) !important;
-                animation: tm-legendary-aura-pulse 1.6s ease-in-out infinite !important;
+                background: radial-gradient(ellipse 66% 82% at 50% 62%,
+                    rgba(255,248,225,0.5) 0%,
+                    rgba(255,213,79,0.36) 22%,
+                    rgba(255,80,0,0.24) 48%,
+                    rgba(156,39,176,0.1) 64%,
+                    transparent 80%) !important;
+                box-shadow: 0 0 48px rgba(255,248,225,0.35), 0 0 96px rgba(255,193,7,0.3), 0 0 120px rgba(255,60,0,0.18) !important;
+                animation: tm-phoenix-fire-flicker 0.85s linear infinite !important;
             }
             .tm-mascot-robot.mascot-char-phoenix.mascot-adult,
             .tm-mascot-robot.mascot-char-phoenix.mascot-middleage,
@@ -35651,6 +35789,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
                             <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
                         </radialGradient>
+                        <linearGradient id="phoenix-baby-flameOut" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#b71c1c;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#e64a19;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ff9800;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="phoenix-baby-flameIn" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffb300;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#ffd740;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#fffde7;stop-opacity:1" />
+                        </linearGradient>
                         <linearGradient id="phoenix-baby-beak" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
@@ -35741,6 +35889,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
                             <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
                         </radialGradient>
+                        <linearGradient id="phoenix-evo1-flameOut" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#b71c1c;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#e64a19;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ff9800;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="phoenix-evo1-flameIn" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffb300;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#ffd740;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#fffde7;stop-opacity:1" />
+                        </linearGradient>
                         <linearGradient id="phoenix-evo1-beak" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
@@ -35755,8 +35913,25 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </filter>
                     </defs>
                         <ellipse cx="50" cy="84" rx="17" ry="4.4" fill="#120303" opacity="0.26"/>
-                        <ellipse cx="50" cy="52" rx="20" ry="15.6" fill="url(#phoenix-evo1-core)" opacity="0.32" filter="url(#phoenix-evo1-glow)"/>
-
+                        <ellipse cx="50" cy="52" rx="16.3" ry="12.8" fill="url(#phoenix-evo1-core)" opacity="0.18" filter="url(#phoenix-evo1-glow)"/>
+                        <path d="M 49.2 40.4 Q 48.9 38.7 49.8 37.7 Q 50.4 36.7 50.9 34.4 Q 51.2 36.8 51.4 37.9 Q 52.3 39.0 52.0 40.4 Q 50.6 40.8 49.2 40.4 Z" transform="rotate(0.9 50.6 40.4)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
+                        <path d="M 59.7 44.0 Q 59.2 41.7 60.5 40.2 Q 60.9 38.9 61.0 35.7 Q 62.1 39.0 62.7 40.5 Q 63.9 42.0 63.5 44.0 Q 61.6 44.5 59.7 44.0 Z" transform="rotate(17.9 61.6 44.0)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
+                        <path d="M 63.2 54.7 Q 62.7 51.9 64.3 50.1 Q 65.4 48.5 66.6 44.7 Q 66.7 48.7 66.9 50.5 Q 68.4 52.3 67.9 54.7 Q 65.6 55.3 63.2 54.7 Z" transform="rotate(36.6 65.6 54.7)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
+                        <path d="M 55.2 62.6 Q 54.9 61.0 55.8 60.0 Q 56.2 59.1 56.5 57.0 Q 57.0 59.2 57.3 60.2 Q 58.1 61.3 57.8 62.6 Q 56.5 62.9 55.2 62.6 Z" transform="rotate(32.7 56.5 62.6)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
+                        <path d="M 44.1 63.1 Q 43.8 61.7 44.6 60.8 Q 44.6 60.0 44.3 58.1 Q 45.3 60.1 45.9 61.0 Q 46.6 61.9 46.3 63.1 Q 45.2 63.4 44.1 63.1 Z" transform="rotate(-26.9 45.2 63.1)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
+                        <path d="M 32.5 55.9 Q 31.9 53.0 33.6 51.1 Q 33.8 49.4 33.2 45.4 Q 35.3 49.6 36.4 51.5 Q 37.9 53.4 37.4 55.9 Q 34.9 56.5 32.5 55.9 Z" transform="rotate(-37.9 34.9 55.9)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
+                        <path d="M 34.2 46.0 Q 33.7 43.5 35.1 41.8 Q 36.0 40.3 36.9 36.8 Q 37.2 40.5 37.5 42.2 Q 38.9 43.8 38.4 46.0 Q 36.3 46.6 34.2 46.0 Z" transform="rotate(-22.6 36.3 46.0)" fill="url(#phoenix-evo1-flameOut)" opacity="0.62" filter="url(#phoenix-evo1-soft)"/>
+                        <path d="M 49.8 40.4 Q 49.6 39.5 50.2 38.9 Q 50.5 38.3 50.8 37.1 Q 50.9 38.4 51.1 39.0 Q 51.6 39.6 51.4 40.4 Q 50.6 40.6 49.8 40.4 Z" transform="rotate(0.9 50.6 40.4)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
+                        <path d="M 60.5 44.0 Q 60.2 42.7 61.0 41.9 Q 61.2 41.1 61.2 39.3 Q 61.9 41.2 62.2 42.0 Q 63.0 42.9 62.7 44.0 Q 61.6 44.3 60.5 44.0 Z" transform="rotate(17.9 61.6 44.0)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
+                        <path d="M 64.2 54.7 Q 63.9 53.1 64.8 52.1 Q 65.5 51.2 66.2 49.1 Q 66.2 51.3 66.4 52.4 Q 67.2 53.4 66.9 54.7 Q 65.6 55.1 64.2 54.7 Z" transform="rotate(36.6 65.6 54.7)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
+                        <path d="M 55.8 62.6 Q 55.6 61.7 56.1 61.2 Q 56.3 60.7 56.5 59.5 Q 56.8 60.7 56.9 61.3 Q 57.4 61.8 57.2 62.6 Q 56.5 62.8 55.8 62.6 Z" transform="rotate(32.7 56.5 62.6)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
+                        <path d="M 44.5 63.1 Q 44.4 62.3 44.8 61.8 Q 44.8 61.4 44.6 60.3 Q 45.3 61.4 45.6 61.9 Q 46.0 62.4 45.8 63.1 Q 45.2 63.2 44.5 63.1 Z" transform="rotate(-26.9 45.2 63.1)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
+                        <path d="M 33.5 55.9 Q 33.2 54.3 34.2 53.2 Q 34.2 52.3 33.9 50.0 Q 35.1 52.4 35.8 53.4 Q 36.7 54.5 36.3 55.9 Q 34.9 56.3 33.5 55.9 Z" transform="rotate(-37.9 34.9 55.9)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
+                        <path d="M 35.0 46.0 Q 34.8 44.6 35.6 43.7 Q 36.1 42.8 36.6 40.9 Q 36.8 43.0 37.0 43.9 Q 37.8 44.8 37.5 46.0 Q 36.3 46.3 35.0 46.0 Z" transform="rotate(-22.6 36.3 46.0)" fill="url(#phoenix-evo1-flameIn)" opacity="0.68" filter="url(#phoenix-evo1-soft)"/>
+                        <circle cx="66.1" cy="30.0" r="0.76" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo1-glow)"/>
+                        <circle cx="73.1" cy="44.6" r="0.83" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo1-glow)"/>
+                        <circle cx="27.3" cy="46.1" r="0.88" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo1-glow)"/>
+                        <circle cx="31.1" cy="33.5" r="0.52" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo1-glow)"/>
                         <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo1-soft)"/>
                         <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo1-soft)"/>
                         <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo1-soft)"/>
@@ -35846,6 +36021,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
                             <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
                         </radialGradient>
+                        <linearGradient id="phoenix-evo2-flameOut" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#b71c1c;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#e64a19;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ff9800;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="phoenix-evo2-flameIn" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffb300;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#ffd740;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#fffde7;stop-opacity:1" />
+                        </linearGradient>
                         <linearGradient id="phoenix-evo2-beak" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
@@ -35860,8 +36045,26 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </filter>
                     </defs>
                         <ellipse cx="50" cy="94" rx="28" ry="4.4" fill="#120303" opacity="0.26"/>
-                        <ellipse cx="50" cy="46" rx="30" ry="23.4" fill="url(#phoenix-evo2-core)" opacity="0.32" filter="url(#phoenix-evo2-glow)"/>
-
+                        <ellipse cx="50" cy="46" rx="24.5" ry="19.1" fill="url(#phoenix-evo2-core)" opacity="0.18" filter="url(#phoenix-evo2-glow)"/>
+                        <path d="M 48.9 28.6 Q 48.4 26.1 49.8 24.5 Q 50.6 23.1 51.3 19.7 Q 51.8 23.2 52.2 24.9 Q 53.5 26.5 53.0 28.6 Q 50.9 29.1 48.9 28.6 Z" transform="rotate(0.9 50.9 28.6)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 62.5 32.7 Q 61.9 29.2 63.8 26.9 Q 64.4 24.9 64.5 20.2 Q 66.2 25.2 67.1 27.4 Q 69.0 29.7 68.3 32.7 Q 65.4 33.4 62.5 32.7 Z" transform="rotate(15.5 65.4 32.7)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 70.5 46.2 Q 69.7 42.0 72.1 39.3 Q 73.7 36.9 75.6 31.1 Q 75.7 37.2 76.1 39.9 Q 78.3 42.6 77.5 46.2 Q 74.0 47.1 70.5 46.2 Z" transform="rotate(33.1 74.0 46.2)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 64.5 58.7 Q 64.0 56.3 65.4 54.8 Q 66.0 53.5 66.5 50.3 Q 67.1 53.6 67.6 55.1 Q 68.8 56.7 68.4 58.7 Q 66.4 59.2 64.5 58.7 Z" transform="rotate(40.0 66.4 58.7)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 51.7 63.2 Q 51.3 61.2 52.5 59.8 Q 52.5 58.6 52.1 55.8 Q 53.6 58.8 54.4 60.1 Q 55.5 61.5 55.1 63.2 Q 53.4 63.7 51.7 63.2 Z" transform="rotate(14.4 53.4 63.2)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 33.1 59.7 Q 32.6 57.2 34.0 55.5 Q 34.2 54.1 33.7 50.7 Q 35.5 54.3 36.4 55.9 Q 37.7 57.5 37.2 59.7 Q 35.2 60.2 33.1 59.7 Z" transform="rotate(-39.1 35.2 59.7)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 23.0 48.3 Q 22.3 44.5 24.4 42.0 Q 25.8 39.8 27.1 34.5 Q 27.6 40.0 28.1 42.5 Q 30.1 45.0 29.4 48.3 Q 26.2 49.1 23.0 48.3 Z" transform="rotate(-35.1 26.2 48.3)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 28.1 34.9 Q 27.3 30.8 29.6 28.2 Q 30.3 25.9 30.3 20.3 Q 32.3 26.1 33.5 28.8 Q 35.7 31.4 34.9 34.9 Q 31.5 35.8 28.1 34.9 Z" transform="rotate(-19.5 31.5 34.9)" fill="url(#phoenix-evo2-flameOut)" opacity="0.62" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 49.7 28.6 Q 49.4 27.2 50.3 26.3 Q 50.7 25.5 51.1 23.6 Q 51.4 25.6 51.6 26.5 Q 52.4 27.4 52.1 28.6 Q 50.9 28.9 49.7 28.6 Z" transform="rotate(0.9 50.9 28.6)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 63.7 32.7 Q 63.4 30.7 64.5 29.5 Q 64.8 28.3 64.9 25.7 Q 65.8 28.5 66.4 29.7 Q 67.5 31.0 67.1 32.7 Q 65.4 33.1 63.7 32.7 Z" transform="rotate(15.5 65.4 32.7)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 72.0 46.2 Q 71.5 43.8 72.9 42.3 Q 73.9 41.0 75.0 37.8 Q 75.0 41.1 75.2 42.7 Q 76.5 44.2 76.0 46.2 Q 74.0 46.7 72.0 46.2 Z" transform="rotate(33.1 74.0 46.2)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 65.3 58.7 Q 65.1 57.4 65.8 56.5 Q 66.2 55.8 66.5 54.0 Q 66.9 55.9 67.1 56.7 Q 67.8 57.5 67.6 58.7 Q 66.4 59.0 65.3 58.7 Z" transform="rotate(40.0 66.4 58.7)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 52.4 63.2 Q 52.2 62.1 52.9 61.3 Q 52.9 60.7 52.6 59.1 Q 53.5 60.7 54.0 61.5 Q 54.6 62.2 54.4 63.2 Q 53.4 63.5 52.4 63.2 Z" transform="rotate(14.4 53.4 63.2)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 34.0 59.7 Q 33.7 58.3 34.5 57.4 Q 34.6 56.6 34.3 54.6 Q 35.3 56.7 35.9 57.6 Q 36.7 58.5 36.4 59.7 Q 35.2 60.0 34.0 59.7 Z" transform="rotate(-39.1 35.2 59.7)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 24.4 48.3 Q 23.9 46.2 25.2 44.8 Q 26.0 43.5 26.8 40.6 Q 27.0 43.7 27.3 45.1 Q 28.5 46.5 28.1 48.3 Q 26.2 48.8 24.4 48.3 Z" transform="rotate(-35.1 26.2 48.3)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
+                        <path d="M 29.5 34.9 Q 29.1 32.6 30.4 31.2 Q 30.8 29.8 30.8 26.7 Q 32.0 30.0 32.7 31.5 Q 33.9 33.0 33.4 34.9 Q 31.5 35.4 29.5 34.9 Z" transform="rotate(-19.5 31.5 34.9)" fill="url(#phoenix-evo2-flameIn)" opacity="0.68" filter="url(#phoenix-evo2-soft)"/>
+                        <circle cx="71.4" cy="11.0" r="0.76" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo2-glow)"/>
+                        <circle cx="85.6" cy="28.4" r="0.83" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo2-glow)"/>
+                        <circle cx="17.2" cy="35.4" r="0.52" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo2-glow)"/>
                         <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo2-soft)"/>
                         <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo2-soft)"/>
                         <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo2-soft)"/>
@@ -35974,6 +36177,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
                             <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
                         </radialGradient>
+                        <linearGradient id="phoenix-evo3-flameOut" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#b71c1c;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#e64a19;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ff9800;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="phoenix-evo3-flameIn" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffb300;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#ffd740;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#fffde7;stop-opacity:1" />
+                        </linearGradient>
                         <linearGradient id="phoenix-evo3-beak" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
@@ -35988,24 +36201,37 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </filter>
                     </defs>
                         <ellipse cx="50" cy="94" rx="40" ry="4.4" fill="#120303" opacity="0.45"/>
-                        <ellipse cx="50" cy="46" rx="48" ry="37.4" fill="url(#phoenix-evo3-core)" opacity="0.55" filter="url(#phoenix-evo3-glow)"/>
-                            <path d="M 10.9 33.2 Q 6.5 32.4 2.8 32.1 Q 5.8 34.2 9.7 36.4 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
-                            <path d="M 18.7 23.7 Q 13.6 20.4 9.2 17.9 Q 12.4 21.9 16.5 26.3 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
-                            <path d="M 30.4 16.9 Q 25.9 10.6 21.9 5.6 Q 24.2 11.5 27.4 18.6 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
-                            <path d="M 44.3 13.6 Q 42.8 9.4 41.3 6.0 Q 41.0 9.7 41.0 14.2 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
-                            <path d="M 59.0 14.2 Q 59.3 8.1 59.2 3.0 Q 57.4 7.7 55.7 13.6 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
-                            <path d="M 72.6 18.6 Q 75.8 11.5 78.1 5.6 Q 74.1 10.6 69.6 16.9 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
-                            <path d="M 83.5 26.3 Q 86.3 22.9 88.5 19.9 Q 85.1 21.5 81.3 23.7 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
-                            <path d="M 90.3 36.4 Q 95.7 33.7 100.0 31.1 Q 95.1 31.9 89.1 33.2 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
-                            <path d="M 92.2 47.7 Q 99.9 47.0 106.2 46.0 Q 99.9 45.0 92.2 44.3 Z" fill="url(#phoenix-evo3-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo3-soft)"/>
-                        <path d="M 50.0 28.7 L 50.0 5.2" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
-                        <path d="M 64.3 33.8 L 83.9 17.2" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
-                        <path d="M 70.2 46.0 L 98.0 46.0" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
-                        <path d="M 64.3 58.2 L 83.9 74.8" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
-                        <path d="M 50.0 63.3 L 50.0 86.8" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
-                        <path d="M 35.7 58.2 L 16.1 74.8" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
-                        <path d="M 29.8 46.0 L 2.0 46.0" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
-                        <path d="M 35.7 33.8 L 16.1 17.2" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo3-glow)"/>
+                        <ellipse cx="50" cy="46" rx="39.2" ry="30.6" fill="url(#phoenix-evo3-core)" opacity="0.3" filter="url(#phoenix-evo3-glow)"/>
+                        <path d="M 48.2 18.2 Q 47.4 14.2 49.6 11.6 Q 50.9 9.3 52.0 3.9 Q 52.8 9.6 53.4 12.2 Q 55.6 14.7 54.8 18.2 Q 51.5 19.0 48.2 18.2 Z" transform="rotate(0.9 51.5 18.2)" fill="url(#phoenix-evo3-flameOut)" opacity="0.8" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 60.2 20.3 Q 59.1 14.7 62.2 11.1 Q 63.2 8.0 63.3 0.4 Q 66.0 8.4 67.5 11.9 Q 70.5 15.5 69.4 20.3 Q 64.8 21.5 60.2 20.3 Z" transform="rotate(8.9 64.8 20.3)" fill="url(#phoenix-evo3-flameOut)" opacity="0.8" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 76.3 30.5 Q 75.0 23.7 78.8 19.4 Q 81.4 15.5 84.4 6.4 Q 84.6 16.0 85.2 20.3 Q 88.7 24.7 87.4 30.5 Q 81.9 31.9 76.3 30.5 Z" transform="rotate(21.5 81.9 30.5)" fill="url(#phoenix-evo3-flameOut)" opacity="0.8" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 82.8 43.5 Q 81.5 36.9 85.2 32.7 Q 87.0 28.9 88.3 20.0 Q 90.2 29.4 91.5 33.6 Q 95.0 37.8 93.7 43.5 Q 88.2 44.9 82.8 43.5 Z" transform="rotate(31.3 88.2 43.5)" fill="url(#phoenix-evo3-flameOut)" opacity="0.8" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 82.7 52.1 Q 81.6 46.3 84.8 42.6 Q 85.0 39.2 83.7 31.4 Q 88.1 39.7 90.3 43.4 Q 93.4 47.1 92.2 52.1 Q 87.5 53.3 82.7 52.1 Z" transform="rotate(36.3 87.5 52.1)" fill="url(#phoenix-evo3-flameOut)" opacity="0.8" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 75.4 64.5 Q 74.6 60.5 76.9 57.9 Q 77.1 55.6 76.4 50.1 Q 79.2 55.9 80.7 58.4 Q 82.8 61.0 82.0 64.5 Q 78.7 65.4 75.4 64.5 Z" transform="rotate(40.3 78.7 64.5)" fill="url(#phoenix-evo3-flameOut)" opacity="0.8" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 61.2 71.9 Q 60.5 68.4 62.4 66.1 Q 63.7 64.1 64.9 59.3 Q 65.4 64.3 65.8 66.6 Q 67.7 68.9 67.0 71.9 Q 64.1 72.7 61.2 71.9 Z" transform="rotate(30.8 64.1 71.9)" fill="url(#phoenix-evo3-flameOut)" opacity="0.8" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 41.3 73.5 Q 40.6 69.8 42.7 67.4 Q 43.3 65.2 43.3 60.2 Q 45.2 65.5 46.3 67.9 Q 48.2 70.3 47.5 73.5 Q 44.4 74.3 41.3 73.5 Z" transform="rotate(-14.6 44.4 73.5)" fill="url(#phoenix-evo3-flameOut)" opacity="0.8" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 18.3 64.4 Q 17.7 60.9 19.6 58.7 Q 20.3 56.8 20.7 52.1 Q 22.1 57.0 22.9 59.2 Q 24.7 61.4 24.0 64.4 Q 21.2 65.1 18.3 64.4 Z" transform="rotate(-40.3 21.2 64.4)" fill="url(#phoenix-evo3-flameOut)" opacity="0.8" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 11.5 57.0 Q 10.8 53.1 12.9 50.6 Q 14.2 48.4 15.4 43.1 Q 16.1 48.7 16.6 51.2 Q 18.7 53.6 17.9 57.0 Q 14.7 57.8 11.5 57.0 Z" transform="rotate(-38.6 14.7 57.0)" fill="url(#phoenix-evo3-flameOut)" opacity="0.8" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 8.3 45.2 Q 7.6 41.3 9.8 38.7 Q 10.8 36.4 11.5 31.0 Q 12.8 36.7 13.6 39.3 Q 15.7 41.8 14.9 45.2 Q 11.6 46.1 8.3 45.2 Z" transform="rotate(-32.4 11.6 45.2)" fill="url(#phoenix-evo3-flameOut)" opacity="0.8" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 11.0 32.1 Q 9.6 25.0 13.5 20.5 Q 14.8 16.5 15.2 7.0 Q 18.4 17.0 20.2 21.5 Q 23.9 26.0 22.5 32.1 Q 16.8 33.6 11.0 32.1 Z" transform="rotate(-22.9 16.8 32.1)" fill="url(#phoenix-evo3-flameOut)" opacity="0.8" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 24.4 22.7 Q 23.3 17.2 26.4 13.7 Q 29.2 10.6 32.9 3.1 Q 31.7 11.0 31.6 14.5 Q 34.5 18.0 33.4 22.7 Q 28.9 23.9 24.4 22.7 Z" transform="rotate(-13.0 28.9 22.7)" fill="url(#phoenix-evo3-flameOut)" opacity="0.8" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 49.6 18.2 Q 49.1 15.9 50.4 14.5 Q 51.1 13.2 51.8 10.2 Q 52.3 13.4 52.6 14.8 Q 53.8 16.3 53.4 18.2 Q 51.5 18.7 49.6 18.2 Z" transform="rotate(0.9 51.5 18.2)" fill="url(#phoenix-evo3-flameIn)" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 62.1 20.3 Q 61.5 17.2 63.3 15.2 Q 63.8 13.4 63.9 9.2 Q 65.5 13.6 66.4 15.6 Q 68.1 17.6 67.4 20.3 Q 64.8 21.0 62.1 20.3 Z" transform="rotate(8.9 64.8 20.3)" fill="url(#phoenix-evo3-flameIn)" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 78.6 30.5 Q 77.9 26.7 80.1 24.3 Q 81.6 22.1 83.4 17.0 Q 83.5 22.4 83.8 24.8 Q 85.9 27.2 85.1 30.5 Q 81.9 31.3 78.6 30.5 Z" transform="rotate(21.5 81.9 30.5)" fill="url(#phoenix-evo3-flameIn)" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 85.1 43.5 Q 84.4 39.8 86.5 37.4 Q 87.5 35.3 88.3 30.3 Q 89.4 35.6 90.1 38.0 Q 92.1 40.3 91.4 43.5 Q 88.2 44.3 85.1 43.5 Z" transform="rotate(31.3 88.2 43.5)" fill="url(#phoenix-evo3-flameIn)" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 84.7 52.1 Q 84.1 48.8 85.9 46.7 Q 86.0 44.9 85.2 40.5 Q 87.8 45.1 89.1 47.2 Q 90.9 49.3 90.2 52.1 Q 87.5 52.7 84.7 52.1 Z" transform="rotate(36.3 87.5 52.1)" fill="url(#phoenix-evo3-flameIn)" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 76.8 64.5 Q 76.3 62.2 77.6 60.8 Q 77.8 59.5 77.3 56.4 Q 79.0 59.7 79.9 61.1 Q 81.1 62.6 80.6 64.5 Q 78.7 65.0 76.8 64.5 Z" transform="rotate(40.3 78.7 64.5)" fill="url(#phoenix-evo3-flameIn)" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 62.4 71.9 Q 62.0 69.9 63.1 68.7 Q 63.8 67.5 64.6 64.8 Q 64.8 67.7 65.1 68.9 Q 66.2 70.2 65.7 71.9 Q 64.1 72.3 62.4 71.9 Z" transform="rotate(30.8 64.1 71.9)" fill="url(#phoenix-evo3-flameIn)" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 42.6 73.5 Q 42.2 71.4 43.4 70.1 Q 43.8 68.9 43.8 66.0 Q 44.9 69.0 45.5 70.4 Q 46.6 71.7 46.2 73.5 Q 44.4 74.0 42.6 73.5 Z" transform="rotate(-14.6 44.4 73.5)" fill="url(#phoenix-evo3-flameIn)" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 19.5 64.4 Q 19.1 62.5 20.2 61.2 Q 20.7 60.1 20.9 57.5 Q 21.7 60.2 22.2 61.5 Q 23.2 62.7 22.8 64.4 Q 21.2 64.8 19.5 64.4 Z" transform="rotate(-40.3 21.2 64.4)" fill="url(#phoenix-evo3-flameIn)" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 12.9 57.0 Q 12.4 54.8 13.7 53.4 Q 14.4 52.2 15.1 49.2 Q 15.5 52.3 15.8 53.7 Q 17.0 55.1 16.6 57.0 Q 14.7 57.4 12.9 57.0 Z" transform="rotate(-38.6 14.7 57.0)" fill="url(#phoenix-evo3-flameIn)" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 9.7 45.2 Q 9.3 43.0 10.6 41.6 Q 11.1 40.3 11.5 37.3 Q 12.3 40.5 12.8 41.9 Q 14.0 43.3 13.5 45.2 Q 11.6 45.7 9.7 45.2 Z" transform="rotate(-32.4 11.6 45.2)" fill="url(#phoenix-evo3-flameIn)" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 13.4 32.1 Q 12.6 28.1 14.9 25.6 Q 15.6 23.3 15.8 18.0 Q 17.7 23.6 18.8 26.2 Q 20.9 28.7 20.1 32.1 Q 16.8 32.9 13.4 32.1 Z" transform="rotate(-22.9 16.8 32.1)" fill="url(#phoenix-evo3-flameIn)" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                        <path d="M 26.3 22.7 Q 25.7 19.7 27.4 17.7 Q 29.1 15.9 31.3 11.7 Q 30.6 16.1 30.5 18.1 Q 32.2 20.1 31.5 22.7 Q 28.9 23.4 26.3 22.7 Z" transform="rotate(-13.0 28.9 22.7)" fill="url(#phoenix-evo3-flameIn)" opacity="0.85" filter="url(#phoenix-evo3-soft)"/>
+                        <circle cx="70.6" cy="-16.7" r="0.76" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo3-glow)"/>
+                        <circle cx="97.3" cy="-8.6" r="0.83" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo3-glow)"/>
+                        <circle cx="103.3" cy="30.5" r="0.72" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo3-glow)"/>
+                        <circle cx="2.5" cy="30.9" r="0.65" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo3-glow)"/>
                         <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo3-soft)"/>
                         <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo3-soft)"/>
                         <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo3-soft)"/>
@@ -36130,6 +36356,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
                             <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
                         </radialGradient>
+                        <linearGradient id="phoenix-evo4-flameOut" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#b71c1c;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#e64a19;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ff9800;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="phoenix-evo4-flameIn" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffb300;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#ffd740;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#fffde7;stop-opacity:1" />
+                        </linearGradient>
                         <linearGradient id="phoenix-evo4-beak" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
@@ -36144,22 +36380,34 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </filter>
                     </defs>
                         <ellipse cx="50" cy="94" rx="40" ry="4.4" fill="#120303" opacity="0.45"/>
-                        <ellipse cx="50" cy="46" rx="40" ry="31.2" fill="url(#phoenix-evo4-core)" opacity="0.55" filter="url(#phoenix-evo4-glow)"/>
-                            <path d="M 17.5 35.1 Q 13.1 34.3 9.4 34.0 Q 12.5 36.1 16.3 38.3 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
-                            <path d="M 24.1 27.2 Q 19.0 23.9 14.6 21.4 Q 17.8 25.4 21.9 29.8 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
-                            <path d="M 33.9 21.6 Q 29.4 15.3 25.4 10.3 Q 27.7 16.3 30.9 23.3 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
-                            <path d="M 45.6 18.9 Q 44.1 14.7 42.5 11.3 Q 42.2 15.0 42.2 19.5 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
-                            <path d="M 57.8 19.5 Q 58.1 13.4 58.0 8.4 Q 56.2 13.1 54.4 18.9 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
-                            <path d="M 69.1 23.3 Q 72.3 16.3 74.6 10.3 Q 70.6 15.3 66.1 21.6 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
-                            <path d="M 78.1 29.8 Q 80.9 26.4 83.1 23.4 Q 79.7 25.0 75.9 27.2 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
-                            <path d="M 83.7 38.3 Q 89.1 35.5 93.4 32.9 Q 88.4 33.7 82.5 35.1 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
-                            <path d="M 85.2 47.7 Q 92.9 47.0 99.2 46.0 Q 92.9 45.0 85.2 44.3 Z" fill="url(#phoenix-evo4-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo4-soft)"/>
-                        <path d="M 50.0 31.6 L 50.0 12.0" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo4-glow)"/>
-                        <path d="M 64.5 38.8 L 84.6 29.0" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo4-glow)"/>
-                        <path d="M 64.5 53.2 L 84.6 63.0" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo4-glow)"/>
-                        <path d="M 50.0 60.4 L 50.0 80.0" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo4-glow)"/>
-                        <path d="M 35.5 53.2 L 15.4 63.0" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo4-glow)"/>
-                        <path d="M 35.5 38.8 L 15.4 29.0" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo4-glow)"/>
+                        <ellipse cx="50" cy="46" rx="32.6" ry="25.5" fill="url(#phoenix-evo4-core)" opacity="0.3" filter="url(#phoenix-evo4-glow)"/>
+                        <path d="M 48.5 22.8 Q 47.8 19.5 49.7 17.3 Q 50.7 15.4 51.7 10.9 Q 52.4 15.7 52.9 17.8 Q 54.6 20.0 54.0 22.8 Q 51.2 23.5 48.5 22.8 Z" transform="rotate(0.9 51.2 22.8)" fill="url(#phoenix-evo4-flameOut)" opacity="0.8" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 61.0 25.5 Q 60.1 20.8 62.7 17.8 Q 63.5 15.2 63.6 8.9 Q 65.9 15.5 67.2 18.5 Q 69.6 21.5 68.7 25.5 Q 64.9 26.5 61.0 25.5 Z" transform="rotate(10.8 64.9 25.5)" fill="url(#phoenix-evo4-flameOut)" opacity="0.8" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 74.6 36.6 Q 73.5 31.0 76.7 27.4 Q 78.9 24.2 81.4 16.5 Q 81.6 24.6 82.0 28.2 Q 85.0 31.8 83.9 36.6 Q 79.3 37.8 74.6 36.6 Z" transform="rotate(25.1 79.3 36.6)" fill="url(#phoenix-evo4-flameOut)" opacity="0.8" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 77.0 50.0 Q 75.9 44.5 79.0 41.0 Q 80.5 37.8 81.6 30.4 Q 83.2 38.2 84.2 41.8 Q 87.1 45.3 86.0 50.0 Q 81.5 51.2 77.0 50.0 Z" transform="rotate(35.7 81.5 50.0)" fill="url(#phoenix-evo4-flameOut)" opacity="0.8" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 74.7 58.5 Q 74.1 55.8 75.7 54.0 Q 75.8 52.4 75.1 48.7 Q 77.2 52.6 78.3 54.4 Q 79.7 56.2 79.2 58.5 Q 76.9 59.1 74.7 58.5 Z" transform="rotate(39.9 76.9 58.5)" fill="url(#phoenix-evo4-flameOut)" opacity="0.8" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 59.9 67.3 Q 59.2 64.0 61.1 61.8 Q 61.3 59.9 60.7 55.3 Q 63.0 60.1 64.3 62.3 Q 66.0 64.4 65.4 67.3 Q 62.6 68.0 59.9 67.3 Z" transform="rotate(32.2 62.6 67.3)" fill="url(#phoenix-evo4-flameOut)" opacity="0.8" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 42.7 68.9 Q 42.2 66.0 43.8 64.1 Q 44.8 62.4 45.9 58.4 Q 46.2 62.6 46.6 64.5 Q 48.1 66.4 47.6 68.9 Q 45.1 69.6 42.7 68.9 Z" transform="rotate(-15.2 45.1 68.9)" fill="url(#phoenix-evo4-flameOut)" opacity="0.8" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 25.4 62.8 Q 24.7 59.7 26.5 57.7 Q 27.0 55.9 27.0 51.6 Q 28.6 56.1 29.5 58.1 Q 31.1 60.1 30.5 62.8 Q 27.9 63.5 25.4 62.8 Z" transform="rotate(-40.0 27.9 62.8)" fill="url(#phoenix-evo4-flameOut)" opacity="0.8" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 13.9 46.4 Q 12.9 41.4 15.7 38.2 Q 16.8 35.3 17.4 28.5 Q 19.3 35.7 20.5 38.9 Q 23.1 42.1 22.1 46.4 Q 18.0 47.5 13.9 46.4 Z" transform="rotate(-33.2 18.0 46.4)" fill="url(#phoenix-evo4-flameOut)" opacity="0.8" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 15.7 37.3 Q 14.6 31.6 17.7 28.0 Q 19.6 24.7 21.4 17.0 Q 22.3 25.1 23.1 28.8 Q 26.1 32.4 25.0 37.3 Q 20.3 38.5 15.7 37.3 Z" transform="rotate(-25.7 20.3 37.3)" fill="url(#phoenix-evo4-flameOut)" opacity="0.8" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 27.5 27.7 Q 26.9 24.4 28.7 22.3 Q 29.6 20.4 30.1 15.9 Q 31.2 20.6 31.9 22.8 Q 33.6 24.9 33.0 27.7 Q 30.3 28.5 27.5 27.7 Z" transform="rotate(-14.8 30.3 27.7)" fill="url(#phoenix-evo4-flameOut)" opacity="0.8" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 49.6 22.8 Q 49.3 20.9 50.3 19.7 Q 50.9 18.7 51.5 16.1 Q 51.9 18.8 52.2 20.0 Q 53.2 21.2 52.8 22.8 Q 51.2 23.2 49.6 22.8 Z" transform="rotate(0.9 51.2 22.8)" fill="url(#phoenix-evo4-flameIn)" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 62.6 25.5 Q 62.1 22.9 63.6 21.2 Q 64.1 19.7 64.1 16.2 Q 65.4 19.9 66.2 21.6 Q 67.6 23.2 67.1 25.5 Q 64.9 26.0 62.6 25.5 Z" transform="rotate(10.8 64.9 25.5)" fill="url(#phoenix-evo4-flameIn)" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 76.6 36.6 Q 75.9 33.5 77.8 31.4 Q 79.1 29.6 80.6 25.4 Q 80.6 29.9 80.9 31.9 Q 82.6 33.9 81.9 36.6 Q 79.3 37.3 76.6 36.6 Z" transform="rotate(25.1 79.3 36.6)" fill="url(#phoenix-evo4-flameIn)" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 78.9 50.0 Q 78.3 46.9 80.1 45.0 Q 80.9 43.2 81.6 39.0 Q 82.5 43.4 83.1 45.4 Q 84.8 47.4 84.1 50.0 Q 81.5 50.7 78.9 50.0 Z" transform="rotate(35.7 81.5 50.0)" fill="url(#phoenix-evo4-flameIn)" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 75.6 58.5 Q 75.3 57.0 76.2 56.0 Q 76.2 55.1 75.8 53.0 Q 77.1 55.2 77.7 56.2 Q 78.6 57.2 78.2 58.5 Q 76.9 58.9 75.6 58.5 Z" transform="rotate(39.9 76.9 58.5)" fill="url(#phoenix-evo4-flameIn)" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 61.0 67.3 Q 60.6 65.4 61.7 64.2 Q 61.8 63.2 61.4 60.6 Q 62.8 63.3 63.6 64.5 Q 64.6 65.7 64.2 67.3 Q 62.6 67.7 61.0 67.3 Z" transform="rotate(32.2 62.6 67.3)" fill="url(#phoenix-evo4-flameIn)" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 43.7 68.9 Q 43.4 67.3 44.4 66.2 Q 45.0 65.3 45.6 63.1 Q 45.8 65.4 46.0 66.5 Q 46.9 67.5 46.5 68.9 Q 45.1 69.3 43.7 68.9 Z" transform="rotate(-15.2 45.1 68.9)" fill="url(#phoenix-evo4-flameIn)" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 26.4 62.8 Q 26.1 61.1 27.1 59.9 Q 27.4 58.9 27.4 56.6 Q 28.3 59.1 28.8 60.2 Q 29.8 61.3 29.4 62.8 Q 27.9 63.2 26.4 62.8 Z" transform="rotate(-40.0 27.9 62.8)" fill="url(#phoenix-evo4-flameIn)" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 15.6 46.4 Q 15.0 43.6 16.7 41.8 Q 17.3 40.2 17.6 36.4 Q 18.8 40.4 19.4 42.2 Q 21.0 44.0 20.4 46.4 Q 18.0 47.0 15.6 46.4 Z" transform="rotate(-33.2 18.0 46.4)" fill="url(#phoenix-evo4-flameIn)" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 17.6 37.3 Q 17.0 34.1 18.8 32.1 Q 19.9 30.2 21.0 25.9 Q 21.5 30.5 22.0 32.5 Q 23.7 34.6 23.0 37.3 Q 20.3 38.0 17.6 37.3 Z" transform="rotate(-25.7 20.3 37.3)" fill="url(#phoenix-evo4-flameIn)" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                        <path d="M 28.7 27.7 Q 28.3 25.9 29.4 24.7 Q 29.9 23.6 30.2 21.1 Q 30.8 23.8 31.2 25.0 Q 32.2 26.1 31.8 27.7 Q 30.3 28.1 28.7 27.7 Z" transform="rotate(-14.8 30.3 27.7)" fill="url(#phoenix-evo4-flameIn)" opacity="0.85" filter="url(#phoenix-evo4-soft)"/>
+                        <circle cx="70.7" cy="-4.9" r="0.76" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo4-glow)"/>
+                        <circle cx="93.4" cy="6.4" r="0.83" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo4-glow)"/>
+                        <circle cx="4.7" cy="26.2" r="1.07" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo4-glow)"/>
+                        <circle cx="5.7" cy="6.9" r="0.88" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo4-glow)"/>
+                        <circle cx="25.6" cy="10.0" r="0.65" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo4-glow)"/>
                         <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo4-soft)"/>
                         <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo4-soft)"/>
                         <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo4-soft)"/>
@@ -36278,6 +36526,16 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                             <stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
                             <stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
                         </radialGradient>
+                        <linearGradient id="phoenix-evo5-flameOut" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#b71c1c;stop-opacity:1" />
+                            <stop offset="45%" style="stop-color:#e64a19;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#ff9800;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="phoenix-evo5-flameIn" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ffb300;stop-opacity:1" />
+                            <stop offset="55%" style="stop-color:#ffd740;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#fffde7;stop-opacity:1" />
+                        </linearGradient>
                         <linearGradient id="phoenix-evo5-beak" x1="0%" y1="0%" x2="0%" y2="100%">
                             <stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
                             <stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
@@ -36292,28 +36550,44 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </filter>
                     </defs>
                         <ellipse cx="50" cy="94" rx="40" ry="4.4" fill="#120303" opacity="0.45"/>
-                        <ellipse cx="50" cy="46" rx="56" ry="43.7" fill="url(#phoenix-evo5-core)" opacity="0.55" filter="url(#phoenix-evo5-glow)"/>
-                            <path d="M 4.3 31.4 Q -0.1 30.6 -3.8 30.2 Q -0.8 32.4 3.1 34.6 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 13.3 20.2 Q 8.2 16.9 3.8 14.5 Q 7.0 18.4 11.2 22.8 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 26.8 12.2 Q 22.3 5.9 18.4 0.9 Q 20.7 6.8 23.9 13.9 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 43.1 8.2 Q 41.6 4.0 40.1 0.6 Q 39.7 4.3 39.8 8.8 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 60.2 8.8 Q 60.5 2.7 60.5 -2.3 Q 58.7 2.4 56.9 8.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 76.1 13.9 Q 79.3 6.8 81.6 0.9 Q 77.7 5.9 73.2 12.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 88.8 22.8 Q 91.7 19.4 93.9 16.4 Q 90.5 18.0 86.7 20.2 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 96.9 34.6 Q 102.3 31.8 106.6 29.2 Q 101.7 30.0 95.7 31.4 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
-                            <path d="M 99.3 47.7 Q 107.0 47.0 113.3 46.0 Q 107.0 45.0 99.3 44.3 Z" fill="url(#phoenix-evo5-fire)" stroke="#7b1308" stroke-width=".4" opacity="0.5" filter="url(#phoenix-evo5-soft)"/>
-                        <path d="M 50.0 25.8 L 50.0 -1.6" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
-                        <path d="M 61.8 28.5 L 78.0 4.8" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
-                        <path d="M 70.4 35.9 L 98.5 22.2" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
-                        <path d="M 73.5 46.0 L 106.0 46.0" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
-                        <path d="M 70.4 56.1 L 98.5 69.8" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
-                        <path d="M 61.8 63.5 L 78.0 87.2" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
-                        <path d="M 50.0 66.2 L 50.0 93.6" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
-                        <path d="M 38.2 63.5 L 22.0 87.2" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
-                        <path d="M 29.6 56.1 L 1.5 69.8" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
-                        <path d="M 26.5 46.0 L -6.0 46.0" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
-                        <path d="M 29.6 35.9 L 1.5 22.2" stroke="#ffb300" stroke-width="1.1" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
-                        <path d="M 38.2 28.5 L 22.0 4.8" stroke="#ffb300" stroke-width="0.7" opacity="0.5" filter="url(#phoenix-evo5-glow)"/>
+                        <ellipse cx="50" cy="46" rx="42.8" ry="35.7" fill="url(#phoenix-evo5-core)" opacity="0.3" filter="url(#phoenix-evo5-glow)"/>
+                        <path d="M 47.8 13.5 Q 46.8 8.9 49.5 5.9 Q 50.9 3.2 52.3 -3.2 Q 53.2 3.5 53.9 6.5 Q 56.4 9.5 55.5 13.5 Q 51.6 14.5 47.8 13.5 Z" transform="rotate(0.9 51.6 13.5)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 57.2 15.0 Q 56.0 8.5 59.6 4.3 Q 60.7 0.6 60.9 -8.2 Q 64.0 1.1 65.8 5.3 Q 69.2 9.4 67.9 15.0 Q 62.6 16.4 57.2 15.0 Z" transform="rotate(6.8 62.6 15.0)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 73.6 23.3 Q 72.0 15.4 76.4 10.4 Q 79.6 5.9 83.1 -4.8 Q 83.3 6.4 83.9 11.5 Q 88.1 16.6 86.5 23.3 Q 80.1 25.0 73.6 23.3 Z" transform="rotate(17.7 80.1 23.3)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 83.0 34.5 Q 81.4 26.8 85.7 21.9 Q 87.8 17.5 89.4 7.0 Q 91.6 18.0 93.1 23.0 Q 97.1 27.9 95.6 34.5 Q 89.3 36.1 83.0 34.5 Z" transform="rotate(26.2 89.3 34.5)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 86.0 41.4 Q 84.7 34.6 88.5 30.3 Q 88.7 26.4 87.1 17.3 Q 92.2 26.9 94.9 31.2 Q 98.4 35.6 97.1 41.4 Q 91.6 42.8 86.0 41.4 Z" transform="rotate(30.4 91.6 41.4)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 83.7 54.8 Q 82.1 46.5 86.7 41.2 Q 87.1 36.5 85.7 25.4 Q 91.4 37.1 94.5 42.4 Q 98.8 47.7 97.2 54.8 Q 90.4 56.5 83.7 54.8 Z" transform="rotate(37.0 90.4 54.8)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 80.0 65.7 Q 79.2 61.6 81.5 58.9 Q 82.9 56.6 84.4 51.0 Q 84.9 56.9 85.4 59.5 Q 87.6 62.2 86.8 65.7 Q 83.4 66.6 80.0 65.7 Z" transform="rotate(40.3 83.4 65.7)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 66.1 74.7 Q 65.3 70.3 67.7 67.5 Q 68.4 65.0 68.4 59.1 Q 70.6 65.3 71.9 68.1 Q 74.2 70.9 73.3 74.7 Q 69.7 75.6 66.1 74.7 Z" transform="rotate(35.3 69.7 74.7)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 41.5 78.2 Q 40.7 74.2 42.9 71.6 Q 43.8 69.3 44.3 63.9 Q 45.8 69.6 46.8 72.2 Q 48.9 74.8 48.1 78.2 Q 44.8 79.1 41.5 78.2 Z" transform="rotate(-12.6 44.8 78.2)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 31.9 76.5 Q 31.0 72.0 33.5 69.1 Q 35.0 66.5 36.4 60.3 Q 37.2 66.8 37.8 69.7 Q 40.2 72.6 39.3 76.5 Q 35.6 77.5 31.9 76.5 Z" transform="rotate(-29.5 35.6 76.5)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 21.0 71.0 Q 20.5 68.4 22.0 66.7 Q 22.7 65.1 23.1 61.5 Q 24.0 65.3 24.5 67.0 Q 25.9 68.7 25.4 71.0 Q 23.2 71.6 21.0 71.0 Z" transform="rotate(-39.4 23.2 71.0)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 8.8 60.8 Q 7.8 56.1 10.4 53.1 Q 11.3 50.4 11.5 44.0 Q 13.7 50.7 14.9 53.8 Q 17.4 56.8 16.4 60.8 Q 12.6 61.8 8.8 60.8 Z" transform="rotate(-39.2 12.6 60.8)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 2.9 49.2 Q 1.7 42.8 5.3 38.7 Q 8.6 35.0 12.9 26.3 Q 11.5 35.4 11.4 39.6 Q 14.7 43.7 13.5 49.2 Q 8.2 50.6 2.9 49.2 Z" transform="rotate(-34.5 8.2 49.2)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 4.9 33.3 Q 3.4 25.4 7.7 20.4 Q 11.3 15.9 15.6 5.3 Q 14.9 16.5 15.2 21.5 Q 19.3 26.6 17.8 33.3 Q 11.3 35.0 4.9 33.3 Z" transform="rotate(-25.4 11.3 33.3)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 16.9 22.4 Q 15.9 17.1 18.8 13.8 Q 18.8 10.8 17.3 3.7 Q 21.6 11.2 23.8 14.5 Q 26.5 17.9 25.5 22.4 Q 21.2 23.5 16.9 22.4 Z" transform="rotate(-16.8 21.2 22.4)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 34.3 14.9 Q 33.4 10.6 35.8 7.8 Q 37.1 5.3 38.3 -0.5 Q 39.2 5.7 39.9 8.4 Q 42.2 11.2 41.4 14.9 Q 37.8 15.8 34.3 14.9 Z" transform="rotate(-6.6 37.8 14.9)" fill="url(#phoenix-evo5-flameOut)" opacity="0.8" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 49.4 13.5 Q 48.8 10.9 50.4 9.2 Q 51.2 7.7 52.0 4.2 Q 52.5 7.9 52.9 9.6 Q 54.4 11.3 53.8 13.5 Q 51.6 14.1 49.4 13.5 Z" transform="rotate(0.9 51.6 13.5)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 59.5 15.0 Q 58.8 11.4 60.9 9.0 Q 61.5 6.9 61.6 2.0 Q 63.4 7.2 64.5 9.5 Q 66.4 11.9 65.7 15.0 Q 62.6 15.8 59.5 15.0 Z" transform="rotate(6.8 62.6 15.0)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 76.3 23.3 Q 75.4 18.9 78.0 16.1 Q 79.8 13.5 81.9 7.6 Q 81.9 13.9 82.3 16.7 Q 84.7 19.5 83.8 23.3 Q 80.1 24.3 76.3 23.3 Z" transform="rotate(17.7 80.1 23.3)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 85.6 34.5 Q 84.7 30.2 87.2 27.4 Q 88.4 25.0 89.3 19.1 Q 90.6 25.3 91.5 28.0 Q 93.8 30.8 92.9 34.5 Q 89.3 35.4 85.6 34.5 Z" transform="rotate(26.2 89.3 34.5)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 88.4 41.4 Q 87.6 37.6 89.8 35.2 Q 89.9 33.0 88.9 27.9 Q 91.9 33.3 93.5 35.7 Q 95.6 38.1 94.8 41.4 Q 91.6 42.2 88.4 41.4 Z" transform="rotate(30.4 91.6 41.4)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 86.5 54.8 Q 85.6 50.2 88.2 47.2 Q 88.5 44.6 87.6 38.3 Q 91.0 44.9 92.8 47.9 Q 95.3 50.8 94.4 54.8 Q 90.4 55.8 86.5 54.8 Z" transform="rotate(37.0 90.4 54.8)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 81.4 65.7 Q 81.0 63.4 82.3 61.9 Q 83.1 60.6 84.0 57.5 Q 84.3 60.8 84.6 62.3 Q 85.8 63.7 85.3 65.7 Q 83.4 66.2 81.4 65.7 Z" transform="rotate(40.3 83.4 65.7)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 67.6 74.7 Q 67.1 72.2 68.5 70.7 Q 68.9 69.3 68.9 65.9 Q 70.2 69.4 71.0 71.0 Q 72.3 72.6 71.8 74.7 Q 69.7 75.2 67.6 74.7 Z" transform="rotate(35.3 69.7 74.7)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 42.9 78.2 Q 42.4 76.0 43.7 74.5 Q 44.2 73.2 44.5 70.2 Q 45.4 73.4 45.9 74.9 Q 47.2 76.3 46.7 78.2 Q 44.8 78.7 42.9 78.2 Z" transform="rotate(-12.6 44.8 78.2)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 33.4 76.5 Q 32.9 74.0 34.4 72.3 Q 35.3 70.9 36.1 67.4 Q 36.5 71.1 36.9 72.7 Q 38.3 74.3 37.8 76.5 Q 35.6 77.1 33.4 76.5 Z" transform="rotate(-29.5 35.6 76.5)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 21.9 71.0 Q 21.6 69.5 22.5 68.6 Q 22.9 67.7 23.2 65.7 Q 23.7 67.8 24.0 68.8 Q 24.8 69.7 24.5 71.0 Q 23.2 71.3 21.9 71.0 Z" transform="rotate(-39.4 23.2 71.0)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 10.4 60.8 Q 9.8 58.2 11.3 56.5 Q 11.8 55.0 12.0 51.4 Q 13.2 55.2 13.9 56.8 Q 15.4 58.5 14.8 60.8 Q 12.6 61.3 10.4 60.8 Z" transform="rotate(-39.2 12.6 60.8)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 5.1 49.2 Q 4.4 45.6 6.5 43.3 Q 8.5 41.2 11.0 36.4 Q 10.1 41.5 10.0 43.8 Q 12.0 46.1 11.3 49.2 Q 8.2 49.9 5.1 49.2 Z" transform="rotate(-34.5 8.2 49.2)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 7.6 33.3 Q 6.7 28.9 9.3 26.1 Q 11.4 23.6 13.9 17.6 Q 13.5 23.9 13.6 26.7 Q 16.0 29.5 15.1 33.3 Q 11.3 34.2 7.6 33.3 Z" transform="rotate(-25.4 11.3 33.3)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 18.7 22.4 Q 18.1 19.4 19.8 17.6 Q 19.8 15.9 18.9 11.9 Q 21.4 16.1 22.7 18.0 Q 24.3 19.9 23.7 22.4 Q 21.2 23.0 18.7 22.4 Z" transform="rotate(-16.8 21.2 22.4)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <path d="M 35.8 14.9 Q 35.3 12.5 36.7 10.9 Q 37.4 9.6 38.1 6.3 Q 38.6 9.7 39.1 11.3 Q 40.4 12.8 39.9 14.9 Q 37.8 15.4 35.8 14.9 Z" transform="rotate(-6.6 37.8 14.9)" fill="url(#phoenix-evo5-flameIn)" opacity="0.85" filter="url(#phoenix-evo5-soft)"/>
+                        <circle cx="67.8" cy="-28.7" r="0.76" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo5-glow)"/>
+                        <circle cx="95.6" cy="-25.3" r="0.83" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo5-glow)"/>
+                        <circle cx="110.3" cy="9.4" r="0.72" fill="#ff6d00" opacity=".8" filter="url(#phoenix-evo5-glow)"/>
+                        <circle cx="112.2" cy="25.9" r="0.88" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo5-glow)"/>
+                        <circle cx="11.8" cy="-8.8" r="0.84" fill="#ffd740" opacity=".8" filter="url(#phoenix-evo5-glow)"/>
                         <circle cx="13" cy="24" r="1.2" fill="#ffd740" opacity="0.32" filter="url(#phoenix-evo5-soft)"/>
                         <circle cx="20" cy="48" r="0.75" fill="#ff6d00" opacity="0.44" filter="url(#phoenix-evo5-soft)"/>
                         <circle cx="85" cy="21" r="0.75" fill="#ffd740" opacity="0.56" filter="url(#phoenix-evo5-soft)"/>
@@ -39826,7 +40100,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <div class="tm-mascot-status-chips" id="tm-mascot-status-chips">
                         <span class="tm-status-chip">${tamagotchiPoopCount > 0 ? '💩 ' + tamagotchiPoopCount : '✨ Καθαρό'}</span>
                         <span class="tm-status-chip">${tamagotchiLightsOn ? '💡 Ανοιχτά' : '🌙 Κλειστά'}</span>
-                        ${(() => { const inv = getMascotInventoryCounts(STORAGE_KEYS); return `<span class="tm-status-chip" id="tm-mascot-inv-chip">🍖${inv.food} 🍪${inv.treats}</span>`; })()}
+                        ${(() => { const inv = getMascotInventoryCounts(STORAGE_KEYS); const feathers = (tamagotchiCharacterType === 'phoenix' && typeof getPhoenixFeatherUniqueCount === 'function') ? ` 🪶${getPhoenixFeatherUniqueCount(STORAGE_KEYS)}/5` : ''; return `<span class="tm-status-chip" id="tm-mascot-inv-chip">🍖${inv.food} 🍪${inv.treats}${feathers}</span>`; })()}
                     </div>
                 </div>
 
@@ -43519,8 +43793,13 @@ function wireMascotPlayCareHandlers(modal, config, STORAGE_KEYS, { closeModal })
     });
 }
 
-/** Intercept care-open click: hide-seek reveal / accessory toys. Returns true if consumed. */
+/** Intercept care-open click: fly-by catch / hide-seek reveal / accessory toys. Returns true if consumed. */
 function handleMascotPlayPrimaryClick(config, STORAGE_KEYS, event) {
+    if (phoenixFlybyState) {
+        finishPhoenixFlyby(true);
+        mascotSuppressClickUntil = Date.now() + 500;
+        return true;
+    }
     if (mascotHideSeekActive) {
         tryRevealMascotHideAndSeek(config, STORAGE_KEYS);
         return true;
@@ -43538,6 +43817,364 @@ function initMascotPlaySystems(config, STORAGE_KEYS) {
     }
     const container = document.getElementById('tm-mascot-container');
     syncMascotInteractionClasses(container);
+    startPhoenixRandomEvents(config, STORAGE_KEYS);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Phoenix random events: ember drop, molted feather, rebirth, fly-by
+// ══════════════════════════════════════════════════════════════════
+const PHOENIX_FEATHER_COLORS = [
+    { id: 'red', name: 'Κόκκινο', color: '#ef4444' },
+    { id: 'orange', name: 'Πορτοκαλί', color: '#f97316' },
+    { id: 'gold', name: 'Χρυσό', color: '#facc15' },
+    { id: 'azure', name: 'Γαλάζιο', color: '#38bdf8' },
+    { id: 'white', name: 'Λευκό', color: '#f8fafc' },
+];
+const PHOENIX_FEATHER_SET_REWARD = 150;
+/** Per-event cooldowns; the scheduler also enforces a global 3-min gap. */
+const PHOENIX_EVENT_COOLDOWN_MS = {
+    ember: 7 * 60000,
+    feather: 16 * 60000,
+    flyby: 12 * 60000,
+    rebirth: 6 * 3600000,
+};
+/** Chance per 45s scheduler tick (after cooldown gates pass). */
+const PHOENIX_EVENT_CHANCE = { ember: .08, feather: .05, flyby: .04, rebirth: .02 };
+
+let phoenixEventTimer = null;
+let phoenixEventActive = null;
+let phoenixEventLastAt = { ember: 0, feather: 0, flyby: 0 };
+let phoenixLastAnyEventAt = 0;
+let phoenixFlybyState = null;
+
+function getPhoenixStorageKeys(STORAGE_KEYS) {
+    return STORAGE_KEYS || window.STORAGE_KEYS || {};
+}
+
+function getPhoenixFeatherCounts(STORAGE_KEYS) {
+    const key = getPhoenixStorageKeys(STORAGE_KEYS).MASCOT_FEATHERS || 'tm_mascot_feather_set';
+    let raw = {};
+    try { raw = JSON.parse(GM_getValue(key, '{}') || '{}'); } catch (_) { raw = {}; }
+    const counts = {};
+    PHOENIX_FEATHER_COLORS.forEach(({ id }) => { counts[id] = Math.max(0, Number(raw[id]) || 0); });
+    return counts;
+}
+
+function savePhoenixFeatherCounts(STORAGE_KEYS, counts) {
+    const key = getPhoenixStorageKeys(STORAGE_KEYS).MASCOT_FEATHERS || 'tm_mascot_feather_set';
+    GM_setValue(key, JSON.stringify(counts));
+}
+
+function getPhoenixFeatherUniqueCount(STORAGE_KEYS) {
+    const counts = getPhoenixFeatherCounts(STORAGE_KEYS);
+    return PHOENIX_FEATHER_COLORS.filter(({ id }) => counts[id] > 0).length;
+}
+
+function canTriggerPhoenixEvent(config) {
+    if (typeof tamagotchiCharacterType === 'undefined' || tamagotchiCharacterType !== 'phoenix') return false;
+    if (tamagotchiIsDead || tamagotchiStage === 'egg') return false;
+    if (!tamagotchiLightsOn || tamagotchiIsSleeping) return false;
+    if (typeof tamaCinematicLock !== 'undefined' && tamaCinematicLock) return false;
+    if (document.hidden) return false;
+    if (isMascotFocusQuiet()) return false;
+    if (mascotHideSeekActive || mascotIsDragging || mascotChaseEnabled) return false;
+    if (phoenixEventActive || phoenixFlybyState) return false;
+    if (!document.getElementById('tm-mascot-container')) return false;
+    const cfg = config || window.config || {};
+    if (typeof isMascotInteractiveEnabled === 'function' && !isMascotInteractiveEnabled(cfg)) return false;
+    return true;
+}
+
+function tickPhoenixRandomEvents(config, STORAGE_KEYS) {
+    if (!canTriggerPhoenixEvent(config)) return;
+    const now = Date.now();
+    if (now - phoenixLastAnyEventAt < 3 * 60000) return;
+    const rebirthKey = getPhoenixStorageKeys(STORAGE_KEYS).PHOENIX_LAST_REBIRTH || 'tm_phoenix_last_rebirth';
+    // Rarest first so common events don't starve them.
+    for (const type of ['rebirth', 'flyby', 'feather', 'ember']) {
+        const last = type === 'rebirth'
+            ? Number(GM_getValue(rebirthKey, 0) || 0)
+            : phoenixEventLastAt[type];
+        if (now - last < PHOENIX_EVENT_COOLDOWN_MS[type]) continue;
+        if (Math.random() >= PHOENIX_EVENT_CHANCE[type]) continue;
+        if (type !== 'rebirth') phoenixEventLastAt[type] = now;
+        phoenixLastAnyEventAt = now;
+        triggerPhoenixRandomEvent(type, config, STORAGE_KEYS);
+        return;
+    }
+}
+
+function triggerPhoenixRandomEvent(type, config, STORAGE_KEYS) {
+    const cfg = config || window.config || {};
+    const keys = STORAGE_KEYS || window.STORAGE_KEYS;
+    switch (type) {
+        case 'ember': return spawnPhoenixEmberDrop(cfg, keys);
+        case 'feather': return dropPhoenixFeather(cfg, keys);
+        case 'flyby': return startPhoenixFlyby(cfg, keys);
+        case 'rebirth': return startPhoenixRebirth(cfg, keys);
+        default: return false;
+    }
+}
+
+function startPhoenixRandomEvents(config, STORAGE_KEYS) {
+    if (phoenixEventTimer) clearInterval(phoenixEventTimer);
+    phoenixEventTimer = setInterval(() => tickPhoenixRandomEvents(config, STORAGE_KEYS), 45000);
+}
+
+function spawnPhoenixFloatLabel(x, y, text, golden = false) {
+    const label = document.createElement('div');
+    label.className = `tm-phoenix-float-label${golden ? ' golden' : ''}`;
+    label.textContent = text;
+    label.style.left = `${Math.round(x)}px`;
+    label.style.top = `${Math.round(y)}px`;
+    document.body.appendChild(label);
+    setTimeout(() => label.remove(), 1500);
+}
+
+// ── Ember drop ────────────────────────────────────────────────────
+function spawnPhoenixEmberDrop(config, STORAGE_KEYS) {
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return false;
+    phoenixEventActive = 'ember';
+    const golden = Math.random() < 0.1;
+    container.classList.add('mascot-ember-shake');
+    setTimeout(() => container.classList.remove('mascot-ember-shake'), 1100);
+    showMascotBubble(golden ? 'Ωχ! Χρυσή κάφτρα!!' : 'Ωπ… μου έπεσε μια κάφτρα!', 1800);
+
+    setTimeout(() => {
+        const rect = container.getBoundingClientRect();
+        const x = Math.max(10, Math.min(window.innerWidth - 34, rect.left + rect.width / 2 + (Math.random() * 44 - 22)));
+        const y = Math.max(10, Math.min(window.innerHeight - 34, rect.top + rect.height - 4));
+        const ember = document.createElement('button');
+        ember.type = 'button';
+        ember.className = `tm-phoenix-ember${golden ? ' tm-phoenix-ember-golden' : ''}`;
+        ember.title = golden ? 'Χρυσή κάφτρα!' : 'Κάφτρα — μάζεψέ τη!';
+        ember.style.left = `${Math.round(x)}px`;
+        ember.style.top = `${Math.round(y)}px`;
+        document.body.appendChild(ember);
+
+        let resolved = false;
+        const expire = setTimeout(() => {
+            if (resolved) return;
+            resolved = true;
+            ember.classList.add('fizzled');
+            setTimeout(() => ember.remove(), 700);
+            phoenixEventActive = null;
+        }, 8000);
+
+        ember.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (resolved) return;
+            resolved = true;
+            clearTimeout(expire);
+            const base = 5 + Math.floor(Math.random() * 11); // 5–15
+            const amount = golden ? base * 10 : base;
+            let granted = amount;
+            if (typeof window.grantCoins === 'function') {
+                granted = window.grantCoins(config, STORAGE_KEYS, amount, golden ? 'phoenixGoldenEmber' : 'phoenixEmber') || amount;
+            }
+            spawnPhoenixFloatLabel(x, y - 8, `+${granted} 🪙`, golden);
+            ember.classList.add('collected');
+            setTimeout(() => ember.remove(), 500);
+            updatePetStats(config, STORAGE_KEYS, 2, 0);
+            if (golden) setMascotMood('proud', 6000);
+            phoenixEventActive = null;
+        });
+    }, 700);
+    return true;
+}
+
+// ── Molted feather ────────────────────────────────────────────────
+function phoenixFeatherSvg(color) {
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 3 C12 3.5 6 10 5 17.5 L4 21 L7.4 19.8 C15 18.5 20.2 11.5 20 3 Z" fill="${color}" stroke="rgba(60,20,0,.35)" stroke-width=".8"/><path d="M6.2 18.6 L18 5.5" stroke="rgba(60,20,0,.3)" stroke-width=".9" fill="none"/></svg>`;
+}
+
+function dropPhoenixFeather(config, STORAGE_KEYS) {
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return false;
+    phoenixEventActive = 'feather';
+    setMascotState(config, 'happy', 1800);
+    showMascotBubble('Φτου… ώρα για καθάρισμα φτερών.', 1800);
+
+    setTimeout(() => {
+        const counts = getPhoenixFeatherCounts(STORAGE_KEYS);
+        const missing = PHOENIX_FEATHER_COLORS.filter(({ id }) => counts[id] <= 0);
+        // Bias toward colors the player still needs.
+        const pool = (missing.length && Math.random() < 0.7) ? missing : PHOENIX_FEATHER_COLORS;
+        const pick = pool[Math.floor(Math.random() * pool.length)];
+
+        const rect = container.getBoundingClientRect();
+        const feather = document.createElement('div');
+        feather.className = 'tm-phoenix-feather';
+        feather.innerHTML = phoenixFeatherSvg(pick.color);
+        feather.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
+        feather.style.top = `${Math.round(rect.top + rect.height * 0.4)}px`;
+        document.body.appendChild(feather);
+
+        setTimeout(() => {
+            feather.remove();
+            counts[pick.id] += 1;
+            const complete = PHOENIX_FEATHER_COLORS.every(({ id }) => counts[id] > 0);
+            if (complete) {
+                PHOENIX_FEATHER_COLORS.forEach(({ id }) => { counts[id] -= 1; });
+                savePhoenixFeatherCounts(STORAGE_KEYS, counts);
+                let granted = PHOENIX_FEATHER_SET_REWARD;
+                if (typeof window.grantCoins === 'function') {
+                    granted = window.grantCoins(config, STORAGE_KEYS, PHOENIX_FEATHER_SET_REWARD, 'phoenixFeatherSet') || PHOENIX_FEATHER_SET_REWARD;
+                }
+                if (typeof window.grantXp === 'function') {
+                    window.grantXp(config, STORAGE_KEYS, 25, 'phoenixFeatherSet');
+                }
+                setMascotMood('proud', 10000);
+                showMascotBubble(`Πλήρες σετ φτερών! +${granted} 🪙`, 3200);
+            } else {
+                savePhoenixFeatherCounts(STORAGE_KEYS, counts);
+                const unique = PHOENIX_FEATHER_COLORS.filter(({ id }) => counts[id] > 0).length;
+                showMascotBubble(`Φτερό ${pick.name.toLowerCase()}! 🪶 (${unique}/5)`, 2400);
+            }
+            phoenixEventActive = null;
+        }, 2100);
+    }, 900);
+    return true;
+}
+
+// ── Fire fly-by ───────────────────────────────────────────────────
+function startPhoenixFlyby(config, STORAGE_KEYS) {
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return false;
+    phoenixEventActive = 'flyby';
+    stopRoaming(config);
+    mascotPositionLocked = true;
+    syncMascotInteractionClasses(container);
+
+    const metrics = (typeof getMascotRoamingMetrics === 'function')
+        ? getMascotRoamingMetrics(container)
+        : { minX: 8, maxX: Math.max(60, window.innerWidth - 130), minY: 60, maxY: Math.max(120, window.innerHeight - 150) };
+    const leftToRight = Math.random() < 0.5;
+    const y = metrics.minY + (metrics.maxY - metrics.minY) * (0.25 + Math.random() * 0.3);
+    const startX = leftToRight ? metrics.minX : metrics.maxX;
+    const endX = leftToRight ? metrics.maxX : metrics.minX;
+
+    applyMascotPosition(container, startX, y);
+    container.classList.add('mascot-flyby');
+    setMascotState(config, 'energized', 5200);
+    showMascotBubble('Πιάσε με αν μπορείς!', 1600);
+
+    const anim = container.animate([
+        { transform: `translate(${startX}px, ${y}px)` },
+        { transform: `translate(${(startX + endX) / 2}px, ${y - 48}px)`, offset: .5 },
+        { transform: `translate(${endX}px, ${y}px)` },
+    ], { duration: 4600, easing: 'ease-in-out' });
+
+    const trail = setInterval(() => {
+        const r = container.getBoundingClientRect();
+        const dot = document.createElement('div');
+        dot.className = 'tm-phoenix-trail-dot';
+        dot.style.left = `${Math.round(r.left + r.width / 2 + (Math.random() * 18 - 9))}px`;
+        dot.style.top = `${Math.round(r.top + r.height * 0.55 + (Math.random() * 12 - 6))}px`;
+        document.body.appendChild(dot);
+        setTimeout(() => dot.remove(), 950);
+    }, 130);
+
+    phoenixFlybyState = { anim, trail, config, STORAGE_KEYS };
+    anim.onfinish = () => finishPhoenixFlyby(false);
+    return true;
+}
+
+function finishPhoenixFlyby(caught) {
+    const s = phoenixFlybyState;
+    if (!s) return;
+    phoenixFlybyState = null;
+    clearInterval(s.trail);
+
+    const container = document.getElementById('tm-mascot-container');
+    if (container) {
+        // Commit the animated position before cancelling so the bird doesn't snap back.
+        const pos = getMascotTranslate(container);
+        try { s.anim.cancel(); } catch (_) { /* already done */ }
+        applyMascotPosition(container, pos.x, pos.y);
+        container.classList.remove('mascot-flyby');
+    }
+    mascotPositionLocked = false;
+    syncMascotInteractionClasses(container);
+
+    if (caught && container) {
+        const amount = 10 + Math.floor(Math.random() * 11); // 10–20
+        let granted = amount;
+        if (typeof window.grantCoins === 'function') {
+            granted = window.grantCoins(s.config, s.STORAGE_KEYS, amount, 'phoenixFlyby') || amount;
+        }
+        const r = container.getBoundingClientRect();
+        spawnPhoenixFloatLabel(r.left + r.width / 2, r.top - 6, `+${granted} 🪙`);
+        showMascotBubble(`Με έπιασες στον αέρα! +${granted} 🪙`, 2400);
+        updatePetStats(s.config, s.STORAGE_KEYS, 6, 0);
+        setMascotState(s.config, 'happy', 2500);
+        setMascotMood('playful', 6000);
+    }
+    const cfg = s.config || window.config;
+    if (shouldMascotBeRoaming(cfg)) startRoaming(cfg);
+    phoenixEventActive = null;
+}
+
+// ── Rebirth ───────────────────────────────────────────────────────
+function startPhoenixRebirth(config, STORAGE_KEYS) {
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return false;
+    phoenixEventActive = 'rebirth';
+    const rebirthKey = getPhoenixStorageKeys(STORAGE_KEYS).PHOENIX_LAST_REBIRTH || 'tm_phoenix_last_rebirth';
+    GM_setValue(rebirthKey, Date.now());
+
+    stopRoaming(config);
+    mascotPositionLocked = true;
+    syncMascotInteractionClasses(container);
+    showMascotBubble('Νιώθω… τη φωτιά να με καλεί!', 1800);
+    container.classList.add('mascot-rebirth-burn');
+
+    // Rising embers around the burning bird.
+    const rect = container.getBoundingClientRect();
+    for (let i = 0; i < 12; i++) {
+        const p = document.createElement('div');
+        p.className = 'tm-phoenix-burst-ember';
+        p.style.left = `${Math.round(rect.left + rect.width * (0.2 + Math.random() * 0.6))}px`;
+        p.style.top = `${Math.round(rect.top + rect.height * (0.3 + Math.random() * 0.5))}px`;
+        p.style.setProperty('--tm-burst-dx', `${(Math.random() * 60 - 30).toFixed(0)}px`);
+        p.style.setProperty('--tm-burst-dy', `${(-50 - Math.random() * 60).toFixed(0)}px`);
+        p.style.animationDelay = `${(Math.random() * 1.1).toFixed(2)}s`;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 2600);
+    }
+
+    setTimeout(() => {
+        // Screen-wide golden flash centered on the bird.
+        const r = container.getBoundingClientRect();
+        const glow = document.createElement('div');
+        glow.className = 'tm-phoenix-rebirth-glow';
+        glow.style.setProperty('--tm-rebirth-x', `${Math.round(((r.left + r.width / 2) / window.innerWidth) * 100)}%`);
+        glow.style.setProperty('--tm-rebirth-y', `${Math.round(((r.top + r.height / 2) / window.innerHeight) * 100)}%`);
+        document.body.appendChild(glow);
+        setTimeout(() => glow.remove(), 1700);
+
+        container.classList.remove('mascot-rebirth-burn');
+        container.classList.add('mascot-rebirth-rise');
+        updatePetStats(config, STORAGE_KEYS, 100, 100); // full self-care refill
+        if (typeof window.grantXp === 'function') {
+            window.grantXp(config, STORAGE_KEYS, 20, 'phoenixRebirth');
+        }
+        setMascotMood('proud', 12000);
+        showMascotBubble('ΑΝΑΓΕΝΝΗΣΗ! Σαν καινούργιος! 🔥', 3000);
+
+        setTimeout(() => {
+            container.classList.remove('mascot-rebirth-rise');
+            mascotPositionLocked = false;
+            syncMascotInteractionClasses(container);
+            setMascotState(config, 'energized', 3000);
+            if (STORAGE_KEYS) saveTamagotchiData(STORAGE_KEYS);
+            if (shouldMascotBeRoaming(config)) startRoaming(config);
+            phoenixEventActive = null;
+        }, 1500);
+    }, 2000);
+    return true;
 }
 
 // Window exports
@@ -43559,6 +44196,9 @@ window.wireMascotPlayCareHandlers = wireMascotPlayCareHandlers;
 window.handleMascotPlayPrimaryClick = handleMascotPlayPrimaryClick;
 window.initMascotPlaySystems = initMascotPlaySystems;
 window.MASCOT_TEACHABLE_TRICKS = MASCOT_TEACHABLE_TRICKS;
+window.getPhoenixFeatherCounts = getPhoenixFeatherCounts;
+window.getPhoenixFeatherUniqueCount = getPhoenixFeatherUniqueCount;
+window.triggerPhoenixRandomEvent = triggerPhoenixRandomEvent;
 
 
 // ----- myman_gamification.js -----

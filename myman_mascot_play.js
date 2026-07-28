@@ -1199,8 +1199,13 @@ function wireMascotPlayCareHandlers(modal, config, STORAGE_KEYS, { closeModal })
     });
 }
 
-/** Intercept care-open click: hide-seek reveal / accessory toys. Returns true if consumed. */
+/** Intercept care-open click: fly-by catch / hide-seek reveal / accessory toys. Returns true if consumed. */
 function handleMascotPlayPrimaryClick(config, STORAGE_KEYS, event) {
+    if (phoenixFlybyState) {
+        finishPhoenixFlyby(true);
+        mascotSuppressClickUntil = Date.now() + 500;
+        return true;
+    }
     if (mascotHideSeekActive) {
         tryRevealMascotHideAndSeek(config, STORAGE_KEYS);
         return true;
@@ -1218,6 +1223,364 @@ function initMascotPlaySystems(config, STORAGE_KEYS) {
     }
     const container = document.getElementById('tm-mascot-container');
     syncMascotInteractionClasses(container);
+    startPhoenixRandomEvents(config, STORAGE_KEYS);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Phoenix random events: ember drop, molted feather, rebirth, fly-by
+// ══════════════════════════════════════════════════════════════════
+const PHOENIX_FEATHER_COLORS = [
+    { id: 'red', name: 'Κόκκινο', color: '#ef4444' },
+    { id: 'orange', name: 'Πορτοκαλί', color: '#f97316' },
+    { id: 'gold', name: 'Χρυσό', color: '#facc15' },
+    { id: 'azure', name: 'Γαλάζιο', color: '#38bdf8' },
+    { id: 'white', name: 'Λευκό', color: '#f8fafc' },
+];
+const PHOENIX_FEATHER_SET_REWARD = 150;
+/** Per-event cooldowns; the scheduler also enforces a global 3-min gap. */
+const PHOENIX_EVENT_COOLDOWN_MS = {
+    ember: 7 * 60000,
+    feather: 16 * 60000,
+    flyby: 12 * 60000,
+    rebirth: 6 * 3600000,
+};
+/** Chance per 45s scheduler tick (after cooldown gates pass). */
+const PHOENIX_EVENT_CHANCE = { ember: .08, feather: .05, flyby: .04, rebirth: .02 };
+
+let phoenixEventTimer = null;
+let phoenixEventActive = null;
+let phoenixEventLastAt = { ember: 0, feather: 0, flyby: 0 };
+let phoenixLastAnyEventAt = 0;
+let phoenixFlybyState = null;
+
+function getPhoenixStorageKeys(STORAGE_KEYS) {
+    return STORAGE_KEYS || window.STORAGE_KEYS || {};
+}
+
+function getPhoenixFeatherCounts(STORAGE_KEYS) {
+    const key = getPhoenixStorageKeys(STORAGE_KEYS).MASCOT_FEATHERS || 'tm_mascot_feather_set';
+    let raw = {};
+    try { raw = JSON.parse(GM_getValue(key, '{}') || '{}'); } catch (_) { raw = {}; }
+    const counts = {};
+    PHOENIX_FEATHER_COLORS.forEach(({ id }) => { counts[id] = Math.max(0, Number(raw[id]) || 0); });
+    return counts;
+}
+
+function savePhoenixFeatherCounts(STORAGE_KEYS, counts) {
+    const key = getPhoenixStorageKeys(STORAGE_KEYS).MASCOT_FEATHERS || 'tm_mascot_feather_set';
+    GM_setValue(key, JSON.stringify(counts));
+}
+
+function getPhoenixFeatherUniqueCount(STORAGE_KEYS) {
+    const counts = getPhoenixFeatherCounts(STORAGE_KEYS);
+    return PHOENIX_FEATHER_COLORS.filter(({ id }) => counts[id] > 0).length;
+}
+
+function canTriggerPhoenixEvent(config) {
+    if (typeof tamagotchiCharacterType === 'undefined' || tamagotchiCharacterType !== 'phoenix') return false;
+    if (tamagotchiIsDead || tamagotchiStage === 'egg') return false;
+    if (!tamagotchiLightsOn || tamagotchiIsSleeping) return false;
+    if (typeof tamaCinematicLock !== 'undefined' && tamaCinematicLock) return false;
+    if (document.hidden) return false;
+    if (isMascotFocusQuiet()) return false;
+    if (mascotHideSeekActive || mascotIsDragging || mascotChaseEnabled) return false;
+    if (phoenixEventActive || phoenixFlybyState) return false;
+    if (!document.getElementById('tm-mascot-container')) return false;
+    const cfg = config || window.config || {};
+    if (typeof isMascotInteractiveEnabled === 'function' && !isMascotInteractiveEnabled(cfg)) return false;
+    return true;
+}
+
+function tickPhoenixRandomEvents(config, STORAGE_KEYS) {
+    if (!canTriggerPhoenixEvent(config)) return;
+    const now = Date.now();
+    if (now - phoenixLastAnyEventAt < 3 * 60000) return;
+    const rebirthKey = getPhoenixStorageKeys(STORAGE_KEYS).PHOENIX_LAST_REBIRTH || 'tm_phoenix_last_rebirth';
+    // Rarest first so common events don't starve them.
+    for (const type of ['rebirth', 'flyby', 'feather', 'ember']) {
+        const last = type === 'rebirth'
+            ? Number(GM_getValue(rebirthKey, 0) || 0)
+            : phoenixEventLastAt[type];
+        if (now - last < PHOENIX_EVENT_COOLDOWN_MS[type]) continue;
+        if (Math.random() >= PHOENIX_EVENT_CHANCE[type]) continue;
+        if (type !== 'rebirth') phoenixEventLastAt[type] = now;
+        phoenixLastAnyEventAt = now;
+        triggerPhoenixRandomEvent(type, config, STORAGE_KEYS);
+        return;
+    }
+}
+
+function triggerPhoenixRandomEvent(type, config, STORAGE_KEYS) {
+    const cfg = config || window.config || {};
+    const keys = STORAGE_KEYS || window.STORAGE_KEYS;
+    switch (type) {
+        case 'ember': return spawnPhoenixEmberDrop(cfg, keys);
+        case 'feather': return dropPhoenixFeather(cfg, keys);
+        case 'flyby': return startPhoenixFlyby(cfg, keys);
+        case 'rebirth': return startPhoenixRebirth(cfg, keys);
+        default: return false;
+    }
+}
+
+function startPhoenixRandomEvents(config, STORAGE_KEYS) {
+    if (phoenixEventTimer) clearInterval(phoenixEventTimer);
+    phoenixEventTimer = setInterval(() => tickPhoenixRandomEvents(config, STORAGE_KEYS), 45000);
+}
+
+function spawnPhoenixFloatLabel(x, y, text, golden = false) {
+    const label = document.createElement('div');
+    label.className = `tm-phoenix-float-label${golden ? ' golden' : ''}`;
+    label.textContent = text;
+    label.style.left = `${Math.round(x)}px`;
+    label.style.top = `${Math.round(y)}px`;
+    document.body.appendChild(label);
+    setTimeout(() => label.remove(), 1500);
+}
+
+// ── Ember drop ────────────────────────────────────────────────────
+function spawnPhoenixEmberDrop(config, STORAGE_KEYS) {
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return false;
+    phoenixEventActive = 'ember';
+    const golden = Math.random() < 0.1;
+    container.classList.add('mascot-ember-shake');
+    setTimeout(() => container.classList.remove('mascot-ember-shake'), 1100);
+    showMascotBubble(golden ? 'Ωχ! Χρυσή κάφτρα!!' : 'Ωπ… μου έπεσε μια κάφτρα!', 1800);
+
+    setTimeout(() => {
+        const rect = container.getBoundingClientRect();
+        const x = Math.max(10, Math.min(window.innerWidth - 34, rect.left + rect.width / 2 + (Math.random() * 44 - 22)));
+        const y = Math.max(10, Math.min(window.innerHeight - 34, rect.top + rect.height - 4));
+        const ember = document.createElement('button');
+        ember.type = 'button';
+        ember.className = `tm-phoenix-ember${golden ? ' tm-phoenix-ember-golden' : ''}`;
+        ember.title = golden ? 'Χρυσή κάφτρα!' : 'Κάφτρα — μάζεψέ τη!';
+        ember.style.left = `${Math.round(x)}px`;
+        ember.style.top = `${Math.round(y)}px`;
+        document.body.appendChild(ember);
+
+        let resolved = false;
+        const expire = setTimeout(() => {
+            if (resolved) return;
+            resolved = true;
+            ember.classList.add('fizzled');
+            setTimeout(() => ember.remove(), 700);
+            phoenixEventActive = null;
+        }, 8000);
+
+        ember.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (resolved) return;
+            resolved = true;
+            clearTimeout(expire);
+            const base = 5 + Math.floor(Math.random() * 11); // 5–15
+            const amount = golden ? base * 10 : base;
+            let granted = amount;
+            if (typeof window.grantCoins === 'function') {
+                granted = window.grantCoins(config, STORAGE_KEYS, amount, golden ? 'phoenixGoldenEmber' : 'phoenixEmber') || amount;
+            }
+            spawnPhoenixFloatLabel(x, y - 8, `+${granted} 🪙`, golden);
+            ember.classList.add('collected');
+            setTimeout(() => ember.remove(), 500);
+            updatePetStats(config, STORAGE_KEYS, 2, 0);
+            if (golden) setMascotMood('proud', 6000);
+            phoenixEventActive = null;
+        });
+    }, 700);
+    return true;
+}
+
+// ── Molted feather ────────────────────────────────────────────────
+function phoenixFeatherSvg(color) {
+    return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 3 C12 3.5 6 10 5 17.5 L4 21 L7.4 19.8 C15 18.5 20.2 11.5 20 3 Z" fill="${color}" stroke="rgba(60,20,0,.35)" stroke-width=".8"/><path d="M6.2 18.6 L18 5.5" stroke="rgba(60,20,0,.3)" stroke-width=".9" fill="none"/></svg>`;
+}
+
+function dropPhoenixFeather(config, STORAGE_KEYS) {
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return false;
+    phoenixEventActive = 'feather';
+    setMascotState(config, 'happy', 1800);
+    showMascotBubble('Φτου… ώρα για καθάρισμα φτερών.', 1800);
+
+    setTimeout(() => {
+        const counts = getPhoenixFeatherCounts(STORAGE_KEYS);
+        const missing = PHOENIX_FEATHER_COLORS.filter(({ id }) => counts[id] <= 0);
+        // Bias toward colors the player still needs.
+        const pool = (missing.length && Math.random() < 0.7) ? missing : PHOENIX_FEATHER_COLORS;
+        const pick = pool[Math.floor(Math.random() * pool.length)];
+
+        const rect = container.getBoundingClientRect();
+        const feather = document.createElement('div');
+        feather.className = 'tm-phoenix-feather';
+        feather.innerHTML = phoenixFeatherSvg(pick.color);
+        feather.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
+        feather.style.top = `${Math.round(rect.top + rect.height * 0.4)}px`;
+        document.body.appendChild(feather);
+
+        setTimeout(() => {
+            feather.remove();
+            counts[pick.id] += 1;
+            const complete = PHOENIX_FEATHER_COLORS.every(({ id }) => counts[id] > 0);
+            if (complete) {
+                PHOENIX_FEATHER_COLORS.forEach(({ id }) => { counts[id] -= 1; });
+                savePhoenixFeatherCounts(STORAGE_KEYS, counts);
+                let granted = PHOENIX_FEATHER_SET_REWARD;
+                if (typeof window.grantCoins === 'function') {
+                    granted = window.grantCoins(config, STORAGE_KEYS, PHOENIX_FEATHER_SET_REWARD, 'phoenixFeatherSet') || PHOENIX_FEATHER_SET_REWARD;
+                }
+                if (typeof window.grantXp === 'function') {
+                    window.grantXp(config, STORAGE_KEYS, 25, 'phoenixFeatherSet');
+                }
+                setMascotMood('proud', 10000);
+                showMascotBubble(`Πλήρες σετ φτερών! +${granted} 🪙`, 3200);
+            } else {
+                savePhoenixFeatherCounts(STORAGE_KEYS, counts);
+                const unique = PHOENIX_FEATHER_COLORS.filter(({ id }) => counts[id] > 0).length;
+                showMascotBubble(`Φτερό ${pick.name.toLowerCase()}! 🪶 (${unique}/5)`, 2400);
+            }
+            phoenixEventActive = null;
+        }, 2100);
+    }, 900);
+    return true;
+}
+
+// ── Fire fly-by ───────────────────────────────────────────────────
+function startPhoenixFlyby(config, STORAGE_KEYS) {
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return false;
+    phoenixEventActive = 'flyby';
+    stopRoaming(config);
+    mascotPositionLocked = true;
+    syncMascotInteractionClasses(container);
+
+    const metrics = (typeof getMascotRoamingMetrics === 'function')
+        ? getMascotRoamingMetrics(container)
+        : { minX: 8, maxX: Math.max(60, window.innerWidth - 130), minY: 60, maxY: Math.max(120, window.innerHeight - 150) };
+    const leftToRight = Math.random() < 0.5;
+    const y = metrics.minY + (metrics.maxY - metrics.minY) * (0.25 + Math.random() * 0.3);
+    const startX = leftToRight ? metrics.minX : metrics.maxX;
+    const endX = leftToRight ? metrics.maxX : metrics.minX;
+
+    applyMascotPosition(container, startX, y);
+    container.classList.add('mascot-flyby');
+    setMascotState(config, 'energized', 5200);
+    showMascotBubble('Πιάσε με αν μπορείς!', 1600);
+
+    const anim = container.animate([
+        { transform: `translate(${startX}px, ${y}px)` },
+        { transform: `translate(${(startX + endX) / 2}px, ${y - 48}px)`, offset: .5 },
+        { transform: `translate(${endX}px, ${y}px)` },
+    ], { duration: 4600, easing: 'ease-in-out' });
+
+    const trail = setInterval(() => {
+        const r = container.getBoundingClientRect();
+        const dot = document.createElement('div');
+        dot.className = 'tm-phoenix-trail-dot';
+        dot.style.left = `${Math.round(r.left + r.width / 2 + (Math.random() * 18 - 9))}px`;
+        dot.style.top = `${Math.round(r.top + r.height * 0.55 + (Math.random() * 12 - 6))}px`;
+        document.body.appendChild(dot);
+        setTimeout(() => dot.remove(), 950);
+    }, 130);
+
+    phoenixFlybyState = { anim, trail, config, STORAGE_KEYS };
+    anim.onfinish = () => finishPhoenixFlyby(false);
+    return true;
+}
+
+function finishPhoenixFlyby(caught) {
+    const s = phoenixFlybyState;
+    if (!s) return;
+    phoenixFlybyState = null;
+    clearInterval(s.trail);
+
+    const container = document.getElementById('tm-mascot-container');
+    if (container) {
+        // Commit the animated position before cancelling so the bird doesn't snap back.
+        const pos = getMascotTranslate(container);
+        try { s.anim.cancel(); } catch (_) { /* already done */ }
+        applyMascotPosition(container, pos.x, pos.y);
+        container.classList.remove('mascot-flyby');
+    }
+    mascotPositionLocked = false;
+    syncMascotInteractionClasses(container);
+
+    if (caught && container) {
+        const amount = 10 + Math.floor(Math.random() * 11); // 10–20
+        let granted = amount;
+        if (typeof window.grantCoins === 'function') {
+            granted = window.grantCoins(s.config, s.STORAGE_KEYS, amount, 'phoenixFlyby') || amount;
+        }
+        const r = container.getBoundingClientRect();
+        spawnPhoenixFloatLabel(r.left + r.width / 2, r.top - 6, `+${granted} 🪙`);
+        showMascotBubble(`Με έπιασες στον αέρα! +${granted} 🪙`, 2400);
+        updatePetStats(s.config, s.STORAGE_KEYS, 6, 0);
+        setMascotState(s.config, 'happy', 2500);
+        setMascotMood('playful', 6000);
+    }
+    const cfg = s.config || window.config;
+    if (shouldMascotBeRoaming(cfg)) startRoaming(cfg);
+    phoenixEventActive = null;
+}
+
+// ── Rebirth ───────────────────────────────────────────────────────
+function startPhoenixRebirth(config, STORAGE_KEYS) {
+    const container = document.getElementById('tm-mascot-container');
+    if (!container) return false;
+    phoenixEventActive = 'rebirth';
+    const rebirthKey = getPhoenixStorageKeys(STORAGE_KEYS).PHOENIX_LAST_REBIRTH || 'tm_phoenix_last_rebirth';
+    GM_setValue(rebirthKey, Date.now());
+
+    stopRoaming(config);
+    mascotPositionLocked = true;
+    syncMascotInteractionClasses(container);
+    showMascotBubble('Νιώθω… τη φωτιά να με καλεί!', 1800);
+    container.classList.add('mascot-rebirth-burn');
+
+    // Rising embers around the burning bird.
+    const rect = container.getBoundingClientRect();
+    for (let i = 0; i < 12; i++) {
+        const p = document.createElement('div');
+        p.className = 'tm-phoenix-burst-ember';
+        p.style.left = `${Math.round(rect.left + rect.width * (0.2 + Math.random() * 0.6))}px`;
+        p.style.top = `${Math.round(rect.top + rect.height * (0.3 + Math.random() * 0.5))}px`;
+        p.style.setProperty('--tm-burst-dx', `${(Math.random() * 60 - 30).toFixed(0)}px`);
+        p.style.setProperty('--tm-burst-dy', `${(-50 - Math.random() * 60).toFixed(0)}px`);
+        p.style.animationDelay = `${(Math.random() * 1.1).toFixed(2)}s`;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 2600);
+    }
+
+    setTimeout(() => {
+        // Screen-wide golden flash centered on the bird.
+        const r = container.getBoundingClientRect();
+        const glow = document.createElement('div');
+        glow.className = 'tm-phoenix-rebirth-glow';
+        glow.style.setProperty('--tm-rebirth-x', `${Math.round(((r.left + r.width / 2) / window.innerWidth) * 100)}%`);
+        glow.style.setProperty('--tm-rebirth-y', `${Math.round(((r.top + r.height / 2) / window.innerHeight) * 100)}%`);
+        document.body.appendChild(glow);
+        setTimeout(() => glow.remove(), 1700);
+
+        container.classList.remove('mascot-rebirth-burn');
+        container.classList.add('mascot-rebirth-rise');
+        updatePetStats(config, STORAGE_KEYS, 100, 100); // full self-care refill
+        if (typeof window.grantXp === 'function') {
+            window.grantXp(config, STORAGE_KEYS, 20, 'phoenixRebirth');
+        }
+        setMascotMood('proud', 12000);
+        showMascotBubble('ΑΝΑΓΕΝΝΗΣΗ! Σαν καινούργιος! 🔥', 3000);
+
+        setTimeout(() => {
+            container.classList.remove('mascot-rebirth-rise');
+            mascotPositionLocked = false;
+            syncMascotInteractionClasses(container);
+            setMascotState(config, 'energized', 3000);
+            if (STORAGE_KEYS) saveTamagotchiData(STORAGE_KEYS);
+            if (shouldMascotBeRoaming(config)) startRoaming(config);
+            phoenixEventActive = null;
+        }, 1500);
+    }, 2000);
+    return true;
 }
 
 // Window exports
@@ -1239,3 +1602,6 @@ window.wireMascotPlayCareHandlers = wireMascotPlayCareHandlers;
 window.handleMascotPlayPrimaryClick = handleMascotPlayPrimaryClick;
 window.initMascotPlaySystems = initMascotPlaySystems;
 window.MASCOT_TEACHABLE_TRICKS = MASCOT_TEACHABLE_TRICKS;
+window.getPhoenixFeatherCounts = getPhoenixFeatherCounts;
+window.getPhoenixFeatherUniqueCount = getPhoenixFeatherUniqueCount;
+window.triggerPhoenixRandomEvent = triggerPhoenixRandomEvent;

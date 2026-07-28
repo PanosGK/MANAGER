@@ -4476,6 +4476,121 @@
             @keyframes tm-toy-bubble-pop {
                 to { transform: scale(1.6); opacity: 0; }
             }
+            /* ── Phoenix random events ─────────────────────────── */
+            .tm-phoenix-ember {
+                position: fixed; width: 22px; height: 22px; border-radius: 50%;
+                border: none; padding: 0; cursor: pointer; z-index: 100120;
+                background: radial-gradient(circle at 35% 30%, #fffde7 0%, #ffd740 35%, #ff6d00 70%, #b71c1c 100%);
+                box-shadow: 0 0 12px 4px rgba(255, 109, 0, 0.55);
+                animation: tm-phoenix-ember-drop 0.55s ease-in, tm-phoenix-ember-pulse 1.1s ease-in-out 0.55s infinite alternate;
+            }
+            .tm-phoenix-ember-golden {
+                width: 26px; height: 26px;
+                background: radial-gradient(circle at 35% 30%, #fffde7 0%, #ffee9c 30%, #ffd740 60%, #ff8f00 100%);
+                box-shadow: 0 0 18px 7px rgba(255, 215, 64, 0.8);
+            }
+            .tm-phoenix-ember.fizzled { animation: tm-phoenix-ember-fizzle 0.65s ease-out forwards; pointer-events: none; }
+            .tm-phoenix-ember.collected { animation: tm-phoenix-ember-collect 0.45s ease-out forwards; pointer-events: none; }
+            @keyframes tm-phoenix-ember-drop {
+                from { transform: translateY(-48px) scale(0.4); opacity: 0.3; }
+                to { transform: translateY(0) scale(1); opacity: 1; }
+            }
+            @keyframes tm-phoenix-ember-pulse {
+                from { filter: brightness(1); transform: scale(1); }
+                to { filter: brightness(1.5); transform: scale(1.12); }
+            }
+            @keyframes tm-phoenix-ember-fizzle {
+                40% { filter: grayscale(0.4) brightness(0.8); }
+                to { transform: scale(0.2); opacity: 0; filter: grayscale(1) brightness(0.4); }
+            }
+            @keyframes tm-phoenix-ember-collect {
+                to { transform: scale(1.9); opacity: 0; }
+            }
+            .tm-phoenix-float-label {
+                position: fixed; z-index: 100130; pointer-events: none;
+                font-weight: 700; font-size: 14px; color: #ffb300;
+                text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+                animation: tm-phoenix-float-up 1.4s ease-out forwards;
+            }
+            .tm-phoenix-float-label.golden { font-size: 17px; color: #ffd740; }
+            @keyframes tm-phoenix-float-up {
+                to { transform: translateY(-48px); opacity: 0; }
+            }
+            .tm-phoenix-feather {
+                position: fixed; z-index: 100120; width: 26px; height: 26px; pointer-events: none;
+                filter: drop-shadow(0 0 5px rgba(255, 179, 0, 0.5));
+                animation: tm-phoenix-feather-fall 2s ease-in forwards;
+            }
+            @keyframes tm-phoenix-feather-fall {
+                0% { transform: translate(0, 0) rotate(-14deg); opacity: 0; }
+                12% { opacity: 1; }
+                35% { transform: translate(14px, 26px) rotate(16deg); }
+                65% { transform: translate(-10px, 54px) rotate(-12deg); }
+                92% { opacity: 1; }
+                100% { transform: translate(8px, 80px) rotate(10deg); opacity: 0; }
+            }
+            #tm-mascot-container.mascot-ember-shake svg.tm-mascot-robot {
+                animation: tm-phoenix-shake 0.5s ease-in-out 0s 2;
+            }
+            @keyframes tm-phoenix-shake {
+                0%, 100% { transform: rotate(0deg); }
+                25% { transform: rotate(-5deg); }
+                75% { transform: rotate(5deg); }
+            }
+            #tm-mascot-container.mascot-flyby svg.tm-mascot-robot {
+                animation: tm-phoenix-flyby-bob 0.5s ease-in-out infinite alternate;
+                filter: drop-shadow(0 0 10px rgba(255, 109, 0, 0.65));
+            }
+            @keyframes tm-phoenix-flyby-bob {
+                from { transform: translateY(0) rotate(-4deg); }
+                to { transform: translateY(-7px) rotate(4deg); }
+            }
+            .tm-phoenix-trail-dot {
+                position: fixed; width: 10px; height: 10px; border-radius: 50%;
+                z-index: 100090; pointer-events: none;
+                background: radial-gradient(circle, #ffd740 0%, #ff6d00 60%, transparent 100%);
+                animation: tm-phoenix-trail-fade 0.9s ease-out forwards;
+            }
+            @keyframes tm-phoenix-trail-fade {
+                to { transform: scale(0.25) translateY(10px); opacity: 0; }
+            }
+            .tm-phoenix-burst-ember {
+                position: fixed; width: 7px; height: 7px; border-radius: 50%;
+                z-index: 100125; pointer-events: none;
+                background: radial-gradient(circle, #fffde7 0%, #ffd740 45%, #ff6d00 100%);
+                box-shadow: 0 0 8px 2px rgba(255, 109, 0, 0.6);
+                animation: tm-phoenix-burst-rise 1.3s ease-out forwards;
+            }
+            @keyframes tm-phoenix-burst-rise {
+                to { transform: translate(var(--tm-burst-dx, 0px), var(--tm-burst-dy, -70px)) scale(0.3); opacity: 0; }
+            }
+            #tm-mascot-container.mascot-rebirth-burn svg.tm-mascot-robot {
+                animation: tm-phoenix-rebirth-burn 1.9s ease-in forwards;
+            }
+            @keyframes tm-phoenix-rebirth-burn {
+                0% { filter: brightness(1); transform: scale(1); }
+                40% { filter: brightness(1.7) saturate(1.6) drop-shadow(0 0 16px rgba(255, 109, 0, 0.9)); }
+                100% { filter: brightness(0.15) saturate(0.2); transform: scale(0.55) translateY(14px); }
+            }
+            #tm-mascot-container.mascot-rebirth-rise svg.tm-mascot-robot {
+                animation: tm-phoenix-rebirth-rise 1.4s cubic-bezier(0.2, 0.9, 0.3, 1.15) forwards;
+            }
+            @keyframes tm-phoenix-rebirth-rise {
+                0% { filter: brightness(2.4) saturate(1.8); transform: scale(0.5) translateY(12px); }
+                100% { filter: brightness(1); transform: scale(1) translateY(0); }
+            }
+            .tm-phoenix-rebirth-glow {
+                position: fixed; inset: 0; z-index: 100140; pointer-events: none;
+                background: radial-gradient(circle at var(--tm-rebirth-x, 50%) var(--tm-rebirth-y, 60%),
+                    rgba(255, 244, 214, 0.95) 0%, rgba(255, 179, 0, 0.5) 30%,
+                    rgba(255, 109, 0, 0.18) 55%, transparent 75%);
+                animation: tm-phoenix-rebirth-flash 1.6s ease-out forwards;
+            }
+            @keyframes tm-phoenix-rebirth-flash {
+                0% { opacity: 0; }
+                22% { opacity: 1; }
+                100% { opacity: 0; }
+            }
             #tm-mascot-stats-modal .tm-mascot-nickname-row {
                 display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
                 margin: 0 0 12px; padding: 8px 10px;
@@ -4560,12 +4675,28 @@
 
             /* ═══ Legendary / Mythical Pokémon-style auras (container HTML ::before) ═══ */
             #tm-mascot-container.mascot-char-phoenix:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
+                /* Fire-shaped: bright at the base, red tips licking upward */
                 background:
-                    radial-gradient(circle, rgba(255,234,0,0.45) 0%, rgba(255,61,0,0.22) 42%, transparent 70%);
-                box-shadow: 0 0 28px rgba(255,109,0,0.55), 0 0 56px rgba(255,61,0,0.28);
+                    radial-gradient(ellipse 55% 72% at 50% 68%,
+                        rgba(255,244,214,0.5) 0%,
+                        rgba(255,193,7,0.38) 22%,
+                        rgba(255,87,0,0.26) 48%,
+                        rgba(183,28,28,0.12) 68%,
+                        transparent 80%);
+                box-shadow: 0 0 26px rgba(255,109,0,0.5), 0 0 52px rgba(255,61,0,0.25);
                 opacity: 1;
-                animation: tm-legendary-aura-pulse 2.2s ease-in-out infinite;
+                filter: blur(1.5px);
+                animation: tm-phoenix-fire-flicker 1.1s linear infinite;
                 will-change: opacity, transform;
+            }
+            @keyframes tm-phoenix-fire-flicker {
+                0% { opacity: 0.8; transform: translate(-50%, -50%) scale(1, 1); }
+                18% { opacity: 1; transform: translate(-50%, -52%) scale(1.05, 1.1); }
+                36% { opacity: 0.72; transform: translate(-50%, -50%) scale(0.96, 0.94); }
+                54% { opacity: 0.95; transform: translate(-50%, -53%) scale(1.03, 1.13); }
+                72% { opacity: 0.78; transform: translate(-50%, -50%) scale(0.98, 0.97); }
+                88% { opacity: 1; transform: translate(-50%, -52%) scale(1.06, 1.08); }
+                100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1, 1); }
             }
             #tm-mascot-container.mascot-char-crystal:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
                 background:
@@ -4697,28 +4828,33 @@
                 transform-origin: 50% 62%;
             }
             #tm-mascot-container.mascot-char-phoenix:has(.mascot-teen)::before {
-                background: radial-gradient(ellipse 72% 68% at 50% 55%, rgba(255,120,0,0.22) 0%, rgba(255,40,0,0.12) 45%, transparent 72%) !important;
+                background: radial-gradient(ellipse 58% 74% at 50% 66%,
+                    rgba(255,213,79,0.32) 0%,
+                    rgba(255,120,0,0.24) 40%,
+                    rgba(183,28,28,0.12) 62%,
+                    transparent 78%) !important;
                 box-shadow: 0 0 32px rgba(255,80,0,0.35), 0 0 64px rgba(255,40,0,0.18) !important;
             }
             #tm-mascot-container.mascot-char-phoenix:has(.mascot-adult)::before {
-                background: radial-gradient(ellipse 78% 72% at 50% 52%,
-                    rgba(255,213,79,0.35) 0%,
-                    rgba(156,39,176,0.18) 35%,
-                    rgba(255,40,0,0.18) 55%,
-                    transparent 78%) !important;
-                box-shadow: 0 0 42px rgba(255,193,7,0.45), 0 0 80px rgba(156,39,176,0.22), 0 0 100px rgba(255,60,0,0.2) !important;
-                animation: tm-legendary-aura-pulse 1.8s ease-in-out infinite !important;
+                background: radial-gradient(ellipse 62% 78% at 50% 64%,
+                    rgba(255,244,214,0.45) 0%,
+                    rgba(255,193,7,0.35) 25%,
+                    rgba(255,60,0,0.22) 50%,
+                    rgba(156,39,176,0.12) 66%,
+                    transparent 80%) !important;
+                box-shadow: 0 0 42px rgba(255,193,7,0.45), 0 0 80px rgba(255,60,0,0.25), 0 0 100px rgba(156,39,176,0.15) !important;
+                animation: tm-phoenix-fire-flicker 0.95s linear infinite !important;
             }
             #tm-mascot-container.mascot-char-phoenix:has(.mascot-middleage)::before,
             #tm-mascot-container.mascot-char-phoenix:has(.mascot-old)::before {
-                background: radial-gradient(ellipse 82% 76% at 50% 50%,
-                    rgba(255,248,225,0.38) 0%,
-                    rgba(255,213,79,0.28) 25%,
-                    rgba(156,39,176,0.15) 45%,
-                    rgba(255,80,0,0.12) 60%,
-                    transparent 78%) !important;
-                box-shadow: 0 0 48px rgba(255,248,225,0.35), 0 0 96px rgba(255,193,7,0.3), 0 0 120px rgba(156,39,176,0.15) !important;
-                animation: tm-legendary-aura-pulse 1.6s ease-in-out infinite !important;
+                background: radial-gradient(ellipse 66% 82% at 50% 62%,
+                    rgba(255,248,225,0.5) 0%,
+                    rgba(255,213,79,0.36) 22%,
+                    rgba(255,80,0,0.24) 48%,
+                    rgba(156,39,176,0.1) 64%,
+                    transparent 80%) !important;
+                box-shadow: 0 0 48px rgba(255,248,225,0.35), 0 0 96px rgba(255,193,7,0.3), 0 0 120px rgba(255,60,0,0.18) !important;
+                animation: tm-phoenix-fire-flicker 0.85s linear infinite !important;
             }
             .tm-mascot-robot.mascot-char-phoenix.mascot-adult,
             .tm-mascot-robot.mascot-char-phoenix.mascot-middleage,

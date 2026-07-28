@@ -57,6 +57,16 @@ ${I4}<stop offset="30%" style="stop-color:#ffd740;stop-opacity:.95" />
 ${I4}<stop offset="65%" style="stop-color:#ff4e0a;stop-opacity:.55" />
 ${I4}<stop offset="100%" style="stop-color:#ff4e0a;stop-opacity:0" />
 ${I3}</radialGradient>
+${I3}<linearGradient id="${p}-flameOut" x1="0%" y1="0%" x2="0%" y2="100%">
+${I4}<stop offset="0%" style="stop-color:#b71c1c;stop-opacity:1" />
+${I4}<stop offset="45%" style="stop-color:#e64a19;stop-opacity:1" />
+${I4}<stop offset="100%" style="stop-color:#ff9800;stop-opacity:1" />
+${I3}</linearGradient>
+${I3}<linearGradient id="${p}-flameIn" x1="0%" y1="0%" x2="0%" y2="100%">
+${I4}<stop offset="0%" style="stop-color:#ffb300;stop-opacity:1" />
+${I4}<stop offset="55%" style="stop-color:#ffd740;stop-opacity:1" />
+${I4}<stop offset="100%" style="stop-color:#fffde7;stop-opacity:1" />
+${I3}</linearGradient>
 ${I3}<linearGradient id="${p}-beak" x1="0%" y1="0%" x2="0%" y2="100%">
 ${I4}<stop offset="0%" style="stop-color:#ffe082;stop-opacity:1" />
 ${I4}<stop offset="100%" style="stop-color:#b8860b;stop-opacity:1" />
@@ -115,26 +125,55 @@ function tailFan(p, cx, cy, count, baseLen, peak, width, jagged = false) {
   return parts.join('\n');
 }
 
+/** Deterministic pseudo-random in [0,1) so the crackle is stable per build. */
+function crackle(i, salt = 1) {
+  const v = Math.sin(i * 127.1 + salt * 311.7) * 43758.5453;
+  return v - Math.floor(v);
+}
+
+/** Wavy upward flame tongue; base centered at (x,y). Returns the path `d`. */
+function flameTongue(x, y, h, w, lean) {
+  const P = (px, py) => `${px.toFixed(1)} ${py.toFixed(1)}`;
+  const tipX = x + lean, tipY = y - h;
+  return `M ${P(x - w * .5, y)} Q ${P(x - w * .62, y - h * .28)} ${P(x - w * .28, y - h * .46)} Q ${P(x + lean * .35 - w * .12, y - h * .62)} ${P(tipX, tipY)} Q ${P(x + lean * .3 + w * .18, y - h * .6)} ${P(x + w * .3, y - h * .42)} Q ${P(x + w * .62, y - h * .24)} ${P(x + w * .5, y)} Q ${P(x, y + h * .06)} ${P(x - w * .5, y)} Z`;
+}
+
+/**
+ * Crackling fire ring: irregular flame tongues around the bird, leaning
+ * upward like real fire, with a bright inner core inside each tongue
+ * and stray sparks above the flames.
+ */
 function aura(cfg, p, cy) {
   if (!cfg.aura) return '';
-  const rays = Array.from({ length: cfg.rays }, (_, i) => {
-    const rad = ((360 / cfg.rays) * i - 90) * Math.PI / 180;
-    const x1 = 50 + Math.cos(rad) * cfg.aura * .42;
-    const y1 = cy + Math.sin(rad) * cfg.aura * .36;
-    const x2 = 50 + Math.cos(rad) * cfg.aura;
-    const y2 = cy + Math.sin(rad) * cfg.aura * .85;
-    return `${I3}<path d="M ${x1.toFixed(1)} ${y1.toFixed(1)} L ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="#ffb300" stroke-width="${i % 2 ? .7 : 1.1}" opacity="${cfg.boss ? .5 : .3}" filter="url(#${p}-glow)"/>`;
-  }).join('\n');
-  // Boss stages: fire tongues erupt from the aura rim.
-  const tongues = cfg.boss ? Array.from({ length: 9 }, (_, i) => {
-    const a = -160 + i * 20;
-    const rad = a * Math.PI / 180;
-    const x = 50 + Math.cos(rad) * cfg.aura * .88;
-    const y = cy + Math.sin(rad) * cfg.aura * .68;
-    return feather(x, y, a, 8 + (i % 3) * 3, 3.4, p, `url(#${p}-fire)`, .5);
-  }).join('\n') + '\n' : '';
-  return `${I3}<ellipse cx="50" cy="${cy}" rx="${cfg.aura}" ry="${(cfg.aura * .78).toFixed(1)}" fill="url(#${p}-core)" opacity="${cfg.boss ? .55 : .32}" filter="url(#${p}-glow)"/>
-${tongues}${rays}`;
+  const rx = Math.min(cfg.aura * .8, 42);
+  const ry = cfg.aura * .58;
+  const count = Math.max(7, Math.min(16, Math.round(cfg.aura / 3.6)));
+  const outer = [];
+  const inner = [];
+  const sparks = [];
+  for (let i = 0; i < count; i++) {
+    const theta = (i / count) * Math.PI * 2 - Math.PI / 2 + (crackle(i, 5) - .5) * .3;
+    const bx = 50 + Math.cos(theta) * rx;
+    const by = cy + Math.sin(theta) * ry;
+    // Flames rise: blend the radial direction with a strong upward pull.
+    const dx = Math.cos(theta) * .55;
+    const dy = Math.sin(theta) * .55 - .85;
+    const rot = Math.atan2(dx, -dy) * 180 / Math.PI;
+    const bottom = Math.sin(theta) > .35;
+    const h = cfg.aura * (bottom ? .24 : .42) * (.65 + crackle(i, 2) * .7);
+    const w = h * .46;
+    const lean = (crackle(i, 3) - .5) * w * .9;
+    const at = `transform="rotate(${rot.toFixed(1)} ${bx.toFixed(1)} ${by.toFixed(1)})"`;
+    outer.push(`${I3}<path d="${flameTongue(bx, by, h, w, lean)}" ${at} fill="url(#${p}-flameOut)" opacity="${cfg.boss ? .8 : .62}" filter="url(#${p}-soft)"/>`);
+    inner.push(`${I3}<path d="${flameTongue(bx, by, h * .56, w * .58, lean * .6)}" ${at} fill="url(#${p}-flameIn)" opacity="${cfg.boss ? .85 : .68}" filter="url(#${p}-soft)"/>`);
+    if (crackle(i, 7) > .45 && !bottom) {
+      const sx = bx + dx * h * (1.15 + crackle(i, 9) * .5);
+      const sy = by + dy * h * (1.15 + crackle(i, 9) * .5);
+      sparks.push(`${I3}<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="${(.5 + crackle(i, 11) * .7).toFixed(2)}" fill="${crackle(i, 13) > .5 ? '#ffd740' : '#ff6d00'}" opacity=".8" filter="url(#${p}-glow)"/>`);
+    }
+  }
+  const heat = `${I3}<ellipse cx="50" cy="${cy}" rx="${(rx * 1.02).toFixed(1)}" ry="${(ry * 1.1).toFixed(1)}" fill="url(#${p}-core)" opacity="${cfg.boss ? .3 : .18}" filter="url(#${p}-glow)"/>`;
+  return [heat, ...outer, ...inner, ...sparks].join('\n');
 }
 
 function embers(cfg, p) {
