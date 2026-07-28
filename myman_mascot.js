@@ -3387,6 +3387,7 @@ let tamagotchiNeedsScold = false;
 let tamagotchiLifeMinutes = 0; // Real-time life clock (classic Tamagotchi pacing)
 let tamagotchiEggGeneration = 0; // Bumps on intentional egg reset; blocks stale tabs from wiping progress
 let tamagotchiTickIntervalId = null;
+let tamagotchiOfficeHoursReloadTimerId = null;
 let tamagotchiDataLoaded = false; // Gate ticks until storage is loaded (prevents egg/none clobber)
 let mascotStagePreviewLock = false;
 let mascotStagePreviewStage = null;
@@ -3396,6 +3397,7 @@ let mascotStagePreviewTimeout = null;
 // mascot is frozen so leaving the PC on overnight won't age or starve it.
 const TAMA_OFFICE_HOUR_START = 9;  // inclusive
 const TAMA_OFFICE_HOUR_END = 21;   // exclusive (stops at 21:00)
+const TAMA_OFFICE_HOURS_RELOAD_DELAY_MS = 5000;
 
 // Stage thresholds in office-minutes. Baseline ≈15 office-days (12h/day) to reach old.
 const TAMA_STAGE_MINUTES_BASE = {
@@ -3489,6 +3491,75 @@ function getOfficeMinutesBetween(startMs, endMs) {
         day.setDate(day.getDate() + 1);
     }
     return totalMs / 60000;
+}
+
+/** True during office hours (09:00–21:00 local). Life/stats are frozen outside this window. */
+function isTamagotchiOfficeHoursNow(atMs = Date.now()) {
+    const hour = new Date(atMs).getHours();
+    return hour >= TAMA_OFFICE_HOUR_START && hour < TAMA_OFFICE_HOUR_END;
+}
+
+/** Milliseconds until the next office-hours boundary (09:00 or 21:00 local). */
+function getMsUntilNextOfficeHoursBoundary(atMs = Date.now()) {
+    const now = new Date(atMs);
+    const y = now.getFullYear();
+    const mo = now.getMonth();
+    const d = now.getDate();
+
+    const todayStart = new Date(y, mo, d, TAMA_OFFICE_HOUR_START, 0, 0, 0);
+    const todayEnd = new Date(y, mo, d, TAMA_OFFICE_HOUR_END, 0, 0, 0);
+
+    if (atMs < todayStart.getTime()) {
+        return todayStart.getTime() - atMs;
+    }
+    if (atMs < todayEnd.getTime()) {
+        return todayEnd.getTime() - atMs;
+    }
+    const tomorrowStart = new Date(y, mo, d + 1, TAMA_OFFICE_HOUR_START, 0, 0, 0);
+    return tomorrowStart.getTime() - atMs;
+}
+
+function scheduleTamagotchiOfficeHoursPageReload(STORAGE_KEYS) {
+    if (tamagotchiOfficeHoursReloadTimerId) {
+        clearTimeout(tamagotchiOfficeHoursReloadTimerId);
+        tamagotchiOfficeHoursReloadTimerId = null;
+    }
+
+    const delay = getMsUntilNextOfficeHoursBoundary();
+    if (!Number.isFinite(delay) || delay < 0) {
+        tamagotchiOfficeHoursReloadTimerId = setTimeout(
+            () => scheduleTamagotchiOfficeHoursPageReload(STORAGE_KEYS),
+            60000
+        );
+        return;
+    }
+
+    tamagotchiOfficeHoursReloadTimerId = setTimeout(() => {
+        const keys = STORAGE_KEYS || (typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null);
+        if (keys) {
+            flushTamagotchiLifeToStorage(keys);
+        }
+        setTimeout(() => {
+            try {
+                location.reload();
+            } catch (_) {
+                scheduleTamagotchiOfficeHoursPageReload(keys);
+            }
+        }, TAMA_OFFICE_HOURS_RELOAD_DELAY_MS);
+    }, delay);
+}
+
+function installTamagotchiOfficeHoursReload(STORAGE_KEYS) {
+    if (window.__tmOfficeHoursReloadBound) return;
+    window.__tmOfficeHoursReloadBound = true;
+
+    scheduleTamagotchiOfficeHoursPageReload(STORAGE_KEYS);
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState !== 'visible') return;
+        const keys = typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : STORAGE_KEYS;
+        scheduleTamagotchiOfficeHoursPageReload(keys);
+    });
 }
 
 const TAMA_CHARACTER_TYPES = ['dragon', 'robot', 'slime', 'plant', 'ghost', 'cat', 'phoenix', 'crystal', 'aether', 'leviathan'];
@@ -6900,6 +6971,8 @@ function initTamagotchiSystem(config, STORAGE_KEYS, container) {
             resyncMascotAppearanceFromStorage(keysForFlush);
         });
     }
+
+    installTamagotchiOfficeHoursReload(STORAGE_KEYS);
 }
 
 function updateTamagotchiStats(container) {
@@ -7011,7 +7084,7 @@ function updateTamagotchiStats(container) {
     updateWeightDisplay();
     
     // Check for death (need STORAGE_KEYS - check if available)
-    if (typeof window.STORAGE_KEYS !== 'undefined') {
+    if (typeof window.STORAGE_KEYS !== 'undefined' && isTamagotchiOfficeHoursNow(now) && !tamagotchiIsSleeping) {
         checkTamagotchiDeath(window.STORAGE_KEYS);
     }
 }
@@ -9530,7 +9603,8 @@ async function restartTamagotchiAsEgg(config, STORAGE_KEYS, options = {}) {
 
 function checkTamagotchiDeath(STORAGE_KEYS) {
     if (tamagotchiIsDead) return;
-    
+    if (!isTamagotchiOfficeHoursNow() || tamagotchiIsSleeping) return;
+
     // Die if health reaches 0, or hunger stays at 0 for >4 office-hours (nights don't count)
     const starvedOfficeMin = getOfficeMinutesBetween(tamagotchiLastFed || Date.now(), Date.now());
     if (tamagotchiHealth <= 0 || (petStats.hunger <= 0 && starvedOfficeMin > 4 * 60)) {
@@ -21045,11 +21119,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         document.addEventListener(eventType, () => resetIdleTimer(config));
     });
 
-    // Periodic stat decay
-    setInterval(() => {
-        if (document.getElementById('tm-mascot-container')?.className.includes('sleeping')) return;
-        updatePetStats(config, STORAGE_KEYS, -1, -2);
-    }, 60 * 1000);
+    // Stat decay is handled by initTamagotchiSystem (office-hours only). No extra 24/7 drain here.
 
     // Update mascot appearance based on current level on page load
     const currentLevel = GM_getValue(STORAGE_KEYS.USER_LEVEL, 1);
