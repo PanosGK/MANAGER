@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         MyManager Phone Catalog UI
 // @namespace    http://tampermonkey.net/
-// @version      6.0
-// @description  Store locator UI — model picker → store availability board.
+// @version      6.1
+// @description  Store locator UI — polished mine/network boards, soft refresh, shared unit table.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @grant        none
@@ -23,6 +23,11 @@
         tag: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
         phone: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
         export: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+        emptyPhone: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
+        emptySearch: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>',
+        emptyError: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+        copy: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+        open: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
     };
 
     function esc(value) {
@@ -118,12 +123,12 @@
 
         .tm-sl-overlay {
             animation: tm-sl-in 0.2s ease;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             background: var(--tm-overlay-dim, rgba(0,0,0,0.75)) !important;
         }
         .tm-sl-shell {
-            animation: tm-sl-rise 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+            animation: tm-sl-rise 0.22s cubic-bezier(0.22, 1, 0.36, 1);
             width: min(920px, 96vw) !important;
             max-width: 96vw !important;
             height: min(88vh, 820px) !important;
@@ -131,8 +136,6 @@
             border-radius: 16px !important;
             border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 80%, var(--tm-primary-color)) !important;
             background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
-            backdrop-filter: var(--lg-blur-chrome, blur(16px));
-            -webkit-backdrop-filter: var(--lg-blur-chrome, blur(16px));
             box-shadow: 0 24px 64px var(--tm-shadow-color, rgba(0,0,0,0.4)),
                 0 0 0 1px color-mix(in srgb, var(--tm-primary-color) 8%, transparent) inset !important;
             display: flex !important;
@@ -141,6 +144,14 @@
             color: var(--tm-shop-item-text, var(--tm-primary-color));
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             position: relative;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .tm-sl-overlay, .tm-sl-shell, .tm-sl-model-card, .tm-sl-toast.is-visible,
+            .tm-sl-skeleton-card, .tm-sl-skeleton-row, .tm-sl-skeleton-line {
+                animation: none !important;
+            }
+            .tm-sl-model-card { transition: none !important; }
+            .tm-sl-body.is-refreshing { transition: none !important; }
         }
 
         .tm-sl-shell.tm-sl-view--network {
@@ -300,8 +311,7 @@
             font-size: 11px; opacity: 0.85;
         }
         .tm-sl-network-store__preview {
-            font-size: 10px; opacity: 0.65; line-height: 1.35;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            display: none;
         }
         .tm-sl-network-detail {
             display: flex; flex-direction: column; min-height: 0; min-width: 0; max-height: 100%;
@@ -409,6 +419,100 @@
         .tm-sl-unit-table .tm-sl-table-actions {
             display: flex; gap: 4px; justify-content: flex-end; white-space: nowrap;
         }
+        .tm-sl-unit-table .tm-sl-table-status {
+            font-size: 11px; font-weight: 700; white-space: nowrap;
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+            opacity: 0.9;
+        }
+        .tm-sl-unit-table .tm-sl-table-status--ok { color: var(--tm-success-color, #16a34a); opacity: 1; }
+        .tm-sl-unit-table .tm-sl-table-status--bb {
+            color: var(--tm-warning-color, #d97706); opacity: 1;
+        }
+        .tm-sl-unit-table .tm-sl-table-status--blocked {
+            color: var(--tm-danger-color, #dc2626); opacity: 1;
+        }
+        .tm-sl-unit-table .tm-sl-table-barcode {
+            cursor: pointer;
+        }
+        .tm-sl-unit-table .tm-sl-table-barcode:hover {
+            color: var(--tm-primary-color);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .tm-sl-unit-btn.is-copied {
+            border-color: var(--tm-success-color, #22c55e);
+            color: var(--tm-success-color, #16a34a);
+            background: color-mix(in srgb, var(--tm-success-color, #22c55e) 12%, var(--tm-shop-item-bg));
+        }
+        .tm-sl-unit-btn--icon {
+            min-width: 28px; padding: 4px 6px;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .tm-sl-unit-btn--icon svg { display: block; }
+        .tm-sl-unit-btn.is-copied.tm-sl-unit-btn--icon {
+            font-size: 10px; font-weight: 800; min-width: 72px;
+        }
+        .tm-sl-btn.is-busy {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .tm-sl-btn.is-busy .tm-sl-btn-spin {
+            display: inline-block;
+            animation: tm-sl-spin 0.8s linear infinite;
+        }
+        @keyframes tm-sl-spin { to { transform: rotate(360deg); } }
+        .tm-sl-body.is-refreshing {
+            opacity: 0.55;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+        }
+        .tm-sl-mine-board {
+            display: flex; flex-direction: column; min-height: 0; height: 100%;
+            border: 1px solid var(--tm-shop-item-border);
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--tm-shop-item-bg);
+        }
+        .tm-sl-shell:not(.tm-sl-view--network).tm-sl-step--stores .tm-sl-body {
+            display: flex; flex-direction: column; overflow: hidden; padding: 12px 14px;
+        }
+        .tm-sl-shell:not(.tm-sl-view--network).tm-sl-step--stores .tm-sl-mine-board {
+            flex: 1 1 0; min-height: 0;
+        }
+        .tm-sl-toolbar .tm-sl-chips {
+            flex: 1; min-width: 0;
+        }
+        .tm-sl-mine-detail-head {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--tm-shop-item-border);
+            background: color-mix(in srgb, var(--tm-shop-item-border) 6%, var(--tm-shop-item-bg));
+            flex-shrink: 0;
+            position: sticky; top: 0; z-index: 2;
+        }
+        .tm-sl-mine-detail-head h3 {
+            margin: 0; font-size: 13px; font-weight: 800;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .tm-sl-mine-detail-head__meta {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+            font-size: 11px; font-weight: 600; opacity: 0.85;
+        }
+        .tm-sl-mine-table-wrap {
+            flex: 1; min-height: 0; overflow: auto;
+        }
+        .tm-sl-shell.tm-sl-density--compact .tm-sl-unit-table th,
+        .tm-sl-shell.tm-sl-density--compact .tm-sl-unit-table td {
+            padding: 5px 8px;
+        }
+        .tm-sl-shell.tm-sl-density--compact .tm-sl-unit-btn {
+            padding: 3px 7px; font-size: 10px;
+        }
+        .tm-sl-skeleton-mine {
+            border: 1px solid var(--tm-shop-item-border);
+            border-radius: 10px; overflow: hidden; padding: 12px;
+        }
+        .tm-sl-skeleton-mine .tm-sl-skeleton-line { width: 100%; }
         .tm-sl-store-dist {
             font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
             background: color-mix(in srgb, var(--tm-primary-color) 12%, transparent);
@@ -636,13 +740,13 @@
             background: var(--tm-shop-item-bg);
             cursor: pointer;
             transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
-            animation: tm-sl-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-            animation-delay: calc(var(--i, 0) * 40ms);
+            animation: tm-sl-rise 0.28s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+            animation-delay: calc(min(var(--i, 0), 7) * 30ms);
         }
         .tm-sl-model-card:hover {
             border-color: var(--tm-primary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px color-mix(in srgb, var(--tm-shadow-color, #000) 25%, transparent);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--tm-shadow-color, #000) 18%, transparent);
         }
         .tm-sl-model-card:focus-visible {
             outline: 2px solid var(--tm-primary-color);
@@ -665,8 +769,17 @@
 
         .tm-sl-model-name {
             font-size: 14px; font-weight: 800; line-height: 1.25;
-            margin-bottom: 8px; padding-right: 56px;
+            margin-bottom: 6px; padding-right: 8px;
             color: var(--tm-shop-item-text);
+        }
+        .tm-sl-model-count {
+            font-size: 18px; font-weight: 900; line-height: 1.1;
+            letter-spacing: -0.02em;
+            color: var(--tm-shop-item-text);
+            margin-bottom: 4px;
+        }
+        .tm-sl-model-count span {
+            font-size: 12px; font-weight: 600; opacity: 0.7; margin-left: 4px;
         }
         .tm-sl-hl {
             background: color-mix(in srgb, var(--tm-primary-color) 30%, transparent);
@@ -1090,9 +1203,17 @@
             text-align: center; padding: 48px 24px;
             color: var(--tm-muted-text);
         }
-        .tm-sl-empty-icon { font-size: 40px; margin-bottom: 12px; }
+        .tm-sl-empty-icon {
+            margin: 0 auto 12px;
+            width: 40px; height: 40px;
+            opacity: 0.45;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--tm-shop-item-text);
+        }
+        .tm-sl-empty-icon svg { display: block; }
         .tm-sl-empty-title { font-size: 16px; font-weight: 800; margin-bottom: 6px; color: var(--tm-shop-item-text); }
-        .tm-sl-empty-sub { font-size: 13px; opacity: 0.8; }
+        .tm-sl-empty-sub { font-size: 13px; opacity: 0.8; margin-bottom: 14px; }
+        .tm-sl-empty-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
 
         .tm-sl-footer {
             padding: 10px 20px;
@@ -1115,7 +1236,7 @@
         .tm-sl-freshness-dot {
             width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
         }
-        .tm-sl-freshness--fresh .tm-sl-freshness-dot { background: var(--tm-success-color, #22c55e); box-shadow: 0 0 6px var(--tm-success-color, #22c55e); }
+        .tm-sl-freshness--fresh .tm-sl-freshness-dot { background: var(--tm-success-color, #22c55e); }
         .tm-sl-freshness--cached .tm-sl-freshness-dot { background: var(--tm-warning-color, #f59e0b); }
         .tm-sl-freshness--stale .tm-sl-freshness-dot { background: var(--tm-danger-color, #ef4444); }
 
@@ -1138,7 +1259,7 @@
 
     function buildSkeletonGrid(count = 8) {
         const cards = Array.from({ length: count }, (_, i) =>
-            `<div class="tm-sl-skeleton-card" style="--i:${i}"></div>`).join('');
+            `<div class="tm-sl-skeleton-card" style="--i:${Math.min(i, 7)}"></div>`).join('');
         return `<div class="tm-sl-skeleton-grid">${cards}</div>`;
     }
 
@@ -1156,11 +1277,22 @@
         return `<div class="tm-sl-skeleton-stores">${rows}</div>`;
     }
 
-    function buildEmptyState(icon, title, sub) {
+    function buildSkeletonMineBoard() {
+        const lines = Array.from({ length: 8 }, () => '<div class="tm-sl-skeleton-line"></div>').join('');
+        return `<div class="tm-sl-skeleton-mine">${lines}</div>`;
+    }
+
+    function buildEmptyState(icon, title, sub, opts) {
+        const action = opts?.actionLabel
+            ? `<div class="tm-sl-empty-actions">
+                <button type="button" class="tm-sl-btn" data-tm-sl-empty-action="${esc(opts.actionId || 'clear-filters')}">${esc(opts.actionLabel)}</button>
+            </div>`
+            : '';
         return `<div class="tm-sl-empty">
-            <div class="tm-sl-empty-icon">${icon}</div>
+            <div class="tm-sl-empty-icon" aria-hidden="true">${icon || ICON.emptyPhone}</div>
             <div class="tm-sl-empty-title">${esc(title)}</div>
             ${sub ? `<div class="tm-sl-empty-sub">${esc(sub)}</div>` : ''}
+            ${action}
         </div>`;
     }
 
@@ -1251,12 +1383,14 @@
     }
 
     function buildStoreToolbar(modelName, chipsHtml, opts) {
-        if (opts?.network) {
-            return `<button type="button" id="tm-sl-back" class="tm-sl-btn tm-sl-btn--back">${ICON.back} Μοντέλα</button>`;
-        }
+        const chips = chipsHtml
+            ? `<div class="tm-sl-chips" id="tm-sl-chips">${chipsHtml}</div>`
+            : '';
         return `
-            <button type="button" id="tm-sl-back" class="tm-sl-btn tm-sl-btn--back">${ICON.back} Μοντέλα</button>
-            <div class="tm-sl-chips" id="tm-sl-chips">${chipsHtml || ''}</div>`;
+            <div class="tm-sl-toolbar-row">
+                <button type="button" id="tm-sl-back" class="tm-sl-btn tm-sl-btn--back">${ICON.back} Μοντέλα</button>
+                ${chips}
+            </div>`;
     }
 
     function buildModelGrid(models, ctx) {
@@ -1264,7 +1398,13 @@
             const emptyMsg = ctx?.catalogView === 'mine'
                 ? 'Δεν βρέθηκαν συσκευές στο κατάστημά σας'
                 : 'Δεν βρέθηκαν μοντέλα σε άλλα καταστήματα';
-            return buildEmptyState('📱', 'Δεν βρέθηκαν μοντέλα', emptyMsg);
+            const hasQuery = !!(ctx?.query);
+            return buildEmptyState(
+                hasQuery ? ICON.emptySearch : ICON.emptyPhone,
+                hasQuery ? 'Κανένα αποτέλεσμα' : 'Δεν βρέθηκαν μοντέλα',
+                hasQuery ? 'Δοκιμάστε άλλο όρο αναζήτησης' : emptyMsg,
+                hasQuery ? { actionId: 'clear-search', actionLabel: 'Καθαρισμός αναζήτησης' } : null
+            );
         }
         const query = ctx?.query || '';
         const catalogView = ctx?.catalogView || 'mine';
@@ -1275,13 +1415,15 @@
                 .map(([g, n]) => gradeChipHTML(g, n, getGradeStyle))
                 .join('');
             const heat = getModelHeatClass(data);
+            const delay = Math.min(i, 7);
 
             if (catalogView === 'mine') {
                 const count = data.myCount || data.totalUnits || 0;
                 return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
-                    data-tm-sl-model="${esc(model)}" style="--i:${i}">
+                    data-tm-sl-model="${esc(model)}" style="--i:${delay}">
                     <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
-                    <div class="tm-sl-model-meta">${ICON.pin.replace('width="11"', 'width="12"').replace('height="11"', 'height="12"')} ${count} ${count === 1 ? 'συσκευή' : 'συσκευές'} στο δικό σας</div>
+                    <div class="tm-sl-model-count">${count}<span>${count === 1 ? 'τεμ.' : 'τεμ.'}</span></div>
+                    <div class="tm-sl-model-meta">στο κατάστημά σας</div>
                     ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                 </div>`;
             }
@@ -1289,21 +1431,12 @@
             const storeLabel = data.storeCount === 1
                 ? '1 κατάστημα'
                 : `${data.storeCount} καταστήματα`;
-            const storeNames = data.storeList || [];
-            const maxStores = 4;
-            const storeChips = storeNames.slice(0, maxStores).map((name) =>
-                `<span class="tm-sl-model-store-chip">${esc(name)}</span>`
-            ).join('');
-            const storeMore = storeNames.length > maxStores
-                ? `<span class="tm-sl-model-store-more">+${storeNames.length - maxStores}</span>`
-                : '';
             return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
-                data-tm-sl-model="${esc(model)}" style="--i:${i}">
+                data-tm-sl-model="${esc(model)}" style="--i:${delay}">
                 <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
-                <div class="tm-sl-model-meta">${ICON.store.replace('width="16"', 'width="12"').replace('height="16"', 'height="12"')} ${esc(storeLabel)}</div>
-                <div class="tm-sl-model-stores">${data.totalUnits} συσκευές στο δίκτυο</div>
+                <div class="tm-sl-model-count">${data.storeCount || 0}<span>κατ.</span></div>
+                <div class="tm-sl-model-meta">${esc(storeLabel)} · ${data.totalUnits} τεμ.</div>
                 ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
-                ${storeChips ? `<div class="tm-sl-model-store-list">${storeChips}${storeMore}</div>` : ''}
             </div>`;
         }).join('');
         return `<div class="tm-sl-model-grid">${cards}</div>`;
@@ -1320,7 +1453,7 @@
             values.forEach((val) => {
                 const isActive = active[key] === val;
                 const count = counts[key]?.[val];
-                const countHtml = count != null ? `<span class="tm-sl-chip-count">(${count})</span>` : '';
+                const countHtml = count != null ? `<span class="tm-sl-chip-count">· ${count}</span>` : '';
                 let inner = esc(val);
                 if (key === 'color') {
                     inner = `${colorSwatchHTML(val, hexMap)} ${esc(val)}`;
@@ -1335,7 +1468,7 @@
         addGroup('gb', filters.gbs);
         addGroup('color', filters.colors);
         if (active.grade || active.gb || active.color) {
-            parts.push('<button type="button" class="tm-sl-chip" data-tm-sl-filter="clear">Καθαρισμός</button>');
+            parts.push('<button type="button" class="tm-sl-chip" data-tm-sl-filter="clear">Καθαρισμός φίλτρων</button>');
         }
         return parts.join('');
     }
@@ -1511,6 +1644,78 @@
         return `<span class="${cls}">${ICON.store.replace('width="16"', 'width="11"').replace('height="16"', 'height="11"')} ${esc(storeName)}</span>`;
     }
 
+    function buildUnitActionButtonsHTML(barcode) {
+        return `<div class="tm-sl-table-actions">
+            <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary tm-sl-unit-btn--icon" data-tm-sl-copy="${esc(barcode)}" title="Αντιγραφή barcode" aria-label="Αντιγραφή barcode">${ICON.copy}</button>
+            <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--icon" data-tm-sl-open="${esc(barcode)}" title="Άνοιγμα στο σύστημα" aria-label="Άνοιγμα στο σύστημα">${ICON.open}</button>
+        </div>`;
+    }
+
+    function buildUnitStatusCell(v, purchaseBlocked, ctx) {
+        const showPurchaseStatus = !!ctx?.showPurchaseStatus;
+        if (showPurchaseStatus && purchaseBlocked) {
+            return v.isBuyback
+                ? '<span class="tm-sl-table-status tm-sl-table-status--blocked" title="Buyback IKE — δεν αγοράζεται">Δεν αγοράζεται · BB</span>'
+                : '<span class="tm-sl-table-status tm-sl-table-status--blocked" title="Δεν αγοράζεται">Δεν αγοράζεται</span>';
+        }
+        if (v.isBuyback) {
+            return '<span class="tm-sl-table-status tm-sl-table-status--bb" title="Buyback">BB</span>';
+        }
+        return '<span class="tm-sl-table-status tm-sl-table-status--ok">Διαθέσιμο</span>';
+    }
+
+    function buildUnitTableRow(v, ctx) {
+        const hexMap = ctx?.colorHexMap || {};
+        const getGradeStyle = ctx?.getGradeStyle || (() => '');
+        const storeName = v.storeName || '';
+        const showPurchaseStatus = !!ctx?.showPurchaseStatus;
+        const purchaseAllowed = !showPurchaseStatus || !storeName
+            || isStorePurchaseAllowed(storeName, !!v.isBuyback);
+        const purchaseBlocked = showPurchaseStatus && !purchaseAllowed;
+        const rowClass = purchaseBlocked ? ' tm-sl-unit-row--blocked' : '';
+
+        const gradeCell = v.grade
+            ? `<span class="tm-sl-table-grade" style="${getGradeStyle(v.grade)}">${esc(v.grade)}</span>`
+            : '—';
+        const gbCell = v.gb ? `<span class="tm-sl-table-gb">${esc(v.gb)}</span>` : '—';
+        const colorCell = v.color
+            ? `<span class="tm-sl-table-color">${colorSwatchHTML(v.color, hexMap)}${esc(v.color)}</span>`
+            : '—';
+        const statusCell = buildUnitStatusCell(v, purchaseBlocked, ctx);
+        const barcodeCell = `<span class="tm-sl-table-barcode" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">${esc(v.barcode)}</span>`;
+        const priceCell = v.price ? `<span class="tm-sl-table-price">${esc(v.price)}</span>` : '—';
+
+        return `<tr class="tm-sl-unit-row${rowClass}" data-barcode="${esc(v.barcode)}">
+            <td>${gradeCell}</td>
+            <td>${gbCell}</td>
+            <td>${colorCell}</td>
+            <td>${statusCell}</td>
+            <td>${barcodeCell}</td>
+            <td>${priceCell}</td>
+            <td>${buildUnitActionButtonsHTML(v.barcode)}</td>
+        </tr>`;
+    }
+
+    function buildUnitTable(variants, ctx) {
+        const rows = variants.map((v) => buildUnitTableRow(v, ctx)).join('');
+        return `<div class="tm-sl-network-detail-table-wrap tm-sl-mine-table-wrap">
+            <table class="tm-sl-unit-table">
+                <thead>
+                    <tr>
+                        <th>Βαθμ.</th>
+                        <th>GB</th>
+                        <th>Χρώμα</th>
+                        <th>Κατάσταση</th>
+                        <th>Barcode</th>
+                        <th>Τιμή</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
+    }
+
     function buildUnitRowHTML(v, ctx) {
         const compact = !!ctx?.networkCompact;
         const gradeAccent = getGradeAccentColor(v.grade, ctx);
@@ -1530,8 +1735,12 @@
             compact ? 'tm-sl-phone-card--compact' : '',
         ].filter(Boolean).join(' ');
         const priceHtml = v.price ? `<div class="tm-sl-phone-card__price">${esc(v.price)}</div>` : '';
-        const barcodeHtml = `<span class="tm-sl-barcode-pill"><span class="tm-sl-barcode-pill__icon">#</span>${esc(v.barcode)}</span>`;
+        const barcodeHtml = `<span class="tm-sl-barcode-pill" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode"><span class="tm-sl-barcode-pill__icon">#</span>${esc(v.barcode)}</span>`;
         const specsHtml = buildSpecPillsHTML(v, ctx, purchaseBlocked) || '<span class="tm-sl-preview-pill">—</span>';
+        const actionsHtml = `<div class="tm-sl-phone-card__actions">
+            <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">${ICON.copy} Αντιγραφή</button>
+            <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">${ICON.open} Άνοιγμα</button>
+        </div>`;
 
         if (compact) {
             return `<article class="${cardClasses}" data-barcode="${esc(v.barcode)}" style="--tm-sl-grade-accent:${esc(gradeAccent)}">
@@ -1539,10 +1748,7 @@
                 <div class="tm-sl-phone-card__specs">${specsHtml}</div>
                 ${barcodeHtml}
                 ${priceHtml}
-                <div class="tm-sl-phone-card__actions">
-                    <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
-                    <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
-                </div>
+                ${actionsHtml}
             </article>`;
         }
 
@@ -1554,14 +1760,11 @@
                 <div class="tm-sl-phone-card__footer">
                     ${barcodeHtml}
                 </div>
-                    </div>
+            </div>
             <div class="tm-sl-phone-card__aside">
                 ${priceHtml}
-                <div class="tm-sl-phone-card__actions">
-                    <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
-                    <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
-                </div>
-                </div>
+                ${actionsHtml}
+            </div>
         </article>`;
     }
 
@@ -1637,56 +1840,29 @@
     }
 
     function buildMyStoreBoard(modelName, variants, ctx) {
+        const hasFilters = !!(ctx?.hasActiveFilters);
         if (!variants.length) {
-            return buildEmptyState('📱', 'Χωρίς διαθέσιμες συσκευές', `Δεν υπάρχει ${esc(modelName)} στο κατάστημά σας`);
+            return buildEmptyState(
+                ICON.emptyPhone,
+                'Χωρίς διαθέσιμες συσκευές',
+                hasFilters
+                    ? `Κανένα αποτέλεσμα για ${modelName} με τα τρέχοντα φίλτρα`
+                    : `Δεν υπάρχει ${modelName} στο κατάστημά σας`,
+                hasFilters
+                    ? { actionId: 'clear-filters', actionLabel: 'Καθαρισμός φίλτρων' }
+                    : { actionId: 'back-models', actionLabel: 'Επιστροφή στα μοντέλα' }
+            );
         }
-        const units = variants.map((v) => buildUnitRowHTML(v, ctx)).join('');
-        return `<section class="tm-sl-phone-list-section">
-            <h3 class="tm-sl-phone-list-title">${ICON.pin} Το κατάστημά μου · ${variants.length} ${variants.length === 1 ? 'συσκευή' : 'συσκευές'}</h3>
-            <div class="tm-sl-phone-list tm-sl-phone-list--mine">${units}</div>
+        const qtyLabel = variants.length === 1 ? '1 συσκευή' : `${variants.length} συσκευές`;
+        return `<section class="tm-sl-mine-board">
+            <div class="tm-sl-mine-detail-head">
+                <h3>${ICON.pin} Το κατάστημά μου</h3>
+                <div class="tm-sl-mine-detail-head__meta">
+                    <span>${esc(qtyLabel)}</span>
+                </div>
+            </div>
+            ${buildUnitTable(variants, ctx)}
         </section>`;
-    }
-
-    function buildNetworkUnitTableRow(v, ctx) {
-        const hexMap = ctx?.colorHexMap || {};
-        const getGradeStyle = ctx?.getGradeStyle || (() => '');
-        const storeName = v.storeName || '';
-        const purchaseAllowed = !ctx?.showPurchaseStatus || !storeName
-            || isStorePurchaseAllowed(storeName, !!v.isBuyback);
-        const purchaseBlocked = ctx?.showPurchaseStatus && !purchaseAllowed;
-        const rowClass = purchaseBlocked ? ' tm-sl-unit-row--blocked' : '';
-
-        const gradeCell = v.grade
-            ? `<span class="tm-sl-table-grade" style="${getGradeStyle(v.grade)}">${esc(v.grade)}</span>`
-            : '—';
-        const gbCell = v.gb ? `<span class="tm-sl-table-gb">${esc(v.gb)}</span>` : '—';
-        const colorCell = v.color
-            ? `<span class="tm-sl-table-color">${colorSwatchHTML(v.color, hexMap)}${esc(v.color)}</span>`
-            : '—';
-        let bbCell = '';
-        if (purchaseBlocked) {
-            bbCell = v.isBuyback
-                ? '<span class="tm-sl-table-bb tm-sl-table-bb--blocked" title="Buyback IKE — δεν αγοράζεται">BB ✕</span>'
-                : '<span class="tm-sl-table-blocked" title="Δεν αγοράζεται">✕ Όχι</span>';
-        } else if (v.isBuyback) {
-            bbCell = '<span class="tm-sl-table-bb">BB</span>';
-        }
-        const barcodeCell = `<span class="tm-sl-table-barcode">${esc(v.barcode)}</span>`;
-        const priceCell = v.price ? `<span class="tm-sl-table-price">${esc(v.price)}</span>` : '—';
-        const actionsCell = `<div class="tm-sl-table-actions">
-            <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
-            <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
-        </div>`;
-
-        return `<tr class="tm-sl-unit-row${rowClass}" data-barcode="${esc(v.barcode)}">
-            <td>${gradeCell}</td>
-            <td>${gbCell}</td>
-            <td>${colorCell}</td>
-            <td>${bbCell}</td>
-            <td>${barcodeCell}</td>
-            <td>${priceCell}</td>
-            <td>${actionsCell}</td>
-        </tr>`;
     }
 
     function buildNetworkStoreMetaInner(store, ctx) {
@@ -1706,34 +1882,12 @@
     }
 
     function buildNetworkStoreTable(store, ctx) {
-        const rows = store.variants.map((v) => buildNetworkUnitTableRow(v, ctx)).join('');
-        return `<div class="tm-sl-network-detail-table-wrap">
-            <table class="tm-sl-unit-table">
-                <thead>
-                    <tr>
-                        <th>Βαθμ.</th>
-                        <th>GB</th>
-                        <th>Χρώμα</th>
-                        <th></th>
-                        <th>Barcode</th>
-                        <th>Τιμή</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>${rows}</tbody>
-            </table>
-        </div>`;
+        return buildUnitTable(store.variants, ctx);
     }
 
     function buildNetworkDetailHead(store, ctx) {
-        const chipsHtml = ctx?.filterChipsHtml || '';
-        const filterBlock = chipsHtml
-            ? `<div class="tm-sl-chips tm-sl-chips--network-detail" id="tm-sl-network-filters">${chipsHtml}</div>`
-            : '';
-
         return `<div class="tm-sl-network-detail-head">
             <div class="tm-sl-network-detail-head__row">${buildNetworkStoreMetaInner(store, ctx)}</div>
-            ${filterBlock}
         </div>`;
     }
 
@@ -1745,20 +1899,28 @@
             ? window.getStoreDistanceLabel?.(myStore, store.name)
             : '';
         const distChip = distLabel ? `<span class="tm-sl-store-dist">${esc(distLabel)}</span>` : '';
-        const preview = store.variants.slice(0, 4).map((v) => formatVariantLine(v, ctx)).join(' · ');
 
         return `<button type="button" class="tm-sl-network-store ${signal}${isActive ? ' is-active' : ''}"
             data-tm-sl-select-store="${idx}" role="tab"
             aria-selected="${isActive ? 'true' : 'false'}" tabindex="${isActive ? '0' : '-1'}">
             <span class="tm-sl-network-store__name">${esc(store.name)}</span>
             <span class="tm-sl-network-store__meta">${distChip}${bbBadge}<span>${store.variants.length} τεμ.</span></span>
-            ${preview ? `<span class="tm-sl-network-store__preview">${esc(preview)}</span>` : ''}
         </button>`;
     }
 
     function buildNetworkStoreBoard(modelName, storeRows, ctx) {
+        const hasFilters = !!(ctx?.hasActiveFilters);
         if (!storeRows.length) {
-            return buildEmptyState('🔍', 'Δεν βρέθηκε σε άλλα καταστήματα', `Κανένα κατάστημα δικτύου δεν έχει ${esc(modelName)}`);
+            return buildEmptyState(
+                ICON.emptySearch,
+                'Δεν βρέθηκε σε άλλα καταστήματα',
+                hasFilters
+                    ? `Κανένα κατάστημα με ${modelName} για τα τρέχοντα φίλτρα`
+                    : `Κανένα κατάστημα δικτύου δεν έχει ${modelName}`,
+                hasFilters
+                    ? { actionId: 'clear-filters', actionLabel: 'Καθαρισμός φίλτρων' }
+                    : { actionId: 'back-models', actionLabel: 'Επιστροφή στα μοντέλα' }
+            );
         }
         const navHtml = storeRows.map((store, idx) => buildNetworkStoreNavItem(store, idx, ctx, idx === 0)).join('');
         const panelsHtml = storeRows.map((store, idx) =>
@@ -1804,7 +1966,7 @@
     }
 
         if (!allRows?.length) {
-            html += buildEmptyState('🔍', 'Δεν βρέθηκε σε κανένα κατάστημα', 'Δοκιμάστε άλλα φίλτρα ή ανανέωση δεδομένων');
+            html += buildEmptyState(ICON.emptySearch, 'Δεν βρέθηκε σε κανένα κατάστημα', 'Δοκιμάστε άλλα φίλτρα ή ανανέωση δεδομένων');
             return html;
         }
 
@@ -1856,10 +2018,35 @@
         if (!wrap || !lastUpdated) return;
         const ageMs = Date.now() - lastUpdated.getTime();
         wrap.classList.remove('tm-sl-freshness--fresh', 'tm-sl-freshness--cached', 'tm-sl-freshness--stale');
-        if (ageMs < 5 * 60 * 1000) wrap.classList.add('tm-sl-freshness--fresh');
-        else if (ageMs < 60 * 60 * 1000) wrap.classList.add('tm-sl-freshness--cached');
-        else wrap.classList.add('tm-sl-freshness--stale');
-        if (updatedEl) updatedEl.textContent = lastUpdated.toLocaleString('el-GR');
+        let label = 'Cache';
+        if (ageMs < 5 * 60 * 1000) {
+            wrap.classList.add('tm-sl-freshness--fresh');
+            label = 'Ζωντανά';
+        } else if (ageMs < 60 * 60 * 1000) {
+            wrap.classList.add('tm-sl-freshness--cached');
+            label = 'Cache';
+        } else {
+            wrap.classList.add('tm-sl-freshness--stale');
+            label = 'Παλιά δεδομένα';
+        }
+        if (updatedEl) {
+            updatedEl.textContent = `${label} · ${lastUpdated.toLocaleString('el-GR')}`;
+        }
+    }
+
+    function setRefreshing(overlay, refreshing) {
+        const body = overlay?.querySelector('#tm-sl-body');
+        const btn = overlay?.querySelector('#tm-sl-refresh');
+        body?.classList.toggle('is-refreshing', !!refreshing);
+        if (!btn) return;
+        btn.classList.toggle('is-busy', !!refreshing);
+        if (refreshing) {
+            btn.setAttribute('disabled', 'true');
+            btn.innerHTML = `<span class="tm-sl-btn-spin">${ICON.refresh}</span> Ανανέωση…`;
+        } else {
+            btn.removeAttribute('disabled');
+            btn.innerHTML = `${ICON.refresh} Ανανέωση`;
+        }
     }
 
     function setStoresModelHeader(overlay, modelName, subtitle) {
@@ -1915,6 +2102,7 @@
     }
 
     window.PhoneCatalogUI = {
+        ICON,
         STYLES,
         esc,
         highlightMatch,
@@ -1937,14 +2125,18 @@
         buildSkeletonGrid,
         buildSkeletonStores,
         buildSkeletonNetworkBoard,
+        buildSkeletonMineBoard,
         buildPhoneListSection,
         buildUnitRowHTML,
+        buildUnitTable,
+        buildUnitTableRow,
         formatVariantLine,
         buildStoreChipHtml,
         buildPurchaseBadgeHtml,
         isStorePurchaseAllowed,
         showToast,
         updateFreshness,
+        setRefreshing,
         setStoresModelHeader,
         clearStoresModelHeader,
         updateBreadcrumb,

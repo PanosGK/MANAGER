@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         MyManager Store Locator
 // @namespace    http://tampermonkey.net/
-// @version      2.0
-// @description  Model-first store availability finder for the phone catalog.
+// @version      2.1
+// @description  Model-first store availability finder — soft refresh, shared filters, Greek actions.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @grant        GM_getValue
@@ -545,14 +545,27 @@
         }
 
         function wireUnitActions() {
-            bodyEl.querySelectorAll('[data-tm-sl-copy]').forEach((btn) => {
-                btn.addEventListener('click', (e) => {
+            bodyEl.querySelectorAll('[data-tm-sl-copy]').forEach((el) => {
+                el.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const code = btn.getAttribute('data-tm-sl-copy');
-                    if (code && typeof GM_setClipboard === 'function') {
-                        GM_setClipboard(code);
-                        trackCatalogStat('phoneCatalogBarcodeCopy');
-                        UI.showToast(overlay, `Αντιγράφηκε ✓ ${code}`);
+                    const code = el.getAttribute('data-tm-sl-copy');
+                    if (!code || typeof GM_setClipboard !== 'function') return;
+                    GM_setClipboard(code);
+                    trackCatalogStat('phoneCatalogBarcodeCopy');
+                    if (el.matches('button')) {
+                        const prev = el.innerHTML;
+                        const prevLabel = el.getAttribute('aria-label') || '';
+                        el.classList.add('is-copied');
+                        el.innerHTML = 'ΟΚ';
+                        el.setAttribute('aria-label', 'Αντιγράφηκε');
+                        clearTimeout(el._tmCopyTimer);
+                        el._tmCopyTimer = setTimeout(() => {
+                            el.classList.remove('is-copied');
+                            el.innerHTML = prev;
+                            if (prevLabel) el.setAttribute('aria-label', prevLabel);
+                        }, 1200);
+                    } else {
+                        UI.showToast(overlay, `Αντιγράφηκε · ${code}`);
                     }
                 });
             });
@@ -563,6 +576,22 @@
                     const code = btn.getAttribute('data-tm-sl-open');
                     if (code) {
                         window.open(`https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`, '_blank');
+                    }
+                });
+            });
+
+            bodyEl.querySelectorAll('[data-tm-sl-empty-action]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const action = btn.getAttribute('data-tm-sl-empty-action');
+                    if (action === 'clear-filters') {
+                        activeFilters = { grade: '', gb: '', color: '' };
+                        renderStoresStep();
+                    } else if (action === 'clear-search') {
+                        modelQuery = '';
+                        renderModelsStep();
+                    } else if (action === 'back-models') {
+                        activeFilters = { grade: '', gb: '', color: '' };
+                        renderModelsStep();
                     }
                 });
             });
@@ -679,8 +708,19 @@
                 step = 'models';
                 selectedModel = null;
                 activeFilters = { grade: '', gb: '', color: '' };
-                if (catalogView === 'network') {
+                syncCatalogHeaders();
+                toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort);
+                wireModelSearchToolbar();
+
+                const needsFetch = catalogView === 'network' && !otherStoreLoaded;
+                let skeletonTimer = null;
+                if (needsFetch) {
+                    skeletonTimer = setTimeout(() => {
+                        bodyEl.innerHTML = UI.buildSkeletonGrid(8);
+                        setStatus('Φόρτωση δικτύου…');
+                    }, 80);
                     await ensureOtherStores();
+                    clearTimeout(skeletonTimer);
                 }
                 renderModelsStep();
             };
@@ -689,6 +729,56 @@
         }
 
         wireViewTabs();
+
+        let modelSearchTimer = null;
+
+        function getFilteredModels() {
+            let models = buildModelIndex(allPhones, otherStorePhones, helpers, catalogView);
+            models = sortModels(models, modelSort);
+            if (modelQuery) {
+                models = models.filter(([name]) => name.toLowerCase().includes(modelQuery));
+            }
+            return models;
+        }
+
+        function renderModelsBody() {
+            const models = getFilteredModels();
+            bodyEl.innerHTML = UI.buildModelGrid(models, buildUiCtx());
+            if (catalogView === 'mine') {
+                const mineCount = allPhones.filter((p) => (p.unitsRemaining || 0) > 0).length;
+                setStatus(`${models.length} μοντέλα · ${mineCount} συσκευές στο δικό σας`);
+            } else {
+                setStatus(`${models.length} μοντέλα · ${otherStorePhones.length} συσκευές στο δίκτυο`);
+            }
+            wireModelCards();
+            wireUnitActions();
+        }
+
+        function wireModelSearchToolbar() {
+            const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
+            if (searchInput) {
+                searchInput.value = modelQuery;
+                searchInput.addEventListener('input', () => {
+                    modelQuery = searchInput.value.trim().toLowerCase();
+                    clearTimeout(modelSearchTimer);
+                    modelSearchTimer = setTimeout(() => {
+                        renderModelsBody();
+                    }, 120);
+                });
+            }
+
+            toolbarEl.querySelectorAll('[data-tm-sl-sort]').forEach((pill) => {
+                pill.addEventListener('click', () => {
+                    modelSort = pill.getAttribute('data-tm-sl-sort') || 'name';
+                    GM_setValue(SORT_KEY, modelSort);
+                    renderModelsStep();
+                });
+            });
+        }
+
+        function hasActiveFilters() {
+            return !!(activeFilters.grade || activeFilters.gb || activeFilters.color);
+        }
 
         function mergeNetworkStoreHints() {
             if (typeof window.mergeOtherStoresFromAllPhones === 'function') {
@@ -731,39 +821,14 @@
             UI.updateBreadcrumb(overlay, 'models');
             syncCatalogHeaders();
             toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort);
+            wireModelSearchToolbar();
 
             const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
             if (searchInput) {
-                searchInput.value = modelQuery;
-                searchInput.addEventListener('input', () => {
-                    modelQuery = searchInput.value.trim().toLowerCase();
-                    renderModelsStep();
-                });
                 setTimeout(() => searchInput.focus(), 50);
             }
 
-            toolbarEl.querySelectorAll('[data-tm-sl-sort]').forEach((pill) => {
-                pill.addEventListener('click', () => {
-                    modelSort = pill.getAttribute('data-tm-sl-sort') || 'name';
-                    GM_setValue(SORT_KEY, modelSort);
-                    renderModelsStep();
-                });
-            });
-
-            let models = buildModelIndex(allPhones, otherStorePhones, helpers, catalogView);
-            models = sortModels(models, modelSort);
-            if (modelQuery) {
-                models = models.filter(([name]) => name.toLowerCase().includes(modelQuery));
-            }
-
-            bodyEl.innerHTML = UI.buildModelGrid(models, buildUiCtx());
-            if (catalogView === 'mine') {
-                const mineCount = allPhones.filter((p) => (p.unitsRemaining || 0) > 0).length;
-                setStatus(`${models.length} μοντέλα · ${mineCount} συσκευές στο δικό σας`);
-            } else {
-                setStatus(`${models.length} μοντέλα · ${otherStorePhones.length} συσκευές στο δίκτυο`);
-            }
-            wireModelCards();
+            renderModelsBody();
         }
 
         async function renderStoresStep() {
@@ -784,14 +849,16 @@
                 activeFilters = { grade: '', gb: '', color: '' };
                 renderModelsStep();
             });
+            wireFilterChips(toolbarEl);
 
-            if (!isNetwork) {
-                wireFilterChips(toolbarEl);
-            }
+            const filtersActive = hasActiveFilters();
 
             if (catalogView === 'mine') {
                 const variants = buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
-                bodyEl.innerHTML = UI.buildMyStoreBoard(selectedModel, variants, buildUiCtx({ hideStoreInUnits: true }));
+                bodyEl.innerHTML = UI.buildMyStoreBoard(selectedModel, variants, buildUiCtx({
+                    hideStoreInUnits: true,
+                    hasActiveFilters: filtersActive,
+                }));
                 setStatus(`${variants.length} ${variants.length === 1 ? 'συσκευή' : 'συσκευές'} στο δικό σας`);
                 if (selectedModel !== lastTrackedLookupModel) {
                     trackCatalogStat('phoneCatalogLookup');
@@ -801,8 +868,15 @@
                 return;
             }
 
-            bodyEl.innerHTML = UI.buildSkeletonNetworkBoard();
-            setStatus('Φόρτωση καταστημάτων…');
+            const needsResolve = otherStorePhones.some((p) => {
+                if (helpers.extractBaseModel(p.model) !== selectedModel) return false;
+                const stores = helpers.getEffectivePhoneStores(p);
+                return !stores.length && (parseInt(p.otherStoreCount, 10) || 0) > 0;
+            });
+            if (needsResolve) {
+                bodyEl.innerHTML = UI.buildSkeletonNetworkBoard();
+                setStatus('Φόρτωση καταστημάτων…');
+            }
 
             const modelFilter = (p) => helpers.extractBaseModel(p.model) === selectedModel;
             await resolveNetworkStoreDetails(modelFilter);
@@ -812,7 +886,7 @@
                 showPurchaseStatus: true,
                 hideStoreInUnits: true,
                 showDistance: true,
-                filterChipsHtml: chipsHtml,
+                hasActiveFilters: filtersActive,
             }));
 
             const storeCount = storeRows.length;
@@ -826,7 +900,6 @@
                 lastTrackedNetworkModel = selectedModel;
             }
             wireStoreBoard();
-            wireFilterChips(bodyEl.querySelector('#tm-sl-network-filters'));
         }
 
         async function ensureOtherStores() {
@@ -838,9 +911,8 @@
         }
 
         async function refreshData() {
-            bodyEl.innerHTML = step === 'stores'
-                ? (catalogView === 'network' ? UI.buildSkeletonNetworkBoard() : UI.buildSkeletonStores(6))
-                : UI.buildSkeletonGrid(8);
+            UI.setRefreshing(overlay, true);
+            setStatus('Ανανέωση…');
             try {
                 if (typeof window.fetchPhoneList === 'function') {
                     allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList());
@@ -864,7 +936,16 @@
                     renderModelsStep();
                 }
             } catch (err) {
-                bodyEl.innerHTML = UI.buildEmptyState('❌', 'Σφάλμα φόρτωσης', err.message || '');
+                bodyEl.innerHTML = UI.buildEmptyState(
+                    UI.ICON.emptyError,
+                    'Σφάλμα φόρτωσης',
+                    err.message || '',
+                    { actionId: 'back-models', actionLabel: 'Επιστροφή' }
+                );
+                setStatus('Σφάλμα φόρτωσης');
+                wireUnitActions();
+            } finally {
+                UI.setRefreshing(overlay, false);
             }
         }
 
@@ -879,9 +960,28 @@
             if (e.target === overlay) closeModal();
         });
         document.addEventListener('keydown', function onSlKeydown(e) {
+            if (!document.body.contains(overlay)) {
+                document.removeEventListener('keydown', onSlKeydown);
+                return;
+            }
+            const tag = (e.target && e.target.tagName) || '';
+            const typing = tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable;
+
             if (e.key === 'Escape') {
+                e.preventDefault();
+                if (step === 'stores') {
+                    activeFilters = { grade: '', gb: '', color: '' };
+                    renderModelsStep();
+                    return;
+                }
                 document.removeEventListener('keydown', onSlKeydown);
                 closeModal();
+                return;
+            }
+
+            if (!typing && e.key === '/' && step === 'models') {
+                e.preventDefault();
+                toolbarEl.querySelector('#tm-sl-model-search')?.focus();
             }
         });
 
@@ -899,8 +999,14 @@
 
             if (cacheStale) {
                 // Stale-while-revalidate: show snapshot, then pull today's list automatically.
-                setStatus('Παλιά δεδομένα — ανανέωση…');
-                refreshData();
+                ensureOtherStores().then(async () => {
+                    if (catalogView === 'network') {
+                        await resolveNetworkStoreDetails();
+                    }
+                    renderModelsStep();
+                    setStatus('Παλιά δεδομένα — ανανέωση…');
+                    refreshData();
+                });
             } else {
                 ensureOtherStores().then(async () => {
                     if (catalogView === 'network') {
