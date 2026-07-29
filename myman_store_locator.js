@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         MyManager Store Locator
 // @namespace    http://tampermonkey.net/
-// @version      2.1
-// @description  Model-first store availability finder — soft refresh, shared filters, Greek actions.
+// @version      2.2
+// @description  Model-first store availability finder — smart search, recent models, shared filters.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @grant        GM_getValue
@@ -19,12 +19,47 @@
     const DENSITY_KEY = 'tm_sl_density_compact';
     const SORT_KEY = 'tm_sl_model_sort';
     const CATALOG_VIEW_KEY = 'tm_sl_catalog_view';
+    const RECENT_MODELS_KEY = 'tm_sl_recent_models_v1';
     const LOAD_STATS_KEY = 'tm_sl_load_stats_v1';
     const DEFAULT_LOAD_STATS = {
         phoneListMs: 9000,
         otherStoresMs: 7000,
         storeResolvePerItemMs: 180,
     };
+
+    function loadRecentModels() {
+        try {
+            const raw = GM_getValue(RECENT_MODELS_KEY, '[]');
+            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            return Array.isArray(parsed) ? parsed.filter((m) => typeof m === 'string' && m.trim()).slice(0, 8) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function pushRecentModel(modelName) {
+        const name = String(modelName || '').trim();
+        if (!name) return loadRecentModels();
+        const next = [name, ...loadRecentModels().filter((m) => m !== name)].slice(0, 8);
+        GM_setValue(RECENT_MODELS_KEY, JSON.stringify(next));
+        return next;
+    }
+
+    function looksLikeUnitCode(query) {
+        const s = String(query || '').replace(/\s+/g, '');
+        return /^\d{8,}$/.test(s);
+    }
+
+    function normalizeUnitCode(query) {
+        return String(query || '').replace(/\s+/g, '');
+    }
+
+    function phoneMatchesUnitCode(phone, code) {
+        if (!phone || !code) return false;
+        if (String(phone.barcode || '') === code) return true;
+        const imei = String(phone.imei || '').replace(/\D/g, '');
+        return !!imei && (imei === code || imei.includes(code));
+    }
 
     function cleanStoreName(name) {
         return String(name || '').replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
@@ -109,6 +144,8 @@
             barcode: phone.barcode,
             price: phone.retailPrice || '',
             isBuyback: !!phone.isBuyback,
+            imei: phone.imei || '',
+            modelName: helpers.extractBaseModel?.(phone.model) || phone.model || '',
             phone,
         };
     }
@@ -296,7 +333,7 @@
             });
         });
 
-        return variants;
+        return sortStoreVariants(variants, resolveMyStoreLabel());
     }
 
     function buildNetworkStoreBoardData(model, otherStorePhones, filters, helpers) {
@@ -518,16 +555,8 @@
         UI.setDensity(overlay, densityCompact);
         UI.updateViewTabs(overlay, catalogView);
 
-        const COACH_KEY = 'tm_sl_coach_dismissed_v1';
-        const coachEl = overlay.querySelector('#tm-sl-coach');
-        if (coachEl && GM_getValue(COACH_KEY, false)) {
-            coachEl.hidden = true;
-        }
-        overlay.querySelector('#tm-sl-coach-dismiss')?.addEventListener('click', () => {
-            const tip = overlay.querySelector('#tm-sl-coach');
-            if (tip) tip.hidden = true;
-            GM_setValue(COACH_KEY, true);
-        });
+        let recentModels = loadRecentModels();
+        let pendingFlashBarcode = null;
 
         function syncCatalogHeaders() {
             if (step === 'stores' && selectedModel) return;
@@ -535,7 +564,7 @@
             UI.updateMyStoreLabels(overlay);
             if (catalogView === 'mine') {
                 titleEl.textContent = UI.getMyStoreLabel();
-                subtitleEl.textContent = 'Συσκευές που έχετε σε stock';
+                subtitleEl.textContent = 'Τι έχετε σε stock τώρα';
             } else {
                 titleEl.textContent = 'Άλλα καταστήματα';
                 subtitleEl.textContent = 'Πού υπάρχει κάθε μοντέλο στο δίκτυο';
@@ -606,6 +635,7 @@
             bodyEl.querySelectorAll('.tm-sl-model-card[data-tm-sl-model]').forEach((card) => {
                 const activate = () => {
                     selectedModel = card.getAttribute('data-tm-sl-model');
+                    recentModels = pushRecentModel(selectedModel);
                     renderStoresStep();
                 };
                 card.addEventListener('click', activate);
@@ -619,6 +649,7 @@
             if (!keyboardBound) {
                 bindGridKeyboard(bodyEl, '.tm-sl-model-card[data-tm-sl-model]', (el) => {
                     selectedModel = el.getAttribute('data-tm-sl-model');
+                    recentModels = pushRecentModel(selectedModel);
                     renderStoresStep();
                 });
                 keyboardBound = true;
@@ -629,6 +660,28 @@
             if (typeof window.trackDailyStat === 'function' && window.config && window.STORAGE_KEYS) {
                 window.trackDailyStat(window.config, window.STORAGE_KEYS, statName, value);
             }
+        }
+
+        function formatCopyToast(el, code) {
+            const row = el.closest('tr.tm-sl-unit-row');
+            const bits = [];
+            const model = row?.getAttribute('data-tm-sl-model') || selectedModel || '';
+            const grade = row?.getAttribute('data-tm-sl-grade') || '';
+            const gb = row?.getAttribute('data-tm-sl-gb') || '';
+            const color = row?.getAttribute('data-tm-sl-color') || '';
+            const shortModel = String(model).replace(/^IPHONE\s+/i, '').trim();
+            if (shortModel) bits.push(shortModel);
+            if (grade) bits.push(grade);
+            if (gb) bits.push(gb);
+            if (color) bits.push(color);
+            const shortCode = code.length > 8 ? `${code.slice(0, 4)}…${code.slice(-3)}` : code;
+            bits.push(shortCode);
+            return `Αντιγράφηκε · ${bits.join(' · ')}`;
+        }
+
+        function openProductByBarcode(code) {
+            if (!code) return;
+            window.open(`https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`, '_blank');
         }
 
         function wireUnitActions() {
@@ -652,7 +705,7 @@
                             if (prevLabel) el.setAttribute('aria-label', prevLabel);
                         }, 1200);
                     } else {
-                        UI.showToast(overlay, `Αντιγράφηκε · ${code}`);
+                        UI.showToast(overlay, formatCopyToast(el, code), { barcode: code });
                     }
                 });
             });
@@ -660,12 +713,28 @@
             bodyEl.querySelectorAll('[data-tm-sl-open]').forEach((btn) => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const code = btn.getAttribute('data-tm-sl-open');
-                    if (code) {
-                        window.open(`https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`, '_blank');
-                    }
+                    openProductByBarcode(btn.getAttribute('data-tm-sl-open'));
                 });
             });
+
+            bodyEl.querySelectorAll('tr.tm-sl-unit-row[data-tm-sl-open-row]').forEach((row) => {
+                row.addEventListener('dblclick', (e) => {
+                    if (e.target.closest('[data-tm-sl-copy]')) return;
+                    openProductByBarcode(row.getAttribute('data-tm-sl-open-row'));
+                });
+            });
+
+            if (pendingFlashBarcode) {
+                const flashCode = pendingFlashBarcode;
+                const flashRow = [...bodyEl.querySelectorAll('tr.tm-sl-unit-row[data-barcode]')]
+                    .find((row) => row.getAttribute('data-barcode') === flashCode);
+                if (flashRow) {
+                    flashRow.classList.add('tm-sl-unit-row--flash');
+                    flashRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    setTimeout(() => flashRow.classList.remove('tm-sl-unit-row--flash'), 2200);
+                }
+                pendingFlashBarcode = null;
+            }
 
             bodyEl.querySelectorAll('[data-tm-sl-empty-action]').forEach((btn) => {
                 btn.addEventListener('click', () => {
@@ -796,9 +865,9 @@
                 UI.updateViewTabs(overlay, catalogView);
                 step = 'models';
                 selectedModel = null;
-                activeFilters = { grade: '', gb: '', color: '' };
+                // Keep activeFilters across mine ↔ network so a GB/grade filter survives the switch.
                 syncCatalogHeaders();
-                toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort);
+                toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, { recentModels });
                 wireModelSearchToolbar();
 
                 const needsFetch = catalogView === 'network' && !otherStoreLoaded;
@@ -821,18 +890,99 @@
 
         let modelSearchTimer = null;
 
+        function getNearestStoreHint(model, data) {
+            const stores = data?.storeList || [];
+            if (!stores.length) return '';
+            const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
+            if (!myStore || typeof window.compareStoresByProximity !== 'function') {
+                const first = stores[0];
+                const dist = typeof window.getStoreDistanceLabel === 'function'
+                    ? window.getStoreDistanceLabel(myStore, first)
+                    : '';
+                return dist ? `${first} ${dist}` : first;
+            }
+            const sorted = [...stores].sort((a, b) => window.compareStoresByProximity(a, b, myStore));
+            const nearest = sorted[0];
+            const dist = typeof window.getStoreDistanceLabel === 'function'
+                ? window.getStoreDistanceLabel(myStore, nearest)
+                : '';
+            return dist ? `${nearest} ${dist}` : nearest;
+        }
+
+        function findPhoneByUnitCode(code) {
+            const pools = catalogView === 'mine'
+                ? [allPhones]
+                : [otherStorePhones, allPhones];
+            for (const pool of pools) {
+                const hit = (pool || []).find((p) => phoneMatchesUnitCode(p, code));
+                if (hit) return hit;
+            }
+            return null;
+        }
+
+        async function jumpToUnitCode(rawQuery) {
+            const code = normalizeUnitCode(rawQuery);
+            if (!looksLikeUnitCode(code)) return false;
+
+            if (catalogView === 'network' && !otherStoreLoaded) {
+                await ensureOtherStores();
+            }
+
+            let phone = findPhoneByUnitCode(code);
+            if (!phone && catalogView === 'mine') {
+                // Fallback: check network if not in mine stock.
+                if (!otherStoreLoaded) await ensureOtherStores();
+                phone = (otherStorePhones || []).find((p) => phoneMatchesUnitCode(p, code));
+                if (phone) {
+                    catalogView = 'network';
+                    GM_setValue(CATALOG_VIEW_KEY, catalogView);
+                    UI.updateViewTabs(overlay, catalogView);
+                }
+            }
+            if (!phone) {
+                UI.showToast(overlay, `Δεν βρέθηκε · ${code}`);
+                return true;
+            }
+
+            const model = helpers.extractBaseModel(phone.model);
+            if (!model) return true;
+            selectedModel = model;
+            recentModels = pushRecentModel(model);
+            pendingFlashBarcode = phone.barcode || code;
+            modelQuery = '';
+            await renderStoresStep();
+            if (phone.barcode && typeof GM_setClipboard === 'function') {
+                // Soft hint only — user can click to copy; don't auto-copy on jump.
+            }
+            UI.showToast(overlay, `Βρέθηκε · ${model.replace(/^IPHONE\s+/i, '')} · ${phone.barcode || code}`, {
+                barcode: phone.barcode || '',
+            });
+            return true;
+        }
+
         function getFilteredModels() {
             let models = buildModelIndex(allPhones, otherStorePhones, helpers, catalogView);
             models = sortModels(models, modelSort);
             if (modelQuery) {
-                models = models.filter(([name]) => name.toLowerCase().includes(modelQuery));
+                const q = modelQuery;
+                const code = normalizeUnitCode(q);
+                if (looksLikeUnitCode(code)) {
+                    models = models.filter(([name, data]) => {
+                        // Keep model list light while typing a code; jump happens on Enter.
+                        return name.toLowerCase().includes(q);
+                    });
+                } else {
+                    models = models.filter(([name]) => name.toLowerCase().includes(q));
+                }
             }
             return models;
         }
 
         function renderModelsBody() {
             const models = getFilteredModels();
-            bodyEl.innerHTML = UI.buildModelGrid(models, buildUiCtx());
+            bodyEl.innerHTML = UI.buildModelGrid(models, buildUiCtx({
+                getNearestStoreHint,
+            }));
             if (catalogView === 'mine') {
                 const mineCount = allPhones.filter((p) => (p.unitsRemaining || 0) > 0).length;
                 setStatus(`${models.length} μοντέλα · ${mineCount} συσκευές στο ${resolveMyStoreLabel()}`);
@@ -854,6 +1004,24 @@
                         renderModelsBody();
                     }, 120);
                 });
+                searchInput.addEventListener('keydown', async (e) => {
+                    if (e.key !== 'Enter') return;
+                    e.preventDefault();
+                    const raw = searchInput.value.trim();
+                    if (await jumpToUnitCode(raw)) return;
+                    modelQuery = raw.toLowerCase();
+                    renderModelsBody();
+                });
+            }
+
+            const sortSelect = toolbarEl.querySelector('#tm-sl-model-sort, [data-tm-sl-sort-select]');
+            if (sortSelect) {
+                sortSelect.value = modelSort;
+                sortSelect.addEventListener('change', () => {
+                    modelSort = sortSelect.value || 'name';
+                    GM_setValue(SORT_KEY, modelSort);
+                    renderModelsStep();
+                });
             }
 
             toolbarEl.querySelectorAll('[data-tm-sl-sort]').forEach((pill) => {
@@ -861,6 +1029,16 @@
                     modelSort = pill.getAttribute('data-tm-sl-sort') || 'name';
                     GM_setValue(SORT_KEY, modelSort);
                     renderModelsStep();
+                });
+            });
+
+            toolbarEl.querySelectorAll('[data-tm-sl-recent]').forEach((chip) => {
+                chip.addEventListener('click', () => {
+                    const model = chip.getAttribute('data-tm-sl-recent');
+                    if (!model) return;
+                    selectedModel = model;
+                    recentModels = pushRecentModel(model);
+                    renderStoresStep();
                 });
             });
         }
@@ -913,7 +1091,7 @@
             lastTrackedNetworkModel = null;
             UI.updateBreadcrumb(overlay, 'models');
             syncCatalogHeaders();
-            toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort);
+            toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, { recentModels });
             wireModelSearchToolbar();
 
             const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
@@ -931,21 +1109,29 @@
             step = 'stores';
             UI.updateBreadcrumb(overlay, 'stores', selectedModel);
             UI.setStoresModelHeader(overlay, selectedModel, catalogView === 'mine'
-                ? `Συσκευές στο ${resolveMyStoreLabel()}`
+                ? `${resolveMyStoreLabel()} · κλικ στο barcode για αντιγραφή`
                 : 'Διαθεσιμότητα σε άλλα καταστήματα');
 
             const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers, catalogView);
             const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers, catalogView);
             const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({ counts: filterCounts }));
             const isNetwork = catalogView === 'network';
-            const viewLabel = isNetwork ? 'Άλλα καταστήματα' : resolveMyStoreLabel();
             const filtersSummary = typeof UI.formatActiveFiltersSummary === 'function'
                 ? UI.formatActiveFiltersSummary(activeFilters)
                 : '';
+            const filtersActive = hasActiveFilters();
+
+            let qtyLabel = '';
+            let mineVariants = null;
+            if (!isNetwork) {
+                mineVariants = buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
+                qtyLabel = `${mineVariants.length} τεμ.`;
+            }
+
             toolbarEl.innerHTML = UI.buildStoreToolbar(selectedModel, chipsHtml, {
                 network: isNetwork,
-                viewLabel,
                 filtersSummary,
+                qtyLabel,
                 showPurchaseStatus: isNetwork,
             });
 
@@ -955,10 +1141,8 @@
             });
             wireFilterChips(toolbarEl);
 
-            const filtersActive = hasActiveFilters();
-
             if (catalogView === 'mine') {
-                const variants = buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
+                const variants = mineVariants || buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
                 bodyEl.innerHTML = UI.buildMyStoreBoard(selectedModel, variants, buildUiCtx({
                     hideStoreInUnits: true,
                     hasActiveFilters: filtersActive,

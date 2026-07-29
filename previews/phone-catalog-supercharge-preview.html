@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Κατάλογος συσκευών — Before / After</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --page-bg: #0f1419;
+      --page-ink: #e8eef4;
+      --page-muted: #8b9aab;
+      --page-line: rgba(255,255,255,0.08);
+      --page-card: #171e26;
+      --page-accent: #3db8a0;
+      --page-warn: #e0a45a;
+
+      --bg: #e9eef4;
+      --shell: #f6f8fb;
+      --surface: #ffffff;
+      --ink: #1a2430;
+      --muted: #5d6b7a;
+      --line: #d4dde8;
+      --accent: #0c6e8f;
+      --accent-soft: #e6f3f8;
+      --ok: #178a4c;
+      --ok-soft: #e6f6ed;
+      --warn: #b45309;
+      --warn-soft: #fff4e5;
+      --danger: #b42318;
+      --danger-soft: #fdecea;
+      --bb: #6b4ea8;
+      --bb-soft: #f1ecf9;
+      --shadow: 0 20px 50px rgba(16, 28, 42, 0.18);
+      --radius: 14px;
+      --font: "DM Sans", "Segoe UI", sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--page-ink);
+      background:
+        radial-gradient(900px 500px at 12% -8%, rgba(61,184,160,0.16), transparent 55%),
+        radial-gradient(700px 420px at 90% 8%, rgba(12,110,143,0.18), transparent 50%),
+        var(--page-bg);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 36px 22px 72px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--page-accent);
+    }
+    .eyebrow::before {
+      content: "";
+      width: 18px;
+      height: 2px;
+      background: var(--page-accent);
+    }
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3.4vw, 2.7rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.08;
+      max-width: 16ch;
+    }
+    .hero-lead {
+      margin: 0;
+      max-width: 58ch;
+      color: var(--page-muted);
+      font-size: 1.05rem;
+      line-height: 1.55;
+    }
+    .principles {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 6px;
+    }
+    @media (max-width: 820px) {
+      .principles { grid-template-columns: 1fr; }
+    }
+    .principle {
+      background: var(--page-card);
+      border: 1px solid var(--page-line);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .principle strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .principle span {
+      font-size: 13px;
+      color: var(--page-muted);
+      line-height: 1.4;
+    }
+
+    .sticky-bar {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 0;
+      margin: 0 0 18px;
+      background: color-mix(in srgb, var(--page-bg) 88%, transparent);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--page-line);
+    }
+    .seg {
+      display: inline-flex;
+      background: var(--page-card);
+      border: 1px solid var(--page-line);
+      border-radius: 999px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .seg button {
+      border: 0;
+      background: transparent;
+      color: var(--page-muted);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 650;
+      padding: 8px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .seg button.is-on {
+      background: var(--page-accent);
+      color: #06261f;
+    }
+    .note {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--page-muted);
+    }
+
+    .stage {
+      display: grid;
+      gap: 16px;
+    }
+    .stage.side {
+      grid-template-columns: 1fr 1fr;
+    }
+    @media (max-width: 1100px) {
+      .stage.side { grid-template-columns: 1fr; }
+    }
+    .stage.one .panel-wrap[data-side="after"],
+    .stage.before-only .panel-wrap[data-side="after"],
+    .stage.after-only .panel-wrap[data-side="before"] { display: none; }
+    .stage.before-only,
+    .stage.after-only { grid-template-columns: 1fr; }
+
+    .panel-wrap {
+      background: var(--page-card);
+      border: 1px solid var(--page-line);
+      border-radius: 16px;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .panel-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--page-line);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .panel-label .tag {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+    .tag-before { background: rgba(255,255,255,0.06); color: var(--page-muted); }
+    .tag-after { background: rgba(61,184,160,0.16); color: var(--page-accent); }
+
+    .mock-frame {
+      background:
+        linear-gradient(180deg, #cfd8e4 0%, #b8c4d4 100%);
+      padding: 18px;
+      min-height: 620px;
+    }
+
+    /* —— shared phone catalog mock —— */
+    .shell {
+      background: var(--shell);
+      color: var(--ink);
+      border-radius: var(--radius);
+      border: 1px solid color-mix(in srgb, var(--line) 70%, var(--accent));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 580px;
+      max-height: 680px;
+    }
+    .header {
+      padding: 12px 14px 10px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+    }
+    .crumb {
+      font-size: 11px;
+      font-weight: 650;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .crumb b { color: var(--accent); }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .title {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .title.model {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+      font-size: 1.05rem;
+    }
+    .sub {
+      margin: 4px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .btn {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 7px 10px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 650;
+      cursor: default;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn.icon { padding: 7px 9px; }
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .btn.ghost {
+      background: transparent;
+    }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-top: 12px;
+      padding: 4px;
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--line) 45%, transparent);
+      border: 1px solid var(--line);
+    }
+    .tab {
+      flex: 1;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 9px;
+      padding: 8px 10px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: default;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tab.on {
+      background: var(--surface);
+      color: var(--ink);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+    .coach {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0;
+      padding: 8px 14px;
+      font-size: 12px;
+      background: var(--accent-soft);
+      color: color-mix(in srgb, var(--accent) 70%, var(--ink));
+      border-bottom: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+    .toolbar {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      gap: 8px;
+      background: color-mix(in srgb, var(--surface) 70%, var(--shell));
+    }
+    .search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .search strong { color: var(--ink); font-weight: 650; }
+    .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .pill, .chip {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .pill.on, .chip.on {
+      background: var(--accent-soft);
+      border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+      color: var(--accent);
+    }
+    .chip .swatch {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: -1px;
+      border: 1px solid rgba(0,0,0,0.12);
+    }
+    .context {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--muted);
+      min-width: 0;
+    }
+    .context .model-bit { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .legend i {
+      font-style: normal;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--ok-soft);
+      color: var(--ok);
+    }
+    .legend i.bb { background: var(--bb-soft); color: var(--bb); }
+    .legend i.no { background: var(--danger-soft); color: var(--danger); }
+
+    .body {
+      flex: 1;
+      overflow: auto;
+      padding: 12px 14px;
+      background: var(--shell);
+    }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 14px;
+      border-top: 1px solid var(--line);
+      background: var(--surface);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .fresh {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .fresh::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--ok);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      border-left: 3px solid #94a3b8;
+      position: relative;
+    }
+    .card.heat-high { border-left-color: var(--ok); }
+    .card.heat-mid { border-left-color: #3b82f6; }
+    .card.heat-low { border-left-color: var(--warn); }
+    .card-name {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      margin-bottom: 6px;
+      padding-right: 22px;
+    }
+    .card-count {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .card-count span {
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--muted);
+      margin-left: 4px;
+    }
+    .card-meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin: 4px 0 8px;
+    }
+    .grades { display: flex; flex-wrap: wrap; gap: 4px; }
+    .grade {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: #eef2f6;
+      color: #334155;
+    }
+    .grade.ap { background: #dcfce7; color: #166534; }
+    .grade.a { background: #dbeafe; color: #1e40af; }
+    .grade.b { background: #ffedd5; color: #9a3412; }
+
+    .mine-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .mine-head h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .mine-head span { font-size: 12px; color: var(--muted); font-weight: 650; }
+
+    table.units {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+      font-size: 12px;
+    }
+    table.units th {
+      text-align: left;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      padding: 8px 10px;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    table.units td {
+      padding: 9px 10px;
+      border-bottom: 1px solid #eef2f6;
+      vertical-align: middle;
+    }
+    table.units tr:last-child td { border-bottom: 0; }
+    .mono { font-family: var(--mono); font-size: 11px; font-weight: 600; }
+    .status-ok { color: var(--ok); font-weight: 700; }
+    .status-bb { color: var(--bb); font-weight: 700; }
+    .status-no { color: var(--danger); font-weight: 700; }
+    .row-actions { display: flex; gap: 4px; }
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      display: inline-grid;
+      place-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .icon-btn.main {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .network {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      gap: 10px;
+      min-height: 320px;
+    }
+    @media (max-width: 520px) {
+      .network { grid-template-columns: 1fr; }
+      .grid { grid-template-columns: 1fr; }
+    }
+    .store-nav {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .store-nav-label {
+      padding: 8px 10px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border-bottom: 1px solid var(--line);
+    }
+    .store-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: 0;
+      border-bottom: 1px solid #eef2f6;
+      background: transparent;
+      padding: 10px;
+      font: inherit;
+      cursor: default;
+    }
+    .store-item.on {
+      background: var(--accent-soft);
+    }
+    .store-item .n {
+      display: block;
+      font-size: 12px;
+      font-weight: 750;
+      margin-bottom: 3px;
+    }
+    .store-item .m {
+      font-size: 10px;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .dist {
+      background: #eef2f6;
+      padding: 1px 5px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .detail-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .detail-head h3 { margin: 0; font-size: 14px; font-weight: 800; }
+    .detail-head .meta { font-size: 11px; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+
+    /* —— AFTER-only enhancements (still calm) —— */
+    .after .search {
+      border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+    .hint-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .soft-badge {
+      font-size: 10px;
+      font-weight: 750;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: var(--warn-soft);
+      color: var(--warn);
+    }
+    .soft-badge.ok { background: var(--ok-soft); color: var(--ok); }
+    .soft-badge.quiet {
+      background: #eef2f6;
+      color: var(--muted);
+    }
+    .fav {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      border: 0;
+      background: transparent;
+      color: #ca8a04;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .card.fav-card {
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, #eab308 28%, transparent);
+    }
+    .recent {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .recent label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .recent button {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 4px 8px;
+      font: inherit;
+      font-size: 11px;
+      font-weight: 650;
+      color: var(--ink);
+    }
+    .insight {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .insight span {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: var(--ink);
+    }
+    .insight span.best {
+      background: var(--ok-soft);
+      border-color: color-mix(in srgb, var(--ok) 30%, transparent);
+      color: var(--ok);
+    }
+    .row-best td {
+      background: color-mix(in srgb, var(--ok) 6%, transparent);
+    }
+    .imei-peek {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .toast-demo {
+      position: absolute;
+      right: 18px;
+      bottom: 58px;
+      background: #1a2430;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 650;
+      padding: 8px 12px;
+      border-radius: 9px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      z-index: 2;
+    }
+    .shell { position: relative; }
+    .store-item.rec .n::after {
+      content: " · προτεινόμενο";
+      font-weight: 700;
+      color: var(--ok);
+      font-size: 10px;
+    }
+    .one-liner {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .one-liner .btn { flex-shrink: 0; }
+    .callout-dot {
+      display: inline-grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--page-accent);
+      color: #06261f;
+      font-size: 10px;
+      font-weight: 800;
+      margin-right: 6px;
+    }
+
+    /* proposal notes */
+    .changes {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .changes { grid-template-columns: 1fr; }
+    }
+    .changes-card {
+      background: var(--page-card);
+      border: 1px solid var(--page-line);
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .changes-card h2 {
+      margin: 0 0 12px;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+    .change-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 12px;
+    }
+    .change-list li {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+    .change-list strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+    .change-list p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--page-muted);
+      line-height: 1.45;
+    }
+    .avoid {
+      border-color: color-mix(in srgb, var(--page-warn) 35%, var(--page-line));
+    }
+    .avoid h2 { color: var(--page-warn); }
+    .foot-note {
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--page-muted);
+      line-height: 1.5;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <div class="eyebrow">Κατάλογος συσκευών · proposal only</div>
+      <h1>Before & After</h1>
+      <p class="hero-lead">
+        Supercharge the panels without making them denser. Same job — find a phone, trust the stock, copy a barcode —
+        but with smarter search, quieter guidance, and fewer decisions on screen.
+      </p>
+      <div class="principles">
+        <div class="principle">
+          <strong>One glance</strong>
+          <span>First screen answers “do we have it?” without a settings strip.</span>
+        </div>
+        <div class="principle">
+          <strong>Progressive power</strong>
+          <span>IMEI, tags, export stay one click away — not always visible.</span>
+        </div>
+        <div class="principle">
+          <strong>Intelligent, not busy</strong>
+          <span>Highlight the best row / nearest store. Don’t add a dashboard.</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="sticky-bar">
+      <div class="seg" id="viewSeg" role="tablist" aria-label="Οθόνη">
+        <button type="button" class="is-on" data-view="models-mine">Μοντέλα · δικό μου</button>
+        <button type="button" data-view="models-net">Μοντέλα · δίκτυο</button>
+        <button type="button" data-view="detail-mine">Λεπτομέρεια · δικό μου</button>
+        <button type="button" data-view="detail-net">Λεπτομέρεια · δίκτυο</button>
+      </div>
+      <div class="seg" id="modeSeg" role="tablist" aria-label="Σύγκριση">
+        <button type="button" class="is-on" data-mode="side">Δίπλα-δίπλα</button>
+        <button type="button" data-mode="before-only">Μόνο πριν</button>
+        <button type="button" data-mode="after-only">Μόνο μετά</button>
+      </div>
+      <div class="note">Mock only · no suite code changed</div>
+    </div>
+
+    <div class="stage side" id="stage">
+      <!-- BEFORE -->
+      <section class="panel-wrap" data-side="before">
+        <div class="panel-label">
+          <span>Before · current live UI</span>
+          <span class="tag tag-before">Σήμερα</span>
+        </div>
+        <div class="mock-frame">
+
+          <!-- before models mine -->
+          <div class="shell" data-screen="models-mine">
+            <div class="header">
+              <div class="crumb">Μοντέλα</div>
+              <div class="header-row">
+                <div>
+                  <h2 class="title">ΚΟΛΩΝΑΚΙ</h2>
+                  <p class="sub">Συσκευές που έχετε σε stock</p>
+                </div>
+                <div class="actions">
+                  <span class="btn">↻ Ανανέωση</span>
+                  <span class="btn icon">⚙</span>
+                  <span class="btn icon">×</span>
+                </div>
+              </div>
+              <div class="tabs">
+                <span class="tab on">📌 ΚΟΛΩΝΑΚΙ</span>
+                <span class="tab">Άλλα καταστήματα</span>
+              </div>
+            </div>
+            <div class="coach">
+              <span>1. Διάλεξε μοντέλο · 2. Φίλτραρε βαθμό/GB/χρώμα · 3. Αντίγραψε barcode ή δες άλλο κατάστημα</span>
+              <span>×</span>
+            </div>
+            <div class="toolbar">
+              <div class="search">🔍 Αναζήτηση μοντέλου…</div>
+              <div class="pills">
+                <span class="pill on">Αλφαβητικά</span>
+                <span class="pill">Περισσότερα κατ.</span>
+                <span class="pill">Περισσότερο stock</span>
+              </div>
+            </div>
+            <div class="body">
+              <div class="grid">
+                <div class="card heat-high">
+                  <div class="card-name">IPHONE 15 PRO</div>
+                  <div class="card-count">4<span>τεμ.</span></div>
+                  <div class="card-meta">στο ΚΟΛΩΝΑΚΙ</div>
+                  <div class="grades">
+                    <span class="grade ap">A+:2</span>
+                    <span class="grade a">A:1</span>
+                    <span class="grade b">B:1</span>
+                  </div>
+                </div>
+                <div class="card heat-mid">
+                  <div class="card-name">IPHONE 14</div>
+                  <div class="card-count">2<span>τεμ.</span></div>
+                  <div class="card-meta">στο ΚΟΛΩΝΑΚΙ</div>
+                  <div class="grades"><span class="grade a">A:2</span></div>
+                </div>
+                <div class="card heat-low">
+                  <div class="card-name">IPHONE 13</div>
+                  <div class="card-count">1<span>τεμ.</span></div>
+                  <div class="card-meta">στο ΚΟΛΩΝΑΚΙ</div>
+                  <div class="grades"><span class="grade b">B:1</span></div>
+                </div>
+                <div class="card">
+                  <div class="card-name">IPHONE 12</div>
+                  <div class="card-count">3<span>τεμ.</span></div>
+                  <div class="card-meta">στο ΚΟΛΩΝΑΚΙ</div>
+                  <div class="grades"><span class="grade a">A:2</span><span class="grade b">B:1</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="footer">
+              <span>12 μοντέλα · 28 συσκευές στο ΚΟΛΩΝΑΚΙ</span>
+              <span class="fresh">Άνετο · Ζωντανά · 30/7/2026</span>
+            </div>
+          </div>
+
+          <!-- before models network -->
+          <div class="shell hidden" data-screen="models-net">
+            <div class="header">
+              <div class="crumb">Μοντέλα</div>
+              <div class="header-row">
+                <div>
+                  <h2 class="title">Άλλα καταστήματα</h2>
+                  <p class="sub">Πού υπάρχει κάθε μοντέλο στο δίκτυο</p>
+                </div>
+                <div class="actions">
+                  <span class="btn">↻ Ανανέωση</span>
+                  <span class="btn icon">⚙</span>
+                  <span class="btn icon">×</span>
+                </div>
+              </div>
+              <div class="tabs">
+                <span class="tab">📌 ΚΟΛΩΝΑΚΙ</span>
+                <span class="tab on">Άλλα καταστήματα</span>
+              </div>
+            </div>
+            <div class="toolbar">
+              <div class="search">🔍 Αναζήτηση μοντέλου…</div>
+              <div class="pills">
+                <span class="pill">Αλφαβητικά</span>
+                <span class="pill on">Περισσότερα κατ.</span>
+                <span class="pill">Περισσότερο stock</span>
+              </div>
+            </div>
+            <div class="body">
+              <div class="grid">
+                <div class="card heat-high">
+                  <div class="card-name">IPHONE 15 PRO</div>
+                  <div class="card-count">7<span>κατ.</span></div>
+                  <div class="card-meta">7 καταστήματα · 18 τεμ.</div>
+                  <div class="grades"><span class="grade ap">A+:6</span><span class="grade a">A:8</span><span class="grade b">B:4</span></div>
+                </div>
+                <div class="card heat-mid">
+                  <div class="card-name">IPHONE 14 PRO</div>
+                  <div class="card-count">4<span>κατ.</span></div>
+                  <div class="card-meta">4 καταστήματα · 9 τεμ.</div>
+                  <div class="grades"><span class="grade a">A:5</span><span class="grade b">B:4</span></div>
+                </div>
+                <div class="card heat-low">
+                  <div class="card-name">IPHONE SE</div>
+                  <div class="card-count">1<span>κατ.</span></div>
+                  <div class="card-meta">1 κατάστημα · 2 τεμ.</div>
+                  <div class="grades"><span class="grade b">B:2</span></div>
+                </div>
+                <div class="card">
+                  <div class="card-name">IPHONE 13</div>
+                  <div class="card-count">3<span>κατ.</span></div>
+                  <div class="card-meta">3 καταστήματα · 5 τεμ.</div>
+                  <div class="grades"><span class="grade a">A:3</span><span class="grade b">B:2</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="footer">
+              <span>34 μοντέλα · 120 συσκευές στο δίκτυο</span>
+              <span class="fresh">Άνετο · Cache · 30/7/2026</span>
+            </div>
+          </div>
+
+          <!-- before detail mine -->
+          <div class="shell hidden" data-screen="detail-mine">
+            <div class="header">
+              <div class="crumb">Μοντέλα › <b>IPHONE 15 PRO</b></div>
+              <div class="header-row">
+                <div>
+                  <h2 class="title model">📱 IPHONE 15 PRO</h2>
+                  <p class="sub">Συσκευές στο ΚΟΛΩΝΑΚΙ</p>
+                </div>
+                <div class="actions">
+                  <span class="btn">↻ Ανανέωση</span>
+                  <span class="btn icon">⚙</span>
+                  <span class="btn icon">×</span>
+                </div>
+              </div>
+              <div class="tabs">
+                <span class="tab on">📌 ΚΟΛΩΝΑΚΙ</span>
+                <span class="tab">Άλλα καταστήματα</span>
+              </div>
+            </div>
+            <div class="toolbar">
+              <div class="one-liner">
+                <span class="btn ghost">← Μοντέλα</span>
+                <div class="context"><span>ΚΟΛΩΝΑΚΙ</span> › <span class="model-bit">IPHONE 15 PRO</span> · Χωρίς φίλτρα</div>
+              </div>
+              <div class="pills">
+                <span class="chip">A+</span>
+                <span class="chip">A</span>
+                <span class="chip">B</span>
+                <span class="chip">128GB</span>
+                <span class="chip">256GB</span>
+                <span class="chip"><span class="swatch" style="background:#1c1c1e"></span>BLACK</span>
+                <span class="chip"><span class="swatch" style="background:#5e5ce6"></span>BLUE</span>
+              </div>
+              <div class="legend">Κατάσταση <i>Διαθέσιμο</i> <i class="bb">BB</i></div>
+            </div>
+            <div class="body">
+              <div class="mine-head">
+                <h3>📌 ΚΟΛΩΝΑΚΙ</h3>
+                <span>4 συσκευές</span>
+              </div>
+              <table class="units">
+                <thead>
+                  <tr>
+                    <th>Βαθμ.</th><th>GB</th><th>Χρώμα</th><th>Κατάσταση</th><th>Barcode</th><th>Τιμή</th><th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="grade ap">A+</span></td>
+                    <td>256</td>
+                    <td><span class="swatch" style="background:#5e5ce6"></span> BLUE</td>
+                    <td class="status-ok">Διαθέσιμο</td>
+                    <td class="mono">5201234567890</td>
+                    <td>890€</td>
+                    <td><div class="row-actions"><span class="icon-btn main">⧉</span><span class="icon-btn">↗</span></div></td>
+                  </tr>
+                  <tr>
+                    <td><span class="grade ap">A+</span></td>
+                    <td>128</td>
+                    <td><span class="swatch" style="background:#1c1c1e"></span> BLACK</td>
+                    <td class="status-ok">Διαθέσιμο</td>
+                    <td class="mono">5201234567891</td>
+                    <td>820€</td>
+                    <td><div class="row-actions"><span class="icon-btn main">⧉</span><span class="icon-btn">↗</span></div></td>
+                  </tr>
+                  <tr>
+                    <td><span class="grade a">A</span></td>
+                    <td>256</td>
+                    <td><span class="swatch" style="background:#5e5ce6"></span> BLUE</td>
+                    <td class="status-bb">BB</td>
+                    <td class="mono">5201234567892</td>
+                    <td>760€</td>
+                    <td><div class="row-actions"><span class="icon-btn main">⧉</span><span class="icon-btn">↗</span></div></td>
+                  </tr>
+                  <tr>
+                    <td><span class="grade b">B</span></td>
+                    <td>128</td>
+                    <td><span class="swatch" style="background:#f5f5f7"></span> WHITE</td>
+                    <td class="status-ok">Διαθέσιμο</td>
+                    <td class="mono">5201234567893</td>
+                    <td>690€</td>
+                    <td><div class="row-actions"><span class="icon-btn main">⧉</span><span class="icon-btn">↗</span></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="footer">
+              <span>4 συσκευές στο ΚΟΛΩΝΑΚΙ</span>
+              <span class="fresh">Άνετο · Ζωντανά</span>
+            </div>
+          </div>
+
+          <!-- before detail network -->
+          <div class="shell hidden" data-screen="detail-net">
+            <div class="header">
+              <div class="crumb">Μοντέλα › <b>IPHONE 15 PRO</b></div>
+              <div class="header-row">
+                <div>
+                  <h2 class="title model">📱 IPHONE 15 PRO</h2>
+                  <p class="sub">Διαθεσιμότητα σε άλλα καταστήματα</p>
+                </div>
+                <div class="actions">
+                  <span class="btn">↻ Ανανέωση</span>
+                  <span class="btn icon">⚙</span>
+                  <span class="btn icon">×</span>
+                </div>
+              </div>
+              <div class="tabs">
+                <span class="tab">📌 ΚΟΛΩΝΑΚΙ</span>
+                <span class="tab on">Άλλα καταστήματα</span>
+              </div>
+            </div>
+            <div class="toolbar">
+              <div class="one-liner">
+                <span class="btn ghost">← Μοντέλα</span>
+                <div class="context"><span>Άλλα καταστήματα</span> › <span class="model-bit">IPHONE 15 PRO</span> · 256GB</div>
+              </div>
+              <div class="pills">
+                <span class="chip">A+</span>
+                <span class="chip on">256GB</span>
+                <span class="chip"><span class="swatch" style="background:#5e5ce6"></span>BLUE</span>
+                <span class="chip">Καθαρισμός φίλτρων</span>
+              </div>
+              <div class="legend">Κατάσταση <i>Διαθέσιμο</i> <i class="bb">BB</i> <i class="no">Δεν αγοράζεται</i></div>
+            </div>
+            <div class="body">
+              <div class="network">
+                <aside class="store-nav">
+                  <div class="store-nav-label">Καταστήματα · 3</div>
+                  <div class="store-item on"><span class="n">ΓΛΥΦΑΔΑ</span><span class="m"><span class="dist">2.1 km</span><span>2 τεμ.</span></span></div>
+                  <div class="store-item"><span class="n">ΜΑΡΟΥΣΙ</span><span class="m"><span class="dist">7.4 km</span><span>3 τεμ.</span></span></div>
+                  <div class="store-item"><span class="n">IKE ΘΕΣΣ.</span><span class="m"><span class="dist">305 km</span>✕ Όχι BB · 1 τεμ.</span></div>
+                </aside>
+                <div>
+                  <div class="detail-head">
+                    <h3>ΓΛΥΦΑΔΑ</h3>
+                    <div class="meta"><span class="dist">2.1 km</span><span>2 τεμ.</span></div>
+                  </div>
+                  <table class="units">
+                    <thead>
+                      <tr><th>Βαθμ.</th><th>GB</th><th>Χρώμα</th><th>Κατάσταση</th><th>Barcode</th><th>Τιμή</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><span class="grade ap">A+</span></td><td>256</td>
+                        <td>BLUE</td><td class="status-ok">Διαθέσιμο</td>
+                        <td class="mono">5209991112223</td><td>885€</td>
+                        <td><div class="row-actions"><span class="icon-btn main">⧉</span><span class="icon-btn">↗</span></div></td>
+                      </tr>
+                      <tr>
+                        <td><span class="grade a">A</span></td><td>256</td>
+                        <td>BLUE</td><td class="status-bb">BB</td>
+                        <td class="mono">5209991112224</td><td>790€</td>
+                        <td><div class="row-actions"><span class="icon-btn main">⧉</span><span class="icon-btn">↗</span></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="footer">
+              <span>3 καταστήματα στο δίκτυο</span>
+              <span class="fresh">Άνετο · Cache</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- AFTER -->
+      <section class="panel-wrap" data-side="after">
+        <div class="panel-label">
+          <span>After · proposed</span>
+          <span class="tag tag-after">Εύκολο + δυνατό</span>
+        </div>
+        <div class="mock-frame after">
+
+          <!-- after models mine -->
+          <div class="shell" data-screen="models-mine">
+            <div class="header">
+              <div class="crumb">Μοντέλα</div>
+              <div class="header-row">
+                <div>
+                  <h2 class="title">ΚΟΛΩΝΑΚΙ</h2>
+                  <p class="sub">Τι έχετε τώρα · πάτα / για αναζήτηση</p>
+                </div>
+                <div class="actions">
+                  <span class="btn" title="Ctrl+R">↻</span>
+                  <span class="btn icon">⚙</span>
+                  <span class="btn icon">×</span>
+                </div>
+              </div>
+              <div class="tabs">
+                <span class="tab on">📌 ΚΟΛΩΝΑΚΙ</span>
+                <span class="tab">Άλλα καταστήματα</span>
+              </div>
+            </div>
+            <div class="toolbar">
+              <div class="search">🔍 <strong>15 pro</strong> &nbsp;· δοκίμασε και barcode ή IMEI</div>
+              <div class="recent">
+                <label>Πρόσφατα</label>
+                <button type="button">15 PRO</button>
+                <button type="button">14</button>
+                <button type="button">13</button>
+              </div>
+            </div>
+            <div class="body">
+              <div class="grid">
+                <div class="card heat-high fav-card">
+                  <button class="fav" type="button" title="Αγαπημένο">★</button>
+                  <div class="card-name">IPHONE 15 PRO</div>
+                  <div class="card-count">4<span>τεμ.</span></div>
+                  <div class="card-meta">στο ΚΟΛΩΝΑΚΙ</div>
+                  <div class="hint-row" style="margin-bottom:8px">
+                    <span class="soft-badge ok">Έτοιμο για πώληση</span>
+                  </div>
+                  <div class="grades">
+                    <span class="grade ap">A+:2</span>
+                    <span class="grade a">A:1</span>
+                    <span class="grade b">B:1</span>
+                  </div>
+                </div>
+                <div class="card heat-mid">
+                  <button class="fav" type="button" style="color:#cbd5e1">☆</button>
+                  <div class="card-name">IPHONE 14</div>
+                  <div class="card-count">2<span>τεμ.</span></div>
+                  <div class="card-meta">στο ΚΟΛΩΝΑΚΙ</div>
+                  <div class="grades"><span class="grade a">A:2</span></div>
+                </div>
+                <div class="card heat-low">
+                  <button class="fav" type="button" style="color:#cbd5e1">☆</button>
+                  <div class="card-name">IPHONE 13</div>
+                  <div class="card-count">1<span>τεμ.</span></div>
+                  <div class="card-meta">στο ΚΟΛΩΝΑΚΙ</div>
+                  <div class="hint-row" style="margin-bottom:8px">
+                    <span class="soft-badge">Τελευταίο τεμ.</span>
+                  </div>
+                  <div class="grades"><span class="grade b">B:1</span></div>
+                </div>
+                <div class="card">
+                  <button class="fav" type="button" style="color:#cbd5e1">☆</button>
+                  <div class="card-name">IPHONE 12</div>
+                  <div class="card-count">3<span>τεμ.</span></div>
+                  <div class="card-meta">στο ΚΟΛΩΝΑΚΙ</div>
+                  <div class="grades"><span class="grade a">A:2</span><span class="grade b">B:1</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="footer">
+              <span>Εμφάνιση 4 μοντέλων · φίλτρο «15 pro»</span>
+              <span class="fresh">Ζωντανά · πριν 2 λεπτά</span>
+            </div>
+          </div>
+
+          <!-- after models network -->
+          <div class="shell hidden" data-screen="models-net">
+            <div class="header">
+              <div class="crumb">Μοντέλα</div>
+              <div class="header-row">
+                <div>
+                  <h2 class="title">Άλλα καταστήματα</h2>
+                  <p class="sub">Πού υπάρχει · ταξινόμηση: περισσότερα κατ.</p>
+                </div>
+                <div class="actions">
+                  <span class="btn">↻</span>
+                  <span class="btn icon">⚙</span>
+                  <span class="btn icon">×</span>
+                </div>
+              </div>
+              <div class="tabs">
+                <span class="tab">📌 ΚΟΛΩΝΑΚΙ</span>
+                <span class="tab on">Άλλα καταστήματα</span>
+              </div>
+            </div>
+            <div class="toolbar">
+              <div class="search">🔍 Αναζήτηση μοντέλου, barcode ή IMEI…</div>
+              <div class="pills">
+                <span class="pill">Όνομα</span>
+                <span class="pill on">Περισσότερα κατ.</span>
+                <span class="pill">Περισσότερο stock</span>
+              </div>
+            </div>
+            <div class="body">
+              <div class="grid">
+                <div class="card heat-high">
+                  <div class="card-name">IPHONE 15 PRO</div>
+                  <div class="card-count">7<span>κατ.</span></div>
+                  <div class="card-meta">18 τεμ. στο δίκτυο</div>
+                  <div class="hint-row" style="margin-bottom:8px">
+                    <span class="soft-badge ok">Κοντύτερο: Γλυφάδα 2.1 km</span>
+                  </div>
+                  <div class="grades"><span class="grade ap">A+:6</span><span class="grade a">A:8</span></div>
+                </div>
+                <div class="card heat-mid">
+                  <div class="card-name">IPHONE 14 PRO</div>
+                  <div class="card-count">4<span>κατ.</span></div>
+                  <div class="card-meta">9 τεμ. στο δίκτυο</div>
+                  <div class="grades"><span class="grade a">A:5</span><span class="grade b">B:4</span></div>
+                </div>
+                <div class="card heat-low">
+                  <div class="card-name">IPHONE SE</div>
+                  <div class="card-count">1<span>κατ.</span></div>
+                  <div class="card-meta">2 τεμ. · μόνο 1 κατάστημα</div>
+                  <div class="hint-row" style="margin-bottom:8px">
+                    <span class="soft-badge">Σπάνιο στο δίκτυο</span>
+                  </div>
+                  <div class="grades"><span class="grade b">B:2</span></div>
+                </div>
+                <div class="card">
+                  <div class="card-name">IPHONE 13</div>
+                  <div class="card-count">3<span>κατ.</span></div>
+                  <div class="card-meta">5 τεμ. στο δίκτυο</div>
+                  <div class="grades"><span class="grade a">A:3</span><span class="grade b">B:2</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="footer">
+              <span>34 μοντέλα · απόσταση ενεργή</span>
+              <span class="fresh">Cache · πριν 18 λεπτά</span>
+            </div>
+          </div>
+
+          <!-- after detail mine -->
+          <div class="shell hidden" data-screen="detail-mine">
+            <div class="header">
+              <div class="crumb"><u style="cursor:default">Μοντέλα</u> › <b>IPHONE 15 PRO</b> › ΚΟΛΩΝΑΚΙ</div>
+              <div class="header-row">
+                <div>
+                  <h2 class="title model">📱 IPHONE 15 PRO</h2>
+                  <p class="sub">4 στο ΚΟΛΩΝΑΚΙ · πάτα Enter σε γραμμή για αντιγραφή</p>
+                </div>
+                <div class="actions">
+                  <span class="btn">↻</span>
+                  <span class="btn icon">⚙</span>
+                  <span class="btn icon">×</span>
+                </div>
+              </div>
+              <div class="tabs">
+                <span class="tab on">📌 ΚΟΛΩΝΑΚΙ</span>
+                <span class="tab">Άλλα καταστήματα</span>
+              </div>
+            </div>
+            <div class="toolbar">
+              <div class="one-liner">
+                <span class="btn ghost">← Μοντέλα</span>
+                <div class="context"><span class="model-bit">Χωρίς φίλτρα</span> · 4 τεμ.</div>
+              </div>
+              <div class="pills">
+                <span class="chip">A+ · 2</span>
+                <span class="chip">A · 1</span>
+                <span class="chip">B · 1</span>
+                <span class="chip">128 · 2</span>
+                <span class="chip">256 · 2</span>
+                <span class="chip"><span class="swatch" style="background:#5e5ce6"></span>BLUE · 2</span>
+                <span class="chip"><span class="swatch" style="background:#1c1c1e"></span>BLACK · 1</span>
+              </div>
+            </div>
+            <div class="body">
+              <div class="insight">
+                <span>4 τεμ. · από 690€</span>
+                <span class="best">Καλύτερη επιλογή · A+ 256 BLUE · 890€</span>
+                <span class="soft-badge quiet" style="border:0">IMEI με hover</span>
+              </div>
+              <table class="units">
+                <thead>
+                  <tr>
+                    <th>Βαθμ.</th><th>GB</th><th>Χρώμα</th><th>Κατάσταση</th><th>Barcode</th><th>Τιμή</th><th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="row-best">
+                    <td><span class="grade ap">A+</span></td>
+                    <td>256</td>
+                    <td><span class="swatch" style="background:#5e5ce6"></span> BLUE</td>
+                    <td class="status-ok">Διαθέσιμο</td>
+                    <td>
+                      <div class="mono">5201234567890</div>
+                      <div class="imei-peek">IMEI · 3533…6823</div>
+                    </td>
+                    <td>890€</td>
+                    <td><div class="row-actions"><span class="icon-btn main">⧉</span><span class="icon-btn" title="Άλλα κατ.">⇄</span><span class="icon-btn">↗</span></div></td>
+                  </tr>
+                  <tr>
+                    <td><span class="grade ap">A+</span></td>
+                    <td>128</td>
+                    <td><span class="swatch" style="background:#1c1c1e"></span> BLACK</td>
+                    <td class="status-ok">Διαθέσιμο</td>
+                    <td>
+                      <div class="mono">5201234567891</div>
+                      <div class="imei-peek">IMEI · 3533…1102</div>
+                    </td>
+                    <td>820€</td>
+                    <td><div class="row-actions"><span class="icon-btn main">⧉</span><span class="icon-btn">⇄</span><span class="icon-btn">↗</span></div></td>
+                  </tr>
+                  <tr>
+                    <td><span class="grade a">A</span></td>
+                    <td>256</td>
+                    <td><span class="swatch" style="background:#5e5ce6"></span> BLUE</td>
+                    <td class="status-bb">BB</td>
+                    <td class="mono">5201234567892</td>
+                    <td>760€</td>
+                    <td><div class="row-actions"><span class="icon-btn main">⧉</span><span class="icon-btn">⇄</span><span class="icon-btn">↗</span></div></td>
+                  </tr>
+                  <tr>
+                    <td><span class="grade b">B</span></td>
+                    <td>128</td>
+                    <td>WHITE</td>
+                    <td class="status-ok">Διαθέσιμο</td>
+                    <td class="mono">5201234567893</td>
+                    <td>690€</td>
+                    <td><div class="row-actions"><span class="icon-btn main">⧉</span><span class="icon-btn">⇄</span><span class="icon-btn">↗</span></div></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="toast-demo">Αντιγράφηκε · 15 PRO · A+ · 256 · BLUE · 5201…890</div>
+            </div>
+            <div class="footer">
+              <span>4 συσκευές · χωρίς φίλτρα · ενημερώθηκε πριν 2 λεπτά</span>
+              <span class="fresh">Πυκνό διαθέσιμο</span>
+            </div>
+          </div>
+
+          <!-- after detail network -->
+          <div class="shell hidden" data-screen="detail-net">
+            <div class="header">
+              <div class="crumb"><u>Μοντέλα</u> › <b>IPHONE 15 PRO</b> › Δίκτυο</div>
+              <div class="header-row">
+                <div>
+                  <h2 class="title model">📱 IPHONE 15 PRO</h2>
+                  <p class="sub">Φίλτρο 256GB κρατήθηκε από το δικό σας κατάστημα</p>
+                </div>
+                <div class="actions">
+                  <span class="btn">↻</span>
+                  <span class="btn icon">⚙</span>
+                  <span class="btn icon">×</span>
+                </div>
+              </div>
+              <div class="tabs">
+                <span class="tab">📌 ΚΟΛΩΝΑΚΙ</span>
+                <span class="tab on">Άλλα καταστήματα</span>
+              </div>
+            </div>
+            <div class="toolbar">
+              <div class="one-liner">
+                <span class="btn ghost">← Μοντέλα</span>
+                <div class="context"><span class="model-bit">256GB</span> · 3 καταστήματα με stock</div>
+              </div>
+              <div class="pills">
+                <span class="chip">A+</span>
+                <span class="chip on">256GB · 5</span>
+                <span class="chip"><span class="swatch" style="background:#5e5ce6"></span>BLUE</span>
+                <span class="chip">Καθαρισμός</span>
+              </div>
+            </div>
+            <div class="body">
+              <div class="insight">
+                <span class="best">Προτεινόμενο · Γλυφάδα · 2.1 km · αγοράσιμο</span>
+                <span>Περισσότερο stock · Μαρούσι · 3 τεμ.</span>
+              </div>
+              <div class="network">
+                <aside class="store-nav">
+                  <div class="store-nav-label">Ταξινόμηση: κοντά + αγοράσιμο</div>
+                  <div class="store-item on rec"><span class="n">ΓΛΥΦΑΔΑ</span><span class="m"><span class="dist">2.1 km</span><span>2 τεμ.</span></span></div>
+                  <div class="store-item"><span class="n">ΜΑΡΟΥΣΙ</span><span class="m"><span class="dist">7.4 km</span><span>3 τεμ. · περισσότερο</span></span></div>
+                  <div class="store-item"><span class="n">IKE ΘΕΣΣ.</span><span class="m"><span class="soft-badge" style="padding:1px 5px">Δεν αγοράζεται · BB</span></span></div>
+                </aside>
+                <div>
+                  <div class="detail-head">
+                    <h3>ΓΛΥΦΑΔΑ</h3>
+                    <div class="meta"><span class="dist">2.1 km</span><span class="soft-badge ok">Αγοράσιμο</span><span>2 τεμ.</span></div>
+                  </div>
+                  <table class="units">
+                    <thead>
+                      <tr><th>Βαθμ.</th><th>GB</th><th>Χρώμα</th><th>Κατάσταση</th><th>Barcode</th><th>Τιμή</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                      <tr class="row-best">
+                        <td><span class="grade ap">A+</span></td><td>256</td>
+                        <td>BLUE</td><td class="status-ok">Διαθέσιμο</td>
+                        <td class="mono">5209991112223</td><td>885€</td>
+                        <td><div class="row-actions"><span class="icon-btn main">⧉</span><span class="icon-btn">↗</span></div></td>
+                      </tr>
+                      <tr>
+                        <td><span class="grade a">A</span></td><td>256</td>
+                        <td>BLUE</td><td class="status-bb">BB</td>
+                        <td class="mono">5209991112224</td><td>790€</td>
+                        <td><div class="row-actions"><span class="icon-btn main">⧉</span><span class="icon-btn">↗</span></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+            <div class="footer">
+              <span>Εμφάνιση 2 από 5 · φίλτρο 256GB · Γλυφάδα</span>
+              <span class="fresh">Cache · πριν 18 λεπτά</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </div>
+
+    <section class="changes">
+      <div class="changes-card">
+        <h2>What to add (keep it easy)</h2>
+        <ol class="change-list">
+          <li>
+            <span class="callout-dot">1</span>
+            <div>
+              <strong>Smarter search, same box</strong>
+              <p>One field understands <em>15 pro</em>, barcode, and IMEI. Paste a code → jump straight to that unit. No extra toggles.</p>
+            </div>
+          </li>
+          <li>
+            <span class="callout-dot">2</span>
+            <div>
+              <strong>Quiet guidance on cards</strong>
+              <p>Only when useful: “Τελευταίο τεμ.”, “Κοντύτερο: Γλυφάδα”, star for favorites. No filter toolbar of chips on the models step.</p>
+            </div>
+          </li>
+          <li>
+            <span class="callout-dot">3</span>
+            <div>
+              <strong>Best row, not more columns</strong>
+              <p>Highlight the best available unit. Show IMEI under barcode on hover/focus. Keep the table at 6 familiar columns.</p>
+            </div>
+          </li>
+          <li>
+            <span class="callout-dot">4</span>
+            <div>
+              <strong>Useful copy toast</strong>
+              <p>Confirm <em>what</em> was copied: model · grade · GB · color · barcode — ready to paste into chat.</p>
+            </div>
+          </li>
+          <li>
+            <span class="callout-dot">5</span>
+            <div>
+              <strong>Network: one recommended store</strong>
+              <p>Sort by buyable + distance. Label “προτεινόμενο” once. Separate “περισσότερο stock” when different. Explain blocked BB in plain Greek.</p>
+            </div>
+          </li>
+          <li>
+            <span class="callout-dot">6</span>
+            <div>
+              <strong>Keep filters across tabs (optional)</strong>
+              <p>If you filtered 256GB in your store, switching to network keeps it. Off by default; one setting in gear menu.</p>
+            </div>
+          </li>
+          <li>
+            <span class="callout-dot">7</span>
+            <div>
+              <strong>Recent models</strong>
+              <p>Thin strip of last opened models. Daily muscle memory without a “dashboard”.</p>
+            </div>
+          </li>
+          <li>
+            <span class="callout-dot">8</span>
+            <div>
+              <strong>Power tools stay in gear</strong>
+              <p>Tags, column prefs, export selected, scope (iPhone vs all) live in Settings — not on the main path.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <div class="changes-card avoid">
+        <h2>What not to do (learned)</h2>
+        <ol class="change-list">
+          <li>
+            <span class="callout-dot" style="background:var(--page-warn)">×</span>
+            <div>
+              <strong>No toggle strip on models</strong>
+              <p>Favorites / in-stock / buyable / keep-filters / all-devices as always-visible pills made the first screen feel like a control panel.</p>
+            </div>
+          </li>
+          <li>
+            <span class="callout-dot" style="background:var(--page-warn)">×</span>
+            <div>
+              <strong>No wider table by default</strong>
+              <p>IMEI + tags + title + checkboxes + sort headers at once = hard to scan on shop floor.</p>
+            </div>
+          </li>
+          <li>
+            <span class="callout-dot" style="background:var(--page-warn)">×</span>
+            <div>
+              <strong>No compare matrix upfront</strong>
+              <p>Useful later as an optional “Σύγκριση” action when filters are active — not dumped above every network view.</p>
+            </div>
+          </li>
+          <li>
+            <span class="callout-dot" style="background:var(--page-warn)">×</span>
+            <div>
+              <strong>No legend clutter on mine</strong>
+              <p>Purchase rules belong to network only. Mine stays Διαθέσιμο / BB.</p>
+            </div>
+          </li>
+        </ol>
+        <p class="foot-note">
+          Principle: every new pixel must either <strong>reduce a click</strong>, <strong>prevent a mistake</strong>, or <strong>answer a question staff already ask</strong>.
+          If it only adds capability, put it behind gear or a long-press.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      const stage = document.getElementById('stage');
+      const viewSeg = document.getElementById('viewSeg');
+      const modeSeg = document.getElementById('modeSeg');
+
+      function setView(view) {
+        document.querySelectorAll('.shell[data-screen]').forEach((el) => {
+          el.classList.toggle('hidden', el.getAttribute('data-screen') !== view);
+        });
+        viewSeg.querySelectorAll('button').forEach((btn) => {
+          btn.classList.toggle('is-on', btn.getAttribute('data-view') === view);
+        });
+      }
+
+      function setMode(mode) {
+        stage.classList.remove('side', 'before-only', 'after-only');
+        stage.classList.add(mode === 'side' ? 'side' : mode);
+        modeSeg.querySelectorAll('button').forEach((btn) => {
+          btn.classList.toggle('is-on', btn.getAttribute('data-mode') === mode);
+        });
+      }
+
+      viewSeg.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-view]');
+        if (btn) setView(btn.getAttribute('data-view'));
+      });
+      modeSeg.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-mode]');
+        if (btn) setMode(btn.getAttribute('data-mode'));
+      });
+
+      setView('models-mine');
+      setMode('side');
+    })();
+  </script>
+</body>
+</html>

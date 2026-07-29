@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         MyManager Phone Catalog UI
 // @namespace    http://tampermonkey.net/
-// @version      6.1
-// @description  Store locator UI — polished mine/network boards, soft refresh, shared unit table.
+// @version      6.2
+// @description  Store locator UI — clean mine/network boards, smart search, best-row guidance.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
 // @grant        none
@@ -370,12 +370,131 @@
         .tm-sl-unit-table tbody tr:hover td {
             background: var(--tm-shop-item-hover-bg);
         }
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--best td {
+            background: color-mix(in srgb, var(--tm-success-color, #16a34a) 8%, var(--tm-shop-item-bg));
+        }
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--best:hover td {
+            background: color-mix(in srgb, var(--tm-success-color, #16a34a) 12%, var(--tm-shop-item-bg));
+        }
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--best td:first-child {
+            box-shadow: inset 3px 0 0 var(--tm-success-color, #16a34a);
+        }
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--flash td {
+            background: color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-shop-item-bg)) !important;
+        }
         .tm-sl-unit-table tbody tr.tm-sl-unit-row--blocked td {
             background: color-mix(in srgb, #dc2626 9%, var(--tm-shop-item-bg));
         }
         .tm-sl-unit-table tbody tr.tm-sl-unit-row--blocked td:first-child {
             box-shadow: inset 4px 0 0 #dc2626;
         }
+        .tm-sl-table-imei {
+            display: block;
+            margin-top: 2px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 10px;
+            font-weight: 500;
+            opacity: 0;
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+            transition: opacity 0.12s ease;
+        }
+        .tm-sl-unit-table tbody tr:hover .tm-sl-table-imei,
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--best .tm-sl-table-imei,
+        .tm-sl-unit-table tbody tr:focus-within .tm-sl-table-imei {
+            opacity: 0.75;
+        }
+        .tm-sl-insight {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+            margin-bottom: 10px; padding: 9px 12px;
+            border: 1px solid var(--tm-shop-item-border);
+            border-radius: 10px;
+            background: var(--tm-shop-item-bg);
+            font-size: 12px; font-weight: 650;
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+        }
+        .tm-sl-network-detail > .tm-sl-insight {
+            margin: 10px 12px 0;
+            flex-shrink: 0;
+        }
+        .tm-sl-mine-board > div > .tm-sl-insight,
+        .tm-sl-mine-board .tm-sl-insight {
+            margin-bottom: 8px;
+        }
+        .tm-sl-insight__best {
+            color: var(--tm-success-color, #16a34a);
+            font-weight: 750;
+        }
+        .tm-sl-whisper {
+            display: inline-block;
+            margin-bottom: 8px;
+            font-size: 10px; font-weight: 700;
+            padding: 3px 7px; border-radius: 999px;
+            background: color-mix(in srgb, var(--tm-success-color, #16a34a) 12%, transparent);
+            color: var(--tm-success-color, #16a34a);
+        }
+        .tm-sl-whisper--warn {
+            background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 16%, transparent);
+            color: var(--tm-warning-color, #d97706);
+        }
+        .tm-sl-sort-select {
+            height: 42px; padding: 0 12px;
+            border-radius: 10px;
+            border: 1px solid var(--tm-input-border, var(--tm-shop-item-border));
+            background: var(--tm-input-bg, var(--tm-shop-item-bg));
+            color: var(--tm-shop-item-text);
+            font-size: 12px; font-weight: 700;
+            cursor: pointer; flex-shrink: 0;
+            max-width: 180px;
+        }
+        .tm-sl-sort-select:focus-visible {
+            outline: 2px solid var(--tm-primary-color); outline-offset: 2px;
+        }
+        .tm-sl-recent {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+            font-size: 11px; color: var(--tm-muted-text, var(--tm-shop-item-text));
+        }
+        .tm-sl-recent__label { font-weight: 700; margin-right: 2px; opacity: 0.8; }
+        .tm-sl-recent__chip {
+            border: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-shop-item-bg);
+            color: var(--tm-shop-item-text);
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 11px; font-weight: 650;
+            cursor: pointer;
+        }
+        .tm-sl-recent__chip:hover { border-color: var(--tm-primary-color); }
+        .tm-sl-search-kbd {
+            position: absolute; right: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 10px; font-weight: 600;
+            padding: 2px 6px; border-radius: 5px;
+            border: 1px solid var(--tm-shop-item-border);
+            background: color-mix(in srgb, var(--tm-shop-item-border) 18%, var(--tm-shop-item-bg));
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+            pointer-events: none;
+        }
+        .tm-sl-search-wrap:focus-within .tm-sl-search-kbd { display: none; }
+        .tm-sl-search { padding-right: 36px !important; }
+        #tm-sl-breadcrumb-wrap { display: none !important; }
+        .tm-sl-toast {
+            display: inline-flex; align-items: center; gap: 10px;
+            white-space: nowrap; max-width: calc(100% - 32px);
+        }
+        .tm-sl-toast__msg { overflow: hidden; text-overflow: ellipsis; }
+        .tm-sl-toast__open {
+            border: 1px solid color-mix(in srgb, #fff 28%, transparent);
+            background: transparent; color: inherit;
+            border-radius: 999px; padding: 3px 9px;
+            font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+        }
+        .tm-sl-toast__open:hover { background: color-mix(in srgb, #fff 12%, transparent); }
+        .tm-sl-model-card-top {
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+            margin-bottom: 4px;
+        }
+        .tm-sl-model-card-top .tm-sl-model-name { margin-bottom: 0; flex: 1; min-width: 0; }
+        .tm-sl-model-card-top .tm-sl-model-count { margin-bottom: 0; flex-shrink: 0; }
         .tm-sl-unit-table .tm-sl-table-blocked {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 3px 8px; border-radius: 6px;
@@ -428,11 +547,15 @@
         }
         .tm-sl-unit-table .tm-sl-table-barcode {
             cursor: pointer;
+            color: var(--tm-primary-color);
+            border-bottom: 1px dashed color-mix(in srgb, var(--tm-primary-color) 35%, transparent);
         }
         .tm-sl-unit-table .tm-sl-table-barcode:hover {
-            color: var(--tm-primary-color);
-            text-decoration: underline;
-            text-underline-offset: 2px;
+            text-decoration: none;
+            border-bottom-color: var(--tm-primary-color);
+        }
+        .tm-sl-unit-table tbody tr {
+            cursor: default;
         }
         .tm-sl-unit-btn.is-copied {
             border-color: var(--tm-success-color, #22c55e);
@@ -1466,10 +1589,7 @@
     }
 
     function buildCoachTipHtml() {
-        return `<div class="tm-sl-coach" id="tm-sl-coach" role="note">
-            <span>1. Διάλεξε μοντέλο · 2. Φίλτραρε βαθμό/GB/χρώμα · 3. Αντίγραψε barcode ή δες άλλο κατάστημα</span>
-            <button type="button" class="tm-sl-coach-dismiss" id="tm-sl-coach-dismiss" title="Απόκρυψη" aria-label="Απόκρυψη συμβουλής">×</button>
-        </div>`;
+        return '';
     }
 
     function buildBreadcrumb(step, modelName) {
@@ -1499,7 +1619,7 @@
         const titleEl = overlay?.querySelector('#tm-sl-title');
         const shell = overlay?.querySelector('#tm-sl-shell');
         if (mineTab) {
-            mineTab.innerHTML = `${ICON.pin} ${esc(label)}`;
+            mineTab.textContent = label;
             mineTab.title = label;
         }
         if (mystoreBtn) {
@@ -1527,14 +1647,14 @@
         return `
         <div class="tm-sl-shell" id="tm-sl-shell">
             <header class="tm-sl-header">
-                <div id="tm-sl-breadcrumb-wrap">${buildBreadcrumb('models')}</div>
+                <div id="tm-sl-breadcrumb-wrap" hidden>${buildBreadcrumb('models')}</div>
                 <div class="tm-sl-header-row">
                     <div class="tm-sl-title-block">
                         <h2 class="tm-sl-title" id="tm-sl-title">${esc(myStoreLabel)}</h2>
-                        <p class="tm-sl-subtitle" id="tm-sl-subtitle">Συσκευές που έχετε σε stock</p>
+                        <p class="tm-sl-subtitle" id="tm-sl-subtitle">Τι έχετε σε stock τώρα</p>
                     </div>
                     <div class="tm-sl-header-actions">
-                        <button type="button" id="tm-sl-refresh" class="tm-sl-btn" title="Ανανέωση">${ICON.refresh} Ανανέωση</button>
+                        <button type="button" id="tm-sl-refresh" class="tm-sl-btn tm-sl-btn--icon" title="Ανανέωση" aria-label="Ανανέωση">${ICON.refresh}</button>
                         <div class="tm-sl-settings-wrap">
                             <button type="button" id="tm-sl-settings" class="tm-sl-btn tm-sl-btn--icon" title="Ρυθμίσεις" aria-haspopup="true">${ICON.settings}</button>
                             <div id="tm-sl-settings-menu" class="tm-sl-settings-menu" hidden>
@@ -1555,12 +1675,11 @@
                     </div>
                 </div>
                 <nav class="tm-sl-view-tabs" role="tablist" aria-label="Προβολή καταλόγου">
-                    <button type="button" id="tm-sl-view-mine" class="tm-sl-view-tab is-active" role="tab" aria-selected="true" title="${esc(myStoreLabel)}">${ICON.pin} ${esc(myStoreLabel)}</button>
-                    <button type="button" id="tm-sl-view-network" class="tm-sl-view-tab" role="tab" aria-selected="false">${ICON.store} Άλλα καταστήματα</button>
+                    <button type="button" id="tm-sl-view-mine" class="tm-sl-view-tab is-active" role="tab" aria-selected="true" title="${esc(myStoreLabel)}">${esc(myStoreLabel)}</button>
+                    <button type="button" id="tm-sl-view-network" class="tm-sl-view-tab" role="tab" aria-selected="false">Άλλα καταστήματα</button>
                 </nav>
             </header>
             <div class="tm-sl-toolbar" id="tm-sl-toolbar"></div>
-            ${buildCoachTipHtml()}
             <div class="tm-sl-load" id="tm-sl-load" hidden>
                 <div class="tm-sl-load__row">
                     <span class="tm-sl-load__label" id="tm-sl-load-label">Φόρτωση…</span>
@@ -1586,42 +1705,65 @@
         </div>`;
     }
 
-    function buildModelSearchToolbar(activeSort) {
+    function buildModelSearchToolbar(activeSort, opts = {}) {
         const sorts = [
-            ['name', 'Αλφαβητικά'],
+            ['name', 'Όνομα'],
             ['stores', 'Περισσότερα κατ.'],
             ['stock', 'Περισσότερο stock'],
         ];
-        const pills = sorts.map(([key, label]) =>
-            `<button type="button" class="tm-sl-sort-pill${activeSort === key ? ' is-active' : ''}" data-tm-sl-sort="${key}">${esc(label)}</button>`
+        const options = sorts.map(([key, label]) =>
+            `<option value="${key}"${activeSort === key ? ' selected' : ''}>${esc(label)}</option>`
         ).join('');
+        const recent = Array.isArray(opts.recentModels) ? opts.recentModels.filter(Boolean).slice(0, 5) : [];
+        const recentHtml = recent.length
+            ? `<div class="tm-sl-recent" id="tm-sl-recent">
+                <span class="tm-sl-recent__label">Πρόσφατα</span>
+                ${recent.map((m) =>
+                    `<button type="button" class="tm-sl-recent__chip" data-tm-sl-recent="${esc(m)}" title="${esc(m)}">${esc(shortRecentLabel(m))}</button>`
+                ).join('')}
+            </div>`
+            : '';
         return `
             <div class="tm-sl-toolbar-row">
                 <div class="tm-sl-search-wrap">
                     <span class="tm-sl-search-icon">${ICON.search}</span>
                     <input type="search" id="tm-sl-model-search" class="tm-sl-search"
-                        placeholder="Αναζήτηση μοντέλου…" autocomplete="off">
+                        placeholder="Αναζήτηση μοντέλου, barcode ή IMEI…" autocomplete="off">
+                    <span class="tm-sl-search-kbd" aria-hidden="true">/</span>
                 </div>
+                <select id="tm-sl-model-sort" class="tm-sl-sort-select" aria-label="Ταξινόμηση" data-tm-sl-sort-select>
+                    ${options}
+                </select>
             </div>
-            <div class="tm-sl-toolbar-row tm-sl-sort-pills">${pills}</div>`;
+            ${recentHtml}`;
+    }
+
+    function shortRecentLabel(model) {
+        return String(model || '')
+            .replace(/^IPHONE\s+/i, '')
+            .replace(/^SAMSUNG\s+/i, '')
+            .trim() || String(model || '');
     }
 
     function buildStoreToolbar(modelName, chipsHtml, opts) {
-        const viewLabel = opts?.viewLabel || getMyStoreLabel();
-        const filtersSummary = opts?.filtersSummary || '';
-        const showPurchaseLegend = !!opts?.network;
+        const filtersSummary = opts?.filtersSummary || 'Χωρίς φίλτρα';
+        const qtyLabel = opts?.qtyLabel || '';
         const chips = chipsHtml
             ? `<div class="tm-sl-chips" id="tm-sl-chips">${chipsHtml}</div>`
             : '';
+        const contextBits = [
+            `<span class="tm-sl-context-strip__filters">${esc(filtersSummary)}</span>`,
+        ];
+        if (qtyLabel) {
+            contextBits.push('<span class="tm-sl-context-strip__sep" aria-hidden="true">·</span>');
+            contextBits.push(`<span class="tm-sl-context-strip__view">${esc(qtyLabel)}</span>`);
+        }
         return `
             <div class="tm-sl-toolbar-row">
                 <button type="button" id="tm-sl-back" class="tm-sl-btn tm-sl-btn--back">${ICON.back} Μοντέλα</button>
-                ${buildContextStrip({ viewLabel, modelName, filtersSummary })}
+                <div class="tm-sl-context-strip" id="tm-sl-context-strip">${contextBits.join('')}</div>
             </div>
-            <div class="tm-sl-toolbar-row">
-                ${chips}
-            </div>
-            ${buildStatusLegend({ showPurchaseStatus: showPurchaseLegend })}`;
+            ${chips ? `<div class="tm-sl-toolbar-row">${chips}</div>` : ''}`;
     }
 
     function buildModelGrid(models, ctx) {
@@ -1645,6 +1787,7 @@
         const query = ctx?.query || '';
         const catalogView = ctx?.catalogView || 'mine';
         const getGradeStyle = ctx?.getGradeStyle || (() => '');
+        const getNearestHint = ctx?.getNearestStoreHint;
         const cards = models.map(([model, data], i) => {
             const grades = Object.entries(data.grades || {})
                 .sort((a, b) => a[0].localeCompare(b[0]))
@@ -1655,11 +1798,17 @@
 
             if (catalogView === 'mine') {
                 const count = data.myCount || data.totalUnits || 0;
+                const whisper = count === 1
+                    ? '<span class="tm-sl-whisper tm-sl-whisper--warn">Τελευταίο τεμ.</span>'
+                    : '';
                 return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
                     data-tm-sl-model="${esc(model)}" style="--i:${delay}">
-                    <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
-                    <div class="tm-sl-model-count">${count}<span>${count === 1 ? 'τεμ.' : 'τεμ.'}</span></div>
+                    <div class="tm-sl-model-card-top">
+                        <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
+                        <div class="tm-sl-model-count">${count}<span>${count === 1 ? 'τεμ.' : 'τεμ.'}</span></div>
+                    </div>
                     <div class="tm-sl-model-meta">στο ${esc(myStoreLabel)}</div>
+                    ${whisper}
                     ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                 </div>`;
             }
@@ -1667,11 +1816,21 @@
             const storeLabel = data.storeCount === 1
                 ? '1 κατάστημα'
                 : `${data.storeCount} καταστήματα`;
+            const nearest = typeof getNearestHint === 'function' ? getNearestHint(model, data) : '';
+            let whisper = '';
+            if (nearest) {
+                whisper = `<span class="tm-sl-whisper">Κοντύτερο · ${esc(nearest)}</span>`;
+            } else if (data.storeCount === 1) {
+                whisper = '<span class="tm-sl-whisper tm-sl-whisper--warn">Σπάνιο στο δίκτυο</span>';
+            }
             return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
                 data-tm-sl-model="${esc(model)}" style="--i:${delay}">
-                <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
-                <div class="tm-sl-model-count">${data.storeCount || 0}<span>κατ.</span></div>
-                <div class="tm-sl-model-meta">${esc(storeLabel)} · ${data.totalUnits} τεμ.</div>
+                <div class="tm-sl-model-card-top">
+                    <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
+                    <div class="tm-sl-model-count">${data.storeCount || 0}<span>κατ.</span></div>
+                </div>
+                <div class="tm-sl-model-meta">${data.totalUnits} τεμ. στο δίκτυο</div>
+                ${whisper}
                 ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
             </div>`;
         }).join('');
@@ -1900,6 +2059,55 @@
         return '<span class="tm-sl-table-status tm-sl-table-status--ok">Διαθέσιμο</span>';
     }
 
+    function formatImeiPeek(imei) {
+        const raw = String(imei || '').replace(/\D/g, '');
+        if (raw.length < 8) return '';
+        return `${raw.slice(0, 4)}…${raw.slice(-4)}`;
+    }
+
+    function pickBestVariantIndex(variants, ctx) {
+        if (!variants?.length) return -1;
+        let bestIdx = 0;
+        for (let i = 1; i < variants.length; i += 1) {
+            const a = variants[bestIdx];
+            const b = variants[i];
+            const storeName = b.storeName || a.storeName || '';
+            if (ctx?.showPurchaseStatus && storeName) {
+                const aOk = isStorePurchaseAllowed(storeName, !!a.isBuyback);
+                const bOk = isStorePurchaseAllowed(storeName, !!b.isBuyback);
+                if (aOk !== bOk) {
+                    if (bOk) bestIdx = i;
+                    continue;
+                }
+            }
+            if (!!a.isBuyback !== !!b.isBuyback) {
+                if (!b.isBuyback) bestIdx = i;
+                continue;
+            }
+            const gradeCmp = (typeof window.comparePhoneGrades === 'function')
+                ? window.comparePhoneGrades(a.grade || '', b.grade || '')
+                : String(a.grade || '').localeCompare(String(b.grade || ''));
+            if (gradeCmp > 0) bestIdx = i;
+        }
+        return bestIdx;
+    }
+
+    function buildInsightHtml(variants, bestIdx) {
+        if (!variants?.length || bestIdx < 0) return '';
+        const best = variants[bestIdx];
+        const prices = variants
+            .map((v) => parseFloat(String(v.price || '').replace(/[^\d.,]/g, '').replace(',', '.')))
+            .filter((n) => Number.isFinite(n) && n > 0);
+        const fromPrice = prices.length ? Math.min(...prices) : null;
+        const bits = [best.grade, best.gb, best.color].filter(Boolean).join(' · ');
+        const priceBit = best.price ? ` · ${best.price}` : '';
+        const left = fromPrice != null ? `Από ${Math.round(fromPrice)}€` : `${variants.length} τεμ.`;
+        return `<div class="tm-sl-insight">
+            <span>${esc(left)}</span>
+            <span class="tm-sl-insight__best">Καλύτερη επιλογή · ${esc(bits)}${esc(priceBit)}</span>
+        </div>`;
+    }
+
     function buildUnitTableRow(v, ctx) {
         const hexMap = ctx?.colorHexMap || {};
         const getGradeStyle = ctx?.getGradeStyle || (() => '');
@@ -1908,7 +2116,11 @@
         const purchaseAllowed = !showPurchaseStatus || !storeName
             || isStorePurchaseAllowed(storeName, !!v.isBuyback);
         const purchaseBlocked = showPurchaseStatus && !purchaseAllowed;
-        const rowClass = purchaseBlocked ? ' tm-sl-unit-row--blocked' : '';
+        const rowClass = [
+            purchaseBlocked ? 'tm-sl-unit-row--blocked' : '',
+            v.isBest ? 'tm-sl-unit-row--best' : '',
+            v.flash ? 'tm-sl-unit-row--flash' : '',
+        ].filter(Boolean).join(' ');
 
         const gradeCell = v.grade
             ? `<span class="tm-sl-table-grade" style="${getGradeStyle(v.grade)}">${esc(v.grade)}</span>`
@@ -1918,22 +2130,34 @@
             ? `<span class="tm-sl-table-color">${colorSwatchHTML(v.color, hexMap)}${esc(v.color)}</span>`
             : '—';
         const statusCell = buildUnitStatusCell(v, purchaseBlocked, ctx);
-        const barcodeCell = `<span class="tm-sl-table-barcode" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">${esc(v.barcode)}</span>`;
+        const imeiPeek = formatImeiPeek(v.imei || v.phone?.imei);
+        const imeiHtml = imeiPeek ? `<span class="tm-sl-table-imei">IMEI · ${esc(imeiPeek)}</span>` : '';
+        const barcodeCell = `<span class="tm-sl-table-barcode" data-tm-sl-copy="${esc(v.barcode)}" title="Κλικ για αντιγραφή">${esc(v.barcode)}</span>${imeiHtml}`;
         const priceCell = v.price ? `<span class="tm-sl-table-price">${esc(v.price)}</span>` : '—';
+        const modelName = v.modelName || ctx?.modelName || '';
 
-        return `<tr class="tm-sl-unit-row${rowClass}" data-barcode="${esc(v.barcode)}">
+        return `<tr class="tm-sl-unit-row${rowClass ? ` ${rowClass}` : ''}" data-barcode="${esc(v.barcode)}"
+            data-tm-sl-open-row="${esc(v.barcode)}"
+            data-tm-sl-grade="${esc(v.grade || '')}"
+            data-tm-sl-gb="${esc(v.gb || '')}"
+            data-tm-sl-color="${esc(v.color || '')}"
+            data-tm-sl-model="${esc(modelName)}"
+            data-tm-sl-price="${esc(v.price || '')}"
+            title="Κλικ στο barcode για αντιγραφή · διπλό κλικ για άνοιγμα">
             <td>${gradeCell}</td>
             <td>${gbCell}</td>
             <td>${colorCell}</td>
             <td>${statusCell}</td>
             <td>${barcodeCell}</td>
             <td>${priceCell}</td>
-            <td>${buildUnitActionButtonsHTML(v.barcode)}</td>
         </tr>`;
     }
 
     function buildUnitTable(variants, ctx) {
-        const rows = variants.map((v) => buildUnitTableRow(v, ctx)).join('');
+        const list = [...(variants || [])];
+        const bestIdx = pickBestVariantIndex(list, ctx);
+        if (bestIdx >= 0) list[bestIdx] = { ...list[bestIdx], isBest: true };
+        const rows = list.map((v) => buildUnitTableRow(v, ctx)).join('');
         return `<div class="tm-sl-network-detail-table-wrap tm-sl-mine-table-wrap">
             <table class="tm-sl-unit-table">
                 <thead>
@@ -1944,7 +2168,6 @@
                         <th>Κατάσταση</th>
                         <th>Barcode</th>
                         <th>Τιμή</th>
-                        <th></th>
                     </tr>
                 </thead>
                 <tbody>${rows}</tbody>
@@ -2091,14 +2314,18 @@
             );
         }
         const qtyLabel = variants.length === 1 ? '1 συσκευή' : `${variants.length} συσκευές`;
+        const bestIdx = pickBestVariantIndex(variants, ctx);
+        const insight = buildInsightHtml(variants, bestIdx);
+        const tableCtx = { ...ctx, modelName };
         return `<section class="tm-sl-mine-board">
             <div class="tm-sl-mine-detail-head">
-                <h3>${ICON.pin} ${esc(myStoreLabel)}</h3>
+                <h3>${esc(myStoreLabel)}</h3>
                 <div class="tm-sl-mine-detail-head__meta">
                     <span>${esc(qtyLabel)}</span>
                 </div>
             </div>
-            ${buildUnitTable(variants, ctx)}
+            <div style="padding:10px 12px 0">${insight}</div>
+            ${buildUnitTable(variants, tableCtx)}
         </section>`;
     }
 
@@ -2160,25 +2387,42 @@
                     : { actionId: 'back-models', actionLabel: 'Επιστροφή στα μοντέλα' }
             );
         }
+        const tableCtx = { ...ctx, modelName };
         const navHtml = storeRows.map((store, idx) => buildNetworkStoreNavItem(store, idx, ctx, idx === 0)).join('');
         const panelsHtml = storeRows.map((store, idx) =>
             `<div class="tm-sl-network-panel" data-tm-sl-store-panel="${idx}">
                 <div class="tm-sl-network-panel-meta">${buildNetworkStoreMetaInner(store, ctx)}</div>
-                ${buildNetworkStoreTable(store, ctx)}
+                ${buildUnitTable(store.variants, tableCtx)}
             </div>`
         ).join('');
 
+        const top = storeRows[0];
+        const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
+        const distLabel = ctx?.showDistance && myStore
+            ? window.getStoreDistanceLabel?.(myStore, top.name)
+            : '';
+        const insightBits = [`Προτεινόμενο · ${top.name}`];
+        if (distLabel) insightBits.push(distLabel);
+        if (storeHasAnyBuyable(top)) insightBits.push('αγοράσιμο');
+        const insight = `<div class="tm-sl-insight"><span class="tm-sl-insight__best">${esc(insightBits.join(' · '))}</span></div>`;
+
         return `<div class="tm-sl-network-board">
             <aside class="tm-sl-network-stores" role="tablist" aria-label="Καταστήματα">
-                <div class="tm-sl-network-stores__label">Καταστήματα · ${storeRows.length}</div>
+                <div class="tm-sl-network-stores__label">Κοντά + αγοράσιμο</div>
                 ${navHtml}
             </aside>
             <main class="tm-sl-network-detail" id="tm-sl-network-detail" role="tabpanel">
+                ${insight}
                 ${buildNetworkDetailHead(storeRows[0], ctx)}
-                <div id="tm-sl-network-table-root">${buildNetworkStoreTable(storeRows[0], ctx)}</div>
+                <div id="tm-sl-network-table-root">${buildUnitTable(storeRows[0].variants, tableCtx)}</div>
             </main>
             <div class="tm-sl-network-panels" hidden aria-hidden="true">${panelsHtml}</div>
         </div>`;
+    }
+
+    function storeHasAnyBuyable(store) {
+        if (!store?.variants?.length) return false;
+        return store.variants.some((v) => isStorePurchaseAllowed(store.name, !!v.isBuyback));
     }
 
     function buildStoreBoard(modelName, myStore, allRows, ctx) {
@@ -2241,13 +2485,25 @@
         return html;
     }
 
-    function showToast(overlay, message) {
+    function showToast(overlay, message, opts = {}) {
         const toast = overlay?.querySelector('#tm-sl-toast');
         if (!toast) return;
-        toast.textContent = message;
+        const barcode = opts.barcode || '';
+        if (barcode) {
+            toast.innerHTML = `<span class="tm-sl-toast__msg">${esc(message)}</span>
+                <button type="button" class="tm-sl-toast__open" data-tm-sl-open="${esc(barcode)}">Άνοιγμα</button>`;
+            toast.querySelector('[data-tm-sl-open]')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                window.open(`https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(barcode)}`, '_blank');
+            });
+        } else {
+            toast.textContent = message;
+        }
         toast.classList.add('is-visible');
         clearTimeout(toast._tmHideTimer);
-        toast._tmHideTimer = setTimeout(() => toast.classList.remove('is-visible'), 2200);
+        toast._tmHideTimer = setTimeout(() => {
+            toast.classList.remove('is-visible');
+        }, opts.durationMs || 2600);
     }
 
     function updateFreshness(overlay, lastUpdated) {
@@ -2362,10 +2618,14 @@
         btn.classList.toggle('is-busy', !!refreshing);
         if (refreshing) {
             btn.setAttribute('disabled', 'true');
-            btn.innerHTML = `<span class="tm-sl-btn-spin">${ICON.refresh}</span> Ανανέωση…`;
+            btn.innerHTML = `<span class="tm-sl-btn-spin">${ICON.refresh}</span>`;
+            btn.setAttribute('aria-label', 'Ανανέωση…');
+            btn.title = 'Ανανέωση…';
         } else {
             btn.removeAttribute('disabled');
-            btn.innerHTML = `${ICON.refresh} Ανανέωση`;
+            btn.innerHTML = ICON.refresh;
+            btn.setAttribute('aria-label', 'Ανανέωση');
+            btn.title = 'Ανανέωση';
         }
     }
 
@@ -2376,11 +2636,7 @@
         shell?.classList.add('tm-sl-step--stores');
         if (titleEl) {
             titleEl.className = 'tm-sl-title tm-sl-title--model';
-            const phoneIcon = ICON.phone.replace('width="14"', 'width="18"').replace('height="14"', 'height="18"');
-            titleEl.innerHTML = `<span class="tm-sl-model-title">
-                <span class="tm-sl-model-title__icon">${phoneIcon}</span>
-                <span class="tm-sl-model-title__name">${esc(modelName)}</span>
-            </span>`;
+            titleEl.textContent = modelName || '';
         }
         if (subtitleEl) subtitleEl.textContent = subtitle || '';
     }
