@@ -594,11 +594,6 @@
         }
         .tm-sl-breadcrumb-sep { opacity: 0.45; }
         .tm-sl-breadcrumb-current { color: var(--tm-primary-color); }
-        .tm-sl-breadcrumb button {
-            background: none; border: none; color: inherit; cursor: pointer;
-            padding: 0; font: inherit; opacity: 0.75;
-        }
-        .tm-sl-breadcrumb button:hover { opacity: 1; color: var(--tm-primary-color); }
 
         .tm-sl-view-tabs {
             display: flex;
@@ -1467,31 +1462,22 @@
         if (active?.grade) bits.push(`Βαθμ. ${active.grade}`);
         if (active?.gb) bits.push(active.gb);
         if (active?.color) bits.push(active.color);
-        if (active?.tag) {
-            const name = typeof window.getTagDisplayName === 'function'
-                ? window.getTagDisplayName(active.tag)
-                : active.tag;
-            bits.push(`Ετικέτα ${name}`);
-        }
         return bits.length ? bits.join(' · ') : 'Χωρίς φίλτρα';
     }
 
     function buildCoachTipHtml() {
         return `<div class="tm-sl-coach" id="tm-sl-coach" role="note">
-            <span>1. Διάλεξε μοντέλο · 2. Φίλτραρε βαθμό/GB/χρώμα · 3. Αντίγραψε barcode/IMEI · Tip: πρόσθεσε διευθύνσεις καταστημάτων για απόσταση</span>
+            <span>1. Διάλεξε μοντέλο · 2. Φίλτραρε βαθμό/GB/χρώμα · 3. Αντίγραψε barcode ή δες άλλο κατάστημα</span>
             <button type="button" class="tm-sl-coach-dismiss" id="tm-sl-coach-dismiss" title="Απόκρυψη" aria-label="Απόκρυψη συμβουλής">×</button>
         </div>`;
     }
 
-    function buildBreadcrumb(step, modelName, viewLabel) {
+    function buildBreadcrumb(step, modelName) {
         if (step === 'stores' && modelName) {
-            const view = viewLabel || 'Κατάστημα';
             return `<nav class="tm-sl-breadcrumb" aria-label="Διαδρομή">
-                <button type="button" data-tm-sl-crumb="models">Μοντέλα</button>
+                <span>Μοντέλα</span>
                 <span class="tm-sl-breadcrumb-sep">›</span>
                 <span class="tm-sl-breadcrumb-current">${esc(modelName)}</span>
-                <span class="tm-sl-breadcrumb-sep">›</span>
-                <span class="tm-sl-breadcrumb-current">${esc(view)}</span>
             </nav>`;
         }
         return `<nav class="tm-sl-breadcrumb" aria-label="Διαδρομή">
@@ -1548,7 +1534,7 @@
                         <p class="tm-sl-subtitle" id="tm-sl-subtitle">Συσκευές που έχετε σε stock</p>
                     </div>
                     <div class="tm-sl-header-actions">
-                        <button type="button" id="tm-sl-refresh" class="tm-sl-btn" title="Ανανέωση (Ctrl+R)">${ICON.refresh} Ανανέωση</button>
+                        <button type="button" id="tm-sl-refresh" class="tm-sl-btn" title="Ανανέωση">${ICON.refresh} Ανανέωση</button>
                         <div class="tm-sl-settings-wrap">
                             <button type="button" id="tm-sl-settings" class="tm-sl-btn tm-sl-btn--icon" title="Ρυθμίσεις" aria-haspopup="true">${ICON.settings}</button>
                             <div id="tm-sl-settings-menu" class="tm-sl-settings-menu" hidden>
@@ -1717,7 +1703,7 @@
         addGroup('grade', filters.grades);
         addGroup('gb', filters.gbs);
         addGroup('color', filters.colors);
-        if (active.grade || active.gb || active.color || active.tag) {
+        if (active.grade || active.gb || active.color) {
             parts.push('<button type="button" class="tm-sl-chip" data-tm-sl-filter="clear">Καθαρισμός φίλτρων</button>');
         }
         return parts.join('');
@@ -2406,9 +2392,9 @@
         if (titleEl) titleEl.className = 'tm-sl-title';
     }
 
-    function updateBreadcrumb(overlay, step, modelName, viewLabel) {
+    function updateBreadcrumb(overlay, step, modelName) {
         const wrap = overlay?.querySelector('#tm-sl-breadcrumb-wrap');
-        if (wrap) wrap.innerHTML = buildBreadcrumb(step, modelName, viewLabel);
+        if (wrap) wrap.innerHTML = buildBreadcrumb(step, modelName);
     }
 
     function updateViewTabs(overlay, view) {
@@ -2463,8 +2449,6 @@
         buildStoreBoard,
         buildMyStoreBoard,
         buildNetworkStoreBoard,
-        buildNetworkStoreMetaInner,
-        buildNetworkDetailHead,
         buildEmptyState,
         buildSkeletonGrid,
         buildSkeletonStores,

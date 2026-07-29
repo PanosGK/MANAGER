@@ -1,11 +1,11 @@
 {
-  "version": "307",
+  "version": "306",
   "loaderVersion": "35",
-  "silentVersion": "45",
-  "displayVersion": "35.45",
+  "silentVersion": "44",
+  "displayVersion": "35.44",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Phone catalog UX: IMEI, tags, favorites, smart search, compare, column prefs, Ctrl+R",
+  "releaseNotes": "Separate XP and Daily Bounties toggles; coin-only bounty rewards when XP is off; daily free coins in pet care",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
@@ -28,7 +28,6 @@
     "myman_phone_catalog_ui.js",
     "myman_phonelist.js",
     "myman_phone_catalog_settings.js",
-    "myman_phone_catalog_features.js",
     "myman_store_locator.js",
     "myman_technicianstats.js",
     "myman_orderhistory.js",

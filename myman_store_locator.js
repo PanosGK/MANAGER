@@ -109,9 +109,6 @@
             barcode: phone.barcode,
             price: phone.retailPrice || '',
             isBuyback: !!phone.isBuyback,
-            imei: phone.imei || '',
-            name: phone.name || phone.model || '',
-            otherStoreCount: parseInt(phone.otherStoreCount, 10) || 0,
             phone,
         };
     }
@@ -121,61 +118,41 @@
     }
 
     function buildMyStoreModelIndex(allPhones, helpers) {
-        const { extractBaseModel, normalizePhoneGrade } = helpers;
-        const filterPhones = helpers.filterCatalogPhones || helpers.filterIphoneTitlePhones || ((p) => p);
+        const { extractBaseModel, normalizePhoneGrade, filterIphoneTitlePhones } = helpers;
         const map = new Map();
 
-        filterPhones(allPhones).forEach((phone) => {
+        filterIphoneTitlePhones(allPhones).forEach((phone) => {
             if ((phone.unitsRemaining || 0) <= 0) return;
             const model = extractBaseModel(phone.model);
             if (!model) return;
             if (!map.has(model)) {
-                map.set(model, {
-                    grades: {}, totalUnits: 0, myCount: 0, storeCount: 0, storeList: [],
-                    onlyBb: true, rawTitles: new Set(),
-                });
+                map.set(model, { grades: {}, totalUnits: 0, myCount: 0, storeCount: 0, storeList: [] });
             }
             const entry = map.get(model);
             entry.totalUnits += 1;
             entry.myCount += 1;
-            if (!phone.isBuyback) entry.onlyBb = false;
-            if (phone.model) entry.rawTitles.add(String(phone.model));
             const g = normalizePhoneGrade(phone.grade);
             if (g) entry.grades[g] = (entry.grades[g] || 0) + 1;
         });
 
-        return [...map.entries()]
-            .filter(([, data]) => data.myCount > 0)
-            .map(([model, data]) => {
-                const aliasHint = [...(data.rawTitles || [])]
-                    .map((t) => extractBaseModel(t))
-                    .filter((m) => m && m !== model)[0] || '';
-                const { rawTitles, ...rest } = data;
-                return [model, { ...rest, aliasHint, onlyBb: !!data.onlyBb && data.myCount > 0 }];
-            });
+        return [...map.entries()].filter(([, data]) => data.myCount > 0);
     }
 
     function buildNetworkModelIndex(otherStorePhones, helpers) {
-        const { extractBaseModel, normalizePhoneGrade } = helpers;
-        const filterPhones = helpers.filterCatalogPhones || helpers.filterIphoneTitlePhones || ((p) => p);
+        const { extractBaseModel, normalizePhoneGrade, filterIphoneTitlePhones } = helpers;
         const getStores = helpers.getEffectivePhoneStores || ((p) => helpers.filterOneUnitStores(p.stores || p.otherStores || []));
         const map = new Map();
 
-        filterPhones(otherStorePhones).forEach((phone) => {
+        filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
             const model = extractBaseModel(phone.model);
             if (!model) return;
             const stores = getStores(phone);
             if (!stores.length) return;
             if (!map.has(model)) {
-                map.set(model, {
-                    grades: {}, storeNames: new Set(), totalUnits: 0, myCount: 0,
-                    onlyBb: true, rawTitles: new Set(),
-                });
+                map.set(model, { grades: {}, storeNames: new Set(), totalUnits: 0, myCount: 0 });
             }
             const entry = map.get(model);
             entry.totalUnits += 1;
-            if (!phone.isBuyback) entry.onlyBb = false;
-            if (phone.model) entry.rawTitles.add(String(phone.model));
             const g = normalizePhoneGrade(phone.grade);
             if (g) entry.grades[g] = (entry.grades[g] || 0) + 1;
             stores.forEach((store) => {
@@ -187,17 +164,10 @@
         return [...map.entries()]
             .map(([model, data]) => {
                 const storeList = [...data.storeNames].sort((a, b) => a.localeCompare(b, 'el'));
-                const aliasHint = [...(data.rawTitles || [])]
-                    .map((t) => extractBaseModel(t))
-                    .filter((m) => m && m !== model)[0] || '';
                 return [model, {
-                    grades: data.grades,
-                    totalUnits: data.totalUnits,
-                    myCount: data.myCount,
+                    ...data,
                     storeCount: data.storeNames.size,
                     storeList,
-                    onlyBb: !!data.onlyBb && data.totalUnits > 0,
-                    aliasHint,
                 }];
             })
             .filter(([, data]) => data.storeCount > 0);
@@ -223,8 +193,7 @@
     }
 
     function collectFiltersForModel(allPhones, otherStorePhones, model, helpers, catalogView = 'mine') {
-        const { extractBaseModel, extractGB, extractColor } = helpers;
-        const filterPhones = helpers.filterCatalogPhones || helpers.filterIphoneTitlePhones || ((p) => p);
+        const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
         const grades = new Set();
         const gbs = new Set();
         const colors = new Set();
@@ -239,12 +208,12 @@
         };
 
         if (catalogView !== 'network') {
-            filterPhones(allPhones).forEach((p) => {
+            filterIphoneTitlePhones(allPhones).forEach((p) => {
                 if ((p.unitsRemaining || 0) > 0) addPhone(p);
             });
         }
         if (catalogView !== 'mine') {
-            filterPhones(otherStorePhones).forEach(addPhone);
+            filterIphoneTitlePhones(otherStorePhones).forEach(addPhone);
         }
 
         const sortGb = (a, b) => {
@@ -263,18 +232,17 @@
     }
 
     function collectFilterCounts(allPhones, otherStorePhones, model, activeFilters, helpers, catalogView = 'mine') {
-        const { extractBaseModel, extractGB, extractColor } = helpers;
-        const filterPhones = helpers.filterCatalogPhones || helpers.filterIphoneTitlePhones || ((p) => p);
-        const counts = { grade: {}, gb: {}, color: {}, tag: {} };
+        const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
+        const counts = { grade: {}, gb: {}, color: {} };
 
         const phones = [];
         if (catalogView !== 'network') {
-            filterPhones(allPhones).forEach((p) => {
+            filterIphoneTitlePhones(allPhones).forEach((p) => {
                 if ((p.unitsRemaining || 0) > 0 && extractBaseModel(p.model) === model) phones.push(p);
             });
         }
         if (catalogView !== 'mine') {
-            filterPhones(otherStorePhones).forEach((p) => {
+            filterIphoneTitlePhones(otherStorePhones).forEach((p) => {
                 if (extractBaseModel(p.model) === model) phones.push(p);
             });
         }
@@ -299,15 +267,6 @@
             const color = extractColor(phone.name || phone.model);
             if (color) counts.color[color] = (counts.color[color] || 0) + 1;
         });
-        phones.forEach((phone) => {
-            if (!matchesExcept(phone, 'tag')) return;
-            const tags = typeof window.getTagsForBarcode === 'function'
-                ? window.getTagsForBarcode(phone.barcode)
-                : [];
-            tags.forEach((tag) => {
-                counts.tag[tag] = (counts.tag[tag] || 0) + 1;
-            });
-        });
 
         return counts;
     }
@@ -320,20 +279,14 @@
         if (filters.gb && gb !== filters.gb) return false;
         const color = extractColor(phone.name || phone.model);
         if (filters.color && color !== filters.color) return false;
-        if (filters.tag) {
-            const tags = typeof window.getTagsForBarcode === 'function'
-                ? window.getTagsForBarcode(phone.barcode)
-                : [];
-            if (!tags.includes(filters.tag)) return false;
-        }
         return true;
     }
 
     function buildMyStoreUnitsData(model, allPhones, filters, helpers) {
-        const filterPhones = helpers.filterCatalogPhones || helpers.filterIphoneTitlePhones || ((p) => p);
+        const { filterIphoneTitlePhones } = helpers;
         const variants = [];
 
-        filterPhones(allPhones).forEach((phone) => {
+        filterIphoneTitlePhones(allPhones).forEach((phone) => {
             if ((phone.unitsRemaining || 0) <= 0) return;
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             variants.push({
@@ -347,7 +300,7 @@
     }
 
     function buildNetworkStoreBoardData(model, otherStorePhones, filters, helpers) {
-        const filterPhones = helpers.filterCatalogPhones || helpers.filterIphoneTitlePhones || ((p) => p);
+        const { filterIphoneTitlePhones } = helpers;
         const getStores = helpers.getEffectivePhoneStores || ((p) => helpers.filterOneUnitStores(p.stores || p.otherStores || []));
         const storeMap = new Map();
 
@@ -362,7 +315,7 @@
             bucket.variants.push({ ...variant, storeName, isMine: false });
         }
 
-        filterPhones(otherStorePhones).forEach((phone) => {
+        filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             const variant = phoneToVariant(phone, helpers);
             const stores = getStores(phone);
@@ -388,7 +341,7 @@
     }
 
     function buildStoreBoardData(model, allPhones, otherStorePhones, filters, helpers) {
-        const filterPhones = helpers.filterCatalogPhones || helpers.filterIphoneTitlePhones || ((p) => p);
+        const { filterIphoneTitlePhones } = helpers;
         const getStores = helpers.getEffectivePhoneStores || ((p) => helpers.filterOneUnitStores(p.stores || p.otherStores || []));
         const storeMap = new Map();
 
@@ -403,13 +356,13 @@
             bucket.variants.push({ ...variant, storeName, isMine });
         }
 
-        filterPhones(allPhones).forEach((phone) => {
+        filterIphoneTitlePhones(allPhones).forEach((phone) => {
             if ((phone.unitsRemaining || 0) <= 0) return;
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             addVariant(MINE_STORE_KEY, resolveMyStoreLabel(), true, phoneToVariant(phone, helpers));
         });
 
-        filterPhones(otherStorePhones).forEach((phone) => {
+        filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             const variant = phoneToVariant(phone, helpers);
             const stores = getStores(phone);
@@ -522,10 +475,6 @@
         }
 
         const UI = window.PhoneCatalogUI;
-        if (typeof window.PhoneCatalogFeatures?.patchPhoneCatalogUI === 'function') {
-            window.PhoneCatalogFeatures.patchPhoneCatalogUI();
-        }
-        const Features = window.PhoneCatalogFeatures || {};
         const helpers = {
             extractBaseModel: window.extractBaseModel || ((m) => m),
             extractGB: window.extractGB || (() => ''),
@@ -533,7 +482,6 @@
             normalizePhoneGrade: window.normalizePhoneGrade || ((g) => g),
             comparePhoneGrades: window.comparePhoneGrades || ((a, b) => a.localeCompare(b)),
             filterIphoneTitlePhones: window.filterIphoneTitlePhones || ((p) => p),
-            filterCatalogPhones: window.filterCatalogPhones || window.filterIphoneTitlePhones || ((p) => p),
             filterOneUnitStores: window.filterOneUnitStores || ((s) => s),
             getPhoneGradeCircleStyle: window.getPhoneGradeCircleStyle || (() => ''),
             getEffectivePhoneStores: window.getEffectivePhoneStores || ((p) => (window.filterOneUnitStores || ((s) => s))(p.stores || p.otherStores || [])),
@@ -557,14 +505,7 @@
         let modelSort = GM_getValue(SORT_KEY, 'name');
         let catalogView = GM_getValue(CATALOG_VIEW_KEY, 'mine');
         let densityCompact = GM_getValue(DENSITY_KEY, false);
-        let activeFilters = { grade: '', gb: '', color: '', tag: '' };
-        let quickFilters = typeof window.loadQuickFilters === 'function'
-            ? window.loadQuickFilters()
-            : { inStockOnly: false, buyableOnly: false, favoritesOnly: false };
-        let unitSortKey = 'grade';
-        let unitSortDir = 'asc';
-        let selectedBarcodes = new Set();
-        let focusBarcode = null;
+        let activeFilters = { grade: '', gb: '', color: '' };
         let allPhones = [];
         let otherStorePhones = [];
         let otherStoreLoaded = false;
@@ -661,203 +602,13 @@
             if (lastUpdated) UI.updateFreshness(overlay, lastUpdated);
         }
 
-        function copyText(text, toastLabel) {
-            if (!text || typeof GM_setClipboard !== 'function') return;
-            GM_setClipboard(text);
-            UI.showToast(overlay, toastLabel || `Αντιγράφηκε · ${String(text).slice(0, 28)}`);
-        }
-
-        function wireFavorites() {
-            const handler = (btn, e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                const model = btn.getAttribute('data-tm-sl-fav-model');
-                if (!model || typeof window.toggleFavoriteModel !== 'function') return;
-                const on = window.toggleFavoriteModel(model);
-                UI.showToast(overlay, on ? `Αγαπημένο · ${model}` : `Αφαιρέθηκε · ${model}`);
-                if (step === 'models') renderModelsBody();
-                else if (step === 'stores') renderStoresStep();
-            };
-            overlay.querySelectorAll('[data-tm-sl-fav-model]').forEach((btn) => {
-                btn.addEventListener('click', (e) => handler(btn, e));
-            });
-        }
-
-        function wireTagEditor() {
-            bodyEl.querySelectorAll('[data-tm-sl-tag-edit]').forEach((btn) => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const barcode = btn.getAttribute('data-tm-sl-tag-edit');
-                    const defs = typeof window.loadTagDefinitions === 'function' ? window.loadTagDefinitions() : {};
-                    const keys = Object.keys(defs || {});
-                    if (!keys.length) {
-                        UI.showToast(overlay, 'Δεν υπάρχουν ετικέτες — άνοιξε Διαχείριση Ετικετών');
-                        overlay.querySelector('#tm-sl-tags-btn')?.click();
-                        return;
-                    }
-                    document.querySelectorAll('.tm-sl-tag-menu').forEach((m) => m.remove());
-                    const menu = document.createElement('div');
-                    menu.className = 'tm-sl-tag-menu';
-                    const current = typeof window.getTagsForBarcode === 'function' ? window.getTagsForBarcode(barcode) : [];
-                    menu.innerHTML = keys.map((key) => {
-                        const def = defs[key] || {};
-                        const on = current.includes(key);
-                        return `<button type="button" class="${on ? 'is-on' : ''}" data-tag="${UI.esc(key)}">
-                            <span class="tm-sl-tag-chip" style="background:${UI.esc(def.color || '#64748b')}33;border-color:${UI.esc(def.color || '#64748b')};color:${UI.esc(def.color || '#64748b')}">${UI.esc(def.name || key)}</span>
-                            ${on ? '✓' : ''}
-                        </button>`;
-                    }).join('');
-                    const rect = btn.getBoundingClientRect();
-                    menu.style.position = 'fixed';
-                    menu.style.left = `${Math.min(rect.left, window.innerWidth - 180)}px`;
-                    menu.style.top = `${rect.bottom + 4}px`;
-                    document.body.appendChild(menu);
-                    menu.querySelectorAll('button[data-tag]').forEach((tagBtn) => {
-                        tagBtn.addEventListener('click', (ev) => {
-                            ev.stopPropagation();
-                            const key = tagBtn.getAttribute('data-tag');
-                            window.toggleTagOnBarcode?.(barcode, key);
-                            menu.remove();
-                            if (step === 'stores') renderStoresStep();
-                        });
-                    });
-                    const close = (ev) => {
-                        if (!menu.contains(ev.target) && ev.target !== btn) {
-                            menu.remove();
-                            document.removeEventListener('mousedown', close);
-                        }
-                    };
-                    setTimeout(() => document.addEventListener('mousedown', close), 0);
-                });
-            });
-        }
-
-        function updateSelectionBar() {
-            const bar = bodyEl.querySelector('#tm-sl-selection-bar');
-            const countEl = bodyEl.querySelector('#tm-sl-selection-count');
-            if (!bar) return;
-            const n = selectedBarcodes.size;
-            bar.hidden = n === 0;
-            if (countEl) countEl.textContent = `${n} επιλεγμένα`;
-            bodyEl.querySelectorAll('.tm-sl-unit-row[data-barcode]').forEach((row) => {
-                const code = row.getAttribute('data-barcode');
-                row.classList.toggle('is-selected', selectedBarcodes.has(code));
-                const cb = row.querySelector('.tm-sl-row-select');
-                if (cb) cb.checked = selectedBarcodes.has(code);
-            });
-        }
-
-        function wireTableExtras() {
-            Features.applyColumnVisibility?.(overlay.querySelector('#tm-sl-shell'), typeof window.loadColumnPrefs === 'function' ? window.loadColumnPrefs() : {});
-
-            toolbarEl.querySelectorAll('[data-tm-sl-col]').forEach((input) => {
-                input.addEventListener('change', () => {
-                    const prefs = typeof window.loadColumnPrefs === 'function' ? window.loadColumnPrefs() : {};
-                    prefs[input.getAttribute('data-tm-sl-col')] = !!input.checked;
-                    window.saveColumnPrefs?.(prefs);
-                    Features.applyColumnVisibility?.(overlay.querySelector('#tm-sl-shell'), prefs);
-                });
-            });
-
-            bodyEl.querySelectorAll('[data-tm-sl-unit-sort]').forEach((th) => {
-                th.addEventListener('click', () => {
-                    const key = th.getAttribute('data-tm-sl-unit-sort');
-                    if (unitSortKey === key) unitSortDir = unitSortDir === 'asc' ? 'desc' : 'asc';
-                    else {
-                        unitSortKey = key;
-                        unitSortDir = 'asc';
-                    }
-                    renderStoresStep();
-                });
-            });
-
-            bodyEl.querySelector('#tm-sl-select-all')?.addEventListener('change', (e) => {
-                const on = !!e.target.checked;
-                bodyEl.querySelectorAll('.tm-sl-row-select').forEach((cb) => {
-                    const code = cb.getAttribute('data-tm-sl-select');
-                    if (!code) return;
-                    if (on) selectedBarcodes.add(code);
-                    else selectedBarcodes.delete(code);
-                });
-                updateSelectionBar();
-            });
-
-            bodyEl.querySelectorAll('.tm-sl-row-select').forEach((cb) => {
-                cb.addEventListener('click', (e) => e.stopPropagation());
-                cb.addEventListener('change', () => {
-                    const code = cb.getAttribute('data-tm-sl-select');
-                    if (!code) return;
-                    if (cb.checked) selectedBarcodes.add(code);
-                    else selectedBarcodes.delete(code);
-                    updateSelectionBar();
-                });
-            });
-
-            bodyEl.querySelector('[data-tm-sl-clear-selection]')?.addEventListener('click', () => {
-                selectedBarcodes.clear();
-                updateSelectionBar();
-            });
-
-            bodyEl.querySelector('[data-tm-sl-export-selected]')?.addEventListener('click', () => {
-                const codes = [...selectedBarcodes];
-                const pool = [...allPhones, ...otherStorePhones].filter((p) => codes.includes(String(p.barcode || '')));
-                if (!pool.length) return;
-                window.PhoneCatalogSettings?.exportToCSV?.(pool, false);
-                UI.showToast(overlay, `Εξαγωγή ${pool.length} συσκευών`);
-            });
-
-            // keyboard through table rows
-            const rows = [...bodyEl.querySelectorAll('.tm-sl-unit-row[data-barcode]')];
-            rows.forEach((row) => {
-                row.addEventListener('keydown', (e) => {
-                    const idx = rows.indexOf(row);
-                    if (e.key === 'ArrowDown') {
-                        e.preventDefault();
-                        rows[Math.min(idx + 1, rows.length - 1)]?.focus();
-                    } else if (e.key === 'ArrowUp') {
-                        e.preventDefault();
-                        rows[Math.max(idx - 1, 0)]?.focus();
-                    } else if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const code = row.getAttribute('data-barcode');
-                        if (code) {
-                            copyText(code, `Barcode · ${code}`);
-                            trackCatalogStat('phoneCatalogBarcodeCopy');
-                        }
-                    } else if (e.key === ' ') {
-                        e.preventDefault();
-                        const code = row.getAttribute('data-barcode');
-                        if (!code) return;
-                        if (selectedBarcodes.has(code)) selectedBarcodes.delete(code);
-                        else selectedBarcodes.add(code);
-                        updateSelectionBar();
-                    }
-                });
-            });
-
-            if (focusBarcode) {
-                const row = bodyEl.querySelector(`.tm-sl-unit-row[data-barcode="${CSS.escape(focusBarcode)}"]`);
-                row?.classList.add('is-focused');
-                row?.focus?.();
-                row?.scrollIntoView?.({ block: 'nearest' });
-                focusBarcode = null;
-            }
-
-            wireTagEditor();
-            updateSelectionBar();
-        }
-
         function wireModelCards() {
             bodyEl.querySelectorAll('.tm-sl-model-card[data-tm-sl-model]').forEach((card) => {
                 const activate = () => {
                     selectedModel = card.getAttribute('data-tm-sl-model');
-                    if (typeof window.pushRecentModel === 'function') window.pushRecentModel(selectedModel);
                     renderStoresStep();
                 };
-                card.addEventListener('click', (e) => {
-                    if (e.target.closest('[data-tm-sl-fav-model]')) return;
-                    activate();
-                });
+                card.addEventListener('click', activate);
                 card.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
@@ -865,11 +616,9 @@
                     }
                 });
             });
-            wireFavorites();
             if (!keyboardBound) {
                 bindGridKeyboard(bodyEl, '.tm-sl-model-card[data-tm-sl-model]', (el) => {
                     selectedModel = el.getAttribute('data-tm-sl-model');
-                    if (typeof window.pushRecentModel === 'function') window.pushRecentModel(selectedModel);
                     renderStoresStep();
                 });
                 keyboardBound = true;
@@ -887,8 +636,8 @@
                 el.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const code = el.getAttribute('data-tm-sl-copy');
-                    if (!code) return;
-                    copyText(code, `Barcode · ${code}`);
+                    if (!code || typeof GM_setClipboard !== 'function') return;
+                    GM_setClipboard(code);
                     trackCatalogStat('phoneCatalogBarcodeCopy');
                     if (el.matches('button')) {
                         const prev = el.innerHTML;
@@ -902,39 +651,9 @@
                             el.innerHTML = prev;
                             if (prevLabel) el.setAttribute('aria-label', prevLabel);
                         }, 1200);
+                    } else {
+                        UI.showToast(overlay, `Αντιγράφηκε · ${code}`);
                     }
-                });
-            });
-
-            bodyEl.querySelectorAll('[data-tm-sl-copy-imei]').forEach((el) => {
-                el.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const imei = el.getAttribute('data-tm-sl-copy-imei');
-                    if (imei) copyText(imei, `IMEI · ${imei}`);
-                });
-            });
-
-            bodyEl.querySelectorAll('[data-tm-sl-copy-line]').forEach((el) => {
-                el.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const line = el.getAttribute('data-tm-sl-copy-line');
-                    if (line) copyText(line, `Γραμμή · ${line.slice(0, 40)}`);
-                });
-            });
-
-            bodyEl.querySelectorAll('[data-tm-sl-elsewhere]').forEach((btn) => {
-                btn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    const code = btn.getAttribute('data-tm-sl-elsewhere');
-                    focusBarcode = code;
-                    const keep = typeof window.getPhoneKeepFiltersPref === 'function' && window.getPhoneKeepFiltersPref();
-                    if (!keep) activeFilters = { grade: '', gb: '', color: '', tag: '' };
-                    catalogView = 'network';
-                    GM_setValue(CATALOG_VIEW_KEY, catalogView);
-                    UI.updateViewTabs(overlay, catalogView);
-                    if (!otherStoreLoaded) await ensureOtherStores();
-                    await renderStoresStep();
-                    UI.showToast(overlay, 'Προβολή δικτύου για αυτό το barcode');
                 });
             });
 
@@ -952,36 +671,19 @@
                 btn.addEventListener('click', () => {
                     const action = btn.getAttribute('data-tm-sl-empty-action');
                     if (action === 'clear-filters') {
-                        activeFilters = { grade: '', gb: '', color: '', tag: '' };
+                        activeFilters = { grade: '', gb: '', color: '' };
                         renderStoresStep();
                     } else if (action === 'clear-search') {
                         modelQuery = '';
                         renderModelsStep();
                     } else if (action === 'back-models') {
-                        activeFilters = { grade: '', gb: '', color: '', tag: '' };
+                        activeFilters = { grade: '', gb: '', color: '' };
                         renderModelsStep();
-                    } else if (action === 'switch-network') {
-                        catalogView = 'network';
-                        GM_setValue(CATALOG_VIEW_KEY, catalogView);
-                        UI.updateViewTabs(overlay, catalogView);
-                        ensureOtherStores().then(() => renderStoresStep());
                     } else if (action === 'refresh') {
                         refreshData();
                     }
                 });
             });
-
-            bodyEl.querySelectorAll('[data-tm-sl-open-settings]').forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    const which = btn.getAttribute('data-tm-sl-open-settings');
-                    if (which === 'colors') overlay.querySelector('#tm-sl-colors-btn')?.click();
-                    else if (which === 'models') overlay.querySelector('#tm-sl-models-btn')?.click();
-                    else if (which === 'stores') overlay.querySelector('#tm-sl-stores-btn')?.click();
-                });
-            });
-
-            wireTableExtras();
-            wireFavorites();
         }
 
         function wireNetworkStoreBoard() {
@@ -1051,22 +753,18 @@
                 chip.addEventListener('click', () => {
                     const key = chip.getAttribute('data-tm-sl-filter');
                     if (key === 'clear') {
-                        activeFilters = { grade: '', gb: '', color: '', tag: '' };
+                        activeFilters = { grade: '', gb: '', color: '' };
                     } else {
                         const val = chip.getAttribute('data-tm-sl-value') || '';
                         activeFilters[key] = activeFilters[key] === val ? '' : val;
                     }
-                    selectedBarcodes.clear();
                     renderStoresStep();
                 });
             });
         }
 
         function wireStoreBoard() {
-            if (wireNetworkStoreBoard()) {
-                wireUnitActions();
-                return;
-            }
+            if (wireNetworkStoreBoard()) return;
 
             bodyEl.querySelectorAll('[data-tm-sl-toggle-store]').forEach((head) => {
                 const toggle = () => {
@@ -1096,14 +794,12 @@
                 catalogView = view;
                 GM_setValue(CATALOG_VIEW_KEY, catalogView);
                 UI.updateViewTabs(overlay, catalogView);
-                const keep = typeof window.getPhoneKeepFiltersPref === 'function' && window.getPhoneKeepFiltersPref();
-                const preservedModel = keep ? selectedModel : null;
-                const preservedFilters = keep ? { ...activeFilters } : { grade: '', gb: '', color: '', tag: '' };
-                step = preservedModel ? 'stores' : 'models';
-                selectedModel = preservedModel;
-                activeFilters = preservedFilters;
-                selectedBarcodes.clear();
+                step = 'models';
+                selectedModel = null;
+                activeFilters = { grade: '', gb: '', color: '' };
                 syncCatalogHeaders();
+                toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort);
+                wireModelSearchToolbar();
 
                 const needsFetch = catalogView === 'network' && !otherStoreLoaded;
                 let skeletonTimer = null;
@@ -1115,8 +811,7 @@
                     await ensureOtherStores();
                     clearTimeout(skeletonTimer);
                 }
-                if (preservedModel) renderStoresStep();
-                else renderModelsStep();
+                renderModelsStep();
             };
             mineTab?.addEventListener('click', () => switchView('mine'));
             networkTab?.addEventListener('click', () => switchView('network'));
@@ -1126,119 +821,26 @@
 
         let modelSearchTimer = null;
 
-        function phonesForModelName(modelName) {
-            const filter = helpers.filterCatalogPhones;
-            const mine = filter(allPhones).filter((p) => helpers.extractBaseModel(p.model) === modelName);
-            const net = filter(otherStorePhones).filter((p) => helpers.extractBaseModel(p.model) === modelName);
-            return [...mine, ...net];
-        }
-
         function getFilteredModels() {
             let models = buildModelIndex(allPhones, otherStorePhones, helpers, catalogView);
-            const queryInfo = Features.parseSmartSearch
-                ? Features.parseSmartSearch(modelQuery)
-                : { text: modelQuery, tokens: [], barcode: '', imei: '' };
-
-            if (queryInfo.barcode || queryInfo.imei) {
-                const code = queryInfo.barcode || queryInfo.imei;
-                const hitModel = Features.findModelByCode?.(allPhones, otherStorePhones, code, helpers);
-                if (hitModel) {
-                    models = models.filter(([name]) => name === hitModel);
-                    focusBarcode = code;
-                }
-            } else if (modelQuery) {
-                models = models.filter(([name, data]) => {
-                    if (Features.modelMatchesSmartQuery) {
-                        return Features.modelMatchesSmartQuery(name, data, queryInfo, phonesForModelName(name));
-                    }
-                    return name.toLowerCase().includes(modelQuery.toLowerCase());
-                });
-            }
-
-            if (quickFilters.favoritesOnly) {
-                const favs = new Set(typeof window.loadFavoriteModels === 'function' ? window.loadFavoriteModels() : []);
-                models = models.filter(([name]) => favs.has(name));
-            }
-            if (quickFilters.inStockOnly) {
-                models = models.filter(([, data]) => (data.totalUnits || data.myCount || 0) > 0);
-            }
-            if (quickFilters.buyableOnly && catalogView === 'network') {
-                models = models.filter(([name]) => {
-                    const rows = buildNetworkStoreBoardData(name, otherStorePhones, { grade: '', gb: '', color: '', tag: '' }, helpers);
-                    return rows.some((r) => storeHasBuyableUnit(r));
-                });
-            }
-
-            // favorites float to top
-            const favSet = new Set(typeof window.loadFavoriteModels === 'function' ? window.loadFavoriteModels() : []);
             models = sortModels(models, modelSort);
-            models.sort((a, b) => {
-                const af = favSet.has(a[0]) ? 0 : 1;
-                const bf = favSet.has(b[0]) ? 0 : 1;
-                return af - bf;
-            });
+            if (modelQuery) {
+                models = models.filter(([name]) => name.toLowerCase().includes(modelQuery));
+            }
             return models;
         }
 
         function renderModelsBody() {
             const models = getFilteredModels();
-            const issues = typeof window.collectCatalogParseIssues === 'function'
-                ? window.collectCatalogParseIssues(
-                    catalogView === 'mine' ? allPhones : otherStorePhones,
-                    helpers
-                )
-                : null;
-            const parseBannerHtml = Features.buildParseBannerHtml?.(issues) || '';
-            bodyEl.innerHTML = UI.buildModelGrid(models, buildUiCtx({ parseBannerHtml }));
-            const scopeNote = (typeof window.getPhoneCatalogScope === 'function' && window.getPhoneCatalogScope() === 'all')
-                ? ' · όλες οι συσκευές'
-                : ' · iPhone';
+            bodyEl.innerHTML = UI.buildModelGrid(models, buildUiCtx());
             if (catalogView === 'mine') {
-                const mineCount = helpers.filterCatalogPhones(allPhones).filter((p) => (p.unitsRemaining || 0) > 0).length;
-                setStatus(`${models.length} μοντέλα · ${mineCount} συσκευές στο ${resolveMyStoreLabel()}${scopeNote}`);
+                const mineCount = allPhones.filter((p) => (p.unitsRemaining || 0) > 0).length;
+                setStatus(`${models.length} μοντέλα · ${mineCount} συσκευές στο ${resolveMyStoreLabel()}`);
             } else {
-                setStatus(`${models.length} μοντέλα · ${helpers.filterCatalogPhones(otherStorePhones).length} συσκευές στο δίκτυο${scopeNote}`);
+                setStatus(`${models.length} μοντέλα · ${otherStorePhones.length} συσκευές στο δίκτυο`);
             }
             wireModelCards();
             wireUnitActions();
-        }
-
-        function wireQuickFilters() {
-            toolbarEl.querySelectorAll('[data-tm-sl-quick]').forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    const key = btn.getAttribute('data-tm-sl-quick');
-                    if (key === 'keepFilters') {
-                        const next = !(typeof window.getPhoneKeepFiltersPref === 'function' && window.getPhoneKeepFiltersPref());
-                        window.setPhoneKeepFiltersPref?.(next);
-                        renderModelsStep();
-                        return;
-                    }
-                    if (key === 'scopeAll') {
-                        const cur = typeof window.getPhoneCatalogScope === 'function' ? window.getPhoneCatalogScope() : 'iphone';
-                        window.setPhoneCatalogScope?.(cur === 'all' ? 'iphone' : 'all');
-                        // re-filter cached pools
-                        allPhones = helpers.filterCatalogPhones(
-                            (typeof window.loadPhoneListCache === 'function' ? window.loadPhoneListCache() : null) || allPhones
-                        );
-                        if (otherStoreLoaded) {
-                            const otherCached = typeof window.getOtherStoreCache === 'function' ? window.getOtherStoreCache() : otherStorePhones;
-                            otherStorePhones = helpers.filterCatalogPhones(otherCached || otherStorePhones);
-                        }
-                        renderModelsStep();
-                        UI.showToast(overlay, window.getPhoneCatalogScope() === 'all' ? 'Scope: όλες οι συσκευές' : 'Scope: μόνο iPhone');
-                        return;
-                    }
-                    quickFilters[key] = !quickFilters[key];
-                    window.saveQuickFilters?.(quickFilters);
-                    renderModelsStep();
-                });
-            });
-            toolbarEl.querySelectorAll('[data-tm-sl-recent]').forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    selectedModel = btn.getAttribute('data-tm-sl-recent');
-                    if (selectedModel) renderStoresStep();
-                });
-            });
         }
 
         function wireModelSearchToolbar() {
@@ -1246,34 +848,11 @@
             if (searchInput) {
                 searchInput.value = modelQuery;
                 searchInput.addEventListener('input', () => {
-                    modelQuery = searchInput.value.trim();
+                    modelQuery = searchInput.value.trim().toLowerCase();
                     clearTimeout(modelSearchTimer);
                     modelSearchTimer = setTimeout(() => {
-                        const info = Features.parseSmartSearch?.(modelQuery);
-                        if (info?.barcode || info?.imei) {
-                            const code = info.barcode || info.imei;
-                            const hit = Features.findModelByCode?.(allPhones, otherStorePhones, code, helpers);
-                            if (hit) {
-                                selectedModel = hit;
-                                focusBarcode = code;
-                                if (typeof window.pushRecentModel === 'function') window.pushRecentModel(hit);
-                                renderStoresStep();
-                                return;
-                            }
-                        }
                         renderModelsBody();
                     }, 120);
-                });
-                searchInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const models = getFilteredModels();
-                        if (models.length === 1) {
-                            selectedModel = models[0][0];
-                            if (typeof window.pushRecentModel === 'function') window.pushRecentModel(selectedModel);
-                            renderStoresStep();
-                        }
-                    }
                 });
             }
 
@@ -1284,11 +863,10 @@
                     renderModelsStep();
                 });
             });
-            wireQuickFilters();
         }
 
         function hasActiveFilters() {
-            return !!(activeFilters.grade || activeFilters.gb || activeFilters.color || activeFilters.tag);
+            return !!(activeFilters.grade || activeFilters.gb || activeFilters.color);
         }
 
         function mergeNetworkStoreHints() {
@@ -1333,13 +911,9 @@
             selectedModel = null;
             lastTrackedLookupModel = null;
             lastTrackedNetworkModel = null;
-            selectedBarcodes.clear();
             UI.updateBreadcrumb(overlay, 'models');
             syncCatalogHeaders();
-            const recentModels = (typeof window.loadRecentModels === 'function' ? window.loadRecentModels() : [])
-                .filter((m) => buildModelIndex(allPhones, otherStorePhones, helpers, catalogView).some(([name]) => name === m))
-                .slice(0, 8);
-            toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, { quickFilters, recentModels });
+            toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort);
             wireModelSearchToolbar();
 
             const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
@@ -1355,18 +929,7 @@
         async function renderStoresStep() {
             if (!selectedModel) return renderModelsStep();
             step = 'stores';
-            selectedBarcodes.clear();
-            const viewLabel = catalogView === 'network' ? 'Άλλα καταστήματα' : resolveMyStoreLabel();
-            UI.updateBreadcrumb(overlay, 'stores', selectedModel, viewLabel);
-            // patch breadcrumb click targets after render
-            overlay.querySelectorAll('[data-tm-sl-crumb]').forEach((btn) => {
-                btn.addEventListener('click', () => {
-                    if (btn.getAttribute('data-tm-sl-crumb') === 'models') {
-                        activeFilters = { grade: '', gb: '', color: '', tag: '' };
-                        renderModelsStep();
-                    }
-                });
-            });
+            UI.updateBreadcrumb(overlay, 'stores', selectedModel);
             UI.setStoresModelHeader(overlay, selectedModel, catalogView === 'mine'
                 ? `Συσκευές στο ${resolveMyStoreLabel()}`
                 : 'Διαθεσιμότητα σε άλλα καταστήματα');
@@ -1375,56 +938,32 @@
             const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers, catalogView);
             const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({ counts: filterCounts }));
             const isNetwork = catalogView === 'network';
+            const viewLabel = isNetwork ? 'Άλλα καταστήματα' : resolveMyStoreLabel();
             const filtersSummary = typeof UI.formatActiveFiltersSummary === 'function'
                 ? UI.formatActiveFiltersSummary(activeFilters)
                 : '';
-            const isFavorite = typeof window.isFavoriteModel === 'function' && window.isFavoriteModel(selectedModel);
             toolbarEl.innerHTML = UI.buildStoreToolbar(selectedModel, chipsHtml, {
                 network: isNetwork,
                 viewLabel,
                 filtersSummary,
                 showPurchaseStatus: isNetwork,
-                isFavorite,
-                columnPrefs: typeof window.loadColumnPrefs === 'function' ? window.loadColumnPrefs() : {},
-                activeFilters,
             });
 
             toolbarEl.querySelector('#tm-sl-back')?.addEventListener('click', () => {
-                activeFilters = { grade: '', gb: '', color: '', tag: '' };
+                activeFilters = { grade: '', gb: '', color: '' };
                 renderModelsStep();
             });
             wireFilterChips(toolbarEl);
-            wireFavorites();
-            Features.applyColumnVisibility?.(
-                overlay.querySelector('#tm-sl-shell'),
-                typeof window.loadColumnPrefs === 'function' ? window.loadColumnPrefs() : {}
-            );
-            toolbarEl.querySelectorAll('[data-tm-sl-col]').forEach((input) => {
-                input.addEventListener('change', () => {
-                    const prefs = typeof window.loadColumnPrefs === 'function' ? window.loadColumnPrefs() : {};
-                    prefs[input.getAttribute('data-tm-sl-col')] = !!input.checked;
-                    window.saveColumnPrefs?.(prefs);
-                    Features.applyColumnVisibility?.(overlay.querySelector('#tm-sl-shell'), prefs);
-                });
-            });
 
             const filtersActive = hasActiveFilters();
-            const unitCtxExtra = {
-                unitSortKey,
-                unitSortDir,
-                modelName: selectedModel,
-                activeFilters,
-            };
 
             if (catalogView === 'mine') {
                 const variants = buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
                 bodyEl.innerHTML = UI.buildMyStoreBoard(selectedModel, variants, buildUiCtx({
                     hideStoreInUnits: true,
                     hasActiveFilters: filtersActive,
-                    ...unitCtxExtra,
                 }));
-                const filterNote = filtersActive ? ` · φίλτρα: ${filtersSummary}` : '';
-                setStatus(`Εμφάνιση ${variants.length} από stock · ${resolveMyStoreLabel()}${filterNote}`);
+                setStatus(`${variants.length} ${variants.length === 1 ? 'συσκευή' : 'συσκευές'} στο ${resolveMyStoreLabel()}`);
                 if (selectedModel !== lastTrackedLookupModel) {
                     trackCatalogStat('phoneCatalogLookup');
                     lastTrackedLookupModel = selectedModel;
@@ -1462,14 +1001,10 @@
                 hideStoreInUnits: true,
                 showDistance: true,
                 hasActiveFilters: filtersActive,
-                storesResolving,
-                activeFilters,
-                ...unitCtxExtra,
             }));
 
             const storeCount = storeRows.length;
-            const filterNote = filtersActive ? ` · ${filtersSummary}` : '';
-            setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} στο δίκτυο${filterNote}`);
+            setStatus(`${storeCount} ${storeCount === 1 ? 'κατάστημα' : 'καταστήματα'} στο δίκτυο`);
             if (selectedModel !== lastTrackedLookupModel) {
                 trackCatalogStat('phoneCatalogLookup');
                 lastTrackedLookupModel = selectedModel;
@@ -1484,7 +1019,7 @@
         async function ensureOtherStores(onProgress) {
             if (otherStoreLoaded) return;
             if (typeof window.fetchOtherStorePhones !== 'function') return;
-            otherStorePhones = helpers.filterCatalogPhones(
+            otherStorePhones = helpers.filterIphoneTitlePhones(
                 await window.fetchOtherStorePhones({ onProgress })
             );
             otherStoreLoaded = true;
@@ -1585,9 +1120,6 @@
         }
 
         async function refreshData() {
-            if (catalogView === 'network' || otherStoreLoaded) {
-                UI.showToast(overlay, 'Ανανέωση — θα ξαναφορτωθούν τα δεδομένα δικτύου');
-            }
             const progress = createLoadProgressController();
             UI.setRefreshing(overlay, true);
             const bodyEmpty = !bodyEl.querySelector('.tm-sl-model-grid, .tm-sl-mine-board, .tm-sl-network-board');
@@ -1599,7 +1131,7 @@
                 progress.startIndeterminate('Φόρτωση καταλόγου συσκευών…', progress.stats.phoneListMs);
                 progress.beginPhaseClock();
                 if (typeof window.fetchPhoneList === 'function') {
-                    allPhones = helpers.filterCatalogPhones(await window.fetchPhoneList({
+                    allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList({
                         onProgress: (info) => {
                             if (!info) return;
                             if (info.phase === 'download' && info.ratio != null) {
@@ -1718,16 +1250,10 @@
             const tag = (e.target && e.target.tagName) || '';
             const typing = tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable;
 
-            if ((e.ctrlKey || e.metaKey) && (e.key === 'r' || e.key === 'R')) {
-                e.preventDefault();
-                refreshData();
-                return;
-            }
-
             if (e.key === 'Escape') {
                 e.preventDefault();
                 if (step === 'stores') {
-                    activeFilters = { grade: '', gb: '', color: '', tag: '' };
+                    activeFilters = { grade: '', gb: '', color: '' };
                     renderModelsStep();
                     return;
                 }
@@ -1753,13 +1279,13 @@
 
         // Hydrate network cache synchronously so UI can paint without waiting on network.
         if (otherCached && otherCached.length) {
-            otherStorePhones = helpers.filterCatalogPhones(otherCached);
+            otherStorePhones = helpers.filterIphoneTitlePhones(otherCached);
             otherStoreLoaded = true;
             mergeNetworkStoreHints();
         }
 
         if (cached && cached.length) {
-            allPhones = helpers.filterCatalogPhones(cached);
+            allPhones = helpers.filterIphoneTitlePhones(cached);
             const ts = GM_getValue(window.PHONE_LIST_CACHE_TIMESTAMP_KEY || 'tm_phone_list_cache_timestamp', Date.now());
             lastUpdated = new Date(ts);
             syncFreshness();
