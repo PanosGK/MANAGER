@@ -1,11 +1,11 @@
 {
-  "version": "309",
+  "version": "310",
   "loaderVersion": "36",
-  "silentVersion": "1",
-  "displayVersion": "36.1",
+  "silentVersion": "2",
+  "displayVersion": "36.2",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Loader checks GitHub manifest before running cached bundle so silent pushes apply on the same page load",
+  "releaseNotes": "Phone catalog: tags, model-first cards, contrast, stacking fixes for menus/toast",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v309 / Custom Ver. 36.1 — generated, do not edit */
+/* MyManager Suite bundle v310 / Custom Ver. 36.2 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '309',
+        version: '310',
         loaderVersion: '36',
-        silentVersion: '1',
-        displayVersion: '36.1',
+        silentVersion: '2',
+        displayVersion: '36.2',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -50900,7 +50900,10 @@ window.initOrderTracking = initOrderTracking;
         @keyframes tm-sl-in { from { opacity: 0; } to { opacity: 1; } }
         @keyframes tm-sl-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
         @keyframes tm-sl-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        @keyframes tm-sl-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        @keyframes tm-sl-toast-in {
+            from { opacity: 0; transform: translate(-50%, 8px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
 
         .tm-sl-overlay {
             background: var(--tm-overlay-dim, rgba(0,0,0,0.75)) !important;
@@ -51026,8 +51029,9 @@ window.initOrderTracking = initOrderTracking;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 6px; padding: 8px 10px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-model-card { padding: 9px 10px; border-radius: 8px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-model-name { font-size: 12px; margin-bottom: 4px; padding-right: 48px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-card { padding: 12px 12px 10px; border-radius: 10px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-name { font-size: 14px; margin-bottom: 0; padding-right: 0; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-card-foot { margin-top: 8px; padding-top: 8px; gap: 6px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-empty { padding: 24px 16px; }
 
         .tm-sl-network-board {
@@ -51101,6 +51105,8 @@ window.initOrderTracking = initOrderTracking;
             border-bottom: 1px solid var(--tm-shop-item-border);
             background: color-mix(in srgb, var(--tm-shop-item-border) 6%, var(--tm-shop-item-bg));
             flex-shrink: 0;
+            position: relative;
+            z-index: 2;
         }
         .tm-sl-network-detail-head__row {
             display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
@@ -51137,7 +51143,7 @@ window.initOrderTracking = initOrderTracking;
             font-size: 12px;
         }
         .tm-sl-unit-table thead {
-            position: sticky; top: 0; z-index: 1;
+            position: sticky; top: 0; z-index: 3;
             background: color-mix(in srgb, var(--tm-shop-item-border) 14%, var(--tm-shop-item-bg));
         }
         .tm-sl-unit-table th {
@@ -51272,12 +51278,15 @@ window.initOrderTracking = initOrderTracking;
             font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;
         }
         .tm-sl-toast__open:hover { background: color-mix(in srgb, #fff 12%, transparent); }
-        .tm-sl-model-card-top {
-            display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
-            margin-bottom: 4px;
+        .tm-sl-model-card-foot {
+            display: flex; flex-direction: column; gap: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
         }
-        .tm-sl-model-card-top .tm-sl-model-name { margin-bottom: 0; flex: 1; min-width: 0; }
-        .tm-sl-model-card-top .tm-sl-model-count { margin-bottom: 0; flex-shrink: 0; }
+        .tm-sl-model-stats {
+            display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px;
+        }
         .tm-sl-unit-table .tm-sl-table-blocked {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 3px 8px; border-radius: 6px;
@@ -51374,6 +51383,8 @@ window.initOrderTracking = initOrderTracking;
             border-radius: 10px;
             border: 1px solid var(--tm-shop-item-border);
             background: var(--tm-shop-item-bg);
+            position: relative;
+            z-index: 12;
         }
         .tm-sl-load[hidden] { display: none !important; }
         .tm-sl-load__row {
@@ -51548,6 +51559,9 @@ window.initOrderTracking = initOrderTracking;
             border-bottom: 1px solid var(--tm-shop-item-border);
             flex-shrink: 0;
             background: var(--tm-shop-item-bg);
+            position: relative;
+            z-index: 30;
+            overflow: visible;
         }
         .tm-sl-header-row {
             display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -51562,14 +51576,25 @@ window.initOrderTracking = initOrderTracking;
             color: var(--tm-muted-text, var(--tm-secondary-color));
         }
         .tm-sl-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
-        .tm-sl-settings-wrap { position: relative; }
+        .tm-sl-settings-wrap { position: relative; z-index: 40; }
         .tm-sl-settings-menu, .tm-sl-export-menu {
             position: absolute; top: calc(100% + 6px); right: 0;
             background: var(--tm-shop-item-bg);
             border: 1px solid var(--tm-shop-item-border);
             border-radius: 12px;
             box-shadow: 0 12px 32px rgba(0,0,0,0.2);
-            padding: 6px; min-width: 210px; z-index: 30;
+            padding: 6px; min-width: 210px; z-index: 50;
+        }
+        /* Ported to document.body so shell overflow/zoom can't bury or clip menus */
+        .tm-sl-settings-menu.tm-sl-menu--fixed,
+        .tm-sl-export-menu.tm-sl-menu--fixed {
+            position: fixed !important;
+            top: var(--tm-sl-menu-top, 0) !important;
+            right: var(--tm-sl-menu-right, 8px) !important;
+            left: auto !important;
+            z-index: 100060 !important;
+            max-height: min(70vh, 420px);
+            overflow: auto;
         }
         .tm-sl-settings-menu button, .tm-sl-export-menu button {
             width: 100%; text-align: left; border: none; background: transparent;
@@ -51605,9 +51630,8 @@ window.initOrderTracking = initOrderTracking;
             border-bottom: 1px solid var(--tm-shop-item-border);
             background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg));
             flex-shrink: 0;
-            position: sticky;
-            top: 0;
-            z-index: 4;
+            position: relative;
+            z-index: 10;
         }
         .tm-sl-toolbar-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .tm-sl-toolbar-row + .tm-sl-toolbar-row { margin-top: 8px; }
@@ -51762,6 +51786,8 @@ window.initOrderTracking = initOrderTracking;
 
         .tm-sl-body {
             flex: 1; overflow-y: auto; padding: 16px 20px; min-height: 0;
+            position: relative;
+            z-index: 1;
         }
         .tm-sl-shell.tm-sl-density--compact .tm-sl-body { padding: 10px 14px; }
         .tm-sl-shell.tm-sl-density--compact .tm-sl-model-card { padding: 10px 12px; }
@@ -51781,25 +51807,57 @@ window.initOrderTracking = initOrderTracking;
 
         .tm-sl-model-card {
             position: relative;
-            border: 1px solid var(--tm-shop-item-border);
-            border-radius: 10px;
-            padding: 12px 14px;
-            background: var(--tm-shop-item-bg);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 85%, var(--tm-primary-color));
+            border-radius: 12px;
+            padding: 14px 14px 12px;
+            background:
+                linear-gradient(180deg,
+                    color-mix(in srgb, var(--tm-primary-color) 6%, var(--tm-shop-item-bg)) 0%,
+                    var(--tm-shop-item-bg) 42%);
             cursor: pointer;
-            transition: border-color 0.12s, background 0.12s;
+            transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.15s;
+            box-shadow: 0 1px 2px color-mix(in srgb, #000 6%, transparent);
+            border-left: 3px solid var(--tm-shop-item-border);
         }
         .tm-sl-model-card:hover {
-            border-color: var(--tm-primary-color);
-            background: var(--tm-shop-item-hover-bg);
+            border-color: color-mix(in srgb, var(--tm-primary-color) 55%, var(--tm-shop-item-border));
+            background:
+                linear-gradient(180deg,
+                    color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-shop-item-bg)) 0%,
+                    var(--tm-shop-item-hover-bg, var(--tm-shop-item-bg)) 50%);
+            box-shadow: 0 6px 18px color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
+            transform: translateY(-1px);
         }
         .tm-sl-model-card:focus-visible {
             outline: 2px solid var(--tm-primary-color);
             outline-offset: 2px;
         }
-        .tm-sl-model-card.tm-sl-heat--high { border-left: 3px solid var(--tm-success-color, #22c55e); }
-        .tm-sl-model-card.tm-sl-heat--low { border-left: 3px solid var(--tm-warning-color, #f59e0b); }
-        .tm-sl-model-card.tm-sl-heat--local { border-left: 3px solid var(--tm-info-color, #0ea5e9); }
-        .tm-sl-model-card.tm-sl-heat--mid { border-left: 3px solid var(--tm-shop-item-border); }
+        .tm-sl-model-card.tm-sl-heat--high {
+            border-left-color: var(--tm-success-color, #22c55e);
+            background:
+                linear-gradient(180deg,
+                    color-mix(in srgb, var(--tm-success-color, #22c55e) 10%, var(--tm-shop-item-bg)) 0%,
+                    var(--tm-shop-item-bg) 48%);
+        }
+        .tm-sl-model-card.tm-sl-heat--low {
+            border-left-color: var(--tm-warning-color, #f59e0b);
+            background:
+                linear-gradient(180deg,
+                    color-mix(in srgb, var(--tm-warning-color, #f59e0b) 12%, var(--tm-shop-item-bg)) 0%,
+                    var(--tm-shop-item-bg) 48%);
+        }
+        .tm-sl-model-card.tm-sl-heat--local {
+            border-left-color: var(--tm-info-color, #0ea5e9);
+            background:
+                linear-gradient(180deg,
+                    color-mix(in srgb, var(--tm-info-color, #0ea5e9) 11%, var(--tm-shop-item-bg)) 0%,
+                    var(--tm-shop-item-bg) 48%);
+        }
+        .tm-sl-model-card.tm-sl-heat--mid {
+            border-left-color: color-mix(in srgb, var(--tm-primary-color) 45%, var(--tm-shop-item-border));
+        }
 
         .tm-sl-mine-badge {
             position: absolute; top: 8px; right: 8px;
@@ -51812,27 +51870,33 @@ window.initOrderTracking = initOrderTracking;
         }
 
         .tm-sl-model-name {
-            font-size: 14px; font-weight: 800; line-height: 1.25;
-            margin-bottom: 6px; padding-right: 8px;
+            font-size: 17px; font-weight: 800; line-height: 1.2;
+            letter-spacing: -0.03em;
+            margin: 0;
+            padding: 0;
             color: var(--tm-shop-item-text);
+            word-break: break-word;
         }
         .tm-sl-model-count {
-            font-size: 18px; font-weight: 900; line-height: 1.1;
+            display: inline-flex; align-items: baseline; gap: 4px;
+            font-size: 15px; font-weight: 800; line-height: 1.1;
             letter-spacing: -0.02em;
-            color: var(--tm-shop-item-text);
-            margin-bottom: 4px;
+            font-variant-numeric: tabular-nums;
+            color: var(--tm-primary-color);
+            margin: 0;
         }
         .tm-sl-model-count span {
-            font-size: 12px; font-weight: 600; opacity: 0.7; margin-left: 4px;
+            font-size: 11px; font-weight: 650; opacity: 0.85; margin-left: 0;
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
         }
         .tm-sl-hl {
-            background: color-mix(in srgb, var(--tm-primary-color) 30%, transparent);
-            color: inherit; border-radius: 2px; padding: 0 1px;
+            background: color-mix(in srgb, var(--tm-primary-color) 28%, transparent);
+            color: inherit; border-radius: 3px; padding: 0 2px;
         }
         .tm-sl-model-meta {
-            font-size: 12px; font-weight: 600;
-            color: var(--tm-info-color, #0ea5e9);
-            margin-bottom: 6px;
+            font-size: 12px; font-weight: 650;
+            color: var(--tm-muted-text, var(--tm-secondary-color));
+            margin: 0;
         }
         .tm-sl-model-stores { font-size: 11px; opacity: 0.75; margin-bottom: 8px; }
         .tm-sl-model-store-list {
@@ -52264,6 +52328,8 @@ window.initOrderTracking = initOrderTracking;
             border-top: 1px solid var(--tm-shop-item-border);
             display: flex; justify-content: space-between; align-items: center;
             font-size: 11px; opacity: 0.85; flex-shrink: 0; gap: 12px;
+            position: relative;
+            z-index: 8;
         }
         .tm-sl-footer-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
         .tm-sl-density-btn {
@@ -52341,7 +52407,7 @@ window.initOrderTracking = initOrderTracking;
             box-shadow: 0 8px 24px rgba(0,0,0,0.35);
             opacity: 0; pointer-events: none;
             transition: opacity 0.2s;
-            z-index: 5;
+            z-index: 70; /* above footer/toolbar chrome */
         }
         .tm-sl-toast.is-visible {
             opacity: 1; pointer-events: auto;
@@ -52357,7 +52423,7 @@ window.initOrderTracking = initOrderTracking;
             --tm-sl-hairline: color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
             --tm-sl-fill: color-mix(in srgb, var(--tm-shop-item-border) 22%, var(--tm-shop-item-bg));
             --tm-sl-fill-strong: color-mix(in srgb, var(--tm-shop-item-border) 34%, var(--tm-shop-item-bg));
-            --tm-sl-label: color-mix(in srgb, var(--tm-shop-item-text) 58%, transparent);
+            --tm-sl-label: color-mix(in srgb, var(--tm-shop-item-text) 72%, transparent);
             --tm-sl-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
             border-radius: var(--tm-sl-r-xl) !important;
             border: 1px solid var(--tm-sl-hairline) !important;
@@ -52380,10 +52446,13 @@ window.initOrderTracking = initOrderTracking;
         }
         .tm-sl-header {
             padding: 16px 18px 12px !important;
-            background: color-mix(in srgb, var(--tm-shop-item-bg) 88%, transparent) !important;
+            background: color-mix(in srgb, var(--tm-shop-item-bg) 92%, transparent) !important;
             border-bottom: 0.5px solid var(--tm-sl-hairline) !important;
             backdrop-filter: saturate(180%) blur(16px);
             -webkit-backdrop-filter: saturate(180%) blur(16px);
+            position: relative !important;
+            z-index: 30 !important;
+            overflow: visible !important;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-header,
         .tm-sl-shell.tm-sl-step--stores .tm-sl-header {
@@ -52456,17 +52525,17 @@ window.initOrderTracking = initOrderTracking;
             margin-top: 12px !important;
             padding: 3px !important;
             border-radius: 10px !important;
-            border: 0 !important;
-            background: var(--tm-sl-fill) !important;
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 18%, var(--tm-sl-hairline)) !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 8%, var(--tm-sl-fill)) !important;
             gap: 2px !important;
             box-shadow: none !important;
         }
         .tm-sl-view-tab {
             border-radius: 8px !important;
             font-size: 12.5px !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             padding: 8px 12px !important;
-            color: var(--tm-sl-label) !important;
+            color: color-mix(in srgb, var(--tm-shop-item-text) 72%, transparent) !important;
             background: transparent !important;
             box-shadow: none !important;
             transition: background 0.18s var(--tm-sl-ease), color 0.18s var(--tm-sl-ease),
@@ -52474,14 +52543,14 @@ window.initOrderTracking = initOrderTracking;
         }
         .tm-sl-view-tab:hover {
             color: var(--tm-shop-item-text) !important;
-            background: transparent !important;
+            background: color-mix(in srgb, var(--tm-shop-item-bg) 55%, transparent) !important;
         }
         .tm-sl-view-tab.is-active {
             background: var(--tm-shop-item-bg) !important;
-            color: var(--tm-shop-item-text) !important;
+            color: var(--tm-primary-color) !important;
             border: 0 !important;
-            box-shadow: 0 1px 2px color-mix(in srgb, #000 12%, transparent),
-                0 0 0 0.5px color-mix(in srgb, #000 6%, transparent) !important;
+            box-shadow: 0 1px 3px color-mix(in srgb, var(--tm-primary-color) 18%, transparent),
+                0 0 0 1px color-mix(in srgb, var(--tm-primary-color) 22%, transparent) !important;
         }
         .tm-sl-view-tab:focus-visible {
             outline: none !important;
@@ -52490,8 +52559,8 @@ window.initOrderTracking = initOrderTracking;
 
         .tm-sl-toolbar {
             padding: 12px 18px !important;
-            border-bottom: 0.5px solid var(--tm-sl-hairline) !important;
-            background: color-mix(in srgb, var(--tm-shop-item-bg) 70%, var(--tm-sl-fill)) !important;
+            border-bottom: 1px solid color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-sl-hairline)) !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 5%, var(--tm-shop-item-bg)) !important;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-toolbar {
             padding: 10px 14px !important;
@@ -52499,16 +52568,18 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-search {
             height: 36px !important;
             border-radius: 10px !important;
-            border: 0 !important;
-            background: var(--tm-sl-fill) !important;
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 16%, var(--tm-shop-item-border)) !important;
+            background: var(--tm-shop-item-bg) !important;
             font-size: 14px !important;
-            font-weight: 400 !important;
+            font-weight: 500 !important;
+            color: var(--tm-shop-item-text) !important;
             padding: 0 36px 0 36px !important;
-            transition: background 0.18s var(--tm-sl-ease), box-shadow 0.18s var(--tm-sl-ease) !important;
+            transition: background 0.18s var(--tm-sl-ease), box-shadow 0.18s var(--tm-sl-ease),
+                border-color 0.18s var(--tm-sl-ease) !important;
         }
         .tm-sl-search:focus {
             background: var(--tm-shop-item-bg) !important;
-            border: 0 !important;
+            border-color: var(--tm-primary-color) !important;
             box-shadow: 0 0 0 3.5px color-mix(in srgb, var(--tm-primary-color) 22%, transparent) !important;
         }
         .tm-sl-search-icon { left: 11px !important; opacity: 0.4 !important; }
@@ -52523,58 +52594,62 @@ window.initOrderTracking = initOrderTracking;
         }
         .tm-sl-sort-select {
             height: 36px !important;
-            border: 0 !important;
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 16%, var(--tm-shop-item-border)) !important;
             border-radius: 10px !important;
-            background: var(--tm-sl-fill) !important;
+            background: var(--tm-shop-item-bg) !important;
             font-size: 12px !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             color: var(--tm-shop-item-text) !important;
             padding: 0 12px !important;
         }
         .tm-sl-recent { gap: 6px !important; margin-top: 2px !important; }
         .tm-sl-recent__label {
             font-size: 11px !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             color: var(--tm-sl-label) !important;
             opacity: 1 !important;
             text-transform: none !important;
         }
         .tm-sl-recent__chip {
-            border: 0 !important;
-            background: var(--tm-sl-fill) !important;
+            border: 1px solid color-mix(in srgb, var(--tm-info-color, #0ea5e9) 28%, var(--tm-shop-item-border)) !important;
+            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 10%, var(--tm-shop-item-bg)) !important;
+            color: var(--tm-shop-item-text) !important;
             border-radius: 980px !important;
             padding: 5px 11px !important;
             font-size: 11px !important;
-            font-weight: 600 !important;
-            transition: background 0.18s var(--tm-sl-ease), color 0.18s var(--tm-sl-ease) !important;
+            font-weight: 700 !important;
+            transition: background 0.18s var(--tm-sl-ease), color 0.18s var(--tm-sl-ease),
+                border-color 0.18s var(--tm-sl-ease) !important;
         }
         .tm-sl-recent__chip:hover {
-            background: var(--tm-sl-fill-strong) !important;
-            border-color: transparent !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-shop-item-bg)) !important;
+            border-color: color-mix(in srgb, var(--tm-primary-color) 40%, transparent) !important;
             color: var(--tm-primary-color) !important;
         }
 
         .tm-sl-chips { gap: 6px !important; margin-top: 8px !important; }
         .tm-sl-chip {
-            border: 0 !important;
-            background: var(--tm-sl-fill) !important;
+            border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 80%, var(--tm-primary-color)) !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 6%, var(--tm-shop-item-bg)) !important;
+            color: var(--tm-shop-item-text) !important;
             border-radius: 980px !important;
             padding: 6px 11px !important;
             font-size: 11.5px !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             transition: background 0.18s var(--tm-sl-ease), color 0.18s var(--tm-sl-ease),
-                transform 0.12s var(--tm-sl-ease) !important;
+                border-color 0.18s var(--tm-sl-ease), transform 0.12s var(--tm-sl-ease) !important;
         }
         .tm-sl-chip:hover {
-            background: var(--tm-sl-fill-strong) !important;
-            border-color: transparent !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-shop-item-bg)) !important;
+            border-color: color-mix(in srgb, var(--tm-primary-color) 40%, var(--tm-shop-item-border)) !important;
         }
         .tm-sl-chip.is-active {
-            background: color-mix(in srgb, var(--tm-primary-color) 16%, var(--tm-shop-item-bg)) !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 20%, var(--tm-shop-item-bg)) !important;
             color: var(--tm-primary-color) !important;
-            border-color: transparent !important;
+            border-color: color-mix(in srgb, var(--tm-primary-color) 50%, transparent) !important;
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--tm-primary-color) 18%, transparent);
         }
-        .tm-sl-chip-count { opacity: 0.55 !important; font-weight: 500 !important; }
+        .tm-sl-chip-count { opacity: 0.7 !important; font-weight: 650 !important; }
         .tm-sl-context-strip {
             font-size: 12.5px !important;
             font-weight: 500 !important;
@@ -52587,10 +52662,10 @@ window.initOrderTracking = initOrderTracking;
 
         .tm-sl-body {
             padding: 16px 18px !important;
-            background: color-mix(in srgb, var(--tm-sl-fill) 45%, var(--tm-shop-item-bg)) !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 4%, var(--tm-sl-fill)) !important;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-body {
-            background: var(--tm-shop-item-bg) !important;
+            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 4%, var(--tm-shop-item-bg)) !important;
         }
         .tm-sl-shell:not(.tm-sl-view--network).tm-sl-step--stores .tm-sl-body {
             padding: 14px 16px !important;
@@ -52598,78 +52673,74 @@ window.initOrderTracking = initOrderTracking;
         }
 
         .tm-sl-model-grid {
-            gap: 10px !important;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+            gap: 12px !important;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)) !important;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-model-grid {
-            gap: 8px !important;
+            gap: 10px !important;
             padding: 12px 14px !important;
-            grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)) !important;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
         }
         .tm-sl-model-card {
-            border: 0 !important;
             border-radius: var(--tm-sl-r-lg) !important;
-            padding: 14px 15px !important;
-            background: var(--tm-shop-item-bg) !important;
-            box-shadow: 0 0 0 0.5px color-mix(in srgb, #000 8%, transparent),
-                0 1px 2px color-mix(in srgb, #000 4%, transparent) !important;
+            padding: 14px 14px 12px !important;
             transition: transform 0.18s var(--tm-sl-ease), box-shadow 0.18s var(--tm-sl-ease),
-                background 0.18s var(--tm-sl-ease) !important;
-            border-left: 0 !important;
-        }
-        .tm-sl-model-card.tm-sl-heat--high,
-        .tm-sl-model-card.tm-sl-heat--low,
-        .tm-sl-model-card.tm-sl-heat--local,
-        .tm-sl-model-card.tm-sl-heat--mid {
-            border-left: 0 !important;
-        }
-        .tm-sl-model-card:hover {
-            transform: translateY(-1px);
-            background: var(--tm-shop-item-bg) !important;
-            border-color: transparent !important;
-            box-shadow: 0 0 0 0.5px color-mix(in srgb, var(--tm-primary-color) 28%, transparent),
-                0 8px 22px color-mix(in srgb, #000 10%, transparent) !important;
+                background 0.18s var(--tm-sl-ease), border-color 0.18s var(--tm-sl-ease) !important;
         }
         .tm-sl-model-card:active { transform: translateY(0) scale(0.995); }
         .tm-sl-model-name {
-            font-size: 13.5px !important;
-            font-weight: 650 !important;
-            letter-spacing: -0.02em !important;
-            margin-bottom: 2px !important;
+            font-size: 17px !important;
+            font-weight: 800 !important;
+            letter-spacing: -0.03em !important;
+            line-height: 1.2 !important;
+            margin: 0 !important;
+            color: var(--tm-shop-item-text) !important;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-name {
+            font-size: 15px !important;
+        }
+        .tm-sl-model-card-foot {
+            margin-top: 10px !important;
+            padding-top: 10px !important;
+            border-top: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 75%, transparent) !important;
+            gap: 8px !important;
         }
         .tm-sl-model-count {
-            font-size: 22px !important;
-            font-weight: 700 !important;
-            letter-spacing: -0.035em !important;
+            font-size: 15px !important;
+            font-weight: 800 !important;
+            letter-spacing: -0.02em !important;
+            color: var(--tm-primary-color) !important;
             font-variant-numeric: tabular-nums;
         }
         .tm-sl-model-count span {
-            font-size: 12px !important;
-            font-weight: 500 !important;
+            font-size: 11px !important;
+            font-weight: 650 !important;
             color: var(--tm-sl-label) !important;
             opacity: 1 !important;
         }
         .tm-sl-model-meta {
             font-size: 12px !important;
-            font-weight: 500 !important;
+            font-weight: 650 !important;
             color: var(--tm-sl-label) !important;
-            margin-bottom: 8px !important;
+            margin: 0 !important;
         }
         .tm-sl-grade-chip {
-            border-radius: 6px !important;
-            font-size: 10px !important;
-            font-weight: 650 !important;
-            padding: 3px 7px !important;
+            border-radius: 7px !important;
+            font-size: 10.5px !important;
+            font-weight: 750 !important;
+            padding: 3px 8px !important;
+            box-shadow: 0 0 0 1px color-mix(in srgb, #000 8%, transparent);
         }
         .tm-sl-whisper {
             border-radius: 980px !important;
-            font-size: 10.5px !important;
-            font-weight: 600 !important;
-            padding: 3px 8px !important;
-            margin-bottom: 8px !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            padding: 4px 9px !important;
+            margin: 0 !important;
+            align-self: flex-start;
         }
         .tm-sl-hl {
-            background: color-mix(in srgb, var(--tm-primary-color) 18%, transparent) !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 26%, transparent) !important;
             border-radius: 4px !important;
             padding: 0 2px !important;
         }
@@ -52756,6 +52827,119 @@ window.initOrderTracking = initOrderTracking;
             border-bottom: none !important;
             color: var(--tm-primary-color) !important;
             padding: 2px 0 !important;
+        }
+        .tm-sl-table-barcode-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+            min-width: 0;
+        }
+        .tm-sl-phone-tags {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+        }
+        .tm-sl-phone-tag {
+            appearance: none;
+            border: 1px solid color-mix(in srgb, var(--tm-sl-tag-color, #9e9e9e) 45%, transparent);
+            background: color-mix(in srgb, var(--tm-sl-tag-color, #9e9e9e) 16%, var(--tm-shop-item-bg));
+            color: var(--tm-sl-tag-color, #9e9e9e);
+            border-radius: 980px;
+            padding: 2px 8px;
+            font-size: 10.5px;
+            font-weight: 750;
+            line-height: 1.3;
+            cursor: pointer;
+        }
+        .tm-sl-phone-tag:hover {
+            background: color-mix(in srgb, var(--tm-sl-tag-color, #9e9e9e) 28%, var(--tm-shop-item-bg));
+        }
+        .tm-sl-phone-tag-add {
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 980px;
+            border: 1px dashed color-mix(in srgb, var(--tm-primary-color) 40%, var(--tm-shop-item-border));
+            background: color-mix(in srgb, var(--tm-primary-color) 8%, var(--tm-shop-item-bg));
+            color: var(--tm-primary-color);
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            display: inline-grid;
+            place-items: center;
+            padding: 0;
+        }
+        .tm-sl-phone-tag-add:hover {
+            background: color-mix(in srgb, var(--tm-primary-color) 16%, var(--tm-shop-item-bg));
+            border-style: solid;
+        }
+        .tm-sl-chip-tag-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: 0;
+            box-shadow: 0 0 0 1px color-mix(in srgb, #000 12%, transparent);
+        }
+        .tm-sl-tag-picker {
+            position: fixed;
+            z-index: 100060;
+            min-width: 210px;
+            max-width: 280px;
+            max-height: min(320px, 60vh);
+            overflow: auto;
+            padding: 6px;
+            border-radius: 12px;
+            border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 80%, var(--tm-primary-color));
+            background: var(--tm-shop-item-bg);
+            box-shadow: 0 14px 40px color-mix(in srgb, #000 28%, transparent);
+        }
+        .tm-sl-tag-picker__empty {
+            padding: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+            line-height: 1.4;
+        }
+        .tm-sl-tag-picker__item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            background: transparent;
+            color: var(--tm-shop-item-text);
+            text-align: left;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 650;
+            cursor: pointer;
+        }
+        .tm-sl-tag-picker__item:hover {
+            background: color-mix(in srgb, var(--tm-primary-color) 10%, transparent);
+        }
+        .tm-sl-tag-picker__item.is-active {
+            background: color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
+            color: var(--tm-primary-color);
+        }
+        .tm-sl-tag-picker__dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 1px color-mix(in srgb, #000 15%, transparent);
+        }
+        .tm-sl-tag-picker__name { flex: 1; min-width: 0; }
+        .tm-sl-tag-picker__check {
+            font-size: 12px;
+            font-weight: 800;
+            opacity: 0.85;
+            min-width: 12px;
         }
         .tm-sl-unit-table .tm-sl-table-barcode:hover {
             opacity: 0.75;
@@ -52864,6 +53048,8 @@ window.initOrderTracking = initOrderTracking;
             opacity: 1 !important;
             backdrop-filter: saturate(160%) blur(12px);
             -webkit-backdrop-filter: saturate(160%) blur(12px);
+            position: relative !important;
+            z-index: 8 !important;
         }
         #tm-sl-status { color: var(--tm-sl-label); font-weight: 500; }
         .tm-sl-density-btn {
@@ -52956,13 +53142,25 @@ window.initOrderTracking = initOrderTracking;
             font-weight: 650 !important;
             padding: 9px 16px !important;
         }
+        .tm-sl-settings-wrap { z-index: 40 !important; }
         .tm-sl-settings-menu,
         .tm-sl-export-menu {
             border-radius: 14px !important;
             border: 0.5px solid var(--tm-sl-hairline) !important;
             box-shadow: 0 12px 40px color-mix(in srgb, #000 22%, transparent) !important;
-            overflow: hidden;
             padding: 6px !important;
+            z-index: 50 !important;
+        }
+        .tm-sl-settings-menu.tm-sl-menu--fixed,
+        .tm-sl-export-menu.tm-sl-menu--fixed {
+            overflow: auto !important;
+            z-index: 100060 !important;
+        }
+        .tm-sl-toast {
+            z-index: 70 !important;
+        }
+        .tm-sl-footer {
+            z-index: 8 !important;
         }
         .tm-sl-settings-menu button,
         .tm-sl-export-menu button {
@@ -53053,7 +53251,113 @@ window.initOrderTracking = initOrderTracking;
         if (active?.grade) bits.push(`Βαθμ. ${active.grade}`);
         if (active?.gb) bits.push(active.gb);
         if (active?.color) bits.push(active.color);
+        if (active?.tag) {
+            const name = typeof window.getTagDisplayName === 'function'
+                ? window.getTagDisplayName(active.tag)
+                : active.tag;
+            bits.push(`#${name}`);
+        }
         return bits.length ? bits.join(' · ') : 'Χωρίς φίλτρα';
+    }
+
+    function phoneTagChipHTML(tagKey, barcode, opts = {}) {
+        const key = typeof window.normalizeTagKey === 'function'
+            ? window.normalizeTagKey(tagKey)
+            : String(tagKey || '').trim().toLowerCase();
+        if (!key) return '';
+        const name = typeof window.getTagDisplayName === 'function'
+            ? window.getTagDisplayName(key)
+            : key;
+        const color = typeof window.getTagColor === 'function'
+            ? window.getTagColor(key)
+            : '#9e9e9e';
+        const removable = opts.removable !== false;
+        const title = removable ? `Αφαίρεση #${name}` : `#${name}`;
+        return `<button type="button" class="tm-sl-phone-tag" data-tm-sl-tag-key="${esc(key)}"
+            data-tm-sl-tag-barcode="${esc(barcode || '')}" title="${esc(title)}"
+            style="--tm-sl-tag-color:${esc(color)}">#${esc(name)}</button>`;
+    }
+
+    function buildPhoneTagsHTML(barcode) {
+        const tags = typeof window.getPhoneTags === 'function' ? (window.getPhoneTags(barcode) || []) : [];
+        const chips = tags.map((key) => phoneTagChipHTML(key, barcode)).join('');
+        return `<div class="tm-sl-phone-tags">
+            ${chips}
+            <button type="button" class="tm-sl-phone-tag-add" data-tm-sl-tag-edit="${esc(barcode)}"
+                title="Διαχείριση ετικετών" aria-label="Ετικέτες">+</button>
+        </div>`;
+    }
+
+    function showPhoneTagPicker(anchorEl, barcode, onChange) {
+        document.querySelectorAll('.tm-sl-tag-picker').forEach((el) => el.remove());
+        const code = String(barcode || '').trim();
+        if (!code || !anchorEl) return;
+
+        const selectable = typeof window.getSelectableTagKeys === 'function'
+            ? window.getSelectableTagKeys()
+            : (typeof window.getDefinedTagKeys === 'function' ? window.getDefinedTagKeys() : []);
+        const active = new Set(
+            typeof window.getPhoneTags === 'function' ? (window.getPhoneTags(code) || []) : []
+        );
+
+        const menu = document.createElement('div');
+        menu.className = 'tm-sl-tag-picker';
+        menu.setAttribute('role', 'menu');
+
+        if (!selectable.length) {
+            menu.innerHTML = `<div class="tm-sl-tag-picker__empty">Δημιουργήστε ετικέτες από Ρυθμίσεις → Διαχείριση Ετικετών</div>`;
+        } else {
+            menu.innerHTML = selectable.map((key) => {
+                const name = typeof window.getTagDisplayName === 'function' ? window.getTagDisplayName(key) : key;
+                const color = typeof window.getTagColor === 'function' ? window.getTagColor(key) : '#9e9e9e';
+                const isOn = active.has(key);
+                return `<button type="button" class="tm-sl-tag-picker__item${isOn ? ' is-active' : ''}"
+                    data-tm-sl-tag-toggle="${esc(key)}" role="menuitemcheckbox" aria-checked="${isOn ? 'true' : 'false'}">
+                    <span class="tm-sl-tag-picker__dot" style="background:${esc(color)}"></span>
+                    <span class="tm-sl-tag-picker__name">#${esc(name)}</span>
+                    <span class="tm-sl-tag-picker__check" aria-hidden="true">${isOn ? '✓' : ''}</span>
+                </button>`;
+            }).join('');
+        }
+
+        document.body.appendChild(menu);
+        const rect = anchorEl.getBoundingClientRect();
+        const menuW = Math.min(260, Math.max(200, menu.offsetWidth || 220));
+        let left = rect.right - menuW;
+        let top = rect.bottom + 6;
+        if (left < 8) left = 8;
+        if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
+        if (top + menu.offsetHeight > window.innerHeight - 8) {
+            top = Math.max(8, rect.top - menu.offsetHeight - 6);
+        }
+        menu.style.left = `${Math.round(left)}px`;
+        menu.style.top = `${Math.round(top)}px`;
+
+        const close = () => {
+            menu.remove();
+            document.removeEventListener('mousedown', onDoc, true);
+            document.removeEventListener('keydown', onKey, true);
+        };
+        const onDoc = (e) => {
+            if (menu.contains(e.target) || anchorEl.contains?.(e.target)) return;
+            close();
+        };
+        const onKey = (e) => {
+            if (e.key === 'Escape') close();
+        };
+        document.addEventListener('mousedown', onDoc, true);
+        document.addEventListener('keydown', onKey, true);
+
+        menu.querySelectorAll('[data-tm-sl-tag-toggle]').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const key = btn.getAttribute('data-tm-sl-tag-toggle');
+                if (!key || typeof window.togglePhoneTag !== 'function') return;
+                window.togglePhoneTag(code, key);
+                close();
+                if (typeof onChange === 'function') onChange();
+            });
+        });
     }
 
     function buildCoachTipHtml() {
@@ -53279,19 +53583,18 @@ window.initOrderTracking = initOrderTracking;
                     : '';
                 return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
                     data-tm-sl-model="${esc(model)}" style="--i:${delay}">
-                    <div class="tm-sl-model-card-top">
-                        <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
-                        <div class="tm-sl-model-count">${count}<span>${count === 1 ? 'τεμ.' : 'τεμ.'}</span></div>
+                    <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
+                    <div class="tm-sl-model-card-foot">
+                        <div class="tm-sl-model-stats">
+                            <span class="tm-sl-model-count">${count}<span>τεμ.</span></span>
+                            <span class="tm-sl-model-meta">στο ${esc(myStoreLabel)}</span>
+                        </div>
+                        ${whisper}
+                        ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                     </div>
-                    <div class="tm-sl-model-meta">στο ${esc(myStoreLabel)}</div>
-                    ${whisper}
-                    ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                 </div>`;
             }
 
-            const storeLabel = data.storeCount === 1
-                ? '1 κατάστημα'
-                : `${data.storeCount} καταστήματα`;
             const nearest = typeof getNearestHint === 'function' ? getNearestHint(model, data) : '';
             let whisper = '';
             if (nearest) {
@@ -53299,15 +53602,18 @@ window.initOrderTracking = initOrderTracking;
             } else if (data.storeCount === 1) {
                 whisper = '<span class="tm-sl-whisper tm-sl-whisper--warn">Σπάνιο στο δίκτυο</span>';
             }
+            const storeWord = data.storeCount === 1 ? 'κατ.' : 'κατ.';
             return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
                 data-tm-sl-model="${esc(model)}" style="--i:${delay}">
-                <div class="tm-sl-model-card-top">
-                    <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
-                    <div class="tm-sl-model-count">${data.storeCount || 0}<span>κατ.</span></div>
+                <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
+                <div class="tm-sl-model-card-foot">
+                    <div class="tm-sl-model-stats">
+                        <span class="tm-sl-model-count">${data.storeCount || 0}<span>${storeWord}</span></span>
+                        <span class="tm-sl-model-meta">${data.totalUnits || 0} τεμ. στο δίκτυο</span>
+                    </div>
+                    ${whisper}
+                    ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                 </div>
-                <div class="tm-sl-model-meta">${data.totalUnits} τεμ. στο δίκτυο</div>
-                ${whisper}
-                ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
             </div>`;
         }).join('');
         return `<div class="tm-sl-model-grid">${cards}</div>`;
@@ -53330,15 +53636,24 @@ window.initOrderTracking = initOrderTracking;
                     inner = `${colorSwatchHTML(val, hexMap)} ${esc(val)}`;
                 } else if (key === 'grade') {
                     inner = `<span class="tm-sl-chip-grade" style="${getGradeStyle(val)}">${esc(val)}</span>`;
+                } else if (key === 'tag') {
+                    const name = typeof window.getTagDisplayName === 'function'
+                        ? window.getTagDisplayName(val)
+                        : val;
+                    const color = typeof window.getTagColor === 'function'
+                        ? window.getTagColor(val)
+                        : '#9e9e9e';
+                    inner = `<span class="tm-sl-chip-tag-dot" style="background:${esc(color)}"></span>#${esc(name)}`;
                 }
-                parts.push(`<button type="button" class="tm-sl-chip${isActive ? ' is-active' : ''}"
+                parts.push(`<button type="button" class="tm-sl-chip${isActive ? ' is-active' : ''}${key === 'tag' ? ' tm-sl-chip--tag' : ''}"
                     data-tm-sl-filter="${esc(key)}" data-tm-sl-value="${esc(val)}">${inner}${countHtml}</button>`);
             });
         };
         addGroup('grade', filters.grades);
         addGroup('gb', filters.gbs);
         addGroup('color', filters.colors);
-        if (active.grade || active.gb || active.color) {
+        addGroup('tag', filters.tags || []);
+        if (active.grade || active.gb || active.color || active.tag) {
             parts.push('<button type="button" class="tm-sl-chip" data-tm-sl-filter="clear">Καθαρισμός φίλτρων</button>');
         }
         return parts.join('');
@@ -53608,7 +53923,12 @@ window.initOrderTracking = initOrderTracking;
         const statusCell = buildUnitStatusCell(v, purchaseBlocked, ctx);
         const imeiPeek = formatImeiPeek(v.imei || v.phone?.imei);
         const imeiHtml = imeiPeek ? `<span class="tm-sl-table-imei">IMEI · ${esc(imeiPeek)}</span>` : '';
-        const barcodeCell = `<span class="tm-sl-table-barcode" data-tm-sl-copy="${esc(v.barcode)}" title="Κλικ για αντιγραφή">${esc(v.barcode)}</span>${imeiHtml}`;
+        const tagsHtml = buildPhoneTagsHTML(v.barcode);
+        const barcodeCell = `<div class="tm-sl-table-barcode-wrap">
+            <span class="tm-sl-table-barcode" data-tm-sl-copy="${esc(v.barcode)}" title="Κλικ για αντιγραφή">${esc(v.barcode)}</span>
+            ${imeiHtml}
+            ${tagsHtml}
+        </div>`;
         const priceCell = v.price ? `<span class="tm-sl-table-price">${esc(v.price)}</span>` : '—';
         const modelName = v.modelName || ctx?.modelName || '';
 
@@ -53619,7 +53939,7 @@ window.initOrderTracking = initOrderTracking;
             data-tm-sl-color="${esc(v.color || '')}"
             data-tm-sl-model="${esc(modelName)}"
             data-tm-sl-price="${esc(v.price || '')}"
-            title="Κλικ στο barcode για αντιγραφή · διπλό κλικ για άνοιγμα">
+            title="Κλικ barcode: αντιγραφή · δεξί κλικ / +: ετικέτες · διπλό κλικ: άνοιγμα">
             <td>${gradeCell}</td>
             <td>${gbCell}</td>
             <td>${colorCell}</td>
@@ -53671,6 +53991,7 @@ window.initOrderTracking = initOrderTracking;
         ].filter(Boolean).join(' ');
         const priceHtml = v.price ? `<div class="tm-sl-phone-card__price">${esc(v.price)}</div>` : '';
         const barcodeHtml = `<span class="tm-sl-barcode-pill" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode"><span class="tm-sl-barcode-pill__icon">#</span>${esc(v.barcode)}</span>`;
+        const tagsHtml = buildPhoneTagsHTML(v.barcode);
         const specsHtml = buildSpecPillsHTML(v, ctx, purchaseBlocked) || '<span class="tm-sl-preview-pill">—</span>';
         const actionsHtml = `<div class="tm-sl-phone-card__actions">
             <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">${ICON.copy} Αντιγραφή</button>
@@ -53682,6 +54003,7 @@ window.initOrderTracking = initOrderTracking;
                 ${blockedBanner}
                 <div class="tm-sl-phone-card__specs">${specsHtml}</div>
                 ${barcodeHtml}
+                ${tagsHtml}
                 ${priceHtml}
                 ${actionsHtml}
             </article>`;
@@ -53694,6 +54016,7 @@ window.initOrderTracking = initOrderTracking;
                 ${storeHtml || purchaseBadge ? `<div class="tm-sl-phone-card__meta">${storeHtml}${purchaseBadge}</div>` : ''}
                 <div class="tm-sl-phone-card__footer">
                     ${barcodeHtml}
+                    ${tagsHtml}
                 </div>
             </div>
             <div class="tm-sl-phone-card__aside">
@@ -54211,6 +54534,9 @@ window.initOrderTracking = initOrderTracking;
         getMyStoreLabel,
         updateMyStoreLabels,
         formatActiveFiltersSummary,
+        phoneTagChipHTML,
+        buildPhoneTagsHTML,
+        showPhoneTagPicker,
         buildContextStrip,
         buildStatusLegend,
         buildCoachTipHtml,
@@ -54567,6 +54893,79 @@ function loadPhoneTags() {
 
 function savePhoneTags(tags) {
     GM_setValue(PHONE_TAGS_STORAGE_KEY, JSON.stringify(tags));
+}
+
+function getPhoneTags(barcode) {
+    if (!barcode) return [];
+    const allTags = loadPhoneTags();
+    const list = allTags[barcode];
+    return Array.isArray(list) ? list.map(normalizeTagKey).filter(Boolean) : [];
+}
+
+function addPhoneTag(barcode, tag) {
+    const code = String(barcode || '').trim();
+    const tagKey = normalizeTagKey(tag);
+    if (!code || !tagKey) return false;
+    const allTags = loadPhoneTags();
+    if (!allTags[code]) allTags[code] = [];
+    if (allTags[code].includes(tagKey)) return false;
+    allTags[code].push(tagKey);
+    savePhoneTags(allTags);
+    // Ensure a definition exists so chips have a color/name.
+    const defs = loadTagDefinitions();
+    if (!defs[tagKey]) {
+        defs[tagKey] = { name: formatTagNameFromKey(tagKey), color: '#9e9e9e' };
+        saveTagDefinitions(defs);
+    }
+    return true;
+}
+
+function removePhoneTag(barcode, tag) {
+    const code = String(barcode || '').trim();
+    const tagKey = normalizeTagKey(tag);
+    if (!code || !tagKey) return false;
+    const allTags = loadPhoneTags();
+    if (!allTags[code]) return false;
+    const next = allTags[code].filter((t) => t !== tagKey);
+    if (next.length === allTags[code].length) return false;
+    if (next.length) allTags[code] = next;
+    else delete allTags[code];
+    savePhoneTags(allTags);
+    return true;
+}
+
+function togglePhoneTag(barcode, tag) {
+    const tagKey = normalizeTagKey(tag);
+    if (!tagKey) return { ok: false, active: false };
+    const has = getPhoneTags(barcode).includes(tagKey);
+    if (has) {
+        removePhoneTag(barcode, tagKey);
+        return { ok: true, active: false, key: tagKey };
+    }
+    addPhoneTag(barcode, tagKey);
+    return { ok: true, active: true, key: tagKey };
+}
+
+function getAllUsedTags() {
+    const used = new Set();
+    Object.values(loadPhoneTags()).forEach((tags) => {
+        if (!Array.isArray(tags)) return;
+        tags.forEach((tag) => {
+            const key = normalizeTagKey(tag);
+            if (key) used.add(key);
+        });
+    });
+    return [...used].sort((a, b) =>
+        getTagDisplayName(a).localeCompare(getTagDisplayName(b), undefined, { sensitivity: 'base' })
+    );
+}
+
+function getSelectableTagKeys() {
+    const keys = new Set(getDefinedTagKeys());
+    getAllUsedTags().forEach((k) => keys.add(k));
+    return [...keys].sort((a, b) =>
+        getTagDisplayName(a).localeCompare(getTagDisplayName(b), undefined, { sensitivity: 'base' })
+    );
 }
 
 function renamePhoneTagKeyOnAllPhones(oldKey, newKey) {
@@ -57122,7 +57521,7 @@ function getPhoneCatalogUICtx(modalHelpers = {}) {
         getPhoneGradeDisplayStyle,
         t,
         extractBaseModel: modalHelpers.extractBaseModel || ((m) => m || ''),
-        getPhoneTags: modalHelpers.getPhoneTags || (() => []),
+        getPhoneTags: modalHelpers.getPhoneTags || getPhoneTags,
     };
 }
 
@@ -57521,10 +57920,17 @@ window.getPhoneCatalogOutlineStyle = getPhoneCatalogOutlineStyle;
 window.getDefinedTagKeys = getDefinedTagKeys;
 window.getTagDefinition = getTagDefinition;
 window.getTagDisplayName = getTagDisplayName;
+window.getTagColor = getTagColor;
 window.addTagDefinition = addTagDefinition;
 window.updateTagDefinition = updateTagDefinition;
 window.deleteTagDefinition = deleteTagDefinition;
 window.normalizeTagKey = normalizeTagKey;
+window.getPhoneTags = getPhoneTags;
+window.addPhoneTag = addPhoneTag;
+window.removePhoneTag = removePhoneTag;
+window.togglePhoneTag = togglePhoneTag;
+window.getAllUsedTags = getAllUsedTags;
+window.getSelectableTagKeys = getSelectableTagKeys;
 window.renamePhoneTagKeyOnAllPhones = renamePhoneTagKeyOnAllPhones;
 window.removePhoneTagFromAllPhones = removePhoneTagFromAllPhones;
 window.loadPhoneStoreRules = loadPhoneStoreRules;
@@ -58502,29 +58908,72 @@ if (document.body) {
         const settingsMenu = overlay.querySelector('#tm-sl-settings-menu');
         const exportBtn = overlay.querySelector('#tm-sl-export-btn');
         const exportMenu = overlay.querySelector('#tm-sl-export-menu');
+        const settingsWrap = overlay.querySelector('.tm-sl-settings-wrap');
         if (!settingsBtn || !settingsMenu) return;
 
+        const placeFixedMenu = (menu, anchor) => {
+            if (!menu || !anchor) return;
+            const rect = anchor.getBoundingClientRect();
+            const right = Math.max(8, window.innerWidth - rect.right);
+            const top = Math.min(window.innerHeight - 12, rect.bottom + 6);
+            menu.style.setProperty('--tm-sl-menu-top', `${Math.round(top)}px`);
+            menu.style.setProperty('--tm-sl-menu-right', `${Math.round(right)}px`);
+            menu.classList.add('tm-sl-menu--fixed');
+            if (menu.parentElement !== document.body) {
+                document.body.appendChild(menu);
+            }
+            menu.hidden = false;
+            // Flip upward if the menu would run off the bottom.
+            requestAnimationFrame(() => {
+                const h = menu.offsetHeight || 0;
+                if (rect.bottom + 6 + h > window.innerHeight - 8) {
+                    const flippedTop = Math.max(8, rect.top - h - 6);
+                    menu.style.setProperty('--tm-sl-menu-top', `${Math.round(flippedTop)}px`);
+                }
+            });
+        };
+
+        const restoreMenu = (menu) => {
+            if (!menu) return;
+            menu.hidden = true;
+            menu.classList.remove('tm-sl-menu--fixed');
+            menu.style.removeProperty('--tm-sl-menu-top');
+            menu.style.removeProperty('--tm-sl-menu-right');
+            if (settingsWrap && menu.parentElement !== settingsWrap) {
+                settingsWrap.appendChild(menu);
+            }
+        };
+
         const hideMenus = () => {
-            settingsMenu.hidden = true;
-            if (exportMenu) exportMenu.hidden = true;
+            restoreMenu(settingsMenu);
+            restoreMenu(exportMenu);
         };
 
         settingsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (exportMenu) exportMenu.hidden = true;
-            settingsMenu.hidden = !settingsMenu.hidden;
+            restoreMenu(exportMenu);
+            if (!settingsMenu.hidden && settingsMenu.classList.contains('tm-sl-menu--fixed')) {
+                hideMenus();
+                return;
+            }
+            placeFixedMenu(settingsMenu, settingsBtn);
         });
 
         exportBtn?.addEventListener('click', (e) => {
             e.stopPropagation();
-            settingsMenu.hidden = true;
+            restoreMenu(settingsMenu);
             if (!exportMenu) return;
-            exportMenu.hidden = !exportMenu.hidden;
+            if (!exportMenu.hidden && exportMenu.classList.contains('tm-sl-menu--fixed')) {
+                restoreMenu(exportMenu);
+                return;
+            }
+            placeFixedMenu(exportMenu, settingsBtn);
         });
 
         document.addEventListener('click', function onDocClick(e) {
             if (!overlay.isConnected) {
                 document.removeEventListener('click', onDocClick);
+                hideMenus();
                 return;
             }
             if (settingsMenu.contains(e.target) || settingsBtn.contains(e.target)) return;
@@ -58532,25 +58981,27 @@ if (document.body) {
             hideMenus();
         });
 
-        overlay.querySelector('#tm-sl-mystore-btn')?.addEventListener('click', () => {
+        window.addEventListener('resize', hideMenus);
+        overlay.addEventListener('scroll', hideMenus, true);
+
+        const openManager = (fn) => {
             hideMenus();
-            showMyStoreLocationModal(getCtx());
+            fn(getCtx());
+        };
+        overlay.querySelector('#tm-sl-mystore-btn')?.addEventListener('click', () => {
+            openManager(showMyStoreLocationModal);
         });
         overlay.querySelector('#tm-sl-models-btn')?.addEventListener('click', () => {
-            hideMenus();
-            showModelsManagerModal(getCtx());
+            openManager(showModelsManagerModal);
         });
         overlay.querySelector('#tm-sl-colors-btn')?.addEventListener('click', () => {
-            hideMenus();
-            showColorManagerModal(getCtx());
+            openManager(showColorManagerModal);
         });
         overlay.querySelector('#tm-sl-tags-btn')?.addEventListener('click', () => {
-            hideMenus();
-            showTagManagerModal(getCtx());
+            openManager(showTagManagerModal);
         });
         overlay.querySelector('#tm-sl-stores-btn')?.addEventListener('click', () => {
-            hideMenus();
-            showStoreRulesModal(getCtx());
+            openManager(showStoreRulesModal);
         });
 
         overlay.querySelector('#tm-sl-export-clipboard')?.addEventListener('click', (e) => {
@@ -58804,11 +59255,21 @@ if (document.body) {
         return list;
     }
 
+    function emptyActiveFilters() {
+        return { grade: '', gb: '', color: '', tag: '' };
+    }
+
+    function phoneTagKeys(phone) {
+        if (typeof window.getPhoneTags !== 'function') return [];
+        return window.getPhoneTags(phone?.barcode) || [];
+    }
+
     function collectFiltersForModel(allPhones, otherStorePhones, model, helpers, catalogView = 'mine') {
         const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
         const grades = new Set();
         const gbs = new Set();
         const colors = new Set();
+        const tags = new Set();
 
         const addPhone = (phone) => {
             if (extractBaseModel(phone.model) !== model) return;
@@ -58817,6 +59278,7 @@ if (document.body) {
             if (gb) gbs.add(gb);
             const color = extractColor(phone.name || phone.model);
             if (color) colors.add(color);
+            phoneTagKeys(phone).forEach((tag) => tags.add(tag));
         };
 
         if (catalogView !== 'network') {
@@ -58835,17 +59297,22 @@ if (document.body) {
             };
             return num(a) - num(b);
         };
+        const sortTag = (a, b) => {
+            const nameOf = (k) => (typeof window.getTagDisplayName === 'function' ? window.getTagDisplayName(k) : k);
+            return nameOf(a).localeCompare(nameOf(b), undefined, { sensitivity: 'base' });
+        };
 
         return {
             grades: [...grades].sort((a, b) => helpers.comparePhoneGrades(a, b)),
             gbs: [...gbs].sort(sortGb),
             colors: [...colors].sort((a, b) => a.localeCompare(b, 'el')),
+            tags: [...tags].sort(sortTag),
         };
     }
 
     function collectFilterCounts(allPhones, otherStorePhones, model, activeFilters, helpers, catalogView = 'mine') {
         const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
-        const counts = { grade: {}, gb: {}, color: {} };
+        const counts = { grade: {}, gb: {}, color: {}, tag: {} };
 
         const phones = [];
         if (catalogView !== 'network') {
@@ -58879,6 +59346,12 @@ if (document.body) {
             const color = extractColor(phone.name || phone.model);
             if (color) counts.color[color] = (counts.color[color] || 0) + 1;
         });
+        phones.forEach((phone) => {
+            if (!matchesExcept(phone, 'tag')) return;
+            phoneTagKeys(phone).forEach((tag) => {
+                counts.tag[tag] = (counts.tag[tag] || 0) + 1;
+            });
+        });
 
         return counts;
     }
@@ -58895,6 +59368,12 @@ if (document.body) {
                 ? window.resolveDisplayColorName
                 : (c) => c;
             if (resolve(color) !== resolve(filters.color)) return false;
+        }
+        if (filters.tag) {
+            const tagKey = typeof window.normalizeTagKey === 'function'
+                ? window.normalizeTagKey(filters.tag)
+                : String(filters.tag || '').trim().toLowerCase();
+            if (!phoneTagKeys(phone).includes(tagKey)) return false;
         }
         return true;
     }
@@ -59126,7 +59605,7 @@ if (document.body) {
         let uiScale = typeof UI.normalizeUiScale === 'function'
             ? UI.normalizeUiScale(GM_getValue(UI_SCALE_KEY, defaultScale))
             : defaultScale;
-        let activeFilters = { grade: '', gb: '', color: '' };
+        let activeFilters = emptyActiveFilters();
         let allPhones = [];
         let otherStorePhones = [];
         let otherStoreLoaded = false;
@@ -59209,6 +59688,8 @@ if (document.body) {
         }
 
         function closeModal() {
+            document.querySelectorAll('.tm-sl-settings-menu.tm-sl-menu--fixed, .tm-sl-export-menu.tm-sl-menu--fixed, .tm-sl-tag-picker')
+                .forEach((el) => el.remove());
             overlay.remove();
         }
 
@@ -59308,8 +59789,35 @@ if (document.body) {
 
             bodyEl.querySelectorAll('tr.tm-sl-unit-row[data-tm-sl-open-row]').forEach((row) => {
                 row.addEventListener('dblclick', (e) => {
-                    if (e.target.closest('[data-tm-sl-copy]')) return;
+                    if (e.target.closest('[data-tm-sl-copy], [data-tm-sl-tag-edit], .tm-sl-phone-tag, .tm-sl-tag-picker')) return;
                     openProductByBarcode(row.getAttribute('data-tm-sl-open-row'));
+                });
+                row.addEventListener('contextmenu', (e) => {
+                    if (e.target.closest('[data-tm-sl-copy]')) return;
+                    e.preventDefault();
+                    const code = row.getAttribute('data-barcode');
+                    if (!code || typeof UI.showPhoneTagPicker !== 'function') return;
+                    UI.showPhoneTagPicker(row, code, () => renderStoresStep());
+                });
+            });
+
+            bodyEl.querySelectorAll('[data-tm-sl-tag-edit]').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const code = btn.getAttribute('data-tm-sl-tag-edit');
+                    if (!code || typeof UI.showPhoneTagPicker !== 'function') return;
+                    UI.showPhoneTagPicker(btn, code, () => renderStoresStep());
+                });
+            });
+
+            bodyEl.querySelectorAll('.tm-sl-phone-tag[data-tm-sl-tag-key]').forEach((chip) => {
+                chip.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const code = chip.getAttribute('data-tm-sl-tag-barcode');
+                    const key = chip.getAttribute('data-tm-sl-tag-key');
+                    if (!code || !key || typeof window.togglePhoneTag !== 'function') return;
+                    window.togglePhoneTag(code, key);
+                    renderStoresStep();
                 });
             });
 
@@ -59329,13 +59837,13 @@ if (document.body) {
                 btn.addEventListener('click', () => {
                     const action = btn.getAttribute('data-tm-sl-empty-action');
                     if (action === 'clear-filters') {
-                        activeFilters = { grade: '', gb: '', color: '' };
+                        activeFilters = emptyActiveFilters();
                         renderStoresStep();
                     } else if (action === 'clear-search') {
                         modelQuery = '';
                         renderModelsStep();
                     } else if (action === 'back-models') {
-                        activeFilters = { grade: '', gb: '', color: '' };
+                        activeFilters = emptyActiveFilters();
                         renderModelsStep();
                     } else if (action === 'refresh') {
                         refreshData();
@@ -59411,7 +59919,7 @@ if (document.body) {
                 chip.addEventListener('click', () => {
                     const key = chip.getAttribute('data-tm-sl-filter');
                     if (key === 'clear') {
-                        activeFilters = { grade: '', gb: '', color: '' };
+                        activeFilters = emptyActiveFilters();
                     } else {
                         const val = chip.getAttribute('data-tm-sl-value') || '';
                         activeFilters[key] = activeFilters[key] === val ? '' : val;
@@ -59633,7 +60141,7 @@ if (document.body) {
         }
 
         function hasActiveFilters() {
-            return !!(activeFilters.grade || activeFilters.gb || activeFilters.color);
+            return !!(activeFilters.grade || activeFilters.gb || activeFilters.color || activeFilters.tag);
         }
 
         function mergeNetworkStoreHints() {
@@ -59725,7 +60233,7 @@ if (document.body) {
             });
 
             toolbarEl.querySelector('#tm-sl-back')?.addEventListener('click', () => {
-                activeFilters = { grade: '', gb: '', color: '' };
+                activeFilters = emptyActiveFilters();
                 renderModelsStep();
             });
             wireFilterChips(toolbarEl);
@@ -60064,7 +60572,7 @@ if (document.body) {
             if (e.key === 'Escape') {
                 e.preventDefault();
                 if (step === 'stores') {
-                    activeFilters = { grade: '', gb: '', color: '' };
+                    activeFilters = emptyActiveFilters();
                     renderModelsStep();
                     return;
                 }
