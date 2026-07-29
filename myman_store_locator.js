@@ -316,7 +316,12 @@
         const gb = extractGB(phone.name || phone.model);
         if (filters.gb && gb !== filters.gb) return false;
         const color = extractColor(phone.name || phone.model);
-        if (filters.color && color !== filters.color) return false;
+        if (filters.color) {
+            const resolve = typeof window.resolveDisplayColorName === 'function'
+                ? window.resolveDisplayColorName
+                : (c) => c;
+            if (resolve(color) !== resolve(filters.color)) return false;
+        }
         return true;
     }
 
@@ -587,8 +592,10 @@
                     if (typeof window.syncPhoneColorCatalog === 'function') {
                         window.syncPhoneColorCatalog(allPhones);
                     }
-                    if (typeof window.clearPhoneCatalogCaches === 'function') {
-                        window.clearPhoneCatalogCaches();
+                    if (typeof window.clearPhoneCatalogParseCaches === 'function') {
+                        window.clearPhoneCatalogParseCaches();
+                    } else if (typeof window.clearPhoneCatalogCaches === 'function') {
+                        window.clearPhoneCatalogCaches({ includeLists: false });
                     }
                     UI.updateMyStoreLabels(overlay);
                     if (step === 'stores' && selectedModel) {
@@ -1311,94 +1318,106 @@
             };
         }
 
-        async function refreshData() {
+        async function refreshData(opts = {}) {
+            const quiet = !!opts.quiet;
             const progress = createLoadProgressController();
             UI.setRefreshing(overlay, true);
             const bodyEmpty = !bodyEl.querySelector('.tm-sl-model-grid, .tm-sl-mine-board, .tm-sl-network-board');
-            if (bodyEmpty) {
+            if (bodyEmpty && !quiet) {
                 bodyEl.innerHTML = UI.buildSkeletonGrid(8);
             }
 
             try {
-                progress.startIndeterminate('Φόρτωση καταλόγου συσκευών…', progress.stats.phoneListMs);
+                if (!quiet) {
+                    progress.startIndeterminate('Φόρτωση καταλόγου συσκευών…', progress.stats.phoneListMs);
+                } else {
+                    setStatus('Ενημέρωση στο παρασκήνιο…');
+                }
                 progress.beginPhaseClock();
                 if (typeof window.fetchPhoneList === 'function') {
                     allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList({
-                        onProgress: (info) => {
-                            if (!info) return;
-                            if (info.phase === 'download' && info.ratio != null) {
-                                const remain = Math.max(
-                                    600,
-                                    (progress.stats.phoneListMs || 9000) * (1 - info.ratio)
-                                );
-                                UI.updateLoadProgress(overlay, {
-                                    label: 'Λήψη καταλόγου…',
-                                    ratio: Math.min(0.9, 0.08 + info.ratio * 0.75),
-                                    indeterminate: false,
-                                    etaMs: remain,
-                                    meta: info.total
-                                        ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
-                                        : 'Λήψη δεδομένων…',
-                                });
-                                setStatus('Λήψη καταλόγου…');
-                            } else if (info.phase === 'parse') {
-                                UI.updateLoadProgress(overlay, {
-                                    label: 'Επεξεργασία καταλόγου…',
-                                    ratio: 0.92,
-                                    indeterminate: false,
-                                    etaMs: 900,
-                                    meta: 'Ανάλυση συσκευών…',
-                                });
-                            } else if (info.phase === 'init') {
-                                UI.updateLoadProgress(overlay, {
-                                    label: 'Σύνδεση με τον κατάλογο…',
-                                    indeterminate: true,
-                                    etaMs: progress.stats.phoneListMs,
-                                    meta: 'Προετοιμασία…',
-                                });
-                            }
-                        },
+                        onProgress: quiet
+                            ? () => {}
+                            : (info) => {
+                                if (!info) return;
+                                if (info.phase === 'download' && info.ratio != null) {
+                                    const remain = Math.max(
+                                        600,
+                                        (progress.stats.phoneListMs || 9000) * (1 - info.ratio)
+                                    );
+                                    UI.updateLoadProgress(overlay, {
+                                        label: 'Λήψη καταλόγου…',
+                                        ratio: Math.min(0.9, 0.08 + info.ratio * 0.75),
+                                        indeterminate: false,
+                                        etaMs: remain,
+                                        meta: info.total
+                                            ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
+                                            : 'Λήψη δεδομένων…',
+                                    });
+                                    setStatus('Λήψη καταλόγου…');
+                                } else if (info.phase === 'parse') {
+                                    UI.updateLoadProgress(overlay, {
+                                        label: 'Επεξεργασία καταλόγου…',
+                                        ratio: 0.92,
+                                        indeterminate: false,
+                                        etaMs: 900,
+                                        meta: 'Ανάλυση συσκευών…',
+                                    });
+                                } else if (info.phase === 'init') {
+                                    UI.updateLoadProgress(overlay, {
+                                        label: 'Σύνδεση με τον κατάλογο…',
+                                        indeterminate: true,
+                                        etaMs: progress.stats.phoneListMs,
+                                        meta: 'Προετοιμασία…',
+                                    });
+                                }
+                            },
                     }));
                 }
                 progress.finishPhase('phoneListMs', progress.getPhaseElapsed());
 
-                otherStoreLoaded = false;
-                GM_setValue('tm_phone_other_store_cache_v3', null);
-                GM_setValue('tm_phone_other_store_cache_timestamp', 0);
+                if (!quiet) {
+                    otherStoreLoaded = false;
+                    GM_setValue('tm_phone_other_store_cache_v3', null);
+                    GM_setValue('tm_phone_other_store_cache_timestamp', 0);
 
-                progress.startIndeterminate('Φόρτωση δικτύου καταστημάτων…', progress.stats.otherStoresMs);
-                progress.beginPhaseClock();
-                await ensureOtherStores((info) => {
-                    if (info?.phase === 'download' && info.ratio != null) {
-                        UI.updateLoadProgress(overlay, {
-                            label: 'Λήψη δικτύου…',
-                            ratio: Math.min(0.9, 0.1 + info.ratio * 0.75),
-                            indeterminate: false,
-                            etaMs: Math.max(600, (progress.stats.otherStoresMs || 7000) * (1 - info.ratio)),
-                            meta: info.total
-                                ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
-                                : 'Λήψη δεδομένων…',
-                        });
-                    } else if (info?.phase === 'parse') {
-                        UI.updateLoadProgress(overlay, {
-                            label: 'Επεξεργασία δικτύου…',
-                            ratio: 0.93,
-                            indeterminate: false,
-                            etaMs: 800,
-                            meta: 'Ανάλυση αποθεμάτων…',
-                        });
-                    }
-                });
-                progress.finishPhase('otherStoresMs', progress.getPhaseElapsed());
-
-                if (catalogView === 'network') {
+                    progress.startIndeterminate('Φόρτωση δικτύου καταστημάτων…', progress.stats.otherStoresMs);
                     progress.beginPhaseClock();
-                    progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', 0, 1);
-                    await resolveNetworkStoreDetails(null, (done, total) => {
-                        progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', done, total || 1);
+                    await ensureOtherStores((info) => {
+                        if (info?.phase === 'download' && info.ratio != null) {
+                            UI.updateLoadProgress(overlay, {
+                                label: 'Λήψη δικτύου…',
+                                ratio: Math.min(0.9, 0.1 + info.ratio * 0.75),
+                                indeterminate: false,
+                                etaMs: Math.max(600, (progress.stats.otherStoresMs || 7000) * (1 - info.ratio)),
+                                meta: info.total
+                                    ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
+                                    : 'Λήψη δεδομένων…',
+                            });
+                        } else if (info?.phase === 'parse') {
+                            UI.updateLoadProgress(overlay, {
+                                label: 'Επεξεργασία δικτύου…',
+                                ratio: 0.93,
+                                indeterminate: false,
+                                etaMs: 800,
+                                meta: 'Ανάλυση αποθεμάτων…',
+                            });
+                        }
                     });
-                    progress.finishPhase('storeResolve', progress.getPhaseElapsed());
+                    progress.finishPhase('otherStoresMs', progress.getPhaseElapsed());
+
+                    if (catalogView === 'network') {
+                        progress.beginPhaseClock();
+                        progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', 0, 1);
+                        await resolveNetworkStoreDetails(null, (done, total) => {
+                            progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', done, total || 1);
+                        });
+                        progress.finishPhase('storeResolve', progress.getPhaseElapsed());
+                    }
+                } else if (!otherStoreLoaded) {
+                    await ensureOtherStores();
                 }
+
                 if (typeof window.syncPhoneColorCatalog === 'function') {
                     window.syncPhoneColorCatalog(allPhones);
                 }
@@ -1410,14 +1429,16 @@
                     renderModelsStep();
                 }
             } catch (err) {
-                bodyEl.innerHTML = UI.buildEmptyState(
-                    UI.ICON.emptyError,
-                    'Σφάλμα φόρτωσης',
-                    err.message || '',
-                    { actionId: 'back-models', actionLabel: 'Επιστροφή' }
-                );
+                if (!quiet || bodyEmpty) {
+                    bodyEl.innerHTML = UI.buildEmptyState(
+                        UI.ICON.emptyError,
+                        'Σφάλμα φόρτωσης',
+                        err.message || '',
+                        { actionId: 'back-models', actionLabel: 'Επιστροφή' }
+                    );
+                    wireUnitActions();
+                }
                 setStatus('Σφάλμα φόρτωσης');
-                wireUnitActions();
             } finally {
                 progress.hide();
                 UI.setRefreshing(overlay, false);
@@ -1520,11 +1541,11 @@
             };
 
             if (cacheStale) {
-                setStatus('Παλιά δεδομένα — ανανέωση…');
-                // Let the browser paint cached UI first, then refresh.
+                setStatus('Ενημέρωση στο παρασκήνιο…');
+                // Keep cached UI on screen; refresh quietly without wiping network cache.
                 requestAnimationFrame(() => {
                     setTimeout(() => {
-                        refreshData();
+                        refreshData({ quiet: true });
                     }, 0);
                 });
             } else if (catalogView === 'network' && !otherStoreLoaded) {

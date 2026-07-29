@@ -17,8 +17,11 @@
     }
 
     function clearCaches() {
-        if (typeof window.clearPhoneCatalogCaches === 'function') {
-            window.clearPhoneCatalogCaches();
+        // Settings edits only need parse-cache invalidation — never wipe saved phone lists.
+        if (typeof window.clearPhoneCatalogParseCaches === 'function') {
+            window.clearPhoneCatalogParseCaches();
+        } else if (typeof window.clearPhoneCatalogCaches === 'function') {
+            window.clearPhoneCatalogCaches({ includeLists: false });
         }
     }
 
@@ -109,12 +112,17 @@
 
         const renderPhoneColorList = () => {
             const colors = window.loadPhoneColors?.() || {};
-            const names = Object.keys(colors).sort((a, b) => {
-                const aMulti = a.includes(' ') ? 0 : 1;
-                const bMulti = b.includes(' ') ? 0 : 1;
-                if (aMulti !== bMulti) return aMulti - bMulti;
-                return b.length - a.length || a.localeCompare(b);
-            });
+            const aliasMap = window.loadColorDisplayAliases?.() || {};
+            const aliasOnlyNames = new Set(Object.keys(aliasMap));
+            // Hide alias-only names (e.g. ORANGE → COSMIC ORANGE) so they aren't edited as separate colors.
+            const names = Object.keys(colors)
+                .filter((name) => !aliasOnlyNames.has(name))
+                .sort((a, b) => {
+                    const aMulti = a.includes(' ') ? 0 : 1;
+                    const bMulti = b.includes(' ') ? 0 : 1;
+                    if (aMulti !== bMulti) return aMulti - bMulti;
+                    return b.length - a.length || a.localeCompare(b);
+                });
             if (!names.length) {
                 listEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:8px 0;">${t('No custom colors yet')}</div>`;
                 return;
@@ -137,9 +145,12 @@
                         <input type="color" class="tm-phone-list-color-picker" data-color="${name}" value="${listHex}" style="width:32px;height:28px;padding:1px;border:1px solid var(--tm-shop-item-border);border-radius:5px;cursor:pointer;background:var(--tm-shop-item-bg);flex-shrink:0;">
                         <span class="tm-phone-list-color-label" style="font-size:11px;opacity:0.65;font-family:monospace;">${listHex}</span>
                     </div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Also for labels')}</span>
-                        <input type="text" class="tm-phone-color-alias-input" data-color="${name}" value="${aliases}" placeholder="${t('Aliases hint')}" style="flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:11px;box-sizing:border-box;">
+                    <div style="display:flex;align-items:flex-start;gap:8px;">
+                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;padding-top:7px;">${t('Also for labels')}</span>
+                        <div style="flex:1;min-width:0;">
+                            <input type="text" class="tm-phone-color-alias-input" data-color="${name}" value="${aliases}" placeholder="${t('Aliases hint')}" style="width:100%;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:11px;box-sizing:border-box;">
+                            <div style="font-size:10px;opacity:0.65;margin-top:4px;line-height:1.35;">${t('Aliases help')}</div>
+                        </div>
                     </div>
                 </div>`;
             }).join('');
@@ -199,8 +210,12 @@
                 input.addEventListener('change', () => {
                     window.setColorDisplayAliasesForColor?.(input.dataset.color, input.value);
                     clearCaches();
+                    if (typeof window.syncPhoneColorCatalog === 'function') {
+                        window.syncPhoneColorCatalog(allPhones);
+                    }
                     onChange();
                     if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
+                    renderPhoneColorList();
                 });
             });
 

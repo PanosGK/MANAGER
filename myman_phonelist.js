@@ -7,8 +7,8 @@ const PHONE_LIST_CACHE_KEY = 'tm_phone_list_cache';
 const PHONE_LIST_CACHE_TIMESTAMP_KEY = 'tm_phone_list_cache_timestamp';
 /** Hard-expire local list cache after this many days (discard + force fetch). */
 const CACHE_EXPIRATION_DAYS = 3;
-/** Soft-stale: auto-refresh in background when older than this (ms). */
-const PHONE_LIST_SOFT_REFRESH_MS = 60 * 60 * 1000; // 1 hour
+/** Soft-stale: quiet background refresh when older than this (ms). */
+const PHONE_LIST_SOFT_REFRESH_MS = 4 * 60 * 60 * 1000; // 4 hours
 // v2: price parsing (div/input IDs) + UI shows retailPrice on other-store cards
 const OTHER_STORE_CACHE_KEY = 'tm_phone_other_store_cache_v3';
 const OTHER_STORE_CACHE_TIMESTAMP_KEY = 'tm_phone_other_store_cache_timestamp';
@@ -85,8 +85,9 @@ const PHONE_CATALOG_TRANSLATIONS = {
     'Invalid color name or hex': '\u039C\u03B7 \u03AD\u03B3\u03BA\u03C5\u03C1\u03BF \u03CC\u03BD\u03BF\u03BC\u03B1 \u03AE hex',
     'Suggested hex': '\u03A0\u03C1\u03BF\u03C4\u03B5\u03B9\u03BD\u03CC\u03BC\u03B5\u03BD\u03BF hex',
     'Catalog title color': '\u03A7\u03C1\u03CE\u03BC\u03B1 \u03C4\u03AF\u03C4\u03BB\u03BF\u03C5 \u03C3\u03C4\u03BF\u03BD \u03BA\u03B1\u03C4\u03AC\u03BB\u03BF\u03B3\u03BF',
-    'Also for labels': '\u0395\u03C0\u03AF\u03C3\u03B7\u03C2 \u03B3\u03B9\u03B1 \u03BF\u03BD\u03BF\u03BC\u03B1\u03C3\u03AF\u03B5\u03C2',
-    'Aliases hint': '\u03C0.\u03C7. SILVER, TITANIUM',
+    'Also for labels': '\u0398\u03B5\u03C9\u03C1\u03B5\u03AF\u03C4\u03B1\u03B9 \u03B5\u03C0\u03AF\u03C3\u03B7\u03C2',
+    'Aliases hint': '\u03C0.\u03C7. ORANGE (\u03AF\u03B4\u03B9\u03BF \u03C6\u03AF\u03BB\u03C4\u03C1\u03BF \u03BC\u03B5 COSMIC ORANGE)',
+    'Aliases help': '\u0386\u03BB\u03BB\u03B1 \u03BF\u03BD\u03CC\u03BC\u03B1\u03C4\u03B1 \u03C0\u03BF\u03C5 \u03B8\u03B5\u03C9\u03C1\u03BF\u03CD\u03BD\u03C4\u03B1\u03B9 \u03C4\u03BF \u03AF\u03B4\u03B9\u03BF \u03C7\u03C1\u03CE\u03BC\u03B1 \u03C3\u03C4\u03B1 \u03C6\u03AF\u03BB\u03C4\u03C1\u03B1 \u03BA\u03B1\u03B9 \u03C4\u03B7\u03BD \u03B5\u03BC\u03C6\u03AC\u03BD\u03B9\u03C3\u03B7.',
     'Manage Stores': '\u0394\u03B9\u03B1\u03C7\u03B5\u03AF\u03C1\u03B9\u03C3\u03B7 \u039A\u03B1\u03C4\u03B1\u03C3\u03C4\u03B7\u03BC\u03AC\u03C4\u03C9\u03BD',
     'Buyback store patterns': '\u03A0\u03C1\u03CC\u03C4\u03C5\u03C0\u03B1 \u03BF\u03BD\u03CC\u03BC\u03B1\u03C4\u03BF\u03C2 \u03B3\u03B9\u03B1 BB',
     'Buyback patterns hint': '\u03C0.\u03C7. IKE, \u0399\u039A\u0395 (\u03B1\u03BD \u03C4\u03BF \u03CC\u03BD\u03BF\u03BC\u03B1 \u03C0\u03B5\u03C1\u03B9\u03AD\u03C7\u03B5\u03B9 \u03B1\u03C5\u03C4\u03CC)',
@@ -677,7 +678,11 @@ function getAllPhoneColorNamesForMatching() {
         const raw = GM_getValue(PHONE_COLORS_STORAGE_KEY, null);
         if (raw) saved = normalizeStoredPhoneColors(JSON.parse(raw));
     } catch (e) { /* ignore */ }
-    return [...new Set([...Object.keys(defaults), ...Object.keys(saved)])];
+    let aliasKeys = [];
+    try {
+        aliasKeys = Object.keys(loadColorDisplayAliases() || {});
+    } catch (e) { /* ignore */ }
+    return [...new Set([...Object.keys(defaults), ...Object.keys(saved), ...aliasKeys])];
 }
 
 function matchPhoneColorInText(text) {
@@ -2743,7 +2748,8 @@ function extractColor(model) {
     if (phoneCatalogColorCache.has(model)) {
         return phoneCatalogColorCache.get(model);
     }
-    const color = matchPhoneColorInText(model);
+    // Resolve display aliases so ORANGE (alias) and COSMIC ORANGE share one filter chip.
+    const color = resolveDisplayColorName(matchPhoneColorInText(model));
     phoneCatalogColorCache.set(model, color);
     return color;
 }
@@ -3119,10 +3125,24 @@ window.mergeOtherStoresFromAllPhones = mergeOtherStoresFromAllPhones;
 window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
 window.phoneCatalogT = t;
 window.PHONE_CATALOG_TRANSLATIONS = PHONE_CATALOG_TRANSLATIONS;
-window.clearPhoneCatalogCaches = function clearPhoneCatalogCaches() {
+
+/** Clear in-memory extract caches only (colors/GB/models). Keeps stored phone lists. */
+window.clearPhoneCatalogParseCaches = function clearPhoneCatalogParseCaches() {
     phoneCatalogColorCache.clear();
     phoneCatalogGbCache.clear();
     extractBaseModelCacheGlobal.clear();
+};
+
+/**
+ * Clear phone catalog caches.
+ * @param {{ includeLists?: boolean }} [opts]
+ *   includeLists (default true for backward compat): also wipe GM phone/network list caches.
+ *   Pass includeLists:false after color/tag/settings edits so lists stay warm across reloads.
+ */
+window.clearPhoneCatalogCaches = function clearPhoneCatalogCaches(opts = {}) {
+    window.clearPhoneCatalogParseCaches();
+    const includeLists = opts?.includeLists !== false;
+    if (!includeLists) return;
     try {
         GM_setValue(PHONE_LIST_CACHE_KEY, null);
         GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0);
@@ -3141,6 +3161,8 @@ window.renamePhoneColor = renamePhoneColor;
 window.updatePhoneListColor = updatePhoneListColor;
 window.getAliasesForColor = getAliasesForColor;
 window.setColorDisplayAliasesForColor = setColorDisplayAliasesForColor;
+window.loadColorDisplayAliases = loadColorDisplayAliases;
+window.resolveDisplayColorName = resolveDisplayColorName;
 window.suggestPhoneColorHex = suggestPhoneColorHex;
 window.normalizePhoneColorHex = normalizePhoneColorHex;
 window.normalizePhoneColorName = normalizePhoneColorName;
