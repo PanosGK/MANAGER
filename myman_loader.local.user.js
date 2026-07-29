@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MyManager All-in-One Suite (Local Dev)
 // @namespace    http://tampermonkey.net/
-// @version      35
+// @version      36
 // @description  Local development — async file:// bundle. Enable "Allow access to local file URLs". Run: npm run build.
 // @author       Gkorogias
 // @match        *://thefixers.mymanager.gr/*
@@ -67,11 +67,11 @@
         } catch (e) { /* ignore */ }
     })();
 
-    var LOADER_VERSION = "35";
+    var LOADER_VERSION = "36";
     var UPDATE_BASE = "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main";
     var MANIFEST_URL = UPDATE_BASE + '/myman_manifest.json';
     var BUNDLE_FILE = "myman_suite.bundle.js";
-    var FALLBACK_BUNDLE_VERSION = "308";
+    var FALLBACK_BUNDLE_VERSION = "309";
     var LOCAL_BUNDLE_URL = "file://C:/Users/User/Documents/GitHub/MANAGER/myman_suite.bundle.js";
 
     try {
@@ -593,55 +593,109 @@
         downloadBundle(bundleVersion, { cacheOnly: false });
     }
 
-    function refreshManifestInBackground(currentVersion) {
-        if (LOCAL_BUNDLE_URL || typeof GM_xmlhttpRequest !== 'function') return;
-        GM_xmlhttpRequest({
-            method: 'GET',
-            url: MANIFEST_URL + '?t=' + Date.now(),
-            onload: function (response) {
-                if (!(response.status >= 200 && response.status < 300 && response.responseText)) return;
-                try {
-                    var manifest = JSON.parse(response.responseText);
-                    var remoteVer = manifest && manifest.version != null ? String(manifest.version) : '';
-                    if (remoteVer) {
-                        rememberBundleVersion(remoteVer);
-                        // Prefetch the newer suite so the next page change is instant.
-                        if (remoteVer !== String(currentVersion || '')) {
-                            downloadBundle(remoteVer, { cacheOnly: true });
-                        }
-                    }
-                    if (manifest && manifest.displayVersion) {
-                        window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.displayVersion);
-                    } else if (manifest && manifest.loaderVersion != null && manifest.silentVersion != null) {
-                        window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.loaderVersion) + '.' + String(manifest.silentVersion);
-                    }
-                } catch (e) { /* ignore */ }
-            },
+    function applyManifestMeta(manifest) {
+        if (!manifest) return;
+        if (manifest.displayVersion) {
+            window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.displayVersion);
+        } else if (manifest.loaderVersion != null && manifest.silentVersion != null) {
+            window.TMMS_REMOTE_DISPLAY_VERSION = String(manifest.loaderVersion) + '.' + String(manifest.silentVersion);
+        }
+    }
+
+    function loadBundleVersion(versionTag, reason) {
+        var tag = String(versionTag || FALLBACK_BUNDLE_VERSION);
+        rememberBundleVersion(tag);
+        readCachedBundle(tag, function (code) {
+            console.log('[MMS] Bundle cache hit v' + tag + (reason ? ' (' + reason + ')' : ''));
+            try {
+                runBundle(code);
+            } catch (err) {
+                console.error('[MMS] Cached bundle eval failed — re-downloading:', err);
+                downloadBundle(tag, { cacheOnly: false });
+            }
+        }, function () {
+            console.log('[MMS] Bundle cache miss — downloading v' + tag + (reason ? ' (' + reason + ')' : ''));
+            downloadBundle(tag, { cacheOnly: false });
         });
     }
 
-    /** Prefer disk cache, then network. Manifest/prefetch runs in the background. */
+    /**
+     * Ask GitHub for the current bundle version BEFORE running cache.
+     * Old behavior ran the remembered IndexedDB bundle immediately and only
+     * prefetched updates for the *next* page — pushes felt "not live".
+     */
     function startBundleLoad() {
         if (LOCAL_BUNDLE_URL) {
             loadBundle(FALLBACK_BUNDLE_VERSION);
             return;
         }
 
-        var versionTag = readPreferredBundleVersion();
-        readCachedBundle(versionTag, function (code) {
-            console.log('[MMS] Bundle cache hit v' + versionTag);
+        var remembered = readPreferredBundleVersion();
+        var settled = false;
+        var startedVersion = '';
+
+        function settleWith(versionTag, reason) {
+            if (settled) return;
+            settled = true;
+            startedVersion = String(versionTag || remembered || FALLBACK_BUNDLE_VERSION);
+            loadBundleVersion(startedVersion, reason);
+        }
+
+        function reloadForNewerBundle(remoteVer) {
             try {
-                runBundle(code);
-            } catch (err) {
-                console.error('[MMS] Cached bundle eval failed — re-downloading:', err);
-                downloadBundle(versionTag, { cacheOnly: false });
-                return;
-            }
-            refreshManifestInBackground(versionTag);
-        }, function () {
-            console.log('[MMS] Bundle cache miss — downloading v' + versionTag);
-            downloadBundle(versionTag, { cacheOnly: false });
-            refreshManifestInBackground(versionTag);
+                var guardKey = 'tm_mms_reload_v' + remoteVer;
+                if (sessionStorage.getItem(guardKey) === '1') return;
+                sessionStorage.setItem(guardKey, '1');
+                console.log('[MMS] Newer bundle v' + remoteVer + ' available — reloading once');
+                window.location.reload();
+            } catch (e) { /* ignore */ }
+        }
+
+        if (typeof GM_xmlhttpRequest !== 'function') {
+            settleWith(remembered, 'no-xhr');
+            return;
+        }
+
+        // Fail open quickly if GitHub is slow — still better than shipping stale forever.
+        var waitId = setTimeout(function () {
+            settleWith(remembered, 'manifest-timeout');
+        }, 2000);
+
+        GM_xmlhttpRequest({
+            method: 'GET',
+            url: MANIFEST_URL + '?t=' + Date.now(),
+            onload: function (response) {
+                clearTimeout(waitId);
+                var versionTag = remembered;
+                var reason = 'manifest-fallback';
+                var remoteVer = '';
+                try {
+                    if (response.status >= 200 && response.status < 300 && response.responseText) {
+                        var manifest = JSON.parse(response.responseText);
+                        remoteVer = manifest && manifest.version != null ? String(manifest.version) : '';
+                        if (remoteVer) {
+                            versionTag = remoteVer;
+                            rememberBundleVersion(remoteVer);
+                            reason = remoteVer === String(remembered || '') ? 'manifest-cached' : 'manifest-latest';
+                        }
+                        applyManifestMeta(manifest);
+                    }
+                } catch (e) { /* ignore */ }
+
+                if (settled) {
+                    // Manifest arrived after timeout fallback started an older cache entry.
+                    if (remoteVer && startedVersion && remoteVer !== startedVersion) {
+                        downloadBundle(remoteVer, { cacheOnly: true });
+                        reloadForNewerBundle(remoteVer);
+                    }
+                    return;
+                }
+                settleWith(versionTag, reason);
+            },
+            onerror: function () {
+                clearTimeout(waitId);
+                settleWith(remembered, 'manifest-error');
+            },
         });
     }
 

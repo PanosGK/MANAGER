@@ -1,11 +1,11 @@
 {
-  "version": "308",
-  "loaderVersion": "35",
-  "silentVersion": "46",
-  "displayVersion": "35.46",
+  "version": "309",
+  "loaderVersion": "36",
+  "silentVersion": "1",
+  "displayVersion": "36.1",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Phone catalog: 13-inch UI scale control, color delete/rename persistence, Apple UI polish",
+  "releaseNotes": "Loader checks GitHub manifest before running cached bundle so silent pushes apply on the same page load",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
