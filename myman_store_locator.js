@@ -230,11 +230,21 @@
         return list;
     }
 
+    function emptyActiveFilters() {
+        return { grade: '', gb: '', color: '', tag: '' };
+    }
+
+    function phoneTagKeys(phone) {
+        if (typeof window.getPhoneTags !== 'function') return [];
+        return window.getPhoneTags(phone?.barcode) || [];
+    }
+
     function collectFiltersForModel(allPhones, otherStorePhones, model, helpers, catalogView = 'mine') {
         const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
         const grades = new Set();
         const gbs = new Set();
         const colors = new Set();
+        const tags = new Set();
 
         const addPhone = (phone) => {
             if (extractBaseModel(phone.model) !== model) return;
@@ -243,6 +253,7 @@
             if (gb) gbs.add(gb);
             const color = extractColor(phone.name || phone.model);
             if (color) colors.add(color);
+            phoneTagKeys(phone).forEach((tag) => tags.add(tag));
         };
 
         if (catalogView !== 'network') {
@@ -261,17 +272,22 @@
             };
             return num(a) - num(b);
         };
+        const sortTag = (a, b) => {
+            const nameOf = (k) => (typeof window.getTagDisplayName === 'function' ? window.getTagDisplayName(k) : k);
+            return nameOf(a).localeCompare(nameOf(b), undefined, { sensitivity: 'base' });
+        };
 
         return {
             grades: [...grades].sort((a, b) => helpers.comparePhoneGrades(a, b)),
             gbs: [...gbs].sort(sortGb),
             colors: [...colors].sort((a, b) => a.localeCompare(b, 'el')),
+            tags: [...tags].sort(sortTag),
         };
     }
 
     function collectFilterCounts(allPhones, otherStorePhones, model, activeFilters, helpers, catalogView = 'mine') {
         const { extractBaseModel, extractGB, extractColor, filterIphoneTitlePhones } = helpers;
-        const counts = { grade: {}, gb: {}, color: {} };
+        const counts = { grade: {}, gb: {}, color: {}, tag: {} };
 
         const phones = [];
         if (catalogView !== 'network') {
@@ -305,6 +321,12 @@
             const color = extractColor(phone.name || phone.model);
             if (color) counts.color[color] = (counts.color[color] || 0) + 1;
         });
+        phones.forEach((phone) => {
+            if (!matchesExcept(phone, 'tag')) return;
+            phoneTagKeys(phone).forEach((tag) => {
+                counts.tag[tag] = (counts.tag[tag] || 0) + 1;
+            });
+        });
 
         return counts;
     }
@@ -321,6 +343,12 @@
                 ? window.resolveDisplayColorName
                 : (c) => c;
             if (resolve(color) !== resolve(filters.color)) return false;
+        }
+        if (filters.tag) {
+            const tagKey = typeof window.normalizeTagKey === 'function'
+                ? window.normalizeTagKey(filters.tag)
+                : String(filters.tag || '').trim().toLowerCase();
+            if (!phoneTagKeys(phone).includes(tagKey)) return false;
         }
         return true;
     }
@@ -552,7 +580,7 @@
         let uiScale = typeof UI.normalizeUiScale === 'function'
             ? UI.normalizeUiScale(GM_getValue(UI_SCALE_KEY, defaultScale))
             : defaultScale;
-        let activeFilters = { grade: '', gb: '', color: '' };
+        let activeFilters = emptyActiveFilters();
         let allPhones = [];
         let otherStorePhones = [];
         let otherStoreLoaded = false;
@@ -635,6 +663,8 @@
         }
 
         function closeModal() {
+            document.querySelectorAll('.tm-sl-settings-menu.tm-sl-menu--fixed, .tm-sl-export-menu.tm-sl-menu--fixed, .tm-sl-tag-picker')
+                .forEach((el) => el.remove());
             overlay.remove();
         }
 
@@ -734,8 +764,35 @@
 
             bodyEl.querySelectorAll('tr.tm-sl-unit-row[data-tm-sl-open-row]').forEach((row) => {
                 row.addEventListener('dblclick', (e) => {
-                    if (e.target.closest('[data-tm-sl-copy]')) return;
+                    if (e.target.closest('[data-tm-sl-copy], [data-tm-sl-tag-edit], .tm-sl-phone-tag, .tm-sl-tag-picker')) return;
                     openProductByBarcode(row.getAttribute('data-tm-sl-open-row'));
+                });
+                row.addEventListener('contextmenu', (e) => {
+                    if (e.target.closest('[data-tm-sl-copy]')) return;
+                    e.preventDefault();
+                    const code = row.getAttribute('data-barcode');
+                    if (!code || typeof UI.showPhoneTagPicker !== 'function') return;
+                    UI.showPhoneTagPicker(row, code, () => renderStoresStep());
+                });
+            });
+
+            bodyEl.querySelectorAll('[data-tm-sl-tag-edit]').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const code = btn.getAttribute('data-tm-sl-tag-edit');
+                    if (!code || typeof UI.showPhoneTagPicker !== 'function') return;
+                    UI.showPhoneTagPicker(btn, code, () => renderStoresStep());
+                });
+            });
+
+            bodyEl.querySelectorAll('.tm-sl-phone-tag[data-tm-sl-tag-key]').forEach((chip) => {
+                chip.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const code = chip.getAttribute('data-tm-sl-tag-barcode');
+                    const key = chip.getAttribute('data-tm-sl-tag-key');
+                    if (!code || !key || typeof window.togglePhoneTag !== 'function') return;
+                    window.togglePhoneTag(code, key);
+                    renderStoresStep();
                 });
             });
 
@@ -755,13 +812,13 @@
                 btn.addEventListener('click', () => {
                     const action = btn.getAttribute('data-tm-sl-empty-action');
                     if (action === 'clear-filters') {
-                        activeFilters = { grade: '', gb: '', color: '' };
+                        activeFilters = emptyActiveFilters();
                         renderStoresStep();
                     } else if (action === 'clear-search') {
                         modelQuery = '';
                         renderModelsStep();
                     } else if (action === 'back-models') {
-                        activeFilters = { grade: '', gb: '', color: '' };
+                        activeFilters = emptyActiveFilters();
                         renderModelsStep();
                     } else if (action === 'refresh') {
                         refreshData();
@@ -837,7 +894,7 @@
                 chip.addEventListener('click', () => {
                     const key = chip.getAttribute('data-tm-sl-filter');
                     if (key === 'clear') {
-                        activeFilters = { grade: '', gb: '', color: '' };
+                        activeFilters = emptyActiveFilters();
                     } else {
                         const val = chip.getAttribute('data-tm-sl-value') || '';
                         activeFilters[key] = activeFilters[key] === val ? '' : val;
@@ -1059,7 +1116,7 @@
         }
 
         function hasActiveFilters() {
-            return !!(activeFilters.grade || activeFilters.gb || activeFilters.color);
+            return !!(activeFilters.grade || activeFilters.gb || activeFilters.color || activeFilters.tag);
         }
 
         function mergeNetworkStoreHints() {
@@ -1151,7 +1208,7 @@
             });
 
             toolbarEl.querySelector('#tm-sl-back')?.addEventListener('click', () => {
-                activeFilters = { grade: '', gb: '', color: '' };
+                activeFilters = emptyActiveFilters();
                 renderModelsStep();
             });
             wireFilterChips(toolbarEl);
@@ -1490,7 +1547,7 @@
             if (e.key === 'Escape') {
                 e.preventDefault();
                 if (step === 'stores') {
-                    activeFilters = { grade: '', gb: '', color: '' };
+                    activeFilters = emptyActiveFilters();
                     renderModelsStep();
                     return;
                 }

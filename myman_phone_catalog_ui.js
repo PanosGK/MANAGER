@@ -119,7 +119,10 @@
         @keyframes tm-sl-in { from { opacity: 0; } to { opacity: 1; } }
         @keyframes tm-sl-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
         @keyframes tm-sl-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        @keyframes tm-sl-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        @keyframes tm-sl-toast-in {
+            from { opacity: 0; transform: translate(-50%, 8px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
 
         .tm-sl-overlay {
             background: var(--tm-overlay-dim, rgba(0,0,0,0.75)) !important;
@@ -321,6 +324,8 @@
             border-bottom: 1px solid var(--tm-shop-item-border);
             background: color-mix(in srgb, var(--tm-shop-item-border) 6%, var(--tm-shop-item-bg));
             flex-shrink: 0;
+            position: relative;
+            z-index: 2;
         }
         .tm-sl-network-detail-head__row {
             display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
@@ -357,7 +362,7 @@
             font-size: 12px;
         }
         .tm-sl-unit-table thead {
-            position: sticky; top: 0; z-index: 1;
+            position: sticky; top: 0; z-index: 3;
             background: color-mix(in srgb, var(--tm-shop-item-border) 14%, var(--tm-shop-item-bg));
         }
         .tm-sl-unit-table th {
@@ -597,6 +602,8 @@
             border-radius: 10px;
             border: 1px solid var(--tm-shop-item-border);
             background: var(--tm-shop-item-bg);
+            position: relative;
+            z-index: 12;
         }
         .tm-sl-load[hidden] { display: none !important; }
         .tm-sl-load__row {
@@ -772,7 +779,8 @@
             flex-shrink: 0;
             background: var(--tm-shop-item-bg);
             position: relative;
-            z-index: 20; /* above sticky toolbar/body so settings menus aren't covered */
+            z-index: 30;
+            overflow: visible;
         }
         .tm-sl-header-row {
             display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -795,6 +803,17 @@
             border-radius: 12px;
             box-shadow: 0 12px 32px rgba(0,0,0,0.2);
             padding: 6px; min-width: 210px; z-index: 50;
+        }
+        /* Ported to document.body so shell overflow/zoom can't bury or clip menus */
+        .tm-sl-settings-menu.tm-sl-menu--fixed,
+        .tm-sl-export-menu.tm-sl-menu--fixed {
+            position: fixed !important;
+            top: var(--tm-sl-menu-top, 0) !important;
+            right: var(--tm-sl-menu-right, 8px) !important;
+            left: auto !important;
+            z-index: 100060 !important;
+            max-height: min(70vh, 420px);
+            overflow: auto;
         }
         .tm-sl-settings-menu button, .tm-sl-export-menu button {
             width: 100%; text-align: left; border: none; background: transparent;
@@ -830,9 +849,8 @@
             border-bottom: 1px solid var(--tm-shop-item-border);
             background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg));
             flex-shrink: 0;
-            position: sticky;
-            top: 0;
-            z-index: 4;
+            position: relative;
+            z-index: 10;
         }
         .tm-sl-toolbar-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .tm-sl-toolbar-row + .tm-sl-toolbar-row { margin-top: 8px; }
@@ -987,6 +1005,8 @@
 
         .tm-sl-body {
             flex: 1; overflow-y: auto; padding: 16px 20px; min-height: 0;
+            position: relative;
+            z-index: 1;
         }
         .tm-sl-shell.tm-sl-density--compact .tm-sl-body { padding: 10px 14px; }
         .tm-sl-shell.tm-sl-density--compact .tm-sl-model-card { padding: 10px 12px; }
@@ -1527,6 +1547,8 @@
             border-top: 1px solid var(--tm-shop-item-border);
             display: flex; justify-content: space-between; align-items: center;
             font-size: 11px; opacity: 0.85; flex-shrink: 0; gap: 12px;
+            position: relative;
+            z-index: 8;
         }
         .tm-sl-footer-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
         .tm-sl-density-btn {
@@ -1604,7 +1626,7 @@
             box-shadow: 0 8px 24px rgba(0,0,0,0.35);
             opacity: 0; pointer-events: none;
             transition: opacity 0.2s;
-            z-index: 5;
+            z-index: 70; /* above footer/toolbar chrome */
         }
         .tm-sl-toast.is-visible {
             opacity: 1; pointer-events: auto;
@@ -1643,12 +1665,13 @@
         }
         .tm-sl-header {
             padding: 16px 18px 12px !important;
-            background: color-mix(in srgb, var(--tm-shop-item-bg) 88%, transparent) !important;
+            background: color-mix(in srgb, var(--tm-shop-item-bg) 92%, transparent) !important;
             border-bottom: 0.5px solid var(--tm-sl-hairline) !important;
             backdrop-filter: saturate(180%) blur(16px);
             -webkit-backdrop-filter: saturate(180%) blur(16px);
             position: relative !important;
-            z-index: 20 !important;
+            z-index: 30 !important;
+            overflow: visible !important;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-header,
         .tm-sl-shell.tm-sl-step--stores .tm-sl-header {
@@ -2024,6 +2047,119 @@
             color: var(--tm-primary-color) !important;
             padding: 2px 0 !important;
         }
+        .tm-sl-table-barcode-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+            min-width: 0;
+        }
+        .tm-sl-phone-tags {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+        }
+        .tm-sl-phone-tag {
+            appearance: none;
+            border: 1px solid color-mix(in srgb, var(--tm-sl-tag-color, #9e9e9e) 45%, transparent);
+            background: color-mix(in srgb, var(--tm-sl-tag-color, #9e9e9e) 16%, var(--tm-shop-item-bg));
+            color: var(--tm-sl-tag-color, #9e9e9e);
+            border-radius: 980px;
+            padding: 2px 8px;
+            font-size: 10.5px;
+            font-weight: 750;
+            line-height: 1.3;
+            cursor: pointer;
+        }
+        .tm-sl-phone-tag:hover {
+            background: color-mix(in srgb, var(--tm-sl-tag-color, #9e9e9e) 28%, var(--tm-shop-item-bg));
+        }
+        .tm-sl-phone-tag-add {
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 980px;
+            border: 1px dashed color-mix(in srgb, var(--tm-primary-color) 40%, var(--tm-shop-item-border));
+            background: color-mix(in srgb, var(--tm-primary-color) 8%, var(--tm-shop-item-bg));
+            color: var(--tm-primary-color);
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            display: inline-grid;
+            place-items: center;
+            padding: 0;
+        }
+        .tm-sl-phone-tag-add:hover {
+            background: color-mix(in srgb, var(--tm-primary-color) 16%, var(--tm-shop-item-bg));
+            border-style: solid;
+        }
+        .tm-sl-chip-tag-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: 0;
+            box-shadow: 0 0 0 1px color-mix(in srgb, #000 12%, transparent);
+        }
+        .tm-sl-tag-picker {
+            position: fixed;
+            z-index: 100060;
+            min-width: 210px;
+            max-width: 280px;
+            max-height: min(320px, 60vh);
+            overflow: auto;
+            padding: 6px;
+            border-radius: 12px;
+            border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 80%, var(--tm-primary-color));
+            background: var(--tm-shop-item-bg);
+            box-shadow: 0 14px 40px color-mix(in srgb, #000 28%, transparent);
+        }
+        .tm-sl-tag-picker__empty {
+            padding: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+            line-height: 1.4;
+        }
+        .tm-sl-tag-picker__item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            background: transparent;
+            color: var(--tm-shop-item-text);
+            text-align: left;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 650;
+            cursor: pointer;
+        }
+        .tm-sl-tag-picker__item:hover {
+            background: color-mix(in srgb, var(--tm-primary-color) 10%, transparent);
+        }
+        .tm-sl-tag-picker__item.is-active {
+            background: color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
+            color: var(--tm-primary-color);
+        }
+        .tm-sl-tag-picker__dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 1px color-mix(in srgb, #000 15%, transparent);
+        }
+        .tm-sl-tag-picker__name { flex: 1; min-width: 0; }
+        .tm-sl-tag-picker__check {
+            font-size: 12px;
+            font-weight: 800;
+            opacity: 0.85;
+            min-width: 12px;
+        }
         .tm-sl-unit-table .tm-sl-table-barcode:hover {
             opacity: 0.75;
         }
@@ -2131,6 +2267,8 @@
             opacity: 1 !important;
             backdrop-filter: saturate(160%) blur(12px);
             -webkit-backdrop-filter: saturate(160%) blur(12px);
+            position: relative !important;
+            z-index: 8 !important;
         }
         #tm-sl-status { color: var(--tm-sl-label); font-weight: 500; }
         .tm-sl-density-btn {
@@ -2229,9 +2367,19 @@
             border-radius: 14px !important;
             border: 0.5px solid var(--tm-sl-hairline) !important;
             box-shadow: 0 12px 40px color-mix(in srgb, #000 22%, transparent) !important;
-            overflow: hidden;
             padding: 6px !important;
             z-index: 50 !important;
+        }
+        .tm-sl-settings-menu.tm-sl-menu--fixed,
+        .tm-sl-export-menu.tm-sl-menu--fixed {
+            overflow: auto !important;
+            z-index: 100060 !important;
+        }
+        .tm-sl-toast {
+            z-index: 70 !important;
+        }
+        .tm-sl-footer {
+            z-index: 8 !important;
         }
         .tm-sl-settings-menu button,
         .tm-sl-export-menu button {
@@ -2322,7 +2470,113 @@
         if (active?.grade) bits.push(`Βαθμ. ${active.grade}`);
         if (active?.gb) bits.push(active.gb);
         if (active?.color) bits.push(active.color);
+        if (active?.tag) {
+            const name = typeof window.getTagDisplayName === 'function'
+                ? window.getTagDisplayName(active.tag)
+                : active.tag;
+            bits.push(`#${name}`);
+        }
         return bits.length ? bits.join(' · ') : 'Χωρίς φίλτρα';
+    }
+
+    function phoneTagChipHTML(tagKey, barcode, opts = {}) {
+        const key = typeof window.normalizeTagKey === 'function'
+            ? window.normalizeTagKey(tagKey)
+            : String(tagKey || '').trim().toLowerCase();
+        if (!key) return '';
+        const name = typeof window.getTagDisplayName === 'function'
+            ? window.getTagDisplayName(key)
+            : key;
+        const color = typeof window.getTagColor === 'function'
+            ? window.getTagColor(key)
+            : '#9e9e9e';
+        const removable = opts.removable !== false;
+        const title = removable ? `Αφαίρεση #${name}` : `#${name}`;
+        return `<button type="button" class="tm-sl-phone-tag" data-tm-sl-tag-key="${esc(key)}"
+            data-tm-sl-tag-barcode="${esc(barcode || '')}" title="${esc(title)}"
+            style="--tm-sl-tag-color:${esc(color)}">#${esc(name)}</button>`;
+    }
+
+    function buildPhoneTagsHTML(barcode) {
+        const tags = typeof window.getPhoneTags === 'function' ? (window.getPhoneTags(barcode) || []) : [];
+        const chips = tags.map((key) => phoneTagChipHTML(key, barcode)).join('');
+        return `<div class="tm-sl-phone-tags">
+            ${chips}
+            <button type="button" class="tm-sl-phone-tag-add" data-tm-sl-tag-edit="${esc(barcode)}"
+                title="Διαχείριση ετικετών" aria-label="Ετικέτες">+</button>
+        </div>`;
+    }
+
+    function showPhoneTagPicker(anchorEl, barcode, onChange) {
+        document.querySelectorAll('.tm-sl-tag-picker').forEach((el) => el.remove());
+        const code = String(barcode || '').trim();
+        if (!code || !anchorEl) return;
+
+        const selectable = typeof window.getSelectableTagKeys === 'function'
+            ? window.getSelectableTagKeys()
+            : (typeof window.getDefinedTagKeys === 'function' ? window.getDefinedTagKeys() : []);
+        const active = new Set(
+            typeof window.getPhoneTags === 'function' ? (window.getPhoneTags(code) || []) : []
+        );
+
+        const menu = document.createElement('div');
+        menu.className = 'tm-sl-tag-picker';
+        menu.setAttribute('role', 'menu');
+
+        if (!selectable.length) {
+            menu.innerHTML = `<div class="tm-sl-tag-picker__empty">Δημιουργήστε ετικέτες από Ρυθμίσεις → Διαχείριση Ετικετών</div>`;
+        } else {
+            menu.innerHTML = selectable.map((key) => {
+                const name = typeof window.getTagDisplayName === 'function' ? window.getTagDisplayName(key) : key;
+                const color = typeof window.getTagColor === 'function' ? window.getTagColor(key) : '#9e9e9e';
+                const isOn = active.has(key);
+                return `<button type="button" class="tm-sl-tag-picker__item${isOn ? ' is-active' : ''}"
+                    data-tm-sl-tag-toggle="${esc(key)}" role="menuitemcheckbox" aria-checked="${isOn ? 'true' : 'false'}">
+                    <span class="tm-sl-tag-picker__dot" style="background:${esc(color)}"></span>
+                    <span class="tm-sl-tag-picker__name">#${esc(name)}</span>
+                    <span class="tm-sl-tag-picker__check" aria-hidden="true">${isOn ? '✓' : ''}</span>
+                </button>`;
+            }).join('');
+        }
+
+        document.body.appendChild(menu);
+        const rect = anchorEl.getBoundingClientRect();
+        const menuW = Math.min(260, Math.max(200, menu.offsetWidth || 220));
+        let left = rect.right - menuW;
+        let top = rect.bottom + 6;
+        if (left < 8) left = 8;
+        if (left + menuW > window.innerWidth - 8) left = window.innerWidth - menuW - 8;
+        if (top + menu.offsetHeight > window.innerHeight - 8) {
+            top = Math.max(8, rect.top - menu.offsetHeight - 6);
+        }
+        menu.style.left = `${Math.round(left)}px`;
+        menu.style.top = `${Math.round(top)}px`;
+
+        const close = () => {
+            menu.remove();
+            document.removeEventListener('mousedown', onDoc, true);
+            document.removeEventListener('keydown', onKey, true);
+        };
+        const onDoc = (e) => {
+            if (menu.contains(e.target) || anchorEl.contains?.(e.target)) return;
+            close();
+        };
+        const onKey = (e) => {
+            if (e.key === 'Escape') close();
+        };
+        document.addEventListener('mousedown', onDoc, true);
+        document.addEventListener('keydown', onKey, true);
+
+        menu.querySelectorAll('[data-tm-sl-tag-toggle]').forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const key = btn.getAttribute('data-tm-sl-tag-toggle');
+                if (!key || typeof window.togglePhoneTag !== 'function') return;
+                window.togglePhoneTag(code, key);
+                close();
+                if (typeof onChange === 'function') onChange();
+            });
+        });
     }
 
     function buildCoachTipHtml() {
@@ -2601,15 +2855,24 @@
                     inner = `${colorSwatchHTML(val, hexMap)} ${esc(val)}`;
                 } else if (key === 'grade') {
                     inner = `<span class="tm-sl-chip-grade" style="${getGradeStyle(val)}">${esc(val)}</span>`;
+                } else if (key === 'tag') {
+                    const name = typeof window.getTagDisplayName === 'function'
+                        ? window.getTagDisplayName(val)
+                        : val;
+                    const color = typeof window.getTagColor === 'function'
+                        ? window.getTagColor(val)
+                        : '#9e9e9e';
+                    inner = `<span class="tm-sl-chip-tag-dot" style="background:${esc(color)}"></span>#${esc(name)}`;
                 }
-                parts.push(`<button type="button" class="tm-sl-chip${isActive ? ' is-active' : ''}"
+                parts.push(`<button type="button" class="tm-sl-chip${isActive ? ' is-active' : ''}${key === 'tag' ? ' tm-sl-chip--tag' : ''}"
                     data-tm-sl-filter="${esc(key)}" data-tm-sl-value="${esc(val)}">${inner}${countHtml}</button>`);
             });
         };
         addGroup('grade', filters.grades);
         addGroup('gb', filters.gbs);
         addGroup('color', filters.colors);
-        if (active.grade || active.gb || active.color) {
+        addGroup('tag', filters.tags || []);
+        if (active.grade || active.gb || active.color || active.tag) {
             parts.push('<button type="button" class="tm-sl-chip" data-tm-sl-filter="clear">Καθαρισμός φίλτρων</button>');
         }
         return parts.join('');
@@ -2879,7 +3142,12 @@
         const statusCell = buildUnitStatusCell(v, purchaseBlocked, ctx);
         const imeiPeek = formatImeiPeek(v.imei || v.phone?.imei);
         const imeiHtml = imeiPeek ? `<span class="tm-sl-table-imei">IMEI · ${esc(imeiPeek)}</span>` : '';
-        const barcodeCell = `<span class="tm-sl-table-barcode" data-tm-sl-copy="${esc(v.barcode)}" title="Κλικ για αντιγραφή">${esc(v.barcode)}</span>${imeiHtml}`;
+        const tagsHtml = buildPhoneTagsHTML(v.barcode);
+        const barcodeCell = `<div class="tm-sl-table-barcode-wrap">
+            <span class="tm-sl-table-barcode" data-tm-sl-copy="${esc(v.barcode)}" title="Κλικ για αντιγραφή">${esc(v.barcode)}</span>
+            ${imeiHtml}
+            ${tagsHtml}
+        </div>`;
         const priceCell = v.price ? `<span class="tm-sl-table-price">${esc(v.price)}</span>` : '—';
         const modelName = v.modelName || ctx?.modelName || '';
 
@@ -2890,7 +3158,7 @@
             data-tm-sl-color="${esc(v.color || '')}"
             data-tm-sl-model="${esc(modelName)}"
             data-tm-sl-price="${esc(v.price || '')}"
-            title="Κλικ στο barcode για αντιγραφή · διπλό κλικ για άνοιγμα">
+            title="Κλικ barcode: αντιγραφή · δεξί κλικ / +: ετικέτες · διπλό κλικ: άνοιγμα">
             <td>${gradeCell}</td>
             <td>${gbCell}</td>
             <td>${colorCell}</td>
@@ -2942,6 +3210,7 @@
         ].filter(Boolean).join(' ');
         const priceHtml = v.price ? `<div class="tm-sl-phone-card__price">${esc(v.price)}</div>` : '';
         const barcodeHtml = `<span class="tm-sl-barcode-pill" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode"><span class="tm-sl-barcode-pill__icon">#</span>${esc(v.barcode)}</span>`;
+        const tagsHtml = buildPhoneTagsHTML(v.barcode);
         const specsHtml = buildSpecPillsHTML(v, ctx, purchaseBlocked) || '<span class="tm-sl-preview-pill">—</span>';
         const actionsHtml = `<div class="tm-sl-phone-card__actions">
             <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">${ICON.copy} Αντιγραφή</button>
@@ -2953,6 +3222,7 @@
                 ${blockedBanner}
                 <div class="tm-sl-phone-card__specs">${specsHtml}</div>
                 ${barcodeHtml}
+                ${tagsHtml}
                 ${priceHtml}
                 ${actionsHtml}
             </article>`;
@@ -2965,6 +3235,7 @@
                 ${storeHtml || purchaseBadge ? `<div class="tm-sl-phone-card__meta">${storeHtml}${purchaseBadge}</div>` : ''}
                 <div class="tm-sl-phone-card__footer">
                     ${barcodeHtml}
+                    ${tagsHtml}
                 </div>
             </div>
             <div class="tm-sl-phone-card__aside">
@@ -3482,6 +3753,9 @@
         getMyStoreLabel,
         updateMyStoreLabels,
         formatActiveFiltersSummary,
+        phoneTagChipHTML,
+        buildPhoneTagsHTML,
+        showPhoneTagPicker,
         buildContextStrip,
         buildStatusLegend,
         buildCoachTipHtml,

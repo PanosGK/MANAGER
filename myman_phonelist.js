@@ -304,6 +304,79 @@ function savePhoneTags(tags) {
     GM_setValue(PHONE_TAGS_STORAGE_KEY, JSON.stringify(tags));
 }
 
+function getPhoneTags(barcode) {
+    if (!barcode) return [];
+    const allTags = loadPhoneTags();
+    const list = allTags[barcode];
+    return Array.isArray(list) ? list.map(normalizeTagKey).filter(Boolean) : [];
+}
+
+function addPhoneTag(barcode, tag) {
+    const code = String(barcode || '').trim();
+    const tagKey = normalizeTagKey(tag);
+    if (!code || !tagKey) return false;
+    const allTags = loadPhoneTags();
+    if (!allTags[code]) allTags[code] = [];
+    if (allTags[code].includes(tagKey)) return false;
+    allTags[code].push(tagKey);
+    savePhoneTags(allTags);
+    // Ensure a definition exists so chips have a color/name.
+    const defs = loadTagDefinitions();
+    if (!defs[tagKey]) {
+        defs[tagKey] = { name: formatTagNameFromKey(tagKey), color: '#9e9e9e' };
+        saveTagDefinitions(defs);
+    }
+    return true;
+}
+
+function removePhoneTag(barcode, tag) {
+    const code = String(barcode || '').trim();
+    const tagKey = normalizeTagKey(tag);
+    if (!code || !tagKey) return false;
+    const allTags = loadPhoneTags();
+    if (!allTags[code]) return false;
+    const next = allTags[code].filter((t) => t !== tagKey);
+    if (next.length === allTags[code].length) return false;
+    if (next.length) allTags[code] = next;
+    else delete allTags[code];
+    savePhoneTags(allTags);
+    return true;
+}
+
+function togglePhoneTag(barcode, tag) {
+    const tagKey = normalizeTagKey(tag);
+    if (!tagKey) return { ok: false, active: false };
+    const has = getPhoneTags(barcode).includes(tagKey);
+    if (has) {
+        removePhoneTag(barcode, tagKey);
+        return { ok: true, active: false, key: tagKey };
+    }
+    addPhoneTag(barcode, tagKey);
+    return { ok: true, active: true, key: tagKey };
+}
+
+function getAllUsedTags() {
+    const used = new Set();
+    Object.values(loadPhoneTags()).forEach((tags) => {
+        if (!Array.isArray(tags)) return;
+        tags.forEach((tag) => {
+            const key = normalizeTagKey(tag);
+            if (key) used.add(key);
+        });
+    });
+    return [...used].sort((a, b) =>
+        getTagDisplayName(a).localeCompare(getTagDisplayName(b), undefined, { sensitivity: 'base' })
+    );
+}
+
+function getSelectableTagKeys() {
+    const keys = new Set(getDefinedTagKeys());
+    getAllUsedTags().forEach((k) => keys.add(k));
+    return [...keys].sort((a, b) =>
+        getTagDisplayName(a).localeCompare(getTagDisplayName(b), undefined, { sensitivity: 'base' })
+    );
+}
+
 function renamePhoneTagKeyOnAllPhones(oldKey, newKey) {
     const oldK = normalizeTagKey(oldKey);
     const newK = normalizeTagKey(newKey);
@@ -2857,7 +2930,7 @@ function getPhoneCatalogUICtx(modalHelpers = {}) {
         getPhoneGradeDisplayStyle,
         t,
         extractBaseModel: modalHelpers.extractBaseModel || ((m) => m || ''),
-        getPhoneTags: modalHelpers.getPhoneTags || (() => []),
+        getPhoneTags: modalHelpers.getPhoneTags || getPhoneTags,
     };
 }
 
@@ -3256,10 +3329,17 @@ window.getPhoneCatalogOutlineStyle = getPhoneCatalogOutlineStyle;
 window.getDefinedTagKeys = getDefinedTagKeys;
 window.getTagDefinition = getTagDefinition;
 window.getTagDisplayName = getTagDisplayName;
+window.getTagColor = getTagColor;
 window.addTagDefinition = addTagDefinition;
 window.updateTagDefinition = updateTagDefinition;
 window.deleteTagDefinition = deleteTagDefinition;
 window.normalizeTagKey = normalizeTagKey;
+window.getPhoneTags = getPhoneTags;
+window.addPhoneTag = addPhoneTag;
+window.removePhoneTag = removePhoneTag;
+window.togglePhoneTag = togglePhoneTag;
+window.getAllUsedTags = getAllUsedTags;
+window.getSelectableTagKeys = getSelectableTagKeys;
 window.renamePhoneTagKeyOnAllPhones = renamePhoneTagKeyOnAllPhones;
 window.removePhoneTagFromAllPhones = removePhoneTagFromAllPhones;
 window.loadPhoneStoreRules = loadPhoneStoreRules;

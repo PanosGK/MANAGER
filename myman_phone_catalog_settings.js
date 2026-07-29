@@ -930,29 +930,72 @@
         const settingsMenu = overlay.querySelector('#tm-sl-settings-menu');
         const exportBtn = overlay.querySelector('#tm-sl-export-btn');
         const exportMenu = overlay.querySelector('#tm-sl-export-menu');
+        const settingsWrap = overlay.querySelector('.tm-sl-settings-wrap');
         if (!settingsBtn || !settingsMenu) return;
 
+        const placeFixedMenu = (menu, anchor) => {
+            if (!menu || !anchor) return;
+            const rect = anchor.getBoundingClientRect();
+            const right = Math.max(8, window.innerWidth - rect.right);
+            const top = Math.min(window.innerHeight - 12, rect.bottom + 6);
+            menu.style.setProperty('--tm-sl-menu-top', `${Math.round(top)}px`);
+            menu.style.setProperty('--tm-sl-menu-right', `${Math.round(right)}px`);
+            menu.classList.add('tm-sl-menu--fixed');
+            if (menu.parentElement !== document.body) {
+                document.body.appendChild(menu);
+            }
+            menu.hidden = false;
+            // Flip upward if the menu would run off the bottom.
+            requestAnimationFrame(() => {
+                const h = menu.offsetHeight || 0;
+                if (rect.bottom + 6 + h > window.innerHeight - 8) {
+                    const flippedTop = Math.max(8, rect.top - h - 6);
+                    menu.style.setProperty('--tm-sl-menu-top', `${Math.round(flippedTop)}px`);
+                }
+            });
+        };
+
+        const restoreMenu = (menu) => {
+            if (!menu) return;
+            menu.hidden = true;
+            menu.classList.remove('tm-sl-menu--fixed');
+            menu.style.removeProperty('--tm-sl-menu-top');
+            menu.style.removeProperty('--tm-sl-menu-right');
+            if (settingsWrap && menu.parentElement !== settingsWrap) {
+                settingsWrap.appendChild(menu);
+            }
+        };
+
         const hideMenus = () => {
-            settingsMenu.hidden = true;
-            if (exportMenu) exportMenu.hidden = true;
+            restoreMenu(settingsMenu);
+            restoreMenu(exportMenu);
         };
 
         settingsBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (exportMenu) exportMenu.hidden = true;
-            settingsMenu.hidden = !settingsMenu.hidden;
+            restoreMenu(exportMenu);
+            if (!settingsMenu.hidden && settingsMenu.classList.contains('tm-sl-menu--fixed')) {
+                hideMenus();
+                return;
+            }
+            placeFixedMenu(settingsMenu, settingsBtn);
         });
 
         exportBtn?.addEventListener('click', (e) => {
             e.stopPropagation();
-            settingsMenu.hidden = true;
+            restoreMenu(settingsMenu);
             if (!exportMenu) return;
-            exportMenu.hidden = !exportMenu.hidden;
+            if (!exportMenu.hidden && exportMenu.classList.contains('tm-sl-menu--fixed')) {
+                restoreMenu(exportMenu);
+                return;
+            }
+            placeFixedMenu(exportMenu, settingsBtn);
         });
 
         document.addEventListener('click', function onDocClick(e) {
             if (!overlay.isConnected) {
                 document.removeEventListener('click', onDocClick);
+                hideMenus();
                 return;
             }
             if (settingsMenu.contains(e.target) || settingsBtn.contains(e.target)) return;
@@ -960,25 +1003,27 @@
             hideMenus();
         });
 
-        overlay.querySelector('#tm-sl-mystore-btn')?.addEventListener('click', () => {
+        window.addEventListener('resize', hideMenus);
+        overlay.addEventListener('scroll', hideMenus, true);
+
+        const openManager = (fn) => {
             hideMenus();
-            showMyStoreLocationModal(getCtx());
+            fn(getCtx());
+        };
+        overlay.querySelector('#tm-sl-mystore-btn')?.addEventListener('click', () => {
+            openManager(showMyStoreLocationModal);
         });
         overlay.querySelector('#tm-sl-models-btn')?.addEventListener('click', () => {
-            hideMenus();
-            showModelsManagerModal(getCtx());
+            openManager(showModelsManagerModal);
         });
         overlay.querySelector('#tm-sl-colors-btn')?.addEventListener('click', () => {
-            hideMenus();
-            showColorManagerModal(getCtx());
+            openManager(showColorManagerModal);
         });
         overlay.querySelector('#tm-sl-tags-btn')?.addEventListener('click', () => {
-            hideMenus();
-            showTagManagerModal(getCtx());
+            openManager(showTagManagerModal);
         });
         overlay.querySelector('#tm-sl-stores-btn')?.addEventListener('click', () => {
-            hideMenus();
-            showStoreRulesModal(getCtx());
+            openManager(showStoreRulesModal);
         });
 
         overlay.querySelector('#tm-sl-export-clipboard')?.addEventListener('click', (e) => {
