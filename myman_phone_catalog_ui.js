@@ -245,8 +245,9 @@
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 6px; padding: 8px 10px;
         }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-model-card { padding: 9px 10px; border-radius: 8px; }
-        .tm-sl-shell.tm-sl-view--network .tm-sl-model-name { font-size: 12px; margin-bottom: 4px; padding-right: 48px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-card { padding: 12px 12px 10px; border-radius: 10px; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-name { font-size: 14px; margin-bottom: 0; padding-right: 0; }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-card-foot { margin-top: 8px; padding-top: 8px; gap: 6px; }
         .tm-sl-shell.tm-sl-view--network .tm-sl-empty { padding: 24px 16px; }
 
         .tm-sl-network-board {
@@ -491,12 +492,15 @@
             font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;
         }
         .tm-sl-toast__open:hover { background: color-mix(in srgb, #fff 12%, transparent); }
-        .tm-sl-model-card-top {
-            display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
-            margin-bottom: 4px;
+        .tm-sl-model-card-foot {
+            display: flex; flex-direction: column; gap: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
         }
-        .tm-sl-model-card-top .tm-sl-model-name { margin-bottom: 0; flex: 1; min-width: 0; }
-        .tm-sl-model-card-top .tm-sl-model-count { margin-bottom: 0; flex-shrink: 0; }
+        .tm-sl-model-stats {
+            display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px;
+        }
         .tm-sl-unit-table .tm-sl-table-blocked {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 3px 8px; border-radius: 6px;
@@ -1002,25 +1006,57 @@
 
         .tm-sl-model-card {
             position: relative;
-            border: 1px solid var(--tm-shop-item-border);
-            border-radius: 10px;
-            padding: 12px 14px;
-            background: var(--tm-shop-item-bg);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 85%, var(--tm-primary-color));
+            border-radius: 12px;
+            padding: 14px 14px 12px;
+            background:
+                linear-gradient(180deg,
+                    color-mix(in srgb, var(--tm-primary-color) 6%, var(--tm-shop-item-bg)) 0%,
+                    var(--tm-shop-item-bg) 42%);
             cursor: pointer;
-            transition: border-color 0.12s, background 0.12s;
+            transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.15s;
+            box-shadow: 0 1px 2px color-mix(in srgb, #000 6%, transparent);
+            border-left: 3px solid var(--tm-shop-item-border);
         }
         .tm-sl-model-card:hover {
-            border-color: var(--tm-primary-color);
-            background: var(--tm-shop-item-hover-bg);
+            border-color: color-mix(in srgb, var(--tm-primary-color) 55%, var(--tm-shop-item-border));
+            background:
+                linear-gradient(180deg,
+                    color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-shop-item-bg)) 0%,
+                    var(--tm-shop-item-hover-bg, var(--tm-shop-item-bg)) 50%);
+            box-shadow: 0 6px 18px color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
+            transform: translateY(-1px);
         }
         .tm-sl-model-card:focus-visible {
             outline: 2px solid var(--tm-primary-color);
             outline-offset: 2px;
         }
-        .tm-sl-model-card.tm-sl-heat--high { border-left: 3px solid var(--tm-success-color, #22c55e); }
-        .tm-sl-model-card.tm-sl-heat--low { border-left: 3px solid var(--tm-warning-color, #f59e0b); }
-        .tm-sl-model-card.tm-sl-heat--local { border-left: 3px solid var(--tm-info-color, #0ea5e9); }
-        .tm-sl-model-card.tm-sl-heat--mid { border-left: 3px solid var(--tm-shop-item-border); }
+        .tm-sl-model-card.tm-sl-heat--high {
+            border-left-color: var(--tm-success-color, #22c55e);
+            background:
+                linear-gradient(180deg,
+                    color-mix(in srgb, var(--tm-success-color, #22c55e) 10%, var(--tm-shop-item-bg)) 0%,
+                    var(--tm-shop-item-bg) 48%);
+        }
+        .tm-sl-model-card.tm-sl-heat--low {
+            border-left-color: var(--tm-warning-color, #f59e0b);
+            background:
+                linear-gradient(180deg,
+                    color-mix(in srgb, var(--tm-warning-color, #f59e0b) 12%, var(--tm-shop-item-bg)) 0%,
+                    var(--tm-shop-item-bg) 48%);
+        }
+        .tm-sl-model-card.tm-sl-heat--local {
+            border-left-color: var(--tm-info-color, #0ea5e9);
+            background:
+                linear-gradient(180deg,
+                    color-mix(in srgb, var(--tm-info-color, #0ea5e9) 11%, var(--tm-shop-item-bg)) 0%,
+                    var(--tm-shop-item-bg) 48%);
+        }
+        .tm-sl-model-card.tm-sl-heat--mid {
+            border-left-color: color-mix(in srgb, var(--tm-primary-color) 45%, var(--tm-shop-item-border));
+        }
 
         .tm-sl-mine-badge {
             position: absolute; top: 8px; right: 8px;
@@ -1033,27 +1069,33 @@
         }
 
         .tm-sl-model-name {
-            font-size: 14px; font-weight: 800; line-height: 1.25;
-            margin-bottom: 6px; padding-right: 8px;
+            font-size: 17px; font-weight: 800; line-height: 1.2;
+            letter-spacing: -0.03em;
+            margin: 0;
+            padding: 0;
             color: var(--tm-shop-item-text);
+            word-break: break-word;
         }
         .tm-sl-model-count {
-            font-size: 18px; font-weight: 900; line-height: 1.1;
+            display: inline-flex; align-items: baseline; gap: 4px;
+            font-size: 15px; font-weight: 800; line-height: 1.1;
             letter-spacing: -0.02em;
-            color: var(--tm-shop-item-text);
-            margin-bottom: 4px;
+            font-variant-numeric: tabular-nums;
+            color: var(--tm-primary-color);
+            margin: 0;
         }
         .tm-sl-model-count span {
-            font-size: 12px; font-weight: 600; opacity: 0.7; margin-left: 4px;
+            font-size: 11px; font-weight: 650; opacity: 0.85; margin-left: 0;
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
         }
         .tm-sl-hl {
-            background: color-mix(in srgb, var(--tm-primary-color) 30%, transparent);
-            color: inherit; border-radius: 2px; padding: 0 1px;
+            background: color-mix(in srgb, var(--tm-primary-color) 28%, transparent);
+            color: inherit; border-radius: 3px; padding: 0 2px;
         }
         .tm-sl-model-meta {
-            font-size: 12px; font-weight: 600;
-            color: var(--tm-info-color, #0ea5e9);
-            margin-bottom: 6px;
+            font-size: 12px; font-weight: 650;
+            color: var(--tm-muted-text, var(--tm-secondary-color));
+            margin: 0;
         }
         .tm-sl-model-stores { font-size: 11px; opacity: 0.75; margin-bottom: 8px; }
         .tm-sl-model-store-list {
@@ -1578,7 +1620,7 @@
             --tm-sl-hairline: color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
             --tm-sl-fill: color-mix(in srgb, var(--tm-shop-item-border) 22%, var(--tm-shop-item-bg));
             --tm-sl-fill-strong: color-mix(in srgb, var(--tm-shop-item-border) 34%, var(--tm-shop-item-bg));
-            --tm-sl-label: color-mix(in srgb, var(--tm-shop-item-text) 58%, transparent);
+            --tm-sl-label: color-mix(in srgb, var(--tm-shop-item-text) 72%, transparent);
             --tm-sl-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
             border-radius: var(--tm-sl-r-xl) !important;
             border: 1px solid var(--tm-sl-hairline) !important;
@@ -1679,17 +1721,17 @@
             margin-top: 12px !important;
             padding: 3px !important;
             border-radius: 10px !important;
-            border: 0 !important;
-            background: var(--tm-sl-fill) !important;
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 18%, var(--tm-sl-hairline)) !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 8%, var(--tm-sl-fill)) !important;
             gap: 2px !important;
             box-shadow: none !important;
         }
         .tm-sl-view-tab {
             border-radius: 8px !important;
             font-size: 12.5px !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             padding: 8px 12px !important;
-            color: var(--tm-sl-label) !important;
+            color: color-mix(in srgb, var(--tm-shop-item-text) 72%, transparent) !important;
             background: transparent !important;
             box-shadow: none !important;
             transition: background 0.18s var(--tm-sl-ease), color 0.18s var(--tm-sl-ease),
@@ -1697,14 +1739,14 @@
         }
         .tm-sl-view-tab:hover {
             color: var(--tm-shop-item-text) !important;
-            background: transparent !important;
+            background: color-mix(in srgb, var(--tm-shop-item-bg) 55%, transparent) !important;
         }
         .tm-sl-view-tab.is-active {
             background: var(--tm-shop-item-bg) !important;
-            color: var(--tm-shop-item-text) !important;
+            color: var(--tm-primary-color) !important;
             border: 0 !important;
-            box-shadow: 0 1px 2px color-mix(in srgb, #000 12%, transparent),
-                0 0 0 0.5px color-mix(in srgb, #000 6%, transparent) !important;
+            box-shadow: 0 1px 3px color-mix(in srgb, var(--tm-primary-color) 18%, transparent),
+                0 0 0 1px color-mix(in srgb, var(--tm-primary-color) 22%, transparent) !important;
         }
         .tm-sl-view-tab:focus-visible {
             outline: none !important;
@@ -1713,8 +1755,8 @@
 
         .tm-sl-toolbar {
             padding: 12px 18px !important;
-            border-bottom: 0.5px solid var(--tm-sl-hairline) !important;
-            background: color-mix(in srgb, var(--tm-shop-item-bg) 70%, var(--tm-sl-fill)) !important;
+            border-bottom: 1px solid color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-sl-hairline)) !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 5%, var(--tm-shop-item-bg)) !important;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-toolbar {
             padding: 10px 14px !important;
@@ -1722,16 +1764,18 @@
         .tm-sl-search {
             height: 36px !important;
             border-radius: 10px !important;
-            border: 0 !important;
-            background: var(--tm-sl-fill) !important;
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 16%, var(--tm-shop-item-border)) !important;
+            background: var(--tm-shop-item-bg) !important;
             font-size: 14px !important;
-            font-weight: 400 !important;
+            font-weight: 500 !important;
+            color: var(--tm-shop-item-text) !important;
             padding: 0 36px 0 36px !important;
-            transition: background 0.18s var(--tm-sl-ease), box-shadow 0.18s var(--tm-sl-ease) !important;
+            transition: background 0.18s var(--tm-sl-ease), box-shadow 0.18s var(--tm-sl-ease),
+                border-color 0.18s var(--tm-sl-ease) !important;
         }
         .tm-sl-search:focus {
             background: var(--tm-shop-item-bg) !important;
-            border: 0 !important;
+            border-color: var(--tm-primary-color) !important;
             box-shadow: 0 0 0 3.5px color-mix(in srgb, var(--tm-primary-color) 22%, transparent) !important;
         }
         .tm-sl-search-icon { left: 11px !important; opacity: 0.4 !important; }
@@ -1746,58 +1790,62 @@
         }
         .tm-sl-sort-select {
             height: 36px !important;
-            border: 0 !important;
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 16%, var(--tm-shop-item-border)) !important;
             border-radius: 10px !important;
-            background: var(--tm-sl-fill) !important;
+            background: var(--tm-shop-item-bg) !important;
             font-size: 12px !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             color: var(--tm-shop-item-text) !important;
             padding: 0 12px !important;
         }
         .tm-sl-recent { gap: 6px !important; margin-top: 2px !important; }
         .tm-sl-recent__label {
             font-size: 11px !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             color: var(--tm-sl-label) !important;
             opacity: 1 !important;
             text-transform: none !important;
         }
         .tm-sl-recent__chip {
-            border: 0 !important;
-            background: var(--tm-sl-fill) !important;
+            border: 1px solid color-mix(in srgb, var(--tm-info-color, #0ea5e9) 28%, var(--tm-shop-item-border)) !important;
+            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 10%, var(--tm-shop-item-bg)) !important;
+            color: var(--tm-shop-item-text) !important;
             border-radius: 980px !important;
             padding: 5px 11px !important;
             font-size: 11px !important;
-            font-weight: 600 !important;
-            transition: background 0.18s var(--tm-sl-ease), color 0.18s var(--tm-sl-ease) !important;
+            font-weight: 700 !important;
+            transition: background 0.18s var(--tm-sl-ease), color 0.18s var(--tm-sl-ease),
+                border-color 0.18s var(--tm-sl-ease) !important;
         }
         .tm-sl-recent__chip:hover {
-            background: var(--tm-sl-fill-strong) !important;
-            border-color: transparent !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-shop-item-bg)) !important;
+            border-color: color-mix(in srgb, var(--tm-primary-color) 40%, transparent) !important;
             color: var(--tm-primary-color) !important;
         }
 
         .tm-sl-chips { gap: 6px !important; margin-top: 8px !important; }
         .tm-sl-chip {
-            border: 0 !important;
-            background: var(--tm-sl-fill) !important;
+            border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 80%, var(--tm-primary-color)) !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 6%, var(--tm-shop-item-bg)) !important;
+            color: var(--tm-shop-item-text) !important;
             border-radius: 980px !important;
             padding: 6px 11px !important;
             font-size: 11.5px !important;
-            font-weight: 600 !important;
+            font-weight: 700 !important;
             transition: background 0.18s var(--tm-sl-ease), color 0.18s var(--tm-sl-ease),
-                transform 0.12s var(--tm-sl-ease) !important;
+                border-color 0.18s var(--tm-sl-ease), transform 0.12s var(--tm-sl-ease) !important;
         }
         .tm-sl-chip:hover {
-            background: var(--tm-sl-fill-strong) !important;
-            border-color: transparent !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-shop-item-bg)) !important;
+            border-color: color-mix(in srgb, var(--tm-primary-color) 40%, var(--tm-shop-item-border)) !important;
         }
         .tm-sl-chip.is-active {
-            background: color-mix(in srgb, var(--tm-primary-color) 16%, var(--tm-shop-item-bg)) !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 20%, var(--tm-shop-item-bg)) !important;
             color: var(--tm-primary-color) !important;
-            border-color: transparent !important;
+            border-color: color-mix(in srgb, var(--tm-primary-color) 50%, transparent) !important;
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--tm-primary-color) 18%, transparent);
         }
-        .tm-sl-chip-count { opacity: 0.55 !important; font-weight: 500 !important; }
+        .tm-sl-chip-count { opacity: 0.7 !important; font-weight: 650 !important; }
         .tm-sl-context-strip {
             font-size: 12.5px !important;
             font-weight: 500 !important;
@@ -1810,10 +1858,10 @@
 
         .tm-sl-body {
             padding: 16px 18px !important;
-            background: color-mix(in srgb, var(--tm-sl-fill) 45%, var(--tm-shop-item-bg)) !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 4%, var(--tm-sl-fill)) !important;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-body {
-            background: var(--tm-shop-item-bg) !important;
+            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 4%, var(--tm-shop-item-bg)) !important;
         }
         .tm-sl-shell:not(.tm-sl-view--network).tm-sl-step--stores .tm-sl-body {
             padding: 14px 16px !important;
@@ -1821,78 +1869,74 @@
         }
 
         .tm-sl-model-grid {
-            gap: 10px !important;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+            gap: 12px !important;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)) !important;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-model-grid {
-            gap: 8px !important;
+            gap: 10px !important;
             padding: 12px 14px !important;
-            grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)) !important;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
         }
         .tm-sl-model-card {
-            border: 0 !important;
             border-radius: var(--tm-sl-r-lg) !important;
-            padding: 14px 15px !important;
-            background: var(--tm-shop-item-bg) !important;
-            box-shadow: 0 0 0 0.5px color-mix(in srgb, #000 8%, transparent),
-                0 1px 2px color-mix(in srgb, #000 4%, transparent) !important;
+            padding: 14px 14px 12px !important;
             transition: transform 0.18s var(--tm-sl-ease), box-shadow 0.18s var(--tm-sl-ease),
-                background 0.18s var(--tm-sl-ease) !important;
-            border-left: 0 !important;
-        }
-        .tm-sl-model-card.tm-sl-heat--high,
-        .tm-sl-model-card.tm-sl-heat--low,
-        .tm-sl-model-card.tm-sl-heat--local,
-        .tm-sl-model-card.tm-sl-heat--mid {
-            border-left: 0 !important;
-        }
-        .tm-sl-model-card:hover {
-            transform: translateY(-1px);
-            background: var(--tm-shop-item-bg) !important;
-            border-color: transparent !important;
-            box-shadow: 0 0 0 0.5px color-mix(in srgb, var(--tm-primary-color) 28%, transparent),
-                0 8px 22px color-mix(in srgb, #000 10%, transparent) !important;
+                background 0.18s var(--tm-sl-ease), border-color 0.18s var(--tm-sl-ease) !important;
         }
         .tm-sl-model-card:active { transform: translateY(0) scale(0.995); }
         .tm-sl-model-name {
-            font-size: 13.5px !important;
-            font-weight: 650 !important;
-            letter-spacing: -0.02em !important;
-            margin-bottom: 2px !important;
+            font-size: 17px !important;
+            font-weight: 800 !important;
+            letter-spacing: -0.03em !important;
+            line-height: 1.2 !important;
+            margin: 0 !important;
+            color: var(--tm-shop-item-text) !important;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-name {
+            font-size: 15px !important;
+        }
+        .tm-sl-model-card-foot {
+            margin-top: 10px !important;
+            padding-top: 10px !important;
+            border-top: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 75%, transparent) !important;
+            gap: 8px !important;
         }
         .tm-sl-model-count {
-            font-size: 22px !important;
-            font-weight: 700 !important;
-            letter-spacing: -0.035em !important;
+            font-size: 15px !important;
+            font-weight: 800 !important;
+            letter-spacing: -0.02em !important;
+            color: var(--tm-primary-color) !important;
             font-variant-numeric: tabular-nums;
         }
         .tm-sl-model-count span {
-            font-size: 12px !important;
-            font-weight: 500 !important;
+            font-size: 11px !important;
+            font-weight: 650 !important;
             color: var(--tm-sl-label) !important;
             opacity: 1 !important;
         }
         .tm-sl-model-meta {
             font-size: 12px !important;
-            font-weight: 500 !important;
+            font-weight: 650 !important;
             color: var(--tm-sl-label) !important;
-            margin-bottom: 8px !important;
+            margin: 0 !important;
         }
         .tm-sl-grade-chip {
-            border-radius: 6px !important;
-            font-size: 10px !important;
-            font-weight: 650 !important;
-            padding: 3px 7px !important;
+            border-radius: 7px !important;
+            font-size: 10.5px !important;
+            font-weight: 750 !important;
+            padding: 3px 8px !important;
+            box-shadow: 0 0 0 1px color-mix(in srgb, #000 8%, transparent);
         }
         .tm-sl-whisper {
             border-radius: 980px !important;
-            font-size: 10.5px !important;
-            font-weight: 600 !important;
-            padding: 3px 8px !important;
-            margin-bottom: 8px !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            padding: 4px 9px !important;
+            margin: 0 !important;
+            align-self: flex-start;
         }
         .tm-sl-hl {
-            background: color-mix(in srgb, var(--tm-primary-color) 18%, transparent) !important;
+            background: color-mix(in srgb, var(--tm-primary-color) 26%, transparent) !important;
             border-radius: 4px !important;
             padding: 0 2px !important;
         }
@@ -2504,19 +2548,18 @@
                     : '';
                 return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
                     data-tm-sl-model="${esc(model)}" style="--i:${delay}">
-                    <div class="tm-sl-model-card-top">
-                        <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
-                        <div class="tm-sl-model-count">${count}<span>${count === 1 ? 'τεμ.' : 'τεμ.'}</span></div>
+                    <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
+                    <div class="tm-sl-model-card-foot">
+                        <div class="tm-sl-model-stats">
+                            <span class="tm-sl-model-count">${count}<span>τεμ.</span></span>
+                            <span class="tm-sl-model-meta">στο ${esc(myStoreLabel)}</span>
+                        </div>
+                        ${whisper}
+                        ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                     </div>
-                    <div class="tm-sl-model-meta">στο ${esc(myStoreLabel)}</div>
-                    ${whisper}
-                    ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                 </div>`;
             }
 
-            const storeLabel = data.storeCount === 1
-                ? '1 κατάστημα'
-                : `${data.storeCount} καταστήματα`;
             const nearest = typeof getNearestHint === 'function' ? getNearestHint(model, data) : '';
             let whisper = '';
             if (nearest) {
@@ -2524,15 +2567,18 @@
             } else if (data.storeCount === 1) {
                 whisper = '<span class="tm-sl-whisper tm-sl-whisper--warn">Σπάνιο στο δίκτυο</span>';
             }
+            const storeWord = data.storeCount === 1 ? 'κατ.' : 'κατ.';
             return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
                 data-tm-sl-model="${esc(model)}" style="--i:${delay}">
-                <div class="tm-sl-model-card-top">
-                    <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
-                    <div class="tm-sl-model-count">${data.storeCount || 0}<span>κατ.</span></div>
+                <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
+                <div class="tm-sl-model-card-foot">
+                    <div class="tm-sl-model-stats">
+                        <span class="tm-sl-model-count">${data.storeCount || 0}<span>${storeWord}</span></span>
+                        <span class="tm-sl-model-meta">${data.totalUnits || 0} τεμ. στο δίκτυο</span>
+                    </div>
+                    ${whisper}
+                    ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                 </div>
-                <div class="tm-sl-model-meta">${data.totalUnits} τεμ. στο δίκτυο</div>
-                ${whisper}
-                ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
             </div>`;
         }).join('');
         return `<div class="tm-sl-model-grid">${cards}</div>`;
