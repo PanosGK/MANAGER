@@ -17,6 +17,7 @@
 
     const MINE_STORE_KEY = '__mine__';
     const DENSITY_KEY = 'tm_sl_density_compact';
+    const UI_SCALE_KEY = 'tm_sl_ui_scale_v1';
     const SORT_KEY = 'tm_sl_model_sort';
     const CATALOG_VIEW_KEY = 'tm_sl_catalog_view';
     const RECENT_MODELS_KEY = 'tm_sl_recent_models_v1';
@@ -542,6 +543,10 @@
         let modelSort = GM_getValue(SORT_KEY, 'name');
         let catalogView = GM_getValue(CATALOG_VIEW_KEY, 'mine');
         let densityCompact = GM_getValue(DENSITY_KEY, false);
+        const defaultScale = UI.UI_SCALE_DEFAULT || 1.15;
+        let uiScale = typeof UI.normalizeUiScale === 'function'
+            ? UI.normalizeUiScale(GM_getValue(UI_SCALE_KEY, defaultScale))
+            : defaultScale;
         let activeFilters = { grade: '', gb: '', color: '' };
         let allPhones = [];
         let otherStorePhones = [];
@@ -553,6 +558,9 @@
         let lastTrackedNetworkModel = null;
 
         UI.setDensity(overlay, densityCompact);
+        if (typeof UI.setUiScale === 'function') {
+            uiScale = UI.setUiScale(overlay, uiScale);
+        }
         UI.updateViewTabs(overlay, catalogView);
 
         let recentModels = loadRecentModels();
@@ -1423,6 +1431,21 @@
             GM_setValue(DENSITY_KEY, densityCompact);
             UI.setDensity(overlay, densityCompact);
         });
+        overlay.querySelector('#tm-sl-scale-down')?.addEventListener('click', () => {
+            uiScale = UI.stepUiScale(uiScale, -1);
+            uiScale = UI.setUiScale(overlay, uiScale);
+            GM_setValue(UI_SCALE_KEY, uiScale);
+        });
+        overlay.querySelector('#tm-sl-scale-up')?.addEventListener('click', () => {
+            uiScale = UI.stepUiScale(uiScale, 1);
+            uiScale = UI.setUiScale(overlay, uiScale);
+            GM_setValue(UI_SCALE_KEY, uiScale);
+        });
+        overlay.querySelector('#tm-sl-scale-value')?.addEventListener('click', () => {
+            uiScale = UI.UI_SCALE_DEFAULT || 1.15;
+            uiScale = UI.setUiScale(overlay, uiScale);
+            GM_setValue(UI_SCALE_KEY, uiScale);
+        });
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) closeModal();
         });
@@ -1433,6 +1456,15 @@
             }
             const tag = (e.target && e.target.tagName) || '';
             const typing = tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable;
+
+            if (!typing && (e.key === '+' || e.key === '=' || e.key === '-' || e.key === '_')) {
+                e.preventDefault();
+                const dir = (e.key === '+' || e.key === '=') ? 1 : -1;
+                uiScale = UI.stepUiScale(uiScale, dir);
+                uiScale = UI.setUiScale(overlay, uiScale);
+                GM_setValue(UI_SCALE_KEY, uiScale);
+                return;
+            }
 
             if (e.key === 'Escape') {
                 e.preventDefault();

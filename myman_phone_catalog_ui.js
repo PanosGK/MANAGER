@@ -125,10 +125,12 @@
             background: var(--tm-overlay-dim, rgba(0,0,0,0.75)) !important;
         }
         .tm-sl-shell {
-            width: min(920px, 96vw) !important;
-            max-width: 96vw !important;
-            height: min(88vh, 820px) !important;
-            max-height: 88vh !important;
+            --tm-sl-scale: 1;
+            zoom: var(--tm-sl-scale);
+            width: min(980px, calc(96vw / var(--tm-sl-scale))) !important;
+            max-width: calc(96vw / var(--tm-sl-scale)) !important;
+            height: min(88vh, calc(92vh / var(--tm-sl-scale))) !important;
+            max-height: calc(92vh / var(--tm-sl-scale)) !important;
             border-radius: 16px !important;
             border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 80%, var(--tm-primary-color)) !important;
             background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
@@ -151,10 +153,10 @@
         }
 
         .tm-sl-shell.tm-sl-view--network {
-            width: min(99vw, 100%) !important;
-            max-width: 99vw !important;
-            height: min(96vh, 980px) !important;
-            max-height: 96vh !important;
+            width: min(1400px, calc(99vw / var(--tm-sl-scale))) !important;
+            max-width: calc(99vw / var(--tm-sl-scale)) !important;
+            height: min(980px, calc(96vh / var(--tm-sl-scale))) !important;
+            max-height: calc(96vh / var(--tm-sl-scale)) !important;
             border-radius: 12px !important;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-header {
@@ -1482,7 +1484,7 @@
             display: flex; justify-content: space-between; align-items: center;
             font-size: 11px; opacity: 0.85; flex-shrink: 0; gap: 12px;
         }
-        .tm-sl-footer-right { display: flex; align-items: center; gap: 10px; }
+        .tm-sl-footer-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
         .tm-sl-density-btn {
             padding: 4px 8px; border-radius: 6px;
             border: 1px solid var(--tm-shop-item-border);
@@ -1492,6 +1494,54 @@
         }
         .tm-sl-density-btn:hover { border-color: var(--tm-primary-color); }
         .tm-sl-density-btn.is-compact { background: color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-shop-item-bg)); }
+
+        .tm-sl-scale {
+            display: inline-flex; align-items: center;
+            border: 1px solid var(--tm-shop-item-border);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--tm-shop-item-bg);
+        }
+        .tm-sl-scale__btn {
+            border: 0;
+            background: transparent;
+            color: var(--tm-shop-item-text);
+            font-size: 11px; font-weight: 800;
+            padding: 5px 8px;
+            cursor: pointer;
+            line-height: 1;
+            min-width: 28px;
+        }
+        .tm-sl-scale__btn:hover {
+            background: color-mix(in srgb, var(--tm-primary-color) 10%, var(--tm-shop-item-bg));
+            color: var(--tm-primary-color);
+        }
+        .tm-sl-scale__btn:disabled {
+            opacity: 0.35; cursor: default;
+        }
+        .tm-sl-scale__btn:focus-visible {
+            outline: 2px solid var(--tm-primary-color); outline-offset: -2px;
+        }
+        .tm-sl-scale__value {
+            border: 0;
+            border-left: 1px solid var(--tm-shop-item-border);
+            border-right: 1px solid var(--tm-shop-item-border);
+            background: transparent;
+            color: var(--tm-shop-item-text);
+            font-size: 10px; font-weight: 800;
+            padding: 5px 8px;
+            cursor: pointer;
+            min-width: 44px;
+            letter-spacing: 0.02em;
+        }
+        .tm-sl-scale__value:hover {
+            background: color-mix(in srgb, var(--tm-primary-color) 10%, var(--tm-shop-item-bg));
+            color: var(--tm-primary-color);
+        }
+        .tm-sl-scale__value.is-enlarged {
+            background: color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-shop-item-bg));
+            color: var(--tm-primary-color);
+        }
 
         .tm-sl-freshness { display: inline-flex; align-items: center; gap: 6px; }
         .tm-sl-freshness-dot {
@@ -1634,11 +1684,14 @@
     }
 
     function ensureStylesInjected() {
-        if (document.getElementById('tm-sl-styles')) return;
-        const style = document.createElement('style');
-        style.id = 'tm-sl-styles';
+        let style = document.getElementById('tm-sl-styles');
+        if (!style) {
+            style = document.createElement('style');
+            style.id = 'tm-sl-styles';
+            document.head.appendChild(style);
+        }
+        // Always refresh so silent updates / local rebuilds aren't stuck on old CSS.
         style.textContent = STYLES;
-        document.head.appendChild(style);
     }
 
     function buildShellHTML() {
@@ -1694,6 +1747,11 @@
             <footer class="tm-sl-footer">
                 <span id="tm-sl-status">—</span>
                 <div class="tm-sl-footer-right">
+                    <div class="tm-sl-scale" role="group" aria-label="Μέγεθος πίνακα">
+                        <button type="button" class="tm-sl-scale__btn" id="tm-sl-scale-down" title="Μικρότερο κείμενο" aria-label="Μικρότερο">A−</button>
+                        <button type="button" class="tm-sl-scale__value" id="tm-sl-scale-value" title="Επαναφορά στο προεπιλεγμένο (115%)">115%</button>
+                        <button type="button" class="tm-sl-scale__btn" id="tm-sl-scale-up" title="Μεγαλύτερο κείμενο" aria-label="Μεγαλύτερο">A+</button>
+                    </div>
                     <button type="button" id="tm-sl-density" class="tm-sl-density-btn" title="Εναλλαγή πυκνότητας">Άνετο</button>
                     <span id="tm-sl-freshness" class="tm-sl-freshness tm-sl-freshness--cached">
                         <span class="tm-sl-freshness-dot" aria-hidden="true"></span>
@@ -2667,6 +2725,53 @@
         updateMyStoreLabels(overlay);
     }
 
+    const UI_SCALE_STEPS = [1, 1.15, 1.3, 1.45];
+    const UI_SCALE_DEFAULT = 1.15;
+
+    function normalizeUiScale(value) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return UI_SCALE_DEFAULT;
+        let best = UI_SCALE_STEPS[0];
+        let bestDist = Math.abs(n - best);
+        UI_SCALE_STEPS.forEach((step) => {
+            const dist = Math.abs(n - step);
+            if (dist < bestDist) {
+                best = step;
+                bestDist = dist;
+            }
+        });
+        return best;
+    }
+
+    function setUiScale(overlay, scale) {
+        const shell = overlay?.querySelector('#tm-sl-shell');
+        if (!shell) return normalizeUiScale(scale);
+        const next = normalizeUiScale(scale);
+        shell.style.setProperty('--tm-sl-scale', String(next));
+        shell.dataset.tmSlScale = String(next);
+
+        const valueBtn = overlay.querySelector('#tm-sl-scale-value');
+        const downBtn = overlay.querySelector('#tm-sl-scale-down');
+        const upBtn = overlay.querySelector('#tm-sl-scale-up');
+        const pct = Math.round(next * 100);
+        if (valueBtn) {
+            valueBtn.textContent = `${pct}%`;
+            valueBtn.classList.toggle('is-enlarged', next > 1);
+            valueBtn.title = next === UI_SCALE_DEFAULT
+                ? 'Προεπιλεγμένο μέγεθος για οθόνες 13″'
+                : 'Επαναφορά στο προεπιλεγμένο (115%)';
+        }
+        if (downBtn) downBtn.disabled = next <= UI_SCALE_STEPS[0];
+        if (upBtn) upBtn.disabled = next >= UI_SCALE_STEPS[UI_SCALE_STEPS.length - 1];
+        return next;
+    }
+
+    function stepUiScale(current, direction) {
+        const idx = UI_SCALE_STEPS.indexOf(normalizeUiScale(current));
+        const nextIdx = Math.max(0, Math.min(UI_SCALE_STEPS.length - 1, idx + direction));
+        return UI_SCALE_STEPS[nextIdx];
+    }
+
     function setDensity(overlay, compact) {
         const shell = overlay?.querySelector('#tm-sl-shell');
         const btn = overlay?.querySelector('#tm-sl-density');
@@ -2681,6 +2786,8 @@
     window.PhoneCatalogUI = {
         ICON,
         STYLES,
+        UI_SCALE_STEPS,
+        UI_SCALE_DEFAULT,
         ensureStylesInjected,
         esc,
         getMyStoreLabel,
@@ -2730,5 +2837,8 @@
         updateBreadcrumb,
         updateViewTabs,
         setDensity,
+        setUiScale,
+        normalizeUiScale,
+        stepUiScale,
     };
 })();
