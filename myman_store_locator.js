@@ -461,6 +461,11 @@
     async function showStoreLocatorModal() {
         if (document.querySelector('.tm-sl-overlay')) return;
 
+        // Inject CSS before building DOM so the first paint is already styled.
+        if (typeof window.PhoneCatalogUI?.ensureStylesInjected === 'function') {
+            window.PhoneCatalogUI.ensureStylesInjected();
+        }
+
         if (typeof window.trackDailyStat === 'function' && window.config && window.STORAGE_KEYS) {
             window.trackDailyStat(window.config, window.STORAGE_KEYS, 'phoneCatalogOpen');
         }
@@ -913,7 +918,9 @@
 
             const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
             if (searchInput) {
-                setTimeout(() => searchInput.focus(), 50);
+                requestAnimationFrame(() => {
+                    if (document.activeElement !== searchInput) searchInput.focus();
+                });
             }
 
             renderModelsBody();
@@ -1266,6 +1273,16 @@
         const cacheStale = typeof window.isPhoneListCacheStale === 'function'
             ? window.isPhoneListCacheStale()
             : true;
+        const otherCached = typeof window.getOtherStoreCache === 'function'
+            ? window.getOtherStoreCache()
+            : null;
+
+        // Hydrate network cache synchronously so UI can paint without waiting on network.
+        if (otherCached && otherCached.length) {
+            otherStorePhones = helpers.filterIphoneTitlePhones(otherCached);
+            otherStoreLoaded = true;
+            mergeNetworkStoreHints();
+        }
 
         if (cached && cached.length) {
             allPhones = helpers.filterIphoneTitlePhones(cached);
@@ -1273,22 +1290,34 @@
             lastUpdated = new Date(ts);
             syncFreshness();
 
+            // Paint immediately from cache — never block first paint on network fetches.
+            renderModelsStep();
+
+            const warmNetworkInBackground = () => {
+                if (otherStoreLoaded) return Promise.resolve();
+                return ensureOtherStores().then(async () => {
+                    if (catalogView === 'network' && step === 'models') {
+                        await resolveNetworkStoreDetails();
+                        renderModelsStep();
+                    }
+                }).catch(() => {});
+            };
+
             if (cacheStale) {
-                // Stale-while-revalidate: show snapshot, then pull today's list automatically.
-                ensureOtherStores().then(async () => {
-                    if (catalogView === 'network') {
-                        await resolveNetworkStoreDetails();
-                    }
-                    renderModelsStep();
-                    setStatus('Παλιά δεδομένα — ανανέωση…');
-                    refreshData();
+                setStatus('Παλιά δεδομένα — ανανέωση…');
+                // Let the browser paint cached UI first, then refresh.
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        refreshData();
+                    }, 0);
                 });
+            } else if (catalogView === 'network' && !otherStoreLoaded) {
+                setStatus('Φόρτωση δικτύου…');
+                warmNetworkInBackground();
             } else {
-                ensureOtherStores().then(async () => {
-                    if (catalogView === 'network') {
-                        await resolveNetworkStoreDetails();
-                    }
-                    renderModelsStep();
+                // Warm other-store cache quietly for faster tab switch later.
+                requestAnimationFrame(() => {
+                    setTimeout(() => { warmNetworkInBackground(); }, 0);
                 });
             }
         } else {

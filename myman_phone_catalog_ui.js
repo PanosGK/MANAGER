@@ -122,13 +122,9 @@
         @keyframes tm-sl-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
         .tm-sl-overlay {
-            animation: tm-sl-in 0.2s ease;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
             background: var(--tm-overlay-dim, rgba(0,0,0,0.75)) !important;
         }
         .tm-sl-shell {
-            animation: tm-sl-rise 0.22s cubic-bezier(0.22, 1, 0.36, 1);
             width: min(920px, 96vw) !important;
             max-width: 96vw !important;
             height: min(88vh, 820px) !important;
@@ -1517,10 +1513,18 @@
         }
     }
 
+    function ensureStylesInjected() {
+        if (document.getElementById('tm-sl-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'tm-sl-styles';
+        style.textContent = STYLES;
+        document.head.appendChild(style);
+    }
+
     function buildShellHTML() {
+        ensureStylesInjected();
         const myStoreLabel = getMyStoreLabel();
         return `
-        <style>${STYLES}</style>
         <div class="tm-sl-shell" id="tm-sl-shell">
             <header class="tm-sl-header">
                 <div id="tm-sl-breadcrumb-wrap">${buildBreadcrumb('models')}</div>
@@ -2421,6 +2425,7 @@
     window.PhoneCatalogUI = {
         ICON,
         STYLES,
+        ensureStylesInjected,
         esc,
         getMyStoreLabel,
         updateMyStoreLabels,

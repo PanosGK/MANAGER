@@ -3100,6 +3100,7 @@ window.fetchOtherStorePhones = fetchOtherStorePhones;
 window.loadPhoneListCache = loadPhoneListCache;
 window.isPhoneListCacheStale = isPhoneListCacheStale;
 window.getPhoneListCacheAgeMs = getPhoneListCacheAgeMs;
+window.getOtherStoreCache = getOtherStoreCache;
 window.syncPhoneColorCatalog = syncPhoneColorCatalog;
 window.extractBaseModel = extractBaseModel;
 window.extractGB = extractGB;
