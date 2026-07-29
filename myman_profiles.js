@@ -189,7 +189,7 @@
             // WiFi QR
             'tm_wifi_ssid', 'tm_wifi_password', 'tm_wifi_security',
             // Phone catalog (user data + caches)
-            'tm_phone_colors_v2', 'tm_phone_color_display_aliases', 'tm_phone_custom_colors',
+            'tm_phone_colors_v2', 'tm_phone_color_display_aliases', 'tm_phone_colors_removed_v1', 'tm_phone_custom_colors',
             'tm_phone_list_cache', 'tm_phone_list_cache_timestamp',
             'tm_phone_other_store_cache_v2', 'tm_phone_other_store_cache_v3',
             'tm_phone_other_store_cache_timestamp', 'tm_phone_store_details_cache_v2',

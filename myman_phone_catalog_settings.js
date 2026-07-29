@@ -161,23 +161,26 @@
             };
 
             listEl.querySelectorAll('.tm-phone-list-color-picker').forEach((input) => {
-                input.addEventListener('change', () => {
+                const commitListColor = () => {
+                    const colorName = input.getAttribute('data-color') || input.dataset.color;
                     const hex = window.normalizePhoneColorHex?.(input.value);
-                    if (!hex || !window.updatePhoneListColor?.(input.dataset.color, hex)) return;
+                    if (!hex || !window.updatePhoneListColor?.(colorName, hex)) return;
                     const row = input.closest('.tm-phone-color-row');
                     const label = row?.querySelector('.tm-phone-list-color-label');
                     const nameInputEl = row?.querySelector('.tm-phone-color-name-input');
                     if (label) label.textContent = hex;
-                    if (nameInputEl) applyNameInputStyle(nameInputEl, input.dataset.color, hex);
+                    if (nameInputEl) applyNameInputStyle(nameInputEl, colorName, hex);
                     clearCaches();
                     onChange();
                     if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
-                });
+                };
+                input.addEventListener('change', commitListColor);
+                input.addEventListener('input', commitListColor);
             });
 
             listEl.querySelectorAll('.tm-phone-color-name-input').forEach((input) => {
                 const commitRename = () => {
-                    const oldName = input.dataset.color;
+                    const oldName = input.getAttribute('data-color') || input.dataset.color;
                     const newName = window.normalizePhoneColorName?.(input.value);
                     if (!newName) {
                         input.value = oldName;
@@ -208,7 +211,8 @@
 
             listEl.querySelectorAll('.tm-phone-color-alias-input').forEach((input) => {
                 input.addEventListener('change', () => {
-                    window.setColorDisplayAliasesForColor?.(input.dataset.color, input.value);
+                    const colorName = input.getAttribute('data-color') || input.dataset.color;
+                    window.setColorDisplayAliasesForColor?.(colorName, input.value);
                     clearCaches();
                     if (typeof window.syncPhoneColorCatalog === 'function') {
                         window.syncPhoneColorCatalog(allPhones);
@@ -221,7 +225,8 @@
 
             listEl.querySelectorAll('.tm-delete-phone-color').forEach((btn) => {
                 btn.addEventListener('click', () => {
-                    window.removePhoneColor?.(btn.dataset.color);
+                    const colorName = btn.getAttribute('data-color') || btn.dataset.color;
+                    window.removePhoneColor?.(colorName);
                     if (window.showPositiveMessage) window.showPositiveMessage(t('Color removed'));
                     refreshAfterChange();
                 });

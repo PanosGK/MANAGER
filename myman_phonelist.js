@@ -149,7 +149,50 @@ const PHONE_CATALOG_TRANSLATIONS = {
 
 const PHONE_COLORS_STORAGE_KEY = 'tm_phone_colors_v2';
 const PHONE_COLOR_ALIASES_KEY = 'tm_phone_color_display_aliases';
+const PHONE_COLORS_REMOVED_KEY = 'tm_phone_colors_removed_v1';
 const LEGACY_CUSTOM_COLORS_STORAGE_KEY = 'tm_phone_custom_colors';
+
+function loadRemovedPhoneColors() {
+    try {
+        const stored = GM_getValue(PHONE_COLORS_REMOVED_KEY, '[]');
+        const parsed = JSON.parse(stored);
+        if (!Array.isArray(parsed)) return new Set();
+        return new Set(parsed.map((name) => normalizePhoneColorName(name)).filter(Boolean));
+    } catch (e) {
+        return new Set();
+    }
+}
+
+function saveRemovedPhoneColors(removed) {
+    const list = [...(removed || [])]
+        .map((name) => normalizePhoneColorName(name))
+        .filter(Boolean)
+        .sort();
+    GM_setValue(PHONE_COLORS_REMOVED_KEY, JSON.stringify(list));
+}
+
+function isPhoneColorRemoved(name) {
+    const key = normalizePhoneColorName(name);
+    if (!key) return false;
+    return loadRemovedPhoneColors().has(key);
+}
+
+function markPhoneColorRemoved(name) {
+    const key = normalizePhoneColorName(name);
+    if (!key) return;
+    const removed = loadRemovedPhoneColors();
+    if (removed.has(key)) return;
+    removed.add(key);
+    saveRemovedPhoneColors(removed);
+}
+
+function unmarkPhoneColorRemoved(name) {
+    const key = normalizePhoneColorName(name);
+    if (!key) return;
+    const removed = loadRemovedPhoneColors();
+    if (!removed.delete(key)) return;
+    saveRemovedPhoneColors(removed);
+}
 const PHONE_STORE_RULES_KEY = 'tm_phone_store_rules_v1';
 const PHONE_TAG_DEFINITIONS_KEY = 'tm_phone_tag_definitions';
 const PHONE_CANONICAL_MODELS_KEY = 'tm_phone_canonical_models_v1';
@@ -613,23 +656,28 @@ function normalizePhoneColorHex(hex) {
 
 function loadPhoneColors() {
     try {
+        const removed = loadRemovedPhoneColors();
         const stored = GM_getValue(PHONE_COLORS_STORAGE_KEY, null);
         if (stored) {
             let parsed = normalizeStoredPhoneColors(JSON.parse(stored));
             if (parsed && Object.keys(parsed).length > 0) {
                 const defaults = getDefaultPhoneColors();
                 let needsSave = false;
+                // Drop colors the user explicitly deleted (prevents defaults/sync resurrecting them).
+                Object.keys(parsed).forEach((name) => {
+                    if (removed.has(name)) {
+                        delete parsed[name];
+                        needsSave = true;
+                    }
+                });
                 Object.entries(defaults).forEach(([name, entry]) => {
+                    if (removed.has(name)) return;
                     if (!parsed[name]) {
                         parsed[name] = { ...normalizeColorEntry(entry, name) };
                         needsSave = true;
                     } else {
                         const normalized = normalizeColorEntry(parsed[name], name);
-                        const defaultEntry = normalizeColorEntry(entry, name);
-                        if (defaultEntry.listHex && normalized.listHex === normalized.hex && defaultEntry.listHex !== normalized.listHex) {
-                            normalized.listHex = defaultEntry.listHex;
-                            needsSave = true;
-                        }
+                        // Keep user-edited listHex/hex as stored — do not reset from defaults.
                         if (JSON.stringify(parsed[name]) !== JSON.stringify(normalized)) {
                             parsed[name] = normalized;
                             needsSave = true;
@@ -642,20 +690,31 @@ function loadPhoneColors() {
         }
 
         const defaults = getDefaultPhoneColors();
-        let merged = { ...defaults };
+        let merged = {};
+        Object.entries(defaults).forEach(([name, entry]) => {
+            if (!removed.has(name)) merged[name] = { ...normalizeColorEntry(entry, name) };
+        });
 
         const legacyCustom = GM_getValue(LEGACY_CUSTOM_COLORS_STORAGE_KEY, null);
         if (legacyCustom) {
             try {
                 const custom = normalizeStoredPhoneColors(JSON.parse(legacyCustom));
-                merged = { ...defaults, ...custom };
+                Object.entries(custom).forEach(([name, entry]) => {
+                    if (removed.has(name)) return;
+                    merged[name] = entry;
+                });
             } catch (e) { /* ignore */ }
         }
 
         savePhoneColors(merged);
         return { ...merged };
     } catch (e) {
-        return { ...getDefaultPhoneColors() };
+        const removed = loadRemovedPhoneColors();
+        const fallback = {};
+        Object.entries(getDefaultPhoneColors()).forEach(([name, entry]) => {
+            if (!removed.has(name)) fallback[name] = { ...normalizeColorEntry(entry, name) };
+        });
+        return fallback;
     }
 }
 
@@ -672,6 +731,7 @@ function normalizeTextForColorMatch(text) {
 }
 
 function getAllPhoneColorNamesForMatching() {
+    const removed = loadRemovedPhoneColors();
     const defaults = getDefaultPhoneColors();
     let saved = {};
     try {
@@ -682,7 +742,8 @@ function getAllPhoneColorNamesForMatching() {
     try {
         aliasKeys = Object.keys(loadColorDisplayAliases() || {});
     } catch (e) { /* ignore */ }
-    return [...new Set([...Object.keys(defaults), ...Object.keys(saved), ...aliasKeys])];
+    return [...new Set([...Object.keys(defaults), ...Object.keys(saved), ...aliasKeys])]
+        .filter((name) => !removed.has(normalizePhoneColorName(name)));
 }
 
 function matchPhoneColorInText(text) {
@@ -706,19 +767,20 @@ function matchPhoneColorInText(text) {
 
 function syncPhoneColorCatalog(phones) {
     const defaults = getDefaultPhoneColors();
+    const removed = loadRemovedPhoneColors();
     const colors = loadPhoneColors();
     let changed = false;
 
     Object.entries(defaults).forEach(([name, entry]) => {
-        if (!colors[name]) {
-            colors[name] = { ...normalizeColorEntry(entry, name) };
-            changed = true;
-        }
+        if (removed.has(name) || colors[name]) return;
+        colors[name] = { ...normalizeColorEntry(entry, name) };
+        changed = true;
     });
 
     const aliases = loadColorDisplayAliases();
     Object.entries(aliases).forEach(([alias, target]) => {
-        if (colors[alias]) return;
+        if (removed.has(alias) || colors[alias]) return;
+        if (removed.has(normalizePhoneColorName(target))) return;
         const targetEntry = normalizeColorEntry(colors[target] || defaults[target], target);
         if (targetEntry.hex || targetEntry.listHex) {
             colors[alias] = { hex: targetEntry.hex, listHex: targetEntry.listHex };
@@ -734,12 +796,13 @@ function syncPhoneColorCatalog(phones) {
             if (found) discovered.add(found);
         });
         discovered.forEach(name => {
-            if (colors[name]) return;
-            const def = defaults[name];
-            const suggestion = suggestPhoneColorHex(name);
+            const key = normalizePhoneColorName(name);
+            if (!key || removed.has(key) || colors[key]) return;
+            const def = defaults[key];
+            const suggestion = suggestPhoneColorHex(key);
             const hex = def?.hex || suggestion?.hex || '#808080';
             const listHex = def?.listHex || suggestion?.hex || hex;
-            colors[name] = normalizeColorEntry({ hex, listHex }, name);
+            colors[key] = normalizeColorEntry({ hex, listHex }, key);
             changed = true;
         });
     }
@@ -781,8 +844,11 @@ function addPhoneColor(name, hex, listHex = null) {
     const normalizedHex = normalizePhoneColorHex(hex);
     const normalizedListHex = normalizePhoneColorHex(listHex) || normalizedHex;
     if (!normalizedName || !normalizedHex) return { ok: false, error: 'invalid' };
+    const wasRemoved = isPhoneColorRemoved(normalizedName);
+    unmarkPhoneColorRemoved(normalizedName);
     const colors = loadPhoneColors();
-    if (colors[normalizedName]) return { ok: false, error: 'exists' };
+    // Re-adding a previously deleted color should overwrite, not fail as "exists".
+    if (colors[normalizedName] && !wasRemoved) return { ok: false, error: 'exists' };
     colors[normalizedName] = { hex: normalizedHex, listHex: normalizedListHex };
     savePhoneColors(colors);
     return { ok: true, name: normalizedName, hex: normalizedHex, listHex: normalizedListHex };
@@ -816,15 +882,24 @@ function updatePhoneListColor(name, listHex) {
 
 function removePhoneColor(name) {
     const normalizedName = normalizePhoneColorName(name);
+    if (!normalizedName) return false;
     const colors = loadPhoneColors();
-    if (!colors[normalizedName]) return false;
-    delete colors[normalizedName];
-    savePhoneColors(colors);
+    const existed = !!colors[normalizedName];
+    if (existed) {
+        delete colors[normalizedName];
+        savePhoneColors(colors);
+    }
+    // Persist deletion so defaults / title discovery cannot bring it back.
+    markPhoneColorRemoved(normalizedName);
     const aliases = loadColorDisplayAliases();
+    let aliasesChanged = false;
     Object.keys(aliases).forEach(alias => {
-        if (aliases[alias] === normalizedName) delete aliases[alias];
+        if (alias === normalizedName || aliases[alias] === normalizedName) {
+            delete aliases[alias];
+            aliasesChanged = true;
+        }
     });
-    saveColorDisplayAliases(aliases);
+    if (aliasesChanged) saveColorDisplayAliases(aliases);
     return true;
 }
 
@@ -835,11 +910,15 @@ function renamePhoneColor(oldName, newName) {
     if (oldKey === newKey) return { ok: true, name: oldKey };
     const colors = loadPhoneColors();
     if (!colors[oldKey]) return { ok: false, error: 'missing' };
-    if (colors[newKey]) return { ok: false, error: 'exists' };
+    if (colors[newKey] && !isPhoneColorRemoved(newKey)) return { ok: false, error: 'exists' };
 
     colors[newKey] = { ...normalizeColorEntry(colors[oldKey], oldKey) };
     delete colors[oldKey];
     savePhoneColors(colors);
+
+    // Old default name must stay removed or sync/load will recreate it.
+    markPhoneColorRemoved(oldKey);
+    unmarkPhoneColorRemoved(newKey);
 
     const aliases = loadColorDisplayAliases();
     Object.keys(aliases).forEach(alias => {
@@ -2749,7 +2828,12 @@ function extractColor(model) {
         return phoneCatalogColorCache.get(model);
     }
     // Resolve display aliases so ORANGE (alias) and COSMIC ORANGE share one filter chip.
-    const color = resolveDisplayColorName(matchPhoneColorInText(model));
+    const matched = matchPhoneColorInText(model);
+    const color = resolveDisplayColorName(matched);
+    if (isPhoneColorRemoved(color) || isPhoneColorRemoved(matched)) {
+        phoneCatalogColorCache.set(model, '');
+        return '';
+    }
     phoneCatalogColorCache.set(model, color);
     return color;
 }
@@ -3159,6 +3243,7 @@ window.addPhoneColor = addPhoneColor;
 window.removePhoneColor = removePhoneColor;
 window.renamePhoneColor = renamePhoneColor;
 window.updatePhoneListColor = updatePhoneListColor;
+window.isPhoneColorRemoved = isPhoneColorRemoved;
 window.getAliasesForColor = getAliasesForColor;
 window.setColorDisplayAliasesForColor = setColorDisplayAliasesForColor;
 window.loadColorDisplayAliases = loadColorDisplayAliases;
