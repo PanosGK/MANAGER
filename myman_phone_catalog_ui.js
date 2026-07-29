@@ -767,6 +767,8 @@
             border-bottom: 1px solid var(--tm-shop-item-border);
             flex-shrink: 0;
             background: var(--tm-shop-item-bg);
+            position: relative;
+            z-index: 20; /* above sticky toolbar/body so settings menus aren't covered */
         }
         .tm-sl-header-row {
             display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -781,14 +783,14 @@
             color: var(--tm-muted-text, var(--tm-secondary-color));
         }
         .tm-sl-header-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
-        .tm-sl-settings-wrap { position: relative; }
+        .tm-sl-settings-wrap { position: relative; z-index: 40; }
         .tm-sl-settings-menu, .tm-sl-export-menu {
             position: absolute; top: calc(100% + 6px); right: 0;
             background: var(--tm-shop-item-bg);
             border: 1px solid var(--tm-shop-item-border);
             border-radius: 12px;
             box-shadow: 0 12px 32px rgba(0,0,0,0.2);
-            padding: 6px; min-width: 210px; z-index: 30;
+            padding: 6px; min-width: 210px; z-index: 50;
         }
         .tm-sl-settings-menu button, .tm-sl-export-menu button {
             width: 100%; text-align: left; border: none; background: transparent;
@@ -1603,6 +1605,8 @@
             border-bottom: 0.5px solid var(--tm-sl-hairline) !important;
             backdrop-filter: saturate(180%) blur(16px);
             -webkit-backdrop-filter: saturate(180%) blur(16px);
+            position: relative !important;
+            z-index: 20 !important;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-header,
         .tm-sl-shell.tm-sl-step--stores .tm-sl-header {
@@ -2175,6 +2179,7 @@
             font-weight: 650 !important;
             padding: 9px 16px !important;
         }
+        .tm-sl-settings-wrap { z-index: 40 !important; }
         .tm-sl-settings-menu,
         .tm-sl-export-menu {
             border-radius: 14px !important;
@@ -2182,6 +2187,7 @@
             box-shadow: 0 12px 40px color-mix(in srgb, #000 22%, transparent) !important;
             overflow: hidden;
             padding: 6px !important;
+            z-index: 50 !important;
         }
         .tm-sl-settings-menu button,
         .tm-sl-export-menu button {
