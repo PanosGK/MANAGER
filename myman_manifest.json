@@ -1,11 +1,11 @@
 {
-  "version": "307",
+  "version": "308",
   "loaderVersion": "35",
-  "silentVersion": "45",
-  "displayVersion": "35.45",
+  "silentVersion": "46",
+  "displayVersion": "35.46",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Phone catalog redesign: cleaner chrome, smart search, best-row guidance",
+  "releaseNotes": "Phone catalog: 13-inch UI scale control, color delete/rename persistence, Apple UI polish",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v307 / Custom Ver. 35.45 — generated, do not edit */
+/* MyManager Suite bundle v308 / Custom Ver. 35.46 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '307',
+        version: '308',
         loaderVersion: '35',
-        silentVersion: '45',
-        displayVersion: '35.45',
+        silentVersion: '46',
+        displayVersion: '35.46',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -3705,7 +3705,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             // WiFi QR
             'tm_wifi_ssid', 'tm_wifi_password', 'tm_wifi_security',
             // Phone catalog (user data + caches)
-            'tm_phone_colors_v2', 'tm_phone_color_display_aliases', 'tm_phone_custom_colors',
+            'tm_phone_colors_v2', 'tm_phone_color_display_aliases', 'tm_phone_colors_removed_v1', 'tm_phone_custom_colors',
             'tm_phone_list_cache', 'tm_phone_list_cache_timestamp',
             'tm_phone_other_store_cache_v2', 'tm_phone_other_store_cache_v3',
             'tm_phone_other_store_cache_timestamp', 'tm_phone_store_details_cache_v2',
@@ -50906,10 +50906,12 @@ window.initOrderTracking = initOrderTracking;
             background: var(--tm-overlay-dim, rgba(0,0,0,0.75)) !important;
         }
         .tm-sl-shell {
-            width: min(920px, 96vw) !important;
-            max-width: 96vw !important;
-            height: min(88vh, 820px) !important;
-            max-height: 88vh !important;
+            --tm-sl-scale: 1;
+            zoom: var(--tm-sl-scale);
+            width: min(980px, calc(96vw / var(--tm-sl-scale))) !important;
+            max-width: calc(96vw / var(--tm-sl-scale)) !important;
+            height: min(88vh, calc(92vh / var(--tm-sl-scale))) !important;
+            max-height: calc(92vh / var(--tm-sl-scale)) !important;
             border-radius: 16px !important;
             border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 80%, var(--tm-primary-color)) !important;
             background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
@@ -50932,10 +50934,10 @@ window.initOrderTracking = initOrderTracking;
         }
 
         .tm-sl-shell.tm-sl-view--network {
-            width: min(99vw, 100%) !important;
-            max-width: 99vw !important;
-            height: min(96vh, 980px) !important;
-            max-height: 96vh !important;
+            width: min(1400px, calc(99vw / var(--tm-sl-scale))) !important;
+            max-width: calc(99vw / var(--tm-sl-scale)) !important;
+            height: min(980px, calc(96vh / var(--tm-sl-scale))) !important;
+            max-height: calc(96vh / var(--tm-sl-scale)) !important;
             border-radius: 12px !important;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-header {
@@ -52263,7 +52265,7 @@ window.initOrderTracking = initOrderTracking;
             display: flex; justify-content: space-between; align-items: center;
             font-size: 11px; opacity: 0.85; flex-shrink: 0; gap: 12px;
         }
-        .tm-sl-footer-right { display: flex; align-items: center; gap: 10px; }
+        .tm-sl-footer-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
         .tm-sl-density-btn {
             padding: 4px 8px; border-radius: 6px;
             border: 1px solid var(--tm-shop-item-border);
@@ -52273,6 +52275,54 @@ window.initOrderTracking = initOrderTracking;
         }
         .tm-sl-density-btn:hover { border-color: var(--tm-primary-color); }
         .tm-sl-density-btn.is-compact { background: color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-shop-item-bg)); }
+
+        .tm-sl-scale {
+            display: inline-flex; align-items: center;
+            border: 1px solid var(--tm-shop-item-border);
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--tm-shop-item-bg);
+        }
+        .tm-sl-scale__btn {
+            border: 0;
+            background: transparent;
+            color: var(--tm-shop-item-text);
+            font-size: 11px; font-weight: 800;
+            padding: 5px 8px;
+            cursor: pointer;
+            line-height: 1;
+            min-width: 28px;
+        }
+        .tm-sl-scale__btn:hover {
+            background: color-mix(in srgb, var(--tm-primary-color) 10%, var(--tm-shop-item-bg));
+            color: var(--tm-primary-color);
+        }
+        .tm-sl-scale__btn:disabled {
+            opacity: 0.35; cursor: default;
+        }
+        .tm-sl-scale__btn:focus-visible {
+            outline: 2px solid var(--tm-primary-color); outline-offset: -2px;
+        }
+        .tm-sl-scale__value {
+            border: 0;
+            border-left: 1px solid var(--tm-shop-item-border);
+            border-right: 1px solid var(--tm-shop-item-border);
+            background: transparent;
+            color: var(--tm-shop-item-text);
+            font-size: 10px; font-weight: 800;
+            padding: 5px 8px;
+            cursor: pointer;
+            min-width: 44px;
+            letter-spacing: 0.02em;
+        }
+        .tm-sl-scale__value:hover {
+            background: color-mix(in srgb, var(--tm-primary-color) 10%, var(--tm-shop-item-bg));
+            color: var(--tm-primary-color);
+        }
+        .tm-sl-scale__value.is-enlarged {
+            background: color-mix(in srgb, var(--tm-primary-color) 12%, var(--tm-shop-item-bg));
+            color: var(--tm-primary-color);
+        }
 
         .tm-sl-freshness { display: inline-flex; align-items: center; gap: 6px; }
         .tm-sl-freshness-dot {
@@ -52296,6 +52346,643 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-toast.is-visible {
             opacity: 1; pointer-events: auto;
             animation: tm-sl-toast-in 0.2s ease;
+        }
+
+        /* —— Apple-inspired polish layer —— */
+        .tm-sl-shell {
+            --tm-sl-r-xl: 20px;
+            --tm-sl-r-lg: 14px;
+            --tm-sl-r-md: 11px;
+            --tm-sl-r-sm: 8px;
+            --tm-sl-hairline: color-mix(in srgb, var(--tm-shop-item-border) 70%, transparent);
+            --tm-sl-fill: color-mix(in srgb, var(--tm-shop-item-border) 22%, var(--tm-shop-item-bg));
+            --tm-sl-fill-strong: color-mix(in srgb, var(--tm-shop-item-border) 34%, var(--tm-shop-item-bg));
+            --tm-sl-label: color-mix(in srgb, var(--tm-shop-item-text) 58%, transparent);
+            --tm-sl-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+            border-radius: var(--tm-sl-r-xl) !important;
+            border: 1px solid var(--tm-sl-hairline) !important;
+            box-shadow:
+                0 0 0 0.5px color-mix(in srgb, #000 8%, transparent),
+                0 18px 50px color-mix(in srgb, #000 28%, transparent),
+                0 2px 8px color-mix(in srgb, #000 10%, transparent) !important;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+                "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            letter-spacing: -0.01em;
+        }
+        .tm-sl-shell.tm-sl-view--network {
+            border-radius: 16px !important;
+        }
+        .tm-sl-overlay {
+            background: color-mix(in srgb, #000 42%, transparent) !important;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .tm-sl-header {
+            padding: 16px 18px 12px !important;
+            background: color-mix(in srgb, var(--tm-shop-item-bg) 88%, transparent) !important;
+            border-bottom: 0.5px solid var(--tm-sl-hairline) !important;
+            backdrop-filter: saturate(180%) blur(16px);
+            -webkit-backdrop-filter: saturate(180%) blur(16px);
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-header,
+        .tm-sl-shell.tm-sl-step--stores .tm-sl-header {
+            padding: 14px 16px 10px !important;
+        }
+        .tm-sl-title {
+            font-size: 1.35rem !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.03em !important;
+            line-height: 1.15 !important;
+            margin: 0 !important;
+        }
+        .tm-sl-title--model {
+            font-size: 1.4rem !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.03em !important;
+        }
+        .tm-sl-subtitle {
+            margin: 3px 0 0 !important;
+            font-size: 12.5px !important;
+            font-weight: 500 !important;
+            color: var(--tm-sl-label) !important;
+            opacity: 1 !important;
+        }
+        .tm-sl-header-actions { gap: 6px !important; }
+        .tm-sl-btn {
+            border-radius: 980px !important;
+            border: 0 !important;
+            background: var(--tm-sl-fill) !important;
+            color: var(--tm-shop-item-text) !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            padding: 8px 12px !important;
+            transition: background 0.18s var(--tm-sl-ease), transform 0.18s var(--tm-sl-ease) !important;
+        }
+        .tm-sl-btn:hover {
+            background: var(--tm-sl-fill-strong) !important;
+            border-color: transparent !important;
+        }
+        .tm-sl-btn--icon {
+            width: 32px !important;
+            height: 32px !important;
+            padding: 0 !important;
+            display: inline-grid !important;
+            place-items: center !important;
+        }
+        .tm-sl-btn--icon svg {
+            width: 15px !important;
+            height: 15px !important;
+            opacity: 0.78;
+        }
+        #tm-sl-close.tm-sl-btn--icon {
+            font-size: 18px !important;
+            font-weight: 400 !important;
+            line-height: 1 !important;
+            color: var(--tm-sl-label) !important;
+        }
+        #tm-sl-close.tm-sl-btn--icon:hover {
+            color: var(--tm-shop-item-text) !important;
+        }
+        .tm-sl-btn--back {
+            background: transparent !important;
+            color: var(--tm-primary-color) !important;
+            padding: 6px 8px 6px 4px !important;
+            font-weight: 600 !important;
+        }
+        .tm-sl-btn--back:hover { background: var(--tm-sl-fill) !important; }
+
+        .tm-sl-view-tabs {
+            margin-top: 12px !important;
+            padding: 3px !important;
+            border-radius: 10px !important;
+            border: 0 !important;
+            background: var(--tm-sl-fill) !important;
+            gap: 2px !important;
+            box-shadow: none !important;
+        }
+        .tm-sl-view-tab {
+            border-radius: 8px !important;
+            font-size: 12.5px !important;
+            font-weight: 600 !important;
+            padding: 8px 12px !important;
+            color: var(--tm-sl-label) !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            transition: background 0.18s var(--tm-sl-ease), color 0.18s var(--tm-sl-ease),
+                box-shadow 0.18s var(--tm-sl-ease) !important;
+        }
+        .tm-sl-view-tab:hover {
+            color: var(--tm-shop-item-text) !important;
+            background: transparent !important;
+        }
+        .tm-sl-view-tab.is-active {
+            background: var(--tm-shop-item-bg) !important;
+            color: var(--tm-shop-item-text) !important;
+            border: 0 !important;
+            box-shadow: 0 1px 2px color-mix(in srgb, #000 12%, transparent),
+                0 0 0 0.5px color-mix(in srgb, #000 6%, transparent) !important;
+        }
+        .tm-sl-view-tab:focus-visible {
+            outline: none !important;
+            box-shadow: 0 0 0 3.5px color-mix(in srgb, var(--tm-primary-color) 22%, transparent) !important;
+        }
+
+        .tm-sl-toolbar {
+            padding: 12px 18px !important;
+            border-bottom: 0.5px solid var(--tm-sl-hairline) !important;
+            background: color-mix(in srgb, var(--tm-shop-item-bg) 70%, var(--tm-sl-fill)) !important;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-toolbar {
+            padding: 10px 14px !important;
+        }
+        .tm-sl-search {
+            height: 36px !important;
+            border-radius: 10px !important;
+            border: 0 !important;
+            background: var(--tm-sl-fill) !important;
+            font-size: 14px !important;
+            font-weight: 400 !important;
+            padding: 0 36px 0 36px !important;
+            transition: background 0.18s var(--tm-sl-ease), box-shadow 0.18s var(--tm-sl-ease) !important;
+        }
+        .tm-sl-search:focus {
+            background: var(--tm-shop-item-bg) !important;
+            border: 0 !important;
+            box-shadow: 0 0 0 3.5px color-mix(in srgb, var(--tm-primary-color) 22%, transparent) !important;
+        }
+        .tm-sl-search-icon { left: 11px !important; opacity: 0.4 !important; }
+        .tm-sl-search-kbd {
+            right: 8px !important;
+            border: 0 !important;
+            border-radius: 6px !important;
+            background: color-mix(in srgb, var(--tm-shop-item-border) 28%, transparent) !important;
+            font-size: 10px !important;
+            font-weight: 600 !important;
+            color: var(--tm-sl-label) !important;
+        }
+        .tm-sl-sort-select {
+            height: 36px !important;
+            border: 0 !important;
+            border-radius: 10px !important;
+            background: var(--tm-sl-fill) !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            color: var(--tm-shop-item-text) !important;
+            padding: 0 12px !important;
+        }
+        .tm-sl-recent { gap: 6px !important; margin-top: 2px !important; }
+        .tm-sl-recent__label {
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            color: var(--tm-sl-label) !important;
+            opacity: 1 !important;
+            text-transform: none !important;
+        }
+        .tm-sl-recent__chip {
+            border: 0 !important;
+            background: var(--tm-sl-fill) !important;
+            border-radius: 980px !important;
+            padding: 5px 11px !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            transition: background 0.18s var(--tm-sl-ease), color 0.18s var(--tm-sl-ease) !important;
+        }
+        .tm-sl-recent__chip:hover {
+            background: var(--tm-sl-fill-strong) !important;
+            border-color: transparent !important;
+            color: var(--tm-primary-color) !important;
+        }
+
+        .tm-sl-chips { gap: 6px !important; margin-top: 8px !important; }
+        .tm-sl-chip {
+            border: 0 !important;
+            background: var(--tm-sl-fill) !important;
+            border-radius: 980px !important;
+            padding: 6px 11px !important;
+            font-size: 11.5px !important;
+            font-weight: 600 !important;
+            transition: background 0.18s var(--tm-sl-ease), color 0.18s var(--tm-sl-ease),
+                transform 0.12s var(--tm-sl-ease) !important;
+        }
+        .tm-sl-chip:hover {
+            background: var(--tm-sl-fill-strong) !important;
+            border-color: transparent !important;
+        }
+        .tm-sl-chip.is-active {
+            background: color-mix(in srgb, var(--tm-primary-color) 16%, var(--tm-shop-item-bg)) !important;
+            color: var(--tm-primary-color) !important;
+            border-color: transparent !important;
+        }
+        .tm-sl-chip-count { opacity: 0.55 !important; font-weight: 500 !important; }
+        .tm-sl-context-strip {
+            font-size: 12.5px !important;
+            font-weight: 500 !important;
+            color: var(--tm-sl-label) !important;
+        }
+        .tm-sl-context-strip__filters {
+            color: var(--tm-shop-item-text) !important;
+            font-weight: 600 !important;
+        }
+
+        .tm-sl-body {
+            padding: 16px 18px !important;
+            background: color-mix(in srgb, var(--tm-sl-fill) 45%, var(--tm-shop-item-bg)) !important;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-body {
+            background: var(--tm-shop-item-bg) !important;
+        }
+        .tm-sl-shell:not(.tm-sl-view--network).tm-sl-step--stores .tm-sl-body {
+            padding: 14px 16px !important;
+            background: color-mix(in srgb, var(--tm-sl-fill) 45%, var(--tm-shop-item-bg)) !important;
+        }
+
+        .tm-sl-model-grid {
+            gap: 10px !important;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+        }
+        .tm-sl-shell.tm-sl-view--network .tm-sl-model-grid {
+            gap: 8px !important;
+            padding: 12px 14px !important;
+            grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)) !important;
+        }
+        .tm-sl-model-card {
+            border: 0 !important;
+            border-radius: var(--tm-sl-r-lg) !important;
+            padding: 14px 15px !important;
+            background: var(--tm-shop-item-bg) !important;
+            box-shadow: 0 0 0 0.5px color-mix(in srgb, #000 8%, transparent),
+                0 1px 2px color-mix(in srgb, #000 4%, transparent) !important;
+            transition: transform 0.18s var(--tm-sl-ease), box-shadow 0.18s var(--tm-sl-ease),
+                background 0.18s var(--tm-sl-ease) !important;
+            border-left: 0 !important;
+        }
+        .tm-sl-model-card.tm-sl-heat--high,
+        .tm-sl-model-card.tm-sl-heat--low,
+        .tm-sl-model-card.tm-sl-heat--local,
+        .tm-sl-model-card.tm-sl-heat--mid {
+            border-left: 0 !important;
+        }
+        .tm-sl-model-card:hover {
+            transform: translateY(-1px);
+            background: var(--tm-shop-item-bg) !important;
+            border-color: transparent !important;
+            box-shadow: 0 0 0 0.5px color-mix(in srgb, var(--tm-primary-color) 28%, transparent),
+                0 8px 22px color-mix(in srgb, #000 10%, transparent) !important;
+        }
+        .tm-sl-model-card:active { transform: translateY(0) scale(0.995); }
+        .tm-sl-model-name {
+            font-size: 13.5px !important;
+            font-weight: 650 !important;
+            letter-spacing: -0.02em !important;
+            margin-bottom: 2px !important;
+        }
+        .tm-sl-model-count {
+            font-size: 22px !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.035em !important;
+            font-variant-numeric: tabular-nums;
+        }
+        .tm-sl-model-count span {
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            color: var(--tm-sl-label) !important;
+            opacity: 1 !important;
+        }
+        .tm-sl-model-meta {
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            color: var(--tm-sl-label) !important;
+            margin-bottom: 8px !important;
+        }
+        .tm-sl-grade-chip {
+            border-radius: 6px !important;
+            font-size: 10px !important;
+            font-weight: 650 !important;
+            padding: 3px 7px !important;
+        }
+        .tm-sl-whisper {
+            border-radius: 980px !important;
+            font-size: 10.5px !important;
+            font-weight: 600 !important;
+            padding: 3px 8px !important;
+            margin-bottom: 8px !important;
+        }
+        .tm-sl-hl {
+            background: color-mix(in srgb, var(--tm-primary-color) 18%, transparent) !important;
+            border-radius: 4px !important;
+            padding: 0 2px !important;
+        }
+
+        .tm-sl-mine-board {
+            border: 0 !important;
+            border-radius: var(--tm-sl-r-lg) !important;
+            box-shadow: 0 0 0 0.5px color-mix(in srgb, #000 8%, transparent),
+                0 1px 2px color-mix(in srgb, #000 4%, transparent) !important;
+            background: var(--tm-shop-item-bg) !important;
+        }
+        .tm-sl-mine-detail-head {
+            padding: 12px 14px !important;
+            border-bottom: 0.5px solid var(--tm-sl-hairline) !important;
+            background: transparent !important;
+        }
+        .tm-sl-mine-detail-head h3 {
+            font-size: 13px !important;
+            font-weight: 650 !important;
+            letter-spacing: -0.01em !important;
+        }
+        .tm-sl-mine-detail-head__meta {
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            color: var(--tm-sl-label) !important;
+            opacity: 1 !important;
+        }
+        .tm-sl-insight {
+            border: 0 !important;
+            border-radius: 12px !important;
+            background: var(--tm-sl-fill) !important;
+            padding: 10px 12px !important;
+            font-size: 12.5px !important;
+            font-weight: 500 !important;
+            color: var(--tm-sl-label) !important;
+        }
+        .tm-sl-insight__best {
+            font-weight: 650 !important;
+            letter-spacing: -0.01em !important;
+        }
+
+        .tm-sl-unit-table {
+            font-size: 13px !important;
+        }
+        .tm-sl-unit-table thead {
+            background: color-mix(in srgb, var(--tm-sl-fill) 70%, var(--tm-shop-item-bg)) !important;
+        }
+        .tm-sl-unit-table th {
+            padding: 9px 14px !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            letter-spacing: -0.01em !important;
+            text-transform: none !important;
+            color: var(--tm-sl-label) !important;
+            opacity: 1 !important;
+            border-bottom: 0.5px solid var(--tm-sl-hairline) !important;
+        }
+        .tm-sl-unit-table td {
+            padding: 12px 14px !important;
+            border-bottom: 0.5px solid var(--tm-sl-hairline) !important;
+        }
+        .tm-sl-unit-table tbody tr:last-child td { border-bottom: 0 !important; }
+        .tm-sl-unit-table tbody tr:hover td {
+            background: color-mix(in srgb, var(--tm-sl-fill) 55%, transparent) !important;
+        }
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--best td {
+            background: color-mix(in srgb, var(--tm-success-color, #16a34a) 7%, var(--tm-shop-item-bg)) !important;
+        }
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--best td:first-child {
+            box-shadow: inset 2.5px 0 0 var(--tm-success-color, #16a34a) !important;
+        }
+        .tm-sl-unit-table .tm-sl-table-grade {
+            min-width: 28px !important;
+            padding: 3px 8px !important;
+            border-radius: 7px !important;
+            font-size: 10.5px !important;
+            font-weight: 700 !important;
+        }
+        .tm-sl-unit-table .tm-sl-table-gb { font-weight: 600 !important; }
+        .tm-sl-unit-table .tm-sl-table-barcode {
+            font-family: "SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            border-bottom: none !important;
+            color: var(--tm-primary-color) !important;
+            padding: 2px 0 !important;
+        }
+        .tm-sl-unit-table .tm-sl-table-barcode:hover {
+            opacity: 0.75;
+        }
+        .tm-sl-unit-table .tm-sl-table-price {
+            font-weight: 650 !important;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.01em !important;
+        }
+        .tm-sl-unit-table .tm-sl-table-status {
+            font-size: 12px !important;
+            font-weight: 600 !important;
+        }
+        .tm-sl-table-imei {
+            font-family: "SF Mono", ui-monospace, Menlo, monospace !important;
+            font-size: 10.5px !important;
+        }
+
+        .tm-sl-network-board {
+            background: var(--tm-shop-item-bg) !important;
+        }
+        .tm-sl-network-stores {
+            background: color-mix(in srgb, var(--tm-sl-fill) 65%, var(--tm-shop-item-bg)) !important;
+            border-right: 0.5px solid var(--tm-sl-hairline) !important;
+        }
+        .tm-sl-network-stores__label {
+            padding: 12px 14px 8px !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            letter-spacing: -0.01em !important;
+            text-transform: none !important;
+            color: var(--tm-sl-label) !important;
+            opacity: 1 !important;
+            border-bottom: 0.5px solid var(--tm-sl-hairline) !important;
+        }
+        .tm-sl-network-store {
+            padding: 11px 14px !important;
+            border-bottom: 0.5px solid var(--tm-sl-hairline) !important;
+            border-left: 0 !important;
+            gap: 4px !important;
+            transition: background 0.15s var(--tm-sl-ease) !important;
+        }
+        .tm-sl-network-store:hover {
+            background: color-mix(in srgb, var(--tm-shop-item-bg) 70%, transparent) !important;
+        }
+        .tm-sl-network-store.is-active {
+            background: var(--tm-shop-item-bg) !important;
+            border-left: 0 !important;
+            box-shadow: inset 3px 0 0 var(--tm-primary-color) !important;
+        }
+        .tm-sl-network-store__name {
+            font-size: 13px !important;
+            font-weight: 650 !important;
+            letter-spacing: -0.015em !important;
+        }
+        .tm-sl-network-store__meta {
+            font-size: 11px !important;
+            font-weight: 500 !important;
+            color: var(--tm-sl-label) !important;
+            opacity: 1 !important;
+        }
+        .tm-sl-network-store.is-recommended .tm-sl-network-store__name::after {
+            content: 'Προτεινόμενο' !important;
+            margin-left: 7px !important;
+            font-size: 10px !important;
+            font-weight: 650 !important;
+            letter-spacing: 0 !important;
+            text-transform: none !important;
+            color: var(--tm-success-color, #16a34a) !important;
+            background: color-mix(in srgb, var(--tm-success-color, #16a34a) 12%, transparent);
+            padding: 1px 6px;
+            border-radius: 980px;
+            vertical-align: 1px !important;
+        }
+        .tm-sl-network-detail-head {
+            padding: 12px 16px !important;
+            border-bottom: 0.5px solid var(--tm-sl-hairline) !important;
+            background: transparent !important;
+        }
+        .tm-sl-network-detail-head h3 {
+            font-size: 15px !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.02em !important;
+        }
+        .tm-sl-network-detail-head__meta {
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            color: var(--tm-sl-label) !important;
+        }
+        .tm-sl-store-dist {
+            border: 0 !important;
+            background: var(--tm-sl-fill) !important;
+            color: var(--tm-shop-item-text) !important;
+            font-weight: 600 !important;
+            border-radius: 980px !important;
+            padding: 2px 8px !important;
+        }
+
+        .tm-sl-footer {
+            padding: 10px 16px !important;
+            border-top: 0.5px solid var(--tm-sl-hairline) !important;
+            background: color-mix(in srgb, var(--tm-shop-item-bg) 92%, transparent) !important;
+            font-size: 11.5px !important;
+            font-weight: 500 !important;
+            color: var(--tm-sl-label) !important;
+            opacity: 1 !important;
+            backdrop-filter: saturate(160%) blur(12px);
+            -webkit-backdrop-filter: saturate(160%) blur(12px);
+        }
+        #tm-sl-status { color: var(--tm-sl-label); font-weight: 500; }
+        .tm-sl-density-btn {
+            border: 0 !important;
+            border-radius: 980px !important;
+            background: var(--tm-sl-fill) !important;
+            padding: 5px 10px !important;
+            font-size: 11px !important;
+            font-weight: 600 !important;
+        }
+        .tm-sl-density-btn:hover,
+        .tm-sl-density-btn.is-compact {
+            background: var(--tm-sl-fill-strong) !important;
+            border-color: transparent !important;
+        }
+        .tm-sl-scale {
+            border: 0 !important;
+            border-radius: 980px !important;
+            background: var(--tm-sl-fill) !important;
+            overflow: hidden;
+        }
+        .tm-sl-scale__btn,
+        .tm-sl-scale__value {
+            border: 0 !important;
+            border-left: 0 !important;
+            border-right: 0 !important;
+            font-weight: 650 !important;
+            color: var(--tm-shop-item-text) !important;
+        }
+        .tm-sl-scale__value {
+            min-width: 48px !important;
+            font-variant-numeric: tabular-nums;
+            background: transparent !important;
+        }
+        .tm-sl-scale__value.is-enlarged {
+            color: var(--tm-primary-color) !important;
+            background: transparent !important;
+        }
+        .tm-sl-freshness-dot {
+            width: 7px !important;
+            height: 7px !important;
+        }
+
+        .tm-sl-toast {
+            border-radius: 980px !important;
+            padding: 11px 16px !important;
+            font-size: 12.5px !important;
+            font-weight: 600 !important;
+            letter-spacing: -0.01em !important;
+            background: color-mix(in srgb, #1c1c1e 92%, transparent) !important;
+            box-shadow: 0 10px 30px color-mix(in srgb, #000 30%, transparent) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        .tm-sl-toast__open {
+            border: 0 !important;
+            background: color-mix(in srgb, #fff 16%, transparent) !important;
+            border-radius: 980px !important;
+            padding: 4px 10px !important;
+            font-weight: 650 !important;
+        }
+        .tm-sl-load {
+            margin: 10px 16px 0 !important;
+            border: 0 !important;
+            border-radius: 12px !important;
+            background: var(--tm-sl-fill) !important;
+            padding: 12px 14px !important;
+        }
+        .tm-sl-load__label { font-weight: 650 !important; }
+        .tm-sl-load__track {
+            height: 4px !important;
+            background: color-mix(in srgb, var(--tm-shop-item-border) 40%, transparent) !important;
+        }
+        .tm-sl-empty-title {
+            font-size: 17px !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.02em !important;
+        }
+        .tm-sl-empty-sub {
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            color: var(--tm-sl-label) !important;
+            opacity: 1 !important;
+        }
+        .tm-sl-btn--primary-action {
+            border: 0 !important;
+            border-radius: 980px !important;
+            background: var(--tm-primary-color) !important;
+            color: #fff !important;
+            font-weight: 650 !important;
+            padding: 9px 16px !important;
+        }
+        .tm-sl-settings-menu,
+        .tm-sl-export-menu {
+            border-radius: 14px !important;
+            border: 0.5px solid var(--tm-sl-hairline) !important;
+            box-shadow: 0 12px 40px color-mix(in srgb, #000 22%, transparent) !important;
+            overflow: hidden;
+            padding: 6px !important;
+        }
+        .tm-sl-settings-menu button,
+        .tm-sl-export-menu button {
+            border-radius: 8px !important;
+            font-weight: 500 !important;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .tm-sl-model-card,
+            .tm-sl-btn,
+            .tm-sl-chip,
+            .tm-sl-view-tab,
+            .tm-sl-recent__chip {
+                transition: none !important;
+            }
+            .tm-sl-model-card:hover { transform: none !important; }
+            .tm-sl-overlay {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+            }
         }
     `;
 
@@ -52415,11 +53102,14 @@ window.initOrderTracking = initOrderTracking;
     }
 
     function ensureStylesInjected() {
-        if (document.getElementById('tm-sl-styles')) return;
-        const style = document.createElement('style');
-        style.id = 'tm-sl-styles';
+        let style = document.getElementById('tm-sl-styles');
+        if (!style) {
+            style = document.createElement('style');
+            style.id = 'tm-sl-styles';
+            document.head.appendChild(style);
+        }
+        // Always refresh so silent updates / local rebuilds aren't stuck on old CSS.
         style.textContent = STYLES;
-        document.head.appendChild(style);
     }
 
     function buildShellHTML() {
@@ -52475,6 +53165,11 @@ window.initOrderTracking = initOrderTracking;
             <footer class="tm-sl-footer">
                 <span id="tm-sl-status">—</span>
                 <div class="tm-sl-footer-right">
+                    <div class="tm-sl-scale" role="group" aria-label="Μέγεθος πίνακα">
+                        <button type="button" class="tm-sl-scale__btn" id="tm-sl-scale-down" title="Μικρότερο κείμενο" aria-label="Μικρότερο">A−</button>
+                        <button type="button" class="tm-sl-scale__value" id="tm-sl-scale-value" title="Επαναφορά στο προεπιλεγμένο (115%)">115%</button>
+                        <button type="button" class="tm-sl-scale__btn" id="tm-sl-scale-up" title="Μεγαλύτερο κείμενο" aria-label="Μεγαλύτερο">A+</button>
+                    </div>
                     <button type="button" id="tm-sl-density" class="tm-sl-density-btn" title="Εναλλαγή πυκνότητας">Άνετο</button>
                     <span id="tm-sl-freshness" class="tm-sl-freshness tm-sl-freshness--cached">
                         <span class="tm-sl-freshness-dot" aria-hidden="true"></span>
@@ -52509,7 +53204,7 @@ window.initOrderTracking = initOrderTracking;
                 <div class="tm-sl-search-wrap">
                     <span class="tm-sl-search-icon">${ICON.search}</span>
                     <input type="search" id="tm-sl-model-search" class="tm-sl-search"
-                        placeholder="Αναζήτηση μοντέλου, barcode ή IMEI…" autocomplete="off">
+                        placeholder="Μοντέλο, barcode ή IMEI" autocomplete="off">
                     <span class="tm-sl-search-kbd" aria-hidden="true">/</span>
                 </div>
                 <select id="tm-sl-model-sort" class="tm-sl-sort-select" aria-label="Ταξινόμηση" data-tm-sl-sort-select>
@@ -53448,6 +54143,53 @@ window.initOrderTracking = initOrderTracking;
         updateMyStoreLabels(overlay);
     }
 
+    const UI_SCALE_STEPS = [1, 1.15, 1.3, 1.45];
+    const UI_SCALE_DEFAULT = 1.15;
+
+    function normalizeUiScale(value) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return UI_SCALE_DEFAULT;
+        let best = UI_SCALE_STEPS[0];
+        let bestDist = Math.abs(n - best);
+        UI_SCALE_STEPS.forEach((step) => {
+            const dist = Math.abs(n - step);
+            if (dist < bestDist) {
+                best = step;
+                bestDist = dist;
+            }
+        });
+        return best;
+    }
+
+    function setUiScale(overlay, scale) {
+        const shell = overlay?.querySelector('#tm-sl-shell');
+        if (!shell) return normalizeUiScale(scale);
+        const next = normalizeUiScale(scale);
+        shell.style.setProperty('--tm-sl-scale', String(next));
+        shell.dataset.tmSlScale = String(next);
+
+        const valueBtn = overlay.querySelector('#tm-sl-scale-value');
+        const downBtn = overlay.querySelector('#tm-sl-scale-down');
+        const upBtn = overlay.querySelector('#tm-sl-scale-up');
+        const pct = Math.round(next * 100);
+        if (valueBtn) {
+            valueBtn.textContent = `${pct}%`;
+            valueBtn.classList.toggle('is-enlarged', next > 1);
+            valueBtn.title = next === UI_SCALE_DEFAULT
+                ? 'Προεπιλεγμένο μέγεθος για οθόνες 13″'
+                : 'Επαναφορά στο προεπιλεγμένο (115%)';
+        }
+        if (downBtn) downBtn.disabled = next <= UI_SCALE_STEPS[0];
+        if (upBtn) upBtn.disabled = next >= UI_SCALE_STEPS[UI_SCALE_STEPS.length - 1];
+        return next;
+    }
+
+    function stepUiScale(current, direction) {
+        const idx = UI_SCALE_STEPS.indexOf(normalizeUiScale(current));
+        const nextIdx = Math.max(0, Math.min(UI_SCALE_STEPS.length - 1, idx + direction));
+        return UI_SCALE_STEPS[nextIdx];
+    }
+
     function setDensity(overlay, compact) {
         const shell = overlay?.querySelector('#tm-sl-shell');
         const btn = overlay?.querySelector('#tm-sl-density');
@@ -53462,6 +54204,8 @@ window.initOrderTracking = initOrderTracking;
     window.PhoneCatalogUI = {
         ICON,
         STYLES,
+        UI_SCALE_STEPS,
+        UI_SCALE_DEFAULT,
         ensureStylesInjected,
         esc,
         getMyStoreLabel,
@@ -53511,6 +54255,9 @@ window.initOrderTracking = initOrderTracking;
         updateBreadcrumb,
         updateViewTabs,
         setDensity,
+        setUiScale,
+        normalizeUiScale,
+        stepUiScale,
     };
 })();
 
@@ -53525,8 +54272,8 @@ const PHONE_LIST_CACHE_KEY = 'tm_phone_list_cache';
 const PHONE_LIST_CACHE_TIMESTAMP_KEY = 'tm_phone_list_cache_timestamp';
 /** Hard-expire local list cache after this many days (discard + force fetch). */
 const CACHE_EXPIRATION_DAYS = 3;
-/** Soft-stale: auto-refresh in background when older than this (ms). */
-const PHONE_LIST_SOFT_REFRESH_MS = 60 * 60 * 1000; // 1 hour
+/** Soft-stale: quiet background refresh when older than this (ms). */
+const PHONE_LIST_SOFT_REFRESH_MS = 4 * 60 * 60 * 1000; // 4 hours
 // v2: price parsing (div/input IDs) + UI shows retailPrice on other-store cards
 const OTHER_STORE_CACHE_KEY = 'tm_phone_other_store_cache_v3';
 const OTHER_STORE_CACHE_TIMESTAMP_KEY = 'tm_phone_other_store_cache_timestamp';
@@ -53603,8 +54350,9 @@ const PHONE_CATALOG_TRANSLATIONS = {
     'Invalid color name or hex': '\u039C\u03B7 \u03AD\u03B3\u03BA\u03C5\u03C1\u03BF \u03CC\u03BD\u03BF\u03BC\u03B1 \u03AE hex',
     'Suggested hex': '\u03A0\u03C1\u03BF\u03C4\u03B5\u03B9\u03BD\u03CC\u03BC\u03B5\u03BD\u03BF hex',
     'Catalog title color': '\u03A7\u03C1\u03CE\u03BC\u03B1 \u03C4\u03AF\u03C4\u03BB\u03BF\u03C5 \u03C3\u03C4\u03BF\u03BD \u03BA\u03B1\u03C4\u03AC\u03BB\u03BF\u03B3\u03BF',
-    'Also for labels': '\u0395\u03C0\u03AF\u03C3\u03B7\u03C2 \u03B3\u03B9\u03B1 \u03BF\u03BD\u03BF\u03BC\u03B1\u03C3\u03AF\u03B5\u03C2',
-    'Aliases hint': '\u03C0.\u03C7. SILVER, TITANIUM',
+    'Also for labels': '\u0398\u03B5\u03C9\u03C1\u03B5\u03AF\u03C4\u03B1\u03B9 \u03B5\u03C0\u03AF\u03C3\u03B7\u03C2',
+    'Aliases hint': '\u03C0.\u03C7. ORANGE (\u03AF\u03B4\u03B9\u03BF \u03C6\u03AF\u03BB\u03C4\u03C1\u03BF \u03BC\u03B5 COSMIC ORANGE)',
+    'Aliases help': '\u0386\u03BB\u03BB\u03B1 \u03BF\u03BD\u03CC\u03BC\u03B1\u03C4\u03B1 \u03C0\u03BF\u03C5 \u03B8\u03B5\u03C9\u03C1\u03BF\u03CD\u03BD\u03C4\u03B1\u03B9 \u03C4\u03BF \u03AF\u03B4\u03B9\u03BF \u03C7\u03C1\u03CE\u03BC\u03B1 \u03C3\u03C4\u03B1 \u03C6\u03AF\u03BB\u03C4\u03C1\u03B1 \u03BA\u03B1\u03B9 \u03C4\u03B7\u03BD \u03B5\u03BC\u03C6\u03AC\u03BD\u03B9\u03C3\u03B7.',
     'Manage Stores': '\u0394\u03B9\u03B1\u03C7\u03B5\u03AF\u03C1\u03B9\u03C3\u03B7 \u039A\u03B1\u03C4\u03B1\u03C3\u03C4\u03B7\u03BC\u03AC\u03C4\u03C9\u03BD',
     'Buyback store patterns': '\u03A0\u03C1\u03CC\u03C4\u03C5\u03C0\u03B1 \u03BF\u03BD\u03CC\u03BC\u03B1\u03C4\u03BF\u03C2 \u03B3\u03B9\u03B1 BB',
     'Buyback patterns hint': '\u03C0.\u03C7. IKE, \u0399\u039A\u0395 (\u03B1\u03BD \u03C4\u03BF \u03CC\u03BD\u03BF\u03BC\u03B1 \u03C0\u03B5\u03C1\u03B9\u03AD\u03C7\u03B5\u03B9 \u03B1\u03C5\u03C4\u03CC)',
@@ -53666,7 +54414,50 @@ const PHONE_CATALOG_TRANSLATIONS = {
 
 const PHONE_COLORS_STORAGE_KEY = 'tm_phone_colors_v2';
 const PHONE_COLOR_ALIASES_KEY = 'tm_phone_color_display_aliases';
+const PHONE_COLORS_REMOVED_KEY = 'tm_phone_colors_removed_v1';
 const LEGACY_CUSTOM_COLORS_STORAGE_KEY = 'tm_phone_custom_colors';
+
+function loadRemovedPhoneColors() {
+    try {
+        const stored = GM_getValue(PHONE_COLORS_REMOVED_KEY, '[]');
+        const parsed = JSON.parse(stored);
+        if (!Array.isArray(parsed)) return new Set();
+        return new Set(parsed.map((name) => normalizePhoneColorName(name)).filter(Boolean));
+    } catch (e) {
+        return new Set();
+    }
+}
+
+function saveRemovedPhoneColors(removed) {
+    const list = [...(removed || [])]
+        .map((name) => normalizePhoneColorName(name))
+        .filter(Boolean)
+        .sort();
+    GM_setValue(PHONE_COLORS_REMOVED_KEY, JSON.stringify(list));
+}
+
+function isPhoneColorRemoved(name) {
+    const key = normalizePhoneColorName(name);
+    if (!key) return false;
+    return loadRemovedPhoneColors().has(key);
+}
+
+function markPhoneColorRemoved(name) {
+    const key = normalizePhoneColorName(name);
+    if (!key) return;
+    const removed = loadRemovedPhoneColors();
+    if (removed.has(key)) return;
+    removed.add(key);
+    saveRemovedPhoneColors(removed);
+}
+
+function unmarkPhoneColorRemoved(name) {
+    const key = normalizePhoneColorName(name);
+    if (!key) return;
+    const removed = loadRemovedPhoneColors();
+    if (!removed.delete(key)) return;
+    saveRemovedPhoneColors(removed);
+}
 const PHONE_STORE_RULES_KEY = 'tm_phone_store_rules_v1';
 const PHONE_TAG_DEFINITIONS_KEY = 'tm_phone_tag_definitions';
 const PHONE_CANONICAL_MODELS_KEY = 'tm_phone_canonical_models_v1';
@@ -54130,23 +54921,28 @@ function normalizePhoneColorHex(hex) {
 
 function loadPhoneColors() {
     try {
+        const removed = loadRemovedPhoneColors();
         const stored = GM_getValue(PHONE_COLORS_STORAGE_KEY, null);
         if (stored) {
             let parsed = normalizeStoredPhoneColors(JSON.parse(stored));
             if (parsed && Object.keys(parsed).length > 0) {
                 const defaults = getDefaultPhoneColors();
                 let needsSave = false;
+                // Drop colors the user explicitly deleted (prevents defaults/sync resurrecting them).
+                Object.keys(parsed).forEach((name) => {
+                    if (removed.has(name)) {
+                        delete parsed[name];
+                        needsSave = true;
+                    }
+                });
                 Object.entries(defaults).forEach(([name, entry]) => {
+                    if (removed.has(name)) return;
                     if (!parsed[name]) {
                         parsed[name] = { ...normalizeColorEntry(entry, name) };
                         needsSave = true;
                     } else {
                         const normalized = normalizeColorEntry(parsed[name], name);
-                        const defaultEntry = normalizeColorEntry(entry, name);
-                        if (defaultEntry.listHex && normalized.listHex === normalized.hex && defaultEntry.listHex !== normalized.listHex) {
-                            normalized.listHex = defaultEntry.listHex;
-                            needsSave = true;
-                        }
+                        // Keep user-edited listHex/hex as stored — do not reset from defaults.
                         if (JSON.stringify(parsed[name]) !== JSON.stringify(normalized)) {
                             parsed[name] = normalized;
                             needsSave = true;
@@ -54159,20 +54955,31 @@ function loadPhoneColors() {
         }
 
         const defaults = getDefaultPhoneColors();
-        let merged = { ...defaults };
+        let merged = {};
+        Object.entries(defaults).forEach(([name, entry]) => {
+            if (!removed.has(name)) merged[name] = { ...normalizeColorEntry(entry, name) };
+        });
 
         const legacyCustom = GM_getValue(LEGACY_CUSTOM_COLORS_STORAGE_KEY, null);
         if (legacyCustom) {
             try {
                 const custom = normalizeStoredPhoneColors(JSON.parse(legacyCustom));
-                merged = { ...defaults, ...custom };
+                Object.entries(custom).forEach(([name, entry]) => {
+                    if (removed.has(name)) return;
+                    merged[name] = entry;
+                });
             } catch (e) { /* ignore */ }
         }
 
         savePhoneColors(merged);
         return { ...merged };
     } catch (e) {
-        return { ...getDefaultPhoneColors() };
+        const removed = loadRemovedPhoneColors();
+        const fallback = {};
+        Object.entries(getDefaultPhoneColors()).forEach(([name, entry]) => {
+            if (!removed.has(name)) fallback[name] = { ...normalizeColorEntry(entry, name) };
+        });
+        return fallback;
     }
 }
 
@@ -54189,13 +54996,19 @@ function normalizeTextForColorMatch(text) {
 }
 
 function getAllPhoneColorNamesForMatching() {
+    const removed = loadRemovedPhoneColors();
     const defaults = getDefaultPhoneColors();
     let saved = {};
     try {
         const raw = GM_getValue(PHONE_COLORS_STORAGE_KEY, null);
         if (raw) saved = normalizeStoredPhoneColors(JSON.parse(raw));
     } catch (e) { /* ignore */ }
-    return [...new Set([...Object.keys(defaults), ...Object.keys(saved)])];
+    let aliasKeys = [];
+    try {
+        aliasKeys = Object.keys(loadColorDisplayAliases() || {});
+    } catch (e) { /* ignore */ }
+    return [...new Set([...Object.keys(defaults), ...Object.keys(saved), ...aliasKeys])]
+        .filter((name) => !removed.has(normalizePhoneColorName(name)));
 }
 
 function matchPhoneColorInText(text) {
@@ -54219,19 +55032,20 @@ function matchPhoneColorInText(text) {
 
 function syncPhoneColorCatalog(phones) {
     const defaults = getDefaultPhoneColors();
+    const removed = loadRemovedPhoneColors();
     const colors = loadPhoneColors();
     let changed = false;
 
     Object.entries(defaults).forEach(([name, entry]) => {
-        if (!colors[name]) {
-            colors[name] = { ...normalizeColorEntry(entry, name) };
-            changed = true;
-        }
+        if (removed.has(name) || colors[name]) return;
+        colors[name] = { ...normalizeColorEntry(entry, name) };
+        changed = true;
     });
 
     const aliases = loadColorDisplayAliases();
     Object.entries(aliases).forEach(([alias, target]) => {
-        if (colors[alias]) return;
+        if (removed.has(alias) || colors[alias]) return;
+        if (removed.has(normalizePhoneColorName(target))) return;
         const targetEntry = normalizeColorEntry(colors[target] || defaults[target], target);
         if (targetEntry.hex || targetEntry.listHex) {
             colors[alias] = { hex: targetEntry.hex, listHex: targetEntry.listHex };
@@ -54247,12 +55061,13 @@ function syncPhoneColorCatalog(phones) {
             if (found) discovered.add(found);
         });
         discovered.forEach(name => {
-            if (colors[name]) return;
-            const def = defaults[name];
-            const suggestion = suggestPhoneColorHex(name);
+            const key = normalizePhoneColorName(name);
+            if (!key || removed.has(key) || colors[key]) return;
+            const def = defaults[key];
+            const suggestion = suggestPhoneColorHex(key);
             const hex = def?.hex || suggestion?.hex || '#808080';
             const listHex = def?.listHex || suggestion?.hex || hex;
-            colors[name] = normalizeColorEntry({ hex, listHex }, name);
+            colors[key] = normalizeColorEntry({ hex, listHex }, key);
             changed = true;
         });
     }
@@ -54294,8 +55109,11 @@ function addPhoneColor(name, hex, listHex = null) {
     const normalizedHex = normalizePhoneColorHex(hex);
     const normalizedListHex = normalizePhoneColorHex(listHex) || normalizedHex;
     if (!normalizedName || !normalizedHex) return { ok: false, error: 'invalid' };
+    const wasRemoved = isPhoneColorRemoved(normalizedName);
+    unmarkPhoneColorRemoved(normalizedName);
     const colors = loadPhoneColors();
-    if (colors[normalizedName]) return { ok: false, error: 'exists' };
+    // Re-adding a previously deleted color should overwrite, not fail as "exists".
+    if (colors[normalizedName] && !wasRemoved) return { ok: false, error: 'exists' };
     colors[normalizedName] = { hex: normalizedHex, listHex: normalizedListHex };
     savePhoneColors(colors);
     return { ok: true, name: normalizedName, hex: normalizedHex, listHex: normalizedListHex };
@@ -54329,15 +55147,24 @@ function updatePhoneListColor(name, listHex) {
 
 function removePhoneColor(name) {
     const normalizedName = normalizePhoneColorName(name);
+    if (!normalizedName) return false;
     const colors = loadPhoneColors();
-    if (!colors[normalizedName]) return false;
-    delete colors[normalizedName];
-    savePhoneColors(colors);
+    const existed = !!colors[normalizedName];
+    if (existed) {
+        delete colors[normalizedName];
+        savePhoneColors(colors);
+    }
+    // Persist deletion so defaults / title discovery cannot bring it back.
+    markPhoneColorRemoved(normalizedName);
     const aliases = loadColorDisplayAliases();
+    let aliasesChanged = false;
     Object.keys(aliases).forEach(alias => {
-        if (aliases[alias] === normalizedName) delete aliases[alias];
+        if (alias === normalizedName || aliases[alias] === normalizedName) {
+            delete aliases[alias];
+            aliasesChanged = true;
+        }
     });
-    saveColorDisplayAliases(aliases);
+    if (aliasesChanged) saveColorDisplayAliases(aliases);
     return true;
 }
 
@@ -54348,11 +55175,15 @@ function renamePhoneColor(oldName, newName) {
     if (oldKey === newKey) return { ok: true, name: oldKey };
     const colors = loadPhoneColors();
     if (!colors[oldKey]) return { ok: false, error: 'missing' };
-    if (colors[newKey]) return { ok: false, error: 'exists' };
+    if (colors[newKey] && !isPhoneColorRemoved(newKey)) return { ok: false, error: 'exists' };
 
     colors[newKey] = { ...normalizeColorEntry(colors[oldKey], oldKey) };
     delete colors[oldKey];
     savePhoneColors(colors);
+
+    // Old default name must stay removed or sync/load will recreate it.
+    markPhoneColorRemoved(oldKey);
+    unmarkPhoneColorRemoved(newKey);
 
     const aliases = loadColorDisplayAliases();
     Object.keys(aliases).forEach(alias => {
@@ -56261,7 +57092,13 @@ function extractColor(model) {
     if (phoneCatalogColorCache.has(model)) {
         return phoneCatalogColorCache.get(model);
     }
-    const color = matchPhoneColorInText(model);
+    // Resolve display aliases so ORANGE (alias) and COSMIC ORANGE share one filter chip.
+    const matched = matchPhoneColorInText(model);
+    const color = resolveDisplayColorName(matched);
+    if (isPhoneColorRemoved(color) || isPhoneColorRemoved(matched)) {
+        phoneCatalogColorCache.set(model, '');
+        return '';
+    }
     phoneCatalogColorCache.set(model, color);
     return color;
 }
@@ -56637,10 +57474,24 @@ window.mergeOtherStoresFromAllPhones = mergeOtherStoresFromAllPhones;
 window.PHONE_LIST_CACHE_TIMESTAMP_KEY = PHONE_LIST_CACHE_TIMESTAMP_KEY;
 window.phoneCatalogT = t;
 window.PHONE_CATALOG_TRANSLATIONS = PHONE_CATALOG_TRANSLATIONS;
-window.clearPhoneCatalogCaches = function clearPhoneCatalogCaches() {
+
+/** Clear in-memory extract caches only (colors/GB/models). Keeps stored phone lists. */
+window.clearPhoneCatalogParseCaches = function clearPhoneCatalogParseCaches() {
     phoneCatalogColorCache.clear();
     phoneCatalogGbCache.clear();
     extractBaseModelCacheGlobal.clear();
+};
+
+/**
+ * Clear phone catalog caches.
+ * @param {{ includeLists?: boolean }} [opts]
+ *   includeLists (default true for backward compat): also wipe GM phone/network list caches.
+ *   Pass includeLists:false after color/tag/settings edits so lists stay warm across reloads.
+ */
+window.clearPhoneCatalogCaches = function clearPhoneCatalogCaches(opts = {}) {
+    window.clearPhoneCatalogParseCaches();
+    const includeLists = opts?.includeLists !== false;
+    if (!includeLists) return;
     try {
         GM_setValue(PHONE_LIST_CACHE_KEY, null);
         GM_setValue(PHONE_LIST_CACHE_TIMESTAMP_KEY, 0);
@@ -56657,8 +57508,11 @@ window.addPhoneColor = addPhoneColor;
 window.removePhoneColor = removePhoneColor;
 window.renamePhoneColor = renamePhoneColor;
 window.updatePhoneListColor = updatePhoneListColor;
+window.isPhoneColorRemoved = isPhoneColorRemoved;
 window.getAliasesForColor = getAliasesForColor;
 window.setColorDisplayAliasesForColor = setColorDisplayAliasesForColor;
+window.loadColorDisplayAliases = loadColorDisplayAliases;
+window.resolveDisplayColorName = resolveDisplayColorName;
 window.suggestPhoneColorHex = suggestPhoneColorHex;
 window.normalizePhoneColorHex = normalizePhoneColorHex;
 window.normalizePhoneColorName = normalizePhoneColorName;
@@ -56735,8 +57589,11 @@ if (document.body) {
     }
 
     function clearCaches() {
-        if (typeof window.clearPhoneCatalogCaches === 'function') {
-            window.clearPhoneCatalogCaches();
+        // Settings edits only need parse-cache invalidation — never wipe saved phone lists.
+        if (typeof window.clearPhoneCatalogParseCaches === 'function') {
+            window.clearPhoneCatalogParseCaches();
+        } else if (typeof window.clearPhoneCatalogCaches === 'function') {
+            window.clearPhoneCatalogCaches({ includeLists: false });
         }
     }
 
@@ -56827,12 +57684,17 @@ if (document.body) {
 
         const renderPhoneColorList = () => {
             const colors = window.loadPhoneColors?.() || {};
-            const names = Object.keys(colors).sort((a, b) => {
-                const aMulti = a.includes(' ') ? 0 : 1;
-                const bMulti = b.includes(' ') ? 0 : 1;
-                if (aMulti !== bMulti) return aMulti - bMulti;
-                return b.length - a.length || a.localeCompare(b);
-            });
+            const aliasMap = window.loadColorDisplayAliases?.() || {};
+            const aliasOnlyNames = new Set(Object.keys(aliasMap));
+            // Hide alias-only names (e.g. ORANGE → COSMIC ORANGE) so they aren't edited as separate colors.
+            const names = Object.keys(colors)
+                .filter((name) => !aliasOnlyNames.has(name))
+                .sort((a, b) => {
+                    const aMulti = a.includes(' ') ? 0 : 1;
+                    const bMulti = b.includes(' ') ? 0 : 1;
+                    if (aMulti !== bMulti) return aMulti - bMulti;
+                    return b.length - a.length || a.localeCompare(b);
+                });
             if (!names.length) {
                 listEl.innerHTML = `<div style="font-size:12px;opacity:0.6;padding:8px 0;">${t('No custom colors yet')}</div>`;
                 return;
@@ -56855,9 +57717,12 @@ if (document.body) {
                         <input type="color" class="tm-phone-list-color-picker" data-color="${name}" value="${listHex}" style="width:32px;height:28px;padding:1px;border:1px solid var(--tm-shop-item-border);border-radius:5px;cursor:pointer;background:var(--tm-shop-item-bg);flex-shrink:0;">
                         <span class="tm-phone-list-color-label" style="font-size:11px;opacity:0.65;font-family:monospace;">${listHex}</span>
                     </div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;">${t('Also for labels')}</span>
-                        <input type="text" class="tm-phone-color-alias-input" data-color="${name}" value="${aliases}" placeholder="${t('Aliases hint')}" style="flex:1;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:11px;box-sizing:border-box;">
+                    <div style="display:flex;align-items:flex-start;gap:8px;">
+                        <span style="font-size:11px;opacity:0.75;width:88px;flex-shrink:0;padding-top:7px;">${t('Also for labels')}</span>
+                        <div style="flex:1;min-width:0;">
+                            <input type="text" class="tm-phone-color-alias-input" data-color="${name}" value="${aliases}" placeholder="${t('Aliases hint')}" style="width:100%;padding:6px 8px;border:1px solid var(--tm-shop-item-border);border-radius:5px;background:var(--tm-shop-item-bg);color:var(--tm-shop-item-text);font-size:11px;box-sizing:border-box;">
+                            <div style="font-size:10px;opacity:0.65;margin-top:4px;line-height:1.35;">${t('Aliases help')}</div>
+                        </div>
                     </div>
                 </div>`;
             }).join('');
@@ -56868,23 +57733,26 @@ if (document.body) {
             };
 
             listEl.querySelectorAll('.tm-phone-list-color-picker').forEach((input) => {
-                input.addEventListener('change', () => {
+                const commitListColor = () => {
+                    const colorName = input.getAttribute('data-color') || input.dataset.color;
                     const hex = window.normalizePhoneColorHex?.(input.value);
-                    if (!hex || !window.updatePhoneListColor?.(input.dataset.color, hex)) return;
+                    if (!hex || !window.updatePhoneListColor?.(colorName, hex)) return;
                     const row = input.closest('.tm-phone-color-row');
                     const label = row?.querySelector('.tm-phone-list-color-label');
                     const nameInputEl = row?.querySelector('.tm-phone-color-name-input');
                     if (label) label.textContent = hex;
-                    if (nameInputEl) applyNameInputStyle(nameInputEl, input.dataset.color, hex);
+                    if (nameInputEl) applyNameInputStyle(nameInputEl, colorName, hex);
                     clearCaches();
                     onChange();
                     if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
-                });
+                };
+                input.addEventListener('change', commitListColor);
+                input.addEventListener('input', commitListColor);
             });
 
             listEl.querySelectorAll('.tm-phone-color-name-input').forEach((input) => {
                 const commitRename = () => {
-                    const oldName = input.dataset.color;
+                    const oldName = input.getAttribute('data-color') || input.dataset.color;
                     const newName = window.normalizePhoneColorName?.(input.value);
                     if (!newName) {
                         input.value = oldName;
@@ -56915,16 +57783,22 @@ if (document.body) {
 
             listEl.querySelectorAll('.tm-phone-color-alias-input').forEach((input) => {
                 input.addEventListener('change', () => {
-                    window.setColorDisplayAliasesForColor?.(input.dataset.color, input.value);
+                    const colorName = input.getAttribute('data-color') || input.dataset.color;
+                    window.setColorDisplayAliasesForColor?.(colorName, input.value);
                     clearCaches();
+                    if (typeof window.syncPhoneColorCatalog === 'function') {
+                        window.syncPhoneColorCatalog(allPhones);
+                    }
                     onChange();
                     if (window.showPositiveMessage) window.showPositiveMessage(t('Color updated'));
+                    renderPhoneColorList();
                 });
             });
 
             listEl.querySelectorAll('.tm-delete-phone-color').forEach((btn) => {
                 btn.addEventListener('click', () => {
-                    window.removePhoneColor?.(btn.dataset.color);
+                    const colorName = btn.getAttribute('data-color') || btn.dataset.color;
+                    window.removePhoneColor?.(colorName);
                     if (window.showPositiveMessage) window.showPositiveMessage(t('Color removed'));
                     refreshAfterChange();
                 });
@@ -57717,6 +58591,7 @@ if (document.body) {
 
     const MINE_STORE_KEY = '__mine__';
     const DENSITY_KEY = 'tm_sl_density_compact';
+    const UI_SCALE_KEY = 'tm_sl_ui_scale_v1';
     const SORT_KEY = 'tm_sl_model_sort';
     const CATALOG_VIEW_KEY = 'tm_sl_catalog_view';
     const RECENT_MODELS_KEY = 'tm_sl_recent_models_v1';
@@ -58015,7 +58890,12 @@ if (document.body) {
         const gb = extractGB(phone.name || phone.model);
         if (filters.gb && gb !== filters.gb) return false;
         const color = extractColor(phone.name || phone.model);
-        if (filters.color && color !== filters.color) return false;
+        if (filters.color) {
+            const resolve = typeof window.resolveDisplayColorName === 'function'
+                ? window.resolveDisplayColorName
+                : (c) => c;
+            if (resolve(color) !== resolve(filters.color)) return false;
+        }
         return true;
     }
 
@@ -58242,6 +59122,10 @@ if (document.body) {
         let modelSort = GM_getValue(SORT_KEY, 'name');
         let catalogView = GM_getValue(CATALOG_VIEW_KEY, 'mine');
         let densityCompact = GM_getValue(DENSITY_KEY, false);
+        const defaultScale = UI.UI_SCALE_DEFAULT || 1.15;
+        let uiScale = typeof UI.normalizeUiScale === 'function'
+            ? UI.normalizeUiScale(GM_getValue(UI_SCALE_KEY, defaultScale))
+            : defaultScale;
         let activeFilters = { grade: '', gb: '', color: '' };
         let allPhones = [];
         let otherStorePhones = [];
@@ -58253,6 +59137,9 @@ if (document.body) {
         let lastTrackedNetworkModel = null;
 
         UI.setDensity(overlay, densityCompact);
+        if (typeof UI.setUiScale === 'function') {
+            uiScale = UI.setUiScale(overlay, uiScale);
+        }
         UI.updateViewTabs(overlay, catalogView);
 
         let recentModels = loadRecentModels();
@@ -58279,8 +59166,10 @@ if (document.body) {
                     if (typeof window.syncPhoneColorCatalog === 'function') {
                         window.syncPhoneColorCatalog(allPhones);
                     }
-                    if (typeof window.clearPhoneCatalogCaches === 'function') {
-                        window.clearPhoneCatalogCaches();
+                    if (typeof window.clearPhoneCatalogParseCaches === 'function') {
+                        window.clearPhoneCatalogParseCaches();
+                    } else if (typeof window.clearPhoneCatalogCaches === 'function') {
+                        window.clearPhoneCatalogCaches({ includeLists: false });
                     }
                     UI.updateMyStoreLabels(overlay);
                     if (step === 'stores' && selectedModel) {
@@ -59003,94 +59892,106 @@ if (document.body) {
             };
         }
 
-        async function refreshData() {
+        async function refreshData(opts = {}) {
+            const quiet = !!opts.quiet;
             const progress = createLoadProgressController();
             UI.setRefreshing(overlay, true);
             const bodyEmpty = !bodyEl.querySelector('.tm-sl-model-grid, .tm-sl-mine-board, .tm-sl-network-board');
-            if (bodyEmpty) {
+            if (bodyEmpty && !quiet) {
                 bodyEl.innerHTML = UI.buildSkeletonGrid(8);
             }
 
             try {
-                progress.startIndeterminate('Φόρτωση καταλόγου συσκευών…', progress.stats.phoneListMs);
+                if (!quiet) {
+                    progress.startIndeterminate('Φόρτωση καταλόγου συσκευών…', progress.stats.phoneListMs);
+                } else {
+                    setStatus('Ενημέρωση στο παρασκήνιο…');
+                }
                 progress.beginPhaseClock();
                 if (typeof window.fetchPhoneList === 'function') {
                     allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList({
-                        onProgress: (info) => {
-                            if (!info) return;
-                            if (info.phase === 'download' && info.ratio != null) {
-                                const remain = Math.max(
-                                    600,
-                                    (progress.stats.phoneListMs || 9000) * (1 - info.ratio)
-                                );
-                                UI.updateLoadProgress(overlay, {
-                                    label: 'Λήψη καταλόγου…',
-                                    ratio: Math.min(0.9, 0.08 + info.ratio * 0.75),
-                                    indeterminate: false,
-                                    etaMs: remain,
-                                    meta: info.total
-                                        ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
-                                        : 'Λήψη δεδομένων…',
-                                });
-                                setStatus('Λήψη καταλόγου…');
-                            } else if (info.phase === 'parse') {
-                                UI.updateLoadProgress(overlay, {
-                                    label: 'Επεξεργασία καταλόγου…',
-                                    ratio: 0.92,
-                                    indeterminate: false,
-                                    etaMs: 900,
-                                    meta: 'Ανάλυση συσκευών…',
-                                });
-                            } else if (info.phase === 'init') {
-                                UI.updateLoadProgress(overlay, {
-                                    label: 'Σύνδεση με τον κατάλογο…',
-                                    indeterminate: true,
-                                    etaMs: progress.stats.phoneListMs,
-                                    meta: 'Προετοιμασία…',
-                                });
-                            }
-                        },
+                        onProgress: quiet
+                            ? () => {}
+                            : (info) => {
+                                if (!info) return;
+                                if (info.phase === 'download' && info.ratio != null) {
+                                    const remain = Math.max(
+                                        600,
+                                        (progress.stats.phoneListMs || 9000) * (1 - info.ratio)
+                                    );
+                                    UI.updateLoadProgress(overlay, {
+                                        label: 'Λήψη καταλόγου…',
+                                        ratio: Math.min(0.9, 0.08 + info.ratio * 0.75),
+                                        indeterminate: false,
+                                        etaMs: remain,
+                                        meta: info.total
+                                            ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
+                                            : 'Λήψη δεδομένων…',
+                                    });
+                                    setStatus('Λήψη καταλόγου…');
+                                } else if (info.phase === 'parse') {
+                                    UI.updateLoadProgress(overlay, {
+                                        label: 'Επεξεργασία καταλόγου…',
+                                        ratio: 0.92,
+                                        indeterminate: false,
+                                        etaMs: 900,
+                                        meta: 'Ανάλυση συσκευών…',
+                                    });
+                                } else if (info.phase === 'init') {
+                                    UI.updateLoadProgress(overlay, {
+                                        label: 'Σύνδεση με τον κατάλογο…',
+                                        indeterminate: true,
+                                        etaMs: progress.stats.phoneListMs,
+                                        meta: 'Προετοιμασία…',
+                                    });
+                                }
+                            },
                     }));
                 }
                 progress.finishPhase('phoneListMs', progress.getPhaseElapsed());
 
-                otherStoreLoaded = false;
-                GM_setValue('tm_phone_other_store_cache_v3', null);
-                GM_setValue('tm_phone_other_store_cache_timestamp', 0);
+                if (!quiet) {
+                    otherStoreLoaded = false;
+                    GM_setValue('tm_phone_other_store_cache_v3', null);
+                    GM_setValue('tm_phone_other_store_cache_timestamp', 0);
 
-                progress.startIndeterminate('Φόρτωση δικτύου καταστημάτων…', progress.stats.otherStoresMs);
-                progress.beginPhaseClock();
-                await ensureOtherStores((info) => {
-                    if (info?.phase === 'download' && info.ratio != null) {
-                        UI.updateLoadProgress(overlay, {
-                            label: 'Λήψη δικτύου…',
-                            ratio: Math.min(0.9, 0.1 + info.ratio * 0.75),
-                            indeterminate: false,
-                            etaMs: Math.max(600, (progress.stats.otherStoresMs || 7000) * (1 - info.ratio)),
-                            meta: info.total
-                                ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
-                                : 'Λήψη δεδομένων…',
-                        });
-                    } else if (info?.phase === 'parse') {
-                        UI.updateLoadProgress(overlay, {
-                            label: 'Επεξεργασία δικτύου…',
-                            ratio: 0.93,
-                            indeterminate: false,
-                            etaMs: 800,
-                            meta: 'Ανάλυση αποθεμάτων…',
-                        });
-                    }
-                });
-                progress.finishPhase('otherStoresMs', progress.getPhaseElapsed());
-
-                if (catalogView === 'network') {
+                    progress.startIndeterminate('Φόρτωση δικτύου καταστημάτων…', progress.stats.otherStoresMs);
                     progress.beginPhaseClock();
-                    progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', 0, 1);
-                    await resolveNetworkStoreDetails(null, (done, total) => {
-                        progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', done, total || 1);
+                    await ensureOtherStores((info) => {
+                        if (info?.phase === 'download' && info.ratio != null) {
+                            UI.updateLoadProgress(overlay, {
+                                label: 'Λήψη δικτύου…',
+                                ratio: Math.min(0.9, 0.1 + info.ratio * 0.75),
+                                indeterminate: false,
+                                etaMs: Math.max(600, (progress.stats.otherStoresMs || 7000) * (1 - info.ratio)),
+                                meta: info.total
+                                    ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
+                                    : 'Λήψη δεδομένων…',
+                            });
+                        } else if (info?.phase === 'parse') {
+                            UI.updateLoadProgress(overlay, {
+                                label: 'Επεξεργασία δικτύου…',
+                                ratio: 0.93,
+                                indeterminate: false,
+                                etaMs: 800,
+                                meta: 'Ανάλυση αποθεμάτων…',
+                            });
+                        }
                     });
-                    progress.finishPhase('storeResolve', progress.getPhaseElapsed());
+                    progress.finishPhase('otherStoresMs', progress.getPhaseElapsed());
+
+                    if (catalogView === 'network') {
+                        progress.beginPhaseClock();
+                        progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', 0, 1);
+                        await resolveNetworkStoreDetails(null, (done, total) => {
+                            progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', done, total || 1);
+                        });
+                        progress.finishPhase('storeResolve', progress.getPhaseElapsed());
+                    }
+                } else if (!otherStoreLoaded) {
+                    await ensureOtherStores();
                 }
+
                 if (typeof window.syncPhoneColorCatalog === 'function') {
                     window.syncPhoneColorCatalog(allPhones);
                 }
@@ -59102,14 +60003,16 @@ if (document.body) {
                     renderModelsStep();
                 }
             } catch (err) {
-                bodyEl.innerHTML = UI.buildEmptyState(
-                    UI.ICON.emptyError,
-                    'Σφάλμα φόρτωσης',
-                    err.message || '',
-                    { actionId: 'back-models', actionLabel: 'Επιστροφή' }
-                );
+                if (!quiet || bodyEmpty) {
+                    bodyEl.innerHTML = UI.buildEmptyState(
+                        UI.ICON.emptyError,
+                        'Σφάλμα φόρτωσης',
+                        err.message || '',
+                        { actionId: 'back-models', actionLabel: 'Επιστροφή' }
+                    );
+                    wireUnitActions();
+                }
                 setStatus('Σφάλμα φόρτωσης');
-                wireUnitActions();
             } finally {
                 progress.hide();
                 UI.setRefreshing(overlay, false);
@@ -59123,6 +60026,21 @@ if (document.body) {
             GM_setValue(DENSITY_KEY, densityCompact);
             UI.setDensity(overlay, densityCompact);
         });
+        overlay.querySelector('#tm-sl-scale-down')?.addEventListener('click', () => {
+            uiScale = UI.stepUiScale(uiScale, -1);
+            uiScale = UI.setUiScale(overlay, uiScale);
+            GM_setValue(UI_SCALE_KEY, uiScale);
+        });
+        overlay.querySelector('#tm-sl-scale-up')?.addEventListener('click', () => {
+            uiScale = UI.stepUiScale(uiScale, 1);
+            uiScale = UI.setUiScale(overlay, uiScale);
+            GM_setValue(UI_SCALE_KEY, uiScale);
+        });
+        overlay.querySelector('#tm-sl-scale-value')?.addEventListener('click', () => {
+            uiScale = UI.UI_SCALE_DEFAULT || 1.15;
+            uiScale = UI.setUiScale(overlay, uiScale);
+            GM_setValue(UI_SCALE_KEY, uiScale);
+        });
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) closeModal();
         });
@@ -59133,6 +60051,15 @@ if (document.body) {
             }
             const tag = (e.target && e.target.tagName) || '';
             const typing = tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable;
+
+            if (!typing && (e.key === '+' || e.key === '=' || e.key === '-' || e.key === '_')) {
+                e.preventDefault();
+                const dir = (e.key === '+' || e.key === '=') ? 1 : -1;
+                uiScale = UI.stepUiScale(uiScale, dir);
+                uiScale = UI.setUiScale(overlay, uiScale);
+                GM_setValue(UI_SCALE_KEY, uiScale);
+                return;
+            }
 
             if (e.key === 'Escape') {
                 e.preventDefault();
@@ -59188,11 +60115,11 @@ if (document.body) {
             };
 
             if (cacheStale) {
-                setStatus('Παλιά δεδομένα — ανανέωση…');
-                // Let the browser paint cached UI first, then refresh.
+                setStatus('Ενημέρωση στο παρασκήνιο…');
+                // Keep cached UI on screen; refresh quietly without wiping network cache.
                 requestAnimationFrame(() => {
                     setTimeout(() => {
-                        refreshData();
+                        refreshData({ quiet: true });
                     }, 0);
                 });
             } else if (catalogView === 'network' && !otherStoreLoaded) {
