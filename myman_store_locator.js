@@ -24,6 +24,16 @@
         return String(name || '').replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
     }
 
+    function resolveMyStoreLabel() {
+        if (typeof window.PhoneCatalogUI?.getMyStoreLabel === 'function') {
+            return window.PhoneCatalogUI.getMyStoreLabel();
+        }
+        const name = typeof window.getCurrentStoreName === 'function'
+            ? String(window.getCurrentStoreName() || '').trim()
+            : '';
+        return name || 'Το κατάστημά μου';
+    }
+
     function phoneToVariant(phone, helpers) {
         const { extractGB, extractColor } = helpers;
         return {
@@ -215,7 +225,7 @@
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             variants.push({
                 ...phoneToVariant(phone, helpers),
-                storeName: 'Το κατάστημά μου',
+                storeName: resolveMyStoreLabel(),
                 isMine: true,
             });
         });
@@ -290,7 +300,7 @@
         filterIphoneTitlePhones(allPhones).forEach((phone) => {
             if ((phone.unitsRemaining || 0) <= 0) return;
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
-            addVariant(MINE_STORE_KEY, 'Το κατάστημά μου', true, phoneToVariant(phone, helpers));
+            addVariant(MINE_STORE_KEY, resolveMyStoreLabel(), true, phoneToVariant(phone, helpers));
         });
 
         filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
@@ -447,8 +457,9 @@
         function syncCatalogHeaders() {
             if (step === 'stores' && selectedModel) return;
             UI.clearStoresModelHeader(overlay);
+            UI.updateMyStoreLabels(overlay);
             if (catalogView === 'mine') {
-                titleEl.textContent = 'Το κατάστημά μου';
+                titleEl.textContent = UI.getMyStoreLabel();
                 subtitleEl.textContent = 'Συσκευές που έχετε σε stock';
             } else {
                 titleEl.textContent = 'Άλλα καταστήματα';
@@ -467,6 +478,7 @@
                     if (typeof window.clearPhoneCatalogCaches === 'function') {
                         window.clearPhoneCatalogCaches();
                     }
+                    UI.updateMyStoreLabels(overlay);
                     if (step === 'stores' && selectedModel) {
                         renderStoresStep();
                     } else {
@@ -746,7 +758,7 @@
             bodyEl.innerHTML = UI.buildModelGrid(models, buildUiCtx());
             if (catalogView === 'mine') {
                 const mineCount = allPhones.filter((p) => (p.unitsRemaining || 0) > 0).length;
-                setStatus(`${models.length} μοντέλα · ${mineCount} συσκευές στο δικό σας`);
+                setStatus(`${models.length} μοντέλα · ${mineCount} συσκευές στο ${resolveMyStoreLabel()}`);
             } else {
                 setStatus(`${models.length} μοντέλα · ${otherStorePhones.length} συσκευές στο δίκτυο`);
             }
@@ -836,7 +848,7 @@
             step = 'stores';
             UI.updateBreadcrumb(overlay, 'stores', selectedModel);
             UI.setStoresModelHeader(overlay, selectedModel, catalogView === 'mine'
-                ? 'Συσκευές στο κατάστημά σας'
+                ? `Συσκευές στο ${resolveMyStoreLabel()}`
                 : 'Διαθεσιμότητα σε άλλα καταστήματα');
 
             const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers, catalogView);
@@ -859,7 +871,7 @@
                     hideStoreInUnits: true,
                     hasActiveFilters: filtersActive,
                 }));
-                setStatus(`${variants.length} ${variants.length === 1 ? 'συσκευή' : 'συσκευές'} στο δικό σας`);
+                setStatus(`${variants.length} ${variants.length === 1 ? 'συσκευή' : 'συσκευές'} στο ${resolveMyStoreLabel()}`);
                 if (selectedModel !== lastTrackedLookupModel) {
                     trackCatalogStat('phoneCatalogLookup');
                     lastTrackedLookupModel = selectedModel;

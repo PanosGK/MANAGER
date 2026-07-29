@@ -558,6 +558,7 @@
         }
         .tm-sl-view-tab {
             flex: 1;
+            min-width: 0;
             border: none;
             background: transparent;
             color: var(--tm-shop-item-text);
@@ -567,6 +568,13 @@
             border-radius: 9px;
             cursor: pointer;
             transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .tm-sl-view-tab:hover {
             background: color-mix(in srgb, var(--tm-primary-color) 8%, transparent);
@@ -1309,7 +1317,36 @@
         </nav>`;
     }
 
+    function getMyStoreLabel() {
+        const name = typeof window.getCurrentStoreName === 'function'
+            ? String(window.getCurrentStoreName() || '').trim()
+            : '';
+        return name || 'Το κατάστημά μου';
+    }
+
+    function updateMyStoreLabels(overlay) {
+        const label = getMyStoreLabel();
+        const mineTab = overlay?.querySelector('#tm-sl-view-mine');
+        const mystoreBtn = overlay?.querySelector('#tm-sl-mystore-btn');
+        const titleEl = overlay?.querySelector('#tm-sl-title');
+        const shell = overlay?.querySelector('#tm-sl-shell');
+        if (mineTab) {
+            mineTab.innerHTML = `${ICON.pin} ${esc(label)}`;
+            mineTab.title = label;
+        }
+        if (mystoreBtn) {
+            mystoreBtn.innerHTML = `${ICON.pin} ${esc(label)}`;
+            mystoreBtn.title = 'Αλλαγή καταστήματος';
+        }
+        if (titleEl && shell
+            && !shell.classList.contains('tm-sl-step--stores')
+            && !shell.classList.contains('tm-sl-view--network')) {
+            titleEl.textContent = label;
+        }
+    }
+
     function buildShellHTML() {
+        const myStoreLabel = getMyStoreLabel();
         return `
         <style>${STYLES}</style>
         <div class="tm-sl-shell" id="tm-sl-shell">
@@ -1317,7 +1354,7 @@
                 <div id="tm-sl-breadcrumb-wrap">${buildBreadcrumb('models')}</div>
                 <div class="tm-sl-header-row">
                     <div class="tm-sl-title-block">
-                        <h2 class="tm-sl-title" id="tm-sl-title">Το κατάστημά μου</h2>
+                        <h2 class="tm-sl-title" id="tm-sl-title">${esc(myStoreLabel)}</h2>
                         <p class="tm-sl-subtitle" id="tm-sl-subtitle">Συσκευές που έχετε σε stock</p>
                     </div>
                     <div class="tm-sl-header-actions">
@@ -1325,7 +1362,7 @@
                         <div class="tm-sl-settings-wrap">
                             <button type="button" id="tm-sl-settings" class="tm-sl-btn tm-sl-btn--icon" title="Ρυθμίσεις" aria-haspopup="true">${ICON.settings}</button>
                             <div id="tm-sl-settings-menu" class="tm-sl-settings-menu" hidden>
-                                <button type="button" id="tm-sl-mystore-btn">${ICON.pin} Το κατάστημά μου</button>
+                                <button type="button" id="tm-sl-mystore-btn" title="Αλλαγή καταστήματος">${ICON.pin} ${esc(myStoreLabel)}</button>
                                 <button type="button" id="tm-sl-models-btn">${ICON.phone} Διαχείριση Μοντέλων</button>
                                 <button type="button" id="tm-sl-colors-btn">${ICON.palette} Διαχείριση Χρωμάτων</button>
                                 <button type="button" id="tm-sl-tags-btn">${ICON.tag} Διαχείριση Ετικετών</button>
@@ -1342,7 +1379,7 @@
                     </div>
                 </div>
                 <nav class="tm-sl-view-tabs" role="tablist" aria-label="Προβολή καταλόγου">
-                    <button type="button" id="tm-sl-view-mine" class="tm-sl-view-tab is-active" role="tab" aria-selected="true">${ICON.pin} Το κατάστημά μου</button>
+                    <button type="button" id="tm-sl-view-mine" class="tm-sl-view-tab is-active" role="tab" aria-selected="true" title="${esc(myStoreLabel)}">${ICON.pin} ${esc(myStoreLabel)}</button>
                     <button type="button" id="tm-sl-view-network" class="tm-sl-view-tab" role="tab" aria-selected="false">${ICON.store} Άλλα καταστήματα</button>
                 </nav>
             </header>
@@ -1394,9 +1431,10 @@
     }
 
     function buildModelGrid(models, ctx) {
+        const myStoreLabel = getMyStoreLabel();
         if (!models.length) {
             const emptyMsg = ctx?.catalogView === 'mine'
-                ? 'Δεν βρέθηκαν συσκευές στο κατάστημά σας'
+                ? `Δεν βρέθηκαν συσκευές στο ${myStoreLabel}`
                 : 'Δεν βρέθηκαν μοντέλα σε άλλα καταστήματα';
             const hasQuery = !!(ctx?.query);
             return buildEmptyState(
@@ -1423,7 +1461,7 @@
                     data-tm-sl-model="${esc(model)}" style="--i:${delay}">
                     <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
                     <div class="tm-sl-model-count">${count}<span>${count === 1 ? 'τεμ.' : 'τεμ.'}</span></div>
-                    <div class="tm-sl-model-meta">στο κατάστημά σας</div>
+                    <div class="tm-sl-model-meta">στο ${esc(myStoreLabel)}</div>
                     ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                 </div>`;
             }
@@ -1807,7 +1845,7 @@
             ? window.getStoreDistanceLabel?.(myStore, store.name)
             : '';
         const distChip = distLabel
-            ? `<span class="tm-sl-store-dist" title="Απόσταση από το κατάστημά σας">${esc(distLabel)}</span>`
+            ? `<span class="tm-sl-store-dist" title="Απόσταση από ${esc(getMyStoreLabel())}">${esc(distLabel)}</span>`
             : '';
         const qtyLabel = compact
             ? String(store.variants.length)
@@ -1840,6 +1878,7 @@
     }
 
     function buildMyStoreBoard(modelName, variants, ctx) {
+        const myStoreLabel = getMyStoreLabel();
         const hasFilters = !!(ctx?.hasActiveFilters);
         if (!variants.length) {
             return buildEmptyState(
@@ -1847,7 +1886,7 @@
                 'Χωρίς διαθέσιμες συσκευές',
                 hasFilters
                     ? `Κανένα αποτέλεσμα για ${modelName} με τα τρέχοντα φίλτρα`
-                    : `Δεν υπάρχει ${modelName} στο κατάστημά σας`,
+                    : `Δεν υπάρχει ${modelName} στο ${myStoreLabel}`,
                 hasFilters
                     ? { actionId: 'clear-filters', actionLabel: 'Καθαρισμός φίλτρων' }
                     : { actionId: 'back-models', actionLabel: 'Επιστροφή στα μοντέλα' }
@@ -1856,7 +1895,7 @@
         const qtyLabel = variants.length === 1 ? '1 συσκευή' : `${variants.length} συσκευές`;
         return `<section class="tm-sl-mine-board">
             <div class="tm-sl-mine-detail-head">
-                <h3>${ICON.pin} Το κατάστημά μου</h3>
+                <h3>${ICON.pin} ${esc(myStoreLabel)}</h3>
                 <div class="tm-sl-mine-detail-head__meta">
                     <span>${esc(qtyLabel)}</span>
                 </div>
@@ -1951,7 +1990,7 @@
             html += `<div class="tm-sl-mine-banner tm-sl-mine-banner--yes">
                 <span class="tm-sl-mine-icon">✅</span>
                     <div>
-                    <div class="tm-sl-mine-text">Υπάρχει στο κατάστημά σας</div>
+                    <div class="tm-sl-mine-text">Υπάρχει στο ${esc(getMyStoreLabel())}</div>
                     <div class="tm-sl-mine-detail">${myStore.variants.length} ${myStore.variants.length === 1 ? 'συσκευή' : 'συσκευές'} — ${esc(myStore.preview)}</div>
                     </div>
             </div>`;
@@ -1959,7 +1998,7 @@
             html += `<div class="tm-sl-mine-banner tm-sl-mine-banner--no">
                 <span class="tm-sl-mine-icon">—</span>
                 <div>
-                    <div class="tm-sl-mine-text">Δεν υπάρχει στο κατάστημά σας</div>
+                    <div class="tm-sl-mine-text">Δεν υπάρχει στο ${esc(getMyStoreLabel())}</div>
                     <div class="tm-sl-mine-detail">Δείτε παρακάτω ποια καταστήματα έχουν ${esc(modelName)}</div>
             </div>
         </div>`;
@@ -1981,7 +2020,7 @@
 
         if (myStore && myStore.variants.length) {
             html += `<section class="tm-sl-region">
-                <h3 class="tm-sl-region-title">Το κατάστημά μου</h3>
+                <h3 class="tm-sl-region-title">${esc(getMyStoreLabel())}</h3>
                 <div class="tm-sl-store-list">${buildStoreRowHTML(myStore, globalIdx, ctx)}</div>
             </section>`;
             globalIdx += 1;
@@ -2088,6 +2127,7 @@
         mineTab.setAttribute('aria-selected', isMine ? 'true' : 'false');
         networkTab.setAttribute('aria-selected', !isMine ? 'true' : 'false');
         shell?.classList.toggle('tm-sl-view--network', !isMine);
+        updateMyStoreLabels(overlay);
     }
 
     function setDensity(overlay, compact) {
@@ -2105,6 +2145,8 @@
         ICON,
         STYLES,
         esc,
+        getMyStoreLabel,
+        updateMyStoreLabels,
         highlightMatch,
         colorSwatchHTML,
         gradeChipHTML,
