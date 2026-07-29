@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v306 / Custom Ver. 35.44 — generated, do not edit */
+/* MyManager Suite bundle v307 / Custom Ver. 35.45 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '306',
+        version: '307',
         loaderVersion: '35',
-        silentVersion: '44',
-        displayVersion: '35.44',
+        silentVersion: '45',
+        displayVersion: '35.45',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -22228,6 +22228,7 @@ function syncMascotInteractionClasses(container = document.getElementById('tm-ma
     container.classList.toggle('mascot-focus-quiet', isMascotFocusQuiet());
     container.classList.toggle('mascot-chasing', typeof mascotChaseEnabled !== 'undefined' && !!mascotChaseEnabled);
     container.classList.toggle('mascot-hiding', typeof mascotHideSeekActive !== 'undefined' && !!mascotHideSeekActive);
+    syncEliteMascotContainerSize(container);
 }
 
 function setMascotParked(locked, x = null, y = null, STORAGE_KEYS = window.STORAGE_KEYS) {
@@ -26865,7 +26866,9 @@ function ensureSingleMascotDom(reason = '') {
         markMascotContainerLive(live);
     }
 
-    return getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+    const kept = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+    if (kept) syncEliteMascotContainerSize(kept);
+    return kept;
 }
 
 function getMascotSpriteById(container, id) {
@@ -31135,6 +31138,7 @@ function markMascotContainerLive(container = document.getElementById('tm-mascot-
         container.removeAttribute('data-tm-footer-shell');
         container.classList.remove('tm-ui-shell', 'tm-ui-shell-mascot');
     } catch (_) { /* ignore */ }
+    syncEliteMascotContainerSize(container);
 }
 
 /** Care-state CSS once used position:relative and pinned the mascot to the page bottom. */
@@ -43066,6 +43070,7 @@ function updateMascotAppearanceByStage(stage) {
             || !TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType)) {
             setSvgSpriteVisible(eggSprite, true);
             console.log('[MMS Mascot] Character not locked yet — keeping egg sprite');
+            syncEliteMascotContainerSize(container, 'none');
             return;
         }
     }
@@ -43172,6 +43177,7 @@ window.TAMA_MYTHICAL_TYPES = TAMA_MYTHICAL_TYPES;
 window.TAMA_ELITE_MASCOT_TYPES = TAMA_ELITE_MASCOT_TYPES;
 window.MASCOT_ELITE_SIZE_MULT = MASCOT_ELITE_SIZE_MULT;
 window.syncEliteMascotContainerSize = syncEliteMascotContainerSize;
+window.resolveMascotCharacterType = resolveMascotCharacterType;
 window.updateMascotAppearanceByStage = updateMascotAppearanceByStage;
 window.ensureSingleMascotDom = ensureSingleMascotDom;
 window.resyncMascotAppearanceFromStorage = resyncMascotAppearanceFromStorage;
@@ -50798,6 +50804,11 @@ window.initOrderTracking = initOrderTracking;
         tag: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>',
         phone: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
         export: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+        emptyPhone: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>',
+        emptySearch: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>',
+        emptyError: '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+        copy: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+        open: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>',
     };
 
     function esc(value) {
@@ -50892,13 +50903,9 @@ window.initOrderTracking = initOrderTracking;
         @keyframes tm-sl-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
         .tm-sl-overlay {
-            animation: tm-sl-in 0.2s ease;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             background: var(--tm-overlay-dim, rgba(0,0,0,0.75)) !important;
         }
         .tm-sl-shell {
-            animation: tm-sl-rise 0.28s cubic-bezier(0.22, 1, 0.36, 1);
             width: min(920px, 96vw) !important;
             max-width: 96vw !important;
             height: min(88vh, 820px) !important;
@@ -50906,8 +50913,6 @@ window.initOrderTracking = initOrderTracking;
             border-radius: 16px !important;
             border: 1px solid color-mix(in srgb, var(--tm-shop-item-border) 80%, var(--tm-primary-color)) !important;
             background: var(--tm-modal-bg, var(--tm-shop-item-bg)) !important;
-            backdrop-filter: var(--lg-blur-chrome, blur(16px));
-            -webkit-backdrop-filter: var(--lg-blur-chrome, blur(16px));
             box-shadow: 0 24px 64px var(--tm-shadow-color, rgba(0,0,0,0.4)),
                 0 0 0 1px color-mix(in srgb, var(--tm-primary-color) 8%, transparent) inset !important;
             display: flex !important;
@@ -50916,6 +50921,14 @@ window.initOrderTracking = initOrderTracking;
             color: var(--tm-shop-item-text, var(--tm-primary-color));
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             position: relative;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .tm-sl-overlay, .tm-sl-shell, .tm-sl-model-card, .tm-sl-toast.is-visible,
+            .tm-sl-skeleton-card, .tm-sl-skeleton-row, .tm-sl-skeleton-line {
+                animation: none !important;
+            }
+            .tm-sl-model-card { transition: none !important; }
+            .tm-sl-body.is-refreshing { transition: none !important; }
         }
 
         .tm-sl-shell.tm-sl-view--network {
@@ -50927,12 +50940,12 @@ window.initOrderTracking = initOrderTracking;
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-header {
             padding: 8px 12px 6px;
-            background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 8%, transparent), transparent 70%);
+            background: var(--tm-shop-item-bg);
         }
         .tm-sl-shell.tm-sl-view--network:not(.tm-sl-step--stores) .tm-sl-title { font-size: 1rem; margin: 0; }
         .tm-sl-shell.tm-sl-step--stores .tm-sl-header {
             padding: 12px 14px 10px;
-            background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 16%, transparent), transparent 72%);
+            background: var(--tm-shop-item-bg);
         }
         .tm-sl-shell.tm-sl-step--stores .tm-sl-breadcrumb {
             margin-bottom: 8px;
@@ -50959,11 +50972,10 @@ window.initOrderTracking = initOrderTracking;
             align-items: center;
             gap: 10px;
             max-width: 100%;
-            padding: 7px 14px 7px 11px;
-            border-radius: 11px;
-            background: color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-shop-item-bg));
-            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 30%, transparent);
-            box-shadow: 0 2px 14px color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
+            padding: 6px 12px 6px 10px;
+            border-radius: 8px;
+            background: color-mix(in srgb, var(--tm-primary-color) 8%, var(--tm-shop-item-bg));
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 22%, transparent);
             color: var(--tm-primary-color);
         }
         .tm-sl-model-title__icon {
@@ -51075,8 +51087,7 @@ window.initOrderTracking = initOrderTracking;
             font-size: 11px; opacity: 0.85;
         }
         .tm-sl-network-store__preview {
-            font-size: 10px; opacity: 0.65; line-height: 1.35;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            display: none;
         }
         .tm-sl-network-detail {
             display: flex; flex-direction: column; min-height: 0; min-width: 0; max-height: 100%;
@@ -51140,12 +51151,131 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-unit-table tbody tr:hover td {
             background: var(--tm-shop-item-hover-bg);
         }
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--best td {
+            background: color-mix(in srgb, var(--tm-success-color, #16a34a) 8%, var(--tm-shop-item-bg));
+        }
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--best:hover td {
+            background: color-mix(in srgb, var(--tm-success-color, #16a34a) 12%, var(--tm-shop-item-bg));
+        }
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--best td:first-child {
+            box-shadow: inset 3px 0 0 var(--tm-success-color, #16a34a);
+        }
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--flash td {
+            background: color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-shop-item-bg)) !important;
+        }
         .tm-sl-unit-table tbody tr.tm-sl-unit-row--blocked td {
             background: color-mix(in srgb, #dc2626 9%, var(--tm-shop-item-bg));
         }
         .tm-sl-unit-table tbody tr.tm-sl-unit-row--blocked td:first-child {
             box-shadow: inset 4px 0 0 #dc2626;
         }
+        .tm-sl-table-imei {
+            display: block;
+            margin-top: 2px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 10px;
+            font-weight: 500;
+            opacity: 0;
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+            transition: opacity 0.12s ease;
+        }
+        .tm-sl-unit-table tbody tr:hover .tm-sl-table-imei,
+        .tm-sl-unit-table tbody tr.tm-sl-unit-row--best .tm-sl-table-imei,
+        .tm-sl-unit-table tbody tr:focus-within .tm-sl-table-imei {
+            opacity: 0.75;
+        }
+        .tm-sl-insight {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+            margin-bottom: 10px; padding: 9px 12px;
+            border: 1px solid var(--tm-shop-item-border);
+            border-radius: 10px;
+            background: var(--tm-shop-item-bg);
+            font-size: 12px; font-weight: 650;
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+        }
+        .tm-sl-network-detail > .tm-sl-insight {
+            margin: 10px 12px 0;
+            flex-shrink: 0;
+        }
+        .tm-sl-mine-board > div > .tm-sl-insight,
+        .tm-sl-mine-board .tm-sl-insight {
+            margin-bottom: 8px;
+        }
+        .tm-sl-insight__best {
+            color: var(--tm-success-color, #16a34a);
+            font-weight: 750;
+        }
+        .tm-sl-whisper {
+            display: inline-block;
+            margin-bottom: 8px;
+            font-size: 10px; font-weight: 700;
+            padding: 3px 7px; border-radius: 999px;
+            background: color-mix(in srgb, var(--tm-success-color, #16a34a) 12%, transparent);
+            color: var(--tm-success-color, #16a34a);
+        }
+        .tm-sl-whisper--warn {
+            background: color-mix(in srgb, var(--tm-warning-color, #f59e0b) 16%, transparent);
+            color: var(--tm-warning-color, #d97706);
+        }
+        .tm-sl-sort-select {
+            height: 42px; padding: 0 12px;
+            border-radius: 10px;
+            border: 1px solid var(--tm-input-border, var(--tm-shop-item-border));
+            background: var(--tm-input-bg, var(--tm-shop-item-bg));
+            color: var(--tm-shop-item-text);
+            font-size: 12px; font-weight: 700;
+            cursor: pointer; flex-shrink: 0;
+            max-width: 180px;
+        }
+        .tm-sl-sort-select:focus-visible {
+            outline: 2px solid var(--tm-primary-color); outline-offset: 2px;
+        }
+        .tm-sl-recent {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+            font-size: 11px; color: var(--tm-muted-text, var(--tm-shop-item-text));
+        }
+        .tm-sl-recent__label { font-weight: 700; margin-right: 2px; opacity: 0.8; }
+        .tm-sl-recent__chip {
+            border: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-shop-item-bg);
+            color: var(--tm-shop-item-text);
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 11px; font-weight: 650;
+            cursor: pointer;
+        }
+        .tm-sl-recent__chip:hover { border-color: var(--tm-primary-color); }
+        .tm-sl-search-kbd {
+            position: absolute; right: 10px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 10px; font-weight: 600;
+            padding: 2px 6px; border-radius: 5px;
+            border: 1px solid var(--tm-shop-item-border);
+            background: color-mix(in srgb, var(--tm-shop-item-border) 18%, var(--tm-shop-item-bg));
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+            pointer-events: none;
+        }
+        .tm-sl-search-wrap:focus-within .tm-sl-search-kbd { display: none; }
+        .tm-sl-search { padding-right: 36px !important; }
+        #tm-sl-breadcrumb-wrap { display: none !important; }
+        .tm-sl-toast {
+            display: inline-flex; align-items: center; gap: 10px;
+            white-space: nowrap; max-width: calc(100% - 32px);
+        }
+        .tm-sl-toast__msg { overflow: hidden; text-overflow: ellipsis; }
+        .tm-sl-toast__open {
+            border: 1px solid color-mix(in srgb, #fff 28%, transparent);
+            background: transparent; color: inherit;
+            border-radius: 999px; padding: 3px 9px;
+            font-size: 11px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+        }
+        .tm-sl-toast__open:hover { background: color-mix(in srgb, #fff 12%, transparent); }
+        .tm-sl-model-card-top {
+            display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;
+            margin-bottom: 4px;
+        }
+        .tm-sl-model-card-top .tm-sl-model-name { margin-bottom: 0; flex: 1; min-width: 0; }
+        .tm-sl-model-card-top .tm-sl-model-count { margin-bottom: 0; flex-shrink: 0; }
         .tm-sl-unit-table .tm-sl-table-blocked {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 3px 8px; border-radius: 6px;
@@ -51184,6 +51314,157 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-unit-table .tm-sl-table-actions {
             display: flex; gap: 4px; justify-content: flex-end; white-space: nowrap;
         }
+        .tm-sl-unit-table .tm-sl-table-status {
+            font-size: 11px; font-weight: 700; white-space: nowrap;
+            color: var(--tm-muted-text, var(--tm-shop-item-text));
+            opacity: 0.9;
+        }
+        .tm-sl-unit-table .tm-sl-table-status--ok { color: var(--tm-success-color, #16a34a); opacity: 1; }
+        .tm-sl-unit-table .tm-sl-table-status--bb {
+            color: var(--tm-warning-color, #d97706); opacity: 1;
+        }
+        .tm-sl-unit-table .tm-sl-table-status--blocked {
+            color: var(--tm-danger-color, #dc2626); opacity: 1;
+        }
+        .tm-sl-unit-table .tm-sl-table-barcode {
+            cursor: pointer;
+            color: var(--tm-primary-color);
+            border-bottom: 1px dashed color-mix(in srgb, var(--tm-primary-color) 35%, transparent);
+        }
+        .tm-sl-unit-table .tm-sl-table-barcode:hover {
+            text-decoration: none;
+            border-bottom-color: var(--tm-primary-color);
+        }
+        .tm-sl-unit-table tbody tr {
+            cursor: default;
+        }
+        .tm-sl-unit-btn.is-copied {
+            border-color: var(--tm-success-color, #22c55e);
+            color: var(--tm-success-color, #16a34a);
+            background: color-mix(in srgb, var(--tm-success-color, #22c55e) 12%, var(--tm-shop-item-bg));
+        }
+        .tm-sl-unit-btn--icon {
+            min-width: 28px; padding: 4px 6px;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .tm-sl-unit-btn--icon svg { display: block; }
+        .tm-sl-unit-btn.is-copied.tm-sl-unit-btn--icon {
+            font-size: 10px; font-weight: 800; min-width: 72px;
+        }
+        .tm-sl-btn.is-busy {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .tm-sl-btn.is-busy .tm-sl-btn-spin {
+            display: inline-block;
+            animation: tm-sl-spin 0.8s linear infinite;
+        }
+        @keyframes tm-sl-spin { to { transform: rotate(360deg); } }
+        .tm-sl-body.is-refreshing {
+            opacity: 0.55;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+        }
+        .tm-sl-load {
+            flex-shrink: 0;
+            margin: 8px 16px 0;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-shop-item-bg);
+        }
+        .tm-sl-load[hidden] { display: none !important; }
+        .tm-sl-load__row {
+            display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+            margin-bottom: 8px;
+        }
+        .tm-sl-load__label {
+            font-size: 12px; font-weight: 800;
+            color: var(--tm-shop-item-text);
+        }
+        .tm-sl-load__eta {
+            font-size: 11px; font-weight: 700;
+            color: var(--tm-primary-color);
+            white-space: nowrap;
+        }
+        .tm-sl-load__track {
+            height: 8px; border-radius: 999px; overflow: hidden;
+            background: color-mix(in srgb, var(--tm-shop-item-border) 55%, transparent);
+        }
+        .tm-sl-load__bar {
+            height: 100%; width: 0%;
+            border-radius: 999px;
+            background: var(--tm-primary-color);
+            transition: width 0.25s ease;
+        }
+        .tm-sl-load.is-indeterminate .tm-sl-load__bar {
+            width: 36% !important;
+            animation: tm-sl-load-slide 1.1s ease-in-out infinite;
+        }
+        @keyframes tm-sl-load-slide {
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(320%); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .tm-sl-load.is-indeterminate .tm-sl-load__bar {
+                animation: none !important;
+                width: 55% !important;
+                opacity: 0.85;
+            }
+        }
+        .tm-sl-load__meta {
+            margin-top: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--tm-muted-text, var(--tm-secondary-color));
+        }
+        .tm-sl-mine-board {
+            display: flex; flex-direction: column; min-height: 0; height: 100%;
+            border: 1px solid var(--tm-shop-item-border);
+            border-radius: 10px;
+            overflow: hidden;
+            background: var(--tm-shop-item-bg);
+        }
+        .tm-sl-shell:not(.tm-sl-view--network).tm-sl-step--stores .tm-sl-body {
+            display: flex; flex-direction: column; overflow: hidden; padding: 12px 14px;
+        }
+        .tm-sl-shell:not(.tm-sl-view--network).tm-sl-step--stores .tm-sl-mine-board {
+            flex: 1 1 0; min-height: 0;
+        }
+        .tm-sl-toolbar .tm-sl-chips {
+            flex: 1; min-width: 0;
+        }
+        .tm-sl-mine-detail-head {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--tm-shop-item-border);
+            background: color-mix(in srgb, var(--tm-shop-item-border) 6%, var(--tm-shop-item-bg));
+            flex-shrink: 0;
+            position: sticky; top: 0; z-index: 2;
+        }
+        .tm-sl-mine-detail-head h3 {
+            margin: 0; font-size: 13px; font-weight: 800;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .tm-sl-mine-detail-head__meta {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+            font-size: 11px; font-weight: 600; opacity: 0.85;
+        }
+        .tm-sl-mine-table-wrap {
+            flex: 1; min-height: 0; overflow: auto;
+        }
+        .tm-sl-shell.tm-sl-density--compact .tm-sl-unit-table th,
+        .tm-sl-shell.tm-sl-density--compact .tm-sl-unit-table td {
+            padding: 5px 8px;
+        }
+        .tm-sl-shell.tm-sl-density--compact .tm-sl-unit-btn {
+            padding: 3px 7px; font-size: 10px;
+        }
+        .tm-sl-skeleton-mine {
+            border: 1px solid var(--tm-shop-item-border);
+            border-radius: 10px; overflow: hidden; padding: 12px;
+        }
+        .tm-sl-skeleton-mine .tm-sl-skeleton-line { width: 100%; }
         .tm-sl-store-dist {
             font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 999px;
             background: color-mix(in srgb, var(--tm-primary-color) 12%, transparent);
@@ -51229,6 +51510,7 @@ window.initOrderTracking = initOrderTracking;
         }
         .tm-sl-view-tab {
             flex: 1;
+            min-width: 0;
             border: none;
             background: transparent;
             color: var(--tm-shop-item-text);
@@ -51238,6 +51520,13 @@ window.initOrderTracking = initOrderTracking;
             border-radius: 9px;
             cursor: pointer;
             transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .tm-sl-view-tab:hover {
             background: color-mix(in srgb, var(--tm-primary-color) 8%, transparent);
@@ -51245,7 +51534,7 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-view-tab.is-active {
             background: var(--tm-shop-item-bg);
             color: var(--tm-primary-color);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 22%, var(--tm-shop-item-border));
         }
         .tm-sl-view-tab:focus-visible {
             outline: 2px solid var(--tm-primary-color);
@@ -51253,10 +51542,10 @@ window.initOrderTracking = initOrderTracking;
         }
 
         .tm-sl-header {
-            padding: 18px 20px 14px;
+            padding: 16px 20px 12px;
             border-bottom: 1px solid var(--tm-shop-item-border);
             flex-shrink: 0;
-            background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 12%, transparent), transparent 70%);
+            background: var(--tm-shop-item-bg);
         }
         .tm-sl-header-row {
             display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -51310,13 +51599,98 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-btn--back { margin-right: 4px; }
 
         .tm-sl-toolbar {
-            padding: 12px 20px;
+            padding: 10px 16px;
             border-bottom: 1px solid var(--tm-shop-item-border);
             background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg));
             flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 4;
         }
-        .tm-sl-toolbar-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .tm-sl-toolbar-row + .tm-sl-toolbar-row { margin-top: 10px; }
+        .tm-sl-toolbar-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .tm-sl-toolbar-row + .tm-sl-toolbar-row { margin-top: 8px; }
+        .tm-sl-context-strip {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
+            width: 100%;
+            padding: 7px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-shop-item-bg);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        .tm-sl-context-strip__view {
+            font-weight: 800;
+            color: var(--tm-primary-color);
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .tm-sl-context-strip__sep { opacity: 0.35; }
+        .tm-sl-context-strip__model {
+            font-weight: 800;
+            color: var(--tm-shop-item-text);
+        }
+        .tm-sl-context-strip__filters {
+            font-weight: 600;
+            color: var(--tm-muted-text, var(--tm-secondary-color));
+            opacity: 0.9;
+        }
+        .tm-sl-legend {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+            width: 100%;
+            padding: 2px 2px 0;
+            font-size: 11px;
+            color: var(--tm-muted-text, var(--tm-secondary-color));
+        }
+        .tm-sl-legend__label { font-weight: 700; opacity: 0.8; }
+        .tm-sl-legend-item {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-weight: 700;
+        }
+        .tm-sl-legend-item::before {
+            content: '';
+            width: 7px; height: 7px; border-radius: 50%;
+            background: currentColor;
+            flex-shrink: 0;
+        }
+        .tm-sl-legend-item--ok { color: var(--tm-success-color, #16a34a); }
+        .tm-sl-legend-item--bb { color: var(--tm-warning-color, #d97706); }
+        .tm-sl-legend-item--no { color: var(--tm-danger-color, #dc2626); }
+        .tm-sl-coach {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            flex-shrink: 0;
+            margin: 8px 16px 0;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid color-mix(in srgb, var(--tm-info-color, #0ea5e9) 28%, var(--tm-shop-item-border));
+            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 8%, var(--tm-shop-item-bg));
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--tm-shop-item-text);
+        }
+        .tm-sl-coach[hidden] { display: none !important; }
+        .tm-sl-coach-dismiss {
+            border: none; background: transparent; cursor: pointer;
+            color: var(--tm-muted-text); font-size: 16px; line-height: 1; padding: 2px 6px;
+        }
+        .tm-sl-btn--primary-action {
+            background: color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-shop-item-bg));
+            border-color: color-mix(in srgb, var(--tm-primary-color) 40%, var(--tm-shop-item-border));
+            color: var(--tm-primary-color);
+            font-weight: 800;
+        }
+        .tm-sl-network-store.is-recommended .tm-sl-network-store__name::after {
+            content: 'Προτεινόμενο';
+            margin-left: 6px;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            color: var(--tm-success-color, #16a34a);
+            vertical-align: middle;
+        }
         .tm-sl-search-wrap {
             position: relative; display: flex; align-items: center; flex: 1; min-width: 180px;
         }
@@ -51406,18 +51780,15 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-model-card {
             position: relative;
             border: 1px solid var(--tm-shop-item-border);
-            border-radius: 12px;
-            padding: 14px 16px;
+            border-radius: 10px;
+            padding: 12px 14px;
             background: var(--tm-shop-item-bg);
             cursor: pointer;
-            transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
-            animation: tm-sl-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-            animation-delay: calc(var(--i, 0) * 40ms);
+            transition: border-color 0.12s, background 0.12s;
         }
         .tm-sl-model-card:hover {
             border-color: var(--tm-primary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px color-mix(in srgb, var(--tm-shadow-color, #000) 25%, transparent);
+            background: var(--tm-shop-item-hover-bg);
         }
         .tm-sl-model-card:focus-visible {
             outline: 2px solid var(--tm-primary-color);
@@ -51440,8 +51811,17 @@ window.initOrderTracking = initOrderTracking;
 
         .tm-sl-model-name {
             font-size: 14px; font-weight: 800; line-height: 1.25;
-            margin-bottom: 8px; padding-right: 56px;
+            margin-bottom: 6px; padding-right: 8px;
             color: var(--tm-shop-item-text);
+        }
+        .tm-sl-model-count {
+            font-size: 18px; font-weight: 900; line-height: 1.1;
+            letter-spacing: -0.02em;
+            color: var(--tm-shop-item-text);
+            margin-bottom: 4px;
+        }
+        .tm-sl-model-count span {
+            font-size: 12px; font-weight: 600; opacity: 0.7; margin-left: 4px;
         }
         .tm-sl-hl {
             background: color-mix(in srgb, var(--tm-primary-color) 30%, transparent);
@@ -51865,9 +52245,17 @@ window.initOrderTracking = initOrderTracking;
             text-align: center; padding: 48px 24px;
             color: var(--tm-muted-text);
         }
-        .tm-sl-empty-icon { font-size: 40px; margin-bottom: 12px; }
+        .tm-sl-empty-icon {
+            margin: 0 auto 12px;
+            width: 40px; height: 40px;
+            opacity: 0.45;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--tm-shop-item-text);
+        }
+        .tm-sl-empty-icon svg { display: block; }
         .tm-sl-empty-title { font-size: 16px; font-weight: 800; margin-bottom: 6px; color: var(--tm-shop-item-text); }
-        .tm-sl-empty-sub { font-size: 13px; opacity: 0.8; }
+        .tm-sl-empty-sub { font-size: 13px; opacity: 0.8; margin-bottom: 14px; }
+        .tm-sl-empty-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
 
         .tm-sl-footer {
             padding: 10px 20px;
@@ -51890,7 +52278,7 @@ window.initOrderTracking = initOrderTracking;
         .tm-sl-freshness-dot {
             width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
         }
-        .tm-sl-freshness--fresh .tm-sl-freshness-dot { background: var(--tm-success-color, #22c55e); box-shadow: 0 0 6px var(--tm-success-color, #22c55e); }
+        .tm-sl-freshness--fresh .tm-sl-freshness-dot { background: var(--tm-success-color, #22c55e); }
         .tm-sl-freshness--cached .tm-sl-freshness-dot { background: var(--tm-warning-color, #f59e0b); }
         .tm-sl-freshness--stale .tm-sl-freshness-dot { background: var(--tm-danger-color, #ef4444); }
 
@@ -51913,7 +52301,7 @@ window.initOrderTracking = initOrderTracking;
 
     function buildSkeletonGrid(count = 8) {
         const cards = Array.from({ length: count }, (_, i) =>
-            `<div class="tm-sl-skeleton-card" style="--i:${i}"></div>`).join('');
+            `<div class="tm-sl-skeleton-card" style="--i:${Math.min(i, 7)}"></div>`).join('');
         return `<div class="tm-sl-skeleton-grid">${cards}</div>`;
     }
 
@@ -51931,12 +52319,58 @@ window.initOrderTracking = initOrderTracking;
         return `<div class="tm-sl-skeleton-stores">${rows}</div>`;
     }
 
-    function buildEmptyState(icon, title, sub) {
+    function buildSkeletonMineBoard() {
+        const lines = Array.from({ length: 8 }, () => '<div class="tm-sl-skeleton-line"></div>').join('');
+        return `<div class="tm-sl-skeleton-mine">${lines}</div>`;
+    }
+
+    function buildEmptyState(icon, title, sub, opts) {
+        const action = opts?.actionLabel
+            ? `<div class="tm-sl-empty-actions">
+                <button type="button" class="tm-sl-btn tm-sl-btn--primary-action" data-tm-sl-empty-action="${esc(opts.actionId || 'clear-filters')}">${esc(opts.actionLabel)}</button>
+            </div>`
+            : '';
         return `<div class="tm-sl-empty">
-            <div class="tm-sl-empty-icon">${icon}</div>
+            <div class="tm-sl-empty-icon" aria-hidden="true">${icon || ICON.emptyPhone}</div>
             <div class="tm-sl-empty-title">${esc(title)}</div>
             ${sub ? `<div class="tm-sl-empty-sub">${esc(sub)}</div>` : ''}
+            ${action}
         </div>`;
+    }
+
+    function buildStatusLegend(opts = {}) {
+        const showPurchase = opts.showPurchaseStatus !== false;
+        return `<div class="tm-sl-legend" aria-label="Υπόμνημα κατάστασης">
+            <span class="tm-sl-legend__label">Κατάσταση</span>
+            <span class="tm-sl-legend-item tm-sl-legend-item--ok">Διαθέσιμο</span>
+            <span class="tm-sl-legend-item tm-sl-legend-item--bb">BB</span>
+            ${showPurchase ? '<span class="tm-sl-legend-item tm-sl-legend-item--no">Δεν αγοράζεται</span>' : ''}
+        </div>`;
+    }
+
+    function buildContextStrip({ viewLabel, modelName, filtersSummary }) {
+        const parts = [
+            `<span class="tm-sl-context-strip__view" title="${esc(viewLabel)}">${esc(viewLabel)}</span>`,
+            '<span class="tm-sl-context-strip__sep" aria-hidden="true">›</span>',
+            `<span class="tm-sl-context-strip__model">${esc(modelName)}</span>`,
+        ];
+        if (filtersSummary) {
+            parts.push('<span class="tm-sl-context-strip__sep" aria-hidden="true">·</span>');
+            parts.push(`<span class="tm-sl-context-strip__filters">${esc(filtersSummary)}</span>`);
+        }
+        return `<div class="tm-sl-context-strip" id="tm-sl-context-strip">${parts.join('')}</div>`;
+    }
+
+    function formatActiveFiltersSummary(active) {
+        const bits = [];
+        if (active?.grade) bits.push(`Βαθμ. ${active.grade}`);
+        if (active?.gb) bits.push(active.gb);
+        if (active?.color) bits.push(active.color);
+        return bits.length ? bits.join(' · ') : 'Χωρίς φίλτρα';
+    }
+
+    function buildCoachTipHtml() {
+        return '';
     }
 
     function buildBreadcrumb(step, modelName) {
@@ -51952,23 +52386,60 @@ window.initOrderTracking = initOrderTracking;
         </nav>`;
     }
 
+    function getMyStoreLabel() {
+        const name = typeof window.getCurrentStoreName === 'function'
+            ? String(window.getCurrentStoreName() || '').trim()
+            : '';
+        return name || 'Το κατάστημά μου';
+    }
+
+    function updateMyStoreLabels(overlay) {
+        const label = getMyStoreLabel();
+        const mineTab = overlay?.querySelector('#tm-sl-view-mine');
+        const mystoreBtn = overlay?.querySelector('#tm-sl-mystore-btn');
+        const titleEl = overlay?.querySelector('#tm-sl-title');
+        const shell = overlay?.querySelector('#tm-sl-shell');
+        if (mineTab) {
+            mineTab.textContent = label;
+            mineTab.title = label;
+        }
+        if (mystoreBtn) {
+            mystoreBtn.innerHTML = `${ICON.pin} ${esc(label)}`;
+            mystoreBtn.title = 'Αλλαγή καταστήματος';
+        }
+        if (titleEl && shell
+            && !shell.classList.contains('tm-sl-step--stores')
+            && !shell.classList.contains('tm-sl-view--network')) {
+            titleEl.textContent = label;
+        }
+    }
+
+    function ensureStylesInjected() {
+        if (document.getElementById('tm-sl-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'tm-sl-styles';
+        style.textContent = STYLES;
+        document.head.appendChild(style);
+    }
+
     function buildShellHTML() {
+        ensureStylesInjected();
+        const myStoreLabel = getMyStoreLabel();
         return `
-        <style>${STYLES}</style>
         <div class="tm-sl-shell" id="tm-sl-shell">
             <header class="tm-sl-header">
-                <div id="tm-sl-breadcrumb-wrap">${buildBreadcrumb('models')}</div>
+                <div id="tm-sl-breadcrumb-wrap" hidden>${buildBreadcrumb('models')}</div>
                 <div class="tm-sl-header-row">
                     <div class="tm-sl-title-block">
-                        <h2 class="tm-sl-title" id="tm-sl-title">Το κατάστημά μου</h2>
-                        <p class="tm-sl-subtitle" id="tm-sl-subtitle">Συσκευές που έχετε σε stock</p>
+                        <h2 class="tm-sl-title" id="tm-sl-title">${esc(myStoreLabel)}</h2>
+                        <p class="tm-sl-subtitle" id="tm-sl-subtitle">Τι έχετε σε stock τώρα</p>
                     </div>
                     <div class="tm-sl-header-actions">
-                        <button type="button" id="tm-sl-refresh" class="tm-sl-btn" title="Ανανέωση">${ICON.refresh} Ανανέωση</button>
+                        <button type="button" id="tm-sl-refresh" class="tm-sl-btn tm-sl-btn--icon" title="Ανανέωση" aria-label="Ανανέωση">${ICON.refresh}</button>
                         <div class="tm-sl-settings-wrap">
                             <button type="button" id="tm-sl-settings" class="tm-sl-btn tm-sl-btn--icon" title="Ρυθμίσεις" aria-haspopup="true">${ICON.settings}</button>
                             <div id="tm-sl-settings-menu" class="tm-sl-settings-menu" hidden>
-                                <button type="button" id="tm-sl-mystore-btn">${ICON.pin} Το κατάστημά μου</button>
+                                <button type="button" id="tm-sl-mystore-btn" title="Αλλαγή καταστήματος">${ICON.pin} ${esc(myStoreLabel)}</button>
                                 <button type="button" id="tm-sl-models-btn">${ICON.phone} Διαχείριση Μοντέλων</button>
                                 <button type="button" id="tm-sl-colors-btn">${ICON.palette} Διαχείριση Χρωμάτων</button>
                                 <button type="button" id="tm-sl-tags-btn">${ICON.tag} Διαχείριση Ετικετών</button>
@@ -51985,11 +52456,21 @@ window.initOrderTracking = initOrderTracking;
                     </div>
                 </div>
                 <nav class="tm-sl-view-tabs" role="tablist" aria-label="Προβολή καταλόγου">
-                    <button type="button" id="tm-sl-view-mine" class="tm-sl-view-tab is-active" role="tab" aria-selected="true">${ICON.pin} Το κατάστημά μου</button>
-                    <button type="button" id="tm-sl-view-network" class="tm-sl-view-tab" role="tab" aria-selected="false">${ICON.store} Άλλα καταστήματα</button>
+                    <button type="button" id="tm-sl-view-mine" class="tm-sl-view-tab is-active" role="tab" aria-selected="true" title="${esc(myStoreLabel)}">${esc(myStoreLabel)}</button>
+                    <button type="button" id="tm-sl-view-network" class="tm-sl-view-tab" role="tab" aria-selected="false">Άλλα καταστήματα</button>
                 </nav>
             </header>
             <div class="tm-sl-toolbar" id="tm-sl-toolbar"></div>
+            <div class="tm-sl-load" id="tm-sl-load" hidden>
+                <div class="tm-sl-load__row">
+                    <span class="tm-sl-load__label" id="tm-sl-load-label">Φόρτωση…</span>
+                    <span class="tm-sl-load__eta" id="tm-sl-load-eta"></span>
+                </div>
+                <div class="tm-sl-load__track" aria-hidden="true">
+                    <div class="tm-sl-load__bar" id="tm-sl-load-bar"></div>
+                </div>
+                <div class="tm-sl-load__meta" id="tm-sl-load-meta"></div>
+            </div>
             <div class="tm-sl-body" id="tm-sl-body">${buildSkeletonGrid(6)}</div>
             <footer class="tm-sl-footer">
                 <span id="tm-sl-status">—</span>
@@ -52005,58 +52486,110 @@ window.initOrderTracking = initOrderTracking;
         </div>`;
     }
 
-    function buildModelSearchToolbar(activeSort) {
+    function buildModelSearchToolbar(activeSort, opts = {}) {
         const sorts = [
-            ['name', 'Αλφαβητικά'],
+            ['name', 'Όνομα'],
             ['stores', 'Περισσότερα κατ.'],
             ['stock', 'Περισσότερο stock'],
         ];
-        const pills = sorts.map(([key, label]) =>
-            `<button type="button" class="tm-sl-sort-pill${activeSort === key ? ' is-active' : ''}" data-tm-sl-sort="${key}">${esc(label)}</button>`
+        const options = sorts.map(([key, label]) =>
+            `<option value="${key}"${activeSort === key ? ' selected' : ''}>${esc(label)}</option>`
         ).join('');
+        const recent = Array.isArray(opts.recentModels) ? opts.recentModels.filter(Boolean).slice(0, 5) : [];
+        const recentHtml = recent.length
+            ? `<div class="tm-sl-recent" id="tm-sl-recent">
+                <span class="tm-sl-recent__label">Πρόσφατα</span>
+                ${recent.map((m) =>
+                    `<button type="button" class="tm-sl-recent__chip" data-tm-sl-recent="${esc(m)}" title="${esc(m)}">${esc(shortRecentLabel(m))}</button>`
+                ).join('')}
+            </div>`
+            : '';
         return `
             <div class="tm-sl-toolbar-row">
                 <div class="tm-sl-search-wrap">
                     <span class="tm-sl-search-icon">${ICON.search}</span>
                     <input type="search" id="tm-sl-model-search" class="tm-sl-search"
-                        placeholder="Αναζήτηση μοντέλου…" autocomplete="off">
+                        placeholder="Αναζήτηση μοντέλου, barcode ή IMEI…" autocomplete="off">
+                    <span class="tm-sl-search-kbd" aria-hidden="true">/</span>
                 </div>
+                <select id="tm-sl-model-sort" class="tm-sl-sort-select" aria-label="Ταξινόμηση" data-tm-sl-sort-select>
+                    ${options}
+                </select>
             </div>
-            <div class="tm-sl-toolbar-row tm-sl-sort-pills">${pills}</div>`;
+            ${recentHtml}`;
+    }
+
+    function shortRecentLabel(model) {
+        return String(model || '')
+            .replace(/^IPHONE\s+/i, '')
+            .replace(/^SAMSUNG\s+/i, '')
+            .trim() || String(model || '');
     }
 
     function buildStoreToolbar(modelName, chipsHtml, opts) {
-        if (opts?.network) {
-            return `<button type="button" id="tm-sl-back" class="tm-sl-btn tm-sl-btn--back">${ICON.back} Μοντέλα</button>`;
+        const filtersSummary = opts?.filtersSummary || 'Χωρίς φίλτρα';
+        const qtyLabel = opts?.qtyLabel || '';
+        const chips = chipsHtml
+            ? `<div class="tm-sl-chips" id="tm-sl-chips">${chipsHtml}</div>`
+            : '';
+        const contextBits = [
+            `<span class="tm-sl-context-strip__filters">${esc(filtersSummary)}</span>`,
+        ];
+        if (qtyLabel) {
+            contextBits.push('<span class="tm-sl-context-strip__sep" aria-hidden="true">·</span>');
+            contextBits.push(`<span class="tm-sl-context-strip__view">${esc(qtyLabel)}</span>`);
         }
         return `
-            <button type="button" id="tm-sl-back" class="tm-sl-btn tm-sl-btn--back">${ICON.back} Μοντέλα</button>
-            <div class="tm-sl-chips" id="tm-sl-chips">${chipsHtml || ''}</div>`;
+            <div class="tm-sl-toolbar-row">
+                <button type="button" id="tm-sl-back" class="tm-sl-btn tm-sl-btn--back">${ICON.back} Μοντέλα</button>
+                <div class="tm-sl-context-strip" id="tm-sl-context-strip">${contextBits.join('')}</div>
+            </div>
+            ${chips ? `<div class="tm-sl-toolbar-row">${chips}</div>` : ''}`;
     }
 
     function buildModelGrid(models, ctx) {
+        const myStoreLabel = getMyStoreLabel();
         if (!models.length) {
             const emptyMsg = ctx?.catalogView === 'mine'
-                ? 'Δεν βρέθηκαν συσκευές στο κατάστημά σας'
+                ? `Δεν βρέθηκαν συσκευές στο ${myStoreLabel}`
                 : 'Δεν βρέθηκαν μοντέλα σε άλλα καταστήματα';
-            return buildEmptyState('📱', 'Δεν βρέθηκαν μοντέλα', emptyMsg);
+            const hasQuery = !!(ctx?.query);
+            return buildEmptyState(
+                hasQuery ? ICON.emptySearch : ICON.emptyPhone,
+                hasQuery ? 'Κανένα αποτέλεσμα' : 'Δεν βρέθηκαν μοντέλα',
+                hasQuery
+                    ? 'Δοκιμάστε άλλο όρο αναζήτησης ή καθαρίστε την αναζήτηση.'
+                    : `${emptyMsg}. Πατήστε Ανανέωση αν περιμένετε νέα stock.`,
+                hasQuery
+                    ? { actionId: 'clear-search', actionLabel: 'Καθαρισμός αναζήτησης' }
+                    : { actionId: 'refresh', actionLabel: 'Ανανέωση δεδομένων' }
+            );
         }
         const query = ctx?.query || '';
         const catalogView = ctx?.catalogView || 'mine';
         const getGradeStyle = ctx?.getGradeStyle || (() => '');
+        const getNearestHint = ctx?.getNearestStoreHint;
         const cards = models.map(([model, data], i) => {
             const grades = Object.entries(data.grades || {})
                 .sort((a, b) => a[0].localeCompare(b[0]))
                 .map(([g, n]) => gradeChipHTML(g, n, getGradeStyle))
                 .join('');
             const heat = getModelHeatClass(data);
+            const delay = Math.min(i, 7);
 
             if (catalogView === 'mine') {
                 const count = data.myCount || data.totalUnits || 0;
+                const whisper = count === 1
+                    ? '<span class="tm-sl-whisper tm-sl-whisper--warn">Τελευταίο τεμ.</span>'
+                    : '';
                 return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
-                    data-tm-sl-model="${esc(model)}" style="--i:${i}">
-                    <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
-                    <div class="tm-sl-model-meta">${ICON.pin.replace('width="11"', 'width="12"').replace('height="11"', 'height="12"')} ${count} ${count === 1 ? 'συσκευή' : 'συσκευές'} στο δικό σας</div>
+                    data-tm-sl-model="${esc(model)}" style="--i:${delay}">
+                    <div class="tm-sl-model-card-top">
+                        <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
+                        <div class="tm-sl-model-count">${count}<span>${count === 1 ? 'τεμ.' : 'τεμ.'}</span></div>
+                    </div>
+                    <div class="tm-sl-model-meta">στο ${esc(myStoreLabel)}</div>
+                    ${whisper}
                     ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
                 </div>`;
             }
@@ -52064,21 +52597,22 @@ window.initOrderTracking = initOrderTracking;
             const storeLabel = data.storeCount === 1
                 ? '1 κατάστημα'
                 : `${data.storeCount} καταστήματα`;
-            const storeNames = data.storeList || [];
-            const maxStores = 4;
-            const storeChips = storeNames.slice(0, maxStores).map((name) =>
-                `<span class="tm-sl-model-store-chip">${esc(name)}</span>`
-            ).join('');
-            const storeMore = storeNames.length > maxStores
-                ? `<span class="tm-sl-model-store-more">+${storeNames.length - maxStores}</span>`
-                : '';
+            const nearest = typeof getNearestHint === 'function' ? getNearestHint(model, data) : '';
+            let whisper = '';
+            if (nearest) {
+                whisper = `<span class="tm-sl-whisper">Κοντύτερο · ${esc(nearest)}</span>`;
+            } else if (data.storeCount === 1) {
+                whisper = '<span class="tm-sl-whisper tm-sl-whisper--warn">Σπάνιο στο δίκτυο</span>';
+            }
             return `<div class="tm-sl-model-card ${heat}" role="button" tabindex="0"
-                data-tm-sl-model="${esc(model)}" style="--i:${i}">
-                <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
-                <div class="tm-sl-model-meta">${ICON.store.replace('width="16"', 'width="12"').replace('height="16"', 'height="12"')} ${esc(storeLabel)}</div>
-                <div class="tm-sl-model-stores">${data.totalUnits} συσκευές στο δίκτυο</div>
+                data-tm-sl-model="${esc(model)}" style="--i:${delay}">
+                <div class="tm-sl-model-card-top">
+                    <div class="tm-sl-model-name">${highlightMatch(model, query)}</div>
+                    <div class="tm-sl-model-count">${data.storeCount || 0}<span>κατ.</span></div>
+                </div>
+                <div class="tm-sl-model-meta">${data.totalUnits} τεμ. στο δίκτυο</div>
+                ${whisper}
                 ${grades ? `<div class="tm-sl-grade-row">${grades}</div>` : ''}
-                ${storeChips ? `<div class="tm-sl-model-store-list">${storeChips}${storeMore}</div>` : ''}
             </div>`;
         }).join('');
         return `<div class="tm-sl-model-grid">${cards}</div>`;
@@ -52095,7 +52629,7 @@ window.initOrderTracking = initOrderTracking;
             values.forEach((val) => {
                 const isActive = active[key] === val;
                 const count = counts[key]?.[val];
-                const countHtml = count != null ? `<span class="tm-sl-chip-count">(${count})</span>` : '';
+                const countHtml = count != null ? `<span class="tm-sl-chip-count">· ${count}</span>` : '';
                 let inner = esc(val);
                 if (key === 'color') {
                     inner = `${colorSwatchHTML(val, hexMap)} ${esc(val)}`;
@@ -52110,7 +52644,7 @@ window.initOrderTracking = initOrderTracking;
         addGroup('gb', filters.gbs);
         addGroup('color', filters.colors);
         if (active.grade || active.gb || active.color) {
-            parts.push('<button type="button" class="tm-sl-chip" data-tm-sl-filter="clear">Καθαρισμός</button>');
+            parts.push('<button type="button" class="tm-sl-chip" data-tm-sl-filter="clear">Καθαρισμός φίλτρων</button>');
         }
         return parts.join('');
     }
@@ -52286,6 +52820,142 @@ window.initOrderTracking = initOrderTracking;
         return `<span class="${cls}">${ICON.store.replace('width="16"', 'width="11"').replace('height="16"', 'height="11"')} ${esc(storeName)}</span>`;
     }
 
+    function buildUnitActionButtonsHTML(barcode) {
+        return `<div class="tm-sl-table-actions">
+            <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary tm-sl-unit-btn--icon" data-tm-sl-copy="${esc(barcode)}" title="Αντιγραφή barcode" aria-label="Αντιγραφή barcode">${ICON.copy}</button>
+            <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--icon" data-tm-sl-open="${esc(barcode)}" title="Άνοιγμα στο σύστημα" aria-label="Άνοιγμα στο σύστημα">${ICON.open}</button>
+        </div>`;
+    }
+
+    function buildUnitStatusCell(v, purchaseBlocked, ctx) {
+        const showPurchaseStatus = !!ctx?.showPurchaseStatus;
+        if (showPurchaseStatus && purchaseBlocked) {
+            return v.isBuyback
+                ? '<span class="tm-sl-table-status tm-sl-table-status--blocked" title="Buyback IKE — δεν αγοράζεται">Δεν αγοράζεται · BB</span>'
+                : '<span class="tm-sl-table-status tm-sl-table-status--blocked" title="Δεν αγοράζεται">Δεν αγοράζεται</span>';
+        }
+        if (v.isBuyback) {
+            return '<span class="tm-sl-table-status tm-sl-table-status--bb" title="Buyback">BB</span>';
+        }
+        return '<span class="tm-sl-table-status tm-sl-table-status--ok">Διαθέσιμο</span>';
+    }
+
+    function formatImeiPeek(imei) {
+        const raw = String(imei || '').replace(/\D/g, '');
+        if (raw.length < 8) return '';
+        return `${raw.slice(0, 4)}…${raw.slice(-4)}`;
+    }
+
+    function pickBestVariantIndex(variants, ctx) {
+        if (!variants?.length) return -1;
+        let bestIdx = 0;
+        for (let i = 1; i < variants.length; i += 1) {
+            const a = variants[bestIdx];
+            const b = variants[i];
+            const storeName = b.storeName || a.storeName || '';
+            if (ctx?.showPurchaseStatus && storeName) {
+                const aOk = isStorePurchaseAllowed(storeName, !!a.isBuyback);
+                const bOk = isStorePurchaseAllowed(storeName, !!b.isBuyback);
+                if (aOk !== bOk) {
+                    if (bOk) bestIdx = i;
+                    continue;
+                }
+            }
+            if (!!a.isBuyback !== !!b.isBuyback) {
+                if (!b.isBuyback) bestIdx = i;
+                continue;
+            }
+            const gradeCmp = (typeof window.comparePhoneGrades === 'function')
+                ? window.comparePhoneGrades(a.grade || '', b.grade || '')
+                : String(a.grade || '').localeCompare(String(b.grade || ''));
+            if (gradeCmp > 0) bestIdx = i;
+        }
+        return bestIdx;
+    }
+
+    function buildInsightHtml(variants, bestIdx) {
+        if (!variants?.length || bestIdx < 0) return '';
+        const best = variants[bestIdx];
+        const prices = variants
+            .map((v) => parseFloat(String(v.price || '').replace(/[^\d.,]/g, '').replace(',', '.')))
+            .filter((n) => Number.isFinite(n) && n > 0);
+        const fromPrice = prices.length ? Math.min(...prices) : null;
+        const bits = [best.grade, best.gb, best.color].filter(Boolean).join(' · ');
+        const priceBit = best.price ? ` · ${best.price}` : '';
+        const left = fromPrice != null ? `Από ${Math.round(fromPrice)}€` : `${variants.length} τεμ.`;
+        return `<div class="tm-sl-insight">
+            <span>${esc(left)}</span>
+            <span class="tm-sl-insight__best">Καλύτερη επιλογή · ${esc(bits)}${esc(priceBit)}</span>
+        </div>`;
+    }
+
+    function buildUnitTableRow(v, ctx) {
+        const hexMap = ctx?.colorHexMap || {};
+        const getGradeStyle = ctx?.getGradeStyle || (() => '');
+        const storeName = v.storeName || '';
+        const showPurchaseStatus = !!ctx?.showPurchaseStatus;
+        const purchaseAllowed = !showPurchaseStatus || !storeName
+            || isStorePurchaseAllowed(storeName, !!v.isBuyback);
+        const purchaseBlocked = showPurchaseStatus && !purchaseAllowed;
+        const rowClass = [
+            purchaseBlocked ? 'tm-sl-unit-row--blocked' : '',
+            v.isBest ? 'tm-sl-unit-row--best' : '',
+            v.flash ? 'tm-sl-unit-row--flash' : '',
+        ].filter(Boolean).join(' ');
+
+        const gradeCell = v.grade
+            ? `<span class="tm-sl-table-grade" style="${getGradeStyle(v.grade)}">${esc(v.grade)}</span>`
+            : '—';
+        const gbCell = v.gb ? `<span class="tm-sl-table-gb">${esc(v.gb)}</span>` : '—';
+        const colorCell = v.color
+            ? `<span class="tm-sl-table-color">${colorSwatchHTML(v.color, hexMap)}${esc(v.color)}</span>`
+            : '—';
+        const statusCell = buildUnitStatusCell(v, purchaseBlocked, ctx);
+        const imeiPeek = formatImeiPeek(v.imei || v.phone?.imei);
+        const imeiHtml = imeiPeek ? `<span class="tm-sl-table-imei">IMEI · ${esc(imeiPeek)}</span>` : '';
+        const barcodeCell = `<span class="tm-sl-table-barcode" data-tm-sl-copy="${esc(v.barcode)}" title="Κλικ για αντιγραφή">${esc(v.barcode)}</span>${imeiHtml}`;
+        const priceCell = v.price ? `<span class="tm-sl-table-price">${esc(v.price)}</span>` : '—';
+        const modelName = v.modelName || ctx?.modelName || '';
+
+        return `<tr class="tm-sl-unit-row${rowClass ? ` ${rowClass}` : ''}" data-barcode="${esc(v.barcode)}"
+            data-tm-sl-open-row="${esc(v.barcode)}"
+            data-tm-sl-grade="${esc(v.grade || '')}"
+            data-tm-sl-gb="${esc(v.gb || '')}"
+            data-tm-sl-color="${esc(v.color || '')}"
+            data-tm-sl-model="${esc(modelName)}"
+            data-tm-sl-price="${esc(v.price || '')}"
+            title="Κλικ στο barcode για αντιγραφή · διπλό κλικ για άνοιγμα">
+            <td>${gradeCell}</td>
+            <td>${gbCell}</td>
+            <td>${colorCell}</td>
+            <td>${statusCell}</td>
+            <td>${barcodeCell}</td>
+            <td>${priceCell}</td>
+        </tr>`;
+    }
+
+    function buildUnitTable(variants, ctx) {
+        const list = [...(variants || [])];
+        const bestIdx = pickBestVariantIndex(list, ctx);
+        if (bestIdx >= 0) list[bestIdx] = { ...list[bestIdx], isBest: true };
+        const rows = list.map((v) => buildUnitTableRow(v, ctx)).join('');
+        return `<div class="tm-sl-network-detail-table-wrap tm-sl-mine-table-wrap">
+            <table class="tm-sl-unit-table">
+                <thead>
+                    <tr>
+                        <th>Βαθμ.</th>
+                        <th>GB</th>
+                        <th>Χρώμα</th>
+                        <th>Κατάσταση</th>
+                        <th>Barcode</th>
+                        <th>Τιμή</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
+    }
+
     function buildUnitRowHTML(v, ctx) {
         const compact = !!ctx?.networkCompact;
         const gradeAccent = getGradeAccentColor(v.grade, ctx);
@@ -52305,8 +52975,12 @@ window.initOrderTracking = initOrderTracking;
             compact ? 'tm-sl-phone-card--compact' : '',
         ].filter(Boolean).join(' ');
         const priceHtml = v.price ? `<div class="tm-sl-phone-card__price">${esc(v.price)}</div>` : '';
-        const barcodeHtml = `<span class="tm-sl-barcode-pill"><span class="tm-sl-barcode-pill__icon">#</span>${esc(v.barcode)}</span>`;
+        const barcodeHtml = `<span class="tm-sl-barcode-pill" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode"><span class="tm-sl-barcode-pill__icon">#</span>${esc(v.barcode)}</span>`;
         const specsHtml = buildSpecPillsHTML(v, ctx, purchaseBlocked) || '<span class="tm-sl-preview-pill">—</span>';
+        const actionsHtml = `<div class="tm-sl-phone-card__actions">
+            <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">${ICON.copy} Αντιγραφή</button>
+            <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">${ICON.open} Άνοιγμα</button>
+        </div>`;
 
         if (compact) {
             return `<article class="${cardClasses}" data-barcode="${esc(v.barcode)}" style="--tm-sl-grade-accent:${esc(gradeAccent)}">
@@ -52314,10 +52988,7 @@ window.initOrderTracking = initOrderTracking;
                 <div class="tm-sl-phone-card__specs">${specsHtml}</div>
                 ${barcodeHtml}
                 ${priceHtml}
-                <div class="tm-sl-phone-card__actions">
-                    <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
-                    <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
-                </div>
+                ${actionsHtml}
             </article>`;
         }
 
@@ -52329,14 +53000,11 @@ window.initOrderTracking = initOrderTracking;
                 <div class="tm-sl-phone-card__footer">
                     ${barcodeHtml}
                 </div>
-                    </div>
+            </div>
             <div class="tm-sl-phone-card__aside">
                 ${priceHtml}
-                <div class="tm-sl-phone-card__actions">
-                    <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
-                    <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
-                </div>
-                </div>
+                ${actionsHtml}
+            </div>
         </article>`;
     }
 
@@ -52379,7 +53047,7 @@ window.initOrderTracking = initOrderTracking;
             ? window.getStoreDistanceLabel?.(myStore, store.name)
             : '';
         const distChip = distLabel
-            ? `<span class="tm-sl-store-dist" title="Απόσταση από το κατάστημά σας">${esc(distLabel)}</span>`
+            ? `<span class="tm-sl-store-dist" title="Απόσταση από ${esc(getMyStoreLabel())}">${esc(distLabel)}</span>`
             : '';
         const qtyLabel = compact
             ? String(store.variants.length)
@@ -52412,56 +53080,34 @@ window.initOrderTracking = initOrderTracking;
     }
 
     function buildMyStoreBoard(modelName, variants, ctx) {
+        const myStoreLabel = getMyStoreLabel();
+        const hasFilters = !!(ctx?.hasActiveFilters);
         if (!variants.length) {
-            return buildEmptyState('📱', 'Χωρίς διαθέσιμες συσκευές', `Δεν υπάρχει ${esc(modelName)} στο κατάστημά σας`);
+            return buildEmptyState(
+                ICON.emptyPhone,
+                'Χωρίς διαθέσιμες συσκευές',
+                hasFilters
+                    ? `Κανένα αποτέλεσμα για ${modelName} με τα τρέχοντα φίλτρα. Καθαρίστε τα φίλτρα για να δείτε όλο το stock.`
+                    : `Δεν υπάρχει ${modelName} στο ${myStoreLabel}. Δοκιμάστε την προβολή «Άλλα καταστήματα».`,
+                hasFilters
+                    ? { actionId: 'clear-filters', actionLabel: 'Καθαρισμός φίλτρων' }
+                    : { actionId: 'back-models', actionLabel: 'Επιστροφή στα μοντέλα' }
+            );
         }
-        const units = variants.map((v) => buildUnitRowHTML(v, ctx)).join('');
-        return `<section class="tm-sl-phone-list-section">
-            <h3 class="tm-sl-phone-list-title">${ICON.pin} Το κατάστημά μου · ${variants.length} ${variants.length === 1 ? 'συσκευή' : 'συσκευές'}</h3>
-            <div class="tm-sl-phone-list tm-sl-phone-list--mine">${units}</div>
+        const qtyLabel = variants.length === 1 ? '1 συσκευή' : `${variants.length} συσκευές`;
+        const bestIdx = pickBestVariantIndex(variants, ctx);
+        const insight = buildInsightHtml(variants, bestIdx);
+        const tableCtx = { ...ctx, modelName };
+        return `<section class="tm-sl-mine-board">
+            <div class="tm-sl-mine-detail-head">
+                <h3>${esc(myStoreLabel)}</h3>
+                <div class="tm-sl-mine-detail-head__meta">
+                    <span>${esc(qtyLabel)}</span>
+                </div>
+            </div>
+            <div style="padding:10px 12px 0">${insight}</div>
+            ${buildUnitTable(variants, tableCtx)}
         </section>`;
-    }
-
-    function buildNetworkUnitTableRow(v, ctx) {
-        const hexMap = ctx?.colorHexMap || {};
-        const getGradeStyle = ctx?.getGradeStyle || (() => '');
-        const storeName = v.storeName || '';
-        const purchaseAllowed = !ctx?.showPurchaseStatus || !storeName
-            || isStorePurchaseAllowed(storeName, !!v.isBuyback);
-        const purchaseBlocked = ctx?.showPurchaseStatus && !purchaseAllowed;
-        const rowClass = purchaseBlocked ? ' tm-sl-unit-row--blocked' : '';
-
-        const gradeCell = v.grade
-            ? `<span class="tm-sl-table-grade" style="${getGradeStyle(v.grade)}">${esc(v.grade)}</span>`
-            : '—';
-        const gbCell = v.gb ? `<span class="tm-sl-table-gb">${esc(v.gb)}</span>` : '—';
-        const colorCell = v.color
-            ? `<span class="tm-sl-table-color">${colorSwatchHTML(v.color, hexMap)}${esc(v.color)}</span>`
-            : '—';
-        let bbCell = '';
-        if (purchaseBlocked) {
-            bbCell = v.isBuyback
-                ? '<span class="tm-sl-table-bb tm-sl-table-bb--blocked" title="Buyback IKE — δεν αγοράζεται">BB ✕</span>'
-                : '<span class="tm-sl-table-blocked" title="Δεν αγοράζεται">✕ Όχι</span>';
-        } else if (v.isBuyback) {
-            bbCell = '<span class="tm-sl-table-bb">BB</span>';
-        }
-        const barcodeCell = `<span class="tm-sl-table-barcode">${esc(v.barcode)}</span>`;
-        const priceCell = v.price ? `<span class="tm-sl-table-price">${esc(v.price)}</span>` : '—';
-        const actionsCell = `<div class="tm-sl-table-actions">
-            <button type="button" class="tm-sl-unit-btn tm-sl-unit-btn--primary" data-tm-sl-copy="${esc(v.barcode)}" title="Αντιγραφή barcode">Copy</button>
-            <button type="button" class="tm-sl-unit-btn" data-tm-sl-open="${esc(v.barcode)}" title="Άνοιγμα στο σύστημα">Open</button>
-        </div>`;
-
-        return `<tr class="tm-sl-unit-row${rowClass}" data-barcode="${esc(v.barcode)}">
-            <td>${gradeCell}</td>
-            <td>${gbCell}</td>
-            <td>${colorCell}</td>
-            <td>${bbCell}</td>
-            <td>${barcodeCell}</td>
-            <td>${priceCell}</td>
-            <td>${actionsCell}</td>
-        </tr>`;
     }
 
     function buildNetworkStoreMetaInner(store, ctx) {
@@ -52481,34 +53127,12 @@ window.initOrderTracking = initOrderTracking;
     }
 
     function buildNetworkStoreTable(store, ctx) {
-        const rows = store.variants.map((v) => buildNetworkUnitTableRow(v, ctx)).join('');
-        return `<div class="tm-sl-network-detail-table-wrap">
-            <table class="tm-sl-unit-table">
-                <thead>
-                    <tr>
-                        <th>Βαθμ.</th>
-                        <th>GB</th>
-                        <th>Χρώμα</th>
-                        <th></th>
-                        <th>Barcode</th>
-                        <th>Τιμή</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>${rows}</tbody>
-            </table>
-        </div>`;
+        return buildUnitTable(store.variants, ctx);
     }
 
     function buildNetworkDetailHead(store, ctx) {
-        const chipsHtml = ctx?.filterChipsHtml || '';
-        const filterBlock = chipsHtml
-            ? `<div class="tm-sl-chips tm-sl-chips--network-detail" id="tm-sl-network-filters">${chipsHtml}</div>`
-            : '';
-
         return `<div class="tm-sl-network-detail-head">
             <div class="tm-sl-network-detail-head__row">${buildNetworkStoreMetaInner(store, ctx)}</div>
-            ${filterBlock}
         </div>`;
     }
 
@@ -52520,40 +53144,66 @@ window.initOrderTracking = initOrderTracking;
             ? window.getStoreDistanceLabel?.(myStore, store.name)
             : '';
         const distChip = distLabel ? `<span class="tm-sl-store-dist">${esc(distLabel)}</span>` : '';
-        const preview = store.variants.slice(0, 4).map((v) => formatVariantLine(v, ctx)).join(' · ');
+        const recommended = idx === 0 ? ' is-recommended' : '';
 
-        return `<button type="button" class="tm-sl-network-store ${signal}${isActive ? ' is-active' : ''}"
+        return `<button type="button" class="tm-sl-network-store ${signal}${isActive ? ' is-active' : ''}${recommended}"
             data-tm-sl-select-store="${idx}" role="tab"
             aria-selected="${isActive ? 'true' : 'false'}" tabindex="${isActive ? '0' : '-1'}">
             <span class="tm-sl-network-store__name">${esc(store.name)}</span>
             <span class="tm-sl-network-store__meta">${distChip}${bbBadge}<span>${store.variants.length} τεμ.</span></span>
-            ${preview ? `<span class="tm-sl-network-store__preview">${esc(preview)}</span>` : ''}
         </button>`;
     }
 
     function buildNetworkStoreBoard(modelName, storeRows, ctx) {
+        const hasFilters = !!(ctx?.hasActiveFilters);
         if (!storeRows.length) {
-            return buildEmptyState('🔍', 'Δεν βρέθηκε σε άλλα καταστήματα', `Κανένα κατάστημα δικτύου δεν έχει ${esc(modelName)}`);
+            return buildEmptyState(
+                ICON.emptySearch,
+                'Δεν βρέθηκε σε άλλα καταστήματα',
+                hasFilters
+                    ? `Κανένα κατάστημα με ${modelName} για τα τρέχοντα φίλτρα. Καθαρίστε τα φίλτρα ή δοκιμάστε άλλο μοντέλο.`
+                    : `Κανένα κατάστημα δικτύου δεν έχει ${modelName} αυτή τη στιγμή.`,
+                hasFilters
+                    ? { actionId: 'clear-filters', actionLabel: 'Καθαρισμός φίλτρων' }
+                    : { actionId: 'back-models', actionLabel: 'Επιστροφή στα μοντέλα' }
+            );
         }
+        const tableCtx = { ...ctx, modelName };
         const navHtml = storeRows.map((store, idx) => buildNetworkStoreNavItem(store, idx, ctx, idx === 0)).join('');
         const panelsHtml = storeRows.map((store, idx) =>
             `<div class="tm-sl-network-panel" data-tm-sl-store-panel="${idx}">
                 <div class="tm-sl-network-panel-meta">${buildNetworkStoreMetaInner(store, ctx)}</div>
-                ${buildNetworkStoreTable(store, ctx)}
+                ${buildUnitTable(store.variants, tableCtx)}
             </div>`
         ).join('');
 
+        const top = storeRows[0];
+        const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
+        const distLabel = ctx?.showDistance && myStore
+            ? window.getStoreDistanceLabel?.(myStore, top.name)
+            : '';
+        const insightBits = [`Προτεινόμενο · ${top.name}`];
+        if (distLabel) insightBits.push(distLabel);
+        if (storeHasAnyBuyable(top)) insightBits.push('αγοράσιμο');
+        const insight = `<div class="tm-sl-insight"><span class="tm-sl-insight__best">${esc(insightBits.join(' · '))}</span></div>`;
+
         return `<div class="tm-sl-network-board">
             <aside class="tm-sl-network-stores" role="tablist" aria-label="Καταστήματα">
-                <div class="tm-sl-network-stores__label">Καταστήματα · ${storeRows.length}</div>
+                <div class="tm-sl-network-stores__label">Κοντά + αγοράσιμο</div>
                 ${navHtml}
             </aside>
             <main class="tm-sl-network-detail" id="tm-sl-network-detail" role="tabpanel">
+                ${insight}
                 ${buildNetworkDetailHead(storeRows[0], ctx)}
-                <div id="tm-sl-network-table-root">${buildNetworkStoreTable(storeRows[0], ctx)}</div>
+                <div id="tm-sl-network-table-root">${buildUnitTable(storeRows[0].variants, tableCtx)}</div>
             </main>
             <div class="tm-sl-network-panels" hidden aria-hidden="true">${panelsHtml}</div>
         </div>`;
+    }
+
+    function storeHasAnyBuyable(store) {
+        if (!store?.variants?.length) return false;
+        return store.variants.some((v) => isStorePurchaseAllowed(store.name, !!v.isBuyback));
     }
 
     function buildStoreBoard(modelName, myStore, allRows, ctx) {
@@ -52564,7 +53214,7 @@ window.initOrderTracking = initOrderTracking;
             html += `<div class="tm-sl-mine-banner tm-sl-mine-banner--yes">
                 <span class="tm-sl-mine-icon">✅</span>
                     <div>
-                    <div class="tm-sl-mine-text">Υπάρχει στο κατάστημά σας</div>
+                    <div class="tm-sl-mine-text">Υπάρχει στο ${esc(getMyStoreLabel())}</div>
                     <div class="tm-sl-mine-detail">${myStore.variants.length} ${myStore.variants.length === 1 ? 'συσκευή' : 'συσκευές'} — ${esc(myStore.preview)}</div>
                     </div>
             </div>`;
@@ -52572,14 +53222,14 @@ window.initOrderTracking = initOrderTracking;
             html += `<div class="tm-sl-mine-banner tm-sl-mine-banner--no">
                 <span class="tm-sl-mine-icon">—</span>
                 <div>
-                    <div class="tm-sl-mine-text">Δεν υπάρχει στο κατάστημά σας</div>
+                    <div class="tm-sl-mine-text">Δεν υπάρχει στο ${esc(getMyStoreLabel())}</div>
                     <div class="tm-sl-mine-detail">Δείτε παρακάτω ποια καταστήματα έχουν ${esc(modelName)}</div>
             </div>
         </div>`;
     }
 
         if (!allRows?.length) {
-            html += buildEmptyState('🔍', 'Δεν βρέθηκε σε κανένα κατάστημα', 'Δοκιμάστε άλλα φίλτρα ή ανανέωση δεδομένων');
+            html += buildEmptyState(ICON.emptySearch, 'Δεν βρέθηκε σε κανένα κατάστημα', 'Δοκιμάστε άλλα φίλτρα ή ανανέωση δεδομένων');
             return html;
         }
 
@@ -52594,7 +53244,7 @@ window.initOrderTracking = initOrderTracking;
 
         if (myStore && myStore.variants.length) {
             html += `<section class="tm-sl-region">
-                <h3 class="tm-sl-region-title">Το κατάστημά μου</h3>
+                <h3 class="tm-sl-region-title">${esc(getMyStoreLabel())}</h3>
                 <div class="tm-sl-store-list">${buildStoreRowHTML(myStore, globalIdx, ctx)}</div>
             </section>`;
             globalIdx += 1;
@@ -52616,13 +53266,25 @@ window.initOrderTracking = initOrderTracking;
         return html;
     }
 
-    function showToast(overlay, message) {
+    function showToast(overlay, message, opts = {}) {
         const toast = overlay?.querySelector('#tm-sl-toast');
         if (!toast) return;
-        toast.textContent = message;
+        const barcode = opts.barcode || '';
+        if (barcode) {
+            toast.innerHTML = `<span class="tm-sl-toast__msg">${esc(message)}</span>
+                <button type="button" class="tm-sl-toast__open" data-tm-sl-open="${esc(barcode)}">Άνοιγμα</button>`;
+            toast.querySelector('[data-tm-sl-open]')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                window.open(`https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(barcode)}`, '_blank');
+            });
+        } else {
+            toast.textContent = message;
+        }
         toast.classList.add('is-visible');
         clearTimeout(toast._tmHideTimer);
-        toast._tmHideTimer = setTimeout(() => toast.classList.remove('is-visible'), 2200);
+        toast._tmHideTimer = setTimeout(() => {
+            toast.classList.remove('is-visible');
+        }, opts.durationMs || 2600);
     }
 
     function updateFreshness(overlay, lastUpdated) {
@@ -52631,10 +53293,121 @@ window.initOrderTracking = initOrderTracking;
         if (!wrap || !lastUpdated) return;
         const ageMs = Date.now() - lastUpdated.getTime();
         wrap.classList.remove('tm-sl-freshness--fresh', 'tm-sl-freshness--cached', 'tm-sl-freshness--stale');
-        if (ageMs < 5 * 60 * 1000) wrap.classList.add('tm-sl-freshness--fresh');
-        else if (ageMs < 60 * 60 * 1000) wrap.classList.add('tm-sl-freshness--cached');
-        else wrap.classList.add('tm-sl-freshness--stale');
-        if (updatedEl) updatedEl.textContent = lastUpdated.toLocaleString('el-GR');
+        let label = 'Cache';
+        if (ageMs < 5 * 60 * 1000) {
+            wrap.classList.add('tm-sl-freshness--fresh');
+            label = 'Ζωντανά';
+        } else if (ageMs < 60 * 60 * 1000) {
+            wrap.classList.add('tm-sl-freshness--cached');
+            label = 'Cache';
+        } else {
+            wrap.classList.add('tm-sl-freshness--stale');
+            label = 'Παλιά δεδομένα';
+        }
+        if (updatedEl) {
+            updatedEl.textContent = `${label} · ${lastUpdated.toLocaleString('el-GR')}`;
+        }
+    }
+
+    function formatEtaMs(ms) {
+        if (ms == null || !Number.isFinite(ms)) return '';
+        if (ms <= 800) return 'Λιγότερο από 1 δευτ.';
+        const sec = Math.ceil(ms / 1000);
+        if (sec < 60) return `Περίπου ${sec} δευτ.`;
+        const min = Math.floor(sec / 60);
+        const rem = sec % 60;
+        if (min === 1 && rem === 0) return 'Περίπου 1 λεπτό';
+        if (rem === 0) return `Περίπου ${min} λεπτά`;
+        if (min === 1) return `Περίπου 1 λεπτό ${rem} δευτ.`;
+        return `Περίπου ${min} λεπτά ${rem} δευτ.`;
+    }
+
+    function showLoadProgress(overlay, opts = {}) {
+        const wrap = overlay?.querySelector('#tm-sl-load');
+        if (!wrap) return;
+        wrap.hidden = false;
+        updateLoadProgress(overlay, {
+            label: opts.label || 'Φόρτωση…',
+            meta: opts.meta || '',
+            ratio: opts.ratio,
+            done: opts.done,
+            total: opts.total,
+            etaMs: opts.etaMs,
+            indeterminate: opts.indeterminate !== false && opts.ratio == null && opts.total == null,
+        });
+    }
+
+    function updateLoadProgress(overlay, opts = {}) {
+        const wrap = overlay?.querySelector('#tm-sl-load');
+        const labelEl = overlay?.querySelector('#tm-sl-load-label');
+        const etaEl = overlay?.querySelector('#tm-sl-load-eta');
+        const barEl = overlay?.querySelector('#tm-sl-load-bar');
+        const metaEl = overlay?.querySelector('#tm-sl-load-meta');
+        if (!wrap || wrap.hidden) return;
+
+        if (opts.label != null && labelEl) labelEl.textContent = opts.label;
+
+        let ratio = opts.ratio;
+        if (ratio == null && opts.total > 0 && opts.done != null) {
+            ratio = Math.max(0, Math.min(1, opts.done / opts.total));
+        }
+
+        const indeterminate = opts.indeterminate === true
+            || (ratio == null && !(opts.total > 0));
+        wrap.classList.toggle('is-indeterminate', indeterminate);
+
+        if (barEl && !indeterminate && ratio != null) {
+            barEl.style.width = `${Math.round(ratio * 100)}%`;
+        } else if (barEl && indeterminate) {
+            barEl.style.width = '';
+        }
+
+        if (etaEl) {
+            const etaText = formatEtaMs(opts.etaMs);
+            etaEl.textContent = etaText ? `Απομένουν: ${etaText}` : '';
+        }
+
+        if (metaEl) {
+            if (opts.meta != null) {
+                metaEl.textContent = opts.meta;
+            } else if (opts.total > 0 && opts.done != null) {
+                metaEl.textContent = `${opts.done} / ${opts.total}`;
+            } else if (opts.percent != null) {
+                metaEl.textContent = `${Math.round(opts.percent)}%`;
+            }
+        }
+    }
+
+    function hideLoadProgress(overlay) {
+        const wrap = overlay?.querySelector('#tm-sl-load');
+        if (!wrap) return;
+        wrap.hidden = true;
+        wrap.classList.remove('is-indeterminate');
+        const barEl = overlay.querySelector('#tm-sl-load-bar');
+        if (barEl) barEl.style.width = '0%';
+        const etaEl = overlay.querySelector('#tm-sl-load-eta');
+        if (etaEl) etaEl.textContent = '';
+        const metaEl = overlay.querySelector('#tm-sl-load-meta');
+        if (metaEl) metaEl.textContent = '';
+    }
+
+    function setRefreshing(overlay, refreshing) {
+        const body = overlay?.querySelector('#tm-sl-body');
+        const btn = overlay?.querySelector('#tm-sl-refresh');
+        body?.classList.toggle('is-refreshing', !!refreshing);
+        if (!btn) return;
+        btn.classList.toggle('is-busy', !!refreshing);
+        if (refreshing) {
+            btn.setAttribute('disabled', 'true');
+            btn.innerHTML = `<span class="tm-sl-btn-spin">${ICON.refresh}</span>`;
+            btn.setAttribute('aria-label', 'Ανανέωση…');
+            btn.title = 'Ανανέωση…';
+        } else {
+            btn.removeAttribute('disabled');
+            btn.innerHTML = ICON.refresh;
+            btn.setAttribute('aria-label', 'Ανανέωση');
+            btn.title = 'Ανανέωση';
+        }
     }
 
     function setStoresModelHeader(overlay, modelName, subtitle) {
@@ -52644,11 +53417,7 @@ window.initOrderTracking = initOrderTracking;
         shell?.classList.add('tm-sl-step--stores');
         if (titleEl) {
             titleEl.className = 'tm-sl-title tm-sl-title--model';
-            const phoneIcon = ICON.phone.replace('width="14"', 'width="18"').replace('height="14"', 'height="18"');
-            titleEl.innerHTML = `<span class="tm-sl-model-title">
-                <span class="tm-sl-model-title__icon">${phoneIcon}</span>
-                <span class="tm-sl-model-title__name">${esc(modelName)}</span>
-            </span>`;
+            titleEl.textContent = modelName || '';
         }
         if (subtitleEl) subtitleEl.textContent = subtitle || '';
     }
@@ -52676,6 +53445,7 @@ window.initOrderTracking = initOrderTracking;
         mineTab.setAttribute('aria-selected', isMine ? 'true' : 'false');
         networkTab.setAttribute('aria-selected', !isMine ? 'true' : 'false');
         shell?.classList.toggle('tm-sl-view--network', !isMine);
+        updateMyStoreLabels(overlay);
     }
 
     function setDensity(overlay, compact) {
@@ -52690,8 +53460,16 @@ window.initOrderTracking = initOrderTracking;
     }
 
     window.PhoneCatalogUI = {
+        ICON,
         STYLES,
+        ensureStylesInjected,
         esc,
+        getMyStoreLabel,
+        updateMyStoreLabels,
+        formatActiveFiltersSummary,
+        buildContextStrip,
+        buildStatusLegend,
+        buildCoachTipHtml,
         highlightMatch,
         colorSwatchHTML,
         gradeChipHTML,
@@ -52712,14 +53490,22 @@ window.initOrderTracking = initOrderTracking;
         buildSkeletonGrid,
         buildSkeletonStores,
         buildSkeletonNetworkBoard,
+        buildSkeletonMineBoard,
         buildPhoneListSection,
         buildUnitRowHTML,
+        buildUnitTable,
+        buildUnitTableRow,
         formatVariantLine,
         buildStoreChipHtml,
         buildPurchaseBadgeHtml,
         isStorePurchaseAllowed,
         showToast,
         updateFreshness,
+        setRefreshing,
+        showLoadProgress,
+        updateLoadProgress,
+        hideLoadProgress,
+        formatEtaMs,
         setStoresModelHeader,
         clearStoresModelHeader,
         updateBreadcrumb,
@@ -55038,21 +55824,41 @@ async function resolvePhonesStoreDetails(phones, options = {}) {
  * First loads the initial page, then loads with pagesize parameter, then parses
  * @returns {Promise<Array<{barcode: string, name: string, model: string, grade: string, imei: string, unitsRemaining: number}>>}
  */
-async function fetchPhoneList() {
+async function fetchPhoneList(options = {}) {
+    const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
     return new Promise((resolve, reject) => {
+        onProgress({ phase: 'init', ratio: 0.04 });
         // Step 1: Load initial page with qs=55.&recordspp=-1
         GM_xmlhttpRequest({
             method: 'GET',
             url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&recordspp=-1',
             onload: function(firstResponse) {
                 console.log('[MMS Phone List] First page loaded, now loading with pagesize=500');
-                
+                onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
+
                 // Step 2: Load with pagesize=500
                 GM_xmlhttpRequest({
                     method: 'GET',
                     url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|',
+                    onprogress: function(e) {
+                        if (e.lengthComputable && e.total > 0) {
+                            onProgress({
+                                phase: 'download',
+                                ratio: e.loaded / e.total,
+                                loaded: e.loaded,
+                                total: e.total,
+                            });
+                        } else if (e.loaded > 0) {
+                            onProgress({
+                                phase: 'download',
+                                indeterminate: true,
+                                loaded: e.loaded,
+                            });
+                        }
+                    },
                     onload: function(response) {
                 try {
+                    onProgress({ phase: 'parse', ratio: 0.9 });
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(response.responseText, 'text/html');
                     detectAndCacheCurrentStoreName(doc);
@@ -55235,6 +56041,7 @@ async function fetchPhoneList() {
                         console.log(`[MMS Phone List] Successfully parsed ${phones.length} phones`);
                         // Save to cache
                         savePhoneListCache(phones);
+                        onProgress({ phase: 'done', ratio: 1 });
                         resolve(phones);
                     } catch (error) {
                         console.error('[MMS Phone List] Error parsing phone list:', error);
@@ -55258,19 +56065,39 @@ async function fetchPhoneList() {
 /**
  * Fetch and parse phones that are available in other storehouses (iUnitsRemainingOtherStoreHouses > 0)
  */
-async function fetchOtherStorePhones() {
+async function fetchOtherStorePhones(options = {}) {
+    const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
     const cached = getOtherStoreCache();
     if (cached) {
+        onProgress({ phase: 'done', ratio: 1, fromCache: true });
         return cached;
     }
     
     return new Promise((resolve, reject) => {
         const fetchWithUrl = (url, fallbackUrl) => {
+            onProgress({ phase: 'init', ratio: 0.05 });
             GM_xmlhttpRequest({
                 method: 'GET',
                 url,
+                onprogress: function(e) {
+                    if (e.lengthComputable && e.total > 0) {
+                        onProgress({
+                            phase: 'download',
+                            ratio: e.loaded / e.total,
+                            loaded: e.loaded,
+                            total: e.total,
+                        });
+                    } else if (e.loaded > 0) {
+                        onProgress({
+                            phase: 'download',
+                            indeterminate: true,
+                            loaded: e.loaded,
+                        });
+                    }
+                },
                 onload: function(response) {
                     try {
+                        onProgress({ phase: 'parse', ratio: 0.9 });
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(response.responseText, 'text/html');
                         detectAndCacheCurrentStoreName(doc);
@@ -55361,6 +56188,7 @@ async function fetchOtherStorePhones() {
                         });
                         
                         saveOtherStoreCache(result);
+                        onProgress({ phase: 'done', ratio: 1 });
                         resolve(result);
                     } catch (err) {
                         if (fallbackUrl) {
@@ -55790,6 +56618,7 @@ window.fetchOtherStorePhones = fetchOtherStorePhones;
 window.loadPhoneListCache = loadPhoneListCache;
 window.isPhoneListCacheStale = isPhoneListCacheStale;
 window.getPhoneListCacheAgeMs = getPhoneListCacheAgeMs;
+window.getOtherStoreCache = getOtherStoreCache;
 window.syncPhoneColorCatalog = syncPhoneColorCatalog;
 window.extractBaseModel = extractBaseModel;
 window.extractGB = extractGB;
@@ -56890,9 +57719,120 @@ if (document.body) {
     const DENSITY_KEY = 'tm_sl_density_compact';
     const SORT_KEY = 'tm_sl_model_sort';
     const CATALOG_VIEW_KEY = 'tm_sl_catalog_view';
+    const RECENT_MODELS_KEY = 'tm_sl_recent_models_v1';
+    const LOAD_STATS_KEY = 'tm_sl_load_stats_v1';
+    const DEFAULT_LOAD_STATS = {
+        phoneListMs: 9000,
+        otherStoresMs: 7000,
+        storeResolvePerItemMs: 180,
+    };
+
+    function loadRecentModels() {
+        try {
+            const raw = GM_getValue(RECENT_MODELS_KEY, '[]');
+            const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+            return Array.isArray(parsed) ? parsed.filter((m) => typeof m === 'string' && m.trim()).slice(0, 8) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function pushRecentModel(modelName) {
+        const name = String(modelName || '').trim();
+        if (!name) return loadRecentModels();
+        const next = [name, ...loadRecentModels().filter((m) => m !== name)].slice(0, 8);
+        GM_setValue(RECENT_MODELS_KEY, JSON.stringify(next));
+        return next;
+    }
+
+    function looksLikeUnitCode(query) {
+        const s = String(query || '').replace(/\s+/g, '');
+        return /^\d{8,}$/.test(s);
+    }
+
+    function normalizeUnitCode(query) {
+        return String(query || '').replace(/\s+/g, '');
+    }
+
+    function phoneMatchesUnitCode(phone, code) {
+        if (!phone || !code) return false;
+        if (String(phone.barcode || '') === code) return true;
+        const imei = String(phone.imei || '').replace(/\D/g, '');
+        return !!imei && (imei === code || imei.includes(code));
+    }
 
     function cleanStoreName(name) {
         return String(name || '').replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
+    }
+
+    function resolveMyStoreLabel() {
+        if (typeof window.PhoneCatalogUI?.getMyStoreLabel === 'function') {
+            return window.PhoneCatalogUI.getMyStoreLabel();
+        }
+        const name = typeof window.getCurrentStoreName === 'function'
+            ? String(window.getCurrentStoreName() || '').trim()
+            : '';
+        return name || 'Το κατάστημά μου';
+    }
+
+    function loadLoadStats() {
+        try {
+            const raw = GM_getValue(LOAD_STATS_KEY, null);
+            const parsed = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : null;
+            return { ...DEFAULT_LOAD_STATS, ...(parsed || {}) };
+        } catch (e) {
+            return { ...DEFAULT_LOAD_STATS };
+        }
+    }
+
+    function saveLoadStats(stats) {
+        GM_setValue(LOAD_STATS_KEY, JSON.stringify(stats || DEFAULT_LOAD_STATS));
+    }
+
+    function blendDuration(prev, next) {
+        const n = Math.max(400, Number(next) || 0);
+        if (!prev || !Number.isFinite(prev)) return n;
+        return Math.round(prev * 0.65 + n * 0.35);
+    }
+
+    function storeHasBuyableUnit(store) {
+        if (!store?.variants?.length) return false;
+        return store.variants.some((v) => {
+            if (typeof window.isStoreAllowedForPhone !== 'function') return true;
+            return window.isStoreAllowedForPhone(store.name, !!v.isBuyback);
+        });
+    }
+
+    function sortNetworkStoreRows(rows) {
+        const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
+        return [...rows].sort((a, b) => {
+            const aBuy = storeHasBuyableUnit(a) ? 0 : 1;
+            const bBuy = storeHasBuyableUnit(b) ? 0 : 1;
+            if (aBuy !== bBuy) return aBuy - bBuy;
+            if (typeof window.compareStoresByProximity === 'function') {
+                const prox = window.compareStoresByProximity(a.name, b.name, myStore);
+                if (prox) return prox;
+            }
+            return (a.name || '').localeCompare(b.name || '', 'el');
+        });
+    }
+
+    function sortStoreVariants(variants, storeName) {
+        return [...variants].sort((a, b) => {
+            const aAllowed = typeof window.isStoreAllowedForPhone === 'function'
+                ? window.isStoreAllowedForPhone(storeName, !!a.isBuyback)
+                : true;
+            const bAllowed = typeof window.isStoreAllowedForPhone === 'function'
+                ? window.isStoreAllowedForPhone(storeName, !!b.isBuyback)
+                : true;
+            if (aAllowed !== bAllowed) return aAllowed ? -1 : 1;
+            if (!!a.isBuyback !== !!b.isBuyback) return a.isBuyback ? 1 : -1;
+            const gradeCmp = (typeof window.comparePhoneGrades === 'function')
+                ? window.comparePhoneGrades(a.grade || '', b.grade || '')
+                : String(a.grade || '').localeCompare(String(b.grade || ''));
+            if (gradeCmp) return gradeCmp;
+            return String(a.barcode || '').localeCompare(String(b.barcode || ''));
+        });
     }
 
     function phoneToVariant(phone, helpers) {
@@ -56904,6 +57844,8 @@ if (document.body) {
             barcode: phone.barcode,
             price: phone.retailPrice || '',
             isBuyback: !!phone.isBuyback,
+            imei: phone.imei || '',
+            modelName: helpers.extractBaseModel?.(phone.model) || phone.model || '',
             phone,
         };
     }
@@ -57086,12 +58028,12 @@ if (document.body) {
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
             variants.push({
                 ...phoneToVariant(phone, helpers),
-                storeName: 'Το κατάστημά μου',
+                storeName: resolveMyStoreLabel(),
                 isMine: true,
             });
         });
 
-        return variants;
+        return sortStoreVariants(variants, resolveMyStoreLabel());
     }
 
     function buildNetworkStoreBoardData(model, otherStorePhones, filters, helpers) {
@@ -57122,24 +58064,17 @@ if (document.body) {
             });
         });
 
-        return [...storeMap.values()]
+        return sortNetworkStoreRows([...storeMap.values()]
             .filter((s) => s.variants.length > 0)
             .map(({ name, isMine, variants }) => ({
                 name,
                 isMine,
-                variants,
+                variants: sortStoreVariants(variants, name),
                 preview: variants.slice(0, 3).map((v) => {
                     const bits = [v.grade, v.gb, v.color].filter(Boolean);
                     return bits.join(' · ');
                 }).join(' · '),
-            }))
-            .sort((a, b) => {
-                const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
-                if (typeof window.compareStoresByProximity === 'function') {
-                    return window.compareStoresByProximity(a.name, b.name, myStore);
-                }
-                return a.name.localeCompare(b.name, 'el');
-            });
+            })));
     }
 
     function buildStoreBoardData(model, allPhones, otherStorePhones, filters, helpers) {
@@ -57161,7 +58096,7 @@ if (document.body) {
         filterIphoneTitlePhones(allPhones).forEach((phone) => {
             if ((phone.unitsRemaining || 0) <= 0) return;
             if (!phoneMatchesFilters(phone, model, filters, helpers)) return;
-            addVariant(MINE_STORE_KEY, 'Το κατάστημά μου', true, phoneToVariant(phone, helpers));
+            addVariant(MINE_STORE_KEY, resolveMyStoreLabel(), true, phoneToVariant(phone, helpers));
         });
 
         filterIphoneTitlePhones(otherStorePhones).forEach((phone) => {
@@ -57263,6 +58198,11 @@ if (document.body) {
     async function showStoreLocatorModal() {
         if (document.querySelector('.tm-sl-overlay')) return;
 
+        // Inject CSS before building DOM so the first paint is already styled.
+        if (typeof window.PhoneCatalogUI?.ensureStylesInjected === 'function') {
+            window.PhoneCatalogUI.ensureStylesInjected();
+        }
+
         if (typeof window.trackDailyStat === 'function' && window.config && window.STORAGE_KEYS) {
             window.trackDailyStat(window.config, window.STORAGE_KEYS, 'phoneCatalogOpen');
         }
@@ -57315,12 +58255,16 @@ if (document.body) {
         UI.setDensity(overlay, densityCompact);
         UI.updateViewTabs(overlay, catalogView);
 
+        let recentModels = loadRecentModels();
+        let pendingFlashBarcode = null;
+
         function syncCatalogHeaders() {
             if (step === 'stores' && selectedModel) return;
             UI.clearStoresModelHeader(overlay);
+            UI.updateMyStoreLabels(overlay);
             if (catalogView === 'mine') {
-                titleEl.textContent = 'Το κατάστημά μου';
-                subtitleEl.textContent = 'Συσκευές που έχετε σε stock';
+                titleEl.textContent = UI.getMyStoreLabel();
+                subtitleEl.textContent = 'Τι έχετε σε stock τώρα';
             } else {
                 titleEl.textContent = 'Άλλα καταστήματα';
                 subtitleEl.textContent = 'Πού υπάρχει κάθε μοντέλο στο δίκτυο';
@@ -57338,6 +58282,7 @@ if (document.body) {
                     if (typeof window.clearPhoneCatalogCaches === 'function') {
                         window.clearPhoneCatalogCaches();
                     }
+                    UI.updateMyStoreLabels(overlay);
                     if (step === 'stores' && selectedModel) {
                         renderStoresStep();
                     } else {
@@ -57390,6 +58335,7 @@ if (document.body) {
             bodyEl.querySelectorAll('.tm-sl-model-card[data-tm-sl-model]').forEach((card) => {
                 const activate = () => {
                     selectedModel = card.getAttribute('data-tm-sl-model');
+                    recentModels = pushRecentModel(selectedModel);
                     renderStoresStep();
                 };
                 card.addEventListener('click', activate);
@@ -57403,6 +58349,7 @@ if (document.body) {
             if (!keyboardBound) {
                 bindGridKeyboard(bodyEl, '.tm-sl-model-card[data-tm-sl-model]', (el) => {
                     selectedModel = el.getAttribute('data-tm-sl-model');
+                    recentModels = pushRecentModel(selectedModel);
                     renderStoresStep();
                 });
                 keyboardBound = true;
@@ -57415,15 +58362,50 @@ if (document.body) {
             }
         }
 
+        function formatCopyToast(el, code) {
+            const row = el.closest('tr.tm-sl-unit-row');
+            const bits = [];
+            const model = row?.getAttribute('data-tm-sl-model') || selectedModel || '';
+            const grade = row?.getAttribute('data-tm-sl-grade') || '';
+            const gb = row?.getAttribute('data-tm-sl-gb') || '';
+            const color = row?.getAttribute('data-tm-sl-color') || '';
+            const shortModel = String(model).replace(/^IPHONE\s+/i, '').trim();
+            if (shortModel) bits.push(shortModel);
+            if (grade) bits.push(grade);
+            if (gb) bits.push(gb);
+            if (color) bits.push(color);
+            const shortCode = code.length > 8 ? `${code.slice(0, 4)}…${code.slice(-3)}` : code;
+            bits.push(shortCode);
+            return `Αντιγράφηκε · ${bits.join(' · ')}`;
+        }
+
+        function openProductByBarcode(code) {
+            if (!code) return;
+            window.open(`https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`, '_blank');
+        }
+
         function wireUnitActions() {
-            bodyEl.querySelectorAll('[data-tm-sl-copy]').forEach((btn) => {
-                btn.addEventListener('click', (e) => {
+            bodyEl.querySelectorAll('[data-tm-sl-copy]').forEach((el) => {
+                el.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const code = btn.getAttribute('data-tm-sl-copy');
-                    if (code && typeof GM_setClipboard === 'function') {
-                        GM_setClipboard(code);
-                        trackCatalogStat('phoneCatalogBarcodeCopy');
-                        UI.showToast(overlay, `Αντιγράφηκε ✓ ${code}`);
+                    const code = el.getAttribute('data-tm-sl-copy');
+                    if (!code || typeof GM_setClipboard !== 'function') return;
+                    GM_setClipboard(code);
+                    trackCatalogStat('phoneCatalogBarcodeCopy');
+                    if (el.matches('button')) {
+                        const prev = el.innerHTML;
+                        const prevLabel = el.getAttribute('aria-label') || '';
+                        el.classList.add('is-copied');
+                        el.innerHTML = 'ΟΚ';
+                        el.setAttribute('aria-label', 'Αντιγράφηκε');
+                        clearTimeout(el._tmCopyTimer);
+                        el._tmCopyTimer = setTimeout(() => {
+                            el.classList.remove('is-copied');
+                            el.innerHTML = prev;
+                            if (prevLabel) el.setAttribute('aria-label', prevLabel);
+                        }, 1200);
+                    } else {
+                        UI.showToast(overlay, formatCopyToast(el, code), { barcode: code });
                     }
                 });
             });
@@ -57431,9 +58413,43 @@ if (document.body) {
             bodyEl.querySelectorAll('[data-tm-sl-open]').forEach((btn) => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    const code = btn.getAttribute('data-tm-sl-open');
-                    if (code) {
-                        window.open(`https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=${encodeURIComponent(code)}`, '_blank');
+                    openProductByBarcode(btn.getAttribute('data-tm-sl-open'));
+                });
+            });
+
+            bodyEl.querySelectorAll('tr.tm-sl-unit-row[data-tm-sl-open-row]').forEach((row) => {
+                row.addEventListener('dblclick', (e) => {
+                    if (e.target.closest('[data-tm-sl-copy]')) return;
+                    openProductByBarcode(row.getAttribute('data-tm-sl-open-row'));
+                });
+            });
+
+            if (pendingFlashBarcode) {
+                const flashCode = pendingFlashBarcode;
+                const flashRow = [...bodyEl.querySelectorAll('tr.tm-sl-unit-row[data-barcode]')]
+                    .find((row) => row.getAttribute('data-barcode') === flashCode);
+                if (flashRow) {
+                    flashRow.classList.add('tm-sl-unit-row--flash');
+                    flashRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    setTimeout(() => flashRow.classList.remove('tm-sl-unit-row--flash'), 2200);
+                }
+                pendingFlashBarcode = null;
+            }
+
+            bodyEl.querySelectorAll('[data-tm-sl-empty-action]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const action = btn.getAttribute('data-tm-sl-empty-action');
+                    if (action === 'clear-filters') {
+                        activeFilters = { grade: '', gb: '', color: '' };
+                        renderStoresStep();
+                    } else if (action === 'clear-search') {
+                        modelQuery = '';
+                        renderModelsStep();
+                    } else if (action === 'back-models') {
+                        activeFilters = { grade: '', gb: '', color: '' };
+                        renderModelsStep();
+                    } else if (action === 'refresh') {
+                        refreshData();
                     }
                 });
             });
@@ -57549,9 +58565,20 @@ if (document.body) {
                 UI.updateViewTabs(overlay, catalogView);
                 step = 'models';
                 selectedModel = null;
-                activeFilters = { grade: '', gb: '', color: '' };
-                if (catalogView === 'network') {
+                // Keep activeFilters across mine ↔ network so a GB/grade filter survives the switch.
+                syncCatalogHeaders();
+                toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, { recentModels });
+                wireModelSearchToolbar();
+
+                const needsFetch = catalogView === 'network' && !otherStoreLoaded;
+                let skeletonTimer = null;
+                if (needsFetch) {
+                    skeletonTimer = setTimeout(() => {
+                        bodyEl.innerHTML = UI.buildSkeletonGrid(8);
+                        setStatus('Φόρτωση δικτύου…');
+                    }, 80);
                     await ensureOtherStores();
+                    clearTimeout(skeletonTimer);
                 }
                 renderModelsStep();
             };
@@ -57561,13 +58588,172 @@ if (document.body) {
 
         wireViewTabs();
 
+        let modelSearchTimer = null;
+
+        function getNearestStoreHint(model, data) {
+            const stores = data?.storeList || [];
+            if (!stores.length) return '';
+            const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
+            if (!myStore || typeof window.compareStoresByProximity !== 'function') {
+                const first = stores[0];
+                const dist = typeof window.getStoreDistanceLabel === 'function'
+                    ? window.getStoreDistanceLabel(myStore, first)
+                    : '';
+                return dist ? `${first} ${dist}` : first;
+            }
+            const sorted = [...stores].sort((a, b) => window.compareStoresByProximity(a, b, myStore));
+            const nearest = sorted[0];
+            const dist = typeof window.getStoreDistanceLabel === 'function'
+                ? window.getStoreDistanceLabel(myStore, nearest)
+                : '';
+            return dist ? `${nearest} ${dist}` : nearest;
+        }
+
+        function findPhoneByUnitCode(code) {
+            const pools = catalogView === 'mine'
+                ? [allPhones]
+                : [otherStorePhones, allPhones];
+            for (const pool of pools) {
+                const hit = (pool || []).find((p) => phoneMatchesUnitCode(p, code));
+                if (hit) return hit;
+            }
+            return null;
+        }
+
+        async function jumpToUnitCode(rawQuery) {
+            const code = normalizeUnitCode(rawQuery);
+            if (!looksLikeUnitCode(code)) return false;
+
+            if (catalogView === 'network' && !otherStoreLoaded) {
+                await ensureOtherStores();
+            }
+
+            let phone = findPhoneByUnitCode(code);
+            if (!phone && catalogView === 'mine') {
+                // Fallback: check network if not in mine stock.
+                if (!otherStoreLoaded) await ensureOtherStores();
+                phone = (otherStorePhones || []).find((p) => phoneMatchesUnitCode(p, code));
+                if (phone) {
+                    catalogView = 'network';
+                    GM_setValue(CATALOG_VIEW_KEY, catalogView);
+                    UI.updateViewTabs(overlay, catalogView);
+                }
+            }
+            if (!phone) {
+                UI.showToast(overlay, `Δεν βρέθηκε · ${code}`);
+                return true;
+            }
+
+            const model = helpers.extractBaseModel(phone.model);
+            if (!model) return true;
+            selectedModel = model;
+            recentModels = pushRecentModel(model);
+            pendingFlashBarcode = phone.barcode || code;
+            modelQuery = '';
+            await renderStoresStep();
+            if (phone.barcode && typeof GM_setClipboard === 'function') {
+                // Soft hint only — user can click to copy; don't auto-copy on jump.
+            }
+            UI.showToast(overlay, `Βρέθηκε · ${model.replace(/^IPHONE\s+/i, '')} · ${phone.barcode || code}`, {
+                barcode: phone.barcode || '',
+            });
+            return true;
+        }
+
+        function getFilteredModels() {
+            let models = buildModelIndex(allPhones, otherStorePhones, helpers, catalogView);
+            models = sortModels(models, modelSort);
+            if (modelQuery) {
+                const q = modelQuery;
+                const code = normalizeUnitCode(q);
+                if (looksLikeUnitCode(code)) {
+                    models = models.filter(([name, data]) => {
+                        // Keep model list light while typing a code; jump happens on Enter.
+                        return name.toLowerCase().includes(q);
+                    });
+                } else {
+                    models = models.filter(([name]) => name.toLowerCase().includes(q));
+                }
+            }
+            return models;
+        }
+
+        function renderModelsBody() {
+            const models = getFilteredModels();
+            bodyEl.innerHTML = UI.buildModelGrid(models, buildUiCtx({
+                getNearestStoreHint,
+            }));
+            if (catalogView === 'mine') {
+                const mineCount = allPhones.filter((p) => (p.unitsRemaining || 0) > 0).length;
+                setStatus(`${models.length} μοντέλα · ${mineCount} συσκευές στο ${resolveMyStoreLabel()}`);
+            } else {
+                setStatus(`${models.length} μοντέλα · ${otherStorePhones.length} συσκευές στο δίκτυο`);
+            }
+            wireModelCards();
+            wireUnitActions();
+        }
+
+        function wireModelSearchToolbar() {
+            const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
+            if (searchInput) {
+                searchInput.value = modelQuery;
+                searchInput.addEventListener('input', () => {
+                    modelQuery = searchInput.value.trim().toLowerCase();
+                    clearTimeout(modelSearchTimer);
+                    modelSearchTimer = setTimeout(() => {
+                        renderModelsBody();
+                    }, 120);
+                });
+                searchInput.addEventListener('keydown', async (e) => {
+                    if (e.key !== 'Enter') return;
+                    e.preventDefault();
+                    const raw = searchInput.value.trim();
+                    if (await jumpToUnitCode(raw)) return;
+                    modelQuery = raw.toLowerCase();
+                    renderModelsBody();
+                });
+            }
+
+            const sortSelect = toolbarEl.querySelector('#tm-sl-model-sort, [data-tm-sl-sort-select]');
+            if (sortSelect) {
+                sortSelect.value = modelSort;
+                sortSelect.addEventListener('change', () => {
+                    modelSort = sortSelect.value || 'name';
+                    GM_setValue(SORT_KEY, modelSort);
+                    renderModelsStep();
+                });
+            }
+
+            toolbarEl.querySelectorAll('[data-tm-sl-sort]').forEach((pill) => {
+                pill.addEventListener('click', () => {
+                    modelSort = pill.getAttribute('data-tm-sl-sort') || 'name';
+                    GM_setValue(SORT_KEY, modelSort);
+                    renderModelsStep();
+                });
+            });
+
+            toolbarEl.querySelectorAll('[data-tm-sl-recent]').forEach((chip) => {
+                chip.addEventListener('click', () => {
+                    const model = chip.getAttribute('data-tm-sl-recent');
+                    if (!model) return;
+                    selectedModel = model;
+                    recentModels = pushRecentModel(model);
+                    renderStoresStep();
+                });
+            });
+        }
+
+        function hasActiveFilters() {
+            return !!(activeFilters.grade || activeFilters.gb || activeFilters.color);
+        }
+
         function mergeNetworkStoreHints() {
             if (typeof window.mergeOtherStoresFromAllPhones === 'function') {
                 window.mergeOtherStoresFromAllPhones(allPhones, otherStorePhones);
             }
         }
 
-        async function resolveNetworkStoreDetails(modelFilter = null) {
+        async function resolveNetworkStoreDetails(modelFilter = null, onProgress = null) {
             if (storesResolving || typeof window.resolvePhonesStoreDetails !== 'function') return;
             mergeNetworkStoreHints();
             const phones = modelFilter
@@ -57577,7 +58763,10 @@ if (document.body) {
                 const stores = helpers.getEffectivePhoneStores(p);
                 return !stores.length && (parseInt(p.otherStoreCount, 10) || 0) > 0;
             });
-            if (!needsResolve) return;
+            if (!needsResolve) {
+                onProgress?.(1, 1);
+                return;
+            }
 
             storesResolving = true;
             try {
@@ -57587,6 +58776,7 @@ if (document.body) {
                     persistOtherStoreCache: true,
                     onProgress: (done, total) => {
                         setStatus(`Φόρτωση καταστημάτων ${done}/${total}…`);
+                        onProgress?.(done, total);
                     },
                 });
             } finally {
@@ -57601,40 +58791,17 @@ if (document.body) {
             lastTrackedNetworkModel = null;
             UI.updateBreadcrumb(overlay, 'models');
             syncCatalogHeaders();
-            toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort);
+            toolbarEl.innerHTML = UI.buildModelSearchToolbar(modelSort, { recentModels });
+            wireModelSearchToolbar();
 
             const searchInput = toolbarEl.querySelector('#tm-sl-model-search');
             if (searchInput) {
-                searchInput.value = modelQuery;
-                searchInput.addEventListener('input', () => {
-                    modelQuery = searchInput.value.trim().toLowerCase();
-                    renderModelsStep();
+                requestAnimationFrame(() => {
+                    if (document.activeElement !== searchInput) searchInput.focus();
                 });
-                setTimeout(() => searchInput.focus(), 50);
             }
 
-            toolbarEl.querySelectorAll('[data-tm-sl-sort]').forEach((pill) => {
-                pill.addEventListener('click', () => {
-                    modelSort = pill.getAttribute('data-tm-sl-sort') || 'name';
-                    GM_setValue(SORT_KEY, modelSort);
-                    renderModelsStep();
-                });
-            });
-
-            let models = buildModelIndex(allPhones, otherStorePhones, helpers, catalogView);
-            models = sortModels(models, modelSort);
-            if (modelQuery) {
-                models = models.filter(([name]) => name.toLowerCase().includes(modelQuery));
-            }
-
-            bodyEl.innerHTML = UI.buildModelGrid(models, buildUiCtx());
-            if (catalogView === 'mine') {
-                const mineCount = allPhones.filter((p) => (p.unitsRemaining || 0) > 0).length;
-                setStatus(`${models.length} μοντέλα · ${mineCount} συσκευές στο δικό σας`);
-            } else {
-                setStatus(`${models.length} μοντέλα · ${otherStorePhones.length} συσκευές στο δίκτυο`);
-            }
-            wireModelCards();
+            renderModelsBody();
         }
 
         async function renderStoresStep() {
@@ -57642,28 +58809,45 @@ if (document.body) {
             step = 'stores';
             UI.updateBreadcrumb(overlay, 'stores', selectedModel);
             UI.setStoresModelHeader(overlay, selectedModel, catalogView === 'mine'
-                ? 'Συσκευές στο κατάστημά σας'
+                ? `${resolveMyStoreLabel()} · κλικ στο barcode για αντιγραφή`
                 : 'Διαθεσιμότητα σε άλλα καταστήματα');
 
             const filterOptions = collectFiltersForModel(allPhones, otherStorePhones, selectedModel, helpers, catalogView);
             const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers, catalogView);
             const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({ counts: filterCounts }));
             const isNetwork = catalogView === 'network';
-            toolbarEl.innerHTML = UI.buildStoreToolbar(selectedModel, chipsHtml, { network: isNetwork });
+            const filtersSummary = typeof UI.formatActiveFiltersSummary === 'function'
+                ? UI.formatActiveFiltersSummary(activeFilters)
+                : '';
+            const filtersActive = hasActiveFilters();
+
+            let qtyLabel = '';
+            let mineVariants = null;
+            if (!isNetwork) {
+                mineVariants = buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
+                qtyLabel = `${mineVariants.length} τεμ.`;
+            }
+
+            toolbarEl.innerHTML = UI.buildStoreToolbar(selectedModel, chipsHtml, {
+                network: isNetwork,
+                filtersSummary,
+                qtyLabel,
+                showPurchaseStatus: isNetwork,
+            });
 
             toolbarEl.querySelector('#tm-sl-back')?.addEventListener('click', () => {
                 activeFilters = { grade: '', gb: '', color: '' };
                 renderModelsStep();
             });
-
-            if (!isNetwork) {
-                wireFilterChips(toolbarEl);
-            }
+            wireFilterChips(toolbarEl);
 
             if (catalogView === 'mine') {
-                const variants = buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
-                bodyEl.innerHTML = UI.buildMyStoreBoard(selectedModel, variants, buildUiCtx({ hideStoreInUnits: true }));
-                setStatus(`${variants.length} ${variants.length === 1 ? 'συσκευή' : 'συσκευές'} στο δικό σας`);
+                const variants = mineVariants || buildMyStoreUnitsData(selectedModel, allPhones, activeFilters, helpers);
+                bodyEl.innerHTML = UI.buildMyStoreBoard(selectedModel, variants, buildUiCtx({
+                    hideStoreInUnits: true,
+                    hasActiveFilters: filtersActive,
+                }));
+                setStatus(`${variants.length} ${variants.length === 1 ? 'συσκευή' : 'συσκευές'} στο ${resolveMyStoreLabel()}`);
                 if (selectedModel !== lastTrackedLookupModel) {
                     trackCatalogStat('phoneCatalogLookup');
                     lastTrackedLookupModel = selectedModel;
@@ -57672,18 +58856,35 @@ if (document.body) {
                 return;
             }
 
-            bodyEl.innerHTML = UI.buildSkeletonNetworkBoard();
-            setStatus('Φόρτωση καταστημάτων…');
+            const needsResolve = otherStorePhones.some((p) => {
+                if (helpers.extractBaseModel(p.model) !== selectedModel) return false;
+                const stores = helpers.getEffectivePhoneStores(p);
+                return !stores.length && (parseInt(p.otherStoreCount, 10) || 0) > 0;
+            });
+            if (needsResolve) {
+                bodyEl.innerHTML = UI.buildSkeletonNetworkBoard();
+                const progress = createLoadProgressController();
+                progress.beginPhaseClock();
+                progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', 0, 1);
+                setStatus('Φόρτωση καταστημάτων…');
 
-            const modelFilter = (p) => helpers.extractBaseModel(p.model) === selectedModel;
-            await resolveNetworkStoreDetails(modelFilter);
+                const modelFilter = (p) => helpers.extractBaseModel(p.model) === selectedModel;
+                await resolveNetworkStoreDetails(modelFilter, (done, total) => {
+                    progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', done, total || 1);
+                });
+                progress.finishPhase('storeResolve', progress.getPhaseElapsed());
+                progress.hide();
+            } else {
+                const modelFilter = (p) => helpers.extractBaseModel(p.model) === selectedModel;
+                await resolveNetworkStoreDetails(modelFilter);
+            }
 
             const storeRows = buildNetworkStoreBoardData(selectedModel, otherStorePhones, activeFilters, helpers);
             bodyEl.innerHTML = UI.buildNetworkStoreBoard(selectedModel, storeRows, buildUiCtx({
                 showPurchaseStatus: true,
                 hideStoreInUnits: true,
                 showDistance: true,
-                filterChipsHtml: chipsHtml,
+                hasActiveFilters: filtersActive,
             }));
 
             const storeCount = storeRows.length;
@@ -57697,32 +58898,198 @@ if (document.body) {
                 lastTrackedNetworkModel = selectedModel;
             }
             wireStoreBoard();
-            wireFilterChips(bodyEl.querySelector('#tm-sl-network-filters'));
         }
 
-        async function ensureOtherStores() {
+        async function ensureOtherStores(onProgress) {
             if (otherStoreLoaded) return;
             if (typeof window.fetchOtherStorePhones !== 'function') return;
-            otherStorePhones = helpers.filterIphoneTitlePhones(await window.fetchOtherStorePhones());
+            otherStorePhones = helpers.filterIphoneTitlePhones(
+                await window.fetchOtherStorePhones({ onProgress })
+            );
             otherStoreLoaded = true;
             mergeNetworkStoreHints();
         }
 
-        async function refreshData() {
-            bodyEl.innerHTML = step === 'stores'
-                ? (catalogView === 'network' ? UI.buildSkeletonNetworkBoard() : UI.buildSkeletonStores(6))
-                : UI.buildSkeletonGrid(8);
-            try {
-                if (typeof window.fetchPhoneList === 'function') {
-                    allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList());
+        function createLoadProgressController() {
+            const stats = loadLoadStats();
+            let phaseStart = Date.now();
+            let expectedMs = stats.phoneListMs;
+            let ticker = null;
+            let lastTotal = 0;
+
+            const stopTicker = () => {
+                if (ticker) {
+                    clearInterval(ticker);
+                    ticker = null;
                 }
+            };
+
+            const startIndeterminate = (label, expected) => {
+                stopTicker();
+                phaseStart = Date.now();
+                expectedMs = Math.max(1200, expected || expectedMs || 8000);
+                lastTotal = 0;
+                UI.showLoadProgress(overlay, {
+                    label,
+                    indeterminate: true,
+                    etaMs: expectedMs,
+                    meta: 'Παρακαλώ περιμένετε…',
+                });
+                setStatus(label);
+                ticker = setInterval(() => {
+                    const elapsed = Date.now() - phaseStart;
+                    const remain = Math.max(700, expectedMs - elapsed);
+                    const softRatio = Math.min(0.92, elapsed / Math.max(expectedMs, 1));
+                    UI.updateLoadProgress(overlay, {
+                        label,
+                        indeterminate: true,
+                        etaMs: remain,
+                        meta: softRatio > 0.75
+                            ? 'Ολοκληρώνεται…'
+                            : 'Παρακαλώ περιμένετε…',
+                    });
+                }, 250);
+            };
+
+            const updateDeterminate = (label, done, total) => {
+                stopTicker();
+                lastTotal = total;
+                const elapsed = Date.now() - phaseStart;
+                let etaMs = null;
+                if (done > 0 && total > done) {
+                    etaMs = (elapsed / done) * (total - done);
+                } else if (total > 0 && done === 0) {
+                    etaMs = (stats.storeResolvePerItemMs || 180) * total;
+                } else {
+                    etaMs = 600;
+                }
+                UI.showLoadProgress(overlay, {
+                    label,
+                    done,
+                    total,
+                    etaMs,
+                    indeterminate: false,
+                    ratio: total > 0 ? done / total : 0,
+                });
+                setStatus(`${label} ${done}/${total}`);
+            };
+
+            const finishPhase = (key, durationMs) => {
+                stopTicker();
+                if (key === 'phoneListMs' || key === 'otherStoresMs') {
+                    stats[key] = blendDuration(stats[key], durationMs);
+                } else if (key === 'storeResolve' && lastTotal > 0) {
+                    stats.storeResolvePerItemMs = blendDuration(
+                        stats.storeResolvePerItemMs,
+                        durationMs / lastTotal
+                    );
+                }
+            };
+
+            const hide = () => {
+                stopTicker();
+                UI.hideLoadProgress(overlay);
+                saveLoadStats(stats);
+            };
+
+            return {
+                stats,
+                startIndeterminate,
+                updateDeterminate,
+                finishPhase,
+                hide,
+                beginPhaseClock: () => { phaseStart = Date.now(); },
+                getPhaseElapsed: () => Date.now() - phaseStart,
+            };
+        }
+
+        async function refreshData() {
+            const progress = createLoadProgressController();
+            UI.setRefreshing(overlay, true);
+            const bodyEmpty = !bodyEl.querySelector('.tm-sl-model-grid, .tm-sl-mine-board, .tm-sl-network-board');
+            if (bodyEmpty) {
+                bodyEl.innerHTML = UI.buildSkeletonGrid(8);
+            }
+
+            try {
+                progress.startIndeterminate('Φόρτωση καταλόγου συσκευών…', progress.stats.phoneListMs);
+                progress.beginPhaseClock();
+                if (typeof window.fetchPhoneList === 'function') {
+                    allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList({
+                        onProgress: (info) => {
+                            if (!info) return;
+                            if (info.phase === 'download' && info.ratio != null) {
+                                const remain = Math.max(
+                                    600,
+                                    (progress.stats.phoneListMs || 9000) * (1 - info.ratio)
+                                );
+                                UI.updateLoadProgress(overlay, {
+                                    label: 'Λήψη καταλόγου…',
+                                    ratio: Math.min(0.9, 0.08 + info.ratio * 0.75),
+                                    indeterminate: false,
+                                    etaMs: remain,
+                                    meta: info.total
+                                        ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
+                                        : 'Λήψη δεδομένων…',
+                                });
+                                setStatus('Λήψη καταλόγου…');
+                            } else if (info.phase === 'parse') {
+                                UI.updateLoadProgress(overlay, {
+                                    label: 'Επεξεργασία καταλόγου…',
+                                    ratio: 0.92,
+                                    indeterminate: false,
+                                    etaMs: 900,
+                                    meta: 'Ανάλυση συσκευών…',
+                                });
+                            } else if (info.phase === 'init') {
+                                UI.updateLoadProgress(overlay, {
+                                    label: 'Σύνδεση με τον κατάλογο…',
+                                    indeterminate: true,
+                                    etaMs: progress.stats.phoneListMs,
+                                    meta: 'Προετοιμασία…',
+                                });
+                            }
+                        },
+                    }));
+                }
+                progress.finishPhase('phoneListMs', progress.getPhaseElapsed());
+
                 otherStoreLoaded = false;
                 GM_setValue('tm_phone_other_store_cache_v3', null);
                 GM_setValue('tm_phone_other_store_cache_timestamp', 0);
-                await ensureOtherStores();
+
+                progress.startIndeterminate('Φόρτωση δικτύου καταστημάτων…', progress.stats.otherStoresMs);
+                progress.beginPhaseClock();
+                await ensureOtherStores((info) => {
+                    if (info?.phase === 'download' && info.ratio != null) {
+                        UI.updateLoadProgress(overlay, {
+                            label: 'Λήψη δικτύου…',
+                            ratio: Math.min(0.9, 0.1 + info.ratio * 0.75),
+                            indeterminate: false,
+                            etaMs: Math.max(600, (progress.stats.otherStoresMs || 7000) * (1 - info.ratio)),
+                            meta: info.total
+                                ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
+                                : 'Λήψη δεδομένων…',
+                        });
+                    } else if (info?.phase === 'parse') {
+                        UI.updateLoadProgress(overlay, {
+                            label: 'Επεξεργασία δικτύου…',
+                            ratio: 0.93,
+                            indeterminate: false,
+                            etaMs: 800,
+                            meta: 'Ανάλυση αποθεμάτων…',
+                        });
+                    }
+                });
+                progress.finishPhase('otherStoresMs', progress.getPhaseElapsed());
+
                 if (catalogView === 'network') {
-                    setStatus('Φόρτωση καταστημάτων…');
-                    await resolveNetworkStoreDetails();
+                    progress.beginPhaseClock();
+                    progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', 0, 1);
+                    await resolveNetworkStoreDetails(null, (done, total) => {
+                        progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', done, total || 1);
+                    });
+                    progress.finishPhase('storeResolve', progress.getPhaseElapsed());
                 }
                 if (typeof window.syncPhoneColorCatalog === 'function') {
                     window.syncPhoneColorCatalog(allPhones);
@@ -57735,7 +59102,17 @@ if (document.body) {
                     renderModelsStep();
                 }
             } catch (err) {
-                bodyEl.innerHTML = UI.buildEmptyState('❌', 'Σφάλμα φόρτωσης', err.message || '');
+                bodyEl.innerHTML = UI.buildEmptyState(
+                    UI.ICON.emptyError,
+                    'Σφάλμα φόρτωσης',
+                    err.message || '',
+                    { actionId: 'back-models', actionLabel: 'Επιστροφή' }
+                );
+                setStatus('Σφάλμα φόρτωσης');
+                wireUnitActions();
+            } finally {
+                progress.hide();
+                UI.setRefreshing(overlay, false);
             }
         }
 
@@ -57750,9 +59127,28 @@ if (document.body) {
             if (e.target === overlay) closeModal();
         });
         document.addEventListener('keydown', function onSlKeydown(e) {
+            if (!document.body.contains(overlay)) {
+                document.removeEventListener('keydown', onSlKeydown);
+                return;
+            }
+            const tag = (e.target && e.target.tagName) || '';
+            const typing = tag === 'INPUT' || tag === 'TEXTAREA' || e.target?.isContentEditable;
+
             if (e.key === 'Escape') {
+                e.preventDefault();
+                if (step === 'stores') {
+                    activeFilters = { grade: '', gb: '', color: '' };
+                    renderModelsStep();
+                    return;
+                }
                 document.removeEventListener('keydown', onSlKeydown);
                 closeModal();
+                return;
+            }
+
+            if (!typing && e.key === '/' && step === 'models') {
+                e.preventDefault();
+                toolbarEl.querySelector('#tm-sl-model-search')?.focus();
             }
         });
 
@@ -57761,6 +59157,16 @@ if (document.body) {
         const cacheStale = typeof window.isPhoneListCacheStale === 'function'
             ? window.isPhoneListCacheStale()
             : true;
+        const otherCached = typeof window.getOtherStoreCache === 'function'
+            ? window.getOtherStoreCache()
+            : null;
+
+        // Hydrate network cache synchronously so UI can paint without waiting on network.
+        if (otherCached && otherCached.length) {
+            otherStorePhones = helpers.filterIphoneTitlePhones(otherCached);
+            otherStoreLoaded = true;
+            mergeNetworkStoreHints();
+        }
 
         if (cached && cached.length) {
             allPhones = helpers.filterIphoneTitlePhones(cached);
@@ -57768,16 +59174,34 @@ if (document.body) {
             lastUpdated = new Date(ts);
             syncFreshness();
 
-            if (cacheStale) {
-                // Stale-while-revalidate: show snapshot, then pull today's list automatically.
-                setStatus('Παλιά δεδομένα — ανανέωση…');
-                refreshData();
-            } else {
-                ensureOtherStores().then(async () => {
-                    if (catalogView === 'network') {
+            // Paint immediately from cache — never block first paint on network fetches.
+            renderModelsStep();
+
+            const warmNetworkInBackground = () => {
+                if (otherStoreLoaded) return Promise.resolve();
+                return ensureOtherStores().then(async () => {
+                    if (catalogView === 'network' && step === 'models') {
                         await resolveNetworkStoreDetails();
+                        renderModelsStep();
                     }
-                    renderModelsStep();
+                }).catch(() => {});
+            };
+
+            if (cacheStale) {
+                setStatus('Παλιά δεδομένα — ανανέωση…');
+                // Let the browser paint cached UI first, then refresh.
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        refreshData();
+                    }, 0);
+                });
+            } else if (catalogView === 'network' && !otherStoreLoaded) {
+                setStatus('Φόρτωση δικτύου…');
+                warmNetworkInBackground();
+            } else {
+                // Warm other-store cache quietly for faster tab switch later.
+                requestAnimationFrame(() => {
+                    setTimeout(() => { warmNetworkInBackground(); }, 0);
                 });
             }
         } else {

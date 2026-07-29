@@ -1,11 +1,11 @@
 {
-  "version": "306",
+  "version": "307",
   "loaderVersion": "35",
-  "silentVersion": "44",
-  "displayVersion": "35.44",
+  "silentVersion": "45",
+  "displayVersion": "35.45",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Separate XP and Daily Bounties toggles; coin-only bounty rewards when XP is off; daily free coins in pet care",
+  "releaseNotes": "Phone catalog redesign: cleaner chrome, smart search, best-row guidance",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
