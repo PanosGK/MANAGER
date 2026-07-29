@@ -2306,21 +2306,41 @@ async function resolvePhonesStoreDetails(phones, options = {}) {
  * First loads the initial page, then loads with pagesize parameter, then parses
  * @returns {Promise<Array<{barcode: string, name: string, model: string, grade: string, imei: string, unitsRemaining: number}>>}
  */
-async function fetchPhoneList() {
+async function fetchPhoneList(options = {}) {
+    const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
     return new Promise((resolve, reject) => {
+        onProgress({ phase: 'init', ratio: 0.04 });
         // Step 1: Load initial page with qs=55.&recordspp=-1
         GM_xmlhttpRequest({
             method: 'GET',
             url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?qs=55.&recordspp=-1',
             onload: function(firstResponse) {
                 console.log('[MMS Phone List] First page loaded, now loading with pagesize=500');
-                
+                onProgress({ phase: 'download', ratio: 0.08, loaded: 0, total: 0 });
+
                 // Step 2: Load with pagesize=500
                 GM_xmlhttpRequest({
                     method: 'GET',
                     url: 'https://thefixers.mymanager.gr/mymanagerservice/products_list.php?pagesize=1000000|',
+                    onprogress: function(e) {
+                        if (e.lengthComputable && e.total > 0) {
+                            onProgress({
+                                phase: 'download',
+                                ratio: e.loaded / e.total,
+                                loaded: e.loaded,
+                                total: e.total,
+                            });
+                        } else if (e.loaded > 0) {
+                            onProgress({
+                                phase: 'download',
+                                indeterminate: true,
+                                loaded: e.loaded,
+                            });
+                        }
+                    },
                     onload: function(response) {
                 try {
+                    onProgress({ phase: 'parse', ratio: 0.9 });
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(response.responseText, 'text/html');
                     detectAndCacheCurrentStoreName(doc);
@@ -2503,6 +2523,7 @@ async function fetchPhoneList() {
                         console.log(`[MMS Phone List] Successfully parsed ${phones.length} phones`);
                         // Save to cache
                         savePhoneListCache(phones);
+                        onProgress({ phase: 'done', ratio: 1 });
                         resolve(phones);
                     } catch (error) {
                         console.error('[MMS Phone List] Error parsing phone list:', error);
@@ -2526,19 +2547,39 @@ async function fetchPhoneList() {
 /**
  * Fetch and parse phones that are available in other storehouses (iUnitsRemainingOtherStoreHouses > 0)
  */
-async function fetchOtherStorePhones() {
+async function fetchOtherStorePhones(options = {}) {
+    const onProgress = typeof options?.onProgress === 'function' ? options.onProgress : () => {};
     const cached = getOtherStoreCache();
     if (cached) {
+        onProgress({ phase: 'done', ratio: 1, fromCache: true });
         return cached;
     }
     
     return new Promise((resolve, reject) => {
         const fetchWithUrl = (url, fallbackUrl) => {
+            onProgress({ phase: 'init', ratio: 0.05 });
             GM_xmlhttpRequest({
                 method: 'GET',
                 url,
+                onprogress: function(e) {
+                    if (e.lengthComputable && e.total > 0) {
+                        onProgress({
+                            phase: 'download',
+                            ratio: e.loaded / e.total,
+                            loaded: e.loaded,
+                            total: e.total,
+                        });
+                    } else if (e.loaded > 0) {
+                        onProgress({
+                            phase: 'download',
+                            indeterminate: true,
+                            loaded: e.loaded,
+                        });
+                    }
+                },
                 onload: function(response) {
                     try {
+                        onProgress({ phase: 'parse', ratio: 0.9 });
                         const parser = new DOMParser();
                         const doc = parser.parseFromString(response.responseText, 'text/html');
                         detectAndCacheCurrentStoreName(doc);
@@ -2629,6 +2670,7 @@ async function fetchOtherStorePhones() {
                         });
                         
                         saveOtherStoreCache(result);
+                        onProgress({ phase: 'done', ratio: 1 });
                         resolve(result);
                     } catch (err) {
                         if (fallbackUrl) {

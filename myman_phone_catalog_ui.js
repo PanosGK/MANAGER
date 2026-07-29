@@ -163,12 +163,12 @@
         }
         .tm-sl-shell.tm-sl-view--network .tm-sl-header {
             padding: 8px 12px 6px;
-            background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 8%, transparent), transparent 70%);
+            background: var(--tm-shop-item-bg);
         }
         .tm-sl-shell.tm-sl-view--network:not(.tm-sl-step--stores) .tm-sl-title { font-size: 1rem; margin: 0; }
         .tm-sl-shell.tm-sl-step--stores .tm-sl-header {
             padding: 12px 14px 10px;
-            background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 16%, transparent), transparent 72%);
+            background: var(--tm-shop-item-bg);
         }
         .tm-sl-shell.tm-sl-step--stores .tm-sl-breadcrumb {
             margin-bottom: 8px;
@@ -195,11 +195,10 @@
             align-items: center;
             gap: 10px;
             max-width: 100%;
-            padding: 7px 14px 7px 11px;
-            border-radius: 11px;
-            background: color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-shop-item-bg));
-            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 30%, transparent);
-            box-shadow: 0 2px 14px color-mix(in srgb, var(--tm-primary-color) 14%, transparent);
+            padding: 6px 12px 6px 10px;
+            border-radius: 8px;
+            background: color-mix(in srgb, var(--tm-primary-color) 8%, var(--tm-shop-item-bg));
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 22%, transparent);
             color: var(--tm-primary-color);
         }
         .tm-sl-model-title__icon {
@@ -466,6 +465,59 @@
             pointer-events: none;
             transition: opacity 0.15s ease;
         }
+        .tm-sl-load {
+            flex-shrink: 0;
+            margin: 8px 16px 0;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-shop-item-bg);
+        }
+        .tm-sl-load[hidden] { display: none !important; }
+        .tm-sl-load__row {
+            display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+            margin-bottom: 8px;
+        }
+        .tm-sl-load__label {
+            font-size: 12px; font-weight: 800;
+            color: var(--tm-shop-item-text);
+        }
+        .tm-sl-load__eta {
+            font-size: 11px; font-weight: 700;
+            color: var(--tm-primary-color);
+            white-space: nowrap;
+        }
+        .tm-sl-load__track {
+            height: 8px; border-radius: 999px; overflow: hidden;
+            background: color-mix(in srgb, var(--tm-shop-item-border) 55%, transparent);
+        }
+        .tm-sl-load__bar {
+            height: 100%; width: 0%;
+            border-radius: 999px;
+            background: var(--tm-primary-color);
+            transition: width 0.25s ease;
+        }
+        .tm-sl-load.is-indeterminate .tm-sl-load__bar {
+            width: 36% !important;
+            animation: tm-sl-load-slide 1.1s ease-in-out infinite;
+        }
+        @keyframes tm-sl-load-slide {
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(320%); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .tm-sl-load.is-indeterminate .tm-sl-load__bar {
+                animation: none !important;
+                width: 55% !important;
+                opacity: 0.85;
+            }
+        }
+        .tm-sl-load__meta {
+            margin-top: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--tm-muted-text, var(--tm-secondary-color));
+        }
         .tm-sl-mine-board {
             display: flex; flex-direction: column; min-height: 0; height: 100%;
             border: 1px solid var(--tm-shop-item-border);
@@ -582,7 +634,7 @@
         .tm-sl-view-tab.is-active {
             background: var(--tm-shop-item-bg);
             color: var(--tm-primary-color);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color) 22%, var(--tm-shop-item-border));
         }
         .tm-sl-view-tab:focus-visible {
             outline: 2px solid var(--tm-primary-color);
@@ -590,10 +642,10 @@
         }
 
         .tm-sl-header {
-            padding: 18px 20px 14px;
+            padding: 16px 20px 12px;
             border-bottom: 1px solid var(--tm-shop-item-border);
             flex-shrink: 0;
-            background: linear-gradient(135deg, color-mix(in srgb, var(--tm-primary-color) 12%, transparent), transparent 70%);
+            background: var(--tm-shop-item-bg);
         }
         .tm-sl-header-row {
             display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -647,13 +699,98 @@
         .tm-sl-btn--back { margin-right: 4px; }
 
         .tm-sl-toolbar {
-            padding: 12px 20px;
+            padding: 10px 16px;
             border-bottom: 1px solid var(--tm-shop-item-border);
             background: var(--tm-surface-alt-bg, var(--tm-shop-item-owned-bg));
             flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 4;
         }
-        .tm-sl-toolbar-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-        .tm-sl-toolbar-row + .tm-sl-toolbar-row { margin-top: 10px; }
+        .tm-sl-toolbar-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .tm-sl-toolbar-row + .tm-sl-toolbar-row { margin-top: 8px; }
+        .tm-sl-context-strip {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
+            width: 100%;
+            padding: 7px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--tm-shop-item-border);
+            background: var(--tm-shop-item-bg);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        .tm-sl-context-strip__view {
+            font-weight: 800;
+            color: var(--tm-primary-color);
+            max-width: 220px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .tm-sl-context-strip__sep { opacity: 0.35; }
+        .tm-sl-context-strip__model {
+            font-weight: 800;
+            color: var(--tm-shop-item-text);
+        }
+        .tm-sl-context-strip__filters {
+            font-weight: 600;
+            color: var(--tm-muted-text, var(--tm-secondary-color));
+            opacity: 0.9;
+        }
+        .tm-sl-legend {
+            display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+            width: 100%;
+            padding: 2px 2px 0;
+            font-size: 11px;
+            color: var(--tm-muted-text, var(--tm-secondary-color));
+        }
+        .tm-sl-legend__label { font-weight: 700; opacity: 0.8; }
+        .tm-sl-legend-item {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-weight: 700;
+        }
+        .tm-sl-legend-item::before {
+            content: '';
+            width: 7px; height: 7px; border-radius: 50%;
+            background: currentColor;
+            flex-shrink: 0;
+        }
+        .tm-sl-legend-item--ok { color: var(--tm-success-color, #16a34a); }
+        .tm-sl-legend-item--bb { color: var(--tm-warning-color, #d97706); }
+        .tm-sl-legend-item--no { color: var(--tm-danger-color, #dc2626); }
+        .tm-sl-coach {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            flex-shrink: 0;
+            margin: 8px 16px 0;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid color-mix(in srgb, var(--tm-info-color, #0ea5e9) 28%, var(--tm-shop-item-border));
+            background: color-mix(in srgb, var(--tm-info-color, #0ea5e9) 8%, var(--tm-shop-item-bg));
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--tm-shop-item-text);
+        }
+        .tm-sl-coach[hidden] { display: none !important; }
+        .tm-sl-coach-dismiss {
+            border: none; background: transparent; cursor: pointer;
+            color: var(--tm-muted-text); font-size: 16px; line-height: 1; padding: 2px 6px;
+        }
+        .tm-sl-btn--primary-action {
+            background: color-mix(in srgb, var(--tm-primary-color) 14%, var(--tm-shop-item-bg));
+            border-color: color-mix(in srgb, var(--tm-primary-color) 40%, var(--tm-shop-item-border));
+            color: var(--tm-primary-color);
+            font-weight: 800;
+        }
+        .tm-sl-network-store.is-recommended .tm-sl-network-store__name::after {
+            content: 'Προτεινόμενο';
+            margin-left: 6px;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            color: var(--tm-success-color, #16a34a);
+            vertical-align: middle;
+        }
         .tm-sl-search-wrap {
             position: relative; display: flex; align-items: center; flex: 1; min-width: 180px;
         }
@@ -743,18 +880,15 @@
         .tm-sl-model-card {
             position: relative;
             border: 1px solid var(--tm-shop-item-border);
-            border-radius: 12px;
-            padding: 14px 16px;
+            border-radius: 10px;
+            padding: 12px 14px;
             background: var(--tm-shop-item-bg);
             cursor: pointer;
-            transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
-            animation: tm-sl-rise 0.28s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-            animation-delay: calc(min(var(--i, 0), 7) * 30ms);
+            transition: border-color 0.12s, background 0.12s;
         }
         .tm-sl-model-card:hover {
             border-color: var(--tm-primary-color);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px color-mix(in srgb, var(--tm-shadow-color, #000) 18%, transparent);
+            background: var(--tm-shop-item-hover-bg);
         }
         .tm-sl-model-card:focus-visible {
             outline: 2px solid var(--tm-primary-color);
@@ -1293,7 +1427,7 @@
     function buildEmptyState(icon, title, sub, opts) {
         const action = opts?.actionLabel
             ? `<div class="tm-sl-empty-actions">
-                <button type="button" class="tm-sl-btn" data-tm-sl-empty-action="${esc(opts.actionId || 'clear-filters')}">${esc(opts.actionLabel)}</button>
+                <button type="button" class="tm-sl-btn tm-sl-btn--primary-action" data-tm-sl-empty-action="${esc(opts.actionId || 'clear-filters')}">${esc(opts.actionLabel)}</button>
             </div>`
             : '';
         return `<div class="tm-sl-empty">
@@ -1301,6 +1435,44 @@
             <div class="tm-sl-empty-title">${esc(title)}</div>
             ${sub ? `<div class="tm-sl-empty-sub">${esc(sub)}</div>` : ''}
             ${action}
+        </div>`;
+    }
+
+    function buildStatusLegend(opts = {}) {
+        const showPurchase = opts.showPurchaseStatus !== false;
+        return `<div class="tm-sl-legend" aria-label="Υπόμνημα κατάστασης">
+            <span class="tm-sl-legend__label">Κατάσταση</span>
+            <span class="tm-sl-legend-item tm-sl-legend-item--ok">Διαθέσιμο</span>
+            <span class="tm-sl-legend-item tm-sl-legend-item--bb">BB</span>
+            ${showPurchase ? '<span class="tm-sl-legend-item tm-sl-legend-item--no">Δεν αγοράζεται</span>' : ''}
+        </div>`;
+    }
+
+    function buildContextStrip({ viewLabel, modelName, filtersSummary }) {
+        const parts = [
+            `<span class="tm-sl-context-strip__view" title="${esc(viewLabel)}">${esc(viewLabel)}</span>`,
+            '<span class="tm-sl-context-strip__sep" aria-hidden="true">›</span>',
+            `<span class="tm-sl-context-strip__model">${esc(modelName)}</span>`,
+        ];
+        if (filtersSummary) {
+            parts.push('<span class="tm-sl-context-strip__sep" aria-hidden="true">·</span>');
+            parts.push(`<span class="tm-sl-context-strip__filters">${esc(filtersSummary)}</span>`);
+        }
+        return `<div class="tm-sl-context-strip" id="tm-sl-context-strip">${parts.join('')}</div>`;
+    }
+
+    function formatActiveFiltersSummary(active) {
+        const bits = [];
+        if (active?.grade) bits.push(`Βαθμ. ${active.grade}`);
+        if (active?.gb) bits.push(active.gb);
+        if (active?.color) bits.push(active.color);
+        return bits.length ? bits.join(' · ') : 'Χωρίς φίλτρα';
+    }
+
+    function buildCoachTipHtml() {
+        return `<div class="tm-sl-coach" id="tm-sl-coach" role="note">
+            <span>1. Διάλεξε μοντέλο · 2. Φίλτραρε βαθμό/GB/χρώμα · 3. Αντίγραψε barcode ή δες άλλο κατάστημα</span>
+            <button type="button" class="tm-sl-coach-dismiss" id="tm-sl-coach-dismiss" title="Απόκρυψη" aria-label="Απόκρυψη συμβουλής">×</button>
         </div>`;
     }
 
@@ -1384,6 +1556,17 @@
                 </nav>
             </header>
             <div class="tm-sl-toolbar" id="tm-sl-toolbar"></div>
+            ${buildCoachTipHtml()}
+            <div class="tm-sl-load" id="tm-sl-load" hidden>
+                <div class="tm-sl-load__row">
+                    <span class="tm-sl-load__label" id="tm-sl-load-label">Φόρτωση…</span>
+                    <span class="tm-sl-load__eta" id="tm-sl-load-eta"></span>
+                </div>
+                <div class="tm-sl-load__track" aria-hidden="true">
+                    <div class="tm-sl-load__bar" id="tm-sl-load-bar"></div>
+                </div>
+                <div class="tm-sl-load__meta" id="tm-sl-load-meta"></div>
+            </div>
             <div class="tm-sl-body" id="tm-sl-body">${buildSkeletonGrid(6)}</div>
             <footer class="tm-sl-footer">
                 <span id="tm-sl-status">—</span>
@@ -1420,14 +1603,21 @@
     }
 
     function buildStoreToolbar(modelName, chipsHtml, opts) {
+        const viewLabel = opts?.viewLabel || getMyStoreLabel();
+        const filtersSummary = opts?.filtersSummary || '';
+        const showPurchaseLegend = !!opts?.network;
         const chips = chipsHtml
             ? `<div class="tm-sl-chips" id="tm-sl-chips">${chipsHtml}</div>`
             : '';
         return `
             <div class="tm-sl-toolbar-row">
                 <button type="button" id="tm-sl-back" class="tm-sl-btn tm-sl-btn--back">${ICON.back} Μοντέλα</button>
+                ${buildContextStrip({ viewLabel, modelName, filtersSummary })}
+            </div>
+            <div class="tm-sl-toolbar-row">
                 ${chips}
-            </div>`;
+            </div>
+            ${buildStatusLegend({ showPurchaseStatus: showPurchaseLegend })}`;
     }
 
     function buildModelGrid(models, ctx) {
@@ -1440,8 +1630,12 @@
             return buildEmptyState(
                 hasQuery ? ICON.emptySearch : ICON.emptyPhone,
                 hasQuery ? 'Κανένα αποτέλεσμα' : 'Δεν βρέθηκαν μοντέλα',
-                hasQuery ? 'Δοκιμάστε άλλο όρο αναζήτησης' : emptyMsg,
-                hasQuery ? { actionId: 'clear-search', actionLabel: 'Καθαρισμός αναζήτησης' } : null
+                hasQuery
+                    ? 'Δοκιμάστε άλλο όρο αναζήτησης ή καθαρίστε την αναζήτηση.'
+                    : `${emptyMsg}. Πατήστε Ανανέωση αν περιμένετε νέα stock.`,
+                hasQuery
+                    ? { actionId: 'clear-search', actionLabel: 'Καθαρισμός αναζήτησης' }
+                    : { actionId: 'refresh', actionLabel: 'Ανανέωση δεδομένων' }
             );
         }
         const query = ctx?.query || '';
@@ -1885,8 +2079,8 @@
                 ICON.emptyPhone,
                 'Χωρίς διαθέσιμες συσκευές',
                 hasFilters
-                    ? `Κανένα αποτέλεσμα για ${modelName} με τα τρέχοντα φίλτρα`
-                    : `Δεν υπάρχει ${modelName} στο ${myStoreLabel}`,
+                    ? `Κανένα αποτέλεσμα για ${modelName} με τα τρέχοντα φίλτρα. Καθαρίστε τα φίλτρα για να δείτε όλο το stock.`
+                    : `Δεν υπάρχει ${modelName} στο ${myStoreLabel}. Δοκιμάστε την προβολή «Άλλα καταστήματα».`,
                 hasFilters
                     ? { actionId: 'clear-filters', actionLabel: 'Καθαρισμός φίλτρων' }
                     : { actionId: 'back-models', actionLabel: 'Επιστροφή στα μοντέλα' }
@@ -1938,8 +2132,9 @@
             ? window.getStoreDistanceLabel?.(myStore, store.name)
             : '';
         const distChip = distLabel ? `<span class="tm-sl-store-dist">${esc(distLabel)}</span>` : '';
+        const recommended = idx === 0 ? ' is-recommended' : '';
 
-        return `<button type="button" class="tm-sl-network-store ${signal}${isActive ? ' is-active' : ''}"
+        return `<button type="button" class="tm-sl-network-store ${signal}${isActive ? ' is-active' : ''}${recommended}"
             data-tm-sl-select-store="${idx}" role="tab"
             aria-selected="${isActive ? 'true' : 'false'}" tabindex="${isActive ? '0' : '-1'}">
             <span class="tm-sl-network-store__name">${esc(store.name)}</span>
@@ -1954,8 +2149,8 @@
                 ICON.emptySearch,
                 'Δεν βρέθηκε σε άλλα καταστήματα',
                 hasFilters
-                    ? `Κανένα κατάστημα με ${modelName} για τα τρέχοντα φίλτρα`
-                    : `Κανένα κατάστημα δικτύου δεν έχει ${modelName}`,
+                    ? `Κανένα κατάστημα με ${modelName} για τα τρέχοντα φίλτρα. Καθαρίστε τα φίλτρα ή δοκιμάστε άλλο μοντέλο.`
+                    : `Κανένα κατάστημα δικτύου δεν έχει ${modelName} αυτή τη στιγμή.`,
                 hasFilters
                     ? { actionId: 'clear-filters', actionLabel: 'Καθαρισμός φίλτρων' }
                     : { actionId: 'back-models', actionLabel: 'Επιστροφή στα μοντέλα' }
@@ -2073,6 +2268,88 @@
         }
     }
 
+    function formatEtaMs(ms) {
+        if (ms == null || !Number.isFinite(ms)) return '';
+        if (ms <= 800) return 'Λιγότερο από 1 δευτ.';
+        const sec = Math.ceil(ms / 1000);
+        if (sec < 60) return `Περίπου ${sec} δευτ.`;
+        const min = Math.floor(sec / 60);
+        const rem = sec % 60;
+        if (min === 1 && rem === 0) return 'Περίπου 1 λεπτό';
+        if (rem === 0) return `Περίπου ${min} λεπτά`;
+        if (min === 1) return `Περίπου 1 λεπτό ${rem} δευτ.`;
+        return `Περίπου ${min} λεπτά ${rem} δευτ.`;
+    }
+
+    function showLoadProgress(overlay, opts = {}) {
+        const wrap = overlay?.querySelector('#tm-sl-load');
+        if (!wrap) return;
+        wrap.hidden = false;
+        updateLoadProgress(overlay, {
+            label: opts.label || 'Φόρτωση…',
+            meta: opts.meta || '',
+            ratio: opts.ratio,
+            done: opts.done,
+            total: opts.total,
+            etaMs: opts.etaMs,
+            indeterminate: opts.indeterminate !== false && opts.ratio == null && opts.total == null,
+        });
+    }
+
+    function updateLoadProgress(overlay, opts = {}) {
+        const wrap = overlay?.querySelector('#tm-sl-load');
+        const labelEl = overlay?.querySelector('#tm-sl-load-label');
+        const etaEl = overlay?.querySelector('#tm-sl-load-eta');
+        const barEl = overlay?.querySelector('#tm-sl-load-bar');
+        const metaEl = overlay?.querySelector('#tm-sl-load-meta');
+        if (!wrap || wrap.hidden) return;
+
+        if (opts.label != null && labelEl) labelEl.textContent = opts.label;
+
+        let ratio = opts.ratio;
+        if (ratio == null && opts.total > 0 && opts.done != null) {
+            ratio = Math.max(0, Math.min(1, opts.done / opts.total));
+        }
+
+        const indeterminate = opts.indeterminate === true
+            || (ratio == null && !(opts.total > 0));
+        wrap.classList.toggle('is-indeterminate', indeterminate);
+
+        if (barEl && !indeterminate && ratio != null) {
+            barEl.style.width = `${Math.round(ratio * 100)}%`;
+        } else if (barEl && indeterminate) {
+            barEl.style.width = '';
+        }
+
+        if (etaEl) {
+            const etaText = formatEtaMs(opts.etaMs);
+            etaEl.textContent = etaText ? `Απομένουν: ${etaText}` : '';
+        }
+
+        if (metaEl) {
+            if (opts.meta != null) {
+                metaEl.textContent = opts.meta;
+            } else if (opts.total > 0 && opts.done != null) {
+                metaEl.textContent = `${opts.done} / ${opts.total}`;
+            } else if (opts.percent != null) {
+                metaEl.textContent = `${Math.round(opts.percent)}%`;
+            }
+        }
+    }
+
+    function hideLoadProgress(overlay) {
+        const wrap = overlay?.querySelector('#tm-sl-load');
+        if (!wrap) return;
+        wrap.hidden = true;
+        wrap.classList.remove('is-indeterminate');
+        const barEl = overlay.querySelector('#tm-sl-load-bar');
+        if (barEl) barEl.style.width = '0%';
+        const etaEl = overlay.querySelector('#tm-sl-load-eta');
+        if (etaEl) etaEl.textContent = '';
+        const metaEl = overlay.querySelector('#tm-sl-load-meta');
+        if (metaEl) metaEl.textContent = '';
+    }
+
     function setRefreshing(overlay, refreshing) {
         const body = overlay?.querySelector('#tm-sl-body');
         const btn = overlay?.querySelector('#tm-sl-refresh');
@@ -2147,6 +2424,10 @@
         esc,
         getMyStoreLabel,
         updateMyStoreLabels,
+        formatActiveFiltersSummary,
+        buildContextStrip,
+        buildStatusLegend,
+        buildCoachTipHtml,
         highlightMatch,
         colorSwatchHTML,
         gradeChipHTML,
@@ -2179,6 +2460,10 @@
         showToast,
         updateFreshness,
         setRefreshing,
+        showLoadProgress,
+        updateLoadProgress,
+        hideLoadProgress,
+        formatEtaMs,
         setStoresModelHeader,
         clearStoresModelHeader,
         updateBreadcrumb,

@@ -19,6 +19,12 @@
     const DENSITY_KEY = 'tm_sl_density_compact';
     const SORT_KEY = 'tm_sl_model_sort';
     const CATALOG_VIEW_KEY = 'tm_sl_catalog_view';
+    const LOAD_STATS_KEY = 'tm_sl_load_stats_v1';
+    const DEFAULT_LOAD_STATS = {
+        phoneListMs: 9000,
+        otherStoresMs: 7000,
+        storeResolvePerItemMs: 180,
+    };
 
     function cleanStoreName(name) {
         return String(name || '').replace(/\s*ΕΜΠΟΡΕΥΣΙΜΩΝ/gi, '').trim();
@@ -32,6 +38,66 @@
             ? String(window.getCurrentStoreName() || '').trim()
             : '';
         return name || 'Το κατάστημά μου';
+    }
+
+    function loadLoadStats() {
+        try {
+            const raw = GM_getValue(LOAD_STATS_KEY, null);
+            const parsed = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : null;
+            return { ...DEFAULT_LOAD_STATS, ...(parsed || {}) };
+        } catch (e) {
+            return { ...DEFAULT_LOAD_STATS };
+        }
+    }
+
+    function saveLoadStats(stats) {
+        GM_setValue(LOAD_STATS_KEY, JSON.stringify(stats || DEFAULT_LOAD_STATS));
+    }
+
+    function blendDuration(prev, next) {
+        const n = Math.max(400, Number(next) || 0);
+        if (!prev || !Number.isFinite(prev)) return n;
+        return Math.round(prev * 0.65 + n * 0.35);
+    }
+
+    function storeHasBuyableUnit(store) {
+        if (!store?.variants?.length) return false;
+        return store.variants.some((v) => {
+            if (typeof window.isStoreAllowedForPhone !== 'function') return true;
+            return window.isStoreAllowedForPhone(store.name, !!v.isBuyback);
+        });
+    }
+
+    function sortNetworkStoreRows(rows) {
+        const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
+        return [...rows].sort((a, b) => {
+            const aBuy = storeHasBuyableUnit(a) ? 0 : 1;
+            const bBuy = storeHasBuyableUnit(b) ? 0 : 1;
+            if (aBuy !== bBuy) return aBuy - bBuy;
+            if (typeof window.compareStoresByProximity === 'function') {
+                const prox = window.compareStoresByProximity(a.name, b.name, myStore);
+                if (prox) return prox;
+            }
+            return (a.name || '').localeCompare(b.name || '', 'el');
+        });
+    }
+
+    function sortStoreVariants(variants, storeName) {
+        return [...variants].sort((a, b) => {
+            const aAllowed = typeof window.isStoreAllowedForPhone === 'function'
+                ? window.isStoreAllowedForPhone(storeName, !!a.isBuyback)
+                : true;
+            const bAllowed = typeof window.isStoreAllowedForPhone === 'function'
+                ? window.isStoreAllowedForPhone(storeName, !!b.isBuyback)
+                : true;
+            if (aAllowed !== bAllowed) return aAllowed ? -1 : 1;
+            if (!!a.isBuyback !== !!b.isBuyback) return a.isBuyback ? 1 : -1;
+            const gradeCmp = (typeof window.comparePhoneGrades === 'function')
+                ? window.comparePhoneGrades(a.grade || '', b.grade || '')
+                : String(a.grade || '').localeCompare(String(b.grade || ''));
+            if (gradeCmp) return gradeCmp;
+            return String(a.barcode || '').localeCompare(String(b.barcode || ''));
+        });
     }
 
     function phoneToVariant(phone, helpers) {
@@ -261,24 +327,17 @@
             });
         });
 
-        return [...storeMap.values()]
+        return sortNetworkStoreRows([...storeMap.values()]
             .filter((s) => s.variants.length > 0)
             .map(({ name, isMine, variants }) => ({
                 name,
                 isMine,
-                variants,
+                variants: sortStoreVariants(variants, name),
                 preview: variants.slice(0, 3).map((v) => {
                     const bits = [v.grade, v.gb, v.color].filter(Boolean);
                     return bits.join(' · ');
                 }).join(' · '),
-            }))
-            .sort((a, b) => {
-                const myStore = typeof window.getCurrentStoreName === 'function' ? window.getCurrentStoreName() : '';
-                if (typeof window.compareStoresByProximity === 'function') {
-                    return window.compareStoresByProximity(a.name, b.name, myStore);
-                }
-                return a.name.localeCompare(b.name, 'el');
-            });
+            })));
     }
 
     function buildStoreBoardData(model, allPhones, otherStorePhones, filters, helpers) {
@@ -454,6 +513,17 @@
         UI.setDensity(overlay, densityCompact);
         UI.updateViewTabs(overlay, catalogView);
 
+        const COACH_KEY = 'tm_sl_coach_dismissed_v1';
+        const coachEl = overlay.querySelector('#tm-sl-coach');
+        if (coachEl && GM_getValue(COACH_KEY, false)) {
+            coachEl.hidden = true;
+        }
+        overlay.querySelector('#tm-sl-coach-dismiss')?.addEventListener('click', () => {
+            const tip = overlay.querySelector('#tm-sl-coach');
+            if (tip) tip.hidden = true;
+            GM_setValue(COACH_KEY, true);
+        });
+
         function syncCatalogHeaders() {
             if (step === 'stores' && selectedModel) return;
             UI.clearStoresModelHeader(overlay);
@@ -604,6 +674,8 @@
                     } else if (action === 'back-models') {
                         activeFilters = { grade: '', gb: '', color: '' };
                         renderModelsStep();
+                    } else if (action === 'refresh') {
+                        refreshData();
                     }
                 });
             });
@@ -798,7 +870,7 @@
             }
         }
 
-        async function resolveNetworkStoreDetails(modelFilter = null) {
+        async function resolveNetworkStoreDetails(modelFilter = null, onProgress = null) {
             if (storesResolving || typeof window.resolvePhonesStoreDetails !== 'function') return;
             mergeNetworkStoreHints();
             const phones = modelFilter
@@ -808,7 +880,10 @@
                 const stores = helpers.getEffectivePhoneStores(p);
                 return !stores.length && (parseInt(p.otherStoreCount, 10) || 0) > 0;
             });
-            if (!needsResolve) return;
+            if (!needsResolve) {
+                onProgress?.(1, 1);
+                return;
+            }
 
             storesResolving = true;
             try {
@@ -818,6 +893,7 @@
                     persistOtherStoreCache: true,
                     onProgress: (done, total) => {
                         setStatus(`Φόρτωση καταστημάτων ${done}/${total}…`);
+                        onProgress?.(done, total);
                     },
                 });
             } finally {
@@ -855,7 +931,16 @@
             const filterCounts = collectFilterCounts(allPhones, otherStorePhones, selectedModel, activeFilters, helpers, catalogView);
             const chipsHtml = UI.buildFilterChips(filterOptions, activeFilters, buildUiCtx({ counts: filterCounts }));
             const isNetwork = catalogView === 'network';
-            toolbarEl.innerHTML = UI.buildStoreToolbar(selectedModel, chipsHtml, { network: isNetwork });
+            const viewLabel = isNetwork ? 'Άλλα καταστήματα' : resolveMyStoreLabel();
+            const filtersSummary = typeof UI.formatActiveFiltersSummary === 'function'
+                ? UI.formatActiveFiltersSummary(activeFilters)
+                : '';
+            toolbarEl.innerHTML = UI.buildStoreToolbar(selectedModel, chipsHtml, {
+                network: isNetwork,
+                viewLabel,
+                filtersSummary,
+                showPurchaseStatus: isNetwork,
+            });
 
             toolbarEl.querySelector('#tm-sl-back')?.addEventListener('click', () => {
                 activeFilters = { grade: '', gb: '', color: '' };
@@ -887,11 +972,21 @@
             });
             if (needsResolve) {
                 bodyEl.innerHTML = UI.buildSkeletonNetworkBoard();
+                const progress = createLoadProgressController();
+                progress.beginPhaseClock();
+                progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', 0, 1);
                 setStatus('Φόρτωση καταστημάτων…');
-            }
 
-            const modelFilter = (p) => helpers.extractBaseModel(p.model) === selectedModel;
-            await resolveNetworkStoreDetails(modelFilter);
+                const modelFilter = (p) => helpers.extractBaseModel(p.model) === selectedModel;
+                await resolveNetworkStoreDetails(modelFilter, (done, total) => {
+                    progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', done, total || 1);
+                });
+                progress.finishPhase('storeResolve', progress.getPhaseElapsed());
+                progress.hide();
+            } else {
+                const modelFilter = (p) => helpers.extractBaseModel(p.model) === selectedModel;
+                await resolveNetworkStoreDetails(modelFilter);
+            }
 
             const storeRows = buildNetworkStoreBoardData(selectedModel, otherStorePhones, activeFilters, helpers);
             bodyEl.innerHTML = UI.buildNetworkStoreBoard(selectedModel, storeRows, buildUiCtx({
@@ -914,28 +1009,196 @@
             wireStoreBoard();
         }
 
-        async function ensureOtherStores() {
+        async function ensureOtherStores(onProgress) {
             if (otherStoreLoaded) return;
             if (typeof window.fetchOtherStorePhones !== 'function') return;
-            otherStorePhones = helpers.filterIphoneTitlePhones(await window.fetchOtherStorePhones());
+            otherStorePhones = helpers.filterIphoneTitlePhones(
+                await window.fetchOtherStorePhones({ onProgress })
+            );
             otherStoreLoaded = true;
             mergeNetworkStoreHints();
         }
 
-        async function refreshData() {
-            UI.setRefreshing(overlay, true);
-            setStatus('Ανανέωση…');
-            try {
-                if (typeof window.fetchPhoneList === 'function') {
-                    allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList());
+        function createLoadProgressController() {
+            const stats = loadLoadStats();
+            let phaseStart = Date.now();
+            let expectedMs = stats.phoneListMs;
+            let ticker = null;
+            let lastTotal = 0;
+
+            const stopTicker = () => {
+                if (ticker) {
+                    clearInterval(ticker);
+                    ticker = null;
                 }
+            };
+
+            const startIndeterminate = (label, expected) => {
+                stopTicker();
+                phaseStart = Date.now();
+                expectedMs = Math.max(1200, expected || expectedMs || 8000);
+                lastTotal = 0;
+                UI.showLoadProgress(overlay, {
+                    label,
+                    indeterminate: true,
+                    etaMs: expectedMs,
+                    meta: 'Παρακαλώ περιμένετε…',
+                });
+                setStatus(label);
+                ticker = setInterval(() => {
+                    const elapsed = Date.now() - phaseStart;
+                    const remain = Math.max(700, expectedMs - elapsed);
+                    const softRatio = Math.min(0.92, elapsed / Math.max(expectedMs, 1));
+                    UI.updateLoadProgress(overlay, {
+                        label,
+                        indeterminate: true,
+                        etaMs: remain,
+                        meta: softRatio > 0.75
+                            ? 'Ολοκληρώνεται…'
+                            : 'Παρακαλώ περιμένετε…',
+                    });
+                }, 250);
+            };
+
+            const updateDeterminate = (label, done, total) => {
+                stopTicker();
+                lastTotal = total;
+                const elapsed = Date.now() - phaseStart;
+                let etaMs = null;
+                if (done > 0 && total > done) {
+                    etaMs = (elapsed / done) * (total - done);
+                } else if (total > 0 && done === 0) {
+                    etaMs = (stats.storeResolvePerItemMs || 180) * total;
+                } else {
+                    etaMs = 600;
+                }
+                UI.showLoadProgress(overlay, {
+                    label,
+                    done,
+                    total,
+                    etaMs,
+                    indeterminate: false,
+                    ratio: total > 0 ? done / total : 0,
+                });
+                setStatus(`${label} ${done}/${total}`);
+            };
+
+            const finishPhase = (key, durationMs) => {
+                stopTicker();
+                if (key === 'phoneListMs' || key === 'otherStoresMs') {
+                    stats[key] = blendDuration(stats[key], durationMs);
+                } else if (key === 'storeResolve' && lastTotal > 0) {
+                    stats.storeResolvePerItemMs = blendDuration(
+                        stats.storeResolvePerItemMs,
+                        durationMs / lastTotal
+                    );
+                }
+            };
+
+            const hide = () => {
+                stopTicker();
+                UI.hideLoadProgress(overlay);
+                saveLoadStats(stats);
+            };
+
+            return {
+                stats,
+                startIndeterminate,
+                updateDeterminate,
+                finishPhase,
+                hide,
+                beginPhaseClock: () => { phaseStart = Date.now(); },
+                getPhaseElapsed: () => Date.now() - phaseStart,
+            };
+        }
+
+        async function refreshData() {
+            const progress = createLoadProgressController();
+            UI.setRefreshing(overlay, true);
+            const bodyEmpty = !bodyEl.querySelector('.tm-sl-model-grid, .tm-sl-mine-board, .tm-sl-network-board');
+            if (bodyEmpty) {
+                bodyEl.innerHTML = UI.buildSkeletonGrid(8);
+            }
+
+            try {
+                progress.startIndeterminate('Φόρτωση καταλόγου συσκευών…', progress.stats.phoneListMs);
+                progress.beginPhaseClock();
+                if (typeof window.fetchPhoneList === 'function') {
+                    allPhones = helpers.filterIphoneTitlePhones(await window.fetchPhoneList({
+                        onProgress: (info) => {
+                            if (!info) return;
+                            if (info.phase === 'download' && info.ratio != null) {
+                                const remain = Math.max(
+                                    600,
+                                    (progress.stats.phoneListMs || 9000) * (1 - info.ratio)
+                                );
+                                UI.updateLoadProgress(overlay, {
+                                    label: 'Λήψη καταλόγου…',
+                                    ratio: Math.min(0.9, 0.08 + info.ratio * 0.75),
+                                    indeterminate: false,
+                                    etaMs: remain,
+                                    meta: info.total
+                                        ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
+                                        : 'Λήψη δεδομένων…',
+                                });
+                                setStatus('Λήψη καταλόγου…');
+                            } else if (info.phase === 'parse') {
+                                UI.updateLoadProgress(overlay, {
+                                    label: 'Επεξεργασία καταλόγου…',
+                                    ratio: 0.92,
+                                    indeterminate: false,
+                                    etaMs: 900,
+                                    meta: 'Ανάλυση συσκευών…',
+                                });
+                            } else if (info.phase === 'init') {
+                                UI.updateLoadProgress(overlay, {
+                                    label: 'Σύνδεση με τον κατάλογο…',
+                                    indeterminate: true,
+                                    etaMs: progress.stats.phoneListMs,
+                                    meta: 'Προετοιμασία…',
+                                });
+                            }
+                        },
+                    }));
+                }
+                progress.finishPhase('phoneListMs', progress.getPhaseElapsed());
+
                 otherStoreLoaded = false;
                 GM_setValue('tm_phone_other_store_cache_v3', null);
                 GM_setValue('tm_phone_other_store_cache_timestamp', 0);
-                await ensureOtherStores();
+
+                progress.startIndeterminate('Φόρτωση δικτύου καταστημάτων…', progress.stats.otherStoresMs);
+                progress.beginPhaseClock();
+                await ensureOtherStores((info) => {
+                    if (info?.phase === 'download' && info.ratio != null) {
+                        UI.updateLoadProgress(overlay, {
+                            label: 'Λήψη δικτύου…',
+                            ratio: Math.min(0.9, 0.1 + info.ratio * 0.75),
+                            indeterminate: false,
+                            etaMs: Math.max(600, (progress.stats.otherStoresMs || 7000) * (1 - info.ratio)),
+                            meta: info.total
+                                ? `${Math.round((info.loaded / info.total) * 100)}% λήψη`
+                                : 'Λήψη δεδομένων…',
+                        });
+                    } else if (info?.phase === 'parse') {
+                        UI.updateLoadProgress(overlay, {
+                            label: 'Επεξεργασία δικτύου…',
+                            ratio: 0.93,
+                            indeterminate: false,
+                            etaMs: 800,
+                            meta: 'Ανάλυση αποθεμάτων…',
+                        });
+                    }
+                });
+                progress.finishPhase('otherStoresMs', progress.getPhaseElapsed());
+
                 if (catalogView === 'network') {
-                    setStatus('Φόρτωση καταστημάτων…');
-                    await resolveNetworkStoreDetails();
+                    progress.beginPhaseClock();
+                    progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', 0, 1);
+                    await resolveNetworkStoreDetails(null, (done, total) => {
+                        progress.updateDeterminate('Φόρτωση λεπτομερειών καταστημάτων…', done, total || 1);
+                    });
+                    progress.finishPhase('storeResolve', progress.getPhaseElapsed());
                 }
                 if (typeof window.syncPhoneColorCatalog === 'function') {
                     window.syncPhoneColorCatalog(allPhones);
@@ -957,6 +1220,7 @@
                 setStatus('Σφάλμα φόρτωσης');
                 wireUnitActions();
             } finally {
+                progress.hide();
                 UI.setRefreshing(overlay, false);
             }
         }
