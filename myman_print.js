@@ -92,128 +92,140 @@
     }
 
     const SHARED_CARD_STYLES = `
+        /* Ink-light B&W: white fills, hairlines, centered text */
         .print-surface {
             font-family: ${PRINT_FONT};
             color: #000;
             background: #fff;
-            border: 2px solid #000;
+            border: 1px solid #000;
             box-sizing: border-box;
             page-break-inside: avoid;
         }
         .print-surface .print-header {
-            background: #000;
-            color: #fff;
-            padding: 14px 16px 12px;
-            text-align: left;
+            background: #fff;
+            color: #000;
+            padding: 10px 12px 8px;
+            border-bottom: 1px solid #000;
+            text-align: center;
         }
         .print-surface .print-eyebrow {
-            font-size: 9px;
+            font-size: 8px;
             font-weight: 600;
             letter-spacing: 0.14em;
-            text-transform: uppercase;
-            opacity: 0.7;
-            margin-bottom: 4px;
-        }
-        .print-surface .print-title {
-            font-size: 17px;
-            font-weight: 700;
-            line-height: 1.25;
-            margin: 0;
-            letter-spacing: -0.01em;
-        }
-        .print-surface .barcode-block {
-            border-bottom: 2px solid #000;
-            padding: 12px 16px;
-            background: #fff;
-        }
-        .print-surface .barcode-label {
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 0.12em;
             text-transform: uppercase;
             color: #000;
             margin-bottom: 4px;
         }
+        .print-surface .print-title {
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0;
+            letter-spacing: -0.02em;
+        }
+        .print-surface .barcode-block {
+            border-bottom: 1px solid #000;
+            padding: 8px 12px 9px;
+            background: #fff;
+            text-align: center;
+        }
+        .print-surface .barcode-label {
+            font-size: 8px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #333;
+            margin-bottom: 2px;
+        }
         .print-surface .barcode-value {
             font-family: ${PRINT_MONO};
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 600;
-            letter-spacing: 0.06em;
-            line-height: 1.2;
+            letter-spacing: 0.05em;
+            line-height: 1.15;
         }
         .print-surface .fields-list {
             display: flex;
             flex-direction: column;
+            padding: 2px 0;
         }
         .print-surface .field-row {
             display: grid;
-            grid-template-columns: 38% 62%;
-            gap: 0;
-            border-bottom: 1px solid #000;
-            min-height: 36px;
+            grid-template-columns: 34% 66%;
+            gap: 8px;
+            padding: 6px 12px;
+            border-bottom: 1px solid #ddd;
+            align-items: center;
+            min-height: 0;
         }
         .print-surface .field-row:last-child { border-bottom: none; }
-        .print-surface .field-row.full { grid-template-columns: 1fr; }
+        .print-surface .field-row.full { grid-template-columns: 1fr; gap: 2px; }
         .print-surface .field-label {
-            font-size: 9px;
-            font-weight: 700;
+            font-size: 8px;
+            font-weight: 600;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            padding: 8px 12px;
-            border-right: 1px solid #000;
+            color: #444;
+            background: transparent;
+            border: 0;
+            padding: 0;
+            text-align: center;
             display: flex;
             align-items: center;
-            background: #f2f2f2;
+            justify-content: center;
         }
         .print-surface .field-row.full .field-label {
-            border-right: none;
-            border-bottom: 1px solid #000;
-            padding-bottom: 4px;
+            border: 0;
+            padding: 0;
         }
         .print-surface .field-value {
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 500;
-            line-height: 1.4;
-            padding: 8px 12px;
+            line-height: 1.3;
+            color: #000;
+            padding: 0;
             white-space: pre-wrap;
             word-break: break-word;
+            text-align: center;
             display: flex;
             align-items: center;
+            justify-content: center;
         }
         .print-surface .field-value:empty::after {
             content: '—';
             color: #999;
         }
         .print-surface .print-footer {
-            border-top: 2px solid #000;
-            padding: 8px 16px;
+            border-top: 1px solid #000;
+            padding: 6px 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: #fff;
+            color: #333;
         }
         .print-surface .footer-mark {
-            font-size: 9px;
+            font-size: 8px;
             font-weight: 700;
-            letter-spacing: 0.12em;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
         }
         .print-surface .footer-timestamp {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 500;
             font-family: ${PRINT_MONO};
         }
         /* Compact tweaks when pinned top-right */
-        .print-surface.is-dense .print-header { padding: 8px 10px; }
+        .print-surface.is-dense .print-header { padding: 8px 9px 6px; }
         .print-surface.is-dense .print-eyebrow { font-size: 8px; margin-bottom: 2px; }
         .print-surface.is-dense .print-title { font-size: 12px; }
-        .print-surface.is-dense .barcode-block { padding: 7px 10px; border-bottom-width: 1.5px; }
+        .print-surface.is-dense .barcode-block { padding: 6px 9px 7px; }
         .print-surface.is-dense .barcode-label { font-size: 8px; margin-bottom: 2px; }
         .print-surface.is-dense .barcode-value { font-size: 13px; letter-spacing: 0.04em; }
-        .print-surface.is-dense .field-row { min-height: 0; }
-        .print-surface.is-dense .field-label { font-size: 8px; padding: 5px 8px; }
-        .print-surface.is-dense .field-value { font-size: 11px; padding: 5px 8px; line-height: 1.25; }
-        .print-surface.is-dense .print-footer { padding: 5px 10px; border-top-width: 1.5px; }
+        .print-surface.is-dense .field-row { padding: 5px 9px; gap: 6px; }
+        .print-surface.is-dense .field-label { font-size: 8px; }
+        .print-surface.is-dense .field-value { font-size: 10.5px; line-height: 1.25; }
+        .print-surface.is-dense .print-footer { padding: 5px 9px; }
         .print-surface.is-dense .footer-mark { font-size: 8px; }
         .print-surface.is-dense .footer-timestamp { font-size: 9px; }
     `;
