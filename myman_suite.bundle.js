@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v310 / Custom Ver. 36.2 — generated, do not edit */
+/* MyManager Suite bundle v311 / Custom Ver. 36.3 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '310',
+        version: '311',
         loaderVersion: '36',
-        silentVersion: '2',
-        displayVersion: '36.2',
+        silentVersion: '3',
+        displayVersion: '36.3',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -52832,14 +52832,21 @@ window.initOrderTracking = initOrderTracking;
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 5px;
+            gap: 4px;
             min-width: 0;
+        }
+        .tm-sl-unit-table th.tm-sl-unit-table__tags,
+        .tm-sl-unit-table td.tm-sl-unit-table__tags {
+            min-width: 110px;
+            max-width: 220px;
+            vertical-align: middle;
         }
         .tm-sl-phone-tags {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             gap: 4px;
+            min-width: 0;
         }
         .tm-sl-phone-tag {
             appearance: none;
@@ -53927,7 +53934,6 @@ window.initOrderTracking = initOrderTracking;
         const barcodeCell = `<div class="tm-sl-table-barcode-wrap">
             <span class="tm-sl-table-barcode" data-tm-sl-copy="${esc(v.barcode)}" title="Κλικ για αντιγραφή">${esc(v.barcode)}</span>
             ${imeiHtml}
-            ${tagsHtml}
         </div>`;
         const priceCell = v.price ? `<span class="tm-sl-table-price">${esc(v.price)}</span>` : '—';
         const modelName = v.modelName || ctx?.modelName || '';
@@ -53939,12 +53945,13 @@ window.initOrderTracking = initOrderTracking;
             data-tm-sl-color="${esc(v.color || '')}"
             data-tm-sl-model="${esc(modelName)}"
             data-tm-sl-price="${esc(v.price || '')}"
-            title="Κλικ barcode: αντιγραφή · δεξί κλικ / +: ετικέτες · διπλό κλικ: άνοιγμα">
+            title="Κλικ barcode: αντιγραφή · +: ετικέτες · διπλό κλικ: άνοιγμα">
             <td>${gradeCell}</td>
             <td>${gbCell}</td>
             <td>${colorCell}</td>
             <td>${statusCell}</td>
             <td>${barcodeCell}</td>
+            <td class="tm-sl-unit-table__tags">${tagsHtml}</td>
             <td>${priceCell}</td>
         </tr>`;
     }
@@ -53963,6 +53970,7 @@ window.initOrderTracking = initOrderTracking;
                         <th>Χρώμα</th>
                         <th>Κατάσταση</th>
                         <th>Barcode</th>
+                        <th class="tm-sl-unit-table__tags">Ετικέτες</th>
                         <th>Τιμή</th>
                     </tr>
                 </thead>
