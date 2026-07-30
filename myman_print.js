@@ -14,6 +14,7 @@
 
     const PRINT_FONT = "'IBM Plex Sans', 'Segoe UI', sans-serif";
     const PRINT_MONO = "'IBM Plex Mono', 'Consolas', monospace";
+    const PRINT_TEMPLATE_KEY = () => window.STORAGE_KEYS?.PRINT_TEMPLATE || 'tm_print_template';
 
     function prepareFields(fields) {
         const barcodeField = fields.find(f =>
@@ -37,310 +38,275 @@
             .replace(/"/g, '&quot;');
     }
 
+    function isSparePartsOrderUrl(url) {
+        return /sparepartstoorder/i.test(String(url || ''));
+    }
+
+    function getPrintModalCopy(url) {
+        if (isSparePartsOrderUrl(url)) {
+            return {
+                title: 'Εκτύπωση ανταλλακτικού',
+                eyebrow: 'Ανταλλακτικό',
+            };
+        }
+        return {
+            title: 'Εκτύπωση παραγγελίας',
+            eyebrow: 'Παραγγελία',
+        };
+    }
+
+    /** Shared card markup — position is applied via CSS class, not separate designs. */
+    function renderPrintCard(details, fields, nowText, positionClass, eyebrow) {
+        const { barcode, fields: rows } = prepareFields(fields);
+        const bodyFields = barcode ? rows.slice(1) : rows;
+        const dense = positionClass === 'pos-top-right';
+
+        return `
+        <div class="print-surface ${positionClass}${dense ? ' is-dense' : ''}">
+            <div class="print-header">
+                <div class="print-eyebrow">${escapeHtml(eyebrow || 'Παραγγελία')}</div>
+                <h1 class="print-title">${escapeHtml(details.title)}</h1>
+            </div>
+            ${barcode ? `
+            <div class="barcode-block">
+                <div class="barcode-label">${escapeHtml(barcode.label)}</div>
+                <div class="barcode-value">${escapeHtml(barcode.value)}</div>
+            </div>` : ''}
+            <div class="fields-list">
+                ${bodyFields.map(field => {
+                    const isLong = String(field.value || '').length > 60;
+                    return `
+                        <div class="field-row ${isLong ? 'full' : ''}">
+                            <div class="field-label">${escapeHtml(field.label)}</div>
+                            <div class="field-value">${escapeHtml(field.value)}</div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            <div class="print-footer">
+                <div class="footer-mark">MyManager</div>
+                <div class="footer-timestamp">${escapeHtml(nowText)}</div>
+            </div>
+        </div>
+        `;
+    }
+
+    const SHARED_CARD_STYLES = `
+        .print-surface {
+            font-family: ${PRINT_FONT};
+            color: #000;
+            background: #fff;
+            border: 2px solid #000;
+            box-sizing: border-box;
+            page-break-inside: avoid;
+        }
+        .print-surface .print-header {
+            background: #000;
+            color: #fff;
+            padding: 14px 16px 12px;
+            text-align: left;
+        }
+        .print-surface .print-eyebrow {
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+        .print-surface .print-title {
+            font-size: 17px;
+            font-weight: 700;
+            line-height: 1.25;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+        .print-surface .barcode-block {
+            border-bottom: 2px solid #000;
+            padding: 12px 16px;
+            background: #fff;
+        }
+        .print-surface .barcode-label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #000;
+            margin-bottom: 4px;
+        }
+        .print-surface .barcode-value {
+            font-family: ${PRINT_MONO};
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            line-height: 1.2;
+        }
+        .print-surface .fields-list {
+            display: flex;
+            flex-direction: column;
+        }
+        .print-surface .field-row {
+            display: grid;
+            grid-template-columns: 38% 62%;
+            gap: 0;
+            border-bottom: 1px solid #000;
+            min-height: 36px;
+        }
+        .print-surface .field-row:last-child { border-bottom: none; }
+        .print-surface .field-row.full { grid-template-columns: 1fr; }
+        .print-surface .field-label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 8px 12px;
+            border-right: 1px solid #000;
+            display: flex;
+            align-items: center;
+            background: #f2f2f2;
+        }
+        .print-surface .field-row.full .field-label {
+            border-right: none;
+            border-bottom: 1px solid #000;
+            padding-bottom: 4px;
+        }
+        .print-surface .field-value {
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.4;
+            padding: 8px 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            display: flex;
+            align-items: center;
+        }
+        .print-surface .field-value:empty::after {
+            content: '—';
+            color: #999;
+        }
+        .print-surface .print-footer {
+            border-top: 2px solid #000;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+        }
+        .print-surface .footer-mark {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .print-surface .footer-timestamp {
+            font-size: 10px;
+            font-weight: 500;
+            font-family: ${PRINT_MONO};
+        }
+        /* Compact tweaks when pinned top-right */
+        .print-surface.is-dense .print-header { padding: 8px 10px; }
+        .print-surface.is-dense .print-eyebrow { font-size: 8px; margin-bottom: 2px; }
+        .print-surface.is-dense .print-title { font-size: 12px; }
+        .print-surface.is-dense .barcode-block { padding: 7px 10px; border-bottom-width: 1.5px; }
+        .print-surface.is-dense .barcode-label { font-size: 8px; margin-bottom: 2px; }
+        .print-surface.is-dense .barcode-value { font-size: 13px; letter-spacing: 0.04em; }
+        .print-surface.is-dense .field-row { min-height: 0; }
+        .print-surface.is-dense .field-label { font-size: 8px; padding: 5px 8px; }
+        .print-surface.is-dense .field-value { font-size: 11px; padding: 5px 8px; line-height: 1.25; }
+        .print-surface.is-dense .print-footer { padding: 5px 10px; border-top-width: 1.5px; }
+        .print-surface.is-dense .footer-mark { font-size: 8px; }
+        .print-surface.is-dense .footer-timestamp { font-size: 9px; }
+    `;
+
+    const POSITION_LAYOUT_STYLES = `
+        /* No flex centering — that made top-right look like middle */
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            color: #000;
+            font-family: ${PRINT_FONT};
+            font-size: 11px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .print-shell {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .print-surface.pos-center {
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            float: none;
+        }
+        .print-surface.pos-top-right {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 95mm;
+            max-width: 48%;
+            float: none;
+            margin: 0;
+        }
+        @media print {
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #fff !important;
+            }
+            .print-shell {
+                position: relative;
+                width: 100%;
+                min-height: 0;
+                height: auto;
+            }
+            .print-surface.pos-center {
+                width: 100%;
+                max-width: 420px;
+                margin: 0 auto;
+            }
+            .print-surface.pos-top-right {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 95mm;
+                max-width: 48%;
+                float: none;
+                margin: 0;
+            }
+        }
+    `;
+
+    // Keep legacy IDs so tm_print_template storage still works.
     const PRINT_TEMPLATES = [
         {
             id: 'classic',
-            name: 'Κλασικό A4',
-            description: 'Πλήρης ασπρόμαυρη κάρτα για το πάνω μισό της σελίδας.',
+            name: 'Κέντρο',
+            description: 'Κάρτα στο κέντρο της σελίδας.',
+            positionClass: 'pos-center',
             pageStyle: '@page { size: A4; margin: 14mm; }',
-            styles: `
-                .print-surface.classic {
-                    width: 100%;
-                    max-width: 420px;
-                    margin: 0 auto;
-                    font-family: ${PRINT_FONT};
-                    color: #000;
-                    background: #fff;
-                    border: 2px solid #000;
-                }
-                .print-surface.classic .print-header {
-                    background: #000;
-                    color: #fff;
-                    padding: 14px 16px 12px;
-                    text-align: left;
-                }
-                .print-surface.classic .print-eyebrow {
-                    font-size: 9px;
-                    font-weight: 600;
-                    letter-spacing: 0.14em;
-                    text-transform: uppercase;
-                    opacity: 0.7;
-                    margin-bottom: 4px;
-                }
-                .print-surface.classic .print-title {
-                    font-size: 17px;
-                    font-weight: 700;
-                    line-height: 1.25;
-                    margin: 0;
-                    letter-spacing: -0.01em;
-                }
-                .print-surface.classic .barcode-block {
-                    border-bottom: 2px solid #000;
-                    padding: 12px 16px;
-                    background: #fff;
-                }
-                .print-surface.classic .barcode-label {
-                    font-size: 9px;
-                    font-weight: 700;
-                    letter-spacing: 0.12em;
-                    text-transform: uppercase;
-                    color: #000;
-                    margin-bottom: 4px;
-                }
-                .print-surface.classic .barcode-value {
-                    font-family: ${PRINT_MONO};
-                    font-size: 18px;
-                    font-weight: 600;
-                    letter-spacing: 0.06em;
-                    line-height: 1.2;
-                }
-                .print-surface.classic .fields-list {
-                    display: flex;
-                    flex-direction: column;
-                }
-                .print-surface.classic .field-row {
-                    display: grid;
-                    grid-template-columns: 38% 62%;
-                    gap: 0;
-                    border-bottom: 1px solid #000;
-                    min-height: 36px;
-                }
-                .print-surface.classic .field-row:last-child {
-                    border-bottom: none;
-                }
-                .print-surface.classic .field-row.full {
-                    grid-template-columns: 1fr;
-                }
-                .print-surface.classic .field-label {
-                    font-size: 9px;
-                    font-weight: 700;
-                    letter-spacing: 0.08em;
-                    text-transform: uppercase;
-                    padding: 8px 12px;
-                    border-right: 1px solid #000;
-                    display: flex;
-                    align-items: center;
-                    background: #f2f2f2;
-                }
-                .print-surface.classic .field-row.full .field-label {
-                    border-right: none;
-                    border-bottom: 1px solid #000;
-                    padding-bottom: 4px;
-                }
-                .print-surface.classic .field-value {
-                    font-size: 12px;
-                    font-weight: 500;
-                    line-height: 1.4;
-                    padding: 8px 12px;
-                    white-space: pre-wrap;
-                    word-break: break-word;
-                    display: flex;
-                    align-items: center;
-                }
-                .print-surface.classic .field-value:empty::after {
-                    content: '—';
-                    color: #999;
-                }
-                .print-surface.classic .print-footer {
-                    border-top: 2px solid #000;
-                    padding: 8px 16px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    background: #fff;
-                }
-                .print-surface.classic .footer-mark {
-                    font-size: 9px;
-                    font-weight: 700;
-                    letter-spacing: 0.12em;
-                    text-transform: uppercase;
-                }
-                .print-surface.classic .footer-timestamp {
-                    font-size: 10px;
-                    font-weight: 500;
-                    font-family: ${PRINT_MONO};
-                }
-            `,
-            render: (details, fields, nowText) => {
-                const { barcode, fields: rows } = prepareFields(fields);
-                const bodyFields = barcode ? rows.slice(1) : rows;
-
-                return `
-                <div class="print-surface classic">
-                    <div class="print-header">
-                        <div class="print-eyebrow">Παραγγελία</div>
-                        <h1 class="print-title">${escapeHtml(details.title)}</h1>
-                    </div>
-                    ${barcode ? `
-                    <div class="barcode-block">
-                        <div class="barcode-label">${escapeHtml(barcode.label)}</div>
-                        <div class="barcode-value">${escapeHtml(barcode.value)}</div>
-                    </div>` : ''}
-                    <div class="fields-list">
-                        ${bodyFields.map(field => {
-                            const isLong = field.value.length > 60;
-                            return `
-                                <div class="field-row ${isLong ? 'full' : ''}">
-                                    <div class="field-label">${escapeHtml(field.label)}</div>
-                                    <div class="field-value">${escapeHtml(field.value)}</div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                    <div class="print-footer">
-                        <div class="footer-mark">MyManager</div>
-                        <div class="footer-timestamp">${escapeHtml(nowText)}</div>
-                    </div>
-                </div>
-                `;
-            }
+            thumb: 'center',
         },
-
         {
             id: 'quarter_top_right',
-            name: 'Πάνω Δεξιά 1/4',
-            description: 'Συμπαγής ασπρόμαυρη κάρτα πάνω δεξιά.',
+            name: 'Πάνω δεξιά',
+            description: 'Κάρτα στην πάνω δεξιά γωνία.',
+            positionClass: 'pos-top-right',
             pageStyle: '@page { size: A4; margin: 10mm; }',
-            styles: `
-                .print-surface.quarter {
-                    width: 48%;
-                    max-width: 48%;
-                    margin-left: auto;
-                    margin-right: 0;
-                    float: right;
-                    box-sizing: border-box;
-                    page-break-inside: avoid;
-                    font-family: ${PRINT_FONT};
-                    color: #000;
-                    background: #fff;
-                    border: 2px solid #000;
-                    font-size: 11px;
-                }
-                .print-surface.quarter .print-header {
-                    background: #000;
-                    color: #fff;
-                    padding: 8px 10px;
-                }
-                .print-surface.quarter .print-eyebrow {
-                    font-size: 8px;
-                    font-weight: 600;
-                    letter-spacing: 0.12em;
-                    text-transform: uppercase;
-                    opacity: 0.7;
-                    margin-bottom: 2px;
-                }
-                .print-surface.quarter .print-title {
-                    font-size: 12px;
-                    font-weight: 700;
-                    line-height: 1.2;
-                    margin: 0;
-                }
-                .print-surface.quarter .barcode-block {
-                    border-bottom: 1.5px solid #000;
-                    padding: 7px 10px;
-                }
-                .print-surface.quarter .barcode-label {
-                    font-size: 8px;
-                    font-weight: 700;
-                    letter-spacing: 0.1em;
-                    text-transform: uppercase;
-                    margin-bottom: 2px;
-                }
-                .print-surface.quarter .barcode-value {
-                    font-family: ${PRINT_MONO};
-                    font-size: 13px;
-                    font-weight: 600;
-                    letter-spacing: 0.04em;
-                }
-                .print-surface.quarter .kv-list {
-                    display: flex;
-                    flex-direction: column;
-                }
-                .print-surface.quarter .kv-row {
-                    display: grid;
-                    grid-template-columns: 36% 64%;
-                    border-bottom: 1px solid #000;
-                }
-                .print-surface.quarter .kv-row:last-child {
-                    border-bottom: none;
-                }
-                .print-surface.quarter .kv-row .label {
-                    font-size: 8px;
-                    font-weight: 700;
-                    letter-spacing: 0.06em;
-                    text-transform: uppercase;
-                    padding: 5px 8px;
-                    border-right: 1px solid #000;
-                    background: #f2f2f2;
-                    display: flex;
-                    align-items: center;
-                }
-                .print-surface.quarter .kv-row .value {
-                    font-size: 11px;
-                    font-weight: 500;
-                    line-height: 1.25;
-                    padding: 5px 8px;
-                    white-space: pre-wrap;
-                    word-break: break-word;
-                    display: flex;
-                    align-items: center;
-                }
-                .print-surface.quarter .print-footer {
-                    border-top: 1.5px solid #000;
-                    padding: 5px 10px;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .print-surface.quarter .footer-mark {
-                    font-size: 8px;
-                    font-weight: 700;
-                    letter-spacing: 0.1em;
-                    text-transform: uppercase;
-                }
-                .print-surface.quarter .print-meta {
-                    font-size: 9px;
-                    font-family: ${PRINT_MONO};
-                    font-weight: 500;
-                }
-            `,
-            render: (details, fields, nowText) => {
-                const { barcode, fields: rows } = prepareFields(fields);
-                const bodyFields = barcode ? rows.slice(1) : rows;
-
-                return `
-                <div class="print-surface quarter">
-                    <div class="print-header">
-                        <div class="print-eyebrow">Παραγγελία</div>
-                        <div class="print-title">${escapeHtml(details.title)}</div>
-                    </div>
-                    ${barcode ? `
-                    <div class="barcode-block">
-                        <div class="barcode-label">${escapeHtml(barcode.label)}</div>
-                        <div class="barcode-value">${escapeHtml(barcode.value)}</div>
-                    </div>` : ''}
-                    <div class="kv-list">
-                        ${bodyFields.map(field => `
-                            <div class="kv-row">
-                                <div class="label">${escapeHtml(field.label)}</div>
-                                <div class="value">${escapeHtml(field.value)}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="print-footer">
-                        <div class="footer-mark">MyManager</div>
-                        <span class="print-meta">${escapeHtml(nowText)}</span>
-                    </div>
-                </div>
-                `;
-            }
-        }
+            thumb: 'top-right',
+        },
     ];
 
     function ensurePrintTemplateStyles() {
-        if (document.getElementById('tm-print-template-styles')) return;
-        const style = document.createElement('style');
-        style.id = 'tm-print-template-styles';
+        let style = document.getElementById('tm-print-template-styles');
+        if (!style) {
+            style = document.createElement('style');
+            style.id = 'tm-print-template-styles';
+            document.head.appendChild(style);
+        }
         style.textContent = `
             #tm-print-template-modal {
                 position: fixed;
@@ -350,13 +316,13 @@
                 align-items: center;
                 justify-content: center;
                 z-index: 10001;
+                padding: 16px;
             }
             .tm-pt-card {
                 background: #fff;
                 color: #000;
                 border: 2px solid #000;
-                border-radius: 0;
-                width: min(480px, 92vw);
+                width: min(560px, 96vw);
                 box-shadow: 8px 8px 0 #000;
                 padding: 18px;
                 font-family: ${PRINT_FONT};
@@ -368,6 +334,7 @@
                 margin-bottom: 14px;
                 padding-bottom: 12px;
                 border-bottom: 2px solid #000;
+                gap: 12px;
             }
             .tm-pt-title {
                 font-size: 16px;
@@ -376,10 +343,9 @@
                 color: #000;
             }
             .tm-pt-subtitle {
-                font-size: 11px;
+                font-size: 12px;
                 color: #444;
                 margin-top: 3px;
-                letter-spacing: 0.02em;
             }
             .tm-pt-close {
                 background: #000;
@@ -393,35 +359,82 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                flex-shrink: 0;
             }
-            .tm-pt-options { display: grid; gap: 8px; margin-bottom: 14px; }
+            .tm-pt-options {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                margin-bottom: 10px;
+            }
+            @media (max-width: 520px) {
+                .tm-pt-options { grid-template-columns: 1fr; }
+            }
             .tm-pt-option {
                 display: flex;
+                flex-direction: column;
                 gap: 10px;
-                align-items: flex-start;
                 padding: 12px;
-                border: 1.5px solid #000;
+                border: 2px solid #000;
                 background: #fff;
                 cursor: pointer;
-                transition: background 0.12s ease;
+                text-align: left;
+                transition: background 0.12s ease, box-shadow 0.12s ease;
+                font-family: inherit;
+                color: inherit;
             }
-            .tm-pt-option:hover,
-            .tm-pt-option:has(input:checked) {
+            .tm-pt-option:hover { background: #f7f7f7; }
+            .tm-pt-option.is-selected {
                 background: #f2f2f2;
+                box-shadow: inset 0 0 0 2px #000;
             }
-            .tm-pt-option input {
-                margin-top: 2px;
-                accent-color: #000;
+            .tm-pt-option:focus-visible {
+                outline: 2px solid #000;
+                outline-offset: 2px;
             }
-            .tm-pt-option .tm-pt-name {
+            .tm-pt-thumb {
+                position: relative;
+                width: 100%;
+                aspect-ratio: 210 / 297;
+                border: 1.5px solid #bbb;
+                background: #fafafa;
+                border-radius: 2px;
+                overflow: hidden;
+            }
+            .tm-pt-thumb-card {
+                position: absolute;
+                background: #111;
+                border: 1px solid #000;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            }
+            .tm-pt-thumb--center .tm-pt-thumb-card {
+                left: 50%;
+                top: 12%;
+                transform: translateX(-50%);
+                width: 42%;
+                height: 28%;
+            }
+            .tm-pt-thumb--top-right .tm-pt-thumb-card {
+                top: 6%;
+                right: 6%;
+                width: 38%;
+                height: 22%;
+            }
+            .tm-pt-name {
                 font-weight: 700;
                 color: #000;
-                font-size: 13px;
+                font-size: 14px;
             }
-            .tm-pt-option .tm-pt-desc {
+            .tm-pt-desc {
                 font-size: 11px;
-                color: #444;
-                margin-top: 2px;
+                color: #555;
+                line-height: 1.35;
+            }
+            .tm-pt-hint {
+                font-size: 11px;
+                color: #666;
+                margin: 0 0 12px;
+                line-height: 1.4;
             }
             .tm-pt-actions {
                 display: flex;
@@ -451,38 +464,47 @@
             }
             .tm-pt-primary:hover { background: #222; }
         `;
-        document.head.appendChild(style);
     }
 
-    function openPrintTemplateModal() {
+    function openPrintTemplateModal(opts = {}) {
         ensurePrintTemplateStyles();
         return new Promise(resolve => {
             const existing = document.getElementById('tm-print-template-modal');
             if (existing) existing.remove();
 
-            const lastChoice = GM_getValue(window.STORAGE_KEYS?.PRINT_TEMPLATE || 'tm_print_template', PRINT_TEMPLATES[0].id);
+            const lastChoice = GM_getValue(PRINT_TEMPLATE_KEY(), PRINT_TEMPLATES[0].id);
+            const validLast = PRINT_TEMPLATES.some(t => t.id === lastChoice)
+                ? lastChoice
+                : PRINT_TEMPLATES[0].id;
+            const copy = getPrintModalCopy(opts.url);
+
             const overlay = document.createElement('div');
             overlay.id = 'tm-print-template-modal';
             overlay.innerHTML = `
-                <div class="tm-pt-card">
+                <div class="tm-pt-card" role="dialog" aria-modal="true" aria-labelledby="tm-pt-title">
                     <div class="tm-pt-header">
                         <div>
-                            <div class="tm-pt-title">Εκτύπωση παραγγελίας</div>
-                            <div class="tm-pt-subtitle">Επιλέξτε πρότυπο εκτύπωσης</div>
+                            <div class="tm-pt-title" id="tm-pt-title">${escapeHtml(copy.title)}</div>
+                            <div class="tm-pt-subtitle">Θέση εκτύπωσης</div>
                         </div>
-                        <button class="tm-pt-close" aria-label="Close">×</button>
+                        <button type="button" class="tm-pt-close" aria-label="Κλείσιμο">×</button>
                     </div>
-                    <div class="tm-pt-options">
+                    <div class="tm-pt-options" role="radiogroup" aria-label="Θέση εκτύπωσης">
                         ${PRINT_TEMPLATES.map(t => `
-                            <label class="tm-pt-option" data-template="${t.id}">
-                                <input type="radio" name="tm-pt-choice" value="${t.id}" ${t.id === lastChoice ? 'checked' : ''}>
-                                <div>
-                                    <div class="tm-pt-name">${t.name}</div>
-                                    <div class="tm-pt-desc">${t.description}</div>
+                            <button type="button" class="tm-pt-option${t.id === validLast ? ' is-selected' : ''}"
+                                data-template="${t.id}" role="radio"
+                                aria-checked="${t.id === validLast ? 'true' : 'false'}">
+                                <div class="tm-pt-thumb tm-pt-thumb--${t.thumb}" aria-hidden="true">
+                                    <div class="tm-pt-thumb-card"></div>
                                 </div>
-                            </label>
+                                <div>
+                                    <div class="tm-pt-name">${escapeHtml(t.name)}</div>
+                                    <div class="tm-pt-desc">${escapeHtml(t.description)}</div>
+                                </div>
+                            </button>
                         `).join('')}
                     </div>
+                    <p class="tm-pt-hint">Θυμόμαστε την τελευταία επιλογή. Διπλό κλικ για άμεση εκτύπωση.</p>
                     <div class="tm-pt-actions">
                         <button type="button" class="tm-pt-secondary">Ακύρωση</button>
                         <button type="button" class="tm-pt-primary">Εκτύπωση</button>
@@ -490,48 +512,53 @@
                 </div>
             `;
 
+            let selectedId = validLast;
+            let settled = false;
+
             const removeModal = () => overlay.remove();
-            const getSelectedTemplate = () => {
-                const selected = overlay.querySelector('input[name="tm-pt-choice"]:checked');
-                return selected ? selected.value : null;
+            const finish = (value) => {
+                if (settled) return;
+                settled = true;
+                removeModal();
+                resolve(value);
+            };
+
+            const selectOption = (id) => {
+                selectedId = id;
+                overlay.querySelectorAll('.tm-pt-option').forEach(opt => {
+                    const on = opt.getAttribute('data-template') === id;
+                    opt.classList.toggle('is-selected', on);
+                    opt.setAttribute('aria-checked', on ? 'true' : 'false');
+                });
+            };
+
+            const confirmPrint = () => {
+                if (!selectedId) return;
+                GM_setValue(PRINT_TEMPLATE_KEY(), selectedId);
+                finish(selectedId);
             };
 
             overlay.addEventListener('click', (e) => {
-                if (e.target.id === 'tm-print-template-modal') {
-                    removeModal();
-                    resolve(null);
-                }
+                if (e.target.id === 'tm-print-template-modal') finish(null);
             });
 
-            overlay.querySelector('.tm-pt-close').addEventListener('click', () => {
-                removeModal();
-                resolve(null);
-            });
-
-            overlay.querySelector('.tm-pt-secondary').addEventListener('click', () => {
-                removeModal();
-                resolve(null);
-            });
-
-            overlay.querySelector('.tm-pt-primary').addEventListener('click', () => {
-                const choice = getSelectedTemplate();
-                if (choice) {
-                    GM_setValue(window.STORAGE_KEYS?.PRINT_TEMPLATE || 'tm_print_template', choice);
-                    removeModal();
-                    resolve(choice);
-                }
-            });
+            overlay.querySelector('.tm-pt-close').addEventListener('click', () => finish(null));
+            overlay.querySelector('.tm-pt-secondary').addEventListener('click', () => finish(null));
+            overlay.querySelector('.tm-pt-primary').addEventListener('click', confirmPrint);
 
             overlay.querySelectorAll('.tm-pt-option').forEach(option => {
-                option.addEventListener('click', (e) => {
-                    const radio = option.querySelector('input');
-                    if (e.target !== radio) {
-                        radio.checked = true;
-                    }
+                option.addEventListener('click', () => {
+                    selectOption(option.getAttribute('data-template'));
+                });
+                option.addEventListener('dblclick', (e) => {
+                    e.preventDefault();
+                    selectOption(option.getAttribute('data-template'));
+                    confirmPrint();
                 });
             });
 
             document.body.appendChild(overlay);
+            overlay.querySelector('.tm-pt-primary')?.focus();
         });
     }
 
@@ -540,6 +567,10 @@
             trackDailyStat(window.config, window.STORAGE_KEYS, 'printOrder');
         }
         if (!url) return;
+
+        const idleLabel = isSparePartsOrderUrl(url)
+            ? 'Εκτύπωση Ανταλλακτικού'
+            : 'Εκτύπωση Παραγγελίας';
 
         if (buttonElement) {
             buttonElement.textContent = 'Φόρτωση...';
@@ -553,15 +584,15 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(response.responseText, 'text/html');
                 const details = scrapeOrderDetails(doc);
-                openPrintTemplateModal()
+                openPrintTemplateModal({ url })
                     .then(templateId => {
                         if (templateId) {
-                            generatePrintPage(details, templateId);
+                            generatePrintPage(details, templateId, { url });
                         }
                     })
                     .finally(() => {
                         if (buttonElement) {
-                            buttonElement.textContent = 'Εκτύπωση Παραγγελίας';
+                            buttonElement.textContent = idleLabel;
                             buttonElement.disabled = false;
                         }
                     });
@@ -570,7 +601,7 @@
                 console.error('Failed to fetch order details for printing:', error);
                 alert('Αποτυχία φόρτωσης δεδομένων για εκτύπωση.');
                 if (buttonElement) {
-                    buttonElement.textContent = 'Εκτύπωση Παραγγελίας';
+                    buttonElement.textContent = idleLabel;
                     buttonElement.disabled = false;
                 }
             }
@@ -624,13 +655,24 @@
     }
     window.scrapeOrderDetails = scrapeOrderDetails;
 
-    function generatePrintPage(details, templateId = GM_getValue(window.STORAGE_KEYS?.PRINT_TEMPLATE || 'tm_print_template', PRINT_TEMPLATES[0].id)) {
+    function generatePrintPage(
+        details,
+        templateId = GM_getValue(PRINT_TEMPLATE_KEY(), PRINT_TEMPLATES[0].id),
+        opts = {}
+    ) {
         const fields = (details?.fields || []).filter(field => field.value && field.label !== 'Κατάστημα');
         const now = new Date();
         const nowText = `${now.toLocaleDateString()} • ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         const template = PRINT_TEMPLATES.find(t => t.id === templateId) || PRINT_TEMPLATES[0];
+        const copy = getPrintModalCopy(opts.url);
+        const positionClass = template.positionClass || 'pos-center';
 
         const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert('Το παράθυρο εκτύπωσης μπλοκαρίστηκε. Επιτρέψτε τα pop-ups και δοκιμάστε ξανά.');
+            return;
+        }
+
         printWindow.document.write(`
             <html><head><title>Εκτύπωση - ${escapeHtml(details.title)}</title>
             <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -639,25 +681,11 @@
             <style>
                 ${template.pageStyle || '@page { size: A4; margin: 14mm; }'}
                 * { box-sizing: border-box; }
-                body {
-                    font-family: ${PRINT_FONT};
-                    font-size: 11px;
-                    color: #000;
-                    display: flex;
-                    justify-content: center;
-                    align-items: flex-start;
-                    margin: 0;
-                    background: #fff;
-                    -webkit-print-color-adjust: exact;
-                    print-color-adjust: exact;
-                }
-                .print-shell { width: 100%; display: flex; justify-content: center; }
-                .print-shell.quarter-mode { justify-content: flex-end; align-items: flex-start; padding-top: 0; }
-                .print-surface { width: 100%; max-width: 100%; }
-                ${template.styles || ''}
+                ${POSITION_LAYOUT_STYLES}
+                ${SHARED_CARD_STYLES}
             </style></head><body>
-            <div class="print-shell ${template.id === 'quarter_top_right' ? 'quarter-mode' : ''}">
-                ${template.render(details, fields, nowText)}
+            <div class="print-shell">
+                ${renderPrintCard(details, fields, nowText, positionClass, copy.eyebrow)}
             </div>
             <script>
                 function runPrint() {
