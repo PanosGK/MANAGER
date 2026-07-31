@@ -5038,28 +5038,34 @@
             #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-right {
                 animation: tm-mythic-wing-flap-right 2.4s ease-in-out infinite !important;
             }
-            /* Aether: parent barely moves — articulation lives on 3 wing segments */
+            /* Aether: kill parent/generic wing motion — ONLY 3-seg flap runs */
             #tm-mascot-container.mascot-char-aether .tm-animate-wing-left,
-            #tm-mascot-container .mascot-char-aether .tm-animate-wing-left {
-                transform-origin: right center;
-                transform-box: fill-box;
-            }
+            #tm-mascot-container .mascot-char-aether .tm-animate-wing-left,
             #tm-mascot-container.mascot-char-aether .tm-animate-wing-right,
-            #tm-mascot-container .mascot-char-aether .tm-animate-wing-right {
-                transform-origin: left center;
-                transform-box: fill-box;
-            }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container .mascot-char-aether .tm-animate-wing-right,
             #tm-mascot-container.mascot-idle.mascot-char-aether .tm-animate-wing-left,
-            #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-left,
-            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-left {
-                animation: tm-aether-blade-flap 1.45s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
-            }
-            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-animate-wing-right,
             #tm-mascot-container.mascot-idle.mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.mascot-idle .mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-left,
             #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-right,
-            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-right {
-                animation: tm-aether-blade-flap-right 1.45s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
+            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.mascot-moving.mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.mascot-moving.mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.mascot-moving .mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.mascot-moving .mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.mascot-char-aether.tm-aether-sovereign .tm-animate-wing-left,
+            #tm-mascot-container.mascot-char-aether.tm-aether-sovereign .tm-animate-wing-right,
+            #tm-mascot-container.tm-aether-lite.mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.tm-aether-lite.mascot-char-aether .tm-animate-wing-right,
+            #tm-mascot-container.tm-aether-lite .mascot-char-aether .tm-animate-wing-left,
+            #tm-mascot-container.tm-aether-lite .mascot-char-aether .tm-animate-wing-right {
+                animation: none !important;
+                transform: none !important;
+                transform-origin: center center;
+                transform-box: fill-box;
+                transition: none !important;
             }
             /* Fallen angel: snap flap — fast downbeat, rest, recover (not slow sway) */
             #tm-mascot-container.mascot-char-aether .tm-aether-wing-seg,
@@ -5154,22 +5160,18 @@
                 animation: tm-aether-crack-pulse 1.4s ease-in-out infinite;
             }
             /* Active travel flap — kicks in as soon as the mascot starts moving */
-            #tm-mascot-container.mascot-moving:not(.mascot-parked) .tm-animate-wing-left {
+            #tm-mascot-container.mascot-moving:not(.mascot-parked):not(.mascot-char-aether) .tm-animate-wing-left {
                 animation: tm-wing-flap-move 0.4s ease-in-out infinite !important;
             }
-            #tm-mascot-container.mascot-moving:not(.mascot-parked) .tm-animate-wing-right {
+            #tm-mascot-container.mascot-moving:not(.mascot-parked):not(.mascot-char-aether) .tm-animate-wing-right {
                 animation: tm-wing-flap-move-right 0.4s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-left,
-            #tm-mascot-container.mascot-moving.mascot-char-phoenix:not(.mascot-parked) .tm-animate-wing-left,
-            #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left,
-            #tm-mascot-container.mascot-moving.mascot-char-aether:not(.mascot-parked) .tm-animate-wing-left {
+            #tm-mascot-container.mascot-moving.mascot-char-phoenix:not(.mascot-parked) .tm-animate-wing-left {
                 animation: tm-mythic-wing-flap-move 0.36s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-phoenix .tm-animate-wing-right,
-            #tm-mascot-container.mascot-moving.mascot-char-phoenix:not(.mascot-parked) .tm-animate-wing-right,
-            #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right,
-            #tm-mascot-container.mascot-moving.mascot-char-aether:not(.mascot-parked) .tm-animate-wing-right {
+            #tm-mascot-container.mascot-moving.mascot-char-phoenix:not(.mascot-parked) .tm-animate-wing-right {
                 animation: tm-mythic-wing-flap-move-right 0.36s ease-in-out infinite !important;
             }
             /* Parked: no travel flap — mythicals keep a soft sovereign breathe */
@@ -5177,14 +5179,6 @@
             #tm-mascot-container.mascot-parked:not(.mascot-char-aether):not(.mascot-char-phoenix) .tm-animate-wing-right {
                 animation: none !important;
                 transform: none !important;
-            }
-            #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-left,
-            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-left {
-                animation: tm-aether-blade-flap 1.45s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
-            }
-            #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-right,
-            #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-right {
-                animation: tm-aether-blade-flap-right 1.45s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
             }
             #tm-mascot-container.mascot-parked.mascot-char-phoenix .tm-animate-wing-left,
             #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-left {
@@ -5315,20 +5309,7 @@
             #tm-mascot-container.tm-aether-lite.mascot-idle .tm-mascot-robot.mascot-char-aether {
                 animation: tm-mythic-idle-float 6s ease-in-out infinite !important;
             }
-            #tm-mascot-container.tm-aether-lite.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left {
-                animation: tm-aether-blade-flap 1.7s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
-            }
-            #tm-mascot-container.tm-aether-lite.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right {
-                animation: tm-aether-blade-flap-right 1.7s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
-            }
-            #tm-mascot-container.tm-aether-lite.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left,
-            #tm-mascot-container.tm-aether-lite.mascot-moving.mascot-char-aether:not(.mascot-parked) .tm-animate-wing-left {
-                animation: tm-mythic-wing-flap-move 0.55s ease-in-out infinite !important;
-            }
-            #tm-mascot-container.tm-aether-lite.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right,
-            #tm-mascot-container.tm-aether-lite.mascot-moving.mascot-char-aether:not(.mascot-parked) .tm-animate-wing-right {
-                animation: tm-mythic-wing-flap-move-right 0.55s ease-in-out infinite !important;
-            }
+            /* lite: parent wing stays frozen; segment flap still runs via rules above */
             #tm-mascot-container.tm-aether-lite .tm-aether-fx.tm-fx-on .tm-aether-spark,
             #tm-mascot-container.tm-aether-lite .tm-aether-fx.tm-fx-on.tm-aether-orbit-group,
             #tm-mascot-container.tm-aether-lite .tm-aether-fx.tm-fx-on .tm-aether-orbit,
@@ -5787,13 +5768,7 @@
                 75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
                 100% { opacity: 0; transform: translate(-50%, -58%) scale(1.04); }
             }
-            /* Sovereign idle — same snap flap as normal idle */
-            #tm-mascot-container.mascot-char-aether.tm-aether-sovereign:not(.mascot-moving) .tm-animate-wing-left {
-                animation: tm-aether-blade-flap 1.45s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
-            }
-            #tm-mascot-container.mascot-char-aether.tm-aether-sovereign:not(.mascot-moving) .tm-animate-wing-right {
-                animation: tm-aether-blade-flap-right 1.45s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
-            }
+            /* Sovereign: parent wing frozen — segments own the flap */
             #tm-mascot-container.mascot-char-aether.tm-aether-sovereign .tm-aether-core {
                 animation: tm-mythic-core-pulse 3.4s ease-in-out infinite;
             }
@@ -7607,28 +7582,37 @@
              */
             #tm-mascot-container.mascot-eating .tm-animate-wing-left,
             #tm-mascot-container.mascot-eating .tm-animate-wing-right,
+            #tm-mascot-container.mascot-eating .tm-aether-wing-seg,
             #tm-mascot-container.mascot-eating .tm-animate-tail,
             #tm-mascot-container.mascot-eating .tm-animate-arm-left,
             #tm-mascot-container.mascot-eating .tm-animate-arm-right,
             #tm-mascot-container.mascot-happy .tm-animate-wing-left,
             #tm-mascot-container.mascot-happy .tm-animate-wing-right,
+            #tm-mascot-container.mascot-happy .tm-aether-wing-seg,
             #tm-mascot-container.mascot-happy .tm-animate-tail,
             #tm-mascot-container.mascot-eureka .tm-animate-wing-left,
             #tm-mascot-container.mascot-eureka .tm-animate-wing-right,
+            #tm-mascot-container.mascot-eureka .tm-aether-wing-seg,
             #tm-mascot-container.mascot-eureka .tm-animate-tail,
             #tm-mascot-container.mascot-dodging .tm-animate-wing-left,
             #tm-mascot-container.mascot-dodging .tm-animate-wing-right,
+            #tm-mascot-container.mascot-dodging .tm-aether-wing-seg,
             #tm-mascot-container.mascot-dodging .tm-animate-tail,
             #tm-mascot-container.mascot-surprised .tm-animate-wing-left,
             #tm-mascot-container.mascot-surprised .tm-animate-wing-right,
+            #tm-mascot-container.mascot-surprised .tm-aether-wing-seg,
             #tm-mascot-container.mascot-spin .tm-animate-wing-left,
             #tm-mascot-container.mascot-spin .tm-animate-wing-right,
+            #tm-mascot-container.mascot-spin .tm-aether-wing-seg,
             #tm-mascot-container.mascot-bow .tm-animate-wing-left,
             #tm-mascot-container.mascot-bow .tm-animate-wing-right,
+            #tm-mascot-container.mascot-bow .tm-aether-wing-seg,
             #tm-mascot-container.mascot-firebreath .tm-animate-wing-left,
             #tm-mascot-container.mascot-firebreath .tm-animate-wing-right,
+            #tm-mascot-container.mascot-firebreath .tm-aether-wing-seg,
             #tm-mascot-container.mascot-powersave .tm-animate-wing-left,
             #tm-mascot-container.mascot-powersave .tm-animate-wing-right,
+            #tm-mascot-container.mascot-powersave .tm-aether-wing-seg,
             #tm-mascot-container.mascot-powersave .tm-animate-tail {
                 animation: none !important;
             }

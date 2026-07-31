@@ -11131,10 +11131,10 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             .mascot-idle .tm-animate-tail {
                 animation: tm-tail-wag 2.5s ease-in-out infinite;
             }
-            .mascot-idle:not(.mascot-parked) .tm-animate-wing-left {
+            .mascot-idle:not(.mascot-parked):not(.mascot-char-aether) .tm-animate-wing-left {
                 animation: tm-wing-flap 1.8s ease-in-out infinite;
             }
-            .mascot-idle:not(.mascot-parked) .tm-animate-wing-right {
+            .mascot-idle:not(.mascot-parked):not(.mascot-char-aether) .tm-animate-wing-right {
                 animation: tm-wing-flap-right 1.8s ease-in-out infinite;
             }
             .mascot-parked:not(.mascot-char-aether):not(.mascot-char-phoenix) .tm-animate-wing-left,
