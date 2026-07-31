@@ -3632,6 +3632,61 @@ function getMascotSettingsHTML() {
                     <input type="number" id="tm-setting-mascot-speed" min="25" max="500" step="25">
                 </div>
             </div>
+            <details class="tm-settings-usage-guide">
+                <summary>
+                    <span class="tm-settings-usage-guide-title">Οδηγός χρήσης mascot</span>
+                    <span class="tm-settings-usage-guide-hint">τι κάνει το καθένα</span>
+                </summary>
+                <div class="tm-settings-usage-guide-body">
+                    <p class="tm-settings-usage-lead">Κλικ στο mascot ανοίγει το panel φροντίδας. Αντιδρά στη δουλειά (status, παραδόσεις, παραγγελίες) με bubbles και animations.</p>
+
+                    <h4>Χειρισμοί στην οθόνη</h4>
+                    <ul>
+                        <li><strong>Κλικ</strong> — άνοιγμα panel φροντίδας / stats.</li>
+                        <li><strong>Διπλό κλικ</strong> — κόλπο (trick) του χαρακτήρα.</li>
+                        <li><strong>Σύρσιμο</strong> — στάθμευση σε σταθερή θέση («Σταθμεύτηκα»). Από το panel: Ξεκλείδωμα για να ξαναπερπατήσει.</li>
+                        <li><strong>Εστίαση 25′</strong> — μένει ήσυχο/σταθμευμένο χωρίς bubbles όσο δουλεύετε.</li>
+                        <li><strong>Ταχύτητα</strong> — πόσο γρήγορα περιπλανιέται όταν δεν είναι σταθμευμένο.</li>
+                    </ul>
+
+                    <h4>Stats</h4>
+                    <ul>
+                        <li><strong>Happiness</strong> — πέφτει με τον χρόνο· ανεβαίνει με χάδι, παιχνίδι, έπαινο και καλή φροντίδα.</li>
+                        <li><strong>Hunger</strong> — γεμίζει με γεύμα/σνακ· άδειο = πεινάει και χάνει υγεία.</li>
+                        <li><strong>Health</strong> — πέφτει αν πεινάει ή αρρωστήσει· ανεβαίνει με φάρμακο.</li>
+                        <li><strong>Discipline</strong> — ανεβαίνει με παιχνίδι / έπαινο / επίπληξη όταν το ζητά.</li>
+                        <li><strong>Βάρος</strong> — αυξάνεται με φαγητό (και overfeed όταν είναι χορτάτο)· μειώνεται με Gym / παιχνίδια.</li>
+                    </ul>
+
+                    <h4>Care (κόστος σε Fixer-Coins)</h4>
+                    <ul>
+                        <li><strong>Meal</strong> (8) — κανονικό γεύμα· γεμίζει πείνα· μπορεί να προσθέσει βάρος.</li>
+                        <li><strong>Snack</strong> (4) — ελαφρύ σνακ· λιγότερη πείνα, πιο εύκολα βάρος.</li>
+                        <li><strong>Pet</strong> (δωρεάν) — χάδι· χαρά + λίγη πειθαρχία.</li>
+                        <li><strong>Clean</strong> (20) — καθαρίζει όταν υπάρχουν «ανάγκες» / ποop.</li>
+                        <li><strong>Medicine</strong> (35) — θεραπεία όταν η υγεία είναι χαμηλή.</li>
+                        <li><strong>Toilet</strong> (δωρεάν) — τουαλέτα όταν το χρειάζεται· αποτρέπει βρωμιά.</li>
+                    </ul>
+
+                    <h4>Training &amp; Activities</h4>
+                    <ul>
+                        <li><strong>Praise / Scold</strong> — έπαινος ή επίπληξη για πειθαρχία (όταν το panel το ζητά).</li>
+                        <li><strong>Bugs / Memory / Gym</strong> — μίνι-παιχνίδια· χαρά και/ή κάψιμο κιλών.</li>
+                        <li><strong>Φώτα</strong> — on/off· για το αυγό χρειάζεται ζεστασιά· κάθε χαρακτήρας έχει προτιμήσεις.</li>
+                        <li><strong>Stats</strong> — αναλυτικά στοιχεία μέσα στο panel.</li>
+                        <li><strong>Δωρεάν coins</strong> — 1× την ημέρα από το care panel.</li>
+                    </ul>
+
+                    <h4>Εξέλιξη &amp; ζωή</h4>
+                    <ul>
+                        <li><strong>Αυγό → Baby → Kid → Teen → Adult → Middle → Old</strong> — μεγαλώνει με χρόνο γραφείου (περίπου 09:00–21:00).</li>
+                        <li>Στο hatch εμφανίζεται cinematic και επιλέγεται / αποκαλύπτεται χαρακτήρας.</li>
+                        <li>Κάθε χαρακτήρας έχει <strong>likes / dislikes / favorite</strong> ενέργειες — το αγαπημένο δίνει extra χαρά.</li>
+                        <li>Αξεσουάρ και cosmetics από το <strong>Κατάστημα</strong>.</li>
+                        <li>Αν πεθάνει (πείνα / υγεία / ηλικία) ή πατήσετε <strong>Νέο αυγό</strong>, ξεκινά νέος κύκλος.</li>
+                    </ul>
+                </div>
+            </details>
         </div>`;
 }
 

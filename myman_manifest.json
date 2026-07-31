@@ -1,11 +1,11 @@
 {
-  "version": "313",
+  "version": "314",
   "loaderVersion": "36",
-  "silentVersion": "5",
-  "displayVersion": "36.5",
+  "silentVersion": "6",
+  "displayVersion": "36.6",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Mascot: fix stage size flicker, evolution FX/sprites, overfeed weight, toilet FX, animation harmony; add Next Evolution debug.",
+  "releaseNotes": "Settings: add expandable mascot usage guide (controls, care costs, evolution).",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

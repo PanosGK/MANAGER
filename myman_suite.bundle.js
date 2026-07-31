@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v313 / Custom Ver. 36.5 — generated, do not edit */
+/* MyManager Suite bundle v314 / Custom Ver. 36.6 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '313',
+        version: '314',
         loaderVersion: '36',
-        silentVersion: '5',
-        displayVersion: '36.5',
+        silentVersion: '6',
+        displayVersion: '36.6',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -9201,6 +9201,75 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 text-align: left;
                 margin-bottom: 0;
                 line-height: 1.4;
+            }
+            .tm-settings-usage-guide {
+                margin: 10px 12px 4px;
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                border-radius: 12px;
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 4%, var(--tm-shop-item-bg, #fff));
+                overflow: hidden;
+            }
+            .tm-settings-usage-guide > summary {
+                list-style: none;
+                cursor: pointer;
+                display: flex;
+                align-items: baseline;
+                gap: 10px;
+                flex-wrap: wrap;
+                padding: 11px 14px;
+                user-select: none;
+            }
+            .tm-settings-usage-guide > summary::-webkit-details-marker { display: none; }
+            .tm-settings-usage-guide > summary::before {
+                content: '▸';
+                color: var(--tm-primary-color, #007bff);
+                font-size: 11px;
+                line-height: 1.4;
+                transition: transform 0.15s ease;
+            }
+            .tm-settings-usage-guide[open] > summary::before {
+                transform: rotate(90deg);
+            }
+            .tm-settings-usage-guide-title {
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--tm-shop-item-text, #0f172a);
+            }
+            .tm-settings-usage-guide-hint {
+                font-size: 12px;
+                color: var(--tm-subtle-text, #64748b);
+            }
+            .tm-settings-usage-guide-body {
+                padding: 0 14px 14px;
+                border-top: 1px solid color-mix(in srgb, var(--tm-shop-item-border, #e2e8f0) 80%, transparent);
+            }
+            .tm-settings-usage-lead {
+                margin: 12px 0 10px;
+                font-size: 12.5px;
+                line-height: 1.45;
+                color: var(--tm-shop-item-text, #334155);
+            }
+            .tm-settings-usage-guide-body h4 {
+                margin: 12px 0 6px;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                color: var(--tm-muted-text, #94a3b8);
+            }
+            .tm-settings-usage-guide-body ul {
+                margin: 0;
+                padding: 0 0 0 1.15em;
+            }
+            .tm-settings-usage-guide-body li {
+                margin: 0 0 5px;
+                font-size: 12.5px;
+                line-height: 1.45;
+                color: var(--tm-shop-item-text, #334155);
+            }
+            .tm-settings-usage-guide-body strong {
+                font-weight: 650;
+                color: var(--tm-shop-item-text, #0f172a);
             }
             .tm-setting-label-row {
                 display: flex;
@@ -15905,13 +15974,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
         },
         mascot: {
             title: 'Mascot',
-            what: 'Διαδραστικός βοηθός στην οθόνη (Tamagotchi): φροντίδα, αντιδράσεις στη δουλειά, bubbles.',
-            where: 'Πλωτό mascot σε όλες τις σελίδες όσο είναι ενεργό.',
-            when: 'Συνεχώς (idle / αντιδράσεις σε επισκευές, παραγγελίες, EOD κ.λπ.).',
+            what: 'Διαδραστικός βοηθός (Tamagotchi): φροντίδα, εξέλιξη, μίνι-παιχνίδια και αντιδράσεις στη δουλειά. Κλικ = panel φροντίδας· σύρσιμο = στάθμευση· διπλό κλικ = κόλπο. Αναλυτικός οδηγός υπάρχει κάτω από τις ρυθμίσεις Mascot.',
+            where: 'Πλωτό mascot σε όλες τις σελίδες όσο είναι ενεργό · panel φροντίδας με κλικ πάνω του.',
+            when: 'Συνεχώς (idle / αντιδράσεις σε επισκευές, παραγγελίες, EOD). Απενεργοποιήστε ή χρησιμοποιήστε «Εστίαση 25′» για ήσυχη εργασία.',
         },
         mascot_speed: {
             title: 'Ταχύτητα περιπλάνησης',
-            what: 'Πόσο γρήγορα κινείται το mascot στην οθόνη (pixels/δευτ.).',
+            what: 'Πόσο γρήγορα κινείται το mascot στην οθόνη (pixels/δευτ.). Δεν ισχύει όταν είναι σταθμευμένο ή σε εστίαση.',
             where: 'Οπουδήποτε εμφανίζεται το mascot.',
             when: 'Κατά την περιπλάνηση (roaming) σε idle.',
         },
@@ -48885,6 +48954,61 @@ function getMascotSettingsHTML() {
                     <input type="number" id="tm-setting-mascot-speed" min="25" max="500" step="25">
                 </div>
             </div>
+            <details class="tm-settings-usage-guide">
+                <summary>
+                    <span class="tm-settings-usage-guide-title">Οδηγός χρήσης mascot</span>
+                    <span class="tm-settings-usage-guide-hint">τι κάνει το καθένα</span>
+                </summary>
+                <div class="tm-settings-usage-guide-body">
+                    <p class="tm-settings-usage-lead">Κλικ στο mascot ανοίγει το panel φροντίδας. Αντιδρά στη δουλειά (status, παραδόσεις, παραγγελίες) με bubbles και animations.</p>
+
+                    <h4>Χειρισμοί στην οθόνη</h4>
+                    <ul>
+                        <li><strong>Κλικ</strong> — άνοιγμα panel φροντίδας / stats.</li>
+                        <li><strong>Διπλό κλικ</strong> — κόλπο (trick) του χαρακτήρα.</li>
+                        <li><strong>Σύρσιμο</strong> — στάθμευση σε σταθερή θέση («Σταθμεύτηκα»). Από το panel: Ξεκλείδωμα για να ξαναπερπατήσει.</li>
+                        <li><strong>Εστίαση 25′</strong> — μένει ήσυχο/σταθμευμένο χωρίς bubbles όσο δουλεύετε.</li>
+                        <li><strong>Ταχύτητα</strong> — πόσο γρήγορα περιπλανιέται όταν δεν είναι σταθμευμένο.</li>
+                    </ul>
+
+                    <h4>Stats</h4>
+                    <ul>
+                        <li><strong>Happiness</strong> — πέφτει με τον χρόνο· ανεβαίνει με χάδι, παιχνίδι, έπαινο και καλή φροντίδα.</li>
+                        <li><strong>Hunger</strong> — γεμίζει με γεύμα/σνακ· άδειο = πεινάει και χάνει υγεία.</li>
+                        <li><strong>Health</strong> — πέφτει αν πεινάει ή αρρωστήσει· ανεβαίνει με φάρμακο.</li>
+                        <li><strong>Discipline</strong> — ανεβαίνει με παιχνίδι / έπαινο / επίπληξη όταν το ζητά.</li>
+                        <li><strong>Βάρος</strong> — αυξάνεται με φαγητό (και overfeed όταν είναι χορτάτο)· μειώνεται με Gym / παιχνίδια.</li>
+                    </ul>
+
+                    <h4>Care (κόστος σε Fixer-Coins)</h4>
+                    <ul>
+                        <li><strong>Meal</strong> (8) — κανονικό γεύμα· γεμίζει πείνα· μπορεί να προσθέσει βάρος.</li>
+                        <li><strong>Snack</strong> (4) — ελαφρύ σνακ· λιγότερη πείνα, πιο εύκολα βάρος.</li>
+                        <li><strong>Pet</strong> (δωρεάν) — χάδι· χαρά + λίγη πειθαρχία.</li>
+                        <li><strong>Clean</strong> (20) — καθαρίζει όταν υπάρχουν «ανάγκες» / ποop.</li>
+                        <li><strong>Medicine</strong> (35) — θεραπεία όταν η υγεία είναι χαμηλή.</li>
+                        <li><strong>Toilet</strong> (δωρεάν) — τουαλέτα όταν το χρειάζεται· αποτρέπει βρωμιά.</li>
+                    </ul>
+
+                    <h4>Training &amp; Activities</h4>
+                    <ul>
+                        <li><strong>Praise / Scold</strong> — έπαινος ή επίπληξη για πειθαρχία (όταν το panel το ζητά).</li>
+                        <li><strong>Bugs / Memory / Gym</strong> — μίνι-παιχνίδια· χαρά και/ή κάψιμο κιλών.</li>
+                        <li><strong>Φώτα</strong> — on/off· για το αυγό χρειάζεται ζεστασιά· κάθε χαρακτήρας έχει προτιμήσεις.</li>
+                        <li><strong>Stats</strong> — αναλυτικά στοιχεία μέσα στο panel.</li>
+                        <li><strong>Δωρεάν coins</strong> — 1× την ημέρα από το care panel.</li>
+                    </ul>
+
+                    <h4>Εξέλιξη &amp; ζωή</h4>
+                    <ul>
+                        <li><strong>Αυγό → Baby → Kid → Teen → Adult → Middle → Old</strong> — μεγαλώνει με χρόνο γραφείου (περίπου 09:00–21:00).</li>
+                        <li>Στο hatch εμφανίζεται cinematic και επιλέγεται / αποκαλύπτεται χαρακτήρας.</li>
+                        <li>Κάθε χαρακτήρας έχει <strong>likes / dislikes / favorite</strong> ενέργειες — το αγαπημένο δίνει extra χαρά.</li>
+                        <li>Αξεσουάρ και cosmetics από το <strong>Κατάστημα</strong>.</li>
+                        <li>Αν πεθάνει (πείνα / υγεία / ηλικία) ή πατήσετε <strong>Νέο αυγό</strong>, ξεκινά νέος κύκλος.</li>
+                    </ul>
+                </div>
+            </details>
         </div>`;
 }
 

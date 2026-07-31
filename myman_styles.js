@@ -2691,6 +2691,75 @@
                 margin-bottom: 0;
                 line-height: 1.4;
             }
+            .tm-settings-usage-guide {
+                margin: 10px 12px 4px;
+                border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+                border-radius: 12px;
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 4%, var(--tm-shop-item-bg, #fff));
+                overflow: hidden;
+            }
+            .tm-settings-usage-guide > summary {
+                list-style: none;
+                cursor: pointer;
+                display: flex;
+                align-items: baseline;
+                gap: 10px;
+                flex-wrap: wrap;
+                padding: 11px 14px;
+                user-select: none;
+            }
+            .tm-settings-usage-guide > summary::-webkit-details-marker { display: none; }
+            .tm-settings-usage-guide > summary::before {
+                content: '▸';
+                color: var(--tm-primary-color, #007bff);
+                font-size: 11px;
+                line-height: 1.4;
+                transition: transform 0.15s ease;
+            }
+            .tm-settings-usage-guide[open] > summary::before {
+                transform: rotate(90deg);
+            }
+            .tm-settings-usage-guide-title {
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--tm-shop-item-text, #0f172a);
+            }
+            .tm-settings-usage-guide-hint {
+                font-size: 12px;
+                color: var(--tm-subtle-text, #64748b);
+            }
+            .tm-settings-usage-guide-body {
+                padding: 0 14px 14px;
+                border-top: 1px solid color-mix(in srgb, var(--tm-shop-item-border, #e2e8f0) 80%, transparent);
+            }
+            .tm-settings-usage-lead {
+                margin: 12px 0 10px;
+                font-size: 12.5px;
+                line-height: 1.45;
+                color: var(--tm-shop-item-text, #334155);
+            }
+            .tm-settings-usage-guide-body h4 {
+                margin: 12px 0 6px;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                color: var(--tm-muted-text, #94a3b8);
+            }
+            .tm-settings-usage-guide-body ul {
+                margin: 0;
+                padding: 0 0 0 1.15em;
+            }
+            .tm-settings-usage-guide-body li {
+                margin: 0 0 5px;
+                font-size: 12.5px;
+                line-height: 1.45;
+                color: var(--tm-shop-item-text, #334155);
+            }
+            .tm-settings-usage-guide-body strong {
+                font-weight: 650;
+                color: var(--tm-shop-item-text, #0f172a);
+            }
             .tm-setting-label-row {
                 display: flex;
                 align-items: center;
