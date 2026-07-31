@@ -69,6 +69,11 @@ if (!src.includes('if (tamagotchiIsDead || tamaCinematicLock) return')) issues.p
 if (!src.includes('getOfficeMinutesBetween') || !src.includes('TAMA_OFFICE_HOUR_START')) {
   issues.push('office-hours life clock missing');
 }
+if (!src.includes('TAMA_STAGE_VISUAL_SCALE')) issues.push('stage visual scale table missing');
+if (!src.includes('hungerBefore >= 99')) issues.push('overfeed weight threshold missing');
+if (!src.includes('gain = 0.28 + Math.random()')) issues.push('guaranteed overfeed meal weight missing');
+if (!src.includes('clearMascotStagePreview(false)')) issues.push('evolution should clear stage preview');
+if (!/stageChanged && !tamaCinematicLock/.test(src)) issues.push('evolution may not re-paint sprite after popup');
 
 // Duplicate-instance / type-flip guards
 const initGuards = {

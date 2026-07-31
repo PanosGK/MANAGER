@@ -4824,39 +4824,9 @@
                 width: 125px;
                 height: 125px;
             }
-            .tm-mascot-robot.mascot-char-leviathan.mascot-teen {
-                transform: scale(1.1);
-                transform-origin: 50% 70%;
-            }
-            .tm-mascot-robot.mascot-char-leviathan.mascot-adult {
-                transform: scale(1.24);
-                transform-origin: 50% 68%;
-            }
-            .tm-mascot-robot.mascot-char-leviathan.mascot-middleage {
-                transform: scale(1.34);
-                transform-origin: 50% 66%;
-            }
-            .tm-mascot-robot.mascot-char-leviathan.mascot-old {
-                transform: scale(1.46);
-                transform-origin: 50% 64%;
-            }
-            /* Phoenix — mythical solar sovereign scales up through evolution */
-            .tm-mascot-robot.mascot-char-phoenix.mascot-teen {
-                transform: scale(1.08);
-                transform-origin: 50% 68%;
-            }
-            .tm-mascot-robot.mascot-char-phoenix.mascot-adult {
-                transform: scale(1.22);
-                transform-origin: 50% 66%;
-            }
-            .tm-mascot-robot.mascot-char-phoenix.mascot-middleage {
-                transform: scale(1.32);
-                transform-origin: 50% 64%;
-            }
-            .tm-mascot-robot.mascot-char-phoenix.mascot-old {
-                transform: scale(1.42);
-                transform-origin: 50% 62%;
-            }
+            /* Stage growth is applied as container px size in syncEliteMascotContainerSize
+               (--tm-stage-scale). Do NOT scale .tm-mascot-robot — idle/eat animations overwrite
+               transform and caused a brief "huge then tiny" flicker. */
             #tm-mascot-container.mascot-char-phoenix:has(.mascot-teen)::before {
                 background: radial-gradient(ellipse 58% 74% at 50% 66%,
                     rgba(255,213,79,0.32) 0%,
@@ -4923,22 +4893,14 @@
                 box-shadow: 0 12px 52px rgba(139,0,0,0.14), 0 0 100px rgba(93,64,55,0.12) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-middleage {
-                zoom: 1.14;
                 filter:
                     drop-shadow(0 6px 12px rgba(18,0,31,0.22))
                     drop-shadow(0 0 18px rgba(239,83,80,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-old {
-                zoom: 1.24;
                 filter:
                     drop-shadow(0 6px 12px rgba(10,2,2,0.24))
                     drop-shadow(0 0 18px rgba(139,0,0,0.16)) !important;
-            }
-            .tm-mascot-robot.mascot-char-aether.mascot-adult {
-                zoom: 1.07;
-            }
-            .tm-mascot-robot.mascot-char-aether.mascot-teen {
-                zoom: 1.03;
             }
             #tm-mascot-container.mascot-char-phoenix.tm-phoenix-glow-on:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
                 opacity: 1;
@@ -7084,6 +7046,59 @@
                 letter-spacing: 0.12em;
             }
 
+            /* Generic evolution flash (all non-mythic mascots) */
+            .tm-evo-stage-flash {
+                position: fixed;
+                inset: 0;
+                z-index: 2147483000;
+                pointer-events: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: tm-aether-stage-flash-in 2.6s ease forwards;
+            }
+            .tm-evo-stage-flash-veil {
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(ellipse at center, rgba(255,255,255,0.12) 0%, rgba(0,0,0,0.45) 70%);
+            }
+            .tm-evo-stage-flash-card {
+                position: relative;
+                text-align: center;
+                padding: 22px 36px;
+                border-radius: 16px;
+                background: rgba(12, 18, 28, 0.82);
+                border: 1px solid rgba(255,255,255,0.22);
+                box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+                color: #fff;
+                min-width: 220px;
+            }
+            .tm-evo-stage-flash-kicker {
+                font-size: 11px;
+                letter-spacing: 0.28em;
+                font-weight: 800;
+                opacity: 0.75;
+                margin-bottom: 6px;
+            }
+            .tm-evo-stage-flash-emoji {
+                font-size: 42px;
+                line-height: 1;
+                margin: 4px 0 8px;
+            }
+            .tm-evo-stage-flash-title {
+                font-size: clamp(22px, 4vw, 34px);
+                font-weight: 800;
+                letter-spacing: 0.04em;
+            }
+            .tm-evo-stage-flash-sub {
+                margin-top: 6px;
+                font-size: 13px;
+                opacity: 0.8;
+            }
+            #tm-mascot-container.tm-evo-react .tm-mascot-robot {
+                filter: brightness(1.15) drop-shadow(0 0 12px rgba(255,255,255,0.45));
+            }
+
             /* Phoenix mythical stage cinematic */
             .tm-phoenix-stage-flash {
                 position: fixed;
@@ -7229,7 +7244,7 @@
             #tm-mascot-container.mascot-searching .tm-mascot-robot { animation: tm-mascot-search-move 2s ease-in-out infinite; }
             #tm-mascot-container.mascot-searching .tm-mascot-magnifying-glass { display: block; }
 
-            #tm-mascot-container.mascot-happy .tm-mascot-robot { animation: tm-mascot-happy-dance 0.8s ease-in-out infinite; }
+            #tm-mascot-container.mascot-happy .tm-mascot-robot { animation: tm-mascot-happy-dance 0.8s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-happy .tm-mascot-antenna { animation: tm-mascot-antenna-happy-wiggle 0.4s ease-in-out infinite; }
             #tm-mascot-container.mascot-happy #party_hat .tm-accessory-art,
             #tm-mascot-container.mascot-happy #star_crown .tm-accessory-art,
@@ -7279,8 +7294,7 @@
             #tm-mascot-container.mascot-searching .tm-mascot-magnifying-glass { display: block; }
             /* Use the simpler float animation for sad/sleeping states on the main body */
             #tm-mascot-container.mascot-sad .tm-mascot-robot {
-                animation: tm-mascot-idle-float 6s ease-in-out infinite;
-                transform: rotate(-2deg); /* Add a slight sad tilt */
+                animation: tm-mascot-idle-float 6s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-sleeping .tm-mascot-robot { animation: tm-mascot-idle-float 8s ease-in-out infinite; }
             #tm-mascot-container.mascot-sleeping .tm-mascot-eye-open { display: none; }
@@ -7289,8 +7303,8 @@
             #tm-mascot-container.mascot-sad .tm-mascot-mouth-happy { display: none; }
             #tm-mascot-container.mascot-sad .tm-mascot-mouth-sad { display: block; }
 
-            #tm-mascot-container.mascot-dodging .tm-mascot-robot { animation: tm-mascot-startled 0.4s ease-out; }
-            #tm-mascot-container.mascot-surprised .tm-mascot-robot { animation: tm-mascot-startled 0.45s ease-out infinite; }
+            #tm-mascot-container.mascot-dodging .tm-mascot-robot { animation: tm-mascot-startled 0.45s ease-out forwards !important; }
+            #tm-mascot-container.mascot-surprised .tm-mascot-robot { animation: tm-mascot-startled 0.45s ease-out infinite !important; }
             #tm-mascot-container.mascot-surprised .tm-mascot-antenna { animation: tm-mascot-antenna-happy-wiggle 0.35s ease-in-out infinite; }
             #tm-mascot-container.mascot-dodging #party_hat .tm-accessory-art,
             #tm-mascot-container.mascot-dodging #star_crown .tm-accessory-art,
@@ -7303,7 +7317,7 @@
             }
 
             /* Enhanced Playful States with Natural Accessory Interactions */
-            #tm-mascot-container.mascot-reading .tm-mascot-robot { animation: tm-mascot-reading-bob 3s ease-in-out infinite; }
+            #tm-mascot-container.mascot-reading .tm-mascot-robot { animation: tm-mascot-reading-bob 3s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-reading #book {
                 display: block !important;
             }
@@ -7312,14 +7326,14 @@
                 transform-origin: left center;
             }
 
-            #tm-mascot-container.mascot-biking .tm-mascot-robot { animation: tm-mascot-biking-bounce 1s ease-in-out infinite; }
+            #tm-mascot-container.mascot-biking .tm-mascot-robot { animation: tm-mascot-biking-bounce 1s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-biking .tm-mascot-bicycle { 
                 display: block; 
                 animation: tm-mascot-bike-wobble 1s ease-in-out infinite;
             }
 
             #tm-mascot-container.mascot-juggling .tm-mascot-robot { 
-                animation: tm-mascot-juggling-sway 2.4s ease-in-out infinite;
+                animation: tm-mascot-juggling-sway 2.4s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-juggling #bubble_wand {
                 display: block !important;
@@ -7358,9 +7372,41 @@
             /* All state animations work on .tm-mascot-robot which contains all evolution forms */
             /* Roaming animations work on #tm-mascot-container via JavaScript */
             
-            /* Eating Animation - Make it more natural */
-            #tm-mascot-container.mascot-eating .tm-mascot-robot { animation: tm-mascot-eating-chew 0.6s ease-in-out 3; }
+            /* Eating — loop while state is active (JS duration ends the state) */
+            #tm-mascot-container.mascot-eating .tm-mascot-robot { animation: tm-mascot-eating-chew 0.55s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-eating .tm-mascot-main-body { animation: none; }
+
+            /*
+             * Animation harmony: pause limb/wing CSS during body-owned states so every
+             * character (dragon→leviathan) plays eat/happy/dodge/eureka without flap fights.
+             */
+            #tm-mascot-container.mascot-eating .tm-animate-wing-left,
+            #tm-mascot-container.mascot-eating .tm-animate-wing-right,
+            #tm-mascot-container.mascot-eating .tm-animate-tail,
+            #tm-mascot-container.mascot-eating .tm-animate-arm-left,
+            #tm-mascot-container.mascot-eating .tm-animate-arm-right,
+            #tm-mascot-container.mascot-happy .tm-animate-wing-left,
+            #tm-mascot-container.mascot-happy .tm-animate-wing-right,
+            #tm-mascot-container.mascot-happy .tm-animate-tail,
+            #tm-mascot-container.mascot-eureka .tm-animate-wing-left,
+            #tm-mascot-container.mascot-eureka .tm-animate-wing-right,
+            #tm-mascot-container.mascot-eureka .tm-animate-tail,
+            #tm-mascot-container.mascot-dodging .tm-animate-wing-left,
+            #tm-mascot-container.mascot-dodging .tm-animate-wing-right,
+            #tm-mascot-container.mascot-dodging .tm-animate-tail,
+            #tm-mascot-container.mascot-surprised .tm-animate-wing-left,
+            #tm-mascot-container.mascot-surprised .tm-animate-wing-right,
+            #tm-mascot-container.mascot-spin .tm-animate-wing-left,
+            #tm-mascot-container.mascot-spin .tm-animate-wing-right,
+            #tm-mascot-container.mascot-bow .tm-animate-wing-left,
+            #tm-mascot-container.mascot-bow .tm-animate-wing-right,
+            #tm-mascot-container.mascot-firebreath .tm-animate-wing-left,
+            #tm-mascot-container.mascot-firebreath .tm-animate-wing-right,
+            #tm-mascot-container.mascot-powersave .tm-animate-wing-left,
+            #tm-mascot-container.mascot-powersave .tm-animate-wing-right,
+            #tm-mascot-container.mascot-powersave .tm-animate-tail {
+                animation: none !important;
+            }
             
             /* Thinking Animation - More contemplative */
             #tm-mascot-container.mascot-thinking .tm-mascot-robot { animation: tm-mascot-pondering 3s ease-in-out infinite; }
@@ -7372,7 +7418,8 @@
             /* Mascot Animations */
             @keyframes tm-mascot-barrel-roll {
                 from { transform: rotate(0deg) scale(1); }
-                to { transform: rotate(360deg) scale(1.2); }
+                70% { transform: rotate(300deg) scale(1.12); }
+                to { transform: rotate(360deg) scale(1); }
             }
             @keyframes tm-mascot-antenna-spin {
                 from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -7424,9 +7471,10 @@
             }
 
             @keyframes tm-mascot-startled {
-                0%, 100% { transform: translate(0, 0); }
-                30% { transform: translate(0, -15px) scale(1.05, 0.9); }
-                60% { transform: translateY(0) scale(0.95, 1.05); }
+                0% { transform: translate(0, 0) scale(1); }
+                35% { transform: translate(0, -16px) scale(1.06, 0.9); }
+                70% { transform: translate(0, -2px) scale(0.97, 1.04); }
+                100% { transform: translate(0, -4px) scale(1.02, 0.98); }
             }
             /* Enhanced Reading Animation - Gentle bobbing while focused on book */
             @keyframes tm-mascot-reading-bob {
@@ -7638,24 +7686,24 @@
             #tm-mascot-container.mascot-glitching #master_crown {
                 animation: tm-mascot-accessory-glitch 0.3s infinite;
             }
-            /* New Eureka State */
-            #tm-mascot-container.mascot-eureka .tm-mascot-robot { animation: tm-mascot-barrel-roll 1s ease-out; }
+            /* New Eureka State — roll then hold (forwards) until JS clears state */
+            #tm-mascot-container.mascot-eureka .tm-mascot-robot { animation: tm-mascot-barrel-roll 1s ease-out forwards !important; }
             #tm-mascot-container.mascot-eureka .tm-mascot-eureka-bubble { display: block; }
 
             /* Enhanced Weather States with Natural Accessory Movement */
-            #tm-mascot-container.mascot-sunny .tm-mascot-robot { animation: tm-mascot-sunny-relax 3s ease-in-out infinite; }
+            #tm-mascot-container.mascot-sunny .tm-mascot-robot { animation: tm-mascot-sunny-relax 3s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-sunny .tm-mascot-sunglasses { 
                 display: block; 
                 animation: tm-mascot-sunglasses-shine 2s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-rainy .tm-mascot-robot { animation: tm-mascot-rainy-shelter 2.5s ease-in-out infinite; }
+            #tm-mascot-container.mascot-rainy .tm-mascot-robot { animation: tm-mascot-rainy-shelter 2.5s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-rainy .tm-mascot-umbrella { 
                 display: block; 
                 animation: tm-mascot-umbrella-sway 3s ease-in-out infinite;
             }
 
             /* New Power-Save State */
-            #tm-mascot-container.mascot-powersave .tm-mascot-robot { animation: tm-mascot-powersave-drift 8s ease-in-out infinite; }
+            #tm-mascot-container.mascot-powersave .tm-mascot-robot { animation: tm-mascot-powersave-drift 8s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-powersave .tm-mascot-eye-open circle:last-child { animation: tm-mascot-eye-dim 4s ease-in-out infinite; }
             #tm-mascot-container.mascot-powersave .tm-mascot-zzz-bubble { display: block; }
             #tm-mascot-container.mascot-powersave .tm-mascot-thruster-left, #tm-mascot-container.mascot-powersave .tm-mascot-thruster-right { display: none; }
@@ -7672,31 +7720,24 @@
                 }
             }
             @keyframes tm-needs-cleaning-pulse {
-                0%, 100% { 
+                0%, 100% {
                     filter: brightness(1) saturate(1);
-                    box-shadow: 0 0 0 0 rgba(139, 69, 19, 0);
                 }
-                50% { 
-                    filter: brightness(0.9) saturate(0.8);
-                    box-shadow: 0 0 20px 5px rgba(139, 69, 19, 0.5);
+                50% {
+                    filter: brightness(0.97) saturate(0.92);
                 }
             }
             #tm-mascot-container.mascot-needs-cleaning {
-                animation: tm-needs-cleaning-pulse 2s ease-in-out infinite;
-                /* Must stay fixed — relative pins the mascot to document flow (bottom of page) */
+                /* No brown box-shadow — it read as a rectangular aura on the 100×100 box */
+                animation: none;
                 position: fixed !important;
             }
             #tm-mascot-container.mascot-needs-cleaning::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: radial-gradient(circle, rgba(139, 69, 19, 0.2) 0%, transparent 70%);
-                border-radius: 50%;
-                pointer-events: none;
-                animation: tm-needs-cleaning-pulse 2s ease-in-out infinite;
+                content: none !important;
+                display: none !important;
+                background: none !important;
+                box-shadow: none !important;
+                opacity: 0 !important;
             }
             .tm-poop-particle {
                 position: absolute;
@@ -7750,16 +7791,65 @@
                 }
             }
             @keyframes tm-toilet-leg-fidget {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-1.5px); }
-                75% { transform: translateX(1.5px); }
+                0%, 100% { transform: translateX(0) rotate(0deg); }
+                25% { transform: translateX(-2px) rotate(-4deg); }
+                50% { transform: translateX(0) rotate(0deg); }
+                75% { transform: translateX(2px) rotate(4deg); }
+            }
+            @keyframes tm-toilet-urgency-subtle {
+                0%, 100% { transform: scale(1); opacity: 0.85; }
+                50% { transform: scale(1.12); opacity: 1; }
+            }
+            @keyframes tm-toilet-relief-bounce {
+                0% { transform: translateY(0) scale(1); }
+                35% { transform: translateY(-10px) scale(1.06); }
+                70% { transform: translateY(-2px) scale(1.02); }
+                100% { transform: translateY(0) scale(1); }
             }
             #tm-mascot-container.mascot-needs-toilet {
                 position: fixed !important;
             }
+            #tm-mascot-container.mascot-needs-toilet::before {
+                /* Never borrow mood/cleaning auras while potty-dancing */
+                content: none !important;
+                display: none !important;
+                background: none !important;
+                box-shadow: none !important;
+                opacity: 0 !important;
+            }
             #tm-mascot-container.mascot-needs-toilet .tm-animate-leg-left,
             #tm-mascot-container.mascot-needs-toilet .tm-animate-leg-right {
-                animation: tm-toilet-leg-fidget 0.82s ease-in-out infinite;
+                transform-box: fill-box;
+                transform-origin: top center;
+                animation: tm-toilet-leg-fidget 0.72s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-needs-toilet .tm-animate-leg-right {
+                animation-delay: 0.12s !important;
+            }
+            /* Don't let eat/happy limb freezes kill the potty dance */
+            #tm-mascot-container.mascot-needs-toilet.mascot-eating .tm-animate-leg-left,
+            #tm-mascot-container.mascot-needs-toilet.mascot-eating .tm-animate-leg-right,
+            #tm-mascot-container.mascot-needs-toilet.mascot-happy .tm-animate-leg-left,
+            #tm-mascot-container.mascot-needs-toilet.mascot-happy .tm-animate-leg-right {
+                animation: tm-toilet-leg-fidget 0.72s ease-in-out infinite !important;
+            }
+            .tm-toilet-urgency-indicator {
+                position: absolute;
+                bottom: 2px;
+                right: 2px;
+                background: rgba(30, 136, 229, 0.9);
+                border: 1px solid rgba(129, 212, 250, 0.75);
+                border-radius: 8px;
+                padding: 2px 6px;
+                font-size: 11px;
+                line-height: 1;
+                pointer-events: none;
+                z-index: 9999;
+                box-shadow: 0 1px 4px rgba(0, 80, 140, 0.35);
+                animation: tm-toilet-urgency-subtle 2s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-toilet-relief .tm-mascot-robot {
+                animation: tm-toilet-relief-bounce 0.85s ease-out !important;
             }
             .tm-toilet-fx {
                 position: absolute;

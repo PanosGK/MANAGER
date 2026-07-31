@@ -162,12 +162,19 @@ function executeConsumableEffect(effect, item, config, STORAGE_KEYS) {
         happiness = 100;
         satiety = 100;
     }
+    // Capture fullness BEFORE satiety bump so overfeed weight can apply
+    const hungerBefore = (typeof window.getMascotHunger === 'function')
+        ? window.getMascotHunger()
+        : null;
     if ((happiness || satiety) && typeof window.updatePetStats === 'function') {
         window.updatePetStats(config, STORAGE_KEYS, happiness, satiety);
     }
 
     if (typeof window.applyMascotShopCareEffect === 'function' && isInteractiveMascotShopEnabled(config)) {
-        window.applyMascotShopCareEffect(effect, config, STORAGE_KEYS);
+        const careEffect = (hungerBefore != null && (effect.careAction === 'meal' || effect.careAction === 'snack'))
+            ? { ...effect, hungerBefore }
+            : effect;
+        window.applyMascotShopCareEffect(careEffect, config, STORAGE_KEYS);
     }
 
     if (effect.mascotState && typeof window.setMascotState === 'function' && isInteractiveMascotShopEnabled(config)) {

@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v312 / Custom Ver. 36.4 — generated, do not edit */
+/* MyManager Suite bundle v313 / Custom Ver. 36.5 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '312',
+        version: '313',
         loaderVersion: '36',
-        silentVersion: '4',
-        displayVersion: '36.4',
+        silentVersion: '5',
+        displayVersion: '36.5',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -11335,39 +11335,9 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 width: 125px;
                 height: 125px;
             }
-            .tm-mascot-robot.mascot-char-leviathan.mascot-teen {
-                transform: scale(1.1);
-                transform-origin: 50% 70%;
-            }
-            .tm-mascot-robot.mascot-char-leviathan.mascot-adult {
-                transform: scale(1.24);
-                transform-origin: 50% 68%;
-            }
-            .tm-mascot-robot.mascot-char-leviathan.mascot-middleage {
-                transform: scale(1.34);
-                transform-origin: 50% 66%;
-            }
-            .tm-mascot-robot.mascot-char-leviathan.mascot-old {
-                transform: scale(1.46);
-                transform-origin: 50% 64%;
-            }
-            /* Phoenix — mythical solar sovereign scales up through evolution */
-            .tm-mascot-robot.mascot-char-phoenix.mascot-teen {
-                transform: scale(1.08);
-                transform-origin: 50% 68%;
-            }
-            .tm-mascot-robot.mascot-char-phoenix.mascot-adult {
-                transform: scale(1.22);
-                transform-origin: 50% 66%;
-            }
-            .tm-mascot-robot.mascot-char-phoenix.mascot-middleage {
-                transform: scale(1.32);
-                transform-origin: 50% 64%;
-            }
-            .tm-mascot-robot.mascot-char-phoenix.mascot-old {
-                transform: scale(1.42);
-                transform-origin: 50% 62%;
-            }
+            /* Stage growth is applied as container px size in syncEliteMascotContainerSize
+               (--tm-stage-scale). Do NOT scale .tm-mascot-robot — idle/eat animations overwrite
+               transform and caused a brief "huge then tiny" flicker. */
             #tm-mascot-container.mascot-char-phoenix:has(.mascot-teen)::before {
                 background: radial-gradient(ellipse 58% 74% at 50% 66%,
                     rgba(255,213,79,0.32) 0%,
@@ -11434,22 +11404,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 box-shadow: 0 12px 52px rgba(139,0,0,0.14), 0 0 100px rgba(93,64,55,0.12) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-middleage {
-                zoom: 1.14;
                 filter:
                     drop-shadow(0 6px 12px rgba(18,0,31,0.22))
                     drop-shadow(0 0 18px rgba(239,83,80,0.16)) !important;
             }
             .tm-mascot-robot.mascot-char-aether.mascot-old {
-                zoom: 1.24;
                 filter:
                     drop-shadow(0 6px 12px rgba(10,2,2,0.24))
                     drop-shadow(0 0 18px rgba(139,0,0,0.16)) !important;
-            }
-            .tm-mascot-robot.mascot-char-aether.mascot-adult {
-                zoom: 1.07;
-            }
-            .tm-mascot-robot.mascot-char-aether.mascot-teen {
-                zoom: 1.03;
             }
             #tm-mascot-container.mascot-char-phoenix.tm-phoenix-glow-on:not(.mascot-happy):not(.mascot-sad):not(.mascot-energized)::before {
                 opacity: 1;
@@ -13595,6 +13557,59 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 letter-spacing: 0.12em;
             }
 
+            /* Generic evolution flash (all non-mythic mascots) */
+            .tm-evo-stage-flash {
+                position: fixed;
+                inset: 0;
+                z-index: 2147483000;
+                pointer-events: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: tm-aether-stage-flash-in 2.6s ease forwards;
+            }
+            .tm-evo-stage-flash-veil {
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(ellipse at center, rgba(255,255,255,0.12) 0%, rgba(0,0,0,0.45) 70%);
+            }
+            .tm-evo-stage-flash-card {
+                position: relative;
+                text-align: center;
+                padding: 22px 36px;
+                border-radius: 16px;
+                background: rgba(12, 18, 28, 0.82);
+                border: 1px solid rgba(255,255,255,0.22);
+                box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+                color: #fff;
+                min-width: 220px;
+            }
+            .tm-evo-stage-flash-kicker {
+                font-size: 11px;
+                letter-spacing: 0.28em;
+                font-weight: 800;
+                opacity: 0.75;
+                margin-bottom: 6px;
+            }
+            .tm-evo-stage-flash-emoji {
+                font-size: 42px;
+                line-height: 1;
+                margin: 4px 0 8px;
+            }
+            .tm-evo-stage-flash-title {
+                font-size: clamp(22px, 4vw, 34px);
+                font-weight: 800;
+                letter-spacing: 0.04em;
+            }
+            .tm-evo-stage-flash-sub {
+                margin-top: 6px;
+                font-size: 13px;
+                opacity: 0.8;
+            }
+            #tm-mascot-container.tm-evo-react .tm-mascot-robot {
+                filter: brightness(1.15) drop-shadow(0 0 12px rgba(255,255,255,0.45));
+            }
+
             /* Phoenix mythical stage cinematic */
             .tm-phoenix-stage-flash {
                 position: fixed;
@@ -13740,7 +13755,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-mascot-container.mascot-searching .tm-mascot-robot { animation: tm-mascot-search-move 2s ease-in-out infinite; }
             #tm-mascot-container.mascot-searching .tm-mascot-magnifying-glass { display: block; }
 
-            #tm-mascot-container.mascot-happy .tm-mascot-robot { animation: tm-mascot-happy-dance 0.8s ease-in-out infinite; }
+            #tm-mascot-container.mascot-happy .tm-mascot-robot { animation: tm-mascot-happy-dance 0.8s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-happy .tm-mascot-antenna { animation: tm-mascot-antenna-happy-wiggle 0.4s ease-in-out infinite; }
             #tm-mascot-container.mascot-happy #party_hat .tm-accessory-art,
             #tm-mascot-container.mascot-happy #star_crown .tm-accessory-art,
@@ -13790,8 +13805,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-mascot-container.mascot-searching .tm-mascot-magnifying-glass { display: block; }
             /* Use the simpler float animation for sad/sleeping states on the main body */
             #tm-mascot-container.mascot-sad .tm-mascot-robot {
-                animation: tm-mascot-idle-float 6s ease-in-out infinite;
-                transform: rotate(-2deg); /* Add a slight sad tilt */
+                animation: tm-mascot-idle-float 6s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-sleeping .tm-mascot-robot { animation: tm-mascot-idle-float 8s ease-in-out infinite; }
             #tm-mascot-container.mascot-sleeping .tm-mascot-eye-open { display: none; }
@@ -13800,8 +13814,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-mascot-container.mascot-sad .tm-mascot-mouth-happy { display: none; }
             #tm-mascot-container.mascot-sad .tm-mascot-mouth-sad { display: block; }
 
-            #tm-mascot-container.mascot-dodging .tm-mascot-robot { animation: tm-mascot-startled 0.4s ease-out; }
-            #tm-mascot-container.mascot-surprised .tm-mascot-robot { animation: tm-mascot-startled 0.45s ease-out infinite; }
+            #tm-mascot-container.mascot-dodging .tm-mascot-robot { animation: tm-mascot-startled 0.45s ease-out forwards !important; }
+            #tm-mascot-container.mascot-surprised .tm-mascot-robot { animation: tm-mascot-startled 0.45s ease-out infinite !important; }
             #tm-mascot-container.mascot-surprised .tm-mascot-antenna { animation: tm-mascot-antenna-happy-wiggle 0.35s ease-in-out infinite; }
             #tm-mascot-container.mascot-dodging #party_hat .tm-accessory-art,
             #tm-mascot-container.mascot-dodging #star_crown .tm-accessory-art,
@@ -13814,7 +13828,7 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
 
             /* Enhanced Playful States with Natural Accessory Interactions */
-            #tm-mascot-container.mascot-reading .tm-mascot-robot { animation: tm-mascot-reading-bob 3s ease-in-out infinite; }
+            #tm-mascot-container.mascot-reading .tm-mascot-robot { animation: tm-mascot-reading-bob 3s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-reading #book {
                 display: block !important;
             }
@@ -13823,14 +13837,14 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 transform-origin: left center;
             }
 
-            #tm-mascot-container.mascot-biking .tm-mascot-robot { animation: tm-mascot-biking-bounce 1s ease-in-out infinite; }
+            #tm-mascot-container.mascot-biking .tm-mascot-robot { animation: tm-mascot-biking-bounce 1s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-biking .tm-mascot-bicycle { 
                 display: block; 
                 animation: tm-mascot-bike-wobble 1s ease-in-out infinite;
             }
 
             #tm-mascot-container.mascot-juggling .tm-mascot-robot { 
-                animation: tm-mascot-juggling-sway 2.4s ease-in-out infinite;
+                animation: tm-mascot-juggling-sway 2.4s ease-in-out infinite !important;
             }
             #tm-mascot-container.mascot-juggling #bubble_wand {
                 display: block !important;
@@ -13869,9 +13883,41 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             /* All state animations work on .tm-mascot-robot which contains all evolution forms */
             /* Roaming animations work on #tm-mascot-container via JavaScript */
             
-            /* Eating Animation - Make it more natural */
-            #tm-mascot-container.mascot-eating .tm-mascot-robot { animation: tm-mascot-eating-chew 0.6s ease-in-out 3; }
+            /* Eating — loop while state is active (JS duration ends the state) */
+            #tm-mascot-container.mascot-eating .tm-mascot-robot { animation: tm-mascot-eating-chew 0.55s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-eating .tm-mascot-main-body { animation: none; }
+
+            /*
+             * Animation harmony: pause limb/wing CSS during body-owned states so every
+             * character (dragon→leviathan) plays eat/happy/dodge/eureka without flap fights.
+             */
+            #tm-mascot-container.mascot-eating .tm-animate-wing-left,
+            #tm-mascot-container.mascot-eating .tm-animate-wing-right,
+            #tm-mascot-container.mascot-eating .tm-animate-tail,
+            #tm-mascot-container.mascot-eating .tm-animate-arm-left,
+            #tm-mascot-container.mascot-eating .tm-animate-arm-right,
+            #tm-mascot-container.mascot-happy .tm-animate-wing-left,
+            #tm-mascot-container.mascot-happy .tm-animate-wing-right,
+            #tm-mascot-container.mascot-happy .tm-animate-tail,
+            #tm-mascot-container.mascot-eureka .tm-animate-wing-left,
+            #tm-mascot-container.mascot-eureka .tm-animate-wing-right,
+            #tm-mascot-container.mascot-eureka .tm-animate-tail,
+            #tm-mascot-container.mascot-dodging .tm-animate-wing-left,
+            #tm-mascot-container.mascot-dodging .tm-animate-wing-right,
+            #tm-mascot-container.mascot-dodging .tm-animate-tail,
+            #tm-mascot-container.mascot-surprised .tm-animate-wing-left,
+            #tm-mascot-container.mascot-surprised .tm-animate-wing-right,
+            #tm-mascot-container.mascot-spin .tm-animate-wing-left,
+            #tm-mascot-container.mascot-spin .tm-animate-wing-right,
+            #tm-mascot-container.mascot-bow .tm-animate-wing-left,
+            #tm-mascot-container.mascot-bow .tm-animate-wing-right,
+            #tm-mascot-container.mascot-firebreath .tm-animate-wing-left,
+            #tm-mascot-container.mascot-firebreath .tm-animate-wing-right,
+            #tm-mascot-container.mascot-powersave .tm-animate-wing-left,
+            #tm-mascot-container.mascot-powersave .tm-animate-wing-right,
+            #tm-mascot-container.mascot-powersave .tm-animate-tail {
+                animation: none !important;
+            }
             
             /* Thinking Animation - More contemplative */
             #tm-mascot-container.mascot-thinking .tm-mascot-robot { animation: tm-mascot-pondering 3s ease-in-out infinite; }
@@ -13883,7 +13929,8 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             /* Mascot Animations */
             @keyframes tm-mascot-barrel-roll {
                 from { transform: rotate(0deg) scale(1); }
-                to { transform: rotate(360deg) scale(1.2); }
+                70% { transform: rotate(300deg) scale(1.12); }
+                to { transform: rotate(360deg) scale(1); }
             }
             @keyframes tm-mascot-antenna-spin {
                 from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -13935,9 +13982,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
 
             @keyframes tm-mascot-startled {
-                0%, 100% { transform: translate(0, 0); }
-                30% { transform: translate(0, -15px) scale(1.05, 0.9); }
-                60% { transform: translateY(0) scale(0.95, 1.05); }
+                0% { transform: translate(0, 0) scale(1); }
+                35% { transform: translate(0, -16px) scale(1.06, 0.9); }
+                70% { transform: translate(0, -2px) scale(0.97, 1.04); }
+                100% { transform: translate(0, -4px) scale(1.02, 0.98); }
             }
             /* Enhanced Reading Animation - Gentle bobbing while focused on book */
             @keyframes tm-mascot-reading-bob {
@@ -14149,24 +14197,24 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             #tm-mascot-container.mascot-glitching #master_crown {
                 animation: tm-mascot-accessory-glitch 0.3s infinite;
             }
-            /* New Eureka State */
-            #tm-mascot-container.mascot-eureka .tm-mascot-robot { animation: tm-mascot-barrel-roll 1s ease-out; }
+            /* New Eureka State — roll then hold (forwards) until JS clears state */
+            #tm-mascot-container.mascot-eureka .tm-mascot-robot { animation: tm-mascot-barrel-roll 1s ease-out forwards !important; }
             #tm-mascot-container.mascot-eureka .tm-mascot-eureka-bubble { display: block; }
 
             /* Enhanced Weather States with Natural Accessory Movement */
-            #tm-mascot-container.mascot-sunny .tm-mascot-robot { animation: tm-mascot-sunny-relax 3s ease-in-out infinite; }
+            #tm-mascot-container.mascot-sunny .tm-mascot-robot { animation: tm-mascot-sunny-relax 3s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-sunny .tm-mascot-sunglasses { 
                 display: block; 
                 animation: tm-mascot-sunglasses-shine 2s ease-in-out infinite;
             }
-            #tm-mascot-container.mascot-rainy .tm-mascot-robot { animation: tm-mascot-rainy-shelter 2.5s ease-in-out infinite; }
+            #tm-mascot-container.mascot-rainy .tm-mascot-robot { animation: tm-mascot-rainy-shelter 2.5s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-rainy .tm-mascot-umbrella { 
                 display: block; 
                 animation: tm-mascot-umbrella-sway 3s ease-in-out infinite;
             }
 
             /* New Power-Save State */
-            #tm-mascot-container.mascot-powersave .tm-mascot-robot { animation: tm-mascot-powersave-drift 8s ease-in-out infinite; }
+            #tm-mascot-container.mascot-powersave .tm-mascot-robot { animation: tm-mascot-powersave-drift 8s ease-in-out infinite !important; }
             #tm-mascot-container.mascot-powersave .tm-mascot-eye-open circle:last-child { animation: tm-mascot-eye-dim 4s ease-in-out infinite; }
             #tm-mascot-container.mascot-powersave .tm-mascot-zzz-bubble { display: block; }
             #tm-mascot-container.mascot-powersave .tm-mascot-thruster-left, #tm-mascot-container.mascot-powersave .tm-mascot-thruster-right { display: none; }
@@ -14183,31 +14231,24 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 }
             }
             @keyframes tm-needs-cleaning-pulse {
-                0%, 100% { 
+                0%, 100% {
                     filter: brightness(1) saturate(1);
-                    box-shadow: 0 0 0 0 rgba(139, 69, 19, 0);
                 }
-                50% { 
-                    filter: brightness(0.9) saturate(0.8);
-                    box-shadow: 0 0 20px 5px rgba(139, 69, 19, 0.5);
+                50% {
+                    filter: brightness(0.97) saturate(0.92);
                 }
             }
             #tm-mascot-container.mascot-needs-cleaning {
-                animation: tm-needs-cleaning-pulse 2s ease-in-out infinite;
-                /* Must stay fixed — relative pins the mascot to document flow (bottom of page) */
+                /* No brown box-shadow — it read as a rectangular aura on the 100×100 box */
+                animation: none;
                 position: fixed !important;
             }
             #tm-mascot-container.mascot-needs-cleaning::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: radial-gradient(circle, rgba(139, 69, 19, 0.2) 0%, transparent 70%);
-                border-radius: 50%;
-                pointer-events: none;
-                animation: tm-needs-cleaning-pulse 2s ease-in-out infinite;
+                content: none !important;
+                display: none !important;
+                background: none !important;
+                box-shadow: none !important;
+                opacity: 0 !important;
             }
             .tm-poop-particle {
                 position: absolute;
@@ -14261,16 +14302,65 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 }
             }
             @keyframes tm-toilet-leg-fidget {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-1.5px); }
-                75% { transform: translateX(1.5px); }
+                0%, 100% { transform: translateX(0) rotate(0deg); }
+                25% { transform: translateX(-2px) rotate(-4deg); }
+                50% { transform: translateX(0) rotate(0deg); }
+                75% { transform: translateX(2px) rotate(4deg); }
+            }
+            @keyframes tm-toilet-urgency-subtle {
+                0%, 100% { transform: scale(1); opacity: 0.85; }
+                50% { transform: scale(1.12); opacity: 1; }
+            }
+            @keyframes tm-toilet-relief-bounce {
+                0% { transform: translateY(0) scale(1); }
+                35% { transform: translateY(-10px) scale(1.06); }
+                70% { transform: translateY(-2px) scale(1.02); }
+                100% { transform: translateY(0) scale(1); }
             }
             #tm-mascot-container.mascot-needs-toilet {
                 position: fixed !important;
             }
+            #tm-mascot-container.mascot-needs-toilet::before {
+                /* Never borrow mood/cleaning auras while potty-dancing */
+                content: none !important;
+                display: none !important;
+                background: none !important;
+                box-shadow: none !important;
+                opacity: 0 !important;
+            }
             #tm-mascot-container.mascot-needs-toilet .tm-animate-leg-left,
             #tm-mascot-container.mascot-needs-toilet .tm-animate-leg-right {
-                animation: tm-toilet-leg-fidget 0.82s ease-in-out infinite;
+                transform-box: fill-box;
+                transform-origin: top center;
+                animation: tm-toilet-leg-fidget 0.72s ease-in-out infinite !important;
+            }
+            #tm-mascot-container.mascot-needs-toilet .tm-animate-leg-right {
+                animation-delay: 0.12s !important;
+            }
+            /* Don't let eat/happy limb freezes kill the potty dance */
+            #tm-mascot-container.mascot-needs-toilet.mascot-eating .tm-animate-leg-left,
+            #tm-mascot-container.mascot-needs-toilet.mascot-eating .tm-animate-leg-right,
+            #tm-mascot-container.mascot-needs-toilet.mascot-happy .tm-animate-leg-left,
+            #tm-mascot-container.mascot-needs-toilet.mascot-happy .tm-animate-leg-right {
+                animation: tm-toilet-leg-fidget 0.72s ease-in-out infinite !important;
+            }
+            .tm-toilet-urgency-indicator {
+                position: absolute;
+                bottom: 2px;
+                right: 2px;
+                background: rgba(30, 136, 229, 0.9);
+                border: 1px solid rgba(129, 212, 250, 0.75);
+                border-radius: 8px;
+                padding: 2px 6px;
+                font-size: 11px;
+                line-height: 1;
+                pointer-events: none;
+                z-index: 9999;
+                box-shadow: 0 1px 4px rgba(0, 80, 140, 0.35);
+                animation: tm-toilet-urgency-subtle 2s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-toilet-relief .tm-mascot-robot {
+                animation: tm-toilet-relief-bounce 0.85s ease-out !important;
             }
             .tm-toilet-fx {
                 position: absolute;
@@ -16445,12 +16535,13 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     <div class="tm-setting-row tm-setting-row--divider">
                         <div class="tm-setting-label">
                             <label>Mascot evolution</label>
-                            <p class="tm-setting-description">Force hatch ή reset σε αυγό. Ο χαρακτήρας είναι τυχαίος στο επόμενο hatch.</p>
+                            <p class="tm-setting-description">Force hatch ή reset σε αυγό. <strong>Next Evolution</strong> ανεβάζει στο επόμενο στάδιο με το κανονικό evolution FX.</p>
                         </div>
                         <div class="tm-setting-control tm-setting-control--wrap">
                             <button type="button" id="tm-debug-hatch-egg-btn" class="tm-settings-ghost-btn">Force Hatch</button>
                             <button type="button" id="tm-debug-reset-egg-btn" class="tm-settings-ghost-btn">Reset to Egg</button>
                             <button type="button" id="tm-debug-age-up-btn" class="tm-settings-ghost-btn">Age +10</button>
+                            <button type="button" id="tm-debug-next-evo-btn" class="tm-settings-ghost-btn">Next Evolution</button>
                         </div>
                     </div>
                     <div class="tm-setting-row">
@@ -17726,10 +17817,42 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                     tamaData.age = Math.floor(tamaData.lifeMinutes / minutesPerYear);
                     tamaData.lastUpdate = Date.now();
                     GM_setValue(STORAGE_KEYS.TAMAGOTCHI_DATA, JSON.stringify(tamaData));
-                    
-                    showPositiveMessage(`⏭️ Aged up! Now ${Math.floor(tamaData.age)} years old. Refresh to see changes.`);
+
+                    // Apply evolution + sprite immediately (no refresh required)
+                    if (typeof window.hydrateTamagotchiFromStorage === 'function') {
+                        window.hydrateTamagotchiFromStorage(STORAGE_KEYS, document.getElementById('tm-mascot-container'), {
+                            mergeMemory: true,
+                            saveAfter: true,
+                            evolve: true,
+                        });
+                    } else if (typeof window.resyncMascotAppearanceFromStorage === 'function') {
+                        window.resyncMascotAppearanceFromStorage(STORAGE_KEYS);
+                    }
+                    const stage = typeof window.getEffectiveMascotStage === 'function'
+                        ? window.getEffectiveMascotStage()
+                        : (tamaData.stage || '?');
+                    showPositiveMessage(`⏭️ Aged up! Age ${Math.floor(tamaData.age)} · stage ${stage}`);
                 } else {
                     showPositiveMessage('❌ Mascot data not found. Enable mascot first.');
+                }
+            });
+
+            document.getElementById('tm-debug-next-evo-btn')?.addEventListener('click', () => {
+                if (typeof window.debugAdvanceMascotEvolution !== 'function') {
+                    showPositiveMessage('❌ Evolution debug δεν είναι διαθέσιμο.');
+                    return;
+                }
+                const result = window.debugAdvanceMascotEvolution(STORAGE_KEYS);
+                if (result?.ok) {
+                    showPositiveMessage(`✨ Evolution: ${result.from} → ${result.to}`);
+                } else if (result?.reason === 'max') {
+                    showPositiveMessage('👴 Ήδη στο τελευταίο στάδιο (old).');
+                } else if (result?.reason === 'dead') {
+                    showPositiveMessage('💀 Το mascot είναι νεκρό — reset to egg πρώτα.');
+                } else if (result?.reason === 'cinematic') {
+                    showPositiveMessage('⏳ Περίμενε να τελειώσει το cinematic…');
+                } else {
+                    showPositiveMessage('❌ Δεν έγινε evolution.');
                 }
             });
 
@@ -21344,6 +21467,67 @@ function debugSetMascotCharacter(characterType, STORAGE_KEYS) {
     return true;
 }
 
+/** Life stages in evolution order (egg → … → old). */
+const TAMA_LIFE_STAGE_ORDER = ['egg', 'baby', 'kid', 'teen', 'adult', 'middleage', 'old'];
+
+/**
+ * Debug: jump lifeMinutes to the next stage threshold and run the real evolution path
+ * (sprite swap + bubble + character cinematic when applicable).
+ * @returns {{ ok: boolean, from?: string, to?: string, reason?: string }}
+ */
+function debugAdvanceMascotEvolution(STORAGE_KEYS) {
+    if (tamagotchiIsDead) {
+        return { ok: false, reason: 'dead' };
+    }
+    if (tamaCinematicLock) {
+        return { ok: false, reason: 'cinematic' };
+    }
+
+    refreshTamaLifespanScale();
+    const from = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
+    const idx = TAMA_LIFE_STAGE_ORDER.indexOf(from);
+    if (idx < 0 || idx >= TAMA_LIFE_STAGE_ORDER.length - 1) {
+        return { ok: false, reason: 'max', from };
+    }
+
+    const to = TAMA_LIFE_STAGE_ORDER[idx + 1];
+    const need = Number(TAMA_STAGE_MINUTES[to]);
+    if (!Number.isFinite(need)) {
+        return { ok: false, reason: 'threshold', from, to };
+    }
+
+    cancelTamagotchiCinematics();
+    clearMascotStagePreview(false);
+
+    // Land just at the stage floor so getTamagotchiStageFromLifeMinutes → `to`
+    tamagotchiLifeMinutes = Math.max(Number(tamagotchiLifeMinutes) || 0, need);
+    tamagotchiLastUpdate = Date.now();
+    tamagotchiIsDead = false;
+    if (to !== 'egg') {
+        // Ensure hatch cinematic is considered done when skipping past egg via debug
+        if (from === 'egg') {
+            // Let checkTamagotchiEvolution run the hatch path naturally
+            tamagotchiEggHatchCinematicDone = false;
+        }
+    }
+    syncTamagotchiAgeFromLife();
+
+    const keys = getTamagotchiStorageKeys(
+        STORAGE_KEYS || (typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null),
+    );
+    const container = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+    if (container) {
+        checkTamagotchiEvolution(container);
+    } else {
+        tamagotchiStage = getTamagotchiStageFromLifeMinutes(tamagotchiLifeMinutes);
+        if (keys) saveTamagotchiData(keys);
+    }
+    if (keys) saveTamagotchiData(keys);
+
+    console.log(`[Mascot] Debug evolution: ${from} → ${tamagotchiStage} (life=${Math.round(tamagotchiLifeMinutes)})`);
+    return { ok: true, from, to: tamagotchiStage };
+}
+
 /**
  * Debug: natural / care death (hunger, health, old age) — NOT the AK-47 execution cinematic.
  * @param {object|null} STORAGE_KEYS
@@ -22408,7 +22592,7 @@ function playMascotTrick(config, STORAGE_KEYS) {
     return true;
 }
 
-/** Shop consumable side-effects (health / clean / prefs). */
+/** Shop consumable side-effects (health / clean / prefs / weight from meals). */
 function applyMascotShopCareEffect(effect, config, STORAGE_KEYS) {
     if (!effect || tamagotchiIsDead || tamagotchiStage === 'egg') return;
     let changed = false;
@@ -22421,6 +22605,23 @@ function applyMascotShopCareEffect(effect, config, STORAGE_KEYS) {
     if (effect.clean) {
         tamagotchiPoopCount = 0;
         if (typeof updatePoopIndicator === 'function') updatePoopIndicator();
+        changed = true;
+    }
+    if (effect.careAction === 'meal' || effect.careAction === 'snack') {
+        const hungerBefore = Number.isFinite(Number(effect.hungerBefore))
+            ? Number(effect.hungerBefore)
+            : Number(petStats.hunger) || 0;
+        const weightResult = updateTamagotchiWeight(
+            effect.careAction === 'snack' ? 'snack' : 'meal',
+            { hungerBefore }
+        );
+        tamagotchiLastFed = Date.now();
+        if (weightResult?.gained && weightResult.isFull) {
+            const gained = Math.round((weightResult.delta || 0) * 10) / 10;
+            setTimeout(() => {
+                showMascotBubble(`+${gained} kg (${formatTamagotchiWeightKg()})`, 1800);
+            }, 1200);
+        }
         changed = true;
     }
     if (effect.careAction) {
@@ -24713,6 +24914,32 @@ function resolveMascotCharacterType(container, characterType = tamagotchiCharact
     return characterType || 'none';
 }
 
+/** Stage growth for mythics — applied on flipper so idle/eat animations don't wipe it. */
+const TAMA_STAGE_VISUAL_SCALE = {
+    phoenix: { baby: 1, kid: 1, teen: 1.08, adult: 1.22, middleage: 1.32, old: 1.42 },
+    leviathan: { baby: 1, kid: 1, teen: 1.1, adult: 1.24, middleage: 1.34, old: 1.46 },
+    aether: { baby: 1, kid: 1, teen: 1.03, adult: 1.07, middleage: 1.14, old: 1.24 },
+};
+
+function getMascotStageVisualScale(stage = tamagotchiStage, characterType = tamagotchiCharacterType) {
+    const resolved = TAMA_CHARACTER_TYPES.includes(characterType) ? characterType : 'none';
+    const table = TAMA_STAGE_VISUAL_SCALE[resolved];
+    const scale = Number(table?.[stage]);
+    return Number.isFinite(scale) && scale > 0 ? scale : 1;
+}
+
+function syncMascotStageVisualScale(
+    container = document.getElementById('tm-mascot-container'),
+    stage = tamagotchiStage,
+    characterType = tamagotchiCharacterType,
+) {
+    if (!container) return;
+    const resolved = resolveMascotCharacterType(container, characterType);
+    const scale = getMascotStageVisualScale(stage, resolved);
+    container.style.setProperty('--tm-stage-scale', String(scale));
+    container.dataset.tmStageScale = String(scale);
+}
+
 function syncEliteMascotContainerSize(
     container = document.getElementById('tm-mascot-container'),
     characterType = tamagotchiCharacterType,
@@ -24720,7 +24947,12 @@ function syncEliteMascotContainerSize(
     if (!container) return;
     const resolved = resolveMascotCharacterType(container, characterType);
     const isElite = TAMA_ELITE_MASCOT_TYPES.includes(resolved);
-    const sizePx = Math.round(MASCOT_BASE_SIZE_PX * (isElite ? MASCOT_ELITE_SIZE_MULT : 1));
+    const stage = getEffectiveMascotStage();
+    const stageScale = getMascotStageVisualScale(stage, resolved);
+    // Elite base + stage growth as real px — stable vs animation transform fights
+    const sizePx = Math.round(
+        MASCOT_BASE_SIZE_PX * (isElite ? MASCOT_ELITE_SIZE_MULT : 1) * stageScale
+    );
     container.style.width = `${sizePx}px`;
     container.style.height = `${sizePx}px`;
     container.classList.toggle('tm-mascot-elite-size', isElite);
@@ -24728,6 +24960,7 @@ function syncEliteMascotContainerSize(
         TAMA_CHARACTER_TYPES.forEach((t) => container.classList.remove(`mascot-char-${t}`));
         container.classList.add(`mascot-char-${resolved}`);
     }
+    syncMascotStageVisualScale(container, stage, resolved);
 }
 
 const PHOENIX_STAGE_TIER = {
@@ -25487,6 +25720,41 @@ function playPhoenixMythicFootprint(container) {
     mark.className = 'tm-phoenix-mythic-footprint';
     container.appendChild(mark);
     setTimeout(() => mark.remove(), 3200);
+}
+
+/** Lightweight EVOLUTION flash for non-mythic characters (dragon, robot, …). */
+function playGenericStageCinematic(stage, { hatch = false } = {}) {
+    if (!stage || stage === 'egg') return;
+    if (tamagotchiCharacterType === 'aether' || tamagotchiCharacterType === 'phoenix') return;
+
+    const stageGr = (typeof MASCOT_STAGE_GR !== 'undefined' && MASCOT_STAGE_GR[stage])
+        ? MASCOT_STAGE_GR[stage]
+        : stage;
+    const charMeta = MASCOT_CHARACTERS?.[tamagotchiCharacterType];
+    const name = charMeta?.nameGr || charMeta?.name || tamagotchiCharacterType || 'Mascot';
+    const emoji = charMeta?.emoji || '✨';
+
+    document.getElementById('tm-evo-stage-flash')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'tm-evo-stage-flash';
+    overlay.className = 'tm-evo-stage-flash';
+    overlay.innerHTML = `
+        <div class="tm-evo-stage-flash-veil"></div>
+        <div class="tm-evo-stage-flash-card">
+            <div class="tm-evo-stage-flash-kicker">${hatch ? 'HATCH' : 'EVOLUTION'}</div>
+            <div class="tm-evo-stage-flash-emoji">${emoji}</div>
+            <div class="tm-evo-stage-flash-title">${stageGr}</div>
+            <div class="tm-evo-stage-flash-sub">${name}</div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const container = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+    if (container) {
+        container.classList.add('tm-evo-react');
+        setTimeout(() => container.classList.remove('tm-evo-react'), 1600);
+    }
+    setTimeout(() => overlay.remove(), 2800);
 }
 
 function playPhoenixStageCinematic(stage, { hatch = false } = {}) {
@@ -27096,7 +27364,13 @@ function updateLimbPhysics() {
     // Calculate speed
     const speed = Math.sqrt(mascotVelocityX * mascotVelocityX + mascotVelocityY * mascotVelocityY);
     const isParked = !!mascotPositionLocked || mascotContainer.classList.contains('mascot-parked');
-    const isMoving = !isParked && speed > 0.3;
+    const behaviorState = getMascotBehaviorState(mascotContainer);
+    // Expressive / care states own the body animation — don't flap-move over them
+    const expressiveLock = [
+        'eating', 'eureka', 'dodging', 'surprised', 'happy', 'spin', 'bow',
+        'firebreath', 'hide-found', 'rebirth-burn', 'rebirth-rise', 'ember-shake',
+    ].includes(behaviorState);
+    const isMoving = !isParked && !expressiveLock && canMascotRoamingMove(behaviorState) && speed > 0.3;
     mascotContainer.classList.toggle('mascot-moving', isMoving);
 
     if (aetherLitePhysics) {
@@ -27114,6 +27388,19 @@ function updateLimbPhysics() {
     const leftWing = sprite?.querySelector('.tm-animate-wing-left');
     const rightWing = sprite?.querySelector('.tm-animate-wing-right');
 
+    if (expressiveLock) {
+        // Clear inline limb transforms so CSS state animations (eat/happy/dodge) play cleanly
+        if (leftArm) leftArm.style.transform = '';
+        if (rightArm) rightArm.style.transform = '';
+        if (leftLeg) leftLeg.style.transform = '';
+        if (rightLeg) rightLeg.style.transform = '';
+        if (tail) tail.style.transform = '';
+        if (leftWing) leftWing.style.transform = '';
+        if (rightWing) rightWing.style.transform = '';
+        physicsAnimationFrame = requestAnimationFrame(updateLimbPhysics);
+        return;
+    }
+
     if (isMoving) {
         // Calculate rotation based on horizontal velocity (momentum effect)
         const armSwing = Math.max(-25, Math.min(25, mascotVelocityX * 0.5));
@@ -27123,6 +27410,9 @@ function updateLimbPhysics() {
         if (leftWing) leftWing.style.transform = '';
         if (rightWing) rightWing.style.transform = '';
 
+        // Toilet urgency owns leg fidget CSS — don't stomp with physics while potty-dancing
+        const needsToilet = mascotContainer.classList.contains('mascot-needs-toilet');
+
         // Apply physics transformations
         if (leftArm) {
             leftArm.style.transform = `rotate(${-armSwing}deg)`;
@@ -27130,11 +27420,14 @@ function updateLimbPhysics() {
         if (rightArm) {
             rightArm.style.transform = `rotate(${armSwing}deg)`;
         }
-        if (leftLeg) {
+        if (needsToilet) {
+            if (leftLeg) leftLeg.style.transform = '';
+            if (rightLeg) rightLeg.style.transform = '';
+        } else if (leftLeg) {
             const legOffset = Math.sin(Date.now() * 0.012) * Math.abs(mascotVelocityX) * 3;
             leftLeg.style.transform = `translateY(${legKick + legOffset}px)`;
         }
-        if (rightLeg) {
+        if (!needsToilet && rightLeg) {
             const legOffset = Math.sin(Date.now() * 0.012 + Math.PI) * Math.abs(mascotVelocityX) * 3;
             rightLeg.style.transform = `translateY(${legKick - legOffset}px)`;
         }
@@ -27558,7 +27851,19 @@ function schedulePlayfulAction() {
         }
         const actions = ['reading', 'biking', 'juggling', 'happy', 'energized'];
         const randomAction = actions[Math.floor(Math.random() * actions.length)];
-        setMascotState(resolveMascotConfig(roamingConfig), randomAction, 10000);
+        // Match durations to animation loops: short dances vs longer play activities
+        const durationByAction = {
+            happy: 4000,
+            energized: 6000,
+            reading: 10000,
+            biking: 8000,
+            juggling: 8000,
+        };
+        setMascotState(
+            resolveMascotConfig(roamingConfig),
+            randomAction,
+            durationByAction[randomAction] || 8000
+        );
     }, randomDelay);
 }
 
@@ -27833,6 +28138,11 @@ function setMascotState(config, state, duration = 0) {
 
     applyMascotBehaviorState(mascotContainer, state);
     syncStateAccessoryLayout(state, previousState);
+
+    // One-shot / body-owned animations: kill residual move flap immediately
+    if (['eating', 'eureka', 'dodging', 'surprised', 'happy', 'spin', 'bow', 'firebreath'].includes(state)) {
+        mascotContainer.classList.remove('mascot-moving');
+    }
     
     // Reset robot element transform when exiting juggling state to prevent shaking
     if (previousState === 'juggling' && state !== 'juggling') {
@@ -27842,6 +28152,7 @@ function setMascotState(config, state, duration = 0) {
             robot.style.transform = '';
             // Force reflow to apply the reset
             void robot.offsetWidth;
+            robot.style.animation = '';
         }
     }
 
@@ -28468,16 +28779,30 @@ function checkTamagotchiEvolution(container) {
             }
         }
     }
+
+    const stageChanged = oldStage !== tamagotchiStage;
+    const characterChanged = oldCharacterType !== tamagotchiCharacterType;
+
+    // Real evolution always wins over temporary stage previews
+    if (stageChanged && mascotStagePreviewLock) {
+        clearMascotStagePreview(false);
+    }
+
+    // Paint the new sprite BEFORE evolution FX so the popup/cinematic matches the live form
+    const canPaintNow = !tamaCinematicLock || stageChanged;
+    if (stageChanged && canPaintNow && !(oldStage === 'egg' && !tamagotchiEggHatchCinematicDone)) {
+        updateMascotAppearanceByStage(tamagotchiStage);
+    }
     
     // If evolved or hatched, show message, update personality, and update appearance
-    if (oldStage !== tamagotchiStage || oldCharacterType !== tamagotchiCharacterType) {
+    if (stageChanged || characterChanged) {
         updateTamagotchiPersonality();
         const evolutionMessages = MASCOT_MESSAGES.evolution;
         if (oldStage === 'egg' && tamagotchiStage !== 'egg') {
             tamagotchiLastPoopTime = Date.now();
             if (tamagotchiStage === 'baby' && !tamagotchiEggHatchCinematicDone && !tamaCinematicLock) {
                 runTamagotchiHatchSequence(tamagotchiCharacterType, container);
-            } else if (!tamaCinematicLock && !mascotStagePreviewLock) {
+            } else if (!tamaCinematicLock) {
                 updateMascotAppearanceByStage(tamagotchiStage);
             }
         } else if (tamagotchiStage === 'baby' && !tamagotchiEggHatchCinematicDone && !tamaCinematicLock
@@ -28488,17 +28813,27 @@ function checkTamagotchiEvolution(container) {
             const oldMessages = MASCOT_MESSAGES.becameOld;
             showMascotBubble(oldMessages[Math.floor(Math.random() * oldMessages.length)], 3000);
             if (tamagotchiCharacterType === 'aether') playAetherStageCinematic('old');
-            if (tamagotchiCharacterType === 'phoenix') playPhoenixStageCinematic('old');
-        } else if (oldStage !== tamagotchiStage) {
+            else if (tamagotchiCharacterType === 'phoenix') playPhoenixStageCinematic('old');
+            else playGenericStageCinematic('old');
+        } else if (stageChanged) {
             showMascotBubble(evolutionMessages[Math.floor(Math.random() * evolutionMessages.length)], 3000);
             if (tamagotchiCharacterType === 'aether' && tamagotchiStage !== 'egg') {
                 playAetherStageCinematic(tamagotchiStage);
-            }
-            if (tamagotchiCharacterType === 'phoenix' && tamagotchiStage !== 'egg') {
+            } else if (tamagotchiCharacterType === 'phoenix' && tamagotchiStage !== 'egg') {
                 playPhoenixStageCinematic(tamagotchiStage);
+            } else if (tamagotchiStage !== 'egg') {
+                playGenericStageCinematic(tamagotchiStage);
             }
         }
-        updateTamagotchiStats(container);
+        // Re-assert sprite after FX clone/DOM churn (popup used to play while sprite stayed old)
+        if (stageChanged && !tamaCinematicLock) {
+            updateMascotAppearanceByStage(tamagotchiStage);
+            setTimeout(() => {
+                if (!tamagotchiIsDead && !mascotStagePreviewLock) {
+                    updateMascotAppearanceByStage(tamagotchiStage);
+                }
+            }, 3500);
+        }
         saveTamagotchiData(getTamagotchiStorageKeys(
             typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null
         ));
@@ -28605,7 +28940,7 @@ function checkNeedsToilet() {
 
 // Update toilet need visual indicator
 function updateToiletNeedIndicator() {
-    const mascotContainer = document.getElementById('tm-mascot-container');
+    const mascotContainer = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
     if (!mascotContainer) return;
     
     const needsToilet = checkNeedsToilet();
@@ -28613,18 +28948,62 @@ function updateToiletNeedIndicator() {
     if (needsToilet) {
         mascotContainer.classList.add('mascot-needs-toilet');
         ensureMascotViewportFixed(mascotContainer);
-        // Add urgency animation
+        if (!mascotContainer.querySelector('.tm-toilet-fx')) {
+            createToiletNeedFx(mascotContainer);
+        }
         if (!mascotContainer.querySelector('.tm-toilet-urgency-indicator')) {
             createToiletUrgencyIndicator(mascotContainer);
         }
     } else {
         mascotContainer.classList.remove('mascot-needs-toilet');
-        // Remove urgency indicator
-        const indicator = mascotContainer.querySelector('.tm-toilet-urgency-indicator');
-        if (indicator) {
-            indicator.remove();
-        }
+        removeToiletNeedFx(mascotContainer);
     }
+}
+
+/** Full toilet-need FX layer (CSS expects .tm-toilet-fx children). */
+function createToiletNeedFx(container) {
+    if (!container || container.querySelector('.tm-toilet-fx')) return;
+    const fx = document.createElement('div');
+    fx.className = 'tm-toilet-fx';
+    fx.setAttribute('aria-hidden', 'true');
+    fx.innerHTML = `
+        <div class="tm-toilet-fx__puddle"></div>
+        <div class="tm-toilet-fx__ripple" style="animation-delay:0s"></div>
+        <div class="tm-toilet-fx__ripple" style="animation-delay:0.55s;width:54px;height:54px;bottom:14px;opacity:0.7"></div>
+        <div class="tm-toilet-fx__bubble" style="left:38%;animation-delay:0s"></div>
+        <div class="tm-toilet-fx__bubble" style="left:52%;animation-delay:0.7s;width:5px;height:5px"></div>
+        <div class="tm-toilet-fx__bubble" style="left:46%;animation-delay:1.3s;width:6px;height:6px"></div>
+        <div class="tm-toilet-fx__sign">🚽</div>
+    `;
+    container.appendChild(fx);
+}
+
+function removeToiletNeedFx(container) {
+    if (!container) return;
+    container.querySelectorAll('.tm-toilet-fx, .tm-toilet-urgency-indicator').forEach((el) => {
+        try { el.remove(); } catch (_) { /* ignore */ }
+    });
+}
+
+/** Short relief beat after using the toilet / finishing training. */
+function playToiletReliefAnimation(config) {
+    const root = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+    if (!root || tamagotchiIsDead || tamagotchiStage === 'egg') return;
+    root.classList.add('mascot-toilet-relief');
+    setTimeout(() => root.classList.remove('mascot-toilet-relief'), 900);
+    if (typeof setMascotState === 'function') {
+        setMascotState(config || window.config || {}, 'happy', 1600);
+    }
+}
+
+// Create toilet urgency indicator (corner badge — complements FX layer)
+function createToiletUrgencyIndicator(container) {
+    if (!container || container.querySelector('.tm-toilet-urgency-indicator')) return;
+    const indicator = document.createElement('div');
+    indicator.className = 'tm-toilet-urgency-indicator';
+    indicator.setAttribute('aria-hidden', 'true');
+    indicator.innerHTML = '<span>🚽</span>';
+    container.appendChild(indicator);
 }
 
 // Create poop particle effects around mascot
@@ -30424,28 +30803,6 @@ function removePoopParticles(container) {
     particles.forEach(particle => particle.remove());
 }
 
-// Create toilet urgency indicator (small badge style)
-function createToiletUrgencyIndicator(container) {
-    const indicator = document.createElement('div');
-    indicator.className = 'tm-toilet-urgency-indicator';
-    indicator.innerHTML = '<span style="font-size: 10px;">🚽</span>';
-    indicator.style.cssText = `
-        position: absolute;
-        bottom: 2px;
-        right: 2px;
-        background: rgba(139, 69, 19, 0.85);
-        border: 1px solid rgba(205, 133, 63, 0.6);
-        border-radius: 8px;
-        padding: 2px 6px;
-        font-size: 10px;
-        pointer-events: none;
-        z-index: 9999;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        animation: tm-toilet-urgency-subtle 2s ease-in-out infinite;
-    `;
-    container.appendChild(indicator);
-}
-
 // Sickness system
 function makeTamagotchiSick(sickType = 'cold') {
     if (tamagotchiIsDead) return;
@@ -30584,7 +30941,8 @@ function burnTamagotchiWeightFromActivity(intensity = 1, STORAGE_KEYS = null, op
 }
 
 /**
- * Weight from food — slow + probabilistic.
+ * Weight from food.
+ * Overfeeding (already full) always adds weight — meals & snacks.
  * @param {'meal'|'snack'} foodType
  * @param {{ hungerBefore?: number }} [opts] hunger BEFORE this feed (critical for full vs hungry)
  */
@@ -30592,7 +30950,8 @@ function updateTamagotchiWeight(foodType = 'meal', opts = {}) {
     const hungerBefore = Number.isFinite(Number(opts.hungerBefore))
         ? Number(opts.hungerBefore)
         : Number(petStats.hunger) || 0;
-    const isFull = hungerBefore >= 100;
+    // Treat near-full as full (float/decay leftover like 99.2)
+    const isFull = hungerBefore >= 99;
 
     if (foodType === 'meal') tamagotchiMealCount++;
     else if (foodType === 'snack') tamagotchiSnackCount++;
@@ -30606,28 +30965,19 @@ function updateTamagotchiWeight(foodType = 'meal', opts = {}) {
     }
 
     let gain = 0;
-    let rolled = false;
+    let rolled = true;
 
     if (foodType === 'meal') {
-        // Meals only add weight when already full — slow vs games/gym burn
+        // Overfeed: guaranteed weight. Below full: meals only fill the bar.
         if (isFull) {
-            rolled = true;
-            if (Math.random() < 0.55) {
-                gain = 0.18 + Math.random() * 0.22; // ~0.18–0.40 kg
-            }
+            gain = 0.28 + Math.random() * 0.27; // ~0.28–0.55 kg
         }
-        // under 100%: meals never add kg
     } else if (foodType === 'snack') {
-        rolled = true;
         if (isFull) {
-            if (Math.random() < 0.4) {
-                gain = 0.12 + Math.random() * 0.2; // ~0.12–0.32 kg
-            }
-        } else {
+            gain = 0.18 + Math.random() * 0.22; // ~0.18–0.40 kg
+        } else if (Math.random() < 0.22) {
             // Hungry/partial: snacks only, rare + tiny
-            if (Math.random() < 0.18) {
-                gain = 0.06 + Math.random() * 0.1; // ~0.06–0.16 kg
-            }
+            gain = 0.06 + Math.random() * 0.1; // ~0.06–0.16 kg
         }
     }
 
@@ -30667,7 +31017,7 @@ function updateWeightDisplay() {
     }
 }
 
-/** Feed even when full — weight only climbs when already full (meals) or rare snacks. */
+/** Feed even when full — overfeeding (near/at 100% food) always adds weight. */
 function feedMascotCareAction(config, STORAGE_KEYS, foodType = 'meal') {
     if (tamagotchiIsDead) {
         showMascotBubble(MASCOT_MESSAGES.dead, 2000);
@@ -30682,7 +31032,7 @@ function feedMascotCareAction(config, STORAGE_KEYS, foodType = 'meal') {
     if (!pay.ok) return { ok: false, reason: 'pay', pay };
 
     const hungerBefore = Number(petStats.hunger) || 0;
-    const wasFull = hungerBefore >= 100;
+    const wasFull = hungerBefore >= 99;
     if (foodType === 'snack') {
         updatePetStats(config, STORAGE_KEYS, 20, 10);
     } else {
@@ -41450,6 +41800,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     showMascotBubble(MASCOT_MESSAGES.toiletRelief, 2000);
                 }
                 applyMascotCarePreference('toilet', config, STORAGE_KEYS);
+                playToiletReliefAnimation(config);
                 updatePoopIndicator();
                 updateToiletNeedIndicator();
                 updateTamagotchiStats(container);
@@ -41459,6 +41810,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 tamagotchiLastPoopTime = Date.now();
                 showMascotBubble(MASCOT_MESSAGES.toiletOk, 2000);
                 applyMascotCarePreference('toilet', config, STORAGE_KEYS);
+                playToiletReliefAnimation(config);
                 updateToiletNeedIndicator();
                 saveTamagotchiData(STORAGE_KEYS);
             }
@@ -42159,6 +42511,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             } else {
                 showMascotBubble(MASCOT_MESSAGES.toiletGood, 2000);
             }
+            playToiletReliefAnimation(config);
             updatePoopIndicator();
             updateToiletNeedIndicator();
             updateTamagotchiStats(container);
@@ -42172,6 +42525,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             } else {
                 showMascotBubble(MASCOT_MESSAGES.toiletTraining, 2000);
             }
+            playToiletReliefAnimation(config);
             updateToiletNeedIndicator();
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
@@ -42179,6 +42533,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             // Already toilet trained - using toilet prevents poops
             tamagotchiLastPoopTime = Date.now(); // Reset timer since using toilet
             showMascotBubble(MASCOT_MESSAGES.toiletGood, 2000);
+            playToiletReliefAnimation(config);
             updateToiletNeedIndicator();
             updateTamagotchiStats(container);
             saveTamagotchiData(STORAGE_KEYS);
@@ -42655,7 +43010,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
 /** Triggers the "Eureka!" animation for the mascot. */
 function triggerEurekaAnimation(config) {
-    setMascotState(config, 'eureka', 1500); // Animation lasts 1.5 seconds
+    setMascotState(config, 'eureka', 1600); // barrel-roll 1s + brief hold
     const eurekaMessages = MASCOT_MESSAGES.eureka;
     const msg = eurekaMessages[Math.floor(Math.random() * eurekaMessages.length)];
     showMascotBubble(msg, 1500);
@@ -43159,6 +43514,7 @@ function updateMascotAppearanceByStage(stage) {
     allCharacterTypes.forEach((charType) => container.classList.remove(`mascot-char-${charType}`));
     container.classList.add(`mascot-char-${previewCharacter}`);
     syncEliteMascotContainerSize(container, previewCharacter);
+    syncMascotStageVisualScale(container, stage, previewCharacter);
     if (previewCharacter === 'aether') {
         syncAetherMythicFx(stage);
     } else {
@@ -43203,7 +43559,9 @@ window.showMascotExecutionCinematic = showMascotExecutionCinematic;
 window.confirmMascotKillRestart = confirmMascotKillRestart;
 window.previewMascotStage = previewMascotStage;
 window.clearMascotStagePreview = clearMascotStagePreview;
+window.getEffectiveMascotStage = getEffectiveMascotStage;
 window.debugSetMascotCharacter = debugSetMascotCharacter;
+window.debugAdvanceMascotEvolution = debugAdvanceMascotEvolution;
 window.debugKillTamagotchiNatural = debugKillTamagotchiNatural;
 window.getMascotLifespanDays = getMascotLifespanDays;
 window.setMascotLifespanDays = setMascotLifespanDays;
@@ -43273,6 +43631,8 @@ window.parseRepairPriceAmount = parseRepairPriceAmount;
 window.mascotRepairPriceOpinion = mascotRepairPriceOpinion;
 window.initMascotRepairPriceComments = initMascotRepairPriceComments;
 window.updatePetStats = updatePetStats;
+window.getMascotHunger = () => Number(petStats?.hunger) || 0;
+window.syncMascotStageVisualScale = syncMascotStageVisualScale;
 window.triggerEurekaAnimation = triggerEurekaAnimation;
 window.triggerEnergizedState = triggerEnergizedState;
 window.triggerDoubleCoinsEffect = triggerDoubleCoinsEffect;
@@ -45055,12 +45415,19 @@ function executeConsumableEffect(effect, item, config, STORAGE_KEYS) {
         happiness = 100;
         satiety = 100;
     }
+    // Capture fullness BEFORE satiety bump so overfeed weight can apply
+    const hungerBefore = (typeof window.getMascotHunger === 'function')
+        ? window.getMascotHunger()
+        : null;
     if ((happiness || satiety) && typeof window.updatePetStats === 'function') {
         window.updatePetStats(config, STORAGE_KEYS, happiness, satiety);
     }
 
     if (typeof window.applyMascotShopCareEffect === 'function' && isInteractiveMascotShopEnabled(config)) {
-        window.applyMascotShopCareEffect(effect, config, STORAGE_KEYS);
+        const careEffect = (hungerBefore != null && (effect.careAction === 'meal' || effect.careAction === 'snack'))
+            ? { ...effect, hungerBefore }
+            : effect;
+        window.applyMascotShopCareEffect(careEffect, config, STORAGE_KEYS);
     }
 
     if (effect.mascotState && typeof window.setMascotState === 'function' && isInteractiveMascotShopEnabled(config)) {

@@ -875,12 +875,13 @@
                     <div class="tm-setting-row tm-setting-row--divider">
                         <div class="tm-setting-label">
                             <label>Mascot evolution</label>
-                            <p class="tm-setting-description">Force hatch ή reset σε αυγό. Ο χαρακτήρας είναι τυχαίος στο επόμενο hatch.</p>
+                            <p class="tm-setting-description">Force hatch ή reset σε αυγό. <strong>Next Evolution</strong> ανεβάζει στο επόμενο στάδιο με το κανονικό evolution FX.</p>
                         </div>
                         <div class="tm-setting-control tm-setting-control--wrap">
                             <button type="button" id="tm-debug-hatch-egg-btn" class="tm-settings-ghost-btn">Force Hatch</button>
                             <button type="button" id="tm-debug-reset-egg-btn" class="tm-settings-ghost-btn">Reset to Egg</button>
                             <button type="button" id="tm-debug-age-up-btn" class="tm-settings-ghost-btn">Age +10</button>
+                            <button type="button" id="tm-debug-next-evo-btn" class="tm-settings-ghost-btn">Next Evolution</button>
                         </div>
                     </div>
                     <div class="tm-setting-row">
@@ -2156,10 +2157,42 @@
                     tamaData.age = Math.floor(tamaData.lifeMinutes / minutesPerYear);
                     tamaData.lastUpdate = Date.now();
                     GM_setValue(STORAGE_KEYS.TAMAGOTCHI_DATA, JSON.stringify(tamaData));
-                    
-                    showPositiveMessage(`⏭️ Aged up! Now ${Math.floor(tamaData.age)} years old. Refresh to see changes.`);
+
+                    // Apply evolution + sprite immediately (no refresh required)
+                    if (typeof window.hydrateTamagotchiFromStorage === 'function') {
+                        window.hydrateTamagotchiFromStorage(STORAGE_KEYS, document.getElementById('tm-mascot-container'), {
+                            mergeMemory: true,
+                            saveAfter: true,
+                            evolve: true,
+                        });
+                    } else if (typeof window.resyncMascotAppearanceFromStorage === 'function') {
+                        window.resyncMascotAppearanceFromStorage(STORAGE_KEYS);
+                    }
+                    const stage = typeof window.getEffectiveMascotStage === 'function'
+                        ? window.getEffectiveMascotStage()
+                        : (tamaData.stage || '?');
+                    showPositiveMessage(`⏭️ Aged up! Age ${Math.floor(tamaData.age)} · stage ${stage}`);
                 } else {
                     showPositiveMessage('❌ Mascot data not found. Enable mascot first.');
+                }
+            });
+
+            document.getElementById('tm-debug-next-evo-btn')?.addEventListener('click', () => {
+                if (typeof window.debugAdvanceMascotEvolution !== 'function') {
+                    showPositiveMessage('❌ Evolution debug δεν είναι διαθέσιμο.');
+                    return;
+                }
+                const result = window.debugAdvanceMascotEvolution(STORAGE_KEYS);
+                if (result?.ok) {
+                    showPositiveMessage(`✨ Evolution: ${result.from} → ${result.to}`);
+                } else if (result?.reason === 'max') {
+                    showPositiveMessage('👴 Ήδη στο τελευταίο στάδιο (old).');
+                } else if (result?.reason === 'dead') {
+                    showPositiveMessage('💀 Το mascot είναι νεκρό — reset to egg πρώτα.');
+                } else if (result?.reason === 'cinematic') {
+                    showPositiveMessage('⏳ Περίμενε να τελειώσει το cinematic…');
+                } else {
+                    showPositiveMessage('❌ Δεν έγινε evolution.');
                 }
             });
 
