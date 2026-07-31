@@ -1,9 +1,9 @@
 /**
- * Starveil Aether — v11 "Cosmic Angel" (nebula feather wings)
+ * Starveil Aether — v12 "Natural Cosmic Wings"
  *
- * Wings from cosmic Aether art ref: translucent void feathers filled with
- * teal/gold nebula + stars, gold-lit edges, high open V pose. Palette matches
- * body (void / teal / gold). 3-seg flap + hook classes preserved.
+ * Avian anatomy: feathers stack along a curved wing-arm (shoulder→elbow→wrist),
+ * not a radial energy fan. Coverts / secondaries / primaries overlap like
+ * shingles. Cosmic teal/gold/void palette kept. 3-seg flap + hooks preserved.
  *
  * Pokémon-style evolution: every stage has a distinct MAIN BODY shape.
  *   baby — Voidseed: faceted crystal seed (compact hex)
@@ -64,19 +64,17 @@ ${I3}<stop offset="28%" style="stop-color:${pal.teal};stop-opacity:.5" />
 ${I3}<stop offset="62%" style="stop-color:${pal.deep};stop-opacity:.72" />
 ${I3}<stop offset="100%" style="stop-color:${pal.void};stop-opacity:.88" />
 ${I2}</linearGradient>
-${I2}<linearGradient id="${p}-blade" x1="0%" y1="0%" x2="100%" y2="100%">
-${I3}<stop offset="0%" style="stop-color:#fff8e0;stop-opacity:.95" />
-${I3}<stop offset="18%" style="stop-color:${pal.gold};stop-opacity:.9" />
-${I3}<stop offset="48%" style="stop-color:${pal.teal};stop-opacity:.72" />
-${I3}<stop offset="78%" style="stop-color:${pal.deep};stop-opacity:.85" />
-${I3}<stop offset="100%" style="stop-color:${pal.void};stop-opacity:.92" />
+${I2}<linearGradient id="${p}-blade" x1="15%" y1="0%" x2="85%" y2="100%">
+${I3}<stop offset="0%" style="stop-color:${pal.gold};stop-opacity:.85" />
+${I3}<stop offset="35%" style="stop-color:${pal.teal};stop-opacity:.75" />
+${I3}<stop offset="70%" style="stop-color:${pal.deep};stop-opacity:.92" />
+${I3}<stop offset="100%" style="stop-color:${pal.void};stop-opacity:1" />
 ${I2}</linearGradient>
-${I2}<linearGradient id="${p}-feather" x1="0%" y1="5%" x2="85%" y2="100%">
-${I3}<stop offset="0%" style="stop-color:#fff4c8;stop-opacity:.95" />
-${I3}<stop offset="16%" style="stop-color:${pal.gold};stop-opacity:.88" />
-${I3}<stop offset="42%" style="stop-color:${pal.teal};stop-opacity:.78" />
-${I3}<stop offset="70%" style="stop-color:${pal.deep};stop-opacity:.82" />
-${I3}<stop offset="100%" style="stop-color:${pal.void};stop-opacity:.94" />
+${I2}<linearGradient id="${p}-feather" x1="10%" y1="0%" x2="80%" y2="100%">
+${I3}<stop offset="0%" style="stop-color:${pal.gold};stop-opacity:.8" />
+${I3}<stop offset="40%" style="stop-color:${pal.teal};stop-opacity:.78" />
+${I3}<stop offset="75%" style="stop-color:${pal.deep};stop-opacity:.95" />
+${I3}<stop offset="100%" style="stop-color:${pal.void};stop-opacity:1" />
 ${I2}</linearGradient>
 ${I2}<radialGradient id="${p}-iris" cx="40%" cy="35%" r="65%">
 ${I3}<stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
@@ -138,89 +136,112 @@ function blade(x, y, angle, length, width, fill, opacity = 1) {
 }
 
 /**
- * Cosmic teardrop feather (LEFT wing). Broad body, gold rim, nebula fill.
- * angleDeg: 180 = left, 240 = up-left, 270 = up.
+ * Soft teardrop feather with rounded tip (LEFT). Solid fill + soft rim so each
+ * vane reads as its own feather, not a ribbed gradient stack.
  */
-function feather(bx, by, angleDeg, len, width, fill, opacity = 1, stroke = 'rgba(232,192,64,0.85)') {
+function feather(bx, by, angleDeg, len, width, fill, opacity = 1, stroke = 'rgba(212,160,23,0.55)') {
   const rad = angleDeg * Math.PI / 180;
   const dx = Math.cos(rad), dy = Math.sin(rad);
   const nx = -dy, ny = dx;
   const tipX = bx + dx * len, tipY = by + dy * len;
-  // Fuller avian silhouette — wide mid belly, tapered tip
-  const m1x = bx + dx * len * 0.38 + nx * width * 1.15;
-  const m1y = by + dy * len * 0.38 + ny * width * 1.15;
-  const m2x = bx + dx * len * 0.48 - nx * width * 0.95;
-  const m2y = by + dy * len * 0.48 - ny * width * 0.95;
-  const tipL = P(tipX + nx * width * 0.12, tipY + ny * width * 0.12);
-  const tipR = P(tipX - nx * width * 0.08, tipY - ny * width * 0.08);
-  const b1x = bx + nx * width * 0.42, b1y = by + ny * width * 0.42;
-  const b2x = bx - nx * width * 0.32, b2y = by - ny * width * 0.32;
-  const d = `M ${P(b1x, b1y)} Q ${P(m1x, m1y)} ${tipL} L ${tipR} Q ${P(m2x, m2y)} ${P(b2x, b2y)} Z`;
-  return `${I2}<path d="${d}" fill="${fill}" opacity="${opacity}" stroke="${stroke}" stroke-width="0.55"/>`;
+  // Rounded tip: two control points past mid, arc across tip
+  const side = width;
+  const d = [
+    `M ${P(bx + nx * side * 0.2, by + ny * side * 0.2)}`,
+    `Q ${P(bx + dx * len * 0.35 + nx * side, by + dy * len * 0.35 + ny * side)}`,
+    `${P(bx + dx * len * 0.72 + nx * side * 0.55, by + dy * len * 0.72 + ny * side * 0.55)}`,
+    `Q ${P(tipX + nx * side * 0.15, tipY + ny * side * 0.15)} ${P(tipX, tipY)}`,
+    `Q ${P(tipX - nx * side * 0.15, tipY - ny * side * 0.15)}`,
+    `${P(bx + dx * len * 0.72 - nx * side * 0.5, by + dy * len * 0.72 - ny * side * 0.5)}`,
+    `Q ${P(bx + dx * len * 0.35 - nx * side * 0.85, by + dy * len * 0.35 - ny * side * 0.85)}`,
+    `${P(bx - nx * side * 0.15, by - ny * side * 0.15)} Z`,
+  ].join(' ');
+  return `${I2}<path d="${d}" fill="${fill}" opacity="${opacity}" stroke="${stroke}" stroke-width="0.4"/>`;
+}
+
+/** Point along a quadratic bezier (wing arm). */
+function qBez(t, p0, p1, p2) {
+  const u = 1 - t;
+  return {
+    x: u * u * p0.x + 2 * u * t * p1.x + t * t * p2.x,
+    y: u * u * p0.y + 2 * u * t * p1.y + t * t * p2.y,
+  };
+}
+
+/** Soft plumage tint — muted void/teal with occasional gold tip feather. */
+function featherTint(pal, seed, kind) {
+  const r = rnd(seed);
+  if (kind === 'primary') {
+    if (r < 0.25) return pal.gold;
+    if (r < 0.55) return pal.teal;
+    return pal.deep;
+  }
+  // Inner feathers stay darker so they read as layered plumage, not neon blades
+  if (r < 0.3) return pal.teal;
+  if (r < 0.65) return pal.deep;
+  return pal.mid;
 }
 
 /**
- * Cosmic angel wing (LEFT) — dense layered feathers, gold rims, teal nebula.
- * Membrane is a thin underlayer only; feathers carry the silhouette.
+ * Natural avian wing (LEFT) — soft angel silhouette + few distinct feathers.
+ * Feathers fan enough to read individually (not ribbed energy).
  * 3 segments: root (coverts) → mid (secondaries) → tip (primaries)
- * o: { sx,sy shoulder; span; blades; lift; crack; starSeed; tatters }
  */
 function voidWingLeft(p, pal, o) {
   const { sx, sy, span, blades: nBlades, lift = 0, crack = false, starSeed = 1, tatters: wantTatters = true } = o;
-  // High open-V: feathers sweep up then out (ref pose)
-  const midX = sx - span * 0.28;
-  const midY = sy - span * 0.5 - lift * 0.55;
-  const tipJX = sx - span * 0.62;
-  const tipJY = sy - span * 0.62 - lift * 0.9;
-  const tipX = sx - span * 1.15;
-  const tipY = sy - span * 0.55 - lift * 0.75;
-  const highX = sx - span * 0.32;
-  const highY = sy - span * 1.12 - lift;
-  const lowX = sx - span * 0.78;
-  const lowY = sy + span * 0.18;
-  const heelX = sx - span * 0.08;
-  const heelY = sy + span * 0.06;
+  const shoulder = { x: sx, y: sy };
+  const elbow = { x: sx - span * 0.36, y: sy - span * 0.52 - lift };
+  const wrist = { x: sx - span * 0.72, y: sy - span * 0.22 - lift * 0.65 };
+  const tipEnd = { x: sx - span * 1.12, y: sy + span * 0.02 - lift * 0.25 };
+  const highX = elbow.x - span * 0.02;
+  const highY = elbow.y - span * 0.18;
+  const lowX = wrist.x + span * 0.08;
+  const lowY = sy + span * 0.28;
+  const heelX = sx - span * 0.05;
+  const heelY = sy + span * 0.12;
   const origin = () => 'transform-origin:100% 55%;transform-box:fill-box';
-  const featherFill = `url(#${p}-feather)`;
-  const bladeFill = `url(#${p}-blade)`;
   const wingFill = `url(#${p}-wing)`;
   const goldEdge = pal.gold;
 
-  const nCovert = Math.max(4, Math.min(7, nBlades + 1));
-  const nSecondary = Math.max(6, Math.min(10, nBlades + 3));
-  const nPrimary = Math.max(7, Math.min(12, nBlades + 4));
+  // Fewer feathers = each vane readable
+  const nCovert = Math.max(3, Math.min(5, nBlades));
+  const nSecondary = Math.max(4, Math.min(7, nBlades + 1));
+  const nPrimary = Math.max(5, Math.min(8, nBlades + 2));
 
   const coverts = [];
   for (let i = 0; i < nCovert; i++) {
     const t = nCovert <= 1 ? 0.5 : i / (nCovert - 1);
-    const ang = 262 - t * 38; // nearly upright fan
-    const len = span * (0.34 + Math.sin(t * Math.PI) * 0.16);
-    const w = span * (0.11 + (1 - Math.abs(t - 0.5) * 2) * 0.04);
-    coverts.push(feather(sx - span * 0.01, sy - span * 0.08, ang, len, w, featherFill, 0.92, goldEdge));
+    const pt = qBez(t * 0.5, shoulder, { x: (shoulder.x + elbow.x) / 2, y: elbow.y + span * 0.1 }, elbow);
+    // Tight shingle overlap along the arm (not a sunburst fan)
+    const ang = 225 - t * 10;
+    const len = span * (0.38 + t * 0.06);
+    const w = span * (0.15 + Math.sin(t * Math.PI) * 0.035);
+    coverts.push(feather(pt.x, pt.y + span * 0.05, ang, len, w, featherTint(pal, starSeed + i, 'covert'), 0.85, goldEdge));
   }
 
   const secondaries = [];
   for (let i = 0; i < nSecondary; i++) {
     const t = nSecondary <= 1 ? 0.5 : i / (nSecondary - 1);
-    const ang = 248 - t * 55;
-    const len = span * (0.56 + Math.sin(t * Math.PI) * 0.28);
-    const w = span * (0.105 + Math.sin(t * Math.PI) * 0.05);
-    const bx = midX + span * 0.06 + (t - 0.5) * span * 0.08;
-    const by = midY + (t - 0.35) * span * 0.1;
-    secondaries.push(feather(bx, by, ang, len, w, featherFill, 0.9, goldEdge));
+    const pt = qBez(t, elbow, { x: (elbow.x + wrist.x) / 2, y: (elbow.y + wrist.y) / 2 + span * 0.12 }, wrist);
+    // Parallel-ish cascade down the trailing edge — classic bird wing
+    const ang = 205 - t * 12;
+    const len = span * (0.52 + Math.sin(t * Math.PI) * 0.14);
+    const w = span * (0.16 + Math.sin(t * Math.PI) * 0.035);
+    secondaries.push(feather(pt.x - t * span * 0.04, pt.y + span * 0.08, ang, len, w, featherTint(pal, starSeed + 30 + i, 'secondary'), 0.82, goldEdge));
   }
 
   const primaries = [];
-  let clawTip = { x: tipX, y: tipY };
+  let clawTip = { x: tipEnd.x, y: tipEnd.y };
   for (let i = 0; i < nPrimary; i++) {
     const t = nPrimary <= 1 ? 0.5 : i / (nPrimary - 1);
-    const ang = 228 - t * 52;
-    const len = span * (0.62 + Math.sin(t * Math.PI) * 0.42);
-    const w = span * (0.078 + Math.sin(t * Math.PI) * 0.045);
-    const bx = tipJX + span * 0.04 + (t - 0.5) * span * 0.1;
-    const by = tipJY + (t - 0.3) * span * 0.12;
-    primaries.push(feather(bx, by, ang, len, w, bladeFill, 0.93, goldEdge));
-    if (i === Math.floor(nPrimary * 0.55)) {
+    // Gentle outer fan — tips readable but still overlapping
+    const ang = 185 + t * 38;
+    const len = span * (0.58 + t * 0.26);
+    const w = span * (0.13 + (1 - t) * 0.035);
+    const bx = wrist.x - t * span * 0.06;
+    const by = wrist.y + t * span * 0.12;
+    primaries.push(feather(bx, by, ang, len, w, featherTint(pal, starSeed + 60 + i, 'primary'), 0.86, goldEdge));
+    if (i === nPrimary - 1) {
       const rad = ang * Math.PI / 180;
       clawTip = { x: bx + Math.cos(rad) * len, y: by + Math.sin(rad) * len };
     }
@@ -228,37 +249,35 @@ function voidWingLeft(p, pal, o) {
 
   const tatterBits = [];
   if (wantTatters) {
-    tatterBits.push(`${I2}<path class="tm-aether-wing-tatter" d="M ${P(lowX, lowY - span * 0.06)} Q ${P(lowX - span * 0.1, lowY + span * 0.05)} ${P(lowX + span * 0.04, lowY)}" fill="${pal.gold}" opacity="0.45"/>`);
-    tatterBits.push(`${I2}<path class="tm-aether-wing-tatter" d="M ${P(tipX + span * 0.1, tipY + span * 0.06)} Q ${P(tipX - span * 0.05, tipY + span * 0.16)} ${P(tipX + span * 0.14, tipY + span * 0.12)}" fill="${pal.teal}" opacity="0.5"/>`);
+    tatterBits.push(`${I2}<path class="tm-aether-wing-tatter" d="M ${P(lowX, lowY - span * 0.04)} Q ${P(lowX - span * 0.08, lowY + span * 0.06)} ${P(lowX + span * 0.05, lowY + span * 0.02)}" fill="${pal.gold}" opacity="0.35"/>`);
+    tatterBits.push(`${I2}<path class="tm-aether-wing-tatter" d="M ${P(clawTip.x + span * 0.05, clawTip.y + span * 0.03)} Q ${P(clawTip.x - span * 0.03, clawTip.y + span * 0.09)} ${P(clawTip.x + span * 0.07, clawTip.y + span * 0.07)}" fill="${pal.teal}" opacity="0.4"/>`);
   }
 
-  // Nebula starfield woven through the feather layers
   const cosmos = [
-    stars(starSeed, Math.max(4, Math.round(span / 7)), midX - span * 0.08, midY - span * 0.15, span * 0.38, span * 0.28, pal.gold, 0.65),
-    stars(starSeed + 17, Math.max(3, Math.round(span / 8)), tipJX - span * 0.1, tipJY - span * 0.05, span * 0.34, span * 0.26, pal.teal, 0.6),
-    stars(starSeed + 31, Math.max(2, Math.round(span / 12)), midX - span * 0.22, midY, span * 0.22, span * 0.16, '#ffffff', 0.5),
-    stars(starSeed + 47, Math.max(2, Math.round(span / 14)), tipJX - span * 0.2, tipJY - span * 0.2, span * 0.2, span * 0.14, '#fff4c8', 0.45),
+    stars(starSeed, Math.max(2, Math.round(span / 12)), elbow.x, elbow.y + span * 0.08, span * 0.22, span * 0.14, pal.gold, 0.45),
+    stars(starSeed + 17, Math.max(2, Math.round(span / 14)), wrist.x - span * 0.05, wrist.y, span * 0.2, span * 0.12, pal.teal, 0.4),
   ].join('\n');
 
+  // Soft angel wing body — rounded leading edge, scalloped trailing feel from feathers
+  const membraneMid = `M ${P(sx, sy)} C ${P(sx - span * 0.15, sy - span * 0.55 - lift)} ${P(elbow.x + span * 0.05, elbow.y - span * 0.15)} ${P(elbow.x - span * 0.05, elbow.y)} S ${P(wrist.x + span * 0.1, wrist.y - span * 0.05)} ${P(wrist.x, wrist.y)} Q ${P(lowX, lowY)} ${P(heelX, heelY)} Q ${P(sx - span * 0.05, sy + span * 0.05)} ${P(sx, sy)}`;
+  const membraneTip = `M ${P(wrist.x, wrist.y)} C ${P(wrist.x - span * 0.25, wrist.y - span * 0.15)} ${P(tipEnd.x + span * 0.1, tipEnd.y - span * 0.12)} ${P(tipEnd.x, tipEnd.y)} Q ${P(tipEnd.x + span * 0.08, tipEnd.y + span * 0.2)} ${P(wrist.x - span * 0.05, wrist.y + span * 0.22)} Q ${P(wrist.x + span * 0.02, wrist.y + span * 0.08)} ${P(wrist.x, wrist.y)}`;
+
   return `${I2}<g class="tm-aether-wing-seg tm-aether-wing-root" style="${origin()}">
-${I2}<circle cx="${N(sx)}" cy="${N(sy)}" r="${N(span * 0.12)}" fill="${pal.gold}" opacity="0.45" filter="url(#${p}-glow)"/>
-${I2}<circle cx="${N(sx)}" cy="${N(sy)}" r="${N(span * 0.07)}" fill="${pal.teal}" opacity="0.75" filter="url(#${p}-glow)"/>
-${I2}<circle cx="${N(sx)}" cy="${N(sy)}" r="${N(span * 0.035)}" fill="#ffffff" opacity="0.95"/>
-${I2}<path d="M ${P(sx, sy)} Q ${P(sx - span * 0.18, sy - span * 0.32)} ${P(sx - span * 0.08, sy - span * 0.04)} Q ${P(sx - span * 0.16, sy + span * 0.07)} ${P(sx, sy + span * 0.04)} Z" fill="${wingFill}" stroke="${goldEdge}" stroke-width="0.4" opacity="0.75"/>
+${I2}<circle cx="${N(sx)}" cy="${N(sy)}" r="${N(span * 0.08)}" fill="${pal.gold}" opacity="0.45" filter="url(#${p}-glow)"/>
+${I2}<circle cx="${N(sx)}" cy="${N(sy)}" r="${N(span * 0.04)}" fill="#ffffff" opacity="0.9"/>
 ${coverts.join('\n')}
 ${I2}<g class="tm-aether-wing-seg tm-aether-wing-mid" style="${origin()}">
-${I2}<path class="tm-aether-wing-membrane" d="M ${P(sx - span * 0.03, sy - span * 0.05)} Q ${P(highX + span * 0.12, highY + span * 0.2)} ${P(highX + span * 0.04, highY + span * 0.08)} Q ${P(tipJX, tipJY - span * 0.18)} ${P(tipJX + span * 0.1, tipJY)} Q ${P(lowX + span * 0.2, lowY - span * 0.12)} ${P(lowX + span * 0.18, lowY - span * 0.02)} Q ${P(heelX, heelY)} ${P(sx - span * 0.03, sy - span * 0.05)}" fill="${wingFill}" stroke="${goldEdge}" stroke-width="0.35" opacity="0.42"/>
+${I2}<path class="tm-aether-wing-membrane" d="${membraneMid}" fill="${wingFill}" stroke="${goldEdge}" stroke-width="0.45" opacity="0.72"/>
 ${secondaries.join('\n')}
 ${cosmos}
-${crack ? `${I2}<path class="tm-aether-wing-crack" d="M ${P(sx - span * .16, sy - span * .12)} Q ${P(midX - span * .04, midY)} ${P(tipJX + span * .02, tipJY)}" fill="none" stroke="${pal.gold}" stroke-width="0.5" stroke-dasharray="1.2 1.3" opacity="0.55"/>` : ''}
-${I2}<path class="tm-aether-wing-vein" d="M ${P(sx, sy)} Q ${P(midX, midY - span * 0.14)} ${P(tipJX, tipJY)}" fill="none" stroke="${pal.gold}" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+${crack ? `${I2}<path class="tm-aether-wing-crack" d="M ${P(sx - span * .1, sy - span * .06)} Q ${P(elbow.x, elbow.y)} ${P(wrist.x + span * .03, wrist.y)}" fill="none" stroke="${pal.gold}" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>` : ''}
+${I2}<path class="tm-aether-wing-vein" d="M ${P(sx, sy)} Q ${P(elbow.x, elbow.y)} ${P(wrist.x, wrist.y)}" fill="none" stroke="${pal.gold}" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
 ${I2}<g class="tm-aether-wing-seg tm-aether-wing-tip" style="${origin()}">
-${I2}<path class="tm-aether-wing-membrane" d="M ${P(tipJX + span * 0.1, tipJY)} Q ${P(highX - span * 0.08, highY + span * 0.22)} ${P(tipX + span * 0.16, tipY - span * 0.28)} Q ${P(tipX + span * 0.04, tipY)} ${P(tipX + span * 0.1, tipY + span * 0.18)} Q ${P(lowX + span * 0.08, lowY - span * 0.18)} ${P(tipJX + span * 0.02, tipJY + span * 0.08)} Z" fill="${wingFill}" stroke="${goldEdge}" stroke-width="0.3" opacity="0.38"/>
+${I2}<path class="tm-aether-wing-membrane" d="${membraneTip}" fill="${wingFill}" stroke="${goldEdge}" stroke-width="0.4" opacity="0.65"/>
 ${primaries.join('\n')}
 ${tatterBits.join('\n')}
-${I2}<path class="tm-aether-wing-vein" d="M ${P(tipJX, tipJY)} Q ${P((tipJX + clawTip.x) / 2, (tipJY + clawTip.y) / 2 - span * 0.08)} ${P(clawTip.x, clawTip.y)}" fill="none" stroke="${pal.teal}" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-${I2}<ellipse class="tm-aether-wing-claw" cx="${N(clawTip.x)}" cy="${N(clawTip.y)}" rx="${N(Math.max(1.2, span * 0.045))}" ry="${N(Math.max(0.8, span * 0.028))}" fill="${pal.gold}" opacity="0.95" filter="url(#${p}-glow)"/>
-${I2}<ellipse cx="${N(clawTip.x - 0.3)}" cy="${N(clawTip.y - 0.15)}" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+${I2}<path class="tm-aether-wing-vein" d="M ${P(wrist.x, wrist.y)} Q ${P((wrist.x + clawTip.x) / 2, (wrist.y + clawTip.y) / 2 - span * 0.05)} ${P(clawTip.x, clawTip.y)}" fill="none" stroke="${pal.teal}" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+${I2}<ellipse class="tm-aether-wing-claw" cx="${N(clawTip.x)}" cy="${N(clawTip.y)}" rx="${N(Math.max(1.0, span * 0.032))}" ry="${N(Math.max(0.7, span * 0.02))}" fill="${pal.gold}" opacity="0.85" filter="url(#${p}-glow)"/>
 ${I2}</g>
 ${I2}</g>
 ${I2}</g>`;
@@ -881,7 +900,7 @@ ${I}</g>`;
 
 /* ════════════════ assembly + self-check ════════════════ */
 
-const HEADER = `${I}<!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v11 · cosmic nebula angel wings) -->
+const HEADER = `${I}<!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v12 · natural avian cosmic wings) -->
 ${I}<!-- Voidseed → Veilspawn → Astral Warden → Star Sovereign → Eclipse Tyrant → Primordial -->
 ${I}<!-- ═══════════════════════════════════════ -->
 `;

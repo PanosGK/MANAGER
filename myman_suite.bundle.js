@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v326 / Custom Ver. 36.18 — generated, do not edit */
+/* MyManager Suite bundle v327 / Custom Ver. 36.19 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '326',
+        version: '327',
         loaderVersion: '36',
-        silentVersion: '18',
-        displayVersion: '36.18',
+        silentVersion: '19',
+        displayVersion: '36.19',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -39197,7 +39197,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
 
 
                 </g>
-                <!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v11 · cosmic nebula angel wings) -->
+                <!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v12 · natural avian cosmic wings) -->
                 <!-- Voidseed → Veilspawn → Astral Warden → Star Sovereign → Eclipse Tyrant → Primordial -->
                 <!-- ═══════════════════════════════════════ -->
 
@@ -39227,19 +39227,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <stop offset="62%" style="stop-color:#2a1d52;stop-opacity:.72" />
                         <stop offset="100%" style="stop-color:#05010c;stop-opacity:.88" />
                     </linearGradient>
-                    <linearGradient id="aether-baby-blade" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fff8e0;stop-opacity:.95" />
-                        <stop offset="18%" style="stop-color:#c9a227;stop-opacity:.9" />
-                        <stop offset="48%" style="stop-color:#3dcfbf;stop-opacity:.72" />
-                        <stop offset="78%" style="stop-color:#2a1d52;stop-opacity:.85" />
-                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:.92" />
+                    <linearGradient id="aether-baby-blade" x1="15%" y1="0%" x2="85%" y2="100%">
+                        <stop offset="0%" style="stop-color:#c9a227;stop-opacity:.85" />
+                        <stop offset="35%" style="stop-color:#3dcfbf;stop-opacity:.75" />
+                        <stop offset="70%" style="stop-color:#2a1d52;stop-opacity:.92" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
                     </linearGradient>
-                    <linearGradient id="aether-baby-feather" x1="0%" y1="5%" x2="85%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fff4c8;stop-opacity:.95" />
-                        <stop offset="16%" style="stop-color:#c9a227;stop-opacity:.88" />
-                        <stop offset="42%" style="stop-color:#3dcfbf;stop-opacity:.78" />
-                        <stop offset="70%" style="stop-color:#2a1d52;stop-opacity:.82" />
-                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:.94" />
+                    <linearGradient id="aether-baby-feather" x1="10%" y1="0%" x2="80%" y2="100%">
+                        <stop offset="0%" style="stop-color:#c9a227;stop-opacity:.8" />
+                        <stop offset="40%" style="stop-color:#3dcfbf;stop-opacity:.78" />
+                        <stop offset="75%" style="stop-color:#2a1d52;stop-opacity:.95" />
+                        <stop offset="100%" style="stop-color:#05010c;stop-opacity:1" />
                     </linearGradient>
                     <radialGradient id="aether-baby-iris" cx="40%" cy="35%" r="65%">
                         <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
@@ -39270,48 +39268,33 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-animate-wing-left">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="36" cy="58" r="2.64" fill="#c9a227" opacity="0.45" filter="url(#aether-baby-glow)"/>
-                    <circle cx="36" cy="58" r="1.54" fill="#3dcfbf" opacity="0.75" filter="url(#aether-baby-glow)"/>
-                    <circle cx="36" cy="58" r="0.77" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 36 58 Q 32.04 50.96 34.24 57.12 Q 32.48 59.54 36 58.88 Z" fill="url(#aether-baby-wing)" stroke="#c9a227" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 36.79 56.1 Q 38.14 53.04 35.03 48.79 L 34.55 48.86 Q 33 53 35.01 56.35 Z" fill="url(#aether-baby-feather)" opacity="0.92" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 36.96 55.79 Q 37.6 51.28 32.4 46.26 L 31.84 46.47 Q 31.32 52.52 34.88 56.58 Z" fill="url(#aether-baby-feather)" opacity="0.92" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 36.84 55.55 Q 36.47 51 30.3 47.25 L 29.79 47.58 Q 30.62 53.59 34.98 56.77 Z" fill="url(#aether-baby-feather)" opacity="0.92" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 36.49 55.51 Q 35.67 52.26 30.6 50.84 L 30.26 51.18 Q 31.6 55.4 35.24 56.8 Z" fill="url(#aether-baby-feather)" opacity="0.92" stroke="#c9a227" stroke-width="0.55"/>
+                    <circle cx="36" cy="58" r="1.76" fill="#c9a227" opacity="0.45" filter="url(#aether-baby-glow)"/>
+                    <circle cx="36" cy="58" r="0.88" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 36.47 58.63 Q 36.26 54.7 33.03 53.56 Q 30.44 52.84 30.09 53.19 Q 29.74 53.54 30.58 56.01 Q 31.95 59.01 35.65 59.45 Z" fill="#3dcfbf" opacity="0.85" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 34.54 52.55 Q 34.22 48.02 30.48 47.28 Q 27.5 46.9 27.11 47.37 Q 26.72 47.84 27.74 50.55 Q 29.38 53.79 33.63 53.64 Z" fill="#2a1d52" opacity="0.85" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 32.42 48.08 Q 31.16 43.97 27.37 43.14 Q 24.39 42.66 24.11 43.07 Q 23.83 43.47 25.38 45.97 Q 27.66 48.97 31.76 49.03 Z" fill="#4a3f78" opacity="0.85" stroke="#c9a227" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 35.34 56.9 Q 31.6 33.76 29.84 31.12 Q 22.36 36.8 24.56 40.76 Q 23.24 59.32 22.8 61.52 Q 34.24 59.32 35.34 56.9" fill="url(#aether-baby-wing)" stroke="#c9a227" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 31.18 43.67 Q 30.99 38.69 25.92 32.5 L 25.49 32.68 Q 26.03 39.37 29.59 44.31 Z" fill="url(#aether-baby-feather)" opacity="0.9" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 31.67 43.79 Q 30.18 37.54 22.25 30.91 L 21.75 31.23 Q 24.11 39.58 29.84 44.99 Z" fill="url(#aether-baby-feather)" opacity="0.9" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 32 43.93 Q 28.96 37.26 18.65 31.55 L 18.16 32.02 Q 22.63 40.85 30.21 45.66 Z" fill="url(#aether-baby-feather)" opacity="0.9" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 32.14 44.2 Q 27.89 38.23 16.68 34.59 L 16.29 35.14 Q 22.36 42.96 30.72 46.23 Z" fill="url(#aether-baby-feather)" opacity="0.9" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 32.19 44.66 Q 27.54 40.22 17.27 38.98 L 17.03 39.52 Q 23.56 45.24 31.3 46.65 Z" fill="url(#aether-baby-feather)" opacity="0.9" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 32.26 45.28 Q 28.08 42.59 20.1 43.19 L 19.99 43.64 Q 25.78 47.04 31.87 46.95 Z" fill="url(#aether-baby-feather)" opacity="0.9" stroke="#c9a227" stroke-width="0.55"/>
-                    <circle cx="31.2" cy="43.33" r="0.44" fill="#c9a227" opacity="0.7"/>
-                    <circle cx="29.87" cy="41.97" r="0.82" fill="#c9a227" opacity="0.75"/>
-                    <circle cx="30.04" cy="41.85" r="0.7" fill="#c9a227" opacity="0.8"/>
-                    <circle cx="26.14" cy="46.9" r="0.59" fill="#c9a227" opacity="0.53"/>
-                    <circle cx="18.2" cy="43.68" r="0.52" fill="#3dcfbf" opacity="0.68"/>
-                    <circle cx="19.2" cy="34.1" r="0.41" fill="#3dcfbf" opacity="0.36"/>
-                    <circle cx="26.2" cy="40.17" r="0.49" fill="#3dcfbf" opacity="0.58"/>
-                    <circle cx="27.14" cy="44.97" r="0.61" fill="#ffffff" opacity="0.62"/>
-                    <circle cx="26.3" cy="43.9" r="0.63" fill="#ffffff" opacity="0.67"/>
-                    <circle cx="20.4" cy="38.36" r="0.56" fill="#fff4c8" opacity="0.36"/>
-                    <circle cx="17.78" cy="35.91" r="0.4" fill="#fff4c8" opacity="0.44"/>
+                    <path class="tm-aether-wing-membrane" d="M 36 58 C 32.7 41.9 29.18 39.26 26.98 42.56 S 22.36 49.46 20.16 50.56 Q 21.92 64.16 34.9 60.64 Q 34.9 59.1 36 58" fill="url(#aether-baby-wing)" stroke="#c9a227" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 28.38 43.68 Q 25.94 39.44 21.43 39.08 Q 17.93 39.01 17.71 39.49 Q 17.49 39.96 19.87 42.43 Q 23.19 45.34 27.86 44.8 Z" fill="#2a1d52" opacity="0.82" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 25.45 47.38 Q 22.04 42.48 16.49 42.37 Q 12.2 42.52 11.98 43.1 Q 11.75 43.69 14.91 46.47 Q 19.26 49.71 24.92 48.75 Z" fill="#3dcfbf" opacity="0.82" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 22.46 50.03 Q 18.72 45.38 13.17 45.65 Q 8.91 46.1 8.72 46.7 Q 8.54 47.3 11.89 49.86 Q 16.45 52.79 22.03 51.43 Z" fill="#2a1d52" opacity="0.82" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 19.44 51.63 Q 16.17 47.99 11.69 48.58 Q 8.25 49.23 8.13 49.75 Q 8.01 50.26 10.86 52.18 Q 14.71 54.33 19.16 52.83 Z" fill="#4a3f78" opacity="0.82" stroke="#c9a227" stroke-width="0.4"/>
+                    <circle cx="29.89" cy="45.23" r="0.38" fill="#c9a227" opacity="0.7"/>
+                    <circle cx="29.11" cy="44.55" r="0.65" fill="#c9a227" opacity="0.75"/>
+                    <circle cx="17.91" cy="52.42" r="0.43" fill="#3dcfbf" opacity="0.68"/>
+                    <circle cx="18.5" cy="47.99" r="0.36" fill="#3dcfbf" opacity="0.36"/>
 
-                    <path class="tm-aether-wing-vein" d="M 36 58 Q 29.84 41.72 22.36 40.76" fill="none" stroke="#c9a227" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-vein" d="M 36 58 Q 28.08 42.56 20.16 50.56" fill="none" stroke="#c9a227" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 24.56 40.76 Q 27.2 34.2 14.22 36.74 Q 11.58 42.9 12.9 46.86 Q 20.6 58 22.8 42.52 Z" fill="url(#aether-baby-wing)" stroke="#c9a227" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 22.68 39.49 Q 20.14 34.8 13.17 29.69 L 12.91 29.92 Q 16.55 36.19 21.73 40.34 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 23.1 39.69 Q 18.75 34.04 8.55 28.63 L 8.27 28.97 Q 14.4 36.48 22.06 40.96 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 23.42 39.92 Q 17.31 34.11 4.42 29.54 L 4.15 29.99 Q 12.69 37.65 22.45 41.56 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 23.67 40.23 Q 16.34 35.15 2.15 32.42 L 1.94 32.92 Q 12.09 39.56 22.92 42.09 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 23.86 40.68 Q 16.29 36.95 2.62 36.44 L 2.5 36.94 Q 12.93 41.71 23.42 42.53 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 24.05 41.24 Q 17.26 39.07 5.8 40.42 L 5.76 40.86 Q 15.07 43.55 23.92 42.87 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 24.29 41.89 Q 19.03 41 10.72 43.35 L 10.74 43.7 Q 17.92 44.69 24.38 43.16 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 20.16 50.56 C 14.66 47.26 13.56 54.8 11.36 57.44 Q 13.12 61.84 19.06 55.4 Q 20.6 52.32 20.16 50.56" fill="url(#aether-baby-wing)" stroke="#c9a227" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 20.22 49.84 Q 16.03 46.55 11.18 47.77 Q 7.5 48.91 7.45 49.45 Q 7.4 49.99 10.85 51.57 Q 15.44 53.24 20.11 51.1 Z" fill="#2a1d52" opacity="0.86" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 20 50.55 Q 15.88 46.65 10.41 46.83 Q 6.22 47.17 6.09 47.67 Q 5.96 48.17 9.51 50.33 Q 14.29 52.81 19.7 51.72 Z" fill="#2a1d52" opacity="0.86" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 19.76 51.29 Q 15.83 46.69 9.95 45.68 Q 5.43 45.08 5.23 45.53 Q 5.03 45.97 8.57 48.79 Q 13.38 52.18 19.3 52.32 Z" fill="#2a1d52" opacity="0.86" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 19.51 52.03 Q 15.88 46.7 9.86 44.36 Q 5.2 42.75 4.95 43.13 Q 4.7 43.51 8.09 47.04 Q 12.76 51.41 18.92 52.92 Z" fill="#c9a227" opacity="0.86" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 19.23 52.78 Q 16.06 46.7 10.18 42.98 Q 5.62 40.28 5.32 40.6 Q 5.03 40.91 8.13 45.17 Q 12.45 50.57 18.55 53.51 Z" fill="#c9a227" opacity="0.86" stroke="#c9a227" stroke-width="0.4"/>
 
-                    <path class="tm-aether-wing-vein" d="M 22.36 40.76 Q 12.19 34.98 2.03 32.72" fill="none" stroke="#3dcfbf" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="2.03" cy="32.72" rx="1.2" ry="0.8" fill="#c9a227" opacity="0.95" filter="url(#aether-baby-glow)"/>
-                    <ellipse cx="1.73" cy="32.57" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-vein" d="M 20.16 50.56 Q 12.74 44.48 5.32 40.6" fill="none" stroke="#3dcfbf" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="5.32" cy="40.6" rx="1" ry="0.7" fill="#c9a227" opacity="0.85" filter="url(#aether-baby-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -39319,48 +39302,33 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <g class="tm-animate-wing-right">
                     <g transform="translate(100,0) scale(-1,1)">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="36" cy="58" r="2.64" fill="#c9a227" opacity="0.45" filter="url(#aether-baby-glow)"/>
-                    <circle cx="36" cy="58" r="1.54" fill="#3dcfbf" opacity="0.75" filter="url(#aether-baby-glow)"/>
-                    <circle cx="36" cy="58" r="0.77" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 36 58 Q 32.04 50.96 34.24 57.12 Q 32.48 59.54 36 58.88 Z" fill="url(#aether-baby-wing)" stroke="#c9a227" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 36.79 56.1 Q 38.14 53.04 35.03 48.79 L 34.55 48.86 Q 33 53 35.01 56.35 Z" fill="url(#aether-baby-feather)" opacity="0.92" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 36.96 55.79 Q 37.6 51.28 32.4 46.26 L 31.84 46.47 Q 31.32 52.52 34.88 56.58 Z" fill="url(#aether-baby-feather)" opacity="0.92" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 36.84 55.55 Q 36.47 51 30.3 47.25 L 29.79 47.58 Q 30.62 53.59 34.98 56.77 Z" fill="url(#aether-baby-feather)" opacity="0.92" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 36.49 55.51 Q 35.67 52.26 30.6 50.84 L 30.26 51.18 Q 31.6 55.4 35.24 56.8 Z" fill="url(#aether-baby-feather)" opacity="0.92" stroke="#c9a227" stroke-width="0.55"/>
+                    <circle cx="36" cy="58" r="1.76" fill="#c9a227" opacity="0.45" filter="url(#aether-baby-glow)"/>
+                    <circle cx="36" cy="58" r="0.88" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 36.47 58.63 Q 36.26 54.7 33.03 53.56 Q 30.44 52.84 30.09 53.19 Q 29.74 53.54 30.58 56.01 Q 31.95 59.01 35.65 59.45 Z" fill="#2a1d52" opacity="0.85" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 34.54 52.55 Q 34.22 48.02 30.48 47.28 Q 27.5 46.9 27.11 47.37 Q 26.72 47.84 27.74 50.55 Q 29.38 53.79 33.63 53.64 Z" fill="#4a3f78" opacity="0.85" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 32.42 48.08 Q 31.16 43.97 27.37 43.14 Q 24.39 42.66 24.11 43.07 Q 23.83 43.47 25.38 45.97 Q 27.66 48.97 31.76 49.03 Z" fill="#3dcfbf" opacity="0.85" stroke="#c9a227" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 35.34 56.9 Q 31.6 33.76 29.84 31.12 Q 22.36 36.8 24.56 40.76 Q 23.24 59.32 22.8 61.52 Q 34.24 59.32 35.34 56.9" fill="url(#aether-baby-wing)" stroke="#c9a227" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 31.18 43.67 Q 30.99 38.69 25.92 32.5 L 25.49 32.68 Q 26.03 39.37 29.59 44.31 Z" fill="url(#aether-baby-feather)" opacity="0.9" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 31.67 43.79 Q 30.18 37.54 22.25 30.91 L 21.75 31.23 Q 24.11 39.58 29.84 44.99 Z" fill="url(#aether-baby-feather)" opacity="0.9" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 32 43.93 Q 28.96 37.26 18.65 31.55 L 18.16 32.02 Q 22.63 40.85 30.21 45.66 Z" fill="url(#aether-baby-feather)" opacity="0.9" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 32.14 44.2 Q 27.89 38.23 16.68 34.59 L 16.29 35.14 Q 22.36 42.96 30.72 46.23 Z" fill="url(#aether-baby-feather)" opacity="0.9" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 32.19 44.66 Q 27.54 40.22 17.27 38.98 L 17.03 39.52 Q 23.56 45.24 31.3 46.65 Z" fill="url(#aether-baby-feather)" opacity="0.9" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 32.26 45.28 Q 28.08 42.59 20.1 43.19 L 19.99 43.64 Q 25.78 47.04 31.87 46.95 Z" fill="url(#aether-baby-feather)" opacity="0.9" stroke="#c9a227" stroke-width="0.55"/>
-                    <circle cx="23.29" cy="44.29" r="0.66" fill="#c9a227" opacity="0.64"/>
-                    <circle cx="32.42" cy="42.69" r="0.59" fill="#c9a227" opacity="0.43"/>
-                    <circle cx="33.76" cy="41.19" r="0.26" fill="#c9a227" opacity="0.68"/>
-                    <circle cx="21.76" cy="39.82" r="0.42" fill="#c9a227" opacity="0.56"/>
-                    <circle cx="23.19" cy="37.62" r="0.38" fill="#3dcfbf" opacity="0.63"/>
-                    <circle cx="18.03" cy="37.71" r="0.66" fill="#3dcfbf" opacity="0.38"/>
-                    <circle cx="18.98" cy="41.58" r="0.45" fill="#3dcfbf" opacity="0.58"/>
-                    <circle cx="24.46" cy="45.65" r="0.33" fill="#ffffff" opacity="0.61"/>
-                    <circle cx="21.58" cy="44.34" r="0.5" fill="#ffffff" opacity="0.49"/>
-                    <circle cx="13.83" cy="36.05" r="0.66" fill="#fff4c8" opacity="0.44"/>
-                    <circle cx="17.87" cy="37.01" r="0.39" fill="#fff4c8" opacity="0.67"/>
+                    <path class="tm-aether-wing-membrane" d="M 36 58 C 32.7 41.9 29.18 39.26 26.98 42.56 S 22.36 49.46 20.16 50.56 Q 21.92 64.16 34.9 60.64 Q 34.9 59.1 36 58" fill="url(#aether-baby-wing)" stroke="#c9a227" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 28.38 43.68 Q 25.94 39.44 21.43 39.08 Q 17.93 39.01 17.71 39.49 Q 17.49 39.96 19.87 42.43 Q 23.19 45.34 27.86 44.8 Z" fill="#3dcfbf" opacity="0.82" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 25.45 47.38 Q 22.04 42.48 16.49 42.37 Q 12.2 42.52 11.98 43.1 Q 11.75 43.69 14.91 46.47 Q 19.26 49.71 24.92 48.75 Z" fill="#2a1d52" opacity="0.82" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 22.46 50.03 Q 18.72 45.38 13.17 45.65 Q 8.91 46.1 8.72 46.7 Q 8.54 47.3 11.89 49.86 Q 16.45 52.79 22.03 51.43 Z" fill="#4a3f78" opacity="0.82" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 19.44 51.63 Q 16.17 47.99 11.69 48.58 Q 8.25 49.23 8.13 49.75 Q 8.01 50.26 10.86 52.18 Q 14.71 54.33 19.16 52.83 Z" fill="#3dcfbf" opacity="0.82" stroke="#c9a227" stroke-width="0.4"/>
+                    <circle cx="25.31" cy="45.71" r="0.54" fill="#c9a227" opacity="0.64"/>
+                    <circle cx="30.59" cy="44.92" r="0.49" fill="#c9a227" opacity="0.43"/>
+                    <circle cx="20.84" cy="49.62" r="0.34" fill="#3dcfbf" opacity="0.63"/>
+                    <circle cx="17.8" cy="49.66" r="0.53" fill="#3dcfbf" opacity="0.38"/>
 
-                    <path class="tm-aether-wing-vein" d="M 36 58 Q 29.84 41.72 22.36 40.76" fill="none" stroke="#c9a227" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-vein" d="M 36 58 Q 28.08 42.56 20.16 50.56" fill="none" stroke="#c9a227" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 24.56 40.76 Q 27.2 34.2 14.22 36.74 Q 11.58 42.9 12.9 46.86 Q 20.6 58 22.8 42.52 Z" fill="url(#aether-baby-wing)" stroke="#c9a227" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 22.68 39.49 Q 20.14 34.8 13.17 29.69 L 12.91 29.92 Q 16.55 36.19 21.73 40.34 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 23.1 39.69 Q 18.75 34.04 8.55 28.63 L 8.27 28.97 Q 14.4 36.48 22.06 40.96 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 23.42 39.92 Q 17.31 34.11 4.42 29.54 L 4.15 29.99 Q 12.69 37.65 22.45 41.56 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 23.67 40.23 Q 16.34 35.15 2.15 32.42 L 1.94 32.92 Q 12.09 39.56 22.92 42.09 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 23.86 40.68 Q 16.29 36.95 2.62 36.44 L 2.5 36.94 Q 12.93 41.71 23.42 42.53 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 24.05 41.24 Q 17.26 39.07 5.8 40.42 L 5.76 40.86 Q 15.07 43.55 23.92 42.87 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
-                    <path d="M 24.29 41.89 Q 19.03 41 10.72 43.35 L 10.74 43.7 Q 17.92 44.69 24.38 43.16 Z" fill="url(#aether-baby-blade)" opacity="0.93" stroke="#c9a227" stroke-width="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 20.16 50.56 C 14.66 47.26 13.56 54.8 11.36 57.44 Q 13.12 61.84 19.06 55.4 Q 20.6 52.32 20.16 50.56" fill="url(#aether-baby-wing)" stroke="#c9a227" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 20.22 49.84 Q 16.03 46.55 11.18 47.77 Q 7.5 48.91 7.45 49.45 Q 7.4 49.99 10.85 51.57 Q 15.44 53.24 20.11 51.1 Z" fill="#2a1d52" opacity="0.86" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 20 50.55 Q 15.88 46.65 10.41 46.83 Q 6.22 47.17 6.09 47.67 Q 5.96 48.17 9.51 50.33 Q 14.29 52.81 19.7 51.72 Z" fill="#2a1d52" opacity="0.86" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 19.76 51.29 Q 15.83 46.69 9.95 45.68 Q 5.43 45.08 5.23 45.53 Q 5.03 45.97 8.57 48.79 Q 13.38 52.18 19.3 52.32 Z" fill="#c9a227" opacity="0.86" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 19.51 52.03 Q 15.88 46.7 9.86 44.36 Q 5.2 42.75 4.95 43.13 Q 4.7 43.51 8.09 47.04 Q 12.76 51.41 18.92 52.92 Z" fill="#c9a227" opacity="0.86" stroke="#c9a227" stroke-width="0.4"/>
+                    <path d="M 19.23 52.78 Q 16.06 46.7 10.18 42.98 Q 5.62 40.28 5.32 40.6 Q 5.03 40.91 8.13 45.17 Q 12.45 50.57 18.55 53.51 Z" fill="#2a1d52" opacity="0.86" stroke="#c9a227" stroke-width="0.4"/>
 
-                    <path class="tm-aether-wing-vein" d="M 22.36 40.76 Q 12.19 34.98 2.03 32.72" fill="none" stroke="#3dcfbf" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="2.03" cy="32.72" rx="1.2" ry="0.8" fill="#c9a227" opacity="0.95" filter="url(#aether-baby-glow)"/>
-                    <ellipse cx="1.73" cy="32.57" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-vein" d="M 20.16 50.56 Q 12.74 44.48 5.32 40.6" fill="none" stroke="#3dcfbf" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="5.32" cy="40.6" rx="1" ry="0.7" fill="#c9a227" opacity="0.85" filter="url(#aether-baby-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -39447,19 +39415,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <stop offset="62%" style="stop-color:#241848;stop-opacity:.72" />
                         <stop offset="100%" style="stop-color:#04010a;stop-opacity:.88" />
                     </linearGradient>
-                    <linearGradient id="aether-kid-blade" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fff8e0;stop-opacity:.95" />
-                        <stop offset="18%" style="stop-color:#b8962a;stop-opacity:.9" />
-                        <stop offset="48%" style="stop-color:#36c9b8;stop-opacity:.72" />
-                        <stop offset="78%" style="stop-color:#241848;stop-opacity:.85" />
-                        <stop offset="100%" style="stop-color:#04010a;stop-opacity:.92" />
+                    <linearGradient id="aether-kid-blade" x1="15%" y1="0%" x2="85%" y2="100%">
+                        <stop offset="0%" style="stop-color:#b8962a;stop-opacity:.85" />
+                        <stop offset="35%" style="stop-color:#36c9b8;stop-opacity:.75" />
+                        <stop offset="70%" style="stop-color:#241848;stop-opacity:.92" />
+                        <stop offset="100%" style="stop-color:#04010a;stop-opacity:1" />
                     </linearGradient>
-                    <linearGradient id="aether-kid-feather" x1="0%" y1="5%" x2="85%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fff4c8;stop-opacity:.95" />
-                        <stop offset="16%" style="stop-color:#b8962a;stop-opacity:.88" />
-                        <stop offset="42%" style="stop-color:#36c9b8;stop-opacity:.78" />
-                        <stop offset="70%" style="stop-color:#241848;stop-opacity:.82" />
-                        <stop offset="100%" style="stop-color:#04010a;stop-opacity:.94" />
+                    <linearGradient id="aether-kid-feather" x1="10%" y1="0%" x2="80%" y2="100%">
+                        <stop offset="0%" style="stop-color:#b8962a;stop-opacity:.8" />
+                        <stop offset="40%" style="stop-color:#36c9b8;stop-opacity:.78" />
+                        <stop offset="75%" style="stop-color:#241848;stop-opacity:.95" />
+                        <stop offset="100%" style="stop-color:#04010a;stop-opacity:1" />
                     </linearGradient>
                     <radialGradient id="aether-kid-iris" cx="40%" cy="35%" r="65%">
                         <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
@@ -39497,55 +39463,38 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-animate-wing-left">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="34" cy="54" r="3.84" fill="#b8962a" opacity="0.45" filter="url(#aether-kid-glow)"/>
-                    <circle cx="34" cy="54" r="2.24" fill="#36c9b8" opacity="0.75" filter="url(#aether-kid-glow)"/>
-                    <circle cx="34" cy="54" r="1.12" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 34 54 Q 28.24 43.76 31.44 52.72 Q 28.88 56.24 34 55.28 Z" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 35.14 51.23 Q 37.11 46.78 32.58 40.61 L 31.89 40.71 Q 29.64 46.73 32.56 51.6 Z" fill="url(#aether-kid-feather)" opacity="0.92" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 35.35 50.91 Q 36.59 44.75 29.8 37.46 L 29 37.71 Q 27.82 45.99 32.41 51.84 Z" fill="url(#aether-kid-feather)" opacity="0.92" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 35.48 50.52 Q 35.84 43.52 26.93 36.92 L 26.07 37.36 Q 26.13 46.67 32.31 52.14 Z" fill="url(#aether-kid-feather)" opacity="0.92" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 35.08 50.4 Q 34.25 44.16 25.46 39.49 L 24.79 39.98 Q 26.36 48.2 32.61 52.23 Z" fill="url(#aether-kid-feather)" opacity="0.92" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 34.71 50.38 Q 33.52 45.66 26.15 43.58 L 25.66 44.08 Q 27.6 50.22 32.9 52.25 Z" fill="url(#aether-kid-feather)" opacity="0.92" stroke="#b8962a" stroke-width="0.55"/>
+                    <circle cx="34" cy="54" r="2.56" fill="#b8962a" opacity="0.45" filter="url(#aether-kid-glow)"/>
+                    <circle cx="34" cy="54" r="1.28" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 34.68 54.92 Q 34.38 49.2 29.68 47.54 Q 25.91 46.49 25.4 47 Q 24.89 47.51 26.11 51.11 Q 28.11 55.48 33.49 56.11 Z" fill="#241848" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 32.85 48.1 Q 32.57 41.67 27.31 40.46 Q 23.09 39.8 22.52 40.45 Q 21.94 41.1 23.28 44.99 Q 25.47 49.65 31.5 49.61 Z" fill="#241848" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 30.88 42.43 Q 30.05 35.89 24.54 34.84 Q 20.15 34.32 19.62 35 Q 19.08 35.68 20.78 39.59 Q 23.43 44.26 29.62 44.01 Z" fill="#3f3368" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 28.79 37.93 Q 26.96 31.96 21.45 30.74 Q 17.12 30.05 16.71 30.64 Q 16.29 31.23 18.56 34.87 Q 21.86 39.24 27.83 39.31 Z" fill="#241848" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 33.04 52.4 Q 27.6 16.56 25.04 12.72 Q 14.16 21.2 17.36 26.96 Q 15.44 55.92 14.8 59.12 Q 31.44 55.92 33.04 52.4" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 26.99 31.95 Q 26.71 24.72 19.34 15.71 L 18.72 15.97 Q 19.5 25.7 24.68 32.88 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 27.6 32.11 Q 25.79 23.25 14.94 13.59 L 14.23 14.02 Q 17.16 25.86 24.97 33.7 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 28.05 32.26 Q 24.38 22.58 10.35 13.6 L 9.62 14.22 Q 15.12 27.07 25.38 34.53 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 28.31 32.5 Q 22.9 23.11 6.91 16.17 L 6.26 16.92 Q 14.09 29.28 25.93 35.29 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 28.42 32.91 Q 21.89 24.88 5.75 20.77 L 5.25 21.58 Q 14.51 32.05 26.6 35.91 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 28.47 33.53 Q 21.74 27.5 7.26 26.23 L 6.94 27 Q 16.36 34.75 27.31 36.38 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 28.56 34.3 Q 22.47 30.38 10.87 31.26 L 10.72 31.91 Q 19.14 36.86 28 36.73 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <circle cx="13.34" cy="26.37" r="0.26" fill="#b8962a" opacity="0.48"/>
-                    <circle cx="33.13" cy="31.8" r="0.85" fill="#b8962a" opacity="0.36"/>
-                    <circle cx="11.69" cy="31.71" r="0.44" fill="#b8962a" opacity="0.84"/>
-                    <circle cx="20.91" cy="27.28" r="0.26" fill="#b8962a" opacity="0.61"/>
-                    <circle cx="21.43" cy="22.32" r="0.73" fill="#b8962a" opacity="0.39"/>
-                    <circle cx="1.25" cy="23.97" r="0.56" fill="#36c9b8" opacity="0.77"/>
-                    <circle cx="7.95" cy="21.74" r="0.57" fill="#36c9b8" opacity="0.55"/>
-                    <circle cx="11.97" cy="26.32" r="0.77" fill="#36c9b8" opacity="0.68"/>
-                    <circle cx="19.17" cy="21.9" r="0.44" fill="#36c9b8" opacity="0.54"/>
-                    <circle cx="21.66" cy="36.91" r="0.75" fill="#ffffff" opacity="0.87"/>
-                    <circle cx="23.34" cy="31.46" r="0.3" fill="#ffffff" opacity="0.82"/>
-                    <circle cx="17.23" cy="32.19" r="0.64" fill="#ffffff" opacity="0.79"/>
-                    <circle cx="7.76" cy="16.68" r="0.35" fill="#fff4c8" opacity="0.72"/>
-                    <circle cx="9.3" cy="18.22" r="0.62" fill="#fff4c8" opacity="0.53"/>
-                    <path class="tm-aether-wing-crack" d="M 28.88 50.16 Q 23.76 33.6 14.8 26.96" fill="none" stroke="#b8962a" stroke-width="0.5" stroke-dasharray="1.2 1.3" opacity="0.55"/>
-                    <path class="tm-aether-wing-vein" d="M 34 54 Q 25.04 29.12 14.16 26.96" fill="none" stroke="#b8962a" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 34 54 C 29.2 28.4 24.08 24.56 20.88 29.36 S 14.16 40.16 10.96 41.76 Q 13.52 62.96 32.4 57.84 Q 32.4 55.6 34 54" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 22.91 30.99 Q 19.37 24.82 12.81 24.3 Q 7.72 24.19 7.4 24.89 Q 7.07 25.58 10.54 29.18 Q 15.36 33.4 22.16 32.62 Z" fill="#36c9b8" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 19.72 35.36 Q 15.07 28.38 7.27 28.1 Q 1.25 28.22 0.91 29.04 Q 0.58 29.86 4.95 33.86 Q 10.97 38.52 18.95 37.28 Z" fill="#36c9b8" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 16.49 38.86 Q 11.12 31.73 2.82 31.84 Q -3.58 32.28 -3.89 33.16 Q -4.19 34.05 0.69 38.04 Q 7.36 42.65 15.78 40.93 Z" fill="#3f3368" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 13.21 41.52 Q 7.85 35.07 0.07 35.6 Q -5.92 36.35 -6.16 37.2 Q -6.4 38.05 -1.64 41.57 Q 4.83 45.58 12.64 43.51 Z" fill="#36c9b8" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 9.91 43.32 Q 5.16 38.02 -1.36 38.88 Q -6.36 39.83 -6.53 40.58 Q -6.71 41.33 -2.57 44.12 Q 3.03 47.25 9.51 45.07 Z" fill="#3f3368" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
+                    <circle cx="17.19" cy="30.7" r="0.26" fill="#b8962a" opacity="0.48"/>
+                    <circle cx="28.65" cy="33.42" r="0.66" fill="#b8962a" opacity="0.36"/>
+                    <circle cx="16.23" cy="33.38" r="0.38" fill="#b8962a" opacity="0.84"/>
+                    <circle cx="3.65" cy="41.12" r="0.46" fill="#36c9b8" opacity="0.77"/>
+                    <circle cx="7.59" cy="40.09" r="0.46" fill="#36c9b8" opacity="0.55"/>
+                    <path class="tm-aether-wing-crack" d="M 30.8 52.08 Q 22.48 29.36 11.92 41.76" fill="none" stroke="#b8962a" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 34 54 Q 22.48 29.36 10.96 41.76" fill="none" stroke="#b8962a" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 17.36 26.96 Q 21.2 17.2 2.32 21.44 Q -1.52 30.4 0.4 36.16 Q 11.6 54 14.8 29.52 Z" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 14.62 25.11 Q 10.93 18.28 0.79 10.86 L 0.42 11.2 Q 5.71 20.32 13.25 26.34 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 15.15 25.36 Q 9.22 17.29 -4.96 9.38 L -5.37 9.85 Q 3.01 20.59 13.65 27.12 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 15.59 25.63 Q 7.38 17.11 -10.42 9.95 L -10.81 10.56 Q 0.68 21.82 14.12 27.88 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 15.92 25.98 Q 5.88 17.98 -14.27 12.74 L -14.6 13.44 Q -0.64 23.93 14.67 28.58 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 16.18 26.45 Q 5.19 19.82 -15.46 17.22 L -15.71 17.96 Q -0.51 26.56 15.28 29.19 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 16.41 27.06 Q 5.58 22.29 -13.6 22.41 L -13.73 23.12 Q 1.17 29.19 15.91 29.69 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 16.66 27.79 Q 7.06 24.93 -9.02 27.19 L -9.06 27.81 Q 4.11 31.32 16.52 30.1 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 16.97 28.6 Q 9.32 27.31 -2.77 30.73 L -2.74 31.23 Q 7.71 32.68 17.1 30.44 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path class="tm-aether-wing-tatter" d="M 9.04 57.84 Q 5.84 61.36 10.32 59.76" fill="#b8962a" opacity="0.45"/>
-                    <path class="tm-aether-wing-tatter" d="M 0.4 32.32 Q -4.4 35.52 1.68 34.24" fill="#36c9b8" opacity="0.5"/>
-                    <path class="tm-aether-wing-vein" d="M 14.16 26.96 Q -0.73 19.75 -15.61 17.67" fill="none" stroke="#36c9b8" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-15.61" cy="17.67" rx="1.44" ry="0.9" fill="#b8962a" opacity="0.95" filter="url(#aether-kid-glow)"/>
-                    <ellipse cx="-15.91" cy="17.52" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-membrane" d="M 10.96 41.76 C 2.96 36.96 1.36 48.8 -1.84 52.64 Q 0.72 59.04 9.36 48.8 Q 11.6 44.32 10.96 41.76" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 11.05 40.71 Q 4.95 35.93 -2.1 37.7 Q -7.46 39.35 -7.53 40.14 Q -7.6 40.93 -2.58 43.23 Q 4.1 45.66 10.89 42.55 Z" fill="#b8962a" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 10.8 41.54 Q 4.77 36.05 -3.03 36.64 Q -9 37.38 -9.16 38.12 Q -9.33 38.86 -4.19 41.82 Q 2.73 45.18 10.41 43.27 Z" fill="#241848" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 10.53 42.39 Q 4.67 36.12 -3.68 35.36 Q -10.1 35.06 -10.35 35.74 Q -10.6 36.42 -5.43 40.12 Q 1.58 44.51 9.94 43.98 Z" fill="#36c9b8" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 10.24 43.25 Q 4.67 36.14 -4.01 33.91 Q -10.7 32.47 -11.03 33.08 Q -11.35 33.69 -6.27 38.19 Q 0.69 43.68 9.49 44.68 Z" fill="#36c9b8" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 9.93 44.12 Q 4.77 36.15 -3.98 32.35 Q -10.75 29.69 -11.13 30.22 Q -11.51 30.76 -6.64 36.1 Q 0.07 42.76 9.04 45.37 Z" fill="#36c9b8" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 9.61 44.99 Q 5 36.14 -3.55 30.73 Q -10.19 26.81 -10.62 27.27 Q -11.04 27.72 -6.53 33.92 Q -0.25 41.77 8.61 46.06 Z" fill="#241848" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
+                    <path class="tm-aether-wing-tatter" d="M 13.52 61.68 Q 10.96 64.88 15.12 63.6" fill="#b8962a" opacity="0.35"/>
+                    <path class="tm-aether-wing-tatter" d="M -9.02 28.23 Q -11.58 30.15 -8.38 29.51" fill="#36c9b8" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 10.96 41.76 Q 0.17 32.91 -10.62 27.27" fill="none" stroke="#36c9b8" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-10.62" cy="27.27" rx="1.02" ry="0.7" fill="#b8962a" opacity="0.85" filter="url(#aether-kid-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -39553,55 +39502,38 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <g class="tm-animate-wing-right">
                     <g transform="translate(100,0) scale(-1,1)">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="34" cy="54" r="3.84" fill="#b8962a" opacity="0.45" filter="url(#aether-kid-glow)"/>
-                    <circle cx="34" cy="54" r="2.24" fill="#36c9b8" opacity="0.75" filter="url(#aether-kid-glow)"/>
-                    <circle cx="34" cy="54" r="1.12" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 34 54 Q 28.24 43.76 31.44 52.72 Q 28.88 56.24 34 55.28 Z" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 35.14 51.23 Q 37.11 46.78 32.58 40.61 L 31.89 40.71 Q 29.64 46.73 32.56 51.6 Z" fill="url(#aether-kid-feather)" opacity="0.92" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 35.35 50.91 Q 36.59 44.75 29.8 37.46 L 29 37.71 Q 27.82 45.99 32.41 51.84 Z" fill="url(#aether-kid-feather)" opacity="0.92" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 35.48 50.52 Q 35.84 43.52 26.93 36.92 L 26.07 37.36 Q 26.13 46.67 32.31 52.14 Z" fill="url(#aether-kid-feather)" opacity="0.92" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 35.08 50.4 Q 34.25 44.16 25.46 39.49 L 24.79 39.98 Q 26.36 48.2 32.61 52.23 Z" fill="url(#aether-kid-feather)" opacity="0.92" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 34.71 50.38 Q 33.52 45.66 26.15 43.58 L 25.66 44.08 Q 27.6 50.22 32.9 52.25 Z" fill="url(#aether-kid-feather)" opacity="0.92" stroke="#b8962a" stroke-width="0.55"/>
+                    <circle cx="34" cy="54" r="2.56" fill="#b8962a" opacity="0.45" filter="url(#aether-kid-glow)"/>
+                    <circle cx="34" cy="54" r="1.28" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 34.68 54.92 Q 34.38 49.2 29.68 47.54 Q 25.91 46.49 25.4 47 Q 24.89 47.51 26.11 51.11 Q 28.11 55.48 33.49 56.11 Z" fill="#241848" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 32.85 48.1 Q 32.57 41.67 27.31 40.46 Q 23.09 39.8 22.52 40.45 Q 21.94 41.1 23.28 44.99 Q 25.47 49.65 31.5 49.61 Z" fill="#3f3368" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 30.88 42.43 Q 30.05 35.89 24.54 34.84 Q 20.15 34.32 19.62 35 Q 19.08 35.68 20.78 39.59 Q 23.43 44.26 29.62 44.01 Z" fill="#241848" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 28.79 37.93 Q 26.96 31.96 21.45 30.74 Q 17.12 30.05 16.71 30.64 Q 16.29 31.23 18.56 34.87 Q 21.86 39.24 27.83 39.31 Z" fill="#241848" opacity="0.85" stroke="#b8962a" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 33.04 52.4 Q 27.6 16.56 25.04 12.72 Q 14.16 21.2 17.36 26.96 Q 15.44 55.92 14.8 59.12 Q 31.44 55.92 33.04 52.4" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 26.99 31.95 Q 26.71 24.72 19.34 15.71 L 18.72 15.97 Q 19.5 25.7 24.68 32.88 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 27.6 32.11 Q 25.79 23.25 14.94 13.59 L 14.23 14.02 Q 17.16 25.86 24.97 33.7 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 28.05 32.26 Q 24.38 22.58 10.35 13.6 L 9.62 14.22 Q 15.12 27.07 25.38 34.53 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 28.31 32.5 Q 22.9 23.11 6.91 16.17 L 6.26 16.92 Q 14.09 29.28 25.93 35.29 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 28.42 32.91 Q 21.89 24.88 5.75 20.77 L 5.25 21.58 Q 14.51 32.05 26.6 35.91 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 28.47 33.53 Q 21.74 27.5 7.26 26.23 L 6.94 27 Q 16.36 34.75 27.31 36.38 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 28.56 34.3 Q 22.47 30.38 10.87 31.26 L 10.72 31.91 Q 19.14 36.86 28 36.73 Z" fill="url(#aether-kid-feather)" opacity="0.9" stroke="#b8962a" stroke-width="0.55"/>
-                    <circle cx="14.41" cy="29.78" r="0.46" fill="#b8962a" opacity="0.71"/>
-                    <circle cx="13.85" cy="30.24" r="0.83" fill="#b8962a" opacity="0.8"/>
-                    <circle cx="21.16" cy="29.29" r="0.3" fill="#b8962a" opacity="0.94"/>
-                    <circle cx="19.36" cy="21.38" r="0.61" fill="#b8962a" opacity="0.51"/>
-                    <circle cx="27.03" cy="26.12" r="0.49" fill="#b8962a" opacity="0.46"/>
-                    <circle cx="9.39" cy="18.78" r="0.79" fill="#36c9b8" opacity="0.89"/>
-                    <circle cx="16.81" cy="30.61" r="0.39" fill="#36c9b8" opacity="0.54"/>
-                    <circle cx="8.38" cy="18.43" r="0.74" fill="#36c9b8" opacity="0.64"/>
-                    <circle cx="13.48" cy="23.81" r="0.68" fill="#36c9b8" opacity="0.89"/>
-                    <circle cx="16.17" cy="28.91" r="0.26" fill="#ffffff" opacity="0.55"/>
-                    <circle cx="21.85" cy="31.35" r="0.69" fill="#ffffff" opacity="0.37"/>
-                    <circle cx="23.42" cy="34.15" r="0.41" fill="#ffffff" opacity="0.49"/>
-                    <circle cx="1.5" cy="20.78" r="0.66" fill="#fff4c8" opacity="0.46"/>
-                    <circle cx="4.2" cy="20.08" r="0.46" fill="#fff4c8" opacity="0.52"/>
-                    <path class="tm-aether-wing-crack" d="M 28.88 50.16 Q 23.76 33.6 14.8 26.96" fill="none" stroke="#b8962a" stroke-width="0.5" stroke-dasharray="1.2 1.3" opacity="0.55"/>
-                    <path class="tm-aether-wing-vein" d="M 34 54 Q 25.04 29.12 14.16 26.96" fill="none" stroke="#b8962a" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 34 54 C 29.2 28.4 24.08 24.56 20.88 29.36 S 14.16 40.16 10.96 41.76 Q 13.52 62.96 32.4 57.84 Q 32.4 55.6 34 54" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 22.91 30.99 Q 19.37 24.82 12.81 24.3 Q 7.72 24.19 7.4 24.89 Q 7.07 25.58 10.54 29.18 Q 15.36 33.4 22.16 32.62 Z" fill="#36c9b8" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 19.72 35.36 Q 15.07 28.38 7.27 28.1 Q 1.25 28.22 0.91 29.04 Q 0.58 29.86 4.95 33.86 Q 10.97 38.52 18.95 37.28 Z" fill="#3f3368" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 16.49 38.86 Q 11.12 31.73 2.82 31.84 Q -3.58 32.28 -3.89 33.16 Q -4.19 34.05 0.69 38.04 Q 7.36 42.65 15.78 40.93 Z" fill="#36c9b8" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 13.21 41.52 Q 7.85 35.07 0.07 35.6 Q -5.92 36.35 -6.16 37.2 Q -6.4 38.05 -1.64 41.57 Q 4.83 45.58 12.64 43.51 Z" fill="#3f3368" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 9.91 43.32 Q 5.16 38.02 -1.36 38.88 Q -6.36 39.83 -6.53 40.58 Q -6.71 41.33 -2.57 44.12 Q 3.03 47.25 9.51 45.07 Z" fill="#3f3368" opacity="0.82" stroke="#b8962a" stroke-width="0.4"/>
+                    <circle cx="17.81" cy="32.41" r="0.39" fill="#b8962a" opacity="0.71"/>
+                    <circle cx="17.48" cy="32.64" r="0.65" fill="#b8962a" opacity="0.8"/>
+                    <circle cx="21.71" cy="32.16" r="0.29" fill="#b8962a" opacity="0.94"/>
+                    <circle cx="8.44" cy="38.72" r="0.61" fill="#36c9b8" opacity="0.89"/>
+                    <circle cx="12.8" cy="44.18" r="0.34" fill="#36c9b8" opacity="0.54"/>
+                    <path class="tm-aether-wing-crack" d="M 30.8 52.08 Q 22.48 29.36 11.92 41.76" fill="none" stroke="#b8962a" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 34 54 Q 22.48 29.36 10.96 41.76" fill="none" stroke="#b8962a" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 17.36 26.96 Q 21.2 17.2 2.32 21.44 Q -1.52 30.4 0.4 36.16 Q 11.6 54 14.8 29.52 Z" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 14.62 25.11 Q 10.93 18.28 0.79 10.86 L 0.42 11.2 Q 5.71 20.32 13.25 26.34 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 15.15 25.36 Q 9.22 17.29 -4.96 9.38 L -5.37 9.85 Q 3.01 20.59 13.65 27.12 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 15.59 25.63 Q 7.38 17.11 -10.42 9.95 L -10.81 10.56 Q 0.68 21.82 14.12 27.88 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 15.92 25.98 Q 5.88 17.98 -14.27 12.74 L -14.6 13.44 Q -0.64 23.93 14.67 28.58 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 16.18 26.45 Q 5.19 19.82 -15.46 17.22 L -15.71 17.96 Q -0.51 26.56 15.28 29.19 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 16.41 27.06 Q 5.58 22.29 -13.6 22.41 L -13.73 23.12 Q 1.17 29.19 15.91 29.69 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 16.66 27.79 Q 7.06 24.93 -9.02 27.19 L -9.06 27.81 Q 4.11 31.32 16.52 30.1 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path d="M 16.97 28.6 Q 9.32 27.31 -2.77 30.73 L -2.74 31.23 Q 7.71 32.68 17.1 30.44 Z" fill="url(#aether-kid-blade)" opacity="0.93" stroke="#b8962a" stroke-width="0.55"/>
-                    <path class="tm-aether-wing-tatter" d="M 9.04 57.84 Q 5.84 61.36 10.32 59.76" fill="#b8962a" opacity="0.45"/>
-                    <path class="tm-aether-wing-tatter" d="M 0.4 32.32 Q -4.4 35.52 1.68 34.24" fill="#36c9b8" opacity="0.5"/>
-                    <path class="tm-aether-wing-vein" d="M 14.16 26.96 Q -0.73 19.75 -15.61 17.67" fill="none" stroke="#36c9b8" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-15.61" cy="17.67" rx="1.44" ry="0.9" fill="#b8962a" opacity="0.95" filter="url(#aether-kid-glow)"/>
-                    <ellipse cx="-15.91" cy="17.52" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-membrane" d="M 10.96 41.76 C 2.96 36.96 1.36 48.8 -1.84 52.64 Q 0.72 59.04 9.36 48.8 Q 11.6 44.32 10.96 41.76" fill="url(#aether-kid-wing)" stroke="#b8962a" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 11.05 40.71 Q 4.95 35.93 -2.1 37.7 Q -7.46 39.35 -7.53 40.14 Q -7.6 40.93 -2.58 43.23 Q 4.1 45.66 10.89 42.55 Z" fill="#241848" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 10.8 41.54 Q 4.77 36.05 -3.03 36.64 Q -9 37.38 -9.16 38.12 Q -9.33 38.86 -4.19 41.82 Q 2.73 45.18 10.41 43.27 Z" fill="#36c9b8" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 10.53 42.39 Q 4.67 36.12 -3.68 35.36 Q -10.1 35.06 -10.35 35.74 Q -10.6 36.42 -5.43 40.12 Q 1.58 44.51 9.94 43.98 Z" fill="#36c9b8" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 10.24 43.25 Q 4.67 36.14 -4.01 33.91 Q -10.7 32.47 -11.03 33.08 Q -11.35 33.69 -6.27 38.19 Q 0.69 43.68 9.49 44.68 Z" fill="#36c9b8" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 9.93 44.12 Q 4.77 36.15 -3.98 32.35 Q -10.75 29.69 -11.13 30.22 Q -11.51 30.76 -6.64 36.1 Q 0.07 42.76 9.04 45.37 Z" fill="#241848" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
+                    <path d="M 9.61 44.99 Q 5 36.14 -3.55 30.73 Q -10.19 26.81 -10.62 27.27 Q -11.04 27.72 -6.53 33.92 Q -0.25 41.77 8.61 46.06 Z" fill="#241848" opacity="0.86" stroke="#b8962a" stroke-width="0.4"/>
+                    <path class="tm-aether-wing-tatter" d="M 13.52 61.68 Q 10.96 64.88 15.12 63.6" fill="#b8962a" opacity="0.35"/>
+                    <path class="tm-aether-wing-tatter" d="M -9.02 28.23 Q -11.58 30.15 -8.38 29.51" fill="#36c9b8" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 10.96 41.76 Q 0.17 32.91 -10.62 27.27" fill="none" stroke="#36c9b8" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-10.62" cy="27.27" rx="1.02" ry="0.7" fill="#b8962a" opacity="0.85" filter="url(#aether-kid-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -39692,19 +39624,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <stop offset="62%" style="stop-color:#1c123c;stop-opacity:.72" />
                         <stop offset="100%" style="stop-color:#030108;stop-opacity:.88" />
                     </linearGradient>
-                    <linearGradient id="aether-teen-blade" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fff8e0;stop-opacity:.95" />
-                        <stop offset="18%" style="stop-color:#a88420;stop-opacity:.9" />
-                        <stop offset="48%" style="stop-color:#2fc4b4;stop-opacity:.72" />
-                        <stop offset="78%" style="stop-color:#1c123c;stop-opacity:.85" />
-                        <stop offset="100%" style="stop-color:#030108;stop-opacity:.92" />
+                    <linearGradient id="aether-teen-blade" x1="15%" y1="0%" x2="85%" y2="100%">
+                        <stop offset="0%" style="stop-color:#a88420;stop-opacity:.85" />
+                        <stop offset="35%" style="stop-color:#2fc4b4;stop-opacity:.75" />
+                        <stop offset="70%" style="stop-color:#1c123c;stop-opacity:.92" />
+                        <stop offset="100%" style="stop-color:#030108;stop-opacity:1" />
                     </linearGradient>
-                    <linearGradient id="aether-teen-feather" x1="0%" y1="5%" x2="85%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fff4c8;stop-opacity:.95" />
-                        <stop offset="16%" style="stop-color:#a88420;stop-opacity:.88" />
-                        <stop offset="42%" style="stop-color:#2fc4b4;stop-opacity:.78" />
-                        <stop offset="70%" style="stop-color:#1c123c;stop-opacity:.82" />
-                        <stop offset="100%" style="stop-color:#030108;stop-opacity:.94" />
+                    <linearGradient id="aether-teen-feather" x1="10%" y1="0%" x2="80%" y2="100%">
+                        <stop offset="0%" style="stop-color:#a88420;stop-opacity:.8" />
+                        <stop offset="40%" style="stop-color:#2fc4b4;stop-opacity:.78" />
+                        <stop offset="75%" style="stop-color:#1c123c;stop-opacity:.95" />
+                        <stop offset="100%" style="stop-color:#030108;stop-opacity:1" />
                     </linearGradient>
                     <radialGradient id="aether-teen-iris" cx="40%" cy="35%" r="65%">
                         <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
@@ -39752,61 +39682,42 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-animate-wing-left">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="35" cy="46" r="4.8" fill="#a88420" opacity="0.45" filter="url(#aether-teen-glow)"/>
-                    <circle cx="35" cy="46" r="2.8" fill="#2fc4b4" opacity="0.75" filter="url(#aether-teen-glow)"/>
-                    <circle cx="35" cy="46" r="1.4" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 35 46 Q 27.8 33.2 31.8 44.4 Q 28.6 48.8 35 47.6 Z" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 36.43 42.54 Q 38.89 36.98 33.23 29.26 L 32.36 29.38 Q 29.55 36.92 33.21 43 Z" fill="url(#aether-teen-feather)" opacity="0.92" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 36.64 42.23 Q 38.41 34.89 30.51 25.92 L 29.54 26.19 Q 27.75 36.06 33.05 43.23 Z" fill="url(#aether-teen-feather)" opacity="0.92" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 36.79 41.86 Q 37.66 33.35 27.47 24.44 L 26.43 24.88 Q 25.92 36.24 32.93 43.52 Z" fill="url(#aether-teen-feather)" opacity="0.92" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 36.65 41.58 Q 36.38 33.03 25.11 25.54 L 24.13 26.12 Q 25.13 37.45 33.04 43.73 Z" fill="url(#aether-teen-feather)" opacity="0.92" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 36.26 41.49 Q 35.04 34.03 24.29 28.82 L 23.5 29.44 Q 25.67 39.24 33.34 43.8 Z" fill="url(#aether-teen-feather)" opacity="0.92" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 35.88 41.47 Q 34.4 35.57 25.18 32.97 L 24.57 33.61 Q 27 41.27 33.62 43.81 Z" fill="url(#aether-teen-feather)" opacity="0.92" stroke="#a88420" stroke-width="0.55"/>
+                    <circle cx="35" cy="46" r="3.2" fill="#a88420" opacity="0.45" filter="url(#aether-teen-glow)"/>
+                    <circle cx="35" cy="46" r="1.6" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 35.85 47.15 Q 35.48 40 29.59 37.93 Q 24.89 36.62 24.25 37.25 Q 23.62 37.89 25.14 42.38 Q 27.63 47.84 34.36 48.64 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 34.14 40.16 Q 33.85 32.3 27.41 30.67 Q 22.26 29.74 21.55 30.51 Q 20.84 31.29 22.45 36.08 Q 25.11 41.83 32.49 41.96 Z" fill="#1c123c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 32.35 34.02 Q 31.76 25.79 24.97 24.44 Q 19.55 23.76 18.84 24.61 Q 18.12 25.46 19.98 30.39 Q 22.96 36.28 30.69 36 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 30.45 28.78 Q 29.13 20.72 22.23 19.39 Q 16.75 18.71 16.11 19.54 Q 15.47 20.37 17.76 25.21 Q 21.26 30.98 28.96 30.72 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 28.49 24.42 Q 26.2 16.95 19.31 15.43 Q 13.9 14.57 13.38 15.31 Q 12.87 16.04 15.7 20.59 Q 19.83 26.04 27.28 26.14 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 33.8 44 Q 27 -2.8 23.8 -7.6 Q 10.2 3.2 14.2 10.4 Q 11.8 48.4 11 52.4 Q 31.8 48.4 33.8 44" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 26.24 17.34 Q 25.89 8.3 16.68 -2.96 L 15.9 -2.64 Q 16.87 9.53 23.35 18.5 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 26.9 17.51 Q 24.95 6.69 12.01 -5.37 L 11.13 -4.87 Q 14.37 9.62 23.65 19.38 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 27.43 17.66 Q 23.52 5.72 7 -5.93 L 6.09 -5.22 Q 12.03 10.66 24.06 20.27 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 27.78 17.87 Q 21.88 5.8 2.69 -4.14 L 1.83 -3.26 Q 10.46 12.69 24.59 21.12 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 27.97 18.21 Q 20.47 7.06 0.11 -0.16 L -0.62 0.83 Q 10.1 15.45 25.26 21.87 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 28.05 18.73 Q 19.69 9.36 -0.11 5.28 L -0.66 6.29 Q 11.14 18.47 26 22.47 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 28.1 19.44 Q 19.74 12.29 2.09 11.15 L 1.73 12.1 Q 13.4 21.27 26.77 22.94 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 28.2 20.28 Q 20.59 15.38 6.09 16.47 L 5.9 17.29 Q 16.43 23.47 27.5 23.31 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <circle cx="27.06" cy="3.86" r="0.83" fill="#a88420" opacity="0.43"/>
-                    <circle cx="31.96" cy="7.12" r="0.33" fill="#a88420" opacity="0.68"/>
-                    <circle cx="17.61" cy="8.06" r="0.78" fill="#a88420" opacity="0.56"/>
-                    <circle cx="30.12" cy="14.41" r="0.26" fill="#a88420" opacity="0.71"/>
-                    <circle cx="12.72" cy="13.69" r="0.46" fill="#a88420" opacity="0.55"/>
-                    <circle cx="5.77" cy="11.31" r="0.56" fill="#a88420" opacity="0.92"/>
-                    <circle cx="-0.02" cy="17.63" r="0.26" fill="#2fc4b4" opacity="0.38"/>
-                    <circle cx="11.66" cy="6.71" r="0.41" fill="#2fc4b4" opacity="0.58"/>
-                    <circle cx="15.99" cy="6.44" r="0.58" fill="#2fc4b4" opacity="0.41"/>
-                    <circle cx="14.69" cy="15.35" r="0.3" fill="#2fc4b4" opacity="0.92"/>
-                    <circle cx="6.63" cy="-1.51" r="0.45" fill="#2fc4b4" opacity="0.86"/>
-                    <circle cx="22.7" cy="17.94" r="0.29" fill="#ffffff" opacity="0.49"/>
-                    <circle cx="18.24" cy="21.92" r="0.48" fill="#ffffff" opacity="0.68"/>
-                    <circle cx="15.07" cy="17.87" r="0.61" fill="#ffffff" opacity="0.38"/>
-                    <circle cx="0.28" cy="7.47" r="0.42" fill="#fff4c8" opacity="0.67"/>
-                    <circle cx="-2.63" cy="1.8" r="0.46" fill="#fff4c8" opacity="0.54"/>
-                    <circle cx="1.56" cy="2.86" r="0.66" fill="#fff4c8" opacity="0.58"/>
-                    <path class="tm-aether-wing-crack" d="M 28.6 41.2 Q 22.2 19.4 11 10.4" fill="none" stroke="#a88420" stroke-width="0.5" stroke-dasharray="1.2 1.3" opacity="0.55"/>
-                    <path class="tm-aether-wing-vein" d="M 35 46 Q 23.8 13.8 10.2 10.4" fill="none" stroke="#a88420" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 35 46 C 29 12 22.6 7.2 18.6 13.2 S 10.2 27.4 6.2 29.4 Q 9.4 57.2 33 50.8 Q 33 48 35 46" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 21.14 15.24 Q 16.71 7.52 8.51 6.88 Q 2.15 6.74 1.75 7.61 Q 1.34 8.48 5.67 12.97 Q 11.7 18.25 20.19 17.27 Z" fill="#34285c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 17.96 19.84 Q 12.39 11.27 2.91 10.84 Q -4.43 10.92 -4.84 11.92 Q -5.26 12.92 0 17.84 Q 7.26 23.6 16.98 22.18 Z" fill="#34285c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 14.73 23.73 Q 8.29 14.77 -1.99 14.7 Q -9.92 15.07 -10.32 16.16 Q -10.72 17.25 -4.79 22.32 Q 3.35 28.19 13.8 26.27 Z" fill="#1c123c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 11.47 26.95 Q 4.66 18.27 -5.61 18.62 Q -13.52 19.33 -13.88 20.44 Q -14.23 21.54 -8.09 26.35 Q 0.28 31.89 10.65 29.53 Z" fill="#2fc4b4" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 8.18 29.5 Q 1.59 21.69 -7.87 22.46 Q -15.14 23.45 -15.43 24.5 Q -15.71 25.54 -9.88 29.77 Q -1.96 34.58 7.51 31.94 Z" fill="#34285c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 4.89 31.35 Q -1.05 24.73 -9.2 25.8 Q -15.45 26.99 -15.67 27.92 Q -15.88 28.86 -10.71 32.35 Q -3.72 36.26 4.38 33.54 Z" fill="#1c123c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
+                    <circle cx="24.34" cy="11.63" r="0.65" fill="#a88420" opacity="0.43"/>
+                    <circle cx="27.18" cy="13.26" r="0.31" fill="#a88420" opacity="0.68"/>
+                    <circle cx="18.87" cy="13.73" r="0.62" fill="#a88420" opacity="0.56"/>
+                    <circle cx="0.54" cy="33.66" r="0.26" fill="#2fc4b4" opacity="0.38"/>
+                    <circle cx="7.41" cy="28.62" r="0.36" fill="#2fc4b4" opacity="0.58"/>
+                    <circle cx="9.96" cy="28.5" r="0.47" fill="#2fc4b4" opacity="0.41"/>
+                    <path class="tm-aether-wing-crack" d="M 31 43.6 Q 20.6 13.2 7.4 29.4" fill="none" stroke="#a88420" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 35 46 Q 20.6 13.2 6.2 29.4" fill="none" stroke="#a88420" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 14.2 10.4 Q 19 -2 -4.6 3.8 Q -9.4 15 -7 22.2 Q 7 46 11 13.6 Z" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 10.77 8.08 Q 6.16 -0.44 -6.52 -9.72 L -6.98 -9.3 Q -0.37 2.1 9.06 9.63 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 11.36 8.36 Q 4.31 -1.58 -12.79 -11.48 L -13.29 -10.9 Q -3.32 2.34 9.49 10.47 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 11.86 8.65 Q 2.28 -1.97 -18.94 -11.31 L -19.45 -10.59 Q -6.02 3.48 9.99 11.31 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 12.26 8.99 Q 0.46 -1.38 -23.86 -8.98 L -24.32 -8.14 Q -7.88 5.52 10.57 12.11 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 12.57 9.44 Q -0.74 0.19 -26.55 -4.77 L -26.92 -3.86 Q -8.46 8.21 11.21 12.82 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 12.84 10.02 Q -0.99 2.56 -26.4 0.63 L -26.66 1.55 Q -7.56 11.17 11.89 13.43 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 13.09 10.74 Q -0.18 5.39 -23.35 6.3 L -23.48 7.17 Q -5.24 13.93 12.58 13.95 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 13.37 11.56 Q 1.64 8.27 -17.88 11.34 L -17.91 12.1 Q -1.83 16.12 13.25 14.38 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 13.71 12.45 Q 4.15 10.84 -10.97 15.12 L -10.92 15.74 Q 2.13 17.55 13.87 14.76 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path class="tm-aether-wing-tatter" d="M 3.8 50.8 Q -0.2 55.2 5.4 53.2" fill="#a88420" opacity="0.45"/>
-                    <path class="tm-aether-wing-tatter" d="M -7 17.4 Q -13 21.4 -5.4 19.8" fill="#2fc4b4" opacity="0.5"/>
-                    <path class="tm-aether-wing-vein" d="M 10.2 10.4 Q -8.29 -0.11 -26.77 -4.22" fill="none" stroke="#2fc4b4" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-26.77" cy="-4.22" rx="1.8" ry="1.12" fill="#a88420" opacity="0.95" filter="url(#aether-teen-glow)"/>
-                    <ellipse cx="-27.07" cy="-4.37" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-membrane" d="M 6.2 29.4 C -3.8 23.4 -5.8 39 -9.8 43.8 Q -6.6 51.8 4.2 38.2 Q 7 32.6 6.2 29.4" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 6.32 28.09 Q -1.31 22.12 -10.12 24.33 Q -16.83 26.39 -16.91 27.38 Q -17 28.36 -10.73 31.23 Q -2.38 34.28 6.11 30.39 Z" fill="#a88420" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 6.05 28.95 Q -1.51 22.24 -11.11 23.24 Q -18.46 24.36 -18.65 25.3 Q -18.83 26.24 -12.43 29.79 Q -3.82 33.79 5.61 31.14 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 5.77 29.83 Q -1.63 22.32 -11.87 21.96 Q -19.73 22.03 -20.01 22.91 Q -20.29 23.78 -13.83 28.1 Q -5.08 33.13 5.12 31.88 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 5.48 30.72 Q -1.68 22.37 -12.36 20.52 Q -20.58 19.44 -20.94 20.25 Q -21.3 21.06 -14.88 26.18 Q -6.12 32.34 4.64 32.61 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 5.17 31.62 Q -1.64 22.38 -12.55 18.95 Q -20.98 16.65 -21.41 17.38 Q -21.84 18.12 -15.56 24.09 Q -6.94 31.43 4.17 33.33 Z" fill="#1c123c" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 4.85 32.53 Q -1.5 22.38 -12.42 17.3 Q -20.87 13.72 -21.36 14.37 Q -21.85 15.02 -15.83 21.88 Q -7.5 30.44 3.71 34.05 Z" fill="#1c123c" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 4.51 33.44 Q -1.25 22.38 -11.94 15.61 Q -20.24 10.71 -20.77 11.28 Q -21.31 11.86 -15.67 19.6 Q -7.82 29.41 3.27 34.77 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path class="tm-aether-wing-tatter" d="M 9.4 55.6 Q 6.2 59.6 11.4 58" fill="#a88420" opacity="0.35"/>
+                    <path class="tm-aether-wing-tatter" d="M -18.77 12.48 Q -21.97 14.88 -17.97 14.08" fill="#2fc4b4" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 6.2 29.4 Q -7.29 18.34 -20.77 11.28" fill="none" stroke="#2fc4b4" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-20.77" cy="11.28" rx="1.28" ry="0.8" fill="#a88420" opacity="0.85" filter="url(#aether-teen-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -39814,61 +39725,42 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <g class="tm-animate-wing-right">
                     <g transform="translate(100,0) scale(-1,1)">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="35" cy="46" r="4.8" fill="#a88420" opacity="0.45" filter="url(#aether-teen-glow)"/>
-                    <circle cx="35" cy="46" r="2.8" fill="#2fc4b4" opacity="0.75" filter="url(#aether-teen-glow)"/>
-                    <circle cx="35" cy="46" r="1.4" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 35 46 Q 27.8 33.2 31.8 44.4 Q 28.6 48.8 35 47.6 Z" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 36.43 42.54 Q 38.89 36.98 33.23 29.26 L 32.36 29.38 Q 29.55 36.92 33.21 43 Z" fill="url(#aether-teen-feather)" opacity="0.92" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 36.64 42.23 Q 38.41 34.89 30.51 25.92 L 29.54 26.19 Q 27.75 36.06 33.05 43.23 Z" fill="url(#aether-teen-feather)" opacity="0.92" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 36.79 41.86 Q 37.66 33.35 27.47 24.44 L 26.43 24.88 Q 25.92 36.24 32.93 43.52 Z" fill="url(#aether-teen-feather)" opacity="0.92" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 36.65 41.58 Q 36.38 33.03 25.11 25.54 L 24.13 26.12 Q 25.13 37.45 33.04 43.73 Z" fill="url(#aether-teen-feather)" opacity="0.92" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 36.26 41.49 Q 35.04 34.03 24.29 28.82 L 23.5 29.44 Q 25.67 39.24 33.34 43.8 Z" fill="url(#aether-teen-feather)" opacity="0.92" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 35.88 41.47 Q 34.4 35.57 25.18 32.97 L 24.57 33.61 Q 27 41.27 33.62 43.81 Z" fill="url(#aether-teen-feather)" opacity="0.92" stroke="#a88420" stroke-width="0.55"/>
+                    <circle cx="35" cy="46" r="3.2" fill="#a88420" opacity="0.45" filter="url(#aether-teen-glow)"/>
+                    <circle cx="35" cy="46" r="1.6" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 35.85 47.15 Q 35.48 40 29.59 37.93 Q 24.89 36.62 24.25 37.25 Q 23.62 37.89 25.14 42.38 Q 27.63 47.84 34.36 48.64 Z" fill="#1c123c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 34.14 40.16 Q 33.85 32.3 27.41 30.67 Q 22.26 29.74 21.55 30.51 Q 20.84 31.29 22.45 36.08 Q 25.11 41.83 32.49 41.96 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 32.35 34.02 Q 31.76 25.79 24.97 24.44 Q 19.55 23.76 18.84 24.61 Q 18.12 25.46 19.98 30.39 Q 22.96 36.28 30.69 36 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 30.45 28.78 Q 29.13 20.72 22.23 19.39 Q 16.75 18.71 16.11 19.54 Q 15.47 20.37 17.76 25.21 Q 21.26 30.98 28.96 30.72 Z" fill="#34285c" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 28.49 24.42 Q 26.2 16.95 19.31 15.43 Q 13.9 14.57 13.38 15.31 Q 12.87 16.04 15.7 20.59 Q 19.83 26.04 27.28 26.14 Z" fill="#2fc4b4" opacity="0.85" stroke="#a88420" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 33.8 44 Q 27 -2.8 23.8 -7.6 Q 10.2 3.2 14.2 10.4 Q 11.8 48.4 11 52.4 Q 31.8 48.4 33.8 44" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 26.24 17.34 Q 25.89 8.3 16.68 -2.96 L 15.9 -2.64 Q 16.87 9.53 23.35 18.5 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 26.9 17.51 Q 24.95 6.69 12.01 -5.37 L 11.13 -4.87 Q 14.37 9.62 23.65 19.38 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 27.43 17.66 Q 23.52 5.72 7 -5.93 L 6.09 -5.22 Q 12.03 10.66 24.06 20.27 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 27.78 17.87 Q 21.88 5.8 2.69 -4.14 L 1.83 -3.26 Q 10.46 12.69 24.59 21.12 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 27.97 18.21 Q 20.47 7.06 0.11 -0.16 L -0.62 0.83 Q 10.1 15.45 25.26 21.87 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 28.05 18.73 Q 19.69 9.36 -0.11 5.28 L -0.66 6.29 Q 11.14 18.47 26 22.47 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 28.1 19.44 Q 19.74 12.29 2.09 11.15 L 1.73 12.1 Q 13.4 21.27 26.77 22.94 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 28.2 20.28 Q 20.59 15.38 6.09 16.47 L 5.9 17.29 Q 16.43 23.47 27.5 23.31 Z" fill="url(#aether-teen-feather)" opacity="0.9" stroke="#a88420" stroke-width="0.55"/>
-                    <circle cx="13.12" cy="6.16" r="0.26" fill="#a88420" opacity="0.66"/>
-                    <circle cx="19.57" cy="7.05" r="0.73" fill="#a88420" opacity="0.52"/>
-                    <circle cx="31.5" cy="7.96" r="0.89" fill="#a88420" opacity="0.56"/>
-                    <circle cx="28.98" cy="15.21" r="0.31" fill="#a88420" opacity="0.7"/>
-                    <circle cx="19.67" cy="20.28" r="0.84" fill="#a88420" opacity="0.63"/>
-                    <circle cx="21.95" cy="20.99" r="0.62" fill="#a88420" opacity="0.37"/>
-                    <circle cx="8" cy="7.64" r="0.7" fill="#2fc4b4" opacity="0.8"/>
-                    <circle cx="1.68" cy="-0.35" r="0.48" fill="#2fc4b4" opacity="0.87"/>
-                    <circle cx="0.99" cy="4.45" r="0.54" fill="#2fc4b4" opacity="0.79"/>
-                    <circle cx="6.03" cy="5.92" r="0.8" fill="#2fc4b4" opacity="0.83"/>
-                    <circle cx="-0.91" cy="6.49" r="0.57" fill="#2fc4b4" opacity="0.78"/>
-                    <circle cx="10.45" cy="16.12" r="0.55" fill="#ffffff" opacity="0.89"/>
-                    <circle cx="14.87" cy="17.55" r="0.33" fill="#ffffff" opacity="0.82"/>
-                    <circle cx="9.93" cy="18.1" r="0.37" fill="#ffffff" opacity="0.35"/>
-                    <circle cx="4.87" cy="3.49" r="0.6" fill="#fff4c8" opacity="0.64"/>
-                    <circle cx="1.31" cy="7.56" r="0.39" fill="#fff4c8" opacity="0.78"/>
-                    <circle cx="-2.24" cy="5.17" r="0.4" fill="#fff4c8" opacity="0.46"/>
-                    <path class="tm-aether-wing-crack" d="M 28.6 41.2 Q 22.2 19.4 11 10.4" fill="none" stroke="#a88420" stroke-width="0.5" stroke-dasharray="1.2 1.3" opacity="0.55"/>
-                    <path class="tm-aether-wing-vein" d="M 35 46 Q 23.8 13.8 10.2 10.4" fill="none" stroke="#a88420" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 35 46 C 29 12 22.6 7.2 18.6 13.2 S 10.2 27.4 6.2 29.4 Q 9.4 57.2 33 50.8 Q 33 48 35 46" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 21.14 15.24 Q 16.71 7.52 8.51 6.88 Q 2.15 6.74 1.75 7.61 Q 1.34 8.48 5.67 12.97 Q 11.7 18.25 20.19 17.27 Z" fill="#34285c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 17.96 19.84 Q 12.39 11.27 2.91 10.84 Q -4.43 10.92 -4.84 11.92 Q -5.26 12.92 0 17.84 Q 7.26 23.6 16.98 22.18 Z" fill="#1c123c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 14.73 23.73 Q 8.29 14.77 -1.99 14.7 Q -9.92 15.07 -10.32 16.16 Q -10.72 17.25 -4.79 22.32 Q 3.35 28.19 13.8 26.27 Z" fill="#2fc4b4" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 11.47 26.95 Q 4.66 18.27 -5.61 18.62 Q -13.52 19.33 -13.88 20.44 Q -14.23 21.54 -8.09 26.35 Q 0.28 31.89 10.65 29.53 Z" fill="#34285c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 8.18 29.5 Q 1.59 21.69 -7.87 22.46 Q -15.14 23.45 -15.43 24.5 Q -15.71 25.54 -9.88 29.77 Q -1.96 34.58 7.51 31.94 Z" fill="#1c123c" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 4.89 31.35 Q -1.05 24.73 -9.2 25.8 Q -15.45 26.99 -15.67 27.92 Q -15.88 28.86 -10.71 32.35 Q -3.72 36.26 4.38 33.54 Z" fill="#2fc4b4" opacity="0.82" stroke="#a88420" stroke-width="0.4"/>
+                    <circle cx="16.27" cy="12.78" r="0.26" fill="#a88420" opacity="0.66"/>
+                    <circle cx="20.01" cy="13.23" r="0.58" fill="#a88420" opacity="0.52"/>
+                    <circle cx="26.91" cy="13.68" r="0.69" fill="#a88420" opacity="0.56"/>
+                    <circle cx="5.26" cy="29.05" r="0.55" fill="#2fc4b4" opacity="0.8"/>
+                    <circle cx="1.54" cy="25.36" r="0.4" fill="#2fc4b4" opacity="0.87"/>
+                    <circle cx="1.14" cy="27.57" r="0.44" fill="#2fc4b4" opacity="0.79"/>
+                    <path class="tm-aether-wing-crack" d="M 31 43.6 Q 20.6 13.2 7.4 29.4" fill="none" stroke="#a88420" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 35 46 Q 20.6 13.2 6.2 29.4" fill="none" stroke="#a88420" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 14.2 10.4 Q 19 -2 -4.6 3.8 Q -9.4 15 -7 22.2 Q 7 46 11 13.6 Z" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 10.77 8.08 Q 6.16 -0.44 -6.52 -9.72 L -6.98 -9.3 Q -0.37 2.1 9.06 9.63 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 11.36 8.36 Q 4.31 -1.58 -12.79 -11.48 L -13.29 -10.9 Q -3.32 2.34 9.49 10.47 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 11.86 8.65 Q 2.28 -1.97 -18.94 -11.31 L -19.45 -10.59 Q -6.02 3.48 9.99 11.31 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 12.26 8.99 Q 0.46 -1.38 -23.86 -8.98 L -24.32 -8.14 Q -7.88 5.52 10.57 12.11 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 12.57 9.44 Q -0.74 0.19 -26.55 -4.77 L -26.92 -3.86 Q -8.46 8.21 11.21 12.82 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 12.84 10.02 Q -0.99 2.56 -26.4 0.63 L -26.66 1.55 Q -7.56 11.17 11.89 13.43 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 13.09 10.74 Q -0.18 5.39 -23.35 6.3 L -23.48 7.17 Q -5.24 13.93 12.58 13.95 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 13.37 11.56 Q 1.64 8.27 -17.88 11.34 L -17.91 12.1 Q -1.83 16.12 13.25 14.38 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path d="M 13.71 12.45 Q 4.15 10.84 -10.97 15.12 L -10.92 15.74 Q 2.13 17.55 13.87 14.76 Z" fill="url(#aether-teen-blade)" opacity="0.93" stroke="#a88420" stroke-width="0.55"/>
-                    <path class="tm-aether-wing-tatter" d="M 3.8 50.8 Q -0.2 55.2 5.4 53.2" fill="#a88420" opacity="0.45"/>
-                    <path class="tm-aether-wing-tatter" d="M -7 17.4 Q -13 21.4 -5.4 19.8" fill="#2fc4b4" opacity="0.5"/>
-                    <path class="tm-aether-wing-vein" d="M 10.2 10.4 Q -8.29 -0.11 -26.77 -4.22" fill="none" stroke="#2fc4b4" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-26.77" cy="-4.22" rx="1.8" ry="1.12" fill="#a88420" opacity="0.95" filter="url(#aether-teen-glow)"/>
-                    <ellipse cx="-27.07" cy="-4.37" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-membrane" d="M 6.2 29.4 C -3.8 23.4 -5.8 39 -9.8 43.8 Q -6.6 51.8 4.2 38.2 Q 7 32.6 6.2 29.4" fill="url(#aether-teen-wing)" stroke="#a88420" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 6.32 28.09 Q -1.31 22.12 -10.12 24.33 Q -16.83 26.39 -16.91 27.38 Q -17 28.36 -10.73 31.23 Q -2.38 34.28 6.11 30.39 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 6.05 28.95 Q -1.51 22.24 -11.11 23.24 Q -18.46 24.36 -18.65 25.3 Q -18.83 26.24 -12.43 29.79 Q -3.82 33.79 5.61 31.14 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 5.77 29.83 Q -1.63 22.32 -11.87 21.96 Q -19.73 22.03 -20.01 22.91 Q -20.29 23.78 -13.83 28.1 Q -5.08 33.13 5.12 31.88 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 5.48 30.72 Q -1.68 22.37 -12.36 20.52 Q -20.58 19.44 -20.94 20.25 Q -21.3 21.06 -14.88 26.18 Q -6.12 32.34 4.64 32.61 Z" fill="#1c123c" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 5.17 31.62 Q -1.64 22.38 -12.55 18.95 Q -20.98 16.65 -21.41 17.38 Q -21.84 18.12 -15.56 24.09 Q -6.94 31.43 4.17 33.33 Z" fill="#1c123c" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 4.85 32.53 Q -1.5 22.38 -12.42 17.3 Q -20.87 13.72 -21.36 14.37 Q -21.85 15.02 -15.83 21.88 Q -7.5 30.44 3.71 34.05 Z" fill="#2fc4b4" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path d="M 4.51 33.44 Q -1.25 22.38 -11.94 15.61 Q -20.24 10.71 -20.77 11.28 Q -21.31 11.86 -15.67 19.6 Q -7.82 29.41 3.27 34.77 Z" fill="#1c123c" opacity="0.86" stroke="#a88420" stroke-width="0.4"/>
+                    <path class="tm-aether-wing-tatter" d="M 9.4 55.6 Q 6.2 59.6 11.4 58" fill="#a88420" opacity="0.35"/>
+                    <path class="tm-aether-wing-tatter" d="M -18.77 12.48 Q -21.97 14.88 -17.97 14.08" fill="#2fc4b4" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 6.2 29.4 Q -7.29 18.34 -20.77 11.28" fill="none" stroke="#2fc4b4" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-20.77" cy="11.28" rx="1.28" ry="0.8" fill="#a88420" opacity="0.85" filter="url(#aether-teen-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -39990,19 +39882,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <stop offset="62%" style="stop-color:#1a1040;stop-opacity:.72" />
                         <stop offset="100%" style="stop-color:#020106;stop-opacity:.88" />
                     </linearGradient>
-                    <linearGradient id="aether-adult-blade" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fff8e0;stop-opacity:.95" />
-                        <stop offset="18%" style="stop-color:#d4a017;stop-opacity:.9" />
-                        <stop offset="48%" style="stop-color:#2ee0d0;stop-opacity:.72" />
-                        <stop offset="78%" style="stop-color:#1a1040;stop-opacity:.85" />
-                        <stop offset="100%" style="stop-color:#020106;stop-opacity:.92" />
+                    <linearGradient id="aether-adult-blade" x1="15%" y1="0%" x2="85%" y2="100%">
+                        <stop offset="0%" style="stop-color:#d4a017;stop-opacity:.85" />
+                        <stop offset="35%" style="stop-color:#2ee0d0;stop-opacity:.75" />
+                        <stop offset="70%" style="stop-color:#1a1040;stop-opacity:.92" />
+                        <stop offset="100%" style="stop-color:#020106;stop-opacity:1" />
                     </linearGradient>
-                    <linearGradient id="aether-adult-feather" x1="0%" y1="5%" x2="85%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fff4c8;stop-opacity:.95" />
-                        <stop offset="16%" style="stop-color:#d4a017;stop-opacity:.88" />
-                        <stop offset="42%" style="stop-color:#2ee0d0;stop-opacity:.78" />
-                        <stop offset="70%" style="stop-color:#1a1040;stop-opacity:.82" />
-                        <stop offset="100%" style="stop-color:#020106;stop-opacity:.94" />
+                    <linearGradient id="aether-adult-feather" x1="10%" y1="0%" x2="80%" y2="100%">
+                        <stop offset="0%" style="stop-color:#d4a017;stop-opacity:.8" />
+                        <stop offset="40%" style="stop-color:#2ee0d0;stop-opacity:.78" />
+                        <stop offset="75%" style="stop-color:#1a1040;stop-opacity:.95" />
+                        <stop offset="100%" style="stop-color:#020106;stop-opacity:1" />
                     </linearGradient>
                     <radialGradient id="aether-adult-iris" cx="40%" cy="35%" r="65%">
                         <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
@@ -40073,67 +39963,45 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <path d="M 41.52 12.43 L 40.02 17.43 L 42.72 15.93 Z" fill="#c62828" opacity="0.75"/>
                     <g class="tm-animate-wing-left">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="34" cy="44" r="5.52" fill="#d4a017" opacity="0.45" filter="url(#aether-adult-glow)"/>
-                    <circle cx="34" cy="44" r="3.22" fill="#2ee0d0" opacity="0.75" filter="url(#aether-adult-glow)"/>
-                    <circle cx="34" cy="44" r="1.61" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 34 44 Q 25.72 29.28 30.32 42.16 Q 26.64 47.22 34 45.84 Z" fill="url(#aether-adult-wing)" stroke="#d4a017" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 35.64 40.02 Q 38.48 33.62 31.96 24.75 L 30.96 24.89 Q 27.73 33.55 31.94 40.55 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 35.85 39.73 Q 38.04 31.59 29.42 21.43 L 28.32 21.71 Q 26.02 32.67 31.78 40.77 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 36.01 39.39 Q 37.35 29.94 26.48 19.46 L 25.3 19.9 Q 24.22 32.54 31.66 41.03 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 36.12 39 Q 36.64 28.93 23.84 19.45 L 22.61 20.08 Q 22.69 33.46 31.57 41.32 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 35.75 38.87 Q 34.98 29.36 22.07 21.51 L 21.02 22.2 Q 22.74 34.77 31.86 41.43 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 35.37 38.8 Q 33.88 30.5 21.73 25.01 L 20.86 25.74 Q 23.47 36.62 32.14 41.48 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 35.02 38.79 Q 33.31 32.01 22.71 29.02 L 22.01 29.75 Q 24.8 38.56 32.42 41.48 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
+                    <circle cx="34" cy="44" r="3.68" fill="#d4a017" opacity="0.45" filter="url(#aether-adult-glow)"/>
+                    <circle cx="34" cy="44" r="1.84" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 34.98 45.32 Q 34.55 37.09 27.78 34.72 Q 22.37 33.21 21.64 33.94 Q 20.91 34.67 22.66 39.84 Q 25.53 46.12 33.27 47.03 Z" fill="#3a2a62" opacity="0.85" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 33.02 36.76 Q 32.67 27.73 25.27 25.85 Q 19.35 24.79 18.53 25.67 Q 17.72 26.56 19.57 32.07 Q 22.63 38.69 31.12 38.84 Z" fill="#2ee0d0" opacity="0.85" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 30.95 29.26 Q 30.27 19.8 22.47 18.25 Q 16.23 17.46 15.41 18.44 Q 14.59 19.41 16.72 25.09 Q 20.15 31.86 29.04 31.54 Z" fill="#2ee0d0" opacity="0.85" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 28.77 22.85 Q 27.25 13.59 19.31 12.05 Q 13.01 11.27 12.28 12.23 Q 11.55 13.19 14.18 18.75 Q 18.2 25.39 27.06 25.09 Z" fill="#3a2a62" opacity="0.85" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 26.51 17.53 Q 23.87 8.94 15.96 7.19 Q 9.73 6.2 9.14 7.05 Q 8.55 7.9 11.8 13.13 Q 16.55 19.4 25.13 19.51 Z" fill="#3a2a62" opacity="0.85" stroke="#d4a017" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 32.62 41.7 Q 24.8 -14.32 21.12 -19.84 Q 5.48 -7.2 10.08 1.08 Q 7.32 46.76 6.4 51.36 Q 30.32 46.76 32.62 41.7" fill="url(#aether-adult-wing)" stroke="#d4a017" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 23.92 9.83 Q 23.52 -0.57 12.93 -13.51 L 12.03 -13.15 Q 13.15 0.84 20.61 11.17 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 24.6 10.01 Q 22.62 -2.22 8.28 -16.04 L 7.28 -15.49 Q 10.64 0.89 20.9 12.05 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 25.16 10.16 Q 21.24 -3.35 3.22 -17.01 L 2.17 -16.26 Q 8.2 1.74 21.28 12.95 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 25.57 10.34 Q 19.61 -3.63 -1.47 -15.96 L -2.49 -15.02 Q 6.32 3.49 21.78 13.82 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 25.82 10.61 Q 18.04 -2.88 -4.95 -12.86 L -5.87 -11.77 Q 5.38 6 22.4 14.62 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 25.96 11.03 Q 16.85 -1.12 -6.56 -8.08 L -7.33 -6.93 Q 5.63 8.96 23.11 15.32 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 26.02 11.62 Q 16.31 1.45 -5.99 -2.35 L -6.57 -1.19 Q 7.09 11.98 23.87 15.88 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 26.08 12.36 Q 16.53 4.47 -3.37 3.54 L -3.76 4.61 Q 9.56 14.71 24.64 16.33 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 26.18 13.21 Q 17.43 7.58 0.75 8.83 L 0.53 9.77 Q 12.64 16.88 25.37 16.7 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <circle cx="32.6" cy="5.05" r="0.42" fill="#d4a017" opacity="0.76"/>
-                    <circle cx="17.44" cy="-0.87" r="0.27" fill="#d4a017" opacity="0.63"/>
-                    <circle cx="19.82" cy="1.49" r="0.48" fill="#d4a017" opacity="0.78"/>
-                    <circle cx="8.88" cy="0.41" r="0.81" fill="#d4a017" opacity="0.49"/>
-                    <circle cx="24.33" cy="8.26" r="0.87" fill="#d4a017" opacity="0.94"/>
-                    <circle cx="16.21" cy="12.78" r="0.47" fill="#d4a017" opacity="0.49"/>
-                    <circle cx="9.25" cy="10.67" r="0.65" fill="#d4a017" opacity="0.55"/>
-                    <circle cx="4.75" cy="-3.18" r="0.58" fill="#2ee0d0" opacity="0.59"/>
-                    <circle cx="-3.77" cy="6.35" r="0.37" fill="#2ee0d0" opacity="0.36"/>
-                    <circle cx="7.18" cy="5.37" r="0.31" fill="#2ee0d0" opacity="0.59"/>
-                    <circle cx="9.6" cy="0.35" r="0.58" fill="#2ee0d0" opacity="0.44"/>
-                    <circle cx="4.42" cy="-6.95" r="0.55" fill="#2ee0d0" opacity="0.75"/>
-                    <circle cx="12.17" cy="-6.74" r="0.29" fill="#2ee0d0" opacity="0.38"/>
-                    <circle cx="15.34" cy="16.52" r="0.28" fill="#ffffff" opacity="0.58"/>
-                    <circle cx="19.92" cy="13.73" r="0.43" fill="#ffffff" opacity="0.41"/>
-                    <circle cx="14.15" cy="7.36" r="0.27" fill="#ffffff" opacity="0.71"/>
-                    <circle cx="15.81" cy="9.96" r="0.66" fill="#ffffff" opacity="0.71"/>
-                    <circle cx="-2.11" cy="-10.51" r="0.26" fill="#fff4c8" opacity="0.9"/>
-                    <circle cx="-3.93" cy="-7.39" r="0.58" fill="#fff4c8" opacity="0.4"/>
-                    <circle cx="-3.06" cy="-7.66" r="0.43" fill="#fff4c8" opacity="0.64"/>
-                    <path class="tm-aether-wing-crack" d="M 26.64 38.48 Q 19.28 12.2 6.4 1.08" fill="none" stroke="#d4a017" stroke-width="0.5" stroke-dasharray="1.2 1.3" opacity="0.55"/>
-                    <path class="tm-aether-wing-vein" d="M 34 44 Q 21.12 5.76 5.48 1.08" fill="none" stroke="#d4a017" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 34 44 C 27.1 2.7 19.74 -2.82 15.14 4.08 S 5.48 21.18 0.88 23.48 Q 4.56 56.88 31.7 49.52 Q 31.7 46.3 34 44" fill="url(#aether-adult-wing)" stroke="#d4a017" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 18.06 6.43 Q 12.96 -2.45 3.54 -3.19 Q -3.77 -3.35 -4.24 -2.35 Q -4.71 -1.35 0.28 3.82 Q 7.21 9.89 16.97 8.76 Z" fill="#3a2a62" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 15.01 11.02 Q 8.82 1.3 -1.86 0.76 Q -10.13 0.79 -10.61 1.92 Q -11.09 3.05 -5.21 8.65 Q 2.92 15.2 13.89 13.65 Z" fill="#2ee0d0" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 11.93 15.05 Q 4.81 4.81 -6.8 4.57 Q -15.76 4.88 -16.23 6.11 Q -16.7 7.34 -10.09 13.16 Q -1 19.93 10.84 17.91 Z" fill="#1a1040" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 8.82 18.52 Q 1.11 8.28 -10.82 8.44 Q -20.03 9.06 -20.47 10.34 Q -20.9 11.61 -13.89 17.34 Q -4.29 23.97 7.8 21.49 Z" fill="#1a1040" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 5.69 21.47 Q -2.14 11.76 -13.73 12.33 Q -22.65 13.27 -23.03 14.52 Q -23.42 15.78 -16.42 21.12 Q -6.88 27.24 4.79 24.4 Z" fill="#1a1040" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 2.53 23.88 Q -4.96 15.11 -15.61 16.06 Q -23.79 17.25 -24.11 18.44 Q -24.43 19.62 -17.82 24.35 Q -8.86 29.71 1.79 26.64 Z" fill="#2ee0d0" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M -0.63 25.73 Q -7.46 18.11 -16.83 19.34 Q -24.02 20.7 -24.27 21.78 Q -24.52 22.85 -18.57 26.87 Q -10.52 31.37 -1.21 28.24 Z" fill="#1a1040" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <circle cx="26.21" cy="7.63" r="0.37" fill="#d4a017" opacity="0.76"/>
+                    <circle cx="17.44" cy="4.68" r="0.27" fill="#d4a017" opacity="0.63"/>
+                    <circle cx="18.82" cy="5.85" r="0.41" fill="#d4a017" opacity="0.78"/>
+                    <circle cx="12.48" cy="5.31" r="0.64" fill="#d4a017" opacity="0.49"/>
+                    <circle cx="0.86" cy="22.58" r="0.47" fill="#2ee0d0" opacity="0.59"/>
+                    <circle cx="-4.15" cy="26.97" r="0.33" fill="#2ee0d0" opacity="0.36"/>
+                    <circle cx="2.28" cy="26.52" r="0.29" fill="#2ee0d0" opacity="0.59"/>
+                    <path class="tm-aether-wing-crack" d="M 29.4 41.24 Q 17.44 4.08 2.26 23.48" fill="none" stroke="#d4a017" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 34 44 Q 17.44 4.08 0.88 23.48" fill="none" stroke="#d4a017" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 10.08 1.08 Q 15.6 -13.4 -11.54 -6.18 Q -17.06 6.7 -14.3 14.98 Q 1.8 44 6.4 4.76 Z" fill="url(#aether-adult-wing)" stroke="#d4a017" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 6.14 -1.58 Q 0.83 -11.39 -13.74 -22.06 L -14.28 -21.58 Q -6.67 -8.47 4.17 0.19 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 6.74 -1.3 Q -1.03 -12.59 -20.14 -23.95 L -20.71 -23.31 Q -9.7 -8.27 4.61 1.06 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 7.27 -1.01 Q -3.11 -13.14 -26.54 -24.14 L -27.12 -23.35 Q -12.54 -7.26 5.11 1.92 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 7.71 -0.68 Q -5.08 -12.83 -32.04 -22.37 L -32.59 -21.45 Q -14.74 -5.42 5.68 2.75 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 8.06 -0.27 Q -6.6 -11.6 -35.78 -18.75 L -36.26 -17.72 Q -15.89 -2.88 6.31 3.51 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 8.35 0.26 Q -7.38 -9.54 -37.13 -13.71 L -37.5 -12.65 Q -15.74 0.07 6.99 4.19 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 8.61 0.91 Q -7.22 -6.88 -35.8 -7.96 L -36.04 -6.91 Q -14.23 3.07 7.69 4.78 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 8.87 1.67 Q -6.08 -3.94 -31.91 -2.25 L -32.04 -1.28 Q -11.5 5.77 8.39 5.28 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 9.16 2.53 Q -4.08 -1.02 -25.99 2.73 L -26.01 3.58 Q -7.87 7.89 9.07 5.7 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 9.51 3.44 Q -1.48 1.58 -18.86 6.5 L -18.81 7.22 Q -3.8 9.3 9.7 6.09 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path class="tm-aether-wing-tatter" d="M -1.88 49.52 Q -6.48 54.58 -0.04 52.28" fill="#d4a017" opacity="0.45"/>
-                    <path class="tm-aether-wing-tatter" d="M -14.3 9.46 Q -21.2 14.06 -12.46 12.22" fill="#2ee0d0" opacity="0.5"/>
-                    <path class="tm-aether-wing-vein" d="M 5.48 1.08 Q -15.94 -9.68 -37.35 -13.08" fill="none" stroke="#2ee0d0" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-37.35" cy="-13.08" rx="2.07" ry="1.29" fill="#d4a017" opacity="0.95" filter="url(#aether-adult-glow)"/>
-                    <ellipse cx="-37.65" cy="-13.23" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-membrane" d="M 0.88 23.48 C -10.62 16.58 -12.92 35.4 -17.52 40.92 Q -13.84 50.12 -1.42 33.6 Q 1.8 27.16 0.88 23.48" fill="url(#aether-adult-wing)" stroke="#d4a017" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 1.01 21.97 Q -7.76 15.11 -17.89 17.65 Q -25.6 20.02 -25.7 21.15 Q -25.8 22.29 -18.59 25.59 Q -8.98 29.09 0.78 24.61 Z" fill="#2ee0d0" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 0.75 22.82 Q -7.95 15.23 -18.88 16.59 Q -27.23 18.04 -27.43 19.13 Q -27.63 20.22 -20.28 24.19 Q -10.42 28.62 0.29 25.35 Z" fill="#d4a017" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 0.48 23.69 Q -8.09 15.32 -19.68 15.36 Q -28.57 15.8 -28.86 16.83 Q -29.15 17.86 -21.73 22.57 Q -11.7 28.01 -0.2 26.09 Z" fill="#1a1040" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 0.2 24.56 Q -8.17 15.38 -20.26 14 Q -29.56 13.34 -29.94 14.3 Q -30.31 15.26 -22.89 20.75 Q -12.8 27.27 -0.68 26.81 Z" fill="#d4a017" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M -0.1 25.44 Q -8.18 15.4 -20.6 12.51 Q -30.18 10.67 -30.63 11.57 Q -31.08 12.46 -23.75 18.77 Q -13.72 26.43 -1.15 27.53 Z" fill="#2ee0d0" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M -0.41 26.33 Q -8.1 15.41 -20.68 10.93 Q -30.4 7.87 -30.92 8.68 Q -31.43 9.5 -24.28 16.66 Q -14.44 25.5 -1.61 28.24 Z" fill="#2ee0d0" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M -0.73 27.23 Q -7.94 15.41 -20.48 9.29 Q -30.19 4.95 -30.76 5.69 Q -31.33 6.43 -24.45 14.46 Q -14.95 24.51 -2.05 28.95 Z" fill="#2ee0d0" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M -1.06 28.13 Q -7.69 15.4 -19.98 7.62 Q -29.53 1.99 -30.14 2.65 Q -30.75 3.3 -24.27 12.21 Q -15.24 23.49 -2.49 29.66 Z" fill="#2ee0d0" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path class="tm-aether-wing-tatter" d="M 4.56 55.04 Q 0.88 59.64 6.86 57.8" fill="#d4a017" opacity="0.35"/>
+                    <path class="tm-aether-wing-tatter" d="M -27.84 4.03 Q -31.52 6.79 -26.92 5.87" fill="#2ee0d0" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 0.88 23.48 Q -14.63 10.76 -30.14 2.65" fill="none" stroke="#2ee0d0" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-30.14" cy="2.65" rx="1.47" ry="0.92" fill="#d4a017" opacity="0.85" filter="url(#aether-adult-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -40141,67 +40009,45 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <g class="tm-animate-wing-right">
                     <g transform="translate(100,0) scale(-1,1)">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="34" cy="44" r="5.52" fill="#d4a017" opacity="0.45" filter="url(#aether-adult-glow)"/>
-                    <circle cx="34" cy="44" r="3.22" fill="#2ee0d0" opacity="0.75" filter="url(#aether-adult-glow)"/>
-                    <circle cx="34" cy="44" r="1.61" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 34 44 Q 25.72 29.28 30.32 42.16 Q 26.64 47.22 34 45.84 Z" fill="url(#aether-adult-wing)" stroke="#d4a017" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 35.64 40.02 Q 38.48 33.62 31.96 24.75 L 30.96 24.89 Q 27.73 33.55 31.94 40.55 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 35.85 39.73 Q 38.04 31.59 29.42 21.43 L 28.32 21.71 Q 26.02 32.67 31.78 40.77 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 36.01 39.39 Q 37.35 29.94 26.48 19.46 L 25.3 19.9 Q 24.22 32.54 31.66 41.03 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 36.12 39 Q 36.64 28.93 23.84 19.45 L 22.61 20.08 Q 22.69 33.46 31.57 41.32 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 35.75 38.87 Q 34.98 29.36 22.07 21.51 L 21.02 22.2 Q 22.74 34.77 31.86 41.43 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 35.37 38.8 Q 33.88 30.5 21.73 25.01 L 20.86 25.74 Q 23.47 36.62 32.14 41.48 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 35.02 38.79 Q 33.31 32.01 22.71 29.02 L 22.01 29.75 Q 24.8 38.56 32.42 41.48 Z" fill="url(#aether-adult-feather)" opacity="0.92" stroke="#d4a017" stroke-width="0.55"/>
+                    <circle cx="34" cy="44" r="3.68" fill="#d4a017" opacity="0.45" filter="url(#aether-adult-glow)"/>
+                    <circle cx="34" cy="44" r="1.84" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 34.98 45.32 Q 34.55 37.09 27.78 34.72 Q 22.37 33.21 21.64 33.94 Q 20.91 34.67 22.66 39.84 Q 25.53 46.12 33.27 47.03 Z" fill="#2ee0d0" opacity="0.85" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 33.02 36.76 Q 32.67 27.73 25.27 25.85 Q 19.35 24.79 18.53 25.67 Q 17.72 26.56 19.57 32.07 Q 22.63 38.69 31.12 38.84 Z" fill="#2ee0d0" opacity="0.85" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 30.95 29.26 Q 30.27 19.8 22.47 18.25 Q 16.23 17.46 15.41 18.44 Q 14.59 19.41 16.72 25.09 Q 20.15 31.86 29.04 31.54 Z" fill="#3a2a62" opacity="0.85" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 28.77 22.85 Q 27.25 13.59 19.31 12.05 Q 13.01 11.27 12.28 12.23 Q 11.55 13.19 14.18 18.75 Q 18.2 25.39 27.06 25.09 Z" fill="#3a2a62" opacity="0.85" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 26.51 17.53 Q 23.87 8.94 15.96 7.19 Q 9.73 6.2 9.14 7.05 Q 8.55 7.9 11.8 13.13 Q 16.55 19.4 25.13 19.51 Z" fill="#3a2a62" opacity="0.85" stroke="#d4a017" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 32.62 41.7 Q 24.8 -14.32 21.12 -19.84 Q 5.48 -7.2 10.08 1.08 Q 7.32 46.76 6.4 51.36 Q 30.32 46.76 32.62 41.7" fill="url(#aether-adult-wing)" stroke="#d4a017" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 23.92 9.83 Q 23.52 -0.57 12.93 -13.51 L 12.03 -13.15 Q 13.15 0.84 20.61 11.17 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 24.6 10.01 Q 22.62 -2.22 8.28 -16.04 L 7.28 -15.49 Q 10.64 0.89 20.9 12.05 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 25.16 10.16 Q 21.24 -3.35 3.22 -17.01 L 2.17 -16.26 Q 8.2 1.74 21.28 12.95 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 25.57 10.34 Q 19.61 -3.63 -1.47 -15.96 L -2.49 -15.02 Q 6.32 3.49 21.78 13.82 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 25.82 10.61 Q 18.04 -2.88 -4.95 -12.86 L -5.87 -11.77 Q 5.38 6 22.4 14.62 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 25.96 11.03 Q 16.85 -1.12 -6.56 -8.08 L -7.33 -6.93 Q 5.63 8.96 23.11 15.32 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 26.02 11.62 Q 16.31 1.45 -5.99 -2.35 L -6.57 -1.19 Q 7.09 11.98 23.87 15.88 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 26.08 12.36 Q 16.53 4.47 -3.37 3.54 L -3.76 4.61 Q 9.56 14.71 24.64 16.33 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 26.18 13.21 Q 17.43 7.58 0.75 8.83 L 0.53 9.77 Q 12.64 16.88 25.37 16.7 Z" fill="url(#aether-adult-feather)" opacity="0.9" stroke="#d4a017" stroke-width="0.55"/>
-                    <circle cx="34.2" cy="7.08" r="0.74" fill="#d4a017" opacity="0.36"/>
-                    <circle cx="0.81" cy="5.92" r="0.79" fill="#d4a017" opacity="0.84"/>
-                    <circle cx="1.36" cy="3.03" r="0.47" fill="#d4a017" opacity="0.61"/>
-                    <circle cx="8.74" cy="9.92" r="0.57" fill="#d4a017" opacity="0.39"/>
-                    <circle cx="19.01" cy="6.21" r="0.77" fill="#d4a017" opacity="0.39"/>
-                    <circle cx="9.73" cy="10.57" r="0.66" fill="#d4a017" opacity="0.45"/>
-                    <circle cx="13.16" cy="8.42" r="0.28" fill="#d4a017" opacity="0.82"/>
-                    <circle cx="9.19" cy="5.57" r="0.42" fill="#2ee0d0" opacity="0.55"/>
-                    <circle cx="1.26" cy="-9.9" r="0.26" fill="#2ee0d0" opacity="0.68"/>
-                    <circle cx="-12.93" cy="-3.62" r="0.69" fill="#2ee0d0" opacity="0.54"/>
-                    <circle cx="6.73" cy="-8.69" r="0.48" fill="#2ee0d0" opacity="0.43"/>
-                    <circle cx="-7.75" cy="0.23" r="0.78" fill="#2ee0d0" opacity="0.74"/>
-                    <circle cx="-2.48" cy="5.62" r="0.51" fill="#2ee0d0" opacity="0.67"/>
-                    <circle cx="5.88" cy="11.35" r="0.44" fill="#ffffff" opacity="0.82"/>
-                    <circle cx="16.17" cy="5.93" r="0.27" fill="#ffffff" opacity="0.79"/>
-                    <circle cx="7.51" cy="12.76" r="0.25" fill="#ffffff" opacity="0.79"/>
-                    <circle cx="8" cy="18.02" r="0.37" fill="#ffffff" opacity="0.69"/>
-                    <circle cx="4.51" cy="-8.58" r="0.5" fill="#fff4c8" opacity="0.53"/>
-                    <circle cx="-1.96" cy="-3.53" r="0.42" fill="#fff4c8" opacity="0.9"/>
-                    <circle cx="-1.55" cy="-9.45" r="0.33" fill="#fff4c8" opacity="0.69"/>
-                    <path class="tm-aether-wing-crack" d="M 26.64 38.48 Q 19.28 12.2 6.4 1.08" fill="none" stroke="#d4a017" stroke-width="0.5" stroke-dasharray="1.2 1.3" opacity="0.55"/>
-                    <path class="tm-aether-wing-vein" d="M 34 44 Q 21.12 5.76 5.48 1.08" fill="none" stroke="#d4a017" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 34 44 C 27.1 2.7 19.74 -2.82 15.14 4.08 S 5.48 21.18 0.88 23.48 Q 4.56 56.88 31.7 49.52 Q 31.7 46.3 34 44" fill="url(#aether-adult-wing)" stroke="#d4a017" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 18.06 6.43 Q 12.96 -2.45 3.54 -3.19 Q -3.77 -3.35 -4.24 -2.35 Q -4.71 -1.35 0.28 3.82 Q 7.21 9.89 16.97 8.76 Z" fill="#2ee0d0" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 15.01 11.02 Q 8.82 1.3 -1.86 0.76 Q -10.13 0.79 -10.61 1.92 Q -11.09 3.05 -5.21 8.65 Q 2.92 15.2 13.89 13.65 Z" fill="#1a1040" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 11.93 15.05 Q 4.81 4.81 -6.8 4.57 Q -15.76 4.88 -16.23 6.11 Q -16.7 7.34 -10.09 13.16 Q -1 19.93 10.84 17.91 Z" fill="#1a1040" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 8.82 18.52 Q 1.11 8.28 -10.82 8.44 Q -20.03 9.06 -20.47 10.34 Q -20.9 11.61 -13.89 17.34 Q -4.29 23.97 7.8 21.49 Z" fill="#1a1040" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 5.69 21.47 Q -2.14 11.76 -13.73 12.33 Q -22.65 13.27 -23.03 14.52 Q -23.42 15.78 -16.42 21.12 Q -6.88 27.24 4.79 24.4 Z" fill="#2ee0d0" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 2.53 23.88 Q -4.96 15.11 -15.61 16.06 Q -23.79 17.25 -24.11 18.44 Q -24.43 19.62 -17.82 24.35 Q -8.86 29.71 1.79 26.64 Z" fill="#1a1040" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M -0.63 25.73 Q -7.46 18.11 -16.83 19.34 Q -24.02 20.7 -24.27 21.78 Q -24.52 22.85 -18.57 26.87 Q -10.52 31.37 -1.21 28.24 Z" fill="#3a2a62" opacity="0.82" stroke="#d4a017" stroke-width="0.4"/>
+                    <circle cx="27.14" cy="8.65" r="0.59" fill="#d4a017" opacity="0.36"/>
+                    <circle cx="7.81" cy="8.07" r="0.63" fill="#d4a017" opacity="0.84"/>
+                    <circle cx="8.13" cy="6.63" r="0.4" fill="#d4a017" opacity="0.61"/>
+                    <circle cx="12.4" cy="10.07" r="0.47" fill="#d4a017" opacity="0.39"/>
+                    <circle cx="3.47" cy="26.62" r="0.37" fill="#2ee0d0" opacity="0.55"/>
+                    <circle cx="-1.2" cy="19.47" r="0.26" fill="#2ee0d0" opacity="0.68"/>
+                    <circle cx="-9.54" cy="22.37" r="0.54" fill="#2ee0d0" opacity="0.54"/>
+                    <path class="tm-aether-wing-crack" d="M 29.4 41.24 Q 17.44 4.08 2.26 23.48" fill="none" stroke="#d4a017" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 34 44 Q 17.44 4.08 0.88 23.48" fill="none" stroke="#d4a017" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 10.08 1.08 Q 15.6 -13.4 -11.54 -6.18 Q -17.06 6.7 -14.3 14.98 Q 1.8 44 6.4 4.76 Z" fill="url(#aether-adult-wing)" stroke="#d4a017" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 6.14 -1.58 Q 0.83 -11.39 -13.74 -22.06 L -14.28 -21.58 Q -6.67 -8.47 4.17 0.19 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 6.74 -1.3 Q -1.03 -12.59 -20.14 -23.95 L -20.71 -23.31 Q -9.7 -8.27 4.61 1.06 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 7.27 -1.01 Q -3.11 -13.14 -26.54 -24.14 L -27.12 -23.35 Q -12.54 -7.26 5.11 1.92 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 7.71 -0.68 Q -5.08 -12.83 -32.04 -22.37 L -32.59 -21.45 Q -14.74 -5.42 5.68 2.75 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 8.06 -0.27 Q -6.6 -11.6 -35.78 -18.75 L -36.26 -17.72 Q -15.89 -2.88 6.31 3.51 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 8.35 0.26 Q -7.38 -9.54 -37.13 -13.71 L -37.5 -12.65 Q -15.74 0.07 6.99 4.19 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 8.61 0.91 Q -7.22 -6.88 -35.8 -7.96 L -36.04 -6.91 Q -14.23 3.07 7.69 4.78 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 8.87 1.67 Q -6.08 -3.94 -31.91 -2.25 L -32.04 -1.28 Q -11.5 5.77 8.39 5.28 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 9.16 2.53 Q -4.08 -1.02 -25.99 2.73 L -26.01 3.58 Q -7.87 7.89 9.07 5.7 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path d="M 9.51 3.44 Q -1.48 1.58 -18.86 6.5 L -18.81 7.22 Q -3.8 9.3 9.7 6.09 Z" fill="url(#aether-adult-blade)" opacity="0.93" stroke="#d4a017" stroke-width="0.55"/>
-                    <path class="tm-aether-wing-tatter" d="M -1.88 49.52 Q -6.48 54.58 -0.04 52.28" fill="#d4a017" opacity="0.45"/>
-                    <path class="tm-aether-wing-tatter" d="M -14.3 9.46 Q -21.2 14.06 -12.46 12.22" fill="#2ee0d0" opacity="0.5"/>
-                    <path class="tm-aether-wing-vein" d="M 5.48 1.08 Q -15.94 -9.68 -37.35 -13.08" fill="none" stroke="#2ee0d0" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-37.35" cy="-13.08" rx="2.07" ry="1.29" fill="#d4a017" opacity="0.95" filter="url(#aether-adult-glow)"/>
-                    <ellipse cx="-37.65" cy="-13.23" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-membrane" d="M 0.88 23.48 C -10.62 16.58 -12.92 35.4 -17.52 40.92 Q -13.84 50.12 -1.42 33.6 Q 1.8 27.16 0.88 23.48" fill="url(#aether-adult-wing)" stroke="#d4a017" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 1.01 21.97 Q -7.76 15.11 -17.89 17.65 Q -25.6 20.02 -25.7 21.15 Q -25.8 22.29 -18.59 25.59 Q -8.98 29.09 0.78 24.61 Z" fill="#d4a017" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 0.75 22.82 Q -7.95 15.23 -18.88 16.59 Q -27.23 18.04 -27.43 19.13 Q -27.63 20.22 -20.28 24.19 Q -10.42 28.62 0.29 25.35 Z" fill="#1a1040" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 0.48 23.69 Q -8.09 15.32 -19.68 15.36 Q -28.57 15.8 -28.86 16.83 Q -29.15 17.86 -21.73 22.57 Q -11.7 28.01 -0.2 26.09 Z" fill="#d4a017" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M 0.2 24.56 Q -8.17 15.38 -20.26 14 Q -29.56 13.34 -29.94 14.3 Q -30.31 15.26 -22.89 20.75 Q -12.8 27.27 -0.68 26.81 Z" fill="#2ee0d0" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M -0.1 25.44 Q -8.18 15.4 -20.6 12.51 Q -30.18 10.67 -30.63 11.57 Q -31.08 12.46 -23.75 18.77 Q -13.72 26.43 -1.15 27.53 Z" fill="#2ee0d0" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M -0.41 26.33 Q -8.1 15.41 -20.68 10.93 Q -30.4 7.87 -30.92 8.68 Q -31.43 9.5 -24.28 16.66 Q -14.44 25.5 -1.61 28.24 Z" fill="#2ee0d0" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M -0.73 27.23 Q -7.94 15.41 -20.48 9.29 Q -30.19 4.95 -30.76 5.69 Q -31.33 6.43 -24.45 14.46 Q -14.95 24.51 -2.05 28.95 Z" fill="#2ee0d0" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path d="M -1.06 28.13 Q -7.69 15.4 -19.98 7.62 Q -29.53 1.99 -30.14 2.65 Q -30.75 3.3 -24.27 12.21 Q -15.24 23.49 -2.49 29.66 Z" fill="#2ee0d0" opacity="0.86" stroke="#d4a017" stroke-width="0.4"/>
+                    <path class="tm-aether-wing-tatter" d="M 4.56 55.04 Q 0.88 59.64 6.86 57.8" fill="#d4a017" opacity="0.35"/>
+                    <path class="tm-aether-wing-tatter" d="M -27.84 4.03 Q -31.52 6.79 -26.92 5.87" fill="#2ee0d0" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 0.88 23.48 Q -14.63 10.76 -30.14 2.65" fill="none" stroke="#2ee0d0" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-30.14" cy="2.65" rx="1.47" ry="0.92" fill="#d4a017" opacity="0.85" filter="url(#aether-adult-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -40346,19 +40192,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <stop offset="62%" style="stop-color:#160e28;stop-opacity:.72" />
                         <stop offset="100%" style="stop-color:#020106;stop-opacity:.88" />
                     </linearGradient>
-                    <linearGradient id="aether-mid-blade" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fff8e0;stop-opacity:.95" />
-                        <stop offset="18%" style="stop-color:#8a7020;stop-opacity:.9" />
-                        <stop offset="48%" style="stop-color:#2bb8aa;stop-opacity:.72" />
-                        <stop offset="78%" style="stop-color:#160e28;stop-opacity:.85" />
-                        <stop offset="100%" style="stop-color:#020106;stop-opacity:.92" />
+                    <linearGradient id="aether-mid-blade" x1="15%" y1="0%" x2="85%" y2="100%">
+                        <stop offset="0%" style="stop-color:#8a7020;stop-opacity:.85" />
+                        <stop offset="35%" style="stop-color:#2bb8aa;stop-opacity:.75" />
+                        <stop offset="70%" style="stop-color:#160e28;stop-opacity:.92" />
+                        <stop offset="100%" style="stop-color:#020106;stop-opacity:1" />
                     </linearGradient>
-                    <linearGradient id="aether-mid-feather" x1="0%" y1="5%" x2="85%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fff4c8;stop-opacity:.95" />
-                        <stop offset="16%" style="stop-color:#8a7020;stop-opacity:.88" />
-                        <stop offset="42%" style="stop-color:#2bb8aa;stop-opacity:.78" />
-                        <stop offset="70%" style="stop-color:#160e28;stop-opacity:.82" />
-                        <stop offset="100%" style="stop-color:#020106;stop-opacity:.94" />
+                    <linearGradient id="aether-mid-feather" x1="10%" y1="0%" x2="80%" y2="100%">
+                        <stop offset="0%" style="stop-color:#8a7020;stop-opacity:.8" />
+                        <stop offset="40%" style="stop-color:#2bb8aa;stop-opacity:.78" />
+                        <stop offset="75%" style="stop-color:#160e28;stop-opacity:.95" />
+                        <stop offset="100%" style="stop-color:#020106;stop-opacity:1" />
                     </linearGradient>
                     <radialGradient id="aether-mid-iris" cx="40%" cy="35%" r="65%">
                         <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
@@ -40441,54 +40285,37 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-aether-ghost-wing-left" opacity="0.28" transform="translate(-5 4) scale(1.12)">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="35" cy="44" r="3.84" fill="#8a7020" opacity="0.45" filter="url(#aether-mid-glow)"/>
-                    <circle cx="35" cy="44" r="2.24" fill="#2bb8aa" opacity="0.75" filter="url(#aether-mid-glow)"/>
-                    <circle cx="35" cy="44" r="1.12" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 35 44 Q 29.24 33.76 32.44 42.72 Q 29.88 46.24 35 45.28 Z" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 36.14 41.23 Q 38.11 36.78 33.58 30.61 L 32.89 30.71 Q 30.64 36.73 33.56 41.6 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.35 40.91 Q 37.59 34.75 30.8 27.46 L 30 27.71 Q 28.82 35.99 33.41 41.84 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.48 40.52 Q 36.84 33.52 27.93 26.92 L 27.07 27.36 Q 27.13 36.67 33.31 42.14 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.08 40.4 Q 35.25 34.16 26.46 29.49 L 25.79 29.98 Q 27.36 38.2 33.61 42.23 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 35.71 40.38 Q 34.52 35.66 27.15 33.58 L 26.66 34.08 Q 28.6 40.22 33.9 42.25 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
+                    <circle cx="35" cy="44" r="2.56" fill="#8a7020" opacity="0.45" filter="url(#aether-mid-glow)"/>
+                    <circle cx="35" cy="44" r="1.28" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 35.68 44.92 Q 35.38 39.2 30.68 37.54 Q 26.91 36.49 26.4 37 Q 25.89 37.51 27.11 41.11 Q 29.11 45.48 34.49 46.11 Z" fill="#2bb8aa" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 33.85 38.1 Q 33.57 31.67 28.31 30.46 Q 24.09 29.8 23.52 30.45 Q 22.94 31.1 24.28 34.99 Q 26.47 39.65 32.5 39.61 Z" fill="#160e28" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 31.88 32.43 Q 31.05 25.89 25.54 24.84 Q 21.15 24.32 20.62 25 Q 20.08 25.68 21.78 29.59 Q 24.43 34.26 30.62 34.01 Z" fill="#160e28" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 29.79 27.93 Q 27.96 21.96 22.45 20.74 Q 18.12 20.05 17.71 20.64 Q 17.29 21.23 19.56 24.87 Q 22.86 29.24 28.83 29.31 Z" fill="#160e28" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 34.04 42.4 Q 28.6 6.56 26.04 2.72 Q 15.16 11.2 18.36 16.96 Q 16.44 45.92 15.8 49.12 Q 32.44 45.92 34.04 42.4" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 27.99 21.95 Q 27.71 14.72 20.34 5.71 L 19.72 5.97 Q 20.5 15.7 25.68 22.88 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 28.6 22.11 Q 26.79 13.25 15.94 3.59 L 15.23 4.02 Q 18.16 15.86 25.97 23.7 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 29.05 22.26 Q 25.38 12.58 11.35 3.6 L 10.62 4.22 Q 16.12 17.07 26.38 24.53 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 29.31 22.5 Q 23.9 13.11 7.91 6.17 L 7.26 6.92 Q 15.09 19.28 26.93 25.29 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 29.42 22.91 Q 22.89 14.88 6.75 10.77 L 6.25 11.58 Q 15.51 22.05 27.6 25.91 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 29.47 23.53 Q 22.74 17.5 8.26 16.23 L 7.94 17 Q 17.36 24.75 28.31 26.38 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 29.56 24.3 Q 23.47 20.38 11.87 21.26 L 11.72 21.91 Q 20.14 26.86 29 26.73 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <circle cx="29.43" cy="21.51" r="0.32" fill="#8a7020" opacity="0.8"/>
-                    <circle cx="21.56" cy="24.14" r="0.76" fill="#8a7020" opacity="0.53"/>
-                    <circle cx="15.3" cy="17.73" r="0.71" fill="#8a7020" opacity="0.66"/>
-                    <circle cx="15.5" cy="24.84" r="0.73" fill="#8a7020" opacity="0.86"/>
-                    <circle cx="31.35" cy="18.34" r="0.34" fill="#8a7020" opacity="0.91"/>
-                    <circle cx="12.57" cy="13.43" r="0.53" fill="#2bb8aa" opacity="0.58"/>
-                    <circle cx="15.86" cy="11.84" r="0.5" fill="#2bb8aa" opacity="0.42"/>
-                    <circle cx="14" cy="11.04" r="0.49" fill="#2bb8aa" opacity="0.78"/>
-                    <circle cx="13.06" cy="11.41" r="0.36" fill="#2bb8aa" opacity="0.39"/>
-                    <circle cx="20.27" cy="21.05" r="0.51" fill="#ffffff" opacity="0.36"/>
-                    <circle cx="19.88" cy="20.62" r="0.39" fill="#ffffff" opacity="0.64"/>
-                    <circle cx="13.47" cy="24.22" r="0.55" fill="#ffffff" opacity="0.88"/>
-                    <circle cx="7.95" cy="11.29" r="0.25" fill="#fff4c8" opacity="0.52"/>
-                    <circle cx="8.25" cy="9.02" r="0.39" fill="#fff4c8" opacity="0.68"/>
+                    <path class="tm-aether-wing-membrane" d="M 35 44 C 30.2 18.4 25.08 14.56 21.88 19.36 S 15.16 30.16 11.96 31.76 Q 14.52 52.96 33.4 47.84 Q 33.4 45.6 35 44" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 23.91 20.99 Q 20.37 14.82 13.81 14.3 Q 8.72 14.19 8.4 14.89 Q 8.07 15.58 11.54 19.18 Q 16.36 23.4 23.16 22.62 Z" fill="#2bb8aa" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 20.72 25.36 Q 16.07 18.38 8.27 18.1 Q 2.25 18.22 1.91 19.04 Q 1.58 19.86 5.95 23.86 Q 11.97 28.52 19.95 27.28 Z" fill="#2c203e" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 17.49 28.86 Q 12.12 21.73 3.82 21.84 Q -2.58 22.28 -2.89 23.16 Q -3.19 24.05 1.69 28.04 Q 8.36 32.65 16.78 30.93 Z" fill="#2c203e" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 14.21 31.52 Q 8.85 25.07 1.07 25.6 Q -4.92 26.35 -5.16 27.2 Q -5.4 28.05 -0.64 31.57 Q 5.83 35.58 13.64 33.51 Z" fill="#160e28" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 10.91 33.32 Q 6.16 28.02 -0.36 28.88 Q -5.36 29.83 -5.53 30.58 Q -5.71 31.33 -1.57 34.12 Q 4.03 37.25 10.51 35.07 Z" fill="#2bb8aa" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <circle cx="26.92" cy="23.27" r="0.3" fill="#8a7020" opacity="0.8"/>
+                    <circle cx="22.37" cy="24.59" r="0.6" fill="#8a7020" opacity="0.53"/>
+                    <circle cx="18.74" cy="21.39" r="0.57" fill="#8a7020" opacity="0.66"/>
+                    <circle cx="10.72" cy="30.87" r="0.44" fill="#2bb8aa" opacity="0.58"/>
+                    <circle cx="12.65" cy="30.14" r="0.42" fill="#2bb8aa" opacity="0.42"/>
 
-                    <path class="tm-aether-wing-vein" d="M 35 44 Q 26.04 19.12 15.16 16.96" fill="none" stroke="#8a7020" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-vein" d="M 35 44 Q 23.48 19.36 11.96 31.76" fill="none" stroke="#8a7020" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 18.36 16.96 Q 22.2 7.2 3.32 11.44 Q -0.52 20.4 1.4 26.16 Q 12.6 44 15.8 19.52 Z" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 15.62 15.11 Q 11.93 8.28 1.79 0.86 L 1.42 1.2 Q 6.71 10.32 14.25 16.34 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 16.15 15.36 Q 10.22 7.29 -3.96 -0.62 L -4.37 -0.15 Q 4.01 10.59 14.65 17.12 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 16.59 15.63 Q 8.38 7.11 -9.42 -0.05 L -9.81 0.56 Q 1.68 11.82 15.12 17.88 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 16.92 15.98 Q 6.88 7.98 -13.27 2.74 L -13.6 3.44 Q 0.36 13.93 15.67 18.58 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 17.18 16.45 Q 6.19 9.82 -14.46 7.22 L -14.71 7.96 Q 0.49 16.56 16.28 19.19 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 17.41 17.06 Q 6.58 12.29 -12.6 12.41 L -12.73 13.12 Q 2.17 19.19 16.91 19.69 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 17.66 17.79 Q 8.06 14.93 -8.02 17.19 L -8.06 17.81 Q 5.11 21.32 17.52 20.1 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 17.97 18.6 Q 10.32 17.31 -1.77 20.73 L -1.74 21.23 Q 8.71 22.68 18.1 20.44 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 11.96 31.76 C 3.96 26.96 2.36 38.8 -0.84 42.64 Q 1.72 49.04 10.36 38.8 Q 12.6 34.32 11.96 31.76" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 12.05 30.71 Q 5.95 25.93 -1.1 27.7 Q -6.46 29.35 -6.53 30.14 Q -6.6 30.93 -1.58 33.23 Q 5.1 35.66 11.89 32.55 Z" fill="#160e28" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 11.8 31.54 Q 5.77 26.05 -2.03 26.64 Q -8 27.38 -8.16 28.12 Q -8.33 28.86 -3.19 31.82 Q 3.73 35.18 11.41 33.27 Z" fill="#2bb8aa" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 11.53 32.39 Q 5.67 26.12 -2.68 25.36 Q -9.1 25.06 -9.35 25.74 Q -9.6 26.42 -4.43 30.12 Q 2.58 34.51 10.94 33.98 Z" fill="#8a7020" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 11.24 33.25 Q 5.67 26.14 -3.01 23.91 Q -9.7 22.47 -10.03 23.08 Q -10.35 23.69 -5.27 28.19 Q 1.69 33.68 10.49 34.68 Z" fill="#8a7020" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 10.93 34.12 Q 5.77 26.15 -2.98 22.35 Q -9.75 19.69 -10.13 20.22 Q -10.51 20.76 -5.64 26.1 Q 1.07 32.76 10.04 35.37 Z" fill="#8a7020" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 10.61 34.99 Q 6 26.14 -2.55 20.73 Q -9.19 16.81 -9.62 17.27 Q -10.04 17.72 -5.53 23.92 Q 0.75 31.77 9.61 36.06 Z" fill="#160e28" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
 
-                    <path class="tm-aether-wing-vein" d="M 15.16 16.96 Q 0.27 9.75 -14.61 7.67" fill="none" stroke="#2bb8aa" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-14.61" cy="7.67" rx="1.44" ry="0.9" fill="#8a7020" opacity="0.95" filter="url(#aether-mid-glow)"/>
-                    <ellipse cx="-14.91" cy="7.52" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-vein" d="M 11.96 31.76 Q 1.17 22.91 -9.62 17.27" fill="none" stroke="#2bb8aa" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-9.62" cy="17.27" rx="1.02" ry="0.7" fill="#8a7020" opacity="0.85" filter="url(#aether-mid-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -40496,54 +40323,37 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <g class="tm-aether-ghost-wing-right" opacity="0.28" transform="translate(5 4) scale(1.12)">
                     <g transform="translate(100,0) scale(-1,1)">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="35" cy="44" r="3.84" fill="#8a7020" opacity="0.45" filter="url(#aether-mid-glow)"/>
-                    <circle cx="35" cy="44" r="2.24" fill="#2bb8aa" opacity="0.75" filter="url(#aether-mid-glow)"/>
-                    <circle cx="35" cy="44" r="1.12" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 35 44 Q 29.24 33.76 32.44 42.72 Q 29.88 46.24 35 45.28 Z" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 36.14 41.23 Q 38.11 36.78 33.58 30.61 L 32.89 30.71 Q 30.64 36.73 33.56 41.6 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.35 40.91 Q 37.59 34.75 30.8 27.46 L 30 27.71 Q 28.82 35.99 33.41 41.84 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.48 40.52 Q 36.84 33.52 27.93 26.92 L 27.07 27.36 Q 27.13 36.67 33.31 42.14 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.08 40.4 Q 35.25 34.16 26.46 29.49 L 25.79 29.98 Q 27.36 38.2 33.61 42.23 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 35.71 40.38 Q 34.52 35.66 27.15 33.58 L 26.66 34.08 Q 28.6 40.22 33.9 42.25 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
+                    <circle cx="35" cy="44" r="2.56" fill="#8a7020" opacity="0.45" filter="url(#aether-mid-glow)"/>
+                    <circle cx="35" cy="44" r="1.28" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 35.68 44.92 Q 35.38 39.2 30.68 37.54 Q 26.91 36.49 26.4 37 Q 25.89 37.51 27.11 41.11 Q 29.11 45.48 34.49 46.11 Z" fill="#2bb8aa" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 33.85 38.1 Q 33.57 31.67 28.31 30.46 Q 24.09 29.8 23.52 30.45 Q 22.94 31.1 24.28 34.99 Q 26.47 39.65 32.5 39.61 Z" fill="#160e28" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 31.88 32.43 Q 31.05 25.89 25.54 24.84 Q 21.15 24.32 20.62 25 Q 20.08 25.68 21.78 29.59 Q 24.43 34.26 30.62 34.01 Z" fill="#160e28" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 29.79 27.93 Q 27.96 21.96 22.45 20.74 Q 18.12 20.05 17.71 20.64 Q 17.29 21.23 19.56 24.87 Q 22.86 29.24 28.83 29.31 Z" fill="#160e28" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 34.04 42.4 Q 28.6 6.56 26.04 2.72 Q 15.16 11.2 18.36 16.96 Q 16.44 45.92 15.8 49.12 Q 32.44 45.92 34.04 42.4" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 27.99 21.95 Q 27.71 14.72 20.34 5.71 L 19.72 5.97 Q 20.5 15.7 25.68 22.88 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 28.6 22.11 Q 26.79 13.25 15.94 3.59 L 15.23 4.02 Q 18.16 15.86 25.97 23.7 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 29.05 22.26 Q 25.38 12.58 11.35 3.6 L 10.62 4.22 Q 16.12 17.07 26.38 24.53 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 29.31 22.5 Q 23.9 13.11 7.91 6.17 L 7.26 6.92 Q 15.09 19.28 26.93 25.29 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 29.42 22.91 Q 22.89 14.88 6.75 10.77 L 6.25 11.58 Q 15.51 22.05 27.6 25.91 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 29.47 23.53 Q 22.74 17.5 8.26 16.23 L 7.94 17 Q 17.36 24.75 28.31 26.38 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 29.56 24.3 Q 23.47 20.38 11.87 21.26 L 11.72 21.91 Q 20.14 26.86 29 26.73 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <circle cx="29.43" cy="21.51" r="0.32" fill="#8a7020" opacity="0.8"/>
-                    <circle cx="21.56" cy="24.14" r="0.76" fill="#8a7020" opacity="0.53"/>
-                    <circle cx="15.3" cy="17.73" r="0.71" fill="#8a7020" opacity="0.66"/>
-                    <circle cx="15.5" cy="24.84" r="0.73" fill="#8a7020" opacity="0.86"/>
-                    <circle cx="31.35" cy="18.34" r="0.34" fill="#8a7020" opacity="0.91"/>
-                    <circle cx="12.57" cy="13.43" r="0.53" fill="#2bb8aa" opacity="0.58"/>
-                    <circle cx="15.86" cy="11.84" r="0.5" fill="#2bb8aa" opacity="0.42"/>
-                    <circle cx="14" cy="11.04" r="0.49" fill="#2bb8aa" opacity="0.78"/>
-                    <circle cx="13.06" cy="11.41" r="0.36" fill="#2bb8aa" opacity="0.39"/>
-                    <circle cx="20.27" cy="21.05" r="0.51" fill="#ffffff" opacity="0.36"/>
-                    <circle cx="19.88" cy="20.62" r="0.39" fill="#ffffff" opacity="0.64"/>
-                    <circle cx="13.47" cy="24.22" r="0.55" fill="#ffffff" opacity="0.88"/>
-                    <circle cx="7.95" cy="11.29" r="0.25" fill="#fff4c8" opacity="0.52"/>
-                    <circle cx="8.25" cy="9.02" r="0.39" fill="#fff4c8" opacity="0.68"/>
+                    <path class="tm-aether-wing-membrane" d="M 35 44 C 30.2 18.4 25.08 14.56 21.88 19.36 S 15.16 30.16 11.96 31.76 Q 14.52 52.96 33.4 47.84 Q 33.4 45.6 35 44" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 23.91 20.99 Q 20.37 14.82 13.81 14.3 Q 8.72 14.19 8.4 14.89 Q 8.07 15.58 11.54 19.18 Q 16.36 23.4 23.16 22.62 Z" fill="#2bb8aa" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 20.72 25.36 Q 16.07 18.38 8.27 18.1 Q 2.25 18.22 1.91 19.04 Q 1.58 19.86 5.95 23.86 Q 11.97 28.52 19.95 27.28 Z" fill="#2c203e" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 17.49 28.86 Q 12.12 21.73 3.82 21.84 Q -2.58 22.28 -2.89 23.16 Q -3.19 24.05 1.69 28.04 Q 8.36 32.65 16.78 30.93 Z" fill="#2c203e" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 14.21 31.52 Q 8.85 25.07 1.07 25.6 Q -4.92 26.35 -5.16 27.2 Q -5.4 28.05 -0.64 31.57 Q 5.83 35.58 13.64 33.51 Z" fill="#160e28" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 10.91 33.32 Q 6.16 28.02 -0.36 28.88 Q -5.36 29.83 -5.53 30.58 Q -5.71 31.33 -1.57 34.12 Q 4.03 37.25 10.51 35.07 Z" fill="#2bb8aa" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <circle cx="26.92" cy="23.27" r="0.3" fill="#8a7020" opacity="0.8"/>
+                    <circle cx="22.37" cy="24.59" r="0.6" fill="#8a7020" opacity="0.53"/>
+                    <circle cx="18.74" cy="21.39" r="0.57" fill="#8a7020" opacity="0.66"/>
+                    <circle cx="10.72" cy="30.87" r="0.44" fill="#2bb8aa" opacity="0.58"/>
+                    <circle cx="12.65" cy="30.14" r="0.42" fill="#2bb8aa" opacity="0.42"/>
 
-                    <path class="tm-aether-wing-vein" d="M 35 44 Q 26.04 19.12 15.16 16.96" fill="none" stroke="#8a7020" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-vein" d="M 35 44 Q 23.48 19.36 11.96 31.76" fill="none" stroke="#8a7020" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 18.36 16.96 Q 22.2 7.2 3.32 11.44 Q -0.52 20.4 1.4 26.16 Q 12.6 44 15.8 19.52 Z" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 15.62 15.11 Q 11.93 8.28 1.79 0.86 L 1.42 1.2 Q 6.71 10.32 14.25 16.34 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 16.15 15.36 Q 10.22 7.29 -3.96 -0.62 L -4.37 -0.15 Q 4.01 10.59 14.65 17.12 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 16.59 15.63 Q 8.38 7.11 -9.42 -0.05 L -9.81 0.56 Q 1.68 11.82 15.12 17.88 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 16.92 15.98 Q 6.88 7.98 -13.27 2.74 L -13.6 3.44 Q 0.36 13.93 15.67 18.58 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 17.18 16.45 Q 6.19 9.82 -14.46 7.22 L -14.71 7.96 Q 0.49 16.56 16.28 19.19 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 17.41 17.06 Q 6.58 12.29 -12.6 12.41 L -12.73 13.12 Q 2.17 19.19 16.91 19.69 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 17.66 17.79 Q 8.06 14.93 -8.02 17.19 L -8.06 17.81 Q 5.11 21.32 17.52 20.1 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 17.97 18.6 Q 10.32 17.31 -1.77 20.73 L -1.74 21.23 Q 8.71 22.68 18.1 20.44 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 11.96 31.76 C 3.96 26.96 2.36 38.8 -0.84 42.64 Q 1.72 49.04 10.36 38.8 Q 12.6 34.32 11.96 31.76" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 12.05 30.71 Q 5.95 25.93 -1.1 27.7 Q -6.46 29.35 -6.53 30.14 Q -6.6 30.93 -1.58 33.23 Q 5.1 35.66 11.89 32.55 Z" fill="#160e28" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 11.8 31.54 Q 5.77 26.05 -2.03 26.64 Q -8 27.38 -8.16 28.12 Q -8.33 28.86 -3.19 31.82 Q 3.73 35.18 11.41 33.27 Z" fill="#2bb8aa" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 11.53 32.39 Q 5.67 26.12 -2.68 25.36 Q -9.1 25.06 -9.35 25.74 Q -9.6 26.42 -4.43 30.12 Q 2.58 34.51 10.94 33.98 Z" fill="#8a7020" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 11.24 33.25 Q 5.67 26.14 -3.01 23.91 Q -9.7 22.47 -10.03 23.08 Q -10.35 23.69 -5.27 28.19 Q 1.69 33.68 10.49 34.68 Z" fill="#8a7020" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 10.93 34.12 Q 5.77 26.15 -2.98 22.35 Q -9.75 19.69 -10.13 20.22 Q -10.51 20.76 -5.64 26.1 Q 1.07 32.76 10.04 35.37 Z" fill="#8a7020" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 10.61 34.99 Q 6 26.14 -2.55 20.73 Q -9.19 16.81 -9.62 17.27 Q -10.04 17.72 -5.53 23.92 Q 0.75 31.77 9.61 36.06 Z" fill="#160e28" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
 
-                    <path class="tm-aether-wing-vein" d="M 15.16 16.96 Q 0.27 9.75 -14.61 7.67" fill="none" stroke="#2bb8aa" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-14.61" cy="7.67" rx="1.44" ry="0.9" fill="#8a7020" opacity="0.95" filter="url(#aether-mid-glow)"/>
-                    <ellipse cx="-14.91" cy="7.52" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-vein" d="M 11.96 31.76 Q 1.17 22.91 -9.62 17.27" fill="none" stroke="#2bb8aa" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-9.62" cy="17.27" rx="1.02" ry="0.7" fill="#8a7020" opacity="0.85" filter="url(#aether-mid-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -40551,69 +40361,45 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-animate-wing-left">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="35" cy="44" r="5.76" fill="#8a7020" opacity="0.45" filter="url(#aether-mid-glow)"/>
-                    <circle cx="35" cy="44" r="3.36" fill="#2bb8aa" opacity="0.75" filter="url(#aether-mid-glow)"/>
-                    <circle cx="35" cy="44" r="1.68" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 35 44 Q 26.36 28.64 31.16 42.08 Q 27.32 47.36 35 45.92 Z" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 36.72 39.85 Q 39.67 33.17 32.88 23.91 L 31.83 24.06 Q 28.46 33.1 32.85 40.4 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.93 39.54 Q 39.22 31.05 30.22 20.45 L 29.07 20.74 Q 26.68 32.18 32.68 40.63 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 37.1 39.19 Q 38.5 29.33 27.15 18.39 L 25.92 18.85 Q 24.8 32.04 32.56 40.9 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 37.21 38.79 Q 37.76 28.27 24.39 18.38 L 23.11 19.04 Q 23.2 33 32.47 41.21 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.82 38.65 Q 36.03 28.72 22.55 20.54 L 21.46 21.26 Q 23.25 34.37 32.77 41.31 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.43 38.57 Q 34.87 29.92 22.2 24.19 L 21.29 24.94 Q 24.01 36.3 33.06 41.37 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.06 38.56 Q 34.28 31.48 23.22 28.37 L 22.49 29.13 Q 25.4 38.33 33.35 41.38 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
+                    <circle cx="35" cy="44" r="3.84" fill="#8a7020" opacity="0.45" filter="url(#aether-mid-glow)"/>
+                    <circle cx="35" cy="44" r="1.92" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 36.02 45.38 Q 35.58 36.79 28.51 34.31 Q 22.87 32.74 22.1 33.5 Q 21.34 34.27 23.17 39.66 Q 26.16 46.21 34.24 47.16 Z" fill="#160e28" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 33.97 36.61 Q 33.61 27.18 25.89 25.23 Q 19.71 24.11 18.86 25.04 Q 18.01 25.97 19.94 31.72 Q 23.13 38.62 31.99 38.78 Z" fill="#160e28" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 31.82 28.92 Q 31.11 19.05 22.96 17.43 Q 16.46 16.61 15.6 17.63 Q 14.75 18.65 16.97 24.57 Q 20.55 31.63 29.82 31.3 Z" fill="#160e28" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 29.54 22.36 Q 27.96 12.69 19.68 11.09 Q 13.1 10.27 12.34 11.27 Q 11.57 12.27 14.31 18.08 Q 18.52 25 27.75 24.69 Z" fill="#2c203e" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 27.19 16.9 Q 24.43 7.94 16.18 6.11 Q 9.68 5.08 9.06 5.97 Q 8.44 6.85 11.84 12.31 Q 16.79 18.85 25.74 18.96 Z" fill="#160e28" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 33.56 41.6 Q 25.4 -16.16 21.56 -21.92 Q 5.24 -8.8 10.04 -0.16 Q 7.16 46.88 6.2 51.68 Q 31.16 46.88 33.56 41.6" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 24.48 8.73 Q 24.07 -2.12 13.01 -15.63 L 12.08 -15.25 Q 13.25 -0.65 21.02 10.12 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 25.12 8.89 Q 23.26 -3.67 8.74 -18.04 L 7.7 -17.49 Q 10.92 -0.65 21.29 10.94 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 25.66 9.03 Q 22.04 -4.83 4.05 -19.23 L 2.96 -18.49 Q 8.61 0.01 21.63 11.77 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.08 9.18 Q 20.57 -5.34 -0.48 -18.8 L -1.57 -17.87 Q 6.68 1.4 22.06 12.59 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.37 9.4 Q 19.05 -5.02 -4.23 -16.63 L -5.25 -15.56 Q 5.43 3.48 22.59 13.37 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.54 9.72 Q 17.73 -3.84 -6.66 -12.91 L -7.56 -11.73 Q 5.09 6.06 23.21 14.07 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.63 10.17 Q 16.83 -1.88 -7.38 -8.04 L -8.12 -6.82 Q 5.77 8.88 23.9 14.67 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.68 10.75 Q 16.52 0.65 -6.29 -2.6 L -6.85 -1.41 Q 7.42 11.65 24.61 15.16 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.74 11.46 Q 16.84 3.5 -3.58 2.82 L -3.96 3.92 Q 9.83 14.1 25.32 15.56 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.84 12.26 Q 17.71 6.37 0.3 7.68 L 0.08 8.67 Q 12.71 16.08 26 15.89 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <circle cx="4.86" cy="10.83" r="0.35" fill="#8a7020" opacity="0.52"/>
-                    <circle cx="20.47" cy="5.59" r="0.59" fill="#8a7020" opacity="0.56"/>
-                    <circle cx="5.73" cy="12.21" r="0.43" fill="#8a7020" opacity="0.7"/>
-                    <circle cx="8.13" cy="10.97" r="0.64" fill="#8a7020" opacity="0.63"/>
-                    <circle cx="20.52" cy="7.67" r="0.74" fill="#8a7020" opacity="0.37"/>
-                    <circle cx="5.54" cy="0.99" r="0.35" fill="#8a7020" opacity="0.44"/>
-                    <circle cx="5.64" cy="1.38" r="0.39" fill="#8a7020" opacity="0.74"/>
-                    <circle cx="5.64" cy="-9.2" r="0.84" fill="#2bb8aa" opacity="0.87"/>
-                    <circle cx="-6.84" cy="-1.34" r="0.31" fill="#2bb8aa" opacity="0.79"/>
-                    <circle cx="-2.91" cy="4.27" r="0.79" fill="#2bb8aa" opacity="0.83"/>
-                    <circle cx="-9.62" cy="-4.01" r="0.59" fill="#2bb8aa" opacity="0.78"/>
-                    <circle cx="-9.1" cy="6.88" r="0.73" fill="#2bb8aa" opacity="0.67"/>
-                    <circle cx="-2.2" cy="-11.32" r="0.59" fill="#2bb8aa" opacity="0.94"/>
-                    <circle cx="10.58" cy="12.02" r="0.69" fill="#ffffff" opacity="0.82"/>
-                    <circle cx="4.76" cy="10.34" r="0.62" fill="#ffffff" opacity="0.35"/>
-                    <circle cx="8.78" cy="13.29" r="0.36" fill="#ffffff" opacity="0.41"/>
-                    <circle cx="9.62" cy="6.84" r="0.41" fill="#ffffff" opacity="0.71"/>
-                    <circle cx="-7.65" cy="-7.05" r="0.58" fill="#fff4c8" opacity="0.78"/>
-                    <circle cx="3.85" cy="-9.39" r="0.48" fill="#fff4c8" opacity="0.46"/>
-                    <circle cx="-2.86" cy="-8.71" r="0.37" fill="#fff4c8" opacity="0.64"/>
-                    <path class="tm-aether-wing-crack" d="M 27.32 38.24 Q 19.64 11.2 6.2 -0.16" fill="none" stroke="#8a7020" stroke-width="0.5" stroke-dasharray="1.2 1.3" opacity="0.55"/>
-                    <path class="tm-aether-wing-vein" d="M 35 44 Q 21.56 4.48 5.24 -0.16" fill="none" stroke="#8a7020" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 35 44 C 27.8 1.6 20.12 -4.16 15.32 3.04 S 5.24 20.64 0.44 23.04 Q 4.28 57.44 32.6 49.76 Q 32.6 46.4 35 44" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 18.37 5.49 Q 13.05 -3.77 3.22 -4.54 Q -4.41 -4.71 -4.9 -3.67 Q -5.39 -2.62 -0.19 2.77 Q 7.04 9.1 17.23 7.92 Z" fill="#2c203e" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 15.19 10.24 Q 8.72 0.1 -2.42 -0.47 Q -11.05 -0.43 -11.55 0.75 Q -12.05 1.92 -5.91 7.77 Q 2.57 14.61 14.02 12.99 Z" fill="#160e28" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 11.97 14.4 Q 4.54 3.72 -7.57 3.47 Q -16.92 3.8 -17.42 5.08 Q -17.91 6.36 -11.01 12.43 Q -1.52 19.49 10.83 17.39 Z" fill="#2bb8aa" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 8.73 17.99 Q 0.68 7.3 -11.77 7.47 Q -21.38 8.12 -21.83 9.45 Q -22.29 10.77 -14.97 16.76 Q -4.95 23.67 7.66 21.09 Z" fill="#2bb8aa" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 5.45 21.03 Q -2.71 10.89 -14.8 11.49 Q -24.11 12.46 -24.51 13.77 Q -24.92 15.08 -17.61 20.66 Q -7.65 27.05 4.52 24.08 Z" fill="#2bb8aa" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 2.16 23.5 Q -5.65 14.35 -16.76 15.34 Q -25.3 16.58 -25.64 17.82 Q -25.97 19.05 -19.08 23.98 Q -9.73 29.58 1.39 26.38 Z" fill="#160e28" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M -1.13 25.38 Q -8.26 17.43 -18.04 18.72 Q -25.54 20.14 -25.8 21.27 Q -26.06 22.39 -19.85 26.58 Q -11.46 31.28 -1.74 28 Z" fill="#2c203e" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <circle cx="10.27" cy="10.29" r="0.32" fill="#8a7020" opacity="0.52"/>
+                    <circle cx="19.31" cy="7.68" r="0.49" fill="#8a7020" opacity="0.56"/>
+                    <circle cx="10.78" cy="10.98" r="0.37" fill="#8a7020" opacity="0.7"/>
+                    <circle cx="12.17" cy="10.37" r="0.52" fill="#8a7020" opacity="0.63"/>
+                    <circle cx="1.1" cy="19.98" r="0.64" fill="#2bb8aa" opacity="0.87"/>
+                    <circle cx="-6.24" cy="23.6" r="0.29" fill="#2bb8aa" opacity="0.79"/>
+                    <circle cx="-3.93" cy="26.19" r="0.61" fill="#2bb8aa" opacity="0.83"/>
+                    <path class="tm-aether-wing-crack" d="M 30.2 41.12 Q 17.72 3.04 1.88 23.04" fill="none" stroke="#8a7020" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 35 44 Q 17.72 3.04 0.44 23.04" fill="none" stroke="#8a7020" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 10.04 -0.16 Q 15.8 -15.2 -12.52 -7.84 Q -18.28 5.6 -15.4 14.24 Q 1.4 44 6.2 3.68 Z" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 5.93 -2.94 Q 0.39 -13.17 -14.82 -24.3 L -15.38 -23.8 Q -7.44 -10.12 3.87 -1.09 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 6.5 -2.67 Q -1.35 -14.33 -20.81 -26.15 L -21.41 -25.51 Q -10.28 -9.97 4.28 -0.28 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 7 -2.4 Q -3.29 -14.95 -26.88 -26.6 L -27.49 -25.81 Q -13.01 -9.15 4.74 0.54 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 7.44 -2.11 Q -5.2 -14.87 -32.34 -25.4 L -32.93 -24.47 Q -15.27 -7.6 5.26 1.32 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 7.79 -1.75 Q -6.81 -14.01 -36.52 -22.57 L -37.05 -21.54 Q -16.73 -5.42 5.83 2.07 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 8.09 -1.31 Q -7.88 -12.41 -38.86 -18.37 L -39.3 -17.27 Q -17.16 -2.78 6.45 2.74 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 8.34 -0.76 Q -8.23 -10.19 -39 -13.24 L -39.34 -12.13 Q -16.44 0.05 7.1 3.34 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 8.58 -0.12 Q -7.76 -7.56 -36.88 -7.77 L -37.1 -6.69 Q -14.59 2.81 7.77 3.87 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 8.83 0.63 Q -6.47 -4.77 -32.68 -2.52 L -32.8 -1.52 Q -11.78 5.23 8.42 4.31 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 9.12 1.44 Q -4.49 -2.06 -26.89 2.01 L -26.91 2.9 Q -8.28 7.12 9.05 4.71 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 9.45 2.3 Q -2.02 0.37 -20.16 5.5 L -20.11 6.25 Q -4.44 8.42 9.64 5.07 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path class="tm-aether-wing-tatter" d="M -2.44 49.76 Q -7.24 55.04 -0.52 52.64" fill="#8a7020" opacity="0.45"/>
-                    <path class="tm-aether-wing-tatter" d="M -15.4 8.48 Q -22.6 13.28 -13.48 11.36" fill="#2bb8aa" opacity="0.5"/>
-                    <path class="tm-aether-wing-vein" d="M 5.24 -0.16 Q -16.98 -10.21 -39.2 -12.58" fill="none" stroke="#2bb8aa" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-39.2" cy="-12.58" rx="2.16" ry="1.34" fill="#8a7020" opacity="0.95" filter="url(#aether-mid-glow)"/>
-                    <ellipse cx="-39.5" cy="-12.73" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-membrane" d="M 0.44 23.04 C -11.56 15.84 -13.96 35.2 -18.76 40.96 Q -14.92 50.56 -1.96 33.6 Q 1.4 26.88 0.44 23.04" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 0.58 21.46 Q -8.58 14.3 -19.15 16.95 Q -27.19 19.43 -27.29 20.61 Q -27.4 21.8 -19.87 25.24 Q -9.85 28.9 0.34 24.22 Z" fill="#8a7020" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 0.31 22.35 Q -8.78 14.43 -20.18 15.85 Q -28.9 17.37 -29.1 18.5 Q -29.31 19.63 -21.64 23.78 Q -11.35 28.41 -0.18 25 Z" fill="#8a7020" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 0.02 23.25 Q -8.92 14.53 -21.02 14.57 Q -30.29 15.03 -30.59 16.1 Q -30.9 17.18 -23.15 22.09 Q -12.68 27.77 -0.69 25.76 Z" fill="#8a7020" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M -0.27 24.17 Q -9 14.58 -21.62 13.14 Q -31.33 12.45 -31.72 13.46 Q -32.11 14.47 -24.37 20.19 Q -13.84 26.99 -1.19 26.51 Z" fill="#160e28" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M -0.58 25.09 Q -9.01 14.61 -21.98 11.59 Q -31.97 9.68 -32.44 10.61 Q -32.91 11.54 -25.26 18.12 Q -14.8 26.11 -1.68 27.26 Z" fill="#2bb8aa" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M -0.9 26.02 Q -8.93 14.62 -22.06 9.95 Q -32.2 6.75 -32.74 7.6 Q -33.27 8.45 -25.81 15.92 Q -15.55 25.15 -2.15 28.01 Z" fill="#160e28" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M -1.24 26.95 Q -8.77 14.62 -21.85 8.23 Q -31.98 3.71 -32.57 4.48 Q -33.17 5.25 -26 13.63 Q -16.08 24.12 -2.62 28.75 Z" fill="#2bb8aa" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M -1.59 27.89 Q -8.51 14.61 -21.33 6.49 Q -31.29 0.62 -31.93 1.3 Q -32.57 1.99 -25.8 11.28 Q -16.38 23.05 -3.08 29.48 Z" fill="#2bb8aa" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path class="tm-aether-wing-tatter" d="M 4.28 55.52 Q 0.44 60.32 6.68 58.4" fill="#8a7020" opacity="0.35"/>
+                    <path class="tm-aether-wing-tatter" d="M -29.53 2.74 Q -33.37 5.62 -28.57 4.66" fill="#2bb8aa" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 0.44 23.04 Q -15.74 9.77 -31.93 1.3" fill="none" stroke="#2bb8aa" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-31.93" cy="1.3" rx="1.54" ry="0.96" fill="#8a7020" opacity="0.85" filter="url(#aether-mid-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -40621,69 +40407,45 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <g class="tm-animate-wing-right">
                     <g transform="translate(100,0) scale(-1,1)">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="35" cy="44" r="5.76" fill="#8a7020" opacity="0.45" filter="url(#aether-mid-glow)"/>
-                    <circle cx="35" cy="44" r="3.36" fill="#2bb8aa" opacity="0.75" filter="url(#aether-mid-glow)"/>
-                    <circle cx="35" cy="44" r="1.68" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 35 44 Q 26.36 28.64 31.16 42.08 Q 27.32 47.36 35 45.92 Z" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 36.72 39.85 Q 39.67 33.17 32.88 23.91 L 31.83 24.06 Q 28.46 33.1 32.85 40.4 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.93 39.54 Q 39.22 31.05 30.22 20.45 L 29.07 20.74 Q 26.68 32.18 32.68 40.63 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 37.1 39.19 Q 38.5 29.33 27.15 18.39 L 25.92 18.85 Q 24.8 32.04 32.56 40.9 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 37.21 38.79 Q 37.76 28.27 24.39 18.38 L 23.11 19.04 Q 23.2 33 32.47 41.21 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.82 38.65 Q 36.03 28.72 22.55 20.54 L 21.46 21.26 Q 23.25 34.37 32.77 41.31 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.43 38.57 Q 34.87 29.92 22.2 24.19 L 21.29 24.94 Q 24.01 36.3 33.06 41.37 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 36.06 38.56 Q 34.28 31.48 23.22 28.37 L 22.49 29.13 Q 25.4 38.33 33.35 41.38 Z" fill="url(#aether-mid-feather)" opacity="0.92" stroke="#8a7020" stroke-width="0.55"/>
+                    <circle cx="35" cy="44" r="3.84" fill="#8a7020" opacity="0.45" filter="url(#aether-mid-glow)"/>
+                    <circle cx="35" cy="44" r="1.92" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 36.02 45.38 Q 35.58 36.79 28.51 34.31 Q 22.87 32.74 22.1 33.5 Q 21.34 34.27 23.17 39.66 Q 26.16 46.21 34.24 47.16 Z" fill="#160e28" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 33.97 36.61 Q 33.61 27.18 25.89 25.23 Q 19.71 24.11 18.86 25.04 Q 18.01 25.97 19.94 31.72 Q 23.13 38.62 31.99 38.78 Z" fill="#160e28" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 31.82 28.92 Q 31.11 19.05 22.96 17.43 Q 16.46 16.61 15.6 17.63 Q 14.75 18.65 16.97 24.57 Q 20.55 31.63 29.82 31.3 Z" fill="#2c203e" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 29.54 22.36 Q 27.96 12.69 19.68 11.09 Q 13.1 10.27 12.34 11.27 Q 11.57 12.27 14.31 18.08 Q 18.52 25 27.75 24.69 Z" fill="#160e28" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 27.19 16.9 Q 24.43 7.94 16.18 6.11 Q 9.68 5.08 9.06 5.97 Q 8.44 6.85 11.84 12.31 Q 16.79 18.85 25.74 18.96 Z" fill="#2bb8aa" opacity="0.85" stroke="#8a7020" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 33.56 41.6 Q 25.4 -16.16 21.56 -21.92 Q 5.24 -8.8 10.04 -0.16 Q 7.16 46.88 6.2 51.68 Q 31.16 46.88 33.56 41.6" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 24.48 8.73 Q 24.07 -2.12 13.01 -15.63 L 12.08 -15.25 Q 13.25 -0.65 21.02 10.12 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 25.12 8.89 Q 23.26 -3.67 8.74 -18.04 L 7.7 -17.49 Q 10.92 -0.65 21.29 10.94 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 25.66 9.03 Q 22.04 -4.83 4.05 -19.23 L 2.96 -18.49 Q 8.61 0.01 21.63 11.77 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.08 9.18 Q 20.57 -5.34 -0.48 -18.8 L -1.57 -17.87 Q 6.68 1.4 22.06 12.59 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.37 9.4 Q 19.05 -5.02 -4.23 -16.63 L -5.25 -15.56 Q 5.43 3.48 22.59 13.37 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.54 9.72 Q 17.73 -3.84 -6.66 -12.91 L -7.56 -11.73 Q 5.09 6.06 23.21 14.07 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.63 10.17 Q 16.83 -1.88 -7.38 -8.04 L -8.12 -6.82 Q 5.77 8.88 23.9 14.67 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.68 10.75 Q 16.52 0.65 -6.29 -2.6 L -6.85 -1.41 Q 7.42 11.65 24.61 15.16 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.74 11.46 Q 16.84 3.5 -3.58 2.82 L -3.96 3.92 Q 9.83 14.1 25.32 15.56 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 26.84 12.26 Q 17.71 6.37 0.3 7.68 L 0.08 8.67 Q 12.71 16.08 26 15.89 Z" fill="url(#aether-mid-feather)" opacity="0.9" stroke="#8a7020" stroke-width="0.55"/>
-                    <circle cx="11.15" cy="12.75" r="0.6" fill="#8a7020" opacity="0.4"/>
-                    <circle cx="29.68" cy="-4.57" r="0.33" fill="#8a7020" opacity="0.57"/>
-                    <circle cx="21.82" cy="-8.46" r="0.57" fill="#8a7020" opacity="0.82"/>
-                    <circle cx="25.85" cy="-3.07" r="0.72" fill="#8a7020" opacity="0.65"/>
-                    <circle cx="22.99" cy="-6.78" r="0.8" fill="#8a7020" opacity="0.95"/>
-                    <circle cx="21" cy="-7.34" r="0.39" fill="#8a7020" opacity="0.81"/>
-                    <circle cx="6.35" cy="5.3" r="0.74" fill="#8a7020" opacity="0.68"/>
-                    <circle cx="9.81" cy="0.13" r="0.53" fill="#2bb8aa" opacity="0.84"/>
-                    <circle cx="1.23" cy="-3.85" r="0.69" fill="#2bb8aa" opacity="0.57"/>
-                    <circle cx="-1.46" cy="4.81" r="0.56" fill="#2bb8aa" opacity="0.84"/>
-                    <circle cx="4.42" cy="0.48" r="0.41" fill="#2bb8aa" opacity="0.6"/>
-                    <circle cx="-4.75" cy="3.53" r="0.29" fill="#2bb8aa" opacity="0.8"/>
-                    <circle cx="-10.68" cy="2.01" r="0.81" fill="#2bb8aa" opacity="0.49"/>
-                    <circle cx="9.48" cy="16.79" r="0.26" fill="#ffffff" opacity="0.55"/>
-                    <circle cx="12.54" cy="12.32" r="0.43" fill="#ffffff" opacity="0.77"/>
-                    <circle cx="8.97" cy="13.47" r="0.72" fill="#ffffff" opacity="0.39"/>
-                    <circle cx="2.37" cy="14.57" r="0.48" fill="#ffffff" opacity="0.77"/>
-                    <circle cx="0.87" cy="-8.76" r="0.36" fill="#fff4c8" opacity="0.6"/>
-                    <circle cx="0.43" cy="-7.39" r="0.52" fill="#fff4c8" opacity="0.79"/>
-                    <circle cx="-3.84" cy="-9.49" r="0.61" fill="#fff4c8" opacity="0.8"/>
-                    <path class="tm-aether-wing-crack" d="M 27.32 38.24 Q 19.64 11.2 6.2 -0.16" fill="none" stroke="#8a7020" stroke-width="0.5" stroke-dasharray="1.2 1.3" opacity="0.55"/>
-                    <path class="tm-aether-wing-vein" d="M 35 44 Q 21.56 4.48 5.24 -0.16" fill="none" stroke="#8a7020" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 35 44 C 27.8 1.6 20.12 -4.16 15.32 3.04 S 5.24 20.64 0.44 23.04 Q 4.28 57.44 32.6 49.76 Q 32.6 46.4 35 44" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 18.37 5.49 Q 13.05 -3.77 3.22 -4.54 Q -4.41 -4.71 -4.9 -3.67 Q -5.39 -2.62 -0.19 2.77 Q 7.04 9.1 17.23 7.92 Z" fill="#160e28" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 15.19 10.24 Q 8.72 0.1 -2.42 -0.47 Q -11.05 -0.43 -11.55 0.75 Q -12.05 1.92 -5.91 7.77 Q 2.57 14.61 14.02 12.99 Z" fill="#2bb8aa" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 11.97 14.4 Q 4.54 3.72 -7.57 3.47 Q -16.92 3.8 -17.42 5.08 Q -17.91 6.36 -11.01 12.43 Q -1.52 19.49 10.83 17.39 Z" fill="#2bb8aa" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 8.73 17.99 Q 0.68 7.3 -11.77 7.47 Q -21.38 8.12 -21.83 9.45 Q -22.29 10.77 -14.97 16.76 Q -4.95 23.67 7.66 21.09 Z" fill="#2bb8aa" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 5.45 21.03 Q -2.71 10.89 -14.8 11.49 Q -24.11 12.46 -24.51 13.77 Q -24.92 15.08 -17.61 20.66 Q -7.65 27.05 4.52 24.08 Z" fill="#160e28" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 2.16 23.5 Q -5.65 14.35 -16.76 15.34 Q -25.3 16.58 -25.64 17.82 Q -25.97 19.05 -19.08 23.98 Q -9.73 29.58 1.39 26.38 Z" fill="#2c203e" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M -1.13 25.38 Q -8.26 17.43 -18.04 18.72 Q -25.54 20.14 -25.8 21.27 Q -26.06 22.39 -19.85 26.58 Q -11.46 31.28 -1.74 28 Z" fill="#160e28" opacity="0.82" stroke="#8a7020" stroke-width="0.4"/>
+                    <circle cx="13.92" cy="11.26" r="0.49" fill="#8a7020" opacity="0.4"/>
+                    <circle cx="24.64" cy="2.6" r="0.31" fill="#8a7020" opacity="0.57"/>
+                    <circle cx="20.1" cy="0.65" r="0.47" fill="#8a7020" opacity="0.82"/>
+                    <circle cx="22.43" cy="3.35" r="0.58" fill="#8a7020" opacity="0.65"/>
+                    <circle cx="3.55" cy="24.28" r="0.44" fill="#2bb8aa" opacity="0.84"/>
+                    <circle cx="-1.49" cy="22.45" r="0.54" fill="#2bb8aa" opacity="0.57"/>
+                    <circle cx="-3.08" cy="26.44" r="0.46" fill="#2bb8aa" opacity="0.84"/>
+                    <path class="tm-aether-wing-crack" d="M 30.2 41.12 Q 17.72 3.04 1.88 23.04" fill="none" stroke="#8a7020" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 35 44 Q 17.72 3.04 0.44 23.04" fill="none" stroke="#8a7020" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 10.04 -0.16 Q 15.8 -15.2 -12.52 -7.84 Q -18.28 5.6 -15.4 14.24 Q 1.4 44 6.2 3.68 Z" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 5.93 -2.94 Q 0.39 -13.17 -14.82 -24.3 L -15.38 -23.8 Q -7.44 -10.12 3.87 -1.09 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 6.5 -2.67 Q -1.35 -14.33 -20.81 -26.15 L -21.41 -25.51 Q -10.28 -9.97 4.28 -0.28 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 7 -2.4 Q -3.29 -14.95 -26.88 -26.6 L -27.49 -25.81 Q -13.01 -9.15 4.74 0.54 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 7.44 -2.11 Q -5.2 -14.87 -32.34 -25.4 L -32.93 -24.47 Q -15.27 -7.6 5.26 1.32 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 7.79 -1.75 Q -6.81 -14.01 -36.52 -22.57 L -37.05 -21.54 Q -16.73 -5.42 5.83 2.07 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 8.09 -1.31 Q -7.88 -12.41 -38.86 -18.37 L -39.3 -17.27 Q -17.16 -2.78 6.45 2.74 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 8.34 -0.76 Q -8.23 -10.19 -39 -13.24 L -39.34 -12.13 Q -16.44 0.05 7.1 3.34 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 8.58 -0.12 Q -7.76 -7.56 -36.88 -7.77 L -37.1 -6.69 Q -14.59 2.81 7.77 3.87 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 8.83 0.63 Q -6.47 -4.77 -32.68 -2.52 L -32.8 -1.52 Q -11.78 5.23 8.42 4.31 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 9.12 1.44 Q -4.49 -2.06 -26.89 2.01 L -26.91 2.9 Q -8.28 7.12 9.05 4.71 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path d="M 9.45 2.3 Q -2.02 0.37 -20.16 5.5 L -20.11 6.25 Q -4.44 8.42 9.64 5.07 Z" fill="url(#aether-mid-blade)" opacity="0.93" stroke="#8a7020" stroke-width="0.55"/>
-                    <path class="tm-aether-wing-tatter" d="M -2.44 49.76 Q -7.24 55.04 -0.52 52.64" fill="#8a7020" opacity="0.45"/>
-                    <path class="tm-aether-wing-tatter" d="M -15.4 8.48 Q -22.6 13.28 -13.48 11.36" fill="#2bb8aa" opacity="0.5"/>
-                    <path class="tm-aether-wing-vein" d="M 5.24 -0.16 Q -16.98 -10.21 -39.2 -12.58" fill="none" stroke="#2bb8aa" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-39.2" cy="-12.58" rx="2.16" ry="1.34" fill="#8a7020" opacity="0.95" filter="url(#aether-mid-glow)"/>
-                    <ellipse cx="-39.5" cy="-12.73" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-membrane" d="M 0.44 23.04 C -11.56 15.84 -13.96 35.2 -18.76 40.96 Q -14.92 50.56 -1.96 33.6 Q 1.4 26.88 0.44 23.04" fill="url(#aether-mid-wing)" stroke="#8a7020" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 0.58 21.46 Q -8.58 14.3 -19.15 16.95 Q -27.19 19.43 -27.29 20.61 Q -27.4 21.8 -19.87 25.24 Q -9.85 28.9 0.34 24.22 Z" fill="#8a7020" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 0.31 22.35 Q -8.78 14.43 -20.18 15.85 Q -28.9 17.37 -29.1 18.5 Q -29.31 19.63 -21.64 23.78 Q -11.35 28.41 -0.18 25 Z" fill="#8a7020" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M 0.02 23.25 Q -8.92 14.53 -21.02 14.57 Q -30.29 15.03 -30.59 16.1 Q -30.9 17.18 -23.15 22.09 Q -12.68 27.77 -0.69 25.76 Z" fill="#160e28" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M -0.27 24.17 Q -9 14.58 -21.62 13.14 Q -31.33 12.45 -31.72 13.46 Q -32.11 14.47 -24.37 20.19 Q -13.84 26.99 -1.19 26.51 Z" fill="#2bb8aa" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M -0.58 25.09 Q -9.01 14.61 -21.98 11.59 Q -31.97 9.68 -32.44 10.61 Q -32.91 11.54 -25.26 18.12 Q -14.8 26.11 -1.68 27.26 Z" fill="#160e28" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M -0.9 26.02 Q -8.93 14.62 -22.06 9.95 Q -32.2 6.75 -32.74 7.6 Q -33.27 8.45 -25.81 15.92 Q -15.55 25.15 -2.15 28.01 Z" fill="#2bb8aa" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M -1.24 26.95 Q -8.77 14.62 -21.85 8.23 Q -31.98 3.71 -32.57 4.48 Q -33.17 5.25 -26 13.63 Q -16.08 24.12 -2.62 28.75 Z" fill="#2bb8aa" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path d="M -1.59 27.89 Q -8.51 14.61 -21.33 6.49 Q -31.29 0.62 -31.93 1.3 Q -32.57 1.99 -25.8 11.28 Q -16.38 23.05 -3.08 29.48 Z" fill="#2bb8aa" opacity="0.86" stroke="#8a7020" stroke-width="0.4"/>
+                    <path class="tm-aether-wing-tatter" d="M 4.28 55.52 Q 0.44 60.32 6.68 58.4" fill="#8a7020" opacity="0.35"/>
+                    <path class="tm-aether-wing-tatter" d="M -29.53 2.74 Q -33.37 5.62 -28.57 4.66" fill="#2bb8aa" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 0.44 23.04 Q -15.74 9.77 -31.93 1.3" fill="none" stroke="#2bb8aa" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-31.93" cy="1.3" rx="1.54" ry="0.96" fill="#8a7020" opacity="0.85" filter="url(#aether-mid-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -40817,19 +40579,17 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <stop offset="62%" style="stop-color:#1e1438;stop-opacity:.72" />
                         <stop offset="100%" style="stop-color:#020106;stop-opacity:.88" />
                     </linearGradient>
-                    <linearGradient id="aether-old-blade" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fff8e0;stop-opacity:.95" />
-                        <stop offset="18%" style="stop-color:#e8c040;stop-opacity:.9" />
-                        <stop offset="48%" style="stop-color:#4aefe0;stop-opacity:.72" />
-                        <stop offset="78%" style="stop-color:#1e1438;stop-opacity:.85" />
-                        <stop offset="100%" style="stop-color:#020106;stop-opacity:.92" />
+                    <linearGradient id="aether-old-blade" x1="15%" y1="0%" x2="85%" y2="100%">
+                        <stop offset="0%" style="stop-color:#e8c040;stop-opacity:.85" />
+                        <stop offset="35%" style="stop-color:#4aefe0;stop-opacity:.75" />
+                        <stop offset="70%" style="stop-color:#1e1438;stop-opacity:.92" />
+                        <stop offset="100%" style="stop-color:#020106;stop-opacity:1" />
                     </linearGradient>
-                    <linearGradient id="aether-old-feather" x1="0%" y1="5%" x2="85%" y2="100%">
-                        <stop offset="0%" style="stop-color:#fff4c8;stop-opacity:.95" />
-                        <stop offset="16%" style="stop-color:#e8c040;stop-opacity:.88" />
-                        <stop offset="42%" style="stop-color:#4aefe0;stop-opacity:.78" />
-                        <stop offset="70%" style="stop-color:#1e1438;stop-opacity:.82" />
-                        <stop offset="100%" style="stop-color:#020106;stop-opacity:.94" />
+                    <linearGradient id="aether-old-feather" x1="10%" y1="0%" x2="80%" y2="100%">
+                        <stop offset="0%" style="stop-color:#e8c040;stop-opacity:.8" />
+                        <stop offset="40%" style="stop-color:#4aefe0;stop-opacity:.78" />
+                        <stop offset="75%" style="stop-color:#1e1438;stop-opacity:.95" />
+                        <stop offset="100%" style="stop-color:#020106;stop-opacity:1" />
                     </linearGradient>
                     <radialGradient id="aether-old-iris" cx="40%" cy="35%" r="65%">
                         <stop offset="0%" style="stop-color:#eafffd;stop-opacity:1" />
@@ -40900,54 +40660,37 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <path d="M 38.92 7.82 L 37.42 12.82 L 40.12 11.32 Z" fill="#e64a3c" opacity="0.75"/>
                     <g class="tm-aether-ghost-wing-left" opacity="0.28" transform="translate(-5 4) scale(1.14)">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="35" cy="42" r="4.08" fill="#e8c040" opacity="0.45" filter="url(#aether-old-glow)"/>
-                    <circle cx="35" cy="42" r="2.38" fill="#4aefe0" opacity="0.75" filter="url(#aether-old-glow)"/>
-                    <circle cx="35" cy="42" r="1.19" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 35 42 Q 28.88 31.12 32.28 40.64 Q 29.56 44.38 35 43.36 Z" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 36.22 39.06 Q 38.31 34.33 33.5 27.77 L 32.75 27.87 Q 30.37 34.28 33.47 39.45 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 36.43 38.72 Q 37.75 32.17 30.53 24.43 L 29.69 24.69 Q 28.43 33.49 33.31 39.71 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 36.57 38.31 Q 36.95 30.86 27.49 23.86 L 26.58 24.32 Q 26.64 34.21 33.21 40.02 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 36.15 38.18 Q 35.26 31.55 25.92 26.58 L 25.21 27.11 Q 26.89 35.83 33.52 40.12 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 35.75 38.15 Q 34.49 33.13 26.66 30.93 L 26.14 31.46 Q 28.2 37.98 33.83 40.14 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
+                    <circle cx="35" cy="42" r="2.72" fill="#e8c040" opacity="0.45" filter="url(#aether-old-glow)"/>
+                    <circle cx="35" cy="42" r="1.36" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 35.72 42.98 Q 35.41 36.9 30.41 35.14 Q 26.41 34.02 25.86 34.56 Q 25.32 35.11 26.62 38.93 Q 28.74 43.57 34.46 44.24 Z" fill="#4aefe0" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 33.78 35.27 Q 33.48 28.44 27.89 27.16 Q 23.41 26.46 22.8 27.15 Q 22.19 27.83 23.61 31.97 Q 25.94 36.91 32.35 36.87 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 31.68 28.87 Q 30.8 21.92 24.95 20.81 Q 20.29 20.26 19.72 20.98 Q 19.15 21.7 20.95 25.86 Q 23.77 30.82 30.35 30.55 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 29.47 23.8 Q 27.52 17.46 21.67 16.16 Q 17.06 15.43 16.63 16.06 Q 16.19 16.69 18.59 20.55 Q 22.1 25.19 28.44 25.27 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 33.98 40.3 Q 28.2 0.72 25.48 -3.36 Q 13.92 5.8 17.32 11.92 Q 15.28 44.04 14.6 47.44 Q 32.28 44.04 33.98 40.3" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 27.55 17.75 Q 27.26 10.06 19.42 0.5 L 18.76 0.76 Q 19.59 11.11 25.1 18.74 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 28.2 17.92 Q 26.28 8.51 14.75 -1.76 L 13.99 -1.31 Q 17.11 11.27 25.4 19.61 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 28.68 18.07 Q 24.78 7.79 9.87 -1.75 L 9.1 -1.09 Q 14.94 12.56 25.84 20.49 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 28.96 18.33 Q 23.2 8.35 6.21 0.98 L 5.53 1.78 Q 13.84 14.91 26.42 21.29 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 29.07 18.77 Q 22.13 10.23 4.98 5.87 L 4.46 6.73 Q 14.3 17.86 27.13 21.95 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 29.13 19.42 Q 21.97 13.02 6.59 11.67 L 6.25 12.49 Q 16.26 20.72 27.89 22.45 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 29.22 20.25 Q 22.75 16.08 10.42 17.01 L 10.26 17.71 Q 19.21 22.96 28.62 22.82 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <circle cx="30.18" cy="16.45" r="0.55" fill="#e8c040" opacity="0.84"/>
-                    <circle cx="23.39" cy="13.42" r="0.72" fill="#e8c040" opacity="0.57"/>
-                    <circle cx="21.25" cy="20.02" r="0.59" fill="#e8c040" opacity="0.84"/>
-                    <circle cx="25.91" cy="16.72" r="0.42" fill="#e8c040" opacity="0.6"/>
-                    <circle cx="18.65" cy="19.05" r="0.3" fill="#e8c040" opacity="0.8"/>
-                    <circle cx="2.54" cy="8.18" r="0.43" fill="#4aefe0" opacity="0.88"/>
-                    <circle cx="4.26" cy="8.81" r="0.45" fill="#4aefe0" opacity="0.64"/>
-                    <circle cx="7.29" cy="5.41" r="0.68" fill="#4aefe0" opacity="0.61"/>
-                    <circle cx="10.41" cy="9.63" r="0.51" fill="#4aefe0" opacity="0.64"/>
-                    <circle cx="15.11" cy="15.41" r="0.57" fill="#ffffff" opacity="0.36"/>
-                    <circle cx="17.07" cy="14.95" r="0.54" fill="#ffffff" opacity="0.66"/>
-                    <circle cx="17.37" cy="14.96" r="0.69" fill="#ffffff" opacity="0.69"/>
-                    <circle cx="6.07" cy="1.85" r="0.64" fill="#fff4c8" opacity="0.56"/>
-                    <circle cx="11.14" cy="3.43" r="0.68" fill="#fff4c8" opacity="0.46"/>
+                    <path class="tm-aether-wing-membrane" d="M 35 42 C 29.9 13.3 24.46 9.22 21.06 14.32 S 13.92 26.32 10.52 28.02 Q 13.24 51.52 33.3 46.08 Q 33.3 43.7 35 42" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 23.22 16.05 Q 19.45 9.49 12.49 8.95 Q 7.08 8.83 6.74 9.57 Q 6.39 10.31 10.07 14.13 Q 15.2 18.62 22.42 17.78 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 19.83 20.83 Q 14.88 13.41 6.6 13.12 Q 0.2 13.24 -0.15 14.11 Q -0.51 14.98 4.13 19.23 Q 10.53 24.19 19.01 22.87 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 16.39 24.68 Q 10.69 17.1 1.87 17.22 Q -4.93 17.68 -5.26 18.62 Q -5.58 19.56 -0.4 23.8 Q 6.7 28.7 15.64 26.87 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 12.91 27.64 Q 7.21 20.78 -1.05 21.35 Q -7.41 22.14 -7.67 23.04 Q -7.93 23.95 -2.87 27.69 Q 4.01 31.95 12.3 29.75 Z" fill="#1e1438" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 9.4 29.68 Q 4.35 24.05 -2.57 24.96 Q -7.88 25.97 -8.07 26.76 Q -8.25 27.56 -3.86 30.53 Q 2.09 33.85 8.98 31.54 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <circle cx="27.05" cy="18.06" r="0.46" fill="#e8c040" opacity="0.84"/>
+                    <circle cx="23.12" cy="16.55" r="0.58" fill="#e8c040" opacity="0.57"/>
+                    <circle cx="21.89" cy="19.85" r="0.48" fill="#e8c040" opacity="0.84"/>
+                    <circle cx="4.13" cy="27.08" r="0.37" fill="#4aefe0" opacity="0.88"/>
+                    <circle cx="5.14" cy="27.37" r="0.39" fill="#4aefe0" opacity="0.64"/>
 
-                    <path class="tm-aether-wing-vein" d="M 35 42 Q 25.48 14.74 13.92 11.92" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-vein" d="M 35 42 Q 22.76 14.32 10.52 28.02" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 17.32 11.92 Q 21.4 1.4 1.34 6.28 Q -2.74 15.8 -0.7 21.92 Q 11.2 42 14.6 14.64 Z" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 14.41 9.95 Q 10.49 2.7 -0.29 -5.18 L -0.68 -4.83 Q 4.94 4.86 12.95 11.26 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 14.97 10.22 Q 8.67 1.64 -6.39 -6.76 L -6.83 -6.26 Q 2.07 5.16 13.38 12.08 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 15.44 10.51 Q 6.71 1.46 -12.19 -6.15 L -12.62 -5.51 Q -0.41 6.46 13.88 12.89 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 15.79 10.88 Q 5.12 2.38 -16.28 -3.19 L -16.64 -2.44 Q -1.81 8.7 14.46 13.64 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 16.07 11.37 Q 4.39 4.33 -17.56 1.57 L -17.82 2.36 Q -1.66 11.49 15.11 14.29 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 16.31 12.02 Q 4.81 6.96 -15.57 7.08 L -15.72 7.84 Q 0.12 14.29 15.78 14.82 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 16.58 12.8 Q 6.38 9.77 -10.71 12.16 L -10.75 12.83 Q 3.24 16.55 16.43 15.25 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 16.9 13.66 Q 8.78 12.29 -4.07 15.93 L -4.03 16.46 Q 7.06 18 17.04 15.62 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 10.52 28.02 C 2.02 22.92 0.32 36.1 -3.08 40.18 Q -0.36 46.98 8.82 35.5 Q 11.2 30.74 10.52 28.02" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 10.62 26.9 Q 4.13 21.83 -3.36 23.71 Q -9.05 25.46 -9.12 26.3 Q -9.2 27.14 -3.87 29.58 Q 3.23 32.17 10.45 28.86 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 10.35 27.79 Q 3.94 21.95 -4.34 22.58 Q -10.68 23.36 -10.86 24.15 Q -11.03 24.93 -5.57 28.08 Q 1.78 31.65 9.94 29.62 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 10.06 28.69 Q 3.84 22.02 -5.04 21.22 Q -11.86 20.9 -12.12 21.62 Q -12.39 22.34 -6.9 26.28 Q 0.56 30.94 9.44 30.37 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 9.75 29.6 Q 3.83 22.05 -5.39 19.68 Q -12.5 18.15 -12.84 18.8 Q -13.18 19.45 -7.78 24.23 Q -0.39 30.06 8.95 31.12 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 9.43 30.52 Q 3.94 22.06 -5.35 18.02 Q -12.55 15.19 -12.95 15.76 Q -13.36 16.33 -8.19 22.01 Q -1.05 29.08 8.48 31.85 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 9.08 31.45 Q 4.18 22.05 -4.9 16.3 Q -11.96 12.14 -12.41 12.62 Q -12.86 13.11 -8.07 19.69 Q -1.39 28.03 8.03 32.58 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
 
-                    <path class="tm-aether-wing-vein" d="M 13.92 11.92 Q -1.9 4.26 -17.71 2.05" fill="none" stroke="#4aefe0" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-17.71" cy="2.05" rx="1.53" ry="0.95" fill="#e8c040" opacity="0.95" filter="url(#aether-old-glow)"/>
-                    <ellipse cx="-18.01" cy="1.9" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-vein" d="M 10.52 28.02 Q -0.94 18.62 -12.41 12.62" fill="none" stroke="#4aefe0" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-12.41" cy="12.62" rx="1.09" ry="0.7" fill="#e8c040" opacity="0.85" filter="url(#aether-old-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -40955,54 +40698,37 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <g class="tm-aether-ghost-wing-right" opacity="0.28" transform="translate(5 4) scale(1.14)">
                     <g transform="translate(100,0) scale(-1,1)">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="35" cy="42" r="4.08" fill="#e8c040" opacity="0.45" filter="url(#aether-old-glow)"/>
-                    <circle cx="35" cy="42" r="2.38" fill="#4aefe0" opacity="0.75" filter="url(#aether-old-glow)"/>
-                    <circle cx="35" cy="42" r="1.19" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 35 42 Q 28.88 31.12 32.28 40.64 Q 29.56 44.38 35 43.36 Z" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 36.22 39.06 Q 38.31 34.33 33.5 27.77 L 32.75 27.87 Q 30.37 34.28 33.47 39.45 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 36.43 38.72 Q 37.75 32.17 30.53 24.43 L 29.69 24.69 Q 28.43 33.49 33.31 39.71 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 36.57 38.31 Q 36.95 30.86 27.49 23.86 L 26.58 24.32 Q 26.64 34.21 33.21 40.02 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 36.15 38.18 Q 35.26 31.55 25.92 26.58 L 25.21 27.11 Q 26.89 35.83 33.52 40.12 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 35.75 38.15 Q 34.49 33.13 26.66 30.93 L 26.14 31.46 Q 28.2 37.98 33.83 40.14 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
+                    <circle cx="35" cy="42" r="2.72" fill="#e8c040" opacity="0.45" filter="url(#aether-old-glow)"/>
+                    <circle cx="35" cy="42" r="1.36" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 35.72 42.98 Q 35.41 36.9 30.41 35.14 Q 26.41 34.02 25.86 34.56 Q 25.32 35.11 26.62 38.93 Q 28.74 43.57 34.46 44.24 Z" fill="#4aefe0" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 33.78 35.27 Q 33.48 28.44 27.89 27.16 Q 23.41 26.46 22.8 27.15 Q 22.19 27.83 23.61 31.97 Q 25.94 36.91 32.35 36.87 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 31.68 28.87 Q 30.8 21.92 24.95 20.81 Q 20.29 20.26 19.72 20.98 Q 19.15 21.7 20.95 25.86 Q 23.77 30.82 30.35 30.55 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 29.47 23.8 Q 27.52 17.46 21.67 16.16 Q 17.06 15.43 16.63 16.06 Q 16.19 16.69 18.59 20.55 Q 22.1 25.19 28.44 25.27 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 33.98 40.3 Q 28.2 0.72 25.48 -3.36 Q 13.92 5.8 17.32 11.92 Q 15.28 44.04 14.6 47.44 Q 32.28 44.04 33.98 40.3" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 27.55 17.75 Q 27.26 10.06 19.42 0.5 L 18.76 0.76 Q 19.59 11.11 25.1 18.74 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 28.2 17.92 Q 26.28 8.51 14.75 -1.76 L 13.99 -1.31 Q 17.11 11.27 25.4 19.61 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 28.68 18.07 Q 24.78 7.79 9.87 -1.75 L 9.1 -1.09 Q 14.94 12.56 25.84 20.49 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 28.96 18.33 Q 23.2 8.35 6.21 0.98 L 5.53 1.78 Q 13.84 14.91 26.42 21.29 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 29.07 18.77 Q 22.13 10.23 4.98 5.87 L 4.46 6.73 Q 14.3 17.86 27.13 21.95 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 29.13 19.42 Q 21.97 13.02 6.59 11.67 L 6.25 12.49 Q 16.26 20.72 27.89 22.45 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 29.22 20.25 Q 22.75 16.08 10.42 17.01 L 10.26 17.71 Q 19.21 22.96 28.62 22.82 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <circle cx="30.18" cy="16.45" r="0.55" fill="#e8c040" opacity="0.84"/>
-                    <circle cx="23.39" cy="13.42" r="0.72" fill="#e8c040" opacity="0.57"/>
-                    <circle cx="21.25" cy="20.02" r="0.59" fill="#e8c040" opacity="0.84"/>
-                    <circle cx="25.91" cy="16.72" r="0.42" fill="#e8c040" opacity="0.6"/>
-                    <circle cx="18.65" cy="19.05" r="0.3" fill="#e8c040" opacity="0.8"/>
-                    <circle cx="2.54" cy="8.18" r="0.43" fill="#4aefe0" opacity="0.88"/>
-                    <circle cx="4.26" cy="8.81" r="0.45" fill="#4aefe0" opacity="0.64"/>
-                    <circle cx="7.29" cy="5.41" r="0.68" fill="#4aefe0" opacity="0.61"/>
-                    <circle cx="10.41" cy="9.63" r="0.51" fill="#4aefe0" opacity="0.64"/>
-                    <circle cx="15.11" cy="15.41" r="0.57" fill="#ffffff" opacity="0.36"/>
-                    <circle cx="17.07" cy="14.95" r="0.54" fill="#ffffff" opacity="0.66"/>
-                    <circle cx="17.37" cy="14.96" r="0.69" fill="#ffffff" opacity="0.69"/>
-                    <circle cx="6.07" cy="1.85" r="0.64" fill="#fff4c8" opacity="0.56"/>
-                    <circle cx="11.14" cy="3.43" r="0.68" fill="#fff4c8" opacity="0.46"/>
+                    <path class="tm-aether-wing-membrane" d="M 35 42 C 29.9 13.3 24.46 9.22 21.06 14.32 S 13.92 26.32 10.52 28.02 Q 13.24 51.52 33.3 46.08 Q 33.3 43.7 35 42" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 23.22 16.05 Q 19.45 9.49 12.49 8.95 Q 7.08 8.83 6.74 9.57 Q 6.39 10.31 10.07 14.13 Q 15.2 18.62 22.42 17.78 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 19.83 20.83 Q 14.88 13.41 6.6 13.12 Q 0.2 13.24 -0.15 14.11 Q -0.51 14.98 4.13 19.23 Q 10.53 24.19 19.01 22.87 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 16.39 24.68 Q 10.69 17.1 1.87 17.22 Q -4.93 17.68 -5.26 18.62 Q -5.58 19.56 -0.4 23.8 Q 6.7 28.7 15.64 26.87 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 12.91 27.64 Q 7.21 20.78 -1.05 21.35 Q -7.41 22.14 -7.67 23.04 Q -7.93 23.95 -2.87 27.69 Q 4.01 31.95 12.3 29.75 Z" fill="#1e1438" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 9.4 29.68 Q 4.35 24.05 -2.57 24.96 Q -7.88 25.97 -8.07 26.76 Q -8.25 27.56 -3.86 30.53 Q 2.09 33.85 8.98 31.54 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <circle cx="27.05" cy="18.06" r="0.46" fill="#e8c040" opacity="0.84"/>
+                    <circle cx="23.12" cy="16.55" r="0.58" fill="#e8c040" opacity="0.57"/>
+                    <circle cx="21.89" cy="19.85" r="0.48" fill="#e8c040" opacity="0.84"/>
+                    <circle cx="4.13" cy="27.08" r="0.37" fill="#4aefe0" opacity="0.88"/>
+                    <circle cx="5.14" cy="27.37" r="0.39" fill="#4aefe0" opacity="0.64"/>
 
-                    <path class="tm-aether-wing-vein" d="M 35 42 Q 25.48 14.74 13.92 11.92" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-vein" d="M 35 42 Q 22.76 14.32 10.52 28.02" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 17.32 11.92 Q 21.4 1.4 1.34 6.28 Q -2.74 15.8 -0.7 21.92 Q 11.2 42 14.6 14.64 Z" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 14.41 9.95 Q 10.49 2.7 -0.29 -5.18 L -0.68 -4.83 Q 4.94 4.86 12.95 11.26 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 14.97 10.22 Q 8.67 1.64 -6.39 -6.76 L -6.83 -6.26 Q 2.07 5.16 13.38 12.08 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 15.44 10.51 Q 6.71 1.46 -12.19 -6.15 L -12.62 -5.51 Q -0.41 6.46 13.88 12.89 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 15.79 10.88 Q 5.12 2.38 -16.28 -3.19 L -16.64 -2.44 Q -1.81 8.7 14.46 13.64 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 16.07 11.37 Q 4.39 4.33 -17.56 1.57 L -17.82 2.36 Q -1.66 11.49 15.11 14.29 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 16.31 12.02 Q 4.81 6.96 -15.57 7.08 L -15.72 7.84 Q 0.12 14.29 15.78 14.82 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 16.58 12.8 Q 6.38 9.77 -10.71 12.16 L -10.75 12.83 Q 3.24 16.55 16.43 15.25 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 16.9 13.66 Q 8.78 12.29 -4.07 15.93 L -4.03 16.46 Q 7.06 18 17.04 15.62 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 10.52 28.02 C 2.02 22.92 0.32 36.1 -3.08 40.18 Q -0.36 46.98 8.82 35.5 Q 11.2 30.74 10.52 28.02" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 10.62 26.9 Q 4.13 21.83 -3.36 23.71 Q -9.05 25.46 -9.12 26.3 Q -9.2 27.14 -3.87 29.58 Q 3.23 32.17 10.45 28.86 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 10.35 27.79 Q 3.94 21.95 -4.34 22.58 Q -10.68 23.36 -10.86 24.15 Q -11.03 24.93 -5.57 28.08 Q 1.78 31.65 9.94 29.62 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 10.06 28.69 Q 3.84 22.02 -5.04 21.22 Q -11.86 20.9 -12.12 21.62 Q -12.39 22.34 -6.9 26.28 Q 0.56 30.94 9.44 30.37 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 9.75 29.6 Q 3.83 22.05 -5.39 19.68 Q -12.5 18.15 -12.84 18.8 Q -13.18 19.45 -7.78 24.23 Q -0.39 30.06 8.95 31.12 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 9.43 30.52 Q 3.94 22.06 -5.35 18.02 Q -12.55 15.19 -12.95 15.76 Q -13.36 16.33 -8.19 22.01 Q -1.05 29.08 8.48 31.85 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 9.08 31.45 Q 4.18 22.05 -4.9 16.3 Q -11.96 12.14 -12.41 12.62 Q -12.86 13.11 -8.07 19.69 Q -1.39 28.03 8.03 32.58 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
 
-                    <path class="tm-aether-wing-vein" d="M 13.92 11.92 Q -1.9 4.26 -17.71 2.05" fill="none" stroke="#4aefe0" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-17.71" cy="2.05" rx="1.53" ry="0.95" fill="#e8c040" opacity="0.95" filter="url(#aether-old-glow)"/>
-                    <ellipse cx="-18.01" cy="1.9" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-vein" d="M 10.52 28.02 Q -0.94 18.62 -12.41 12.62" fill="none" stroke="#4aefe0" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-12.41" cy="12.62" rx="1.09" ry="0.7" fill="#e8c040" opacity="0.85" filter="url(#aether-old-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -41010,55 +40736,38 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-animate-wing-left tm-aether-wing-broken" transform="translate(50 52) scale(0.74) translate(-50 -52)">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="36" cy="46" r="4.08" fill="#e8c040" opacity="0.45" filter="url(#aether-old-glow)"/>
-                    <circle cx="36" cy="46" r="2.38" fill="#4aefe0" opacity="0.75" filter="url(#aether-old-glow)"/>
-                    <circle cx="36" cy="46" r="1.19" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 36 46 Q 29.88 35.12 33.28 44.64 Q 30.56 48.38 36 47.36 Z" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 37.22 43.06 Q 39.31 38.33 34.5 31.77 L 33.75 31.87 Q 31.37 38.28 34.47 43.45 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 37.43 42.72 Q 38.75 36.17 31.53 28.43 L 30.69 28.69 Q 29.43 37.49 34.31 43.71 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 37.57 42.31 Q 37.95 34.86 28.49 27.86 L 27.58 28.32 Q 27.64 38.21 34.21 44.02 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 37.15 42.18 Q 36.26 35.55 26.92 30.58 L 26.21 31.11 Q 27.89 39.83 34.52 44.12 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 36.75 42.15 Q 35.49 37.13 27.66 34.93 L 27.14 35.46 Q 29.2 41.98 34.83 44.14 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
+                    <circle cx="36" cy="46" r="2.72" fill="#e8c040" opacity="0.45" filter="url(#aether-old-glow)"/>
+                    <circle cx="36" cy="46" r="1.36" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 36.72 46.98 Q 36.41 40.9 31.41 39.14 Q 27.41 38.02 26.86 38.56 Q 26.32 39.11 27.62 42.93 Q 29.74 47.57 35.46 48.24 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 34.78 40.49 Q 34.48 33.66 28.89 32.38 Q 24.41 31.68 23.8 32.37 Q 23.19 33.05 24.61 37.19 Q 26.94 42.14 33.35 42.1 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 32.68 35.09 Q 31.8 28.15 25.95 27.03 Q 21.29 26.48 20.72 27.2 Q 20.15 27.92 21.95 32.08 Q 24.77 37.04 31.35 36.78 Z" fill="#4a3a68" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 30.47 30.8 Q 28.52 24.46 22.67 23.16 Q 18.06 22.43 17.63 23.06 Q 17.19 23.69 19.59 27.55 Q 23.1 32.19 29.44 32.27 Z" fill="#4a3a68" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 34.98 44.3 Q 29.2 8.72 26.48 4.64 Q 14.92 13.4 18.32 19.52 Q 16.28 48.04 15.6 51.44 Q 33.28 48.04 34.98 44.3" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 28.55 23.95 Q 28.26 16.26 20.42 6.7 L 19.76 6.96 Q 20.59 17.31 26.1 24.94 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 29.2 24.12 Q 27.28 14.71 15.75 4.44 L 14.99 4.89 Q 18.11 17.47 26.4 25.81 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 29.68 24.27 Q 25.78 13.99 10.87 4.45 L 10.1 5.11 Q 15.94 18.76 26.84 26.69 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 29.96 24.53 Q 24.2 14.55 7.21 7.18 L 6.53 7.98 Q 14.84 21.11 27.42 27.49 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 30.07 24.97 Q 23.13 16.43 5.98 12.07 L 5.46 12.93 Q 15.3 24.06 28.13 28.15 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 30.13 25.62 Q 22.97 19.22 7.59 17.87 L 7.25 18.69 Q 17.26 26.92 28.89 28.65 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 30.22 26.45 Q 23.75 22.28 11.42 23.21 L 11.26 23.91 Q 20.21 29.16 29.62 29.02 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <circle cx="15.02" cy="26.33" r="0.77" fill="#e8c040" opacity="0.84"/>
-                    <circle cx="12.57" cy="22.34" r="0.66" fill="#e8c040" opacity="0.61"/>
-                    <circle cx="34.34" cy="21.24" r="0.63" fill="#e8c040" opacity="0.39"/>
-                    <circle cx="27.88" cy="20.86" r="0.83" fill="#e8c040" opacity="0.39"/>
-                    <circle cx="32.47" cy="22.36" r="0.72" fill="#e8c040" opacity="0.45"/>
-                    <circle cx="6.38" cy="25.15" r="0.46" fill="#4aefe0" opacity="0.68"/>
-                    <circle cx="9" cy="23.23" r="0.54" fill="#4aefe0" opacity="0.54"/>
-                    <circle cx="8.31" cy="23.13" r="0.73" fill="#4aefe0" opacity="0.43"/>
-                    <circle cx="6.96" cy="14.02" r="0.63" fill="#4aefe0" opacity="0.74"/>
-                    <circle cx="18.68" cy="26.2" r="0.31" fill="#ffffff" opacity="0.79"/>
-                    <circle cx="16.36" cy="23.6" r="0.71" fill="#ffffff" opacity="0.79"/>
-                    <circle cx="17.55" cy="21.01" r="0.3" fill="#ffffff" opacity="0.69"/>
-                    <circle cx="7.52" cy="15.52" r="0.27" fill="#fff4c8" opacity="0.9"/>
-                    <circle cx="10.58" cy="10.65" r="0.61" fill="#fff4c8" opacity="0.69"/>
-                    <path class="tm-aether-wing-crack" d="M 30.56 41.92 Q 25.12 25.7 15.6 19.52" fill="none" stroke="#e8c040" stroke-width="0.5" stroke-dasharray="1.2 1.3" opacity="0.55"/>
-                    <path class="tm-aether-wing-vein" d="M 36 46 Q 26.48 20.94 14.92 19.52" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 36 46 C 30.9 21.3 25.46 17.22 22.06 22.32 S 14.92 32.92 11.52 34.62 Q 14.24 55.52 34.3 50.08 Q 34.3 47.7 36 46" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 24.22 24.05 Q 20.45 17.49 13.49 16.95 Q 8.08 16.83 7.74 17.57 Q 7.39 18.31 11.07 22.13 Q 16.2 26.62 23.42 25.78 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 20.83 28.48 Q 15.88 21.06 7.6 20.77 Q 1.2 20.89 0.85 21.76 Q 0.49 22.63 5.13 26.88 Q 11.53 31.84 20.01 30.52 Z" fill="#1e1438" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 17.39 31.98 Q 11.69 24.4 2.87 24.52 Q -3.93 24.98 -4.26 25.92 Q -4.58 26.86 0.6 31.1 Q 7.7 36 16.64 34.17 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 13.91 34.59 Q 8.21 27.73 -0.05 28.3 Q -6.41 29.09 -6.67 29.99 Q -6.93 30.9 -1.87 34.64 Q 5.01 38.9 13.3 36.7 Z" fill="#1e1438" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 10.4 36.28 Q 5.35 30.65 -1.57 31.56 Q -6.88 32.57 -7.07 33.36 Q -7.25 34.16 -2.86 37.13 Q 3.09 40.45 9.98 38.14 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <circle cx="18.7" cy="27.91" r="0.61" fill="#e8c040" opacity="0.84"/>
+                    <circle cx="17.28" cy="25.91" r="0.53" fill="#e8c040" opacity="0.61"/>
+                    <circle cx="29.88" cy="25.36" r="0.51" fill="#e8c040" opacity="0.39"/>
+                    <circle cx="6.79" cy="38" r="0.39" fill="#4aefe0" opacity="0.68"/>
+                    <circle cx="8.34" cy="37.11" r="0.45" fill="#4aefe0" opacity="0.54"/>
+                    <path class="tm-aether-wing-crack" d="M 32.6 43.96 Q 23.76 22.32 12.54 34.62" fill="none" stroke="#e8c040" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 36 46 Q 23.76 22.32 11.52 34.62" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 18.32 19.52 Q 22.4 9.4 2.34 13.28 Q -1.74 22.8 0.3 28.92 Q 12.2 46 15.6 22.24 Z" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 15.41 17.55 Q 11.49 10.3 0.71 2.42 L 0.32 2.77 Q 5.94 12.46 13.95 18.86 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 15.97 17.82 Q 9.67 9.24 -5.39 0.84 L -5.83 1.34 Q 3.07 12.76 14.38 19.68 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 16.44 18.11 Q 7.71 9.06 -11.19 1.45 L -11.62 2.09 Q 0.59 14.06 14.88 20.49 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 16.79 18.48 Q 6.12 9.98 -15.28 4.41 L -15.64 5.16 Q -0.81 16.3 15.46 21.24 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 17.07 18.97 Q 5.39 11.93 -16.56 9.17 L -16.82 9.96 Q -0.66 19.09 16.11 21.89 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 17.31 19.62 Q 5.81 14.56 -14.57 14.68 L -14.72 15.44 Q 1.12 21.89 16.78 22.42 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 17.58 20.4 Q 7.38 17.37 -9.71 19.76 L -9.75 20.43 Q 4.24 24.15 17.43 22.85 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 17.9 21.26 Q 9.78 19.89 -3.07 23.53 L -3.03 24.06 Q 8.06 25.6 18.04 23.22 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path class="tm-aether-wing-tatter" d="M 9.48 50.08 Q 6.08 53.82 10.84 52.12" fill="#e8c040" opacity="0.45"/>
-                    <path class="tm-aether-wing-tatter" d="M 0.3 24.84 Q -4.8 28.24 1.66 26.88" fill="#4aefe0" opacity="0.5"/>
-                    <path class="tm-aether-wing-vein" d="M 14.92 19.52 Q -0.9 11.86 -16.71 9.65" fill="none" stroke="#4aefe0" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-16.71" cy="9.65" rx="1.53" ry="0.95" fill="#e8c040" opacity="0.95" filter="url(#aether-old-glow)"/>
-                    <ellipse cx="-17.01" cy="9.5" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-membrane" d="M 11.52 34.62 C 3.02 29.52 1.32 41.1 -2.08 45.18 Q 0.64 51.98 9.82 42.1 Q 12.2 37.34 11.52 34.62" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 11.62 33.5 Q 5.13 28.43 -2.36 30.31 Q -8.05 32.06 -8.12 32.9 Q -8.2 33.74 -2.87 36.18 Q 4.23 38.77 11.45 35.46 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 11.35 34.39 Q 4.94 28.55 -3.34 29.18 Q -9.68 29.96 -9.86 30.75 Q -10.03 31.53 -4.57 34.68 Q 2.78 38.25 10.94 36.22 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 11.06 35.29 Q 4.84 28.62 -4.04 27.82 Q -10.86 27.5 -11.12 28.22 Q -11.39 28.94 -5.9 32.88 Q 1.56 37.54 10.44 36.97 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 10.75 36.2 Q 4.83 28.65 -4.39 26.28 Q -11.5 24.75 -11.84 25.4 Q -12.18 26.05 -6.78 30.83 Q 0.61 36.66 9.95 37.72 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 10.43 37.12 Q 4.94 28.66 -4.35 24.62 Q -11.55 21.79 -11.95 22.36 Q -12.36 22.93 -7.19 28.61 Q -0.05 35.68 9.48 38.45 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 10.08 38.05 Q 5.18 28.65 -3.9 22.9 Q -10.96 18.74 -11.41 19.22 Q -11.86 19.71 -7.07 26.29 Q -0.39 34.63 9.03 39.18 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path class="tm-aether-wing-tatter" d="M 14.24 54.16 Q 11.52 57.56 15.94 56.2" fill="#e8c040" opacity="0.35"/>
+                    <path class="tm-aether-wing-tatter" d="M -9.71 20.24 Q -12.43 22.28 -9.03 21.6" fill="#4aefe0" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 11.52 34.62 Q 0.06 25.22 -11.41 19.22" fill="none" stroke="#4aefe0" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-11.41" cy="19.22" rx="1.09" ry="0.7" fill="#e8c040" opacity="0.85" filter="url(#aether-old-glow)"/>
                     </g>
                     </g>
                     </g>
@@ -41071,71 +40780,46 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <g class="tm-animate-wing-right tm-aether-wing-dominant" transform="translate(50 52) scale(1.38) translate(-50 -52)">
                     <g transform="translate(100,0) scale(-1,1)">
                     <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <circle cx="36" cy="45" r="6" fill="#e8c040" opacity="0.45" filter="url(#aether-old-glow)"/>
-                    <circle cx="36" cy="45" r="3.5" fill="#4aefe0" opacity="0.75" filter="url(#aether-old-glow)"/>
-                    <circle cx="36" cy="45" r="1.75" fill="#ffffff" opacity="0.95"/>
-                    <path d="M 36 45 Q 27 29 32 43 Q 28 48.5 36 47 Z" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.4" opacity="0.75"/>
-                    <path d="M 37.79 40.68 Q 40.86 33.72 33.79 24.07 L 32.7 24.23 Q 29.19 33.65 33.76 41.24 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 38.01 40.36 Q 40.4 31.51 31.02 20.47 L 29.82 20.78 Q 27.33 32.68 33.59 41.49 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 38.19 39.99 Q 39.64 29.72 27.82 18.32 L 26.54 18.8 Q 25.37 32.54 33.45 41.77 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 38.31 39.57 Q 38.87 28.62 24.95 18.32 L 23.62 19 Q 23.7 33.54 33.36 42.09 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 37.9 39.42 Q 37.07 29.08 23.04 20.56 L 21.89 21.31 Q 23.76 34.97 33.67 42.2 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 37.49 39.35 Q 35.87 30.33 22.66 24.36 L 21.72 25.15 Q 24.56 36.98 33.98 42.26 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 37.1 39.34 Q 35.25 31.96 23.73 28.72 L 22.97 29.51 Q 26 39.09 34.28 42.27 Z" fill="url(#aether-old-feather)" opacity="0.92" stroke="#e8c040" stroke-width="0.55"/>
+                    <circle cx="36" cy="45" r="4" fill="#e8c040" opacity="0.45" filter="url(#aether-old-glow)"/>
+                    <circle cx="36" cy="45" r="2" fill="#ffffff" opacity="0.9"/>
+                    <path d="M 37.06 46.44 Q 36.6 37.49 29.24 34.91 Q 23.36 33.27 22.56 34.06 Q 21.77 34.86 23.68 40.48 Q 26.79 47.31 35.2 48.3 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 34.93 36.99 Q 34.56 27.17 26.51 25.13 Q 20.07 23.97 19.19 24.94 Q 18.3 25.9 20.31 31.9 Q 23.64 39.09 32.86 39.25 Z" fill="#4a3a68" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 32.69 28.71 Q 31.95 18.43 23.46 16.74 Q 16.69 15.88 15.8 16.95 Q 14.9 18.01 17.22 24.18 Q 20.95 31.54 30.61 31.19 Z" fill="#4a3a68" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 30.31 21.64 Q 28.67 11.57 20.04 9.9 Q 13.19 9.06 12.39 10.1 Q 11.59 11.13 14.45 17.18 Q 18.83 24.4 28.45 24.07 Z" fill="#1e1438" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 27.86 15.77 Q 24.99 6.44 16.39 4.54 Q 9.62 3.46 8.98 4.38 Q 8.33 5.3 11.87 10.99 Q 17.04 17.81 26.35 17.92 Z" fill="#4a3a68" opacity="0.85" stroke="#e8c040" stroke-width="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 34.5 42.5 Q 26 -19 22 -25 Q 5 -11.2 10 -2.2 Q 7 48 6 53 Q 32 48 34.5 42.5" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.35" opacity="0.42"/>
-                    <path d="M 25.04 7.52 Q 24.61 -3.78 13.1 -17.85 L 12.12 -17.45 Q 13.34 -2.24 21.44 8.98 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 25.71 7.7 Q 23.77 -5.39 8.64 -20.36 L 7.56 -19.78 Q 10.91 -2.24 21.72 9.83 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 26.27 7.84 Q 22.5 -6.6 3.76 -21.59 L 2.63 -20.82 Q 8.51 -1.56 22.07 10.7 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 26.71 8 Q 20.97 -7.13 -0.96 -21.15 L -2.09 -20.19 Q 6.5 -0.11 22.52 11.55 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 27.01 8.22 Q 19.38 -6.8 -4.87 -18.89 L -5.93 -17.77 Q 5.19 2.06 23.08 12.36 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 27.19 8.56 Q 18.01 -5.57 -7.39 -15.01 L -8.33 -13.79 Q 4.84 4.75 23.72 13.09 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 27.29 9.02 Q 17.08 -3.53 -8.14 -9.94 L -8.91 -8.68 Q 5.55 7.68 24.43 13.71 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 27.34 9.63 Q 16.75 -0.89 -7.01 -4.27 L -7.59 -3.03 Q 7.27 10.56 25.18 14.22 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 27.4 10.37 Q 17.08 2.08 -4.19 1.37 L -4.59 2.52 Q 9.79 13.12 25.92 14.64 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 27.5 11.2 Q 17.99 5.07 -0.14 6.44 L -0.38 7.46 Q 12.78 15.19 26.62 14.99 Z" fill="url(#aether-old-feather)" opacity="0.9" stroke="#e8c040" stroke-width="0.55"/>
-                    <circle cx="8.77" cy="9.31" r="0.84" fill="#e8c040" opacity="0.94"/>
-                    <circle cx="23.34" cy="9.59" r="0.51" fill="#e8c040" opacity="0.51"/>
-                    <circle cx="8.46" cy="0.24" r="0.76" fill="#e8c040" opacity="0.46"/>
-                    <circle cx="2.38" cy="-0.78" r="0.66" fill="#e8c040" opacity="0.39"/>
-                    <circle cx="16.08" cy="-0.15" r="0.52" fill="#e8c040" opacity="0.75"/>
-                    <circle cx="15.31" cy="-10.75" r="0.71" fill="#e8c040" opacity="0.72"/>
-                    <circle cx="16.39" cy="-9.18" r="0.62" fill="#e8c040" opacity="0.71"/>
-                    <circle cx="-1.93" cy="-4.98" r="0.47" fill="#4aefe0" opacity="0.64"/>
-                    <circle cx="-1.06" cy="-3.66" r="0.28" fill="#4aefe0" opacity="0.89"/>
-                    <circle cx="-2" cy="-11.33" r="0.74" fill="#4aefe0" opacity="0.8"/>
-                    <circle cx="-11.77" cy="2.43" r="0.54" fill="#4aefe0" opacity="0.72"/>
-                    <circle cx="-6.72" cy="-2.6" r="0.54" fill="#4aefe0" opacity="0.76"/>
-                    <circle cx="-4.44" cy="0.7" r="0.33" fill="#4aefe0" opacity="0.93"/>
-                    <circle cx="10.23" cy="7.66" r="0.31" fill="#ffffff" opacity="0.49"/>
-                    <circle cx="4.93" cy="13.6" r="0.69" fill="#ffffff" opacity="0.48"/>
-                    <circle cx="3.97" cy="12.19" r="0.28" fill="#ffffff" opacity="0.47"/>
-                    <circle cx="5.97" cy="15.92" r="0.29" fill="#ffffff" opacity="0.56"/>
-                    <circle cx="-7.96" cy="-12.14" r="0.25" fill="#fff4c8" opacity="0.55"/>
-                    <circle cx="-14.47" cy="-11.73" r="0.36" fill="#fff4c8" opacity="0.51"/>
-                    <circle cx="-11.82" cy="-8.63" r="0.59" fill="#fff4c8" opacity="0.48"/>
-                    <circle cx="-2.13" cy="-13.15" r="0.55" fill="#fff4c8" opacity="0.88"/>
-                    <path class="tm-aether-wing-crack" d="M 28 39 Q 20 10.1 6 -2.2" fill="none" stroke="#e8c040" stroke-width="0.5" stroke-dasharray="1.2 1.3" opacity="0.55"/>
-                    <path class="tm-aether-wing-vein" d="M 36 45 Q 22 3.1 5 -2.2" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-linecap="round" opacity="0.55"/>
+                    <path class="tm-aether-wing-membrane" d="M 36 45 C 28.5 -0.5 20.5 -6.5 15.5 1 S 5 19.8 0 22.3 Q 4 59 33.5 51 Q 33.5 47.5 36 45" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.45" opacity="0.72"/>
+                    <path d="M 18.68 3.55 Q 13.13 -6.1 2.89 -6.9 Q -5.06 -7.08 -5.56 -5.99 Q -6.07 -4.9 -0.66 0.71 Q 6.88 7.32 17.49 6.09 Z" fill="#1e1438" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 15.36 8.58 Q 8.63 -1.99 -2.98 -2.58 Q -11.97 -2.54 -12.49 -1.31 Q -13.01 -0.08 -6.62 6 Q 2.21 13.13 14.15 11.44 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 12.02 12.99 Q 4.27 1.86 -8.34 1.61 Q -18.09 1.94 -18.6 3.28 Q -19.11 4.61 -11.92 10.94 Q -2.04 18.3 10.82 16.1 Z" fill="#1e1438" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 8.63 16.81 Q 0.25 5.67 -12.72 5.84 Q -22.73 6.52 -23.2 7.91 Q -23.68 9.29 -16.05 15.52 Q -5.62 22.73 7.52 20.03 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 5.22 20.05 Q -3.28 9.49 -15.88 10.11 Q -25.58 11.13 -25.99 12.49 Q -26.41 13.86 -18.8 19.67 Q -8.43 26.32 4.25 23.23 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M 1.79 22.7 Q -6.34 13.17 -17.92 14.2 Q -26.82 15.5 -27.16 16.78 Q -27.51 18.07 -20.33 23.21 Q -10.59 29.03 0.99 25.7 Z" fill="#4a3a68" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M -1.64 24.74 Q -9.07 16.46 -19.25 17.8 Q -27.06 19.28 -27.33 20.45 Q -27.6 21.62 -21.14 25.99 Q -12.4 30.88 -2.27 27.47 Z" fill="#4aefe0" opacity="0.82" stroke="#e8c040" stroke-width="0.4"/>
+                    <circle cx="12.66" cy="8.36" r="0.66" fill="#e8c040" opacity="0.94"/>
+                    <circle cx="21.09" cy="8.5" r="0.43" fill="#e8c040" opacity="0.51"/>
+                    <circle cx="12.47" cy="3.82" r="0.6" fill="#e8c040" opacity="0.46"/>
+                    <circle cx="8.96" cy="3.31" r="0.54" fill="#e8c040" opacity="0.39"/>
+                    <circle cx="-3.64" cy="22.17" r="0.39" fill="#4aefe0" opacity="0.64"/>
+                    <circle cx="-3.12" cy="22.78" r="0.27" fill="#4aefe0" opacity="0.89"/>
+                    <circle cx="-3.67" cy="19.24" r="0.57" fill="#4aefe0" opacity="0.8"/>
+                    <circle cx="-9.42" cy="25.59" r="0.45" fill="#4aefe0" opacity="0.72"/>
+                    <path class="tm-aether-wing-crack" d="M 31 42 Q 18 1 1.5 22.3" fill="none" stroke="#e8c040" stroke-width="0.4" stroke-dasharray="1.2 1.3" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 36 45 Q 18 1 0 22.3" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-linecap="round" opacity="0.4"/>
                     <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 55%;transform-box:fill-box">
-                    <path class="tm-aether-wing-membrane" d="M 10 -2.2 Q 16 -18 -13.5 -10 Q -19.5 4 -16.5 13 Q 1 45 6 1.8 Z" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.3" opacity="0.38"/>
-                    <path d="M 5.72 -5.1 Q -0.05 -15.76 -15.9 -27.35 L -16.47 -26.83 Q -8.21 -12.58 3.57 -3.16 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 6.26 -4.84 Q -1.69 -16.87 -21.55 -29.16 L -22.17 -28.5 Q -10.9 -12.46 3.96 -2.4 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 6.75 -4.59 Q -3.51 -17.54 -27.33 -29.78 L -27.97 -28.98 Q -13.52 -11.78 4.39 -1.63 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 7.17 -4.32 Q -5.35 -17.63 -32.7 -29.01 L -33.33 -28.08 Q -15.79 -10.46 4.87 -0.87 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 7.53 -4 Q -6.99 -17.05 -37.12 -26.8 L -37.69 -25.76 Q -17.44 -8.57 5.39 -0.16 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 7.83 -3.62 Q -8.25 -15.81 -40.1 -23.31 L -40.6 -22.19 Q -18.27 -6.22 5.96 0.51 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 8.09 -3.15 Q -8.94 -13.98 -41.3 -18.82 L -41.71 -17.67 Q -18.14 -3.6 6.57 1.12 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 8.32 -2.6 Q -8.96 -11.69 -40.55 -13.76 L -40.86 -12.61 Q -17.01 -0.91 7.19 1.66 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 8.55 -1.95 Q -8.26 -9.12 -37.88 -8.58 L -38.08 -7.48 Q -14.95 1.62 7.82 2.13 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 8.8 -1.23 Q -6.87 -6.48 -33.51 -3.73 L -33.61 -2.71 Q -12.11 3.82 8.44 2.54 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 9.07 -0.45 Q -4.92 -3.94 -27.86 0.44 L -27.87 1.35 Q -8.73 5.54 9.03 2.91 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path d="M 9.39 0.37 Q -2.56 -1.65 -21.46 3.7 L -21.4 4.47 Q -5.09 6.73 9.59 3.24 Z" fill="url(#aether-old-blade)" opacity="0.93" stroke="#e8c040" stroke-width="0.55"/>
-                    <path class="tm-aether-wing-tatter" d="M -3 51 Q -8 56.5 -1 54" fill="#e8c040" opacity="0.45"/>
-                    <path class="tm-aether-wing-tatter" d="M -16.5 7 Q -24 12 -14.5 10" fill="#4aefe0" opacity="0.5"/>
-                    <path class="tm-aether-wing-vein" d="M 5 -2.2 Q -18.27 -14.17 -41.55 -18.13" fill="none" stroke="#4aefe0" stroke-width="0.55" stroke-linecap="round" opacity="0.55"/>
-                    <ellipse class="tm-aether-wing-claw" cx="-41.55" cy="-18.13" rx="2.25" ry="1.4" fill="#e8c040" opacity="0.95" filter="url(#aether-old-glow)"/>
-                    <ellipse cx="-41.85" cy="-18.28" rx="0.55" ry="0.35" fill="#ffffff" opacity="0.9"/>
+                    <path class="tm-aether-wing-membrane" d="M 0 22.3 C -12.5 14.8 -15 35.5 -20 41.5 Q -16 51.5 -2.5 33.3 Q 1 26.3 0 22.3" fill="url(#aether-old-wing)" stroke="#e8c040" stroke-width="0.4" opacity="0.65"/>
+                    <path d="M 0.14 20.66 Q -9.39 13.2 -20.41 15.96 Q -28.78 18.54 -28.89 19.77 Q -29 21.01 -21.16 24.59 Q -10.72 28.4 -0.11 23.53 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M -0.14 21.58 Q -9.6 13.33 -21.48 14.81 Q -30.56 16.39 -30.78 17.57 Q -30.99 18.75 -23 23.07 Q -12.28 27.89 -0.65 24.34 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M -0.43 22.52 Q -9.75 13.43 -22.35 13.48 Q -32.01 13.96 -32.33 15.08 Q -32.64 16.19 -24.57 21.31 Q -13.67 27.22 -1.17 25.13 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M -0.74 23.47 Q -9.84 13.49 -22.98 11.99 Q -33.09 11.27 -33.5 12.32 Q -33.91 13.37 -25.84 19.33 Q -14.87 26.42 -1.69 25.92 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M -1.06 24.43 Q -9.84 13.52 -23.35 10.38 Q -33.77 8.38 -34.25 9.35 Q -34.74 10.32 -26.77 17.18 Q -15.87 25.5 -2.2 26.7 Z" fill="#4aefe0" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M -1.4 25.4 Q -9.76 13.53 -23.44 8.66 Q -34 5.33 -34.56 6.22 Q -35.12 7.11 -27.35 14.88 Q -16.65 24.49 -2.7 27.47 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M -1.75 26.37 Q -9.59 13.53 -23.22 6.88 Q -33.77 2.16 -34.39 2.97 Q -35.01 3.77 -27.54 12.49 Q -17.21 23.42 -3.19 28.25 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path d="M -2.11 27.35 Q -9.32 13.52 -22.68 5.06 Q -33.05 -1.06 -33.72 -0.34 Q -34.38 0.37 -27.33 10.05 Q -17.52 22.32 -3.66 29.01 Z" fill="#1e1438" opacity="0.86" stroke="#e8c040" stroke-width="0.4"/>
+                    <path class="tm-aether-wing-tatter" d="M 4 57 Q 0 62 6.5 60" fill="#e8c040" opacity="0.35"/>
+                    <path class="tm-aether-wing-tatter" d="M -31.22 1.16 Q -35.22 4.16 -30.22 3.16" fill="#4aefe0" opacity="0.4"/>
+                    <path class="tm-aether-wing-vein" d="M 0 22.3 Q -16.86 8.48 -33.72 -0.34" fill="none" stroke="#4aefe0" stroke-width="0.45" stroke-linecap="round" opacity="0.4"/>
+                    <ellipse class="tm-aether-wing-claw" cx="-33.72" cy="-0.34" rx="1.6" ry="1" fill="#e8c040" opacity="0.85" filter="url(#aether-old-glow)"/>
                     </g>
                     </g>
                     </g>

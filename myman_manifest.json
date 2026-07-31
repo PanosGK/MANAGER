@@ -1,11 +1,11 @@
 {
-  "version": "326",
+  "version": "327",
   "loaderVersion": "36",
-  "silentVersion": "18",
-  "displayVersion": "36.18",
+  "silentVersion": "19",
+  "displayVersion": "36.19",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix Aether live/preview mismatch: membrane opacity + live-matched preview.",
+  "releaseNotes": "Aether natural avian cosmic wings (shingled plumage).",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
