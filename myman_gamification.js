@@ -3646,6 +3646,7 @@ function getMascotSettingsHTML() {
                         <li><strong>Διπλό κλικ</strong> — κόλπο (trick) του χαρακτήρα.</li>
                         <li><strong>Σύρσιμο</strong> — στάθμευση σε σταθερή θέση («Σταθμεύτηκα»). Από το panel: Ξεκλείδωμα για να ξαναπερπατήσει.</li>
                         <li><strong>Εστίαση 25′</strong> — μένει ήσυχο/σταθμευμένο χωρίς bubbles όσο δουλεύετε.</li>
+                        <li><strong>Preview</strong> — στο care panel: Age Preview όλων των ηλικιών· ξεκλείδωτα στάδια καθαρά, μελλοντικά σε σκιά.</li>
                         <li><strong>Ταχύτητα</strong> — πόσο γρήγορα περιπλανιέται όταν δεν είναι σταθμευμένο.</li>
                     </ul>
 

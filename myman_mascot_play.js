@@ -780,15 +780,17 @@ function showMascotRhythmGame(config, STORAGE_KEYS) {
 
 // ── Shadow match ──────────────────────────────────────────────────
 function getMascotStageSpriteKey() {
-    const map = {
-        egg: 'base',
-        baby: 'baby',
-        kid: 'evo1',
-        teen: 'evo2',
-        adult: 'evo3',
-        middleage: 'evo4',
-        old: 'evo5',
-    };
+    const map = (typeof window.TAMA_STAGE_TO_SPRITE_KEY === 'object' && window.TAMA_STAGE_TO_SPRITE_KEY)
+        ? window.TAMA_STAGE_TO_SPRITE_KEY
+        : {
+            egg: 'base',
+            baby: 'baby',
+            kid: 'evo1',
+            teen: 'evo2',
+            adult: 'evo3',
+            middleage: 'evo4',
+            old: 'evo5',
+        };
     return map[tamagotchiStage] || 'evo3';
 }
 

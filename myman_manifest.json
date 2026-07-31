@@ -1,11 +1,11 @@
 {
-  "version": "315",
+  "version": "316",
   "loaderVersion": "36",
-  "silentVersion": "7",
-  "displayVersion": "36.7",
+  "silentVersion": "8",
+  "displayVersion": "36.8",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Care panel: 1:1 live SVG mascot preview on open.",
+  "releaseNotes": "Care panel Age Preview: evolution showcase with unlock/blur gating.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

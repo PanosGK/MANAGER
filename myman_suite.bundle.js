@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v315 / Custom Ver. 36.7 — generated, do not edit */
+/* MyManager Suite bundle v316 / Custom Ver. 36.8 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '315',
+        version: '316',
         loaderVersion: '36',
-        silentVersion: '7',
-        displayVersion: '36.7',
+        silentVersion: '8',
+        displayVersion: '36.8',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -21522,6 +21522,7 @@ function debugSetMascotCharacter(characterType, STORAGE_KEYS) {
     }
 
     syncTamagotchiAgeFromLife();
+    noteMascotEvolutionReached(tamagotchiStage, tamagotchiCharacterType);
     const keys = getTamagotchiStorageKeys(
         STORAGE_KEYS || (typeof window.STORAGE_KEYS !== 'undefined' ? window.STORAGE_KEYS : null),
     );
@@ -21538,6 +21539,95 @@ function debugSetMascotCharacter(characterType, STORAGE_KEYS) {
 
 /** Life stages in evolution order (egg → … → old). */
 const TAMA_LIFE_STAGE_ORDER = ['egg', 'baby', 'kid', 'teen', 'adult', 'middleage', 'old'];
+
+/** Maps life stage → SVG sprite group key (`tm-mascot-{key}-{character}`). */
+const TAMA_STAGE_TO_SPRITE_KEY = {
+    egg: 'base',
+    baby: 'baby',
+    kid: 'evo1',
+    teen: 'evo2',
+    adult: 'evo3',
+    middleage: 'evo4',
+    old: 'evo5',
+};
+
+/** Highest stage reached in the current egg cycle. */
+let tamagotchiMaxReachedStage = 'egg';
+/**
+ * Lifetime discovery map: characterType → highest stage ever reached with that character.
+ * Survives egg resets so Age Preview can unlock previously seen forms.
+ */
+let tamagotchiEvolutionDiscovery = {};
+
+function getMascotLifeStageIndex(stage) {
+    const idx = TAMA_LIFE_STAGE_ORDER.indexOf(stage);
+    return idx >= 0 ? idx : -1;
+}
+
+function maxMascotLifeStage(a, b) {
+    return getMascotLifeStageIndex(a) >= getMascotLifeStageIndex(b) ? (a || 'egg') : (b || 'egg');
+}
+
+function normalizeEvolutionDiscovery(raw) {
+    const out = {};
+    if (!raw || typeof raw !== 'object') return out;
+    Object.keys(raw).forEach((char) => {
+        if (!TAMA_CHARACTER_TYPES.includes(char)) return;
+        const stage = raw[char];
+        if (typeof stage === 'string' && TAMA_LIFE_STAGE_ORDER.includes(stage)) {
+            out[char] = stage;
+        }
+    });
+    return out;
+}
+
+function mergeEvolutionDiscoveryMaps(a, b) {
+    const out = { ...normalizeEvolutionDiscovery(a) };
+    const other = normalizeEvolutionDiscovery(b);
+    Object.keys(other).forEach((char) => {
+        out[char] = maxMascotLifeStage(out[char] || 'egg', other[char]);
+    });
+    return out;
+}
+
+/**
+ * Highest evolution the user has unlocked for Age Preview.
+ * Prefer lifetime discovery for the character; also count the current life if same type.
+ */
+function getMaxReachedEvolution(characterType = tamagotchiCharacterType) {
+    if (!characterType || characterType === 'none') {
+        return maxMascotLifeStage(tamagotchiMaxReachedStage || 'egg', 'egg');
+    }
+    let max = tamagotchiEvolutionDiscovery[characterType] || 'egg';
+    if (tamagotchiCharacterType === characterType) {
+        max = maxMascotLifeStage(max, tamagotchiMaxReachedStage);
+        max = maxMascotLifeStage(max, tamagotchiStage);
+    }
+    return max;
+}
+
+function isMascotStageUnlockedForPreview(stage, characterType = tamagotchiCharacterType) {
+    if (stage === 'egg') return true;
+    if (!characterType || characterType === 'none') return false;
+    return getMascotLifeStageIndex(stage) <= getMascotLifeStageIndex(getMaxReachedEvolution(characterType));
+}
+
+function getMascotSpriteIdForStage(stage, characterType) {
+    if (stage === 'egg') return 'tm-mascot-base';
+    const key = TAMA_STAGE_TO_SPRITE_KEY[stage] || 'baby';
+    if (!characterType || characterType === 'none') return `tm-mascot-${key}`;
+    return `tm-mascot-${key}-${characterType}`;
+}
+
+/** Record progression for the current life + lifetime discovery book. */
+function noteMascotEvolutionReached(stage, characterType = tamagotchiCharacterType) {
+    if (!stage || !TAMA_LIFE_STAGE_ORDER.includes(stage)) return;
+    tamagotchiMaxReachedStage = maxMascotLifeStage(tamagotchiMaxReachedStage, stage);
+    if (characterType && characterType !== 'none' && TAMA_CHARACTER_TYPES.includes(characterType)) {
+        const prev = tamagotchiEvolutionDiscovery[characterType] || 'egg';
+        tamagotchiEvolutionDiscovery[characterType] = maxMascotLifeStage(prev, stage);
+    }
+}
 
 /**
  * Debug: jump lifeMinutes to the next stage threshold and run the real evolution path
@@ -28444,6 +28534,11 @@ function loadTamagotchiData(STORAGE_KEYS) {
         } else {
             tamagotchiTaughtTricks = { unlocked: [], practice: {} };
         }
+        tamagotchiEvolutionDiscovery = normalizeEvolutionDiscovery(savedData.evolutionDiscovery);
+        const savedMax = savedData.maxReachedStage;
+        tamagotchiMaxReachedStage = (typeof savedMax === 'string' && TAMA_LIFE_STAGE_ORDER.includes(savedMax))
+            ? savedMax
+            : 'egg';
         validateTamagotchiState();
         // Recover sticky character after validate if storage had one and we're hatched
         if (tamagotchiStage !== 'egg' && loadedChar && loadedChar !== 'none'
@@ -28451,6 +28546,8 @@ function loadTamagotchiData(STORAGE_KEYS) {
             tamagotchiCharacterType = loadedChar;
         }
         tamagotchiEggHatchCinematicDone = tamagotchiStage !== 'egg';
+        // Migrate: current life stage always counts as reached
+        noteMascotEvolutionReached(tamagotchiStage, tamagotchiCharacterType);
     }
     tamagotchiDataLoaded = true;
 }
@@ -28497,6 +28594,18 @@ function saveTamagotchiData(STORAGE_KEYS) {
                 tamagotchiNaturalDeathCount,
                 Math.max(0, Number(stored.naturalDeathCount) || 0),
             );
+
+            tamagotchiEvolutionDiscovery = mergeEvolutionDiscoveryMaps(
+                tamagotchiEvolutionDiscovery,
+                stored.evolutionDiscovery,
+            );
+            if (typeof stored.maxReachedStage === 'string'
+                && TAMA_LIFE_STAGE_ORDER.includes(stored.maxReachedStage)) {
+                tamagotchiMaxReachedStage = maxMascotLifeStage(
+                    tamagotchiMaxReachedStage,
+                    stored.maxReachedStage,
+                );
+            }
 
             const storedChar = stored.characterType;
             const storedCharOk = storedChar && storedChar !== 'none' && TAMA_CHARACTER_TYPES.includes(storedChar);
@@ -28576,6 +28685,8 @@ function saveTamagotchiData(STORAGE_KEYS) {
             unlocked: Array.isArray(tamagotchiTaughtTricks?.unlocked) ? tamagotchiTaughtTricks.unlocked.slice() : [],
             practice: { ...(tamagotchiTaughtTricks?.practice || {}) },
         },
+        maxReachedStage: tamagotchiMaxReachedStage || 'egg',
+        evolutionDiscovery: normalizeEvolutionDiscovery(tamagotchiEvolutionDiscovery),
     };
     GM_setValue(keys.TAMAGOTCHI_DATA, JSON.stringify(data));
 }
@@ -28851,6 +28962,11 @@ function checkTamagotchiEvolution(container) {
 
     const stageChanged = oldStage !== tamagotchiStage;
     const characterChanged = oldCharacterType !== tamagotchiCharacterType;
+
+    // Track unlocked Age Preview stages (current life + lifetime discovery)
+    if (stageChanged || characterChanged) {
+        noteMascotEvolutionReached(tamagotchiStage, tamagotchiCharacterType);
+    }
 
     // Real evolution always wins over temporary stage previews
     if (stageChanged && mascotStagePreviewLock) {
@@ -31181,6 +31297,8 @@ function applyTamagotchiEggResetState() {
     tamagotchiNeedsPraise = false;
     tamagotchiNeedsScold = false;
     tamagotchiEggHatchCinematicDone = false;
+    // Current-life peak resets; lifetime discovery map is kept for Age Preview unlocks
+    tamagotchiMaxReachedStage = 'egg';
 
     petStats.hunger = 100;
     petStats.happiness = 100;
@@ -31640,6 +31758,458 @@ function resyncMascotAppearanceFromStorage(STORAGE_KEYS = window.STORAGE_KEYS) {
         console.warn('[MMS Mascot] Resync failed:', err);
         return false;
     }
+}
+
+/**
+ * Clone the live mascot SVG for UI previews (care panel, Age Preview, etc.).
+ * Remaps ids so gradient/filter url(#…) refs stay valid and don't collide with the live sprite.
+ */
+function cloneMascotSvgForUiPreview(idPrefix = 'tm-ui-prev-') {
+    const liveRoot = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+    const liveRobot = liveRoot?.querySelector?.('.tm-mascot-robot');
+    if (!liveRobot) return null;
+
+    const clone = liveRobot.cloneNode(true);
+    clone.removeAttribute('id');
+    clone.classList.add('tm-mascot-preview-robot');
+    clone.style.pointerEvents = 'none';
+    clone.setAttribute('aria-hidden', 'true');
+
+    const idMap = new Map();
+    clone.querySelectorAll('[id]').forEach((node) => {
+        const oldId = node.getAttribute('id');
+        if (!oldId) return;
+        const newId = `${idPrefix}${oldId}`;
+        idMap.set(oldId, newId);
+        node.setAttribute('id', newId);
+    });
+
+    const rewriteUrlRefs = (value) => String(value).replace(/url\(\s*#([^)\s]+)\s*\)/g, (full, id) => (
+        idMap.has(id) ? `url(#${idMap.get(id)})` : full
+    ));
+
+    clone.querySelectorAll('*').forEach((el) => {
+        for (const attr of [...el.attributes]) {
+            const name = attr.name;
+            const value = attr.value;
+            if (!value) continue;
+            if (value.includes('url(')) {
+                el.setAttribute(name, rewriteUrlRefs(value));
+            } else if ((name === 'href' || name === 'xlink:href') && value.startsWith('#')) {
+                const id = value.slice(1);
+                if (idMap.has(id)) el.setAttribute(name, `#${idMap.get(id)}`);
+            }
+        }
+    });
+
+    clone.querySelectorAll('.tm-toilet-fx, .tm-toilet-urgency-indicator').forEach((el) => el.remove());
+    return { clone, liveRoot, idPrefix };
+}
+
+/** Show only one life-stage sprite group inside a remapped preview clone. */
+function isolateMascotStageOnPreviewClone(clone, idPrefix, stage, characterType, { hideAccessories = true } = {}) {
+    if (!clone) return false;
+    const strip = (id) => (id && id.startsWith(idPrefix) ? id.slice(idPrefix.length) : id);
+
+    clone.querySelectorAll('[id]').forEach((el) => {
+        const raw = strip(el.id);
+        if (!raw) return;
+        if (raw === 'tm-mascot-base' || /^tm-mascot-(baby|evo[1-5])(?:-|$)/.test(raw)) {
+            setSvgSpriteVisible(el, false);
+        }
+    });
+
+    if (hideAccessories) {
+        clone.querySelectorAll('.tm-mascot-accessory').forEach((el) => {
+            el.style.display = 'none';
+            el.classList.remove('tm-accessory-equipped');
+        });
+    }
+
+    const targetRaw = getMascotSpriteIdForStage(stage, characterType);
+    const target = clone.querySelector(`#${CSS.escape(idPrefix + targetRaw)}`)
+        || (stage !== 'egg' && characterType && characterType !== 'none'
+            ? clone.querySelector(`#${CSS.escape(idPrefix + `tm-mascot-${TAMA_STAGE_TO_SPRITE_KEY[stage] || 'baby'}`)}`)
+            : null);
+
+    if (target) setSvgSpriteVisible(target, true);
+
+    const stageClass = stage === 'egg' ? 'egg' : stage;
+    clone.classList.remove(
+        'mascot-egg', 'mascot-baby', 'mascot-kid', 'mascot-teen',
+        'mascot-adult', 'mascot-middleage', 'mascot-old', 'mascot-child',
+    );
+    TAMA_CHARACTER_TYPES.forEach((t) => clone.classList.remove(`mascot-char-${t}`));
+    clone.classList.add(`mascot-${stageClass}`);
+    if (characterType && characterType !== 'none') {
+        clone.classList.add(`mascot-char-${characterType}`);
+    }
+    return !!target;
+}
+
+function ensureMascotAgePreviewStyles() {
+    if (document.getElementById('tm-mascot-age-preview-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'tm-mascot-age-preview-styles';
+    style.textContent = `
+        #tm-mascot-age-preview-overlay {
+            position: fixed; inset: 0; z-index: 100220;
+            display: flex; align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-backdrop {
+            position: absolute; inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(7px);
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-card {
+            position: relative; z-index: 1;
+            width: min(96vw, 560px);
+            max-height: min(92vh, 760px);
+            overflow: auto;
+            background: var(--tm-modal-bg, #fff);
+            color: var(--tm-shop-item-text, #1e293b);
+            border-radius: 18px;
+            border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+            box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-header {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            gap: 12px; padding: 16px 18px 8px;
+            position: sticky; top: 0; z-index: 2;
+            background: color-mix(in srgb, var(--tm-modal-bg, #fff) 92%, transparent);
+            backdrop-filter: blur(6px);
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-header h2 {
+            margin: 0 0 4px; font-size: 1.15rem; font-weight: 750;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-header p {
+            margin: 0; font-size: 12.5px; line-height: 1.4;
+            color: var(--tm-subtle-text, #64748b);
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-close {
+            width: 34px; height: 34px; border: none; border-radius: 10px; cursor: pointer;
+            background: var(--tm-shop-item-bg, #f1f5f9);
+            color: var(--tm-shop-item-text, #334155); font-size: 16px;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-close:hover { background: #fee2e2; color: #b91c1c; }
+        #tm-mascot-age-preview-overlay .tm-age-prev-hero {
+            margin: 4px 18px 14px; padding: 16px 12px 12px;
+            border-radius: 14px;
+            border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 16%, var(--tm-shop-item-border, #e2e8f0));
+            background:
+                radial-gradient(ellipse 70% 55% at 50% 40%,
+                    color-mix(in srgb, var(--tm-primary-color, #007bff) 12%, transparent) 0%,
+                    transparent 70%),
+                linear-gradient(180deg, #f8fafc 0%, #fff 100%);
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-hero-stage {
+            width: 120px; height: 120px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-hero-stage svg {
+            width: 100%; height: 100%; overflow: visible; display: block;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-hero-stage.is-locked svg {
+            filter: brightness(0) blur(2.5px);
+            opacity: 0.78;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-hero-meta {
+            font-size: 13px; font-weight: 650; text-align: center;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-hero-meta .tm-age-locked-label {
+            color: var(--tm-subtle-text, #64748b);
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-controls {
+            display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-controls button {
+            border: 1px solid var(--tm-shop-item-border, #cbd5e1);
+            background: var(--tm-shop-item-bg, #fff);
+            color: var(--tm-shop-item-text, #334155);
+            border-radius: 999px; padding: 7px 12px;
+            font-size: 12px; font-weight: 650; cursor: pointer;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-controls button.is-active,
+        #tm-mascot-age-preview-overlay .tm-age-prev-controls button:hover {
+            border-color: color-mix(in srgb, var(--tm-primary-color, #007bff) 45%, #cbd5e1);
+            background: color-mix(in srgb, var(--tm-primary-color, #007bff) 10%, #fff);
+            color: var(--tm-primary-color, #1d4ed8);
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-rail {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+            gap: 8px;
+            padding: 0 18px 18px;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-cell {
+            border: 1px solid var(--tm-shop-item-border, #e2e8f0);
+            border-radius: 12px;
+            background: var(--tm-shop-item-bg, #f8fafc);
+            padding: 8px 6px 7px;
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            cursor: pointer;
+            transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+            min-height: 108px;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-cell:hover {
+            border-color: color-mix(in srgb, var(--tm-primary-color, #007bff) 40%, #e2e8f0);
+            transform: translateY(-1px);
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-cell.is-current {
+            border-color: color-mix(in srgb, var(--tm-primary-color, #007bff) 55%, #e2e8f0);
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--tm-primary-color, #007bff) 18%, transparent);
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-cell.is-selected {
+            border-color: var(--tm-primary-color, #007bff);
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-thumb {
+            width: 64px; height: 64px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-thumb svg {
+            width: 100%; height: 100%; overflow: visible; display: block;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-cell.is-locked .tm-age-prev-thumb svg {
+            filter: brightness(0) blur(2.2px);
+            opacity: 0.72;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-cell.is-locked .tm-age-prev-thumb::after {
+            content: '🔒';
+            position: absolute; right: -2px; bottom: -2px;
+            font-size: 12px; line-height: 1;
+            filter: none; opacity: 1;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-cell.is-placeholder .tm-age-prev-thumb {
+            border-radius: 50%;
+            background: repeating-linear-gradient(
+                -45deg,
+                #e2e8f0 0 6px,
+                #f1f5f9 6px 12px
+            );
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-label {
+            font-size: 10.5px; font-weight: 700; text-align: center;
+            color: var(--tm-shop-item-text, #334155);
+            letter-spacing: 0.02em;
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-cell.is-locked .tm-age-prev-label {
+            color: var(--tm-subtle-text, #94a3b8);
+        }
+        #tm-mascot-age-preview-overlay .tm-age-prev-footnote {
+            margin: 0 18px 16px;
+            font-size: 11.5px; line-height: 1.4;
+            color: var(--tm-subtle-text, #64748b);
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+/**
+ * Age-evolution showcase: every life stage for the current mascot.
+ * Unlocked stages (maxReachedEvolution / discovery) render clear; future stages are silhouettes.
+ */
+function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
+    document.getElementById('tm-mascot-age-preview-overlay')?.remove();
+    ensureMascotAgePreviewStyles();
+
+    // Refresh progress from live state before rendering
+    noteMascotEvolutionReached(tamagotchiStage, tamagotchiCharacterType);
+    if (STORAGE_KEYS && typeof saveTamagotchiData === 'function') {
+        try { saveTamagotchiData(STORAGE_KEYS); } catch (_) { /* ignore */ }
+    }
+
+    const characterType = (tamagotchiCharacterType && tamagotchiCharacterType !== 'none'
+        && TAMA_CHARACTER_TYPES.includes(tamagotchiCharacterType))
+        ? tamagotchiCharacterType
+        : null;
+    const maxReached = getMaxReachedEvolution(characterType || 'none');
+    const charMeta = characterType ? MASCOT_CHARACTERS[characterType] : null;
+    const displayName = typeof getMascotDisplayName === 'function'
+        ? getMascotDisplayName()
+        : (charMeta?.name || 'Mascot');
+    const stages = TAMA_LIFE_STAGE_ORDER.slice();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'tm-mascot-age-preview-overlay';
+    overlay.innerHTML = `
+        <div class="tm-age-prev-backdrop" data-age-prev-close></div>
+        <div class="tm-age-prev-card" role="dialog" aria-modal="true" aria-labelledby="tm-age-prev-title">
+            <div class="tm-age-prev-header">
+                <div>
+                    <h2 id="tm-age-prev-title">Age Preview</h2>
+                    <p>${characterType
+                        ? `${displayName} · ξεκλείδωτο έως <strong>${MASCOT_STAGE_GR[maxReached] || maxReached}</strong>`
+                        : 'Αυγό — οι εξελίξεις ξεκλειδώνουν καθώς μεγαλώνει.'}</p>
+                </div>
+                <button type="button" class="tm-age-prev-close" data-age-prev-close aria-label="Κλείσιμο">✕</button>
+            </div>
+            <div class="tm-age-prev-hero">
+                <div class="tm-age-prev-hero-stage" id="tm-age-prev-hero"></div>
+                <div class="tm-age-prev-hero-meta" id="tm-age-prev-hero-meta"></div>
+                <div class="tm-age-prev-controls">
+                    <button type="button" id="tm-age-prev-play">▶ Αναπαραγωγή</button>
+                    <button type="button" id="tm-age-prev-stop" hidden>■ Σταμάτα</button>
+                </div>
+            </div>
+            <div class="tm-age-prev-rail" id="tm-age-prev-rail"></div>
+            <p class="tm-age-prev-footnote">Τα στάδια που έχεις φτάσει εμφανίζονται καθαρά. Τα μελλοντικά μένουν σκιά για να μην χαλάσει η ανακάλυψη.</p>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    const rail = overlay.querySelector('#tm-age-prev-rail');
+    const hero = overlay.querySelector('#tm-age-prev-hero');
+    const heroMeta = overlay.querySelector('#tm-age-prev-hero-meta');
+    const playBtn = overlay.querySelector('#tm-age-prev-play');
+    const stopBtn = overlay.querySelector('#tm-age-prev-stop');
+
+    let selectedStage = characterType
+        ? (TAMA_LIFE_STAGE_ORDER.includes(tamagotchiStage) ? tamagotchiStage : 'baby')
+        : 'egg';
+    let playTimer = null;
+    let playIndex = 0;
+    let disposed = false;
+
+    const close = () => {
+        disposed = true;
+        if (playTimer) {
+            clearInterval(playTimer);
+            playTimer = null;
+        }
+        overlay.remove();
+    };
+
+    overlay.querySelectorAll('[data-age-prev-close]').forEach((el) => {
+        el.addEventListener('click', close);
+    });
+
+    function stageUnlocked(stage) {
+        return isMascotStageUnlockedForPreview(stage, characterType || 'none');
+    }
+
+    function mountStageSprite(host, stage, { locked = false, size = 64 } = {}) {
+        if (!host) return;
+        host.replaceChildren();
+        host.classList.remove('is-placeholder', 'is-locked');
+        host.style.width = `${size}px`;
+        host.style.height = `${size}px`;
+
+        if (!characterType && stage !== 'egg') {
+            host.classList.add('is-placeholder');
+            const ph = document.createElement('span');
+            ph.textContent = '?';
+            ph.style.cssText = 'font-size:22px;font-weight:800;color:#94a3b8;';
+            host.appendChild(ph);
+            return;
+        }
+
+        const prefix = `tm-age-${stage}-${Math.random().toString(36).slice(2, 7)}-`;
+        const built = cloneMascotSvgForUiPreview(prefix);
+        if (!built) {
+            host.textContent = MASCOT_STAGE_GR[stage] || stage;
+            return;
+        }
+        isolateMascotStageOnPreviewClone(
+            built.clone,
+            built.idPrefix,
+            stage,
+            stage === 'egg' ? 'none' : characterType,
+        );
+        host.appendChild(built.clone);
+        host.classList.toggle('is-locked', !!locked);
+    }
+
+    function updateHero() {
+        if (disposed || !hero) return;
+        const unlocked = stageUnlocked(selectedStage);
+        hero.classList.toggle('is-locked', !unlocked);
+        mountStageSprite(hero, selectedStage, { locked: !unlocked, size: 120 });
+        if (heroMeta) {
+            const label = MASCOT_STAGE_GR[selectedStage] || selectedStage;
+            heroMeta.innerHTML = unlocked
+                ? `<span>${label}</span>`
+                : `<span class="tm-age-locked-label">🔒 ${label} · κλειδωμένο</span>`;
+        }
+        rail?.querySelectorAll('.tm-age-prev-cell').forEach((cell) => {
+            cell.classList.toggle('is-selected', cell.dataset.stage === selectedStage);
+        });
+    }
+
+    function selectStage(stage, { fromPlay = false } = {}) {
+        selectedStage = stage;
+        if (!fromPlay && playTimer) {
+            clearInterval(playTimer);
+            playTimer = null;
+            playBtn.hidden = false;
+            stopBtn.hidden = true;
+        }
+        updateHero();
+    }
+
+    // Build rail cards first (labels), then lazily fill sprites to avoid open lag
+    stages.forEach((stage) => {
+        const unlocked = stageUnlocked(stage);
+        const cell = document.createElement('button');
+        cell.type = 'button';
+        cell.className = 'tm-age-prev-cell'
+            + (unlocked ? '' : ' is-locked')
+            + (stage === tamagotchiStage ? ' is-current' : '')
+            + (!characterType && stage !== 'egg' ? ' is-placeholder' : '');
+        cell.dataset.stage = stage;
+        cell.title = unlocked
+            ? (MASCOT_STAGE_GR[stage] || stage)
+            : `${MASCOT_STAGE_GR[stage] || stage} (κλειδωμένο)`;
+        cell.innerHTML = `
+            <div class="tm-age-prev-thumb" data-thumb></div>
+            <span class="tm-age-prev-label">${unlocked ? (MASCOT_STAGE_GR[stage] || stage) : '???'}</span>
+        `;
+        cell.addEventListener('click', () => selectStage(stage));
+        rail.appendChild(cell);
+    });
+
+    // Lazy sprite fill — one card per animation frame
+    let fillIndex = 0;
+    const fillNext = () => {
+        if (disposed) return;
+        const cell = rail.children[fillIndex];
+        fillIndex += 1;
+        if (!cell) {
+            updateHero();
+            return;
+        }
+        const stage = cell.dataset.stage;
+        const thumb = cell.querySelector('[data-thumb]');
+        mountStageSprite(thumb, stage, { locked: !stageUnlocked(stage), size: 64 });
+        requestAnimationFrame(fillNext);
+    };
+    requestAnimationFrame(fillNext);
+
+    playBtn?.addEventListener('click', () => {
+        if (playTimer) return;
+        playIndex = 0;
+        playBtn.hidden = true;
+        stopBtn.hidden = false;
+        const tick = () => {
+            if (disposed) return;
+            selectStage(stages[playIndex % stages.length], { fromPlay: true });
+            playIndex += 1;
+        };
+        tick();
+        playTimer = setInterval(tick, 1100);
+    });
+    stopBtn?.addEventListener('click', () => {
+        if (playTimer) {
+            clearInterval(playTimer);
+            playTimer = null;
+        }
+        playBtn.hidden = false;
+        stopBtn.hidden = true;
+    });
 }
 
 function initInteractiveMascot(config, STORAGE_KEYS) {
@@ -40945,54 +41515,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     });
 
 
-    /**
-     * Clone the live mascot SVG for UI previews (care panel, etc.).
-     * Remaps ids so gradient/filter url(#…) refs stay valid and don't collide with the live sprite.
-     */
-    function cloneMascotSvgForUiPreview(idPrefix = 'tm-ui-prev-') {
-        const liveRoot = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
-        const liveRobot = liveRoot?.querySelector?.('.tm-mascot-robot');
-        if (!liveRobot) return null;
-
-        const clone = liveRobot.cloneNode(true);
-        clone.removeAttribute('id');
-        clone.classList.add('tm-mascot-preview-robot');
-        clone.style.pointerEvents = 'none';
-        clone.setAttribute('aria-hidden', 'true');
-
-        const idMap = new Map();
-        clone.querySelectorAll('[id]').forEach((node) => {
-            const oldId = node.getAttribute('id');
-            if (!oldId) return;
-            const newId = `${idPrefix}${oldId}`;
-            idMap.set(oldId, newId);
-            node.setAttribute('id', newId);
-        });
-
-        const rewriteUrlRefs = (value) => String(value).replace(/url\(\s*#([^)\s]+)\s*\)/g, (full, id) => (
-            idMap.has(id) ? `url(#${idMap.get(id)})` : full
-        ));
-
-        clone.querySelectorAll('*').forEach((el) => {
-            for (const attr of [...el.attributes]) {
-                const name = attr.name;
-                const value = attr.value;
-                if (!value) continue;
-                if (value.includes('url(')) {
-                    el.setAttribute(name, rewriteUrlRefs(value));
-                } else if ((name === 'href' || name === 'xlink:href') && value.startsWith('#')) {
-                    const id = value.slice(1);
-                    if (idMap.has(id)) el.setAttribute(name, `#${idMap.get(id)}`);
-                }
-            }
-        });
-
-        // Drop transient FX that shouldn't appear in the care preview
-        clone.querySelectorAll('.tm-toilet-fx, .tm-toilet-urgency-indicator').forEach((el) => el.remove());
-
-        return { clone, liveRoot };
-    }
-
     function getLiveMascotPreviewSizePx(liveRoot) {
         if (liveRoot) {
             const rect = liveRoot.getBoundingClientRect();
@@ -41196,7 +41718,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         <div class="tm-mascot-care-preview-sprite" id="tm-mascot-care-preview"></div>
                         <div class="tm-mascot-care-preview-shadow" aria-hidden="true"></div>
                     </div>
-                    <p class="tm-mascot-care-preview-caption">Προεπισκόπηση 1∶1</p>
+                    <div class="tm-mascot-care-preview-actions">
+                        <p class="tm-mascot-care-preview-caption">Προεπισκόπηση 1∶1</p>
+                        <button type="button" class="tm-mascot-age-preview-btn" id="tm-action-age-preview" title="Δες όλες τις ηλικιακές εξελίξεις">
+                            Preview
+                        </button>
+                    </div>
                 </div>
 
                 <div class="tm-mascot-tip tm-tip-${tip.level}" id="tm-mascot-care-tip">
@@ -41496,6 +42023,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 z-index: 0;
                 pointer-events: none;
             }
+            #tm-mascot-stats-modal .tm-mascot-care-preview-actions {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 10px;
+                flex-wrap: wrap;
+                width: 100%;
+            }
             #tm-mascot-stats-modal .tm-mascot-care-preview-caption {
                 margin: 0;
                 font-size: 11px;
@@ -41503,6 +42038,20 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 letter-spacing: 0.04em;
                 text-transform: uppercase;
                 color: color-mix(in srgb, var(--tm-shop-item-text, #64748b) 85%, #94a3b8);
+            }
+            #tm-mascot-stats-modal .tm-mascot-age-preview-btn {
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 35%, var(--tm-shop-item-border, #cbd5e1));
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 10%, var(--tm-shop-item-bg, #fff));
+                color: var(--tm-primary-color, #1d4ed8);
+                border-radius: 999px;
+                padding: 5px 12px;
+                font-size: 11.5px;
+                font-weight: 700;
+                cursor: pointer;
+                line-height: 1.2;
+            }
+            #tm-mascot-stats-modal .tm-mascot-age-preview-btn:hover {
+                background: color-mix(in srgb, var(--tm-primary-color, #007bff) 18%, var(--tm-shop-item-bg, #fff));
             }
             @keyframes tmCarePreviewBob {
                 0%, 100% { transform: translateY(0); }
@@ -41757,6 +42306,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         `;
         document.head.appendChild(style);
         mountCarePanelMascotPreview(modal);
+
+        modal.querySelector('#tm-action-age-preview')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showMascotAgePreviewModal(config, STORAGE_KEYS);
+        });
 
         function refreshCareTip() {
             const tipEl = modal.querySelector('#tm-mascot-care-tip');
@@ -43819,6 +44374,13 @@ window.showMascotExecutionCinematic = showMascotExecutionCinematic;
 window.confirmMascotKillRestart = confirmMascotKillRestart;
 window.previewMascotStage = previewMascotStage;
 window.clearMascotStagePreview = clearMascotStagePreview;
+window.showMascotAgePreviewModal = showMascotAgePreviewModal;
+window.getMaxReachedEvolution = getMaxReachedEvolution;
+window.isMascotStageUnlockedForPreview = isMascotStageUnlockedForPreview;
+window.noteMascotEvolutionReached = noteMascotEvolutionReached;
+window.getMascotSpriteIdForStage = getMascotSpriteIdForStage;
+window.TAMA_LIFE_STAGE_ORDER = TAMA_LIFE_STAGE_ORDER;
+window.TAMA_STAGE_TO_SPRITE_KEY = TAMA_STAGE_TO_SPRITE_KEY;
 window.getEffectiveMascotStage = getEffectiveMascotStage;
 window.debugSetMascotCharacter = debugSetMascotCharacter;
 window.debugAdvanceMascotEvolution = debugAdvanceMascotEvolution;
@@ -44683,15 +45245,17 @@ function showMascotRhythmGame(config, STORAGE_KEYS) {
 
 // ── Shadow match ──────────────────────────────────────────────────
 function getMascotStageSpriteKey() {
-    const map = {
-        egg: 'base',
-        baby: 'baby',
-        kid: 'evo1',
-        teen: 'evo2',
-        adult: 'evo3',
-        middleage: 'evo4',
-        old: 'evo5',
-    };
+    const map = (typeof window.TAMA_STAGE_TO_SPRITE_KEY === 'object' && window.TAMA_STAGE_TO_SPRITE_KEY)
+        ? window.TAMA_STAGE_TO_SPRITE_KEY
+        : {
+            egg: 'base',
+            baby: 'baby',
+            kid: 'evo1',
+            teen: 'evo2',
+            adult: 'evo3',
+            middleage: 'evo4',
+            old: 'evo5',
+        };
     return map[tamagotchiStage] || 'evo3';
 }
 
@@ -49159,6 +49723,7 @@ function getMascotSettingsHTML() {
                         <li><strong>Διπλό κλικ</strong> — κόλπο (trick) του χαρακτήρα.</li>
                         <li><strong>Σύρσιμο</strong> — στάθμευση σε σταθερή θέση («Σταθμεύτηκα»). Από το panel: Ξεκλείδωμα για να ξαναπερπατήσει.</li>
                         <li><strong>Εστίαση 25′</strong> — μένει ήσυχο/σταθμευμένο χωρίς bubbles όσο δουλεύετε.</li>
+                        <li><strong>Preview</strong> — στο care panel: Age Preview όλων των ηλικιών· ξεκλείδωτα στάδια καθαρά, μελλοντικά σε σκιά.</li>
                         <li><strong>Ταχύτητα</strong> — πόσο γρήγορα περιπλανιέται όταν δεν είναι σταθμευμένο.</li>
                     </ul>
 
