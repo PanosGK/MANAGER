@@ -1,11 +1,11 @@
 {
-  "version": "319",
+  "version": "320",
   "loaderVersion": "36",
-  "silentVersion": "11",
-  "displayVersion": "36.11",
+  "silentVersion": "12",
+  "displayVersion": "36.12",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Aether fallen voidblade: distinct body silhouettes, 3-seg wings, broken halo.",
+  "releaseNotes": "Fix Aether 3-seg wing animation (sovereign/parked was rigid one-piece).",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

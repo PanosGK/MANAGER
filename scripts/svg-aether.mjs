@@ -149,7 +149,8 @@ function voidWingLeft(p, pal, o) {
   const lowY = sy + span * 0.55;
   const heelX = sx - span * 0.18;
   const heelY = sy + span * 0.18;
-  const origin = (x, y) => `transform-origin:${N(x)}px ${N(y)}px;transform-box:view-box`;
+  // fill-box + body-side origin — view-box px origins break under live SVG scale/nesting
+  const origin = () => 'transform-origin:100% 42%;transform-box:fill-box';
 
   const rootBlades = Math.max(1, Math.ceil(nBlades * 0.35));
   const midBlades = Math.max(1, Math.ceil(nBlades * 0.4));
@@ -174,18 +175,18 @@ function voidWingLeft(p, pal, o) {
     tatterBits.push(`${I2}<path class="tm-aether-wing-tatter" d="M ${P(tipX + span * 0.18, tipY + span * 0.12)} L ${P(tipX + span * 0.02, tipY + span * 0.28)} L ${P(tipX + span * 0.2, tipY + span * 0.2)} Z" fill="${pal.blood || pal.mid}" opacity="0.55"/>`);
   }
 
-  return `${I2}<g class="tm-aether-wing-seg tm-aether-wing-root" style="${origin(sx, sy)}">
+  return `${I2}<g class="tm-aether-wing-seg tm-aether-wing-root" style="${origin()}">
 ${I2}<path d="M ${P(sx, sy)} L ${P(sx - span * 0.22, sy - span * 0.2)} L ${P(sx - span * 0.28, sy + span * 0.08)} L ${P(sx - span * 0.06, sy + span * 0.12)} Z" fill="url(#${p}-cloak)" stroke="${pal.line}" stroke-width="0.8" opacity="0.95"/>
 ${I2}<path d="M ${P(sx - 1, sy - 2)} L ${P(sx - span * 0.16, sy - span * 0.32)} L ${P(sx - span * 0.1, sy + 1)} Z" fill="${pal.blood || pal.gold}" opacity="0.45"/>
 ${makeBlades(rootBlades, sx - span * 0.02, sy, 198, 28, 0.42, 0.88)}
-${I2}<g class="tm-aether-wing-seg tm-aether-wing-mid" style="${origin(midX, midY)}">
+${I2}<g class="tm-aether-wing-seg tm-aether-wing-mid" style="${origin()}">
 ${I2}<path class="tm-aether-wing-membrane" d="M ${P(sx - span * 0.08, sy)} L ${P(highX, highY)} L ${P(tipJX + span * 0.08, tipJY)} L ${P(notchX + span * 0.12, notchY)} L ${P(lowX + span * 0.14, lowY - span * 0.08)} L ${P(heelX, heelY)} Z" fill="url(#${p}-wing)" stroke="${pal.line}" stroke-width="0.95"/>
 ${I2}<path d="M ${P(notchX + span * 0.12, notchY)} L ${P(notchX - span * 0.06, notchY + span * 0.12)} L ${P(lowX + span * 0.18, lowY - span * 0.1)} L ${P(lowX + span * 0.14, lowY - span * 0.08)}" fill="none" stroke="${pal.blood || pal.teal}" stroke-width="0.55" opacity="0.8"/>
 ${makeBlades(midBlades, midX + span * 0.04, midY + span * 0.04, 192, 48, 0.58, 0.92)}
 ${stars(starSeed, Math.max(1, Math.round(span / 16)), midX - span * 0.1, midY, span * 0.22, span * 0.16, pal.teal, 0.35)}
 ${crack ? `${I2}<path class="tm-aether-wing-crack" d="M ${P(sx - span * .22, sy - span * .06)} L ${P(midX - span * .06, midY + span * .08)} L ${P(tipJX + span * .06, tipJY + span * .04)}" fill="none" stroke="${pal.gold}" stroke-width="0.65" stroke-dasharray="1.4 1.1" opacity="0.8"/>` : ''}
 ${I2}<path class="tm-aether-wing-vein" d="M ${P(sx, sy)} L ${P(midX, midY)} L ${P(tipJX, tipJY)}" fill="none" stroke="${pal.teal}" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-${I2}<g class="tm-aether-wing-seg tm-aether-wing-tip" style="${origin(tipJX, tipJY)}">
+${I2}<g class="tm-aether-wing-seg tm-aether-wing-tip" style="${origin()}">
 ${I2}<path class="tm-aether-wing-membrane" d="M ${P(tipJX + span * 0.06, tipJY)} L ${P(highX - span * 0.12, highY + span * 0.06)} L ${P(tipX, tipY)} L ${P(notchX, notchY)} L ${P(tipJX - span * 0.04, tipJY + span * 0.16)} Z" fill="url(#${p}-wing)" stroke="${pal.line}" stroke-width="0.85" opacity="0.95"/>
 ${makeBlades(tipBlades, tipJX, tipJY, 200, 36, 0.48, 0.9)}
 ${tatterBits.join('\n')}

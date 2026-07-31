@@ -11137,8 +11137,8 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             .mascot-idle:not(.mascot-parked) .tm-animate-wing-right {
                 animation: tm-wing-flap-right 1.8s ease-in-out infinite;
             }
-            .mascot-parked .tm-animate-wing-left,
-            .mascot-parked .tm-animate-wing-right {
+            .mascot-parked:not(.mascot-char-aether):not(.mascot-char-phoenix) .tm-animate-wing-left,
+            .mascot-parked:not(.mascot-char-aether):not(.mascot-char-phoenix) .tm-animate-wing-right {
                 animation: none !important;
                 transform: none !important;
             }
@@ -17821,12 +17821,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle class="tm-aether-spark" cx="69.17" cy="11.25" r="1.89" fill="#3dcfbf"/>
                     </g>
                     <g class="tm-animate-wing-left">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:36px 58px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 36 58 L 31.6 54 L 30.4 59.6 L 34.8 60.4 Z" fill="url(#aether-baby-cloak)" stroke="#1a122e" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 35 56 L 32.8 51.6 L 34 59 Z" fill="#8b1e2d" opacity="0.45"/>
                     <path d="M 35.89 57.11 L 33.33 56.76 L 29.85 56.13 L 32.74 57.39 L 35.31 58.89 Z" fill="url(#aether-baby-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 35.44 57.08 L 33.02 57.97 L 29.64 59.05 L 32.79 58.81 L 35.76 58.92 Z" fill="url(#aether-baby-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:28.4px 52.4px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 34.4 58 L 26.4 40.4 L 22.4 47.6 L 21.2 55.6 L 22.8 67.4 L 32.4 61.6 Z" fill="url(#aether-baby-wing)" stroke="#1a122e" stroke-width="0.95"/>
                     <path d="M 21.2 55.6 L 17.6 58 L 23.6 67 L 22.8 67.4" fill="none" stroke="#8b1e2d" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 29.39 52.29 L 25.87 52.01 L 21.03 51.46 L 25.22 52.67 L 29.01 54.11 Z" fill="url(#aether-baby-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -17834,7 +17834,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="28.04" cy="53.35" r="0.35" fill="#3dcfbf" opacity="0.7"/>
 
                     <path class="tm-aether-wing-vein" d="M 36 58 L 28.4 52.4 L 20.8 47.6" fill="none" stroke="#3dcfbf" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:20.8px 47.6px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 22 47.6 L 24 41.6 L 11.6 45.6 L 18.8 55.6 L 20 50.8 Z" fill="url(#aether-baby-wing)" stroke="#1a122e" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 20.85 46.23 L 16.31 46.74 L 10.05 47.22 L 15.63 47.87 L 20.75 48.97 Z" fill="url(#aether-baby-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
 
@@ -17847,12 +17847,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-animate-wing-right">
                     <g transform="translate(100,0) scale(-1,1)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:36px 58px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 36 58 L 31.6 54 L 30.4 59.6 L 34.8 60.4 Z" fill="url(#aether-baby-cloak)" stroke="#1a122e" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 35 56 L 32.8 51.6 L 34 59 Z" fill="#8b1e2d" opacity="0.45"/>
                     <path d="M 35.89 57.11 L 33.33 56.76 L 29.85 56.13 L 32.74 57.39 L 35.31 58.89 Z" fill="url(#aether-baby-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 35.44 57.08 L 33.02 57.97 L 29.64 59.05 L 32.79 58.81 L 35.76 58.92 Z" fill="url(#aether-baby-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:28.4px 52.4px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 34.4 58 L 26.4 40.4 L 22.4 47.6 L 21.2 55.6 L 22.8 67.4 L 32.4 61.6 Z" fill="url(#aether-baby-wing)" stroke="#1a122e" stroke-width="0.95"/>
                     <path d="M 21.2 55.6 L 17.6 58 L 23.6 67 L 22.8 67.4" fill="none" stroke="#8b1e2d" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 29.39 52.29 L 25.87 52.01 L 21.03 51.46 L 25.22 52.67 L 29.01 54.11 Z" fill="url(#aether-baby-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -17860,7 +17860,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="23.88" cy="53.85" r="0.47" fill="#3dcfbf" opacity="0.64"/>
 
                     <path class="tm-aether-wing-vein" d="M 36 58 L 28.4 52.4 L 20.8 47.6" fill="none" stroke="#3dcfbf" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:20.8px 47.6px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 22 47.6 L 24 41.6 L 11.6 45.6 L 18.8 55.6 L 20 50.8 Z" fill="url(#aether-baby-wing)" stroke="#1a122e" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 20.85 46.23 L 16.31 46.74 L 10.05 47.22 L 15.63 47.87 L 20.75 48.97 Z" fill="url(#aether-baby-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
 
@@ -17993,12 +17993,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle class="tm-aether-spark" cx="34.86" cy="57.42" r="0.72" fill="#b8962a"/>
                     </g>
                     <g class="tm-animate-wing-left">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:34px 54px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 34 54 L 27.4 48 L 25.6 56.4 L 32.2 57.6 Z" fill="url(#aether-kid-cloak)" stroke="#160e28" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 33 52 L 29.2 44.4 L 31 55 Z" fill="#a01e30" opacity="0.45"/>
                     <path d="M 33.83 52.67 L 30 52.14 L 24.77 51.2 L 29.12 53.09 L 32.97 55.33 Z" fill="url(#aether-kid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 33.16 52.62 L 29.52 53.96 L 24.47 55.58 L 29.19 55.21 L 33.64 55.38 Z" fill="url(#aether-kid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:22.6px 44.7px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 31.6 54 L 19.6 25.6 L 13.6 36.7 L 11.8 49.7 L 14.2 68.1 L 28.6 59.4 Z" fill="url(#aether-kid-wing)" stroke="#160e28" stroke-width="0.95"/>
                     <path d="M 11.8 49.7 L 6.4 53.3 L 15.4 67.5 L 14.2 68.1" fill="none" stroke="#a01e30" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 24.09 44.53 L 18.8 44.11 L 11.55 43.3 L 17.82 45.1 L 23.51 47.27 Z" fill="url(#aether-kid-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -18007,7 +18007,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="25.38" cy="46.31" r="0.57" fill="#36c9b8" opacity="0.36"/>
                     <path class="tm-aether-wing-crack" d="M 27.4 52.2 L 20.8 47.1 L 13 37.9" fill="none" stroke="#b8962a" stroke-width="0.65" stroke-dasharray="1.4 1.1" opacity="0.8"/>
                     <path class="tm-aether-wing-vein" d="M 34 54 L 22.6 44.7 L 11.2 36.7" fill="none" stroke="#36c9b8" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:11.2px 36.7px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 13 36.7 L 16 27.4 L -2.6 33.4 L 8.2 49.7 L 10 41.5 Z" fill="url(#aether-kid-wing)" stroke="#160e28" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 11.27 34.64 L 4.47 35.41 L -4.92 36.14 L 3.44 37.1 L 11.13 38.76 Z" fill="url(#aether-kid-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path class="tm-aether-wing-tatter" d="M 8.2 49.7 L 4 55.1 L 7.6 53.3 Z" fill="#04010a" stroke="#a01e30" stroke-width="0.4" opacity="0.85"/>
@@ -18022,12 +18022,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-animate-wing-right">
                     <g transform="translate(100,0) scale(-1,1)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:34px 54px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 34 54 L 27.4 48 L 25.6 56.4 L 32.2 57.6 Z" fill="url(#aether-kid-cloak)" stroke="#160e28" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 33 52 L 29.2 44.4 L 31 55 Z" fill="#a01e30" opacity="0.45"/>
                     <path d="M 33.83 52.67 L 30 52.14 L 24.77 51.2 L 29.12 53.09 L 32.97 55.33 Z" fill="url(#aether-kid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 33.16 52.62 L 29.52 53.96 L 24.47 55.58 L 29.19 55.21 L 33.64 55.38 Z" fill="url(#aether-kid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:22.6px 44.7px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 31.6 54 L 19.6 25.6 L 13.6 36.7 L 11.8 49.7 L 14.2 68.1 L 28.6 59.4 Z" fill="url(#aether-kid-wing)" stroke="#160e28" stroke-width="0.95"/>
                     <path d="M 11.8 49.7 L 6.4 53.3 L 15.4 67.5 L 14.2 68.1" fill="none" stroke="#a01e30" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 24.09 44.53 L 18.8 44.11 L 11.55 43.3 L 17.82 45.1 L 23.51 47.27 Z" fill="url(#aether-kid-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -18036,7 +18036,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="14.92" cy="45.47" r="0.56" fill="#36c9b8" opacity="0.8"/>
                     <path class="tm-aether-wing-crack" d="M 27.4 52.2 L 20.8 47.1 L 13 37.9" fill="none" stroke="#b8962a" stroke-width="0.65" stroke-dasharray="1.4 1.1" opacity="0.8"/>
                     <path class="tm-aether-wing-vein" d="M 34 54 L 22.6 44.7 L 11.2 36.7" fill="none" stroke="#36c9b8" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:11.2px 36.7px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 13 36.7 L 16 27.4 L -2.6 33.4 L 8.2 49.7 L 10 41.5 Z" fill="url(#aether-kid-wing)" stroke="#160e28" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 11.27 34.64 L 4.47 35.41 L -4.92 36.14 L 3.44 37.1 L 11.13 38.76 Z" fill="url(#aether-kid-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path class="tm-aether-wing-tatter" d="M 8.2 49.7 L 4 55.1 L 7.6 53.3 Z" fill="#04010a" stroke="#a01e30" stroke-width="0.4" opacity="0.85"/>
@@ -18185,12 +18185,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <path class="tm-aether-sigil" d="M 50 90 L 54 94 L 50 98 L 46 94 Z" fill="none" stroke="#7e84ae" stroke-width="0.5" opacity="0.55"/>
                     </g>
                     <g class="tm-animate-wing-left">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:35px 46px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 35 46 L 26.64 38.4 L 24.36 49.04 L 32.72 50.56 Z" fill="url(#aether-teen-cloak)" stroke="#120a22" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 34 44 L 28.92 33.84 L 31.2 47 Z" fill="#b71c2c" opacity="0.45"/>
                     <path d="M 34.79 44.31 L 29.93 43.65 L 23.31 42.45 L 28.81 44.85 L 33.69 47.69 Z" fill="url(#aether-teen-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 33.93 44.25 L 29.33 45.95 L 22.92 48 L 28.91 47.53 L 34.55 47.75 Z" fill="url(#aether-teen-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:20.56px 32.66px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 31.96 46 L 16.76 6.56 L 9.16 21.14 L 6.88 39.34 L 9.92 63.86 L 28.16 52.84 Z" fill="url(#aether-teen-wing)" stroke="#120a22" stroke-width="0.95"/>
                     <path d="M 6.88 39.34 L 0.04 43.9 L 11.44 63.1 L 9.92 63.86" fill="none" stroke="#b71c2c" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 22.45 32.44 L 15.75 31.91 L 6.56 30.88 L 14.51 33.17 L 21.71 35.92 Z" fill="url(#aether-teen-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -18199,7 +18199,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="23.01" cy="29.25" r="0.3" fill="#2fc4b4" opacity="0.68"/>
                     <path class="tm-aether-wing-crack" d="M 26.64 43.72 L 18.28 35.7 L 8.4 22.66" fill="none" stroke="#a88420" stroke-width="0.65" stroke-dasharray="1.4 1.1" opacity="0.8"/>
                     <path class="tm-aether-wing-vein" d="M 35 46 L 20.56 32.66 L 6.12 21.14" fill="none" stroke="#2fc4b4" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:6.12px 21.14px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 8.4 21.14 L 12.2 8.84 L -11.36 16.44 L 2.32 39.34 L 4.6 27.22 Z" fill="url(#aether-teen-wing)" stroke="#120a22" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 6.73 19.47 L 1.25 18.4 L -6.22 16.65 L 0 19.53 L 5.51 22.81 Z" fill="url(#aether-teen-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 5.63 19.43 L 0.57 21.79 L -6.5 24.76 L 0.22 23.44 L 6.61 22.85 Z" fill="url(#aether-teen-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -18215,12 +18215,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-animate-wing-right">
                     <g transform="translate(100,0) scale(-1,1)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:35px 46px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 35 46 L 26.64 38.4 L 24.36 49.04 L 32.72 50.56 Z" fill="url(#aether-teen-cloak)" stroke="#120a22" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 34 44 L 28.92 33.84 L 31.2 47 Z" fill="#b71c2c" opacity="0.45"/>
                     <path d="M 34.79 44.31 L 29.93 43.65 L 23.31 42.45 L 28.81 44.85 L 33.69 47.69 Z" fill="url(#aether-teen-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 33.93 44.25 L 29.33 45.95 L 22.92 48 L 28.91 47.53 L 34.55 47.75 Z" fill="url(#aether-teen-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:20.56px 32.66px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 31.96 46 L 16.76 6.56 L 9.16 21.14 L 6.88 39.34 L 9.92 63.86 L 28.16 52.84 Z" fill="url(#aether-teen-wing)" stroke="#120a22" stroke-width="0.95"/>
                     <path d="M 6.88 39.34 L 0.04 43.9 L 11.44 63.1 L 9.92 63.86" fill="none" stroke="#b71c2c" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 22.45 32.44 L 15.75 31.91 L 6.56 30.88 L 14.51 33.17 L 21.71 35.92 Z" fill="url(#aether-teen-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -18229,7 +18229,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="16.2" cy="29.21" r="0.51" fill="#2fc4b4" opacity="0.52"/>
                     <path class="tm-aether-wing-crack" d="M 26.64 43.72 L 18.28 35.7 L 8.4 22.66" fill="none" stroke="#a88420" stroke-width="0.65" stroke-dasharray="1.4 1.1" opacity="0.8"/>
                     <path class="tm-aether-wing-vein" d="M 35 46 L 20.56 32.66 L 6.12 21.14" fill="none" stroke="#2fc4b4" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:6.12px 21.14px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 8.4 21.14 L 12.2 8.84 L -11.36 16.44 L 2.32 39.34 L 4.6 27.22 Z" fill="url(#aether-teen-wing)" stroke="#120a22" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 6.73 19.47 L 1.25 18.4 L -6.22 16.65 L 0 19.53 L 5.51 22.81 Z" fill="url(#aether-teen-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 5.63 19.43 L 0.57 21.79 L -6.5 24.76 L 0.22 23.44 L 6.61 22.85 Z" fill="url(#aether-teen-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -18433,13 +18433,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <path d="M 36.69 21.67 L 41.52 12.43 L 34.69 24.67 Z" fill="#d4a017" opacity="0.7"/>
                     <path d="M 41.52 12.43 L 40.02 17.43 L 42.72 15.93 Z" fill="#c62828" opacity="0.75"/>
                     <g class="tm-animate-wing-left">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:34px 44px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 34 44 L 24.32 35.2 L 21.68 47.52 L 31.36 49.28 Z" fill="url(#aether-adult-cloak)" stroke="#10081e" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 33 42 L 26.96 29.92 L 29.6 45 Z" fill="#c62828" opacity="0.45"/>
                     <path d="M 33.76 42.04 L 28.13 41.28 L 20.47 39.89 L 26.84 42.67 L 32.48 45.96 Z" fill="url(#aether-adult-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 33.33 40.98 L 24.56 41.86 L 12.47 42.56 L 23.14 44.29 L 32.91 47.02 Z" fill="url(#aether-adult-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 32.76 41.97 L 27.43 43.94 L 20.02 46.31 L 26.95 45.77 L 33.48 46.03 Z" fill="url(#aether-adult-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:17.28px 26.28px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 30.48 44 L 12.88 -6.72 L 4.08 10.92 L 1.44 34.52 L 4.96 64.68 L 26.08 51.92 Z" fill="url(#aether-adult-wing)" stroke="#10081e" stroke-width="0.95"/>
                     <path d="M 1.44 34.52 L -6.48 39.8 L 6.72 63.8 L 4.96 64.68" fill="none" stroke="#c62828" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 19.47 26.03 L 11.71 25.41 L 1.07 24.22 L 10.27 26.86 L 18.61 30.05 Z" fill="url(#aether-adult-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -18450,7 +18450,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="14.2" cy="24.2" r="0.37" fill="#2ee0d0" opacity="0.78"/>
                     <path class="tm-aether-wing-crack" d="M 24.32 41.36 L 14.64 29.8 L 3.2 12.68" fill="none" stroke="#d4a017" stroke-width="0.65" stroke-dasharray="1.4 1.1" opacity="0.8"/>
                     <path class="tm-aether-wing-vein" d="M 34 44 L 17.28 26.28 L 0.56 10.92" fill="none" stroke="#2ee0d0" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:0.56px 10.92px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 3.2 10.92 L 7.6 -4.08 L -19.68 4.72 L -3.84 34.52 L -1.2 17.96 Z" fill="url(#aether-adult-wing)" stroke="#10081e" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 0.67 7.9 L -9.32 9.03 L -23.08 10.09 L -10.82 11.51 L 0.45 13.94 Z" fill="url(#aether-adult-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path class="tm-aether-wing-tatter" d="M -3.84 34.52 L -10 42.44 L -4.72 39.8 Z" fill="#020106" stroke="#c62828" stroke-width="0.4" opacity="0.85"/>
@@ -18465,13 +18465,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-animate-wing-right">
                     <g transform="translate(100,0) scale(-1,1)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:34px 44px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 34 44 L 24.32 35.2 L 21.68 47.52 L 31.36 49.28 Z" fill="url(#aether-adult-cloak)" stroke="#10081e" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 33 42 L 26.96 29.92 L 29.6 45 Z" fill="#c62828" opacity="0.45"/>
                     <path d="M 33.76 42.04 L 28.13 41.28 L 20.47 39.89 L 26.84 42.67 L 32.48 45.96 Z" fill="url(#aether-adult-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 33.33 40.98 L 24.56 41.86 L 12.47 42.56 L 23.14 44.29 L 32.91 47.02 Z" fill="url(#aether-adult-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 32.76 41.97 L 27.43 43.94 L 20.02 46.31 L 26.95 45.77 L 33.48 46.03 Z" fill="url(#aether-adult-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:17.28px 26.28px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 30.48 44 L 12.88 -6.72 L 4.08 10.92 L 1.44 34.52 L 4.96 64.68 L 26.08 51.92 Z" fill="url(#aether-adult-wing)" stroke="#10081e" stroke-width="0.95"/>
                     <path d="M 1.44 34.52 L -6.48 39.8 L 6.72 63.8 L 4.96 64.68" fill="none" stroke="#c62828" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 19.47 26.03 L 11.71 25.41 L 1.07 24.22 L 10.27 26.86 L 18.61 30.05 Z" fill="url(#aether-adult-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -18482,7 +18482,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="3.98" cy="25.04" r="0.37" fill="#2ee0d0" opacity="0.61"/>
                     <path class="tm-aether-wing-crack" d="M 24.32 41.36 L 14.64 29.8 L 3.2 12.68" fill="none" stroke="#d4a017" stroke-width="0.65" stroke-dasharray="1.4 1.1" opacity="0.8"/>
                     <path class="tm-aether-wing-vein" d="M 34 44 L 17.28 26.28 L 0.56 10.92" fill="none" stroke="#2ee0d0" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:0.56px 10.92px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 3.2 10.92 L 7.6 -4.08 L -19.68 4.72 L -3.84 34.52 L -1.2 17.96 Z" fill="url(#aether-adult-wing)" stroke="#10081e" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 0.67 7.9 L -9.32 9.03 L -23.08 10.09 L -10.82 11.51 L 0.45 13.94 Z" fill="url(#aether-adult-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path class="tm-aether-wing-tatter" d="M -3.84 34.52 L -10 42.44 L -4.72 39.8 Z" fill="#020106" stroke="#c62828" stroke-width="0.4" opacity="0.85"/>
@@ -18720,12 +18720,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     </g>
                     <g class="tm-aether-ghost-wing-left" opacity="0.28" transform="translate(-5 4) scale(1.12)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:35px 44px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 35 44 L 27.96 37.6 L 26.04 46.56 L 33.08 47.84 Z" fill="url(#aether-mid-cloak)" stroke="#0c0614" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 34 42 L 29.88 33.76 L 31.8 45 Z" fill="#c62828" opacity="0.45"/>
                     <path d="M 34.82 42.58 L 30.73 42.02 L 25.16 41.01 L 29.79 43.03 L 33.9 45.42 Z" fill="url(#aether-mid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 34.1 42.53 L 30.23 43.96 L 24.83 45.68 L 29.87 45.29 L 34.62 45.47 Z" fill="url(#aether-mid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:22.84px 31.44px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 32.44 44 L 19.64 7.84 L 13.24 20.56 L 11.32 37.36 L 13.88 59.04 L 29.24 49.76 Z" fill="url(#aether-mid-wing)" stroke="#0c0614" stroke-width="0.95"/>
                     <path d="M 11.32 37.36 L 5.56 41.2 L 15.16 58.4 L 13.88 59.04" fill="none" stroke="#c62828" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 24.43 31.26 L 18.79 30.81 L 11.05 29.94 L 17.74 31.87 L 23.81 34.18 Z" fill="url(#aether-mid-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -18734,7 +18734,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="18.53" cy="34.49" r="0.52" fill="#2bb8aa" opacity="0.53"/>
 
                     <path class="tm-aether-wing-vein" d="M 35 44 L 22.84 31.44 L 10.68 20.56" fill="none" stroke="#2bb8aa" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:10.68px 20.56px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 12.6 20.56 L 15.8 9.76 L -4.04 16.16 L 7.48 37.36 L 9.4 25.68 Z" fill="url(#aether-mid-wing)" stroke="#0c0614" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 10.76 18.36 L 3.5 19.19 L -6.51 19.96 L 2.4 20.99 L 10.6 22.76 Z" fill="url(#aether-mid-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
 
@@ -18747,12 +18747,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-aether-ghost-wing-right" opacity="0.28" transform="translate(5 4) scale(1.12)">
                     <g transform="translate(100,0) scale(-1,1)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:35px 44px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 35 44 L 27.96 37.6 L 26.04 46.56 L 33.08 47.84 Z" fill="url(#aether-mid-cloak)" stroke="#0c0614" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 34 42 L 29.88 33.76 L 31.8 45 Z" fill="#c62828" opacity="0.45"/>
                     <path d="M 34.82 42.58 L 30.73 42.02 L 25.16 41.01 L 29.79 43.03 L 33.9 45.42 Z" fill="url(#aether-mid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 34.1 42.53 L 30.23 43.96 L 24.83 45.68 L 29.87 45.29 L 34.62 45.47 Z" fill="url(#aether-mid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:22.84px 31.44px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 32.44 44 L 19.64 7.84 L 13.24 20.56 L 11.32 37.36 L 13.88 59.04 L 29.24 49.76 Z" fill="url(#aether-mid-wing)" stroke="#0c0614" stroke-width="0.95"/>
                     <path d="M 11.32 37.36 L 5.56 41.2 L 15.16 58.4 L 13.88 59.04" fill="none" stroke="#c62828" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 24.43 31.26 L 18.79 30.81 L 11.05 29.94 L 17.74 31.87 L 23.81 34.18 Z" fill="url(#aether-mid-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -18761,7 +18761,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="18.53" cy="34.49" r="0.52" fill="#2bb8aa" opacity="0.53"/>
 
                     <path class="tm-aether-wing-vein" d="M 35 44 L 22.84 31.44 L 10.68 20.56" fill="none" stroke="#2bb8aa" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:10.68px 20.56px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 12.6 20.56 L 15.8 9.76 L -4.04 16.16 L 7.48 37.36 L 9.4 25.68 Z" fill="url(#aether-mid-wing)" stroke="#0c0614" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 10.76 18.36 L 3.5 19.19 L -6.51 19.96 L 2.4 20.99 L 10.6 22.76 Z" fill="url(#aether-mid-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
 
@@ -18774,13 +18774,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     </g>
                     <g class="tm-animate-wing-left">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:35px 44px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 35 44 L 24.88 34.8 L 22.12 47.68 L 32.24 49.52 Z" fill="url(#aether-mid-cloak)" stroke="#0c0614" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 34 42 L 27.64 29.28 L 30.4 45 Z" fill="#c62828" opacity="0.45"/>
                     <path d="M 34.74 41.95 L 28.86 41.15 L 20.85 39.7 L 27.51 42.61 L 33.42 46.05 Z" fill="url(#aether-mid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 34.3 40.85 L 25.13 41.76 L 12.49 42.49 L 23.65 44.31 L 33.86 47.15 Z" fill="url(#aether-mid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 33.71 41.88 L 28.14 43.94 L 20.38 46.42 L 27.63 45.85 L 34.45 46.12 Z" fill="url(#aether-mid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:17.52px 26.62px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 31.32 44 L 12.92 -6.48 L 3.72 11.58 L 0.96 34.98 L 4.64 65.62 L 26.72 52.28 Z" fill="url(#aether-mid-wing)" stroke="#0c0614" stroke-width="0.95"/>
                     <path d="M 0.96 34.98 L -7.32 40.5 L 6.48 64.7 L 4.64 65.62" fill="none" stroke="#c62828" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 19.81 26.36 L 11.7 25.71 L 0.57 24.47 L 10.19 27.23 L 18.91 30.56 Z" fill="url(#aether-mid-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -18791,7 +18791,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="6.27" cy="31.11" r="0.35" fill="#2bb8aa" opacity="0.7"/>
                     <path class="tm-aether-wing-crack" d="M 24.88 41.24 L 14.76 30.3 L 2.8 13.42" fill="none" stroke="#8a7020" stroke-width="0.65" stroke-dasharray="1.4 1.1" opacity="0.8"/>
                     <path class="tm-aether-wing-vein" d="M 35 44 L 17.52 26.62 L 0.04 11.58" fill="none" stroke="#2bb8aa" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:0.04px 11.58px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 2.8 11.58 L 7.4 -3.72 L -21.12 5.48 L -4.56 34.98 L -1.8 18.94 Z" fill="url(#aether-mid-wing)" stroke="#0c0614" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 0.78 9.56 L -5.86 8.27 L -14.9 6.14 L -7.37 9.63 L -0.7 13.6 Z" fill="url(#aether-mid-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M -0.55 9.51 L -6.68 12.37 L -15.24 15.96 L -7.1 14.36 L 0.63 13.65 Z" fill="url(#aether-mid-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -18807,13 +18807,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-animate-wing-right">
                     <g transform="translate(100,0) scale(-1,1)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:35px 44px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 35 44 L 24.88 34.8 L 22.12 47.68 L 32.24 49.52 Z" fill="url(#aether-mid-cloak)" stroke="#0c0614" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 34 42 L 27.64 29.28 L 30.4 45 Z" fill="#c62828" opacity="0.45"/>
                     <path d="M 34.74 41.95 L 28.86 41.15 L 20.85 39.7 L 27.51 42.61 L 33.42 46.05 Z" fill="url(#aether-mid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 34.3 40.85 L 25.13 41.76 L 12.49 42.49 L 23.65 44.31 L 33.86 47.15 Z" fill="url(#aether-mid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 33.71 41.88 L 28.14 43.94 L 20.38 46.42 L 27.63 45.85 L 34.45 46.12 Z" fill="url(#aether-mid-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:17.52px 26.62px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 31.32 44 L 12.92 -6.48 L 3.72 11.58 L 0.96 34.98 L 4.64 65.62 L 26.72 52.28 Z" fill="url(#aether-mid-wing)" stroke="#0c0614" stroke-width="0.95"/>
                     <path d="M 0.96 34.98 L -7.32 40.5 L 6.48 64.7 L 4.64 65.62" fill="none" stroke="#c62828" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 19.81 26.36 L 11.7 25.71 L 0.57 24.47 L 10.19 27.23 L 18.91 30.56 Z" fill="url(#aether-mid-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -18824,7 +18824,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="15.2" cy="19.8" r="0.42" fill="#2bb8aa" opacity="0.82"/>
                     <path class="tm-aether-wing-crack" d="M 24.88 41.24 L 14.76 30.3 L 2.8 13.42" fill="none" stroke="#8a7020" stroke-width="0.65" stroke-dasharray="1.4 1.1" opacity="0.8"/>
                     <path class="tm-aether-wing-vein" d="M 35 44 L 17.52 26.62 L 0.04 11.58" fill="none" stroke="#2bb8aa" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:0.04px 11.58px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 2.8 11.58 L 7.4 -3.72 L -21.12 5.48 L -4.56 34.98 L -1.8 18.94 Z" fill="url(#aether-mid-wing)" stroke="#0c0614" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 0.78 9.56 L -5.86 8.27 L -14.9 6.14 L -7.37 9.63 L -0.7 13.6 Z" fill="url(#aether-mid-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M -0.55 9.51 L -6.68 12.37 L -15.24 15.96 L -7.1 14.36 L 0.63 13.65 Z" fill="url(#aether-mid-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -19040,12 +19040,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <path d="M 34.35 18.67 L 38.92 7.82 L 32.35 21.67 Z" fill="#e8c040" opacity="0.7"/>
                     <path d="M 38.92 7.82 L 37.42 12.82 L 40.12 11.32 Z" fill="#e64a3c" opacity="0.75"/>
                     <g class="tm-aether-ghost-wing-left" opacity="0.28" transform="translate(-5 4) scale(1.14)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:35px 42px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 35 42 L 27.52 35.2 L 25.48 44.72 L 32.96 46.08 Z" fill="url(#aether-old-cloak)" stroke="#10081c" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 34 40 L 29.56 31.12 L 31.6 43 Z" fill="#e64a3c" opacity="0.45"/>
                     <path d="M 34.81 40.49 L 30.46 39.9 L 24.54 38.82 L 29.47 40.97 L 33.83 43.51 Z" fill="url(#aether-old-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 34.04 40.43 L 29.93 41.95 L 24.19 43.79 L 29.55 43.37 L 34.6 43.57 Z" fill="url(#aether-old-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:22.08px 27.98px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 32.28 42 L 18.68 2.08 L 11.88 15.82 L 9.84 34.42 L 12.56 57.98 L 28.88 48.12 Z" fill="url(#aether-old-wing)" stroke="#10081c" stroke-width="0.95"/>
                     <path d="M 9.84 34.42 L 3.72 38.5 L 13.92 57.3 L 12.56 57.98" fill="none" stroke="#e64a3c" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 23.77 27.79 L 17.78 27.31 L 9.55 26.39 L 16.67 28.43 L 23.11 30.89 Z" fill="url(#aether-old-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -19054,7 +19054,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="19.04" cy="27.42" r="0.5" fill="#4aefe0" opacity="0.57"/>
 
                     <path class="tm-aether-wing-vein" d="M 35 42 L 22.08 27.98 L 9.16 15.82" fill="none" stroke="#4aefe0" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:9.16px 15.82px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 11.2 15.82 L 14.6 4.12 L -6.48 10.92 L 5.76 34.42 L 7.8 21.26 Z" fill="url(#aether-old-wing)" stroke="#10081c" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 9.24 13.48 L 1.53 14.36 L -9.11 15.18 L 0.37 16.28 L 9.08 18.16 Z" fill="url(#aether-old-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
 
@@ -19067,12 +19067,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-aether-ghost-wing-right" opacity="0.28" transform="translate(5 4) scale(1.14)">
                     <g transform="translate(100,0) scale(-1,1)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:35px 42px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 35 42 L 27.52 35.2 L 25.48 44.72 L 32.96 46.08 Z" fill="url(#aether-old-cloak)" stroke="#10081c" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 34 40 L 29.56 31.12 L 31.6 43 Z" fill="#e64a3c" opacity="0.45"/>
                     <path d="M 34.81 40.49 L 30.46 39.9 L 24.54 38.82 L 29.47 40.97 L 33.83 43.51 Z" fill="url(#aether-old-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 34.04 40.43 L 29.93 41.95 L 24.19 43.79 L 29.55 43.37 L 34.6 43.57 Z" fill="url(#aether-old-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:22.08px 27.98px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 32.28 42 L 18.68 2.08 L 11.88 15.82 L 9.84 34.42 L 12.56 57.98 L 28.88 48.12 Z" fill="url(#aether-old-wing)" stroke="#10081c" stroke-width="0.95"/>
                     <path d="M 9.84 34.42 L 3.72 38.5 L 13.92 57.3 L 12.56 57.98" fill="none" stroke="#e64a3c" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 23.77 27.79 L 17.78 27.31 L 9.55 26.39 L 16.67 28.43 L 23.11 30.89 Z" fill="url(#aether-old-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -19081,7 +19081,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="19.04" cy="27.42" r="0.5" fill="#4aefe0" opacity="0.57"/>
 
                     <path class="tm-aether-wing-vein" d="M 35 42 L 22.08 27.98 L 9.16 15.82" fill="none" stroke="#4aefe0" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:9.16px 15.82px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 11.2 15.82 L 14.6 4.12 L -6.48 10.92 L 5.76 34.42 L 7.8 21.26 Z" fill="url(#aether-old-wing)" stroke="#10081c" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 9.24 13.48 L 1.53 14.36 L -9.11 15.18 L 0.37 16.28 L 9.08 18.16 Z" fill="url(#aether-old-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
 
@@ -19094,12 +19094,12 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     </g>
                     <g class="tm-animate-wing-left tm-aether-wing-broken" transform="translate(50 52) scale(0.74) translate(-50 -52)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:36px 46px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 36 46 L 28.52 39.2 L 26.48 48.72 L 33.96 50.08 Z" fill="url(#aether-old-cloak)" stroke="#10081c" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 35 44 L 30.56 35.12 L 32.6 47 Z" fill="#e64a3c" opacity="0.45"/>
                     <path d="M 35.81 44.49 L 31.46 43.9 L 25.54 42.82 L 30.47 44.97 L 34.83 47.51 Z" fill="url(#aether-old-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 35.04 44.43 L 30.93 45.95 L 25.19 47.79 L 30.55 47.37 L 35.6 47.57 Z" fill="url(#aether-old-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:23.08px 33.78px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 33.28 46 L 19.68 10.08 L 12.88 23.22 L 10.84 39.82 L 13.56 61.98 L 29.88 52.12 Z" fill="url(#aether-old-wing)" stroke="#10081c" stroke-width="0.95"/>
                     <path d="M 10.84 39.82 L 4.72 43.9 L 14.92 61.3 L 13.56 61.98" fill="none" stroke="#e64a3c" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 24.77 33.59 L 18.78 33.11 L 10.55 32.19 L 17.67 34.23 L 24.11 36.69 Z" fill="url(#aether-old-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -19108,7 +19108,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="13.2" cy="34.78" r="0.47" fill="#4aefe0" opacity="0.61"/>
                     <path class="tm-aether-wing-crack" d="M 28.52 43.96 L 21.04 36.5 L 12.2 24.58" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-dasharray="1.4 1.1" opacity="0.8"/>
                     <path class="tm-aether-wing-vein" d="M 36 46 L 23.08 33.78 L 10.16 23.22" fill="none" stroke="#4aefe0" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:10.16px 23.22px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 12.2 23.22 L 15.6 12.12 L -5.48 18.92 L 6.76 39.82 L 8.8 28.66 Z" fill="url(#aether-old-wing)" stroke="#10081c" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 10.24 20.88 L 2.53 21.76 L -8.11 22.58 L 1.37 23.68 L 10.08 25.56 Z" fill="url(#aether-old-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path class="tm-aether-wing-tatter" d="M 6.76 39.82 L 2 45.94 L 6.08 43.9 Z" fill="#020106" stroke="#e64a3c" stroke-width="0.4" opacity="0.85"/>
@@ -19128,13 +19128,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </g>
                     <g class="tm-animate-wing-right tm-aether-wing-dominant" transform="translate(50 52) scale(1.38) translate(-50 -52)">
                     <g transform="translate(100,0) scale(-1,1)">
-                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:36px 45px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-root" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path d="M 36 45 L 25.44 35.4 L 22.56 48.84 L 33.12 50.76 Z" fill="url(#aether-old-cloak)" stroke="#10081c" stroke-width="0.8" opacity="0.95"/>
                     <path d="M 35 43 L 28.32 29.64 L 31.2 46 Z" fill="#e64a3c" opacity="0.45"/>
                     <path d="M 35.73 42.87 L 29.6 42.03 L 21.24 40.51 L 28.19 43.55 L 34.35 47.13 Z" fill="url(#aether-old-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 35.27 41.71 L 25.7 42.66 L 12.52 43.42 L 24.15 45.32 L 34.81 48.29 Z" fill="url(#aether-old-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M 34.65 42.79 L 28.84 44.93 L 20.75 47.52 L 28.31 46.93 L 35.43 47.21 Z" fill="url(#aether-old-blade)" opacity="0.88" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:17.76px 25.26px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-mid" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 32.16 45 L 12.96 -11.24 L 3.36 8.14 L 0.48 34.34 L 4.32 67.56 L 27.36 53.64 Z" fill="url(#aether-old-wing)" stroke="#10081c" stroke-width="0.95"/>
                     <path d="M 0.48 34.34 L -8.16 40.1 L 6.24 66.6 L 4.32 67.56" fill="none" stroke="#e64a3c" stroke-width="0.55" opacity="0.8"/>
                     <path d="M 20.15 24.99 L 11.68 24.31 L 0.07 23.01 L 10.12 25.9 L 19.21 29.37 Z" fill="url(#aether-old-blade)" opacity="0.92" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
@@ -19146,7 +19146,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     <circle cx="7.66" cy="23.97" r="0.52" fill="#4aefe0" opacity="0.46"/>
                     <path class="tm-aether-wing-crack" d="M 25.44 42.12 L 14.88 29.1 L 2.4 10.06" fill="none" stroke="#e8c040" stroke-width="0.65" stroke-dasharray="1.4 1.1" opacity="0.8"/>
                     <path class="tm-aether-wing-vein" d="M 36 45 L 17.76 25.26 L -0.48 8.14" fill="none" stroke="#4aefe0" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
-                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:-0.48px 8.14px;transform-box:view-box">
+                    <g class="tm-aether-wing-seg tm-aether-wing-tip" style="transform-origin:100% 42%;transform-box:fill-box">
                     <path class="tm-aether-wing-membrane" d="M 2.4 8.14 L 7.2 -8.36 L -22.56 1.24 L -5.28 34.34 L -2.4 15.82 Z" fill="url(#aether-old-wing)" stroke="#10081c" stroke-width="0.85" opacity="0.95"/>
                     <path d="M 0.29 6.03 L -6.64 4.68 L -16.07 2.47 L -8.21 6.11 L -1.25 10.25 Z" fill="url(#aether-old-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
                     <path d="M -1.1 5.98 L -7.49 8.96 L -16.43 12.71 L -7.93 11.04 L 0.14 10.3 Z" fill="url(#aether-old-blade)" opacity="0.9" stroke="rgba(0,0,0,0.35)" stroke-width="0.25"/>
