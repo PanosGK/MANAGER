@@ -1,16 +1,16 @@
 /**
- * Starveil Aether — v7 "Voidblade Judge" (hardcore pass)
+ * Starveil Aether — v9 "Fallen Voidblade" (3-seg wings + broken halo)
  *
  * Hardens the butterfly-soft read: angular shard wings, colder void palette,
  * predatory eyes from hatch, grim mouth. Lore-aligned blade-angel, not moth.
  *
- * Pokémon-style evolution: every stage has its own silhouette.
- *   baby — Voidseed: dark star-seed orb, spike-nub blade wings
- *   evo1 — Veilspawn: ragged hooded form, serrated blade-wings
- *   evo2 — Astral Warden: hooded sentinel, spear wings, third-eye sigil
- *   evo3 — Star Sovereign: crowned regent, cathedral shard-wings, halo + runes
- *   evo4 — Eclipse Tyrant: black-sun disc, jagged mantle, crescent eyes
- *   evo5 — Primordial: asymmetric god-form, one dominant wing / one shattered
+ * Pokémon-style evolution: every stage has a distinct MAIN BODY shape.
+ *   baby — Voidseed: faceted crystal seed (compact hex)
+ *   evo1 — Veilspawn: short wide ragged husk
+ *   evo2 — Astral Warden: ultra-thin spear pillar
+ *   evo3 — Star Sovereign: broad armored hourglass
+ *   evo4 — Eclipse Tyrant: wide diamond mantle with side spikes
+ *   evo5 — Primordial: asymmetric twisted god-mass
  *
  * Every tm-aether-* hook class and data-fx group used by myman_styles.js /
  * myman_mascot.js FX code is preserved per stage (verified by self-check).
@@ -128,46 +128,87 @@ function blade(x, y, angle, length, width, fill, opacity = 1) {
 }
 
 /**
- * Voidblade wing (LEFT). Angular shard membrane + stacked spears + claw tip.
- * Replaces the soft crescent that read as a butterfly wing.
- * o: { sx,sy shoulder; span; blades; lift; crack; starSeed }
+ * Fallen voidblade wing (LEFT) — 3 articulated segments that CSS flaps separately:
+ *   root (shoulder plate) → mid (blade mass) → tip (claw + tatters)
+ * Bigger cathedral span + burnt/ragged feathers for fallen-angel read.
+ * o: { sx,sy shoulder; span; blades; lift; crack; starSeed; tatters }
  */
 function voidWingLeft(p, pal, o) {
-  const { sx, sy, span, blades: nBlades, lift = 0, crack = false, starSeed = 1 } = o;
-  const parts = [];
-  const tipX = sx - span * 1.08;
-  const tipY = sy - span * 0.58 - lift;
-  const highX = sx - span * 0.52;
-  const highY = sy - span * 0.82 - lift;
-  const notchX = sx - span * 0.78;
-  const notchY = sy - span * 0.18 - lift * 0.4;
-  const lowX = sx - span * 0.72;
-  const lowY = sy + span * 0.48;
-  const heelX = sx - span * 0.22;
-  const heelY = sy + span * 0.16;
-  // Hard polygonal membrane (no soft C/Q curves)
-  parts.push(`${I2}<path class="tm-aether-wing-membrane" d="M ${P(sx, sy)} L ${P(highX, highY)} L ${P(tipX, tipY)} L ${P(notchX, notchY)} L ${P(lowX, lowY)} L ${P(heelX, heelY)} Z" fill="url(#${p}-wing)" stroke="${pal.line}" stroke-width="0.95"/>`);
-  // Serrated trailing edge (mean silhouette)
-  parts.push(`${I2}<path d="M ${P(notchX, notchY)} L ${P(notchX - span * 0.08, notchY + span * 0.1)} L ${P(lowX + span * 0.06, lowY - span * 0.08)} L ${P(lowX, lowY)}" fill="none" stroke="${pal.blood || pal.teal}" stroke-width="0.55" opacity="0.75"/>`);
-  // Stacked spear blades — primary visual mass
-  for (let i = 0; i < nBlades; i++) {
-    const t = nBlades <= 1 ? 0.5 : i / (nBlades - 1);
-    const ang = 188 + 8 - t * (62 + lift * 1.4);
-    const len = span * (0.7 + Math.sin(t * Math.PI) * 0.38);
-    const w = span * (0.09 + (1 - Math.abs(t - 0.5) * 2) * 0.04);
-    parts.push(blade(sx - span * 0.04, sy + span * 0.01, ang, len, w, `url(#${p}-blade)`, 0.92));
+  const { sx, sy, span, blades: nBlades, lift = 0, crack = false, starSeed = 1, tatters = true } = o;
+  const midX = sx - span * 0.38;
+  const midY = sy - span * 0.28 - lift * 0.45;
+  const tipJX = sx - span * 0.76;
+  const tipJY = sy - span * 0.52 - lift * 0.85;
+  const tipX = sx - span * 1.22;
+  const tipY = sy - span * 0.62 - lift;
+  const highX = sx - span * 0.48;
+  const highY = sy - span * 0.88 - lift;
+  const notchX = sx - span * 0.86;
+  const notchY = sy - span * 0.12 - lift * 0.35;
+  const lowX = sx - span * 0.8;
+  const lowY = sy + span * 0.55;
+  const heelX = sx - span * 0.18;
+  const heelY = sy + span * 0.18;
+  const origin = (x, y) => `transform-origin:${N(x)}px ${N(y)}px;transform-box:view-box`;
+
+  const rootBlades = Math.max(1, Math.ceil(nBlades * 0.35));
+  const midBlades = Math.max(1, Math.ceil(nBlades * 0.4));
+  const tipBlades = Math.max(1, nBlades - rootBlades - midBlades + 1);
+
+  const makeBlades = (count, baseX, baseY, ang0, angSpan, lenMul, op) => {
+    const out = [];
+    for (let i = 0; i < count; i++) {
+      const t = count <= 1 ? 0.5 : i / (count - 1);
+      const ang = ang0 - t * angSpan;
+      const len = span * lenMul * (0.72 + Math.sin(t * Math.PI) * 0.4);
+      const w = span * (0.085 + (1 - Math.abs(t - 0.5) * 2) * 0.04);
+      out.push(blade(baseX, baseY, ang, len, w, `url(#${p}-blade)`, op));
+    }
+    return out.join('\n');
+  };
+
+  const tatterBits = [];
+  if (tatters) {
+    tatterBits.push(`${I2}<path class="tm-aether-wing-tatter" d="M ${P(notchX, notchY)} L ${P(notchX - span * 0.14, notchY + span * 0.18)} L ${P(notchX - span * 0.02, notchY + span * 0.12)} Z" fill="${pal.void}" stroke="${pal.blood || pal.teal}" stroke-width="0.4" opacity="0.85"/>`);
+    tatterBits.push(`${I2}<path class="tm-aether-wing-tatter" d="M ${P(lowX + span * 0.04, lowY - span * 0.1)} L ${P(lowX - span * 0.16, lowY + span * 0.08)} L ${P(lowX + span * 0.02, lowY)} Z" fill="${pal.dark}" stroke="${pal.blood || pal.gold}" stroke-width="0.35" opacity="0.8"/>`);
+    tatterBits.push(`${I2}<path class="tm-aether-wing-tatter" d="M ${P(tipX + span * 0.18, tipY + span * 0.12)} L ${P(tipX + span * 0.02, tipY + span * 0.28)} L ${P(tipX + span * 0.2, tipY + span * 0.2)} Z" fill="${pal.blood || pal.mid}" opacity="0.55"/>`);
   }
-  // Sparse ember sparks (not glittery starfield)
-  parts.push(stars(starSeed, Math.max(1, Math.round(span / 14)), sx - span * 0.48, sy - span * 0.08, span * 0.28, span * 0.2, pal.teal, 0.35));
-  // Straight energy vein to tip
-  parts.push(`${I2}<path class="tm-aether-wing-vein" d="M ${P(sx, sy)} L ${P(highX + span * 0.06, highY + span * 0.1)} L ${P(tipX, tipY)}" fill="none" stroke="${pal.teal}" stroke-width="1" stroke-linecap="round" opacity="0.92"/>`);
-  if (crack) {
-    parts.push(`${I2}<path class="tm-aether-wing-crack" d="M ${P(sx - span * .28, sy - span * .08)} L ${P(sx - span * .5, sy + span * .06)} L ${P(sx - span * .66, sy - span * .1)}" fill="none" stroke="${pal.gold}" stroke-width="0.65" stroke-dasharray="1.4 1.1" opacity="0.8"/>`);
-  }
-  // Spear-tip claw
-  parts.push(`${I2}<path class="tm-aether-wing-claw" d="M ${P(tipX, tipY)} L ${P(tipX - 3.4, tipY - 1.2)} L ${P(tipX - 0.6, tipY + 2.8)} Z" fill="${pal.teal}" opacity="0.98"/>`);
-  parts.push(`${I2}<path d="M ${P(tipX - 0.4, tipY)} L ${P(tipX - 4.2, tipY - 2.6)} L ${P(tipX - 1.2, tipY - 0.2)} Z" fill="${pal.blood || pal.gold}" opacity="0.85"/>`);
-  return parts.join('\n');
+
+  return `${I2}<g class="tm-aether-wing-seg tm-aether-wing-root" style="${origin(sx, sy)}">
+${I2}<path d="M ${P(sx, sy)} L ${P(sx - span * 0.22, sy - span * 0.2)} L ${P(sx - span * 0.28, sy + span * 0.08)} L ${P(sx - span * 0.06, sy + span * 0.12)} Z" fill="url(#${p}-cloak)" stroke="${pal.line}" stroke-width="0.8" opacity="0.95"/>
+${I2}<path d="M ${P(sx - 1, sy - 2)} L ${P(sx - span * 0.16, sy - span * 0.32)} L ${P(sx - span * 0.1, sy + 1)} Z" fill="${pal.blood || pal.gold}" opacity="0.45"/>
+${makeBlades(rootBlades, sx - span * 0.02, sy, 198, 28, 0.42, 0.88)}
+${I2}<g class="tm-aether-wing-seg tm-aether-wing-mid" style="${origin(midX, midY)}">
+${I2}<path class="tm-aether-wing-membrane" d="M ${P(sx - span * 0.08, sy)} L ${P(highX, highY)} L ${P(tipJX + span * 0.08, tipJY)} L ${P(notchX + span * 0.12, notchY)} L ${P(lowX + span * 0.14, lowY - span * 0.08)} L ${P(heelX, heelY)} Z" fill="url(#${p}-wing)" stroke="${pal.line}" stroke-width="0.95"/>
+${I2}<path d="M ${P(notchX + span * 0.12, notchY)} L ${P(notchX - span * 0.06, notchY + span * 0.12)} L ${P(lowX + span * 0.18, lowY - span * 0.1)} L ${P(lowX + span * 0.14, lowY - span * 0.08)}" fill="none" stroke="${pal.blood || pal.teal}" stroke-width="0.55" opacity="0.8"/>
+${makeBlades(midBlades, midX + span * 0.04, midY + span * 0.04, 192, 48, 0.58, 0.92)}
+${stars(starSeed, Math.max(1, Math.round(span / 16)), midX - span * 0.1, midY, span * 0.22, span * 0.16, pal.teal, 0.35)}
+${crack ? `${I2}<path class="tm-aether-wing-crack" d="M ${P(sx - span * .22, sy - span * .06)} L ${P(midX - span * .06, midY + span * .08)} L ${P(tipJX + span * .06, tipJY + span * .04)}" fill="none" stroke="${pal.gold}" stroke-width="0.65" stroke-dasharray="1.4 1.1" opacity="0.8"/>` : ''}
+${I2}<path class="tm-aether-wing-vein" d="M ${P(sx, sy)} L ${P(midX, midY)} L ${P(tipJX, tipJY)}" fill="none" stroke="${pal.teal}" stroke-width="1" stroke-linecap="round" opacity="0.9"/>
+${I2}<g class="tm-aether-wing-seg tm-aether-wing-tip" style="${origin(tipJX, tipJY)}">
+${I2}<path class="tm-aether-wing-membrane" d="M ${P(tipJX + span * 0.06, tipJY)} L ${P(highX - span * 0.12, highY + span * 0.06)} L ${P(tipX, tipY)} L ${P(notchX, notchY)} L ${P(tipJX - span * 0.04, tipJY + span * 0.16)} Z" fill="url(#${p}-wing)" stroke="${pal.line}" stroke-width="0.85" opacity="0.95"/>
+${makeBlades(tipBlades, tipJX, tipJY, 200, 36, 0.48, 0.9)}
+${tatterBits.join('\n')}
+${I2}<path class="tm-aether-wing-vein" d="M ${P(tipJX, tipJY)} L ${P(tipX, tipY)}" fill="none" stroke="${pal.blood || pal.teal}" stroke-width="0.85" stroke-linecap="round" opacity="0.85"/>
+${I2}<path class="tm-aether-wing-claw" d="M ${P(tipX, tipY)} L ${P(tipX - 4.2, tipY - 1.6)} L ${P(tipX - 0.8, tipY + 3.4)} Z" fill="${pal.teal}" opacity="0.98"/>
+${I2}<path d="M ${P(tipX - 0.5, tipY)} L ${P(tipX - 5.2, tipY - 3.2)} L ${P(tipX - 1.4, tipY - 0.3)} Z" fill="${pal.blood || pal.gold}" opacity="0.88"/>
+${I2}</g>
+${I2}</g>
+${I2}</g>`;
+}
+
+/** Broken / tilted fallen halo (keeps tm-aether-halo class for hooks). */
+function brokenHalo(pal, cx, cy, r, tilt = -18) {
+  const a0 = (-40 + tilt) * Math.PI / 180;
+  const a1 = (220 + tilt) * Math.PI / 180;
+  const x0 = cx + Math.cos(a0) * r, y0 = cy + Math.sin(a0) * r;
+  const x1 = cx + Math.cos(a1) * r, y1 = cy + Math.sin(a1) * r;
+  const shardX = cx + Math.cos((260 + tilt) * Math.PI / 180) * (r + 2);
+  const shardY = cy + Math.sin((260 + tilt) * Math.PI / 180) * (r + 2);
+  return `${I}    <path class="tm-aether-halo" d="M ${P(x0, y0)} A ${N(r)} ${N(r)} 0 1 1 ${P(x1, y1)}" fill="none" stroke="${pal.gold}" stroke-width="1.15" opacity="0.55"/>
+${I}    <path class="tm-aether-halo" d="M ${P(x0, y0)} A ${N(r * 1.22)} ${N(r * 1.22)} 0 1 1 ${P(x1 + 1, y1 + 1)}" fill="none" stroke="${pal.blood || pal.teal}" stroke-width="0.5" opacity="0.35" stroke-dasharray="2.2 3"/>
+${I}    <path d="M ${P(x1, y1)} L ${P(shardX, shardY)} L ${P(x1 - 2, y1 + 3)} Z" fill="${pal.gold}" opacity="0.7"/>
+${I}    <path d="M ${P(shardX, shardY)} L ${P(shardX - 1.5, shardY + 5)} L ${P(shardX + 1.2, shardY + 3.5)} Z" fill="${pal.blood || pal.void}" opacity="0.75"/>`;
 }
 
 function mirrored(inner) {
@@ -376,7 +417,7 @@ ${I2}</g>`;
 
 /* ════════════════ STAGE BUILDERS ════════════════ */
 
-/* baby — Voidseed: glassy star-seed orb */
+/* baby — Voidseed: faceted crystal seed (compact hex) */
 function buildBaby() {
   const p = 'aether-baby', pal = PAL.baby;
   return `${I}<!-- AETHER BABY — Voidseed -->
@@ -388,20 +429,20 @@ ${I}    <ellipse cx="50" cy="96" rx="16" ry="3.6" fill="#05010c" opacity="0.25"/
 ${I}    <ellipse cx="50" cy="92" rx="11" ry="2.2" fill="${pal.teal}" opacity="0.18"/>
 ${fxSparks(p, pal, 4, 11)}
 ${I}    <g class="tm-animate-wing-left">
-${voidWingLeft(p, pal, { sx: 36, sy: 58, span: 15, blades: 3, lift: 0, crack: false, starSeed: 21 })}
+${voidWingLeft(p, pal, { sx: 36, sy: 58, span: 20, blades: 3, lift: 0, crack: false, starSeed: 21, tatters: false })}
 ${I}    </g>
 ${I}    <g class="tm-animate-wing-right">
-${mirrored(voidWingLeft(p, pal, { sx: 36, sy: 58, span: 15, blades: 3, lift: 0, crack: false, starSeed: 22 }))}
+${mirrored(voidWingLeft(p, pal, { sx: 36, sy: 58, span: 20, blades: 3, lift: 0, crack: false, starSeed: 22, tatters: false }))}
 ${I}    </g>
 ${I}    <g class="tm-animate-tail">
 ${I2}<path d="M 58 72 Q 66 76 70 84 Q 63 79 57 75 Z" fill="url(#${p}-blade)" opacity="0.65"/>
 ${I2}<circle cx="69" cy="83" r="1" fill="${pal.gold}" opacity="0.8"/>
 ${I}    </g>
 ${I}    <g class="tm-animate-body">
-${I2}<circle cx="50" cy="58" r="18" fill="url(#${p}-body)" stroke="${pal.line}" stroke-width="1.5"/>
-${I2}<circle cx="50" cy="58" r="18" fill="none" stroke="${pal.teal}" stroke-width="0.45" opacity="0.35"/>
-${I2}<path d="M 38 50 L 50 44 L 62 50 L 56 48 L 50 49 L 44 48 Z" fill="${pal.void}" opacity="0.35"/>
-${I2}<path d="M 36 64 L 44 72 L 56 70 L 62 64 L 54 74 L 46 72 Z" fill="url(#${p}-cloak)" opacity="0.7"/>
+${I2}<path d="M 50 38 L 64 46 L 68 58 L 62 72 L 50 78 L 38 72 L 32 58 L 36 46 Z" fill="url(#${p}-body)" stroke="${pal.line}" stroke-width="1.5"/>
+${I2}<path d="M 50 38 L 64 46 L 68 58 L 62 72 L 50 78 L 38 72 L 32 58 L 36 46 Z" fill="none" stroke="${pal.teal}" stroke-width="0.45" opacity="0.35"/>
+${I2}<path d="M 40 50 L 50 42 L 60 50 L 54 48 L 50 49 L 46 48 Z" fill="${pal.void}" opacity="0.35"/>
+${I2}<path d="M 38 62 L 44 70 L 56 70 L 62 62 L 54 74 L 46 74 Z" fill="url(#${p}-cloak)" opacity="0.7"/>
 ${I2}<path d="M 42 63 L 50 58 L 58 63 L 54 61 L 50 61 L 46 61 Z" fill="${pal.blood}" opacity="0.35"/>
 ${stars(31, 4, 50, 60, 10, 10, pal.teal, 0.45)}
 ${I2}<circle class="tm-aether-core" cx="50" cy="68" r="3.2" fill="url(#${p}-core)"/>
@@ -428,7 +469,7 @@ ${mouth(pal, 60, 3, true)}
 ${I}</g>`;
 }
 
-/* evo1 — Veilspawn: teardrop ghost with ragged hem */
+/* evo1 — Veilspawn: short wide ragged husk */
 function buildEvo1() {
   const p = 'aether-kid', pal = PAL.evo1;
   return `${I}<!-- AETHER KID — Veilspawn -->
@@ -441,21 +482,21 @@ ${fxAura(p)}
 ${fxCorona(p, pal)}
 ${fxSparks(p, pal, 5, 41)}
 ${I}    <g class="tm-animate-wing-left">
-${voidWingLeft(p, pal, { sx: 36, sy: 52, span: 22, blades: 4, lift: 2, crack: true, starSeed: 43 })}
+${voidWingLeft(p, pal, { sx: 34, sy: 54, span: 30, blades: 4, lift: 2, crack: true, starSeed: 43 })}
 ${I}    </g>
 ${I}    <g class="tm-animate-wing-right">
-${mirrored(voidWingLeft(p, pal, { sx: 36, sy: 52, span: 22, blades: 4, lift: 2, crack: true, starSeed: 44 }))}
+${mirrored(voidWingLeft(p, pal, { sx: 34, sy: 54, span: 30, blades: 4, lift: 2, crack: true, starSeed: 44 }))}
 ${I}    </g>
 ${I}    <g class="tm-animate-tail">
 ${I2}<path d="M 56 78 Q 66 82 68 92 Q 60 88 54 82 Z" fill="url(#${p}-blade)" opacity="0.6"/>
 ${I2}<circle cx="67" cy="90" r="1.1" fill="${pal.gold}" opacity="0.8"/>
 ${I}    </g>
 ${I}    <g class="tm-animate-body">
-${I2}<path d="M 50 26 C 62 26 68 36 68 50 C 68 62 66 72 68 82 L 62 77 L 58 84 L 52 78 L 46 85 L 41 78 L 34 83 C 35 72 32 62 32 50 C 32 36 38 26 50 26 Z" fill="url(#${p}-body)" stroke="${pal.line}" stroke-width="1.3"/>
-${I2}<path d="M 50 30 C 59 30 64 38 64 50 C 64 60 63 68 64 76 L 50 70 L 36 76 C 37 68 36 60 36 50 C 36 38 41 30 50 30 Z" fill="url(#${p}-cloak)" opacity="0.5"/>
-${stars(51, 9, 50, 58, 12, 20, pal.gold, 0.55)}
-${I2}<path d="M 40 30 Q 35 24 37 19 Q 41 23 42 28 Z" fill="url(#${p}-goldrim)" stroke="${pal.line}" stroke-width="0.6"/>
-${I2}<path d="M 60 30 Q 65 24 63 19 Q 59 23 58 28 Z" fill="url(#${p}-goldrim)" stroke="${pal.line}" stroke-width="0.6"/>
+${I2}<path d="M 50 30 L 66 36 L 74 50 L 70 64 L 76 80 L 62 74 L 56 86 L 50 78 L 44 86 L 38 74 L 24 80 L 30 64 L 26 50 L 34 36 Z" fill="url(#${p}-body)" stroke="${pal.line}" stroke-width="1.3"/>
+${I2}<path d="M 50 36 L 62 40 L 68 52 L 64 64 L 68 76 L 50 70 L 32 76 L 36 64 L 32 52 L 38 40 Z" fill="url(#${p}-cloak)" opacity="0.5"/>
+${stars(51, 9, 50, 58, 14, 16, pal.gold, 0.55)}
+${I2}<path d="M 38 34 L 34 26 L 40 30 Z" fill="url(#${p}-goldrim)" stroke="${pal.line}" stroke-width="0.6"/>
+${I2}<path d="M 62 34 L 66 26 L 60 30 Z" fill="url(#${p}-goldrim)" stroke="${pal.line}" stroke-width="0.6"/>
 ${I2}<circle class="tm-aether-core" cx="50" cy="62" r="4" fill="url(#${p}-core)"/>
 ${I2}<circle class="tm-aether-core-ring" cx="50" cy="62" r="6.4" fill="none" stroke="${pal.teal}" stroke-width="0.55" opacity="0.4"/>
 ${I}    </g>
@@ -495,28 +536,28 @@ ${fxHaze(p, pal)}
 ${fxBeams(p, pal)}
 ${fxSigil(p, pal)}
 ${I}    <g class="tm-animate-wing-left">
-${voidWingLeft(p, pal, { sx: 35, sy: 46, span: 28, blades: 5, lift: 6, crack: true, starSeed: 63 })}
+${voidWingLeft(p, pal, { sx: 35, sy: 46, span: 38, blades: 5, lift: 6, crack: true, starSeed: 63 })}
 ${I}    </g>
 ${I}    <g class="tm-animate-wing-right">
-${mirrored(voidWingLeft(p, pal, { sx: 35, sy: 46, span: 28, blades: 5, lift: 6, crack: true, starSeed: 64 }))}
+${mirrored(voidWingLeft(p, pal, { sx: 35, sy: 46, span: 38, blades: 5, lift: 6, crack: true, starSeed: 64 }))}
 ${I}    </g>
 ${I}    <g class="tm-animate-tail">
 ${I2}<path d="M 54 80 C 62 84 64 92 60 97 C 59 91 55 86 51 83 Z" fill="url(#${p}-cloak)" stroke="${pal.line}" stroke-width="0.7" opacity="0.8"/>
 ${I}    </g>
 ${I}    <g class="tm-animate-body">
-${I2}<path d="M 50 14 L 58 24 L 60 34 L 63 52 L 61 74 L 66 88 L 54 84 L 50 90 L 46 84 L 34 88 L 39 74 L 37 52 L 40 34 L 42 24 Z" fill="url(#${p}-body)" stroke="${pal.line}" stroke-width="1.3"/>
-${I2}<path d="M 50 18 L 55 26 L 57 35 L 59 52 L 57 72 L 50 76 L 43 72 L 41 52 L 43 35 L 45 26 Z" fill="url(#${p}-cloak)" opacity="0.62"/>
-${constellation(71, [[44, 48], [48, 55], [45, 62], [52, 66], [56, 58], [53, 50]], pal.gold)}
-${stars(72, 6, 50, 58, 8, 14, pal.hi, 0.45)}
-${I2}<path d="M 41 34 C 34 28 27 28 23 34 C 29 32 35 36 40 41 Z" fill="url(#${p}-goldrim)" stroke="${pal.line}" stroke-width="0.7"/>
-${I2}<path d="M 59 34 C 66 28 73 28 77 34 C 71 32 65 36 60 41 Z" fill="url(#${p}-goldrim)" stroke="${pal.line}" stroke-width="0.7"/>
-${I2}<path d="M 41 37 C 36 34 31 34 28 37" fill="none" stroke="${pal.gold}" stroke-width="0.5" opacity="0.7"/>
-${I2}<path d="M 59 37 C 64 34 69 34 72 37" fill="none" stroke="${pal.gold}" stroke-width="0.5" opacity="0.7"/>
-${I2}<path d="M 42 24 L 36 14 L 44 19 Z" fill="url(#${p}-cloak)" stroke="${pal.line}" stroke-width="0.7"/>
-${I2}<path d="M 58 24 L 64 14 L 56 19 Z" fill="url(#${p}-cloak)" stroke="${pal.line}" stroke-width="0.7"/>
-${I2}<path d="M 43 66 L 57 66 L 55 70 L 45 70 Z" fill="url(#${p}-goldrim)" opacity="0.85"/>
+${I2}<path d="M 50 10 L 56 22 L 55 34 L 58 52 L 54 74 L 60 90 L 52 86 L 50 94 L 48 86 L 40 90 L 46 74 L 42 52 L 45 34 L 44 22 Z" fill="url(#${p}-body)" stroke="${pal.line}" stroke-width="1.3"/>
+${I2}<path d="M 50 16 L 53 26 L 53 36 L 55 52 L 52 72 L 50 78 L 48 72 L 45 52 L 47 36 L 47 26 Z" fill="url(#${p}-cloak)" opacity="0.62"/>
+${constellation(71, [[46, 48], [49, 55], [47, 62], [51, 68], [54, 58], [52, 50]], pal.gold)}
+${stars(72, 6, 50, 58, 5, 16, pal.hi, 0.45)}
+${I2}<path d="M 44 32 L 36 26 L 32 32 L 38 36 Z" fill="url(#${p}-goldrim)" stroke="${pal.line}" stroke-width="0.7"/>
+${I2}<path d="M 56 32 L 64 26 L 68 32 L 62 36 Z" fill="url(#${p}-goldrim)" stroke="${pal.line}" stroke-width="0.7"/>
+${I2}<path d="M 44 35 L 38 32 L 34 34" fill="none" stroke="${pal.gold}" stroke-width="0.5" opacity="0.7"/>
+${I2}<path d="M 56 35 L 62 32 L 66 34" fill="none" stroke="${pal.gold}" stroke-width="0.5" opacity="0.7"/>
+${I2}<path d="M 45 22 L 40 12 L 47 18 Z" fill="url(#${p}-cloak)" stroke="${pal.line}" stroke-width="0.7"/>
+${I2}<path d="M 55 22 L 60 12 L 53 18 Z" fill="url(#${p}-cloak)" stroke="${pal.line}" stroke-width="0.7"/>
+${I2}<path d="M 45 66 L 55 66 L 53 70 L 47 70 Z" fill="url(#${p}-goldrim)" opacity="0.85"/>
 ${runeTattoos(pal, 50, 60)}
-${I2}<circle class="tm-aether-core" cx="50" cy="46" r="4" fill="url(#${p}-core)"/>
+${I2}<circle class="tm-aether-core" cx="50" cy="46" r="3.6" fill="url(#${p}-core)"/>
 ${I}    </g>
 ${I}    <g class="tm-aether-regalia">
 ${I2}<path d="M 47 27 L 50 24 L 53 27 L 50 30 Z" fill="${pal.gold}" opacity="0.95" filter="url(#${p}-glow)"/>
@@ -560,27 +601,26 @@ ${fxBeams(p, pal)}
 ${fxSigil(p, pal)}
 ${fxRunes(p, pal)}
 ${fxFracture(p, pal)}
-${I}    <circle class="tm-aether-halo" cx="50" cy="26" r="14" fill="none" stroke="${pal.gold}" stroke-width="1.1" opacity="0.55"/>
-${I}    <circle class="tm-aether-halo" cx="50" cy="26" r="17.5" fill="none" stroke="${pal.teal}" stroke-width="0.5" opacity="0.35" stroke-dasharray="2.5 3"/>
+${brokenHalo(pal, 50, 26, 14, -22)}
 ${I}    <g class="tm-animate-wing-left">
-${voidWingLeft(p, pal, { sx: 34, sy: 44, span: 33, blades: 6, lift: 12, crack: true, starSeed: 83 })}
+${voidWingLeft(p, pal, { sx: 34, sy: 44, span: 44, blades: 6, lift: 12, crack: true, starSeed: 83 })}
 ${I}    </g>
 ${I}    <g class="tm-animate-wing-right">
-${mirrored(voidWingLeft(p, pal, { sx: 34, sy: 44, span: 33, blades: 6, lift: 12, crack: true, starSeed: 84 }))}
+${mirrored(voidWingLeft(p, pal, { sx: 34, sy: 44, span: 44, blades: 6, lift: 12, crack: true, starSeed: 84 }))}
 ${I}    </g>
 ${I}    <g class="tm-animate-tail">
 ${I2}<path d="M 50 82 C 56 88 58 94 54 99 C 52 94 49 90 45 87 Z" fill="url(#${p}-cloak)" stroke="${pal.line}" stroke-width="0.7" opacity="0.85"/>
 ${I2}<path d="M 46 84 C 42 89 41 95 44 99 C 45 94 47 90 50 87 Z" fill="url(#${p}-cloak)" stroke="${pal.line}" stroke-width="0.6" opacity="0.7"/>
 ${I}    </g>
 ${I}    <g class="tm-animate-body">
-${I2}<path d="M 50 12 C 58 12 62 18 62 26 L 68 38 L 66 60 L 70 84 L 58 79 L 50 88 L 42 79 L 30 84 L 34 60 L 32 38 L 38 26 C 38 18 42 12 50 12 Z" fill="url(#${p}-body)" stroke="${pal.line}" stroke-width="1.4"/>
-${I2}<path d="M 50 20 C 55 20 58 24 58 30 L 62 40 L 60 60 L 62 76 L 50 70 L 38 76 L 40 60 L 38 40 L 42 30 C 42 24 45 20 50 20 Z" fill="url(#${p}-cloak)" opacity="0.66"/>
+${I2}<path d="M 50 12 L 58 16 L 68 24 L 74 36 L 70 48 L 62 56 L 66 78 L 58 74 L 50 88 L 42 74 L 34 78 L 38 56 L 30 48 L 26 36 L 32 24 L 42 16 Z" fill="url(#${p}-body)" stroke="${pal.line}" stroke-width="1.4"/>
+${I2}<path d="M 50 20 L 56 24 L 64 32 L 66 40 L 60 50 L 62 72 L 50 66 L 38 72 L 40 50 L 34 40 L 36 32 L 44 24 Z" fill="url(#${p}-cloak)" opacity="0.66"/>
 ${constellation(91, [[42, 44], [47, 50], [44, 58], [50, 64], [56, 57], [53, 49], [58, 44]], pal.gold)}
-${stars(92, 10, 50, 55, 10, 18, pal.hi, 0.5)}
-${I2}<path d="M 40 32 C 31 24 22 24 17 31 C 24 29 32 34 39 40 Z" fill="url(#${p}-goldrim)" stroke="${pal.line}" stroke-width="0.8"/>
-${I2}<path d="M 60 32 C 69 24 78 24 83 31 C 76 29 68 34 61 40 Z" fill="url(#${p}-goldrim)" stroke="${pal.line}" stroke-width="0.8"/>
-${I2}<path d="M 40 36 C 34 31 27 31 23 35" fill="none" stroke="${pal.gold}" stroke-width="0.6" opacity="0.75"/>
-${I2}<path d="M 60 36 C 66 31 73 31 77 35" fill="none" stroke="${pal.gold}" stroke-width="0.6" opacity="0.75"/>
+${stars(92, 10, 50, 55, 12, 16, pal.hi, 0.5)}
+${I2}<path d="M 38 30 L 26 22 L 18 30 L 28 36 Z" fill="url(#${p}-goldrim)" stroke="${pal.line}" stroke-width="0.8"/>
+${I2}<path d="M 62 30 L 74 22 L 82 30 L 72 36 Z" fill="url(#${p}-goldrim)" stroke="${pal.line}" stroke-width="0.8"/>
+${I2}<path d="M 38 34 L 28 30 L 22 33" fill="none" stroke="${pal.gold}" stroke-width="0.6" opacity="0.75"/>
+${I2}<path d="M 62 34 L 72 30 L 78 33" fill="none" stroke="${pal.gold}" stroke-width="0.6" opacity="0.75"/>
 ${I2}<path d="M 44 66 L 56 66 L 54 71 L 46 71 Z" fill="url(#${p}-goldrim)" opacity="0.9"/>
 ${runeTattoos(pal, 50, 58)}
 ${I2}<circle class="tm-aether-core" cx="50" cy="44" r="5" fill="url(#${p}-core)" filter="url(#${p}-glow)"/>
@@ -616,7 +656,7 @@ ${I}</g>`;
 /* evo4 — Eclipse Tyrant: black sun disc, jagged mantle, crescent eyes */
 function buildEvo4() {
   const p = 'aether-mid', pal = PAL.evo4;
-  const ghostWing = voidWingLeft(p, pal, { sx: 35, sy: 44, span: 26, blades: 4, lift: 8, crack: false, starSeed: 103 });
+  const ghostWing = voidWingLeft(p, pal, { sx: 35, sy: 44, span: 32, blades: 4, lift: 8, crack: false, starSeed: 103, tatters: false });
   return `${I}<!-- AETHER MIDDLEAGE — Eclipse Tyrant -->
 ${I}<g id="tm-mascot-evo4-aether" style="display: none;">
 ${I}    <defs>
@@ -644,23 +684,23 @@ ${I}    <g class="tm-aether-ghost-wing-right" opacity="0.28" transform="translat
 ${mirrored(ghostWing)}
 ${I}    </g>
 ${I}    <g class="tm-animate-wing-left">
-${voidWingLeft(p, pal, { sx: 35, sy: 44, span: 34, blades: 6, lift: 8, crack: true, starSeed: 105 })}
+${voidWingLeft(p, pal, { sx: 35, sy: 44, span: 46, blades: 7, lift: 10, crack: true, starSeed: 105 })}
 ${I}    </g>
 ${I}    <g class="tm-animate-wing-right">
-${mirrored(voidWingLeft(p, pal, { sx: 35, sy: 44, span: 34, blades: 6, lift: 8, crack: true, starSeed: 106 }))}
+${mirrored(voidWingLeft(p, pal, { sx: 35, sy: 44, span: 46, blades: 7, lift: 10, crack: true, starSeed: 106 }))}
 ${I}    </g>
 ${I}    <g class="tm-animate-tail">
 ${I2}<path d="M 50 82 C 58 87 61 94 57 99 C 54 94 50 90 45 87 Z" fill="url(#${p}-cloak)" stroke="${pal.line}" stroke-width="0.7" opacity="0.85"/>
 ${I}    </g>
 ${I}    <g class="tm-animate-body">
-${I2}<path d="M 50 10 L 57 16 L 64 22 L 62 34 L 69 42 L 66 62 L 72 86 L 59 80 L 50 90 L 41 80 L 28 86 L 34 62 L 31 42 L 38 34 L 36 22 L 43 16 Z" fill="url(#${p}-body)" stroke="${pal.line}" stroke-width="1.4"/>
-${I2}<path d="M 50 16 L 55 21 L 59 26 L 58 36 L 62 44 L 60 62 L 63 78 L 50 71 L 37 78 L 40 62 L 38 44 L 42 36 L 41 26 L 45 21 Z" fill="url(#${p}-cloak)" opacity="0.72"/>
+${I2}<path d="M 50 8 L 62 18 L 78 28 L 70 38 L 82 48 L 70 60 L 78 84 L 60 78 L 50 92 L 40 78 L 22 84 L 30 60 L 18 48 L 30 38 L 22 28 L 38 18 Z" fill="url(#${p}-body)" stroke="${pal.line}" stroke-width="1.4"/>
+${I2}<path d="M 50 16 L 58 24 L 68 32 L 62 40 L 70 48 L 62 58 L 66 76 L 50 70 L 34 76 L 38 58 L 30 48 L 38 40 L 32 32 L 42 24 Z" fill="url(#${p}-cloak)" opacity="0.72"/>
 ${constellation(111, [[43, 42], [48, 48], [45, 56], [51, 62], [57, 55], [54, 47]], pal.blood)}
-${stars(112, 8, 50, 52, 9, 16, pal.gold, 0.45)}
-${I2}<path d="M 39 28 C 31 20 21 20 15 27 C 20 25 25 28 28 26 C 31 30 35 33 38 36 Z" fill="url(#${p}-cloak)" stroke="${pal.gold}" stroke-width="0.7"/>
-${I2}<path d="M 61 28 C 69 20 79 20 85 27 C 80 25 75 28 72 26 C 69 30 65 33 62 36 Z" fill="url(#${p}-cloak)" stroke="${pal.gold}" stroke-width="0.7"/>
-${I2}<path d="M 24 24 L 21 18 L 27 22 Z" fill="${pal.blood}" opacity="0.75"/>
-${I2}<path d="M 76 24 L 79 18 L 73 22 Z" fill="${pal.blood}" opacity="0.75"/>
+${stars(112, 8, 50, 52, 12, 14, pal.gold, 0.45)}
+${I2}<path d="M 36 26 L 24 16 L 14 26 L 22 24 L 28 32 Z" fill="url(#${p}-cloak)" stroke="${pal.gold}" stroke-width="0.7"/>
+${I2}<path d="M 64 26 L 76 16 L 86 26 L 78 24 L 72 32 Z" fill="url(#${p}-cloak)" stroke="${pal.gold}" stroke-width="0.7"/>
+${I2}<path d="M 20 22 L 16 14 L 24 20 Z" fill="${pal.blood}" opacity="0.75"/>
+${I2}<path d="M 80 22 L 84 14 L 76 20 Z" fill="${pal.blood}" opacity="0.75"/>
 ${I2}<path d="M 44 64 L 56 64 L 54 69 L 46 69 Z" fill="url(#${p}-goldrim)" opacity="0.8"/>
 ${runeTattoos(pal, 50, 56)}
 ${I2}<circle class="tm-aether-core" cx="50" cy="42" r="4.6" fill="url(#${p}-core)" filter="url(#${p}-glow)"/>
@@ -691,7 +731,7 @@ ${I}</g>`;
 /* evo5 — Primordial: asymmetric god-form, dominant + shattered wings */
 function buildEvo5() {
   const p = 'aether-old', pal = PAL.evo5;
-  const ghostWing = voidWingLeft(p, pal, { sx: 35, sy: 42, span: 28, blades: 4, lift: 10, crack: false, starSeed: 123 });
+  const ghostWing = voidWingLeft(p, pal, { sx: 35, sy: 42, span: 34, blades: 4, lift: 10, crack: false, starSeed: 123, tatters: false });
   return `${I}<!-- AETHER OLD — Primordial -->
 ${I}<g id="tm-mascot-evo5-aether" style="display: none;">
 ${I}    <defs>
@@ -706,8 +746,7 @@ ${fxBeams(p, pal)}
 ${fxSigil(p, pal)}
 ${fxRunes(p, pal)}
 ${fxFracture(p, pal)}
-${I}    <circle class="tm-aether-halo" cx="50" cy="22" r="16" fill="none" stroke="${pal.gold}" stroke-width="1.3" opacity="0.6"/>
-${I}    <circle class="tm-aether-halo" cx="50" cy="22" r="20" fill="none" stroke="${pal.teal}" stroke-width="0.6" opacity="0.4" stroke-dasharray="3 3.5"/>
+${brokenHalo(pal, 50, 22, 16, -28)}
 ${I}    <g class="tm-aether-ghost-wing-left" opacity="0.28" transform="translate(-5 4) scale(1.14)">
 ${ghostWing}
 ${I}    </g>
@@ -715,34 +754,34 @@ ${I}    <g class="tm-aether-ghost-wing-right" opacity="0.28" transform="translat
 ${mirrored(ghostWing)}
 ${I}    </g>
 ${I}    <g class="tm-animate-wing-left tm-aether-wing-broken" transform="translate(50 52) scale(0.74) translate(-50 -52)">
-${voidWingLeft(p, pal, { sx: 36, sy: 46, span: 30, blades: 4, lift: 6, crack: true, starSeed: 125 })}
+${voidWingLeft(p, pal, { sx: 36, sy: 46, span: 34, blades: 4, lift: 6, crack: true, starSeed: 125 })}
 ${I2}<path class="tm-aether-wing-break" d="M 12 32 L 5 40 L 14 46" fill="none" stroke="${pal.blood}" stroke-width="1.1" stroke-dasharray="2 1.5" opacity="0.75"/>
 ${I2}<path class="tm-aether-wing-break" d="M 4 56 L 12 62 L 6 70" fill="none" stroke="${pal.gold}" stroke-width="0.85" stroke-dasharray="1.5 1.2" opacity="0.6"/>
 ${I2}<path d="M 6 30 L 10 25 L 12 31 Z" fill="url(#${p}-blade)" opacity="0.7"/>
 ${I2}<path d="M 0 46 L 5 42 L 6 49 Z" fill="url(#${p}-blade)" opacity="0.6"/>
 ${I2}<path d="M 8 64 L 13 61 L 13 68 Z" fill="url(#${p}-blade)" opacity="0.55"/>
 ${I}    </g>
-${I}    <g class="tm-animate-wing-right tm-aether-wing-dominant" transform="translate(50 52) scale(1.3) translate(-50 -52)">
-${mirrored(voidWingLeft(p, pal, { sx: 36, sy: 45, span: 34, blades: 7, lift: 12, crack: true, starSeed: 126 }))}
+${I}    <g class="tm-animate-wing-right tm-aether-wing-dominant" transform="translate(50 52) scale(1.38) translate(-50 -52)">
+${mirrored(voidWingLeft(p, pal, { sx: 36, sy: 45, span: 48, blades: 8, lift: 14, crack: true, starSeed: 126 }))}
 ${I}    </g>
 ${I}    <g class="tm-animate-tail">
 ${I2}<path d="M 50 82 C 59 87 62 94 58 99 C 55 94 50 90 45 87 Z" fill="url(#${p}-cloak)" stroke="${pal.line}" stroke-width="0.7" opacity="0.85"/>
 ${I2}<path d="M 46 84 C 40 89 39 96 43 99 C 44 94 46 90 49 87 Z" fill="url(#${p}-cloak)" stroke="${pal.line}" stroke-width="0.6" opacity="0.7"/>
 ${I}    </g>
 ${I}    <g class="tm-animate-body">
-${I2}<path d="M 50 8 C 59 8 64 15 64 24 L 70 36 L 67 60 L 74 88 L 60 81 L 50 92 L 40 81 L 26 88 L 33 60 L 30 36 L 36 24 C 36 15 41 8 50 8 Z" fill="url(#${p}-body)" stroke="${pal.line}" stroke-width="1.5"/>
-${I2}<path d="M 50 15 C 56 15 60 20 60 28 L 64 38 L 61 60 L 64 78 L 50 71 L 36 78 L 39 60 L 36 38 L 40 28 C 40 20 44 15 50 15 Z" fill="url(#${p}-cloak)" opacity="0.72"/>
-${constellation(131, [[42, 40], [47, 46], [44, 54], [50, 61], [56, 53], [53, 45], [58, 40]], pal.gold)}
-${stars(132, 12, 50, 52, 10, 18, pal.hi, 0.55)}
-${I2}<path d="M 39 27 C 30 18 18 18 12 26 C 18 24 24 27 27 25 C 30 29 34 33 38 36 Z" fill="url(#${p}-cloak)" stroke="${pal.gold}" stroke-width="0.8"/>
-${I2}<path d="M 61 27 C 70 18 82 18 88 26 C 82 24 76 27 73 25 C 70 29 66 33 62 36 Z" fill="url(#${p}-cloak)" stroke="${pal.gold}" stroke-width="0.8"/>
-${I2}<path d="M 22 22 L 18 15 L 26 20 Z" fill="${pal.gold}" opacity="0.8"/>
-${I2}<path d="M 78 22 L 82 15 L 74 20 Z" fill="${pal.gold}" opacity="0.8"/>
-${I2}<path d="M 49 34 L 51 34 L 50.6 58 L 49.4 58 Z" fill="#ffffff" opacity="0.85" filter="url(#${p}-glow)"/>
-${I2}<circle class="tm-aether-core" cx="50" cy="44" r="5.4" fill="url(#${p}-core)" filter="url(#${p}-glow)"/>
-${I2}<circle class="tm-aether-core-ring" cx="50" cy="44" r="8.6" fill="none" stroke="${pal.gold}" stroke-width="0.8" opacity="0.55"/>
-${I2}<path d="M 44 64 L 56 64 L 54 69 L 46 69 Z" fill="url(#${p}-goldrim)" opacity="0.9"/>
-${runeTattoos(pal, 50, 57)}
+${I2}<path d="M 48 6 L 56 10 L 64 18 L 72 30 L 78 46 L 76 64 L 84 90 L 64 82 L 52 96 L 42 86 L 28 90 L 34 68 L 26 52 L 30 34 L 36 20 L 42 10 Z" fill="url(#${p}-body)" stroke="${pal.line}" stroke-width="1.5"/>
+${I2}<path d="M 48 14 L 56 18 L 62 28 L 68 40 L 70 56 L 68 74 L 52 68 L 38 76 L 40 58 L 34 44 L 38 30 L 44 20 Z" fill="url(#${p}-cloak)" opacity="0.72"/>
+${constellation(131, [[42, 40], [48, 46], [44, 54], [52, 62], [60, 52], [56, 44], [62, 38]], pal.gold)}
+${stars(132, 12, 52, 52, 12, 18, pal.hi, 0.55)}
+${I2}<path d="M 36 24 L 22 14 L 12 24 L 20 22 L 28 32 Z" fill="url(#${p}-cloak)" stroke="${pal.gold}" stroke-width="0.8"/>
+${I2}<path d="M 62 22 L 76 10 L 90 22 L 80 20 L 72 30 Z" fill="url(#${p}-cloak)" stroke="${pal.gold}" stroke-width="0.8"/>
+${I2}<path d="M 18 20 L 12 11 L 24 18 Z" fill="${pal.gold}" opacity="0.8"/>
+${I2}<path d="M 82 18 L 88 8 L 76 16 Z" fill="${pal.gold}" opacity="0.8"/>
+${I2}<path d="M 49 32 L 51 32 L 52 58 L 50 58 Z" fill="#ffffff" opacity="0.85" filter="url(#${p}-glow)"/>
+${I2}<circle class="tm-aether-core" cx="52" cy="44" r="5.4" fill="url(#${p}-core)" filter="url(#${p}-glow)"/>
+${I2}<circle class="tm-aether-core-ring" cx="52" cy="44" r="8.6" fill="none" stroke="${pal.gold}" stroke-width="0.8" opacity="0.55"/>
+${I2}<path d="M 44 64 L 58 64 L 56 69 L 46 69 Z" fill="url(#${p}-goldrim)" opacity="0.9"/>
+${runeTattoos(pal, 52, 57)}
 ${I}    </g>
 ${I}    <g class="tm-aether-regalia">
 ${crown(pal, 6, 7, 30, true)}
@@ -775,7 +814,7 @@ ${I}</g>`;
 
 /* ════════════════ assembly + self-check ════════════════ */
 
-const HEADER = `${I}<!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v7 · voidblade judge) -->
+const HEADER = `${I}<!-- AETHER CHARACTER - All Life Stages (MYTHICAL evo line v9 · fallen voidblade · 3-seg wings) -->
 ${I}<!-- Voidseed → Veilspawn → Astral Warden → Star Sovereign → Eclipse Tyrant → Primordial -->
 ${I}<!-- ═══════════════════════════════════════ -->
 `;
@@ -801,6 +840,7 @@ const COMMON = [
   'tm-aether-core', 'tm-aether-eyes', 'tm-aether-eye-sclera',
   'tm-aether-fx', 'tm-aether-regalia', 'tm-aether-spark',
   'tm-aether-wing-claw', 'tm-aether-wing-membrane', 'tm-aether-wing-vein',
+  'tm-aether-wing-root', 'tm-aether-wing-mid', 'tm-aether-wing-tip',
 ];
 const REQUIRED = {
   baby: {

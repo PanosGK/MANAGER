@@ -5040,12 +5040,50 @@
             }
             /* Aether: slow rigid blade-beat — not soft moth flutter */
             #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left {
-                animation: tm-aether-blade-flap 3.8s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
+                animation: tm-aether-blade-flap 3.6s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
                 transform-origin: 72% 48%;
             }
             #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right {
-                animation: tm-aether-blade-flap-right 3.8s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
+                animation: tm-aether-blade-flap-right 3.6s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
                 transform-origin: 28% 48%;
+            }
+            /* Fallen angel: root → mid → tip cascade (whip flap) */
+            .mascot-char-aether .tm-aether-wing-seg {
+                transform-box: view-box;
+            }
+            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-root,
+            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-root {
+                animation: tm-aether-seg-root 3.6s cubic-bezier(0.55, 0.05, 0.35, 1) infinite;
+            }
+            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-mid,
+            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-mid {
+                animation: tm-aether-seg-mid 3.6s cubic-bezier(0.55, 0.05, 0.35, 1) infinite;
+                animation-delay: 0.08s;
+            }
+            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-tip,
+            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-tip {
+                animation: tm-aether-seg-tip 3.6s cubic-bezier(0.45, 0.02, 0.3, 1) infinite;
+                animation-delay: 0.16s;
+            }
+            #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-root,
+            #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-root {
+                animation: tm-aether-seg-root 0.55s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-mid,
+            #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-mid {
+                animation: tm-aether-seg-mid 0.55s ease-in-out infinite;
+                animation-delay: 0.04s;
+            }
+            #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-tip,
+            #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-tip {
+                animation: tm-aether-seg-tip 0.55s ease-in-out infinite;
+                animation-delay: 0.08s;
+            }
+            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-aether-wing-tatter {
+                animation: tm-aether-tatter-sway 2.8s ease-in-out infinite;
+            }
+            #tm-mascot-container.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-aether-wing-tatter:nth-child(odd) {
+                animation-delay: 0.5s;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-wing-star {
                 animation: tm-mythic-sparkle 5.5s ease-in-out infinite;
@@ -5532,16 +5570,38 @@
                 50% { transform: rotate(14deg) scaleY(1.04); }
             }
             @keyframes tm-aether-blade-flap {
-                0%, 100% { transform: rotate(4deg); }
-                40% { transform: rotate(-7deg); }
-                55% { transform: rotate(-9deg); }
-                70% { transform: rotate(2deg); }
+                0%, 100% { transform: rotate(3deg); }
+                40% { transform: rotate(-5deg); }
+                55% { transform: rotate(-6deg); }
+                70% { transform: rotate(1deg); }
             }
             @keyframes tm-aether-blade-flap-right {
-                0%, 100% { transform: rotate(-4deg); }
-                40% { transform: rotate(7deg); }
-                55% { transform: rotate(9deg); }
-                70% { transform: rotate(-2deg); }
+                0%, 100% { transform: rotate(-3deg); }
+                40% { transform: rotate(5deg); }
+                55% { transform: rotate(6deg); }
+                70% { transform: rotate(-1deg); }
+            }
+            @keyframes tm-aether-seg-root {
+                0%, 100% { transform: rotate(2deg); }
+                42% { transform: rotate(-6deg); }
+                58% { transform: rotate(-8deg); }
+                72% { transform: rotate(1deg); }
+            }
+            @keyframes tm-aether-seg-mid {
+                0%, 100% { transform: rotate(1deg); }
+                40% { transform: rotate(-10deg); }
+                56% { transform: rotate(-13deg); }
+                74% { transform: rotate(2deg); }
+            }
+            @keyframes tm-aether-seg-tip {
+                0%, 100% { transform: rotate(0deg); }
+                38% { transform: rotate(-14deg); }
+                54% { transform: rotate(-18deg); }
+                76% { transform: rotate(4deg); }
+            }
+            @keyframes tm-aether-tatter-sway {
+                0%, 100% { transform: rotate(0deg) translate(0, 0); opacity: 0.8; }
+                50% { transform: rotate(-6deg) translate(-0.4px, 0.6px); opacity: 1; }
             }
             @keyframes tm-wing-flap-move {
                 0%, 100% { transform: rotate(4deg); }

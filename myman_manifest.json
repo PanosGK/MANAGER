@@ -1,11 +1,11 @@
 {
-  "version": "318",
+  "version": "319",
   "loaderVersion": "36",
-  "silentVersion": "10",
-  "displayVersion": "36.10",
+  "silentVersion": "11",
+  "displayVersion": "36.11",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Aether voidblade redesign: shard wings, void palette, fierce face, rigid blade-beat.",
+  "releaseNotes": "Aether fallen voidblade: distinct body silhouettes, 3-seg wings, broken halo.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

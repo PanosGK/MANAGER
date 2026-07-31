@@ -43,9 +43,21 @@ const html = `<!DOCTYPE html>
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
     background-color: #090312;
   }
-  .card { background:#0c0518; border:1px solid #3a2258; border-radius:12px; padding:10px; text-align:center; box-shadow: 0 0 24px rgba(124,77,255,0.14); }
+  .card { background:#0c0518; border:1px solid #3a2258; border-radius:12px; padding:10px; text-align:center; box-shadow: 0 0 24px rgba(124,77,255,0.14); overflow:visible; }
   .label { color:#b39ddb; font-size:13px; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; text-shadow: 0 0 8px rgba(124,77,255,0.5); }
   h1 { color:#d1c4e9; font-size:18px; font-weight:400; letter-spacing:2px; margin:0 0 16px; text-align:center; }
+  .tm-animate-wing-left { animation: flapL 3.6s cubic-bezier(0.55,0.05,0.35,1) infinite; transform-origin:72% 48%; transform-box:view-box; }
+  .tm-animate-wing-right { animation: flapR 3.6s cubic-bezier(0.55,0.05,0.35,1) infinite; transform-origin:28% 48%; transform-box:view-box; }
+  .tm-aether-wing-root { animation: segR 3.6s cubic-bezier(0.55,0.05,0.35,1) infinite; }
+  .tm-aether-wing-mid { animation: segM 3.6s cubic-bezier(0.55,0.05,0.35,1) infinite; animation-delay:.08s; }
+  .tm-aether-wing-tip { animation: segT 3.6s cubic-bezier(0.45,0.02,0.3,1) infinite; animation-delay:.16s; }
+  .tm-aether-wing-tatter { animation: tat 2.8s ease-in-out infinite; }
+  @keyframes flapL { 0%,100%{transform:rotate(3deg)} 40%{transform:rotate(-5deg)} 55%{transform:rotate(-6deg)} 70%{transform:rotate(1deg)} }
+  @keyframes flapR { 0%,100%{transform:rotate(-3deg)} 40%{transform:rotate(5deg)} 55%{transform:rotate(6deg)} 70%{transform:rotate(-1deg)} }
+  @keyframes segR { 0%,100%{transform:rotate(2deg)} 42%{transform:rotate(-6deg)} 58%{transform:rotate(-8deg)} 72%{transform:rotate(1deg)} }
+  @keyframes segM { 0%,100%{transform:rotate(1deg)} 40%{transform:rotate(-10deg)} 56%{transform:rotate(-13deg)} 74%{transform:rotate(2deg)} }
+  @keyframes segT { 0%,100%{transform:rotate(0deg)} 38%{transform:rotate(-14deg)} 54%{transform:rotate(-18deg)} 76%{transform:rotate(4deg)} }
+  @keyframes tat { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(-6deg)} }
 </style>
 </head>
 <body>
