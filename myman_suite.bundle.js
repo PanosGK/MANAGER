@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v314 / Custom Ver. 36.6 — generated, do not edit */
+/* MyManager Suite bundle v315 / Custom Ver. 36.7 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '314',
+        version: '315',
         loaderVersion: '36',
-        silentVersion: '6',
-        displayVersion: '36.6',
+        silentVersion: '7',
+        displayVersion: '36.7',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -40945,6 +40945,111 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
     });
 
 
+    /**
+     * Clone the live mascot SVG for UI previews (care panel, etc.).
+     * Remaps ids so gradient/filter url(#…) refs stay valid and don't collide with the live sprite.
+     */
+    function cloneMascotSvgForUiPreview(idPrefix = 'tm-ui-prev-') {
+        const liveRoot = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+        const liveRobot = liveRoot?.querySelector?.('.tm-mascot-robot');
+        if (!liveRobot) return null;
+
+        const clone = liveRobot.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.classList.add('tm-mascot-preview-robot');
+        clone.style.pointerEvents = 'none';
+        clone.setAttribute('aria-hidden', 'true');
+
+        const idMap = new Map();
+        clone.querySelectorAll('[id]').forEach((node) => {
+            const oldId = node.getAttribute('id');
+            if (!oldId) return;
+            const newId = `${idPrefix}${oldId}`;
+            idMap.set(oldId, newId);
+            node.setAttribute('id', newId);
+        });
+
+        const rewriteUrlRefs = (value) => String(value).replace(/url\(\s*#([^)\s]+)\s*\)/g, (full, id) => (
+            idMap.has(id) ? `url(#${idMap.get(id)})` : full
+        ));
+
+        clone.querySelectorAll('*').forEach((el) => {
+            for (const attr of [...el.attributes]) {
+                const name = attr.name;
+                const value = attr.value;
+                if (!value) continue;
+                if (value.includes('url(')) {
+                    el.setAttribute(name, rewriteUrlRefs(value));
+                } else if ((name === 'href' || name === 'xlink:href') && value.startsWith('#')) {
+                    const id = value.slice(1);
+                    if (idMap.has(id)) el.setAttribute(name, `#${idMap.get(id)}`);
+                }
+            }
+        });
+
+        // Drop transient FX that shouldn't appear in the care preview
+        clone.querySelectorAll('.tm-toilet-fx, .tm-toilet-urgency-indicator').forEach((el) => el.remove());
+
+        return { clone, liveRoot };
+    }
+
+    function getLiveMascotPreviewSizePx(liveRoot) {
+        if (liveRoot) {
+            const rect = liveRoot.getBoundingClientRect();
+            const fromRect = Math.round(Math.max(rect.width || 0, rect.height || 0));
+            if (fromRect >= 40) return fromRect;
+            const styleW = parseFloat(liveRoot.style.width);
+            if (Number.isFinite(styleW) && styleW >= 40) return Math.round(styleW);
+        }
+        const resolved = resolveMascotCharacterType(liveRoot, tamagotchiCharacterType);
+        const isElite = TAMA_ELITE_MASCOT_TYPES.includes(resolved);
+        const stageScale = getMascotStageVisualScale(getEffectiveMascotStage(), resolved);
+        return Math.round(MASCOT_BASE_SIZE_PX * (isElite ? MASCOT_ELITE_SIZE_MULT : 1) * stageScale);
+    }
+
+    function mountCarePanelMascotPreview(modal) {
+        const stage = modal?.querySelector?.('#tm-mascot-care-preview-stage');
+        const host = modal?.querySelector?.('#tm-mascot-care-preview');
+        const thumb = modal?.querySelector?.('#tm-mascot-care-avatar-preview');
+        if (!stage || !host) return;
+
+        const built = cloneMascotSvgForUiPreview(`tm-care-${Date.now().toString(36)}-`);
+        if (!built) {
+            stage.hidden = true;
+            return;
+        }
+
+        const { clone, liveRoot } = built;
+        const sizePx = getLiveMascotPreviewSizePx(liveRoot);
+        stage.style.setProperty('--tm-care-preview-size', `${sizePx}px`);
+        const stageScale = liveRoot?.style?.getPropertyValue?.('--tm-stage-scale')
+            || liveRoot?.dataset?.tmStageScale
+            || '';
+        if (stageScale) stage.style.setProperty('--tm-stage-scale', String(stageScale).trim());
+        host.replaceChildren(clone);
+
+        if (thumb) {
+            const mini = cloneMascotSvgForUiPreview(`tm-care-av-${Date.now().toString(36)}-`);
+            if (mini) thumb.replaceChildren(mini.clone);
+        }
+
+        // Mirror a few live state classes for mood/lighting fidelity
+        const stateClasses = [
+            'mascot-needs-toilet', 'mascot-dead', 'mascot-dying',
+            'mascot-focus-quiet', 'mascot-parked',
+        ];
+        stateClasses.forEach((cls) => {
+            stage.classList.toggle(cls, !!(liveRoot && liveRoot.classList.contains(cls)));
+        });
+        const charClass = liveRoot
+            ? [...liveRoot.classList].find((c) => c.startsWith('mascot-char-'))
+            : null;
+        [...stage.classList].filter((c) => c.startsWith('mascot-char-')).forEach((c) => stage.classList.remove(c));
+        if (charClass) stage.classList.add(charClass);
+
+        stage.hidden = false;
+    }
+
     // Function to show mascot stats in a modal window
     function showMascotStatsModal(config, STORAGE_KEYS) {
         // Don't interrupt hatch / lucky character selection with the care panel
@@ -41071,7 +41176,9 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             <div class="tm-mascot-modal-container" role="dialog" aria-modal="true" aria-labelledby="tm-mascot-care-title">
                 <div class="tm-mascot-modal-header">
                     <div class="tm-mascot-header-left">
-                        <div class="tm-mascot-avatar" aria-hidden="true">${avatarEmoji}</div>
+                        <div class="tm-mascot-avatar" id="tm-mascot-care-avatar-preview" aria-hidden="true">
+                            <span class="tm-mascot-avatar-fallback">${avatarEmoji}</span>
+                        </div>
                         <div class="tm-mascot-header-info">
                             <h2 class="tm-mascot-name" id="tm-mascot-care-title">${characterName}</h2>
                             <p class="tm-mascot-meta">
@@ -41082,6 +41189,14 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                         </div>
                     </div>
                     <button type="button" class="tm-mascot-close-btn" id="tm-modal-close" aria-label="Κλείσιμο">✕</button>
+                </div>
+
+                <div class="tm-mascot-care-preview" id="tm-mascot-care-preview-stage" hidden>
+                    <div class="tm-mascot-care-preview-frame">
+                        <div class="tm-mascot-care-preview-sprite" id="tm-mascot-care-preview"></div>
+                        <div class="tm-mascot-care-preview-shadow" aria-hidden="true"></div>
+                    </div>
+                    <p class="tm-mascot-care-preview-caption">Προεπισκόπηση 1∶1</p>
                 </div>
 
                 <div class="tm-mascot-tip tm-tip-${tip.level}" id="tm-mascot-care-tip">
@@ -41315,8 +41430,83 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 border-radius: 14px;
                 display: flex; align-items: center; justify-content: center;
                 font-size: 28px;
+                overflow: hidden;
                 background: color-mix(in srgb, var(--tm-primary-color, #007bff) 14%, var(--tm-shop-item-bg, #f8f9fa));
                 border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 22%, transparent);
+            }
+            #tm-mascot-stats-modal .tm-mascot-avatar .tm-mascot-preview-robot,
+            #tm-mascot-stats-modal .tm-mascot-avatar svg {
+                width: 44px; height: 44px; display: block;
+                overflow: visible;
+            }
+            #tm-mascot-stats-modal .tm-mascot-care-preview {
+                margin: 0 18px 12px;
+                padding: 14px 12px 10px;
+                border-radius: 14px;
+                border: 1px solid color-mix(in srgb, var(--tm-primary-color, #007bff) 16%, var(--tm-shop-item-border, #e2e8f0));
+                background:
+                    radial-gradient(ellipse 70% 55% at 50% 42%,
+                        color-mix(in srgb, var(--tm-primary-color, #007bff) 10%, transparent) 0%,
+                        transparent 70%),
+                    linear-gradient(180deg,
+                        color-mix(in srgb, var(--tm-shop-item-bg, #f8fafc) 92%, #e2e8f0) 0%,
+                        var(--tm-shop-item-bg, #fff) 100%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+            }
+            #tm-mascot-stats-modal .tm-mascot-care-preview[hidden] { display: none !important; }
+            #tm-mascot-stats-modal .tm-mascot-care-preview-frame {
+                position: relative;
+                width: var(--tm-care-preview-size, 100px);
+                height: var(--tm-care-preview-size, 100px);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: visible;
+            }
+            #tm-mascot-stats-modal .tm-mascot-care-preview-sprite {
+                position: relative;
+                z-index: 1;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                animation: tmCarePreviewBob 2.8s ease-in-out infinite;
+            }
+            #tm-mascot-stats-modal .tm-mascot-care-preview-sprite .tm-mascot-preview-robot,
+            #tm-mascot-stats-modal .tm-mascot-care-preview-sprite svg {
+                width: 100%;
+                height: 100%;
+                display: block;
+                overflow: visible;
+                pointer-events: none;
+            }
+            #tm-mascot-stats-modal .tm-mascot-care-preview-shadow {
+                position: absolute;
+                left: 50%;
+                bottom: 2px;
+                width: 58%;
+                height: 10px;
+                transform: translateX(-50%);
+                border-radius: 50%;
+                background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.22) 0%, transparent 72%);
+                z-index: 0;
+                pointer-events: none;
+            }
+            #tm-mascot-stats-modal .tm-mascot-care-preview-caption {
+                margin: 0;
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+                color: color-mix(in srgb, var(--tm-shop-item-text, #64748b) 85%, #94a3b8);
+            }
+            @keyframes tmCarePreviewBob {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-4px); }
             }
             #tm-mascot-stats-modal .tm-mascot-name {
                 margin: 0 0 4px; font-size: 1.15rem; font-weight: 700;
@@ -41566,6 +41756,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
         `;
         document.head.appendChild(style);
+        mountCarePanelMascotPreview(modal);
 
         function refreshCareTip() {
             const tipEl = modal.querySelector('#tm-mascot-care-tip');

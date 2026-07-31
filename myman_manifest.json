@@ -1,11 +1,11 @@
 {
-  "version": "314",
+  "version": "315",
   "loaderVersion": "36",
-  "silentVersion": "6",
-  "displayVersion": "36.6",
+  "silentVersion": "7",
+  "displayVersion": "36.7",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Settings: add expandable mascot usage guide (controls, care costs, evolution).",
+  "releaseNotes": "Care panel: 1:1 live SVG mascot preview on open.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
