@@ -5610,28 +5610,28 @@
                 62%, 100% { transform: rotate(-8deg); }
             }
             @keyframes tm-aether-seg-root {
-                0%, 100% { transform: rotate(10deg) scaleY(1); }
-                10% { transform: rotate(10deg) scaleY(1); }
-                20% { transform: rotate(-16deg) scaleY(0.94); }
-                28% { transform: rotate(-14deg) scaleY(0.96); }
-                46% { transform: rotate(8deg) scaleY(1); }
-                60%, 100% { transform: rotate(10deg) scaleY(1); }
+                0%, 100% { transform: rotate(8deg); }
+                10% { transform: rotate(10deg); }
+                22% { transform: rotate(-12deg); }
+                32% { transform: rotate(-10deg); }
+                50% { transform: rotate(6deg); }
+                64%, 100% { transform: rotate(8deg); }
             }
             @keyframes tm-aether-seg-mid {
-                0%, 100% { transform: rotate(6deg) scaleY(1); }
-                10% { transform: rotate(8deg) scaleY(1); }
-                22% { transform: rotate(-22deg) scaleY(0.9); }
-                30% { transform: rotate(-18deg) scaleY(0.94); }
-                48% { transform: rotate(4deg) scaleY(1); }
-                62%, 100% { transform: rotate(6deg) scaleY(1); }
+                0%, 100% { transform: rotate(4deg); }
+                10% { transform: rotate(8deg); }
+                24% { transform: rotate(-18deg); }
+                34% { transform: rotate(-14deg); }
+                52% { transform: rotate(3deg); }
+                66%, 100% { transform: rotate(4deg); }
             }
             @keyframes tm-aether-seg-tip {
-                0%, 100% { transform: rotate(2deg) scaleY(1); }
-                10% { transform: rotate(10deg) scaleY(1.02); }
-                24% { transform: rotate(-30deg) scaleY(0.86); }
-                32% { transform: rotate(-24deg) scaleY(0.9); }
-                50% { transform: rotate(6deg) scaleY(1.04); }
-                64%, 100% { transform: rotate(2deg) scaleY(1); }
+                0%, 100% { transform: rotate(0deg); }
+                10% { transform: rotate(8deg); }
+                26% { transform: rotate(-24deg); }
+                36% { transform: rotate(-18deg); }
+                54% { transform: rotate(4deg); }
+                68%, 100% { transform: rotate(0deg); }
             }
             @keyframes tm-aether-tatter-sway {
                 0%, 100% { transform: rotate(0deg) translate(0, 0); opacity: 0.8; }
@@ -5996,9 +5996,10 @@
             }
 
             /* ─── Aether epic FX pack (parallax / haze / cinematics / interactions) ─── */
-            /* Solid membranes — semi-transparent + stacked mid/tip looked like a black slab in live */
+            /* Cosmic membranes: translucent teal/gold (not flat black) */
             .mascot-char-aether .tm-aether-wing-membrane {
-                opacity: 1 !important;
+                /* SVG path opacity drives translucency; avoid black-slab override */
+                opacity: inherit;
             }
             .mascot-char-aether .tm-aether-ghost-wing-left,
             .mascot-char-aether .tm-aether-ghost-wing-right {

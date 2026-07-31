@@ -1,11 +1,11 @@
 {
-  "version": "324",
+  "version": "325",
   "loaderVersion": "36",
-  "silentVersion": "16",
-  "displayVersion": "36.16",
+  "silentVersion": "17",
+  "displayVersion": "36.17",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Slow Aether walk wing flap (1.15s, was 0.42s).",
+  "releaseNotes": "Aether cosmic nebula angel wings (gold-rim teal feathers, open V).",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",
