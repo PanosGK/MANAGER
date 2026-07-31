@@ -139,3 +139,6 @@ ${cards}
 const outPath = join(__dirname, '..', 'aether-preview.html');
 writeFileSync(outPath, html, 'utf-8');
 console.log('wrote', outPath, 'stages found:', stageBlocks.length);
+
+// Also refresh the unified mascot preview (canonical from now on)
+await import(pathToFileURL(join(__dirname, 'preview-mascots.mjs')).href);

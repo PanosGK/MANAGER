@@ -16,10 +16,10 @@
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '329',
+        version: '330',
         loaderVersion: '36',
-        silentVersion: '21',
-        displayVersion: '36.21',
+        silentVersion: '22',
+        displayVersion: '36.22',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
