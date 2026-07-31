@@ -1,11 +1,11 @@
 {
-  "version": "323",
+  "version": "324",
   "loaderVersion": "36",
-  "silentVersion": "15",
-  "displayVersion": "36.15",
+  "silentVersion": "16",
+  "displayVersion": "36.16",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Aether: disable parent/generic wing motion so only 3-seg flap runs.",
+  "releaseNotes": "Slow Aether walk wing flap (1.15s, was 0.42s).",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

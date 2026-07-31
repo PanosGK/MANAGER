@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v323 / Custom Ver. 36.15 — generated, do not edit */
+/* MyManager Suite bundle v324 / Custom Ver. 36.16 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '323',
+        version: '324',
         loaderVersion: '36',
-        silentVersion: '15',
-        displayVersion: '36.15',
+        silentVersion: '16',
+        displayVersion: '36.16',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -11605,25 +11605,26 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
                 animation: tm-aether-seg-tip 1.45s cubic-bezier(0.15, 0.95, 0.2, 1) infinite !important;
                 animation-delay: 0.06s !important;
             }
+            /* Walk flap: only a bit quicker than idle — not a buzz */
             #tm-mascot-container.mascot-moving:not(.mascot-parked).mascot-char-aether .tm-animate-wing-left .tm-aether-wing-root,
             #tm-mascot-container.mascot-moving:not(.mascot-parked).mascot-char-aether .tm-animate-wing-right .tm-aether-wing-root,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-root,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-root {
-                animation: tm-aether-seg-root 0.42s cubic-bezier(0.2, 0.9, 0.25, 1) infinite !important;
+                animation: tm-aether-seg-root 1.15s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
             }
             #tm-mascot-container.mascot-moving:not(.mascot-parked).mascot-char-aether .tm-animate-wing-left .tm-aether-wing-mid,
             #tm-mascot-container.mascot-moving:not(.mascot-parked).mascot-char-aether .tm-animate-wing-right .tm-aether-wing-mid,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-mid,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-mid {
-                animation: tm-aether-seg-mid 0.42s cubic-bezier(0.15, 0.95, 0.2, 1) infinite !important;
-                animation-delay: 0.02s !important;
+                animation: tm-aether-seg-mid 1.15s cubic-bezier(0.2, 0.9, 0.25, 1) infinite !important;
+                animation-delay: 0.03s !important;
             }
             #tm-mascot-container.mascot-moving:not(.mascot-parked).mascot-char-aether .tm-animate-wing-left .tm-aether-wing-tip,
             #tm-mascot-container.mascot-moving:not(.mascot-parked).mascot-char-aether .tm-animate-wing-right .tm-aether-wing-tip,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-tip,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-tip {
-                animation: tm-aether-seg-tip 0.42s cubic-bezier(0.12, 1, 0.2, 1) infinite !important;
-                animation-delay: 0.04s !important;
+                animation: tm-aether-seg-tip 1.15s cubic-bezier(0.15, 0.95, 0.2, 1) infinite !important;
+                animation-delay: 0.06s !important;
             }
             #tm-mascot-container.mascot-char-aether .tm-aether-wing-tatter,
             #tm-mascot-container .mascot-char-aether .tm-aether-wing-tatter {
