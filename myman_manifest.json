@@ -1,11 +1,11 @@
 {
-  "version": "321",
+  "version": "322",
   "loaderVersion": "36",
-  "silentVersion": "13",
-  "displayVersion": "36.13",
+  "silentVersion": "14",
+  "displayVersion": "36.14",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Aether wing snap-flap: faster downbeat instead of slow sway.",
+  "releaseNotes": "Fix Aether wing black slab: solid membranes, quieter ghost wings.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

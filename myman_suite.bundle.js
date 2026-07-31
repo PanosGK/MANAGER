@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v321 / Custom Ver. 36.13 — generated, do not edit */
+/* MyManager Suite bundle v322 / Custom Ver. 36.14 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '321',
+        version: '322',
         loaderVersion: '36',
-        silentVersion: '13',
-        displayVersion: '36.13',
+        silentVersion: '14',
+        displayVersion: '36.14',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -12531,30 +12531,23 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
             }
 
             /* ─── Aether epic FX pack (parallax / haze / cinematics / interactions) ─── */
+            /* Solid membranes — semi-transparent + stacked mid/tip looked like a black slab in live */
             .mascot-char-aether .tm-aether-wing-membrane {
-                opacity: 0.78;
-            }
-            .mascot-char-aether.mascot-adult .tm-aether-wing-membrane,
-            .mascot-char-aether .mascot-adult .tm-aether-wing-membrane {
-                opacity: 0.7;
-            }
-            .mascot-char-aether.mascot-middleage .tm-aether-wing-membrane,
-            .mascot-char-aether .mascot-middleage .tm-aether-wing-membrane,
-            .mascot-char-aether.mascot-old .tm-aether-wing-membrane,
-            .mascot-char-aether .mascot-old .tm-aether-wing-membrane {
-                opacity: 0.58;
+                opacity: 1 !important;
             }
             .mascot-char-aether .tm-aether-ghost-wing-left,
             .mascot-char-aether .tm-aether-ghost-wing-right {
+                opacity: 0.08 !important;
                 animation: tm-aether-ghost-drift 4.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
                 pointer-events: none;
+                filter: blur(0.6px);
             }
             .mascot-char-aether .tm-aether-ghost-wing-right {
                 animation-delay: -2.2s;
             }
             @keyframes tm-aether-ghost-drift {
-                0%, 100% { opacity: 0.18; transform: translate(0, 0) scale(1.08); }
-                50% { opacity: 0.32; transform: translate(0, -2px) scale(1.12); }
+                0%, 100% { opacity: 0.06; transform: translate(0, 0) scale(1.06); }
+                50% { opacity: 0.12; transform: translate(0, -1px) scale(1.08); }
             }
             .mascot-char-aether .tm-aether-rune-tattoos .tm-aether-rune-glyph {
                 animation: tm-aether-rune-crawl 7s cubic-bezier(0.4, 0, 0.6, 1) infinite;
