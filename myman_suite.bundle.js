@@ -1,4 +1,4 @@
-/* MyManager Suite bundle v328 / Custom Ver. 36.20 — generated, do not edit */
+/* MyManager Suite bundle v329 / Custom Ver. 36.21 — generated, do not edit */
 
 
 // ----- myman_liquid_glass_styles.js -----
@@ -3310,10 +3310,10 @@ window.tmIsLightShopItemBg = tmIsLightShopItemBg;
     // ===================================================================
 
     const SCRIPT_META = {
-        version: '328',
+        version: '329',
         loaderVersion: '36',
-        silentVersion: '20',
-        displayVersion: '36.20',
+        silentVersion: '21',
+        displayVersion: '36.21',
         updateBase: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main',
         manifestUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_manifest.json',
         loaderUrl: 'https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main/myman_loader.user.js'
@@ -37822,7 +37822,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </div>
                     <div class="tm-mascot-care-preview-actions">
                         <p class="tm-mascot-care-preview-caption">Προεπισκόπηση 1∶1</p>
-                        <button type="button" class="tm-mascot-age-preview-btn" id="tm-action-age-preview" title="Δες όλες τις ηλικιακές εξελίξεις">
+                        <button type="button" class="tm-mascot-age-preview-btn" id="tm-action-age-preview" title="Δες όλες τις εξελίξεις">
                             Preview
                         </button>
                     </div>

@@ -16424,7 +16424,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                     </div>
                     <div class="tm-mascot-care-preview-actions">
                         <p class="tm-mascot-care-preview-caption">Προεπισκόπηση 1∶1</p>
-                        <button type="button" class="tm-mascot-age-preview-btn" id="tm-action-age-preview" title="Δες όλες τις ηλικιακές εξελίξεις">
+                        <button type="button" class="tm-mascot-age-preview-btn" id="tm-action-age-preview" title="Δες όλες τις εξελίξεις">
                             Preview
                         </button>
                     </div>
