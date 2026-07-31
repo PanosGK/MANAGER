@@ -1,11 +1,11 @@
 {
-  "version": "320",
+  "version": "321",
   "loaderVersion": "36",
-  "silentVersion": "12",
-  "displayVersion": "36.12",
+  "silentVersion": "13",
+  "displayVersion": "36.13",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Fix Aether 3-seg wing animation (sovereign/parked was rigid one-piece).",
+  "releaseNotes": "Aether wing snap-flap: faster downbeat instead of slow sway.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

@@ -46,19 +46,19 @@ const html = `<!DOCTYPE html>
   .card { background:#0c0518; border:1px solid #3a2258; border-radius:12px; padding:10px; text-align:center; box-shadow: 0 0 24px rgba(124,77,255,0.14); overflow:visible; }
   .label { color:#b39ddb; font-size:13px; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px; text-shadow: 0 0 8px rgba(124,77,255,0.5); }
   h1 { color:#d1c4e9; font-size:18px; font-weight:400; letter-spacing:2px; margin:0 0 16px; text-align:center; }
-  .tm-animate-wing-left { animation: flapL 3.6s cubic-bezier(0.55,0.05,0.35,1) infinite; transform-origin:right center; transform-box:fill-box; }
-  .tm-animate-wing-right { animation: flapR 3.6s cubic-bezier(0.55,0.05,0.35,1) infinite; transform-origin:left center; transform-box:fill-box; }
+  .tm-animate-wing-left { animation: flapL 1.45s cubic-bezier(0.22,0.82,0.28,1) infinite; transform-origin:right center; transform-box:fill-box; }
+  .tm-animate-wing-right { animation: flapR 1.45s cubic-bezier(0.22,0.82,0.28,1) infinite; transform-origin:left center; transform-box:fill-box; }
   .tm-aether-wing-seg { transform-box:fill-box; transform-origin:100% 42%; }
-  .tm-aether-wing-root { animation: segR 3.6s cubic-bezier(0.55,0.05,0.35,1) infinite; }
-  .tm-aether-wing-mid { animation: segM 3.6s cubic-bezier(0.55,0.05,0.35,1) infinite; animation-delay:.1s; }
-  .tm-aether-wing-tip { animation: segT 3.6s cubic-bezier(0.45,0.02,0.3,1) infinite; animation-delay:.2s; }
-  .tm-aether-wing-tatter { animation: tat 2.8s ease-in-out infinite; transform-box:fill-box; transform-origin:top center; }
-  @keyframes flapL { 0%,100%{transform:rotate(3deg)} 40%{transform:rotate(-5deg)} 55%{transform:rotate(-6deg)} 70%{transform:rotate(1deg)} }
-  @keyframes flapR { 0%,100%{transform:rotate(-3deg)} 40%{transform:rotate(5deg)} 55%{transform:rotate(6deg)} 70%{transform:rotate(-1deg)} }
-  @keyframes segR { 0%,100%{transform:rotate(4deg)} 42%{transform:rotate(-10deg)} 58%{transform:rotate(-12deg)} 72%{transform:rotate(2deg)} }
-  @keyframes segM { 0%,100%{transform:rotate(2deg)} 40%{transform:rotate(-16deg)} 56%{transform:rotate(-20deg)} 74%{transform:rotate(4deg)} }
-  @keyframes segT { 0%,100%{transform:rotate(0deg)} 38%{transform:rotate(-22deg)} 54%{transform:rotate(-28deg)} 76%{transform:rotate(8deg)} }
-  @keyframes tat { 0%,100%{transform:rotate(0deg)} 50%{transform:rotate(-6deg)} }
+  .tm-aether-wing-root { animation: segR 1.45s cubic-bezier(0.22,0.82,0.28,1) infinite; }
+  .tm-aether-wing-mid { animation: segM 1.45s cubic-bezier(0.2,0.9,0.25,1) infinite; animation-delay:.03s; }
+  .tm-aether-wing-tip { animation: segT 1.45s cubic-bezier(0.15,0.95,0.2,1) infinite; animation-delay:.06s; }
+  .tm-aether-wing-tatter { animation: tat 1.2s ease-in-out infinite; transform-box:fill-box; transform-origin:top center; }
+  @keyframes flapL { 0%,100%{transform:rotate(8deg)} 10%{transform:rotate(8deg)} 22%{transform:rotate(-14deg)} 30%{transform:rotate(-12deg)} 48%{transform:rotate(6deg)} 62%,100%{transform:rotate(8deg)} }
+  @keyframes flapR { 0%,100%{transform:rotate(-8deg)} 10%{transform:rotate(-8deg)} 22%{transform:rotate(14deg)} 30%{transform:rotate(12deg)} 48%{transform:rotate(-6deg)} 62%,100%{transform:rotate(-8deg)} }
+  @keyframes segR { 0%,100%{transform:rotate(10deg) scaleY(1)} 10%{transform:rotate(10deg) scaleY(1)} 20%{transform:rotate(-16deg) scaleY(.94)} 28%{transform:rotate(-14deg) scaleY(.96)} 46%{transform:rotate(8deg) scaleY(1)} 60%,100%{transform:rotate(10deg) scaleY(1)} }
+  @keyframes segM { 0%,100%{transform:rotate(6deg) scaleY(1)} 10%{transform:rotate(8deg) scaleY(1)} 22%{transform:rotate(-22deg) scaleY(.9)} 30%{transform:rotate(-18deg) scaleY(.94)} 48%{transform:rotate(4deg) scaleY(1)} 62%,100%{transform:rotate(6deg) scaleY(1)} }
+  @keyframes segT { 0%,100%{transform:rotate(2deg) scaleY(1)} 10%{transform:rotate(10deg) scaleY(1.02)} 24%{transform:rotate(-30deg) scaleY(.86)} 32%{transform:rotate(-24deg) scaleY(.9)} 50%{transform:rotate(6deg) scaleY(1.04)} 64%,100%{transform:rotate(2deg) scaleY(1)} }
+  @keyframes tat { 0%,100%{transform:rotate(0deg)} 24%{transform:rotate(-10deg)} 50%{transform:rotate(4deg)} }
 </style>
 </head>
 <body>

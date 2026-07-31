@@ -5053,15 +5053,15 @@
             #tm-mascot-container.mascot-idle.mascot-char-aether .tm-animate-wing-left,
             #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-left,
             #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-left {
-                animation: tm-aether-blade-flap 3.6s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
+                animation: tm-aether-blade-flap 1.45s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
             }
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-animate-wing-right,
             #tm-mascot-container.mascot-idle.mascot-char-aether .tm-animate-wing-right,
             #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-right,
             #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-right {
-                animation: tm-aether-blade-flap-right 3.6s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
+                animation: tm-aether-blade-flap-right 1.45s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
             }
-            /* Fallen angel: root → mid → tip cascade (must beat sovereign/parked overrides) */
+            /* Fallen angel: snap flap — fast downbeat, rest, recover (not slow sway) */
             #tm-mascot-container.mascot-char-aether .tm-aether-wing-seg,
             #tm-mascot-container .mascot-char-aether .tm-aether-wing-seg {
                 transform-box: fill-box;
@@ -5072,41 +5072,41 @@
             #tm-mascot-container.mascot-char-aether .tm-animate-wing-right .tm-aether-wing-root,
             #tm-mascot-container .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-root,
             #tm-mascot-container .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-root {
-                animation: tm-aether-seg-root 3.6s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
+                animation: tm-aether-seg-root 1.45s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
             }
             #tm-mascot-container.mascot-char-aether .tm-animate-wing-left .tm-aether-wing-mid,
             #tm-mascot-container.mascot-char-aether .tm-animate-wing-right .tm-aether-wing-mid,
             #tm-mascot-container .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-mid,
             #tm-mascot-container .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-mid {
-                animation: tm-aether-seg-mid 3.6s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
-                animation-delay: 0.1s !important;
+                animation: tm-aether-seg-mid 1.45s cubic-bezier(0.2, 0.9, 0.25, 1) infinite !important;
+                animation-delay: 0.03s !important;
             }
             #tm-mascot-container.mascot-char-aether .tm-animate-wing-left .tm-aether-wing-tip,
             #tm-mascot-container.mascot-char-aether .tm-animate-wing-right .tm-aether-wing-tip,
             #tm-mascot-container .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-tip,
             #tm-mascot-container .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-tip {
-                animation: tm-aether-seg-tip 3.6s cubic-bezier(0.45, 0.02, 0.3, 1) infinite !important;
-                animation-delay: 0.2s !important;
+                animation: tm-aether-seg-tip 1.45s cubic-bezier(0.15, 0.95, 0.2, 1) infinite !important;
+                animation-delay: 0.06s !important;
             }
             #tm-mascot-container.mascot-moving:not(.mascot-parked).mascot-char-aether .tm-animate-wing-left .tm-aether-wing-root,
             #tm-mascot-container.mascot-moving:not(.mascot-parked).mascot-char-aether .tm-animate-wing-right .tm-aether-wing-root,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-root,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-root {
-                animation: tm-aether-seg-root 0.55s ease-in-out infinite !important;
+                animation: tm-aether-seg-root 0.42s cubic-bezier(0.2, 0.9, 0.25, 1) infinite !important;
             }
             #tm-mascot-container.mascot-moving:not(.mascot-parked).mascot-char-aether .tm-animate-wing-left .tm-aether-wing-mid,
             #tm-mascot-container.mascot-moving:not(.mascot-parked).mascot-char-aether .tm-animate-wing-right .tm-aether-wing-mid,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-mid,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-mid {
-                animation: tm-aether-seg-mid 0.55s ease-in-out infinite !important;
-                animation-delay: 0.05s !important;
+                animation: tm-aether-seg-mid 0.42s cubic-bezier(0.15, 0.95, 0.2, 1) infinite !important;
+                animation-delay: 0.02s !important;
             }
             #tm-mascot-container.mascot-moving:not(.mascot-parked).mascot-char-aether .tm-animate-wing-left .tm-aether-wing-tip,
             #tm-mascot-container.mascot-moving:not(.mascot-parked).mascot-char-aether .tm-animate-wing-right .tm-aether-wing-tip,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left .tm-aether-wing-tip,
             #tm-mascot-container.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right .tm-aether-wing-tip {
-                animation: tm-aether-seg-tip 0.55s ease-in-out infinite !important;
-                animation-delay: 0.1s !important;
+                animation: tm-aether-seg-tip 0.42s cubic-bezier(0.12, 1, 0.2, 1) infinite !important;
+                animation-delay: 0.04s !important;
             }
             #tm-mascot-container.mascot-char-aether .tm-aether-wing-tatter,
             #tm-mascot-container .mascot-char-aether .tm-aether-wing-tatter {
@@ -5180,11 +5180,11 @@
             }
             #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-left,
             #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-left {
-                animation: tm-aether-blade-flap 3.6s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
+                animation: tm-aether-blade-flap 1.45s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
             }
             #tm-mascot-container.mascot-parked.mascot-char-aether .tm-animate-wing-right,
             #tm-mascot-container.mascot-parked .mascot-char-aether .tm-animate-wing-right {
-                animation: tm-aether-blade-flap-right 3.6s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
+                animation: tm-aether-blade-flap-right 1.45s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
             }
             #tm-mascot-container.mascot-parked.mascot-char-phoenix .tm-animate-wing-left,
             #tm-mascot-container.mascot-parked .mascot-char-phoenix .tm-animate-wing-left {
@@ -5316,10 +5316,10 @@
                 animation: tm-mythic-idle-float 6s ease-in-out infinite !important;
             }
             #tm-mascot-container.tm-aether-lite.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left {
-                animation: tm-aether-blade-flap 4.4s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
+                animation: tm-aether-blade-flap 1.7s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
             }
             #tm-mascot-container.tm-aether-lite.mascot-idle:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-right {
-                animation: tm-aether-blade-flap-right 4.4s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
+                animation: tm-aether-blade-flap-right 1.7s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
             }
             #tm-mascot-container.tm-aether-lite.mascot-moving:not(.mascot-parked) .mascot-char-aether .tm-animate-wing-left,
             #tm-mascot-container.tm-aether-lite.mascot-moving.mascot-char-aether:not(.mascot-parked) .tm-animate-wing-left {
@@ -5610,35 +5610,46 @@
                 0%, 100% { transform: rotate(-2deg) scaleY(1); }
                 50% { transform: rotate(14deg) scaleY(1.04); }
             }
+            /* Snap flap: wings up → slam down → brief hold → lift → rest */
             @keyframes tm-aether-blade-flap {
-                0%, 100% { transform: rotate(3deg); }
-                40% { transform: rotate(-5deg); }
-                55% { transform: rotate(-6deg); }
-                70% { transform: rotate(1deg); }
+                0%, 100% { transform: rotate(8deg); }
+                10% { transform: rotate(8deg); }
+                22% { transform: rotate(-14deg); }
+                30% { transform: rotate(-12deg); }
+                48% { transform: rotate(6deg); }
+                62%, 100% { transform: rotate(8deg); }
             }
             @keyframes tm-aether-blade-flap-right {
-                0%, 100% { transform: rotate(-3deg); }
-                40% { transform: rotate(5deg); }
-                55% { transform: rotate(6deg); }
-                70% { transform: rotate(-1deg); }
+                0%, 100% { transform: rotate(-8deg); }
+                10% { transform: rotate(-8deg); }
+                22% { transform: rotate(14deg); }
+                30% { transform: rotate(12deg); }
+                48% { transform: rotate(-6deg); }
+                62%, 100% { transform: rotate(-8deg); }
             }
             @keyframes tm-aether-seg-root {
-                0%, 100% { transform: rotate(4deg); }
-                42% { transform: rotate(-10deg); }
-                58% { transform: rotate(-12deg); }
-                72% { transform: rotate(2deg); }
+                0%, 100% { transform: rotate(10deg) scaleY(1); }
+                10% { transform: rotate(10deg) scaleY(1); }
+                20% { transform: rotate(-16deg) scaleY(0.94); }
+                28% { transform: rotate(-14deg) scaleY(0.96); }
+                46% { transform: rotate(8deg) scaleY(1); }
+                60%, 100% { transform: rotate(10deg) scaleY(1); }
             }
             @keyframes tm-aether-seg-mid {
-                0%, 100% { transform: rotate(2deg); }
-                40% { transform: rotate(-16deg); }
-                56% { transform: rotate(-20deg); }
-                74% { transform: rotate(4deg); }
+                0%, 100% { transform: rotate(6deg) scaleY(1); }
+                10% { transform: rotate(8deg) scaleY(1); }
+                22% { transform: rotate(-22deg) scaleY(0.9); }
+                30% { transform: rotate(-18deg) scaleY(0.94); }
+                48% { transform: rotate(4deg) scaleY(1); }
+                62%, 100% { transform: rotate(6deg) scaleY(1); }
             }
             @keyframes tm-aether-seg-tip {
-                0%, 100% { transform: rotate(0deg); }
-                38% { transform: rotate(-22deg); }
-                54% { transform: rotate(-28deg); }
-                76% { transform: rotate(8deg); }
+                0%, 100% { transform: rotate(2deg) scaleY(1); }
+                10% { transform: rotate(10deg) scaleY(1.02); }
+                24% { transform: rotate(-30deg) scaleY(0.86); }
+                32% { transform: rotate(-24deg) scaleY(0.9); }
+                50% { transform: rotate(6deg) scaleY(1.04); }
+                64%, 100% { transform: rotate(2deg) scaleY(1); }
             }
             @keyframes tm-aether-tatter-sway {
                 0%, 100% { transform: rotate(0deg) translate(0, 0); opacity: 0.8; }
@@ -5776,12 +5787,12 @@
                 75% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
                 100% { opacity: 0; transform: translate(-50%, -58%) scale(1.04); }
             }
-            /* Sovereign idle — keep mild parent beat; 3-seg cascade owns the motion */
+            /* Sovereign idle — same snap flap as normal idle */
             #tm-mascot-container.mascot-char-aether.tm-aether-sovereign:not(.mascot-moving) .tm-animate-wing-left {
-                animation: tm-aether-blade-flap 3.6s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
+                animation: tm-aether-blade-flap 1.45s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
             }
             #tm-mascot-container.mascot-char-aether.tm-aether-sovereign:not(.mascot-moving) .tm-animate-wing-right {
-                animation: tm-aether-blade-flap-right 3.6s cubic-bezier(0.55, 0.05, 0.35, 1) infinite !important;
+                animation: tm-aether-blade-flap-right 1.45s cubic-bezier(0.22, 0.82, 0.28, 1) infinite !important;
             }
             #tm-mascot-container.mascot-char-aether.tm-aether-sovereign .tm-aether-core {
                 animation: tm-mythic-core-pulse 3.4s ease-in-out infinite;
