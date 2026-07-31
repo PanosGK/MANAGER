@@ -4717,6 +4717,38 @@
                 will-change: transform;
                 transform: translateZ(0); /* Force hardware acceleration */
             }
+            /* UI preview clones must not inherit live idle/GPU compositing */
+            .tm-mascot-preview-robot,
+            svg.tm-mascot-preview-robot {
+                animation: none !important;
+                will-change: auto !important;
+                transform: none !important;
+                filter: none !important;
+                cursor: default !important;
+                touch-action: auto !important;
+            }
+            .tm-mascot-preview-robot *,
+            svg.tm-mascot-preview-robot * {
+                animation: none !important;
+                transition: none !important;
+                will-change: auto !important;
+            }
+            /* Pause live mascot while care panel is open (avoids double animated SVGs) */
+            #tm-mascot-container.mascot-care-panel-open .tm-mascot-robot {
+                animation-play-state: paused !important;
+            }
+            #tm-mascot-container.mascot-care-panel-open::before,
+            #tm-mascot-container.mascot-care-panel-open::after {
+                animation: none !important;
+                will-change: auto !important;
+            }
+            #tm-mascot-container.mascot-care-panel-open .tm-animate-wing-left,
+            #tm-mascot-container.mascot-care-panel-open .tm-animate-wing-right,
+            #tm-mascot-container.mascot-care-panel-open .tm-animate-tail,
+            #tm-mascot-container.mascot-care-panel-open .tm-mascot-eye,
+            #tm-mascot-container.mascot-care-panel-open .tm-mascot-antenna {
+                animation-play-state: paused !important;
+            }
             /* Optimize all mascot accessories for smooth animation */
             #tm-mascot-acc-front .tm-mascot-accessory { pointer-events: none; }
             #tm-mascot-acc-front .tm-mascot-accessory[data-tm-back-slot="true"] { opacity: 1; }

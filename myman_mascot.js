@@ -3234,7 +3234,7 @@ function runTamagotchiDeathSequence(STORAGE_KEYS) {
     const deathGen = tamaDeathSequenceGen;
 
     // Only one revive UI — close care panel if open
-    document.getElementById('tm-mascot-stats-modal')?.remove();
+    dismissMascotCarePanel();
 
     showTamagotchiDeathCinematic(() => {
         if (deathGen !== tamaDeathSequenceGen) {
@@ -10016,7 +10016,7 @@ function refreshTamagotchiAfterEggReset(config, STORAGE_KEYS) {
     }
 
     document.getElementById('tm-tamagotchi-death-overlay')?.remove();
-    document.getElementById('tm-mascot-stats-modal')?.remove();
+    dismissMascotCarePanel();
     document.getElementById('tm-mascot-kill-confirm')?.remove();
     clearMascotStagePreview(false);
 
@@ -10125,13 +10125,13 @@ async function restartTamagotchiAsEgg(config, STORAGE_KEYS, options = {}) {
         // Already dead (hunger / health / old age) → no execution cinematic
         const playExecution = !skipExecution && !tamagotchiIsDead;
         if (playExecution) {
-            document.getElementById('tm-mascot-stats-modal')?.remove();
+            dismissMascotCarePanel();
             document.getElementById('tm-mascot-kill-confirm')?.remove();
             document.getElementById('tm-tamagotchi-death-overlay')?.remove();
             await showMascotExecutionCinematic();
             recordTamagotchiUserKill(keys);
         } else {
-            document.getElementById('tm-mascot-stats-modal')?.remove();
+            dismissMascotCarePanel();
             document.getElementById('tm-mascot-kill-confirm')?.remove();
             document.getElementById('tm-tamagotchi-death-overlay')?.remove();
             document.getElementById('tm-tama-death-cinematic')?.remove();
@@ -10462,8 +10462,16 @@ function resyncMascotAppearanceFromStorage(STORAGE_KEYS = window.STORAGE_KEYS) {
 /**
  * Clone the live mascot SVG for UI previews (care panel, Age Preview, etc.).
  * Remaps ids so gradient/filter url(#…) refs stay valid and don't collide with the live sprite.
+ * @param {string} idPrefix
+ * @param {{
+ *   stage?: string,
+ *   characterType?: string,
+ *   keepAccessories?: boolean,
+ *   prune?: boolean,
+ * }} [options] When `prune` (default true) and stage is set, unused evolution groups are removed
+ * so the preview is not a full 60-sprite sheet (critical for GPU).
  */
-function cloneMascotSvgForUiPreview(idPrefix = 'tm-ui-prev-') {
+function cloneMascotSvgForUiPreview(idPrefix = 'tm-ui-prev-', options = {}) {
     const liveRoot = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
     const liveRobot = liveRoot?.querySelector?.('.tm-mascot-robot');
     if (!liveRobot) return null;
@@ -10472,6 +10480,9 @@ function cloneMascotSvgForUiPreview(idPrefix = 'tm-ui-prev-') {
     clone.removeAttribute('id');
     clone.classList.add('tm-mascot-preview-robot');
     clone.style.pointerEvents = 'none';
+    clone.style.animation = 'none';
+    clone.style.willChange = 'auto';
+    clone.style.filter = 'none';
     clone.setAttribute('aria-hidden', 'true');
 
     const idMap = new Map();
@@ -10502,36 +10513,104 @@ function cloneMascotSvgForUiPreview(idPrefix = 'tm-ui-prev-') {
     });
 
     clone.querySelectorAll('.tm-toilet-fx, .tm-toilet-urgency-indicator').forEach((el) => el.remove());
-    return { clone, liveRoot, idPrefix };
+
+    const stage = options.stage || getEffectiveMascotStage() || tamagotchiStage || 'egg';
+    const characterType = options.characterType !== undefined
+        ? options.characterType
+        : tamagotchiCharacterType;
+    const prune = options.prune !== false;
+    const keepAccessories = options.keepAccessories === true;
+
+    if (prune) {
+        isolateMascotStageOnPreviewClone(clone, idPrefix, stage, characterType, {
+            hideAccessories: !keepAccessories,
+            pruneDom: true,
+        });
+    }
+
+    freezeMascotPreviewClone(clone);
+    return { clone, liveRoot, idPrefix, stage, characterType };
+}
+
+/** Kill CSS/SVG animations on preview clones — global `.tm-mascot-robot` idle would GPU-thrash. */
+function freezeMascotPreviewClone(clone) {
+    if (!clone) return;
+    clone.classList.add('tm-mascot-preview-static');
+    clone.style.animation = 'none';
+    clone.style.willChange = 'auto';
+    clone.style.transform = 'none';
+    clone.querySelectorAll('[style*="animation"], .tm-animate-wing-left, .tm-animate-wing-right, .tm-animate-tail, .tm-animate-body, .tm-mascot-eye, .tm-mascot-antenna')
+        .forEach((el) => {
+            el.style.animation = 'none';
+            el.style.willChange = 'auto';
+        });
+}
+
+/** Pause live mascot CSS/physics while care UI is open (prevents double GPU load). */
+function setLiveMascotPausedForCarePanel(paused) {
+    const live = getMascotLiveRoot() || document.getElementById('tm-mascot-container');
+    if (live) live.classList.toggle('mascot-care-panel-open', !!paused);
+    if (paused) {
+        try { stopPhysicsAnimation(); } catch (_) { /* ignore */ }
+    } else if (!document.getElementById('tm-mascot-stats-modal')) {
+        try { startPhysicsAnimation(); } catch (_) { /* ignore */ }
+    }
+}
+
+function dismissMascotCarePanel() {
+    document.getElementById('tm-mascot-stats-modal')?.remove();
+    setLiveMascotPausedForCarePanel(false);
 }
 
 /** Show only one life-stage sprite group inside a remapped preview clone. */
-function isolateMascotStageOnPreviewClone(clone, idPrefix, stage, characterType, { hideAccessories = true } = {}) {
+function isolateMascotStageOnPreviewClone(clone, idPrefix, stage, characterType, {
+    hideAccessories = true,
+    pruneDom = false,
+} = {}) {
     if (!clone) return false;
     const strip = (id) => (id && id.startsWith(idPrefix) ? id.slice(idPrefix.length) : id);
+    const targetRaw = getMascotSpriteIdForStage(stage, characterType);
+    const fallbackRaw = (stage !== 'egg' && characterType && characterType !== 'none')
+        ? `tm-mascot-${TAMA_STAGE_TO_SPRITE_KEY[stage] || 'baby'}`
+        : null;
 
+    const stageNodes = [];
     clone.querySelectorAll('[id]').forEach((el) => {
         const raw = strip(el.id);
         if (!raw) return;
         if (raw === 'tm-mascot-base' || /^tm-mascot-(baby|evo[1-5])(?:-|$)/.test(raw)) {
+            stageNodes.push({ el, raw });
+        }
+    });
+
+    let kept = null;
+    stageNodes.forEach(({ el, raw }) => {
+        const isTarget = raw === targetRaw || (fallbackRaw && raw === fallbackRaw && !kept);
+        if (isTarget) {
+            setSvgSpriteVisible(el, true);
+            kept = el;
+        } else if (pruneDom) {
+            el.remove();
+        } else {
             setSvgSpriteVisible(el, false);
         }
     });
 
     if (hideAccessories) {
         clone.querySelectorAll('.tm-mascot-accessory').forEach((el) => {
-            el.style.display = 'none';
-            el.classList.remove('tm-accessory-equipped');
+            if (pruneDom) el.remove();
+            else {
+                el.style.display = 'none';
+                el.classList.remove('tm-accessory-equipped');
+            }
+        });
+    } else if (pruneDom) {
+        clone.querySelectorAll('.tm-mascot-accessory').forEach((el) => {
+            const equipped = el.classList.contains('tm-accessory-equipped');
+            const hidden = el.style.display === 'none' || el.getAttribute('display') === 'none';
+            if (!equipped || hidden) el.remove();
         });
     }
-
-    const targetRaw = getMascotSpriteIdForStage(stage, characterType);
-    const target = clone.querySelector(`#${CSS.escape(idPrefix + targetRaw)}`)
-        || (stage !== 'egg' && characterType && characterType !== 'none'
-            ? clone.querySelector(`#${CSS.escape(idPrefix + `tm-mascot-${TAMA_STAGE_TO_SPRITE_KEY[stage] || 'baby'}`)}`)
-            : null);
-
-    if (target) setSvgSpriteVisible(target, true);
 
     const stageClass = stage === 'egg' ? 'egg' : stage;
     clone.classList.remove(
@@ -10543,7 +10622,8 @@ function isolateMascotStageOnPreviewClone(clone, idPrefix, stage, characterType,
     if (characterType && characterType !== 'none') {
         clone.classList.add(`mascot-char-${characterType}`);
     }
-    return !!target;
+    freezeMascotPreviewClone(clone);
+    return !!kept;
 }
 
 function ensureMascotAgePreviewStyles() {
@@ -10559,7 +10639,12 @@ function ensureMascotAgePreviewStyles() {
         #tm-mascot-age-preview-overlay .tm-age-prev-backdrop {
             position: absolute; inset: 0;
             background: rgba(15, 23, 42, 0.55);
-            backdrop-filter: blur(7px);
+        }
+        #tm-mascot-age-preview-overlay .tm-mascot-preview-robot,
+        #tm-mascot-age-preview-overlay .tm-mascot-preview-robot * {
+            animation: none !important;
+            transition: none !important;
+            will-change: auto !important;
         }
         #tm-mascot-age-preview-overlay .tm-age-prev-card {
             position: relative; z-index: 1;
@@ -10808,17 +10893,16 @@ function showMascotAgePreviewModal(_config, STORAGE_KEYS) {
         }
 
         const prefix = `tm-age-${stage}-${Math.random().toString(36).slice(2, 7)}-`;
-        const built = cloneMascotSvgForUiPreview(prefix);
+        const built = cloneMascotSvgForUiPreview(prefix, {
+            stage,
+            characterType: stage === 'egg' ? 'none' : characterType,
+            keepAccessories: false,
+            prune: true,
+        });
         if (!built) {
             host.textContent = MASCOT_STAGE_GR[stage] || stage;
             return;
         }
-        isolateMascotStageOnPreviewClone(
-            built.clone,
-            built.idPrefix,
-            stage,
-            stage === 'egg' ? 'none' : characterType,
-        );
         host.appendChild(built.clone);
         host.classList.toggle('is-locked', !!locked);
     }
@@ -20234,7 +20318,13 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         const thumb = modal?.querySelector?.('#tm-mascot-care-avatar-preview');
         if (!stage || !host) return;
 
-        const built = cloneMascotSvgForUiPreview(`tm-care-${Date.now().toString(36)}-`);
+        // One pruned clone only (full sheet ×2 was pegging GPU via idle animation + SVG size)
+        const built = cloneMascotSvgForUiPreview(`tm-care-${Date.now().toString(36)}-`, {
+            stage: getEffectiveMascotStage() || tamagotchiStage || 'egg',
+            characterType: tamagotchiCharacterType,
+            keepAccessories: true,
+            prune: true,
+        });
         if (!built) {
             stage.hidden = true;
             return;
@@ -20249,24 +20339,15 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         if (stageScale) stage.style.setProperty('--tm-stage-scale', String(stageScale).trim());
         host.replaceChildren(clone);
 
+        // Tiny header thumb: clone the already-pruned SVG (cheap), not another full sheet
         if (thumb) {
-            const mini = cloneMascotSvgForUiPreview(`tm-care-av-${Date.now().toString(36)}-`);
-            if (mini) thumb.replaceChildren(mini.clone);
+            const mini = clone.cloneNode(true);
+            freezeMascotPreviewClone(mini);
+            thumb.replaceChildren(mini);
         }
 
-        // Mirror a few live state classes for mood/lighting fidelity
-        const stateClasses = [
-            'mascot-needs-toilet', 'mascot-dead', 'mascot-dying',
-            'mascot-focus-quiet', 'mascot-parked',
-        ];
-        stateClasses.forEach((cls) => {
-            stage.classList.toggle(cls, !!(liveRoot && liveRoot.classList.contains(cls)));
-        });
-        const charClass = liveRoot
-            ? [...liveRoot.classList].find((c) => c.startsWith('mascot-char-'))
-            : null;
+        // Do not mirror mythic aura classes onto the preview stage — ::before auras are GPU-heavy
         [...stage.classList].filter((c) => c.startsWith('mascot-char-')).forEach((c) => stage.classList.remove(c));
-        if (charClass) stage.classList.add(charClass);
 
         stage.hidden = false;
     }
@@ -20281,7 +20362,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         }
 
         const existingModal = document.getElementById('tm-mascot-stats-modal');
-        if (existingModal) existingModal.remove();
+        if (existingModal) dismissMascotCarePanel();
 
         // Re-merge storage + in-memory clock so list/edit always show the same age
         hydrateTamagotchiFromStorage(STORAGE_KEYS, getMascotLiveRoot() || document.getElementById('tm-mascot-container'), {
@@ -20618,10 +20699,22 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
         style.textContent = `
             #tm-mascot-stats-modal .tm-mascot-modal-backdrop {
                 position: fixed; inset: 0;
-                background: rgba(15, 23, 42, 0.45);
-                backdrop-filter: blur(6px);
+                background: rgba(15, 23, 42, 0.5);
+                /* No backdrop-filter — full-screen blur was a major GPU cost with SVG previews */
                 z-index: 100000;
                 animation: tmCareFadeIn 0.2s ease-out;
+            }
+            /* Freeze preview clones — global .tm-mascot-robot idle uses will-change + infinite animation */
+            #tm-mascot-stats-modal .tm-mascot-preview-robot,
+            #tm-mascot-stats-modal .tm-mascot-preview-robot * {
+                animation: none !important;
+                transition: none !important;
+                will-change: auto !important;
+            }
+            #tm-mascot-stats-modal .tm-mascot-preview-robot {
+                filter: none !important;
+                transform: none !important;
+                cursor: default !important;
             }
             #tm-mascot-stats-modal .tm-mascot-modal-container {
                 position: fixed;
@@ -20700,7 +20793,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                animation: tmCarePreviewBob 2.8s ease-in-out infinite;
+                /* Static — infinite bob forced continuous GPU repaints of the SVG */
             }
             #tm-mascot-stats-modal .tm-mascot-care-preview-sprite .tm-mascot-preview-robot,
             #tm-mascot-stats-modal .tm-mascot-care-preview-sprite svg {
@@ -20751,10 +20844,6 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
             #tm-mascot-stats-modal .tm-mascot-age-preview-btn:hover {
                 background: color-mix(in srgb, var(--tm-primary-color, #007bff) 18%, var(--tm-shop-item-bg, #fff));
-            }
-            @keyframes tmCarePreviewBob {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-4px); }
             }
             #tm-mascot-stats-modal .tm-mascot-name {
                 margin: 0 0 4px; font-size: 1.15rem; font-weight: 700;
@@ -21004,6 +21093,7 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
             }
         `;
         document.head.appendChild(style);
+        setLiveMascotPausedForCarePanel(true);
         mountCarePanelMascotPreview(modal);
 
         modal.querySelector('#tm-action-age-preview')?.addEventListener('click', (e) => {
@@ -21129,11 +21219,18 @@ function initInteractiveMascot(config, STORAGE_KEYS) {
                 eggModalInterval = null;
             }
             if (!modal.isConnected) return;
+            setLiveMascotPausedForCarePanel(false);
             const backdrop = modal.querySelector('.tm-mascot-modal-backdrop');
             const shell = modal.querySelector('.tm-mascot-modal-container');
             if (backdrop) backdrop.style.animation = 'tmCareFadeIn 0.2s ease-out reverse';
             if (shell) shell.style.animation = 'tmCareSlideIn 0.2s ease-out reverse';
-            setTimeout(() => modal.remove(), 200);
+            setTimeout(() => {
+                modal.remove();
+                // Ensure pause flag cleared if close raced with another open
+                if (!document.getElementById('tm-mascot-stats-modal')) {
+                    setLiveMascotPausedForCarePanel(false);
+                }
+            }, 200);
         };
         closeBtn?.addEventListener('click', () => {
             closeModal();
