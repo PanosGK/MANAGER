@@ -1,11 +1,11 @@
 {
-  "version": "325",
+  "version": "326",
   "loaderVersion": "36",
-  "silentVersion": "17",
-  "displayVersion": "36.17",
+  "silentVersion": "18",
+  "displayVersion": "36.18",
   "name": "MyManager All-in-One Suite",
   "updateBase": "https://raw.githubusercontent.com/PanosGK/MANAGER/refs/heads/main",
-  "releaseNotes": "Aether cosmic nebula angel wings (gold-rim teal feathers, open V).",
+  "releaseNotes": "Fix Aether live/preview mismatch: membrane opacity + live-matched preview.",
   "modules": [
     "myman_liquid_glass_styles.js",
     "myman_theme_early.js",

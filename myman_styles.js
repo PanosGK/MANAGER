@@ -5131,13 +5131,13 @@
             #tm-mascot-container.mascot-idle .mascot-char-aether .tm-aether-wing-star:nth-child(odd) {
                 animation-delay: 1.4s;
             }
-            /* Pulsing dragon wing veins / cracks — only while idle (not parked) */
+            /* Pulsing wing veins / cracks — only while idle (not parked) */
             .mascot-char-aether .tm-aether-wing-vein {
-                opacity: 0.35;
+                opacity: 0.65;
                 animation: none;
             }
             .mascot-char-aether .tm-aether-wing-crack {
-                opacity: 0.25;
+                opacity: 0.45;
                 animation: none;
             }
             .mascot-char-aether .tm-aether-wing-claw {
@@ -5996,11 +5996,7 @@
             }
 
             /* ─── Aether epic FX pack (parallax / haze / cinematics / interactions) ─── */
-            /* Cosmic membranes: translucent teal/gold (not flat black) */
-            .mascot-char-aether .tm-aether-wing-membrane {
-                /* SVG path opacity drives translucency; avoid black-slab override */
-                opacity: inherit;
-            }
+            /* Cosmic membranes: SVG path opacity only — never override (black-slab bug) */
             .mascot-char-aether .tm-aether-ghost-wing-left,
             .mascot-char-aether .tm-aether-ghost-wing-right {
                 opacity: 0.08 !important;
